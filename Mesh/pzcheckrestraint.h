@@ -8,9 +8,10 @@
 
 class TPZCompMesh;
 
-/// this class will verify the consistency of the restraints of shape functions along a side
+/// @ingroup CompMesh
+/// Will verify the consistency of the restraints of shape functions along a side
 class TPZCheckRestraint {
-
+	
 	TPZCompElSide fSmall;
 	TPZCompElSide fLarge;
 	TPZFMatrix fRestraint;
@@ -19,30 +20,30 @@ class TPZCheckRestraint {
 	TPZVec<int> fSmallConnect;
 	TPZVec<int> fLargeConnect;
 	TPZCompMesh *fMesh;
-
-
+	
+	
 public:
-
+	
 	TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large);
-
+	
 	TPZFMatrix &RestraintMatrix();
-
+	
 	int CheckRestraint();
-
+	
 	void Diagnose();
-
+	
 	void Print(std::ostream &out);
-
+	
 private:
-
+	
 	int SmallConnect(int connectid);
-
+	
 	int LargeConnect(int connectid);
-
+	
 	void AddConnect(int connectindex);
-
+	
 	void AddDependency(int smallconnectid, int largeconnectid, TPZFMatrix &depend);
-
+	
 };
 
 #endif

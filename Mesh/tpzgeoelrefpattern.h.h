@@ -37,7 +37,7 @@ void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
 				break;
 			}
 		}
-			
+		
 		if(it != RefPatternList.end()) fRefPattern =*it;
 	}
 	TPZSaveable::ReadObjects(str, this->fSubEl);

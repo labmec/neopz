@@ -16,45 +16,46 @@
 #include <vector>
 
 /**
-This class implements the structure to allow one mesh to refer to the solution of another
-
-@author Philippe R. B. Devloo
-*/
+ @brief This class implements the structure to allow one mesh to refer to the solution of another
+ @ingroup geometry
+ 
+ @author Philippe R. B. Devloo
+ */
 class TPZCompMeshReferred : public TPZCompMesh
 {
-
-  TPZVec<int> fReferredIndices;
-
-  TPZCompMesh *fReferred;
-
+	
+	TPZVec<int> fReferredIndices;
+	
+	TPZCompMesh *fReferred;
+	
 public:
     TPZCompMeshReferred(TPZGeoMesh *gmesh);
-
+	
     TPZCompMeshReferred(const TPZCompMeshReferred &compmesh);
-
+	
     virtual ~TPZCompMeshReferred();
-
+	
     void LoadReferred(TPZCompMesh *mesh);
-
+	
     void ResetReferred();
-
+	
     TPZCompEl *ReferredEl(int index);
-
+	
     TPZCompMesh *ReferredMesh() const
     {
-      return fReferred;
+		return fReferred;
     }
-
-  /** Divide computational element recursively over referred elements.
-    */
-  static void DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZCompMesh * cmesh);
- 
-   /**
-   * Prints mesh data
-   * @param out indicates the device where the data will be printed
-   */
-  virtual void Print(std::ostream & out = std::cout) const;
-
+	
+	/** @brief Divide computational element recursively over referred elements.
+	 */
+	static void DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZCompMesh * cmesh);
+	
+	/**
+	 * @brief Prints mesh data
+	 * @param out indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream & out = std::cout) const;
+	
 };
 
 #endif

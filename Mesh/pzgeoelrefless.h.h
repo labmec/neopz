@@ -96,13 +96,13 @@ TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 }
 
 /*
-template< class TGeo>
-void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices) {
-	fGeo.Initialize(nodeindices);
-	int i;
-	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
-}
-*/
+ template< class TGeo>
+ void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices) {
+ fGeo.Initialize(nodeindices);
+ int i;
+ for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
+ }
+ */
 
 template<class TGeo>
 int

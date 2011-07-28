@@ -14,52 +14,54 @@
 
 #include "pzflowcmesh.h"
 
-/// Implements a mesh that contains agglomerated elements
-/**
-This class contains both discontinuous, continuous and agglomerated elements
-Its distinction from other meshes is that it points to a reference fine mesh
 
-@ingroup CompMesh
-@author Philippe R. B. Devloo
-*/
+/**
+ @brief Implements a mesh that contains agglomerated elements
+ 
+ This class contains both discontinuous, continuous and agglomerated elements
+ Its distinction from other meshes is that it points to a reference fine mesh
+ 
+ @ingroup CompMesh
+ @author Philippe R. B. Devloo
+ */
 class TPZAgglomerateMesh : public TPZFlowCompMesh
 {
 public:
     TPZAgglomerateMesh() : TPZFlowCompMesh(0)
     {
-      fFineMesh = 0;
+		fFineMesh = 0;
     }
     
     /**
-    An agglomeratemesh needs a fine mesh to relate to, because its elements may
-    point to elements of the finemesh
-    */
+	 @brief An agglomeratemesh needs a fine mesh to relate to, because its elements may
+	 point to elements of the finemesh
+	 */
     TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZFlowCompMesh(finemesh->Reference()),
-        fFineMesh(finemesh)
+	fFineMesh(finemesh)
     {
     }
-
-virtual ~TPZAgglomerateMesh()
-{
-}
+	
+	virtual ~TPZAgglomerateMesh()
+	{
+	}
     
-  /**
-  Return a pointer to the associated fine mesh
-  */
-  TPZCompMesh *FineMesh()
-  {
-    return fFineMesh;
-  }
-
-
-
+	/**
+	 @brief Returns a pointer to the associated fine mesh
+	 */
+	TPZCompMesh *FineMesh()
+	{
+		return fFineMesh;
+	}
+	
+	
+	
 private:
-  
-   /**
-   Reference Mesh for agglomerated elements
-   */
+	
+	/**
+	 @brief Reference Mesh for agglomerated elements
+	 */
     TPZCompMesh *fFineMesh;
-
+	
 };
 
 #endif

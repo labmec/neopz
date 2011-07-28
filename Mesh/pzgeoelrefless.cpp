@@ -51,8 +51,6 @@
 #include "pzmanvector.h"
 //#include "pzstack.h"
 
-
-
 #include "pzelctemp.h"
 
 using namespace pzgeom;
@@ -79,14 +77,8 @@ template class TPZGeoElRefLess<TPZGeoPoint>;
 
 static int main_refless()
 {
-
-TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
-return 0;
+	
+	TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
+	return 0;
 }
-
-
-
-
-
-
 

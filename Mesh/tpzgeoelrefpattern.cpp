@@ -180,13 +180,13 @@ int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 
- //class TPZGeoElRefPattern<TPZGeoCube>;
- //class TPZGeoElRefPattern<TPZGeoLinear>;
- //class TPZGeoElRefPattern<TPZGeoQuad>;
- //class TPZGeoElRefPattern<TPZGeoTriangle>;
- //class TPZGeoElRefPattern<TPZGeoPrism>;
- //class TPZGeoElRefPattern<TPZGeoTetrahedra>;
- //class TPZGeoElRefPattern<TPZGeoPyramid>;
- //class TPZGeoElRefPattern<TPZGeoPoint>;
+//class TPZGeoElRefPattern<TPZGeoCube>;
+//class TPZGeoElRefPattern<TPZGeoLinear>;
+//class TPZGeoElRefPattern<TPZGeoQuad>;
+//class TPZGeoElRefPattern<TPZGeoTriangle>;
+//class TPZGeoElRefPattern<TPZGeoPrism>;
+//class TPZGeoElRefPattern<TPZGeoTetrahedra>;
+//class TPZGeoElRefPattern<TPZGeoPyramid>;
+//class TPZGeoElRefPattern<TPZGeoPoint>;
 
 static TPZGeoEl * teste(){ return new TPZGeoElRefPattern<TPZGeoTriangle>;}

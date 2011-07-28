@@ -1,18 +1,20 @@
 //$Id: pzcheckgeom.cpp,v 1.3 2006-10-17 01:42:51 phil Exp $
 
 #include <fstream>
-using namespace std;
+
 #include "pzcheckgeom.h"
 #include "pzquad.h"
 #include "pztrnsform.h"
 #include "pzstack.h"
+
+using namespace std;
 
 TPZCheckGeom::TPZCheckGeom() {
 	fMesh = 0;
 }
 
 int TPZCheckGeom::CheckElement(TPZGeoEl *gel) {
-
+	
 	int check = 0;
 	int nsides = gel->NSides();
 	int geldim = gel->Dimension();
@@ -60,7 +62,7 @@ int TPZCheckGeom::PerformCheck() {
 }
 
 int TPZCheckGeom::CheckRefinement(TPZGeoEl *gel){
-
+	
 	int check = 0;
 	if(!gel || !gel->HasSubElement()) return check;
 	int nsides = gel->NSides();
@@ -75,8 +77,8 @@ int TPZCheckGeom::CheckRefinement(TPZGeoEl *gel){
 			int son = subel[isub].Element()->WhichSubel();
 			if(fath.Side() != is) {
 				PZError << "TPZCheckGeom::CheckRefinement non corresponding subelement/sides son "
-					<< son << " sonside " << subel[isub].Side() << " fathside " << is <<
-					" fath2side " << fath.Side() << endl;
+				<< son << " sonside " << subel[isub].Side() << " fathside " << is <<
+				" fath2side " << fath.Side() << endl;
 				gel->Print();
 				check = 1;
 			}
@@ -91,12 +93,12 @@ int TPZCheckGeom::CheckRefinement(TPZGeoEl *gel){
 			check = (CheckSubFatherTransform(sub,iss) || check);
 		}
 	}
-
+	
 	return check;
 }
 
 int TPZCheckGeom::CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto){
-
+	
 	int check = 0;
 	int nsides = gel->NSides();
 	TPZIntPoints *integ = gel->CreateSideIntegrationRule(sidefrom,2);
@@ -126,7 +128,7 @@ int TPZCheckGeom::CheckSideTransform(TPZGeoEl *gel, int sidefrom, int sideto){
 		for(ix=0; ix<nx; ix++) dif += (x1[ix]-x2[ix])*(x1[ix]-x2[ix]);
 		if(dif > 1.e-6) {
 			PZError << "TPZCheckGeom::CheckSideTransform sidefrom = "<< sidefrom
-				<< " sideto = " << sideto << " dif = " << dif << endl;
+			<< " sideto = " << sideto << " dif = " << dif << endl;
 			gel->Print();
 			check = 1;
 		}
@@ -168,7 +170,7 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 		if(otherfatherside != father.Side()) {
 			int son = subel->WhichSubel();
 			PZError << "TPZCheckGeom::CheckSubFatherTransform son " << son << " sidesub = "<< sidesub
-				<< " fathside = " << father.Side() << " otherfatherside = " << otherfatherside << endl;
+			<< " fathside = " << father.Side() << " otherfatherside = " << otherfatherside << endl;
 			check=1;
 		}
 		REAL dif = 0;
@@ -178,8 +180,8 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 		if(dif > 1.e-6) {
 			int son = subel->WhichSubel();
 			PZError << "TPZCheckGeom::CheckSubFatherTransform son " << son << " sidesub = "<< sidesub
-				<< " fathside = " << father.Side() << " dif = " << dif << endl;
-//			subel->Print();
+			<< " fathside = " << father.Side() << " dif = " << dif << endl;
+			//			subel->Print();
 			check = 1;
 			TPZTransform t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
 			t.PrintInputForm(cout);
@@ -188,134 +190,134 @@ int TPZCheckGeom::CheckSubFatherTransform(TPZGeoEl *subel, int sidesub) {
 			cout << endl;
 			check = 1;
 		}
-
+		
 	}
 	if(check == 0) {
-			TPZTransform t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
-			check = t.Compare(trans);
-			if(check == 1){
-				int son = subel->WhichSubel();
-				PZError << "TPZCheckGeom::CheckSubFatherTransform son " << son << " sidesub = "<< sidesub
-						<< " fathside = " << father.Side()  << endl;
-				t.PrintInputForm(cout);
-				cout << endl;
-				trans.PrintInputForm(cout);
-				cout << endl;
-			}
-			// compare t with trans
+		TPZTransform t = subel->ComputeParamTrans(father.Element(),father.Side(),sidesub);
+		check = t.Compare(trans);
+		if(check == 1){
+			int son = subel->WhichSubel();
+			PZError << "TPZCheckGeom::CheckSubFatherTransform son " << son << " sidesub = "<< sidesub
+			<< " fathside = " << father.Side()  << endl;
+			t.PrintInputForm(cout);
+			cout << endl;
+			trans.PrintInputForm(cout);
+			cout << endl;
+		}
+		// compare t with trans
 	}
-
+	
 	delete integ;
 	return check;
-
+	
 }
 
 /*template<class TShape>*/
 /*void BuildHigherDimensionSides<TShape>(TPZStack<int> &highdim, int side) {
-	int nsidenodes = TShape::NSideNodes(side);
-	TPZVec<int> sidenodes(nsidenodes);
-	int in;
-	for(in=0; in<nsidenodes; in++) sidenodes[in] = TShape::SideNodeLocId(side,in);
-	int nsides = TShape::NConnects();
-	int is;
-	for(is=side+1; is<nsides; is++) {
-		int nhighnodes = TShape::NSideNodes(is);
-		TPZVec<int> highnodes(nhighnodes);
-		for(in=0; in<nhighnodes; in++) highnodes[in] = TShape::SideNodeLocId(is,in);
-		int jn;
-		for(in=0; in<nsidenodes; in++) {
-			for(jn=0; jn<nhighnodes; jn++) {
-				if(sidenodes[in] == highnodes[jn]) break;
-			}
-			if(jn == nhighnodes) break;
-		}
-		if(in==nsidenodes) highdim.Push(is);
-	}
-}
-
-template<class TShape>
-void PrintHigherDimensionSides<TShape>(ostream &out) {
-
-	int nsides = TShape::NConnects();
-	int side,maxhighsides = 0;
-	out << "static int nhighdimsides[" << nsides << "] = ";
-	out << "{";
-	for(side=0; side<nsides; side++) {
-		TPZStack<int> highdim(10);
-		BuildHigherDimensionSides<TShape>(highdim,side);
-		maxhighsides = (maxhighsides<highdim.NElements()) ? highdim.NElements() : maxhighsides;
-		out << highdim.NElements();
-		if(side<nsides-1) out << ',';
-	}
-	out << "};\n\n";
-
-	out << "static int highsides[" << nsides << "][" << maxhighsides << "] = ";
-	out << "{\n";
-	for(side=0; side<nsides; side++) {
-		TPZStack<int> highdim(10);
-		BuildHigherDimensionSides<TShape>(highdim,side);
-		out << "{";
-		int nhigh = highdim.NElements();
-		int hi;
-		for(hi=0; hi<nhigh; hi++) {
-			out << highdim[hi];
-			if(hi < nhigh-1) out << ',';
-		}
-		if(nhigh == 0) out << -999;
-		out << "}";
-		if(side <nsides-1) out << ',';
-		out << endl;
-	}
-	out << "};\n\n";
-}
-*/
+ int nsidenodes = TShape::NSideNodes(side);
+ TPZVec<int> sidenodes(nsidenodes);
+ int in;
+ for(in=0; in<nsidenodes; in++) sidenodes[in] = TShape::SideNodeLocId(side,in);
+ int nsides = TShape::NConnects();
+ int is;
+ for(is=side+1; is<nsides; is++) {
+ int nhighnodes = TShape::NSideNodes(is);
+ TPZVec<int> highnodes(nhighnodes);
+ for(in=0; in<nhighnodes; in++) highnodes[in] = TShape::SideNodeLocId(is,in);
+ int jn;
+ for(in=0; in<nsidenodes; in++) {
+ for(jn=0; jn<nhighnodes; jn++) {
+ if(sidenodes[in] == highnodes[jn]) break;
+ }
+ if(jn == nhighnodes) break;
+ }
+ if(in==nsidenodes) highdim.Push(is);
+ }
+ }
+ 
+ template<class TShape>
+ void PrintHigherDimensionSides<TShape>(ostream &out) {
+ 
+ int nsides = TShape::NConnects();
+ int side,maxhighsides = 0;
+ out << "static int nhighdimsides[" << nsides << "] = ";
+ out << "{";
+ for(side=0; side<nsides; side++) {
+ TPZStack<int> highdim(10);
+ BuildHigherDimensionSides<TShape>(highdim,side);
+ maxhighsides = (maxhighsides<highdim.NElements()) ? highdim.NElements() : maxhighsides;
+ out << highdim.NElements();
+ if(side<nsides-1) out << ',';
+ }
+ out << "};\n\n";
+ 
+ out << "static int highsides[" << nsides << "][" << maxhighsides << "] = ";
+ out << "{\n";
+ for(side=0; side<nsides; side++) {
+ TPZStack<int> highdim(10);
+ BuildHigherDimensionSides<TShape>(highdim,side);
+ out << "{";
+ int nhigh = highdim.NElements();
+ int hi;
+ for(hi=0; hi<nhigh; hi++) {
+ out << highdim[hi];
+ if(hi < nhigh-1) out << ',';
+ }
+ if(nhigh == 0) out << -999;
+ out << "}";
+ if(side <nsides-1) out << ',';
+ out << endl;
+ }
+ out << "};\n\n";
+ }
+ */
 /*
-template<class TShape>
-void PrintHighDimTransforms<TShape>(int side, ostream &out) {
-
-	TPZStack<int> highdim(10);
-	highdim.Resize(0);
-	BuildHigherDimensionSides<TShape>(highdim,side);
-	int nhigh = highdim.NElements();
-	int ih;
-	for(ih=0; ih<nhigh; ih++) {
-		TPZTransform t1 = TShape::TransformSideToElement(side);
-		TPZTransform t2 = TShape::TransformElementToSide(highdim[ih]);
-		TPZTransform tf = t2.Multiply(t1);
-		tf.PrintInputForm(out);
-		if(ih<nhigh-1) out << ',';
-		out << endl;
-	}
-	if(nhigh == 0) {
-		TPZTransform t1(0);
-		t1.PrintInputForm(out);
-		out << endl;
-	}
-}
-
-template<class TShape>
-void PrintHighDimTransforms<TShape>(ostream &out) {
-	int nsides = TShape::NConnects();
-	int side,maxhighsides = 0;
-	for(side=0; side<nsides; side++) {
-		TPZStack<int> highdim(10);
-		BuildHigherDimensionSides<TShape>(highdim,side);
-		maxhighsides = (maxhighsides<highdim.NElements()) ? highdim.NElements() : maxhighsides;
-		highdim.Resize(0);
-	}
-	out << "static REAL sidetosidetransforms[" << nsides << "][" << maxhighsides << 
-		"][4][3] = ";
-	out << "{\n";
-	for(side=0; side<nsides; side++) {
-		out << "{\n";
-		PrintHighDimTransforms<TShape>(side, out);
-		out << "}";
-		if(side <nsides-1) out << ",";
-		out << endl;
-	}
-	out << "};\n\n";
-}
-*/
+ template<class TShape>
+ void PrintHighDimTransforms<TShape>(int side, ostream &out) {
+ 
+ TPZStack<int> highdim(10);
+ highdim.Resize(0);
+ BuildHigherDimensionSides<TShape>(highdim,side);
+ int nhigh = highdim.NElements();
+ int ih;
+ for(ih=0; ih<nhigh; ih++) {
+ TPZTransform t1 = TShape::TransformSideToElement(side);
+ TPZTransform t2 = TShape::TransformElementToSide(highdim[ih]);
+ TPZTransform tf = t2.Multiply(t1);
+ tf.PrintInputForm(out);
+ if(ih<nhigh-1) out << ',';
+ out << endl;
+ }
+ if(nhigh == 0) {
+ TPZTransform t1(0);
+ t1.PrintInputForm(out);
+ out << endl;
+ }
+ }
+ 
+ template<class TShape>
+ void PrintHighDimTransforms<TShape>(ostream &out) {
+ int nsides = TShape::NConnects();
+ int side,maxhighsides = 0;
+ for(side=0; side<nsides; side++) {
+ TPZStack<int> highdim(10);
+ BuildHigherDimensionSides<TShape>(highdim,side);
+ maxhighsides = (maxhighsides<highdim.NElements()) ? highdim.NElements() : maxhighsides;
+ highdim.Resize(0);
+ }
+ out << "static REAL sidetosidetransforms[" << nsides << "][" << maxhighsides << 
+ "][4][3] = ";
+ out << "{\n";
+ for(side=0; side<nsides; side++) {
+ out << "{\n";
+ PrintHighDimTransforms<TShape>(side, out);
+ out << "}";
+ if(side <nsides-1) out << ",";
+ out << endl;
+ }
+ out << "};\n\n";
+ }
+ */
 #include "pzshapelinear.h"
 #include "pzshapecube.h"
 #include "pzshapepiram.h"
@@ -335,28 +337,28 @@ int TPZCheckGeom::main() {
 	ofstream meshfile("mesh.txt");
 	local.fMesh->Print(meshfile);
 	local.PerformCheck();
-//	ofstream highdim("highdim.txt");
-//	highdim << "linear\n";
-//	PrintHigherDimensionSides<TPZShapeLinear>(highdim);
-//	PrintHighDimTransforms<TPZShapeLinear>(highdim);
-//	highdim << "quad\n";
-//	PrintHigherDimensionSides<TPZShapeQuad>(highdim);
-//	PrintHighDimTransforms<TPZShapeQuad>(highdim);
-//	highdim << "triangle\n";
-//	PrintHigherDimensionSides<TPZShapeTriang>(highdim);
-//	PrintHighDimTransforms<TPZShapeTriang>(highdim);
-//	highdim << "tetrahedra\n";
-//	PrintHigherDimensionSides<TPZShapeTetra>(highdim);
-//	PrintHighDimTransforms<TPZShapeTetra>(highdim);
-//	highdim << "prism\n";
-//	PrintHigherDimensionSides<TPZShapePrism>(highdim);
-//	PrintHighDimTransforms<TPZShapePrism>(highdim);
-//	highdim << "pyramid\n";
-//	PrintHigherDimensionSides<TPZShapePiram>(highdim);
-//	PrintHighDimTransforms<TPZShapePiram>(highdim);
-//	highdim << "hexahedra\n";
-//	PrintHigherDimensionSides<TPZShapeCube>(highdim);
-//	PrintHighDimTransforms<TPZShapeCube>(highdim);
+	//	ofstream highdim("highdim.txt");
+	//	highdim << "linear\n";
+	//	PrintHigherDimensionSides<TPZShapeLinear>(highdim);
+	//	PrintHighDimTransforms<TPZShapeLinear>(highdim);
+	//	highdim << "quad\n";
+	//	PrintHigherDimensionSides<TPZShapeQuad>(highdim);
+	//	PrintHighDimTransforms<TPZShapeQuad>(highdim);
+	//	highdim << "triangle\n";
+	//	PrintHigherDimensionSides<TPZShapeTriang>(highdim);
+	//	PrintHighDimTransforms<TPZShapeTriang>(highdim);
+	//	highdim << "tetrahedra\n";
+	//	PrintHigherDimensionSides<TPZShapeTetra>(highdim);
+	//	PrintHighDimTransforms<TPZShapeTetra>(highdim);
+	//	highdim << "prism\n";
+	//	PrintHigherDimensionSides<TPZShapePrism>(highdim);
+	//	PrintHighDimTransforms<TPZShapePrism>(highdim);
+	//	highdim << "pyramid\n";
+	//	PrintHigherDimensionSides<TPZShapePiram>(highdim);
+	//	PrintHighDimTransforms<TPZShapePiram>(highdim);
+	//	highdim << "hexahedra\n";
+	//	PrintHigherDimensionSides<TPZShapeCube>(highdim);
+	//	PrintHighDimTransforms<TPZShapeCube>(highdim);
 	return 1;
 }
 
@@ -388,7 +390,7 @@ static int nodind[7][8] = {
 static int numnos[7] = {8,5,4,6,2,4,3};
 
 void TPZCheckGeom::CreateMesh() {
-
+	
 	if(fMesh) delete fMesh;
 	fMesh = new TPZGeoMesh();
 	int noind[12];
@@ -410,31 +412,31 @@ void TPZCheckGeom::CreateMesh() {
 		for(in=0; in<numnos[nel]; in++) {
 			nodeindex[in] = nodind[nel][in];
 		}
-    int index;  
+		int index;  
 		switch(nel) {
-		case 0:
-			fMesh->CreateGeoElement(ECube, nodeindex, matid, index);
-			break;
-		case 1:
-			fMesh->CreateGeoElement(EPiramide, nodeindex,matid, index);
-			break;
-		case 2:
-			fMesh->CreateGeoElement(ETetraedro, nodeindex,matid, index);
-			break;
-		case 3:
-			fMesh->CreateGeoElement(EPrisma, nodeindex,matid, index);
-			break;
-		case 4:
-			fMesh->CreateGeoElement(EOned, nodeindex,matid, index);
-			break;
-		case 5:
-			fMesh->CreateGeoElement(EQuadrilateral, nodeindex,matid, index);
-			break;
-		case 6:
-			fMesh->CreateGeoElement(ETriangle, nodeindex,matid, index);
-			break;
-		default:
-			break;
+			case 0:
+				fMesh->CreateGeoElement(ECube, nodeindex, matid, index);
+				break;
+			case 1:
+				fMesh->CreateGeoElement(EPiramide, nodeindex,matid, index);
+				break;
+			case 2:
+				fMesh->CreateGeoElement(ETetraedro, nodeindex,matid, index);
+				break;
+			case 3:
+				fMesh->CreateGeoElement(EPrisma, nodeindex,matid, index);
+				break;
+			case 4:
+				fMesh->CreateGeoElement(EOned, nodeindex,matid, index);
+				break;
+			case 5:
+				fMesh->CreateGeoElement(EQuadrilateral, nodeindex,matid, index);
+				break;
+			case 6:
+				fMesh->CreateGeoElement(ETriangle, nodeindex,matid, index);
+				break;
+			default:
+				break;
 		}
 	}
 	fMesh->BuildConnectivity();

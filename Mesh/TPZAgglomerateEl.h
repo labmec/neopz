@@ -20,270 +20,292 @@ class TPZInterfaceElement;
 struct TPZElementMatrix;
 class TPZAgglomerateMesh;
 
-/// Implements an agglomerated discontinuous element
 /**
+ * @brief Implements an agglomerated discontinuous element
+ *
  * TPZAgglomerateElement clase that it manages the generation of elements 
  * from the agglomeration of some geometric elements
- @ingroup CompElement
+ * @ingroup CompElement
  */
 class TPZAgglomerateElement : public TPZCompElDisc { 
-
+	
 private:
-
-  /**
-   * indexes na malha fina dos sub-elementos computacionais aglomerados pelo atual
-   */
-  TPZStack<int> fIndexes;
-
-  /**
-   * malha à qual os elementos aglomerados fazem parte e 
-   * do qual o atual foi obtido
-   */
-  TPZCompMesh *fMotherMesh;
-
-  /**
-   * Stores the element's inner radius.
-   * It is the lessest distance between the element center point and its interface's center points.
-   */
-  REAL fInnerRadius;
-
-  /**
-   * Stores the number of interfaces of the element.
-   */
-  int fNFaces;
-  
-  /**
-   * Material id of the agglomerated element
-   */
-  int fMaterialId;
-
+	
+	/**
+	 * @brief Indexes into the fine mesh of computational subelements in the clusters by the current
+	 *
+	 * Indexes na malha fina dos sub-elementos computacionais aglomerados pelo atual
+	 */
+	TPZStack<int> fIndexes;
+	
+	/**
+	 * @brief Mesh for the clusters which elements are part and from that the current mesh was obtained
+	 * 
+	 * Malha a qual os elementos aglomerados fazem parte e 
+	 * do qual o atual foi obtido
+	 */
+	TPZCompMesh *fMotherMesh;
+	
+	/**
+	 * @brief Stores the element's inner radius.
+	 * 
+	 * It is the lessest distance between the element center point and its interface's center points.
+	 */
+	REAL fInnerRadius;
+	
+	/**
+	 * @brief Stores the number of interfaces of the element.
+	 */
+	int fNFaces;
+	
+	/**
+	 * @brief Material id of the agglomerated element
+	 */
+	int fMaterialId;
+	
 public:
-
-  /** Constructor: caso o elemento é passível de ser agrupado retorna-se 
-   * um novo index caso contrário index = -1
-   */
-  TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
-  
-  TPZAgglomerateElement();
-
-  /** inicializa os dados caracteristicos do elemento aglomerado */
-  void InitializeElement();
-
-  /**
-   * Set the inner radius value.
-   */
-  void SetInnerRadius(REAL InnerRadius) { fInnerRadius = InnerRadius;}
-
-  /**
-   * Returns the inner radius value.
-   * Inner radius mut be set with SetInnerRadius.
-   */
-  REAL InnerRadius2() {return fInnerRadius;}
-
-  /**
-   * Returns the inner radius value.
-   * Inner radius is the sub-element's radius average weighted by their volumes.
-   */
-  REAL InnerRadius(){
-    int nsubel = this->NIndexes();
-    REAL value = 0.;
-    TPZCompElDisc * disc;
-    for (int i = 0; i < nsubel; i++){
-      disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
+	
+	/** @brief Constructor: caso o elemento é passível de ser agrupado retorna-se 
+	 * um novo index caso contrário index = -1
+	 */
+	TPZAgglomerateElement(int nummat,int &index,TPZCompMesh &aggcmesh,TPZCompMesh *finemesh);
+	
+	TPZAgglomerateElement();
+	
+	/** @brief Initialize the characteristics data of the clustered elements.  
+	 *
+	 * inicializa os dados caracteristicos do elemento aglomerado */
+	void InitializeElement();
+	
+	/**
+	 * @brief Sets the inner radius value.
+	 */
+	void SetInnerRadius(REAL InnerRadius) { fInnerRadius = InnerRadius;}
+	
+	/**
+	 * @brief Returns the inner radius value.
+	 * 
+	 * Inner radius mut be set with SetInnerRadius.
+	 */
+	REAL InnerRadius2() {return fInnerRadius;}
+	
+	/**
+	 * @brief Returns the inner radius value.
+	 * 
+	 * Inner radius is the sub-element's radius average weighted by their volumes.
+	 */
+	REAL InnerRadius(){
+		int nsubel = this->NIndexes();
+		REAL value = 0.;
+		TPZCompElDisc * disc;
+		for (int i = 0; i < nsubel; i++){
+			disc = dynamic_cast<TPZCompElDisc *>(this->SubElement(i) );
 #ifdef DEBUG
-      if (!disc) {
-	PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << std::endl;
-	exit (-1);
-      }
+			if (!disc) {
+				PZError << "TPZAgglomerateElement::InnerRadius FineElement must be a TPZCompElDisc" << std::endl;
+				exit (-1);
+			}
 #endif
-      value += disc->InnerRadius() * disc->VolumeOfEl();
-    }
-    value = value / this->VolumeOfEl();
-    return value;  
-  }
-
-  /**
-   * Set element's number of interfaces.
-   */
-  void SetNInterfaces(int nfaces) {fNFaces = nfaces; }
-
-  /**
-   * Retunrs the number of interfaces;
-   */
-  int NInterfaces() {return fNFaces;}
-
-  /** adiciona index do sub-elemento*/
-  static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);
-
-  /**Destructor do objeto*/
-  ~TPZAgglomerateElement(){};
-
-  /**
-   * Type of the element 
-   */  
-  MElementType Type(){return EAgglomerate;}
-
-  /** retorna malha mae */
-  TPZCompMesh *MotherMesh(){return fMotherMesh;}
-
-  /** acumula a lista de regras de integra¢ão no elemento deformado*/
-  virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
-
-  /** accumulate the vertices of the agglomerated elements */
-  virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
-
-  /** calcula o ponto centro de massa dos elementos aglomerados */
-  void CenterPoint();
-
-  /** devolve o centro de massa do elemento */
-  virtual void CenterPoint(TPZVec<REAL> &center);
-
-  /** retorna o volume do elemento geométrico referenciado */
-  REAL VolumeOfEl();
-
-  /**
-   * Calcula a restrição da solução ou resíduo dos elementos aglomerados para o
-   * obtido por aglomeração - este último chamado de elemento pai
-   */
-  void CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el);
-
-  void CalcResidual(TPZElementMatrix &ef)
-  {
-	  std::cout << __PRETTY_FUNCTION__ << " is not implemented\n";
-	  exit(-1);
-  }
-
-  /**
-   * Monta a equação diferencial do modelo sobre o elemento definido por 
-   * aglomeração de elementos da malha fina
-   */
-  void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
-  /** retorna o número de sub-elementos aglomerados */
-  int NIndexes() const {return fIndexes.NElements();}
-
-  /**
-   * retorna o elemento computacional da malha fina de índice index
-   * Desnecessario porque identico a SubElement
-  
-  TPZCompEl *FineElement(int index);
-  */
-
-  /**return the geometric element to which this element references*/
-  TPZGeoEl *CalculateReference();
-
-//  /**os geométricos agrupados apontam para o computacional*/
-/*  void SetReference(){
-    int nindex = NIndexes(),i;
-    for(i=0;i<nindex;i++){
-      TPZCompEl *cel = SubElement(i);
-      int type = cel->Type();
-      //caso comp é aglomerado: chamada recursiva
-      if(type == EAgglomerate){//aglomerado
-	SetReference();
-      } else if(type == EDiscontinuous){//descontínuo
-	//o geométrico agrupado apontará para o atual computacional
-	cel->Reference()->SetReference(this);
-      }
-    }
-  }
-
-  void SetReference2(int sub){
-
-  TPZCompEl *cel = SubElement(sub);
-  int type = cel->Type();
-  //caso comp é aglomerado: chamada recursiva
-  if(type == EAgglomerate){//aglomerado
-    dynamic_cast<TPZAgglomerateElement *>(cel)->SetReference();
-  } else if(type == EDiscontinuous){//descontínuo
-    //o geométrico agrupado apontará para o atual computacional
-    cel->Reference()->SetReference(this);
-  }
-} */
-
-  /** \brief Computes a measure of the element
-   * Computes the maximum distance in x,y and z and then returns the minimum of
-   * these three measures
-   */
-virtual REAL LesserEdgeOfEl();
-
-
-   /** 
-    * retorna o sub-elemento número sub 
-    */
-   TPZCompEl *SubElement(int sub) const;
-
-   REAL NormalizeConst();
-
-  /**
-   * it creates new conect that it associates the degrees of freedom of the
-   * element and returns its index 
-   */
-  virtual int CreateMidSideConnect();
-
-  /**
-   * it returns dimension from the elements
-   */
-  int Dimension() const;
-
-  /**
-   * it prints the features of the element 
-   */
-  virtual void Print(std::ostream & out = std::cout) const;
-
-  /**
-   * create copy of the materials tree
-   */
-//  void CreateMaterialCopy(TPZCompMesh &aggcmesh);
-
-  void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
-
-  void IndexesDiscSubEls(TPZStack<int> &elvec);
-
-  /**
-   * Returns the number of sides. If all the volumes agglomerated have the same number, it returns this number, else it returns -1.
-   */
-  int NSides();
-
-  void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
-
-//  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
-
-//  TPZGeoEl *FatherN(TPZGeoEl *sub,int n);
-
-//  int NSubsOfLevels(TPZGeoEl *father,int nlevels);
-
-//  int NSubCompEl(TPZGeoEl *father);
-
-  static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
-
-//  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
-
-  void Print(TPZStack<int> &listindex);
-
-  void ProjectSolution(TPZFMatrix &projectsol);
-//  void ProjectSolution2(TPZFMatrix &projectsol);
-
-
-  static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
-
-  static void ComputeNeighbours(TPZCompMesh *mesh, std::map<TPZCompElDisc *,std::set<TPZCompElDisc *> > &neighbours);
-  
-  /**
-  * returns the unique identifier for reading/writing objects to streams
-  */
-  virtual int ClassId() const;
-  /**
-  Save the element data to a stream
-  */
-  virtual void Write(TPZStream &buf, int withclassid);
-  
-  /**
-  Read the element data from a stream
-  */
-  virtual void Read(TPZStream &buf, void *context);
-
-
-
+			value += disc->InnerRadius() * disc->VolumeOfEl();
+		}
+		value = value / this->VolumeOfEl();
+		return value;  
+	}
+	
+	/**
+	 * @brief Sets element's number of interfaces.
+	 */
+	void SetNInterfaces(int nfaces) {fNFaces = nfaces; }
+	
+	/**
+	 * @brief Retunrs the number of interfaces;
+	 */
+	int NInterfaces() {return fNFaces;}
+	
+	/** @brief Insert the subelement index.
+	 *
+	 * adiciona index do sub-elemento*/
+	static void AddSubElementIndex(TPZCompMesh *aggcmesh,int subel,int destind);
+	
+	/** @brief Destructor*/
+	~TPZAgglomerateElement(){};
+	
+	/**
+	 * @brief Type of the element 
+	 */  
+	MElementType Type(){return EAgglomerate;}
+	
+	/** @brief Returns father mesh. */
+	TPZCompMesh *MotherMesh(){return fMotherMesh;}
+	
+	/** @brief Accumulates integration rule to deformed element. */
+	/** acumula a lista de regras de integraco no elemento deformado*/
+	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
+	
+	/** @brief Accumulate the vertices of the agglomerated elements */
+	virtual void AccumulateVertices(TPZStack<TPZGeoNode *> &nodes);
+	
+	/** calcula o ponto centro de massa dos elementos aglomerados */
+	/** @brief Computes the center of the mass to clustered elements */
+	void CenterPoint();
+	
+	/** devolve o centro de massa do elemento */
+	/** @brief Returns the center of the mass */
+	virtual void CenterPoint(TPZVec<REAL> &center);
+	
+	/** retorna o volume do elemento geométrico referenciado */
+	/** @brief Returns the volume of the geometric element referenced */
+	REAL VolumeOfEl();
+	
+	/**
+	 * Calcula a restrição da solução ou resíduo dos elementos aglomerados para o
+	 * obtido por aglomeração - este último chamado de elemento pai
+	 */
+	/** @brief Computes the residual of the solution to father element from clustered subelements. */
+	void CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el);
+	
+	void CalcResidual(TPZElementMatrix &ef)
+	{
+		std::cout << __PRETTY_FUNCTION__ << " is not implemented\n";
+		exit(-1);
+	}
+	
+	/**
+	 * Monta a equação diferencial do modelo sobre o elemento definido por 
+	 * aglomeração de elementos da malha fina
+	 */
+	/** @brief Assembles the differential equation to model over the element defined by clustered subelements. */
+	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	
+	/** retorna o número de sub-elementos aglomerados */
+	/** @brief Returns the number of clustered subelements. */
+	int NIndexes() const {return fIndexes.NElements();}
+	
+	/**
+	 * retorna o elemento computacional da malha fina de índice index
+	 * Desnecessario porque identico a SubElement
+	 
+	 TPZCompEl *FineElement(int index);
+	 */
+	
+	/** @brief Returns the geometric element to which this element references*/
+	TPZGeoEl *CalculateReference();
+	
+	//  /**os geométricos agrupados apontam para o computacional*/
+	/*  void SetReference(){
+	 int nindex = NIndexes(),i;
+	 for(i=0;i<nindex;i++){
+	 TPZCompEl *cel = SubElement(i);
+	 int type = cel->Type();
+	 //caso comp é aglomerado: chamada recursiva
+	 if(type == EAgglomerate){//aglomerado
+	 SetReference();
+	 } else if(type == EDiscontinuous){//descontínuo
+	 //o geométrico agrupado apontará para o atual computacional
+	 cel->Reference()->SetReference(this);
+	 }
+	 }
+	 }
+	 
+	 void SetReference2(int sub){
+	 
+	 TPZCompEl *cel = SubElement(sub);
+	 int type = cel->Type();
+	 //caso comp é aglomerado: chamada recursiva
+	 if(type == EAgglomerate){//aglomerado
+	 dynamic_cast<TPZAgglomerateElement *>(cel)->SetReference();
+	 } else if(type == EDiscontinuous){//descontínuo
+	 //o geométrico agrupado apontará para o atual computacional
+	 cel->Reference()->SetReference(this);
+	 }
+	 } */
+	
+	/** @brief Computes a measure of the element
+	 * 
+	 * Computes the maximum distance in x,y and z and then returns the minimum of
+	 * these three measures
+	 */
+	virtual REAL LesserEdgeOfEl();
+	
+	
+	/** 
+	 * retorna o sub-elemento número sub 
+	 */
+	/** @brief Returns the "sub" subelement. */
+	TPZCompEl *SubElement(int sub) const;
+	
+	REAL NormalizeConst();
+	
+	/**
+	 * @brief It creates new conect that it associates the degrees of freedom of the
+	 * element and returns its index 
+	 */
+	virtual int CreateMidSideConnect();
+	
+	/**
+	 * @brief It returns dimension from the elements
+	 */
+	int Dimension() const;
+	
+	/**
+	 * @brief Prints the features of the element 
+	 */
+	virtual void Print(std::ostream & out = std::cout) const;
+	
+	/**
+	 * Creates copy of the materials tree
+	 */
+	//  void CreateMaterialCopy(TPZCompMesh &aggcmesh);
+	
+	void ListOfDiscEl(TPZStack<TPZCompEl *> &elvec);
+	
+	void IndexesDiscSubEls(TPZStack<int> &elvec);
+	
+	/**
+	 * @brief Returns the number of sides. If all the volumes agglomerated have the same number, it returns this number, else it returns -1.
+	 */
+	int NSides();
+	
+	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	
+	//  void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
+	
+	//  TPZGeoEl *FatherN(TPZGeoEl *sub,int n);
+	
+	//  int NSubsOfLevels(TPZGeoEl *father,int nlevels);
+	
+	//  int NSubCompEl(TPZGeoEl *father);
+	
+	static void ListOfGroupings(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int nivel,int &numaggl,int dim);
+	
+	//  void FineSolution(TPZVec<REAL> &x,TPZCompElDisc *disc,TPZVec<REAL> &uh);
+	
+	void Print(TPZStack<int> &listindex);
+	
+	void ProjectSolution(TPZFMatrix &projectsol);
+	//  void ProjectSolution2(TPZFMatrix &projectsol);
+	
+	
+	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);
+	
+	static void ComputeNeighbours(TPZCompMesh *mesh, std::map<TPZCompElDisc *,std::set<TPZCompElDisc *> > &neighbours);
+	
+	/**
+	 * @brief Returns the unique identifier for reading/writing objects to streams
+	 */
+	virtual int ClassId() const;
+	/**
+	 @brief Save the element data to a stream
+	 */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/**
+	 @brief Read the element data from a stream
+	 */
+	virtual void Read(TPZStream &buf, void *context);
+	
+	
+	
 };
+
 #endif

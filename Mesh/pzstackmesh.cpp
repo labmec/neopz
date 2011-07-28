@@ -48,11 +48,11 @@ template class TPZStack<TElMeasurement *>;
 #endif // ELLIPS
 
 /*
-#ifdef ARXDBX
-#include "dbid.h"
-template class TPZStack<AcDbObjectId>;
-#endif
-*/
+ #ifdef ARXDBX
+ #include "dbid.h"
+ template class TPZStack<AcDbObjectId>;
+ #endif
+ */
 
 #ifdef ELLIPSARX
 #include "TElRxPointerConv.h"

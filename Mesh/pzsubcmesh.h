@@ -24,105 +24,108 @@ class TPZSubMeshAnalysis;
 class TPZAnalysis;
 class TPZGuiInterface;
 
-/// Implements a group of computational elements as a mesh and an element
 /**
+ * @brief Implements a group of computational elements as a mesh and an element
+ *
  * Class TPZSubCompMesh derived from Computacional mesh and
  * computacional element classes.
  * @ingroup CompMesh
  * @ingroup CompElement
  */
 class TPZSubCompMesh :
-	public TPZCompMesh,
-	public TPZCompEl
+public TPZCompMesh,
+public TPZCompEl
 {
 protected:
 	/**
-	 * Pointer to submesh analysis object. Defines the resolution type.
+	 * @brief Pointer to submesh analysis object. Defines the resolution type.
 	 */
-//#ifdef SUBFRONTAL
-//	TPZAutoPointer<TPZSubMeshFrontalAnalysis> fAnalysis;
-//#else
-//	TPZAutoPointer<TPZSubMeshAnalysis> fAnalysis;
-//#endif
+	//#ifdef SUBFRONTAL
+	//	TPZAutoPointer<TPZSubMeshFrontalAnalysis> fAnalysis;
+	//#else
+	//	TPZAutoPointer<TPZSubMeshAnalysis> fAnalysis;
+	//#endif
 	TPZAutoPointer<TPZAnalysis> fAnalysis;
-
-  /**
-	 * Pointer to external location index of the connection.
-   * If the connection hasn't external location return the local id.
-   */
-  TPZManVector<int> fConnectIndex;
-
-  /**
-   * Indexes of the external connections.
-   * If the connection isn't external id is -1!
-   */
-  TPZManVector<int> fExternalLocIndex;
+	
 	/**
-	 * map indicating the correspondence between the connect index of the father mesh and de local connect id
+	 * @brief Pointer to external location index of the connection.
+	 * 
+	 * If the connection hasn't external location return the local id.
+	 */
+	TPZManVector<int> fConnectIndex;
+	
+	/**
+	 * @brief Indexes of the external connections.
+	 * 
+	 * If the connection isn't external id is -1!
+	 */
+	TPZManVector<int> fExternalLocIndex;
+	/**
+	 * @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id
 	 */
 	std::map<int,int> fFatherToLocal;
     
     /// Number of rigid body modes expected by the internal matrix inversion
     int fSingularConnect;
-
-
+	
+	
 private:
-  /**
-   * Transfer one element from a submesh to another mesh.
-   */
-  int TransferElementTo(TPZCompMesh * mesh, int elindex);
-
-  /**
-   * Transfer one element from a specified mesh to the current submesh.
-   */
-  int TransferElementFrom(TPZCompMesh *mesh, int elindex);
-
 	/**
-	 * Mark the connect to be local
+	 * @brief Transfers one element from a submesh to another mesh.
+	 */
+	int TransferElementTo(TPZCompMesh * mesh, int elindex);
+	
+	/**
+	 * @brief Transfers one element from a specified mesh to the current submesh.
+	 */
+	int TransferElementFrom(TPZCompMesh *mesh, int elindex);
+	
+	/**
+	 * @brief Marks the connect to be local
 	 */
 	void MakeInternalFast(int local);
-
-
+	
+	
 public:
 	TPZAnalysis * GetAnalysis();
-  /**
-   * Constructor.
-   * @param mesh reference mesh
-   * @param index reference mesh element index to transfer to submesh
-   */
-  TPZSubCompMesh(TPZCompMesh &mesh, int &index);
-  TPZSubCompMesh();
-
-  /**
-   * Destructor.
-   */
-  virtual ~TPZSubCompMesh();
-  virtual int NConnectShapeF(int inod){
-    PZError << "\nPLEASE IMPLEMENT ME: " << __PRETTY_FUNCTION__ << "\n";
-    return 0;
-  }
-
-  virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
-    std::cout << "TPZSubCompMesh::Clone should be implemented\n";
-    return 0;
-  }
-
-  virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
-                                  std::map<int,int> & gl2lcConMap,
-                                  std::map<int,int> & gl2lcElMap) const
-  {
-    std::cout << "TPZSubCompMesh::Clone should be implemented\n";
-    return 0;
-  }
-
-  /**
-   * Static function for validation tests.
-   */
-  static int main();
-
-  /**
-   * Set the analysis type.
-   */
+	/**
+	 * @brief Constructor.
+	 * @param mesh reference mesh
+	 * @param index reference mesh element index to transfer to submesh
+	 */
+	TPZSubCompMesh(TPZCompMesh &mesh, int &index);
+	TPZSubCompMesh();
+	
+	/**
+	 * @brief Destructor.
+	 */
+	virtual ~TPZSubCompMesh();
+	virtual int NConnectShapeF(int inod){
+		PZError << "\nPLEASE IMPLEMENT ME: " << __PRETTY_FUNCTION__ << "\n";
+		return 0;
+	}
+	
+	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
+		std::cout << "TPZSubCompMesh::Clone should be implemented\n";
+		return 0;
+	}
+	
+	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
+									std::map<int,int> & gl2lcConMap,
+									std::map<int,int> & gl2lcElMap) const
+	{
+		std::cout << "TPZSubCompMesh::Clone should be implemented\n";
+		return 0;
+	}
+	
+	/**
+	 * Static function for validation tests.
+	 */
+	static int main();
+	
+	/**
+	 * @brief Sets the analysis type.
+	 */
 	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	void SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
@@ -130,181 +133,184 @@ public:
 	{
 		return fAnalysis;
 	}
-
-  /**
-   * This method will load the elements of the grid in their corresponding geometric
-   * elements
-   **/
-  virtual void LoadElementReference();
-
-  /**
-   * This method will initiate the comparison between the current computational
-   * mesh and the mesh which is referenced by the geometric mesh
-   * @param var state variable number
-   * @param matname pointer to material name
-   **/
-  virtual REAL CompareElement(int var, char *matname);
-
-  /**
-   * Verifies the transfer possibility of the connection elindex from
-   * the mesh to the current submesh.
-   * @param mesh  pointer to given mesh
-   * @param elindex given mesh element index
-   */
-  int IsAllowedElement(TPZCompMesh *mesh, int elindex);
-
- /**
-   * @name Mesh
-   * Methods derived from TPZCompMesh
-   */
-
-  //@{
-  // ==== Virtual methods - Computacional Mesh derived ====
-
-  /**
-   * Transfer one element form a submesh to another mesh.
-   */
-  virtual int TransferElement(TPZCompMesh *mesh, int elindex);
-
-  /**
-   * Make all mesh connections internal mesh connections.
-   */
-  virtual void MakeAllInternal();
-
-  /**
-   * compute the number of internal equations
-   */
-  int NumInternalEquations();
-
-  /**
-   * This method computes the skyline of the system of equations
-   * @param skyline vector where the skyline will be computed
-   */
-  virtual void SkylineInternal(TPZVec<int> &skyline);
-
-  /**
-   * Returns the rootmesh who have the specified connection.
-   * @param local connection local index
-   */
-  virtual TPZCompMesh * RootMesh(int local);
-
-  /**
-   * Makes a specified connection a internal mesh connection.
-   * @param local connection local number to be processed
-   */
-  virtual void MakeInternal(int local);
-
-private:
-  /**
-   * Transfer the dependency list of a connect. This will
-   * make the dependency disappear for the corresponding father mesh
-   * It is necessary that the number of elements connected to the connect be equal one
-   */
-  void TransferDependencies(int local);
-
-public:
-  /// puts the nodes which can be transferred in an ordered list
-  void PotentialInternal(std::list<int> &connectindices) const;
-
-   /**
-    * Put an local connection in the supermesh - Supermesh is one
-    * mesh who contains the analised submesh.
-    * @param local local index of the element to be trasnfered
-    * @param super pointer to the destination mesh
-    */
-  virtual int PutinSuperMesh(int local, TPZCompMesh *super);
-
-  /**
-   * Get an external connection from the supermesh - Supermesh is one
-   * mesh who contains the analised submesh.
-   * @param superind index of the element to be trasnfered
-   * @param super pointer to the destination mesh
-   */
-  virtual int GetFromSuperMesh(int superind, TPZCompMesh *super);
-
-  /**
-   * Changes an local internal connection to a external connection in the father mesh.
-   * @param local makes the connect with index local an external node
-   */
-  void MakeExternal(int local);
-
-  /**
-   * Gives the commom father mesh of the specified mesh and the current submesh.
-   * @param mesh pointer to other mesh whosw want to know the commom father mesh
-   */
-  virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
-
-  /**
-   * Return the current submesh father mesh .
-   */
-  virtual TPZCompMesh * FatherMesh() const;
-  //@}
-
-  /**
-   * Optimize the connections positions on block.
-   * void TPZSubCompMesh::PermuteExternalConnects(){
-   */
-  void PermuteExternalConnects();
-
+	
 	/**
-	 * Compute the permutation vector which puts the internal connects to the first on the list
+	 * @brief This method will load the elements of the grid in their corresponding geometric
+	 * elements
+	 **/
+	virtual void LoadElementReference();
+	
+	/**
+	 * @brief This method will initiate the comparison between the current computational
+	 * mesh and the mesh which is referenced by the geometric mesh
+	 * @param var state variable number
+	 * @param matname pointer to material name
+	 **/
+	virtual REAL CompareElement(int var, char *matname);
+	
+	/**
+	 * @brief Verifies the transfer possibility of the connection elindex from
+	 * the mesh to the current submesh.
+	 * @param mesh  pointer to given mesh
+	 * @param elindex given mesh element index
+	 */
+	int IsAllowedElement(TPZCompMesh *mesh, int elindex);
+	
+	/**
+	 * @name Mesh
+	 * @brief Methods derived from TPZCompMesh
+	 */
+	
+	//@{
+	// @name Virtual methods - Computacional Mesh derived 
+	
+	/**
+	 * @brief Transfer one element form a submesh to another mesh.
+	 */
+	virtual int TransferElement(TPZCompMesh *mesh, int elindex);
+	
+	/**
+	 * @brief Makes all mesh connections internal mesh connections.
+	 */
+	virtual void MakeAllInternal();
+	
+	/**
+	 * @brief Computes the number of internal equations
+	 */
+	int NumInternalEquations();
+	
+	/**
+	 * @brief This method computes the skyline of the system of equations
+	 * @param skyline vector where the skyline will be computed
+	 */
+	virtual void SkylineInternal(TPZVec<int> &skyline);
+	
+	/**
+	 * @brief Returns the rootmesh who have the specified connection.
+	 * @param local connection local index
+	 */
+	virtual TPZCompMesh * RootMesh(int local);
+	
+	/**
+	 * @brief Makes a specified connection a internal mesh connection.
+	 * @param local connection local number to be processed
+	 */
+	virtual void MakeInternal(int local);
+	
+private:
+	/**
+	 * @brief Transfer the dependency list of a connect. This will
+	 * make the dependency disappear for the corresponding father mesh
+	 * 
+	 * It is necessary that the number of elements connected to the connect be equal one
+	 */
+	void TransferDependencies(int local);
+	
+public:
+	/// Puts the nodes which can be transferred in an ordered list
+	void PotentialInternal(std::list<int> &connectindices) const;
+	
+	/**
+	 * @brief Puts an local connection in the supermesh - Supermesh is one
+	 * mesh who contains the analised submesh.
+	 * @param local local index of the element to be trasnfered
+	 * @param super pointer to the destination mesh
+	 */
+	virtual int PutinSuperMesh(int local, TPZCompMesh *super);
+	
+	/**
+	 * @brief Gets an external connection from the supermesh - Supermesh is one
+	 * mesh who contains the analised submesh.
+	 * @param superind index of the element to be trasnfered
+	 * @param super pointer to the destination mesh
+	 */
+	virtual int GetFromSuperMesh(int superind, TPZCompMesh *super);
+	
+	/**
+	 * @brief Changes an local internal connection to a external connection in the father mesh.
+	 * @param local makes the connect with index local an external node
+	 */
+	void MakeExternal(int local);
+	
+	/**
+	 * @brief Gives the commom father mesh of the specified mesh and the current submesh.
+	 * @param mesh pointer to other mesh whosw want to know the commom father mesh
+	 */
+	virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
+	
+	/**
+	 * @brief Returns the current submesh father mesh .
+	 */
+	virtual TPZCompMesh * FatherMesh() const;
+	//@}
+	
+	/**
+	 * @brief Optimizes the connections positions on block.
+	 * void TPZSubCompMesh::PermuteExternalConnects(){
+	 */
+	void PermuteExternalConnects();
+	
+	/**
+	 * @brief Computes the permutation vector which puts the internal connects to the first on the list
 	 * Respect the previous order of the connects
 	 */
 	void ComputePermutationInternalFirst(TPZVec<int> &permute) const;
 	
-  /**
-   * Permute the potentially internal connects to the first on the list
-   * Respect the previous order of the connects
-   */
-  void PermuteInternalFirst(TPZVec<int> &permute);
-
-  /**
-   * Print the submesh information on the specified device/file out.
-   * This method use the virtual method from Computacional Mesh class.
-   * @param out indicates the device where the data will be printed
-   */
-  virtual void Print(std::ostream &out = std::cout) const;
-
-  /**
-   * @name Element
-   * Virtual methods derived from TPZCompEl
-   */
-  //@{
-  //  /**
-  //     * Changes the current node index -inode- to the specified node- index.
-  //     *
-  //     */
+	/**
+	 * @brief Permutes the potentially internal connects to the first on the list
+	 * Respect the previous order of the connects
+	 */
+	void PermuteInternalFirst(TPZVec<int> &permute);
+	
+	/**
+	 * @brief Prints the submesh information on the specified device/file out.
+	 * 
+	 * This method use the virtual method from Computacional Mesh class.
+	 * @param out indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream &out = std::cout) const;
+	
+	/**
+	 * @name Element
+	 * @brief Virtual methods derived from TPZCompEl
+	 */
+	//@{
+	//  /**
+	//     * @brief Changes the current node index -inode- to the specified node- index.
+	//     *
+	//     */
 	virtual void SetConnectIndex(int inode, int index);
-
-
+	
+	
   	/**
-	 * Calculates the submesh stiffness matrix
+	 * @brief Calculates the submesh stiffness matrix
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
 	/**
-	 * Verifies if any element needs to be computed corresponding to the material ids
+	 * @brief Verifies if any element needs to be computed corresponding to the material ids
 	 */
 	bool NeedsComputing(const std::set<int> &matids);
-	//	/**
-  //     * Virtual Method!
-  //     */
+	/**
+	 * @brief Virtual Method to allocate new connect
+	 */
 	virtual int AllocateNewConnect(int blocksize, int order);
-
-  //    /**
-  //     * Gives the id node  of one local node in containing mesh.
-  //     */
+	
+	/**
+	 * @brief Gives the id node  of one local node in containing mesh.
+	 */
 	int NodeIndex(int nolocal, TPZCompMesh *super);
-
-
-      /**
-       * Virtual Method! See declaration in TPZCompEl class.
-       * The use of this method in submesh class return -1 == Error!
-       */
+	
+	
+	/**
+	 * @brief Virtual Method! See declaration in TPZCompEl class.
+	 * 
+	 * The use of this method in submesh class return -1 == Error!
+	 */
 	virtual int Dimension() const;
 	
 	/**
-	 * Creates corresponding graphical element(s) if the dimension matches
+	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
 	 * @param graphmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
@@ -312,88 +318,89 @@ public:
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 	
 	/**
-	 * Compute the number of elements connected to each connect object
+	 * @brief Computes the number of elements connected to each connect object
 	 */
 	virtual void ComputeNodElCon();
 	
 	/**
-	 * Compute the number of elements connected to each connect object
+	 * @brief Computes the number of elements connected to each connect object
 	 */
 	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
 	
-	//    /**
-  //     * Returns the connection index i.
-  //     */
+	/**
+	 * @brief Returns the connection index i.
+	 */
 	virtual int ConnectIndex(int i) const;
-
-  //    /**
-  //     * Returns the number of connections.
-  //     */
+	
+	/**
+	 * @brief Returns the number of connections.
+	 */
 	virtual int NConnects() const;
-
-  //  /**
-  //     * Load the father mesh solution to all submesh connects -
-  //	 * (internal and external).
-  //     */
+	
+    /**
+	 * @brief Load the father mesh solution to all submesh connects -
+  	 * (internal and external).
+	 */
 	virtual void LoadSolution();
-
+	
 	//virtual void GetExternalConnectIndex (TPZVec<int> &extconn);
-
- /**
-  * Computes solution and its derivatives in the local coordinate qsi.
-  * @param qsi master element coordinate
-  * @param sol finite element solution
-  * @param dsol solution derivatives
-  * @param axes axes associated with the derivative of the solution
-  */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
-
- /**
-   * Computes solution and its derivatives in the local coordinate qsi.
-   * This method will function for both volumetric and interface elements
-   * @param qsi master element coordinate of the interface element
-   * @param sol finite element solution
-   * @param dsol solution derivatives
-   * @param axes axes associated with the derivative of the solution
-   * @param leftsol finite element solution
-   * @param dleftsol solution derivatives
-   * @param leftaxes axes associated with the left solution
-   * @param rightsol finite element solution
-   * @param drightsol solution derivatives
-   * @param rightaxes axes associated with the right solution
-  */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi,
-                               TPZVec<REAL> &normal,
-                               TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                               TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
-
-  /**
-  * Computes solution and its derivatives in local coordinate qsi
-  * @param qsi master element coordinate
-  * @param phi matrix containing shape functions compute in qsi point
-  * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-  * @param [in] axes indicating the direction of the derivatives
-  * @param sol finite element solution
-  * @param dsol solution derivatives
-  */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-
-  //@}
-  /**
-  * returns the unique identifier for reading/writing objects to streams
-  */
-  virtual int ClassId() const;
-  /**
-  Save the element data to a stream
-  */
-  virtual void Write(TPZStream &buf, int withclassid);
-
-  /**
-  Read the element data from a stream
-  */
-  virtual void Read(TPZStream &buf, void *context);
+	
+	/**
+	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @param qsi master element coordinate
+	 * @param sol finite element solution
+	 * @param dsol solution derivatives
+	 * @param axes axes associated with the derivative of the solution
+	 */
+	virtual void ComputeSolution(TPZVec<REAL> &qsi,
+								 TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+	
+	/**
+	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * 
+	 * This method will function for both volumetric and interface elements
+	 * @param qsi master element coordinate of the interface element
+	 * @param sol finite element solution
+	 * @param dsol solution derivatives
+	 * @param axes axes associated with the derivative of the solution
+	 * @param leftsol finite element solution
+	 * @param dleftsol solution derivatives
+	 * @param leftaxes axes associated with the left solution
+	 * @param rightsol finite element solution
+	 * @param drightsol solution derivatives
+	 * @param rightaxes axes associated with the right solution
+	 */
+	virtual void ComputeSolution(TPZVec<REAL> &qsi,
+								 TPZVec<REAL> &normal,
+								 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
+								 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+	
+	/**
+	 * @brief Computes solution and its derivatives in local coordinate qsi
+	 * @param qsi master element coordinate
+	 * @param phi matrix containing shape functions compute in qsi point
+	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
+	 * @param [in] axes indicating the direction of the derivatives
+	 * @param sol finite element solution
+	 * @param dsol solution derivatives
+	 */
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+	
+	//@}
+	/**
+	 * @brief Returns the unique identifier for reading/writing objects to streams
+	 */
+	virtual int ClassId() const;
+	/**
+	 @brief Saves the element data to a stream
+	 */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/**
+	 @brief Reads the element data from a stream
+	 */
+	virtual void Read(TPZStream &buf, void *context);
 	
 	bool VerifyDatastructureConsistency();
     
@@ -402,7 +409,7 @@ public:
     
     /// Return the number of rigid body modes associated with the internal degrees of freedom
     int NumberRigidBodyModes();
-
+	
 };
 
 #endif

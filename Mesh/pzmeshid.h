@@ -13,6 +13,9 @@
 //
 //
 
+/** \addtogroup geometry
+ * @{
+ */
 const int TPZFGEOELEMENTPOINTID = 200;
 const int TPZFGEOELEMENTLINEARID = 201;
 const int TPZFGEOELEMENTRIANGLEID = 202;
@@ -95,6 +98,7 @@ const int TPZGEOBLENDCUBEID = 407;
 const int TPZGEOBLENDPRISMID = 408;
 const int TPZGEOBLENDPYRAMIDID = 409;
 const int TPZGEOBLENDTETRAHEDRAID = 410;
+/** @} */
 
 void RegisterMeshClasses();
 //template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;

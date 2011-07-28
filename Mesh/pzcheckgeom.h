@@ -6,14 +6,15 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
+/// @ingroup geometry
 /// This class performs a series of consistency tests on geometric transformations between elements
 class TPZCheckGeom {
-
+	
 	TPZGeoMesh *fMesh;
-
+	
 public:
 	TPZCheckGeom();
-
+	
 	int PerformCheck();
 	int CheckElement(TPZGeoEl *gel);
 	int CheckRefinement(TPZGeoEl *gel);
@@ -21,9 +22,9 @@ public:
 	int CheckSubFatherTransform(TPZGeoEl *subel, int sidesub);
 	void CreateMesh();
 	static int main();
-//template <class TShape>
-//	TPZTransform PrintHighDimTransforms(int side, TPZGeoEl *gel, ostream &out);
-
+	//template <class TShape>
+	//	TPZTransform PrintHighDimTransforms(int side, TPZGeoEl *gel, ostream &out);
+	
 };
 
 template<class TShape>

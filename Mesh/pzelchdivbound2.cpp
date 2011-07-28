@@ -19,7 +19,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 #endif
 
-
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
@@ -58,15 +57,15 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Finalizando criacao do elemento ";
-		this->Print(sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	*/
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "Finalizando criacao do elemento ";
+	 this->Print(sout);
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
+	 */
 }
 
 template<class TSHAPE>
@@ -83,9 +82,9 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 // NAO TESTADO
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh,
-											   const TPZCompElHDivBound2<TSHAPE> &copy,
-											   std::map<int,int> & gl2lcConMap,
-											   std::map<int,int> & gl2lcElMap) :
+												 const TPZCompElHDivBound2<TSHAPE> &copy,
+												 std::map<int,int> & gl2lcConMap,
+												 std::map<int,int> & gl2lcElMap) :
 TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 {
 	
@@ -166,20 +165,20 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 {
 	if(connect == 0)
 	{
-
+		
 		TPZManVector<int,1> order(1,ConnectOrder(connect));
 		//se a ordem eh maior depedenra do tipo de TSHAPE
-				
-			if (order[0]>1) {
-				return TSHAPE::NShapeF(order)-1;
-			}
-			else{
-				return TSHAPE::NShapeF(order);
-			}
-	
-	}
-
 		
+		if (order[0]>1) {
+			return TSHAPE::NShapeF(order)-1;
+		}
+		else{
+			return TSHAPE::NShapeF(order);
+		}
+		
+	}
+	
+	
 	else
 	{
 		DebugStop();
@@ -331,7 +330,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		normalsides[ivec] = neigh.Side();
 	}
 	IndexShapeToVec(normalsides,data.fVecShapeIndex);
-//	TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (neighel->Reference());
+	//	TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (neighel->Reference());
 	data.numberdualfunctions = 0;
 #ifdef LOG4CXX
 	{
@@ -390,25 +389,25 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 		
 	}
 	/*
-	Index.Resize(TSHAPE::NSides+1);
-	Index[0]=0;
-	
-	for(int iside=0;iside<TSHAPE::NSides;iside++)
-	{
-#warning Alteri AQ estou verificando se o lado e de dimensao 1 e tirando a ultima function
-		if (TSHAPE::SideDimension(iside)==TSHAPE::Dimension) {
-			int order= SideOrder(iside)-1;//estava -1 para quadrilatero caso contrario tira
-			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-			}
-		
-		else{
-			int order= SideOrder(iside);
-			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-			
-		}
-		
-	}
-	*/
+	 Index.Resize(TSHAPE::NSides+1);
+	 Index[0]=0;
+	 
+	 for(int iside=0;iside<TSHAPE::NSides;iside++)
+	 {
+	 #warning Alteri AQ estou verificando se o lado e de dimensao 1 e tirando a ultima function
+	 if (TSHAPE::SideDimension(iside)==TSHAPE::Dimension) {
+	 int order= SideOrder(iside)-1;//estava -1 para quadrilatero caso contrario tira
+	 Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+	 }
+	 
+	 else{
+	 int order= SideOrder(iside);
+	 Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+	 
+	 }
+	 
+	 }
+	 */
 	
 #ifdef LOG4CXX
     std::stringstream sout;
@@ -449,8 +448,8 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFM
 		return;
 	}
 	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side())+1;
-//	int nconnectneigh = neighel->NConnects();
-//	int ndiscshape = neighel->NConnectShapeF(nconnectneigh-1);
+	//	int nconnectneigh = neighel->NConnects();
+	//	int ndiscshape = neighel->NConnectShapeF(nconnectneigh-1);
 	phi.Redim(nshapeneigh, 1);
 	dphi.Redim(neighgeo.Element()->Dimension(), nshapeneigh);
 	TPZTransform tr(thisgeoside.Dimension()),tr2; 
@@ -458,10 +457,10 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFM
 	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
 	tr.Apply(pt, pt2);
 	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
-//	TPZGeoEl *neighgeoel = neighgeo.Element();
-//	tr2 = neighgeoel->SideToSideTransform(neighgeo.Side(), neighgeoel->NSides()-1);
-//	tr2.Apply(pt2, pt3);
-//	neighel->SideShapeFunction(neighgeoel->NSides(), pt3, phi, dphi);
+	//	TPZGeoEl *neighgeoel = neighgeo.Element();
+	//	tr2 = neighgeoel->SideToSideTransform(neighgeo.Side(), neighgeoel->NSides()-1);
+	//	tr2.Apply(pt2, pt3);
+	//	neighel->SideShapeFunction(neighgeoel->NSides(), pt3, phi, dphi);
 }
 
 /**
@@ -504,13 +503,13 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "FirstIndex of shape functions " << FirstIndex;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "FirstIndex of shape functions " << FirstIndex;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 	int tamanho= this->NShapeF();
 	
@@ -524,12 +523,12 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 		for (int ishape=fshape1; ishape<fshape2; ishape++)
 		{
 			
-			 #ifdef LOG4CXX
-			 std::stringstream sout;
+#ifdef LOG4CXX
+			std::stringstream sout;
 			sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-			 LOGPZ_DEBUG(logger,sout.str())
-			 #endif
-			 	
+			LOGPZ_DEBUG(logger,sout.str())
+#endif
+			
 			
 			ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
 		}
@@ -592,11 +591,11 @@ template class
 TPZRestoreClass< TPZCompElHDivBound2<TPZShapeQuad>, TPZHDIVBOUNDQUADID>;
 
 /*
-const int TPZHDIVBOUNDPOINTID = 252;
-const int TPZHDIVBOUNDLINEARID = 252;
-const int TPZHDIVBOUNDTRIANGLEID = 252;
-const int TPZHDIVBOUNDQUADID = 252;
-*/
+ const int TPZHDIVBOUNDPOINTID = 252;
+ const int TPZHDIVBOUNDLINEARID = 252;
+ const int TPZHDIVBOUNDTRIANGLEID = 252;
+ const int TPZHDIVBOUNDQUADID = 252;
+ */
 
 template class TPZCompElHDivBound2<TPZShapeTriang>;
 template class TPZCompElHDivBound2<TPZShapePoint>;

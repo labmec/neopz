@@ -53,24 +53,24 @@ using namespace pzshape;
 
 
 void RegisterMeshClasses() {
-//  TPZSaveable::Register(TPZGEONODEID,Restore<TPZGeoNode>);
-
-//  TPZSaveable::Register(TPZGEOMESHID,Restore<TPZGeoMesh>);
-  
-//   TPZSaveable::Register(TPZCOMPELDISCID,Restore<TPZCompElDisc>);
-//   TPZSaveable::Register(TPZAGGLOMERATEELID,Restore<TPZAgglomerateElement>);
-  
-//  TPZSaveable::Register(TPZINTERFACEELEMENTID,Restore<TPZInterfaceElement>);
-/*  TPZSaveable::Register(TPZINTELPOINTID,Restore<TPZIntelGen<TPZGeoPoint,TPZShapePoint> >);
-  TPZSaveable::Register(TPZINTELLINEARID,Restore<TPZIntelGen<TPZGeoLinear, TPZShapeLinear> >);
-  TPZSaveable::Register(TPZINTELQUADID,Restore<TPZIntelGen<TPZGeoQuad,TPZShapeQuad> >);
-  TPZSaveable::Register(TPZINTELTRIANGLEID,Restore<TPZIntelGen<TPZGeoTriangle,TPZShapeTriang> >);
-  TPZSaveable::Register(TPZINTELCUBEID,Restore<TPZIntelGen<TPZGeoCube,TPZShapeCube> >);
-  TPZSaveable::Register(TPZINTELTETRAID,Restore<TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra> >);
-  TPZSaveable::Register(TPZINTELPRISMID,Restore<TPZIntelGen<TPZGeoPrism,TPZShapePrism> >);
-  TPZSaveable::Register(TPZINTELPYRAMID,Restore<TPZIntelGen<TPZGeoPyramid,TPZShapePiram> >);*/
-//   TPZSaveable::Register(TPZSUBCOMPMESHID,Restore<TPZSubCompMesh>);
-//   TPZSaveable::Register(TPZCOMPMESHID,Restore<TPZCompMesh>);
-
-//   TPZSaveable::Register(TPZFLOWCOMPMESHID,Restore<TPZFlowCompMesh>);
+	//  TPZSaveable::Register(TPZGEONODEID,Restore<TPZGeoNode>);
+	
+	//  TPZSaveable::Register(TPZGEOMESHID,Restore<TPZGeoMesh>);
+	
+	//   TPZSaveable::Register(TPZCOMPELDISCID,Restore<TPZCompElDisc>);
+	//   TPZSaveable::Register(TPZAGGLOMERATEELID,Restore<TPZAgglomerateElement>);
+	
+	//  TPZSaveable::Register(TPZINTERFACEELEMENTID,Restore<TPZInterfaceElement>);
+	/*  TPZSaveable::Register(TPZINTELPOINTID,Restore<TPZIntelGen<TPZGeoPoint,TPZShapePoint> >);
+	 TPZSaveable::Register(TPZINTELLINEARID,Restore<TPZIntelGen<TPZGeoLinear, TPZShapeLinear> >);
+	 TPZSaveable::Register(TPZINTELQUADID,Restore<TPZIntelGen<TPZGeoQuad,TPZShapeQuad> >);
+	 TPZSaveable::Register(TPZINTELTRIANGLEID,Restore<TPZIntelGen<TPZGeoTriangle,TPZShapeTriang> >);
+	 TPZSaveable::Register(TPZINTELCUBEID,Restore<TPZIntelGen<TPZGeoCube,TPZShapeCube> >);
+	 TPZSaveable::Register(TPZINTELTETRAID,Restore<TPZIntelGen<TPZGeoTetrahedra,TPZShapeTetra> >);
+	 TPZSaveable::Register(TPZINTELPRISMID,Restore<TPZIntelGen<TPZGeoPrism,TPZShapePrism> >);
+	 TPZSaveable::Register(TPZINTELPYRAMID,Restore<TPZIntelGen<TPZGeoPyramid,TPZShapePiram> >);*/
+	//   TPZSaveable::Register(TPZSUBCOMPMESHID,Restore<TPZSubCompMesh>);
+	//   TPZSaveable::Register(TPZCOMPMESHID,Restore<TPZCompMesh>);
+	
+	//   TPZSaveable::Register(TPZFLOWCOMPMESHID,Restore<TPZFlowCompMesh>);
 }

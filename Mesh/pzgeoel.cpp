@@ -18,18 +18,18 @@
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
 #include "TPZRefPattern.h"
-	//#include "pzgeoelside.h"
-	//#include "pzshapetetra.h"
-	//#include "pzshapecube.h"
-	//#include "pzshapepiram.h"
-	//#include "pzshapeprism.h"
-	//#include "pzelg1d.h"
-	//#include "pzelgt2d.h"
-	//#include "pzelgq2d.h"
-	//#include "pzelgt3d.h"
-	//#include "pzelgpi3d.h"
-	//#include "pzelgpr3d.h"
-	//#include "pzelgc3d.h"
+//#include "pzgeoelside.h"
+//#include "pzshapetetra.h"
+//#include "pzshapecube.h"
+//#include "pzshapepiram.h"
+//#include "pzshapeprism.h"
+//#include "pzelg1d.h"
+//#include "pzelgt2d.h"
+//#include "pzelgq2d.h"
+//#include "pzelgt3d.h"
+//#include "pzelgpi3d.h"
+//#include "pzelgpr3d.h"
+//#include "pzelgc3d.h"
 #include "pzlog.h"
 
 #include <stdio.h>
@@ -64,7 +64,7 @@ TPZGeoEl::TPZGeoEl(int id,int materialid,TPZGeoMesh &mesh) {
 	fIndex = index;
 	fMesh->ElementVec()[index] = this;
 	this->fNumInterfaces = 0;
-		//	fMesure = 0.;
+	//	fMesure = 0.;
 }
 
 TPZGeoEl::TPZGeoEl(const TPZGeoEl &el):TPZSaveable(el){
@@ -90,7 +90,7 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh, int &index) {
 	fIndex = index;
 	fMesh->ElementVec()[index] = this;
 	this->fNumInterfaces = 0;
-		//	fMesure = 0.;
+	//	fMesure = 0.;
 }
 TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 	this->fId = mesh.CreateUniqueElementId();
@@ -102,21 +102,21 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 	this->fIndex = index;
 	this->Mesh()->ElementVec()[index] = this;
 	this->fNumInterfaces = 0;
-		//	fMesure = 0.;
+	//	fMesure = 0.;
 }
 
 /*
-void TPZGeoEl::Initialize(int materialid, TPZGeoMesh &mesh, int &index){
-	this->fId = mesh.CreateUniqueElementId();
-	this->fMesh = &mesh;
-	this->fMatId = materialid;
-	this->fReference = NULL;
-	this->fFatherIndex = -1;
-	index = this->Mesh()->ElementVec().AllocateNewElement();
-	this->Mesh()->ElementVec()[index] = this;
-	this->fIndex = index;
-}
-*/
+ void TPZGeoEl::Initialize(int materialid, TPZGeoMesh &mesh, int &index){
+ this->fId = mesh.CreateUniqueElementId();
+ this->fMesh = &mesh;
+ this->fMatId = materialid;
+ this->fReference = NULL;
+ this->fFatherIndex = -1;
+ index = this->Mesh()->ElementVec().AllocateNewElement();
+ this->Mesh()->ElementVec()[index] = this;
+ this->fIndex = index;
+ }
+ */
 
 void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
 	if(num != 2 && num != 3){
@@ -166,7 +166,7 @@ int TPZGeoEl::WhichSide(TPZVec<int> &SideNodeIds) {
 			   isn2 == SideNodeIds[0] && isn1 == SideNodeIds[1])    return side;
 		} else if(NSideNodes(side)== 1 && cap ==1) {
 			if(SideNodeIndex(side,0) == SideNodeIds[0]) return side;
-				//completar
+			//completar
 		} else if(NSideNodes(side) == 3 && cap==3) {
 			int sni[3],snx[3],k;
 			for(k=0;k<3;k++) snx[k] = SideNodeIndex(side,k);//el atual
@@ -301,17 +301,17 @@ std::ostream &operator<<(std::ostream &out,TPZGeoEl & el) {
  return NULL;
  }
  */
-	//void TPZGeoEl::GetSubElement(int /*side*/,TPZVec<int> &/*referencenode*/,
-	//			     TPZVec<TPZGeoElSide> &/*subelements*/) {
-	//  PZError << "TPZGeoEl::GetSubEl should not be called\n";
-	//}
+//void TPZGeoEl::GetSubElement(int /*side*/,TPZVec<int> &/*referencenode*/,
+//			     TPZVec<TPZGeoElSide> &/*subelements*/) {
+//  PZError << "TPZGeoEl::GetSubEl should not be called\n";
+//}
 
 
 
-	//TPZGeoElSide TPZGeoEl::Father(int /*side*/) {
-	//  PZError << "TPZGeoEl::Father should never be called\n";
-	//  return TPZGeoElSide();
-	//}
+//TPZGeoElSide TPZGeoEl::Father(int /*side*/) {
+//  PZError << "TPZGeoEl::Father should never be called\n";
+//  return TPZGeoElSide();
+//}
 
 int TPZGeoEl::Level() {
 	int level = 0;
@@ -328,7 +328,7 @@ int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
 	
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[1]) return 0;//sentido horario     : 0123
 	if(idfrom[0]==idto[0] && idfrom[1]==idto[3]) return 1;//sentido antihorario : 0321
-														  //0 esta na posicao 3 e 1 esta na posicao 0  i.e. 1,2,3,0
+	//0 esta na posicao 3 e 1 esta na posicao 0  i.e. 1,2,3,0
 	if(idfrom[0]==idto[3] && idfrom[1]==idto[0]) return 2;//sentido horario     : 1230
 	if(idfrom[0]==idto[1] && idfrom[1]==idto[0]) return 3;//sentido antihorario : 1032
 	
@@ -342,7 +342,7 @@ int TPZGeoEl::GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto) {
 }
 
 int TPZGeoEl::GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto) {
-		//REVISAR
+	//REVISAR
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[1]) return 0;//sentido horario
 	if(idto[0]==idfrom[0] && idto[1]==idfrom[2]) return 1;//sentido antihorario
 	
@@ -451,7 +451,7 @@ int TPZGeoEl::WhichSide(TPZVec<REAL> &pt){
 		if(dif < tol) return is;
 	}
 	cout << "TPZGeoEl::WhichSide ERROR : side not found" << endl ;
-
+	
 	return -1;
 }
 
@@ -500,7 +500,7 @@ void TPZGeoEl::CheckSubelDataStructure(){
 				cout << "\n";
 				out << "\n";
 				if(neigh.Element()==subside[isub].Element()) break;
-					//no pr�ximo while confia-se que o ciclo de conectividades � fechado e os viz sao filhos de alguem
+				//no pr�ximo while confia-se que o ciclo de conectividades � fechado e os viz sao filhos de alguem
 				TPZGeoEl *gel = neigh.Element()->Father2(neigh.Element()->NSides()-1).Element();//pai pelo interior:sempre existe
 				while(gel && !(gel== this)) neigh = neigh.Neighbour();
 				if(neigh.Element()==subside[isub].Element()){
@@ -542,8 +542,8 @@ void TPZGeoEl::SetSubElementConnectivities() {
 				GetSubElements2(side,elvec);
 				neighbour.GetSubElements2(neighvec);
 				
-					// The currently divided element may have only one element as a son. In this case, the son is already
-					// neighbour of the father
+				// The currently divided element may have only one element as a son. In this case, the son is already
+				// neighbour of the father
 				
 				if(elvec.NElements() > 1) TPZGeoElSide::BuildConnectivities(elvec,neighvec);
 				
@@ -678,9 +678,9 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 		}
 		X(ksi,X0);
 		for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-			///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
-			///elemento mestre sao mais claros que os do elemento real
-			//       error = Norm(DelX);
+		///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
+		///elemento mestre sao mais claros que os do elemento real
+		//       error = Norm(DelX);
 		error = Norm(DelX)/radius;
 	}
 	
@@ -726,7 +726,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){
 	
-		//transformacao do lado de elemento pequeno para elemento grande que o contem
+	//transformacao do lado de elemento pequeno para elemento grande que o contem
 	int dimf = fat->Dimension();
 	int dimsf = fat->SideDimension(fatside);
 	int dim = Dimension();
@@ -749,7 +749,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 	TPZIntPoints *intrule = CreateSideIntegrationRule(sideson,2);
 	TPZManVector<int,3> order(dimss,2);
 	intrule->SetOrder(order);
-		//integra��o sobre o lado-filho contido no lado-pai
+	//integra��o sobre o lado-filho contido no lado-pai
 	int ij,ik,indp;
 	REAL D2Edaikdaij,D2Edcidaij,D2Edci2;
 	D2Edcidaij = 0.;
@@ -760,8 +760,8 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 			D2Edcidaij  = 0.;
 			for(indp = 0; indp < intrule->NPoints(); ++indp){
 				intrule->Point(indp,intpoint,weight);
-					//Jacobian(intpoint,jac,axes,detjac,jacinv);/**estes passos n�o s�o precisos pois:*/
-					//weight *= fabs(detjac);/**ambas as matrizes, A e b, multiplicam a mesma constante detjac*/
+				//Jacobian(intpoint,jac,axes,detjac,jacinv);/**estes passos n�o s�o precisos pois:*/
+				//weight *= fabs(detjac);/**ambas as matrizes, A e b, multiplicam a mesma constante detjac*/
 				D2Edaikdaij += intpoint[ik]*intpoint[ij]*weight;
 				if(ik==ij) D2Edcidaij += intpoint[ij]*weight;
 				if(ij==0 && ik==0) D2Edci2 += weight;
@@ -775,7 +775,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 			if(ij==0 && ik==0) hess(dimss,dimss) = 2.*D2Edci2;
 		}
 	}// final do integral hess
-	 //do lado sideson para o elemento atual (filho)
+	//do lado sideson para o elemento atual (filho)
 	TPZTransform tsidetoson(Dimension());//identidade
 	if(dimss<Dimension()) tsidetoson = SideToSideTransform(sideson,NSides()-1);
 	TPZTransform fatelside = fat->SideToSideTransform(fat->NSides()-1,fatside);
@@ -794,7 +794,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 				fat->ComputeXInverse(x,csi);//csi ponto no pai mestre
 				TPZVec<REAL> outcsi(dimsf,0.);
 				fatelside.Apply(csi,outcsi);
-					//        fat->ProjectPointElToSide(fatside,csi,outcsi);
+				//        fat->ProjectPointElToSide(fatside,csi,outcsi);
 				if(j<dimss) DEdaij += outcsi[ifat]*intpoint[j]*weight;
 				if(j==0) DEdci += outcsi[ifat]*weight;
 			}
@@ -802,7 +802,7 @@ TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson)
 			if(j==0) grad0(dimss,0) = 2.*DEdci;
 			if(!dimss) grad0(0,0) = DEdci;
 		}//final integral gradiente
-		 //resolu��o do sistema para cada variavel ifat do pai
+		//resolu��o do sistema para cada variavel ifat do pai
 		if(dimss) hess.SolveDirect(grad0,ELU);
 		for(int k=0;k<dimss;k++) A(ifat,k) = grad0(k,0);
 		sol(ifat,0) = grad0(dimss,0);
@@ -832,7 +832,7 @@ REAL TPZGeoEl::ElementRadius(){
 	{
 		case 0:
 			return 0.;
-				//	 break;
+			//	 break;
 			
 		case 1:
 		case 2:{
@@ -853,7 +853,7 @@ REAL TPZGeoEl::ElementRadius(){
 				if(mindist > dist) mindist = dist;
 			}
 			return mindist;
-				//	 break;
+			//	 break;
 		}
 			
 		case 3:{
@@ -875,7 +875,7 @@ REAL TPZGeoEl::ElementRadius(){
 				if(mindist > dist) mindist = dist;
 			}
 			return mindist;
-				//	 break;
+			//	 break;
 		}
 			
 		default:
@@ -883,7 +883,7 @@ REAL TPZGeoEl::ElementRadius(){
 			return 0.;
 			
 	}//end of switch
-	 //   return 0.;
+	//   return 0.;
 } //end of method
 
 REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
@@ -901,11 +901,11 @@ REAL TPZGeoEl::TriangleArea(TPZVec<TPZGeoNode *> &nodes){
 	REAL ab1 = nodes[0]->Coord(1) - nodes[1]->Coord(1);
 	REAL ab2 = nodes[0]->Coord(2) - nodes[1]->Coord(2);
 	
-		//produto vetorial
+	//produto vetorial
 	REAL coord0 = cb1*ab2-ab1*cb2;
 	REAL coord1 = ab0*cb2-cb0*ab2;
 	REAL coord2 = cb0*ab1-ab0*cb1;
-		//norma da metade do vetor
+	//norma da metade do vetor
 	return ( 0.5*sqrt(coord0*coord0+coord1*coord1+coord2*coord2) );
 }
 
@@ -935,7 +935,7 @@ REAL TPZGeoEl::Volume(){
 	TPZManVector<REAL,3> param(3,0.);
 	REAL detjac;
 	TPZFNMatrix<9> jacinv(3,3),jacobian(3,3),axes(3,3);
-		//supondo jacobiano constante: X linear
+	//supondo jacobiano constante: X linear
 	CenterPoint(NSides()-1,param);
 	Jacobian(param,jacobian,axes,detjac,jacinv);
 	return (RefElVolume()*detjac);//RefElVolume(): volume do elemento de refer�ncia
@@ -1073,7 +1073,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
 	this->fNumInterfaces = 0;
 }
 
-	/// return the refinement pattern associated with the element
+/// return the refinement pattern associated with the element
 TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
 {
 	TPZAutoPointer<TPZRefPattern> result;
@@ -1280,7 +1280,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 	TPZGeoElSide ElemSide(this,side);
 	TPZGeoElSide NextSide(this,side);
 	
-		///trying to get a self non-linear neighbour
+	///trying to get a self non-linear neighbour
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
 		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
@@ -1298,7 +1298,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 		NextSide = NextSide.Neighbour();
 	}
 	
-		///now TPZGeoElMapped are accepted
+	///now TPZGeoElMapped are accepted
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
 		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
@@ -1325,7 +1325,7 @@ void TPZGeoEl::BuildBlendConnectivity(){
 	}///for byside
 }///method
 
-	/// Projection of the point to the side
+/// Projection of the point to the side
 /**
  * Compute the projection of the point within the interior of the element to the side of the element
  */
@@ -1334,9 +1334,9 @@ TPZTransform TPZGeoEl::Projection(int side)
 	TPZTransform tr = SideToSideTransform(NSides()-1,side);
 	TPZTransform tr2 = SideToSideTransform(side,NSides()-1);
 	TPZTransform tr3 = tr2.Multiply(tr);
-		//	std::cout << "interior to side " << side << " trans " << tr << std::endl;
-		//	std::cout << "side to interior " << side << " trans " << tr2 << std::endl;
-		//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;
+	//	std::cout << "interior to side " << side << " trans " << tr << std::endl;
+	//	std::cout << "side to interior " << side << " trans " << tr2 << std::endl;
+	//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;
 	return tr3;
 }
 
@@ -1353,13 +1353,13 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 	LS.CenterPoint(LSCenter);
 	gel->X(LSCenter,XLS);
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << " Center complementary side " << XLC << " center side " << XLS;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << " Center complementary side " << XLC << " center side " << XLS;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 	TPZManVector<REAL,3> dir(3,0.);
 	// The normal vector needs to be in the plane of LC and perpendicular to LS
@@ -1381,13 +1381,13 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 		axtrans(i,lastcol) = dir[i];
 	}
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		axtrans.Print("Matrix to be orthogonalized",sout);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 axtrans.Print("Matrix to be orthogonalized",sout);
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 	// Then orthogonalize the vectors of the LS side with this vector
 	TPZFNMatrix<20> transf, ortho;
@@ -1398,14 +1398,14 @@ void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 		normal[i] = ortho(i,lastcol);
 	}
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		ortho.Print("Orthogonalized matrix",sout);
-		sout << " lastcol = " << lastcol << " normal vector " << normal;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 ortho.Print("Orthogonalized matrix",sout);
+	 sout << " lastcol = " << lastcol << " normal vector " << normal;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 }
 
@@ -1426,14 +1426,14 @@ void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal)
 void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides)
 {
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Verificando normais dos lados do elemento " <<std::endl;
-		cout << sout.str() << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "Verificando normais dos lados do elemento " <<std::endl;
+	 cout << sout.str() << std::endl;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 	int numbernormals = 0;
 	int dimension = Dimension();
@@ -1482,16 +1482,16 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 			// the normal vector goes from the center of the conjugate side to
 			// the center of the LS side
 			NormalVector(LC,LS,normal);
-		/*	
-#ifdef LOG4CXX
-			{
-				std::stringstream sout;
-				sout << "The normal vector between side " << lowdim[lowis] << " and side " << conj_side << " is " << normal;
-				//cout << sout.str() << std::endl;
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
-	*/		 
+			/*	
+			 #ifdef LOG4CXX
+			 {
+			 std::stringstream sout;
+			 sout << "The normal vector between side " << lowdim[lowis] << " and side " << conj_side << " is " << normal;
+			 //cout << sout.str() << std::endl;
+			 LOGPZ_DEBUG(logger,sout.str())
+			 }
+			 #endif
+			 */		 
 			int d;
 			for(d=0; d<3; d++) normals(d,lowis) = normal[d];
 			vectorsides[lowis] = lowdim[lowis];
@@ -1505,23 +1505,23 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 			TPZManVector<REAL,3> normlow(3,0.);
 			for(d=0; d<3; d++) normlow[d] = normals(d,lowis);
 			/*
-#ifdef LOG4CXX
-			{
-				std::stringstream sout;
-				sout << "lowis " << lowis << " normlow " << normlow;
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
+			 #ifdef LOG4CXX
+			 {
+			 std::stringstream sout;
+			 sout << "lowis " << lowis << " normlow " << normlow;
+			 LOGPZ_DEBUG(logger,sout.str())
+			 }
+			 #endif
 			 */
 			Normalize(normlow,normal);
 			/*
-#ifdef LOG4CXX
-			{
-				std::stringstream sout;
-				sout << "after normalize normlow " << normlow;
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
+			 #ifdef LOG4CXX
+			 {
+			 std::stringstream sout;
+			 sout << "after normalize normlow " << normlow;
+			 LOGPZ_DEBUG(logger,sout.str())
+			 }
+			 #endif
 			 */
 			for(d=0; d<3; d++) normals(d,lowis) = normlow[d];
 		}
@@ -1580,13 +1580,13 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 		normals.Resize(3,counter);
 	}
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Normals Vector of side " << side <<" " << normals;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "Normals Vector of side " << side <<" " << normals;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
 	 */
 }
 
@@ -1630,14 +1630,14 @@ void TPZGeoEl::ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides)
 int TPZGeoEl::NormalOrientation(int side)
 {
 	/*
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "Orientacao dos Vetores do lado " <<side << " do el -> "<<this->fId;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	*/
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "Orientacao dos Vetores do lado " <<side << " do el -> "<<this->fId;
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
+	 */
 	int dimel = Dimension();
 	int dimside = SideDimension(side);
 	if(dimside != dimel-1)
@@ -1676,25 +1676,25 @@ int TPZGeoEl::NormalOrientation(int side)
 	if(thisside.Element()->Id() < neighbour.Element()->Id())
 	{
 		/*
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "Orientacao do vec assoc ao lado ------" <<side << " -> " << 1<<std::endl;
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
+		 #ifdef LOG4CXX
+		 {
+		 std::stringstream sout;
+		 sout << "Orientacao do vec assoc ao lado ------" <<side << " -> " << 1<<std::endl;
+		 LOGPZ_DEBUG(logger,sout.str())
+		 }
+		 #endif
 		 */
 		return 1;
 	}
 	else {
 		/*
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "Orientacao do vec assoc ao lado -------- " <<side << " -> " << -1<<std::endl;
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
+		 #ifdef LOG4CXX
+		 {
+		 std::stringstream sout;
+		 sout << "Orientacao do vec assoc ao lado -------- " <<side << " -> " << -1<<std::endl;
+		 LOGPZ_DEBUG(logger,sout.str())
+		 }
+		 #endif
 		 */
 		return -1;
 	}
