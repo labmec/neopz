@@ -11,7 +11,7 @@ template <class T>
 class TPZVec;
 
 /**
- * Implements Block Diagonal Structural Matrices
+ * @brief Implements Block Diagonal Structural Matrices
  * @ingroup structural
  */
 class TPZBlockDiagonalStructMatrix : public TPZStructMatrix {
@@ -28,7 +28,7 @@ enum MBlockStructure {ENodeBased, EVertexBased, EElementBased};
   {
   }
   
-  // create a sparse blockdiagonal matrix, overlapping should be assumed
+  /// create a sparse blockdiagonal matrix, overlapping should be assumed
   virtual TPZMatrix * Create();
   
   // create a sparse blockdiagonal matrix of the given color

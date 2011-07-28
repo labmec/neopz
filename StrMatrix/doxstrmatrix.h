@@ -1,5 +1,5 @@
 
-/**
+/**   FIQUEI AQUI - JORGE
  * @defgroup structural Structural Matrix classes
  * This module contains all classes which defines Structural Matrices
  * Structural matrix classes make the link between the Computational meshes \ref CompMesh and the Matrix classes \ref matrix.

@@ -20,7 +20,7 @@ class TPZFMatrix;
 #include "TPZGuiInterface.h"
 
 /**
- * Is responsible for a interface among Matrix and Finite Element classes.
+ * @brief It is responsible for a interface among Matrix and Finite Element classes.
  * @ingroup structural
  */
 class TPZStructMatrix {
@@ -70,35 +70,35 @@ public:
   virtual TPZStructMatrix * Clone();
 
   /**
-  * Assemble the global system of equations into the matrix which has already been created
+  * @brief Assemble the global system of equations into the matrix which has already been created
   */
   virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
-	 * Assemble the global right hand side
+	 * @brief Assemble the global right hand side
 	 */
 	virtual void Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	protected:
 
   /**
-  * Assemble the global system of equations into the matrix which has already been created
+  * @brief Assemble the global system of equations into the matrix which has already been created
   */
   virtual void Serial_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
-	 * Assemble the global right hand side
+	 * @brief Assemble the global right hand side
 	 */
 	virtual void Serial_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 
 	/**
-	 * Assemble the global right hand side
+	 * @brief Assemble the global right hand side
 	 */
 	virtual void MultiThread_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
 	/**
-	 * Assemble the global system of equations into the matrix which has already been created
+	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
 	virtual void MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 
@@ -138,47 +138,48 @@ public:
 	 
 protected:
 
+	/// Structure to manipulate thread to solve system equations
 struct ThreadData
 {
-	// Initialize the mutex semaphores and others
+	/// Initialize the mutex semaphores and others
 	ThreadData(TPZCompMesh &mesh,TPZMatrix &mat, TPZFMatrix &rhs, int mineq, int maxeq, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	// Destroy the mutex semaphores and others
+	/// Destroy the mutex semaphores and others
 	~ThreadData();
-	// current structmatrix object
+	/// current structmatrix object
 	TPZCompMesh *fMesh;
-  ///gui interface object
+	/// gui interface object
 	TPZAutoPointer<TPZGuiInterface> fGuiInterface;
-	// mutexes (to choose which element is next)
+	/// mutexes (to choose which element is next)
 	pthread_mutex_t fAccessElement;
-	// semaphore (to wake up assembly thread)
+	/// semaphore (to wake up assembly thread)
 #ifdef MACOSX
 	sem_t *fAssembly;
 #else
 	sem_t fAssembly;
 #endif
-	// global matrix
+	/// global matrix
 	TPZMatrix *fGlobMatrix;
-	// global rhs
+	/// global rhs
 	TPZFMatrix *fGlobRhs;
-	// minimum equation to be assembled
+	/// minimum equation to be assembled
 	int fMinEq;
-	// maximum equation to be assembled
+	/// maximum equation to be assembled
 	int fMaxEq;
 	/// material identifiers which need to be computed
 	std::set<int> fMaterialIds;
-	// list of computed element matrices (autopointers?)
+	/// list of computed element matrices (autopointers?)
 	std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > fSubmitted;
-	// elements which are being processed
+	/// elements which are being processed
 	std::set<int> fProcessed;
-	// current element
+	/// current element
 	int fNextElement;
-	// look for an element index which needs to be computed and put it on the stack
+	/// look for an element index which needs to be computed and put it on the stack
 	int NextElement();
-	// put the computed element matrices in the map
+	/// put the computed element matrices in the map
 	void ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef);
-	// The function which will compute the matrices
+	/// The function which will compute the matrices
 	static void *ThreadWork(void *threaddata);
-	// The function which will compute the assembly
+	/// The function which will compute the assembly
 	static void *ThreadAssembly(void *threaddata);
 
 	/// Establish whether the element should be computed
@@ -193,16 +194,16 @@ struct ThreadData
 protected:
 
   /**
-   * Pointer to the computational mesh from which the matrix will be generated
+   * @brief Pointer to the computational mesh from which the matrix will be generated
    */
   TPZCompMesh * fMesh;
     
     /**
-     * Autopointer control of the computational mesh
+     * @brief Autopointer control of the computational mesh
      */
     TPZAutoPointer<TPZCompMesh> fCompMesh;
 
-  /** Equation range for assembly of the global matrix
+  /** @brief Equation range for assembly of the global matrix
    */
   int fMinEq, fMaxEq;
 	
@@ -210,12 +211,13 @@ protected:
 
   protected:
 
-	/** Set of material ids to be considered. It is a private attribute.
+	/** @brief Set of material ids to be considered. It is a private attribute.
+	 *
 	 * Use ShouldCompute method to know if element must be assembled or not
 	 */
 	std::set<int> fMaterialIds;
 
-  /** Number of threads in Assemble process
+  /** @brief Number of threads in Assemble process
    */
   int fNumThreads;
 };

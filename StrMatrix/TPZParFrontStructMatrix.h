@@ -31,8 +31,9 @@ class TPZFileEqnStorage;
 
 template<class front>
 /**
- * TPZParFrontStructMatrix is derived fron TPZFrontStructMatrix. \n
+ * @brief TPZParFrontStructMatrix is derived fron TPZFrontStructMatrix. \n
  * Is a Structural matrix with parallel techniques included
+ *
  * It uses TPZParFrontMatrix as its FrontalMatrix
  * @ingroup frontal structural
  */
@@ -45,7 +46,7 @@ private:
 public:     
 
      /**
-      * Sets number of threads to be used in frontal process
+      * @brief Sets number of threads to be used in frontal process
       */
      void SetNumberOfThreads(
           int nthreads //! Number of threads to be used
@@ -53,11 +54,11 @@ public:
 
      //Virtual function must return same type
      /**
-      * It clones a TPZStructMatrix
+      * @brief It clones a TPZStructMatrix
       */
      TPZStructMatrix *Clone();
      /**
-      * Constructor passing as parameter a TPZCompMesh
+      * @brief Constructor passing as parameter a TPZCompMesh
       */
      TPZParFrontStructMatrix(
           TPZCompMesh *mesh //! Mesh to refer to
@@ -65,7 +66,7 @@ public:
      
      TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy);
      /**
-      * Returns a poniter to TPZMatrix
+      * @brief Returns a poniter to TPZMatrix
       */
 	 virtual TPZMatrix * CreateAssemble(
 		  TPZFMatrix &rhs //! Load matrix
@@ -79,51 +80,57 @@ public:
      static int main();
      
      /**
-      * It computes element matrices in an independent thread. \n
+      * @brief It computes element matrices in an independent thread.
+	  *
       * It is passed as a parameter to the  pthread_create() function. \n
       * It is a 'static void *' to be used by pthread_create
       */
 	 static void *ElementAssemble(void *t);
      /**
-	  * It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. \n
+	  * @brief It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. \n
+	  *
       * It is passed as a parameter to the  pthread_create() function. \n
       * It is a 'static void *' to be used by pthread_create
       */
 	 static void *GlobalAssemble(void *t);
      /**
-      * It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
+      * @brief It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
+	  *
       * It is passed as a parameter to the  pthread_create() function. \n
       * It is a 'static void *' to be used by pthread_create
      static void *WriteFile(void *t);*/
      
 private:
      /**
-      * Number of threads used in the process. \n
+      * @brief Number of threads used in the process. \n
+	  *
       * It needs at least three independet threads to execute:\n
 		  *ElementAssemble\n
 		  *GlobalAssemble\n
           *WriteFile\n
       */  
      int fNThreads;
-     /**Current computed element*/
+     /** @brief Current computed element*/
      int fCurrentElement;
-	 /**Current assembled element in the global stiffness matrix*/
+	 /** @brief Current assembled element in the global stiffness matrix*/
 	 int fCurrentAssembled;
-     /**Total number of elements*/
+     /** @brief Total number of elements*/
      int fNElements;
      /**
-      * Maximum stack size allowed. \n
+      * @brief Maximum stack size allowed. \n
+	  *
       * Whenever this value is reached a execution of element computing is suspended
       */
      int fMaxStackSize;
-	/**Local pointer to stiffness matrix*/
+	/** @brief Local pointer to stiffness matrix*/
 	//TPZParFrontMatrix<TPZFileEqnStorage, front> * fStiffness;
 	TPZMatrix * fStiffness;
-     /**Local pointer to load matrix*/
+     /** @brief Local pointer to load matrix*/
      TPZFMatrix * fRhs;
 
      /**
-	  * Stack containing elements to be assembled on Stiffness matrix. \n
+	  * @brief Stack containing elements to be assembled on Stiffness matrix. \n
+	  *
 	  * ElemenAssemble pushes elements on the stack. \n
 	  * GlobalAssemble pops elements from the stack.
       */

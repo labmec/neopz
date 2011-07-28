@@ -8,7 +8,7 @@ class TPZFMatrix;
 class TPZMatrix;
 
 /**
- * Implements Full Structural Matrices
+ * @brief Implements Full Structural Matrices
  * @ingroup structural
  */
 class TPZFStructMatrix : public TPZStructMatrix {

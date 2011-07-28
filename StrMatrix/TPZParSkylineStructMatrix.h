@@ -11,7 +11,7 @@ class TPZCompMesh;
 class TPZFMatrix;
 class TPZMatrix;
 /**
-     Defines Parallel Structural Matrix
+     @brief Defines Parallel Structural Matrix
      @ingroup structural
 */
 class TPZParSkylineStructMatrix : public TPZSkylineStructMatrix {

@@ -8,7 +8,7 @@ class TPZFMatrix;
 class TPZMatrix;
 
 /**
- * Implements Symmetric Banded Structural Matrices
+ * @brief Implements Symmetric Banded Structural Matrices
  * @ingroup structural
  */
 class TPZSBandStructMatrix : public TPZStructMatrix {

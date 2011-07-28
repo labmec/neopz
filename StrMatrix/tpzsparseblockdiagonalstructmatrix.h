@@ -15,10 +15,9 @@
 #include "pzstrmatrix.h"
 
 /**
-This class will Build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it
-
-@author Philippe R. B. Devloo
-*/
+ * @brief This class will Build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it
+ * @author Philippe R. B. Devloo
+ */
 class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix
 {
 public:

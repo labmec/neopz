@@ -8,7 +8,7 @@ class TPZFMatrix;
 class TPZMatrix;
 
 /**
- * Implements SkyLine Structural Matrices
+ * @brief Implements SkyLine Structural Matrices
  * ingroup structural
  */
 class TPZSkylineStructMatrix : public TPZStructMatrix {

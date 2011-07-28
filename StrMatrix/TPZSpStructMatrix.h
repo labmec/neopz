@@ -17,7 +17,7 @@ class TPZFMatrix;
 class TPZMatrix;
 
 /**
- * Implements Sparse Structural Matrices
+ * @brief Implements Sparse Structural Matrices
  * @ingroup structural
  */
 class TPZSpStructMatrix : public TPZStructMatrix {

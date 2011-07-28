@@ -19,9 +19,9 @@ class TPZMatrix;
 class TPZFMatrix;
 class TPZCompMesh;
 
-
 /**
- *Class responsible for a interface among Finite Element Package and Matrices package \n
+ * @brief Class responsible for a interface among Finite Element Package and Matrices package to frontal method
+ * 
  *Prevents users from all the necessary information to work with all matrices classes \n
  *It facilitates considerably the use of TPZAnalysis
  * @ingroup structural frontal

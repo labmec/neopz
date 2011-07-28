@@ -11,6 +11,8 @@ class TPZStructMatrix;
 
 void UniformRefine(int num, TPZGeoMesh &m);
 
+/** @ingroup structural
+ */
 
 /// this matrix assembles on the pair equations
 class TPBSpStructMatrix : public TPZSpStructMatrix {
