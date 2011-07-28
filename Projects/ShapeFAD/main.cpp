@@ -1,5 +1,4 @@
 #include "pzreal.h"
-#include "fadType.h"
 #include "pzshapecube.h"
 #include "pzshapequad.h"
 #include <iostream>

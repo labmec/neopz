@@ -3,15 +3,10 @@
 #include "pzartdiff.h"
 #include "pzdiffmatrix.h"
 
-#ifndef _AUTODIFF
-void error(char * teste)
-{
-
-}
-#endif
-
 int main()
 {
+#ifdef _AUTODIFF
+
 #ifdef FAD
   const int dim = 3;
   const int nstate = dim+2;
@@ -122,6 +117,8 @@ cout << "\n\ndphi\n" << dphi;
   cout << "\n\nTauDiv\n" << TauDiv;
 
   cout << "\n\nTaudDiv\n" << TaudDiv;
+#endif
+	
 #endif
   return 0;
 }

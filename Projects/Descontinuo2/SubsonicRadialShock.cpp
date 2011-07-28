@@ -21,6 +21,9 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+
+using namespace std;
+
 // creates an one-quadrilateral element mesh
  using namespace pzgeom;
  using namespace pzshape;

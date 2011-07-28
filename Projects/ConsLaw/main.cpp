@@ -5,15 +5,13 @@
 #include "pzdiffmatrix.h"
 #include "pzeulerconslaw.h"
 #include "stdlib.h"
-//#include "pztempmat.h"
+
+#ifdef _AUTODIFF
 #include "fadType.h"
+#endif
 
 int gDebug;
-
-// void error(char * teste)
-// {
-// 
-// }
+using namespace std;
 
 void Flatten(TPZFMatrix & coeff,
 	     TPZFMatrix &phi,
@@ -27,8 +25,10 @@ void CheckConv(const double step,
 	     TPZFMatrix &dphi,
 	     TPZEulerConsLaw2 & MatTest);
 
+#ifdef _AUTODIFF
 void CheckJacobFlux(
 	     TPZEulerConsLaw2 & MatTest);
+#endif
 
 int main()
 {
@@ -58,9 +58,6 @@ int main()
 
   TPZFMatrix ef(nphi * nstate, 1, 0.);
   TPZFMatrix ek(nphi * nstate, nphi * nstate, 0.);
-
-  TPZVec<FADREAL> FADsol(nstate);
-  TPZVec<FADREAL> FADdsol(nstate*dim);
 
   // generating data
 
@@ -106,8 +103,10 @@ cout << "\nef\n" << ef;
 
 cout << "\nek\n" << ek;
 
+#ifdef _AUTODIFF
   CheckJacobFlux(MatTest);
-
+#endif
+	
 cout.flush();
 
   CheckConv(.0001, u, data.phi, data.dphix, MatTest);
@@ -240,6 +239,7 @@ the contributions to T1 and T2;
 
 }
 
+#ifdef _AUTODIFF
 // verifies if jacobian of Flux is right
 void CheckJacobFlux(
 	     TPZEulerConsLaw2 & MatTest)
@@ -294,4 +294,4 @@ cout << "aqui";
 
    cout << "\nDifference" << Difference;
 }
-
+#endif

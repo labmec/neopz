@@ -24,6 +24,9 @@
 #include "pzstepsolver.h"
 #include "pzblock.h"
 #include "pzintel.h"
+
+using namespace std;
+
 // Creates a mesh for the reflected shock problem
  using namespace pzgeom;
  using namespace pzshape;

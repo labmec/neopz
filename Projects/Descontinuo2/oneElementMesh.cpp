@@ -25,6 +25,9 @@
 #include "pzbndcond.h"
 #include "pzblock.h"
 // creates an one-quadrilateral element mesh
+
+using namespace std;
+
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;

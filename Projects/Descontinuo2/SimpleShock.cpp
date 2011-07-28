@@ -21,6 +21,9 @@
 #include "pzbstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzblock.h"
+
+using namespace std;
+
  using namespace pzgeom;
  using namespace pzshape;
  using namespace pzrefine;
