@@ -9,6 +9,10 @@ class TPZGraphMesh;
 class TPZGraphNode;
 class TPZBlock;
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical one dimensional discontinuous element
 class TPZGraphEl1dd : public TPZGraphEl
 {
 public:

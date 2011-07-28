@@ -4,6 +4,10 @@
 #include "pzgraphel.h"
 #include "pzvec.h"
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical two-dimensional discontinuous element
 class TPZGraphElQ2dd : public TPZGraphEl {
 public:
 

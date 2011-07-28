@@ -4,6 +4,10 @@
 #include "pzgraphel.h"
 #include "pzvec.h"
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical discontinuous triangular element
 class TPZGraphElTd : public TPZGraphEl {
 
 public :

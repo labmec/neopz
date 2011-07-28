@@ -6,6 +6,10 @@
 
 //extern template class TPZVec<char *>;
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical three dimensional mesh
 class TPZV3DGraphMesh : public TPZGraphMesh {
 
 public:

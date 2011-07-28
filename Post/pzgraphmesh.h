@@ -17,7 +17,9 @@ class TPZFMatrix;
 class TPZBlock;
 
 enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
-
+/**
+ * @ingroup post
+ */
 /// This class represents a graphical mesh used for post processing purposes
 /**
 The  graphical mesh represents a logically refined version of the computational mesh

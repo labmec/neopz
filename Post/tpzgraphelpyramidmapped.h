@@ -15,9 +15,11 @@
 #include "pzgraphelq3dd.h"
 
 /**
-Implements the graphical element for a pyramid using a map to the cube element
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ * @ingroup post
+ */
+/**
+ * @brief Implements the graphical element for a pyramid using a map to the cube element
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
 */
 class TPZGraphElPyramidMapped : public TPZGraphElQ3dd
 {
@@ -26,7 +28,7 @@ public:
 
     ~TPZGraphElPyramidMapped();
  /**
-  * This method maps the index of a point to parameter space as a function
+  * @brief This method maps the index of a point to parameter space as a function
   * of the number of divisions
   */
  virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);

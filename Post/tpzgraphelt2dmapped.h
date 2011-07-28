@@ -15,10 +15,12 @@
 #include "pzgraphelq2dd.h"
 
 /**
-This class implements a graphical element for a triangle mapped into de quadrilateral element
-
-	@author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
+ * @ingroup post
+ */
+/**
+ * @brief This class implements a graphical element for a triangle mapped into de quadrilateral element
+ * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ */
 class TPZGraphElT2dMapped : public TPZGraphElQ2dd
 {
 public:
@@ -27,10 +29,10 @@ public:
 
     ~TPZGraphElT2dMapped();
 
- /**
-     * This method maps the index of a point to parameter space as a function
-     * of the number of divisions
-  */
+/**
+ * @brief This method maps the index of a point to parameter space as a function
+ * of the number of divisions
+ */
   virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
 
 };

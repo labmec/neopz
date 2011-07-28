@@ -4,6 +4,10 @@
 #include "pzgraphel.h"
 #include "pzvec.h"
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical two dimensional element
 class TPZGraphElQ2d : public TPZGraphEl {
 public:
 

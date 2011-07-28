@@ -12,6 +12,10 @@
 #include "pzgraphel.h"
 #include "pzvec.h"
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical three dimensional discontinuous element
 class TPZGraphElQ3dd : public TPZGraphEl{
 public:
 

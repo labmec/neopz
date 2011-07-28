@@ -14,6 +14,10 @@ class TPZGraphMesh;
 class TPZGraphNode;
 class TPZBlock;
 
+/**
+ * @ingroup post
+ */
+/// Abstract class to graphical one-, two- and three-dimensional element
 class TPZGraphEl
 {
 public:
@@ -71,7 +75,7 @@ virtual void NextIJ(int connect, TPZVec<int> &co, int incr) = 0;
 protected :   
 	int fId;
  /**
-  * This method maps the index of a point to parameter space as a function
+  * @brief This method maps the index of a point to parameter space as a function
   * of the number of divisions
   */
  virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);

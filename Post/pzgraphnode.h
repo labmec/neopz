@@ -13,7 +13,10 @@
 class TPZGraphMesh;
 class TPZGraphEl;
 class TPZBlock;
-
+/**
+ * @ingroup post
+ */
+/// To export a graphical node
 class TPZGraphNode {
 
 public:

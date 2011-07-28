@@ -9,6 +9,10 @@ class TPZGraphMesh;
 class TPZGraphNode;
 class TPZBlock;
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical one dimensional element
 class TPZGraphEl1d : public TPZGraphEl
 {
 public:

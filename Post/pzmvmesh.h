@@ -7,6 +7,9 @@
 
 class TPZBlock;
 
+/**
+ * @ingroup post
+ */
 class TPZMVGraphMesh : public TPZGraphMesh {
 
 public:

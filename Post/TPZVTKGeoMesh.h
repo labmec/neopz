@@ -10,6 +10,13 @@
 #ifndef TPZVTKGEOMESHH
 #define TPZVTKGEOMESHH 
 
+
+#include <set>
+#include "pzgeoel.h"
+
+/**
+ * @ingroup post
+ */
 /*
  *  TPZVTKGeoMesh.h
  *
@@ -17,11 +24,6 @@
  *  Copyright 2010 LabMeC. All rights reserved.
  *
  */
-
-
-#include <set>
-#include "pzgeoel.h"
-
 class TPZVTKGeoMesh
 {
 	
@@ -31,22 +33,22 @@ public:
 	~TPZVTKGeoMesh();
 	
 	/**
-	 * Generate an output of all geomesh to VTK
+	 * @brief Generate an output of all geomesh to VTK
 	 */
 	static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor = false);
 	
 	/**
-	 * Generate an output of all geomesh to VTK, associating to each one the given data
+	 * @brief Generate an output of all geomesh to VTK, associating to each one the given data
 	 */
 	static void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData);
 	
 	/**
-	 * Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
+	 * @brief Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
 	 */
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
 	
 	/**
-	 * Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
+	 * @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
 	 */
 	static void PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false);
 	

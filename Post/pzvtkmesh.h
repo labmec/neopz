@@ -16,6 +16,10 @@
 
 class TPZBlock;
 
+/**
+ * @ingroup post
+ */
+/// To export a graphical mesh to VTK environment
 class TPZVTKGraphMesh : public TPZGraphMesh {
 	
 public:

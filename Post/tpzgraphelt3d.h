@@ -15,10 +15,12 @@
 #include "pzgraphelq3dd.h"
 
 /**
-This class implements the graphical representation of a tetrahedra elemennt
-
-@author Philippe R. B. Devloo
-*/
+ * @ingroup post
+ */
+/**
+ * @brief This class implements the graphical representation of a tetrahedra elemennt
+ * @author Philippe R. B. Devloo
+ */
 class TPZGraphElT3d : public TPZGraphElQ3dd
 {
 public:
@@ -28,10 +30,10 @@ public:
 
     ~TPZGraphElT3d();
 
- /**
-     * This method maps the index of a point to parameter space as a function
-     * of the number of divisions
-  */
+/**
+ * @brief This method maps the index of a point to parameter space as a function
+ * of the number of divisions
+ */
   virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
 
 
