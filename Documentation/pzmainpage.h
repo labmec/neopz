@@ -55,9 +55,9 @@ What is meant by "advanced technologies" is documented in the section \ref sec_a
 
 \section sec_doc_structure Structure of the Documentation
 There are many ways to define a library of classes. A global view of the PZ environment is
-found in \ref sec_structure. This same structure is "more or less" recognized in the 
+found in \ref page_structure. This same structure is "more or less" recognized in the 
 <a href="modules.html">Modules</a> section.
-The section \ref sec_finite_element_different is dedicated to describing which algorithms within the PZ 
+The section \ref page_finite_element_different is dedicated to describing which algorithms within the PZ 
 environment are different from regular finite element codes
 
 
@@ -109,8 +109,7 @@ returned in the SideToSideTransform method
 \subsection sec_connect Grouping Multiplier Coefficients in an object
 
 
-\page page_structure
-\section sec_structure Structure of the Environment
+\page page_structure Structure of the Environment
 
 
 
