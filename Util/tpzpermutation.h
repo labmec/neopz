@@ -16,16 +16,17 @@
 class TPZStream;
 
 /**
-This class generates all permutations of n values
-
-@author Philippe R. B. Devloo
-*/
+ @ingroup util
+ @brief This class generates all permutations of n values
+ 
+ @author Philippe R. B. Devloo
+ */
 class TPZPermutation{
 public:
     TPZPermutation(int n);
     
     TPZPermutation(const TPZPermutation &copy);
-
+	
     ~TPZPermutation();
     
     TPZPermutation &operator=(const TPZPermutation &copy);
@@ -52,7 +53,7 @@ public:
 	{
 		return fOrder;
 	}
-
+	
 protected:
 	
     /// Variable which represents a counter for the permutations

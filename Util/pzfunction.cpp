@@ -11,14 +11,14 @@ TPZFunction::~TPZFunction()
 }
 
 int TPZFunction::ClassId() const{
-  return TPZFUNCTIONID;
+	return TPZFUNCTIONID;
 }
 
 void TPZFunction::Write(TPZStream &buf, int withclassid){
-  TPZSaveable::Write(buf, withclassid);
+	TPZSaveable::Write(buf, withclassid);
 }
 
 void TPZFunction::Read(TPZStream &buf, void *context){
-  TPZSaveable::Read(buf, context);
+	TPZSaveable::Read(buf, context);
 }
 

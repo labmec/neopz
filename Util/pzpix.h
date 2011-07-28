@@ -8,7 +8,8 @@
 #define PZPIX_H
 
 /**
- * TPZPix is the iterator for the AVL binary tree class.
+ * @ingroup util
+ * @brief TPZPix is the iterator for the AVL binary tree class.
  *
  * @see TPZAVLMap
  */

@@ -18,31 +18,37 @@
 #ifndef TPZNUMERIC_H
 #define TPZNUMERIC_H
 
-
-/**Tem implementados vários metodos de cálculo.
-  *@author Renato Gomes Damas
-  */
 #include "pzvec.h"
 
+/** 
+ * @ingroup util
+ * @brief Tem implementados vários metodos de cálculo.
+ * @author Renato Gomes Damas
+ */
 class TPZNumeric {
-
+	
 public:
 	
 	TPZNumeric();
 	~TPZNumeric();
   	/** Retorna o determinante da matriz em &det. */
+	/** @brief Compute the 3x3-matrix determinant */
   	static void MatrixDet(REAL matrix[3][3], REAL &det);
   	/** Retorna o determinante da matriz. */
+	/** @brief Returns the 3x3-matrix determinant */
   	static REAL MatrixDet(REAL matrix[3][3]);
   	/** Dada a array[3] armazena sua ordem decrescente, em valor absoluto, em ordem[3]. */
+	/** @brief Sorts in descending order, in absolute value and stores the indexes in ordem. */
   	static void SortArray3(const TPZVec<REAL> &array, int ordem[3]);
   	/** Dada a array[3], retorna-a em ordem decrescente, em valor absoluto. */
+	/** @brief Sorts in descending order, in absolute value on self storage vector */
   	static void SortArray3(TPZVec<REAL> &array);
   	/** dados dois vetores calcula o produto vetorial. */
+	/** @brief Computes the vectorial product u x v */
   	static void ProdVetorial(TPZVec<REAL> &u, TPZVec<REAL> &v, TPZVec<REAL> &result);
-
+	/** @brief Normalizes the vector */
 	static void NormalizeVetor3(TPZVec<REAL> &vetor);
-
+	/** @brief Returns the L2-norm of the vector */
     static REAL Norma(const TPZVec<REAL> &vetor);
 };
 

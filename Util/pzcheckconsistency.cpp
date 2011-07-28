@@ -50,17 +50,17 @@ bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
 	TPZBFileStream file;
 	if(!fWriteFlag)
 	{
-	file.OpenRead(name);
-	TPZSaveable *copy = TPZSaveable::Restore(file,NULL);
-	bool result = obj.Compare(copy,fOverWrite);
-	delete copy;
-	return result;
+		file.OpenRead(name);
+		TPZSaveable *copy = TPZSaveable::Restore(file,NULL);
+		bool result = obj.Compare(copy,fOverWrite);
+		delete copy;
+		return result;
 	}
 	else
 	{
-	file.OpenWrite(name);
-	obj.Write(file,true);
-	return true;
+		file.OpenWrite(name);
+		obj.Write(file,true);
+		return true;
 	}
-//	std::ofstream file(name.str(),std::ios_base::binary);
+	//	std::ofstream file(name.str(),std::ios_base::binary);
 }

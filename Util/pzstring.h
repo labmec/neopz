@@ -12,91 +12,96 @@
 
 #include <string.h>
 
-
+/**
+ * @ingroup util
+ * @brief Implements strings as stack 
+ */
 class TPZString : public TPZStack < char >
 {
 public:
-
-	/** Default Constructor. */
+	
+	/** @brief Default Constructor. */
 	TPZString();
-
+	
 	/** Constructs a TPZString object based on a null char ended string. */
 	//      inline TPZString(const char * source);
-
-	/** Constructs a TPZString object based on a null char ended string. */
+	
+	/** @brief Constructs a TPZString object based on a null char ended string. */
 	TPZString(char const * source);
-
-	/** Initializes the TPZString object with a predefined size. */
+	
+	/** @brief Initializes the TPZString object with a predefined size. */
 	TPZString(const int size);
-
-	/** Single char constructor. */
+	
+	/** @brief Single char constructor. */
 	TPZString(const char chr);
-
-	/** Destructor. */
+	
+	/** @brief Destructor. */
 	~TPZString() { }
-
+	
 	/**
-	 * Concatenates the 'this' string with another character string.
+	 * @brief Concatenates the 'this' string with another character string.
+	 *
 	 * Original strings are left unchanged.
 	 */
 	TPZString operator + (const char * increment) const;
-
+	
 	/**
-	 * Concatenates the 'this' string with a character.
+	 * @brief Concatenates the 'this' string with a character.
+	 *
 	 * Original string and character are left unchanged.
 	 */
 	TPZString operator + (const TPZString & increment) const;
-
-	/** Appends a string at the tail. Resizes the TPZString if necessary. */
+	
+	/** @brief Appends a string at the tail. Resizes the TPZString if necessary. */
 	void operator += (const char * increment);
-
-	/** Appends a character at the end. Resizes if necessary. */
+	
+	/** @brief Appends a character at the end. Resizes if necessary. */
 	void operator += (const char increment);
-
-	/** operator =. Resizes if necessary. */
+	
+	/** @brief operator =. Resizes if necessary. */
 	bool operator == (const TPZString cmp)
 	{
 		if(!strcmp(fStore, cmp.fStore)) return true;
 		else return false;
-
+		
 	}
-
-	/** operator =. Resizes if necessary. */
+	
+	/** @brief operator =. Resizes if necessary. */
 	void operator = (const char * source)
 	{
 		int len = strlen(source);
-
+		
 		if (NElements() < (len + 1))
 		{
 			Resize(len + 1);
 		}
-
+		
 		strcpy(fStore, source);
 	}
-
-	/** Appends a character at the end. Resizes if necessary. */
+	
+	/** @brief Appends a character at the end. Resizes if necessary. */
 	void Append(const char TailIncrement);
-
-	/** Appends a string at the tail. Resizes the TPZString if necessary. */
+	
+	/** @brief Appends a string at the tail. Resizes the TPZString if necessary. */
 	void Append(const char * TailIncrement);
-
+	
 	/**
-	 * Explicitly convertes a TPZString into a const null ended
-	 * char string .
+	 * @brief Explicitly convertes a TPZString into a const null ended
+	 * char string.
 	 */
 	const char * Str() const;
-
-	/** Implicit conversion */
+	
+	/** @brief Implicit conversion */
 	operator const char * () const;
-
+	
 	/**
-	 * Similar to strlen(string). Also returns the number of
+	 * @brief Similar to strlen(string). Also returns the number of
 	 * non-null characters.
 	 */
 	int Length() const;
-
+	
 	/**
-	 * Returns a subset string.
+	 * @brief Returns a subset string.
 	 *
 	 * If start and end are the same, a substring containing one
 	 * character is returned.
@@ -110,23 +115,23 @@ public:
 	 * @param end end of the string (zero-based)
 	 */
 	TPZString SubStr(const int start, const int end) const;
-
-	/** Empties the string. */
+	
+	/** @brief Empties the string. */
 	void Empty();
-
+	
 	/**
-	 * Internally allocates the exact string size (length + 1)
+	 * @brief Internally allocates the exact string size (length + 1)
 	 * to store it.
 	 */
 	void Optimize();
-
-	/** Remove the repeat white spaces */
+	
+	/** @brief Remove the repeat white spaces */
 	void SimplifyWhiteSpace();
-
-	/** Replace the subset of string. Return the times of replacement. */
+	
+	/** @brief Replace the subset of string. Return the times of replacement. */
 	int Replace(const char * old_str, const char * new_str);
-
-	/** Find the positions of the first occurence of the find string */
+	
+	/** @brief Find the positions of the first occurence of the find string */
 	int Find(const char * find_str);
 };
 

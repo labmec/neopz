@@ -63,7 +63,7 @@ void TPZSemaphore::Wait()
 			return;
 		}
 	}
-
+	
 }
 
 void TPZSemaphore::Post()

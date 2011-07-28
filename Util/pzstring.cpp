@@ -16,7 +16,7 @@ TPZString::TPZString(char const * source)
 	int len = strlen(source);
 	Resize(len + 1);
 	strcpy(fStore, source);
-
+	
 	// although the TPZStack class already stores the length, the null
 	// character is necessary to export string as a null character
 	// ended string
@@ -61,13 +61,13 @@ void TPZString::operator += (const char * increment)
 }
 
 /*
-  void TPZString::operator=(const char * source)
-  {
-  int len=strlen(source);
-  if(NElements()<(len+1))Resize(len+1);
-  strcpy(fStore, source);
-}
-*/
+ void TPZString::operator=(const char * source)
+ {
+ int len=strlen(source);
+ if(NElements()<(len+1))Resize(len+1);
+ strcpy(fStore, source);
+ }
+ */
 
 TPZString::operator const char * () const
 {
@@ -80,7 +80,7 @@ const char * TPZString::Str() const
 	{
 		return fStore;
 	}
-
+	
 	return NULL;
 }
 
@@ -103,7 +103,7 @@ void TPZString::Append(const char TailIncrement)
 	{
 		fStore[len + 1] = '\0';
 	}
-
+	
 	fStore[len] = TailIncrement;
 }
 
@@ -111,9 +111,9 @@ void TPZString::Append(const char * TailIncrement)
 {
 	int OldLength = Length();
 	int len = strlen(TailIncrement);
-
+	
 	if (fNElements < OldLength + len + 1) Resize(OldLength + len + 1); // the 1 stands for the null char
-
+	
 	strcpy(fStore + OldLength, TailIncrement);
 	fStore[Length()] = '\0'; // just to ensure the string contains a null character
 }
@@ -126,16 +126,16 @@ TPZString TPZString::SubStr(const int start, const int end) const
 		TPZString newstring;
 		return newstring;
 	}
-
+	
 	int startpos = start, endpos = end, i;
-
+	
 	if (startpos < 0) startpos = 0;
-
+	
 	if (endpos > len) endpos = len - 1; // null ending character index
-
+	
 	TPZString newstring(endpos - startpos + 2);
 	for (i = startpos; i <= endpos; i++) newstring[i - startpos] = fStore[i];
-
+	
 	newstring[newstring.NElements() - 1] = '\0';
 	return newstring;
 }
@@ -148,7 +148,7 @@ void TPZString::Empty()
 void TPZString::Optimize()
 {
 	int len = Length();
-
+	
 	if (len + 1 < fNElements) Resize(len + 1);
 }
 
@@ -186,17 +186,17 @@ void TPZString::SimplifyWhiteSpace()
 }
 
 int TPZString::Replace( const char * replace_str, const char *new_substr){
-  string newstring(fStore);
-  const int replace_len = strlen(replace_str);
-  int  count = 0;
-  string::size_type pos = newstring.find(replace_str, 0);
-  while( pos!= string::npos) {
-    newstring.replace(pos, replace_len, new_substr);
-    pos = newstring.find(replace_str, 0);
-    count++;
-  }
-  if(count) strcpy(fStore, newstring.c_str());
-  return(count);
+	string newstring(fStore);
+	const int replace_len = strlen(replace_str);
+	int  count = 0;
+	string::size_type pos = newstring.find(replace_str, 0);
+	while( pos!= string::npos) {
+		newstring.replace(pos, replace_len, new_substr);
+		pos = newstring.find(replace_str, 0);
+		count++;
+	}
+	if(count) strcpy(fStore, newstring.c_str());
+	return(count);
 }
 
 int TPZString::Find(const char * find_str){

@@ -24,13 +24,13 @@
 using namespace std;
 
 REAL TPZNumeric::Norma(const TPZVec<REAL> &vetor){
-  const int size = vetor.NElements();
-  return sqrt(inner_product(&vetor[0], &vetor[size], &vetor[size], REAL(0.0)));
+	const int size = vetor.NElements();
+	return sqrt(inner_product(&vetor[0], &vetor[size], &vetor[size], REAL(0.0)));
 }
 void TPZNumeric::NormalizeVetor3(TPZVec<REAL> &vetor){
-  int i;
-  REAL norma = TPZNumeric::Norma(vetor);
-  for(i=0; i<3; i++) vetor[i] = vetor[i]/norma;
+	int i;
+	REAL norma = TPZNumeric::Norma(vetor);
+	for(i=0; i<3; i++) vetor[i] = vetor[i]/norma;
 }
 
 TPZNumeric::TPZNumeric(){
@@ -42,7 +42,7 @@ void TPZNumeric::SortArray3(const TPZVec<REAL> &array,int ordem[3]){
     int i;
     REAL vetor[3];
     for(i=0; i<3; i++) vetor[i]=fabs(array[i]);
-
+	
 	if (vetor[0] >= vetor[1]) {
 		if (vetor[1] >= vetor[2]) {
 			ordem[0] = 0;
@@ -80,8 +80,8 @@ void TPZNumeric::SortArray3(const TPZVec<REAL> &array,int ordem[3]){
 }
 
 void TPZNumeric::SortArray3(TPZVec<REAL> &array){
-  int size = array.NElements();
-  sort(&array[0], &array[size], greater<REAL>());
+	int size = array.NElements();
+	sort(&array[0], &array[size], greater<REAL>());
 }
 /** dados dois vetores calcula o produto vetorial. */
 void TPZNumeric::ProdVetorial(TPZVec<REAL> &u, TPZVec<REAL> &v, TPZVec<REAL> &result){
