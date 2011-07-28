@@ -10,22 +10,26 @@ class TPZTransform;
 class TPZGeoElSide;
 
 namespace pzrefine {
-
-/// implements the uniform refinement of a geometric linear element
-class TPZRefLinear {
-
-public:
-
-	enum{NSubEl = 2};
-
-static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
-static void MidSideNodeIndex(TPZGeoEl *gel,int side,int &index);
-static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
-static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
-static int NSideSubElements(int side);
-static TPZTransform GetTransform(int side,int son);
-static int FatherSide(int side,int son);
+	
+	/**
+	 * @ingroup refine
+	 * @brief Implements the uniform refinement of a geometric linear element
+	 */
+	class TPZRefLinear {
+		
+	public:
+		
+		enum{NSubEl = 2};
+		
+		static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
+		static void MidSideNodeIndex(TPZGeoEl *gel,int side,int &index);
+		static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
+		static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
+		static int NSideSubElements(int side);
+		static TPZTransform GetTransform(int side,int son);
+		static int FatherSide(int side,int son);
+	};
+	
 };
 
-};
 #endif

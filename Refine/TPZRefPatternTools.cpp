@@ -43,9 +43,9 @@ void TPZRefPatternTools::GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAu
 	{
 		TPZGeoElSide gelside(gel, side);
 		TPZGeoElSide neighside = gelside.Neighbour();
-    if(!neighside.Element()){
-      DebugStop();
-    }
+		if(!neighside.Element()){
+			DebugStop();
+		}
 		while(neighside != gelside)
 		{
 			if(neighside.NSubElements() > 1)
@@ -584,7 +584,7 @@ void TPZRefPatternTools::PairMeshesNodesMatchingCoordinates(TPZGeoMesh meshA, TP
 				int nA_Id = meshA.NodeVec()[nA].Id();
 				int nB_Id = meshB.NodeVec()[nB].Id();
 				pairedNodes[nA_Id] = nB_Id;
-
+				
 				break;
 			}
 		}
@@ -831,7 +831,7 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 	else
 	{		
 #ifdef WIN32
-	DebugStop();
+		DebugStop();
 #endif
 		std::cout << "|"; std::cout.flush();
 		std::ofstream arquivo ("NotListedPatterns.txt",std::ios::app);
@@ -844,10 +844,10 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		int i;
 		for (i=0 ; i<gel->NSides() ; i++)
 		{
-	/*		if(cornerstorefine[i] == 1)
-			{
-				arquivo << " " << i << " ";
-			}     */
+			/*		if(cornerstorefine[i] == 1)
+			 {
+			 arquivo << " " << i << " ";
+			 }     */
 			if (sidestorefine[i] == 1) {
 				arquivo << " " << i << " " ;
 			}
@@ -1203,9 +1203,9 @@ void TPZRefPatternTools::TransformationTest(TPZRefPattern * refp)
 				}
 				else
 				{
-//					std::cout << "Transformacao OK!\n";
-//					std::cout << "Filho/lado : " << subel->Id() << "/" << sd << std::endl;
-//					std::cout << "Pai : " << father->Id() << std::endl << std::endl;
+					//					std::cout << "Transformacao OK!\n";
+					//					std::cout << "Filho/lado : " << subel->Id() << "/" << sd << std::endl;
+					//					std::cout << "Pai : " << father->Id() << std::endl << std::endl;
 				}//fim if sqrt..
 			}//fim rule
 			

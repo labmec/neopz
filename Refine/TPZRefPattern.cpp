@@ -41,10 +41,10 @@ TPZRefPattern::TPZRefPattern(const std::string &file ) : fSideRefPattern(0), fId
 	ImportPattern(input);
 	
 	/*
-	BuildName();
-	ofstream output(file.c_str());
-	ExportPattern(output);
-	*/
+	 BuildName();
+	 ofstream output(file.c_str());
+	 ExportPattern(output);
+	 */
 }
 
 TPZRefPattern::TPZRefPattern(TPZGeoMesh &RefPatternMesh): fRefPatternMesh(RefPatternMesh), fSideRefPattern(0), fId(nonInitializedId), fName("noname")
@@ -610,7 +610,7 @@ int TPZRefPattern::IsNotEqual(TPZTransform &Told, TPZTransform &Tnew)
 TPZAutoPointer<TPZRefPattern> TPZRefPattern::SideRefPattern(int side)
 {
 	const int id = this->fSideRefPattern[side];
-
+	
 	return gRefDBase.FindRefPattern(id);
 }
 
@@ -765,7 +765,7 @@ void TPZRefPattern::InsertPermuted()
 		TPZAutoPointer<TPZRefPattern> refp(new TPZRefPattern(*this,(*it).fPermute));
 		TPZAutoPointer<TPZRefPattern> found = gRefDBase.FindRefPattern(refp);
 		
-		#ifdef LOG4CXX
+#ifdef LOG4CXX
 		{
 			std::stringstream sout;
 			sout << "Permutation " << it->fPermute;
@@ -776,7 +776,7 @@ void TPZRefPattern::InsertPermuted()
 			else sout << "Pattern not found";
 			LOGPZ_DEBUG(logger,sout.str())
 		}
-		#endif
+#endif
 		
 		if(found)
 		{
@@ -854,7 +854,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPattern::FindRefPattern(TPZTransform &trans)
 	REAL tol = 1.e-6;
 	if(!fRefPatternMesh.ElementVec().NElements() || ! fRefPatternMesh.ElementVec()[0]) return 0;
 	MElementType type = fRefPatternMesh.ElementVec()[0]->Type();
-
+	
 	std::list<TPZRefPatternPermute> &permlist = fPermutations[type];
 	std::list<TPZRefPatternPermute>::iterator it;
 	for(it = permlist.begin(); it != permlist.end(); it++)
@@ -907,13 +907,13 @@ void TPZRefPattern::InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &si
 
 TPZAutoPointer<TPZRefPattern> TPZRefPattern::GetPermutation(int pos)
 {
-	#ifdef DEBUG
+#ifdef DEBUG
 	if( pos >= (int)fPermutedRefPatterns.size() )
 	{
 		std::cout << "Position out of range of fPermutedRefPatterns vector in " << __PRETTY_FUNCTION__ << " !\n";
 		DebugStop();
 	}
-	#endif
+#endif
 	
 	int id = fPermutedRefPatterns[pos];
  	TPZAutoPointer<TPZRefPattern> refp = gRefDBase.FindRefPattern(id);
@@ -943,7 +943,7 @@ void TPZRefPattern::ImportPattern(std::istream &in)
 	}
 	
 	TPZGeoEl *father;
-		//criacao dos elementos geometricos que definem a particao
+	//criacao dos elementos geometricos que definem a particao
 	int ntype, nummat, naorners, incid, el;
 	for(el=0; el<nelems; el++)//os sub-elementos podem nao ter de uma mesma geometria
 	{
@@ -1088,7 +1088,7 @@ void TPZRefPattern::SetRefPatternMeshToMasterDomain()
 	TPZVec< TPZVec<REAL> > nodecoords_inQSI(nnodes);
 	TPZVec<REAL> nodecoords_inX;
 	TPZGeoEl * gel = fRefPatternMesh.ElementVec()[0];
-
+	
 	int dim = gel->Dimension();
 	TPZVec<REAL> temp(3,0.);
 	
@@ -1145,20 +1145,20 @@ void TPZRefPattern::ComputeTransforms()
 	{
 		fTransforms.fInitSonSides[isub] = initside;
 		TPZGeoEl *son = Element(isub+1);/**o pai nao sabe quem sao os filhos*/
-
+		
 		int nsides = son->NSides();
-
+		
 		for(side = 0; side < nsides; side++)//cantos + arestas + faces, o interior nao cocompartilhado
 		{
 			TPZGeoElSide elside (son, side);
-
+			
 			son->CenterPoint(side,masscent);/**percorre todos os lados do elemento filho*/
 			son->X(masscent,xpoint);
 			fath->ComputeXInverse(xpoint,fathparam);
-
+			
 			fatside = fath->WhichSide(fathparam);/**lado do pai contendo o lado do filho*/
 			fTransforms.fSideTransform[cont] = son->ComputeParamTrans(fath,fatside,side);
-
+			
 			fTransforms.fFatherSide[cont++] = fatside;
 			initside++;
 		}
@@ -1181,7 +1181,7 @@ void TPZRefPattern::ComputePartition()
 	for(init = 0; init < sizeinit; init++)/**peraorre os filhos*/
 	{
 		int initsideson = fTransforms.fInitSonSides[init];/**comeco dos lados do filho*/
-
+		
 		TPZGeoEl *son = Element(init+1);/**filho*/
 		int nsides = son->NSides();
 		for(iside=0;iside<nsides;iside++)/**peraorre-se os lados do filho*/
@@ -1366,15 +1366,15 @@ void TPZRefPattern::TPZSideTransform::Print(TPZGeoMesh &gmesh, std::ostream &out
 
 void TPZRefPattern::PrintVTK(std::ofstream &file, bool matColor)
 {
-//	TPZGeoMesh * gmesh = &(RefPatternMesh());
-//	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
+	//	TPZGeoMesh * gmesh = &(RefPatternMesh());
+	//	TPZRefPatternTools::PrintGMeshVTK(gmesh, file, matColor);
 	
 	TPZGeoMesh * Rgmesh = &(RefPatternMesh());
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	
 	int nNodes = Rgmesh->NNodes();
 	int nElements = Rgmesh->NElements();
-
+	
 	TPZVec < TPZVec <REAL> > NodeCoord(nNodes);
 	for(int i = 0; i < nNodes; i++) NodeCoord[i].Resize(3,0.);
 	

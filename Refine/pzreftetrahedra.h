@@ -15,23 +15,27 @@ template<class T, int N>
 class TPZStack;
 
 namespace pzrefine {
-
-/// implements the uniform refinement of a geometric tetrahedral element
-class TPZRefTetrahedra {
-
-public:
-
-	enum{NSubEl = 6};
-
-	static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
-	static void MidSideNodeIndex(TPZGeoEl *gel,int side,int &index);
-	static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
-	static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
-	static int NSideSubElements(int side);
-	static TPZTransform GetTransform(int side,int son);
-	static int FatherSide(int side,int son);
-	//static int NSubElements();
+	
+	/**
+	 * @ingroup refine
+	 * @brief Implements the uniform refinement of a geometric tetrahedral element
+	 */
+	class TPZRefTetrahedra {
+		
+	public:
+		
+		enum{NSubEl = 6};
+		
+		static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
+		static void MidSideNodeIndex(TPZGeoEl *gel,int side,int &index);
+		static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
+		static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
+		static int NSideSubElements(int side);
+		static TPZTransform GetTransform(int side,int son);
+		static int FatherSide(int side,int son);
+		//static int NSubElements();
+	};
+	
 };
 
-};
 #endif

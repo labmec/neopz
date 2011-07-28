@@ -51,7 +51,7 @@ int TPZRefPatternDataBase::ReturnUniqueId()
 			Ids.insert((*listIt)->Id());
 		}
 	}
-
+	
 	std::set<int>::iterator it;
 	
 	int nRefPatterns = gRefDBase.NRefPatterns();
@@ -111,7 +111,7 @@ int TPZRefPatternDataBase::ImportRefPatterns()
 	std::string DefaulPath;
 	
 	DefaulPath = "NeoPZ/Refine/RefPatterns";
-	#define StartPathDefined 1;
+#define StartPathDefined 1;
 	
 	return ImportRefPatterns(DefaulPath);
 }
@@ -126,11 +126,11 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 	std::cout << "Generated command: " << Command.c_str() << std::endl;
 	FILE   *fp;
 	
-	#ifndef BORLAND
-		fp = popen(Command.c_str(), "r");
-	#else
-		fp = (FILE *)open(Command.c_str(), O_RDONLY );
-	#endif
+#ifndef BORLAND
+	fp = popen(Command.c_str(), "r");
+#else
+	fp = (FILE *)open(Command.c_str(), O_RDONLY );
+#endif
 	
 	if (!fp)
 	{
@@ -150,9 +150,9 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 			}
 			std::cout << "Reading refinement patern file : " << psBuffer << std::endl;
 			std::string filref(psBuffer);
-
+			
 			TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filref);
-
+			
 			if(!this->FindRefPattern(refpat))
 			{
 				this->InsertRefPattern(refpat);
@@ -163,11 +163,11 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 		}
 	}
 	
-	#ifndef BORLAND
-		pclose(fp);
-	#else
-		close((int)fp);
-	#endif
+#ifndef BORLAND
+	pclose(fp);
+#else
+	close((int)fp);
+#endif
 	
 	return count;
 }
@@ -177,7 +177,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::GetUniformRefPattern(MEleme
 {
 	std::list< TPZAutoPointer<TPZRefPattern> > ElTypeList = RefPatternList(type);
 	std::list< TPZAutoPointer<TPZRefPattern> >::iterator it;
-
+	
 	std::string unifRefName;
 	switch (type)
 	{
@@ -233,13 +233,13 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::GetUniformRefPattern(MEleme
 		}
 	}
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	if(!UnifRefPat)
 	{
 		std::cout << "Uniform refpattern " << unifRefName << " was not initialized!" << std::endl;
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 	}
-	#endif
+#endif
 	
 	return UnifRefPat;
 }
@@ -344,7 +344,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
-
+			
 			break;
 		}
 		case 4://ETetraedro
@@ -382,7 +382,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 				refpatFound->SetName(refpat->Name());
 			}
 			refpat->InsertPermuted();
-
+			
 			break;
 		}
 		case 5://EPiramide
@@ -561,19 +561,17 @@ void TPZRefPatternDataBase::InitializeAllUniformRefPatterns()
 //#endif
 void TPZRefPatternDataBase::InitializeRefPatterns()
 {
-
-	#ifndef REFPATTERNDIR
-		  /***********************************************
-	*****************************************************
-				You must define the REFPATTERNDIR in your Project!!!
-	*****************************************************
-		  ***********************************************/
-	#else
+	
+#ifndef REFPATTERNDIR
+	/***********************************************
+	 *****************************************************
+	 You must define the REFPATTERNDIR in your Project!!!
+	 *****************************************************
+	 ***********************************************/
+#endif
 	
 	std::string path = REFPATTERNDIR;
 	ImportRefPatterns(path);
-	
-#endif
 }
 
 //.........................................................................................................................................................................................
@@ -624,7 +622,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternDataBase::FindRefPattern(TPZAutoPoint
 			return it->second;
 		}
 	}
-
+	
 	//else
 	return NullRefPat;
 }
@@ -636,7 +634,7 @@ TPZAutoPointer<TPZRefPattern>  TPZRefPatternDataBase::FindRefPattern(int id)
 	std::map< int , TPZAutoPointer<TPZRefPattern> >::iterator it;
 	
 	it = fIdRefPatterns.find(id);
-
+	
 	if(it != fIdRefPatterns.end())
 	{
 		refPatReturned = it->second;
