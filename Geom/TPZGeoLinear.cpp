@@ -17,63 +17,56 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzgeom {
-
-void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
-	REAL x = pt[0];
-    phi(0,0) = (1-x)/2.;
-    phi(1,0) = (1+x)/2.;
-    dphi(0,0) = -0.5;
-    dphi(0,1) = 0.5;
-}
-
-
-TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
-  if(side==2) {
-      TPZManVector<int> nodes(2);
-      nodes[0] = orig->SideNodeIndex(side,0);
-      nodes[1] = orig->SideNodeIndex(side,1);
-      int index;
-      TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-      //      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
-      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
-      TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
-      TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-      return gel;
-  }
-  else if(side==0 || side==1) {
-      TPZManVector<int> nodeindexes(1);
-      //      TPZGeoElPoint *gel;
-      nodeindexes[0] = orig->SideNodeIndex(side,0);
-      int index;
-      TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-      //      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
-      TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-	  return gel;
-  }
-  else PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
-  return 0;
-}
-
+	
+	void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+		REAL x = pt[0];
+		phi(0,0) = (1-x)/2.;
+		phi(1,0) = (1+x)/2.;
+		dphi(0,0) = -0.5;
+		dphi(0,1) = 0.5;
+	}
+	
+	
+	TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
+		if(side==2) {
+			TPZManVector<int> nodes(2);
+			nodes[0] = orig->SideNodeIndex(side,0);
+			nodes[1] = orig->SideNodeIndex(side,1);
+			int index;
+			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
+			//      TPZGeoEl1d *gel = new TPZGeoEl1d(nodes,bc,*orig->Mesh());
+			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,0)));
+			TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeLinear::ContainedSideLocId(side,1)));
+			TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
+			return gel;
+		}
+		else if(side==0 || side==1) {
+			TPZManVector<int> nodeindexes(1);
+			//      TPZGeoElPoint *gel;
+			nodeindexes[0] = orig->SideNodeIndex(side,0);
+			int index;
+			TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
+			//      gel = new TPZGeoElPoint(nodeindexes,bc,*(orig->Mesh()));
+			TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
+			return gel;
+		}
+		else PZError << "TPZGeoLinear::CreateBCGeoEl. Side = " << side << endl;
+		return 0;
+	}
+	
 	/**
 	 * Creates a geometric element according to the type of the father element
 	 */
 	TPZGeoEl *TPZGeoLinear::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-											TPZVec<int>& nodeindexes,
-											int matid,
-											int& index)
+											 TPZVec<int>& nodeindexes,
+											 int matid,
+											 int& index)
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
-
+	
     void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-                                       TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
-        
-        
-        //   REAL mod1 = (coord(0,1)-coord(0,0))*0.5;
-        //   jacobian(0,0) = mod1;
-        //   detjac = mod1;
-        //   jacinv(0,0) = 1./detjac;
-        //   axes(0,0) = 1.;
+								TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
         
         //VERSAO FUNCIONAL
         jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
@@ -101,5 +94,5 @@ TPZGeoEl *TPZGeoLinear::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc){
             axes(0,ic) = v1[ic]/mod1;
         }
     }
-
+	
 };

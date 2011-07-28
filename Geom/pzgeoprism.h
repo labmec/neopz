@@ -21,95 +21,97 @@ class TPZGeoMesh;
 
 
 namespace pzgeom {
-
-/// implements the geometry of a prism element
-class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>  
-{
-public:
-
-	enum {NNodes = 6};
-  /**
-  * Constructor with list of nodes
-   */
- TPZGeoPrism(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
- {
- }
-  
-  /**
-  * Empty constructor
-   */
- TPZGeoPrism() : TPZNodeRep<NNodes, pztopology::TPZPrism>()
- {
- }
-  
-  /**
-  * Constructor with node map
-   */
- TPZGeoPrism(const TPZGeoPrism &cp,
-                std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
- {
- }
-  
-  /**
-  * Copy constructor
-   */
- TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
- {
- }
-
-  /**
-  * Copy constructor
-   */
- TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
- {
- }
-
-/**
- * returns the type name of the element
- */
-static std::string TypeName() { return "Prism";} 
-
-  /** implementation of two-dimensional bilinear interpolation*/
-static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
-
-  /**Computes the jacobian*/
-static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
-
-  /**Computes the geometric location*/
-static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
-
-/**
- * returns the projection of a given point from "NSide - 1" side to "side".
- */
-static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
-
-  /**
-   * Method which creates a geometric boundary condition 
-   * element based on the current geometric element, 
-   * a side and a boundary condition number
-   */
-static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
-
-protected:
-   /**
-    * This method apply an infinitesimal displacement in some points
-    * to fix singularity problems when using MapToSide() method!
-    * This points are CornerNodes, when projected in the opposing side
-    */
-    static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
-
 	
-public:
-	/**
-	 * Creates a geometric element according to the type of the father element
-	 */
-	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									  TPZVec<int>& nodeindexes,
-									  int matid,
-									  int& index);
+	/// @ingroup geometry
+	/// @brief Implements the geometry of a prism element
+	class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>  
+	{
+	public:
+		
+		enum {NNodes = 6};
+		/**
+		 * @brief Constructor with list of nodes
+		 */
+		TPZGeoPrism(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)
+		{
+		}
+		
+		/**
+		 * @brief Empty constructor
+		 */
+		TPZGeoPrism() : TPZNodeRep<NNodes, pztopology::TPZPrism>()
+		{
+		}
+		
+		/**
+		 * @brief Constructor with node map
+		 */
+		TPZGeoPrism(const TPZGeoPrism &cp,
+					std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp,gl2lcNdMap)
+		{
+		}
+		
+		/**
+		 * @brief Copy constructor
+		 */
+		TPZGeoPrism(const TPZGeoPrism &cp) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
+		{
+		}
+		
+		/**
+		 * @brief Copy constructor
+		 */
+		TPZGeoPrism(const TPZGeoPrism &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPrism>(cp)
+		{
+		}
+		
+		/**
+		 * @brief Returns the type name of the element
+		 */
+		static std::string TypeName() { return "Prism";} 
+		
+		/** @brief Implementation of two-dimensional bilinear interpolation*/
+		static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+		
+		/** @brief Computes the jacobian*/
+		static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		
+		/** @brief Computes the geometric location*/
+		static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+		
+		/**
+		 * @brief Returns the projection of a given point from "NSide - 1" side to "side".
+		 */
+		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+		
+		/**
+		 * @brief Method which creates a geometric boundary condition 
+		 * element based on the current geometric element, 
+		 * a side and a boundary condition number
+		 */
+		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
+		
+	protected:
+		/**
+		 * @brief This method apply an infinitesimal displacement in some points
+		 * to fix singularity problems when using MapToSide() method!
+		 *
+		 * This points are CornerNodes, when projected in the opposing side
+		 */
+		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
+		
+		
+	public:
+		/**
+		 * @brief Creates a geometric element according to the type of the father element
+		 */
+		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
+										  TPZVec<int>& nodeindexes,
+										  int matid,
+										  int& index);
+		
+		
+	};
 	
-	
-};
-
 };
 #endif 

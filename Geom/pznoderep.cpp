@@ -39,4 +39,3 @@ template class TPZNodeRep<4,TPZTetrahedron>;
 template class TPZNodeRep<6,TPZPrism>;
 template class TPZNodeRep<8,TPZCube>;
 
-
