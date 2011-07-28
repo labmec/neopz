@@ -9,8 +9,11 @@
 
 #include <fstream>
 class TPZCompMesh;
+
+/** @ingroup pre
+ */
 /**
- * Virtual class that implements the interface for build a computational mesh\
+ * @brief Virtual class that implements the interface for build a computational mesh\
  * from a file
  * @author Edimar Cesar Rylo
  * @since September, 2006
@@ -34,7 +37,7 @@ public:
     
 protected:
   /**
-   * Input file
+   * @brief Input file
    */
   std::ifstream fInputFile;
 };

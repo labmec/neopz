@@ -25,24 +25,26 @@
 #include <string>
 class TPZRefPattern;
 
+/**
+ * @ingroup pre
+ */
 
-/**Identifies the refinement pattern given the father element and their sons
+/** @brief Identifies the refinement pattern given the father element and their sons
   *@author Edimar Cesar Rylo
   *@since March 8, 2004
   */
-
 class TPZIdentifyRefPattern {
 public: 
 	TPZIdentifyRefPattern(std::string &path);
   ~TPZIdentifyRefPattern();
-  /** Returns the refinement pattern that generates the given refinement */
+  /** @brief Returns the refinement pattern that generates the given refinement */
   TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
 
 protected: // Protected methods
-  /** Identify the side of the refinement pattern */
+  /** @brief Identify the side of the refinement pattern */
   int IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
 
-  /** Returns the number of subelements of a uniform refinement   \
+  /** @brief Returns the number of subelements of a uniform refinement   \
    pattern for the specified element type.
   */
   int UniformSubElem(int eltype) ;

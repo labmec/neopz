@@ -22,7 +22,9 @@ class TPZGeoMesh;
 #include "pzreal.h"
 #include "pzvec.h"
 
-
+/**
+ * @ingroup pre
+ */
 /// class which implements the generation of a geometric grid
 /**
 Implements the generation of part of the grid

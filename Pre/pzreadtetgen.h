@@ -27,7 +27,8 @@ class TPZReadTetGen{
     ~TPZReadTetGen();
     
     /**
-     * Convert tetgen files in a TPZGeoMesh object
+     * @brief Convert tetgen files in a TPZGeoMesh object
+	 *
      * If something does not work in the process, a null pointer is returned.
      */
     TPZGeoMesh * Process(std::string NodeFileName, std::string FaceFileName, std::string TetraFileName);
@@ -35,25 +36,29 @@ class TPZReadTetGen{
   private:
   
     /** 
-     * Process nodes.
+     * @brief Process nodes.
+	 *
      * Return true if the process worked succesfuly and false otherwise.
      */
     bool ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, int & numbernodes);
     
     /** 
-     * Process faces.
+     * @brief Process faces.
+	 *
      * Return true if the process worked succesfuly and false otherwise.
      */    
     bool ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, int & numberfaces);
     
     /** 
-     * Process tetrahedras.
+     * @brief Process tetrahedras.
+	 *
      * Return true if the process worked succesfuly and false otherwise.
      */    
     bool ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, int & numbervols);
     
     /**
-     * Nodes in tetgen are counted from 1 to n as a fortran based code.
+     * @brief Nodes in tetgen are counted from 1 to n as a fortran based code.
+	 *
      * In PZ, nodes have one Id and one index. index is defined by TPZGeoMesh
      * when a new node is allocated in NodeVec().
      * This object maps from the Id to the index. fNodeIndices[ Id ] = index.

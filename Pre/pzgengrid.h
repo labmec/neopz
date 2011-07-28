@@ -25,6 +25,9 @@ class TPZGeoMesh;
 
 #include <fstream>
 
+/** @ingroup pre
+ */
+
 /// class which implements the generation of a multilayered geometric grid
 /**
  This class uses DEPRECATED objects, but can be easily updated
@@ -141,16 +144,14 @@ protected:
 	int fElementType;
     
     /**
-     Number of meshes which will be generated hinging along an axis
+     @brief Number of meshes which will be generated hinging along an axis
      */
     int fNumLayers;
     /** 
-     Rotation angle between the layers
+     @brief Rotation angle between the layers
      */
     REAL fRotAngle;
-    
-    
-    
+
 };
 
 #endif // _TGENGRIDHH_

@@ -12,6 +12,7 @@
 
 class TGeoGrid;
 class TCompGrid;
+/** @ingroup pre */
 /* **************************************************************************
 
 CLASS NAME :
@@ -20,7 +21,7 @@ datafile
 
 PURPOSE OF THE CLASS :
 
-datafile is a virtual class from which classes with different data formats can
+@brief datafile is a virtual class from which classes with different data formats can
 be derived. The purpose of the datafile class is to facilitate the opening of an
 input stream and define the methods used to read a grid
 
