@@ -17,8 +17,8 @@ TPZGuiInterface::~TPZGuiInterface(){
 
 void TPZGuiInterface::UpdateCaption(){
 	std::cout << fMessage.c_str() << "\n"
-			  << "Progress bar = " << fProgressBarPos << "/" << fProgressBarMaxPos
-			  << "\n";
+	<< "Progress bar = " << fProgressBarPos << "/" << fProgressBarMaxPos
+	<< "\n";
 }
 
 void TPZGuiInterface::Start(){

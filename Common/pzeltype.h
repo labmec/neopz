@@ -6,9 +6,19 @@
 #include <cstdlib>
 #include "pzerror.h"
 
-/** Jorge
- * @ingroup common
- * @brief Define the element types
+/**
+ * \addtogroup common
+ * @{
+ */
+
+/**
+ * Zero-dimensional: EPoint. \n
+ * One-dimensional: EOned (element) EInterfacePoint (interface). \n
+ * Two-dimensional: ETriangle EQuadrilateral (element) EInterfaceLinear (interface). \n
+ * Three-dimensional: ETetrahedro EPiramide EPrisma ECube (element) EInterfaceSurface (interface). \n
+ * n-dimensional: ESubstructure EGlobLoc EDiscontinuous EInterfaceDisc EAgglomerate
+ *
+ * @brief Define the element types. (Jorge)
  */
 
 // $Id: pzeltype.h,v 1.9 2011-04-05 19:32:54 calle Exp $
@@ -59,6 +69,9 @@ enum MElementType
 	/*18*/	EInterfaceDisc = EInterface
 };
 
+/**
+ * @brief Returns the number of nodes according to the type of the element
+ */
 inline int MElementType_NNodes(MElementType elType)
 {
 	switch(elType)
@@ -97,10 +110,13 @@ inline int MElementType_NNodes(MElementType elType)
 			DebugStop();
 		}
 	}
-  DebugStop();
-  return -1;
+	DebugStop();
+	return -1;
 }
 
+/**
+ * @brief Returns the name of the element type.
+ */
 inline std::string MElementType_Name(MElementType elType)
 {
 	int elTypeId = elType;
@@ -187,8 +203,12 @@ inline std::string MElementType_Name(MElementType elType)
 			return "ElementType not found!";
 		}
 	}
-  DebugStop();
-  return "";
+	DebugStop();
+	return "";
 }
-                     
+
+/**
+ * @}
+ */
+
 #endif

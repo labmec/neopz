@@ -2,8 +2,10 @@
 #define PZSTREAMH
 
 #include <iostream>
-/** Jorge
+
+/** 
  * @ingroup common
+ * @brief Defines the output device. (Jorge)
  */
 
 #define TPZostream std::ostream
