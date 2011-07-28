@@ -19,7 +19,7 @@ TPZBlendNACA::TPZBlendNACA()
 }
 
 TPZBlendNACA::TPZBlendNACA(REAL cord, int FourDigits, REAL angle, TPZVec<REAL> &x0) :
-                    fCord(cord), fFourDigits(FourDigits), fAngle(angle)
+fCord(cord), fFourDigits(FourDigits), fAngle(angle)
 {
     fX0[0] = x0[0];
     fX0[1] = x0[1];
@@ -80,11 +80,11 @@ REAL TPZBlendNACA::yt(REAL x)
 {
     REAL aux = x/fCord;
     const REAL a0 =  1.4845,
-               a1 = -0.6300,
-               a2 = -1.7580,
-               a3 =  1.4215,
-               a4 = -0.5075;
-
+	a1 = -0.6300,
+	a2 = -1.7580,
+	a3 =  1.4215,
+	a4 = -0.5075;
+	
     return fTT * (a0*sqrt(aux) + a1*aux + a2*aux*aux + a3*aux*aux*aux + a4*aux*aux*aux*aux);
 }
 
@@ -228,9 +228,9 @@ void TPZBlendNACA::ProjectPoint(TPZVec<REAL> &pt, int maxPt)
  */
 
 TPZGeoEl *TPZBlendNACA::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									 TPZVec<int>& nodeindexes,
-									 int matid,
-									 int& index)
+										 TPZVec<int>& nodeindexes,
+										 int matid,
+										 int& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

@@ -4,30 +4,30 @@
 #include "pzvec.h"
 #include "pzgeoel.h"
 
-  /**
-  / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
-  / LabMeC - FEC - UNICAMP
-  / 2007
+/**
+ / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
+ / LabMeC - FEC - UNICAMP
+ / 2007
  */
 
 class TPZMathTools
 {
-
+	
 public:
-
+	
     TPZMathTools();
-   ~TPZMathTools();
-
-     void JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint);
-     void JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint);
-
-     /**
-     / Type in Function method (.cpp arquive) the function to be integrated
-    */
-     static void Function(const TPZVec<REAL> &x, REAL &fx);
-     REAL IntegrateFunction(void (func)(const TPZVec<REAL> &coord, REAL &result), TPZGeoEl *Geo);
-//      REAL IntegrateFunction(TPZGeoEl *Geo);
-
+	~TPZMathTools();
+	
+	void JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint);
+	void JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint);
+	
+	/**
+     * @brief Type in Function method (.cpp arquive) the function to be integrated
+	 */
+	static void Function(const TPZVec<REAL> &x, REAL &fx);
+	REAL IntegrateFunction(void (func)(const TPZVec<REAL> &coord, REAL &result), TPZGeoEl *Geo);
+	//      REAL IntegrateFunction(TPZGeoEl *Geo);
+	
 };
 
 #endif

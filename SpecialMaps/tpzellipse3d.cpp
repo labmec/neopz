@@ -34,28 +34,28 @@ const double pi = 4.*atan(1.);
 
 void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY)
 {
-	#if Debug
-		if(SemiAxeX.size != 3 || SemiAxeY.size != 3 || Origin.size != 3)
-		{
-			cout << "\nThe two semi-axes and origin of TPZEllipse3D must be in 3D!!!\n";
-			DebugStop();
-		}
+#if Debug
+	if(SemiAxeX.size != 3 || SemiAxeY.size != 3 || Origin.size != 3)
+	{
+		cout << "\nThe two semi-axes and origin of TPZEllipse3D must be in 3D!!!\n";
+		DebugStop();
+	}
 	
-		double dotXY = sqrt(SemiAxeX[0]*SemiAxeY[0] + SemiAxeX[1]*SemiAxeY[1] + SemiAxeX[2]*SemiAxeY[2]);
-		if(dotXY < tolerance)
-		{
-			cout << "\nThe two semi-axes of TPZEllipse3D must be orthogonal!!!\n";
-			DebugStop();
-		}
+	double dotXY = sqrt(SemiAxeX[0]*SemiAxeY[0] + SemiAxeX[1]*SemiAxeY[1] + SemiAxeX[2]*SemiAxeY[2]);
+	if(dotXY < tolerance)
+	{
+		cout << "\nThe two semi-axes of TPZEllipse3D must be orthogonal!!!\n";
+		DebugStop();
+	}
 	
-		double dotXX = sqrt(fSemiAxeX[0]*fSemiAxeX[0] + fSemiAxeX[1]*fSemiAxeX[1] + fSemiAxeX[2]*fSemiAxeX[2]);
-		double dotYY = sqrt(fSemiAxeY[0]*fSemiAxeY[0] + fSemiAxeY[1]*fSemiAxeY[1] + fSemiAxeY[2]*fSemiAxeY[2]);
-		if(dotXX < tolerance || dotYY < tolerance)
-		{
-			cout << "n\Null semi-axe(s) on TPZEllipse3D!!!\n";
-			DebugStop();
-		}
-	#endif
+	double dotXX = sqrt(fSemiAxeX[0]*fSemiAxeX[0] + fSemiAxeX[1]*fSemiAxeX[1] + fSemiAxeX[2]*fSemiAxeX[2]);
+	double dotYY = sqrt(fSemiAxeY[0]*fSemiAxeY[0] + fSemiAxeY[1]*fSemiAxeY[1] + fSemiAxeY[2]*fSemiAxeY[2]);
+	if(dotXX < tolerance || dotYY < tolerance)
+	{
+		cout << "n\Null semi-axe(s) on TPZEllipse3D!!!\n";
+		DebugStop();
+	}
+#endif
 	
 	fOrigin = Origin;
 	fSemiAxeX.Resize(3);
@@ -65,7 +65,7 @@ void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<RE
 		fSemiAxeX[i] = SemiAxeX[i];
 		fSemiAxeY[i] = SemiAxeY[i];
 	}
-
+	
 	fsAxeX = sqrt(fSemiAxeX[0]*fSemiAxeX[0] + fSemiAxeX[1]*fSemiAxeX[1] + fSemiAxeX[2]*fSemiAxeX[2]);
 	fsAxeY = sqrt(fSemiAxeY[0]*fSemiAxeY[0] + fSemiAxeY[1]*fSemiAxeY[1] + fSemiAxeY[2]*fSemiAxeY[2]);
 }
@@ -75,76 +75,76 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
 	TPZFNMatrix<3> viniCn(3,1,0.), vfinCn(3,1,0.);
-
+	
 	for(int i = 0; i < 3; i++)
 	{
 		//basis change matrix from R3 canonic base to R2 ellipse base
 		ICnEllip(0,i) = fSemiAxeX[i]/fsAxeX;
 		ICnEllip(1,i) = fSemiAxeY[i]/fsAxeY;
-
+		
 		//basis change matrix from R2 ellipse base to R3 canonic base
 		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
 		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
-
+		
 		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
 		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
-
+	
 	//** Basis change from canonic R3 base to R2 ellipse base
 	//     ICnEllip.vCn = vEllip
 	TPZFNMatrix<2> viniEllip(2,1,0.), vfinEllip(2,1,0.);
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
-
+	
 	//important verifications that avoid program crashes
-		if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
-		{
-			cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-			DebugStop();
-		}
-		if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
-		{
-			cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-			DebugStop();
-		}
-
-		//Func_varx = f(varx) = y
-		double varx, Func_varx, vary;
-
-		varx = viniEllip(0,0);
-		Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		vary = viniEllip(1,0);
-		
-		if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
-		{
-			cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-			DebugStop();
-		}
-
-		varx = vfinEllip(0,0);
-		Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-		vary = vfinEllip(1,0);
-		if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
-		{
-			cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-			DebugStop();
-		}
+	if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
+	if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
+	
+	//Func_varx = f(varx) = y
+	double varx, Func_varx, vary;
+	
+	varx = viniEllip(0,0);
+	Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = viniEllip(1,0);
+	
+	if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
+	{
+		cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		DebugStop();
+	}
+	
+	varx = vfinEllip(0,0);
+	Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = vfinEllip(1,0);
+	if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
+	{
+		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
 	//end of verification
-
+	
 	//working in R2 ellipse base
 	double QSI = qsi[0];
 	double ang = Angle(QSI, viniEllip, vfinEllip);
 	TPZFNMatrix<2> xEllip = EllipseR2equation(ang);//x in R2 ellipse base
-
+	
 	//working in R3 canonic base
 	TPZFNMatrix<3> xCn(3,1,0.);//x in R3 canonic base
 	//** Basis change from R2 ellipse base to canonic R3 base
 	//     IEllipCn.vEllip = vCn
 	IEllipCn.Multiply(xEllip, xCn);
-
+	
 	//The happy ending :)
 	x.Resize(3);
 	x[0] = xCn(0,0) + fOrigin[0];
@@ -163,7 +163,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 		//basis change matrix from R3 canonic base to R2 ellipse base
 		ICnEllip(0,i) = fSemiAxeX[i]/fsAxeX;
 		ICnEllip(1,i) = fSemiAxeY[i]/fsAxeY;
-
+		
 		//basis change matrix from R2 ellipse base to R3 canonic base
 		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
 		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
@@ -171,51 +171,51 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
 		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
-
+	
 	//** Basis change from canonic R3 base to R2 ellipse base
 	//     ICnEllip.vCn = vEllip
 	TPZFNMatrix<2> viniEllip(2,1,0.), vfinEllip(2,1,0.);
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
-
+	
 	//important verifications that avoid program crashes
-        if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
-        {
-            cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-            DebugStop();
-        }
-        if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
-        {
-            cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-            DebugStop();
-        }
-
-        double varx, Func_varx, vary;
-
-        varx = viniEllip(0,0);
-        Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-        vary = viniEllip(1,0);
-
-        if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
-        {
-            cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-            DebugStop();
-        }
-
-        varx = vfinEllip(0,0);
-        Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
-        vary = vfinEllip(1,0);
-        if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
-        {
-            cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
-            cout << "See " << __PRETTY_FUNCTION__ << endl;
-            DebugStop();
-        }
+	if(fabs(viniEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nInitial vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
+	if(fabs(vfinEllip(0,0)/fsAxeX) > 1.0)
+	{
+		cout << "\nFinal vector of TPZEllipse3D is out of range [-semiAxeX,+semiAxeX]!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
+	
+	double varx, Func_varx, vary;
+	
+	varx = viniEllip(0,0);
+	Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = viniEllip(1,0);
+	
+	if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
+	{
+		cout << "\nInitial node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
+	
+	varx = vfinEllip(0,0);
+	Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
+	vary = vfinEllip(1,0);
+	if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
+	{
+		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
+		cout << "See " << __PRETTY_FUNCTION__ << endl;
+		DebugStop();
+	}
 	//end of verification
-
+	
 	//working in R2 ellipse base
 	double QSI = qsi[0];
 	double ang = Angle(QSI, viniEllip, vfinEllip);
@@ -232,7 +232,7 @@ void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix
 	//The happy ending :)
 	jac.Resize(1,1);
 	jac(0,0) = sqrt( jacCn(0,0)*jacCn(0,0) + jacCn(1,0)*jacCn(1,0) + jacCn(2,0)*jacCn(2,0) );
-
+	
 	axes.Resize(1,3);
 	for(int i = 0; i < 3; i++)
 	{
@@ -277,30 +277,30 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 	const int nnodes = NNodes;   //NNodes = 2
 	TPZFNMatrix<3*nnodes> nodeCoord(3,nnodes);
 	this->GetNodesCoords(mesh,nodeCoord);
-
+	
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
 	TPZFNMatrix<3> viniCn(3,1,0.), vfinCn(3,1,0.);
-
+	
 	for(int i = 0; i < 3; i++)
 	{
 		//basis change matrix from R3 canonic base to R2 ellipse base
 		ICnEllip(0,i) = fSemiAxeX[i]/fsAxeX;
 		ICnEllip(1,i) = fSemiAxeY[i]/fsAxeY;
-
+		
 		//basis change matrix from R2 ellipse base to R3 canonic base
 		IEllipCn(i,0) = fSemiAxeX[i]/fsAxeX;
 		IEllipCn(i,1) = fSemiAxeY[i]/fsAxeY;
-
+		
 		viniCn(i,0) = nodeCoord(i,0) - fOrigin[i];
 		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
-
+	
 	//** Basis change from canonic R3 base to R2 ellipse base, i.e.: ICnEllip.vCn = vEllip
 	TPZFNMatrix<2> viniEllip(2,1,0.), vfinEllip(2,1,0.);
 	ICnEllip.Multiply(viniCn,viniEllip);
 	ICnEllip.Multiply(vfinCn,vfinEllip);
-
+	
 	double varx, vary, Y, val;
 	int signal;
 	
@@ -316,7 +316,7 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 	viniEllip(0,0) = varx;
 	viniEllip(1,0) = vary;
 	///... end of initial node
-
+	
 	///... final node
 	varx = ((fsAxeX*fsAxeY*vfinEllip(0,0))/sqrt(fsAxeY*fsAxeY*vfinEllip(0,0)*vfinEllip(0,0) + fsAxeX*fsAxeX*vfinEllip(1,0)*vfinEllip(1,0)));	
 	//
@@ -339,7 +339,7 @@ void TPZEllipse3D::AdjustNodesCoordinates(TPZGeoMesh &mesh)
 		nodeCoord(coord,0) = viniCn(coord,0) + fOrigin[coord];
 		nodeCoord(coord,1) = vfinCn(coord,0) + fOrigin[coord];
 	}
-
+	
 	this->SetNodesCoords(mesh,nodeCoord);
 }///void
 
@@ -423,9 +423,9 @@ TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang)
  */
 
 TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
-									   TPZVec<int>& nodeindexes,
-									   int matid,
-									   int& index)
+										 TPZVec<int>& nodeindexes,
+										 int matid,
+										 int& index)
 {
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }

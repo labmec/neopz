@@ -9,30 +9,31 @@
 class TPZGeoEl;
 class TPZGeoMesh;
 /**
-	@author caju2008 <caju@skol>
-*/
+ @author caju2008 <caju@skol>
+ @ingroup geometry
+ */
 class TPZBlendNACA
 {
 public:
-
+	
     TPZBlendNACA();
     TPZBlendNACA(REAL cord, int FourDigits, REAL angle, TPZVec<REAL> &x0);
-   ~TPZBlendNACA();
-
+	~TPZBlendNACA();
+	
     /// with attack angle
     /// superior profile
     REAL xua(REAL x);
     REAL yua(REAL x);
-
+	
     /// inferior profile
     REAL xla(REAL x);
     REAL yla(REAL x);
-
+	
     void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
 	
 public:
 	/**
-	 * Creates a geometric element according to the type of the father element
+	 * @brief Creates a geometric element according to the type of the father element
 	 */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<int>& nodeindexes,
@@ -41,29 +42,29 @@ public:
 	
 	
 private:
-
+	
     REAL P();
     REAL M();
     REAL TT();
-
-    // Mean line for the wing
+	
+    /// Mean line for the wing
     REAL yc(REAL x);
     REAL dyc(REAL x);
-
-    // thickness
+	
+    /// thickness
     REAL yt(REAL x);
-
-    // superior profile
+	
+    /// superior profile
     REAL xu(REAL x);
     REAL yu(REAL x);
-
-    // inferior profile
+	
+    /// inferior profile
     REAL xl(REAL x);
     REAL yl(REAL x);
-
+	
     REAL NearestParameter(TPZVec<REAL> &pt, int &uplow, int maxPt);
-
-    public:
+	
+public:
     REAL fCord;
     int  fFourDigits;
     REAL fAngle;
