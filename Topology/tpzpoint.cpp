@@ -17,40 +17,40 @@
 #include "pzcreateapproxspace.h"
 
 namespace pztopology {
-
-TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
 	
-
-TPZPoint::TPZPoint()
-{
-}
-
-
-TPZPoint::~TPZPoint()
-{
-}
-
-TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
-{
-  return new IntruleType(order);
-}
-
-
-MElementType TPZPoint::Type()
-{
-  return EPoint;
-}
-
-MElementType TPZPoint::Type(int side)
-{
-  switch(side) {
-    case 0:
-      return EPoint;
-    default:
-      return ENoType;
-  }
-}
-
+	TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+	
+	
+	TPZPoint::TPZPoint()
+	{
+	}
+	
+	
+	TPZPoint::~TPZPoint()
+	{
+	}
+	
+	TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
+	{
+		return new IntruleType(order);
+	}
+	
+	
+	MElementType TPZPoint::Type()
+	{
+		return EPoint;
+	}
+	
+	MElementType TPZPoint::Type(int side)
+	{
+		switch(side) {
+			case 0:
+				return EPoint;
+			default:
+				return ENoType;
+		}
+	}
+	
 	/**
 	 * Method which identifies the transformation based on the IDs
 	 * of the corner nodes
