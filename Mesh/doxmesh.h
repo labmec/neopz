@@ -11,11 +11,11 @@
 
 /** @defgroup CompMesh Computational mesh classes
  * @ingroup interpolation
- * The computational mesh classes are responsible for the organise mesh data structure
+ * The computational mesh classes are responsible for the organize mesh data structure
  */
 
-/** @defgroup CompElement  Computational element classes
+/** @defgroup CompElement Computational element classes
  * @ingroup interpolation
- * The computational element classes are responsible for the organise element data structure
+ * The computational element classes are responsible for the organize element data structure
  */
 
