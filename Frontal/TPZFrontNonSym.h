@@ -12,57 +12,56 @@ class TPZEqnArray;
 
 #include <math.h>
 #include <iostream>
-//#include <stdio.h>
-//#include <stdlib.h>
 #include <fstream>
 #include "TPZStackEqnStorage.h"
 #include "TPZFileEqnStorage.h"
 
 #ifdef USING_BLAS
 extern "C"{
-  #include "cblas.h"
-//#include "g2c.h"
-//#include "fblaswr.h"
+#include "cblas.h"
+	//#include "g2c.h"
+	//#include "fblaswr.h"
 };
 #endif
 
 #ifdef USING_ATLAS
 extern "C"{
-  #include <cblas.h>
-//#include "g2c.h"
-//#include "fblaswr.h"
+#include <cblas.h>
+	//#include "g2c.h"
+	//#include "fblaswr.h"
 };
 #endif
 
 
 /**
- * The Front matrix itself. \n
+ * The Front matrix itself.
  * It is controled by TPZFrontMatrix. \n
  * TPZFrontNonSym is a non symmetrical matrix. It uses LU decomposition scheme.
  * @ingroup frontal
  */
-/** Jorge
+/** 
  * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics
  */
 class TPZFrontNonSym : public TPZFront {
 public:
-     /**
-      *Type of matrix
-      */
-     std::string GetMatrixType();
-
+	/**
+	 * @brief Type of matrix
+	 */
+	std::string GetMatrixType();
+	
     /** Static main used for testing */
-				 static void main();
-    /** Simple destructor */
+	static void main();
+    /** @brief Simple destructor */
     ~TPZFrontNonSym();
-    /** Simple constructor */
+    /** @brief Simple constructor */
     TPZFrontNonSym();
-    /** Constructor with a initial size parameter */
-        TPZFrontNonSym(int GlobalSize);
-
-        TPZFrontNonSym(const TPZFrontNonSym &cp);
+    /** @brief Constructor with a initial size parameter */
+	TPZFrontNonSym(int GlobalSize);
+	
+	TPZFrontNonSym(const TPZFrontNonSym &cp);
     /**
-     * Decompose these equations and put the result in eqnarray. \n
+     * @brief Decompose these equations and put the result in eqnarray.
+	 *
      * Default decompose method is LU
      */
     void DecomposeEquations(
@@ -70,38 +69,38 @@ public:
                             , int maxeq //! Finishing index of equations to be decomposed
                             , TPZEqnArray & result //! Result of decomposition
                             );
-
+	
     /**
-     * Decompose these equations in a symbolic way and store freed indexes in fFree 
+     * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
      */
     void SymbolicDecomposeEquations(int mineq, int maxeq);
-        
-        /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-        void SymbolicAddKel(TPZVec < int > & destinationindex);
-
+	
+	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
+	void SymbolicAddKel(TPZVec < int > & destinationindex);
+	
     /**
-     * Compress data structure 
+     * @brief Compress data structure 
      */
     void Compress();
-
-        /**
-        * Expand the front matrix
-        */
-        void Expand(
-             int largefrontsize//! New size of front
-             );
-
+	
+	/**
+	 * @brief Expand the front matrix
+	 */
+	void Expand(
+				int largefrontsize//! New size of front
+				);
+	
     /**
-     * Returns the ith,jth element of the matrix.
+     * @brief Returns the ith,jth element of the matrix.
      * @associates <{mat(sourceindex[i],sourceindex[j])}>
      * @semantics += 
      */
-     REAL & Element(int i, int j){
-             return fData[fMaxFront*j + i];
-     }
+	REAL & Element(int i, int j){
+		return fData[fMaxFront*j + i];
+	}
     
     /**
-     * Returns the ith,jth element of the matrix.
+     * @brief Returns the ith,jth element of the matrix.
      * @associates <{mat(sourceindex[i],sourceindex[j])}>
      * @semantics += 
      */
@@ -109,74 +108,75 @@ public:
         return fData[fMaxFront*j + i];
     }
     
-    /**Add a contribution of a stiffness matrix*/
+    /** @brief Add a contribution of a stiffness matrix*/
     void AddKel(
-          TPZFMatrix &elmat //! Already formed element matrix
-          , TPZVec<int> &destinationindex //! Destine index on the global matrix
-          );
-
-    /**Add a contribution of a stiffness matrix*/
+				TPZFMatrix &elmat //! Already formed element matrix
+				, TPZVec<int> &destinationindex //! Destine index on the global matrix
+				);
+	
+    /** @brief Add a contribution of a stiffness matrix*/
     void AddKel(
-          TPZFMatrix &elmat //! Already formed element matrix
-          , TPZVec<int> &sourceindex //! Source index 
-          ,  TPZVec<int> &destinationindex //! Destine index on the global matrix
-          );    
-
+				TPZFMatrix &elmat //! Already formed element matrix
+				, TPZVec<int> &sourceindex //! Source index 
+				,  TPZVec<int> &destinationindex //! Destine index on the global matrix
+				);    
+	
 	/// Extract the front matrix
 	virtual void ExtractFrontMatrix(TPZFMatrix &front);
 	
 private:    
 	
     /**
-     * Decomposes ieq equation and add the result to EqnArray 
+     * @brief Decomposes ieq equation and add the result to EqnArray 
      */
     void DecomposeOneEquation(
                               int ieq //! index of equation to be decomposed
                               , TPZEqnArray &eqnarray //! EqnArray to store resulting members
                               );
     /**
-     * Sets the global equation as freed, allowing the space \n
+     * @brief Sets the global equation as freed, allowing the space \n
      * used by this equation to be used by future assembly processes. 
      */
     void FreeGlobal(
-          int global //! global index to be freed.
-          );
+					int global //! global index to be freed.
+					);
     /**
-     * return a local index corresponding to a global equation number 
+     * @brief Returns a local index corresponding to a global equation number 
      */
     int Local(
-          int global //! global index inquired.
-          );
+			  int global //! global index inquired.
+			  );
 public:
-    /** Returns the number of free equations */
-        virtual int NFree();
-    /** Resets data structure */
-        void Reset(
-             int GlobalSize=0 //! Initial global size to be used in reseting.
-             );
-    /** Allocates data for Front */
-        void AllocData();
-
+    /** @brief Returns the number of free equations */
+	virtual int NFree();
+    /** @brief Resets data structure */
+	void Reset(
+			   int GlobalSize=0 //! Initial global size to be used in reseting.
+			   );
+    /** @brief Allocates data for Front */
+	void AllocData();
+	
     /**
-     * It prints TPZFront data 
+     * @brief It prints TPZFront data 
      */
-     void Print(const char *name, std::ostream& out) const;
-     void PrintGlobal(const char *name, std::ostream& out);
-     /**Returns decomposition type. \n Default LU*/
-     DecomposeType GetDecomposeType() const;
-
-
-
+	void Print(const char *name, std::ostream& out) const;
+	void PrintGlobal(const char *name, std::ostream& out);
+	/** @brief Returns decomposition type. \n Default LU*/
+	DecomposeType GetDecomposeType() const;
+	
+	
+	
 private:
     /**
-     * Used Decomposition method 
+     * @brief Used Decomposition method 
      */
     DecomposeType fDecomposeType;
-
+	
     /** @link dependency */
     /*#  TPZStackEqnStorage lnkTPZStackEqnStorage; */
-
+	
     /** @link dependency */
     /*#  TPZFileEqnStorage lnkTPZFileEqnStorage; */
 };
+
 #endif //TPZFRONTNONSYM_H

@@ -6,8 +6,8 @@ class TPZEqnArray;
 
 #ifdef USING_ATLAS
 extern "C"{
-     #include <cblas.h>
-     };
+#include <cblas.h>
+};
 #endif
 
 #include <iostream>
@@ -31,147 +31,146 @@ extern "C"{
  * It uses a Cholesky decomposition scheme.
  * @ingroup frontal
  */
-/** Jorge
+/**
  * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simetry characteristics
  */
 
 class TPZFrontSym : public TPZFront {
 public:
-     /**Returns its type*/
-     std::string GetMatrixType();
-
+	/** @brief Returns its type*/
+	std::string GetMatrixType();
+	
     /** Static main used for testing */
-	 static void main();
-		/** Simple destructor */
+	static void main();
+	/** @brief Simple destructor */
     ~TPZFrontSym();
-    /** Simple constructor */
+    /** @brief Simple constructor */
     TPZFrontSym();
     
     TPZFrontSym(const TPZFrontSym &cp) : TPZFront(cp),
     fDecomposeType(cp.fDecomposeType)
     {
     }
-    /** Constructor with a initial size parameter */
+    /** @brief Constructor with a initial size parameter */
 	TPZFrontSym(int GlobalSize);
-
+	
     /**
-     * Decompose these equations and put the result in eqnarray
+     * @brief Decompose these equations and put the result in eqnarray
+	 *
      * Default decompose method is Cholesky
      */
     void DecomposeEquations(
-			    int mineq //! Starting index of equations to be decomposed
-			    , int maxeq //! Finishing index of equations to be decomposed
-			    , TPZEqnArray & result //! Result of decomposition
-			    );
-
+							int mineq //! Starting index of equations to be decomposed
+							, int maxeq //! Finishing index of equations to be decomposed
+							, TPZEqnArray & result //! Result of decomposition
+							);
+	
     /**
-     * Decompose these equations in a symbolic way and store freed indexes in fFree 
+     * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
      */
     void SymbolicDecomposeEquations(
-          int mineq //! Initial equation index
-          , int maxeq //! Final equation index
-          );
+									int mineq //! Initial equation index
+									, int maxeq //! Final equation index
+									);
 	
-	/** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
+	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 	void SymbolicAddKel(TPZVec < int > & destinationindex);
-
+	
     /**
-     * Compress data structure 
+     * @brief Compress data structure 
      */
     void Compress();
-
+	
 	/**
-	* Expand the front matrix
-	*/
+	 * @brief Expand the front matrix
+	 */
 	void Expand(int largefrontsize);
-
+	
     /**
-     * Returns ith, jth element of matrix.
+     * @brief Returns ith, jth element of matrix.
      * @associates <{mat(sourceindex[i],sourceindex[j])}>
      * @semantics += 
      */
-     //REAL & Element(int i, int j);
-     REAL & Element(int i, int j){
-	if(i>j){
-		int i_temp=i;
-		i=j;
-		j=i_temp;
-		//cout << "Changing row column indexes !"<<endl;
+	REAL & Element(int i, int j){
+		if(i>j){
+			int i_temp=i;
+			i=j;
+			j=i_temp;
+		}
+		return fData[(j*(j+1))/2+i];
 	}
-	return fData[(j*(j+1))/2+i];
-}
     /**
-     * Returns ith, jth element of matrix.
+     * @brief Returns ith, jth element of matrix.
      * @associates <{mat(sourceindex[i],sourceindex[j])}>
      * @semantics += 
      */
-    //REAL & Element(int i, int j);
     const REAL & Element(int i, int j) const {
         if(i>j){
             int i_temp=i;
             i=j;
             j=i_temp;
-            //cout << "Changing row column indexes !"<<endl;
         }
         return fData[(j*(j+1))/2+i];
     }
-    /**Add a contribution of a stiffness matrix*/
+    /** @brief Add a contribution of a stiffness matrix*/
     void AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex);
-
-    /**Add a contribution of a stiffness matrix*/
+	
+    /**@brief Add a contribution of a stiffness matrix*/
     void AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
-
-	/** Reorders the elements of the frontmatrix into the full matrix
-	*/
+	
+	/** @brief Reorders the elements of the frontmatrix into the full matrix
+	 */
 	virtual void ExtractFrontMatrix(TPZFMatrix &front);
-
+	
 private:    
-
+	
     /**
-     * Decomposes ieq equation and add the result to EqnArray 
+     * @brief Decomposes ieq equation and add the result to EqnArray 
      */
     void DecomposeOneEquation(
-			      int ieq //! index of equation to be decomposed
-			      , TPZEqnArray &eqnarray //! EqnArray to store resulting members
-			      );
+							  int ieq //! index of equation to be decomposed
+							  , TPZEqnArray &eqnarray //! EqnArray to store resulting members
+							  );
     /**
-     * Sets the global equation as freed, allowing the space 
+     * @brief Sets the global equation as freed, allowing the space 
+	 *
      * used by this equation to be used 
      * by future assembly processes 
      */
     void FreeGlobal(int global);
     /**
-     * return a local index corresponding to a global equation number 
+     * @brief return a local index corresponding to a global equation number 
      */
     int Local(int global);
 public:
-    /** Returns the number of free equations */
+    /** @brief Returns the number of free equations */
 	virtual int NFree();
-    /** Resets data structure */
+    /** @brief Resets data structure */
 	void Reset(int GlobalSize=0);
-    /** Allocates data for Front */
+    /** @brief Allocates data for Front */
 	void AllocData();
-
-     /**
-      * It prints TPZFront data 
-      */
-     void Print(const char *name, std::ostream& out=std::cout) const;
-     void PrintGlobal(const char *name, std::ostream& out = std::cout);
-
-     /**Returns decomposition type*/
-     DecomposeType GetDecomposeType() const;
-
+	
+	/**
+	 * @brief Prints TPZFront data 
+	 */
+	void Print(const char *name, std::ostream& out=std::cout) const;
+	void PrintGlobal(const char *name, std::ostream& out = std::cout);
+	
+	/** @brief Returns decomposition type*/
+	DecomposeType GetDecomposeType() const;
+	
 private:
-
+	
     /**
-     * Used Decomposition method 
+     * @brief Used Decomposition method 
      */
     DecomposeType fDecomposeType;
-
+	
     /** @link dependency */
     /*#  TPZFileEqnStorage lnkTPZFileEqnStorage; */
-
+	
     /** @link dependency */
     /*#  TPZStackEqnStorage lnkTPZStackEqnStorage; */
 };
+
 #endif //TPZFRONTSYM_H

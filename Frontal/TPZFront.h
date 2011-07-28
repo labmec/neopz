@@ -9,60 +9,61 @@
 #include "pzvec.h"
 
 class TPZEqnArray;
+
 /** 
  * The Front matrix itself. \n
  * It is controled by TPZFrontMatrix.
  * @ingroup frontal
  */
-/** Jorge
+/**
  * @brief Abstract class implements storage and decomposition process of the frontal matrix
  */
 class TPZFront {
-
+	
 public:
-
-    /** Static main used for testing */
-
+	
+    /** @brief Static main used for testing */
+	
 	static void main();
-
+	
 	int NElements();
-    /** Simple destructor */
+    /** @brief Simple destructor */
     virtual ~TPZFront();
-    /** Simple constructor */
+    /** @brief Simple constructor */
     TPZFront();
-    /** Constructor with a initial size parameter */
+    /** @brief Constructor with a initial size parameter */
 	TPZFront(
-	     int GlobalSize //! Initial size of the Frontal Matrix
-	     );
- 
- TPZFront(const TPZFront &cp);
-
+			 int GlobalSize //! Initial size of the Frontal Matrix
+			 );
+	
+	TPZFront(const TPZFront &cp);
+	
     /**
-     * Decompose these equations in a symbolic way and store freed indexes in fFree 
+     * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
      */
     void SymbolicDecomposeEquations(
-          int mineq //!Initial equation
-          , int maxeq //!Final equation
-          );
+									int mineq //!Initial equation
+									, int maxeq //!Final equation
+									);
 	
-	/** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
+	/** @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 	void SymbolicAddKel(
-	     TPZVec < int > & destinationindex //!Destination index of each element added
-	     );
-     /**
-          Resizes fData element of Front
-          @param newsize New size of fData
-          */
+						TPZVec < int > & destinationindex //!Destination index of each element added
+						);
+	/**
+	 @brief Resizes fData element of Front
+	 @param newsize New size of fData
+	 */
 	int Work(){
-	return fWork;
+		return fWork;
 	}
 	/**
-	 * Indicate the first equation dedicated to rigid body modes
+	 * @brief Indicate the first equation dedicated to rigid body modes
 	 */
 	void SetNumRigidBodyModes(int nrigid)
 	{
 		fNextRigidBodyMode = fLocal.NElements()-nrigid;
-
+		
 		std::cout << " fNextRigidBody Mode neste ponto " << fNextRigidBodyMode<<std::endl;
 	}
 	
@@ -71,93 +72,97 @@ protected:
 private:    
 	
     /**
-     * Sets the global equation as freed, allowing the space \n
-     * used by this equation to be used \n
+     * @brief Sets the global equation as freed, allowing the space \n
+     * used by this equation to be used
+	 *
      * by future assembly processes. 
      */
     void FreeGlobal(
-          int global //!Equation number to be freed
-          );
+					int global //!Equation number to be freed
+					);
     /**
-     * return a local index corresponding to a global equation number 
+     * @brief return a local index corresponding to a global equation number 
      */
     int Local(
-          int global //!Global equation index which has a local indexation
-          );
+			  int global //!Global equation index which has a local indexation
+			  );
 public:
-	/** Extracts the so far condensed matrix */
-virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
-	std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
-	DebugStop();
-}
-    /** Returns the number of free equations */
+	/** @brief Extracts the so far condensed matrix */
+	virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
+		std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
+		DebugStop();
+	}
+    /** @brief Returns the number of free equations */
 	virtual int NFree();
     /** Resets data structure */
 	void Reset(int GlobalSize=0);
-
+	
     /**
-     * It prints TPZFront data 
+     * @brief It prints TPZFront data 
      */
-     void Print(const char *name, std::ostream& out) const;
-     void PrintGlobal(const char *name, std::ostream& out = std::cout);
-
+	void Print(const char *name, std::ostream& out) const;
+	void PrintGlobal(const char *name, std::ostream& out = std::cout);
+	
 	/**
-	 * returns the actual front size
+	 * @brief returns the actual front size
 	 */
 	int FrontSize()
 	{
 		return fFront;
 	}
-
-
-
+	
+	
+	
 protected:
     
     /**
-     * Maximum size of the front
+     * @brief Maximum size of the front
      */
     int fMaxFront;
     
-
+	
     /**
-     * Global equation associated to each front equation \n
-	* If we need a position in globalmatrix of a equation "i" in the frontmatrix \n
-	* then we can use fGlobal[i]. If the global equation "i" is not used \n
-	* then fGlobal[i]==-1.
+     * @brief Global equation associated to each front equation.
+	 *
+	 * If we need a position in globalmatrix of a equation "i" in the frontmatrix \n
+	 * then we can use fGlobal[i]. If the global equation "i" is not used \n
+	 * then fGlobal[i]==-1.
      */
     TPZManVector <int> fGlobal;
-
+	
     /**
-     * Front equation to each global equation \n
+     * @brief Front equation to each global equation.
+	 *
      * If we need a position in frontmatrix of a global equation "i" \n
-	* then we can use fLocal[i]. If the global equation is not represented in the front \n
-	* then fLocal[i]==-1.
+	 * then we can use fLocal[i]. If the global equation is not represented in the front \n
+	 * then fLocal[i]==-1.
      */
     TPZVec<int> fLocal;
-
+	
     /**
-     * Actual front size 
+     * @brief Actual front size 
      */
     int fFront;
-
+	
 	/**
-	 * Equation where rigid body modes can be stored
+	 * @brief Equation where rigid body modes can be stored
 	 */
 	int fNextRigidBodyMode;
-
+	
     /**
-     * Colection of already decomposed equations still on the front 
+     * @brief Colection of already decomposed equations still on the front 
      */
     TPZStack <int> fFree;
-
+	
     /**
-     * Frontal matrix data 
+     * @brief Frontal matrix data 
      */
     TPZVec<REAL> fData;
     
     /**
-     * Expantion Ratio of frontal matrix
+     * @brief Expantion Ratio of frontal matrix
      */
     int fExpandRatio;
 };
+
 #endif //TPZFRONT_H

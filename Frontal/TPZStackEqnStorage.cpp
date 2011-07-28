@@ -29,7 +29,7 @@ void TPZStackEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
 	for(i=stack_size-1;i>=0;i--){
 		fEqnStack[i].EqnBackward(f, dec);
 	}
-		
+	
 }
 void TPZStackEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 {
@@ -38,7 +38,7 @@ void TPZStackEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 	for(i=0;i<stack_size;i++){
 		fEqnStack[i].EqnForward(f, dec);
 	}
-
+	
 }
 
 void TPZStackEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
@@ -52,7 +52,7 @@ TPZStackEqnStorage::TPZStackEqnStorage()
 
 void TPZStackEqnStorage::Zero()
 {
-  fEqnStack.Resize(0);
+	fEqnStack.Resize(0);
 }
 
 TPZStackEqnStorage::~TPZStackEqnStorage()
@@ -65,7 +65,7 @@ void TPZStackEqnStorage::main()
 
 TPZStackEqnStorage::TPZStackEqnStorage(char option, const char *name)
 {
-
+	
 }
 //void TPZStackEqnStorage::SetFileName(const char *name){}
 void TPZStackEqnStorage::OpenGeneric(char option, const char * name){}

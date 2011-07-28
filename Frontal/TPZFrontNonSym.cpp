@@ -2,6 +2,7 @@
 
 #include "TPZFrontNonSym.h"
 #include "tpzeqnarray.h"
+
 #ifdef USING_BLAS
 void cblas_dger(const enum CBLAS_ORDER order, const int M, const int N,
                 const double alpha, const double  *X, const int incX,
@@ -50,42 +51,42 @@ void TPZFrontNonSym::PrintGlobal(const char *name, ostream& out = cout){
 }
 void TPZFrontNonSym::Print(const char *name, ostream& out = cout) const
 {
-  if(name) out << name << endl;
-  int i,j,loop_limit;
-  
-
-  out <<  "Frontal Matrix Size          "<< fFront << endl;
-  out <<  "Maximum Frontal Matrix Size  "<< fMaxFront << endl;
-  
-  out << endl;
-  out <<  "Local Indexation "<< endl;
-  out <<  "Position  "<<" Local index"<< endl;
-  for(i=0;i<fLocal.NElements();i++){
-    out <<   i <<  "         "  << fLocal[i] << endl;
-  }
-
-  out << endl;
-  out <<  "Global Indexation "<< endl;
-  out <<  "Position  "<<" Global index"<< endl;
-  
-  for(i=0;i<fGlobal.NElements();i++){
-    out <<   i <<  "            "<< fGlobal[i] << endl;
-  }
-
-  out << endl;
-  out <<  "Local Freed Equations  "<< fFree.NElements() << endl;
-  out <<  "position "<<   "Local Equation "<<endl;
-  loop_limit=fFree.NElements();
-  for(i=0;i<loop_limit;i++){
-    out <<  i <<  "             " << fFree[i] << endl;
-  }
-  out <<  "Frontal Matrix "<< endl;
-  if(fData.NElements() > 0) {
-	  for(i=0;i<fFront;i++){
-		  for(j=0;j<fFront;j++) out << Element(i,j) <<  " ";
-		out << endl;
-	  }
-  }
+	if(name) out << name << endl;
+	int i,j,loop_limit;
+	
+	
+	out <<  "Frontal Matrix Size          "<< fFront << endl;
+	out <<  "Maximum Frontal Matrix Size  "<< fMaxFront << endl;
+	
+	out << endl;
+	out <<  "Local Indexation "<< endl;
+	out <<  "Position  "<<" Local index"<< endl;
+	for(i=0;i<fLocal.NElements();i++){
+		out <<   i <<  "         "  << fLocal[i] << endl;
+	}
+	
+	out << endl;
+	out <<  "Global Indexation "<< endl;
+	out <<  "Position  "<<" Global index"<< endl;
+	
+	for(i=0;i<fGlobal.NElements();i++){
+		out <<   i <<  "            "<< fGlobal[i] << endl;
+	}
+	
+	out << endl;
+	out <<  "Local Freed Equations  "<< fFree.NElements() << endl;
+	out <<  "position "<<   "Local Equation "<<endl;
+	loop_limit=fFree.NElements();
+	for(i=0;i<loop_limit;i++){
+		out <<  i <<  "             " << fFree[i] << endl;
+	}
+	out <<  "Frontal Matrix "<< endl;
+	if(fData.NElements() > 0) {
+		for(i=0;i<fFront;i++){
+			for(j=0;j<fFront;j++) out << Element(i,j) <<  " ";
+			out << endl;
+		}
+	}
 }
 void TPZFrontNonSym::AllocData()
 {
@@ -124,8 +125,8 @@ int TPZFrontNonSym::Local(int global){
 	}
 	// At this point we extend the frontmatrix
 	if(index >= fMaxFront) {
-//	     cout << endl;
-//		cout << "Dynamically expanding the front size to " << index+fExpandRatio << endl;
+		//	     cout << endl;
+		//		cout << "Dynamically expanding the front size to " << index+fExpandRatio << endl;
 		Expand(index+fExpandRatio);
 	}
 	fLocal[global]=index;
@@ -150,12 +151,12 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 {
 	std::cout<<" fNextRigidBodyMode AQQQQ "<<fNextRigidBodyMode<<endl;
 	
-//	if (fNextRigidBodyMode > fLocal.NElements()|| fNextRigidBodyMode == fLocal.NElements()) {
+	//	if (fNextRigidBodyMode > fLocal.NElements()|| fNextRigidBodyMode == fLocal.NElements()) {
 	//	DebugStop();
-//	}
-     //eqnarray.SetNonSymmetric();
-     int i, ilocal;
-     ilocal = Local(ieq);
+	//	}
+	//eqnarray.SetNonSymmetric();
+	int i, ilocal;
+	ilocal = Local(ieq);
 	double diagonal=fabs(Element(ilocal,ilocal));
 #ifdef LOG4CXX
 	{
@@ -170,10 +171,10 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 	{
 		Local(fNextRigidBodyMode);
 	}
-
-     TPZVec<REAL> AuxVecRow(fFront);
-     TPZVec<REAL> AuxVecCol(fFront);
-
+	
+	TPZVec<REAL> AuxVecRow(fFront);
+	TPZVec<REAL> AuxVecCol(fFront);
+	
 #ifdef USING_ATLAS
 	cblas_dcopy(fFront, &Element(0, ilocal), 1, &AuxVecCol[0], 1);
 	cblas_dcopy(fFront, &Element(ilocal, 0), fMaxFront, &AuxVecRow[0], 1);
@@ -217,41 +218,41 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 #endif
 	fWork+=fFront*fFront;
 #ifdef USING_ATLAS
-     //Blas utilizatioin
-     CBLAS_ORDER order = CblasColMajor;
-//     CBLAS_UPLO up_lo = CblasUpper;
-     long sz = fFront;
-     long incx = 1;
-     long stride = fMaxFront;
-     double db = -1.;//AuxVec[ilocal];
-     //resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
-     cblas_dger(order, sz, sz, db,
-                &AuxVecCol[0], incx,
-                &AuxVecRow[0], incx, &Element(0,0), stride);
+	//Blas utilizatioin
+	CBLAS_ORDER order = CblasColMajor;
+	//     CBLAS_UPLO up_lo = CblasUpper;
+	long sz = fFront;
+	long incx = 1;
+	long stride = fMaxFront;
+	double db = -1.;//AuxVec[ilocal];
+	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
+	cblas_dger(order, sz, sz, db,
+			   &AuxVecCol[0], incx,
+			   &AuxVecRow[0], incx, &Element(0,0), stride);
 #endif
 #ifdef USING_BLAS
-     //Blas utilizatioin  
-     CBLAS_ORDER order = CblasColMajor;
-//     CBLAS_UPLO up_lo = CblasUpper;
-     long sz = fFront;
-     long incx = 1;
-     long stride = fMaxFront;
-     double db = -1.;//AuxVec[ilocal];
-     //resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
-     cblas_dger(order, sz, sz, db,
-                &AuxVecCol[0], incx,
-                &AuxVecRow[0], incx, &Element(0,0), stride);
-
+	//Blas utilizatioin  
+	CBLAS_ORDER order = CblasColMajor;
+	//     CBLAS_UPLO up_lo = CblasUpper;
+	long sz = fFront;
+	long incx = 1;
+	long stride = fMaxFront;
+	double db = -1.;//AuxVec[ilocal];
+	//resultado=cblas_dger(sz,&sz,&db,(double)&AuxVecCol[0],&incx,&AuxVecRow[0],&incx,&Element(0,0),&stride);
+	cblas_dger(order, sz, sz, db,
+			   &AuxVecCol[0], incx,
+			   &AuxVecRow[0], incx, &Element(0,0), stride);
+	
 #endif
 #ifndef	USING_ATLAS
 #ifndef USING_BLAS
-     int j;
-     for(i=0;i<fFront;i++){
-         for(j=0;j<fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
-     }
-
-/*     Print("After correct elimination",cout);
-*/
+	int j;
+	for(i=0;i<fFront;i++){
+		for(j=0;j<fFront;j++) Element(i,j)-=AuxVecCol[i]*AuxVecRow[j];
+	}
+	
+	/*     Print("After correct elimination",cout);
+	 */
 #endif
 #endif
     AuxVecRow[ilocal]=1.;
@@ -261,14 +262,14 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 		if(i!=ilocal && fGlobal[i]!= -1 && AuxVecRow[i] != 0.) eqnarray.AddTerm(fGlobal[i],AuxVecRow[i]);
 	}
     eqnarray.EndEquation();
-
+	
 	eqnarray.BeginEquation(ieq);//, diag);
 	eqnarray.AddTerm(ieq,1.);
 	for(i=0;i<fFront;i++) {
         if(i!=ilocal && fGlobal[i]!= -1 && AuxVecCol[i] != 0.) eqnarray.AddTerm(fGlobal[i],AuxVecCol[i]);
 	}
     eqnarray.EndEquation();
-
+	
 #ifdef USING_ATLAS
 	TPZVec<double> zero(fFront, 0.);
 	cblas_dcopy(fFront, &Element(0, ilocal), 1, &zero[0], 1);
@@ -279,27 +280,27 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
         Element(ilocal,i)=0.;
     }
 #endif
-
+	
     FreeGlobal(ieq);
     fDecomposeType=ELU;
-//	PrintGlobal("After", output);
+	//	PrintGlobal("After", output);
 }
 void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
 {
-        int i, j, ilocal, jlocal, nel;
-        nel=sourceindex.NElements();
-        for (i = 0; i < nel; i++) {
-            // message #1.1.1 to this:TPZFront
-            ilocal = this->Local(destinationindex[i]);
-            for (j = 0; j < nel; j++) {
-                // message #1.1.2.1 to this:TPZFront
-                jlocal = this->Local(destinationindex[j]);
-
-                // message #1.1.2.2 to this:TPZFront
-                this->Element(ilocal, jlocal)+=elmat(sourceindex[i],sourceindex[j]);
-            }
-        }
-    }
+	int i, j, ilocal, jlocal, nel;
+	nel=sourceindex.NElements();
+	for (i = 0; i < nel; i++) {
+		// message #1.1.1 to this:TPZFront
+		ilocal = this->Local(destinationindex[i]);
+		for (j = 0; j < nel; j++) {
+			// message #1.1.2.1 to this:TPZFront
+			jlocal = this->Local(destinationindex[j]);
+			
+			// message #1.1.2.2 to this:TPZFront
+			this->Element(ilocal, jlocal)+=elmat(sourceindex[i],sourceindex[j]);
+		}
+	}
+}
 void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex)
 {
     int i, j, ilocal, jlocal, nel;
@@ -311,17 +312,17 @@ void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex)
             this->Element(ilocal, jlocal)+=elmat(i,j);
         }
     }
-/*
-	output << "Dest Index " ;
-	for(i=0;i<nel;i++) output << destinationindex[i] << " ";
-	output << endl;
-	elmat.Print("Element matrix ",output);
-	PrintGlobal("After Assemb..." , output);
-*/
+	/*
+	 output << "Dest Index " ;
+	 for(i=0;i<nel;i++) output << destinationindex[i] << " ";
+	 output << endl;
+	 elmat.Print("Element matrix ",output);
+	 PrintGlobal("After Assemb..." , output);
+	 */
 }
 
 void TPZFrontNonSym::Expand(int larger) {
-//	PrintGlobal("Antes do Expande");
+	//	PrintGlobal("Antes do Expande");
 	fData.Resize(larger*larger,0.);
     int i,j;
 	for(j=fFront-1;j>=0;j--){
@@ -331,12 +332,12 @@ void TPZFrontNonSym::Expand(int larger) {
 		}
 	}
 	fMaxFront = larger;
-//	PrintGlobal("Depois do Expande");
+	//	PrintGlobal("Depois do Expande");
 	
 }
 void TPZFrontNonSym::Compress(){
-//	PrintGlobal("Before COmpress");
-//	Print("Before Compress", cout);
+	//	PrintGlobal("Before COmpress");
+	//	Print("Before Compress", cout);
 	TPZStack <int> from;
 	int nfound;
 	int i, j;
@@ -355,25 +356,25 @@ void TPZFrontNonSym::Compress(){
 		fLocal[fGlobal[i]] = i;
 	}
 	for(;i<fGlobal.NElements();i++) fGlobal[i] = -1;
-
+	
 	if(nfound+fFree.NElements()!=fFront) cout << "TPZFront.Compress inconsistent data structure\n";
-
+	
 	fFront = nfound;
 	fFree.Resize(0);	
 	fGlobal.Resize(fFront);
 	if(fData.NElements()==0) return;
-
+	
 	for(j = 0; j < nfound; j++){
 		for(i = 0; i < nfound; i++){
 			Element(i,j) = Element(from[i], from[j]);
 			if(from[i]!=i || from[j]!=j) Element(from[i],from[j])=0.;
 		}
-//		fGlobal[i] = fGlobal[from[i]];
-//		fLocal[fGlobal[i]] = i;
+		//		fGlobal[i] = fGlobal[from[i]];
+		//		fLocal[fGlobal[i]] = i;
 	}
 	
-//	Print("After Compress", cout);
-//	PrintGlobal("After Compress",output);
+	//	Print("After Compress", cout);
+	//	PrintGlobal("After Compress",output);
 }
 void TPZFrontNonSym::SymbolicAddKel(TPZVec < int > & destinationindex)
 {
@@ -385,7 +386,7 @@ void TPZFrontNonSym::SymbolicAddKel(TPZVec < int > & destinationindex)
 		fFront = fGlobal.NElements();
 	}
 	fMaxFront=(fFront<fMaxFront)?fMaxFront:fFront;
-
+	
 }
 void TPZFrontNonSym::SymbolicDecomposeEquations(int mineq, int maxeq)
 {
@@ -393,18 +394,18 @@ void TPZFrontNonSym::SymbolicDecomposeEquations(int mineq, int maxeq)
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
 void TPZFrontNonSym::DecomposeEquations(int mineq, int maxeq, TPZEqnArray & eqnarray){
-        // message #1.1 to eqnarray:TPZEqnArray
-		int ieq;
-
-        eqnarray.Reset();
-        eqnarray.SetNonSymmetric();
-
-        for (ieq = mineq; ieq <= maxeq; ieq++) {
-            // message #1.2.1 to this:TPZFront
-            this->DecomposeOneEquation(ieq, eqnarray);
-//			this->Print("Teste.txt",output);
-        }
-    }
+	// message #1.1 to eqnarray:TPZEqnArray
+	int ieq;
+	
+	eqnarray.Reset();
+	eqnarray.SetNonSymmetric();
+	
+	for (ieq = mineq; ieq <= maxeq; ieq++) {
+		// message #1.2.1 to this:TPZFront
+		this->DecomposeOneEquation(ieq, eqnarray);
+		//			this->Print("Teste.txt",output);
+	}
+}
 TPZFrontNonSym::TPZFrontNonSym(int GlobalSize) : TPZFront(GlobalSize)
 {
 	fDecomposeType=ELU;
@@ -412,8 +413,8 @@ TPZFrontNonSym::TPZFrontNonSym(int GlobalSize) : TPZFront(GlobalSize)
 }
 
 TPZFrontNonSym::TPZFrontNonSym() : TPZFront() {
-     fDecomposeType=ELU;
-	 fWork=0;
+	fDecomposeType=ELU;
+	fWork=0;
 }
 
 TPZFrontNonSym::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront(cp) , fDecomposeType(cp.fDecomposeType) {
@@ -422,13 +423,13 @@ TPZFrontNonSym::TPZFrontNonSym(const TPZFrontNonSym &cp) : TPZFront(cp) , fDecom
 TPZFrontNonSym::~TPZFrontNonSym(){}
 
 
-	
+
 void TPZFrontNonSym::main()
 {
 	int i, j;
 	/**
- * 	Populates data structure
-	*/
+	 * 	Populates data structure
+	 */
 	int matsize=6;
 	TPZFMatrix TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
@@ -440,69 +441,69 @@ void TPZFrontNonSym::main()
 			if(i==j) TestMatrix(i,j)=6000.;
 		}
 	}
-
+	
 	TPZFMatrix Prova;
 	Prova=TestMatrix;
-
-//	Prova.Decompose_Cholesky();
+	
+	//	Prova.Decompose_Cholesky();
 	Prova.Print("TPZFMatrix Cholesky");
 	
 	TPZFrontNonSym TestFront(matsize);
-
-		
+	
+	
 	TPZVec<int> DestIndex(matsize);
 	for(i=0;i<matsize;i++) DestIndex[i]=i;
-
+	
 	TestFront.SymbolicAddKel(DestIndex);
 	TestFront.SymbolicDecomposeEquations(0,matsize-1); 
-
+	
 	std::string OutFile;
 	OutFile = "TPZFrontNonSymTest.txt";
-
+	
 	ofstream output(OutFile.c_str(),ios::app);
-
+	
 	TestFront.Compress();
-
+	
 	TestFront.AllocData();
 	
 	TestFront.AddKel(TestMatrix, DestIndex);
 	TPZEqnArray Result;
 	
 	/*TestFront.DecomposeEquations(0,0,Result);
-	
-	TestFront.Print(OutFile, output);
-	
-	ofstream outeqn("TestEQNArray.txt",ios::app);
-	Result.Print("TestEQNArray.txt",outeqn);
-
-	TestFront.Compress();
-
-	TestFront.Print(OutFile, output);
-*/
+	 
+	 TestFront.Print(OutFile, output);
+	 
+	 ofstream outeqn("TestEQNArray.txt",ios::app);
+	 Result.Print("TestEQNArray.txt",outeqn);
+	 
+	 TestFront.Compress();
+	 
+	 TestFront.Print(OutFile, output);
+	 */
 	TestFront.DecomposeEquations(0,matsize-1,Result);
 	ofstream outeqn("TestEQNArray.txt",ios::app);
-
+	
 	Result.Print("TestEQNArray.txt",outeqn);
 	
-
+	
 	TPZFMatrix Load(matsize);
-
+	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
 		double rnd = (random*matsize)/0x7fff;
 		Load(i,0)=rnd;
 	}
-
+	
 	TPZFMatrix Load_2(matsize);
 	Load_2=Load;
-
-//	Prova.Subst_Forward(&Load);
-//	Prova.Subst_Backward(&Load);
 	
-
+	//	Prova.Subst_Forward(&Load);
+	//	Prova.Subst_Backward(&Load);
+	
+	
 	DecomposeType decType = ECholesky;
 	Prova.SolveDirect(Load, decType);
-
+	
 	Load.Print();
 	//TestFront.Print(OutFile, output);
 	
@@ -510,13 +511,13 @@ void TPZFrontNonSym::main()
 	Result.EqnBackward(Load_2, decType);
 	
 	Load_2.Print("Eqn");
-
-
-
+	
+	
+	
 }
 
 std::string TPZFrontNonSym::GetMatrixType(){
-     return "Non symmetric matrix";
+	return "Non symmetric matrix";
 }
 
 void TPZFrontNonSym::ExtractFrontMatrix(TPZFMatrix &front)

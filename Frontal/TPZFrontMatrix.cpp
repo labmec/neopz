@@ -19,7 +19,6 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.frontal.frontmatrix"));
 static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
-
 #endif
 
 using namespace std;
@@ -32,7 +31,7 @@ int TPZFrontMatrix<store, front>::Work(){
 template<class store, class front>
 void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq)
 {
-     int i;
+	int i;
 	int loop_limit, global;
 	loop_limit = destinationindex.NElements();
 	for(i=0;i<loop_limit;i++){
@@ -44,11 +43,11 @@ void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destination
 	while(upper_eq < fNumEq-1 && fNumElConnected[upper_eq+1]==0) upper_eq++;
 	fLastDecomposed=upper_eq;
 #ifdef LOG4CXX
-        {
-          std::stringstream sout;
-          sout << "Constructor frontmatrix lower_eq "<< lower_eq << " upper_eq " << upper_eq << " fNumElConnected " << fNumElConnected;
-          LOGPZ_DEBUG(logger,sout.str())
-        }
+	{
+		std::stringstream sout;
+		sout << "Constructor frontmatrix lower_eq "<< lower_eq << " upper_eq " << upper_eq << " fNumElConnected " << fNumElConnected;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
 #endif
 }
 
@@ -56,37 +55,37 @@ void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destination
 /** Initializes the number of elements connected to each equation */
 template<class store, class front>
 void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnected){
-     fNumElConnected.Resize(numelconnected.NElements());
+	fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
 	fNumElConnectedBackup = fNumElConnected;
 #ifdef LOG4CXX
-        {
-          std::stringstream sout;
-          sout << "fNumElConnected " << fNumElConnected;
-          LOGPZ_DEBUG(logger,sout.str())
-        }
+	{
+		std::stringstream sout;
+		sout << "fNumElConnected " << fNumElConnected;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
 #endif
-//	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
-//	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
-	#ifdef BLAS
-//     	cout << "Using BLAS" << endl;
-     #endif
-     #ifdef USING_ATLAS
-//          cout << "Using ATLAS" << endl;     
-     #endif
-	#ifndef USING_BLAS
-  #ifndef USING_ATLAS
-//     	cout << "Not Using BLAS" << endl;
-	#endif
-  #endif
+	//	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
+	//	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
+#ifdef BLAS
+	//     	cout << "Using BLAS" << endl;
+#endif
+#ifdef USING_ATLAS
+	//          cout << "Using ATLAS" << endl;     
+#endif
+#ifndef USING_BLAS
+#ifndef USING_ATLAS
+	//     	cout << "Not Using BLAS" << endl;
+#endif
+#endif
 }
 
 /** Add a contribution of a stiffness matrix */
 template<class store, class front>
 void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & destinationindex){
-
-          // message #1.3 to fFront:TPZFront
-          fFront.AddKel(elmat, destinationindex);
+	
+	// message #1.3 to fFront:TPZFront
+	fFront.AddKel(elmat, destinationindex);
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -95,27 +94,27 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & d
 	}
 #endif
     /*      cout << "destination index" << endl;
-          int i;
-          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
-          cout << endl;
-          cout.flush();
-          elmat.Print("Element Matrix");
-          */
-		int mineq, maxeq;
-
-		EquationsToDecompose(destinationindex, mineq, maxeq);
-		TPZEqnArray AuxEqn;
-		if(maxeq >= mineq) {
-
-			fFront.DecomposeEquations(mineq,maxeq,AuxEqn);
-			CheckCompress();
-			fStorage.AddEqnArray(&AuxEqn);
-			if(maxeq == Rows()-1){
-				fStorage.FinishWriting();
-				fStorage.ReOpen();
-			}
+	 int i;
+	 for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
+	 cout << endl;
+	 cout.flush();
+	 elmat.Print("Element Matrix");
+	 */
+	int mineq, maxeq;
+	
+	EquationsToDecompose(destinationindex, mineq, maxeq);
+	TPZEqnArray AuxEqn;
+	if(maxeq >= mineq) {
+		
+		fFront.DecomposeEquations(mineq,maxeq,AuxEqn);
+		CheckCompress();
+		fStorage.AddEqnArray(&AuxEqn);
+		if(maxeq == Rows()-1){
+			fStorage.FinishWriting();
+			fStorage.ReOpen();
 		}
-		fDecomposed = fFront.GetDecomposeType();
+	}
+	fDecomposed = fFront.GetDecomposeType();
 }
 
 /** Add a contribution of a stiffness matrix */
@@ -131,13 +130,13 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & s
 	}
 #endif
 	
-//	EquationsToDecompose(destinationindex);
- //         cout << "AddKel::destination index 2" << endl;
-//     int i;
-//          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
- //         cout << endl;
- //         cout.flush();
-//          elmat.Print("AddKel: Element Matrix 2");
+	//	EquationsToDecompose(destinationindex);
+	//         cout << "AddKel::destination index 2" << endl;
+	//     int i;
+	//          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
+	//         cout << endl;
+	//         cout.flush();
+	//          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray AuxEqn;
@@ -146,7 +145,7 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & s
 		CheckCompress();
 		fStorage.AddEqnArray(&AuxEqn);
 		if(maxeq == Rows()-1){
-		     fFront.Reset(0);
+			fFront.Reset(0);
 			fStorage.FinishWriting();
 			fStorage.ReOpen();
 		}
@@ -163,12 +162,12 @@ void TPZFrontMatrix<store, front>::SymbolicAddKel(TPZVec < int > & destinationin
 	fFront.SymbolicAddKel(destinationindex);
 	int mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
-
+	
 	if(maxeq >= mineq) {
 		fFront.SymbolicDecomposeEquations(mineq,maxeq);
 		CheckCompress();
 	}
-
+	
 }
 
 
@@ -225,36 +224,36 @@ void TPZFrontMatrix<store, front>::main()
 	TPZVec<int> DestInd1(2);
 	DestInd1[0]=0;
 	DestInd1[1]=1;
-
+	
 	
 	TPZFMatrix KEl2(4,4);
 	KEl2(0,0)=4.;
 	KEl2(0,1)=-6.;
 	KEl2(0,2)=2.;
 	KEl2(0,3)=6.;
-
+	
 	KEl2(1,1)=12;
 	KEl2(1,2)=-6.;
 	KEl2(1,3)=-12.;
-
+	
 	KEl2(2,2)=4.;
 	KEl2(2,3)=6.;
-
+	
 	KEl2(3,3)=12.;
-
+	
 	int i, j;
 	for(i=0;i<4;i++) {
 		for(j=i;j<4;j++) KEl2(j,i)=KEl2(i,j);
 	}
-
+	
 	TPZVec<int> DestInd2(4);
 	DestInd2[0]=0;
 	DestInd2[1]=1;
 	DestInd2[2]=2;
 	DestInd2[3]=3;
-
-
-
+	
+	
+	
 	TPZFMatrix KEl3(2,2);
 	KEl3(0,0)=3.;
 	KEl3(0,1)=3.;
@@ -264,24 +263,24 @@ void TPZFrontMatrix<store, front>::main()
 	TPZVec<int> DestInd3(2);
 	DestInd3[0]=2;
 	DestInd3[1]=3;
-
-
-
+	
+	
+	
 	TPZFrontMatrix TestFront(4);
-
+	
 	TPZVec<int> NumConnected(4);
 	for(i=0;i<4;i++) NumConnected[i]=2;
-
+	
 	
 	TestFront.SetNumElConnected(NumConnected);
-
+	
 	TestFront.SymbolicAddKel(DestInd1);
 	TestFront.SymbolicAddKel(DestInd2);
 	TestFront.SymbolicAddKel(DestInd3);
-
+	
 	TestFront.AllocData();
 	TestFront.SetNumElConnected(NumConnected);
-
+	
 	TestFront.AddKel(KEl1,DestInd1);
 	TestFront.AddKel(KEl2,DestInd2);
 	TestFront.AddKel(KEl3,DestInd3);
@@ -327,8 +326,8 @@ int TPZFrontMatrix<store, front>::Substitution(TPZFMatrix *b) const {
 
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix *b) const {
-  cout << "Entering Forward Substitution\n";
-  cout.flush();
+	cout << "Entering Forward Substitution\n";
+	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
 	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Forward(*b, dec);
@@ -337,21 +336,21 @@ int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix *b) const {
 
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Subst_Backward(TPZFMatrix *b) const {
-  cout << "Entering Backward Substitution\n";
-  cout.flush();
+	cout << "Entering Backward Substitution\n";
+	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
 	if(dec != ECholesky) cout << "TPZFrontMatrix::Subst_Forward non matching decomposition\n";
 	fStorage.Backward(*b, dec);
 	return 1;
 }
 /*
-template<class store, class front>
-void TPZFrontMatrix<store, front>::SetFileName(const char *name) {
-//     char * bin_template[8]; 
-//     bin_template = "bfXXXXXX"
-//     const char *name = mktemp(template);
-//	fStorage.('w', name);
-}*/
+ template<class store, class front>
+ void TPZFrontMatrix<store, front>::SetFileName(const char *name) {
+ //     char * bin_template[8]; 
+ //     bin_template = "bfXXXXXX"
+ //     const char *name = mktemp(template);
+ //	fStorage.('w', name);
+ }*/
 
 template<class store, class front>
 void TPZFrontMatrix<store, front>::SetFileName(char option, const char *name) {
@@ -371,10 +370,10 @@ void TPZFrontMatrix<store, front>::ReOpen() {
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Zero() {
 	fStorage.Zero();
-  fNumElConnected = fNumElConnectedBackup;
+	fNumElConnected = fNumElConnectedBackup;
 	fLastDecomposed = -1;
-  fFront.Reset(fNumEq);
-  return 0;
+	fFront.Reset(fNumEq);
+	return 0;
 }
 
 class TPZStackEqnStorage;
