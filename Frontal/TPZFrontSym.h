@@ -25,14 +25,14 @@ extern "C"{
 #include "TPZStackEqnStorage.h"
 
 /** 
- * The Front matrix itself. \n
+ * The Front matrix itself.
  * It is controled by TPZFrontMatrix.\n
  * TPZFrontSym is a symmetrical matrix. \n
  * It uses a Cholesky decomposition scheme.
- * @ingroup frontal
  */
 /**
- * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simetry characteristics
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simmetry characteristics
+ * @ingroup frontal
  */
 
 class TPZFrontSym : public TPZFront {

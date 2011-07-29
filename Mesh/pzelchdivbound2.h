@@ -18,8 +18,7 @@
 template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	
-	//metodo para adicionar vetores
-	/// Method to append vectors
+	/** @brief Method to append vectors */
 	void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
 public:
 	

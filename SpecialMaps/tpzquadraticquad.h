@@ -15,11 +15,15 @@
  / @author Paulo Cesar de Alvarenga Lucci (Caju)
  / LabMeC - FEC - UNICAMP
  / 2007
- @ingroup geometry
- @brief Defines a quadrilateral geometric element with quadratic map
  */
+
+
 namespace pzgeom {
-	
+
+	/**
+	 * @ingroup geometry
+	 * @brief Defines a quadrilateral geometric element with quadratic map
+	*/
 	class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 		
 	public:

@@ -43,11 +43,6 @@
 #include "tpzpairstructmatrix.h"
 #include "pzlog.h"
 
-/*
-#include "TPZfTime.h"
-#include "TPZTimeTemp.h"
-#include "TPZDataBase.h"
- */
 #include <fstream>
 #include <string>
 
@@ -178,9 +173,6 @@ int main(int argc, char *argv[])
 //		if (shouldprint == true) tempo.PrintHeader(OutputFile);		// prints the header if It is the first time the program is executed
 		
 //		tempo.PrintLine(OutputFile);		// print all the information in one line
-		
-		//TPZDataBase data;
-		//data.Read(FileName);				
 		
 #ifdef LOG4CXX
 		{

@@ -21,8 +21,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of a one dimensional linear element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of a one dimensional linear element
+	 */
 	class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
 		
 	public:

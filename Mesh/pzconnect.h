@@ -19,12 +19,14 @@ class TPZStream;
 
 
 
-/// This class represents a set of shape functions associated with a computational element/side
+/** 
+ * @brief This class represents a set of shape functions associated with a computational element/side
+ * @ingroup interpolation
+ */
 /**
  This class keeps track of information associated with an element/side such as order of interpolation
- sequence number in the vector of blocks of equations
+ sequence number in the vector of blocks of equations \n
  Objects of this class also contain the information necessary for constraints between shapefunctions
- @ingroup interpolation
  */
 class TPZConnect {
 	/**

@@ -18,7 +18,7 @@ TPZGraphNode *TPZGraphElQ3dd::Connect(int i) {
 
 TPZGraphElQ3dd::~TPZGraphElQ3dd(void)
 {
-
+	
 }
 
 int TPZGraphElQ3dd::NPoints(TPZGraphNode *n)
@@ -48,7 +48,7 @@ void TPZGraphElQ3dd::FirstIJ(int connect, TPZVec<int> &co, int &incr) {
 }
 
 void TPZGraphElQ3dd::NextIJ(int connect,  TPZVec<int> &co, int /*incr*/) {
-
+	
 	int res = fGraphMesh->Res();
 	int imax;
 	imax = 1 << res;
@@ -69,7 +69,7 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 	ostream &out = fGraphMesh->Out();
 	long ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0), co3(3,0), 
-			co4(3,0),co5(3,0),co6(3,0),co7(3,0);
+	co4(3,0),co5(3,0),co6(3,0),co7(3,0);
 	if(st == EV3DStyle) ip++;
 	for(int i=0;i<imax;i++) {
 		for(int j=0;j<imax;j++) {
@@ -99,13 +99,13 @@ void TPZGraphElQ3dd::Connectivity(TPZDrawStyle st){
 					co7[0] = i;   co7[1] = j+1; co7[2]= k+1;
 				}
 				out << EqNum(co0) << " " 
-					<< EqNum(co1) << " " 
-					<< EqNum(co2) << " " 
-					<< EqNum(co3) << " " 
-					<< EqNum(co4) << " " 
-					<< EqNum(co5) << " " 
-					<< EqNum(co6) << " " 
-					<< EqNum(co7) << endl;
+				<< EqNum(co1) << " " 
+				<< EqNum(co2) << " " 
+				<< EqNum(co3) << " " 
+				<< EqNum(co4) << " " 
+				<< EqNum(co5) << " " 
+				<< EqNum(co6) << " " 
+				<< EqNum(co7) << endl;
 			}
 		}
 	}
@@ -118,13 +118,13 @@ void TPZGraphElQ3dd::SetNode(int i,TPZGraphNode *gno) {
 int TPZGraphElQ3dd::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
-	case(EVTKStyle):
-		return 12;//vtk_hexahedron
-//		break;
-	default:
-		return -1;
+		case(EVTKStyle):
+			return 12;//vtk_hexahedron
+			//		break;
+		default:
+			return -1;
 	}
-//	return -1;
+	//	return -1;
 }
 
 int TPZGraphElQ3dd::NNodes()

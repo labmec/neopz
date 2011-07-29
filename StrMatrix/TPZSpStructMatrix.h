@@ -9,7 +9,6 @@
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
 #include "pzelmat.h"
-//#include "pzmetis.h"
 
 class TPZElementMatrix;
 class TPZCompMesh;
@@ -22,17 +21,18 @@ class TPZMatrix;
  */
 class TPZSpStructMatrix : public TPZStructMatrix {
 public:    
-
+	
     TPZSpStructMatrix(TPZCompMesh *);
-
+	
     virtual TPZMatrix * Create();
-
+	
 	virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-
+	
     virtual TPZStructMatrix * Clone(); 	
-
+	
     /** Used only for testing */
-     static int main();
-     
+	static int main();
+	
 };
+
 #endif //TPZSPSTRUCTMATRIX_H

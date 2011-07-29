@@ -11,6 +11,7 @@
 #include "pzsolve.h"
 
 using namespace std;
+
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
@@ -22,16 +23,16 @@ TPZSubMeshFrontalAnalysis::TPZSubMeshFrontalAnalysis(TPZSubCompMesh *mesh) : TPZ
 
 TPZSubMeshFrontalAnalysis::~TPZSubMeshFrontalAnalysis()
 {
-
+	
 }
 
 
 void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
-
+	
 	//fReducableStiff.Print("Reducable stiff before assembled");
 	fReferenceSolution = fSolution;
 	Assemble();
-//    fSolver->Solve(fRhs, fRhs);
+	//    fSolver->Solve(fRhs, fRhs);
     if(fSolver->Matrix()->IsDecomposed() == ELU)
     {
         fSolver->Matrix()->Subst_Forward(&fRhs);
@@ -46,8 +47,8 @@ void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
     
 }
 void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
-//	ek = fReducableStiff.K11Red();
-//	ef = fReducableStiff.F1Red();
+	//	ek = fReducableStiff.K11Red();
+	//	ef = fReducableStiff.F1Red();
 	//ek.Print("ek condensed");
 	if(fFront) {
 		fFront->ExtractFrontMatrix(ek);
@@ -63,22 +64,22 @@ void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef
 
 void TPZSubMeshFrontalAnalysis::LoadSolution(TPZFMatrix &sol)
 {
-
-//	sol.Print("sol");
-//	cout.flush();
+	
+	//	sol.Print("sol");
+	//	cout.flush();
 	int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
 	TPZFMatrix soltemp(numeq,1,0.);
-//	fSolution.Print("Solucao a analise\n");
-//	fReferenceSolution.Print("Solucao de referencia\n");
-//	cout.flush();
+	//	fSolution.Print("Solucao a analise\n");
+	//	fReferenceSolution.Print("Solucao de referencia\n");
+	//	cout.flush();
 	int i;
 	for(i=0;i<numinter;i++) soltemp(i,0) = fRhs(i,0);
 	for(; i<numeq; i++) {
 		soltemp(i,0) = sol(i,0)-fReferenceSolution(i,0);
 	}
-//	soltemp.Print("Solucao temporaria");
-//	cout.flush();
+	//	soltemp.Print("Solucao temporaria");
+	//	cout.flush();
     if(fSolver->Matrix()->IsDecomposed() == ELU)
     {
         fSolver->Matrix()->Subst_Backward(&soltemp);
@@ -90,9 +91,9 @@ void TPZSubMeshFrontalAnalysis::LoadSolution(TPZFMatrix &sol)
         std::cout << "Dont know what to do...\n";
         DebugStop();
     }
-
+	
 	fSolution = fReferenceSolution + soltemp;
-//	fSolution.Print("Final Solution");
-//	cout.flush();
+	//	fSolution.Print("Final Solution");
+	//	cout.flush();
 	TPZAnalysis::LoadSolution();
 }

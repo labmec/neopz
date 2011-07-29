@@ -6,9 +6,9 @@
 /** @defgroup util The Utility classes.
  *
  * The utility classes define general purpose classes such as vectors,
- * stacks, binary trees and chunk vectors. All classes in the utility
- * package are templated in order to improve strong type checking. The
- * class will perform a bounds checking on the operator arguments.
+ * stacks, binary trees and chunk vectors. \n All classes in the utility
+ * package are templated in order to improve strong type checking. \n
+ * The class will perform a bounds checking on the operator arguments.
  */
 
 //--| PZ |----------------------------------------------------------------------

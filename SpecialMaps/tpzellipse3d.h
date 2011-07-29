@@ -21,8 +21,9 @@ class TPZGeoMesh;
 namespace pzgeom
 {
     
-	/** @brief Defines a linear geometric element which maps a line segment to an ellipse
-	 @ingroup geometry
+	/** 
+	 * @brief Defines a linear geometric element which maps a line segment to an ellipse
+	 * @ingroup geometry
 	 */
 	class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {
 		

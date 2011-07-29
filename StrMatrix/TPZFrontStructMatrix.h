@@ -8,12 +8,10 @@
 
 #include "pzelmat.h"
 
-
 #ifndef TPZFRONTSTRUCTMATRIX_H
 #define TPZFRONTSTRUCTMATRIX_H
 
 struct TPZElementMatrix;
-
 
 class TPZMatrix;
 class TPZFMatrix;
@@ -21,116 +19,119 @@ class TPZCompMesh;
 
 /**
  * @brief Class responsible for a interface among Finite Element Package and Matrices package to frontal method
- * 
- *Prevents users from all the necessary information to work with all matrices classes \n
- *It facilitates considerably the use of TPZAnalysis
  * @ingroup structural frontal
+ * @note Type parameter for TPZFrontStructMatrix frontal matrix. \n It can assume values TPZFrontSym and TPZFrontNonSym for symmetric and non symmetric matrices
  */
-template<class front> //! Type parameter for TPZFrontStructMatrix frontal matrix. \n It can assume values TPZFrontSym and TPZFrontNonSym for symmetric and non symmetric matrices
+/**
+ * Prevents users from all the necessary information to work with all matrices classes \n
+ * It facilitates considerably the use of TPZAnalysis
+ */
+template<class front> 
 class TPZFrontStructMatrix : public TPZStructMatrix {
-
+	
 protected:
-     /**
-      * This vector contains an ordered list. \n
-      * The elements must be asssembled in that order so the frontal works on its best \n
-      * performance
-      */
-     TPZVec<int> fElementOrder;
+	/**
+	 * @brief This vector contains an ordered list. 
+	 */
+	/** The elements must be asssembled in that order so the frontal works on its best \n
+	 * performance
+	 */
+	TPZVec<int> fElementOrder;
     int f_quiet;
-     /**
-      * Returns a vector containing all elements connected to a degree of freedom.
-      */
-     void GetNumElConnected(
-          TPZVec <int> &numelconnected //! Vector containing the number of connections for every ith dof.
-          );
-     /**
-      * It is applied over fElementOrder putting it in the correct order.
-      */
-     void OrderElement();//TPZVec <int> &elorder);
+	/**
+	 * @brief Returns a vector containing all elements connected to a degree of freedom.
+	 */
+	void GetNumElConnected(
+						   TPZVec <int> &numelconnected //! Vector containing the number of connections for every ith dof.
+						   );
+	/**
+	 * @brief It is applied over fElementOrder putting it in the correct order.
+	 */
+	void OrderElement();//TPZVec <int> &elorder);
 	
 	/**
-	 * Resequence the connects according to the element order
+	 * @brief Resequence the connects according to the element order
 	 **/
 	void AdjustSequenceNumbering();
-
+	
 public:    
-
+	
     /**
-     * Class constructor
+     * @brief Class constructor
      * @url http://www.fec.unicamp.br/~longhin
      * @url http://www.fec.unicamp.br/~phil 
      */ 
-     TPZFrontStructMatrix(TPZCompMesh *);
-     
-     TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet)
-      {
-      }
-
-     
-     static int main();
-
+	TPZFrontStructMatrix(TPZCompMesh *);
+	
+	TPZFrontStructMatrix(const TPZFrontStructMatrix &copy) : TPZStructMatrix(copy), fElementOrder(copy.fElementOrder),f_quiet(copy.f_quiet)
+	{
+	}
+	
+	
+	static int main();
+	
     /**
-     * Class destructor
-     * @url http://www.fec.unicamp.br/~longhin
-     * @url http://www.fec.unicamp.br/~phil 
+     * @brief Class destructor
      */ 
-
-     ~TPZFrontStructMatrix();
-  
-     
-     /**
-      *Returns a pointer to TPZMatrix
-      */
-     TPZMatrix * Create();
-     
-     
-     /**
-      *It clones a TPZFrontStructMatrix
-      */
-     TPZStructMatrix * Clone();
-
-
-     /**
-      *Assemble a stiffness matrix according to rhs
-      */ 	
-     void AssembleNew(
-     	TPZMatrix & stiffness //! Stiffness matrix to assembled
-		 , TPZFMatrix & rhs //! Matrix contaning ???
-		 ,TPZAutoPointer<TPZGuiInterface> guiInterface
-	);
-     
-     /**
-	  *Assemble a stiffness matrix.
-      */ 	
-	 void Assemble(
-		TPZMatrix & stiffness //! Stiffness matrix to assembled
-		, TPZFMatrix & rhs //! Vector contaning loads
-		,TPZAutoPointer<TPZGuiInterface> guiInterface
-          );
-
-     /**
-      * Computes element matrices. \n
-      * Each computed element matrices would then be added to Stiffness matrix
-      */
-	 void AssembleElement(
-          TPZCompEl *el //! Actual element being computed
-          , TPZElementMatrix & ek //! Formed element matrix
-          , TPZElementMatrix & ef //! Formed element load matrix
-          , TPZMatrix & stiffness //! Global Stiffness matrix
-          , TPZFMatrix & rhs //!Global load matrix
-          ); 
-     
-     /**
-      * Returns a pointer to TPZMatrix. \n
-      * This is a mandatory function, it is neded by all StructMatrix. \n
-      * Except in frontal matrices, the returned matrix is not in its decomposed form.
-      */
-	 TPZMatrix * CreateAssemble(
-		  TPZFMatrix &rhs //!Load matrix
-		  , TPZAutoPointer<TPZGuiInterface> guiInterface);
-
+	
+	~TPZFrontStructMatrix();
+	
+	
+	/**
+	 * @brief Returns a pointer to TPZMatrix
+	 */
+	TPZMatrix * Create();
+	
+	
+	/**
+	 * @brief Clones a TPZFrontStructMatrix
+	 */
+	TPZStructMatrix * Clone();
+	
+	
+	/**
+	 * @brief Assemble a stiffness matrix according to rhs
+	 */ 	
+	void AssembleNew(
+					 TPZMatrix & stiffness //! Stiffness matrix to assembled
+					 , TPZFMatrix & rhs //! Matrix contaning ???
+					 ,TPZAutoPointer<TPZGuiInterface> guiInterface
+					 );
+	
+	/**
+	 * @brief Assemble a stiffness matrix.
+	 */ 	
+	void Assemble(
+				  TPZMatrix & stiffness //! Stiffness matrix to assembled
+				  , TPZFMatrix & rhs //! Vector contaning loads
+				  ,TPZAutoPointer<TPZGuiInterface> guiInterface
+				  );
+	
+	/**
+	 * @brief Computes element matrices.
+	 *
+	 * Each computed element matrices would then be added to Stiffness matrix
+	 */
+	void AssembleElement(
+						 TPZCompEl *el //! Actual element being computed
+						 , TPZElementMatrix & ek //! Formed element matrix
+						 , TPZElementMatrix & ef //! Formed element load matrix
+						 , TPZMatrix & stiffness //! Global Stiffness matrix
+						 , TPZFMatrix & rhs //!Global load matrix
+						 ); 
+	
+	/**
+	 * @brief Returns a pointer to TPZMatrix.
+	 *
+	 * This is a mandatory function, it is neded by all StructMatrix. \n
+	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
+	 */
+	TPZMatrix * CreateAssemble(
+							   TPZFMatrix &rhs //!Load matrix
+							   , TPZAutoPointer<TPZGuiInterface> guiInterface);
+	
     void SetQuiet(int quiet);
-
-   
+	
 };
+
 #endif //TPZFRONTSTRUCTMATRIX_H

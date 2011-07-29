@@ -18,54 +18,53 @@
 #include <list>
 #include <semaphore.h>
 
-
+/**
+ * @ingroup substructure
+ * @brief To assembling one item using Dohrmann algorithm
+ */
 struct TPZDohrAssembleItem {
-	/// Initialize the assemble item based on the submesh index and size of the local contribution
+	/** @brief Initialize the assemble item based on the submesh index and size of the local contribution */
 	TPZDohrAssembleItem(int subindex, int size) : fSubIndex(subindex), fAssembleData(size,1,0.)
 	{
 	}
-	/// Initialize the assemble item based on the submesh index and size of the local contribution
+	/** @brief Initialize the assemble item based on the submesh index and size of the local contribution */
 	TPZDohrAssembleItem(int subindex, int nrow, int ncol) : fSubIndex(subindex), fAssembleData(nrow,ncol,0.)
 	{
 	}
-	/// substructure index
+	/** @brief Substructure index */
 	int fSubIndex;
-	/// the data which should be assembled
+	/** @brief The data which should be assembled */
 	TPZFMatrix fAssembleData;
 };
 
+/**
+ * @ingroup substruture
+ * @brief List of items to assembling using Dohrmann algorithm
+ */ 
 struct TPZDohrAssembleList {
-	
-	/// constructor indicating the number of items that will be assembled and the target matrix
+	/** @brief Constructor indicating the number of items that will be assembled and the target matrix */
 	TPZDohrAssembleList(int numitems, TPZFMatrix &output, TPZAutoPointer<TPZDohrAssembly> assembly);
 	/// destructor
 	~TPZDohrAssembleList();
-	/// the number of items that will be assembled before returning
+	/** @brief The number of items that will be assembled before returning */
 	int fNumItems;
-	// semaphore (to wake up assembly thread)
-	/*
-#ifdef MACOSX
-	sem_t *fSemaphore;
-#else
-	sem_t fSemaphore;
-#endif
-	 */
+	/** @brief Semaphore (to wake up assembly thread) */
 	TPZSemaphore fSemaphore;
-	/// this is the mutex which controls the access to the list
+	/** @brief This is the mutex which controls the access to the list */
 	pthread_mutex_t fListAccessLock;
-	/// this is the mutex which controls the assembly
+	/** @brief This is the mutex which controls the assembly */
 	pthread_mutex_t fAssemblyLock;
-	/// list of objects needed to be assembled
+	/** @brief List of objects needed to be assembled */
 	std::list<TPZAutoPointer<TPZDohrAssembleItem> > fWork;
-	/// Add an item to the list in a thread safe way
+	/** @brief Add an item to the list in a thread safe way */
 	void AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleItem);
-	/// remove an item from the list
+	/** @brief Remove an item from the list */
 	TPZAutoPointer<TPZDohrAssembleItem> PopItem();
-	/// Assembly indexes
+	/** @brief Assembly indexes */
 	TPZAutoPointer<TPZDohrAssembly> fAssembleIndexes;
-	/// Target Matrix
+	/** @brief Target Matrix */
 	TPZFMatrix *fOutput;
-	/// Procedure which performs the assembly process
+	/** @brief Procedure which performs the assembly process */
 	static void *Assemble(void *voidptr);
 };
 

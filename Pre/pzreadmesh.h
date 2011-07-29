@@ -11,35 +11,32 @@
 class TPZCompMesh;
 
 /** @ingroup pre
- */
-/**
- * @brief Virtual class that implements the interface for build a computational mesh\
- * from a file
+ * @brief Virtual class that implements the interface for build a computational mesh from a file
  * @author Edimar Cesar Rylo
  * @since September, 2006
  */
 class TPZReadMesh
 {
 public:
-  /**
-   * Default constructor
-   * @param infile [in] contains a full path to the input file
-   */
-  TPZReadMesh(const char * inFile);
-
-  /**
-   * Default destructor
-   */
-  virtual ~TPZReadMesh();
-
-  virtual TPZCompMesh *ReadMesh() = 0;
-
+	/**
+	 * @brief Default constructor
+	 * @param infile [in] contains a full path to the input file
+	 */
+	TPZReadMesh(const char * inFile);
+	
+	/**
+	 * @brief Default destructor
+	 */
+	virtual ~TPZReadMesh();
+	
+	virtual TPZCompMesh *ReadMesh() = 0;
+	
     
 protected:
-  /**
-   * @brief Input file
-   */
-  std::ifstream fInputFile;
+	/**
+	 * @brief Input file
+	 */
+	std::ifstream fInputFile;
 };
 
 #endif

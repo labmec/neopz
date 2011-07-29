@@ -10,18 +10,20 @@ class TPZGeoMesh;
 
 
 /** 
- * This class implement the interface between TPZGeoMesh and the files produced by tetgen.
- * What is tetgen ? Take a look on http://tetgen.berlios.de/index.html
+ * @ingroup pre
+ * @brief This class implement the interface between TPZGeoMesh and the files produced by tetgen.
+ * @since March 03, 2006
+ */
+/** What is tetgen ? Take a look on http://tetgen.berlios.de/index.html
  * "TetGen - A Quality Tetrahedral Mesh Generator and Three-Dimensional Delaunay Triangulator. 
  *  Hang Si
  *  Research Group of Numerical Mathematics and Scientific Computing Weierstrass Institute for Applied Analysis and Stochastics
  *  Mohrenstr. 39  10117 Berlin, Germany
  *  si@wias-berlin.de"
- * @since March 03, 2006
  */
 class TPZReadTetGen{
-  public:
-  
+public:
+	
     TPZReadTetGen();
     
     ~TPZReadTetGen();
@@ -33,8 +35,8 @@ class TPZReadTetGen{
      */
     TPZGeoMesh * Process(std::string NodeFileName, std::string FaceFileName, std::string TetraFileName);
     
-  private:
-  
+private:
+	
     /** 
      * @brief Process nodes.
 	 *
@@ -45,14 +47,14 @@ class TPZReadTetGen{
     /** 
      * @brief Process faces.
 	 *
-     * Return true if the process worked succesfuly and false otherwise.
+     * Returns true if the process worked succesfuly and false otherwise.
      */    
     bool ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, int & numberfaces);
     
     /** 
      * @brief Process tetrahedras.
 	 *
-     * Return true if the process worked succesfuly and false otherwise.
+     * Returns true if the process worked succesfuly and false otherwise.
      */    
     bool ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, int & numbervols);
     

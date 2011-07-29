@@ -3,24 +3,25 @@
 #include "pzmaterial.h"
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
+
 using namespace std;
 
 TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat) : TPZGraphMesh(cmesh, dimension, mat) {
 	fNumCases = 0;
 	fNumSteps = 0;
-   fStyle = EMVStyle;
+	fStyle = EMVStyle;
 }
 
 TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMVGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
-                TPZGraphMesh(cmesh, dimension,mat) {
-  if(!mat) fMaterial = graph->fMaterial;
+TPZGraphMesh(cmesh, dimension,mat) {
+	if(!mat) fMaterial = graph->fMaterial;
 	fNumCases = graph->fNumCases;
 	fNumSteps = graph->fNumSteps;
-  fStyle = EMVStyle;
+	fStyle = EMVStyle;
 }
 
 void TPZMVGraphMesh::DrawMesh(int numcases) {
-
+	
 	fNumCases = numcases;
 	fNumSteps = 0;
 	(fOutFile) << "%HEADER" << endl;
@@ -37,7 +38,7 @@ void TPZMVGraphMesh::DrawMesh(int numcases) {
 }
 
 void TPZMVGraphMesh::DrawSolution(int step, REAL time){
-
+	
 	fNumSteps++;
 	int numscal = this->fScalarNames.NElements();
 	int numvec = fVecNames.NElements();
@@ -48,9 +49,9 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	scalind.Fill(-1,0,numscal);
 	vecind.Fill(-1,0,numvec);
 	TPZAutoPointer<TPZMaterial> matp = Material();
-   if(!matp) {
-   	cout << "TPZMVGraphMesh no material found\n";
-   	return;
+	if(!matp) {
+		cout << "TPZMVGraphMesh no material found\n";
+		return;
 	}
 	int n;
 	for(n=0; n<numscal; n++) {
@@ -59,16 +60,16 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	for(n=0; n<numvec; n++) {
 		vecind[n] = matp->VariableIndex(fVecNames[n]);
 	}
-
+	
 	(fOutFile) << "%RESULT.CASE.STEP\n" << (step+1) << endl;
 	(fOutFile) << "%RESULT.CASE.STEP.TIME\n" << time << endl;
 	int dispind = matp->VariableIndex("Displacement6");
 	TPZVec<REAL> disp(6,0.);
-
+	
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.DISPLACEMENT" << endl;
 	(fOutFile) << NPoints() << " 'Nodal Displ'" << endl;
-   int nnod = fNodeMap.NElements(),i;
-   for(i=0;i<nnod;i++) {
+	int nnod = fNodeMap.NElements(),i;
+	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->DrawSolution(dispind, EMVStyle);
 	}
@@ -78,11 +79,11 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 		(fOutFile) << "'" <<   fScalarNames[n] << "' ";
 	}
 	(fOutFile) << endl;
-
+	
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.SCALAR.DATA" << endl;
 	(fOutFile) << NPoints() << endl;
-   nnod = fNodeMap.NElements();
-   for(i=0;i<nnod;i++) {
+	nnod = fNodeMap.NElements();
+	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->DrawSolution(scalind, EMVStyle);
 	}
@@ -94,8 +95,8 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	(fOutFile) << endl;
 	(fOutFile) << "%RESULT.CASE.STEP.NODAL.VECTOR.DATA" << endl;
 	(fOutFile) << NPoints() << endl;
-   nnod = fNodeMap.NElements();
-   for(i=0;i<nnod;i++) {
+	nnod = fNodeMap.NElements();
+	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->DrawSolution(vecind, EMVStyle);
 	}
@@ -105,54 +106,54 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 
 void TPZMVGraphMesh::SequenceNodes(){
 	TPZGraphMesh::SequenceNodes();
-   int dim;
-   for(dim=0; dim<3; dim++) {
+	int dim;
+	for(dim=0; dim<3; dim++) {
         int nnod = fNodeMap.NElements();
         for(int i=0;i<nnod;i++) {
-           TPZGraphNode *n = &fNodeMap[i];
-           if(n) n->SetPointNumber(n->FirstPoint()+1);// renumera de 1 para frente
+			TPZGraphNode *n = &fNodeMap[i];
+			if(n) n->SetPointNumber(n->FirstPoint()+1);// renumera de 1 para frente
         }                                             // o valor do id do n�
-   }
+	}
 }
 
 void TPZMVGraphMesh::DrawNodes(){
-
+	
 	long nn = 0L;
-   int nnod = fNodeMap.NElements();
-   int i;
-   for(i=0;i<nnod;i++) {
+	int nnod = fNodeMap.NElements();
+	int i;
+	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) nn += n->NPoints();
 	}
 	(fOutFile) << "%NODE" << endl;
 	(fOutFile) << nn << endl;
-
+	
 	(fOutFile) << "%NODE.COORD" << endl;
 	(fOutFile) << nn << endl;
-   for(i=0;i<nnod;i++) {
+	for(i=0;i<nnod;i++) {
 		TPZGraphNode *n = &fNodeMap[i];
 		if(n) n->DrawCo(EMVStyle);
 	}
 }
 
 void TPZMVGraphMesh::DrawConnectivity(MElementType type) {
-
+	
 	int nel = fElementList.NElements();
 	if(!nel) return;
-   TPZGraphEl *el = (TPZGraphEl *) fElementList[0];
-   int numnodes = el->NConnects();
+	TPZGraphEl *el = (TPZGraphEl *) fElementList[0];
+	int numnodes = el->NConnects();
 	(fOutFile) << "%ELEMENT\n";
 	int imax = (1<<fResolution);
 	(fOutFile) << ((imax*imax)*nel) << endl;
 	if(numnodes == 9) {
 		(fOutFile) << "%ELEMENT.Q4\n";
-   } else {
+	} else {
 		(fOutFile) << "%ELEMENT.T3\n";
 	}
 	(fOutFile) << ((imax*imax)*nel) << endl;
 	for(int i=0;i<nel;i++) {
-      el = (TPZGraphEl *) fElementList[i];
-      if(el) el->Connectivity(EMVStyle);
+		el = (TPZGraphEl *) fElementList[i];
+		if(el) el->Connectivity(EMVStyle);
  	}
 }
 

@@ -6,7 +6,7 @@
 #include "tpzgaussrule.h"
 #include "tpzgausslobattorule.h"
 
-/// @ingroup integral
+/** @ingroup integral */
 typedef TPZGaussRule INTRULE_PARENT;
 //typedef TPZGaussLobattoRule INTRULE_PARENT;
 

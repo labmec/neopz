@@ -31,9 +31,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of the Tetrahedron element
 	 */
-	
-	/// This class defines the topology of the Tetrahedron element
 	class TPZTetrahedron{
 	public:
 		

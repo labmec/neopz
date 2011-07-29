@@ -20,10 +20,13 @@
  / LabMeC - FEC - UNICAMP
  / 2007
  */
+
+
 namespace pzgeom
 {
 	
 	/** 
+	 @author Paulo Cesar de Alvarenga Lucci (Caju)
 	 @ingroup geometry
 	 @brief Implements three dimensional arc (Jorge?)
 	 */

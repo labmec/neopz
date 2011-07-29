@@ -8,8 +8,10 @@
 
 class TPZCompMesh;
 
-/// @ingroup CompMesh
-/// Will verify the consistency of the restraints of shape functions along a side
+/**
+ * @ingroup CompMesh
+ * @brief Will verify the consistency of the restraints of shape functions along a side
+ */
 class TPZCheckRestraint {
 	
 	TPZCompElSide fSmall;

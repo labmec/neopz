@@ -13,11 +13,9 @@ TPZGraphNode *TPZGraphElQ2dd::Connect(int i) {
 	return fConnect;
 }
 
-
 TPZGraphElQ2dd::~TPZGraphElQ2dd(void)
 {
 }
-
 
 int TPZGraphElQ2dd::NPoints(TPZGraphNode *n)
 {
@@ -26,13 +24,11 @@ int TPZGraphElQ2dd::NPoints(TPZGraphNode *n)
 	return imax*imax;
 }
 
-
 int TPZGraphElQ2dd::NElements(){
 	int res = fGraphMesh->Res();
 	int imax = (1<<res);
 	return imax*imax;
 }
-
 
 long TPZGraphElQ2dd::EqNum(TPZVec<int> &co) {
 	int res = fGraphMesh->Res();
@@ -40,17 +36,14 @@ long TPZGraphElQ2dd::EqNum(TPZVec<int> &co) {
 	return fConnect->FirstPoint()+co[0]*imax+co[1];
 }
 
-
-void TPZGraphElQ2dd::FirstIJ(int connect,TPZVec<int> &co, int &incr) {
-
+void TPZGraphElQ2dd::FirstIJ(int connect,TPZVec<int> &co, int &incr) {	
 	co[0]=0;
 	co[1]=0;
 	incr = 1;
 }
 
-
 void TPZGraphElQ2dd::NextIJ(int connect, TPZVec<int> &co, int /*incr*/) {
-
+	
 	int res = fGraphMesh->Res();
 	int imax;
 	imax = 1 << res;
@@ -60,7 +53,6 @@ void TPZGraphElQ2dd::NextIJ(int connect, TPZVec<int> &co, int /*incr*/) {
 		co[0]++;
 	}
 }
-
 
 void TPZGraphElQ2dd::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
@@ -88,11 +80,10 @@ void TPZGraphElQ2dd::Connectivity(TPZDrawStyle st){
 				co3[0] = i; co3[1] = j+1;
 			}
 			out << EqNum(co0) << " " << EqNum(co1) << " " <<
-					EqNum(co2) << " " << EqNum(co3) << endl;
+			EqNum(co2) << " " << EqNum(co3) << endl;
 		}
 	}
 }
-
 
 void TPZGraphElQ2dd::SetNode(int i,TPZGraphNode *gno) {
 	fConnect = gno;
@@ -101,13 +92,13 @@ void TPZGraphElQ2dd::SetNode(int i,TPZGraphNode *gno) {
 int TPZGraphElQ2dd::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
-	case(EVTKStyle):
-		return 9;//vtk_quad
-//		break;
-	default:
-		return -1;
+		case(EVTKStyle):
+			return 9;//vtk_quad
+			//		break;
+		default:
+			return -1;
 	}
-//	return -1;
+	//	return -1;
 }
 
 int TPZGraphElQ2dd::NNodes()

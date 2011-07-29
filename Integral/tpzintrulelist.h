@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef TPZINTRULELIST_H
 #define TPZINTRULELIST_H
 
@@ -20,39 +20,48 @@ class TPZIntRuleP3D;
 /**
  * @ingroup integral
  * @brief This class creates instances of all integration rules for rapid selection
- *
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleList {
 	
-	
-    int		intavail;	// number of integration rules available
-    int        	intavailT;  // number of integration rules available for triangles
+	/** @brief Number of integration rules available */
+    int		intavail;
+	/** @brief Number of integration rules available for triangles */
+    int        	intavailT;
     int        	intavailT3D;
     int        	intavailP3D;
-    TPZIntRule	**intlist;	 	// pointer to an array of integration rules
-    TPZIntRuleT   **intlistT; 	// pointer to an array of integration rules
+	/** @brief Pointer to an array of integration rules */
+    TPZIntRule	**intlist;
+	/** @brief Pointer to an array of integration rules */
+    TPZIntRuleT   **intlistT;
     TPZIntRuleT3D **intlistT3D;
     TPZIntRuleP3D **intlistP3D;
 	
     public :
 	
-	TPZIntRuleList();	// method which initializes all integration rules
-	// should be called only once!
+	/** @brief Method which initializes all integration rules 
+	 * @note should be called only once!
+	 */
+	TPZIntRuleList();
 	
 	~TPZIntRuleList();
 	
-	TPZIntRule *GetRule(int numint);	// returns a pointer to an integration
-	// rule with numint integration points
+	/** @brief Returns a pointer to an integration
+	 * rule with numint integration points
+	 */
+	TPZIntRule *GetRule(int numint);
 	
-	TPZIntRuleT *GetRuleT(int numint); // returns a pointer to an integration
-	// rule for a triangle
+	/** @brief Returns a pointer to an integration
+	 * rule for a triangle
+	 */
+	TPZIntRuleT *GetRuleT(int numint);
 	TPZIntRuleT3D *GetRuleT3D(int numint);
 	TPZIntRuleP3D *GetRuleP3D(int numint);
 };
 
-/// @ingroup integral
-/// Extern variable with list of all integration rules
+/** @ingroup integral
+ * @brief Extern variable with list of all integration rules
+ */
 extern  TPZIntRuleList  gIntRuleList;
 
 #endif

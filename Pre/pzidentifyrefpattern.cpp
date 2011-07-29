@@ -35,7 +35,7 @@
 using namespace std;
 
 TPZIdentifyRefPattern::TPZIdentifyRefPattern(string &path){
-  fPath = path;
+	fPath = path;
 }
 TPZIdentifyRefPattern::~TPZIdentifyRefPattern(){
 }
@@ -59,10 +59,10 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetRefPattern (TPZGeoEl *fa
 			}
 			TPZRefPattern * newRef = new TPZRefPattern ("/home/pos/cesar/RefPattern/Unif_Linear.rpt");
 			rp = newRef;
-    }
-    default : {
-      //return a uniform refinement pattern
-      if (nelem == UniformSubElem(eltype)) {
+		}
+		default : {
+			//return a uniform refinement pattern
+			if (nelem == UniformSubElem(eltype)) {
 				rp = GetUniform(father);
 			}else{
 				//identify the side refinement pattern
@@ -87,45 +87,45 @@ int TPZIdentifyRefPattern::IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> sub
 	set< TSide > Sons;
 	set< TSide > Result;
 	int iside,isub;
-
+	
 	for (iside=0;iside<father->NSides();iside++){
 		if (father->SideDimension(iside) != 1) continue;
 		TPZGeoElSide gelside (father,iside);
-    TSide sidefat(gelside);
-    Father.insert(sidefat);
-  }
-  for (isub=0;isub<subelem.NElements();isub++){
-    for (iside=0;iside<subelem[isub]->NSides();iside++){
-      if (subelem[isub]->SideDimension(iside) != 1) continue;
-      TPZGeoElSide gelside (subelem[isub],iside);
-      TSide sideson(gelside);
-      Sons.insert(sideson);
-    }
-  }
-
+		TSide sidefat(gelside);
+		Father.insert(sidefat);
+	}
+	for (isub=0;isub<subelem.NElements();isub++){
+		for (iside=0;iside<subelem[isub]->NSides();iside++){
+			if (subelem[isub]->SideDimension(iside) != 1) continue;
+			TPZGeoElSide gelside (subelem[isub],iside);
+			TSide sideson(gelside);
+			Sons.insert(sideson);
+		}
+	}
+	
 	set_difference(Father.begin(),Father.end(),Sons.begin(),Sons.end(),inserter(Result,Result.begin()));
-  if (Result.size() != 1) return -1;
-
-  TSide side_result = *Result.begin();
-  int side  = side_result.fSide;
-  return side;
+	if (Result.size() != 1) return -1;
+	
+	TSide side_result = *Result.begin();
+	int side  = side_result.fSide;
+	return side;
 }
 
 using namespace pzrefine;
 
 int TPZIdentifyRefPattern::UniformSubElem( int eltype){
-  switch (eltype) {
-    case (EPoint)         : return TPZRefPoint::NSubEl;
-    case (EOned)          : return TPZRefLinear::NSubEl;
-    case (ETriangle)      : return TPZRefTriangle::NSubEl;
-    case (EQuadrilateral) : return TPZRefQuad::NSubEl;
-    case (ETetraedro)     : return TPZRefTetrahedra::NSubEl;
-    case (EPiramide)      : return TPZRefPyramid::NSubEl;
-    case (EPrisma)        : return TPZRefPrism::NSubEl;
-    case (ECube)          : return TPZRefCube::NSubEl;
-  }
-  PZError << "TPZIdentifyRefPattern::UniformSubElem ERROR unknown eltype : " << eltype << endl;
-  return (-1);
+	switch (eltype) {
+		case (EPoint)         : return TPZRefPoint::NSubEl;
+		case (EOned)          : return TPZRefLinear::NSubEl;
+		case (ETriangle)      : return TPZRefTriangle::NSubEl;
+		case (EQuadrilateral) : return TPZRefQuad::NSubEl;
+		case (ETetraedro)     : return TPZRefTetrahedra::NSubEl;
+		case (EPiramide)      : return TPZRefPyramid::NSubEl;
+		case (EPrisma)        : return TPZRefPrism::NSubEl;
+		case (ECube)          : return TPZRefCube::NSubEl;
+	}
+	PZError << "TPZIdentifyRefPattern::UniformSubElem ERROR unknown eltype : " << eltype << endl;
+	return (-1);
 }
 
 TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetUniform(TPZGeoEl * gel){

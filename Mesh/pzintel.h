@@ -14,11 +14,11 @@ class TPZBlockDiagonal;
 
 /**
  * @brief Implements computational element based on an interpolation space
- *
- * All h and p adaptive methods are implemented in this class\n
+ * @ingroup CompElement
+ */
+/** All h and p adaptive methods are implemented in this class\n
  * derived classes need to implement the behaviour (interface) defined in this class\n
  * this makes the adaptive process extremely general\n
- * @ingroup CompElement
  */
 class TPZInterpolatedElement : public TPZInterpolationSpace {
 	

@@ -41,13 +41,14 @@ template<class T> class TPZIntelGen;
 
 /**
  * @brief Implements computational mesh
- 
- The computational mesh is a repository for computational elements, nodes and
- material objects \n
- The computational mesh also contains the current solution of the mesh and an
- elementwise solution vector \n
- The data structure of this object is rather simple
  * @ingroup CompMesh
+*/ 
+/**
+ * The computational mesh is a repository for computational elements, nodes and
+ * material objects \n
+ * The computational mesh also contains the current solution of the mesh and an
+ * elementwise solution vector \n
+ * The data structure of this object is rather simple
  */
 class TPZCompMesh : public virtual TPZSaveable {
 	

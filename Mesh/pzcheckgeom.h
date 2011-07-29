@@ -6,8 +6,10 @@
 #include "pzgeoel.h"
 #include "pzgmesh.h"
 
-/// @ingroup geometry
-/// This class performs a series of consistency tests on geometric transformations between elements
+/**
+ * @ingroup geometry
+ * @brief This class performs a series of consistency tests on geometric transformations between elements
+ */
 class TPZCheckGeom {
 	
 	TPZGeoMesh *fMesh;

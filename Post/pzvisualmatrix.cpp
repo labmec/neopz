@@ -2,7 +2,9 @@
 #include "pzfmatrix.h"
 using namespace std;
 
-/** This function creats a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
+/** This function creates adequated file that allow to visualization of the value of a matrix passed as parameter. \n
+ *  Depends on disponible visualization package 
+ */
 void VisualMatrix(TPZFMatrix & matrix, const std::string &outfilename)
 {
 	int posdx = outfilename.rfind(".dx");
@@ -17,7 +19,7 @@ void VisualMatrix(TPZFMatrix & matrix, const std::string &outfilename)
 	}
 }	
 
-	/** This function creats a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
+/** This function creates a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
 void VisualMatrixDX(TPZFMatrix & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();
@@ -65,7 +67,7 @@ void VisualMatrixDX(TPZFMatrix & matrix, const std::string &outfilename)
 	cout << "Data Explorer file " << outfilename << " was created with success!\n";
 }
 
-/** This function creats a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
+/** This function creates a Visualization Tool Kit (VTK) file that allow to visualization of the value of a matrix passed as parameter */
 void VisualMatrixVTK(TPZFMatrix & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();

@@ -6,20 +6,19 @@
  *  Copyright 2008 UNICAMP. All rights reserved.
  *
  */
+
 #ifndef PZVTKMESH
 #define PZVTKMESH
 
-
 #include "pzgraphmesh.h"
 #include "pzvec.h"
-
 
 class TPZBlock;
 
 /**
  * @ingroup post
+ * @brief To export a graphical mesh to VTK environment
  */
-/// To export a graphical mesh to VTK environment
 class TPZVTKGraphMesh : public TPZGraphMesh {
 	
 public:

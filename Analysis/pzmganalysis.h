@@ -18,116 +18,114 @@ class TPZGeoEl;
 
 
 /**
- * @brief Class TPZMGAnalysis derived from TPZAnalysis
- * implements multigrid analysis
+ * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZAnalysis
  * @ingroup Analysis
  */
 class TPZMGAnalysis : public TPZAnalysis {
- public:
-  
-  /**
-   * Destructor
-   */
-  virtual ~TPZMGAnalysis();
-  
-  /**
-   * Creates an object multigrid analysis
-   * giving a computational mesh
-   */
-  TPZMGAnalysis (TPZCompMesh *);
-  
-  /**
-   * Append a mesh to the meshes vector
-   */
-  void AppendMesh (TPZCompMesh * mesh);
-  
-  /**
-   * Pop the last mesh of the meshes vector
-   */
-  TPZCompMesh *PopMesh ();
-  
-  /**
-   * Uses fSolver object to apply a solution
-   * algorithm
-   */
-  virtual void Solve ();
-  
-  /**
-   * Loads the last two solutions and
-   * call the error between these two aproximations
-   */
-  void ComputeError (TPZVec<REAL> &error);
-  
-  /**
-   * Proceeds the uniformly h-p refinement of mesh
-   * @param mesh : input mesh which will be refined
-   * @param withP : if true, increase the p-order
-   */
-  static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *mesh, bool withP = false);
-  
-  /**
-   * Evaluates the error between aproximation
-   * of coarse and fine meshes
-   * @param fine - refined mesh
-   * @param coarse - some father mesh of fine
-   * @param ervec	- will return the calculated element error
-   * @param f - ??
-   * @param loc - ??
-   * @param val - ??
-   * @param trueerv -calculates the true error between a giving a solution
-   */
-  static  void MeshError (  TPZCompMesh *fine,TPZCompMesh *coarse,	
-			    TPZVec<REAL> &ervec,
-			    void (*f) (TPZVec<REAL> &loc,
-				       TPZVec<REAL> &val,
-				       TPZFMatrix &deriv),
-			    TPZVec<REAL> &truervec);
-  
-  
- private:    
-  /**
-   * Contains the computational meshes of one cycle
-   */
-  TPZStack < TPZCompMesh * > fMeshes;
-  
-  /**
-   * Contains the meshes solutions
-   */	
-  TPZStack <TPZFMatrix *> fSolutions;
-  
-  /**
-   * Contains the solution method applied to the mesh
-   */
-  TPZStack <TPZMatrixSolver *> fSolvers;
-  
-  /**
-   * Contains the preconditioner of the solution method
-   * if the solution method is a krylov method, the preconditioner
-   * can be used as a coarse grid iteration
-   */
-  TPZStack <TPZMatrixSolver *> fPrecondition;
-
-  
-  /**
-   * Calculates an element error based on two aproximations
-   * @param fine: refined mesh;
-   * @param coarse: some father mesh of fine;
-   * @param tr: tranformation between fine and coarse;
-   * @param f: ??
-   * @param loc: ??
-   * @param val: ??
-   * @param deriv: ??
-   * @param truerror: will return the error between aproximation and a give solution
-   */
-  static  REAL ElementError (TPZInterpolatedElement *fine,
-			     TPZInterpolatedElement *coarse,
-			     TPZTransform &tr,
-			     void (*f) (TPZVec<REAL> &loc,
-					TPZVec<REAL> &val,
-					TPZFMatrix &deriv),
-			     REAL &truerror);
-  
-  //   TPZStepSolver *fIterative;
-  //   TPZMatrixSolver *fPrecond;
+public:
+	
+	/**
+	 * @brief Destructor
+	 */
+	virtual ~TPZMGAnalysis();
+	
+	/**
+	 * @brief Creates an object multigrid analysis
+	 * giving a computational mesh
+	 */
+	TPZMGAnalysis (TPZCompMesh *);
+	
+	/**
+	 * @brief Append a mesh to the meshes vector
+	 */
+	void AppendMesh (TPZCompMesh * mesh);
+	
+	/**
+	 * @brief Pop the last mesh of the meshes vector
+	 */
+	TPZCompMesh *PopMesh ();
+	
+	/**
+	 * @brief Uses fSolver object to apply a solution
+	 * algorithm
+	 */
+	virtual void Solve ();
+	
+	/**
+	 * @brief Loads the last two solutions and
+	 * call the error between these two aproximations
+	 */
+	void ComputeError (TPZVec<REAL> &error);
+	
+	/**
+	 * @brief Proceeds the uniformly h-p refinement of mesh
+	 * @param mesh : input mesh which will be refined
+	 * @param withP : if true, increase the p-order
+	 */
+	static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *mesh, bool withP = false);
+	
+	/**
+	 * @brief Evaluates the error between aproximation
+	 * of coarse and fine meshes
+	 * @param fine - refined mesh
+	 * @param coarse - some father mesh of fine
+	 * @param ervec	- will return the calculated element error
+	 * @param f - ??
+	 * @param loc - ??
+	 * @param val - ??
+	 * @param trueerv -calculates the true error between a giving a solution
+	 */
+	static  void MeshError (  TPZCompMesh *fine,TPZCompMesh *coarse,	
+							TPZVec<REAL> &ervec,
+							void (*f) (TPZVec<REAL> &loc,
+									   TPZVec<REAL> &val,
+									   TPZFMatrix &deriv),
+							TPZVec<REAL> &truervec);
+	
+private:    
+	/**
+	 * @brief Contains the computational meshes of one cycle
+	 */
+	TPZStack < TPZCompMesh * > fMeshes;
+	
+	/**
+	 * @brief Contains the meshes solutions
+	 */	
+	TPZStack <TPZFMatrix *> fSolutions;
+	
+	/**
+	 * @brief Contains the solution method applied to the mesh
+	 */
+	TPZStack <TPZMatrixSolver *> fSolvers;
+	
+	/**
+	 * @brief Contains the preconditioner of the solution method
+	 * if the solution method is a krylov method.
+	 *
+	 * The preconditioner can be used as a coarse grid iteration
+	 */
+	TPZStack <TPZMatrixSolver *> fPrecondition;
+	
+	
+	/**
+	 * @brief Calculates an element error based on two aproximations
+	 * @param fine: refined mesh;
+	 * @param coarse: some father mesh of fine;
+	 * @param tr: tranformation between fine and coarse;
+	 * @param f: ??
+	 * @param loc: ??
+	 * @param val: ??
+	 * @param deriv: ??
+	 * @param truerror: will return the error between aproximation and a give solution
+	 */
+	static  REAL ElementError (TPZInterpolatedElement *fine,
+							   TPZInterpolatedElement *coarse,
+							   TPZTransform &tr,
+							   void (*f) (TPZVec<REAL> &loc,
+										  TPZVec<REAL> &val,
+										  TPZFMatrix &deriv),
+							   REAL &truerror);
+	
 };
+
 #endif //TPZMGANALYSIS_H

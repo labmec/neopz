@@ -41,7 +41,8 @@ class TPZRefPattern;
  * @ingroup geometry
  * @since 2003-12-23
  * @brief Using this class it is possible to create inconsistent meshes
- *
+ */
+/**
  * The consistency of the h-refined mesh using generic refinement patterns is the responsability of the user of the class
  */
 template <class TGeo>

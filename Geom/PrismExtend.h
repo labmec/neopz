@@ -10,8 +10,10 @@
 namespace pztopology 
 {
 	
-	/// @ingroup topology
-	/// @brief This class defines the Prismatic extension of a topology
+	/**
+	 * @ingroup topology
+	 * @brief This class defines the Prismatic extension of a topology
+	 */
 	template<class TFather>
 	class Pr :
 	public TFather

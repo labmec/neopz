@@ -22,8 +22,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of a triangle element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of a triangle element
+	 */
 	class TPZGeoTriangle : public TPZNodeRep<3, pztopology::TPZTriangle> 
 	{
 	public:

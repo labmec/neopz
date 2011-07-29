@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef TPZGAUSSRULE_H
 #define TPZGAUSSRULE_H
 
@@ -16,7 +16,6 @@
 
 /**
  * @ingroup integral
- *
  * @brief Implements the Gaussian quadrature.
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
@@ -25,24 +24,23 @@ public:
 	
 	enum {NUMINT_RULES = 38};
     friend class TPZIntRuleList;
-	/// number of integration points for this object
+	/** @brief Number of integration points for this object */
     short	   fNumInt;
-	/// location of the integration point
+	/** @brief Location of the integration point */
     REAL	*fLocation;
-	/// weight of the integration point
+	/** @brief Weight of the integration point */
     REAL	*fWeight;
 	
     TPZGaussRule(int i);
     ~TPZGaussRule();
 	
 public:
-	///return number of integration points
+	/** @brief Returns number of integration points */
 	int NInt() const{ return fNumInt;}
-	///return location of the ith point
+	/** @brief Returns location of the ith point */
 	REAL Loc(int i) const;
-	///return weight for the ith point
+	/** @brief Returns weight for the ith point */
 	REAL W(int i) const;
 };
-
 
 #endif

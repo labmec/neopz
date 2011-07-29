@@ -20,7 +20,7 @@ TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZG
 	int neq = stiff->Rows();
 	rhs.Redim(neq,1);
 	Assemble(*stiff,rhs,guiInterface);
-
+	
 #ifdef LOG4CXX
 	if(loggerel->isDebugEnabled())
 	{
@@ -34,24 +34,28 @@ TPZMatrix * TPZFStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZG
 }
 
 TPZMatrix * TPZFStructMatrix::Create(){
-  int neq = fMesh->NEquations();
-  if(HasRange())
-  {
-    neq = fMaxEq-fMinEq;
-  }
-  else
-  {
-    fMaxEq = neq;
-    fMinEq = 0;
-  }
+	int neq = fMesh->NEquations();
+	if(HasRange())
+	{
+		neq = fMaxEq-fMinEq;
+	}
+	else
+	{
+		fMaxEq = neq;
+		fMinEq = 0;
+	}
     
-  return new TPZFMatrix(neq,neq,0.);
+	return new TPZFMatrix(neq,neq,0.);
 }
+
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{}
+{
+}
 
 TPZFStructMatrix::TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> mesh) : TPZStructMatrix(mesh)
-{}
+{
+}
+
 TPZStructMatrix * TPZFStructMatrix::Clone(){
     return new TPZFStructMatrix(*this);
 }

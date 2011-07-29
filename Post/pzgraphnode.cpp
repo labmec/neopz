@@ -1,5 +1,6 @@
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
+
 using namespace std;
 
 TPZGraphNode::TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm)
@@ -7,8 +8,8 @@ TPZGraphNode::TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm)
 	fConnect = cn;
 	fGraphMesh = gm;
 	fGraphEl = NULL;
-   if(cn) fSequenceNumber = cn->SequenceNumber();
-   else fSequenceNumber = -1;
+	if(cn) fSequenceNumber = cn->SequenceNumber();
+	else fSequenceNumber = -1;
 }
 
 TPZGraphNode::TPZGraphNode()
@@ -16,7 +17,7 @@ TPZGraphNode::TPZGraphNode()
 	fConnect = 0;
 	fGraphMesh = 0;
 	fGraphEl = NULL;
-   fSequenceNumber = -1;
+	fSequenceNumber = -1;
 }
 
 
@@ -40,17 +41,17 @@ void TPZGraphNode::SetPointNumber(long num)
 }
 
 void TPZGraphNode::SetConnect(TPZConnect *connect) {
-     fConnect = connect;
+	fConnect = connect;
 }
 
 void TPZGraphNode::SetGraphMesh(TPZGraphMesh *mesh) {
-     fGraphMesh = mesh;
+	fGraphMesh = mesh;
 }
 
 int TPZGraphNode::NPoints()
 {
 	if(fGraphEl) return(fGraphEl->NPoints(this));
-   return 0;
+	return 0;
 }
 
 void TPZGraphNode::DrawCo(TPZDrawStyle st)
@@ -72,5 +73,5 @@ void TPZGraphNode::DrawSolution(TPZBlock &bl, TPZDrawStyle st) {
 
 void TPZGraphNode::Print(ostream &out) {
 	out << "Connect Sequence number = " << fSequenceNumber <<
-          " First Point = " << fPointNum << endl;
+	" First Point = " << fPointNum << endl;
 }

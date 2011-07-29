@@ -12,8 +12,10 @@
 template <class T, int N>
 class TPZStack;
 
-/// @ingroup CompMesh
-/// This class verifies the consistency of the datastructure of a TPZCompMesh object
+/**
+ * @ingroup CompMesh
+ * @brief This class verifies the consistency of the datastructure of a TPZCompMesh object
+ */
 class TPZCheckMesh {
 	
 protected:

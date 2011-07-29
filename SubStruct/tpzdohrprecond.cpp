@@ -43,15 +43,15 @@ using namespace std;
 
 template<class TSubStruct>
 TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(TPZDohrMatrix<TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly> assemble)
- : TPZMatrix(origin), fGlobal(origin.SubStructures()), fCoarse(0), fNumCoarse(origin.NumCoarse()), fNumThreads(0), fAssemble(assemble)
+: TPZMatrix(origin), fGlobal(origin.SubStructures()), fCoarse(0), fNumCoarse(origin.NumCoarse()), fNumThreads(0), fAssemble(assemble)
 {
 	fNumThreads = origin.NumThreads();
-//  Initialize();
+	//  Initialize();
 }
 
 template<class TSubStruct>
 TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(const TPZDohrPrecond<TSubStruct> &cp) : TPZMatrix(cp), fGlobal(cp.fGlobal), fCoarse(0), 
-	fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble) 
+fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble) 
 {
 	if (cp.fCoarse) {
 		fCoarse = (TPZStepSolver *) cp.fCoarse->Clone();
@@ -60,11 +60,11 @@ TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(const TPZDohrPrecond<TSubStruct> &cp)
 template<class TSubStruct>
 TPZDohrPrecond<TSubStruct>::~TPZDohrPrecond()
 {
-  if (fCoarse) 
-  {
-    delete fCoarse;
-    fCoarse = 0;
-  }
+	if (fCoarse) 
+	{
+		delete fCoarse;
+		fCoarse = 0;
+	}
 }
 
 template<class TSubStruct>
@@ -100,10 +100,10 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 		TPZDohrPrecondThreadV1Data<TSubStruct> v1threaddata(this,x,v1);
 		
 		pthread_create(&AllThreads[0], 0, TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1, &v1threaddata);
-//		TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1(&v1threaddata);
+		//		TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1(&v1threaddata);
 		
 		TPZAutoPointer<TPZDohrAssembleList> assemblelist = new TPZDohrAssembleList(fGlobal.size(),v2,this->fAssemble);
-
+		
 		
 		TPZDohrPrecondV2SubDataList<TSubStruct> v2work(assemblelist);
 		typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator it;
@@ -122,16 +122,16 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 		for (i=0; i<fNumThreads; i++) {
 			pthread_create(&AllThreads[i+2], 0, TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork, &v2work);
 		}
-//		v2work.ThreadWork(&v2work);
+		//		v2work.ThreadWork(&v2work);
 		
 		pthread_create(&AllThreads[1], 0, TPZDohrAssembleList::Assemble, assemblelist.operator->());
-//		assemblelist->Assemble(assemblelist.operator->());
-			
+		//		assemblelist->Assemble(assemblelist.operator->());
+		
 		for (i=0; i<fNumThreads+2; i++) {
 			void *result;
 			pthread_join(AllThreads[i], &result);
 		}
-//		ComputeV2(x,v2);
+		//		ComputeV2(x,v2);
 	}
 	v2 += v1;
 	
@@ -235,20 +235,20 @@ void TPZDohrPrecond<TSubStruct>::Initialize()
 }
 
 /*struct TPZDohrPrecondThreadV1Data {
-	
-	
-	/// this is the mutex which controls the assembly
-	pthread_mutex_t *fAssemblyLock;
-	/// pointer to the dohr matrix
-	TPZDohrMatrix<TPZDohrSubstructCondense> *fDohrMatrix;
-	/// input matrix
-	TPZFMatrix *fInput;
-	/// matrix where the coarse solution will be contributed
-	TPZFMatrix *fOutput;
-	/// Compute the contribution of the coarse matrix
-	static void ComputeV1(TPZDohrMatrix<TPZDohrSubstructCondense> &matrix, TPZFMatrix &x, TPZFMatrix &v1);
-};
-*/
+ 
+ 
+ /// this is the mutex which controls the assembly
+ pthread_mutex_t *fAssemblyLock;
+ /// pointer to the dohr matrix
+ TPZDohrMatrix<TPZDohrSubstructCondense> *fDohrMatrix;
+ /// input matrix
+ TPZFMatrix *fInput;
+ /// matrix where the coarse solution will be contributed
+ TPZFMatrix *fOutput;
+ /// Compute the contribution of the coarse matrix
+ static void ComputeV1(TPZDohrMatrix<TPZDohrSubstructCondense> &matrix, TPZFMatrix &x, TPZFMatrix &v1);
+ };
+ */
 template<class TSubStruct>
 void TPZDohrPrecond<TSubStruct>::ComputeV1(const TPZFMatrix &x, TPZFMatrix &v1) const
 {
@@ -311,7 +311,7 @@ void TPZDohrPrecond<TSubStruct>::ComputeV2(const TPZFMatrix &x, TPZFMatrix &v2) 
 {
 	
 	typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator it;
-
+	
 	int isub=0;
 	//Criar tarefa que execute a distribuicao de cada elemento do fGlobal
 	for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)

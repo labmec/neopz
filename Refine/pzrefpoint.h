@@ -11,10 +11,9 @@ class TPZGeoElSide;
 class TPZTransform;
 
 /** 
- * @brief Groups all classes which model the h refinement
+ * @brief Groups all classes which model the h refinement \n
  * @ingroup refine
- * 
- * Objects of this class implement the uniform refinement of an element
+ * @note Objects of this class implement the uniform refinement of an element \n
  * These classes are used as template arguments of @seealso TPZGeoElement
  */
 namespace pzrefine {

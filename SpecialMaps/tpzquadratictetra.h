@@ -15,13 +15,17 @@
  * @author Paulo Cesar de Alvarenga Lucci (Caju)
  * LabMeC - FEC - UNICAMP
  * 2007
- * @ingroup geometry
- * @brief Defines a tetrahedral geometric element with quadratic map
  */
+ 
 
 namespace pzgeom
 {
 	
+	/**
+	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @ingroup geometry
+	 * @brief Defines a tetrahedral geometric element with quadratic map
+	 */
 	class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 		
 	public:

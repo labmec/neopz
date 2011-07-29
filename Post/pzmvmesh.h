@@ -9,6 +9,11 @@ class TPZBlock;
 
 /**
  * @ingroup post
+ * @brief Implements graphical mesh to MVGraph package.
+ */
+/** 
+ * MVGraph: Multivariate Interactive Visualization can to be obtained from: \n
+ * \t http://cran.r-project.org/web/packages/mvgraph/index.html
  */
 class TPZMVGraphMesh : public TPZGraphMesh {
 

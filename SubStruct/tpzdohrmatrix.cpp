@@ -33,7 +33,7 @@ static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 
 template<class TSubStruct>
 TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> assembly)
- : TPZMatrix(), fNumThreads(0), fAssembly(assembly)
+: TPZMatrix(), fNumThreads(0), fAssembly(assembly)
 {
 }
 
@@ -46,17 +46,17 @@ TPZDohrMatrix<TSubStruct>::~TPZDohrMatrix()
 
 template<class TSubStruct>
 void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-                        const REAL alpha,const REAL beta,const int opt,const int stride) const
+										const REAL alpha,const REAL beta,const int opt,const int stride) const
 {
 	TPZfTime mult;
-  if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
-    Error( "Operator* <matrixs with incompatible dimensions>" );
-  if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-    Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
-  }
-  PrepareZ(y,z,beta,opt,stride);
-  
-  typename SubsList::const_iterator iter;
+	if ((!opt && Cols() != x.Rows()*stride) || Rows() != x.Rows()*stride)
+		Error( "Operator* <matrixs with incompatible dimensions>" );
+	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
+		Error ("TPZFMatrix::MultiplyAdd incompatible dimensions\n");
+	}
+	PrepareZ(y,z,beta,opt,stride);
+	
+	typename SubsList::const_iterator iter;
 	int isub = 0;
 	if (fNumThreads == 0) {
 		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
@@ -70,7 +70,7 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 	}
 	else {
 		TPZAutoPointer<TPZDohrAssembleList> assemblelist = new TPZDohrAssembleList(fGlobal.size(),z,this->fAssembly);
-				
+		
 		TPZDohrThreadMultList<TSubStruct> multwork(x,alpha,fAssembly,assemblelist);
 		typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator iter;
 		int isub=0;
@@ -84,7 +84,7 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			pthread_create(&AllThreads[i+1], 0, TPZDohrThreadMultList<TSubStruct>::ThreadWork, &multwork);
 		}
 		pthread_create(&AllThreads[0], 0, TPZDohrAssembleList::Assemble, assemblelist.operator->());
-
+		
 		for (i=0; i<fNumThreads+1; i++) {
 			void *result;
 			pthread_join(AllThreads[i], &result);
@@ -135,7 +135,7 @@ void TPZDohrMatrix<TSubStruct>::Initialize()
 		
 	}
 }
-	
+
 /**
  * Adjust the residual to zero the residual of the internal connects
  */

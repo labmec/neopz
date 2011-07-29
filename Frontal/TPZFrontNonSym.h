@@ -33,14 +33,14 @@ extern "C"{
 #endif
 
 
+/** 
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics
+ * @ingroup frontal
+ */
 /**
  * The Front matrix itself.
  * It is controled by TPZFrontMatrix. \n
  * TPZFrontNonSym is a non symmetrical matrix. It uses LU decomposition scheme.
- * @ingroup frontal
- */
-/** 
- * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics
  */
 class TPZFrontNonSym : public TPZFront {
 public:

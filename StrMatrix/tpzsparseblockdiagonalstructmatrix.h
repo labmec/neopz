@@ -16,20 +16,21 @@
 
 /**
  * @brief This class will Build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it
+ * @ingroup structural
  * @author Philippe R. B. Devloo
  */
 class TPZSparseBlockDiagonalStructMatrix : public TPZStructMatrix
 {
 public:
     TPZSparseBlockDiagonalStructMatrix(TPZCompMesh *mesh);
-
+	
     ~TPZSparseBlockDiagonalStructMatrix();
-
-  virtual TPZMatrix * Create();
-
+	
+	virtual TPZMatrix * Create();
+	
     virtual TPZStructMatrix* Clone();
     int NumColors();
-
+	
 };
 
 #endif

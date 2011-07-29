@@ -2,7 +2,9 @@
 
 #ifndef TPZSBANDSTRUCTMATRIX_H
 #define TPZSBANDSTRUCTMATRIX_H
+
 #include "pzstrmatrix.h"
+
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZMatrix;
@@ -13,15 +15,17 @@ class TPZMatrix;
  */
 class TPZSBandStructMatrix : public TPZStructMatrix {
 public:    
-
+	
     TPZSBandStructMatrix(TPZCompMesh *);
-
+	
     virtual TPZMatrix * Create();
-
+	
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
-
+	
     virtual TPZStructMatrix * Clone();
-
+	
 public:
+	
 };
+
 #endif //TPZSBANDSTRUCTMATRIX_H

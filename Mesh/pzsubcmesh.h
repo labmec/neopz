@@ -26,11 +26,11 @@ class TPZGuiInterface;
 
 /**
  * @brief Implements a group of computational elements as a mesh and an element
- *
- * Class TPZSubCompMesh derived from Computacional mesh and
- * computacional element classes.
  * @ingroup CompMesh
  * @ingroup CompElement
+ */
+/** Class TPZSubCompMesh derived from Computacional mesh and
+ * computacional element classes.
  */
 class TPZSubCompMesh :
 public TPZCompMesh,

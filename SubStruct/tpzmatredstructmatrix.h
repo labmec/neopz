@@ -14,6 +14,9 @@
 class TPZSubCompMesh;
 class TPZFMatrix;
 
+/**
+ * @ingroup substructure
+ */
 template< class TStructMatrix, class TSparseMatrix>
 class TPZMatRedStructMatrix : TPZStructMatrix
 {
@@ -28,7 +31,7 @@ public:
 	virtual TPZStructMatrix *Clone();
 	
 	virtual TPZMatrix *Create();
-
+	
 private:
 	
 	int fInternalEqs;

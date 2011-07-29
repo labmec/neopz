@@ -7,10 +7,13 @@
 #include "tpzeqnarray.h"
 #include "pzstack.h"
 
-/** @brief Responsible for storing arrays of equations (mostly in a decomposed form)
+/** 
+ * @brief Responsible for storing arrays of equations (mostly in a decomposed form)
+ * @ingroup frontal
+ */
+/** 
  * It has methods for operating over a set of equations
  * The arrays of equations are in the form of a Stack of EqnArrays
- * @ingroup frontal
  */
 class TPZStackEqnStorage {
 public:

@@ -22,10 +22,10 @@ class TPZAgglomerateMesh;
 
 /**
  * @brief Implements an agglomerated discontinuous element
- *
- * TPZAgglomerateElement clase that it manages the generation of elements 
- * from the agglomeration of some geometric elements
  * @ingroup CompElement
+ */
+/** TPZAgglomerateElement clase that it manages the generation of elements 
+ * from the agglomeration of some geometric elements
  */
 class TPZAgglomerateElement : public TPZCompElDisc { 
 	

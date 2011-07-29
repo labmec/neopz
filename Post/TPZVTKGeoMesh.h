@@ -16,13 +16,7 @@
 
 /**
  * @ingroup post
- */
-/*
- *  TPZVTKGeoMesh.h
- *
- *  Created by Cesar Lucci on 17/03/10.
- *  Copyright 2010 LabMeC. All rights reserved.
- *
+ * @brief To export a graphical mesh to VTK environment to geometric mesh.
  */
 class TPZVTKGeoMesh
 {

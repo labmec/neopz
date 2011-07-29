@@ -19,6 +19,7 @@
 class TPZFMatrix;
 
 /**
+ * \addtogroup frontal
  * @{
  */
 /**
@@ -41,7 +42,8 @@ public:
 };
 /**
  * @brief Class responsible for the frontal method as a whole.
- *
+ */
+/** 
  * Manages the remaining classes connecting them
  */
 template <class store, class front>

@@ -26,8 +26,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry topology
-	/// @brief Implements the geometry of a one dimensional linear element
+	/** 
+	 * @ingroup geometry topology
+	 * @brief Implements the geometry of a one dimensional linear element
+	 */
 	template<class TFather, class Topology>
 	class GPr : public TFather {
 		

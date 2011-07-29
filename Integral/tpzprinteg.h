@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef TPZPRINTEG_H
 #define TPZPRINTEG_H
 
@@ -16,7 +16,7 @@
 #include "pzvec.h"
 
 class TPZIntPoints;
-//#include "tpzint1point.h"
+
 #include "tpzintrulelist.h"
 #include "tpzintrule.h"
 

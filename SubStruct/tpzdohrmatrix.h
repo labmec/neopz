@@ -31,50 +31,50 @@
 #include "tpzdohrassemblelist.h"
 
 /**
- @brief Implements a matrix divided into substructures
- 
- @author Philippe Devloo
+ * @brief Implements a matrix divided into substructures
+ * @ingroup substructure matrix
+ * @author Philippe Devloo
  */
 template <class TSubStruct> 
 class TPZDohrMatrix : public TPZMatrix
 {
 public:
-/**
- * The matrix class is a placeholder for a list of substructures
- */
-typedef typename std::list<TPZAutoPointer<TSubStruct> > SubsList;
+	/**
+	 * @brief The matrix class is a placeholder for a list of substructures
+	 */
+	typedef typename std::list<TPZAutoPointer<TSubStruct> > SubsList;
 private:
-SubsList fGlobal;
-
-int fNumCoarse; //n(c)
+	SubsList fGlobal;
 	
-	/// number of threads that will be used during the matrix vector multiplication
+	int fNumCoarse; //n(c)
+	
+	/** @brief Number of threads that will be used during the matrix vector multiplication */
 	int fNumThreads;
 	
 public:
-
-TPZAutoPointer<TPZDohrAssembly> fAssembly;
-
-TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> dohrassembly);
-
-TPZDohrMatrix(const TPZDohrMatrix &cp) : fGlobal(cp.fGlobal), fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), 
+	
+	TPZAutoPointer<TPZDohrAssembly> fAssembly;
+	
+	TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> dohrassembly);
+	
+	TPZDohrMatrix(const TPZDohrMatrix &cp) : fGlobal(cp.fGlobal), fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), 
 	fAssembly(cp.fAssembly)
-{
-}
-
-CLONEDEF(TPZDohrMatrix)
-
-~TPZDohrMatrix();
-
-const SubsList &SubStructures() const
-{
-	return fGlobal;
-}
-
-int NumCoarse() const
-{
-	return fNumCoarse;
-}
+	{
+	}
+	
+	CLONEDEF(TPZDohrMatrix)
+	
+	~TPZDohrMatrix();
+	
+	const SubsList &SubStructures() const
+	{
+		return fGlobal;
+	}
+	
+	int NumCoarse() const
+	{
+		return fNumCoarse;
+	}
 	
 	int NumThreads() const
 	{
@@ -85,67 +85,71 @@ int NumCoarse() const
 	{
 		fNumThreads = numthreads;
 	}
-
-/**
- * Just a method for tests
- */
-TPZAutoPointer<TSubStruct> GetFirstSub() {
-	return (*fGlobal.begin());
-}
-/**
- * Just a method for tests
- */
-void Print(const char *name, std::ostream& out,const MatrixOutputFormat form = EFormatted) const
-{
-	out << __PRETTY_FUNCTION__ << std::endl;
-	out << name << std::endl;
-	out << "Number of coarse equations " << fNumCoarse << std::endl;
-	typename SubsList::const_iterator iter;
-	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++) {
-        (*iter)->Print(out);
+	
+	/**
+	 * @brief Just a method for tests
+	 */
+	TPZAutoPointer<TSubStruct> GetFirstSub() {
+		return (*fGlobal.begin());
 	}
-}
-
-void SetNumCornerEqs(int nc)
-{
-	fNumCoarse = nc;
-}
-/**
- * Initialize the necessary datastructures
- */
-void Initialize();   
-/**
- * It adds a substruct
- */
-void AddSubstruct(TPZAutoPointer<TSubStruct> substruct)
-{
-	fGlobal.push_back(substruct);
-}
-
-/// The only method any matrix class needs to implement
-/**
- * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
- * @param x Is x on the above operation
- * @param y Is y on the above operation
- * @param z Is z on the above operation
- * @param alpha Is alpha on the above operation
- * @param beta Is beta on the above operation
- * @param opt Indicates if is Transpose or not
- * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
- */
-virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,const REAL alpha,const REAL beta,const int opt,const int stride) const;
-
-/**
- * Adjust the residual to zero the residual of the internal connects
- */
-void AdjustResidual(TPZFMatrix &res);
-
-/**
- * Add the solution corresponding to the internal residual
- */
-void AddInternalSolution(TPZFMatrix &solution);
+	/**
+	 * @brief Just a method for tests
+	 */
+	void Print(const char *name, std::ostream& out,const MatrixOutputFormat form = EFormatted) const
+	{
+		out << __PRETTY_FUNCTION__ << std::endl;
+		out << name << std::endl;
+		out << "Number of coarse equations " << fNumCoarse << std::endl;
+		typename SubsList::const_iterator iter;
+		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++) {
+			(*iter)->Print(out);
+		}
+	}
+	
+	void SetNumCornerEqs(int nc)
+	{
+		fNumCoarse = nc;
+	}
+	/**
+	 * @brief Initialize the necessary datastructures
+	 */
+	void Initialize();   
+	/**
+	 * @brief It adds a substruct
+	 */
+	void AddSubstruct(TPZAutoPointer<TSubStruct> substruct)
+	{
+		fGlobal.push_back(substruct);
+	}
+	
+	// The only method any matrix class needs to implement
+	/**
+	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+	 * @param x Is x on the above operation
+	 * @param y Is y on the above operation
+	 * @param z Is z on the above operation
+	 * @param alpha Is alpha on the above operation
+	 * @param beta Is beta on the above operation
+	 * @param opt Indicates if is Transpose or not
+	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
+	 */
+	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,const REAL alpha,const REAL beta,const int opt,const int stride) const;
+	
+	/**
+	 * @brief Adjust the residual to zero the residual of the internal connects
+	 */
+	void AdjustResidual(TPZFMatrix &res);
+	
+	/**
+	 * @brief Add the solution corresponding to the internal residual
+	 */
+	void AddInternalSolution(TPZFMatrix &solution);
+	
 };
 
+/**
+ * @ingroup substructure
+ */
 template <class TSubStruct> 
 struct TPZDohrThreadMultData
 {
@@ -174,24 +178,27 @@ struct TPZDohrThreadMultData
 	}
 };
 
+/**
+ * @ingroup substructure
+ */
 template <class TSubStruct> 
 struct TPZDohrThreadMultList
 {
-	/// the vector with which we will multiply
+	/** @brief The vector with which we will multiply */
 	const TPZFMatrix *fInput;
-	/// scalar multiplication factor
+	/** @brief Scalar multiplication factor */
 	REAL fAlpha;
-	/// mutex which will enable the access protection of the list
+	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
-	/// The data structure which defines the assemble destinations
+	/** @brief The data structure which defines the assemble destinations */
 	TPZAutoPointer<TPZDohrAssembly> fAssembly;
-	/// The list of data objects which need to treated by the threads
+	/** @brief The list of data objects which need to treated by the threads */
 	std::list<TPZDohrThreadMultData<TSubStruct> > fWork;
-	/// the local contribution to the v2 vector
+	/** @brief The local contribution to the v2 vector */
 	TPZAutoPointer<TPZDohrAssembleList> fAssemblyStructure;
 	
 	TPZDohrThreadMultList(const TPZFMatrix &x, REAL alpha, TPZAutoPointer<TPZDohrAssembly> assembly, TPZAutoPointer<TPZDohrAssembleList> &assemblestruct) : fInput(&x), fAlpha(alpha), 
-			fAssembly(assembly), fAssemblyStructure(assemblestruct)
+	fAssembly(assembly), fAssemblyStructure(assemblestruct)
 	{
 		pthread_mutex_init(&fAccessLock, 0);
 	}
@@ -200,16 +207,16 @@ struct TPZDohrThreadMultList
 		pthread_mutex_destroy(&fAccessLock);
 	}
 	
-	/// The procedure which executes the lengthy process
+	/** @brief The procedure which executes the lengthy process */
 	static void *ThreadWork(void *voidptr);
-	/// interface to add items in a thread safe way
+	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
 		pthread_mutex_lock(&fAccessLock);
 		fWork.push_back(data);
 		pthread_mutex_unlock(&fAccessLock);
 	}
-	/// interface to pop an item in a thread safe way
+	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;

@@ -16,11 +16,14 @@
  / LabMeC - FEC - UNICAMP
  / 2007
  */
+
 namespace pzgeom
 {
 	
-	/// @ingroup geometry
-	/** @brief implements a triange with straight sides but with nonlinear map */
+	/** 
+	 * @ingroup geometry
+	 * @brief implements a triange with straight sides but with nonlinear map 
+	 */
 	class TPZCurvedTriangle : public pzgeom::TPZNodeRep<3,pztopology::TPZTriangle> {
 		
 	public:

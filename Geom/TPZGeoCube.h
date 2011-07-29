@@ -21,8 +21,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of hexahedra element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of hexahedra element
+	 */
 	class TPZGeoCube : public TPZNodeRep<8, pztopology::TPZCube> {
 		
 	public:

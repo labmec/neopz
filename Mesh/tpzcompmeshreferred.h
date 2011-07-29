@@ -18,7 +18,6 @@
 /**
  @brief This class implements the structure to allow one mesh to refer to the solution of another
  @ingroup geometry
- 
  @author Philippe R. B. Devloo
  */
 class TPZCompMeshReferred : public TPZCompMesh

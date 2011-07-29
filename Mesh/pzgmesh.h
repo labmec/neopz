@@ -46,9 +46,11 @@ class TPZVec;
 
 template <class TGeo> class TPZGeoElRefPattern;
 
-/// this class implements a geometric mesh for the pz environment
 /**
- @ingroup geometry
+ * @brief This class implements a geometric mesh for the pz environment
+ * @ingroup geometry
+ */
+/**
  A geometry mesh consists of a collection of geometric nodes and elements 
  Other auxiliary data structures help in the construction of the mesh
  */

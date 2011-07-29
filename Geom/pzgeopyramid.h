@@ -19,8 +19,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of pyramid element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of pyramid element
+	 */
 	class TPZGeoPyramid  : public TPZNodeRep<5, pztopology::TPZPyramid>
 	{
 	public:

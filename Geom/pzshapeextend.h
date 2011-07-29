@@ -13,11 +13,11 @@
 namespace pzshape {
 	
 	/** 
-	 *
 	 * @brief Implements the shape functions of a hexahedral (3D) element
-	 
-	 * The range of the master element is -1,1
 	 * @ingroup shape
+	 */
+	/** 
+	 * The range of the master element is -1,1
 	 */
 	template<class TFather>
 	class SPr : public TFather {
@@ -31,27 +31,27 @@ namespace pzshape {
 		
 		class TMem
 		{
-			/// retained values of the upper shape functions
+			/** @brief Retained values of the upper shape functions */
 			FatMem fUpper;
-			/// retained values of the lower shape functions
+			/** @brief Retained values of the lower shape functions */
 			FatMem fLower;
-			/// retained values of the extension shape functions
+			/** @brief Retained values of the extension shape functions */
 			FatMem fExtension;
-			/// interpolation order of the extension sides
+			/** @brief Interpolation order of the extension sides */
 			int fExtSideOrders[TFather::Top::NSides];
-			/// sign of the shape functions (positive or negative)
+			/** @brief sign of the shape functions (positive or negative) */
 			TPZManVector<int,TFather::Top::NSides> fSign;
-			/// number of shape functions before "my" shapefunctions (only for the extension sides)
+			/** @brief Number of shape functions before "my" shapefunctions (only for the extension sides) */
 			TPZManVector<int,TFather::Top::NSides> fNShapeBefore;
-			/// number of shape functions after "my" shapefunctions (only for the extension sides)
+			/** @brief number of shape functions after "my" shapefunctions (only for the extension sides) */
 			TPZManVector<int,TFather::Top::NSides> fNShapeAfter;
-			/// values of the shape functions associated with the extension sides
+			/** @brief Values of the shape functions associated with the extension sides */
 			TPZManVector<REAL> fExtShapes[TFather::Top::NSides];
-			/// number of shape functions for each extension side
+			/** @brief Number of shape functions for each extension side */
 			TPZManVector<int,TFather::Top::NSides> fNShape;
-			/// value of maximum order of the extension sides
+			/** @brief Value of maximum order of the extension sides */
 			int fMaxOrder;
-			/// values of the last computed shape functions
+			/** @brief Values of the last computed shape functions */
 			TPZManVector<REAL> fShape;
 			
 		};

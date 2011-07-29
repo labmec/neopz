@@ -11,7 +11,8 @@ class TPZGeoMesh;
 class TPZGeoEl;
 class TPZGeoElSide;
 
-/** @brief Structure to help the construction of geometric elements along side of a given geometric element
+/** 
+ * @brief Structure to help the construction of geometric elements along side of a given geometric element
  * @ingroup geometry
  */
 struct TPZGeoElBC {

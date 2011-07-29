@@ -48,7 +48,6 @@ class TPZTransfer;
 
 /**
  * @brief Defines the interface of a computational element
- 
  * @ingroup CompElement
  */
 class TPZCompEl : public virtual TPZSaveable {

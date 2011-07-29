@@ -22,7 +22,7 @@ TPZfTime::~TPZfTime()
 
 std::string TPZfTime::ReturnTimeString()
 { 
-
+	
 	ftime(&ffinal);
 	double time = ((double) ffinal.time + ((double) ffinal.millitm * 0.001)) - ((double) finicio.time + ((double) finicio.millitm * 0.001));
 	stringstream oss;
@@ -31,7 +31,7 @@ std::string TPZfTime::ReturnTimeString()
 	oss << time << " seconds\n";
 	str = oss.str();
 	
-   // printf("%f seconds\n", ((double) ffinal.time + ((double) ffinal.millitm * 0.001)) - ((double) finicio.time + ((double) finicio.millitm * 0.001)));
+	// printf("%f seconds\n", ((double) ffinal.time + ((double) ffinal.millitm * 0.001)) - ((double) finicio.time + ((double) finicio.millitm * 0.001)));
 	return str;
 }
 

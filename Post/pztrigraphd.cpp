@@ -1,4 +1,5 @@
 #include "pztrigraphd.h"
+
 using namespace std;
 
 TPZGraphElTd::TPZGraphElTd(TPZCompEl *c, TPZGraphMesh *g) : TPZGraphEl(c,g,fConnect){
@@ -35,8 +36,8 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 			co0[0] = i; co0[1] = j;
 			co1[0] = i+1; co1[1] = j;
 			co2[0] = i; co2[1]=j+1;
-      out << EqNum(co0) << " " << EqNum(co1) << " " <<
-          EqNum(co2) << endl;
+			out << EqNum(co0) << " " << EqNum(co1) << " " <<
+			EqNum(co2) << endl;
 			
 			if(i <imax-j-1) {
 				if(st == EV3DStyle) out << ip++ << " 3 ";
@@ -44,8 +45,8 @@ void TPZGraphElTd::Connectivity(TPZDrawStyle st){
 				co0[0] = i+1; co0[1] = j;
 				co1[0] = i+1; co1[1] = j+1;
 				co2[0] = i; co2[1]=j+1;
-        out << EqNum(co0) << " " << EqNum(co1) << " " <<
-          EqNum(co2) << endl;
+				out << EqNum(co0) << " " << EqNum(co1) << " " <<
+				EqNum(co2) << endl;
 			}
 			
 		}
@@ -61,8 +62,8 @@ long TPZGraphElTd::EqNum(TPZVec<int> &co){
 }
 
 void TPZGraphElTd::QsiEta(TPZVec<int> &co, int imax, TPZVec<REAL> &qsieta){
-  int i,ni = co.NElements();
-  for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
+	int i,ni = co.NElements();
+	for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
 }
 
 
@@ -87,13 +88,13 @@ void TPZGraphElTd::NextIJ(int no,TPZVec<int> &co, int /*incr*/){
 int TPZGraphElTd::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
-	case(EVTKStyle):
-		return 5;//vtk_triangle
-//		break;
-	default:
-		return -1;
+		case(EVTKStyle):
+			return 5;//vtk_triangle
+			//		break;
+		default:
+			return -1;
 	}
-//	return -1;
+	//	return -1;
 }
 
 int TPZGraphElTd::NNodes()

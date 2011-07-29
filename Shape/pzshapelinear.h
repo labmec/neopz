@@ -16,15 +16,15 @@
 namespace pzshape {
 	
 	/**
-	 *
 	 * @brief Implements the shape functions of a linear (1D) element
-	 
-	 * The linear shape functions form the basis of all other shape function computations
-	 * The range of the master element is -1,1
-	 * The orthogonal function which generates the linear shape functions can be modified
-	 * by changing the function pointer fOrthogonal
-	 * all static tables and functions concerning one-d elements will be grouped in this class
 	 * @ingroup shape
+	 */
+	/** 
+	 * The linear shape functions form the basis of all other shape function computations \n
+	 * The range of the master element is -1,1 \n
+	 * The orthogonal function which generates the linear shape functions can be modified
+	 * by changing the function pointer fOrthogonal \n
+	 * all static tables and functions concerning one-d elements will be grouped in this class
 	 */
 	class TPZShapeLinear : public pztopology::TPZLine{
 		

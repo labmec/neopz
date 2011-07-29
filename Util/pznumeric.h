@@ -22,7 +22,7 @@
 
 /** 
  * @ingroup util
- * @brief Tem implementados vários metodos de cálculo.
+ * @brief Implements several methods to calculation
  * @author Renato Gomes Damas
  */
 class TPZNumeric {

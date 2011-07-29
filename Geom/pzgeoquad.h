@@ -23,8 +23,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of a quadrilateral element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of a quadrilateral element
+	 */
 	class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 	{
 	public:

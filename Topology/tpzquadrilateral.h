@@ -35,9 +35,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of a Quadrilateral element
 	 */
-	
-	/// This class defines the topology of a Quadrilateral element
 	class TPZQuadrilateral {
 	public:
 		/// Topological data

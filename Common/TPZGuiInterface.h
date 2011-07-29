@@ -7,14 +7,13 @@
 /**
  * @ingroup common
  * @brief This class implements a very simple interface from PZ kernel to GUI. \n
- * It implements for instance the capability of cancel the execution. (Jorge)
+ * @author Tiago Forti
+ * @since 2010, March 30
  */
-/** This class implements a very simple interface from PZ kernel to GUI. \n
+/** 
  * It implements for instance the capability of cancel the execution
  * The GUI must define a derived class which reimplements the messages and update methods
  * for better messages.
- * @author Tiago Forti
- * @since 2010, March 30
  */
 class TPZGuiInterface{
 	

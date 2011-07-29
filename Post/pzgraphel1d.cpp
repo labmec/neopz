@@ -38,7 +38,7 @@ long TPZGraphEl1d::EqNum(TPZVec<int> &co) {
 	orient = (fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber()) ? 1 : 0;
 	if(co[0]==0) return fConnects[0]->FirstPoint();
 	if(co[0]==imax) return fConnects[1]->FirstPoint();
-
+	
 	long first = fConnects[2]->FirstPoint();
 	long neq;
 	neq = first + (co[0]-1) + orient*(imax-1-co[0]-co[0]+1);
@@ -46,46 +46,46 @@ long TPZGraphEl1d::EqNum(TPZVec<int> &co) {
 }
 
 void TPZGraphEl1d::FirstIJ(int no,TPZVec<int> &co,int &incr) {
-
+	
 	int res = fGraphMesh->Res();
 	int imax, i;
 	imax = 1 << res;
 	switch(no)
 	{
 		case 0:
-			{
-				for (i=0;i<3;i++) co[i]=0;
-				incr = 1;
-			}
+		{
+			for (i=0;i<3;i++) co[i]=0;
+			incr = 1;
+		}
 			break;
 		case 1:
-			{
-				co[0] = imax;
-				for (i=1;i<3; i++) co[i]=0;
-				incr = 1;
-			}
+		{
+			co[0] = imax;
+			for (i=1;i<3; i++) co[i]=0;
+			incr = 1;
+		}
 			break;
 		case 2:
+		{
+			for (i=1;i<3; i++) co[i]=0;
+			if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
 			{
-				for (i=1;i<3; i++) co[i]=0;
-				if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
-				{
-					co[0] = imax-1;
-					incr = -1;
-				}
-				else
-				{
-					incr = 1;
-					co[0] = 1;//ifirst
-				}
+				co[0] = imax-1;
+				incr = -1;
 			}
+			else
+			{
+				incr = 1;
+				co[0] = 1;//ifirst
+			}
+		}
 			break;
 	}
 	return;
 }
 
 void TPZGraphEl1d::NextIJ(int no,TPZVec<int> &co, int incr) {
-
+	
 	switch(no) {
 		case 0:
 		case 1:
@@ -97,53 +97,53 @@ void TPZGraphEl1d::NextIJ(int no,TPZVec<int> &co, int incr) {
 }
 
 /*
-void TPZGraphEl1d::ComputeSequence(TPZGraphNode *n, int *ibound, int *incr)
-{
-	int res = fGraphMesh->Res();
-	int imax;
-	imax = 1 << res;
-	int in = ConnectNum(n);
-	incr[0] = incr[1] = 1;
-	switch(in)
-	{
-		case 0:
-			{
-				ibound[0] = 0;//ifirst
-				ibound[1] = 0;//ilast
-				ibound[2] = 0;//jfirst
-				ibound[3] = 0;//jlast
-			}
-			break;
-		case 1:
-			{
-				ibound[0] = imax;//ifirst
-				ibound[1] = imax;//ilast
-				ibound[2] = 0;//jfirst
-				ibound[3] = 0;//jlast
-			}
-			break;
-		case 4:
-			{
-				if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
-				{
-					incr[0] = -1;
-					ibound[0] = imax-1;//ifirst
-					ibound[1] = 1;//ilast
-				}
-				else
-				{
-					incr[0] = 1;
-					ibound[0] = 1;//ifirst
-					ibound[1] = imax-1;//ilast
-				}
-				ibound[2] = 0;//jfirst
-				ibound[3] = 0;//jlast
-			}
-			break;
-	}
-	return;
-}
-*/
+ void TPZGraphEl1d::ComputeSequence(TPZGraphNode *n, int *ibound, int *incr)
+ {
+ int res = fGraphMesh->Res();
+ int imax;
+ imax = 1 << res;
+ int in = ConnectNum(n);
+ incr[0] = incr[1] = 1;
+ switch(in)
+ {
+ case 0:
+ {
+ ibound[0] = 0;//ifirst
+ ibound[1] = 0;//ilast
+ ibound[2] = 0;//jfirst
+ ibound[3] = 0;//jlast
+ }
+ break;
+ case 1:
+ {
+ ibound[0] = imax;//ifirst
+ ibound[1] = imax;//ilast
+ ibound[2] = 0;//jfirst
+ ibound[3] = 0;//jlast
+ }
+ break;
+ case 4:
+ {
+ if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
+ {
+ incr[0] = -1;
+ ibound[0] = imax-1;//ifirst
+ ibound[1] = 1;//ilast
+ }
+ else
+ {
+ incr[0] = 1;
+ ibound[0] = 1;//ifirst
+ ibound[1] = imax-1;//ilast
+ }
+ ibound[2] = 0;//jfirst
+ ibound[3] = 0;//jlast
+ }
+ break;
+ }
+ return;
+ }
+ */
 
 void TPZGraphEl1d::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
@@ -165,7 +165,7 @@ void TPZGraphEl1d::Connectivity(TPZDrawStyle st){
 void TPZGraphEl1d::Print(ostream &out) {
 	out << "TPZGraphEl1d element id = " << fId << endl;
 	out << "Node numbers : ";
-   int i;
+	int i;
 	for(i=0; i<NConnects(); i++) {
 		out << fConnects[i]->SequenceNumber() << " ";
 	}
@@ -179,13 +179,13 @@ void TPZGraphEl1d::Print(ostream &out) {
 int TPZGraphEl1d::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
-	case(EVTKStyle):
-		return 1;
-//		break;
-	default:
-		return -1;
+		case(EVTKStyle):
+			return 1;
+			//		break;
+		default:
+			return -1;
 	}
-//	return -1;
+	//	return -1;
 }
 
 int TPZGraphEl1d::NNodes()

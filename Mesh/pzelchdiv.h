@@ -9,17 +9,17 @@
 
 /**
  * @brief This class implements a "generic" computational element
- *
- * By varying the classes passed as template arguments, the complete family of computational elements are implemented
  * @ingroup CompElement
+ */
+/** 
+ * By varying the classes passed as template arguments, the complete family of computational elements are implemented
  */
 template<class TSHAPE>
 class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
 	/** @brief Defines the interpolation order for pressure variable*/
 	int fPressureOrder;
 	
-	//metodo para adicionar vetores
-	/// Append vectors
+	/** @brief To append vectors */
 	void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
 public:
 	

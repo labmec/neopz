@@ -2,7 +2,9 @@
 
 #ifndef TPZSKYLINESTRUCTMATRIX_H
 #define TPZSKYLINESTRUCTMATRIX_H
+
 #include "pzstrmatrix.h"
+
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZMatrix;
@@ -13,24 +15,26 @@ class TPZMatrix;
  */
 class TPZSkylineStructMatrix : public TPZStructMatrix {
 public:    
-
-		TPZSkylineStructMatrix(TPZCompMesh *);
+	
+	TPZSkylineStructMatrix(TPZCompMesh *);
     
     TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh);
-
-		TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp);
+	
+	TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp);
     
     ~TPZSkylineStructMatrix();
-
+	
     virtual TPZMatrix * Create();
-
+	
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
-
+	
     virtual TPZStructMatrix * Clone();
     
-    /// Adapt the skyline for a range of equations
+    /** @brief Adapt the skyline for a range of equations */
     void FilterSkyline(TPZVec<int> &skyline);
-
+	
 public:
+	
 };
+
 #endif //TPZSKYLINESTRUCTMATRIX_H

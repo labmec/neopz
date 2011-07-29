@@ -13,17 +13,16 @@ class TPZEqnArray;
 /** 
  * The Front matrix itself. \n
  * It is controled by TPZFrontMatrix.
- * @ingroup frontal
  */
 /**
+ * @ingroup frontal
  * @brief Abstract class implements storage and decomposition process of the frontal matrix
  */
 class TPZFront {
 	
 public:
 	
-    /** @brief Static main used for testing */
-	
+    /** @brief Static main used for testing */	
 	static void main();
 	
 	int NElements();

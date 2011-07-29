@@ -1,9 +1,9 @@
 /***************************************************************************
-                          pzidentifyrefpattern.h  -  description
-                             -------------------
-    begin                : Mon Mar 8 2004
-    copyright            : (C) 2004 by cesar
-    email                : cesar@labmec.fec.unicamp.br
+ pzidentifyrefpattern.h  -  description
+ -------------------
+ begin                : Mon Mar 8 2004
+ copyright            : (C) 2004 by cesar
+ email                : cesar@labmec.fec.unicamp.br
  ***************************************************************************/
 
 /***************************************************************************
@@ -18,7 +18,6 @@
 #ifndef PZIDENTIFYREFPATTERN_H
 #define PZIDENTIFYREFPATTERN_H
 
-
 #include "pzvec.h"
 #include "pzgeoelside.h"
 #include <set>
@@ -26,61 +25,64 @@
 class TPZRefPattern;
 
 /**
- * @ingroup pre
+ * \addtogroup pre
+ * @{
  */
 
 /** @brief Identifies the refinement pattern given the father element and their sons
-  *@author Edimar Cesar Rylo
-  *@since March 8, 2004
-  */
+ *@author Edimar Cesar Rylo
+ *@since March 8, 2004
+ */
 class TPZIdentifyRefPattern {
 public: 
 	TPZIdentifyRefPattern(std::string &path);
-  ~TPZIdentifyRefPattern();
-  /** @brief Returns the refinement pattern that generates the given refinement */
-  TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
-
+	~TPZIdentifyRefPattern();
+	/** @brief Returns the refinement pattern that generates the given refinement */
+	TPZAutoPointer<TPZRefPattern> GetRefPattern (TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
+	
 protected: // Protected methods
-  /** @brief Identify the side of the refinement pattern */
-  int IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
-
-  /** @brief Returns the number of subelements of a uniform refinement   \
-   pattern for the specified element type.
-  */
-  int UniformSubElem(int eltype) ;
+	/** @brief Identify the side of the refinement pattern */
+	int IdentifySide(TPZGeoEl *father, TPZVec<TPZGeoEl *> subelem);
+	
+	/** @brief Returns the number of subelements of a uniform refinement   \
+	 pattern for the specified element type.
+	 */
+	int UniformSubElem(int eltype) ;
 	TPZAutoPointer<TPZRefPattern> GetUniform( TPZGeoEl * gel);
-  TPZAutoPointer<TPZRefPattern> GetSideRefPattern (TPZGeoEl *gel, int side);
-
+	TPZAutoPointer<TPZRefPattern> GetSideRefPattern (TPZGeoEl *gel, int side);
+	
 protected:
 	std::string fPath;
 };
 
 struct TSide {
-  std::set<int> fNodes;
-  int fSide;
-  int operator<(const TSide &other) const{
-    return fNodes < other.fNodes;
-  }
-  TSide &operator=(const TSide &copy) {
-    fSide = copy.fSide;
-    fNodes = copy.fNodes;
-    return *this;
-  }
-  TSide &operator=(const TPZGeoElSide &gelside) {
-    fSide = gelside.Side();
-    int i;
-    for (i=0;i<gelside.NSideNodes();i++){
-      fNodes.insert(gelside.SideNodeIndex(i));
-    }
-    return *this;
-  }
-  TSide (const TPZGeoElSide &gelside) {
-    fSide = gelside.Side();
-    int i;
-    for (i=0;i<gelside.NSideNodes();i++){
-      fNodes.insert(gelside.SideNodeIndex(i));
-    }
-  }   
+	std::set<int> fNodes;
+	int fSide;
+	int operator<(const TSide &other) const{
+		return fNodes < other.fNodes;
+	}
+	TSide &operator=(const TSide &copy) {
+		fSide = copy.fSide;
+		fNodes = copy.fNodes;
+		return *this;
+	}
+	TSide &operator=(const TPZGeoElSide &gelside) {
+		fSide = gelside.Side();
+		int i;
+		for (i=0;i<gelside.NSideNodes();i++){
+			fNodes.insert(gelside.SideNodeIndex(i));
+		}
+		return *this;
+	}
+	TSide (const TPZGeoElSide &gelside) {
+		fSide = gelside.Side();
+		int i;
+		for (i=0;i<gelside.NSideNodes();i++){
+			fNodes.insert(gelside.SideNodeIndex(i));
+		}
+	}   
 };
+
+/** @} */
 
 #endif

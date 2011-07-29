@@ -52,14 +52,14 @@ static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
 // This is a lengthy process which should run on the remote processor
 /*
-static void ComputeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
+ static void ComputeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
  */
 static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
 static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh, int numthreads_compute, int numthreads_decompose) : 
-		TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
-		fDohrPrecond(0), fMesh(cmesh)
+TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
+fDohrPrecond(0), fMesh(cmesh)
 {
 	fNumThreads = numthreads_compute;
 	fNumThreadsDecompose = numthreads_decompose;
@@ -68,7 +68,7 @@ TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh, int 
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fNumThreadsDecompose(copy.fNumThreadsDecompose), fDohrAssembly(copy.fDohrAssembly),
-		fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
+fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
 {
 	pthread_mutex_init(&fAccessElement, 0);
 }
@@ -81,12 +81,12 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 // this will create a DohrMatrix
 TPZMatrix * TPZDohrStructMatrix::Create()
 {
-
+	
 	TPZfTime timeforcopute; // init of timer for compute
 	fMesh->ComputeNodElCon();
 	TPZAutoPointer<TPZDohrAssembly> assembly = new TPZDohrAssembly;
 	fDohrAssembly = assembly;
-
+	
 	fMesh->InitializeBlock();
 	{
 		TPZVec<int> perm,iperm;
@@ -144,27 +144,27 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 		VisualMatrix(fillin, filename.str().c_str());
 #endif
 	}		
-
+	
 	tempo.ft1comput = timeforcopute.ReturnTimeDouble(); //end of time for compute
 	std::cout << tempo.ft1comput << std::endl;
 	
 	std::cout << "Identifying corner nodes\n";
 	TPZfTime timefornodes; // init of timer
 	
-
+	
 	IdentifyCornerNodes();
-
+	
 	tempo.ft4identcorner = timefornodes.ReturnTimeDouble();
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
-
+	
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohr = new TPZDohrMatrix<TPZDohrSubstructCondense>(assembly);
 	dohr->SetNumThreads(this->fNumThreads);
-
+	
 	int neq = fMesh->NEquations();
 	dohr->Resize(neq,neq);
 	// fCornerEqs was initialized during the mesh generation process
 	dohr->SetNumCornerEqs(this->fCornerEqs.size());
-
+	
 	assembly->fFineEqs.Resize(nsub);
 	assembly->fCoarseEqs.Resize(nsub);
 	for(isub=0; isub<nsub; isub++)
@@ -257,7 +257,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	std::list<TPZAutoPointer<TPZDohrSubstructCondense> >::const_iterator it = sublist.begin();
 	
 	ThreadDohrmanAssemblyList worklist;
-
+	
 	int isub;
 	for (isub=0; isub<nsub ; isub++) {
 		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
@@ -301,7 +301,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 	TPZfTime timerforassembly; // init of timer
 	
-
+	
 	for(itr=0; itr<numthreads_assemble; itr++)
 	{
 		pthread_create(&allthreads_assemble[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklistAssemble);
@@ -310,10 +310,10 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	{
 		pthread_join(allthreads_assemble[itr],NULL);
 	}
-
+	
 	const int numthreads_decompose = this->fNumThreadsDecompose;
 	std::vector<pthread_t> allthreads_decompose(numthreads_decompose);
-
+	
 	std::cout << "ThreadDohrmanCompute\n";
 	// First pass : assembling the matrices
 	ThreadDohrmanAssemblyList worklistDecompose;
@@ -339,10 +339,10 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	{
 		pthread_join(allthreads_decompose[itr],NULL);
 	}
-
+	
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
-//	int isub;
+	//	int isub;
 	for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
 		
 		// const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
@@ -352,7 +352,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 		fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
 	
-
+	
 	dohr->Initialize();
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precond = new TPZDohrPrecond<TPZDohrSubstructCondense> (*dohr,fDohrAssembly);
 	precond->Initialize();
@@ -384,7 +384,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	// expand the element graph to include a ficticious internal node to all elements
 	expelementgraphindex.Push(0);
 	int nelprev = nel;
-
+	
 	int count = 0;
 	for (iel=0; iel<nel; iel++) {
 		int nc = elementgraphindex[iel+1]-elementgraphindex[iel];
@@ -402,9 +402,9 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		expelementgraphindex.Push(count);
 	}
 	int next = fExternalConnectIndexes.NElements();
-
+	
 	if(next)
-//	if(0)
+		//	if(0)
 	{
 		TPZManVector<int> externalconnect(nindep,0);
 		// add the external connects
@@ -442,7 +442,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		}
 	}
 	// Put a global external element on top of everything
-//	if (next) {
+	//	if (next) {
 	if (0) {
 		count = expelementgraph.NElements();
 		int iext;
@@ -457,10 +457,10 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		expelementgraphindex.Push(count);
 	}
 	nel = expelementgraphindex.NElements()-1;
-//	nel = elementgraphindex.NElements()-1;
+	//	nel = elementgraphindex.NElements()-1;
 	TPZRenumbering renum(nel,nindep);
 	renum.SetElementGraph(expelementgraph, expelementgraphindex);
-//	renum.SetElementGraph(elementgraph, elementgraphindex);
+	//	renum.SetElementGraph(elementgraph, elementgraphindex);
 	std::set<int> othercornereqs;
 	renum.CornerEqs(3,nelprev,othercornereqs);
 #ifdef LOG4CXX
@@ -545,7 +545,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 				{
 					if (connectindices.find(fatherindex) != connectindices.end()) 
 					{
-					// good one
+						// good one
 						TPZGeoEl *gel = cel->Reference();
 						int ncornernodes = gel->NCornerNodes();
 						if(ic<ncornernodes)
@@ -601,7 +601,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 			if (!(count%100)) {
 				str << std::endl;
 			}
-				
+			
 		}
 		LOGPZ_DEBUG(logger,str.str());
 	}
@@ -681,7 +681,7 @@ TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 // computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
 // the mesh is modified during this method but is returned to its original state at the end of execution
 void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
-														 TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
+															 TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
 {
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int> scatterpermuteblock;
@@ -745,7 +745,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 
 /// Identify the corner equations associated with a substructure
 void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
-										   TPZVec<int> &coarseindex)
+											   TPZVec<int> &coarseindex)
 {
 #ifdef LOG4CXX
 	{
@@ -768,33 +768,33 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 #endif
 	
 	
-	 cornereqs.Resize(fCornerEqs.size());
-	 coarseindex.Resize(fCornerEqs.size());
-	 std::set<int>::iterator it;
-	 int count = 0;
-	 int localcount = 0;
-	 for(it = fCornerEqs.begin(); it!= fCornerEqs.end(); it++,count++)
-	 {
-	 if(globaltolocal.find(*it) != globaltolocal.end())
-	 {
-	 cornereqs[localcount] = globaltolocal[*it];
-	 coarseindex[localcount] = count;
-	 localcount++;
-	 }
-	 }
-	 cornereqs.Resize(localcount);
-	 coarseindex.Resize(localcount);
+	cornereqs.Resize(fCornerEqs.size());
+	coarseindex.Resize(fCornerEqs.size());
+	std::set<int>::iterator it;
+	int count = 0;
+	int localcount = 0;
+	for(it = fCornerEqs.begin(); it!= fCornerEqs.end(); it++,count++)
+	{
+		if(globaltolocal.find(*it) != globaltolocal.end())
+		{
+			cornereqs[localcount] = globaltolocal[*it];
+			coarseindex[localcount] = count;
+			localcount++;
+		}
+	}
+	cornereqs.Resize(localcount);
+	coarseindex.Resize(localcount);
 }
 
 
 // partition the mesh in submeshes
 void TPZDohrStructMatrix::SubStructure(int nsub )
 {
-
+	
 	int nel = fMesh->NElements();
 	int meshdim = fMesh->Dimension();
 	int nnodes = fMesh->NIndependentConnects();
-
+	
 	TPZMetis metis(nel,nnodes);
 	TPZStack<int> elgraph,elgraphindex;
 	fMesh->ComputeElGraph(elgraph,elgraphindex);
@@ -875,7 +875,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 		submeshes[isub]->MakeAllInternal();
 		std::cout << '*'; std::cout.flush();
 	}
-
+	
 	fMesh->ComputeNodElCon();
 	fMesh->CleanUpUnconnectedNodes();
 }
@@ -883,14 +883,14 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 
 // This is a lengthy process which should run on the remote processor
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
-						pthread_mutex_t &TestThread)
+					  pthread_mutex_t &TestThread)
 {
-//	static std::set<int> subindexes;
-//	int index = submesh->Index();
-//	if (subindexes.find(index) != subindexes.end()) {
-//		DebugStop();
-//	}
-//	subindexes.insert(index);
+	//	static std::set<int> subindexes;
+	//	int index = submesh->Index();
+	//	if (subindexes.find(index) != subindexes.end()) {
+	//		DebugStop();
+	//	}
+	//	subindexes.insert(index);
 	
 	
 	{
@@ -903,13 +903,13 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		TPZSkylineStructMatrix skylstr(submesh);
 		skylstr.AssembleAllEquations();
 		
-
+		
 		TPZAutoPointer<TPZMatrix> Stiffness = skylstr.Create();
-
+		
 		
 		TPZMatRed<TPZFMatrix> *matredbig = new TPZMatRed<TPZFMatrix>(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
-
-
+		
+		
 		matredbig->SetK00(Stiffness);
 		substruct->fMatRedComplete = matredbig;
 		
@@ -918,7 +918,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		substruct->fNumInternalEquations = submesh->NumInternalEquations();
 		
-	#ifdef LOG4CXX
+#ifdef LOG4CXX
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << " Before permutation sequence numbers ";
@@ -929,13 +929,13 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 			}
 			LOGPZ_DEBUG(logger,sout.str())
 		}
-	#endif
+#endif
 		// change the sequencing of the connects of the mesh, putting the internal connects first
 		submesh->PermuteInternalFirst(permuteconnectscatter);
-
-	//	pthread_mutex_lock(&TestThread);
-
-	#ifdef LOG4CXX
+		
+		//	pthread_mutex_lock(&TestThread);
+		
+#ifdef LOG4CXX
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << " After permutation sequence numbers ";
@@ -946,8 +946,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 			}
 			LOGPZ_DEBUG(logger,sout.str())
 		}
-	#endif
-	#ifdef LOG4CXX
+#endif
+#ifdef LOG4CXX
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << "\nComputed scatter vector ";
@@ -955,9 +955,9 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 			sout << "\nStored scatter vector " << permutescatter;
 			LOGPZ_DEBUG(logger,sout.str())
 		}
-	#endif
+#endif
 		
-
+		
 		// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
 		TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix> redstruct(submesh);
 		TPZMatRed<TPZVerySparseMatrix> *matredptr = dynamic_cast<TPZMatRed<TPZVerySparseMatrix> *>(redstruct.Create());
@@ -975,20 +975,20 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		}
 		TPZAutoPointer<TPZMatrix> InternalStiffness = matredptr->K00();
 		
-	#ifdef DEBUG 
+#ifdef DEBUG 
 		std::stringstream filename;
 		filename << "SubMatrixInternal" << submesh->Index() << ".vtk";
 		TPZFMatrix fillin(50,50);
 		submesh->ComputeFillIn(50, fillin);
 		VisualMatrix(fillin, filename.str().c_str());
-	#endif
+#endif
 		
 		// put the equation back in the optimized ordering for all equations (original ordering)
 		submesh->Permute(invpermuteconnectscatter);
 		
 		
-
-	//	pthread_mutex_unlock(&TestThread);
+		
+		//	pthread_mutex_unlock(&TestThread);
 		
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
@@ -1027,24 +1027,24 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		matredptr->SetReduced();
 		TPZMatRed<TPZFMatrix> *matredfull = new TPZMatRed<TPZFMatrix>(*matredptr);
 		substruct->fMatRed = matredfull;
-
+		
 	}
 }
 void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
-					  pthread_mutex_t &TestThread)
+				  pthread_mutex_t &TestThread)
 {
 	
 	{
 		TPZAutoPointer<TPZMatRed<TPZFMatrix> > matredbig = substruct->fMatRedComplete;
 		
 		TPZAutoPointer<TPZMatrix> Stiffness = matredbig->K00();
-
+		
 		Stiffness->Decompose_Cholesky();
 		substruct->Initialize();
 	}
 }
 void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
-					  pthread_mutex_t &TestThread)
+					   pthread_mutex_t &TestThread)
 {
 	
 	{
@@ -1052,7 +1052,7 @@ void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructC
 		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
 		InternalStiffness->Decompose_Cholesky();
 	}
-
+	
 }
 
 //EComputeMatrix, EDecomposeInternal, EDecomposeBig
@@ -1092,7 +1092,7 @@ ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()
 {
 	pthread_mutex_init(&fAccessElement,NULL);
 	pthread_mutex_init(&fTestThreads,NULL);
-
+	
 }
 
 ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()
@@ -1142,7 +1142,7 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 	int iel;
 	int nel = fMesh->NElements();
 	for (iel=0; iel<nel; iel++) {
-	// if it has a neighbour along its interior, skip
+		// if it has a neighbour along its interior, skip
 		TPZCompEl *cel = fMesh->ElementVec()[iel];
 		if (!cel) {
 			continue;
@@ -1155,7 +1155,7 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 		int ns = gel->NSides();
 		int dim = gel->Dimension();
 		TPZStack<TPZCompElSide> compneigh;
-
+		
 		// if there is a neighbour along the side of dimension dim skip
 		TPZGeoElSide gelside(gel,ns-1);
 		gelside.ConnectedCompElementList(compneigh,0,0);
@@ -1385,7 +1385,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 			{
 				domain_dest[isub] = domain_dest[target];
 			}
-
+			
 		}
 		else if(domain_dest[isub] == -1 && domain_index_count[isub] < mincount)
 		{
@@ -1410,7 +1410,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 			else {
 				domain_dest[isub] = domain_dest[domaintargetindex];
 			}
-
+			
 		}
 		else if (domain_dest[isub] == -1) 
 		{

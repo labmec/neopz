@@ -24,6 +24,7 @@
 #include <fstream>
 
 using namespace std;
+
 TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
 fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot)
 {
@@ -138,7 +139,7 @@ void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
         coorold[1] += elsize[1];
         elsize[1] *= fGeometricProgression[1];
     }
-//    coorold[1] = fX0[1]+fDelx[1]*iy;
+	//    coorold[1] = fX0[1]+fDelx[1]*iy;
     
     // rotate along the y axis
 	coor[0] = fX0[0]+(coorold[0]-fX0[0])*cos(Rot);
@@ -373,7 +374,7 @@ REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv)
         DebugStop();
     }
     return progression;
-
+	
 }
 
 

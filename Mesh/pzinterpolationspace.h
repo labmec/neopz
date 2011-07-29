@@ -7,9 +7,9 @@
 class TPZMaterialData;
 
 /**
- @brief This class implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement.
- 
- @since April 11, 2007
+ * @brief This class implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement.
+ * @since April 11, 2007
+ * @ingroup interpolation
  */
 class TPZInterpolationSpace : public TPZCompEl
 {

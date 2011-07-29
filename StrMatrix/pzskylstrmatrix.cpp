@@ -11,15 +11,17 @@ TPZStructMatrix * TPZSkylineStructMatrix::Clone(){
 }
 
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(const TPZSkylineStructMatrix &cp)
- 		 :TPZStructMatrix(cp) {
-///nothing here
+:TPZStructMatrix(cp) {
+	//nothing here
 }
 
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
-{}
+{
+}
 
 TPZSkylineStructMatrix::TPZSkylineStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : TPZStructMatrix(cmesh)
-{}
+{
+}
 
 TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	int neq = fMesh->NEquations();
@@ -29,6 +31,7 @@ TPZMatrix * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointe
 	Assemble(*stiff,rhs, guiInterface);
     return stiff;
 }
+
 TPZMatrix * TPZSkylineStructMatrix::Create(){
     int neq = fMesh->NEquations();
     TPZVec<int> skyline;
@@ -46,30 +49,30 @@ TPZMatrix * TPZSkylineStructMatrix::Create(){
 	}
     if(HasRange())
     {
-      neq = fMaxEq-fMinEq;
-      FilterSkyline(skyline);
+		neq = fMaxEq-fMinEq;
+		FilterSkyline(skyline);
     }
 	else {
 		// This statement is needed for compatibility with TPZSubCompMesh The number of equations of the stiffness matrix corresponds to "only" the internal nodes
 		neq = skyline.NElements();
 	}
-
+	
     return new TPZSkylMatrix(neq,skyline);
 }
-TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){}
-
+TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){
+}
 
 /*!
-    \fn TPZSkylineStructMatrix::FilterSkyline()
+ \fn TPZSkylineStructMatrix::FilterSkyline()
  */
 void TPZSkylineStructMatrix::FilterSkyline(TPZVec<int> &skyline)
 {
-  if(!HasRange()) return;
-//  int neq = skyline.NElements();
-  int ieq;
-  for(ieq = fMinEq; ieq < fMaxEq; ieq++)
-  {
-    skyline[ieq-fMinEq] = skyline[ieq]-fMinEq;
-  }
-  skyline.Resize(fMaxEq-fMinEq);
+	if(!HasRange()) return;
+	//  int neq = skyline.NElements();
+	int ieq;
+	for(ieq = fMinEq; ieq < fMaxEq; ieq++)
+	{
+		skyline[ieq-fMinEq] = skyline[ieq]-fMinEq;
+	}
+	skyline.Resize(fMaxEq-fMinEq);
 }

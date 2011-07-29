@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef TPZGRAPHELPRISMMAPPED_H
 #define TPZGRAPHELPRISMMAPPED_H
 
@@ -16,24 +16,22 @@
 
 /**
  * @ingroup post
- */
-/**
  * @brief Implements the graphical element for a prism using a degenerated cube element
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
-*/
+ */
 class TPZGraphElPrismMapped : public TPZGraphElQ3dd
 {
 public:
     TPZGraphElPrismMapped(TPZCompEl* cel, TPZGraphMesh* gmesh);
-
+	
     ~TPZGraphElPrismMapped();
-
- /**
-  * @brief This method maps the index of a point to parameter space as a function
-  * of the number of divisions
-  */
- virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
-
+	
+	/**
+	 * @brief This method maps the index of a point to parameter space as a function
+	 * of the number of divisions
+	 */
+	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
+	
 };
 
 #endif

@@ -32,7 +32,7 @@ TPZTimeTemp::TPZTimeTemp()
 	ft5dohrassembly = 0;
 	ft55decompmatriznosinternos = 0;
 	ft6iter = 0;	
-
+	
 }
 
 
@@ -44,38 +44,38 @@ void TPZTimeTemp::PrintHeader(std::ostream &out)
 
 
 /*
-void TPZTimeTemp::Print(std::ostream &out)		
-{
-	
-	if (!out)
-	{
-		std::cout << __PRETTY_FUNCTION__ << "Arquivo nao valido" << std::endl;
-		return;
-	}
-	out.precision(5);
-	out << "Time for Substructuring Mesh: " << ft0sub
-	<< "\nTime for Computing the system of equations for each substructure: " << ft1comput
-	<< "\nInside Identifying Corner Nodes:\n" 
-	<< "Time for Convert Graph: " << ft2congraph
-	<< "\nTime for AnalyseGraph: " << ft3analysegraph
-	<< "\nTotal Time for Identifying Corner Nodes: " << ft4identcorner
-	<< "\nTime for ThreadDohrmanAssembly: " << ft5dohrassembly
-	<< "\nTotal Time for Iterations: " << ft6iter
-	<< "\nTime to Multiply for each iteration: " << fMultiply
-	<< "\nTime to PreCond for each iteration: " << fPreCond
-	<< "\nNumber of Equations: " << fNumEq
-	<< "\nNumber of Coarse Equations: " << fNumEqCoarse
-	<< "\nNumber of Threads: " << fNumthreads
-	<< "\nNumber of Substructures: " << fNumSub << "\n" << std::endl;
-}
-*/
+ void TPZTimeTemp::Print(std::ostream &out)		
+ {
+ 
+ if (!out)
+ {
+ std::cout << __PRETTY_FUNCTION__ << "Arquivo nao valido" << std::endl;
+ return;
+ }
+ out.precision(5);
+ out << "Time for Substructuring Mesh: " << ft0sub
+ << "\nTime for Computing the system of equations for each substructure: " << ft1comput
+ << "\nInside Identifying Corner Nodes:\n" 
+ << "Time for Convert Graph: " << ft2congraph
+ << "\nTime for AnalyseGraph: " << ft3analysegraph
+ << "\nTotal Time for Identifying Corner Nodes: " << ft4identcorner
+ << "\nTime for ThreadDohrmanAssembly: " << ft5dohrassembly
+ << "\nTotal Time for Iterations: " << ft6iter
+ << "\nTime to Multiply for each iteration: " << fMultiply
+ << "\nTime to PreCond for each iteration: " << fPreCond
+ << "\nNumber of Equations: " << fNumEq
+ << "\nNumber of Coarse Equations: " << fNumEqCoarse
+ << "\nNumber of Threads: " << fNumthreads
+ << "\nNumber of Substructures: " << fNumSub << "\n" << std::endl;
+ }
+ */
 
 
 void TPZTimeTemp::PrintLine(std::ostream &out)									
 {
 	
 	out.precision(5);
-	 
+	
 	if (!out)
 	{
 		std::cout << __PRETTY_FUNCTION__ << "Arquivo nao valido" << std::endl;
@@ -105,7 +105,7 @@ bool TPZTimeTemp::NeedsHeader(std::string &FileName)
 
 void TPZTimeTemp::ReadLine(std::istream &ReadFile)
 {
-
+	
 	ReadFile >> ft0sub >> ft1comput >> ft2congraph >> ft3analysegraph >> ft4identcorner >> ft5dohrassembly >> ft55decompmatriznosinternos >> ft6iter >> fNumEq >> fNumEqCoarse 
 	>> fNumberofElements >> fNumthreads >> fPolyOrder >> fNumSub >> fniter >> fnMultiply >> fnPreCond;
 	

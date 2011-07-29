@@ -23,18 +23,18 @@
 using namespace std;
 
 TPZGenPartialGrid::TPZGenPartialGrid(TPZVec<int> &nx, TPZVec<int> &rangex, TPZVec<int> &rangey, TPZVec<REAL> &x0,TPZVec<REAL> &x1) : fNx(nx), fX0(x0), fX1(x1),
-		fDelx(2)
+fDelx(2)
 {
 	fDelx[0] = (x1[0]-x0[0])/(nx[0]);
 	fDelx[1] = (x1[1]-x0[1])/(nx[1]);
 	fNumNodes= (nx[0]+1)*(nx[1]+1);
 	fElementType = 0;
-   fRangex = rangex;
-   fRangey = rangey;
+	fRangex = rangex;
+	fRangey = rangey;
 }
 
 TPZGenPartialGrid::~TPZGenPartialGrid() {
-
+	
 }
 
 int TPZGenPartialGrid::NodeIndex(int x, int y){
@@ -47,49 +47,49 @@ int TPZGenPartialGrid::ElementIndex(int x, int y) {
 
 short
 TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
-
-
-//	int num_rectangles=fNx[0]*fNx[1];
-
-// create the geometric nodes
-//
+	
+	
+	//	int num_rectangles=fNx[0]*fNx[1];
+	
+	// create the geometric nodes
+	//
 	TPZVec<REAL> coor(2,0.);
 	int i,j;
-   int index;
-
-   if(grid.NodeVec().NElements() < fNumNodes) grid.NodeVec().Resize(fNumNodes);
+	int index;
+	
+	if(grid.NodeVec().NElements() < fNumNodes) grid.NodeVec().Resize(fNumNodes);
 	for(i=fRangex[0]; i<fRangex[1]+1; i++) {
-   	for(j = fRangey[0]; j<fRangey[1]+1; j++){
+		for(j = fRangey[0]; j<fRangey[1]+1; j++){
 			index = NodeIndex(i,j);
 			Coord(index,coor);
 			grid.NodeVec()[index].Initialize(coor,grid);
-      }
+		}
 	}
-//
-//numbering the nodes
-//
-// create the geometric elements (retangular)
-
+	//
+	//numbering the nodes
+	//
+	// create the geometric elements (retangular)
+	
 	TPZVec<int> nos(4);
 	for(i=fRangex[0]; i<fRangex[1]; i++) {
-   	for(j=fRangey[0]; j<fRangey[1]; j++) {
-      	index = ElementIndex(i,j);
+		for(j=fRangey[0]; j<fRangey[1]; j++) {
+			index = ElementIndex(i,j);
 			ElementConnectivity(index,nos);
 			if(fElementType == 0) {
-        int index;   
+				int index;   
 				grid.CreateGeoElement(EQuadrilateral,nos,1,index);
 			} else {
-        int index;   
+				int index;   
 				grid.CreateGeoElement(ETriangle,nos,1,index);
 				nos[1] = nos[2];
 				nos[2] = nos[3];
 				grid.CreateGeoElement(ETriangle,nos,1,index);
 			}
 		}
-   }
+	}
 	grid.BuildConnectivity();
 	return 0;
-
+	
 }
 
 void TPZGenPartialGrid::Coord(int i, TPZVec<REAL> &coor) {
@@ -113,22 +113,22 @@ void TPZGenPartialGrid::ElementConnectivity(int i, TPZVec<int> &rectangle_nodes)
 void
 TPZGenPartialGrid::Print( char *name , ostream &out  )
 {
-
+	
 	out<<"\n"<<name<<"\n";
 	out << "Number of divisions " << fNx[0] << ' ' << fNx[1] << endl;
 	out << "Corner Coordinates " << endl << fX0[0] << ' ' << fX0[1] << endl;
 	out << fX1[0] << ' ' << fX1[1] << endl;
-
+	
 }
 
 void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
-//	int ielfirst = 0;
-//	int iellast = 0;
-//	int ielinc;
+	//	int ielfirst = 0;
+	//	int iellast = 0;
+	//	int ielinc;
 	if(side == 0 && fRangey[0] != 0) return;
-   if(side == 1 && fRangex[1] != fNx[0]) return;
-   if(side == 2 && fRangey[1] != fNx[1]) return;
-   if(side == 3 && fRangex[0] != 0) return;
+	if(side == 1 && fRangex[1] != fNx[0]) return;
+	if(side == 2 && fRangey[1] != fNx[1]) return;
+	if(side == 3 && fRangex[0] != 0) return;
 	TPZStack<TPZGeoEl*> ElementVec;
 	TPZStack<int> Sides;
 	TPZVec<int> cornernodes(4);
@@ -144,35 +144,35 @@ void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
 			TPZGeoElBC(gel,Sides[el],bc,g);
 		}
 	}
-/*
-	switch(side) {
-		case 0:
-			ielfirst = 0;
-			iellast = fNx[0];
-			ielinc = 1;
-			break;
-		case 1:
-			ielfirst = fNx[0]-1;
-			iellast = fNx[0]*fNx[1];
-			ielinc = fNx[0];
-			break;
-		case 2:
-			ielfirst = fNx[0]*(fNx[1]-1);
-			iellast = fNx[0]*fNx[1];
-			ielinc = 1;
-			break;
-		case 3:
-			ielfirst = 0;
-			iellast = fNx[0]*(fNx[1]-1)+1;
-			ielinc = fNx[0];
-			break;
-	}
-
-	int i;
-	for(i = ielfirst; i< iellast; i+= ielinc) {
-		TGeoEl *gel = (TGeoEl *) gr->ElementMap()[i];
-		gel->SetSide(side,bc);
-	}
-*/
+	/*
+	 switch(side) {
+	 case 0:
+	 ielfirst = 0;
+	 iellast = fNx[0];
+	 ielinc = 1;
+	 break;
+	 case 1:
+	 ielfirst = fNx[0]-1;
+	 iellast = fNx[0]*fNx[1];
+	 ielinc = fNx[0];
+	 break;
+	 case 2:
+	 ielfirst = fNx[0]*(fNx[1]-1);
+	 iellast = fNx[0]*fNx[1];
+	 ielinc = 1;
+	 break;
+	 case 3:
+	 ielfirst = 0;
+	 iellast = fNx[0]*(fNx[1]-1)+1;
+	 ielinc = fNx[0];
+	 break;
+	 }
+	 
+	 int i;
+	 for(i = ielfirst; i< iellast; i+= ielinc) {
+	 TGeoEl *gel = (TGeoEl *) gr->ElementMap()[i];
+	 gel->SetSide(side,bc);
+	 }
+	 */
 }
 

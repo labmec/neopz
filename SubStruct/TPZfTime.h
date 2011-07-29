@@ -10,7 +10,6 @@
  *
  */
 
-
 #include <iostream>
 #include <sys/timeb.h>
 #include <stdlib.h>
@@ -18,30 +17,29 @@
 #include <string>
 #include <sstream>
 
-/// Calculate the Times
+/** 
+ * @brief Calculate the Times
+ * @ingroup util
+ */
 class TPZfTime
 {
 	
 public:
-
-	/// Start the timer when the object is created
+	
+	/** @brief Start the timer when the object is created */
 	TPZfTime();
 	
 	~TPZfTime();
 	
-	/// When called, returns the time since the creation of the object in a string
+	/** @brief When called, returns the time since the creation of the object in a string */
 	std::string ReturnTimeString();
 	
-	/// When called, returns the time since the creation of the object in a double
+	/** @brief When called, returns the time since the creation of the object in a double */
 	double ReturnTimeDouble();
 	
-	
-	
-	
 private:
-
+	
 	struct timeb finicio, ffinal;
-
 	
 };
 

@@ -12,12 +12,14 @@
 #include "pzstack.h"
 
 
-/// this class associates an element matrix with the coeficients of its contribution in the global stiffness matrix
+/**
+ * @brief This class associates an element matrix with the coeficients of its contribution in the global stiffness matrix
+ * @ingroup interpolation
+ */
 /**
  This class groups all information associated with an element stiffness matrix so that it can be used independent of the element object itself
  Objects of this class provide storage as well for the constrained stiffness matrix, i.e. the stiffness matrix from which the constrained connects have been eliminated
  In future versions, the computation of the contraints will be incorporated in a method of this class
- @ingroup interpolation
  */
 struct TPZElementMatrix {
 	

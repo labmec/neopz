@@ -12,9 +12,12 @@
   / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
   / LabMeC - FEC - UNICAMP
   / 2007
-   @ingroup geometry
- */
+   */
 
+/**
+ * @author Paulo Cesar de Alvarenga Lucci (Caju)
+ * @ingroup geometry
+ */
 class TPZChangeEl {
 public:
 

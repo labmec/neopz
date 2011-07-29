@@ -22,8 +22,7 @@ class TPZEqnArray;
 
 
 /**
- * @brief FrontMatrix with parallel techniques included. \n
- * Is derived from TPZFrontMatrix. \n
+ * @brief FrontMatrix with parallel techniques included.
  * @ingroup frontal
  */
 /**

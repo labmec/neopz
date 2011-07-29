@@ -22,8 +22,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of a tetrahedral element
+	/** 
+	 * @ingroup geometry
+	 * @brief Implements the geometry of a tetrahedral element
+	 */
 	class TPZGeoTetrahedra  : public TPZNodeRep<4,pztopology::TPZTetrahedron>
 	{
 	public:

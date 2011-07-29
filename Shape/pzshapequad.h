@@ -18,10 +18,11 @@ namespace pzshape{
 	
 	/** 
 	 * @brief Implements the shape functions of a quadrilateral (2D) element
-	 
-	 * The quadrilateral shape functions are also used in 3D elements
-	 * The range of the master element is -1,1
 	 * @ingroup shape
+	 */
+	/** 
+	 * The quadrilateral shape functions are also used in 3D elements \n
+	 * The range of the master element is -1,1
 	 */
 	class TPZShapeQuad  : public pztopology::TPZQuadrilateral{
 		

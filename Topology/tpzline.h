@@ -36,9 +36,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of a line element
 	 */
-	
-	/// This class defines the topology of a line element
 	class TPZLine{
 	public:
 		

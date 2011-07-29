@@ -32,7 +32,6 @@ class TPZCompMesh;
 
 /**
  * @brief This class implements a discontinuous element (for use with discontinuous Galerkin)
- *
  * @ingroup CompElement
  */
 class TPZCompElDisc : public TPZInterpolationSpace{

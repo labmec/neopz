@@ -13,11 +13,13 @@ class TPZGeoMesh;
 #include <iostream>
 #include "pzcmesh.h"
 
-/// Computational mesh with additional data for CFD problems
+/**
+ * @brief Computational mesh with additional data for CFD problems
+ * @ingroup CompMesh
+ */
 /**
  * This class implements the additions behavior and
  * data to handle CFD problems as computional meshes.
- * @ingroup CompMesh
  */
 class TPZFlowCompMesh : public TPZCompMesh
 {

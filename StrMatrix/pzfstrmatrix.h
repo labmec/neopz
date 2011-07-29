@@ -2,7 +2,9 @@
 
 #ifndef TPZFSTRUCTMATRIX_H
 #define TPZFSTRUCTMATRIX_H
+
 #include "pzstrmatrix.h"
+
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZMatrix;
@@ -13,17 +15,19 @@ class TPZMatrix;
  */
 class TPZFStructMatrix : public TPZStructMatrix {
 public:    
-
+	
     TPZFStructMatrix(TPZCompMesh *);
-
+	
     TPZFStructMatrix(TPZAutoPointer<TPZCompMesh> );
     
     virtual TPZMatrix * Create();
-
+	
     virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-
+	
     virtual TPZStructMatrix * Clone();
-
+	
 public:
+	
 };
+
 #endif //TPZFSTRUCTMATRIX_H

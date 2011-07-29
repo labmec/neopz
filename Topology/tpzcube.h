@@ -36,9 +36,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of the hexahedron element
 	 */
-	
-	/// This class defines the topology of the hexahedron element
 	class TPZCube{
 	public:
 		

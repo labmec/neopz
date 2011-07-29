@@ -13,13 +13,14 @@ namespace pzshape {
 	
 	/** 
 	 * @brief Implements the shape functions discontinuous elements
-	 
+	 * @ingroup shape
+	 */
+	/**
 	 * This class computes the shape functions for n-dimensional elements
 	 * the shape functions can be tensor based or interpolation order based
 	 * The Shape2dFull method also computes higher order derivatives
-	 * @ingroup shape
 	 */
-	class TPZShapeDisc {
+	 class TPZShapeDisc {
 		
 	public:
 		

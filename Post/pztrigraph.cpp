@@ -1,4 +1,5 @@
 #include "pztrigraph.h"
+
 using namespace std;
 
 TPZGraphElT::TPZGraphElT(TPZCompEl *c, TPZGraphMesh *g) : TPZGraphEl(c,g,fConnects) {
@@ -40,7 +41,7 @@ void TPZGraphElT::Connectivity(TPZDrawStyle st){
     long ip = fId;
 	TPZVec<int> co0(3,0), co1(3,0), co2(3,0);
 	if(st == EV3DStyle) ip++;
-//   long ip = (fId+1)*imax*imax;//Cedric 22/03/99
+	//   long ip = (fId+1)*imax*imax;//Cedric 22/03/99
 	for(int j=0;j<imax;j++) {
 		for(int i=0;i<imax-j;i++) {
 			if(st == EV3DStyle) out << ip++ << " 3 ";
@@ -49,14 +50,14 @@ void TPZGraphElT::Connectivity(TPZDrawStyle st){
 			co1[0]=i+1; co1[1]=j;
 			co2[0]=i; co2[1]=j+1;
 			if(i <imax-j-1) {
-			if(st == EV3DStyle) out << ip++ << " 3 ";
+				if(st == EV3DStyle) out << ip++ << " 3 ";
 				if(st == EMVStyle) out << ip++ << " 1 1 1 ";
 				co0[0]=i+1; co0[1]=j;
 				co1[0]=i+1; co1[1]=j+1;
 				co2[0]=i; co2[1]=j+1;
 			}
 			out << EqNum(co0) << " " << EqNum(co1) << " " <<
-				  EqNum(co2) << endl;
+			EqNum(co2) << endl;
 		}
 	}
 }
@@ -72,7 +73,7 @@ long TPZGraphElT::EqNum(TPZVec<int> &co){
 	if(co[0]==0 && co[1]==0) return fConnects[0]->FirstPoint();
 	if(co[0]==imax && co[1]==0) return fConnects[1]->FirstPoint();
 	if(co[0]==0 && co[1]==imax) return fConnects[2]->FirstPoint();
-
+	
 	if(co[1]==0) loc = 0;
 	else if(co[0]+co[1]==imax) loc=1;
 	else if(co[0]==0) loc=2;
@@ -90,11 +91,11 @@ long TPZGraphElT::EqNum(TPZVec<int> &co){
 			neq = first + (imax-1-co[1]) + orient[loc]*(co[1]-1-imax+1+co[1]);
 			break;
 		case 3:
-			{
+		{
 			neq = first + (co[1]-1);
 			for(int run=1;run<co[0];run++) neq += imax-run-1;
 			break;
-			}
+		}
 		default:
 			neq = 0;
 			break;
@@ -103,8 +104,8 @@ long TPZGraphElT::EqNum(TPZVec<int> &co){
 }
 
 void TPZGraphElT::QsiEta(TPZVec<int> &co, int imax, TPZVec<REAL> &qsieta){
-  int i,ni = co.NElements();
-  for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
+	int i,ni = co.NElements();
+	for(i=0; i<ni; i++) qsieta[i] = (1.*co[i])/imax;
 }
 
 void TPZGraphElT::FirstIJ(int no,TPZVec<int> &co, int &incr){
@@ -113,85 +114,84 @@ void TPZGraphElT::FirstIJ(int no,TPZVec<int> &co, int &incr){
 	imax = 1 << res;
 	switch(no) {
 		case 0:
-			{
-				co[0]=0;
-				co[1]=0;
-				incr = 1;
-			}
+		{
+			co[0]=0;
+			co[1]=0;
+			incr = 1;
+		}
 			break;
 		case 1:
-			{
-				co[0] = imax;
-				co[1]=0;
-				incr = 1;
-			}
+		{
+			co[0] = imax;
+			co[1]=0;
+			incr = 1;
+		}
 			break;
 		case 2:
-			{
-				co[0] = 0;
-				co[1] = imax;
-				incr = 1;
-			}
+		{
+			co[0] = 0;
+			co[1] = imax;
+			incr = 1;
+		}
 			break;
 		case 3:
+		{
+			co[1] = 0;
+			if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
 			{
-				co[1] = 0;
-				if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
-				{
-					co[0] = imax-1;
-					incr = -1;
-				}
-				else
-				{
-					incr = 1;
-					co[0] = 1;//ifirst
-				}
+				co[0] = imax-1;
+				incr = -1;
 			}
-			break;
-		case 4:
-			{
-				if(fConnects[1]->SequenceNumber() > fConnects[2]->SequenceNumber())
-				{
-					incr = 1;
-					co[1] = imax-1;//co[1]first
-					co[0] = 1;
-				}
-				else
-				{
-					incr = -1;
-					co[0] = imax-1;
-					co[1] = 1;//co[1]first
-				}
-			}
-			break;
-		case 5:
-			{
-				co[0] = 0;
-//modified Philippe 25/7/97
-// wrong comparaison
-//				if(fConnects[0]->Id() > fConnects[3]->Id())
-				if(fConnects[0]->SequenceNumber() > fConnects[2]->SequenceNumber())
-				{
-					incr = -1;
-					co[1] = imax-1;//co[1]first
-				}
-				else
-				{
-					incr = 1;
-					co[1] = 1;//co[1]first
-				}
-			}
-			break;
-		case 6:
+			else
 			{
 				incr = 1;
-				co[0] = 1;
-				co[1] = 1;
+				co[0] = 1;//ifirst
 			}
+		}
+			break;
+		case 4:
+		{
+			if(fConnects[1]->SequenceNumber() > fConnects[2]->SequenceNumber())
+			{
+				incr = 1;
+				co[1] = imax-1;//co[1]first
+				co[0] = 1;
+			}
+			else
+			{
+				incr = -1;
+				co[0] = imax-1;
+				co[1] = 1;//co[1]first
+			}
+		}
+			break;
+		case 5:
+		{
+			co[0] = 0;
+			//modified Philippe 25/7/97
+			// wrong comparaison
+			//				if(fConnects[0]->Id() > fConnects[3]->Id())
+			if(fConnects[0]->SequenceNumber() > fConnects[2]->SequenceNumber())
+			{
+				incr = -1;
+				co[1] = imax-1;//co[1]first
+			}
+			else
+			{
+				incr = 1;
+				co[1] = 1;//co[1]first
+			}
+		}
+			break;
+		case 6:
+		{
+			incr = 1;
+			co[0] = 1;
+			co[1] = 1;
+		}
 	}
 	return;
 }
-
 
 void TPZGraphElT::NextIJ(int no, TPZVec<int> &co, int incr){
 	int res = fGraphMesh->Res();
@@ -222,19 +222,17 @@ void TPZGraphElT::NextIJ(int no, TPZVec<int> &co, int incr){
 	}
 }
 
-
 int TPZGraphElT::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
-	case(EVTKStyle):
-		return 5;//vtk_triangle
-//		break;
-	default:
-		return -1;
+		case(EVTKStyle):
+			return 5;//vtk_triangle
+			//		break;
+		default:
+			return -1;
 	}
-//	return -1;
+	//	return -1;
 }
-
 
 int TPZGraphElT::NNodes()
 {

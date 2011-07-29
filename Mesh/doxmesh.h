@@ -1,7 +1,7 @@
 /** @defgroup interpolation Generation of an aproximation space
- * classes which define the aproximation space combine the geometric aproximation, definition of the element shapefunctions
- * integration rules, and variational statement to build the element stiffness matrices
- * the finite elements within this tree are also responsible to generate C0 compatible interpolation spaces
+ * Classes which define the aproximation space combine the geometric aproximation, definition of the element, \n
+ * shape functions, integration rules, and variational statement to build the element stiffness matrices \n
+ * the finite elements within this tree are also responsible to generate C0 compatible interpolation spaces.
  */
 
 /** @defgroup geometry The Geometric approximation classes

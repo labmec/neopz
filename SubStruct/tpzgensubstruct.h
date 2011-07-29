@@ -30,94 +30,101 @@ class TPZSubCompMesh;
 class TPZDohrSubstruct;
 class TPZDohrSubstructCondense;
 
+/** \addtogroup substructure
+ * @{
+ */
 /**
-An interface to "feed" the datastructure of the Dohrmann algorithm
-
-@author Philippe Devloo
-*/
+ @brief An interface to "feed" the datastructure of the Dohrmann algorithm
+ @author Philippe Devloo
+ */
 class TPZGenSubStruct{
 public:
-  enum ETypemesh
-  {
-    DistMaterial,RandomMat
-  };
-  
-  ETypemesh fMatDist;
-  
-  TPZVec<REAL> fK;
-  /**
-   * @param numlevels number of uniform refinements
-   * @param substructlevel number of refinements which define the substructures
-   */
-  TPZGenSubStruct(int dimension, int numlevels, int substructlevel);
-
+	enum ETypemesh
+	{
+		DistMaterial,RandomMat
+	};
+	
+	ETypemesh fMatDist;
+	
+	TPZVec<REAL> fK;
+	/**
+	 * @param numlevels number of uniform refinements
+	 * @param substructlevel number of refinements which define the substructures
+	 */
+	TPZGenSubStruct(int dimension, int numlevels, int substructlevel);
+	
     ~TPZGenSubStruct();
     
-    /// method which will generate the computational mesh
+    /** @brief Method which will generate the computational mesh */
     TPZAutoPointer<TPZCompMesh> GenerateMesh();
     
-    /// initialize the TPZDohrMatrix structure
+    /** @brief Initialize the TPZDohrMatrix structure */
     void InitializeDohr(TPZAutoPointer<TPZMatrix> dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
-    /// initialize the TPZDohrMatrix structure
+    /** @brief Initialize the TPZDohrMatrix structure */
     void InitializeDohrCondense(TPZAutoPointer<TPZMatrix> dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
 	
-void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
-                             TPZVec<int> &internalnodes);
+	void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
+							  TPZVec<int> &internalnodes);
 	static void ReorderInternalNodes2(TPZSubCompMesh *sub,
-							  TPZVec<int> &internalnodes, TPZVec<int> &invpermute);
+									  TPZVec<int> &internalnodes, TPZVec<int> &invpermute);
 	
-	// computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
-	// the mesh is modified during this method but is returned to its original state at the end of execution
+	/** @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
+	 *
+	 * The mesh is modified during this method but is returned to its original state at the end of execution
+	 */
 	static void ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 												   TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute);
     
-  private:
-    /// dimension of the mesh
+private:
+    /** @brief Dimension of the mesh */
     int fDimension;
-    /// number of uniform refinements
+    /** @brief Number of uniform refinements */
     int fNumLevels;
-    /// level of substructures
+    /** @brief Level of substructures */
     int fSubstructLevel;
     
-    /// computational mesh
+    /** @brief computational mesh */
     TPZAutoPointer<TPZCompMesh> fCMesh;
     
-    /// the set of equations which correspond to corner nodes
+    /** @brief The set of equations which correspond to corner nodes */
     std::set<int> fCornerEqs;
     
-    /// divide the geometric elements till num levels is achieved
+    /** @brief Divide the geometric elements till num levels is achieved */
     void UniformRefine();
     
 public:
-    /// divide the elements in substructures
+    /** @brief Divide the elements in substructures */
     void SubStructure();
 private:
-    /// identify cornernodes
+    /** @brief Identify cornernodes */
     void IdentifyCornerNodes();
     
-	/// identify the global equations as a pair of local equation and global equation
+	/** @brief Identify the global equations as a pair of local equation and global equation */
     void IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<int,int> > &globaleq, std::map<int,int> &globinv);
 	
-    /// get the global equation numbers of a substructure (and their inverse)
+    /** @brief Get the global equation numbers of a substructure (and their inverse) */
     void IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global, std::map<int,int> &globinv);
-
-    /// Identify the corner equations associated with a substructure
+	
+    /** @brief Identify the corner equations associated with a substructure */
     void IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
-                             TPZVec<int> &coarseindex);
-static    int NInternalEq(TPZSubCompMesh *sub);
+							  TPZVec<int> &coarseindex);
+	
+	static    int NInternalEq(TPZSubCompMesh *sub);
+	
 };
 
-/// This is a lengthy process which should run on the remote processor
+/** @brief This is a lengthy process which should run on the remote processor */
 void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct> substruct,  TPZDohrAssembly &dohrassembly);
 
-/// This is a lengthy process which should run on the remote processor
+/** @brief This is a lengthy process which should run on the remote processor */
 void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstructCondense> substruct,  TPZDohrAssembly &dohrassembly);
 
-/// return the number of submeshes
+/** @brief Return the number of submeshes */
 int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
-/// return a pointer to the isub submesh
+/** @brief Return a pointer to the isub submesh */
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
+/** @} */
 
 #endif

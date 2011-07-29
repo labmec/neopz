@@ -15,12 +15,15 @@
  / @author Paulo Cesar de Alvarenga Lucci (Caju)
  / LabMeC - FEC - UNICAMP
  / 2007
- @ingroup geometry
  */
+
 namespace pzgeom
 {
-	
-	/// Defines a linear geometric element with quadratic map
+
+	/**
+	 * @ingroup geometry
+	 * @brief Defines a linear geometric element with quadratic map
+	 */
 	class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		
 	public:

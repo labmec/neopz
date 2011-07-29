@@ -16,12 +16,12 @@
 /** @brief Groups all classes dedicated to the computation of shape functions */
 namespace pzshape {
 	
-	/** 
-	 *
+	/**
 	 * @brief Implements the shape functions of a hexahedral (3D) element
-	 
-	 * The range of the master element is [-1 ,1]
 	 * @ingroup shape
+	 */
+	/** 
+	 * The range of the master element is [-1 ,1]
 	 */
 	class TPZShapeCube : public pztopology::TPZCube {
 		

@@ -8,7 +8,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef TPZINT1POINT_H
 #define TPZINT1POINT_H
 
@@ -18,7 +18,6 @@
 /**
  * @ingroup integral
  * @brief Integration rule for one point
- *
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZInt1Point : public TPZIntPoints {

@@ -76,39 +76,39 @@ TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy){
 TPZStructMatrix::~TPZStructMatrix() {}
 
 TPZMatrix *TPZStructMatrix::Create() {
-  cout << "TPZStructMatrix::Create should never be called\n";
-  return 0;
+	cout << "TPZStructMatrix::Create should never be called\n";
+	return 0;
 }
 
 TPZStructMatrix *TPZStructMatrix::Clone() {
-  cout << "TPZStructMatrix::Clone should never be called\n";
-  return 0;
+	cout << "TPZStructMatrix::Clone should never be called\n";
+	return 0;
 }
 
 void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	if(this->fNumThreads){
-	this->MultiThread_Assemble(stiffness,rhs,guiInterface);
+		this->MultiThread_Assemble(stiffness,rhs,guiInterface);
 	}
-  else{
-	this->Serial_Assemble(stiffness,rhs,guiInterface);
-  }
+	else{
+		this->Serial_Assemble(stiffness,rhs,guiInterface);
+	}
 }
 
 void TPZStructMatrix::Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-  if(this->fNumThreads){
-	this->MultiThread_Assemble(rhs,guiInterface);
-  }
-  else{
-	this->Serial_Assemble(rhs,guiInterface);
+	if(this->fNumThreads){
+		this->MultiThread_Assemble(rhs,guiInterface);
+	}
+	else{
+		this->Serial_Assemble(rhs,guiInterface);
 	}
 }
 
 void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
-
-  if(!fMesh){
-	LOGPZ_ERROR(logger,"pthread_Assemble called without mesh")
-	DebugStop();
-  }
+	
+	if(!fMesh){
+		LOGPZ_ERROR(logger,"pthread_Assemble called without mesh")
+		DebugStop();
+	}
 #ifdef LOG4CXX
 	if(dynamic_cast<TPZSubCompMesh * >(fMesh))
 	{
@@ -119,238 +119,238 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, T
 	}
 #endif
 	
-  int iel;
-  int nelem = fMesh->NElements();
-  TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
+	int iel;
+	int nelem = fMesh->NElements();
+	TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
 	bool globalresult = true;
 	bool writereadresult = true;
-
+	
 	TPZTimer calcstiff("Computing the stiffness matrices");
 	TPZTimer assemble("Assembling the stiffness matrices");
-  TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
-
-  int count = 0;
-  for(iel=0; iel < nelem; iel++) {
-    TPZCompEl *el = elementvec[iel];
-    if(!el) continue;
-	  int matidsize = fMaterialIds.size();
-	if(matidsize){
-	  TPZAutoPointer<TPZMaterial> mat = el->Material();
-		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
-	  if (!mat)
-	  {
-		  if (!submesh) {
-			  continue;
-		  }
-		  else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
-	  }
-	  else
-	  {
-		  int matid = mat->Id();
-		  if (this->ShouldCompute(matid) == false) continue;
-	  }
-    }///if
-
-	  count++;
-	  if(!(count%20))
-	  {
-		  std::cout << '*';
-		  std::cout.flush();
-	  }
-	  if(!(count%500))
-	  {
-		  std::cout << "\n";
-	  }
+	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+	
+	int count = 0;
+	for(iel=0; iel < nelem; iel++) {
+		TPZCompEl *el = elementvec[iel];
+		if(!el) continue;
+		int matidsize = fMaterialIds.size();
+		if(matidsize){
+			TPZAutoPointer<TPZMaterial> mat = el->Material();
+			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+			if (!mat)
+			{
+				if (!submesh) {
+					continue;
+				}
+				else if(submesh->NeedsComputing(fMaterialIds) == false) continue;
+			}
+			else
+			{
+				int matid = mat->Id();
+				if (this->ShouldCompute(matid) == false) continue;
+			}
+		}///if
+		
+		count++;
+		if(!(count%20))
+		{
+			std::cout << '*';
+			std::cout.flush();
+		}
+		if(!(count%500))
+		{
+			std::cout << "\n";
+		}
 		calcstiff.start();
-
+		
 		el->CalcStiff(ek,ef);
-
+		
 		if(guiInterface) if(guiInterface->AmIKilled()){
 			return;
 		}
-
+		
 #ifdef LOG4CXX
-	  if(dynamic_cast<TPZSubCompMesh * >(fMesh))
-	  {
-		  std::stringstream objname;
-		  objname << "Element" << iel;
-		  std::string name = objname.str();
-		  objname << " = ";
-		  std::stringstream sout;
-		  ek.fMat.Print(objname.str().c_str(),sout,EMathematicaInput);
-		  sout << "AppendTo[AllEig,Eigenvalues[" << name << "]];";
-		  
-		  LOGPZ_DEBUG(loggerelmat,sout.str())
-/*		  if(iel == 133)
-		  {
-			  std::stringstream sout2;
-			  el->Reference()->Print(sout2);
-			  el->Print(sout2);
-			  LOGPZ_DEBUG(logger,sout2.str())
-		  }
- */
-	  }
- 
+		if(dynamic_cast<TPZSubCompMesh * >(fMesh))
+		{
+			std::stringstream objname;
+			objname << "Element" << iel;
+			std::string name = objname.str();
+			objname << " = ";
+			std::stringstream sout;
+			ek.fMat.Print(objname.str().c_str(),sout,EMathematicaInput);
+			sout << "AppendTo[AllEig,Eigenvalues[" << name << "]];";
+			
+			LOGPZ_DEBUG(loggerelmat,sout.str())
+			/*		  if(iel == 133)
+			 {
+			 std::stringstream sout2;
+			 el->Reference()->Print(sout2);
+			 el->Print(sout2);
+			 LOGPZ_DEBUG(logger,sout2.str())
+			 }
+			 */
+		}
+		
 #endif
-	  
+		
 #ifdef CHECKCONSISTENCY
-	  //extern TPZCheckConsistency stiffconsist("ElementStiff");
-	  stiffconsist.SetOverWrite(true);
-	  bool result;
-	  result = stiffconsist.CheckObject(ek.fMat);
-	  if(!result)
-	  {
-		  globalresult = false;
-		  std::stringstream sout;
-		  sout << "element " << iel << " computed differently";
-		  LOGPZ_ERROR(loggerCheck,sout.str())
-	  }
-	  
-	  /*
-	  static TPZCheckConsistency checkstiff("ElementStiff");
-	  checkstiff.SetReadMode();
-	  checkstiff.SetOverWrite(true);
-	  result = checkstiff.CheckObject(ek.fMat);
-	  if(!result)
-	  {
-		  writereadresult = false;
-		  std::stringstream sout;
-		  sout << "element " << iel << " computed differently";
-		  LOGPZ_ERROR(loggerCheck,sout.str())
-	  }
-	  */
+		//extern TPZCheckConsistency stiffconsist("ElementStiff");
+		stiffconsist.SetOverWrite(true);
+		bool result;
+		result = stiffconsist.CheckObject(ek.fMat);
+		if(!result)
+		{
+			globalresult = false;
+			std::stringstream sout;
+			sout << "element " << iel << " computed differently";
+			LOGPZ_ERROR(loggerCheck,sout.str())
+		}
+		
+		/*
+		 static TPZCheckConsistency checkstiff("ElementStiff");
+		 checkstiff.SetReadMode();
+		 checkstiff.SetOverWrite(true);
+		 result = checkstiff.CheckObject(ek.fMat);
+		 if(!result)
+		 {
+		 writereadresult = false;
+		 std::stringstream sout;
+		 sout << "element " << iel << " computed differently";
+		 LOGPZ_ERROR(loggerCheck,sout.str())
+		 }
+		 */
 #endif
-	  
+		
 		calcstiff.stop();
 		assemble.start();
-
-    if(!el->HasDependency()) {
-      ek.ComputeDestinationIndices();
-	  if(fMinEq != -1 || fMaxEq != -1)
-	  {
-		FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
-      }
-      stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
-      rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+		
+		if(!el->HasDependency()) {
+			ek.ComputeDestinationIndices();
+			if(fMinEq != -1 || fMaxEq != -1)
+			{
+				FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+			}
+			stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+			rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
-		if(loggerel->isDebugEnabled())
-		{
-			std::stringstream sout;
-			sout << "Element index " << iel << std::endl;
-			sout << "Element stiffness matrix\n";
-			ek.Print(sout);
-			sout << "Element right hand side\n";
-			ef.Print(sout);
-			LOGPZ_DEBUG(loggerel,sout.str())
-		}
+			if(loggerel->isDebugEnabled())
+			{
+				std::stringstream sout;
+				sout << "Element index " << iel << std::endl;
+				sout << "Element stiffness matrix\n";
+				ek.Print(sout);
+				sout << "Element right hand side\n";
+				ef.Print(sout);
+				LOGPZ_DEBUG(loggerel,sout.str())
+			}
 #endif
-    } else {
-      // the element has dependent nodes
-      ek.ApplyConstraints();
-      ef.ApplyConstraints();
-      ek.ComputeDestinationIndices();
-	  if(fMinEq != -1 || fMaxEq != -1)
-      {
-		FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
-      }
-      stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
-      rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+		} else {
+			// the element has dependent nodes
+			ek.ApplyConstraints();
+			ef.ApplyConstraints();
+			ek.ComputeDestinationIndices();
+			if(fMinEq != -1 || fMaxEq != -1)
+			{
+				FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
+			}
+			stiffness.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+			rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 #ifdef LOG4CXX
-		if(loggerel->isDebugEnabled())
-		{
-			std::stringstream sout;
-			sout << "Element stiffness matrix\n";
-			ek.Print(sout);
-			sout << "Element right hand side\n";
-			ef.Print(sout);
-			LOGPZ_DEBUG(loggerel,sout.str())
-		}
+			if(loggerel->isDebugEnabled())
+			{
+				std::stringstream sout;
+				sout << "Element stiffness matrix\n";
+				ek.Print(sout);
+				sout << "Element right hand side\n";
+				ef.Print(sout);
+				LOGPZ_DEBUG(loggerel,sout.str())
+			}
 #endif
-	}
-
+		}
+		
 		assemble.stop();
-  }//fim for iel
+	}//fim for iel
 	if(count > 20) std::cout << std::endl;
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
 		stiffness.Print("Matriz de Rigidez: ",sout);
-	//	std::ofstream eig("MatrixAssemble.nb");
-	//	stiffness.Print("MatrixAssemble= ",eig,EMathematicaInput);
+		//	std::ofstream eig("MatrixAssemble.nb");
+		//	stiffness.Print("MatrixAssemble= ",eig,EMathematicaInput);
 		LOGPZ_DEBUG(loggerCheck,sout.str())
 	}
-
+	
 #endif
-
+	
 }
 
 
 void TPZStructMatrix::Serial_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-
-  int iel;
-  int nelem = fMesh->NElements();
-//   TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
-
+	
+	int iel;
+	int nelem = fMesh->NElements();
+	//   TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
+	
 	TPZTimer calcresidual("Computing the residual vector");
 	TPZTimer assemble("Assembling the residual vector");
-
-  TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
-
-  for(iel=0; iel < nelem; iel++) {
-    TPZCompEl *el = elementvec[iel];
-    if(!el) continue;
-
-	  TPZAutoPointer<TPZMaterial> mat = el->Material();
-	  if (!mat) continue;
-	  int matid = mat->Id();
-	  if (this->ShouldCompute(matid) == false) continue;
-
-	TPZElementMatrix ef(fMesh, TPZElementMatrix::EF);
-
+	
+	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
+	
+	for(iel=0; iel < nelem; iel++) {
+		TPZCompEl *el = elementvec[iel];
+		if(!el) continue;
+		
+		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		if (!mat) continue;
+		int matid = mat->Id();
+		if (this->ShouldCompute(matid) == false) continue;
+		
+		TPZElementMatrix ef(fMesh, TPZElementMatrix::EF);
+		
 		calcresidual.start();
-
+		
 		el->CalcResidual(ef);
-
+		
 		calcresidual.stop();
-
-//     effile << "\n************** " << el->Reference()->Type() << " **************\n";
-//     el->Print(effile);
-//     ef.Print(effile);
-//     effile.flush();
-
+		
+		//     effile << "\n************** " << el->Reference()->Type() << " **************\n";
+		//     el->Print(effile);
+		//     ef.Print(effile);
+		//     effile.flush();
+		
 		assemble.start();
-
-    if(!el->HasDependency()) {
-      ef.ComputeDestinationIndices();
-	  if(fMinEq != -1 & fMaxEq != -1)
-      {
-		FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
-	  }
-	  rhs.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);
-	} else {
-	  // the element has dependent nodes
-	  ef.ApplyConstraints();
-	  ef.ComputeDestinationIndices();
-	  if(fMinEq != -1 & fMaxEq != -1)
-	  {
-		FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
-      }
-      rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
+		
+		if(!el->HasDependency()) {
+			ef.ComputeDestinationIndices();
+			if(fMinEq != -1 & fMaxEq != -1)
+			{
+				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
+			}
+			rhs.AddFel(ef.fMat, ef.fSourceIndex, ef.fDestinationIndex);
+		} else {
+			// the element has dependent nodes
+			ef.ApplyConstraints();
+			ef.ComputeDestinationIndices();
+			if(fMinEq != -1 & fMaxEq != -1)
+			{
+				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
+			}
+			rhs.AddFel(ef.fConstrMat,ef.fSourceIndex,ef.fDestinationIndex);
 		}
-
+		
 		assemble.stop();
-
-  }//fim for iel
+		
+	}//fim for iel
 #ifdef LOG4CXX
-  {
-    std::stringstream sout;
-    sout << calcresidual.processName() << " " << calcresidual << std::endl;
-    sout << assemble.processName() << " " << assemble;
-    LOGPZ_DEBUG(logger,sout.str().c_str());
+	{
+		std::stringstream sout;
+		sout << calcresidual.processName() << " " << calcresidual << std::endl;
+		sout << assemble.processName() << " " << assemble;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
 	}
 #endif
-
+	
 }
 
 void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -361,21 +361,21 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TP
 	int itr;
 	if(guiInterface){
 		if(guiInterface->AmIKilled()){
-    	return;
+			return;
 		}
 	}
 	for(itr=0; itr<numthreads; itr++)
 	{
 		pthread_create(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata);
 	}
-
+	
 	ThreadData::ThreadAssembly(&threaddata);
-
+	
 	for(itr=0; itr<numthreads; itr++)
 	{
 		pthread_join(allthreads[itr],NULL);
 	}
-
+	
 }
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -384,24 +384,24 @@ void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGu
 	this->Serial_Assemble(rhs, guiInterface);
 }
 
-  /// filter out the equations which are out of the range
+/// filter out the equations which are out of the range
 void TPZStructMatrix::FilterEquations(TPZVec<int> &origindex, TPZVec<int> &destindex, int fMinEq, int upeq)
 {
-  if(fMinEq == -1 || upeq == -1) return;
-  int count = 0;
-  int nel = origindex.NElements();
-  int i;
-  for(i=0; i<nel; i++)
-  {
-    if(destindex[i] >= fMinEq && destindex[i] < upeq)
-    {
-      origindex[count] = origindex[i];
-      destindex[count++] = destindex[i]-fMinEq;
-    }
-  }
-  origindex.Resize(count);
+	if(fMinEq == -1 || upeq == -1) return;
+	int count = 0;
+	int nel = origindex.NElements();
+	int i;
+	for(i=0; i<nel; i++)
+	{
+		if(destindex[i] >= fMinEq && destindex[i] < upeq)
+		{
+			origindex[count] = origindex[i];
+			destindex[count++] = destindex[i]-fMinEq;
+		}
+	}
+	origindex.Resize(count);
 	destindex.Resize(count);
-  
+	
 }
 
 TPZMatrix * TPZStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
@@ -424,45 +424,45 @@ TPZMatrix * TPZStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZG
 	
 }
 /*
-struct ThreadData
-	{
-		// Initialize the mutex semaphores and others
-		ThreadData();
-		// Destroy the mutex semaphores and others
-		~ThreadData();
-		// current structmatrix object
-		TPZStructMatrix *fReference;
-		// mutexes (to choose which element is next)
-		pthread_mutex_t fAccessElement;
-		// semaphore (to wake up assembly thread)
-		sem_t fAssembly;
-		// list of computed element matrices (autopointers?)
-		std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > 
-		// current element
-		int fNextElement;
-		// look for an element index which needs to be computed
-		int FindElement();
-		
-	};
-*/
+ struct ThreadData
+ {
+ // Initialize the mutex semaphores and others
+ ThreadData();
+ // Destroy the mutex semaphores and others
+ ~ThreadData();
+ // current structmatrix object
+ TPZStructMatrix *fReference;
+ // mutexes (to choose which element is next)
+ pthread_mutex_t fAccessElement;
+ // semaphore (to wake up assembly thread)
+ sem_t fAssembly;
+ // list of computed element matrices (autopointers?)
+ std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > > 
+ // current element
+ int fNextElement;
+ // look for an element index which needs to be computed
+ int FindElement();
+ 
+ };
+ */
 
 TPZStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat,
-																					TPZFMatrix &rhs, int mineq, int maxeq,
-																					std::set<int> &MaterialIds,
-																					TPZAutoPointer<TPZGuiInterface> guiInterface)
-																					: fMesh(&mesh),
-																					fGuiInterface(guiInterface),
-																					fGlobMatrix(&mat), fGlobRhs(&rhs),
-																					fMinEq(mineq), fMaxEq(maxeq),
-                                                                                    fNextElement(0)
+										TPZFMatrix &rhs, int mineq, int maxeq,
+										std::set<int> &MaterialIds,
+										TPZAutoPointer<TPZGuiInterface> guiInterface)
+: fMesh(&mesh),
+fGuiInterface(guiInterface),
+fGlobMatrix(&mat), fGlobRhs(&rhs),
+fMinEq(mineq), fMaxEq(maxeq),
+fNextElement(0)
 {
-
+	
 	fMaterialIds = MaterialIds;
 	pthread_mutex_init(&fAccessElement,NULL);
-/*	sem_t *sem_open( ... );
-    int sem_close(sem_t *sem);
-    int sem_unlink(const char *name);
-*/	
+	/*	sem_t *sem_open( ... );
+	 int sem_close(sem_t *sem);
+	 int sem_unlink(const char *name);
+	 */	
 #ifdef MACOSX
 	std::stringstream sout;
 	static int counter = 0;
@@ -482,14 +482,14 @@ TPZStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat,
 }
 
 TPZStructMatrix::ThreadData::~ThreadData()
-	{
-		pthread_mutex_destroy(&fAccessElement);
+{
+	pthread_mutex_destroy(&fAccessElement);
 #ifdef MACOSX
-		sem_close(fAssembly);
+	sem_close(fAssembly);
 #else
-		sem_destroy(&fAssembly);
+	sem_destroy(&fAssembly);
 #endif
-	}
+}
 
 void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 {
@@ -501,17 +501,17 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	int nel = cmesh->NElements();
 	while(iel < nel)
 	{
-
+		
 		TPZAutoPointer<TPZElementMatrix> ek = new TPZElementMatrix(cmesh,TPZElementMatrix::EK);
 		TPZAutoPointer<TPZElementMatrix> ef = new TPZElementMatrix(cmesh,TPZElementMatrix::EF);
-
+		
 		TPZCompEl *el = cmesh->ElementVec()[iel];
 		TPZElementMatrix *ekp = ek.operator->();
 		TPZElementMatrix *efp = ef.operator->();
 		TPZElementMatrix &ekr = *ekp;
 		TPZElementMatrix &efr = *efp;
 		el->CalcStiff(ekr,efr);
-
+		
 		if(guiInterface) if(guiInterface->AmIKilled()){
 			break;
 		}
@@ -571,7 +571,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 	return 0;
 }
 
-	// The function which will compute the assembly
+// The function which will compute the assembly
 void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 {
 	ThreadData *data = (ThreadData *) threaddata;
@@ -585,7 +585,7 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 	while(nextel < nel || numprocessed)
 	{
 		if(guiInterface) if(guiInterface->AmIKilled()){
-    	break;
+			break;
 		}
 		std::map<int, std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > >::iterator itavail;
 		std::set<int>::iterator itprocess;
@@ -654,9 +654,9 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed.size();
-
+		
 	}
-//	std::cout << std::endl;
+	//	std::cout << std::endl;
 	{
 		std::stringstream sout;
 		sout << "nextel = " << nextel << " numprocessed = " << numprocessed << " submitted " << data->fSubmitted.size() << std::endl;
@@ -666,7 +666,7 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 	pthread_mutex_unlock(&data->fAccessElement);
 	return 0;	
 }		
-	
+
 int TPZStructMatrix::ThreadData::NextElement()
 {
 	pthread_mutex_lock(&fAccessElement);
@@ -711,7 +711,7 @@ int TPZStructMatrix::ThreadData::NextElement()
 	return nextel;
 }
 
-	// put the computed element matrices in the map
+// put the computed element matrices in the map
 void TPZStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
 {
 	pthread_mutex_lock(&fAccessElement);
@@ -726,50 +726,50 @@ void TPZStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<
 	
 }
 
-	/// Set the set of material ids which will be considered when assembling the system
-	void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
-	{
-		fMaterialIds = materialids;
+/// Set the set of material ids which will be considered when assembling the system
+void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
+{
+	fMaterialIds = materialids;
 #ifdef LOG4CXX
+	{
+		std::set<int>::const_iterator it;
+		std::stringstream sout;
+		sout << "setting input material ids ";
+		for(it=materialids.begin(); it!= materialids.end(); it++)
 		{
-			std::set<int>::const_iterator it;
-			std::stringstream sout;
-			sout << "setting input material ids ";
-			for(it=materialids.begin(); it!= materialids.end(); it++)
-			{
-				sout << *it << " ";
-			}
-			LOGPZ_DEBUG(logger,sout.str())
+			sout << *it << " ";
 		}
-#endif
-		if(!fMesh)
-		{
-			LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
-			return;
-		}
-		int iel;
-		TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
-		int nel = elvec.NElements();
-		for(iel=0; iel<nel; iel++)
-		{
-			TPZCompEl *cel = elvec[iel];
-			if(!cel) continue;
-			TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
-			if(!subcmesh) continue;
-			TPZAnalysis *anal = subcmesh->GetAnalysis();
-			if(!anal)
-			{
-				LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
-				DebugStop();
-				//subcmesh->SetAnalysis();
-				//anal=subcmesh->GetAnalysis();
-			}
-			TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
-			if(!str)
-			{
-				LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
-				continue;
-			}
-			str->SetMaterialIds(materialids);
-		}
+		LOGPZ_DEBUG(logger,sout.str())
 	}
+#endif
+	if(!fMesh)
+	{
+		LOGPZ_WARN(logger,"SetMaterialIds called without mesh")
+		return;
+	}
+	int iel;
+	TPZAdmChunkVector<TPZCompEl*> &elvec = fMesh->ElementVec();
+	int nel = elvec.NElements();
+	for(iel=0; iel<nel; iel++)
+	{
+		TPZCompEl *cel = elvec[iel];
+		if(!cel) continue;
+		TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
+		if(!subcmesh) continue;
+		TPZAnalysis *anal = subcmesh->GetAnalysis();
+		if(!anal)
+		{
+			LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
+			DebugStop();
+			//subcmesh->SetAnalysis();
+			//anal=subcmesh->GetAnalysis();
+		}
+		TPZAutoPointer<TPZStructMatrix> str = anal->StructMatrix();
+		if(!str)
+		{
+			LOGPZ_WARN(logger,"SetMaterialIds called for substructure without structural matrix")
+			continue;
+		}
+		str->SetMaterialIds(materialids);
+	}
+}

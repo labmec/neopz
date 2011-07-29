@@ -6,10 +6,9 @@
 
 /**
  * @ingroup post
+ * @brief This class implements the interface of the graphmesh to the OpenDX graphics package
  */
-/// This class implements the interface of the graphmesh to the OpenDX graphics package
-/**
-This is the most actively supported graphics interface of the pz environment
+/** This is the most actively supported graphics interface of the pz environment
 */
 class TPZDXGraphMesh : public TPZGraphMesh {
 
@@ -41,8 +40,6 @@ public:
   std::string ElementName();
   void Close();
 	
-	/** Jorge 16/06/2001 */
-	/** To redefinition of the graph mesh */
   void SetNumCases(int numcases) { fNumCases = numcases; }
 
 private:

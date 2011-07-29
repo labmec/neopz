@@ -30,9 +30,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of a Prism
 	 */
-	
-	/// This class defines the topology of a Prism
 	class TPZPrism{
 	public:
 		

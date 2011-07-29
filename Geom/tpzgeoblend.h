@@ -1,3 +1,9 @@
+/**
+ / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
+ / LabMeC - FEC - UNICAMP
+ / 2007
+ */
+
 #ifndef TPZGEOBLEND_H
 #define TPZGEOBLEND_H
 
@@ -9,16 +15,13 @@
 
 #include <iostream>
 
-/**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
- */
 namespace pzgeom 
 {
 	
-	/// @ingroup geometry
-	/// @brief Implements a blending map from curved boundaries to the interior of the element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements a blending map from curved boundaries to the interior of the element
+	 */
 	template <class TGeo>
 	class TPZGeoBlend : public TGeo {
 		

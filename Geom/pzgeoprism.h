@@ -22,8 +22,10 @@ class TPZGeoMesh;
 
 namespace pzgeom {
 	
-	/// @ingroup geometry
-	/// @brief Implements the geometry of a prism element
+	/**
+	 * @ingroup geometry
+	 * @brief Implements the geometry of a prism element
+	 */
 	class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>  
 	{
 	public:

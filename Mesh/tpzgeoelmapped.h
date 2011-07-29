@@ -29,9 +29,11 @@ static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
 /**
  @ingroup geometry
  @brief This class implements a geometric element which uses its ancestral to compute its jacobian. 
- 
- Its main intent is to make the division of specially mapped elements easier: if the coarse grid map is consistent, then so will all refined meshes
  @author Philippe R. B. Devloo
+ */
+/**
+ * Its main intent is to make the division of specially mapped elements easier: \n 
+ * if the coarse grid map is consistent, then so will all refined meshes
  */
 template<class TBase>
 class TPZGeoElMapped : public TBase {

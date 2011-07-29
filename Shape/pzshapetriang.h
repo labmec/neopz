@@ -10,10 +10,11 @@ namespace pzshape {
 	
 	/** 
 	 * @brief Implements the shape functions of a triangular (2D) element
-	 
-	 * The triangular shape functions are also used in 3D elements
-	 * The range of the master element is 0,1
 	 * @ingroup shape
+	 */
+	/**
+	 * The triangular shape functions are also used in 3D elements \n
+	 * The range of the master element is 0,1
 	 */
 	class TPZShapeTriang : public pztopology::TPZTriangle {
 		

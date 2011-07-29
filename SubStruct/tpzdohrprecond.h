@@ -28,84 +28,86 @@
 #include "tpzdohrmatrix.h"
 #include "tpzdohrassembly.h"
 #include "tpzdohrassemblelist.h"
-
 /**
-@brief Implements a matrix which computes the preconditioner developed by Dohrmann
-
-@author Philippe Devloo
-*/
+ * \addtogroup substructure
+ * @{
+ */
+/**
+ @brief Implements a matrix which computes the preconditioner developed by Dohrmann
+ @author Philippe Devloo
+ */
 template <class TSubStruct = TPZDohrSubstruct> 
 class TPZDohrPrecond : public TPZMatrix
 {
- /**
-  * The matrix class is a placeholder for a list of substructures
-  */
-  std::list<TPZAutoPointer<TSubStruct> > fGlobal;
- /**
-  * The global matrix associated with the coarse degrees of freedom
-  */
-  TPZStepSolver * fCoarse; //K(c)
- /**
-  * The global residual vector associated with the coarse degrees of freedom
-  */
-//  TPZFMatrix fCoarseResidual; //r(c)
-  /**
-  * The product K(c)_inv*r(c)
-  */
-//  TPZFMatrix fInvKcrc; //r(c)
- /**
-  * Size of the coarse system
-  */
-  int fNumCoarse; //n(c)
+	/**
+	 * @brief The matrix class is a placeholder for a list of substructures
+	 */
+	std::list<TPZAutoPointer<TSubStruct> > fGlobal;
+	/**
+	 * @brief The global matrix associated with the coarse degrees of freedom
+	 */
+	TPZStepSolver * fCoarse; //K(c)
+	/**
+	 * The global residual vector associated with the coarse degrees of freedom
+	 */
+	//  TPZFMatrix fCoarseResidual; //r(c)
+	/**
+	 * The product K(c)_inv*r(c)
+	 */
+	//  TPZFMatrix fInvKcrc; //r(c)
+	/**
+	 * @brief Size of the coarse system
+	 */
+	int fNumCoarse; //n(c)
 	
-	/// Number of threads used during preconditioning
+	/** @brief Number of threads used during preconditioning */
 	int fNumThreads;
 	
 	TPZAutoPointer<TPZDohrAssembly> fAssemble;
- 
+	
 public:
     /// comentario do caio
     TPZDohrPrecond(TPZDohrMatrix<TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly> assemble);
 	
 	TPZDohrPrecond(const TPZDohrPrecond &copy);
-
+	
     ~TPZDohrPrecond();
     
     CLONEDEF(TPZDohrPrecond)
-
-  /// Initialize the necessary datastructures
-  /**
-  * It will compute the coarse matrix, coarse residual and any other necessary data structures
-  */
-  void Initialize();
+	
+	/**
+	 * @brief Initialize the necessary datastructures
+	 *
+	 * It will compute the coarse matrix, coarse residual and any other necessary data structures
+	 */
+	void Initialize();
     
-  void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
+	void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
     
-  /// The only method any matrix class needs to implement
-  /**
-  * In this case the variable x represents the rhs and z the result of the preconditioning
-  * When used as a preconditioner y will be zero
-  * In fact, it will compute v1+v2+v3
-  * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
-  * @param x Is x on the above operation. It must be a vector!
-  * @param y Is y on the above operation
-  * @param z Is z on the above operation
-  * @param alpha Is alpha on the above operation
-  * @param beta Is beta on the above operation
-  * @param opt Indicates if is Transpose or not
-  * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
-  */
-  virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-                        const REAL alpha,const REAL beta,const int opt,const int stride) const;
-
-
-  /// specify the solution process for the coarse matrix
-  void SetSolver(TPZSolver &solver);
-
-
-	/// Compute the contribution of the coarse matrix
+	/**
+	 * @brief The only method any matrix class needs to implement
+	 *
+	 * In this case the variable x represents the rhs and z the result of the preconditioning \n
+	 * When used as a preconditioner y will be zero
+	 * In fact, it will compute v1+v2+v3 \n
+	 * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
+	 * @param x Is x on the above operation. It must be a vector!
+	 * @param y Is y on the above operation
+	 * @param z Is z on the above operation
+	 * @param alpha Is alpha on the above operation
+	 * @param beta Is beta on the above operation
+	 * @param opt Indicates if is Transpose or not
+	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
+	 */
+	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+						 const REAL alpha,const REAL beta,const int opt,const int stride) const;
+	
+	/** @brief Specify the solution process for the coarse matrix */
+	void SetSolver(TPZSolver &solver);
+	
+	/** @brief Compute the contribution of the coarse matrix */
 	void ComputeV1(const TPZFMatrix &x, TPZFMatrix &v1) const;
-	/// Compute the contribution of the sub domains
+	/** @brief Compute the contribution of the sub domains */
 	void ComputeV2(const TPZFMatrix &x, TPZFMatrix &v2) const;
 };
 
@@ -117,7 +119,7 @@ struct TPZDohrPrecondThreadV1Data {
 	{
 	}
 	TPZDohrPrecondThreadV1Data(const TPZDohrPrecond<TSubStruct> *ptr, const TPZFMatrix &input, TPZFMatrix &output) : fDohrMatrix(ptr),
-		fInput(&input), fOutput(&output)
+	fInput(&input), fOutput(&output)
 	{
 	}
 	/// pointer to the dohr matrix
@@ -144,13 +146,13 @@ struct TPZDohrPrecondV2SubData {
 	}
 	
 	TPZDohrPrecondV2SubData(int subindex, const TPZAutoPointer<TSubStruct> &substruct, TPZAutoPointer<TPZFMatrix> res_local) : fSubStructure(substruct),
-		fInput_local(res_local)
+	fInput_local(res_local)
 	{
 		fv2_local = new TPZDohrAssembleItem(subindex, res_local->Rows());
 	}
 	/// protect ourselves from default copy constructors
 	TPZDohrPrecondV2SubData(const TPZDohrPrecondV2SubData<TSubStruct> &copy) : fSubStructure(copy.fSubStructure), fInput_local(copy.fInput_local),
-		fv2_local(copy.fv2_local)
+	fv2_local(copy.fv2_local)
 	{
 	}
 	
@@ -220,5 +222,6 @@ struct TPZDohrPrecondV2SubDataList {
 	static void *ThreadWork(void *voidptr);
 };
 
+/** @} */
 
 #endif

@@ -24,12 +24,13 @@ class TPZGeoMesh;
 class TPZGeoEl;
 
 /**
- @brief Implements a geometric node in the pz environment
- 
- A geometric node is a place holder for 3d coordinates and a global Id
- Note that the global id will influence the orientation of the shape functions
- It is very important that the global Ids will not be duplicated within a single mesh
- @ingroup geometry
+ * @brief Implements a geometric node in the pz environment
+ * @ingroup geometry
+ */
+/**
+ * A geometric node is a place holder for 3d coordinates and a global Id \n
+ * Note that the global id will influence the orientation of the shape functions \n
+ * It is very important that the global Ids will not be duplicated within a single mesh
  */
 class TPZGeoNode : public TPZSaveable {
 	

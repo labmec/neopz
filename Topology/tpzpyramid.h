@@ -31,9 +31,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of a Pyramid element
 	 */
-	
-	/// This class defines the topology of a Pyramid element
 	class TPZPyramid{
 	public:
 		

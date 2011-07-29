@@ -230,11 +230,12 @@ public:
 	
 	/**
 	 * @brief This method is used to create / identify the midside nodes for element elindex in its division process.
-	 * 
-	 * The method verify if the nodes are already created by the self element or by some neighbour.
 	 * @param gel - pointer to the element which are being divided
 	 * @param side - Side along which the nodes will be identified/created
 	 * @param newnodeindexes - return all midside node indexes for the element division.
+	 */
+	/**
+	 * The method verify if the nodes are already created by the self element or by some neighbour.
 	 */
 	void CreateMidSideNodes(TPZGeoEl *gel, int side, TPZVec<int> &newnodeindexes);
 	
@@ -383,9 +384,10 @@ private:
 	/**
      * @brief Each side of the element father is gotten as a partition enters the
      * sides of its sub-elements.
-	 *
+	 */
+	/** 
 	 * The vector fTransformSides keeps
-     * the respective hashing enters the side of the son and the side of 
+     * the respective hashing enters the side of the son and the side of \n
      * the father who contains it.
      */
     struct TPZPartitionFatherSides
@@ -422,10 +424,10 @@ private:
     /**
      * @brief This structure is defined with the intention to know which is the side 
      * of the element father who contains the side of the sub-element.
-	 *
-	 * A filled
-     * time this information calculates it hashing enters the side of the sub-
-     * element and the side of the respective element father
+	 */
+	/** 
+	 * A filled time this information calculates it hashing enters the side of the sub-element \n
+	 * and the side of the respective element father
      */ 
     struct TPZSideTransform
 	{
@@ -491,10 +493,10 @@ protected:
 public:
 	struct TPZRefPatternPermute
 	{
-		/// permutation of the nodes
+		/** @brief permutation of the nodes */
 		TPZPermutation fPermute;
 		
-		/// transformation to the nodes
+		/** @brief Transformation to the nodes */
 		TPZTransform fTransform;
 		
 		TPZRefPatternPermute(): fPermute(0)

@@ -34,11 +34,12 @@
 
 /**
  * @brief It is an equation array, generally in its decomposed form. \n
+ * @ingroup frontal
+ */
+/** 
  * Would be saved and read from disk. \n
- *
  * It contains a forward and a backward method. \n
  * It is sparce, symmetric or not.
- * @ingroup frontal
  */
 class TPZEqnArray {     
 	

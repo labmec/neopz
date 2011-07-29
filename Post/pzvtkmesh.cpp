@@ -13,8 +13,8 @@
 #include "pzmaterial.h"
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
-using namespace std;
 
+using namespace std;
 
 TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat,
 								 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat) {
@@ -40,7 +40,7 @@ void TPZVTKGraphMesh::DrawMesh(int numcases) {
 }
 
 void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
-
+	
 	TPZAutoPointer<TPZMaterial> matp = Material();
 	if(!matp) {
 		cout << "TPZMVGraphMesh no material found\n";
@@ -112,7 +112,7 @@ void TPZVTKGraphMesh::SequenceNodes(){
 }
 
 void TPZVTKGraphMesh::DrawNodes(){
-
+	
 	long nn = 0L;
 	int nnod = fNodeMap.NElements();
 	int i;

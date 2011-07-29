@@ -154,7 +154,7 @@ void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *
 }
 
 TPZPairStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat1, TPZMatrix &mat2, 
-										TPZFMatrix &rhs, int mineq, int maxeq)
+											TPZFMatrix &rhs, int mineq, int maxeq)
 : fMesh(&mesh), 
 fGlobMatrix1(&mat1), fGlobMatrix2(&mat2), fGlobRhs(&rhs),
 fMinEq(mineq), fMaxEq(maxeq),fNextElement(0)
@@ -340,7 +340,7 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				pthread_mutex_unlock(&data->fAccessElement);
 				TPZManVector<int,300> destindex(ek->fDestinationIndex);
 				data->PermuteScatter(destindex);
-
+				
 				// Assemble the matrix
 				if(!ek->HasDependency())
 				{

@@ -1,16 +1,17 @@
 /*****************************************************************************
- * O conteúdo desse arquivo é de propriedade do LabMeC-DES-FEC-UNICAMP e do
+ * O conteudo desse arquivo eh de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras. 
- * O uso de qualquer parte ou do todo está condicionado à expressa autorização
- * dos proprietários.
+ * O uso de qualquer parte ou do todo esta condicionado a expressa autorizacao
+ * dos proprietarios.
  *****************************************************************************/
+
 #include "pzreadmesh.h"
 
 TPZReadMesh::TPZReadMesh(const char * FileFullPath) :
-             fInputFile(FileFullPath)
-{}
+fInputFile(FileFullPath)
+{
+}
 
 TPZReadMesh::~TPZReadMesh()
-{}
-
-
+{
+}

@@ -181,7 +181,7 @@ void TPZDohrSubstructCondense::SolveSystemPhi() {
 			fPhiC(i,j) = rhs(i,j);
 		}
 	}
-//	fPhiC *= -1.;
+	//	fPhiC *= -1.;
 }
 
 
@@ -275,7 +275,7 @@ void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
 #ifdef DEBUG 
 	TPZFMatrix test(resloc);
 	test -= rhs;
-//	REAL err = Norm(test);
+	//	REAL err = Norm(test);
 #endif
 }
 
@@ -311,8 +311,8 @@ void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-//		uext.Print("Boundary node solution", sout);
-//		uloc.Print("Complete solution internal first", sout);
+		//		uext.Print("Boundary node solution", sout);
+		//		uloc.Print("Complete solution internal first", sout);
 		UGlob.Print("submesh solution", sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
@@ -397,7 +397,7 @@ void TPZDohrSubstructCondense::PrepareSystems() {
  */
 void TPZDohrSubstructCondense::AdjustResidual(TPZFMatrix &r_global)
 {
-//	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
+	//	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
 }
 
 /**

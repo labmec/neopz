@@ -31,10 +31,12 @@ class TPZVec;
 template<class T, int N>
 class TPZStack;
 
-/// defines the behaviour of all geometric elements
+/**
+ * @brief Defines the behaviour of all geometric elements
+ * @ingroup geometry
+ */
 /**
  * TPZGeoEl is the common denominator for all geometric elements.
- * @ingroup geometry
  */
 class TPZGeoEl : public TPZSaveable { 	// header file for the element class
 	

@@ -8,16 +8,18 @@
 class TPZGeoEl;
 
 /**
- / @author Paulo Cesar de Alvarenga Lucci (Caju)
  / LabMeC - FEC - UNICAMP
  / 2007
- / @ingroup geometry
- / @brief Defines a triangular geometric element with quadratic map
  */
 
 namespace pzgeom
 {
 	
+	/**
+	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @ingroup geometry
+	 * @brief Defines a triangular geometric element with quadratic map
+	 */
 	class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 		
 	public:

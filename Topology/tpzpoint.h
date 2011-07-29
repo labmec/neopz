@@ -33,9 +33,8 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
+	 * @brief This class defines the topology of a point
 	 */
-	
-	/// This class defines the topology of a point
 	class TPZPoint {
 	public:
 		
