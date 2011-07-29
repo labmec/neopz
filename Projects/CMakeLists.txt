@@ -40,8 +40,11 @@ else(BUILD_TUTORIAL)
 	add_subdirectory(ThermalStress)
 	add_subdirectory(HDiv)
 	add_subdirectory(Conductivity)
-	add_subdirectory(SteamInjection)
 	add_subdirectory(ConsLaw)
 	add_subdirectory(Descontinuo2)
+
+	if(USING_BOOST)
+		add_subdirectory(SteamInjection)
+	endif(USING_BOOST)
 
 endif(BUILD_TUTORIAL)
