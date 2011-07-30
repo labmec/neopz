@@ -49,6 +49,7 @@ public:
 	
 	void MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs);
 	
+	/** @brief Contains the thread data for matrices divided in sub structures. */
 	struct ThreadData
 	{
 		/** @brief Initialize the mutex semaphores and others */

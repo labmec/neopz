@@ -1,3 +1,7 @@
+/** 
+ * @file 
+ * @brief Contains the implementation of the methods to TPZFunction class. 
+ */
 //$Id: pzfunction.cpp,v 1.1 2007-09-04 12:35:22 tiago Exp $
 
 #include "pzfunction.h"

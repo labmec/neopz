@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains the TPZIncNavierStokesKEps class which implements an imcompressible Navier-Stokes formulation with modified KEpsilon turbulence model.
+ */
 // -*- c++ -*-
 
 /** @file pzincnskeps.h
@@ -19,8 +23,11 @@
 
 class TPZBndCond;
 
-/** This class implements an imcompressible Navier-Stokes formulation with modified KEpsilon turbulence model.
- * Variables are: {K, Eps, Pressure, Vx, Vy, Vz}.
+/**
+ * @ingroup material
+ * @brief This class implements an imcompressible Navier-Stokes formulation with modified KEpsilon turbulence model.
+ */
+/** Variables are: {K, Eps, Pressure, Vx, Vy, Vz}.
  * This class is homework:
  * @author Professor Paulo Vatavuk
  * @author Professor Philippe Devloo
@@ -31,95 +38,95 @@ class TPZBndCond;
  * @since June 29, 2005
  */
 class  TPZIncNavierStokesKEps : public TPZMaterial {
-
-  private:
-  
+	
+private:
+	
     int fDimension;
     
     REAL fMU, fRHO, fCmu, fSigmaK, fSigmaEps, fCepsilon1, fCepsilon2;
     
     TPZVec<REAL> fBodyForce; //fc = {0,0,-fc}
     
-    /** Dot for matrices with same dimensions. Tr[A B]. No consistence test is made. */
+    /** @brief Dot for matrices with same dimensions. Tr[A B]. No consistence test is made. */
     REAL Dot(TPZFMatrix &A, TPZFMatrix &B);
     
-    /** Dot of vector A with row BRow of matrix B. */
+    /** @brief Dot of vector A with row BRow of matrix B. */
     REAL Dot(TPZVec<REAL> &A, TPZFMatrix &B, int BRow);
-
-    /** Dot for vectors with same dimensions. No consistence test is made. */        
+	
+    /** @brief Dot for vectors with same dimensions. No consistence test is made. */        
     REAL Dot(TPZVec<REAL> &A, TPZVec<REAL> &B);
-
-  public:
-  
+	
+public:
+	
     enum VARIABLES {ENone = -1, EK = 0, EEpsilon, EPressure, EVx, EVy, EVz, EVvector};
-
+	
     TPZIncNavierStokesKEps(int id, int dimension);
     
     void SetParameters(REAL MU, REAL RHO, REAL Cmu, REAL SigmaK, REAL SigmaEps, REAL Cepsilon1, REAL Cepsilon2, TPZVec<REAL> &BodyForce );
     
     void GetParameters(REAL &MU, REAL &RHO, REAL &Cmu, REAL &SigmaK, REAL &SigmaEps, REAL &Cepsilon1, REAL &Cepsilon2, TPZVec<REAL> &BodyForce );    
-
+	
     virtual ~TPZIncNavierStokesKEps();
-
+	
     virtual int Dimension();
-
-    /** returns the number of state variables associated with the material*/
+	
+    /** @brief returns the number of state variables associated with the material*/
     virtual int NStateVariables();
-
-    /** print out the data associated with the material*/
+	
+    /** @brief print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
-
-    /** returns the number of variables associated with the variable
+	
+    /** @brief returns the number of variables associated with the variable
      *  indexed by var.  var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
-
+	
 protected:
-	/**returns the solution associated with the var index based on
+	/** @brief returns the solution associated with the var index based on
 	 * the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
 public:
-      /**returns the solution associated with the var index based on
-       * the finite element approximation*/
-	  virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
-	  {
-		  TPZMaterial::Solution(data,var,Solout);
-      }
-
-
-    /**Compute contribution to the tangent matrix and residual
+	/** @brief returns the solution associated with the var index based on
+	 * the finite element approximation*/
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	{
+		TPZMaterial::Solution(data,var,Solout);
+	}
+	
+	
+    /** @brief Compute contribution to the tangent matrix and residual
      * at an integration point*/
     virtual void Contribute(TPZMaterialData &data,
-                              REAL weight,
-                              TPZFMatrix &ek,
-                              TPZFMatrix &ef);
-                            
-    /**Compute contribution to the residual at an integration point*/
+							REAL weight,
+							TPZFMatrix &ek,
+							TPZFMatrix &ef);
+	
+    /** @brief Compute contribution to the residual at an integration point*/
     virtual void Contribute(TPZMaterialData &data,
-                              REAL weight,
-                              TPZFMatrix &ef);
-
-
-	/** Compute contribution to the stiffness matrix and right hand
-	  * side at the integration point of a boundary*/
+							REAL weight,
+							TPZFMatrix &ef);
+	
+	
+	/** @brief Compute contribution to the stiffness matrix and right hand
+	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
-								REAL weight,
-								TPZFMatrix &ek,
-								TPZFMatrix &ef,
-								TPZBndCond &bc);
-
-	/** Compute contribution to the stiffness matrix and right hand
-	  * side at the integration point of a boundary*/
+							  REAL weight,
+							  TPZFMatrix &ek,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc);
+	
+	/** @brief Compute contribution to the stiffness matrix and right hand
+	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
-								REAL weight,
-								TPZFMatrix &ef,
-								TPZBndCond &bc)
+							  REAL weight,
+							  TPZFMatrix &ef,
+							  TPZBndCond &bc)
 	{
         TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
-
-
-    /**Compute the error due to the difference between the
+	
+	
+    /** @brief Compute the error due to the difference between the
      * interpolated flux and the flux computed based on the
      * derivative of the solution
      */
@@ -130,7 +137,7 @@ public:
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-
+	
 };
 
 

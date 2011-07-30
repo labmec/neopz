@@ -1,6 +1,6 @@
 /**
- * \file
- * @brief DEPRECATED - Containts the class defining the Cartesian Coordinate System.
+ * \file pzcartsys.h
+ * @brief DEPRECATED - Contains the class defining the Cartesian Coordinate System.
  */
 //HEADER FILE FOR CLASS COSYS
 class TPZCosys;

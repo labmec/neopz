@@ -1,4 +1,7 @@
-/** @file pzstackmesh.cc */
+/**
+ * \file
+ * @brief Creating TPZStack classe from template to geometric and computational elements.
+ */
 // $Id: pzstackmesh.cpp,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
 
 #include "pzstack.h"

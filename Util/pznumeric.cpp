@@ -1,9 +1,13 @@
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZNumeric class.
+ */
 /***************************************************************************
-                          pznumeric.cpp  -  description
-                             -------------------
-    begin                : Wed Mar 27 2002
-    copyright            : (C) 2002 by Renato Gomes Damas
-    email                : rgdamas@fec.unicamp.br
+ pznumeric.cpp  -  description
+ -------------------
+ begin                : Wed Mar 27 2002
+ copyright            : (C) 2002 by Renato Gomes Damas
+ email                : rgdamas@fec.unicamp.br
  ***************************************************************************/
 
 /***************************************************************************

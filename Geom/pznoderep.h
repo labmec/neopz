@@ -32,7 +32,9 @@ static LoggerPtr lognoderep(Logger::getLogger("pz.geom.tpznoderep"));
 
 namespace pzgeom {
 	
-	/** @ingroup geometry topology
+	/**
+	 * @ingroup geometry
+	 * @ingroup topology
 	 */
 	const double pzgeom_TPZNodeRep_tol = 1.E-6;
 	
@@ -61,7 +63,7 @@ namespace pzgeom {
 		}
 		
 		static const int NNodes=N;
-		/// index of the nodes of the element
+		/** @brief Index of the nodes of the element */
 		int fNodeIndexes[N];
 		/**
 		 * @brief Constructor with list of nodes
@@ -74,24 +76,18 @@ namespace pzgeom {
 			for(i=nn; i<N; i++) fNodeIndexes[i]=-1;
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		TPZNodeRep()
 		{
 			int i;
 			for(i=0; i<N; i++) fNodeIndexes[i]=-1;
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		TPZNodeRep(const TPZNodeRep &cp,
 				   std::map<int,int> & gl2lcNdMap);
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZNodeRep(const TPZNodeRep<N,Topology> &cp)
 		{
 			memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));

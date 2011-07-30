@@ -15,7 +15,7 @@
 #include <sstream> 
 
 using namespace std;
-TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
+TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
 fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
 void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIterations) {
@@ -102,7 +102,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 	out.flush();	 
 }
 
-void TPZAnalysisError::PlotLocal(int iter, REAL CurrentEtaAdmissible, ostream &out) {
+void TPZAnalysisError::PlotLocal(int iter, REAL CurrentEtaAdmissible, std::ostream &out) {
 	EvaluateError(CurrentEtaAdmissible,out);
 	TPZManVector<std::string> solution(1);
 	solution[0] = "Solution";
@@ -273,7 +273,7 @@ void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL si
 }
 
 //void DivideRecursive(TPZCompEl *locel,int index,TPZVec<int> indexsubs,int hn);
-void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, ostream &out) {
+void TPZAnalysisError::HPAdapt(REAL CurrentEtaAdmissible, std::ostream &out) {
 	
 	arq << "CurrentEtaAdmissible "  << CurrentEtaAdmissible << endl;
 	
@@ -524,7 +524,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	graph << "\n};\n";
 	graph << "ListPlot[list, PlotJoined->True, PlotRange->All];" << endl;
 }
-void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, ostream &out) {
+void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &out) {
 	//Code isn�t place to chat
 	//#warning Philippe, tambem nao entendo aqui //<!>
 	

@@ -1,4 +1,7 @@
-/** @file pzstring.cc */
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZString class.
+ */
 // $Id: pzstring.cpp,v 1.6 2005-04-25 02:55:52 phil Exp $
 
 #include "pzstring.h"

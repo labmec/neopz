@@ -1,3 +1,7 @@
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZPlane class.
+ */
 /***************************************************************************
                           pzplane.cpp  -  description
                              -------------------

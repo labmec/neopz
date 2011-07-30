@@ -28,12 +28,15 @@ class TPZMaterial;
 class TPZMaterialData;
 class TPZIntPoints;
 
-/// This abstract class defines the behaviour which each derived class needs to implement
 /**
- classes derived from the TPZMaterial class implement the weak statement of the differential equation
- within the PZ environment
- It is noteworthy to observe that this definition does not depend on the definition of the interpolation space
- TPZMaterial objects also need to implement the interface for post processing the results
+ * @ingroup material
+ * @brief This abstract class defines the behaviour which each derived class needs to implement
+ */
+/**
+ * Classes derived from the TPZMaterial class implement the weak statement of the differential equation
+ * within the PZ environment \n
+ * It is noteworthy to observe that this definition does not depend on the definition of the interpolation space \n
+ * TPZMaterial objects also need to implement the interface for post processing the results
  */
 class  TPZMaterial : public TPZSaveable
 {
@@ -43,7 +46,7 @@ private:
 protected:
     void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
     
-    ///Defines whether the equation context is linear solver or non linear
+    /// @brief Defines whether the equation context is linear solver or non linear
     /**
      * True means linear (default)
      * @since 08 oct 2010
@@ -54,39 +57,44 @@ public:
     
     static REAL gBigNumber;
     
-    /** Creates a material object and inserts it in the vector of
-     *  material pointers of the mesh. Upon return vectorindex
+    /** @brief Creates a material object and inserts it in the vector of
+     *  material pointers of the mesh.
+	 */
+	/** 
+	 * Upon return vectorindex
      *  contains the index of the material object within the
      *  vector
      */
     TPZMaterial(int id);
     
     /**
-     * Default constructor
+     * @brief Default constructor
      */
     TPZMaterial();
     
-    /** Creates a material object based on the referred object and
+    /** @brief Creates a material object based on the referred object and
      *  inserts it in the vector of material pointers of the mesh.
-     *  Upon return vectorindex contains the index of the material
+	 */
+	/**  Upon return vectorindex contains the index of the material
      *  object within the vector
      */
     TPZMaterial(const TPZMaterial &mat);
     
     virtual ~TPZMaterial();
     
-    /** Fill material data parameter with necessary requirements for the
-     * Contribute method. Here, in base class, all requirements are considered
+    /** @brief Fill material data parameter with necessary requirements for the
+	 * @since April 10, 2007
+	 */
+	/** Contribute method. Here, in base class, all requirements are considered
      * as necessary. Each derived class may optimize performance by selecting
      * only the necessary data.
-     * @since April 10, 2007
      */
     virtual void FillDataRequirements(TPZMaterialData &data);
     
-    /** returns the name of the material*/
+    /** @brief returns the name of the material*/
     virtual std::string Name() { return "no_name"; }
     
-    /**returns the integrable dimension of the material*/
+    /** @brief returns the integrable dimension of the material*/
     virtual int Dimension() = 0;
     
     int Id() const { return fId; }
@@ -97,23 +105,23 @@ public:
         }
         fId = id; }
     
-    /** returns the number of state variables associated with the material*/
+    /** @brief returns the number of state variables associated with the material*/
     virtual int NStateVariables() = 0;
     
-    /** return the number of components which form the flux function*/
+    /** @brief return the number of components which form the flux function*/
     virtual int NFluxes() {return 0;}
     
-    /** print out the data associated with the material*/
+    /** @brief print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
     
-    /**returns the variable index associated with the name*/
+    /** @brief returns the variable index associated with the name*/
     virtual int VariableIndex(const std::string &name);
     
-    /** returns the number of variables associated with the variable
+    /** @brief returns the number of variables associated with the variable
      indexed by var.  var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
     
-    /**returns the solution associated with the var index based on
+    /** @brief returns the solution associated with the var index based on
      * the finite element approximation*/
     virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
     
@@ -123,20 +131,21 @@ protected:
     
 public:
     
-    /**compute the value of the flux function to be used by ZZ error
+    /** @brief compute the value of the flux function to be used by ZZ error
      * estimator*/
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
                       TPZFMatrix &DSol, TPZFMatrix &axes,
                       TPZVec<REAL> &flux) {}
     
-    /**Create an object TPZBndCond derived of TPZMaterial*/
+    /** @brief Create an object TPZBndCond derived of TPZMaterial*/
     virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1,
                                  TPZFMatrix &val2);
     
-    ///Metodos Contribute
-    
+    /** @name Metodos Contribute
+	 * @{
+	 */
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data[in] stores all input data
      * @param weight[in] is the weight of the integration rule
      * @param ek[out] is the stiffness matrix
@@ -146,7 +155,7 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
     
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data[in] stores all input data
      * @param weight[in] is the weight of the integration rule
      * @param ek[out] is the stiffness matrix
@@ -157,7 +166,7 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc) = 0;
     
     /**
-     * It computes a contribution to the residual vector at one integration point.
+     * @brief It computes a contribution to the residual vector at one integration point.
      * @param data[in] stores all input data
      * @param weight[in] is the weight of the integration rule
      * @param ef[out] is the residual vector
@@ -166,7 +175,7 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
     
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data[in] stores all input data
      * @param weight[in] is the weight of the integration rule
      * @param ek[out] is the stiffness matrix
@@ -175,7 +184,8 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
-    
+    /** @} */
+	
     /**Compute contribution to the energy at an integration point*/
     //      virtual void ContributeEnergy(TPZVec<REAL> &x,
     //			      TPZVec<FADFADREAL> &sol,
@@ -194,9 +204,10 @@ public:
     //	REAL weight, TPZBndCond &bc);
     
     //#endif
-    /**Set a procedure as source function for the material.  loc
-	 corresponds to the coordinate of the point where the source
-	 function is applied*/
+    /** 
+	 * @brief Set a procedure as source function for the material.
+	 * @param loc corresponds to the coordinate of the point where the source function is applied
+	 */
     void SetForcingFunction(void (*fp)(TPZVec<REAL> &loc,
                                        TPZVec<REAL> &result))
     {
@@ -206,22 +217,23 @@ public:
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
     
     /** 
-     * Get the order of the integration rule necessary to integrate an
+     * @brief Get the order of the integration rule necessary to integrate an
      * element with polinomial order p
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
     
     /** Set the integration rule order based on the element
-     *   p order of interpolation, its dimension and the characteristics
+     *  @param p order of interpolation, its dimension and the characteristics
      *   of the material
      *
-    virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
-                                    int elPMaxOrder,
-                                    int elDimension);
-    */
-    /**Compute the error due to the difference between the
-	 interpolated flux and the flux computed based on the
-	 derivative of the solution*/
+	 virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
+	 int elPMaxOrder,
+	 int elDimension);
+	 */
+    /**
+	 * @brief Compute the error due to the difference between the interpolated flux \n
+	 * and the flux computed based on the derivative of the solution
+	 */
     virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
                         TPZFMatrix &axes, TPZVec<REAL> &flux,
                         TPZVec<REAL> &uexact, TPZFMatrix &duexact,
@@ -231,23 +243,23 @@ public:
     }
     
     /**
-     * Returns the number of norm errors. Default is 3: energy, L2 and H1.
+     * @brief Returns the number of norm errors. Default is 3: energy, L2 and H1.
      */
     virtual int NEvalErrors() {return 3;}
     
-    /**To create another material of the same type*/
+    /** @brief To create another material of the same type*/
     virtual TPZAutoPointer<TPZMaterial> NewMaterial();
     
-    /**Read data of the material from a istream (file data)*/
+    /** @brief Read data of the material from a istream (file data)*/
     virtual void SetData(std::istream &data);
     
     /**
-     * Create a copy of the material object and put it in the vector
+     * @brief Create a copy of the material object and put it in the vector
      * which is passed on
      */
     virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
     
-    /**To return a numerical flux type to apply over the interfaces
+    /** @brief To return a numerical flux type to apply over the interfaces
      * of the elements*/
     virtual int FluxType() { return 2; }
     
@@ -262,7 +274,7 @@ public:
     }
     
     /**
-     * Compute square of residual of the differential equation at one integration point.
+     * @brief Compute square of residual of the differential equation at one integration point.
      * @param X is the point coordinate (x,y,z)
      * @param sol is the solution vector
      * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
@@ -273,36 +285,37 @@ public:
     }
     
     /**
-     * Unique identifier for serialization purposes
+     * @brief Unique identifier for serialization purposes
      */
     virtual int ClassId() const;
     
     /**
-     * Save the element data to a stream
+     * @brief Save the element data to a stream
      */
     virtual void Write(TPZStream &buf, int withclassid);
     
     /**
-     * Read the element data from a stream
+     * @brief Read the element data from a stream
      */
     virtual void Read(TPZStream &buf, void *context);
     
     /**
-     * Pushes a new entry in the context of materials with memory,
+     * @brief Pushes a new entry in the context of materials with memory,
      * returning its index at the internal storage stack.
-     * to be implemented only in the proper materials.
+	 */
+	/** To be implemented only in the proper materials.
      */
     virtual int PushMemItem(int sourceIndex = -1){ return -1; }
     
     /**
-     * Frees an entry in the material with memory internal history storage
+     * @brief Frees an entry in the material with memory internal history storage
      */
     virtual void FreeMemItem(int index){ return; }
     
-    /// Set fLinearContext attribute
+    /** @brief Set fLinearContext attribute */
     void SetLinearContext(bool IsLinear);
     
-    /// Returns fLinearContext attribute
+    /** @brief Returns fLinearContext attribute */
     bool GetLinearContext() const;
     
 };

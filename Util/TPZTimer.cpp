@@ -1,4 +1,7 @@
-/** @file TPZTimer.cpp */
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZTimer class.
+ */
 
 // $Id: TPZTimer.cpp,v 1.6 2011-05-13 20:19:54 phil Exp $
 

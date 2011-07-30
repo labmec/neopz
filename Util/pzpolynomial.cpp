@@ -1,3 +1,7 @@
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZPolynomial class.
+ */
 #include "pzpolynomial.h"
 #include "pznumeric.h"
 #include <iostream>

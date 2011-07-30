@@ -1,3 +1,7 @@
+/** 
+ * @file 
+ * @brief Implementation of the tpzautopointer. 
+ */
 //
 // C++ Implementation: tpzautopointer
 //

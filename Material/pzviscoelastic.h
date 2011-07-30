@@ -1,7 +1,8 @@
+/**
+ * \file
+ * @brief Contains the TPZViscoelastic class which implements an isotropic viscoelasticity material.
+ */
 /*
- *  pzviscoelastic.h
- *  pos_processamento
- *
  *  Created by Pamela Diaz on 7/16/10.
  *  Copyright 2010 __MyCompanyName__. All rights reserved.
  *
@@ -27,12 +28,11 @@ const int _ZZ_ = 5;
 #include "pzelast3d.h"
 #include "pzmatwithmem.h"
 
-/** This class implements an isotropic viscoelasticity material.
+/**
+ * @ingroup material
+ * @brief This class implements an isotropic viscoelasticity material.
  *  @since Aug 31, 2005.
  */
-
-
-
 class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix, TPZElasticity3D>
 {
 	

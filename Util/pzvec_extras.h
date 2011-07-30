@@ -1,6 +1,6 @@
 // -*- c++ -*-
 /**
- * @file pzvec_extra.h
+ * @file
  * @brief Extra utilities for TPZVec.
  */
 // $Id: pzvec_extras.h,v 1.12 2011-03-24 19:58:12 phil Exp $

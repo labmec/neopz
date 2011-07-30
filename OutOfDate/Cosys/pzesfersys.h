@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Containts the class defining the Spherical Coordinate System.
+ * @brief DEPRECATED - Contains the class defining the Spherical Coordinate System.
  */
 //HEADER FILE FOR CLASS COSYS
 

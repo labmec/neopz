@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains the TPZOutofRange class.
+ */
 //
 // C++ Interface: tpzoutofrange
 //
@@ -13,16 +17,16 @@
 #define TPZOUTOFRANGE_H
 
 /**
-This class is used as an exception thrown on an outofrange condition
-
-@author Philippe Devloo
-*/
+ * @ingroup material
+ * @brief This class is used as an exception thrown on an outofrange condition
+ * @author Philippe Devloo
+ */
 class TPZOutofRange{
 public:
     TPZOutofRange();
-
+	
     ~TPZOutofRange();
-
+	
 };
 
 #endif

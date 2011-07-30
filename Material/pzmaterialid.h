@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains IDs for materials.
+ */
 //
 // C++ Interface: pzmaterialid
 //
@@ -11,6 +15,10 @@
 //
 #ifndef PZMATERIALIDH
 #define PZMATERIALIDH
+
+/** \addtogroup
+ * @{
+ */
 
 const int TPZMATERIALID = 300;
 const int TPZDISCONTINUOUSGALERKIN = 301;
@@ -29,5 +37,7 @@ const int TPZELASTICITYAXIMATERIALID = 312;
 const int TPZMATERIALDATAID = 313;
 
 const int TPZMATERIALVOIDFLUX = 314;
+
+/** @} */
 
 #endif //PZMATERIALIDH

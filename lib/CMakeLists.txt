@@ -37,14 +37,14 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 add_library(pz ${pzsources})
 install(TARGETS pz ARCHIVE DESTINATION lib)
 
-#creating pzmatrix lib
-set(pzmatrixsources 
-	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzsave_STAT_SRCS} 
-	${pzmatrix_STAT_SRCS} ${pzlinearsolvers_STAT_SRCS}
-	)
+#creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
+#set(pzmatrixsources 
+#	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzsave_STAT_SRCS} 
+#	${pzmatrix_STAT_SRCS} ${pzlinearsolvers_STAT_SRCS}
+#	)
 
-add_library(pzmatrix ${pzmatrixsources})
-install(TARGETS pzmatrix ARCHIVE DESTINATION lib)
+#add_library(pzmatrix ${pzmatrixsources})
+#install(TARGETS pzmatrix ARCHIVE DESTINATION lib)
 
 #Verifying the content of the strings
 #file(APPEND "${LogFile}" "${pzsources}   ..  \n\n")

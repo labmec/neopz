@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Containts the base class to define Coordinate Systems.
+ * @brief DEPRECATED - Contains the base class to define Coordinate Systems.
  */
 //HEADER FILE FOR CLASS TPZCosys
 

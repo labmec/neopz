@@ -1,10 +1,10 @@
-/*
- *  pzcheckconsistency.cpp
- *  IP3D_v3
- *
- *  Created by Philippe Devloo on 27/12/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
+/** 
+ * @file
+ * @brief Creates a chunk vector to integers.
+ * @author Created by Philippe Devloo on 27/12/09.
+ */
+/**
+ * Copyright 2009 UNICAMP. All rights reserved.
  */
 
 #include "pzcheckconsistency.h"

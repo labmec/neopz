@@ -1,3 +1,7 @@
+/** 
+ * @file
+ * @brief Contains the implementation of the methods to TPZSemaphore class.
+ */
 //#include "StdAfx.h"
 #include "TPZSemaphore.h"
 #include <fstream>
