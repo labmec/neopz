@@ -4,8 +4,12 @@
 #pragma hdrstop
 
 #include "TSWXSteam.h"
-#include <boost/math/special_functions/erf.hpp>
 
+#ifdef USING_BOOST
+	#include <boost/math/special_functions/erf.hpp>
+#else
+	#include <math.h>
+#endif
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)
@@ -413,8 +417,13 @@ double TSwxSteam::getRegionAuxiliar(int i, double tempo)
 	}
 
 	double var_adim = sqrt(delta * tau) / H_RhoCEstrela;
-	double func_adim = exp(var_adim * var_adim) * boost::math::erfc(var_adim) + ((2. / sqrt(M_PI)) * var_adim) - 1.;
-
+	double func_adim;
+#ifdef USING_BOOST
+	func_adim = exp(var_adim * var_adim) * boost::math::erfc(var_adim) + ((2. / sqrt(M_PI)) * var_adim) - 1.;
+#else
+	func_adim = exp(var_adim * var_adim) * erfc(var_adim) + ((2. / sqrt(M_PI)) * var_adim) - 1.;
+#endif
+	
 	return((H_RhoCEstrela * func_adim) / (delta * difTemp));
 }
 //---------------------------------------------------------------------------

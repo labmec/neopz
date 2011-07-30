@@ -54,8 +54,8 @@ add_custom_target(pzdocs SOURCES ${makefilescpy} ${doxyfiles})
 #Defining variables
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
 
-set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "directory where pthread.h can be found")
-set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "directory where the pthread library can be found")
+set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
+set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "Directory where the pthread library can be found")
 include_directories(${PTHREAD_INCLUDE})
 link_directories(${PTHREAD_LIB_INCLUDE})
 link_libraries(pthread)
@@ -79,19 +79,19 @@ endif()
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 
 if(USING_FAD)
-	find_path(fadpath FAD)
-	if(NOT fadpath-NOTFOUND)
-		set(FAD_INCLUDE ${fadpath}/FAD CACHE PATH "directory to the source of FAD")
+	find_path(FAD_INCLUDE FAD)
+	if(NOT FAD_INCLUDE-NOTFOUND)
+		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
 		add_definitions(-D_AUTODIFF)
-		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
+		include_directories(${FAD_INCLUDE}/FAD ${FAD_INCLUDE}/FAD/Fad ${FAD_INCLUDE}/FAD/TinyFad ${FAD_INCLUDE}/FAD/TinyFadET)
 	endif()
 endif(USING_FAD)
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
-	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "directory where log4cxx header files can be found")
-	set (LOG4CXX_LIB_INCLUDE "/usr/local/lib" CACHE PATH "directory where the log4cxx library can be found")
+	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "Directory where log4cxx header files can be found")
+	set (LOG4CXX_LIB_INCLUDE "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
 	include_directories(${LOG4CXX_INCLUDE})
 	link_directories(${LOG4CXX_LIB_INCLUDE})
 	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
@@ -142,7 +142,6 @@ add_subdirectory(lib)
 	add_subdirectory(Projects)
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
-#set(LogFile
-#	"${PROJECT_SOURCE_DIR}/LogCMake.txt"
+#set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"
 #	CACHE STRING "Log file to control CMake process"
 #	) 

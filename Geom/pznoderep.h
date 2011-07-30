@@ -32,8 +32,7 @@ static LoggerPtr lognoderep(Logger::getLogger("pz.geom.tpznoderep"));
 
 namespace pzgeom {
 	
-	/** \addtogroup geometry topology
-	 * @{
+	/** @ingroup geometry topology
 	 */
 	const double pzgeom_TPZNodeRep_tol = 1.E-6;
 	

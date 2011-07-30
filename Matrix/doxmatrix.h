@@ -1,20 +1,20 @@
 /** 
- * @defgroup matrix Matrix classes
+ * @defgroup matrix The Matrix classes
  * This module groups a collection of all matrix classes and solvers
  * available in the PZ environment.
  */
 /**
- * @defgroup matrixutility matrix utility classes
+ * @defgroup matrixutility The matrix utility classes
  * @ingroup matrix
  * Implements helper classes for matrices
  */
 
 /**
- * @defgroup solver Solver classes
+ * @defgroup solver The Solver classes
  * This module contains all classes that represent a matrix inversion procedure. Representing a inversion procedure as an object gives the user
  * great flexibility to combine solution procedures
  */
 /**
- * @defgroup frontal Frontal Matrix classes
+ * @defgroup frontal The Frontal Matrix classes
  * This module contains all classes involved in the frontal process
  */

@@ -1,6 +1,7 @@
 /** @file pzmaterial.h
  *
- * Header file for abstract class TPZMaterial.
+ * @brief Header file for abstract class TPZMaterial.\n
+ * It implements the weak statement of the differential equation within the PZ environment.
  */
 
 #ifndef PZMATERIALHPP

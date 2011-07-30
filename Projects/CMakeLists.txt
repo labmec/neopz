@@ -43,8 +43,6 @@ else(BUILD_TUTORIAL)
 	add_subdirectory(ConsLaw)
 	add_subdirectory(Descontinuo2)
 
-	if(USING_BOOST)
-		add_subdirectory(SteamInjection)
-	endif(USING_BOOST)
+	add_subdirectory(SteamInjection)
 
 endif(BUILD_TUTORIAL)

@@ -234,8 +234,7 @@ public:
 /**
  @brief Associate a degree of freedom node with a boundary condition
  such boundary condition can be dirichlet, point load or mixed boundary condition.
- \deprecated
- THIS CLASS IS DEPRECATED
+ @deprecated THIS CLASS IS DEPRECATED
  */
 struct TPZConnectBC {
 	
