@@ -1,8 +1,15 @@
-// Jorge at 2011, July.
+/**
+* @file
+* @brief Contains Unit Tests for methods of the matrices classes.
+*/
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
+#include "pzblockdiag.h"
 #include "pzbndmat.h"
+#include "pzespmat.h"
+#include "pzsbndmat.h"
+#include "pzsfulmat.h"
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN pz matrix tests
@@ -31,7 +38,6 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 
 /**
 * @brief Tests the Inverse method of the matrix to any matrix types. It uses the AutoFill method to create a square matrix with 
-*
 * @param dim Dimension of the square matrix to be build.
 * @note Process: build square matrix with randomic values, compute its inverse and the inverse of the inverse.
 * Then, checks whether the first and last matrices are identical.
@@ -39,6 +45,7 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 /** Thanks it:
  * NOTE1: I knowed that Inverse function change data of the current matrix. It stores some decomposition (LU or Cholesky ...)
  * NOTE2: If a matrix is decomposed, all times when you call Inverse, it isn't calculated because the matrix has decomposed flag as TRUE 
+ * NOTE3: The first function is for square matrices and the second function is for rectangular matrices.
  */
 template <class matx>
 void TestingInverseWithAutoFill(int dim) {
@@ -46,23 +53,43 @@ void TestingInverseWithAutoFill(int dim) {
 	
 	matx ma(dim,dim);
 	ma.AutoFill();
-	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFMatrix>(ma),1);
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
 	// Making ma copy because ma is modified by Inverse method (it's decomposed)
 	matx cpy(ma);
-	matx inv(dim,dim);
+	TPZFMatrix inv(dim,dim);
+	TPZFMatrix res(inv);
 	// getting inverse twice
 	cpy.Inverse(inv);
-	inv.Inverse(cpy);
+	inv.Inverse(res);
 	
 	/// Checking whether the res matrix is identical to m1 matrix
 	for(i=0;i<dim;i++)
 		for(j=0;j<dim;j++)
-			BOOST_CHECK(IsZero(ma.GetVal(i,j) - cpy.GetVal(i,j)));
+			BOOST_CHECK(IsZero(ma.GetVal(i,j) - res.GetVal(i,j)));
+}
+template <class matx>
+void TestingInverseWithAutoFill(int rows,int bnd) {
+	int i, j, columns = rows;
+	
+	matx ma(rows,bnd);
+	ma.AutoFill();
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
+	// Making ma copy because ma is modified by Inverse method (it's decomposed)
+	matx cpy(ma);
+	TPZFMatrix inv(rows,rows);
+	TPZFMatrix res(rows,rows);
+	// getting inverse twice
+	cpy.Inverse(inv);
+	inv.Inverse(res);
+	
+	/// Checking whether the res matrix is identical to m1 matrix
+	for(i=0;i<rows;i++)
+		for(j=0;j<rows;j++)
+			BOOST_CHECK(IsZero(ma.GetVal(i,j) - res.GetVal(i,j)));
 }
 
 /**
 * @brief Tests the operator * of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
-*
 * @param dim Dimension of the square matrix to be build.
 * @note Process: build square matrix with randomic values, compute the product using * operator and then checks whether it is a identity matrix.
 */
@@ -91,10 +118,11 @@ void TestingMultiplyOperatorWithAutoFill(int dim) {
 
 /**
 * @brief Tests the Multiply method of the matrix, using AutoFill to build a square matrix of dimension dim (user defined)
-*
 * @param dim Dimension of the square matrix to be build.
 * @note Process: build square matrix with randomic values, compute its inverse then calculate the product of the first and inverse.
-* Check if the result is a identity matrix.
+*/
+/**
+ * Check if the result is a identity matrix.
 */
 template <class matx>
 void TestingMultiplyWithAutoFill(int dim) {
@@ -147,19 +175,40 @@ void TestingTransposeWithAutoFill(int rows,int cols) {
 BOOST_AUTO_TEST_SUITE(matrix_tests)
 
 BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
-	int dim, maxiter = 100;
-	for(dim=3;dim<maxiter;dim++) {
+	int dim, i;
+	
+	// Unit Test for full matrix
+	for(dim=3;dim<100;dim+=7) {
 		TPZFMatrix ma(dim,dim);
 		ma.AutoFill();
 		BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFMatrix>(ma),1);
 	}
+	
+	// Unit Test for block diagonal matrix
+	TPZVec<int> blocks(13);
+	for(i=0;i<13;i++)
+		blocks[i] = 15+(i%4);
+	TPZBlockDiagonal mabd(blocks);
+	mabd.AutoFill();
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZBlockDiagonal>(mabd),1);
+	
+	// Unit Test No Symmetric Banded matrix
+	TPZFBMatrix mafb(17,5);
+	mafb.AutoFill();
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix>(mafb),1);
 }
 
 BOOST_AUTO_TEST_CASE(inverse_tests)
 {
 	int dim;
-	for(dim = 3;dim < 100; dim+=5) {
+	for(dim = 9;dim < 100; dim+=5) {
 		TestingInverseWithAutoFill<TPZFMatrix>(dim);
+	//	TestingInverseWithAutoFill<TPZBlockDiagonal>(dim);
+		TestingInverseWithAutoFill<TPZFBMatrix>(dim,7);
+		TestingInverseWithAutoFill<TPZSpMatrix>(dim,dim);
+		TestingInverseWithAutoFill<TPZFNMatrix<9> >(dim,dim);
+	//	TestingInverseWithAutoFill<TPZSBMatrix>(dim);
+	//	TestingInverseWithAutoFill<TPZSFMatrix>(dim);
 	}
 }
 
