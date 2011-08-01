@@ -7,6 +7,12 @@
 #include "tpzgeoelrefpattern.h.h"
 #include "pznoderep.h.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadraticcube"));
+#endif
+
 using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
