@@ -1059,11 +1059,34 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix 
 	TPZManVector<REAL,3> X0(3,0.);//centro do elemento
 	
     int degree= this->fPressureOrder;
-	const int nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);//ETensorial);ETensorial);
+    int nshapedisc;
+    if (TSHAPE::Type()==EQuadrilateral) 
+    {
+        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);//ETensorial);ETensorial);
+    }
+    else if(TSHAPE::Type() == ETriangle)
+    {
+        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: EOrdemTotal);//ETensorial);ETensorial);
+    }
+    else
+    {
+        DebugStop();
+    }
 	TPZFNMatrix<660> phiDisc(nshapedisc,1);
 	
 	TPZFNMatrix<660> dphiDisc(dimension,nshapedisc);
-	pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);// EOrdemTotal);//ETensorial);
+    
+    if (TSHAPE::Type()==EQuadrilateral) {
+        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);// EOrdemTotal);//ETensorial);
+    } 
+    else if (TSHAPE::Type()==ETriangle) 
+    {
+        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::EOrdemTotal);
+    }
+    else
+    {
+        DebugStop();
+    }
 	this->Append(phiCont,phiDisc,phi);
 	this->Append(dphiCont,dphiDisc,dphi);
 	/*
