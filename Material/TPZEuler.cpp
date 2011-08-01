@@ -45,7 +45,7 @@ int TPZEuler::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"velocity")) return 3;
 	return TPZMaterial::VariableIndex(name);
 }
-void TPZEuler::Print(ostream & out) {
+void TPZEuler::Print(std::ostream & out) {
     TPZMaterial::Print(out);
 }
 void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,

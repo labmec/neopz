@@ -44,7 +44,7 @@ int TPZCoupledTransportDarcy::NStateVariables() {
 	return this->GetCurrentMaterial()->NStateVariables();
 }
 
-void TPZCoupledTransportDarcy::Print(ostream &out) {
+void TPZCoupledTransportDarcy::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "Base Class properties : \n";
 	TPZMaterial::Print(out);

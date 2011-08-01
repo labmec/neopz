@@ -33,7 +33,7 @@ fXf(f){}
 TPZNonLinBiharmonic::~TPZNonLinBiharmonic() {
 }
 
-void TPZNonLinBiharmonic::Print(ostream &out) {
+void TPZNonLinBiharmonic::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	TPZMaterial::Print(out);

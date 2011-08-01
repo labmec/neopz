@@ -44,7 +44,7 @@ int TPZMatHyperElastic::NStateVariables() {
 	return 3;//3 deslocamentos
 }
 
-void TPZMatHyperElastic::Print(ostream &out) {
+void TPZMatHyperElastic::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	TPZMaterial::Print(out);

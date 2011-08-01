@@ -172,7 +172,7 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 	//	pzerror.show();
 }
 
-void TPZMat1dLin::Print(ostream & out){
+void TPZMat1dLin::Print(std::ostream & out){
 	
 	out << "Material type TPZMat1dLin -- number = " << Id() << "\n";
 	out << "Matrix xk ->  "; fXk.Print("fXk",out);

@@ -28,8 +28,7 @@ protected:
 	TPZFMatrix fKxx,fKyy,fKxy,fKyx,fBx0,fB0x,fBy0,fB0y,fB00;
 	TPZVec<REAL> fXF;
 	
-	/** Modify the direction of the fibres for the plate
-	 */
+	/** @brief Modify the direction of the fibres for the plate */
 	void SetNAxes(TPZFMatrix &n);
 	
 	public :
@@ -83,19 +82,21 @@ protected:
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 						TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 	
-	/**returns the variable index associated with the name*/
+	/** @brief Returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);
 	
-	/** returns the number of variables associated with the variable indexed by var.
-	 var is obtained by calling VariableIndex*/
+	/**
+	 * @brief Returns the number of variables associated with the variable indexed by var.
+	 * @param var is obtained by calling VariableIndex
+	 */
 	virtual int NSolutionVariables(int var);
 	
 protected:
-	/**returns the solution associated with the var index based on the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on
+	 * the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);

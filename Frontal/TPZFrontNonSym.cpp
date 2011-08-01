@@ -31,7 +31,7 @@ static LoggerPtr logger(Logger::getLogger("pz.frontstrmatrix.frontnonsym"));
 DecomposeType TPZFrontNonSym::GetDecomposeType() const{
 	return fDecomposeType;
 }
-void TPZFrontNonSym::PrintGlobal(const char *name, ostream& out = cout){
+void TPZFrontNonSym::PrintGlobal(const char *name, std::ostream& out = cout){
 	int i, j;
 	out << name << endl;
 	for(i=0;i<fLocal.NElements();i++){
@@ -49,7 +49,7 @@ void TPZFrontNonSym::PrintGlobal(const char *name, ostream& out = cout){
 	out << endl;
 	out.flush();
 }
-void TPZFrontNonSym::Print(const char *name, ostream& out = cout) const
+void TPZFrontNonSym::Print(const char *name, std::ostream& out = cout) const
 {
 	if(name) out << name << endl;
 	int i,j,loop_limit;

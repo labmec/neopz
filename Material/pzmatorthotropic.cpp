@@ -90,7 +90,7 @@ int TPZMatOrthotropic::NStateVariables() {
 	return 3;
 }
 
-void TPZMatOrthotropic::Print(ostream &out) {
+void TPZMatOrthotropic::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	out << "Eppx = " << fEppx << "\tEppy = " << fEppy << "\tEppz = " << fEppz << endl;

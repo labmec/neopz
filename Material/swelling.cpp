@@ -60,7 +60,7 @@ TPZSwelling::~TPZSwelling() {
 }
 
 
-void TPZSwelling::Print(ostream &out) {
+void TPZSwelling::Print(std::ostream &out) {
 	TPZMaterial::Print(out);
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";

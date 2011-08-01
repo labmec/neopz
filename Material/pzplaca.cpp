@@ -307,7 +307,7 @@ void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/
 	PZError << "TPZPlaca::Flux is called\n";
 }
 
-void TPZPlaca::Print(ostream & out) {
+void TPZPlaca::Print(std::ostream & out) {
 	//out << "Material type TPZPlaca -- number = " << Id() << "\n";
 	//out << "Matrix xk ->  "; fXk.Print("fXk",out);
 	//out << "Matrix xC ->  "; fCk.Print("fCf",out);

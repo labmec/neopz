@@ -136,7 +136,7 @@ void TPZPlacaOrthotropic::IdentifyCompEl() {
 }
 
 REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol);
-void TPZPlacaOrthotropic::PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+void TPZPlacaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
 	
 	TPZInt1d rule(8);
 	int np = rule.NPoints();
@@ -165,7 +165,7 @@ void TPZPlacaOrthotropic::PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMat
 	out << "Norma of tensor out - tensor in = " << normat << endl;
 }
 
-void TPZPlacaOrthotropic::PrintTensors(ostream &out) {
+void TPZPlacaOrthotropic::PrintTensors(std::ostream &out) {
 	TPZInt1d rule(8);
 	int np = rule.NPoints();
 	TPZManVector<REAL,3> pos(1,0.), ksi(3,0.), x(3,0.);

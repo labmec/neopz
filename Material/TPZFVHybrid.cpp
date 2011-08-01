@@ -24,7 +24,7 @@ int TPZMatHybrid::NStateVariables() {
 	return 1;
 }
 
-void TPZMatHybrid::Print(ostream &out) {
+void TPZMatHybrid::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	out << "Material id   = " << fNumMat   << endl;

@@ -47,7 +47,7 @@ TPZConservationLaw2::~TPZConservationLaw2()
 {
 }
 
-void TPZConservationLaw2::Print(ostream &out)
+void TPZConservationLaw2::Print(std::ostream &out)
 {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";

@@ -53,7 +53,7 @@ int TPZElasticityMaterial::NStateVariables() {
 	return 2;
 }
 
-void TPZElasticityMaterial::Print(ostream &out) {
+void TPZElasticityMaterial::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	out << "\tE   = " << fE   << endl;

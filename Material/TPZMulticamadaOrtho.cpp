@@ -167,7 +167,7 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZAutoPointer<TPZMaterial> materi
 	}
 }
 
-void  TPZMulticamadaOrthotropic::Print(ostream &out){
+void  TPZMulticamadaOrthotropic::Print(std::ostream &out){
 	
 	int i, nplaca=fPlacaOrth.NElements();
 	out << "TPZMulticamadaOrthotropic::Print\n";

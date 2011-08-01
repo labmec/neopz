@@ -3,7 +3,7 @@
  * @brief Creates CoordSys group for Doxygen documentation. 
  */
 /**
- * @deprecated
+ * @deprecated DEPRECATED MODULE for coordinate systems.
  * @defgroup CoordSys The Coordinate System Classes
  * @ingroup outofdate
  * @brief Coordinate systems definitions. \n

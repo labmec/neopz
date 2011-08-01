@@ -29,7 +29,7 @@ fXf(f){}
 TPZBiharmonic::~TPZBiharmonic() {
 }
 
-void TPZBiharmonic::Print(ostream &out) {
+void TPZBiharmonic::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	TPZMaterial::Print(out);

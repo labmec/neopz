@@ -30,7 +30,7 @@
  * @brief Estimates error to biharmonic problem. Also computes the contributions on elements and interfaces.
  * @author Joao Luis Goncalves <joao@joao-laptop>
  * @since Maio 16, 2008
- * @ingroup analysis
+ * @ingroup material
  * @note This class seems as material class, must to be put into the material group (Jorge??)
  */
 class TPZBiharmonicEstimator: public  TPZBiharmonic

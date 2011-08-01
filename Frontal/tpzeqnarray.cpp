@@ -32,7 +32,7 @@ TPZEqnArray::TPZEqnArray() : fEqStart(), fEqNumber(), fEqValues(), fIndex() {
 	fSymmetric=EIsUndefined;
 	
 }
-void TPZEqnArray::Print(const char *name, ostream& out)
+void TPZEqnArray::Print(const char *name, std::ostream& out)
 {
 	if(name) out << name << endl;
 	int i,j;

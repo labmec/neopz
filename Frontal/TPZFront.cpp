@@ -14,7 +14,7 @@
 
 using namespace std;
 
-void TPZFront::PrintGlobal(const char *name, ostream& out){
+void TPZFront::PrintGlobal(const char *name, std::ostream& out){
 	out << name << endl;
 	/*
 	 int i, j;
@@ -37,7 +37,7 @@ void TPZFront::PrintGlobal(const char *name, ostream& out){
 }
 
 
-void TPZFront::Print(const char *name, ostream& out) const
+void TPZFront::Print(const char *name, std::ostream& out) const
 {
 	if(name) out << name << endl;
 	/*int i,j,loop_limit;

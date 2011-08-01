@@ -41,7 +41,7 @@ TPZAutoPointer<TPZMaterial> TPZEulerConsLaw::NewMaterial(){
 	return result;
 }
 
-void TPZEulerConsLaw::Print(ostream &out) {
+void TPZEulerConsLaw::Print(std::ostream &out) {
 	
 	TPZDiffusionConsLaw *diff;
 	out << "\nName of material : " << Name() << "\n";

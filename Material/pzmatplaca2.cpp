@@ -368,7 +368,7 @@ void TPZMatPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*
 	PZError << "TPZMatPlaca2::Errors is called\n";
 }
 
-void TPZMatPlaca2::Print(ostream & out) {
+void TPZMatPlaca2::Print(std::ostream & out) {
 	//out << "Material type TPZMatPlaca2 -- number = " << Id() << "\n";
 	//out << "Matrix xk ->  "; fXk.Print("fXk",out);
 	//out << "Matrix xC ->  "; fCk.Print("fCf",out);

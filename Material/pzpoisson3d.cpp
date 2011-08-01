@@ -87,7 +87,7 @@ int TPZMatPoisson3d::NStateVariables() {
 	return 1;
 }
 
-void TPZMatPoisson3d::Print(ostream &out) {
+void TPZMatPoisson3d::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "Laplace operator multiplier fK "<< fK << endl;
 	out << "Laplace operator multiplier fK of right neighbour " << this->fRightK << endl;

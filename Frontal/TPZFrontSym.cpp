@@ -24,7 +24,7 @@ DecomposeType TPZFrontSym::GetDecomposeType() const
 {
 	return fDecomposeType;
 }
-void TPZFrontSym::PrintGlobal(const char *name, ostream& out){
+void TPZFrontSym::PrintGlobal(const char *name, std::ostream& out){
 	int i, j;
 	out << name << endl;
 	for(i=0;i<fLocal.NElements();i++){
@@ -41,7 +41,7 @@ void TPZFrontSym::PrintGlobal(const char *name, ostream& out){
 	}
 	out << endl;
 }
-void TPZFrontSym::Print(const char *name, ostream& out) const
+void TPZFrontSym::Print(const char *name, std::ostream& out) const
 {
 	if(name) out << name << endl;
 	int i,j,loop_limit;

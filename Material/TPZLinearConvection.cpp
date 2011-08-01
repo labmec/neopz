@@ -117,7 +117,7 @@ int TPZLinearConvection::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"flux")) return 1;
 	return TPZMaterial::VariableIndex(name);
 }
-void TPZLinearConvection::Print(ostream & out) {
+void TPZLinearConvection::Print(std::ostream & out) {
     TPZMaterial::Print(out);
     out << "Convection : " << fConvect[0] << ' ' << fConvect[1] << endl;
 }

@@ -23,7 +23,7 @@ int TPZMaterialTest::NStateVariables() {
 	return 1;
 }
 
-void TPZMaterialTest::Print(ostream &out) {
+void TPZMaterialTest::Print(std::ostream &out) {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
 	out << "Material id   = " << fNumMat   << endl;
