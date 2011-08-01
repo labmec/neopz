@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * \file
+ * @brief Contains implementations of the TPZTransientAnalysis methods.
+ */
 
 //$Id: pztransientanalysis.cpp,v 1.13 2011-05-13 19:59:05 phil Exp $
 

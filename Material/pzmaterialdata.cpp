@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZMaterialData methods.
+ */
 //$Id: pzmaterialdata.cpp,v 1.15 2011-05-11 02:18:08 phil Exp $ 
 
 #include "pzmaterialdata.h"
@@ -17,106 +21,106 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
 TPZMaterialData::TPZMaterialData() : numberdualfunctions(0){
-  this->SetAllRequirements(false);
-  this->intPtIndex = -1;
+	this->SetAllRequirements(false);
+	this->intPtIndex = -1;
 	this->leftdetjac = 0.;
 	this->rightdetjac = 0.;
 	
 }
 
 TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ){
-  this->operator =(cp);
+	this->operator =(cp);
 }
 
 TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
-  this->fNeedsSol = cp.fNeedsSol;
-  this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
-  this->fNeedsHSize = cp.fNeedsHSize;
-  this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
-  this->fNeedsNormal = cp.fNeedsNormal; 
-  this->phi = cp.phi;
-  this-> phil = cp.phil;
-  this->phir = cp.phir;
-  this->dphix = cp.dphix;
-  this->dphixl = cp.dphixl;
-  this->dphixr = cp.dphixr;
-  this->axes = cp.axes;
-  this->axesleft = cp.axesleft;
-  this->axesright = cp.axesright;
-  this->jacobian = cp.jacobian;
-  this->leftjac = cp.leftjac;
-  this->rightjac = cp.rightjac;
-  this->jacinv = cp.jacinv;
-  this->leftjacinv = cp.leftjacinv;
-  this->rightjacinv = cp.rightjacinv;
-  this->normal = cp.normal;
-  this->x = cp.x;
-  this->p = cp.p;
-  this->leftp = cp.leftp;
-  this->rightp = cp.rightp;
-  this->sol = cp.sol;
-  this->soll = cp.soll;
-  this->solr = cp.solr;
-  this->dsol = cp.dsol;
-  this->dsoll = cp.dsoll;
-  this->dsolr = cp.dsolr;
-  this->HSize = cp.HSize;
-  this->detjac = cp.detjac;
-  this->leftdetjac = cp.leftdetjac;
-  this->rightdetjac = cp.rightdetjac;
-  this->intPtIndex = cp.intPtIndex;
-  this->XLeftElCenter = cp.XLeftElCenter;
-  this->XRightElCenter = cp.XRightElCenter;
+	this->fNeedsSol = cp.fNeedsSol;
+	this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
+	this->fNeedsHSize = cp.fNeedsHSize;
+	this->fNeedsNeighborCenter = cp.fNeedsNeighborCenter; 
+	this->fNeedsNormal = cp.fNeedsNormal; 
+	this->phi = cp.phi;
+	this-> phil = cp.phil;
+	this->phir = cp.phir;
+	this->dphix = cp.dphix;
+	this->dphixl = cp.dphixl;
+	this->dphixr = cp.dphixr;
+	this->axes = cp.axes;
+	this->axesleft = cp.axesleft;
+	this->axesright = cp.axesright;
+	this->jacobian = cp.jacobian;
+	this->leftjac = cp.leftjac;
+	this->rightjac = cp.rightjac;
+	this->jacinv = cp.jacinv;
+	this->leftjacinv = cp.leftjacinv;
+	this->rightjacinv = cp.rightjacinv;
+	this->normal = cp.normal;
+	this->x = cp.x;
+	this->p = cp.p;
+	this->leftp = cp.leftp;
+	this->rightp = cp.rightp;
+	this->sol = cp.sol;
+	this->soll = cp.soll;
+	this->solr = cp.solr;
+	this->dsol = cp.dsol;
+	this->dsoll = cp.dsoll;
+	this->dsolr = cp.dsolr;
+	this->HSize = cp.HSize;
+	this->detjac = cp.detjac;
+	this->leftdetjac = cp.leftdetjac;
+	this->rightdetjac = cp.rightdetjac;
+	this->intPtIndex = cp.intPtIndex;
+	this->XLeftElCenter = cp.XLeftElCenter;
+	this->XRightElCenter = cp.XRightElCenter;
 	this->fVecShapeIndex = cp.fVecShapeIndex;
 	this->fNormalVec = cp.fNormalVec;
 	this->numberdualfunctions = cp.numberdualfunctions;
 	
 	
 	
-  return *this;
+	return *this;
 }
 
 TPZMaterialData::~TPZMaterialData(){
-//NOTHING TO BE DONE!
+	//NOTHING TO BE DONE!
 }
 
 void TPZMaterialData::SetAllRequirements(bool set){
-  this->fNeedsSol = set;
-  this->fNeedsNeighborSol = set;
-  this->fNeedsHSize = set;
-  this->fNeedsNeighborCenter = set;
-  this->fNeedsNormal = set;
+	this->fNeedsSol = set;
+	this->fNeedsNeighborSol = set;
+	this->fNeedsHSize = set;
+	this->fNeedsNeighborCenter = set;
+	this->fNeedsNormal = set;
 }
 
 void TPZMaterialData::InvertLeftRightData(){
-  TPZMaterialData cp(*this);
-  this->leftdetjac = cp.rightdetjac;
-  this->leftjac = cp.rightjac;
-  this->leftjacinv = cp.rightjacinv;
-  this->leftp = cp.rightp; 
-  this->phil = cp.phir;
-  this->dphixl = cp.dphixr;
-  this->axesleft = cp.axesright;
-  this->soll = cp.solr;
-  this->dsoll = cp.dsolr;
-  
-  this->rightdetjac = cp.leftdetjac;
-  this->rightjac = cp.leftjac;
-  this->rightjacinv = cp.leftjacinv;
-  this->rightp = cp.leftp;
-  this->phir = cp.phil;
-  this->dphixr = cp.dphixl;
-  this->axesright = cp.axesleft;
-  this->solr = cp.soll;
-  this->dsolr = cp.dsoll;  
-
-  this->XRightElCenter = cp.XLeftElCenter;
-  this->XLeftElCenter = cp.XRightElCenter;
-  
-  const int n = this->normal.NElements();
-  for(int i = 0; i < n; i++){
-    this->normal[i] *= -1.;
-  }
+	TPZMaterialData cp(*this);
+	this->leftdetjac = cp.rightdetjac;
+	this->leftjac = cp.rightjac;
+	this->leftjacinv = cp.rightjacinv;
+	this->leftp = cp.rightp; 
+	this->phil = cp.phir;
+	this->dphixl = cp.dphixr;
+	this->axesleft = cp.axesright;
+	this->soll = cp.solr;
+	this->dsoll = cp.dsolr;
+	
+	this->rightdetjac = cp.leftdetjac;
+	this->rightjac = cp.leftjac;
+	this->rightjacinv = cp.leftjacinv;
+	this->rightp = cp.leftp;
+	this->phir = cp.phil;
+	this->dphixr = cp.dphixl;
+	this->axesright = cp.axesleft;
+	this->solr = cp.soll;
+	this->dsolr = cp.dsoll;  
+	
+	this->XRightElCenter = cp.XLeftElCenter;
+	this->XLeftElCenter = cp.XRightElCenter;
+	
+	const int n = this->normal.NElements();
+	for(int i = 0; i < n; i++){
+		this->normal[i] *= -1.;
+	}
 }
 
 
@@ -305,25 +309,25 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 	result = result && locres;
 	
 	/*
-	buf.Read(normal);
-	buf.Read(x);
-	buf.Read(&p,1);
-	buf.Read(&leftp,1);
-	buf.Read(&rightp,1);
-	buf.Read(sol);
-	buf.Read(soll);
-	buf.Read(solr);
-	dsol.Read(buf,0);
-	dsoll.Read(buf,0);
-	dsolr.Read(buf,0);
-	buf.Read(&HSize,1);
-	buf.Read(&detjac,1);
-	buf.Read(&leftdetjac,1);
-	buf.Read(&rightdetjac,1);
-	buf.Read(XLeftElCenter);
-	buf.Read(XRightElCenter);
-	buf.Read(&intPtIndex,1);
-	*/
+	 buf.Read(normal);
+	 buf.Read(x);
+	 buf.Read(&p,1);
+	 buf.Read(&leftp,1);
+	 buf.Read(&rightp,1);
+	 buf.Read(sol);
+	 buf.Read(soll);
+	 buf.Read(solr);
+	 dsol.Read(buf,0);
+	 dsoll.Read(buf,0);
+	 dsolr.Read(buf,0);
+	 buf.Read(&HSize,1);
+	 buf.Read(&detjac,1);
+	 buf.Read(&leftdetjac,1);
+	 buf.Read(&rightdetjac,1);
+	 buf.Read(XLeftElCenter);
+	 buf.Read(XRightElCenter);
+	 buf.Read(&intPtIndex,1);
+	 */
 	return true;
 }
 

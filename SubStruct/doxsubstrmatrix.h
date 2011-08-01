@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Creates substructure group for Doxygen documentation.
+ */
 
 /**
  * @defgroup substructure The matrix divided in sub structure classes

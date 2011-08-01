@@ -1,9 +1,10 @@
 /**
- * doxintegral.h
+ * @file
+ * @brief Creates integral group for Doxygen documentation.
  */
 
-/** @defgroup integral The Numerical Integration classes.
- *
+/** 
+ * @defgroup integral The Numerical Integration classes.
  * @brief Defines integration rules for lines, quadrilaterals, triangles, \n
  * cubes, tetrahedra, pyramids and prisms.
  * 

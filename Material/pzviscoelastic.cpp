@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZViscoelastic methods.
+ */
 /*
  *  pzviscoelastic.cpp
  *  pos_processamento
@@ -12,7 +16,7 @@
 
 TPZViscoelastic::TPZViscoelastic(TPZMatWithMem<TPZFMatrix, TPZElasticity3D> &matwithmem,int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT):TPZMatWithMem<TPZFMatrix, TPZElasticity3D>(matwithmem), flambdaE(lambdaE),fmuE(muE),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
 {
-
+	
 	REAL lambda = flambdaE-(falphaT*flambdaV)/(1+falphaT);
 	REAL mu = fmuE -(falphaT*fmuV)/(1+falphaT);
 	

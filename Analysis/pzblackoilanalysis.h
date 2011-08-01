@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZBlackOilAnalysis class derived from TPZNonLinearAnalysis class.
+ */
 //$Id: pzblackoilanalysis.h,v 1.6 2011-04-05 19:32:55 calle Exp $
 
 #ifndef BLACKOILANALH

@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZEulerAnalysis methods.
+ */
 //$Id: pzeuleranalysis.cpp,v 1.50 2011-05-11 01:14:38 phil Exp $
 
 #include "pzeuleranalysis.h"

@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZBiharmonicEstimator methods.
+ */
 /***************************************************************************
  *   Copyright (C) 2008 by joao,,,   *
  *   joao@joao-laptop   *

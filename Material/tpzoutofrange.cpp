@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZOutofRange methods.
+ */
 //
 // C++ Implementation: tpzoutofrange 
 //

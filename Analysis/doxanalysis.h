@@ -1,5 +1,6 @@
 /**
- * doxanalysis.h
+ * @file
+ * @brief Creates analysis group for Doxygen documentation.
  */
 
 /** @defgroup analysis The Analysis classes.

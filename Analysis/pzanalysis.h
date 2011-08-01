@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZAnalysis class which implements the sequence of actions to perform a finite element analysis.
+ */
 #ifndef ANALYSISH
 #define ANALYSISH
 
@@ -26,7 +30,7 @@ template<class T, int N> class TPZStack;
 
 /**
  * @ingroup analysis
- * @brief Class which implements the sequence of actions to perform a finite element analysis
+ * @brief Implements the sequence of actions to perform a finite element analysis
  */
 /** This class will renumerate the nodes upon construction
  */

@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZBlackOilAnalysis methods.
+ */
 //$Id: pzblackoilanalysis.cpp,v 1.7 2011-04-01 16:23:11 phil Exp $
 
 #include "pzblackoilanalysis.h"

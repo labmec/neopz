@@ -1,5 +1,6 @@
 /**
- * doxtopology.h
+ * @file
+ * @brief Creates topology and topologyutils groups for Doxygen documentation.
  */
 
 /** @defgroup topology The master element topology classes.

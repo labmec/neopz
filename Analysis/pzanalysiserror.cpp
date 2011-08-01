@@ -1,6 +1,9 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZAnalysisError methods.
+ */
 //$Id: pzanalysiserror.cpp,v 1.13 2008-10-08 02:06:24 phil Exp $
 
-// -*- c++ -*-
 #include "pzanalysiserror.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"

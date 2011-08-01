@@ -1,4 +1,7 @@
-//pzanalysis.cpp
+/**
+ * \file
+ * @brief Contains implementations of the TPZAnalysis methods.
+ */
 //$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
 //$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
 

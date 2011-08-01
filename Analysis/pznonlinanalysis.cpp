@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZNonLinearAnalysis methods.
+ */
 #include "pznonlinanalysis.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"

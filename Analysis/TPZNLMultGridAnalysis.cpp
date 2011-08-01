@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * \file
+ * @brief Contains implementations of the TPZNonLinMultGridAnalysis methods.
+ */
 
 #include "TPZNLMultGridAnalysis.h"
 #include "TPZCompElDisc.h"

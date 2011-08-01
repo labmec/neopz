@@ -1,6 +1,7 @@
-// TPZSubMeshFrontalAnalysis.: implementation of the TPZSubMeshFrontalAnalysis class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * \file
+ * @brief Contains implementations of the TPZSubMeshFrontalAnalysis methods.
+ */
 
 #include "pzsmfrontalanal.h"
 #include "pzsubcmesh.h"

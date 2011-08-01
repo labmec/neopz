@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZEulerAnalysis class which implements an analysis procedure for compressible Euler flow simulation.
+ */
 //$Id: pzeuleranalysis.h,v 1.22 2011-04-05 19:32:55 calle Exp $
 
 #ifndef PZEULERANALYSIS_H
@@ -19,7 +23,7 @@
 #include <iostream>
 
 /**
- * @brief This class implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation \n
+ * @brief Implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation
  * @ingroup analysis
  * @author Erick Raggio Slis dos Santos
  */

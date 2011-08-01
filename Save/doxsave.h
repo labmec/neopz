@@ -1,11 +1,12 @@
 /**
- * doxsave.h
+ * @file
+ * @brief Creates save group for Doxygen documentation.
  */
 
 /**
  * @defgroup save Classes and methods which support persistency
  *
- * Persistency within the PZ environment are implemented by deriving class from the TPZSave
+ * @brief Persistency within the PZ environment are implemented by deriving class from the TPZSave
  * class and implementing the Read and Write method
  *
  * The association of the Class Id and a unique function is implemented in the

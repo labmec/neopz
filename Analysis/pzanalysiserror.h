@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZAnalysisError class which implements analysis procedures with hp adaptivity.
+ */
 
 #ifndef TPZANALYSISERRORH
 #define TPZANALYSISERRORH

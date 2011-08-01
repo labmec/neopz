@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZNonLinearAnalysis class which implements the non linear analysis.
+ */
 #ifndef NONLINANALYSISH
 #define NONLINANALYSISH
 

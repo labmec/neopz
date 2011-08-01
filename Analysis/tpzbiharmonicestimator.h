@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZBiharmonicEstimator class estimates error to biharmonic problem.
+ */
 /***************************************************************************
  *   Copyright (C) 2008 by joao,,,   *
  *   joao@joao-laptop   *

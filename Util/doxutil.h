@@ -1,5 +1,6 @@
 /**
- * @file doxutil.h
+ * @file
+ * @brief Creates util group for Doxygen documentation.
  */
 // $Id: doxutil.h,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
 

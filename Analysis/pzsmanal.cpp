@@ -1,6 +1,7 @@
-// TPZSubMeshAnalysis.cpp: implementation of the TPZSubMeshAnalysis class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * \file
+ * @brief Contains implementations of the TPZSubMeshAnalysis methods: implementation of the TPZSubMeshAnalysis class.
+ */
 
 #include "pzsmanal.h"
 #include "pzsubcmesh.h"

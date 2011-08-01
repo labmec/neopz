@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZSubMeshFrontalAnalysis class which implements the analysis for substructuring.
+ */
 // TPZSubMeshFrontalAnalysis.h: interface for the TPZSubMeshFrontalAnalysis class.
 //
 //////////////////////////////////////////////////////////////////////

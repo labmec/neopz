@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains TPZTransientAnalysis class which implements a simple manner to perform transient simulations.
+ */
 //$Id: pztransientanalysis.h,v 1.7 2011-04-05 19:32:55 calle Exp $
 
 #ifndef TRANSIENTANALH

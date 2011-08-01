@@ -52,7 +52,9 @@ public:
 	
 	virtual ~TPZArtDiff();
 	
-	//-----------------Attributes and parameters
+	/** @name Attributes and parameters
+	 * @}
+	 */
 	
 	/** @brief Returns the type of artifical diffusion */
 	TPZArtDiffType ArtDiffType();
@@ -74,7 +76,6 @@ public:
 	
 	/**
 	 * @brief Returns the stored value for delta
-	 *
 	 * @param Sol [in] solution
 	 * @para [in] deltaX
 	 */
@@ -115,7 +116,11 @@ public:
 	template< class T >
 	static void Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U);
 	
-	//-------------------A B C matrices and operations
+	/** @} */
+	
+	/** @name A B C matrices and operations
+	 * @{ 
+	 */
 	
 	/**
 	 * @brief Operation product point in the diffusion term
@@ -186,8 +191,9 @@ public:
 				   TPZVec<TPZDiffMatrix<FADREAL> > & Ai,
 				   TPZVec<FADREAL> & Div);
 #endif
+	/** @} */
 	
-	//----------------------Tau tensor
+	/** Tau tensor */
 	/**
 	 * @brief Computes the diffusive term according to the name
 	 * @param jacinv [in] Inverse jacobian of the mapping.
@@ -202,9 +208,9 @@ public:
 					TPZVec<TPZDiffMatrix<T> > &Ai,
 					TPZVec<TPZDiffMatrix<T> > &Tau);
 	
-	//----------------------Intermediate Matrices
-	
-	
+	/** @name Intermediate Matrices
+	 * @{
+	 */
 	
 	template <class T>
 	inline static void RotMatrix(TPZVec<T> & sol, T & us, TPZDiffMatrix<T> &Rot, TPZDiffMatrix<T> &RotT);
@@ -224,6 +230,8 @@ public:
 	template <class T>
 	static void ContributeBornhaus(TPZVec<T> & sol, T & us, T & c, REAL gamma, TPZVec<REAL> & aaS, TPZDiffMatrix<T> &Mat);
 	
+	/** @} */
+	
 private:
 	
 	template <class T>
@@ -240,7 +248,9 @@ private:
 	
 public:
 	
-	//------------------ Diff setup
+	/** @name Diff setup
+	 * @{
+	 */
 	
 	/**
 	 * @brief Computes the common values A B C and Tau vector of matrixes
@@ -300,10 +310,13 @@ public:
 							TPZFMatrix &dphi,
 							TPZVec<TPZVec<REAL> > & TauDiv,
 							TPZVec<TPZDiffMatrix<REAL> > & dTauDiv);
+	/** @} */
 	
 #endif
 	
-	//-----------------Contribute
+	/** @name Contribute methods
+	 * @{
+	 */
 	
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
@@ -398,7 +411,7 @@ public:
 								   REAL deltaX);
 	
 #endif
-	
+	/** @} */
 	
 private:
 	
