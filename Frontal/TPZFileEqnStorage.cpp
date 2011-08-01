@@ -22,9 +22,7 @@ void TPZFileEqnStorage::WriteHeaders(){
 	 */
 	fNumBlocks++;
 	int i;
-	
-	long int * Position = new long int[fNumHeaders];
-	for(i=0;i<fNumHeaders;i++) Position[i] = 0;
+    TPZVec<long int> Position(fNumHeaders,0);
 	/**
 	 *If fCurrentBlock = 0 then a fBlockPos.Push must be called to 
 	 *store the first address
@@ -51,7 +49,6 @@ void TPZFileEqnStorage::WriteHeaders(){
 	{
 		std::stringstream sout;
 		sout << "Writing the position of the headers, numheaders " << fNumHeaders << " position ";
-		int i;
 		for(i=0; i<fNumHeaders; i++) sout << Position[i] << ' ';
 		LOGPZ_DEBUG(logger,sout.str())
 	}
@@ -60,7 +57,7 @@ void TPZFileEqnStorage::WriteHeaders(){
 	 *Writes fNumHeaders positions for the headers
 	 */
 	fwrite(Position,sizeof(long  int),fNumHeaders,fIOStream);
-	delete [] Position;
+
 	/**
 	 *Get starting position of first header
 	 */
