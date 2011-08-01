@@ -1,6 +1,8 @@
-set(main_SRCS main.cpp)
+file(GLOB source *.cpp)
 
-add_executable(Class_3 ${main_SRCS})
+set(pzclass3 ${source} PARENT_SCOPE)
+
+add_executable(Class_3 ${source})
 
 target_link_libraries(Class_3 pz pthread)
 

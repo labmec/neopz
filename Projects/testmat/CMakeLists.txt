@@ -1,7 +1,10 @@
 
-set(main_SRCS mainmat.cpp)
+file(GLOB source *.cpp)
+file(GLOB header *.h)
 
-add_executable(testmat ${main_SRCS})
+set(pztutormat ${pztutormat} ${source} ${header} PARENT_SCOPE)
 
-target_link_libraries(testmat pz pthread)
+add_executable(TutorialMatrix ${source} ${header})
+
+target_link_libraries(TutorialMatrix pz pthread)
 

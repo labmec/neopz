@@ -4,15 +4,17 @@ file(GLOB sources *.cpp)
 
 
 if(BUILD_UNITTESTING)
-	set(pztestlocal ${headers} ${sources} )
 
-	set(pztest
-		${pztest}
-		${headers}
-		${sources}
-		PARENT_SCOPE
-		)
-	add_executable(TestMesh ${pztestlocal})
+	set(pztestmesh ${headers} ${sources} PARENT_SCOPE)
+
+#	set(pztest
+#		${pztest}
+#		${headers}
+#		${sources}
+#		PARENT_SCOPE
+#		)
+
+	add_executable(TestMesh ${headers} ${sources})
 
 	target_link_libraries(TestMesh pz)
 

@@ -30,25 +30,25 @@ include_directories(
 
 
 #To insert doxygen documentation file and other text files into the project environment (to facility changes)
-file(GLOB_RECURSE makefiles CMake*.txt README)
+file(GLOB makefiles CMake*.txt lib/*.txt UnitTest_PZ/*.txt Projects/*.txt README)
 #Only CMakeList.txt corresponding any pz module but CMakeList.txt from UnitTest case can be considered
 #If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
-foreach(arq ${makefiles}) 
-	string(FIND ${arq} "Project" val)
-	if(${val} LESS 0)
-		string(FIND ${arq} "UnitTest" val)
-		if(${val} LESS 0)
-			list(APPEND makefilescpy ${arq})
-		endif()
-	endif()
-endforeach()
+#foreach(arq ${makefiles}) 
+#	string(FIND ${arq} "Project" val)
+#	if(${val} LESS 0)
+#		string(FIND ${arq} "UnitTest" val)
+#		if(${val} LESS 0)
+#			list(APPEND makefilescpy ${arq})
+#		endif()
+#	endif()
+#endforeach()
 
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 
 #creating text files group 
-source_group(CMakeFiles FILES ${makefilescpy})
+source_group(CMakeFiles FILES ${makefiles})
 source_group(DoxyFiles FILES ${doxyfiles})
-add_custom_target(pzdocs SOURCES ${makefilescpy} ${doxyfiles})
+add_custom_target(CMake_Doxygen SOURCES ${makefiles} ${doxyfiles})
 
 
 #Defining variables
@@ -105,18 +105,18 @@ endif()
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
-add_definitions(-DBUILD_UNITTESTING)
+	add_definitions(-DBUILD_UNITTESTING)
+	link_libraries(boost_unit_test_framework)
 endif()
+
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
 if(BUILD_TUTORIAL)
-add_definitions(-DBUILD_TUTORIAL)
+	add_definitions(-DBUILD_TUTORIAL)
 endif()
 
-if(BUILD_UNITTESTING)
-	link_libraries(boost_unit_test_framework)
-	add_subdirectory(UnitTest_PZ)
-endif()
+#To building all the specific projects developed with PZ environment
+option(BUILD_PROJECTS "To build specific projects." OFF)
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
@@ -142,8 +142,11 @@ add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(lib)
 
-	add_subdirectory(PlaneFracture)
-	add_subdirectory(Projects)
+add_subdirectory(PlaneFracture)
+
+add_subdirectory(Projects)
+
+add_subdirectory(UnitTest_PZ)
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"

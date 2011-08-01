@@ -5,16 +5,9 @@ file(GLOB sources *.cpp)
 
 if(BUILD_UNITTESTING)
 
-	set(pztestlocal ${headers} ${sources} )
+	set(pztestmatrix ${headers} ${sources} PARENT_SCOPE )
 
-	set(pztest
-		${pztest}
-		${headers}
-		${sources}
-		PARENT_SCOPE
-		)
-
-	add_executable(TestMatrix ${pztestlocal})
+	add_executable(TestMatrix ${headers} ${sources})
 
 	target_link_libraries(TestMatrix pz)
 

@@ -1,9 +1,10 @@
 
-########### next target ###############
+file(GLOB source *.cpp)
+file(GLOB header *.h)
 
-set(main_SRCS mainshape.cpp)
+set(pztutorshape ${pztutorshape} ${source} ${header} PARENT_SCOPE)
 
-add_executable(TestShape ${main_SRCS})
+add_executable(TutorialShape ${source} ${header})
 
-target_link_libraries(TestShape pz pthread)
+target_link_libraries(TutorialShape pz pthread)
 

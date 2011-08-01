@@ -12,5 +12,7 @@ if(BUILD_TUTORIAL)
 	#Example using writing and reading meshes: IOMeshExample
 	add_subdirectory(Class_5)
 
+	set(pzcurso ${pzcurso} ${pzclass1} ${pzclass2} ${pzclass3} ${pzclass4} ${pzclass5} PARENT_SCOPE )
+
 endif()
 

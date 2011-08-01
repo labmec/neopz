@@ -1,9 +1,9 @@
 
-########### next target ###############
+file(GLOB source *.cpp)
+file(GLOB header *.h)
 
-set(main_SRCS main.cpp)
+set(visualmatrix ${visualmatrix} ${source} ${header} PARENT_SCOPE)
 
-add_executable(visualmatrix ${main_SRCS})
+add_executable(VisualMatrix ${source} ${header})
 
-target_link_libraries(visualmatrix pz pthread)
-
+target_link_libraries(VisualMatrix pz pthread)
