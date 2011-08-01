@@ -83,7 +83,7 @@ if(USING_FAD)
 	if(NOT FAD_INCLUDE-NOTFOUND)
 		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
 		add_definitions(-D_AUTODIFF)
-		include_directories(${FAD_INCLUDE}/FAD ${FAD_INCLUDE}/FAD/Fad ${FAD_INCLUDE}/FAD/TinyFad ${FAD_INCLUDE}/FAD/TinyFadET)
+		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
 	endif()
 endif(USING_FAD)
 
