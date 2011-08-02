@@ -306,7 +306,7 @@ int TPZAgglomerateElement::Dimension() const {
 	return this->Material()->Dimension();
 }
 
-void TPZAgglomerateElement::Print(ostream &out) const {
+void TPZAgglomerateElement::Print(std::ostream &out) const {
 	
 	out << "\nTPZAgglomerateElement element : \n";
 	out << "\tComputational mesh : " << fMotherMesh << endl;

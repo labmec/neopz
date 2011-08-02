@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZMaterialTest3D class. three-dimensional test.
+ * @brief Contains the TPZMaterialTest3D class. Three-dimensional test.
  */
 #ifndef MATTEST3DHPP
 #define MATTEST3DHPP
@@ -9,48 +9,34 @@
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 
-//#include "pzmanvector.h"
-
 
 /**
  * @ingroup material
- * @brief 
+ * @brief Three dimensional linear material for test.
  */
 class TPZMaterialTest3D : public TPZMaterial
 {
 private:
 	
-	/**
-	 * Fonte
-	 */
+	/** @brief Source */
 	TPZFMatrix fXf;
 	
 	public :
 	
-	/**
-	 * Default empty constructor
-	 */
+	/** @brief Default empty constructor */
 	TPZMaterialTest3D();
 	
-	/**
-	 * Full data constructor
-	 */
+	/** @brief Full data constructor */
 	TPZMaterialTest3D(int nummat);
 	
-	/**
-	 * Destructor
-	 */
+	/** @brief Destructor */
 	virtual ~TPZMaterialTest3D();
 	
 public:
-	/**
-	 *Cedric : para testes no programa main 3dmaterial.c
-	 */
+	/** @brief Cedric : para testes no programa main 3dmaterial.c */
 	static int geq3;
 	
-	/**
-	 * Set the flow
-	 */
+	/** @brief Set the flow */
 	void SetMaterial(TPZFMatrix &xfin);
 	
 	/**
@@ -64,7 +50,7 @@ public:
 	virtual int NStateVariables();
 	
 	/**
-	 * Print the object data structure
+	 * @brief Print the object data structure
 	 */
 	virtual void Print(std::ostream & out);
 	
@@ -125,8 +111,10 @@ protected:
 	virtual void Solution( TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
 						  int var,TPZVec<REAL> &Solout );
 public:
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/**
+	 * @brief Returns the solution associated with the var index based on
+	 * the finite element approximation
+	 */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
@@ -140,7 +128,7 @@ public:
 	
 	
 	/**
-	 * Compute the value of the flux function to be used by ZZ error estimator
+	 * @brief Computes the value of the flux function to be used by ZZ error estimator
 	 */
 	virtual void Flux( TPZVec<REAL> &x, TPZVec<REAL> &Sol,
 					  TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux );

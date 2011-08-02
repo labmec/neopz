@@ -1096,10 +1096,6 @@ bool TPZMatrix::Compare(TPZSaveable *copy, bool override) const
 }
 
 
-
-/*!
- \fn TPZMatrix::GetSub(TPZVec<int> &indices,TPZFMatrix &block)
- */
 void TPZMatrix::GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const
 {
     int nel = indices.NElements();

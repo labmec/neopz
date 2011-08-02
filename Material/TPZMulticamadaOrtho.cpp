@@ -390,7 +390,7 @@ void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &t
 	
 }
 
-void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
+void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 	
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
@@ -405,7 +405,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(ostream &out,int print){
 	if(print) an.Print("* PRINT ANALISYS *",out);
 }
 
-void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,int numiter){
+void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &out,int numiter){
 	
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
@@ -456,7 +456,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,ofstream &out,i
 }
 
 
-void TPZMulticamadaOrthotropic::PrintTensors(ostream &out) {
+void TPZMulticamadaOrthotropic::PrintTensors(std::ostream &out) {
 	
 	out << "Output for the tensors at the center of the plates\n\n";
 	int nplaca = fPlacaOrth.NElements();
@@ -469,7 +469,7 @@ void TPZMulticamadaOrthotropic::PrintTensors(ostream &out) {
 	out << endl << endl;
 }
 
-void TPZMulticamadaOrthotropic::PrintTensors(ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+void TPZMulticamadaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
 	
 	out << "Output for the tensors at the center of the plates\n\n";
 	int nplaca = fPlacaOrth.NElements();

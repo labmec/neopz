@@ -133,9 +133,6 @@ TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(const TPZVerySparseMatrix &cp)
 	return *this;
 }
 
-
-
-
 int TPZFYsmpMatrix::PutVal(const int row, const int col, const REAL &Value){
     int k;
     int flag=0;
@@ -240,8 +237,6 @@ void TPZFYsmpMatrix::AddKel(TPZFMatrix & elmat, TPZVec<int> & sourceindex, TPZVe
 		}
 	}
 }
-
-
 
 void TPZFYsmpMatrix::AddKelOld(TPZFMatrix & elmat, TPZVec < int > & destinationindex){
 	int i=0;
@@ -667,13 +662,7 @@ int TPZFYsmpMatrix::Zero()
 	return 1;
 }
 
-/**
- * @name Solvers
- * Linear system solvers. \n
- * For symmetric decompositions lower triangular matrix is used. \n
- * Solves a system A*X = B returning X in B
- */  
-//@{
+
 /**
  * Solves the linear system using Jacobi method. \n
  * @param numinterations The number of interations for the process.

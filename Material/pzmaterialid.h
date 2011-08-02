@@ -16,7 +16,7 @@
 #ifndef PZMATERIALIDH
 #define PZMATERIALIDH
 
-/** \addtogroup
+/** \addtogroup material
  * @{
  */
 

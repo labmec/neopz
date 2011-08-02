@@ -65,7 +65,8 @@ public:
 	 */
 	int SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension);
 	
-	/** @brief Eliminates subdomains who are embedded in other subdomains
+	/**
+	 * @brief Eliminates subdomains who are embedded in other subdomains
 	 * @return returns the number of subdomains
 	 */
 	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
@@ -82,8 +83,8 @@ protected:
 	
 	/**
 	 * @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
-	 * 
-	 * The mesh is modified during this method but is returned to its original state at the end of execution
+	 */ 
+	 /** The mesh is modified during this method but is returned to its original state at the end of execution
 	 */
 	void ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 											TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute);
@@ -118,6 +119,10 @@ private:
 
 #include "tpzdohrsubstructCondense.h"
 
+/**
+ * @ingroup substructure
+ * @brief Implements assembling by Dohrman algorithm.
+ */
 struct ThreadDohrmanAssembly {
 	
 	enum MTask {ENone, EComputeMatrix, EDecomposeInternal, EDecomposeBig};
@@ -158,6 +163,10 @@ struct ThreadDohrmanAssembly {
 	void AssembleMatrices(pthread_mutex_t &testthread);
 };
 
+/**
+ * @ingroup substructure
+ * @brief Implements a list of Dohrman assembling and control thread and semaphores.
+ */
 struct ThreadDohrmanAssemblyList {
 	
 	ThreadDohrmanAssemblyList();
@@ -168,15 +177,15 @@ struct ThreadDohrmanAssemblyList {
 	
 	void Append(TPZAutoPointer<ThreadDohrmanAssembly> object);
 	
-	// returns an object and removes it from the list in a thread safe way
+	/** @brief Returns an object and removes it from the list in a thread safe way */
 	TPZAutoPointer<ThreadDohrmanAssembly> NextObject();
 	
 	static void *ThreadWork(void *voidptr);
 	
-	// mutexes (to choose which submesh is next)
+	/** @brief Mutexes (to choose which submesh is next) */
 	pthread_mutex_t fAccessElement;
 	
-	/// mutex to debug the assembly process
+	/** @brief mutex to debug the assembly process */
 	pthread_mutex_t fTestThreads;
 };
 

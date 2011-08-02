@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZFYsmpMatrix class which implements a non symmetric sparse matrix.
+ */
 /******************************************************************************
  *
  * Class definition:    TPZFYsmpMatrix
@@ -26,17 +30,18 @@ extern "C"{
 class TPZFMatrix;
 
 /**
- @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage)
- @ingroup matrix
- 
- Define operations on general sparse matrices stored
- in the (old) Yale Sparse Matrix Package format.
+ * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage)
+ * @ingroup matrix
+ */
+/**
+ * Define operations on general sparse matrices stored
+ * in the (old) Yale Sparse Matrix Package format.
  */
 class TPZFYsmpMatrix : public TPZMatrix {
 	
 	public :
 	
-	/// An auxiliary structure to hold the data of the subset of equations used to multiply in a multitrheaded environment
+	/** @brief An auxiliary structure to hold the data of the subset \n of equations used to multiply in a multitrheaded environment */
 	/**
 	 In future versions this structure should be defined in a derived class
 	 */
@@ -71,7 +76,8 @@ public:
 	//			memcpy(fA,cp.fA,fjasize*sizeof(REAL));
 	//		}
 	
-	/// Replace the above destructor
+	// Replace the above destructor
+	
 	TPZFYsmpMatrix(const TPZVerySparseMatrix &cp);
 	
 	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix &copy);
@@ -83,7 +89,7 @@ public:
 	virtual ~TPZFYsmpMatrix();
 	
 	
-	/// Get the matrix entry at (row,col) without bound checking
+	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const REAL &GetVal(const int row,const int col ) const;
 	
 	int NumTerms() 
@@ -104,17 +110,17 @@ public:
 	
 	void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
 	
-	/// Pass the data to the class.
+	/** @brief Pass the data to the class. */
 	virtual void SetData( int *IA, int *JA, REAL *A );
 	
-	/// Print the matrix along with a identification title
+	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
 	
 	/**
 	 * @name Solvers
 	 * @brief Linear system solvers. \n
-	 *
-	 * For symmetric decompositions lower triangular matrix is used. \n
+	 */
+	 /** For symmetric decompositions lower triangular matrix is used. \n
 	 * Solves a system A*X = B returning X in B
 	 */  
 	//@{
@@ -135,6 +141,7 @@ public:
 				  TPZFMatrix *residual, TPZFMatrix &scratch,
 				  const REAL overrelax, REAL &tol,
 				  const int FromCurrent = 0,const int direction = 1 ) ;    
+	// @}
 	
 	/**
 	 * @brief Add a contribution of a stiffness matrix
@@ -202,10 +209,10 @@ protected:
 	
 	/**
 	 * @brief Implements a initialization method for the sparse structure. It sets the initial value for the fIA and fJA.
-	 * 
+	 */ 
+	/**
 	 * -fIA will contain the initial positions for all the equations
 	 * -fJA will contain (-1) on all its positions
-	 * 
 	 * -fA will contain 0 on all its value 
 	 */
 	void InitializeData();
