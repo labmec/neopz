@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZShapePiram class which implements the shape functions of a pyramid element.
+ */
 // $ Id: $
 #ifndef SHAPEPIRAMHPP
 #define SHAPEPIRAMHPP
@@ -84,13 +87,14 @@ namespace pzshape {
 		
 		/**
 		 * @brief Transforms a point on the face by the corresponding transformation
-		 * 
-		 * This method applies two dimensional transformations which are implemented by the classes
-		 * associated with triangles and quadrilaterals
 		 * @param transid transformation index of the face
 		 * @param face face to which the coordinates refer
 		 * @param in coordinate of the point on the face before transformation
 		 * @param out coordinate of the point after transformation
+		 */
+		/**
+		 * This method applies two dimensional transformations which are implemented by the classes
+		 * associated with triangles and quadrilaterals
 		 */
 		static void TransformPoint3dPiramFace(int transid, int face, TPZVec<REAL> &in, TPZVec<REAL> &out);
 		
@@ -121,19 +125,13 @@ namespace pzshape {
 		 * @param in matrix of derivatives of dimension (2,num)
 		 */
 		static void TransformDerivativeFace3dPiram(int transid, int face, int num, TPZFMatrix &in);
-		/** 
-		 * @brief Data structure which defines the pyramid transformations and topology
-		 */
+		/** @brief Data structure which defines the pyramid transformations and topology */
 		static REAL gFaceTrans3dPiram2d[5][2][3];
 		
-		/** 
-		 * @brief Data structure which defines the pyramid transformations and topology
-		 */
+		/** @brief Data structure which defines the pyramid transformations and topology */
 		static REAL gRibTrans3dPiram1d[8][3];
 		
-		/** 
-		 * @brief Data structure which defines the pyramid transformations and topology
-		 */
+		/** @brief Data structure which defines the pyramid transformations and topology */
 		static REAL gFaceSum3dPiram2d[5][2];
 		
 		/**

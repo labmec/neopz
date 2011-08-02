@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZShapePiram methods.
+ */
 // $Id: pzshapepiram.cpp,v 1.12 2011-05-11 01:47:45 phil Exp $
 #include "pzshapepiram.h"
 #include "pzshapequad.h"

@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZShapePrism class which implements the shape functions of a prism element.
+ */
 // $ Id: $
 #ifndef SHAPEPRISMHPP
 #define SHAPEPRISMHPP
@@ -13,9 +16,10 @@ namespace pzshape {
 	
 	/** 
 	 * @brief Implements the shape functions of a prism (3D) element
-	 
-	 * The range of the master element is -1,1 for the z direction and [0,1] for the triangular plane
 	 * @ingroup shape
+	 */
+	/**
+	 * The range of the master element is \f$ [-1,1] \f$ for the \f$ z \f$ direction and \f$ [0,1] \f$ for the triangular plane
 	 */
 	class TPZShapePrism : public pztopology::TPZPrism {
 		
@@ -46,8 +50,7 @@ namespace pzshape {
 		 * @param dphi (output) value of the derivatives of the (6) shape functions holding the derivatives in a column
 		 */
 		static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
-		
-		
+
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
 		 * @param pt (input) point where the shape function is computed
@@ -57,16 +60,17 @@ namespace pzshape {
 		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 		
 		/** 
-		 * @brief Compute the internal functions of the prism shape function at a point\n
-		 * 
-		 * The internal shape functions are the shapefunctions before being multiplied by the corner
-		 * shape functions\n
-		 * Shape3dPrismaInternal is basically a call to the orthogonal shapefunction with the transformation
-		 * determined by the transformation index
+		 * @brief Compute the internal functions of the prism shape function at a point
 		 * @param x coordinate of the point
 		 * @param order maximum order of shape functions to be computed
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
+		 */
+		/**
+		 * The internal shape functions are the shapefunctions before being multiplied by the corner
+		 * shape functions\n
+		 * Shape3dPrismaInternal is basically a call to the orthogonal shapefunction with the transformation
+		 * determined by the transformation index
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 								  TPZFMatrix &dphi);
@@ -89,20 +93,21 @@ namespace pzshape {
 		
 		/**
 		 * @brief Transforms a point on the face by the corresponding transformation
-		 * 
-		 * This method applies two dimensional transformations which are implemented by the classes
-		 * associated with triangles and quadrilaterals
 		 * @param transid transformation index of the face
 		 * @param face face to which the coordinates refer
 		 * @param in coordinate of the point on the face before transformation
 		 * @param out coordinate of the point after transformation
+		 */
+		/**
+		 * This method applies two dimensional transformations which are implemented by the classes \n
+		 * associated with triangles and quadrilaterals
 		 */
 		static void TransformPoint3dPrismaFace(int transid, int face, TPZVec<REAL> &in, TPZVec<REAL> &out);
 		
 		
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the rib into the three dimensional derivative
-		 * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
+		 * of the function with respect to the element. \n The parameter dphi should be dimensioned (3,num), at least
 		 * @param rib rib index along which the shapefunction is defined
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
@@ -111,7 +116,7 @@ namespace pzshape {
 		
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the face into the three dimensional derivative
-		 * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
+		 * of the function with respect to the element. \n The parameter dphi should be dimensioned (3,num), at least
 		 * @param rib rib index along which the shapefunction is defined
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
@@ -120,7 +125,7 @@ namespace pzshape {
 		
 		/**
 		 * @brief Transform the derivatives of the shapefunction on the shape (i.e. two dimensional derivative) to acount
-		 * for the transformation on the corresponding face
+		 * for the transformation on the corresponding face.
 		 * @param transid id of the transformation which needs to be applied to the face
 		 * @param face face to which the coordinates of the point refers
 		 * @param num number of derivatives of shapefunctions which need to be transformed
@@ -128,24 +133,16 @@ namespace pzshape {
 		 */
 		static void TransformDerivativeFace3dPrisma(int transid, int face, int num, TPZFMatrix &in);
 		
-		/** 
-		 * @brief Data structure which defines the hexahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the hexahedral transformations and topology */
 		static REAL gFaceTrans3dPrisma2d[5][2][3];
 		
-		/** 
-		 * @brief Data structure which defines the hexahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the hexahedral transformations and topology */
 		static REAL gFaceSum3dPrisma2d[5][2];
 		
-		/** 
-		 * @brief Data structure which defines the hexahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the hexahedral transformations and topology */
 		static REAL gRibTrans3dPrisma1d[9][3];
 		
-		/** 
-		 * @brief Data structure which defines the hexahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the hexahedral transformations and topology */
 		static REAL gRibSum3dPrisma1d[9];
 		
 		/**

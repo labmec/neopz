@@ -17,7 +17,8 @@ class TPZSaveable;
 /**
  * @ingroup util
  * @brief Implements a chunk vector with free store administration.
- *
+ */
+/** 
  * An object of this class allows the user to request a new object of
  * the type administered and allows the user to flag given elements as
  * unused.
@@ -26,88 +27,77 @@ template <class T,int EXP=10>
 class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 {
 	public :
-	///Assignment operator.
+	/** 
+	 * @brief Assignment operator. 
+	 * @param TPZAdmCh Vector which will be duplicated.
+	 */
 	/**
 	 * It will copy the objects from TPZAdmCh will call the
 	 * assignment operator on all objects (also the freed objects).
-	 *
-	 * @param TPZAdmCh Vector which will be duplicated.
 	 */
 	TPZAdmChunkVector<T,EXP> & operator=(const TPZAdmChunkVector<T,EXP> &TPZAdmCh);
 	
 	/**
-	 * Copy constructor.
-	 *
+	 * @brief Copy constructor.
 	 * @param AdmCh Object whose elements will be copied.
 	 */
 	TPZAdmChunkVector(const TPZAdmChunkVector<T,EXP> &AdmCh);
 	
 	/**
-	 * Constructor.
-	 *
 	 * Constructor with indication of the initial size of the chunk
 	 * allocation vector and the size of the chunks these sizes
 	 * cannot be modified during the lifecycle of the object.
-	 *
+	 */
+	/**
+	 * @brief Constructor.
 	 * @param numberofchunks Indicates how large the initial chunk
 	 * vector will be.
-	 *
-	 * @param chunkexponent Indicates the size of the chunks as an
-	 * exponent of 2.
 	 */
 	TPZAdmChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
 	
-	/**
-	 * Destructor
-	 */
+	/** @brief Destructor */
 	virtual ~TPZAdmChunkVector();
 	
 	/**
-	 * Makes more room for new elements.
-	 *
-	 * This method will search the list of free locations to return
-	 * the next free index in case there are no free indexes, this
-	 * method will increase the size of the chunk vector and returns
-	 * the allocated element.
-	 *
+	 * @brief Makes more room for new elements.
 	 * @return The index of a free element.
+	 */
+	/** 
+	 * This method will search the list of free locations to return
+	 * the next free index \n in case there are no free indexes, this
+	 * method will increase the size of the chunk vector \n and returns
+	 * the allocated element.
 	 */
 	int AllocateNewElement();
 	
-	/**
-	 * Indicate an element as free.
-	 *
-	 * @note The object does not verify whether an element has been
-	 * freed several times.
-	 *
+	/** 
+	 * @brief Indicate an element as free.
+	 * @note The object does not verify whether an element has been freed several times.
 	 * @param index The index of the element being put on the free stack.
 	 */
 	void SetFree(int index);
 	
 	/**
-	 * Access method to return the number of free elements.
-	 *
+	 * @brief Access method to return the number of free elements.
 	 * @return Number of free elements.
 	 */
 	inline int NFreeElements() { return fFree.NElements(); }
 	
 	/**
-	 * Sets the method to compact the data structure based on the
+	 * @brief Sets the method to compact the data structure based on the
+	 * @param type Type of compacting scheme to be used.
+	 */
+	/**
 	 * parameter type:
-	 *
 	 * <ul>
 	 * <li> when = 0 : never compact the data structure;
 	 * <li> when = 1 : compact the data structure now;
 	 * <li> when = 2 : compact the data structure always (default).
 	 * </ul>
-	 *
-	 * @param type Type of compacting scheme to be used.
 	 */
 	void CompactDataStructure(int type=2);
 	
-	/**
-	 * Print index i into the fFree vector.
-	 */
+	/** Print index i into the fFree vector. */
 	inline int PrintFree(int i)
 	{
 		// Jorge 12/01/2000
@@ -115,8 +105,7 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	}
 	
 	/**
-	 * Increase the size of the chunk vector.
-	 *
+	 * @brief  Increase the size of the chunk vector.
 	 * @param newsize Requested new size of the vector.
 	 */
 	void Resize(const int newsize);
@@ -128,16 +117,15 @@ private:
 	/*# TPZChunkVector lnkUnnamed */
 	
 	/**
-	 * Internal variable indicating the type of compacting scheme.
-	 *
+	 * @brief Internal variable indicating the type of compacting scheme.
 	 * @see CompactDataStructure.
 	 */
 	int fCompactScheme;
 	
-	/** Number of free elements within each chunk. */
+	/** @brief Number of free elements within each chunk. */
 	TPZManVector<int> fNFree;
 	
-	/** List of indexes of freed elements. */
+	/** @brief List of indexes of freed elements. */
 	TPZStack<int> fFree;
 };
 

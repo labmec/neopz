@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZShapeQuad methods.
+ */
 // $Id: pzshapequad.cpp,v 1.16 2011-05-11 01:47:45 phil Exp $
 #include "pzshapequad.h"
 #include "pzshapelinear.h"

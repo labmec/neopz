@@ -129,41 +129,41 @@ protected:
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ek[out] is the stiffness matrix
-	 * @param ef[out] is the load vector
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ek[out] is the stiffness matrix
-	 * @param ef[out] is the load vector
-	 * @param bc[in] is the boundary condition material
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
 	
 	/**
 	 * @brief It computes a contribution to the residual vector at one integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ef[out] is the residual vector
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ek[out] is the stiffness matrix
-	 * @param ef[out] is the load vector
-	 * @param bc[in] is the boundary condition material
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
@@ -227,10 +227,12 @@ protected:
 	virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
 	
 	/** @brief Compute interface jumps
-	 * values[1] = (solleft - solright)^2
-	 * values[2] = (dsolleft - dsolright)^2
-	 * values[0] = values[1] + values[2]
 	 * @since Feb 14, 2006
+	 */
+	/**
+	 * \f$ values[1] = (solleft - solright)^2 \f$ \n
+	 * \f$ values[2] = (dsolleft - dsolright)^2 \f$ \n
+	 * \f$ values[0] = values[1] + values[2] \f$
 	 */
 	virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
 	
@@ -239,7 +241,7 @@ protected:
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**@brief Read the element data from a stream */
+	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	void ContributeInterfaceErrors(TPZMaterialData &data,
@@ -247,7 +249,8 @@ protected:
 								   TPZVec<REAL> &nkL,
 								   TPZVec<REAL> &nkR,
 								   int &errorid);
-	void  ContributeErrors(TPZMaterialData &data,/// aqui
+	
+	void  ContributeErrors(TPZMaterialData &data,// aqui
 						   REAL weight,
 						   TPZVec<REAL> &nk,
 						   int &errorid){

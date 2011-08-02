@@ -31,14 +31,10 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 	protected :
 	
-	/**
-	 * @brief In second equation beta = alpha * (-K Grad[p] ). Here alpha is stored.
-	 */
+	/** @brief In second equation beta = alpha * (-K Grad[p] ). Here alpha is stored. */
 	REAL fAlpha;
 	
-	/**
-	 * @brief Two instances of TPZMatPoisson3d
-	 */
+	/** @brief Two instances of TPZMatPoisson3d */
 	// @{
 	TPZAutoPointer<TPZMaterial> fMaterialRefs[2];
 	TPZMatPoisson3d * fMaterials[2];
@@ -170,7 +166,7 @@ public:
 	}
 	
 	
-	/**@brief Compute the value of the flux function to be used by ZZ error estimator */
+	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,

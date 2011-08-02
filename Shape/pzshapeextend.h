@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains SPr class which implements the shape functions of a hexahedral three-dimensional element.
+ */
 // $Id: pzshapeextend.h,v 1.1 2008-10-08 02:44:18 phil Exp $
 #ifndef SHAPEEXTENDHPP
 #define SHAPEEXTENDHPP
@@ -17,7 +20,7 @@ namespace pzshape {
 	 * @ingroup shape
 	 */
 	/** 
-	 * The range of the master element is -1,1
+	 * The range of the master element is \f$ [-1,1] \f$
 	 */
 	template<class TFather>
 	class SPr : public TFather {
@@ -30,43 +33,47 @@ namespace pzshape {
 		
 		typedef  pztopology::Pr<FatTop> Top;
 		
+		/**
+		 * @brief Temporary storage to accelerate the computation of shape functions.
+		 */
 		class TMem
 		{
-			/// retained values of the upper shape functions
+			/** @brief Retained values of the upper shape functions */
 			FatMem fUpper;
-			/// retained values of the lower shape functions
+			/** @brief Retained values of the lower shape functions */
 			FatMem fLower;
-			/// retained values of the extension shape functions
+			/** @brief Retained values of the extension shape functions */
 			FatMem fExtension;
-			/// interpolation order of the extension sides
+			/** @brief Interpolation order of the extension sides */
 			int fExtSideOrders[TFather::Top::NSides];
-			/// sign of the shape functions (positive or negative)
+			/** @brief Sign of the shape functions (positive or negative) */
 			TPZManVector<int,TFather::Top::NSides> fSign;
-			/// number of shape functions before "my" shapefunctions (only for the extension sides)
+			/** @brief Number of shape functions before "my" shapefunctions (only for the extension sides) */
 			TPZManVector<int,TFather::Top::NSides> fNShapeBefore;
-			/// number of shape functions after "my" shapefunctions (only for the extension sides)
+			/** @brief Number of shape functions after "my" shapefunctions (only for the extension sides) */
 			TPZManVector<int,TFather::Top::NSides> fNShapeAfter;
-			/// values of the shape functions associated with the extension sides
+			/** @brief Values of the shape functions associated with the extension sides */
 			TPZManVector<REAL> fExtShapes[TFather::Top::NSides];
-			/// number of shape functions for each extension side
+			/** @brief Number of shape functions for each extension side */
 			TPZManVector<int,TFather::Top::NSides> fNShape;
-			/// value of maximum order of the extension sides
+			/** @brief Value of maximum order of the extension sides */
 			int fMaxOrder;
-			/// values of the last computed shape functions
+			/** @brief Values of the last computed shape functions */
 			TPZManVector<REAL> fShape;
 			
 		};
+
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a hexahedral element
-		 * 
-		 * These values depend on the point, the order of interpolation and ids of the corner points
-		 * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
 		 * @param pt (input) point where the shape functions are computed
 		 * @param id (input) indexes of the corner points which determine the orientation of the shape functions
 		 * @param order (input) order of the side connects different from the corner connects (5 connects in this case)
 		 * @param phi (output) values of the shape functions
-		 * @param dphi (output) values of the derivatives of the shapefunctions
-		 
+		 * @param dphi (output) values of the derivatives of the shapefunctions		 
+		 */
+		/**
+		 * These values depend on the point, the order of interpolation and ids of the corner points
+		 * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi, TMem &memory);
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
@@ -90,7 +97,7 @@ namespace pzshape {
 		static int NSideShapeF(int side, int order);
 		
 		/**
-		 * @brief Total number of shapefunctions, considering the order
+		 * Total number of shapefunctions, considering the order
 		 * of interpolation of the element
 		 * @param order vector of integers indicating the interpolation order of the element
 		 * @return number of shape functions
@@ -115,20 +122,20 @@ namespace pzshape {
 		static int NShapeF(TPZVec<int> &order);
 		/**
 		 * @brief Compute the internal functions of the hexahedral shape function at a point\n
-		 *
-		 * The internal shape functions are the shapefunctions before being multiplied by the corner
-		 * shape functions\n
-		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
-		 * determined by the transformation index
 		 * @param x coordinate of the point
 		 * @param order maximum order of shape functions to be computed
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
+		/**
+		 * The internal shape functions are the shapefunctions before being multiplied by the corner
+		 * shape functions\n
+		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
+		 * determined by the transformation index
+		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
 								  TPZFMatrix &dphi);//,int quad_transformation_index
-		
-		
+
 	};
 	
 	template<class TFather>
@@ -216,9 +223,6 @@ namespace pzshape {
 	
 	/**
 	 * Computes the corner shape functions for a hexahedral element
-	 * @param pt (input) point where the shape function is computed
-	 * @param phi (output) value of the (8) shape functions
-	 * @param dphi (output) value of the derivatives of the (8) shape functions holding the derivatives in a column
 	 */
 	template<class TFather>
     inline void SPr<TFather>::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)

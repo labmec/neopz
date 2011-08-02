@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains TPZShapePoint class which implements the shape function associated with a point.
+ */
 #ifndef PZSHAPEPOINT
 #define PZSHAPEPOINT
 
@@ -49,7 +51,7 @@ namespace pzshape{
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element
 		 * @param side associated side
-		 * @order vector of integers indicating the interpolation order of the element
+		 * @param order vector of integers indicating the interpolation order of the element
 		 * @return number of shape functions
 		 */
 		static int NConnectShapeF(int side, int order) { return 1;}
@@ -57,14 +59,14 @@ namespace pzshape{
 		/**
 		 * @brief Total number of shapefunctions, considering the order
 		 * of interpolation of the element
-		 * @order vector of integers indicating the interpolation order of the element
+		 * @param order vector of integers indicating the interpolation order of the element
 		 * @return number of shape functions
 		 */
 		static int NShapeF(TPZVec<int> &order){return 1;}
 		
 		/**
-		 * @brief Compute the permutation of the connects of the sides such that the order of the shape functions
-		 * becomes independent of the element orientation
+		 * @brief Compute the permutation of the connects of the sides such that the order of the \n 
+		 * shape functions becomes independent of the element orientation
 		 */
 		static void PermuteSides(int side, TPZVec<int> &id, TPZVec<int> &permutegather)
 		{

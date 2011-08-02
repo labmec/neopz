@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Creates vectors of TPZEqnArray and TPZEqnArray* .
+ */
 #include "pzvec.h"
 #include "pzerror.h"
 

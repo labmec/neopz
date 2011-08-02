@@ -13,7 +13,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief Orthotropic material.
  */
 class TPZMatOrthotropic : public TPZMaterial {
 	

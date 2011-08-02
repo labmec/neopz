@@ -217,7 +217,7 @@ public:
 	void SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag);
 	
 	/**
-	 @brief This method will search for the $sol0+\alpha dir$ solution which minimizes the residual
+	 @brief This method will search for the \f$ sol0 + \alpha dir\f$ solution which minimizes the residual
 	 @param [in/out] residual initial residual (of sol0) and on exiting final residual
 	 @param [in/out] sol0 solution vector
 	 @param [in] dir search direction

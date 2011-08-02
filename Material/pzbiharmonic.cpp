@@ -11,6 +11,7 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+
 //	NIPG	SIPG	SSIPG1	SSIPG2
 REAL TPZBiharmonic::gLambda1 = 1.0; //	-1	1	-1	1
 REAL TPZBiharmonic::gLambda2 = 1.0; //	-1	1	1	-1

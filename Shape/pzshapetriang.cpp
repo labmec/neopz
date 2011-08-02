@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZShapeTriang methods.
+ */
 // $Id: pzshapetriang.cpp,v 1.9 2008-04-08 20:10:41 fortiago Exp $
 #include "pzshapetriang.h"
 #include "pzshapelinear.h"

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZShapeDisc methods.
+ */
 #include "TPZShapeDisc.h"
 #include "pzshapelinear.h"
 #include "pzreal.h"

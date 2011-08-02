@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZShapeTetra class which implements the shape functions of a tetrahedral element.
+ */
 // $Id: pzshapetetra.h,v 1.6 2008-03-26 20:17:34 phil Exp $
 #ifndef SHAPETETRAHPP
 #define SHAPETETRAHPP
@@ -21,9 +24,7 @@ namespace pzshape {
 	class TPZShapeTetra : public pztopology::TPZTetrahedron{
 		
 	public:
-		
-		
-		
+
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a tetrahedral element
 		 * @param pt (input) point where the shape functions are computed
@@ -57,19 +58,19 @@ namespace pzshape {
 		
 		
 		/** 
-		 * @brief Compute the internal functions of the tetrahedral shape function at a point\n
-		 * 
-		 * The internal shape functions are the shapefunctions before being multiplied by the corner
-		 * shape functions\n
-		 * Shape3dTetraInternal is basically a call to the orthogonal shapefunction with the transformation
-		 * determined by the transformation index (also on the faces)
+		 * @brief Compute the internal functions of the tetrahedral shape function at a point
 		 * @param x coordinate of the point
 		 * @param order maximum order of shape functions to be computed
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-								  TPZFMatrix &dphi);
+		/**
+		 * The internal shape functions are the shapefunctions before being multiplied by the corner
+		 * shape functions\n
+		 * Shape3dTetraInternal is basically a call to the orthogonal shapefunction with the transformation
+		 * determined by the transformation index (also on the faces)
+		 */
+		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi, TPZFMatrix &dphi);
 		
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
@@ -107,8 +108,8 @@ namespace pzshape {
 		 * @brief Transforms the derivative of a shapefunction computed on the rib into the three dimensional derivative
 		 * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
 		 * @param rib rib index along which the shapefunction is defined
-		 * @num number of shapefunction derivatives which need to be transformed
-		 * @dphi values of the derivatives of the shapefunctions (modified in place)
+		 * @param num number of shapefunction derivatives which need to be transformed
+		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
 		 */
 		static void TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix &dphi);
 		
@@ -121,44 +122,28 @@ namespace pzshape {
 		 */
 		static void TransformDerivativeFromFaceToTetra(int face,int num,TPZFMatrix &dphi);
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gVet1dTetr[6];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gFaceTrans3dTetr2d[4][2][3];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gVet2dTetr[4][2];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gRibTrans3dTetr1d[6][3];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gFaceSum3dTetra2d[4][2];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gFaceTrans3dTetra2d[4][2][3];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gRibSum3dTetra1d[6];
 		
-		/** 
-		 * @brief Data structure which defines the tetrahedral transformations and topology
-		 */
+		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gRibTrans3dTetra1d[6][3];
 		
 		/**
