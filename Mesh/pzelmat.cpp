@@ -31,7 +31,7 @@ void TPZElementMatrix::SetMatrixMinSize(short NumBli, short NumBlj,
 }
 
 void TPZElementMatrix::Print(std::ostream &out){
-	fMat.Print("Unconstrained matrix",out);
+	fMat.Print("Unconstrained matrix",out,EMathematicaInput);
 	int ncon = fConnect.NElements();
 	int ic;
 	for(ic=0; ic<ncon; ic++) {
