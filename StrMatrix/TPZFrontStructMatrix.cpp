@@ -243,7 +243,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, TPZAuto
 		std::stringstream sout;
         mat->FinishWriting();
         mat->ReOpen();
-		mat->Print("Frontal matrix", sout);
+		//mat->Print("Frontal matrix", sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
