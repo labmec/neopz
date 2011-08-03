@@ -670,6 +670,13 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 	ShapeAndVec.Resize(tamanho);
 	
 	if (TSHAPE::Type()==EQuadrilateral) {
+        
+        TPZManVector<int,4> ids(4,0);
+        TPZGeoEl *gel = this->Reference();
+        int id;
+        for (id=0; id<4; id++) {
+            ids[id] = gel->NodePtr(id)->Id();
+        }
 		
 		for(int jvec=0;jvec< VectorSide.NElements();jvec++)
 			
@@ -694,12 +701,36 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 TPZFNMatrix<25> sideorders(2,nshape);
                 int ksi,eta;
                 int loccount = 0;
-                for (ksi=0; ksi<order-1; ksi++) {
-                    for (eta=0; eta<order-1; eta++) {
-                        sideorders(0,loccount) = ksi+2;
-                        sideorders(1,loccount) = eta+2;
-                        loccount++;
-                    }
+                int transid = TSHAPE::GetTransformId(ids);
+                switch (transid) 
+                {
+                    case 0:
+                    case 3:
+                    case 4:
+                    case 7:
+                        for (ksi=0; ksi<order-1; ksi++) {
+                            for (eta=0; eta<order-1; eta++) {
+                                sideorders(0,loccount) = ksi+2;
+                                sideorders(1,loccount) = eta+2;
+                                loccount++;
+                            }
+                        }
+                        break;
+                    case 2:
+                    case 6:
+                    case 1:
+                    case 5:
+                        for (eta=0; eta<order-1; eta++) {
+                            for (ksi=0; ksi<order-1; ksi++) {
+                                sideorders(0,loccount) = ksi+2;
+                                sideorders(1,loccount) = eta+2;
+                                loccount++;
+                            }
+                        }
+                        break;
+                    default:
+                        DebugStop();
+                        break;
                 }
                 int ish;
                 int fshape1 = FirstIndex[lside];
