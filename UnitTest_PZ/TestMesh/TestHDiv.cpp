@@ -108,6 +108,59 @@ BOOST_AUTO_TEST_CASE(drham_check)
     }
 }
 
+BOOST_AUTO_TEST_CASE(drham_permute_check)
+{
+    TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
+    TPZGeoMesh *gmesh = cmesh->Reference();
+    int meshdim = cmesh->Dimension();
+
+    TPZManVector<int,4> nodeids(4,0), nodesperm(4,0);
+    TPZGeoEl *gel = gmesh->ElementVec()[4];
+    for (int i = 0; i<4; i++) {
+        nodeids[i] = gel->NodePtr(i)->Id();
+    }
+    TPZPermutation perm(4);
+    perm++;
+    while (!perm.IsFirst()) {
+        perm.Permute(nodeids, nodesperm);
+        for (int i = 0; i<4; i++) {
+            gel->NodePtr(i)->SetNodeId(nodesperm[i]);
+        }
+        int nsides = gel->NSides();
+        int is;
+        int nwrong = 0;
+        for (is=0; is<nsides; is++) {
+            int dim = gel->SideDimension(is);
+            if(dim != gel->Dimension()-1) continue;
+            TPZStack<TPZCompElSide> connected;
+            TPZGeoElSide gelside(gel,is);
+            gelside.ConnectedCompElementList(connected, 1, 1);
+            if (connected.NElements() != 1) {
+                std::cout << "Number of elements connected along face side = " << connected.NElements() << std::endl;
+                DebugStop();
+            }
+            TPZCompElSide celside = gelside.Reference();
+            TPZCompEl *cel = celside.Element();
+            TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+            if(!intel) continue;
+            if(intel->Reference()->Dimension() != meshdim) continue;
+            CheckDRham(intel);            
+        }
+        if(nwrong)
+        {
+            std::cout << "Node ids " << nodesperm << " created drham incompatible shape functions\n";
+        }
+        BOOST_CHECK(nwrong == 0);
+        // now compare the shape function value between neighbrouring elements
+        // create a side integration rule
+        // compute the transformation between the element and his neighbour
+        // compute the vectors of shape function
+        // compare
+        perm++;
+    }
+
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
@@ -305,6 +358,7 @@ static void CheckDRham(TPZInterpolatedElement *intel)
         std::cout << "Number of points with wrong pressure projection " << nwrong << std::endl;
     }
     BOOST_CHECK(nwrong == 0);
+    //return nwrong;
 
 }
 
