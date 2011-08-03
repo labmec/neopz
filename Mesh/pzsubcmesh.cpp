@@ -1156,7 +1156,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 	
 	fAnalysis->SetStructuralMatrix(str);
 	TPZStepSolver *step = new TPZStepSolver();
-	step->SetDirect(ECholesky);
+	step->SetDirect(ELDLt);
 	TPZAutoPointer<TPZMatrixSolver> autostep = step;
 	fAnalysis->SetSolver(autostep);
 	
@@ -1419,7 +1419,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 void TPZSubCompMesh::LoadSolution(){
 	//	int count = 0;
 #warning ME TIRE DAQUI
-	return;
+//	return;
 	
 	int i=0;
 	int seqnumext;
