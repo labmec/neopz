@@ -63,7 +63,7 @@ void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef
 	}
 }
 
-void TPZSubMeshFrontalAnalysis::LoadSolution(TPZFMatrix &sol)
+void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix &sol)
 {
 	
 	//	sol.Print("sol");
@@ -77,7 +77,7 @@ void TPZSubMeshFrontalAnalysis::LoadSolution(TPZFMatrix &sol)
 	int i;
 	for(i=0;i<numinter;i++) soltemp(i,0) = fRhs(i,0);
 	for(; i<numeq; i++) {
-		soltemp(i,0) = sol(i,0)-fReferenceSolution(i,0);
+		soltemp(i,0) = sol.GetVal(i,0)-fReferenceSolution(i,0);
 	}
 	//	soltemp.Print("Solucao temporaria");
 	//	cout.flush();

@@ -32,7 +32,7 @@ private:
 	TPZFront *fFront;
 	
 public:
-	virtual void LoadSolution(TPZFMatrix &sol);
+	virtual void LoadSolution(const TPZFMatrix &sol);
 	/**
 	 * @brief Constructor: create an object analysis from one mesh
 	 **/
