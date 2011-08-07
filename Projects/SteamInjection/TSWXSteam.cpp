@@ -273,7 +273,8 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(const std::vector<double>
 	int nTimes = SItime.size();
 	int validTimes = nTimes;
 	std::map<double, double> time_r, time_maxSigma;
-	int pos = 0, ini = 0;
+//	int pos = 0;
+	int ini = 0;
 
 	for(int i = 0; i < nTimes; i++)
 	{
@@ -314,7 +315,7 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTheseTimes(const std::vector<double>
 
 			time_r[T] = r;
 
-			double mass = getMassRateOfSteam(T);
+//			double mass = getMassRateOfSteam(T);
 
 			double DistrRightDown = ComputeSteamPressure(T);
 			fInput.getMaxSigmaThetaData()->ComputeMaxSigmaTheta(T, r, DistrRightDown);
