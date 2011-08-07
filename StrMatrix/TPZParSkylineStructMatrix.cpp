@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZParSkylineStructMatrix methods. 
+ */
 #include "TPZFrontStructMatrix.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "pzskylmatpar.h"

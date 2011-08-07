@@ -1,4 +1,8 @@
-//$Id: TPZMTAssemble.h,v 1.1 2008-03-18 12:15:35 cesar Exp $
+/**
+ * @file
+ * @brief Contains the TPZMTAssemble class which replaces TPZStructMatrix::Assemble in a multi-threading execution.\n
+ * Also contains SMTAssembleResidual structure.
+ */
 
 #ifndef TPZMTASSEMBLE_H
 #define TPZMTASSEMBLE_H
@@ -15,7 +19,7 @@ class TPZElementMatrix;
 
 /** 
  * @ingroup structural
- * @brief Auxiliar structure to assembling residual vector
+ * @brief Auxiliar structure to assembling residual vector. \ref structural "Structural Matrix"
  */
 struct SMTAssembleResidual{
 	TPZCompEl * compel;
@@ -39,7 +43,7 @@ struct SMTAssembleResidual{
 
 /**
  * @ingroup structural
- * @brief Class of static methods to replace TPZStructMatrix::Assemble in a multi-threading execution
+ * @brief Class of static methods to replace TPZStructMatrix::Assemble in a multi-threading execution. \ref structural "Structural Matrix"
  */
 class TPZMTAssemble{
 public:

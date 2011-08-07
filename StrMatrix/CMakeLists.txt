@@ -1,4 +1,4 @@
-
+# @file neopz/StrMatrix/CMakeLists.txt  -- CMake file for the StrMatrix module
 
 file(GLOB headers *.h)
 install(FILES ${headers} DESTINATION include/pz)

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZParSkylineStructMatrix class which defines parallel structural matrix for skyline matrices.
+ */
 
 #include "pzskylstrmatrix.h"
 #include "pzcmesh.h" 
@@ -11,7 +15,7 @@ class TPZFMatrix;
 class TPZMatrix;
 
 /**
- @brief Defines Parallel Structural Matrix
+ @brief Defines parallel structural matrix for skyline matrices. \ref structural "Structural Matrix"
  @ingroup structural
  */
 class TPZParSkylineStructMatrix : public TPZSkylineStructMatrix {

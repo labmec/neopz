@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZSparseBlockDiagonalStructMatrix class which builds a sparse block diagonal preconditioner.
+ */
 //
 // C++ Interface: tpzsparseblockdiagonalstructmatrix
 //
@@ -15,7 +19,7 @@
 #include "pzstrmatrix.h"
 
 /**
- * @brief This class will Build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it
+ * @brief It will build a sparse block diagonal preconditioner with a structure determined by the parameters passed to it. \ref structural "Structural Matrix"
  * @ingroup structural
  * @author Philippe R. B. Devloo
  */

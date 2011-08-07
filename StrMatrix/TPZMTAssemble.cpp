@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZMTAssemble methods. 
+ */
 //$Id: TPZMTAssemble.cpp,v 1.4 2011-05-11 03:11:17 phil Exp $
 
 #include "TPZMTAssemble.h"
