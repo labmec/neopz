@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZQuadraticTetra class which defines a tetrahedral geometric element with quadratic map.
+ */
 #ifndef TPZQUADRATICTETRA_H
 #define TPZQUADRATICTETRA_H
 
@@ -11,20 +15,15 @@
 
 #include <iostream>
 
-/**
- * @author Paulo Cesar de Alvarenga Lucci (Caju)
- * LabMeC - FEC - UNICAMP
- * 2007
- */
- 
 
 namespace pzgeom
 {
 	
 	/**
 	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @since 2007
 	 * @ingroup geometry
-	 * @brief Defines a tetrahedral geometric element with quadratic map
+	 * @brief Defines a tetrahedral geometric element with quadratic map. \ref geometry "Geometry"
 	 */
 	class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 		

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZPairStructMatrix class.
+ */
 /*
  *  tpzpairstructmatrix.h
  *  SubStruct
@@ -19,6 +23,7 @@
 
 /**
  * @ingroup substructure
+ * @brief .. . \ref substructure "Sub Structure"
  */
 class TPZPairStructMatrix
 {

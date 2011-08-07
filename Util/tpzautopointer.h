@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZAutoPointer class which has Increment and Decrement actions are mutexed by this mutex.
+ */
 //
 // C++ Interface: tpzautopointer
 //
@@ -26,7 +30,7 @@
 extern pthread_mutex_t gAutoPointerMutex;
 
 /**
- @brief This class implements a reference counter mechanism to administer a dynamically allocated object
+ @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
  @author Philippe R. B. Devloo
  */
 template<class T>
@@ -58,19 +62,14 @@ class TPZAutoPointer{
 			fPointer = 0;
 		}
 		
-		/**
-		 * @brief Increment the counter
-		 */
+		/** @brief Increment the counter */
 		void Increment()
 		{
 			pthread_mutex_lock(&gAutoPointerMutex);
 			fCounter++;
 			pthread_mutex_unlock(&gAutoPointerMutex);
 		}
-		/**
-		 * @brief Decrease the counter
-		 * If the counter is zero, delete myself
-		 */
+		/** @brief Decrease the counter. If the counter is zero, delete myself */
 		void Decrease()
 		{
 			int should_delete = 0;
@@ -86,45 +85,35 @@ class TPZAutoPointer{
 		
 	};
 	
-	/**
-	 * @brief The object which contains the pointer and the reference count
-	 */
+	/** @brief The object which contains the pointer and the reference count */
 	TPZReference<T> *fRef;
 	
 public:
-	/**
-	 * @brief Creates an reference counted null pointer
-	 */
+	/** @brief Creates an reference counted null pointer */
 	TPZAutoPointer()
 	{
 		fRef = new TPZReference<T>();
 	}
 	
-	/**
-	 * @brief The destructor will delete the administered pointer if its reference count is zero
-	 */
+	/** @brief The destructor will delete the administered pointer if its reference count is zero */
 	~TPZAutoPointer()
 	{
 		fRef->Decrease();
 	}
 	
-	/**
-	 * @brief This method will create an object which will administer the area pointed to by obj
-	 */
+	/** @brief This method will create an object which will administer the area pointed to by obj */
 	TPZAutoPointer(T *obj)
 	{
 		fRef = new TPZReference<T>(obj);
 	}
 	
-	/**
-	 * @brief Share the pointer of the copy
-	 */
+	/** @brief Share the pointer of the copy */
 	TPZAutoPointer(const TPZAutoPointer<T> &copy)
 	{
 		fRef = copy.fRef;
 		fRef->Increment();
 	}
-	/// Assignment operator
+	/** @brief Assignment operator */
 	TPZAutoPointer &operator=(const TPZAutoPointer<T> &copy)
 	{
 		if(copy.fRef == fRef) return *this;
@@ -156,7 +145,7 @@ public:
 	operator bool() {
 		return fRef->fPointer != 0;
 	}
-	/// Returns the counter value
+	/** @brief Returns the counter value */
 	int Count()
 	{
 		return fRef->fCounter;

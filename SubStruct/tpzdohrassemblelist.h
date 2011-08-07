@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrAssembleItem and TPZDohrAssembleList structs to assembling using Dohrman algorithm.
+ */
 /*
  *  tpzdohrassemblelist.h
  *  SubStruct
@@ -20,7 +24,7 @@
 
 /**
  * @ingroup substructure
- * @brief To assembling one item using Dohrmann algorithm
+ * @brief To assembling one item using Dohrmann algorithm. \ref substructure "Sub structure"
  */
 struct TPZDohrAssembleItem {
 	/** @brief Initialize the assemble item based on the submesh index and size of the local contribution */

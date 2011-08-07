@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrPrecond class which implements a matrix which computes the preconditioner developed by Dohrmann. \n
+ * Also contains TPZDohrPrecondThreadV1Data, TPZDohrPrecondV2SubData and TPZDohrPrecondV2SubDataList structure.
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *
@@ -33,7 +38,7 @@
  * @{
  */
 /**
- @brief Implements a matrix which computes the preconditioner developed by Dohrmann
+ @brief Implements a matrix which computes the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
  @author Philippe Devloo
  */
 template <class TSubStruct = TPZDohrSubstruct> 
@@ -66,20 +71,17 @@ class TPZDohrPrecond : public TPZMatrix
 	TPZAutoPointer<TPZDohrAssembly> fAssemble;
 	
 public:
-    /// comentario do caio
+    /** @brief Constructor with matrix */
     TPZDohrPrecond(TPZDohrMatrix<TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly> assemble);
-	
+	/** @brief Copy constructor */
 	TPZDohrPrecond(const TPZDohrPrecond &copy);
 	
     ~TPZDohrPrecond();
     
     CLONEDEF(TPZDohrPrecond)
 	
-	/**
-	 * @brief Initialize the necessary datastructures
-	 *
-	 * It will compute the coarse matrix, coarse residual and any other necessary data structures
-	 */
+	/** @brief Initialize the necessary datastructures */
+	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();
     
 	void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
@@ -113,6 +115,9 @@ public:
 
 #include <pthread.h>
 
+/**
+ * @brief Auxiliar structure with thread to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
+ */
 template <class TSubStruct> 
 struct TPZDohrPrecondThreadV1Data {
 	TPZDohrPrecondThreadV1Data() : fDohrMatrix(0), fInput(0), fOutput(0)
@@ -122,13 +127,13 @@ struct TPZDohrPrecondThreadV1Data {
 	fInput(&input), fOutput(&output)
 	{
 	}
-	/// pointer to the dohr matrix
+	/** @brief Pointer to the dohr matrix */
 	const TPZDohrPrecond<TSubStruct> * fDohrMatrix;
-	/// input matrix
+	/** @brief Input matrix */
 	const TPZFMatrix * fInput;
-	/// matrix where the coarse solution will be contributed
+	/** @brief Matrix where the coarse solution will be contributed */
 	TPZFMatrix *fOutput;
-	/// Compute the contribution of the coarse matrix
+	/** @brief Compute the contribution of the coarse matrix */
 	static void *ComputeV1(void *dataptr)
 	{
 		TPZDohrPrecondThreadV1Data<TSubStruct> *ptr = (TPZDohrPrecondThreadV1Data<TSubStruct> *) dataptr;
@@ -137,7 +142,9 @@ struct TPZDohrPrecondThreadV1Data {
 	}
 };
 
-
+/**
+ * @brief Auxiliar structure for v2 vector to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
+ */
 template <class TSubStruct> 
 struct TPZDohrPrecondV2SubData {
 	
@@ -150,7 +157,7 @@ struct TPZDohrPrecondV2SubData {
 	{
 		fv2_local = new TPZDohrAssembleItem(subindex, res_local->Rows());
 	}
-	/// protect ourselves from default copy constructors
+	/** @note Protect ourselves from default copy constructors */
 	TPZDohrPrecondV2SubData(const TPZDohrPrecondV2SubData<TSubStruct> &copy) : fSubStructure(copy.fSubStructure), fInput_local(copy.fInput_local),
 	fv2_local(copy.fv2_local)
 	{
@@ -173,16 +180,19 @@ struct TPZDohrPrecondV2SubData {
 	{
 	}
 	
-	/// pointer to the dohr matrix
+	/** @brief Pointer to the dohr matrix */
 	TPZAutoPointer<TSubStruct> fSubStructure;
-	/// input matrix
+	/** @brief Input matrix */
 	TPZAutoPointer<TPZFMatrix> fInput_local;
-	/// the local contribution to the v2 vector
+	/** @brief The local contribution to the v2 vector */
 	TPZAutoPointer<TPZDohrAssembleItem> fv2_local;
 };
 
 struct TPZDohrAssembleList;
 
+/**
+ * @brief Auxiliar structure with list for v2 vector data. \ref substructure "Sub Structure"
+ */
 template <class TSubStruct> 
 struct TPZDohrPrecondV2SubDataList {
 	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList> &assemble) : fAssemblyStructure(assemble)
@@ -193,18 +203,18 @@ struct TPZDohrPrecondV2SubDataList {
 	{
 		pthread_mutex_destroy(&fAccessLock);
 	}
-	/// mutex which will enable the access protection of the list
+	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
-	/// the list of structures which need to be computed
+	/** @brief The list of structures which need to be computed */
 	std::list<TPZDohrPrecondV2SubData<TSubStruct> > fWork;
-	/// interface to add items in a thread safe way
+	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrPrecondV2SubData<TSubStruct> &data)
 	{
 		pthread_mutex_lock(&fAccessLock);
 		fWork.push_back(data);
 		pthread_mutex_unlock(&fAccessLock);
 	}
-	/// interface to pop an item in a thread safe way
+	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrPrecondV2SubData<TSubStruct> PopItem()
 	{
 		TPZDohrPrecondV2SubData<TSubStruct> result;
@@ -216,10 +226,13 @@ struct TPZDohrPrecondV2SubDataList {
 		pthread_mutex_unlock(&fAccessLock);
 		return result;
 	}
-	/// the local contribution to the v2 vector
+	
+	/** @brief The local contribution to the v2 vector */
 	TPZAutoPointer<TPZDohrAssembleList> fAssemblyStructure;
-	/// The procedure which executes the lengthy process
+	
+	/** @brief The procedure which executes the lengthy process */
 	static void *ThreadWork(void *voidptr);
+	
 };
 
 /** @} */

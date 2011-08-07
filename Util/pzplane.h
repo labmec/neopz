@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZPlane class which implements a plane.
+ */
 /***************************************************************************
                           TPZPlane.h  -  description
                              -------------------
@@ -23,12 +27,9 @@
 #include "pzvec.h"
 #include "pznumeric.h"
 
-/**Esta classe cria e guarda a equacao de um plano.
- Verifica tambem se determinado elemento pertence ao plano
- */
 /**
  * @ingroup util
- * @brief Implements a plane (stores the plane equation).
+ * @brief Implements a plane (stores the plane equation). \ref util "Utility"
  * @author Renato Gomes Damas
  */
 class TPZPlane {

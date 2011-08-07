@@ -1,7 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZEllipse3D class which defines a linear geometric element which maps a line segment to an ellipse.
+ */
 /*
- *  tpzellipse3d.h
- *  NeoPZ
- *
  *  Created by caju on 03/aug/09.
  *  Copyright 2009 LabMeC. All rights reserved.
  *
@@ -22,7 +23,7 @@ namespace pzgeom
 {
     
 	/** 
-	 * @brief Defines a linear geometric element which maps a line segment to an ellipse
+	 * @brief Defines a linear geometric element which maps a line segment to an ellipse. \ref geometry "Geometry"
 	 * @ingroup geometry
 	 */
 	class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {

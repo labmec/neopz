@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZMathTools methods. 
+ */
 #include "tpzmathtools.h"
 #include "tpzintpoints.h"
 

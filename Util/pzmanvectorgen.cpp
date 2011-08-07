@@ -2,7 +2,7 @@
 
 /** 
  * @file
- * @brief Creates a free store vector to integers, chars, REAL and TPZString.
+ * @brief Creates a free store vector to integers, chars, REAL and TPZString from template TPZManVector.
  */
 // $Id: pzmanvectorgen.cpp,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
 

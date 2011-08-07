@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZArc3D methods. 
+ */
 #include "tpzarc3d.h"
 #include "pzshapelinear.h"
 

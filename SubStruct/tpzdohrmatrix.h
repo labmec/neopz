@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrMatrix class which implements a matrix divided into substructures. \n
+ * Also contains the TPZDohrThreadMultData and TPZDohrThreadMultList structs.
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *
@@ -31,7 +36,7 @@
 #include "tpzdohrassemblelist.h"
 
 /**
- * @brief Implements a matrix divided into substructures
+ * @brief Implements a matrix divided into substructures. \ref matrix "Matrix" \ref substructure "Sub structure"
  * @ingroup substructure matrix
  * @author Philippe Devloo
  */
@@ -39,9 +44,7 @@ template <class TSubStruct>
 class TPZDohrMatrix : public TPZMatrix
 {
 public:
-	/**
-	 * @brief The matrix class is a placeholder for a list of substructures
-	 */
+	/** @brief The matrix class is a placeholder for a list of substructures */
 	typedef typename std::list<TPZAutoPointer<TSubStruct> > SubsList;
 private:
 	SubsList fGlobal;
@@ -86,15 +89,11 @@ public:
 		fNumThreads = numthreads;
 	}
 	
-	/**
-	 * @brief Just a method for tests
-	 */
+	/** @brief Just a method for tests */
 	TPZAutoPointer<TSubStruct> GetFirstSub() {
 		return (*fGlobal.begin());
 	}
-	/**
-	 * @brief Just a method for tests
-	 */
+	/** @brief Just a method for tests */
 	void Print(const char *name, std::ostream& out,const MatrixOutputFormat form = EFormatted) const
 	{
 		out << __PRETTY_FUNCTION__ << std::endl;
@@ -110,19 +109,14 @@ public:
 	{
 		fNumCoarse = nc;
 	}
-	/**
-	 * @brief Initialize the necessary datastructures
-	 */
+	/** @brief Initialize the necessary datastructures */
 	void Initialize();   
-	/**
-	 * @brief It adds a substruct
-	 */
+	/** @brief It adds a substruct */
 	void AddSubstruct(TPZAutoPointer<TSubStruct> substruct)
 	{
 		fGlobal.push_back(substruct);
 	}
 	
-	// The only method any matrix class needs to implement
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -133,36 +127,36 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
+	/** The only method any matrix class needs to implement */
 	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,const REAL alpha,const REAL beta,const int opt,const int stride) const;
 	
-	/**
-	 * @brief Adjust the residual to zero the residual of the internal connects
-	 */
+	/** @brief Adjust the residual to zero the residual of the internal connects */
 	void AdjustResidual(TPZFMatrix &res);
 	
-	/**
-	 * @brief Add the solution corresponding to the internal residual
-	 */
+	/** @brief Add the solution corresponding to the internal residual */
 	void AddInternalSolution(TPZFMatrix &solution);
 	
 };
 
 /**
  * @ingroup substructure
+ * @brief .. . \ref substrucure "Sub structure"
  */
 template <class TSubStruct> 
 struct TPZDohrThreadMultData
 {
-	
+	/** @brief Default constructor */
 	TPZDohrThreadMultData() : fisub(-1), fSub(0)
 	{
 	}
 	TPZDohrThreadMultData(int isub, TPZAutoPointer<TSubStruct> submesh) : fisub(isub), fSub(submesh)
 	{
 	}
+	/** @brief Copy constructor */
 	TPZDohrThreadMultData(const TPZDohrThreadMultData<TSubStruct> &cp) : fisub(cp.fisub), fSub(cp.fSub)
 	{
 	}
+	/** @brief Implement the attribution operator. */
 	TPZDohrThreadMultData<TSubStruct> &operator=(const TPZDohrThreadMultData<TSubStruct> &cp)
 	{
 		fisub = cp.fisub;
@@ -180,6 +174,7 @@ struct TPZDohrThreadMultData
 
 /**
  * @ingroup substructure
+ * @brief .. . \ref substrucure "Sub structure"
  */
 template <class TSubStruct> 
 struct TPZDohrThreadMultList

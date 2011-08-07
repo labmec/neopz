@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrSubstructCondense class which condenses matrix divided in sub structures.
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *
@@ -28,8 +32,9 @@
 #include "tpzverysparsematrix.h"
 
 /**
- @brief To condense matrix divided in sub structures.
- @author Philippe Devloo
+ * @brief To condense matrix divided in sub structures. \ref substructure "Sub Structure"
+ * @author Philippe Devloo
+ * @ingroup substructure
  */
 class TPZDohrSubstructCondense
 {

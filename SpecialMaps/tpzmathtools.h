@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZMathTools class.
+ */
 #ifndef TPZMATHTOOLS_H
 #define TPZMATHTOOLS_H
 
@@ -5,11 +9,10 @@
 #include "pzgeoel.h"
 
 /**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
+ * @author Paulo Cesar de Alvarenga Lucci (Caju)
+ * @since 2007
+ * @brief ??
  */
-
 class TPZMathTools
 {
 	
@@ -25,6 +28,7 @@ public:
      * @brief Type in Function method (.cpp arquive) the function to be integrated
 	 */
 	static void Function(const TPZVec<REAL> &x, REAL &fx);
+	
 	REAL IntegrateFunction(void (func)(const TPZVec<REAL> &coord, REAL &result), TPZGeoEl *Geo);
 	//      REAL IntegrateFunction(TPZGeoEl *Geo);
 	

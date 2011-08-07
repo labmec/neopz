@@ -1,24 +1,23 @@
+/**
+ * @file
+ * @brief Contains the TPZQuadraticTrig class which defines a triangular geometric element with quadratic map.
+ */
 #ifndef TPZQUADRATICTRIG_H
 #define TPZQUADRATICTRIG_H
 
 #include "pznoderep.h"
 #include "tpztriangle.h"
 
-
 class TPZGeoEl;
-
-/**
- / LabMeC - FEC - UNICAMP
- / 2007
- */
 
 namespace pzgeom
 {
 	
 	/**
 	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @since 2007
 	 * @ingroup geometry
-	 * @brief Defines a triangular geometric element with quadratic map
+	 * @brief Defines a triangular geometric element with quadratic map. \ref geometry "Geometry"
 	 */
 	class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 		
@@ -44,9 +43,7 @@ namespace pzgeom
 		
 		TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Triangle";}
 		
 		/**
@@ -63,15 +60,11 @@ namespace pzgeom
 		static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
-										  int matid,
-										  int& index);
-		
-		
+										  int matid, int& index);
+
 	};
     
 };

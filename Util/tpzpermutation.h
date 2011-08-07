@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZPermutation class which generates all permutations of n values.
+ */
 //
 // C++ Interface: tpzpermutation
 //
@@ -17,8 +21,7 @@ class TPZStream;
 
 /**
  @ingroup util
- @brief This class generates all permutations of n values
- 
+ @brief This class generates all permutations of n values. \ref util "Utility"
  @author Philippe R. B. Devloo
  */
 class TPZPermutation{
@@ -31,7 +34,7 @@ public:
     
     TPZPermutation &operator=(const TPZPermutation &copy);
     
-    /// Applies the current permutation on the vector in and produces the vector out
+    /** @brief Applies the current permutation on the vector in and produces the vector out */
     void Permute(const TPZVec<int> &in, TPZVec<int> &out) const;
     
     void operator++();
@@ -56,10 +59,10 @@ public:
 	
 protected:
 	
-    /// Variable which represents a counter for the permutations
+    /** @brief Variable which represents a counter for the permutations */
     TPZManVector<int> fCounter;
 	
-    /// Variable which contains the current permutations
+    /** @brief Variable which contains the current permutations */
     TPZManVector<int> fOrder;
 };
 
@@ -81,7 +84,5 @@ inline std::ostream &operator<<(std::ostream &out, TPZPermutation &obj)
 	
 	return out;
 }
-
-
 
 #endif

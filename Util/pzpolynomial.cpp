@@ -11,10 +11,9 @@
 using namespace std;
 
 /**
- * Calcula as raízes do polinomio pelo método de Tartaglia Retorna 0 se o indice da potência de grau 3 é igual a zero: não é
- * de terceiro grau Retorna 1 se a equacao tem 3 raízes reais distintas
- * Retorna 2 se a equacao tem 3 raíxes reais, sendo duas distintas
- * Retorna -1 se a equacao tem 1 raízes real e duas complexas conjugadas
+ * Computes the polynomial roots using Tartaglia method. Returns 0 whether the polynomial is less than third degree. \n
+ * Returns 1 if the equation has three distinct real roots. Returns 2 if it has three real roots but two of them are same. \n
+ * Returns -1 if the equation has one real root and two conjudated complex roots.
  */
 int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL &imagem) {
 	
@@ -151,7 +150,7 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
     }
 }
 
-/** Armazena os coeficientes do polinomio em fCo. fCo[3]x³ + fCo[2]x² + fCo[1]x + fCo[0] = 0.0* */
+/** Sets up four coefficients to polynomial into the fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
 void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, const REAL &c3) {
     int i;
     fCo[0] = c0;
@@ -168,7 +167,7 @@ void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, cons
     //SetRoots();
 }
 
-/** Armazena os coeficientes do polinomio em fCo. fCo[3]x³ + fCo[2]x² + fCo[1]x + fCo[0] = 0.0* */
+/** Store the given coefficients into fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
 void TPZPolynomial::SetCoef(const TPZVec<REAL> &coef) {
     int i;
     REAL max;
@@ -183,7 +182,7 @@ void TPZPolynomial::SetCoef(const TPZVec<REAL> &coef) {
 	
 }
 
-/** Retorna as raízes do polinomio em r. Sendo r[0]>>r[1]>>r[2]* */
+/** Computes the roots of the polynomial in r, being \f$ r[0] >> r[1] >> r[2] \f$ */
 int TPZPolynomial::GetRoots(TPZVec<REAL> & r) {
     int i;
     for (i = 0; i < 3; i++)
@@ -195,14 +194,14 @@ int TPZPolynomial::GetRoots(TPZVec<REAL> & r) {
     return 1;
 }
 
-/** Retorna as raízes do polinomio em r.Sendo r[0]>>r[1]>>r[2].* */
+/** On given coefficients computes the roots of the polynomial in r, being \f$ r[0] >> r[1] >> r[2]. \f$ */
 int TPZPolynomial::GetRoots(const TPZVec<REAL> &coef, TPZVec<REAL> &r) {
     fCo = coef;
     GetRoots(r);
     return 1;
 }
 
-/** Calcula as raízes do polinomio e armazena em fReal. Sendo fReal[0]>>fReal[1]>>fReal[2].* */
+/** Sets the roots of the polynomial in r, being \f$ fReal[0] >> fReal[1] >> fReal[2]. \f$ */ 
 int TPZPolynomial::SetRoots() {
     REAL X[3], x;
     //    int ordem[3];
@@ -295,27 +294,27 @@ int TPZPolynomial::SetRoots() {
     return 1;
 }
 
-/** Define a tolerância dos cálculos.* */
+/** @brief Sets the tolerance value to computes */
 void TPZPolynomial::SetTolerance(const REAL &tol) {
     fTolerance = tol;
 }
 
-/** Inicializador da classe.* */
+/** @brief Constructor based on coef as coefficients and tol as tolerance value */
 TPZPolynomial::TPZPolynomial(const TPZVec<REAL> &coef, const REAL &tol): fReal(3), fImagem(0.0) {
     SetTolerance(tol);
     SetCoef(coef);
 }
 
-/** Fornece a tolerância do cálculo, armazenando em tol.* */
+/** @brief Gets the tolerance value */
 void TPZPolynomial::GetTolerance(REAL & tol) {
     tol = fTolerance;
 }
 
-/** Inicializador da classe.* */
+/** @brief Constructor based on coef as coefficients */
 TPZPolynomial::TPZPolynomial(const TPZVec<REAL> &coef): fCo(4), fReal(3), fImagem(0.0) {
     SetCoef(coef);
 }
 
-/** Inicializador da classe.* */
+/** @brief Default constructor */
 TPZPolynomial::TPZPolynomial() : fCo(4,0.0), fReal(3,0.0), fImagem(0.0){
 }

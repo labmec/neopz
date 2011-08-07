@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrAssembly class which implements assembling using Dohrmann algorithm.
+ */
 /*
  *  tpzdohrassembly.h
  *  SubStruct
@@ -16,9 +20,8 @@ class TPZFMatrix;
 
 /**
  * @ingroup substructure
- * @brief Assembling using Dohrmann algorithm
+ * @brief Assembling using Dohrmann algorithm. \ref substructure "Sub structure"
  */
-
 class TPZDohrAssembly 
 {
 public:

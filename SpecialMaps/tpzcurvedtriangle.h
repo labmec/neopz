@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZCurvedTriangle class which implements a triange with straight sides but with nonlinear map.
+ */
 #ifndef TPZCURVEDTRIANGLE_H
 #define TPZCURVEDTRIANGLE_H
 
@@ -11,18 +15,15 @@
 
 #include <iostream>
 
-/**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
- */
 
 namespace pzgeom
 {
 	
 	/** 
 	 * @ingroup geometry
-	 * @brief implements a triange with straight sides but with nonlinear map 
+	 * @brief Implements a triange with straight sides but with nonlinear map. \ref geometry "Geometry"
+	 * @author Paulo Cesar de Alvarenga Lucci
+	 * @since 2007
 	 */
 	class TPZCurvedTriangle : public pzgeom::TPZNodeRep<3,pztopology::TPZTriangle> {
 		

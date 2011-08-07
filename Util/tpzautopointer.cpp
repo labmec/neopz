@@ -1,6 +1,6 @@
 /** 
  * @file 
- * @brief Implementation of the tpzautopointer. 
+ * @brief Initialize the pthread_mutex_t gAutoPointerMutex. 
  */
 //
 // C++ Implementation: tpzautopointer

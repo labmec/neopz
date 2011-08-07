@@ -26,8 +26,7 @@ STREAM << "0";				\
 STREAM << TIME;				\
 }
 
-// Starts the timer.
-
+/// Starts the timer.
 void TPZTimer::start()
 {
 	
@@ -36,8 +35,7 @@ void TPZTimer::start()
 	
 }
 
-// Stops the timer and accumulate.
-
+/// Stops the timer and accumulate.
 void TPZTimer::stop()
 {
 	clock_t value;
@@ -50,50 +48,40 @@ void TPZTimer::stop()
 	AccumSec = ((double) resources.elapsed)/CLOCKS_PER_SEC;
 }
 
-// Prints the time nicely formated.
+/// Prints the time nicely formated.
 std::ostream& operator<<( std::ostream& Out, const TPZTimer& t )
 {
 	double AcS = t.AccumSec;
 	
 	int elapsedHours = static_cast< int >( AcS / 3600.0 );
-	
 	AcS -= static_cast< double >( elapsedHours * 3600 );
 	
 	int elapsedMins = static_cast< int >( AcS / 60.0 );
-	
 	AcS -= static_cast< double >( elapsedMins * 60 );
 	
 	int elapsedSecs = static_cast< int >( AcS );
-	
 	AcS -= static_cast< double >( elapsedSecs );
 	
 	double elapsedMSecs = AcS * 1000.0;
-	
 	std::ostringstream o;
 	
 	DIGITS2( o, elapsedHours );
-	
 	o << ":";
 	
 	DIGITS2( o, elapsedMins );
-	
 	o << ":";
 	
 	DIGITS2( o, elapsedSecs );
-	
 	o << " :: " << elapsedMSecs;
 	
 	Out << o.str();
-	
 	return Out;
 }
 
-// Prints the time nicely formated.
-
+/// Prints the time nicely formated.
 std::ostream& operator<<( std::ostream& Out, const TPZMultiTimer& t )
 {
 	// First, we find the bigger process name, to align things.
-	
 	int MaxNameSize = 0;
 	
 	for( int ii = 0; ii < t.nTimers(); ii++ )

@@ -1,6 +1,6 @@
 /** 
  * @file 
- * @brief Contains the implementation of the InitializePZLOG function. 
+ * @brief Contains the implementation of the InitializePZLOG() function. 
  */
 //
 // C++ Implementation: pzlog

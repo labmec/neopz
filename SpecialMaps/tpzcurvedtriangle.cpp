@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCurvedTriangle methods. 
+ */
 /*******************************************
  *   Made by P. Cesar de A. Lucci          *
  *   LabMeC - 2007                         *

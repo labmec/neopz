@@ -1,8 +1,10 @@
+/**
+ * @file
+ * @brief Contains the TPZQuadraticQuad class which defines a quadrilateral geometric element with quadratic map.
+ */
 #ifndef TPZQUADRATICQUAD_H
 #define TPZQUADRATICQUAD_H
 
-// #include "pzfmatrix.h"
-// #include "pzvec.h"
 #include "pzgeoquad.h"
 // #include "pzgmesh.h"
 #include "pzgeoel.h"
@@ -11,19 +13,15 @@
 
 #include <iostream>
 
-/**
- / @author Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
- */
-
 
 namespace pzgeom {
 
 	/**
 	 * @ingroup geometry
-	 * @brief Defines a quadrilateral geometric element with quadratic map
-	*/
+	 * @brief Defines a quadrilateral geometric element with quadratic map. \ref geometry "Geometry"
+	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @since 2007
+	 */
 	class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 		
 	public:

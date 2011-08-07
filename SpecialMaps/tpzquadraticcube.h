@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZQuadraticCube class which defines a cube geometric element with quadratic map.
+ */
 #ifndef TPZQUADRATICCUBE_H
 #define TPZQUADRATICCUBE_H
 
@@ -9,9 +13,9 @@
 #include <iostream>
 
 /**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2011
+ * @author Paulo Cesar de Alvarenga Lucci (Caju)
+ * @since 2011
+ * @brief Defines a cube geometric element with quadratic map. \ref geometry "Geometry"
  * @ingroup geometry
  */
 
@@ -45,9 +49,7 @@ public:
 	{
 	}
 	
-	/**
-	 * @brief Returns the type name of the element
-	 */
+	/** @brief Returns the type name of the element */
 	static std::string TypeName() { return "Hexa";} 
 	
 	static void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
@@ -57,13 +59,11 @@ public:
 	static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 	
 	
-	/**
-	 * @brief Creates a geometric element according to the type of the father element
-	 */
+	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<int>& nodeindexes,
-									  int matid,
-									  int& index);
+									  int matid, int& index);
+	
 	TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);	
 };
 

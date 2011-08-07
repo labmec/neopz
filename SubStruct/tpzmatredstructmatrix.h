@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZMatRedStructMatrix class. 
+ */
 /*
  *  tpzmatredstructmatrix.h
  *  SubStruct
@@ -16,6 +20,7 @@ class TPZFMatrix;
 
 /**
  * @ingroup substructure
+ * @brief .. . \ref substructure "Sub Structure"
  */
 template< class TStructMatrix, class TSparseMatrix>
 class TPZMatRedStructMatrix : TPZStructMatrix

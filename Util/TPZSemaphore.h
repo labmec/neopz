@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZSemaphore class which implements semaphore to threads.
+ */
 #ifndef TPZSEMAPHOREHPP
 #define TPZSEMAPHOREHPP
 
@@ -5,7 +9,7 @@
 
 /**
  * @ingroup util
- * @brief Implements semaphore to threads
+ * @brief Implements semaphore to threads. \ref util "Utility"
  */
 class TPZSemaphore
 {

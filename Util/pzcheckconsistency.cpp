@@ -1,6 +1,6 @@
-/** 
+/**
  * @file
- * @brief Creates a chunk vector to integers.
+ * @brief Contains the implementation of the TPZCheckConsistency methods. 
  * @author Created by Philippe Devloo on 27/12/09.
  */
 /**

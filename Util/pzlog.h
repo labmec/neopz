@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains definitions to LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL, \n
+ * and the implementation of the inline InitializePZLOG(string ) function.
+ */
 //
 // C++ Interface: pzlog
 //
@@ -28,6 +33,9 @@
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
+/**
+ * \addtogroup util
+ * \{ */
 extern pthread_mutex_t glogmutex;
 
 /*    pthread_mutex_lock(&fCommunicate);
@@ -65,6 +73,8 @@ extern pthread_mutex_t glogmutex;
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+/** \} */
 
 /** @ingroup util
  * @brief Initialize a log file adequated to use log4cxx lib

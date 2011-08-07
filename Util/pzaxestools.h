@@ -1,6 +1,8 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZAxesTools class which implements verifications over axes.
+ */
 //$Id: pzaxestools.h,v 1.1 2008-02-12 10:35:31 tiago Exp $
-
-// -*- c++ -*-
 
 #ifndef AXESTOOLS
 #define AXESTOOLS
@@ -10,7 +12,8 @@
 
 /**
  * @ingroup util
- * @brief Implements method to verify whether axes is an orthogonal normalizes matrix and to transformation from given axes to euclidian basis and viceverse.
+ * @brief Implements method to verify whether axes is an orthogonal normalizes matrix and to transformation from given axes \n
+ * to euclidian basis and viceverse. \ref util "Utility"
  */
 class TPZAxesTools{ 
 public:
@@ -19,8 +22,8 @@ public:
 	/// destructor
 	~TPZAxesTools(){}
 	
-	/// Verify whether parameter axes is an orthogonal normalized matrix.
 	/**
+	 * @brief Verify whether parameter axes is an orthogonal normalized matrix.
 	 * @param TPZFMatrix axes Object to check if it is a orthogonal and normalized matrix
 	 */
 	static void VerifyAxes(const TPZFMatrix &axes){
@@ -48,8 +51,8 @@ public:
 #endif
 	}
 	
-	/** @brief Makes the basis transformation from axes basis to euclidian basis.
-	 *
+	/**
+	 * @brief Makes the basis transformation from axes basis to euclidian basis.
 	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
 	static void Axes2XYZ(const TPZFMatrix &dudaxes, TPZFMatrix &dudx, const TPZFMatrix &axes){
@@ -72,8 +75,7 @@ public:
 		axes.Multiply(dudx,dudaxes);  
 	}
 	
-	/** Test code
-	 */
+	/** Test code */
 	static int main(){
 		TPZFMatrix axes(2,3,0.);
 		axes(0,0) = sqrt(2.)/2.;

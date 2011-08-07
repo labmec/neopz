@@ -1,7 +1,6 @@
-// -*- c++ -*-
 /**
- * @file pzadmchunk.h
- * @brief Free store vector implementation.
+ * @file
+ * @brief Free store vector implementation in chunks.
  */
 // $Id: pzchunk.h,v 1.10 2007-05-01 20:25:59 phil Exp $
 
@@ -15,22 +14,21 @@
 
 /**
  * @ingroup util
- * @brief Default number of elements which will be allocated in the chunk vector. 
+ * @brief Default number of elements which will be allocated in the chunk vector.
  */
 const int DEFAULTNUMBEROFCHUNKS = 100;
 
 /**
  * @ingroup util
- * @brief Default number of elements in each chunk is pow(2,--). 
+ * @brief Default number of elements in each chunk is \f$ pow(2,--) \f$. 
  */
 const int DEFAULTCHUNKEXPONENT = 10;
 
 /**
  * @ingroup util
- *
- * @brief An object of this class implements a vector which allocates
- * objects by chunks. 
- *
+ * @brief An object of this class implements a vector which allocates objects by chunks. \ref util "Utility"
+ */
+/**
  * The expansion of a TChunkVector object does not
  * involve the copying of the already allocated objects.
  */
@@ -40,61 +38,48 @@ class TPZChunkVector
 	public :
 	/**
 	 * @brief Assignment operator, copies all elements from the object TCh.
-	 *
-	 * @param TCh Chunk vector from which the elements will be
-	 * copied.
+	 * @param TCh Chunk vector from which the elements will be copied.
 	 */
 	TPZChunkVector<T,EXP> & operator=(const TPZChunkVector<T,EXP> &TCh);
 	
 	/**
 	 * @brief Copy constructor.
-	 *
 	 * @param TCh The elements of the current object will be copied from TCh.
 	 */
 	TPZChunkVector(const TPZChunkVector<T,EXP> &TCh);
 	
 	/**
 	 * @brief Constructor with numberofchuncks chuncks.
-	 * @param numberofchunks Indicates how large the initial chunk
-	 * vector will be.
-	 *
-	 * @param chunkexponent Indicates the size of the chunks as an
-	 * exponent of 2.
+	 * @param numberofchunks Indicates how large the initial chunk vector will be.
+	 * @param chunkexponent Indicates the size of the chunks as an exponent of 2.
 	 */
 	TPZChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
-	/**
-	 * @brief Destructor.
-	 */
+	/** @brief Destructor. */
 	virtual ~TPZChunkVector();
 	
 	/**
 	 * @brief Access method to query the number of elements of the vector.
-	 *
 	 * @return Returns the number of elements of the vector.
 	 */
 	inline int NElements() const {return fNElements;}
 	
 	/**
 	 * @brief Increase the size of the chunk vector.
-	 *
 	 * @param newsize New size of the vector. Does not indicate how
 	 * much memory will be allocated!
 	 */
 	void Resize(const int newsize);
 	
+	/** @brief Returns a reference to the ith element of the vector. */
 	/**
-	 * @brief Returns a reference to the ith element of the vector.
-	 *
 	 * If NODEBUG is defined, the element is returned without any
-	 * bounds checking, else a bounds check is performed and the
+	 * bounds checking, else a bounds check is performed and the \n
 	 * code exits if the index is out of bounds.  Note that NODEBUG
 	 * may modify the result of the code.
 	 */
 	T &operator[](const int nelem) const;
 	
-	/**
-	 * @brief Finds the index of an object by its pointer
-	 */
+	/** @brief Finds the index of an object by its pointer */
 	int FindObject(T *object);
 	
 protected:

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZBlendNACA class. It is a special map.
+ */
 #ifndef TPZBLENDNACA_H
 #define TPZBLENDNACA_H
 
@@ -9,8 +13,9 @@
 class TPZGeoEl;
 class TPZGeoMesh;
 /**
- @author caju2008 <caju@skol>
- @ingroup geometry
+ * @author caju2008 <caju@skol>
+ * @ingroup geometry
+ * @brief Special map to NACA. \ref geometry "Geometry"
  */
 class TPZBlendNACA
 {
@@ -32,33 +37,30 @@ public:
     void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
 	
 public:
-	/**
-	 * @brief Creates a geometric element according to the type of the father element
-	 */
+	/* * @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<int>& nodeindexes,
 									  int matid,
 									  int& index);
-	
-	
+
 private:
 	
     REAL P();
     REAL M();
     REAL TT();
 	
-    /// Mean line for the wing
+    /** @brief Mean line for the wing */
     REAL yc(REAL x);
     REAL dyc(REAL x);
 	
-    /// thickness
+    /** @brief Thickness */
     REAL yt(REAL x);
 	
-    /// superior profile
+    /** @brief Superior profile */
     REAL xu(REAL x);
     REAL yu(REAL x);
 	
-    /// inferior profile
+    /** @brief Inferior profile */
     REAL xl(REAL x);
     REAL yl(REAL x);
 	

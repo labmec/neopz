@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZfTime methods. 
+ */
 /*
  *  ftime.cpp
  *  SubStruct

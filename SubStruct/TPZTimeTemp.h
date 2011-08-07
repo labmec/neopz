@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZTimeTemp class which takes times.
+ */
 #ifndef TPZTIMETEMP_H
 #define TPZTIMETEMP_H
 
@@ -16,8 +20,8 @@
 #include "pzstack.h"
 
 /**
- * @brief Takes times. (Tomada de tempos)
- * @ingroup substructure
+ * @brief Takes times. (Tomada de tempos). \ref util "Utility"
+ * @ingroup util
  */
 class TPZTimeTemp
 {

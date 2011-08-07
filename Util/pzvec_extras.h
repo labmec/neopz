@@ -1,7 +1,7 @@
 // -*- c++ -*-
 /**
  * @file
- * @brief Extra utilities for TPZVec.
+ * @brief Extra utilities for TPZVec. Implementations of the saxpy, sscal, sdot, intercept, max and min functions.
  */
 // $Id: pzvec_extras.h,v 1.12 2011-03-24 19:58:12 phil Exp $
 
@@ -46,7 +46,6 @@ void saxpy( TPZVec< T1 >& x, const TPZVec< T2 >& y, Scalar s )
 
 /**
  * @brief Performs a sscal operation: x <- x * s.
- *
  * @since Mar 20, 2003
  * @author Tiago Forti
  * @author Erick Santos

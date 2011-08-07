@@ -1,14 +1,9 @@
-// -*- c++ -*-
-
 /**
  * @file TPZTimer.h
  *
- * Timing class. Absolutely copied from GNU time. Take a look at <br>
- *
- * http://www.gnu.org/software/time/time.html
- *
- * @author Cantao!
+ * @brief Timing class. Absolutely copied from GNU time. Take a look at <br>
  */
+/** http://www.gnu.org/software/time/time.html */
 // $Id: TPZTimer.h,v 1.11 2011-05-13 19:41:30 phil Exp $
 
 #ifndef TPZTIMER_H
@@ -26,7 +21,7 @@
  * @{
  */
 
-/// Information on the resources used by a child process.
+/** @brief Information on the resources used by a child process. \ref util "Utility" */
 struct PZResourceUsage
 {
 	int waitstatus;
@@ -38,13 +33,15 @@ struct PZResourceUsage
 
 //--| TPZTimer |----------------------------------------------------------------
 
-/** @brief The timer class.
- *
+/** 
+ * @brief The timer class. \ref util "Utility"
+ * @author Cantao!
+ * @warning Check its behavior on non-GNU systems.
+ */
+/**
  *  The purpose of this class is to provide a simple, mono-threaded
  *  timer. It is based entirely on GNU timer, so I don't know its
  *  behavior on non-GNU systems.
- *
- *  @warning Check its behavior on non-GNU systems.
  */
 class TPZTimer
 {
@@ -96,8 +93,8 @@ private:
 
 //--| TPZMultiTimer |-----------------------------------------------------------
 
-/** @brief Controls several timers at once.
- *
+/** 
+ * @brief Controls several timers at once. \ref util "Utility"
  *  @warning Check its behavior on non-GNU systems.
  */
 class TPZMultiTimer

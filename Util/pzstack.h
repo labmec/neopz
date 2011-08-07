@@ -1,5 +1,5 @@
 /**
- * @file pzstack.h
+ * @file
  * @brief A simple stack.
  */
 // $Id: pzstack.h,v 1.5 2010-06-17 12:41:22 phil Exp $
@@ -15,13 +15,12 @@
 
 /**
  * @ingroup util
- *
- * @brief This class implements a stack object.
- *
- * The TPZStack object will automatically increase its size as more
- * object are pushed. It inherits the memory management from the
- * TPZManVector class. The class T needs to implement the assignment
- * operator and copy constructor.
+ * @brief This class implements a stack object. \ref util "Utility"
+ */
+/**
+ * The TPZStack object will automatically increase its size as more object are pushed. \n
+ * It inherits the memory management from the TPZManVector class. \n
+ * The class T needs to implement the assignment operator and copy constructor.
  */
 template< class T, int NumExtAlloc = DEFAULTVEC_ALLOC >
 class TPZStack : public TPZManVector< T, NumExtAlloc >
@@ -32,35 +31,32 @@ public:
 	
 	/**
 	 * @brief Create the stack object, indicates the stack increments.
-	 *
+	 */
+	/**
 	 * The size of the stack is always equal zero upon creation.
-	 *
-	 * @param allocationsize Indicates the number of elements
-	 * allocated to store the elements which will be pushed onto the
-	 * stack.
 	 */
 	TPZStack();
 	
 	/**
 	 * @brief Pushes a copy of the object on the stack.
-	 *
 	 * @param object Element which will be copied onto the stack.
 	 */
 	void Push(const T object);
 	
 	/**
 	 * @brief Retrieve an object from the stack.
-	 *
+	 */
+	/** 
 	 * If no objects exist on the stack, the method will return an
-	 * object created with the empty constructor. If the NODEBUG is
-	 * not defined and no * object exists on the stack, a warning
+	 * object created with the empty constructor. \n 
+	 * If the NODEBUG is not defined and no * object exists on the stack, a warning
 	 * message is sent to PZError.
 	 */
 	T Pop();
 	
-	/** @brief Casting operator.
-	 *
-	 *  @return The fStore pointer.
+	/**
+	 * @brief Casting operator.
+	 * @return The fStore pointer.
 	 */
 	operator T*() const { return this->fStore; }
 	

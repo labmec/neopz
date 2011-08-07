@@ -1,10 +1,13 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrStructMatrix class which implements structural matrix divided in sub structures.
+ */
 /*
  *  pzdohrstructmatrix.h
  *  SubStruct
  *
  *  Created by Philippe Devloo on 28/06/10.
  *  Copyright 2010 UNICAMP. All rights reserved.
- *
  */
 #ifndef PZDOHRSTRUCTMATRIX 
 #define PZDOHRSTRUCTMATRIX
@@ -16,7 +19,7 @@
 
 /**
  * @ingroup substructure structural
- * @brief Implements structural matrix divided in sub structures.
+ * @brief Implements structural matrix divided in sub structures. \ref structural "Structural Matrix" \ref substructure "Sub structure"
  */
 class TPZDohrStructMatrix : public TPZStructMatrix
 {

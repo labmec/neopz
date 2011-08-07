@@ -1,5 +1,5 @@
 /**
- * @file pzstring.h
+ * @file
  * @brief String implementation.
  */
 // $Id: pzstring.h,v 1.6 2009-07-07 18:21:47 longhin Exp $
@@ -14,7 +14,7 @@
 
 /**
  * @ingroup util
- * @brief Implements strings as stack 
+ * @brief Implements strings as stack. \ref util "Utility"
  */
 class TPZString : public TPZStack < char >
 {
@@ -39,16 +39,14 @@ public:
 	~TPZString() { }
 	
 	/**
-	 * @brief Concatenates the 'this' string with another character string.
-	 *
-	 * Original strings are left unchanged.
+	 * @brief Concatenates the 'this' string with another character string. \n
+	 * @note Original strings are left unchanged.
 	 */
 	TPZString operator + (const char * increment) const;
 	
 	/**
 	 * @brief Concatenates the 'this' string with a character.
-	 *
-	 * Original string and character are left unchanged.
+	 * @note Original string and character are left unchanged.
 	 */
 	TPZString operator + (const TPZString & increment) const;
 	
@@ -102,27 +100,24 @@ public:
 	
 	/**
 	 * @brief Returns a subset string.
-	 *
-	 * If start and end are the same, a substring containing one
-	 * character is returned.
-	 * <li>
-	 * <ul> if start <=0, start is assumed to be 0;
-	 * <ul> if end < start, null pointer is returned;
-	 * <ul> if end > length, end is assumed to be equal to length.
-	 * </li>
-	 *
 	 * @param start start of the string (zero-based)
 	 * @param end end of the string (zero-based)
+	 */
+	/**
+	 * If start and end are the same, a substring containing one
+	 * character is returned. \n
+	 * <li>
+	 * <ul> if start <= 0, start is assumed to be 0; \n
+	 * <ul> if end < start, null pointer is returned; \n
+	 * <ul> if end > length, end is assumed to be equal to length.
+	 * </li>
 	 */
 	TPZString SubStr(const int start, const int end) const;
 	
 	/** @brief Empties the string. */
 	void Empty();
 	
-	/**
-	 * @brief Internally allocates the exact string size (length + 1)
-	 * to store it.
-	 */
+	/** @brief Internally allocates the exact string size \f$ (length + 1) \f$ to store it. */
 	void Optimize();
 	
 	/** @brief Remove the repeat white spaces */

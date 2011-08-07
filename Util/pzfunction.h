@@ -13,22 +13,17 @@ const int TPZFUNCTIONID = 9000;
 
 /**
  * @ingroup util
- * @brief Implements a function. 
- *
- * Its purpose is to replace void* fp() instances which are difficult to be transmitted in parallel executions.
+ * @brief Implements a function. \ref util "Utility"
+ * @note Its purpose is to replace void* fp() instances which are difficult to be transmitted in parallel executions.
  * @since August 01, 2007
  */
 class TPZFunction : public TPZSaveable{
 public:
 	
-	/**
-	 * @brief Class constructor
-	 */
+	/** @brief Class constructor */
 	TPZFunction();
 	
-	/**
-	 * @brief Class destructor
-	 */
+	/** @brief Class destructor */
 	~TPZFunction();
     
 	/**
@@ -39,28 +34,21 @@ public:
 	 */
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df) = 0;
 	
-	/** @brief Returns number of functions.
-	 */ 
+	/** @brief Returns number of functions. */ 
 	virtual int NFunctions() = 0;
 	
-	/** @brief Polynomial order of this function. In case of non-polynomial
-	 * function it can be a reasonable approximation order.
+	/** @brief Polynomial order of this function. \n 
+	 * In case of non-polynomial function it can be a reasonable approximation order.
 	 */
 	virtual int PolynomialOrder() = 0;
 	
-	/**
-	 * @brief Unique identifier for serialization purposes
-	 */
+	/** @brief Unique identifier for serialization purposes */
 	virtual int ClassId() const;
 	
-	/**
-	 * @brief Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * @brief Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 };

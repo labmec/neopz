@@ -1,28 +1,25 @@
+/**
+ * @file
+ * @brief Contains the TPZQuadraticLine class which defines a linear geometric element with quadratic map.
+ */
 #ifndef TPZQUADRATICLINE_H
 #define TPZQUADRATICLINE_H
 
-// #include "pzfmatrix.h"
-// #include "pzvec.h"
 #include "TPZGeoLinear.h"
-// #include "pzgmesh.h"
 #include "pzgeoel.h"
-// #include "tpzquadrilateral.h"
 #include "pznoderep.h"
 
 #include <iostream>
 
-/**
- / @author Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
- */
 
 namespace pzgeom
 {
 
 	/**
 	 * @ingroup geometry
-	 * @brief Defines a linear geometric element with quadratic map
+	 * @brief Defines a linear geometric element with quadratic map. \ref geometry "Geometry"
+	 * @author Paulo Cesar de Alvarenga Lucci
+	 * @since 2007
 	 */
 	class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		
@@ -54,14 +51,12 @@ namespace pzgeom
 		{
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Line";} 
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 
-		 * element based on the current geometric element, 
+		 * element based on the current geometric element, \n
 		 * a side and a boundary condition number
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);

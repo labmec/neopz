@@ -1,7 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZEllipse3D methods. 
+ */
 /*
- *  tpzellipse3d.cpp
- *  NeoPZ
- *
  *  Created by caju on 8/3/09.
  *  Copyright 2009 LabMeC. All rights reserved.
  *

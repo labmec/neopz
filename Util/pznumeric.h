@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZNumeric class which implements several methods to calculation.
+ */
 /***************************************************************************
                           pznumeric.h  -  description
                              -------------------
@@ -22,7 +26,7 @@
 
 /** 
  * @ingroup util
- * @brief Implements several methods to calculation
+ * @brief Implements several methods to calculation. \ref util "Utility"
  * @author Renato Gomes Damas
  */
 class TPZNumeric {

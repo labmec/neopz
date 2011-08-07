@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZQuadraticTrig methods. 
+ */
 #include "tpzquadratictrig.h"
 
 #include "pzfmatrix.h"

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the ConvTest methods. 
+ */
 #include "convtest.h"
 
 ConvTest::ConvTest()

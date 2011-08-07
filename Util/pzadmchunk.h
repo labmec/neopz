@@ -1,4 +1,3 @@
-// -*- c++ -*-
 /**
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
@@ -16,7 +15,7 @@ class TPZSaveable;
 
 /**
  * @ingroup util
- * @brief Implements a chunk vector with free store administration.
+ * @brief Implements a chunk vector with free store administration. \ref util "Utility"
  */
 /** 
  * An object of this class allows the user to request a new object of

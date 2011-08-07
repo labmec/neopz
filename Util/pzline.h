@@ -1,7 +1,6 @@
 /**
- ************************************************************************** TPZLine.h  -  description -------------------
- * begin                : Tue Apr 16 2002 copyright            : (C) 2002 by Renato Gomes Damas
- * email                : rgdamas@fec.unicamp.br
+ * @file
+ * @brief Contains declaration of the TPZLine class which implements a line.
  */
 
 /**
@@ -19,40 +18,34 @@
 
 /** 
  * @author Renato Gomes Damas 
+ * @since Apr 16, 2002.
  * @ingroup util
- * @brief Implements a line.
+ * @brief Implements a line. \ref util "Utility"
  */
 class TPZLine {
 public:
 	TPZLine();
 	~TPZLine();
 
-	/** Armazena um ponto da reta e sua direcao. */
 	/** @brief Store a point and direction vector of the line */
 	void SetLine(const TPZVec<REAL> &point, const TPZVec<REAL> &dir);
 
-	/** Verifica se o ponto pertence a reta. */
 	/** @brief Verify whether the point belongs at the line */
 	bool Belongs(const TPZVec<REAL> &point);
 
-	/** Fornece a tolerancia do calculo, armazenando em tol. */
 	/** @brief Returns the tolerance value considered to compute. */
 	REAL GetTolerance();
 
-	/** Especifica a tolerancia para os calculos */
 	/** @brief Sets the tolerance value to compute. */
 	void SetTolerance(const REAL &tol);
 
 private:
-	/** um ponto qualquer da reta. */
 	/** @brief Any point belongs at the line */
 	TPZVec<REAL> fPoint;
 
-	/** Direcao da reta. */
 	/** @brief Vector direction of the line */
 	TPZVec<REAL> fDirection;
 
-	/** Tolerancia para os calculos */
 	/** @brief Tolerance value to computes. */
 	REAL fTolerance;
 };

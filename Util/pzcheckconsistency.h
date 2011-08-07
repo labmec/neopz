@@ -1,21 +1,18 @@
+/*
+ * @file
+ * @brief Interface to check the consistency of two implementations. To parallelism using.
+ */
 #ifndef PZCHECKCONSISTENCY
 #define PZCHECKCONSISTENCY
-/*
- * @file pzcheckconsistency.h
- * @brief Interface to check the consistency of two implementations. To parallelism using.
- *  IP3D_v3
- *
- *  Created by Philippe Devloo on 27/12/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
- */
 #include "pzsave.h"
 
 #include <string>
 
 /**
- @brief Implements an interface to check the consistency of two implementations
- @ingroup util
+ * @brief Implements an interface to check the consistency of two implementations. \ref util "Utility"
+ * @ingroup util
+ * @author Philippe Devloo
+ * @since 27/12/2009
  */
 class TPZCheckConsistency
 {
@@ -26,13 +23,11 @@ class TPZCheckConsistency
 	std::string fPath;
 	/** @brief base file name. This name has to be unique to avoid overwrites */
 	std::string fFileName;
-	/// boolean indicating whether the objects should be overwritten or not
-	/**
-	 * This flag is set to false by default
-	 */
+	/** @brief Boolean indicating whether the objects should be overwritten or not */
+	/** This flag is set to false by default */
 	bool fOverWrite;
 	
-	/// boolean indicating whether the object will write the objects to disk or read them
+	/** @brief Boolean indicating whether the object will write the objects to disk or read them */
 	/**
 	 * The value of this variable is set default to true or false depending on the compiler directive READCHECK or WRITECHECK
 	 */
@@ -55,13 +50,12 @@ public:
 	{
 		fWriteFlag = true;
 	}
-	/// this method goes reads or writes depending on the compiler directive
+	/** @brief Reads or writes depending on the compiler directive */
 	/**
-	 * when writing the method will write a binary copy of the object to a binary file
+	 * when writing the method will write a binary copy of the object to a binary file \n
 	 * when reading the method will read an object from the binary file and compare both copies
 	 */
 	bool CheckObject(TPZSaveable &obj);
 };
-
 
 #endif

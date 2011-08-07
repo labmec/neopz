@@ -1,10 +1,9 @@
+/**
+ * @file
+ * @brief Contains the TPZArc3D class which implements three dimensional arc.
+ */
 #ifndef TPZARC3D_H
 #define TPZARC3D_H
-
-// #include "pzfmatrix.h"
-// #include "pzvec.h"
-// #include "pzgmesh.h"
-
 
 #include "pzgeoel.h"
 #include "pznoderep.h"
@@ -12,23 +11,16 @@
 #include "tpzline.h"
 #include "tpzgeoelrefpattern.h"
 
-
 #include <iostream>
-
-/**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
- */
-
 
 namespace pzgeom
 {
 	
 	/** 
-	 @author Paulo Cesar de Alvarenga Lucci (Caju)
-	 @ingroup geometry
-	 @brief Implements three dimensional arc (Jorge?)
+	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
+	 * @ingroup geometry
+	 * @brief Implements three dimensional arc. \ref geometry "Geometry"
+	 * @since 2007
 	 */
 	class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains ConvTest class which implements methods to evaluate jacobians by obtained convergence order to geometric element.
+ */
 #ifndef CONVTEST_H
 #define CONVTEST_H
 
@@ -6,21 +10,23 @@
 #include "pzgeoel.h"
 #include "pzgeoelside.h"
 
-  /**
-  / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
-  / LabMeC - FEC - UNICAMP
-  / 2007
+/**
+ * @brief Implements methods to evaluate jacobians by obtained convergence order to geometric element. \ref geometry "Geometry"
+ * @author Paulo Cesar de Alvarenga Lucci
+ * @since 2007
  */
-
-class ConvTest
-{
+class ConvTest {
 
 public:
 
+	/** @brief Constructor */
     ConvTest();
+	/** @brief Destructor */
    ~ConvTest();
 
+	/** @brief Avaliates the Jacobian by Obtained Convergence Order */
     void JacobianConv(TPZGeoEl &Object, TPZVec< REAL > QsiEta);
+	/** @brief Avaliates the Jacobian by Obtained Convergence Order to computational element and its side */
     void JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > QsiEta);
 
 };

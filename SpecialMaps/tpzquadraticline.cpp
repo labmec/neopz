@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZQuadraticLine methods. 
+ */
 #include "tpzquadraticline.h"
 #include "pzshapequad.h"
 #include "tpzgeoblend.h"

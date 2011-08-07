@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZfTime class which calculates times.
+ */
 #ifndef TPZFTIME_H
 #define TPZFTIME_H
 
@@ -18,7 +22,7 @@
 #include <sstream>
 
 /** 
- * @brief Calculate the Times
+ * @brief Calculate the Times. \ref util "Utility"
  * @ingroup util
  */
 class TPZfTime
@@ -28,7 +32,7 @@ public:
 	
 	/** @brief Start the timer when the object is created */
 	TPZfTime();
-	
+	/** @brief Default destructor */
 	~TPZfTime();
 	
 	/** @brief When called, returns the time since the creation of the object in a string */
@@ -38,7 +42,7 @@ public:
 	double ReturnTimeDouble();
 	
 private:
-	
+	/** @brief Initial and final time calculates. */
 	struct timeb finicio, ffinal;
 	
 };

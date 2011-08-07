@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZDohrSubstructCondense methods. 
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *

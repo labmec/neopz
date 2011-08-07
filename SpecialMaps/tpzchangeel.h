@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZChangeEl class. It is a special map.
+ */
 #ifndef TPZCHANGEEL_H
 #define TPZCHANGEEL_H
 
@@ -8,15 +12,11 @@
 
 #include <iostream>
 
-  /**
-  / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
-  / LabMeC - FEC - UNICAMP
-  / 2007
-   */
-
 /**
  * @author Paulo Cesar de Alvarenga Lucci (Caju)
  * @ingroup geometry
+ * @since 2007
+ * @brief Special map .... \ref geometry "Geometry"
  */
 class TPZChangeEl {
 public:

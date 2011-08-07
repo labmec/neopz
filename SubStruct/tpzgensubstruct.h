@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGenSubStruct class which is an interface to "feed" the datastructure of the Dohrmann algorithm.
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *
@@ -34,7 +38,7 @@ class TPZDohrSubstructCondense;
  * @{
  */
 /**
- @brief An interface to "feed" the datastructure of the Dohrmann algorithm
+ @brief An interface to "feed" the datastructure of the Dohrmann algorithm. \ref substructure "Sub Structure"
  @author Philippe Devloo
  */
 class TPZGenSubStruct{

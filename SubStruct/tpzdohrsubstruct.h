@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZDohrSubstruct class which implements sub structure matrices using Dohrman algorithm.
+ */
 /***************************************************************************
  *   Copyright (C) 2006 by Philippe Devloo   *
  *   phil@fec.unicamp.br   *
@@ -34,8 +38,9 @@
 #define MAKEINTERNAL
 
 /**
- @ingroup substructure
- @author Philippe Devloo
+ * @ingroup substructure
+ * @author Philippe Devloo
+ * @brief Implements sub structure matrices using Dohrman algorithm. \ref substructure "Sub Structure"
  */
 class TPZDohrSubstruct {
 public:
@@ -49,12 +54,13 @@ public:
 	
     /**
      * @brief ContributeResidual
-     * 
-	 * It makes u(i)=R(i)*u, r(i)=F(i)-K(i)*u(i) and R(i)*r(novo)=R(i)*r+r(i) where r(novo) is the new global residual
-     * It puts r(novo) in r
      * @param u is the global solution
      * @param r is the residual of the solution "u"
      */
+	/**
+	 * It makes \f$ u(i)=R(i)*u \f$, \f$ r(i)=F(i)-K(i)*u(i) \f$ and \f$ R(i)*r(novo)=R(i)*r+r(i) \f$ where r(novo) is the new global residual
+     * It puts r(novo) in r
+	 */
     void ContributeResidual(TPZFMatrix &u, TPZFMatrix &r);
 	
     void ContributeTestV1(TPZFMatrix &testV1, int NumCoarse);
@@ -64,44 +70,32 @@ public:
      */
     void LoadWeightedResidual(const TPZFMatrix &r_global);
 	
-    /**
-     * @brief Adjust the residual to reflect a static condensation
-     * The residual corresponding to the internal nodes will be zeroed
-     */
+    /** @brief Adjust the residual to reflect a static condensation */
+	/** The residual corresponding to the internal nodes will be zeroed */
     void AdjustResidual(TPZFMatrix &r_global);
-    /**
-	 * @brief It computes the local contribution to r(c).
-	 * The method LoadWeightedResidual must be called before this one.
-	 */
+    /** @brief It computes the local contribution to r(c). */
+	/** The method LoadWeightedResidual must be called before this one. */
     void Contribute_rc(TPZFMatrix &rc);
-    /**
-	 * @brief It computes the local contribution to r(c).
-	 * The method LoadWeightedResidual must be called before this one.
-	 */
+    /** @brief It computes the local contribution to r(c). */
+	/** The method LoadWeightedResidual must be called before this one. */
     void Contribute_rc_local(TPZFMatrix &residual_local, TPZFMatrix &rc_local);
-    /**
-	 * @brief It computes the local contribution to K(c)
-	 */
+    /** @brief It computes the local contribution to K(c) */
     void Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarseindex);
     /**
 	 * @brief It computes the local contribution to v1.
-	 * @param invKc_rc is the product K(c)_inverted*r(c)
-	 * Of course r(c) must be computed, using Contribute_rc(), before calling this method
+	 * @param invKc_rc is the product K(c)_inverted*r(c) 
 	 */
+	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
     void Contribute_v1(TPZFMatrix &v1, TPZFMatrix &invKc_rc);
     /**
 	 * @brief It computes the local contribution to v1.
 	 * @param invKc_rc is the product K(c)_inverted*r(c)
-	 * Of course r(c) must be computed, using Contribute_rc(), before calling this method
 	 */
+	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
     void Contribute_v1_local(TPZFMatrix &v1_local, TPZFMatrix &invKc_rc);
-    /**
-	 * @brief It computes the local contribution to v2.
-	 */
+    /** @brief It computes the local contribution to v2. */
     void Contribute_v2(TPZFMatrix &v2);
-    /**
-	 * @brief It computes the local contribution to v2.
-	 */
+    /** @brief It computes the local contribution to v2. */
     void Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatrix &v2_local
 							 );
     /**
@@ -205,45 +199,37 @@ public:
     TPZVec<int> fCoarseNodes;
     /**
      * @brief Constraint definition associated with this substructure
-     * 
-	 * Input data
      */
+	/** Input data */
     TPZFMatrix fC; //C(i)
-    /**
-     * @brief Vectors associated with each constraint
-     */
+    /** @brief Vectors associated with each constraint */
     TPZFMatrix fPhiC; //Phí(i)
 	/** @brief Phi * W matrix and condensed to the equations which are part of the global system */
 	TPZFMatrix fPhiC_Weighted_Condensed;
     /**
      * @brief Global index associated with each coarse degree of freedom
-	 *
-     * Input data
-     */
+	 */
+	/** Input data */
     TPZVec<int> fCoarseIndex; //R(ci)
     /**
      * @brief Weights associated with each variable/equation
-     * 
-	 * Computed
-     */
+     */ 
+	/** Computed */
     TPZManVector<REAL> fWeights; //W(i) = diagonal(fWeights)
     /**
      * @brief Stiffness matrix associated with the substructure.
-	 *
-     * Input data
-     */
+	 */
+	/** Input data */
     TPZAutoPointer<TPZMatrix> fStiffness; //K(i)
     /**
      * @brief Stiffness matrix associated with the constraints
-	 *
-     * Computed
-     */
+	 */
+	/** Computed */
     TPZFMatrix fKCi; //K(ci)
     /**
      * @brief Global vector indices of the equations/degrees of freedom
-	 *
-     * Input data
-     */
+	 */
+	/** Input data */
     TPZVec<int> fGlobalIndex; //R(i)
 	
 	
@@ -251,27 +237,23 @@ public:
 	TPZVec<std::pair<int,int> > fGlobalEqs;
     /**
      * @brief Inverted (LU or Cholesky) stiffness matrix
-	 * 
-     * Computed
-     */
+	 */
+	/** Computed */
     TPZStepSolver fInvertedStiffness; //Ke, or K_star
     /**
      * @brief Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom
-     * 
-	 * Computed
      */
+	/** Computed */
     mutable TPZStepSolver fInvertedInternalStiffness; //R(Ii)*K(i)*R(Ii)invertida
     /**
      * @brief Inverted restraint matrix
-     * 
-	 * Computed
      */
+	/** Computed */
     TPZStepSolver fKCInvert; //K(c) invertida
     /**
      * @brief Internal nodes
-	 *
-     * Data
-     */
+	 */
+	/** Data */
     TPZVec<int> fInternalEqs; //R(Ii)
 	/**
 	 * @brief Equations corresponding to boundary of the substructure
@@ -279,9 +261,8 @@ public:
 	TPZVec<int> fBoundaryEqs;
     /**
      * @brief Local load vector
-     * 
-	 * Data
      */
+	/** Data */
     TPZFMatrix fLocalLoad; //F(i) - Actually it's a vector
     /**
 	 * @brief Local weighted residual - W(i)*R(i)*r
@@ -298,9 +279,8 @@ public:
 	
 	/**
 	 * @brief Solution vector which needs to be added to the converged system solution
-	 * 
-	 * This variable is initialized and set in the AdjustResidual method
 	 */
+	/** This variable is initialized and set in the AdjustResidual method */
 	TPZFMatrix fAdjustSolution;
 	
 };
