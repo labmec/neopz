@@ -25,12 +25,13 @@ void TPZAnalysisError::SetAdaptivityParameters(REAL EtaAdmissible, int NIteratio
 	fEtaAdmissible = EtaAdmissible;
 	fNIterations = NIterations;
 }
+/** @brief Output file with number of iteration made. */
 std::ofstream arq("Param.dat");
 void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEtaAdmissible) {
-	int iter = 0;//itera�o atual
+	int iter = 0;//iteracao atual
 	cout << "\n\nIteration  1\n";
 	out << "\n   Iteration  1\n";
-	Run(out);//solu�o malha inicial
+	Run(out);//solucao malha inicial
 	TPZManVector<REAL,3> errors(3);
 	errors.Fill(0.0);
 	TPZVec<REAL> flux(0);
@@ -56,8 +57,8 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		out << " - Eta Admissible     :  " << CurrentEtaAdmissible << endl;
 		//      out << " - Eta Reached        :  " << true_error/exactnorm << endl;
 		out << " - Eta Reached        :  " << errors[0]/errors[2] << endl;
-		//Code isn�t place to chat
-		//#warning Philippe, n� entendo nada!!!!! //<!>
+		//Code isn't place to chat
+		//#warning Philippe, nao entendo nada!!!!! //<!>
 		//#warning De fato Thiago, voce tem razao
 		
 		out << " - Number of D.O.F.   :  " << fCompMesh->NEquations() << endl;
@@ -76,7 +77,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		out << "\n   Iteration " << (iter+1) << endl;
 		Run(out);
 	}
-	//Code isn�t place to chat
+	//Code isn't place to chat
 	//#warning Philippe, nao parece igual acima ?? //<!>
 	//#warning Olhar aqui //<!>
 	errors.Resize(3);
@@ -402,7 +403,7 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
  return maxerror;
  }
  */
-
+/** @brief Function to zeroes data */
 void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix &deriv);
 
 void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv) {

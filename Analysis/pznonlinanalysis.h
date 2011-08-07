@@ -14,7 +14,7 @@ class TPZCompMesh;
 class TPZFMatrix;
 
 /**
- * @brief Derived class from TPZAnalysis implements non linear analysis (Newton's method)
+ * @brief Derived class from TPZAnalysis implements non linear analysis (Newton's method). \ref analysis "Analysis"
  * @ingroup analysis
  */
 class TPZNonLinearAnalysis : public TPZAnalysis {

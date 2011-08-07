@@ -21,7 +21,7 @@ class TPZFStructMatrix;
 #ifdef _AUTODIFF
 
 /**
- * @brief Derived from TPZNonLinearAnalysis class
+ * @brief Derived from TPZNonLinearAnalysis class. \ref analysis "Analysis"
  * @ingroup analysis
  */
 class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {

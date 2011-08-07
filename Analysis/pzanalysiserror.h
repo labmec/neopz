@@ -16,7 +16,7 @@ class TPZCompMesh;
 class TPZCompElSide;
 
 /**
- * @brief Implements analysis procedures with hp adaptivity
+ * @brief Implements analysis procedures with hp adaptivity. \ref analysis "Analysis"
  * @ingroup analysis
  * @note This class implements : "A Fast hp Adaptive Finite Element Mesh Design"
  * for : A. A. Novotny et al.

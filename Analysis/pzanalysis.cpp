@@ -46,8 +46,16 @@ static LoggerPtr logger(Logger::getLogger("pz.analysis"));
 
 #ifdef USING_BOOST
 #include "TPZBoostGraph.h"
+/**
+ * @brief To renumbering will use boost library.
+ * @ingroup analysis
+ */
 #define RENUMBER TPZBoostGraph(TPZBoostGraph::KMCExpensive)
 #else
+/**
+ * @brief To renumbering will use sloan library.
+ * @ingroup analysis
+ */
 #define RENUMBER TPZSloan()
 #endif
 

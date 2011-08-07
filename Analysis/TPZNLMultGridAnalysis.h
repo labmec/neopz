@@ -22,7 +22,7 @@ class TPZGeoEl;
 
 
 /**
- * @brief Implements multigrid analysis to Non linear problems. Class TPZNonLinMultGridAnalysis derived from TPZAnalysis. (Jorge?)
+ * @brief Implements multigrid analysis to Non linear problems. Class TPZNonLinMultGridAnalysis derived from TPZAnalysis. \ref analysis "Analysis"
  * @ingroup Analysis
  */
 class TPZNonLinMultGridAnalysis : public TPZAnalysis {

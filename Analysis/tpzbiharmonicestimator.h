@@ -27,7 +27,7 @@
 #include "pzbiharmonic.h"
 
 /**
- * @brief Estimates error to biharmonic problem. Also computes the contributions on elements and interfaces.
+ * @brief Estimates error to biharmonic problem. Also computes the contributions on elements and interfaces. \ref analysis "Analysis"
  * @author Joao Luis Goncalves <joao@joao-laptop>
  * @since Maio 16, 2008
  * @ingroup material

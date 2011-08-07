@@ -30,7 +30,7 @@ template<class T, int N> class TPZStack;
 
 /**
  * @ingroup analysis
- * @brief Implements the sequence of actions to perform a finite element analysis
+ * @brief Implements the sequence of actions to perform a finite element analysis. \ref analysis "Analysis"
  */
 /** This class will renumerate the nodes upon construction
  */

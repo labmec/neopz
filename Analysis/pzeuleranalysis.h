@@ -23,7 +23,7 @@
 #include <iostream>
 
 /**
- * @brief Implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation
+ * @brief Implements an analysis procedure for computing the steady state solution of a compressible Euler flow simulation. \ref analysis "Analysis"
  * @ingroup analysis
  * @author Erick Raggio Slis dos Santos
  */

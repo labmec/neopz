@@ -17,7 +17,7 @@ class TPZSubCompMesh;
 #include "pzfmatrix.h"	// Added by ClassView
 
 /** 
- * @brief Analysis procedure to computational sub mesh.
+ * @brief Analysis procedure to computational sub mesh. \ref analysis "Analysis"
  * @ingroup analysis
  */
 class TPZSubMeshAnalysis : public TPZAnalysis  

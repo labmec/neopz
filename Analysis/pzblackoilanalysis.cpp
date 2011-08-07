@@ -314,8 +314,8 @@ void TPZBlackOilAnalysis::Solve(){
 			if(S > maxS) maxS = S;
 			if(S < minS) minS = S;
 		}//for i
-		double ScaleP = fabs(minP+maxP)/2.;
-		double ScaleS = fabs(minS+maxS)/2.;
+//		double ScaleP = fabs(minP+maxP)/2.;
+//		double ScaleS = fabs(minS+maxS)/2.;
 	}
 	
 	TPZNonLinearAnalysis::Solve();

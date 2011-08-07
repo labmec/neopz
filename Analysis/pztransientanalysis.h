@@ -21,7 +21,7 @@ class TPZFStructMatrix;
 
 /** 
  * @note It is associated to a TPZTransientMaterial< TRANSIENTCLASS >
- * @brief Implements a very simple manner to perform transient simulations
+ * @brief Implements a very simple manner to perform transient simulations. \ref analysis "Analysis"
  * @ingroup analysis
  */
 /** 

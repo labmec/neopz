@@ -21,7 +21,7 @@ class TPZGeoEl;
 
 
 /**
- * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZAnalysis
+ * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZAnalysis. \ref analysis "Analysis"
  * @ingroup Analysis
  */
 class TPZMGAnalysis : public TPZAnalysis {
