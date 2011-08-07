@@ -59,7 +59,7 @@ void Orthogonalization_CGS(TPZFMatrix &a, TPZFMatrix &q,TPZFMatrix &r) {
             for(int l=0;l<rows;l++) sum += q(l,i)*a(l,k);
          	sk(i,0) = sum;
          }
-         int cols = q.Cols();
+//         int cols = q.Cols();
          TPZFMatrix qq(rows,1,0.),zk(rows,1,0.);
          for(int i=0;i<k;i++) {
          	for(int l=0;l<rows;l++) qq(l,0) = sk(i,0)*q(l,i);

@@ -84,7 +84,7 @@ int main1(){
   if (dx){
     cmesh->ExpandSolution();
     cmesh->Solution().Zero();
-    int pos = phi.Rows()-1;
+//    int pos = phi.Rows()-1;
     TPZConnect & np = cel->Connect(0);
     int blocknumber = np.SequenceNumber();
     int firsteq = cmesh->Block().Position(blocknumber);

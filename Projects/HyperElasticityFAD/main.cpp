@@ -205,10 +205,10 @@ TPZCompEl::SetgOrder(2);
 
 
 
-//*************************************
-//************Option 0*****************
-//*******Shape Quadrilateral*********
-//*************************************
+// *************************************
+// ************Option 0*****************
+// *******Shape Quadrilateral***********
+// *************************************
 TPZCompMesh *CreateMesh(){
 
   //malha quadrada de nr x nc
@@ -416,15 +416,16 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
 //    rhs.Print("TPZStructMatrix::Assemble GLOBAL LOAD (after Assemble)",out);
 //  }
 }
+
 */
 
 #ifdef _AUTODIFF
 
 void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
 {
-  int efsz = ef.Rows();
-  int ekrows = ek.Rows();
-  int ekcols = ek.Cols();
+//  int efsz = ef.Rows();
+//  int ekrows = ek.Rows();
+//  int ekcols = ek.Cols();
 
   int Ucols = U.size();
   int Urows = U.val().size();
