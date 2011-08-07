@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Declarates external variable gDebug.
+ */
 #ifndef PZDEBUG
 #define PZDEBUG
 

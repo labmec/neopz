@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Defines enum MElementType and contains the implementation of MElementType_NNodes(...) functions
+ */
 #ifndef PZELTYPEH
 #define PZELTYPEH
 
@@ -18,7 +22,7 @@
  * Three-dimensional: ETetrahedro EPiramide EPrisma ECube (element) EInterfaceSurface (interface). \n
  * n-dimensional: ESubstructure EGlobLoc EDiscontinuous EInterfaceDisc EAgglomerate
  *
- * @brief Define the element types. (Jorge)
+ * @brief Define the element types.
  */
 
 // $Id: pzeltype.h,v 1.9 2011-04-05 19:32:54 calle Exp $

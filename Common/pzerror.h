@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Defines PZError
+ */
 #ifndef PZERRORH
 #define PZERRORH
 
@@ -6,7 +10,7 @@
 
 /** 
  * @ingroup common
- * @brief Defines the output device to error messages. (Jorge)
+ * @brief Defines the output device to error messages.
  */
 #define PZError std::cout
 

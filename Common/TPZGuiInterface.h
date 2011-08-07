@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZGuiInterface class.
+ */
 //$Id: TPZGuiInterface.h,v 1.2 2011-04-05 19:32:54 calle Exp $
 
 #ifndef TPZGuiInterfaceH
@@ -6,7 +10,7 @@
 #include "iostream"
 /**
  * @ingroup common
- * @brief This class implements a very simple interface from PZ kernel to GUI. \n
+ * @brief This class implements a very simple interface from PZ kernel to GUI. Module: \ref common "Common".
  * @author Tiago Forti
  * @since 2010, March 30
  */

@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains the declaration of TPZFlopCounter class and TPZCounter struct.
+ */
 /******************************************************************************
  *
  * Data definition:     REAL
@@ -27,20 +30,21 @@
  * @{
  */
 
-/// Extern variable to control level of printting? ( or priority print? Jorge)
+/** @brief Extern variable to control level of printting (priority print?) */
 extern int gPrintLevel;
 
-
-/// Operations to be counted: Sum, Product, Division, Square root, Power, \n
-/// Sine, Cosine, Arc Sine, Arc Cosine, Arc Tangent, Exponencial and Logarithm.
-/** 
- \brief Types of operations to be counted.
+/**
+ * Operations to be counted: Sum, Product, Division, Square root, Power, \n
+ * Sine, Cosine, Arc Sine, Arc Cosine, Arc Tangent, Exponencial and Logarithm.
  */
+/** @brief Types of operations to be counted. */
 enum MOptype {ESum,EProd,EDiv,ESqrt,EPow,ECos,ESin,EAcos,EAsin,EAtan,EExp,ELog};
+
+/** @brief Number of type of the operations actually counted. */
 const int gNumOp = 12;
 
 
-/// @brief This class implements a counter
+/** @brief Implements a counter by operations. \ref common "Common" */
 struct TPZCounter {
 	/// Vector of counters by operation: sum, product, division, square root, power, \n
 	/// Cosine, Sine, Arc cosine, arc Sine, arc Tangent, Exponencial and logarithm.
@@ -60,20 +64,20 @@ struct TPZCounter {
 
 std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
-// Note: How to sure the counter initializing from ZERO ??? I don't see where the counter vector is clean. (Jorge)
 
 /**
  * By modifying the definition of the type of REAL, the number of floating point operations can be counted. \n
- * To modify you need to define "contar": \#define contar. (Jorge)
- *
- * @brief This class implements floating point number associated with a counter of the operations performed with it by type. \n
- * (arithmetic, trigonometric, exponencial and logarithmic operations performed with it)
+ * To modify you need to define "contar": \#define contar.
+ */
+/** @brief This class implements floating point number associated with a counter of the operations performed with it by type. \n
+ * (arithmetic, trigonometric, exponencial and logarithmic operations performed with it). \ref common "Common"
+ * @note How to sure the counter initializing from ZERO ??? I don't see where the counter vector is clean. (Jorge)
  */
 class TPZFlopCounter {
 public:
-	/// Floating point value
+	/** @brief Floating point value */
 	double fVal;
-	/// Containts the counter vector by operation performed
+	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
 	
 	inline TPZFlopCounter()
@@ -83,7 +87,7 @@ public:
 	{
 		fVal = val;
 	}
-	/// Returns the product with the oth value and increments the counter of the products.
+	/** @brief Returns the product with the oth value and increments the counter of the products. */
 	inline TPZFlopCounter operator*(const TPZFlopCounter &oth) const
 	{
 		TPZFlopCounter result;
@@ -91,7 +95,7 @@ public:
 		gCount.fCount[EProd]++;
 		return result;
 	}
-	/// Returns the division between oth value and increments the counter of the divisions.
+	/** @brief Returns the division between oth value and increments the counter of the divisions. */
 	inline TPZFlopCounter operator/(const TPZFlopCounter &oth) const
 	{
 		TPZFlopCounter result;
@@ -100,7 +104,7 @@ public:
 		return result;
 	}
 	
-	/// Returns the sum with oth value and increments the counter of the sums.
+	/** @brief Returns the sum with oth value and increments the counter of the sums. */
 	inline TPZFlopCounter operator+(const TPZFlopCounter &oth) const
 	{
 		TPZFlopCounter result;
@@ -109,7 +113,7 @@ public:
 		return result;
 	}
 	
-	/// Returns the difference with oth value and increments the counter of the sums.
+	/** @brief Returns the difference with oth value and increments the counter of the sums. */
 	inline TPZFlopCounter operator-(const TPZFlopCounter &oth) const
 	{
 		TPZFlopCounter result;
@@ -117,35 +121,35 @@ public:
 		gCount.fCount[ESum]++;
 		return result;
 	}
-	/// Performs the sum with oth value on own value and increments the counter of the sums.
+	/** @brief Performs the sum with oth value on own value and increments the counter of the sums. */
 	inline TPZFlopCounter &operator+=(const TPZFlopCounter &oth) 
 	{
 		fVal += oth.fVal;
 		gCount.fCount[ESum]++;
 		return *this;
 	}
-	/// Performs the diference with oth value on own value and increments the counter of the sums.
+	/** @brief Performs the diference with oth value on own value and increments the counter of the sums. */
 	inline TPZFlopCounter &operator-=(const TPZFlopCounter &oth) 
 	{
 		fVal -= oth.fVal;
 		gCount.fCount[ESum]++;
 		return *this;
 	}
-	/// Performs the product with oth value on own value and increments the counter of the products.
+	/** @brief Performs the product with oth value on own value and increments the counter of the products. */
 	inline TPZFlopCounter &operator*=(const TPZFlopCounter &oth) 
 	{
 		fVal *= oth.fVal;
 		gCount.fCount[EProd]++;
 		return *this;
 	}
-	/// Performs the division between oth value on own value and increments the counter of the divisions.
+	/** @brief Performs the division between oth value on own value and increments the counter of the divisions. */
 	inline TPZFlopCounter &operator/=(const TPZFlopCounter &oth) 
 	{
 		fVal /= oth.fVal;
 		gCount.fCount[EDiv]++;
 		return *this;
 	}
-	/// Returns value with signal changed of its floating point value and increments the counter of the sums.
+	/** @brief Returns value with signal changed of its floating point value and increments the counter of the sums. */
 	inline TPZFlopCounter operator-() const
 	{
 		TPZFlopCounter result;
@@ -153,66 +157,68 @@ public:
 		gCount.fCount[ESum]++;
 		return result;
 	}
-	/// Returns the current floating point value and doesn't increments the counters.
+	/** @brief Returns the current floating point value and doesn't increments the counters. */
 	inline TPZFlopCounter operator+() const
 	{
 		return *this;
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator<(const TPZFlopCounter &sec) const
 	{
 		return (fVal < sec.fVal);
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator>(const TPZFlopCounter &sec) const
 	{
 		return (fVal > sec.fVal);
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator<=(const TPZFlopCounter &sec) const
 	{
 		return (fVal <= sec.fVal);
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator>=(const TPZFlopCounter &sec) const
 	{
 		return (fVal >= sec.fVal);
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator==(const TPZFlopCounter &sec) const
 	{
 		return (fVal == sec.fVal);
 	}
-	/// Compares the values and doesn't increments the counters.
+	/** @brief Compares the values and doesn't increments the counters. */
 	inline bool operator!=(const TPZFlopCounter &sec) const
 	{
 		return (fVal != sec.fVal);
 	}
 	
-	/// Returns the square root of the value and increments the counter of the square root.
+	/** @brief Returns the square root of the value and increments the counter of the square root. */
 	friend TPZFlopCounter sqrt(const TPZFlopCounter &orig);
-	/// Returns the power and increments the counter of the power.
+	/** @brief Returns the power and increments the counter of the power. */
 	friend TPZFlopCounter pow(const TPZFlopCounter &orig,const TPZFlopCounter &xp);
-	/// Returns the absolute value and doesn't increments the counters.
+	/** @brief Returns the absolute value and doesn't increments the counters. */
 	friend TPZFlopCounter fabs(const TPZFlopCounter &orig);
-	/// Returns the arc cosine in radians and increments the counter of the Arc Cosine.
+	/** @brief Returns the arc cosine in radians and increments the counter of the Arc Cosine. */
 	friend TPZFlopCounter acos(const TPZFlopCounter &orig);
-	/// Returns the cosine in radians and increments the counter of the Cosine.
+	/** @brief Returns the cosine in radians and increments the counter of the Cosine. */
 	friend TPZFlopCounter cos(const TPZFlopCounter &orig);
-	/// Returns the arc sine in radians and increments the counter of the Arc Sine.
+	/** @brief Returns the arc sine in radians and increments the counter of the Arc Sine. */
 	friend TPZFlopCounter asin(const TPZFlopCounter &orig);
-	/// Returns the sine in radians and increments the counter of the sine.
+	/** @brief Returns the sine in radians and increments the counter of the sine. */
 	friend TPZFlopCounter sin(const TPZFlopCounter &orig);
-	/// Returns the arc tangent in radians and increments the counter of the Arc Tangent.
+	/** @brief Returns the arc tangent in radians and increments the counter of the Arc Tangent. */
 	friend TPZFlopCounter atan(const TPZFlopCounter &orig);
-	/// Returns the arc tangent in radians and increments the counter of the Arc Tangent.
-	/// ATAN2 returns the arc tangent of x(val1) and y(val2) coordinates as an angle expressed in radians.
+	/** 
+	 * @brief Returns the arc tangent in radians and increments the counter of the Arc Tangent. \n
+	 * ATAN2 returns the arc tangent of x(val1) and y(val2) coordinates as an angle expressed in radians.
+	 */
 	friend TPZFlopCounter atan2(const TPZFlopCounter &val1,const TPZFlopCounter &val2);
-	/// Returns the exponencial and increments the counter of the Exponencial.
+	/** @brief Returns the exponencial and increments the counter of the Exponencial. */
 	friend TPZFlopCounter exp(const TPZFlopCounter &val);
-	/// Returns the natural logarithm and increment the counter of the logarithm.
+	/** @brief Returns the natural logarithm and increment the counter of the logarithm. */
 	friend TPZFlopCounter log(const TPZFlopCounter &val);
-	/// Returns the decimal logarithm and increment the counter of the logarithm.
+	/** @brief Returns the decimal logarithm and increment the counter of the logarithm. */
 	friend TPZFlopCounter log10(const TPZFlopCounter &val);
 };
 

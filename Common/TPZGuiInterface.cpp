@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGuiInterface methods.
+ */
 //$Id: TPZGuiInterface.cpp,v 1.3 2010-07-23 04:54:25 phil Exp $
 
 #include "TPZGuiInterface.h"
