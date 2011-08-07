@@ -285,8 +285,8 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 									   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
 	int numvec = data.fVecShapeIndex.NElements();
-	int numdual = data.numberdualfunctions;
-	int numprimalshape = data.phi.Rows()-numdual;
+//	int numdual = data.numberdualfunctions;
+//	int numprimalshape = data.phi.Rows()-numdual;
 	
 	TPZFMatrix  &phi = data.phi;
 	//   TPZFMatrix &dphi = data.dphix;
