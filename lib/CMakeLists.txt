@@ -1,3 +1,4 @@
+# @file neopz/lib/CMakeList.txt  -- CMake file grouping pz modules and creating pz library. 
 
 #Creating groups for organized display of files into PZ modules
 source_group(Common FILES ${pzcommon_STAT_SRCS})
@@ -34,6 +35,7 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${sloan_SRCS}
 	)
 
+#creating target pz library and installing it
 add_library(pz ${pzsources})
 install(TARGETS pz ARCHIVE DESTINATION lib)
 
