@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntRuleT3D class which defines integration rule for tetrahedra.
+ */
 //
 // C++ Interface: tpzintrulet3d
 //
@@ -18,7 +22,7 @@ class TPZVec;
 
 /**
  * @ingroup integral
- * @brief Integration rule for tetrahedra
+ * @brief Integration rule for tetrahedra. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleT3D {

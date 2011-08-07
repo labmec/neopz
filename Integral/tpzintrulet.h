@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntRuleT class which defines integration rule for triangles.
+ */
 //
 // C++ Interface: tpzintrulet
 //
@@ -18,7 +22,7 @@ class TPZVec;
 
 /**
  * @ingroup integral
- * @brief Integration rule (points and weights) for triangles
+ * @brief Integration rule (points and weights) for triangles. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleT {

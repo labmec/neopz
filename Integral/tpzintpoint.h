@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntPoint class.
+ */
 //
 // C++ Interface: tpzintpoint
 //
@@ -14,7 +18,7 @@
 
 /** 
  * @ingroup integral
- * @brief Basic class defining integration rules (Jorge? This class is used?)
+ * @brief Basic class defining integration rules (Jorge? This class is used?). \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntPoint {

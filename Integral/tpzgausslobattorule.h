@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGaussLobattoRule class which implements similar Gaussian quadrature with two differences.
+ */
 // $Id: tpzgausslobattorule.h,v 1.1 2009-06-16 02:48:55 erick Exp $
 #ifndef TPZGAUSSLOBATTORULE_H
 #define TPZGAUSSLOBATTORULE_H
@@ -7,10 +11,11 @@
 /**
  * @ingroup integral
  * @author Erick Slis
- * @brief Similar to Gaussian quadrature with the following differences: 
+ * @brief Similar to Gaussian quadrature but with two differences. \ref integral "Numerical Integration" 
  */
-/** 
- * The integration points include the end points of the integration interval.
+/**
+ * Similar to Gaussian quadrature with following differences: \n
+ * The integration points include the end points of the integration interval. \n
  * It is accurate for polynomials up to degree 2n–3, where n is the number of integration points.
  */
 class TPZGaussLobattoRule {

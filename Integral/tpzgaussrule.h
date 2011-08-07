@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGaussRule class which implements the Gaussian quadrature.
+ */
 //
 // C++ Interface: tpzintrule
 //
@@ -16,10 +20,10 @@
 
 /**
  * @ingroup integral
- * @brief Implements the Gaussian quadrature.
+ * @brief Implements the Gaussian quadrature. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
-class TPZGaussRule{
+class TPZGaussRule {
 public:
 	
 	enum {NUMINT_RULES = 38};

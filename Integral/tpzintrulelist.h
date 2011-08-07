@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntRuleList class which creates instances of all integration rules for rapid selection.
+ */
 //
 // C++ Interface: tpzintrulelist
 //
@@ -19,7 +23,7 @@ class TPZIntRuleP3D;
 
 /**
  * @ingroup integral
- * @brief This class creates instances of all integration rules for rapid selection
+ * @brief Creates instances of all integration rules for rapid selection. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleList {

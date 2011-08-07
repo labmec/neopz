@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntPoints class which defines integration rules.
+ */
 //
 // C++ Interface: tpzintpoints
 //
@@ -19,7 +23,7 @@ class TPZVec;
 
 /**
  * @ingroup integral
- * @brief Abstract class defining integration rules
+ * @brief Abstract class defining integration rules. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntPoints {

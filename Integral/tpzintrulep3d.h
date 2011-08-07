@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZIntRuleP3D class which defines the integration rule for pyramid.
+ */
 //
 // C++ Interface: tpzintrulep3d
 //
@@ -18,7 +22,7 @@ class TPZVec;
 
 /**
  * @ingroup integral
- * @brief Integration rule for pyramid
+ * @brief Integration rule for pyramid. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZIntRuleP3D {

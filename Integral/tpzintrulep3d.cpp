@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZIntRuleP3D methods. 
+ */
 //
 // C++ Implementation: tpzintrulep3d
 //

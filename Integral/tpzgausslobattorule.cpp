@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGaussLobattoRule methods. 
+ */
 // $Id: tpzgausslobattorule.cpp,v 1.2 2011-03-28 18:19:41 fortiago Exp $
 #include "tpzgausslobattorule.h"
 #include "tpzintrulelist.h"

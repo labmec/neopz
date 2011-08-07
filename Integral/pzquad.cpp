@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZInt1d methods. 
+ */
 
 #include "pzquad.h"
 #include "tpzintrule.h"

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZInt1Point class which implements the integration rule for one point.
+ */
 //
 // C++ Interface: tpzint1point
 //
@@ -17,7 +21,7 @@
 
 /**
  * @ingroup integral
- * @brief Integration rule for one point
+ * @brief Integration rule for one point. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZInt1Point : public TPZIntPoints {

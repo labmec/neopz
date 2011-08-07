@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZPrInteg class which defines prismatic extension of an integration rule.
+ */
 //
 // C++ Interface: tpzprinteg
 //
@@ -22,7 +26,7 @@ class TPZIntPoints;
 
 /**
  * @ingroup integral
- * @brief Prismatic extension of an integration rule
+ * @brief Prismatic extension of an integration rule. \ref integral "Numerical Integration"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 template< class TFather>

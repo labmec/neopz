@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZIntRule methods. 
+ */
 //$Id: tpzintrule.cpp,v 1.3 2010-06-17 13:07:27 phil Exp $
 #include "tpzintrule.h"
 #include "tpzintrulelist.h"

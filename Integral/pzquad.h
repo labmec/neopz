@@ -1,6 +1,8 @@
-//HEADER FILE FOR THE INTEGRATION VECTOR
-
-// _*_ c++ _*_
+/**
+ * @file
+ * @brief Contains the TPZInt1d, TPZIntTriang, TPZIntQuad, TPZIntCube3D, TPZIntTetra3D, TPZIntPyram3D and TPZIntPrism3D classes \n
+ * which handles the numerical integration.
+ */
 
 #ifndef INTQUADHPP
 #define INTQUADHPP
@@ -29,7 +31,7 @@ class TPZIntRule;
 //								for 1D problems
 //*******************************************************************
 /** 
- * @brief Handles the numerical integration for one-dimensional problems
+ * @brief Handles the numerical integration for one-dimensional problems. \ref integral "Numerical Integration"
  */
 class TPZInt1d : public TPZIntPoints{
 	int fOrdKsi;
@@ -67,7 +69,7 @@ public:
 //									elements
 //*******************************************************************
 /**
- * @brief Handles the numerical integration for two-dimensional problems using triangular elements.
+ * @brief Handles the numerical integration for two-dimensional problems using triangular elements. \ref integral "Numerical Integration"
  */
 class TPZIntTriang : public TPZIntPoints{
 	int fOrdKsi;
@@ -106,7 +108,7 @@ public:
 //									elements
 //*******************************************************************
 /** 
- * @brief Handles the numerical integration for two-dimensional problems using quadrilateral elements.
+ * @brief Handles the numerical integration for two-dimensional problems using quadrilateral elements. \ref integral "Numerical Integration"
  */
 class TPZIntQuad : public TPZIntPoints{
 	int fOrdKsi;
@@ -150,7 +152,7 @@ public:
 //*******************************************************************
 // Cedric
 /** 
- * @brief Handles the numerical integration for three-dimensional problems using cube elements.
+ * @brief Handles the numerical integration for three-dimensional problems using cube elements. \ref integral "Numerical Integration"
  */
 
 class TPZIntCube3D : public TPZIntPoints{
@@ -198,7 +200,7 @@ public:
 //*******************************************************************
 // Cedric
 /** 
- * @brief Handles the numerical integration for three-dimensional problems using tetraedra elements.
+ * @brief Handles the numerical integration for three-dimensional problems using tetraedra elements. \ref integral "Numerical Integration"
  */
 class TPZIntTetra3D : public TPZIntPoints {
 	int fOrdKsi;
@@ -237,7 +239,7 @@ public:
 //*******************************************************************
 // Cedric
 /** 
- * @brief Handles the numerical integration for three-dimensional problems using pyramid elements.
+ * @brief Handles the numerical integration for three-dimensional problems using pyramid elements. \ref integral "Numerical Integration"
  */
 class TPZIntPyram3D : public TPZIntPoints {
 	int fOrdKsi;
@@ -276,7 +278,7 @@ public:
 //*******************************************************************
 // Cedric
 /** 
- * @brief Handles the numerical integration for three-dimensional problems using prism elements.
+ * @brief Handles the numerical integration for three-dimensional problems using prism elements. \ref integral "Numerical Integration"
  */
 class TPZIntPrism3D  : public TPZIntPoints {
 	int fOrdKsi,fOrdKti;
