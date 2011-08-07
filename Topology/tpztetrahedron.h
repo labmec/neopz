@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZTetrahedron class which defines the topology of the tetrahedron element. 
+ */
 // C++ Interface: tpztetrahedron
 //
 // Description: 
@@ -31,7 +34,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of the Tetrahedron element
+	 * @brief Defines the topology of the tetrahedron element. \ref topology "Topology"
 	 */
 	class TPZTetrahedron{
 	public:

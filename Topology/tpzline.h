@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZLine class which defines the topology of a line element.
+ */
 // C++ Interface: tpzline
 //
 // Description: 
@@ -36,7 +39,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of a line element
+	 * @brief Defines the topology of a line element. \ref topology "Topology"
 	 */
 	class TPZLine{
 	public:

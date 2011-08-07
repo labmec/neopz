@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZPyramid methods. 
+ */
 // C++ Implementation: tpzpyramid
 //
 // Description: 

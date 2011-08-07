@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZTriangle class which defines the topology of a triangle. 
+ */
 // C++ Interface: tpztriangle
 //
 // Description: 
@@ -30,13 +33,13 @@ namespace pztopology {
 	
 	/**
 	 * @ingroup topology
-	 * @brief This class defines the topology of a triangle
+	 * @brief Defines the topology of a triangle. \ref topology "Topology"
 	 * @author Philippe R. B. Devloo
 	 */
 	/**
 	 * This class defines the topology of the Triangle element
 	 */
-	class TPZTriangle{
+	class TPZTriangle {
 	public:
 		
 		enum {NSides = 7, NCornerNodes= 3, Dimension = 2};
@@ -47,27 +50,18 @@ namespace pztopology {
 		virtual ~TPZTriangle(){
 		};
 		
-		/**
-		 * @brief Returns the number of nodes (not connectivities) associated with a side
-		 */
+		/** @brief Returns the number of nodes (not connectivities) associated with a side */
 		static int NSideNodes(int side);
-		/**
-		 * @brief Returns the local node number of the node "node" along side "side"
-		 */
+		/** @brief Returns the local node number of the node "node" along side "side" */
 		static int SideNodeLocId(int side, int node);
 		
-		/**
-		 * @brief Returns the dimension of the side
-		 */
+		/** @brief Returns the dimension of the side */
 		static int SideDimension(int side);
-		/**
-		 * @brief Returns the number of connects for a set dimension
-		 */
+		/** @brief Returns the number of connects for a set dimension */
 		static int NumSides(int dimension);
 		
-		/**
-		 * @brief Returns the transformation which takes a point from the side sidefrom ot
-		 * the side sideto
+		/** 
+		 * @brief Returns the transformation which takes a point from the side sidefrom of the side sideto
 		 * @param sidefrom side where the point resides
 		 * @param sideto side whose closure contains sidefrom
 		 */
@@ -119,16 +113,11 @@ namespace pztopology {
 		typedef TPZGraphElT2dMapped GraphElType;
 		
 		
-		/**
-		 * @brief Returns the type of the element as specified in file pzeltype.h
-		 */
+		/** @brief Returns the type of the element as specified in file pzeltype.h */
 		static MElementType Type();// { return ETriangle;}
 		
-		/**
-		 * @brief Returns the type of the element as specified in file pzeltype.h
-		 */
+		/** @brief Returns the type of the element as specified in file pzeltype.h */
 		static MElementType Type(int side) ;
-		
 		
 		/**
 		 * @brief Number of connects of the element (7)
@@ -136,11 +125,8 @@ namespace pztopology {
 		 */
 		static int NumSides();
 		
-		
 		static int NContainedSides(int side);
-		/**
-		 * @brief Returns the local connect along side "side" especial for hdivspace
-		 */
+		/** @brief Returns the local connect along side "side" especial for hdivspace */
 		static int ContainedSideLocId(int side);
 		
 		/**
@@ -151,17 +137,16 @@ namespace pztopology {
 		static int ContainedSideLocId(int side, int c);
 		
 		/**
-		 * @brief Method which identifies the transformation based on the IDs
-		 * of the corner nodes
+		 * @brief Method which identifies the transformation based on the IDs of the corner nodes
 		 * @param id indexes of the corner nodes
 		 * @return index of the transformation of the point corresponding to the topology
 		 */
 		static int GetTransformId(TPZVec<int> &id);
 		
 		/**
-		 * @brief Method which identifies the transformation of a side based on the IDs
-		 * of the corner nodes
+		 * @brief Method which identifies the transformation of a side based on the IDs of the corner nodes
 		 * @param id indexes of the corner nodes
+		 * @param side side of the element in which the transformation is
 		 * @return index of the transformation of the point corresponding to the topology
 		 */	
 		static int GetTransformId(int side, TPZVec<int> &id);

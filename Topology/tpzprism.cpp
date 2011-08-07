@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZPrism methods. 
+ */
 // C++ Implementation: tpzprism
 //
 // Description: 

@@ -1,8 +1,10 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZTriangle methods. 
+ */
 // C++ Implementation: tpztriangle
 //
 // Description: 
-//
 //
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
 //

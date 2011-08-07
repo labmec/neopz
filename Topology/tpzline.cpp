@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZLine methods. 
+ */
 // C++ Implementation: tpzline
 //
 // Description: 

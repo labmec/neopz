@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZPrism class which defines the topology of a Prism. 
+ */
 // C++ Interface: tpzprism
 //
 // Description: 
@@ -30,7 +33,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of a Prism
+	 * @brief Defines the topology of a Prism. \ref topology "Topology"
 	 */
 	class TPZPrism{
 	public:

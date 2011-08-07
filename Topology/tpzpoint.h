@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZPoint class which defines the topology of a point. 
+ */
 // C++ Interface: tpzpoint
 //
 // Description: 
@@ -33,7 +36,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of a point
+	 * @brief Defines the topology of a point. \ref topology "Topology"
 	 */
 	class TPZPoint {
 	public:

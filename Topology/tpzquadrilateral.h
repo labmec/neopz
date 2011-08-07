@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZQuadrilateral class which defines the topology of a quadrilateral element. 
+ */
 // C++ Interface: tpzquadrilateral
 //
 // Description: 
@@ -35,7 +38,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of a Quadrilateral element
+	 * @brief Defines the topology of a quadrilateral element. \ref topology "Topology"
 	 */
 	class TPZQuadrilateral {
 	public:

@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZCube class which defines the topology of the hexahedron element.
+ */
 // C++ Interface: tpzcube
 //
 // Description: 
@@ -36,7 +39,7 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of the hexahedron element
+	 * @brief Defines the topology of the hexahedron element. \ref topology "Topology"
 	 */
 	class TPZCube{
 	public:

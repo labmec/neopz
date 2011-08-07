@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCube methods. 
+ */
 // C++ Implementation: tpzcube
 //
 // Description: 
