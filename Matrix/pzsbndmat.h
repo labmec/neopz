@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZSBMatrix class which implements symmetric band matrices.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -26,7 +29,7 @@
 class TPZFMatrix;
 
 /**
- * @brief Implements symmetric band matrices.
+ * @brief Implements symmetric band matrices. \ref matrix "Matrix"
  * @ingroup matrix
  */
 class TPZSBMatrix : public TPZMatrix
@@ -43,10 +46,8 @@ public:
 	int    PutVal(const int row,const int col,const REAL& element );
 	const REAL &GetVal(const int row,const int col ) const;
 	
-	/** @brief Computes z = beta * y + alpha * opt(this)*x
-	 *
-	 * z and x cannot overlap in memory
-	 */
+	/** @brief Computes z = beta * y + alpha * opt(this)*x */
+	/** z and x cannot overlap in memory */
 	void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 				 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
 	

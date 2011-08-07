@@ -1,3 +1,7 @@
+/**
+ * @file pzadmchunk.h
+ * @brief Declarates the TPZBlock class which implements block matrices.
+ */
 
 /*
   // Author: MISAEL LUIS SANTANA MANDUJANO.
@@ -26,7 +30,7 @@
 #include "pzsave.h"
 
 /**
- * @brief Implements block matrices
+ * @brief Implements block matrices. \ref matrixutility "Matrix utility"
  * @ingroup matrixutility
  */
 class TPZBlock : public TPZSaveable

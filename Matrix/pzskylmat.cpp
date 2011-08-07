@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSkylMatrix methods.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -11,10 +14,8 @@
 // Versao: 4 / 1996.
 //
 
-
 #include <math.h>
 #include <stdlib.h>
-
 
 #ifdef BLAS
 extern "C" {
@@ -40,19 +41,15 @@ const int templatedepth = 10;
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
 
-
 #define Max( a, b )  ( (a) > (b) ? (a) : (b) )
 #define Min( a, b )  ( (a) < (b) ? (a) : (b) )
 
 using namespace std;
 
-
 /*******************/
 /*** TPZSkylMatrix ***/
 
-
 /**************************** PUBLIC ****************************/
-
 
 /*****************************/
 /*** Construtor (int) ***/

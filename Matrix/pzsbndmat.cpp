@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSBMatrix methods.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -10,7 +13,6 @@
 //
 // Versao: 10 / 1996.
 //
-
 
 #include <math.h>
 #include <stdlib.h>
@@ -30,13 +32,10 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsbmatrix"));
 
 using namespace std;
 
-
 /*******************/
 /*** TPZSBMatrix ***/
 
-
 /**************************** PUBLIC ****************************/
-
 
 /*****************************/
 /*** Construtor (int) ***/
@@ -51,8 +50,6 @@ TPZSBMatrix::TPZSBMatrix( int dim, int band )
 	
 	Zero();
 }
-
-
 
 /**************/
 /*** PutVal ***/

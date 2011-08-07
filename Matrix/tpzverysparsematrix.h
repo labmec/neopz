@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZVerySparseMatrix class which implements a matrix whose nonzero elements are stored in binary tree.
+ */
 #ifndef TPZVERYSPARSEMATRIX_H
 #define TPZVERYSPARSEMATRIX_H
 
@@ -13,7 +17,7 @@ class TPZFYsmpMatrix;
 
 /**
  @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
- @brief Implements a matrix whose nonzero elements are stored in binary tree
+ @brief Implements a matrix whose nonzero elements are stored in binary tree. \ref matrix "Matrix"
  @ingroup matrix
  */
 class TPZVerySparseMatrix: public TPZMatrix

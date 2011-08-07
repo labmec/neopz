@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZSpMatrix class which defines sparce matrix class.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -38,11 +41,10 @@
 class TPZFMatrix;
 
 /**
- * @brief Defines sparce matrix class.
+ * @brief Defines sparce matrix class. \ref matrix "Matrix"
  * @ingroup matrix
-
- * Stores data as a linked list of nonzero elements
  */
+/** Stores data as a linked list of nonzero elements */
 class TPZSpMatrix : public TPZMatrix
 {
 	friend class TPZSSpMatrix;

@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZMatrixSolver methods.
+ */
 
 #include "pzlog.h"
 #ifdef LOG4CXX

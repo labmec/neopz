@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZMatRed class which implements a simple substructuring of a linear system of equations, composed of 4 submatrices.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -12,7 +16,6 @@
 //
 // Versao: 04 / 1996.
 //
-
 
 #ifndef _TMATREDHH_
 #define _TMATREDHH_
@@ -36,14 +39,14 @@
 class TPZFMatrix;
 
 /**
- * @brief Implements a simple substructuring of a linear system of equations, composed of 4 submatrices.
- *
- *			[K00][U0] + [K01][U1] = [F0]
- *			[K10][U0] + [K11][U1] = [F1]
- * Implements a matrix composed of 4 submatrices
+ * @brief Implements a simple substructuring of a linear system of equations, composed of 4 submatrices. \ref matrix "Matrix"
  * @ingroup matrix
  */
-/// Implements a matrix composed of 4 submatrices
+/**
+ * Implements a matrix composed of 4 submatrices:
+ *			\f[ [K00] [U0] + [K01] [U1] = [F0] \f]
+ *			\f[ [K10] [U0] + [K11] [U1] = [F1] \f]
+ */
 template<class TSideMatrix = TPZFMatrix>
 class TPZMatRed: public TPZMatrix
 {
@@ -51,9 +54,7 @@ public:
 	
 	friend class TPZMatRed<TPZFMatrix>;
 	friend class TPZMatRed<TPZVerySparseMatrix>;
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZMatRed();
 	
 	/**
@@ -78,22 +79,14 @@ public:
 		if(cp.fK00) fK00 = cp.fK00;
 	}
 	
-	
-	
 	CLONEDEF(TPZMatRed)
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	~TPZMatRed();
 	
-	/**
-	 * @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not
-	 */
+	/** @brief returns 1 or 0 depending on whether the fK00 matrix is zero or not */
 	virtual int IsSimetric() const;
 	
-	/**
-	 * @brief changes the declared dimension of the matrix to fDim1
-	 */
+	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
 	{
 		TPZMatrix::Resize(fDim1, fDim1);
@@ -108,9 +101,7 @@ public:
 	virtual const REAL &GetVal(const int row, const int col) const;
 	virtual REAL &s(int row, int col);
 	
-	/**
-	 * @brief This method will zero all submatrices associated with this reducable matrix class
-	 **/
+	/** @brief This method will zero all submatrices associated with this reducable matrix class */
 	virtual int Zero();
 	
 	/**
@@ -138,31 +129,21 @@ public:
 	 */
 	void SetF(const TPZFMatrix & F);
 	
-	/**
-	 * @brief Indicate whether F0 needs to be reduced or not
-	 */
+	/** @brief Indicate whether F0 needs to be reduced or not */
 	void SetF0IsComputed(bool value)
 	{
 		fF0IsComputed = value;
 	}
-	/*
-	 * @brief Indicate that the value of F1 has been reduced
-	 */
+	/** @brief Indicate that the value of F1 has been reduced */
 	void SetF1IsReduced(bool value)
 	{
 		fF1IsReduced = value;
 	}
 	
-	/**
-	 * @brief Computes the reduced version of the right hand side
-	 * [F1]=[F1]-[K10][A00^-1][F0]
-	 */
+	/** @brief Computes the reduced version of the right hand side \f$ [F1]=[F1]-[K10][A00^-1][F0] \f$ */
 	const TPZFMatrix & F1Red();
 	
-	/**
-	 * @brief Computes the K11 reduced
-	 * [K11]=[K11]-[K10][A00^-1][A01]
-	 */
+	/** @brief Computes the K11 reduced \f$ [K11]=[K11]-[K10][A00^-1][A01] \f$ */
 	const TPZFMatrix & K11Red();
 	
 	/**
@@ -181,17 +162,12 @@ public:
 	//  TPZFMatrix U0(TPZMatrix *u1 = NULL);
 	
 	
-	/**
-	 * @brief Prints the object data structure
-	 */
+	/** @brief Prints the object data structure */
 	void Print(const char *name = NULL, std::ostream &out = std::cout,
 			   const MatrixOutputFormat = EFormatted) const;
 	
 	
-	/**
-	 * @brief Redim: Set the dimension of the complete matrix
-	 * and reduced matrix
-	 */
+	/** @brief Redim: Set the dimension of the complete matrix and reduced matrix */
 	int Redim(int dim, int dim00); //Cesar 19/12/00
 	
 	
@@ -209,12 +185,8 @@ public:
 	void MultAdd(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
 				 const REAL alpha, const REAL beta, const int opt, const int stride) const;
 	
-	/**
-	 * @brief If fK00 is simetric, only part of the matrix is accessible to external
-	 * objects.
-	 * 
-	 * Simetrizes copies the data of the matrix to make its data simetric
-	 */
+	/** @brief If fK00 is simetric, only part of the matrix is accessible to external objects. */
+	/** Simetrizes copies the data of the matrix to make its data simetric */
 	void Simetrize();
 	
 	/**
@@ -222,9 +194,8 @@ public:
 	 template class TPZMatRed<TPZFMatrix>;
 	 *
 	 */
-	/**
-	 * @brief Saveable methods
-	 */
+	
+	/** @brief Saveable methods */
 	int ClassId() const;
 	
 	//TPZMATRED_FMATRIX_ID
@@ -242,53 +213,34 @@ private:
 	 */
 	static void Swap(int *row, int *col);
 	
-	/**
-	 * Stiffnes matrix
-	 */
+	/** @brief Stiffnes matrix */
 	TPZAutoPointer<TPZMatrix> fK00;
 	
-	/// Solution method for inverting fK00
+	/** @brief Solution method for inverting \f$ fK00 \f$ */
 	TPZAutoPointer<TPZMatrixSolver> fSolver;
-	/**
-	 * @brief Full Stiffnes matrix
-	 */
+	/** @brief Full Stiffnes matrix */
 	TSideMatrix fK11;
 	TSideMatrix fK01, fK10;
 	
-	/**
-	 * @brief Right hand side or force matrix
-	 */
+	/** @brief Right hand side or force matrix */
 	TPZFMatrix fF0, fF1;
-	
-	
-	/**
-	 * @brief Stores matricess fKij dimensions
-	 */
+
+	/** @brief Stores matricess \f$ fKij \f$ dimensions */
 	int fDim0, fDim1;
 	
-	/**
-	 * @brief Is true if the declared dimension of the matrix is fDim0
-	 */
+	/** @brief Is true if the declared dimension of the matrix is fDim0 */
 	char fIsReduced;
 	
-	/**
-	 * @brief Is true if [K00^-1][F0] has been calculated and overwritten on [F0]
-	 */
+	/** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been calculated and overwritten on \f$ [F0] \f$ */
 	char fF0IsComputed;
 	
-	/**
-	 * @brief Is true if [K00^-1][KO1] has been computed and overwritten [K01]
-	 */
+	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
 	char fK01IsComputed;
 	
-	/**
-	 * @brief fK11IsReduced is true if [K11]=[K11]-[K10][A00^-1][A01] exists
-	 */
+	/** @brief fK11IsReduced is true if \f$ [K11]=[K11]-[K10][(A00)^-1][A01] \f$ exists */
 	char fK11IsReduced;
 	
-	/**
-	 * @brief fF1IsReduced is true if  [F1]=[F1]-[K10][A00^-1][F0] exists
-	 */
+	/** @brief fF1IsReduced is true if  \f$ [F1]=[F1]-[K10][(A00)^-1][F0] \f$ exists */
 	char fF1IsReduced;
 };
 

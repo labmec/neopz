@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZSkyline class which implements a skyline storage format.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -15,8 +18,6 @@
 
 #ifndef TSKYLMATH
 #define TSKYLMATH
-
-
 
 #include "pzmatrix.h"
 #include "pzvec.h"
@@ -36,7 +37,7 @@ class TPZFMatrix;
  */
 
 /**
- * @brief Implements a skyline storage format
+ * @brief Implements a skyline storage format. A Skyline matrix is symmetric so square. \ref matrix "Matrix"
  * @ingroup matrix
  */
 class TPZSkylMatrix : public TPZMatrix

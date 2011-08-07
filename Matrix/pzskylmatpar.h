@@ -1,4 +1,8 @@
 /**
+ * @file
+ * @brief Contains TPZSkylParMatrix class which implements a skyline storage format to parallelized process.
+ */
+/**
 	Variable settings for PZProject
 	by Longhin 14/12/2000
 
@@ -32,7 +36,7 @@
 #include <set>
 
 /**
- * @brief Implements a skyline storage format to parallelized process
+ * @brief Implements a skyline storage format to parallelized process. \ref matrix "Matrix"
  * @ingroup matrix
  */
 class TPZSkylParMatrix : public TPZSkylMatrix

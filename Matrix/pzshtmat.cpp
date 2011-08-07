@@ -1,6 +1,7 @@
-
-//METHODS DEFINITIONS FOR CLASS MATRIX
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGenMatrix methods.
+ */
 
 #include "pzshtmat.h"
 //#include "pzerror.h"

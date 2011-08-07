@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZSparseBlockDiagonal class which implements a block diagonal matrix where the blocks are not contiguous.
+ */
 //
 // C++ Interface: tpzsparseblockdiagonal
 //
@@ -15,9 +19,10 @@
 #include "pzblockdiag.h"
 
 /**
- @brief This class implements a block diagonal matrix where the blocks are not contiguous
+ @brief Implements a block diagonal matrix where the blocks are not contiguous. \ref matrix "Matrix"
  @ingroup matrix
  @author Philippe R. B. Devloo
+ @since 2004
  */
 class TPZSparseBlockDiagonal : public TPZBlockDiagonal
 {

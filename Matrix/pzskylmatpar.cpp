@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSkylParMatrix methods.
+ */
 
 #include <math.h>
 #include <stdlib.h>

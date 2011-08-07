@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSFMatrix methods.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -10,7 +13,6 @@
 //
 // Versao: 04 / 1996.
 //
-
 
 #include <math.h>
 #include <stdlib.h>
@@ -25,11 +27,9 @@
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsfmatrix"));
 #endif
 
-
 #define Min(a, b)    ( (a) < (b) ? (a) : (b) )
 
 using namespace std;
-
 
 /*******************/
 /*** Constructor ***/
@@ -45,8 +45,6 @@ TPZSFMatrix::TPZSFMatrix(const int dim )
 	// Zera a Matriz.
 	Zero();
 }
-
-
 
 /*********************************/
 /*** Constructor( TPZSFMatrix& ) ***/

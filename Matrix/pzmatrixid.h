@@ -1,4 +1,8 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZFMATRIXID and TPZBLOCKID ids.
+ */
+
 #ifndef PZMATRIXIDH
 #define PZMATRIXIDH
 

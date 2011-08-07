@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZMatrix methods.
+ */
 //
 // Aut.hor: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -16,7 +20,6 @@
 //
 // Versao: 04 / 1996.
 //
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,7 +45,6 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #ifdef DEBUG
 #define DEBUG2
 #endif
-
 
 #define Min( a, b )    ( (a) < (b) ? (a) : (b) )
 

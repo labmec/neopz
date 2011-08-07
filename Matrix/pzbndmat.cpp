@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZFBMatrix methods.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -27,7 +31,6 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));
 
 using namespace std;
 
-
 /*******************/
 /*** Constructor ***/
 
@@ -37,8 +40,6 @@ TPZFBMatrix::TPZFBMatrix()
 	fElem = NULL;
 	fBand = 0;
 }
-
-
 
 /********************/
 /*** Constructors ***/

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSparseBlockDiagonal methods.
+ */
 //
 // C++ Implementation: tpzsparseblockdiagonal
 //

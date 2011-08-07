@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZMatrix class, root matrix class.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -53,18 +56,13 @@ enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNon
 
 class TPZFMatrix;
 
-/**
- * @brief Root matrix class (abstract)
- 
- * Abstract class TPZMatrix which defines interface of derived matrix classes.
- */
+/** @brief Root matrix class (abstract). \ref matrix "Matrix" */
+/** Abstract class TPZMatrix which defines interface of derived matrix classes. */
 class TPZMatrix  : public TPZSaveable
 
 {
 public:
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZMatrix() {
 		fDecomposed = 0;
 		fDefPositive = 0;
@@ -76,22 +74,16 @@ public:
 	TPZMatrix(const TPZMatrix &cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
 	{
 	}
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	virtual ~TPZMatrix();
 	
 	virtual TPZMatrix *Clone() const = 0;
 	
-	/**
-	 * @brief Fill matrix storage with randomic values
-	 * This method use GetVal and PutVal which are implemented by each type matrices
-	 */
+	/** @brief Fill matrix storage with randomic values */
+	/** This method use GetVal and PutVal which are implemented by each type matrices */
 	void AutoFill();
 	
-	/**
-	 * @brief Checks if current matrix value is symmetric
-	 */
+	/** @brief Checks if current matrix value is symmetric */
 	virtual int VerifySymmetry(REAL tol = 1.e-13) const;
 	
 	/**
@@ -103,42 +95,42 @@ public:
 	virtual int Put(const int row,const int col,const REAL & value );
 	/**
 	 * @brief Get value with bound checking
-     @param row Row number.
-     @param col Column number.
+     * @param row Row number.
+     * @param col Column number.
 	 */
 	virtual const REAL &Get(const int row,const int col ) const;
 	
 	/**
 	 * @brief Substitution for the () operator when const arguments are needed
-     @param row Row number.
-     @param col Column number.
+     * @param row Row number.
+     * @param col Column number.
 	 */
 	const REAL &g(const int row, const int col) const {return Get(row,col);}
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
-     @param row Row number.
-     @param col Column number.
+     * @param row Row number.
+	 * @param col Column number.
 	 */
 	REAL &operator() (const int row,const int col );
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
-     @param row Row number.
-     @param col Column number.
+     * @param row Row number.
+     * @param col Column number.
 	 */
 	virtual REAL &s(const int row, const int col);
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
-     @param row Row number.
+     * @param row Row number.
 	 */
 	REAL &operator()(const int row);
 	
 	/** @brief Put values without bounds checking \n
-	 *  this method is faster than "Put" if DEBUG is defined.
+	 *  This method is faster than "Put" if DEBUG is defined.
 	 */
 	virtual int PutVal(const int /*row*/,const int /*col*/,const REAL & /*val*/ ) { return 0; }
 	/** @brief Get values without bounds checking \n
-	 *  this method is faster than "Get" if DEBUG is defined.
+	 *  This method is faster than "Get" if DEBUG is defined.
 	 */
 	virtual const REAL &GetVal(const int /*row*/, const int /*col*/ ) const  { return gZero; }
 	

@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains TPZBlockDiagonal class which defines block diagonal matrices.
+ */
 // Author: Philippe Devloo.
 //
 // File:   pzblockdiag.h
@@ -20,16 +23,14 @@
 #include "pzvec.h"
 
 /**
- @brief Defines block diagonal matrices
+ @brief Defines block diagonal matrices. \ref matrix "Matrix"
  @ingroup matrix
  */
 class TPZBlockDiagonal : public TPZMatrix
 {
 	
 public:
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZBlockDiagonal ();
 	/**
      @brief Constructor with initialization parameters
@@ -42,15 +43,11 @@ public:
      @param blocksizes Size of blocks on Block Diagonal matrix
 	 */
 	TPZBlockDiagonal (const TPZVec<int> &blocksizes);
-	/**
-     @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZBlockDiagonal (const TPZBlockDiagonal & );
 	
 	CLONEDEF(TPZBlockDiagonal)
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
 	int    Put(const int row,const int col,const REAL& value );
@@ -92,9 +89,7 @@ public:
 	/// Makes the backward and forward substitutions whether the matrix was LU decomposed
 	virtual int Substitution( TPZFMatrix * B ) const;
 	
-	/**
-	 * @brief Updates the values of the matrix based on the values of the matrix
-	 */
+	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
 	
 	/**

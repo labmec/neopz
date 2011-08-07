@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZBlock methods.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //

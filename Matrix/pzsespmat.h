@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZSSpMatrix class which implements sparce symmetric matrix using a linked list of elements.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -35,8 +38,8 @@ class TPZFMatrix;
 class TSFMatrix;
 
 /**
- @brief TPZSSpMatrix implement sparce symmetric matrix using a linked list of elements
- @ingroup matrix
+ * @brief Implements sparce symmetric matrix using a linked list of elements. \ref matrix "Matrix"
+ * @ingroup matrix
  */
 class TPZSSpMatrix : public TPZMatrix
 {

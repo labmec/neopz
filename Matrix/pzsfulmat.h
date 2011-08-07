@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZSFMatrix class which implements a symmetric full matrix.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -29,7 +32,7 @@
 class TPZFMatrix;
 
 /**
- @brief implements a symmetric full matrix
+ @brief Implements a symmetric full matrix. \ref matrix "Matrix"
  @ingroup matrix
  */
 class TPZSFMatrix : public TPZMatrix {

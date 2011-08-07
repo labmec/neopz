@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains TPZFMatrix class which implements full matrix.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -42,8 +45,8 @@ class TPZVec;
 #define SELECTEL(ptr,rows,row,col) ptr[col*rows+row]
 
 /**
- * @brief Full matrix class
- * The full matrix class is special in that the data is stored column wise
+ * @brief Full matrix class. \ref matrix "Matrix"
+ * @note The full matrix class is special in that the data is stored column wise
  */
 class TPZFMatrix : public TPZMatrix {
 	
@@ -350,7 +353,7 @@ inline TPZFMatrix TPZFMatrix::operator*( TPZFMatrix A ) const {
 }
 
 /**
- * @brief Non abstract class which implements full matrices with preallocated storage
+ * @brief Non abstract class which implements full matrices with preallocated storage. \ref matrix "Matrix"
  * @ingroup matrix
  */
 template<int N>

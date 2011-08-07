@@ -30,12 +30,11 @@ extern "C"{
 class TPZFMatrix;
 
 /**
- * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage)
+ * @brief Implements a non symmetric sparse matrix (Yale Sparse Matrix Storage). \ref matrix "Matrix"
  * @ingroup matrix
  */
 /**
- * Define operations on general sparse matrices stored
- * in the (old) Yale Sparse Matrix Package format.
+ * Defines operations on general sparse matrices stored in the (old) Yale Sparse Matrix Package format.
  */
 class TPZFYsmpMatrix : public TPZMatrix {
 	

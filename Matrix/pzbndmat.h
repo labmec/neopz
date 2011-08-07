@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -11,11 +14,8 @@
 // Versao: 12 / 1994.
 //
 
-
 #ifndef _TBNDMATHH_
 #define _TBNDMATHH_
-
-
 
 #include "pzmatrix.h"
 
@@ -27,7 +27,7 @@
 #endif
 
 /**
- * @brief Defines a non symmetric banded matrix. 
+ * @brief Defines a non symmetric banded matrix. \ref matrix "Matrix"
  * @ingroup matrix
  */
 class TPZFBMatrix : public TPZMatrix

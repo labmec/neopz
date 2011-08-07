@@ -1,4 +1,7 @@
-
+/**
+ * @file
+ * @brief Contains TPZLink class which implements a linked list of ElemType elements.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -26,14 +29,14 @@ class TPZWorkPool;
 
 
 /**
- * @brief Implements a linked list of ElemType elements
+ * @brief Implements a linked list of ElemType elements. \ref matrixutility "Matrix utility"
  * @ingroup matrixutility
  */
 template< class ElemType >
 class TPZLink
 {
 	/**
-     \struct Node
+     @brief Node structure
      @brief Defines a Node structure that contains an element type index and a node index.
      @param elem Describes element type.
      @param next Describes next element.
@@ -45,13 +48,9 @@ class TPZLink
 	};
 	
 public:
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZLink();
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	~TPZLink();
 	
 #ifdef WORKPOOL

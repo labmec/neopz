@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZGenMatrix class which implements generic class which holds a matrix of objects.
+ */
 //HEADER FILE FOR CLASS MATRIX
 
 
@@ -10,22 +14,22 @@
  * @{
  */
 /**
- * @brief Implements generic class which holds a matrix of objects
+ * @brief Implements generic class which holds a matrix of objects. \ref matrix "Matrix"
  */
 template <class TObj>
 class TPZGenMatrix {
 	
 protected:
-	/// Pointer to matrix
+	/** @brief Pointer to matrix */
 	TObj *fMem;
-	/// Number of rows and columns
+	/** @brief Number of rows and columns */
 	int   fRows, fCols;
 	
 public:
 	
-	/// Constructor creating Null matrix
+	/** @brief Constructor creating Null matrix */
 	TPZGenMatrix ();
-	/// Constructor creating a rows x columns matrix
+	/** @brief Constructor creating a rows x columns matrix */
 	TPZGenMatrix (const int rows ,const int columns);
 	
 	/**
@@ -56,7 +60,7 @@ public:
 };
 
 /** 
- * @brief Implements a generic matrix of objects which implement arithmetic operations
+ * @brief Implements a generic matrix of objects which implement arithmetic operations. \ref matrix "Matrix"
  */
 template <class TObj>
 class TPZGenAMatrix : public TPZGenMatrix<TObj> {

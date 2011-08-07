@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the RegisterMatrixClasses function.
+ */
 //
 // C++ Implementation: pzmatrixid
 //

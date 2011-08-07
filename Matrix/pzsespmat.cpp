@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSSpMatrix methods.
+ */
 //
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
@@ -27,10 +31,8 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsspmatrix"));
 
 using namespace std;
 
-
 /*******************/
 /*** TPZSSpMatrix ***/
-
 
 /**************************** PUBLIC ****************************/
 
@@ -43,8 +45,6 @@ TPZSSpMatrix::TPZSSpMatrix(const TPZSSpMatrix &A )
     fDecomposed  = A.fDecomposed;
     fDefPositive = A.fDefPositive;
 }
-
-
 
 /******** Operacoes com matrizes ESPARSAS SIMETRICAS  ********/
 

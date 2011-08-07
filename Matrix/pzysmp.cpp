@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZFYsmpMatrix methods.
+ */
 #include "pzysmp.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"

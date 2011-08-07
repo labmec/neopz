@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZStencilMatrix methods.
+ */
 /******************************************************************************
  *
  * Class realization:   TPZStencilMatrix
@@ -19,7 +23,6 @@
 
 #include "pzstencil.h"
 #include "pzfmatrix.h"
-
 
 #include <memory.h>
 #include <string>

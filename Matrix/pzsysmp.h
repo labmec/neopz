@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZSYsmpMatrix class which implements a symmetric sparse matrix.
+ */
 /******************************************************************************
  *
  * Class definition:    TPZSYsmpMatrix
@@ -19,11 +23,12 @@
 class TPZFMatrix;
 
 /**
- Purpose:  Define operations on symmetric sparse matrices stored
- in the (old) Yale Sparse Matrix Package format.
- @brief Implements a symmetric sparse matrix
- @ingroup matrix
+ * Purpose:  Defines operations on symmetric sparse matrices stored in the (old) Yale Sparse Matrix Package format.
  */
+ /**
+  * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
+  * @ingroup matrix
+  */
 class TPZSYsmpMatrix : public TPZMatrix {
 	
 	public :

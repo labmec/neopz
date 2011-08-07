@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZSpBlockDiagPivot class which does derivation using decompose LU with pivot.
+ */
 //
 // C++ Interface: %{MODULE}
 //
@@ -15,7 +19,7 @@
 #include "tpzsparseblockdiagonal.h"
 
 /**
- @brief Derivation using decompose LU with pivot.
+ @brief Derivation using decompose LU with pivot. \ref matrix "Matrix"
  @ingroup matrix
  @author Philippe R. B. Devloo
  */

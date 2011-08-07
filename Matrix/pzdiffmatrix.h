@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains TPZDiffMatrix class which to hold the flux derivatives A B C and diffusive matrix coefficients.
+ */
 //$Id: pzdiffmatrix.h,v 1.8 2011-04-05 19:32:54 calle Exp $
 
 #ifndef PZDIFFMATRIX_H
@@ -15,8 +19,7 @@
 
 /**
  * @ingroup matrix
- * @brief Matrix class to hold the flux derivatives A B C and
- * diffusive matrix coefficients.
+ * @brief Matrix class to hold the flux derivatives A B C and diffusive matrix coefficients. \ref matrix "Matrix"
  * @author Erick Slis
  * @author Cedric Ayala
  * @since June 1, 2003.
@@ -29,74 +32,57 @@ public:
     TPZDiffMatrix(const int rows, const int cols);
     ~TPZDiffMatrix();
 	
-    /**
-     * @brief Resizes and zeroes the matrix.
-     *
-     */
+    /** @brief Resizes and zeroes the matrix. */
     void Redim(const int rows, const int cols);
 	
-    /**
-     * @brief Multiplies the matrix by a correspondent TPZVec vector,
-     * Dimensions are checked.
-     */
+    /** @brief Multiplies the matrix by a correspondent TPZVec vector. Dimensions are checked. */
     void Multiply(TPZVec<T> & In, TPZVec<T> & Out, const T & scale = T(1.));
 	
 	
-    /**
-     * @brief Matrix multiplication;
-     * Dimensions are checked.
-     */
+    /** @brief Matrix multiplication. Dimensions are checked. */
     void Multiply(TPZDiffMatrix<T> & In, TPZDiffMatrix<T> & Out, const T & scale = T(1.));
 	
     /**
-     * @brief Matrix multiplication;
-     * Dimensions are checked. \n
+     * @brief Matrix multiplication
+	 */
+	/** 
+	 * Dimensions are checked. \n
      * Results are additively contributed to Out
      */
     void MultiplyAdd(TPZDiffMatrix<T> & In, TPZDiffMatrix<T> & Out, const T & scale = T(1.));
 	
 	
-    /**
-     * @brief Copies the matrix, reallocating all coefficients.
-     */
+    /** @brief Copies the matrix, reallocating all coefficients. */
     TPZDiffMatrix<T> & operator=(const TPZDiffMatrix<T> & source);
 	
-    /**
-     * @brief Adds element by element.
-     *
-     */
+    /** @brief Adds element by element. */
     void Add(TPZDiffMatrix<T> & matrix, const T & scale = T(1.));
 	
-    /**
-     * @brief Matrix data access
-     */
+    /** @brief Matrix data access */
     T & operator()(const int i, const int j = 0);
 	
     void PutVal(const int row,const int col,const T & value );
 	
 	const T &GetVal(const int row,const int col ) const;
 	
-    /**
-     * @brief Transposes the matrix onto the parameter object.
-     * Resizes it if necessary.
-     */
+    /** @brief Transposes the matrix onto the parameter object. */
+	/** Resizes it if necessary. */
     TPZDiffMatrix<T> & Transpose(TPZDiffMatrix<T> & matrix);
 	
     /**
      * @brief Performs a specific diffusive divergence operation.
-	 *
-     * The object gradx contain the tangent matrix
-     * of the solutions with respect to the dim spatial
-     * dimensions.
-     *
      * @param gradx: example: {dU0dx0 dU0dx1 dU0dx2 dU1dx0... dU5dx2}
-     * @param varOffset: shall lie between 0 and dim-1.
+     * @param varOffset: shall lie between 0 and dim-1. \n
      * Represents the index of spatial derivative to multiply
      * the matrix by.
      * @param dim
-     * @param Divergent: vetor to which the operation shall contribute to.
+     * @param Divergent: vetor to which the operation shall contribute to. \n
      * Must be explicitly zeroed before calling this function.
      */
+	/**
+	 * The object gradx contain the tangent matrix
+     * of the solutions with respect to the dim spatial dimensions.
+	 */
     void AddAlignDiv(TPZVec<T> & gradx,
                      const int varOffset,const int dim,
 					 TPZVec<T> & Divergent);
