@@ -1,25 +1,26 @@
+/**
+ * @file
+ * @brief Contains the implementation of the BiCG function which solves the unsymmetric linear system \n
+ * using Preconditioned BiConjugate Gradient method.
+ */
 /******************************************************************
- // @ingroup solver
- // Iterative template routine -- BiCG
- //
- // @brief BiCG solves the unsymmetric linear system Ax = b 
- // using the Preconditioned BiConjugate Gradient method
- //
- // BiCG follows the algorithm described on p. 22 of the 
- // SIAM Templates book.
- //
- // The return value indicates convergence within max_iter (input)
- // iterations (0), or no convergence within max_iter iterations (1).
- //
- // Upon successful return, output arguments have the following values:
- //  
- // @param x  --  approximate solution to Ax = b
- // @param max_iter  --  the number of iterations performed before the
- //               tolerance was reached
- // @param tol  --  the residual after the final iteration
- //  
+ * @ingroup solver
+ * @brief BiCG solves the unsymmetric linear system \f$ Ax = b \f$
+ * using the Preconditioned BiConjugate Gradient method
+ * @return The return value indicates convergence within max_iter (input)
+ * iterations (0), or no convergence within max_iter iterations (1). \n
+ * Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to Ax = b
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
  *****************************************************************/
-
+/**
+ * Iterative template routine -- BiCG \n
+ * BiCG follows the algorithm described on p. 22 of the SIAM Templates book.
+ */
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 BiCG( Matrix &A, Vector &x, const Vector &b,

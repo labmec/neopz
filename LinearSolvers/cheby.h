@@ -1,25 +1,26 @@
-//*****************************************************************
-// Iterative template routine -- CHEBY
-//
-// @ingroup solver
-// @brief CHEBY solves the symmetric positive definite linear
-// system Ax = b using the Preconditioned Chebyshev Method
-//
-// CHEBY follows the algorithm described on p. 30 of the 
-// SIAM Templates book.
-//
-// The return value indicates convergence within max_iter (input)
-// iterations (0), or no convergence within max_iter iterations (1).
-//
-// Upon successful return, output arguments have the following values:
-//  
-// @param x  --  approximate solution to Ax = b
-// @param max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-// @param tol  --  the residual after the final iteration
-//  
-//*****************************************************************
-
+/**
+ * @file
+ * @brief Contains the implementation of the CHEBY function which solves the symmetric positive definite linear system using the \n
+ * Preconditioned Chebyshec method. 
+ */
+/**
+ * @ingroup solver
+ * @brief CHEBY solves the symmetric positive definite linear system \f$ Ax = b \f$ using the Preconditioned Chebyshev Method
+ * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1). \n
+ * Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to Ax = b
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
+ * @param eigmin  -- minimun eigenvalue type
+ * @param eigmax  -- maximun eigenvalue type
+*/
+/**
+ * Iterative template routine -- CHEBY \n
+ * CHEBY follows the algorithm described on p. 30 of the SIAM Templates book.
+*/
 
 template < class Matrix, class Vector, class Preconditioner, class Real,
 class Type >

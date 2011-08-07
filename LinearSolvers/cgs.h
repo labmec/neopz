@@ -1,25 +1,23 @@
-//*****************************************************************
-// Iterative template routine -- CGS
-//
-// @ingroup solver
-// @brief CGS solves the unsymmetric linear system Ax = b 
-// using the Conjugate Gradient Squared method
-//
-// CGS follows the algorithm described on p. 26 of the 
-// SIAM Templates book.
-//
-// The return value indicates convergence within max_iter (input)
-// iterations (0), or no convergence within max_iter iterations (1).
-//
-// Upon successful return, output arguments have the following values:
-//  
-// @param x  --  approximate solution to Ax = b
-// @param max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-// @param tol  --  the residual after the final iteration
-//  
-//*****************************************************************
-
+/**
+ * @file
+ * @brief Contains the implementation of the CGS function which solves the unsymmetric linear system using the Conjudate Gradient Squared method. 
+ */
+/**
+ * @ingroup solver
+ * @brief CGS solves the unsymmetric linear system \f$ Ax = b \f$ using the Conjugate Gradient Squared method
+ * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1). \n
+ * Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to Ax = b
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
+ */
+/**
+ * Iterative template routine -- CGS \n
+ * CGS follows the algorithm described on p. 26 of the SIAM Templates book.
+ */
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 CGS(const Matrix &A, Vector &x, const Vector &b,

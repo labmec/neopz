@@ -1,37 +1,37 @@
-//*****************************************************************
-// Iterative template routine -- QMR
-//
-// @ingroup solver
-// @brief QMR.h solves the unsymmetric linear system Ax = b using the
-// Quasi-Minimal Residual method following the algorithm as described
-// on p. 24 in the SIAM Templates book.
-//
-//   -------------------------------------------------------------
-//   return value     indicates
-//   ------------     ---------------------
-//        0           convergence within max_iter iterations
-//        1           no convergence after max_iter iterations
-//                    breakdown in:
-//        2             rho
-//        3             beta
-//        4             gamma
-//        5             delta
-//        6             ep
-//        7             xi
-//   -------------------------------------------------------------
-//   
-// Upon successful return, output arguments have the following values:
-//
-// @param x  --  approximate solution to Ax=b
-// @param max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-// @param tol  --  the residual after the final iteration
-//
-//*****************************************************************
-
-
+/**
+ * @file
+ * @brief Contains the implementation of the QMR function which solves the unsymmetric linear system using the Quasi-Minimal Residual method. 
+ */
 #include <math.h>
 
+/**
+ * @ingroup solver
+ * @brief QMR solves the unsymmetric linear system \f$ Ax = b \f$ using the Quasi-Minimal Residual method.
+ * @return Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to \f$ Ax=b \f$
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
+*/
+/**
+ * Iterative template routine -- QMR \n
+ * Quasi-Minimal Residual method following the algorithm as described on p. 24 in the SIAM Templates book.\n
+ * ------------------------------------------------------------- \n
+ *   return value   -  indicates \n
+ *   ------------     --------------------- \n
+ *   \t   0         -  convergence within max_iter iterations \n
+ *   \t   1         -  no convergence after max_iter iterations \n
+ *   \t\t              breakdown in: \n
+ *   \t   2         -    rho \n
+ *   \t   3         -    beta \n
+ *   \t   4         -    gamma \n
+ *   \t   5         -    delta \n
+ *   \t   6         -    ep \n
+ *   \t   7         -    xi \n
+ *   -------------------------------------------------------------
+ */
 template < class Matrix, class Vector, class Preconditioner1,
 class Preconditioner2, class Real >
 int 

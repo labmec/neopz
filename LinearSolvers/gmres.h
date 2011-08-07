@@ -1,25 +1,7 @@
-//*****************************************************************
-// Iterative template routine -- GMRES
-//
-// @ingroup solver
-// @brief GMRES solves the unsymmetric linear system Ax = b using the 
-// Generalized Minimum Residual method
-//
-// GMRES follows the algorithm described on p. 20 of the 
-// SIAM Templates book.
-//
-// The return value indicates convergence within max_iter (input)
-// iterations (0), or no convergence within max_iter iterations (1).
-//
-// Upon successful return, output arguments have the following values:
-//  
-// @param x  --  approximate solution to Ax = b
-// @param max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-// @param tol  --  the residual after the final iteration
-//  
-//*****************************************************************
-
+/**
+ * @file
+ * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method. 
+ */
 
 template < class Matrix, class Vector >
 void 
@@ -48,6 +30,24 @@ abs(Real x)
 }
 
 
+/**
+ * @ingroup solver
+ * @brief GMRES solves the unsymmetric linear system Ax = b using the Generalized Minimum Residual method
+ * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1).\n
+ * Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to \f$ Ax = b \f$
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
+ * @param residual  -- residual vector (return)
+ * @param FromCurrent  -- for type of operation (MultAdd)
+ */
+/**
+ * Iterative template routine -- GMRES \n
+ * GMRES follows the algorithm described on p. 20 of the SIAM Templates book.
+ */
 template < class Operator, class Vector, class Preconditioner,
 class Matrix, class Real >
 int 

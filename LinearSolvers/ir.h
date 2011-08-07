@@ -1,22 +1,24 @@
-//*****************************************************************
-// Iterative template routine -- Preconditioned Richardson
-//
-// @ingroup solvers
-// @brief IR solves the unsymmetric linear system Ax = b using 
-// Iterative Refinement (preconditioned Richardson iteration).
-//
-// The return value indicates convergence within max_iter (input)
-// iterations (0), or no convergence within max_iter iterations (1).
-//
-// Upon successful return, output arguments have the following values:
-//  
-// @param x  --  approximate solution to Ax = b
-// @param max_iter  --  the number of iterations performed before the
-//               tolerance was reached
-// @param tol  --  the residual after the final iteration
-//  
-//*****************************************************************
-
+/**
+ * @file
+ * @brief Contains the implementation of the IR function which solves the unsymmetric linear system using the Iterative Refinement method. 
+ */
+/**
+ * @ingroup solvers
+ * @brief IR solves the unsymmetric linear system Ax = b using Iterative Refinement (preconditioned Richardson iteration).
+ * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1).\n
+ * Upon successful return, output arguments have the following values:
+ * @param A  -- matrix of the system
+ * @param b  -- vector of the system
+ * @param M  -- preconditioner matrix
+ * @param x  --  approximate solution to Ax = b
+ * @param max_iter  --  the number of iterations performed before the tolerance was reached
+ * @param tol  --  the residual after the final iteration
+ * @param residual  -- residual vector (return)
+ * @param FromCurrent  -- for type of operation (MultAdd)
+*/
+/**
+ * Iterative template routine -- Preconditioned Richardson
+ */
 template < class Matrix, class Vector, class Preconditioner, class Real >
 int 
 IR( Matrix &A, Vector &x,const Vector &b,
