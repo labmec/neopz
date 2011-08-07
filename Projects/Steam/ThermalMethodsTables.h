@@ -178,7 +178,8 @@ public:
 template<class T>
 inline T OilData::getDensityToOil(T temp) {
 	// Estado inicial conhecido
-	double rho_ini = fTable[4][2], T_ini = fTable[4][0], p_ini = fTable[4][1], ThermalExpansion_ini = 0.001, Compressibility_ini = 0.1;
+	REAL rho_ini = fTable[4][2];
+//	REAL T_ini = fTable[4][0], p_ini = fTable[4][1], ThermalExpansion_ini = 0.001, Compressibility_ini = 0.1;
 	//	double rho = rho_ini*(1.-(ThermalExpansion_ini*(temp-T_ini))+(Compressibility_ini*(getPression(temp)-p_ini)));
 	//	return rho;
 	return rho_ini;

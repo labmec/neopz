@@ -166,12 +166,12 @@ void ExpandingDomain(REAL tinlet, REAL DADt, REAL deltatime, REAL TimeFinal, con
 
 void TPBrCellMarx::SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux, TPZManVector<REAL> &leftstate)
 {
-	REAL PI = 4*atan(1.);	
+//	REAL PI = 4*atan(1.);	
 	TPBrCellMarx first;
 		
 	//----------------- dados de entrada ------------------------------
 	//dados numerico
-	REAL TimeStep =10.;//(1260. s = tempo para atingir a Energia máxima)
+//	REAL TimeStep =10.;//(1260. s = tempo para atingir a Energia máxima)
 	//REAL TimeStep_target =1400.;
 	REAL temperature = TemperatureSaturation (pressurewater);
 	leftstate[ETemperature] = temperature;

@@ -942,7 +942,7 @@ void TPBrSteamMesh::ProjectSolution(TPZFMatrix &solution)
     if(facestate[TPBrSteamFlux::EInletSteamSaturation] > 0.01)
     {
         REAL press = facestate[TPBrSteamFlux::EInletPressure]+TPBrScales::fReferencePressure;
-        REAL temp = facestate[TPBrSteamFlux::EInletTemperature];
+//        REAL temp = facestate[TPBrSteamFlux::EInletTemperature];
         REAL sattemp = TPBrCellConservation::TemperatureSaturation(press);
         solution(TPBrSteamFlux::EInletTemperature,0) = sattemp;
     }
