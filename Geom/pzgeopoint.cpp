@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoPoint methods. 
+ */
 
 #include "pzgeopoint.h"
 //#include "pzelgpoint.h"

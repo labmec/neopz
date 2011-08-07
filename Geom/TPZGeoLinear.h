@@ -1,7 +1,7 @@
-// -*- c++ -*-
-// $ Id: $
-//HEADER FILE FOR CLASS TPZGeoCube
-
+/**
+ * @file
+ * @brief Contains the TPZGeoLinear class which implements the geometry of a one dimensional linear element.
+ */
 #ifndef TPZGEOLINEARH
 #define TPZGEOLINEARH
 
@@ -23,60 +23,46 @@ namespace pzgeom {
 	
 	/**
 	 * @ingroup geometry
-	 * @brief Implements the geometry of a one dimensional linear element
+	 * @brief Implements the geometry of a one dimensional linear element. \ref geometry "Geometry"
 	 */
 	class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
 		
 	public:
 		enum {NNodes = 2};
 		
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		TPZGeoLinear(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZLine>(nodeindexes)
 		{
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		TPZGeoLinear() : TPZNodeRep<NNodes, pztopology::TPZLine>()
 		{
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		TPZGeoLinear(const TPZGeoLinear &cp,
 					 std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp,gl2lcNdMap)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoLinear(const TPZGeoLinear &cp) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoLinear(const TPZGeoLinear &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZLine>(cp)
 		{
 		}
 		
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Linear";} 
 		
 		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
-		/**
-		 * @brief Returns the projection of a given point from "NSide - 1" side to "side".
-		 */
+		/** @brief Returns the projection of a given point from "NSide - 1" side to "side". */
 		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
@@ -88,9 +74,7 @@ namespace pzgeom {
 		
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,

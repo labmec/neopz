@@ -1,6 +1,7 @@
-// TPZGeoQuad.cpp: implementation of the TPZGeoQuad class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoQuad methods. 
+ */
 
 #include "pzgeoquad.h"
 #include "pzfmatrix.h"

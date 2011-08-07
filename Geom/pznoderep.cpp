@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Creates TPZNodeRep classes for several master elements. 
+ */
 // C++ Implementation: pznoderep
 //
 // Description: 

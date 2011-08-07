@@ -1,7 +1,9 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoLinear methods. 
+ */
 
 #include "TPZGeoLinear.h"
-//#include "pzelg1d.h"
-//#include "pzelgpoint.h"
 #include "pzquad.h"
 #include "pzshapelinear.h"
 #include "pzgeoel.h"

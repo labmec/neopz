@@ -1,7 +1,6 @@
 /**
- / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
- / LabMeC - FEC - UNICAMP
- / 2007
+ * @file
+ * @brief Contains the TPZGeoBlend class which implements a blending map from curved boundaries to the interior of the element.
  */
 
 #ifndef TPZGEOBLEND_H
@@ -20,7 +19,9 @@ namespace pzgeom
 	
 	/**
 	 * @ingroup geometry
-	 * @brief Implements a blending map from curved boundaries to the interior of the element
+	 * @brief Implements a blending map from curved boundaries to the interior of the element. \ref geometry "Geometry"
+	 * @author Paulo Cesar de Alvarenga Lucci
+	 * @since 2007
 	 */
 	template <class TGeo>
 	class TPZGeoBlend : public TGeo {

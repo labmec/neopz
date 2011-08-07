@@ -1,6 +1,8 @@
-//#include "pzelgpoint.h"
-//#include "pzelg1d.h"
-//#include "pzelgq2d.h"
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoCube methods. 
+ */
+
 #include "TPZGeoCube.h"
 #include "pzgeoel.h"
 #include "pzshapecube.h"

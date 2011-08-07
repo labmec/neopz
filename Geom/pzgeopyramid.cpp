@@ -1,6 +1,7 @@
-// TPZGeoPyramid.c: implementation of the TPZGeoPyramid class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoPyramid methods. 
+ */
 
 #include "pzgeopyramid.h"
 #include "pzfmatrix.h"

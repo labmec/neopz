@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the Pr methods. 
+ */
 #include "PrismExtend.h"
 #include "tpzpoint.h"
 #include "tpzint1point.h"

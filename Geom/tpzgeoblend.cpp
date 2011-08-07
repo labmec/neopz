@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoBlend methods. 
+ */
 #include "tpzgeoblend.h"
 
 #include "pzgeoelside.h"

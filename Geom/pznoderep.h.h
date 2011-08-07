@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the implementation of the TPZNodeRep methods.
+ */
 // C++ Interface: pznoderep
 //
 // Description: 
@@ -32,9 +35,7 @@ static LoggerPtr loggernoderep(Logger::getLogger("pz.geom.noderep"));
 
 namespace pzgeom {
 	
-	/**
-	 * @brief Constructor with node map
-	 */
+	/** @brief Constructor with node map */
 	template<int N, class Topology>
 	TPZNodeRep<N,Topology>::TPZNodeRep(const TPZNodeRep<N,Topology> &cp, std::map<int,int> & gl2lcNdMap)
 	{

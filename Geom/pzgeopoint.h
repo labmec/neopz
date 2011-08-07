@@ -1,6 +1,7 @@
-// -*- c++ -*-
-// $ Id: $
-//HEADER FILE FOR CLASS TPZGeoCube
+/**
+ * @file
+ * @brief Contains the TPZGeoPoint class which implements the geometry of a point element.
+ */
 
 #ifndef TPZGEOPOINTH
 #define TPZGEOPOINTH
@@ -23,18 +24,18 @@ class TPZGeoMesh;
 
 /**
  * @brief Groups all classes which model the geometry
- * @seealso TPZIntelGen
+ * @see TPZIntelGen
  */
 /** 
  * Objects of this class implement the mapping between the master element
  * and deformed element
- * These classes are used as template arguments of @seealso TPZGeoElement and
+ * These classes are used as template arguments of @see TPZGeoElement and
  */
 namespace pzgeom {
 	
 	/** 
 	 * @ingroup geometry
-	 * @brief Implements the geometry of a point element
+	 * @brief Implements the geometry of a point element. \ref geometry "Geometry"
 	 */
 	class TPZGeoPoint : public TPZNodeRep<1, pztopology::TPZPoint> {
 		
@@ -47,74 +48,54 @@ namespace pzgeom {
         
         typedef pztopology::TPZPoint Top;
 		
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		TPZGeoPoint(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPoint>(nodeindexes)
 		{
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		TPZGeoPoint() : TPZNodeRep<NNodes, pztopology::TPZPoint>()
 		{
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		TPZGeoPoint(const TPZGeoPoint &cp,
 					std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp,gl2lcNdMap)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoPoint(const TPZGeoPoint &cp) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor with given mesh
-		 */
+		/** @brief Copy constructor with given mesh */
 		TPZGeoPoint(const TPZGeoPoint &cp, TPZGeoMesh &) : TPZNodeRep<NNodes, pztopology::TPZPoint>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Point";} 
 		
 		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
-		/**
-		 * @brief Returns the projection of a given point from "NSide - 1" side to "side".
-		 */
+		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */
 		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
 		
 		static void Jacobian(TPZFMatrix nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 		
-		static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian)
-		{
+		static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian) {
 			jacobian.Redim(nodes.Rows(),0);
 		}
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
-										  int matid,
-										  int& index);
-		
-		//	typedef TPZGraphEl1dd GraphElType;
+										  int matid, int& index);
 	};
 	
 };

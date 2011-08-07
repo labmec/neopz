@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the Pr class(template) which defines the Prismatic extension of a topology.
+ */
 #pragma once
-
 
 #include "pzstack.h"
 #include "pztrnsform.h"
@@ -12,7 +15,7 @@ namespace pztopology
 	
 	/**
 	 * @ingroup topology
-	 * @brief This class defines the Prismatic extension of a topology
+	 * @brief Defines the Prismatic extension of a topology. \ref topology "Topology"
 	 */
 	template<class TFather>
 	class Pr :

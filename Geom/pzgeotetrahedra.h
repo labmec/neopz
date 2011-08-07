@@ -1,9 +1,7 @@
-// -*- c++ -*-
-// $ Id: $
-
-// TPZGeoTetrahedra.h: interface for the TPZGeoQuad class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the TPZGeoTetrahedra class which implements the geometry of a tetrahedral element.
+ */
 
 #ifndef TPZGEOTETRAHEDRAH
 #define TPZGEOTETRAHEDRAH
@@ -24,52 +22,40 @@ namespace pzgeom {
 	
 	/** 
 	 * @ingroup geometry
-	 * @brief Implements the geometry of a tetrahedral element
+	 * @brief Implements the geometry of a tetrahedral element. \ref geometry "Geometry"
 	 */
 	class TPZGeoTetrahedra  : public TPZNodeRep<4,pztopology::TPZTetrahedron>
 	{
 	public:
 		
 		enum {NNodes = 4};
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		TPZGeoTetrahedra(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
 		{
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		TPZGeoTetrahedra() : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>()
 		{
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp,
 						 std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp,gl2lcNdMap)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoTetrahedra(const TPZGeoTetrahedra &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Tetra";} 
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
@@ -81,9 +67,7 @@ namespace pzgeom {
 		/** @brief Computes the geometric location*/
 		static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		
-		/**
-		 * @brief Returns the projection of a given point from "NSide - 1" side to "side".
-		 */
+		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */
 		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 		
 		/**
@@ -97,20 +81,16 @@ namespace pzgeom {
 		/**
 		 * @brief This method apply an infinitesimal displacement in some points
 		 * to fix singularity problems when using MapToSide() method!
-		 *
-		 * This points are CornerNodes, when projected in the opposing side
 		 */
+		/** This points are CornerNodes, when projected in the opposing side */
 		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint);
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,
 										  int& index);
-		
 	};
 	
 };

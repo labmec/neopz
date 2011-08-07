@@ -1,10 +1,7 @@
-// -*- c++ -*-
-
-// $ Id: $
-
-// TPZGeoQuad.h: interface for the TPZGeoQuad class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the TPZGeoQuad class which implements the geometry of a quadrilateral element.
+ */
 
 #ifndef TPZGEOQUADH
 #define TPZGEOQUADH
@@ -25,7 +22,7 @@ namespace pzgeom {
 	
 	/**
 	 * @ingroup geometry
-	 * @brief Implements the geometry of a quadrilateral element
+	 * @brief Implements the geometry of a quadrilateral element. \ref geometry "Geometry"
 	 */
 	class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 	{
@@ -33,45 +30,33 @@ namespace pzgeom {
 		
 		enum {NNodes = 4};
 		enum {NVectors = 18};
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		TPZGeoQuad(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		TPZGeoQuad() : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		TPZGeoQuad(const TPZGeoQuad &cp,
 				   std::map<int,int> & gl2lcNdMap) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoQuad(const TPZGeoQuad &cp) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		TPZGeoQuad(const TPZGeoQuad &cp, TPZGeoMesh &) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Quad";} 
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
@@ -93,27 +78,23 @@ namespace pzgeom {
 		/** @brief Computes the geometric location*/
 		static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		
-		/**
-		 * @brief Returns the projection of a given point from "NSide - 1" side to "side".
+		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side\f$.
 		 */
 		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 
-		 * element based on the current geometric element, 
+		 * element based on the current geometric element, \n
 		 * a side and a boundary condition number
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,
 										  int& index);
-		
 	};
 	
 };

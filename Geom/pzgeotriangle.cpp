@@ -1,6 +1,7 @@
-// TPZGeoTriangle.c: implementation of the TPZGeoTriangle class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoTriangle methods. 
+ */
 
 #include "pzgeotriangle.h"
 #include "pzfmatrix.h"

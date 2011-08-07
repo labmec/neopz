@@ -1,6 +1,7 @@
-// TPZGeoPrism.cpp: implementation of the TPZGeoPrism class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoPrism methods. 
+ */
 
 #include "pzgeoprism.h"
 #include "pzfmatrix.h"
@@ -22,8 +23,7 @@ namespace pzgeom {
 	static const double tol = pzgeom_TPZNodeRep_tol;
 	
 	void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
-		
-		
+
 		phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
 		phi(1,0)  = .5*pt[0]*(1.-pt[2]);
 		phi(2,0)  = .5*pt[1]*(1.-pt[2]);

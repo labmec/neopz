@@ -1,6 +1,7 @@
-// TPZGeoTetrahedra.cpp: implementation of the TPZGeoTetrahedra class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoTetrahedra methods. 
+ */
 
 #include "pzgeotetrahedra.h"
 #include "pzfmatrix.h"

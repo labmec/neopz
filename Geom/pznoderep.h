@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZNodeRep class which implements ...
+ */
 // C++ Interface: pznoderep
 //
 // Description:
@@ -33,19 +36,22 @@ static LoggerPtr lognoderep(Logger::getLogger("pz.geom.tpznoderep"));
 namespace pzgeom {
 	
 	/**
-	 * @ingroup geometry
 	 * @ingroup topology
 	 */
 	const double pzgeom_TPZNodeRep_tol = 1.E-6;
 	
+	/**
+	 * @ingroup geometry
+	 * @ingroup topology
+	 * @brief Implements ... \ref geometry "Geometry" \ref topology "Topology"
+	 */
 	template<int N, class Topology>
 	class TPZNodeRep : public Topology
 	{
 		
 	private:
 		
-		/** @brief Verifies if pt (in parametric domain of the side) is within boundaries
-		 */
+		/** @brief Verifies if pt (in parametric domain of the side) is within boundaries */
 		bool IsInSideParametricDomain(int side, TPZVec<REAL> &pt, REAL tol);
 		
 	public:
@@ -63,11 +69,9 @@ namespace pzgeom {
 		}
 		
 		static const int NNodes=N;
-		/** @brief Index of the nodes of the element */
+		/** @brief Node indexes of the element */
 		int fNodeIndexes[N];
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		TPZNodeRep(TPZVec<int> &nodeindexes)
 		{
 			int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
@@ -146,10 +150,11 @@ namespace pzgeom {
 		 }//method
 		 */
 		
-		/** @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
+		/** 
+		 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
 		 * @return Returns the side where the point was projected.
 		 * @note Observe that if the point is already in the parametric domain, the method will return
-		 * NSides() - 1
+		 * \f$ NSides() - 1 \f$
 		 */
 		int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 			const int nsides = Topology::NSides;
@@ -171,7 +176,7 @@ namespace pzgeom {
 				bool IsInSideDomain = this->IsInSideParametricDomain(is,pt1,0.);
 				if(!IsInSideDomain) continue;
 				
-				///Come back from side is to NSides-1
+				///Come back from side is to \f$ NSides-1 \f$
 				TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
 				T2.Apply(pt1,pt2);
 				
@@ -208,7 +213,7 @@ namespace pzgeom {
 		
     protected:
 		/**
-		 * @brief This method is redefined in TPZGeoTriangle, TPZGeoPrism, TPZGeoTetrahedra, TPZGeoPyramid
+		 * @brief This method is redefined in TPZGeoTriangle, TPZGeoPrism, TPZGeoTetrahedra, TPZGeoPyramid \n
 		 * to fix singularity problems when using MapToSide() method!
 		 */
 		static void FixSingularity(int side, TPZVec<REAL>& OriginalPoint, TPZVec<REAL>& ChangedPoint)

@@ -1,6 +1,7 @@
-// -*- c++ -*-
-// $ Id: $
-//HEADER FILE FOR CLASS TPZGeoCube
+/**
+ * @file
+ * @brief Contains the GPr class.
+ */
 
 #ifndef TPZGEOPRISMEXTENDH
 #define TPZGEOPRISMEXTENDH
@@ -28,7 +29,7 @@ namespace pzgeom {
 	
 	/** 
 	 * @ingroup geometry topology
-	 * @brief Implements the geometry of a one dimensional linear element
+	 * @brief Geometric derivated class (template). \ref topology "Topology"
 	 */
 	template<class TFather, class Topology>
 	class GPr : public TFather {
@@ -43,27 +44,21 @@ namespace pzgeom {
 		enum {NNodes = 2*TFather::NNodes};
 		
 		int fNodeIndexes[TFather::NNodes];
-		/**
-		 * @brief Constructor with list of nodes
-		 */
+		/** @brief Constructor with list of nodes */
 		GPr(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TFather(nodeindexes, mesh)
 		{
 			int i;
 			for(i=0; i<TFather::NNodes; i++) fNodeIndexes[i] = nodeindexes[TFather::NNodes+i];
 		}
 		
-		/**
-		 * @brief Empty constructor
-		 */
+		/** @brief Empty constructor */
 		GPr() : TFather()
 		{
 			int i;
 			for(i=0; i<TFather::NNodes; i++) fNodeIndexes[i] = -1;
 		}
 		
-		/**
-		 * @brief Constructor with node map
-		 */
+		/** @brief Constructor with node map */
 		GPr(const GPr<TFather,Topology> &cp,
 			std::map<int,int> & gl2lcNdMap) : TFather(cp,gl2lcNdMap)
 		{
@@ -86,27 +81,21 @@ namespace pzgeom {
 			}
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		GPr(const GPr<TFather, Topology> &cp) : TFather(cp)
 		{
 			int i;
 			for(i=0; i<TFather::NNodes; i++) fNodeIndexes[i] = cp.fNodeIndexes[i];
 		}
 		
-		/**
-		 * @brief Copy constructor
-		 */
+		/** @brief Copy constructor */
 		GPr(const GPr<TFather,Topology> &cp, TPZGeoMesh &) : TFather(cp)
 		{
 			int i;
 			for(i=0; i<TFather::NNodes; i++) fNodeIndexes[i] = cp.fNodeIndexes[i];
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pr:"+TFather::TypeName();} 
 		
 		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
@@ -238,7 +227,6 @@ namespace pzgeom {
 #endif
 		
 	}
-	
 	
 };
 
