@@ -25,7 +25,7 @@ class TPZEqnArray;
 
 
 /**
- * @brief FrontMatrix with parallel techniques included.
+ * @brief FrontMatrix with parallel techniques included. \ref frontal "Frontal"
  * @ingroup frontal
  */
 /**

@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZEqnArray class which implements an equation array.
  */
-
 /**
  ************************************************************************** TPZEqnArray.h  -  description -------------------
  * begin                : Tue Jun 20 2000 copyright            : (C) 2000 by longhin
@@ -22,7 +21,6 @@
 #ifndef TPZEQNARRAY_H
 #define TPZEQNARRAY_H
 
-
 #include "pzmatrix.h"
 #include "pzstack.h"
 #include "pzfmatrix.h"
@@ -37,7 +35,7 @@
 #endif
 
 /**
- * @brief It is an equation array, generally in its decomposed form. \n
+ * @brief It is an equation array, generally in its decomposed form. \ref frontal "Frontal"
  * @ingroup frontal
  * @author Gustavo Longhin
  */

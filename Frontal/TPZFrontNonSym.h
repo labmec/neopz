@@ -38,7 +38,7 @@ extern "C"{
 
 
 /** 
- * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics.
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving non-simetry characteristics. \ref frontal "Frontal"
  * @ingroup frontal
  */
 /**

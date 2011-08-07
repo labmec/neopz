@@ -24,7 +24,7 @@ class TPZFMatrix;
  * @{
  */
 /**
- @brief Implements a matrix stored in a frontal decomposition scheme
+ @brief Implements a matrix stored in a frontal decomposition scheme. \ref frontal "Frontal"
  */
 class TPZAbstractFrontMatrix : public TPZMatrix
 {
@@ -43,7 +43,7 @@ public:
 };
 
 /**
- * @brief Class responsible for the frontal method as a whole.
+ * @brief Responsible for the frontal method as a whole. \ref frontal "Frontal"
  */
 /** 
  * Manages the remaining classes connecting them

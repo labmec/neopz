@@ -11,7 +11,7 @@
 #include "pzstack.h"
 
 /** 
- * @brief Responsible for storing arrays of equations (mostly in a decomposed form)
+ * @brief Responsible for storing arrays of equations (mostly in a decomposed form). \ref frontal "Frontal"
  * @ingroup frontal
  */
 /** 

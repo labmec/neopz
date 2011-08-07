@@ -18,7 +18,7 @@ class TPZEqnArray;
  */
 /**
  * @ingroup frontal
- * @brief Abstract class implements storage and decomposition process of the frontal matrix
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix. \ref frontal "Frontal"
  */
 class TPZFront {
 	
@@ -102,15 +102,12 @@ public:
 	{
 		return fFront;
 	}
-	
-	
-	
+
 protected:
     
     /** @brief Maximum size of the front */
     int fMaxFront;
-    
-	
+
     /**
      * @brief Global equation associated to each front equation.
 	 */

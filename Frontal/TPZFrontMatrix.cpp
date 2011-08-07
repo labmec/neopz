@@ -3,7 +3,6 @@
  * @brief Contains the implementation of the TPZFrontMatrix methods.
  */
 //$Id: TPZFrontMatrix.cpp,v 1.15 2011-05-11 02:10:40 phil Exp $
-
 #include "TPZFrontMatrix.h"
 #include "pzsfulmat.h"
 #include "TPZFront.h"
@@ -26,7 +25,6 @@ static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
 
 using namespace std;
 
-//void TPZFrontMatrix::AddConnectsToBiTree(){}
 template<class store, class front>
 int TPZFrontMatrix<store, front>::Work(){
 	return fFront.Work();
@@ -53,7 +51,6 @@ void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destination
 	}
 #endif
 }
-
 
 /** Initializes the number of elements connected to each equation */
 template<class store, class front>

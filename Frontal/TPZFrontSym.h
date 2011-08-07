@@ -32,10 +32,9 @@ extern "C"{
  * TPZFrontSym is a symmetrical matrix. It uses a Cholesky decomposition scheme.
  */
 /**
- * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simmetry characteristics
+ * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simmetry characteristics. \ref frontal "Frontal"
  * @ingroup frontal
  */
-
 class TPZFrontSym : public TPZFront {
 public:
 	/** @brief Returns its type*/

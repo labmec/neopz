@@ -12,8 +12,7 @@
 #include "tpzeqnarray.h"
 #include "pzfmatrix.h"
 /** 
- * @brief Has the same porpouse of EqnStack but stores the EqnArrays
- * in a different form (binary files).
+ * @brief Has the same porpouse of EqnStack but stores the EqnArrays in a different form (binary files). \ref frontal "Frontal"
  * @ingroup frontal
  */
 /*
