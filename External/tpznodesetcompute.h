@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZNodesetCompute class which computes the cardinality of a nodegraph.
+ */
 //
 // C++ Interface: tpznodesetcompute
 //
@@ -18,8 +22,9 @@
 class TPZBlock;
 
 /**
- * @brief This class will compute the cardinality of a nodegraph, identifying nodes as vertices, lines, faces or volumes
+ * @brief Computes the cardinality of a nodegraph, identifying nodes as vertices, lines, faces or volumes. \ref util "Utility"
  * @author Philippe R. B. Devloo
+ */
  /**
  * It will also compress the nodegraph for nodes with identical connectivity graph
  */
@@ -35,45 +40,31 @@ public:
 	 */
     void AnalyseGraph();
     
-    /**
-	 * @brief Build the graph which groups the equations of each node
-	 */
+    /** @brief Build the graph which groups the equations of each node */
     void BuildNodeGraph(TPZVec<int> &blockgraph, TPZVec<int> &blockgraphindex);
     
-    /**
-	 * @brief build the graph which builds the equations linked to vertices
-	 */
+    /** @brief build the graph which builds the equations linked to vertices */
     void BuildVertexGraph(TPZStack<int> &blockgraph, TPZVec<int> &blockgraphindex);
     
-    /**
-	 * @brief Build the  graph which groups the equations grouped by elements
-	 */
+    /** @brief Build the  graph which groups the equations grouped by elements */
     void BuildElementGraph(TPZStack<int> &blockgraph, TPZStack<int> &blockgraphindex);
 	
 	void BuildNodeSet(int node, std::set<int> &nodeset);
 	
-	/**
-	 * @brief Expand the graph acording to the block structure
-	 */
+	/** @brief Expand the graph acording to the block structure */
 	static void ExpandGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, TPZBlock &block,
 							TPZVec<int> &expgraph, TPZVec<int> &expgraphindex);
-	/**
-	 * @brief Color the graph into mutually independent blocks
-	 */
+	/** @brief Color the graph into mutually independent blocks */
 	static int ColorGraph(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq,
 						  TPZVec<int> &colors);
 	
-	/**
-	 * @brief Returns the level of the nodes
-	 */
+	/** @brief Returns the level of the nodes */
 	TPZVec<int> &Levels()
 	{
 		return fLevel;
 	}
 	
-	/**
-	 * @brief Returns the maximum level
-	 */
+	/** @brief Returns the maximum level */
 	int MaxLevel()
 	{
 		return fMaxLevel;
@@ -99,8 +90,9 @@ public:
 	}
 	
 private:
-	/** @brief The node graph as passed on by the finite element mesh \n
-	 * his node graph is organized by sequence numbers
+	/**
+	 * @brief The node graph as passed on by the finite element mesh \n
+	 * His node graph is organized by sequence numbers
 	 */
 	TPZManVector<int> fNodegraph;
 	TPZVec<int> fNodegraphindex;
@@ -123,16 +115,12 @@ private:
 	void AnalyseNode(int node, TPZVec< std::set<int> > &nodeset);  
 	
 	/**
-	 * @brief Build the set of nodes which are vertices
+	 * Build the set of nodes which are vertices
 	 */
 	//void BuildVertexSet(int node, std::set<int> &nodeset);
 	
-	/**
-	 * @brief Look for elements formed by vertices, intersecting with the intersectvertices, one by one
-	 */
-	/**
-	 * If the intersection does not remove any of the intersectvertices, we found an element!
-	 */
+	/** @brief Look for elements formed by vertices, intersecting with the intersectvertices, one by one */
+	/** If the intersection does not remove any of the intersectvertices, we found an element! */
 	void AnalyseForElements(std::set<int> &vertices, std::set< std::set<int> > &elements);
 	/**
 	 * @brief working a set of vertex nodes with nodes which have to be intersected (tested)
@@ -140,7 +128,6 @@ private:
 	 * @param second parameter nodes whose intersection need to be considered
 	 * @param third parameter vertex sets which have already been considered
 	 */
-	
 	void SubstractLowerNodes(int node, std::set<int> &nodeset);
 };
 

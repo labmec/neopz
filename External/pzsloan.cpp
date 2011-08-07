@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSloan methods. 
+ */
 #include "pzsloan.h"
 #include "math.h"
 #include <fstream>
