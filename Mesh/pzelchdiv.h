@@ -1,6 +1,9 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZCompElHDiv class which implements a generic computational element (HDiv scope).
+ */
 //$Id: pzelctemp.h,v 1.14 2008-10-08 02:13:33 phil Exp $
 
-// -*- c++ -*-
 #ifndef PZELCHDIVHTT
 #define PZELCHDIVHTT
 
@@ -8,7 +11,7 @@
 
 
 /**
- * @brief This class implements a "generic" computational element
+ * @brief This class implements a "generic" computational element to HDiv scope. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
 /** 

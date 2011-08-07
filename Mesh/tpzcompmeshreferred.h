@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZCompMeshReferred class which implements the structure to allow one mesh to refer to the solution of another.
+ */
 //
 // C++ Interface: tpzcompmeshreferred
 //
@@ -16,7 +20,7 @@
 #include <vector>
 
 /**
- @brief This class implements the structure to allow one mesh to refer to the solution of another
+ @brief Implements the structure to allow one mesh to refer to the solution of another. \ref geometry "Geometry"
  @ingroup geometry
  @author Philippe R. B. Devloo
  */
@@ -45,8 +49,7 @@ public:
 		return fReferred;
     }
 	
-	/** @brief Divide computational element recursively over referred elements.
-	 */
+	/** @brief Divide computational element recursively over referred elements. */
 	static void DivideReferredEl(TPZVec<TPZCompEl *> WhichRefine, TPZCompMesh * cmesh);
 	
 	/**

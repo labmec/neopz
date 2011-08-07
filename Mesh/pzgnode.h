@@ -1,10 +1,8 @@
-//$Id: pzgnode.h,v 1.15 2011-03-11 13:27:49 fortiago Exp $
-
-/**File : pzgnode.h
- 
- Header file for class TPZGeoNode. TPZGeoNode defines a geometrical node.
- 
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoNode class which defines a geometrical node.
  */
+//$Id: pzgnode.h,v 1.15 2011-03-11 13:27:49 fortiago Exp $
 
 #ifndef  TPZGEONODEH
 #define  TPZGEONODEH
@@ -24,7 +22,7 @@ class TPZGeoMesh;
 class TPZGeoEl;
 
 /**
- * @brief Implements a geometric node in the pz environment
+ * @brief Implements a geometric node in the pz environment. \ref geometry "Geometry"
  * @ingroup geometry
  */
 /**

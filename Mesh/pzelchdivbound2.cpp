@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCompElHDivBound2 methods.
+ */
 /*
  * pzelchdivbound.cpp
  *

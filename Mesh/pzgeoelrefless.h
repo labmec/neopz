@@ -1,11 +1,7 @@
-/***************************************************************************
- pzgeoelrefless.h  -  description
- -------------------
- begin                : Fri Dec 12 2003
- copyright            : (C) 2003 by phil
- email                : phil@localhost
- ***************************************************************************/
-
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoElRefLess class which implements the mapping between the master element and deformed element.
+ */
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -28,14 +24,15 @@ template<class T,int N>
 class TPZStack;
 
 /**
- * This class implements the mapping between the master element and deformed element \n
+ * Implements a generic geometric element class without h-refinement. \n
  * Its data structure is the vector of node indices and element neighbours \n
  * Implements a class which subelement is the clone of the element (i.e. the same nodes, material, but a self pointer)
  */
 /**
- * @brief Implements a generic geometric element class without h-refinement
- * @author phil
+ * @brief Implements the mapping between the master element and deformed element. \ref geometry "Geometry"
+ * @author Philippe Devloo
  * @ingroup geometry
+ * @since Dez 12, 2003.
  */
 template <class TGeo>
 class TPZGeoElRefLess : public TPZGeoEl  {

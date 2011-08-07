@@ -1,13 +1,14 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoElSide class which represents an element and its side, and TPZGeoElSideIndex class which represents an TPZGeoElSide index.
+ */
 //$Id: pzgeoelside.h,v 1.28 2011-05-15 21:09:19 phil Exp $
 
 #ifndef PZGEOELSIDEH
 #define PZGEOELSIDEH
 
-// -*- c++ -*-
-
 /*******       TPZGeoElSide       *******/
 
-//#include "pzcompel.h"	// Added by ClassView
 class TPZGeoEl;
 class TPZTransform;
 class TPZCompElSide;
@@ -22,7 +23,7 @@ class TPZGeoElSide;
 
 /**
  * @ingroup geometry
- * @brief Utility class which represents an element index with its side
+ * @brief Utility class which represents an element index with its side. \ref geometry "Geometry"
  */
 class TPZGeoElSideIndex{
 private:
@@ -30,11 +31,11 @@ private:
 	int fSide;
 	
 public:
-	
+	/** @brief Destructor. */
 	~TPZGeoElSideIndex();
-	
+	/** @brief Simple constructor. */
 	TPZGeoElSideIndex();
-	
+	/** @brief Constructor with geometric element referenced and corresponding side. */
 	TPZGeoElSideIndex(TPZGeoEl *gel,int side);
 	
 	TPZGeoElSideIndex(int gelindex,int side);
@@ -42,9 +43,9 @@ public:
 	TPZGeoElSideIndex(const TPZGeoElSide &side);
 	
 	TPZGeoElSideIndex(const TPZGeoElSideIndex &cp);
-	
+	/** @brief To clone current object */
 	TPZGeoElSideIndex * Clone();
-	
+	/** @brief Redefines operator = attribuition to TPZGeoElSideIndex object. */
 	TPZGeoElSideIndex &operator= (const TPZGeoElSideIndex &A );
 	
 	int Side() const;
@@ -64,9 +65,10 @@ public:
 };
 
 /**
- * @brief Utility class which represents an element with its side
+ * @brief Utility class which represents an element with its side. \ref geometry
  * @ingroup geometry
- *
+ */
+/**
  * This class is often used to manipulate neighbouring information between elements
  */
 class TPZGeoElSide {

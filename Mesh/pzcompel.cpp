@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCompEl methods.
+ */
 //$Id: pzcompel.cpp,v 1.52 2011-05-11 02:27:20 phil Exp $
 
 //METHODS DEFINITION FOR CLASS ELBAS

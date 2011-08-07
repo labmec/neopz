@@ -1,6 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoMesh methods.
+ */
 //$Id: pzgmesh.cpp,v 1.61 2011-04-04 23:37:34 phil Exp $
-
-// -*- c++ -*-
 /**File : pzgmesh.c
  
  Method definition for class TPZGeoMesh.*/

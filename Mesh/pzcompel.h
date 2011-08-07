@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains declaration of TPZCompEl class which defines the interface of a computational element.
+ */
 // $Id: pzcompel.h,v 1.47 2011-05-11 02:27:20 phil Exp $
 
 #ifndef COMPELEMHPP
@@ -47,7 +50,7 @@ class TPZTransfer;
 #include <set>
 
 /**
- * @brief Defines the interface of a computational element
+ * @brief Defines the interface of a computational element. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
 class TPZCompEl : public virtual TPZSaveable {
@@ -553,11 +556,10 @@ private:
 class TPZGeoElSide;
 
 /**
- * @brief Class TPZCompElSide implemments computational element side
+ * @brief Implements computational element and a side. \ref interpolation
  * @ingroup CompElement
  */
 
-/// this class represents a computational element and a side
 /**
  This class was created to implement all algorithms associated with element/sides
  Objects of this class are mostly temporary

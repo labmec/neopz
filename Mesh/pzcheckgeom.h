@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZCheckGeom class which performs a series of consistency tests on geometric transformation.
+ */
 //$Id: pzcheckgeom.h,v 1.4 2005-04-25 02:31:46 phil Exp $
 
 #ifndef TPZCHECKGEOMH
@@ -8,7 +12,7 @@
 
 /**
  * @ingroup geometry
- * @brief This class performs a series of consistency tests on geometric transformations between elements
+ * @brief This class performs a series of consistency tests on geometric transformations between elements. \ref geometry "Geometry"
  */
 class TPZCheckGeom {
 	

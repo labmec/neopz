@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains declaration of TPZCompMesh class which is a repository for computational elements, nodes and material objects.
+ */
 //$Id: pzcmesh.h,v 1.52 2011-05-11 02:39:30 phil Exp $
 //HEADER FILE FOR CLASS MESH
 
@@ -40,7 +43,7 @@ template<class T> class TPZReferredCompEl;
 template<class T> class TPZIntelGen;
 
 /**
- * @brief Implements computational mesh
+ * @brief Implements computational mesh. \ref CompMesh "Computational Mesh"
  * @ingroup CompMesh
 */ 
 /**

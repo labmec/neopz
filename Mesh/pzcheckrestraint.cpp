@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCheckRestraint methods.
+ */
 //$Id: pzcheckrestraint.cpp,v 1.11 2007-11-29 18:20:56 phil Exp $
 
 #include "pzcheckrestraint.h"

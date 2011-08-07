@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the RegisterMeshClasses function.
+ */
 //
 // C++ Implementation: pzmeshid
 //

@@ -1,6 +1,8 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZIntelGen class which implements a generic computational element.
+ */
 //$Id: pzelctemp.h,v 1.18 2011-05-11 02:45:38 phil Exp $
-
-// -*- c++ -*-
 #ifndef PZELCTEMPH
 #define PZELCTEMPH
 
@@ -8,8 +10,11 @@
 #include "pzquad.h"
 
 /**
- @brief By varying the classes passed as template arguments, the complete family of computational elements are implemented
+ @brief Implements a generic computational element. \ref CompElement "Computational Element"
  @ingroup CompElement
+ */
+/**
+ * By varying the classes passed as template arguments, the complete family of computational elements are implemented
  */
 template<class TSHAPE>
 class TPZIntelGen : public TPZInterpolatedElement {
@@ -17,8 +22,6 @@ class TPZIntelGen : public TPZInterpolatedElement {
 protected:
 	
 	int fConnectIndexes[TSHAPE::NSides];
-	
-	//int fPreferredSideOrder;
 	
 	typename TSHAPE::IntruleType fIntRule;
 	

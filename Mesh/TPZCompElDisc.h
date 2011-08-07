@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains declaration of TPZCompelDisc class which implements a computational element for discontinuous interpolation space.
+ */
 //$Id: TPZCompElDisc.h,v 1.79 2011-05-11 02:48:14 phil Exp $
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -31,7 +33,7 @@ class TPZMatrix;
 class TPZCompMesh;
 
 /**
- * @brief This class implements a discontinuous element (for use with discontinuous Galerkin)
+ * @brief This class implements a discontinuous element (for use with discontinuous Galerkin). \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
 class TPZCompElDisc : public TPZInterpolationSpace{

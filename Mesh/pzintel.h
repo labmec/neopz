@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZInterpolatedElement class which implements computational element of the interpolation space.
+ */
 //$Id: pzintel.h,v 1.39 2011-05-11 02:41:36 phil Exp $
 
 #ifndef PZINTEL_H
@@ -13,7 +17,7 @@ class TPZBlockDiagonal;
 #include "TPZCompElDisc.h"
 
 /**
- * @brief Implements computational element based on an interpolation space
+ * @brief Implements computational element based on an interpolation space. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
 /** All h and p adaptive methods are implemented in this class\n

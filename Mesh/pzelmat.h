@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZElementMatrix struct which associates an element matrix with the coeficients of its contribution in the global stiffness matrix
+ */
 //$Id: pzelmat.h,v 1.9 2007-06-08 00:02:28 cesar Exp $
-
 #ifndef ELMATHPP
 #define ELMATHPP
 
@@ -13,7 +16,7 @@
 
 
 /**
- * @brief This class associates an element matrix with the coeficients of its contribution in the global stiffness matrix
+ * @brief This class associates an element matrix with the coeficients of its contribution in the global stiffness matrix. \ref interpolation "Aproximation space"
  * @ingroup interpolation
  */
 /**

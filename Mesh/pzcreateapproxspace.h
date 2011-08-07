@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the functions to create different computational elements (one- two- three-dimensional).
+ */
 #ifndef CREATECONTINUOUSHPP
 #define CREATECONTINUOUSHPP
 /*

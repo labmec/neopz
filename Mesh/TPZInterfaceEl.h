@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains declaration of TPZInterfaceElement class which computes the contribution over an interface between two discontinuous elements.
+ */
 //$Id: TPZInterfaceEl.h,v 1.60 2010-06-17 17:46:56 phil Exp $
 
 #ifndef ELEMINTERFACEHH
@@ -21,34 +23,26 @@
 
 
 /**
- @brief This class computes the contribution over an interface between two discontinuous elements
+ @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
  @ingroup CompElement
  */
 class TPZInterfaceElement : public TPZCompEl {
 	
 	private :
 	
-	/**
-	 * @brief Element the left of the normal a interface
-	 */
+	/** @brief Element the left of the normal a interface */
 	TPZCompElSide fLeftElSide;
 	
-	/**
-	 * @brief Element the right of the normal a interface
-	 */
+	/** @brief Element the right of the normal a interface */
 	TPZCompElSide fRightElSide;
 	
-	/**
-	 * @brief Normal to the face element
-	 */
+	/** @brief Normal to the face element */
 	TPZManVector<REAL,3> fCenterNormal;
 	
-	/** @brief Informs the connect that this element is no longer connected to it.
-	 */
+	/** @brief Informs the connect that this element is no longer connected to it. */
 	void DecreaseElConnected();
 	
-	/** @brief Informs the connect that this element is connected to it.
-	 */
+	/** @brief Informs the connect that this element is connected to it. */
 	void IncrementElConnected();
 	
 protected:
@@ -93,19 +87,15 @@ public:
 	
 	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
 protected:
-	/** @brief Computes normal at qsi point
-	 */
+	/** @brief Computes normal at qsi point */
 	void ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
 	
-	/** @brief Computes normal based on already computed axes matrix.
-	 * Axes has been computed in the desired qsi coordinate
-	 */
+	/** @brief Computes normal based on already computed axes matrix. */
+	/** Axes has been computed in the desired qsi coordinate */
 	void ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal);
 	
-	/** @brief Computes normal for linear geometric elements.
-	 * 
-	 * For linear geometry the normal vector is constant.
-	 */
+	/** @brief Computes normal for linear geometric elements. */
+	/** For linear geometry the normal vector is constant. */
 	void ComputeCenterNormal(TPZVec<REAL> &normal);
 	
 public:
@@ -123,13 +113,10 @@ public:
 	
 	enum CalcStiffOptions{ENone = -1, EStandard /*Deprecated*/ = 0, EPenalty, EContDisc,EReferred};
 	
-	/** @brief Constuctor to continuous and/or discontinuous neighbours.
-	 */
+	/** @brief Constuctor to continuous and/or discontinuous neighbours. */
 	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);
 	
-	/**
-	 * @brief Copy constructor.
-	 */
+	/** @brief Simple copy constructor. */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
 	
 	
@@ -145,19 +132,13 @@ public:
 						std::map<int,int> &gl2lcElIdx);
 	
 	
-	/**
-	 *
-	 */
+	/** @brief Copy constructor with specified index */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
 	
-	/**
-	 * @brief Empty constructor.
-	 */
+	/** @brief Empty constructor. */
 	TPZInterfaceElement();
 	
-	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called
-	 * before any computation.
-	 */
+	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called before any computation. */
 	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 	
 	/** @brief Class destructor */
@@ -166,8 +147,7 @@ public:
 	virtual int IsInterface() { return 1; }
 	
 	
-	/** @brief Set neighbors.
-	 */
+	/** @brief Set neighbors. */
 	void SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right);
 	
 	/** @brief Makes a clone of this */
@@ -175,107 +155,78 @@ public:
 		return new TPZInterfaceElement(mesh, *this);
 	}
 	
-	/**
-	 * @see class TPZCompEl
-	 */
+	/** @see class TPZCompEl */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> &gl2lcConMap, std::map<int,int> &gl2lcElMap) const
 	{
 		return new TPZInterfaceElement(mesh, *this, gl2lcConMap,gl2lcElMap);
 	}
 	
-	/** @brief Method used in TPZAgglomerateElement::CreateAgglomerateMesh
-	 */
+	/** @brief Method used in TPZAgglomerateElement::CreateAgglomerateMesh */
 	TPZCompEl * CloneInterface(TPZCompMesh &aggmesh,int &index, /*TPZCompElDisc **/TPZCompElSide & left, /*TPZCompElDisc **/ TPZCompElSide &right) const;
 	
-	/**
-	 * @brief Identifies the elements of left and right volume of the interface
-	 */
+	/** @brief Identifies the elements of left and right volume of the interface */
 	void VolumeEls(TPZCompEl &thirdel);
 	
-	/**
-	 * @brief Returns the right element from the element interface
-	 */
+	/** @brief Returns the right element from the element interface */
 	TPZCompEl *RightElement() const {
 		return fRightElSide.Element();
 	}
 	
-	/**
-	 * @brief Returns the left element from the element interface
-	 */
+	/** @brief Returns the left element from the element interface */
 	TPZCompEl *LeftElement() const {
 		return fLeftElSide.Element();
 	}
 	
-	/**
-	 * @brief Returns left neighbor
-	 */
+	/** @brief Returns left neighbor */
 	TPZCompElSide &LeftElementSide(){ return this->fLeftElSide; }
 	
-	/**
-	 * @brief Returns right neighbor
-	 */
+	/** @brief Returns right neighbor */
 	TPZCompElSide &RightElementSide(){ return this->fRightElSide; }
 	
-	/**
-	 * @brief Returns the normal of this interface which goes from left to right neighbors
-	 */
+	/** @brief Returns the normal of this interface which goes from left to right neighbors */
 	void CenterNormal(TPZVec<REAL> &CenterNormal) const;
 	
-	/** @brief Returns normal based on already computed axes matrix.
-	 * 
+	/** @brief Returns normal based on already computed axes matrix. */
+	/**
 	 * Axes has been computed in the desired qsi coordinate
 	 * If geometric element has LinearMapping the CenterNormal is returned
 	 */
 	void Normal(TPZFMatrix &axes, TPZVec<REAL> &normal);
 	
-	/** @brief Returns normal at qsi point
-	 *
-	 * If geometric element has LinearMapping the CenterNormal is returned
-	 */
+	/** @brief Returns normal at qsi point */
+	/** If geometric element has LinearMapping the CenterNormal is returned */
 	void Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal);
 	
-	/**
-	 * @brief Returns the number from connectivities of the element
-	 */
+	/** @brief Returns the number from connectivities of the element */
 	virtual int NConnects() const;
 	
-	/**
-	 * @brief Returns the number from connectivities of the element related to right neighbour
-	 */
+	/** @brief Returns the number from connectivities of the element related to right neighbour */
 	int NRightConnects() const;
 	
-	/**
-	 * @brief Returns the number from connectivities of the element related to left neighbour
-	 */
+	/** @brief Returns the number from connectivities of the element related to left neighbour */
 	int NLeftConnects() const;
 	
-	/**
-	 * @brief Its return the connects of the left and right element associates
-	 */
+	/** @brief Its return the connects of the left and right element associates */
 	int ConnectIndex(int i) const;
 	
-	/**
-	 * @brief This function should not be called
-	 */
+	/** @brief This function should not be called */
 	void SetConnectIndex(int node, int index);
 	
-	/**
-	 * @brief Returns the dimension from the element interface
-	 */
+	/** @brief Returns the dimension from the element interface */
 	int Dimension() const {
 		return this->Reference()->Dimension();
 	}
 	
-	/**
-	 * @brief Type of the element
-	 */
+	/** @brief Type of the element */
 	MElementType Type() { return EInterface; }
 	
 	/**
 	 * @brief Loads the solution within the internal data structure of the element
-	 * 
+	 */
+	/**
 	 * Is used to initialize the solution of connect objects with dependency
-	 * Is also used to load the solution within SuperElements*/
+	 * Is also used to load the solution within SuperElements
+	 */
 	virtual void LoadSolution(){
 		//NOTHING TO BE DONE HERE
 	}
@@ -332,9 +283,7 @@ public:
 	
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 	
-	/**
-	 * @brief Prints attributes of the object
-	 */
+	/** @brief Prints attributes of the object */
 	void Print(std::ostream &out = std::cout) const;
 	
 	/**
@@ -342,25 +291,23 @@ public:
 	 * @brief Interface elements does not have graphical representation
 	 */
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension){
-		///Nothing to be done here
+		//Nothing to be done here
 	}
 	
 	/**
 	 * @brief Verifies the existence of interfaces associates
 	 * with the side of an element
-	 * 
-	 * case to interface should exist and exists only a returns 1
-	 * case to interface should not exist and does not exist returns 1
+	 */
+	/**
+	 * Case to interface should exist and exists only a returns 1, \n
+	 * case to interface should not exist and does not exist returns 1, \n
 	 * otherwise returns 0
 	 */
 	static int ExistInterfaces(TPZCompElSide &comp);
 	
 	static int FreeInterface(TPZCompMesh &cmesh);
 	
-	/**
-	 * reproduz na malha aglomerada aggmesh uma copia da interface da malha fina
-	 */
-	/** @brief Make a clone of the fine mesh */
+	/** @brief Make a clone of the fine mesh into clustered mesh.*/
 	void CloneInterface(TPZCompMesh *aggmesh);
 	
 	static int main(TPZCompMesh &cmesh);
@@ -368,37 +315,28 @@ public:
 	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 					   TPZVec<REAL> &errors, TPZBlock * /*flux */);
 	
-	/**
-	 * @brief ComputeError computes the element error estimator
-	 */
+	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeErrorFace(int errorid,
 								  TPZVec<REAL> &errorL,
 								  TPZVec<REAL> &errorR);
 	
-	/**
-	 * @brief Integrate a variable over the element.
-	 */
+	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<REAL> & value);
 	
 	void IntegrateInterface(int variable, TPZVec<REAL> & value);
 	
-	/** opt = 0 -> Evaluates Sqrt [ Integral [ (leftsol - rightsol)^2 ] ]
-	 *  opt = 1 -> Evaluates Max[ Abs[leftsol - rightsol] ]
+	/** 
+	 * \f$ opt = 0 \f$ ->  Evaluates \f$ \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
+	 * \f$ opt = 1 \f$ ->  Evaluates \f$ Max { | leftsol - rightsol | } \f$
 	 */
 	void EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt);
 	
-	/**
-	 * @brief Returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 };

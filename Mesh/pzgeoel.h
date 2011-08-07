@@ -1,6 +1,8 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoEl class which defines the behaviour of geometric element.
+ */
 //$Id: pzgeoel.h,v 1.51 2011-05-13 15:56:25 phil Exp $
-
-// -*- c++ -*-
 
 #ifndef GEOELEMHPP
 #define GEOELEMHPP
@@ -32,7 +34,7 @@ template<class T, int N>
 class TPZStack;
 
 /**
- * @brief Defines the behaviour of all geometric elements
+ * @brief Defines the behaviour of all geometric elements. \ref geometry "Geometry"
  * @ingroup geometry
  */
 /**

@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains the Ids for several geometric structures.
+ */
 #ifndef PZMESHIDH
 #define PZMESHIDH
 //

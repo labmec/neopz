@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZInterpolationSpace methods.
+ */
 //$Id: pzinterpolationspace.cpp,v 1.46 2011-05-26 03:28:57 phil Exp $
 
 #include "pzinterpolationspace.h"

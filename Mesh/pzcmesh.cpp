@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCompMesh methods.
+ */
 //$Id: pzcmesh.cpp,v 1.98 2011-05-11 02:39:30 phil Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_

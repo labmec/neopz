@@ -1,6 +1,9 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZReferredCompEl class which generates computational elements.
+ */
 //$Id: pzreferredcompel.h,v 1.11 2011-05-11 02:50:03 phil Exp $
 
-// -*- c++ -*-
 #ifndef PZSPECIAL
 #define PZSPECIAL
 
@@ -18,7 +21,7 @@ class TPZFMatrix;
 
 /**
  * @ingroup CompElement
- * @brief Template to generate computational elements
+ * @brief Template to generate computational elements. \ref CompElement "Computational Element"
  */
 template<class TCOMPEL>
 class TPZReferredCompEl : public TCOMPEL {
@@ -39,12 +42,10 @@ public:
 	/** @brief Class destructor */
 	~TPZReferredCompEl();
 	
-	/** @brief Set create function in TPZCompMesh to create elements of this type
-	 */
+	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions();
 	
-	/** @brief Returns referred element of this
-	 */
+	/** @brief Returns referred element of this */
 	TPZCompEl * ReferredElement();
 	
 	/**
@@ -61,8 +62,6 @@ public:
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
-	 * 
-	 * This method will function for both volumetric and interface elements
 	 * @param qsi master element coordinate of the interface element
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
@@ -73,6 +72,9 @@ public:
 	 * @param rightsol finite element solution
 	 * @param drightsol solution derivatives
 	 * @param rightaxes axes associated with the right solution
+	 */
+	/**
+	 * This method will function for both volumetric and interface elements
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
@@ -87,29 +89,21 @@ public:
 	
 protected:
 	
-	/**
-	 * @brief Append solution of the referred element.
-	 */
+	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
 							 TPZFMatrix &dsol,  TPZFMatrix &axes);
 	
-	/**
-	 * @brief Append solution of the referred element.
-	 */
+	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
 							 TPZFMatrix &dsol,  const TPZFMatrix &axes);
 	
-	/**
-	 * @brief Append solution of the referred element.
-	 */
+	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &normal,
 							 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
 							 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 };
 
-/**
- * Adjust the derivatives from one system of axes to the other
- */
+/** Adjust the derivatives from one system of axes to the other */
 void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
                                TPZFMatrix &dsolto, const TPZFMatrix &axesto);
 

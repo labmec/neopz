@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoElMapped class which implements a geometric element using its ancestral to compute ist jacobian.
+ */
 //
 // C++ Interface: tpzgeoelmapped
 //
@@ -28,7 +32,7 @@ static LoggerPtr loggermapped(Logger::getLogger("pz.mesh.geoelmapped"));
 
 /**
  @ingroup geometry
- @brief This class implements a geometric element which uses its ancestral to compute its jacobian. 
+ @brief This class implements a geometric element which uses its ancestral to compute its jacobian. \ref geometry "Geometry"
  @author Philippe R. B. Devloo
  */
 /**

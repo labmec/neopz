@@ -1,13 +1,15 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoElMapped methods. 
+ */
 //
 // C++ Implementation: tpzgeoelmapped
 //
 // Description: 
 //
-//
 // Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
 //
 // Copyright: See COPYING file that comes with this distribution
-//
 //
 #include "tpzgeoelmapped.h"
 

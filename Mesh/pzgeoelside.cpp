@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoElSide methods.
+ */
 //$Id: pzgeoelside.cpp,v 1.38 2011-05-15 21:09:19 phil Exp $
-// -*- c++ -*-
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
 #include "pztrnsform.h"

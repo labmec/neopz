@@ -1,9 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCheckMesh methods.
+ */
 //$Id: pzcheckmesh.cpp,v 1.7 2007-06-27 18:18:04 cesar Exp $
-
-// _*_ c++ _*_
-//#include <fstream>
-//using namespace std;
-
 
 #include "pzcheckmesh.h"
 #include "pzgeoelside.h"

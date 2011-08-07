@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoElRefPattern class which implements a generic geometric element which is refined according to a generic refinement pattern
+ */
 /***************************************************************************
  tpzgeoelrefpattern.h  -  description
  -------------------
@@ -35,14 +39,14 @@ template<class T,int N>
 class TPZStack;
 class TPZRefPattern;
 
-/// Implements a generic geometric element which is refined according to a generic refinement pattern
 /**
  * @author Edimar Cesar Rylo
  * @ingroup geometry
  * @since 2003-12-23
- * @brief Using this class it is possible to create inconsistent meshes
+ * @brief Implements a generic geometric element which is refined according to a generic refinement pattern. \ref geometry "Geometry"
  */
 /**
+ * Using this class it is possible to create inconsistent meshes. \n
  * The consistency of the h-refined mesh using generic refinement patterns is the responsability of the user of the class
  */
 template <class TGeo>

@@ -1,8 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCompElDisc methods.
+ */
 //$Id: TPZCompElDisc.cpp,v 1.125 2011-05-26 03:28:57 phil Exp $
-
-// -*- c++ -*-
-// -*- c++ -*-
-
 //$Id: TPZCompElDisc.cpp,v 1.125 2011-05-26 03:28:57 phil Exp $
 
 #include "pztransfer.h"

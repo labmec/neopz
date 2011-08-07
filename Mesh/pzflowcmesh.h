@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZFlowCompMesh class which is a computational mesh with additional data for CFD problems.
+ */
 //$Id: pzflowcmesh.h,v 1.15 2007-01-03 00:06:47 phil Exp $
 
 #include "pzcompel.h"
@@ -14,7 +18,7 @@ class TPZGeoMesh;
 #include "pzcmesh.h"
 
 /**
- * @brief Computational mesh with additional data for CFD problems
+ * @brief Computational mesh with additional data for CFD problems. \ref CompMesh "Computational Mesh"
  * @ingroup CompMesh
  */
 /**

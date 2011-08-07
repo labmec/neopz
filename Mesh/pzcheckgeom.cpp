@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCheckGeom methods.
+ */
 //$Id: pzcheckgeom.cpp,v 1.3 2006-10-17 01:42:51 phil Exp $
 
 #include <fstream>

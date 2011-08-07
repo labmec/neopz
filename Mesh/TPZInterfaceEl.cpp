@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZInterfaceElement methods.
+ */
 //$Id: TPZInterfaceEl.cpp,v 1.105 2011-05-26 03:28:57 phil Exp $
 
 #include "pzelmat.h"
@@ -24,8 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterfacelement"));
 static LoggerPtr logdata(Logger::getLogger("pz.material.axisymetric.data"));
 #endif
 
-
-void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right){
+void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSide & right) {
 	
 	if(fLeftElSide.Element() && fRightElSide.Element()) this->DecreaseElConnected();
 	

@@ -1,9 +1,11 @@
-// -*- c++ -*-
-/**File : pzgeoel.c
- 
- Contains the methods definition for (abstract) base class TPZGeoEl.
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoEl methods.
  */
-	//#include "pztempmat.h"
+/**
+ * File : pzgeoel.c Contains the methods definition for (abstract) base class TPZGeoEl.
+ */
+
 #include "pzgeoel.h"
 #include "pzcompel.h"
 #include "pzgmesh.h"

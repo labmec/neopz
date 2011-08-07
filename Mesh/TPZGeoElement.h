@@ -1,6 +1,7 @@
-
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains declaration of TPZGeoElement class which implements a generic geometric element with a uniform refinement pattern.
+ */
 // $Id: TPZGeoElement.h,v 1.21 2011-05-11 01:43:23 phil Exp $
 
 #ifndef TPZGEOELEMENTH
@@ -17,7 +18,7 @@ class TPZStack;
 
 /**
  * @ingroup geometry
- * @brief Implements a generic geometric element with a uniform refinement pattern
+ * @brief Implements a generic geometric element with a uniform refinement pattern. \ref geometry "Geometry"
  */
 template <class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TGeo> {

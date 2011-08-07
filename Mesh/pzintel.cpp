@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZInterpolatedElement methods.
+ */
 // $Id: pzintel.cpp,v 1.75 2011-05-11 02:41:36 phil Exp $
 
 #include "pzintel.h"

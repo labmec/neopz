@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoElRefLess methods.
+ */
 //
 // C++ Interface: pzgeoelrefless
 //
@@ -8,7 +12,7 @@
 //
 // Copyright: See COPYING file that comes with this distribution
 //
-//
+
 #ifndef PZGEOELREFLESS_H_H
 #define PZGEOELREFLESS_H_H
 

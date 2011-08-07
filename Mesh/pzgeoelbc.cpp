@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoElBC constructors.
+ */
 //$Id: pzgeoelbc.cpp,v 1.5 2006-10-17 01:38:03 phil Exp $
 
 #include "pzgeoelbc.h"

@@ -1,8 +1,10 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoNode methods.
+ */
 //$Id: pzgnode.cpp,v 1.10 2011-03-11 13:27:49 fortiago Exp $
 
 //METHODS DEFINITION FOR CLASS NODE
-
-
 #include <stdio.h>
 #include "pzgnode.h"
 #include "pzerror.h"

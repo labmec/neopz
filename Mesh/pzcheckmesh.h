@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZCheckMesh class which verifies the consistency of the datastructure of a TPZCompMesh.
+ */
 //$Id: pzcheckmesh.h,v 1.5 2005-04-25 02:31:46 phil Exp $
 
 #ifndef PZGHECKMESHH
@@ -14,7 +18,7 @@ class TPZStack;
 
 /**
  * @ingroup CompMesh
- * @brief This class verifies the consistency of the datastructure of a TPZCompMesh object
+ * @brief This class verifies the consistency of the datastructure of a TPZCompMesh object. \ref CompMesh "Computational Mesh"
  */
 class TPZCheckMesh {
 	
@@ -26,7 +30,7 @@ public:
 	int CheckConstraintDimension();
 	int CheckElementShapeDimension();
 	int CheckDimensions();
-	/// Constructor
+	/** @brief Constructor */
 	TPZCheckMesh(TPZCompMesh *mesh, std::ostream *out);
 
 	/**

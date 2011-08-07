@@ -1,6 +1,9 @@
+/**
+ * @file
+ * @brief Contains the instantiation of the TPZGeoElement classes from template.
+ */
 
 #include "TPZGeoElement.h.h"
-
 
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"

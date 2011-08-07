@@ -1,14 +1,7 @@
-//
-// C++ Interface: tpzagglomeratemesh
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@corona>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+/**
+ * @file
+ * @brief Contains declaration of TPZAgglomerateMesh which implements a mesh that contains agglomerated elements.
+ */
 #ifndef TPZAGGLOMERATEMESH_H
 #define TPZAGGLOMERATEMESH_H
 
@@ -16,13 +9,14 @@
 
 
 /**
- This class contains both discontinuous, continuous and agglomerated elements
- Its distinction from other meshes is that it points to a reference fine mesh
+ * This class contains both discontinuous, continuous and agglomerated elements. \n
+ * Its distinction from other meshes is that it points to a reference fine mesh
  */
 /**
- * @brief Implements a mesh that contains agglomerated elements
+ * @brief Implements a mesh that contains agglomerated elements. \ref CompMesh "Computational Mesh"
  * @ingroup CompMesh
  * @author Philippe R. B. Devloo
+ * @since 2004.
  */
 class TPZAgglomerateMesh : public TPZFlowCompMesh
 {

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains declaration of TPZInterpolationSpace class which implements the interface for interpolated computational and interface elements.
+ */
 //$Id: pzinterpolationspace.h,v 1.17 2011-05-30 20:32:05 denise Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
@@ -7,7 +11,7 @@
 class TPZMaterialData;
 
 /**
- * @brief This class implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement.
+ * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref interpolation "Aproximation space"
  * @since April 11, 2007
  * @ingroup interpolation
  */
@@ -15,43 +19,32 @@ class TPZInterpolationSpace : public TPZCompEl
 {
 public:
 	
-	/**
-	 * @brief Simple Constructor
-	 */
+	/** @brief Simple Constructor */
 	TPZInterpolationSpace();
 	
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	virtual ~TPZInterpolationSpace();
 	
-	/**
-	 * @brief Puts a copy of the element in the referred mesh
-	 */
+	/** @brief Puts a copy of the element in the referred mesh */
 	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy);
 	
-	/**
-	 * @brief Puts a copy of the element in the patch mesh
-	 */
+	/** @brief Puts a copy of the element in the patch mesh */
 	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, std::map<int,int> &gl2lcElMap);
 	
-	/**
-	 * @brief Copy of the element in the new mesh whit alocated index
-	 */
+	/** @brief Copy of the element in the new mesh whit alocated index */
 	TPZInterpolationSpace(TPZCompMesh &mesh, const TPZInterpolationSpace &copy, int &index);
 	
 	/**
 	 * @brief Create a computational element within mesh
-	 * 
-	 * Inserts the element within the data structure of the mesh
 	 * @param mesh mesh wher will be created the element
 	 * @param index new elemen index
 	 */
+	/**
+	 * Inserts the element within the data structure of the mesh
+	 */
 	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
-	/**
-	 * @brief It returns the shapes number of the element
-	 */
+	/** @brief It returns the shapes number of the element */
 	virtual int NShapeF() const = 0;
 	
 	/** @brief Returns the number of shapefunctions associated with a connect*/
@@ -60,22 +53,24 @@ public:
 	/** @brief Returns the max order of interpolation. */
 	virtual int MaxOrder();
 	
-	/** @brief Computes the shape function set at the point x. 
-	 *
-	 * This method uses the order of interpolation
-	 * of the element along the sides to compute the number of shapefunctions
+	/** 
+	 * @brief Computes the shape function set at the point x. 
 	 * @param qsi point in master element coordinates
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
 	 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
 	 */
+	/**
+	 * This method uses the order of interpolation
+	 * of the element along the sides to compute the number of shapefunctions
+	 */
 	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
 	
-	/** @brief Compute shape functions based on master element in the classical FEM manner.
-	 */
+	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes,
 							  REAL &detjac, TPZFMatrix &jacinv, TPZFMatrix &phi, TPZFMatrix &dphix);
 	
-	/** @brief Initialize a material data and its attributes based on element dimension, number
+	/** 
+	 * @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions
 	 */
 	virtual void InitMaterialData(TPZMaterialData &data);
@@ -103,41 +98,36 @@ public:
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 	
-	/** @brief Initialize element matrix in which is computed CalcStiff
-	 */
+	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
-	/** @brief Initialize element matrix in which is computed in CalcResidual
-	 */
+	/** @brief Initialize element matrix in which is computed in CalcResidual */
 	void InitializeElementMatrix(TPZElementMatrix &ef);
 	
 	/** @brief Returns minimum and maximum values for each state variable.
-	 * 
+	 */
+	/** 
 	 * It is not a cheap method because it computes solution for
 	 * all integration points ( with intrule.MaxOrder() )
 	 */
 	void MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max);
 	
-	/** @brief Returns a reference to an integration rule suitable for integrating
-     the interior of the element */
+	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const = 0;
 	
-	/**
-	 * @brief Returns the inner radius value.
-	 */
+	/** @brief Returns the inner radius value. */
 	virtual REAL InnerRadius();
 	
-	/**
-	 * @brief Post processing method which computes the solution for the var post processed variable.
-	 *
-	 * The var index is obtained
-	 * by calling the TPZMaterial::VariableIndex method with a post processing name
+	/** @brief Post processing method which computes the solution for the var post processed variable.
 	 * @param qsi coordinate of the point in master element space where the solution will be evaluated
 	 * @param var variable which will be computed
 	 * @param sol (output) solution computed at the given point
 	 * @see TPZMaterial::VariableIndex
 	 * @see TPZMaterial::NSolutionVariables
 	 * @see TPZMaterial::Solution
+	 */
+	/**
+	 * The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name
 	 */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
@@ -148,8 +138,9 @@ public:
 	void InterpolateSolution(TPZInterpolationSpace &coarsel);
 	
 	/** @brief Create interfaces between this and its neighbours.
-	 * 
 	 * @param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc.
+	 */
+	/**
 	 * If param is false, it is necessary to have at least one TPZCompElDisc.
 	 */
 	void CreateInterfaces(bool BetweenContinuous = false);
@@ -181,28 +172,23 @@ public:
 	virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                TPZVec<REAL> &errors,TPZBlock * flux );
 	
-	/**
-	 * @brief Computes the element error estimator
-	 */
+	/** @brief Computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error);
 	
-	/**
-	 * @brief Integrate a variable over the element.
-	 */
+	/** @brief Integrate a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<REAL> & value);
 	
-	/** 
-	 * @brief Integrate the solution over the element
-	 */
+	/** @brief Integrate the solution over the element */
 	virtual void IntegrateSolution(TPZVec<REAL> & value);
 	
 	/**
 	 * @brief Will project the flux associated with the variational statement onto the finite element interpolation space
-	 * 
-	 * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
-	 * for each component of the flux
 	 * @param ek projection matrix
 	 * @param ef inner product of the flux with the finite element interpolation space
+	 */
+	/**
+	 * The ek matrix corresponds to an L2 (scalar) projection, the ef matrix contains multiple right hand sides, one
+	 * for each component of the flux
 	 */
 	void ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
@@ -212,43 +198,36 @@ protected:
 	
 public:
 	
-	/**
-	 *  @brief Defines the desired order for entire element.
-	 */
+	/**  @brief Defines the desired order for entire element. */
 	virtual void SetPreferredOrder ( int order ) = 0;
 	
-	/**
-	 * @brief Returns the prefered order for the element
-	 */
+	/** @brief Returns the prefered order for the element */
 	virtual int GetPreferredOrder () { return fPreferredOrder; }
 	
 	/**
 	 * @brief Change the preferred order for the element and proceed the
-	 * adjust of the aproximation space taking in acount the type
+	 * adjust of the aproximation space \n taking in acount the type
 	 * of formulation and the neighbours of the element
 	 */
 	virtual void PRefine ( int order ) = 0;
 	
 public:
 	
-	/**
-	 * @brief Saves the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	/**
 	 * @brief Accumulates the transfer coefficients between the current element and the
-	 * coarse element into the transfer matrix, using the transformation t
-	 * 
-	 * This method forms the basis for the multigrid method
+	 * coarse element \n into the transfer matrix, using the transformation t
 	 * @param coarsel larger element with respect to which the transfer matrix is computed
 	 * @param t transformation which maps the master element space of the current element into the master element space of the coarse element
 	 * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
+	 */
+	/**
+	 * This method forms the basis for the multigrid method
 	 */
 	void BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer);
 	
@@ -256,15 +235,16 @@ protected:
 	
 	/**
 	 * @brief Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints
-	 * 
-	 * As input the regular values of the shapefunctions are given and their derivatives\n
-	 * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
-	 * are expanded to include the value of the independent shapefunctions and their derivatives as well
 	 * @param (input) connectlist vector of all connects to which the element will contribute
 	 * @param (input) dependencyorder vector of indices which indicate the order in which the connects will be processed
 	 * @param blocksizes (output) number of shapefunctions associated with each connect
 	 * @param phi (input/output) values of the shapefunctions
 	 * @param dphi (input/output) values of the derivatives of the shapefunctions
+	 */
+	/**
+	 * As input the regular values of the shapefunctions are given and their derivatives\n
+	 * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
+	 * are expanded to include the value of the independent shapefunctions and their derivatives as well
 	 */
     void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
 	

@@ -1,7 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZConnect methods.
+ */
 //$Id: pzconnect.cpp,v 1.25 2011-05-11 02:45:38 phil Exp $
-
-//METHODS DEFINITION FOR CLASS NODE
-
 
 #include "pzconnect.h"
 #include "pzerror.h"

@@ -1,8 +1,6 @@
-/*
- * pzelchdivbound.h
- *
- *  Created on: Sep 29, 2009
- *      Author: philippe Devloo
+/**
+ * @file
+ * @brief Contains declaration of TPZCompElHDivBound2 class which implements a generic computational element (HDiv scope variant).
  */
 
 #ifndef PZELCHDIVBOUND_H_
@@ -12,8 +10,13 @@
 
 
 /**
- @brief By varying the classes passed as template arguments, the complete family of computational elements are implemented
+ @brief Implements a generic computational element to HDiv scope. \ref CompElement "Computational Element"
  @ingroup CompElement
+ @author Philippe Devloo
+ @since Sep 29, 2009.
+ */
+/**
+ * By varying the classes passed as template arguments, the complete family of computational elements are implemented
  */
 template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {

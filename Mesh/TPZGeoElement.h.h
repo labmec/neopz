@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGeoElement methods.
+ */
 //
 // C++ Interface: TPZGeoElement
 //
@@ -19,14 +23,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelement"));
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
 TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
-	
-	//  int i,nnod = nodeindices.NElements();
-	//  if(nnod!=TGeo::NNodes) {
-	//    PZError << "TPZGeoElement<TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
-	//    return;
-	//  }
-	
-	//  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
@@ -34,14 +30,6 @@ TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh) {
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
 TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) {
-	
-	//  int i,nnod = nodeindices.NElements();
-	//  if(nnod!=TGeo::NNodes) {
-	//   PZError << "TPZGeoElement<TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
-	//  return;
-	// }
-	
-	//  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }
@@ -49,14 +37,6 @@ TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index) {
 template<class TGeo, class TRef>
 TPZGeoElement<TGeo,TRef>::TPZGeoElement(TGeo &geo,int matind,TPZGeoMesh &mesh) :
 TPZGeoElRefLess<TGeo>(geo,matind,mesh) {
-	
-	//  int i,nnod = nodeindices.NElements();
-	//  if(nnod!=TGeo::NNodes) {
-	//   PZError << "TPZGeoElement<TGeo,TRef>::Constuctor, number of nodes : " << nnod << endl;
-	//  return;
-	// }
-	
-	//  for(i=0;i<TGeo::NNodes;i++) fNodeIndexes[i] = nodeindices[i];
 	int i;
 	for(i=0;i<TRef::NSubEl;i++) fSubEl[i] = -1;
 }

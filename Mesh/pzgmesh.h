@@ -1,17 +1,8 @@
-//$Id: pzgmesh.h,v 1.39 2011-03-24 18:32:51 phil Exp $
-
 /**
- File : pzgmes.h
- Header file for class TPZGeoMesh.
- A TPZGeoMesh defines a geometrical mesh and contains a corresponding list of
- geometrical elements
- geometrical nodes
- coordinate systems
- elementwise defined boundary conditions
- nodal boundary conditions.
- Various methods are defined to add, delete or loop over the items which are
- contained within the TPZGeoMesh.
+ * @file
+ * @brief Contains declaration of TPZMesh class which defines a geometrical mesh and contains a corresponding lists of elements, nodes and conditions.
  */
+//$Id: pzgmesh.h,v 1.39 2011-03-24 18:32:51 phil Exp $
 
 #ifndef PZGEOMESHH
 #define PZGEOMESHH
@@ -47,11 +38,13 @@ class TPZVec;
 template <class TGeo> class TPZGeoElRefPattern;
 
 /**
- * @brief This class implements a geometric mesh for the pz environment
+ * @brief This class implements a geometric mesh for the pz environment. \ref geometry "Geometry"
  * @ingroup geometry
  */
 /**
- A geometry mesh consists of a collection of geometric nodes and elements 
+ A TPZGeoMesh defines a geometrical mesh and contains a corresponding list of geometrical elements, geometrical nodes, \n
+ elementwise defined boundary conditions and nodal boundary conditions. \n
+ Various methods are defined to add, delete or loop over the items which are contained within the TPZGeoMesh. \n
  Other auxiliary data structures help in the construction of the mesh
  */
 class  TPZGeoMesh : public TPZSaveable {

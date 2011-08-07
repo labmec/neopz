@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZIntelGen methods.
+ */
 // $Id: pzelctemp.cpp,v 1.50 2011-05-13 20:19:55 phil Exp $
 
 #include "pzelctemp.h"
