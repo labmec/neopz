@@ -69,7 +69,8 @@ void TestingInverseWithAutoFill(int dim) {
 }
 template <class matx>
 void TestingInverseWithAutoFill(int rows,int bnd) {
-	int i, j, columns = rows;
+	int i, j;
+//	int columns = rows;
 	
 	matx ma(rows,bnd);
 	ma.AutoFill();

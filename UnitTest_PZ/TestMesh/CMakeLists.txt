@@ -1,3 +1,4 @@
+# @file neopz/UnitTest_PZ/TestMesh/CMakeLists.txt  -- CMake file for unit test of the mesh module
 
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
@@ -6,13 +7,6 @@ file(GLOB sources *.cpp)
 if(BUILD_UNITTESTING)
 
 	set(pztestmesh ${headers} ${sources} PARENT_SCOPE)
-
-#	set(pztest
-#		${pztest}
-#		${headers}
-#		${sources}
-#		PARENT_SCOPE
-#		)
 
 	add_executable(TestMesh ${headers} ${sources})
 
