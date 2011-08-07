@@ -19,7 +19,7 @@
 namespace pzshape {
 	
 	/**
-	 * @brief Implements the shape functions of a linear (1D) element
+	 * @brief Implements the shape functions of a linear (1D) element. \ref shape "Shape"
 	 * @ingroup shape
 	 */
 	/** 

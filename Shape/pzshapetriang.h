@@ -12,7 +12,7 @@
 namespace pzshape {
 	
 	/** 
-	 * @brief Implements the shape functions of a triangular (2D) element
+	 * @brief Implements the shape functions of a triangular (2D) element. \ref shape "Shape"
 	 * @ingroup shape
 	 */
 	/**

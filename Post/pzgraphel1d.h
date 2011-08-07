@@ -1,6 +1,9 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphEl1d class which implements the graphical one dimensional element.
+ */
 #ifndef GRAFEL1DH
 #define GRAFEL1DH
-
 
 #include "pzgraphel.h"
 #include "pzvec.h"
@@ -11,7 +14,7 @@ class TPZBlock;
 
 /**
  * @ingroup post
- * @brief To export a graphical one dimensional element
+ * @brief To export a graphical one dimensional element. \ref post "Post processing"
  */
 class TPZGraphEl1d : public TPZGraphEl
 {

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElPrismMapped class which implements the graphical element for a prism using a degenerated cube element.
+ */
 //
 // C++ Interface: tpzgraphelprismmapped
 //
@@ -16,7 +20,7 @@
 
 /**
  * @ingroup post
- * @brief Implements the graphical element for a prism using a degenerated cube element
+ * @brief Implements the graphical element for a prism using a degenerated cube element. \ref post "Post processing"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZGraphElPrismMapped : public TPZGraphElQ3dd

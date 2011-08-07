@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphEl1dd class which implements the graphical one dimensional discontinuous element.
+ */
 #ifndef GRAFEL1DDH
 #define GRAFEL1DDH
 
@@ -11,7 +15,7 @@ class TPZBlock;
 
 /**
  * @ingroup post
- * @brief To export a graphical one dimensional discontinuous element
+ * @brief To export a graphical one dimensional discontinuous element. \ref post "Post processing"
  */
 class TPZGraphEl1dd : public TPZGraphEl
 {

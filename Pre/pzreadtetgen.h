@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains the TPZReadTetGen class which implement the interface between TPZGeoMesh and the files produced by tetgen.
+ */
 //$Id: pzreadtetgen.h,v 1.1 2006-03-04 15:39:36 tiago Exp $
 
 #ifndef TPZREADTETGEN
@@ -11,7 +14,7 @@ class TPZGeoMesh;
 
 /** 
  * @ingroup pre
- * @brief This class implement the interface between TPZGeoMesh and the files produced by tetgen.
+ * @brief Implement the interface between TPZGeoMesh and the files produced by tetgen. \ref pre "Getting Data"
  * @since March 03, 2006
  */
 /** What is tetgen ? Take a look on http://tetgen.berlios.de/index.html

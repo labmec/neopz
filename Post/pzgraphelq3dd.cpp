@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphElQ3dd methods. 
+ */
 // TPZGraphElQ3dd.cpp: implementation of the TPZGraphElQ3dd class.
 //
 //////////////////////////////////////////////////////////////////////

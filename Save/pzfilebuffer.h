@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains declaration of the TPZStream and TPZFileStream classes. TPZStream defines the interface for saving and reading data,\n
+ * TPZFileStream implements reading from and writing to an ascii file.
+ */
 #ifndef PZFILEBUFFERH
 #define PZFILEBUFFERH
 #include <iostream>
@@ -8,9 +13,8 @@
 
 /**
  * @ingroup save
+ * @brief Defines the interface for saving and reading data. \ref save "Persistency"
  */
-
-/// this class defines the interface for saving and reading data
 /**
  In fact, this class could use the facilities of the stream class of the std library
  This class is a subset of the functionality of the stream classes
@@ -58,9 +62,10 @@ public:
 	
 };
 
-/** @ingroup save
+/**
+ * @ingroup save
+ * @brief Implements reading from and writing to an ascii file. \ref save "Persistency"
  */
-/// This class implements reading from and writing to an ascii file
 class TPZFileStream : public TPZStream {
 	
 	std::ofstream fo;

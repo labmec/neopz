@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Contains declaration of the TPZSaveable class which defines the interface to save and restore objects from TPZStream objects.
+ */
 #ifndef PZSAVEH
 #define PZSAVEH
 
@@ -26,7 +29,9 @@ const int TPZSAVEABLEID = -1;
 typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
-/// This class defines the interface to save and restore objects from TPZStream objects
+/**
+ * @brief This class defines the interface to save and restore objects from TPZStream objects. \ref save "Persistency"
+ */
 /**
  * This class defines the interface a class needs to implement (override) in order to become persistent
  * Several static utility methods have been defined to make saving and restoring of vectors of
@@ -36,7 +41,7 @@ class TPZSaveable {
 	
 #ifndef ELLIPS
 	
-	/// This static function garantees that the gMap object is available when needed
+	/** @brief This static function garantees that the gMap object is available when needed */
 	static std::map<int,TPZRestore_t> &Map() {
 		static std::map<int,TPZRestore_t> gMap;
 		return gMap;
@@ -413,16 +418,17 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 }
 
 #ifndef ELLIPS
-/// this class implements an interface to register a class id and a restore function
 /**
- @ brief A declaration of the type "template class<classname, classid> put in .cpp file does the trick
- The static object which is "automatically" created calls the proper interface of the TPZSaveable class
+ * @brief Implements an interface to register a class id and a restore function. \ref save "Persistency"
  */
-//#ifndef BORLAND
+/**
+ * A declaration of the type "template class<classname, classid> put in .cpp file does the trick \n
+ * The static object which is "automatically" created calls the proper interface of the TPZSaveable class
+ */
 template<class T, int N>
 class TPZRestoreClass {
 public:
-	/// Constructor
+	/** @brief Constructor */
 	TPZRestoreClass()
 	{
 #ifdef DEBUG 
@@ -434,14 +440,14 @@ public:
 		TPZSaveable::Register(N,Restore);
 	}
 public:
-	///
+	
 	static TPZSaveable *Restore(TPZStream &buf, void *context) {
 		T *ptr = new T;
 		ptr->Read(buf,context);
 		return ptr;
 	}
 private:
-	///
+	
 	static TPZRestoreClass gRestoreObject;
 };
 

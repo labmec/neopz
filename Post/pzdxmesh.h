@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZDXGraphMesh class which implements the interface of the graphmesh to the OpenDX graphics package.
+ */
 #ifndef DXMESHH
 #define DXMESHH
 
@@ -6,7 +10,7 @@
 
 /**
  * @ingroup post
- * @brief This class implements the interface of the graphmesh to the OpenDX graphics package
+ * @brief Implements the interface of the graphmesh to the OpenDX graphics package. \ref post "Post processing"
  */
 /** This is the most actively supported graphics interface of the pz environment
 */

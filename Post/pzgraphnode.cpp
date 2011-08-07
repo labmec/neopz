@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphNode methods. 
+ */
 #include "pzgraphnode.h"
 #include "pzgraphel.h"
 

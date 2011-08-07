@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZDXGraphMesh methods. 
+ */
 //$Id: pzdxmesh.cpp,v 1.16 2010-01-12 12:13:18 caju Exp $
 
 #include "pzdxmesh.h"

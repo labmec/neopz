@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPattern class which defines the topology of the current refinement pattern to a mesh.
+ */
 #ifndef PZREFPATTERNH
 #define PZREFPATTERNH
 
@@ -64,7 +68,7 @@ const std::string nonInitializedName = "noname";
  */
 
 /**
- * @brief Defines the topology of the current refinement pattern to a mesh
+ * @brief Defines the topology of the current refinement pattern to a mesh. \ref refine "Refine"
  */
 class TPZRefPattern
 {
@@ -491,6 +495,7 @@ protected:
 	MElementType Type();
 	
 public:
+	/** @brief Auxiliar structure to permute nodes */
 	struct TPZRefPatternPermute
 	{
 		/** @brief permutation of the nodes */
@@ -498,14 +503,14 @@ public:
 		
 		/** @brief Transformation to the nodes */
 		TPZTransform fTransform;
-		
+		/** @brief Default constructor */
 		TPZRefPatternPermute(): fPermute(0)
 		{}
-		
+		/** @brief Copy constructor */
 		TPZRefPatternPermute(const TPZRefPatternPermute &copy) : fPermute(copy.fPermute), fTransform(copy.fTransform)
 		{
 		}
-		
+		/** Assignment operator */
 		TPZRefPatternPermute &operator=(const TPZRefPatternPermute &copy)
 		{
 			fPermute = copy.fPermute;

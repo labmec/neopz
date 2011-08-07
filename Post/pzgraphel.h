@@ -1,8 +1,9 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphEl class which implements the graphical one-, two- and three-dimensional element.
+ */
 #ifndef GRAFELH
 #define GRAFELH
-
-
-
 
 #include "pzcompel.h"
 #include "pzgraphnode.h"
@@ -16,7 +17,7 @@ class TPZBlock;
 
 /**
  * @ingroup post
- * @brief Abstract class to graphical one-, two- and three-dimensional element
+ * @brief Abstract class to graphical one-, two- and three-dimensional element. \ref post "Post processing"
  */
 class TPZGraphEl
 {

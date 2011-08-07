@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZIdentifyRefPattern class which identifies the refinement pattern given the father element and their sons.\n
+ * Also contains TSide structure.
+ */
 /***************************************************************************
  pzidentifyrefpattern.h  -  description
  -------------------
@@ -29,9 +34,10 @@ class TPZRefPattern;
  * @{
  */
 
-/** @brief Identifies the refinement pattern given the father element and their sons
- *@author Edimar Cesar Rylo
- *@since March 8, 2004
+/**
+ * @brief Identifies the refinement pattern given the father element and their sons. \ref pre "Getting Data"
+ * @author Edimar Cesar Rylo
+ * @since March 8, 2004
  */
 class TPZIdentifyRefPattern {
 public: 
@@ -55,6 +61,10 @@ protected:
 	std::string fPath;
 };
 
+/**
+ * @brief To store a side and its nodes indexes. \ref pre "Getting data"
+ * @ingroup pre
+ */
 struct TSide {
 	std::set<int> fNodes;
 	int fSide;

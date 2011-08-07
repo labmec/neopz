@@ -1,10 +1,13 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZVTKGeoMesh methods. 
+ */
 /*
  *  TPZVTKGeoMesh.cpp
  *  Crack
  *
  *  Created by Cesar Lucci on 16/08/10.
  *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
  */
 
 #include "TPZVTKGeoMesh.h"

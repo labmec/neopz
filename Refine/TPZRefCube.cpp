@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefCube methods. 
+ */
 #include "TPZGeoCube.h"
 #include "TPZRefCube.h"
 #include "pzshapecube.h"

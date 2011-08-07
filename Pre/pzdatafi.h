@@ -1,5 +1,7 @@
-
-// HEADER FILE FOR BASE CLASS DATAFILE 
+/**
+ * @file
+ * @brief Contains the TDatafile class which defines the methods used to read a grid.
+ */
 
 #ifndef PZDATAFIHPP
 #define PZDATAFIHPP
@@ -60,12 +62,11 @@ class TCompGrid;
 
 /** 
  * @ingroup pre
- * @brief datafile is a virtual class from which classes with different data formats can
-be derived.
+ * @brief datafile is a virtual class from which classes with different data formats can be derived. \ref pre "Getting Data"
  */
 /**
  * The purpose of the datafile class is to facilitate the opening of an
- * input stream and define the methods used to read a grid
+ * input stream and defines the methods used to read a grid.
  */
 class TDatafile 
 {

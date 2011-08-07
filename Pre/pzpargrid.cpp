@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGenPartialGrid methods. 
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //

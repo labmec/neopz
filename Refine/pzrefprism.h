@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPrism class which implements the uniform refinement of a geometric prism element.
+ */
 /* class that defines the default refinement of the prism element */
-// -*- c++ -*-
 
 #ifndef TPZREFPRISMH
 #define TPZREFPRISMH
@@ -13,7 +16,7 @@ namespace pzrefine {
 	
 	/** 
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric prism element
+	 * @brief Implements the uniform refinement of a geometric prism element. \ref refine "Refine"
 	 */
 	class TPZRefPrism {
 		

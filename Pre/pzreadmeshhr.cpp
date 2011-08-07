@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZReadMeshHR methods. 
+ */
 /*****************************************************************************
  * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras.

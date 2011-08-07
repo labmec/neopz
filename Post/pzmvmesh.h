@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZMVGraphMesh class which implements graphical mesh to MVGraph package.
+ */
 #ifndef MVGRIDH
 #define MVGRIDH
 
@@ -9,7 +13,7 @@ class TPZBlock;
 
 /**
  * @ingroup post
- * @brief Implements graphical mesh to MVGraph package.
+ * @brief Implements graphical mesh to MVGraph package. \ref post "Post processing"
  */
 /** 
  * MVGraph: Multivariate Interactive Visualization can to be obtained from: \n

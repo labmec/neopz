@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElT2dMapped class which implements a graphical element for a triangle mapped into de quadrilateral element.
+ */
 //
 // C++ Interface: tpzgraphelt2dmapped
 //
@@ -16,7 +20,7 @@
 
 /**
  * @ingroup post
- * @brief This class implements a graphical element for a triangle mapped into de quadrilateral element
+ * @brief Implements a graphical element for a triangle mapped into de quadrilateral element. \ref post "Post processing"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZGraphElT2dMapped : public TPZGraphElQ2dd

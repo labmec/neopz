@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the VisualMatrix for DataExplorer and VTK packages. 
+ */
 #include "pzvisualmatrix.h"
 #include "pzfmatrix.h"
 using namespace std;

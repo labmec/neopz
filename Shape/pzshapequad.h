@@ -20,7 +20,7 @@
 namespace pzshape{
 
 	/** 
-	 * @brief Implements the shape functions of a quadrilateral (2D) element
+	 * @brief Implements the shape functions of a quadrilateral (2D) element. \ref shape "Shape"
 	 * @ingroup shape
 	 */
 	/** 

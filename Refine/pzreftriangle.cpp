@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefTriangle methods. 
+ */
 #include "pzreftriangle.h"
 #include "pzgeotriangle.h"
 #include "pzshapetriang.h"

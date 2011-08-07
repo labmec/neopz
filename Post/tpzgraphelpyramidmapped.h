@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElPyramidMapped class which implements the graphical element for a pyramid using a map to the cube element.
+ */
 //
 // C++ Interface: tpzgraphelpyramidmapped
 //
@@ -16,7 +20,7 @@
 
 /**
  * @ingroup post
- * @brief Implements the graphical element for a pyramid using a map to the cube element
+ * @brief Implements the graphical element for a pyramid using a map to the cube element. \ref post "Post processing"
  * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
  */
 class TPZGraphElPyramidMapped : public TPZGraphElQ3dd

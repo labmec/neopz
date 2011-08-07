@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZReadMesh class which implements the interface for build a computational mesh from a file.
+ */
 /*****************************************************************************
  * O conteúdo desse arquivo é de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras. 
@@ -10,8 +14,9 @@
 #include <fstream>
 class TPZCompMesh;
 
-/** @ingroup pre
- * @brief Virtual class that implements the interface for build a computational mesh from a file
+/**
+ * @ingroup pre
+ * @brief Virtual class that implements the interface for build a computational mesh from a file. \ref pre "Getting Data"
  * @author Edimar Cesar Rylo
  * @since September, 2006
  */

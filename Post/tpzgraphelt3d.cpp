@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphElT3d methods. 
+ */
 //
 // C++ Implementation: tpzgraphelt3d
 //

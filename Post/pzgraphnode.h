@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphNode class which implements the graphical node.
+ */
 #ifndef GRAFNODEH
 #define GRAFNODEH
 
@@ -13,7 +17,7 @@ class TPZBlock;
 
 /**
  * @ingroup post
- * @brief To export a graphical node
+ * @brief To export a graphical node. \ref post "Post processing"
  */
 class TPZGraphNode {
 	

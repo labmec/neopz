@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphElT2dMapped methods. 
+ */
 //
 // C++ Implementation: tpzgraphelt2dmapped
 //

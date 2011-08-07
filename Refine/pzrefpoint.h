@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPoint class which implements the uniform refinement of a geometric point element.
+ */
 /* class that defines the default refinement of the hexaedral element */
-// -*- c++ -*-
 
 #ifndef TPZREFPOINTH
 #define TPZREFPOINTH
@@ -12,13 +15,15 @@ class TPZTransform;
 
 /** 
  * @brief Groups all classes which model the h refinement \n
- * @ingroup refine
- * @note Objects of this class implement the uniform refinement of an element \n
- * These classes are used as template arguments of @seealso TPZGeoElement
+ * These classes are used as template arguments of @see TPZGeoElement
  */
 namespace pzrefine {
 	
-	/** @brief Implements the uniform refinement of a geometric point element */
+	/**
+	 * @brief Implements the uniform refinement of a geometric point element. \ref refine "Refine"
+	 * @ingroup refine
+	 * @note Objects of this class implement the uniform refinement of an element 
+	*/
 	class TPZRefPoint {
 		
 	public:

@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefCube class which implements the uniform refinement of a geometric hexahedral element.
+ */
 /* class that defines the default refinement of the hexaedral element */
-
 
 #ifndef TPZREFCUBEH
 #define TPZREFCUBEH
@@ -13,7 +16,7 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric hexahedral element
+	 * @brief Implements the uniform refinement of a geometric hexahedral element. \ref refine "Refine"
 	 */
 	class TPZRefCube {
 		

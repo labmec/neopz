@@ -1,4 +1,8 @@
 /**
+ * @file
+ * @brief Contains the TPZExtendGridDimension class which generates a three dimensional mesh as an extension of a two dimensional mesh.
+ */
+/**
  * This classroom extends a dimension mesh n = 1,2 
  * for a dimension mesh n+1 = 2,3 respectively, 
  * the entrance data are the fine mesh and the thickness of the new mesh
@@ -17,7 +21,7 @@ class TPZGeoMesh;
 
 /**
  * @ingroup pre
- * @brief Class which generates a three dimensional mesh as an extension of a two dimensional mesh
+ * @brief Generates a three dimensional mesh as an extension of a two dimensional mesh. \ref pre "Getting Data"
  */
 class TPZExtendGridDimension {
 	

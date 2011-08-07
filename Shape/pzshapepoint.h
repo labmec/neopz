@@ -14,7 +14,7 @@
 namespace pzshape{
 	
 	/**
-	 @brief Compute the single shape function associated with a point
+	 @brief Compute the single shape function associated with a point. \ref shape "Shape"
 	 @ingroup shape
 	 */
 	class TPZShapePoint  : public pztopology::TPZPoint  {

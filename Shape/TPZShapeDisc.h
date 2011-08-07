@@ -12,7 +12,7 @@ namespace pzshape {
 	
 	
 	/** 
-	 * @brief Implements the shape functions discontinuous elements
+	 * @brief Implements the shape functions discontinuous elements. \ref shape "Shape"
 	 * @ingroup shape
 	 */
 	/**

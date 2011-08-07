@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefQuad methods. 
+ */
 #include "pzrefquad.h"
 #include "pzgeoquad.h"
 #include "pzshapequad.h"

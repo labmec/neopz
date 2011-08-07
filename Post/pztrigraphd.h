@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElTd class which implements the graphical discontinuous triangular element.
+ */
 #ifndef TRIGRAPHD
 #define TRIGRAPHD
 
@@ -6,7 +10,7 @@
 
 /**
  * @ingroup post
- * @brief To export a graphical discontinuous triangular element
+ * @brief To export a graphical discontinuous triangular element. \ref post "Post processing"
  */
 class TPZGraphElTd : public TPZGraphEl {
 	

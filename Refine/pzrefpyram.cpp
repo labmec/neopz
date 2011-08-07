@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefPyramid methods. 
+ */
 #include "pzrefpyram.h"
 #include "pzgeopyramid.h"
 #include "pzshapepiram.h"

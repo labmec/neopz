@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefTriangle class which implements the uniform refinement of a geometric triangular element.
+ */
 /* class that defines the default refinement of the hexaedral element */
-// -*- c++ -*-
 
 #ifndef TPZREFTRIANGH
 #define TPZREFTRIANGH
@@ -14,9 +17,9 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric triangular element
+	 * @brief Implements the uniform refinement of a geometric triangular element. \ref refine "Refine"
 	 */
-	class TPZRefTriangle{
+	class TPZRefTriangle {
 	public:
 		
 		enum{NSubEl = 4};

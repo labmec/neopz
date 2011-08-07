@@ -1,10 +1,13 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPatternDataBase class which defines data base of patterns.
+ */
 /*
  *  TPZRefPatternDataBase.h
  *  NeoPZ
  *
  *  Created by caju on 12/17/09.
  *  Copyright 2009 LabMeC. All rights reserved.
- *
  */
 
 #ifndef TPZREFPATTERNDATABASEH
@@ -21,6 +24,7 @@
 
 /**
  * @ingroup refine
+ * @brief Defines data base of patterns. \ref refine "Refine"
  */
 class TPZRefPatternDataBase
 {

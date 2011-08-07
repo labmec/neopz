@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefPrism methods. 
+ */
 #include "pzrefprism.h"
 #include "pzgeoprism.h"
 #include "pzshapeprism.h"

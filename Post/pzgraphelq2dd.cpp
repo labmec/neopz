@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphElQ2dd methods. 
+ */
 #include "pzgraphelq2dd.h"
 #include "pzgraphmesh.h"
 #include "pzcompel.h"

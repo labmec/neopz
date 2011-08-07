@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElT class which implements the graphical triangular element.
+ */
 #ifndef TRIGRAPH
 #define TRIGRAPH
 
@@ -6,7 +10,7 @@
 
 /**
  * @ingroup post
- * @brief To export a graphical triangular element
+ * @brief To export a graphical triangular element. \ref post "Post processing"
  */
 class TPZGraphElT : public TPZGraphEl {
 	

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphMesh class which represents a graphical mesh used for post processing purposes.
+ */
 
 #ifndef GRAFGRIDH
 #define GRAFGRIDH
@@ -21,7 +25,7 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
 
 /**
  * @ingroup post
- * @brief This class represents a graphical mesh used for post processing purposes
+ * @brief Represents a graphical mesh used for post processing purposes. \ref post "Post processing"
  */
 /** 
  * The  graphical mesh represents a logically refined version of the computational mesh \n

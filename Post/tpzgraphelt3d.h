@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElT3d class which implements the graphical representation of a tetrahedra element.
+ */
 //
 // C++ Interface: tpzgraphelt3d
 //
@@ -16,7 +20,7 @@
 
 /**
  * @ingroup post
- * @brief This class implements the graphical representation of a tetrahedra elemennt
+ * @brief Implements the graphical representation of a tetrahedra element. \ref post "Post processing"
  * @author Philippe R. B. Devloo
  */
 class TPZGraphElT3d : public TPZGraphElQ3dd

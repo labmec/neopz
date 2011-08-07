@@ -1,7 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefPatternDataBase methods. 
+ */
 /*
- *  TPZRefPatternDataBase.cpp
- *  NeoPZ
- *
  *  Created by caju on 12/17/09.
  *  Copyright 2009 LabMeC. All rights reserved.
  *

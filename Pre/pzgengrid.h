@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGenGrid class which implements the generation of a multilayered geometric grid.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
 //
@@ -24,8 +28,9 @@ class TPZGeoMesh;
 
 #include <fstream>
 
-/** @ingroup pre
- * @brief Implements the generation of a multilayered geometric grid
+/** 
+ * @ingroup pre
+ * @brief Implements the generation of a multilayered geometric grid. \ref pre "Getting Data"
  */
 /** This class uses DEPRECATED objects, but can be easily updated
  */

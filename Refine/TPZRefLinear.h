@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefLinear class which implements the uniform refinement of a geometric linear element.
+ */
 /* class that defines the default refinement of the hexaedral element */
-// -*- c++ -*-
 
 #ifndef TPZREFLINEARH
 #define TPZREFLINEARH
@@ -13,7 +16,7 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric linear element
+	 * @brief Implements the uniform refinement of a geometric linear element. \ref refine "Refine"
 	 */
 	class TPZRefLinear {
 		

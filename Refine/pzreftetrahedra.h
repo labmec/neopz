@@ -1,4 +1,7 @@
-// _*_ c++ _*_
+/**
+ * @file
+ * @brief Contains the TPZRefTetrahedra class which implements the uniform refinement of a geometric tetrahedral element.
+ */
 /* class that defines the default refinement of the tetrahedra element */
 
 
@@ -18,7 +21,7 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric tetrahedral element
+	 * @brief Implements the uniform refinement of a geometric tetrahedral element. \ref refine "Refine"
 	 */
 	class TPZRefTetrahedra {
 		

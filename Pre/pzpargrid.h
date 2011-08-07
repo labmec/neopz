@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGenPartialGrid class which implements the generation of a geometric grid.
+ */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO/Philippe Devloo
 //
@@ -24,7 +28,7 @@ class TPZGeoMesh;
 
 /**
  * @ingroup pre
- * @brief Implements the generation of a geometric grid
+ * @brief Implements the generation of a geometric grid. \ref pre "Getting Data"
  */
 /** Implements the generation of part of the grid
  * This class uses DEPRECATED objects, but can be easily updated

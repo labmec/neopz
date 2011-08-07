@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZGraphElQ2d class which implements the graphical two dimensional element.
+ */
 #ifndef PZGRAPHELQ2D
 #define PZGRAPHELQ2D
 
@@ -6,7 +10,7 @@
 
 /**
  * @ingroup post
- * @brief To export a graphical two dimensional element
+ * @brief To export a graphical two dimensional element. \ref post "Post processing"
  */
 class TPZGraphElQ2d : public TPZGraphEl {
 public:

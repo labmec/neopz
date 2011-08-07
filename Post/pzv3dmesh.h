@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZV3DGraphMesh class which implements the graphical three dimensional mesh to use at V3D package.
+ */
 #ifndef V3DGRAFGH
 #define V3DGRAFGH
 
@@ -6,7 +10,7 @@
 
 /**
  * @ingroup post
- * @brief To export a graphical three dimensional mesh to use at V3D package.
+ * @brief To export a graphical three dimensional mesh to use at V3D package. \ref post "Post processing"
  */
 /**
  * V3D is a 3D Image Visualization package. \n

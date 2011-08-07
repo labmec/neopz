@@ -1,6 +1,8 @@
 // TPZGraphElQ3dd.h: interface for the TPZGraphElQ3dd class.
-//
-//////////////////////////////////////////////////////////////////////
+/**
+ * @file
+ * @brief Contains the TPZGraphElQ3dd class which implements the graphical three dimensional discontinuous element.
+ */
 
 #if !defined(AFX_TPZGRAPHELQ3DD_H__4DDADE46_92E7_11D4_B7FB_00500464279E__INCLUDED_)
 #define AFX_TPZGRAPHELQ3DD_H__4DDADE46_92E7_11D4_B7FB_00500464279E__INCLUDED_
@@ -14,7 +16,7 @@
 
 /**
  * @ingroup post
- * @brief To export a graphical three dimensional discontinuous element
+ * @brief To export a graphical three dimensional discontinuous element. \ref post "Post processing"
  */
 class TPZGraphElQ3dd : public TPZGraphEl{
 public:

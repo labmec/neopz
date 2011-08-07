@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefPoint methods. 
+ */
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapelinear.h"

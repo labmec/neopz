@@ -1,5 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefQuad class which implements the uniform refinement of a geometric quadrilateral element.
+ */
 /* class that defines the default refinement of the hexaedral element */
-// -*- c++ -*-
 
 #ifndef TPZREFQUADH
 #define TPZREFQUADH
@@ -14,7 +17,7 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric hexahedral element
+	 * @brief Implements the uniform refinement of a geometric quadrilateral element. \ref refine "Refine"
 	 */
 	class TPZRefQuad {
 		

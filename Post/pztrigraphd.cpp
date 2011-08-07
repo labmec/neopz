@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZGraphElTd methods. 
+ */
 #include "pztrigraphd.h"
 
 using namespace std;

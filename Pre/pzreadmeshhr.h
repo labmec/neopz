@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZReadMeshHR class which reads a mesh in a "human readable" format.
+ */
 /*****************************************************************************
  * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
  * CENPES-Petrobras. 
@@ -15,7 +19,7 @@ class TPZCompMesh;
 
 /**
  * @ingroup pre
- * @brief Reads a mesh in a "human readable" format, i.e. in text format and with coments
+ * @brief Reads a mesh in a "human readable" format, i.e. in text format and with coments. \ref pre "Getting Data"
  * @author Edimar Cesar Rylo
  * @since September 2006
  */

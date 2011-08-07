@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZRefLinear methods. 
+ */
 #include "TPZRefLinear.h"
 #include "pzshapelinear.h"
 #include "TPZGeoLinear.h"

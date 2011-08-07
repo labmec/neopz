@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPatternTools class which defines tools of pattern.
+ */
+
 #ifndef TPZREFPATTERNTOOLSH
 #define TPZREFPATTERNTOOLSH 
 
@@ -7,7 +12,6 @@
  *
  *  Created by Cesar Lucci on 10/03/10.
  *  Copyright 2010 LabMeC. All rights reserved.
- *
  */
 
 
@@ -19,6 +23,7 @@
 
 /**
  * @ingroup refine
+ * @brief Defines tools of pattern. \ref refine "Refine"
  */
 class TPZRefPatternTools
 {

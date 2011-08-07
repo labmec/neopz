@@ -1,22 +1,24 @@
+/**
+ * @file
+ * @brief Contains the TPZVTKGeoMesh class which implements the graphical mesh to VTK environment to geometric mesh.
+ */
 /*
  *  TPZVTKGeoMesh.h
  *  Crack
  *
  *  Created by Cesar Lucci on 16/08/10.
  *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
  */
 
 #ifndef TPZVTKGEOMESHH
 #define TPZVTKGEOMESHH 
-
 
 #include <set>
 #include "pzgeoel.h"
 
 /**
  * @ingroup post
- * @brief To export a graphical mesh to VTK environment to geometric mesh.
+ * @brief To export a graphical mesh to VTK environment to geometric mesh. \ref post "Post processing"
  */
 class TPZVTKGeoMesh
 {

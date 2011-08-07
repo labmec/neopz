@@ -16,12 +16,10 @@
 namespace pzshape {
 	
 	/**
-	 * @brief Implements the shape functions of a hexahedral (3D) element
+	 * @brief Implements the shape functions of a hexahedral (3D) element. \ref shape "Shape"
 	 * @ingroup shape
 	 */
-	/** 
-	 * The range of the master element is \f$ [-1,1] \f$
-	 */
+	/** The range of the master element is \f$ [-1,1] \f$ */
 	template<class TFather>
 	class SPr : public TFather {
 		
@@ -32,10 +30,8 @@ namespace pzshape {
 		typedef typename TFather::Top FatTop;
 		
 		typedef  pztopology::Pr<FatTop> Top;
-		
-		/**
-		 * @brief Temporary storage to accelerate the computation of shape functions.
-		 */
+
+		/** @brief Temporary storage to accelerate the computation of shape functions. */
 		class TMem
 		{
 			/** @brief Retained values of the upper shape functions */

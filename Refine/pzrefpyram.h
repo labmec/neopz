@@ -1,6 +1,8 @@
+/**
+ * @file
+ * @brief Contains the TPZRefPyramid class which implements the uniform refinement of a geometric hexahedral element.
+ */
 /* class that defines the default refinement of the tetrahedra element */
-
-// _*_ c++ _*_
 
 #ifndef TPZREFPYRAMIDH
 #define TPZREFPYRAMIDH
@@ -15,7 +17,7 @@ namespace pzrefine {
 	
 	/**
 	 * @ingroup refine
-	 * @brief Implements the uniform refinement of a geometric hexahedral element
+	 * @brief Implements the uniform refinement of a geometric hexahedral element. \ref refine "Refine"
 	 */
 	class TPZRefPyramid{
 		
