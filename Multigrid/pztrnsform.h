@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZTransform class which implements an affine transformation between points in parameter space.
+ */
 #ifndef TTRANSFORMH
 #define TTRANSFORMH
 
@@ -8,7 +12,7 @@ class TPZVec;
 
 /**
  * @ingroup topologyutils
- * @brief Implements an affine transformation between points in parameter space
+ * @brief Implements an affine transformation between points in parameter space. \ref topologyutils "Topology Utility"
  */
 class TPZTransform {
 	

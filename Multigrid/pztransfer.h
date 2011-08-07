@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZTransfer class which implements a rectangular sparse block matrix.
+ */
 #ifndef TRANSFERH
 #define TRANSFERH
 
@@ -7,11 +11,11 @@
 #include "pzmatrix.h"
 
 /**
- * @brief Implements rectangular matrix which extends a solution vector of the coarse mesh to a solution vector in the fine mesh
+ * @brief Implements rectangular matrix which extends a solution vector of the coarse mesh to a solution vector in the fine mesh. \ref matrix "Matrix"
  * @ingroup matrix
  */
 /**
- * This class implements a rectangular sparse block matrix it is assumed that the data is entered one row at a time \n
+ * Implements a rectangular sparse block matrix it is assumed that the data is entered one row at a time \n
  * the matrix structure cannot be modified after being defined
  */
 class TPZTransfer : public TPZMatrix {
