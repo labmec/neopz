@@ -1,3 +1,5 @@
+# @file neopz/Projects/CursoPZ/Class_4/CMakeLists.txt  -- CMake file for the Class_4 of the CursoPZ tutorial
+
 file(GLOB source *.cpp)
 
 set(pzclass4 ${source} PARENT_SCOPE)

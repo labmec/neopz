@@ -1,3 +1,4 @@
+# @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory 
 
 if(BUILD_TUTORIAL)
 	#Testing and using shape functions
@@ -21,9 +22,9 @@ if(BUILD_TUTORIAL)
 	source_group(Matrix FILES ${pztutormat})
 	source_group(VisualMatrixDX FILES ${visualmatrix})
 
-	set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
+	#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
-	add_custom_target(PZTutorial SOURCES ${pztutorial})
+	#add_custom_target(PZTutorial SOURCES ${pztutorial})
 
 
 endif(BUILD_TUTORIAL)
