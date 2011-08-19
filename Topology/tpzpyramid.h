@@ -1,4 +1,7 @@
-//
+/**
+ * @file
+ * @brief Contains the TPZPyramid class which defines the topology of a Pyramid element. 
+ */
 // C++ Interface: tpzpyramid
 //
 // Description: 
@@ -31,9 +34,9 @@ namespace pztopology {
 	/**
 	 * @ingroup topology
 	 * @author Philippe R. B. Devloo
-	 * @brief This class defines the topology of a Pyramid element
+	 * @brief Defines the topology of a Pyramid element. \ref topology "Topology"
 	 */
-	class TPZPyramid{
+	class TPZPyramid {
 	public:
 		
 		enum {NSides = 19, NCornerNodes = 5, Dimension = 3};
