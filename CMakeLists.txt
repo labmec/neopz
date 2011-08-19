@@ -1,3 +1,5 @@
+# @file neopz/CMakeList.txt  -- First file to read for CMake 
+
 cmake_minimum_required (VERSION 2.8.5)
 
 project (PZ)
@@ -28,28 +30,41 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/PlaneFracture"
  )
 
+#MESSAGE( STATUS "RUNTIME_DIR:         " ${RUNTIME_OUTPUT_DIRECTORY} )
 
 #To insert doxygen documentation file and other text files into the project environment (to facility changes)
-file(GLOB makefiles CMake*.txt lib/*.txt UnitTest_PZ/*.txt Projects/*.txt README)
-#Only CMakeList.txt corresponding any pz module but CMakeList.txt from UnitTest case can be considered
+#Grouping CMakeList.txt for pz Projects - UnitTest_PZ
+file(GLOB_RECURSE makefiles *Lists.txt)
+
 #If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
-#foreach(arq ${makefiles}) 
-#	string(FIND ${arq} "Project" val)
-#	if(${val} LESS 0)
-#		string(FIND ${arq} "UnitTest" val)
-#		if(${val} LESS 0)
-#			list(APPEND makefilescpy ${arq})
-#		endif()
-#	endif()
-#endforeach()
+foreach(arq ${makefiles}) 
+	string(FIND ${arq} "Project" val)
+	if(${val} LESS 0)
+		string(FIND ${arq} "UnitTest" val)
+		if(${val} GREATER -1)
+			list(APPEND makefilesunittest ${arq})
+		else()
+			string(FIND ${arq} "lib" val)
+			if(val LESS 0)
+				string(FIND ${arq} "neopz/CMakeList" val)
+				if(val LESS 0)
+					list(APPEND makefilespz ${arq})
+				endif()
+			endif()
+		endif()
+	else()
+		list(APPEND makefilesproject ${arq})
+	endif()
+endforeach()
 
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 
 #creating text files group 
-source_group(CMakeFiles FILES ${makefiles})
+source_group(CMakefilesPZ FILES ${makefilespz})
+source_group(CMakefilesProjects FILES ${makefilesproject})
+source_group(CMakefilesUnitTest FILES ${makefilesunittest})
 source_group(DoxyFiles FILES ${doxyfiles})
-add_custom_target(CMake_Doxygen SOURCES ${makefiles} ${doxyfiles})
-
+add_custom_target(CMake_Doxygen_Files SOURCES ${makefiles} ${doxyfiles})
 
 #Defining variables
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)

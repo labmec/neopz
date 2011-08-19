@@ -1,5 +1,7 @@
-// -*- c++ -*-
-
+/**
+ * @file
+ * @brief Contains the implementation of the TPZCompElHDiv methods.
+ */
 // $Id: pzelctemp.cpp,v 1.42 2008-11-20 23:30:41 phil Exp $
 
 #include "pzelchdiv.h"

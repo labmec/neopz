@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZElementMatrix methods.
+ */
 //$Id: pzelmat.cpp,v 1.13 2011-05-30 20:27:35 denise Exp $
 
 #include "pzelmat.h"

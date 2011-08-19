@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZSubCompMesh methods.
+ */
 //$Id: pzsubcmesh.cpp,v 1.53 2011-05-30 20:35:37 denise Exp $
 
 // subcmesh.cpp: implementation of the TPZSubCompMesh class.
