@@ -62,6 +62,7 @@ public:
 	
 };
 
+/** @brief Overload operator << to write transform data */
 inline std::ostream &operator<<(std::ostream &out, const TPZTransform &tr)
 {
 	out << "mult = " << tr.Mult() << " sum = " << tr.Sum();

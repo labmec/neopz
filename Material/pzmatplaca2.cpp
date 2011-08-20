@@ -147,6 +147,7 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix &n) {
 	
 }
 
+/** @brief Output file to write data of the test over shell (placa)*/
 ofstream placatest("placatest.dat");
 void TPZMatPlaca2::Contribute(TPZMaterialData &data,
                               REAL weight,

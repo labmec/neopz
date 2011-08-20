@@ -46,8 +46,6 @@ static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #define DEBUG2
 #endif
 
-#define Min( a, b )    ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
 
 REAL TPZMatrix::gZero = 0.;
@@ -87,6 +85,7 @@ void TPZMatrix::Substract(const TPZMatrix &A,TPZMatrix &result) const {
     }
 }
 
+/** @brief Implements sum of matrices: \f$ A+B \f$ */
 TPZFMatrix operator+(const TPZMatrix &A, const TPZMatrix &B ) {
 	TPZFMatrix temp;
     temp.Redim( A.Rows(), A.Cols() );
@@ -95,11 +94,7 @@ TPZFMatrix operator+(const TPZMatrix &A, const TPZMatrix &B ) {
 }
 
 
-
-
-/******************/
-/*** Operator - ***/
-
+/** @brief Implements difference of matrices: \f$ A-B \f$ */
 TPZFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
 	TPZFMatrix temp;
     TPZFMatrix res;
@@ -108,11 +103,7 @@ TPZFMatrix operator-(const TPZMatrix &A, const TPZMatrix &B ) {
     return temp;
 }
 
-
-
-/******************/
-/*** Operator * ***/
-
+/** @brief Implements product of matrices: \f$ A*B \f$ */
 TPZFMatrix operator*( TPZMatrix &A, const TPZFMatrix &B ) {
     TPZFMatrix res;
     res.Redim( A.Rows(), B.Cols() );
@@ -272,9 +263,7 @@ TPZMatrix::Input(std::istream& in )
 }
 
 
-/*******************/
-/*** Overload >> ***/
-
+/** @brief Overload >> operator to input data of the matrix ***/
 std::istream & operator>>(std::istream& in,TPZMatrix &A)
 {
 	
@@ -361,14 +350,11 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 	
 }
 
-
-/*******************/
-/*** Overload << ***/
+/** @brief Overload << operator to output entries of the matrix ***/
 std::ostream &operator<<(std::ostream& out,const TPZMatrix &A) {
     A.Print("operator << ",out);
     return  out;
 }
-
 
 void TPZMatrix::AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex) {
 	
@@ -437,8 +423,8 @@ void TPZMatrix::AddKel(TPZFMatrix &elmat, TPZVec<int> &source, TPZVec<int> &dest
 //  (sRow, sCol).
 //
 int TPZMatrix::PutSub(const int sRow,const int sCol,const TPZFMatrix &A ) {
-    int minRow = Min( A.Rows(), Rows() - sRow );
-    int minCol = Min( A.Cols(), Cols() - sCol );
+    int minRow = MIN( A.Rows(), Rows() - sRow );
+    int minCol = MIN( A.Cols(), Cols() - sCol );
 	
     int row = sRow;
     for ( int r = 0; r < minRow; r++, row++ ) {
@@ -482,8 +468,8 @@ int TPZMatrix::GetSub(const int sRow,const int sCol,const int rowSize,
 //
 int TPZMatrix::AddSub(const int sRow,const int sCol,const TPZFMatrix &A ) {
 	
-    int minRow = Min( A.Rows(), Rows() - sRow );
-    int minCol = Min( A.Cols(), Cols() - sCol );
+    int minRow = MIN( A.Rows(), Rows() - sRow );
+    int minCol = MIN( A.Cols(), Cols() - sCol );
 	//  REAL v;
 	
 	int row = sRow;

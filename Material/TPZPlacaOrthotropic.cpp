@@ -202,6 +202,7 @@ void TPZPlacaOrthotropic::PrintTensors(std::ostream &out) {
 	}
 }
 
+/** @brief Returns norm of the tension */
 REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol) {
 	
 	int i,j;

@@ -301,6 +301,7 @@ public:
 	
 };
 
+/** @brief Overload operator << to print geometric element side data */
 std::ostream  &operator << (std::ostream & out,const TPZGeoElSide &geoside);
 
 #include "pzgeoel.h"

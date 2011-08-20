@@ -45,9 +45,9 @@ enum TPZArtDiffType
 class TPZArtDiff : public TPZSaveable
 {
 public:
-	
+	/** @brief Simple constructor */
 	TPZArtDiff();
-	
+	/** @brief Specific constructor */
 	TPZArtDiff(TPZArtDiffType type, REAL gamma, REAL CFL = 0., REAL delta = 0.);
 	
 	virtual ~TPZArtDiff();
@@ -61,7 +61,7 @@ public:
 	
 	/**
 	 * @brief Configures the type of artificial diffusion
-	 * @param Type [in] type of diffusive term
+	 * @param type [in] Type of diffusive term
 	 */
 	void SetArtDiffType(TPZArtDiffType type);
 	
@@ -73,7 +73,7 @@ public:
 	
 	/**
 	 * @brief Returns the stored value for delta
-	 * @param Sol [in] solution
+	 * @param sol [in] solution
 	 * @param deltaX [in] 
 	 */
 	/**
@@ -188,8 +188,9 @@ public:
 	/** Tau tensor */
 	/**
 	 * @brief Computes the diffusive term according to the name
-	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param dim [in] Spatial dimension of the problem
+	 * @param jacinv [in] Inverse jacobian of the mapping.
+	 * @param Sol Solution vector
 	 * @param Ai [in] vector of tensors tangent to the directional fluxes
 	 * @param Tau [out] Diffusive tensors
 	 */
@@ -263,12 +264,12 @@ public:
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions
 	 * @param dsol [in] derivatives of U with respect to the dim dimensions
+	 * @param dphi [in] derivatives of shape functions.
 	 * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
 	 * @param pTaudDiv [out] pointer of a vector to matrices to store the
 	 * approximate derivatives of \f$Tau_i*Div\f$. \n If Null, then no approximation
 	 * derivative is evaluated.
 	 */
-	
 	void PrepareFastDiff(int dim,
 						 TPZFMatrix &jacinv, TPZVec<REAL> &sol,
 						 TPZFMatrix &dsol, TPZFMatrix & dphi,
@@ -310,6 +311,7 @@ public:
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions
 	 * @param dsol [in] derivatives of U with respect to the dim dimensions
+	 * @param dphix [in] derivatives of shape functions.
 	 * @param ek [out] Tangent matrix to contribute to
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
@@ -330,7 +332,6 @@ public:
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions
 	 * @param dsol [in] derivatives of U with respect to the dim dimensions
-	 * @param ek [out] Tangent matrix to contribute to
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
 	 * @param timeStep [in]
@@ -379,6 +380,13 @@ public:
 	 * @param timeStep [in]
 	 * @param deltaX [in] diameter of element (used only if \f$fDelta > 0\f$);
 	 */
+	void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
+								   TPZVec<REAL> &sol, TPZFMatrix &dsol,
+								   TPZFMatrix &phi, TPZFMatrix &dphi,
+								   TPZFMatrix &ek, TPZFMatrix &ef,
+								   REAL weight, REAL timeStep,
+								   REAL deltaX);
+
 	template <int dim>
 	void ContributeFastestImplDiff_dim(
 									   TPZFMatrix &jacinv,
@@ -387,14 +395,7 @@ public:
 									   TPZFMatrix &ek, TPZFMatrix &ef,
 									   REAL weight, REAL timeStep,
 									   REAL deltaX);
-	
-	void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
-								   TPZVec<REAL> &sol, TPZFMatrix &dsol,
-								   TPZFMatrix &phi, TPZFMatrix &dphi,
-								   TPZFMatrix &ek, TPZFMatrix &ef,
-								   REAL weight, REAL timeStep,
-								   REAL deltaX);
-	
+
 #endif
 	/** @} */
 	

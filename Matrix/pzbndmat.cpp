@@ -26,9 +26,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfbmatrix"));
 #endif
 
-#define Max( a, b )   ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )   ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
 
 /*******************/
@@ -380,8 +377,8 @@ void TPZFBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 		for (ic = 0; ic < xcols; ic++) {
 			int begin, end;
 			for ( r = 0; r < rows; r++ ) {
-				begin = Max( r - fBand, 0 );
-				end   = Min( r + fBand + 1, Dim() );
+				begin = MAX( r - fBand, 0 );
+				end   = MIN( r + fBand + 1, Dim() );
 				REAL val = z.GetVal(r*stride,ic);
 				// Calcula um elemento da resposta.
 				for ( int i = begin ; i < end; i++ ) val += alpha * GetVal( r, i ) * x.GetVal( i*stride, ic );
@@ -392,8 +389,8 @@ void TPZFBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 		for (ic = 0; ic < xcols; ic++) {
 			int begin, end;
 			for ( r = 0; r < rows; r++ ) {
-				begin = Max( r - fBand, 0 );
-				end   = Min( r + fBand + 1, Dim() );
+				begin = MAX( r - fBand, 0 );
+				end   = MIN( r + fBand + 1, Dim() );
 				REAL val = z.GetVal(r*stride,ic);
 				// Calcula um elemento da resposta.
 				for ( int i = begin ; i < end; i++ ) val += alpha * GetVal( i, r ) * x.GetVal( i*stride, ic );
@@ -596,8 +593,8 @@ TPZFBMatrix::Transpose (TPZMatrix *const T) const
 	//REAL *p = fElem;
 	for ( int r = 0; r < Dim(); r++ )
     {
-		begin = Max( r - fBand, 0 );
-		end   = Min( r + fBand + 1, Dim() );
+		begin = MAX( r - fBand, 0 );
+		end   = MIN( r + fBand + 1, Dim() );
 		for ( int c = begin; c < end; c++ )
 		{
 			T->PutVal( c, r, GetVal( r, c ) );

@@ -29,9 +29,9 @@ private:
 	REAL fAlpha, fBeta;
 	
 public:
-	
+	/** @brief Constructor with Gamma value */
 	TPZAUSMFlux(REAL gamma);
-	
+	/** @brief Copy constructor */
 	TPZAUSMFlux(const TPZAUSMFlux &cp);
 	
 	/** @brief Computes numerical flux */
@@ -67,6 +67,6 @@ private:
 	/** @brief Returns the mass flux */
 	REAL MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL FaceMach);
 	
-};//class
+};
 
 #endif

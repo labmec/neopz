@@ -138,7 +138,7 @@ protected:
     /** @brief Frontal matrix data */
     TPZVec<REAL> fData;
     
-    /** @brief Expantion Ratio of frontal matrix */
+    /** @brief Expansion Ratio of frontal matrix */
     int fExpandRatio;
 };
 

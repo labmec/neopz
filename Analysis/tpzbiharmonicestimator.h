@@ -90,8 +90,8 @@ public:
 											   TPZVec<REAL> &nkL, 
 											   TPZVec<REAL> &nkR);
 	
-	/** @brief Implements integration of the boundary interface part of an error estimator.
-	 * 
+	/** @brief Implements integration of the boundary interface part of an error estimator. */
+	/** 
 	 * It performs nk[0] += weight * ( residuo(u ) * (Z1-Z) ); \n
 	 * where u is the current solution and Z and Z1 are the dual solution.
 	 */
@@ -125,10 +125,9 @@ public:
 												   REAL weight,
 												   TPZVec<REAL> &nk,
 												   TPZBndCond &bc);
-	
-	
+
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
-				TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
+				TPZFMatrix &axes, TPZVec<REAL> & /*flux*/ ,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
 				TPZVec<REAL> &values);
 	

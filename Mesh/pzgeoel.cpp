@@ -283,6 +283,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 	out << "fNumInterfaces = " << fNumInterfaces << endl;
 }
 
+/** @brief Overload operator << to print geometric element data */
 std::ostream &operator<<(std::ostream &out,TPZGeoEl & el) {
 	el.Print(out);
 	return out;
@@ -1222,7 +1223,6 @@ int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimensio
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal);
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 
-
 void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
 {
 	int numbernormals = 0;
@@ -1341,8 +1341,6 @@ TPZTransform TPZGeoEl::Projection(int side)
 	//	std::cout << "side to side " << side << " trans " << tr3 << std::endl;
 	return tr3;
 }
-
-int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
 
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 {

@@ -268,14 +268,14 @@ public:
 	 * @brief Prints element data
 	 * @param out indicates the device where the data will be printed
 	 */
-	virtual void Print(std::ostream & out = std::cout) const;
+	virtual void Print(std::ostream &out = std::cout) const;
 	
 	/**
 	 * @brief Output device operator
 	 * @param out indicates the device where the data will be printed
 	 * @param el element to print
 	 */
-	friend std::ostream& operator<<(std::ostream &out,TPZCompEl &el);
+	friend std::ostream& operator<< ( std::ostream & out,TPZCompEl &el);
 	
 	/**
 	 * @brief Prints the solution - sol - for the variable "VarName"
@@ -668,6 +668,7 @@ inline bool TPZCompElSide::operator == (const TPZCompElSide &other)
 	return (other.Element() == Element() && other.Side() == Side());
 }
 
+/** @brief Overload operator << to write computational element side data */
 inline std::ostream &operator << (std::ostream &out,const TPZCompElSide &celside)
 {
 	out << "Side = " << celside.Side()

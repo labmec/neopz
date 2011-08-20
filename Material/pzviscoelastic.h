@@ -5,14 +5,18 @@
 #ifndef TPZVISCOELASTIC_H
 #define TPZVISCOELASTIC_H
 
+/** @brief First index to qsi vector for contribute method of viscoelasticity material */
 const int _XX_ = 0;
+/** @brief Second index to qsi vector for contribute method of viscoelasticity material */
 const int _XY_ = 1;
+/** @brief Third index to qsi vector for contribute method of viscoelasticity material */
 const int _XZ_ = 2;
+/** @brief Fourth index to qsi vector for contribute method of viscoelasticity material */
 const int _YY_ = 3;
+/** @brief Fifth index to qsi vector for contribute method of viscoelasticity material */
 const int _YZ_ = 4;
+/** @brief Sixth index to qsi vector for contribute method of viscoelasticity material */
 const int _ZZ_ = 5;
-
-
 
 
 #include <iostream>

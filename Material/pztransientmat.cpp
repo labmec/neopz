@@ -203,6 +203,7 @@ template class TPZTransientMaterial< TPZNonLinearPoisson3d >;
 #include "pzburger.h"
 template class TPZTransientMaterial< TPZBurger >;
 
+/** @brief Instantiations to TPZMatPoisson3d, TPZNonLinearPoisson3d and TPZBurger. */
 void TestInstantiations(){
 	TPZTransientMaterial< TPZMatPoisson3d > A(1,1,1.);
 	TPZTransientMaterial< TPZNonLinearPoisson3d > B(1,1,1.);

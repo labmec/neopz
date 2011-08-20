@@ -546,6 +546,7 @@ private:
 	
 };
 
+/** @brief Creates geometric element of the specified type */
 TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 								 MElementType type,
 								 TPZVec<int>& nodeindexes,

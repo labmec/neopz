@@ -32,11 +32,12 @@ extern "C"{
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylparmatrix"));
 #endif
 
-
+/** @brief Semaphore */
 pthread_mutex_t skymutex = PTHREAD_MUTEX_INITIALIZER;
+/** @brief Condition to waiting */
 pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 
-
+/** @brief Initializing number of iterations to Template SUM */
 const int templatedepth = 10;
 
 //Constructors

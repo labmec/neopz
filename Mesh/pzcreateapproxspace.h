@@ -17,13 +17,21 @@ class TPZCompEl;
 class TPZCompMesh;
 class TPZGeoEl;
 
+/** @brief Creates computational point element */
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational linear element */
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational quadrilateral element */
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational triangular element */
 TPZCompEl *CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational cube element */
 TPZCompEl *CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational prismal element */
 TPZCompEl *CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational pyramidal element */
 TPZCompEl *CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational tetrahedral element */
 TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 #endif

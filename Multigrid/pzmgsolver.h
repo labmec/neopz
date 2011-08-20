@@ -8,6 +8,7 @@
 #include "pzsolve.h"
 #include "pzstepsolver.h"
 
+/** @brief Id for MG solver */
 #define TPZMGSOLVER_ID 28291008
 
 class TPZFMatrix;

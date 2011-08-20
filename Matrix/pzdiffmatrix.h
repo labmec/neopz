@@ -123,6 +123,7 @@ private:
 	
 };
 
+/** @brief Re-implements << operator to output of matrices */
 template <class T>
 std::ostream & operator<<(std::ostream & out, TPZDiffMatrix<T> & A)
 {

@@ -33,6 +33,7 @@ public:
 	
 };
 
+/**
 template<class TShape>
 void BuildHigherDimensionSides(TPZStack<int> &highdim, int side);
 template<class TShape>
@@ -41,7 +42,7 @@ template<class TShape>
 void PrintHighDimTransforms(int side, std::ostream &out);
 template<class TShape>
 void PrintHighDimTransforms(std::ostream &out);
-
+*/
 
 #endif
 

@@ -155,6 +155,7 @@ public:
 	
 };
 
+/** @brief Creates TPZGeoElRefPattern geometric element based over type */
 TPZGeoEl *CreateGeoElementPattern(TPZGeoMesh &mesh,
                                   MElementType type,
                                   TPZVec<int>& nodeindexes,

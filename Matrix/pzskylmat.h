@@ -189,12 +189,13 @@ private:
 	TPZManVector<REAL> fStorage;
 };
 
+/** @brief Implements iterative sum over N steps */
 template<int N>
 inline REAL TemplateSum(const REAL *p1, const REAL *p2){
 	return *p1* *p2 + TemplateSum<N-1>(p1+1,p2+1);
 	
 }
-
+/** @brief Implements product of the values into p1 and p2 */
 template<>
 inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
 	return *p1 * *p2;

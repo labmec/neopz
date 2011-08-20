@@ -19,23 +19,35 @@
 /** \addtogroup material
  * @{
  */
-
+/** @brief Id of material class */
 const int TPZMATERIALID = 300;
+/** @brief Id of Discontinuous Galerkin material */
 const int TPZDISCONTINUOUSGALERKIN = 301;
+/** @brief Id of Bi-dimensional linear material */
 const int TPZMAT2DLINID = 302;
+/** @brief Id of Bi-dimensional conservation law material */
 const int TPZCONSERVATIONLAW2ID = 303;
+/** @brief Id of Euler conservation law material */
 const int TPZEULERCONSLAW2ID = 304;
+/** @brief Id of artificial diffusivity */
 const int TPZARTDIFFID = 305;
+/** @brief Id of Boundary condition */
 const int TPZBNDCONDID = 306;
+/** @brief Id of Elasticity material */
 const int TPZELASTICITYMATERIALID = 307;
+/** @brief Id of Three-dimensional elasticity material */
 const int TPZELASTICITY3DMATERIALID = 308;
+/** @brief Id of Three-dimensional material for tests */
 const int TPZMATTEST3DID = 309;
+/** @brief Id of one-dimensional linear material */
 const int TPZNLMAT1D = 310;
+/** @brief Id of three-dimensional poisson material */
 const int TPZMATPOISSON3D = 311;
+/** @brief Id of Elasticity axi material */
 const int TPZELASTICITYAXIMATERIALID = 312;
-
+/** @brief Id of Material Data */
 const int TPZMATERIALDATAID = 313;
-
+/** @brief Id of material void flux */
 const int TPZMATERIALVOIDFLUX = 314;
 
 /** @} */

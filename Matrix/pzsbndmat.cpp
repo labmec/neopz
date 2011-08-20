@@ -27,9 +27,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzsbmatrix"));
 #endif
 
-#define Max( a, b )  ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )  ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
 
 /*******************/
@@ -125,8 +122,7 @@ TPZSBMatrix ::Print(const char *name, std::ostream& out,const MatrixOutputFormat
 }
 
 
-/*******************/
-/*** Overload << ***/
+/** @brief Overload << operator to output entries of TPZSBMatrix matrix ***/
 std::ostream&
 operator<<(std::ostream& out,TPZSBMatrix  &A)
 {
@@ -227,7 +223,7 @@ TPZSBMatrix::operator-(const TPZSBMatrix &A ) const
 	REAL *elemThis = fDiag;
 	REAL *elemA    = A.fDiag;
 	
-	TPZSBMatrix res( Dim(), Max(sizeThis, sizeA) );
+	TPZSBMatrix res( Dim(), MAX(sizeThis, sizeA) );
 	
 	// Efetua a SUBTRACAO.
 	REAL *dest = res.fDiag;
@@ -341,8 +337,8 @@ void TPZSBMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 	for (ic = 0; ic < xcols; ic++) {
 		int begin, end;
 		for ( r = 0; r < rows; r++ ) {
-			begin = Max( r - fBand, 0 );
-			end   = Min( r + fBand + 1, rows );
+			begin = MAX( r - fBand, 0 );
+			end   = MIN( r + fBand + 1, rows );
 			REAL val = 0.;
 			// Calcula um elemento da resposta.
 			for ( int i = begin ; i < end; i++ ) val += GetVal( r, i ) * x.GetVal(stride * i, ic );
@@ -434,7 +430,7 @@ TPZSBMatrix::Resize(const int newDim ,const int)
 	// Copia os elementos para a nova matriz.
 	REAL *src = fDiag;
 	REAL *dst = newDiag;
-	REAL *end = &newDiag[ Min(Size(), newSize) ];
+	REAL *end = &newDiag[ MIN(Size(), newSize) ];
 	while ( dst < end )
 		*dst++ = *src++;
 	
@@ -515,7 +511,7 @@ TPZSBMatrix::SetBand(const int newBand )
 	REAL *pOld = fDiag;
 	int newSize  = newBand + 1;
 	int oldSize  = fBand + 1;
-	int minSize  = Min( newSize, oldSize );
+	int minSize  = MIN( newSize, oldSize );
 	int i;
 	for ( i = 0; i < minSize; i++ )
     {
@@ -645,7 +641,7 @@ TPZSBMatrix::Decompose_LDLt()
 		//Print("curernt");
 		sum=0.;
 		
-		begin = Max( int(j - fBand), 0 );
+		begin = MAX( int(j - fBand), 0 );
 		//cout<<"begin="<<begin<<"\n";
 		for ( k=begin; k<j; k++)
 		{
@@ -659,7 +655,7 @@ TPZSBMatrix::Decompose_LDLt()
 		//cout<<"\n(j,j)"<<j<<" "<<j<<"\n\n";
 		for ( k=0; k<j; k++)
 		{
-			end   = Min( int(k + fBand )+1, Dim() );
+			end   = MIN( int(k + fBand )+1, Dim() );
 			for( l=j+1; l<end;l++)
 			{
 				PutVal(l,j, GetVal(l,j)-GetVal(k,k)*GetVal(j,k)*GetVal(l,k) );
@@ -672,7 +668,7 @@ TPZSBMatrix::Decompose_LDLt()
 		}
 		
 		if ( IsZero(GetVal(j,j)) ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Zero on diagonal>" );
-		end  = Min( int(j + fBand )+1, Dim() );
+		end  = MIN( int(j + fBand )+1, Dim() );
 		//cout<<"end="<<end<<"\n";
 		for( l=j+1; l<end;l++)
 		{

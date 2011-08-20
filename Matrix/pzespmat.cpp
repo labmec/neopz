@@ -30,9 +30,6 @@
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzspmatrix"));
 #endif
 
-#define Max( a, b )  ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )  ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
 
 /*******************/
@@ -366,7 +363,7 @@ TPZSpMatrix::Resize(const int newRows,const int newCols )
 	TPZLink<TPZNode> *newDiag = new TPZLink<TPZNode>[ newRows ] ;
 	
 	// Copia os elementos para a nova matriz.
-	int min = Min( newRows, Rows() );
+	int min = MIN( newRows, Rows() );
 	for ( int i = 0; i < min; i++ )
 		newDiag[i] = fElem[i];
 	

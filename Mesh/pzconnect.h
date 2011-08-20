@@ -248,6 +248,7 @@ struct TPZConnectBC {
 	
 };
 
+/** @brief Overload operator << to write node connect data */
 inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)
 {
 	out << "seq num: " << con.SequenceNumber()
@@ -256,5 +257,6 @@ inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)
 	<< " hasdepend: " << con.HasDependency();
 	return out;
 }
+
 #endif
 

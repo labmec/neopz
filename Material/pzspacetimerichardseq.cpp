@@ -9,8 +9,11 @@
 #include "pzreal.h"
 #include "pzaxestools.h"
 
+/** @brief Inicializing local variable TCoeff */
 double TCoeff = 1./60.;
+/** @brief Inicializing local variable LCoeff */
 double LCoeff = 1000.;
+/** @brief Inicializing loval variable deltaDerivada */
 double deltaDerivada = 1.e-3;
 
 TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(): TPZMaterial()
@@ -171,6 +174,7 @@ REAL TPZSpaceTimeRichardsEq::Theta(REAL Se){
 	return result;
 }
 
+/** @brief Return sign of the real A. If A is closed to zero up to tolerance tol returns zero (in absolute value) */
 int Sign(double A, double tol){
 	if(fabs(A) < tol) return 0;
 	if(A > 0.) return +1;

@@ -24,7 +24,7 @@ public:
 	
 	/**
 	 * @brief Verify whether parameter axes is an orthogonal normalized matrix.
-	 * @param TPZFMatrix axes Object to check if it is a orthogonal and normalized matrix
+	 * @param axes Object to check if it is a orthogonal and normalized matrix
 	 */
 	static void VerifyAxes(const TPZFMatrix &axes){
 #ifdef DEBUG

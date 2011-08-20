@@ -38,10 +38,11 @@ class TPZVec;
 /** \addtogroup matrix
  * @{ */
 
-// MACROS
+/** @brief MACRO to get MAT(row,col) entry */
 #define GETVAL(MAT,rows,row,col) MAT->fElem[((unsigned)col)*rows+row]
+/** @brief MACRO to put value val into MAT(row,col) entry */
 #define PUTVAL(MAT,rows,row,col,val) MAT->fElem[((unsigned)col)*rows+row]=val
-
+/** @brief MACRO to get the entry of the vector (ptr[col*rows+row]) as matrix ( ptr(row,col) )*/
 #define SELECTEL(ptr,rows,row,col) ptr[col*rows+row]
 
 /**
@@ -334,6 +335,7 @@ inline TPZFMatrix::TPZFMatrix(const int rows,const int cols,const REAL & val )
 	for(int i=0;i<size;i++) fElem[i] = val;
 }
 
+/** @brief Implements a scalar product val*A */
 inline TPZFMatrix operator*(REAL val, const TPZFMatrix &A)
 {
 	return A*val;
@@ -404,8 +406,10 @@ public:
 	
 };
 
+/** @brief Returns a dot product to matrices */
 REAL Dot(const TPZFMatrix &A,const TPZFMatrix &B);
 
+/** @brief Returns the norm of the matrix A */
 REAL Norm(const TPZFMatrix &A);
 
 

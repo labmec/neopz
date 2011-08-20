@@ -27,11 +27,10 @@
 static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 #endif
 
-#define Max( a, b )   ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )   ( (a) < (b) ? (a) : (b) )
-
 using namespace std;
-static REAL zero =0.;
+
+/** @brief Initializing variable zero as real */
+static REAL zero = 0.;
 
 void TPZBlockDiagonal::AddBlock(int i, TPZFMatrix &block){
 	// ::cout << "Iniciando inserc� de bloco na posic�\t" ;

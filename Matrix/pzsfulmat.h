@@ -168,18 +168,21 @@ TPZSFMatrix::GetVal(const int row,const int col ) const
 /**************************/
 /*** Operadores Globais ***/
 
+/** @brief Increments value for all entries of the A matrix */
 inline TPZSFMatrix
 operator+( const REAL value, const TPZSFMatrix &A )
 {
 	return( A + value );
 }
 
+/** @brief Decrements value for all entries of the A matrix */
 inline TPZSFMatrix
 operator-( const REAL value,const  TPZSFMatrix &A )
 {
 	return( A - value );
 }
 
+/** @brief Implements the scalar product value*A */
 inline TPZSFMatrix
 operator*( const REAL value, const TPZSFMatrix &A )
 {

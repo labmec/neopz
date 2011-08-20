@@ -1409,8 +1409,7 @@ int TPZFMatrix::Substitution(const REAL *ptr, int rows, TPZFMatrix *B, TPZVec<in
 	return 1;
 }
 
-
-
+/** @brief Implement dot product for matrices */
 REAL Dot(const TPZFMatrix &A, const TPZFMatrix &B) {
 	int size = (A.Rows())*A.Cols();
 	REAL result = 0.;
@@ -1434,18 +1433,15 @@ REAL Dot(const TPZFMatrix &A, const TPZFMatrix &B) {
 #endif
 }
 
+/** @brief Increments value over all entries of the matrix A. */
 TPZFMatrix operator+(const REAL value, const TPZFMatrix &A ) {
 	return( A + value );
 }
 
-
-
+/** @brief Decrements value over all entries of the matrix A. */
 TPZFMatrix operator-(const REAL value, const TPZFMatrix &A ) {
 	return( A - value );
 }
-
-
-
 
 /*TPZTempFMatrix operator*(const REAL value, const TPZFMatrix &A ) {
  return( A * value );

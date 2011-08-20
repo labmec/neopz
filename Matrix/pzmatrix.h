@@ -26,7 +26,13 @@
 #include <list>
 #include <sstream>
 
+/** @brief To create clone matrix */
 #define CLONEDEF(A) virtual TPZMatrix *Clone() const { return new A(*this); }
+
+/** @brief Gets maxime value between a and b */
+#define MAX( a, b )   ( (a) > (b) ? (a) : (b) )
+/** @brief Gets minime value between a and b */
+#define MIN( a, b )   ( (a) < (b) ? (a) : (b) )
 
 class TPZFMatrix;
 class TPZSolver;
@@ -35,7 +41,7 @@ template<class T>
 class TPZVec;
 
 extern "C"{
-	//BLAS FUNTIONS
+	/// Extern BLAS FUNCTION 
 	double ddot(int *N, double *X, int *INCX, double *Y, int *INCY);
 }
 
@@ -52,6 +58,7 @@ extern "C"{
  */
 enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 
+/** @brief Defines output format */
 enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros};
 
 class TPZFMatrix;
@@ -741,6 +748,7 @@ protected:
 
 /** @} */
 
+/** @brief Overload << operator to print entries of the matrix ***/
 std::ostream & operator<<(std::ostream& out, const TPZMatrix & A);
 
 /******** Inline ********/

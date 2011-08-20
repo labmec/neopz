@@ -142,9 +142,12 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
     return meanTimeStep / (double)numcontr;
 }
 
+/** @brief Function for dynamic cast of the material based on map A (second data) */
 #define FL(A) dynamic_cast<TPZConservationLaw2 *>(A->second.operator->())
 
+/** @brief Maxime value to CFL coefficient */
 #define MAXCFL 1.e6
+
 void TPZFlowCompMesh::SetCFL(REAL CFL)
 {
     if(CFL > MAXCFL) CFL = MAXCFL;

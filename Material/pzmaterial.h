@@ -324,6 +324,7 @@ inline bool TPZMaterial::GetLinearContext() const{
     return fLinearContext;
 }
 
+/** @brief Extern variable - Vector of force values */
 extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
 
 #endif

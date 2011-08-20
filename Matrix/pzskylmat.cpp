@@ -22,7 +22,6 @@ extern "C" {
 #include <cblas.h>
 }
 #endif
-const int templatedepth = 10;
 
 /**
  * Commented out by Longhin
@@ -40,9 +39,6 @@ const int templatedepth = 10;
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
-
-#define Max( a, b )  ( (a) > (b) ? (a) : (b) )
-#define Min( a, b )  ( (a) < (b) ? (a) : (b) )
 
 using namespace std;
 
@@ -148,7 +144,6 @@ TPZSkylMatrix::operator()(const int r, const int c) {
 	
 	// Indice do vetor coluna.
 	int index = col - row;
-	int toto = Size(col);
 	if ( index >= Size(col) ) {
 		//Error("TPZSkylMatrix::operator()","Index out of range");
 		TPZMatrix::Error(__PRETTY_FUNCTION__,"Index out of range");
@@ -592,7 +587,7 @@ int TPZSkylMatrix::Resize( int newDim ,int ) {
 	// Cria nova matrix.
 	
 	// Copia os elementos para a nova matriz.
-	int min = Min( newDim, Dim() );
+	int min = MIN( newDim, Dim() );
 	int i;
 	for ( i = min+1; i <= newDim; i++ )
 		fElem[i] = fElem[i-1];

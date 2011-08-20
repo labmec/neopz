@@ -64,7 +64,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 		
 		for(in = 0; in < phr; in++) 
 		{ 
-			//in: test function index	
+			//in: test function index. First equation	
 			val = 0.;
 			val -= qsi(_XX_,0) * dphi(0,in); // |
 			val -= qsi(_XY_,0) * dphi(1,in); // fk
