@@ -20,6 +20,7 @@ namespace pzshape{
 	class TPZShapePoint  : public pztopology::TPZPoint  {
 	public:
 		
+		/** @brief Temporary storage to accelerate the computation of shape functions. To point it isn't necessary. */
 		struct TMem  
 		{
 		};

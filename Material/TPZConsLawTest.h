@@ -15,7 +15,7 @@
 /**
  * @deprecated DEPRECATED CLASS, was used for testing purposes
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZConsLawTest  : public TPZConservationLaw {
 	

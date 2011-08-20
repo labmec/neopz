@@ -20,7 +20,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZCoupledTransportDarcyBC : public TPZBndCond{
 	
@@ -85,7 +85,7 @@ protected:
 	 */
 	virtual int NEvalErrors() {return this->GetNonNullMaterial()->NEvalErrors();}
 	
-	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
+	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux){
 		flux.Fill(0.);
 	}

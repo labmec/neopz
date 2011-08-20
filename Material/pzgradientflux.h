@@ -14,7 +14,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZGradientFlux{
 	
@@ -26,8 +26,7 @@ public:
 	
 	~TPZGradientFlux();
 	
-	/** @brief Computes numerical flux
-	 */
+	/** @brief Computes numerical flux */
 	void ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, const TPZVec<REAL> &normal, TPZVec<REAL> & F);
 	
 	/** @brief Apply limiter */
@@ -40,8 +39,7 @@ private:
 							   const TPZVec<REAL> &normal, 
 							   const TPZVec<REAL> &dL, const TPZVec<REAL> & dR);
 	
-	/** @brief It corrects soll and solr values
-	 */
+	/** @brief It corrects \f$ soll \f$ and \f$ solr \f$ values */
 	void ApplyMinModLimiter(REAL &soll, REAL &solr,
 							const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR, 
 							const TPZVec<REAL> &normal, 
@@ -54,6 +52,6 @@ private:
 		return result;
 	}
 	
-};//class
+};
 
 #endif

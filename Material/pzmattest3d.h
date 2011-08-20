@@ -12,7 +12,7 @@
 
 /**
  * @ingroup material
- * @brief Three dimensional linear material for test.
+ * @brief Implements a three dimensional linear material for test.
  */
 class TPZMaterialTest3D : public TPZMaterial
 {

@@ -51,7 +51,6 @@ class TPZChunkVector
 	/**
 	 * @brief Constructor with numberofchuncks chuncks.
 	 * @param numberofchunks Indicates how large the initial chunk vector will be.
-	 * @param chunkexponent Indicates the size of the chunks as an exponent of 2.
 	 */
 	TPZChunkVector(int numberofchunks = DEFAULTNUMBEROFCHUNKS);
 	/** @brief Destructor. */

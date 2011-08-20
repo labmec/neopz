@@ -16,7 +16,7 @@ class TPZVec;
 
 /**
  * @ingroup material
- * @brief 
+ * @brief Implements a bi-dimensional linear problem.
  */
 class TPZMat2dLin : public TPZMaterial{
 	

@@ -115,7 +115,7 @@ protected:
 };
 
 class TPZCompMesh;
-
+/** @brief Makes resequence to renumbering */
 void ResequenceByGeometry(TPZCompMesh *cmesh,const TPZVec<REAL> &normal);
 
 #endif //TPZRENUMBERING_H

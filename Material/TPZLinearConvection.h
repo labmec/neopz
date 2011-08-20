@@ -12,8 +12,7 @@ class TPZBndCond;
 
 /**
  * @ingroup material
- * @brief This class implements a linear scalar convection equation with modified 
- * SUPG difusion
+ * @brief Implements a linear scalar convection equation with modified SUPG difusion
  */
 class TPZLinearConvection : public TPZMaterial {
 public:  

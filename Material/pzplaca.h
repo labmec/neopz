@@ -17,7 +17,7 @@ class TPZVec;
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZPlaca : public TPZMaterial{
 	

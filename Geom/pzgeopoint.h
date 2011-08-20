@@ -42,10 +42,10 @@ namespace pzgeom {
 	public:
 		enum {NNodes = 1};
         
-        struct TMem
-        {
-        };
-        
+		/** @brief Auxiliar structure to accellerate computations */
+		struct TMem {
+		};
+		
         typedef pztopology::TPZPoint Top;
 		
 		/** @brief Constructor with list of nodes */

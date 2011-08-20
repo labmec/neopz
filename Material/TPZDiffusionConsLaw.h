@@ -3,17 +3,17 @@
  * @brief Contains the TPZDiffusionConsLaw class which implements a Euler equation where is introduced a diffusive term to stabilize.
  */
 /**
- DIFUS�O <-> DIFFUSION
+ DIFUSÃO <-> DIFFUSION
  
  do Lat. diffusione
  
  s. f., acto ou efeito de difundir ou difundir-se;
- derramamento de fluido;
- dissemina��o;
- propaga��o;
+ derramamento de fluido; \n
+ disseminação;
+ propagação;
  prolixidade;
- falta de concis�o;
- Qu�m., mistura de gases de diferentes densidades.
+ falta de concisão; \n
+ Quím., mistura de gases de diferentes densidades.
  */
 
 #ifndef DIFFUSIONFORCONSLAWHH

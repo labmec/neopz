@@ -53,7 +53,7 @@ enum TPZResidualType
  * @brief This class implements the interface for conservation laws, keeping track of the timestep as well
  */
 /**
- This class defines the aditional interface necessary to compute contributions over the interfaces between elements
+ * Defines the aditional interface necessary to compute contributions over the interfaces between elements
  */
 class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
 {
@@ -173,7 +173,7 @@ protected:
 						  TPZVec<REAL> &Solout)=0;
 public:
 	/** 
-	 * @brief eturns the solution associated with the var index based on
+	 * @brief Returns the solution associated with the var index based on
 	 * the finite element approximation 
 	 */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)

@@ -14,7 +14,7 @@
 
 /**
  * @ingroup material
- * @brief This class implements discontinuous Galerkin formulation for the bi-harmonic equation.
+ * @brief Implements discontinuous Galerkin formulation for the bi-harmonic equation.
  * @since Nov 27, 2003
  * @author Igor Mozolevski e Paulo Bosing
  */

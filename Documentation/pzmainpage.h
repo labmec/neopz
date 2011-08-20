@@ -72,7 +72,7 @@ In this section we describe which finite element concepts were modified or exten
 environment and how these concepts translated in an object oriented framework
 
 \subsection sec_neighbour Neigbouring Information
-Within the geometric mesh, all geometric elements keep track of their neighbours along all the sides (see \ref sec_topology) of the element
+Within the geometric mesh, all geometric elements keep track of their neighbours along all the sides (see \ref sec_topological) of the element
 \subsection sec_jacobian Jacobian Matrix
 \subsection sec_topological Topological Concepts associated with an Element
 Within PZ a geometric element is considered as the union of open sets of points. These sets of points are named sides. As such:

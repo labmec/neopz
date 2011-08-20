@@ -43,6 +43,7 @@ void TPZBiharmonicEstimator::SetExactSolutions(
 }
 
 //static REAL Pi = 4.*atan(1.);
+/** @brief Output file to contribute erros. */
 std::ofstream CE ( "debugContributeErros.txt" );
 // std::ofstream CoutPontual ( "solPontual.txt" );
 void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
@@ -320,7 +321,9 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	nk[1] += weight*betta*ResN*( (du_exactd[0]*normal[0]+du_exactd[1]*normal[1]) - (GRADdualhp[0]*normal[0]+GRADdualhp[1]*normal[1]) );
 }
 
+/** @brief Initializing variable for computing L2 error */
 REAL L2ErrorPrimal = 0.;
+/** @brief Initializing variable for computing L2 error to dual form. */
 REAL L2ErrorDual = 0.;
 
 void TPZBiharmonicEstimator::ContributeErrorsSimple(TPZMaterialData &data,

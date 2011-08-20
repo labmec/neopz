@@ -13,7 +13,7 @@
 /**
  * @deprecated THIS CLASS IS DEPRECATED BY TPZConservationLaw2.
  * @ingroup material
- * @brief This class implements the interface for conservation laws, keeping track of the timestep as well
+ * @brief Implements the interface for conservation laws, keeping track of the timestep as well
  */
 class TPZConservationLaw  : public TPZMaterial {
 	

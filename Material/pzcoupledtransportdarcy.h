@@ -18,13 +18,14 @@ class TPZCoupledTransportDarcyBC;
  * @ingroup material
  * @brief Implements two equations where the second one requires the solution of the first.
  */
-/** First equation is  -div[ K Grad[p] ] = 0
- * Second equation is -div[ A Grad[u] ] + beta . Grad[u] = 0,
- * where K and A are constants and beta = alpha * (-K Grad[p] )
- * Both equations are implemented by TPZMatPoisson3d material.
+/** 
+ * First equation is  \f$ -div[ K Grad[p] ] = 0 \f$ \n
+ * Second equation is \f$ -div[ A Grad[u] ] + beta . Grad[u] = 0 \f$ \n
+ * where \f$ K \f$ and \f$ A \f$ are constants and \f$ beta = alpha * (-K Grad[p] ) \f$ \n
+ * Both equations are implemented by TPZMatPoisson3d material. \n
  * This material has two instances of TPZMatPoisson3d. In a first moment
- * it behaves like first equation. Once the problem is solved, it behaves
- * like the second equation. In the latter case beta value is set when Contribute
+ * it behaves like first equation. \n Once the problem is solved, it behaves
+ * like the second equation. \n In the latter case beta value is set when Contribute
  * is called by processing the solution of the previous equation.
  */
 class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {

@@ -14,7 +14,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief Implements a hyper elasticity material.
  */
 class TPZMatHyperElastic : public TPZMaterial {
 	

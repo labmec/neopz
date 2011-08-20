@@ -15,7 +15,7 @@ class TPZBndCond;
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZMatPlaca2 : public TPZMaterial{
 	

@@ -9,7 +9,7 @@
 #include "pzfmatrix.h"
 
 /** 
- * @brief Class which implements a numerical diffusivity coeficient for the SUPG method (Jorge?)
+ * @brief Class which implements a numerical diffusivity coeficient for the SUPG method.
  * @ingroup analysis
  */
 /**

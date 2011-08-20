@@ -2,12 +2,6 @@
  * \file
  * @brief Contains the TPZIncNavierStokesKEps class which implements an imcompressible Navier-Stokes formulation with modified KEpsilon turbulence model.
  */
-// -*- c++ -*-
-
-/** @file pzincnskeps.h
- *
- * Header file for class TPZIncNSKEps
- */
 
 #ifndef PZINCNSKEPS
 #define PZINCNSKEPS
@@ -26,9 +20,6 @@ class TPZBndCond;
 /**
  * @ingroup material
  * @brief This class implements an imcompressible Navier-Stokes formulation with modified KEpsilon turbulence model.
- */
-/** Variables are: {K, Eps, Pressure, Vx, Vy, Vz}.
- * This class is homework:
  * @author Professor Paulo Vatavuk
  * @author Professor Philippe Devloo
  * @author Edimar Cesar Rylo
@@ -36,6 +27,10 @@ class TPZBndCond;
  * @author Roberto H. Heiderich 
  * @author Tiago Forti
  * @since June 29, 2005
+ */
+/** 
+ * Variables are: {K, Eps, Pressure, Vx, Vy, Vz}.
+ * This class is homework:
  */
 class  TPZIncNavierStokesKEps : public TPZMaterial {
 	
@@ -47,7 +42,7 @@ private:
     
     TPZVec<REAL> fBodyForce; //fc = {0,0,-fc}
     
-    /** @brief Dot for matrices with same dimensions. Tr[A B]. No consistence test is made. */
+    /** @brief Dot for matrices with same dimensions. \f$ Tr[A B]. \f$ No consistence test is made. */
     REAL Dot(TPZFMatrix &A, TPZFMatrix &B);
     
     /** @brief Dot of vector A with row BRow of matrix B. */
@@ -77,46 +72,41 @@ public:
     virtual void Print(std::ostream &out = std::cout);
 	
     /** @brief returns the number of variables associated with the variable
-     *  indexed by var.  var is obtained by calling VariableIndex*/
+     *  indexed by var. \n var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
 	
 protected:
-	/** @brief returns the solution associated with the var index based on
-	 * the finite element approximation */
+	/** @brief returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
 public:
-	/** @brief returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
 	
-    /** @brief Compute contribution to the tangent matrix and residual
-     * at an integration point*/
+    /** @brief Compute contribution to the tangent matrix and residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ek,
 							TPZFMatrix &ef);
 	
-    /** @brief Compute contribution to the residual at an integration point*/
+    /** @brief Compute contribution to the residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ef);
 	
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
-	 * side at the integration point of a boundary*/
+	/** @brief Compute contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek,
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
-	 * side at the integration point of a boundary*/
+	/** @brief Compute contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ef,
@@ -126,9 +116,9 @@ public:
     }
 	
 	
-    /** @brief Compute the error due to the difference between the
-     * interpolated flux and the flux computed based on the
-     * derivative of the solution
+    /** 
+	 * @brief Compute the error due to the difference between the interpolated flux and the flux computed \n
+	 * based on the derivative of the solution
      */
     virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
                         TPZFMatrix &axes, TPZVec<REAL> &flux,

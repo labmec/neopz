@@ -13,19 +13,16 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZNonLinearPoisson3d : public TPZMatPoisson3dReferred {
 	
 protected:
 	
-	/**
-	 * Definitions of stabilization terms
-	 */
+	/** @brief Definitions of stabilization terms */
 	enum EStabilizationType {ENoStabilization = 0, ESUPG = 1, EGradient = 2};
 	
-	/** Stabilization term definition
-	 */
+	/** @brief Stabilization term definition */
 	int fStabilizationType;
 	
 public:
@@ -40,16 +37,13 @@ public:
 	
 	void SetReferred(bool Is){ this->fIsReferred = Is; }
 	
-	/** Define SUPG stabilization term.
-	 */
+	/** @brief Define SUPG stabilization term. */
 	void SetSUPGStab(REAL sd = 1.0);
 	
-	/** Define gradient stabilization term.
-	 */
+	/** @brief Define gradient stabilization term. */
 	void SetGradientStab(REAL sd = 1.0);
 	
-	/** Define no stabilization term.
-	 */
+	/** @brief Define no stabilization term. */
 	void SetNoStabilizationTerm();
 	
 	virtual void Contribute(TPZMaterialData &data,
@@ -58,7 +52,7 @@ public:
                             TPZFMatrix &ef);
 	
 	/**
-	 * It computes a contribution to the residual vector at one integration point.
+	 * @brief It computes a contribution to the residual vector at one integration point.
 	 * @param data[in] stores all input data
 	 * @param weight[in] is the weight of the integration rule
 	 * @param ef[out] is the residual vector

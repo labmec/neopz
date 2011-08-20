@@ -140,7 +140,7 @@ public:
 
 /**
  * @ingroup substructure
- * @brief .. . \ref substrucure "Sub structure"
+ * @brief .. . \ref substructure "Sub structure"
  */
 template <class TSubStruct> 
 struct TPZDohrThreadMultData
@@ -174,7 +174,7 @@ struct TPZDohrThreadMultData
 
 /**
  * @ingroup substructure
- * @brief .. . \ref substrucure "Sub structure"
+ * @brief .. . \ref substructure "Sub structure"
  */
 template <class TSubStruct> 
 struct TPZDohrThreadMultList

@@ -29,8 +29,9 @@ static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
 
 #endif
 
-
+/** @brief Initializing semaphore */
 pthread_mutex_t mutex_write = PTHREAD_MUTEX_INITIALIZER;
+/** @brief Initializing condition */
 pthread_cond_t conda_write = PTHREAD_COND_INITIALIZER;
 
 // At the class constructor creates a thread

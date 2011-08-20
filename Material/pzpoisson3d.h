@@ -20,10 +20,10 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 /**
- * -fK Laplac(u) + fC * div(fConvDir*u) = - fXf
+ * \f$ -fK Laplac(u) + fC * div(fConvDir*u) = - fXf  \f$
  */
 class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	

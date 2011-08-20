@@ -2,18 +2,13 @@
  * \file
  * @brief Contains the TPZBndCond class which implements a boundary condition for TPZMaterial objects.
  */
-// -*- c++ -*-
 
 //$Id: pzbndcond.h,v 1.30 2011-05-26 03:28:57 phil Exp $
-
-//HEADER FILE FOR CLASS BNDCOND
 
 #ifndef BNDCONDHPP
 #define BNDCONDHPP
 
-
 #include <iostream>
-
 
 #include "pzreal.h"
 #include "pzdiscgal.h"
@@ -70,7 +65,7 @@ protected:
 	
 	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
-		//cria um novo material
+		//creates a new material
 		if(!material)
 		{
 			std::cout << __PRETTY_FUNCTION__ << " Creating boundary condition with NULL material" << std::endl;
@@ -90,7 +85,7 @@ protected:
 	
 	void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
 	
-	/** @brief returns the integrable dimension of the material*/
+	/** @brief Returns the integrable dimension of the material*/
 	int Dimension() { return fMaterial->Dimension(); }
 	
 	virtual int NFluxes(){ return fMaterial->NFluxes(); }
@@ -110,8 +105,7 @@ protected:
 	
 	TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
 	
-	
-	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
+	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux){
 		flux.Fill(0.);
 	}
@@ -226,7 +220,8 @@ protected:
 	
 	virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
 	
-	/** @brief Compute interface jumps
+	/** 
+	 * @brief Compute interface jumps
 	 * @since Feb 14, 2006
 	 */
 	/**
@@ -238,10 +233,10 @@ protected:
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/** @brief Save the element data to a stream */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/** @brief Read the element data from a stream */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	void ContributeInterfaceErrors(TPZMaterialData &data,

@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Contains the TPZPoligonalChain class which defines a poligonal chain.
+ */
 #ifndef TPZPOLIGONALCHAINH
 #define TPZPOLIGONALCHAINH
 
@@ -17,6 +21,11 @@ using namespace std;
 #include "pzgmesh.h"
 #include "pzvec.h"
 
+/** 
+ * @brief Implements a poligonal chain 
+ * @author Cesar Lucci
+ * @since 29/09/2010
+ */
 class TPZPoligonalChain
 {
 	public:
@@ -24,7 +33,7 @@ class TPZPoligonalChain
 	TPZPoligonalChain();
 	~TPZPoligonalChain();
 	
-			//---------------------------------------------------------------
+			/** @brief Data for Dot of the monotone chain */ 
 			struct MCDot
 			{
 				public:
@@ -65,9 +74,9 @@ class TPZPoligonalChain
 				
 				int fId;
 				TPZVec<REAL> fCoord;
-			};	
-			//---------------------------------------------------------------
-			struct MC // Monotone Chain
+			};
+			/** @brief Monotone chain */
+			struct MC
 			{
 				public:
 				
@@ -114,8 +123,8 @@ class TPZPoligonalChain
 				
 				std::map<double, MCDot> fDotMap; // indexed by x value
 			};
-			//---------------------------------------------------------------
-	
+
+
 	static int Signal(double val)
 	{
 		int sig = -1;

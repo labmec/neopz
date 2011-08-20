@@ -19,7 +19,7 @@ class TPZVec;
 
 /**
  * @ingroup material
- * @brief 
+ * @brief Implements a one dimensional linear problem.
  */
 class TPZMat1dLin : public TPZMaterial{
 	

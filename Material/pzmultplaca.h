@@ -9,7 +9,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZMultPlaca :public TPZMatPlaca2 {
 	

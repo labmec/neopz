@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZPoligonalChain methods.
+ */
 /*
  *  TPZPoligonalChain.cpp
  *  Crack

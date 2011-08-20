@@ -16,12 +16,13 @@
  * @ingroup material
  * @brief This class implements a linear convection equation using
  * a burger flux instead of the linear flux.
- */
-/** It's been developed for a Petrobras report
- * where the water temperature is transported into
- * the reservoir following the Darcy's velocity field
- * I apologise for the class name which is not exact
  * @author Tiago Forti
+ */
+/** 
+ * It's been developed for a Petrobras report
+ * where the water temperature is transported \n
+ * into the reservoir following the Darcy's velocity field. \n
+ * I apologise for the class name which is not exact.
  */
 class TPZBurger : public TPZMatPoisson3dReferred {
 	

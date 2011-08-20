@@ -8,12 +8,13 @@
  * @ingroup solver
  * @brief QMR solves the unsymmetric linear system \f$ Ax = b \f$ using the Quasi-Minimal Residual method.
  * @return Upon successful return, output arguments have the following values:
- * @param A  -- matrix of the system
- * @param b  -- vector of the system
- * @param M  -- preconditioner matrix
- * @param x  --  approximate solution to \f$ Ax=b \f$
- * @param max_iter  --  the number of iterations performed before the tolerance was reached
- * @param tol  --  the residual after the final iteration
+ * @param A Matrix of the system
+ * @param b Vector of the system
+ * @param M1 Preconditioner matrix (first)
+ * @param M2 Preconditioner matrix (second)
+ * @param x Approximate solution to \f$ Ax=b \f$
+ * @param max_iter The number of iterations performed before the tolerance was reached
+ * @param tol The residual after the final iteration (tolerance)
 */
 /**
  * Iterative template routine -- QMR \n
@@ -21,15 +22,15 @@
  * ------------------------------------------------------------- \n
  *   return value   -  indicates \n
  *   ------------     --------------------- \n
- *   \t   0         -  convergence within max_iter iterations \n
- *   \t   1         -  no convergence after max_iter iterations \n
- *   \t\t              breakdown in: \n
- *   \t   2         -    rho \n
- *   \t   3         -    beta \n
- *   \t   4         -    gamma \n
- *   \t   5         -    delta \n
- *   \t   6         -    ep \n
- *   \t   7         -    xi \n
+ *        0         -  convergence within max_iter iterations \n
+ *        1         -  no convergence after max_iter iterations \n
+ *                     breakdown in: \n
+ *        2         -    rho \n
+ *        3         -    beta \n
+ *        4         -    gamma \n
+ *        5         -    delta \n
+ *        6         -    ep \n
+ *        7         -    xi \n
  *   -------------------------------------------------------------
  */
 template < class Matrix, class Vector, class Preconditioner1,

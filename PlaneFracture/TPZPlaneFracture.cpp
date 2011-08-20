@@ -1,3 +1,7 @@
+/**
+ * \file
+ * @brief Contains implementations of the TPZPlaneFracture methods.
+ */
 /*
  *  TPZPlaneFracture.cpp
  *  Crack

@@ -23,24 +23,18 @@ class TPZNonLinBiharmonic : public TPZDiscontinuousGalerkin {
 private:
 	REAL  fXf;
 	
-	//Problem dimention
-	
 	public :
 	
 	static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta,
 	gM_betta, g_teta, Re;
 	static int NorP;
 	
-	/**
-	 * Inicialisation of biharmonic material
-	 */
+	/** @brief Inicialisation of biharmonic material */
 	TPZNonLinBiharmonic(int nummat, REAL f);
 	
 	virtual ~TPZNonLinBiharmonic();
 	
-	/**
-	 * Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2.
-	 */
+	/** @brief Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2. */
 	virtual int NEvalErrors() {return 8;}
 	
 	void SetMaterial(REAL &xfin){
@@ -49,7 +43,7 @@ private:
 	
 	int Dimension() { return 2;}
 	
-	// Returns one because of scalar problem
+	/** @brief Returns one because of scalar problem */
 	int NStateVariables(){
 		return 1;
 	};
@@ -58,26 +52,26 @@ private:
 	
 	virtual std::string Name() { return "TPZBiharmonic"; }
 	
-	//Implements integral over  element's volume
+	/** @brief Implements integral over  element's volume */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
-	//Implements integral over  element's volume
+	/** @brief Implements integral over  element's volume */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
 							TPZFMatrix &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
-	// Implements boundary conditions for continuous Galerkin
+	/** @brief Implements boundary conditions for continuous Galerkin */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek,
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	// Implements boundary conditions for continuous Galerkin
+	/** @brief Implements boundary conditions for continuous Galerkin */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ef,
@@ -95,17 +89,13 @@ private:
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZDiscontinuousGalerkin::Solution(data,var,Solout);
 	}
-	
-	
-	
-	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
+
+	/** @brief compute the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	

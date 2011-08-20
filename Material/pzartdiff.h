@@ -53,31 +53,28 @@ public:
 	virtual ~TPZArtDiff();
 	
 	/** @name Attributes and parameters
-	 * @}
+	 * @{
 	 */
 	
 	/** @brief Returns the type of artifical diffusion */
 	TPZArtDiffType ArtDiffType();
 	
-	/** @brief Configures the type of artificial diffusion */
-	void SetArtDiffType(TPZArtDiffType type);
-	
 	/**
-	 * @brief Returns the name of diffusive term
+	 * @brief Configures the type of artificial diffusion
 	 * @param Type [in] type of diffusive term
 	 */
+	void SetArtDiffType(TPZArtDiffType type);
+	
+	/** @brief Returns the name of diffusive term */
 	TPZString DiffusionName();
 	
-	/**
-	 * @brief Returns the best value for delta based on
-	 * the interpolation degree
-	 */
+	/** @brief Returns the best value for delta based on the interpolation degree */
 	REAL OptimalDelta();
 	
 	/**
 	 * @brief Returns the stored value for delta
 	 * @param Sol [in] solution
-	 * @para [in] deltaX
+	 * @param deltaX [in] 
 	 */
 	/**
 	 * If fDelta is positive, then it is used as an overall
@@ -94,15 +91,10 @@ public:
 	/** @brief Sets the value for delta */
 	void SetDelta(REAL delta);
 	
-	/**
-	 * @brief Returns the best value for CFL based on the
-	 * interpolation degree
-	 */
+	/** @brief Returns the best value for \f$CFL\f$ based on the interpolation degree */
 	REAL OptimalCFL(int degree = TPZCompEl::GetgOrder());
 	
-	/**
-	 * @brief Save the element data to a stream
-	 */
+	/** @brief Save the element data to a stream */
 	void Write(TPZStream &buf, int withclassid);
 	
 	/** @brief Read the element data from a stream */
@@ -253,8 +245,7 @@ public:
 	 */
 	
 	/**
-	 * @brief Computes the common values A B C and Tau vector of matrixes
-	 * for contributions
+	 * @brief Computes the common values A B C and Tau vector of matrixes for contributions
 	 * @param dim [in]
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param U [in] vector of solutions at the point
@@ -267,17 +258,15 @@ public:
 					 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 	
 	/**
-	 * @brief Prepares the data to compute the diffusive term
-	 * as fast as possible, sparing operations
+	 * @brief Prepares the data to compute the diffusive term as fast as possible, sparing operations
 	 * @param dim [in] dimension
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions
 	 * @param dsol [in] derivatives of U with respect to the dim dimensions
 	 * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
 	 * @param pTaudDiv [out] pointer of a vector to matrices to store the
-	 * approximate derivatives of Tau_i*Div. If Null, then no approximation
+	 * approximate derivatives of \f$Tau_i*Div\f$. \n If Null, then no approximation
 	 * derivative is evaluated.
-	 *
 	 */
 	
 	void PrepareFastDiff(int dim,
@@ -288,15 +277,12 @@ public:
 	
 #ifdef _AUTODIFF
 	/**
-	 * @brief Prepares the data to compute the diffusive term
-	 * as fast as possible, sparing operations
+	 * @brief Prepares the data to compute the diffusive term as fast as possible, sparing operations
 	 * @param dim [in] dimension
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions setup with shape functions
-	 * @param dsol [in] derivatives of sol with respect to the dim dimensions
-	 * *aligned as a vector)
-	 * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
-	 *
+	 * @param dsol [in] derivatives of sol with respect to the dim (dimensions aligned as a vector)
+	 * @param TauDiv [out] Vector of Vectors to store the values of \f$Tau_i*Div\f$
 	 */
 	void PrepareFastDiff(int dim,
 						 TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
@@ -328,7 +314,7 @@ public:
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
 	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if fDelta > 0);
+	 * @param deltaX [in] diameter of element (used only if \f$fDelta > 0\f$);
 	 */
 	void ContributeApproxImplDiff(int dim,
 								  TPZFMatrix &jacinv,
@@ -370,7 +356,7 @@ public:
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
 	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if fDelta > 0);
+	 * @param deltaX [in] diameter of element (used only if \f$ fDelta > 0\f$);
 	 */
 	void ContributeImplDiff(int dim,
 							TPZFMatrix &jacinv,
@@ -391,9 +377,8 @@ public:
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
 	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if fDelta > 0);
+	 * @param deltaX [in] diameter of element (used only if \f$fDelta > 0\f$);
 	 */
-	
 	template <int dim>
 	void ContributeFastestImplDiff_dim(
 									   TPZFMatrix &jacinv,
@@ -415,25 +400,16 @@ public:
 	
 private:
 	
-	/**
-	 * @brief Kind of artificial diffusion term to apply
-	 */
+	/** @brief Kind of artificial diffusion term to apply */
 	TPZArtDiffType fArtDiffType;
 	
-	/**
-	 * @brief Ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas
-	 */
+	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	REAL fGamma;
 	
-	/**
-	 * @brief Scalar coefficient of the element in the diffusion term
-	 */
+	/** @brief Scalar coefficient of the element in the diffusion term */
 	REAL fDelta;
 	
-	/**
-	 * @brief CFL number
-	 */
+	/** @brief \f$CFL\f$ number */
 	REAL fCFL;
 	
 	

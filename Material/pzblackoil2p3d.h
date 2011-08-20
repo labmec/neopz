@@ -158,49 +158,41 @@ public:
 	
 	/**
 	 * @brief Oil relative permeability.
-	 * Kro = Kro( Sw )
+	 * \f$ Kro = Kro( Sw ) \f$
 	 */
 	void Kro(double So, double &Kro, double &dKroSo);
 	void Kro(BFadREAL So, BFadREAL &Kro);
 	
 	/**
 	 * @brief Water relative permeability.
-	 * Krw = Krw( Sw )
+	 * \f$ Krw = Krw( Sw ) \f$
 	 */
 	void Krw(double So, double &Krw, double &dKrwSo);
 	void Krw(BFadREAL So, BFadREAL &Krw);
 	
-	/** @brief Bo = Bo( po ) 
+	/** 
+	 * @brief \f$ Bo = Bo( po ) \f$
 	 * @param po initial pressure
 	 */
 	void Bo(double po, double &Bo, double &dBoDpo);
 	void Bo(BFadREAL po, BFadREAL &Bo);
 	
-	/** @brief Oil viscosity. ViscOleo = ViscOleo( po )
-	 */
+	/** @brief Oil viscosity. \f$ ViscOleo = ViscOleo( po ) \f$ */
 	void ViscOleo(double po, double &ViscOleo, double &dViscOleoDpo);
 	void ViscOleo(BFadREAL po, BFadREAL &ViscOleo);
 	
-	/** @brief Capilar pressure.
-	 * pc = pc( Sw )
-	 */
+	/** @brief Capilar pressure. \f$ pc = pc( Sw ) \f$ */
 	void PressaoCapilar(double So, double &pc, double &DpcDSo);
 	void PressaoCapilar(BFadREAL So, BFadREAL &pc);
 	
-	/** @brief Porosity.
-	 * Phi = Phi( pw ) - fizemos como Phi ( po )
-	 */
+	/** @brief Porosity. \f$ Phi = Phi( pw ) - fizemos como Phi ( po ) \f$ */
 	void Porosidade(double po, double &poros, double &dPorosDpo);
 	void Porosidade(BFadREAL po, BFadREAL &poros);
 	
-	//Dados constantes
-	
-	/** @brief Oil density on standard conditions - kg/m3
-	 */
+	/** @brief Oil density on standard conditions - kg/m3 */
 	double RhoOleoSC();
 	
-	/** @brief Water density on standard conditions - kg/m3
-	 */
+	/** @brief Water density on standard conditions - kg/m3 */
 	double RhoAguaSC();
 	
 	/** @brief Gravity */
@@ -209,8 +201,7 @@ public:
 	/** @brief Bw = constante   */
 	double Bw();
 	
-	/** @brief Water viscosity (constant)
-	 */
+	/** @brief Water viscosity (constant) */
 	double ViscAgua();
 	
 	/** @brief Absolute permeability. */

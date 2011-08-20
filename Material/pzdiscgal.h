@@ -16,7 +16,7 @@ class TPZMaterialData;
 
 /**
  * @ingroup material
- * @brief This class defines the interface which material objects need to implement for discontinuous Galerkin formulations
+ * @brief Defines the interface which material objects need to implement for discontinuous Galerkin formulations
  */
 class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
@@ -34,12 +34,13 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
 	virtual std::string Name();
 	
-	/** @brief Fill material data parameter with necessary requirements for the ContributeInterface method.
+	/** 
+	 * @brief Fill material data parameter with necessary requirements for the ContributeInterface method.
      * @since April 10, 2007
 	 */
-	/** Here, in base class, all requirements are considered
-	 * as necessary. Each derived class may optimize performance by selecting
-	 * only the necessary data.
+	/** 
+	 * Here, in base class, all requirements are considered as necessary. \n
+	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
 	virtual void FillDataRequirementsInterface(TPZMaterialData &data);
 	
@@ -87,9 +88,10 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	 * @brief Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.
 	 * @since Feb 05, 2004
 	 */
-	/** Interfaces may be conservative or not conservative. It is important to agglomeration techniques
-	 * when using multigrid pre-conditioner. Conservative interfaces into agglomerate elements do not
-	 * need to be computed. However non-conservative interfaces must be computed in all multigrid levels.
+	/** 
+	 * Interfaces may be conservative or not conservative. It is important to agglomeration techniques
+	 * when using multigrid pre-conditioner. \n Conservative interfaces into agglomerate elements do not
+	 * need to be computed. However non-conservative interfaces must be computed in all multigrid levels.\n
 	 * Default is non-conservative, because of the computation of a conservative interface into an agglomerate
 	 * does not ruin the solution.
 	 */
@@ -129,22 +131,15 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 		PZError << "Method not implemented\n";
 	}
 	
-	/**
-	 * @brief Unique identifier for serialization purposes
-	 */
+	/** @brief Unique identifier for serialization purposes */
 	virtual int ClassId() const;
 	
-	/**
-	 * @brief Save the element data to a stream
-	 */
+	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
-	
+
 };
 
 #endif

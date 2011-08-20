@@ -14,15 +14,13 @@
 
 /**
  * @ingroup material
- * @brief Implements a non linear 1d material based on a rotated engineering strain \
- measurement.
- @author Edimar Cesar Rylo
- @since May, 2006
+ * @brief Implements a non linear 1d material based on a rotated engineering strain measurement.
+ * @author Edimar Cesar Rylo
+ * @since May, 2006
  */
 /**
  * The implementation is based on the section 3.1.1 of the book Non-linear \n
- Finite Element Analysis of Solids and Structures - Volume 1: Essentials \n
- of M. A. Crisfield
+ * Finite Element Analysis of Solids and Structures - Volume 1: Essentials of M. A. Crisfield
  */
 class TPZNLMat1dRotatedEngStrain : public TPZNLMat1d
 {

@@ -11,7 +11,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZMatHybrid : public TPZMaterial {
 	

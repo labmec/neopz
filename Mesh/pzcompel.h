@@ -57,14 +57,10 @@ class TPZCompEl : public virtual TPZSaveable {
 	
 protected:
 	
-	/**
-	 * @brief Computational mesh to which the element belongs
-	 */
+	/** @brief Computational mesh to which the element belongs */
 	TPZCompMesh 	*fMesh;
 	
-	/**
-	 * @brief Element index into mesh element vector
-	 */
+	/** @brief Element index into mesh element vector */
 	int fIndex;
 	
 private:
@@ -72,91 +68,72 @@ private:
 	 * Reference to geometric element
 	 */
 	//TPZGeoEl *fReference;
-	/**
-	 * @brief Index of reference element
-	 */
+	
+	/** @brief Index of reference element */
 	int fReferenceIndex;
 	
 public:
 	
-	/**
-	 * @brief Simple Constructor
-	 */
+	/** @brief Simple Constructor */
 	TPZCompEl();
 	
-	/**
-	 * @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	virtual ~TPZCompEl();
 	
-	/**
-	 * @brief Method for creating a copy of the element
-	 */
+	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const = 0;
 	
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
-	 * 
+	 * @param mesh Patch clone mesh
+	 * @param gl2lcConMap map the connects indexes from global element (original) to the local copy.
+	 * @param gl2lcElMap map the computational elements
+     */
+	/**
 	 * Otherwise of the previous clone function, this method don't
 	 * copy entire mesh. Therefore it needs to map the connect index
 	 * from the both meshes - original and patch
-	 * @param mesh Patch clone mesh
-	 * @param gl2lcMap map the connects indexes from global element (original) to the local copy.
-     */
+	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,
 									std::map<int,int> & gl2lcConMap,
 									std::map<int,int> & gl2lcElMap) const = 0;
 	
 	
-	/**
-	 * @brief Put a copy of the element in the referred mesh
-	 */
+	/** @brief Put a copy of the element in the referred mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy);
 	
-	/**
-	 * @brief Put a copy of the element in the patch mesh
-	 */
+	/** @brief Put a copy of the element in the patch mesh */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap);
 	
-	/**
-	 * @brief Copy of the element in the new mesh whit alocated index
-	 */
+	/** @brief Copy of the element in the new mesh whit alocated index */
 	TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index);
 	
 	/**
-	 * @brief Create a computational element within mesh
-	 *
-	 * Inserts the element within the data structure of the mesh
+	 * @brief Creates a computational element within mesh. Inserts the element within the data structure of the mesh
 	 * @param mesh mesh wher will be created the element
+	 * @param gel geometric element for which the computational element will be created
 	 * @param index new elemen index
 	 */
 	TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
-	/**
-	 * @brief Set & Get the value of gOrder
-	 */
+	/** @brief Sets & Gets the value of gOrder */
 	static void SetgOrder( int order );
 	
 	static int GetgOrder();
 	
-	/** @brief Set create function in TPZCompMesh to create elements of this type
-	 */
+	/** @brief Sets create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(){
 		TPZCompMesh::SetAllCreateFunctionsContinuous();
 	}
 	
-	/**
-	 * @brief Returns the volume of the geometric element associated.
-	 */
+	/** @brief Returns the volume of the geometric element associated. */
 	virtual  REAL VolumeOfEl()
 	{
 		if(fReferenceIndex == 0) return 0.;
 		return Reference()->Volume();
 	}
 	
-	/**
-	 * @brief Loads the geometric element referece
-	 */
+	/** @brief Loads the geometric element referece */
 	virtual void LoadElementReference();
 	
 	/**
@@ -169,28 +146,22 @@ public:
 	/**
 	 * @name Access
 	 * @brief Access to private data
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Return the type of the element
-	 */
+	
+	/** @brief Return the type of the element */
 	/* the types are listed in parameter : ENoType, EOned, ETriangle, EQuadrilateral, ESubstructure */
 	virtual MElementType Type();
 	
 	virtual int IsInterface() { return 0; }
 	
-	/**
-	 * @brief Return a pointer to the corresponding geometric element if such exists
-	 * return 0 otherwise
-	 */
+	/** @brief Return a pointer to the corresponding geometric element if such exists, return 0 otherwise */
 	TPZGeoEl *Reference() const
 	{
 		if ( fMesh->Reference() == NULL ) return NULL;
 		return (fReferenceIndex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
 	}
-	
-	
-	
+
 	void SetReference(int referenceindex)
 	{
 		fReferenceIndex = referenceindex;
@@ -208,24 +179,16 @@ public:
 	//     }
 	//   }
 	
-	/**
-	 * @brief Returns the number of nodes of the element
-	 */
+	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const =0;
 	
-	/**
-	 * @brief Returns the number of equations of the element
-	 */
+	/** @brief Returns the number of equations of the element */
 	virtual int NEquations();
 	
-	/**
-	 * @brief Returns element index of the mesh fELementVec list
-	 */
+	/** @brief Returns element index of the mesh fELementVec list */
 	int Index() const;
 	
-	/**
-	 * @brief Sets element index of the mesh fELementVec list
-	 */
+	/** @brief Sets element index of the mesh fELementVec list */
 	void SetIndex(int index);
 	
 	/**
@@ -240,35 +203,32 @@ public:
 	 */
 	virtual TPZConnect &Connect(int i) const;
 	
-	/**
-	 * @brief Dimension of the element
-	 */
+	/** @brief Dimension of the element */
 	virtual int Dimension() const = 0;
 	
-	/**
-	 * @brief Identify the material object associated with the element
-	 */
+	/** @brief Identify the material object associated with the element */
 	virtual TPZAutoPointer<TPZMaterial> Material() const;
 	
 	/**
 	 * Sets the material associated with the object
-	 * @param mat new element material
+	 * param mat new element material
 	 */
 	//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) = 0;
 	
-	/**
-	 * @brief Returns the reference geometric element patch
-	 */
+	/** @brief Returns the reference geometric element patch */
 	TPZGeoEl * GetRefElPatch();
 	
 	//void SetIntegrationRule(int order);
-	//@}
+	/**
+	* @}
+	 */
 	
 	/**
 	 * @name MODIFICATION_OF_PRIVATE_DATA
 	 * @brief Methods that modify private data
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
@@ -279,9 +239,10 @@ public:
 	
 	/**
 	 * @brief Loads the solution within the internal data structure of the element
-	 * 
-	 * Is used to initialize the solution of connect objects with dependency
-	 * Is also used to load the solution within SuperElements*/
+	 */ 
+	/** Is used to initialize the solution of connect objects with dependency
+	 * Is also used to load the solution within SuperElements
+	 */
 	virtual void LoadSolution();
 	
 	/**
@@ -290,17 +251,19 @@ public:
 	 */
 	void SetMesh(TPZCompMesh *mesh);
 	
-	/**
-	 * @brief Return a pointer to the grid of the element
-	 */
+	/** @brief Return a pointer to the grid of the element */
 	TPZCompMesh *Mesh() const;
-	//@}
+
+	/**
+	 * @}
+	 */
 	
 	/**
 	 * @name Print
 	 * @brief Methods for print data structure
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Prints element data
 	 * @param out indicates the device where the data will be printed
@@ -337,7 +300,10 @@ public:
 	 * @param out indicates the device where the data will be printed
 	 */
 	virtual void PrintTitle(char *VarName,std::ostream &out);
-	//@}
+
+	/**
+	 * @}
+	 */
 	
 	/**
 	 * @brief Sets the orthogonal function which will be used throughout the program
@@ -359,19 +325,17 @@ public:
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
-	/**
-	 * @brief Verify if the material associated with the element is contained in the set
-	 */
+	/** @brief Verifies if the material associated with the element is contained in the set */
 	virtual bool HasMaterial(const std::set<int> &materialids);
 	
 	/**
-	 * @brief Compute the element right hand side
+	 * @brief Computes the element right hand side
 	 * @param ef element load vector(s)
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
 	
 	/**
-	 * @brief Implementation of the orthogonal Chebyshev functions
+	 * @brief Implements of the orthogonal Chebyshev functions
 	 * @param x point where the Chebyshev function will be evaluated
 	 * @param num number of functions
 	 * @param phi values of the function
@@ -380,44 +344,36 @@ public:
 	static void Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi);
 	
 	/**
-	 * @brief Divide the computational element
-	 * if interpolate = 1, the solution is interpolated to the sub elements
-	 * 
-	 * This method needs to be implemented in the derived classes
+	 * @brief Divide the computational element. If interpolate = 1, the solution is interpolated to the sub elements
 	 * @param index  index of the element which is being divided
 	 * @param subindex element vector where will be created the divided elements
 	 * @param interpolate boolean variable to indicates if the solution will be interpolated to the sub elements
 	 */
+	/** This method needs to be implemented in the derived classes */
 	virtual void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
 	
 	/**
 	 * @brief Projects the flux function on the finite element space
-	 * @param ekmat element stiffness matrix
-	 * @param efmat element loads matrix
+	 * @param ek element stiffness matrix
+	 * @param ef element loads matrix
 	 */
 	virtual void ProjectFlux(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
 	/**
-	 * @brief Perform an error estimate on the elemen
+	 * @brief Performs an error estimate on the elemen
 	 * @param fp function pointer which computes the exact solution
-	 * @param true_error (output)  the true error of the solution
-	 * @param L2_error (output) the L2 norm of the error of the solution
-	 * @param flux (input) value of the interpolated flux values
-	 * @param estimate (output) estimated error based on the implemented criterium
+	 * @param errors [out] the L2 norm of the error of the solution
+	 * @param flux [in] value of the interpolated flux values
 	 */
 	virtual void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 							   TPZVec<REAL> &errors,TPZBlock *flux);
 	
-	/**
-	 * @brief ComputeError computes the element error estimator
-	 */
+	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
 	}
 	
-	/**
-	 * @brief Integrate a variable over the element.
-	 */
+	/** @brief Integrates a variable over the element. */
 	virtual void Integrate(int variable, TPZVec<REAL> & value){
 		value.Fill(0.);
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented.\n";
@@ -444,12 +400,10 @@ public:
 								 TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes) = 0;
 	
 	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements
 	 * @param qsi master element coordinate of the interface element
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes associated with the derivative of the solution
+	 * @param normal vector
 	 * @param leftsol finite element solution
 	 * @param dleftsol solution derivatives
 	 * @param leftaxes axes associated with the left solution
@@ -467,7 +421,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param phi matrix containing shape functions compute in qsi point
 	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-	 * @param [in] axes indicating the direction of the derivatives
+	 * @param axes [in] axes indicating the direction of the derivatives
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
@@ -477,39 +431,35 @@ public:
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
-	 * @note Note : this method does not reset the set to zero. The calling
-	 * method should do this
 	 * @param indepconnectlist set of independent connect indices
 	 * @param depconnectlist set of dependent connect indices
+	 * @note Note : this method does not reset the set to zero. The calling
+	 * method should do this
 	 */
 	virtual void BuildConnectList(std::set<int> &indepconnectlist, std::set<int> &depconnectlist);
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
+	 * @param connectlist stack to receive the list
 	 * @note Note : this method does not reset the stack to zero. The calling
 	 * method should do this
-	 * @param connectlist stack to receive the list
 	 */
 	virtual void BuildConnectList(TPZStack<int> &connectlist);
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
-	 * @note Note : this method ADDS connects to the set.
 	 * @param connectlist stack to receive the list
+	 * @note Note : this method ADDS connects to the set.
 	 */
 	virtual void BuildConnectList(std::set<int> &connectlist);
 	
-	/**
-	 * @brief Returns 1 if the element has at least one dependent node
-	 * returns 0 otherwise
-	 */
+	/** @brief Returns 1 if the element has at least one dependent node. Returns 0 otherwise */
 	virtual int HasDependency();
 	
 	/**
-	 * @brief Domain Decomposition: Misael
-	 * 
+	 * @brief Domain Decomposition.\n
 	 * This method will eliminate the nodes which are internal to the element from
-	 * the datastructure of the grid
+	 * the datastructure of the grid \n
 	 * After calling this method, the superelement will statically condense the
 	 * internal equations
 	 */
@@ -533,23 +483,16 @@ public:
 	
 	REAL LesserEdgeOfEl();
 	
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 private:
-	/**
-	 * @brief Default interpolation order
-	 */
+	/** @brief Default interpolation order */
     static int gOrder;
-	
-	
+
 };
 
 
@@ -567,14 +510,10 @@ class TPZGeoElSide;
  */
 class TPZCompElSide {
 	
-	/**
-	 * @brief Pointer to the computational element
-	 */
+	/** @brief Pointer to the computational element */
 	TPZCompEl *fEl;
 	
-	/**
-	 * @brief Index of the object side
-	 */
+	/** @brief Index of the object side */
 	int fSide;
 	
 	
@@ -582,9 +521,7 @@ public:
 	
 	//    /*PARA TESTES*/ TPZGeoEl *georeftest;
 	
-	/**
-	 * @brief Simple Constructor
-	 */
+	/** @brief Simple Constructor */
 	TPZCompElSide();
 	
 	/**
@@ -601,19 +538,13 @@ public:
 	 */
 	TPZCompElSide(TPZCompEl *cel,int side);
 	
-	/**
-	 * @brief Gives a pointer to the reference computational element
-	 */
+	/** @brief Gives a pointer to the reference computational element */
 	TPZCompEl *Element() const {return fEl;}
 	
-	/**
-	 * @brief Sets computational element pointer.
-	 */
+	/** @brief Sets computational element pointer. */
 	void SetElement(TPZCompEl* el){ fEl = el;}
 	
-	/**
-	 * @brief Returns the side index
-	 */
+	/** @brief Returns the side index */
 	int Side() const {return fSide;}
 	
 	/**
@@ -622,14 +553,10 @@ public:
 	 */
 	void SetSide(int side);
 	
-	/**
-	 * @brief Verifies if the object is non null (initialized)
-	 */
+	/** @brief Verifies if the object is non null (initialized) */
 	int Exists() const {return fEl != 0;}
 	
-	/**
-	 * @brief Reference to the geometric element
-	 */
+	/** @brief Reference to the geometric element */
 	TPZGeoElSide Reference() const;
 	
 	/**
@@ -656,7 +583,7 @@ public:
 	void ConnectedElementList(TPZStack<TPZCompElSide> &elsidevec,int onlyinterpolated, int removeduplicates);
 	
 	/**
-	 * @brief Returns all connected elements which have equal level to the current element
+	 * @brief Returns all connected elements which have equal level to the current element\n
 	 * This method will not put this on the stack
 	 * @param elsidevec side elements vector
 	 * @param onlyinterpolated  if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
@@ -667,18 +594,19 @@ public:
 	/**
 	 * @brief Returns all connected elements which have level lower to the current element
 	 * @param onlyinterpolated if onlyinterpolated == 1 only elements TPZInterpolatedElement will be put on the stack
-	 // if removeduplicates == 1 no elements which are direct neighbours will be put on the stack
 	 */
+	/** If removeduplicates == 1 no elements which are direct neighbours will be put on the stack */
 	TPZCompElSide LowerLevelElementList(int onlyinterpolated);
 	
 	/**
 	 * @brief Will remove elements which are direct neighbours from elvec (and elsides)
-	 *
+	 * @param elvec computational element side vector
+	 */
+	/**
 	 * The method checks between any two elements in the list whether they are of equal level
 	 * and whether they are neighbours. If they are neighbours, one of the elements will be removed
 	 * from the list \n
 	 * The method NeighbourExists between any two elements of equal level will return 0
-	 * @param elvec computational element side vector
 	 */
 	static void RemoveDuplicates(TPZStack<TPZCompElSide> &elvec);
 	
@@ -706,9 +634,7 @@ public:
 	
 	//inline////////////////////////////////////////////////////////////////////////
 	
-	/**
-	 * @brief Returns the index of the middle side connect alon fSide
-	 */
+	/** @brief Returns the index of the middle side connect alon fSide */
     int ConnectIndex() const;
 	
 	bool operator != (const TPZCompElSide &other);

@@ -114,14 +114,10 @@ namespace pztopology {
 		typedef TPZInt1d IntruleType;
 		typedef TPZGraphEl1dd GraphElType;
 		
-		/**
-		 * @brief Returns the type of the element as specified in file pzeltype.h
-		 */
+		/** @brief Returns the type of the element as specified in file pzeltype.h */
 		static MElementType Type() ;//{ return EOned;}
 		
-		/**
-		 * @brief Returns the type of the element as specified in file pzeltype.h
-		 */
+		/** @brief Returns the type of the element as specified in file pzeltype.h */
 		static MElementType Type(int side);
 		
 		
@@ -131,18 +127,12 @@ namespace pztopology {
 		 */
 		static int NumSides();
 		
-		/**
-		 * @brief Returns the number of nodes (not connectivities) associated with a side
-		 */
+		/** @brief Returns the number of nodes (not connectivities) associated with a side */
 		static int NContainedSides(int side);
-		/**
-		 * @brief Returns the local connect number of the connect "c" along side "side"
-		 */
+		/** @brief Returns the local connect number of the connect "c" along side "side" */
 		static int ContainedSideLocId(int side, int c);
 		
-		/**
-		 * @brief Function pointer which determines what type of computational element will be created
-		 */
+		/** @brief Function pointer which determines what type of computational element will be created */
 		static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 		
 		/**

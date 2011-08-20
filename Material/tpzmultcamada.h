@@ -14,7 +14,7 @@ class TPZBndCond;
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZMultCamada : public TPZMaterial {
 public:

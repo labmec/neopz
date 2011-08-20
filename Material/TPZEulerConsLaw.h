@@ -23,7 +23,7 @@
 
 /**
  * @ingroup material
- * @brief 
+ * @brief DESCRIBE PLEASE
  */
 class TPZEulerConsLaw  : public TPZConservationLaw {
 	

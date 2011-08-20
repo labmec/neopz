@@ -62,6 +62,7 @@ struct TPZCounter {
 	
 };
 
+/** @brief Re-implements << operator to show the counter (count) data */
 std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
 
@@ -222,6 +223,7 @@ public:
 	friend TPZFlopCounter log10(const TPZFlopCounter &val);
 };
 
+/** @brief Returns the square root of the value and increments the counter of the square root. */
 inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -230,6 +232,7 @@ inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the absolute value and doesn't increments the counters. */
 inline TPZFlopCounter fabs(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -237,6 +240,7 @@ inline TPZFlopCounter fabs(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the power and increments the counter of the power. */
 inline TPZFlopCounter pow(const TPZFlopCounter &orig,const TPZFlopCounter &xp)
 {
 	TPZFlopCounter result;
@@ -245,6 +249,7 @@ inline TPZFlopCounter pow(const TPZFlopCounter &orig,const TPZFlopCounter &xp)
 	return result;
 }
 
+/** @brief Returns the arc cosine in radians and increments the counter of the Arc Cosine. */
 inline TPZFlopCounter acos(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -253,6 +258,7 @@ inline TPZFlopCounter acos(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the arc sine in radians and increments the counter of the Arc Sine. */
 inline TPZFlopCounter asin(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -261,6 +267,7 @@ inline TPZFlopCounter asin(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the cosine in radians and increments the counter of the Cosine. */
 inline TPZFlopCounter cos(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -269,6 +276,7 @@ inline TPZFlopCounter cos(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the sine in radians and increments the counter of the sine. */
 inline TPZFlopCounter sin(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -277,6 +285,7 @@ inline TPZFlopCounter sin(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the arc tangent in radians and increments the counter of the Arc Tangent. */
 inline TPZFlopCounter atan(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -285,6 +294,10 @@ inline TPZFlopCounter atan(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** 
+ * @brief Returns the arc tangent in radians and increments the counter of the Arc Tangent. \n
+ * ATAN2 returns the arc tangent of x(val1) and y(val2) coordinates as an angle expressed in radians.
+ */
 inline TPZFlopCounter atan2(const TPZFlopCounter &val1,const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
@@ -293,6 +306,7 @@ inline TPZFlopCounter atan2(const TPZFlopCounter &val1,const TPZFlopCounter &val
 	return result;
 }
 
+/** @brief Returns the exponencial and increments the counter of the Exponencial. */
 inline TPZFlopCounter exp(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -301,6 +315,7 @@ inline TPZFlopCounter exp(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the natural logarithm and increment the counter of the logarithm. */
 inline TPZFlopCounter log(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -309,6 +324,7 @@ inline TPZFlopCounter log(const TPZFlopCounter &orig)
 	return result;
 }
 
+/** @brief Returns the decimal logarithm and increment the counter of the logarithm. */
 inline TPZFlopCounter log10(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
@@ -316,7 +332,7 @@ inline TPZFlopCounter log10(const TPZFlopCounter &orig)
 	TPZFlopCounter::gCount.fCount[ELog]++;
 	return result;
 }
-/// Performs val1 * val2. Doesn't increments counters.
+/** @brief Performs \f$ val1 * val2\f$. Doesn't increments counters. */
 inline TPZFlopCounter operator*(double val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
@@ -324,7 +340,7 @@ inline TPZFlopCounter operator*(double val1, const TPZFlopCounter &val2)
 	return result;
 	
 }
-/// Performs val1 / val2. Doesn't increments counters.	
+/** @brief Performs \f$ val1 / val2\f$. Doesn't increments counters. */
 inline TPZFlopCounter operator/(double val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
@@ -332,7 +348,7 @@ inline TPZFlopCounter operator/(double val1, const TPZFlopCounter &val2)
 	return result;
 	
 }
-/// Performs val1 + val2. Doesn't increments counters.	
+/** @brief Performs \f$ val1 + val2\f$. Doesn't increments counters. */
 inline TPZFlopCounter operator+(double val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
@@ -340,7 +356,7 @@ inline TPZFlopCounter operator+(double val1, const TPZFlopCounter &val2)
 	return result;
 	
 }
-/// Performs val1 + val2. Doesn't increments counters.	
+/** @brief Performs \f$ val1 + val2\f$. Doesn't increments counters. */
 inline TPZFlopCounter operator+(const TPZFlopCounter &val2, double val1 )
 {
 	TPZFlopCounter result;
@@ -348,7 +364,7 @@ inline TPZFlopCounter operator+(const TPZFlopCounter &val2, double val1 )
 	return result;
 	
 }
-/// Performs val1 - val2. Doesn't increments counters.
+/** @brief Performs \f$ val1 - val2\f$. Doesn't increments counters. */
 inline TPZFlopCounter operator-(double val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
@@ -357,12 +373,12 @@ inline TPZFlopCounter operator-(double val1, const TPZFlopCounter &val2)
 	
 }
 
-/// Implements to write (output) only the floating point value
+/** @brief Implements to write (output) only the floating point value */
 inline std::ostream &operator<<(std::ostream &out, const TPZFlopCounter &val)
 {
 	return out << val.fVal;
 }
-/// Implements to read (input) only the floating point value
+/** @brief Implements to read (input) only the floating point value */
 inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val)
 {
 	return out >> val.fVal;
@@ -370,16 +386,16 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 #endif
 
 #ifdef contar
-/// PZ will use a double floating point number with a counter of the operations performed on (Jorge)
+/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
 typedef std::TPZFlopCounter REAL;
 
 #else
-/// This is the type of floating point number PZ will use.
+/** @brief This is the type of floating point number PZ will use. */
 typedef double REAL;
 
 #endif
 
-/// Returns the tolerance to Zero value. Actually: 1e-10
+/** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance(){
 	return 1e-10;
 }

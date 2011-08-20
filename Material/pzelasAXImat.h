@@ -17,51 +17,52 @@
 
 /**
  * @ingroup material
- * @brief This class implements a two dimensional elastic material in plane stress or strain
+ * @brief Implements a two dimensional elastic material in plane stress or strain
  */
 class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	
 	public :
 	
 	TPZElasticityAxiMaterial();
-	/** @brief Creates an elastic material with:\n
-	 elasticity modulus  =   E \n
-	 poisson coefficient  =   nu \n
-	 forcing function -x =   fx \n
-	 forcing function -y =   fy \n
-	 fplainstress = 1 indicates use of plainstress
+	/** 
+	 * @brief Creates an elastic material with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx and fy).
+	 * @param E Elasticity modulus 
+	 * @param nu \f$=\nu\f$ Poisson coefficient
+	 * @param fx Forcing function \f$ -x = fx \f$
+	 * @param fy Forcing function \f$ -y = fy \f$
+	 * @note \f$ fplainstress = 1 \f$ indicates use of plainstress
 	 */
 	TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy);
 	
 	//------------------- FEITO POR AGNALDO : 05/02/10 . Só para teste ----------
 	/**
-	 * @brief Creates an elastic material test with: \n
-	 elasticity modulus  =   E \n
-	 poisson coefficient  =   nu \n
-	 forcing function -x =   fx \n
-	 forcing function -y =   fy \n
-	 symmetrical method = coefTheta (-1-> symmetric, 1->nonsymmetric)
-	 penalty term = coefAlpha
+	 * @brief Creates an elastic material test with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx, fy) and penalty term (coefAlpha).
+	 * @param E Elasticity modulus
+	 * @param nu \f$=\nu\f$ Poisson coefficient
+	 * @param fx Forcing function \f$ -x = fx \f$
+	 * @param fy Forcing function \f$ -y = fy \f$
+	 * @param coefTheta Symmetrical method (-1-> symmetric, 1->nonsymmetric)
+	 * @param coefAlpha Penalty term
 	 */
 	TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, REAL coefTheta,  REAL coefAlpha);
 	
-    /**
-	 * @brief Copies the data of one TPZElasticityAxiMaterial object to
-     another */
+    /** @brief Copies the data of one TPZElasticityAxiMaterial object to another */
     TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy);
     
     /** @brief Creates a new material from the current object   ??*/
     virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityAxiMaterial(*this);}
     
-    /**Destructor*/
+    /** @brief Destructor */
     virtual ~TPZElasticityAxiMaterial();
     
 	
 	//-----------------------------------------------------------------------------------
 	
-	/** @brief Set the origin of Revolution Axis (Z),
-     the direction of Revolution Axis (Z), \n
-     and the Radius vector (orthogonal with respect of Z axis)
+	/** @brief Set the origin of Revolution Axis (\f$Z\f$), the direction of Revolution Axis (\f$Z\f$), \n
+     * and the Radius vector (orthogonal with respect of \f$Z\f$ axis).
+	 * @param Orig Origin of revolution axis
+	 * @param AxisZ Direction vector of revolutin axis
+	 * @param AxisR Radius vector
 	 */
 	void SetOrigin(TPZManVector<REAL> &Orig, TPZManVector<REAL> &AxisZ, TPZManVector<REAL> &AxisR);
 	
@@ -83,33 +84,31 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
         fDelTemperature = delt;
     }
 	
-	/** @brief Returns the dimension*/
+	/** @brief Returns the dimension */
 	int Dimension() { return 2;}
 	
-	/** @brief Returns the number of state variables associated
-     with the material
-	 */
+	/** @brief Returns the number of state variables associated with the material */
 	virtual  int NStateVariables();
 	
-	/** @brief Prints the material data*/
+	/** @brief Prints the material data */
 	virtual void Print(std::ostream & out = std::cout);
 	
-	/** @brief Returns the material name*/
+	/** @brief Returns the material name */
 	std::string Name() { return "TPZElasticityAxiMaterial"; }
 	
-	/** @brief Return the number of components which form the flux function*/
+	/** @brief Return the number of components which form the flux function */
 	virtual short NumberOfFluxes(){return 3;}
 	
-	/** @brief Return the number of components which form the flux function*/
+	/** @brief Return the number of components which form the flux function */
 	virtual int NFluxes(){ return 3;}
 	
 	/**Cria as condicoes de contorno*/
 	//virtual TPZBndCond *CreateBc(long num, int typ, TPZFMatrix &val1, TPZFMatrix &val2);
 	
-	/** @brief Calculates the element stiffness matrix*/
+	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
 	
-	/** @brief Applies the element boundary conditions*/
+	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
@@ -120,24 +119,22 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
-	/** @brief Returns the variable index associated with the name*/
+	/** @brief Returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);
 	
-	/** @brief Returns the number of variables associated with the variable
-	 indexed by var. var is obtained by calling VariableIndex*/
+	/** @brief Returns the number of variables associated with the variable indexed by var. \n var is obtained by calling VariableIndex */
 	virtual int NSolutionVariables(int var);
 	
-	/** @brief returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
-	/** @brief Compute the value of the flux function to be used
-     by ZZ error estimator*/
+	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
-	/** @brief Compute the error due to the difference between
-     the interpolated flux and the flux computed based
-     on the derivative of the solution*/
+	/**
+	 * @brief Compute the error due to the difference between the interpolated flux and the flux computed based \n
+     * on the derivative of the solution
+	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
@@ -145,13 +142,13 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	//virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
 	//		      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){}
 	
-	/** @brief Returns the elasticity modulus E*/
+	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE;}
 	
-	/** @brief Returns the poison coefficient modulus E*/
+	/** @brief Returns the poison coefficient modulus E */
 	REAL Nu() {return fnu;}
 	
-	/** @brief Set PresStress Tensor*/
+	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
     
     void SetTemperatureFunction(void (*func)(const TPZVec<REAL> &rz, REAL &temperature))
@@ -193,25 +190,25 @@ private:
     /** @brief Temperature difference */
     REAL fDelTemperature;
     
-	/** @brief G = E/2(1-nu)*/
+	/** @brief \f$ G = E/2(1-nu) \f$ */
 	REAL fEover21PlusNu;
 	
-	/** @brief E/(1-nu)*/
+	/** @brief \f$ E/(1-nu) \f$ */
 	REAL fEover1MinNu2;
 	
-	/** @brief Direction of Surface*/
+	/** @brief Direction of Surface */
 	TPZManVector<REAL> f_AxisR;
 	
-	/** @brief Revolution Axis*/
+	/** @brief Revolution Axis */
 	TPZManVector<REAL> f_AxisZ;
 	
-	/** @brief Origin of AxisR and AxisZ*/
+	/** @brief Origin of AxisR and AxisZ */
 	TPZManVector<REAL> f_Origin;
 	
-	/** @brief symmetric*/ 
+	/** @brief Symmetric */ 
 	REAL fSymmetric;
 	
-	/** @brief penalty term*/
+	/** @brief Penalty term */
 	REAL fPenalty;
     
     /** @brief Function which defines the temperature */

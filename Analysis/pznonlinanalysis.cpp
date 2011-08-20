@@ -209,19 +209,16 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 	}
 }
 
-void NullForce(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix &deriv);
-REAL TPZNonLinearAnalysis::SolutionNorm(){
-	
-	//   REAL trueerr,L2,estimate;
-	//   fCompMesh->EvaluateError(NullForce,trueerr,L2,estimate);
-	return Norm(fSolution);
-}
-
+/** @brief Zeroes entries of val vector and deriv matrix. */
 void NullForce(TPZVec<REAL> &/*point*/,TPZVec<REAL> &val,TPZFMatrix &deriv) {
-	
     int i,cap = val.NElements() ;
     deriv.Zero();
     for(i=0;i<cap;i++) val[i] = 0.;
+}
+REAL TPZNonLinearAnalysis::SolutionNorm(){
+	//   REAL trueerr,L2,estimate;
+	//   fCompMesh->EvaluateError(NullForce,trueerr,L2,estimate);
+	return Norm(fSolution);
 }
 
 void TPZNonLinearAnalysis::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase){

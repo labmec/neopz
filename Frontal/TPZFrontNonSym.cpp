@@ -20,6 +20,7 @@ void cblas_dcopy(const int N, const double *X, const int incX,
                  double *Y, const int incY);
 #endif
 
+/** @brief Initializing tolerance for current implementations */
 const REAL TOL=1.e-10;
 
 using namespace std;

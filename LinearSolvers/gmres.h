@@ -3,6 +3,10 @@
  * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method. 
  */
 
+/**
+ * @ingroup solver
+ * @brief Computes back solve. Updates on v vector.
+ */
 template < class Matrix, class Vector >
 void 
 Update(Vector &x, int k, Matrix &h, Vector &s, Vector v[])
@@ -21,7 +25,10 @@ Update(Vector &x, int k, Matrix &h, Vector &s, Vector v[])
 	//    x += v[j] * y(j);
 }
 
-
+/**
+ * @ingroup solver
+ * @brief Returns absolute value to real.
+ */
 template < class Real >
 Real
 abs(Real x)
@@ -29,20 +36,21 @@ abs(Real x)
 	return (x > 0 ? x : -x);
 }
 
-
 /**
  * @ingroup solver
  * @brief GMRES solves the unsymmetric linear system Ax = b using the Generalized Minimum Residual method
  * @return The return value indicates convergence within max_iter (input) iterations (0), or no convergence within max_iter iterations (1).\n
  * Upon successful return, output arguments have the following values:
- * @param A  -- matrix of the system
- * @param b  -- vector of the system
- * @param M  -- preconditioner matrix
- * @param x  --  approximate solution to \f$ Ax = b \f$
- * @param max_iter  --  the number of iterations performed before the tolerance was reached
- * @param tol  --  the residual after the final iteration
- * @param residual  -- residual vector (return)
- * @param FromCurrent  -- for type of operation (MultAdd)
+ * @param A Matrix of the system
+ * @param b Vector of the system
+ * @param M Preconditioner matrix
+ * @param H Auxiliar matrix (?)
+ * @param m Size (?)
+ * @param x Approximate solution to \f$ Ax = b \f$
+ * @param max_iter The number of iterations performed before the tolerance was reached
+ * @param tol The residual after the final iteration
+ * @param residual Residual vector (return)
+ * @param FromCurrent For type of operation (MultAdd)
  */
 /**
  * Iterative template routine -- GMRES \n
