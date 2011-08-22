@@ -41,20 +41,18 @@ public:
 	 * @param dim problem dimension
 	 * @param nstate number of state variables
 	 * @param sol constant solution vector
+	 * @param IntegrationOrder numeric integration order
 	 */
 	TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
 					int IntegrationOrder = -1);
 	
-	/** @brief Class destructor
-	 */
+	/** @brief Class destructor */
 	~TPZL2Projection();
 	
-	/** @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZL2Projection(const TPZL2Projection &cp);
 	
-	/** @brief Solution indices of post-processing
-	 */
+	/** @brief Solution indices of post-processing */
 	enum ESolutionVars { ENone = 0, ESolution = 1 };
 	
     /** 
@@ -69,56 +67,47 @@ public:
 	 int elDimension);
 	 */
     
-	/** @brief Contribute method
-	 */
+	/** @brief Contribute method */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	/** @brief Contribute method
-	 */
+	/** @brief Contribute method */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	
-	
-	/** @brief To satisfy base class interface.
-	 */
+	/** @brief To satisfy base class interface. */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
-	/** @brief To satisfy base class interface.
-	 */
+	/** @brief To satisfy base class interface. */
 	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
-	/** @brief To satisfy base class interface.
-	 */
+	/** @brief To satisfy base class interface. */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
-	/** @brief To satisfy base class interface.
-	 */
+	/** @brief To satisfy base class interface. */
 	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
-	/** @brief Returns problem dimension
-	 */
+	/** @brief Returns problem dimension */
 	virtual int Dimension(){ return this->fDim; }
 	
-	/** @brief Returns number of state variables
-	 */
+	/** @brief Returns number of state variables */
 	virtual int NStateVariables(){ return this->fNStateVars; }
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ek[out] is the stiffness matrix
-	 * @param ef[out] is the load vector
-	 * @param bc[in] is the boundary condition material
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
@@ -137,28 +126,22 @@ public:
 	virtual int VariableIndex(const std::string &name);
 	
 	/** @brief It returns the number of variables associated with the variable
-	 *  indexed by var.  
+	 *  indexed by var.  \n
 	 * var is obtained by calling VariableIndex
 	 */
 	virtual int NSolutionVariables(int var);
 	
 protected:
-	/** @brief It returns the solution associated with the var index based on
-	 * the finite element approximation
-	 */
+	/** @brief It returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
 public:
-	/** @brief Returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-	
-	
-	
-	
+
 };
 
 #endif

@@ -108,7 +108,7 @@ public:
 	
 	/**
 	 * @brief Sets the matrix pointer of the upper left matrix to K00
-	 * @param k00 pointer to an upper left matrix
+	 * @param K00 pointer to an upper left matrix
 	 */
 	void SetK00(TPZAutoPointer<TPZMatrix> K00);
 	

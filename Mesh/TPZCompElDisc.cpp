@@ -891,7 +891,7 @@ void TPZCompElDisc::Write(TPZStream &buf, int withclassid)
 		int HasIntRule = 0;
 		buf.Write(&HasIntRule,1);
 	}
-}///method
+}
 
 /**
  Read the element data from a stream
@@ -934,7 +934,7 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 		this->fIntRule = NULL;
 	}
 	
-}///method
+}
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
 	TPZGeoEl * ref = this->Reference();
@@ -1008,7 +1008,7 @@ TPZAutoPointer<TPZIntPoints> TPZCompElDisc::CreateIntegrationRule() const{
 	else{
 		return NULL;
 	}
-}///method
+}
 
 const TPZIntPoints &TPZCompElDisc::GetIntegrationRule() const {
 	if(this->fIntRule == 0){
@@ -1032,11 +1032,11 @@ int TPZCompElDisc::MaxOrder(){
 
 REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	
-	if (cel->NConnects() == 0) return 0.;///boundary discontinuous elements have this characteristic
+	if (cel->NConnects() == 0) return 0.;//boundary discontinuous elements have this characteristic
 	
 	cel->LoadElementReference();
 	
-	///creating discontinuous element
+	//creating discontinuous element
 	TPZCompMesh tempMesh(cel->Mesh()->Reference());
 	tempMesh.InsertMaterialObject( cel->Material() );
 	
@@ -1050,10 +1050,10 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	}
 	tempMesh.InitializeBlock();
 	
-	///interpolating solution
+	//interpolating solution
 	disc->InterpolateSolution(*cel);
 	
-	///integrating residual
+	//integrating residual
 	TPZAutoPointer<TPZMaterial> material = disc->Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
@@ -1087,7 +1087,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 		disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
 		weight *= fabs(data.detjac);
 		SquareResidual += material->ComputeSquareResidual(data.x,data.sol,data.dsol) * weight;
-	}///loop over integration points  
+	}//loop over integration points  
 	
 	delete disc;
 	cel->LoadElementReference();
@@ -1095,7 +1095,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	
 	return SquareResidual;
 	
-}///method
+}//method
 
 void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose){
 	
@@ -1115,7 +1115,7 @@ void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &e
 		if(sp->Reference()->Dimension() != 2) continue;
 		elerror = TPZCompElDisc::EvaluateSquareResidual2D(sp);
 		error[iel] = elerror;
-	}///for
+	}//for
 	
 	if(verbose){
 		std::cout << "Evaluation of square residual completed." << "\n";

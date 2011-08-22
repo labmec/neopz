@@ -26,7 +26,7 @@ namespace pzshape {
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a triangular element
 		 * @param pt (input) point where the shape functions are computed
-		 * @param in (input) indexes of the corner points which determine the orientation of the shape functions
+		 * @param id (input) indexes of the corner points which determine the orientation of the shape functions
 		 * @param order (input) order of the side connects different from the corner connects (4 connects in this case)
 		 * @param phi (output) values of the shape functions
 		 * @param dphi (output) values of the derivatives of the shapefunctions		 

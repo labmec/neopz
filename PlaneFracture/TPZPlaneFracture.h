@@ -104,10 +104,10 @@ class TPZPlaneFracture
 	 *				x [as output] end point of line in gel and gel->Neighbour interface
 	 * @param dx [in] direction of line from point x (input)
 	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
-	 *							 \t so, using alphaMin=0, in this case the first intersection (the x itself) is included...
+	 *				        so, using alphaMin=0, in this case the first intersection (the x itself) is included...
 	 *							   using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 * @param elId_TrimCoords [out] map that contains the trim coordinates of 1D element, indexed by its Id (once 1D element was inserted in gel->Mesh)\n
-	 *							 \t obs.: elId_TrimCoords was idealized to work in accumulative conception, i.e.,
+	 *							    obs.: elId_TrimCoords was idealized to work in accumulative conception, i.e.,
 	 *								    each time this method is called, this map grows!
 	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
@@ -126,8 +126,8 @@ class TPZPlaneFracture
 	 * @param ExactIntersect [out] exact intersection coordinates with respect to edges parameter
 	 * @param ModulatedIntersect [out] exact intersection coordinates, dragged to the nearest module (defined by fTrimQTD atribute)
 	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections\n
-	 *							 \t so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
-	 *							 \t using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
+	 *					    so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
+	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 */
 	bool EdgeIntersection(TPZGeoEl * gel, TPZFMatrix &x, TPZFMatrix &dx, TPZVec<int> &edge,
 						  TPZVec< TPZFMatrix > &ExactIntersect, TPZVec< TPZFMatrix > &ModulatedIntersect, double alphaMin);
@@ -157,6 +157,10 @@ class TPZPlaneFracture
 	/**
 	 * @brief Given two vectorial lines \f$ x + alphaX.dx\f$ and \f$ node + alphaNode.dnode\f$, \n
 	 * this method returns the alphaNode (norm that multiplies the unit vector dnode to intersect the line (x + alphax.dx) )
+	 * @param x given point
+	 * @param dx direction of line from point x
+	 * @param node connect
+	 * @param dnode
 	 * @param norm [in] norm of edge that belongs to (node + alphaNode.dnode) line
 	 * @param modulate [in] set if alphaNode will be modulated by stretches
 	 * @param smooth [in] if alphaNode will be modulated, set if the stretches will be (norm/fTrimQTD) or smallest stretches \n
@@ -206,6 +210,7 @@ class TPZPlaneFracture
 							  TPZVec<REAL> &poligonalChainUpdated);
 	
 	/**
+	 * @param gmesh geometric mesh
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence);

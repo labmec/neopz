@@ -67,6 +67,7 @@ namespace pzshape {
 		 * @param order (input) order of the side connects different from the corner connects (5 connects in this case)
 		 * @param phi (output) values of the shape functions
 		 * @param dphi (output) values of the derivatives of the shapefunctions
+		 * @param memory auxiliar structure to accellerate computing
 		 */
 		/**
 		 * These values depend on the point, the order of interpolation and ids of the corner points \n
@@ -96,8 +97,8 @@ namespace pzshape {
 		/**
 		 * Total number of shapefunctions, considering the order
 		 * of interpolation of the element
-		 * @param order vector of integers indicating the interpolation order of the element
-		 * @return number of shape functions
+		 * @ param order vector of integers indicating the interpolation order of the element
+		 * @ return number of shape functions
 		 */
 		//static int NShapeF(TPZVec<int> &order);
 		
@@ -105,7 +106,7 @@ namespace pzshape {
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element
 		 * @param side associated side
-		 * @param mem order associated with the side
+		 * @param mem auxiliar structure to accellerate computing
 		 * @return number of shape functions
 		 */
 		static int NSideShapeF(int side, const TMem &mem);
@@ -118,8 +119,7 @@ namespace pzshape {
 		 */
 		static int NShapeF(TPZVec<int> &order);
 		/**
-		 * @brief Compute the internal functions of the hexahedral shape function at a point
-		 *
+		 * @brief Compute the internal functions of the hexahedral shape function at a point \n
 		 * The internal shape functions are the shapefunctions before being multiplied by the corner
 		 * shape functions
 		 * @param x coordinate of the point

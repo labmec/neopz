@@ -155,6 +155,7 @@ namespace pztopology {
 		/**
 		 * @brief Method which identifies the transformation of a side based on the IDs
 		 * of the corner nodes
+		 * @param side index of side
 		 * @param id indexes of the corner nodes
 		 * @return index of the transformation of the point corresponding to the topology
 		 */	

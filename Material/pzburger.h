@@ -27,15 +27,15 @@
 class TPZBurger : public TPZMatPoisson3dReferred {
 	
 public:
-	
+	/** @brief Enum for stabilization scheme into of the element */
 	enum EStabilizationScheme{ESUPG = 1, EGRADIENT = 2};
 	
 	static int gStabilizationScheme;
-	
+	/** @brief Constructor with id of material and dimension of the space */
 	TPZBurger(int nummat, int dim);
-	
+	/** @brief Copy constructor */
 	TPZBurger(const TPZBurger &cp);
-	
+	/** @brief Destructor */
 	virtual ~TPZBurger();
 	
 	//   virtual int HasForcingFunction() {
@@ -51,7 +51,7 @@ public:
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
-                            TPZFMatrix &ef){
+                            TPZFMatrix &ef) {
 		if (TPZBurger::gStabilizationScheme == ESUPG){
 			this->ContributeSUPG(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek,ef);
 		}

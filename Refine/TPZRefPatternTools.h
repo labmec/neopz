@@ -87,20 +87,19 @@ public:
 	
 	/**
 	 * @brief This method pair CORNER nodes from refA->mesh.father to refB->mesh.father, using the givem transformation from refA->mesh to refB->mesh to match coordinates.
-	 * 
-	 * The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId.
-	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
 	 * @param meshA - input data: mesh of first refpattern that will be considered its nodes coordinates
 	 * @param meshB - input data: mesh of second refpattern that will be considered its nodes coordinates
 	 * @param fromAtoB - input data: Linear Transformation from refA->mesh to refB->mesh (its needed to pair Nodes correctly in permuted cases)
 	 * @param pairedNodes - output data: correspondence between refA->mesh and refB->mesh nodes that matches its coordinates in fathers elements
 	 */
+	/** The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId. \n
+	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
+	 */
 	static void PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes);
 	
 	/**
 	 * @brief This method pair nodes from refA->mesh to refB->mesh, using the givem transformation from refA->mesh to refB->mesh to match coordinates.
-	 * 
-	 * The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId.
+	 * @note The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId. \n
 	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
 	 * @param meshA - input data: mesh of first refpattern that will be considered its nodes coordinates
 	 * @param meshB - input data: mesh of second refpattern that will be considered its nodes coordinates
@@ -109,9 +108,8 @@ public:
 	 */
 	static void PairMeshesNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes);
 	
-	/**
-	 * @brief Returns the the name of refpattern model.
-	 * 
+	/** @brief Returns the the name of refpattern model. */
+	/** 
 	 * To do this, it starts with the 3 initial characters of element nametype,
 	 * followed by the quantity of midnodes for each side of element.
 	 */
@@ -122,27 +120,24 @@ public:
 	/**
 	 * @brief Returns if there is any neigbour already refined
 	 * @param gel - input data: geometric element whose refinements of the neighbors will define the refinement of its sides
-	 * @sidestoref - output data: vector whose positions mention the sides of gel, and its contents mention the intensity of refinement of the respective side
+	 * @param sidestoref - output data: vector whose positions mention the sides of gel, and its contents mention the intensity of refinement of the respective side
 	 */
 	static bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref);
 	
-	/**
-     * @brief Refines the element if it touches an element with a material id included in matids
-     */
+	/** @brief Refines the element if it touches an element with a material id included in matids */
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
 	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
 	
 	static void RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids);
 	
-	/**
-	 * @brief Method to test if the jacobian of a TPZGeoElSide element is constant
-	 */
+	/** @brief Method to test if the jacobian of a TPZGeoElSide element is constant */
 	static bool ConstJacobian(TPZGeoElSide gelside, REAL tol = 1.e-6);
 	
 	/**
 	 * @brief Algorithm that evaluates the veracity of the hashings between sides
      * of the elements children and corresponding sides of the father.
-	 * 
+	 */
+	/** 
 	 * A point p in the parametric space of the side of the sub-element is
      * overcome and is calculated it mentioned hashing getting pf point in
      * the element father. One calculates for p and pf the corresponding
@@ -152,7 +147,7 @@ public:
 	static void TransformationTest(TPZRefPattern * refp);
 	
 	/**
-	 * NodesHunted vector is the sequential nodesIds that belongs (i.e.: "Tol" far) to InitialNode(IdIni)~FinalNode(IdFin) alignment of gMesh.NodeVec()
+	 * @brief NodesHunted vector is the sequential nodesIds that belongs (i.e.: "Tol" far) to InitialNode(IdIni)~FinalNode(IdFin) alignment of gMesh.NodeVec()
 	 * @note Obs.: InitialNode and FinalNode are also included!!!
 	 */
 	static void NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted, int IdIni, int IdFin, double Tol = 1.E-1);

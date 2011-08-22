@@ -83,6 +83,7 @@ public:
 	 * @brief Assemble a stiffness matrix according to rhs
 	 * @param stiffness Stiffness matrix to assembled
 	 * @param rhs Vector containing loads
+	 * @param guiInterface pointer to user interface
 	 */ 	
 	void AssembleNew(TPZMatrix & stiffness
 					 , TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -91,6 +92,7 @@ public:
 	 * @brief Assemble a stiffness matrix.
 	 * @param stiffness Stiffness matrix to assembled
 	 * @param rhs Vector containing loads
+	 * @param guiInterface pointer to user interface
 	 */ 	
 	void Assemble(TPZMatrix & stiffness
 				  , TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
@@ -112,6 +114,7 @@ public:
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
 	 * @param rhs Load matrix
+	 * @param guiInterface pointer to user interface
 	 */
 	/** 
 	 * This is a mandatory function, it is neded by all StructMatrix. \n

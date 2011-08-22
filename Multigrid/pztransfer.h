@@ -48,7 +48,11 @@ class TPZTransfer : public TPZMatrix {
 	
 	/** 
 	 * @brief This operation will reset the matrix to zero with no rows defined
+	 * @param row starting row of the block
+	 * @param col starting column of the block
 	 * @param nvar indicates the number of state variables of the problem
+	 * @param nrowblocks number of rows of the block
+	 * @param ncolblocks number of columns of the block
      * @note the stride of the matrix will be initialized by nvar
 	 */
 	void SetBlocks(TPZBlock &row, TPZBlock &col, int nvar, int nrowblocks, int ncolblocks);

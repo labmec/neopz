@@ -143,7 +143,7 @@ public:
     /** @brief Backward substitution and result is on b*/
 	int Subst_Backward(TPZFMatrix *b) const;
     /** @brief Executes a substitution on a TPZFmatrix object
-	 applies both forward and backward substitution automaticaly*/
+	 applies both forward and backward substitution automaticaly */
 	int Substitution(TPZFMatrix *) const;
     /*
 	 void SetFileName(
@@ -164,24 +164,23 @@ protected:
     /** @brief Indicates last decomposed equation */
 	int fLastDecomposed;
 	
-    /** @link aggregationByValue */
+    /** \ link aggregationByValue */
 	//    TPZFront fFront;
 	
-    /** @link aggregationByValue */
+    /** \ link aggregationByValue */
     //TPZStackEqnStorage fStorage;
 	
     /** @brief Contains the number of elements which still need to contribute to a given equation */
     TPZVec <int> fNumElConnected;
 	
-    /** @brief Contains the number of elements which still need to contribute to a given equation.
-	 */
+    /** @brief Contains the number of elements which still need to contribute to a given equation. */
 	/** 
 	 * This backup copy is needed to be able to reinitialize the matrix through the Zero() method
 	 */
     TPZVec <int> fNumElConnectedBackup;
 	
     /**
-     * @link aggregationByValue
+     * @ link aggregationByValue
      */
     //TPZFileEqnStorage fFileEqnStorage;
 };

@@ -89,7 +89,7 @@ public:
     /**
 	 * @brief Add a term to the current equation 
 	 * @param col The collumn position of val
-	 * @param The value beeing added itself.
+	 * @param val The value beeing added itself.
 	 */
     void AddTerm(int col, REAL val)
 	{

@@ -25,7 +25,7 @@ class TPZReadMesh
 public:
 	/**
 	 * @brief Default constructor
-	 * @param infile [in] contains a full path to the input file
+	 * @param inFile [in] contains a full path to the input file
 	 */
 	TPZReadMesh(const char * inFile);
 	

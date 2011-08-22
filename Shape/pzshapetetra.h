@@ -82,9 +82,9 @@ namespace pzshape {
 		
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
-		 * @param rib rib index to which the point should be projected
+		 * @param side side to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element
-		 * @param outval coordinate of the point on the rib
+		 * @param out coordinate of the point on the rib
 		 */
 		static void ProjectPoint3dTetrSide(int side, TPZVec<REAL> &in, REAL &out);
 		
@@ -92,7 +92,7 @@ namespace pzshape {
 		 * @brief Projects a point from the interior of the element to a face
 		 * @param face face index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element
-		 * @param out coordinates of the point on the face
+		 * @param outval coordinates of the point on the face
 		 */
 		static void ProjectPoint3dTetraToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &outval);
 		
@@ -116,7 +116,7 @@ namespace pzshape {
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the face into the three dimensional derivative
 		 * of the function with respect to the element. The parameter dphi should be dimensioned (3,num), at least
-		 * @param rib rib index along which the shapefunction is defined
+		 * @param face face index to which the point should be projected
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
 		 */

@@ -26,6 +26,7 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	TPZElasticityAxiMaterial();
 	/** 
 	 * @brief Creates an elastic material with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx and fy).
+	 * @param num material id
 	 * @param E Elasticity modulus 
 	 * @param nu \f$=\nu\f$ Poisson coefficient
 	 * @param fx Forcing function \f$ -x = fx \f$
@@ -37,6 +38,7 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	//------------------- FEITO POR AGNALDO : 05/02/10 . Só para teste ----------
 	/**
 	 * @brief Creates an elastic material test with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx, fy) and penalty term (coefAlpha).
+	 * @param num material id
 	 * @param E Elasticity modulus
 	 * @param nu \f$=\nu\f$ Poisson coefficient
 	 * @param fx Forcing function \f$ -x = fx \f$

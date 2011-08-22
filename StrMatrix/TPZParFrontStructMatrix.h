@@ -48,29 +48,26 @@ private:
 	
 public:     
 	
-	/**
-	 * @brief Sets number of threads to be used in frontal process
-	 */
+	/** @brief Sets number of threads to be used in frontal process */
 	void SetNumberOfThreads(
 							int nthreads //! Number of threads to be used
 							);
 	
-	/**
-	 * @brief It clones a TPZStructMatrix
-	 *
-	 * Virtual function must return same type
-	 */
+	/** @brief It clones a TPZStructMatrix */
+	/** Virtual function must return same type */
 	TPZStructMatrix *Clone();
-	/**
-	 * @brief Constructor passing as parameter a TPZCompMesh
-	 */
+	
+	/** @brief Constructor passing as parameter a TPZCompMesh */
 	TPZParFrontStructMatrix(
 							TPZCompMesh *mesh //! Mesh to refer to
 							);
 	
 	TPZParFrontStructMatrix(const TPZParFrontStructMatrix &copy);
+	
 	/**
-	 * @brief Returns a poniter to TPZMatrix
+	 * @brief Returns a pointer to TPZMatrix
+	 * @param rhs Load matrix
+	 * @param guiInterface pointer to user interface
 	 */
 	virtual TPZMatrix * CreateAssemble(
 									   TPZFMatrix &rhs //! Load matrix
@@ -83,35 +80,32 @@ public:
 	/** Used only for testing */
 	static int main();
 	
-	/**
-	 * @brief It computes element matrices in an independent thread.
-	 *
+	/** @brief It computes element matrices in an independent thread. */
+	/** 
 	 * It is passed as a parameter to the  pthread_create() function. \n
 	 * It is a 'static void *' to be used by pthread_create
 	 */
 	static void *ElementAssemble(void *t);
+	/** @brief It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. */
 	/**
-	 * @brief It assembles element matrices in the global stiffness matrix, it is also executed in an independent thread. \n
-	 *
 	 * It is passed as a parameter to the  pthread_create() function. \n
 	 * It is a 'static void *' to be used by pthread_create
 	 */
 	static void *GlobalAssemble(void *t);
+	/** @ brief It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
 	/**
-	 * @brief It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
-	 *
 	 * It is passed as a parameter to the  pthread_create() function. \n
 	 * It is a 'static void *' to be used by pthread_create
+	 * /
      static void *WriteFile(void *t);*/
 	
 private:
+	/** @brief Number of threads used in the process. */
 	/**
-	 * @brief Number of threads used in the process. \n
-	 *
 	 * It needs at least three independet threads to execute:\n
-	 *ElementAssemble\n
-	 *GlobalAssemble\n
-	 *WriteFile\n
+	 *  ElementAssemble\n
+	 *  GlobalAssemble\n
+	 *  WriteFile\n
 	 */  
 	int fNThreads;
 	/** @brief Current computed element*/
@@ -120,20 +114,16 @@ private:
 	int fCurrentAssembled;
 	/** @brief Total number of elements*/
 	int fNElements;
-	/**
-	 * @brief Maximum stack size allowed. \n
-	 *
-	 * Whenever this value is reached a execution of element computing is suspended
-	 */
+	/** @brief Maximum stack size allowed. */
+	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
 	/** @brief Local pointer to stiffness matrix*/
 	TPZMatrix * fStiffness;
 	/** @brief Local pointer to load matrix*/
 	TPZFMatrix * fRhs;
 	
-	/**
-	 * @brief Stack containing elements to be assembled on Stiffness matrix. \n
-	 *
+	/** @brief Stack containing elements to be assembled on Stiffness matrix. */
+	/** 
 	 * ElementAssemble pushes elements on the stack. \n
 	 * GlobalAssemble pops elements from the stack.
 	 */

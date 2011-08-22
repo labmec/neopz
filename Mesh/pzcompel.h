@@ -266,16 +266,16 @@ public:
 	
 	/**
 	 * @brief Prints element data
-	 * @param out indicates the device where the data will be printed
+	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const;
 	
 	/**
 	 * @brief Output device operator
-	 * @param out indicates the device where the data will be printed
-	 * @param el element to print
+	 * @param s Indicates the device where the data will be printed
+	 * @param el Element to print
 	 */
-	friend std::ostream& operator<< ( std::ostream & out,TPZCompEl &el);
+	friend std::ostream& operator<<(std::ostream &s,TPZCompEl &el);
 	
 	/**
 	 * @brief Prints the solution - sol - for the variable "VarName"
@@ -620,9 +620,9 @@ public:
 	
 	/**
 	 * @brief Find the list element/side of the current element restrict nodes and elements
+	 * @param expandvec Vector of the PZCompElSide
 	 * @param onlyinterpolated if ==1 only elements derived from TPZInterpolated will be put on the stack
 	 */
-	// acha uma lista elemento/lado de elementos e n� restritos ao atual elemento*/
 	void ExpandConnected(TPZStack<TPZCompElSide> &expandvec,int onlyinterpolated);
 	
 	/**

@@ -332,6 +332,7 @@ public:
 	 * @param jacinv [in] Inverse jacobian of the mapping.
 	 * @param sol [in] solution of the dim+2 state functions
 	 * @param dsol [in] derivatives of U with respect to the dim dimensions
+	 * @param dphix [in] derivatives of shape functions.
 	 * @param ef [out] Residual vector to contribute to
 	 * @param weight [in] Gaussian quadrature integration weight
 	 * @param timeStep [in]

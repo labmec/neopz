@@ -57,8 +57,8 @@ public:
     /**
      * @brief Decompose these equations and put the result in eqnarray \n
      * Default decompose method is Cholesky
-	 * @param starting index of equations to be decomposed
-	 * @param finishing index of equations to be decomposed
+	 * @param mineq index of equations to be decomposed
+	 * @param maxeq index of equations to be decomposed
 	 * @param result result of decomposition
      */
     void DecomposeEquations(int mineq, int maxeq, TPZEqnArray & result);

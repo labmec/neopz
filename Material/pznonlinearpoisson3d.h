@@ -53,9 +53,9 @@ public:
 	
 	/**
 	 * @brief It computes a contribution to the residual vector at one integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ef[out] is the residual vector
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);

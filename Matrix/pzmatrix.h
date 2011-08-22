@@ -199,16 +199,17 @@ public:
 	
 	/**
 	 * @brief Computes the matrix norm of this
-	 *
-	 * It is available p-norm = 1, 2 and infinity.
-	 * p=1 is the maximum absolute column sum norm
-	 * p=2 is the spectral norm wich is the square root of the maximum eigenvalue of Tranpose[this].this
-	 * p=infinity is the maximum absolute row sum norm - p infinity is implemented with p = 0
-	 * These operations are defined on the website of the Mathematica software:
-	 * http://mathworld.wolfram.com/MatrixNorm.html
-	 * Be careful when choosing 2-norm. It has a high computational cost.
+	 * @param p interpolation order
 	 * @param numiter is used by 2-norm calculation in the SolveEigenvaluesJacobi method required to compute the maximum eigenvalue
 	 * @param tol - same of numiter
+	 * @note It is available p-norm = 1, 2 and infinity.\n
+	 * p=1 is the maximum absolute column sum norm \n
+	 * p=2 is the spectral norm wich is the square root of the maximum eigenvalue of Tranpose[this].this \n
+	 * p=infinity is the maximum absolute row sum norm - p infinity is implemented with p = 0 \n
+	 * These operations are defined on the website of the Mathematica software: \n
+	 * http://mathworld.wolfram.com/MatrixNorm.html \n
+	 * Be careful when choosing 2-norm. It has a high computational cost.
+	 
 	 */
 	REAL MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const;
 	
@@ -259,8 +260,8 @@ public:
 	
 	/**
 	 * @brief Redimensions a matriz keeping the previous values
-	 * @param newRow Specifies the new number of rows in matrix
-	 * @param newCol Specifies the new number of Columns in matrix
+	 * @param newRows Specifies the new number of rows in matrix
+	 * @param newCols Specifies the new number of Columns in matrix
 	 */
 	virtual int Resize(const int newRows, const int newCols ) {
 		fRow = newRows;
@@ -270,8 +271,8 @@ public:
 	
 	/**
 	 * @brief Redimensions the matrix reinitializing it with zero
-	 * @param newRow Specifies the new number of rows in matrix.
-	 * @param newCol Specifies the new number of Columns in matrix.
+	 * @param newRows Specifies the new number of rows in matrix.
+	 * @param newCols Specifies the new number of Columns in matrix.
 	 */
 	virtual int Redim(const int newRows, const int newCols ) {
 		fRow = newRows;
@@ -326,6 +327,8 @@ public:
 	 * @param sCol Specifies starting column on current object.
 	 * @param rowSize Specifies the amount of rows from sRow
 	 * @param colSize Specifies the amount of columns from sCol
+	 * @param pRow Specifies final row on current object
+	 * @param pCol Specifies final column on current object.
 	 * @param Target The matrix to be inserted.
 	 */
 	virtual int InsertSub(const int sRow,const int sCol,const int rowSize,const int colSize,
@@ -413,7 +416,7 @@ public:
 	//@{
 	/**
 	 * @brief Solves the linear system using Jacobi method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.
@@ -426,7 +429,7 @@ public:
 	
 	/**
 	 * @brief Solves the linear system using Successive Over Relaxation method (Gauss Seidel). \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.
@@ -441,7 +444,7 @@ public:
 						  const int FromCurrent = 0,const int direction = 1) ;
 	/**
 	 * @brief Solves the linear system using Symmetric Successive Over Relaxation method (Gauss Seidel). \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.
@@ -456,12 +459,13 @@ public:
 	
 	/**
 	 * @brief Solves the linear system using Conjugate Gradient method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param preconditioner The preconditioner attribute used.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.
 	 * @param tol The tolerance value.
+	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
 	virtual void SolveCG(int & numiterations, TPZSolver & preconditioner,
 						 const TPZFMatrix & F, TPZFMatrix & result,
@@ -469,7 +473,7 @@ public:
 						 const int FromCurrent = 0) ;
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param preconditioner The preconditioner attribute used.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
@@ -482,12 +486,13 @@ public:
 	
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient stabilized method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param preconditioner The preconditioner attribute used.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.
 	 * @param tol The tolerance value.
+	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
 	virtual void SolveBICGStab(int & numiterations, TPZSolver & preconditioner,
 							   const TPZFMatrix & F, TPZFMatrix & result,
@@ -496,7 +501,7 @@ public:
 	
 	/**
 	 * @brief Solves the linear system using Generalized Minimal Residual (GMRES) method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param preconditioner The preconditioner attribute used.
 	 * @param H The right hand side of the system
 	 * @param numvectors The number of vectors involved
@@ -513,7 +518,7 @@ public:
 	
 	/**
 	 * @brief Solves the linear system using IR method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param preconditioner The preconditioner attribute used.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
@@ -528,16 +533,16 @@ public:
 	
 	/** @brief Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.
 	 * This method is efficient only for small matrices.
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param tol The tolerance value.
 	 * @param Sort diagonal values from big to small
 	 * @param return true if tolerance is achieved or false otherwise.
 	 */
 	virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort = 0);
 	
-	/** @brief Compute Eigenvalues and Eigenvectors of this matrix.
+	/** @brief Compute Eigenvalues and Eigenvectors of this matrix. \n
 	 * This method is efficient only for small matrices.
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param tol The tolerance value.
 	 * @param Eigenvalues ordered from big to small
 	 * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
@@ -546,38 +551,59 @@ public:
 	virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const;
 	
 	/**
-	 * @brief Solves the linear system using Direct methods\n
+	 * @brief Solves the linear system using Direct methods
 	 * @param F The right hand side of the system and where the solution is stored.
-	 * @param DecomposeType Indicates type of decomposition
+	 * @param dt Indicates type of decomposition
+	 * @param singular
 	 */
 	virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt, std::list<int> &singular);
+	/**
+	 * @brief Solves the linear system using Direct methods
+	 * @param F The right hand side of the system and where the solution is stored.
+	 * @param dt Indicates type of decomposition
+	 */
 	virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
 	
 	/**
-	 * Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
+	 * @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
 	 */
 	static REAL ReturnNearestValue(REAL val, TPZVec<REAL> &Vec, REAL tol);
 	
 	/**
 	 * @brief Solves the linear system using LU method\n
 	 * @param B The right hand side of the system and where the solution is stored.
+	 * @param singular
 	 */
 	int Solve_LU ( TPZFMatrix * B, std::list<int> &singular );
+	/**
+	 * @brief Solves the linear system using LU method\n
+	 * @param B The right hand side of the system and where the solution is stored.
+	 */
 	int Solve_LU ( TPZFMatrix * B );
 	
 	//para usar estos solves e' responsabilidade do usuario
-	//que a mtriz corrente seja simetrica
+	//que a matriz corrente seja simetrica
 	/**
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 */
 	int Solve_Cholesky( TPZFMatrix * B);
+	/**
+	 * @brief Solves the linear system using Cholesky method\n
+	 * @param B The right hand side of the system and where the solution is stored.
+	 * @param singular
+	 */
 	int Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
+	 * @param singular
 	 */
 	int Solve_LDLt    ( TPZFMatrix * B, std::list<int> &singular );
+	/**
+	 * @brief Solves the linear system using LDLt method\n
+	 * @param B The right hand side of the system and where the solution is stored.
+	 */
 	int Solve_LDLt    ( TPZFMatrix * B);
 	
 	//@}
@@ -599,6 +625,10 @@ public:
 	 * The current matrix has to be symmetric.
 	 */
 	virtual int Decompose_Cholesky() ;
+	/**
+	 * @brief Decomposes the current matrix using Cholesky method.
+	 * @param singular
+	 */
 	virtual int Decompose_Cholesky(std::list<int> &singular) ;
 	
 	// Decompoe a matriz em LDLt (onde L e' triangular inferior com
@@ -610,7 +640,9 @@ public:
 	 * "L" is lower triangular with 1.0 in its diagonal and "D" is a Diagonal matrix.
 	 */
 	virtual int Decompose_LDLt(std::list<int> &singular);
+	/** @brief Decomposes the current matrix using LDLt. */
 	virtual int Decompose_LDLt();
+	
 	//@}
 	
 	/**
@@ -662,11 +694,13 @@ public:
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
+	 * @param context 
 	 */
 	virtual void  Read(TPZStream &buf, void *context );
 	/**
 	 * @brief Packs the object structure in a stream of bytes
 	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
 	

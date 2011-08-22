@@ -117,8 +117,10 @@ public:
     /** @brief returns the variable index associated with the name*/
     virtual int VariableIndex(const std::string &name);
     
-    /** @brief returns the number of variables associated with the variable
-     indexed by var.  var is obtained by calling VariableIndex*/
+    /** 
+	 * @brief returns the number of variables associated with the variable indexed by var. 
+	 * @param var Index variable into the solution, is obtained by calling VariableIndex
+	 */
     virtual int NSolutionVariables(int var);
     
     /** @brief returns the solution associated with the var index based on
@@ -131,8 +133,7 @@ protected:
     
 public:
     
-    /** @brief compute the value of the flux function to be used by ZZ error
-     * estimator*/
+    /** @brief compute the value of the flux function to be used by ZZ error estimator */
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
                       TPZFMatrix &DSol, TPZFMatrix &axes,
                       TPZVec<REAL> &flux) {}
@@ -146,41 +147,40 @@ public:
 	 */
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
      * @since April 16, 2007
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc) = 0;
     
     /**
      * @brief It computes a contribution to the residual vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the residual vector
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
@@ -206,7 +206,9 @@ public:
     //#endif
     /** 
 	 * @brief Set a procedure as source function for the material.
-	 * @param loc corresponds to the coordinate of the point where the source function is applied
+	 * @param fp pointer of the forces function
+	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
+	 * @note Parameter result contains the forces resulting
 	 */
     void SetForcingFunction(void (*fp)(TPZVec<REAL> &loc,
                                        TPZVec<REAL> &result))
@@ -223,13 +225,14 @@ public:
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
     
     /** Set the integration rule order based on the element
-     *  @param p order of interpolation, its dimension and the characteristics
+     *  @ param p order of interpolation, its dimension and the characteristics
      *   of the material
      *
 	 virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
 	 int elPMaxOrder,
 	 int elDimension);
 	 */
+	
     /**
 	 * @brief Compute the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
@@ -237,14 +240,12 @@ public:
     virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
                         TPZFMatrix &axes, TPZVec<REAL> &flux,
                         TPZVec<REAL> &uexact, TPZFMatrix &duexact,
-                        TPZVec<REAL> &val){
+                        TPZVec<REAL> &val) {
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
     
-    /**
-     * @brief Returns the number of norm errors. Default is 3: energy, L2 and H1.
-     */
+    /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() {return 3;}
     
     /** @brief To create another material of the same type*/
@@ -253,14 +254,10 @@ public:
     /** @brief Read data of the material from a istream (file data)*/
     virtual void SetData(std::istream &data);
     
-    /**
-     * @brief Create a copy of the material object and put it in the vector
-     * which is passed on
-     */
+    /** @brief Create a copy of the material object and put it in the vector which is passed on */
     virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
     
-    /** @brief To return a numerical flux type to apply over the interfaces
-     * of the elements*/
+    /** @brief To return a numerical flux type to apply over the interfaces of the elements */
     virtual int FluxType() { return 2; }
     
     /** Factor to diffussive term*/
@@ -284,19 +281,13 @@ public:
         return -1.;
     }
     
-    /**
-     * @brief Unique identifier for serialization purposes
-     */
+    /** @brief Unique identifier for serialization purposes */
     virtual int ClassId() const;
     
-    /**
-     * @brief Save the element data to a stream
-     */
+    /** @brief Save the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid);
     
-    /**
-     * @brief Read the element data from a stream
-     */
+    /** @brief Read the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
     
     /**
@@ -307,9 +298,7 @@ public:
      */
     virtual int PushMemItem(int sourceIndex = -1){ return -1; }
     
-    /**
-     * @brief Frees an entry in the material with memory internal history storage
-     */
+    /** @brief Frees an entry in the material with memory internal history storage */
     virtual void FreeMemItem(int index){ return; }
     
     /** @brief Set fLinearContext attribute */

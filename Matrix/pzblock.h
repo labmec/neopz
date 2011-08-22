@@ -150,14 +150,12 @@ public:
      @param block Block to be inserted
 	 */
 	int AddBlock(const int block_row,const int block_col, const TPZFMatrix & block );
-	
-	//Coloca o bloco (block_row , block_col) dentro da matriz &target desde a posicao (row,col)
-	
+		
 	/**
      @brief Inserts a block (block_row , block_col) on current matrix target
      @param block_row Contains block row
      @param block_col Contains block column
-     @param block Block to be inserted
+     @param target Block to be inserted
      @param row Starting row position
      @param col Starting column position
 	 */

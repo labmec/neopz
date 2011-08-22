@@ -37,18 +37,15 @@ public:
 	void Print(std::ostream &out,char * title);
 	/**
 	 * @brief Subdivides a Graph in nParts.
-	 * @param nParts : Number of subdomains the Original domain must be divided to.
-	 * @param Adjacencyindex : Vector of int containing the indexes for the ith element on the
-	 * Adjacency Vector.
-	 * @param Adjacency : The index for the edges according to XAdj.
-	 * @param Domains : A vector the subdomain index for each vertex
+	 * @param nParts Number of subdomains the Original domain must be divided to.
+	 * @param Domains A vector the subdomain index for each vertex
 	 */
 	/** The Adjacency list works according to the MeTiS specification as found on MeTiS manual. \n
 	 * The graph information is stored using the CSR (Compressed Storage Format) \n
 	 * The CSR for a graph with 'n' vertices and 'm' edges is represented using two vector XAdj \n
 	 * and Adjacency. XAdj is of size 'n + 1' while Adjacency is of size '2 * m'. \n
 	 * The graph structures is stored as follows: \n
-	 * For the ith vertex, its Adjacency list is stored in the Adjacency vector positions \ns
+	 * For the ith vertex, its Adjacency list is stored in the Adjacency vector positions \n
 	 * startint in XAdj[i] until XAdj[i+1]-1.
 	 */
 	void Subdivide(int nParts, TPZVec < int >  & Domains);

@@ -80,10 +80,8 @@ public:
 	
 	/**
 	 * @brief Informs the Analysis class the time at which
-	 * the current solution in the computational
-	 * mesh belongs
-	 *
-	 * so that the materials can choose whether to contribute implicitly
+	 * the current solution in the computational mesh belongs \n
+	 * So that the materials can choose whether to contribute implicitly
 	 * or explicitly.
 	 */
 	void SetContributionTime(TPZContributeTime time);
@@ -95,14 +93,12 @@ public:
 	
 	
 	/**
-	 * @brief Adds deltaSol to the last solution and stores it as the current
-	 * Solution, preparing it to contribute again.
-	 * 
-	 * Also updates the CompMesh soution.
-	 *
+	 * @brief Adds deltaSol to the last solution and stores it as the current solution, preparing it to contribute again.
 	 * @param deltaSol [in] result of previous call to Solve.
 	 * @param epsilon [out] norm of resultant fRhs.
-	 *
+	 */
+	/** 
+	 * Also updates the CompMesh soution.
 	 */
 	void UpdateSolAndRhs(TPZFMatrix & deltaSol, REAL & epsilon);
 	
@@ -217,11 +213,11 @@ public:
 	void SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag);
 	
 	/**
-	 @brief This method will search for the \f$ sol0 + \alpha dir\f$ solution which minimizes the residual
-	 @param [in/out] residual initial residual (of sol0) and on exiting final residual
-	 @param [in/out] sol0 solution vector
-	 @param [in] dir search direction
-	 @return 1 if a direction was found, 0 otherwise
+	 * @brief This method will search for the \f$ sol0 + \alpha dir\f$ solution which minimizes the residual
+	 * @param residual [in/out] initial residual (of sol0) and on exiting final residual
+	 * @param sol0 [in/out] solution vector
+	 * @param dir [in] search direction
+	 * @return 1 if a direction was found, 0 otherwise
 	 */
 	int LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &dir);
     void CompareRhs();
@@ -229,16 +225,13 @@ public:
 	/**
 	 * @brief Evaluates the CFL control based on the newest residual norm
 	 * (epsilon) and last residual norm (lastEpsilon).
-	 *
-	 * Scales are also applied to timeStep
-	 *
-	 * @param lastEpsilon [in/out] norm of the last flux vector
-	 * it is set to epsilon after CFL update.
+	 * @param lastEpsilon [in/out] norm of the last flux vector, it is set to epsilon after CFL update.
 	 * @param epsilon [in] norm of the current flux vector.
 	 * @param epsilon_Newton [in] residual of the nonlinear invertion.
-	 * @param timeStep [in/out] parameter to accumulate the same
-	 * scales.
-	 *
+	 * @param timeStep [in/out] parameter to accumulate the same scales.
+	 */
+	/**
+	 * Scales are also applied to timeStep
 	 */
 	void CFLControl(REAL & lastEpsilon, REAL & epsilon, REAL & epsilon_Newton, REAL & timeStep);
     void SetGMResFront(REAL tol, int numiter, int numvectors);
@@ -250,8 +243,8 @@ protected:
 	/**
 	 * @brief Stores a pointer to the computational
 	 * flow mesh. 
-	 *
-	 * The inherited fCompMesh is also
+	 */
+	/** The inherited fCompMesh is also
 	 * updated with valid values to keep compatibility \n
 	 * with inherited methods, but in this class
 	 * fFlowCompMesh is used whenever a method exclusive \n
@@ -259,18 +252,10 @@ protected:
 	 */
 	TPZFlowCompMesh * fFlowCompMesh;
 	
-	/**
-	 * @brief Vector to hold the contribution of last state
-	 * to the rhs.
-	 */
-	
+	/** @brief Vector to hold the contribution of last state to the rhs. */
 	TPZFMatrix fRhsLast;
 	
-	/**
-	 * @brief Stop criteria for the Newton and time
-	 * integration loops.
-	 *
-	 */
+	/** @brief Stop criteria for the Newton and time integration loops. */
 	REAL fLinSysEps;
 	int fLinSysMaxIter;
 	
@@ -280,24 +265,16 @@ protected:
 	REAL fTimeIntEps;
 	int fTimeIntMaxIter;
 	
-	/**
-	 * @brief Indicates whether the CFL is to evolute or not.
-	 */
+	/** @brief Indicates whether the CFL is to evolute or not. */
 	int fEvolCFL;
 	
-	/**
-	 * @brief Preconditioner
-	 */
+	/** @brief Preconditioner */
 	TPZBlockDiagonal * fpBlockDiag;
 	
-	/**
-	 * @brief Total number of newton iterations during this run
-	 */
+	/** @brief Total number of newton iterations during this run */
 	int fTotalNewton;
 	
-	/**
-	 * @brief Indication if a frontal matrix is being used as a preconditioner
-	 */
+	/** @brief Indication if a frontal matrix is being used as a preconditioner */
 	int fHasFrontalPreconditioner;
 	
 };

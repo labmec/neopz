@@ -111,7 +111,7 @@ public:
 	ElemType *GetNode();
 	/**
 	 * @brief Returns the last element on the list
-	 * @param *pELem contains the last element
+	 * @param *pElem contains the last element
 	 */
 	int GetLast( ElemType *pElem );
 	

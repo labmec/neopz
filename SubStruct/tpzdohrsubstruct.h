@@ -83,12 +83,14 @@ public:
     void Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarseindex);
     /**
 	 * @brief It computes the local contribution to v1.
+	 * @param v1 
 	 * @param invKc_rc is the product K(c)_inverted*r(c) 
 	 */
 	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
     void Contribute_v1(TPZFMatrix &v1, TPZFMatrix &invKc_rc);
     /**
 	 * @brief It computes the local contribution to v1.
+	 * @param v1_local 
 	 * @param invKc_rc is the product K(c)_inverted*r(c)
 	 */
 	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
@@ -100,13 +102,14 @@ public:
 							 );
     /**
 	 * @brief It computes the local contribution to v(3)
+	 * @param v3 
 	 * @param r is the global residual
 	 * @param v1Plusv2 is the sum "v1 + v2"
 	 */
     void Contribute_v3(TPZFMatrix &v3, const TPZFMatrix &r, TPZFMatrix &v1Plusv2) const;
     /**
 	 * @brief It computes the local contribution to v(3)
-	 * @param r is the global residual
+	 * @param v3 
 	 * @param v1Plusv2 is the sum "v1 + v2"
 	 */
     void Contribute_v3_local(TPZFMatrix &v3, TPZFMatrix &v1Plusv2) const;
@@ -136,7 +139,7 @@ public:
     void ComputeWeights(TPZFMatrix &StiffnessDiag);
     /**
 	 * @brief Computes the weight matrix.
-	 * @param StiffnessDiag is the diagonal of the global matrix (local numbering)
+	 * @param StiffnessDiagLocal is the diagonal of the global matrix (local numbering)
 	 */
     void ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal);
     /**
@@ -159,33 +162,23 @@ public:
 	 * @brief It prepares the datas for solving systems for phi and zi
 	 */
     void PrepareSystems();
-    /**
-	 * @brief Solves the system for Phi and for v2
-	 * 
-	 * It stores the results in fPhiC and fzi
-	 */
+    /** @brief Solves the system for Phi and for v2 */
+	/** It stores the results in fPhiC and fzi */
     void SolveSystemPhi();
-    /**
-	 * @brief Solves the system for zi
-	 * 
-	 * It stores the results in fzi
-	 */
+    /** @brief Solves the system for zi */
+	/** It stores the results in fzi */
     void SolveSystemZi();
-    /**
-	 * @brief Computes K(ci) and stores it in fKCi
-	 */
+    /** @brief Computes K(ci) and stores it in fKCi */
     void ComputeCoarseStiffness();
-	/**
-	 * @brief Add the internal solution to the final result
-	 */
+	/** @brief Add the internal solution to the final result */
 	void AddInternalSolution(TPZFMatrix &sol);
-    /**
-     * @brief Variables needed to solve the systems for phi and zi
-     */
+	
+    /** @brief Variables needed to solve the systems for phi and zi */
 	TPZFMatrix fC_star;
     TPZFMatrix fKeC_star; //K_star_inv*C_star_trans
     TPZStepSolver finv;
     TPZFMatrix fNullPivots;
+
 	/** @brief Number of equations of the substructure */
 	int fNEquations; 
 	

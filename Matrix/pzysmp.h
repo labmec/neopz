@@ -125,7 +125,7 @@ public:
 	//@{
 	/**
 	 * @brief Solves the linear system using Jacobi method. \n
-	 * @param numinterations The number of interations for the process.
+	 * @param numiterations The number of interations for the process.
 	 * @param F The right hand side of the system.
 	 * @param result The solution.
 	 * @param residual Returns F - A*U which is the solution residual.

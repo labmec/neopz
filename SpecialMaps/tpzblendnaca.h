@@ -13,7 +13,7 @@
 class TPZGeoEl;
 class TPZGeoMesh;
 /**
- * @author caju2008 <caju@skol>
+ * @author caju2008 < caju\@skol >
  * @ingroup geometry
  * @brief Special map to NACA. \ref geometry "Geometry"
  */

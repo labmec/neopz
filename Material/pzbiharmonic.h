@@ -100,7 +100,10 @@ public:
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
-	
+    /**
+	 * @brief Compute the error due to the difference between the interpolated flux 
+	 * and the flux computed based on the derivative of the solution
+	 */	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);

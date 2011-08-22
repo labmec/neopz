@@ -65,6 +65,7 @@ namespace pzgeom
 		
 		/**
 		 * @brief Origin defines the translation of ellipse while semi-axes defines the rotation of ellipse, i.:
+		 * @param Origin origin coordinates
 		 * @param SemiAxeX is the vector that defines the direction of X axes of ellipse, whose value is its norm.
 		 * @param SemiAxeY is the vector that defines the direction of Y axes of ellipse, whose value is its norm.
 		 */

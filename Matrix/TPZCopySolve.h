@@ -26,10 +26,11 @@ public:
 	{
 	}
 	/**
-	 * @brief Solves the system of linear equations stored in current matrix
-	 *      As this class implements only a copy operation, it just copies u to F;
-	 *      @param F contains Force vector
-	 *      @param result contains the solution
+	 * @brief Solves the system of linear equations stored in current matrix \n
+	 * As this class implements only a copy operation, it just copies u to F;
+	 * @param F contains Force vector
+	 * @param result contains the solution
+	 * @param residual [out] residual computed
 	 */
 	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual)
 	{

@@ -22,14 +22,14 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
 	
 	public :
-	
+	/** @brief Simple constructor */
 	TPZDiscontinuousGalerkin();
-	
+	/** @brief Constructor with the index of the material object within the vector */
 	TPZDiscontinuousGalerkin(int nummat);
 	
 	/** @brief Copy constructor */
 	TPZDiscontinuousGalerkin(const TPZDiscontinuousGalerkin &copy);
-	
+	/** @brief Destructor */
 	virtual ~TPZDiscontinuousGalerkin();
 	
 	virtual std::string Name();
@@ -98,14 +98,14 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	virtual int IsInterfaceConservative();
 	
 	/** 
-	 * @brief Compute interface jump = leftu - rightu
+	 * @brief Computes interface jump = leftu - rightu
 	 * @since Feb 14, 2006
 	 */
 	virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
 	
 	
 	/** 
-	 * @brief Compute interface jump from element to Dirichlet boundary condition.
+	 * @brief Computes interface jump from element to Dirichlet boundary condition.
 	 * It has to reimplemented
 	 * @since Mar 08, 2006
 	 */
@@ -134,7 +134,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	/** @brief Unique identifier for serialization purposes */
 	virtual int ClassId() const;
 	
-	/** @brief Save the element data to a stream */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	/** @brief Reads the element data from a stream */

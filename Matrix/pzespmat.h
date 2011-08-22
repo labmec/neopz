@@ -168,7 +168,6 @@ protected:
 	//  int fAdd(const REAL &val );// operator +=
 	/**
 	 *  @see TPZSpMatrix::operator+=
-	 *  @link TPZSpMatrix::operator+=
 	 */
 	int fAdd(const TPZSpMatrix *const A );               // operator +=
 	int fAdd(const TPZSpMatrix *A, TPZSpMatrix *B ); // operator +
@@ -182,7 +181,7 @@ protected:
 	int fMult( REAL val );                // operator *
 	
 	
-	// Troca o valor das duas variaveis.
+	/** Swap (troca) the values of the variables */
 	inline void Swap( int *a, int *b );
 	
 	int  Clear()               { delete [] fElem; return ( 1 );}
@@ -193,13 +192,11 @@ protected:
 	//  posicionadas no elemento de coluna 'k' (ou onde ele deveria
 	//  estar).
 	/**
-     @brief Computes dot product with respect to lines row_i e row_j using only elements
-     that belongs to columns less than k.
-	 
-	 Afterwards lines row_i and row_j would 
-     be positioned on the element of column k. (where it should be).
-     @param row_i Ith row to be used
-     @param row_j Jth row to be used
+     * @brief Computes dot product with respect to lines row_i e row_j using only elements that belongs to columns less than k.
+	 * @note Afterwards lines row_i and row_j would be positioned on the element of column k. (where it should be).
+     * @param row_i Ith row to be used
+     * @param row_j Jth row to be used
+	 * @param k number of column limit
 	 */
 	REAL ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 				 int k );

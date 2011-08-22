@@ -47,6 +47,11 @@ public:
 	/**devolve o tensor de tensões da placa
 	 * @param ksi ponto no espaco parametrico
 	 */
+	/**
+	 * @brief Returns the tensions tensor of the shell
+	 * @param ksi point in the parametric space
+	 * @param T Tension values [out]
+	 */
 	void Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T);
 	/**Dados dois vetores n1 e n2 retorna o momento*/
 	REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);

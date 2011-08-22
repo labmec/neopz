@@ -36,7 +36,7 @@ class TPZCompMesh;
  * @brief This class implements a discontinuous element (for use with discontinuous Galerkin). \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
-class TPZCompElDisc : public TPZInterpolationSpace{
+class TPZCompElDisc : public TPZInterpolationSpace {
 	
 private:
 	
@@ -46,9 +46,7 @@ protected:
 	
 	TPZAutoPointer<TPZIntPoints> fIntRule;
 	
-	/**
-	 * @brief Shape function type used by the element
-	 */
+	/** @brief Shape function type used by the element */
 	pzshape::TPZShapeDisc::MShapeType fShapefunctionType;
 	
 public:
@@ -65,40 +63,28 @@ public:
 	/** @brief Set total order shape functions. */
 	void SetTotalOrderShape();
 	
-	/** @brief Set tensorial shape functions with many derivatives.
-	 * 
-	 * Available only for 2D shape functions.
-	 */
+	/** @brief Set tensorial shape functions with many derivatives. */
+	/** Available only for 2D shape functions. */
 	void SetTensorialShapeFull();
 	
-	/** @brief Set total order shape functions.
-	 * 
-	 * Available only for 2D shape functions.
-	 */
+	/** @brief Set total order shape functions. */
+	/** Available only for 2D shape functions. */
 	void SetTotalOrderShapeFull();
 	
 protected:
 	
-	/**
-	 * @brief It preserves index of connect associated to the element
-	 */
+	/** @brief It preserves index of connect associated to the element */
 	int fConnectIndex;
 	
-	/**
-	 * @brief Normalizing constant for shape functions
-	 */
+	/** @brief Normalizing constant for shape functions */
 	REAL fConstC;
 	
-	/** @brief A pz function to allow the inclusion of extra shape functions
-	 * which are defined externally.
-	 */
+	/** @brief A pz function to allow the inclusion of extra shape functions which are defined externally. */
 	TPZAutoPointer<TPZFunction> fExternalShape;
 	
 protected:
 	
-	/**
-	 * @brief It keeps the interior point coordinations of the element
-	 */
+	/** @brief It keeps the interior point coordinations of the element */
 	TPZManVector<REAL,3> fCenterPoint;
 	
 	/**
@@ -112,8 +98,7 @@ public:
 	/** @brief Define external shape functions which are stored in class attribute fExternalShape */
 	void SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes);
 	
-	/** @brief Return whether element has external shape functions set to
-	 */
+	/** @brief Return whether element has external shape functions set to */
 	bool HasExternalShapeFunction();
 	
 	int GetMaterial( const TPZGeoElSide& gside );
@@ -128,21 +113,15 @@ public:
 		pzshape::TPZShapeDisc::fOrthogonal = orthogonal;
 	}
 	
-	/**
-	 * @brief Sets the inner radius value.
-	 */
+	/** @brief Sets the inner radius value. */
 	virtual void SetInnerRadius(REAL InnerRadius) {PZError << "TPZCompElDisc::SetInnerRadius - This method should never be called because the inner" << std::endl
 		<< "radius is not stored in TPZCompElDisc. It is stored in TPZAgglomerateElement." << std::endl;}
 	
-	/**
-	 * @brief Sets element's number of interfaces.
-	 */
+	/** @brief Sets element's number of interfaces. */
 	virtual void SetNInterfaces(int nfaces) {PZError << "TPZCompElDisc::SetNFaces - This method should never be called because the number of interfaces" << std::endl
 		<< "is not stored in TPZCompElDisc. It is only stored by TPZAgglomerateElement." << std::endl;}
 	
-	/**
-	 * @brief Returns the number of interfaces.
-	 */
+	/** @brief Returns the number of interfaces. */
 	virtual int NInterfaces();
 	
 	TPZCompElDisc();
@@ -167,8 +146,7 @@ public:
 	
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 	
-	/** @brief Set create function in TPZCompMesh to create elements of this type
-	 */
+	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(){
 		TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
 	}
@@ -192,9 +170,7 @@ public:
 	
 	~TPZCompElDisc();
 	
-	/**
-	 * @brief Divide the computational element
-	 */
+	/** @brief Divide the computational element */
 	void Divide(int index, TPZVec<int> &subindex, int interpolate = 0);
 	
 	/**
@@ -206,11 +182,12 @@ public:
 	 */
 	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi);
 	
-	/** @brief Compute shape functions.
-	 * @param qsi[in]
-	 * @param x[in]
-	 * @param phi[out]
-	 * @param dphi[out]
+	/** 
+	 * @brief Compute shape functions.
+	 * @param qsi [in] point in master element coordinates
+	 * @param X [in] coordinates of the point
+	 * @param phi [out] vector of values of shapefunctions,
+	 * @param dphi [out] matrix of derivatives of shapefunctions,
 	 */
 	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi);
 	
@@ -220,22 +197,16 @@ public:
 	 */
 	void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 	
-	/** @brief Add extenal shape function into already computed phi and dphi discontinuous functions.
-	 */
+	/** @brief Add extenal shape function into already computed phi and dphi discontinuous functions. */
 	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
 	
-	/** @brief Returns a reference to an integration rule suitable for integrating
-     the interior of the element */
+	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const;
 	
-	/**
-	 * @brief Type of the element
-	 */
+	/** @brief Type of the element */
 	virtual MElementType Type() {return EDiscontinuous;}
 	
-	/**
-	 * @brief It returns the constant that normalizes the bases of the element
-	 */
+	/** @brief It returns the constant that normalizes the bases of the element */
 	REAL ConstC() const {return fConstC;}
 	
 	void SetConstC(REAL c){fConstC = c;}
@@ -244,14 +215,10 @@ public:
 	 */
 	void InternalPoint(TPZVec<REAL> &point);
 	
-	/**
-	 * @brief Prints the features of the element
-	 */
+	/** @brief Prints the features of the element */
 	virtual void Print(std::ostream & out = std::cout) const;
 	
-	/**
-	 * @brief Returns the degree of interpolation of the element
-	 */
+	/** @brief Returns the degree of interpolation of the element */
 	virtual int Degree() const
 	{
 		if (fConnectIndex < 0)
@@ -261,37 +228,25 @@ public:
 		return this->Connect(0).Order() ;
 	}
 	
-	/**
-	 * @brief Assigns the degree of the element
-	 */
+	/** @brief Assigns the degree of the element */
 	virtual void SetDegree(int degree);
 	
 	virtual int NConnects() const;
 	
-	/**
-	 * @brief Amount of vertices of the element
-	 */
+	/** @brief Amount of vertices of the element */
 	int NCornerConnects() const { return Reference()->NNodes();}
 	
-	/**
-	 * @brief Returns dimension from the element
-	 */
+	/** @brief Returns dimension from the element */
 	int Dimension() const { return Reference()->Dimension();}
 	
-	/**
-	 * @brief Calculates the normalizing constant of the bases of the element
-	 */
+	/** @brief Calculates the normalizing constant of the bases of the element */
 	virtual REAL NormalizeConst();
 	
-	/**
-	 * @brief Returns the connect index from the element
-	 */
+	/** @brief Returns the connect index from the element */
 	int ConnectIndex(int side = 0) const;
 	void  SetConnectIndex(int /*inode*/, int index) {fConnectIndex = index;}
 	
-	/**
-	 * @brief Returns the shapes number of the element
-	 */
+	/** @brief Returns the shapes number of the element */
 	virtual int NShapeF() const;
 	
 	/** @brief Returns the max order of interpolation. */
@@ -311,23 +266,22 @@ public:
 	
 	REAL SizeOfElement();
 	
-	/**
-	 * @brief Returns the volume of the geometric element associated.
-	 */
+	/** @brief Returns the volume of the geometric element associated. */
 	virtual  REAL VolumeOfEl() { return Reference()->Volume(); }
 	
 	/**
 	 * @brief Creates corresponding graphical element(s) if the dimension matches
 	 * graphical elements are used to generate output files
-	 * @param graphmesh graphical mesh where the element will be created
+	 * @param grmesh graphical mesh where the element will be created
 	 * @param dimension target dimension of the graphical element
 	 */
 	void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	
 	/** @deprecated
 	 * @brief Computes the solution in function of a point in cartesian space
-	 *  
-	 * Deprecated shape function method. It is kept because of TPZAgglomerateElement.
+	 */
+	/**
+	 * Deprecated shape function method. It is kept because of TPZAgglomerateElement. \n
 	 * It does not include singular shape functions if they exist.
 	 */
 	void SolutionX(TPZVec<REAL> &x,TPZVec<REAL> &uh);
@@ -337,6 +291,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
+	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes);
 	
@@ -345,6 +300,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param phi matrix containing shape functions compute in qsi point
 	 * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
+	 * @param axes axes associated with the derivative of the solution
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
@@ -352,13 +308,10 @@ public:
 								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 	
 	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
-	 * 
+	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
 	 * This method will function for both volumetric and interface elements
 	 * @param qsi master element coordinate of the interface element
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes associated with the derivative of the solution
+	 * @param normal unitary normal vector
 	 * @param leftsol finite element solution
 	 * @param dleftsol solution derivatives
 	 * @param leftaxes axes associated with the left solution
@@ -380,34 +333,26 @@ public:
 	
 	void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
 	
-	/**
-	 * @brief Returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
-	/**
-	 *  @brief Define the desired order for entire element.
-	 */
+	/** @brief Define the desired order for entire element. */
 	virtual void SetPreferredOrder ( int order ) { SetDegree( order ); }
 	
 	/**
 	 * @brief Change the preferred order for the element and proceed the
-	 * adjust of the aproximation space taking in acount the type
+	 * adjust of the aproximation space taking in acount the type \n
 	 * of formulation and the neighbours of the element
 	 */
 	virtual void PRefine ( int order ) { SetDegree( order ); }
 	
-	/** @brief Compute the integral of the square residual over the element domain.
-	 * 
+	/** @brief Compute the integral of the square residual over the element domain. */
+	/** 
 	 * For instance, let us take the Poisson's equation: -Laplac(u) = f.
 	 * Then this method compute the integral of ( -Laplac(u) - f )^2.
 	 * For the given example it is observed that approximation orders < 2 will
@@ -416,8 +361,7 @@ public:
 	 */
 	static REAL EvaluateSquareResidual2D(TPZInterpolationSpace *cel);
 	
-	/** @brief Evaluates the square residual for every element in mesh.
-	 */
+	/** @brief Evaluates the square residual for every element in mesh. */
 	static void EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose = false);
 	
 };

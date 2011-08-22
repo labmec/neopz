@@ -37,6 +37,7 @@ public:
 	/**
 	 * @brief Create a computational element within mesh
 	 * @param mesh mesh wher will be created the element
+	 * @param gel geometrical element to insert
 	 * @param index new elemen index
 	 */
 	/**
@@ -164,10 +165,8 @@ public:
 	/**
 	 * @brief Performs an error estimate on the elemen
 	 * @param fp function pointer which computes the exact solution
-	 * @param true_error (output)  the true error of the solution
-	 * @param L2_error (output) the L2 norm of the error of the solution
+	 * @param errors (output) the L2 norm or true error of the error of the solution
 	 * @param flux (input) value of the interpolated flux values
-	 * @param estimate (output) estimated error based on the implemented criterium
 	 */
 	virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
                                TPZVec<REAL> &errors,TPZBlock * flux );
@@ -235,8 +234,8 @@ protected:
 	
 	/**
 	 * @brief Auxiliary method to expand a vector of shapefunctions and their derivatives to acount for constraints
-	 * @param (input) connectlist vector of all connects to which the element will contribute
-	 * @param (input) dependencyorder vector of indices which indicate the order in which the connects will be processed
+	 * @param connectlist (input) vector of all connects to which the element will contribute
+	 * @param dependencyorder (input) vector of indices which indicate the order in which the connects will be processed
 	 * @param blocksizes (output) number of shapefunctions associated with each connect
 	 * @param phi (input/output) values of the shapefunctions
 	 * @param dphi (input/output) values of the derivatives of the shapefunctions

@@ -95,7 +95,7 @@ public:
 	int Resize(const int newDim, const int );
 	
 	// Resize the array and resets ist entirety.
-	int Redim(const int newDim ,const int);
+	int Redim(const int newRows ,const int);
 	
 	int Redim(const int newDim) {return Redim(newDim,newDim);}
 	

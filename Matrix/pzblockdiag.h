@@ -110,22 +110,22 @@ public:
 	 */
 	void Initialize(const TPZVec<int> &blocksize);
 	/**
-     @brief Adds a block to current matrix
-     @param i Adds in ith position
-     @param block Block to be added
+     * @brief Adds a block to current matrix
+     * @param i Adds in ith position
+     * @param block Block to be added
 	 */
 	void AddBlock(int i, TPZFMatrix &block);
 	/**
-     @brief Sets a block in the current matrix
-     @param i Adds in ith position
-     @param block Block to be added
+     * @brief Sets a block in the current matrix
+     * @param i Adds in ith position
+     * @param block Block to be added
 	 */
 	void SetBlock(int i, TPZFMatrix &block);
 	
 	/**
-     @brief Gets a block from current matrix
-     @param i Returns teh ith block
-     @param block Contains returned block
+     * @brief Gets a block from current matrix
+     * @param i Returns teh ith block
+     * @param block Contains returned block
 	 */
 	void GetBlock(int i, TPZFMatrix &block);
 	
@@ -135,9 +135,10 @@ public:
 	 */
 	void BuildFromMatrix(TPZMatrix &matrix);
 	/**
-	 @brief Prints current matrix data
-     @param message Message to be printed
-     @param out Output device
+	 * @brief Prints current matrix data
+     * @param message Message to be printed
+     * @param out Output device
+	 * @param format Output format to print
 	 */
 	virtual void Print(const char *message, std::ostream &out = std::cout, const MatrixOutputFormat format =EFormatted) const;
 	

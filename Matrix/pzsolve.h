@@ -65,7 +65,7 @@ class TPZMatrixSolver: public TPZSolver
 public:
 	/**
 	 @brief Constructor with initialization parameter
-	 @param RefMat Sets reference matrix to 0
+	 @param Refmat Sets reference matrix to 0
 	 */
 	TPZMatrixSolver(TPZAutoPointer<TPZMatrix> Refmat);
 	
@@ -73,7 +73,7 @@ public:
 	
 	/**
 	 @brief Copy constructor
-	 @param copy Model object to be copied from
+	 @param Source Model object to be copied from
 	 */
 	TPZMatrixSolver(const TPZMatrixSolver &Source);
 	
@@ -82,7 +82,7 @@ public:
 	
 	/**
 	 @brief Sets a matrix to the current object
-	 @param RefMat Sets reference matrix to RefMat
+	 @param Refmat Sets reference matrix to RefMat
 	 */
 	virtual void SetMatrix(TPZAutoPointer<TPZMatrix> Refmat);
 	

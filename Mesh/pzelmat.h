@@ -87,18 +87,10 @@ struct TPZElementMatrix {
 	void ComputeDestinationIndices();
 	
 	
-	/**
-	 * @brief Returns true if the element has at least one dependent node
-	 * returns false otherwise
-	 */
+	/** @brief Returns true if the element has at least one dependent node. Returns false otherwise */
 	bool HasDependency();
 	
-	/**
-	 * @brief Apply the constraints applied to the nodes by transforming the tangent
-	 * matrix and right hand side
-	 * @param ekmat element stiffness matrix
-	 * @param efmat element loads matrix
-	 */
+	/** @brief Apply the constraints applied to the nodes by transforming the tangent matrix and right hand side */
 	void ApplyConstraints();
 	
 };

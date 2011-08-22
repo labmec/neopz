@@ -28,7 +28,7 @@
 
 /**
  * @brief Estimates error to biharmonic problem. Also computes the contributions on elements and interfaces. \ref analysis "Analysis"
- * @author Joao Luis Goncalves <joao@joao-laptop>
+ * @author Joao Luis Goncalves
  * @since Maio 16, 2008
  * @ingroup material
  * @note This class seems as material class, must to be put into the material group (Jorge??)
@@ -74,7 +74,7 @@ public:
 	
 	/** @brief Implements integration of the interface part of an error estimator.
 	 * 
-	 * It performs nk[0] += weight * ( residuo(u )*(Z1-Z)); \n
+	 * It performs \f$ nk[0] += weight * ( residuo(u )*(Z1-Z) ) \f$ ; \n
 	 * where u is the current solution and Z and Z1 are the dual solution.
 	 */
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, REAL weight,
@@ -92,7 +92,7 @@ public:
 	
 	/** @brief Implements integration of the boundary interface part of an error estimator. */
 	/** 
-	 * It performs nk[0] += weight * ( residuo(u ) * (Z1-Z) ); \n
+	 * It performs \f$ nk[0] += weight * ( residuo(u ) * (Z1-Z) ) \f$ ; \n
 	 * where u is the current solution and Z and Z1 are the dual solution.
 	 */
 	virtual void ContributeInterfaceBCErrorsDual(TPZMaterialData &data,
@@ -126,6 +126,10 @@ public:
 												   TPZVec<REAL> &nk,
 												   TPZBndCond &bc);
 
+    /**
+	 * @brief Compute the error due to the difference between the interpolated flux \n
+	 * and the flux computed based on the derivative of the solution
+	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
 				TPZFMatrix &axes, TPZVec<REAL> & /*flux*/ ,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,

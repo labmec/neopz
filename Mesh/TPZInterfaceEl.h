@@ -118,20 +118,19 @@ public:
 	
 	/** @brief Simple copy constructor. */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy);
-	
-	
+
 	/**
 	 * @brief Clone constructor to a patch mesh
 	 * @param mesh reference to a clone mesh
 	 * @param copy element to be copied
-	 * @param gl2lcIdx map between global(original) and local (patch) connect indexes
+	 * @param gl2lcConIdx map with connects
+	 * @param gl2lcElIdx map with computational elements
 	 */
 	TPZInterfaceElement(TPZCompMesh &mesh,
 						const TPZInterfaceElement &copy,
 						std::map<int,int> &gl2lcConIdx,
 						std::map<int,int> &gl2lcElIdx);
-	
-	
+
 	/** @brief Copy constructor with specified index */
 	TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceElement &copy, int &index);
 	
@@ -141,7 +140,7 @@ public:
 	/** @brief Default TPZCompEl constructor. SetLeftRightElements must be called before any computation. */
 	TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index);
 	
-	/** @brief Class destructor */
+	/** @brief Destructor */
 	~TPZInterfaceElement();
 	
 	virtual int IsInterface() { return 1; }
@@ -246,13 +245,14 @@ public:
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
-	 * @param [in] qsi master element coordinate
-	 * @param [out] leftsol left finite element solution
-	 * @param [out] rightsol right finite element solution
-	 * @param [out] dleftsol left solution derivatives
-	 * @param [out] drightsol right solution derivatives
-	 * @param [out] leftaxes axes associated with the derivative of the left element
-	 * @param [out] rightaxes axes associated with the derivative of the right element
+	 * @param qsi [in] master element coordinate
+	 * @param normal normal vector
+	 * @param leftsol [out] left finite element solution
+	 * @param rightsol [out] right finite element solution
+	 * @param dleftsol [out] left solution derivatives
+	 * @param drightsol [out] right solution derivatives
+	 * @param leftaxes [out] axes associated with the derivative of the left element
+	 * @param rightaxes [out] axes associated with the derivative of the right element
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
@@ -264,7 +264,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param phi matrix containing shape functions compute in qsi point
 	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-	 * @param [in] axes indicating the direction of the derivatives
+	 * @param axes axes indicating the direction of the derivatives
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */

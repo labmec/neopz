@@ -72,7 +72,7 @@ public:
 	
 	/// Redimension the matrix and zeroes its elements
 	int Redim(const int newDim) {return Redim(newDim,newDim);}
-	int Redim(const int newDim ,const int );
+	int Redim(const int newRows ,const int newCols);
 	
 	/// Zeroes the elements of the matrix
 	int Zero();

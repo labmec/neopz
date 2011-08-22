@@ -27,15 +27,17 @@ public:
 	
 	virtual ~TPZNonLinearAnalysis();
 	
-	/**
-	 * @brief It process a Newton's method to solve the non-linear problem.
-	 * 
-	 * It has the possibility of line search with parameter linesearch = true.
-	 */
+	/** @brief It process a Newton's method to solve the non-linear problem. */
+	/** It has the possibility of line search with parameter linesearch = true. */
 	virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
-	
-	/** @brief Implements a golden section line search.
-	 * @param DeltaW must be a copy.
+
+	/**
+	 * @brief Implements a golden section line search.
+	 * @param Wn
+	 * @param DeltaW must be a copy
+	 * @param NextW
+	 * @param tol tolerance
+	 * @param niter number of iterations
 	 * @note Please do not put a &. It is because usually here and in derived classes fSolution was passed
 	 * as DeltaW. \n But fSolution changes in the linesearch procedure when LoadSolution
 	 * is called before AssembleResidual.

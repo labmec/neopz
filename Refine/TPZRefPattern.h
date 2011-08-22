@@ -299,8 +299,8 @@ public:
 	
 	/**
 	 * @brief Fill a vector with TPZGeoElSideIndex_s  with respect to internal subelements of a given side
-	 * @param side - side of father element that will be searched for internal sides (generated from subelements)
-	 * @param nodeIndexes - vector of subelement index/sides (stored as TPZGeoElSideIndex objects) that belongs to the interior of given side of father element.
+	 * @param side side of father element that will be searched for internal sides (generated from subelements)
+	 * @param sideIndexes vector of subelement index/sides (stored as TPZGeoElSideIndex objects) that belongs to the interior of given side of father element.
 	 */
 	void InternalSidesIndexes(int side, TPZVec<TPZGeoElSideIndex> &sideIndexes);
 	

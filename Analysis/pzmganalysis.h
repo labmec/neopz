@@ -68,65 +68,45 @@ public:
 	static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *mesh, bool withP = false);
 	
 	/**
-	 * @brief Evaluates the error between aproximation
-	 * of coarse and fine meshes
-	 * @param fine - refined mesh
-	 * @param coarse - some father mesh of fine
-	 * @param ervec	- will return the calculated element error
-	 * @param f - ??
-	 * @param loc - ??
-	 * @param val - ??
-	 * @param trueerv -calculates the true error between a giving a solution
+	 * @brief Evaluates the error between aproximation of coarse and fine meshes
+	 * @param fine refined mesh
+	 * @param coarse some father mesh of fine
+	 * @param ervec	will return the calculated element error
+	 * @param f pointer function
+	 * @param truervec calculates the true error between a giving a solution
 	 */
 	static  void MeshError (  TPZCompMesh *fine,TPZCompMesh *coarse,	
 							TPZVec<REAL> &ervec,
-							void (*f) (TPZVec<REAL> &loc,
-									   TPZVec<REAL> &val,
-									   TPZFMatrix &deriv),
+							void (*f) (TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
 							TPZVec<REAL> &truervec);
 	
 private:    
-	/**
-	 * @brief Contains the computational meshes of one cycle
-	 */
+	/** @brief Contains the computational meshes of one cycle */
 	TPZStack < TPZCompMesh * > fMeshes;
 	
-	/**
-	 * @brief Contains the meshes solutions
-	 */	
+	/** @brief Contains the meshes solutions */	
 	TPZStack <TPZFMatrix *> fSolutions;
 	
-	/**
-	 * @brief Contains the solution method applied to the mesh
-	 */
+	/** @brief Contains the solution method applied to the mesh */
 	TPZStack <TPZMatrixSolver *> fSolvers;
 	
-	/**
-	 * @brief Contains the preconditioner of the solution method
-	 * if the solution method is a krylov method.
-	 *
-	 * The preconditioner can be used as a coarse grid iteration
-	 */
+	/** @brief Contains the preconditioner of the solution method if the solution method is a krylov method. */
+	/** The preconditioner can be used as a coarse grid iteration */
 	TPZStack <TPZMatrixSolver *> fPrecondition;
 	
 	
 	/**
 	 * @brief Calculates an element error based on two aproximations
-	 * @param fine: refined mesh;
-	 * @param coarse: some father mesh of fine;
-	 * @param tr: tranformation between fine and coarse;
-	 * @param f: ??
-	 * @param loc: ??
-	 * @param val: ??
-	 * @param deriv: ??
-	 * @param truerror: will return the error between aproximation and a give solution
+	 * @param fine refined mesh;
+	 * @param coarse some father mesh of fine;
+	 * @param tr tranformation between fine and coarse;
+	 * @param f pointer function
+	 * @param truerror will return the error between aproximation and a give solution
 	 */
 	static  REAL ElementError (TPZInterpolatedElement *fine,
 							   TPZInterpolatedElement *coarse,
 							   TPZTransform &tr,
-							   void (*f) (TPZVec<REAL> &loc,
-										  TPZVec<REAL> &val,
-										  TPZFMatrix &deriv),
+							   void (*f) (TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
 							   REAL &truerror);
 	
 };

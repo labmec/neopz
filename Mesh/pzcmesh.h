@@ -161,21 +161,15 @@ public:
 	
 	/**
 	 * @brief Gives the conects graphs
-	 * @param nodegraph
-	 * @param nodegraphindex
 	 */
 	void GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphinde,TPZStack<int> &elgraph, TPZVec<int> &elgraphindexx);
 	
     /**
      * @brief Gives the element patch
-     * @param gel: geometric reference element for the patch
-     * @param patch: patch of elements
      */
 	void GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex,int elind ,TPZStack<int> &patch);
 	
-	/**
-	 * @brief Set the mesh name
-	 */
+	/** @brief Set the mesh name */
 	void SetName(const std::string &nm);
 	
 	/** @brief Set de dimension of the domain of the problem*/
@@ -288,12 +282,13 @@ public:
 	/**
 	 * @brief Returns an index to a new connect
 	 * @param blocksize new connect block size - default value = 0
+	 * @param order order of approximation
 	 */
 	virtual  int AllocateNewConnect(int blocksize=0, int order = 0);
 	
 	/**
 	 * @brief Insert a material object in the datastructure
-	 @ @param mat pointer to the material
+	 * @ @param mat pointer to the material
 	 */
 	int InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat);
 	
@@ -485,7 +480,7 @@ public:
 	
 	/**
 	 * @brief Builds the transfer matrix from the current grid to the coarse grid
-	 * @param coarsegrid grid for where the matrix will be transfered
+	 * @param coarsemesh grid for where the matrix will be transfered
 	 * @param transfer transfer matrix between the current mesh and the coarse mesh
 	 */
 	void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
@@ -516,11 +511,8 @@ public:
 		this->AutoBuild(&MaterialIDs);
 	}
 	
-	/**
-	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 *
-	 * Only element of material id in the set<int> will be created
-	 */
+	/** @brief Creates the computational elements, and the degree of freedom nodes */
+	/** Only element of material id in the set<int> will be created */
 	virtual void AutoBuild(){
 		this->AutoBuild(NULL);
 	}
@@ -530,10 +522,9 @@ public:
 	//    */
 	//   enum MCreationType{ ENone = 0, EContinuousEl = 1, EDiscontinuousEl = 2};
 	
+	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**
-	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 * 
-	 * Elements created may be TPZInterpolatedElement or TPZCompElDisc.
+	 * Elements created may be TPZInterpolatedElement or TPZCompElDisc. \n
 	 * indices contains the type of the element. Element type are given by the enumerate MCreationType.
 	 */
 	virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
@@ -545,11 +536,8 @@ public:
 	static  void SetAllCreateFunctionsHDiv();
 	static  void SetAllCreateFunctions(TPZCompEl &cel);
 	
-	/**
-	 * @brief Will build the list of element boundary conditions build the list of connect boundary conditions.
-	 * 
-	 * Put material pointers into the elements. Check on the number of dof of the connects
-	 */
+	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */
+	/** Put material pointers into the elements. Check on the number of dof of the connects */
 	int Consolidate();
 	
 	/**
@@ -563,8 +551,7 @@ public:
 	//  char IsChecked() { return fChecked; }
 	
 	/**
-	 * @brief Given the solution of the global system of equations, computes and stores the
-	 * solution for the restricted nodes
+	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
 	void LoadSolution(const TPZFMatrix &sol);
@@ -581,7 +568,7 @@ public:
 	 * @brief Create a computational element father for the comp. elem. into elements
 	 * @param elements indices of subelements to be agrouped
 	 * @param index of new coarse element
-	 * @param CreateDiscontinuous = false indicates a TPZInterpolatedElement must be created. True indicates a TPZCompElDisc
+	 * @param CreateDiscontinuous indicates a TPZInterpolatedElement must be created. True indicates a TPZCompElDisc
 	 */
 	void Coarsen(TPZVec<int> &elements, int &index, bool CreateDiscontinuous = false);
 	
@@ -603,22 +590,20 @@ public:
 	
 	/**
 	 * @brief Evaluates the error given the two vectors of the analised parameters
-	 * @param loc local vector of the analised parameter
-	 * @param val given vector to compare
-	 * @param deriv ????
-	 * @param true_error return the true error between the given vectors
-	 * @param L2_error return the L2 norm of the error between the given vectors
-	 * @param estimate ????
+	 * @param fp pointer for the function with following arguments:
+	 * @note Parameter loc - local vector of the analised parameter
+	 * @note Parameter val - given vector to compare
+	 * @note Parameter deriv - ????
+	 * @param errorSum - return the L1 error
 	 */
 	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 					   TPZVec<REAL> &errorSum);
 	
-	/** @brief This method compute the jump solution of interface and convert discontinuous elements with
-	 * jump less than eps in continuous elements.
-	 * 
+	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */
+	/** 
 	 * It may be compared the following values to eps:
-	 * int val = 0: Sqrt [ Integral [ (leftsol - rightsol)^2 ] ]
-	 * int val = 1: Max[ Abs[leftsol - rightsol] ]
+	 * int val = 0: \f$ \sqrt [ \int [ (leftsol - rightsol)^2 ] ] \f$
+	 * int val = 1: \f$ Max[ Abs[ leftsol - rightsol ] ] \f$
 	 */
 	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous);
 	
@@ -654,27 +639,17 @@ public:
 	 @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
 	void ComputeFillIn(int resolution, TPZFMatrix &fillin);
 	
-	/**
-	 * @brief Returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
-	
+
 };
 
 
-/**
- * Allocates new connecto in the mesh
- */
 inline int TPZCompMesh::AllocateNewConnect(int blocksize, int order) {
 	int connectindex = fConnectVec.AllocateNewElement();
 	int blocknum = fBlock.NBlocks();

@@ -124,8 +124,9 @@ class TPZSwelling : public TPZMaterial {
 	
 	/**
 	 * Constructor of the class, where the user needs to specify the most important parameters
+	 * @param matindex index of material 
 	 * @param lambda Compression modulus
-	 * @param mu Shear modulus
+	 * @param shear Shear modulus
 	 * @param alfa Biot coupling coeficient
 	 * @param M Storage modulus
 	 * @param Gamma Osmotic coeficient

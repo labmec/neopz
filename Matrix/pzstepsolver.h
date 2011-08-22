@@ -71,15 +71,12 @@ public:
 		return fSingular;
 	}
 	
-	/**
-	 @brief This method will reset the matrix associated with the solver
-	 
-	 This is useful when the matrix needs to be recomputed in a non linear problem
-	 */
+	/** @brief This method will reset the matrix associated with the solver */
+	/** This is useful when the matrix needs to be recomputed in a non linear problem */
 	virtual void ResetMatrix();
 	/**
-	 Sets a matrix to the current object
-	 @param RefMat Sets reference matrix to RefMat
+	 * @ brief Sets a matrix to the current object
+	 * @ param Refmat Sets reference matrix to RefMat
 	 */
 	/*virtual  void SetMatrix(TPZMatrix *Refmat)
 	 {
@@ -103,9 +100,8 @@ public:
 	
 	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
 	void SetPreconditioner(TPZSolver &solve);
-	/**
-	 * @brief Serialization methods
-	 */
+	
+	/** @brief Serialization methods */
 	virtual int ClassId() const
 	{
 		return TPZSTEPSOLVER_ID;
@@ -122,9 +118,7 @@ private:
 	REAL fTol;
 	REAL fOverRelax;
 	
-	/**
-	 * @supplierCardinality 1
-	 */
+	/** @supplierCardinality 1 */
 	TPZSolver *fPrecond;
 	int fFromCurrent;
 	

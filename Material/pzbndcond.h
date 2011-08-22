@@ -155,7 +155,6 @@ protected:
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
 	 * @param data [in] stores all input data
 	 * @param weight [in] is the weight of the integration rule
-	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007

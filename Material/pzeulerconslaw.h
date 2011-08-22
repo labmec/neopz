@@ -111,6 +111,9 @@ class TPZEulerConsLaw2  : public TPZConservationLaw2
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
+	 * @param gamma [in]
+	 * @param dim [in] dimension
+	 * @param press [out] computed pressure
 	 * @param U [in] vector of state variables (sol)
 	 */
 	template< class T >
@@ -205,13 +208,13 @@ public:
 	
 	/**
 	 * @brief Jacobian of the tensor flux of Euler
+	 * @param gamma [in]
 	 * @param dim [in]
 	 * @param U [in] dim+2 solutions at given point
 	 * @param Ai [out] vector of dim tensors of (dim+2)*(dim*2),
-	 * representing the derivatives of F with respect to the
+	 * representing the derivatives of F with respect to the \n
 	 * dim spatial dimensions
 	 */
-	
 	template <class T>
 	static void JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
 	
@@ -235,6 +238,7 @@ public:
 	 * @param normal [in]
 	 * @param gamma [in]
 	 * @param flux [in]
+	 * @param entropyFix
 	 */
 	template <class T>
 	static void Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
@@ -252,6 +256,7 @@ public:
 	 * @param normal [in]
 	 * @param gamma [in]
 	 * @param flux [in]
+	 * @param entropyFix
 	 */
 	template <class T>
 	static void ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
@@ -259,17 +264,11 @@ public:
 							   TPZVec<T> & flux, int entropyFix = 1);
 	
 	
-	/**
-	 * @brief Sets the delta parameter inside the artifficial
-	 * diffusion term.
-	 *
-	 */
+	/** @brief Sets the delta parameter inside the artifficial diffusion term. */
 	void SetDelta(REAL delta);
 	
 public:
-	/**
-	 * @brief Flux of Roe (MOUSE program)
-	 */
+	/** @brief Flux of Roe (MOUSE program) */
 	template <class T>
 	static void Roe_Flux(const T & rho_f,
 						 const T & rhou_f,

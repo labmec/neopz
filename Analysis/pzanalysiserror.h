@@ -48,9 +48,9 @@ class TPZAnalysisError : public TPZAnalysis {
 	/** @brief Search the element whith contain this point*/
 	void GetSingularElements(TPZStack<TPZCompElSide> &listel);
 	
-	/** @brief Calculate pn and hn parameters for the elements neighbours to the element
-	 with contain the singular point
-	 *
+	/**
+	 * @brief Calculate pn and hn parameters for the elements neighbours to the element with contain the singular point
+	 * @param elside Computational element and side to zoom
 	 * @param csi determines the number of layers of refinement
 	 * @param singularity_order determines the strength of the singularity 
 	 */

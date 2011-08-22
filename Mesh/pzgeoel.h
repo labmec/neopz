@@ -120,19 +120,22 @@ public:
 	 */
 	void ShapePhi1d(double x,int num,TPZFMatrix &phi);
 	
-	/** @brief Constructor
-	 * @param Id is the number of the element
+	/** 
+	 * @brief Constructor
+	 * @param id is the number of the element
 	 * @param materialindex is the material index
 	 * @param mesh is a pointer to the mesh to which the element belongs
 	 */
 	TPZGeoEl(int id,int materialindex,TPZGeoMesh &mesh);
-	/** @brief This constructor generates a unique Id
+	/** 
+	 * @brief This constructor generates a unique Id
 	 * @param materialindex is the material index
 	 * @param mesh is a pointer to the mesh to which the element belongs
 	 */
 	TPZGeoEl(int materialindex,TPZGeoMesh &mesh);
 	
-	/** @brief This constructor generates a unique Id
+	/** 
+	 * @brief This constructor generates a unique Id
 	 * @param materialindex is the material index
 	 * @param mesh is a pointer to the mesh to which the element belongs
 	 * @param index index of the new element in the element vector
@@ -594,9 +597,10 @@ public:
 	
 	/**
 	 * @brief Compute the set of normals along a side for defining HDiv approximation spaces
+	 * @param side 
 	 * @param normals normal associated with each side
 	 * @param vectorsides side associated with each normal vector
-	 * the normal vectors are initially ordered according to the return of LowerDimensionSides
+	 * the normal vectors are initially ordered \n according to the return of LowerDimensionSides
 	 * and then permuted according to the node id's
 	 */
 	void ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides);

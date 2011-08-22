@@ -63,7 +63,9 @@ public:
 	
 	/** 
 	 * @brief Verifies if the subdomains are connected by sides of connectdimension and separate them if not
-	 * @param nsub : number of subdomains
+	 * @param domain_index
+	 * @param nsub number of subdomains
+	 * @param connectdimension
 	 * @return returns the new number of subdomains
 	 */
 	int SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension);

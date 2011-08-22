@@ -110,7 +110,7 @@ public:
 	/**
 	 * Sets the value of the artificial diffusion delta parameter
 	 *
-	 * @param delta [in]
+	 * @ param delta [in]
 	 */
 	//  void SetDelta(REAL delta);
 	

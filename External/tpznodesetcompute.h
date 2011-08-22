@@ -35,8 +35,6 @@ public:
     ~TPZNodesetCompute();
     /**
 	 * @brief Group the node graph as passed by the parameters
-	 * @param nodegraph [in] node connectivity graph (large array)
-	 * @param nodegraphindex [in] pointer in the nodegraph (small array)
 	 */
     void AnalyseGraph();
     

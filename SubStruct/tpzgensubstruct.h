@@ -52,6 +52,8 @@ public:
 	
 	TPZVec<REAL> fK;
 	/**
+	 * @brief Constructor
+	 * @param dimension
 	 * @param numlevels number of uniform refinements
 	 * @param substructlevel number of refinements which define the substructures
 	 */

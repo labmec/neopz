@@ -59,7 +59,7 @@ public:
 	/**
      @brief Constructor with initialization parameters
      @param rows Initial number of rows
-     @param cols Number of columns
+     @param columns Number of columns
      @param buf Preallocated memory area which can be used by the matrix object
      @param size Size of the area pointed to by buf
 	 */
@@ -67,24 +67,24 @@ public:
 	/**
      @brief Constructor with initialization parameters
      @param rows Initial number of rows
-     @param cols Number of columns
+     @param columns Number of columns
      @param val Inital value fill all elements
 	 */
 	TPZFMatrix (const int rows ,const int columns,const REAL & val );
 	/**
      @brief Constructor with initialization parameters
      @param rows Initial number of rows
-     @param cols Number of columns
+     @param columns Number of columns
 	 */
 	inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix(rows,columns), fElem(0),fGiven(0),fSize(0) {
 		if(rows*columns) fElem = new REAL[rows*columns];
 	}
 	//@{
 	/**
-     @brief Copy constructor
-     @param refmat Used as a model for current object
+     * @brief Copy constructor
+     * @param refmat Used as a model for current object
 	 */
-	TPZFMatrix (const TPZFMatrix & );
+	TPZFMatrix (const TPZFMatrix & refmat);
 	
 	CLONEDEF(TPZFMatrix)
 	
@@ -108,14 +108,14 @@ public:
 	/**
 	 * @brief Performs a right hand side assemblage
 	 * @param rhs Load vector
-	 * @param destinantion Destine index on current matrix
+	 * @param destination Destine index on current matrix
 	 */
 	void AddFel(TPZFMatrix &rhs,TPZVec<int> &destination);
 	/**
 	 * @brief Performs a right hand side assemblage
 	 * @param rhs Load vector
 	 * @param source Source index on rhs
-	 * @param destinantion Destine index on current matrix
+	 * @param destination Destine index on current matrix
 	 */
 	void AddFel(TPZFMatrix &rhs,TPZVec<int> &source, TPZVec<int> &destination);
 	
@@ -224,10 +224,7 @@ public:
 	int Zero();
 	
 	/** 
-	 * @brief This method implements a Gram Schimidt method
-	 *
-	 * this = Orthog.TransfToOrthog
-	 * @param this [in] each column represents a vector
+	 * @brief This method implements a Gram Schimidt method. \n this = Orthog.TransfToOrthog
 	 * @param Orthog [out] each column represents a vector orthogonalized with respect to the first vector (first column of *this). Vectors are normalized
 	 * @param TransfToOrthog [out] is the basis change from *this to Orthog 
 	 * @author Caju
@@ -243,7 +240,9 @@ public:
 	 */
 	void Transpose();
 	
-	/*** @brief Solve some systems ***/
+	/*** @name Solve some systems ***/
+	/** @{ */
+	
 	/** @brief LU Decomposition. Stores L and U matrices at the storage of the same matrix */
 	virtual int Decompose_LU(std::list<int> &singular);
 	virtual int Decompose_LU();
@@ -268,8 +267,9 @@ public:
 	 */
 	static int Substitution(const REAL *ptr, int rows,  TPZFMatrix *B, TPZVec<int> &index );
 	
-	
-	
+	/**
+	 * @}
+	 */
 	
 	/// routines to send and receive messages
 	virtual int ClassId() const;

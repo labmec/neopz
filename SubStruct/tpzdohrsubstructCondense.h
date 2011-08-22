@@ -73,6 +73,7 @@ public:
 	void Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarseindex);
 	/**
 	 * @brief It computes the local contribution to v1.
+	 * @param v1_local 
 	 * @param invKc_rc is the product K(c)_inverted*r(c)
 	 * Of course r(c) must be computed, using Contribute_rc(), before calling this method
 	 */
@@ -84,7 +85,7 @@ public:
 							 );
 	/**
 	 * @brief It computes the local contribution to v(3)
-	 * @param r is the global residual
+	 * @param v3
 	 * @param v1Plusv2 is the sum "v1 + v2"
 	 */
 	void Contribute_v3_local(TPZFMatrix &v3, TPZFMatrix &v1Plusv2) const;
@@ -102,7 +103,7 @@ public:
 	void ContributeDiagonalLocal(TPZFMatrix &StiffnessDiag);
 	/**
 	 * @brief Computes the weight matrix.
-	 * @param StiffnessDiag is the diagonal of the global matrix (local numbering)
+	 * @param StiffnessDiagLocal is the diagonal of the global matrix (local numbering)
 	 */
 	void ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal);
 	/**
@@ -133,16 +134,14 @@ public:
 	/**
 	 * @brief Apply a scatter permutation to the input vector using a scatter permutation
 	 * output[permute[i]] = input[i-first], first <= i < last
-	 * 
-	 * This method does not resize the elements
 	 */
+	/** This method does not resize the elements */
 	static void PermuteScatter(const TPZVec<int> &permute, const TPZFMatrix &input, TPZFMatrix &output, int first, int last);
 	/**
 	 * @brief Apply a gather permutation to the input vector using a scatter permutation
 	 * output[i-first] = input[permute[i]], first <= i < last
-	 * 
-	 * This method does not resize the elements
 	 */
+	/** This method does not resize the elements */
 	static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix &input, TPZFMatrix &output, int first, int last);
 	
 public:
@@ -151,8 +150,7 @@ public:
 	 */
 	void PrepareSystems();
 	/**
-	 * @brief Solves the system for Phi and for v2
-	 * 
+	 * @brief Solves the system for Phi and for v2 \n
 	 * It stores the results in fPhiC and fzi
 	 */
 	void SolveSystemPhi();

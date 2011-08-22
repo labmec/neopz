@@ -39,6 +39,8 @@ class TPZGenGrid{
 public:
     
     /**
+	 @brief Constructor
+	 @param nx 
      @param x0 lower left coordinate
      @param x1 upper right coordinate
      @param numl number of layers

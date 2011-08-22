@@ -73,7 +73,7 @@ namespace pzshape {
 		
 		/**
 		 * @brief Legendre function computing several derivatives.
-		 * @param @see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
+		 * @see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
 		 */
 		static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi, int nderiv);
 		
@@ -91,7 +91,7 @@ namespace pzshape {
 		
 		/**
 		 * @brief Functions which computes the shapefunctions of a one-d element
-		 * @param x coordinate of the point
+		 * @param pt coordinate of the point
 		 * @param order order of the shape functions to be computed 0<= order
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
@@ -110,7 +110,7 @@ namespace pzshape {
 		 * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
 		 * corner shapefunctions
 		 * @param x coordinate of the point
-		 * @param num number of shape functions to be computed
+		 * @param ord order of the shape functions to be computed 0<= order
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 * @param transformation_index determines the transformation applied to the internal shape

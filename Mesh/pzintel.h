@@ -192,26 +192,23 @@ public:
 	/** Sets the interpolation order for the interior of the element*/
 	//  virtual void SetInterpolationOrder(TPZVec<int> &ord) = 0;
 	
-	/** @brief Sets the preferred interpolation order along a side
-	 * 
+	/** @brief Sets the preferred interpolation order along a side */
+	/** 
 	 * This method only updates the datastructure of the element
 	 * In order to change the interpolation order of an element, use the method PRefine
 	 */
 	virtual void SetPreferredOrder(int order) = 0;
 	
 public:
-	/**
-	 * @brief Sets the interpolation order of side to order
-	 * 
+	/** @brief Sets the interpolation order of side to order */
+	/** 
 	 * This method only updates the datastructure of the element and
 	 * updates the blocksize of the associated connect object
 	 * @note DO NOT CALL THIS METHOD
 	 */
 	virtual void SetSideOrder(int side, int order) = 0;
 	
-	/**
-	 * @brief Impose an interpolation order on a given side (without using computesideorder)
-	 */
+	/** @brief Impose an interpolation order on a given side (without using computesideorder) */
 	virtual void ForceSideOrder(int side, int order);
 public:
 	
@@ -234,8 +231,8 @@ public:
 	/**
 	 * CalcEnergy computes the element stiffness matrix and right hand side
 	 * by the energy.
-	 * @param ek element matrix
-	 * @param ef element right hand side
+	 * @ param ek element matrix
+	 * @ param ef element right hand side
 	 */
 	//  virtual void CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
@@ -245,8 +242,8 @@ public:
 	 * This method computes only the block diagonal entries of the element stiffness matrix
 	 * and puts the result in the block matrix which is passed as argument. The blocks in the block
 	 * matrix object correspond to the connect indices of connectlist
-	 * @param connectlist (output) the connects to which the element will contribute
-	 * @param block (output) block diagonal matrix which contains the contributions of the element
+	 * @ param connectlist (output) the connects to which the element will contribute
+	 * @ param block (output) block diagonal matrix which contains the contributions of the element
 	 */
 	//  virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & block);
 	
@@ -258,8 +255,8 @@ public:
 	 * Allocates dynamically an integration rule adequate for the side
 	 * the caller to the method needs to call the delete method!
 	 * this method is being migrated to the geometric element
-	 * @param side side along which an integration rule is created
-	 * @return dynamically allocated integration rule
+	 * @ param side side along which an integration rule is created
+	 * @ return dynamically allocated integration rule
 	 */
 	//  virtual TPZIntPoints *CreateSideIntegrationRule(int side) = 0;
 	
@@ -282,6 +279,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
+	 * @param axes axes indicating the direction of the derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
 	
@@ -290,7 +288,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param phi matrix containing shape functions compute in qsi point
 	 * @param dphix matrix containing the derivatives of shape functions with respect of global coordinates: D[phi,x], D[phi,y], D[phi,z]
-	 * @param [in] axes indicating the direction of the derivatives
+	 * @param axes axes indicating the direction of the derivatives
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
@@ -298,12 +296,10 @@ public:
 								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
 	
 	/**
-	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @brief Computes solution and its derivatives in the local coordinate qsi.\n
 	 * This method will function for both volumetric and interface elements
 	 * @param qsi master element coordinate of the interface element
-	 * @param sol finite element solution
-	 * @param dsol solution derivatives
-	 * @param axes axes associated with the derivative of the solution
+	 * @param normal unitary normal vector
 	 * @param leftsol finite element solution
 	 * @param dleftsol solution derivatives
 	 * @param leftaxes axes associated with the left solution
@@ -318,12 +314,14 @@ public:
 	
 	/**
 	 * @brief Compare the L2 norm of the difference between the ¨var¨ solution of the current element with
-	 * the ¨var¨ solution of the element which is pointed to by the geometric element
-	 * In order to use this method, call ResetReference on the geometric mesh to which the geometric reference element belongs
-	 * and call LoadReference on the mesh of the element with which to compare the solution
-	 * This method only computes the error is the name of the material is matname
+	 * the ¨var¨ solution of the element which is pointed to by the geometric element.
 	 * @param var variable index indicating which difference is being integrated
 	 * @param matname reference material name
+	 */
+	/**
+	 * In order to use this method, call ResetReference on the geometric mesh to which the geometric reference element belongs
+	 * and call LoadReference on the mesh of the element with which to compare the solution\n
+	 * This method only computes the error is the name of the material is matname
 	 */
 	virtual REAL CompareElement(int var, char *matname);
 	
@@ -337,29 +335,28 @@ public:
 	
 	/**
 	 * @brief Implement the refinement of an interpolated element
-	 * 
-	 * Divides the current element into subelements. Inserts the subelements in the mesh of the element
-	 * and returns their indices
-	 * @param index (input) index of the current element in the mesh
-	 * @param pv (output) indices of the subelements (they are already inserted in the mesh)
-	 * @param interpolatesolution (input) if == 1 the solution of the original element is projected on the
+	 * @param index [in] index of the current element in the mesh
+	 * @param sub [out] indices of the subelements (they are already inserted in the mesh)
+	 * @param interpolatesolution [in] if == 1 the solution of the original element is projected on the
 	 * solution of the subelements
 	 * @see PRefine
 	 * @note This is the user interface to adaptive refinement of this class
 	 */
-	void Divide(int index,TPZVec<int> &pv,int interpolatesolution = 0);
-	
-	
-	
+	/**
+	 * Divides the current element into subelements. Inserts the subelements in the mesh of the element
+	 * and returns their indices
+	*/
+	void Divide(int index,TPZVec<int> &sub,int interpolatesolution = 0);
+
 	/**
 	 * @brief Changes the interpolation order of a side. Updates all constraints and block sizes\n
-	 * 
-	 * This call will not ¨necessarily¨ modify the interpolation order of the side. The interpolation
-	 * order of neighbouring elements need to remain compatible. The actual order is obtained by calling
-	 * ComputeSideOrder
 	 * @param order interpolation order which the user requests
 	 * @see ComputeSideOrder
 	 * @note This is the user interface to adaptive refinement of this class
+	 */
+	/**
+	 * This call will not ¨necessarily¨ modify the interpolation order of the side. The interpolation
+	 * order of neighbouring elements need to remain compatible. The actual order is obtained by calling ComputeSideOrder
 	 */
 	void PRefine(int order);
 	
@@ -368,7 +365,7 @@ public:
 	virtual void RestrainSide(int side, TPZInterpolatedElement *neighbour, int neighbourside);
 	
 	/**
-     @enum MInsertMode
+     * @enum MInsertMode
 	 * @brief Defines a flag indicating the state of creation/deletion of the element
 	 * This has an impact on how constraints are being computed
 	 * @param EInsert The element is being inserted
@@ -377,61 +374,56 @@ public:
 	enum MInsertMode {EInsert,EDelete};
 	
 	/** @brief Delete the restraints on the nodes of the connected elements if necessary
-     
-	 Depending on the insert mode, the neighbouring elements will need to
-     recompute their constraints
-     insert indicates whether the element will be refined, coarsened, inserted or deleted
-     This method is only called during deletion
 	 * @param mode indicates insertion or deletion of element
 	 * @note THIS IS A VERY TRICKY METHOD
+	 */
+	/**
+	 * Depending on the insert mode, the neighbouring elements will need to recompute their constraints \n
+	 * insert indicates whether the element will be refined, coarsened, inserted or deleted \n
+	 * This method is only called during deletion
 	 */
 	virtual void RemoveSideRestraintsII(MInsertMode mode);
 	
 	/**
 	 * @brief Removes the side restraints of the current element along side with respect to neighbour/side
-	 * 
-	 * This method checks (extensively) if the relative positions between both elements makes sense
 	 * @param side side of the current element which contains the constrained connect
 	 * @param neighbour element/side with respect to which the connect is restrained
+	 */
+	/** 
+	 * This method checks (extensively) if the relative positions between both elements makes sense
 	 */
 	virtual void RemoveSideRestraintWithRespectTo(int side, const TPZCompElSide &neighbour);
 	
 	/**
 	 * @brief Will recompute the restraints of all connects which are restrained by this side
-	 * 
-	 * This method will be called for a side when a connected lower dimension side is
-	 * changing order
 	 * @param side side of the large element
 	 */
+	/** This method will be called for a side when a connected lower dimension side is changing order */
 	void RecomputeRestraints(int side);
 	
 	/**
 	 * @brief Accumulates the transfer coefficients between the current element and the
 	 * coarse element into the transfer matrix, using the transformation t
-	 * 
-	 * This method forms the basis for the multigrid method
 	 * @param coarsel larger element with respect to which the transfer matrix is computed
 	 * @param t transformation which maps the master element space of the current element into the master element space of the coarse element
 	 * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
 	 */
+	/** This method forms the basis for the multigrid method */
 	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer);
 	
 	/**
 	 * @brief Verify the neighbours of the element and create a node along this side
-	 *  
-	 * If necessary
-	 * This method returns the index of the newly created node
 	 * @note This is the central method for h-p adaptivity : the constructor of the element
 	 * simply calls CreateMidSideConnect which does all the necessary adjustments
 	 */
+	/** If necessary. \n This method returns the index of the newly created node */
 	virtual int CreateMidSideConnect(int side);
 	
 	/**
 	 * @brief Checks if the side order is consistent with the preferred side order and
 	 * with the constraints and recomputes the constraints if necessary
-	 * 
-	 * Calls IdentifySideOrder on higher level (i.e. smaller) connected elements recursively
 	 */
+	/** Calls IdentifySideOrder on higher level (i.e. smaller) connected elements recursively */
 	virtual void IdentifySideOrder(int side);
 	
 	//@}
@@ -456,11 +448,13 @@ public:
 	
 	/**
 	 * @brief Compare the shape functions of sides of an element
-	 * @param phis: small side function values
-	 * @param dphis: small side gradient function values
-	 * @param phil: large side function values
-	 * @param dphil: large side gradient function values
-	 * @param transform: transformation matrix from large side to small side
+	 * @param sides small side
+	 * @param sidel large side
+	 * @param phis small side function values
+	 * @param dphis small side gradient function values
+	 * @param phil large side function values
+	 * @param dphil large side gradient function values
+	 * @param transform transformation matrix from large side to small side
 	 */
 	int CompareShapeF(int sides, int sidel, TPZFMatrix &phis, TPZFMatrix &dphis, TPZFMatrix &phil, TPZFMatrix &dphil, TPZTransform &transform);
 	
@@ -476,9 +470,7 @@ public:
 	
 public:
 	
-	/**
-	 * @brief To enable to work with discontinuous element that can to have interface
-	 * elements*/
+	/** @brief To enable to work with discontinuous element that can to have interface elements*/
 	virtual void SetInterface(int /*side*/, int /*index*/) { }
 	virtual int Interface(int /*side*/) { return -1; }
 	virtual int CanToHaveInterface() { return 0; }

@@ -202,6 +202,7 @@ public:
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
 	 * the modification of the element type all through the code
 	 * @param type element topology
+	 * @param matid material id
 	 * @param cornerindexes indexes of the corner nodes of the element
 	 * @param index index of the element in the vector of element pointers
 	 * @param reftype defines the type of refinement : 0 -> uniform 1-> refinement pattern

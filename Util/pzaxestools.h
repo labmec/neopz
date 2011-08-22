@@ -53,7 +53,9 @@ public:
 	
 	/**
 	 * @brief Makes the basis transformation from axes basis to euclidian basis.
-	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
+	 * @param dudx Output matrix
+	 * @param dudaxes Input matrix
+	 * @param axes Must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
 	static void Axes2XYZ(const TPZFMatrix &dudaxes, TPZFMatrix &dudx, const TPZFMatrix &axes){
 		TPZAxesTools::VerifyAxes(axes);
@@ -66,6 +68,8 @@ public:
 	
 	/** 
 	 * @brief Makes the basis transformation from euclidian basis to axes basis 
+	 * @param dudaxes Input matrix
+	 * @param dudx Output matrix
 	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
 	static void XYZ2Axes(TPZFMatrix &dudaxes, const TPZFMatrix &dudx, const TPZFMatrix &axes){
