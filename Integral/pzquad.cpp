@@ -32,8 +32,6 @@ int TPZIntTetra3D::GetMaxOrder() const {return TPZIntRuleT3D::NUMINT_RULEST3D - 
 int TPZIntPyram3D::GetMaxOrder() const{return TPZIntRuleT3D::NUMINT_RULEST3D - 1;}
 int TPZIntPrism3D::GetMaxOrder() const {return TPZIntRuleP3D::NUMINT_RULESP3D - 1;}
 
-
-
 //**************************************
 //**************************************
 TPZInt1d::TPZInt1d(int OrdX){

@@ -433,7 +433,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (ETetraedro):
 		{
-			if(gel->NNodes() == 8)
+			if(gel->NNodes() == 4)
 			{
 				elType = 10;	
 			}

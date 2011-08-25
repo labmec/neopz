@@ -225,7 +225,7 @@ class TPZPlaneFracture
 	/** @brief It limits the amount of possible points in the edge of the elements */
 	int fTrimQTD;
 	/** @brief It limits the amount of possible points in the edge of the elements */
-	TPZFMatrix fFromR3toR2;≈
+	TPZFMatrix fFromR3toR2;
 };
 
 #endif

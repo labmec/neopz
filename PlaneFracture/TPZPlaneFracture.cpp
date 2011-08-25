@@ -17,6 +17,7 @@
 #include "pzgeoel.h"
 #include "TPZVTKGeoMesh.h"
 #include "TPZPoligonalChain.h"
+#include "tpzgeoelrefpattern.h"
 
 using namespace pzgeom;
 
