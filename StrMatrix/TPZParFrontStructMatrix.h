@@ -69,10 +69,7 @@ public:
 	 * @param rhs Load matrix
 	 * @param guiInterface pointer to user interface
 	 */
-	virtual TPZMatrix * CreateAssemble(
-									   TPZFMatrix &rhs //! Load matrix
-									   ,TPZAutoPointer<TPZGuiInterface> guiInterface
-									   );
+	virtual TPZMatrix * CreateAssemble( TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
 	virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
