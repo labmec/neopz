@@ -151,11 +151,11 @@ void TPZQuadraticCube::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 void TPZQuadraticCube::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
 #ifdef DEBUG
 	if (NNodes != 20) {
-		PZError << "TPZGeoQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
+		PZError << "TPZQuadraticCube.jacobian only implemented for 20, NumberOfNodes = " << NNodes << "\n";
 	}
 	
-	if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
-		PZError << "TPZGeoQuad.jacobian. param out of range : "
+	if( fabs(param[0]) > 1.001 || fabs(param[1]) > 1.001 || fabs(param[2]) > 1.001) {
+		PZError << "TPZQuadraticCube.jacobian. param out of range : "
 		" param.NElements() = " << param.NElements() <<
 		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
 	}

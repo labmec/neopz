@@ -20,9 +20,9 @@ void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	REAL qsi = param[0], eta = param[1];
 	
 	phi(0,0)  = -0.25*(-1. + eta)*(-1. + qsi)*(1. + eta + qsi);
-	phi(1,0)  =  0.25*(-1. + eta)*(1. + eta - 1.*qsi)*(1. + qsi);
+	phi(1,0)  =  0.25*(-1. + eta)*(1. + eta - qsi)*(1. + qsi);
 	phi(2,0)  =  0.25*( 1. + qsi)*(1. + eta)*(qsi + eta - 1.);
-	phi(3,0)  = -0.25*( 1. + eta)*(-1. + eta - 1.*qsi)*(-1. + qsi);
+	phi(3,0)  = -0.25*( 1. + eta)*(-1. + eta - qsi)*(-1. + qsi);
 	
 	phi(4,0)  =  0.5*(-1. + eta)*(-1. + qsi)*( 1. + qsi);
 	phi(5,0)  = -0.5*(-1. + eta)*( 1. + eta)*( 1. + qsi);
@@ -32,17 +32,17 @@ void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	dphi(0,0) = -0.25*(-1. + eta)*(eta + 2.*qsi);
 	dphi(1,0) = -0.25*(-1. + qsi)*(2.*eta + qsi);
 	dphi(0,1) =  0.25*(-1. + eta)*(eta - 2.*qsi);
-	dphi(1,1) =  0.25*(2.*eta - 1.*qsi)*(1. + qsi);
+	dphi(1,1) =  0.25*(2.*eta - qsi)*(1. + qsi);
 	dphi(0,2) =  0.25*(1. + eta)*(eta + 2.*qsi);
 	dphi(1,2) =  0.25*(1. + qsi)*(2.*eta + qsi);
 	dphi(0,3) = -0.25*(1. + eta)*(eta - 2.*qsi);
-	dphi(1,3) = -0.25*(2.*eta - 1.*qsi)*(-1. + qsi);
+	dphi(1,3) = -0.25*(2.*eta - qsi)*(-1. + qsi);
 	
 	dphi(0,4) =  (-1. + eta)*qsi;
 	dphi(1,4) =  0.5*(-1. + qsi)*(1. + qsi);
 	dphi(0,5) = -0.5*(-1. + eta)*(1. + eta);
-	dphi(1,5) = -1.*eta*(1. + qsi);
-	dphi(0,6) = -1.*(1. + eta)*qsi;
+	dphi(1,5) = -eta*(1. + qsi);
+	dphi(0,6) = -(1. + eta)*qsi;
 	dphi(1,6) = -0.5*(-1. + qsi)*(1. + qsi);
 	dphi(0,7) =  0.5*(-1. + eta)*(1. + eta);
 	dphi(1,7) =  eta*(-1. + qsi);
@@ -63,11 +63,11 @@ void TPZQuadraticQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 void TPZQuadraticQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
 #ifdef DEBUG
 	if (NNodes != 8) {
-		PZError << "TPZGeoQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
+		PZError << "TPZQuadraticQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
 	}
 	
-	if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
-		PZError << "TPZGeoQuad.jacobian. param out of range : "
+	if( fabs(param[0]) > 1.001 || fabs(param[1]) > 1.001) {
+		PZError << "TPZQuadraticQuad.jacobian. param out of range : "
 		" param.NElements() = " << param.NElements() <<
 		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
 	}
