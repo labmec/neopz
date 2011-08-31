@@ -48,6 +48,7 @@ if(BUILD_PROJECTS)
 	add_subdirectory(Conductivity)
 	add_subdirectory(ConsLaw)
 	add_subdirectory(Descontinuo2)
+	add_subdirectory(HydraulicFracturePropagation)
 
 	add_subdirectory(SteamInjection)
 

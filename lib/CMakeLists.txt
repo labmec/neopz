@@ -23,6 +23,7 @@ source_group("Substruct" FILES ${pzsubstruct_STAT_SRCS})
 source_group(Integral FILES ${pzintegral_STAT_SRCS})
 source_group(External FILES ${pzexternal_STAT_SRCS})
 source_group(External\\Sloan FILES ${sloan_SRCS})
+source_group(PlaneFracture FILES ${pzplanefracture_STAT_SRCS})
 
 #creating pz lib and groups of the sources files
 set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS} 
@@ -32,7 +33,7 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 	${pzmultigrid_STAT_SRCS} ${pzstrmatrix_STAT_SRCS} ${pzsubstruct_STAT_SRCS} 
 	${pzmaterial_STAT_SRCS} ${pzpre_STAT_SRCS} 
 	${pzanalysis_STAT_SRCS} ${pzpost_STAT_SRCS} 
-	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${sloan_SRCS}
+	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${pzplanefracture_STAT_SRCS} ${sloan_SRCS}
 	)
 
 #creating target pz library and installing it

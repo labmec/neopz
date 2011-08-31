@@ -153,10 +153,8 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
-add_subdirectory(lib)
-
 add_subdirectory(PlaneFracture)
-
+add_subdirectory(lib)
 add_subdirectory(Projects)
 
 add_subdirectory(UnitTest_PZ)
