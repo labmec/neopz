@@ -7,6 +7,7 @@ set(RUNTIME_OUTPUT_DIRECTORY pz PARENT_SCOPE)
 	add_subdirectory(TestTopology)
 	add_subdirectory(TestMatrix)
 	add_subdirectory(TestMesh)
+	add_subdirectory(TestMaterial)
 
 	source_group(UnitTestTopology FILES ${pztesttopology})
 	source_group(UnitTestMatrix FILES ${pztestmatrix})
