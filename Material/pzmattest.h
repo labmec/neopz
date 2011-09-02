@@ -79,15 +79,13 @@ class TPZMaterialTest : public TPZMaterial {
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
+	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,

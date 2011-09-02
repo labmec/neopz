@@ -681,8 +681,8 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 		}
 		X(ksi,X0);
 		for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
-		///A norma sobre coordenada parametrica eh mais objetiva pois os limites do
-		///elemento mestre sao mais claros que os do elemento real
+		//A norma sobre coordenada parametrica eh mais objetiva pois os limites do
+		//elemento mestre sao mais claros que os do elemento real
 		//       error = Norm(DelX);
 		error = Norm(DelX)/radius;
 	}
@@ -697,12 +697,12 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 #ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-	}///if
+	}//if
 	
 	if(this->IsInParametricDomain(ksi) == false)
 	{
 		std::stringstream sout;
-		this->IsInParametricDomain(ksi);///for debug purposes only
+		this->IsInParametricDomain(ksi);//for debug purposes only
 		sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
 		sout << " - ksi = ";
 		for(int i = 0; i < ksi.NElements(); i++)
@@ -721,7 +721,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 #ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-	}///if
+	}//if
 #endif
 	
 	return ( this->IsInParametricDomain(ksi) );
@@ -1076,7 +1076,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
 	this->fNumInterfaces = 0;
 }
 
-/// return the refinement pattern associated with the element
+// return the refinement pattern associated with the element
 TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
 {
 	TPZAutoPointer<TPZRefPattern> result;
@@ -1090,13 +1090,13 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 	for(int inode = 0; inode < nnodes; inode++){
 		for(int dim = 0; dim < 3; dim++){
 			NodeX[dim] = this->NodePtr(inode)->Coord(dim);
-		}///dim
+		}//dim
 		this->CenterPoint(inode,qsi);
 		this->X(qsi,MappedX);
 		double error = 0.;
 		for(int dim = 0; dim < 3; dim++){
 			error += (NodeX[dim]-MappedX[dim])*(NodeX[dim]-MappedX[dim]);
-		}///dim
+		}//dim
 		error = sqrt(error);
 		if(error > tol){
 			std::stringstream mess;
@@ -1109,9 +1109,9 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 			DebugStop();
 			return false;
 		}
-	}///for i
+	}//for i
 	return true;
-}///method
+}//method
 
 
 #include "tpzgeoelrefpattern.h"
@@ -1219,8 +1219,11 @@ using namespace pzshape;
  }
  */
 
-int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension);
+/** @brief Find a side which is not contained in allsides and whose dimension is one higher than the dimension of the side side at gel */
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides);
+/** @brief Computes the normal vector goes from the center of the conjugate side (LC) to the center of the LS side (orthogonal this) */
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal);
+/** @brief Normalize normlow vector (in self) */
 void Normalize(TPZVec<REAL> &normlow, TPZVec<REAL> &normal);
 
 void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
@@ -1251,8 +1254,7 @@ void TPZGeoEl::ComputeNormals(TPZMatrix &normals)
 			int lowis;
 			for(lowis=0; lowis < nlowdim; lowis++)
 			{
-				int lowsidedimension = SideDimension(lowdim[lowis]);
-				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim,lowsidedimension+1);
+				int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
 				TPZGeoElSide LC(this,conj_side);
 				TPZGeoElSide LS(this,lowdim[lowis]);
 				TPZManVector<REAL> normal(3,0.);
@@ -1282,7 +1284,7 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 	TPZGeoElSide ElemSide(this,side);
 	TPZGeoElSide NextSide(this,side);
 	
-	///trying to get a self non-linear neighbour
+	//trying to get a self non-linear neighbour
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
 		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
@@ -1294,13 +1296,13 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 					ElemSide.SideTransform3(NeighSide,NeighTransf);
 					this->SetNeighbourInfo(side,NeighSide,NeighTransf);
 					return;;
-				}/// !TPZGeoElMapped
-			}///if IsRelative == false
+				}// !TPZGeoElMapped
+			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
 	}
 	
-	///now TPZGeoElMapped are accepted
+	//now TPZGeoElMapped are accepted
 	while(NextSide.Neighbour().Element() != ElemSide.Element())
 	{
 		if(NextSide.Neighbour().Exists() && !NextSide.Neighbour().Element()->IsLinearMapping() && !NextSide.Neighbour().Element()->IsGeoBlendEl())
@@ -1311,12 +1313,12 @@ void TPZGeoEl::SetNeighbourForBlending(int side){
 				ElemSide.SideTransform3(NeighSide,NeighTransf);
 				this->SetNeighbourInfo(side,NeighSide,NeighTransf);
 				return;;
-			}///if IsRelative == false
+			}//if IsRelative == false
 		}
 		NextSide = NextSide.Neighbour();
 	}
 	
-}///method
+}//method
 
 void TPZGeoEl::BuildBlendConnectivity(){
 	if( !this->IsGeoBlendEl() ) return;
@@ -1324,11 +1326,11 @@ void TPZGeoEl::BuildBlendConnectivity(){
 	for(int byside = this->NNodes(); byside < nsides; byside++)
 	{
 		this->SetNeighbourForBlending(byside);
-	}///for byside
-}///method
+	}//for byside
+}//method
 
-/// Projection of the point to the side
-/**
+// Projection of the point to the side
+/* *
  * Compute the projection of the point within the interior of the element to the side of the element
  */
 TPZTransform TPZGeoEl::Projection(int side)
@@ -1471,10 +1473,9 @@ void TPZGeoEl::ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vector
 		// work from lowest dimension sides upward
 		for(lowis=0; lowis < nlowdim; lowis++)
 		{
-			int lowsidedimension = SideDimension(lowdim[lowis]);
 			// find a side which is not contained in the currently analysed side
 			// whose dimension is one higher than the dimension of lowdim[lowis]
-			int conj_side = ConjugateSide(this,lowdim[lowis],lowdim,lowsidedimension+1);
+			int conj_side = ConjugateSide(this,lowdim[lowis],lowdim);
 			// the normal vector is in the alignment of the conjugate side
 			TPZGeoElSide LC(this,conj_side);
 			TPZGeoElSide LS(this,lowdim[lowis]);
@@ -1701,7 +1702,7 @@ int TPZGeoEl::NormalOrientation(int side)
     
 }
 
-int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides, int dimension)
+int ConjugateSide(TPZGeoEl *gel, int side, TPZStack<int> &allsides)
 {
 	std::set<int> allside;
 	allside.insert(&allsides[0],&allsides[0]+allsides.NElements());

@@ -43,17 +43,16 @@ public:
 	/**
 	 * @brief Returns the refpattern that matches the sides refinement by neighbours
 	 * @param gel - input data: geometric element for which the model refpattern will be returned
-	 * @param neighCorresp - output data:	map that group (neighbour geoelement)
+	 * @param neighCorresp - output data:	map that group (neighbour geoelement) \n
 	 *									and nodes correspondences between (neighbour->SideRefpattern) and (gel->SideRefpattern),
 	 *									indexed by (gel->Side)
-	 * IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
+	 * @note IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
 	 */
 	static TPZAutoPointer<TPZRefPattern> ModelRefPattern(TPZGeoEl *gel, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp);
 	
 	/**
-	 * @brief This methos is used by RefineDirectional method!!!
-	 * 
-	 * Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sidestorefine vector
+	 * @note This methos is used by RefineDirectional method!!!
+	 * @brief Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sidestorefine vector
 	 * @param gel - input data: geometric element for which the perfect match refpattern will be returned
 	 * @param sidestorefine - input data: vector filled with sides refinement intensity
 	 */
@@ -62,7 +61,7 @@ public:
 	/**
 	 * @brief Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sideNeighbours
 	 * @param gel - input data: geometric element for which the perfect match refpatterns will be returned
-	 * IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
+	 * @note IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
 	 */
 	static TPZAutoPointer<TPZRefPattern> PerfectMatchRefPattern(TPZGeoEl *gel);
 	
@@ -76,8 +75,7 @@ public:
 	
 	/**
 	 * @brief Returns if the given refPatterns (refA and refB) are topologicaly compatibles.
-	 * 
-	 * If they are, pairNodes represents the correspondence between nodesIds from refAmesh to refBmesh.
+	 * @note If they are, pairNodes represents the correspondence between nodesIds from refAmesh to refBmesh.
 	 * @param refA - input data: first refpattern to be compared
 	 * @param refB - input data: second refpattern to be compared
 	 * @param fromAtoB - input data: Linear Transformation from refA->RefPatternMesh to refB->RefPatternMesh() (its needed to pair Nodes correctly in permuted cases)
@@ -92,7 +90,8 @@ public:
 	 * @param fromAtoB - input data: Linear Transformation from refA->mesh to refB->mesh (its needed to pair Nodes correctly in permuted cases)
 	 * @param pairedNodes - output data: correspondence between refA->mesh and refB->mesh nodes that matches its coordinates in fathers elements
 	 */
-	/** The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId. \n
+	/**
+	 * The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId. \n
 	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
 	 */
 	static void PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes);
@@ -100,7 +99,7 @@ public:
 	/**
 	 * @brief This method pair nodes from refA->mesh to refB->mesh, using the givem transformation from refA->mesh to refB->mesh to match coordinates.
 	 * @note The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId. \n
-	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
+	 * Obs: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
 	 * @param meshA - input data: mesh of first refpattern that will be considered its nodes coordinates
 	 * @param meshB - input data: mesh of second refpattern that will be considered its nodes coordinates
 	 * @param fromAtoB - input data: Linear Transformation from refA->mesh to refB->mesh (its needed to pair Nodes correctly in permuted cases)
@@ -138,11 +137,10 @@ public:
      * of the elements children and corresponding sides of the father.
 	 */
 	/** 
-	 * A point p in the parametric space of the side of the sub-element is
-     * overcome and is calculated it mentioned hashing getting pf point in
-     * the element father. One calculates for p and pf the corresponding
-     * deformed point. Itself the hashing is consistent the deformed point
-     * must the same be.
+	 * A point p in the parametric space of the side of the sub-element is overcome and is calculated \n
+	 * it mentioned hashing getting pf point in the element father. \n
+	 * One calculates for p and pf the corresponding deformed point. \n
+	 * Itself the hashing is consistent the deformed point must the same be.
      */
 	static void TransformationTest(TPZRefPattern * refp);
 	
@@ -158,9 +156,7 @@ public:
 	 */
 	static void GetGelPermutations(TPZGeoEl * gel, TPZVec< TPZVec<int> > &permutation);
 	
-	/**
-	 * @brief Fill the TPZVec "permutation" with the valid permutations of a given element type
-	 */
+	/** @brief Fill the TPZVec "permutation" with the valid permutations of a given element type */
 	static void GetElTypePermutations(MElementType elType, TPZVec< TPZVec<int> > &permutation);
 };
 

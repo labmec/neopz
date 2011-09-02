@@ -130,7 +130,7 @@ public:
 	int Find(const char * find_str);
 };
 
-
+/// Typedef to vector of strings
 typedef TPZVec < TPZString > TPZText;
 
 #endif

@@ -40,7 +40,7 @@ class TPZStack;
 /**
  * TPZGeoEl is the common denominator for all geometric elements.
  */
-class TPZGeoEl : public TPZSaveable { 	// header file for the element class
+class TPZGeoEl : public TPZSaveable {
 	
 protected:
 	
@@ -56,40 +56,29 @@ protected:
 	
 	/** @brief Index of the element from which the element is a subelement*/
 	int fFatherIndex;
-	/**
-	 @brief Index of the element in the element vector
-	 */
+	/** @brief Index of the element in the element vector */
 	int fIndex;
-	/** @brief 3x3 unit matrix to be copied to the axes if the geometric element
-     does not have a particular orientation*/
+	/** @brief 3x3 unit matrix to be copied to the axes if the geometric element does not have a particular orientation*/
 	static TPZFMatrix gGlobalAxes;
-	/**
-	 * @brief A counter to indicate how many interface elements are pointing to it
-	 */
+	/** @brief A counter to indicate how many interface elements are pointing to it */
 	int fNumInterfaces;
 	
 public:
 	
 	virtual void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans) = 0;
 	
-	/**
-	 * @brief Returns number of TPZInterfaceElement pointing to this.
-	 */
+	/** @brief Returns number of TPZInterfaceElement pointing to this */
 	int NumInterfaces(){
 		return this->fNumInterfaces;
 	}
 	
-	/**
-	 * @brief Increments number of TPZInterfaceElement pointing to this.
-	 */
+	/** @brief Increments number of TPZInterfaceElement pointing to this */
 	int IncrementNumInterfaces(){
 		this->fNumInterfaces++;
 		return this->fNumInterfaces;
 	}
-	
-	/**
-	 * @brief Decrement number of TPZInterfaceElement pointing to this.
-	 */
+	 
+	/** @brief Decrement number of TPZInterfaceElement pointing to this */
 	int DecrementNumInterfaces(){
 		this->fNumInterfaces--;
 		return this->fNumInterfaces;
@@ -142,19 +131,13 @@ public:
 	 */
 	TPZGeoEl(int materialindex,TPZGeoMesh &mesh,int &index);
 	
-	/**
-	 * @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZGeoEl(const TPZGeoEl &el) ;
 	
-	/**
-	 * @brief Copy constructor with elements in different meshes
-	 */
+	/** @brief Copy constructor with elements in different meshes */
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp);
 	
-	/**
-	 * @brief Copy constructor to a patch mesh
-	 */
+	/** @brief Copy constructor to a patch mesh */
 	TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> &org2clnMap);
 	
 	TPZGeoEl() {
@@ -177,14 +160,14 @@ public:
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const = 0;
 	
 	/**
-	 * @brief Creates a clone of this element into a new patch mesh.
-	 * 
-	 * This method differs from the above by the patch mesh does not
-	 * include all elements and nodes. Therefore, a map between node indexes
-	 * in both meshes are required
+	 * @brief Creates a clone of this element into a new patch mesh
 	 * @param DestMesh destination patch mesh
 	 * @param gl2lcNdIdx map between node indexes in original and patch mesh
 	 * @param gl2lcElIdx map between element indexes in original and patch mesh
+	 */
+	/** 
+	 * This method differs from the above by the patch mesh does not include all elements and nodes. \n
+	 * Therefore, a map between node indexes in both meshes are required
 	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int,int> &gl2lcNdIdx,
@@ -200,6 +183,7 @@ public:
 	 * @brief Methods which allow to access the internal data structure of the element
 	 */
 	//@{
+	
 	/** @brief Returns the mesh to which the element belongs*/
 	TPZGeoMesh *Mesh() const { return fMesh;}
 	
@@ -212,33 +196,24 @@ public:
 	/** @brief Returns the number of corner nodes of the element*/
 	virtual int NCornerNodes() = 0;
 	
-	/** @brief returns a pointer to the ith node of the element*/
+	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) {return &(fMesh->NodeVec()[NodeIndex(i)]); }
 	
 	/** @brief Returns the index of the ith node
      the index is the location of the node in the nodevector of the mesh*/
 	virtual int NodeIndex(int i) = 0;
-	
-    /**returns the face node ids */
-	// virtual void NodeFaceIds(TPZVec<int> &ids,int face);
-	
-	/** @brief Return the material index of the element*/
+
+	/** @brief Returns the material index of the element*/
 	int MaterialId() { return fMatId; }
 	
 	/** @brief Return a pointer to the element referenced by the geometric element*/
 	TPZCompEl *Reference() const;
 	
-	/**
-	 * @brief Returns the element type acording to pzeltype.h
-	 */
+	/** @brief Returns the element type acording to pzeltype.h */
 	virtual MElementType Type() =0;
-	/**
-	 * @brief Returns the element type of a side acording to pzeltype.h
-	 */
+	/** @brief Returns the element type of a side acording to pzeltype.h */
 	virtual MElementType Type(int side) =0;
-	/**
-	 * @brief Returns the type of the element as a string
-	 */
+	/** @brief Returns the type of the element as a string */
     virtual std::string TypeName()
 	{
 		std::cout << "ElementType should never be called\n";
@@ -255,11 +230,8 @@ public:
 		return false;
 	}
 	
-	/** @brief Returns if is a TPZGeoElMapped< T > element
-	 * 
-	 * It is necessary due to the lack of dynamic cast for
-	 * these elements
-	 */
+	/** @brief Returns if is a TPZGeoElMapped< T > element */
+	/** It is necessary due to the lack of dynamic cast for these elements */
 	virtual bool IsGeoElMapped() const{
 		return false;
 	}
@@ -278,10 +250,10 @@ public:
 	/** @brief Returns the midside node index along a side of the element*/
 	virtual void MidSideNodeIndex(int side,int &index) = 0;
 	
-	/** @brief Returns the midside node indices along a side of the element
-	 
-	 THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready
-	 for Refinement patterns whereas the former is not
+	/** @brief Returns the midside node indices along a side of the element */
+	/**
+	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
+	 * whereas the former is not
 	 */
 	virtual void MidSideNodeIndices(int side,TPZVec<int> &indices);
 	
@@ -291,33 +263,27 @@ public:
 	/** @brief Returns the local index of a node on a side*/
 	virtual int SideNodeLocIndex(int side, int nodenum) = 0;
 	
-	/**
-	 * @brief Computes the permutation for an HDiv side
-	 */
+	/** @brief Computes the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
 	
+	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
 	/**
-	 * @brief Returns 1 if the side has not been defined by buildconnectivity
-	 
-	 After construction the side is undefined. The buildconnectivity method
-     loops over all elements and tries to identify neighbours along their
-     uninitialized sides*/
+	 * After construction the side is undefined. The buildconnectivity method loops over all elements \n
+	 * and tries to identify neighbours along their uninitialized sides
+	 */
 	virtual int SideIsUndefined(int side) = 0;
 	
-	/** @brief Return the number of subelements of the element
-	 independent of the fact hether the element has already been refined or not */
-	virtual int NSubElements() = 0;
-	
-	/** Return the number of subelements of the same dimension of the element at the side*/
-	//  virtual int NSideSubElements(int side) =0;
-	
 	/**
-	 * @brief Returns the number of subelements as returned by GetSubElements2(side)
+	 * @brief Returns the number of subelements of the element independent of the fact \n
+	 * whether the element has already been refined or not 
 	 */
+	virtual int NSubElements() = 0;
+
+	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
 	virtual int NSideSubElements2(int side) = 0;
 	
 	//HDiv
-	/// computes the normal vectors needed for forming HDiv vector valued shape functions
+	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
 	virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
@@ -331,8 +297,8 @@ public:
 	/// Set connectivity information elements with blend geometric map
 	void BuildBlendConnectivity();
 	
-	/** @brief TPZGeoBlend need to find a non-linear neighbour
-	 * 
+	/** @brief TPZGeoBlend need to find a non-linear neighbour */
+	/** 
 	 * Although TPZGeoElMapped have non-linear mapping
 	 * they are less suitable than self non-linear elements
 	 */
@@ -340,17 +306,16 @@ public:
 	
 	//@}
 	
-	/** @brief Method which creates a computational element based on the current
-     geometric element*/
+	/** @brief Method which creates a computational element based on the current geometric element*/
 	virtual TPZCompEl *CreateCompEl(TPZCompMesh &cmesh,int &index) = 0;
 	
-	/** @brief Method which creates a computational boundary condition element
-     based on the current geometric element, a side and a boundary condition number*/
+	/**
+	 * @brief Method which creates a computational boundary condition element based on the current geometric element, \n
+	 * a side and a boundary condition number
+	 */
 	virtual TPZCompEl *CreateBCCompEl(int side, int bc, TPZCompMesh &cmesh);
 	
-	/**
-	 * @brief Creates a geometric element according to the type of the father element
-	 */
+	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
                                        TPZVec<int>& nodeindexes,
                                        int matid,
@@ -390,40 +355,34 @@ public:
 	/** @brief Sets the subelement of index i*/
 	virtual void SetSubElement(int id, TPZGeoEl* gel) = 0;
 	
-	/** @brief Initializes the external connectivities of the subelements*/
+	/** @brief Initializes the external connectivities of the subelements */
 	virtual void SetSubElementConnectivities();
 	
-	/** @brief Reset the element referenced by the geometric element to NULL*/
+	/** @brief Reset the element referenced by the geometric element to NULL */
 	void ResetReference() { this->fReference = NULL; }
 	
 	/** @brief Equivalent to Print*/
 	friend std::ostream& operator<<(std::ostream &s,TPZGeoEl &el);
 	
-	/** @brief Divides the element and puts the resulting elements in the vector*/
+	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	/**return the middlenode side if there is one*/
-	//virtual TPZGeoNode *MiddleSideNode(int side);
-	
-	/**return pointers to the subelements and their sides along side
-     in the order determined by the referencenodes*/
-	//virtual void GetSubElement(int side,TPZVec<int> &referencenodeindex,
-	//			     TPZVec<TPZGeoElSide> &subelements);
-	
-	/** @brief Return 1 if the element has subelements along side*/
+	/** @brief Return 1 if the element has subelements along side */
 	virtual int HasSubElement() = 0;
 	
-	/** @brief Computes the transformation for a point on the master element to a point
-     in the master element of the neighbour*/
+	/**
+	 * @brief Computes the transformation for a point on the master element to a point \n
+	 * in the master element of the neighbour 
+	 */
 	void SideTransform(int side,TPZGeoElSide neighbour,TPZTransform &t);
 	
-	/** @brief Compute the transformation between the master element space of one side
-     of an element to the master element space of a higher dimension side*/
+	/**
+	 * @brief Compute the transformation between the master element space of one side of an element \n
+	 * to the master element space of a higher dimension side
+	 */
 	virtual TPZTransform SideToSideTransform(int sidefrom,int sideto)= 0;
 	
-	/**
-	 * @brief Compute the projection of the point within the interior of the element to the side of the element
-	 */
+	/** @brief Compute the projection of the point within the interior of the element to the side of the element */
 	TPZTransform Projection(int side);
 	
 	void SetIndex(int index)
@@ -438,13 +397,7 @@ public:
 	int GetTransformId2dT(TPZVec<int> &idfrom,TPZVec<int> &idto);
 	
 	virtual	TPZTransform GetTransform(int side,int son) = 0;
-	
-	/** Returns a pointer to computational element referenced by a geometric
-     element which is a son along side and has higher level than level
-     if onlyinterpolated = 1 only elements TPZInterpolatedElement will be put on the stack*/
-	//void SmallConnect(int side,int level,TPZStack<TPZCompElSide> &elvec,
-	//		    int onlyinterpolated);
-	
+
 	/** @brief Sets the father element*/
 	void SetFather(TPZGeoEl *father)
 	{
@@ -462,17 +415,7 @@ public:
 	
 	/** @brief Reset all subelements to NULL*/
 	virtual void ResetSubElements()=0;
-	
-	
-	/**return a pointer and a side of the subelement of the element at the side
-     and the indicated position. position = 0 indicate first subelement, ...*/
-	//  virtual TPZGeoElSide SideSubElement(int side,int position) = 0;
-	
-	/**returns the element from which the current element is a subelement
-     climbing up along side
-     This method may return NULL even if the element has a father*/
-	//  virtual TPZGeoElSide Father(int side);
-	
+
 	/** @brief Returns the number of fathers that can be followed*/
 	int Level();
 	
@@ -486,10 +429,6 @@ public:
 	virtual TPZGeoElSide HigherDimensionSides(int side,int targetdimension);//S�PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
-	
-	/** Accumulates the transformation of the jacobian which maps the current
-     master element space into the space of the master element of the father*/
-	//  virtual void BuildTransform(int side, TPZGeoEl *father,TPZTransform &t) = 0;
 	
 	/** @brief Return the Jacobian matrix at the point*/
 	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)=0;
@@ -509,47 +448,41 @@ public:
 	 * @name reftopology
 	 * @brief Methods which will implement the declaration of a refinemnt topology
 	 */
-	
 	//@{
 	
-	/**
-	 * @brief Returns the father/side of the father which contains the side of the
-	 * sub element
-	 **/
+	/** @brief Returns the father/side of the father which contains the side of the sub element */
 	virtual TPZGeoElSide Father2(int side);
 	
 	virtual int FatherSide(int side, int son);
 	
 	/**
-	 * @brief Returns the transformation which maps the parameter side of the element/side
+	 * @brief Returns the transformation which maps the parameter side of the element/side \n
 	 * into the parameter space of the father element/side
 	 **/
 	virtual TPZTransform BuildTransform2(int side, TPZGeoEl *father, TPZTransform &t);
 	
 	
-	/** @brief Returns the side number which is connected to the point pt
+	/**
+	 * @brief Returns the side number which is connected to the point pt
 	 * @param pt coordinates of the point in parameter space
 	 * @return lowest dimension side which contains the point, -1 if no side is found
 	 */
 	int WhichSide(TPZVec<REAL> &pt);
 	
-	/**
-	 * @brief It returns the coordinates from the center of the side of the element
-	 */
+	/** @brief It returns the coordinates from the center of the side of the element */
 	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) = 0;
 	
 	/**
-	 * @brief This method will return a partition of the side of the current element
+	 * @brief This method will return a partition of the side of the current element \n
 	 * as the union of sub elements/side which are put in the stack
 	 **/
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 	
 	/**
-	 * @brief This method will return a partition of the side of the current element
+	 * @brief This method will return a partition of the side of the current element \n
 	 * as the union of sub elements/side which are put in the stack
-	 * 
-	 * Only element/sides of the given dimension are put on the stack
-	 **/
+	 */
+	/** Only element/sides of the given dimension are put on the stack */
 	void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension);
 	
 	/** @brief Returns the son number of the sub element gel*/
@@ -573,10 +506,10 @@ public:
 	/** @brief Returns the area from the face*/
 	virtual REAL SideArea(int side);
 	
-	/** @brief Return the �ea from a quadrilateral face*/
+	/** @brief Returns the area from a quadrilateral face*/
 	static  REAL QuadArea(TPZVec<TPZGeoNode *> &nodes);
 	
-	/** @brief Return the �ea from the triangular face*/
+	/** @brief Returns the area from the triangular face*/
 	static REAL TriangleArea(TPZVec<TPZGeoNode *> &nodes);
 	
 	virtual REAL ElementRadius();//TPZGeoEl
@@ -584,14 +517,13 @@ public:
 	static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
 	
 	/**
-	 * @brief Compute the set of normals for defining HDiv approximation spaces
-	 * 
-	 * This method will accumulate the normals for all the sides
+	 * @brief Computes the set of normals for defining HDiv approximation spaces
 	 * @param normals normal associated with each side
 	 * @param vectorsides side associated with each normal vector
-	 * the normal vectors are initially ordered according to the return of LowerDimensionSides
+	 * @note The normal vectors are initially ordered according to the return of LowerDimensionSides \n
 	 * and then permuted according to the node id's
 	 */
+	/** This method will accumulate the normals for all the sides */
 	void ComputeNormals(TPZFMatrix &normals, TPZVec<int> &vectorsides);
 	virtual REAL CharacteristicSize();
 	
@@ -606,15 +538,12 @@ public:
 	void ComputeNormals(int side, TPZFMatrix &normals, TPZVec<int> &vectorsides);
 	/**
 	 * @brief Compute the permutation needed to order the normal vectors in a consistent way
-	 * normal(indexfrom[i]) = normal(i)
-	 * 
-	 * This permutation needs to be applied to the shape functions
+	 * \f$ normal(indexfrom[i]) = normal(i) \f$
 	 */
+	/** This permutation needs to be applied to the shape functions */
 	void ComputePermutationNormals(int side, TPZVec<int> &indexfrom);
 	
-	/**
-	 * @brief Determine the orientation of the normal vector comparing the ids of the neighbouring elements
-	 */
+	/** @brief Determine the orientation of the normal vector comparing the ids of the neighbouring elements */
 	int NormalOrientation(int side);
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
@@ -623,42 +552,31 @@ public:
 	/// Returns the refinement pattern associated with the element
 	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
 	
-	/** @brief Verify coordinate of element nodes checking if they
-	 * are coincident to the X mapping of the corner nodes of
-	 * parametric elements
+	/** @brief Verify coordinate of element nodes checking if they are coincident to the X mapping 
+	 * of the corner nodes of parametric elements
 	 * @return true if everything OK else false
 	 */
 	bool VerifyNodeCoordinates(REAL tol = 1e-6);
 	
-	/** @brief Verifies if the parametric point pt is in the element parametric domain
-	 */
+	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6) = 0;
 	
-	/** @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
-	 * 
+	/**
+	 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain
 	 * @return Returns the side where the point was projected.
-	 * Observe that if the point is already in the parametric domain, the method will return
-	 * NSides() - 1
+	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
 	 */
 	virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain) = 0;
 	
-    /*!
-	 \fn TPZGeoEl::Index()
-	 @brief Returns the index of the element within the element vector of the mesh
-     */
+	 /** @brief Returns the index of the element within the element vector of the mesh */
     int Index() const
     {
         return fIndex;
     }
 	
-protected:
-	//  REAL fMesure;
 private:
-	/**
-	 * @brief To be used after the buid connectivity. If some neighbour isn't initialized\
-	 * 
-	 * It will be initialized as the TPZGeoElSide (this, thisside)
-	 */
+	/** @brief To be used after the buid connectivity. If some neighbour isn't initialized */
+	/** It will be initialized as the TPZGeoElSide (this, thisside) */
 	void InitializeNeighbours();
 };
 

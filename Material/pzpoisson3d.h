@@ -29,70 +29,62 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	
 	protected :
 	
-	/** Forcing function value */
+	/** @brief Forcing function value */
 	REAL fXf;
 	
-	/** Problem dimension */
+	/** @brief Problem dimension */
 	int fDim;
 	
-	/** Coeficient which multiplies the Laplacian operator. */
+	/** @brief Coeficient which multiplies the Laplacian operator. */
 	REAL fK;
 	
-	/** Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface.
-	 * The coefficient of left neighbour is fK.
+	/** @brief Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface */
+	/** 
+	 * The coefficient of left neighbour is fK. \n
 	 * It is for use with discontinuous Galerkin method. Default value for fRightK is fK.
 	 */
 	REAL fRightK;
 	
-	/** Variable which multiplies the convection term of the equation */
+	/** @brief Variable which multiplies the convection term of the equation */
 	REAL fC;
 	
-	/** Direction of the convection operator */
+	/** @brief Direction of the convection operator */
 	REAL fConvDir[3];
 	
-	/** Symmetry coefficient of elliptic term.
-	 * Symmetrical formulation - Global element method - has coefficient = -1.
+	/** @brief Symmetry coefficient of elliptic term */
+	/** 
+	 * Symmetrical formulation - Global element method - has coefficient = -1. \n
 	 * Non-symmetrical formulation - Baumann's formulation - has coefficient = +1.
 	 */
 	REAL fSymmetry;
 	
-	/**
-	 * multiplication value for the streamline diffusion term
-	 */
+	/** @brief Multiplication value for the streamline diffusion term */
 	REAL fSD;
 	
-	/** Enumerate for penalty term definitions
-	 */
+	/** @brief Enumerate for penalty term definitions */
 	enum EPenaltyType {ENoPenalty = 0, EFluxPenalty = 1, ESolutionPenalty, EBoth};
 	
-	/** Penalty term definition
-	 */
+	/** @brief Penalty term definition */
 	EPenaltyType fPenaltyType;
 	
 public:
 	
-	/** Constant multiplyer of penalty term, when required.
-	 * is set.
-	 */
+	/** @brief Constant multiplyer of penalty term, when required is set. */
 	REAL fPenaltyConstant;
 	
-	/** Define no penalty terms in ContributeInterface
-	 */
+	/** @brief Defines no penalty terms in ContributeInterface */
 	void SetNoPenalty(){ this->fPenaltyType = ENoPenalty;}
 	
-	/** Define flux penalty terms in ContributeInterface
-	 */
+	/** @brief Defines flux penalty terms in ContributeInterface */
 	void SetFluxPenalty(){ this->fPenaltyType = EFluxPenalty; }
 	
-	/** Define solution penalty terms in ContributeInterface
-	 */
+	/** @brief Defines solution penalty terms in ContributeInterface */
 	void SetSolutionPenalty(){ this->fPenaltyType = ESolutionPenalty; }
 	
-	/** Define solution and flux penalty terms in ContributeInterface
-	 */
+	/** @brief Defines solution and flux penalty terms in ContributeInterface */
 	void SetBothPenalty(){ this->fPenaltyType = EBoth; }
 	
-	/** Usado em InterfaceErrors */
+	/** @brief Using in InterfaceErrors */
 	static REAL gAlfa;
 	
 	TPZMatPoisson3d(int nummat, int dim);
@@ -105,14 +97,12 @@ public:
 	
 	TPZMatPoisson3d &operator=(const TPZMatPoisson3d &copy);
 	
-	/** Set material elliptic term as the global element method, i.e. the symmetrical formulation.
-	 */
+	/** @brief Set material elliptic term as the global element method, i.e. the symmetrical formulation */
 	void SetSymmetric(){
 		this->fSymmetry = -1.0;
 	}
 	
-	/** Set material elliptic term as the Baumann's formulation, i.e. the non-symmetrical formulation.
-	 */
+	/** @brief Set material elliptic term as the Baumann's formulation, i.e. the non-symmetrical formulation */
 	void SetNonSymmetric() {
 		this->fSymmetry = +1.0;
 	}
@@ -146,10 +136,12 @@ public:
 		fSD = sd;
 	}
 	
-	/** Define fK of right neighbour element. It is used with discontinuous Galerkin
-	 * on the computation of ContributeInterface methods.
-	 * Attention that method SetParameters override the modifications of this method. Then call it after SetParameters
-	 * and never before or it will have no effect.
+	/**
+	 * @brief Define fK of right neighbour element. \n 
+	 * It is used with discontinuous Galerkin on the computation of ContributeInterface methods */
+	/**
+	 * Attention that method SetParameters override the modifications of this method. \n
+	 * Then call it after SetParameters and never before or it will have no effect.
 	 */
 	void SetRightK(REAL rightK){
 		this->fRightK = rightK;
@@ -174,7 +166,7 @@ public:
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 #ifdef _AUTODIFF
-	/**Compute contribution to the energy at an integration point*/
+	/** @brief Computes contribution to the energy at an integration point */
 	void ContributeEnergy(TPZVec<REAL> &x,
 						  TPZVec<FADFADREAL> &sol,
 						  TPZVec<FADFADREAL> &dsol,
@@ -209,11 +201,8 @@ protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
@@ -240,7 +229,7 @@ public:
 	}
 	
 	/**
-	 * Compute square of residual of the differential equation at one integration point.
+	 * @brief Compute square of residual of the differential equation at one integration point.
 	 * @param X is the point coordinate (x,y,z)
 	 * @param sol is the solution vector
 	 * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
@@ -255,27 +244,19 @@ public:
 						 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values,
 						 TPZVec<REAL> normal, REAL elsize);
 	
-	/** Compute interface jump from element to Dirichlet boundary condition
-	 * Returns sol-u_dirichlet
+	/** 
+	 * @brief Computes interface jump from element to Dirichlet boundary condition
+	 * @return Returns sol-u_dirichlet
 	 * @since Mar 08, 2006
 	 */
 	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
 	
 	virtual int IsInterfaceConservative(){ return 1;}
 	
-	/**
-	 * Unique identifier for serialization purposes
-	 */
 	virtual int ClassId() const;
 	
-	/**
-	 * Save the element data to a stream
-	 */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * Read the element data from a stream
-	 */
 	virtual void Read(TPZStream &buf, void *context);
 	
 };

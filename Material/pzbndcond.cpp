@@ -84,7 +84,7 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL>
 	PZError << __PRETTY_FUNCTION__ << " - Huge problem. Both leftu and rightu contain elements. Wich one is the actual element neighbour to the Dirichlet boundary ?" << std::endl;
 	DebugStop();
 	
-}///InterfaceJump
+}//InterfaceJump
 
 int TPZBndCond::ClassId() const
 {
@@ -201,11 +201,11 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
-	DebugStop();/////nothing to be done here
+	DebugStop();//nothing to be done here
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
-	DebugStop();/////nothing to be done here
+	DebugStop();//nothing to be done here
 }
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
@@ -233,11 +233,11 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMat
 }
 
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-	DebugStop();/////nothing to be done here
+	DebugStop();//nothing to be done here
 }
 
 void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
-	DebugStop();/////nothing to be done here
+	DebugStop();//nothing to be done here
 }
 
 

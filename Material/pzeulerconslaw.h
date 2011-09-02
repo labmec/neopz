@@ -66,9 +66,7 @@ class TPZEulerConsLaw2  : public TPZConservationLaw2
 	 */
 	void SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace);
 	
-	/**
-	 * @brief Returns a reference to the artificial diffusion term
-	 */
+	/** @brief Returns a reference to the artificial diffusion term */
 	TPZArtDiff & ArtDiff(){ return fArtDiff; };
 	
 	/**
@@ -77,25 +75,16 @@ class TPZEulerConsLaw2  : public TPZConservationLaw2
 	 */
 	REAL OptimalCFL(int degree);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
+	/** @brief See declaration in base class */
 	virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
+	/** @brief See declaration in base class */
 	static int NStateVariables(int dim);
 	
-	/**
-	 * @brief Object-based overload
-	 */
+	/** @brief Object-based overload */
 	int NStateVariables();
 	
-	/**
-	 * @brief Estimates the deltax (element diameter) based on the inverse
-	 * of the jacobian.
-	 */
+	/** @brief Estimates the deltax (element diameter) based on the inverse of the jacobian. */
 	/**
 	 * <!> Works only for quadratic and hexahedral elements
 	 * (it assumes that each element is parametrized tensorially
@@ -119,78 +108,53 @@ class TPZEulerConsLaw2  : public TPZConservationLaw2
 	template< class T >
 	static void Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U);
 	
-	/**
-	 * @brief Evaluates the speed of sound in the fluid
-	 */
+	/** @brief Evaluates the speed of sound in the fluid */
 	template <class T>
 	static void cSpeed(TPZVec<T> & sol, REAL gamma, T & c);
 	
-	/**
-	 * @brief u = Sqrt(u2 + v2 + w2);
-	 */
+	/** \f$ u = Sqrt(u2 + v2 + w2) \f$ */
 	template <class T>
 	static void uRes(TPZVec<T> & sol, T & us);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual REAL Pressure(TPZVec<REAL> &U);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual void Print(std::ostream & out);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual std::string Name();
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual int VariableIndex(const std::string &name);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual int NSolutionVariables(int var);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual int NFluxes();
 	
 	
-	//------------------solutions
+	/** @name Solutions methods */
+	/** @{ */
 	
-	/*
-	 @brief Computes the ghost state variables bsed on the BC type
-	 */
+	/** @brief Computes the ghost state variables bsed on the BC type */
 	template <class T>
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
+	/** @brief See declaration in base class */
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
-	/** @brief returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZConservationLaw2::Solution(data,var,Solout);
 	}
+	/** @} */
 	
-	/**
+	/* *
 	 * See declaration in base class
 	 */
 	/*  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
 	 TPZVec<REAL> &flux);
 	 */
-	/**
+	/* *
 	 * See declaration in base class
 	 */
 	/*  virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
@@ -198,11 +162,11 @@ public:
 	 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
 	 {};
 	 */
-	//------------------Fluxes
 	
-	/**
-	 * @brief tensor of the three-dimensional flux of Euler
-	 */
+	/** @name Fluxes methods */
+	/** @{ */
+	
+	/** @brief tensor of the three-dimensional flux of Euler */
 	template < class T >
 	void Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVec<T> &Fz);
 	
@@ -218,15 +182,13 @@ public:
 	template <class T>
 	static void JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
 	
-	/**
+	/* *
 	 * tensor of the three-dimensional flux of Euler
 	 * Specialization for REAL variable type
 	 */
 	//  void Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZVec<REAL> &Fz);
 	
-	/**
-	 * @brief Test flux -> returns the averaged state variables across an interface
-	 */
+	/** @brief Test flux -> returns the averaged state variables across an interface */
 	template <class T>
 	void Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux);
 	
@@ -306,9 +268,7 @@ public:
 						 T &flux_rhou,
 						 T &flux_rhov,
 						 T &flux_rhoE, int entropyFix = 1);
-	/**
-	 * @brief Flux of Roe (MOUSE program)
-	 */
+	/** @brief Flux of Roe (MOUSE program) */
 	template <class T>
 	static void ApproxRoe_Flux(const T & rho_f,
 							   const T & rhou_f,
@@ -346,23 +306,20 @@ public:
 							   T &flux_rhou,
 							   T &flux_rhov,
 							   T &flux_rhoE, int entropyFix = 1);
-	
-	//------------------Differentiable variables setup
-	
+	/** @} */
+		
 #ifdef _AUTODIFF
+	/** @name Differentiable variables setup */
+	/** @{ */
+
 	/**
 	 * @brief Converts the REAL values into FAD differentiable objects
-	 *
 	 * @param sol [in] values of flattened solution (Sum(ui*phi))
-	 * @param dsol [in] values of dsol(columns) with respect to the
-	 * dim dimensions (row-aligned)
+	 * @param dsol [in] values of dsol(columns) with respect to the dim dimensions (row-aligned)
 	 * @param phi [in] value of shape functions at a given point
-	 * @param dphi [in] derivatives of shape functions with respect
-	 * to the spatial dimensions at a given point.
-	 * @param FADsol [out] vector of solutions and coefficient
-	 * derivatives (phi) at the point
-	 * @param FADdsol [out] vector of spatial derivatives of solution
-	 * and coefficient derivatives (dphi) at the point
+	 * @param dphi [in] derivatives of shape functions with respect to the spatial dimensions at a given point.
+	 * @param FADsol [out] vector of solutions and coefficient derivatives (phi) at the point
+	 * @param FADdsol [out] vector of spatial derivatives of solution and coefficient derivatives (dphi) at the point
 	 */
 	void PrepareFAD(TPZVec<REAL> & sol, TPZFMatrix & dsol,
 					TPZFMatrix & phi, TPZFMatrix & dphi,
@@ -372,17 +329,13 @@ public:
 	/**
 	 * @brief Converts the REAL values into FAD differentiable objects
 	 * with respect to the left and right interface volumes
-	 *
 	 * @param solL [in] values of flattened solution (Sum(ui*phi))
 	 * @param solR [in] values of flattened solution (Sum(ui*phi))
 	 * @param phiL [in] value of shape functions at a given point
 	 * @param phiR [in] value of shape functions at a given point
-	 * @param FADsolL [out] vector of solutions and coefficient
-	 * derivatives (phi) at the point
-	 * @param FADsolR [out] vector of solutions and coefficient
-	 * derivatives (phi) at the point
+	 * @param FADsolL [out] vector of solutions and coefficient derivatives (phi) at the point
+	 * @param FADsolR [out] vector of solutions and coefficient derivatives (phi) at the point
 	 */
-	
 	void PrepareInterfaceFAD(
 							 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 							 TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -402,36 +355,21 @@ public:
 									TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 									TPZVec<T> & FADsolL,
 									TPZVec<T> & FADsolR);
+	/** @} */
 	
 #endif
 	
-	//------------------contributions
+	/** @name Contributions methods */
+	/** @{ */
 	
-	/**
-	 * See declaration in base class
-	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	/**
-	 * See declaration in base class
-	 * @brief Contributes only to the rhs.
-	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 	
-	/**
-	 * See declaration in base class
-	 */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	/**
-	 * See declaration in base class
-	 */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
-	
-	/**
-	 * See declaration in base class
-	 */
-	
+
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek, TPZFMatrix &ef,
@@ -455,7 +393,8 @@ public:
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc);
 	
-	//------------------internal contributions
+	/** @name Internal contributions */
+	/** @{ */
 	
 	void ContributeFastestBCInterface(int dim,
 									  TPZVec<REAL> &x,
@@ -496,8 +435,6 @@ public:
 							   REAL weight,
 							   TPZFMatrix &phi,TPZFMatrix &dphi,
 							   TPZFMatrix &ef);
-	
-	//-------------------
 	
 	void ContributeApproxImplDiff(TPZVec<REAL> &x,
 								  TPZFMatrix &jacinv,
@@ -557,15 +494,14 @@ public:
 								REAL weight,TPZVec<REAL> &normal,
 								TPZFMatrix &phiL,TPZFMatrix &phiR,
 								TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
-	
-	
+
 	void ContributeFastestImplConvFace(int dim,
 									   TPZVec<REAL> &x,
 									   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 									   REAL weight,TPZVec<REAL> &normal,
 									   TPZFMatrix &phiL,TPZFMatrix &phiR,
 									   TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
-	
+
 	template <int dim>
 	void ContributeFastestImplConvFace_dim(
 										   TPZVec<REAL> &x,
@@ -573,14 +509,14 @@ public:
 										   REAL weight,TPZVec<REAL> &normal,
 										   TPZFMatrix &phiL,TPZFMatrix &phiR,
 										   TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
-	
+
 	template <class T>
 	void ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 										 TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 										 REAL weight,TPZVec<REAL> &normal,
 										 TPZFMatrix &phiL,TPZFMatrix &phiR,
 										 TPZFMatrix &ek,TPZFMatrix &ef,int entropyFix = 1);
-	
+
 #endif
 	
 	void ContributeImplConvVol(TPZVec<REAL> &x,
@@ -619,51 +555,38 @@ public:
 						  REAL weight,
 						  TPZFMatrix &phi,
 						  TPZFMatrix &ef);
+	/** @} */
 	
+	/** @} */
 	
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);
 	
-	/**
-	 @brief Class identificator
-	 */
+	/** @brief Class identificator */
 	int ClassId() const;
-	
-	
-	//--------------------
-	
-	//---------------------Attributes
+
+	/** @name Attributes */
+	/** @{ */
 protected:
 	
-	/**
-	 * @brief diffusive term
-	 */
+	/** @brief diffusive term */
 	TPZArtDiff fArtDiff;
 	
 	//int fIntegrationDegree;//grau de integra� da solu� inicial:opcional
 	
-	/**
-	 * @brief variables indication whether the following terms are implicit
-	 */
+	/** @brief variables indication whether the following terms are implicit */
 	TPZTimeDiscr fDiff, fConvVol, fConvFace;
 	
-	
-	
+	/** @} */
 };
 
 inline std::string TPZEulerConsLaw2::Name()
 {
 	return "TPZEulerConsLaw2";
 }
-
-//----------------Fluxes
 
 template < class T >
 inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVec<T> &Fz) {

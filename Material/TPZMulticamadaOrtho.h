@@ -29,14 +29,13 @@ class TPZMaterial;
 
 class TPZMulticamadaOrthotropic {
 	
-	/**malha geométrica onde são inseridas as placas geométricas*/
+	/** @brief Geometric mesh with shells */
 	TPZGeoMesh             *fGeoMesh;
-	/**malha computacional: elementos computacionais correspondentes*/
+	/** @brief Computational mesh to calculations */
 	TPZCompMesh            *fCompMesh;
-	/**Vetor de placas*/
+	/** @brief Shells vector */
 	TPZStack<TPZPlacaOrthotropic> fPlacaOrth;
 	/**
-	 * fZ: altura máxima (camada mais longe do plano XY)
 	 * fDx,fDy: dimensões das placas (constantes para todas as placas)   
 	 */
 	REAL fDx,fDy;
@@ -53,7 +52,7 @@ class TPZMulticamadaOrthotropic {
 	TPZManVector<REAL,3> fDirx, fDiry;
 	
 	/**
-	 * Relaxation factor to correct resulting forces.
+	 * @brief Relaxation factor to correct resulting forces.
 	 * @since Feb 10, 2004
 	 */
 	REAL fCorrect;
@@ -61,17 +60,16 @@ class TPZMulticamadaOrthotropic {
 	
 	
 public:
-	/**construtor*/
+	/** @brief Construtor */
 	TPZMulticamadaOrthotropic(REAL z,REAL dx,REAL dy, int nelx, int nely, REAL Correct = 1.0);
-	/*destrutor*/
+	/** @brief Destrutor */
 	~TPZMulticamadaOrthotropic(){}
 	
-	/**Adiciona placas ao conjunto*/
+	/** @brief Adds shells */
 	void AddPlacaOrtho(TPZAutoPointer<TPZMaterial> material, REAL height);
-	/**gera a malha computacional do conjunto de placas*/
+	/** @brief Creates a computational mesh to all the shells */
 	void GenerateMesh();
-	/**cria o conjunto de placas multicamada*/
-	//  static int main();
+
 	void Print(std::ostream &out = std::cout);
 	/*criando método para retornar a altura da multicamada*/
 	REAL Height();
@@ -80,18 +78,14 @@ public:
 	/*criando método para contar quant de placas*/
 	int NPlacas();
 	/**
-	 * Compute a tension state corresponding to the difference between the target state
+	 * @brief Compute a tension state corresponding to the difference between the target state \n
 	 * and tension state loaded in the solution
 	 */
 	void AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &tensor);
 	
-	/**
-	 * Tensor which needs to be applied at the given coordinate
-	 */
+	/** @brief Tensor which needs to be applied at the given coordinate */
 	void Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &tensor);
-	/**
-	 * Computes the global efforts of the finite element solution
-	 */
+	/** @brief Computes the global efforts of the finite element solution */
 	void ComputeCenterForces();
 	
 	void ComputeSolution(std::ostream &out = std::cout,int print = 0);
@@ -161,4 +155,5 @@ public:
 	
 	void PrintCenterForces(std::ostream &out);
 };
+
 #endif

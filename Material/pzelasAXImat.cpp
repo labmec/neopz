@@ -210,7 +210,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 		ff[2] = res[2];
 	}
 	
-	/// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
+	// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
 	REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
     REAL Z = (data.x[0] - f_Origin[0])*f_AxisZ[0] + (data.x[1] - f_Origin[1])*f_AxisZ[1] + (data.x[2] - f_Origin[2])*f_AxisZ[2];
 	
@@ -312,7 +312,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
 	
-	/// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
+	// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
 	REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
 	
 	int s = (R > 0) ? 1:-1;
@@ -412,7 +412,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condicao
 }         // 1 Val1 : a leitura �00 01 10 11
 
-///---------------------------- --------------------------------------
+//---------------------------- --------------------------------------
 void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL weight,
 												   TPZFMatrix &ek, TPZFMatrix &ef){
 	
@@ -559,7 +559,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 	}
 #endif
 	
-	///Calcule: Integrate { -[v].<sigma(u).n> + symmetry *[u].<sigma(v).n> + penalty*[u].[v] } ds
+	//Calcule: Integrate { -[v].<sigma(u).n> + symmetry *[u].<sigma(v).n> + penalty*[u].[v] } ds
 	
 	// 1) Matrix Band:  phi_I_Left, phi_J_Left
 	
@@ -828,7 +828,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 #endif
 }
 
-///-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
 /** returns the variable index associated with the name*/
 int TPZElasticityAxiMaterial::VariableIndex(const std::string &name)
@@ -889,7 +889,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	TPZVec<REAL> &SolAxes = data.sol;
 	TPZFMatrix &DSolAxes = data.dsol;
 	
-    /// R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
+    // R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
     REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
     REAL Z = (data.x[0] - f_Origin[0])*f_AxisZ[0] + (data.x[1] - f_Origin[1])*f_AxisZ[1] + (data.x[2] - f_Origin[2])*f_AxisZ[2];
     
@@ -933,7 +933,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	}
 #endif
 	
-	///Infinitesimal Tensor
+	//Infinitesimal Tensor
 	TPZFNMatrix<9> Einf(3,3,0.);
 	Einf.PutVal(0,0,DSolrz(0,0)); 
 	Einf.PutVal(0,1,0.5*(DSolrz(0,1) + DSolrz(1,0)));
@@ -961,7 +961,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	}
 #endif
 	
-	///Stress Tensor
+	//Stress Tensor
 	TPZFNMatrix<9> T(3,3,0.);
 	double cte = lambda*trE;
     REAL epsT = DelTemp*fAlpha;
@@ -1189,7 +1189,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 	TPZManVector<REAL> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy,gamma;
 	
-	TPZFNMatrix<9> du;///du = dudx
+	TPZFNMatrix<9> du;//du = dudx
 	TPZAxesTools::Axes2XYZ(dudaxes, du, axes);
 	
 	//tensoes aproximadas : uma forma

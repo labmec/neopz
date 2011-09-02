@@ -78,7 +78,7 @@ REAL prismdir[][3] =
 
 
 int main() {
-	int elem, order;
+	int elem;
 	//int side, dim = 3; // se dim igual a 3 sera construida malha com elementos tridimensionais, se diferente elementos bidimensionais
 	int max_order, elem_type;
 	TPZInterpolatedElement *el;

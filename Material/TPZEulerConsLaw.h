@@ -27,56 +27,38 @@
  */
 class TPZEulerConsLaw  : public TPZConservationLaw {
 	
-	/**
-	 * ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas
-	 */
+	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	REAL fGamma;
 	
-	/**
-	 * Termo que adiciona estabilidade ao m�odo num�ico de aproxima�o
-	 * SUPG
-	 * LS
-	 * Bornhaus
-	 */
+	/** @brief Term that adds stability to the numerical method of approach: SUPG, LS, Bornhaus */
 	std::string fArtificialDiffusion;
-	
-	//int fIntegrationDegree;//grau de integra� da solu� inicial:opcional
-	
+		
 	public :
 	
 	TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,const std::string &artdiff);
 	
-	/**copy constructor*/
+	/** @brief Copy constructor */
 	TPZEulerConsLaw(TPZEulerConsLaw & copy);
 	
-	/**To create another material of the same type*/
+	/** @brief To create another material of the same type */
 	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 	
 	~TPZEulerConsLaw();
 	
-	/**
-	 * compute the boundary condition left solution
-	 */
+	/** @brief Computes the boundary condition left solution */
 	virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
 	
-	/**
-	 * compute the boundary condition right solution
-	 */
+	/** @brief Computes the boundary condition right solution */
 	virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 	
-	/**
-	 * termodinamic pressure determined by the law of an ideal gas
-	 */
+	/** @brief Termodinamic pressure determined by the law of an ideal gas */
 	virtual REAL Pressure(TPZVec<REAL> &U);
 	
 	virtual REAL Gamma(){return fGamma;}
 	
 	virtual void SetDeltaTime(REAL maxveloc,REAL deltax,int degree);
 	
-	/**
-	 * tensor of the three-dimensional flux of Euler
-	 */
+	/** @brief tensor of the three-dimensional flux of Euler */
 	void Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZVec<REAL> &Fz);
 	
 	//virtual void SetIntegDegree(int degree){fIntegrationDegree = degree;}
@@ -126,7 +108,6 @@ public:
 		Solution(data.sol,data.dsol,data.axes,var,Solout);
 	}
 	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
 					  TPZVec<REAL> &flux);
 	
@@ -134,10 +115,9 @@ public:
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 	
-	// PARA TESTE PARA TESTE PARA PARA TESTE
 	void ContributeTESTE(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,
 						 REAL weight,TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
-						 TPZFMatrix &ek,TPZFMatrix &ef);// PARA TESTE PARA TESTE PARA PARA TESTE
+						 TPZFMatrix &ek,TPZFMatrix &ef);
 	
 	void TestOfRoeFlux(REAL &tetainit,REAL &tetamax,REAL &tol,REAL &increment);
 };

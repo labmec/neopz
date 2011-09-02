@@ -84,33 +84,33 @@ void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 	
 	switch (bc.Type()){
 			
-			/// Dirichlet condition
+			// Dirichlet condition
 		case 0 : {      
 			for(iv = 0; iv < nvars; iv++){
 				for(in = 0 ; in < phr; in++) {
 					ef(nvars*in+iv,0) += TPZMaterial::gBigNumber * bc.Val2()(iv,0) * phi(in,0) * weight;      
 					for (jn = 0 ; jn < phr; jn++) {
 						ek(nvars*in+iv,nvars*jn+iv) += TPZMaterial::gBigNumber * phi(in,0) * phi(jn,0) * weight;
-					}///jn
-				}///in
-			}///iv
+					}//jn
+				}//in
+			}//iv
 			break;
 		}
 			
-			/// Neumann condition
+			// Neumann condition
 		case 1 : {
 			for(iv = 0; iv < nvars; iv++){
 				for(in = 0 ; in < phr; in++) {
 					ef(nvars*in+iv,0) += bc.Val2()(iv,0) * phi(in,0) * weight;
-				}///in
-			}///iv
+				}//in
+			}//iv
 			break;
 		}
 			
 		default:{
 			std::cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " not implemented\n";
 		}
-	}///switch
+	}//switch
 	
 }
 

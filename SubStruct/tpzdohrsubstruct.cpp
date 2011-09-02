@@ -177,7 +177,7 @@ void TPZDohrSubstruct::Contribute_v2(TPZFMatrix &v2) {
 	}
 }
 
-/**
+/*
  * It computes the local contribution to v2.
  */
 void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatrix &v2_local)
@@ -191,9 +191,9 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatri
 		LocalWeightedResidual(ind.first,0) += fWeights[ind.first] * residual_local(i,0);
 	}
 	int ncoarse = fCoarseIndex.NElements();
-	/// size of the kernel
+	// size of the kernel
 	int nnull = fNullPivots.Rows();
-	/// number of global indices
+	// number of global indices
 	int nglob = fNEquations;
 	/** Solving the system for zi */
 	//Constructing I star is the same I star for Phi
@@ -392,11 +392,11 @@ void TPZDohrSubstruct::SolveSystemPhi() {
 
 void TPZDohrSubstruct::SolveSystemZi() {
 	int ncoarse = fCoarseIndex.NElements();
-	/// size of the kernel
+	// size of the kernel
 	int nnull = fNullPivots.Rows();
-	/// number of global indices
+	// number of global indices
 	int nglob = fNEquations;
-	/** Solving the system for zi */
+	/* Solving the system for zi */
 	//Constructing I star is the same I star for Phi
 	//C star is the same C star for Phi
 	//Constructing I_lambda

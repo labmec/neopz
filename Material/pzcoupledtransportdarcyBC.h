@@ -80,9 +80,7 @@ protected:
 	
 	int NStateVariables() { return this->GetNonNullMaterial()->NStateVariables(); }
 	
-	/**
-	 * @brief Returns the number of norm errors. Default is 3: energy, L2 and H1.
-	 */
+	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
 	virtual int NEvalErrors() {return this->GetNonNullMaterial()->NEvalErrors();}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
@@ -153,6 +151,5 @@ protected:
 	}
 	
 };
-
 
 #endif

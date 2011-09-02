@@ -14,7 +14,7 @@ void FillF(TPZFMatrix &f, int neq, int nst);
 int main(){
   int neq=1000;
   int banda=50;
-  int i,j;
+  int i;
  
   TPZFMatrix  *cheia = new TPZFMatrix(neq,neq, 0.);
   FillMatrix(*cheia,neq,banda);

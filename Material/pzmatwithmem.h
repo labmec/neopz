@@ -25,91 +25,65 @@ class  TPZMatWithMem : public TFather
 {
 public:
 	
-	/**
-	 * Default constructor
-	 */
+	/** @brief Default constructor */
 	TPZMatWithMem();
 	
-	/** Creates a material object and inserts it in the vector of
-	 *  material pointers of the mesh. Upon return vectorindex
-	 *  contains the index of the material object within the
-	 *  vector
-	 */
+	/** @brief Creates a material object and inserts it in the vector of material pointers of the mesh */
+	/** Upon return vectorindex contains the index of the material object within the vector */
 	TPZMatWithMem(int id);
 	
-	/** Creates a material object based on the referred object and
-	 *  inserts it in the vector of material pointers of the mesh.
-	 *  Upon return vectorindex contains the index of the material
-	 *  object within the vector
+	/** 
+	 * @brief Creates a material object based on the referred object and
+	 * inserts it in the vector of material pointers of the mesh
 	 */
+	/** Upon return vectorindex contains the index of the material object within the vector */
 	TPZMatWithMem(const TPZMatWithMem<TMEM, TFather> &mat);
 	
 	virtual ~TPZMatWithMem();
 	
-	/** returns the name of the material*/
+	/** @brief Returns the name of the material */
 	virtual std::string Name() { return "TPZMatWithMem< >"; }
 	
-	/** print out the data associated with the material*/
+	/** @brief Prints out the data associated with the material */
 	virtual void Print(std::ostream &out = std::cout, const int memory = 0);
 	
 	virtual TMEM & MemItem(const int i);
 	
 public:
 	
-	/**
-	 * Unique identifier for serialization purposes
-	 */
+	/** @brief Unique identifier for serialization purposes */
 	virtual int ClassId() const;
 	
-	/**
-	 * Save the element data to a stream
-	 */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * Read the element data from a stream
-	 */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	/**
-	 * Pushes a new entry in the context of materials with memory,
-	 * returning its index at the internal storage stack.
-	 * to be implemented only in the proper materials.
+	 * @brief Pushes a new entry in the context of materials with memory
+	 * @return Returning its index at the internal storage stack
 	 */
+	/** To be implemented only in the proper materials. */
 	virtual int PushMemItem(int sourceIndex = -1);
 	
-	/**
-	 * Frees an entry in the material with memory internal history storage
-	 */
+	/** @brief Frees an entry in the material with memory internal history storage */
 	virtual void FreeMemItem(int index);
 	
-	/**
-	 * Sets the default memory settings for initialization
-	 */
+	/** @brief Sets the default memory settings for initialization */
 	virtual void SetDefaultMem(TMEM & defaultMem);
 	
-	/**
-	 * Sets/Unsets the internal memory data to be updated in the next assemble/contribute call
-	 */
+	/** @brief Sets/Unsets the internal memory data to be updated in the next assemble/contribute call */
 	virtual void SetUpdateMem(int update = 1);
 	
 protected:
 	
 	
-	/**
-	 * Material Memory
-	 */
+	/** @brief Material Memory */
 	TPZAdmChunkVector<TMEM/*, 1024 Using Default*/> fMemory;
 	
-	/**
-	 * Default memory settings
-	 */
+	/** @brief Default memory settings */
 	TMEM fDefaultMem;
 	
-	/**
-	 * flag to indicate wether the memory data are to be updated
-	 * in an assemble loop
-	 */
+	/** @brief Flag to indicate wether the memory data are to be updated in an assemble loop */
 	int fUpdateMem;
 };
 

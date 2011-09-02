@@ -32,10 +32,10 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 	protected :
 	
-	/** @brief In second equation beta = alpha * (-K Grad[p] ). Here alpha is stored. */
+	/** @brief In second equation: \f$ beta = alpha * (-K Grad[p] ) \f$. Here alpha is stored. */
 	REAL fAlpha;
 	
-	/** @brief Two instances of TPZMatPoisson3d */
+	/** @name Two instances of TPZMatPoisson3d */
 	// @{
 	TPZAutoPointer<TPZMaterial> fMaterialRefs[2];
 	TPZMatPoisson3d * fMaterials[2];

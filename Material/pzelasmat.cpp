@@ -125,7 +125,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	}
 	
 	TPZFMatrix du(2,2);
-	/**
+	/*
 	 * Plain strain materials values
 	 */
 	REAL nu1 = 1 - fnu;//(1-nu)
@@ -149,9 +149,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 			
 			
 			if (fPlaneStress != 1){
-				/**
-				 * Plain Strain State
-				 */
+				/* Plain Strain State */
 				ek(2*in,2*jn) += weight * (
 										   nu1 * du(0,0)*du(0,1)+ nu2 * du(1,0)*du(1,1)
 										   ) * F;
@@ -169,9 +167,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 											   ) * F;
 			}
 			else{
-				/**
-				 * Plain stress state
-				 */
+				/* Plain stress state */
 				ek(2*in,2*jn) += weight * (
 										   fEover1MinNu2 * du(0,0)*du(0,1)+ fEover21PlusNu * du(1,0)*du(1,1)
 										   );
@@ -267,7 +263,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 }         // 1 Val1 : a leitura �00 01 10 11
 
-/** returns the variable index associated with the name*/
+/** Returns the variable index associated with the name. */
 int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("displacement",name.c_str()))     return 9;
 	if(!strcmp("Pressure",name.c_str()))         return 1;
@@ -287,8 +283,7 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	return TPZMaterial::VariableIndex(name);
 }
 
-/**returns the number of variables associated with the
- variable indexed by var, var is obtained by calling VariableIndex*/
+/** Returns the number of variables associated with the variable indexed by var. */
 int TPZElasticityMaterial::NSolutionVariables(int var){
 	switch(var) {
 		case 0:
@@ -315,8 +310,6 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 	//  return 0;
 }
 
-/** returns the solution associated with the var index based
- on the finite element approximation*/
 void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 	
 	//  ofstream nada("soluco.txt");

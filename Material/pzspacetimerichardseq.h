@@ -21,14 +21,13 @@ class TPZSpaceTimeRichardsEq : public TPZMaterial
 	
 protected:
 	
-	/** Soil parameters
-	 */
+	/** @brief Soil parameters */
 	REAL fAlpha, fN, fThetaS, fThetaR, fKs;
 	
-	/** Compute Se coeficient which allows the computation of K and Theta coefficients */
+	/** @brief Computes Se coeficient which allows the computation of K and Theta coefficients */
 	REAL Se(REAL sol);
 	
-	/** Compute Theta coefficient from Se coefficient */
+	/** @brief Computes Theta coefficient from Se coefficient */
 	REAL Theta(REAL Se);
 	
 	REAL DKDsol(REAL sol);
@@ -47,18 +46,16 @@ public:
 	
     void Set(REAL Alpha, REAL N, REAL ThetaS, REAL ThetaR, REAL Ks);
 	
-	/** It returns the integrable dimension of the material
-	 */
+	/** @brief It returns the integrable dimension of the material */
 	virtual int Dimension();
 	
-	/** It returns the number of state variables associated with the material
-	 */
+	/** @brief It returns the number of state variables associated with the material */
 	virtual int NStateVariables();
 	
 	//   virtual int HasForcingFunction();
 	
 	/**
-	 * It computes a contribution to the stiffness matrix and load vector at one integration point.
+	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
 	 * @param data [in] stores all input data
 	 * @param weight [in] is the weight of the integration rule
 	 * @param ek [out] is the stiffness matrix
@@ -68,7 +65,7 @@ public:
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/**
-	 * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
 	 * @param data [in] stores all input data
 	 * @param weight [in] is the weight of the integration rule
 	 * @param ek [out] is the stiffness matrix
@@ -78,14 +75,10 @@ public:
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
 	
-	/**
-	 * Compute coeficient C(sol) based on current solution sol
-	 */
+	/** @brief Computes coeficient C(sol) based on current solution sol */
 	REAL C_Coef(REAL sol);
 	
-	/**
-	 * Compute coeficient K(sol) based on current solution sol
-	 */  
+	/** @brief Computes coeficient K(sol) based on current solution sol */  
 	REAL K_Coef(REAL sol);
 	
 	void AnalysisOfParameters(REAL sol0, REAL solL, char* filename);

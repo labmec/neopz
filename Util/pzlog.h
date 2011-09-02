@@ -36,35 +36,41 @@ using namespace log4cxx::helpers;
 /**
  * \addtogroup util
  * \{ */
+/// External variable to mutex which controls write log
 extern pthread_mutex_t glogmutex;
 
-/*    pthread_mutex_lock(&fCommunicate);
-    int ret = msg.ReceiveBlocking();
-    pthread_mutex_unlock(&fCommunicate);
-*/
-
+/// Define log for debug
 #define LOGPZ_DEBUG(A,B) {pthread_mutex_lock(&glogmutex); \
                           LOG4CXX_DEBUG(A,B); \
                           pthread_mutex_unlock(&glogmutex); }
+/// Define log for info
 #define LOGPZ_INFO(A,B) {pthread_mutex_lock(&glogmutex); \
                           LOG4CXX_INFO(A,B) \
                           pthread_mutex_unlock(&glogmutex); }
+/// Define log for warnings
 #define LOGPZ_WARN(A,B) {pthread_mutex_lock(&glogmutex); \
                         LOG4CXX_WARN(A,B) \
                           pthread_mutex_unlock(&glogmutex); }
+/// Define log for errors
 #define LOGPZ_ERROR(A,B) {pthread_mutex_lock(&glogmutex); \
                         LOG4CXX_ERROR(A,B) \
                           pthread_mutex_unlock(&glogmutex); }
+/// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) {pthread_mutex_lock(&glogmutex); \
                         LOG4CXX_FATAL(A,B) \
                           pthread_mutex_unlock(&glogmutex); }
 
 #else
 
+/// Define log for debug info
 #define LOGPZ_DEBUG(A,B) {}
+/// Define log for informations
 #define LOGPZ_INFO(A,B) {}
+/// Define log for warnings
 #define LOGPZ_WARN(A,B) {}
+/// Define log for errors (cout)
 #define LOGPZ_ERROR(A,B) {std::cout << B << std::endl;}
+/// Define log for fatal errors (cout)
 #define LOGPZ_FATAL(A,B) {std::cout << B << std::endl;}
 
 
@@ -76,7 +82,8 @@ extern pthread_mutex_t glogmutex;
 
 /** \} */
 
-/** @ingroup util
+/**
+ * @ingroup util
  * @brief Initialize a log file adequated to use log4cxx lib
  */
 inline void InitializePZLOG(const std::string &configfile)
@@ -96,6 +103,10 @@ inline void InitializePZLOG(const std::string &configfile)
 #endif
 }
 
+/**
+ * @brief Initializes log file for log4cxx with commom name log4cxx.cfg
+ * @ingroup util
+ */
 void InitializePZLOG();
 
 #endif

@@ -20,7 +20,7 @@
 static LoggerPtr logger(Logger::getLogger("substruct.dohrassembly"));
 #endif
 
-/// sum the values in the local matrix into the global matrix
+// sum the values in the local matrix into the global matrix
 void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix &local, TPZFMatrix &global)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
@@ -41,7 +41,7 @@ void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix &local, TPZFMatrix &gl
 #endif
 }
 
-/// extract the values from the global matrix into the local matrix
+// extract the values from the global matrix into the local matrix
 void TPZDohrAssembly::Extract(int isub, const TPZFMatrix &global, TPZFMatrix &local)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
@@ -63,7 +63,7 @@ void TPZDohrAssembly::Extract(int isub, const TPZFMatrix &global, TPZFMatrix &lo
 #endif
 }
 
-/// sum the values in the local matrix into the global matrix
+// sum the values in the local matrix into the global matrix
 void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix &local, TPZFMatrix &global)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];
@@ -84,7 +84,7 @@ void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix &local, TPZFMatr
 #endif
 }
 
-/// extract the values from the global matrix into the local matrix
+// extract the values from the global matrix into the local matrix
 void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix &global, TPZFMatrix &local)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];

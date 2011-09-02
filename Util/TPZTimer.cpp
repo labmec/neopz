@@ -11,6 +11,7 @@
 
 #include "TPZTimer.h"
 
+/// Define to print two digits (increment zeros)
 #define DIGITS2( STREAM, TIME )			\
 if( TIME == 0 )					\
 {						\
@@ -26,7 +27,7 @@ STREAM << "0";				\
 STREAM << TIME;				\
 }
 
-/// Starts the timer.
+// Starts the timer.
 void TPZTimer::start()
 {
 	
@@ -35,7 +36,7 @@ void TPZTimer::start()
 	
 }
 
-/// Stops the timer and accumulate.
+// Stops the timer and accumulate.
 void TPZTimer::stop()
 {
 	clock_t value;

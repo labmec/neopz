@@ -66,6 +66,7 @@ protected:
     TPZManVector<int> fOrder;
 };
 
+/// Overloading operator << to print permutation object at ostream out
 inline std::ostream &operator<<(std::ostream &out, TPZPermutation &obj)
 {
 	out << "imprimindo TPZPermutation::fCounter\n";

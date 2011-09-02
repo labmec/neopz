@@ -115,7 +115,7 @@ void TPZQuadraticPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFM
 		PZError << "TPZGeoPyramid.jacobian only implemented for 13, NumberOfNodes = " << NNodes << "\n";
 	}
 	double qsiVal = param[0];
-    double etaVal = param[1];
+//    double etaVal = param[1];
     double zetaVal = param[2];
 	if(fabs(qsiVal) > (1.-zetaVal)) {
 		PZError << "TPZQuadraticPyramid.jacobian. param out of range : "

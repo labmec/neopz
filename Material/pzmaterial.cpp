@@ -165,7 +165,7 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
 	matvec[matid] = newmat;
 }
 
-/** 
+/* 
  * Get the order of the integration rule necessary to integrate an
  * element with polinomial order p
  */
@@ -210,8 +210,8 @@ int TPZMaterial::ClassId() const
 	return TPZMATERIALID;
 }
 
-/**
- Save the element data to a stream
+/*
+ Saves the element data to a stream
  */
 void TPZMaterial::Write(TPZStream &buf, int withclassid)
 {
@@ -237,8 +237,8 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 	buf.Write( &forcingIdx,1 );
 }
 
-/**
- Read the element data from a stream
+/*
+ Reads the element data from a stream
  */
 void TPZMaterial::Read(TPZStream &buf, void *context)
 {

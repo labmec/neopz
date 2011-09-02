@@ -39,7 +39,7 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
                                                   TPZFMatrix &ek,
                                                   TPZFMatrix &ef){
 	
-	/// Mostly for implicit
+	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::Contribute(data,weight,ek,ef);
 		this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
@@ -52,13 +52,13 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
 		return;
 	}
 	
-	/// Mostly for explicit
+	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
 		this->ContributeTangent(data.sol, data.phi, weight, ek);
 		return;
 	}
 	
-	if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
+	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
 		TBASEMAT::Contribute(data,weight,ek,ef);
 		return;
 	}
@@ -74,7 +74,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
                                                     TPZFMatrix &ek,
                                                     TPZFMatrix &ef,
                                                     TPZBndCond &bc){
-	/// Mostly for implicit
+	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
 		return;
@@ -85,13 +85,13 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
 	}
 	
 	
-	/// Mostly for explicit
+	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
 		TPZFNMatrix<1000> fakeef(ek.Rows(),1,0.);
 		TBASEMAT::ContributeBC(data,weight,ek,fakeef,bc);
 		return;
 	}
-	if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
+	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
 		TPZFNMatrix<1000> fakeef(ef.Rows(),ef.Rows(),0.);
 		TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
 		return;
@@ -107,7 +107,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
                                                            TPZFMatrix &ek,
                                                            TPZFMatrix &ef){
 	
-	/// Mostly for implicit
+	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::ContributeInterface(data, weight, ek, ef);
 		return;
@@ -117,11 +117,11 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
 		return;
 	}
 	
-	/// Mostly for explicit
+	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
 		return;
 	}
-	if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
+	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
 		TBASEMAT::ContributeInterface(data, weight, ek, ef);
 		return;
 	}
@@ -137,7 +137,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
                                                              TPZFMatrix &ek,
                                                              TPZFMatrix &ef,
                                                              TPZBndCond &bc){
-	/// Mostly for implicit
+	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::ContributeBCInterface(data, weight,ek, ef, bc);
 		return;
@@ -148,11 +148,11 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
 	}
 	
 	
-	/// Mostly for explicit
+	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
 		return;
 	}
-	if (this->fStep == EFluxOnly){ ///Calcula ef = F-ku
+	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
 		TBASEMAT::ContributeBCInterface(data, weight,  ek, ef, bc);
 		return;
 	}
@@ -165,9 +165,9 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ef){
 	REAL Mult = +1.; 
-	///Last solution is added to residual
+	//Last solution is added to residual
 	if (this->fStep == ECurrent) Mult = -1.; 
-	///Current solution is subtracted from residual
+	//Current solution is subtracted from residual
 	const int phr = phi.Rows();
 	const int nstate = this->NStateVariables();
 	const REAL DeltaT = this->TimeStep();

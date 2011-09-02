@@ -24,22 +24,21 @@ public:
     TPZEuler(int id, REAL deltat) ;
 	
 	/** 
-	 * Set the state of the Euler material
-	 * state = 0 -> L2 projection
-	 * state = 1 -> Euler time stepping
-	 **/
+	 * @brief Set the state of the Euler material
+	 * @param state \f$ state = 0 \f$ -> L2 projection. \f$ state = 1 \f$ -> Euler time stepping
+	 */
 	void SetState(int state) {
 		fState = state;
 	}
 	
 	
-    /**returns the integrable dimension of the material*/
+    /** @brief Returns the integrable dimension of the material */
     virtual int Dimension() ;
 	
-    /** returns the number of state variables associated with the material*/
+    /** @brief Returns the number of state variables associated with the material */
     virtual int NStateVariables()  ;
 	
-    /** return the number of components which form the flux function*/
+    /** @brief Return the number of components which form the flux function */
     virtual int NFluxes() {return 2;}
 	
 	
@@ -51,17 +50,14 @@ public:
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
 	
-    /** print out the data associated with the material*/
+    /** @brief Print out the data associated with the material */
     virtual void Print(std::ostream &out = std::cout);
 	
-    /**returns the variable index associated with the name*/
+    /** @brief Returns the variable index associated with the name */
     virtual int VariableIndex(const std::string &name);
 	
-    /** returns the number of variables associated with the variable indexed by var.
-	 *       var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
 protected:
-	/**returns the solution associated with the var index based on the finite element approximation*/
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
@@ -70,17 +66,15 @@ public:
     }
 	
 	
-    /**compute the value of the flux function to be used by ZZ error estimator*/
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux) {}
 	
-    /**To create another material of the same type*/
+    /** @brief To create another material of the same type */
     virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 	
-    /**Read data of the material from a istream (file data)*/
+    /** @brief Reads data of the material from a istream (file data) */
     virtual void SetData(std::istream &data);
-	
-	
-    /**Compute contribution to the stiffness matrix and right hand side at an integration point*/
+
+    /** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,
 							TPZFMatrix &ek,TPZFMatrix &ef) ;
 	virtual void Contribute(TPZMaterialData &data, REAL weight,
@@ -95,4 +89,5 @@ private:
 	REAL fDeltaT;
 	int fState;
 };
-#endif //TPZEULER_H
+
+#endif

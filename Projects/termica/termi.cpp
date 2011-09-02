@@ -118,21 +118,22 @@ int main()
 }
 
 int main44(){
-  int n = 34, m = 42, p = 25;
-  std::ofstream matrices("matrices.txt");
-  TPZFMatrix A(m,n);
-  double val = 0.;
-  for(int i = 0; i < m; i++) for(int j = 0; j < n; j++){
-    val = rand()/100000000.;
-    A(i,j) = val;
-  }
-  TPZFMatrix x(n,p);
-  for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = random()/100000000.;
-  A.Print("A=", matrices, EMathematicaInput);
-  x.Print("x=", matrices, EMathematicaInput);
-  TPZFMatrix B;
-  A.ConstMultiply(x,B);
-  B.Print("B=", matrices, EMathematicaInput);
+	int n = 34, m = 42, p = 25;
+	std::ofstream matrices("matrices.txt");
+	TPZFMatrix A(m,n);
+	double val = 0.;
+	for(int i = 0; i < m; i++) for(int j = 0; j < n; j++){
+		val = rand()/100000000.;
+		A(i,j) = val;
+	}
+	TPZFMatrix x(n,p);
+	for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = random()/100000000.;
+	A.Print("A=", matrices, EMathematicaInput);
+	x.Print("x=", matrices, EMathematicaInput);
+	TPZFMatrix B;
+	A.ConstMultiply(x,B);
+	B.Print("B=", matrices, EMathematicaInput);
+	return 0;
 }
 
 int main22() {

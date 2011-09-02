@@ -36,7 +36,8 @@ protected:
 	
 public:
 	
-	/** @brief Class constructor 
+	/**
+	 * @brief Class constructor 
 	 * @param id material id
 	 * @param dim problem dimension
 	 * @param nstate number of state variables
@@ -46,7 +47,7 @@ public:
 	TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
 					int IntegrationOrder = -1);
 	
-	/** @brief Class destructor */
+	/** @brief Default destructor */
 	~TPZL2Projection();
 	
 	/** @brief Copy constructor */
@@ -60,17 +61,15 @@ public:
      * element with polinomial order p
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
-	/** See base class
+	/* * See base class
 	 
 	 virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
 	 int elPMaxOrder,
 	 int elDimension);
 	 */
     
-	/** @brief Contribute method */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	/** @brief Contribute method */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
@@ -125,10 +124,6 @@ public:
 	/** @brief It returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);
 	
-	/** @brief It returns the number of variables associated with the variable
-	 *  indexed by var.  \n
-	 * var is obtained by calling VariableIndex
-	 */
 	virtual int NSolutionVariables(int var);
 	
 protected:

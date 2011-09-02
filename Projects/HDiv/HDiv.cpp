@@ -443,7 +443,7 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	const int dim = 2;//AQUI
 	
 	REAL co[nnode][dim] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};
-	int indices[1][nnode]={0,1,2,3};//como serao enumerados os nos
+	int indices[1][nnode]={{0,1,2,3}};//como serao enumerados os nos
 	
 	
 	

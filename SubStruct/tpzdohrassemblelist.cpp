@@ -51,7 +51,7 @@ TPZDohrAssembleList::~TPZDohrAssembleList()
 	 */
 }
 
-/// Add an item to the list in a thread safe way
+// Add an item to the list in a thread safe way
 void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleItem)
 {
 	pthread_mutex_lock(&fListAccessLock);
@@ -66,7 +66,7 @@ void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleIt
 	 */
 	pthread_mutex_unlock(&fListAccessLock);
 }
-/// remove an item from the list
+// remove an item from the list
 TPZAutoPointer<TPZDohrAssembleItem> TPZDohrAssembleList::PopItem()
 {
 	TPZAutoPointer<TPZDohrAssembleItem> result;

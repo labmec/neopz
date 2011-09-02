@@ -39,10 +39,12 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.subcmesh"));
 static LoggerPtr logger2(Logger::getLogger("pz.mesh.tpzcompmesh"));
 #endif
 
+/// Number of elements to test 
 const int numel=1;
-
+/// Angle in radians to test
 static REAL angle = 0.2;
 
+/// Defining function force (external to material) \f$ F(x,y) = (0.5-y)seno(angle) + (x-0.5)[coseno(angle) - 1] \f$ \f$ (F = disp) \f$
 static void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
 	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
 	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);

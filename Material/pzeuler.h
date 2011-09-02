@@ -55,10 +55,7 @@ private:
 	
 	static CALCType gType;
 	
-	/**
-	 * @brief Ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas
-	 */
+	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	static REAL gGamma;
 	
 	/** @brief Convective flux object */
@@ -67,8 +64,7 @@ private:
 	/** @brief Gradient flux object */
 	TPZGradientFlux fGradientFlux;
 	
-	/** @brief Compute Euler Flux
-	 */
+	/** @brief Compute Euler Flux */
 	void ComputeEulerFlux(TPZVec<REAL> &sol, TPZFMatrix & F);
 	
 public:
@@ -81,125 +77,76 @@ public:
 	/** @brief Convert from conservative to primitive variables */
 	static void FromConservativeToPrimitive(TPZVec<REAL> &sol,REAL gamma);
 	
-	/** @brief Class constructor
-	 */
+	/** @brief Constructor with Gamma value */
 	TPZEulerEquation(int nummat, REAL gamma);
 	
-	/** @brief Default destructor
-	 */
+	/** @brief Default destructor */
 	~TPZEulerEquation();
 	
-	/** @brief Default constructor
-	 */
+	/** @brief Default constructor */
 	TPZEulerEquation();
 	
-	/** @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZEulerEquation(const TPZEulerEquation &cp);
 	
-	/** @brief Creates a copy of this
-	 */
+	/** @brief Creates a copy of this */
 	TPZAutoPointer<TPZMaterial> NewMaterial();
 	
-	/**
-	 * @brief Object-based overload
-	 */
+	/** @brief Object-based overload */
 	int NStateVariables();
 	
-	/**
-	 * @brief Object-based overload
-	 */
+	/** @brief Object-based overload */
 	virtual int Dimension();
 	
-	/**
-	 * @brief Returns the pressure value
-	 */
+	/** @brief Returns the pressure value */
 	static REAL Pressure(TPZVec<REAL> &U, double gamma);
 	
-	/** @brief Computes sound speed 
-	 */
+	/** @brief Computes sound speed */
 	REAL cSpeed(TPZVec<REAL> & sol);
 	
-	/**
-	 * @brief Returns u = Sqrt(u2 + v2 + w2);
-	 */
+	/** @brief Returns \f$ u = Sqrt(u2 + v2 + w2) \f$ */
 	REAL uRes(TPZVec<REAL> & sol);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual void Print(std::ostream & out);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual std::string Name(){return "TPZEulerEquation";}
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual int VariableIndex(const std::string &name);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual int NSolutionVariables(int var);
 	
-	/**
-	 * @brief See declaration in base class
-	 */
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
-	
-	
-	/**
-	 * @brief See declaration in base class
+
+	/** 
+	 * @name Contribute methods 
+	 * @brief data contains material data. data.soll and data.solr are expected in primitive variables
 	 */
+	/** @{ */
+	
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
-	
-	/**
-	 * @see See declaration in base class
-	 * @brief Contributes only to the rhs.
-	 */
+
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 	
-	/**
-	 * @see See declaration in base class
-	 * @brief data.soll and data.solr are expected in primitive variables
-	 */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	/**
-	 * @see See declaration in base class
-	 * @brief data.soll and data.solr are expected in primitive variables
-	 */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
-	
-	/**
-	 * @brief See declaration in base class
-	 */
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek, TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	/**
-	 * @see See declaration in base class
-	 * @brief data.soll and data.solr are expected in primitive variables
-	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data,
 									   REAL weight,
 									   TPZFMatrix &ek,TPZFMatrix &ef,
 									   TPZBndCond &bc);
 	
-	/**
-	 * @see See declaration in base class
-	 * @brief data.soll and data.solr are expected in primitive variables
-	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data,
 									   REAL weight,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc);
+	/** @} */
+	
 };
 
 #endif///PZEULER_H

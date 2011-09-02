@@ -36,7 +36,7 @@ void TPZAUSMFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REA
 	const REAL FaceMach = this->FaceMachNumber(LeftNumMach,RightNumMach);
 	const REAL MassFlux = this->MassFlux(NumericalSoundSpeed,solL[0], solR[0], FaceMach);
 	
-	///sol={rho,rhou,rhov,rhow,rhoe}
+	//sol={rho,rhou,rhov,rhow,rhoe}
 	const REAL uL = solL[1]/solL[0];
 	const REAL vL = solL[2]/solL[0];
 	const REAL wL = solL[3]/solL[0];
@@ -70,7 +70,7 @@ REAL TPZAUSMFlux::SoundSpeed(TPZVec<REAL> &sol,REAL press){
 	
 	const REAL temp = this->fGamma * press;
 	
-	if(temp < 1e-10){ /// too low or negative
+	if(temp < 1e-10){ // too low or negative
 		PZError << "TPZEulerEquation::cSpeed Too low or negative numerator\n";
 	}
 	const REAL c = sqrt(this->fGamma * press/ sol[0]);
@@ -86,7 +86,7 @@ REAL TPZAUSMFlux::Pressure(TPZVec<REAL> &sol){
 	
 	REAL press = 0.0;
 	
-	///sol = (rho , rho u , rho v , rho w , rho e)
+	//sol = (rho , rho u , rho v , rho w , rho e)
 	const REAL rho_velocity2 = ( sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3] )/sol[0];
 	press = ((this->fGamma-1.)*( sol[4] - 0.5 * rho_velocity2 ));
 	
@@ -185,5 +185,5 @@ REAL TPZAUSMFlux::MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL 
  F(2,0) = rhoV*u;      F(2,1) = rhoV*v+p;    F(2,2) = rhoV*w;
  F(3,0) = rhoW*u;      F(3,1) = rhoW*v;      F(3,2) = rhoW*w+p;
  F(4,0) = (rhoE+p)*u;  F(4,1) = (rhoE+p)*v;  F(4,2) = (rhoE+p)*w;
- }///void
+ }//void
  */

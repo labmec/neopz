@@ -24,11 +24,11 @@
 /** @brief Information on the resources used by a child process. \ref util "Utility" */
 struct PZResourceUsage
 {
-	int waitstatus;
-	
-	
-	clock_t start, elapsed;   // Wallclock time of process.
-} ;   // Change from the original "RESUSE".
+	int waitstatus;   /**< Waiting status */
+
+	clock_t start;   /**< Wallclock time of process (start) */
+	clock_t elapsed; /**< Wallclock time of process (elapsed) */
+};   // Change from the original "RESUSE".
 
 
 //--| TPZTimer |----------------------------------------------------------------

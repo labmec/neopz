@@ -25,10 +25,13 @@ class TPZMaterialData : public TPZSaveable {
 	
 public:
 	
-	/** Flags indicating whether some attributes shall be computed or not */
+	/** @name Flags indicating whether some attributes shall be computed or not */
+	/** @{ */
 	bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
+	/** @} */
 	
-	/** Attributes to be computed in CalcStiff */
+	/** @name Attributes to be computed in CalcStiff */
+	/** @{ */
 	TPZFNMatrix<220> phi, phil, phir;
 	TPZFNMatrix<660> dphix, dphixl, dphixr;
 	TPZFNMatrix<9> axes, axesleft, axesright;
@@ -46,72 +49,57 @@ public:
 	int numberdualfunctions;
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
 	TPZFNMatrix<100> fNormalVec;
-	
-	
-	
-	
-	
-	
-	
-	/** Index of the current integration point being evaluated **/
+	/** @} */
+
+
+	/** @brief Index of the current integration point being evaluated **/
 	/** Needed for materials with memory **/
-	
 	int intPtIndex;
 	
-	/** Class constructor */
+	/** @brief Default constructor */
 	TPZMaterialData();
 	
-	/** Copy constructor */
+	/** @brief Copy constructor */
 	TPZMaterialData( const TPZMaterialData &cp );
 	
-	/** Class destructor */
+	/** @brief Default destructor */
 	~TPZMaterialData();
 	
-	/** Set all flags at once */
+	/** @brief Set all flags at once */
 	void SetAllRequirements(bool set);
 	
 	void InvertLeftRightData();
 	
 	TPZMaterialData &operator= (const TPZMaterialData &cp );
 	
-	/**
-	 * Print the data
-	 */
+	/** @brief Prints the data */
 	void Print(std::ostream &out) const;
-	/**
-	 * Print the data in a format suitable for Mathematica
-	 */
+	/** @brief Prints the data in a format suitable for Mathematica */
 	void PrintMathematica(std::ostream &out) const;
-	/**
-	 * Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 * Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
-	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * Compares both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false);
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
-	 * compare both objects bitwise for identity. Put an entry in the log file if different
+	 * Compares both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
-	
-	
+
 	virtual int ClassId() const
 	{
 		return TPZMATERIALDATAID;
 	}
 };
-
 
 #endif

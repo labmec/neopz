@@ -152,6 +152,7 @@ TPZGeoEl *CreateGeoElementMapped(TPZGeoMesh &mesh,
 
 using namespace pzgeom;
 
+/// Macro to define templates to TPZGeoElMapped for all the geometric element types
 #define INSERTCLASS(TCL,CLID) \
 template<> \
 int TPZGeoElMapped<TPZGeoElRefPattern< TCL > >::ClassId() const \

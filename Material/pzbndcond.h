@@ -30,7 +30,7 @@ class TPZManVector;
  * @brief This class defines the boundary condition for TPZMaterial objects
  */
 /**
- This class redirects the call to Contribute to calls ContributeBC of the referring material object
+ * This class redirects the call to Contribute to calls ContributeBC of the referring material object
  */
 class TPZBndCond : public TPZDiscontinuousGalerkin {
 	
@@ -49,18 +49,17 @@ protected:
 	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
 	
 	public :
-	
+	/** @brief Copy constructor */
 	TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
 	}
-	
-	
+	/** @brief Default constructor */
 	TPZBndCond() : TPZDiscontinuousGalerkin(0), fBCVal1(),
     fBCVal2(), fValFunction(NULL){
 	}
-	
+	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
 	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
@@ -265,6 +264,5 @@ protected:
 	virtual void FillDataRequirements(TPZMaterialData &data);
 	
 };
-
 
 #endif

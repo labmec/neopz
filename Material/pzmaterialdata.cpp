@@ -125,7 +125,7 @@ void TPZMaterialData::InvertLeftRightData(){
 
 
 
-/**
+/*
  * Save the element data to a stream
  */
 void TPZMaterialData::Write(TPZStream &buf, int withclassid)
@@ -165,7 +165,7 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 	buf.Write(&intPtIndex,1);
 }
 
-/**
+/*
  * Read the element data from a stream
  */
 void TPZMaterialData::Read(TPZStream &buf, void *context)
@@ -206,8 +206,8 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
 	
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
-/**
+//Compare the object for identity with the object pointed to, eventually copy the object
+/*
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
  */
@@ -331,8 +331,8 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override)
 	return true;
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
-/**
+// Compare the object for identity with the object pointed to, eventually copy the object
+/*
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
  */
@@ -343,7 +343,7 @@ bool TPZMaterialData::Compare(TPZSaveable *copy, bool override) const
 
 template class TPZRestoreClass<TPZMaterialData,TPZMATERIALDATAID>;
 
-/**
+/*
  * Print the data
  */
 void TPZMaterialData::Print(std::ostream &out) const
@@ -383,7 +383,7 @@ void TPZMaterialData::Print(std::ostream &out) const
 	out << "intPtIndex " << intPtIndex << std::endl;
 }
 
-/**
+/*
  * Print the data in a format suitable for Mathematica
  */
 void TPZMaterialData::PrintMathematica(std::ostream &out) const

@@ -124,15 +124,11 @@ namespace pzgeom
 	
 };
 
+/// Id for three dimensional arc element
 #define TPZGEOELEMENTARC3DID 350
 template<>
 inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {
 	return TPZGEOELEMENTARC3DID;
 }
-
-
-//         template class pzgeom::TPZNodeRep<3,TPZArc3D>;
-//template class TPZGeoElRefLess<TPZArc3D>;
-
 
 #endif

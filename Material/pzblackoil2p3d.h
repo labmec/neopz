@@ -28,18 +28,14 @@ public:
 	
 protected:
 	
-	/** 
-	 * @brief Interpolacao linear
-	 */
+	/** @brief Interpolacao linear */
 	void Interpolate(std::map<REAL,REAL> &dados, double x, double &y, double &dy);
 	void Interpolate(std::map<REAL,REAL> &dados, BFadREAL x, BFadREAL &y);
 	
-	/** @brief Simulation time step
-	 */
+	/** @brief Simulation time step */
 	double fDeltaT;
 	
-	/** @brief State: one ou one+1
-	 */
+	/** @brief State: one ou one+1 */
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	
 	static EState gState;
@@ -53,7 +49,8 @@ public:
 	static void SetLastState(){ gState = ELastState; }
 	static void SetCurrentState(){ gState = ECurrentState; }
 	
-	/** @brief Class constructor 
+	/** 
+	 * @brief Class constructor 
 	 * @param id material id
 	 * @param dim problem dimension
 	 * @param nstate number of state variables
@@ -103,34 +100,33 @@ public:
 	
 	/**
 	 * @name Solution methods
-	 * @brief Solution indices of post-processing
+	 * @{
 	 */
+	
+	/** @brief Solution indices of post-processing */
 	enum ESolutionVars { ENone = 0, EWaterPressure = 1, EOilPressure, EWaterSaturation, EOilSaturation, EDarcyVelocity };
 	
 	/** @brief It returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);
 	
-	/** @brief It returns the number of variables associated with the variable
-	 *  indexed by var.  
+	/** 
+	 * @brief It returns the number of variables associated with the variable indexed by var.  
 	 * @param var is obtained by calling VariableIndex
 	 */
 	virtual int NSolutionVariables(int var);
 	
-	/** @brief It returns the solution associated with the var index based on
+	/** 
+	 * @brief It returns the solution associated with the var index based on
 	 * the finite element approximation
 	 */
 	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+	/** @} */
 	
-	
-	/** @brief Fill material data parameter with necessary requirements for the
-	 * Contribute method. 
-	 */
+	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	/**
-	 * Here, in base class, all requirements are considered
-	 * as necessary. \n
-	 * Each derived class may optimize performance by selecting
-	 * only the necessary data.
+	 * Here, in base class, all requirements are considered as necessary. \n
+	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
 	virtual void FillDataRequirements(TPZMaterialData &data){
 		data.SetAllRequirements(true);
@@ -138,13 +134,10 @@ public:
 		data.fNeedsNeighborCenter = false;
 	}
 	
-	/** @brief Fill material data parameter with necessary requirements for the
-	 * ContributeInterface method.
-	 */
+	/** @brief Fill material data parameter with necessary requirements for the ContributeInterface method. */
 	/**
-	 * Here, in base class, all requirements are considered
-	 * as necessary. \n Each derived class may optimize performance by selecting
-	 * only the necessary data.
+	 * Here, in base class, all requirements are considered as necessary. \n
+	 * Each derived class may optimize performance by selecting only the necessary data.
 	 */
 	virtual void FillDataRequirementsInterface(TPZMaterialData &data){
 		data.SetAllRequirements(true);

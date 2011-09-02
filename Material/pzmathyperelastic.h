@@ -59,7 +59,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 	
 #ifdef _AUTODIFF
 	
-	/**Compute contribution to the energy at an integration point*/
+	/** @brief Computes contribution to the energy at an integration point*/
 	virtual void ContributeEnergy(TPZVec<REAL> &x,
 								  TPZVec<FADFADREAL> &sol,
 								  TPZVec<FADFADREAL> &dsol,
@@ -68,7 +68,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 	
 	static void ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix &dsol, TFad<9,TFad<9,REAL> > &energy);
 	
-	/** Compute contribution of BC to the Energy*/
+	/** @brief Computes contribution of BC to the Energy*/
 	virtual void ContributeBCEnergy(TPZVec<REAL> & x,
 									TPZVec<FADFADREAL> & sol, FADFADREAL &U,
 									REAL weight, TPZBndCond &bc);
@@ -84,15 +84,14 @@ class TPZMatHyperElastic : public TPZMaterial {
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
 	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
+	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,

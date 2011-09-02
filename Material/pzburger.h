@@ -19,8 +19,7 @@
  * @author Tiago Forti
  */
 /** 
- * It's been developed for a Petrobras report
- * where the water temperature is transported \n
+ * It's been developed for a Petrobras report where the water temperature is transported \n
  * into the reservoir following the Darcy's velocity field. \n
  * I apologise for the class name which is not exact.
  */
@@ -47,6 +46,9 @@ public:
 	void SetReferred(bool Is){ this->fIsReferred = Is; }
 	
 	REAL fSolRef;
+	
+	/** @name Contribute methods */
+	/** @{ */
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
@@ -111,6 +113,8 @@ public:
 	{
     	TPZMatPoisson3dReferred::ContributeBCInterface(data,weight,ef,bc);
 	}
+	
+	/** @} */
 	
 protected:
     bool fIsReferred;

@@ -27,32 +27,31 @@ class TPZPlacaOrthotropic {
 private:
 	
 	TPZGeoEl *fGeoEl;
-	/**elemento computacional da placa*/
+	/** @brief Computational element related with the shell */
 	TPZInterpolatedElement *fIntel;
 	/**Espessura da placa*/
 	REAL fH;// = fZmax - fZmin
 	/**alturas mínimas e máximas da placa horizontal*/
 	REAL fZMin, fZMax;
-	//number of the pos-processed variable
+
 	int fTensorVar;
 	//double dx, dy;
 	
 public:
-	
+	/** @brief Default constructor */
 	TPZPlacaOrthotropic();
-	/**construtor da placa*/
+	/** @brief Constructor */
 	TPZPlacaOrthotropic(TPZGeoEl *gel,REAL zmin, REAL zmax);
-	/*destrutor*/
+	/** @brief Destrutor */
 	~TPZPlacaOrthotropic(){}
-	/**devolve o tensor de tensões da placa
-	 * @param ksi ponto no espaco parametrico
-	 */
+
 	/**
 	 * @brief Returns the tensions tensor of the shell
 	 * @param ksi point in the parametric space
 	 * @param T Tension values [out]
 	 */
 	void Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T);
+
 	/**Dados dois vetores n1 e n2 retorna o momento*/
 	REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
 	/**Dados dois vetores n1 e n2 retorna a forca*/
@@ -91,6 +90,7 @@ public:
 	void Print();
 	
 	TPZInterpolatedElement *ComputEl() {return fIntel;}
-	//usa * no nome ComptEl, porque 
+
 };
+
 #endif

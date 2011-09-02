@@ -8,10 +8,10 @@
 
 #include "pzelctemp.h"
 
-
+/** \addtogroup CompElement */
+/** @{ */
 /**
  @brief Implements a generic computational element to HDiv scope. \ref CompElement "Computational Element"
- @ingroup CompElement
  @author Philippe Devloo
  @since Sep 29, 2009.
  */
@@ -28,20 +28,19 @@ public:
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, const TPZCompElHDivBound2<TSHAPE> &copy);
-	
-	//  TPZCompElHDivBound2();
-	/**
-	 * @brief Constructor used to generate patch mesh... generates a map of connect index from
-	 * global mesh to clone mesh
+
+	/** 
+	 * @brief Constructor used to generate patch mesh...\n 
+	 * Generates a map of connect index from global mesh to clone mesh
 	 */
 	TPZCompElHDivBound2(TPZCompMesh &mesh,
 						const TPZCompElHDivBound2<TSHAPE> &copy,
 						std::map<int,int> & gl2lcConMap,
 						std::map<int,int> & gl2lcElMap);
 	
-	
+	/** @brief Default constructor */
 	TPZCompElHDivBound2();
-	
+	/** @brief Default destructor */
 	virtual ~TPZCompElHDivBound2();
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {
@@ -96,11 +95,11 @@ public:
 	
 	virtual int ConnectOrder(int connect) const;
 	
-	/**transform a point in the parameter space of the side into a point in the space
+	/* *transform a point in the parameter space of the side into a point in the space
      of the master element*/
 	//  virtual void SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point);
 	
-	/**transform a point in the parameter space of the master element into a point in the
+	/* *transform a point in the parameter space of the master element into a point in the
      space of the side*/
 	//  virtual void ElementToSideParameter(int side, TPZVec<REAL> &point, TPZVec<REAL> &par);
 	
@@ -114,53 +113,37 @@ public:
 	 */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex);
 	
-	/** 
-	 * @brief Returns the vector index  of the first index shape associate to element
-	 *
-	 * Special implementation to Hdiv
-	 */
+	/** @brief Returns the vector index  of the first index shape associate to element */
+	/** Special implementation to Hdiv */
 	void FirstShapeIndex(TPZVec<int> &Index);
-	/** return a matrix index of the shape and vector  associate to element*/
+	/* * return a matrix index of the shape and vector  associate to element*/
 	//	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexShapeToVec);
 	
 	/** @brief Compute the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi);
 	
-	/**
-	 * @brief Compute the shape function at the integration point
-	 */
+	/** @brief Compute the shape function at the integration point */
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
-	//void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
-	
-	//virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
-	
-	/** Jorge 09/06/2001
-	 * Returns the transformation which transform a point from the side to the interior of the element
-	 */
-	//TPZTransform TransformSideToElement(int side);
-	
-	/**
-	 * @brief Returns the unique identifier for reading/writing objects to streams
-	 */
+
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Saves the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
+
 };
 
-TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+
+//TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+//TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+//TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+//TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+
+/** @} */
 
 #endif /* PZELCHDIVBOUND_H_ */

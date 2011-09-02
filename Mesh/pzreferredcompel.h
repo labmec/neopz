@@ -101,22 +101,35 @@ protected:
 							 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
 };
 
-/** Adjust the derivatives from one system of axes to the other */
+/** @brief Adjust the derivatives from one system of axes to the other */
 void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
                                TPZFMatrix &dsolto, const TPZFMatrix &axesto);
 
+/** @brief Creates discontinuous referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates point referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates linear referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates quadrilateral referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates triangular referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates cube referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates prismal referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates pyramidal referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates tetrahedral referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
+/** @brief Append u2 vector after u1 vector in u12 vector */
 void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12);
+/** @brief Append u2 matrix following u1 matrix in u12 matrix */
+/** Returns u12 = [u1][u2]. Then: \f$ u12.Rows = max(u1.Rows, u2.Rows) \f$ and \f$ u12.Cols = u1.Cols + u2.Cols \f$ */
 void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
+/** @brief Returns true whether \f$ |Aij - Bij| < tol \f$ for all the entries of the matrices */
 bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol = 1e-10);
 
 #endif

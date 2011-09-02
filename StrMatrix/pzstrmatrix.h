@@ -23,6 +23,12 @@ class TPZFMatrix;
 #include "TPZGuiInterface.h"
 
 /**
+ * @brief Refines geometrical mesh (all the elements) num times 
+ * @ingroup geometry
+ */
+void UniformRefine(int num, TPZGeoMesh &m);
+
+/**
  * @brief It is responsible for a interface among Matrix and Finite Element classes. \ref structural "Structural Matrix"
  * @ingroup structural
  */

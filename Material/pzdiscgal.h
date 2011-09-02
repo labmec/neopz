@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZDiscontinuousGalerkin class which implements the interface for discontinuous Galerkin formulations.
+ * @brief Contains the TPZDiscontinuousGalerkin class which implements the interface for discontinuous Galerkin formulation.
  */
 // $Id: pzdiscgal.h,v 1.20 2009-11-04 14:04:43 fortiago Exp $
 #ifndef TPZDISCGALHPP
@@ -13,15 +13,13 @@
 
 class TPZMaterialData;
 
-
 /**
  * @ingroup material
  * @brief Defines the interface which material objects need to implement for discontinuous Galerkin formulations
  */
 class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
-	
-	public :
+public :
 	/** @brief Simple constructor */
 	TPZDiscontinuousGalerkin();
 	/** @brief Constructor with the index of the material object within the vector */
@@ -139,7 +137,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-
+	
 };
 
 #endif

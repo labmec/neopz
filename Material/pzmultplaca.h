@@ -15,7 +15,7 @@ class TPZMultPlaca :public TPZMatPlaca2 {
 	
 public:
 	
-	/**returns the solution associated with the var index based on the finite element approximation*/
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{

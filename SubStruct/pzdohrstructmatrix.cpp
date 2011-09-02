@@ -47,10 +47,10 @@ static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
 static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"));
 #endif
 
-/// return the number of submeshes
+// return the number of submeshes
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
-/// return a pointer to the isub submesh
+// return a pointer to the isub submesh
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
 // This is a lengthy process which should run on the remote processor
@@ -364,7 +364,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 }
 
-/// identify cornernodes
+// identify cornernodes
 void TPZDohrStructMatrix::IdentifyCornerNodes()
 {
 	fCornerEqs.clear();
@@ -611,7 +611,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 #endif
 }
 
-/// get the global equation numbers of a substructure (and their inverse)
+// get the global equation numbers of a substructure (and their inverse)
 void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv)
 {
 	int ncon = sub->ConnectVec().NElements();
@@ -648,7 +648,7 @@ void TPZDohrStructMatrix::IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,in
 #endif
 }
 
-/// return the number of submeshes
+// return the number of submeshes
 int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 {
 	int nel = compmesh->NElements();
@@ -664,7 +664,7 @@ int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 	return count;
 }
 
-/// return a pointer to the isub submesh
+// return a pointer to the isub submesh
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 {
 	int nel = compmesh->NElements();
@@ -746,7 +746,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 	
 }
 
-/// Identify the corner equations associated with a substructure
+// Identify the corner equations associated with a substructure
 void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 											   TPZVec<int> &coarseindex)
 {
@@ -884,7 +884,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 }
 
 
-// This is a lengthy process which should run on the remote processor
+/// This is a lengthy process which should run on the remote processor assembling all
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
 					  pthread_mutex_t &TestThread)
 {
@@ -1137,7 +1137,7 @@ void *ThreadDohrmanAssemblyList::ThreadWork(void *voidptr)
 	return 0;
 }
 
-/// Identify the external connects
+// Identify the external connects
 void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 {
 	// for each computational element
@@ -1208,7 +1208,7 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 	}
 }
 
-/// Verifies if the subdomains are connected by sides of connectdimension and separate them if not
+// Verifies if the subdomains are connected by sides of connectdimension and separate them if not
 // returns the new number of subdomains
 int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension)
 {
@@ -1311,7 +1311,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 	return nsub;
 }
 
-/// Eliminate subdomains who are embedded in other subdomains
+// Eliminate subdomains who are embedded in other subdomains
 // returns the number of subdomains
 int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension)
 {

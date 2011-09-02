@@ -102,7 +102,7 @@ public:
 	 */
 	void SetCFL(REAL CFL);
 	
-	/**
+	/* *
 	 * Returns the value of delta for the artificial diffusion term
 	 */
 	//  REAL Delta();
@@ -130,9 +130,7 @@ public:
 	/** @brief Residual_RT for calculations and Flux_RT for convergence check. */
 	void SetResidualType(TPZResidualType type);
 	
-	/**
-	 * @brief Number of state variables according to the dimension
-	 */
+	/** @brief Number of state variables according to the dimension */
 	virtual int NStateVariables() = 0;
 	
 	/**
@@ -147,9 +145,7 @@ public:
 	 */
 	virtual void Print(std::ostream & out);
 	
-	/**
-	 * @brief Returns the material name
-	 */
+	/** @brief Returns the material name */
 	virtual std::string Name() = 0;
 	
 	/**
@@ -160,9 +156,7 @@ public:
 	
 	virtual int NSolutionVariables(int var)=0;
 	
-	/**
-	 * @brief Returns the number of fluxes associated to this material
-	 */
+	/** @brief Returns the number of fluxes associated to this material */
 	virtual int NFluxes();
 	
 	
@@ -182,53 +176,38 @@ public:
 	}
 	
 	
-	//------------------contributions
+	/** @name Contribute methods */
+	/** @{ */
 	
-	/**
-	 * @brief Contributes to the residual vector and tangent matrix the
-	 * volume-based quantities.
-	 */
+	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ek,TPZFMatrix &ef)=0;
 	
-	/**
-	 * @brief Contributes to the residual vector and tangent matrix the
-	 * volume-based quantities.
-	 */
+	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
-	/**
-	 * @brief Contributes to the residual vector and tangent matrix the
-	 * face-based quantities.
-	 */
+	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,
 									 REAL weight,
 									 TPZFMatrix &ek,TPZFMatrix &ef)=0;
-	/**
-	 * @brief Contributes to the residual vector and tangent matrix the
-	 * face-based quantities.
-	 */
+	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,
 									 REAL weight,
 									 TPZFMatrix &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
 	}
-	/**
-	 * @brief Contributes to the residual vector the boundary conditions
-	 */
+	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek,TPZFMatrix &ef,
 							  TPZBndCond &bc)=0;
-	/**
-	 * @brief Contributes to the residual vector the boundary conditions
-	 */
+	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ef,
@@ -236,6 +215,8 @@ public:
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
+	
+	/** @} */
 	
 	//--------------------
 	//virtual int IntegrationDegree() = 0;
@@ -264,22 +245,19 @@ protected:
 	
 	/** 
 	 * @brief Ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas
+	 * volume of a polytropic gas 
 	 */
 	REAL fGamma;
 	
-	/**
-	 * @brief Variable indicating the context of the solution.
-	 */
+	/** @brief Variable indicating the context of the solution. */
 	/** If advanced, then the implicit terms are to be
 	 * contributed. If last, then the explicit.
 	 */
 	TPZContributeTime fContributionTime;
 	
-	/**
-	 * @brief Variable to indicate the type of residual to be computed by Assemble.
-	 */
-	/** A Flux Evaluation type is interesting for residual evaluation, and
+	/** @brief Variable to indicate the type of residual to be computed by Assemble. */
+	/** 
+	 * A Flux Evaluation type is interesting for residual evaluation, and
 	 * a complete residual for the global invertion.
 	 */
 	TPZResidualType fResidualType;

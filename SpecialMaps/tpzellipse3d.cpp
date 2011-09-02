@@ -30,7 +30,9 @@ using namespace pzgeom;
 using namespace pztopology;
 using namespace pzshape;
 
+/// Tolerance value (Is zero)
 const double tolerance = 1.E-10;
+/// Pi value in radians
 const double pi = 4.*atan(1.);
 
 void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY)
@@ -91,7 +93,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 		vfinCn(i,0) = nodeCoord(i,1) - fOrigin[i];
 	}
 	
-	//** Basis change from canonic R3 base to R2 ellipse base
+	// Basis change from canonic R3 base to R2 ellipse base
 	//     ICnEllip.vCn = vEllip
 	TPZFNMatrix<2> viniEllip(2,1,0.), vfinEllip(2,1,0.);
 	ICnEllip.Multiply(viniCn,viniEllip);
@@ -419,7 +421,7 @@ TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang)
 
 #include "tpzgeoelmapped.h"
 
-/**
+/*
  * Creates a geometric element according to the type of the father element
  */
 
@@ -431,7 +433,7 @@ TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
-
+/// Id for three dimensional ellipse element
 #define TPZGEOELEMENTELLIPSE3DID 301
 template<>
 int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const

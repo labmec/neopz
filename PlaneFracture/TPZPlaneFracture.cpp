@@ -21,9 +21,12 @@
 
 using namespace pzgeom;
 
+/** @brief Material index to create TPZGeoElRefPattern */
 const int __fractureRefinedEl_Mat = -999;
+/** @brief Material index to create TPZGeoElRefPattern to linear element */
 const int __fractureLine_Mat = 999;
 
+/// Real as tolerance 
 const double __smallNum = 1.E-10;
 
 TPZPlaneFracture::TPZPlaneFracture(TPZGeoMesh * planeMesh, int nodeOrigin, int nodeX, int nodeY, int TrimQTD)

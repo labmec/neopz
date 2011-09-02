@@ -71,6 +71,7 @@ TPZGenSubStruct::~TPZGenSubStruct()
 {
 }
 
+/// Coordinates of the eight nodes
 REAL co[8][3] = {
 	{0.,0.,0.},
 	{1.,0.,0.},
@@ -81,7 +82,7 @@ REAL co[8][3] = {
 	{1.,1.,1.},
 	{0.,1.,1.}
 };
-/// method which will generate the computational mesh
+// method which will generate the computational mesh
 TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 {
 	std::cout << "Generating mesh\n";
@@ -153,7 +154,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	return fCMesh;
 }
 
-/// divide the geometric elements till num levels is achieved
+// divide the geometric elements till num levels is achieved
 void TPZGenSubStruct::UniformRefine()
 {
 	TPZGeoMesh *gmesh = fCMesh->Reference();
@@ -313,7 +314,7 @@ void TPZGenSubStruct::SubStructure()
 #endif
 }
 
-/// identify cornernodes
+// identify cornernodes
 void TPZGenSubStruct::IdentifyCornerNodes()
 {
 #define COMPLETE
@@ -402,7 +403,7 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 	
 }
 
-/// initialize the TPZDohrMatrix structure
+// initialize the TPZDohrMatrix structure
 void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix> dohrmatrix, TPZAutoPointer<TPZDohrAssembly> assembly)
 {
 	//Isolate each subcompmesh and put it in the dohrmann matrix
@@ -500,7 +501,7 @@ void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix> dohrmatrix, TPZAu
 	std::cout << std::endl;
 }
 
-/// initialize the TPZDohrMatrix structure
+// initialize the TPZDohrMatrix structure
 void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix> dohrmatrix, TPZAutoPointer<TPZDohrAssembly> assembly)
 {
 	//Isolate each subcompmesh and put it in the dohrmann matrix
@@ -620,7 +621,7 @@ void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix> dohrmatri
 	std::cout << std::endl;
 }
 
-/// identify the global equations as a pair of local equation and global equation
+// identify the global equations as a pair of local equation and global equation
 void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<int,int> > &globaleq, std::map<int,int> &globinv)
 {
 	int ncon = sub->ConnectVec().NElements();
@@ -663,7 +664,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<std::pair<in
 }
 
 
-/// get the global equation numbers of a substructure (and their inverse)
+// get the global equation numbers of a substructure (and their inverse)
 void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global, std::map<int,int> &globinv)
 {
 	int ncon = sub->ConnectVec().NElements();
@@ -865,7 +866,7 @@ void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &in
 	
 }
 
-/// Identify the corner equations associated with a substructure
+// Identify the corner equations associated with a substructure
 void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 										   TPZVec<int> &coarseindex)
 {
@@ -1071,7 +1072,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	substruct->fMatRed = matred2;
 }
 
-/// return the number of submeshes
+// return the number of submeshes
 int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 {
 	int nel = compmesh->NElements();
@@ -1087,7 +1088,7 @@ int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh)
 	return count;
 }
 
-/// return a pointer to the isub submesh
+// return a pointer to the isub submesh
 TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub)
 {
 	int nel = compmesh->NElements();

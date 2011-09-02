@@ -40,16 +40,18 @@ static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
 
 #endif
 
-//#ifndef PZPAR
+/// Semaphore which controls multiple threads
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+/// Semaphore which controls threads assembling elements
 pthread_mutex_t mutex_element_assemble = PTHREAD_MUTEX_INITIALIZER;
+/// Semaphore which controls thread assembling global matrices
 pthread_mutex_t mutex_global_assemble = PTHREAD_MUTEX_INITIALIZER;
 
+/// Semaphore which controls condensed assembling
 pthread_cond_t condassemble = PTHREAD_COND_INITIALIZER;
+/// Semaphore
 pthread_cond_t stackfull = PTHREAD_COND_INITIALIZER;
-//#endif
 
-void UniformRefine(int num, TPZGeoMesh &m);
 
 template<class front>
 TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZCompMesh *mesh): TPZFrontStructMatrix<front>(mesh)
@@ -424,7 +426,7 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 	fCurrentElement = 0;
 	fCurrentAssembled = 0;
 	
-	/**
+	/*
 	 *Triger 'n' threads passing Assemble as argument
 	 */
 	//pthread_create(&allthreads[fNThreads-1],NULL,this->GlobalAssemble, this);

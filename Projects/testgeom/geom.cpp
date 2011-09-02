@@ -24,13 +24,7 @@ int main() {
     
 #ifdef LOG4CXX
 	InitializePZLOG();
-#endif  
-    
-    /// number of uniform refinements applied to a single cube
-    int nrefloop = 5;
-    /// create a very large mesh
-//    LargeMesh(nrefloop);
-    
+#endif
     
     /// test the prismatic extension of the topology
     TestTopology();

@@ -14,8 +14,6 @@ class TPZFMatrix;
 class TPZMatrix;
 class TPZStructMatrix;
 
-void UniformRefine(int num, TPZGeoMesh &m);
-
 /** 
  * @ingroup structural
  * @brief Assembles on the pair equations. \ref structural "Structural Matrix"

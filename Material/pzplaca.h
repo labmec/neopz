@@ -77,15 +77,11 @@ class TPZPlaca : public TPZMaterial{
 	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 						TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
 	
-	/**returns the variable index associated with the name*/
 	virtual int VariableIndex(const std::string &name);
 	
-	/** returns the number of variables associated with the variable indexed by var.
-	 var is obtained by calling VariableIndex*/
 	virtual int NSolutionVariables(int var);
 	
 protected:
-	/**returns the solution associated with the var index based on the finite element approximation*/
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
@@ -93,7 +89,7 @@ public:
 		Solution(data.sol,data.dsol,data.axes,var,Solout);
 	}
 	
-	/**Exact solution for tests*/
+	/** @brief Exact solution for tests */
 	void SetExactFunction( void (*fp)(TPZFMatrix &axes,TPZVec<REAL> &x,TPZFMatrix &uexact,TPZFMatrix &duexact) )
     {
 		fExactFunction = fp;

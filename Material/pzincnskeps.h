@@ -65,48 +65,48 @@ public:
 	
     virtual int Dimension();
 	
-    /** @brief returns the number of state variables associated with the material*/
+    /** @brief Returns the number of state variables associated with the material*/
     virtual int NStateVariables();
 	
-    /** @brief print out the data associated with the material*/
+    /** @brief Print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
 	
-    /** @brief returns the number of variables associated with the variable
+    /** @brief Returns the number of variables associated with the variable
      *  indexed by var. \n var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
 	
 protected:
-	/** @brief returns the solution associated with the var index based on the finite element approximation */
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
 public:
-	/** @brief returns the solution associated with the var index based on the finite element approximation */
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
 	
-    /** @brief Compute contribution to the tangent matrix and residual at an integration point */
+    /** @brief Computes contribution to the tangent matrix and residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ek,
 							TPZFMatrix &ef);
 	
-    /** @brief Compute contribution to the residual at an integration point */
+    /** @brief Computes contribution to the residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ef);
 	
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand side at the integration point of a boundary */
+	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek,
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand side at the integration point of a boundary */
+	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ef,
@@ -117,7 +117,7 @@ public:
 	
 	
     /** 
-	 * @brief Compute the error due to the difference between the interpolated flux and the flux computed \n
+	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed \n
 	 * based on the derivative of the solution
      */
     virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,

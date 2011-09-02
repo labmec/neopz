@@ -48,14 +48,14 @@ class TPZMat1dLin : public TPZMaterial{
 	
 	int NFluxes() { return NStateVariables(); }
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
+	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix &ek,
 							TPZFMatrix &ef);
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
+	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
@@ -64,7 +64,7 @@ class TPZMat1dLin : public TPZMaterial{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
+	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
@@ -72,7 +72,7 @@ class TPZMat1dLin : public TPZMaterial{
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	/** @brief Compute contribution to the stiffness matrix and right hand
+	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,

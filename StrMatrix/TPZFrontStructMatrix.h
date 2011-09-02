@@ -33,12 +33,8 @@ template<class front>
 class TPZFrontStructMatrix : public TPZStructMatrix {
 	
 protected:
-	/**
-	 * @brief This vector contains an ordered list. 
-	 */
-	/** The elements must be asssembled in that order so the frontal works on its best \n
-	 * performance
-	 */
+	/** @brief This vector contains an ordered list */
+	/** The elements must be asssembled in that order so the frontal works on its best performance */
 	TPZVec<int> fElementOrder;
     int f_quiet;
 	

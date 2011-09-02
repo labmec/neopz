@@ -48,7 +48,7 @@ void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma)
 #endif
 	
 	double keepP = sol[4];
-	///sol = {rho, u, v, w, p}
+	//sol = {rho, u, v, w, p}
 	double rhoE = 0.5*sol[0]*(sol[1]*sol[1]+sol[2]*sol[2]+sol[3]*sol[3])+sol[4]/(gamma-1.);
 	//   sol[0] = sol[0];
 	sol[1] = sol[1]*sol[0];
@@ -98,7 +98,7 @@ TPZAutoPointer<TPZMaterial> TPZEulerEquation::NewMaterial(){
 }
 
 int TPZEulerEquation::NStateVariables() {
-	return 5;///U = (rho, rhou, rhov, rhow, rhoe)
+	return 5; //U = (rho, rhou, rhov, rhow, rhoe)
 }
 
 int TPZEulerEquation::Dimension(){
@@ -186,12 +186,12 @@ void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
 }
 
 void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-	///nothing to be done here
+	//nothing to be done here
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
-	///nothing to be done here
+	//nothing to be done here
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 

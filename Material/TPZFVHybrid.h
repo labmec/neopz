@@ -15,8 +15,8 @@
  */
 class TPZMatHybrid : public TPZMaterial {
 	
-	REAL fNumMat;//material id
-	TPZFMatrix fXf;//fonte
+	REAL fNumMat; /**< material id */
+	TPZFMatrix fXf; /**< source */
 	
 	public :
 	
@@ -74,8 +74,6 @@ public:
 		Solution(data.sol,data.dsol,data.axes,var,Solout);
 	}
 	
-	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,

@@ -27,7 +27,9 @@ class TPZGeoElSide;
 /** \addtogroup refine
  @{
  */
+/// Id for non initialized pattern
 const int nonInitializedId = -50;
+/// Name for non initialized pattern
 const std::string nonInitializedName = "noname";
 
 /**

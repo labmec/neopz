@@ -26,94 +26,73 @@ class TPZTransientMaterial : public TBASEMAT {
 	
 public:
 	
-	/** Class constructor
-	 */
+	/** @brief Class constructor */
 	TPZTransientMaterial(int nummat, int dim, REAL TimeStep);
 	
-	/** Default destructor
-	 */
+	/** @brief Default destructor */
 	~TPZTransientMaterial();
 	
-	/** Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZTransientMaterial(const TPZTransientMaterial &cp);
 	
-	/** Set integral scheme as an explicit Euler */
+	/** @brief Sets integral scheme as an explicit Euler */
 	void SetExplicit();
 	
-	/** Set integral scheme as an implicit Euler */
+	/** √Sets integral scheme as an implicit Euler */
 	void SetImplicit();
 	
-	/** See TPZMaterial class for comments
-	 */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef);
 	
-	/** See TPZMaterial class for comments
-	 */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek,
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	/** See TPZDiscontinuousGalerkin class for comments
-	 */
 	virtual void ContributeInterface(TPZMaterialData &data,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
 	
-	/** See TPZDiscontinuousGalerkin class for comments
-	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data,
                                        REAL weight,
                                        TPZFMatrix &ek,
                                        TPZFMatrix &ef,
                                        TPZBndCond &bc);
 	
-	/**
-	 * Set material to compute only Integral[- un/deltaT * v, Omega]
-	 */
+	/** @brief Set material to compute only Integral[- un/deltaT * v, Omega] */
 	void SetLastState();
 	
-	/**
-	 * Set material to compute Integral[un+1/deltaT * v, Omega] + Bilinear Form = Linear Form 
-	 */
+	/** @brief Set material to compute Integral[un+1/deltaT * v, Omega] + Bilinear Form = Linear Form  */
 	void SetCurrentState();
 	
-	/**
-	 * Set material to compute ek = Integral[phi_i phi_j, Omega]/deltaT
-	 */
+	/** @brief Set material to compute ek = Integral[phi_i phi_j, Omega]/deltaT */
 	void SetMassMatrix();
 	
-	/**
-	 * Set material to compute ef = Linear Form - Bilinear Form(u) = F -ku
-	 */ 
+	/** @brief Set material to compute ef = Linear Form - Bilinear Form(u) = F -ku */ 
 	void SetFluxOnly();
 	
-	/** 
-	 * Define time step DeltaT
-	 */
+	/** @brief Define time step DeltaT */
 	void SetTimeStep(REAL TimeStep);
 	
-	/**
-	 * Returns time step value.
-	 */
+	/** @brief Returns time step value. */
 	REAL TimeStep();
 	
-	/** Indicates if the material requires the solution to compute Contribute
-	 * By default its value is true, but it can be set as false by derived material classes
+	/** @brief Indicates if the material requires the solution to compute Contribute */
+	/** 
+	 * By default its value is true, but it can be set as false by derived material classes \n
 	 * to increase the performance of method TPZCompEl::CalcStiff
 	 */
 	virtual bool NeedsSolutionToContribute(){
 		return true;
 	}
 	
-	/** Indicates if the material requires the global coordinate X to compute Contribute
-	 * By default its value is true, but it can be set as false by derived material classes
+	/** @brief Indicates if the material requires the global coordinate X to compute Contribute */
+	/**
+	 * By default its value is true, but it can be set as false by derived material classes \n
 	 * to increase the performance of method TPZCompEl::CalcStiff
 	 */
 	virtual bool NeedsXCoord(){

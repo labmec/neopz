@@ -82,18 +82,15 @@ public:
 		Solution(data.sol,data.dsol,data.axes,var,Solout);
 	}
 	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
+	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 		        TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
 	
-	/**
-	 * It verifies the consistency of the axles.
-	 * In case that they are not normal or they are not linearly
-	 * independent calculates new axles based on the input data
-	 */
+	/** @brief Verifies the consistency of the axles */
+	/** In case that they are not normal or they are not linearly independent calculates new axles based on the input data */
 	void Normalize(TPZFMatrix &naxes);
 };
 

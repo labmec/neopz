@@ -70,11 +70,6 @@ public:
 	/** @brief Initialize the attributes */
 	TPZTimeTemp();
 	
-	/*
-	 /// Imprime o arquivo de tempos com titulos
-	 void Print(std::ostream &out);	
-	 */
-	
 	/** @brief Append to the file a line with the informations */
 	void PrintLine(std::ostream &out);
 	
@@ -94,6 +89,7 @@ private:
 /**
  * @ingroup util
  */
+/// External variable to TPZTimeTemp (to take time)
 extern TPZTimeTemp tempo;
 
 

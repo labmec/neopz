@@ -15,11 +15,11 @@
 
 /**
  * @ingroup material
- * @brief This class implements a version of TPZMatPoisson3d where the convection term is given at each integration point
- * from a previous calculation.
+ * @brief This class implements a version of TPZMatPoisson3d where the convection term is given \n
+ * at each integration point from a previous calculation.
  */
 /**
- * The convection term fC * fConvDir = - fAlpha * grad(sol) where grad(sol) is the gradient of the previous solution.
+ * The convection term \f$ fC * fConvDir = - fAlpha * grad(sol) \f$ where \f$ grad(sol) \f$ is the gradient of the previous solution.
  */
 class TPZMatPoisson3dReferred : public TPZMatPoisson3d {
 	
@@ -27,14 +27,11 @@ protected:
 	
 	REAL falpha;
 	
-	/** SetConvectionTerm
-	 */
+	/** @brief Sets convection term */
 	void SetConvectionTerm(TPZFMatrix &dsol, TPZFMatrix &axes);
 	
-	/** SeConvectionTerm for ContributeInterface methods
-	 * It expect dsolL and dsolR to be dSol/dX, i.e. the derivatives 
-	 * with respect to the global coordinates.
-	 */
+	/** @brief Sets convection term for ContributeInterface methods */
+	/** It expect dsolL and dsolR to be dSol/dX, i.e. the derivatives with respect to the global coordinates. */
 	void SetConvectionTermInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
 	
 public:

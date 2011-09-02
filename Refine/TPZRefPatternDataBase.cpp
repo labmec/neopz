@@ -112,7 +112,7 @@ int TPZRefPatternDataBase::ImportRefPatterns()
 	std::string DefaulPath;
 	
 	DefaulPath = "NeoPZ/Refine/RefPatterns";
-#define StartPathDefined 1;
+//#define StartPathDefined 1;
 	
 	return ImportRefPatterns(DefaulPath);
 }

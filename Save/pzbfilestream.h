@@ -33,12 +33,12 @@ class TPZBFileStream : public TPZStream
 	FILE *ifd;
 	
 public:
-	/** @brief Simple constructor */
+	/** @brief Default constructor */
 	TPZBFileStream(){
 		ofd=0;
 		ifd=0;
 	}
-	/** @brief Destructor */
+	/** @brief Default destructor */
 	virtual ~TPZBFileStream() {
 		if(ofd) fclose(ofd);
 		if(ifd) fclose(ifd);

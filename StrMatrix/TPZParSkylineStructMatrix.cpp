@@ -26,7 +26,6 @@ using namespace std;
 #include "pzelmat.h"
 #include "TPZFrontStructMatrix.h"
 
-void UniformRefine(int num, TPZGeoMesh &m);
 
 TPZParSkylineStructMatrix::TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp) : TPZSkylineStructMatrix(cp){
 	fNumThreads = cp.fNumThreads;

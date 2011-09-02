@@ -22,7 +22,7 @@ TPZNLMat1d::TPZNLMat1d(int id)
 
 TPZNLMat1d::~TPZNLMat1d()
 {
-	///Nothing to be done here!
+	//Nothing to be done here!
 }
 
 void TPZNLMat1d::Print(std::ostream &out)

@@ -10,6 +10,7 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
+/// To allocate vector by default
 const int DEFAULTVEC_ALLOC = 200;
 /**
  * @ingroup util

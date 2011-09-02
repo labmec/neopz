@@ -422,7 +422,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	}
 }
 
-/** returns the variable index associated with the name*/
+/** Returns the variable index associated with the name */
 int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("Solution",name.c_str()))        return  1;
 	if(!strcmp("Derivate",name.c_str()))        return  2;
@@ -557,14 +557,14 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 
 void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump){
 	jump.Resize(1);
-	if(bc.Type() == 0){ ///DIRICHLET
+	if(bc.Type() == 0){ //DIRICHLET
 		REAL f = bc.Val2()(0,0);
 		jump[0] = leftu[0] - f;
 	}
 	else{
 		jump.Fill(0.);
 	}
-}///method
+}//method
 
 #ifdef _AUTODIFF
 void TPZMatPoisson3d::ContributeEnergy(TPZVec<REAL> &x,
@@ -694,7 +694,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 	int nrowr = phiR.Rows();
 	int il,jl,ir,jr,id;
 	
-	///Convection term
+	//Convection term
 	REAL ConvNormal = 0.;
 	for(id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id] * normal[id];
 	if(ConvNormal > 0.) {
@@ -722,7 +722,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 	}
 	
 	
-	///diffusion term
+	//diffusion term
 	REAL leftK, rightK;
 	leftK  = this->fK;
 	rightK = this->GetRightK();
@@ -807,7 +807,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 	
 	
 	
-	///penalty = <A p^2>/h 
+	//penalty = <A p^2>/h 
 	REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
@@ -847,7 +847,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 		REAL NormalFlux_i = 0.;
 		REAL NormalFlux_j = 0.;
 		
-		/// 1) left i / left j
+		// 1) left i / left j
 		for(il=0; il<nrowl; il++) {
 			NormalFlux_i = 0.;
 			for(id=0; id<fDim; id++) {
@@ -862,7 +862,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 			}
 		}
 		
-		/// 2) right i / right j
+		// 2) right i / right j
 		for(ir=0; ir<nrowr; ir++) {
 			NormalFlux_i = 0.;
 			for(id=0; id<fDim; id++) {
@@ -877,7 +877,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 			}
 		}
 		
-		/// 3) left i / right j
+		// 3) left i / right j
 		for(il=0; il<nrowl; il++) {
 			NormalFlux_i = 0.;
 			for(id=0; id<fDim; id++) {
@@ -892,7 +892,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 			}
 		}
 		
-		/// 4) right i / left j
+		// 4) right i / left j
 		for(ir=0; ir<nrowr; ir++) {
 			NormalFlux_i = 0.;
 			for(id=0; id<fDim; id++) {
@@ -1123,7 +1123,7 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, 
 	
 	REAL result = -this->fK * laplacU + divBetaU - (-fXf);
 	return (result*result);
-}///method
+}//method
 
 int TPZMatPoisson3d::ClassId() const{
 	return TPZMATPOISSON3D;

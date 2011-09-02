@@ -11,7 +11,10 @@
 
 class TPZFMatrix;
 
-/** @ingroup solver */
+/** 
+ * @ingroup solver
+ * @brief Id for sequence solver
+ */
 #define TPZSQUENCESOLVER_ID 29281006
 
 /**
@@ -21,46 +24,39 @@ class TPZFMatrix;
 class TPZSequenceSolver : public TPZMatrixSolver {
 public:
 	/**
-     @brief Constructor with initialization parameter
-     @param refmat Sets reference matrix to NILL
+     * @brief Constructor with initialization parameter
+     * @param refmat Sets reference matrix to NILL
 	 */
 	TPZSequenceSolver(TPZMatrix *refmat = 0);
 	/**
-     @brief Copy constructor
-     @param copy Model object to be copied from
+     * @brief Copy constructor
+     * @param copy Model object to be copied from
 	 */
 	TPZSequenceSolver(const TPZSequenceSolver & copy);
 	
 	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
 	
-	/**
-	 @brief This method will reinitialize the solver object, including the solution procedure
-	 */  
+	/** @brief This method will reinitialize the solver object, including the solution procedure */  
 	void ResetSolver();
 	
 	/**
-	 @brief This method will reset the matrix associated with the solver
-	 
-	 This is useful when the matrix needs to be recomputed in a non linear problem
+	 * @brief This method will reset the matrix associated with the solver
 	 */
+	 /** This is useful when the matrix needs to be recomputed in a non linear problem */
 	virtual void ResetMatrix();
 	
-	/**
-	 * @brief Updates the values of the preconditioner based on the values of the matrix
-	 */
+	/** @brief Updates the values of the preconditioner based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
-	/**
-	 This method gives a preconditioner to share a matrix with the referring solver object
-	 */
+	// /**
+	// This method gives a preconditioner to share a matrix with the referring solver object
+	// */
 	//  virtual void SetMatrix(TPZMatrixSolver *solver);
 	
 	void AppendSolver(TPZMatrixSolver & solve);
 	
 	virtual TPZSolver * Clone() const;
 	
-	/**
-	 * Saveable specific methods
-	 */
+	/** @brief Saveable specific methods */
 	virtual int ClassId() const
 	{
 		return TPZSQUENCESOLVER_ID;

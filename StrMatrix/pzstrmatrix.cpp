@@ -775,3 +775,31 @@ void TPZStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 		str->SetMaterialIds(materialids);
 	}
 }
+
+void UniformRefine(int num, TPZGeoMesh &m){
+	
+	int ref;
+	for(ref=0; ref< num; ref++) {
+        cout << "Refinement " << ref << endl;
+        cout.flush();
+		int nelem = m.ElementVec().NElements();
+		TPZVec<TPZGeoEl*> subel;
+		int iel;
+		cout << "Element ";
+		for(iel=0; iel<nelem; iel++) {
+			if(iel%500==0){
+				cout << iel << " ";
+				cout.flush();
+			}
+			if(iel%5000==0 && iel){
+				cout << endl;
+				cout.flush();
+			}
+			TPZGeoEl *gel = m.ElementVec()[iel];
+			if(!gel) continue;
+			gel->Divide(subel);
+		}
+        cout << endl;
+	}
+}
+

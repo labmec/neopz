@@ -102,7 +102,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 		for(kd = 0; kd < fDim; kd++){
 			ef(in, 0) += -1. * weight * ( +fK * ( dphi(kd,in) * dsol(kd,0) )
 										 -fC * ( ConvDirAx[kd]* dphi(kd,in) * sol[0] )  );
-		}///kd
+		}//kd
 		
 		for( int jn = 0; jn < phr; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
@@ -111,7 +111,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 									   -fC * ( ConvDirAx[kd]* dphi(kd,in) * phi(jn) ) );
 			}
 		}
-	}///in
+	}//in
     
 	if (fStabilizationType == ESUPG){
 		
@@ -122,7 +122,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 			ef(in, 0) += - weight * ( + 0.5*fSD*delx*fC*dphiic*fXf );
 			for(kd = 0; kd < fDim; kd++){
 				ef(in, 0) += -1. * weight * ( +0.5 * fSD * delx * fC * dphiic * dsol(kd,0) * ConvDirAx[kd] );
-			}///kd
+			}//kd
 			
 			for( int jn = 0; jn < phr; jn++ ) {
 				for(kd=0; kd<fDim; kd++) {
@@ -131,23 +131,23 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 										   );
 				}
 			}
-		}///in
+		}//in
 		
-	}///SUPG
+	}//SUPG
     
 	if (fStabilizationType == EGradient){
 		
-		///computing norm of solution gradient
+		//computing norm of solution gradient
 		REAL dsolNorm = 0.;
 		for(int d = 0; d < fDim; d++) dsolNorm += dsol(d,0)*dsol(d,0);
 		dsolNorm = sqrt(dsolNorm);
 		if (dsolNorm < 1e-16) dsolNorm = 1.;
 		
-		///loop over i shape functions
+		//loop over i shape functions
 		int kd;
 		for( int in = 0; in < phr; in++ ){
 			
-			///computing gradV.gradU/Norm(gradU)
+			//computing gradV.gradU/Norm(gradU)
 			REAL dphiic = 0.;
 			for(kd = 0; kd<fDim; kd++) dphiic += dsol(kd,0) * dphi(kd,in) / dsolNorm;
 			
@@ -156,7 +156,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 			double aux = 0.;
 			for(kd = 0; kd < fDim; kd++){
 				aux += dphiic * dsol(kd,0)*(fC*ConvDirAx[kd]);
-			}///kd
+			}//kd
 			ef(in,0) += -1.* ( +0.5 * fSD * delx * aux * weight );
 			
 			for( int jn = 0; jn < phr; jn++ ) {
@@ -165,13 +165,13 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 				double aux = 0.;
 				for(kd=0; kd<fDim; kd++) {
 					aux += (fC*ConvDirAx[kd]) * ( dphiic*dphi(kd,jn) + dsol(kd,0)*DdphiicDalpha );
-				}///kd
+				}//kd
 				ek(in,jn) += +0.5 * fSD * delx * aux * weight;        
-			}///jn
+			}//jn
 			
-		}///in
+		}//in
 		
-	}///EGradiente
+	}//EGradiente
 	
 	if (this->fC == 0.){
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
@@ -238,9 +238,9 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 		for(kd = 0; kd < fDim; kd++){
 			ef(in, 0) += -1. * weight * ( +fK * ( dphi(kd,in) * dsol(kd,0) )
 										 -fC * ( ConvDirAx[kd]* dphi(kd,in) * sol[0] )  );
-		}///kd
+		}//kd
 		
-	}///in
+	}//in
     
 	if (fStabilizationType == ESUPG){
 		
@@ -251,25 +251,25 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 			ef(in, 0) += - weight * ( + 0.5*fSD*delx*fC*dphiic*fXf );
 			for(kd = 0; kd < fDim; kd++){
 				ef(in, 0) += -1. * weight * ( +0.5 * fSD * delx * fC * dphiic * dsol(kd,0) * ConvDirAx[kd] );
-			}///kd
+			}//kd
 			
-		}///in
+		}//in
 		
-	}///SUPG
+	}//SUPG
     
 	if (fStabilizationType == EGradient){
 		
-		///computing norm of solution gradient
+		//computing norm of solution gradient
 		REAL dsolNorm = 0.;
 		for(int d = 0; d < fDim; d++) dsolNorm += dsol(d,0)*dsol(d,0);
 		dsolNorm = sqrt(dsolNorm);
 		if (dsolNorm < 1e-16) dsolNorm = 1.;
 		
-		///loop over i shape functions
+		//loop over i shape functions
 		int kd;
 		for( int in = 0; in < phr; in++ ){
 			
-			///computing gradV.gradU/Norm(gradU)
+			//computing gradV.gradU/Norm(gradU)
 			REAL dphiic = 0.;
 			for(kd = 0; kd<fDim; kd++) dphiic += dsol(kd,0) * dphi(kd,in) / dsolNorm;
 			
@@ -278,14 +278,14 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 			double aux = 0.;
 			for(kd = 0; kd < fDim; kd++){
 				aux += dphiic * dsol(kd,0)*(fC*ConvDirAx[kd]);
-			}///kd
+			}//kd
 			ef(in,0) += -1.* ( +0.5 * fSD * delx * aux * weight );
 			
-		}///in
+		}//in
 		
-	}///EGradiente
+	}//EGradiente
 	
-}///void
+}//void
 
 void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
                                          REAL weight,
@@ -391,7 +391,7 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
 	const int nrowl = phiL.Rows();
 	const int nrowr = phiR.Rows();
 	
-	///Convection term
+	//Convection term
 	REAL ConvNormal = 0.;
 	for(int id=0; id<fDim; id++) ConvNormal += fC * fConvDir[id]*normal[id];
 	if(ConvNormal > 0.) {
@@ -423,7 +423,7 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
 	}
 	
 	
-	///diffusion term
+	//diffusion term
 	REAL leftK, rightK;
 	leftK  = this->fK;
 	rightK = this->GetRightK();

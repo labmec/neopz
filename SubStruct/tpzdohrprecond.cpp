@@ -238,21 +238,6 @@ void TPZDohrPrecond<TSubStruct>::Initialize()
 	fCoarse = new TPZStepSolver(coarse);
 }
 
-/*struct TPZDohrPrecondThreadV1Data {
- 
- 
- /// this is the mutex which controls the assembly
- pthread_mutex_t *fAssemblyLock;
- /// pointer to the dohr matrix
- TPZDohrMatrix<TPZDohrSubstructCondense> *fDohrMatrix;
- /// input matrix
- TPZFMatrix *fInput;
- /// matrix where the coarse solution will be contributed
- TPZFMatrix *fOutput;
- /// Compute the contribution of the coarse matrix
- static void ComputeV1(TPZDohrMatrix<TPZDohrSubstructCondense> &matrix, TPZFMatrix &x, TPZFMatrix &v1);
- };
- */
 template<class TSubStruct>
 void TPZDohrPrecond<TSubStruct>::ComputeV1(const TPZFMatrix &x, TPZFMatrix &v1) const
 {

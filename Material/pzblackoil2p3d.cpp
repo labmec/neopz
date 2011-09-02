@@ -32,7 +32,7 @@ void TPZBlackOil2P3D::Interpolate(std::map<REAL,REAL> &dados, double x, double &
 		w--;
 		y = w->second;
 		
-		///derivada
+		//derivada
 		xL = w->first;
 		yL = w->second;
 		w--;
@@ -45,7 +45,7 @@ void TPZBlackOil2P3D::Interpolate(std::map<REAL,REAL> &dados, double x, double &
 	if (w == dados.begin()){
 		y = w->second;
 		
-		///derivada
+		//derivada
 		x0 = w->first;
 		y0 = w->second;
 		w++;
@@ -100,7 +100,7 @@ void TPZBlackOil2P3D::Interpolate(std::map<REAL,REAL> &dados, BFadREAL x, BFadRE
 	
 }
 
-///Dados
+//Dados
 /**
  * Permeabilidade relativa do oleo
  * Kro = Kro( Sw )
@@ -149,7 +149,7 @@ void TPZBlackOil2P3D::testeKrw(){
 		this->Krw(So,Krw);
 		KrFDP << So.val() << "\t" << Krw.val() << "\t" << Krw.dx(0) << " \n";
 	}
-}///void
+}//void
 
 void TPZBlackOil2P3D::Krw(BFadREAL So, BFadREAL &Krw){
 	static bool testeAG = true;
@@ -282,7 +282,7 @@ void TPZBlackOil2P3D::Porosidade(BFadREAL po, BFadREAL &poros){
 	poros = porosRef*exp(comp*(po-pref));
 }
 
-///Dados constantes
+//Dados constantes
 
 /** Densidade do oleo em condicoes padroes - kg/m3
  */
@@ -325,14 +325,14 @@ void TPZBlackOil2P3D::K(TPZFMatrix &K){
 }
 
 
-///Programa
+//Programa
 
 TPZBlackOil2P3D::TPZBlackOil2P3D(int id, double deltaT):TPZDiscontinuousGalerkin(id){
 	this->fDeltaT = deltaT;
 }
 
 TPZBlackOil2P3D::~TPZBlackOil2P3D(){
-	///nothing to be done
+	//nothing to be done
 }
 
 TPZBlackOil2P3D::TPZBlackOil2P3D(const TPZBlackOil2P3D &cp):TPZDiscontinuousGalerkin(cp){
@@ -345,12 +345,12 @@ TPZAutoPointer<TPZMaterial> TPZBlackOil2P3D::NewMaterial(){
 
 void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
-	///un ou un+1
+	//un ou un+1
 	double stateVal = 0.;
 	if(gState == ELastState) stateVal = -1.;
 	if(gState == ECurrentState) stateVal = +1.;
 	
-	///pressao e saturacao
+	//pressao e saturacao
 	const BFadREAL po(data.sol[0],0);
 	const BFadREAL So(data.sol[1],1);
 	BFadREAL pc;
@@ -358,27 +358,27 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	const BFadREAL pw = po - pc;
 	const BFadREAL Sw = 1.-So;
 	
-	///porosidade
+	//porosidade
 	BFadREAL porosidade;
 	this->Porosidade(po,porosidade);
 	
-	///fator volume formacao
+	//fator volume formacao
 	BFadREAL Bo;
 	this->Bo(po,Bo);
 	const double Bw = this->Bw();
 	
-	///Equacao 1
+	//Equacao 1
 	BFadREAL VolOp1 = (porosidade*So/Bo)/this->fDeltaT;
 	
-	///Equacao 2
+	//Equacao 2
 	BFadREAL VolOp2 = (porosidade*Sw/Bw)/this->fDeltaT;
 	
-	///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
+	//ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
 	ef(0,0) += -1.*weight*stateVal*VolOp1.val();
 	ef(1,0) += -1.*weight*stateVal*VolOp2.val();
 	
-	///ek = -T (R)
-	if(gState == ECurrentState){///Last state has no tangent
+	//ek = -T (R)
+	if(gState == ECurrentState){//Last state has no tangent
 		ek(0,0) += +1.*weight*stateVal*VolOp1.dx(0);
 		ek(0,1) += +1.*weight*stateVal*VolOp1.dx(1);
 		
@@ -386,17 +386,17 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 		ek(1,1) += +1.*weight*stateVal*VolOp2.dx(1);
 	}
 	
-}///method
+}//method
 
 void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
 	cout << "Error: This method shoud not be called. " << __PRETTY_FUNCTION__ << "\n";
-}///method
+}//method
 
 void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
 	if(gState == ELastState) return;
 	
-	///calculando distancia entre centro dos elementos
+	//calculando distancia entre centro dos elementos
 	double dist = 0;
 	for(int i = 0; i < 3; i++){
 		double val = data.XRightElCenter[i] - data.XLeftElCenter[i];
@@ -404,7 +404,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	}
 	dist = sqrt(dist);
 	
-	///pressao e saturacao
+	//pressao e saturacao
 	const BFadREAL poL(data.soll[0],0);
 	const BFadREAL SoL(data.soll[1],1);
 	const BFadREAL poR(data.solr[0],2);
@@ -418,7 +418,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	const BFadREAL SwL = 1.-SoL;
 	const BFadREAL SwR = 1.-SoR;
 	
-	///Permeabilidade
+	//Permeabilidade
 	TPZFNMatrix<9> K(3,3,0.);
 	this->K(K);
 	
@@ -428,19 +428,19 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	
 	const double kgradZn = -K(0,2)*data.normal[0] - K(1,2)*data.normal[1] - K(2,2)*data.normal[2];
 	
-	/// ************* Equacao 1 ******************* /
+	// ************* Equacao 1 ******************* /
 	
-	///Oleo
+	//Oleo
 	BFadREAL BoL,BoR;
 	this->Bo(poL, BoL);
 	this->Bo(poR, BoR);
 	const BFadREAL GammaOleoLeft  = this->g() * this->RhoOleoSC()/BoL;
 	const BFadREAL GammaOleoRight = this->g() * this->RhoOleoSC()/BoR;
 	
-	///velocidade de Darcy
+	//velocidade de Darcy
 	BFadREAL velocOleo = -1.*((knormal*poR-knormal*poL)/dist - (GammaOleoRight*kgradZn+GammaOleoLeft*kgradZn)/2.);
 	
-	///Mobilidades
+	//Mobilidades
 	BFadREAL KroL,KroR;
 	this->Kro(SoL,KroL);
 	this->Kro(SoR,KroR);
@@ -450,7 +450,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	BFadREAL LambdaOleoLeft = KroL/(ViscOleoLeft*BoL);
 	BFadREAL LambdaOleoRight = KroR/(ViscOleoRight*BoR);
 	
-	///Fluxo numerico da primeira equacao do residuo
+	//Fluxo numerico da primeira equacao do residuo
 	BFadREAL Fn1 = 0.;
 	if(velocOleo > 0.){
 		Fn1 = -LambdaOleoLeft*velocOleo;
@@ -459,12 +459,12 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		Fn1 = -LambdaOleoRight*velocOleo;
 	}
 	
-	///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
+	//ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
 	ef(0,0) += -1.*weight*( -Fn1.val() );
 	ef(2,0) += -1.*weight*( +Fn1.val() );
 	
 #ifndef EXPLICITO
-	///ek = -T (R)
+	//ek = -T (R)
 	ek(0,0) += -1.*weight*( +Fn1.dx(0) );
 	ek(0,1) += -1.*weight*( +Fn1.dx(1) );
 	ek(0,2) += -1.*weight*( +Fn1.dx(2) );
@@ -476,16 +476,16 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	ek(2,3) += -1.*weight*( -Fn1.dx(3) );
 #endif
 	
-	/// ************* Equacao 2 ******************* /
+	// ************* Equacao 2 ******************* /
 	
-	///Agua
+	//Agua
 	const double Bw = this->Bw();
 	const double GammaAgua = this->g() * this->RhoAguaSC() / Bw;
 	
-	///velocidade de Darcy
+	//velocidade de Darcy
 	BFadREAL velocAgua = -1.*( (knormal*pwR-knormal*pwL)/dist - (GammaAgua*kgradZn+GammaAgua*kgradZn)/2. );
 	
-	///Mobilidades
+	//Mobilidades
 	BFadREAL KrwL,KrwR;
 	this->Krw(SoL,KrwL);
 	this->Krw(SoR,KrwR);
@@ -493,7 +493,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	BFadREAL LambdaAguaLeft = KrwL/(ViscAgua*Bw);
 	BFadREAL LambdaAguaRight = KrwR/(ViscAgua*Bw);
 	
-	///Fluxo numerico da segunda equacao do residuo
+	//Fluxo numerico da segunda equacao do residuo
 	BFadREAL Fn2 = 0.;
 	if(velocAgua > 0.){
 		Fn2 = -LambdaAguaLeft*velocAgua;
@@ -502,12 +502,12 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		Fn2 = -LambdaAguaRight*velocAgua;
 	}
 	
-	///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
+	//ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
 	ef(1,0) += -1.*weight*( -Fn2.val() );
 	ef(3,0) += -1.*weight*( +Fn2.val() );
 	
 #ifndef EXPLICITO
-	///ek = -T (R)
+	//ek = -T (R)
 	ek(1,0) += -1.*weight*( +Fn2.dx(0) );
 	ek(1,1) += -1.*weight*( +Fn2.dx(1) );
 	ek(1,2) += -1.*weight*( +Fn2.dx(2) );
@@ -519,7 +519,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	ek(3,3) += -1.*weight*( -Fn2.dx(3) ); 
 #endif
 	
-}///method
+}//method
 
 void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	
@@ -527,21 +527,21 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 	
 	if(bc.Type() == 3){
 		//
-		///ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
+		//ef = R = -1.( (f(un+1) - f(un))/dT - Fluxos )
 		//     ef(0,0) += 0.;
-		double vazao = -1. * (- fabs(bc.Val2()(0,0)) ); ///em m3/m2
+		double vazao = -1. * (- fabs(bc.Val2()(0,0)) ); //em m3/m2
 		ef(1,0) += weight * vazao;
-	}///impondo vazao da injecao de agua
+	}//impondo vazao da injecao de agua
 	
-	if(bc.Type() == 2) return;///Parede ou simetria
+	if(bc.Type() == 2) return;//Parede ou simetria
 	
 	if((bc.Type() == 0) || (bc.Type() == 1)){
 		
-		///pressao e saturacao
+		//pressao e saturacao
 		data.solr[0] = bc.Val2()(0,0);
 		data.solr[1] = bc.Val2()(1,0);
 		
-		//     if(bc.Type() == 1){///forcar outflow
+		//     if(bc.Type() == 1){//forcar outflow
 		//       if(data.soll[0] < data.solr[0]){
 		//         data.solr[0] = data.soll[0];
 		//       }
@@ -557,19 +557,19 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 			}
 		}
 		
-	}///Dirichlet na pressao e Dirichlet ou outflow na saturacao
+	}//Dirichlet na pressao e Dirichlet ou outflow na saturacao
 	
 	
 	/*  switch(bc.Type()) {
-	 case 0: /// DIRICHLET na pressao e na saturacao
+	 case 0: // DIRICHLET na pressao e na saturacao
 	 
 	 
 	 break;
-	 case 1: /// DIRICHLET na pressao e OUTFLOW na saturacao
+	 case 1: // DIRICHLET na pressao e OUTFLOW na saturacao
 	 
 	 break;
 	 
-	 case 2: /// PAREDE / SIMETRIA
+	 case 2: // PAREDE / SIMETRIA
 	 
 	 break;
 	 
@@ -578,7 +578,7 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 	 break;
 	 }*/
 	
-}///method
+}//method
 
 
 enum ESolutionVars { ENone = 0, EWaterPressure = 1, EOilPressure, EWaterSaturation, EOilSaturation, EDarcyVelocity };
@@ -611,31 +611,31 @@ void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 		this->PressaoCapilar(So, pc);
 		Solout[0] = (po-pc.val());
 		return;
-	}///pw
+	}//pw
 	
 	if(var == EOilPressure){
 		Solout[0] = po;
 		return;
-	}///po
+	}//po
 	
 	if(var == EWaterSaturation){
 		Solout[0] = 1.-So;
 		return;
-	}///Sw
+	}//Sw
 	
 	if(var == EOilSaturation){
 		Solout[0] = So;
 		return;
-	}///So
+	}//So
 	
 	if(var == EDarcyVelocity){
 		cout << "\nERROR AT " << __PRETTY_FUNCTION__ << " \n";
 		Solout.Fill(0.);
 		return;
-	}///Velocity
+	}//Velocity
 	
 	return TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 	
-}///method
+}//method
 
 #endif

@@ -89,12 +89,6 @@ public:
 	 * It is a 'static void *' to be used by pthread_create
 	 */
 	static void *GlobalAssemble(void *t);
-	/** @ brief It writes decomposed equations to a binary file on disk. It is executed in an independent thread. \n
-	/**
-	 * It is passed as a parameter to the  pthread_create() function. \n
-	 * It is a 'static void *' to be used by pthread_create
-	 * /
-     static void *WriteFile(void *t);*/
 	
 private:
 	/** @brief Number of threads used in the process. */

@@ -111,18 +111,16 @@ protected:
     /**
      * @brief Global equation associated to each front equation.
 	 */
-	/** If we need a position in globalmatrix of a equation "i" in the frontmatrix \n
-	 * then we can use fGlobal[i]. If the global equation "i" is not used \n
-	 * then fGlobal[i]==-1.
+	/**
+	 * If we need a position in globalmatrix of a equation "i" in the frontmatrix \n
+	 * then we can use fGlobal[i]. If the global equation "i" is not used \f$ then fGlobal[i]==-1 \f$
      */
     TPZManVector <int> fGlobal;
 	
+    /** @brief Front equation to each global equation */
     /**
-     * @brief Front equation to each global equation.
-	 */
-    /** If we need a position in frontmatrix of a global equation "i" \n
-	 * then we can use fLocal[i]. If the global equation is not represented in the front \n
-	 * then \f$ fLocal[i]==-1 \f$.
+	 * If we need a position in frontmatrix of a global equation "i" \n
+	 * then we can use fLocal[i]. If the global equation is not represented in the front then \f$ fLocal[i]==-1 \f$.
      */
     TPZVec<int> fLocal;
 	

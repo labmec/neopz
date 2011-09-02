@@ -26,27 +26,21 @@ class TPZConservationLaw  : public TPZMaterial {
 	
 	TPZConservationLaw(int nummat,REAL delta_t,int dim);
 	
-	/**copy constructor*/
+	/** @brief copy constructor*/
 	TPZConservationLaw(TPZConservationLaw &copy);
 	
-	/**To create another material of the same type*/
+	/** @brief To create another material of the same type*/
 	TPZAutoPointer<TPZMaterial> NewMaterial();
 	
 	~TPZConservationLaw(){};
 	
-	/**
-	 * compute the boundary condition left solution
-	 */
+	/** @brief compute the boundary condition left solution */
 	virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
 	
-	/**
-	 * compute the boundary condition right solution
-	 */
+	/** @brief compute the boundary condition right solution */
 	virtual void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
 	
-	/**
-	 * termodinamic pressure determined by the law of an ideal gas
-	 */
+	/** @brief termodinamic pressure determined by the law of an ideal gas */
 	virtual REAL Pressure(TPZVec<REAL> &U);
 	
 	virtual REAL Gamma();
@@ -111,14 +105,11 @@ protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
-	/**returns the solution associated with the var index based on
-	 * the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	/**compute the value of the flux function to be used by ZZ error estimator*/
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,

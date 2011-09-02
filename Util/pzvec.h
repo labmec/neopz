@@ -401,6 +401,7 @@ inline void TPZVec<T>::Print(std::ostream &out)
 	//   out << setw( 14 ) << setprecision( 6 ) << fStore[i];
 }
 
+/// Overloading the operator <<
 inline std::ostream &operator<<(std::ostream &out, std::pair<int,int> &element)
 {
 	out << element.first << "|" << element.second;

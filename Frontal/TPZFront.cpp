@@ -17,6 +17,39 @@
 
 using namespace std;
 
+TPZFront::TPZFront(){
+	fFront=0;
+	fMaxFront=0;
+	fExpandRatio = 200;
+	fFront = 0;
+	fMaxFront=0;
+	fWork = 0;
+	fNextRigidBodyMode = 0;
+}
+
+TPZFront::TPZFront(int GlobalSize)
+{
+	fFront=0;
+	fMaxFront=0;
+	fExpandRatio = 200;
+	fFront = 0;
+	fMaxFront=0;
+	fLocal.Resize(GlobalSize);
+	int i;
+	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
+	fWork = 0;
+	fNextRigidBodyMode = GlobalSize;
+}
+
+TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
+fGlobal(cp.fGlobal), fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
+fData(cp.fData),fExpandRatio(cp.fExpandRatio), fNextRigidBodyMode(cp.fNextRigidBodyMode)
+{
+}
+
+TPZFront::~TPZFront(){
+}
+
 void TPZFront::PrintGlobal(const char *name, std::ostream& out){
 	out << name << endl;
 	/*
@@ -136,41 +169,7 @@ void TPZFront::SymbolicDecomposeEquations(int mineq, int maxeq)
 	int i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
 }
-TPZFront::TPZFront(){
-	fFront=0;
-	fMaxFront=0;
-	fExpandRatio = 200;
-	fFront = 0;
-	fMaxFront=0;
-	fWork = 0;
-	fNextRigidBodyMode = 0;
-}
 
-TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
-fGlobal(cp.fGlobal),
-fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
-fData(cp.fData),fExpandRatio(cp.fExpandRatio), fNextRigidBodyMode(cp.fNextRigidBodyMode)
-{
-}
-
-
-
-TPZFront::TPZFront(int GlobalSize)
-{
-	fFront=0;
-	fMaxFront=0;
-	fExpandRatio = 200;
-	fFront = 0;
-	fMaxFront=0;
-	fLocal.Resize(GlobalSize);
-	int i;
-	for(i=0;i<GlobalSize;i++) fLocal[i]=-1;
-	fWork = 0;
-	fNextRigidBodyMode = GlobalSize;
-}
-
-TPZFront::~TPZFront(){
-}
 
 
 /** Implements tests for TPZFront */

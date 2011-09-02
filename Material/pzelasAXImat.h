@@ -130,11 +130,11 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
-	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
+	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
 	/**
-	 * @brief Compute the error due to the difference between the interpolated flux and the flux computed based \n
+	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed based \n
      * on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
@@ -150,7 +150,7 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Returns the poison coefficient modulus E */
 	REAL Nu() {return fnu;}
 	
-	/** @brief Set PresStress Tensor */
+	/** @brief Sets PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
     
     void SetTemperatureFunction(void (*func)(const TPZVec<REAL> &rz, REAL &temperature))

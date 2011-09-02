@@ -26,6 +26,7 @@ class TPZSaveable;
 /// Identifier as saveable object
 const int TPZSAVEABLEID = -1;
 
+/// Typedef of TPZRestore_t
 typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
@@ -41,7 +42,7 @@ class TPZSaveable {
 	
 #ifndef ELLIPS
 	
-	/** @brief This static function garantees that the gMap object is available when needed */
+	/** @brief This static function garantes that the gMap object is available when needed */
 	static std::map<int,TPZRestore_t> &Map() {
 		static std::map<int,TPZRestore_t> gMap;
 		return gMap;
@@ -55,30 +56,30 @@ public:
 	}
 	
 	
-	/// Define the class id associated with the class.
+	/** @brief Define the class id associated with the class */
 	/**
 	 * This id has to be unique for all classes
 	 * A non unique id is flagged at the startup of the program
 	 */
 	virtual int ClassId() const ;
 	
-	/// write this object to the TPZStream buffer. Include the classid if withclassid = true
+	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/// read objects from the stream
+	/** @brief read objects from the stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
-	 * compare both objects bitwise for identity. Put an entry in the log file if different
-	 * overwrite the calling object if the override flag is true
+	 * Compares both objects bitwise for identity. Put an entry in the log file if different
+	 * overwrite \n the calling object if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false);
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compares the object for identity with the object pointed to, eventually copy the object */
 	/**
-	 * compare both objects bitwise for identity. Put an entry in the log file if different
-	 * generate an interupt if the override flag is true
+	 * Compares both objects bitwise for identity. Put an entry in the log file if different
+	 * generate \n an interrupt if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
@@ -410,6 +411,7 @@ public:
 	
 };
 
+/** @brief Restores object from Map, classid is in buf */
 template<class T>
 TPZSaveable *Restore(TPZStream &buf, void *context) {
 	T *ptr = new T;
@@ -440,7 +442,7 @@ public:
 		TPZSaveable::Register(N,Restore);
 	}
 public:
-	
+	/** @brief Restores object from Map based in classid into the buf */
 	static TPZSaveable *Restore(TPZStream &buf, void *context) {
 		T *ptr = new T;
 		ptr->Read(buf,context);
@@ -459,6 +461,7 @@ inline TPZSaveable *TPZRestoreClass<TPZSaveable,-1>::Restore(TPZStream &buf, voi
 template<class T, int N>
 TPZRestoreClass<T,N> TPZRestoreClass<T,N>::gRestoreObject;
 
+/// To restore object
 template<>
 inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
 	return 0;

@@ -100,28 +100,19 @@ public:
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-	/**
-	 * @brief Create a copy of the material object
-	 */
+	/** @brief Creates a copy of the material object */
 	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 	
 	TPZBndCond *OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc);
 	
-	/**
-	 * @brief returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
-	
+
 };
 
 #endif

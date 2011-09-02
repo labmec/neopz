@@ -101,7 +101,7 @@ public:
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
 	
     /**
-	 * @brief Compute the error due to the difference between the interpolated flux 
+	 * @brief Compute the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
@@ -136,8 +136,7 @@ public:
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,weight,ef,bc);
 	}
-	
-	
+
 };
 
 #endif

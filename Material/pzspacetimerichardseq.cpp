@@ -57,7 +57,7 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 	TPZFMatrix &dphi = data.dphix;
 	const REAL sol = data.sol[0];
 	
-	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; ///beta=(0,1)
+	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
 	
 	TPZFNMatrix<2> dsol(2,1,0.);
 	TPZAxesTools::Axes2XYZ(data.dsol, dsol, data.axes);
@@ -71,11 +71,11 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 		for(j = 0; j < phr; j++){
 			ek(i,j) += weight * ( -1.*phi(j,0)*dphi(1,i)+dphi(1,j)*BetaBarGradV + dphi(0,i)*dphi(0,j) );
 		}
-	}///for i
+	}//for i
 	
 	// ek.Identity();ek*=LCoeff;
 	
-}///Contribute
+}//Contribute
 
 void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
 	
@@ -86,7 +86,7 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 	
 	switch (bc.Type()){
 			
-			/// Dirichlet condition
+			// Dirichlet condition
 		case 0 : {
 			for(in = 0 ; in < phr; in++) {
 				ef(in,0) += weight * ( gBigNumber * phi(in,0) * (v2 - data.sol[0]) );
@@ -97,13 +97,13 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 			break;
 		}
 			
-			/// Neumann condition
+			// Neumann condition
 		case 1:{
-			/// please implement me
+			// please implement me
 		}
 			break;
 			
-			/// outflow condition
+			// outflow condition
 		case 3 : { 
 			
 			const REAL sol = data.sol[0];
@@ -132,15 +132,15 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 		default:{
 			std::cout << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " not implemented\n";
 		}
-	}///switch
+	}//switch
 	
-}///ContributeBC
+}//ContributeBC
 
 REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
 	
 	sol = sol/LCoeff;
 	
-	///filter
+	//filter
 	//   if(sol > -0.3){
 	//     sol = -0.3;
 	//   }
@@ -155,7 +155,7 @@ REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
 	REAL a = this->fAlpha;
 	REAL result = (m*n*pow(pow(a,2.)*pow(sol,2.),n/2.)*pow(1./(1. + pow(pow(a,2.)*pow(sol,2.),n/2.)),1. + m)*(TR - TS))/sol;
 	
-	///filter
+	//filter
 	//   if(sol > -0.3 || sol < -12.) return sol*sol;
 	
 	return result/LCoeff;
@@ -223,7 +223,7 @@ REAL TPZSpaceTimeRichardsEq::K_Coef(REAL sol){
 	//   return -sol * 1e-12;
 	sol = sol / LCoeff;
 	
-	///filter
+	//filter
 	//   if(sol > -0.3){
 	//     sol = -0.3;
 	//   }
@@ -341,7 +341,7 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
  
  return EXIT_SUCCESS;  
  
- }///main
+ }//main
  
  TPZCompMesh * TPZSpaceTimeRichardsEq::CreateMesh(REAL L, REAL Time, int p, int ndiv){
  
@@ -411,7 +411,7 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
  bcT0->SetForcingFunction(DirichletT0);
  val2(0,0) = -0.75*LCoeff;
  TPZAutoPointer<TPZMaterial> bcXL = mat->CreateBC(mat,-2, 0,val1,val2);
- ///no value needed for outflow bc
+ //no value needed for outflow bc
  TPZAutoPointer<TPZMaterial> bcOutFlow = mat->CreateBC(mat,-3, 3,val1,val2);
  val2(0,0) = -10.*LCoeff;
  TPZAutoPointer<TPZMaterial> bcX0 = mat->CreateBC(mat,-4, 0,val1,val2);

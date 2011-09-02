@@ -63,9 +63,8 @@ public:
 	TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
-	//	void Initialize(TPZVec<int> &nodeindices, TPZAutoPointer<TPZRefPattern> refpat);
 	
-	/** @brief Returns 1 if the element has subelements along side*/
+	/** @brief Returns 1 if the element has subelements along side */
 	int HasSubElement()
 	{
 		return fSubEl.NElements() && fSubEl[0]!=-1;
@@ -83,14 +82,12 @@ public:
 	void MidSideNodeIndices(int side,TPZVec<int> &indices);
 	
 	/**
-	 * @brief Returns the number of subelements of the element independent of the
-	 * fact hether the element has already been refined or not
+	 * @brief Returns the number of subelements of the element independent of the fact \n
+	 * whether the element has already been refined or not
 	 */
 	int NSubElements();
 	
-	/**
-	 * @brief Returns the number of subelements as returned by GetSubElements(side)
-	 */
+	/** @brief Returns the number of subelements as returned by GetSubElements(side) */
 	int NSideSubElements2(int side);
 	
 	/** @brief Returns a pointer to the subelement is*/
@@ -123,7 +120,7 @@ public:
 	
 	virtual void ResetSubElements();
 	
-	/** Saveable methods */
+	/** @name Saveable methods */
 	// @{ 
 	virtual int ClassId() const;
 	virtual void Read(TPZStream &str, void *context);
@@ -131,9 +128,6 @@ public:
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
 	//@}
 	
-	/**
-	 * @see class TPZGeoEl
-	 */
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int,int> &gl2lcNdIdx,
 									std::map<int,int> &gl2lcElIdx) const;

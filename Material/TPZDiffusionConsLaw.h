@@ -35,39 +35,23 @@ class TPZDiffusionConsLaw {
 	
 	
 public:
-	/**
-	 * ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas 
-	 */
+	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	static REAL fGamma;
 	
-	/**
-	 * coefficient of size ratio of the element in the diffusion term
-	 */
+	/** @brief Coefficient of size ratio of the element in the diffusion term */
 	static REAL fDelta;
 	
-	/**
-	 * par�metro that it limits the condition of stability of the numerical approach
-	 */
+	/** @brief Parameter that it limits the condition of stability of the numerical approach */
 	static REAL fCFL;
 	
-	/**
-	 * Term that adds stability to the numerical method of approach
-	 * SUPG
-	 * LS
-	 * Bornhaus
-	 */
+	/** @brief Term that adds stability to the numerical method of approach: SUPG, LS, Bornhaus */
 	static std::string fArtificialDiffusion;
 	
 private:
-	/*
-	 * matrix computation derivatives of fluxes: dFx/dx, dFy/dy, dFz/dz
-	 */
+	/** @brief Matrix computation derivatives of fluxes: dFx/dx, dFy/dy, dFz/dz */
 	TPZFMatrix fA,fB,fC;
 	
-	/*
-	 * problem dimension
-	 */
+	/** @brief Problem dimension */
 	int fDimension;
 	
 public:
@@ -94,16 +78,12 @@ public:
 	
 	//void DiffusionTerm(TPZFMatrix &dphi,TPZFMatrix &diff_term);
 	
-	/**
-	 * Jacobiano of the tensor flux of Euler 
-	 */
+	/** @brief Jacobiano of the tensor flux of Euler */
 	static void JacobFlux(TPZVec<REAL> U,TPZFMatrix &A,TPZFMatrix &B,TPZFMatrix &C);
 	
 	void Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg);
 	
-	/**
-	 * operation product point in the diffusion term 
-	 */
+	/** @brief Operation product point in the diffusion term */
 	void PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term);
 	
 	void Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
@@ -114,9 +94,7 @@ public:
 	
 	void Bornhaus(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
 	
-	/**
-	 * Flux of Roe (MOUSE program) 
-	 */
+	/** @brief Flux of Roe (MOUSE program) */
 	static void Roe_Flux(REAL rho_f, REAL rhou_f, REAL rhov_f, REAL rhow_f, REAL rhoE_f, 
 						 REAL rho_t, REAL rhou_t, REAL rhov_t,REAL rhow_t, REAL rhoE_t, 
 						 REAL nx, REAL ny, REAL nz, REAL gam, REAL & flux_rho, REAL & flux_rhou, 

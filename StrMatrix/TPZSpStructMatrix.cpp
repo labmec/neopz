@@ -31,10 +31,6 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 
 using namespace std;
 
-void UniformRefine(int num, TPZGeoMesh &m);
-
-const int eu=0;
-
 TPZStructMatrix * TPZSpStructMatrix::Clone(){
     return new TPZSpStructMatrix(*this);
 }
@@ -224,7 +220,7 @@ int TPZSpStructMatrix::main() {
 	TPZGeoEl *gel;
 	for(el=0; el<1; el++) {
 		
-		// initializar os indices dos n�
+		// initializar os indices dos nos
 		TPZVec<int> indices(4);
 		for(i=0; i<4; i++) indices[i] = i;
 		// O proprio construtor vai inserir o elemento na malha

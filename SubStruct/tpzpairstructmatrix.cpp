@@ -436,7 +436,7 @@ void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPoin
 	
 }
 
-/// Set the set of material ids which will be considered when assembling the system
+// Set the set of material ids which will be considered when assembling the system
 void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 {
 	fMaterialIds = materialids;
