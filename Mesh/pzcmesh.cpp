@@ -2160,3 +2160,79 @@ void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
 	}
 	
 }
+
+void TPZCompMesh::SaddlePermute()
+{
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout<< "Implementando permutacao para problemas de ponto de sela"<< std::endl;
+        LOGPZ_DEBUG(logger, sout.str().c_str());
+    }
+#endif
+    TPZVec<int> permute;
+    int numinternalconnects = NIndependentConnects();
+    permute.Resize(numinternalconnects,0);
+    
+    TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (this);
+    if(submesh)
+    {
+        int nexternal = submesh->NConnects();
+        numinternalconnects -= nexternal;
+    }
+    //	else {
+    //		DebugStop();
+    //	}
+    
+    int jperm=0;
+    int nel=ElementVec().NElements();
+    for (int jel=0; jel<nel; jel++) {
+        
+        for (int ip=0; ip<permute.NElements(); ip++) {
+            permute[ip]=ip;
+        }
+        
+        TPZCompEl *elvec= ElementVec()[jel];
+        //	int idtroca=0;
+        int eqmax=0;
+        if(!elvec)continue;
+        int ncon=elvec->NConnects();
+        //	if(ncon==1) continue;
+        int pressureconectindex = elvec->PressureConnectIndex();
+        if(pressureconectindex == -1) continue;
+        int eqpress=elvec->Connect(pressureconectindex).SequenceNumber();
+        for (int icon=0; icon< ncon-1; icon++) {
+            TPZConnect &coel=elvec->Connect(icon);
+            int eqflux=coel.SequenceNumber();
+            if (eqflux >= numinternalconnects) {
+                continue;
+            }
+            eqmax = max(eqmax,eqflux);
+        }
+        
+        
+        if(eqpress<eqmax) {
+            
+            permute[eqpress]=eqmax;
+            
+        }
+        
+        
+        for ( jperm = eqpress+1; jperm<=eqmax; jperm++) {
+            permute[jperm]=jperm-1;
+            
+        }
+        /*
+         #ifdef LOG4CXX
+         {
+         std::stringstream sout;
+         sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;
+         LOGPZ_DEBUG(logger, sout.str().c_str());
+         }
+         #endif
+         */
+        Permute(permute);
+        
+    }		
+}
