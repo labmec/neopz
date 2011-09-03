@@ -193,6 +193,8 @@ TPZMatRed<TSideMatrix>::F1Red()
 	return (fF1);
 }
 
+//static int counter = 0;
+
 template<class TSideMatrix>
 const TPZFMatrix&
 TPZMatRed<TSideMatrix>::K11Red()
@@ -204,6 +206,15 @@ TPZMatRed<TSideMatrix>::K11Red()
 	
 	if(!fK01IsComputed)
 	{
+/*
+        {
+            std::stringstream sout;
+            sout << "K00_" << counter++ << ".nb";
+            std::ofstream output(sout.str().c_str());
+            fK00->Print("K00= ",output,EMathematicaInput);
+            
+        }
+*/
 		Simetrize();
 		fSolver->Solve(fK01,fK01);
 		fK01IsComputed = 1;
@@ -354,7 +365,7 @@ TPZMatRed<TSideMatrix>::UGlobal2(TPZFMatrix & U1, TPZFMatrix & result)
 	
 	if(fK01IsComputed)
 	{
-		//[u0]=[A00^-1][F0]-[A00^-1][A01]
+		//[u0]=[A00^-1][F0]-[A00^-1][A01][u1]
 		if( !fF0IsComputed ){
 			//compute [F0]=[A00^-1][F0]
 			fSolver->Solve(fF0,fF0);
@@ -389,6 +400,7 @@ TPZMatRed<TSideMatrix>::UGlobal2(TPZFMatrix & U1, TPZFMatrix & result)
 #endif
 	
 	result.Redim( fDim0+fDim1,fF0.Cols() );
+    int nglob = fDim0+fDim1;
 	
 	int c,r,r1;
 	
@@ -400,7 +412,7 @@ TPZMatRed<TSideMatrix>::UGlobal2(TPZFMatrix & U1, TPZFMatrix & result)
 			result(r,c) = u0(r,c) ;
 		}
 		//aqui r=fDim0
-		for( ;r<Rows(); r++)
+		for( ;r<nglob; r++)
 		{
 			result(r,c) = U1(r1++,c);
 		}
