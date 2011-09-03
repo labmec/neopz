@@ -378,6 +378,7 @@ public:
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> /* mat*/)
 	{
 		std::cout << "TPZMatrix::UdateFrom is not implemented\n";
+        DebugStop();
 	}
 	//@{
 	
