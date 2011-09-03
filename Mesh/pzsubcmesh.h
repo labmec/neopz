@@ -90,7 +90,6 @@ private:
 	
 	
 public:
-	TPZAnalysis * GetAnalysis();
 	/**
 	 * @brief Constructor.
 	 * @param mesh reference mesh
