@@ -51,5 +51,6 @@ if(BUILD_PROJECTS)
 	add_subdirectory(HydraulicFracturePropagation)
 
 	add_subdirectory(SteamInjection)
+	add_subdirectory(SubStruct)
 
 endif(BUILD_PROJECTS)
