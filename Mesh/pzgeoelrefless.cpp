@@ -83,6 +83,8 @@ static int main_refless()
 {
 	
 	TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
-	return 0;
+	if(teste)
+		return 0;
+	return 1;
 }
 

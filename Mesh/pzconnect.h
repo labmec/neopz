@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains declaration of TPZConnect class which represents a set of shape functions associated with a computational element.
+ * @brief Contains declaration of TPZConnect class which represents a set of shape functions associated with a computational element
  */
 //$Id: pzconnect.h,v 1.19 2010-08-25 03:05:06 phil Exp $
 //HEADER FILE FOR CLASS NODE
@@ -22,8 +22,8 @@ class TPZStream;
 
 
 /** 
- * @brief Represents a set of shape functions associated with a computational element/side. \ref interpolation "Aproximation space"
- * @ingroup interpolation
+ * @brief Represents a set of shape functions associated with a computational element/side. \ref CompElement "Computational Element"
+ * @ingroup CompElement
  */
 /**
  * This class keeps track of information associated with an element/side such as order of interpolation
@@ -60,8 +60,7 @@ public:
 		void Read(TPZStream &buf);
 		
 		/**
-		 * @brief Copy a depend data structure to a clone depend in
-		 * a clone mesh
+		 * @brief Copy a depend data structure to a clone depend in a clone mesh
 		 * @param orig original depend to be copied
 		 * @param gl2lcIdx global to local indexes map
 		 */
@@ -72,64 +71,58 @@ private:
 	TPZDepend *fDependList;
 	
 public:
-	/** @brief Constructor*/
+	/** @brief Default constructor */
 	TPZConnect();
-	/** @brief Destructor*/
+	/** @brief Default destructor */
 	~TPZConnect();
 	
 	void operator=(const TPZConnect &con);
 	
-	/** @brief Number of degrees of freedom associated with the object
-	 
-	 It needs the mesh object to access this information*/
-	// @note Philippe In order to compute NDof, the Connect object needs to know the mesh
-	int NDof(TPZCompMesh &mesh); /*Cedric 30/09/98 -  14:05*/
-	
-	
-	/** @brief Returns the Sequence number of the connect object.
-     If the sequence number == -1 this means that the node is unused*/
+	/**
+	 * @brief Number of degrees of freedom associated with the object
+	 * @note In order to compute NDof, the Connect object needs to know the mesh
+	 */
+	int NDof(TPZCompMesh &mesh);
+
+	/** @brief Returns the Sequence number of the connect object */
+	/** If the \f$ sequence number == -1 \f$ this means that the node is unused */
 	int SequenceNumber() const;
 	
-	/** @brief Set the sequence number for the global system of equations of the connect
-     object. If the argument i==-1 this means that the node is out of use*/
+	/** @brief Set the sequence number for the global system of equations of the connect object*/
+	/** If the argument \f$i==-1\f$ this means that the node is out of use*/
 	void SetSequenceNumber(int i) {fSequenceNumber = i;}
 	
-	/**
-	 * @brief Set the order of the shapefunction associated with the connect
-	 */
+	/** @brief Set the order of the shapefunction associated with the connect */
 	void SetOrder(int order) {
 		fOrder = order;
 	}
 	
-	/**
-	 * @brief Access function to return the order associated with the connect
-	 */
+	/** @brief Access function to return the order associated with the connect */
 	int Order() const {
 		return fOrder;
 	}
 	
-	/** @brief Print the information for the connect element.
-	 *
+	/** @brief Print the information for the connect element */
+	/**
 	 * The mesh argument allows the object to identify the number of variables
 	 * associated with it and the solution
 	 */
 	void Print(const TPZCompMesh &mesh, std::ostream & out = std::cout);
 	
-	/**
-	 * @brief Also print the center point of the side associated to the connect
-	 */
+	/** @brief Also print the center point of the side associated to the connect */
 	void Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out = std::cout);
 	
-	/** @brief Initialize with zero fNElConnected*/
+	/** @brief Initialize with zero fNElConnected */
 	void ResetElConnected() { fNElConnected = 0; }
-	/** @brief Increment fNElConnected*/
+	/** @brief Increment fNElConnected */
 	void IncrementElConnected() { fNElConnected++; }
-	/** @brief Decrement fNElConnected*/
+	/** @brief Decrement fNElConnected */
 	void DecrementElConnected() { fNElConnected--; }
-	/** @brief Returns fNElConnected*/
+	/** @brief Returns fNElConnected */
 	int NElConnected() const { return fNElConnected; }
 	
-	/** 
+	/**
+	 * @brief Add dependency between connects
 	 * @param myindex [in] index of this connect
 	 * @param dependindex [in] index of the connect this will depend upon
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
@@ -137,18 +130,21 @@ public:
 	 */
 	void AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
 	
+	/**
+	 * @brief Remove dependency between connects if exist
+	 * @param myindex [in] index of this connect
+	 * @param dependindex [in] index of the connect was exist dependency
+	 */
 	void RemoveDepend(int myindex, int dependindex);
 	
-	/// delete all dependency information
+	/** @brief Deletes all dependency information */
 	void RemoveDepend();
-	
-	
+
 	int DependencyDepth(TPZCompMesh &mesh);
-	
+	/** @brief Returns whether exist dependecy information */
 	int HasDependency()const { return fDependList != 0; }
 	
 	int CheckDependency(int nshape, TPZCompMesh *mesh, int nstate);
-	
 	
 	TPZDepend *FirstDepend() { return fDependList; }
 	
@@ -162,19 +158,14 @@ public:
 	
 	void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi);
 	
-	/**
-	 @brief Save the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Read the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	void Read(TPZStream &buf, void *context);
 	
 	/**
-	 * @brief Copy a connect data structure from an original connect to a
-	 * new connect mapping their indexes
+	 * @brief Copy a connect data structure from an original connect to a new connect mapping their indexes
 	 * @param orig original connect to be copied
 	 * @param gl2lcIdx global to local indexes map
 	 */
@@ -217,9 +208,8 @@ public:
 	/**
 	 * @brief This method builds the vector DependenceOrder which indicates in which
 	 * order constrained nodes need to be processed
-	 * 
-	 * connectlist need to be computed by BuildConnectList
 	 */
+	/** connectlist need to be computed by BuildConnectList */
 	static void BuildDependencyOrder(TPZVec<int> &connectlist, TPZVec<int> &DependenceOrder, TPZCompMesh &mesh);
 	
 };
@@ -248,6 +238,7 @@ struct TPZConnectBC {
 	
 };
 
+/** @ingroup CompElement */
 /** @brief Overload operator << to write node connect data */
 inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)
 {

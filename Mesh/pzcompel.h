@@ -507,14 +507,13 @@ private:
 class TPZGeoElSide;
 
 /**
- * @brief Implements computational element and a side. \ref interpolation
+ * @brief Implements computational element and a side. \ref CompElement "Computational Element"
  * @ingroup CompElement
  */
 
 /**
- This class was created to implement all algorithms associated with element/sides
+ This class was created to implement all algorithms associated with element/sides. \n
  Objects of this class are mostly temporary
- @ingroup interpolation
  */
 class TPZCompElSide {
 	

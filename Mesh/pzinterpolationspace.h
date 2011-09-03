@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZInterpolationSpace class which implements the interface for interpolated computational and interface elements.
  */
-//$Id: pzinterpolationspace.h,v 1.17 2011-05-30 20:32:05 denise Exp $
 
 #ifndef PZINTERPOLATIONSPACE_H
 #define PZINTERPOLATIONSPACE_H
@@ -11,18 +10,18 @@
 class TPZMaterialData;
 
 /**
- * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref interpolation "Aproximation space"
+ * @brief Implements the interfaces for TPZCompElDisc, TPZInterfaceElement and TPZInterpolatedElement. \ref CompElement "Computational element"
  * @since April 11, 2007
- * @ingroup interpolation
+ * @ingroup CompElement
  */
 class TPZInterpolationSpace : public TPZCompEl
 {
 public:
 	
-	/** @brief Simple Constructor */
+	/** @brief Default constructor */
 	TPZInterpolationSpace();
 	
-	/** @brief Simple destructor */
+	/** @brief Default destructor */
 	virtual ~TPZInterpolationSpace();
 	
 	/** @brief Puts a copy of the element in the referred mesh */
@@ -40,9 +39,7 @@ public:
 	 * @param gel geometrical element to insert
 	 * @param index new elemen index
 	 */
-	/**
-	 * Inserts the element within the data structure of the mesh
-	 */
+	/** Inserts the element within the data structure of the mesh */
 	TPZInterpolationSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
 	/** @brief It returns the shapes number of the element */
@@ -105,8 +102,7 @@ public:
 	/** @brief Initialize element matrix in which is computed in CalcResidual */
 	void InitializeElementMatrix(TPZElementMatrix &ef);
 	
-	/** @brief Returns minimum and maximum values for each state variable.
-	 */
+	/** @brief Returns minimum and maximum values for each state variable */
 	/** 
 	 * It is not a cheap method because it computes solution for
 	 * all integration points ( with intrule.MaxOrder() )
@@ -119,7 +115,8 @@ public:
 	/** @brief Returns the inner radius value. */
 	virtual REAL InnerRadius();
 	
-	/** @brief Post processing method which computes the solution for the var post processed variable.
+	/**
+	 * @brief Post processing method which computes the solution for the var post processed variable.
 	 * @param qsi coordinate of the point in master element space where the solution will be evaluated
 	 * @param var variable which will be computed
 	 * @param sol (output) solution computed at the given point
@@ -127,9 +124,7 @@ public:
 	 * @see TPZMaterial::NSolutionVariables
 	 * @see TPZMaterial::Solution
 	 */
-	/**
-	 * The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name
-	 */
+	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
 	/**
@@ -138,12 +133,11 @@ public:
 	 */
 	void InterpolateSolution(TPZInterpolationSpace &coarsel);
 	
-	/** @brief Create interfaces between this and its neighbours.
+	/**
+	 * @brief Create interfaces between this and its neighbours.
 	 * @param BetweenContinuous allows to create interface between two elements that are not TPZCompElDisc.
 	 */
-	/**
-	 * If param is false, it is necessary to have at least one TPZCompElDisc.
-	 */
+	/** If param is false, it is necessary to have at least one TPZCompElDisc. */
 	void CreateInterfaces(bool BetweenContinuous = false);
 	
 	/** @brief Create an interface between this and the neighbour by side side.
