@@ -218,13 +218,13 @@ void TEulerDiffusivity::InverseJacob(TPZFMatrix &jac) {
 void TEulerDiffusivity::InvJacob2d(TPZFMatrix &axes,TPZFMatrix &jacinv) {
 	
 	REAL tmp[2][2];
-	// dksi/dx
+	// d(ksi) / dx
 	tmp[0][0] = jacinv(0,0)*axes(0,0)+jacinv(0,1)*axes(1,0);
-	//d ksi/d y
+	// d(ksi) / dy
 	tmp[0][1] = jacinv(0,0)*axes(0,1)+jacinv(0,1)*axes(1,1);
-	//d eta / d x
+	// d(eta) / dx
 	tmp[1][0] = jacinv(1,0)*axes(0,0)+jacinv(1,1)*axes(1,0);
-	// d eta / d y
+	// d(eta) / dy
 	tmp[1][1] = jacinv(1,0)*axes(0,1)+jacinv(1,1)*axes(1,1);
 	
 	jacinv(0,0) = tmp[0][0];

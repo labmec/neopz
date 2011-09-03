@@ -20,12 +20,35 @@ class TPZCompMesh;
 
 /**
  * @ingroup material
- * @brief This material implements the weak statement of the compressible euler equations \n
- * for Olivier Roussel's project.
+ * @brief This material implements the weak statement of the three-dimensional compressible euler equations
  */
 /**
- * It is for transient analysis, finite volume method and
- * explicit time integrator only.
+ * It is for transient analysis, finite volume method and explicit time integrator only.
+ * @note For Olivier Roussel's project.
+ *
+ * \par Conservation Law:
+ * \f$ U_t(t, X) + \nabla \cdot F(U(t, X)) = 0 \f$
+ *
+ * \par Variables:
+ * \f$ U = (\rho, \rho * \upsilon_x, \rho * \upsilon_y, \rho * \upsilon_z, E) \f$ \n
+ * \f$ \rho = \f$ density \n
+ * \f$ (\upsilon_x, \upsilon_y, \upsilon_z) = \f$ velocity \n
+ * \f$ \| \mbox{velocity} \| = \| v \| = \sqrt(\upsilon_x^2 + \upsilon_y^2 + \upsilon_z^2 ) \f$ \n
+ * \f$ E = \f$ energy \n
+ * \f$ p = \f$ pressure \n
+ * \f$ c_p = \f$ specific heat at constant pressure of the gas \n
+ * \f$ c_V = \f$ specific heat at constant volume of the gas.
+ *
+ * \par Fluxes:
+ * \f$ F_x(U) = (\rho * \upsilon_x, \rho * \upsilon_x^2 + p, \rho * \upsilon_x * \upsilon_y, \rho * \upsilon_x * \upsilon_z, \upsilon_x (E + p)) \f$ \n
+ * \f$ F_y(U) = (\rho * \upsilon_y, \rho * \upsilon_x * \upsilon_y, \rho * \upsilon_y^2 + p, \rho * \upsilon_y * \upsilon_z, \upsilon_y (E + p)) \f$ \n
+ * \f$ F_z(U) = (\rho * \upsilon_z, \rho * \upsilon_x * \upsilon_z, \rho * \upsilon_y * \upsilon_z, \rho * \upsilon_z^2 + p, \upsilon_z (E + p)) \f$
+ *
+ * \par Equation of state:
+ * \f$ p = (\gamma - 1) \star (E - \frac{1}{2} \rho \| v \| ) \f$ \n
+ * \f$ \gamma = \frac{c_p}{c_V} \f$ \n
+ *
+ * For tests we used \f$ \gamma = 1.4 \f$ .
  */
 class TPZEulerEquation : public TPZDiscontinuousGalerkin{
 	
@@ -55,7 +78,7 @@ private:
 	
 	static CALCType gType;
 	
-	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
+	/** @brief Ratio between specific heat at constant pressure and the specific heat at constant volume of a polytropic gas */
 	static REAL gGamma;
 	
 	/** @brief Convective flux object */
