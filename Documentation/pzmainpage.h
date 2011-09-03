@@ -1,20 +1,21 @@
 /**
 \mainpage The PZ environment
 
-\author Philippe R B Devloo
-\author Misael M Santana
-\author Jorge Lizardo Diaz Calle
-\author Edimar Cesar Rylo
-\author Gustavo Camargo Longhin
-\author Cedric Augusto Marcelo Ayalo Bravo
-\author Erick Raggio Slis dos Santos
-\author Tiago Luis Duarte Forti
-\author Cesar Lucci
-\author Denise A Siqueira
-\author Agnaldo Monteiro Farias
-\author Joao Luis Gonzalez
-\author Diogo Cecilio
-\author Nathan Shauer
+\author Philippe Remy Bernard Devloo <a href="http://lattes.cnpq.br/6051486998967925">Lattes</a>
+\author Jorge Lizardo Diaz Calle <a href="http://lattes.cnpq.br/2049910703027682">Lattes</a>
+\author Edimar Cesar Rylo <a href="http://lattes.cnpq.br/7462096912445959">Lattes</a>
+\author Gustavo Camargo Longhin <a href="http://lattes.cnpq.br/9121612523149859">Lattes</a>
+\author Erick Raggio Slis dos Santos <a href="http://lattes.cnpq.br/6586851137916033">Lattes</a>
+\author Tiago Luis Duarte Forti <a href="http://lattes.cnpq.br/9586074227742751">Lattes</a>
+\author Paulo Cesar de Alvarenga Lucci <a href="http://lattes.cnpq.br/5381087404504911">Lattes</a>
+\author Denise de Siqueira <a href="http://lattes.cnpq.br/8437756334087793">Lattes</a>
+\author Agnaldo Monteiro Farias <a href="http://lattes.cnpq.br/2401725550781559">Lattes</a>
+\author Joao Luis Gonçalves <a href="http://lattes.cnpq.br/2719190119956611">Lattes</a>
+\author Diogo Lira Cecilio <a href="http://lattes.cnpq.br/2594284000782489">Lattes</a>
+\author Nathan Shauer <a href="http://lattes.cnpq.br/5762871737832497">Lattes</a>
+\author Cedric Marcelo Augusto Ayala Bravo <a href="http://lattes.cnpq.br/3642648349492905">Lattes</a>
+\author Renato Gomes Damas <a href="http://lattes.cnpq.br/9705909592533525">Lattes</a>
+\author Misael Luis Santana Mandujano
 \author Others
 
 The PZ environment is a object oriented environment for the development finite element simulations.
@@ -72,35 +73,44 @@ In this section we describe which finite element concepts were modified or exten
 environment and how these concepts translated in an object oriented framework
 
 \subsection sec_neighbour Neigbouring Information
-Within the geometric mesh, all geometric elements keep track of their neighbours along all the sides (see \ref sec_topological) of the element
+Within the geometric mesh, all geometric elements keep track of their neighbours along all the sides 
+(see \ref sec_topological) of the element
 \subsection sec_jacobian Jacobian Matrix
 \subsection sec_topological Topological Concepts associated with an Element
-Within PZ a geometric element is considered as the union of open sets of points. These sets of points are named sides. As such:
+Within PZ a geometric element is considered as the union of open sets of points. 
+These sets of points are named sides. As such:
 - linear element (pzgeom::TPZGeoLinear) has 3 sides (2 points and one line)
 - quadralaterial element (pzgeom::TPZGeoQuad) has 9 sides (4 points 4 lines and one area)
 - triangular element (pzgeom::TPZGeoTriangle) has 7 sides (3 points 3 lines and one area)
 - hexahedral element (pzgeom::TPZGeoCube) has 27 sides (8 points 12 lines 6 quadrilaterials and one volume)
 - prism element (pzgeom::TPZGeoPrism) has 21 sides (6 points 9 lines 2 triangles 3 quadrilaterials and one volume)
-- pyramid element (pzgeom::TPZGeoPyramid) has 5+8+5+1 sides
-- tetrahedral element (pzgeom::TPZGeoTetrahedra) has 4+6+4+1 sides
+- pyramid element (pzgeom::TPZGeoPyramid) has 19 sides (5 points 8 lines 5 triangles and one volume)
+- tetrahedral element (pzgeom::TPZGeoTetrahedra) has 15 sides (4 points 6 lines 4 triangles and one volume)
 - point element (pzgeom::TPZGeoPoint) has one side: the point itself
 
 All geometries are grouped in the namespace \ref pzgeom. The topology themselves are defined in the namespace \ref pztopology.
 
-Each topology is associated with an area within the dimension associated with the topology. For example the one dimensional line element
-is associated with the line segment \f$]-1,1[\subset R\f$. A quadrilateral element is associated with the area \f$]-1,1[x]-1,1[\subset R^2\f$. The area associated
-with a topology is named parameter space. In finite element textbooks the parameter space is associated with the space of the master element.
-Theoretically each finite element code can define its own parameter space. In the PZ environment the parameter space is defined and/or can be modified by specifying other topologies.
+Each topology is associated with an area within the dimension associated with the topology. 
+For example the one dimensional line element is associated with the line segment \f$]-1,1[\subset R\f$. 
+A quadrilateral element is associated with the area \f$]-1,1[\times]-1,1[\subset R^2\f$.
+The area associated with a topology is named parameter space. 
+In finite element textbooks the parameter space is associated with the space of the master element.
+Theoretically each finite element code can define its own parameter space. 
+In the PZ environment the parameter space is defined and/or can be modified by specifying other topologies.
 
-Each sides of an element associated with a topology (point, line, quadrilateral, etc). The closure of a side (remember that a side is an open set of points) includes
-its neighbouring topologies. For instance the closure of the line includes two point topologies, the closure of a quadrilateral topology includes the four lines and four points.
+Each sides of an element associated with a topology (point, line, quadrilateral, etc). 
+The closure of a side (remember that a side is an open set of points) includes its neighbouring topologies. 
+For instance the closure of the line includes two point topologies, the closure of a quadrilateral topology 
+includes the four lines and four points.
 
-The topology associated with a side of a topology is returned in the method Type(int side). This method exists in all classes of the \ref pztopology namespace
+The topology associated with a side of a topology is returned in the method Type(int side). 
+This method exists in all classes of the \ref pztopology namespace
 
 The sides included in the closure of a given side are returned in the method LowerDimensionSides. 
 
-As each side has its own parameter space, an affine parameter transformation can be defined between the lower dimension sides and the side itself. This affine transformation is
-returned in the SideToSideTransform method
+As each side has its own parameter space, an affine parameter transformation can be defined between 
+the lower dimension sides and the side itself. 
+This affine transformation is returned in the SideToSideTransform method
 
 \subsection sec_template_elements Elements based on templates
 \subsection sec_matrix Matrix concept as a Linear Transformation
@@ -108,18 +118,15 @@ returned in the SideToSideTransform method
 \subsection sec_restraints Shape function restraints
 \subsection sec_connect Grouping Multiplier Coefficients in an object
 
-
 \page page_structure Structure of the Environment
-
-
 
 \page adv_technologies Advance Finite element Technologies
 
 \section sec_advanced Advanced Finite Element Technologies
 As advanced finite element technologies we denominate finite element techniques which are 
-generally not available in textbook finite element codes. PZ is able to generate adaptive meshes,
-interpolation between meshes, nonlinear geometric maps, multigrid iterations, continuous and
-discontinuous approximation spaces, among others.
+generally not available in textbook finite element codes. 
+PZ is able to generate adaptive meshes, interpolation between meshes, nonlinear geometric maps,
+multigrid iterations, continuous and discontinuous approximation spaces, among others.
 
 \subsection sec_nonlinear Nonlinear Geometric Maps
 \subsection sec_uniformh Geometric Element Uniform Refinement
@@ -128,4 +135,32 @@ discontinuous approximation spaces, among others.
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
 
+\page projects Projects with PZ
+ 
+\section steam_injection Steam Injection in Reservoir
+ 
+\section cons_law Conservation Laws
+ 
+\section highperform High performance
+ 
+\section adaptive hp-Adaptivity
+ 
+\page teoria Theorical fundaments implemented in PZ
+ 
+\section topology Topology
+\section integral Numerical integration
+ 
+\section shapes Shape functions
+ 
+\section analysis Analysis: Solving process
+ 
+\page tutorial Tutorial examples
+\section use_matrix Using matrices classes
+See <a href="group__matrix.html">Matrix</a> module
+ 
+\section use_integral Using numerical integration classes
+See <a href="group__integral.html">Numerical integration</a> module
+\section use_util Using util classes: vector, chunk vector ...
+\section use_material Creating material from differential equation
+\section use_analysis Solving differential equation
 */
