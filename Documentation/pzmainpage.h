@@ -160,7 +160,10 @@ See <a href="group__matrix.html">Matrix</a> module
  
 \section use_integral Using numerical integration classes
 See <a href="group__integral.html">Numerical integration</a> module
+ 
 \section use_util Using util classes: vector, chunk vector ...
+See <a href="group__util.html">Utility</a> module
+
 \section use_material Creating material from differential equation
 \section use_analysis Solving differential equation
 */
