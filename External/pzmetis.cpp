@@ -149,6 +149,8 @@ void TPZMetis::Subdivide(int nParts,
 	int nEdgesCutted = 0;
 	METIS_PartGraphRecursive(&nVertices, &AdjacencyIndex[0], &Adjacency[0], NULL, &AdjacencyWeight[0], &flag1,
 														&flag2, &nParts, Options, &nEdgesCutted, &Domains[0]);
+#else
+    DebugStop();
 #endif
 
 #ifdef USING_METIS2
