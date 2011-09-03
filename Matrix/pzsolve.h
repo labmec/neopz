@@ -154,6 +154,7 @@ private:
 	
 	/** @brief Container classes */
 	TPZAutoPointer<TPZMatrix> fContainer;
+protected:
 	/** @brief Reference matrix used to update the current matrix */
 	TPZAutoPointer<TPZMatrix> fReferenceMatrix;
 	//	TPZSolver *fPrecond;
