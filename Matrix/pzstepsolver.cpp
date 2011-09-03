@@ -51,6 +51,13 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 	}
 	
 	TPZAutoPointer<TPZMatrix> mat = Matrix();
+    // update the matrix to which the preconditioner refers
+    if(fPrecond && fReferenceMatrix)
+    {
+        
+        fPrecond->UpdateFrom(fReferenceMatrix);
+    }
+    
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
 		result.Redim(mat->Rows(),F.Cols());
 	}
