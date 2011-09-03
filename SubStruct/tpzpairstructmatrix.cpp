@@ -466,7 +466,7 @@ void TPZPairStructMatrix::SetMaterialIds(const std::set<int> &materialids)
 		if(!cel) continue;
 		TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (cel);
 		if(!subcmesh) continue;
-		TPZAnalysis *anal = subcmesh->GetAnalysis();
+		TPZAutoPointer<TPZAnalysis> anal = subcmesh->Analysis();
 		if(!anal)
 		{
 			LOGPZ_ERROR(logger,"SetMaterialIds called for substructure without analysis object")
