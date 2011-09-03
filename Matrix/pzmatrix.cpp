@@ -687,7 +687,12 @@ void TPZMatrix::SolveCG(int &numiterations, TPZSolver &preconditioner,
 void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
 						   TPZFMatrix &H, int &numvectors,
 						   const TPZFMatrix &F, TPZFMatrix &result,
-						   TPZFMatrix *residual, REAL &tol,const int FromCurrent)  {
+						   TPZFMatrix *residual, REAL &tol,const int FromCurrent)  
+{
+    if(F.Cols() > 1)
+    {
+        DebugStop();
+    }
 	GMRES(*this,result,F,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
 }
 
