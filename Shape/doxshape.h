@@ -3,7 +3,8 @@
  * @brief Creates shape group for Doxygen documentation.
  */
 
-/** @defgroup shape Computation of shape functions
+/**
+ * @defgroup shape The shape functions classes
  * @brief The shape functions are implemented in static classes, i.e. classes whose methods are not associated with
  * a given object. \n
  * This should facilitate their reuse in existing finite element codes \n
