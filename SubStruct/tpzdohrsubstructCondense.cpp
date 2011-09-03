@@ -302,21 +302,19 @@ void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
 		DebugStop();
 		return;
 	}
-	{
 		TPZFMatrix uloc(nglob,ncols,0.);
 		{
 			TPZFNMatrix<200> uext(fNumExternalEquations,ncols);
-			PermuteGather(itrelat->second, UGlob, uext, 0, fNumExternalEquations);
+			fMatRed->UGlobal2(UGlob,uloc);
+//			PermuteGather(itrelat->second, UGlob, uext, 0, fNumExternalEquations);
 			
-			fMatRed->UGlobal2(uext,uloc);
 		}
 		PermuteScatter(itrelat2->second, uloc, USub , 0, nglob);
-	}
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		//		uext.Print("Boundary node solution", sout);
-		//		uloc.Print("Complete solution internal first", sout);
+        uloc.Print("Complete solution internal first", sout);
 		UGlob.Print("submesh solution", sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
