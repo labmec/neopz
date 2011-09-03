@@ -41,6 +41,9 @@
 #include "pzlog.h"
 #include "tpzgensubstruct.h"
 #include "tpzpairstructmatrix.h"
+
+#include "pzvtkmesh.h"
+
 #include "pzlog.h"
 
 #include <fstream>
@@ -61,7 +64,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
-	InitializePZLOG("log4cxx.cfg");
+//	InitializePZLOG("log4cxx.cfg");
+	InitializePZLOG();
 	
 	int dim = 2;
 	int maxlevel = 5;
@@ -207,7 +211,17 @@ int main(int argc, char *argv[])
 			LOGPZ_INFO(loggerconverge,sout.str())
 		}
 #endif		
+        TPZAutoPointer<TPZMaterial> mat = cmeshauto->FindMaterial(1);
+        TPZManVector<std::string> scalnames(1),vecnames(0);
+        scalnames[0]="state";
+        std::string postprocessname("dohrmann.vtk");
+        TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
+        vtkmesh.SetFileName(postprocessname);
+        vtkmesh.SetResolution(1);
+        vtkmesh.DrawMesh(1);
+        vtkmesh.DrawSolution(0, 1.);
 	}
+    
 	delete gmesh;
 	return EXIT_SUCCESS;
 }
