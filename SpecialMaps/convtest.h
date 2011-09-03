@@ -19,14 +19,14 @@ class ConvTest {
 
 public:
 
-	/** @brief Constructor */
+	/** @brief Default constructor */
     ConvTest();
-	/** @brief Destructor */
+	/** @brief Default destructor */
    ~ConvTest();
 
-	/** @brief Avaliates the Jacobian by Obtained Convergence Order */
+	/** @brief Evaluates the Jacobian by obtained Convergence Order */
     void JacobianConv(TPZGeoEl &Object, TPZVec< REAL > QsiEta);
-	/** @brief Avaliates the Jacobian by Obtained Convergence Order to computational element and its side */
+	/** @brief Evaluates the Jacobian by obtained Convergence Order to computational element and its side */
     void JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > QsiEta);
 
 };
