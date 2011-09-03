@@ -22,10 +22,20 @@ class TPZElementMatrix;
  * @brief Auxiliar structure to assembling residual vector. \ref structural "Structural Matrix"
  */
 struct SMTAssembleResidual{
+	/// Pointer to computational element
 	TPZCompEl * compel;
+	/// Residual matrix
 	TPZFMatrix * rhs;
+	/// Material identifiers
 	std::set<int> *MaterialIds;
-	int mineq, maxeq, index;
+	/// Index of the first equation
+	int mineq;
+	/// Index of the last equation
+	int maxeq;
+	/// Index to assemble
+	int index;
+
+	/// Constructor
 	SMTAssembleResidual( TPZCompEl * _compel, TPZFMatrix * _rhs, int _mineq, int _maxeq, std::set<int> * _MaterialIds, int _index)
 	{
 		compel = _compel;
@@ -35,10 +45,10 @@ struct SMTAssembleResidual{
 		MaterialIds = _MaterialIds;
 		index = _index;
 	}
+	/// Destructor
 	~SMTAssembleResidual(){
-		///nothing to be done here
+		//nothing to be done here
 	}
-	
 };
 
 /**
@@ -48,32 +58,25 @@ struct SMTAssembleResidual{
 class TPZMTAssemble{
 public:
 	
-	/** @brief Default constructor
-	 */
+	/** @brief Default constructor */
 	TPZMTAssemble();
 	
-	/** @brief Destructor
-	 */
+	/** @brief Destructor */
 	~TPZMTAssemble();
 	
-	/** @brief Multi-threading assemblage process
-	 */
+	/** @brief Multi-threading assemblage process */
 	static void AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds);
 	
 protected:
 	
-	/** @brief Stack of computed element residuals waiting to be assembled.
-	 */
+	/** @brief Stack of computed element residuals waiting to be assembled */
 	static std::vector< std::pair< TPZElementMatrix *, SMTAssembleResidual * > > gComputedEF;
 	
-	/** @brief Assembles computed element residuals.
-	 */
+	/** @brief Assembles computed element residuals */
 	static void ContributeEFs();
 	
-	/** @brief The thread execution
-	 */
+	/** @brief The thread execution */
 	static void * ExecuteAssembleResidualMT(void * data);
-	
 };
 
 #endif
