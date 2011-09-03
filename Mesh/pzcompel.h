@@ -456,6 +456,14 @@ public:
 	/** @brief Returns 1 if the element has at least one dependent node. Returns 0 otherwise */
 	virtual int HasDependency();
 	
+    /** @brief returns the index of the pressure connect
+     * returns -1 if their is no pressure connect
+     */
+    virtual int PressureConnectIndex() const
+    {
+        return -1;
+    }
+
 	/**
 	 * @brief Domain Decomposition.\n
 	 * This method will eliminate the nodes which are internal to the element from
