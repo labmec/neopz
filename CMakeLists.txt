@@ -24,6 +24,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Pre"
 	"${PROJECT_SOURCE_DIR}/Post"
 	"${PROJECT_SOURCE_DIR}/Analysis"
+	"${PROJECT_SOURCE_DIR}/SubStruct"
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
@@ -97,11 +98,11 @@ if(USING_FAD)
 	find_path(FAD_INCLUDE NAMES FAD PATHS ENV PATH ./. ./.. ./..)
 	if(FAD_INCLUDE-NOTFOUND)
 		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
-	else(FAD_INCLUDE-NOTFOUND)
+	else()
 		set(FAD_INCLUDE ${FAD_INCLUDE}/FAD)
 		add_definitions(-D_AUTODIFF)
 		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
-	endif(FAD_INCLUDE-NOTFOUND)
+	endif()
 endif(USING_FAD)
 
 #enabling to use LOG4CXX library
@@ -113,6 +114,17 @@ if(USING_LOG4CXX)
 	link_directories(${LOG4CXX_LIB_INCLUDE})
 	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
 	link_libraries(log4cxx)
+endif()
+
+#enabling to use LOG4CXX library
+option(USING_METIS "Whether the LOG4CXX library will be linked in" OFF)
+if(USING_METIS)
+	set (METIS_INCLUDE "/usr/local/include" CACHE PATH "Directory where log4cxx header files can be found")
+	set (METIS_LIB_INCLUDE "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
+	include_directories(${METIS_INCLUDE})
+	link_directories(${METIS_LIB_INCLUDE})
+	add_definitions(-DUSING_METIS)
+	link_libraries(metis)
 endif()
 
 #To enable unit test using boost UnitTest framework
