@@ -25,7 +25,7 @@
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-#include "TPZConservationLaw.h"
+//#include "TPZConservationLaw.h"
 #include "TPZDiffusionConsLaw.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
@@ -240,10 +240,10 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 			PZError << "TPZNonLinMultGridAnalysis::SetReference not agglomerate element\n";
 		TPZStack<int> elvec;
 		agg->IndexesDiscSubEls(elvec);
-		//os computacionais da malha fina apontam para os respectivos geom�ricos
-		//os geom�ricos deveram apontar para o agglomerado que o agrupa;
-		//si existe um geom�rico tal que as refer�cias dos agrupados no aglomerado
-		//formam uma parti�o unitaria desse ent� esse geom�rico j�
+		//os computacionais da malha fina apontam para os respectivos geometricos
+		//os geometricos deveram apontar para o agglomerado que o agrupa;
+		//si existe um geometrico tal que as referencias dos agrupados no aglomerado
+		//formam uma particao unitaria desse entao esse geometrico ja
 		//aponta para esse aglomerado
 		int indsize = elvec.NElements(),k;
 		for(k=0;k<indsize;k++){
@@ -284,12 +284,12 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointe
 	//REAL deltax = CompMesh->DeltaX();
 	//REAL deltax = CompMesh->MaximumRadiusOfEl();
 	int degree = CompMesh->GetDefaultOrder();
-	law->SetDeltaTime(maxveloc,deltax,degree);
+	law->SetTimeStep(maxveloc,deltax,degree);   //JorgeC
 }
 
 void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix &rhs){
 	
-	//pelo menos duas iterac�s para calcular o res�uo
+	//pelo menos duas iteracoes para calcular o residuo
 	if(numiter <= 1) numiter = 2;
 	TPZCompMesh *anmesh = an.Mesh();
 	int iter = 0;
