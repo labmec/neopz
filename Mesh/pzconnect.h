@@ -214,30 +214,6 @@ public:
 	
 };
 
-
-/**
- @brief Associate a degree of freedom node with a boundary condition
- such boundary condition can be dirichlet, point load or mixed boundary condition.
- @deprecated THIS CLASS IS DEPRECATED
- */
-struct TPZConnectBC {
-	
-	TPZConnect *fConnect;
-	TPZBndCond *fBC;
-	
-	TPZConnectBC() {
-		fConnect = 0;
-		fBC = 0;
-	}
-	TPZConnectBC(TPZConnect *nd,TPZBndCond *bc) {
-		fConnect = nd;
-		fBC = bc;
-	}
-	
-	void Print(TPZCompMesh &mesh,std::ostream &out = std::cout);
-	
-};
-
 /** @ingroup CompElement */
 /** @brief Overload operator << to write node connect data */
 inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)

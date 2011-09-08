@@ -286,12 +286,6 @@ int TPZConnect::SequenceNumber() const {
 	return fSequenceNumber;
 }
 
-void TPZConnectBC::Print(TPZCompMesh &mesh,std::ostream &out){
-	out << "Connect boundary condition :\n";
-	if(fConnect) fConnect->Print(mesh,out);
-	if(fBC) fBC->Print(out);
-}
-
 int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
 	
 	if(HasDependency()) {
