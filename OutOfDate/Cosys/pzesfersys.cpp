@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Contains implementation of the methods to Spherical Coordinate System.
+ * @brief DEPRECATED FILE. Contains implementation of the methods to Spherical Coordinate System.
  */
 //METHODS DEFINITION FOR CLASS COSYS
 

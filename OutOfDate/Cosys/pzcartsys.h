@@ -1,6 +1,6 @@
 /**
- * \file pzcartsys.h
- * @brief DEPRECATED - Contains the class defining the Cartesian Coordinate System.
+ * @file
+ * @brief DEPRECATED CLASS. Contains the class defining the Cartesian Coordinate System
  */
 //HEADER FILE FOR CLASS COSYS
 class TPZCosys;
@@ -12,21 +12,17 @@ class TPZCosys;
 #include "pzvec.h"
 
 /**
- * @ingroup CoordSys
+ * @deprecated DEPRECATED cartesian coordinate system CLASS.
  * @brief Defines the cartesian coordinate system class
  */
 class  TPZCartsys : public TPZCosys {
 	
 public:
 	
-	/**
-	 * @brief Default empty constructor 
-	 */
+	/** @brief Default empty constructor */
 	TPZCartsys();
 	
-	/**
-	 * @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZCartsys(const TPZCartsys & cp);
 	
 	/**
@@ -47,9 +43,7 @@ public:
 	 */
 	TPZCartsys(int num, TPZCartsys * ref, TPZVec<REAL> * org, TPZFMatrix *angles=NULL);
 	
-	/**
-	 * Destructor 
-	 */
+	/** Destructor */
 	~TPZCartsys() ;
 	
 	/**
@@ -59,8 +53,7 @@ public:
 	void GetAxes(TPZFMatrix &t);
 	
 	/**
-	 * @brief Changes the current coordinate system axes giving 
-	 * two axes (vectors) 
+	 * @brief Changes the current coordinate system axes giving two axes (vectors) 
 	 * @param x new x axe
 	 * @param z new z axe
 	 */
@@ -80,9 +73,7 @@ public:
 	 */
 	void SetOrigin(TPZVec<REAL> *org);
 	
-	/**
-	 * @brief Gives the object coordinate system type 
-	 */
+	/** @brief Gives the object coordinate system type */
 	int Type() {return cartesian;}
 	
 	/**
@@ -95,45 +86,36 @@ public:
 	 */
 	void TransformGradient(TPZVec<REAL> &X, TPZFMatrix &GradX, TPZVec<REAL> &x, TPZFMatrix &Gradx, TPZCosys *dest=0); 
 	
-	/**
-	 * @brief Verify Range - 
-	 * None parameters must be verified in cartesian
-	 * coordinates system
-	 */
+	/** @brief Verify Range */
+	/** None parameters must be verified in cartesian coordinates system */
 	void VerifyRange(TPZFMatrix &){;}
 	
 	/**
-	 * @brief Returns de the value of one coordinate given in reference
-	 * system in actual system
-	 * @param x point to transfer from reference coordinate system
+	 * @brief Returns de the value of one coordinate given in reference system in actual system
+	 * @param point point to transfer from reference coordinate system
 	 */
 	void FromReference (TPZVec<REAL> &point);
 	
 	/**
-	 * @brief Returns de the value of one coordinate in 
-	 * reference coordinate system
+	 * @brief Returns de the value of one coordinate in reference coordinate system
 	 * @param point point to transfer to reference coordinate system   
 	 */
 	void ToReference (TPZVec<REAL> &point) ;
 	
 	/**
-	 * @brief Returns de the value of one coordinate given in reference
-	 * system in actual system
-	 * @param x point to transfer from reference coordinate system
+	 * @brief Returns de the value of one coordinate given in reference system in actual system
+	 * @param point point to transfer from reference coordinate system
 	 */
 	void RotateFromReference (TPZVec<REAL> &point);
 	
 	/**
-	 * @brief Returns de the value of one coordinate in
-	 * reference coordinate system
+	 * @brief Returns de the value of one coordinate in reference coordinate system
 	 * @param point point to transfer to reference coordinate system
 	 */
 	void RotateToReference (TPZVec<REAL> &point) ;
 	
 	
-	/**
-	 * @brief Returns the rotation matrix
-	 */
+	/** @brief Returns the rotation matrix */
 	TPZFMatrix &Rotation () {return fTr;}
 	
 	void Print(std::ostream &out);
@@ -142,21 +124,13 @@ public:
 	
 protected:
 	/**
-	 * Pointer to Reference Coordinate system
-	 */
-	//TPZCosys *fReference;
-	
-	/**
 	 * @brief Rotation tensor \n
 	 * Composed by reference system cosine vectors
 	 * in cartesian coordinate system 
 	 */
 	TPZFMatrix fTr;
 	
-	/**
-	 * @brief Origin of the coordinate system, expressed in
-	 * cartesian reference coordinate system
-	 */
+	/** @brief Origin of the coordinate system, expressed in cartesian reference coordinate system */
 	TPZVec<REAL> fOrigin;
 	
 private:

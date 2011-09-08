@@ -1,6 +1,6 @@
 /**
  * @file
- * @deprecated DEPRECATED FILE: TPZNonLinElliptic methods.
+ * @brief DEPRECATED FILE. Contains the implementations of the TPZNonLinElliptic methods.
  */
 // 
 // C++ Implementation: pznonlinelliptic

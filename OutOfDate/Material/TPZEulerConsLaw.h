@@ -1,6 +1,7 @@
 /**
  * \file
- * @brief Contains the TPZEulerConsLaw class which implements the weak statement of the compressible euler equations as conservation law formulation.
+ * @brief DEPRECATED FILE. This file contains the TPZEulerConsLaw class which implements the weak statement \n
+ * of the compressible euler equations as conservation law formulation.
  */
 /*
  Dissipacao
@@ -22,8 +23,7 @@
 #include "TPZConservationLaw.h"
 
 /**
- * @deprecated Deprecated class
- * @ingroup materialdeprecated
+ * @deprecated DEPRECATED Euler equation material CLASS.
  * @brief Implements the weak statement of the compressible euler equations.
  */
 class TPZEulerConsLaw  : public TPZConservationLaw {

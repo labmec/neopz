@@ -1,6 +1,6 @@
 /**
  * @file
- * @deprecated DEPRECATED FILE: TPZPlaca2 methods.
+ * @brief DEPRECATED FILE. Contains the implementations of the TPZPlaca2 methods.
  */
 #include "pzmaterial.h"
 //#include "pztempmat.h"

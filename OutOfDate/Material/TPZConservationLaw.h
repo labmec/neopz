@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZConservationLaw class which implements the interface for conservation laws.
+ * @brief DEPRECATED FILE. This file contains the TPZConservationLaw class which implements the interface for conservation laws
  */
 #ifndef CONSERVATIONLAWHPP
 #define CONSERVATIONLAWHPP
@@ -11,9 +11,8 @@
 #include "pzvec.h"
 
 /**
- * @deprecated THIS CLASS IS DEPRECATED BY TPZConservationLaw2.
- * @ingroup materialdeprecated
- * @brief Implements the interface for conservation laws, keeping track of the timestep as well
+ * @deprecated DEPRECATED conservation law material CLASS.
+ * @brief Implements the interface for conservation laws, keeping track of the timestep as well. \n THIS CLASS IS DEPRECATED BY TPZConservationLaw2.
  */
 class TPZConservationLaw  : public TPZMaterial {
 	

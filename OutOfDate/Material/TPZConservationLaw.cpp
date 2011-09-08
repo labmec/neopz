@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains implementations of the TPZConservationLaw methods.
+ * @brief DEPRECATED FILE. Contains implementations of the TPZConservationLaw methods.
  */
 #include "TPZConservationLaw.h"
 #include "pzelmat.h"

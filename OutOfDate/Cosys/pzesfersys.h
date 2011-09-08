@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Contains the class defining the Spherical Coordinate System.
+ * @brief DEPRECATED CLASS. Contains the Spherical Coordinate System.
  */
 //HEADER FILE FOR CLASS COSYS
 
@@ -11,16 +11,14 @@
 #include "pzreal.h"
 
 /**
- * @ingroup CoordSys
- * @brief Defines the esferical coordinate system
+ * @deprecated DEPRECATED espherical coordinate system CLASS.
+ * @brief Defines the espherical coordinate system
  */
 class TPZEsfersys : public TPZCosys {
 	
 public:
 	
-	/**
-	 * @brief Default empty constructor 
-	 */
+	/** @brief Default empty constructor */
 	TPZEsfersys();
 	
 	/**
@@ -30,9 +28,7 @@ public:
 	 */
 	TPZEsfersys(int num,  TPZCartsys* ref = NULL);
 	
-	/**
-	 * @brief Destructor 
-	 */
+	/** @brief Destructor */
 	~TPZEsfersys() {;}
 	
 	/**
@@ -47,14 +43,12 @@ public:
 	 */
 	void FromReference(TPZVec<REAL> &point);
 	
-	/**
-	 * @brief Returns the coordinate system type 
-	 */
+	/** @brief Returns the coordinate system type */
 	int Type() { return esferic;}
 	
 	/**
 	 * @brief Verifies if the difference between two nodes are greater than PI 
-	 * @param points points to verify the angle
+	 * @param point points to verify the angle
 	 */
 	void VerifyRange(TPZFMatrix &point);
 	

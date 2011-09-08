@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains implementations of the TPZConsLawTest methods.
+ * @brief DEPRECATED FILE. Contains implementations of the TPZConsLawTest methods.
  */
 #include "TPZConsLawTest.h" 
 #include "pzelmat.h"

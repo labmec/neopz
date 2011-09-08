@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains implementations of the TPZEulerConsLaw methods.
+ * @brief DEPRECATED FILE. This file contains implementations of the TPZEulerConsLaw methods
  */
 #include "TPZEulerConsLaw.h" 
 #include "TPZDiffusionConsLaw.h"

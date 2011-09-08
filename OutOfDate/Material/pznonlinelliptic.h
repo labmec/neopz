@@ -1,6 +1,6 @@
 /**
  * @file
- * @deprecated DEPRECATED FILE: TPZNonLinElliptic class.
+ * @brief DEPRECATED FILE. Contains the TPZNonLinElliptic class.
  */
 //
 // C++ Interface: pznonlinelliptic
@@ -19,10 +19,8 @@
 #include "pzmaterial.h"
 
 /**
- * @deprecated DEPRECATED CLASS
- * @ingroup materialdeprecated
- * @brief Implements a non linear elliptic equation.
- * Laplac( u ) + div(V u) + Sigma u = u^2
+ * @deprecated DEPRECATED non linear elliptic material CLASS. 
+ * @brief Implements a non linear elliptic equation. \f$ Laplac( u ) + div(V u) + Sigma u = u^2 \f$
  * @author Roberto Heiderich.
  * @since Feb 23, 2005
  */
@@ -64,6 +62,12 @@ public:
 							  TPZFMatrix &ek,
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
+	void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,TPZVec<REAL> &sol, TPZFMatrix &dsol,
+					REAL weight,TPZFMatrix &axes,TPZFMatrix &phi, TPZFMatrix &dphi,
+					TPZFMatrix &ek, TPZFMatrix &ef);
+	
+	void Contribute(TPZVec<REAL> &x, TPZFMatrix &jacinv,TPZVec<REAL> &sol, TPZFMatrix &dsol,
+					REAL weight,TPZFMatrix &axes,TPZFMatrix &phi, TPZFMatrix &dphi,TPZFMatrix &ef);
 	
     void SetParameters(REAL D, TPZVec<REAL> &V, REAL Sigma, REAL LambdaDivK, REAL F);
     

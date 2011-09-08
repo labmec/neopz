@@ -1,6 +1,7 @@
 /**
  * @file
- * @brief Contains declaration of TPZConnect class which represents a set of shape functions associated with a computational element
+ * @brief DEPRECATED FILE. This file contains declaration of TPZConnect class which represents \n
+ * a set of shape functions associated with a computational element
  */
 //$Id: pzconnect.h,v 1.19 2010-08-25 03:05:06 phil Exp $
 //HEADER FILE FOR CLASS NODE
@@ -21,9 +22,9 @@ class TPZStream;
 
 
 /**
- @brief Associate a degree of freedom node with a boundary condition
- such boundary condition can be dirichlet, point load or mixed boundary condition.
- @deprecated THIS CLASS IS DEPRECATED
+ * @brief Associate a degree of freedom node with a boundary condition such boundary condition can be dirichlet, \n
+ * point load or mixed boundary condition.
+ * @deprecated DEPRECATED BC connect CLASS.
  */
 struct TPZConnectBC {
 	

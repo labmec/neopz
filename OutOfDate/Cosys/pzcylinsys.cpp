@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Contains implementation of the methods to Cylindrical Coordinate System.
+ * @brief DEPRECATED FILE. Contains implementation of the methods to Cylindrical Coordinate System.
  */
 #include "pzcylinsys.h"
 #include "pzcartsys.h"

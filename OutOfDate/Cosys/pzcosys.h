@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Contains the base class to define Coordinate Systems.
+ * @brief DEPRECATED CLASS. Contains the base class to define Coordinate Systems.
  */
 //HEADER FILE FOR CLASS TPZCosys
 
@@ -16,22 +16,18 @@ enum gCosysType {reference,cartesian,cylindric,esferic};
 
 class TPZCartsys;
 /**
- * @ingroup CoordSys
- * @brief Root class for the coordinate system \n
+ * @deprecated DEPRECATED root coordinate system CLASS.
+ * @brief Root class for the coordinate system. \n
  * Root class for the coordinate system
  */
 class TPZCosys {
 	
 public:
 	
-	/**
-	 * @brief Constructor without arguments
-	 */
+	/** @brief Constructor without arguments */
 	TPZCosys();
 	
-	/**
-	 * @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZCosys(const TPZCosys &cp);
 	
 	
@@ -42,19 +38,17 @@ public:
 	 */
 	TPZCosys(int num,TPZCartsys* ref = NULL);
 	
-	/**
-	 * @brief Destructor - must be implemented at each child class 
-	 */
+	/** @brief Destructor - must be implemented at each child class */
 	virtual  ~TPZCosys();
 	
 	/**
-	 * @brief Resets all coordinate system data 
+	 * @brief Resets all coordinate system data \n
 	 * Sets-> tr=I ; ref=NULL ; origin=0.
 	 */
 	void Reset();
 	
 	/**
-	 * @brief Verify if the parameters of the object have consistant values and adjusts
+	 * @brief Verify if the parameters of the object have consistant values and adjusts \n
 	 * their values to the range of the coordinate system
 	 * @param co has the coordinate of the point to verify
 	 */
@@ -62,18 +56,15 @@ public:
 	
 	/**
 	 * @brief Calculates the transformation gradient Gradx given Gradient of  the point X 
-	 * @note looking at the code, it doesnt seem to be correct, please send a mail message to ecrylo@uol.com.br to correct it
+	 * @note looking at the code, it doesnt seem to be correct, \n
+	 * please send a mail message to ecrylo@uol.com.br to correct it
 	 */
 	virtual void TransformGradient(TPZVec<REAL> &X, TPZFMatrix &GradX, TPZVec<REAL> &x, TPZFMatrix &Gradx, TPZCosys *dest=0)=0;
 	
-	/**
-	 * @brief Returns type of coordinate system
-	 */
+	/** @brief Returns type of coordinate system */
 	virtual int Type() = 0;
 	
-	/**
-	 * @brief Returns the coordinate system identifier number 
-	 */
+	/** @brief Returns the coordinate system identifier number */
 	int Id(){return fNumber;}
     
 	/**
@@ -83,14 +74,8 @@ public:
 	void Print(std::ostream& out = std::cout);
 	
 	/**
-	 * Return in the parameter norm the normal vector to the vectors vec1 and vec2 
-	 */
-	//    GetNormal(REAL vec1[3], REAL vec2[3], REAL norm[3]);
-	
-	
-	/**
 	 * @brief The org parameter is expressed in reference coordinate system
-	 * @ param co new reference coordinate system
+	 * @param co new reference coordinate system
 	 */
 	void SetReference(TPZCartsys *co) {fReference = co;}
 	
@@ -129,32 +114,7 @@ public:
 	 */
 	//virtual void FromGlobal(REAL point[3]);
 	virtual void FromGlobal(TPZVec<REAL> & point);
-	
-	/**
-	 * @brief Returns the current coordinate system axes 
-	 */
-	//void GetAxes(TPZFMatrix &t);
-	
-	/**
-	 * Change the current coordinate system axes 
-	 */
-	//void SetAxes(REAL t[3][3]);
-	
-	/**
-	 * Change the current coordinate system axes giving two axes (vectors) 
-	 */
-	//void SetAxes(REAL x[3], REAL z[3]);
-	
-	/**
-	 * Change the current coordinate system origin 
-	 */
-	//void SetOrigin(REAL org[3]);
-	
-	/**
-	 * return the mapped coordinate in real element
-	 */
-	//void X(TPZFMatrix &Xi, TPZVec<REAL> &X,TPZVec<REAL> &x, TPZMatrix & phi, TPZCosys *ref);
-	
+
 	/**
 	 * @brief Returns the pointer to reference coordinate system 
 	 */

@@ -1,8 +1,7 @@
 /**
  * \file
- * @brief DEPRECATED - Contains the class defining the Cylindrical Coordinate System.
+ * @brief DEPRECATED CLASS. Contains the class defining the Cylindrical Coordinate System.
  */
-//HEADER FILE FOR CLASS CYLINSYS
 
 #ifndef CYLINSYSTHPP
 #define CYLINSYSTHPP
@@ -11,16 +10,14 @@
 #include "pzreal.h"
 
 /**
- * @ingroup CoordSys
+ * @deprecated DEPRECATED cylindrical coordinate system CLASS.
  * @brief Defines the cylindrical coordinate system
  */
 class  TPZCylinsys : public TPZCosys {
 	
 public:
 	
-	/**
-	 * @brief Default empty constructor for a TPZCylinsys object
-	 */
+	/** @brief Default empty constructor for a TPZCylinsys object */
 	TPZCylinsys();
 	
 	/**
@@ -30,9 +27,7 @@ public:
 	 */
 	TPZCylinsys(int num, TPZCartsys* ref = NULL);
 	
-	/**
-	 * @brief Default Destructor 
-	 */
+	/** @brief Default Destructor */
 	~TPZCylinsys() {;}
 	
 	/**
@@ -71,8 +66,7 @@ public:
 	 * @param dest coordinate system to transform the gradient
 	 */
 	void TransformGradient(TPZVec<REAL> &X, TPZFMatrix &GradX, TPZVec<REAL> &x, TPZFMatrix &Gradx, TPZCosys *dest = 0);
-	
-	
+
 };
 
 #endif

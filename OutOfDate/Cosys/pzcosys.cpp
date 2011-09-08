@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED - Contains implementation of the methods to Coordinate System Class.
+ * @brief DEPRECATED FILE. This file contains implementation of the methods to Coordinate System Class.
  */
 //METHODS DEFINITION FOR CLASS COSYS
 

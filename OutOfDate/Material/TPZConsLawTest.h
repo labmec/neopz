@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZConsLawTest class. Test.
+ * @brief DEPRECATED FILE. This file contains the TPZConsLawTest class for test
  */
 #ifndef CONSLAWTESTHPP
 #define CONSLAWTESTHPP
@@ -13,9 +13,8 @@
 
 
 /**
- * @deprecated DEPRECATED CLASS, was used for testing purposes
- * @ingroup materialdeprecated
- * @brief Only to test a material as conseration law.
+ * @deprecated DEPRECATED conservation law test CLASS. 
+ * @brief Only to test a material as conseration law. DEPRECATED CLASS, was used for testing purposes
  */
 class TPZConsLawTest  : public TPZConservationLaw {
 	
