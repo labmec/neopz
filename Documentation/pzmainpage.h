@@ -135,6 +135,20 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
 
+\page externlibs External Libraries used in PZ
+ 
+\section metis Metis library
+If you put USING_METIS as TRUE, you must to install Metis library. Metis library is avaliable 
+from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
+ 
+\section boost Boost library
+ 
+\section fad Fad library
+ 
+\section log4cxx Log4cxx library
+ 
+\section pthread Pthread library
+ 
 \page projects Projects with PZ
  
 \section steam_injection Steam Injection in Reservoir
