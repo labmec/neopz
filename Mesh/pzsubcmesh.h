@@ -73,23 +73,16 @@ protected:
 	
 	
 private:
-	/**
-	 * @brief Transfers one element from a submesh to another mesh.
-	 */
+	/** @brief Transfers one element from a submesh to another mesh. */
 	int TransferElementTo(TPZCompMesh * mesh, int elindex);
-	
-	/**
-	 * @brief Transfers one element from a specified mesh to the current submesh.
-	 */
+	/** @brief Transfers one element from a specified mesh to the current submesh. */
 	int TransferElementFrom(TPZCompMesh *mesh, int elindex);
 	
-	/**
-	 * @brief Marks the connect to be local
-	 */
+	/** @brief Marks the connect to be local */
 	void MakeInternalFast(int local);
-	
-	
+
 public:
+	TPZAnalysis * GetAnalysis();
 	/**
 	 * @brief Constructor.
 	 * @param mesh reference mesh

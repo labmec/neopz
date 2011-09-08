@@ -6,7 +6,7 @@
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
-#include "TPZConservationLaw.h"
+//#include "TPZConservationLaw.h"
 #include "pzintel.h"
 //#include "TPZInterfaceEl.h"
 
@@ -54,7 +54,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
 			// dimension of the element and if the element is discontinuous.
 			
-			TPZConservationLaw2 *law = dynamic_cast<TPZConservationLaw2 *>(mat.operator ->());
+			TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator ->());
 			if(!law)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: non-fluid material.\n";
 			// number of state variables for this material.
 			nstate = law->NStateVariables();
@@ -97,8 +97,8 @@ void TPZFlowCompMesh::CollectFluidMaterials()
 	// buffering the fluid materials
 	for(matit = fMaterialVec.begin(); matit != fMaterialVec.end(); matit++)
 	{
-		TPZConservationLaw2 * pConsLaw;
-		pConsLaw = dynamic_cast<TPZConservationLaw2 *>(matit->second.operator->());
+		TPZConservationLaw * pConsLaw;
+		pConsLaw = dynamic_cast<TPZConservationLaw *>(matit->second.operator->());
 		if(pConsLaw)
 		{
 			int index =  pConsLaw->Id();
@@ -133,7 +133,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
 		{
 			porder = intel->PreferredSideOrder(intel->Reference()->NSides()-1);
 		}
-		TPZConservationLaw2 *mat = dynamic_cast<TPZConservationLaw2 *>( cel->Material().operator ->());
+		TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>( cel->Material().operator ->());
 		if(!mat) continue;
 		meanTimeStep += mat->SetTimeStep(maxVel, deltax, porder);
 		numcontr++;
@@ -143,7 +143,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
 }
 
 /** @brief Function for dynamic cast of the material based on map A (second data) */
-#define FL(A) dynamic_cast<TPZConservationLaw2 *>(A->second.operator->())
+#define FL(A) dynamic_cast<TPZConservationLaw *>(A->second.operator->())
 
 /** @brief Maxime value to CFL coefficient */
 #define MAXCFL 1.e6
