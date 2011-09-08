@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Creates materialdeprecated group for Doxygen documentation. 
+ * @brief Creates materialdeprecated group for Doxygen documentation of the deprecated material classes. 
  */
 /**
  * @deprecated DEPRECATED MODULE for material deprecated.

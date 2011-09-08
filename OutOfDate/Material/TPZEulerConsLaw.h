@@ -22,7 +22,8 @@
 #include "TPZConservationLaw.h"
 
 /**
- * @ingroup material
+ * @deprecated Deprecated class
+ * @ingroup materialdeprecated
  * @brief Implements the weak statement of the compressible euler equations.
  */
 class TPZEulerConsLaw  : public TPZConservationLaw {

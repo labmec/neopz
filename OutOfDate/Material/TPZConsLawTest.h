@@ -14,8 +14,8 @@
 
 /**
  * @deprecated DEPRECATED CLASS, was used for testing purposes
- * @ingroup material
- * @brief DESCRIBE PLEASE
+ * @ingroup materialdeprecated
+ * @brief Only to test a material as conseration law.
  */
 class TPZConsLawTest  : public TPZConservationLaw {
 	

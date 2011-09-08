@@ -20,6 +20,7 @@
 
 /**
  * @deprecated DEPRECATED CLASS
+ * @ingroup materialdeprecated
  * @brief Implements a non linear elliptic equation.
  * Laplac( u ) + div(V u) + Sigma u = u^2
  * @author Roberto Heiderich.
