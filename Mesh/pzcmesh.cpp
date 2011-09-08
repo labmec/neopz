@@ -20,6 +20,7 @@
 #include "pzfmatrix.h"
 #include "pzblock.h"
 #include "pzelmat.h"
+#include "pzsubcmesh.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
 #include "TPZAgglomerateEl.h"
