@@ -167,11 +167,6 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
 	int dim = matp->Dimension();
 	int dim1 = dim-1;
 	
-	/*	if(!fScalarNames || !fVecNames) {
-	 cout <<"ERROR \n" << "Vector of Names or of Scalars not defined! \n";
-	 return;
-	 }
-	 */
 	int numscal = fScalarNames.NElements();
 	int numvec = fVecNames.NElements();
 	TPZVec<int> scalind(0);
@@ -217,7 +212,6 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
 			(fOutFile) << "#" << endl;
 			fNextDataField ++;
 		}
-		//|\|\|\|\|\|\|\|\|\|\|
 		
 		if(dim == 2 && (NNodes() == 4 || NNodes() == 3)) {
 			(fOutFile) << "object " << (fNextDataField) << " class field" << endl;
@@ -232,17 +226,6 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
 			(fOutFile) << "#" << endl; (fOutFile).flush();
 			fNextDataField ++;
 		}
-		///@deprecated
-		//     if(dim == 2 && NNodes() == 3) {
-		//       (fOutFile) << "object " << (fNextDataField) << " class field" << endl;
-		//       (fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
-		//       (fOutFile) << "component \"positions\" value " << fNodePosObject[dim1] << endl;
-		//       (fOutFile) << "component \"connections\" value " << fElConnectivityObject[ETriangle] << endl;
-		//       (fOutFile) << "attribute \"name\" string \"" << (char *) fScalarNames[n]
-		// 		  << step << (1) << "\"" << endl;
-		//       (fOutFile) << "#" << endl;
-		//       fNextDataField ++;
-		//     }
 		if(dim == 1) {
 			(fOutFile) << "object " << (fNextDataField) << " class field" << endl;
 			(fOutFile) << "component \"data\" value " << (fNextDataField-1) << endl;
