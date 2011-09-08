@@ -9,11 +9,15 @@
 #include "fstream"
 
 
+#ifdef USING_BOOST
+
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN pz material tests
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+
+#endif
 
 /**
  * @brief Create the stiffness matrix of a cube from -1 and 1 in cartesian coordinates, with elastic material
@@ -61,6 +65,7 @@ TPZFMatrix ReadStiff(std::string &FileName)
 	return RightStiff;
 }
 
+#ifdef USING_BOOST
 
 BOOST_AUTO_TEST_SUITE(material_tests)
 
@@ -94,3 +99,4 @@ BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 
 BOOST_AUTO_TEST_SUITE_END()
 
+#endif

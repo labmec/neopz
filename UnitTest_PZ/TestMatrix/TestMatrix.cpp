@@ -11,11 +11,15 @@
 #include "pzsbndmat.h"
 #include "pzsfulmat.h"
 
+#ifdef USING_BOOST
+
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN pz matrix tests
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+
+#endif
 
 /** 
 * @brief Tests wheter a matrix matr is diagonally dominant. Checks Aii > Soma(Aij) on j!=i, for all i.
@@ -35,6 +39,8 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 	}
 	return 1;
 }
+
+#ifdef USING_BOOST
 
 /**
 * @brief Tests the Inverse method of the matrix to any matrix types. It uses the AutoFill method to create a square matrix with 
@@ -243,3 +249,5 @@ BOOST_AUTO_TEST_SUITE_END()
 //{
 //	TestingDiagonalDominant<TPZFBMatrix>();
 //}
+
+#endif

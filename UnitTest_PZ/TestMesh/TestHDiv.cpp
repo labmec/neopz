@@ -26,6 +26,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 #endif
 
+#ifdef USING_BOOST
+
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN pz matrix tests
 
@@ -481,4 +483,4 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix &multiplie
     return nwrong;
 }
 
-
+#endif
