@@ -176,7 +176,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    cmesh->SetDimModel(2);
 
 // Creating the materials
-   TPZEulerConsLaw2 * matp = new TPZEulerConsLaw2(1/*nummat*/,
+   TPZEulerConsLaw * matp = new TPZEulerConsLaw(1/*nummat*/,
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    2 /* dim*/,

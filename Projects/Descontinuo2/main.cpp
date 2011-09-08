@@ -160,7 +160,7 @@ int main1()
 //   RegisterMatrixClasses();
 //   RegisterMaterialClasses();
 
-   TPZEulerConsLaw2 euler(3, 10, 1.5, 3, SUPG_AD), * peuler2;
+   TPZEulerConsLaw euler(3, 10, 1.5, 3, SUPG_AD), * peuler2;
    euler.SetTimeDiscr(Implicit_TD, ApproxImplicit_TD, None_TD);
 
    {
@@ -174,7 +174,7 @@ int main1()
       TPZFileStream fstr;
       fstr.OpenRead("dump.dat");
       TPZSaveable *sv = TPZSaveable::Restore(fstr,NULL);
-      peuler2 = dynamic_cast<TPZEulerConsLaw2*>(sv);
+      peuler2 = dynamic_cast<TPZEulerConsLaw*>(sv);
    }
 
    return 0;
@@ -434,7 +434,7 @@ int run(std::istream & input, std::ostream & output)
          startFileName = inputChar;
 
 	 TPZAutoPointer<TPZMaterial> pmat;
-	 TPZEulerConsLaw2 * pEuler;
+	 TPZEulerConsLaw * pEuler;
 
 	 startFileName += ".pzf";
 	 TPZFileStream fstr;
@@ -447,7 +447,7 @@ int run(std::istream & input, std::ostream & output)
          cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
          cmesh->SetCFL(CFL);
 	 pmat = cmesh->GetFlowMaterial();
-  pEuler = dynamic_cast<TPZEulerConsLaw2 *>(pmat.operator->());
+  pEuler = dynamic_cast<TPZEulerConsLaw *>(pmat.operator->());
 	 pEuler->SetTimeDiscr
 	            (Diff_TD,
                      ConvVol_TD,

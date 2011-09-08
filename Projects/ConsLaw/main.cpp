@@ -23,11 +23,11 @@ void CheckConv(const double step,
 	     TPZFMatrix & coeff,
 	     TPZFMatrix &phi,
 	     TPZFMatrix &dphi,
-	     TPZEulerConsLaw2 & MatTest);
+	     TPZEulerConsLaw & MatTest);
 
 #ifdef _AUTODIFF
 void CheckJacobFlux(
-	     TPZEulerConsLaw2 & MatTest);
+	     TPZEulerConsLaw & MatTest);
 #endif
 
 int main()
@@ -38,7 +38,7 @@ int main()
 
   gDebug = 0;
 
-  TPZEulerConsLaw2 MatTest(0/*nummat*/,
+  TPZEulerConsLaw MatTest(0/*nummat*/,
 		 0.3/*timeStep*/,
 		 1.4 /*gama*/,
 		 dim,
@@ -152,7 +152,7 @@ void CheckConv(const double step,
 	     TPZFMatrix & coeff,
 	     TPZFMatrix &phi,
 	     TPZFMatrix &dphi,
-	     TPZEulerConsLaw2 & MatTest)
+	     TPZEulerConsLaw & MatTest)
 {
 
    cout << "\nCheckConv matrix\n";
@@ -242,7 +242,7 @@ the contributions to T1 and T2;
 #ifdef _AUTODIFF
 // verifies if jacobian of Flux is right
 void CheckJacobFlux(
-	     TPZEulerConsLaw2 & MatTest)
+	     TPZEulerConsLaw & MatTest)
 {
    int dim = 3;
 

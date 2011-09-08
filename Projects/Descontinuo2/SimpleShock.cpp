@@ -146,7 +146,7 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
 // Creating the materials
-   TPZEulerConsLaw2 * matp = new TPZEulerConsLaw2(1/*nummat*/,
+   TPZEulerConsLaw * matp = new TPZEulerConsLaw(1/*nummat*/,
                                             0/*timeStep*/,
 					    gamma /*gamma*/,
 					    dim /* dim*/,
