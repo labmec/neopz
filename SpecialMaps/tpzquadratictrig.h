@@ -8,10 +8,8 @@
 #include "pznoderep.h"
 #include "tpztriangle.h"
 
-class TPZGeoEl;
+//class TPZGeoEl;
 
-namespace pzgeom
-{
 	
 	/**
 	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
@@ -19,7 +17,9 @@ namespace pzgeom
 	 * @ingroup geometry
 	 * @brief Defines a triangular geometric element with quadratic map. \ref geometry "Geometry"
 	 */
-	class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
+namespace pzgeom {
+    
+    class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 		
 	public:
 		
@@ -66,7 +66,7 @@ namespace pzgeom
 										  int matid, int& index);
 
 	};
-    
+
 };
 
 #endif

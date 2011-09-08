@@ -14,10 +14,6 @@
 #include "pznoderep.h"
 
 #include <iostream>
-
-
-namespace pzgeom
-{
 	
 	/**
 	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
@@ -25,6 +21,9 @@ namespace pzgeom
 	 * @ingroup geometry
 	 * @brief Defines a tetrahedral geometric element with quadratic map. \ref geometry "Geometry"
 	 */
+
+namespace pzgeom {
+    
 	class TPZQuadraticTetra : public pzgeom::TPZNodeRep<10,pztopology::TPZTetrahedron> {
 		
 	public:
@@ -78,11 +77,9 @@ namespace pzgeom
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,
-										  int& index);
-		
-		
-	};
-	
+										  int& index);	
+};
+
 };
 
 #endif

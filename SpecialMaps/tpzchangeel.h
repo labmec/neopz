@@ -24,16 +24,13 @@ public:
     TPZChangeEl();
    ~TPZChangeEl();
 
-    /** @brief Turns an linear triangle or quadrilateral to quadratic */
+    /** @brief Turns an linear geoelement to quadratic */
     static TPZGeoEl * ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex);
 
     /** @brief Turns a regular element into a geoblend */
     static TPZGeoEl * ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex);
 
-    /** @brief Turns an quadratic triangle or quadrilateral to linear */
-    static TPZGeoEl * ChangeToLinear(TPZGeoMesh *Mesh, int ElemIndex);
-
-    /** @brief Slide correct nodes of an triangle or quadrilateral to the quarterpoint with respect to a given side */
+    /** @brief Slide correct nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side);
 
 private:

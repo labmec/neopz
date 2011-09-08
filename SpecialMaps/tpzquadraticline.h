@@ -11,9 +11,7 @@
 
 #include <iostream>
 
-
-namespace pzgeom
-{
+namespace pzgeom {
 
 	/**
 	 * @ingroup geometry
@@ -21,9 +19,9 @@ namespace pzgeom
 	 * @author Paulo Cesar de Alvarenga Lucci
 	 * @since 2007
 	 */
-	class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
-		
-	public:
+	class TPZQuadraticLine : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> 
+    {		
+        public:
 		
 		enum {NNodes = 3};
 		
@@ -61,7 +59,6 @@ namespace pzgeom
 		 */
 		static  TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);
 		
-	public:
 		/**
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
@@ -70,15 +67,13 @@ namespace pzgeom
 										  int matid,
 										  int& index);
 		
-		
-		
 		static void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
 		
 		static void X(TPZFMatrix &coord, TPZVec<REAL> &par, TPZVec<REAL> &result);
 		
 		static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 	};
-	
+    
 };
 
 #endif

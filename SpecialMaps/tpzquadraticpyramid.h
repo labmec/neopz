@@ -19,6 +19,8 @@
  * @ingroup geometry
  */
 
+namespace pzgeom {
+    
 class TPZQuadraticPyramid : public pzgeom::TPZNodeRep<13,pztopology::TPZPyramid> {
 	
 public:
@@ -65,6 +67,8 @@ public:
 									  int matid, int& index);
 	
 	TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig,int side,int bc);	
+};
+
 };
 
 #endif

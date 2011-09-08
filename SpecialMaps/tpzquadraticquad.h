@@ -13,9 +13,8 @@
 
 #include <iostream>
 
-
 namespace pzgeom {
-
+    
 	/**
 	 * @ingroup geometry
 	 * @brief Defines a quadrilateral geometric element with quadratic map. \ref geometry "Geometry"
@@ -70,8 +69,6 @@ namespace pzgeom {
 		
 		static void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
 		
-		
-	public:
 		/**
 		 * @brief Creates a geometric element according to the type of the father element
 		 */
@@ -79,9 +76,8 @@ namespace pzgeom {
 										  TPZVec<int>& nodeindexes,
 										  int matid,
 										  int& index);
-		
-	};
-	
+};
+
 };
 
 #endif
