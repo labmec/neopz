@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains implementations of the TPZEulerConsLaw2 methods.
+ * @brief Contains implementations of the TPZEulerConsLaw methods.
  */
 //$Id: pzeulerconslaw.cpp,v 1.54 2011-05-13 20:46:51 phil Exp $
 
@@ -33,14 +33,14 @@ LoggerPtr fluxappr(Logger::getLogger("pz.fluxappr"));
 
 
 
-TPZEulerConsLaw2::~TPZEulerConsLaw2(){
+TPZEulerConsLaw::~TPZEulerConsLaw(){
 	
 }
 
-TPZEulerConsLaw2::TPZEulerConsLaw2(int nummat,REAL timeStep,
+TPZEulerConsLaw::TPZEulerConsLaw(int nummat,REAL timeStep,
 								   REAL gamma,int dim,
 								   TPZArtDiffType artdiff) :
-TPZConservationLaw2(nummat,timeStep,dim),
+TPZConservationLaw(nummat,timeStep,dim),
 fArtDiff(artdiff, gamma),
 fDiff(Explicit_TD),
 fConvVol(Explicit_TD),
@@ -49,8 +49,8 @@ fConvFace(Explicit_TD)
 	fGamma = gamma;
 }
 
-TPZEulerConsLaw2::TPZEulerConsLaw2() :
-TPZConservationLaw2(-1, 0, 3),
+TPZEulerConsLaw::TPZEulerConsLaw() :
+TPZConservationLaw(-1, 0, 3),
 fArtDiff(LeastSquares_AD, 1.4),
 fDiff(Explicit_TD),
 fConvVol(Explicit_TD),
@@ -59,19 +59,19 @@ fConvFace(Explicit_TD)
 	fGamma = 1.4;
 }
 
-void TPZEulerConsLaw2::SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace)
+void TPZEulerConsLaw::SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace)
 {
 	fDiff = Diff;
 	fConvVol = ConvVol;
 	fConvFace = ConvFace;
 }
 
-REAL TPZEulerConsLaw2::OptimalCFL(int degree)
+REAL TPZEulerConsLaw::OptimalCFL(int degree)
 {
 	return 1./((2.0*(REAL)degree) + 1.0);
 }
 
-REAL TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
+REAL TPZEulerConsLaw::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
 {
 	REAL CFL = fCFL;
 	// Notice that fCFL remains 0, so that optimal CFL will
@@ -80,31 +80,31 @@ REAL TPZEulerConsLaw2::SetTimeStep(REAL maxveloc,REAL deltax,int degree)
 	
 	REAL deltaT = CFL*deltax/maxveloc;
 	//cout << "TPZCompMesh::Delta Time : " << deltaT << endl;
-	TPZConservationLaw2::SetTimeStep(deltaT);
+	TPZConservationLaw::SetTimeStep(deltaT);
 	
 	return deltaT;
 }
 
-int TPZEulerConsLaw2::NStateVariables(int dim) {
+int TPZEulerConsLaw::NStateVariables(int dim) {
 	return (2 + dim);//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-int TPZEulerConsLaw2::NStateVariables() {
+int TPZEulerConsLaw::NStateVariables() {
 	return NStateVariables(Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-REAL TPZEulerConsLaw2::Pressure(TPZVec<REAL> &U)
+REAL TPZEulerConsLaw::Pressure(TPZVec<REAL> &U)
 {
 	REAL press;
-	TPZEulerConsLaw2::Pressure(fGamma, fDim, press, U);
+	TPZEulerConsLaw::Pressure(fGamma, fDim, press, U);
 	return press;
 }
 
-void TPZEulerConsLaw2::Print(std::ostream &out) {
+void TPZEulerConsLaw::Print(std::ostream &out) {
 	
 	TPZMaterial::Print(out);
 	
-	TPZConservationLaw2::Print(out);
+	TPZConservationLaw::Print(out);
 	out << "Artificial Diffusion: " <<
 	fArtDiff.DiffusionName().Str() << std::endl;
 	out << "Number of State Variables: " << NStateVariables() << std::endl;
@@ -155,7 +155,7 @@ void TPZEulerConsLaw2::Print(std::ostream &out) {
 	
 }
 
-int TPZEulerConsLaw2::VariableIndex(const std::string &name) {
+int TPZEulerConsLaw::VariableIndex(const std::string &name) {
 	if( !strcmp(name.c_str(),"density")  )     return 1;//rho
 	if( !strcmp(name.c_str(),"velocity") )     return 2;//(u,v,w)
 	if( !strcmp(name.c_str(),"energy")   )     return 3;//E
@@ -163,26 +163,26 @@ int TPZEulerConsLaw2::VariableIndex(const std::string &name) {
 	if( !strcmp(name.c_str(),"solution") )     return 5;//(ro,u,v,w,E)
 	if( !strcmp(name.c_str(),"normvelocity") ) return 6;//sqrt(u+v+w)
 	if( !strcmp(name.c_str(),"Mach") )         return 7;//sqrt(u+v+w)/c
-	std::cout << "TPZEulerConsLaw2::VariableIndex not defined\n";
+	std::cout << "TPZEulerConsLaw::VariableIndex not defined\n";
 	return TPZMaterial::VariableIndex(name);
 }
 
-int TPZEulerConsLaw2::NSolutionVariables(int var){
+int TPZEulerConsLaw::NSolutionVariables(int var){
 	
 	if(var == 1 || var == 3 || var == 4 || var == 6 || var == 7) return 1;
 	if(var == 2) return Dimension();
 	if(var == 5) return NStateVariables();
 	
-	std::cout << "TPZEulerConsLaw2::NSolutionVariables not defined\n";
+	std::cout << "TPZEulerConsLaw::NSolutionVariables not defined\n";
 	return 0;
 }
 
-REAL TPZEulerConsLaw2::DeltaX(REAL detJac)
+REAL TPZEulerConsLaw::DeltaX(REAL detJac)
 {
 	return REAL(2.) * pow(fabs(detJac), REAL(1./((double) fDim)));
 }
 
-REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
+REAL TPZEulerConsLaw::Det(TPZFMatrix & Mat)
 {
 	switch(Mat.Rows())
 	{
@@ -202,24 +202,24 @@ REAL TPZEulerConsLaw2::Det(TPZFMatrix & Mat)
 			Mat(2,2) * Mat(0,1) * Mat(1,0);
 			//        break;
 		default:
-			PZError << "TPZEulerConsLaw2::Det error: unhandled matrix size: " <<
+			PZError << "TPZEulerConsLaw::Det error: unhandled matrix size: " <<
 			Mat.Rows() << std::endl;
 	}
 	
 	return 0.;
 }
 
-int TPZEulerConsLaw2::NFluxes()
+int TPZEulerConsLaw::NFluxes()
 {
 	return Dimension();
 }
 
 //-----------------Solutions
 
-void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZEulerConsLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(fabs(Sol[0]) < 1.e-10) {
-		PZError << "\nTPZEulerConsLaw2::Solution: Density almost null\n"
+		PZError << "\nTPZEulerConsLaw::Solution: Density almost null\n"
 		<< "Density = " << Sol[0] << std::endl;
 	}
 	
@@ -259,18 +259,18 @@ void TPZEulerConsLaw2::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &a
 		Solout.Resize(1);
 		REAL cspeed;
 		REAL us;
-		TPZEulerConsLaw2::cSpeed(Sol, fGamma, cspeed);
-		TPZEulerConsLaw2::uRes(Sol, us);
+		TPZEulerConsLaw::cSpeed(Sol, fGamma, cspeed);
+		TPZEulerConsLaw::uRes(Sol, us);
 		Solout[0] = us / cspeed;
 		return;
 	} else {
-		//cout << "TPZEulerConsLaw2::Solution variable in the base class\n";
+		//cout << "TPZEulerConsLaw::Solution variable in the base class\n";
 		TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 	}
 }
 
 
-void TPZEulerConsLaw2::SetDelta(REAL delta)
+void TPZEulerConsLaw::SetDelta(REAL delta)
 {
 	fArtDiff.SetDelta(delta);
 }
@@ -279,7 +279,7 @@ void TPZEulerConsLaw2::SetDelta(REAL delta)
 
 #ifdef _AUTODIFF
 
-void TPZEulerConsLaw2::PrepareFAD(
+void TPZEulerConsLaw::PrepareFAD(
 								  TPZVec<REAL> & sol, TPZFMatrix & dsol,
 								  TPZFMatrix & phi, TPZFMatrix & dphi,
 								  TPZVec<FADREAL> & FADsol,
@@ -318,7 +318,7 @@ void TPZEulerConsLaw2::PrepareFAD(
 		}
 }
 
-void TPZEulerConsLaw2::PrepareInterfaceFAD(
+void TPZEulerConsLaw::PrepareInterfaceFAD(
 										   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 										   TPZFMatrix &phiL,TPZFMatrix &phiR,
 										   TPZVec<FADREAL> & FADsolL,
@@ -365,7 +365,7 @@ void TPZEulerConsLaw2::PrepareInterfaceFAD(
 }
 
 template <class T>
-void TPZEulerConsLaw2::PrepareFastestInterfaceFAD(
+void TPZEulerConsLaw::PrepareFastestInterfaceFAD(
 												  TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 												  TPZVec<T> & FADsolL,
 												  TPZVec<T> & FADsolR)
@@ -390,7 +390,7 @@ void TPZEulerConsLaw2::PrepareFastestInterfaceFAD(
 
 //----------------Contributions
 
-void TPZEulerConsLaw2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
 	
 	// initial guesses for sol
@@ -424,10 +424,10 @@ void TPZEulerConsLaw2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix
 		return;
 	}
 	
-	PZError << "TPZEulerConsLaw2::Contribute> Unhandled Contribution Time";
+	PZError << "TPZEulerConsLaw::Contribute> Unhandled Contribution Time";
 }
 
-void TPZEulerConsLaw2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 {
 	
 	// initial guesses for sol
@@ -461,10 +461,10 @@ void TPZEulerConsLaw2::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix
 		return;
 	}
 	
-	PZError << "TPZEulerConsLaw2::Contribute> Unhandled Contribution Time";
+	PZError << "TPZEulerConsLaw::Contribute> Unhandled Contribution Time";
 }
 
-void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+void TPZEulerConsLaw::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 									  TPZVec<REAL> &sol,TPZFMatrix &dsol,
 									  REAL weight,
 									  TPZFMatrix &phi, TPZFMatrix &dphi,
@@ -492,7 +492,7 @@ void TPZEulerConsLaw2::ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 }
 
 
-void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 									 TPZVec<REAL> &sol, TPZFMatrix &dsol,
 									 REAL weight,
 									 TPZFMatrix &phi, TPZFMatrix &dphi,
@@ -524,7 +524,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 	    ContributeImplDiff(x, jacinv, FADsol,FADdsol, weight, ek, ef);
 #endif
 #else
-		std::cout << "TPZEulerConsLaw2::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
+		std::cout << "TPZEulerConsLaw::Contribute> Implicit diffusive contribution: _AUTODIFF directive not configured -> Using an approximation to the tgMatrix";
 		ContributeApproxImplDiff(x, jacinv, sol,dsol,weight,phi,dphi,ek,ef);
 #endif
 	}else
@@ -546,7 +546,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 	 }*/
 }
 
-void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
+void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 									 TPZVec<REAL> &sol, TPZFMatrix &dsol,
 									 REAL weight,
 									 TPZFMatrix &phi, TPZFMatrix &dphi,
@@ -569,7 +569,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 
 
 
-// void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+// void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 // {
 //
 //    // contributing face-based quantities
@@ -596,7 +596,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 // 	 #endif
 //       #else
 //       // forcing explicit contribution and issueing an warning
-//          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+//          cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 //          ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
 //       #endif
 //       }
@@ -625,7 +625,7 @@ void TPZEulerConsLaw2::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 //    }
 // }
 
-void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
 #ifdef LOG4CXX
     if(fluxroe->isDebugEnabled()){
@@ -659,7 +659,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 #endif
 #else
 		// forcing explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 		//         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
 		ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
 #endif
@@ -688,7 +688,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 }
 
 
-void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 {
 	
 	// contributing face-based quantities
@@ -703,7 +703,7 @@ void TPZEulerConsLaw2::ContributeInterface(TPZMaterialData &data, REAL weight, T
 	
 }
 
-void TPZEulerConsLaw2::ContributeBC(TPZMaterialData &data,
+void TPZEulerConsLaw::ContributeBC(TPZMaterialData &data,
                                     REAL weight,
                                     TPZFMatrix &ek, TPZFMatrix &ef,
                                     TPZBndCond &bc)
@@ -743,7 +743,7 @@ void TPZEulerConsLaw2::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 											 REAL weight,
 											 TPZFMatrix &ek,TPZFMatrix &ef,
 											 TPZBndCond &bc)
@@ -794,7 +794,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 #endif
 #else
 		// forcint explicit contribution and issueing an warning
-		std::cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 		//         ComputeGhostState(FADsolL, FADsolR, normal, bc, entropyFix);
 		//         ContributeApproxImplConvFace(x,solL,solR,weight,normal,phiL,phiR,ek,ef,entropyFix);
 #endif
@@ -827,7 +827,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 	}
 }
 
-// void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
+// void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 //                                               REAL weight,
 //                                               TPZFMatrix &ek,TPZFMatrix &ef,
 //                                               TPZBndCond &bc)
@@ -879,7 +879,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 // #endif
 //       #else
 //       // forcint explicit contribution and issueing an warning
-//          cout << "TPZEulerConsLaw2::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
+//          cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 //          ContributeExplConvFace(data.x,data.soll,solR,weight,data.normal,data.phil,phiR,ef);
 //       #endif
 //       }
@@ -910,7 +910,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 // }
 
 
-void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 											 REAL weight,
 											 TPZFMatrix &ef,
 											 TPZBndCond &bc)
@@ -966,7 +966,7 @@ void TPZEulerConsLaw2::ContributeBCInterface(TPZMaterialData &data,
 
 #ifdef _AUTODIFF
 
-void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
+void TPZEulerConsLaw::ContributeFastestBCInterface(int dim,
 													TPZVec<REAL> &x,
 													TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 													REAL weight, TPZVec<REAL> &normal,
@@ -995,14 +995,14 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface(int dim,
 												ek, ef, bc);
 			break;
 		default:
-			PZError << "\nTPZEulerConsLaw2::ContributeFastestBCInterface unhandled dimension\n";
+			PZError << "\nTPZEulerConsLaw::ContributeFastestBCInterface unhandled dimension\n";
 			exit(-1);
 	}
 };
 
 
 template <int dim>
-void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 														TPZVec<REAL> &solL, TPZFMatrix &dsolL,
 														REAL weight, TPZVec<REAL> &normal,
 														TPZFMatrix &phiL,TPZFMatrix &dphiL,TPZFMatrix &axesleft,
@@ -1051,7 +1051,7 @@ void TPZEulerConsLaw2::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 #endif
 
 template <class T>
-void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix)
+void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix)
 {
 	entropyFix = 1;
 	
@@ -1386,7 +1386,7 @@ void TPZEulerConsLaw2:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZV
 
 //------------------internal contributions
 
-void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeApproxImplDiff(TPZVec<REAL> &x,
 												TPZFMatrix &jacinv,
 												TPZVec<REAL> &sol,TPZFMatrix &dsol,
 												REAL weight,
@@ -1407,7 +1407,7 @@ void TPZEulerConsLaw2::ContributeApproxImplDiff(TPZVec<REAL> &x,
 									  );
 }
 
-void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeExplDiff(TPZVec<REAL> &x,
 										  TPZFMatrix &jacinv,
 										  TPZVec<REAL> &sol,TPZFMatrix &dsol,
 										  REAL weight,
@@ -1430,7 +1430,7 @@ void TPZEulerConsLaw2::ContributeExplDiff(TPZVec<REAL> &x,
 
 
 #ifdef _AUTODIFF
-void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeImplDiff(TPZVec<REAL> &x,
 										  TPZFMatrix &jacinv,
 										  TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 										  REAL weight,
@@ -1451,7 +1451,7 @@ void TPZEulerConsLaw2::ContributeImplDiff(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw2::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZEulerConsLaw::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix &jacinv, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
 	// computing the determinant of the jacobian
 	REAL deltaX = DeltaX(1./Det(jacinv));
@@ -1469,7 +1469,7 @@ void TPZEulerConsLaw2::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFM
 
 #endif
 
-void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeExplConvFace(TPZVec<REAL> &x,
 											  TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 											  REAL weight,TPZVec<REAL> &normal,
 											  TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -1506,7 +1506,7 @@ void TPZEulerConsLaw2::ContributeExplConvFace(TPZVec<REAL> &x,
 
 #ifdef _AUTODIFF
 
-void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 													TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 													REAL weight,TPZVec<REAL> &normal,
 													TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -1573,7 +1573,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
 
 #endif
 
-void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
+void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 													TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 													REAL weight,TPZVec<REAL> &normal,
 													TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -1683,7 +1683,7 @@ void TPZEulerConsLaw2::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSi
 
 #ifdef _AUTODIFF
 
-void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeImplConvFace(TPZVec<REAL> &x,
 											  TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 											  REAL weight,TPZVec<REAL> &normal,
 											  TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -1748,7 +1748,7 @@ void TPZEulerConsLaw2::ContributeImplConvFace(TPZVec<REAL> &x,
 		}
 }
 
-void TPZEulerConsLaw2::ContributeFastestImplConvFace(int dim,
+void TPZEulerConsLaw::ContributeFastestImplConvFace(int dim,
 													 TPZVec<REAL> &x,
 													 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 													 REAL weight,TPZVec<REAL> &normal,
@@ -1771,13 +1771,13 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace(int dim,
 												 phiL, phiR, ek, ef, entropyFix);
 			break;
 		default:
-			PZError << "\nTPZEulerConsLaw2::ContributeFastestImplConvFace unhandled dimension\n";
+			PZError << "\nTPZEulerConsLaw::ContributeFastestImplConvFace unhandled dimension\n";
 			exit(-1);
 	}
 }
 
 template <int dim>
-void TPZEulerConsLaw2::ContributeFastestImplConvFace_dim(
+void TPZEulerConsLaw::ContributeFastestImplConvFace_dim(
 														 TPZVec<REAL> &x,
 														 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 														 REAL weight,TPZVec<REAL> &normal,
@@ -1805,7 +1805,7 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_dim(
 }
 
 template <class T>
-void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 													   TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 													   REAL weight,TPZVec<REAL> &normal,
 													   TPZFMatrix &phiL,TPZFMatrix &phiR,
@@ -1885,7 +1885,7 @@ void TPZEulerConsLaw2::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 
 #endif
 
-void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeExplConvVol(TPZVec<REAL> &x,
 											 TPZVec<REAL> &sol,
 											 REAL weight,
 											 TPZFMatrix &phi, TPZFMatrix &dphi,
@@ -1916,7 +1916,7 @@ void TPZEulerConsLaw2::ContributeExplConvVol(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeImplConvVol(TPZVec<REAL> &x,
 											 TPZVec<REAL> &sol,TPZFMatrix &dsol,
 											 REAL weight,
 											 TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -1962,7 +1962,7 @@ void TPZEulerConsLaw2::ContributeImplConvVol(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw2::ContributeExplT1(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeExplT1(TPZVec<REAL> &x,
 										TPZVec<REAL> &sol,TPZFMatrix &dsol,
 										REAL weight,
 										TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -1995,7 +1995,7 @@ void TPZEulerConsLaw2::ContributeExplT1(TPZVec<REAL> &x,
 		}
 }
 
-void TPZEulerConsLaw2::ContributeImplT1(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeImplT1(TPZVec<REAL> &x,
 										TPZVec<REAL> &sol,TPZFMatrix &dsol,
 										REAL weight,
 										TPZFMatrix &phi,TPZFMatrix &dphi,
@@ -2034,7 +2034,7 @@ void TPZEulerConsLaw2::ContributeImplT1(TPZVec<REAL> &x,
 		}
 }
 
-void TPZEulerConsLaw2::ContributeExplT2(TPZVec<REAL> &x,
+void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
 										TPZVec<REAL> &sol,
 										REAL weight,
 										TPZFMatrix &phi,
@@ -2068,10 +2068,10 @@ void TPZEulerConsLaw2::ContributeExplT2(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw2::Write(TPZStream &buf, int withclassid)
+void TPZEulerConsLaw::Write(TPZStream &buf, int withclassid)
 {
 	TPZSaveable::Write(buf, 1);
-	TPZConservationLaw2::Write(buf, 0);
+	TPZConservationLaw::Write(buf, 0);
 	fArtDiff.Write(buf, 0);
 	int tmp = static_cast < int > (fDiff);
 	buf.Write(& tmp,1);
@@ -2081,10 +2081,10 @@ void TPZEulerConsLaw2::Write(TPZStream &buf, int withclassid)
 	buf.Write(&tmp,1);
 }
 
-void TPZEulerConsLaw2::Read(TPZStream &buf, void *context)
+void TPZEulerConsLaw::Read(TPZStream &buf, void *context)
 {
 	TPZSaveable::Read(buf, context);
-	TPZConservationLaw2::Read(buf, context);
+	TPZConservationLaw::Read(buf, context);
 	fArtDiff.Read(buf, context);
 	int diff;
 	buf.Read(&diff,1);
@@ -2108,7 +2108,7 @@ void TPZEulerConsLaw2::Read(TPZStream &buf, void *context)
  * @param flux [in]
  */
 template <class T>
-void TPZEulerConsLaw2::ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
+void TPZEulerConsLaw::ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
 									  TPZVec<REAL> & normal, REAL gamma,
 									  TPZVec<T> & flux, int entropyFix)
 {
@@ -2155,7 +2155,7 @@ void TPZEulerConsLaw2::ApproxRoe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
  * Flux of Roe (MOUSE program)
  */
 template <>
-void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
+void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 											   const FADREAL & rhou_f,
 											   const FADREAL & rhov_f,
 											   const FADREAL & rhow_f,
@@ -2402,7 +2402,7 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
  }*/
 
 template <>
-void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
+void TPZEulerConsLaw::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 											   const FADREAL & rhou_f,
 											   const FADREAL & rhov_f,
 											   const FADREAL & rhoE_f,
@@ -2639,10 +2639,10 @@ void TPZEulerConsLaw2::ApproxRoe_Flux<FADREAL>(const FADREAL & rho_f,
 /**
  Class identificator
  */
-int TPZEulerConsLaw2::ClassId() const {
+int TPZEulerConsLaw::ClassId() const {
     return TPZEULERCONSLAW2ID;
 }
 
 template class
-TPZRestoreClass< TPZEulerConsLaw2, TPZEULERCONSLAW2ID>;
+TPZRestoreClass< TPZEulerConsLaw, TPZEULERCONSLAW2ID>;
 

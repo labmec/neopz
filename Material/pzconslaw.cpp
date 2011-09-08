@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains implementations of the TPZConservationLaw2 methods.
+ * @brief Contains implementations of the TPZConservationLaw methods.
  */
 //$Id: pzconslaw.cpp,v 1.12 2011-03-28 18:19:41 fortiago Exp $
 
@@ -15,7 +15,7 @@
 using namespace std;
 
 
-TPZConservationLaw2::TPZConservationLaw2(int nummat,REAL timeStep,int dim) :
+TPZConservationLaw::TPZConservationLaw(int nummat,REAL timeStep,int dim) :
 TPZDiscontinuousGalerkin(nummat),
 fDim(dim),
 fTimeStep(0),
@@ -28,13 +28,13 @@ fResidualType(Flux_RT)
 	fTimeStep = timeStep;
 	if(timeStep < 0 || timeStep > 1)
 	{
-		PZError << "TPZConservationLaw2::TPZConservationLaw2 time step parameter > 1 , default 1.0\n";
+		PZError << "TPZConservationLaw::TPZConservationLaw time step parameter > 1 , default 1.0\n";
 		fTimeStep = 1.0;
 	}
 	
 	if(dim < 1 || dim > 3)
 	{
-		PZError << "TPZConservationLaw2::TPZConservationLaw2 (abort) error dimension = " << dim << endl;
+		PZError << "TPZConservationLaw::TPZConservationLaw (abort) error dimension = " << dim << endl;
 		DebugStop();
 	}
 	fDim = dim;
@@ -43,11 +43,11 @@ fResidualType(Flux_RT)
 }
 
 
-TPZConservationLaw2::~TPZConservationLaw2()
+TPZConservationLaw::~TPZConservationLaw()
 {
 }
 
-void TPZConservationLaw2::Print(std::ostream &out)
+void TPZConservationLaw::Print(std::ostream &out)
 {
 	out << "name of material : " << Name() << "\n";
 	out << "properties : \n";
@@ -72,7 +72,7 @@ void TPZConservationLaw2::Print(std::ostream &out)
 	}
 }
 
-void TPZConservationLaw2::Write(TPZStream &buf, int withclassid)
+void TPZConservationLaw::Write(TPZStream &buf, int withclassid)
 {
 	TPZMaterial::Write(buf, withclassid);
 	buf.Write(&fDim,1);
@@ -81,7 +81,7 @@ void TPZConservationLaw2::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fGamma,1);
 }
 
-void TPZConservationLaw2::Read(TPZStream &buf, void *context)
+void TPZConservationLaw::Read(TPZStream &buf, void *context)
 {
 	TPZMaterial::Read(buf, context);
 	buf.Read(&fDim,1);

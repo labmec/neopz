@@ -96,8 +96,8 @@ REAL TPZArtDiff::Delta(REAL deltax, TPZVec<REAL> & sol)
 			//     break;
 		case LeastSquares_AD:
 		case TrnLeastSquares_AD:
-			TPZEulerConsLaw2::uRes(sol, us);
-			TPZEulerConsLaw2::cSpeed(sol, fGamma, c);
+			TPZEulerConsLaw::uRes(sol, us);
+			TPZEulerConsLaw::cSpeed(sol, fGamma, c);
 			lambdaMax = us+c;
 			return dX /2. / lambdaMax;
 			//    break;
@@ -337,8 +337,8 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
 	LambdaSUPG;
 	T us, c;
 	
-	TPZEulerConsLaw2::uRes(sol, us);
-	TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+	TPZEulerConsLaw::uRes(sol, us);
+	TPZEulerConsLaw::cSpeed(sol, 1.4, c);
 	
 	RMMatrix(sol, us, fGamma, RTM, RMi);
 	
@@ -363,8 +363,8 @@ void TPZArtDiff::SUPG(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, 
 	LambdaSUPG;
 	T us, c;
 	
-	TPZEulerConsLaw2::uRes(sol, us);
-	TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+	TPZEulerConsLaw::uRes(sol, us);
+	TPZEulerConsLaw::cSpeed(sol, 1.4, c);
 	
 	RotMatrix(sol, us, Rot, RotT);
 	MMatrix(sol, us, fGamma, M, Mi);
@@ -420,8 +420,8 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<T
 	T us, c;
 	TPZVec<REAL> alphas(dim,0.);
 	
-	TPZEulerConsLaw2::uRes(sol, us);
-	TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+	TPZEulerConsLaw::uRes(sol, us);
+	TPZEulerConsLaw::cSpeed(sol, 1.4, c);
 	
 	RMMatrix(sol, us, fGamma, RTM, RMi);
 	
@@ -459,8 +459,8 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<T
 	T us, c;
 	TPZVec<REAL> alphas(dim,0.);
 	
-	TPZEulerConsLaw2::uRes(sol, us);
-	TPZEulerConsLaw2::cSpeed(sol, 1.4, c);
+	TPZEulerConsLaw::uRes(sol, us);
+	TPZEulerConsLaw::cSpeed(sol, 1.4, c);
 	
 	RotMatrix(sol, us, Rot, RotT);
 	MMatrix(sol, us, fGamma, M, Mi);
@@ -502,7 +502,7 @@ template <class T>
 void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix &jacinv, TPZVec<T> &U,
 							 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau)
 {
-	TPZEulerConsLaw2::JacobFlux(fGamma, dim, U, Ai);
+	TPZEulerConsLaw::JacobFlux(fGamma, dim, U, Ai);
 	ComputeTau(dim, jacinv, U, Ai, Tau);
 }
 
@@ -513,7 +513,7 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<REAL> &sol,
 	TPZVec<TPZDiffMatrix<REAL> > Ai;
 	TPZVec<TPZDiffMatrix<REAL> > Tau;
 	
-	TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
+	TPZEulerConsLaw::JacobFlux(fGamma, dim, sol, Ai);
 	ComputeTau(dim, jacinv, sol, Ai, Tau);
 	
 	TPZVec<REAL> Div;
@@ -550,7 +550,7 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix &jacinv, TPZVec<FADREAL> &s
 	TPZVec<TPZDiffMatrix<FADREAL> > Ai;
 	TPZVec<TPZDiffMatrix<FADREAL> > Tau;
 	
-	TPZEulerConsLaw2::JacobFlux(fGamma, dim, sol, Ai);
+	TPZEulerConsLaw::JacobFlux(fGamma, dim, sol, Ai);
 	ComputeTau(dim, jacinv, sol, Ai, Tau);
 	
 	//  #define TEST_PARTIAL_DIFF
@@ -626,7 +626,7 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix &jacinv,
 		FADsol[i].diff(i, nstate);
 	}
 	
-	TPZEulerConsLaw2::JacobFlux(fGamma, dim, FADsol, FADAi);
+	TPZEulerConsLaw::JacobFlux(fGamma, dim, FADsol, FADAi);
 	ComputeTau(dim, jacinv, FADsol, FADAi, FADTau);
 	
 	for( k = 0; k < dim; k++)
@@ -853,7 +853,7 @@ void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv, TPZVec<R
 template< class T >
 void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 {
-	TPZEulerConsLaw2::Pressure(gamma, dim, press, U);
+	TPZEulerConsLaw::Pressure(gamma, dim, press, U);
 }
 
 

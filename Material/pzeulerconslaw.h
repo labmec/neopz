@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZEulerConsLaw2 class which implements the weak statement of the compressible euler equations.
+ * @brief Contains the TPZEulerConsLaw class which implements the weak statement of the compressible euler equations.
  */
 //$Id: pzeulerconslaw.h,v 1.41 2009-09-01 22:07:16 phil Exp $
 
@@ -34,26 +34,26 @@ extern LoggerPtr fluxappr;
  * @ingroup material
  * @brief This material implements the weak statement of the compressible euler equations
  */
-class TPZEulerConsLaw2  : public TPZConservationLaw2
+class TPZEulerConsLaw  : public TPZConservationLaw
 {
 	public :
 	
-	TPZEulerConsLaw2(int nummat,REAL timeStep,
+	TPZEulerConsLaw(int nummat,REAL timeStep,
 					 REAL gamma,int dim,
 					 TPZArtDiffType artdiff);
 	
-	~TPZEulerConsLaw2();
+	~TPZEulerConsLaw();
 	
-	TPZEulerConsLaw2();
+	TPZEulerConsLaw();
 	
-	TPZEulerConsLaw2(const TPZEulerConsLaw2 &cp) : TPZConservationLaw2(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
+	TPZEulerConsLaw(const TPZEulerConsLaw &cp) : TPZConservationLaw(cp), fArtDiff(cp.fArtDiff),fDiff(cp.fDiff),
 	fConvVol(cp.fConvVol),fConvFace(cp.fConvFace)
 	{
 	}
 	
 	TPZAutoPointer<TPZMaterial> NewMaterial()
 	{
-		return new TPZEulerConsLaw2(*this);
+		return new TPZEulerConsLaw(*this);
 	}
 	
 	
@@ -144,7 +144,7 @@ public:
 	/** @brief returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
-		TPZConservationLaw2::Solution(data,var,Solout);
+		TPZConservationLaw::Solution(data,var,Solout);
 	}
 	/** @} */
 	
@@ -583,19 +583,19 @@ protected:
 	/** @} */
 };
 
-inline std::string TPZEulerConsLaw2::Name()
+inline std::string TPZEulerConsLaw::Name()
 {
-	return "TPZEulerConsLaw2";
+	return "TPZEulerConsLaw";
 }
 
 template < class T >
-inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVec<T> &Fz) {
+inline void TPZEulerConsLaw::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVec<T> &Fz) {
 	
 	T press;
 	Pressure(fGamma, fDim, press, U);
 	int nstate = NStateVariables();
 	if(nstate < 3 && nstate > 5){
-		PZError << "TPZEulerConsLaw2::Flux case not implemented\n";
+		PZError << "TPZEulerConsLaw::Flux case not implemented\n";
 		Fx.Resize(0);
 		Fy.Resize(0);
 		Fz.Resize(0);
@@ -649,15 +649,15 @@ inline void TPZEulerConsLaw2::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZV
 
 
 template <class T>
-inline void TPZEulerConsLaw2::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
+inline void TPZEulerConsLaw::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
 {//OK
 	
 	Ai.Resize(dim);
 	int i;
-	for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw2::NStateVariables(dim), TPZEulerConsLaw2::NStateVariables(dim));
+	for(i=0;i<dim;i++)Ai[i].Redim(TPZEulerConsLaw::NStateVariables(dim), TPZEulerConsLaw::NStateVariables(dim));
 	
 	if(U[0] < REAL(1.e-6)) {
-		PZError << "TPZEulerConsLaw2::JacobFlux: Density negative "   << U[0] << std::endl;
+		PZError << "TPZEulerConsLaw::JacobFlux: Density negative "   << U[0] << std::endl;
 		TPZOutofRange obj;
 		throw(obj);
 	}
@@ -862,10 +862,10 @@ inline REAL val(REAL & number)
 }
 
 template< class T >
-inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
+inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
 {
 	if(fabs(val(U[0])) < 1.e-6) {
-		PZError << "\nTPZEulerConsLaw2::Pressure> Density negative "
+		PZError << "\nTPZEulerConsLaw::Pressure> Density negative "
 		<< U[0] << std::endl;
 		TPZOutofRange obj;
 		throw(obj);
@@ -892,13 +892,13 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
 				T rho_velocity = ( U[1]*U[1] )/U[0];
 				press = ((gamma-1.)*( U[2] - REAL(0.5) * rho_velocity ));
 			} else {
-				std::cout << "\nTPZEulerConsLaw2::Pressure> Unknown case - returning zero\n";
+				std::cout << "\nTPZEulerConsLaw::Pressure> Unknown case - returning zero\n";
 				press = 0.0;
 				return;
 			}
 	if(val(press) < 0){
 		T temp = (gamma-1.)*U[nstate-1];
-		PZError << "TPZEulerConsLaw2::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << std::endl;
+		PZError << "TPZEulerConsLaw::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << std::endl;
 		TPZOutofRange obj;
 		throw(obj);
 	}
@@ -907,7 +907,7 @@ inline void TPZEulerConsLaw2::Pressure(REAL gamma, int dim, T & press, TPZVec<T>
 //----------------Test Flux
 
 template <class T>
-void TPZEulerConsLaw2::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
+void TPZEulerConsLaw::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
 {
 	int nState = flux.NElements();
 	for(int i = 0; i < nState; i++)
@@ -920,7 +920,7 @@ void TPZEulerConsLaw2::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> 
 //----------------Roe Flux
 
 template <class T>
-void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux, int entropyFix)
+void TPZEulerConsLaw::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux, int entropyFix)
 {
 	// Normals outgoing from the BC elements into the
 	// mesh elements -> all the normals are opposited to
@@ -963,7 +963,7 @@ void TPZEulerConsLaw2::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
 
 //left = **_f    right = **_t
 template <class T>
-inline void TPZEulerConsLaw2::Roe_Flux(
+inline void TPZEulerConsLaw::Roe_Flux(
 									   const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhow_f,
 									   const T & rhoE_f, const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhow_t,
 									   const T & rhoE_t, const REAL nx, const REAL ny, const REAL nz, const REAL gam,
@@ -1174,7 +1174,7 @@ inline void TPZEulerConsLaw2::Roe_Flux(
 
 //left = **_f    right = **_t
 template <class T>
-inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhoE_f,
+inline void TPZEulerConsLaw::Roe_Flux(const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhoE_f,
 									   const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhoE_t,
 									   const REAL nx, const REAL ny, const REAL gam,
 									   T & flux_rho, T & flux_rhou,T & flux_rhov, T & flux_rhoE, int entropyFix){
@@ -1366,33 +1366,33 @@ inline void TPZEulerConsLaw2::Roe_Flux(const T & rho_f, const T & rhou_f, const 
 
 
 template <class T>
-void TPZEulerConsLaw2::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
+void TPZEulerConsLaw::cSpeed(TPZVec<T> & sol, REAL gamma, T & c)
 {
 	if(sol[0] < REAL(1e-10))
 	{
-		PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
+		PZError << "TPZEulerConsLaw::cSpeed Too low or negative density\n";
 		TPZOutofRange obj;
 		throw(obj);
 	}
 	
 	int dim = sol.NElements() - 2;
 	T press, temp;
-	TPZEulerConsLaw2::Pressure(gamma, dim, press, sol);
+	TPZEulerConsLaw::Pressure(gamma, dim, press, sol);
 	temp = gamma * press;
 	
 	if(temp < REAL(1e-10)) // too low or negative
 	{
-		PZError << "TPZEulerConsLaw2::cSpeed Too low or negative numerator\n";
+		PZError << "TPZEulerConsLaw::cSpeed Too low or negative numerator\n";
 	}
 	c = sqrt(gamma * press/ sol[0]);
 }
 
 template <class T>
-inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
+inline void TPZEulerConsLaw::uRes(TPZVec<T> & sol, T & us)
 {
 	if(sol[0] < REAL(1e-10))
 	{
-		PZError << "TPZEulerConsLaw2::cSpeed Too low or negative density\n";
+		PZError << "TPZEulerConsLaw::cSpeed Too low or negative density\n";
 		TPZOutofRange obj;
 		throw(obj);
 		//      exit(-1);
@@ -1407,7 +1407,7 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
 			temp = sol[1]*sol[1] + sol[2]*sol[2];
 			if(temp < REAL(1e-40))
 			{
-				PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
+				PZError << "TPZEulerConsLaw::uRes Zero Velocity\n";
 				TPZOutofRange obj;
 				throw(obj);
 				//	 exit(-1);
@@ -1418,7 +1418,7 @@ inline void TPZEulerConsLaw2::uRes(TPZVec<T> & sol, T & us)
 			temp = sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3];
 			if(temp < REAL(1e-40))
 			{
-				PZError << "TPZEulerConsLaw2::uRes Zero Velocity\n";
+				PZError << "TPZEulerConsLaw::uRes Zero Velocity\n";
 				TPZOutofRange obj;
 				throw(obj);
 				//	 exit(-1);

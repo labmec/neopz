@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief Contains the TPZConservationLaw2 class which implements the interface for conservation laws.
+ * @brief Contains the TPZConservationLaw class which implements the interface for conservation laws.
  */
 //$Id: pzconslaw.h,v 1.26 2009-09-01 19:44:46 phil Exp $
 
@@ -50,25 +50,25 @@ enum TPZResidualType
 
 /**
  * @ingroup material
- * @brief This class implements the interface for conservation laws, keeping track of the timestep as well
+ * @brief Implements the interface for conservation laws, keeping track of the timestep as well
  */
 /**
  * Defines the aditional interface necessary to compute contributions over the interfaces between elements
  */
-class TPZConservationLaw2  : public TPZDiscontinuousGalerkin
+class TPZConservationLaw  : public TPZDiscontinuousGalerkin
 {
 public:
 	
-	TPZConservationLaw2(int nummat,REAL timeStep,int dim);
+	TPZConservationLaw(int nummat,REAL timeStep,int dim);
 	
-	TPZConservationLaw2(const TPZConservationLaw2 &cp) : TPZDiscontinuousGalerkin(cp),
+	TPZConservationLaw(const TPZConservationLaw &cp) : TPZDiscontinuousGalerkin(cp),
 	fDim(cp.fDim),fTimeStep(cp.fTimeStep),fCFL(cp.fCFL), fGamma(cp.fGamma),fContributionTime(cp.fContributionTime)
 	,fResidualType(cp.fResidualType)
 	{
 	}
 	
 	
-	virtual ~TPZConservationLaw2();
+	virtual ~TPZConservationLaw();
 	
 	//------------------attributes and parameters
 	
@@ -264,55 +264,55 @@ protected:
 	
 };
 
-inline int TPZConservationLaw2::Dimension()
+inline int TPZConservationLaw::Dimension()
 {
 	return fDim;
 }
 
-inline REAL TPZConservationLaw2::CFL()
+inline REAL TPZConservationLaw::CFL()
 {
 	return fCFL;
 }
 
-inline void TPZConservationLaw2::SetCFL(REAL CFL)
+inline void TPZConservationLaw::SetCFL(REAL CFL)
 {
 	//if(CFL > 1e3) CFL = 1e3;
 	fCFL = CFL;
 	//   std::cout << "CFL:"<<CFL << std::endl;
 }
 
-inline void TPZConservationLaw2::SetGamma(int gamma)
+inline void TPZConservationLaw::SetGamma(int gamma)
 {
 	fGamma = gamma;
 }
 
-inline REAL TPZConservationLaw2::Gamma()
+inline REAL TPZConservationLaw::Gamma()
 {
 	return fGamma;
 }
 
-inline void TPZConservationLaw2::SetTimeStep(REAL timeStep)
+inline void TPZConservationLaw::SetTimeStep(REAL timeStep)
 {
 	fTimeStep = timeStep;
 }
 
-inline REAL TPZConservationLaw2::TimeStep()
+inline REAL TPZConservationLaw::TimeStep()
 {
 	if(fResidualType == Residual_RT)return fTimeStep;
 	return 1.;
 }
-inline int TPZConservationLaw2::NFluxes()
+inline int TPZConservationLaw::NFluxes()
 {
 	return 1;
 }
 
-inline void TPZConservationLaw2::SetContributionTime(TPZContributeTime time)
+inline void TPZConservationLaw::SetContributionTime(TPZContributeTime time)
 {
 	fContributionTime = time;
 }
 
 
-inline void TPZConservationLaw2::SetResidualType(TPZResidualType type)
+inline void TPZConservationLaw::SetResidualType(TPZResidualType type)
 {
 	fResidualType = type;
 }
