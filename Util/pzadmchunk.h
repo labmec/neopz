@@ -112,8 +112,6 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 private:
 	
 	friend class TPZSaveable;
-	/** @shapeType DependencyLink */
-	/*# TPZChunkVector lnkUnnamed */
 	
 	/**
 	 * @brief Internal variable indicating the type of compacting scheme.
