@@ -54,13 +54,11 @@ namespace pzshape {
 		dphi(1,3) = x[0]*dy[1];
 	}
 	
-	/**
+	/*
 	 * Computes the generating shape functions for a quadrilateral element
 	 * @param pt (input) point where the shape function is computed
 	 * @param phi (input) value of the (4) shape functions
 	 * @param dphi (input) value of the derivatives of the (4) shape functions holding the derivatives in a column
-	 * @param phig (output) value of the (5) generating shape functions
-	 * @param dphig (output) value of the derivatives of the (5) generating shape functions holding the derivatives in a column
 	 */
 	void TPZShapeQuad::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
 	{

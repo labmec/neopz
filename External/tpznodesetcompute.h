@@ -97,6 +97,7 @@ private:
 	/** @brief Counter for the condensed node graph */
 	int fMaxSeqNum;
 	int fMaxLevel;
+	
 	/** @brief Sequence number associated with each node after condensing */
 	TPZVec<int> fSeqNumber;
 	/** @brief Number of nodes associated with each sequence number */
@@ -107,24 +108,18 @@ private:
 	TPZVec<int> fIsIncluded;
 	
 	/**
-	 * @brief This method will analyse the set inclusion of the current node, calling the method
+	 * @brief This method will analyse the set inclusion of the current node, calling the method \n
 	 * recursively if another node need to be analysed first
 	 */
 	void AnalyseNode(int node, TPZVec< std::set<int> > &nodeset);  
-	
-	/**
-	 * Build the set of nodes which are vertices
-	 */
-	//void BuildVertexSet(int node, std::set<int> &nodeset);
 	
 	/** @brief Look for elements formed by vertices, intersecting with the intersectvertices, one by one */
 	/** If the intersection does not remove any of the intersectvertices, we found an element! */
 	void AnalyseForElements(std::set<int> &vertices, std::set< std::set<int> > &elements);
 	/**
 	 * @brief working a set of vertex nodes with nodes which have to be intersected (tested)
-	 * @param node: first parameter the set of nodes which need to form elements
-	 * @param second parameter nodes whose intersection need to be considered
-	 * @param third parameter vertex sets which have already been considered
+	 * @param node node whose intersection need to be considered
+	 * @param nodeset the set of nodes which need to form elements
 	 */
 	void SubstractLowerNodes(int node, std::set<int> &nodeset);
 };

@@ -97,7 +97,7 @@ namespace pzshape {
 		/**
 		 * The internal shape functions are the shapefunctions before being multiplied by the corner
 		 * shape functions\n
-		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
+		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation \n
 		 * determined by the transformation index
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
@@ -110,38 +110,37 @@ namespace pzshape {
 		 * @param phi shapefunction values (and derivatives)
 		 */
 		/**
-		 * The internal shape functions are the shapefunctions before being multiplied by the corner
-		 * shape functions\n
-		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
+		 * The internal shape functions are the shapefunctions before being multiplied by the corner shape functions\n
+		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation \n
 		 * determined by the transformation index
 		 */
 		static void Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADREAL> &phi);//,int quad_transformation_index
 #endif
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
-		 * @param rib rib index to which the point should be projected
+		 * @param face rib index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element
 		 * @param outval coordinate of the point on the rib
 		 */
-		static void ProjectPoint3dCubeToRib(int side, TPZVec<REAL> &in, REAL &outval);
+		static void ProjectPoint3dCubeToRib(int face, TPZVec<REAL> &in, REAL &outval);
 		
 #ifdef _AUTODIFF
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
-		 * @param rib rib index to which the point should be projected
+		 * @param face rib index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element already setup with derivatives
 		 * @param outval coordinate of the point on the rib
 		 */
-		static void ProjectPoint3dCubeToRib(int side, TPZVec<FADREAL> &in, FADREAL &outval);
+		static void ProjectPoint3dCubeToRib(int face, TPZVec<FADREAL> &in, FADREAL &outval);
 #endif
 		
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
-		 * @param rib rib index to which the point should be projected
+		 * @param face rib index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element
-		 * @param outval coordinate of the point on the rib
+		 * @param out coordinate of the point on the rib
 		 */
-		static void ProjectPoint3dCubeSide(int side, TPZVec<REAL> &in, REAL &out);
+		static void ProjectPoint3dCubeSide(int face, TPZVec<REAL> &in, REAL &out);
 		
 		/**
 		 * @brief Projects a point from the interior of the element to a face
@@ -155,7 +154,7 @@ namespace pzshape {
 		 * @brief Projects a point from the interior of the element to a face
 		 * @param face face index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element
-		 * @param out coordinates of the point on the face
+		 * @param outval coordinates of the point on the face
 		 */
 		static void ProjectPoint3dCubeToFace(int face, TPZVec<REAL> &in, TPZVec<REAL> &outval);
 #ifdef _AUTODIFF
@@ -163,7 +162,7 @@ namespace pzshape {
 		 * @brief Projects a point from the interior of the element to a face
 		 * @param face face index to which the point should be projected
 		 * @param in coordinate of the point at the interior of the element (with derivatives)
-		 * @param out coordinates of the point on the face (with derivatives)
+		 * @param outval coordinates of the point on the face (with derivatives)
 		 */
 		static void ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval);
 #endif

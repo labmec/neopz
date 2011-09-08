@@ -138,7 +138,7 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \page externlibs External Libraries used in PZ
  
 \section metis Metis library
-If you put USING_METIS as TRUE, you must to install Metis library. Metis library is avaliable 
+If you set USING_METIS as TRUE, you must to install Metis library. Metis library is avaliable 
 from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
  
 \section boost Boost library

@@ -26,7 +26,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
-	 * @param planinstress \f$ plainstress = 1 \f$ indicates use of plainstress
+	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
 	TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress = 1);
 	

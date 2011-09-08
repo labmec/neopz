@@ -74,20 +74,7 @@ public:
 	/** @brief This method will reset the matrix associated with the solver */
 	/** This is useful when the matrix needs to be recomputed in a non linear problem */
 	virtual void ResetMatrix();
-	/**
-	 * @ brief Sets a matrix to the current object
-	 * @ param Refmat Sets reference matrix to RefMat
-	 */
-	/*virtual  void SetMatrix(TPZMatrix *Refmat)
-	 {
-	 TPZMatrixSolver::SetMatrix(Refmat);
-	 }
-	 */
-	
-	/**
-	 This method gives a preconditioner to share a matrix with the referring solver object
-	 */
-	//  virtual void SetMatrix(TPZMatrixSolver *solver);
+
 	/**
 	 * @brief Updates the values of the current matrix based on the values of the matrix
 	 */
@@ -118,7 +105,7 @@ private:
 	REAL fTol;
 	REAL fOverRelax;
 	
-	/** @supplierCardinality 1 */
+	/** @brief Solver using preconditioner matrix */
 	TPZSolver *fPrecond;
 	int fFromCurrent;
 	

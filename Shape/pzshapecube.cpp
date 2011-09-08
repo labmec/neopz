@@ -88,8 +88,6 @@ namespace pzshape {
 	 * @param pt (input) point where the shape function is computed
 	 * @param phi (input) value of the (8) shape functions
 	 * @param dphi (input) value of the derivatives of the (8) shape functions holding the derivatives in a column
-	 * @param phig (output) value of the (19) generating shape functions
-	 * @param dphig (output) value of the derivatives of the (19) generating shape functions holding the derivatives in a column
 	 */
 	void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
 	{

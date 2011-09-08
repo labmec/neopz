@@ -17,7 +17,7 @@ class TPZBlock;
  */
 /** 
  * MVGraph: Multivariate Interactive Visualization can to be obtained from: \n
- * \link "http://cran.r-project.org/web/packages/mvgraph/index.html"
+ * <a href="http://cran.r-project.org/web/packages/mvgraph/index.html">Lattes</a>
  */
 class TPZMVGraphMesh : public TPZGraphMesh {
 

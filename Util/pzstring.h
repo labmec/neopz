@@ -23,40 +23,37 @@ public:
 	/** @brief Default Constructor. */
 	TPZString();
 	
-	/** Constructs a TPZString object based on a null char ended string. */
-	//      inline TPZString(const char * source);
-	
-	/** @brief Constructs a TPZString object based on a null char ended string. */
+	/** @brief Constructs a TPZString object based on another string (char *) */
 	TPZString(char const * source);
 	
-	/** @brief Initializes the TPZString object with a predefined size. */
+	/** @brief Initializes the TPZString object with a predefined size */
 	TPZString(const int size);
 	
-	/** @brief Single char constructor. */
+	/** @brief Single char constructor */
 	TPZString(const char chr);
 	
-	/** @brief Destructor. */
+	/** @brief Default destructor */
 	~TPZString() { }
 	
 	/**
-	 * @brief Concatenates the 'this' string with another character string. \n
+	 * @brief Concatenates the 'this' string with another character string (increment)
 	 * @note Original strings are left unchanged.
 	 */
 	TPZString operator + (const char * increment) const;
 	
 	/**
-	 * @brief Concatenates the 'this' string with a character.
+	 * @brief Concatenates the 'this' string with another string object
 	 * @note Original string and character are left unchanged.
 	 */
 	TPZString operator + (const TPZString & increment) const;
 	
-	/** @brief Appends a string at the tail. Resizes the TPZString if necessary. */
+	/** @brief Appends a string at the tail. Resizes the TPZString if necessary */
 	void operator += (const char * increment);
 	
-	/** @brief Appends a character at the end. Resizes if necessary. */
+	/** @brief Appends a character at the end. Resizes if necessary */
 	void operator += (const char increment);
 	
-	/** @brief operator =. Resizes if necessary. */
+	/** @brief operator attribution. Resizes if necessary */
 	bool operator == (const TPZString cmp)
 	{
 		if(!strcmp(fStore, cmp.fStore)) return true;
@@ -64,7 +61,7 @@ public:
 		
 	}
 	
-	/** @brief operator =. Resizes if necessary. */
+	/** @brief operator =. Resizes if necessary */
 	void operator = (const char * source)
 	{
 		int len = strlen(source);
@@ -77,15 +74,14 @@ public:
 		strcpy(fStore, source);
 	}
 	
-	/** @brief Appends a character at the end. Resizes if necessary. */
+	/** @brief Appends a character at the end. Resizes if necessary */
 	void Append(const char TailIncrement);
 	
-	/** @brief Appends a string at the tail. Resizes the TPZString if necessary. */
+	/** @brief Appends a string at the tail. Resizes the TPZString if necessary */
 	void Append(const char * TailIncrement);
 	
 	/**
-	 * @brief Explicitly convertes a TPZString into a const null ended
-	 * char string.
+	 * @brief Explicitly convertes a TPZString into a const null ended char string.
 	 */
 	const char * Str() const;
 	
@@ -93,8 +89,7 @@ public:
 	operator const char * () const;
 	
 	/**
-	 * @brief Similar to strlen(string). Also returns the number of
-	 * non-null characters.
+	 * @brief Similar to strlen(string). Also returns the number of non-null characters.
 	 */
 	int Length() const;
 	
@@ -104,13 +99,12 @@ public:
 	 * @param end end of the string (zero-based)
 	 */
 	/**
-	 * If start and end are the same, a substring containing one
-	 * character is returned. \n
-	 * <li>
-	 * <ul> if start <= 0, start is assumed to be 0; \n
-	 * <ul> if end < start, null pointer is returned; \n
-	 * <ul> if end > length, end is assumed to be equal to length.
-	 * </li>
+	 * If start and end are the same, a substring containing one character is returned. \n
+	 * \li \n
+	 * if \f$ start \leq 0 \f$, start is assumed to be 0; \n
+	 * if \f$ end < start \f$, null pointer is returned; \n
+	 * if \f$ end > length \f$, end is assumed to be equal to length.
+	 * \li
 	 */
 	TPZString SubStr(const int start, const int end) const;
 	

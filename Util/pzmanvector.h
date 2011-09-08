@@ -18,14 +18,12 @@ const int DEFAULTVEC_ALLOC = 200;
  * @brief Implements a vector class which allows to use external storage provided by the user. \ref util "Utility"
  */
 /** 
- * The external storage will be used if the
- * number of elements of the external storage is greater than or equal \n
- * to the number of elements the object needs. When changing the size
- * of the object, this class will only allocate new storage area if \n
- * the storage currently allocated is insufficient to the hold the
- * object. \n This makes the resize method more efficient in terms of
- * dynamic memory allocation the Shrink method \n will reallocate the
- * storage to fit the number of elements exactly.
+ * The external storage will be used if the number of elements of the external storage is \n
+ * greater than or equal to the number of elements the object needs. When changing the size \n
+ * of the object, this class will only allocate new storage area if the storage currently allocated \n
+ * is insufficient to the hold the object. \n
+ * This makes the resize method more efficient in terms of dynamic memory allocation the Shrink method \n
+ * will reallocate the storage to fit the number of elements exactly.
  */
 template < class T, int NumExtAlloc = DEFAULTVEC_ALLOC >
 class TPZManVector : public TPZVec< T >
@@ -115,12 +113,9 @@ public:
 	virtual void Resize( const int newsize );
 	
 private:
-	/**@shapeType DependencyLink*/
-	/*#  TPZVec lnkUnnamed */
 	
 	/**
-	 * @brief Returns a suggested size for expanding the storage to fit the
-	 * required storage.
+	 * @brief Returns a suggested size for expanding the storage to fit the required storage.
 	 * @param proposed Storage needed for the new vector.
 	 * @return Expansion size which is suggested.
 	 */

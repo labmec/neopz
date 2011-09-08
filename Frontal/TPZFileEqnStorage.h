@@ -107,19 +107,10 @@ private:
 	
     /** @brief Indicates the number of headers for the object */
 	int fNumHeaders;
-    /** Indicates blocksize */
-	//int fBlockSize;
 	
-    /**
-     * @brief Stack containing block positions 
-     */
+    /** @brief Stack containing block positions */
     TPZStack<long int> fBlockPos;
-	
-    /** 
-	 * @label Several objects are stored within a stack object
-     * @link association*/
-    /*#  TPZEqnArray lnkTPZEqnArray; */
-	
+
     /** @brief file name containing binary data */
     std::string fFileName;
 	
