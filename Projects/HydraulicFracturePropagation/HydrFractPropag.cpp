@@ -1320,6 +1320,7 @@ int main(int argc, char * const argv[])
                 {
                     sum += phi[s];       
                 }
+                std::cout << "sum = " << sum << std::endl;
                 if(fabs(sum-1.) > 1.E-8)
                 {
                     std::cout << qsi[0] << " , " << qsi[1] << " , " << qsi[2] << std::endl;
@@ -1327,7 +1328,6 @@ int main(int argc, char * const argv[])
                     {
                         std::cout << phi[s] << std::endl;
                     }
-                    std::cout << "sum = " << sum << std::endl;
                     std::cout << "===========================\n";
                 }
             }
