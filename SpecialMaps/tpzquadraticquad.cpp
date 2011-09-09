@@ -123,45 +123,7 @@ TPZGeoEl *TPZQuadraticQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 	
 	return newel;
 	
-	
-	
-	/*
-	 if(side==8) {//8
-	 TPZManVector<int> nodes(4);
-	 int i; 
-	 for (i=0;i<4;i++) {
-	 nodes[i] = orig->SideNodeIndex(side,i);
-	 }
-	 int index;
-	 TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EQuadrilateral,nodes,bc,index);
-	 int iside;
-	 for (iside = 0; iside <8; iside++){
-	 TPZGeoElSide(gel,iside).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,iside)));
-	 }
-	 TPZGeoElSide(gel,8).SetConnectivity(TPZGeoElSide(orig,side));
-	 return gel;
-	 }
-	 else if(side>-1 && side<4) {//side = 0,1,2,3
-	 TPZManVector<int> nodeindexes(1);
-	 nodeindexes[0] = orig->SideNodeIndex(side,0); int index;
-	 TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EPoint,nodeindexes,bc,index);
-	 TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,side));
-	 return gel;
-	 }
-	 else if(side>3 && side<8) {
-	 TPZManVector<int> nodes(2);
-	 nodes[0] = orig->SideNodeIndex(side,0);
-	 nodes[1] = orig->SideNodeIndex(side,1); int index;
-	 TPZGeoEl *gel = orig->Mesh()->CreateGeoElement(EOned,nodes,bc,index);
-	 TPZGeoElSide(gel,0).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,0)));
-	 TPZGeoElSide(gel,1).SetConnectivity(TPZGeoElSide(orig,TPZShapeQuad::SideConnectLocId(side,1)));
-	 TPZGeoElSide(gel,2).SetConnectivity(TPZGeoElSide(orig,side));
-	 return gel;
-	 }
-	 else PZError << "TPZGeoQuad::CreateBCCompEl has no bc.\n";
-	 return 0;
-	 */
-}
+	}
 
 
 /**
