@@ -602,7 +602,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
-	
+	 
 	// First verify if the entry ksi yields the right point
 	if(ksi.NElements()!= dim)
 	{
@@ -725,6 +725,33 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 #endif
 	
 	return ( this->IsInParametricDomain(ksi) );
+}
+
+void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor){
+	
+	int dim = Dimension();
+	if(ksiAncestor.NElements()!= dim)
+	{
+		PZError << "\nTPZGeoEl::TransformSonToFather vector dimension error\n";
+		ksiAncestor.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
+	}
+		
+	TPZVec<REAL> xson;
+	X(ksiSon,xson);
+	
+	TPZGeoEl *father = this;
+	while(father != ancestor)
+	{
+		father = father->Father();
+	}
+	if(!father)
+	{
+		DebugStop();
+	}
+	TPZTransform tr(dim);
+	tr = BuildTransform2(NSides()-1, father, tr);
+	tr.Apply(ksiSon, ksiAncestor);
+	father->ComputeXInverse(xson, ksiAncestor);
 }
 
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){

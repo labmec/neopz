@@ -494,6 +494,13 @@ public:
 	/// Computes the XInverse and returns if ksi belongs to master element domain
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
 	
+	/** @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element
+	 *@param ancestor: ancestor element of subelement
+	 *@param ksiSon: paramenter point in the subelement
+	 *@param ksiAncestor: receives the paramenter point in the ancestor element
+	 **/
+	void TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor);
+	
 	TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
 	
 	
