@@ -26,6 +26,8 @@
 #include <iostream>
 #include <string>
 
+#include <math.h>
+
 using namespace std;
 
 const int matId = 1;
@@ -58,7 +60,7 @@ int main(int argc, char *argv[])
 
 TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR){
 	
-	int Qnodes = pow(2, h) + 1;
+	int Qnodes = pow(2., h) + 1;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	gmesh->SetMaxNodeId(Qnodes-1);
@@ -69,7 +71,7 @@ TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR){
 	TPZVec<TPZGeoNode> Node(Qnodes);
 	
 	//indice dos nos
-	int nel = pow(2, h);
+	int nel = pow(2., h);
 	REAL dx = fabs(xR - xL)/nel;
 	REAL valx;
 	int id = 0;
