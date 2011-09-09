@@ -135,6 +135,31 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
 
+ \page utilitaries Utilitaries to easy compile of the PZ environment
+ 
+ \section svn Getting PZ code
+ 
+ It is recommended to use <a href="http://www.syntevo.com/smartsvn/download.html?all=true">SmartSVN</a> to get the PZ code. Actually we are using SmartSVN 6.6.9 .
+ 
+ \section cmake Creating project depending on the system user
+ 
+ It is recommended to use <a href="http://www.cmake.org/cmake/resources/software.html">CMake</a> to generate the neopz project depending on your system. \n
+ Actually we are using CMake 2.8.5 .
+ 
+ \section doxygen Generating documentation
+ 
+ It is recommended to use <a href="http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc">Doxygen</a> to generate the neopz documentation. \n
+ Actually we are using Doxygen 1.7.5.1 .
+
+ \section manuals Manuals
+ 
+ To get or access the manuals clik on following links:
+ \li \n
+ <a href="ftp://ftp.stack.nl/pub/users/dimitri/doxygen_manual-1.7.5.1.pdf.zip">Doxygen</a> \n
+ <a href="http://www.cmake.org/cmake/help/cmake-2-8-docs.html">CMake</a> \n
+ <a href="http://www.syntevo.com/download/smartsvn/smartsvn-reference.pdf">SmartSVN</a>
+ \li
+ 
 \page externlibs External Libraries used in PZ
 
 It is recommended to create a directory libs or externallibs at the same level as neopz project. \n
@@ -160,19 +185,27 @@ and producing fill reducing orderings for sparse matrices.
  
 \section boost Boost library
 
-Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge<\a>. \n
+Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge</a>. \n
 
-It is recommended to use version <a href=http://sourceforge.net/projects/boost/files/boost/1.46.1">1.46.1 <\a>
+It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.47.0">1.47.0</a>
  
-Use boost_1_46_1.tar.gz or boost_1_46_1.tar.bz2 for unix or mac systems. \n
-Use boost_1_46_1.7z or boost_1_46_1.zip for windows system.
+Use boost_1_47_0.tar.gz or boost_1_47_0.tar.bz2 for unix or mac systems. \n
+Use boost_1_47_0.7z or boost_1_47_0.zip for windows system.
  
 To install following next steps:
 \li \n
  Uncompress the version downloaded. \n
- Using Terminal enter into the boost expanded directory \n
- Type the following command: sudo ./bootstrap.sh
- Then type: sudo ./bjam
+ Using command line enter into the boost expanded directory \n
+ For mac or unix systems, type the following commands: \n
+ 
+ sudo ./bootstrap.sh \n
+ sudo ./bjam install \n
+ 
+ For Windows systems, execute: \n
+ ./bootstrap.bat \n
+ ./bjam install \n
+ 
+ See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
 \li
 
 \section fad Fad library
