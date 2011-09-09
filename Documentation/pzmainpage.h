@@ -136,14 +136,48 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \subsection sec_discontinous Discontinous Approximation Spaces
 
 \page externlibs External Libraries used in PZ
+
+It is recommended to create a directory libs or externallibs at the same level as neopz project. \n
+External libraries which are not necessarily installed at root lib directory or root include directory \n
+can to be installed or copied into the indicated directory.
+
+PZ uses until five external libraries:
+ \li \n
+ pthread \n
+ boost mainly used as unit test framework \n
+ log4cxx for efficient log messages \n
+ fad for automatic differentiation \n
+ metis to partitioning finite element meshes, and producing fill reducing orderings for sparse matrices
+ \li
  
 \section metis Metis library
-If you set USING_METIS as TRUE, you must to install Metis library. Metis library is avaliable 
+If you set USING_METIS as TRUE, you must to install Metis library. \n
+Metis library is avaliable 
 from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
+
+METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, \n
+and producing fill reducing orderings for sparse matrices.
  
 \section boost Boost library
+
+Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge<\a>. \n
+
+It is recommended to use version <a href=http://sourceforge.net/projects/boost/files/boost/1.46.1">1.46.1 <\a>
  
+Use boost_1_46_1.tar.gz or boost_1_46_1.tar.bz2 for unix or mac systems. \n
+Use boost_1_46_1.7z or boost_1_46_1.zip for windows system.
+ 
+To install following next steps:
+\li \n
+ Uncompress the version downloaded. \n
+ Using Terminal enter into the boost expanded directory \n
+ Type the following command: sudo ./bootstrap.sh
+ Then type: sudo ./bjam
+\li
+
 \section fad Fad library
+ 
+
  
 \section log4cxx Log4cxx library
  

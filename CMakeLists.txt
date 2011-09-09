@@ -64,74 +64,87 @@ file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 source_group(CMakefilesPZ FILES ${makefilespz})
 source_group(CMakefilesProjects FILES ${makefilesproject})
 source_group(CMakefilesUnitTest FILES ${makefilesunittest})
-source_group(DoxyFiles FILES ${doxyfiles})
-add_custom_target(CMake_Doxygen_Files SOURCES ${makefiles} ${doxyfiles})
-
-#Defining variables
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
-
-set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
-set (PTHREAD_LIB_INCLUDE "/usr/lib" CACHE PATH "Directory where the pthread library can be found")
-include_directories(${PTHREAD_INCLUDE})
-link_directories(${PTHREAD_LIB_INCLUDE})
-link_libraries(pthread)
+add_custom_target(CMake_Files SOURCES ${makefiles})
+add_custom_target(Doxygen_Files SOURCES  ${doxyfiles})
 
 #specify where the refinement patterns can be found (default behaviour when running the code)
 add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 
+#Defining variables
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/lib /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis-5.0.1)
+
+#ENABLING EXTERNAL LIBRARIES
+
+#enabling pthread library
+find_path(PTHREAD_INCLUDE pthread.h PATHS ${SEARCH_DIRS})
+find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib libpthread.a PATHS ${SEARCH_DIRS})
+if(PTHREAD_INCLUDE-NOTFOUND)
+	set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
+endif()
+if(PTHREAD_LIB-NOTFOUND)
+	set (PTHREAD_LIB "/usr/lib" CACHE PATH "Directory where the pthread library can be found")
+endif()
+include_directories(${PTHREAD_INCLUDE})
+link_directories(${PTHREAD_LIB})
+link_libraries(pthread)
+
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
-
 if(USING_BOOST)
 	find_package( Boost )
-   		if(Boost_FOUND)
-			add_definitions(-DUSING_BOOST)
+   	if(Boost_FOUND)
+		add_definitions(-DUSING_BOOST)
       		include_directories(${Boost_INCLUDE_DIRS})
-			link_libraries(${Boost_LIB_DIRS})
-   		endif()
-endif()
+		link_directories(${Boost_LIB_DIRS})
+		link_libraries(${Boost_LIB_DIRS})
+   	endif()
+endif(USING_BOOST)
 
 #enabling FAD library
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
-
 if(USING_FAD)
-	find_path(FAD_INCLUDE NAMES FAD PATHS ENV PATH ./. ./.. ./..)
+	find_path(FAD_INCLUDE fadtype.h PATHS ${SEARCH_DIRS} ./../FAD ./FAD)
 	if(FAD_INCLUDE-NOTFOUND)
 		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
-	else()
-		set(FAD_INCLUDE ${FAD_INCLUDE}/FAD)
-		add_definitions(-D_AUTODIFF)
-		include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
 	endif()
+	add_definitions(-D_AUTODIFF)
+	include_directories(${FAD_INCLUDE} ${FAD_INCLUDE}/Fad ${FAD_INCLUDE}/TinyFad ${FAD_INCLUDE}/TinyFadET)
 endif(USING_FAD)
 
 #enabling to use LOG4CXX library
 option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
-	set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "Directory where log4cxx header files can be found")
-	set (LOG4CXX_LIB_INCLUDE "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
-	include_directories(${LOG4CXX_INCLUDE})
-	link_directories(${LOG4CXX_LIB_INCLUDE})
+	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/include)
+	find_path(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/lib)
+	if(LOG4CXX_INCLUDE-NOTFOUND)
+		set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "Directory where log4cxx header files can be found")
+	endif()
+	if(LOG4CXX_LIB-NOTFOUND)
+		set (LOG4CXX_LIB "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
+	endif()
 	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
+	include_directories(${LOG4CXX_INCLUDE})
+	link_directories(${LOG4CXX_LIB})
 	link_libraries(log4cxx)
-endif()
+endif(USING_LOG4CXX)
 
-#enabling to use LOG4CXX library
-option(USING_METIS "Whether the LOG4CXX library will be linked in" OFF)
+#enabling METIS library
+option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
-	find_path(METIS_INCLUDE NAMES METIS PATHS ENV PATH ./. ./.. ./..)
+	find_path(METIS_INCLUDE metis.h PATHS ${SEARCH_DIRS} ./../metis-5.0.1 ./../metis-5.0.1/include)
+	find_path(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.a PATHS ${SEARCH_DIRS} ./../metis-5.0.1/libmetis ./../metis-5.0.1/lib)
 	if(METIS_INCLUDE-NOTFOUND)
 		set (METIS_INCLUDE "/usr/local/include" CACHE PATH "Directory where metis header files can be found")
-		set (METIS_LIB_INCLUDE "/usr/local/lib" CACHE PATH "Directory where the metis library can be found")
-	else()
-		set(METIS_LIB_INCLUDE ${METIS_INCLUDE}/Metis/lib)
-		set(METIS_INCLUDE ${METIS_INCLUDE}/Metis/include)
+	endif()
+	if(METIS_LIB-NOTFOUND)
+		set (METIS_LIB "/usr/local/lib" CACHE PATH "Directory where the metis library can be found")
 	endif()
 	include_directories(${METIS_INCLUDE})
-	link_directories(${METIS_LIB_INCLUDE})
+	link_directories(${METIS_LIB})
 	add_definitions(-DUSING_METIS)
 	link_libraries(metis)
-endif()
+endif(USING_METIS)
 
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
@@ -172,9 +185,9 @@ add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 add_subdirectory(PlaneFracture)
+
 add_subdirectory(lib)
 add_subdirectory(Projects)
-
 add_subdirectory(UnitTest_PZ)
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
