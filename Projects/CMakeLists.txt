@@ -51,6 +51,8 @@ if(BUILD_PROJECTS)
 	add_subdirectory(HydraulicFracturePropagation)
 
 	add_subdirectory(SteamInjection)
+	
+	#projeto agnaldo 09-09-2011
+	add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
-
 endif(BUILD_PROJECTS)
