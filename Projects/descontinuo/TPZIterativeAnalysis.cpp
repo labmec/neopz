@@ -1,8 +1,8 @@
 // -*- c++ -*-
 #include "pzcompel.h"
 #include "TPZCompElDisc.h"
-#include "TPZFlowCMesh.h"
-#include "TPZConservationLaw.h"
+#include "pzflowcmesh.h"
+#include "pzconslaw.h"
 #include "TPZIterativeAnalysis.h"
 #include "TPZAgglomerateEl.h"
 #include <string.h>
@@ -16,10 +16,11 @@ TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) 
   //fInit = 0.0;
 }
 
-void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
+void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  TPZVec<char *> scalar(1),vector(0);
+	TPZVec<std::string> scalar(1);
+	TPZVec<std::string> vector(0);
   scalar[0] = "pressure";
   //scalar[1] = "density";
   //scalar[2] = "normvelocity";
@@ -31,7 +32,7 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
   SetReference(Mesh());//recupera as refer�ncias retiradas
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
-  graph.SetOutFile(*dxout);
+  graph.SetFileName(filename);
   graph.SetResolution(resolution);
   graph.DrawMesh(dim);
   int iter = 0,draw=0;
@@ -44,8 +45,8 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
   fBegin = clock();
   LoadSolution();
   //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
-  SetDeltaTime(fCompMesh,mat);
-  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  SetDeltaTime(fCompMesh,mat.operator->());
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator->());
   REAL time = law->TimeStep();
   fBegin = clock();
   graph.DrawSolution(draw++,time);
@@ -63,7 +64,7 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
     fBegin = clock();
     LoadSolution();
     //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
-    SetDeltaTime(fCompMesh,mat);
+    SetDeltaTime(fCompMesh,mat.operator->());
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
       fBegin = clock();
       time = law->TimeStep();
@@ -74,7 +75,7 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
     cout << "TPZIterativeAnalysis::IterativeProcess iteracao = " << ++iter << endl;
     normsol = Norm(fSolution);
   }
-  out.flush();
+  graph.Out().flush();
   dxout->flush();
   if(iter < numiter){
     cout << "\nTPZIterativeAnalysis::IterativeProcess the iterative process stopped due the great norm "
@@ -88,17 +89,18 @@ void TPZIterativeAnalysis::IterativeProcess(ostream &out,REAL tol,int numiter,TP
   CoutTime(fInit,"TPZIterativeAnalysis:: general time of iterative process");
 }
 
-void TPZIterativeAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution) {
+void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
-  TPZVec<char *> scalar(1),vector(0);
+	TPZVec<std::string> scalar(1);
+	TPZVec<std::string> vector(0);
   scalar[0] = "Solution";
   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
   int dim = mat->Dimension();
   TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
-  graph.SetOutFile(*dxout);
+  graph.SetFileName(name);
   graph.SetResolution(resolution);
   graph.DrawMesh(dim);
   int iter = 0,draw=0;
@@ -111,7 +113,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numite
   LoadSolution();
   //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
   fBegin = clock();
-  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator->());
   REAL time = law->TimeStep();
   graph.DrawSolution(draw++,time);
   dxout->flush();
@@ -139,7 +141,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(ostream &out,REAL tol,int numite
     cout << "TPZIterativeAnalysis::IterativeProcess iteracao = " << ++iter << endl;
     normsol = Norm(fSolution);
   }
-  out.flush();
+  graph.Out().flush();
   dxout->flush();
   if(iter < numiter){
     cout << "\nTPZIterativeAnalysis::IterativeProcess the iterative process stopped due the great norm "
@@ -162,12 +164,12 @@ void TPZIterativeAnalysis::CoutTime(clock_t &start,const char *title){
 void TPZIterativeAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial *mat){
 
   TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);//= new TPZFlowCompMesh(CompMesh->Reference());
-  REAL maxveloc = fm->MaxVelocityOfMesh(mat->NStateVariables(),1.4);
+  REAL maxveloc = fm->MaxVelocityOfMesh();
   REAL deltax = CompMesh->LesserEdgeOfMesh();//REAL deltax = CompMesh->DeltaX();//REAL deltax = CompMesh->MaximumRadiusOfEl();
   TPZCompElDisc *disc;
-  int degree = disc->gDegree;
+  int degree = disc->Degree();
   TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-  law->SetDeltaTime(maxveloc,deltax,degree);
+  law->SetTimeStep(maxveloc,deltax,degree);
 }
 
 /*
@@ -204,7 +206,7 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material();
+    TPZMaterial *mat = cel->Material().operator->();
     if(!mat) PZError << "TPZIterativeAnalysis::ResetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZGeoEl *gel = cel->Reference();
@@ -246,7 +248,7 @@ void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material();
+    TPZMaterial *mat = cel->Material().operator->();
     if(!mat) PZError << "TPZIterativeAnalysis::SetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);

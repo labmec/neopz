@@ -1,4 +1,7 @@
-//We are using matrices and solvers
+/**
+ * @file
+ * @brief Implements the use of the transform side to side as tutorial example of the integral NeoPZ module
+ */
 #include <pzvec.h>
 #include <pzgmesh.h>
 #include <pzgeoel.h>

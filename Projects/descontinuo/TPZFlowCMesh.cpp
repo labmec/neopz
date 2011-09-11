@@ -1,19 +1,22 @@
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
-#include "TPZConservationLaw.h"
+#include "pzconslaw.h"
 #include "TPZFlowCMesh.h"
 #include "TPZAgglomerateEl.h"
 
-TPZFlowCompMesh1::~TPZFlowCompMesh1(){
+#include <stdio.h>
+#include <iostream>
+using namespace std;
 
+TPZFlowCompMesh1::~TPZFlowCompMesh1() {
 }
 
-void TPZFlowCompMesh1::NotCreate(){
+void TPZFlowCompMesh1::NotCreate() {
   fExists = 0;
 }
 
-int TPZFlowCompMesh1::Exists(){
+int TPZFlowCompMesh1::Exists() {
   return fExists;
 }
 
@@ -22,7 +25,7 @@ TPZFlowCompMesh1::TPZFlowCompMesh1(TPZGeoMesh* gr) : TPZCompMesh(gr) {
 }
 
 
-REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma){
+REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma) {
 
   int nel = ElementVec().NElements(),i;
   TPZManVector<REAL> density(1),sol(nstate),velocity(1);
@@ -33,7 +36,7 @@ REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma){
     if(!com) continue;
     int type = com->Type();
     if(type == EInterface) continue;
-    TPZMaterial *mat = com->Material();
+    TPZMaterial* mat = com->Material().operator->();
     if(!mat){
       cout << "TPZFlowCompMesh1::MaxVelocityOfMesh ERROR: null material\n";
       continue;
@@ -55,8 +58,10 @@ REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma){
     }
     com->Solution(param,6,velocity);
     com->Solution(param,5,sol);
-    TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
-    press = law->Pressure(sol);
+   TPZConservationLaw *law = dynamic_cast< TPZConservationLaw *> (mat);
+   // press = law->Pressure(sol);
+	//  TPZAutoPointer<TPZConservationLaw> law = (dynamic_cast<TPZAutoPointer<TPZConservationLaw> >(mat));
+	  press = law->Pressure(sol);
     if(press < 0.0){
       cout << "TPZFlowCompMesh1::MaxVelocityOfMesh minus pressure\n";
     }

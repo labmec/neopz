@@ -3,8 +3,12 @@
 #define ITERATIVEANALYSISH
 
 #include <iostream>
+#include <stdio.h>
 #include "pzanalysis.h"
 #include "pzreal.h"
+
+using namespace std;
+
 class TPZCompMesh;
 class TPZCompEl;
 class TPZMaterial;
@@ -16,11 +20,11 @@ class TPZIterativeAnalysis : public TPZAnalysis {
 
 public:
 
-  TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out = cout);
+  TPZIterativeAnalysis(TPZCompMesh *mesh,ostream &out = cout);
 
-  void IterativeProcess(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha=1,int resolution=0);
+	void IterativeProcess(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha=1,int resolution=0);
 
-  void IterativeProcessTest(ostream &out,REAL tol,int numiter,TPZMaterial *mat,int marcha,int resolution=0);
+  void IterativeProcessTest(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution=0);
 
   void CoutTime(clock_t &start,const char *title);
 

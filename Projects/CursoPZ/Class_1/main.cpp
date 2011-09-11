@@ -1,4 +1,7 @@
-//We are use vectors and integration rules routines
+/**
+ * @file
+ * @brief Implements the use of the vectors and integration rules routines as tutorial example of the util and integral NeoPZ modules
+ */
 #include "pzvec.h"
 #include "pzquad.h"
 

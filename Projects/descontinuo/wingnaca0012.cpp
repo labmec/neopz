@@ -1,6 +1,10 @@
-#include "TPZConservationLaw.h"
+/**
+ * @file
+ * @brief Contains example to iterative analysis
+ */
+#include "pzconslaw.h"
 #include "TPZConsLawTest.h"
-#include "TPZEulerConsLaw.h"
+#include "pzeulerconslaw.h"
 #include "TPZDiffusionConsLaw.h"
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
@@ -15,7 +19,7 @@
 #include "pzcmesh.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
-//#include "pztempmat.h"
+
 #include "pzcompel.h"
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
@@ -27,12 +31,12 @@
 #include "pzstack.h"
 #include "pzvec.h"
 #include "pzsolve.h"
-#include "pzelct2d.h"
-#include "pzelcc3d.h"
-#include "pzelgt3d.h"
-#include "pzelct3d.h"
-#include "pzelgpi3d.h"
-#include "pzelcpi3d.h"
+//#include "pzelct2d.h"
+//#include "pzelcc3d.h"
+//#include "pzelgt3d.h"
+//#include "pzelct3d.h"
+//#include "pzelgpi3d.h"
+//#include "pzelcpi3d.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -67,11 +71,18 @@
 #include "pzrefpoint.h"
 #include "pzdxmesh.h"
 
+#include "pzflowcmesh.h"
+#include "pzcmesh.h"
+
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
 #include <iostream>
 #include <ostream>
+
+using namespace pzgeom;
+using namespace pzrefine;
 
 void LeituraDaMalha(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElSide> &elembc);
 void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoElSide> &elembc);
@@ -91,9 +102,9 @@ static TPZGeoMesh *gmesh = new TPZGeoMesh;
 static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
 static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
-static int nivel = 0,tipo;
-static int problem=0;
-static REAL pi = 2.0*asin(1.0);
+//static int nivel = 0,tipo;
+//static int problem=0;
+//static REAL pi = 2.0*asin(1.0);
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
 
@@ -103,14 +114,15 @@ static REAL gama = 1.4;
 
 int main() {
 
-  ofstream outgm("mesh.out");
+	std::string name = "mesh.out";
+  ofstream outgm(name.c_str());
 
   cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
   cin >> grau;
-  TPZCompElDisc::gDegree = grau;
+//  TPZCompElDisc::gDegree = grau;
 //  TPZCompEl::gOrder = grau;
-  cmesh.SetDefaultOrder(grau);
-  TPZMaterial *mat;
+  cmesh->SetDefaultOrder(grau);
+  TPZAutoPointer<TPZMaterial> mat;
   TPZStack<TPZGeoEl *> elem;
   TPZStack<TPZGeoElSide> elembc;
   int dim;
@@ -142,8 +154,9 @@ int main() {
   accumlist[7] = 2;
   accumlist[8] = 3;
   accumlist[9] = 0;
-  TPZCompMesh *cmesh2 = cmesh->ComputeMesh(accumlist);
-  cmesh2->Print(outgm);
+	
+//  TPZCompMesh *cmesh2 = cmesh->ComputeMesh(accumlist,2);
+ // cmesh2->Print(outgm);
   return 0;
 
   if(1){
@@ -186,7 +199,7 @@ int main() {
     if(qual == 1) NivelDivide(cmesh);
     CoutTime(start);
     int nstate = 4;
-    SetDeltaTime(mat,nstate);
+    SetDeltaTime(mat.operator->(),nstate);
     if(0){
       gmesh->Print(outgm);
       cmesh->Print(outgm);
@@ -226,11 +239,11 @@ int main() {
 	cout << "main:: Parametro resolution : \n";
 	//cin >> resolution;
 	resolution = 0; cout << resolution << "\n";
-	an.IterativeProcess(outgm,tol,numiter,mat,marcha,resolution);
+	an.IterativeProcess(name,tol,numiter,mat,marcha,resolution);
 	//if(0) PostProcess(*gmesh,outgm);
       }
     }
-    ContagemDeElementos(mat);
+    ContagemDeElementos(mat.operator->());
   }//if(0/1)
 
   if(0){
@@ -364,7 +377,7 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
   //REAL deltax = cmesh->MaximumRadiusOfMesh();
   REAL deltaT = CFL*deltax/maxveloc;
   cout << "main::SetDeltaTime : " << deltaT << endl;
-  law->SetTimeStep(deltaT);
+  law->SetDelta(deltaT);
 
 }
 
@@ -473,11 +486,11 @@ int Nivel(TPZGeoEl *gel);
 void NivelDivide(TPZCompMesh *cmesh){
 
   TPZVec<int> csub(0);
-  //int nivel;
+  int nivel;
   cout << "\nmain::Divisao todos os elementos da malha serao divididos!\n";
-  //cout << "\nmain::Divisao Nivel da malha final ? : ";
-  //cin >> nivel;
-  cout << "\nNivel da malha a ser atingido = " << nivel << endl;
+  cout << "\nmain::Divisao Nivel da malha final ? : ";
+  cin >> nivel;
+  //cout << "\nNivel da malha a ser atingido = " << nivel << endl;
   int nelc = cmesh->ElementVec().NElements();
   int el,actual;
   TPZCompEl *cpel;
@@ -514,9 +527,9 @@ int Nivel(TPZGeoEl *gel){
 
 void Divisao(TPZCompMesh *cmesh){
 
-  int k=0;
+  //int k=0;
   TPZVec<int> csub(0);
-  int n1=1,n2;
+  int n1=1;
   while(n1) {
     cout << "Id do elemento geometrico a dividir ? : ";
     cin >> n1;
@@ -550,14 +563,15 @@ void CoutTime(clock_t &start){
 TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 
   //elemento de volume
- TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// TPZGeoElement</*TPZShapeTriang,*/TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
  //TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
- TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+// TPZGeoElement</*TPZShapeLinear,*/TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 1,i;
-  TPZCompElDisc::gInterfaceDimension = interfdim;
-  gmesh->BuildConnectivity2();
+ // TPZCompElDisc::gInterfaceDimension = interfdim;
+  gmesh->BuildConnectivity();
   int nummat = 1;
-  char *artdiff = "LS";
+	int nivel;
+	TPZArtDiffType artdiff = LeastSquares_AD;
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
@@ -616,15 +630,16 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
     delete elgbound;
     gmesh->ElementVec().SetFree(index);
   }
-  bc = mat->CreateBC(-1,5,val1,val2);//parede
+	TPZAutoPointer<TPZMaterial> aximat(mat);
+  bc = mat->CreateBC(aximat,-1,5,val1,val2);//parede
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-2,2,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-2,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-3,2,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-3,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-4,2,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-4,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-5,2,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-5,2,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
   cout << "main::Wing2d fim CC\n";
 
@@ -656,15 +671,16 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 
   //elemento de volume
   //TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//  TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>::SetCreateFunction(TPZCompElDisc::CreateDisc);
+//  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   //TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
   int interfdim = 2,i;
-  TPZCompElDisc::gInterfaceDimension = interfdim;
-  gmesh->BuildConnectivity2();
+	int nivel;
+ // TPZCompElDisc::gInterfaceDimension = interfdim;
+  gmesh->BuildConnectivity();
   int nummat = 1;
-  char *artdiff = "LS";
+	TPZArtDiffType artdiff = LeastSquares_AD;
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
@@ -686,11 +702,11 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
   mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(mat);
 
-  //condi��es de contorno
+  // boundary conditions
   TPZBndCond *bc;
   TPZFMatrix val1(5,4),val2(5,1);
 
-  //CC : a vizinhan�a geometrica foi preenchida
+  //CC : a geometric neighboard was filled
   val1.Zero();
   val2.Zero();
   int numbc = elembc.NElements();
@@ -721,18 +737,19 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
     delete elgbound;
     gmesh->ElementVec().SetFree(index);
   }
-  //o dom�nio � um hexaedro
-  bc = mat->CreateBC(-1,5,val1,val2);//parede na asa
+  //the domain is a hexahedral 
+	TPZAutoPointer<TPZMaterial> aximat(mat);
+  bc = mat->CreateBC(aximat,-1,5,val1,val2);//parede na asa
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-2,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-2,6,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-3,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-3,6,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-4,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-4,6,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-5,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-5,6,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
-  bc = mat->CreateBC(-6,6,val1,val2);//no refletivas
+  bc = mat->CreateBC(aximat,-6,6,val1,val2);//no refletivas
   cmesh->InsertMaterialObject(bc);
   cout << "main::Wing3d fim CC\n";
   cout << "main::Wing3D criando elementos computacionais\n";

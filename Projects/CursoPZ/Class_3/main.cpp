@@ -1,4 +1,7 @@
-//We are using matrices and solvers
+/**
+ * @file
+ * @brief Implements the use of the jacobian method as tutorial example of the matrix NeoPZ module
+ */
 #include "pzvec.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"

@@ -1,4 +1,7 @@
-//We are using matrices and solvers
+/**
+ * @file
+ * @brief Implements the build of a computational mesh as tutorial example of the interpolation NeoPZ module
+ */
 #include <pzvec.h>
 #include <pzgmesh.h>
 #include <pzcompel.h>
@@ -13,7 +16,7 @@
 #include "pzmaterialid.h"
 #include "pzmeshid.h"
 #include "pzbfilestream.h"
-//IO
+
 #include <iostream>
 #include <fstream>
 using namespace std;

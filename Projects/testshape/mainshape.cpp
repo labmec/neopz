@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Implements a tutorial example using shape NeoPZ module
+ */
 #include "pzreal.h"
 
 #include "pzgmesh.h"

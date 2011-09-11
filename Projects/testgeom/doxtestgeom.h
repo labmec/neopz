@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Doxygen file to document geometric tutorial example.
+ */
+
 /*! \page testgeom Example of the Creation of a Geometric Mesh
  * \dontinclude geom.cpp
  * This example can be found in the Project directory TestGeom and file geom.cpp

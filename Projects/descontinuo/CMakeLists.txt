@@ -1,14 +1,21 @@
+# @file neopz/Projects/descontinuo/CMakeLists.txt  -- CMake file for the discontinuous approximation function tutorial 
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
+file(GLOB source *.cpp)
+file(GLOB header *.h)
 
+set(discontinuous ${discontinuous} ${source} ${header} PARENT_SCOPE)
 
-########### next target ###############
+# First executable testing Euler equation
+add_executable(DiscontinuousEuler euler.cpp TPZFlowCMesh.cpp TPZIterativeAnalysis.cpp TPZFlowCMesh.h TPZIterativeAnalysis.h)
 
-set(main_SRCS euler.cpp)
+target_link_libraries(DiscontinuousEuler pz pthread)
 
-add_executable(main ${main_SRCS})
+# Second executable testing Euler equation
+#add_executable(DiscontinuousEuler0 euler0.cpp TPZFlowCMesh.cpp TPZIterativeAnalysis.cpp TPZFlowCMesh.h TPZIterativeAnalysis.h)
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
+#target_link_libraries(DiscontinuousEuler0 pz pthread)
 
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+#Executable to three dimensional test
+add_executable(DiscontinuousWing wingnaca0012.cpp TPZFlowCMesh.cpp TPZIterativeAnalysis.cpp TPZFlowCMesh.h TPZIterativeAnalysis.h)
 
+target_link_libraries(DiscontinuousWing pz pthread)

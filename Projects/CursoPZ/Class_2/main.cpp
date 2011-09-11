@@ -1,11 +1,15 @@
-//We are using matrices and solvers
+/**
+ * @file
+ * @brief Implements the use of the matrices and solvers as first tutorial example of the matrix and analysis NeoPZ modules
+ */
 #include "pzvec.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include <pzskylmat.h>
 #include <pzstepsolver.h> 
-//IO
+
 #include <iostream>
+
 using namespace std;
 
 void FillMatrix(TPZMatrix &mat,int neq, int banda);

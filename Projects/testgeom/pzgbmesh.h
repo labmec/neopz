@@ -1,4 +1,7 @@
-// -*- c++ -*-
+/**
+ * @file
+ * @brief Implements a test to reduce dynamic memory allocation
+ */
 #ifndef PZGBMESHH
 #define PZGBMESHH
 

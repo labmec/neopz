@@ -16,11 +16,14 @@ if(BUILD_TUTORIAL)
 	#Using visual matrix of the DX
 	add_subdirectory(visualmatrix)
 	
-	source_group(CursoPZ FILES ${pzcurso})
-	source_group(Shape FILES ${pztutorshape})
-	source_group(Geometry FILES ${pztutorgeom})
-	source_group(Matrix FILES ${pztutormat})
-	source_group(VisualMatrixDX FILES ${visualmatrix})
+	#Using discontinuous approximation functions
+	add_subdirectory(descontinuo)
+
+	#source_group(CursoPZ FILES ${pzcurso})
+	#source_group(Shape FILES ${pztutorshape})
+	#source_group(Geometry FILES ${pztutorgeom})
+	#source_group(Matrix FILES ${pztutormat})
+	#source_group(VisualMatrixDX FILES ${visualmatrix})
 
 	#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
