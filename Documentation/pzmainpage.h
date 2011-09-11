@@ -1,5 +1,5 @@
 /**
-\mainpage The PZ environment
+\mainpage The NeoPZ environment
 
 \author Philippe Remy Bernard Devloo <a href="http://lattes.cnpq.br/6051486998967925">Lattes</a>
 \author Jorge Lizardo Diaz Calle <a href="http://lattes.cnpq.br/2049910703027682">Lattes</a>
@@ -18,9 +18,9 @@
 \author Misael Luis Santana Mandujano
 \author Others
 
-The PZ environment is a object oriented environment for the development finite element simulations.
+The NeoPZ environment is a object oriented environment for the development finite element simulations.
 
-The PZ environment (in the future quoted as simply PZ) incorporates several advanced finite element
+The NeoPZ environment (in the future quoted as simply NeoPZ) incorporates several advanced finite element
 technologies in a single coherent structure, allowing its user to develop sophisticated simulations
 in a short period of time.
 
@@ -42,34 +42,34 @@ At that time I imagined it would be possible to write a finite element framework
 allow its user to apply hp-adaptive strategies to different systems of differential equations in 
 a single framework.
 
-More recently, the concept of generality has been extended in that the PZ library allows its user 
+More recently, the concept of generality has been extended in that the NeoPZ library allows its user 
 to choose the approximation space as well. One can approximate a differential equation with continuous
 or discontinuous approximation spaces. We are working on incorporating HDiv and HCurl spaces as well.
 
 \section sec_obective Objectives
 
-The objective of the PZ environment is to provide its user access to advanced finite element
+The objective of the NeoPZ environment is to provide its user access to advanced finite element
 technologies within a coherent framework. Wherever possible those technologies should be able
 to interact with each other.
 
 What is meant by "advanced technologies" is documented in the section \ref sec_advanced
 
 \section sec_doc_structure Structure of the Documentation
-There are many ways to define a library of classes. A global view of the PZ environment is
+There are many ways to define a library of classes. A global view of the NeoPZ environment is
 found in \ref page_structure. This same structure is "more or less" recognized in the 
 <a href="modules.html">Modules</a> section.
-The section \ref page_finite_element_different is dedicated to describing which algorithms within the PZ 
+The section \ref page_finite_element_different is dedicated to describing which algorithms within the NeoPZ 
 environment are different from regular finite element codes
 
 
 \page page_finite_element_different Differences from Regular Finite Element Computations
 \section sec_finite_element_different Differences from Regular Finite Element Computations
-PZ integrates zero, one, two and three dimensional simulations into a single finite element library.
+NeoPZ integrates zero, one, two and three dimensional simulations into a single finite element library.
 It also incorporates non linear geometric maps, hp adaptive meshes and runs a large variety of finite
 element simulations. It should therefore come as no surprise that its structure is somewhat different
 from textbook finite element structures.
 
-In this section we describe which finite element concepts were modified or extended in the PZ 
+In this section we describe which finite element concepts were modified or extended in the NeoPZ 
 environment and how these concepts translated in an object oriented framework
 
 \subsection sec_neighbour Neigbouring Information
@@ -77,7 +77,7 @@ Within the geometric mesh, all geometric elements keep track of their neighbours
 (see \ref sec_topological) of the element
 \subsection sec_jacobian Jacobian Matrix
 \subsection sec_topological Topological Concepts associated with an Element
-Within PZ a geometric element is considered as the union of open sets of points. 
+Within NeoPZ a geometric element is considered as the union of open sets of points. 
 These sets of points are named sides. As such:
 - linear element (pzgeom::TPZGeoLinear) has 3 sides (2 points and one line)
 - quadralaterial element (pzgeom::TPZGeoQuad) has 9 sides (4 points 4 lines and one area)
@@ -96,7 +96,7 @@ A quadrilateral element is associated with the area \f$]-1,1[\times]-1,1[\subset
 The area associated with a topology is named parameter space. 
 In finite element textbooks the parameter space is associated with the space of the master element.
 Theoretically each finite element code can define its own parameter space. 
-In the PZ environment the parameter space is defined and/or can be modified by specifying other topologies.
+In the NeoPZ environment the parameter space is defined and/or can be modified by specifying other topologies.
 
 Each sides of an element associated with a topology (point, line, quadrilateral, etc). 
 The closure of a side (remember that a side is an open set of points) includes its neighbouring topologies. 
@@ -125,7 +125,7 @@ This affine transformation is returned in the SideToSideTransform method
 \section sec_advanced Advanced Finite Element Technologies
 As advanced finite element technologies we denominate finite element techniques which are 
 generally not available in textbook finite element codes. 
-PZ is able to generate adaptive meshes, interpolation between meshes, nonlinear geometric maps,
+NeoPZ is able to generate adaptive meshes, interpolation between meshes, nonlinear geometric maps,
 multigrid iterations, continuous and discontinuous approximation spaces, among others.
 
 \subsection sec_nonlinear Nonlinear Geometric Maps
@@ -135,11 +135,21 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
 
- \page utilitaries Utilitaries to easy compile of the PZ environment
+ \page teoria Theoric fundaments implemented in NeoPZ
  
- \section svn Getting PZ code
+ \section topology Topology
  
- It is recommended to use <a href="http://www.syntevo.com/smartsvn/download.html?all=true">SmartSVN</a> to get the PZ code. Actually we are using SmartSVN 6.6.9 .
+ \section integral Numerical integration
+ 
+ \section shapes Shape functions
+ 
+ \section analysis Analysis: Solving process
+ 
+ \page utilitaries Utilitaries to easy compile of the NeoPZ environment
+ 
+ \section svn Getting NeoPZ code
+ 
+ It is recommended to use <a href="http://www.syntevo.com/smartsvn/download.html?all=true">SmartSVN</a> to get the NeoPZ code. Actually we are using SmartSVN 6.6.9 .
  
  \section cmake Creating project depending on the system user
  
@@ -149,31 +159,30 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  \section doxygen Generating documentation
  
  It is recommended to use <a href="http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc">Doxygen</a> to generate the neopz documentation. \n
- Actually we are using Doxygen 1.7.5.1 .
+ Actually we are using Doxygen 1.7.5.1 . To right compiling using doxygen you must to have the following executables:
+ 
+ \li <a href="http://www.cs.utah.edu/dept/old/texinfo/dvips/dvips.html">dvips</a> or 
+ <a href="http://rpmfind.net/linux/rpm2html/search.php?query=ghostscript-dvipdf">dvipdf</a> - Convert tex to ps (post script) or pdf format.
 
  \section manuals Manuals
  
  To get or access the manuals clik on following links:
- \li \n
- <a href="ftp://ftp.stack.nl/pub/users/dimitri/doxygen_manual-1.7.5.1.pdf.zip">Doxygen</a> \n
- <a href="http://www.cmake.org/cmake/help/cmake-2-8-docs.html">CMake</a> \n
- <a href="http://www.syntevo.com/download/smartsvn/smartsvn-reference.pdf">SmartSVN</a>
- \li
+ \li <a href="http://www.syntevo.com/download/smartsvn/smartsvn-reference.pdf">SmartSVN</a>
+\li <a href="http://www.cmake.org/cmake/help/cmake-2-8-docs.html">CMake</a> 
+ \li <a href="ftp://ftp.stack.nl/pub/users/dimitri/doxygen_manual-1.7.5.1.pdf.zip">Doxygen</a> 
  
-\page externlibs External Libraries used in PZ
+\page externlibs External Libraries used in NeoPZ
 
 It is recommended to create a directory libs or externallibs at the same level as neopz project. \n
 External libraries which are not necessarily installed at root lib directory or root include directory \n
 can to be installed or copied into the indicated directory.
 
-PZ uses until five external libraries:
- \li \n
- pthread \n
- boost mainly used as unit test framework \n
- log4cxx for efficient log messages \n
- fad for automatic differentiation \n
- metis to partitioning finite element meshes, and producing fill reducing orderings for sparse matrices
- \li
+NeoPZ uses until five external libraries:
+ \li pthread - For the POSIX pthread threading.
+ \li boost - It provides free portable peer-reviewed C++ libraries. We mainly was used as unit test framework.
+ \li log4cxx - For efficient log messages.
+ \li fad - For automatic differentiation.
+ \li metis - To partitioning finite element meshes, and producing fill reducing orderings for sparse matrices
  
 \section metis Metis library
 If you set USING_METIS as TRUE, you must to install Metis library. \n
@@ -184,7 +193,7 @@ METIS is a set of serial programs for partitioning graphs, partitioning finite e
 and producing fill reducing orderings for sparse matrices.
  
 \section boost Boost library
-
+If you set USING_BOOST as TRUE it is necessary to install the Boost library. \n
 Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge</a>. \n
 
 It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.47.0">1.47.0</a>
@@ -192,48 +201,53 @@ It is recommended to use version <a href="http://sourceforge.net/projects/boost/
 Use boost_1_47_0.tar.gz or boost_1_47_0.tar.bz2 for unix or mac systems. \n
 Use boost_1_47_0.7z or boost_1_47_0.zip for windows system.
  
-To install following next steps:
-\li \n
- Uncompress the version downloaded. \n
- Using command line enter into the boost expanded directory \n
- For mac or unix systems, type the following commands: \n
- 
- sudo ./bootstrap.sh \n
- sudo ./bjam install \n
- 
+To install following next steps:\n
+Uncompress the version downloaded. \n
+ Using command line change into the uncompress directory. \n
+ For mac or unix systems, type the following commands and execute: \n
+ \li sudo ./bootstrap.sh
+ \li sudo ./bjam install
+
  For Windows systems, execute: \n
- ./bootstrap.bat \n
- ./bjam install \n
- 
+ \li ./bootstrap.bat
+ \li ./bjam install
+
  See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
-\li
 
 \section fad Fad library
  
-
+ The neopz project uses a old library to fast automatic differentiation <a href=" http://www.ann.jussieu.fr/~pironnea/">FAD</a>, but it seems inactive. 
+ You can to claim a copy of the source code sending e-mail to phil@fec.unicamp.br.
+ 
+ We are testing now using another library <a href="http://www.fadbad.com/fadbad.html">FADBAD++</a>. (2007)\n
+ This library implements the forward, backward and Taylor methods utilizing C++ templates and operator overloading. 
+ 
+ Also we are testing using <a href="http://admb-project.org/downloads">AUTODIF</a> which is a library for automatic differentiation used as the building block for AD Model Builder.
+ This library is current and it has versions to Windows, unix and Max systems.
  
 \section log4cxx Log4cxx library
+
+Apache <a href="http://logging.apache.org/log4cxx/">log4cxx</a> is a logging framework for C++ pattern. It has three main components: loggers, appenders and layouts.
+These three types of components work together to enable developers to log messages according to message type and level, 
+and to control at runtime how these messages are formatted and where they are reported.
  
+To install, <a href="http://logging.apache.org/log4cxx/download.html">download</a> apache-log4cxx-0.10.0.zip for windows system, or apache-log4cxx-0.10.0.tar.gz for unix or mac systems. \n
+Then uncompress the archive. Using command line change into uncompress directory. \n
+Type de following commands: \n
+ \li ./configure
+ \li make check
+ \li sudo make install
+
 \section pthread Pthread library
  
-\page projects Projects with PZ
+The neopz project uses <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/">PThread</a> library for the POSIX pthread threading. 
+To install for unix or mac systems, make <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/PThread.tar.gz">download</a> of the source code. Uncompress the archive and using command line change into the uncompress directory with PThread.
+Use the following commands:
+ \li ./configure
+ \li make
+ \li sudo make install
  
-\section steam_injection Steam Injection in Reservoir
- 
-\section cons_law Conservation Laws
- 
-\section highperform High performance
- 
-\section adaptive hp-Adaptivity
- 
-\page teoria Theorical fundaments implemented in PZ
- 
-\section topology Topology
-\section integral Numerical integration
- 
-\section shapes Shape functions
- 
-\section analysis Analysis: Solving process
+ For windows system, get the header files and release libraries (dll, lib) from <a href="http://sourceware.org/pthreads-win32/>sourceware</a>. You can to connect with server as guest and then copy the include and lib directories into your system.
  
 \page tutorial Tutorial examples
 \section use_matrix Using matrices classes
@@ -245,6 +259,30 @@ See <a href="group__integral.html">Numerical integration</a> module
 \section use_util Using util classes: vector, chunk vector ...
 See <a href="group__util.html">Utility</a> module
 
+ \section use_geometric Creating geometric objects
+ 
+ See <a href="group_geom.html">Geometry</a> module.
+ 
+ The tutorial discShape implements a bi-dimensional problem using as mesh a disc with a central hole.
+ 
+ It initializes given the coordinates of the 10 points on the \f$ x^2 + y^2 = 4 \f$ circunference and another 10 points on the \f$ x^2 + y^2 = r^2 \f$, where \f$ r \f$ is the radio of the hole. 
+ Then it constructs a quadrilateral elements jointing two next nodes on external boundary with another two nodes on internal boundary (hole). Also creates 
+ 20 boundary (one-dimensional) elements on external and internal boundary.
+ 
+ After was created the geometrical mesh and the nodes and elements into the mesh, it is necessary to construct the connectivity between them calling BuildConnectivity().
+ 
 \section use_material Creating material from differential equation
+ 
 \section use_analysis Solving differential equation
+ 
+ \page projects Projects with NeoPZ
+ 
+ \section steam_injection Steam Injection in Reservoir
+ 
+ \section cons_law Conservation Laws
+ 
+ \section highperform High performance
+ 
+ \section adaptive hp-Adaptivity
+  
 */

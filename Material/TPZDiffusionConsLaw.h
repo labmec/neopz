@@ -24,9 +24,9 @@
 #include "pzfmatrix.h"
 
 /**
- * @ingroup material
+ * @ingroup analysis
  * @brief This class adds to the term of diffusion to the variacional formularization \n
- * of the differential equation partial compressible of Euler (hyperbolic).
+ * of the differential equation partial compressible of Euler (hyperbolic). \ref analysis Analysis
  */
 /**
  * This term is introduced to stabilize the numerical method of approach.

@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZConservationLaw class which implements the interface for conservation laws.
  */
-//$Id: pzconslaw.h,v 1.26 2009-09-01 19:44:46 phil Exp $
 
 #ifndef PZCONSLAW_H
 #define PZCONSLAW_H

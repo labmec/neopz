@@ -28,8 +28,8 @@ class TPZGeoMesh;
 namespace pzgeom {
 	
 	/** 
-	 * @ingroup geometry topology
-	 * @brief Geometric derivated class (template). \ref topology "Topology"
+	 * @ingroup geometry
+	 * @brief Geometric derivated class (template). \ref geometry "Geometry"
 	 */
 	template<class TFather, class Topology>
 	class GPr : public TFather {

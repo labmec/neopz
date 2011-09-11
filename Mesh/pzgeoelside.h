@@ -65,7 +65,7 @@ public:
 };
 
 /**
- * @brief Utility class which represents an element with its side. \ref geometry
+ * @brief Utility class which represents an element with its side. \ref geometry Geometry
  * @ingroup geometry
  */
 /**

@@ -17,7 +17,8 @@
 
 using namespace std;
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh,dimension,mat) {
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+TPZGraphMesh(cmesh,dimension,mat) {
 	SetNames(scalarnames,vecnames);
 	fNextDataField = 1;
 	fStyle = EDXStyle;

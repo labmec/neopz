@@ -32,7 +32,7 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
  * This logical refinement means that the refined element object are not actually created \n
  * They only exist in the output file. 
  */
-class TPZGraphMesh{
+class TPZGraphMesh {
 public:
 	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat);
 	virtual ~TPZGraphMesh(void);

@@ -15,7 +15,7 @@
 
 /**
  * @ingroup material
- * @brief Implements an implicit Euler time integrator.
+ * @brief Implements an implicit Euler time integrator. \ref material Material 
  */
 /**
  * Weak statement is supposed to be Integral[(un+1 - un)/deltaT * v, Omega] + Bilinear Form = Linear Form

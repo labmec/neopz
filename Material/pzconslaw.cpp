@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZConservationLaw methods.
  */
-//$Id: pzconslaw.cpp,v 1.12 2011-03-28 18:19:41 fortiago Exp $
 
 #include "pzconslaw.h" 
 #include "pzelmat.h"
