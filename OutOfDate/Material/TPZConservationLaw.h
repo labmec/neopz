@@ -1,6 +1,6 @@
 /**
  * \file
- * @brief DEPRECATED FILE. This file contains the TPZConservationLaw class which implements the interface for conservation laws
+ * @brief DEPRECATED FILE. This file contains the TPZConservationLawDEP class which implements the interface for conservation laws
  */
 #ifndef CONSERVATIONLAWHPP
 #define CONSERVATIONLAWHPP
@@ -14,7 +14,7 @@
  * @deprecated DEPRECATED conservation law material CLASS.
  * @brief Implements the interface for conservation laws, keeping track of the timestep as well. \n THIS CLASS IS DEPRECATED BY TPZConservationLaw2.
  */
-class TPZConservationLaw  : public TPZMaterial {
+class TPZConservationLawDEP  : public TPZMaterial {
 	
 	int fDim;
 	REAL fTimeStep;
@@ -23,15 +23,15 @@ class TPZConservationLaw  : public TPZMaterial {
 	
 	REAL fDelta;
 	
-	TPZConservationLaw(int nummat,REAL delta_t,int dim);
+	TPZConservationLawDEP(int nummat,REAL delta_t,int dim);
 	
 	/** @brief copy constructor*/
-	TPZConservationLaw(TPZConservationLaw &copy);
+	TPZConservationLawDEP(TPZConservationLawDEP &copy);
 	
 	/** @brief To create another material of the same type*/
 	TPZAutoPointer<TPZMaterial> NewMaterial();
 	
-	~TPZConservationLaw(){};
+	~TPZConservationLawDEP(){};
 	
 	/** @brief compute the boundary condition left solution */
 	virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
@@ -64,7 +64,7 @@ class TPZConservationLaw  : public TPZMaterial {
 	
 	virtual void Print(std::ostream & out);
 	
-	virtual std::string Name() { return "TPZConservationLaw"; }
+	virtual std::string Name() { return "TPZConservationLawDEP"; }
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
@@ -117,35 +117,35 @@ public:
 };
 
 
-// inline void TPZConservationLaw::ContributeInterface(TPZMaterialData &data,
+// inline void TPZConservationLawDEP::ContributeInterface(TPZMaterialData &data,
 //                                                       REAL ,
 //                                                       TPZFMatrix &){
-//   PZError << "TPZConservationLaw::ContributeInterface it would never have to be called\n";
+//   PZError << "TPZConservationLawDEP::ContributeInterface it would never have to be called\n";
 // }
 
-inline void TPZConservationLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
-	PZError << "TPZConservationLaw::Solution it would never have to be called\n";
+inline void TPZConservationLawDEP::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+	PZError << "TPZConservationLawDEP::Solution it would never have to be called\n";
 }
 
-inline void TPZConservationLaw::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
-	PZError << "TPZConservationLaw::SetDeltaTime it would never have to be called\n";
+inline void TPZConservationLawDEP::SetDeltaTime(REAL maxveloc,REAL deltax,int degree){
+	PZError << "TPZConservationLawDEP::SetDeltaTime it would never have to be called\n";
 }
 
-inline REAL TPZConservationLaw::Pressure(TPZVec<REAL> &U) {
-	PZError << "TPZConservationLaw::Pressure it would never have to be called\n";
+inline REAL TPZConservationLawDEP::Pressure(TPZVec<REAL> &U) {
+	PZError << "TPZConservationLawDEP::Pressure it would never have to be called\n";
 	return 0.0;
 }
 
-inline REAL TPZConservationLaw::Gamma() {
-	PZError << "TPZConservationLaw::Gamma it would never have to be called\n";
+inline REAL TPZConservationLawDEP::Gamma() {
+	PZError << "TPZConservationLawDEP::Gamma it would never have to be called\n";
 	return 0.0;
 }
 
-inline void TPZConservationLaw::ComputeSolLeft(TPZVec<REAL> &,TPZVec<REAL> &,TPZVec<REAL> &,TPZBndCond *){
-	PZError << "TPZConservationLaw::ComputeSolLeft it would never have to be called\n";
+inline void TPZConservationLawDEP::ComputeSolLeft(TPZVec<REAL> &,TPZVec<REAL> &,TPZVec<REAL> &,TPZBndCond *){
+	PZError << "TPZConservationLawDEP::ComputeSolLeft it would never have to be called\n";
 }
 
-inline void TPZConservationLaw::ComputeSolRight(TPZVec<REAL> &,TPZVec<REAL> &,TPZVec<REAL> &,TPZBndCond *){
-	PZError << "TPZConservationLaw::ComputeSolRight it would never have to be called\n";
+inline void TPZConservationLawDEP::ComputeSolRight(TPZVec<REAL> &,TPZVec<REAL> &,TPZVec<REAL> &,TPZBndCond *){
+	PZError << "TPZConservationLawDEP::ComputeSolRight it would never have to be called\n";
 }
 #endif

@@ -26,7 +26,7 @@
  * @deprecated DEPRECATED Euler equation material CLASS.
  * @brief Implements the weak statement of the compressible euler equations.
  */
-class TPZEulerConsLaw  : public TPZConservationLaw {
+class TPZEulerConsLawDEP  : public TPZConservationLawDEP {
 	
 	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	REAL fGamma;
@@ -36,15 +36,15 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 		
 	public :
 	
-	TPZEulerConsLaw(int nummat,REAL delta_t,REAL gamma,int dim,const std::string &artdiff);
+	TPZEulerConsLawDEP(int nummat,REAL delta_t,REAL gamma,int dim,const std::string &artdiff);
 	
 	/** @brief Copy constructor */
-	TPZEulerConsLaw(TPZEulerConsLaw & copy);
+	TPZEulerConsLawDEP(TPZEulerConsLawDEP & copy);
 	
 	/** @brief To create another material of the same type */
 	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 	
-	~TPZEulerConsLaw();
+	~TPZEulerConsLawDEP();
 	
 	/** @brief Computes the boundary condition left solution */
 	virtual void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
@@ -70,7 +70,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 	
 	virtual void Print(std::ostream & out);
 	
-	virtual std::string Name() { return "TPZEulerConsLaw"; }
+	virtual std::string Name() { return "TPZEulerConsLawDEP"; }
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
 	
@@ -89,7 +89,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw {
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc)
 	{
-		TPZConservationLaw::ContributeBC(data,weight,ef,bc);
+		TPZConservationLawDEP::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual void Contribute(TPZMaterialData &data,
