@@ -43,9 +43,10 @@ fFy(0.){}
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
-TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),C1(cp.C1), C2(cp.C2), C3(cp.C3), fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
 fFy(cp.fFy)
 {
+    
 }
 
 void TPZElasticity3D::Print(std::ostream & out){
@@ -316,8 +317,7 @@ int TPZElasticity3D::VariableIndex(const std::string &name){
 	if(!strcmp("Strain1",     name.c_str()))  return TPZElasticity3D::EStrain1;  
 	if(!strcmp("NormalStress",name.c_str()))  return TPZElasticity3D::ENormalStress;
 	if(!strcmp("NormalStrain",name.c_str()))  return TPZElasticity3D::ENormalStrain;
-	PZError << "TPZElasticity3D::VariableIndex Error\n";
-	return -1;
+    return TPZMaterial::VariableIndex(name);
 }
 
 int TPZElasticity3D::NSolutionVariables(int var){
@@ -336,9 +336,8 @@ int TPZElasticity3D::NSolutionVariables(int var){
 	if(var == TPZElasticity3D::EStrain1)             return 1;  
 	if(var == TPZElasticity3D::EStress1)             return 1; 
 	if(var == TPZElasticity3D::ENormalStress)        return 3;  
-	if(var == TPZElasticity3D::ENormalStrain)        return 3; 
-	PZError << "TPZElasticity3D::NSolutionVariables Error\n";
-	return -1;
+	if(var == TPZElasticity3D::ENormalStrain)        return 3;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
