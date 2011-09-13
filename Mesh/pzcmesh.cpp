@@ -30,6 +30,8 @@
 #include "pzvec.h"
 #include "pzadmchunk.h"
 
+#include "pzsubcmesh.h"
+
 #include "pzmetis.h"
 #include "pzstream.h"
 #include <map>
