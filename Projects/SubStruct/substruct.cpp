@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 
 		TPZAutoPointer<TPZCompMesh> cmesh;
 		
-		if(1)
+		if(0)
 		{
 			TPZGenSubStruct sub(dim,maxlevel,sublevel);
 			cmesh = sub.GenerateMesh();
@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 		
 
 //		TPZfTime timetosolve; // init of timer
-		cg.Solve(produto,diag);
+		cg.Solve(rhs,diag);
 //		tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
 //		cout << "Total: " << tempo.ft6iter << std::endl;
 		
@@ -212,14 +212,33 @@ int main(int argc, char *argv[])
 		}
 #endif		
         TPZAutoPointer<TPZMaterial> mat = cmeshauto->FindMaterial(1);
-        TPZManVector<std::string> scalnames(1),vecnames(0);
-        scalnames[0]="state";
+        int nstate = mat->NStateVariables();
+        int nscal = 0, nvec = 0;
+        if(nstate ==1) 
+        {
+            nscal = 1;
+        }
+        else
+        {
+            nvec = 1;
+        }
+        TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
+        if(nscal == 1)
+        {
+            scalnames[0]="state";            
+        }
+        else
+        {
+            vecnames[0] = "state";
+        }
         std::string postprocessname("dohrmann.vtk");
         TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
         vtkmesh.SetFileName(postprocessname);
         vtkmesh.SetResolution(1);
-        vtkmesh.DrawMesh(1);
-        vtkmesh.DrawSolution(0, 1.);
+        int numcases = 1;
+        vtkmesh.DrawMesh(numcases);
+        int step = 0;
+        vtkmesh.DrawSolution(step, 1.);
 	}
     
 	delete gmesh;
@@ -481,7 +500,7 @@ TPZGeoMesh *MalhaPredio()
 	int numelements=-1;
 	
 	string FileName;
-	FileName = "8andares02.txt";
+	FileName = "../8andares02.txt";
 	
 	{
 		bool countnodes = false;
