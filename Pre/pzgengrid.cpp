@@ -275,7 +275,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
      */
 }
 
-void TPZGenGrid::SetBC(TPZGeoMesh*g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc){
+void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc){
     
 	TPZGeoNode *gn1 = g->FindNode(start);
 	TPZGeoNode *gn2 = g->FindNode(end);
