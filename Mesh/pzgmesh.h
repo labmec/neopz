@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZMesh class which defines a geometrical mesh and contains a corresponding lists of elements, nodes and conditions.
  */
-//$Id: pzgmesh.h,v 1.39 2011-03-24 18:32:51 phil Exp $
 
 #ifndef PZGEOMESHH
 #define PZGEOMESHH
@@ -32,8 +31,6 @@ class TPZRefPatternDataBase;
 
 template<class T>
 class TPZVec;
-//template<class T,class TT>
-//class TPZAVLMap;
 
 template <class TGeo> class TPZGeoElRefPattern;
 
@@ -42,60 +39,53 @@ template <class TGeo> class TPZGeoElRefPattern;
  * @ingroup geometry
  */
 /**
- A TPZGeoMesh defines a geometrical mesh and contains a corresponding list of geometrical elements, geometrical nodes, \n
- elementwise defined boundary conditions and nodal boundary conditions. \n
- Various methods are defined to add, delete or loop over the items which are contained within the TPZGeoMesh. \n
- Other auxiliary data structures help in the construction of the mesh
+ * A TPZGeoMesh defines a geometrical mesh and contains a corresponding list of geometrical elements, geometrical nodes,
+ * elementwise defined boundary conditions and nodal boundary conditions. \n
+ * Various methods are defined to add, delete or loop over the items which are contained within the TPZGeoMesh. \n
+ * Other auxiliary data structures help in the construction of the mesh
  */
 class  TPZGeoMesh : public TPZSaveable {
 	
-	/** @brief TPZGeoMesh name for model identification*/
+	/** @brief TPZGeoMesh name for model identification */
 	std::string fName;
 	
-	/** @brief Computational mesh associated*/
+	/** @brief Computational mesh associated */
 	TPZCompMesh 	*fReference;
 	
-	/** @brief List of pointers to finite elements*/
+	/** @brief List of pointers to finite elements */
 	TPZAdmChunkVector<TPZGeoEl *> fElementVec;
 	
-	/** @brief List of pointers to nodes*/
+	/** @brief List of pointers to nodes */
 	TPZAdmChunkVector<TPZGeoNode> fNodeVec;
 	
-	/** List of pointers to reference systems*/
-	//TPZAdmChunkVector<TPZCosys *> fCosysVec;
-	
-	/** @brief Maximum id used by all nodes of this mesh*/
+	/** @brief Maximum id used by all nodes of this mesh */
 	int fNodeMaxId;
 	
-	/** @brief Maximum id used by all elements of this mesh*/
+	/** @brief Maximum id used by all elements of this mesh */
 	int fElementMaxId;
 	
 	typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
 	
 	/**
-	 @brief Datastructure which indicates the index of the interface material which needs to be created between two different materials @see AddInterfaceMaterial
+	 * @brief Datastructure which indicates the index of the interface material which needs to be created between two different materials 
+	 * @see AddInterfaceMaterial 
 	 */
 	InterfaceMaterialsMap fInterfaceMaterials;
 	
 public:
-	/** @brief Constructors and destructor*/
+	/** @brief Constructors and destructor */
 	TPZGeoMesh();
 	
 	/** @brief Copy constructor */
 	TPZGeoMesh(const TPZGeoMesh &cp);
 	
-	/**
-	 * @brief Operator of copy
-	 */
+	/** @brief Operator of copy */
 	TPZGeoMesh & operator= (const TPZGeoMesh &cp );
 	
-	/** @brief Operator of copy */
-	
-	
-	/** @brief Destructor*/
+	/** @brief Destructor */
 	virtual ~TPZGeoMesh();
 	
-	/** @brief Deletes all items in the TPZGeoMesh*/
+	/** @brief Deletes all items in the TPZGeoMesh */
 	void CleanUp();
 	
 	/** @brief Reset all connectivities */
@@ -107,32 +97,28 @@ public:
 	
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/** @brief Indicates that a node with id was created*/
+	/** @brief Indicates that a node with id was created */
 	void SetNodeIdUsed(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
 	
-	/** @brief Indicates that an element with id was created*/
+	/** @brief Indicates that an element with id was created */
 	void SetElementIdUsed(int id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 	
-	/** @brief Returns ++fNodeMaxId*/
+	/** @brief Returns ++fNodeMaxId */
 	int CreateUniqueNodeId() { return ++fNodeMaxId; }
 	
-	/** @brief Returns ++fElementMaxId*/
+	/** @brief Returns ++fElementMaxId */
 	int CreateUniqueElementId() { return ++fElementMaxId; }
 	
-	/**
-	 * @brief Used in patch meshes
-	 */
+	/** @brief Used in patch meshes */
 	void SetMaxNodeId(int id) { fNodeMaxId = (id > fNodeMaxId) ? id : fNodeMaxId; }
 	
-	/**
-	 * @brief Used in patch meshes
-	 */
+	/** @brief Used in patch meshes */
 	void SetMaxElementId(int id) { fElementMaxId = (id > fElementMaxId) ? id : fElementMaxId; }
 	
-	/** @brief Number of nodes of the mesh*/
+	/** @brief Number of nodes of the mesh */
 	int NNodes() const {return fNodeVec.NElements();}
 	
-	/** @brief Number of elements of the mesh*/
+	/** @brief Number of elements of the mesh */
 	int NElements() const {return fElementVec.NElements();}
 	
 	int ReallyNEl() {return (fElementVec.NElements() - fElementVec.NFreeElements()) ; }
@@ -141,62 +127,63 @@ public:
 	
 	std::string &Name() { return fName; }
 	
-	/** @brief Methods for handling pzlists*/
+	/** @brief Methods for handling pzlists */
 	TPZAdmChunkVector<TPZGeoEl *> &ElementVec() { return fElementVec; }
 	TPZAdmChunkVector<TPZGeoNode> &NodeVec() { return fNodeVec; }
 	const TPZAdmChunkVector<TPZGeoEl *> &ElementVec() const { return fElementVec; }
 	const TPZAdmChunkVector<TPZGeoNode> &NodeVec() const { return fNodeVec; }
-	
-	//TPZAdmChunkVector<TPZCosys *> &CosysVec() { return fCosysVec; }
-	
-	/** @brief Resets all load references in elements and nodes*/
+
+	/** @brief Resets all load references in elements and nodes */
 	void ResetReference();
 	
 	/** @brief Restore all reference in elements from computational mesh criated from current
-     geometrical mesh previously*/
+     geometrical mesh previously */
 	void RestoreReference(TPZCompMesh *cmesh);
 	
-	/** @brief Sets the reference of the geometric grid to ref*/
+	/** @brief Sets the reference of the geometric grid to ref */
 	void SetReference(TPZCompMesh *ref)
 	{
-		//if(fReference) ResetReference();
 		fReference = ref;
 	}
 	
-	/** @brief Returns the currently loaded computational grid*/
+	/** @brief Returns the currently loaded computational grid */
 	TPZCompMesh *Reference() const {return fReference;}
 	
-	/** @brief Print the information of the grid to an ostream*/
+	/** @brief Print the information of the grid to an ostream */
 	virtual  void Print(std::ostream & out = std::cout);
 	
-    /** @brief Returns the nearest node to the coordinate
-     this method is VERY INEFICIENT*/
+    /** @brief Returns the nearest node to the coordinate. This method is VERY INEFFICIENT */
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);
 	
-	/** @brief Alternative method for computing the connectivity*/
+	/** @brief Alternative method for computing the connectivity */
 	void BuildConnectivityOld();
 	
-	/** @brief Build the connectivity of the grid*/
+	/** @brief Build the connectivity of the grid */
 	void BuildConnectivity();
 	
-	/** @brief Fills the nodep vector with pointers to the nodes identified by their indexes*/
+	/** @brief Fills the nodep vector with pointers to the nodes identified by their indexes */
 	void GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep);
 	
-	/** @brief GetBoundaryElements returns all elements beweeen NodFrom and NodTo counterclock wise this
-     method uses the connectivity of the elements BuildConnectivity should be called to initialize
-     
-	 The connectivity information this method will only work for grid with 2-D topology the current
-     version will only work for a grid with only one level*/
+	/**
+	 * @brief GetBoundaryElements returns all elements beweeen NodFrom and NodTo counterclock wise this
+	 * method uses the connectivity of the elements BuildConnectivity should be called to initialize
+     */
+	/**
+	 * The connectivity information this method will only work for grid with 2-D topology the current 
+	 * version will only work for a grid with only one level
+	 */
 	void GetBoundaryElements(int IndexNodeFrom,int IndexNodeTo,TPZStack<TPZGeoEl *> &ElementVec,TPZStack<int> &Sides);
 	
-    /** @brief Find the element with ids elid*/
-	TPZGeoEl *FindElement(int elid);//Cedric
+    /** @brief Find the element with ids elid */
+	TPZGeoEl *FindElement(int elid);
 	
-	/** @brief Returns the index of the given element into the fElementVec*/
-	int ElementIndex(TPZGeoEl * gel); //Cesar 2002-05-02
+	/** @brief Returns the index of the given element into the fElementVec */
+	/** @since 2002-05-02 (Cesar) */
+	int ElementIndex(TPZGeoEl * gel);
 	
-	/** @brief Returns the index of the given node into the fNodeVec*/
-	int NodeIndex(TPZGeoNode * nod);//Cesar 2002-05-02
+	/** @brief Returns the index of the given node into the fNodeVec */
+	/** @since 2002-05-02 (Cesar) */
+	int NodeIndex(TPZGeoNode * nod);
 	
 	/**
 	 * @brief Generic method for creating a geometric element. Putting this method centrally facilitates
@@ -209,12 +196,9 @@ public:
 	 */
 	virtual  TPZGeoEl *CreateGeoElement(MElementType type,TPZVec<int> &cornerindexes,int matid,int &index, int reftype = 1);
 	
-	/**
-	 * @brief Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis
-	 */
+	/** @brief Creates a geometric element in same fashion of CreateGeoElement but here the elements are blend, as Caju master thesis */
 	virtual TPZGeoEl *CreateGeoBlendElement(MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
 	
-	//  virtual void DeleteElement(int gelindex);
 	/**
 	 * @brief Centralized method to delete elements
 	 * @param gel pointer to the element to be deleted
@@ -224,10 +208,11 @@ public:
 	
 	/**
 	 * @brief Add an interface material associated to left and right element materials.
-	 * 
+	 * @since Feb 05, 2004
+	 */
+	/**
 	 * If std::pair<left, right> already exist, nothing is made and method returns 0.
 	 * If material is inserted in geomesh method returns 1.
-	 * @since Feb 05, 2004
 	 */
 	int AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial);
 	
@@ -245,15 +230,11 @@ public:
 	
 private:
 	
-	/** @brief Find all elements in elmap or neighbour of elements in elmap which contain a node*/
-	//void BuildElementsAroundNode(int currentnode,TPZAVLMap<int,TPZGeoEl *> &elmap);
+	/** @brief Find all elements in elmap or neighbour of elements in elmap which contain a node */
 	void BuildElementsAroundNode(int currentnode,std::map<int,TPZGeoEl *> &elmap);
 	
-	/**
-	 @brief Method which works only for two dimensional topologies!
-     
-	 Find, within elmap, the element which has currentnode as its first boundary side node*/
-	//void FindElement(TPZAVLMap<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
+	/** @brief Method which works only for two dimensional topologies! */
+	/** Find, within elmap, the element which has currentnode as its first boundary side node */
  	void FindElement(std::map<int,TPZGeoEl *> &elmap,int currentnode,TPZGeoEl* &candidate,int &candidateside);
 };
 
