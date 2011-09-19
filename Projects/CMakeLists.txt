@@ -19,6 +19,9 @@ if(BUILD_TUTORIAL)
 	#Using discontinuous approximation functions
 	add_subdirectory(descontinuo)
 
+	#Doing h-refinement
+#	add_subdirectory(adaptivity)
+
 	#source_group(CursoPZ FILES ${pzcurso})
 	#source_group(Shape FILES ${pztutorshape})
 	#source_group(Geometry FILES ${pztutorgeom})

@@ -1,18 +1,13 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
-########### next target ###############
-
 set(main_SRCS
     main.cpp
     pzadaptmesh.cpp
     pzcclonemesh.cpp
     pzgclonemesh.cpp)
 
-add_executable(main ${main_SRCS})
+add_executable(adaptivity ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS} pz metis)
+target_link_libraries(adaptivity pz metis)
 
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+##install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
 
