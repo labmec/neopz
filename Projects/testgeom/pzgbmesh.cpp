@@ -25,7 +25,75 @@
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 
+#include "TPZRefPatternDataBase.h"
+#include "pzgengrid.h"
+
 using namespace std;
+
+/// Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
+#define REFPATTERNDIR "/Users/jorge/Labmec/GoogleCodes/neopz/Refine/RefPatterns"
+
+int main() {
+    
+#ifdef LOG4CXX
+//	InitializePZLOG();
+#endif
+
+    /// test the prismatic extension of the topology
+	TPZGeoMesh *gmesh = new TPZGeoMesh;
+	//TPZRefPatternDataBase ref;
+	//ref.InitializeRefPatterns();
+
+	TPZManVector<int> nx(2,2);
+
+	TPZManVector<REAL> x0(3,0.), x1(3,1.);
+
+	x1[2]=0.;
+
+	TPZGenGrid gen(nx,x0,x1);
+	gen.SetElementType(1);
+	gen.Read(*gmesh);
+
+//	x0[0]=0.;
+//	x0[1]=0.;
+//	x0[2]=0.;
+
+//	x1[0]=1.0;
+//	x1[1]=1.0;
+//	x1[2]=0.;
+	ofstream saida("malhateste1.txt");
+	gmesh->Print(saida);
+
+	gen.SetBC(gmesh, x0, x1, -1);
+
+	gmesh->Print(saida);
+
+	gen.SetBC(gmesh, x1, x0, -1);
+	gmesh->Print(saida);
+
+	gmesh->BuildConnectivity();
+
+//	ofstream saida("malhateste1.txt");
+	gmesh->Print(saida);
+	saida.close();
+	return 0;
+
+/*
+	const int nel=299;
+    TPZVec<int> nx(2,nel);
+    nx[1] = 1;
+    TPZVec<REAL> x0(3,0.),x1(3,300.);
+    x0[0] = 1.;
+    x1[1] = 1.;
+    TPZGenGrid gengrid(nx,x0,x1);
+    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
+    gengrid.Read(gmesh);
+    gengrid.SetBC(gmesh,3,-1);
+    gengrid.SetBC(gmesh,1,-2);
+    TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
+*/
+
+}
 
 /*
 template<class T>

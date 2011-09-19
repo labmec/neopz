@@ -23,7 +23,7 @@ void LargeMesh(int nrefloop);
 void TestTopology();
 
 /// Program to exemplify the reading a a geometric mesh
-int main() {
+int main_back() {
     
 #ifdef LOG4CXX
 	InitializePZLOG();
