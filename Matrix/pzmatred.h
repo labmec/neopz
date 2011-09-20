@@ -67,11 +67,12 @@ public:
 	TPZMatRed(const int dim, const int dim00);
 	
 	template<class TSideCopy>
-	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1)
+	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes)
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
 		fF0IsComputed=cp.fF0IsComputed;
+        fK00IsDecomposed = cp.fK00IsDecomposed;
 		fK11IsReduced=cp.fK11IsReduced;
 		fK01IsComputed = cp.fK01IsComputed;
 		fF1IsReduced=cp.fF1IsReduced;
@@ -125,11 +126,27 @@ public:
 		return fK10;
 	}
 	void SetSolver(TPZAutoPointer<TPZMatrixSolver> solver);
+    TPZAutoPointer<TPZMatrixSolver> Solver()
+    {
+        return fSolver;
+    }
 	/**
 	 * @brief Copies the F vector in the internal data structure
 	 * @param F vector containing data to stored in current object
 	 */
 	void SetF(const TPZFMatrix & F);
+    
+    /** @brief indicate how many degrees of freedom are reserved for rigid body modes */
+    void SetMaxNumberRigidBodyModes(int maxrigid)
+    {
+        fMaxRigidBodyModes = maxrigid;
+    }
+    
+    /** @brief return the number of rigid body modes detected during decomposition */
+    int NumberRigidBodyModes()
+    {
+        return fNumberRigidBodyModes;
+    }
 	
 	/** @brief Indicate whether F0 needs to be reduced or not */
 	void SetF0IsComputed(bool value)
@@ -214,6 +231,9 @@ private:
 	 * @param col Column number
 	 */
 	static void Swap(int *row, int *col);
+    
+    /** @brief Decompose K00 and adjust K01 and K10 to reflect rigid body modes */
+    void DecomposeK00();
 	
 	/** @brief Stiffnes matrix */
 	TPZAutoPointer<TPZMatrix> fK00;
@@ -235,6 +255,9 @@ private:
 	
 	/** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been calculated and overwritten on \f$ [F0] \f$ */
 	char fF0IsComputed;
+    
+    /** @brief Flag indicating that K00 was decomposed */
+    char fK00IsDecomposed;
 	
 	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
 	char fK01IsComputed;
@@ -244,6 +267,12 @@ private:
 	
 	/** @brief fF1IsReduced is true if  \f$ [F1]=[F1]-[K10][(A00)^-1][F0] \f$ exists */
 	char fF1IsReduced;
+    
+    /** @brief Number of rigid body modes foreseen in the computational mesh */
+    int fMaxRigidBodyModes;
+    
+    /** @brief Number of rigid body modes identified during the decomposition of fK00 */
+    int fNumberRigidBodyModes;
 };
 
 /************/
