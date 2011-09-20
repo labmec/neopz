@@ -39,6 +39,7 @@ void TPZSubMeshAnalysis::Assemble(){
     {
         fSolver->SetMatrix(fStructMatrix->Create());	
     }
+    matred->SetMaxNumberRigidBodyModes(fMesh->NumberRigidBodyModes());
 	//	fReducableStiff.SetK00(fSolver->Matrix());
 	// this will initialize fK00 too
 	matred->SetSolver(dynamic_cast<TPZMatrixSolver *>(fSolver->Clone()));
@@ -90,7 +91,7 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
 	
 }
 
-void TPZSubMeshAnalysis::LoadSolution(TPZFMatrix &sol)
+void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix &sol)
 {
 	
 	//	sol.Print("sol");
@@ -102,13 +103,14 @@ void TPZSubMeshAnalysis::LoadSolution(TPZFMatrix &sol)
 	//	cout.flush();
 	int i;
 	for(i=0; i<numeq-numinter; i++) {
-		soltemp(i,0) = sol(numinter+i,0)-fReferenceSolution(numinter+i,0);
+		soltemp(i,0) = sol.GetVal(numinter+i,0)-fReferenceSolution(numinter+i,0);
 	}
 	TPZFMatrix uglobal(numeq,1,0.);
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
 	matred->UGlobal(soltemp,uglobal);
+    fReferenceSolution.Print("Solucao de referencia\n");
+    uglobal.Print("uglobal");
 	fSolution = fReferenceSolution + uglobal;
-	//	fSolution->Print("fSolution");
 	TPZAnalysis::LoadSolution();
 	//	cout.flush();
 }
