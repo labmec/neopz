@@ -683,6 +683,7 @@ void TPZMatrix::SolveCG(int &numiterations, TPZSolver &preconditioner,
 }
 
 #include "gmres.h"
+#include "pzstepsolver.h"
 
 void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
 						   TPZFMatrix &H, int &numvectors,
@@ -691,9 +692,26 @@ void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
 {
     if(F.Cols() > 1)
     {
-        DebugStop();
+        int locnumiter = numiterations;
+        REAL loctol = tol;
+        int nrow = F.Rows();
+        int ncol = F.Cols();
+        int col;
+        //preconditioner.Solve(F, result);
+        for (col=0; col<ncol; col++) {
+            std::cout << "Column " << col << std::endl;
+            numiterations = locnumiter;
+            tol = loctol;
+            TPZFMatrix FCol(nrow,1);
+            memcpy(&FCol(0,0), &F.GetVal(0,0), nrow*sizeof(REAL));
+            TPZFMatrix resultCol(nrow,1,&result(0,col),nrow);
+            GMRES(*this,resultCol,FCol,preconditioner,H,numvectors,numiterations,tol,residual,1);
+        }
     }
-	GMRES(*this,result,F,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
+    else
+    {
+        GMRES(*this,result,F,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
+    }
 }
 
 #include "bicg.h"
