@@ -61,7 +61,13 @@ public:
 		fTol = tol;
 	}
 	
+    /** @brief reset the data structure of the solver object */
 	void ResetSolver();
+    
+    virtual MSolver Solver()
+    {
+        return fSolver;
+    }
 	
 	/**
 	 * @brief returns the equations for which the equations had zero pivot
@@ -85,8 +91,22 @@ public:
 		TPZMatrixSolver::UpdateFrom(matrix);
 	}
 	
+    
 	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+    
+    /**
+     * @brief Decompose the system of equations if a direct solver is used
+     */
+    virtual void Decompose();
+    
+    /** @brief Define the preconditioner as a solver object */
 	void SetPreconditioner(TPZSolver &solve);
+    
+    /** @brief access method to the preconditioner */
+    TPZSolver *PreConditioner()
+    {
+        return fPrecond;
+    }
 	
 	/** @brief Serialization methods */
 	virtual int ClassId() const
