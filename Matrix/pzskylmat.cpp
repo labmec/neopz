@@ -90,6 +90,26 @@ void TPZSkylMatrix::AddSameStruct(TPZSkylMatrix &B, double k){
 	
 }
 
+/**
+ * @brief Updates the values of the matrix based on the values of the matrix
+ */
+void TPZSkylMatrix::UpdateFrom(TPZAutoPointer<TPZMatrix> mat)
+{
+    TPZMatrix *matrix = mat.operator->();
+    TPZSkylMatrix *skylmat = dynamic_cast<TPZSkylMatrix *>(matrix);
+    if (!skylmat) {
+        DebugStop();
+    }
+    if (fStorage.NElements() != skylmat->fStorage.NElements()) {
+        DebugStop();
+    }
+    memcpy(&fStorage[0], &(skylmat->fStorage[0]) , fStorage.NElements()*sizeof(REAL));
+    fDecomposed = skylmat->fDecomposed;
+    fDefPositive = skylmat->fDefPositive;
+}
+
+
+
 void TPZSkylMatrix::SetSkyline(const TPZVec<int> &skyline)
 {
 	fElem.Fill(0);
@@ -778,10 +798,12 @@ TPZSkylMatrix::Decompose_Cholesky()
 int
 TPZSkylMatrix::Decompose_LDLt(std::list<int> &singular)
 {
-	singular.clear();
 	if( fDecomposed == ELDLt) return 1;
 	if (  fDecomposed )
+    {
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+    }
+	singular.clear();
 	
 	// Third try
 	REAL *elj,*ell;
@@ -818,7 +840,7 @@ TPZSkylMatrix::Decompose_LDLt(std::list<int> &singular)
 		j++;
 	}
 	
-	if(Rows() && fabs(GetVal(Rows()-1,Rows()-1)) < 1.e-15)
+	if(Rows() && IsZero(GetVal(Rows()-1,Rows()-1)))
 	{
 		singular.push_back(Rows()-1);
 		PutVal(Rows()-1,Rows()-1,1.);

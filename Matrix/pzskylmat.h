@@ -72,7 +72,14 @@ public:
 	/** @brief declare the object as simetric matrix*/
 	virtual int IsSimetric() const {return 1;}
 	
+    /** @brief destructor of the skyline matrix */
 	virtual ~TPZSkylMatrix() { Clear(); }
+    
+    /**
+	 * @brief Updates the values of the matrix based on the values of the matrix
+	 */
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+
 	
 	int    PutVal(const int row,const int col,const REAL &element );
 	const REAL &GetVal(const int row,const int col ) const;
