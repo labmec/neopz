@@ -81,6 +81,15 @@ public:
 	virtual int SideConnectLocId(int node, int side) const;
 	
 	virtual int ConnectIndex(int node) const;
+    
+    /** @brief returns the index of the pressure connect
+     * returns -1 if their is no pressure connect
+     */
+    virtual int PressureConnectIndex() const
+    {
+        return NConnects()-1;
+    }
+
 	
 	virtual void SetIntegrationRule(int ord);
 	/** @brief Identifies the interpolation order for pressure variable*/
