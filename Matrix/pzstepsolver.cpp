@@ -43,6 +43,16 @@ void TPZStepSolver::ResetMatrix()
 	TPZMatrixSolver::ResetMatrix();
 }
 
+/**
+ * @brief Decompose the system of equations if a direct solver is used
+ */
+void TPZStepSolver::Decompose()
+{
+    if (fSolver == EDirect) {
+        Matrix()->Decompose(fDecompose,fSingular);
+    }
+}
+
 
 void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
 	if(!Matrix()) {
@@ -52,10 +62,10 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 	
 	TPZAutoPointer<TPZMatrix> mat = Matrix();
     // update the matrix to which the preconditioner refers
-    if(fPrecond && fReferenceMatrix)
+    if(fPrecond)
     {
         
-        fPrecond->UpdateFrom(fReferenceMatrix);
+        fPrecond->UpdateFrom(Matrix());
     }
     
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
@@ -219,6 +229,9 @@ void TPZStepSolver::SetMultiply() {
  */
 void TPZStepSolver::SetPreconditioner(TPZSolver &solve)
 {
+    if (fSolver == EDirect) {
+        DebugStop();
+    }
 	if(fPrecond) delete fPrecond;
 	fPrecond = solve.Clone();
 }
