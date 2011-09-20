@@ -1094,7 +1094,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
 	else{
-		if(!fAnalysis->Solver().Matrix())
+		//if(!fAnalysis->Solver().Matrix())
 		{
 			fAnalysis->Run(std::cout);
 			if(fAnalysis->AmIKilled()){
@@ -1157,16 +1157,24 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
 		str = new TPZSkylineStructMatrix(this);
 		str->AssembleOnlyInternalEquations();
 	}
+    SaddlePermute();
+	PermuteExternalConnects();
 	
 	str->SetNumThreads(numThreads);
+    TPZAutoPointer<TPZMatrix> mat = str->Create();
+    TPZAutoPointer<TPZMatrix> mat2 = mat->Clone();
 	
 	fAnalysis->SetStructuralMatrix(str);
-	TPZStepSolver *step = new TPZStepSolver();
+	TPZStepSolver *step = new TPZStepSolver(mat);
+    TPZStepSolver *gmrs = new TPZStepSolver(mat2);
+    step->SetReferenceMatrix(mat2);
 	step->SetDirect(ELDLt);
+    gmrs->SetGMRES(20, 20, *step, 1.e-6, 0);
 	TPZAutoPointer<TPZMatrixSolver> autostep = step;
+    TPZAutoPointer<TPZMatrixSolver> autogmres = gmrs;
+//	fAnalysis->SetSolver(autogmres);
 	fAnalysis->SetSolver(autostep);
 	
-	PermuteExternalConnects();
 #ifdef DEBUG 
 	{
 		TPZFMatrix fillin;
@@ -1508,10 +1516,6 @@ void TPZSubCompMesh::LoadElementReference()
  }
  */
 
-TPZAnalysis * TPZSubCompMesh::GetAnalysis()
-{
-	return fAnalysis.operator->();
-}
 
 /**
  * returns the unique identifier for reading/writing objects to streams
