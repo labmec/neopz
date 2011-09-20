@@ -17,15 +17,21 @@ class TPZSolver: public TPZSaveable
 {
 
 public:
-	// virtual void Solve(TPZFMatrix &F, TPZFMatrix &result) = 0;
 	/**
-	 * @brief Solves the system of linear equations stored in current matrix
+	 * @brief Solves the system of linear equations
 	 * @param F contains Force vector
 	 * @param result contains the solution
 	 * @param residual contains the residual for that linear system
 	 */
 	virtual void Solve(const TPZFMatrix &F, TPZFMatrix &result,
 					   TPZFMatrix *residual = 0) = 0;
+    
+    /**
+     * @brief Decompose the system of equations if a direct solver is used
+     */
+    virtual void Decompose()
+    {
+    }
 	
 	/** @brief Clones the current object returning a pointer of type TPZSolver */
 	virtual TPZSolver *Clone() const = 0;
@@ -63,6 +69,21 @@ class TPZMatrixSolver: public TPZSolver
 {
 	
 public:
+    /**
+	 * @enum MSolver
+	 * @brief Defines a series of solvers available in PZ
+	 * @param ENoSolver No solver selected
+	 * @param EJacobi Jacobi solver selected
+	 * @param ESOR Successive Over Relaxation solver selected
+	 * @param ESSOR Symmetric Successive Over Relaxation solver selected
+	 * @param ECG Conjugate Gradiente solver selected
+	 * @param EDirect LU, LDLt or Cholesky selected
+	 */
+	enum MSolver
+	{
+		ENoSolver, EJacobi, ESOR, ESSOR, ECG, EGMRES, EBICGSTAB, EDirect, EMultiply
+	};
+
 	/**
 	 @brief Constructor with initialization parameter
 	 @param Refmat Sets reference matrix to 0
@@ -115,43 +136,14 @@ public:
 	 */
 	void ShareMatrix(TPZMatrixSolver & other);
 	
+    virtual MSolver Solver()
+    {
+        return ENoSolver;
+    }
+
 protected:
-	/**
-	 * @enum MSolver
-	 * @brief Defines a series of solvers available in PZ
-	 * @param ENoSolver No solver selected
-	 * @param EJacobi Jacobi solver selected
-	 * @param ESOR Successive Over Relaxation solver selected
-	 * @param ESSOR Symmetric Successive Over Relaxation solver selected
-	 * @param ECG Conjugate Gradiente solver selected
-	 * @param EDirect Jacobi solver selected
-	 */
-	enum MSolver
-	{
-		ENoSolver, EJacobi, ESOR, ESSOR, ECG, EGMRES, EBICGSTAB, EDirect, EMultiply
-	};
 	
 private:
-	/**
-	 * @brief Defines a class of containers. \ref solver "Solver"
-	 * @ingroup solver
-	 */
-	class TPZContainer
-	{
-		static int gnumcreated;
-		static int gnumdeleted;
-		int fRefCount;
-		TPZMatrix *fRefMat;
-	public:
-		TPZContainer(TPZMatrix *mat);
-		~TPZContainer();
-		void IncreaseRefCount();
-		void DecreaseRefCount();
-		TPZMatrix *Matrix();
-		void SetMatrix(TPZMatrix *mat);
-		static void Diagnose(std::ostream &out = std::cout);
-	};
-	
 	/** @brief Container classes */
 	TPZAutoPointer<TPZMatrix> fContainer;
 protected:
