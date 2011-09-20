@@ -564,6 +564,25 @@ public:
 	 */
 	virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
 	
+    /** @brief decompose the system of equations acording to the decomposition scheme */
+    virtual int Decompose(const DecomposeType dt, std::list<int> &singular)
+    {
+        switch (dt) {
+            case ELU:
+                return Decompose_LU(singular);
+                break;
+            case ELDLt:
+                return Decompose_LDLt(singular);
+                break;
+            case ECholesky:
+                return Decompose_Cholesky(singular);
+                break;                
+            default:
+                DebugStop();
+                break;
+        }
+        return -1;
+    }
 	/**
 	 * @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
 	 */
