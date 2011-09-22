@@ -145,7 +145,7 @@ void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
 	for(int el=0; el<numel; el++) {
 		TPZGeoEl *gel = (TPZGeoEl *) ElementVec[el];
 		if(gel) {
-			TPZGeoElBC(gel,Sides[el],bc,g);
+			TPZGeoElBC(gel,Sides[el],bc);
 		}
 	}
 	/*

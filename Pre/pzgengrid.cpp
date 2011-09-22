@@ -238,7 +238,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 		}
 		for(iel = ielfirst; iel<iellast; iel += ielinc) {
 			gel = g->ElementVec()[iel];
-			TPZGeoElBC(gel,elementside,bc,*g);
+			TPZGeoElBC(gel,elementside,bc);
             //			gel->SetSide(side,bc);
 		}
 	}
@@ -287,7 +287,7 @@ void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, in
 	for(int el=0; el<numel; el++) {
 		TPZGeoEl *gel = (TPZGeoEl *) ElementVec[el];
 		if(gel) {
-			TPZGeoElBC(gel,Sides[el],bc,*g);
+			TPZGeoElBC(gel,Sides[el],bc);
         }
 	}
 }
@@ -468,7 +468,7 @@ void TPZGenGrid::SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
             }
         }
         if (c<nc) {
-            TPZGeoElBC(gel, c, bc, *gr);
+            TPZGeoElBC(gel, c, bc);
             return;
         }
     }

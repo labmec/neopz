@@ -9,7 +9,7 @@
 #include "pzgeoelside.h"
 #include "pzgmesh.h"
 
-TPZGeoElBC::TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh):fCreatedElement(NULL){
+TPZGeoElBC::TPZGeoElBC(TPZGeoEl *el,int side,int matid):fCreatedElement(NULL){
 	if (!el){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - TPZGeoEl *el is NULL\n";
 		return;
@@ -17,7 +17,7 @@ TPZGeoElBC::TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh):fCreat
 	this->fCreatedElement = el->CreateBCGeoEl( side, matid );
 }
 
-TPZGeoElBC::TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh):fCreatedElement(NULL){
+TPZGeoElBC::TPZGeoElBC(TPZGeoElSide &elside,int matid):fCreatedElement(NULL){
 	TPZGeoEl * el = elside.Element();
 	const int side = elside.Side();
 	if (!el || side == -1){

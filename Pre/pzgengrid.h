@@ -40,7 +40,7 @@ public:
     
     /**
 	 @brief Constructor
-	 @param nx 
+	 @param nx number of partitions on x and y intervals
      @param x0 lower left coordinate
      @param x1 upper right coordinate
      @param numl number of layers
@@ -48,6 +48,7 @@ public:
      */
     TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
     
+	/** @brief Default destructor */
     virtual ~TPZGenGrid();
     
     /** @brief Add nodes and elements to the object mesh */

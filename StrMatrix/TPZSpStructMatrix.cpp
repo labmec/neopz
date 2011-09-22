@@ -242,7 +242,7 @@ int TPZSpStructMatrix::main() {
 	UniformRefine(refine,gmesh);
 	
 	
-	TPZGeoElBC gelbc(gel,4,-4,gmesh);
+	TPZGeoElBC gelbc(gel,4,-4);
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
 	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
