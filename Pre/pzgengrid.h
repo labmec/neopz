@@ -40,7 +40,7 @@ public:
     
     /**
 	 @brief Constructor
-	 @param nx number of partitions on x and y intervals
+	 @param nx numbers of partition on x (nx[0]) and y (nx[1]) intervals
      @param x0 lower left coordinate
      @param x1 upper right coordinate
      @param numl number of layers
