@@ -1135,7 +1135,6 @@ TPZGeoMesh * GenerateGMesh(int nrows, int ncols, TPZVec<REAL> &fractureDots);
  gmesh->NodeVec()[n] = Node[n]; 
  }
  
- //inserting quadrilaterals
  int elId = 0;
  TPZVec <int> Topol(Qnodes);
  for(int n = 0; n < Qnodes; n++) Topol[n] = n;
@@ -1152,15 +1151,34 @@ TPZGeoMesh * GenerateGMesh(int nrows, int ncols, TPZVec<REAL> &fractureDots);
  std::ofstream outDepois("meshDepois.txt");
  gmesh->Print(outDepois);
  
- TPZVec<REAL> nodeCH(3);
- for(int n = 0; n < 10; n++)
- {  
- for(int c = 0; c < 3; c++)
+ //    TPZVec<REAL> nodeCH(3);
+ //    for(int n = 0; n < 10; n++)
+ //    {  
+ //        for(int c = 0; c < 3; c++)
+ //        {
+ //            double num = (2.*double(rand()%11) - 10.)/100.;
+ //            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+ //        }
+ //        gmesh->NodeVec()[n].SetCoord(nodeCH);
+ //    }
+ 
  {
- double num = (2.*double(rand()%11) - 10.)/100.;
- nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+ int targetSide = 11;
+ TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+ 
+ std::cout << "QuarterPoint:\n";
+ int nDiv = 2;
+ for(int D = 0; D < nDiv; D++)
+ {
+ int nels = gmesh->NElements();
+ for(int elem = 0; elem < nels; elem++)
+ {    
+ TPZVec< TPZGeoEl * > filhos;
+ quarterGel->Divide(filhos);
  }
- gmesh->NodeVec()[n].SetCoord(nodeCH);
+ }
+ std::ofstream outQPTetra("QuarterPointTetraedron.vtk");
+ TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPTetra, false);
  }
  
  //Teste de convergência (tem que dar muito proximo de 2)
@@ -1255,7 +1273,7 @@ int main(int argc, char * const argv[])
     NodeCoord[nodeId][1] =  0.;
     NodeCoord[nodeId][2] =  1.;
     nodeId++;
-        
+    
     //initializing gmesh->NodeVec()
     gmesh->NodeVec().Resize(Qnodes);
     TPZVec <TPZGeoNode> Node(Qnodes);
@@ -1282,15 +1300,34 @@ int main(int argc, char * const argv[])
     std::ofstream outDepois("meshDepois.txt");
     gmesh->Print(outDepois);
     
-    TPZVec<REAL> nodeCH(3);
-    for(int n = 0; n < 13; n++)
-    {  
-        for(int c = 0; c < 3; c++)
+//    TPZVec<REAL> nodeCH(3);
+//    for(int n = 0; n < 13; n++)
+//    {  
+//        for(int c = 0; c < 3; c++)
+//        {
+//            double num = (2.*double(rand()%11) - 10.)/100.;
+//            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+//        }
+//        gmesh->NodeVec()[n].SetCoord(nodeCH);
+//    }
+    
+    {
+        int targetSide = 17;
+        TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+        
+        std::cout << "QuarterPoint:\n";
+        int nDiv = 2;
+        for(int D = 0; D < nDiv; D++)
         {
-            double num = (2.*double(rand()%11) - 10.)/100.;
-            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+            int nels = gmesh->NElements();
+            for(int elem = 0; elem < nels; elem++)
+            {    
+                TPZVec< TPZGeoEl * > filhos;
+                quarterGel->Divide(filhos);
+            }
         }
-        gmesh->NodeVec()[n].SetCoord(nodeCH);
+        std::ofstream outQPPir("QuarterPointPiramid.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPPir, false);
     }
     
     //Teste de convergência (tem que dar muito proximo de 2)
@@ -1352,8 +1389,11 @@ int main(int argc, char * const argv[])
     
     std::cout << "FINISHED!!!" << std::endl;
     
+    
+    
     return 0;
 }
+
 
 //Prism
 /*
@@ -1575,15 +1615,35 @@ int main(int argc, char * const argv[])
  std::ofstream outDepois("meshDepois.txt");
  gmesh->Print(outDepois);
  
- TPZVec<REAL> nodeCH(3);
- for(int n = 0; n < 20; n++)
- {  
- for(int c = 0; c < 3; c++)
+ //Dando um peteleco nos nohs
+ //    TPZVec<REAL> nodeCH(3);
+ //    for(int n = 0; n < 20; n++)
+ //    {  
+ //        for(int c = 0; c < 3; c++)
+ //        {
+ //            double num = (2.*double(rand()%11) - 10.)/100.;
+ //            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+ //        }
+ //        gmesh->NodeVec()[n].SetCoord(nodeCH);
+ //    }
+ 
  {
- double num = (2.*double(rand()%11) - 10.)/100.;
- nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+ int targetSide = 20;
+ TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+ 
+ std::cout << "QuarterPoint:\n";
+ int nDiv = 2;
+ for(int D = 0; D < nDiv; D++)
+ {
+ int nels = gmesh->NElements();
+ for(int elem = 0; elem < nels; elem++)
+ {    
+ TPZVec< TPZGeoEl * > filhos;
+ quarterGel->Divide(filhos);
  }
- gmesh->NodeVec()[n].SetCoord(nodeCH);
+ }
+ std::ofstream outQPCube("QuarterPointCube.vtk");
+ TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPCube, false);
  }
  
  //Teste de convergência (tem que dar muito proximo de 2)

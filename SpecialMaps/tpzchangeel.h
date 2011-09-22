@@ -30,12 +30,8 @@ public:
     /** @brief Turns a regular element into a geoblend */
     static TPZGeoEl * ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex);
 
-    /** @brief Slide correct nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
-    static TPZGeoEl * QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side);
-
-private:
-    static void AdjustNeighbourhood(TPZGeoEl* OldElem, TPZGeoEl*NewElem);
-
+    /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
+    static TPZGeoEl * DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int targetSide);
 };
 
 #endif

@@ -28,6 +28,7 @@
 #include <sstream>
 using namespace std;
 using namespace pzgeom;
+using namespace pztopology;
 
 TPZChangeEl::TPZChangeEl()
 {
@@ -41,9 +42,16 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 {
 	TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
     
+    #ifdef DEBUG
+    if(!OldElem)
+    {
+        std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+    #endif
+    
     MElementType elType = OldElem->Type();
     int oldId = OldElem->Id();
-    int oldIndex = OldElem->Index();
     int oldMatId = OldElem->MaterialId();
     int nsides = OldElem->NSides();
     
@@ -504,256 +512,218 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 	return NewElem;
 }
 
-TPZGeoEl* TPZChangeEl::QuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int side)
+TPZGeoEl* TPZChangeEl::DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int targetSide)
 {
-	TPZGeoEl *OldElem = Mesh->ElementVec()[ElemIndex];
-    if(!OldElem)
+    TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
+    
+    #ifdef DEBUG
+    if(!gel)
     {
+        std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-	if(OldElem->TypeName() == "Triangle" && OldElem->NNodes() == 3)
-	{
-		if(side < 0 || side > 6) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
-		Mesh->SetNodeIdUsed(2);
-		TPZGeoEl * newEl = ChangeToQuadratic(Mesh,ElemIndex);
-		switch(side)
-		{
-			case 0:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(3)].
-					SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-					SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 1:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(3)].
-					SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 2:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 3:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 4:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(3)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 5:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(3)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-			case 6:
-				// Do nothing!
-				break;
-		}
-		return newEl;
-	}
-	else if(OldElem->TypeName() == "Quad" && OldElem->NNodes() == 4)
-	{
-		if(side < 0 || side > 8) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
-		Mesh->SetNodeIdUsed(3);
-		TPZGeoEl* newEl = ChangeToQuadratic(Mesh,ElemIndex);
-		switch(side)
-		{
-			case 0:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(7)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 1:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-				}
-				break;
-			case 2:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(6)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 3:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(6)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(7)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 4:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(7)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 5:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(6)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 6:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(5)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(7)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-				break;
-			case 7:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(4)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-					
-                    Mesh->NodeVec()[newEl->NodeIndex(6)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(2)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(3)].Coord(i));
-				}
-			case 8:
-				// Do nothing!
-				break;
-		}
-        return newEl;
-	}
-	else if(OldElem->NNodes() == 2)
-	{
-		if(side < 0 || side > 2) { cout << "Invalid Side to Compute Quarter Points!\nSee QuarterPoints Method!\n"; exit(-1);}
-		TPZGeoEl* newEl = ChangeToQuadratic(Mesh,ElemIndex);
-		switch(side)
-		{
-			case 0:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(2)].
-                    SetCoord(i, 0.75*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.25*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-				}
-				break;
-			case 1:
-				for(int i = 0; i < 3; i++)
-				{
-                    Mesh->NodeVec()[newEl->NodeIndex(2)].
-                    SetCoord(i, 0.25*Mesh->NodeVec()[newEl->NodeIndex(0)].Coord(i) + 0.75*Mesh->NodeVec()[newEl->NodeIndex(1)].Coord(i));
-				}
-				break;
-		}
-        return newEl;
-	}
-	else { cout << "Element type don't recognized!\nSee QuarterPoints Method!\n"; exit(-1); }
+    #endif
+    
+    if(gel->IsLinearMapping())
+    {
+        gel = TPZChangeEl::ChangeToQuadratic(Mesh, ElemIndex);
+    }
+    
+    MElementType gelType = gel->Type();
+    
+    TPZStack<int> targetSideNodes, targetSideEdges;
+    
+    switch(gelType)
+    {
+        case (EPoint):
+        {
+            TPZPoint::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZPoint::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (EOned):
+        {
+            TPZLine::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZLine::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (ETriangle):
+        {
+            TPZTriangle::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZTriangle::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (EQuadrilateral):
+        {
+            TPZQuadrilateral::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZQuadrilateral::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (ETetraedro):
+        {
+            TPZTetrahedron::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZTetrahedron::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (EPiramide):
+        {
+            TPZPyramid::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZPyramid::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (EPrisma):
+        {
+            TPZPrism::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZPrism::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+		case (ECube):
+        {
+            TPZCube::LowerDimensionSides(targetSide,targetSideNodes,0);
+            TPZCube::LowerDimensionSides(targetSide,targetSideEdges,1);
+            
+            break;
+        }
+        default:
+        {
+            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+        }
+    }
+    
+    std::set<int> targetSideNodes_set, targetSideEdges_set, NOTtargetSideEdges_set;
+    TPZGeoElSide targetSideEl(gel,targetSide);
+    for(int nd = 0; nd < targetSideNodes.NElements(); nd++)
+    {
+        int tsNode = targetSideNodes[nd];
+        targetSideNodes_set.insert(tsNode);
+    }
+    if(targetSideEl.Dimension() == 0)
+    {
+        targetSideNodes_set.insert(targetSide);//AQUICAJU : validar!
+    }
+    for(int ed = 0; ed < targetSideEdges.NElements(); ed++)
+    {
+        int tsEdge = targetSideEdges[ed];
+        targetSideEdges_set.insert(tsEdge);
+    }
+    if(targetSideEl.Dimension() == 1)
+    {
+        targetSideNodes_set.insert(targetSide);//AQUICAJU : validar!
+    }
+    for(int sd = gel->NCornerNodes(); sd < gel->NSides(); sd++)
+    {
+        TPZGeoElSide gelSide(gel,sd);
+        if(gelSide.Dimension() == 1 && targetSideEdges_set.find(sd) == targetSideEdges_set.end())
+        {
+            NOTtargetSideEdges_set.insert(sd);
+        }
+        else if(gelSide.Dimension() > 1)
+        {
+            break;
+        }
+    }
+    
+    std::set<int>::iterator it;
+    for(it = NOTtargetSideEdges_set.begin(); it != NOTtargetSideEdges_set.end(); it++)
+    {
+        int edg = *it;
+        TPZGeoElSide gelSide(gel,edg);
+        
+        /**
+         * Embora o elemento quadratico possua mais nohs (NNodes), a topologia segue igual ao
+         * elemento linear no qual o elemento quadratico foi baseado.
+         *
+         * Isso quer dizer que Linear(Geom::NNodes) < Quadratic(Geom::NNodes), mas Linear(Geom::NSides) = Quadratic(Geom::NSides)
+         *
+         * Com isso a numeracao dos nohs nos meios das arestas coincide com a numeracao dos lados unidimensionais do elemento.
+         */
+        int middleNodeId = edg; 
+        //********************
+        
+std::cout << "Coords antes:\n";
+Mesh->NodeVec()[middleNodeId].Print();
+        
+        int initNode = gelSide.SideNodeIndex(0);
+        int finalNode = gelSide.SideNodeIndex(1); 
+        int meshInitNode = gel->NodeIndex(initNode);
+        int meshFinalNode = gel->NodeIndex(finalNode);
+        double coordNear, coordFar;
+        
+        if(targetSideNodes_set.find(initNode) != targetSideNodes_set.end())//drag middle node to node 0 of this edge
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                coordNear = Mesh->NodeVec()[meshInitNode].Coord(c);
+                coordFar = Mesh->NodeVec()[meshFinalNode].Coord(c);
+                Mesh->NodeVec()[middleNodeId].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+            }
+        }
+        else if(targetSideNodes_set.find(finalNode) != targetSideNodes_set.end())//drag middle node to node 1 of this edge
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                coordNear = Mesh->NodeVec()[meshFinalNode].Coord(c);
+                coordFar = Mesh->NodeVec()[meshInitNode].Coord(c);
+                Mesh->NodeVec()[middleNodeId].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+            }
+        }
+
+std::cout << "Coords depois:\n";
+Mesh->NodeVec()[middleNodeId].Print();
+
+    }				
+    
+    return gel;
 }
 
 TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 {
 	TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
-	if(!OldElem){
+	if(!OldElem)
+    {
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " - NULL geometric element.\n";
 		return NULL;
 	}
+    MElementType oldType = OldElem->Type();
+    int oldId = OldElem->Id();
+    int oldMatId = OldElem->MaterialId();
+    int nsides = OldElem->NSides();
+    
+    TPZVec<TPZGeoElSide> oldNeigh(nsides);
+    for(int s = 0; s < nsides; s++)
+    {   
+        TPZGeoElSide mySide(OldElem, s);
+        oldNeigh[s] = mySide.Neighbour();
+    }
 	
-	const int nnodes = OldElem->NNodes();
+	const int nnodes = OldElem->NCornerNodes();
 	TPZManVector<int> nodeindexes(nnodes);
-	for(int i = 0; i < nnodes; i++) nodeindexes[i] = OldElem->NodeIndex(i);
-	int newindex;
-	TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(OldElem->Type(),nodeindexes,OldElem->MaterialId(),newindex);
-	TPZChangeEl::AdjustNeighbourhood(OldElem,NewElem);
+	for(int i = 0; i < nnodes; i++)
+    {
+        nodeindexes[i] = OldElem->NodeIndex(i);
+    }
+    
+    Mesh->DeleteElement(OldElem);
+    
+	TPZGeoEl * NewElem = Mesh->CreateGeoBlendElement(oldType, nodeindexes, oldMatId, oldId);
+
+    for(int s = 0; s < nsides; s++)
+    {   
+        TPZGeoElSide neigh = oldNeigh[s];
+        NewElem->SetNeighbour(s, neigh);
+    }
+    
 	NewElem->BuildBlendConnectivity();
 	
-	delete OldElem;
-	
 	return NewElem;
-}//method
+}
 
-void TPZChangeEl::AdjustNeighbourhood(TPZGeoEl* OldElem, TPZGeoEl*NewElem){
-	for(int j = 0; j < OldElem->NSides(); j++)
-	{ 
-		TPZGeoElSide currSide(OldElem,j);
-		TPZGeoElSide newElSide(NewElem,j);
-		TPZGeoElSide neighbour(currSide.Neighbour());
-		
-		if (neighbour == currSide)
-		{
-			newElSide.SetNeighbour(newElSide);
-			continue;
-		}
-		newElSide.SetNeighbour(neighbour);
-		
-		while (neighbour != currSide)
-		{
-			TPZGeoElSide next = neighbour.Neighbour();
-			if (next == currSide)
-			{
-				neighbour.SetNeighbour(newElSide);
-				break;
-			}
-			neighbour = neighbour.Neighbour();
-		}
-		
-	}
-}//method
-
-
-
-// #include "pznoderep.h.h"
-
-//          template class pzgeom::TPZNodeRep<8,TPZGeoBlend<TPZGeoCube> >;
-//          template class pzgeom::TPZNodeRep<6,TPZGeoBlend<TPZGeoPrism> >;
 
