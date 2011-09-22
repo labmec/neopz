@@ -193,8 +193,8 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    int i;
    for(i = 0; i < nEl; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1);
    }
    bc = mat->CreateBC(mat,-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
@@ -206,8 +206,8 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    val2(1,0) = rhoul;
    val2(2,0) = rhovl;
    val2(3,0) = rhoel;
-//   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-2,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[nEl-1],5,-2,*gmesh);
+//   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-2);
+   TPZGeoElBC((TPZGeoEl *)gElem[nEl-1],5,-2);
    bc = mat->CreateBC(mat,-2,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
@@ -218,8 +218,8 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    val2(1,0) = rhoul;
    val2(2,0) = rhovl;
    val2(3,0) = rhoel;
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-3,*gmesh);
-//   TPZGeoElBC((TPZGeoEl *)gElem[1],7,-3,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-3);
+//   TPZGeoElBC((TPZGeoEl *)gElem[1],7,-3);
    bc = mat->CreateBC(mat,-3,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
@@ -236,8 +236,8 @@ TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
    val2(2,0) = ro * v;
    vel2 = u*u+v*v;
    val2(3,0) = p/(gamma-1.0) +  0.5 * ro * vel2;
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[4],7,-4,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4);
+   TPZGeoElBC((TPZGeoEl *)gElem[4],7,-4);
    bc = mat->CreateBC(-4,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 */

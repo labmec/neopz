@@ -949,7 +949,7 @@ TPZFlowCompMesh *
    val2.Zero();
    for( i = 0; i < 2*m; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1);
    }
    bc = mat->CreateBC(mat,-1,/*11*/5,val1,val2);
    cmesh->InsertMaterialObject(bc);
@@ -969,8 +969,8 @@ TPZFlowCompMesh *
    val2(3,0) = 1.;// pressure
    for( i = 0; i < l; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[(n-1)*2*m+i],6,-2,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[n*2*m-i-1]  ,6,-2,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[(n-1)*2*m+i],6,-2);
+      TPZGeoElBC((TPZGeoEl *)gElem[n*2*m-i-1]  ,6,-2);
    }
    bc = mat->CreateBC(mat,-2,10,val1,val2); // inflow
    cmesh->InsertMaterialObject(bc);
@@ -981,14 +981,14 @@ TPZFlowCompMesh *
    // upper and lower extern NACA BC faces: inflow/outflow
    for( i = (n-1)*2*m + l; i < n*2*m - l; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-3);
    }
 
    int lastElement = 2*(m*n + p*n + (n-l) * l);
    // exit upper and bottom faces:  inflow/outflow
    for(i = 0; i < 2*(p+l); i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[lastElement-i-1],6,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[lastElement-i-1],6,-3);
    }
 
    bc = mat->CreateBC(mat,-3,9,val1,val2); // inflow/outflow

@@ -479,7 +479,7 @@ TPZFlowCompMesh *
    val2.Zero();
    for( i = 0; i < nElsPerSphereLayer; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],20,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],20,-1);
    }
 
    bc = mat->CreateBC(mat,-1,5,val1,val2);
@@ -492,20 +492,20 @@ TPZFlowCompMesh *
    for( i = 0; i < nLayerEls; i++)
       for( j = 0; j < nElsPerLayer; j++)
       {
-         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j],21,-2,*gmesh);
+         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j],21,-2);
       }
    // lower faces
    for( i = 0; i < nLayerEls; i++)
       for( j = 0; j < nn; j++)
       {
          // left elms.
-         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j * nElsPerLayer],24,-2,*gmesh);
+         TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + j * nElsPerLayer],24,-2);
 	 // right elms.
 	 if(j < nn-1)
 	 {
-            TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + (j+1) * nElsPerLayer - 1],22,-2,*gmesh);
+            TPZGeoElBC((TPZGeoEl *)gElem[i*nElsPerSphereLayer + (j+1) * nElsPerLayer - 1],22,-2);
 	 }else{
-            TPZGeoElBC((TPZGeoEl *)gElem[(i+1)*nElsPerSphereLayer - 1],22,-2,*gmesh);
+            TPZGeoElBC((TPZGeoEl *)gElem[(i+1)*nElsPerSphereLayer - 1],22,-2);
 	 }
       }
    // slipwall
@@ -533,10 +533,10 @@ TPZFlowCompMesh *
       if(X[0] > 0.)
       {
       // outflow
-         TPZGeoElBC(pEl,25,-3,*gmesh);
+         TPZGeoElBC(pEl,25,-3);
       }else{
       // inflow
-         TPZGeoElBC(pEl,25,-4,*gmesh);
+         TPZGeoElBC(pEl,25,-4);
       }
    }
    // outflow

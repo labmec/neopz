@@ -201,10 +201,10 @@ TPZFlowCompMesh *
    val2(1,0) = ro * u;
    val2(2,0) = ro * v;
    val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;*/
-   TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-1,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[0],6,-1,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],5,-1);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],6,-1);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1);
    bc = mat->CreateBC(mat,-1,9,val1,val2);
    cmesh->InsertMaterialObject(bc);
 

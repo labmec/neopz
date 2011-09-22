@@ -620,9 +620,9 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
     }
     int typecc = elembc[i].Side();
     if(typecc == -1){
-      TPZGeoElBC(elgvol,volside,typecc,*gmesh);//CC da asa: wall
+      TPZGeoElBC(elgvol,volside,typecc);//CC da asa: wall
     } else {
-      TPZGeoElBC(elgvol,volside,typecc,*gmesh);//CC far field: nonreflecting
+      TPZGeoElBC(elgvol,volside,typecc);//CC far field: nonreflecting
     }
     elgbound->RemoveConnectivities();
     int index = gmesh->ElementIndex(elgbound);// identifica o index do elemento
@@ -727,9 +727,9 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
     }
     int typecc = elembc[i].Side();
     if(typecc == -1){
-      TPZGeoElBC(elgvol,volside,typecc,*gmesh);//CC da asa: wall
+      TPZGeoElBC(elgvol,volside,typecc);//CC da asa: wall
     } else {
-      TPZGeoElBC(elgvol,volside,typecc,*gmesh);//CC far field: nonreflecting
+      TPZGeoElBC(elgvol,volside,typecc);//CC far field: nonreflecting
     }
     elgbound->RemoveConnectivities();
     int index = gmesh->ElementIndex(elgbound);// identifica o index do elemento

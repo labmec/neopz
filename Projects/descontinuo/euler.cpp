@@ -713,7 +713,7 @@ TPZMaterial *Hexaedro(int grau){
   //CC FACE 20: parede
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,20,-1,*gmesh);
+  TPZGeoElBC(elgc3d,20,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -731,21 +731,21 @@ TPZMaterial *Hexaedro(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC(elgc3d,21,-2,*gmesh);
+  TPZGeoElBC(elgc3d,21,-2);
   bc = matauto->CreateBC(matauto,-2,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC FACE 22  DIREITA : livre
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,22,-3,*gmesh);
+  TPZGeoElBC(elgc3d,22,-3);
   bc = matauto->CreateBC(matauto,-3,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC FACE 23: POSTERIOR : PAREDE = wall
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,23,-4,*gmesh);
+  TPZGeoElBC(elgc3d,23,-4);
   bc = matauto->CreateBC(matauto,-4,5,val1,val2);//CC MISTA
   cmesh->InsertMaterialObject(bc);
 
@@ -763,14 +763,14 @@ TPZMaterial *Hexaedro(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgc3d,24,-5,*gmesh);
+  TPZGeoElBC(elgc3d,24,-5);
   bc = matauto->CreateBC(matauto,-5,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC FACE 25 SUPERIOR : PAREDE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,25,-6,*gmesh);
+  TPZGeoElBC(elgc3d,25,-6);
   bc = matauto->CreateBC(matauto,-6,5,val1,val2);//CC MISTA
   cmesh->InsertMaterialObject(bc);
 
@@ -851,21 +851,21 @@ TPZMaterial *ProblemaT2D(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC(elgt2d1,3,-1,*gmesh);
+  TPZGeoElBC(elgt2d1,3,-1);
   bc = matauto->CreateBC(matauto,-1,3,val1,val2);
   cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 
   //CC ARESTA DIREITA : LIVRE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgt2d1,4,-2,*gmesh);
+  TPZGeoElBC(elgt2d1,4,-2);
   bc = matauto->CreateBC(matauto,-2,4,val1,val2);
   cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 
   //CC ARESTA SUPERIOR : PAREDE - WALL
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgt2d0,4,-3,*gmesh);
+  TPZGeoElBC(elgt2d0,4,-3);
   bc = matauto->CreateBC(matauto,-3,5,val1,val2);
   cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 
@@ -881,7 +881,7 @@ TPZMaterial *ProblemaT2D(int grau){
   val2(2,0) = ro * v;
   vel2 = u*u+v*v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgt2d0,5,-4,*gmesh);
+  TPZGeoElBC(elgt2d0,5,-4);
   bc = matauto->CreateBC(matauto,-4,3,val1,val2);
   cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 
@@ -958,7 +958,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC(elgq2d,4,-1,*gmesh);
+  TPZGeoElBC(elgq2d,4,-1);
   bc = matauto->CreateBC(matauto,-1,3,val1,val2);//bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
 
@@ -974,14 +974,14 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgq2d,5,-2,*gmesh);
+  TPZGeoElBC(elgq2d,5,-2);
   bc = matauto->CreateBC(matauto,-2,4,val1,val2);//bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
 
   //CC ARESTA SUPERIOR : PAREDE - wall
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgq2d,6,-3,*gmesh);
+  TPZGeoElBC(elgq2d,6,-3);
   bc = matauto->CreateBC(matauto,-3,5,val1,val2);//bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
 
@@ -997,7 +997,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   val2(2,0) = ro * v;
   vel2 = u*u+v*v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgq2d,7,-4,*gmesh);
+  TPZGeoElBC(elgq2d,7,-4);
   bc = matauto->CreateBC(matauto,-4,3,val1,val2);//bc->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(bc);
 
@@ -1067,15 +1067,15 @@ TPZMaterial *TresTriangulos(int grau){
   //CC ARESTA INFERIOR: PAREDE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgt2d0,3,-1,*gmesh);
-  TPZGeoElBC(elgt2d1,3,-1,*gmesh);
+  TPZGeoElBC(elgt2d0,3,-1);
+  TPZGeoElBC(elgt2d1,3,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC ARESTA DIREITA : LIVRE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgt2d1,4,-2,*gmesh);
+  TPZGeoElBC(elgt2d1,4,-2);
   bc = matauto->CreateBC(matauto,-2,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1091,7 +1091,7 @@ TPZMaterial *TresTriangulos(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC(elgt2d2,4,-3,*gmesh);
+  TPZGeoElBC(elgt2d2,4,-3);
   bc = matauto->CreateBC(matauto,-3,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1107,7 +1107,7 @@ TPZMaterial *TresTriangulos(int grau){
   val2(2,0) = ro * v;
   vel2 = u*u+v*v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgt2d0,5,-4,*gmesh);
+  TPZGeoElBC(elgt2d0,5,-4);
   bc = matauto->CreateBC(matauto,-4,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1185,14 +1185,14 @@ TPZMaterial *TresPrismas(int grau){
   //CC parede
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elg1,15,-1,*gmesh);
-  TPZGeoElBC(elg2,15,-1,*gmesh);
-  TPZGeoElBC(elg3,15,-1,*gmesh);
-  TPZGeoElBC(elg1,16,-1,*gmesh);
-  TPZGeoElBC(elg2,16,-1,*gmesh);
-  TPZGeoElBC(elg1,19,-1,*gmesh);
-  TPZGeoElBC(elg2,19,-1,*gmesh);
-  TPZGeoElBC(elg3,19,-1,*gmesh);
+  TPZGeoElBC(elg1,15,-1);
+  TPZGeoElBC(elg2,15,-1);
+  TPZGeoElBC(elg3,15,-1);
+  TPZGeoElBC(elg1,16,-1);
+  TPZGeoElBC(elg2,16,-1);
+  TPZGeoElBC(elg1,19,-1);
+  TPZGeoElBC(elg2,19,-1);
+  TPZGeoElBC(elg3,19,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1210,7 +1210,7 @@ TPZMaterial *TresPrismas(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC(elg3,18,-2,*gmesh);
+  TPZGeoElBC(elg3,18,-2);
   bc = matauto->CreateBC(matauto,-2,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1228,14 +1228,14 @@ TPZMaterial *TresPrismas(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elg1,18,-3,*gmesh);
+  TPZGeoElBC(elg1,18,-3);
   bc = matauto->CreateBC(matauto,-3,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC livre
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elg2,17,-4,*gmesh);
+  TPZGeoElBC(elg2,17,-4);
   bc = matauto->CreateBC(matauto,-4,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1303,10 +1303,10 @@ TPZMaterial *FluxConst3D(int grau){
   //CC FACE: parede
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,20,-1,*gmesh);
-  TPZGeoElBC(elgc3d,21,-1,*gmesh);
-  TPZGeoElBC(elgc3d,23,-1,*gmesh);
-  TPZGeoElBC(elgc3d,25,-1,*gmesh);
+  TPZGeoElBC(elgc3d,20,-1);
+  TPZGeoElBC(elgc3d,21,-1);
+  TPZGeoElBC(elgc3d,23,-1);
+  TPZGeoElBC(elgc3d,25,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1324,7 +1324,7 @@ TPZMaterial *FluxConst3D(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgc3d,24,-2,*gmesh);
+  TPZGeoElBC(elgc3d,24,-2);
   //TPZGeoElBC(elgc3d,22,-2,*gmesh);
   bc = matauto->CreateBC(matauto,-2,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
@@ -1332,7 +1332,7 @@ TPZMaterial *FluxConst3D(int grau){
   //CC FACE 22  DIREITA : livre
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgc3d,22,-3,*gmesh);
+  TPZGeoElBC(elgc3d,22,-3);
   bc = matauto->CreateBC(matauto,-3,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1392,8 +1392,8 @@ TPZMaterial *FluxConst2D(int grau){
   //CC ARESTAS INFERIOR E SUPERIOR
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgq2d,4,-1,*gmesh);
-  TPZGeoElBC(elgq2d,6,-1,*gmesh);
+  TPZGeoElBC(elgq2d,4,-1);
+  TPZGeoElBC(elgq2d,6,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1409,14 +1409,14 @@ TPZMaterial *FluxConst2D(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC(elgq2d,7,-2,*gmesh);
+  TPZGeoElBC(elgq2d,7,-2);
   bc = matauto->CreateBC(matauto,-2,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC ARESTA DIREITA
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC(elgq2d,5,-3,*gmesh);
+  TPZGeoElBC(elgq2d,5,-3);
   bc = matauto->CreateBC(matauto,-3,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1467,18 +1467,18 @@ TPZMaterial *NoveQuadrilateros(int grau){
   //CC ARESTA INFERIOR : PAREDE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC((TPZGeoEl  *)elem[0],4,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[1],4,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[2],4,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[3],4,-1,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],4,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[1],4,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[2],4,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],4,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC ARESTA DIREITA : OUTFLOW
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC((TPZGeoEl  *)elem[3],5,-2,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[6],5,-2,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],5,-2);
+  TPZGeoElBC((TPZGeoEl  *)elem[6],5,-2);
   bc = matauto->CreateBC(matauto,-2,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1494,8 +1494,8 @@ TPZMaterial *NoveQuadrilateros(int grau){
   val2(1,0) = ro * u;
   val2(2,0) = ro * v;
   val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC((TPZGeoEl  *)elem[7],6,-3,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[8],6,-3,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[7],6,-3);
+  TPZGeoElBC((TPZGeoEl  *)elem[8],6,-3);
   bc = matauto->CreateBC(matauto,-3,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1511,8 +1511,8 @@ TPZMaterial *NoveQuadrilateros(int grau){
   val2(2,0) = ro * v;
   vel2 = u*u+v*v;
   val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC((TPZGeoEl  *)elem[0],7,-4,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[4],7,-4,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],7,-4);
+  TPZGeoElBC((TPZGeoEl  *)elem[4],7,-4);
   bc = matauto->CreateBC(matauto,-4,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1689,36 +1689,36 @@ TPZMaterial *NoveCubos(int grau){
   //CC ARESTA INFERIOR : PAREDE
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC((TPZGeoEl  *)elem[0],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[1],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[2],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[3],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[4],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[5],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[6],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[7],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[8],20,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[0],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[1],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[2],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[3],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[4],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[5],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[6],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[7],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[8],25,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[0],21,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[1],21,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[2],21,-1,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[3],21,-1,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[1],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[2],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[4],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[5],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[6],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[7],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[8],20,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[1],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[2],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[4],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[5],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[6],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[7],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[8],25,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],21,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[1],21,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[2],21,-1);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],21,-1);
   bc = matauto->CreateBC(matauto,-1,5,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
   //CC ARESTA DIREITA : OUTFLOW
   val1.Zero();
   val2.Zero();
-  TPZGeoElBC((TPZGeoEl  *)elem[3],22,-2,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[6],22,-2,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[3],22,-2);
+  TPZGeoElBC((TPZGeoEl  *)elem[6],22,-2);
   bc = matauto->CreateBC(matauto,-2,4,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1736,8 +1736,8 @@ TPZMaterial *NoveCubos(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
-  TPZGeoElBC((TPZGeoEl  *)elem[7],23,-3,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[8],23,-3,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[7],23,-3);
+  TPZGeoElBC((TPZGeoEl  *)elem[8],23,-3);
   bc = matauto->CreateBC(matauto,-3,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1755,8 +1755,8 @@ TPZMaterial *NoveCubos(int grau){
   val2(2,0) = ro * v;
   val2(3,0) = ro * w;
   val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
-  TPZGeoElBC((TPZGeoEl  *)elem[0],24,-4,*gmesh);
-  TPZGeoElBC((TPZGeoEl  *)elem[4],24,-4,*gmesh);
+  TPZGeoElBC((TPZGeoEl  *)elem[0],24,-4);
+  TPZGeoElBC((TPZGeoEl  *)elem[4],24,-4);
   bc = matauto->CreateBC(matauto,-4,3,val1,val2);
   cmesh->InsertMaterialObject(bc);
 
@@ -1927,7 +1927,7 @@ TPZMaterial *Quadrado(int grau){
 
   //CC DE NEUMANN
 
-  TPZGeoElBC(elem,5,-1,*gmesh);
+  TPZGeoElBC(elem,5,-1);
   bc = matauto->CreateBC(matauto,-1,1,val1,val2);
   //  bc->SetForcingFunction(G_Function);
   cmesh->InsertMaterialObject(bc);

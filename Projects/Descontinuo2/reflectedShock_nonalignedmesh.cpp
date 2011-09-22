@@ -220,15 +220,15 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    //CC ARESTA INFERIOR : PAREDE
    val1.Zero();
    val2.Zero();
-   TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[1],4,-1,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],4,-1);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],4,-1);
    bc = mat->CreateBC(mat,-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
    //CC ARESTA DIREITA : OUTFLOW
    val1.Zero();
    val2.Zero();
-   TPZGeoElBC((TPZGeoEl *)gElem[1],5,-2,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],5,-2);
    bc = mat->CreateBC(mat,-2,4,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
@@ -239,8 +239,8 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    val2(1,0) = ro * u;
    val2(2,0) = ro * v;
    val2(3,0) = p/(gamma-1.0) + 0.5 * ro * vel2;
-   TPZGeoElBC((TPZGeoEl *)gElem[0],6,-3,*gmesh);
-   TPZGeoElBC((TPZGeoEl *)gElem[1],6,-3,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],6,-3);
+   TPZGeoElBC((TPZGeoEl *)gElem[1],6,-3);
    bc = mat->CreateBC(mat,-3,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 
@@ -257,7 +257,7 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    val2(2,0) = ro * v;
    vel2 = u*u+v*v;
    val2(3,0) = p/(gamma-1.0) +  0.5 * ro * vel2;
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-4);
    bc = mat->CreateBC(mat,-4,3,val1,val2);
    cmesh->InsertMaterialObject(bc);
 

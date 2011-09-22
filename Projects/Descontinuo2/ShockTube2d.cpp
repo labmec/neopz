@@ -201,13 +201,13 @@ TPZFlowCompMesh * STCompMesh(REAL CFL, REAL delta,
    int i;
    for(i = 0; i < nSTEl; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1,*gmesh);
-      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],4,-1);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],6,-1);
    }
    // aresta direita
-   TPZGeoElBC((TPZGeoEl *)gElem[nSTEl-1],5,-1,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[nSTEl-1],5,-1);
    // aresta esquerda
-   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1,*gmesh);
+   TPZGeoElBC((TPZGeoEl *)gElem[0],7,-1);
 
    bc = mat->CreateBC(mat,-1,5,val1,val2);
    cmesh->InsertMaterialObject(bc);

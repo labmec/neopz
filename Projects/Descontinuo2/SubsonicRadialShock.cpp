@@ -189,12 +189,12 @@ TPZFlowCompMesh *
    val2.Zero();
    for( i = 0; i < mm; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[nn * (i + 1) - 1],6,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[nn * (i + 1) - 1],6,-1);
    }
    //aresta inferior: Parede
    for( i = 0; i < mm; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[nn * i],4,-1,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[nn * i],4,-1);
    }
 
    bc = mat->CreateBC(mat,-1,5,val1,val2);
@@ -208,7 +208,7 @@ TPZFlowCompMesh *
    val2(3,0) = 5.; //rhoE
    for( i = 0; i < nn; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i],7,-2,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i],7,-2);
    }
 
    bc = mat->CreateBC(mat,-2,7,val1,val2);
@@ -222,7 +222,7 @@ TPZFlowCompMesh *
    val2(3,0) = 6.319340316405589;//.1;//0;//5.;
    for( i = 0; i < nn; i++)
    {
-      TPZGeoElBC((TPZGeoEl *)gElem[i + (mm - 1) * nn],5,-3,*gmesh);
+      TPZGeoElBC((TPZGeoEl *)gElem[i + (mm - 1) * nn],5,-3);
    }
 
    bc = mat->CreateBC(mat,-3,8,val1,val2);

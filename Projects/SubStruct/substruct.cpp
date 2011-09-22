@@ -645,7 +645,7 @@ TPZGeoMesh *MalhaPredio()
 				
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,matBCid, *gMesh);		
+				TPZGeoElBC(tetraSide,matBCid);		
 				//std::cout << "BC #" << nBCs << std::endl;
 				//nBCs++;
 			}

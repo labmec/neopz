@@ -392,12 +392,12 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 	gmesh->BuildConnectivity();
 	
 	//Cria as condicoes de contorno
-	TPZGeoElBC gbc1(elvec[0],4,-1,*gmesh);
-	TPZGeoElBC gbc2(elvec[1],4,-2,*gmesh);
-	TPZGeoElBC gbc3(elvec[1],5,-3,*gmesh);
-	TPZGeoElBC gbc4(elvec[1],6,-4,*gmesh);
-	TPZGeoElBC gbc5(elvec[0],6,-5,*gmesh);
-	TPZGeoElBC gbc6(elvec[0],7,-6,*gmesh);
+	TPZGeoElBC gbc1(elvec[0],4,-1);
+	TPZGeoElBC gbc2(elvec[1],4,-2);
+	TPZGeoElBC gbc3(elvec[1],5,-3);
+	TPZGeoElBC gbc4(elvec[1],6,-4);
+	TPZGeoElBC gbc5(elvec[0],6,-5);
+	TPZGeoElBC gbc6(elvec[0],7,-6);
 
 	
 	const std::string nameref;
@@ -478,10 +478,10 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	gmesh->BuildConnectivity();
 	
 	//Cria as condicoes de contorno
-	TPZGeoElBC gbc1(elvec,4,-1,*gmesh);// condicao de fronteira tipo -1: (x,y=0)
-	TPZGeoElBC gbc2(elvec,5,-2,*gmesh);// condicao de fronteira tipo -2: (x=1,y)
-	TPZGeoElBC gbc3(elvec,6,-3,*gmesh);// condicao de fronteira tipo -3: (x,y=1)
-	TPZGeoElBC gbc4(elvec,7,-4,*gmesh);// condicao de fronteira tipo -4: (x=0,y)
+	TPZGeoElBC gbc1(elvec,4,-1);// condicao de fronteira tipo -1: (x,y=0)
+	TPZGeoElBC gbc2(elvec,5,-2);// condicao de fronteira tipo -2: (x=1,y)
+	TPZGeoElBC gbc3(elvec,6,-3);// condicao de fronteira tipo -3: (x,y=1)
+	TPZGeoElBC gbc4(elvec,7,-4);// condicao de fronteira tipo -4: (x=0,y)
 	
 	const std::string nameref;
 	
@@ -581,11 +581,11 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//		}
 	
 	//Cria as condicoes de contorno
-	TPZGeoElBC gbc1(elvec[0],3,-1,*gmesh);// condicao de fronteira tipo -1: 
-	TPZGeoElBC gbc2(elvec[0],5,-2,*gmesh);// condicao de fronteira tipo -2: 
+	TPZGeoElBC gbc1(elvec[0],3,-1);// condicao de fronteira tipo -1: 
+	TPZGeoElBC gbc2(elvec[0],5,-2);// condicao de fronteira tipo -2: 
 	
-	TPZGeoElBC gbc3(elvec[1],3,-3,*gmesh);// condicao de fronteira tipo -3: 
-	TPZGeoElBC gbc4(elvec[1],5,-4,*gmesh);// condicao de fronteira tipo -4: 
+	TPZGeoElBC gbc3(elvec[1],3,-3);// condicao de fronteira tipo -3: 
+	TPZGeoElBC gbc4(elvec[1],5,-4);// condicao de fronteira tipo -4: 
 	
 	const std::string nameref;
 	

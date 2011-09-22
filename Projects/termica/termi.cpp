@@ -335,7 +335,7 @@ void UmElemento(TPZGeoMesh &malha) {
   // 2) lado do elemento onde ser�inserida a condi�o de contorno
   // 3) identificador da condi�o de contorno
   // 4) refer�cia para a malha geom�rica.
-  TPZGeoElBC(gel,4,-4,malha);
+  TPZGeoElBC(gel,4,-4);
 }
 
 void UmElemento3D(TPZGeoMesh &malha) {
@@ -405,11 +405,11 @@ void UmElemento3D(TPZGeoMesh &malha) {
   // 2) lado do elemento onde ser�inserida a condi�o de contorno
   // 3) identificador da condi�o de contorno
   // 4) refer�cia para a malha geom�rica.
-  TPZGeoElBC(gel,0,-1,malha);
-  TPZGeoElBC(gel,1,-2,malha);
-  TPZGeoElBC(gel,2,-3,malha);
-  TPZGeoElBC(gel,24,-4,malha);
-  TPZGeoElBC(gel,22,-5,malha);
+  TPZGeoElBC(gel,0,-1);
+  TPZGeoElBC(gel,1,-2);
+  TPZGeoElBC(gel,2,-3);
+  TPZGeoElBC(gel,24,-4);
+  TPZGeoElBC(gel,22,-5);
 
 }
 
@@ -477,7 +477,7 @@ void LerMalha(char *nome, TPZGeoMesh &grid) {
 		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
 		TPZGeoEl *el = grid.ElementVec ()[elid-1];
 		int side = el->WhichSide (sideid);
-		TPZGeoElBC(el,side,-mat,grid);
+		TPZGeoElBC(el,side,-mat);
 	}
 	grid.BuildConnectivity();
 
