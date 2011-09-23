@@ -69,9 +69,9 @@ class TPZPlaneFracture
 	 */
 	TPZGeoMesh * GetFractureMesh(TPZVec<REAL> &poligonalChain);
 		
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
-	//private:
+	private:
 	
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
@@ -216,15 +216,15 @@ class TPZPlaneFracture
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence);
 	
 	
-//---------------------------------------------------------------------------------------------------------------------------------------------------------------	
+//--------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	protected:
 	
 	/** @brief Original mesh (keeped intact for any poligonalChain configuration) */
-	TPZGeoMesh * fplaneMesh;
+	const TPZGeoMesh * fplaneMesh;
 	/** @brief It limits the amount of possible points in the edge of the elements */
 	int fTrimQTD;
-	/** @brief It limits the amount of possible points in the edge of the elements */
+	/** @brief Transformation from crack plane in R3 to crack plane in R2 */
 	TPZFMatrix fFromR3toR2;
 };
 
