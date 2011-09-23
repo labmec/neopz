@@ -49,6 +49,7 @@ if(BUILD_PROJECTS)
 	#Inserting material and boundary conditions by function
 	add_subdirectory(termica)
 	add_subdirectory(Steam)
+	add_subdirectory(QuadraticElements)
 	add_subdirectory(ThermalStress)
 	add_subdirectory(HDiv)
 	add_subdirectory(Conductivity)
