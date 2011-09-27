@@ -703,9 +703,9 @@ void TPZMatrix::SolveGMRES(int &numiterations, TPZSolver &preconditioner,
             numiterations = locnumiter;
             tol = loctol;
             TPZFMatrix FCol(nrow,1);
-            memcpy(&FCol(0,0), &F.GetVal(0,0), nrow*sizeof(REAL));
+            memcpy(&FCol(0,0), &F.GetVal(0,col), nrow*sizeof(REAL));
             TPZFMatrix resultCol(nrow,1,&result(0,col),nrow);
-            GMRES(*this,resultCol,FCol,preconditioner,H,numvectors,numiterations,tol,residual,1);
+            GMRES(*this,resultCol,FCol,preconditioner,H,numvectors,numiterations,tol,residual,FromCurrent);
         }
     }
     else
