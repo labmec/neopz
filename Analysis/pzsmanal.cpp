@@ -16,9 +16,10 @@ using namespace std;
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh){
+TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh), fReducableStiff(0){
 	fMesh = mesh;
-	fReducableStiff = new TPZMatRed<> ();
+//	fReducableStiff = new TPZMatRed<> ();
+    fReferenceSolution.Redim(fCompMesh->NEquations(),1);
 }
 
 TPZSubMeshAnalysis::~TPZSubMeshAnalysis()
@@ -33,6 +34,10 @@ void TPZSubMeshAnalysis::Assemble(){
 	int numinternal = fMesh->NumInternalEquations();
 	fReferenceSolution.Redim(numeq,1);
 	fRhs.Redim(numeq,1);
+    if(!fReducableStiff) 
+    {
+        fReducableStiff = new TPZMatRed<> ();
+    }
 	fReducableStiff->Redim(numeq,numinternal);
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
     if(!fSolver->Matrix())
@@ -61,7 +66,9 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
 	double elapsedtime = difftime(tempodepois, tempo);
 	
 	std::cout << "Tempo para assemblagem " << elapsedtime << std::endl;
-	
+	if (!fReducableStiff) {
+        DebugStop();
+    }
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
 	matred->SetF(fRhs);
 	//fReducableStiff.Print("Reducable stiff assembled");
@@ -78,7 +85,9 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
 }
 void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
 	time_t tempo = time(NULL);
-	
+	if (!fReducableStiff) {
+        DebugStop();
+    }
 	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
 	ek = matred->K11Red();
 	ef = matred->F1Red();
@@ -106,11 +115,14 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix &sol)
 		soltemp(i,0) = sol.GetVal(numinter+i,0)-fReferenceSolution(numinter+i,0);
 	}
 	TPZFMatrix uglobal(numeq,1,0.);
-	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
-	matred->UGlobal(soltemp,uglobal);
-    fReferenceSolution.Print("Solucao de referencia\n");
-    uglobal.Print("uglobal");
-	fSolution = fReferenceSolution + uglobal;
+    if(fReducableStiff)
+    {
+        TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
+        matred->UGlobal(soltemp,uglobal);        
+        fReferenceSolution.Print("Solucao de referencia\n");
+        uglobal.Print("uglobal");
+        fSolution = fReferenceSolution + uglobal;
+    }
 	TPZAnalysis::LoadSolution();
 	//	cout.flush();
 }
