@@ -1143,7 +1143,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	//ek.fMat->Print();
 }
 
-void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
 	
@@ -1169,11 +1169,17 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInt
     TPZStepSolver *gmrs = new TPZStepSolver(mat2);
     step->SetReferenceMatrix(mat2);
 	step->SetDirect(ELDLt);
-    gmrs->SetGMRES(20, 20, *step, 1.e-6, 0);
+    gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
 	TPZAutoPointer<TPZMatrixSolver> autostep = step;
     TPZAutoPointer<TPZMatrixSolver> autogmres = gmrs;
-//	fAnalysis->SetSolver(autogmres);
-	fAnalysis->SetSolver(autostep);
+    if(preconditioned)
+    {
+        fAnalysis->SetSolver(autogmres);
+    }
+    else
+    {
+        fAnalysis->SetSolver(autostep);
+    }
 	
 #ifdef DEBUG 
 	{

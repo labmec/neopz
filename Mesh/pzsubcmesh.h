@@ -82,7 +82,7 @@ private:
 	void MakeInternalFast(int local);
 
 public:
-	TPZAnalysis * GetAnalysis();
+	//TPZAnalysis * GetAnalysis();
 	/**
 	 * @brief Constructor.
 	 * @param mesh reference mesh
@@ -122,7 +122,13 @@ public:
 	 * @brief Sets the analysis type.
 	 */
 	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	void SetAnalysisSkyline(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    
+    /**
+     * @brief Condense the internal equations using a skyline symetric matrix 
+     * the preconditioned argument indicates whether the equations are condensed with a direct method (0) or 
+     * with a GMRes solver preconditioned by the decomposed matrix
+     */
+	void SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	TPZAutoPointer<TPZAnalysis> Analysis()
 	{
