@@ -535,7 +535,8 @@ public:
 	static  void SetAllCreateFunctionsContinuousReferred();
 	static  void SetAllCreateFunctionsHDiv();
 	static  void SetAllCreateFunctions(TPZCompEl &cel);
-	
+	static  void SetAllCreateFunctionsMultiphysicElem();
+		
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */
 	/** Put material pointers into the elements. Check on the number of dof of the connects */
 	int Consolidate();
