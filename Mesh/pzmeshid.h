@@ -153,6 +153,25 @@ const int TPZHDIVBOUND2TRIANGLEID = 258;
 /** @brief Id of HDiv two-dimensional boundary quadrilateral element (?) */
 const int TPZHDIVBOUND2QUADID = 259;
 
+//-----
+///** @brief Id of multiphysics point element */
+//const int TPZMULTIPHYSICSPOINTID = 260;
+///** @brief Id of multiphysics linear element */
+//const int TPZMULTIPHYSICSLINEARID = 261;
+///** @brief Id of multiphysics triangular element */
+//const int TPZMULTIPHYSICSTRIANGLEID = 262;
+///** @brief Id of multiphysics quadrilateral element */
+//const int TPZMULTIPHYSICSQUADID = 263;
+///** @brief Id of multiphysics cube element */
+//const int TPZMULTIPHYSICSCUBEID = 264;
+///** @brief Id of multiphysics prismal element */
+//const int TPZMULTIPHYSICSPRISMID = 265;
+///** @brief Id of multiphysics tetrahedral element */
+//const int TPZMULTIPHYSICSTETRAID = 266;
+///** @brief Id of multiphysics pyramidal element */
+//const int TPZMULTIPHYSICSPYRAMID = 267;
+//-------
+
 /** @brief Id of geometric blended point element (?) */
 const int TPZGEOBLENDPOINTID = 403;
 /** @brief Id of geometric blended linear element (?) */
