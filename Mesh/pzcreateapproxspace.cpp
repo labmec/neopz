@@ -143,3 +143,17 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
 	
 }
 
+#include "pzmultiphysiccompel.h"
+void TPZCompMesh::SetAllCreateFunctionsMultiphysicElem(){
+	
+	pzgeom::TPZGeoPoint::fp =  CreateMultiphysicsPointEl;
+	pzgeom::TPZGeoLinear::fp =  CreateMultiphysicsLinearEl;
+	pzgeom::TPZGeoTriangle::fp =  CreateMultiphysicsTriangleEl;
+	pzgeom::TPZGeoQuad::fp = CreateMultiphysicsQuadEl;
+	pzgeom::TPZGeoCube::fp = CreateMultiphysicsCubeEl;
+	pzgeom::TPZGeoPrism::fp = CreateMultiphysicsPrismEl;
+	pzgeom::TPZGeoTetrahedra::fp = CreateMultiphysicsTetraEl;
+	pzgeom::TPZGeoPyramid::fp = CreateMultiphysicsPyramEl;
+}
+
+
