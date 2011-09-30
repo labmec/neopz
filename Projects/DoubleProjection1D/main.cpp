@@ -26,6 +26,8 @@
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
 
+#include "tpzmultiphysicselement.h"
+
 #include "pzlog.h"
 
 #include <iostream>
@@ -53,6 +55,7 @@ void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
 void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <int> &geoelVec);
+void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 
 
 int main(int argc, char *argv[])
@@ -679,3 +682,37 @@ void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &ge
 //	
 //	return gmesh;
 //}
+
+void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
+{
+	TPZGeoMesh *gmesh = MFMesh->Reference();
+	gmesh->ResetReference();
+	int nMFEl = MFMesh->NElements();
+	int nmesh = cmeshVec.size();
+	int imesh;
+	for(imesh = 0; imesh<nmesh; imesh++)
+	{
+		cmeshVec[imesh]->LoadReferences();
+		int iel;
+		for(iel=0; iel<nMFEl; iel++)
+		{
+			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
+			if(!mfcel)
+			{
+				DebugStop();
+			}
+			TPZGeoEl *gel = mfcel->Reference();
+			TPZStack<TPZCompElSide> celstack;
+			TPZGeoElSide gelside(gel,gel->NSides()-1);
+			gelside.ConnectedCompElementList(celstack, 0, 0);
+			if(celstack.size() != 1)
+			{
+				DebugStop();
+			}
+			mfcel->AddElement(celstack[0].Element(), imesh);
+		}
+		gmesh->ResetReference();
+	}
+		
+	
+}
