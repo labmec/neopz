@@ -132,75 +132,71 @@ void TPZMultiphysicCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZCompM
 #endif
 }
 
-TPZCompEl * Clone(TPZCompMesh &mesh){
-#ifdef DEBUG
+template <class TGeometry>
+TPZCompEl * TPZMultiphysicCompEl<TGeometry>::Clone(TPZCompMesh &mesh) const {
+
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif
+    return 0;
 }
 
-
-TPZCompEl* ClonePatchEl(TPZCompMesh &mesh,
+template <class TGeometry>
+TPZCompEl* TPZMultiphysicCompEl<TGeometry>::ClonePatchEl(TPZCompMesh &mesh,
 						std::map<int,int> & gl2lcConMap,
-						std::map<int,int> & gl2lcElMap) {
-#ifdef DEBUG
+						std::map<int,int> & gl2lcElMap) const {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif
+    return 0;
 }
 
-int NConnects(){
-#ifdef DEBUG
+template <class TGeometry>
+int TPZMultiphysicCompEl<TGeometry>::NConnects() const {
+	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+
+    return 0;
+}
+
+template <class TGeometry>
+int TPZMultiphysicCompEl<TGeometry>::ConnectIndex(int i) const {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif	
+    return -1;
 }
 
-int ConnectIndex(int i){
-#ifdef DEBUG
+template <class TGeometry>
+int TPZMultiphysicCompEl<TGeometry>::Dimension() const {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif	
+    return -1;
 }
 
-int Dimension(){
-#ifdef DEBUG
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
-#endif	
-}
-
-void ComputeSolution(TPZVec<REAL> &qsi,
+template <class TGeometry>
+void TPZMultiphysicCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 				TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
-#ifdef DEBUG
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif	
 }
 
-void ComputeSolution(TPZVec<REAL> &qsi,
+template <class TGeometry>
+void TPZMultiphysicCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 					 TPZVec<REAL> &normal,
 					 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
 					 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
-#ifdef DEBUG
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif	
 }
 
-void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+template <class TGeometry>
+void TPZMultiphysicCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
 					 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
-#ifdef DEBUG
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif	
 }
 
-void SetConnectIndex(int inode, int index){
-#ifdef DEBUG
+template <class TGeometry>
+void TPZMultiphysicCompEl<TGeometry>::SetConnectIndex(int inode, int index){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-#endif		
 }
 ///---------------------------------------------------------------	
 template class TPZMultiphysicCompEl<pzgeom::TPZGeoPoint>;

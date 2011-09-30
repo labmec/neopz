@@ -146,6 +146,12 @@ public:
 	virtual void SetCreateFunctions(){
 		TPZCompMesh::SetAllCreateFunctionsMultiphysicElem();
 	}
+    
+    /** @brief add an element to the datastructure */
+    virtual void AddElement(TPZCompEl *cel, int meshindex)
+    {
+        DebugStop();
+    }
 		
 };
 
