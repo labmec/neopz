@@ -26,11 +26,17 @@
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
 
+#include "pzlog.h"
+
 #include <iostream>
 #include <string>
 
 #include <math.h>
 #include <set>
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+#endif
 
 using namespace std;
 
@@ -52,7 +58,7 @@ void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <int> &g
 int main(int argc, char *argv[])
 {	
 	std::string logs("log4cxx.doubleprojection1d");
-	InitializePZLOG(logs);
+	InitializePZLOG();
 	
 	int p =2;
 	//primeira malha
@@ -100,6 +106,18 @@ int main(int argc, char *argv[])
 	ofstream file5("malhageo2.vtk");
 	PrintGMeshVTK(gmesh, file5);
 	
+    gmesh->ResetReference();
+    TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    mphysics->MaterialVec() = cmesh1->MaterialVec();
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    mphysics->AutoBuild();
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        mphysics->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	
 	//-------------------------------------------------
 	//int ngeo=gmesh->NElements();
