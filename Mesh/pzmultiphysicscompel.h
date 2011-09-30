@@ -11,12 +11,12 @@
 
 #include <iostream>
 
-#include "tpzmultiphysicselement.h"
+#include "pzmultiphysicselement.h"
 
 class TPZTransform;
 
 template <class TGeometry>
-class TPZMultiphysicCompEl : public TPZMultiphysicsElement {
+class TPZMultiphysicsCompEl : public TPZMultiphysicsElement {
 	
 protected:
 	
@@ -34,11 +34,11 @@ public:
 	 * @param gel: geometric element for which the computational element will be created
 	 * @param index: new elemen index
 	 */
-	TPZMultiphysicCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
+	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
-	TPZMultiphysicCompEl();
+	TPZMultiphysicsCompEl();
 	
-	virtual ~TPZMultiphysicCompEl();
+	virtual ~TPZMultiphysicsCompEl();
 	
 	/**
 	 * @brief Returns a reference to the element pointers vector

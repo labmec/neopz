@@ -26,7 +26,7 @@
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
 
-#include "tpzmultiphysicselement.h"
+#include "pzmultiphysicselement.h"
 
 #include "pzlog.h"
 

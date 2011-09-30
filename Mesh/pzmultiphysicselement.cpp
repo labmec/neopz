@@ -7,7 +7,7 @@
  *
  */
 
-#include "tpzmultiphysicselement.h"
+#include "pzmultiphysicselement.h"
 #include "pzcompel.h"
 
 //TPZMultiphysicsElement::TPZMultiphysicsElement() :TPZCompEl(){
