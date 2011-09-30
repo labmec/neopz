@@ -158,6 +158,10 @@ public:
 	 * @param newsize size of the vector
 	 */
 	virtual void Resize(const int newsize);
+	virtual void resize(const int newsize)
+	{
+		Resize(newsize);
+	}
 	
 	/**
 	 * @brief Prints the structural information of the vector object to the
