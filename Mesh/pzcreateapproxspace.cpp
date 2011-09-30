@@ -143,7 +143,7 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
 	
 }
 
-#include "pzmultiphysiccompel.h"
+#include "pzmultiphysicscompel.h"
 void TPZCompMesh::SetAllCreateFunctionsMultiphysicElem(){
 	
 	pzgeom::TPZGeoPoint::fp =  CreateMultiphysicsPointEl;

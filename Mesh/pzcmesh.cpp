@@ -26,7 +26,7 @@
 #include "TPZAgglomerateEl.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
-#include "pzmultiphysiccompel.h"
+#include "pzmultiphysicscompel.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
