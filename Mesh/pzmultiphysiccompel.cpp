@@ -21,6 +21,7 @@
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"
 #include "pzgeopyramid.h"
+#include "pzmaterial.h"
 
 
 #include "pzlog.h"
@@ -34,11 +35,11 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzmultiphysiccompEl"));
 #endif
 
 template <class TGeometry>
-TPZMultiphysicCompEl<TGeometry>::TPZMultiphysicCompEl() : TPZCompEl(), fElementVec(0){
+TPZMultiphysicCompEl<TGeometry>::TPZMultiphysicCompEl() : TPZMultiphysicsElement(), fElementVec(0){
 }
 
 template <class TGeometry>
-TPZMultiphysicCompEl<TGeometry>::TPZMultiphysicCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) :TPZCompEl(mesh, ref, index), fElementVec(0) {
+TPZMultiphysicCompEl<TGeometry>::TPZMultiphysicCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) :TPZMultiphysicsElement(mesh, ref, index), fElementVec(0) {
 }
 
 template<class TGeometry>
@@ -133,6 +134,36 @@ void TPZMultiphysicCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZCompM
 }
 
 template <class TGeometry>
+void TPZMultiphysicCompEl<TGeometry>::Print(std::ostream & out) const {
+	out << "Output for a computable element index: " << fIndex << std::endl;
+	if(this->Reference())
+	{
+		out << "Center coordinate: ";
+		TPZVec< REAL > centerMaster( this->Reference()->Dimension(),0. );
+		TPZVec< REAL > centerEuclid( 3,0.);
+		this->Reference()->CenterPoint(this->Reference()->NSides()-1,centerMaster);
+		this->Reference()->X(centerMaster,centerEuclid);
+		out << centerEuclid << std::endl;
+	}
+	if(this->Material())
+	{
+		out << "Material id " << this->Material()->Id() << "\n";
+	}
+	else {
+		out << "No material\n";
+	}
+	
+	out << "Number of connects = " << NConnects() << " Node indexes : ";
+	int nod;
+	for(nod=0; nod< NConnects(); nod++)
+	{
+		out << ConnectIndex(nod) <<  ' ' ;
+	}
+	out << std::endl;
+}
+
+
+template <class TGeometry>
 TPZCompEl * TPZMultiphysicCompEl<TGeometry>::Clone(TPZCompMesh &mesh) const {
 
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
@@ -198,6 +229,7 @@ void TPZMultiphysicCompEl<TGeometry>::SetConnectIndex(int inode, int index){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
+
 ///---------------------------------------------------------------	
 template class TPZMultiphysicCompEl<pzgeom::TPZGeoPoint>;
 template class TPZMultiphysicCompEl<pzgeom::TPZGeoLinear>;

@@ -11,12 +11,12 @@
 
 #include <iostream>
 
-#include "pzcompel.h"
+#include "tpzmultiphysicselement.h"
 
 class TPZTransform;
 
 template <class TGeometry>
-class TPZMultiphysicCompEl : public TPZCompEl {
+class TPZMultiphysicCompEl : public TPZMultiphysicsElement {
 	
 protected:
 	
@@ -26,12 +26,6 @@ protected:
 	TPZManVector<TPZCompEl *,5>		fElementVec;
 	
 	
-	/** @brief Computational multiphysic mesh to which the element belongs */
-	TPZCompMesh 	*fMesh;
-	
-	/** @brief Element index into mesh element vector */
-	int fIndex;
-		
 
 public:
 	/**
@@ -150,9 +144,18 @@ public:
     /** @brief add an element to the datastructure */
     virtual void AddElement(TPZCompEl *cel, int meshindex)
     {
-        DebugStop();
+            if (fElementVec.size() <= meshindex) 
+		{
+			fElementVec.resize(meshindex+1);
+		}
+		fElementVec[meshindex] = cel;
     }
-		
+	
+	/**
+	 * @brief Prints element data
+	 * @param out Indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream &out = std::cout) const;
 };
 
 ///** @brief Creates computational point element for Multiphysics approximate space */
