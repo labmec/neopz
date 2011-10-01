@@ -33,6 +33,7 @@ include_directories(
 
 #MESSAGE( STATUS "RUNTIME_DIR:         " ${RUNTIME_OUTPUT_DIRECTORY} )
 
+
 #To insert doxygen documentation file and other text files into the project environment (to facility changes)
 #Grouping CMakeList.txt for pz Projects - UnitTest_PZ
 file(GLOB_RECURSE makefiles *Lists.txt)
@@ -140,11 +141,18 @@ if(USING_METIS)
 	if(METIS_LIB-NOTFOUND)
 		set (METIS_LIB "/usr/local/lib" CACHE PATH "Directory where the metis library can be found")
 	endif()
+	#verifying whether the metis is metis-5
+	string(FIND ${METIS_INCLUDE} "metis-5" METIS5)
+	add_definitions(-DUSING_METIS)
+	if(${METIS5} GREATER -1)
+		add_definitions(-DMETIS_5)
+	endif()
 	include_directories(${METIS_INCLUDE})
 	link_directories(${METIS_LIB})
-	add_definitions(-DUSING_METIS)
 	link_libraries(metis)
 endif(USING_METIS)
+
+
 
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
@@ -153,14 +161,17 @@ if(BUILD_UNITTESTING)
 	link_libraries(boost_unit_test_framework)
 endif()
 
+
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
 if(BUILD_TUTORIAL)
 	add_definitions(-DBUILD_TUTORIAL)
 endif()
 
+
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
+
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
@@ -189,6 +200,7 @@ add_subdirectory(PlaneFracture)
 add_subdirectory(lib)
 add_subdirectory(Projects)
 add_subdirectory(UnitTest_PZ)
+
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"

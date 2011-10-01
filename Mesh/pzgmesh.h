@@ -55,7 +55,7 @@ class  TPZGeoMesh : public TPZSaveable {
 	/** @brief List of pointers to finite elements */
 	TPZAdmChunkVector<TPZGeoEl *> fElementVec;
 	
-	/** @brief List of pointers to nodes */
+	/** @brief List of nodes */
 	TPZAdmChunkVector<TPZGeoNode> fNodeVec;
 	
 	/** @brief Maximum id used by all nodes of this mesh */
