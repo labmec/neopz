@@ -722,10 +722,11 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 	}
 	if(!father.Exists()) return TPZCompElSide();
 	TPZStack<TPZCompElSide> equal;
-	father.EqualLevelCompElementList(equal,onlyinterpolated,1);
-	
 	//2003-12-03
 	if (father.Reference().Exists())  equal.Push(father.Reference());
+
+	father.EqualLevelCompElementList(equal,onlyinterpolated,1);
+	
 	
 	while(father.Exists() && equal.NElements() == 0) {
 		neighbour = father.Neighbour();

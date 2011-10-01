@@ -55,7 +55,7 @@ void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
 void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <int> &geoelVec);
-void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
+void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 
 
 int main(int argc, char *argv[])
@@ -102,6 +102,10 @@ int main(int argc, char *argv[])
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
 	
+	TPZVec<TPZCompMesh *> meshvec(2);
+	meshvec[0] = cmesh1;
+	meshvec[1] = cmesh2;
+	
 	ofstream arg6("cmesh22.txt");
 	cmesh2->Print(arg6);
 	ofstream arg7("gmesh3.txt");
@@ -114,6 +118,9 @@ int main(int argc, char *argv[])
     mphysics->MaterialVec() = cmesh1->MaterialVec();
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->AutoBuild();
+	
+	AddElements(meshvec, mphysics);
+	
 #ifdef LOG4CXX
     {
         std::stringstream sout;
@@ -496,7 +503,7 @@ void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &ge
 	
 }
 
-void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
+void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 {
 	TPZGeoMesh *gmesh = MFMesh->Reference();
 	gmesh->ResetReference();
@@ -506,7 +513,7 @@ void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 	for(imesh = 0; imesh<nmesh; imesh++)
 	{
 		cmeshVec[imesh]->LoadReferences();
-		int iel;
+		int iel, is;
 		for(iel=0; iel<nMFEl; iel++)
 		{
 			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
@@ -517,11 +524,29 @@ void AddElements(TPZManVector<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 			TPZGeoEl *gel = mfcel->Reference();
 			TPZStack<TPZCompElSide> celstack;
 			TPZGeoElSide gelside(gel,gel->NSides()-1);
+			if (gel->Reference()) {
+				celstack.Push(gelside.Reference());
+			}
 			gelside.ConnectedCompElementList(celstack, 0, 0);
+			for(is=0;is<celstack.size();is++) {
+				TPZGeoElSide gelside = celstack[is].Reference();
+				
+				if(gelside.Element()->Dimension()!=gel->Dimension()) {
+					if(is!=celstack.size()-1) {
+						celstack[is] = celstack.Pop();
+						is--;
+					}
+					else {
+						celstack.Pop();
+					}
+
+				}
+			}
 			if(celstack.size() != 1)
 			{
 				DebugStop();
 			}
+			
 			mfcel->AddElement(celstack[0].Element(), imesh);
 		}
 		gmesh->ResetReference();
