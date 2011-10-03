@@ -59,9 +59,11 @@ void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 
 
 int main(int argc, char *argv[])
-{	
+{
+#ifdef LOG4CXX
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
+#endif
 	
 	int p =2;
 	//primeira malha
