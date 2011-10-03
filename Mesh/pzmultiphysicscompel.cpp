@@ -192,9 +192,9 @@ int TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
 
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
-	if(fElementVec.size() && !fElementVec[0])
-		fElementVec[0]->Dimension();
-    return 0;
+	if(!fElementVec.size() || !fElementVec[0])
+		return -1;
+	return fElementVec[0]->Dimension();
 }
 
 template <class TGeometry>
