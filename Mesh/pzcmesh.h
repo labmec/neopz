@@ -85,12 +85,7 @@ protected:
 	 * @brief Map of pointers to materials
 	 */
 	std::map<int, TPZAutoPointer<TPZMaterial> >	fMaterialVec;
-	
-	/**
-	 * List of nodes with associated boundary conditions
-	 */
-	//  TPZAdmChunkVector<TPZConnectBC>		fBCConnectVec;
-	
+		
 	/**
 	 * @brief Block structure of the solution vector ????
 	 */
@@ -216,10 +211,6 @@ public:
 	 */
 	int NMaterials() const {return fMaterialVec.size();}
 	
-	/**
-	 * Number of connects with boundary condition
-	 */
-	//  int NBCConnects() {return fBCConnectVec.NElements();}
 	//@}
 	
 	/**
@@ -242,12 +233,7 @@ public:
 	 * @brief Returns a reference to the material pointers vector
 	 */
 	std::map<int ,TPZAutoPointer<TPZMaterial> >	&MaterialVec() { return fMaterialVec; }
-	
-	/**
-	 * @brief Returns a reference to the vector of nodal boundary condition pointers
-	 */
-	//  TPZAdmChunkVector<TPZConnectBC>  &BCConnectVec() { return fBCConnectVec; }
-	
+
 	/**
 	 * @brief Returns a pointer to the geometrical mesh associated
 	 */
@@ -303,10 +289,6 @@ public:
 	 */
 	virtual void ExpandSolution();
 	
-	/**
-	 * Create degree of freedom boundary conditions
-	 */
-	//  void CreateConnectBC();
 	//@}
 	
 	/**
@@ -495,8 +477,8 @@ private:
 	
 	/**
 	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 * 
-	 * If MaterialIDs is passed, only element of material id in the set<int> will be created
+	 */ 
+	/** If MaterialIDs is passed, only element of material id in the set<int> will be created
 	 */
 	virtual void AutoBuild(const std::set<int> *MaterialIDs);
 	
@@ -504,24 +486,17 @@ public:
 	
 	/**
 	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 * 
-	 * Only element of material id in the set<int> will be created
-	 */
+	 */ 
+	/** Only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> &MaterialIDs){
 		this->AutoBuild(&MaterialIDs);
 	}
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
-	/** Only element of material id in the set<int> will be created */
 	virtual void AutoBuild(){
 		this->AutoBuild(NULL);
 	}
-	
-	//   /**
-	//    * Enumerate to help AutoBuildContDisc() to be nice.
-	//    */
-	//   enum MCreationType{ ENone = 0, EContinuousEl = 1, EDiscontinuousEl = 2};
-	
+		
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**
 	 * Elements created may be TPZInterpolatedElement or TPZCompElDisc. \n
@@ -545,12 +520,7 @@ public:
 	 * ??
 	 */
 	int Check();
-	
-	/**
-	 * ??
-	 */
-	//  char IsChecked() { return fChecked; }
-	
+
 	/**
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
@@ -635,15 +605,14 @@ public:
 	
 	REAL LesserEdgeOfMesh();
 	
-	/** cria uma malha obtida por aglomera� de elementos,
-	 * accumlist relaciona a lista de elementos da malha fina que
-	 * ser� acumulados
-	 */
-	/// Creates a mesh inserting into accumlist the element list to more refined mesh
+	/** @brief Creates a mesh inserting into accumlist the element list to more refined mesh */
 	TPZCompMesh *ComputeMesh(TPZVec<int> &accumlist,int numaggl);
-	/** @brief This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
-	 @param resolution Number of rows and columns of the matrix
-	 @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
+	
+	/**
+	 * @brief This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
+	 * @param resolution Number of rows and columns of the matrix
+	 * @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element 
+	 */
 	void ComputeFillIn(int resolution, TPZFMatrix &fillin);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
@@ -655,7 +624,6 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 
 };
-
 
 inline int TPZCompMesh::AllocateNewConnect(int blocksize, int order) {
 	int connectindex = fConnectVec.AllocateNewElement();
