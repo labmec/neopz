@@ -32,6 +32,8 @@ public:
 	}
 	
 	virtual void AddElement(TPZCompEl *cel, int malha) = 0;
+	
+	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
 };
 
 #endif

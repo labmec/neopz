@@ -182,23 +182,19 @@ TPZCompEl* TPZMultiphysicsCompEl<TGeometry>::ClonePatchEl(TPZCompMesh &mesh,
 
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::NConnects() const {
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-
-    return 0;
+    return fConnectIndexes.NElements();
 }
 
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::ConnectIndex(int i) const {
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
-    return -1;
+    return fConnectIndexes[i];
 }
 
 template <class TGeometry>
 int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
-	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
-	DebugStop();
-    return -1;
+	if(fElementVec.size() && !fElementVec[0])
+		fElementVec[0]->Dimension();
+    return 0;
 }
 
 template <class TGeometry>

@@ -20,19 +20,18 @@ class TPZMultiphysicsCompEl : public TPZMultiphysicsElement {
 	
 protected:
 	
-	/**
-	 * @brief List of pointers to computational elements
-	 */
+	/** @brief List of pointers to computational elements */
 	TPZManVector<TPZCompEl *,5>		fElementVec;
 	
-	
+	/** @brief Indexes of the connects of the element */
+	TPZVec<int> fConnectIndexes;
 
 public:
 	/**
 	 * @brief Creates a multiphysic computational element within mesh. 
-	 * @param mesh: mesh multiphysic where will be created the element
-	 * @param gel: geometric element for which the computational element will be created
-	 * @param index: new elemen index
+	 * @param mesh mesh multiphysic where will be created the element
+	 * @param gel geometric element for which the computational element will be created
+	 * @param index new elemen index
 	 */
 	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
@@ -47,14 +46,16 @@ public:
 	
 	void SetElementVec(TPZManVector<TPZCompEl *> elemVec);
 	
-	/** @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
-	 *@param tr: 
+	/**
+	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
+	 * @param tr Transform 
 	**/
 	void AffineTransform(TPZManVector<TPZTransform> &tr);
 	
-	/**@brief Method to obtain an reference index set of multiphysics computational elements.
-	 *@param cmeshvec: Vector of computational meshes
-	 *@param refIndexVec:
+	/**
+	 * @brief Method to obtain an reference index set of multiphysics computational elements.
+	 * @param cmeshvec Vector of computational meshes
+	 * @param refIndexVec
 	 **/
 	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &refIndexVec);
 	
@@ -150,7 +151,16 @@ public:
 		}
 		fElementVec[meshindex] = cel;
     }
-	
+
+	/**
+	 * @brief Sets indexes of the connects of the element
+	 * @param indexes List of the connects of the element
+	 */
+	virtual void SetConnectIndexes(TPZVec<int> &indexes)
+	{
+		fConnectIndexes = indexes;
+	}
+		
 	/**
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
@@ -158,7 +168,7 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const;
 };
 
-///** @brief Creates computational point element for Multiphysics approximate space */
+/** @brief Creates computational point element for Multiphysics approximate space */
 TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 /** @brief Creates computational linear element for Multiphysics approximate space */
