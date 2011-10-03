@@ -1,18 +1,20 @@
 ########### next target ###############
 
+file(GLOB header *.h)
+
 set(main_SRCS conductivity.cpp pzvoidflux.cpp)
 
 set(flux_SRCS pzvoidflux.cpp voidflux_test.cpp TPZConductivityProblem.cpp)
 
 set(conduct_SRCS pzvoidflux.cpp TPZConductivityProblem.cpp TPZConductivityMain.cpp)
 
-add_executable(conductivity ${main_SRCS})
+add_executable(conductivity ${main_SRCS} ${header})
 
 if(USING_BOOST)
-add_executable(VoidFluxTest ${flux_SRCS})
+add_executable(VoidFluxTest ${flux_SRCS} ${header})
 endif()
 
-add_executable(VoidFlux ${conduct_SRCS})
+add_executable(VoidFlux ${conduct_SRCS} ${header})
 
 target_link_libraries(conductivity pz pthread)
 

@@ -1,9 +1,9 @@
 
-########### next target ###############
+file(GLOB headers *.h)
 
-set(main_SRCS convhyper.cpp main.cpp)
+file(GLOB sources *.cpp)
 
-add_executable(checkconv ${main_SRCS})
+add_executable(checkconv ${sources} ${headers})
 
 target_link_libraries(checkconv pz pthread)
 

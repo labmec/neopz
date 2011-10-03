@@ -1,11 +1,12 @@
 # @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory 
 
 if(BUILD_TUTORIAL)
-	#Testing and using shape functions
-	add_subdirectory(testshape)
 
 	#Example to reading and using geometric mesh
 	add_subdirectory(testgeom)
+
+	#Testing and using shape functions
+	add_subdirectory(testshape)
 
 	#Curso PZ:
 	add_subdirectory(CursoPZ)

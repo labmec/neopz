@@ -1,9 +1,4 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
-########### next target ###############
-
 set(main_SRCS
     main.cpp
     malha.cpp
@@ -11,7 +6,7 @@ set(main_SRCS
     tpzarc3d.cpp
     tpzgeoblend.cpp)
 
-add_executable(main ${main_SRCS})
+add_executable(BlackOil ${main_SRCS})
 
 target_link_libraries(main ${KDE4_KDECORE_LIBS})
 

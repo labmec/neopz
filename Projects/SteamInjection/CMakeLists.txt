@@ -5,7 +5,7 @@ file(GLOB sources *.cpp)
 
 set(main_SRCS ${sources} ${headers})
 
-add_executable(SteamInjection ${main_SRCS})
+add_executable(SteamInjection ${main_SRCS} ${headers})
 
 target_link_libraries(SteamInjection pz pthread)
 

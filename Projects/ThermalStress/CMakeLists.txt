@@ -1,10 +1,10 @@
 ########### next target ###############
 
+file(GLOB header *.h)
+
 file(GLOB sources *.cpp)
 
-set(main_SRCS ${sources})
-
-add_executable(PerkinsGonzalez ${main_SRCS})
+add_executable(PerkinsGonzalez ${sources} ${header})
 
 target_link_libraries(PerkinsGonzalez pz pthread)
 
