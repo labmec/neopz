@@ -9,7 +9,7 @@
 //
 // Class:  TPZGenGrid
 //
-// Obs.:   Gera uma malha retangular:
+// Obs.:   Gera uma malha sobre um dominio rectangular
 //
 // Versao: 10 / 1996.
 //
@@ -22,57 +22,155 @@
 #include "pzgeoelbc.h"
 #include "pzconnect.h"
 
+#include "pzfmatrix.h"
+
 #include "pzvec.h"
 #include "pzstack.h"
 
 #include <fstream>
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.gengrid.tpzgengrid"));
+#endif
+
 using namespace std;
 
 TPZGenGrid::TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0,TPZVec<REAL> &x1, int numl, REAL rot) : fNx(nx), fX0(x0), fX1(x1),
-fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot)
-{
-	fDelx[0] = (x1[0]-x0[0])/(nx[0]);
-	fDelx[1] = (x1[1]-x0[1])/(nx[1]);
+fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot) {
+	fDelx[0] = (x1[0]-x0[0])/(nx[0]);   // Delta x
+	fDelx[1] = (x1[1]-x0[1])/(nx[1]);   // Delta y
 	fNumNodes= (nx[0]+1)*(nx[1]+1)+(fNumLayers-1)*(nx[0])*(nx[1]+1);
 	fElementType = 0;
 }
 
-TPZGenGrid::~TPZGenGrid() {
-    
+TPZGenGrid::~TPZGenGrid() {    
 }
 
-
-short
-TPZGenGrid::Read (TPZGeoMesh &grid) {
-    
-	GenerateNodes(grid);
-    GenerateElements(grid);
+short TPZGenGrid::Read(TPZGeoMesh &grid) {
+	if(!GenerateNodes(grid))
+		return 1;
+    if(!GenerateElements(grid))
+		return 1;
+    return 0;
+}
+short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> grid) {
+	if(!GenerateNodes(*(grid.operator->())))
+		return 1;
+    if(!GenerateElements(*(grid.operator->())))
+		return 1;
     return 0;
 }
 
-void TPZGenGrid::GenerateNodes(TPZGeoMesh &grid) {
-    
-    
+bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> grid,TPZAutoPointer<TPZGeoMesh> grid2) {
+	// grid is created by TPZGenGrid current
+	if(Read(grid))
+		return false;
+	if(!grid2->NNodes() && !grid2->NElements())
+		return true;
+    // creating the new geometric nodes from grid2 if them are not duplicated
+	TPZVec<REAL> coor2(3,0.);
+	int j, i;
+	TPZVec<REAL> coor(3,0.);
+	// number of nodes (initial) of the grids
+	int nnodes2 = grid2->NNodes();
+	int count = 0;
+	// matrix to associate (node position, node id) in grid2 with (node position, node id) in grid
+	TPZFMatrix AssociatedNodes(fNumNodes,2);
+	
+	// over all nodes in grid2
+	for(i=0; i<nnodes2; i++) {
+		// gets the coordinates of the ith node in grid2
+		grid2->NodeVec()[i].GetCoordinates(coor2);
+		for(j=0;j<fNumNodes;j++) {
+			grid->NodeVec()[j].GetCoordinates(coor);
+			// In this case exists a node with same coordinates
+			if(IsZero(Distance(coor2,coor))) {
+				AssociatedNodes.PutVal(i,0,j);
+				AssociatedNodes.PutVal(i,1,(grid->NodeVec()[j]).Id());
+				break;
+			}
+		}
+		// Not exist a node with same coordinates in grid then it will be created
+		if(j==fNumNodes) {
+			// resizing the vector of the nodes
+			grid->NodeVec().Resize(fNumNodes + count+1);
+			grid->NodeVec()[fNumNodes+count].Initialize(coor2,grid);
+			AssociatedNodes.PutVal(i,0,fNumNodes+count);
+			AssociatedNodes.PutVal(i,1,(grid->NodeVec()[fNumNodes+count]).Id());
+			count++;
+		}
+	}
+	fNumNodes += count;
+	
+	// Inserting in grid the elements from grid2
+	TPZVec<int> nos(9);
+	if(fElementType == 0) nos.Resize(4);
+	int index;
+	TPZGeoEl *gel;
+	for(i=0;i<grid2->NElements();i++) {
+		gel = grid2->ElementVec()[i];
+		if(gel->MaterialId()<0) {
+//			TPZGeoElSide gside = grid2.ElementVec()[i];
+//			TPZGeoElBC(gside,gel->MaterialId());
+			continue;
+		}
+		for(j=0;j<gel->NNodes();j++)
+			nos[j]=AssociatedNodes.GetVal(gel->NodeIndex(j),0);
+		if(fElementType == 0) {
+            grid->CreateGeoElement(EQuadrilateral,nos, gel->MaterialId(), index, 0);
+		} else if(fElementType == 1) {
+            grid->CreateGeoElement(ETriangle,nos, gel->MaterialId(), index, 0);
+			nos[1] = nos[2];
+			nos[2] = nos[3];
+			grid->CreateGeoElement(ETriangle,nos, gel->MaterialId(), index, 0);
+		} else if(fElementType == 2) {
+            std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
+            DebugStop();
+			grid->CreateGeoElement(EQuadrilateral,nos, 1, index,0);
+        }
+	}
+	grid->BuildConnectivity();
+	return true;
+}
+
+bool TPZGenGrid::GenerateNodes(TPZGeoMesh &grid) {
     // create the geometric nodes
-    //
 	TPZVec<REAL> coor(3,0.);
 	int i;
+	// grid can not to contain other nodes and elements
+	if(grid.NNodes()) {
+#ifdef LOG4CXX
+		LOGPZ_DEBUG(logger,"Mesh is not empty");
+#endif
+		return false;
+	}
+
+	// resizing the vector of the nodes
 	grid.NodeVec().Resize(fNumNodes);
 	for(i=0; i<fNumNodes; i++) {
+		// computes the coordinates of the ith-node, depends on fElementType, layer and fRotAngle.
 		Coord(i,coor);
 		grid.NodeVec()[i].Initialize(coor,grid);
 	}
+	return true;
 }
-//
-// create the geometric elements (retangular)
 
-void TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
-    
+bool TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
+	// create the geometric elements (retangular)    
 	int num_rectangles=fNx[0]*fNx[1]*fNumLayers;
 	TPZVec<int> nos(9);
 	if(fElementType == 0) nos.Resize(4);
     int i, index;
+
+	// grid can not to contain other elements
+	if(grid.NElements()) {
+#ifdef LOG4CXX
+		LOGPZ_DEBUG(logger,"Mesh is not empty");
+#endif
+		return false;
+	}
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == 0) {
@@ -89,6 +187,7 @@ void TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
         }
 	}
 	grid.BuildConnectivity();
+	return true;
 }
 
 void TPZGenGrid::Coord(int i, TPZVec<REAL> &coor) {
@@ -179,18 +278,13 @@ void TPZGenGrid::ElementConnectivity(int i, TPZVec<int> &rectangle_nodes){
     }
 }
 
-
-
-void
-TPZGenGrid::Print( char *name , ostream &out  )
-{
-    
+void TPZGenGrid::Print( char *name , ostream &out  )
+{    
 	out<<"\n"<<name<<"\n";
     out << "element type = " << fElementType << endl;
 	out << "Number of divisions " << fNx[0] << ' ' << fNx[1] << endl;
 	out << "Corner Coordinates " << endl << fX0[0] << ' ' << fX0[1] << endl;
 	out << fX1[0] << ' ' << fX1[1] << endl;
-    
 }
 
 void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
@@ -242,41 +336,9 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
             //			gel->SetSide(side,bc);
 		}
 	}
-    
-    /*	VoidPtrVec ElementVec;
-     TPZVec<int> Sides;
-     TPZVec<int> cornernodes(4);
-     for(layer =0; layer< fNumLayers; layer++) {
-     if(fElementType == 0 || fElementType == 1) {
-     cornernodes[0] = GlobalI(0,0,layer);
-     cornernodes[1] = GlobalI(fNx[0],0,layer);
-     cornernodes[2] = GlobalI(fNx[0],fNx[1],layer);
-     cornernodes[3] = GlobalI(0,fNx[1],layer);
-     } else if (fElementType == 2) {
-     cornernodes[0] = GlobalI(0,0,layer);
-     cornernodes[1] = GlobalI(2*fNx[0],0,layer);
-     cornernodes[2] = GlobalI(2*fNx[0],2*fNx[1],layer);
-     cornernodes[3] = GlobalI(0,2*fNx[1],layer);
-     }
-     cout << "SetBC cornernodes[0] = " << cornernodes[0] << " cornernodes[1] = " << cornernodes[1] << " cornernodes[2] = " << cornernodes[2] << " cornernodes[3] = " << cornernodes[3] << endl; 
-     cout.flush();
-     g->GetBoundaryElements(cornernodes[side],cornernodes[(side+1)%4],ElementVec, Sides);
-     int numel = ElementVec.capacity();
-     cout << "Boundary elements ";
-     for(int el=0; el<numel; el++) {
-     TPZGeoEl *gel = (TPZGeoEl *) ElementVec[el];
-     if(gel) {
-     cout << gel->Id() << " ";
-     gel->SetSide(Sides[el],bc);
-     }
-     }
-     cout << endl;
-     }
-     */
 }
 
-void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc){
-    
+void TPZGenGrid::SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc) {
 	TPZGeoNode *gn1 = g->FindNode(start);
 	TPZGeoNode *gn2 = g->FindNode(end);
     
@@ -314,8 +376,7 @@ int TPZGenGrid::ElemId(int iel,int jel, int layer){
     return (fElementType == 0 || fElementType == 2)? ( iel*fNx[0]+jel+fNx[0]*fNx[1]*layer ):(iel*2*fNx[0]+jel+layer*2*fNx[0]*fNx[1]) ;
 }
 
-REAL
-TPZGenGrid::Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2){
+REAL TPZGenGrid::Distance(TPZVec<REAL> &x1,TPZVec<REAL> &x2){
 	REAL l1,l2;
 	l1=x1[0]-x2[0];
 	l2=x1[1]-x2[1];
@@ -336,13 +397,12 @@ void TPZGenGrid::SetElementType(int type) {
 }
 
 /// compute the geometric progression such that the first elements have this size
-REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv)
-{
+REAL TPZGenGrid::GeometricProgression(REAL minsize, REAL domainsize, int numdiv) {
     REAL progression = 1.;
     REAL factor = domainsize/minsize;
     REAL func = 0.;//pow(progression[idim],fNx[idim])-1.+factor[idim]*(1.-progression[idim]);
     REAL nextsize = 1.;
-    for (int i=0; i<numdiv; i++) {
+    for(int i=0; i<numdiv; i++) {
         func += nextsize;
         nextsize *= progression;
     }
