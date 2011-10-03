@@ -66,24 +66,30 @@ int main(int argc, char *argv[])
 	int p =2;
 	//primeira malha
 	
-      TPZGeoMesh * gmesh = MalhaGeom();
+	// geometric mesh (initial)
+	TPZGeoMesh * gmesh = MalhaGeom();
 	ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
 	ofstream file1("malhageoInicial.vtk");
 	PrintGMeshVTK(gmesh, file1);
 	
+	// First computational mesh
 	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
+	// Second computational mesh
 	TPZCompMesh * cmesh2 = MalhaComp(gmesh, p);
 	ofstream arg3("cmesh2.txt");
 	cmesh2->Print(arg3);
 	
-	//Refinar as malhas
+	// Cleaning reference of the geometric mesh to cmesh2
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
+	// Refine the 7th element of the cmesh1
 	RefinElemComp(cmesh1, 7);
+	// Refine the 10th element of the cmesh1
 	RefinElemComp(cmesh1, 10);
+	// Adjust the boundary elements after refine
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -93,18 +99,15 @@ int main(int argc, char *argv[])
 	gmesh->Print(arg5);
 	ofstream file3("malhageo1.vtk");
 	PrintGMeshVTK(gmesh, file3);
-		
 	
+	// Cleaning reference to cmesh1
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
+	// Refine 6th and 7th elements (as uniform refine)
 	RefinElemComp(cmesh2, 6);
 	RefinElemComp(cmesh2, 7);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
-	
-	TPZVec<TPZCompMesh *> meshvec(2);
-	meshvec[0] = cmesh1;
-	meshvec[1] = cmesh2;
 	
 	ofstream arg6("cmesh22.txt");
 	cmesh2->Print(arg6);
@@ -112,13 +115,19 @@ int main(int argc, char *argv[])
 	gmesh->Print(arg7);
 	ofstream file5("malhageo2.vtk");
 	PrintGMeshVTK(gmesh, file5);
+
+	// List of the computational meshes
+	TPZVec<TPZCompMesh *> meshvec(2);
+	meshvec[0] = cmesh1;
+	meshvec[1] = cmesh2;
 	
+	// Creating computational mesh for multiphysic elements
     gmesh->ResetReference();
     TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
     mphysics->MaterialVec() = cmesh1->MaterialVec();
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->AutoBuild();
-	
+	// Creating multiphysic elements into mphysics computational mesh
 	AddElements(meshvec, mphysics);
 	
 #ifdef LOG4CXX
@@ -291,11 +300,6 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
-	//cmesh->AdjustBoundaryElements(); 
-	//cmesh->CleanUpUnconnectedNodes();
-	
-	//ofstream arg("cmesh.txt");
-//	cmesh->Print(arg);
 	
 	return cmesh;
 }
