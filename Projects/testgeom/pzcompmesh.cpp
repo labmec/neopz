@@ -28,6 +28,8 @@
 #include "TPZRefPatternDataBase.h"
 #include "pzgengrid.h"
 
+#include "pzeuler.h"
+
 using namespace std;
 
 // Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
@@ -44,9 +46,10 @@ int main() {
     // First rectangular mesh
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
 
-	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y
-	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh
-	x1[2]=0.;
+	TPZManVector<int> nx(6,2);   // subdivisions in X and in Y -> Then all the intervals are of  the 0.1 cm.
+	TPZManVector<REAL> x0(3,0.), x1(3,.6);  // Corners of the rectangular mesh
+	x1[1] = 0.2;
+	x1[2] = 0.;
 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator 
 	gen.SetElementType(0);       // type = 0 means rectangular elements
@@ -58,57 +61,66 @@ int main() {
 	
 	// Second rectangular domain - subdividions and corners of the second rectangular mesh
     TPZAutoPointer<TPZGeoMesh> gmesh2 = new TPZGeoMesh;
-	nx[0] = nx[1] = 4;
-	x0[1] = 1.;
-	x1[0] = 2.;
-	x1[1] = 3.;
+	nx[0] = 30;   // subdivision x in 30 intervals
+	nx[1] = 8;    // subdivision y in 8 intervals -> Then all the intervals are of the 0.1 cm. 
+	x0[1] = .2;
+	x1[0] = 3.;
+	x1[1] = 1.;
 
 	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
 	gen2.SetElementType(0);
-
-	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);  // generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
+	// generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
+	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);
+	
+	// setting bc condition -1 [no flux - is wall] from (0.,0.) until (2.,1.)
 	x0[1] = 0.;
-	x1[1] = 1.;
-	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 [no flux - is wall] from (0.,0.) until (2.,1.)
-	x0[0] = 2.;
-	x0[1] = 3.;
+	x1[1] = .2;
+	gen2.SetBC(gmesh2,x0,x1,-1);
+	// setting bc condition -1 from (2.,3.) until (0.,3.)
+	x0[0] = 3.;
+	x0[1] = 1.;
 	x1[0] = 0.;
-	x1[1] = 3.;
-	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 from (2.,3.) until (0.,3.)
-	x1[0] = 2.;
 	x1[1] = 1.;
+	gen2.SetBC(gmesh2,x0,x1,-1);
+	// setting bc condition -2 from (3.,.2) until (3.,1.)
+	x1[0] = 3.;
+	x1[1] = .2;
 	gen2.SetBC(gmesh2,x1,x0,-2);
+	// setting bc condition -3 from (0.,0.) until (0.,1.)
 	x0[0] = 0.;
 	x1[0] = x1[1] = 0.;
 	gen2.SetBC(gmesh2, x0, x1, -3);
 	
 	// Uniform refinement of the geometrical mesh, two level
-	int nDiv = 2;
+	int nDiv = 0;
 	UniformRefine(gmesh2, nDiv);
 	gmesh2->Print(saida);
 
 	// Creating computational mesh associated with geometric mesh gmesh2
-	// First we need to create a material
-	TPZCompMesh cmesh(gmesh2);
-	cmesh.AutoBuild();   // creating a computational elements and the degree of freedom nodes
-	cmesh.Print(saida);
+	// First we need to create material object
+	int p = 2;   // interpolation order
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh2);
+	cmesh->SetDimModel(2);	
+	TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+	cmesh->InsertMaterialObject(mat);
+	TPZFMatrix val1,val2;
+	// creating boundary condition object
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2)));
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-2,TPZEulerEquation::EFreeSlip,val1,val2)));
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,TPZEulerEquation::EFreeSlip,val1,val2)));
+	
+	// Making all the computational elements as discontinuous
+	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+//	TPZCompMesh::SetAllCreateFunctionsContinuous();
+	cmesh->SetDefaultOrder(p);
+	TPZCompElDisc::SetgOrder(p);
+
+	// creating a computational elements and the degree of freedom nodes
+	cmesh->AutoBuild();
+	cmesh->Print(saida);
+	
 	saida.close();
 	return 0;
-
-/*
-	const int nel=299;
-    TPZVec<int> nx(2,nel);
-    nx[1] = 1;
-    TPZVec<REAL> x0(3,0.),x1(3,300.);
-    x0[0] = 1.;
-    x1[1] = 1.;
-    TPZGenGrid gengrid(nx,x0,x1);
-    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-    gengrid.Read(gmesh);
-    gengrid.SetBC(gmesh,3,-1);
-    gengrid.SetBC(gmesh,1,-2);
-    TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
-*/
 
 }
 
@@ -126,170 +138,3 @@ void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv)
     }
 }
 
-/*
-template<class T>
-TPZGeoEl *TPZGeoBMesh<T>::CreateGeoElement(MElementType type,TPZVec<int> &nodeindexes,int matid,int &index) {
-
-  int newelindex;
-   switch( type )
-   {
-      case EPoint://point
-	newelindex = fPoint.AllocateNewElement();
-	fPoint[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fPoint[newelindex];
-
-      case EOned://line
-	newelindex = fLinear.AllocateNewElement();
-	fLinear[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fLinear[newelindex];
-
-      case ETriangle://triangle
-	newelindex = fTriangle.AllocateNewElement();
-	fTriangle[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fTriangle[newelindex];
-
-      case EQuadrilateral://quadrilatera
-	newelindex = fQuad.AllocateNewElement();
-	fQuad[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fQuad[newelindex];
-
-      case ETetraedro://tetraedra
-	newelindex = fTetrahedron.AllocateNewElement();
-	fTetrahedron[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fTetrahedron[newelindex];
-
-      case EPiramide:
-	newelindex = fPyramid.AllocateNewElement();
-	fPyramid[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fPyramid[newelindex];
-
-      case EPrisma:
-	newelindex = fPrism.AllocateNewElement();
-	fPrism[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fPrism[newelindex];
-
-      case ECube:
-	newelindex = fHexahedron.AllocateNewElement();
-	fHexahedron[newelindex].Initialize(nodeindexes, matid, *this, index);
-	return &fHexahedron[newelindex];
-
-      default:
-	 PZError << "TPZGeoBMesh::CreateGeoElement type element not exists:"
-		 << " type = " << type << endl;
-	 return NULL;
-   }
-
-   return NULL;
-}
-
-template<class T>
-void TPZGeoBMesh<T>::DeleteElement(int elindex) {
-
-  TPZGeoEl *gel = ElementVec()[elindex];
-  if(!gel) return;
-  ElementVec().SetFree(elindex);
-  ElementVec()[elindex] = 0;
-  int blindex = -1;
-  switch(gel->Type()) {
-  case EPoint: {//point
-    typename T::GPointType *gstr = dynamic_cast<typename T::GPointType *>(gel);
-    if(gstr) blindex = fPoint.FindObject(gstr);
-    if(blindex != -1) {
-      fPoint.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-    
-  case EOned: {//line
-    typename T::GLinearType *gstr = dynamic_cast<typename T::GLinearType *>(gel);
-    if(gstr) blindex = fLinear.FindObject(gstr);
-    if(blindex != -1) {
-      fLinear.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case ETriangle: {//triangle
-    typename T::GTriangleType *gstr = dynamic_cast<typename T::GTriangleType *>(gel);
-    if(gstr) blindex = fTriangle.FindObject(gstr);
-    if(blindex != -1) {
-      fTriangle.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case EQuadrilateral: {//quadrilatera
-    typename T::GQuadType *gstr = dynamic_cast<typename T::GQuadType *>(gel);
-    if(gstr) blindex = fQuad.FindObject(gstr);
-    if(blindex != -1) {
-      fQuad.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case ETetraedro: {//tetraedra
-    typename T::GTetrahedronType *gstr = dynamic_cast<typename T::GTetrahedronType *>(gel);
-    if(gstr) blindex = fTetrahedron.FindObject(gstr);
-    if(blindex != -1) {
-      fTetrahedron.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case EPiramide: {
-    typename T::GPyramidType *gstr = dynamic_cast<typename T::GPyramidType *>(gel);
-    if(gstr) blindex = fPyramid.FindObject(gstr);
-    if(blindex != -1) {
-      fPyramid.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case EPrisma: {
-    typename T::GPrismType *gstr = dynamic_cast<typename T::GPrismType *>(gel);
-    if(gstr) blindex = fPrism.FindObject(gstr);
-    if(blindex != -1) {
-      fPrism.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-
-  case ECube: {
-    typename T::GHexahedronType *gstr = dynamic_cast<typename T::GHexahedronType *>(gel);
-    if(gstr) blindex = fHexahedron.FindObject(gstr);
-    if(blindex != -1) {
-      fHexahedron.SetFree(blindex);
-    } else {
-      delete gel;
-    }
-  }
-    break;
-    
-  default:
-    delete gel;
-    PZError << "TPZGeoBMesh::CreateGeoElement type element not exists:"
-	    << " type = " << gel->Type() << endl;
-  }
-}
-
-template<class T>
-int TPZGeoBMesh<T>::main() {
-  return 0;
-}
-
-template class TPZGeoBMesh<GeoElTypes>;
-*/

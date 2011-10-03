@@ -68,20 +68,25 @@ int main() {
 	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
 	gen2.SetElementType(0);
 
-	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);  // generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
+	// generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
+	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);
 	x0[1] = 0.;
 	x1[1] = 1.;
-	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 [no flux - is wall] from (0.,0.) until (2.,1.)
+	// setting bc condition -1 [no flux - is wall] from (0.,0.) until (2.,1.)
+	gen2.SetBC(gmesh2,x0,x1,-1);
 	x0[0] = 2.;
 	x0[1] = 3.;
 	x1[0] = 0.;
 	x1[1] = 3.;
-	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 from (2.,3.) until (0.,3.)
+	// setting bc condition -1 from (2.,3.) until (0.,3.)
+	gen2.SetBC(gmesh2,x0,x1,-1);
 	x1[0] = 2.;
 	x1[1] = 1.;
+	// setting bc condition -2 from (2.,1.) until (2.,3.)
 	gen2.SetBC(gmesh2,x1,x0,-2);
 	x0[0] = 0.;
 	x1[0] = x1[1] = 0.;
+	// setting bc condition -3 from (0.,0.) until (0.,3.)
 	gen2.SetBC(gmesh2, x0, x1, -3);
 //	gmesh2->Print(saida);
 	
