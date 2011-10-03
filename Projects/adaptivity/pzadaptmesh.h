@@ -14,33 +14,25 @@ template<class T, class V>
 class TPZAvlMap;
 class TPZOneDRef;
 
-/// interface to generate adapted meshes
+/** @brief Interface to generate adapted meshes */
 class TPZAdaptMesh {
  public:
 	 void RemoveCloneBC(TPZCompMesh *mesh);
 
-  /**
-   * Simple constructor
-   */
+  /** @brief Simple constructor */
   TPZAdaptMesh();    
   
-  /**
-   * Simple destructor
-   */
+  /** @brief Simple destructor */
   ~TPZAdaptMesh();
   
-  /**
-   * Defines the computational reference mesh
-   */
+  /** @brief Defines the computational reference mesh */
   void SetCompMesh(TPZCompMesh * mesh);
 
-  /**
-   * Defines the maximum p order of an element
-   */
+  /** @brief Defines the maximum p order of an element */
   void SetMaxP(int maxp);
   
   /**
-   * Public interface to get the optmally refined mesh 
+   * @brief Public interface to get the optmally refined mesh 
    * @param error: returns the estimated error
    * @param truerror: returns the true error if analitical solution is provided
    * @param ervec: estimated element error for original mesh element vector
@@ -57,50 +49,40 @@ class TPZAdaptMesh {
 			       TPZVec<REAL> &effect,
 			       int use_trueerror = 0);
 
-  /**
-   * ??
-   */
-  static void DeleteElements(TPZCompMesh *mesh);
+
+static void DeleteElements(TPZCompMesh *mesh);
 
   REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv));
 
  protected:
   
   
-  /**
-   * Retrieves the geometric reference elements to create the patches 
-   */
+  /** @brief Retrieves the geometric reference elements to create the patches */
   void GetReferenceElements();
   
   /**
-   * Builds the patch of all reference elements. 
+   * @brief Builds the patch of all reference elements. \n
    * The patches are stored into patch vectors
    */   
   void BuildReferencePatch();
   
-  /**
-   * Fill the vector of clone meshes
-   */
+  /** @brief Fill the vector of clone meshes */
   void CreateClones();
   
-  /**
-   * Sorts the elements by the error vector vec, returning permutation vector
-   */
+  /** @brief Sorts the elements by the error vector vec, returning permutation vector */
   void Sort(TPZVec<REAL> &vec, TPZVec<int> &perm);
   
-  /**
-   * Sort
-   */
+  /** @brief Sort */
   void HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm);
   
   /**
-   * Sorts the errvec returning the ordering indexes in perm param.
-   * errpercent is the percentual of the error that must be considered in returning minimum error
+   * @brief Sorts the errvec returning the ordering indexes in perm param.
+   * @param errpercent is the percentual of the error that must be considered in returning minimum error
    */
   REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
 
   /**
-   * Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
+   * @brief Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
    * @param mesh: original mesh
    * @param gelstack: h refinement pattern given by a list of an adapted geometric elements
    * @param porders: p refinement pattern for each element of gelstack
@@ -108,8 +90,8 @@ class TPZAdaptMesh {
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 
   /**
-   * Verifies if one clone, specified by its index, must be analysed \
-   * This method only be called when the true solution is available and the \
+   * @brief Verifies if one clone, specified by its index, must be analysed \n
+   * This method only be called when the true solution is available and the 
    * option usetrueerror in void  GetAdaptedMesh is seted to 1.
    * @param clindex index of the clone to be verified
    * @param minerror minimum error to the clone be analysed
@@ -122,50 +104,33 @@ class TPZAdaptMesh {
   
   static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
   
-  /**
-   * Computational reference mesh
-   */
+  /** @brief Computational reference mesh */
   TPZCompMesh *fReference;
   
-  /**
-   * Geometric reference elements vector
-   */
+  /** @brief Geometric reference elements vector */
   TPZStack < TPZGeoEl * > fGeoRef;
   
-  /**
-   * Patches vector
-   */
+  /** @brief Patches vector */
   TPZStack < TPZGeoEl * > fPatch;
   
-  /**
-   * Maps the start position of each patch into patches vector
-   */
+  /** @brief Maps the start position of each patch into patches vector */
   TPZStack < int > fPatchIndex;
   
-  /**
-   * Element error vector
-   */
+  /** @brief Element error vector */
   TPZStack < REAL > fElementError;
   
-  /**
-   * Clone meshes vector
-   */
+  /** @brief Clone meshes vector */
   TPZStack<TPZCompCloneMesh *> fCloneMesh;
   
-  /**
-   * Refined clone meshes
-   */
+  /** @brief Refined clone meshes */
   TPZStack <TPZCompMesh *> fFineCloneMesh;
   
-  /** 
-   * Delete temporary clone meshes from memory
-   */
+  /** @brief Delete temporary clone meshes from memory */
   void CleanUp();
 
-  /**
-   * Maximum p order of an element
-   */
+  /** @brief Maximum p order of an element */
   int fMaxP;
   
 };
+
 #endif //TPZADAPTMESH_H

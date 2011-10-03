@@ -9,8 +9,8 @@
 #include "pzstepsolver.h"
 #include "pzintel.h"
 #include "pzquad.h"
-#include "pzonedref.h"
 #include "pzmaterial.h"
+using namespace std;
 
 TPZAdaptMesh::TPZAdaptMesh(){
   fReference = 0;

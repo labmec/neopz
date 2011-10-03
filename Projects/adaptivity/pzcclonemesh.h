@@ -4,8 +4,6 @@
 #define PZCCLONEMESHHPP
 
 #include "pzcmesh.h"
-//#include "pzgclonemesh.h"
-#include "pzavlmap.h"
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -19,9 +17,7 @@ class TPZTransfer;
 class TPZCoSys;
 class TPZInterpolatedElement;
 class TPZTransform;
-class TPZOneDRef;
 class TPZGeoCloneMesh;
-//template<class T, class V>
 
 	/**
 	 * Class TPZCompCloneMesh implemments computational mesh
