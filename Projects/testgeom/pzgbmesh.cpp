@@ -30,69 +30,82 @@
 
 using namespace std;
 
-/// Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
+// Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
 #define REFPATTERNDIR "/Users/jorge/Labmec/GoogleCodes/neopz/Refine/RefPatterns"
+
+void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv);
 
 int main() {
     
 #ifdef LOG4CXX
-//	InitializePZLOG();
+	InitializePZLOG();
 #endif
 
-    /// test the prismatic extension of the topology
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	//TPZRefPatternDataBase ref;
-	//ref.InitializeRefPatterns();
+    // First rectangular mesh
+    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
 
-	TPZManVector<int> nx(2,2);
-
-	TPZManVector<REAL> x0(3,0.), x1(3,1.);
-
+	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y
+	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh
 	x1[2]=0.;
 
-	TPZGenGrid gen(nx,x0,x1);
-	gen.SetElementType(1);
-	gen.Read(*gmesh);
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator 
+	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.Read(gmesh);            // generating mesh in gmesh
 
-//	x0[0]=0.;
-//	x0[1]=0.;
-//	x0[2]=0.;
+	ofstream saida("malhateste.txt");
+	char namemesh[260];
+	strncpy(namemesh,"Malha inicial",strlen("Malha inicial")+1);
+	gen.Print(namemesh,saida);
+//	gmesh->Print(saida);
+	
+	// Second rectangular domain - subdividions and corners of the second rectangular mesh
+    TPZAutoPointer<TPZGeoMesh> gmesh2 = new TPZGeoMesh;
+	nx[0] = nx[1] = 4;
+	x0[1] = 1.;
+	x1[0] = 2.;
+	x1[1] = 3.;
 
-//	x1[0]=1.0;
-//	x1[1]=1.0;
-//	x1[2]=0.;
-	ofstream saida("malhateste1.txt");
-	gmesh->Print(saida);
+	TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
+	gen2.SetElementType(0);
 
-	gen.SetBC(gmesh, x0, x1, -1);
+	gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);  // generating gmesh2 on data of the gen2 and merge gmesh into the gmesh2
+	x0[1] = 0.;
+	x1[1] = 1.;
+	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 [no flux - is wall] from (0.,0.) until (2.,1.)
+	x0[0] = 2.;
+	x0[1] = 3.;
+	x1[0] = 0.;
+	x1[1] = 3.;
+	gen2.SetBC(gmesh2,x0,x1,-1);   // setting bc condition -1 from (2.,3.) until (0.,3.)
+	x1[0] = 2.;
+	x1[1] = 1.;
+	gen2.SetBC(gmesh2,x1,x0,-2);
+	x0[0] = 0.;
+	x1[0] = x1[1] = 0.;
+	gen2.SetBC(gmesh2, x0, x1, -3);
+//	gmesh2->Print(saida);
+	
+	// Uniform refinement of the geometrical mesh, two level
+	int nDiv = 2;
+	UniformRefine(gmesh2, nDiv);
+	gmesh2->Print(saida);
 
-	gmesh->Print(saida);
-
-	gen.SetBC(gmesh, x1, x0, -1);
-	gmesh->Print(saida);
-
-	gmesh->BuildConnectivity();
-
-//	ofstream saida("malhateste1.txt");
-	gmesh->Print(saida);
 	saida.close();
 	return 0;
+}
 
-/*
-	const int nel=299;
-    TPZVec<int> nx(2,nel);
-    nx[1] = 1;
-    TPZVec<REAL> x0(3,0.),x1(3,300.);
-    x0[0] = 1.;
-    x1[1] = 1.;
-    TPZGenGrid gengrid(nx,x0,x1);
-    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-    gengrid.Read(gmesh);
-    gengrid.SetBC(gmesh,3,-1);
-    gengrid.SetBC(gmesh,1,-2);
-    TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
-*/
-
+void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {    
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
 }
 
 /*

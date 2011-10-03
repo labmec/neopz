@@ -54,7 +54,7 @@ void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 	infile.getline (buf,255);
 	infile.getline (buf,255);
     /**
-     * ntri : number of triangles
+     * ntri  : number of triangles
      * npoin : number of pints
      * nbouf : number of boundary faces
      * nquad : number of quadrilaterals
@@ -92,7 +92,7 @@ void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 		infile >> sideid[0] >> sideid[1] >> elid >> dum >> mat;
 		TPZGeoEl *el = grid.ElementVec ()[elid-1];
 		int side = el->WhichSide (sideid);
-		TPZGeoElBC(el,side,-mat,grid);
+		TPZGeoElBC(el,side,-mat);
 	}
 	grid.BuildConnectivity();
     
