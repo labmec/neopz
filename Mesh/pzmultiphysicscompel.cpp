@@ -46,35 +46,36 @@ template<class TGeometry>
 TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){	
 }
 
-template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::SetElementVec(TPZManVector<TPZCompEl *> elemVec){
-	
-	if(!elemVec){
-		LOGPZ_ERROR(logger, "TPZMultiphysicCompEl.SetElementVec called with zero pointer.");
-	}
-	
-	int dim;
-	dim=elemVec.size();
-	fElementVec.Resize(dim);
-			
-	fElementVec = elemVec;
-}
+//template <class TGeometry>
+//void TPZMultiphysicsCompEl<TGeometry>::SetElementVec(TPZManVector<TPZCompEl *> elemVec){
+//	
+//	if(!elemVec){
+//		LOGPZ_ERROR(logger, "TPZMultiphysicCompEl.SetElementVec called with zero pointer.");
+//	}
+//	
+//	int dim;
+//	dim=elemVec.size();
+//	fElementVec.Resize(dim);
+//			
+//	fElementVec = elemVec;
+//}
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &tr)
 {
 	int nel;
+	int side, dim;
 	nel=fElementVec.size();
 	tr.Resize(nel);
+	TPZGeoEl *gelmf = Reference();
+	side = gelmf->NSides()-1;
 	
 	TPZGeoEl  *geoel;
-	int side, dim;
-	for (int i = 0; i<dim; i++) {
+	for (int i = 0; i<nel; i++) {
 		geoel = fElementVec[i]->Reference();
 		dim =  geoel->Dimension();
-		side = geoel->NSides()-1;
 		TPZTransform tt(dim);
-		tr[i] = geoel->BuildTransform2(side, geoel, tr[i]);  
+		tr[i] = gelmf->BuildTransform2(side, geoel, tt/*r[i]*/);  
 	}
 }
 

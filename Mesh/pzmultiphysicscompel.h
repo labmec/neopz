@@ -44,13 +44,13 @@ public:
 	 */
 	TPZManVector<TPZCompEl *,5>   &ElementVec() {return fElementVec;}
 	
-	void SetElementVec(TPZManVector<TPZCompEl *> elemVec);
+	//void SetElementVec(TPZManVector<TPZCompEl *> elemVec);
 	
 	/**
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param tr Transform 
 	**/
-	void AffineTransform(TPZManVector<TPZTransform> &tr);
+	virtual void AffineTransform(TPZManVector<TPZTransform> &tr);
 	
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
@@ -151,6 +151,13 @@ public:
 		}
 		fElementVec[meshindex] = cel;
     }
+	
+	virtual TPZCompEl *ReferredElement(int mesh)
+	{
+	
+		return fElementVec[mesh];
+	}
+
 
 	/**
 	 * @brief Sets indexes of the connects of the element
