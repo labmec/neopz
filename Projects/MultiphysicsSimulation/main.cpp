@@ -60,6 +60,8 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 void GeoElMultiphysicVec(TPZManVector<TPZCompMesh  *> cmeshVec,std::set <int> &geoelVec);
 void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
+void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 
 
 int main(int argc, char *argv[])
@@ -138,6 +140,7 @@ int main(int argc, char *argv[])
 	// Creating multiphysic elements into mphysics computational mesh
 	AddElements(meshvec, mphysics);
 	AddConnects(meshvec,mphysics);
+    TransferFromMeshes(meshvec, mphysics);
 	
 #ifdef LOG4CXX
     {
@@ -642,4 +645,59 @@ void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 		}
 		cel->SetConnectIndexes(connectindexes);
 	}
+}
+
+void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+{
+    int imesh;
+    int nmeshes = cmeshVec.size();
+    TPZManVector<int> FirstConnectIndex(nmeshes+1,0);
+    for (imesh = 0; imesh < nmeshes; imesh++) {
+        FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
+    }
+    TPZBlock &blockMF = MFMesh->Block();
+    for (imesh = 0; imesh < nmeshes; imesh++) {
+        int ncon = cmeshVec[imesh]->NConnects();
+        TPZBlock &block = cmeshVec[imesh]->Block();
+        int ic;
+        for (ic=0; ic<ncon; ic++) {
+            TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
+            int seqnum = con.SequenceNumber();
+            int blsize = block.Size(seqnum);
+            TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
+            int seqnumMF = conMF.SequenceNumber();
+            int idf;
+            for (idf=0; idf<blsize; idf++) {
+                blockMF.Put(seqnumMF, idf, 0, block.Get(seqnum, idf, 0));
+            }
+        }
+    }
+}
+
+void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
+{
+    int imesh;
+    int nmeshes = cmeshVec.size();
+    TPZManVector<int> FirstConnectIndex(nmeshes+1,0);
+    for (imesh = 0; imesh < nmeshes; imesh++) {
+        FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
+    }
+    TPZBlock &blockMF = MFMesh->Block();
+    for (imesh = 0; imesh < nmeshes; imesh++) {
+        int ncon = cmeshVec[imesh]->NConnects();
+        TPZBlock &block = cmeshVec[imesh]->Block();
+        int ic;
+        for (ic=0; ic<ncon; ic++) {
+            TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
+            int seqnum = con.SequenceNumber();
+            int blsize = block.Size(seqnum);
+            TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
+            int seqnumMF = conMF.SequenceNumber();
+            int idf;
+            for (idf=0; idf<blsize; idf++) {
+                block.Put(seqnum, idf, 0, blockMF.Get(seqnumMF, idf, 0));
+            }
+        }
+    }
+    
 }
