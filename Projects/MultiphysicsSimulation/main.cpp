@@ -135,8 +135,7 @@ int main(int argc, char *argv[])
     mphysics->MaterialVec() = cmesh1->MaterialVec();
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->AutoBuild();
-    ofstream arg8("mphysic.txt");
-    mphysics->Print(arg8);
+	
 	// Creating multiphysic elements into mphysics computational mesh
 	AddElements(meshvec, mphysics);
 	AddConnects(meshvec,mphysics);
@@ -149,7 +148,8 @@ int main(int argc, char *argv[])
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-	
+	ofstream arg8("mphysic.txt");
+    mphysics->Print(arg8);
 	
 	std::set<int> geoelVec;
 	std::set<int> refIndexVec;
@@ -556,21 +556,21 @@ void AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 			
 			mfcel->AddElement(celstack[0].Element(), imesh);
 			
-			TPZManVector<TPZTransform> tr;
-			mfcel->AffineTransform(tr);
-			
-#ifdef LOG4CXX
-			{
-				int itr = tr.size();
-				std::stringstream sout;
-				for (int i = 0; i< itr; i++) {
-					sout << "Transformacao para referencia " << i << std::endl;
-					sout << tr[i] << std::endl;
-					
-				}
-				LOGPZ_DEBUG(logger, sout.str())
-			}
-#endif			
+			//TPZManVector<TPZTransform> tr;
+			//mfcel->AffineTransform(tr);
+//			
+//#ifdef LOG4CXX
+//			{
+//				int itr = tr.size();
+//				std::stringstream sout;
+//				for (int i = 0; i< itr; i++) {
+//					sout << "Transformacao para referencia " << i << std::endl;
+//					sout << tr[i] << std::endl;
+//					
+//				}
+//				LOGPZ_DEBUG(logger, sout.str())
+//			}
+//#endif			
 		}
 		gmesh->ResetReference();
 	}

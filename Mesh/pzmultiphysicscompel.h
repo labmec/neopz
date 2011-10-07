@@ -50,7 +50,8 @@ public:
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param tr Transform 
 	**/
-	virtual void AffineTransform(TPZManVector<TPZTransform> &tr);
+	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec);
+	
 	
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
@@ -152,9 +153,16 @@ public:
 		fElementVec[meshindex] = cel;
     }
 	
+	/**@brief Returns referred element of this*/
 	virtual TPZCompEl *ReferredElement(int mesh)
 	{
 	
+#ifdef DEBUG
+		if (fElementVec.size() <= mesh) {
+			PZError << "Error at " << __PRETTY_FUNCTION__ << " index does not exist!\n";
+			DebugStop();
+		};
+#endif
 		return fElementVec[mesh];
 	}
 
