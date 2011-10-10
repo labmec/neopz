@@ -663,6 +663,7 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
             int seqnum = con.SequenceNumber();
+			if(seqnum<0) continue;       // Whether connect was deleted by previous refined process
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
             int seqnumMF = conMF.SequenceNumber();
