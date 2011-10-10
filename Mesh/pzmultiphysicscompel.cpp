@@ -61,14 +61,17 @@ TPZMultiphysicsCompEl<TGeometry>::~TPZMultiphysicsCompEl(){
 //}
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec)
+void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform> &trVec) const
 {
 	int nel;
 	int side, dim;
 	nel=fElementVec.size();
 	trVec.Resize(nel);
 	TPZGeoEl *gelmf = Reference();
-	side = gelmf->NSides()-1;
+	if(gelmf->Dimension() ==  1)   // whether the geometric element is TPZGeoPoint
+		side = gelmf->NSides();
+	else
+		side = gelmf->NSides()-1;
 	
 	TPZGeoEl  *geoel;
 	for (int i = 0; i<nel; i++) {
@@ -161,23 +164,14 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 		out << ConnectIndex(nod) <<  ' ' ;
 	}
 	
-	
-	/*----------- print transformation ----------*/
-	out << std::endl; 
-	int side, dim;
-	int nel=fElementVec.size();
-	TPZGeoEl *gelmf = Reference();
-	side = gelmf->NSides()-1;
-	TPZGeoEl  *geoel;
-	for (int i = 0; i<nel; i++) {
-		geoel = fElementVec[i]->Reference();
-		dim =  geoel->Dimension();
-		TPZTransform tr(dim);
-		tr= gelmf->BuildTransform2(side, geoel, tr);
-		out << "Transformacao para o elemento de index "<< fElementVec[i]->Index() <<"  pertencente a malha computacional " << i+1 << std::endl;
-		out << tr << std::endl;
+	TPZManVector<TPZTransform> tr;
+	AffineTransform(tr);
+	for(int ii=0;ii<tr.size();ii++)
+	{
+		out << std::endl; 
+		out << "Transformacao para o elemento de index "<< fElementVec[ii]->Index() <<"  pertencente a malha computacional " << ii+1 << std::endl;
+		out << tr[ii] << std::endl;
 	}
-	//------------------------------------------------
 	
 	out << std::endl;
 }

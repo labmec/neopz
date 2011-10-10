@@ -37,7 +37,7 @@ public:
 	
 	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
 	
-	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec)=0;
+	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const = 0;
 	
 };
 
