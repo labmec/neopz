@@ -13,6 +13,7 @@
 
 #include "pzmultiphysicselement.h"
 
+
 class TPZTransform;
 
 template <class TGeometry>
@@ -181,6 +182,17 @@ public:
 	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const;
+	
+	/**
+	* @brief Computes the element stiffness matrix and right hand side
+	* @param ek element matrix
+	* @param ef element right hand side
+	*/
+	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
+	/** @brief Initialize element matrix in which is computed CalcStiff */
+	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+
 };
 
 /** @brief Creates computational point element for Multiphysics approximate space */

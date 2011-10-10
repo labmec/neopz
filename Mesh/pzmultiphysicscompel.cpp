@@ -22,7 +22,7 @@
 #include "TPZGeoLinear.h"
 #include "pzgeopyramid.h"
 #include "pzmaterial.h"
-
+#include "pzelmat.h"
 
 #include "pzlog.h"
 
@@ -240,7 +240,63 @@ void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, int index){
 	DebugStop();
 }
 
-///---------------------------------------------------------------	
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
+{
+
+}//void
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
+{
+	TPZAutoPointer<TPZMaterial> material = Material();
+	if(!material){
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
+		ek.Reset();
+		ef.Reset();
+		return;
+	}
+	
+	/*  {
+	 std::stringstream sout;
+	 sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
+	 LOGPZ_DEBUG(logger,sout.str());
+	 }*/
+	InitializeElementMatrix(ek,ef);
+	
+	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+	
+	//TPZMaterialData data;
+//	this->InitMaterialData(data);
+//	data.p = this->MaxOrder();
+//	
+//	int dim = Dimension();
+//	TPZManVector<REAL,3> intpoint(dim,0.);
+//	REAL weight = 0.;
+//	
+//	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+//    int order = material->IntegrationRuleOrder(data.p);
+//    if(material->HasForcingFunction())
+//    {
+//        order = intrule->GetMaxOrder();
+//    }
+//    TPZManVector<int,3> intorder(dim,order);
+//    intrule->SetOrder(intorder);
+//	//    material->SetIntegrationRule(intrule, data.p, dim);
+//	
+//	int intrulepoints = intrule->NPoints();
+//	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+//		intrule->Point(int_ind,intpoint,weight);
+//		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+//		weight *= fabs(data.detjac);
+//		data.intPtIndex = int_ind;
+//		this->ComputeRequiredData(data, intpoint);
+//		material->Contribute(data,weight,ek.fMat,ef.fMat);
+//	}//loop over integratin points
+	
+}//CalcStiff
+
+//---------------------------------------------------------------	
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoLinear>;
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoTriangle>;
