@@ -259,37 +259,38 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	 }*/
 	this->InitializeElementMatrix(ek,ef);
 	
-	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
+	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZMaterialData data;
-	this->InitMaterialData(data);
-	data.p = this->MaxOrder();
 	
-	int dim = Dimension();
-	TPZManVector<REAL,3> intpoint(dim,0.);
-	REAL weight = 0.;
+	TPZVec<TPZMaterialData> dataVec;
+	//this->InitMaterialData(data);
+//	data.p = this->MaxOrder();
+//	
+//	int dim = Dimension();
+//	TPZManVector<REAL,3> intpoint(dim,0.);
+//	REAL weight = 0.;
+//	
+//	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
+//    int order = material->IntegrationRuleOrder(data.p);
+//    if(material->HasForcingFunction())
+//    {
+//        order = intrule->GetMaxOrder();
+//    }
+//    TPZManVector<int,3> intorder(dim,order);
+//    intrule->SetOrder(intorder);
+//	//    material->SetIntegrationRule(intrule, data.p, dim);
+//	
+//	int intrulepoints = intrule->NPoints();
+//	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
+//		intrule->Point(int_ind,intpoint,weight);
+//		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+//		weight *= fabs(data.detjac);
+//		data.intPtIndex = int_ind;
+//		this->ComputeRequiredData(data, intpoint);
+//		material->Contribute(data,weight,ek.fMat,ef.fMat);
+//	}//loop over integratin points
 	
-	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-    int order = material->IntegrationRuleOrder(data.p);
-    if(material->HasForcingFunction())
-    {
-        order = intrule->GetMaxOrder();
-    }
-    TPZManVector<int,3> intorder(dim,order);
-    intrule->SetOrder(intorder);
-	//    material->SetIntegrationRule(intrule, data.p, dim);
-	
-	int intrulepoints = intrule->NPoints();
-	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-		intrule->Point(int_ind,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-		weight *= fabs(data.detjac);
-		data.intPtIndex = int_ind;
-		this->ComputeRequiredData(data, intpoint);
-		material->Contribute(data,weight,ek.fMat,ef.fMat);
-	}///loop over integratin points
-	
-}///CalcStiff
+}//CalcStiff
 
 void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	
@@ -351,9 +352,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fNumStateVars = numdof;
 	ef.fNumStateVars = numdof;
-	TPZManVector<REAL> sol(numdof,0.);
 	int i;
-	for (i = 0; i < ncon ; i++){
+	for(i=0; i<ncon; i++){
 		ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
 		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
 	}
@@ -373,9 +373,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fMat.Redim(numeq,1);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;
-	TPZManVector<REAL> sol(numdof,0.);
 	int i;
-	for (i = 0; i < ncon ; i++){
+	for(i=0; i<ncon; i++){
 		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
 	}
 	ef.fConnect.Resize(ncon);
