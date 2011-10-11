@@ -63,6 +63,19 @@ void TPZMaterial::FillDataRequirements(TPZMaterialData &data)
 	data.fNeedsNormal = false;
 }
 
+void TPZMaterial::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+{
+	int nref = datavec.size();
+	for(int i = 0; i<nref; i++ )
+	{
+		datavec[i].SetAllRequirements(true);
+		datavec[i].fNeedsNeighborSol = false;
+		datavec[i].fNeedsNeighborCenter = false;
+		datavec[i].fNeedsNormal = false;
+	}
+	
+}
+
 void TPZMaterial::Print(std::ostream & out) {
 	out << std::endl << "Material Id = " << fId << std::endl;
 }
@@ -154,6 +167,13 @@ void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
 void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
 	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
 	this->ContributeBC(data, weight, fakeek, ef, bc);
+}
+
+void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	int nref=datavec.size() ;
+	if (nref== 1) {
+		this->Contribute(datavec[0], weight, ek,ef);
+	}
 }
 
 void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
