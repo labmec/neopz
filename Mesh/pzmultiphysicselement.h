@@ -39,6 +39,8 @@ public:
 	
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const = 0;
 	
+	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
+	
 };
 
 #endif

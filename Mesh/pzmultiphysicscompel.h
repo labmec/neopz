@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "pzmultiphysicselement.h"
+#include "pzmaterialdata.h"
 
 
 class TPZTransform;
@@ -188,10 +189,16 @@ public:
 	* @param ek element matrix
 	* @param ef element right hand side
 	*/
-	void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
 
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+	
+	/** 
+	 * @brief Initialize a material data vector and its attributes based on element dimension, number
+	 * of state variables and material definitions
+	 */
+	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
 
 };
 
