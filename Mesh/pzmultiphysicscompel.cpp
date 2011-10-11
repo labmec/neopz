@@ -23,10 +23,12 @@
 #include "pzgeopyramid.h"
 #include "pzmaterial.h"
 #include "pzelmat.h"
-
+#include "pzconnect.h"
+#include "pzmaterialdata.h"
+#include "pzinterpolationspace.h"
 #include "pzlog.h"
 
-#include <set.h>
+#include <set>
 
 using namespace pzgeom;
 
@@ -128,7 +130,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 		std::stringstream sout;
 		sout << "Number of elements : " << refIndexVec.size() << std::endl;
 		sout <<"Reference index of elements : "<< std::endl;
-		set<int>::iterator it;
+		std::set<int>::iterator it;
 		for (it=refIndexVec.begin() ; it != refIndexVec.end(); it++ )
 		sout << " " << *it;
 		sout << std::endl;
@@ -243,8 +245,72 @@ void TPZMultiphysicsCompEl<TGeometry>::SetConnectIndex(int inode, int index){
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
+	const int ncon = this->NConnects();
+	int numeq = 0;
+	int ic;
+		
+	for(ic=0; ic<ncon; ic++)
+	{
+		numeq += Connect(ic).NDof(*Mesh());
+	}
+		
+	ek.fMat.Redim(numeq,numeq);
+	ef.fMat.Redim(numeq,1);
+	ek.fBlock.SetNBlocks(ncon);
+	ef.fBlock.SetNBlocks(ncon);
 
+	int i;
+	for(i=0; i<ncon; i++){
+		ek.fBlock.Set(i,Connect(i).NDof(*Mesh()));
+		ef.fBlock.Set(i,Connect(i).NDof(*Mesh()));
+	}
+	ek.fConnect.Resize(ncon);
+	ef.fConnect.Resize(ncon);
+	for(i=0; i<ncon; i++){
+		(ek.fConnect)[i] = ConnectIndex(i);
+		(ef.fConnect)[i] = ConnectIndex(i);
+	}
+	
 }//void
+
+template <class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
+{
+	this->Material()->FillDataRequirements(dataVec);
+	const int dim = this->Dimension();
+	
+	int nref = this->fElementVec.size();
+	
+#ifdef DEBUG
+	if (nref != dataVec.size()) {
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+		DebugStop();
+	}
+#endif
+	
+	TPZVec<int> nshape(nref);
+	for (int iref = 0; iref<nref; iref++) 
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		const int nstate = msp->Material()->NStateVariables();
+		nshape[iref] =  msp->NShapeF();
+		dataVec[iref].phi.Redim(nshape[iref],1);
+		dataVec[iref].dphix.Redim(dim,nshape[iref]);
+		dataVec[iref].axes.Redim(dim,3);
+		dataVec[iref].jacobian.Redim(dim,dim);
+		dataVec[iref].jacinv.Redim(dim,dim);
+		dataVec[iref].x.Resize(3);
+	
+	
+		if (dataVec[iref].fNeedsSol)
+		{
+			dataVec[iref].sol.Resize(nstate);
+			dataVec[iref].dsol.Redim(dim,nstate);
+		}
+	}
+	
+}//void
+
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
@@ -257,42 +323,69 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		return;
 	}
 	
-	/*  {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
-	 LOGPZ_DEBUG(logger,sout.str());
-	 }*/
 	InitializeElementMatrix(ek,ef);
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	//TPZMaterialData data;
-//	this->InitMaterialData(data);
-//	data.p = this->MaxOrder();
-//	
-//	int dim = Dimension();
-//	TPZManVector<REAL,3> intpoint(dim,0.);
-//	REAL weight = 0.;
-//	
-//	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
-//    int order = material->IntegrationRuleOrder(data.p);
-//    if(material->HasForcingFunction())
-//    {
-//        order = intrule->GetMaxOrder();
-//    }
-//    TPZManVector<int,3> intorder(dim,order);
-//    intrule->SetOrder(intorder);
-//	//    material->SetIntegrationRule(intrule, data.p, dim);
-//	
-//	int intrulepoints = intrule->NPoints();
-//	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
-//		intrule->Point(int_ind,intpoint,weight);
-//		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-//		weight *= fabs(data.detjac);
-//		data.intPtIndex = int_ind;
-//		this->ComputeRequiredData(data, intpoint);
-//		material->Contribute(data,weight,ek.fMat,ef.fMat);
-//	}//loop over integratin points
+	TPZVec<TPZMaterialData> datavec;
+	datavec.resize(fElementVec.size());
+	InitMaterialData(datavec);
+	
+	TPZManVector<TPZTransform> trvec;
+	AffineTransform(trvec);
+	
+	int iref;
+	TPZStack<int> vecorder;
+	for (iref=0;  iref<fElementVec.size(); iref++) {
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		vecorder.Push(msp->MaxOrder());
+	}
+	
+	int pmax;
+	for (int i=1; i< vecorder.size(); i++) {
+		pmax=vecorder[0];
+		if (vecorder[i]>pmax) pmax=vecorder[i];
+	}
+	
+	datavec[0].p = pmax;
+		
+	int dim = Dimension();
+	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+	REAL weight = 0.;
+	
+	TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[0]);
+	TPZAutoPointer<TPZIntPoints> intrule = msp->GetIntegrationRule().Clone();
+	int order = material->IntegrationRuleOrder(pmax);
+	
+	//if(material->HasForcingFunction()){
+//		order = intrule->GetMaxOrder();
+//	}
+	
+	TPZManVector<int,3> intorder(dim,order);
+	intrule->SetOrder(intorder);	
+	int intrulepoints = intrule->NPoints();
+
+	TPZFMatrix jac, ax, jacInv;
+	REAL detJac; 
+	TPZGeoEl *ref = this->Reference();
+	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+	{		
+		intrule->Point(int_ind,intpointtemp,weight);
+		ref->Jacobian(intpointtemp, jac, ax, detJac , jacInv);
+		weight *= fabs(detJac);
+		for (iref=0; iref<fElementVec.size(); iref++)
+		{			
+			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+			trvec[iref].Apply(intpointtemp, intpoint);
+			
+			msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
+							  datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
+			datavec[iref].intPtIndex = int_ind;
+			msp->ComputeRequiredData(datavec[iref], intpoint);
+		}
+		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
+	}//loop over integratin points
+	
 	
 }//CalcStiff
 
