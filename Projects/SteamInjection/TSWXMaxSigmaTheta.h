@@ -18,7 +18,7 @@
 #include "pzreal.h"
 #include <iostream>
 #include <cstdlib>
-#include <Math.h>
+#include <math.h>
 
 #include "pzvec.h"
 #include "pzgmesh.h"

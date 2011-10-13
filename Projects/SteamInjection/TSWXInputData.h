@@ -15,7 +15,7 @@
 
 #include "TSWXInjectionData.h"
 
-#include "TSwxMaxSigmaTheta.h"
+#include "TSWXMaxSigmaTheta.h"
 
 /** Dados de entrada */
 class TSWXInputData

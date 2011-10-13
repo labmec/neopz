@@ -1,6 +1,6 @@
 # @file neopz/CMakeList.txt  -- First file to read for CMake 
 
-cmake_minimum_required (VERSION 2.8.5)
+cmake_minimum_required (VERSION 2.8.0)
 
 project (PZ)
 
@@ -39,25 +39,25 @@ include_directories(
 file(GLOB_RECURSE makefiles *Lists.txt)
 
 #If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
-foreach(arq ${makefiles}) 
-	string(FIND ${arq} "Project" val)
-	if(${val} LESS 0)
-		string(FIND ${arq} "UnitTest" val)
-		if(${val} GREATER -1)
-			list(APPEND makefilesunittest ${arq})
-		else()
-			string(FIND ${arq} "lib" val)
-			if(val LESS 0)
-				string(FIND ${arq} "neopz/CMakeList" val)
-				if(val LESS 0)
-					list(APPEND makefilespz ${arq})
-				endif()
-			endif()
-		endif()
-	else()
-		list(APPEND makefilesproject ${arq})
-	endif()
-endforeach()
+#foreach(arq ${makefiles}) 
+#	string(FIND ${arq} "Project" val)
+#	if(${val} LESS 0)
+#		string(FIND ${arq} "UnitTest" val)
+#		if(${val} GREATER -1)
+#			list(APPEND makefilesunittest ${arq})
+#		else()
+#			string(FIND ${arq} "lib" val)
+#			if(val LESS 0)
+#				string(FIND ${arq} "neopz/CMakeList" val)
+#				if(val LESS 0)
+#					list(APPEND makefilespz ${arq})
+#				endif()
+#			endif()
+#		endif()
+#	else()
+#		list(APPEND makefilesproject ${arq})
+#	endif()
+#endforeach()
 
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 

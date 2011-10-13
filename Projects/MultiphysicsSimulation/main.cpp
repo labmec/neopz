@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 #include "pzgeoelside.h"
-#include "tpzgeolinear.h"
+#include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
 
 #include "TPZRefPattern.h"
@@ -157,7 +157,6 @@ int main(int argc, char *argv[])
 	cmeshVec[0]=cmesh1;
 	cmeshVec[1]=cmesh2;
 	GeoElMultiphysicVec(cmeshVec, geoelVec);
-	
 	
 	set<int>::iterator it;
 	cout << "myset contains:";
