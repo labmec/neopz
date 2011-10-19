@@ -254,10 +254,13 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		numeq += Connect(ic).NDof(*Mesh());
 	}
 		
+	const int numdof = this->Material()->NStateVariables();
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,1);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
+	ek.fNumStateVars = numdof;
+	ef.fNumStateVars = numdof;
 
 	int i;
 	for(i=0; i<ncon; i++){
@@ -278,7 +281,6 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 {
 	this->Material()->FillDataRequirements(dataVec);
 	const int dim = this->Dimension();
-	
 	int nref = this->fElementVec.size();
 	
 #ifdef DEBUG
@@ -342,8 +344,8 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	}
 	
 	int pmax;
+	pmax=vecorder[0];
 	for (int i=1; i< vecorder.size(); i++) {
-		pmax=vecorder[0];
 		if (vecorder[i]>pmax) pmax=vecorder[i];
 	}
 	
