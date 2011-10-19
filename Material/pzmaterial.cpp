@@ -170,9 +170,17 @@ void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &e
 }
 
 void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-	int nref=datavec.size() ;
+	int nref=datavec.size();
 	if (nref== 1) {
 		this->Contribute(datavec[0], weight, ek,ef);
+	}
+}
+
+void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, 
+							   TPZFMatrix &ef, TPZBndCond &bc){
+	int nref=datavec.size();
+	if (nref== 1) {
+		this->ContributeBC(datavec[0], weight, ek,ef,bc);
 	}
 }
 

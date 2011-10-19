@@ -171,9 +171,21 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      * @param bc [in] is the boundary condition material
-     * @since April 16, 2007
+     * @since October 07, 2011
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc) = 0;
+	
+	/**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
+	 * to multiphysics simulation..
+     * @param datavec [in]  stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
+     * @since October 18, 2011
+     */
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
     
     /**
      * @brief It computes a contribution to the residual vector at one integration point.
