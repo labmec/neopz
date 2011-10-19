@@ -253,8 +253,16 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	{
 		numeq += Connect(ic).NDof(*Mesh());
 	}
+	
+	int nref = this->fElementVec.size();
+	int nstate=0;
+	for (int iref=0; iref<nref; iref++) {
+			
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		nstate += msp->Material()->NStateVariables();
+	}
 		
-	const int numdof = this->Material()->NStateVariables();
+	const int numdof = nstate;
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,1);
 	ek.fBlock.SetNBlocks(ncon);
