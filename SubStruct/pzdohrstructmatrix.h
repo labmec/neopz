@@ -55,6 +55,11 @@ public:
 	/** @brief This will create a DohrMatrix and compute its matrices */
 	virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
+	/**
+	 * @brief Assemble the global right hand side
+	 */
+	virtual void Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	
 	/** @brief Creates a copy of itself */
 	virtual TPZStructMatrix * Clone()
 	{

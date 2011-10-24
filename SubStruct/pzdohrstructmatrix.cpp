@@ -22,6 +22,7 @@
 #include "pzmatred.h"
 #include "tpzmatredstructmatrix.h"
 #include "tpzpairstructmatrix.h"
+#include "pzfstrmatrix.h"
 
 #include "pzsubcmesh.h"
 #include "pzintel.h"
@@ -363,6 +364,45 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	return dohrgeneric;
 	
 }
+
+/**
+ * @brief Assemble the global right hand side
+ */
+void TPZDohrStructMatrix::Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+	
+    TPZDohrPrecond<TPZDohrSubstructCondense> *precond = dynamic_cast<TPZDohrPrecond<TPZDohrSubstructCondense> *>(fDohrPrecond.operator->());
+	const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist = precond->Global();//dohr->SubStructures();
+	
+	int nsub = NSubMesh(fMesh);
+	std::list<TPZAutoPointer<TPZDohrSubstructCondense> >::const_iterator it = sublist.begin();
+	
+	
+	int isub;
+	for (isub=0; isub<nsub ; isub++) {
+		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+		if(!submesh) 
+		{
+            DebugStop();
+			continue;
+		}
+        TPZFStructMatrix fullstr(submesh);
+        (*it)->fLocalLoad.Zero();
+        fullstr.Assemble((*it)->fLocalLoad,guiInterface);
+		it++;
+	}
+    for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
+		
+		// const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
+		// *it represents the substructure
+		TPZFMatrix rhsloc((*it)->fNumExternalEquations,1,0.);
+		(*it)->ContributeRhs(rhsloc);
+		fDohrAssembly->Assemble(isub,rhsloc,rhs);
+	}
+
+    
+}
+
 
 // identify cornernodes
 void TPZDohrStructMatrix::IdentifyCornerNodes()
