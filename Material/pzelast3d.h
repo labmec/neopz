@@ -37,6 +37,9 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param force - external forces
 	 */
 	TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force);
+
+	TPZElasticity3D(int nummat);
+	
 	TPZElasticity3D();
 	
 	/** @brief Default destructor */
@@ -139,6 +142,30 @@ public:
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data);
 	
+	void SetMaterialDataHook(REAL Ela, REAL poisson)
+	{
+		fE = Ela;
+		fPoisson = poisson;
+	}
+	
+	void SetMaterialDataLame(REAL lambda, REAL mu)
+	{
+		fE = mu*(3*lambda+2*mu)/(lambda + mu);
+		fPoisson = lambda/(2*(lambda + mu));
+	}
+	
+	void SetC()
+	{
+		C1 = fE / (2.+ 2.*fPoisson);
+		C2 = fE * fPoisson / (-1. + fPoisson + 2.*fPoisson*fPoisson);
+		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
+	}
+	
+	void SetForce(TPZVec <REAL> force)
+	{
+		for(int i = 0; i < 3; i++) this->fForce[i] = force[i];
+	}
+	
 	protected :
 	
 	/** @brief Young's modulus */
@@ -161,12 +188,13 @@ public:
 	/** @brief Yeilding stress */
 	REAL fFy;
 	
-	virtual void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol);
-	void ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol);
-	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol);
-	void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol);
-	void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out);
-	void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction);
+public:
+	virtual void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol) const;
+	void ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol) const;
+	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol) const;
+	void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol) const;
+	void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out) const;
+	void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction) const;
 	
 public:
 	/** @brief Saves the element data to a stream */
