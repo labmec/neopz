@@ -33,6 +33,9 @@ protected:
 	
 	/** @brief Order for setting the integration rule */
 	int fIntegrationOrder;
+    
+    /** @brief Scale factor applied to the stiffness matrix and right hand side */
+    REAL fScale;
 	
 public:
 	
@@ -61,12 +64,15 @@ public:
      * element with polinomial order p
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
-	/* * See base class
-	 
-	 virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
-	 int elPMaxOrder,
-	 int elDimension);
-	 */
+
+    /**
+     * @brief Set a scale factor for the stiffness matrix and right hand side
+     * the default value of the scale factor is 1
+     */
+    void SetScaleFactor(REAL scale)
+    {
+        fScale = scale;
+    }
     
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	

@@ -9,21 +9,22 @@
 #include "tpzintpoints.h"
 
 TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
-                                 int IntegrationOrder)
-:TPZDiscontinuousGalerkin(id){
-	this->fDim = dim;
-	this->fNStateVars = nstate;
-	this->fSol = sol;
-	this->fIntegrationOrder = IntegrationOrder;
-	this->SetIsReferred(false);
+                                 int IntegrationOrder) :TPZDiscontinuousGalerkin(id) , fScale(1.)
+{
+    this->fDim = dim;
+    this->fNStateVars = nstate;
+    this->fSol = sol;
+    this->fIntegrationOrder = IntegrationOrder;
+    this->SetIsReferred(false);
 }
 
-TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZDiscontinuousGalerkin(cp){
-	this->fDim = cp.fDim;
-	this->fNStateVars = cp.fNStateVars;
-	this->fSol = cp.fSol;
-	this->fIntegrationOrder = cp.fIntegrationOrder;
-	this->SetIsReferred(cp.fIsReferred);
+TPZL2Projection::TPZL2Projection(const TPZL2Projection &cp):TPZDiscontinuousGalerkin(cp), fScale(cp.fScale)
+{
+    this->fDim = cp.fDim;
+    this->fNStateVars = cp.fNStateVars;
+    this->fSol = cp.fSol;
+    this->fIntegrationOrder = cp.fIntegrationOrder;
+    this->SetIsReferred(cp.fIsReferred);
 }
 
 TPZL2Projection::~TPZL2Projection()
@@ -64,13 +65,13 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 				for(int ivj = 0; ivj < nvars; ivj++){
 					const int posI = nvars*i+ivi;
 					const int posJ = nvars*j+ivj;
-					ek(posI, posJ) += weight*data.phi(i,0)*data.phi(j,0);
+					ek(posI, posJ) += weight*fScale*data.phi(i,0)*data.phi(j,0);
 				}//ivj
 			}//ivi
 		}//for j
 		for(int ivi = 0; ivi < nvars; ivi++){
 			const int posI = nvars*i+ivi;
-			ef(posI,0) += weight*data.phi(i,0)*this->fSol[ivi];
+			ef(posI,0) += weight*fScale*data.phi(i,0)*this->fSol[ivi];
 		}//ivi
 	}//for i
 }
@@ -101,7 +102,7 @@ void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 		case 1 : {
 			for(iv = 0; iv < nvars; iv++){
 				for(in = 0 ; in < phr; in++) {
-					ef(nvars*in+iv,0) += bc.Val2()(iv,0) * phi(in,0) * weight;
+					ef(nvars*in+iv,0) += bc.Val2()(iv,0) * fScale * phi(in,0) * weight;
 				}//in
 			}//iv
 			break;
