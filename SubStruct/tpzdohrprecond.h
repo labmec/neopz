@@ -79,12 +79,20 @@ public:
     ~TPZDohrPrecond();
     
     CLONEDEF(TPZDohrPrecond)
+    
+    /**
+	 * @brief The matrix class is a placeholder for a list of substructures
+	 */
+	std::list<TPZAutoPointer<TSubStruct> > &Global()
+    {
+        return fGlobal;
+    }
 	
 	/** @brief Initialize the necessary datastructures */
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();
     
-	void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
+	//void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
     
 	/**
 	 * @brief The only method any matrix class needs to implement
