@@ -30,14 +30,14 @@ const int _ZZ_ = 5;
 /**
  * @ingroup material
  * @brief This class implements an isotropic viscoelasticity material.
- * @author Pamela Diaz
+ * @author Nathan Shauer
  * @since 7/16/2010.
  */
 class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix, TPZElasticity3D>
 {
 	
 public:
-	TPZViscoelastic( TPZMatWithMem<TPZFMatrix, TPZElasticity3D> &matwithmem, int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT);
+	TPZViscoelastic(int id,REAL ElaE, REAL poissonE, REAL lambdaV, REAL muV, REAL alphaT, TPZVec <REAL> &force);
 	
 	
 	virtual void Contribute(TPZMaterialData &data,
@@ -45,10 +45,17 @@ public:
 							TPZFMatrix &ek,
 							TPZFMatrix &ef);
 	
+	void UpdateQsi(TPZMaterialData &data);
+	
+	/*
+	Computes the stress. 
+	Remember you cant update qsi if you want to calculate stress 
+	*/
+	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data);
 	
 protected:
 	
-	REAL flambdaE,fmuE,flambdaV,fmuV,falphaT;  
+	REAL flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE;  
 	//int fMemory;
 	
 };
