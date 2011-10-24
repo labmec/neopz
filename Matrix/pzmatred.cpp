@@ -594,21 +594,32 @@ void TPZMatRed<TSideMatrix>::DecomposeK00()
     if (directsolve)
     {
         directsolve->Decompose();
-        int nsing = directsolve->Singular().size();
-        if(nsing > fMaxRigidBodyModes-fNumberRigidBodyModes)
-        {
-            DebugStop();
-        }
         std::list<int> &singular = directsolve->Singular();
         std::list<int>::iterator it;
+        int nsing = singular.size();
+        if(nsing > fMaxRigidBodyModes-fNumberRigidBodyModes)
+        {
+            std::cout << "Number of rigid body modes larger than provision\n";
+            std::cout << "Number of singular modes " << nsing << std::endl;
+            std::cout << "Number of rigid body modes reserved " << fMaxRigidBodyModes << std::endl;
+            std::cout << "Rigid body modes ";
+            for (it=singular.begin(); it != singular.end(); it++) {
+                std::cout << " " << *it;
+            }
+            std::cout << std::endl;
+            //DebugStop();
+        }
         for (it=singular.begin(); it != singular.end(); it++) {
-            fK01(*it,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = -1.;
-            fK10(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,*it) = -1.;
-            fK11(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = 1.;
-            if(stepsolve != directsolve)
+            if(fNumberRigidBodyModes < fMaxRigidBodyModes)
             {
-                REAL diag = stepsolve->Matrix()->GetVal(*it, *it)+1.;
-                stepsolve->Matrix()->PutVal(*it, *it, diag);
+                fK01(*it,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = -1.;
+                fK10(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,*it) = -1.;
+                fK11(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = 1.;
+                if(stepsolve != directsolve)
+                {
+                    REAL diag = stepsolve->Matrix()->GetVal(*it, *it)+1.;
+                    stepsolve->Matrix()->PutVal(*it, *it, diag);
+                }
             }
             fNumberRigidBodyModes++;
         }
