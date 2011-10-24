@@ -67,7 +67,7 @@ if(BUILD_PROJECTS)
 	add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
-	add_subdirectory(prodindex)
+	#add_subdirectory(prodindex)
 	
 	
 endif(BUILD_PROJECTS)
