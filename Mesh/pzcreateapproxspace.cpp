@@ -32,6 +32,8 @@
 #include "TPZGeoCube.h"
 #include "TPZGeoLinear.h"
 
+#include "pzcompelwithmem.h"
+
 using namespace pzshape;
 
 TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
@@ -75,6 +77,49 @@ TPZCompEl *CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return NULL;
 }
 
+
+// with mem
+TPZCompEl *CreatePointElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapePoint> >(mesh,gel,index) ;
+	return NULL;
+}
+TPZCompEl *CreateLinearElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreateQuadElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreateTriangleElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem < TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreateCubeElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreatePrismElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreatePyramElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElWithMem <TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
+	return NULL;
+}
+
 void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
 	
 	pzgeom::TPZGeoPoint::fp = TPZCompElDisc::CreateDisc;
@@ -100,6 +145,19 @@ void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 	
 	
 }
+
+void TPZCompMesh::SetAllCreateFunctionsContinuousWithMem()
+{
+	pzgeom::TPZGeoPoint::fp =  CreatePointElWithMem;
+	pzgeom::TPZGeoLinear::fp =  CreateLinearElWithMem;
+	pzgeom::TPZGeoQuad::fp = CreateQuadElWithMem;
+	pzgeom::TPZGeoTriangle::fp =  CreateTriangleElWithMem;
+	pzgeom::TPZGeoPrism::fp = CreatePrismElWithMem;
+	pzgeom::TPZGeoTetrahedra::fp = CreateTetraElWithMem;
+	pzgeom::TPZGeoPyramid::fp = CreatePyramElWithMem;
+	pzgeom::TPZGeoCube::fp = CreateCubeElWithMem;
+}
+
 
 #include "pzelchdiv.h"
 
