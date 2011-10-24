@@ -37,6 +37,9 @@ if(BUILD_TUTORIAL)
 endif(BUILD_TUTORIAL)
 
 if(BUILD_PROJECTS)
+	
+	add_subdirectory(Cubo_do_Nathan)
+	
 	add_subdirectory(HyperElasticityFAD)
 
 	#Increment singular shape function: SingularShapeFunction
@@ -64,4 +67,7 @@ if(BUILD_PROJECTS)
 	add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
+	add_subdirectory(prodindex)
+	
+	
 endif(BUILD_PROJECTS)
