@@ -49,6 +49,8 @@ const int TPZELASTICITYAXIMATERIALID = 312;
 const int TPZMATERIALDATAID = 313;
 /** @brief Id of material void flux */
 const int TPZMATERIALVOIDFLUX = 314;
+/** @brief Id of post processing material */
+const int TPZPOSTPROCMAT_ID = 315;
 
 /** @} */
 
