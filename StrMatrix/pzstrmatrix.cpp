@@ -273,7 +273,9 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, T
 		assemble.stop();
 	}//fim for iel
 	if(count > 20) std::cout << std::endl;
+    
 #ifdef LOG4CXX
+    if(loggerCheck->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
@@ -529,6 +531,7 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 			if(loggerel->isDebugEnabled())
 			{
 				std::stringstream sout;
+                sout << "Element index " << iel << std::endl;
 				ek->fMat.Print("Element stiffness matrix",sout);
 				ef->fMat.Print("Element right hand side", sout);
 				LOGPZ_DEBUG(loggerel,sout.str())
