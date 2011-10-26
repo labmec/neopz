@@ -203,6 +203,18 @@ int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
     return 2*elPMaxOrder;
 }
 
+
+int TPZMaterial::IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
+{
+	int pmax = 0;
+	for (int ip=0;  ip<elPMaxOrder.size(); ip++) 
+	{
+		if(elPMaxOrder[ip] > pmax) pmax = elPMaxOrder[ip];  
+	}
+	
+	return  2*pmax;
+}
+
 /*
  void TPZMaterial::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
  int elPMaxOrder,

@@ -246,7 +246,14 @@ public:
      * element with polinomial order p
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
-    
+	
+	/** 
+     * @brief Gets the order of the integration rule necessary to integrate an
+     * element multiphysic
+     */
+    virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
+	
+	
     /* * Set the integration rule order based on the element
      *  @ param p order of interpolation, its dimension and the characteristics
      *   of the material
