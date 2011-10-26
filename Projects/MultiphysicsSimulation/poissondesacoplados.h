@@ -77,5 +77,7 @@ public:
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
+	void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
+	
 };
 #endif

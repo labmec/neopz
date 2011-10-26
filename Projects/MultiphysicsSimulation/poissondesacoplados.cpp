@@ -87,7 +87,7 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 	int phru = phiu.Rows();
 	int phrp = phip.Rows();
 	short in,jn;
-	REAL v2[1];
+	REAL v2[2];
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
 	
@@ -124,3 +124,106 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 	}
 		
 }
+
+//void TwoUncoupledPoisson::ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight,
+//                                          TPZFMatrix &ek,TPZFMatrix &ef){
+//	
+//	TPZFMatrix &dphiLdAxesu = datavec[0].dphixl;
+//	TPZFMatrix &dphiRdAxesu = datavec[0].dphixr;
+//	TPZFMatrix &phiLu = datavec[0].phil;
+//	TPZFMatrix &phiRu = datavec[0].phir;
+//	TPZManVector<REAL,3> &normalu = datavec[0].normal;
+//	
+//			
+//	TPZFNMatrix<660> dphiLu, dphiRu;
+//	TPZAxesTools::Axes2XYZ(dphiLdAxesu, dphiLu, datavec[0].axesleft);
+//	TPZAxesTools::Axes2XYZ(dphiRdAxesu, dphiRu, datavec[0].axesright);
+//	
+//	int &LeftPOrderu=datavec[0].leftp;
+//	int &RightPOrderu=datavec[0].rightp;
+//	
+//	REAL &faceSizeu=datavec[0].HSize;
+//	
+//	
+//	int nrowlu = phiLu.Rows();
+//	int nrowru = phiRu.Rows();
+//	int il,jl,ir,jr,id;
+//	
+//		
+//	//diffusion term
+//	REAL leftK, rightK;
+//	leftK  = fK1;
+//	rightK = fK1;
+//	
+//	// 1) phi_I_left, phi_J_left
+//	for(il=0; il<nrowlu; il++) {
+//		REAL dphiLinormal = 0.;
+//		for(id=0; id<fDim; id++) {
+//			dphiLinormal += dphiLu(id,il)*normalu[id];
+//		}
+//		for(jl=0; jl<nrowlu; jl++) {
+//			REAL dphiLjnormal = 0.;
+//			for(id=0; id<fDim; id++) {
+//				dphiLjnormal += dphiLu(id,jl)*normalu[id];
+//			}
+//			ek(il,jl) += weight * leftK*(this->fSymmetry * 0.5*dphiLinormal*phiL(jl,0)-0.5*dphiLjnormal*phiL(il,0));
+//		}
+//	}
+//	
+//	// 2) phi_I_right, phi_J_right
+//	for(ir=0; ir<nrowru; ir++) {
+//		REAL dphiRinormal = 0.;
+//		for(id=0; id<fDim; id++) {
+//			dphiRinormal += dphiRu(id,ir)*normalu[id];
+//		}
+//		for(jr=0; jr<nrowr; jr++) {
+//			REAL dphiRjnormal = 0.;
+//			for(id=0; id<fDim; id++) {
+//				dphiRjnormal += dphiRu(id,jr)*normalu[id];
+//			}
+//			ek(ir+nrowl,jr+nrowl) += weight * rightK * (
+//														this->fSymmetry * (-0.5 * dphiRinormal * phiR(jr) ) + 0.5 * dphiRjnormal * phiR(ir)
+//														);
+//		}
+//	}
+//	
+//	// 3) phi_I_left, phi_J_right
+//	for(il=0; il<nrowl; il++) {
+//		REAL dphiLinormal = 0.;
+//		for(id=0; id<fDim; id++) {
+//			dphiLinormal += dphiLu(id,il)*normalu[id];
+//		}
+//		for(jr=0; jr<nrowr; jr++) {
+//			REAL dphiRjnormal = 0.;
+//			for(id=0; id<fDim; id++) {
+//				dphiRjnormal += dphiRu(id,jr)*normalu[id];
+//			}
+//			ek(il,jr+nrowl) += weight * (
+//										 this->fSymmetry * (-0.5 * dphiLinormal * leftK * phiR(jr) ) - 0.5 * dphiRjnormal * rightK * phiL(il)
+//										 );
+//		}
+//	}
+//	
+//	// 4) phi_I_right, phi_J_left
+//	for(ir=0; ir<nrowr; ir++) {
+//		REAL dphiRinormal = 0.;
+//		for(id=0; id<fDim; id++) {
+//			dphiRinormal += dphiRu(id,ir)*normalu[id];
+//		}
+//		for(jl=0; jl<nrowl; jl++) {
+//			REAL dphiLjnormal = 0.;
+//			for(id=0; id<fDim; id++) {
+//				dphiLjnormal += dphiLu(id,jl)*normalu[id];
+//			}
+//			ek(ir+nrowl,jl) += weight * (
+//										 this->fSymmetry * 0.5 * dphiRinormal * rightK * phiL(jl) + 0.5 * dphiLjnormal * leftK * phiR(ir)
+//										 );
+//		}
+//	}
+//	
+//	
+//	
+//	if (this->IsSymetric()){
+//		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
+//	}
+//}
