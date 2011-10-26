@@ -12,7 +12,8 @@
 #include "pzcompel.h"
 #include "pzgeoel.h"
 #include "pztrnsform.h"
-
+#include "pzmaterial.h"
+#include "tpzautopointer.h"
 #include "pzgeopoint.h"
 #include "pzgeoquad.h"
 #include "pzgeotriangle.h"
@@ -262,13 +263,13 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		nstate += msp->Material()->NStateVariables();
 	}
 		
-	const int numdof = nstate;
+	const int numstate = nstate;
 	ek.fMat.Redim(numeq,numeq);
 	ef.fMat.Redim(numeq,1);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
-	ek.fNumStateVars = numdof;
-	ef.fNumStateVars = numdof;
+	ek.fNumStateVars = numstate;
+	ef.fNumStateVars = numstate;
 
 	int i;
 	for(i=0; i<ncon; i++){
@@ -338,52 +339,44 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
 	TPZVec<TPZMaterialData> datavec;
-	datavec.resize(fElementVec.size());
+	const int nref = fElementVec.size(); 
+	datavec.resize(nref);
 	InitMaterialData(datavec);
 	
 	TPZManVector<TPZTransform> trvec;
 	AffineTransform(trvec);
 	
-	int iref;
-	TPZStack<int> vecorder;
-	for (iref=0;  iref<fElementVec.size(); iref++) {
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		vecorder.Push(msp->MaxOrder());
-	}
-	
-	int pmax;
-	pmax=vecorder[0];
-	for (int i=1; i< vecorder.size(); i++) {
-		if (vecorder[i]>pmax) pmax=vecorder[i];
-	}
-	
-	datavec[0].p = pmax;
-		
 	int dim = Dimension();
+	TPZAutoPointer<TPZIntPoints> intrule;
+			
 	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
 	REAL weight = 0.;
 	
-	TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[0]);
-	TPZAutoPointer<TPZIntPoints> intrule = msp->GetIntegrationRule().Clone();
-	int order = material->IntegrationRuleOrder(pmax);
-	
-	//if(material->HasForcingFunction()){
-//		order = intrule->GetMaxOrder();
-//	}
-	
+	TPZVec<int> ordervec;
+	ordervec.resize(nref);
+	for (int iref=0;  iref<nref; iref++) 
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		datavec[iref].p = msp->MaxOrder();
+		ordervec[iref] = datavec[iref].p; 
+	}
+	int order = material->IntegrationRuleOrder(ordervec);
+		
+	TPZGeoEl *ref = this->Reference();
+	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+					
 	TPZManVector<int,3> intorder(dim,order);
 	intrule->SetOrder(intorder);	
 	int intrulepoints = intrule->NPoints();
-
-	TPZFMatrix jac, ax, jacInv;
+		
+	TPZFMatrix jac, axe, jacInv;
 	REAL detJac; 
-	TPZGeoEl *ref = this->Reference();
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{		
 		intrule->Point(int_ind,intpointtemp,weight);
-		ref->Jacobian(intpointtemp, jac, ax, detJac , jacInv);
+		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
 		weight *= fabs(detJac);
-		for (iref=0; iref<fElementVec.size(); iref++)
+		for (int iref=0; iref<fElementVec.size(); iref++)
 		{			
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
 			trvec[iref].Apply(intpointtemp, intpoint);
