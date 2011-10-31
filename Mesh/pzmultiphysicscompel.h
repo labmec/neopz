@@ -14,6 +14,7 @@
 #include "pzmultiphysicselement.h"
 #include "pzmaterialdata.h"
 
+#include "pzelctemp.h"
 
 class TPZTransform;
 
@@ -92,6 +93,18 @@ public:
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const;
+	
+	/**
+	 * @brief Post processing method which computes the solution for the var post processed variable.
+	 * @param qsi coordinate of the point in master element space where the solution will be evaluated
+	 * @param var variable which will be computed
+	 * @param sol (output) solution computed at the given point
+	 * @see TPZMaterial::VariableIndex
+	 * @see TPZMaterial::NSolutionVariables
+	 * @see TPZMaterial::Solution
+	 */
+	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -199,8 +212,17 @@ public:
 	 * of state variables and material definitions
 	 */
 	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
+	
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 
 };
+
+//template <class TGeometry>
+//inline void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &, int) 
+//{
+//	std::cout << "TPZMultiphysicsCompEl::CreateGrafEl called\n";
+//	this->Print(std::cout);
+//}
 
 /** @brief Creates computational point element for Multiphysics approximate space */
 TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);

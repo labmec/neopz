@@ -214,12 +214,63 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
 	return fElementVec[0]->Dimension();
 }
 
+
+template<class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol) {
+	
+	if(var >= 100) {
+		TPZCompEl::Solution(qsi,var,sol);
+		return;
+	}
+	int dim = this->Dimension();
+	
+	TPZAutoPointer<TPZMaterial> material = this->Material();
+	if(!material){
+		sol.Resize(0);
+		return;
+	}
+	
+	TPZManVector<TPZTransform> trvec;
+	AffineTransform(trvec);
+	
+	//int neqsi= qsi.size();
+	TPZVec<REAL> myqsi;
+	myqsi.resize(qsi.size());
+	
+	const int numdof = material->NStateVariables();
+	int nref = fElementVec.size();
+	TPZVec<TPZMaterialData> datavec;
+	datavec.resize(nref);
+	
+	for (int iref = 0; iref<nref; iref++)
+	{		
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		datavec[iref].p = msp->MaxOrder();
+		datavec[iref].sol.Resize(numdof);
+		datavec[iref].sol.Fill(0.);
+		datavec[iref].dsol.Redim(dim,numdof);
+		datavec[iref].dsol.Zero();
+		datavec[iref].axes.Redim(dim,3);
+		datavec[iref].axes.Zero();
+		
+		trvec[iref].Apply(qsi, myqsi);
+		msp->ComputeSolution(myqsi, datavec[iref].sol, datavec[iref].dsol, datavec[iref].axes);
+		
+		datavec[iref].x.Resize(3);
+		msp->Reference()->X(myqsi, datavec[iref].x);
+	}	
+		int solSize = material->NSolutionVariables(var);
+		sol.Resize(solSize);
+		sol.Fill(0.);
+		material->Solution(datavec, var, sol);
+}
+
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 				TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
-}
+}//method
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
@@ -391,6 +442,87 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	
 }//CalcStiff
+
+
+//#include "tpzpoint.h"
+//#include "tpzline.h"
+//#include "tpzquadrilateral.h"
+//#include "tpztriangle.h"
+//#include "tpzcube.h"
+//#include "tpztetrahedron.h"
+//#include "tpzprism.h"
+//#include "tpzpyramid.h"
+//#include "pzshapepoint.h"
+//template<>
+//void TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+//	if(dimension == 0) std::cout << "A point element has no graphical representation\n";
+//}
+//
+//template<class TSHAPE>
+//void TPZMultiphysicsCompEl<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension) {
+//	if(dimension == TSHAPE::Dimension && Material()->Id() > 0) {
+//		new typename TSHAPE::GraphElType(this,&grafgrid);
+//	}
+//}
+
+#include "pzgraphel.h"
+#include "pzgraphelq2dd.h"
+#include "pzgraphelq3dd.h"
+#include "pzgraphel1d.h"
+#include "pzgraphel1dd.h"
+#include "pztrigraphd.h"
+#include "pztrigraph.h"
+#include "tpzgraphelt2dmapped.h"
+#include "tpzgraphelprismmapped.h"
+#include "tpzgraphelpyramidmapped.h"
+#include "tpzgraphelt3d.h"
+#include "pzgraphel.h"
+#include "pzmeshid.h"
+
+template<class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
+{
+	TPZGeoEl *ref = Reference();
+	TPZAutoPointer<TPZMaterial> material = Material();
+	int mat = material->Id();
+	int nsides = ref->NSides();
+	
+	if(dimension == 2 && mat > 0){
+		if(nsides == 9){
+			new TPZGraphElQ2dd(this,&grmesh);
+			return;
+		}
+		if(nsides == 7){
+			new TPZGraphElT2dMapped(this,&grmesh);
+			return;
+		}
+	}///2d
+	
+	if(dimension == 3 && mat > 0){
+		if(nsides == 27){
+			new TPZGraphElQ3dd(this,&grmesh);
+			return;
+		}///cube
+		if(nsides == 21){
+			new TPZGraphElPrismMapped(this,&grmesh);
+			return;
+		}///prism
+		if(nsides == 15){
+			new TPZGraphElT3d(this,&grmesh);
+			return;
+		}///tetra
+		if(nsides == 19){
+			new TPZGraphElPyramidMapped(this,&grmesh);
+			return;
+		}///pyram
+	}///3d
+	
+	if(dimension == 1 && mat > 0){
+		new TPZGraphEl1dd(this,&grmesh);
+	}///1d
+}
+
+
 
 //---------------------------------------------------------------	
 template class TPZMultiphysicsCompEl<pzgeom::TPZGeoPoint>;

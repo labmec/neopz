@@ -41,6 +41,9 @@ public:
 	
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	
+	
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;
+	
 };
 
 #endif
