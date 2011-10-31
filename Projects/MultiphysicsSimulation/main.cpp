@@ -164,6 +164,22 @@ int main(int argc, char *argv[])
 	TPZAnalysis an(mphysics);
 	SolveSist(an, mphysics);
 	
+	//pos-process
+	TransferFromMultiPhysics(meshvec, mphysics);
+
+	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	scalnames[0] = "Solution";
+	vecnames[0]= "Derivate";
+	
+	std::string plotfile("saidaSolution.vtk");
+	const int dim = 2;
+	int div = 0;
+	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+	an.PostProcess(div,dim);
+	std::ofstream out("malha.txt");
+	an.Print("nothing",out);
+	
+	
 	//------------------------------------
 //	std::set<int> geoelVec;
 //	std::set<int> refIndexVec;
@@ -342,26 +358,27 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//step.SetDirect(ELU);
 	an.SetSolver(step);
 	an.Run();
+	
 		
 	//Saida de Dados: solucao e  grafico no VTK 
 	ofstream file("Solution.out");
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 	
-#ifdef VTK
-	{
-		TPZManVector<std::string,10> scalnames(1), vecnames(1);
-		scalnames[0] = "Solution";
-		vecnames[0]= "Derivate";
-		
-		std::string plotfile("saidaSolution.vtk");
-		const int dim = 2;
-		int div = 0;
-		an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-		an.PostProcess(div,dim);
-		std::ofstream out("malha.txt");
-		an.Print("nothing",out);
-	}
-#endif	
+//#ifdef VTK
+//	{
+//		TPZManVector<std::string,10> scalnames(1), vecnames(1);
+//		scalnames[0] = "Solution";
+//		vecnames[0]= "Derivate";
+//		
+//		std::string plotfile("saidaSolution.vtk");
+//		const int dim = 2;
+//		int div = 0;
+//		an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+//		an.PostProcess(div,dim);
+//		std::ofstream out("malha.txt");
+//		an.Print("nothing",out);
+//	}
+//#endif	
 }
 
 void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
@@ -748,6 +765,7 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
             int seqnum = con.SequenceNumber();
+			if(seqnum<0) continue;       // Whether connect was deleted by previous refined process
             int blsize = block.Size(seqnum);
             TPZConnect &conMF = MFMesh->ConnectVec()[FirstConnectIndex[imesh]+ic];
             int seqnumMF = conMF.SequenceNumber();

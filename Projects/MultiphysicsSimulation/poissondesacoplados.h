@@ -77,7 +77,29 @@ public:
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
-	void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
+	//void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
+	
+	virtual int VariableIndex(const std::string &name);
+	
+	virtual int NSolutionVariables(int var);
+	
+//protected:
+//	
+//	/**
+//     * @brief It return a solution to multiphysics simulation.
+//     * @param Sol [in] is the solution 
+//     * @param DSol [in] is the Gradient
+//     * @param axes  [in] is the points of the coordinate axes
+//     * @param var [in] number of solution variables. See  NSolutionVariables() method
+//     * @param Solout [out] is the solution vector
+//     */	
+//	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
+
+public:
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+	
+	//virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
+	
 	
 };
 #endif

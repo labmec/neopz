@@ -9,6 +9,7 @@
 
 #include "poissondesacoplados.h"
 #include "pzbndcond.h"
+#include "pzaxestools.h"
 
 using namespace std;
 
@@ -227,3 +228,111 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 //		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
 //	}
 //}
+
+/** Returns the variable index associated with the name */
+int TwoUncoupledPoisson::VariableIndex(const std::string &name){
+	if(!strcmp("SolutionU",name.c_str()))        return  1;
+	if(!strcmp("SolutionP",name.c_str()))        return  2;
+	if(!strcmp("DerivateU",name.c_str()))        return  3;
+	if(!strcmp("DerivateP",name.c_str()))        return  4;
+	
+	return TPZMaterial::VariableIndex(name);
+}
+
+int TwoUncoupledPoisson::NSolutionVariables(int var){
+	if(var == 1) return 1;
+	if(var == 2) return 1;
+	if((var == 3) || (var == 4)) return fDim;
+	return TPZMaterial::NSolutionVariables(var);
+}
+
+void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+	
+	Solout.Resize( this->NSolutionVariables(var));
+	
+	TPZVec<REAL> SolU, SolP;
+	TPZFMatrix DSolU, DSolP;
+	TPZFMatrix axesU, axesP;
+	
+	SolU=datavec[0].sol;
+	DSolU=datavec[0].dsol;
+	axesU=datavec[0].axes;
+	SolP=datavec[1].sol;
+	DSolP=datavec[1].dsol;
+	axesP=datavec[1].axes;
+	
+	if(var == 1){
+		Solout[0] = SolU[0];//function (state variable u)
+		return;
+	}
+	
+	if(var == 2){
+		Solout[0] = SolP[0];//function (state variable p)
+		return;
+	}
+	
+	if(var == 3) {
+		int id;
+		for(id=0 ; id<fDim; id++) {
+			TPZFNMatrix<9> dsoldx;
+			TPZAxesTools::Axes2XYZ(DSolU, dsoldx, axesU);
+			Solout[id] = dsoldx(id,0);//derivate of u
+		}
+		return;
+	}//var == 3
+	
+	if(var == 4) {
+		int id;
+		for(id=0 ; id<fDim; id++) {
+			TPZFNMatrix<9> dsoldx;
+			TPZAxesTools::Axes2XYZ(DSolP, dsoldx, axesP);
+			Solout[id] = dsoldx(id,0);//derivate of p
+		}
+		return;
+	}//var == 4
+}
+
+
+//void TwoUncoupledPoisson::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+//	
+//	Solout.Resize( this->NSolutionVariables(var));
+//	
+//	if(var == 1){
+//		Solout[0] = Sol[0];//function (state variable u)
+//		return;
+//	}
+//	
+//	if(var == 2){
+//		Solout[0] = Sol[0];//function (state variable p)
+//		return;
+//	}
+//	
+//	if(var == 3) {
+//		int id;
+//		for(id=0 ; id<fDim; id++) {
+//			TPZFNMatrix<9> dsoldx;
+//			TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+//			Solout[id] = dsoldx(id,0);//derivate of u
+//		}
+//		return;
+//	}//var == 3
+//	
+//	if(var == 4) {
+//		int id;
+//		for(id=0 ; id<fDim; id++) {
+//			TPZFNMatrix<9> dsoldx;
+//			TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+//			Solout[id] = dsoldx(id,0);//derivate of p
+//		}
+//		return;
+//	}//var == 4
+//	
+//	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
+//}
+
+
+//int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
+//{
+//	 
+//}
+
