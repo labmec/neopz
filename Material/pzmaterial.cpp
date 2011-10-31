@@ -136,6 +136,15 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	this->Solution(data.sol, data.dsol, data.axes, var, Solout);
 }
 
+void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+	if (datavec.size()==1) {
+		this->Solution(datavec[0], var, Solout);
+	}
+	else {
+		this->Solution(datavec, var, Solout);
+	}
+}
+
 void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &/*DSol*/,TPZFMatrix &/*axes*/,int var,
 						   TPZVec<REAL> &Solout){
 	if(var == 0) Solout = Sol;
