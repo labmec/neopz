@@ -36,6 +36,7 @@
 
 #include "pzmultiphysicselement.h"
 #include "pzmultiphysicscompel.h"
+#include "pzbuildmultiphysicsmesh.h"
 
 #include "pzlog.h"
 
@@ -164,7 +165,7 @@ int main(int argc, char *argv[])
 	TPZAnalysis an(mphysics);
 	SolveSist(an, mphysics);
 	
-	//pos-process
+	//--- pos-process -----
 	TransferFromMultiPhysics(meshvec, mphysics);
 
 	TPZManVector<std::string,10> scalnames(1), vecnames(1);
@@ -178,6 +179,10 @@ int main(int argc, char *argv[])
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
 	an.Print("nothing",out);
+	//----------
+	
+	//TPZBuildMultiphysicsMesh *meshm;
+	//meshm->TransferFromMultiPhysics(meshvec, mphysics);
 	
 	
 	//------------------------------------
