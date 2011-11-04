@@ -34,7 +34,7 @@ TPZIntRuleList::TPZIntRuleList(){
 	
 	intavail    = TPZIntRule::NUMINT_RULES;//reta, quadrilatero, cubo
 	intavailT   = TPZIntRuleT::NUMINT_RULEST;//triangulo
-	intavailT3D = TPZIntRuleT3D::NUMINT_RULEST3D;//tetraedro
+	intavailT3D = TPZIntRuleT3D::NUMINT_RULEST3D+1;//tetraedro
 	intavailP3D = TPZIntRuleP3D::NUMINT_RULESP3D;//piramide
 	
 	intlist    = new TPZIntRule*[intavail];
@@ -68,9 +68,9 @@ TPZIntRuleList::TPZIntRuleList(){
 				//				PZError.show();
 			}
 		}
-		for(i = 1; i<=intavailT3D; ++i) {
-			intlistT3D[i-1] = new TPZIntRuleT3D(i);
-			if(intlistT3D[i-1] == NULL) {
+		for(i = 0; i<intavailT3D; ++i) {
+			intlistT3D[i] = new TPZIntRuleT3D(i);
+			if(intlistT3D[i] == NULL) {
 				PZError << "TPZIntRuleList error: some integration rules"
 				"for tetrahedros could not be initialized\n";
 				//				PZError.show();
