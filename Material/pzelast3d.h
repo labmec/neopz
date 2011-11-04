@@ -146,19 +146,23 @@ public:
 	{
 		fE = Ela;
 		fPoisson = poisson;
+        SetC();
 	}
 	
 	void SetMaterialDataLame(REAL lambda, REAL mu)
 	{
 		fE = mu*(3*lambda+2*mu)/(lambda + mu);
 		fPoisson = lambda/(2*(lambda + mu));
+        SetC();
 	}
 	
 	void SetC()
 	{
+#ifndef CODE1
 		C1 = fE / (2.+ 2.*fPoisson);
 		C2 = fE * fPoisson / (-1. + fPoisson + 2.*fPoisson*fPoisson);
 		C3 = fE * (fPoisson - 1.) / (-1. + fPoisson +2. * fPoisson * fPoisson);
+#endif
 	}
 	
 	void SetForce(TPZVec <REAL> force)

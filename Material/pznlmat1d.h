@@ -98,10 +98,10 @@ public:
 	
 protected:
 	/** @brief Cross Section Area */
-	double fArea;
+	REAL fArea;
 	
 	/** @brief Young's modulus */
-	double fE;
+	REAL fE;
 };
 
 #endif

@@ -40,7 +40,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
 
 TPZElasticity3D::TPZElasticity3D(int nummat): TPZMaterial(nummat),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), fFy(0.)
 {
-
+    SetC();
 }
 
 TPZElasticity3D::TPZElasticity3D() : TPZMaterial(0),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
@@ -51,6 +51,7 @@ TPZElasticity3D::~TPZElasticity3D(){}
 TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
 fFy(cp.fFy)
 {
+    SetC();
 }
 
 void TPZElasticity3D::Print(std::ostream & out){
