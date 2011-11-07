@@ -150,7 +150,7 @@ int TPZViscoelastic::NSolutionVariables(int var)
 
 void TPZViscoelastic::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data)
 {
-	TPZFMatrix Dsol = data.dsol;
+	TPZFNMatrix<9> Dsol = data.dsol;
 	TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::ComputeStressTensor(Stress,Dsol);
 	TPZFNMatrix<6> qsi;
 	const int index = data.intPtIndex;
@@ -222,7 +222,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	
 	if(var == TPZViscoelastic::EViscoStressX){
-		TPZFMatrix Stress(3,3);
+		TPZFNMatrix<9> Stress(3,3);
 		this->ComputeStressTensor(Stress, data);
 		Solout[0] = Stress(0,0);
 		return;

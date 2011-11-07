@@ -296,14 +296,6 @@ int main()
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
 	cmesh->AutoBuild();
 
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		cmesh->Print(sout);
-		LOGPZ_INFO(logger,sout.str())
-	}
-#endif
-	
 	TPZSkylineStructMatrix skylstruct(cmesh);
 	TPZStepSolver step;
 	step.SetDirect(ECholesky);
@@ -325,16 +317,17 @@ int main()
   
   int dimension = 3;
   TPZVec <std::string> vecnames(0), scalnames(1);
-  scalnames[0] = "ViscoStressX";
+  scalnames[0] = "StressX";
 	//vecnames[0] = "Displacement";
 	//scalnames[0] = "ViscoStressX";
 	std::string plotfile("cubinho.vtk");
 	
-	//an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+	an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
 	int resolution = 0;
-	//an.PostProcess(resolution);
+	an.PostProcess(resolution);
 	//an.Solution().Print("Solution",std::cout);
 
+	/*
 	TPZPostProcAnalysis postan(&an);
 	TPZVec <int> matids(1);
 	matids[0] = 1;
@@ -348,15 +341,18 @@ int main()
 
 	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
 	postan.PostProcess(resolution);
+	*/
+
     
     for (int istep = 0 ; istep < 10 ; istep++)
     {
       an.AssembleResidual();
       an.Solve();
-			postan.TransferSolution();
+			
       //an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
-			//an.PostProcess(resolution);
-			postan.PostProcess(resolution);
+			an.PostProcess(resolution);
+			//postan.TransferSolution();
+			//postan.PostProcess(resolution);
     }
     
     
@@ -403,11 +399,11 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	alphaT = 0.01;	
     
     
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
-	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
 
-	TPZFNMatrix<6> qsi(6,1,0.);
-	viscoelast->SetDefaultMem(qsi);
+	//TPZFNMatrix<6> qsi(6,1,0.);
+	//viscoelast->SetDefaultMem(qsi);
 	//int index = viscoelast->PushMemItem();
 	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
