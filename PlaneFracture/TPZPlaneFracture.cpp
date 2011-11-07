@@ -836,7 +836,7 @@ int TPZPlaneFracture::CrackTip1DElMat()
     return __fractureLine_Mat;
 }
 
-void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCroosed)
+void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCrossed)
 {
     #ifdef DEBUG
 	int ncoord = poligonalChain.NElements();
@@ -848,7 +848,7 @@ void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &polig
 	}
     #endif
     
-    sidesCroosed.clear();
+    sidesCrossed.clear();
 	
 	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fplaneMesh);
 	
@@ -862,17 +862,17 @@ void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &polig
     for(it = elIdSequence.begin(); it != elIdSequence.end(); it++)
     {
         int gel1D_Id = it->first;
-        double qsi = it->second;
+        double qsiNeigh, qsi = it->second;
         
         TPZGeoEl * gel1D = fractMesh->ElementVec()[gel1D_Id];
         TPZGeoElSide gel1DSide(gel1D,2);
         TPZGeoElSide neighSide = gel1DSide.Neighbour();
         while(neighSide != gel1DSide)
         {
-            TPZTransform tr = gel1DSide.SideToSideTransform(neighSide);//tr.Mult() suppose to be 1x1
-            double qsiNeigh = tr.Mult()(0,0)*qsi;
+            TPZTransform tr = gel1DSide.NeighbourSideTransform(neighSide);
+            qsiNeigh = tr.Mult()(0,0)*qsi;
             
-            sidesCroosed.push_back(std::make_pair(neighSide, qsiNeigh));
+            sidesCrossed.push_back(std::make_pair(neighSide, qsiNeigh));
             neighSide = neighSide.Neighbour();
         }
     }

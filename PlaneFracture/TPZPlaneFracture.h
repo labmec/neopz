@@ -73,7 +73,7 @@ class TPZPlaneFracture
     /**
      * Metodo solicitado pelo Philippe para acidificacao
      */
-    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCroosed);
+    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCrossed);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
