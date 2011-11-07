@@ -42,7 +42,8 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
     int index = data.intPtIndex;
 
     TPZFNMatrix<6>  qsi(6,1);
-    if (this->MemItem(index).Rows() != 6) 
+		int rows = this->MemItem(index).Rows();
+    if (rows != 6) 
     {
         DebugStop(); //deve inicializar o qsi pelo SetDefaultMemory
     }
@@ -119,6 +120,34 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 }
 
 
+int TPZViscoelastic::VariableIndex(const std::string &name)
+{
+	if(!strcmp("Displacement",name.c_str()))  return TPZElasticity3D::EDisplacement;
+	if(!strcmp("state",name.c_str()))  return TPZElasticity3D::EDisplacement;
+	if(!strcmp("DisplacementX",name.c_str()))  return TPZElasticity3D::EDisplacementX;
+	if(!strcmp("DisplacementY",name.c_str()))  return TPZElasticity3D::EDisplacementY;
+	if(!strcmp("DisplacementZ",name.c_str()))  return TPZElasticity3D::EDisplacementZ;
+	if(!strcmp("PrincipalStrain", name.c_str()))  return TPZElasticity3D::EPrincipalStrain;
+	if(!strcmp("ViscoStressX",name.c_str()))  return TPZViscoelastic::EViscoStressX;
+	if(!strcmp("ViscoStressY",name.c_str()))  return TPZViscoelastic::EViscoStressY;
+	if(!strcmp("ViscoStressZ",name.c_str()))  return TPZViscoelastic::EViscoStressZ;
+	return -1;
+}
+
+int TPZViscoelastic::NSolutionVariables(int var)
+{
+	if(var == TPZElasticity3D::EDisplacement)        return 3;
+	if(var == TPZElasticity3D::EDisplacementX)       return 1;
+	if(var == TPZElasticity3D::EDisplacementY)       return 1;
+	if(var == TPZElasticity3D::EDisplacementZ)       return 1;
+	if(var == TPZElasticity3D::EPrincipalStrain)     return 3;
+	if(var == TPZViscoelastic::EViscoStressX)        return 1;
+	if(var == TPZViscoelastic::EViscoStressY)        return 1;
+	if(var == TPZViscoelastic::EViscoStressZ)        return 1;
+	PZError << "TPZViscoelastic::NSolutionVariables Error\n";
+	return -1;
+}
+
 void TPZViscoelastic::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data)
 {
 	TPZFMatrix Dsol = data.dsol;
@@ -143,3 +172,72 @@ void TPZViscoelastic::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &d
 	Stress(2,0) += qsi(_XZ_,0);
 	Stress(2,1) += qsi(_YZ_,0);
 }
+
+void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+	if(var == TPZElasticity3D::EDisplacement){
+		int i;
+		for(i = 0; i < 3; i++){
+			TPZVec<REAL> Sol(data.sol); 
+			Solout[i] = Sol[i];
+		}//for
+		return;
+	}//TPZElasticity3D::EDisplacement
+	
+	if(var == TPZElasticity3D::EDisplacementX){
+		//    int i;
+		TPZVec<REAL> Sol(data.sol); 
+		Solout[0] = Sol[0];
+		return;
+	}//TPZElasticity3D::EDisplacementX
+	
+	if(var == TPZElasticity3D::EDisplacementY){
+		//    int i;
+		TPZVec<REAL> Sol(data.sol); 
+		Solout[0] = Sol[1];
+		return;
+	}//TPZElasticity3D::EDisplacementY  
+	
+	if(var == TPZElasticity3D::EDisplacementZ){
+		//    int i;
+		TPZVec<REAL> Sol(data.sol); 
+		Solout[0] = Sol[2];
+		return;
+	}//TPZElasticity3D::EDisplacementZ  
+
+	
+	if(var == TPZElasticity3D::EPrincipalStrain){
+		TPZFNMatrix<9> StrainTensor(3,3);
+		TPZFMatrix DSol(data.dsol);
+		TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
+		int numiterations = 1000;
+		REAL tol = TPZElasticity3D::gTolerance;
+		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+#ifdef DEBUG    
+		if (result == false){
+			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
+		}
+#endif
+	}//TPZElasticity3D::EPrincipalStrain
+	
+	
+	if(var == TPZViscoelastic::EViscoStressX){
+		TPZFMatrix Stress(3,3);
+		this->ComputeStressTensor(Stress, data);
+		Solout[0] = Stress(0,0);
+		return;
+	}
+	if(var == TPZViscoelastic::EViscoStressY){
+		TPZFMatrix Stress(3,3);
+		this->ComputeStressTensor(Stress, data);
+		Solout[0] = Stress(1,1);
+		return;
+	}
+	if(var == TPZViscoelastic::EViscoStressZ){
+		TPZFMatrix Stress(3,3);
+		this->ComputeStressTensor(Stress, data);
+		Solout[0] = Stress(2,2);
+		return;
+	}
+}
+

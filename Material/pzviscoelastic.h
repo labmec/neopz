@@ -35,8 +35,10 @@ const int _ZZ_ = 5;
  */
 class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix, TPZElasticity3D>
 {
-	
+		
 public:
+	enum SOLUTIONVARS{ENone = -1, EViscoStressX = 0, EViscoStressY, EViscoStressZ};
+	
 	TPZViscoelastic(int id,REAL ElaE, REAL poissonE, REAL lambdaV, REAL muV, REAL alphaT, TPZVec <REAL> &force);
 	
 	
@@ -47,11 +49,22 @@ public:
 	
 	void UpdateQsi(TPZMaterialData &data);
 	
+	/** @brief Returns index of post-processing variable */
+	virtual int VariableIndex(const std::string &name);
+	
+	/** @brief Number of data of variable var */
+	virtual int NSolutionVariables(int var);
+	
 	/*
-	Computes the stress. 
-	Remember you cant update qsi if you want to calculate stress 
-	*/
+	 Computes the stress. 
+	 Remember you cant update qsi if you want to calculate stress 
+	 */
 	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data);
+	
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+
+
 	
 protected:
 	
