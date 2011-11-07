@@ -1,4 +1,4 @@
-//$Id: pzpostprocmat.h,v 1.4 2009-05-16 04:25:34 erick Exp $
+//$Id: pzpostprocmat.h,v 1.5 2010-11-23 18:58:59 diogo Exp $
 
 #ifndef PZPOSTPROCMAT_H
 #define PZPOSTPROCMAT_H
@@ -177,7 +177,8 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
 	
 protected:
 		
-	  TPZVec<TPZPostProcVar> fVars;
+		TPZVec<TPZPostProcVar> fVars;
+		int fDimension;
 };
 
 #endif

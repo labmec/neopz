@@ -1,4 +1,4 @@
-//$Id: pzpostprocanalysis.h,v 1.3 2009-05-16 04:25:34 erick Exp $
+//$Id: pzpostprocanalysis.h,v 1.5 2010-10-20 18:41:37 diogo Exp $
 #ifndef PZPOSTPROCANALYSIS_H
 #define PZPOSTPROCANALYSIS_H
 
@@ -7,6 +7,8 @@
 #include "TPZGeoElement.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
+#include "pzstrmatrix.h"
+
 
 #include <iostream>
 #include <string>
@@ -54,9 +56,10 @@ void TransferSolution();
 void SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames);
 		
 static void SetAllCreateFunctionsPostProc();
-		
+static void SetAllCreateFunctionsContinuous();
+		void AutoBuildDisc();
 protected:
-
+	
 	TPZAnalysis * fpMainAnalysis;
 
 /**
@@ -64,8 +67,18 @@ protected:
  */
 
 public:
+
 	
 static TPZCompEl * CreatePostProcDisc(  TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+	
+static TPZCompEl * CreatePointEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreateLinearEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreateQuadEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreateTriangleEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreateCubeEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreatePyramEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreateTetraEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
+static TPZCompEl * CreatePrismEl( TPZGeoEl *gel, TPZCompMesh &mesh, int &index);
 
 };
 

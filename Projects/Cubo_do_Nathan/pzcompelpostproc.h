@@ -1,4 +1,4 @@
-//$Id: pzcompelpostproc.h,v 1.11 2009-07-17 02:24:49 erick Exp $
+//$Id: pzcompelpostproc.h,v 1.13 2010-11-24 17:48:10 diogo Exp $
 
 #ifndef PZCOMPELPOSTPROC_H
 #define PZCOMPELPOSTPROC_H
@@ -207,12 +207,11 @@ inline TPZCompEl * TPZCompElPostProc<TCOMPEL>::ClonePatchEl(TPZCompMesh &mesh,st
 
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::InitializeShapeFunctions(){
-	TPZReferredCompEl<TCOMPEL>::fShapefunctionType = 
-		pzshape::TPZShapeDisc::EOrdemTotal;
+	//TPZReferredCompEl<TCOMPEL>::fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;//pzshape::TPZShapeDisc::EOrdemTotal;
 	// an orthogonal (or one closest possible to) polynomial function is very important
 	// here to ensure the L2 solution transfer matrix isn't ill-conditioned
 	//TPZReferredCompEl<TCOMPEL>::SetOrthogonalFunction(pzshape::TPZShapeDisc::ChebyshevWithoutScale);
-    TPZReferredCompEl<TCOMPEL>::SetOrthogonalFunction(pzshape::TPZShapeDisc::LegendreWithoutScale);
+ //   TPZReferredCompEl<TCOMPEL>::SetOrthogonalFunction(pzshape::TPZShapeDisc::LegendreWithoutScale);
 }
 
 template <class TCOMPEL>
@@ -239,10 +238,15 @@ inline void TPZCompElPostProc<TCOMPEL>::Read(TPZStream &buf, void *context)
   TCOMPEL::Read(buf,context);
 }
 
+
+
+
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   ef.Reset();
 
+
+	
   this->InitializeElementMatrix(ef);// the inintialization of the ef matrix
 	//preceeds the verifications below because it is advisable to esit
 	// with proper ef size, no matter the return reason
@@ -283,30 +287,34 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   data.p	= this      ->MaxOrder();
   dataRef.p = pIntSpRef ->MaxOrder();
   int dim = pIntSpRef ->Dimension();
-  //TPZManVector<REAL,3> intpoint(dim,0.);
+  TPZManVector<REAL,3> intpoint(dim,0.);
   TPZManVector<REAL,3> intpointRef(dim,0);
-  //REAL weight = 0.;
+  REAL weight = 0.;
   REAL weightRef = 0;
-  //const TPZIntPoints &intrule    = this      ->GetIntegrationRule();
+  const TPZIntPoints &intrule    = this      ->GetIntegrationRule();
   const TPZIntPoints &intruleRef = pIntSpRef ->GetIntegrationRule();
+/*
   TPZManVector<int,3> p2(dim,data.p*2);
   TPZManVector<int,3> p2Ref(dim,dataRef.p*2);
-  //intrule.   SetOrder(p2);
-  //intruleRef.SetOrder(p2Ref);
-  if(pMaterialRef->HasForcingFunction() || !this->Reference()->IsLinearMapping()) {
-      //TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
-	  //TPZManVector<int,3> orderRef(dim,intruleRef.GetMaxOrder());
-    //  intrule   .SetOrder(order);
-      //intruleRef.SetOrder(orderRef);
+  intrule.   SetOrder(p2);
+  intruleRef.SetOrder(p2Ref);
+  if(pMaterialRef->HasForcingFunction() || !this->Reference()->IsLinearMapping())
+ {
+      TPZManVector<int,3> order(dim,intrule.GetMaxOrder());
+	  TPZManVector<int,3> orderRef(dim,intruleRef.GetMaxOrder());
+      intrule   .SetOrder(order);
+      intruleRef.SetOrder(orderRef);
   }
+ */
 
-  //int intrulepoints    = intrule.   NPoints();
+  int intrulepoints    = intrule.   NPoints();
   int intrulepointsRef = intruleRef.NPoints();
-  /*if(intrulepoints != intrulepointsRef){
+  if(intrulepoints != intrulepointsRef)
+  {
       PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl with different number of integration points\n";
       return;
   }
-	*/
+	
   int nshape = this->NShapeF();
   TPZFMatrix ekTemp(nshape, nshape, 0.);
   
@@ -315,10 +323,11 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   pPostProcMat->GetPostProcessVarIndexList(varIndex);
   TPZVec<REAL> Sol;
   
-  for(int int_ind = 0; int_ind < intrulepointsRef; ++int_ind){
-      //intrule.   Point(int_ind,intpoint,   weight);
+  for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+  {
+      intrule.   Point(int_ind,intpoint,   weight);
       intruleRef.Point(int_ind,intpointRef,weightRef);
-      this->      ComputeShape(intpointRef, data.x, data.jacobian, 
+      this->      ComputeShape(intpoint, data.x, data.jacobian, 
                                data.axes, data.detjac, data.jacinv, 
                                data.phi, data.dphix);
 //cout << "\n data.phi = " << data.phi;
@@ -327,12 +336,24 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
                                dataRef.phi, dataRef.dphix); 
 //cout << "\n dataRef.phi = " << dataRef.phi;
 	  
-      //weight    *= fabs(data.detjac);
+
+	  
+      weight    *= fabs(data.detjac);
       weightRef *= fabs(dataRef.detjac);
       data   .intPtIndex = int_ind;
       dataRef.intPtIndex = int_ind;
-      this      ->ComputeRequiredData(data,    intpointRef);
+      this      ->ComputeRequiredData(data,    intpoint);
       pIntSpRef ->ComputeRequiredData(dataRef, intpointRef);
+
+//#ifdef LOG4CXX
+//	  {
+//		  std::stringstream sout;
+//		//  sout << "\n data.phi = " << data.phi;
+//		  //sout << "\n intpoint = " << data.;
+//		  LOGPZ_INFO(CompElPostProclogger,sout.str().c_str());
+//	  }
+//#endif
+	  
 	 
 //cout << "\tEvaluated data.sol=" << data.sol << "\n";
 	  
@@ -355,7 +376,11 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
       
 //cout << "\timposed data.sol=" << data.sol << "\n";
 	  
-	  pPostProcMat->Contribute(data,weightRef,ekTemp,efTemp);
+
+	  
+	  pPostProcMat->Contribute(data,weight,ekTemp,efTemp);
+	  
+	  
 	  
   }//loop over integration points
 	
@@ -371,7 +396,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
 	  
 	    TPZFMatrix rhsCopy(rhsTemp), result;
-  		//int status = ekTemp.Solve_Cholesky(&(rhsTemp));
+  	//	int status = ekTemp.Solve_Cholesky(&(rhsTemp));
 	    int status = ekTemp.Solve_LU(&(rhsTemp));
 	  
 	    ekCopy.MultAdd(rhsTemp, rhsCopy, result, 1., -1.);
@@ -408,11 +433,20 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 {
 	const REAL SMALLNUMBER = 1.e-8;
 	int i;
-	if(d1.p!=d2.p)return 0;
+	if(d1.p!=d2.p)
+	{
+		DebugStop();
+		return 0;
+	}
 	REAL res = 0;
 	int dim = d1.x.NElements();
 	int nshape = d1.phi.Rows();
-	if(dim != d2.x.NElements() || nshape!= d2.phi.Rows()) return 0; // dimensions and number of integration points shall match
+	int nshape2 = d2.phi.Rows();
+	if(dim != d2.x.NElements() || nshape!= nshape2) 
+	{
+		DebugStop();
+		return 0; // dimensions and number of integration points shall match
+	}
 	for(i = 0; i < dim; i++)res += pow(d1.x[i]-d2.x[i],2.); // integration points must be at the same locations
 	/*for(i = 0; i < nshape; i++)
 	{
@@ -421,8 +455,13 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 	    for(j = 0; j < dim; j++) res += pow(d1.dphix(j,i)-d2.dphix(j,i),2.);
 	}
 	res += pow(d1.detjac - d2.detjac, 2.);*/
-    //res += sqr(d1.weight - d2.weight);
-    if(res > SMALLNUMBER) return 0;
+    
+//res += sqr(d1.weight - d2.weight);
+    if(res > SMALLNUMBER)
+	{
+		DebugStop();
+		return 0;
+	}
     return 1;
 }
 
@@ -457,7 +496,8 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZ
   ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 
   ref->X(intpoint, X);
-  this->Shape(intpoint,intpoint,phi,dphix);
+//  this->Shape(intpoint,intpoint,phi,dphix);
+	this->Shape(intpoint,phi,dphix);
   //this->Shape(intpoint,X,phi,dphix);
 
   ///axes is identity in discontinuous elements

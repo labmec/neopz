@@ -1,4 +1,4 @@
-//$Id: pzpostprocanalysis.cpp,v 1.6 2010-06-11 22:13:02 diogo Exp $
+//$Id: pzpostprocanalysis.cpp,v 1.10 2010-11-23 18:58:35 diogo Exp $
 #include "pzanalysis.h"
 #include "pzpostprocanalysis.h"
 #include "pzpostprocmat.h"
@@ -21,21 +21,21 @@ static LoggerPtr PPAnalysisLogger(Logger::getLogger("analysis.postproc"));
 
 using namespace std;
 
-
-TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainAnalysis(NULL){
-	
+TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainAnalysis(NULL)
+{	
 }
 
-TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMainAnalysis(pRef){
+TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMainAnalysis(pRef)
+{
 	
 	if(!fpMainAnalysis)
 	{
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid analysis to post process!\n";
 		return;
 	}
-	
+
 	TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
-	
+	//pcMainMesh->SetAllCreateFunctionsContinuous();
 	if(!pcMainMesh)
 	{
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid fCompMesh in analysis to post process!\n";
@@ -50,17 +50,17 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 		return;
 	}
 	
-	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
 	
+	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
+
 	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
 	
-	//pcPostProcMesh->LoadReferred(pcMainMesh);
 	
 	fCompMesh = pcPostProcMesh;
 }
 
-TPZPostProcAnalysis::~TPZPostProcAnalysis(){
-
+TPZPostProcAnalysis::~TPZPostProcAnalysis()
+{
 }
 
 void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames)
@@ -121,8 +121,6 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 			
 			if(!isMatAvl)
 			{
-				//TPZPostProcMat * pPostProcMat = new TPZPostProcMat(matId);
-				//matNumber = pcPostProcMesh->InsertMaterialObject(TPZAutoPointer<TPZMaterial>(pPostProcMat));
 				avlMatIds.Push(matId);
 			}
 		}
@@ -145,10 +143,65 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 		matNumber = pcPostProcMesh->InsertMaterialObject(TPZAutoPointer<TPZMaterial>(pPostProcMat));
 	}
 	
-	pcPostProcMesh->SetDefaultOrder(pcMainMesh->GetDefaultOrder());
-	pcPostProcMesh->AutoBuild();
+//	pcPostProcMesh->AutoBuild();
+	//pcPostProcMesh->AutoBuildDisc();
+	AutoBuildDisc();
 	
 	pcPostProcMesh->LoadReferred(pcMainMesh);
+}
+
+void TPZPostProcAnalysis::AutoBuildDisc() 
+{
+	TPZAdmChunkVector<TPZGeoEl *> &elvec = Mesh()->Reference()->ElementVec();
+	int i, nelem = elvec.NElements();
+	int neltocreate = 0;
+	int index;
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			neltocreate++;
+		}
+	}
+	std::set<int> matnotfound;
+	int nbl = Mesh()->Block().NBlocks();
+	if(neltocreate > nbl) Mesh()->Block().SetNBlocks(neltocreate);
+	Mesh()->Block().SetNBlocks(nbl);
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			int matid = gel->MaterialId();
+			TPZAutoPointer<TPZMaterial> mat = Mesh()->FindMaterial(matid);
+			if(!mat)
+			{
+				matnotfound.insert(matid);
+				continue;
+			}
+			int printing = 1;
+			if (printing) {
+				gel->Print(cout);
+			}
+			
+			//if(!gel->Reference() && gel->NumInterfaces() == 0)
+			gel->CreateCompEl(*Mesh(),index);
+			gel->ResetReference();
+			
+		}
+	}
+	
+	Mesh()->InitializeBlock();
+	if(matnotfound.size())
+	{
+		std::cout << "Malha post proc was not created properly because of these materials ";
+		std::set<int>::iterator it;
+		for(it = matnotfound.begin(); it!= matnotfound.end(); it++)
+		{
+			std::cout << *it << " ";
+		}
+		std::cout << std::endl;
+	}
+	
 }
 
 void TPZPostProcAnalysis::Assemble()
@@ -171,7 +224,6 @@ void TPZPostProcAnalysis::TransferSolution()
 	
 }
 
-// CompEl create Functions setup
 
 #include "pzintel.h"
 
@@ -222,15 +274,60 @@ void TPZPostProcAnalysis::TransferSolution()
 
 void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc()
 {
-	pzgeom::TPZGeoPoint::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoLinear::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoQuad::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoTriangle::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoPrism::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoTetrahedra::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoPyramid::fp = TPZPostProcAnalysis::CreatePostProcDisc;
-	pzgeom::TPZGeoCube::fp = TPZPostProcAnalysis::CreatePostProcDisc;
+	pzgeom::TPZGeoPoint::fp = TPZPostProcAnalysis::CreatePointEl;
+	pzgeom::TPZGeoLinear::fp = TPZPostProcAnalysis::CreateLinearEl;
+	pzgeom::TPZGeoQuad::fp = TPZPostProcAnalysis::CreateQuadEl;
+	pzgeom::TPZGeoTriangle::fp = TPZPostProcAnalysis::CreateTriangleEl;
+	pzgeom::TPZGeoPrism::fp = TPZPostProcAnalysis::CreatePrismEl;
+	pzgeom::TPZGeoTetrahedra::fp = TPZPostProcAnalysis::CreateTetraEl;
+	pzgeom::TPZGeoPyramid::fp = TPZPostProcAnalysis::CreatePyramEl;
+	pzgeom::TPZGeoCube::fp = TPZPostProcAnalysis::CreateCubeEl;
+
+
 }
+using namespace pzshape;
+
+TPZCompEl *TPZPostProcAnalysis::CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc< TPZIntelGen<TPZShapePoint> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapeLinear> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapeQuad> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreateTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapeTriang> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreateCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapeCube> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreatePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc< TPZIntelGen<TPZShapePrism> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreatePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapePiram> >(mesh,gel,index);
+	return NULL;
+}
+TPZCompEl *TPZPostProcAnalysis::CreateTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+	if(!gel->Reference() && gel->NumInterfaces() == 0)
+		return new TPZCompElPostProc<TPZIntelGen<TPZShapeTetra> >(mesh,gel,index);
+	return NULL;
+}
+
 
 TPZCompEl * TPZPostProcAnalysis::CreatePostProcDisc(TPZGeoEl *gel, TPZCompMesh &mesh, int &index)
 {

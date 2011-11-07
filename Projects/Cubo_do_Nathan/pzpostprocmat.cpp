@@ -1,4 +1,4 @@
-//$Id: pzpostprocmat.cpp,v 1.6 2009-09-30 03:35:55 erick Exp $
+//$Id: pzpostprocmat.cpp,v 1.7 2010-11-23 18:57:31 diogo Exp $
 
 #include "pzpostprocmat.h"
 //#include "poroelastoplasticid.h"
@@ -13,14 +13,16 @@ static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
 TPZPostProcMat::TPZPostProcMat() : /*TPZMaterial*/TPZDiscontinuousGalerkin()
 {
 	fVars.Resize(0);	
+	fDimension = -1;
 }
 
 TPZPostProcMat::TPZPostProcMat(int id) : /*TPZMaterial*/TPZDiscontinuousGalerkin(id)
 {
 	fVars.Resize(0);	
+	fDimension = -1;
 }
 
-TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : /*TPZMaterial*/TPZDiscontinuousGalerkin(mat), fVars(mat.fVars)
+TPZPostProcMat::TPZPostProcMat(const TPZPostProcMat &mat) : /*TPZMaterial*/TPZDiscontinuousGalerkin(mat), fVars(mat.fVars), fDimension(mat.fDimension)
 {
 }
 
@@ -34,7 +36,8 @@ void TPZPostProcMat::Print(std::ostream &out)
 {
 	out << this->Name();
 	out << "\n Base material Data:\n";
-	TPZPostProcMat::Print(out);
+	TPZDiscontinuousGalerkin::Print(out);
+	out << "Dimension " << fDimension << std::endl;
 	int nVars = fVars.NElements();
 	out << "\n Post Process Variables\n";
 	for(int i = 0; i < nVars; i++)
@@ -113,13 +116,13 @@ void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solo
 void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
 
-#ifdef LOG4CXX
-  {
-    std::stringstream sout;
-    sout << ">>> TPZPostProcMat::Contribute ***";
-    LOGPZ_DEBUG(postprocLogger,sout.str().c_str());
-  }
-#endif
+//#ifdef LOG4CXX
+//  {
+//    std::stringstream sout;
+//    sout << ">>> TPZPostProcMat::Contribute ***";
+//    LOGPZ_DEBUG(postprocLogger,sout.str().c_str());
+//  }
+//#endif
 	
   TPZFMatrix &phi = data.phi;
   TPZVec<REAL> &sol = data.sol;
@@ -217,9 +220,7 @@ void TPZPostProcMat::Read(TPZStream &buf, void *context)
 void TPZPostProcMat::FillDataRequirements(TPZMaterialData &data){
   	
 	TPZMaterial::FillDataRequirements(data);
-	
 	data.SetAllRequirements(false);
-	
 	data.fNeedsSol = true;	
 }
 
@@ -256,10 +257,11 @@ void TPZPostProcMat::SetPostProcessVarIndexList(TPZVec<std::string> & varIndexNa
 	}
 	
 	fVars.Resize(k);
+	fDimension = pRefMat->Dimension();
 	
 }
 
 int TPZPostProcMat::Dimension()
 {
-	return 3;
+	return fDimension;
 }
