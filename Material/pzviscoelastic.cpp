@@ -124,7 +124,6 @@ int TPZViscoelastic::VariableIndex(const std::string &name)
 {
 	if(!strcmp("Displacement",name.c_str()))  return TPZElasticity3D::EDisplacement;
 	if(!strcmp("state",name.c_str()))  return TPZElasticity3D::EDisplacement;
-	if(!strcmp("state",name.c_str()))  return TPZElasticity3D::EDisplacement;
 	if(!strcmp("DisplacementX",name.c_str()))  return TPZElasticity3D::EDisplacementX;
 	if(!strcmp("DisplacementY",name.c_str()))  return TPZElasticity3D::EDisplacementY;
 	if(!strcmp("DisplacementZ",name.c_str()))  return TPZElasticity3D::EDisplacementZ;
