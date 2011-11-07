@@ -384,150 +384,6 @@ const int matElId = 1;
 
 //Tetraedro
 
- int main(int argc, char * const argv[])
- {
- //    gRefDBase.InitializeUniformRefPattern(ECube);
- //    gRefDBase.InitializeUniformRefPattern(EPiramide);
- 
- TPZGeoMesh * gmesh = new TPZGeoMesh;
- 
- const int Qnodes = 4;
- TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
- for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3,0.);
- 
- //setting nodes coords
- int nodeId = 0;
- double d = 0.0;
- 
- NodeCoord[nodeId][0] =  0.+d;
- NodeCoord[nodeId][1] =  0.;
- NodeCoord[nodeId][2] =  0.-d;
- nodeId++;
- 
- NodeCoord[nodeId][0] = +1.;
- NodeCoord[nodeId][1] =  0.+d;
- NodeCoord[nodeId][2] =  0.+d;
- nodeId++;
- 
- NodeCoord[nodeId][0] =  0.-d;
- NodeCoord[nodeId][1] = +1.+d;
- NodeCoord[nodeId][2] =  0.+d;
- nodeId++;
- 
- NodeCoord[nodeId][0] =  0.-d;
- NodeCoord[nodeId][1] =  0.+d;
- NodeCoord[nodeId][2] = +1.+d;
- nodeId++;
- 
- //initializing gmesh->NodeVec()
- gmesh->NodeVec().Resize(Qnodes);
- TPZVec <TPZGeoNode> Node(Qnodes);
- for(int n = 0; n < Qnodes; n++)
- {
- Node[n].SetNodeId(n);
- Node[n].SetCoord(NodeCoord[n]);
- gmesh->NodeVec()[n] = Node[n]; 
- }
- 
- int elId = 0;
- TPZVec <int> Topol(Qnodes);
- for(int n = 0; n < Qnodes; n++) Topol[n] = n;
- new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra > (elId,Topol,matElId,*gmesh);
- elId++;
- 
- gmesh->BuildConnectivity(); 
- 
- std::ofstream outAntes("meshAntes.txt");
- gmesh->Print(outAntes);
- 
- TPZChangeEl::ChangeToQuadratic(gmesh, 0);
- 
- std::ofstream outDepois("meshDepois.txt");
- gmesh->Print(outDepois);
- 
- //    TPZVec<REAL> nodeCH(3);
- //    for(int n = 0; n < 10; n++)
- //    {  
- //        for(int c = 0; c < 3; c++)
- //        {
- //            double num = (2.*double(rand()%11) - 10.)/100.;
- //            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
- //        }
- //        gmesh->NodeVec()[n].SetCoord(nodeCH);
- //    }
- 
- {
- int targetSide = 4;
- TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
- 
- std::cout << "QuarterPoint:\n";
- int nDiv = 2;
- for(int D = 0; D < nDiv; D++)
- {
- int nels = gmesh->NElements();
- for(int elem = 0; elem < nels; elem++)
- {    
- TPZVec< TPZGeoEl * > filhos;
- quarterGel->Divide(filhos);
- }
- }
- std::ofstream outQPTetra("QuarterPointTetraedron.vtk");
- TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPTetra, false);
- }
- 
- //Teste de convergência (tem que dar muito proximo de 2)
- std::cout << "Convergence Order:\n";
- TPZGeoEl * myGel = gmesh->ElementVec()[0];
- TPZVec<REAL> qsi(myGel->Dimension(),0.);
- TPZMathTools conv; 
- conv.JacobianConv(*myGel, qsi);
- 
- //Teste somatoria das phi_s (tem que dar 1 em qq pto)
- std::cout << "Summ of phi's at many points:\n";
- int npts = 4;
- pzgeom::TPZQuadraticTetra * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticTetra*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
- for(int xi = 0; xi <= npts; xi++)
- {
- for(int et = 0; et <= npts; et++)
- {
- for(int zet = 0; zet <= npts; zet++)
- {
- qsi[0] = -(1.-zet) + xi*2./npts;
- qsi[1] = -(1.-zet) + et*2./npts;
- qsi[2] = -(1.-zet) + zet*2./npts;
- myQuadraticGel->Shape(qsi, phi, dphi);
- double sum = 0.;
- for(int s = 0; s < myGel->NNodes(); s++) sum += phi[s];
- std::cout << sum << std::endl;
- }
- }
- }    
- 
- //Teste do refinamento
- std::cout << "Uniform refinement:\n";
- int nDiv = 3;
- for(int D = 0; D < nDiv; D++)
- {
- int nels = gmesh->NElements();
- for(int elem = 0; elem < nels; elem++)
- {    
- TPZVec< TPZGeoEl * > filhos;
- TPZGeoEl * gel = gmesh->ElementVec()[elem];
- gel->Divide(filhos);
- }
- }
- std::ofstream outPyram("QuadraticTetra.vtk");
- TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPyram, false);
- 
- std::cout << "FINISHED!!!" << std::endl;
- 
- return 0;
- }
- 
-
-//Pyramid
-/*
 int main(int argc, char * const argv[])
 {
     //    gRefDBase.InitializeUniformRefPattern(ECube);
@@ -535,7 +391,7 @@ int main(int argc, char * const argv[])
     
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     
-    const int Qnodes = 5;
+    const int Qnodes = 4;
     TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
     for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3,0.);
     
@@ -543,29 +399,24 @@ int main(int argc, char * const argv[])
     int nodeId = 0;
     double d = 0.0;
     
-    NodeCoord[nodeId][0] = -1.;
-    NodeCoord[nodeId][1] = -1.;
-    NodeCoord[nodeId][2] =  0.;
-    nodeId++;
-    
-    NodeCoord[nodeId][0] = +1.;
-    NodeCoord[nodeId][1] = -1.;
-    NodeCoord[nodeId][2] =  0.;
-    nodeId++;
-    
-    NodeCoord[nodeId][0] = +1.;
-    NodeCoord[nodeId][1] = +1.;
-    NodeCoord[nodeId][2] =  0.;
-    nodeId++;
-    
-    NodeCoord[nodeId][0] = -1.;
-    NodeCoord[nodeId][1] = +1.;
-    NodeCoord[nodeId][2] =  0.;
-    nodeId++;
-    
-    NodeCoord[nodeId][0] =  0.;
+    NodeCoord[nodeId][0] =  0.+d;
     NodeCoord[nodeId][1] =  0.;
-    NodeCoord[nodeId][2] =  1.;
+    NodeCoord[nodeId][2] =  0.-d;
+    nodeId++;
+    
+    NodeCoord[nodeId][0] = +1.;
+    NodeCoord[nodeId][1] =  0.+d;
+    NodeCoord[nodeId][2] =  0.+d;
+    nodeId++;
+    
+    NodeCoord[nodeId][0] =  0.-d;
+    NodeCoord[nodeId][1] = +1.+d;
+    NodeCoord[nodeId][2] =  0.+d;
+    nodeId++;
+    
+    NodeCoord[nodeId][0] =  0.-d;
+    NodeCoord[nodeId][1] =  0.+d;
+    NodeCoord[nodeId][2] = +1.+d;
     nodeId++;
     
     //initializing gmesh->NodeVec()
@@ -581,7 +432,7 @@ int main(int argc, char * const argv[])
     int elId = 0;
     TPZVec <int> Topol(Qnodes);
     for(int n = 0; n < Qnodes; n++) Topol[n] = n;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid > (elId,Topol,matElId,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra > (elId,Topol,matElId,*gmesh);
     elId++;
     
     gmesh->BuildConnectivity(); 
@@ -594,19 +445,19 @@ int main(int argc, char * const argv[])
     std::ofstream outDepois("meshDepois.txt");
     gmesh->Print(outDepois);
     
-//    TPZVec<REAL> nodeCH(3);
-//    for(int n = 0; n < 13; n++)
-//    {  
-//        for(int c = 0; c < 3; c++)
-//        {
-//            double num = (2.*double(rand()%11) - 10.)/100.;
-//            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
-//        }
-//        gmesh->NodeVec()[n].SetCoord(nodeCH);
-//    }
+    //    TPZVec<REAL> nodeCH(3);
+    //    for(int n = 0; n < 10; n++)
+    //    {  
+    //        for(int c = 0; c < 3; c++)
+    //        {
+    //            double num = (2.*double(rand()%11) - 10.)/100.;
+    //            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+    //        }
+    //        gmesh->NodeVec()[n].SetCoord(nodeCH);
+    //    }
     
     {
-        int targetSide = 17;
+        int targetSide = 4;
         TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
         
         std::cout << "QuarterPoint:\n";
@@ -620,8 +471,8 @@ int main(int argc, char * const argv[])
                 quarterGel->Divide(filhos);
             }
         }
-        std::ofstream outQPPir("QuarterPointPiramid.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPPir, false);
+        std::ofstream outQPTetra("QuarterPointTetraedron.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPTetra, false);
     }
     
     //Teste de convergência (tem que dar muito proximo de 2)
@@ -634,33 +485,21 @@ int main(int argc, char * const argv[])
     //Teste somatoria das phi_s (tem que dar 1 em qq pto)
     std::cout << "Summ of phi's at many points:\n";
     int npts = 4;
-    pzgeom::TPZQuadraticPyramid * myPyramid = dynamic_cast<pzgeom::TPZQuadraticPyramid*>(myGel);
+    pzgeom::TPZQuadraticTetra * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticTetra*>(myGel);
     TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
-    for(int zet = 0; zet <= npts; zet++)
+    for(int xi = 0; xi <= npts; xi++)
     {
         for(int et = 0; et <= npts; et++)
         {
-            for(int xi = 0; xi <= npts; xi++)
+            for(int zet = 0; zet <= npts; zet++)
             {
-                qsi[2] = zet*1./npts;
-                qsi[0] = -(1.-qsi[2]) + xi*2.*(1.-qsi[2])/npts;
-                qsi[1] = -(1.-qsi[2]) + et*2.*(1.-qsi[2])/npts;
-                myPyramid->Shape(qsi, phi, dphi);
+                qsi[0] = -(1.-zet) + xi*2./npts;
+                qsi[1] = -(1.-zet) + et*2./npts;
+                qsi[2] = -(1.-zet) + zet*2./npts;
+                myQuadraticGel->Shape(qsi, phi, dphi);
                 double sum = 0.;
-                for(int s = 0; s < myGel->NNodes(); s++)
-                {
-                    sum += phi[s];       
-                }
-                std::cout << "sum = " << sum << std::endl;
-                if(fabs(sum-1.) > 1.E-8)
-                {
-                    std::cout << qsi[0] << " , " << qsi[1] << " , " << qsi[2] << std::endl;
-                    for(int s = 0; s < myGel->NNodes(); s++)
-                    {
-                        std::cout << phi[s] << std::endl;
-                    }
-                    std::cout << "===========================\n";
-                }
+                for(int s = 0; s < myGel->NNodes(); s++) sum += phi[s];
+                std::cout << sum << std::endl;
             }
         }
     }    
@@ -678,16 +517,177 @@ int main(int argc, char * const argv[])
             gel->Divide(filhos);
         }
     }
-    std::ofstream outPyram("QuadraticPyramid.vtk");
+    std::ofstream outPyram("QuadraticTetra.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPyram, false);
     
     std::cout << "FINISHED!!!" << std::endl;
     
-    
-    
     return 0;
 }
-*/
+
+
+//Pyramid
+/*
+ int main(int argc, char * const argv[])
+ {
+ //    gRefDBase.InitializeUniformRefPattern(ECube);
+ //    gRefDBase.InitializeUniformRefPattern(EPiramide);
+ 
+ TPZGeoMesh * gmesh = new TPZGeoMesh;
+ 
+ const int Qnodes = 5;
+ TPZVec < TPZVec <REAL> > NodeCoord(Qnodes);
+ for(int i = 0; i < Qnodes; i++) NodeCoord[i].Resize(3,0.);
+ 
+ //setting nodes coords
+ int nodeId = 0;
+ double d = 0.0;
+ 
+ NodeCoord[nodeId][0] = -1.;
+ NodeCoord[nodeId][1] = -1.;
+ NodeCoord[nodeId][2] =  0.;
+ nodeId++;
+ 
+ NodeCoord[nodeId][0] = +1.;
+ NodeCoord[nodeId][1] = -1.;
+ NodeCoord[nodeId][2] =  0.;
+ nodeId++;
+ 
+ NodeCoord[nodeId][0] = +1.;
+ NodeCoord[nodeId][1] = +1.;
+ NodeCoord[nodeId][2] =  0.;
+ nodeId++;
+ 
+ NodeCoord[nodeId][0] = -1.;
+ NodeCoord[nodeId][1] = +1.;
+ NodeCoord[nodeId][2] =  0.;
+ nodeId++;
+ 
+ NodeCoord[nodeId][0] =  0.;
+ NodeCoord[nodeId][1] =  0.;
+ NodeCoord[nodeId][2] =  1.;
+ nodeId++;
+ 
+ //initializing gmesh->NodeVec()
+ gmesh->NodeVec().Resize(Qnodes);
+ TPZVec <TPZGeoNode> Node(Qnodes);
+ for(int n = 0; n < Qnodes; n++)
+ {
+ Node[n].SetNodeId(n);
+ Node[n].SetCoord(NodeCoord[n]);
+ gmesh->NodeVec()[n] = Node[n]; 
+ }
+ 
+ int elId = 0;
+ TPZVec <int> Topol(Qnodes);
+ for(int n = 0; n < Qnodes; n++) Topol[n] = n;
+ new TPZGeoElRefPattern< pzgeom::TPZGeoPyramid > (elId,Topol,matElId,*gmesh);
+ elId++;
+ 
+ gmesh->BuildConnectivity(); 
+ 
+ std::ofstream outAntes("meshAntes.txt");
+ gmesh->Print(outAntes);
+ 
+ TPZChangeEl::ChangeToQuadratic(gmesh, 0);
+ 
+ std::ofstream outDepois("meshDepois.txt");
+ gmesh->Print(outDepois);
+ 
+ //    TPZVec<REAL> nodeCH(3);
+ //    for(int n = 0; n < 13; n++)
+ //    {  
+ //        for(int c = 0; c < 3; c++)
+ //        {
+ //            double num = (2.*double(rand()%11) - 10.)/100.;
+ //            nodeCH[c] = gmesh->NodeVec()[n].Coord(c) + num;   
+ //        }
+ //        gmesh->NodeVec()[n].SetCoord(nodeCH);
+ //    }
+ 
+ {
+ int targetSide = 17;
+ TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+ 
+ std::cout << "QuarterPoint:\n";
+ int nDiv = 2;
+ for(int D = 0; D < nDiv; D++)
+ {
+ int nels = gmesh->NElements();
+ for(int elem = 0; elem < nels; elem++)
+ {    
+ TPZVec< TPZGeoEl * > filhos;
+ quarterGel->Divide(filhos);
+ }
+ }
+ std::ofstream outQPPir("QuarterPointPiramid.vtk");
+ TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outQPPir, false);
+ }
+ 
+ //Teste de convergência (tem que dar muito proximo de 2)
+ std::cout << "Convergence Order:\n";
+ TPZGeoEl * myGel = gmesh->ElementVec()[0];
+ TPZVec<REAL> qsi(myGel->Dimension(),0.);
+ TPZMathTools conv; 
+ conv.JacobianConv(*myGel, qsi);
+ 
+ //Teste somatoria das phi_s (tem que dar 1 em qq pto)
+ std::cout << "Summ of phi's at many points:\n";
+ int npts = 4;
+ pzgeom::TPZQuadraticPyramid * myPyramid = dynamic_cast<pzgeom::TPZQuadraticPyramid*>(myGel);
+ TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ for(int zet = 0; zet <= npts; zet++)
+ {
+ for(int et = 0; et <= npts; et++)
+ {
+ for(int xi = 0; xi <= npts; xi++)
+ {
+ qsi[2] = zet*1./npts;
+ qsi[0] = -(1.-qsi[2]) + xi*2.*(1.-qsi[2])/npts;
+ qsi[1] = -(1.-qsi[2]) + et*2.*(1.-qsi[2])/npts;
+ myPyramid->Shape(qsi, phi, dphi);
+ double sum = 0.;
+ for(int s = 0; s < myGel->NNodes(); s++)
+ {
+ sum += phi[s];       
+ }
+ std::cout << "sum = " << sum << std::endl;
+ if(fabs(sum-1.) > 1.E-8)
+ {
+ std::cout << qsi[0] << " , " << qsi[1] << " , " << qsi[2] << std::endl;
+ for(int s = 0; s < myGel->NNodes(); s++)
+ {
+ std::cout << phi[s] << std::endl;
+ }
+ std::cout << "===========================\n";
+ }
+ }
+ }
+ }    
+ 
+ //Teste do refinamento
+ std::cout << "Uniform refinement:\n";
+ int nDiv = 3;
+ for(int D = 0; D < nDiv; D++)
+ {
+ int nels = gmesh->NElements();
+ for(int elem = 0; elem < nels; elem++)
+ {    
+ TPZVec< TPZGeoEl * > filhos;
+ TPZGeoEl * gel = gmesh->ElementVec()[elem];
+ gel->Divide(filhos);
+ }
+ }
+ std::ofstream outPyram("QuadraticPyramid.vtk");
+ TPZVTKGeoMesh::PrintGMeshVTK(gmesh, outPyram, false);
+ 
+ std::cout << "FINISHED!!!" << std::endl;
+ 
+ 
+ 
+ return 0;
+ }
+ */
 
 //Prism
 /*
