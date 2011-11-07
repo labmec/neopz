@@ -34,6 +34,10 @@
 #include <iostream>
 #include <cstdlib>
 
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("main"));
+#endif
+
 #define MAIN3
 
 
@@ -104,7 +108,7 @@ int main()
 	viscomat.SetDefaultMem(qsi);
 	index = viscomat.PushMemItem();
 	cubodata.intPtIndex = index;
-	ef(0,0) = 0.5*4+0.5*4;
+	ef(0,0) = 1.*4.+1.*4.;
 	viscomat.Contribute(cubodata, weight, ek, ef);
 	TPZAutoPointer <TPZMatrix> matrix = new TPZFMatrix(ek);	
 	
@@ -145,7 +149,7 @@ int main()
 	{
 		ek.Zero();
 		ef.Zero();
-		ef(0,0) = 0.5*4+0.5*4;
+		ef(0,0) = 1.*4.+1.*4.;
 		viscomat.Contribute(cubodata, weight, ek, ef);
 
 		matrix = new TPZFMatrix(ek);
@@ -280,17 +284,25 @@ int main()
 #ifdef MAIN3
 int main()
 {
+	InitializePZLOG();
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
-	
+	TPZCompEl::SetgOrder(2);
 	TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
 	
 	InsertViscoElasticity(cmesh);
-	int porder = 1;
-	cmesh->SetDefaultOrder(porder);
+	//int porder = 1;
+	//cmesh->SetDefaultOrder(porder);
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
 	cmesh->AutoBuild();
-	cmesh->Print();
+
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		cmesh->Print(sout);
+		LOGPZ_INFO(logger,sout.str())
+	}
+#endif
 	
 	TPZSkylineStructMatrix skylstruct(cmesh);
 	TPZStepSolver step;
@@ -298,8 +310,7 @@ int main()
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
 	an.SetSolver(step);
-	an.Run();
-	
+	an.Run();	
 	std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(cmesh->MaterialVec());
 	std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator it;
 	for (it = materialmap.begin(); it != materialmap.end() ; it++) 
@@ -311,27 +322,41 @@ int main()
 			vmat->SetUpdateMem();
 		}
 	}
-    
-    int dimension = 3;
-    TPZVec <std::string> vecnames(2), scalnames(0);
-	vecnames[0] = "PrincipalStrain";
-    vecnames[1] = "Displacement";
+  
+  int dimension = 3;
+  TPZVec <std::string> vecnames(0), scalnames(1);
+  scalnames[0] = "ViscoStressX";
+	//vecnames[0] = "Displacement";
+	//scalnames[0] = "ViscoStressX";
 	std::string plotfile("cubinho.vtk");
 	
-	an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+	//an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
 	int resolution = 0;
-	an.PostProcess(resolution);
-    an.Solution().Print("Solution",std::cout);
+	//an.PostProcess(resolution);
+	//an.Solution().Print("Solution",std::cout);
 
+	TPZPostProcAnalysis postan(&an);
+	TPZVec <int> matids(1);
+	matids[0] = 1;
+	TPZVec <std::string> varName(1);
+	varName[0] = "ViscoStressX";
+	postan.SetPostProcessVariables(matids, varName);
+	TPZFStructMatrix bobo(postan.Mesh());
+	postan.SetStructuralMatrix(bobo);
+	postan.TransferSolution();
+	std::string postplot("discont.vtk");
+
+	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
+	postan.PostProcess(resolution);
     
-    for (int istep = 0 ; istep < 1 ; istep++)
+    for (int istep = 0 ; istep < 10 ; istep++)
     {
-        an.AssembleResidual();
-        an.Solve();
-        an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
-        int resolution = 0;
-        an.PostProcess(resolution);
-        an.Solution().Print("Solution",std::cout);
+      an.AssembleResidual();
+      an.Solve();
+			postan.TransferSolution();
+      //an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+			//an.PostProcess(resolution);
+			postan.PostProcess(resolution);
     }
     
     
@@ -344,32 +369,23 @@ int main()
 //0.00207065
 	
 	
-	TPZPostProcAnalysis postan(&an);
-	TPZVec <int> matids(1);
-	matids[0] = 1;
-	TPZVec <std::string> varName(1);
-	varName[0] = "Displacement";
-	postan.SetPostProcessVariables(matids, varName);
-	TPZFStructMatrix bobo(postan.Mesh());
-	postan.SetStructuralMatrix(bobo);
-	postan.TransferSolution();
-	std::string postplot("discont.vtk");
-	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
-	postan.PostProcess(resolution);
+	
+
 	
 	//postan.Run();
 
-	postan.Solution().Print("Deus do ceu:", std::cout);
+	//postan.Solution().Print("Deus do ceu:", std::cout);
 	
 	
-	TPZAutoPointer <TPZGuiInterface> toto;
-	TPZFMatrix rhs;
+	//TPZAutoPointer <TPZGuiInterface> toto;
+	//TPZFMatrix rhs;
 	//skylstruct.Assemble(rhs,toto);
-	
+
 
 	
 	return 0;
 }
+
 #endif
 
 
@@ -608,8 +624,8 @@ TPZGeoMesh *MalhaCubo()
 	//TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh);
 	//TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh);
 	
-	ofstream arg("malhaPZ.txt");
-	gMesh->Print(arg);
+	//ofstream arg("malhaPZ.txt");
+	//gMesh->Print(arg);
 	
 	std::ofstream out("Cube.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gMesh, out, true);
