@@ -116,7 +116,7 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots);
 
 int main(int argc, char * const argv[])
 {	
-    gRefDBase.InitializeRefPatterns();
+    //gRefDBase.InitializeRefPatterns();
     //gRefDBase.InitializeUniformRefPattern(ETriangle);
     
     int nrows = 51;
@@ -131,14 +131,27 @@ int main(int argc, char * const argv[])
     TPZVec<REAL> fractureDots;
     FillFractureDotsExampleEllipse(fractureDots);
     
-    TPZGeoMesh * gmesh4VTK = GeneratePlaneMesh(nrows,ncols,fractureDots, deltaX, deltaY);
-    std::ofstream outDots("FractureDots.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(gmesh4VTK, outDots, false);
+    std::list< std::pair<TPZGeoElSide,double> > sidesCroosed;
+    plfrac.GetSidesCrossedByPoligonalChain(fractureDots, sidesCroosed);
     
-    TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
+    std::list< std::pair<TPZGeoElSide,double> >::iterator itt;
+    for(itt = sidesCroosed.begin(); itt != sidesCroosed.end(); itt++)
+    {
+        TPZGeoElSide sd = itt->first;
+        int el = sd.Element()->Id();
+        int bySide = sd.Side();
+        std::cout << "Element " << el << " by side " << bySide << std::endl;
+    }
     
-    std::ofstream out("Fracture.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out, true);
+    
+//    TPZGeoMesh * gmesh4VTK = GeneratePlaneMesh(nrows,ncols,fractureDots, deltaX, deltaY);
+//    std::ofstream outDots("FractureDots.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh4VTK, outDots, false);
+//    
+//    TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
+//    
+//    std::ofstream out("Fracture.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out, true);
     
     return 0;
 }
