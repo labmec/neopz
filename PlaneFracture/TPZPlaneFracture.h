@@ -14,12 +14,13 @@
  *
  */
 
-using namespace std;
+//using namespace std;
 
 #include <set>
 #include "pzfmatrix.h"
 #include "pzgmesh.h"
 #include "pzvec.h"
+#include "pzgeoelside.h"
 
 /** @brief Initializing for refpattern modulation */
 const int __minTrimQTD = 4;
@@ -67,7 +68,12 @@ class TPZPlaneFracture
 	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
-	TPZGeoMesh * GetFractureMesh(TPZVec<REAL> &poligonalChain);
+	TPZGeoMesh * GetFractureMesh(const TPZVec<REAL> &poligonalChain);
+    
+    /**
+     * Metodo solicitado pelo Philippe para acidificacao
+     */
+    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCroosed);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -93,7 +99,7 @@ class TPZPlaneFracture
 	 * @param elId_TrimCoords [out] map that contains 1D element Id and a set of it trim 1D coordinates
 	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
-	void DetectEdgesCrossed(TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
+	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
 							std::map< int, std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence);
 	
 	/**
@@ -150,7 +156,7 @@ class TPZPlaneFracture
 	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
-	static TPZGeoEl * PointElement(int p, TPZGeoMesh * fractMesh, TPZVec<REAL> &poligonalChain);
+	static TPZGeoEl * PointElement(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain);
 	
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dnode e cruza a reta (x+alphaX.dx)
@@ -214,6 +220,9 @@ class TPZPlaneFracture
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence);
+    
+    int FractureRefinedElMat();
+    int CrackTip1DElMat();
 	
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------

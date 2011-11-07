@@ -29,6 +29,7 @@ const int __fractureLine_Mat = 999;
 /// Real as tolerance 
 const double __smallNum = 1.E-10;
 
+
 TPZPlaneFracture::TPZPlaneFracture(TPZGeoMesh * planeMesh, int nodeOrigin, int nodeX, int nodeY, int TrimQTD)
 {
 	fplaneMesh = planeMesh;
@@ -60,7 +61,7 @@ TPZPlaneFracture::~TPZPlaneFracture()
 	
 }
 
-TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(TPZVec<REAL> &poligonalChain)
+TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChain)
 {
 	#ifdef DEBUG
 	int ncoord = poligonalChain.NElements();
@@ -120,7 +121,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(TPZVec<REAL> &poligonalChain)
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFracture::DetectEdgesCrossed(TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh, std::map< int,
+void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh, std::map< int,
 										  std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence)
 {
 	int npoints = (poligonalChain.NElements())/3;
@@ -314,7 +315,9 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZFMatrix &x,
 			trim.insert(qsi1D);
 			Topol[0] = gel->SideNodeIndex(edge, 0);
 			Topol[1] = gel->SideNodeIndex(edge, 1);
-			TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * linGeo = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(Topol, __fractureRefinedEl_Mat, *fractMesh);
+			TPZGeoElRefPattern< pzgeom::TPZGeoLinear > * linGeo = 
+                new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(Topol, __fractureRefinedEl_Mat, *fractMesh);
+            
 			fractMesh->BuildConnectivity();
 			
 			int linGeoId = linGeo->Id();
@@ -460,7 +463,7 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZFMatrix &x, TPZFMatri
 	return false;
 }
 
-TPZGeoEl * TPZPlaneFracture::PointElement(int p, TPZGeoMesh * fractMesh, TPZVec<REAL> &poligonalChain)
+TPZGeoEl * TPZPlaneFracture::PointElement(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain)
 {
 	TPZVec<REAL> x(3), qsi2D(2);
 	for(int c = 0; c < 3; c++)
@@ -821,4 +824,59 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh, std::list< std:
 		
 		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(Topol, __fractureLine_Mat, *gmesh);
 	}
+}
+
+int TPZPlaneFracture::FractureRefinedElMat()
+{
+    return __fractureRefinedEl_Mat;
+}
+
+int TPZPlaneFracture::CrackTip1DElMat()
+{
+    return __fractureLine_Mat;
+}
+
+void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCroosed)
+{
+    #ifdef DEBUG
+	int ncoord = poligonalChain.NElements();
+	if(ncoord%3 != 0)
+	{
+		std::cout << "poligonalChain boundary dont have groups of 3 coordinates (x,y,z)!" << std::endl;
+		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+		DebugStop();
+	}
+    #endif
+    
+    sidesCroosed.clear();
+	
+	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fplaneMesh);
+	
+	std::map< int, std::set<double> > elId_TrimCoords;
+	std::list< std::pair<int,double> > elIdSequence;
+	
+	DetectEdgesCrossed(poligonalChain, fractMesh, elId_TrimCoords, elIdSequence);
+    
+    std::list< std::pair<int,double> >::iterator it;
+    
+    for(it = elIdSequence.begin(); it != elIdSequence.end(); it++)
+    {
+        int gel1D_Id = it->first;
+        double qsi = it->second;
+        
+        TPZGeoEl * gel1D = fractMesh->ElementVec()[gel1D_Id];
+        TPZGeoElSide gel1DSide(gel1D,2);
+        TPZGeoElSide neighSide = gel1DSide.Neighbour();
+        while(neighSide != gel1DSide)
+        {
+            TPZTransform tr = gel1DSide.SideToSideTransform(neighSide);//tr.Mult() suppose to be 1x1
+            double qsiNeigh = tr.Mult()(0,0)*qsi;
+            
+            sidesCroosed.push_back(std::make_pair(neighSide, qsiNeigh));
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    
+    fractMesh = NULL;
+    delete fractMesh;
 }
