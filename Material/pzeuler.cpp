@@ -50,7 +50,6 @@ void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma)
 	double keepP = sol[4];
 	//sol = {rho, u, v, w, p}
 	double rhoE = 0.5*sol[0]*(sol[1]*sol[1]+sol[2]*sol[2]+sol[3]*sol[3])+sol[4]/(gamma-1.);
-	//   sol[0] = sol[0];
 	sol[1] = sol[1]*sol[0];
 	sol[2] = sol[2]*sol[0];
 	sol[3] = sol[3]*sol[0];
@@ -66,9 +65,13 @@ void TPZEulerEquation::FromConservativeToPrimitive(TPZVec<REAL> &sol,REAL gamma)
 #ifdef LinearConvection
 	return;
 #endif
+	// The material must to have not null density
+	if(IsZero(sol[0])) {
+		PZError << "\nTPZEulerEquation::FromConservativeToPrimitive: Density almost null\n" << "Density = " << sol[0] << std::endl;
+		DebugStop();
+	}
 	
 	double p = TPZEulerEquation::Pressure(sol,gamma);
-	//   sol[0] = sol[0];
 	sol[1] = sol[1]/sol[0];
 	sol[2] = sol[2]/sol[0];
 	sol[3] = sol[3]/sol[0];
@@ -135,9 +138,9 @@ int TPZEulerEquation::NSolutionVariables(int var){
 void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
 	
 #ifndef LinearConvection
-	if(fabs(Sol[0]) < 1.e-10){
-		PZError << "\nTPZEulerEquation::Solution: Density almost null\n"
-		<< "Density = " << Sol[0] << std::endl;
+	if(IsZero(Sol[0])){
+		PZError << "\nTPZEulerEquation::Solution: Density almost null\n" << "Density = " << Sol[0] << std::endl;
+		DebugStop();
 	}
 #endif
 	
@@ -306,8 +309,8 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 
 REAL TPZEulerEquation::Pressure(TPZVec<REAL> &U, double gamma){
 	
-	if(fabs(U[0]) < 1.e-6){
-		PZError << "TPZEulerEquation::Pressure - Negative or too small density"
+	if(U[0] < REAL(1e-10)){
+		PZError << "TPZEulerEquation::Pressure - Negative or too small density "
 		<< U[0] << std::endl;
 		DebugStop();
 	}
@@ -331,7 +334,7 @@ REAL TPZEulerEquation::Pressure(TPZVec<REAL> &U, double gamma){
 REAL TPZEulerEquation::cSpeed(TPZVec<REAL> & sol){
 	
 	if(sol[0] < REAL(1e-10)){
-		PZError << "TPZEulerEquation(::cSpeed Too small or negative density\n";
+		PZError << "TPZEulerEquation(::cSpeed Too small or negative density " << sol[0] << std::endl;
 		DebugStop();
 	}
 	

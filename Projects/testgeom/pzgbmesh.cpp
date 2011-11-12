@@ -30,7 +30,7 @@
 
 using namespace std;
 
-// Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
+// Program to reproduce issue 1 into CodeGoogle NeoPZ
 #define REFPATTERNDIR "/Users/jorge/Labmec/GoogleCodes/neopz/Refine/RefPatterns"
 
 void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv);

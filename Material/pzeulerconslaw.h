@@ -60,8 +60,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	/**
 	 * @brief Configures the time discretization of some contributions
 	 * @param Diff [in] refers to the diffusion term
-	 * @param ConvVol [in] refers to the volume contribution to the
-	 * convective term
+	 * @param ConvVol [in] refers to the volume contribution to the convective term
 	 * @param ConvFace [in] refers to the numerical flux
 	 */
 	void SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace);
@@ -70,8 +69,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	TPZArtDiff & ArtDiff(){ return fArtDiff; };
 	
 	/**
-	 * @brief returns the best value for the CFL number based on
-	 * the interpolation degree.
+	 * @brief returns the best value for the CFL number based on the interpolation degree.
 	 */
 	REAL OptimalCFL(int degree);
 	
@@ -147,22 +145,7 @@ public:
 		TPZConservationLaw::Solution(data,var,Solout);
 	}
 	/** @} */
-	
-	/* *
-	 * See declaration in base class
-	 */
-	/*  virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes,
-	 TPZVec<REAL> &flux);
-	 */
-	/* *
-	 * See declaration in base class
-	 */
-	/*  virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-	 TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
-	 {};
-	 */
-	
+
 	/** @name Fluxes methods */
 	/** @{ */
 	
@@ -181,17 +164,11 @@ public:
 	 */
 	template <class T>
 	static void JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
-	
-	/* *
-	 * tensor of the three-dimensional flux of Euler
-	 * Specialization for REAL variable type
-	 */
-	//  void Flux(TPZVec<REAL> &U,TPZVec<REAL> &Fx,TPZVec<REAL> &Fy,TPZVec<REAL> &Fz);
-	
+
 	/** @brief Test flux -> returns the averaged state variables across an interface */
 	template <class T>
 	void Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux);
-	
+
 	/**
 	 * @brief This flux encapsulates the two and three dimensional fluxes
 	 * acquired from the Mouse program
@@ -206,13 +183,10 @@ public:
 	static void Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
 						 TPZVec<REAL> & normal, REAL gamma,
 						 TPZVec<T> & flux, int entropyFix = 1);
-	
+
 	/**
-	 * @brief This flux encapsulates the two and three dimensional fluxes
-	 * acquired from the Mouse program
-	 * @note This function is called Approx because it evaluates the derivative of the Roe Flux without
-	 * using automatic differentiation
-	 *
+	 * @brief This flux encapsulates the two and three dimensional fluxes acquired from the Mouse program
+	 * @note This function is called Approx because it evaluates the derivative of the Roe Flux without using automatic differentiation
 	 * @param solL [in]
 	 * @param solR [in]
 	 * @param normal [in]

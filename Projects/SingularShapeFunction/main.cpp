@@ -25,7 +25,7 @@ using namespace std;
 using namespace pzshape;
 
 /** Acrescenta uma funcao de forma singular */
-int main1(){
+int main(){
   TPZGeoMesh *gmesh = new TPZGeoMesh;
   REAL co[4][2] = {{-0.5,-0.2},{2.,-0.2},{2.,3.},{-0.5,3.}};
   for(int nod = 0; nod < 4; nod++){
@@ -202,7 +202,7 @@ void PRefinement(TPZCompMesh &cmesh, const int InitialP){
   }///for
 }///void
 
-int main(){
+int main1(){
 
   const bool ApenasPolinomial = false;
 

@@ -54,7 +54,7 @@ public:
 	TPZGeoMesh *ExtendedMesh();
 	
 	/*
-	 * @brief prints the generated mesh
+	 * @brief Prints the generated mesh
 	 */
 	void PrintGeneratedMesh(std::ostream &out = std::cout);
 	

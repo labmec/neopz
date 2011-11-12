@@ -64,7 +64,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
-//	InitializePZLOG("log4cxx.cfg");
 	InitializePZLOG();
 	
 	int dim = 2;
@@ -73,22 +72,18 @@ int main(int argc, char *argv[])
 	int plevel = 1;
 	TPZPairStructMatrix::gNumThreads = 2;
 	int numthreads = 2;
-//	tempo.fNumthreads = numthreads;					// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
 		TPZCompEl::SetgOrder(plevel);
-
 		TPZAutoPointer<TPZCompMesh> cmesh;
 		
-		if(0)
-		{
+		if(0) {
 			TPZGenSubStruct sub(dim,maxlevel,sublevel);
 			cmesh = sub.GenerateMesh();
 			cmesh->SetDimModel(dim);
 			gmesh = cmesh->Reference();
 		}
-		else 
-		{
+		else {
 			dim = 3;
 			gmesh = MalhaPredio();
 			cmesh = new TPZCompMesh(gmesh);
@@ -96,8 +91,6 @@ int main(int argc, char *argv[])
 			InsertElasticity(cmesh);
 			cmesh->AutoBuild();
 		}
-		
-		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 
 		int numthread_assemble = 8;
@@ -106,14 +99,10 @@ int main(int argc, char *argv[])
 		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
-		
 		std::cout << "Substructuring the mesh\n";
-//		TPZfTime timetosub; // init of timer
+
 		dohrstruct.SubStructure(8);
-//		tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
-//		std::cout << tempo.ft0sub << std::endl;
-		
-//		sub.SubStructure();
+
 #ifdef LOG4CXX2
 		{
 			std::stringstream str;
@@ -121,7 +110,6 @@ int main(int argc, char *argv[])
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
-
 		
 		dohrstruct.SetNumThreads(numthreads);
 		
@@ -130,10 +118,8 @@ int main(int argc, char *argv[])
 		TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
 		TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
 		
-		
 		TPZFMatrix diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
-//		tempo.fNumEqCoarse = dohr->Rows();											// alimenta timeTemp com o numero de equacoes coarse
 		dohr->Multiply(diag,produto);
 		
 		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
@@ -158,26 +144,12 @@ int main(int argc, char *argv[])
 		
 		cg.SetCG(500,pre,1.e-8,0);
 		
-
-//		TPZfTime timetosolve; // init of timer
 		cg.Solve(rhs,diag);
-//		tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
-//		cout << "Total: " << tempo.ft6iter << std::endl;
-		
-//		cout << "Tempos para multiplicacao: " << tempo.fMultiply << std::endl;
-//		cout << "Tempos para precondicionamento: " << tempo.fPreCond << std::endl;
-
 		
 		string FileName;
 		FileName = "Times_in_Line.txt";
 		ofstream OutputFile;
-		
-//		bool shouldprint = tempo.NeedsHeader(FileName);			// verify the need of a header
-//		OutputFile.open(FileName.c_str(), ios::app);					// creates the file
-//		if (shouldprint == true) tempo.PrintHeader(OutputFile);		// prints the header if It is the first time the program is executed
-		
-//		tempo.PrintLine(OutputFile);		// print all the information in one line
-		
+				
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -188,7 +160,6 @@ int main(int argc, char *argv[])
 		
 		dohrptr->AddInternalSolution(diag);
 
-		
 		typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;
 		const subtype &sublist = dohrptr->SubStructures(); 
 		subtype::const_iterator it = sublist.begin();
@@ -251,85 +222,24 @@ int main2(int argc, char *argv[])
 	/* Quando se está usando o tal log4cxx */
 	InitializePZLOG("log4cxx.cfg");
 	
-	/*
-	 TPZFMatrix teste(2,2);
-	 TPZFMatrix parte;
-	 teste(0,0)=1;
-	 teste(0,1)=2;
-	 teste(1,0)=3;
-	 teste(1,1)=4;
-	 teste.GetSub(0,0,2,1,parte);
-	 cout << parte << endl;
-	 cout << "Hello, world!" << endl;
-	 */
-	
-	
-	/**
-	 TPZDohrSubstruct meuobjeto;
-	 TPZDohrMatrix *matriz = new TPZDohrMatrix();
-	 TPZDohrPrecond *precond = new TPZDohrPrecond();
-	 TPZStepSolver dohrprecond(precond);
-	 dohrprecond.SetMultiply();
-	 TPZStepSolver cg(matriz);
-	 cg.SetCG(10,dohrprecond,1.e-7,1);
-	 TPZFMatrix rhs,result;
-	 cg.Solve(rhs,result);*/
-	//meuobjeto.
-	/*  int dim = 2;
-	 TPZGenSubStruct sub(dim,6,3);*/
-	//	int dim = 2;
-	//	int maxlevel = 6;
-	//	int sublevel = 3;
-	//	int plevel = 3;
 	int dim = 2;
 	int maxlevel = 4;
 	int sublevel = 1;
 	int plevel = 2;
 	TPZGenSubStruct sub(dim,maxlevel,sublevel);
 	int nk = 8;
-	//	int ik;
-	//	for(ik=1; ik<nk; ik++)
-	//	{
-	//		sub.fK[ik] = 1.;//50.*ik;
-	//	}
-	//sub.fMatDist = TPZGenSubStruct::RandomMat;
 	
 	TPZCompEl::SetgOrder(plevel);
 	
 	sub.GenerateMesh();
-	
-	/*
-	 TPZAutoPointer<TPZDohrAssembly> dohrassembly = new TPZDohrAssembly;
-	 TPZDohrMatrix<TPZDohrSubstruct> *dohrptr = new TPZDohrMatrix<TPZDohrSubstruct>(dohrassembly);
-	 TPZAutoPointer<TPZMatrix> dohr(dohrptr);
-	 sub.InitializeDohr(dohr,dohrassembly);
-	 
-	 
-	 // loop over the substructures
-	 // This is a lengthy process which should run on the remote processor
-	 //	void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct> substruct,  TPZDohrAssembly &dohrassembly);
-	 
-	 
-	 dohrptr->Initialize();
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 dohrptr->Print("DohrMatrix without condensation", sout);
-	 LOGPZ_DEBUG(logger,sout.str())
-	 }
-	 #endif
-	 TPZDohrPrecond<TPZDohrSubstruct> *precondptr = new TPZDohrPrecond<TPZDohrSubstruct>(*dohrptr,dohrassembly);
-	 precondptr->Initialize();
-	 TPZAutoPointer<TPZMatrix> precond(precondptr);
-	 
-	 */
-	
+
 	TPZAutoPointer<TPZDohrAssembly> dohrassembly2 = new TPZDohrAssembly;
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr2 = new TPZDohrMatrix<TPZDohrSubstructCondense>(dohrassembly2);
 	dohrptr2->SetNumThreads(4);
 	TPZAutoPointer<TPZMatrix> dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
 	dohrptr2->Initialize();
+	
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
@@ -339,9 +249,6 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	
-	
-	
-	
 #ifdef LOG4CXX
 	std::stringstream sout;
 	sout << "Three dimensional substructures, maxlevel " << maxlevel << " level of substructures " << sublevel << std::endl;
@@ -349,12 +256,10 @@ int main2(int argc, char *argv[])
 	sout << "Interpolation order " << plevel;
 	LOGPZ_DEBUG(loggerconverge,sout.str());
 #endif
-	
-	
+
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precondptr2 = new TPZDohrPrecond<TPZDohrSubstructCondense>(*dohrptr2,dohrassembly2);
 	precondptr2->Initialize();
-	
-	
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -363,14 +268,12 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(loggerconverge,sout.str());
 	}
 #endif
-	
-	
-	
+
 	TPZAutoPointer<TPZMatrix> precond2(precondptr2);
-	
-	
+
 	TPZFMatrix diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -378,7 +281,9 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(loggerconverge,sout.str())
 	}
 #endif
+
 	precondptr2->Multiply(diag,produto2);
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -386,7 +291,7 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(loggerconverge,sout.str())
 	}
 #endif
-	//#define TOTAL
+
 #ifdef TOTAL
 	{
 		int dim=dohr->Rows();
@@ -414,10 +319,11 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	std::cout << "Numero de equacoes " << dohr2->Rows() << std::endl;
-	//  produto.Print("The value of the product is");
+
 #ifndef MAKEINTERNAL
 	diag(0,0) = 0.;
 #endif
+
 	dohr2->Multiply(diag,produto);
 	dohrptr2->AdjustResidual(produto);
 	
@@ -429,14 +335,15 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(loggerconverge,sout.str())
 	}
 #endif
+
 	diag.Zero();
 	TPZStepSolver pre(precond2);
 	pre.SetMultiply();
 	TPZStepSolver cg(dohr2);
-	//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 	
 	cg.SetCG(500,pre,1.e-8,0);
 	cg.Solve(produto,diag);
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -446,35 +353,18 @@ int main2(int argc, char *argv[])
 #endif
 	
 	dohrptr2->AddInternalSolution(diag);
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		diag.Print("Resultado do processo iterativo",sout);
 		LOGPZ_INFO(loggerconverge,sout.str())
 	}
-#endif
-	//diag.Print("Resultado do solve");
-	/* Solve
-	 TPZFMatrix *teste = new TPZFMatrix(2,2);
-	 (*teste)(0,0)=1;
-	 (*teste)(0,1)=2;
-	 (*teste)(1,0)=3;
-	 (*teste)(1,1)=4;
-	 TPZStepSolver coef;
-	 coef.SetMatrix(teste);
-	 coef.SetDirect(ELU);
-	 TPZFMatrix resul(2,2);
-	 resul(0,0)=2;
-	 resul(0,1)=3;
-	 resul(1,0)=4;
-	 resul(1,1)=5;
-	 TPZFMatrix res(2,2);
-	 coef.Solve(resul,res);
-	 cout << res << endl;*/
-	
-	
+#endif	
+
 	return EXIT_SUCCESS;
 }
+
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
@@ -495,7 +385,6 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 
 TPZGeoMesh *MalhaPredio()
 {
-	//int nBCs = 1;
 	int numnodes=-1;
 	int numelements=-1;
 	
@@ -556,27 +445,21 @@ TPZGeoMesh *MalhaPredio()
 		Node[nodeId-1].SetCoord(1,nodecoordY);
 		Node[nodeId-1].SetCoord(2,nodecoordZ);
 		gMesh->NodeVec()[nodeId-1] = Node[nodeId-1];
-		
-		
 	}
 	
 	{
-		
 		read.close();
 		read.open(FileName.c_str());
-		
-		
-		
+
 		int l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
-		
-		
+
 		int el;
 		int matBCid = -1;
-		//std::set<int> ncoordz; //jeitoCaju
+
 		for(el=0; el<numelements; el++)
 		{
 			read >> elementId;
@@ -598,82 +481,33 @@ TPZGeoMesh *MalhaPredio()
 			TPZVec <TPZGeoNode> Nodefinder(4);
 			TPZVec <REAL> nodecoord(3);
 			TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
-			//ncoordz.clear(); //jeitoCaju
+
 			for (int i = 0; i < 4; i++) 
 			{
 				Nodefinder[i] = gMesh->NodeVec()[TopolTetra[i]];
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[2] == 0.)
 				{
-					//ncoordz.insert(TopolTetra[i]); //jeitoCaju
 					sizeOfVec++;
 					ncoordzVec.Resize(sizeOfVec);
 					ncoordzVec[sizeOfVec-1] = TopolTetra[i];
 				}
 			}
-			//if(ncoordz.size() == 3) //jeitoCaju
+
 			if(ncoordzVec.NElements() == 3)
 			{
-				/*
-				 //jeitoCaju
-				 for(int s = tetra->NNodes(); s < tetra->NSides(); s++)
-				 {
-				 TPZGeoElSide tetraSide(tetra, s);
-				 if(tetraSide.NSideNodes() != 3)
-				 {
-				 continue;
-				 }
-				 
-				 bool ok = true;
-				 for(int n = 0; n < tetraSide.NSideNodes(); n++)
-				 {
-				 int node = tetraSide.SideNodeIndex(n);
-				 
-				 if(ncoordz.find(node) == ncoordz.end())
-				 {
-				 ok = false;
-				 break;
-				 }
-				 }
-				 if(ok)
-				 {
-				 TPZGeoElBC(tetraSide,matBCid, *gMesh);						
-				 break;
-				 }
-				 }
-				 */
-				
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
 				TPZGeoElBC(tetraSide,matBCid);		
-				//std::cout << "BC #" << nBCs << std::endl;
-				//nBCs++;
 			}
 		}
 		
 		gMesh->BuildConnectivity();
 		
 	}
-	
-	
-	
-	// identificando as superficies que terao cond de contorno. Coord z dos 3 nos = 0
-	//	for (int el = 0; el < numnodes-1; el++) 
-	//	{
-	//		Nodefind[el] = gMesh->NodeVec()[el];
-	//
-	//	}
-	//	Nodefind.Print(std::cout);
-	//	std::cout.flush();
-	
-	//TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh);
-	//TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh);
-	
+
 	ofstream arg("malhaPZ.txt");
 	gMesh->Print(arg);
 	
 	return gMesh;
-	
 }
-
-
