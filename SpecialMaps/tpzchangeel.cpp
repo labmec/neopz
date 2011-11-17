@@ -607,7 +607,7 @@ TPZGeoEl* TPZChangeEl::DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int ta
     }
     if(targetSideEl.Dimension() == 0)
     {
-        targetSideNodes_set.insert(targetSide);//AQUICAJU : validar!
+        targetSideNodes_set.insert(targetSide);
     }
     for(int ed = 0; ed < targetSideEdges.NElements(); ed++)
     {
@@ -616,7 +616,7 @@ TPZGeoEl* TPZChangeEl::DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int ta
     }
     if(targetSideEl.Dimension() == 1)
     {
-        targetSideNodes_set.insert(targetSide);//AQUICAJU : validar!
+        targetSideNodes_set.insert(targetSide);
     }
     for(int sd = gel->NCornerNodes(); sd < gel->NSides(); sd++)
     {

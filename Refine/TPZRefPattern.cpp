@@ -689,14 +689,23 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &ne
 		//coordenadas do novo no na malha ref pattern
 		TPZManVector<REAL,3> refnodecoord(3,0.);
 		TPZManVector<REAL,3> neighbouraoord(3,0.);
-		for (k=0;k<3;k++) refnodecoord[k] = fRefPatternMesh.NodeVec()[index].Coord(k);
+        
+		for (k=0;k<3;k++)
+        {
+            double coord = fRefPatternMesh.NodeVec()[index].Coord(k);
+            refnodecoord[k] = coord;
+        }
+        
 		//passando para as coordenadas do elemento da malha real...
 		TPZManVector<REAL,3> newnodecoord(Element(0)->Dimension(),0.);
+        
 		//coordenada no espaco do elemento mestre do elemento de
 		//referencia da malha refpattern
 		Element(0)->ComputeXInverse(refnodecoord,newnodecoord);
+        
 		//coordenada espacial do no na malha real
 		gel->X(newnodecoord,refnodecoord);
+        
 		newnodeindexes[index] = -1;
 		REAL mindif = -1.;
 		int mindifindex = -1;

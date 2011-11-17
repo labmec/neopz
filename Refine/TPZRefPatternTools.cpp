@@ -108,8 +108,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 	int side;
 	for(it = candidates.begin(); it != candidates.end(); it++)
 	{
-		modelPat = *it;
-		
+		modelPat = *it;		
 		for(side = nnodes; side < nsides; side++)
 		{
 			TPZGeoElSide gelside(gel, side);
@@ -118,9 +117,9 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 			neigh_isrefined = false;
 			topolAreCompatibles = false;
 			
-			//Se meu lado nao tem vizinho, significa que nao precisa ser refinado!
+			//Se meu lado eh aresta e nao tem vizinho, significa que nao precisa ser refinado!
 			//Mas se o candidato a modelRefPattern quer refinar por este lado, jah nao serve... vamos para outro candidato!
-			if(neighside == gelside && modelPat->SideRefPattern(side) && side != nsides-1)
+			if(neighside == gelside && gelside.Dimension() == 1 && modelPat->SideRefPattern(side) && side != nsides-1)
 			{
 				neigh_isrefined = true;
 				topolAreCompatibles = false;
@@ -159,7 +158,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::ModelRefPattern(TPZGeoEl *gel,
 				}
 				neighside = neighside.Neighbour();
 			}
-			if( (neigh_isrefined && !topolAreCompatibles) || (!neigh_isrefined && modelPat->SideRefPattern(side)) )
+			if( (neigh_isrefined && !topolAreCompatibles) || (gelside.Dimension() == 1 && !neigh_isrefined && modelPat->SideRefPattern(side)) )
 			{
 				neighCorresp.clear();
 				break;
@@ -238,7 +237,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 		TPZAutoPointer<TPZRefPattern> modelPat = TPZRefPatternTools::ModelRefPattern(gel, neighCorresp);	
 		if(modelPat)
 		{
-			modelPat->Print();
+			//modelPat->Print();
 			pat = TPZRefPatternTools::DragModelPatNodes(gel, modelPat, neighCorresp);
 		}
 		else
@@ -247,6 +246,8 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 			std::cout << "You should create it and add in Refinement Patterns Folder!" << std::endl;
 			std::cout << "Referred element:\n";
 			gel->Print();
+            
+            DebugStop();
 		}
 	}
 	

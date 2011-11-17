@@ -22,10 +22,24 @@
 #include "pzvec.h"
 #include "pzgeoelside.h"
 
-/** @brief Initializing for refpattern modulation */
-const int __minTrimQTD = 4;
-/** @brief Initializing for soft deviation of node (will be use to multiply the __minTrimQTD) */
-const int __TrimQTDmultiplier = 5;
+
+/// Real as tolerance 
+const double __smallNum = 1.E-10;
+
+/** @brief maximum element edge length */
+const double __maxLength = 4.;
+
+/** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
+const double __lengthFactor = 1.5;
+
+/** @brief RefPatterns will be modulated to reduce the amount of options in the library */
+//
+/** @note Quantity of stretches for coarse edge intersection modulation */
+const int __minTrimQTD = 4; //will be used for refpatterns
+/** @brief Multiplier of __minTrimQTD for fine edge intersection modulation */
+const int __TrimQTDmultiplier = 5; //will be used for searching direction between dots from poligonal chain
+
+
 
 /** 
  * @brief Plane of the fracture. 
@@ -38,19 +52,21 @@ class TPZPlaneFracture
 	
 	/**
 	 * @brief Constructor
-	 * @param planeMesh [in] bidimensional mesh in R3 space
-	 * @param nodeOrigin [in] Id of node of mesh that will be considered origin of local R2 coordinate system
-	 * @param nodeX [in] Id of node of mesh that will define the X-axis direction of local R2 coordinate system
-	 * @param nodeY [in] Id of node of mesh that will define the Y-axis direction of local R2 coordinate system
-	 * @param TrimQTD [in] quantity of edges stretches that defines possibles trimCoords
-	 * @note Obs.1 : The local R2 coordinate system, defined by 3 nodes described above,
-	 *             will be orthogonalized and normalized (Gram-Schmidt) in this method, so dont worry too much!
-	 *
-	 * Obs.2 : The given planeMesh will be preserved as class atribute, so many poligonalChain
-	 *             geometry could be created without change the original planeMesh
+	 * @param lw [in] : (positive) well length (positive)
+	 * @param bulletDepthIni [in] : bullets perforation initial (positive) depth
+	 * @param bulletDepthFin [in] : bullets perforation final (positive) depth
+	 * @param pos_stressUp_stressDown [in] : stress profile indexed by the depths and respective stresses immediately before (up) and after (down)
 	 */
-	TPZPlaneFracture(TPZGeoMesh * planeMesh, int nodeOrigin, int nodeX, int nodeY, int TrimQTD = __minTrimQTD);
+    TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, std::map< double , std::pair<double,double> > & pos_stressUp_stressDown);
+    
 	~TPZPlaneFracture();
+    
+    void GeneratePlaneMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
+    void Generate3DMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
+    
+    void GenerateNodesAtPlaneY(std::set<double> & espacamento, double lengthFactor, 
+                               TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
+                               double Y);
 	
 	/**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
@@ -69,11 +85,6 @@ class TPZPlaneFracture
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
 	TPZGeoMesh * GetFractureMesh(const TPZVec<REAL> &poligonalChain);
-    
-    /**
-     * Metodo solicitado pelo Philippe para acidificacao
-     */
-    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCrossed);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -118,7 +129,7 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
-	TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZFMatrix &x, TPZFMatrix dx, double alphaMin, std::map< int,
+	TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin, std::map< int,
 									std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence, bool pushback);
 	
 	/**
@@ -135,8 +146,8 @@ class TPZPlaneFracture
 	 *					    so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
 	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 */
-	bool EdgeIntersection(TPZGeoEl * gel, TPZFMatrix &x, TPZFMatrix &dx, TPZVec<int> &edge,
-						  TPZVec< TPZFMatrix > &ExactIntersect, TPZVec< TPZFMatrix > &ModulatedIntersect, double alphaMin);
+	bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
+						  TPZVec< TPZVec<REAL> > &ExactIntersect, TPZVec< TPZVec<REAL> > &ModulatedIntersect, double alphaMin);
 	
 	/*
 	 * @brief Returns an pointer to element of gMesh that contains the given point p (i.e.: point "p" belongs to element domain)
@@ -174,7 +185,7 @@ class TPZPlaneFracture
 	 * @note Obs.: alphaNode modulation is useful to reduce the possibilities of non regular refpatterns.
  	 * @note OBS.: dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	double ComputeAlphaNode(TPZFMatrix &x, TPZFMatrix &dx, TPZFMatrix &node, TPZFMatrix &dnode, double norm, bool modulate, bool smooth);
+	double ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode, double norm, bool modulate, bool smooth);
 	
 	// alphaX eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dx e cruza a reta (node+alphaNode.dnode)
@@ -183,7 +194,7 @@ class TPZPlaneFracture
 	 * this method returns the alphaX (norm that multiplies the unit vector dx to intersect the line (none + alphaNode.dnode) )
 	 * @note dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	double ComputeAlphaX(TPZFMatrix &x, TPZFMatrix &dx, TPZFMatrix &node, TPZFMatrix &dnode);
+	double ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode);
 	
 	/**
 	 * @brief Return if a given point x is near to some node of a given geo element
@@ -192,10 +203,9 @@ class TPZPlaneFracture
 	 * @param node [out] id of node that is in the x range
 	 * @param tol [in] x range radius
 	 */
-	static bool NearestNode(TPZGeoEl * gel, TPZFMatrix &x, int &node, double tol);
-	
-	static int NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
-	
+	static bool NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &node, double tol);
+    int NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
+    
 	/**
 	 * @brief Given 2 nodes (n0 and n1) and one point (x) in \f$ n0->n1 \f$ line, returns the point x in the line parametric space \f$ [-1,+1]\f$
 	 */
@@ -219,22 +229,33 @@ class TPZPlaneFracture
 	 * @param gmesh geometric mesh
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
-	void GenerateCrackBoundary(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence);
-    
-    int FractureRefinedElMat();
-    int CrackTip1DElMat();
-	
+	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
+                               TPZGeoMesh * gmesh3D,
+                               std::list< std::pair<int,double> > &elIdSequence);
+
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 	
-	protected:
-	
-	/** @brief Original mesh (keeped intact for any poligonalChain configuration) */
-	const TPZGeoMesh * fplaneMesh;
+	/** @brief Original plane mesh (keeped intact for any poligonalChain configuration) */
+	TPZGeoMesh * fplaneMesh;
+    
+    /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
+	TPZGeoMesh * f3DMesh;
+    
+    /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
+    std::map< double , std::pair<double,double> > fpos_stressUp_stressDown;
+    std::map< double , std::pair<double,double> >::iterator f_it;
+    
 	/** @brief It limits the amount of possible points in the edge of the elements */
 	int fTrimQTD;
-	/** @brief Transformation from crack plane in R3 to crack plane in R2 */
-	TPZFMatrix fFromR3toR2;
+    
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+public:
+    /**
+     * Metodo solicitado pelo Philippe para acidificacao
+     */
+    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCrossed);
 };
 
 #endif
