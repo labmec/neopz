@@ -7,6 +7,7 @@ project (PZ)
 #Specify where the headers files must be finded
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Util"
+	"${PROJECT_SOURCE_DIR}/PerfUtil"
 	"${PROJECT_SOURCE_DIR}/Common"
 	"${PROJECT_SOURCE_DIR}/Save"
 	"${PROJECT_SOURCE_DIR}/Matrix"
@@ -181,6 +182,7 @@ option(BUILD_PROJECTS "To build specific projects." OFF)
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
+add_subdirectory(PerfUtil)
 add_subdirectory(Common)
 add_subdirectory(Save)
 add_subdirectory(Integral)

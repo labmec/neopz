@@ -35,6 +35,7 @@ TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permute
 {
 	fMesh = mesh;
 	fPermuteScatter = permutescatter;
+	//std::cout << "fNumThreads e "<< fNumThreads << " gNumThreads esta setando para " << gNumThreads << endl; 
 	fNumThreads = gNumThreads;
 }
 

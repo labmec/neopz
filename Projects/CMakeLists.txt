@@ -66,6 +66,7 @@ if(BUILD_PROJECTS)
 	#projeto agnaldo 09-09-2011
 	add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
+	add_subdirectory(Perf01_SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
 	#add_subdirectory(prodindex)
 	

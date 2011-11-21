@@ -39,26 +39,36 @@ using namespace log4cxx::helpers;
 /// External variable to mutex which controls write log
 extern pthread_mutex_t glogmutex;
 
+///EBORIN: PERF FIX: These macros  lock and unlock mutexes even if the
+///        LOG4CXX macro does not have to log anything. Assuming the log
+///        level does not change during execution, we could check for log level
+///        before locking.
+
 /// Define log for debug
-#define LOGPZ_DEBUG(A,B) {pthread_mutex_lock(&glogmutex); \
-                          LOG4CXX_DEBUG(A,B); \
-                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_DEBUG(A,B) {if(A->isDebugEnabled()) {        \
+                           pthread_mutex_lock(&glogmutex); \
+                           LOG4CXX_DEBUG(A,B);             \
+                           pthread_mutex_unlock(&glogmutex); } }
 /// Define log for info
-#define LOGPZ_INFO(A,B) {pthread_mutex_lock(&glogmutex); \
-                          LOG4CXX_INFO(A,B) \
-                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_INFO(A,B) {if(A->isInfoEnabled()) {         \
+                          pthread_mutex_lock(&glogmutex); \
+                          LOG4CXX_INFO(A,B);              \
+			  pthread_mutex_unlock(&glogmutex); } }
 /// Define log for warnings
-#define LOGPZ_WARN(A,B) {pthread_mutex_lock(&glogmutex); \
-                        LOG4CXX_WARN(A,B) \
-                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_WARN(A,B) {if(A->isWarnEnabled()) {         \
+                          pthread_mutex_lock(&glogmutex); \
+                          LOG4CXX_WARN(A,B);              \
+			  pthread_mutex_unlock(&glogmutex); } }
 /// Define log for errors
-#define LOGPZ_ERROR(A,B) {pthread_mutex_lock(&glogmutex); \
-                        LOG4CXX_ERROR(A,B) \
-                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_ERROR(A,B) {if(A->isErrorEnabled()) {         \
+                           pthread_mutex_lock(&glogmutex); \
+                           LOG4CXX_ERROR(A,B);		   \
+                           pthread_mutex_unlock(&glogmutex); } }
 /// Define log for fatal errors
-#define LOGPZ_FATAL(A,B) {pthread_mutex_lock(&glogmutex); \
-                        LOG4CXX_FATAL(A,B) \
-                          pthread_mutex_unlock(&glogmutex); }
+#define LOGPZ_FATAL(A,B) {if(A->isFatalEnabled()) {         \
+                            pthread_mutex_lock(&glogmutex); \
+                            LOG4CXX_FATAL(A,B);		    \
+                            pthread_mutex_unlock(&glogmutex); } }
 
 #else
 
