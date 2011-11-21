@@ -28,7 +28,7 @@
 
 
 class TwoUncoupledPoisson : public TPZDiscontinuousGalerkin {
-	
+
 protected:
 	/** @brief Forcing function value */
 	REAL fXf1;
@@ -44,11 +44,17 @@ protected:
 public:
 	TwoUncoupledPoisson();
 	
-	~TwoUncoupledPoisson();
+	TwoUncoupledPoisson(int matid, int dim);
 	
-	int Dimension() { return fDim;}
+	virtual ~TwoUncoupledPoisson();
 	
-	int NStateVariables();
+	virtual void Print(std::ostream & out);
+	
+	virtual std::string Name() { return "TwoUncoupledPoisson"; }
+	
+	int Dimension() {return fDim;}
+	
+	virtual int NStateVariables();
 	
 	void SetParameters(REAL diff1, REAL diff2){
 		fK1= diff1;
@@ -66,6 +72,10 @@ public:
 		fXf2 = flux2;
 	}
 
+	//virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
+//		return new TwoUncoupledPoisson(*this);
+//	}
+	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -75,7 +85,7 @@ public:
      */
 	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
 	//void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
 	
@@ -95,11 +105,64 @@ public:
 //     */	
 //	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
 
-public:
+//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
 	
 	//virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
 	
+	/**
+	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
+	 * @param data [in]
+	 * @param weight [in]
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @since April 16, 2007
+	 */
+	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	
+	/**
+	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
+	 * @param data [in]
+	 * @param weight [in]
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition object
+	 * @since April 16, 2007
+	 */
+	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	
+	
+	
+	
+	/** @name Contribute methods
+	 * @{
+	 */
+    /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @since April 16, 2007
+     */
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) {
+		DebugStop();
+	}
+    
+
+    /**
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
+     * @since October 07, 2011
+     */
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+		DebugStop();
+	}
+	 	
 	
 };
 #endif

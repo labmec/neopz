@@ -11,9 +11,18 @@
 #include "pzbndcond.h"
 #include "pzaxestools.h"
 
+//#include "pzdiscgal.h"
+//#include "pzmaterialdata.h"
+//#include "pzmaterialid.h"
+
 using namespace std;
 
 TwoUncoupledPoisson::TwoUncoupledPoisson():TPZDiscontinuousGalerkin(), fXf1(0.), fXf2(0.),fDim(1){
+	fK1 = 1.;
+	fK2 = 1.;
+}
+
+TwoUncoupledPoisson::TwoUncoupledPoisson(int matid, int dim):TPZDiscontinuousGalerkin(matid), fXf1(0.), fXf2(0.),fDim(dim){
 	fK1 = 1.;
 	fK2 = 1.;
 }
@@ -22,7 +31,18 @@ TwoUncoupledPoisson::~TwoUncoupledPoisson(){
 }
 
 int TwoUncoupledPoisson::NStateVariables() {
-	return 2;
+	return 1;
+}
+
+void TwoUncoupledPoisson::Print(std::ostream &out) {
+	out << "name of material : " << Name() << "\n";
+	out << "Laplace operator multiplier fK  da primeira equacao  "<< fK1 << endl;
+	out << "Laplace operator multiplier fK  da segunda equacao  "<< fK2<< endl;
+	out << "Forcing vector fXf da primeira equacao  " << fXf1 << endl;
+	out << "Forcing vector fXf da seguna equacao  " << fXf2 << endl;
+	out << "Base Class properties :";
+	TPZMaterial::Print(out);
+	out << "\n";
 }
 
 void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
@@ -50,7 +70,7 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 								 
 		for(jn = 0; jn < phru; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
-				ek(in,jn) += weight *fK1*dphiu(kd,in)*dphiu(kd,jn); 
+				ek(in,jn) += -weight *fK1*dphiu(kd,in)*dphiu(kd,jn); 
 			}
 		}
 	}
@@ -61,7 +81,7 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 		
 		for(jn = 0; jn < phrp; jn++ ) {
 			for(kd=0; kd<fDim; kd++) {
-				ek(in+phru, jn+phru) += weight *fK2*dphip(kd,in)*dphip(kd,jn); 
+				ek(in+phru, jn+phru) += -weight *fK2*dphip(kd,in)*dphip(kd,jn); 
 			}
 		}
 	}
@@ -293,44 +313,13 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 
-//void TwoUncoupledPoisson::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
-//	
-//	Solout.Resize( this->NSolutionVariables(var));
-//	
-//	if(var == 1){
-//		Solout[0] = Sol[0];//function (state variable u)
-//		return;
-//	}
-//	
-//	if(var == 2){
-//		Solout[0] = Sol[0];//function (state variable p)
-//		return;
-//	}
-//	
-//	if(var == 3) {
-//		int id;
-//		for(id=0 ; id<fDim; id++) {
-//			TPZFNMatrix<9> dsoldx;
-//			TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
-//			Solout[id] = dsoldx(id,0);//derivate of u
-//		}
-//		return;
-//	}//var == 3
-//	
-//	if(var == 4) {
-//		int id;
-//		for(id=0 ; id<fDim; id++) {
-//			TPZFNMatrix<9> dsoldx;
-//			TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
-//			Solout[id] = dsoldx(id,0);//derivate of p
-//		}
-//		return;
-//	}//var == 4
-//	
-//	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
-//}
+void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	DebugStop();
+}
 
-
+void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+	DebugStop();
+}
 //int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
 //{
 //	 
