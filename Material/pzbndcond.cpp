@@ -175,6 +175,35 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
 	fType = typetmp;
 }
 
+//----
+void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	
+	//this->UpdataBCValues(datavec);
+	
+	int typetmp = fType;
+	if (fType == 50){
+		int i;
+#ifdef DEBUG2
+		{
+			for(int iref=0; iref < datavec.size(); iref++){
+				std::stringstream sout;
+				sout << __PRETTY_FUNCTION__ << datavec[iref].sol << " " << datavec[iref].x;
+				LOGPZ_DEBUG(logger,sout.str().c_str());
+			}
+		}
+#endif
+		//for (i = 0; i <data.sol.NElements(); i++){
+//			fBCVal2(i,0) = gBigNumber*data.sol[i];
+//			fBCVal1(i,i) = gBigNumber;
+//		}
+//		fType = 2;
+	}
+	
+	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
+	fType = typetmp;
+}
+//----
+
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 	this->UpdataBCValues(data);
 	
@@ -260,6 +289,13 @@ void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
 		}
 	}//if
 }
+
+void TPZBndCond::UpdataBCValues(TPZVec<TPZMaterialData> &datavec){
+			
+	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
+	DebugStop();
+}
+
 
 void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
 	if(!fMaterial)

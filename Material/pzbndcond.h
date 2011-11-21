@@ -120,6 +120,11 @@ protected:
 	
 	void UpdataBCValues(TPZMaterialData &data);
 	
+	/*
+	 @brief this method will be used only in case of multiphysics simulation
+	 */
+	void UpdataBCValues(TPZVec<TPZMaterialData> &datavec);
+	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
 	 * @param data [in] stores all input data
@@ -129,6 +134,17 @@ protected:
 	 * @since April 16, 2007
 	 */
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	
+	/**
+	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point 
+	 * for the multiphysics element
+	 * @param datavec [in] stores all input data vector 
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @since April 16, 2007
+	 */
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
