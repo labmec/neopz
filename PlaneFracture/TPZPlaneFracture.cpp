@@ -138,7 +138,7 @@ void TPZPlaneFracture::Generate3DMesh(std::set<double> & espacamento, double len
     std::set<double>::iterator it = espacamento.end(); it--;
     double lastPos = *it;
     
-//lastPos = 4.;//AQUICAJU
+lastPos = 4.;//AQUICAJU
     int nDirRef = int(log(lastPos/__maxLength)/log(2.));
     int nLayers = nDirRef + 2;
     
@@ -321,7 +321,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 		}
 	}
 	
-	//GenerateCrackBoundary(fractMesh, fractMesh3D, elIdSequence);//AQUICAJU
+	GenerateCrackBoundary(fractMesh, fractMesh3D, elIdSequence);//AQUICAJU
 	
 	return fractMesh3D;
 }
@@ -1049,7 +1049,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 		qsi0 = crackit0->second;
 		qsi0vec[0] = qsi0;
 		el0->X(qsi0vec, node0coord);
-		n0 = NearestNode(gmesh2D, node0coord, __smallNum);
+		n0 = NearestNode(gmesh3D, node0coord, __smallNum);
 		Topol[0] = n0;
 		
 		el1id = crackit1->first;
@@ -1057,7 +1057,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 		qsi1 = crackit1->second;
 		qsi1vec[0] = qsi1;
 		el1->X(qsi1vec, node1coord);
-		n1 = NearestNode(gmesh2D, node1coord, __smallNum);
+		n1 = NearestNode(gmesh3D, node1coord, __smallNum);
 		Topol[1] = n1;
 		
 		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(Topol, __fractureLine_Mat, *gmesh3D);
