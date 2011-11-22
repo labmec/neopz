@@ -42,7 +42,8 @@
  * @author Philippe Devloo
  * @brief Implements sub structure matrices using Dohrman algorithm. \ref substructure "Sub Structure"
  */
-class TPZDohrSubstruct {
+class TPZDohrSubstruct : public TPZSaveable {
+	// @TODO implement the interface to make the substruct class actually saveable
 public:
     TPZDohrSubstruct();
 	
