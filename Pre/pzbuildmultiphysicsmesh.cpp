@@ -193,3 +193,19 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     
 }
 
+void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
+{
+	TPZVec<int > subindex;
+	for (int iref = 0; iref < ndiv; iref++) {
+		TPZAdmChunkVector<TPZCompEl *> elvec = cMesh->ElementVec();
+		int nel = elvec.NElements(); 
+		for(int el=0; el < nel; el++){
+			TPZCompEl * compEl = elvec[el];
+			if(!compEl) continue;
+			int ind = compEl->Index();
+			TPZGeoEl *geoel = compEl->Reference();
+			compEl->Divide(ind, subindex, 0);
+		}
+	}
+}
+

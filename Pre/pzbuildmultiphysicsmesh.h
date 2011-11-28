@@ -27,7 +27,7 @@ public:
 	~TPZBuildMultiphysicsMesh();
 	
 	/*
-	 *@brief Creating multiphysic elements into mphysics computational mesh
+	 *@brief Creating multiphysic elements into mphysics computational mesh.
 	 Method to add elements in the mesh multiphysics
 	 *@param cmeshVec [in]:  pointer to an vector of meshes
 	 @param MFMesh [out]: my mesh multiphysics  
@@ -54,6 +54,8 @@ public:
 	 * @param MFMesh [in] mesh pointer that Transfers the information 
 	 */	
 	void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
+	
+	void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 	
 	
 };
