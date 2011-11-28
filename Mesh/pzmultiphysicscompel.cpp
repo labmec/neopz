@@ -71,10 +71,12 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 	nel=fElementVec.size();
 	trVec.Resize(nel);
 	TPZGeoEl *gelmf = Reference();
-	if(gelmf->Dimension() ==  1)   // whether the geometric element is TPZGeoPoint
+	if(gelmf->Dimension() ==  1){   // whether the geometric element is TPZGeoPoint
 		side = gelmf->NSides();
-	else
+	}
+	else{
 		side = gelmf->NSides()-1;
+	}
 	
 	TPZGeoEl  *geoel;
 	for (int i = 0; i<nel; i++) {
@@ -307,12 +309,12 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	}
 	
 	int nref = this->fElementVec.size();
-	int nstate=0;
-	for (int iref=0; iref<nref; iref++) {
-			
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		nstate += msp->Material()->NStateVariables();
-	}
+	int nstate=1;
+//	for (int iref=0; iref<nref; iref++) {
+//			
+//		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+//		nstate += msp->Material()->NStateVariables();
+//	}
 		
 	const int numstate = nstate;
 	ek.fMat.Redim(numeq,numeq);

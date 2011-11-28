@@ -18,6 +18,7 @@
 
 class TPZTransform;
 
+/** @brief class to create a compute element multiphysics */
 template <class TGeometry>
 class TPZMultiphysicsCompEl : public TPZMultiphysicsElement {
 	
