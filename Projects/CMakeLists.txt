@@ -69,6 +69,7 @@ if(BUILD_PROJECTS)
 	add_subdirectory(Poroelastic2D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
+	add_subdirectory(ProblemGirkmann)
 	#add_subdirectory(prodindex)
 	
 	
