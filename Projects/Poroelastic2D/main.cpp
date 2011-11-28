@@ -382,7 +382,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	TPZAutoPointer<TPZMaterial> BCondNU = material->CreateBC(mat, bcNU,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondNU);
 	
-	REAL uNLy=rockpho*gravity*(overburdendepth+0.0*layerthickness);
+	REAL uNLy=rockpho*gravity*(overburdendepth+layerthickness);
 	val2(1,0)=uNLy;	
 	
 	TPZAutoPointer<TPZMaterial> BCondNL = material->CreateBC(mat, bcNL,neumann, val1, val2);

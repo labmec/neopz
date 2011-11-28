@@ -269,15 +269,14 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	{
 		ef(numvec+i,0) += weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
 	}
-	/*
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 ek.Print("Matrix Rigidez El",sout);
-	 LOGPZ_DEBUG(logger,sout.str())
-	 }
-	 #endif
-	 */
+	
+//	 #ifdef LOG4CXX
+//	 {
+//	 std::stringstream sout;
+//	 ek.Print("Matrix Rigidez El",sout);
+//	 LOGPZ_DEBUG(logger,sout.str())
+//	 }
+//	 #endif
 	
 	
 }
@@ -532,8 +531,14 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	TPZManVector<REAL> dudxEF(1), dudyEF(1);
 	this->Solution(u,dudx,axes, this->VariableIndex("KDuDx"), dudxEF);
 	this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
+	
 	values[3] = (dudxEF[0]/this->fK - du_exact(0,0))*(dudxEF[0]/this->fK - du_exact(0,0));
+	if (fDim > 1) 
+	{
 	values[4] = (dudyEF[0]/this->fK - du_exact(1,0))*(dudyEF[0]/this->fK - du_exact(1,0));
+	}
+	
+	
 	
 	TPZManVector<REAL> sol(1),dsol(3,0.);
 	Solution(u,dudx,axes,1,sol);
