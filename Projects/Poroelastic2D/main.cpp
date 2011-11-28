@@ -361,7 +361,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	REAL poisson = 0.35;
 	int dim = 2;
 	TPZVec<REAL> force(2,0.);
-	force[1,0]=gravity
+	force[1,0]=gravity*rockpho;
 	TPZElasticityMaterial *material;
 	material = new TPZElasticityMaterial(matId, E, poisson, force[0,0], force[1,0], 1); 
 	TPZAutoPointer<TPZMaterial> mat(material);
