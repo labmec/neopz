@@ -180,7 +180,7 @@ public:
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
-	 * to multiphysics simulation..
+	 * to multiphysics simulation.
      * @param datavec [in]  stores all input data
      * @param weight [in] is the weight of the integration rule
      * @param ek [out] is the stiffness matrix
