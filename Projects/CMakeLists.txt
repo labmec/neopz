@@ -65,6 +65,8 @@ if(BUILD_PROJECTS)
 	
 	#projeto agnaldo 09-09-2011
 	add_subdirectory(DoubleProjection1D)
+	add_subdirectory(PDE_linear_1D)
+	add_subdirectory(Poroelastic2D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
 	#add_subdirectory(prodindex)
