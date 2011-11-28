@@ -58,12 +58,14 @@ using namespace std;
 const int matId = 1;
 const int dirichlet = 0;
 const int neumann = 1;
-const int bcD = -1;
+const int bcDL = -1;
 const int bcN = -2;
+const int bcDR = -3;
 
 TPZGeoMesh *MalhaGeom( );
 
 TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
+TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcess(TPZAnalysis &an, std::string plotfile);
 void RefinamentoUniforme(TPZGeoMesh  *gMesh, int nh);
@@ -97,23 +99,23 @@ int main(int argc, char *argv[])
 	PrintGMeshVTK(gmesh, file1);
 	
 	// First computational mesh
-	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p);
+	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p+2);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 	// Second computational mesh
-	TPZCompMesh * cmesh2 = MalhaComp(gmesh, 2);
+	TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p+1);
 	ofstream arg3("cmesh2.txt");
 	cmesh2->Print(arg3);
 	
 	// Cleaning reference of the geometric mesh to cmesh2
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	RefinUniformElemComp(cmesh1,1);
-//	// Refine the 7th element of the cmesh1
-//	RefinElemComp(cmesh1, 7);
-//	// Refine the 10th element of the cmesh1
-//	RefinElemComp(cmesh1, 10);
-//	// Adjust the boundary elements after refine
+	//RefinUniformElemComp(cmesh1,2);
+	// Refine the 7th element of the cmesh1
+	RefinElemComp(cmesh1, 7);
+	// Refine the 10th element of the cmesh1
+	RefinElemComp(cmesh1, 10);
+	// Adjust the boundary elements after refine
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -129,10 +131,10 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,1);
+	//RefinUniformElemComp(cmesh2,3);
 	// Refine 6th and 7th elements (as uniform refine)
-//	RefinElemComp(cmesh2, 7);
-//	RefinElemComp(cmesh2, 10);
+	RefinElemComp(cmesh2, 6);
+	RefinElemComp(cmesh2, 7);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
 	
@@ -170,8 +172,8 @@ int main(int argc, char *argv[])
 	
 	int MatId = 1;
 	TwoUncoupledPoisson *mymaterial = new TwoUncoupledPoisson(MatId, 2);
-	mymaterial->SetParameters(-1, -1);
-	mymaterial->SetInternalFlux(8,8);
+	mymaterial->SetParameters(-1., -0.1);
+	mymaterial->SetInternalFlux(8.,0.);
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
 	TPZAutoPointer<TPZMaterial> mat(mymaterial);
@@ -185,10 +187,16 @@ int main(int argc, char *argv[])
 	mphysics->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
-	val22(0,0)=1.;
-	val22(1,0)=1.;
-	TPZAutoPointer<TPZMaterial> BCondD = mymaterial->CreateBC(mat, bcD,dirichlet, val12, val22);
-	mphysics->InsertMaterialObject(BCondD);
+	val22(0,0)=0.;
+	val22(1,0)=2.;
+	TPZAutoPointer<TPZMaterial> BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	mphysics->InsertMaterialObject(BCondDL);
+	
+	TPZFMatrix val13(2,2,0.), val23(2,1,0.);
+	val23(0,0)=0.;
+	val23(1,0)=1.;
+	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
+	mphysics->InsertMaterialObject(BCondDR);
 	
 	
 	mphysics->AutoBuild();
@@ -225,7 +233,7 @@ int main(int argc, char *argv[])
 	
 	std::string plotfile3("saidaSolution.vtk");
 	const int dim = 2;
-	int div = 1;
+	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile3);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -316,7 +324,7 @@ TPZGeoMesh *MalhaGeom()
 	
 	TopolLine[0] = 2;
 	TopolLine[1] = 3;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcD,*gmesh);
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcDR,*gmesh);
 	id++;
 	
 	TopolLine[0] = 3;
@@ -331,7 +339,7 @@ TPZGeoMesh *MalhaGeom()
 	
 	TopolLine[0] = 5;
 	TopolLine[1] = 0;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcD,*gmesh);
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcDL,*gmesh);
 	id++;
 	
 	TopolQuad[0] = 0;
@@ -389,11 +397,64 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	cmesh->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
-	REAL uD=1.;
+	REAL uD=0.;
 	val22(0,0)=uD;
 	//val22(1,0)=uD;
-	TPZAutoPointer<TPZMaterial> BCondD = material->CreateBC(mat, bcD,dirichlet, val12, val22);
-	cmesh->InsertMaterialObject(BCondD);
+	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDL);
+	
+	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDR);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+	
+	return cmesh;
+}
+
+TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
+{
+	/// criar materiais
+	int dim = 2;
+	TPZMatPoisson3d *material;
+	material = new TPZMatPoisson3d(matId,dim); 
+	TPZAutoPointer<TPZMaterial> mat(material);
+	
+	REAL diff = -0.1;
+	REAL conv = 0.;
+	TPZVec<REAL> convdir(3,0.);
+	REAL flux = 0.;
+	
+	material->SetParameters(diff, conv, convdir);
+	material->SetInternalFlux( flux);
+	material->NStateVariables();
+	
+	TPZCompEl::SetgOrder(pOrder);
+	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDimModel(dim);
+	cmesh->SetAllCreateFunctionsContinuous();
+	cmesh->InsertMaterialObject(mat);
+	
+	
+	///Inserir condicao de contorno
+	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	REAL uN=0.;
+	val2(0,0)=uN;
+	//val2(1,0)=uN;
+	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
+	cmesh->InsertMaterialObject(BCondN);
+	
+	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	REAL uDL=2.;
+	val22(0,0)=uDL;
+	//val22(1,0)=uD;
+	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDL);
+	
+	REAL uDR=1.;
+	val22(0,0)=uDR;
+	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -441,7 +502,7 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 	vecnames[0]= "Derivate";
 	
 	const int dim = 2;
-	int div = 1;
+	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
