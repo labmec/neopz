@@ -39,6 +39,7 @@
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
 
+#include "pzporoelastic2d.h"
 
 #include "pzlog.h"
 
@@ -49,7 +50,7 @@
 #include <set>
 
 #ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.multiphysics"));
+static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
 #endif
 
 using namespace std;
@@ -83,7 +84,6 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	std::string logs("log4cxx.poroelastic2d");
 	InitializePZLOG();
 #endif
 	
@@ -91,25 +91,26 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom(10.,200.);
+	TPZGeoMesh * gmesh = MalhaGeom(10.,10.);
 	ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
 	ofstream file1("malhageoInicial.vtk");
 	PrintGMeshVTK(gmesh, file1);
 	
 	// First computational mesh
-	TPZCompMesh * cmesh1= MalhaCompPressao(gmesh, p);
+	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
+	
 	// Second computational mesh
-	TPZCompMesh * cmesh2 = MalhaCompElast(gmesh, p);
+	TPZCompMesh * cmesh2= MalhaCompPressao(gmesh, p);
 	ofstream arg3("cmesh2.txt");
 	cmesh2->Print(arg3);
-//	
-	// Cleaning reference of the geometric mesh to cmesh2
+	
+	// Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	RefinUniformElemComp(cmesh1,3);
+	RefinUniformElemComp(cmesh1,1);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -125,7 +126,7 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,3);
+	RefinUniformElemComp(cmesh2,1);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
 	
@@ -141,35 +142,44 @@ int main(int argc, char *argv[])
 	TPZAnalysis an1(cmesh1);
 	SolveSist(an1, cmesh1);
 	std::string plotfile("saidaSolution_cmesh1.vtk");
-	PosProcess(an1, plotfile);
+	PosProcess2(an1, plotfile);
 //	//---------------------------
 	
 	//--- Resolver usando a segunda malha computacional ---
 	TPZAnalysis an2(cmesh2);
 	SolveSist(an2, cmesh2);
 	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	PosProcess2(an2, plotfile2);
-//	//---------------------------
-//	
-//	// List of the computational meshes
-//	TPZVec<TPZCompMesh *> meshvec(2);
-//	meshvec[0] = cmesh1;
-//	meshvec[1] = cmesh2;
-//	
-//	// Creating computational mesh for multiphysic elements
-//	gmesh->ResetReference();
-//	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
-//	mphysics->SetAllCreateFunctionsMultiphysicElem();
-//	
-//	int MatId = 1;
-//	TwoUncoupledPoisson *mymaterial = new TwoUncoupledPoisson(MatId, 2);
-//	mymaterial->SetParameters(-1, -1);
-//	mymaterial->SetInternalFlux(8,8);
-//	ofstream argm("mymaterial.txt");
-//	mymaterial->Print(argm);
-//	TPZAutoPointer<TPZMaterial> mat(mymaterial);
-//	mphysics->InsertMaterialObject(mat);
-//	
+	PosProcess(an2, plotfile2);
+	
+	//---------------------------
+	
+	// List of the computational meshes
+	TPZVec<TPZCompMesh *> meshvec(2);
+	meshvec[0] = cmesh1;
+	meshvec[1] = cmesh2;
+	
+	// Creating computational mesh for multiphysic elements
+	gmesh->ResetReference();
+	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+	mphysics->SetAllCreateFunctionsMultiphysicElem();
+	
+	int MatId = 1;
+	REAL Eyoung = 100.;
+	REAL nu = 0.35;
+	REAL alpha=1.0;
+	REAL rockrho = 2330.0; // SI system
+	REAL gravity = 9.8; // SI system
+	REAL fx=0.0;
+	REAL fy=gravity*rockrho;
+	
+	TPZPoroElastic2d  *mymaterial = new TPZPoroElastic2d (MatId, 2);
+	
+	mymaterial->SetParameters(Eyoung, nu, alpha, fx, fy);
+	ofstream argm("mymaterial.txt");
+	mymaterial->Print(argm);
+	TPZAutoPointer<TPZMaterial> mat(mymaterial);
+	mphysics->InsertMaterialObject(mat);
+	
 //	///Inserir condicao de contorno
 //	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
 //	val2(0,0)=0.;
@@ -183,29 +193,30 @@ int main(int argc, char *argv[])
 //	TPZAutoPointer<TPZMaterial> BCondD = mymaterial->CreateBC(mat, bcD,dirichlet, val12, val22);
 //	mphysics->InsertMaterialObject(BCondD);
 //	
-//	
-//	mphysics->AutoBuild();
-//	mphysics->AdjustBoundaryElements();
-//	mphysics->CleanUpUnconnectedNodes();
-//	
-//	// Creating multiphysic elements into mphysics computational mesh
-//	AddElements(meshvec, mphysics);
-//	AddConnects(meshvec,mphysics);
-//	TransferFromMeshes(meshvec, mphysics);
-//	
-//#ifdef LOG4CXX
-//    {
-//        std::stringstream sout;
-//        mphysics->Print(sout);
-//        LOGPZ_DEBUG(logger, sout.str())
-//    }
-//#endif
-//	ofstream arg8("mphysic.txt");
-//    mphysics->Print(arg8);
-//	
-//	
-//	TPZAnalysis an(mphysics);
-//	SolveSist(an, mphysics);
+	
+	mphysics->AutoBuild();
+	mphysics->AdjustBoundaryElements();
+	mphysics->CleanUpUnconnectedNodes();
+	
+	// Creating multiphysic elements into mphysics computational mesh
+	TPZBuildMultiphysicsMesh * Objectdumy;
+	Objectdumy->AddElements(meshvec, mphysics);
+	Objectdumy->AddConnects(meshvec,mphysics);
+	Objectdumy->TransferFromMeshes(meshvec, mphysics);
+	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        mphysics->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+	ofstream arg8("mphysic.txt");
+    mphysics->Print(arg8);
+	
+	
+	TPZAnalysis an(mphysics);
+	SolveSist(an, mphysics);
 //	
 //	//--- pos-process -----
 //	TransferFromMultiPhysics(meshvec, mphysics);
@@ -361,9 +372,12 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	REAL poisson = 0.35;
 	int dim = 2;
 	TPZVec<REAL> force(2,0.);
-	force[1,0]=gravity*rockpho;
-	TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(matId, E, poisson, force[0,0], force[1,0], 1); 
+	force[1]=gravity*rockpho;
+	//force[0] = 0.;
+	TPZElasticityMaterial *material;	
+	material = new TPZElasticityMaterial(matId, E, poisson, force[0], force[1], 1); 
+	
+	
 	TPZAutoPointer<TPZMaterial> mat(material);
 	
 	TPZCompEl::SetgOrder(pOrder);
@@ -445,8 +459,7 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 	TPZManVector<std::string,10> scalnames(1), vecnames(1);
 	scalnames[0] = "Solution";
 	vecnames[0]= "MinusKGradU";
-	
-	
+		
 	const int dim = 2;
 	int div = 1;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
