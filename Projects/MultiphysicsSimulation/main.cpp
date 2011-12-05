@@ -11,6 +11,7 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzcompel.h"
+#include "TPZInterfaceEl.h"
 #include "pzgeoelside.h"
 #include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
@@ -80,6 +81,7 @@ void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh);
 void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh);
 
+void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
 
 int main(int argc, char *argv[])
 {
@@ -925,4 +927,158 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
         }
     }
     
+}
+
+void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat)
+{
+	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh->Reference()->ElementVec();
+    int meshdim = cmesh->Dimension();
+    
+    // cria todos os elementos sem conectar-se aos vizinhos
+	int i, nelem = elvec.NElements();
+	int neltocreate = 0;
+	int index;
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			neltocreate++;
+		}
+	}
+	std::set<int> matnotfound;
+	int nbl = cmesh->Block().NBlocks();
+	if(neltocreate > nbl) cmesh->Block().SetNBlocks(neltocreate);
+	cmesh->Block().SetNBlocks(nbl);
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			int matid = gel->MaterialId();
+			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			if(!mat)
+			{
+				matnotfound.insert(matid);
+				continue;
+			}
+			int printing = 0;
+			if (printing) {
+				gel->Print(cout);
+			}
+			
+			///checking material in MaterialIDs
+            std::set<int>::const_iterator found = MaterialIDs.find(matid);
+            if (found == MaterialIDs.end()) continue;
+			
+			if(!gel->Reference() && gel->NumInterfaces() == 0)
+			{
+				gel->CreateCompEl(*cmesh,index);
+                gel->ResetReference();
+			}
+		}
+	}
+    
+    cmesh->LoadReferences();
+    
+    // Gera elementos geometricas para os elementos menores
+    for (i=0; i<nelem; ++i) {
+        TPZGeoEl *gel = elvec[i];
+        if (!gel || gel->Dimension() != meshdim || !gel->Reference()) {
+            continue;
+        }
+        int matid = gel->MaterialId();
+        if(MaterialIDs.find(matid) == MaterialIDs.end())
+        {
+            continue;
+        }
+        // over the dimension-1 sides
+        int nsides = gel->NSides();
+        int is;
+        for (is=0; is<nsides; ++is) {
+            int sidedim = gel->SideDimension(is);
+            if (sidedim != meshdim-1) {
+                continue;
+            }
+            // check if there is a smaller element connected to this element
+            TPZStack<TPZCompElSide> celsides;
+            TPZGeoElSide gelside(gel,is);
+            gelside.HigherLevelCompElementList2(celsides, 0, 0);
+            if(celsides.NElements()) continue; 
+            gel->CreateBCGeoEl(is, LagrangeMat);
+        }
+    }
+    // now create the lagrange elements
+    cmesh->Reference()->ResetReference();
+    
+    nelem = elvec.NElements();
+	for(i=0; i<nelem; i++) {
+		TPZGeoEl *gel = elvec[i];
+		if(!gel) continue;
+		if(!gel->HasSubElement()) {
+			int matid = gel->MaterialId();
+			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			if(!mat)
+			{
+				matnotfound.insert(matid);
+				continue;
+			}
+			int printing = 0;
+			if (printing) {
+				gel->Print(cout);
+			}
+			
+			///checking material in MaterialIDs
+            if (matid != LagrangeMat) {
+                continue;
+            }
+			
+			if(!gel->Reference())
+			{
+				gel->CreateCompEl(*cmesh,index);
+                gel->ResetReference();
+			}
+		}
+	}
+    // now create the interface elements between the lagrange elements and other elements
+    nelem = elvec.NElements();
+    for (i=0; i<nelem; ++i) {
+        TPZGeoEl *gel = elvec[i];
+        if (!gel || gel->Dimension() != meshdim-1 || !gel->Reference()) {
+            continue;
+        }
+        int matid = gel->MaterialId();
+        if(matid != LagrangeMat)
+        {
+            continue;
+        }
+        // over the dimension-1 sides
+        int nsides = gel->NSides();
+        int is;
+        for (is=0; is<nsides; ++is) {
+            int sidedim = gel->SideDimension(is);
+            if (sidedim != meshdim-1) {
+                continue;
+            }
+            // check if there is a smaller element connected to this element
+            TPZStack<TPZCompElSide> celsides;
+            TPZGeoElSide gelside(gel,is);
+            gelside.EqualLevelCompElementList(celsides, 0, 0);
+            gelside.LowerLevelCompElementList2(0);
+            int nelsides = celsides.NElements();
+            if(nelsides != 2) 
+            {
+                // would be very weird
+                DebugStop();
+            } 
+            for (int lp=0; lp<nelsides; ++lp) {
+                TPZGeoEl *interface = gel->CreateBCGeoEl(is, InterfaceMat);
+                TPZCompElSide right = celsides[lp];
+                TPZCompElSide left(gel->Reference(),is);
+                int index;
+                new TPZInterfaceElement(*cmesh,interface,index,left,right);
+            }
+        }
+    }
+	
+	cmesh->InitializeBlock();
+
 }
