@@ -193,7 +193,7 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
     
 }
 
-void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
+void TPZBuildMultiphysicsMesh::RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv)
 {
 	TPZVec<int > subindex;
 	for (int iref = 0; iref < ndiv; iref++) {
