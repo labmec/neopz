@@ -19,6 +19,7 @@
 #include "tpzquadrilateral.h"
 #include "pzgnode.h"
 #include "tpzarc3d.h"
+#include "pzgeopoint.h"
 
 #include "tpzcompmeshreferred.h"
 #include "TPZRefPattern.h"
@@ -32,8 +33,6 @@
 #include "pzanalysis.h"
 #include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
-#include "pzgeopoint.h"
-
 
 class tools{
 	
@@ -53,19 +52,7 @@ public:
 	 *AnelComPesoLeve: Se igual true => anel tem peso leve. Caso contrario (false) => anel eh casca tem pesos iguais.
 	 */
 	
-	
 	~tools();
-	
-	/*
-	 **AreaBaseAnel (m2): Area da base do anel (cilindro)
-	 */
-	REAL AreaBaseAnel();
-	
-	/*
-	 **VMaterial (m3): Volume total (casca + anel)
-	 *Se o peso do anel não for assumido, entao, VMaterial = Volume da Casca.
-	 */
-	REAL VMaterial();
 	
 	/**
 	 *Matriz de revolucao
@@ -85,58 +72,68 @@ public:
 	 */
 	TPZGeoMesh * MalhaGeoGen(int ndiv, int ndirectdivL,int ndirectdivR,int ndirectdivp, bool interface,  int RefDirId);
 	
-	///*
-//	 *metodo para fazer refinamento uniforme
-//	 */
-//	void RefinamentoUniforme(TPZGeoMesh &gMesh, int &nh);
-//	
-//	/**
-//	 *Criar malha computacional de material Axis Symmetric
-//	 *gMesh: malha geometrica
-//	 *p: ordem dos polinomios
-//	 *AreaBaseAnel (m2): Area da base do anel (cilindro)
-//	 */
-//	TPZCompMesh * MalhaCompGen(TPZGeoMesh * gMesh, int p);
-//	
-//	/**
-//	 *Criar malha computacional com elemnto de interface do material Axis Symmetric
-//	 *gMesh: malha geometrica
-//	 *p: ordem dos polinomios
-//	 *simetric: metodo simetrico (-1.) ou nao simetrico (+1.)
-//	 *penalidade: termo de penalizacao:  1. (ou outro valor positivo) para metodo penalizado ou 0. metodo nao penalizado
-//	 */
-//	TPZCompMesh * MalhaCompMeshWithInterface(TPZGeoMesh * gMesh, int p,REAL simetric, REAL penalidade);
-//	
-//	
-//	
-//	/**
-//     * Resolve o sistema matricial [M]{c}=[b]
-//	 */
-//    void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
-//	
-//	/**
-//	 *Pos-processamento, calcular a cortante e o momento 
-//	 *na junção entre a casca e o anel: M_alpha e Q_alpha
-//	 do lado do mat1Id (casca) ou mat2Id (anel)
-//	 *malha:  malha computacional
-//	 */
-//	TPZVec<REAL> CalcCortMomento(TPZCompMesh *malha);
-//	
-//	/*
-//	 *Imprime os elementos de interface
-//	 */
-//	void PrintInterface(TPZCompMesh  *malha);
-//	
-//	/**
-//	 * Teste os vetores de carga
-//	 */
-//	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix &solution);
-//	
-//	/**
-//	 * Find the indices of the corner connects
-//	 */
-//	void CornerConnects(TPZCompMesh *cmesh, std::set<int> &indices, int matid);
+	/*
+	 *metodo para fazer refinamento uniforme
+	 */
+	void RefinamentoUniforme(TPZGeoMesh &gMesh, int &nh);
 	
+	/*
+	 **AreaBaseAnel (m2): Area da base do anel (cilindro)
+	 */
+	REAL AreaBaseAnel();
+	
+	/*
+	 **VMaterial (m3): Volume total (casca + anel)
+	 *Se o peso do anel não for assumido, entao, VMaterial = Volume da Casca.
+	 */
+	REAL VMaterial();
+	
+	/**
+	 *Criar malha computacional de material Axis Symmetric
+	 *gMesh: malha geometrica
+	 *p: ordem dos polinomios
+	 *AreaBaseAnel (m2): Area da base do anel (cilindro)
+	 */
+	TPZCompMesh * MalhaCompGen(TPZGeoMesh * gMesh, int p);
+	
+	/**
+	 *Criar malha computacional com elemnto de interface do material Axis Symmetric
+	 *gMesh: malha geometrica
+	 *p: ordem dos polinomios
+	 *simetric: metodo simetrico (-1.) ou nao simetrico (+1.)
+	 *penalidade: termo de penalizacao:  1. (ou outro valor positivo) para metodo penalizado ou 0. metodo nao penalizado
+	 */
+	TPZCompMesh * MalhaCompMeshWithInterface(TPZGeoMesh * gMesh, int p,REAL simetric, REAL penalidade);
+	
+	
+	/**
+     * Resolve o sistema matricial [M]{c}=[b]
+	 */
+    void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
+	
+	/**
+	 *Pos-processamento, calcular a cortante e o momento 
+	 *na junção entre a casca e o anel: M_alpha e Q_alpha
+	 do lado do mat1Id (casca) ou mat2Id (anel)
+	 *malha:  malha computacional
+	 */
+	TPZVec<REAL> CalcCortMomento(TPZCompMesh *malha);
+	
+	/*
+	 *Imprime os elementos de interface
+	 */
+	void PrintInterface(TPZCompMesh  *malha);
+	
+	/**
+	 * Teste os vetores de carga
+	 */
+	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix &solution);
+	
+	/**
+	 * Find the indices of the corner connects
+	 */
+	void CornerConnects(TPZCompMesh *cmesh, std::set<int> &indices, int matid);
+		
 protected:
 	
 	/** Atributos: Dados de Entrada do Problema e do materia
@@ -159,7 +156,7 @@ protected:
 	static REAL fyoung;
 	static REAL fpoisson;
 	static bool fAnelComPesoLeve;
-	
+		
 };
 
 #endif
