@@ -30,6 +30,8 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 #endif
@@ -85,13 +87,16 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 		TPZVec<pthread_t> AllThreads(fNumThreads+1);
 		int i;
 		for (i=0; i<fNumThreads; i++) {
-			pthread_create(&AllThreads[i+1], 0, TPZDohrThreadMultList<TSubStruct>::ThreadWork, &multwork);
+		  PZP_THREAD_CREATE(&AllThreads[i+1], 0, 
+				    TPZDohrThreadMultList<TSubStruct>::ThreadWork, 
+				    &multwork, __FUNCTION__);
 		}
-		pthread_create(&AllThreads[0], 0, TPZDohrAssembleList::Assemble, assemblelist.operator->());
+		PZP_THREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList::Assemble, 
+				  assemblelist.operator->(), __FUNCTION__);
 		
 		for (i=0; i<fNumThreads+1; i++) {
-			void *result;
-			pthread_join(AllThreads[i], &result);
+		  void *result;
+		  PZP_THREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
 		}
 	}
 	tempo.fMultiply.Push(mult.ReturnTimeDouble());

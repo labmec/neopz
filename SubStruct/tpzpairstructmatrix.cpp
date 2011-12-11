@@ -24,6 +24,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzpairstructmatrix"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
@@ -143,18 +145,20 @@ void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *
 	int itr;
 	for(itr=0; itr<numthreads; itr++)
 	{
-		pthread_create(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata);
+	  PZP_THREAD_CREATE(&allthreads[itr], NULL,
+			    ThreadData::ThreadWork, &threaddata, __FUNCTION__);
 	}
 	
 	// assemble the first matrix
-	pthread_create(&allthreads[itr], NULL,ThreadData::ThreadAssembly1, &threaddata);
+	PZP_THREAD_CREATE(&allthreads[itr], NULL,
+			  ThreadData::ThreadAssembly1, &threaddata, __FUNCTION__);
 	
 	// assemble the second matrix
 	ThreadData::ThreadAssembly2(&threaddata);
 	
 	for(itr=0; itr<numthreads+1; itr++)
 	{
-		pthread_join(allthreads[itr],NULL);
+	  PZP_THREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
 }
 

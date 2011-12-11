@@ -34,6 +34,8 @@ using namespace std;
 #include "TPZFileEqnStorage.h"
 #include "pzlog.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.frontstructmatrix"));
@@ -431,7 +433,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 	 */
 	//pthread_create(&allthreads[fNThreads-1],NULL,this->GlobalAssemble, this);
 	// try{
-	res[nthreads-1] = pthread_create(&allthreads[nthreads-1],NULL,this->GlobalAssemble, this);
+	res[nthreads-1] = PZP_THREAD_CREATE(&allthreads[nthreads-1], NULL,
+					    this->GlobalAssemble, this, __FUNCTION__);
 	if(!res[nthreads-1]){
 		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << endl;
 		cout.flush();
@@ -440,7 +443,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 		cout.flush();
 		//          DebugStop();
 	}
-	res[nthreads-2] = pthread_create(&allthreads[nthreads-2],NULL,mat->WriteFile, mat);
+	res[nthreads-2] = PZP_THREAD_CREATE(&allthreads[nthreads-2], NULL, 
+					    mat->WriteFile, mat, __FUNCTION__);
 	if(!res[nthreads-2]){
 		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
 		cout.flush();
@@ -451,7 +455,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 	}
 	
 	for(i=0;i<nthreads-2;i++){
-		res[i] = pthread_create(&allthreads[i],NULL,this->ElementAssemble, this);
+	  res[i] = PZP_THREAD_CREATE(&allthreads[i], NULL, 
+				     this->ElementAssemble, this, __FUNCTION__);
 		if(!res[i]){
 			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << endl;
 			cout.flush();
@@ -461,7 +466,9 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & r
 			cout.flush();
 		}
 	}
-	for(i=0;i<nthreads;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<nthreads;i++) {
+	  PZP_THREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 	delete allthreads;// fThreadUsed, fDec;
 	delete res;

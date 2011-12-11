@@ -30,6 +30,8 @@ using namespace std;
 
 #include "pzlog.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzstructmatrix"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
@@ -370,14 +372,15 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TP
 	}
 	for(itr=0; itr<numthreads; itr++)
 	{
-		pthread_create(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata);
+	  PZP_THREAD_CREATE(&allthreads[itr], NULL,ThreadData::ThreadWork, 
+			    &threaddata, __FUNCTION__);
 	}
 	
 	ThreadData::ThreadAssembly(&threaddata);
 	
 	for(itr=0; itr<numthreads; itr++)
 	{
-		pthread_join(allthreads[itr],NULL);
+	  PZP_THREAD_JOIN(allthreads[itr], NULL, __FUNCTION__);
 	}
 	
 }

@@ -11,6 +11,8 @@
 #include <map>
 #include <pthread.h>
 
+#include "pzp_thread.h"
+
 #ifdef USING_BLAS
 	double cblas_ddoti(const int N, const double *X, const int *indx,
                    const double *Y);
@@ -570,9 +572,12 @@ void TPZFYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 		alldata[i].fAlpha = alpha;
 		alldata[i].fOpt = opt;
 		alldata[i].fStride = stride;
-		res[i] = pthread_create(&allthreads[i],NULL,ExecuteMT, &alldata[i]);
+		res[i] = PZP_THREAD_CREATE(&allthreads[i], NULL, 
+					   ExecuteMT, &alldata[i], __FUNCTION__);
 	}
-	for(i=0;i<numthreads;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<numthreads;i++) {
+	  PZP_THREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 }
 

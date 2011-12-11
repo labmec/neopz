@@ -38,7 +38,6 @@
 #include <map>
 #include "pzlog.h"
 
-
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 #include "TPZVTKGeoMesh.h"
@@ -47,6 +46,8 @@
 static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
 static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"));
 #endif
+
+#include "pzp_thread.h"
 
 // return the number of submeshes
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
@@ -308,11 +309,14 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 	for(itr=0; itr<numthreads_assemble; itr++)
 	{
-		pthread_create(&allthreads_assemble[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklistAssemble);
+	  PZP_THREAD_CREATE(&allthreads_assemble[itr], NULL, 
+			    ThreadDohrmanAssemblyList::ThreadWork, 
+			    &worklistAssemble, __FUNCTION__);
+		
 	}
 	for(itr=0; itr<numthreads_assemble; itr++)
 	{
-		pthread_join(allthreads_assemble[itr],NULL);
+	  PZP_THREAD_JOIN(allthreads_assemble[itr], NULL, __FUNCTION__);
 	}
 	
 	const int numthreads_decompose = this->fNumThreadsDecompose;
@@ -337,11 +341,13 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 	for(itr=0; itr<numthreads_assemble; itr++)
 	{
-		pthread_create(&allthreads_decompose[itr], NULL,ThreadDohrmanAssemblyList::ThreadWork, &worklistDecompose);
+	  PZP_THREAD_CREATE(&allthreads_decompose[itr], NULL,
+			    ThreadDohrmanAssemblyList::ThreadWork, 
+			    &worklistDecompose, __FUNCTION__);
 	}
 	for(itr=0; itr<numthreads_decompose; itr++)
 	{
-		pthread_join(allthreads_decompose[itr],NULL);
+	  PZP_THREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
 	}
 	
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer

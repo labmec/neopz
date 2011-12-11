@@ -21,6 +21,8 @@
 
 #include "pzmaterial.h"
 
+#include "pzp_thread.h"
+
 using namespace std;
 
 std::vector< std::pair< TPZElementMatrix *, SMTAssembleResidual*> > TPZMTAssemble::gComputedEF;
@@ -97,13 +99,14 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, i
 			}///if
 			
 			SMTAssembleResidual * data = new SMTAssembleResidual(el, &rhs, mineq, maxeq, MaterialIds, ithread);
-			pthread_create(&allthreads[ithread],NULL,ExecuteAssembleResidualMT, data);
+			PZP_THREAD_CREATE(&allthreads[ithread], NULL,
+					  ExecuteAssembleResidualMT, data, __FUNCTION__);
 			
 		}//threads
 		
 		for(int i=0;i<nthreads;i++){
-			if(!allthreads[i]) continue;
-			pthread_join(allthreads[i], NULL);
+		  if(!allthreads[i]) continue;
+		  PZP_THREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
 		}
 		
 		

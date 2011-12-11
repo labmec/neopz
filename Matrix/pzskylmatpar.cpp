@@ -28,6 +28,8 @@ extern "C"{
 
 #include "pzlog.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylparmatrix"));
 #endif
@@ -390,9 +392,15 @@ int TPZSkylParMatrix::Decompose_Cholesky()
 	
 	fEqDec=-1;
 	
-	for(i=0;i<fNthreads-1;i++) res[i] = pthread_create(&allthreads[i],NULL,this->ParallelCholesky, this);
+	for(i=0;i<fNthreads-1;i++) {
+	  res[i] = PZP_THREAD_CREATE(&allthreads[i], NULL, 
+				     this->ParallelCholesky, this, __FUNCTION__);
+	}
+
 	ParallelCholesky(this);
-	for(i=0;i<fNthreads-1;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<fNthreads-1;i++) {
+	  PZP_THREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 	delete []allthreads;// fThreadUsed, fDec;
 #ifdef LOG4CXX
@@ -467,9 +475,14 @@ int TPZSkylParMatrix::Decompose_LDLt()
 	}
 	fEqDec=-1;
 	
-	for(i=0;i<nthreads-1;i++) res[i] = pthread_create(&allthreads[i],NULL,this->ParallelLDLt2, this);
+	for(i=0;i<nthreads-1;i++) {
+	  res[i] = PZP_THREAD_CREATE(&allthreads[i], NULL, this->ParallelLDLt2, 
+				     this, __FUNCTION__);
+	}
 	ParallelLDLt2(this);
-	for(i=0;i<nthreads-1;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<nthreads-1;i++) {
+	  PZP_THREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 	fNthreads = nthreads;
 	delete []allthreads;// fThreadUsed, fDec;

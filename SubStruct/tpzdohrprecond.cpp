@@ -38,6 +38,8 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 
+#include "pzp_thread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrprecond"));
 static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
@@ -103,7 +105,9 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 		TPZVec<pthread_t> AllThreads(fNumThreads+2);
 		TPZDohrPrecondThreadV1Data<TSubStruct> v1threaddata(this,x,v1);
 		
-		pthread_create(&AllThreads[0], 0, TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1, &v1threaddata);
+		PZP_THREAD_CREATE(&AllThreads[0], 0, 
+				  TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1, 
+				  &v1threaddata, __FUNCTION__);
 		//		TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1(&v1threaddata);
 		
 		TPZAutoPointer<TPZDohrAssembleList> assemblelist = new TPZDohrAssembleList(fGlobal.size(),v2,this->fAssemble);
@@ -124,16 +128,19 @@ void TPZDohrPrecond<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y
 		
 		int i;
 		for (i=0; i<fNumThreads; i++) {
-			pthread_create(&AllThreads[i+2], 0, TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork, &v2work);
+		  PZP_THREAD_CREATE(&AllThreads[i+2], 0, 
+				    TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork, 
+				    &v2work, __FUNCTION__);
 		}
 		//		v2work.ThreadWork(&v2work);
 		
-		pthread_create(&AllThreads[1], 0, TPZDohrAssembleList::Assemble, assemblelist.operator->());
+		PZP_THREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList::Assemble, 
+				  assemblelist.operator->(), __FUNCTION__);
 		//		assemblelist->Assemble(assemblelist.operator->());
 		
 		for (i=0; i<fNumThreads+2; i++) {
-			void *result;
-			pthread_join(AllThreads[i], &result);
+		  void *result;
+		  PZP_THREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
 		}
 		//		ComputeV2(x,v2);
 	}
