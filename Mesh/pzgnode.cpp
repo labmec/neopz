@@ -79,9 +79,7 @@ void TPZGeoNode::SetCoord(int i,REAL coord) {
 	fCoord[i] = coord;
 }
 
-/**
- * fill the coordinates of the node
- */
+// fill the coordinates of the node
 void TPZGeoNode::GetCoordinates(TPZVec<REAL> &co)
 {
 	for(int i=0; i<3; i++) co[i] = fCoord[i];
@@ -94,9 +92,7 @@ void TPZGeoNode::Print(ostream & out) {
 	out << "\n";
 }
 
-/**
- return the id of the class (used for writing reading the object)
- */
+// return the id of the class (used for writing reading the object)
 int TPZGeoNode::ClassId() const
 {
 	return TPZGEONODEID;

@@ -198,21 +198,23 @@ public:
 	
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) {return &(fMesh->NodeVec()[NodeIndex(i)]); }
-	
-	/** @brief Returns the index of the ith node
-     the index is the location of the node in the nodevector of the mesh*/
+
+	/**
+	 * @brief Returns the index of the ith node the index is the location of the node
+	 * in the nodevector of the mesh
+	 */
 	virtual int NodeIndex(int i) = 0;
 
 	/** @brief Returns the material index of the element*/
 	int MaterialId() { return fMatId; }
-	
+
 	/** @brief Return a pointer to the element referenced by the geometric element*/
 	TPZCompEl *Reference() const;
-	
+
 	/** @brief Returns the element type acording to pzeltype.h */
-	virtual MElementType Type() =0;
+	virtual MElementType Type() = 0;
 	/** @brief Returns the element type of a side acording to pzeltype.h */
-	virtual MElementType Type(int side) =0;
+	virtual MElementType Type(int side) = 0;
 	/** @brief Returns the type of the element as a string */
     virtual std::string TypeName()
 	{
@@ -282,7 +284,6 @@ public:
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
 	virtual int NSideSubElements2(int side) = 0;
 	
-	//HDiv
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
 	virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )=0;
 	
@@ -361,7 +362,8 @@ public:
 	/** @brief Reset the element referenced by the geometric element to NULL */
 	void ResetReference() { this->fReference = NULL; }
 	
-	/** @brief Equivalent to Print*/
+	/** @brief Equivalent to Print */
+	/** @note Overload operator << to print geometric element data */
 	friend std::ostream& operator<<(std::ostream &s,TPZGeoEl &el);
 	
 	/** @brief Divides the element and puts the resulting elements in the vector */
@@ -438,9 +440,6 @@ public:
 	
 	void ComputeNormals(TPZMatrix &normal);
 	
-	/** Return the normal vector at the position loc in the master element space of side*/
-	//  virtual void NormalVector(int side,TPZVec<REAL> &loc,TPZVec<REAL> &normal,
-	//			    TPZFMatrix &axes,TPZFMatrix &jac) = 0;
 	//para testar continuidade
 	int ElementExists(TPZGeoEl *elem,int id);
 	
@@ -494,16 +493,16 @@ public:
 	/// Computes the XInverse and returns if ksi belongs to master element domain
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
 	
-	/** @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element
-	 *@param ancestor: ancestor element of subelement
-	 *@param ksiSon: paramenter point in the subelement
-	 *@param ksiAncestor: receives the paramenter point in the ancestor element
-	 **/
+	/**
+	 * @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element
+	 * @param ancestor: ancestor element of subelement
+	 * @param ksiSon: paramenter point in the subelement
+	 * @param ksiAncestor: receives the paramenter point in the ancestor element
+	 */
 	void TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor);
-	
+
 	TPZTransform ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson);
-	
-	
+
 	/** @brief Return the volume of the element*/
 	REAL Volume();
 	
@@ -559,7 +558,8 @@ public:
 	/// Returns the refinement pattern associated with the element
 	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
 	
-	/** @brief Verify coordinate of element nodes checking if they are coincident to the X mapping 
+	/**
+	 * @brief Verify coordinate of element nodes checking if they are coincident to the X mapping 
 	 * of the corner nodes of parametric elements
 	 * @return true if everything OK else false
 	 */

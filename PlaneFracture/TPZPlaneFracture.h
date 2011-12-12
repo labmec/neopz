@@ -219,14 +219,16 @@ class TPZPlaneFracture
 	
 	/**
 	 * @brief Updates poligonal chain.
-	 * @note The original Poligonal Chain (input data on GetFractureMesh method) is dots coordinates in the 2D mesh. This points normally are inside elements domain.\n
+	 * @note The original Poligonal Chain (input data on GetFractureMesh method) is dots coordinates in the 2D mesh. \n
+	 * This points normally are inside elements domain.\n
 	 * The edges intersections of the original Poligonal Chain originate a new Poligonal Chain named poligonalChainUpdated 
 	 */
 	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence,
 							  TPZVec<REAL> &poligonalChainUpdated);
 	
 	/**
-	 * @param gmesh geometric mesh
+	 * @param gmesh2D geometric mesh bi-dimensional
+	 * @param gmesh3D geometric mesh three-dimensional
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,

@@ -102,7 +102,9 @@ public:
 	 * @brief Fill the coordinates of the node
 	 */
 	void GetCoordinates(TPZVec<REAL> &co);
-	
+	/**
+	 * @brief Print the node data into out.
+	 */	
 	void Print(std::ostream & out = std::cout);
 };
 

@@ -52,14 +52,14 @@ public:
 	
 	/**
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
-	 * @param tr Transform 
+	 * @param trVec Transform 
 	**/
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const;
 	
 	
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
-	 * @param cmeshvec Vector of computational meshes
+	 * @param cmeshVec Vector of computational meshes
 	 * @param refIndexVec
 	 **/
 	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &refIndexVec);

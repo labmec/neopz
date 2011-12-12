@@ -151,25 +151,6 @@ void TPZGeoMesh::Print (std::ostream & out)
 		m = w->second;
 		out << l << " / " << r << " -> " << m << "\n";
 	}
-	/*
-	 out << "\nPrinting refinement patterns:\n";
-	 std::map<MElementType,std::map< int, TPZAutoPointer<TPZRefPattern> > >::const_iterator itg, eg;
-	 eg = this->RefPatternDBase().RefPatterns().end();
-	 for(itg = this->RefPatternDBase().RefPatterns().begin(); itg != eg; itg++)
-	 {
-	 const std::map<int, TPZAutoPointer<TPZRefPattern> > & mymap = itg->second;
-	 out << "Element type = " << itg->first << std::endl;
-	 out << "Number of refinement patterns for this element type: " << mymap.size() << std::endl;
-	 std::map<int, TPZAutoPointer<TPZRefPattern> >::const_iterator it, e;
-	 e = mymap.end();
-	 for(it = mymap.begin(); it != e; it++)
-	 {
-	 it->second->ShortPrint(out);
-	 out << "\n";
-	 }//for it
-	 out << "\n\n";
-	 }//for itg
-	 */
 }
 
 void TPZGeoMesh::GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep)
