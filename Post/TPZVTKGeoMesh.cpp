@@ -104,9 +104,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	file.close();
 }
 
-/**
- * Generate an output of all geomesh to VTK, associating to each one the given data
- */
+// Generate an output of all geomesh to VTK, associating to each one the given data
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVec<int> &elData)
 {
 	if(gmesh->NElements() != elData.NElements())
@@ -170,6 +168,97 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	file << actualNode << " float" << std::endl << node.str();
 	
 	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+	
+	file << "Substructure 1 " << nVALIDelements << " int" << std::endl;
+	
+	file << material.str();
+	
+	file.close();
+}
+// Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVector<int> &elData)
+{
+	std::ofstream file(filename);
+#ifdef DEBUG
+	if(!file.is_open())
+		DebugStop();
+#endif
+	
+	if(gmesh->NElements() != elData.NElements())
+	{
+		std::cout << "Wrong vector size of elements data!" << std::endl;
+		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+	}
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	std::stringstream connectivity, type, material;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int t, c, el;
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	int counternodes = gmesh->NNodes();
+	
+	for(el = 0; el < nelements; el++)
+	{				
+		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+		{
+			continue;
+		}
+		if (elData[el] == -999) {
+			continue;
+		}
+		
+		int elNnodes = gmesh->ElementVec()[el]->NCornerNodes();
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(t = 0; t < elNnodes; t++)
+		{
+			actualNode = gmesh->ElementVec()[el]->NodeIndex(t);
+			if(actualNode < 0) 
+				DebugStop();
+
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
+		type << elType << std::endl;
+		
+		material << elData[el] << std::endl;
+		
+		nVALIDelements++;
+	}
+
+	// Printing all nodes of the mesh
+	file << counternodes << " float" << std::endl;
+	for(t=0;t<counternodes;t++) {
+		TPZGeoNode *node = &(gmesh->NodeVec()[t]);
+		for(c = 0; c < 3; c++) {
+			double coord = node->Coord(c);
+			file << coord << " ";
+		}			
+		file << std::endl;
+	}
+	
+	file << std::endl << "CELLS " << nVALIDelements << " ";
 	
 	file << size << std::endl;
 	file << connectivity.str() << std::endl;

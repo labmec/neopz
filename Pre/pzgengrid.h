@@ -90,7 +90,7 @@ public:
 	 * @param bc Boundary condition id (material), generally negative
 	 * @note From start to end going counter clockwise
 	 */
-    virtual void SetBC(TPZGeoMesh *g, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc);
+    virtual void SetBC(TPZGeoMesh *gr, TPZVec<REAL> &start, TPZVec<REAL> &end, int bc);
     
     /**
 	 * @brief Generate boundary geometric elements associated with the side of the rectangular domain
@@ -215,9 +215,9 @@ protected:
 	int fNumNodes;
     /** 
 	 * @brief Variable which indicates the type of element that should be generated
-     * \fi type = 0 -> quadrilateral
-	 * \fi type = 1 -> triangle
-     * \fi type = 2 -> quadratic quadrilaterals
+     * \li type = 0 -> quadrilateral
+	 * \li type = 1 -> triangle
+     * \li type = 2 -> quadratic quadrilaterals
      */
 	int fElementType;
     
