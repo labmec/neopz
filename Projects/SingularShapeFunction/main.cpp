@@ -1,4 +1,4 @@
-//Classes utilit�ias
+//Classes utilitarias
 #include "pzvec.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
@@ -13,6 +13,7 @@
 #include <time.h>
 #include <math.h>
 
+// Classes to computational analysis
 #include "TPZCompElDisc.h"
 #include "TPZShapeDisc.h"
 #include "pzl2projection.h"
@@ -21,11 +22,13 @@
 #include "TExtFunction.h"
 #include "pzlog.h"
 #include "pzbstrmatrix.h"
+
+// Enabling namespace
 using namespace std;
 using namespace pzshape;
 
 /** Acrescenta uma funcao de forma singular */
-int main(){
+int main() {
   TPZGeoMesh *gmesh = new TPZGeoMesh;
   REAL co[4][2] = {{-0.5,-0.2},{2.,-0.2},{2.,3.},{-0.5,3.}};
   for(int nod = 0; nod < 4; nod++){
@@ -199,8 +202,8 @@ void PRefinement(TPZCompMesh &cmesh, const int InitialP){
     if(!sp) continue;
     int neworder = sp->Reference()->Level() + InitialP;
     sp->PRefine( neworder );
-  }///for
-}///void
+  }//for
+}//void
 
 int main1(){
 
@@ -331,7 +334,7 @@ int main1(){
       if(!disc) continue;
       disc->SetExternalShapeFunction(ExternalShapes);
     }
-  }///if
+  }//if
 
 
   TPZAnalysis an(cmesh);

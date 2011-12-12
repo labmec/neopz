@@ -38,6 +38,9 @@ endif(BUILD_TUTORIAL)
 
 if(BUILD_PROJECTS)
 	
+	#Inserting project to hp adaptive development
+	add_subdirectory(Adapt_HP_Jorge)
+
 	add_subdirectory(Cubo_do_Nathan)
 	
 	add_subdirectory(HyperElasticityFAD)
