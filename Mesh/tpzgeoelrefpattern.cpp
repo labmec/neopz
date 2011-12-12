@@ -193,7 +193,7 @@ TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 //class TPZGeoElRefPattern<TPZGeoPyramid>;
 //class TPZGeoElRefPattern<TPZGeoPoint>;
 
-static TPZGeoEl *teste()
-{ 
-	return new TPZGeoElRefPattern<TPZGeoTriangle>;
-}
+//static TPZGeoEl *teste()
+//{ 
+//	return new TPZGeoElRefPattern<TPZGeoTriangle>;
+//}

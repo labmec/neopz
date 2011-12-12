@@ -1436,10 +1436,8 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	Permute(permute);
 }
 
-void TPZSubCompMesh::LoadSolution(){
-	//	int count = 0;
-#warning ME TIRE DAQUI
-//	return;
+void TPZSubCompMesh::LoadSolution() {
+// #warning ME TIRE DAQUI
 	
 	int i=0;
 	int seqnumext;

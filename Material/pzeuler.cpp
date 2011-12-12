@@ -293,7 +293,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 		TPZEulerEquation::FromPrimitiveToConservative(data.soll,gGamma);
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
-#warning One needs to invert the velocity component
+// #warning One needs to invert the velocity component
 			fAUSMFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
 			for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		}//if FreeSlip

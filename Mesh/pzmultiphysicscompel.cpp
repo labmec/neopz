@@ -308,7 +308,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		numeq += Connect(ic).NDof(*Mesh());
 	}
 	
-	int nref = this->fElementVec.size();
+//	int nref = this->fElementVec.size();
 	int nstate=1;
 //	for (int iref=0; iref<nref; iref++) {
 //			

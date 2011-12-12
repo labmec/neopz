@@ -11,7 +11,7 @@ gegra_ (int *n, int *ne, int *, int *
 //n, ne, inpn, npn, xnpn, iadj, adj, xadj, nop
 {
  /* Format strings */
-    char   *fmt_10900 = "(\0020%%%E01-GEGRA \002,//,1x,\002CANNOT ASSE\
+    const char   *fmt_10900 = "(\0020%%%E01-GEGRA \002,//,1x,\002CANNOT ASSE\
 MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
  /* System generated locals */
     int     i__1, i__2, i__3, i__4;

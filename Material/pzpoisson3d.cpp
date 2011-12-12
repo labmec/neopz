@@ -1051,7 +1051,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
                                       TPZVec<REAL> &/*flux*/,
 									  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
 									  TPZVec<REAL> normal, REAL elsize) {
-#warning Metodo nao funcional
+// #warning Metodo nao funcional
 	TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
 	
 	TPZFMatrix fake_axes(fDim,fDim,0.);  

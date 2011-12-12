@@ -181,8 +181,8 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 	//this->UpdataBCValues(datavec);
 	
 	int typetmp = fType;
-	if (fType == 50){
-		int i;
+	if (fType == 50) {
+//		int i;
 #ifdef DEBUG2
 		{
 			for(int iref=0; iref < datavec.size(); iref++){

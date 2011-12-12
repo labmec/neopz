@@ -172,9 +172,9 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices(){
     return;
   }
 
-  int p = TBASE::MaxOrder();
+//  int p = TBASE::MaxOrder();
 
-  int dim = TBASE::Dimension();
+//  int dim = TBASE::Dimension();
 
   const TPZIntPoints &intrule = TBASE::GetIntegrationRule();
 	/*

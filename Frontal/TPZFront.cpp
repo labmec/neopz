@@ -18,8 +18,6 @@
 using namespace std;
 
 TPZFront::TPZFront(){
-	fFront=0;
-	fMaxFront=0;
 	fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
@@ -29,8 +27,6 @@ TPZFront::TPZFront(){
 
 TPZFront::TPZFront(int GlobalSize)
 {
-	fFront=0;
-	fMaxFront=0;
 	fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
@@ -43,8 +39,10 @@ TPZFront::TPZFront(int GlobalSize)
 
 TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
 fGlobal(cp.fGlobal), fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
-fData(cp.fData),fExpandRatio(cp.fExpandRatio), fNextRigidBodyMode(cp.fNextRigidBodyMode)
+fData(cp.fData)
 {
+	fNextRigidBodyMode = cp.fNextRigidBodyMode;
+	fExpandRatio = cp.fExpandRatio;
 }
 
 TPZFront::~TPZFront(){

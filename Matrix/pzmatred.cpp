@@ -507,7 +507,7 @@ void TPZMatRed<TSideMatrix>::MultAdd(const TPZFMatrix &x,
 									 const REAL alpha,const REAL beta,
 									 const int opt,const int stride) const
 {
-#warning Not functional yet. Still need to Identify all the variables
+// #warning Not functional yet. Still need to Identify all the variables
 	
 	if(!fIsReduced)
 	{

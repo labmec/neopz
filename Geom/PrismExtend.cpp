@@ -310,7 +310,7 @@ namespace pztopology {
 		TPZTransform Transf = SideToSideTransform(NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
-#warning "UNFINISHED"
+// #warning "UNFINISHED"
 		JacToSide = Transf.Mult();
 		return true;
 	}

@@ -191,6 +191,3 @@ void TPZVerySparseMatrix::ReadMap(TPZStream &buf, void *context, std::map<std::p
 	}
 }
 
-#warning ClassId and RestoreClass definitions
-//template class TPZRestoreClass< TPZMatRed<TSideMatrix>, _ID>;
-

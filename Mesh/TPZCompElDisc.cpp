@@ -911,8 +911,8 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	int hasExternalShape;
 	buf.Read(&hasExternalShape,1);
 	if(hasExternalShape == 1){
-#warning Como faz?
-#warning    this->fExternalShape->
+// #warning Como faz?
+// #warning    this->fExternalShape->
 	}
 	
 	int HasIntRule;

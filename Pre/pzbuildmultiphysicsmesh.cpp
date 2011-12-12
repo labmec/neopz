@@ -203,7 +203,7 @@ void TPZBuildMultiphysicsMesh::RefinUniformElemComp(TPZCompMesh  *cMesh, int ndi
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
-			TPZGeoEl *geoel = compEl->Reference();
+//			TPZGeoEl *geoel = compEl->Reference();
 			compEl->Divide(ind, subindex, 0);
 		}
 	}

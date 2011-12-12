@@ -44,7 +44,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
  * with the data in the FADFADREAL U second and first derivatives.
  *
  */
-static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+// static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
 #endif
 
 #include <sstream>

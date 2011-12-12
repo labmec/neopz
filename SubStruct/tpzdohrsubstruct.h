@@ -33,7 +33,7 @@
  @author Philippe Devloo
  */
 
-#warning Hardcoded definition of MAKEINTERNAL !!!!
+// #warning Hardcoded definition of MAKEINTERNAL !!!!
 /** @warning Hardcoded definition of MAKEINTERNAL  ! */
 #define MAKEINTERNAL
 

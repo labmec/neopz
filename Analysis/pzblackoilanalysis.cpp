@@ -51,7 +51,7 @@ void TPZBlackOilAnalysis::AssembleResidual(){
 	this->SetCurrentState();
 	int sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,1);
-#warning FIX ME!!
+// #warning FIX ME!!
 	//  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 	this->fRhs += fLastState;
 }//void
@@ -251,11 +251,11 @@ void TPZBlackOilAnalysis::Assemble(){
 	if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
 	if (exist){
 		fSolver->Matrix()->Zero();
-#warning FIX ME
+// #warning FIX ME
 		//    fStructMatrix->Assemble(fSolver->Matrix(),fRhs);
 	}
 	else{
-#warning FIX ME
+// #warning FIX ME
 		//    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
 		//    fSolver->SetMatrix(mat);
 	}
