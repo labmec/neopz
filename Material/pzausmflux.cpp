@@ -68,11 +68,11 @@ REAL TPZAUSMFlux::SoundSpeed(TPZVec<REAL> &sol,REAL press){
 		DebugStop();
 	}
 	
-	const REAL temp = this->fGamma * press;
+//	const REAL temp = this->fGamma * press;	
+//	if(temp < 1e-10){ // too low or negative
+//		PZError << "TPZEulerEquation::cSpeed Too low or negative numerator\n";
+//	}
 	
-	if(temp < 1e-10){ // too low or negative
-		PZError << "TPZEulerEquation::cSpeed Too low or negative numerator\n";
-	}
 	const REAL c = sqrt(this->fGamma * press/ sol[0]);
 	return c;
 }//method

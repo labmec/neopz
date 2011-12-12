@@ -38,7 +38,8 @@ void InitializePZLOG()
 	
 #ifndef WIN32
 	int res = mkdir ("LOG", S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH);
-	if (res) std::cout << "Error in mkdir : " << res << std::endl;
+	// Wether the error happen again, the problem can to be permission, then a message is printed
+	if(res) std::cout << "Error in mkdir : " << res << " permission denied or directory exist." << std::endl;
 #endif
 	
 	std::cout << "Logfile " << configfile << std::endl;

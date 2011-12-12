@@ -275,6 +275,100 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 	
 	file.close();
 }
+// Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
+{
+	std::ofstream file(filename);
+#ifdef DEBUG
+	if(!file.is_open())
+		DebugStop();
+#endif
+	
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	std::stringstream connectivity, type, material;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int t, c, el;
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	int counternodes = gmesh->NNodes();
+	TPZGeoEl *gel;
+	TPZCompEl *cel;
+	TPZVec<REAL> qsi(3,0.);
+	TPZVec<REAL> sol;
+	
+	for(el = 0; el < nelements; el++)
+	{
+		gel = gmesh->ElementVec()[el];
+		// Print only to elements not refines (computational elements actives?)
+		if(!gel || gel->HasSubElement())
+			continue;
+		cel = gel->Reference();
+		if(!cel) continue;
+		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+			continue;
+
+		int elNnodes = gel->NCornerNodes();
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(t = 0; t < elNnodes; t++)
+		{
+			actualNode = gel->NodeIndex(t);
+			if(actualNode < 0) 
+				DebugStop();
+			
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
+		type << elType << std::endl;
+		
+		// calculando o valor da solucao para o elemento
+		cel->Solution(qsi,var,sol);
+		if(sol.NElements()) material << sol[0] << std::endl;
+		else material << 0.0 << std::endl;
+		
+		nVALIDelements++;
+	}
+	
+	// Printing all nodes of the mesh
+	file << counternodes << " float" << std::endl;
+	for(t=0;t<counternodes;t++) {
+		TPZGeoNode *node = &(gmesh->NodeVec()[t]);
+		for(c = 0; c < 3; c++) {
+			double coord = node->Coord(c);
+			file << coord << " ";
+		}			
+		file << std::endl;
+	}
+	
+	file << std::endl << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+	
+	file << "Substructure 1 " << nVALIDelements << " double" << std::endl;
+	
+	file << material.str();
+	
+	file.close();
+}
 
 /**
  * Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file

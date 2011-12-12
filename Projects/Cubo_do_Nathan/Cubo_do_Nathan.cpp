@@ -388,7 +388,8 @@ int main()
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
-	int nummat = 1, dirichlet = 0, neumann = 1, mixed = 2;
+	int nummat = 1, neumann = 1, mixed = 2;
+//	int dirichlet = 0;
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;
 	TPZManVector<REAL> force(3,0.);
 	//force[1] = 0.;
@@ -501,7 +502,6 @@ TPZGeoMesh *MalhaCubo()
 	read.getline(buf, 1024);
 	std::string str(buf);
 	int in;
-	int idbcnode = -2;
 	for(in=0; in<numnodes; in++)
 	{ 
 		read >> nodeId;

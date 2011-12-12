@@ -140,14 +140,15 @@ public:
 		
 	//void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
 	
-	virtual int VariableIndex(const std::string &name)
-	{
-	DebugStop();
-	}
+	virtual int VariableIndex(const std::string &name);
+//	{
+//	DebugStop();
+//	}
 	
 	virtual int NSolutionVariables(int var)
 	{ 
-	DebugStop();
+		DebugStop();
+		return 0;
 	}
 	
 	//protected:

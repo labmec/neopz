@@ -19,29 +19,23 @@
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
-TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), fE(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0), fmatId(0), fDim(2){
-	
+TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0) {
+	fE = 0.;
+	fDim = 2;
+	fmatId = 0;
 	ff.resize(2);
 	ff[0]=0.;
 	ff[1]=0.;
-	//fnu = 0.;
-//	fE=0.;
-//	fk =0.;
-//	fvisc = 0.;
-//	falpha = 0.;
 	fPlaneStress = 1.;
 	
 }
 
-TPZPoroElastic2d::TPZPoroElastic2d(int matid, int dim):TPZDiscontinuousGalerkin(matid), ff(0), fnu(0.), fE(0.), falpha(0.), fk(0.), fvisc(0.),fPlaneStress(0), fDim(dim){
+TPZPoroElastic2d::TPZPoroElastic2d(int matid, int dim):TPZDiscontinuousGalerkin(matid), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.),fPlaneStress(0) {
+	fE = 0.;
+	fDim = dim;
 	ff.resize(2);
 	ff[0]=0.;
 	ff[1]=0.;
-	//fnu = 0.;
-//	fE=0.;
-//	fk =0.;
-//	fvisc = 0.;
-//	falpha = 0.;
 	fPlaneStress = 1;
 	fmatId = matid;
 }
@@ -68,7 +62,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 	// Setting the size of first block of first problem. Elastic problem
 	TPZFMatrix  &phiu =  datavec[0].phi;
-	TPZFMatrix &dphiu = datavec[0].dphix;
+//	TPZFMatrix &dphiu = datavec[0].dphix;
 	int phru = phiu.Rows();
 	
 	// Setting the size of second block of second problem. transport problem 

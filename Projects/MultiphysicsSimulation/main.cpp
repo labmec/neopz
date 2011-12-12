@@ -561,7 +561,7 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv){
 			TPZCompEl * compEl = elvec[el];
 			if(!compEl) continue;
 			int ind = compEl->Index();
-			TPZGeoEl *geoel = compEl->Reference();
+//			TPZGeoEl *geoel = compEl->Reference();
 			//int ns = geoel->NSides();
 //			TPZGeoElSide *geoside = new TPZGeoElSide(geoel,ns-1);
 //			int subel = geoside->NSubElements();

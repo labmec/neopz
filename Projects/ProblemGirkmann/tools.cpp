@@ -181,7 +181,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	//Indice dos Elementos
 	//Casca
 	id = 0;
-	static int meshcount = 0;
+//	static int meshcount = 0;
 	
 	for(int ce = 0; ce < ndiv; ce++)
 	{
@@ -202,7 +202,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		TopolArc[0] = 6*ce;
 		TopolArc[1] = TopolArc[0] + 6;
 		TopolArc[2] = TopolArc[0] + 3;
-		TPZGeoEl * gel = new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc,mat1ArcGeoUm,*gmesh);
+		new TPZGeoElRefPattern< pzgeom::TPZArc3D > (id,TopolArc,mat1ArcGeoUm,*gmesh);
 		id++;
 		
 		TopolArc[0] += 1;
@@ -419,7 +419,6 @@ REAL tools::VMaterial()
 		VCalculado = Vcalota;
 	}
 	
-	REAL diff = VCalculado-VTotal;
 	return VCalculado;
 }
 
@@ -431,7 +430,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 	REAL Vmat = VMaterial();
 	REAL Abase = AreaBaseAnel();
 	REAL FDistribuidaBase = (fRho*Vmat)/Abase;
-	REAL BigNum =TPZMaterial::gBigNumber;
+//	REAL BigNum =TPZMaterial::gBigNumber;
 	
 	REAL fr = 0.;
 	REAL fz_casca, fz_anel;
@@ -545,7 +544,6 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 	REAL Vmat = VMaterial();
 	REAL Abase = AreaBaseAnel();
 	REAL FDistribuidaBase = (fRho*Vmat)/Abase;
-	REAL BigNum =TPZMaterial::gBigNumber;
 	
 	REAL fr = 0.;
 	REAL fz_casca, fz_anel;
@@ -669,7 +667,8 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 					int idneig = neighbours[0].Reference().Element()->MaterialId();
 					if (idneig==mat1Id)
 					{
-						TPZInterfaceElement * FaceElem = InterpEl->CreateInterface(is,true);
+						//TPZInterfaceElement * FaceElem = 
+						InterpEl->CreateInterface(is,true);
 					}
 				}
 			} 
@@ -712,8 +711,8 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	 */	
 	TPZAutoPointer<TPZMaterial> mat1 = fCmesh->FindMaterial(mat1Id);
 	TPZAutoPointer<TPZMaterial> mat2 = fCmesh->FindMaterial(mat2Id);
-	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
-	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
+//	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
+//	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
 	
 	
 	ofstream file("Solution.out");
@@ -740,11 +739,11 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 std::ofstream outf("TensorTensoes.txt");
 TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 {
-	REAL QalphaR = 0.;
-	REAL QalphaL = 0.;
-	REAL T1zR = 0.;
-	REAL T1zL = 0.;
-	REAL T1z = 0.;
+//	REAL QalphaR = 0.;
+//	REAL QalphaL = 0.;
+//	REAL T1zR = 0.;
+//	REAL T1zL = 0.;
+//	REAL T1z = 0.;
 	static int count = 0;
 	std::string estr1,estr2;
 #ifdef LOG4CXX
@@ -772,7 +771,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 	{
 		TPZCompEl * Cel = malha->ElementVec()[el];
 		if(!Cel) continue;
-		TPZInterfaceElement *inter = dynamic_cast<TPZInterfaceElement *> (Cel);
+//		TPZInterfaceElement *inter = dynamic_cast<TPZInterfaceElement *> (Cel);
 		int matId = Cel->Material()->Id();
 		
 		if (matId == matRefDir1) // if(inter)
@@ -796,7 +795,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 				TPZFMatrix tn(3,1,0.);//tangente
 				REAL nr = 0., nz=0., tnr=0.,tnz=0.;
 				REAL Tr=0., Tz=0.;
-				REAL w, detJac;
+//				REAL w, detJac;
 				
 				if(idneigh == mat1Id)
 				{

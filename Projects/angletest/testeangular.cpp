@@ -32,7 +32,7 @@ REAL Norm(REAL *vec);
 void FirstFace(int &face0,int &nfaces,TPZGeoEl *gel);
 REAL AngleFaceFi(TPZGeoEl *gel,int f,int node);
 void ComputationalTest(TPZCompMesh *cmesh,ofstream &out);
-void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *& compmesh);
+void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *& compmesh);
 void AutomaticDivide(TPZCompMesh &cmesh,int actuallevel);
 void Divide(TPZCompMesh *compmesh);
 void AngularTest(TPZGeoMesh *geomesh,ofstream &out);
@@ -233,7 +233,7 @@ void ElementName(TPZCompEl *cel,ofstream &out) {
    }
 }
 
-void LerMalha(char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
+void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
 
    ifstream grid(malha);
    TPZFMatrix xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);

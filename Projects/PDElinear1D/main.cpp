@@ -73,7 +73,6 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) 
 {
 	double x=pto[0];
-	double y=pto[1];
 	xfloat[0] = x;
 }
 
@@ -257,8 +256,6 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	
 	
 	
-	REAL diff = a;
-	REAL conv = b;
 	TPZVec<REAL> convdir(3,0.);
 	convdir[0]=1.;
 	//REAL flux = 0.;
@@ -275,7 +272,7 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	
 	///Inserir condicao de contorno
 	REAL uD=0.;
-	REAL uN=1-cosh(1.)/sinh(1.);
+//	REAL uN=1-cosh(1.)/sinh(1.);
 	TPZFMatrix val1(1,1,0.), val2(1,1,uD);
 	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
 	cmesh->InsertMaterialObject(BCond1);

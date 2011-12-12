@@ -352,7 +352,7 @@ template<class T>
 //[kJoule/kg]
 inline T TPBrCellMarx::EnthalpyOil(T temperature) {
 	OilData oil;
-#warning Verificar se specific heat e enthalply??
+// #warning Verificar se specific heat e enthalply??
 	return  oil.getSpecificHeatToOil(temperature);
 }
 //----------------

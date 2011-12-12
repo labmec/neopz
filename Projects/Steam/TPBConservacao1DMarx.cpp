@@ -107,7 +107,7 @@ int main()
 	discrete.NextSolution(1., nextsol,nextsol,flux1);
 	nextsol.Print("Next Solution", std::cout);
 	return 0;
-#warning "this should be resolved"
+// #warning "this should be resolved"
 }
 
 void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxfilename, const std::string &energyfilename)

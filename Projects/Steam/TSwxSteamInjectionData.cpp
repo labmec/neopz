@@ -126,7 +126,9 @@ double TSwxSteamInjectionInputData::getRho_C_Estrela(int i,double So) {
 }
 
 // Assume-se que a temperatura esta sendo introduzida em graus Celsius (C), entao sera convertida em graus Kelvin (K)
-TSwxSteamInjectionInputData::TSwxSteamInjectionInputData(TSwxReservoirData& reservoir,TSwxOverburdenData& overrock,double temp,double quality) : fSteamTemperature(temp), fQuality(quality), fReservoirData(reservoir), fOilData(), fWaterInSaturationState(), fOverburdenData(overrock) {
+TSwxSteamInjectionInputData::TSwxSteamInjectionInputData(TSwxReservoirData& reservoir,TSwxOverburdenData& overrock,double temp,double quality) : fReservoirData(reservoir), fOilData(), fWaterInSaturationState(), fOverburdenData(overrock) {
+	fSteamTemperature = temp;
+	fQuality = quality;
 }
 
 TSwxSteamInjectionData::TSwxSteamInjectionData(TSwxReservoirData &reservoir,TSwxOverburdenData &rock_over,double temp,double quality) : fInput(reservoir,rock_over,temp,quality) {
