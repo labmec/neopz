@@ -924,7 +924,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 }
 
 
-/// This is a lengthy process which should run on the remote processor assembling all
+// This is a lengthy process which should run on the remote processor assembling all
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly,
 					  pthread_mutex_t &TestThread)
 {

@@ -64,7 +64,9 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
+#ifdef LOG4CXX
 	InitializePZLOG();
+#endif
 	
 	int dim = 2;
 	int maxlevel = 5;
@@ -149,7 +151,7 @@ int main(int argc, char *argv[])
 		string FileName;
 		FileName = "Times_in_Line.txt";
 		ofstream OutputFile;
-				
+
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -220,14 +222,14 @@ int main(int argc, char *argv[])
 int main2(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
+#ifdef LOG4CXX
 	InitializePZLOG("log4cxx.cfg");
-	
+#endif	
 	int dim = 2;
 	int maxlevel = 4;
 	int sublevel = 1;
 	int plevel = 2;
 	TPZGenSubStruct sub(dim,maxlevel,sublevel);
-	int nk = 8;
 	
 	TPZCompEl::SetgOrder(plevel);
 	
