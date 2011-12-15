@@ -137,7 +137,7 @@ int main() {
 	
 	TPZGeoMesh *gmesh3;
 	// Using ExtendGridDimension from Pre module
-	TPZExtendGridDimension extendmesh(gmesh2.operator->(),0.1);
+	TPZExtendGridDimension extendmesh(gmesh2 ,0.1);
 	gmesh3 = extendmesh.ExtendedMesh();
 	gmesh3->Print(saida);
 	

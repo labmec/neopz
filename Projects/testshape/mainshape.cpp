@@ -122,7 +122,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 	if(dim != 3)
 		dim = 2;
 
-	TPZGeoMesh *g = new TPZGeoMesh;
+	TPZAutoPointer<TPZGeoMesh> g = new TPZGeoMesh;
 	TPZGeoMesh *g_extended = 0;
 	TPZVec<int> nx(3);
 	TPZVec<REAL> X0(3);
@@ -135,13 +135,13 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 	TPZGenGrid gen(nx,X0,X1,1);
 	if(type==1) gen.SetElementType(type);  // type = 1 para elementos triangulares
 	else gen.SetElementType(0);  // type = 0 para elementos quadrilateros
-	gen.Read(*g);
+	gen.Read(g);
 	if(dim == 3) {
 		TPZExtendGridDimension genext(g,1.);
 		g_extended = genext.ExtendedMesh();
 	}
 	else 
-		g_extended = g;
+		g_extended = g.operator->();
 	TPZCompMesh *c = new TPZCompMesh(g_extended);
 	TPZVec<REAL> sol(1,0.);
 	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);

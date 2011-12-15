@@ -48,10 +48,10 @@ public:
 	TPZExtendGridDimension(char *geofile,REAL thickness);
 	/** @brief Constructor using geometric mesh one- or two- dimensional and thickness */
 	TPZExtendGridDimension(TPZAutoPointer<TPZGeoMesh> &finegeomesh,REAL thickness);
-	
+
 	/** @brief Destructor default */
 	~TPZExtendGridDimension(){};
-	
+
 	/**
 	 * @brief It reads the mesh since the archive of entrance finemesh, or since the fFineGeoMesh
 	 * passed in the constructor, and returns extended mesh.
@@ -67,12 +67,12 @@ public:
 	 * @param matidtop Material id to top boundary surface after to extrude process.
 	 */
 	TPZGeoMesh* ExtendedMesh(int naumentedlayers,int matidbottom=0,int matidtop=0);
-	
+
 	/**
 	 * @brief Prints the generated mesh
 	 */
 	void PrintGeneratedMesh(std::ostream &out = std::cout);
-	
+
 };
 
 #endif

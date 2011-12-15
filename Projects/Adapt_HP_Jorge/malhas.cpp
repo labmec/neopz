@@ -516,6 +516,7 @@ TPZCompMesh *CreateMeshLinearConvection(int L, REAL &timeStep){
   return CreateMeshLax2D(L,timeStep);
 }
 
+/*
 void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
@@ -556,6 +557,6 @@ void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh
   TPZEulerEquation::SetLinearConvection(cmesh, celerity);
 #endif
 
-}///method
-
+}//method
+*/
 
