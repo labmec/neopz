@@ -445,7 +445,8 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks;
 				down[seq] = 1;
 				fBlock.Set(seq,0);
-				no.SetSequenceNumber(-1);
+                no.Reset();
+//				no.SetSequenceNumber(-1);
 				fConnectVec.SetFree(i);
 				iremovedblocks++;
 			}
