@@ -63,12 +63,7 @@ protected:
 	/** @brief Element index into mesh element vector */
 	int fIndex;
 	
-private:
-	/**
-	 * Reference to geometric element
-	 */
-	//TPZGeoEl *fReference;
-	
+private:	
 	/** @brief Index of reference element */
 	int fReferenceIndex;
 	

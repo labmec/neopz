@@ -262,7 +262,7 @@ TPZCompEl *TPZAgglomerateElement::SubElement(int sub) const{
 }
 
 
-REAL TPZAgglomerateElement::NormalizeConst(){
+REAL TPZAgglomerateElement::NormalizeConst() {
 	//maior distancia entre o ponto interior e os v�tices do elemento
 	REAL maxsub,maxall = -1.0;
 	int nindex = NIndexes(),i;
@@ -276,8 +276,7 @@ REAL TPZAgglomerateElement::NormalizeConst(){
 }
 
 
-int TPZAgglomerateElement::CreateMidSideConnect(){
-	
+int TPZAgglomerateElement::CreateMidSideConnect() {	
 	if(!Material())
 	{
 		PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
@@ -287,7 +286,6 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
 	TPZStack<TPZCompElSide> list;
 	int dim = Dimension();
 	int InterfaceDimension = this->Material()->Dimension() - 1;
-	//   int existsconnect = 0;
 	
 	if(dim == InterfaceDimension){
 		// o atual �um elemento BC
@@ -295,14 +293,14 @@ int TPZAgglomerateElement::CreateMidSideConnect(){
 		SetDegree(-1);//=> nshape = 0
 	} else {
 		int nvar = Material()->NStateVariables();
-		int newnodeindex = Mesh()->AllocateNewConnect();
+		int newnodeindex = Mesh()->AllocateNewConnect(NShapeF(),nvar,Mesh()->GetDefaultOrder());
 		SetConnectIndex(0,newnodeindex);
 		TPZConnect &newnod = Mesh()->ConnectVec()[newnodeindex];
 		int seqnum = newnod.SequenceNumber();
 		Mesh()->Block().Set(seqnum,nvar*NShapeF());
 		Mesh()->ConnectVec()[ConnectIndex()].IncrementElConnected();
 	}
-	
+
 	return ConnectIndex();
 }
 

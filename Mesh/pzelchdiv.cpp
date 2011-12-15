@@ -4,6 +4,7 @@
  */
 // $Id: pzelctemp.cpp,v 1.42 2008-11-20 23:30:41 phil Exp $
 
+#include "pzcmesh.h"
 #include "pzelchdiv.h"
 #include "pzquad.h"
 #include "pzgeoel.h"
@@ -13,6 +14,7 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
 #endif
@@ -54,38 +56,25 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	
 	//criando o connect da variavel dual
 	
-	int newnodeindex = mesh.AllocateNewConnect();
+	int nshape;
+	if (TSHAPE::Type()==EQuadrilateral)
+		nshape = pzshape::TPZShapeDisc::NShapeF(fPressureOrder, Dimension(), pzshape::TPZShapeDisc::  ETensorial);
+	else if (TSHAPE::Type()==ETriangle)
+		nshape = pzshape::TPZShapeDisc::NShapeF(fPressureOrder, Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
+	else
+		DebugStop();   // Improve it!!!
+
+	int newnodeindex = mesh.AllocateNewConnect(nshape,1,fPressureOrder);
 	TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
-	this->fConnectIndexes[i]=newnodeindex;
+	SetConnectIndex(i,newnodeindex);
 	int seqnum = newnod.SequenceNumber();
-	newnod.SetOrder(fPressureOrder);
-	if (TSHAPE::Type()==EQuadrilateral) {
-		int nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
-		mesh.Block().Set(seqnum,nshape);
-		mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
-	}
-	if (TSHAPE::Type()==ETriangle) {
-		int nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
-		mesh.Block().Set(seqnum,nshape);
-		mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
-	}
-	/*
-	 
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 sout << "After creating last connect " << i << std::endl;
-	 this->Print(sout);
-	 LOGPZ_DEBUG(logger,sout.str())
-	 }
-	 #endif
-	 */
+	mesh.Block().Set(seqnum,nshape);
+	mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
+
 	int sideorder = SideOrder(TSHAPE::NSides-1);
 	sideorder = 2*sideorder;
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
-	//  TPZManVector<int,3> order(3,2*sideorder+2);
 	TPZManVector<int,3> order(3,sideorder);
-	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
 	
 }
@@ -181,10 +170,8 @@ int TPZCompElHDiv<TSHAPE>::DualOrder() {
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnects() const {
 	int dimension = Dimension()-1;
-	
+
 	return TSHAPE::NumSides(dimension) + 2;//acrescentando um connect mais pra variavel dual
-	
-	
 }
 
 template<class TSHAPE>

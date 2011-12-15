@@ -403,12 +403,11 @@ int TPZCompElDisc::CreateMidSideConnect(){
 		//o atual �um elemento de volume e
 		//n� achou-se um elemento superposto
 		int nvar = Material()->NStateVariables();
-		int newnodeindex = Mesh()->AllocateNewConnect();
+		int newnodeindex = Mesh()->AllocateNewConnect(NShapeF(),nvar,Mesh()->GetDefaultOrder());
 		SetConnectIndex(0,newnodeindex);
 		TPZConnect &newnod = Mesh()->ConnectVec()[newnodeindex];
 		int seqnum = newnod.SequenceNumber();
-		const int nshape = this->NShapeF();
-		Mesh()->Block().Set(seqnum,nvar*nshape);
+		Mesh()->Block().Set(seqnum,nvar*NShapeF());
 		Mesh()->ConnectVec()[fConnectIndex].IncrementElConnected();
 	}
 	

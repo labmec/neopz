@@ -267,8 +267,9 @@ public:
 	//@{
 	/**
 	 * @brief Returns an index to a new connect
-	 * @param blocksize new connect block size - default value = 0
-	 * @param order order of approximation
+	 * @param nshape Number of function shapes
+	 * @param nstate Number of variable state, depending of the material.
+	 * @param order Order of approximation
 	 */
 	virtual  int AllocateNewConnect(int nshape, int nstate, int order);
 	
