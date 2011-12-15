@@ -478,7 +478,12 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	int c;
 	for(;in<cornod; in++) {
 		c = connectlistcoarse[in];
+        int nshape = coarsel.Mesh()->ConnectVec()[c].NShape();
 		int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
+        if(nshape != blsize)
+        {
+            DebugStop();
+        }
 		corblock.Set(in,blsize);
 		corblocksize.Push(blsize);
 		cormatsize += blsize;
@@ -641,16 +646,17 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 			newnodeindex =  elvec[nel-1].ConnectIndex();
 			SetConnectIndex(nodloc,newnodeindex);
 		} else {
-			newnodeindex = cmesh->AllocateNewConnect();
+            int order = cmesh->GetDefaultOrder();
+            int nshape = NConnectShapeF(nodloc);
+			newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 			TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
 			if(newnod.HasDependency()) {
 				LOGPZ_DEBUG(logger, "CreateMidSideConnect, new node has dependency");
 				newnod.Print(*cmesh);
 			}
 			int seqnum = newnod.SequenceNumber();
-			newnod.SetOrder(cmesh->GetDefaultOrder());
 			SetConnectIndex(nodloc,newnodeindex);   //Is true only to one-dimensional case
-			cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
+			cmesh->Block().Set(seqnum,nvar*nshape);
 			// We created a new node, check whether the node needs to be constrained
 			TPZCompElSide father = thisside.LowerLevelElementList(1);
 			if(father.Exists()) {
@@ -680,12 +686,13 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		newnodeindex = cel->ConnectIndex(cel->MidSideConnectLocId(side_neig));
 		SetConnectIndex(nodloc,newnodeindex);
 	} else {
-		newnodeindex = cmesh->AllocateNewConnect();
+        int nshape = NConnectShapeF(nodloc);
+        int order = cmesh->GetDefaultOrder();
+		newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 		TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
-		newnod.SetOrder( cmesh->GetDefaultOrder());
 		int seqnum = newnod.SequenceNumber();
 		SetConnectIndex(nodloc,newnodeindex);
-		cmesh->Block().Set(seqnum,nvar*NConnectShapeF(nodloc));
+		cmesh->Block().Set(seqnum,nvar*nshape);
 		newnodecreated = 1;
 	}
 	TPZCompElSide father = thisside.LowerLevelElementList(1);
@@ -865,11 +872,26 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	TPZBlock MBlocksmall(0,numsidenodes_small), MBlocklarge(0,numsidenodes_large);
 	for(in = 0; in<numsidenodes_small; in++) {
 		int locid = SideConnectLocId(in,side);
-		MBlocksmall.Set(in,NConnectShapeF(locid));
+        int nshape = NConnectShapeF(locid);
+#ifdef DEBUG
+        TPZConnect &c = Connect(locid);
+        if(c.NShape() != nshape)
+        {
+            DebugStop();
+        }
+#endif
+		MBlocksmall.Set(in,nshape);
 	}
 	for(in = 0; in<numsidenodes_large; in++) {
 		int locid = large->SideConnectLocId(in,neighbourside);
-		MBlocklarge.Set(in,large->NConnectShapeF(locid));
+        int nshape = large->NConnectShapeF(locid);
+#ifdef DEBUG
+        TPZConnect &c = large->Connect(locid);
+        if (c.NShape() != nshape) {
+            DebugStop();
+        }
+#endif
+		MBlocklarge.Set(in,nshape);
 	}
 	
 	MBlocksmall.Resequence();
@@ -1636,8 +1658,16 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	ef.fBlock.SetNBlocks(ncon);
 	TPZVec<REAL> sol(numdof,0.);
 	for(i=0;i<ncon;i++)
-		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
-	
+    {
+        int nshape = NConnectShapeF(i);
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if (c.NShape() != nshape || c.NState() != numdof) {
+            DebugStop();
+        }
+#endif
+		ef.fBlock.Set(i,nshape*numdof);
+	}
 	int in,jn;
 	TPZConnect *df;
 	
@@ -1743,8 +1773,16 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 	ef.fBlock.SetNBlocks(ncon);
 	
 	for (i = 0; i < ncon ; i++)	{
-		ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
-		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+        int nshape = NConnectShapeF(i);
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if(c.NShape() != nshape || c.NState() != numdof)
+        {
+            DebugStop();
+        }
+#endif
+		ek.fBlock.Set(i,nshape*numdof);
+		ef.fBlock.Set(i,nshape*numdof);
 	}
 	
 	ek.fConnect.Resize(ncon);

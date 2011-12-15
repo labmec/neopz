@@ -64,6 +64,7 @@ struct TPZElementMatrix {
     {
     }
 	
+    TPZElementMatrix(const TPZElementMatrix &copy);
 	
 	~TPZElementMatrix(){
 	}
@@ -85,6 +86,10 @@ struct TPZElementMatrix {
 	void SetMatrixMinSize(short NumBli, short NumBlj, short BlMinSizei, short BlMinSizej);
 	
 	void ComputeDestinationIndices();
+    
+    /** @brief permute the order of the connects
+     */
+    void PermuteGather(TPZVec<int> &permute);
 	
 	
 	/** @brief Returns true if the element has at least one dependent node. Returns false otherwise */
