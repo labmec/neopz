@@ -1,6 +1,5 @@
 //$Id: MultiResMesh.cpp,v 1.6 2009-11-04 14:13:24 fortiago Exp $
 
-#include "malhas.h"
 #include "TPZFakeFunction.h"
 #include "tpzautopointer.h"
 #include "pzfunction.h"
@@ -209,8 +208,6 @@ void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
 #endif
 }
 
-
-
 void DefineRefinementPattern ( TPZGeoMesh * GMesh )
 {
   // --- Define the refinement patterns for tetrahedra -------
@@ -219,7 +216,8 @@ void DefineRefinementPattern ( TPZGeoMesh * GMesh )
   string tetraFile ( "LaraRefineTetrahedron.txt" );
 
   // Create and initialize an object to store the pattern
-  TPZRefPattern *tetraPattern = new TPZRefPattern ( GMesh, tetraFile );
+	TPZRefPattern *tetraPattern = new TPZRefPattern (*GMesh);
+	tetraPattern->SetName(tetraFile );
 
   // Include the pattern info into the mesh
   tetraPattern->InsertPermuted();
@@ -227,14 +225,14 @@ void DefineRefinementPattern ( TPZGeoMesh * GMesh )
   // Remove this object
   delete tetraPattern;
 
-
   // --- Define the refinement patterns for triangles -------
 
   // Read the refinement pattern
   string triangleFile ( "LaraRefineTriangle.txt" );
 
   // Create and initialize an object to store the pattern
-  TPZRefPattern * trianglePattern = new TPZRefPattern ( GMesh, triangleFile );
+	TPZRefPattern * trianglePattern = new TPZRefPattern (*GMesh);
+	trianglePattern->SetName(triangleFile );
 
   // Include the pattern info into the mesh
   trianglePattern->InsertPermuted();
@@ -242,13 +240,9 @@ void DefineRefinementPattern ( TPZGeoMesh * GMesh )
   // Remove this object
   delete trianglePattern;
 
-  //Select the correct refinement pattern  for the tetrahedra
-  // Define the element type (tetrahedron)
-  MElementType eltype = ETetraedro;
-
   // Take the map of every refinement pattern for a tetrahedron defined into the mesh
   // the map below provides a relation between an index and a pointer to an object of type refinement pattern
-  map < int, TPZAutoPointer < TPZRefPattern > > mapOfTetraRefPattern = GMesh->RefPatternList ( eltype );
+	map < int, TPZAutoPointer < TPZRefPattern > > mapOfTetraRefPattern;   // = GMesh->RefPatternList ( eltype );
   map < int, TPZAutoPointer < TPZRefPattern > >::iterator it;
 
   // this is the first refinement pattern available = uniform pattern (include 2 pyramids)

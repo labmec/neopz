@@ -22,6 +22,8 @@
 #include <map>
 #include <list>
 
+using namespace std;
+
 /**
  Public interface:
 

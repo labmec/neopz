@@ -38,130 +38,129 @@ extern int gLMax;
 int mainAdapt ( int argc, char *argv[] )
 {
 	// --- Start -----------------------------------------------
-
+	
 	cout << "lara: starting ..." << endl;
-
-
+	
+	
 	// --- Define the coarse mesh ------------------------------
-
+	
 	// Read coarse mesh file
 	TPZReadMeshHR Dummy ( "LaraMesh.txt" );
-
+	
 	// Create an object to store the geometrical mesh
 	TPZGeoMesh * gDummyMesh = NULL;
-
+	
 	// Initialize object from read data
 	gDummyMesh = Dummy.readGeoMesh();
-
-
+	
+	
 	// --- Define the refinement patterns for tetrahedra -------
-
+	
 	// Read the refinement pattern
 	string tetraFile ( "LaraRefineTetrahedron.txt" );
-
+	
 	// Create and initialize an object to store the pattern
-	TPZRefPattern *tetraPattern = new TPZRefPattern ( gDummyMesh, tetraFile );
-
+	TPZRefPattern *tetraPattern = new TPZRefPattern ( *gDummyMesh);
+	tetraPattern->SetName(tetraFile );
+	
 	// Include the pattern info into the mesh
 	tetraPattern->InsertPermuted();
-
+	
 	// Remove this object
 	delete tetraPattern;
-
-
+	
+	
 	// --- Define the refinement patterns for triangles -------
-
+	
 	// Read the refinement pattern
 	string triangleFile ( "LaraRefineTriangle.txt" );
-
+	
 	// Create and initialize an object to store the pattern
-	TPZRefPattern * trianglePattern = new TPZRefPattern ( gDummyMesh, triangleFile );
-
+	TPZRefPattern * trianglePattern = new TPZRefPattern ( *gDummyMesh);
+	trianglePattern->SetName(triangleFile );
+	
 	// Include the pattern info into the mesh
 	trianglePattern->InsertPermuted();
-
+	
 	// Remove this object
 	delete trianglePattern;
-
+	
 	// --- Divide elements ------------------------------------
-
+	
 	// Take the first element of the mesh and write it into geo
 	TPZGeoEl *geo = gDummyMesh->ElementVec()[ 0 ];
-
+	
 	// Create vector of geometric elements
 	// This vector returns the pointers to the children
 	TPZVec < TPZGeoEl * > childVector;
-
-	// Define the element type (tetrahedron)
-	MElementType eltype = ETetraedro;
-
+	
 	// Take the map of every refinement pattern for a tetrahedron defined into the mesh
 	// the map below provides a relation between an index and a pointer to an object of type refinement pattern
-	map < int, TPZAutoPointer < TPZRefPattern > > mapOfTetraRefPattern = gDummyMesh->RefPatternList ( eltype );
+	map < int, TPZAutoPointer < TPZRefPattern > > mapOfTetraRefPattern; //=  gDummyMesh->RefPatternList ( eltype );
 	map < int, TPZAutoPointer < TPZRefPattern > >::iterator it;
-
+	
 	// this is the first refinement pattern available = uniform pattern (include 2 pyramids)
 	// NOTE: this is not what we want
 	it = mapOfTetraRefPattern.begin();
-
+	
 	// incresing the iterator, we have a pointer to the second refinement pattern available
 	// i.e. the refinement pattern defined into the file "LaraRefineTetrahedron.txt"
 	it++;
-
+	
 	// *(it->first) = index of refinement pattern;
 	// it->second = pointer to refinement pattern;
 	// TPZAutoPointer is an auxiliary structure to provide garbage collector facility
 	TPZAutoPointer < TPZRefPattern > laraRefinePattern = it->second;
 	geo->SetRefPattern ( laraRefinePattern );
 	//@NOTE: must define the same refinement pattern to all children of the element!
-
+	
 	// --- Create an computational mesh ----------------------
 	// Computational mesh implements the interpolation space over de partition of the domain defined in geometric mesh
 	// The parameter is the geometric mesh
 	TPZCompMesh * cDummyMesh = new TPZCompMesh ( gDummyMesh );
-
+	
 	// Specify the use of discontinuous interpolation space
 	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
-
+	
 	// --- Material / Equation data:
 	// first parameter is the material identifier ( identifier is defined in element sectio of file LaraMesh.txt )
 	// second parameter is the parameter gamma ( I think that is some parameter of the equation - please confirm it!)
 	TPZAutoPointer < TPZMaterial > eulerMaterial = new TPZEulerEquation ( 1, 1.4 );
-
+	
 	// Insert the created material into the material data base of the computational mesh
 	cDummyMesh->InsertMaterialObject ( eulerMaterial );
-
+	
 	//@NOTE: must create the boundary condition material...
 	// first parameter is the material wich boundary condition will be applied
 	// second parameter is material identifier ( as specified into the element definition section of the file LaraMesh.txt
 	// third and fourth parameters: depends on the material... Ask to Tiago
 	TPZFMatrix val1( 1, 1, 0. ), val2( 1, 1, 0. );
 	TPZAutoPointer < TPZMaterial > boundaryCondition = eulerMaterial->CreateBC ( eulerMaterial, -1, 1, val1, val2 );
-
+	
 	// Method to create the interpolation spaces
 	cDummyMesh->AutoBuild();
-
+	
 	int ref = 0;
 	int nref = 5;
 	for ( ref=0; ref < nref; ref++ )
 	{
 		// Creates an analysis
 		TPZAnalysis eulerAnalysis ( cDummyMesh );
-
+		
 		TPZSkylineStructMatrix strskyl ( cDummyMesh );
 		eulerAnalysis.SetStructuralMatrix ( strskyl );
 		TPZStepSolver * direct = new TPZStepSolver;
 		direct->SetDirect ( ECholesky );
 		eulerAnalysis.SetSolver ( * direct );
 		delete direct;
-
+		
 		eulerAnalysis.Run ();
 		eulerAnalysis.PostProcess ( 0, 2 );
-
+		
 		TPZVec < EAdaptElementAction > DivideOrCoarsen;
 		// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 		ErrorEstimation ( * cDummyMesh, DivideOrCoarsen,0.0001 );
-
+		
 		AdaptMesh ( * cDummyMesh,  DivideOrCoarsen, laraRefinePattern );
 		ofstream outStreamAdapted ( "refined_Lara.txt" );
 		//print computational mesh;
@@ -199,28 +198,28 @@ TPZAutoPointer < TPZRefPattern > GetUsedRefinementPattern ( TPZCompMesh * CMesh 
  */
 void GetAdaptedMesh ( TPZCompMesh * CMesh, double Epsl )
 {
-
-  cout << "\ngLMax = " << gLMax << "\n";
-  cout.flush();
-
+	
+	cout << "\ngLMax = " << gLMax << "\n";
+	cout.flush();
+	
 	const int nelem = CMesh->NElements();
 	TPZManVector < EAdaptElementAction,1000 > DivideOrCoarsen ( nelem, ENone );
 	// Call the error evaluation and fill the decision vector for each element ( divide - coarse - none )
 	ErrorEstimation ( * CMesh, DivideOrCoarsen, Epsl );
- cout << " GetUsedRefinementPattern " << endl;cout.flush();
+	cout << " GetUsedRefinementPattern " << endl;cout.flush();
 	TPZAutoPointer < TPZRefPattern > laraRefinementPattern = GetUsedRefinementPattern ( CMesh );
- cout << " AdaptMesh " << endl;cout.flush(); 
+	cout << " AdaptMesh " << endl;cout.flush(); 
 	AdaptMesh ( * CMesh,  DivideOrCoarsen, laraRefinementPattern );
-  cout << " GetAdaptedMesh finished " << endl;cout.flush(); 
+	cout << " GetAdaptedMesh finished " << endl;cout.flush(); 
 }
 
 /**
  * Auxiliar method to get the solution and the gradients from the PZ solution data structure
  */
 void GetSolution ( TPZCompMesh & CMesh,
-				   TPZCompEl * CEl,
-				   TPZVec < REAL > & Solutions,
-				   TPZVec < REAL > & Gradients )
+				  TPZCompEl * CEl,
+				  TPZVec < REAL > & Solutions,
+				  TPZVec < REAL > & Gradients )
 {
 	if ( ! CEl ) return;
 	Solutions.Resize ( 5 );
@@ -239,68 +238,55 @@ void GetSolution ( TPZCompMesh & CMesh,
 }
 //-----------------------------------------------------------------------------------------------
 
-// ofstream detailfile("detail.txt");
-// ofstream dividecoarsenfile("dividecoarsen.txt");
-// int contador = 0;
-void ErrorEstimation ( TPZCompMesh & CMesh,
-					   TPZVec < EAdaptElementAction > & DivideOrCoarsen,
+void ErrorEstimation(TPZCompMesh & CMesh,
+					  TPZVec < EAdaptElementAction > & DivideOrCoarsen,
 					  double Epslref)
 {
-
+	
 	int nel = CMesh.NElements();
 	DivideOrCoarsen.Resize ( nel );
 	DivideOrCoarsen.Fill ( ENone );
-
+	
 	// the average solutions are: rho , v (as vector ) and P
 	TPZVec < REAL > AverageSolutionFineVec ( 3, 0.0 );
 	//TPZVec < REAL > AverageSolutionCoarseVec ( 3, 0.0 );
-
+	
 	TPZVec < TPZCompMesh * > gradedMeshVec;
 	//Produce graded mesh vector, projecting the solution
- cout <<  "ProduceGradedMeshes ... \n"; cout.flush();
+	cout <<  "ProduceGradedMeshes ... \n"; cout.flush();
 	ProduceGradedMeshes ( CMesh, gradedMeshVec );
-
+	
 	//evaluate uhat for each level
 	map < int, vector < vector < double > > > levelToElementUhatVec;
- cout <<  "EvaluateUHat( ... \n"; cout.flush(); 
+	cout <<  "EvaluateUHat( ... \n"; cout.flush(); 
 	EvaluateUHat ( gradedMeshVec, levelToElementUhatVec );
-
+	
 	//Evaluate average solution for each state variable
 	//TPZCompMesh * coarseMesh = gradedMeshVec[ 1 ];
 	TPZCompMesh * fineMesh = gradedMeshVec [ 2 ];
-
-cout <<  "EvaluateAverageOfSolution( ... \n"; cout.flush();
+	
+	cout <<  "EvaluateAverageOfSolution( ... \n"; cout.flush();
 	EvaluateAverageOfSolution ( * fineMesh, AverageSolutionFineVec );
 	//EvaluateAverageOfSolution ( * coarseMesh, AverageSolutionCoarseVec );
-
+	
 	cout << "Average fine " << AverageSolutionFineVec << endl;
-	///cout << "Average coarse " << AverageSolutionCoarseVec << endl; 
 	
 	TPZManVector < REAL,1000 > fineDetail;
-	//TPZManVector < REAL,1000 > coarseDetail;
- cout <<  "EvaluateDetail( ... \n"; cout.flush(); 
+	cout <<  "EvaluateDetail( ... \n"; cout.flush(); 
 	EvaluateDetail ( * fineMesh , AverageSolutionFineVec, levelToElementUhatVec, fineDetail );
-	//EvaluateDetail ( * coarseMesh, AverageSolutionCoarseVec, levelToElementUhatVec, coarseDetail );
-
-//   detailfile << "contador = " << contador << endl; 
-
-
-cout <<  "Adaptando ... \n"; cout.flush();
+	
+	cout <<  "Adaptando ... \n"; cout.flush();
 	int i = 0;
-  fineMesh->Reference()->ResetReference();
-  fineMesh->LoadReferences(); 
+	fineMesh->Reference()->ResetReference();
+	fineMesh->LoadReferences(); 
 	for ( i = 0; i < fineDetail.NElements(); i++ )
 	{
 		TPZCompEl * cel = fineMesh->ElementVec()[ i ];
 		if (!cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0) continue;
-    //fineMesh->Reference()->ResetReference();
-    //fineMesh->LoadReferences();
-
+		
 		int l = fineMesh->ElementVec()[i]->Reference()->Level();
 		double Epsl = Epslref * pow ( 2.0 ,(double)( l - gLMax ));
-    
-//     detailfile << i << "\t" << fineDetail[i] << "\t" << Epsl << endl;
-    
+		
 		if ( fineDetail[ i ] > Epsl )
 		{
 			DivideOrCoarsen[ i ] = EDivide;
@@ -308,45 +294,16 @@ cout <<  "Adaptando ... \n"; cout.flush();
 		}
 		if ( fineDetail[ i ] < Epsl )
 		{
-			/*coarseMesh->Reference()->ResetReference();
-			coarseMesh->LoadReferences();
-
-			TPZCompEl * fineCel = fineMesh->ElementVec() [ i ];
-			if ( ! fineCel )
-			{
-				continue;
-			}
-			TPZGeoEl * sonGel = fineCel->Reference();
-			if ( ! sonGel )
-			{
-				continue;
-			}
-			TPZGeoEl * fatherGel = sonGel->Father();
-			if ( ! fatherGel )
-			{
-				continue;
-			}
-			TPZCompEl *fatherCel = fatherGel->Reference();
-			if ( ! fatherCel )
-			{
-				continue;
-			}
-			int coarseIndex = fatherCel->Index();
-			if ( coarseDetail [ coarseIndex ] < Epsl ) */ DivideOrCoarsen[ i ] = ECoarse;
+			DivideOrCoarsen[ i ] = ECoarse;
 		}
 	}
-//  detailfile.flush(); 
-//  dividecoarsenfile << "contador = " << contador << endl;
-//  for(int i = 0; i < DivideOrCoarsen.NElements(); i++) dividecoarsenfile << i << "\t" << DivideOrCoarsen[i] << endl;
-//  dividecoarsenfile.flush();
-//  contador++;
 }
 
 
 void EvaluateDetail ( TPZCompMesh & CMesh,
-					  TPZVec < REAL > & AverageSolutionVec,
-					  map < int, vector < vector < double > > > & levelToElementUhatVec,
-					  TPZVec < REAL > & Detail )
+					 TPZVec < REAL > & AverageSolutionVec,
+					 map < int, vector < vector < double > > > & levelToElementUhatVec,
+					 TPZVec < REAL > & Detail )
 {
 	int iel = 0;
 	int nel = CMesh.NElements();
@@ -384,8 +341,8 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	{
 		TPZCompEl * cel = CMesh.ElementVec()[ iel ];
 		if ( ! cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
-
-		int celIdx = cel->Index();
+		
+		unsigned int celIdx = (unsigned int)cel->Index();
 		int celLevel = cel->Reference()->Level();
 		if ( levelToElementUhatVec.find(celLevel) == levelToElementUhatVec.end()) continue;
 		if ( celIdx < 0 || celIdx >= levelToElementUhatVec[ celLevel].size() ) continue;
@@ -394,7 +351,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 		TPZVec < REAL > grad ( 15, 0.0 );
 		GetSolution ( CMesh, cel, sol, grad );
 		double maxDetail = 0.0;
-
+		
 		double aux =  AverageSolutionVec[ 0 ] ;
 		double dRho = 0.0;
 		double dU = 0.0;
@@ -414,11 +371,11 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 		
 		dVel = sqrt ( dU * dU + dV * dV + dW * dW );
 		maxDetail = ( dVel > maxDetail ) ? dVel : maxDetail;
-
+		
 		aux = AverageSolutionVec[ 4 ];
 		if ( fabs (aux) > tol ) dP = fabs ( sol[ 4 ] - uhat [ 4 ] ) / aux ;
 		maxDetail = ( dP > maxDetail ) ? dP : maxDetail;
-
+		
 		Detail [ celIdx ] = maxDetail;
 #ifdef LOG4CXX
 		sout << "Detail for element [ " << celIdx << " ] = " << sol[0] << " - " << uhat[0] << " = " << dRho << " | " << dVel << " | " << dP << endl;
@@ -431,7 +388,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 
 
 void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
-						   TPZVec < TPZCompMesh * > & gradedMeshVec )
+						  TPZVec < TPZCompMesh * > & gradedMeshVec )
 {
 #ifndef NDEBUG
 	{
@@ -480,7 +437,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	(gradedMeshVec [0])->LoadReferences();
-  
+	
 #ifndef NDEBUG
 	{
 		if ( !CheckReferences(*gradedMeshVec[0]) )
@@ -493,7 +450,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 		}
 	}
 #endif
-
+	
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
 	{
@@ -514,7 +471,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 	for ( im = 1; im < nlevels; im++ )
 	{
-    cout << "clonando nivel " << im << "\n"; cout.flush(); 
+		cout << "clonando nivel " << im << "\n"; cout.flush(); 
 		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
 #ifndef NDEBUG
 		{
@@ -560,20 +517,20 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	int maxLevel = 0;
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-{
-	TPZGeoMesh * gMesh = OriginalMesh.Reference();
-	int i =0;
-	std::stringstream sout;
-	sout << " Antes do clone: ";
-	for (i=0;i<gMesh->NElements();i++)
 	{
-		TPZGeoEl *gel = gMesh->ElementVec()[i];
-		if (!gel) continue;
-		sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+		TPZGeoMesh * gMesh = OriginalMesh.Reference();
+		int i =0;
+		std::stringstream sout;
+		sout << " Antes do clone: ";
+		for (i=0;i<gMesh->NElements();i++)
+		{
+			TPZGeoEl *gel = gMesh->ElementVec()[i];
+			if (!gel) continue;
+			sout << gel->Index() << " = " << gel->NumInterfaces() << "\t";
+		}
+		sout << endl;
+		LOGPZ_DEBUG(logger,sout.str().c_str());
 	}
-	sout << endl;
-	LOGPZ_DEBUG(logger,sout.str().c_str());
-}
 #endif
 #endif
 	TPZCompMesh * CoarseMesh = OriginalMesh.Clone();
@@ -638,7 +595,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		TPZVec<int> subCElVec ( nsubel );
 		int isub = 0;
 		int isol = 0;
-
+		
 		TPZVec <REAL>  solutionVec ( 5,0. );//blocksize );
 		REAL fatherVolume = father->Volume();
 		
@@ -693,9 +650,9 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	    	cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 	    }
 		CoarseMesh->ExpandSolution();
-// 		CoarseMesh->CleanUpUnconnectedNodes();
-// 		CoarseMesh->AdjustBoundaryElements();
-// 		CoarseMesh->ExpandSolution();
+		// 		CoarseMesh->CleanUpUnconnectedNodes();
+		// 		CoarseMesh->AdjustBoundaryElements();
+		// 		CoarseMesh->ExpandSolution();
 		
 		TPZConnect coarseCon = coarseEl->Connect(0);
 		int coarseSeqNum = coarseCon.SequenceNumber();
@@ -712,7 +669,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 			coarseBlock.Put( coarseSeqNum, 0, isol, 0, 0.0 );
 		}
 	}
-  
+	
     CoarseMesh->ExpandSolution();
     CoarseMesh->CleanUpUnconnectedNodes();
     CoarseMesh->AdjustBoundaryElements();
@@ -745,21 +702,18 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 	int idim = 0;	// dimension iterator
 	TPZVec < REAL > solution ( 5, 0.0 );
 	TPZVec < REAL > gradient ( 15, 0.0 );
-
-	for ( im = nlevels - 1; im > 0; im-- )
+	
+	for(im = nlevels-1; im > 0; im-- )                  // Problema com eficiencia 
 	{
 		TPZCompMesh * coarseMesh = gradedMeshVec[ im ];
 		coarseMesh->Reference()->RestoreReference(coarseMesh);
 		int nel = coarseMesh->NElements();
-//     cout << "nivel = " << im << "  com nel = " << nel << endl;   
 		vector < vector < double > > uhatVal ( nel );
 		for ( iel = 0; iel < nel; iel++ )
-		{
-//       if(iel % 1000 == 0) cout << iel << " ";  cout.flush();
-			
+		{			
 			TPZCompEl * cel = coarseMesh->ElementVec()[ iel ];
 			if ( !cel || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
-       
+			
 			TPZGeoEl * gel = cel->Reference();
 			if ( !gel ) continue;
 			if ( ! gel->HasSubElement() )
@@ -767,30 +721,30 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 				//copy uhat do nível anterior...
 				return;
 			}
-      coarseMesh->Reference()->RestoreReference(coarseMesh);     
+			coarseMesh->Reference()->RestoreReference(coarseMesh);     
 			int nsubel = gel->NSubElements();
 			TPZVec < REAL > qsi(3,0.),fatherCenter (3,0.);
 			gel->CenterPoint ( gel->NSides() - 1, qsi);
-      gel->X(qsi,fatherCenter);
-
-
+			gel->X(qsi,fatherCenter);
+			
+			
 			TPZCompMesh * fineMesh = gradedMeshVec[ im - 1 ];
 			fineMesh->Reference()->RestoreReference(fineMesh);
-
+			
 			for ( isub = 0; isub < nsubel; isub++ )
 			{
 				TPZGeoEl * subGel = gel->SubElement( isub );
 				if (!subGel) continue;
 				TPZCompEl * subCel = subGel->Reference();
 				if (!subCel) continue;
-
+				
 				GetSolution ( * fineMesh, subCel, solution, gradient );
-
+				
 				int subcelIdx = subCel->Index();
 				TPZVec < REAL > sonCenter (3,0.);
 				subGel->CenterPoint ( subGel->NSides() - 1, qsi );
-        subGel->X(qsi,sonCenter);    
-
+				subGel->X(qsi,sonCenter);    
+				
 				// take the solution and the gradient value from coarse mesh
 				vector < double > uhat ( 5, 0.0 );
 				for ( ist = 0; ist < 5; ist++)
@@ -806,10 +760,10 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 				{
 					stringstream sout;
 					sout << "Uhat for [ " << subcelIdx  << " ] = " << uhat [ 0 ] << " , "
-									 << uhat [ 1 ] << " , "
-									 << uhat [ 2 ] << " , "
-									 << uhat [ 3 ] << " , "
-					                 << uhat [ 4 ] << endl;
+					<< uhat [ 1 ] << " , "
+					<< uhat [ 2 ] << " , "
+					<< uhat [ 3 ] << " , "
+					<< uhat [ 4 ] << endl;
 					LOGPZ_DEBUG ( logger, sout.str().c_str() );
 				}
 #endif
@@ -844,7 +798,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 
 //Must return || < u > || = Sum over elements ( fabs ( Center_Solution ) * Element_Volume ) / Domain_Volume;
 void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
-								  TPZVec < REAL > & AverageVec )
+								 TPZVec < REAL > & AverageVec )
 {
 	double volumeOfMesh = 0.0;
 	double volumeOfElement = 0.0;
@@ -853,9 +807,9 @@ void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
 	TPZVec < REAL > solution ( 5, 0.0 );
 	TPZVec < REAL > gradient ( 15, 0.0 );
 	AverageVec.Resize ( 5, 0.0 );
-
+	
 	int ncel = CompMesh.NElements();
-
+	
 	// proceed for each element: take the solution for each state variable and evaluate its norm
 	// multiply the norm of state solution by the volume of the element
 	// increase the average vector
@@ -871,7 +825,7 @@ void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
 		}
 		volumeOfMesh += volumeOfElement;
 	}
-
+	
 	// divide the values by the volume of the entire domain...
 	for ( ist = 0; ist < 5; ist++ )
 	{
@@ -881,8 +835,8 @@ void  EvaluateAverageOfSolution ( TPZCompMesh & CompMesh,
 
 // ofstream reallydividecoarsenfile("reallydividecoarsen.txt");
 void AdaptMesh ( TPZCompMesh & CMesh,
-				 TPZVec < EAdaptElementAction > & DivideOrCoarsen,
-				 TPZAutoPointer < TPZRefPattern > & RefPattern )
+				TPZVec < EAdaptElementAction > & DivideOrCoarsen,
+				TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	//Firt verify if some element marked to coarsen have a brother marked to refine
 	int el = 0;
@@ -938,15 +892,10 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			if(DivideOrCoarsen[el] != ENone) sout << el << ":" << DivideOrCoarsen[el] << " ";
 		}
 		sout << std::endl;
-		//CMesh.Print(sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-
-//   reallydividecoarsenfile << "contador = " << contador-1 << endl;
-//  for(int i = 0; i < DivideOrCoarsen.NElements(); i++) reallydividecoarsenfile << i << "\t" << DivideOrCoarsen[i] << endl;
-//  reallydividecoarsenfile.flush();
-
+	
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();	
 	//Let's divide the elements
 	for (el=0;el<nel;el++)
@@ -1002,21 +951,19 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 			}
 			CMesh.ExpandSolution();
-			/*CMesh.CleanUpUnconnectedNodes();
-			CMesh.AdjustBoundaryElements();
-			CMesh.ExpandSolution();		*/}
+		}
 	}
 	CMesh.ExpandSolution();
 	CMesh.CleanUpUnconnectedNodes();
 	CMesh.AdjustBoundaryElements();
 	CMesh.ExpandSolution();
 #ifdef LOG4CXX_KEEP
-		{
-			std::stringstream sout;
-			CMesh.ExpandSolution();
-			CMesh.Print(sout);
-			LOGPZ_DEBUG(logger,sout.str())
-		}
+	{
+		std::stringstream sout;
+		CMesh.ExpandSolution();
+		CMesh.Print(sout);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
 #endif
 	int isol;
 	//Let's coarsen the elements
@@ -1025,7 +972,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if ( DivideOrCoarsen[el] != ECoarse ) continue;
 		TPZCompEl *cel = CMesh.ElementVec()[el];
 		if (!cel  || cel->Type() != EDiscontinuous || cel->NConnects() == 0 ) continue;
-    if(cel->Reference()->Dimension() != 3) continue;
+		if(cel->Reference()->Dimension() != 3) continue;
 		TPZGeoEl *gel = cel->Reference();
 		TPZGeoEl *father = gel->Father();
 		if ( !father ) continue; //there are not brothers to coasen
@@ -1058,9 +1005,9 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			int subindex = subCel->Index();
 			if ( DivideOrCoarsen[subindex] == EDivide )
 			{
-//        cout << "\ncedric = ";   
-//        int opa;
-//        cin >> opa;
+				//        cout << "\ncedric = ";   
+				//        int opa;
+				//        cin >> opa;
 				break;
 			}
 			subCElVec [isub] = subindex;
@@ -1089,7 +1036,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 				solutionVec[ isol ] += solution[isol] * fabs(sonVolume);			
 			}
 		}
-
+		
 		if ( isub == nsubel ) //all brothers are marked to coarse
 		{
 			for ( isub=0; isub<nsubel; isub++ )
@@ -1107,7 +1054,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 				for (int ccc= 0; ccc<subCElVec.NElements();ccc++)
 				{
 					sout << CMesh.ElementVec()[ccc]->Index() << "\t" 
-					     << CMesh.ElementVec()[ccc]->Reference()->Index() << "\t"
+					<< CMesh.ElementVec()[ccc]->Reference()->Index() << "\t"
 					<< CMesh.ElementVec()[ccc]->Reference()->Father()-> Index() << endl;
 				}
 				sout << "Father\n";
@@ -1131,9 +1078,9 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			{
 				cout << __PRETTY_FUNCTION__ << " Created a non discontinuous element\n";
 			}
-// 			CMesh.ExpandSolution();
-// 			CMesh.CleanUpUnconnectedNodes();
-// 			CMesh.AdjustBoundaryElements();
+			// 			CMesh.ExpandSolution();
+			// 			CMesh.CleanUpUnconnectedNodes();
+			// 			CMesh.AdjustBoundaryElements();
 			CMesh.ExpandSolution();
 			
 			TPZConnect coarseCon = coarseEl->Connect(0);
@@ -1159,13 +1106,13 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	CMesh.AdjustBoundaryElements();
 	CMesh.ExpandSolution();
 	//By now, the mesh is adapted. We need to check the difference of level of refinement between neighbors
-// 	CheckRefinementLevel ( CMesh, RefPattern );
+	// 	CheckRefinementLevel ( CMesh, RefPattern );
 }
 
 
 // Select the elements with low level of refinement (when comparing with the neighbors)
 void CheckRefinementLevel ( TPZCompMesh & CMesh,
-							TPZAutoPointer < TPZRefPattern > & RefPattern )
+						   TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	list < int > elementsToDivide;
 	SelectElementsByLevel ( CMesh, elementsToDivide );
@@ -1183,7 +1130,7 @@ void CheckRefinementLevel ( TPZCompMesh & CMesh,
 
 
 void SelectElementsByLevel ( TPZCompMesh & CMesh,
-						     list < int > & SelectedElementsIdx )
+							list < int > & SelectedElementsIdx )
 {
 #ifdef LOG4CXX
 	{
@@ -1194,13 +1141,13 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 #endif
 	// Using the set class we are sure that we don't have any duplicates...
 	set < TPZCompEl *> elementsToRefine;
-
+	
 	// counter for the elements
 	int el = 0;
-
+	
 	//number of elements in computational mesh
 	int nel = CMesh.NElements();
-
+	
 	// loop over the elements of the computational mesh
 	// here we are looking for the interface elements.
 	// Interface elements are elements of the dimension equal to dimension of elements - 1 ( i.e. faces for this case)
@@ -1211,28 +1158,28 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 	{
 		// Take an element as a discontinuous element
 		TPZInterfaceElement *cel = dynamic_cast < TPZInterfaceElement* > ( CMesh.ElementVec()[el] );
-
+		
 		// verify if the element does not exist or the cast fail proceed to the next element
 		if ( ! cel ) continue;
-
+		
 		// verify if the element is an interface. Elsewhere proceed to the next element
 		if ( cel->Type() != EInterface ) continue;
-
+		
 		// take the left and righ volumes associated to the interface
 		TPZCompEl * cLeft = cel->LeftElement();
 		TPZCompEl * cRight = cel->RightElement();
-
+		
 		if ( ! cLeft || ! cRight ) continue;
-
+		
 		// take the geometric elements associated to the volumes.
 		// Note that the level of refinement is associated to the geometry
 		TPZGeoEl * gLeft = cLeft->Reference();
 		TPZGeoEl * gRight = cRight->Reference();
-
+		
 		// take the level of refinement of each volume
 		int levelLeft = gLeft->Level();
 		int levelRight = gRight->Level();
-
+		
 		// check the difference of levels
 		if ( abs ( levelLeft - levelRight ) > 2 )
 		{
@@ -1247,7 +1194,7 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 			}
 		}
 	}
-
+	
 	// Move the list of elements from a set to a list
 	// Note that a set is a sorted unique associative container instead the list in nor sorted neither unique...
 	// In the selection we use the set to guarantee that an unique instance of an element is being selected.
@@ -1265,8 +1212,8 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 
 // Refine the elements on the RefineList
 void RefineElements ( TPZCompMesh & CMesh,
-					  list < int > & RefineList,
-					  TPZAutoPointer < TPZRefPattern > & RefPattern )
+					 list < int > & RefineList,
+					 TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	int siz = RefineList.size();
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
@@ -1388,11 +1335,10 @@ void PrintMeshSolution ( TPZCompMesh * cmesh, ostream & sout)
 		}
 		
 		sout << "elc/elg [ " << cel->Index() << " , " 
-		     << gel->Index() <<  " ] = solution { " 
-		     << solution << " } | center { " << xptr << " } " << endl;
+		<< gel->Index() <<  " ] = solution { " 
+		<< solution << " } | center { " << xptr << " } " << endl;
 	}
-	sout << "number of volumes in this mesh = " << count << endl;
-	
+	sout << "number of volumes in this mesh = " << count << endl;	
 }
 
 
@@ -1421,7 +1367,7 @@ bool CheckElementReferences(TPZCompEl * CEl )
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " " << __LINE__
-		     << " inconsistency detected for element:\n";
+		<< " inconsistency detected for element:\n";
 		CEl->Print(sout);
 		sout << "Geometric reference\n";
 		gel->Print(sout);
