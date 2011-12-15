@@ -270,7 +270,7 @@ public:
 	 * @param blocksize new connect block size - default value = 0
 	 * @param order order of approximation
 	 */
-	virtual  int AllocateNewConnect(int blocksize=0, int order = 0);
+	virtual  int AllocateNewConnect(int nshape, int nstate, int order);
 	
 	/**
 	 * @brief Insert a material object in the datastructure
@@ -626,13 +626,18 @@ public:
 
 };
 
-inline int TPZCompMesh::AllocateNewConnect(int blocksize, int order) {
+inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
 	int connectindex = fConnectVec.AllocateNewElement();
+    TPZConnect &c = fConnectVec[connectindex];
+    c.SetNShape(nshape);
+    c.SetNState(nstate);
+    c.SetOrder(order);
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
-	fBlock.Set(blocknum,blocksize);
-	fConnectVec[connectindex].SetSequenceNumber(blocknum);
-    fConnectVec[connectindex].SetOrder(order);
+	fBlock.Set(blocknum,nshape*nstate);
+    DebugStop();
+	c.SetSequenceNumber(blocknum);
+    c.SetOrder(order);
 	return connectindex;
 }
 
