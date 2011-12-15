@@ -21,7 +21,18 @@
 
 /**
  * @ingroup material 
- * @brief Enumerate to define the possible types of artificial diffusion term
+ * @enum TPZArtDiffType
+ * @brief Enumerate to define the possible types of artificial diffusion term to stabilize the numerical scheme
+ * @var None_AD
+ * @brief No Artificial diffusion term is considered
+ * @var LeastSquares_AD
+ * @brief Use Least squares method to applied artificial diffusion term
+ * @var Bornhaus_AD
+ * @brief Use Bornhaus method to applied artificial diffusion term
+ * @var SUPG_AD 
+ * @brief Use Supg method to applied artificial diffusion term
+ * @var TrnLeastSquares_AD
+ * @brief Use Transpose of the Least Squares method to applied artificial diffusion term
  */
 enum TPZArtDiffType
 {
@@ -61,7 +72,7 @@ public:
 	
 	/**
 	 * @brief Configures the type of artificial diffusion
-	 * @param type [in] Type of diffusive term
+	 * @param[in] type Type of diffusive term
 	 */
 	void SetArtDiffType(TPZArtDiffType type);
 	
@@ -73,8 +84,8 @@ public:
 	
 	/**
 	 * @brief Returns the stored value for delta
-	 * @param sol [in] solution
-	 * @param deltaX [in] 
+	 * @param[in] sol Solution
+	 * @param[in] deltaX Delta X 
 	 */
 	/**
 	 * If fDelta is positive, then it is used as an overall
@@ -116,18 +127,18 @@ public:
 	
 	/**
 	 * @brief Operation product point in the diffusion term
-	 * @param dphi [in] vector of scalars that make part of the ODot operation
-	 * @param M [in] vector of matrices to operate
-	 * @param Result [out]
+	 * @param[in] dphi vector of scalars that make part of the ODot operation
+	 * @param[in] M vector of matrices to operate
+	 * @param[out] Result Result of the operation
 	 */
 	template <class T>
 	void ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZDiffMatrix<T> > &M, TPZDiffMatrix<T> &Result);
 	
 	/**
 	 * @brief Operation product point in the diffusion term
-	 * @param dphi [in] vector of scalars that make part of the ODot operation
-	 * @param TauDiv [in] vector of vectors to operate
-	 * @param Result [out]
+	 * @param[in] dphi vector of scalars that make part of the ODot operation
+	 * @param[in] TauDiv vector of vectors to operate
+	 * @param[out] Result Result of the operation
 	 */
 	template <class T>
 	void ODotOperator(TPZVec<REAL> &dphi, TPZVec<TPZVec<T> > &TauDiv, TPZVec<T> &Result);
@@ -135,11 +146,11 @@ public:
 	
 	/**
 	 * @brief Evaluates the divergent of F
-	 * @param dsol [in] vector of solution values derived with respect to the spatial variables
-	 * @param dphi [in] matrix containig the derivatives of shapefuntions
-	 * @param Ai [in] vector of matrices tangent to the flux components.
-	 * @param Div [out] value of the divergent
-	 * @param dDiv [out] an apposimation to the matrix tangent to the divergent
+	 * @param[in] dsol vector of solution values derived with respect to the spatial variables
+	 * @param[in] dphi matrix containig the derivatives of shapefuntions
+	 * @param[in] Ai vector of matrices tangent to the flux components.
+	 * @param[out] Div value of the divergent
+	 * @param[out] dDiv an apposimation to the matrix tangent to the divergent
 	 */
 	
 	void Divergent(TPZFMatrix &dsol,
@@ -152,17 +163,16 @@ public:
 	
 	/**
 	 * @brief Evaluates the divergent of F
-	 * @param dsol [in] vector of solution values derived with respect to the spatial variables
-	 * @param phi [in] matrix containig the shapefuntions
-	 * @param dphi [in] matrix containig the derivatives of shapefuntions
-	 * @param Ai [in] vector of matrices tangent to the flux components.
-	 * @param Div [out] value of the divergent
-	 * @param dDiv [out] an apposimation to the matrix tangent to the divergent
+	 * @param[in] dsol Vector of solution values derived with respect to the spatial variables
+	 * @param[in] phi Matrix containig the shapefuntions
+	 * @param[in] dphi Matrix containig the derivatives of shapefuntions
+	 * @param[in] Ai Vector of matrices tangent to the flux components.
+	 * @param[out] Div Value of the divergent
+	 * @param[out] dDiv An apposimation to the matrix tangent to the divergent
 	 */
 	/**
-	 * T must be a FAD class type, so the consistent Divergent jacobian is evaluated
+	 * @note T must be a FAD class type, so the consistent Divergent jacobian is evaluated
 	 */
-	
 	template <class T>
 	void Divergent(TPZFMatrix &dsol,
 				   TPZFMatrix & phi,
@@ -175,9 +185,9 @@ public:
 	
 	/**
 	 * @brief Evaluates the divergent of F with FAD type
-	 * @param dsol [in] derivatives of the solution aligned in one vector
-	 * @param Ai [in] vector of matrices tangent to the flux components
-	 * @param Div [out] divergent with derivatives.
+	 * @param[in] dsol Derivatives of the solution aligned in one vector
+	 * @param[in] Ai Vector of matrices tangent to the flux components
+	 * @param[out] Div Divergent with derivatives.
 	 */
 	void Divergent(TPZVec<FADREAL> &dsol,
 				   TPZVec<TPZDiffMatrix<FADREAL> > & Ai,
@@ -188,11 +198,11 @@ public:
 	/** Tau tensor */
 	/**
 	 * @brief Computes the diffusive term according to the name
-	 * @param dim [in] Spatial dimension of the problem
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param Sol Solution vector
-	 * @param Ai [in] vector of tensors tangent to the directional fluxes
-	 * @param Tau [out] Diffusive tensors
+	 * @param[in] dim Spatial dimension of the problem
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] Sol Solution vector
+	 * @param[in] Ai Vector of tensors tangent to the directional fluxes
+	 * @param[out] Tau Diffusive tensors
 	 */
 	template <class T>
 	void ComputeTau(int dim,
@@ -247,11 +257,11 @@ public:
 	
 	/**
 	 * @brief Computes the common values A B C and Tau vector of matrixes for contributions
-	 * @param dim [in]
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param U [in] vector of solutions at the point
-	 * @param Ai [out] matrixes A B C
-	 * @param Tau [out] diffusive vector of matrixes
+	 * @param[in] dim Spatial dimension of the problem
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] U Vector of solutions at the point
+	 * @param[out] Ai Matrixes A B C
+	 * @param[out] Tau Diffusive vector of matrixes
 	 */
 	template <class T>
 	void PrepareDiff(int dim,
@@ -260,13 +270,13 @@ public:
 	
 	/**
 	 * @brief Prepares the data to compute the diffusive term as fast as possible, sparing operations
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions
-	 * @param dsol [in] derivatives of U with respect to the dim dimensions
-	 * @param dphi [in] derivatives of shape functions.
-	 * @param TauDiv [out] Vector of Vectors to store the values of Tau_i*Div
-	 * @param pTaudDiv [out] pointer of a vector to matrices to store the
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions
+	 * @param[in] dsol Derivatives of U with respect to the dim dimensions
+	 * @param[in] dphi Derivatives of shape functions.
+	 * @param[out] TauDiv Vector of Vectors to store the values of Tau_i*Div
+	 * @param[out] pTaudDiv Pointer of a vector to matrices to store the
 	 * approximate derivatives of \f$Tau_i*Div\f$. \n If Null, then no approximation
 	 * derivative is evaluated.
 	 */
@@ -279,11 +289,11 @@ public:
 #ifdef _AUTODIFF
 	/**
 	 * @brief Prepares the data to compute the diffusive term as fast as possible, sparing operations
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions setup with shape functions
-	 * @param dsol [in] derivatives of sol with respect to the dim (dimensions aligned as a vector)
-	 * @param TauDiv [out] Vector of Vectors to store the values of \f$Tau_i*Div\f$
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions setup with shape functions
+	 * @param[in] dsol Derivatives of sol with respect to the dim (dimensions aligned as a vector)
+	 * @param[out] TauDiv Vector of Vectors to store the values of \f$Tau_i*Div\f$
 	 */
 	void PrepareFastDiff(int dim,
 						 TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
@@ -307,16 +317,16 @@ public:
 	
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions
-	 * @param dsol [in] derivatives of U with respect to the dim dimensions
-	 * @param dphix [in] derivatives of shape functions.
-	 * @param ek [out] Tangent matrix to contribute to
-	 * @param ef [out] Residual vector to contribute to
-	 * @param weight [in] Gaussian quadrature integration weight
-	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if \f$fDelta > 0\f$);
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions
+	 * @param[in] dsol Derivatives of U with respect to the dim dimensions
+	 * @param[in] dphix Derivatives of shape functions.
+	 * @param[out] ek Tangent matrix to contribute to
+	 * @param[out] ef Residual vector to contribute to
+	 * @param[in] weight Gaussian quadrature integration weight
+	 * @param[in] timeStep Time step
+	 * @param[in] deltaX Diameter of element (used only if \f$fDelta > 0\f$);
 	 */
 	void ContributeApproxImplDiff(int dim,
 								  TPZFMatrix &jacinv,
@@ -328,15 +338,15 @@ public:
 	
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek-approximated) and residual vector (ef)
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions
-	 * @param dsol [in] derivatives of U with respect to the dim dimensions
-	 * @param dphix [in] derivatives of shape functions.
-	 * @param ef [out] Residual vector to contribute to
-	 * @param weight [in] Gaussian quadrature integration weight
-	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if fDelta > 0);
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions
+	 * @param[in] dsol Derivatives of U with respect to the dim dimensions
+	 * @param[in] dphix Derivatives of shape functions.
+	 * @param[out] ef Residual vector to contribute to
+	 * @param[in] weight Gaussian quadrature integration weight
+	 * @param[in] timeStep Time step
+	 * @param[in] deltaX Diameter of element (used only if fDelta > 0);
 	 */
 	void ContributeExplDiff(int dim,
 							TPZFMatrix &jacinv,
@@ -350,15 +360,15 @@ public:
 	
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef)
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions setup with derivatives
-	 * @param dsol [in] derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
-	 * @param ek [out] Tangent matrix to contribute to
-	 * @param ef [out] Residual vector to contribute to
-	 * @param weight [in] Gaussian quadrature integration weight
-	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if \f$ fDelta > 0\f$);
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions setup with derivatives
+	 * @param[in] dsol Derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
+	 * @param[out] ek Tangent matrix to contribute to
+	 * @param[out] ef Residual vector to contribute to
+	 * @param[in] weight [in] Gaussian quadrature integration weight
+	 * @param[in] timeStep 
+	 * @param[in] deltaX Diameter of element (used only if \f$ fDelta > 0\f$);
 	 */
 	void ContributeImplDiff(int dim,
 							TPZFMatrix &jacinv,
@@ -369,17 +379,17 @@ public:
 	
 	/**
 	 * @brief Contributes the diffusion term to the tangent matrix (ek) and residual vector (ef) with FAD template classes
-	 * @param dim [in] dimension
-	 * @param jacinv [in] Inverse jacobian of the mapping.
-	 * @param sol [in] solution of the dim+2 state functions setup with derivatives
-	 * @param dsol [in] derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
-	 * @param phi [in] list of shape functions.
-	 * @param dphi [in] derivatives of shape functions.
-	 * @param ek [out] Tangent matrix to contribute to
-	 * @param ef [out] Residual vector to contribute to
-	 * @param weight [in] Gaussian quadrature integration weight
-	 * @param timeStep [in]
-	 * @param deltaX [in] diameter of element (used only if \f$fDelta > 0\f$);
+	 * @param[in] dim Spatial dimension
+	 * @param[in] jacinv Inverse jacobian of the mapping.
+	 * @param[in] sol Solution of the dim+2 state functions setup with derivatives
+	 * @param[in] dsol Derivatives of U with respect to the dim dimensions setup with derivatives (xi components aligned as a vector)
+	 * @param[in] phi List of shape functions.
+	 * @param[in] dphi Derivatives of shape functions.
+	 * @param[out] ek Tangent matrix to contribute to
+	 * @param[out] ef Residual vector to contribute to
+	 * @param[in] weight Gaussian quadrature integration weight
+	 * @param[in] timeStep Time step
+	 * @param[in] deltaX Diameter of element (used only if \f$fDelta > 0\f$);
 	 */
 	void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
 								   TPZVec<REAL> &sol, TPZFMatrix &dsol,

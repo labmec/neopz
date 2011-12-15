@@ -12,9 +12,23 @@
 #include "pzvec.h"
 #include "pzdiscgal.h"
 
+/** @addtogroup material
+ * @{
+ */
+
 /**
- * @ingroup material
+ * @enum TPZTimeDiscr
  * @brief Indicates the type of time discretization
+ * @var None_TD
+ * @brief No time discretization.
+ * @var Explicit_TD
+ * @brief Explicit time discretization. Can to be Euler method, Runge Kutta method, etc.
+ * @var ApproxImplicit_TD
+ * @brief Semi implicit time discretization
+ * @var Implicit_TD
+ * @brief Implicit time discretization.
+ * @var Unknown_TD
+ * @brief Unknown time discretization.
  */
 enum TPZTimeDiscr
 {
@@ -26,7 +40,7 @@ enum TPZTimeDiscr
 };
 
 /**
- * @ingroup material
+ * @enum TPZContributeTime
  * @brief Indicates which term is put in the right hand side and tangent matrix
  */
 enum TPZContributeTime
@@ -37,7 +51,7 @@ enum TPZContributeTime
 };
 
 /**
- * @ingroup material
+ * @enum TPZResidualType
  * @brief Which terms are being contributed
  */
 enum TPZResidualType
@@ -48,7 +62,6 @@ enum TPZResidualType
 };
 
 /**
- * @ingroup material
  * @brief Implements the interface for conservation laws, keeping track of the timestep as well
  */
 /**
@@ -57,19 +70,21 @@ enum TPZResidualType
 class TPZConservationLaw  : public TPZDiscontinuousGalerkin
 {
 public:
-	
+	/** @brief Simple constructor with material id, time step (dt) and dimension of the spatial domain */
 	TPZConservationLaw(int nummat,REAL timeStep,int dim);
-	
+	/** @brief Copy constructor */
 	TPZConservationLaw(const TPZConservationLaw &cp) : TPZDiscontinuousGalerkin(cp),
 	fDim(cp.fDim),fTimeStep(cp.fTimeStep),fCFL(cp.fCFL), fGamma(cp.fGamma),fContributionTime(cp.fContributionTime)
 	,fResidualType(cp.fResidualType)
 	{
 	}
 	
-	
+	/** @brief Default destructor */
 	virtual ~TPZConservationLaw();
 	
-	//------------------attributes and parameters
+	/** 
+	 * @name Attributes and parameters
+	 * @{ */
 	
 	/** @brief Returns the dimension of the problem */
 	int Dimension();
@@ -79,16 +94,16 @@ public:
 	
 	/** 
 	 * @brief Sets the time step used for time integration
-	 * @param timeStep [in]
+	 * @param[in] timeStep Time step (dt) 
 	 */
 	void SetTimeStep(REAL timeStep);
 	
 	/**
 	 * @brief Sets the time step used for time integration
 	 * @return Returns the resultant time step.
-	 * @param maxveloc [in] maximal speed of flow inside the cell
-	 * @param deltax [in] greatest dimension
-	 * @param degree [in] interpolation degree
+	 * @param[in] maxveloc Maximal speed of flow inside the cell
+	 * @param[in] deltax Greatest dimension
+	 * @param[in] degree Interpolation degree
 	 */
 	virtual REAL SetTimeStep(REAL maxveloc,REAL deltax,int degree)=0;
 	
@@ -97,29 +112,16 @@ public:
 	
 	/**
 	 * @brief Sets the CFL number
-	 * @param CFL [in]
+	 * @param[in] CFL Value of the CFL condition
 	 */
 	void SetCFL(REAL CFL);
-	
-	/* *
-	 * Returns the value of delta for the artificial diffusion term
-	 */
-	//  REAL Delta();
-	
-	/**
-	 * Sets the value of the artificial diffusion delta parameter
-	 *
-	 * @ param delta [in]
-	 */
-	//  void SetDelta(REAL delta);
-	
 	
 	/** @brief Returns the value of Gamma (constant of gas) */
 	REAL Gamma();
 	
 	/**
 	 * @brief Sets the value of Gamma (constant of gas)
-	 * @param gamma [in]
+	 * @param[in] gamma Gamma value to Euler equation.
 	 */
 	void SetGamma(int gamma);
 	
@@ -134,13 +136,13 @@ public:
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
-	 * @param U [in] vector of state variables (sol)
+	 * @param[in] U vector of state variables (sol)
 	 */
 	virtual REAL Pressure(TPZVec<REAL> &U)=0;
 	
 	/**
 	 * @brief Prints the state of internal variables
-	 * @param out [in]
+	 * @param out Output to print the information of the current object
 	 */
 	virtual void Print(std::ostream & out);
 	
@@ -149,7 +151,7 @@ public:
 	
 	/**
 	 * @brief Returns the relative index of a variable according to its name
-	 * @param name [in]
+	 * @param[in] name Name of the variable wished.
 	 */
 	virtual int VariableIndex(const std::string &name)=0;
 	
@@ -158,8 +160,11 @@ public:
 	/** @brief Returns the number of fluxes associated to this material */
 	virtual int NFluxes();
 	
+	/** @} */
 	
-	//------------------solutions
+	/** @name Solutions
+	 * @{ */
+	
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 						  TPZFMatrix &axes,int var,
@@ -167,13 +172,17 @@ protected:
 public:
 	/** 
 	 * @brief Returns the solution associated with the var index based on
-	 * the finite element approximation 
+	 * the finite element approximation
+	 * @param[in] data Material data to compute the solution.
+	 * @param[in] var Number of the variable wished
+	 * @param[out] Solout Vector with the computed solution values
 	 */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
+	/** @} */
 	
 	/** @name Contribute methods */
 	/** @{ */
@@ -217,13 +226,6 @@ public:
 	
 	/** @} */
 	
-	//--------------------
-	//virtual int IntegrationDegree() = 0;
-	
-	//virtual void SetIntegDegree(int degree) = 0;
-	
-	//---------------------Attributes
-	
 	
 	/** @brief Save the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
@@ -263,6 +265,10 @@ protected:
 	
 };
 
+/**
+ * @}
+ */
+
 inline int TPZConservationLaw::Dimension()
 {
 	return fDim;
@@ -277,7 +283,6 @@ inline void TPZConservationLaw::SetCFL(REAL CFL)
 {
 	//if(CFL > 1e3) CFL = 1e3;
 	fCFL = CFL;
-	//   std::cout << "CFL:"<<CFL << std::endl;
 }
 
 inline void TPZConservationLaw::SetGamma(int gamma)

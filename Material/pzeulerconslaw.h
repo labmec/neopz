@@ -55,13 +55,12 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	{
 		return new TPZEulerConsLaw(*this);
 	}
-	
-	
+
 	/**
 	 * @brief Configures the time discretization of some contributions
-	 * @param Diff [in] refers to the diffusion term
-	 * @param ConvVol [in] refers to the volume contribution to the convective term
-	 * @param ConvFace [in] refers to the numerical flux
+	 * @param[in] Diff Refers to the diffusion term
+	 * @param[in] ConvVol Refers to the volume contribution to the convective term
+	 * @param[in] ConvFace Refers to the numerical flux
 	 */
 	void SetTimeDiscr(TPZTimeDiscr Diff, TPZTimeDiscr ConvVol, TPZTimeDiscr ConvFace);
 	
@@ -98,10 +97,10 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
-	 * @param gamma [in]
-	 * @param dim [in] dimension
-	 * @param press [out] computed pressure
-	 * @param U [in] vector of state variables (sol)
+	 * @param[in] gamma Gamma value
+	 * @param[in] dim Spatial dimension
+	 * @param[out] press Computed pressure
+	 * @param[in] U Vector of state variables (sol)
 	 */
 	template< class T >
 	static void Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U);
@@ -133,8 +132,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	/** @brief Computes the ghost state variables bsed on the BC type */
 	template <class T>
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
-	
-	/** @brief See declaration in base class */
+
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 public:
@@ -155,11 +153,11 @@ public:
 	
 	/**
 	 * @brief Jacobian of the tensor flux of Euler
-	 * @param gamma [in]
-	 * @param dim [in]
-	 * @param U [in] dim+2 solutions at given point
-	 * @param Ai [out] vector of dim tensors of (dim+2)*(dim*2),
-	 * representing the derivatives of F with respect to the \n
+	 * @param[in] gamma Gamma value to use
+	 * @param[in] dim Spatial dimension
+	 * @param[in] U \f$dim+2\f$ solutions at given point
+	 * @param[out] Ai Vector of dim tensors of \f$ (dim+2)*(dim*2)\f$,
+	 * representing the derivatives of F with respect to the 
 	 * dim spatial dimensions
 	 */
 	template <class T>
@@ -172,11 +170,11 @@ public:
 	/**
 	 * @brief This flux encapsulates the two and three dimensional fluxes
 	 * acquired from the Mouse program
-	 * @param solL [in]
-	 * @param solR [in]
-	 * @param normal [in]
-	 * @param gamma [in]
-	 * @param flux [in]
+	 * @param[in] solL Vector with solution from left element 
+	 * @param[in] solR Vector with solution from right element
+	 * @param[in] normal Normal vector of the interface
+	 * @param[in] gamma Gamma value to use
+	 * @param[out] flux Vector to return flux values
 	 * @param entropyFix
 	 */
 	template <class T>
@@ -187,11 +185,11 @@ public:
 	/**
 	 * @brief This flux encapsulates the two and three dimensional fluxes acquired from the Mouse program
 	 * @note This function is called Approx because it evaluates the derivative of the Roe Flux without using automatic differentiation
-	 * @param solL [in]
-	 * @param solR [in]
-	 * @param normal [in]
-	 * @param gamma [in]
-	 * @param flux [in]
+	 * @param[in] solL Vector with solution from left element 
+	 * @param[in] solR Vector with solution from right element
+	 * @param[in] normal Normal vector of the interface
+	 * @param[in] gamma Gamma value to use
+	 * @param[out] flux Vector to return flux values
 	 * @param entropyFix
 	 */
 	template <class T>
@@ -288,12 +286,12 @@ public:
 
 	/**
 	 * @brief Converts the REAL values into FAD differentiable objects
-	 * @param sol [in] values of flattened solution (Sum(ui*phi))
-	 * @param dsol [in] values of dsol(columns) with respect to the dim dimensions (row-aligned)
-	 * @param phi [in] value of shape functions at a given point
-	 * @param dphi [in] derivatives of shape functions with respect to the spatial dimensions at a given point.
-	 * @param FADsol [out] vector of solutions and coefficient derivatives (phi) at the point
-	 * @param FADdsol [out] vector of spatial derivatives of solution and coefficient derivatives (dphi) at the point
+	 * @param[in] sol Values of flattened solution (Sum(ui*phi))
+	 * @param[in] dsol Values of dsol(columns) with respect to the dim dimensions (row-aligned)
+	 * @param[in] phi Value of shape functions at a given point
+	 * @param[in] dphi Derivatives of shape functions with respect to the spatial dimensions at a given point.
+	 * @param[out] FADsol Vector of solutions and coefficient derivatives (phi) at the point
+	 * @param[out] FADdsol Vector of spatial derivatives of solution and coefficient derivatives (dphi) at the point
 	 */
 	void PrepareFAD(TPZVec<REAL> & sol, TPZFMatrix & dsol,
 					TPZFMatrix & phi, TPZFMatrix & dphi,
@@ -303,12 +301,12 @@ public:
 	/**
 	 * @brief Converts the REAL values into FAD differentiable objects
 	 * with respect to the left and right interface volumes
-	 * @param solL [in] values of flattened solution (Sum(ui*phi))
-	 * @param solR [in] values of flattened solution (Sum(ui*phi))
-	 * @param phiL [in] value of shape functions at a given point
-	 * @param phiR [in] value of shape functions at a given point
-	 * @param FADsolL [out] vector of solutions and coefficient derivatives (phi) at the point
-	 * @param FADsolR [out] vector of solutions and coefficient derivatives (phi) at the point
+	 * @param[in] solL Values of flattened solution (Sum(ui*phi))
+	 * @param[in] solR Values of flattened solution (Sum(ui*phi))
+	 * @param[in] phiL Value of shape functions at a given point
+	 * @param[in] phiR Value of shape functions at a given point
+	 * @param[out] FADsolL Vector of solutions and coefficient derivatives (phi) at the point
+	 * @param[out] FADsolR Vector of solutions and coefficient derivatives (phi) at the point
 	 */
 	void PrepareInterfaceFAD(
 							 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
@@ -386,12 +384,7 @@ public:
 										  TPZFMatrix &phiL,TPZFMatrix &dphiL,
 										  TPZFMatrix &axesleft,
 										  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-	/*
-	 virtual void ContributeBCInterface(TPZVec<REAL> &x,TPZVec<REAL> &solL, TPZFMatrix &dsolL, REAL weight, TPZVec<REAL> &normal,
-	 TPZFMatrix &phiL,TPZFMatrix &dphiL,
-	 TPZFMatrix &axesleft,
-	 TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc, int POrder, REAL faceSize);*/
-	
+
 	virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 								TPZVec<REAL> &sol,TPZFMatrix &dsol,
 								REAL weight,
@@ -549,8 +542,6 @@ protected:
 	/** @brief diffusive term */
 	TPZArtDiff fArtDiff;
 	
-	//int fIntegrationDegree;//grau de integra� da solu� inicial:opcional
-	
 	/** @brief variables indication whether the following terms are implicit */
 	TPZTimeDiscr fDiff, fConvVol, fConvFace;
 	
@@ -624,7 +615,7 @@ inline void TPZEulerConsLaw::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVe
 
 template <class T>
 inline void TPZEulerConsLaw::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
-{//OK
+{
 	
 	Ai.Resize(dim);
 	int i;
@@ -822,11 +813,7 @@ template <class T>
 inline REAL val(T & number)
 {
 	return number.val();
-}/*
-  inline REAL val(FADREAL & number)
-  {
-  return number.val();
-  }*/
+}
 #endif
 
 /** @brief Returns value of the variable */ 
