@@ -21,10 +21,11 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzconnect"));
 using namespace std;
 
 TPZConnect::TPZConnect() {
-	fSequenceNumber = 0;
+	fSequenceNumber = -1;
 	fDependList = 0;
 	fNElConnected = 0;
-	fOrder = -1;
+	//fOrder = -1;
+    fFlags = 0;
 }
 
 TPZConnect::~TPZConnect() {
@@ -48,12 +49,13 @@ void TPZConnect::operator=(const TPZConnect &copy) {
 	if(fDependList) delete fDependList;
 	fSequenceNumber = copy.fSequenceNumber;
 	fNElConnected = copy.fNElConnected;
-	fOrder = copy.fOrder;
+//	fOrder = copy.fOrder;
+    fFlags = copy.fFlags;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
 }
 
 void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fOrder;
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fCompose.fNShape ;
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
@@ -82,7 +84,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 
 void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 {
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fOrder;
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fCompose.fNShape ;
 	out << " coordinate " << cp;
 	if(fSequenceNumber > -1)
 	{
@@ -412,7 +414,8 @@ void TPZConnect::Write(TPZStream &buf, int withclassid)
 {
 	buf.Write(&fSequenceNumber,1);
 	buf.Write(&fNElConnected,1);
-	buf.Write(&fOrder,1);
+//	buf.Write(&fOrder,1);
+    buf.Write(&fFlags,1);
 	if(fDependList)
 	{
 		fDependList->Write(buf);
@@ -430,7 +433,8 @@ void TPZConnect::Read(TPZStream &buf, void *context)
 {
 	buf.Read(&fSequenceNumber,1);
 	buf.Read(&fNElConnected,1);
-	buf.Read(&fOrder,1);
+//	buf.Read(&fOrder,1);
+    buf.Read(&fFlags,1);
 	int seq;
 	buf.Read(&seq,1);
 	if(seq >= 0)
@@ -449,9 +453,10 @@ void TPZConnect::Read(TPZStream &buf, void *context)
  */
 void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
 {
-	fOrder = orig.fOrder;
+//	fOrder = orig.fOrder;
 	fSequenceNumber = orig.fSequenceNumber;
 	fNElConnected = orig.fNElConnected;
+    fFlags = orig.fFlags;
 	TPZDepend * depend = orig.fDependList;
 	bool copydepend = true;
 	while ( depend )
@@ -492,6 +497,7 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
 		return;
 	}
 	fDepConnectIndex = loccondepIdx;
+
 	fDepMatrix = orig->fDepMatrix;
 	
 	TPZDepend *depend = orig->fNext;

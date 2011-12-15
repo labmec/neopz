@@ -31,14 +31,36 @@ class TPZStream;
  * Objects of this class also contain the information necessary for constraints between shapefunctions
  */
 class TPZConnect {
+public:
+    enum EConnectType {ENone = 0, EPressure = 1, ECondensed = 2};
 	/** @brief Node block number */
 	int		fSequenceNumber;
 	
 	/** @brief Number of element connected */
 	int		fNElConnected;
-	
-	/** @brief Interpolation order of the associated shape functions */
-	int fOrder;
+	    
+    /** @brief Flag to signal the type of connect 
+     * ECondensed : the connect will be condensed before assembly 
+     * EPressure : a pressure connect which should be assembled after the flux connects
+     * 
+     */
+    union
+    {
+        int fFlags;
+        struct
+        {
+            /** @brief Interpolation order of the associated shape functions */
+            unsigned char fOrder;
+            /** @brief Number of state variables associated with each shape function */
+            unsigned char fNState;
+            /** @brief Number of shape functions associated with the connect */
+            unsigned char fNShape;
+            /** @brief Whether the equations associated with the connect should be condensed */
+            bool fIsCondensed;
+            /** @brief Whether the connnect is associated with a lagrange multiplier */
+            bool fIsPressure;
+        } fCompose;
+    };
 	
 public:
 	/** @brief Structure to reference dependency */
@@ -78,11 +100,49 @@ public:
 	
 	void operator=(const TPZConnect &con);
 	
+    /** @brief Reset the data of the connect */
+    void Reset()
+    {
+        SetSequenceNumber(-1);
+        SetNState(0);
+        SetOrder(0);
+        SetNShape(0);
+        ResetElConnected();
+        SetCondensed(false);
+        SetPressure(false);
+        if (fDependList) {
+            DebugStop();
+            delete fDependList;
+            fDependList = 0;
+        }
+    }
 	/**
 	 * @brief Number of degrees of freedom associated with the object
 	 * @note In order to compute NDof, the Connect object needs to know the mesh
 	 */
 	int NDof(TPZCompMesh &mesh);
+    
+	/**
+	 * @brief Number of degrees of freedom associated with the object
+	 * @note In order to compute NDof, the Connect object needs to know the mesh
+	 */
+	int NDof() const
+    {
+        return fCompose.fNShape*fCompose.fNState;
+    }
+    
+    /**
+     * @brief Number of state variables associated with the connect
+     */
+    int NState() const
+    {
+        return fCompose.fNState;
+    }
+    
+    int NShape() const
+    {
+        return fCompose.fNShape;
+    }
 
 	/** @brief Returns the Sequence number of the connect object */
 	/** If the \f$ sequence number == -1 \f$ this means that the node is unused */
@@ -94,14 +154,65 @@ public:
 	
 	/** @brief Set the order of the shapefunction associated with the connect */
 	void SetOrder(int order) {
-		fOrder = order;
+#ifdef DEBUG
+        if(order < 0 || order > 255)
+        {
+            DebugStop();
+        }
+#endif
+		fCompose.fOrder = order;
 	}
+    
+    /** @brief Set the number of state variables */
+    void SetNState(int nstate)
+    {
+        if(nstate<0 || nstate > 255)
+        {
+            DebugStop();
+        }
+        fCompose.fNState = nstate;
+    }
+    /** @brief Set the number of shape functions associated with the connect */
+    void SetNShape(int nshape)
+    {
+        if(nshape < 0 || nshape > 255)
+        {
+            DebugStop();
+        }
+        fCompose.fNShape = nshape;
+    }
 	
 	/** @brief Access function to return the order associated with the connect */
 	int Order() const {
-		return fOrder;
+		return fCompose.fOrder;
 	}
-	
+    
+    /** @brief Access method to return the indication whether the connect is condensed or not
+     */
+    int IsCondensed() const
+    {
+        return fCompose.fIsCondensed;
+    }
+    
+    /** @brief Access method to return the indication whether the connect is associated with a pressure lagrange multiplier
+     */
+    int IsPressure() const
+    {
+        return fCompose.fIsPressure;
+    }
+    
+    /** @brief Set the connect as a pressure connect or not */
+    void SetPressure(bool flag)
+    {
+        fCompose.fIsPressure = flag;
+    }
+
+    /** @brief Set the connect as a condensed connect or not */
+    void SetCondensed(bool flag)
+    {
+        fCompose.fIsCondensed = flag;
+    }
+
 	/** @brief Print the information for the connect element */
 	/**
 	 * The mesh argument allows the object to identify the number of variables
@@ -221,6 +332,7 @@ inline std::ostream & operator<<(std::ostream &out,TPZConnect &con)
 	out << "seq num: " << con.SequenceNumber()
 	<< " nel con: " << con.NElConnected()
 	<< " order: " << con.Order()
+    << " is condensed " << con.IsCondensed()
 	<< " hasdepend: " << con.HasDependency();
 	return out;
 }
