@@ -63,10 +63,14 @@ const int bcDL = -1;
 const int bcN = -2;
 const int bcDR = -3;
 
-TPZGeoMesh *MalhaGeom( );
+const int lagrangemat = 2;
+const int interfacemat = 3;
+
+TPZGeoMesh *MalhaGeom(bool interface);
 
 TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder);
+TPZCompMesh *MalhaCompComInterf(TPZGeoMesh * gmesh,int pOrder);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcess(TPZAnalysis &an, std::string plotfile);
 void RefinamentoUniforme(TPZGeoMesh  *gMesh, int nh);
@@ -94,152 +98,190 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom();
-	ofstream arg1("gmesh1.txt");
+	TPZGeoMesh * gmesh = MalhaGeom(true);
+	ofstream arg1("gmeshZero.txt");
 	gmesh->Print(arg1);
-	ofstream file1("malhageoInicial.vtk");
+	
+	TPZCompMesh * cmesh= MalhaCompComInterf(gmesh,  p);
+	ofstream arg2("cmesh.txt");
+	cmesh->Print(arg2);
+	
+	gmesh->ResetReference();
+	cmesh->LoadReferences();
+	RefinElemComp(cmesh, 7);
+	cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+	
+	ofstream arg22("cmeshRefUniforme.txt");
+	cmesh->Print(arg22);
+	
+	ofstream arg12("gmeshRefUniforme.txt");
+	gmesh->Print(arg12);
+	ofstream file1("malhageoRefUniforme.vtk");
 	PrintGMeshVTK(gmesh, file1);
 	
-	// First computational mesh
-	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p+2);
-	ofstream arg2("cmesh1.txt");
-	cmesh1->Print(arg2);
-	// Second computational mesh
-	TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p+1);
-	ofstream arg3("cmesh2.txt");
-	cmesh2->Print(arg3);
+	std::set<int> MaterialIDs;
+	MaterialIDs.insert(matId);
+	MaterialIDs.insert(lagrangemat);
+	MaterialIDs.insert(interfacemat);
 	
-	// Cleaning reference of the geometric mesh to cmesh2
-	gmesh->ResetReference();
-	cmesh1->LoadReferences();
-	//RefinUniformElemComp(cmesh1,2);
-	// Refine the 7th element of the cmesh1
-	RefinElemComp(cmesh1, 7);
-	// Refine the 10th element of the cmesh1
-	RefinElemComp(cmesh1, 10);
-	// Adjust the boundary elements after refine
-	cmesh1->AdjustBoundaryElements();
-	cmesh1->CleanUpUnconnectedNodes();
+	set<int>::iterator it;
+	cout << "myset contains:";
+	for (it=MaterialIDs.begin() ; it != MaterialIDs.end(); it++ )
+		cout << " " << *it;
+	cout << endl;
 	
-	ofstream arg4("cmesh12.txt");
-	cmesh1->Print(arg4);
+	BuildHybridMesh(cmesh, MaterialIDs, lagrangemat, interfacemat);
+	
+	
+	ofstream arg4("cmeshComInterface.txt");
+	cmesh->Print(arg4);
 	ofstream arg5("gmesh2.txt");
 	gmesh->Print(arg5);
 	ofstream file3("malhageo1.vtk");
 	PrintGMeshVTK(gmesh, file3);
 	
-	// Cleaning reference to cmesh1
-	gmesh->ResetReference();
-	cmesh2->LoadReferences();
-	
-	//refinamento uniform
-	//RefinUniformElemComp(cmesh2,3);
-	// Refine 6th and 7th elements (as uniform refine)
-	RefinElemComp(cmesh2, 6);
-	RefinElemComp(cmesh2, 7);
-	cmesh2->AdjustBoundaryElements();
-	cmesh2->CleanUpUnconnectedNodes();
-	
-	ofstream arg6("cmesh22.txt");
-	cmesh2->Print(arg6);
-	ofstream arg7("gmesh3.txt");
-	gmesh->Print(arg7);
-	ofstream file5("malhageo2.vtk");
-	PrintGMeshVTK(gmesh, file5);
-
-	
-	//--- Resolver usando a primeira malha computacional ---
-	TPZAnalysis an1(cmesh1);
-	SolveSist(an1, cmesh1);
-	std::string plotfile("saidaSolution_cmesh1.vtk");
-	PosProcess(an1, plotfile);
-	//---------------------------
-	
-	//--- Resolver usando a segunda malha computacional ---
-	TPZAnalysis an2(cmesh2);
-	SolveSist(an2, cmesh2);
-	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	PosProcess(an2, plotfile2);
-	//---------------------------
-	
-	// List of the computational meshes
-	TPZVec<TPZCompMesh *> meshvec(2);
-	meshvec[0] = cmesh1;
-	meshvec[1] = cmesh2;
-	
-	// Creating computational mesh for multiphysic elements
-	gmesh->ResetReference();
-	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
-	mphysics->SetAllCreateFunctionsMultiphysicElem();
-	
-	int MatId = 1;
-	TwoUncoupledPoisson *mymaterial = new TwoUncoupledPoisson(MatId, 2);
-	mymaterial->SetParameters(-1., -0.1);
-	mymaterial->SetInternalFlux(8.,0.);
-	ofstream argm("mymaterial.txt");
-	mymaterial->Print(argm);
-	TPZAutoPointer<TPZMaterial> mat(mymaterial);
-	mphysics->InsertMaterialObject(mat);
-	
-	///Inserir condicao de contorno
-	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
-	val2(0,0)=0.;
-	val2(1,0)=0.;
-	TPZAutoPointer<TPZMaterial> BCondN = mymaterial->CreateBC(mat, bcN,neumann, val1, val2);
-	mphysics->InsertMaterialObject(BCondN);
-	
-	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
-	val22(0,0)=0.;
-	val22(1,0)=2.;
-	TPZAutoPointer<TPZMaterial> BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
-	mphysics->InsertMaterialObject(BCondDL);
-	
-	TPZFMatrix val13(2,2,0.), val23(2,1,0.);
-	val23(0,0)=0.;
-	val23(1,0)=1.;
-	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
-	mphysics->InsertMaterialObject(BCondDR);
-	
-	
-	mphysics->AutoBuild();
-	mphysics->AdjustBoundaryElements();
-	mphysics->CleanUpUnconnectedNodes();
-	
-	// Creating multiphysic elements into mphysics computational mesh
-	AddElements(meshvec, mphysics);
-	AddConnects(meshvec,mphysics);
-	TransferFromMeshes(meshvec, mphysics);
-	
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        mphysics->Print(sout);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
-	ofstream arg8("mphysic.txt");
-    mphysics->Print(arg8);
-	
-	
-	TPZAnalysis an(mphysics);
-	SolveSist(an, mphysics);
-	
-	//--- pos-process -----
-	TransferFromMultiPhysics(meshvec, mphysics);
-
-	TPZManVector<std::string,10> scalnames(2), vecnames(2);
-	scalnames[0] = "SolutionU";
-	scalnames[1] = "SolutionP";
-	vecnames[0]= "DerivateU";
-	vecnames[1]= "DerivateP";
-	
-	std::string plotfile3("saidaSolution.vtk");
-	const int dim = 2;
-	int div = 0;
-	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile3);
-	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
+	// First computational mesh
+//	TPZCompMesh * cmesh1= MalhaComp(gmesh,  p);
+//	ofstream arg2("cmesh1.txt");
+//	cmesh1->Print(arg2);
+//			
+	// Second computational mesh
+	//TPZCompMesh * cmesh2 = MalhaCompDois(gmesh, p+1);
+//	ofstream arg3("cmesh2.txt");
+//	cmesh2->Print(arg3);
+//	
+	// Cleaning reference of the geometric mesh to cmesh2
+	//gmesh->ResetReference();
+//	cmesh1->LoadReferences();
+//	//RefinUniformElemComp(cmesh1,2);
+//	// Refine the 7th element of the cmesh1
+//	RefinElemComp(cmesh1, 7);
+//	// Refine the 10th element of the cmesh1
+//	RefinElemComp(cmesh1, 10);
+//	// Adjust the boundary elements after refine
+//	cmesh1->AdjustBoundaryElements();
+//	cmesh1->CleanUpUnconnectedNodes();
+//	
+	//ofstream arg4("cmesh12.txt");
+//	cmesh1->Print(arg4);
+//	ofstream arg5("gmesh2.txt");
+//	gmesh->Print(arg5);
+//	ofstream file3("malhageo1.vtk");
+//	PrintGMeshVTK(gmesh, file3);
+//	
+//	// Cleaning reference to cmesh1
+//	gmesh->ResetReference();
+//	cmesh2->LoadReferences();
+//	
+//	//refinamento uniform
+//	//RefinUniformElemComp(cmesh2,3);
+//	// Refine 6th and 7th elements (as uniform refine)
+//	RefinElemComp(cmesh2, 6);
+//	RefinElemComp(cmesh2, 7);
+//	cmesh2->AdjustBoundaryElements();
+//	cmesh2->CleanUpUnconnectedNodes();
+//	
+//	ofstream arg6("cmesh22.txt");
+//	cmesh2->Print(arg6);
+//	ofstream arg7("gmesh3.txt");
+//	gmesh->Print(arg7);
+//	ofstream file5("malhageo2.vtk");
+//	PrintGMeshVTK(gmesh, file5);
+//
+//	
+//	//--- Resolver usando a primeira malha computacional ---
+//	TPZAnalysis an1(cmesh1);
+//	SolveSist(an1, cmesh1);
+//	std::string plotfile("saidaSolution_cmesh1.vtk");
+//	PosProcess(an1, plotfile);
+//	//---------------------------
+//	
+//	//--- Resolver usando a segunda malha computacional ---
+//	TPZAnalysis an2(cmesh2);
+//	SolveSist(an2, cmesh2);
+//	std::string plotfile2("saidaSolution_cmesh2.vtk");
+//	PosProcess(an2, plotfile2);
+//	//---------------------------
+//	
+//	// List of the computational meshes
+//	TPZVec<TPZCompMesh *> meshvec(2);
+//	meshvec[0] = cmesh1;
+//	meshvec[1] = cmesh2;
+//	
+//	// Creating computational mesh for multiphysic elements
+//	gmesh->ResetReference();
+//	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+//	mphysics->SetAllCreateFunctionsMultiphysicElem();
+//	
+//	int MatId = 1;
+//	TwoUncoupledPoisson *mymaterial = new TwoUncoupledPoisson(MatId, 2);
+//	mymaterial->SetParameters(-1., -0.1);
+//	mymaterial->SetInternalFlux(8.,0.);
+//	ofstream argm("mymaterial.txt");
+//	mymaterial->Print(argm);
+//	TPZAutoPointer<TPZMaterial> mat(mymaterial);
+//	mphysics->InsertMaterialObject(mat);
+//	
+//	///Inserir condicao de contorno
+//	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+//	val2(0,0)=0.;
+//	val2(1,0)=0.;
+//	TPZAutoPointer<TPZMaterial> BCondN = mymaterial->CreateBC(mat, bcN,neumann, val1, val2);
+//	mphysics->InsertMaterialObject(BCondN);
+//	
+//	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+//	val22(0,0)=0.;
+//	val22(1,0)=2.;
+//	TPZAutoPointer<TPZMaterial> BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
+//	mphysics->InsertMaterialObject(BCondDL);
+//	
+//	TPZFMatrix val13(2,2,0.), val23(2,1,0.);
+//	val23(0,0)=0.;
+//	val23(1,0)=1.;
+//	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
+//	mphysics->InsertMaterialObject(BCondDR);
+//	
+//	
+//	mphysics->AutoBuild();
+//	mphysics->AdjustBoundaryElements();
+//	mphysics->CleanUpUnconnectedNodes();
+//	
+//	// Creating multiphysic elements into mphysics computational mesh
+//	AddElements(meshvec, mphysics);
+//	AddConnects(meshvec,mphysics);
+//	TransferFromMeshes(meshvec, mphysics);
+//	
+//#ifdef LOG4CXX
+//    {
+//        std::stringstream sout;
+//        mphysics->Print(sout);
+//        LOGPZ_DEBUG(logger, sout.str())
+//    }
+//#endif
+//	ofstream arg8("mphysic.txt");
+//    mphysics->Print(arg8);
+//	
+//	
+//	TPZAnalysis an(mphysics);
+//	SolveSist(an, mphysics);
+//	
+//	//--- pos-process -----
+//	TransferFromMultiPhysics(meshvec, mphysics);
+//
+//	TPZManVector<std::string,10> scalnames(2), vecnames(2);
+//	scalnames[0] = "SolutionU";
+//	scalnames[1] = "SolutionP";
+//	vecnames[0]= "DerivateU";
+//	vecnames[1]= "DerivateP";
+//	
+//	std::string plotfile3("saidaSolution.vtk");
+//	const int dim = 2;
+//	int div = 0;
+//	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile3);
+//	an.PostProcess(div,dim);
+//	std::ofstream out("malha.txt");
+//	an.Print("nothing",out);
 	//----------
 	
 		
@@ -275,7 +317,7 @@ int main(int argc, char *argv[])
 }
 
 
-TPZGeoMesh *MalhaGeom()
+TPZGeoMesh *MalhaGeom(bool interface)
 {
 	
 	int Qnodes = 6;
@@ -356,6 +398,12 @@ TPZGeoMesh *MalhaGeom()
 	TopolQuad[2] = 3;
 	TopolQuad[3] = 4;
 	new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
+	
+	//criar elemento de interface
+	if (interface==true) {
+		gmesh->AddInterfaceMaterial(matId,lagrangemat, interfacemat); //Adicionar um material de interface associados aos elementos matId e lagrangemat do material.
+		gmesh->AddInterfaceMaterial(lagrangemat,matId, interfacemat);
+	}
 	
 	gmesh->BuildConnectivity();
 			
@@ -456,6 +504,63 @@ TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
 	REAL uDR=1.;
 	val22(0,0)=uDR;
 	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDR);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+	
+	return cmesh;
+}
+
+TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
+{
+	/// criar materiais
+	int dim = 2;
+	
+	TPZMatPoisson3d *material = new TPZMatPoisson3d(matId,dim);
+	TPZMatPoisson3d *matlagrange = new TPZMatPoisson3d(lagrangemat,1); 
+	TPZMatPoisson3d *matinterface = new TPZMatPoisson3d(interfacemat,1); 
+	
+	TPZAutoPointer<TPZMaterial> mat1(material);
+	TPZAutoPointer<TPZMaterial> mat2(matlagrange);
+	TPZAutoPointer<TPZMaterial> mat3(matinterface);
+	
+	REAL diff = -1.;
+	REAL conv = 0.;
+	TPZVec<REAL> convdir(3,0.);
+	REAL flux = 8.;
+	
+	material->SetParameters(diff, conv, convdir);
+	material->SetInternalFlux( flux);
+	material->NStateVariables();
+	
+	TPZCompEl::SetgOrder(pOrder);
+	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDimModel(dim);
+	
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	cmesh->InsertMaterialObject(mat1);
+	cmesh->InsertMaterialObject(mat2);
+	cmesh->InsertMaterialObject(mat3);
+	
+	
+	///Inserir condicao de contorno
+	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	REAL uN=0.;
+	val2(0,0)=uN;
+	//val2(1,0)=uN;
+	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat1, bcN,neumann, val1, val2);
+	cmesh->InsertMaterialObject(BCondN);
+	
+	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	REAL uD=0.;
+	val22(0,0)=uD;
+	//val22(1,0)=uD;
+	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat1, bcDL,dirichlet, val12, val22);
+	cmesh->InsertMaterialObject(BCondDL);
+	
+	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat1, bcDR,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -960,7 +1065,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 				matnotfound.insert(matid);
 				continue;
 			}
-			int printing = 0;
+			int printing = /*0*/1;
 			if (printing) {
 				gel->Print(cout);
 			}
@@ -972,14 +1077,14 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
 				gel->CreateCompEl(*cmesh,index);
-                gel->ResetReference();
+                        gel->ResetReference();
 			}
 		}
 	}
     
     cmesh->LoadReferences();
     
-    // Gera elementos geometricas para os elementos menores
+    // Gera elementos geometricos para os elementos menores
     for (i=0; i<nelem; ++i) {
         TPZGeoEl *gel = elvec[i];
         if (!gel || gel->Dimension() != meshdim || !gel->Reference()) {
@@ -998,17 +1103,28 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
             if (sidedim != meshdim-1) {
                 continue;
             }
-            // check if there is a smaller element connected to this element
-            TPZStack<TPZCompElSide> celsides;
-            TPZGeoElSide gelside(gel,is);
-            gelside.HigherLevelCompElementList2(celsides, 0, 0);
-            if(celsides.NElements()) continue; 
-            gel->CreateBCGeoEl(is, LagrangeMat);
-        }
-    }
-    // now create the lagrange elements
+			// check if there is a smaller element connected to this element
+			TPZStack<TPZCompElSide> celsides;
+			celsides.Resize(0);
+			TPZGeoElSide gelside(gel,is);
+			gelside.HigherLevelCompElementList2(celsides, 0, 0);
+			int ncelsid =  celsides.NElements();
+			if(celsides.NElements()) continue;
+			
+			//feito por Agnaldo. verificar depois
+			TPZStack<TPZGeoElSide> allneigh;
+			allneigh.Resize(0);	
+			gelside.ComputeNeighbours(allneigh);
+			int nneig = allneigh.NElements();
+			if (allneigh[0].Element()->Dimension() != meshdim) continue;
+			if(allneigh.NElements()>1) continue;
+			
+			gel->CreateBCGeoEl(is, LagrangeMat);
+		}
+	}
+   
+	// now create the lagrange elements
     cmesh->Reference()->ResetReference();
-    
     nelem = elvec.NElements();
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
@@ -1016,28 +1132,34 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
 			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			
 			if(!mat)
 			{
 				matnotfound.insert(matid);
 				continue;
 			}
-			int printing = 0;
+		
+			int printing = /*0*/1;
 			if (printing) {
 				gel->Print(cout);
 			}
 			
 			///checking material in MaterialIDs
-            if (matid != LagrangeMat) {
-                continue;
-            }
+			if (matid != LagrangeMat) {
+				continue;
+			}
 			
 			if(!gel->Reference())
 			{
 				gel->CreateCompEl(*cmesh,index);
-                gel->ResetReference();
+                        gel->ResetReference();
 			}
 		}
 	}
+	
+	//Agnaldo
+	cmesh->LoadReferences();
+	
     // now create the interface elements between the lagrange elements and other elements
     nelem = elvec.NElements();
     for (i=0; i<nelem; ++i) {
@@ -1062,7 +1184,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
             TPZStack<TPZCompElSide> celsides;
             TPZGeoElSide gelside(gel,is);
             gelside.EqualLevelCompElementList(celsides, 0, 0);
-            gelside.LowerLevelCompElementList2(0);
+		gelside.LowerLevelCompElementList2(0);
             int nelsides = celsides.NElements();
             if(nelsides != 2) 
             {
