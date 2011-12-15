@@ -319,9 +319,9 @@ public:
 	//   virtual void Coarsen(TPZVec<int> &elementindexes);
 	
 	/**
-	 * @brief Compute the element stifness matrix
+	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
-	 * @param ef element loads matrix
+	 * @param ef element load vector
 	 */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 	
