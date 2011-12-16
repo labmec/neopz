@@ -9,7 +9,7 @@
 
 TPZGuiInterface::TPZGuiInterface(){
 	this->fCanceled = false;
-	this->fMessage = "";
+	//this->fMessage = "";
 	this->fProgressBarPos = 0;
 	this->fProgressBarMaxPos = 0;
 	this->fProgressBarMinPos = 0;
@@ -20,10 +20,26 @@ TPZGuiInterface::~TPZGuiInterface(){
 }
 
 void TPZGuiInterface::UpdateCaption(){
-	std::cout << fMessage.c_str() << "\n"
-	<< "Progress bar = " << fProgressBarPos << "/" << fProgressBarMaxPos
+    if(fMessage.length())
+    {
+        std::cout << fMessage.c_str() << "\n";
+    }
+    std::cout << "Progress bar = " << fProgressBarPos << "/" << fProgressBarMaxPos
 	<< "\n";
 }
+
+/** Message attribute for UpdateGUI method */
+std::string TPZGuiInterface::Message(){
+    return fMessage;
+}
+
+
+/** Change the message of the object */
+void TPZGuiInterface::SetMessage(const std::string &message)
+{
+    fMessage = message;
+}
+
 
 void TPZGuiInterface::Start(){
 	std::cout << "Starting execution\n";

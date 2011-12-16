@@ -7,7 +7,8 @@
 #ifndef TPZGuiInterfaceH
 #define TPZGuiInterfaceH
 
-#include "iostream"
+#include <iostream>
+#include "pzerror.h"
 /**
  * @ingroup common
  * @brief This class implements a very simple interface from PZ kernel to GUI. Module: \ref common "Common".
@@ -39,6 +40,23 @@ public:
 	
 	/** Default destructor */
 	virtual ~TPZGuiInterface();
+    
+    TPZGuiInterface(const TPZGuiInterface &gui) : fCanceled(gui.fCanceled), fMessage(gui.fMessage), fProgressBarPos(gui.fProgressBarPos),
+        fProgressBarMaxPos(gui.fProgressBarMaxPos),fProgressBarMinPos(gui.fProgressBarMinPos)
+    {
+        DebugStop();
+    }
+    
+    TPZGuiInterface &operator=(const TPZGuiInterface &gui)
+    {
+        fCanceled = gui.fCanceled;
+        fMessage = gui.fMessage;
+        fProgressBarPos = gui.fProgressBarPos;
+        fProgressBarMaxPos = gui.fProgressBarMaxPos;
+        fProgressBarMinPos = gui.fProgressBarMinPos;
+        DebugStop();
+        return *this;
+    }
 	
 	/** Updates the GUI with start messages \n
 	 * This method must be reimplemented in derived classes for better messages
@@ -67,9 +85,9 @@ public:
 	bool AmIKilled();
 	
 	/** Message attribute for UpdateGUI method */
-	std::string &Message(){
-		return fMessage;
-	}
+	std::string Message();    
+    /** Change the message of the object */
+    void SetMessage(const std::string &message);
 	
 	/** Progress bar attributes for UpdateGUI method */
 	int &ProgressBarPos(){
