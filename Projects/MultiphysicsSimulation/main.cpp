@@ -933,6 +933,8 @@ void AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCompMesh *MFMesh)
 			MFMesh->ConnectVec()[counter] = refcon;
 			if (refcon.SequenceNumber() >= 0) {
 				MFMesh->ConnectVec()[counter].SetSequenceNumber(seqnum);
+                MFMesh->ConnectVec()[counter].SetNShape(refcon.NShape());
+                MFMesh->ConnectVec()[counter].SetNState(refcon.NState());
 				int ndof = refcon.NDof(*cmeshVec[imesh]);
 				MFMesh->Block().Set(seqnum,ndof);
 				seqnum++;
