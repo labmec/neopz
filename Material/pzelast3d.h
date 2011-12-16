@@ -53,6 +53,15 @@ class TPZElasticity3D : public TPZMaterial {
 	/** @brief Number of state variables */
 	int NStateVariables(){ return 3;}
 	
+    /** 
+     * @brief Gets the order of the integration rule necessary to integrate an
+     * element with polinomial order p
+     */
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const
+    {
+        return 2*(elPMaxOrder-1);
+    }
+
 	/** @brief Print material report */
 	virtual void Print(std::ostream & out);
 	
