@@ -92,6 +92,8 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 			MFMesh->ConnectVec()[counter] = refcon;
 			if (refcon.SequenceNumber() >= 0) {
 				MFMesh->ConnectVec()[counter].SetSequenceNumber(seqnum);
+                MFMesh->ConnectVec()[counter].SetNState(refcon.NState());
+                MFMesh->ConnectVec()[counter].SetNShape(refcon.NShape());
 				int ndof = refcon.NDof(*cmeshVec[imesh]);
 				MFMesh->Block().Set(seqnum,ndof);
 				seqnum++;
