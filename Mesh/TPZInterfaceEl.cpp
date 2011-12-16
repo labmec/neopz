@@ -800,6 +800,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	for(int i = 0; i < n; i++) {
 		const int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
+#ifdef DEBUG
+        TPZConnect &c = left->Connect(i);
+        if(c.NShape() != nshape || c.NState() != nstatel)
+        {
+            DebugStop();
+        }
+#endif
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexL[i];
 		ic++;
@@ -808,6 +815,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	for(int i = 0; i < n; i++) {
 		const int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
+#ifdef DEBUG
+        TPZConnect &c = right->Connect(i);
+        if (c.NShape() != nshape || c.NState() != nstater) {
+            DebugStop();
+        }
+#endif
+        
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexR[i];
 		ic++;
@@ -872,6 +886,13 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	for(int i = 0; i < n; i++) {
 		const int nshape = left->NConnectShapeF(i);
 		const int con_neq = nstatel * nshape;
+#ifdef DEBUG
+        TPZConnect &c = left->Connect(i);
+        if(c.NShape() != nshape || c.NState() != nstatel)
+        {
+            DebugStop();
+        }
+#endif
 		ek.fBlock.Set(ic,con_neq );
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexL[i];
@@ -892,6 +913,12 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	for(int i = 0; i < n; i++) {
 		const int nshape = right->NConnectShapeF(i);
 		const int con_neq = nstater * nshape;
+#ifdef DEBUG
+        TPZConnect &c = right->Connect(i);
+        if (c.NShape() != nshape || c.NState() != nstater) {
+            DebugStop();
+        }
+#endif
 		ek.fBlock.Set(ic,con_neq );
 		ef.fBlock.Set(ic,con_neq);
 		(ef.fConnect)[ic] = ConnectIndexR[i];
