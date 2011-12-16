@@ -55,22 +55,32 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	}
 	
 	//criando o connect da variavel dual
-	
 	int nshape;
-	if (TSHAPE::Type()==EQuadrilateral)
-		nshape = pzshape::TPZShapeDisc::NShapeF(fPressureOrder, Dimension(), pzshape::TPZShapeDisc::  ETensorial);
-	else if (TSHAPE::Type()==ETriangle)
-		nshape = pzshape::TPZShapeDisc::NShapeF(fPressureOrder, Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
-	else
-		DebugStop();   // Improve it!!!
-
-	int newnodeindex = mesh.AllocateNewConnect(nshape,1,fPressureOrder);
+	if (TSHAPE::Type()==EQuadrilateral) {
+		nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
+	}
+	if (TSHAPE::Type()==ETriangle) {
+		nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
+	}
+    int nstate = 1;
+	int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,fPressureOrder);
 	TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
-	SetConnectIndex(i,newnodeindex);
+	this->fConnectIndexes[i]=newnodeindex;
 	int seqnum = newnod.SequenceNumber();
-	mesh.Block().Set(seqnum,nshape);
-	mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
-
+    newnod.SetPressure(true);
+    mesh.Block().Set(seqnum,nshape);
+    mesh.ConnectVec()[this->fConnectIndexes[i]].IncrementElConnected();
+	/*
+	 
+	 #ifdef LOG4CXX
+	 {
+	 std::stringstream sout;
+	 sout << "After creating last connect " << i << std::endl;
+	 this->Print(sout);
+	 LOGPZ_DEBUG(logger,sout.str())
+	 }
+	 #endif
+	 */
 	int sideorder = SideOrder(TSHAPE::NSides-1);
 	sideorder = 2*sideorder;
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
@@ -507,7 +517,10 @@ void TPZCompElHDiv<TSHAPE>::SetSideOrder(int side, int order) {
     int nvar = 1;
     TPZAutoPointer<TPZMaterial> mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
-	this-> Mesh()->Block().Set(seqnum,NConnectShapeF(connectaux)*nvar);
+    c.SetNState(nvar);
+    int nshape = NConnectShapeF(connectaux);
+    c.SetNShape(nshape);
+	this-> Mesh()->Block().Set(seqnum,nshape*nvar);
     if(connectaux == NConnects()-1) {
 		SetIntegrationRule(2*order);
 		
