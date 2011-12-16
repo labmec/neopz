@@ -326,8 +326,15 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 
 	int i;
 	for(i=0; i<ncon; i++){
-		ek.fBlock.Set(i,Connect(i).NDof(*Mesh()));
-		ef.fBlock.Set(i,Connect(i).NDof(*Mesh()));
+        int ndof = Connect(i).NDof(*Mesh());
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if (c.NShape()*c.NState() != ndof) {
+            DebugStop();
+        }
+#endif
+		ek.fBlock.Set(i,ndof);
+		ef.fBlock.Set(i,ndof);
 	}
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
