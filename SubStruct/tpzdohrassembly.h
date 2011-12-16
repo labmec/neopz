@@ -15,6 +15,7 @@
 #define TPZDOHRASSEMBLYH
 
 #include "pzvec.h"
+#include "pzsave.h"
 
 class TPZFMatrix;
 
@@ -22,7 +23,8 @@ class TPZFMatrix;
  * @ingroup substructure
  * @brief Assembling using Dohrmann algorithm. \ref substructure "Sub structure"
  */
-class TPZDohrAssembly 
+class TPZDohrAssembly : public TPZSaveable
+// @TODO Implement the methods to make the class actually saveable
 {
 public:
 	/**
