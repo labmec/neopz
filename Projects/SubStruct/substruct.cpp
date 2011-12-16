@@ -64,7 +64,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
-#endif
+//#endif
 	
 	int dim = 2;
 	int maxlevel = 5;
