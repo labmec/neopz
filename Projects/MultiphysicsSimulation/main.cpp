@@ -1116,8 +1116,13 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			//feito por Agnaldo. verificar depois
 			TPZStack<TPZGeoElSide> allneigh;
 			allneigh.Resize(0);	
-			gelside.ComputeNeighbours(allneigh);
+			gelside.AllNeighbours(allneigh);
 			int nneig = allneigh.NElements();
+			if (nneig==0) {
+				TPZCompElSide celside;  
+				celside = gelside.LowerLevelCompElementList2(0);
+				int dimcel = celside.Reference().Element()->Dimension();
+			}
 			if (allneigh[0].Element()->Dimension() != meshdim) continue;
 			if(allneigh.NElements()>1) continue;
 			
