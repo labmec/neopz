@@ -64,8 +64,6 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	/* Quando se está usando o tal log4cxx */
-#ifdef LOG4CXX
-	InitializePZLOG();
 #endif
 	
 	int dim = 2;
@@ -118,6 +116,14 @@ int main(int argc, char *argv[])
 		TPZAutoPointer<TPZGuiInterface> gui;
 		TPZFMatrix rhs(cmesh->NEquations(),1,0.);
 		TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
+        
+        TPZFMatrix rhs2(rhs.Rows(),rhs.Cols(),0.);
+        dohrstruct.Assemble(rhs2, gui);
+        
+        rhs2 -= rhs;
+        REAL rhs2Norm = Norm(rhs2);
+        std::cout << "Norma da rhs " << Norm(rhs) << " Norma da diferenca " << rhs2Norm << std::endl;
+        
 		TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
 		
 		TPZFMatrix diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
