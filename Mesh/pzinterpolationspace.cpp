@@ -354,8 +354,16 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-		ek.fBlock.Set(i,NConnectShapeF(i)*numdof);
-		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+        int nshape = NConnectShapeF(i);
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if(c.NShape() != nshape || c.NState() != numdof)
+        {
+            DebugStop();
+        }
+#endif
+		ek.fBlock.Set(i,nshape*numdof);
+		ef.fBlock.Set(i,nshape*numdof);
 	}
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
@@ -375,7 +383,14 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	ef.fNumStateVars = numdof;
 	int i;
 	for(i=0; i<ncon; i++){
-		ef.fBlock.Set(i,NConnectShapeF(i)*numdof);
+        int nshapec = NConnectShapeF(i);
+#ifdef DEBUG
+        TPZConnect &c = Connect(i);
+        if (c.NShape() != nshapec || c.NState() != numdof) {
+            DebugStop();
+        }
+#endif
+		ef.fBlock.Set(i,nshapec*numdof);
 	}
 	ef.fConnect.Resize(ncon);
 	for(i=0; i<ncon; i++){
@@ -1200,6 +1215,13 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	for(in=0;in<cornod; in++) {
 		c = connectlistcoarse[in];
 		int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
+#ifdef DEBUG
+        TPZConnect &con = coarsel.Mesh()->ConnectVec()[c];
+        if(con.NShape() != blsize)
+        {
+            DebugStop();
+        }
+#endif
 		corblock.Set(in,blsize);
 		corblocksize.Push(blsize);
 		cormatsize += blsize;
@@ -1232,7 +1254,15 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	TPZBlock locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
-		locblock.Set(in,NConnectShapeF(in));
+        int nshape = NConnectShapeF(in);
+#ifdef DEBUG
+        TPZConnect &c = Connect(in);
+        if(c.NShape() != nshape)
+        {
+            DebugStop();
+        }
+#endif
+		locblock.Set(in,nshape);
 	}
 	locblock.Resequence();
 	
