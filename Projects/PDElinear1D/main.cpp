@@ -12,7 +12,7 @@
 #include "pzcmesh.h"
 #include "pzcompel.h"
 
-#include "tpzgeolinear.h"
+#include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
 
 #include "TPZRefPattern.h"

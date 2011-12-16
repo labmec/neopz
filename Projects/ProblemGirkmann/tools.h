@@ -14,7 +14,7 @@
 #include "pzcompel.h"
 
 #include "pzgeoquad.h"
-#include "tpzgeolinear.h"
+#include "TPZGeoLinear.h"
 #include "pzgeotriangle.h"
 #include "tpzquadrilateral.h"
 #include "pzgnode.h"

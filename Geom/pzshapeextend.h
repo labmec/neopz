@@ -210,7 +210,7 @@ namespace pzshape {
 				ishapeaft = ishape/(mem.fNShapeBefore[is]*next);
 				int orgind = ishapebef+ishapeaft*mem.fNShapeBefore[is];
 				// this could be lower too
-				shape(index,0) = mem.fExtShapes[is][orgind]*shapelower[ishapeext];
+				shape(ishape,0) = mem.fExtShapes[is][orgind]*shapelower[ishapeext];
 			}
 		}
 		// project the point to the side
