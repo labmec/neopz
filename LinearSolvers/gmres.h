@@ -3,6 +3,16 @@
  * @brief Contains the implementation of the CMRES function which solves the unsymmetric linear system using the Generalized Minimum Residual method. 
  */
 
+/** @ingroup util */
+/** @brief Compute the values cs and sn parameters to rotation */
+template<class Real>
+void GeneratePlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
+
+/** @ingroup util */
+/** @brief Makes rotation of the plane based on the cs and sn parameters */
+template<class Real>
+void ApplyPlaneRotation(Real &dx, Real &dy, Real &cs, Real &sn);
+
 /**
  * @ingroup solver
  * @brief Computes back solve. Updates on v vector.
@@ -72,13 +82,18 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	Vector *res = residual;
 	if(!res) res = &resbackup;
 	Vector &r = *res;
-	M.Solve(b,r);
-	Real normb = Norm(r);
-	//  Vector r = b - A*x;
-	if(FromCurrent) A.MultAdd(x,b,r,-1.,1.);
-	else {
+    M.Solve(b,r);
+	Real normb = Norm(r);	//  Vector r = b - A*x;
+	if(FromCurrent) 
+    {
+        A.MultAdd(x,b,r,-1.,1.);
+//        r.Print("Residual");
+    } 
+    else 
+    {
 		x.Zero();
 		r = b;
+        //DebugStop();
 	}
 	//	Vector r = M.solve(b - A * x);
 	M.Solve(r,w);
@@ -122,9 +137,10 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			GeneratePlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
 			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
 			ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
-			
-			if ((resid = abs(s(i+1)) / normb) < tol) {
-				//                  std::cout << "iter " << j << " - " << resid << std::endl;
+			resid = abs(s(i+1))/normb;
+            //std::cout << "iter " << j << " - " << resid << std::endl;
+			if (resid < tol) {
+                //std::cout << "iter " << j << " - " << resid << std::endl;
 				Update(x, i, H, s, v);
 				tol = resid;
 				max_iter = j;
@@ -138,8 +154,10 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 		M.Solve(r,r);
 		//	 r = M.solve(b - A * x);
 		beta = Norm(r);
-		if ((resid = beta / normb) < tol) {
-			//                std::cout << "iter " << j << " - " << resid << std::endl;
+        resid = beta/normb;
+        //std::cout << "iter " << j << " - " << resid << std::endl;
+		if (resid < tol) {
+            std::cout << "iter " << j << " - " << resid << std::endl;
 			tol = resid;
 			max_iter = j;
 			delete [] v;
@@ -148,7 +166,7 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	}
 	
 	tol = resid;
-	//  std::cout << "iter " << j << " - " << resid << std::endl;
+	//std::cout << "iter " << j << " - " << resid << std::endl;
 	delete [] v;
 	return 1;
 }
