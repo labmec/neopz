@@ -295,7 +295,7 @@ public:
 	/**
 	 * @brief Virtual Method to allocate new connect
 	 */
-	virtual int AllocateNewConnect(int blocksize, int order);
+	virtual int AllocateNewConnect(int nshape, int nstate, int order);
 	
 	/**
 	 * @brief Gives the id node  of one local node in containing mesh.
