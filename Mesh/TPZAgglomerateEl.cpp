@@ -293,11 +293,13 @@ int TPZAgglomerateElement::CreateMidSideConnect() {
 		SetDegree(-1);//=> nshape = 0
 	} else {
 		int nvar = Material()->NStateVariables();
-		int newnodeindex = Mesh()->AllocateNewConnect(NShapeF(),nvar,Mesh()->GetDefaultOrder());
+        int nshape = NShapeF();
+        int order = 0;
+		int newnodeindex = Mesh()->AllocateNewConnect(nshape, nvar, order);
 		SetConnectIndex(0,newnodeindex);
 		TPZConnect &newnod = Mesh()->ConnectVec()[newnodeindex];
 		int seqnum = newnod.SequenceNumber();
-		Mesh()->Block().Set(seqnum,nvar*NShapeF());
+		Mesh()->Block().Set(seqnum,nvar*nshape);
 		Mesh()->ConnectVec()[ConnectIndex()].IncrementElConnected();
 	}
 
