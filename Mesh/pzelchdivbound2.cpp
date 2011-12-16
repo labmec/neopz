@@ -252,7 +252,10 @@ void TPZCompElHDivBound2<TSHAPE>::SetSideOrder(int side, int order) {
     int nvar = 1;
     TPZAutoPointer<TPZMaterial> mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
-    this-> Mesh()->Block().Set(seqnum,NConnectShapeF(connectaux)*nvar);
+    int nshape = NConnectShapeF(connectaux);
+    c.SetNShape(nshape);
+    c.SetNState(nvar);
+    this-> Mesh()->Block().Set(seqnum,nshape*nvar);
     if(connectaux == NConnects()-1)
     {
     	this->SetIntegrationRule(2*order);
