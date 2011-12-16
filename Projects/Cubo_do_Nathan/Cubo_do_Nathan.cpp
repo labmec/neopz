@@ -291,8 +291,8 @@ int main()
 	TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
 	
 	InsertViscoElasticity(cmesh);
-	//int porder = 1;
-	//cmesh->SetDefaultOrder(porder);
+	int porder = 2;
+	cmesh->SetDefaultOrder(porder);
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
 	cmesh->AutoBuild();
 
@@ -484,7 +484,7 @@ TPZGeoMesh *MalhaCubo()
 	
 	gMesh -> NodeVec().Resize(numnodes);
 	
-	TPZVec <int> TopolTetra(4);
+	TPZManVector <int> TopolTetra(4);
 	
 	const int Qnodes = numnodes;
 	TPZVec <TPZGeoNode> Node(Qnodes);
@@ -531,6 +531,7 @@ TPZGeoMesh *MalhaCubo()
 		
 		int el;
 		int neumann1 = -4, neumann2 = -5;
+        int index = 0;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
 		{
@@ -546,13 +547,27 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[2]--;
 			TopolTetra[3]--;
 			
-			int index;
+
 			//TPZGeoEl * tetra = gMesh->CreateGeoElement(ETetraedro, TopolTetra, matElId, index);
 			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
-			
+            index++;
+            
+		}
+        gMesh->BuildConnectivity();
+        {
+            ofstream arg("malhaPZ.txt");
+            gMesh->Print(arg);
+        }
+        for (el=0; el<numelements; el++)
+        {
+            TPZGeoEl *tetra = gMesh->ElementVec()[el];
+            for (int i=0; i<4; i++)
+            {
+                TopolTetra[i] = tetra->NodeIndex(i); 
+            }
 			// Colocando as condicoes de contorno
-			TPZVec <TPZGeoNode> Nodefinder(4);
-			TPZVec <REAL> nodecoord(3);
+			TPZManVector <TPZGeoNode,4> Nodefinder(4);
+			TPZManVector <REAL,3> nodecoord(3);
 			// na face x = 1
 			TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
 			for (int i = 0; i < 4; i++) 
