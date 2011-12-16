@@ -261,7 +261,10 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 		int nvar = 1;
 		TPZAutoPointer<TPZMaterial> mat = Material();
 		if(mat) nvar = mat->NStateVariables();
-		Mesh()->Block().Set(seqnum,NConnectShapeF(side)*nvar);
+        int nshape = NConnectShapeF(side);
+        c.SetNShape(nshape);
+        c.SetNState(nvar);
+		Mesh()->Block().Set(seqnum,nshape*nvar);
 		if(side == TSHAPE::NSides-1) {
 			SetIntegrationRule(2*order);
 		}
