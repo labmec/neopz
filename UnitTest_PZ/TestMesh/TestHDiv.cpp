@@ -11,6 +11,7 @@
 #include "pzgengrid.h"
 #include "tpzautopointer.h"
 #include "pzpoisson3d.h"
+#include "pzbndcond.h"
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 #include "tpzpermutation.h"
@@ -19,6 +20,9 @@
 #include "pztrnsform.h"
 #include "pzintel.h"
 #include "pzstepsolver.h"
+
+#include "pzanalysis.h"
+#include "TPZParSkylineStructMatrix.h"
 
 #include "pzlog.h"
 
@@ -163,6 +167,11 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 
 }
 
+void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
+{
+    force[0] = x[0];
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
@@ -173,9 +182,18 @@ TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZGenGrid grid(nx,x0,x1);
     TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
     grid.Read(gmesh);
+    grid.SetBC(gmesh, 0, -1);
+    grid.SetBC(gmesh, 1, -1);
+    grid.SetBC(gmesh, 2, -1);
+    grid.SetBC(gmesh, 3, -1);
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
-    TPZAutoPointer<TPZMaterial> pois = new TPZMatPoisson3d(1, 2);
+    TPZMatPoisson3d *matpois = new TPZMatPoisson3d(1, 2);
+    TPZAutoPointer<TPZMaterial> pois(matpois);
     cmesh->InsertMaterialObject(pois);
+    TPZFNMatrix<4> val1(1,1,0.),val2(1,1,0.);
+    TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
+    TPZAutoPointer<TPZMaterial> matbnd(bnd);
+    cmesh->InsertMaterialObject(matbnd);
     cmesh->SetAllCreateFunctionsHDiv();
     cmesh->SetDefaultOrder(3);
     cmesh->SetDimModel(2);
