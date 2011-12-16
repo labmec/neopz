@@ -403,11 +403,12 @@ int TPZCompElDisc::CreateMidSideConnect(){
 		//o atual �um elemento de volume e
 		//n� achou-se um elemento superposto
 		int nvar = Material()->NStateVariables();
-		int newnodeindex = Mesh()->AllocateNewConnect(NShapeF(),nvar,Mesh()->GetDefaultOrder());
+		const int nshape = this->NShapeF();
+		int newnodeindex = Mesh()->AllocateNewConnect(nshape,nvar,0);
 		SetConnectIndex(0,newnodeindex);
 		TPZConnect &newnod = Mesh()->ConnectVec()[newnodeindex];
 		int seqnum = newnod.SequenceNumber();
-		Mesh()->Block().Set(seqnum,nvar*NShapeF());
+		Mesh()->Block().Set(seqnum,nvar*nshape);
 		Mesh()->ConnectVec()[fConnectIndex].IncrementElConnected();
 	}
 	
@@ -826,6 +827,8 @@ void TPZCompElDisc::SetDegree(int degree) {
 	TPZAutoPointer<TPZMaterial> mat = Material();
 	if(mat) nvar = mat->NStateVariables();
 	int nshapef = this->NShapeF();
+    c.SetNShape(nshapef);
+    c.SetNState(nvar);
 	Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
@@ -839,6 +842,8 @@ void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externa
 	TPZAutoPointer<TPZMaterial> mat = Material();
 	if(mat) nvar = mat->NStateVariables();
 	int nshapef = this->NShapeF();
+    c.SetNShape(nshapef);
+    c.SetNState(nvar);
 	Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
