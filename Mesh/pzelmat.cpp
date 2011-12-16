@@ -34,6 +34,16 @@ void TPZElementMatrix::SetMatrixMinSize(short NumBli, short NumBlj,
 	}
 }
 
+TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) : 
+    fType(cp.fType), fMesh(cp.fMesh), fConnect(cp.fConnect), fMat(cp.fMat),
+    fBlock(cp.fBlock), fConstrConnect(cp.fConstrConnect), fConstrMat(cp.fConstrMat),
+    fConstrBlock(cp.fConstrBlock), fDestinationIndex(cp.fDestinationIndex),
+    fSourceIndex(cp.fSourceIndex), fNumStateVars(cp.fNumStateVars)
+{
+    
+}
+
+
 void TPZElementMatrix::Print(std::ostream &out){
 	fMat.Print("Unconstrained matrix",out,EMathematicaInput);
 	int ncon = fConnect.NElements();
@@ -164,6 +174,11 @@ void TPZElementMatrix::ApplyConstraints(){
 		int dfnindex = this->fConstrConnect[in];
 		TPZConnect &dfn = fMesh->ConnectVec()[dfnindex];
 		int ndf = dfn.NDof(*fMesh);
+        int ndfcheck = dfn.NState()*dfn.NShape();
+        if(ndf != ndfcheck)
+        {
+            DebugStop();
+        }
 		this->fConstrBlock.Set(in,ndf);
 		toteq += ndf;
 	}
@@ -314,6 +329,48 @@ bool TPZElementMatrix::HasDependency(){
 		}
 	}
 	return false;
+}
+
+/** @brief permute the order of the connects
+ */
+void TPZElementMatrix::PermuteGather(TPZVec<int> &permute)
+{
+    if (permute.size() != fConnect.size()) {
+        DebugStop();
+    }
+    TPZElementMatrix cp(*this);
+    for (int i=0; i<fConnect.size(); ++i) {
+        fConnect[i] = cp.fConnect[permute[i]];
+        fBlock.Set(i, cp.fBlock.Size(permute[i]));
+    }
+    fBlock.Resequence();
+    if (fType == EK) {
+        int ibl,jbl;
+        for (ibl=0; ibl<fBlock.NBlocks(); ++ibl) {
+            int iblsize = fBlock.Size(ibl);
+            for (jbl=0; jbl<fBlock.NBlocks(); ++jbl) {
+                int jblsize = fBlock.Size(jbl);
+                for (int idf=0; idf<iblsize; ++idf) {
+                    for (int jdf=0; jdf<jblsize; ++jdf) {
+                        fBlock(ibl,jbl,idf,jdf) = cp.fBlock(permute[ibl],permute[jbl],idf,jdf);
+                    }
+                }
+            }
+        }
+    }
+    else if (fType == EF)
+    {
+        int ibl;
+        for (ibl=0; ibl<fBlock.NBlocks(); ++ibl) {
+            int iblsize = fBlock.Size(ibl);
+            int jblsize = fMat.Cols();
+            for (int idf=0; idf<iblsize; ++idf) {
+                for (int jdf=0; jdf<jblsize; ++jdf) {
+                    fBlock(ibl,0,idf,jdf) = cp.fBlock(permute[ibl],0,idf,jdf);
+                }
+            }
+        }
+    }
 }
 
 /*
