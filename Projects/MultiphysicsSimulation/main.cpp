@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG();
 #endif
 	
-	int p =1;
+	int p=1;
 	//primeira malha
 	
 	// geometric mesh (initial)
