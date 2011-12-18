@@ -686,12 +686,14 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		newnodeindex = cel->ConnectIndex(cel->MidSideConnectLocId(side_neig));
 		SetConnectIndex(nodloc,newnodeindex);
 	} else {
-        int nshape = NConnectShapeF(nodloc);
+        int nshape = 0;
         int order = cmesh->GetDefaultOrder();
 		newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 		TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
 		int seqnum = newnod.SequenceNumber();
 		SetConnectIndex(nodloc,newnodeindex);
+        nshape = NConnectShapeF(nodloc);
+        newnod.SetNShape(nshape);
 		cmesh->Block().Set(seqnum,nvar*nshape);
 		newnodecreated = 1;
 	}
