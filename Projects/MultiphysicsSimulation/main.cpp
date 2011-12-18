@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG();
 #endif
 	
-	int p=1;
+	int p =1;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -1118,12 +1118,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			allneigh.Resize(0);	
 			gelside.AllNeighbours(allneigh);
 			int nneig = allneigh.NElements();
-			if (nneig==0) {
-				TPZCompElSide celside;  
-				celside = gelside.LowerLevelCompElementList2(0);
-				int dimcel = celside.Reference().Element()->Dimension();
-			}
-			if (allneigh[0].Element()->Dimension() != meshdim) continue;
+			if (nneig && allneigh[0].Element()->Dimension() != meshdim) continue;
 			if(allneigh.NElements()>1) continue;
 			
 			gel->CreateBCGeoEl(is, LagrangeMat);
@@ -1146,15 +1141,15 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 				continue;
 			}
 		
+			///checking material in MaterialIDs
+			if (matid != LagrangeMat) {
+				continue;
+			}
 			int printing = /*0*/1;
 			if (printing) {
 				gel->Print(cout);
 			}
 			
-			///checking material in MaterialIDs
-			if (matid != LagrangeMat) {
-				continue;
-			}
 			
 			if(!gel->Reference())
 			{
@@ -1191,11 +1186,18 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
             TPZStack<TPZCompElSide> celsides;
             TPZGeoElSide gelside(gel,is);
             gelside.EqualLevelCompElementList(celsides, 0, 0);
-		gelside.LowerLevelCompElementList2(0);
+            if(celsides.size() < 1)
+            {
+                DebugStop();
+            }
+            TPZCompElSide cels = gelside.LowerLevelCompElementList2(0);
+            if(cels) 
+            {
+                celsides.Push(cels);
+            }
             int nelsides = celsides.NElements();
             if(nelsides != 2) 
             {
-                // would be very weird
                 DebugStop();
             } 
             for (int lp=0; lp<nelsides; ++lp) {
