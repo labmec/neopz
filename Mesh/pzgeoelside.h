@@ -164,6 +164,10 @@ public:
 	void ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh);
 	
 	int Id();
+    
+    /**
+     * @brief the dimension associated with the element/side
+     */
 	int Dimension() const;
 	
 	int operator==(const TPZGeoElSide &other) const {
@@ -180,6 +184,14 @@ public:
 	int operator>(const TPZGeoElSide &other) const {
 		return (fGeoEl > other.fGeoEl || (fGeoEl == other.fGeoEl && fSide > other.fSide));
 	}
+    
+    /**
+     * @brief The conversion to bool indicates whether the object has an associated element
+     */
+    operator bool() const
+    {
+        return fGeoEl != 0;
+    }
 	
 	//void SideTransform(TPZGeoElSide neighbour,TPZTransform &t);
 	/**set the element neighbour along side i equal to el
