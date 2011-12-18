@@ -636,7 +636,7 @@ inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fBlock.Set(blocknum,nshape*nstate);
-    DebugStop();
+//    DebugStop();
 	c.SetSequenceNumber(blocknum);
     c.SetOrder(order);
 	return connectindex;
