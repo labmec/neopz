@@ -277,16 +277,15 @@ int TPZIntelGen<TSHAPE>::SideOrder(int side) const {
 	if(side < TSHAPE::NCornerNodes || side >= TSHAPE::NSides) return 0;
 	if(fConnectIndexes[side] == -1)
 	{
-		
 		std::stringstream sout ;
 		sout << __PRETTY_FUNCTION__ << " side " << side << std::endl;
 		//Print(sout);
 #ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str());
-		DebugStop();
 #else
 		std::cout << sout.str() << std::endl;
 #endif
+		DebugStop();
 		return -1;
 	}
 	TPZConnect &c = Connect(side);
