@@ -542,6 +542,15 @@ public:
 	
 	/** @brief Gives a pointer to the reference computational element */
 	TPZCompEl *Element() const {return fEl;}
+    
+    /**
+     * @brief The conversion to bool indicates whether the object has an associated element
+     */
+    operator bool() const
+    {
+        return fEl != 0;
+    }
+
 	
 	/** @brief Sets computational element pointer. */
 	void SetElement(TPZCompEl* el){ fEl = el;}
