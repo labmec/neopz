@@ -164,14 +164,15 @@ int main(int argc, char *argv[])
   //Options
   bool dump_mesh = false; // Dump building mesh after reading.
 
-  if (argc != 7) {
+  if (argc != 8) {
     cout << "Usage: " << argv[0]
 	 << "plevel "
 	 << "nthreads_nsubmesh_assemble "
 	 << "TPZPairStructMatrix::gNumThreads "
 	 << "nthreads_nsubmesh_decompose "
 	 << "nthreads_multiply "
-	 << "n_substructures" << endl;
+	 << "n_substructures"
+	 << "input_file" << endl;
     return 1;
   }
 
@@ -181,6 +182,7 @@ int main(int argc, char *argv[])
   int nthreads_nsubmesh_decompose  = atoi(argv[4]);
   int nthreads_multiply            = atoi(argv[5]);
   int n_substructures              = atoi(argv[6]);
+  string input_file(argv[7]);
 
   cout << "plevel                           = " << plevel                      << endl;
   cout << "nthreads_nsubmesh_assemble       = " << nthreads_nsubmesh_assemble  << endl;
@@ -188,12 +190,12 @@ int main(int argc, char *argv[])
   cout << "nthreads_nsubmesh_decompose      = " << nthreads_nsubmesh_decompose << endl;
   cout << "nthreads_multiply                = " << nthreads_multiply           << endl;
   cout << "n_substructures                  = " << n_substructures             << endl;
+  cout << "input_file                       = " << input_file                  << endl;
 
   //Sets the interpolation order. Default = 2.
   TPZCompEl::SetgOrder(plevel);
 
   //Build the mesh representing an 8-floor building. 
-  string input_file("../8andares02.txt");
   TIME_SEC_BEG_LOG(perflog, timer,"Reading building mesh from " << input_file);
   TPZGeoMesh* gmesh = BuildBuildingMesh(input_file.c_str());
   TIME_SEC_END_LOG(perflog, ta,timer,"Reading building mesh from " << input_file);
@@ -243,6 +245,7 @@ int main(int argc, char *argv[])
 
     //EBORIN: CreateAssemble -- dim2_2threads: 12.9%
     //EBORIN: For each NSubMesh, create a (ThreadDohrmanAssembly) work and append it to worklist (ThreadDohrmanAssemblyList).
+
     TIME_SEC_BEG_LOG(perflog, timer,"CreateAssemble");
     //The TPZDohrStructMatrix::CreateAssemble perform three tasks for each submesh
     // - ThreadDohrmanAssembly::EComputeMatrix

@@ -313,6 +313,12 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 	std::cout << "ThreadDohrmanAssembly\n";
 	// First pass : assembling the matrices
+	//EBORIN: 
+	// #0  TPZPairStructMatrix::Assemble (this=0x1056a3cb8, mineq=-1, maxeq=-1, first=0x10a80be00, second=0x10c800020, rhs=@0x103ea0750) at tpzpairstructmatrix.cpp:128
+	// #1  0x0000000100290c7d in AssembleMatrices (submesh=0x1056a3e60, substruct=@0xffffffff, dohrassembly=@0xffffffff, TestThread=@0x10a80be00) at pzdohrstructmatrix.cpp:1088
+	// #2  0x0000000100291ac6 in ThreadDohrmanAssembly::AssembleMatrices (this=0x1056a3ec0, threadtest=@0x1056a3ec0) at pzdohrstructmatrix.cpp:1158
+	// #3  0x000000010029236c in ThreadDohrmanAssemblyList::ThreadWork (voidptr=0x7fff5fbfaed8) at pzdohrstructmatrix.cpp:1224
+
 	ThreadDohrmanAssemblyList worklistAssemble(worklist);
 	std::list<TPZAutoPointer<ThreadDohrmanAssembly> >::iterator itwork = worklistAssemble.fList.begin();
 	while (itwork != worklistAssemble.fList.end()) {
@@ -1213,6 +1219,8 @@ TPZAutoPointer<ThreadDohrmanAssembly> ThreadDohrmanAssemblyList::NextObject()
 	return result;
 }
 
+//EBORIN: consumes tasks from the ThreadDohrmanAssemblyList list. The tasks
+//        are ThreadDohrmanAssembly::AssembleMatrices
 void *ThreadDohrmanAssemblyList::ThreadWork(void *voidptr)
 {
 	ThreadDohrmanAssemblyList *List = (ThreadDohrmanAssemblyList *)(voidptr);
