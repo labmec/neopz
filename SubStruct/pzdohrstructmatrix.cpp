@@ -48,6 +48,8 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 #endif
 
 #include "pzp_thread.h"
+#include "clock_timer.h"
+#include "timing_analysis.h"
 
 // return the number of submeshes
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
@@ -252,7 +254,12 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 // this will create a DohrMatrix and compute its matrices
 TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-	std::cout << "Computing the system of equations for each substructure\n";
+  ClockTimer timer;
+  TimingAnalysis ta;
+
+  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Initial setup");
+
+	std::cout << "Computing the system of equations for each substructure (TPZDohrStructMatrix::CreateAssemble)\n";
 	TPZMatrix *dohrgeneric = Create();
 	
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohrgeneric);
@@ -263,6 +270,15 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	
 	ThreadDohrmanAssemblyList worklist;
 	
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Initial setup");
+
+	if (fNumThreads > 0) {
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly setup");
+	}
+	else {
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly and Decompose (seq. version)");
+	}
+
 	int isub;
 	for (isub=0; isub<nsub ; isub++) {
 		TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
@@ -305,6 +321,14 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	}
 	
 	TPZfTime timerforassembly; // init of timer
+
+	if (fNumThreads > 0) {
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly setup");
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Assemble threads");
+	}
+	else {
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly and Decompose (seq. version)");
+	}
 	
 	
 	for(itr=0; itr<numthreads_assemble; itr++)
@@ -317,6 +341,11 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	for(itr=0; itr<numthreads_assemble; itr++)
 	{
 	  PZP_THREAD_JOIN(allthreads_assemble[itr], NULL, __FUNCTION__);
+	}
+
+	if (fNumThreads > 0) {
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assemble threads");
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose setup");
 	}
 	
 	const int numthreads_decompose = this->fNumThreadsDecompose;
@@ -336,10 +365,14 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 		itwork++;
 	}
 	
+	if (fNumThreads > 0) {
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose setup");
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
+	}
+
 	TPZfTime timerfordecompose; // init of timer
 	
-	
-	for(itr=0; itr<numthreads_assemble; itr++)
+	for(itr=0; itr<numthreads_decompose; itr++)
 	{
 	  PZP_THREAD_CREATE(&allthreads_decompose[itr], NULL,
 			    ThreadDohrmanAssemblyList::ThreadWork, 
@@ -350,8 +383,16 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	  PZP_THREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
 	}
 	
+	if (fNumThreads > 0) {
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
+	}
+
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
+
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
+
+	// E o tempo deste? É muito grande?
 	//	int isub;
 	for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
 		
@@ -361,14 +402,17 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 		(*it)->ContributeRhs(rhsloc);
 		fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
-	
-	
+		
 	dohr->Initialize();
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precond = new TPZDohrPrecond<TPZDohrSubstructCondense> (*dohr,fDohrAssembly);
 	precond->Initialize();
 	fDohrPrecond = precond;
+
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
+
+	ta.share_report(std::cout);
+
 	return dohrgeneric;
-	
 }
 
 /**

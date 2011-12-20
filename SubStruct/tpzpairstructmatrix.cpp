@@ -124,7 +124,8 @@ void TPZPairStructMatrix::PermuteScatter(TPZVec<int> &index)
 
 void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs)
 {
-	std::cout << "Assembling the system of equations with " << fNumThreads << " threads\n";
+  std::cout << "TPZPairStructMatrix::Assemble = Assembling the system of equations with " << fNumThreads
+	    << " threads (TPZPairStructMatrix::gNumThreads = " << TPZPairStructMatrix::gNumThreads  << ")\n";
 	if(fNumThreads <= 0)
 	{
 		SerialAssemble(mineq,maxeq,first,second,rhs);

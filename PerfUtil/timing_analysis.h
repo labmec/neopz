@@ -9,14 +9,21 @@
     ostr << __VA_ARGS__;					 \
     ta.add(timer.getUnits(), ostr.str()); }
 
+#define TIME_SEC_BEG_LOG(logger,timer, ...)		   \
+  LOG4CXX_INFO(logger, __VA_ARGS__ << " started")	   \
+  timer.start()
+
+#define TIME_SEC_END_LOG(logger,ta,timer, ...)				\
+  timer.stop();                                                         \
+  TIME_ANALYSIS_ADD(ta,timer, __VA_ARGS__)                              \
+  LOG4CXX_INFO(logger, __VA_ARGS__ << " ended in " << timer.getTime())
+
 #define TIME_SEC_BEG(timer, ...)                   \
-  LOG4CXX_INFO(perflog, __VA_ARGS__ << " started") \
   timer.start()
 
 #define TIME_SEC_END(ta,timer, ...)                                     \
   timer.stop();                                                         \
-  TIME_ANALYSIS_ADD(ta,timer, __VA_ARGS__)                              \
-  LOG4CXX_INFO(perflog, __VA_ARGS__ << " ended in " << timer.getTime())
+  TIME_ANALYSIS_ADD(ta,timer, __VA_ARGS__)
 
 typedef std::pair<double,std::string> section_timing_t;
 typedef std::set<section_timing_t> timing_set_t;

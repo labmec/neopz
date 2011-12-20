@@ -65,6 +65,7 @@ static LoggerPtr perflog(Logger::getLogger("perf"));
 #define LOG4CXX_FATAL(logger, expression)
 #endif
 
+#include "pzp_thread.h"
 #include "clock_timer.h"
 #include "timing_analysis.h"
 #include <sys/resource.h> // getrusage
@@ -151,6 +152,7 @@ int main(int argc, char *argv[])
   TimingAnalysis ta;
 
   total_timer.start();
+  pzp_thread_log_start();
 
 #ifdef LOG4CXX
   log4cxx::PropertyConfigurator::configure("log4cxx_perf.cfg");
@@ -161,116 +163,109 @@ int main(int argc, char *argv[])
 	
   //Options
   bool dump_mesh = false; // Dump building mesh after reading.
-  int dim        = 3;     // # of dimensions
-  int plevel     = 1;     // Interpolation order (gOrder)
-  int maxlevel   = 5;	  // ?
-  int sublevel   = 3;     // ?
-#ifdef ASSEMBLE_THREADS
-  int TPZStructMatrix_assemble_numthreads = ASSEMBLE_THREADS;
-#warning "assemble_numthreads set to DECOMPOSE_THREADS"
-#else
-  int TPZStructMatrix_assemble_numthreads = 1;
-#endif
-#ifdef DECOMPOSE_THREADS
-  int TPZDohrStructMatrix_decompose_numthreads = DECOMPOSE_THREADS;
-#warning "decompose_numthreads set to DECOMPOSE_THREADS"
-#else
-  int TPZDohrStructMatrix_decompose_numthreads = 1;
-#endif
-#ifdef GNUM_THREADS
-  //# of therads to build the matrix?
-  TPZPairStructMatrix::gNumThreads = GNUM_THREADS;
-#warning "TPZPairStructMatrix::gNumThreads set to GNUM_THREADS"
-#else
-  //# of therads to build the matrix?
-  TPZPairStructMatrix::gNumThreads = 0;
-#endif
-#ifdef SUBSTR_SZ
-#warning "Setting dohrstruct substructure_sz with SUBSTR_SZ"
-  int substructure_sz = SUBSTR_SZ;
-#else
-  int substructure_sz = 8;
-#endif
 
-  LOG4CXX_INFO(perflog, "dim    = " << dim);
-  LOG4CXX_INFO(perflog, "plevel = " << plevel);
-  LOG4CXX_INFO(perflog, "dim    = " << dim);
-  LOG4CXX_INFO(perflog, "TPZPairStructMatrix::gNumThreads         = " << TPZPairStructMatrix::gNumThreads);
-  LOG4CXX_INFO(perflog, "TPZStructMatrix_assemble_numthreads      = " << TPZStructMatrix_assemble_numthreads);
-  LOG4CXX_INFO(perflog, "TPZDohrStructMatrix_decompose_numthreads = " << TPZDohrStructMatrix_decompose_numthreads);
-  LOG4CXX_INFO(perflog, "dohrstruct.SubStructure size             = " << substructure_sz);
+  if (argc != 7) {
+    cout << "Usage: " << argv[0]
+	 << "plevel "
+	 << "nthreads_nsubmesh_assemble "
+	 << "TPZPairStructMatrix::gNumThreads "
+	 << "nthreads_nsubmesh_decompose "
+	 << "nthreads_multiply "
+	 << "n_substructures" << endl;
+    return 1;
+  }
 
-  //Sets the interpolation order (gOrder).
+  int plevel                       = atoi(argv[1]); // Interpolation order (gOrder)
+  int nthreads_nsubmesh_assemble   = atoi(argv[2]);
+  TPZPairStructMatrix::gNumThreads = atoi(argv[3]);
+  int nthreads_nsubmesh_decompose  = atoi(argv[4]);
+  int nthreads_multiply            = atoi(argv[5]);
+  int n_substructures              = atoi(argv[6]);
+
+  cout << "plevel                           = " << plevel                      << endl;
+  cout << "nthreads_nsubmesh_assemble       = " << nthreads_nsubmesh_assemble  << endl;
+  cout << "TPZPairStructMatrix::gNumThreads = " << TPZPairStructMatrix::gNumThreads << endl;
+  cout << "nthreads_nsubmesh_decompose      = " << nthreads_nsubmesh_decompose << endl;
+  cout << "nthreads_multiply                = " << nthreads_multiply           << endl;
+  cout << "n_substructures                  = " << n_substructures             << endl;
+
+  //Sets the interpolation order. Default = 2.
   TPZCompEl::SetgOrder(plevel);
-  
-//  Construir um cubo (em vez do Predio). Dim=3 gera um cubo, dim=2 gera um quadrado.
-//  maxlevel: quantidade de vezes que aplicamos o refinamento. Quanto maior mais sub-cubos
-//  sublevel: nivel a ser utilizado para dividir o cubo em subdominios
-//  (ex: cubo de 64x64x64 e sublevel = 8 dividiremos o problema em
-//  cubos de 8x8x8)
-// 			TPZGenSubStruct sub(dim,maxlevel,sublevel);
-// 			cmesh = sub.GenerateMesh();
-// 			cmesh->SetDimModel(dim);
-// 			gmesh = cmesh->Reference();
 
+  //Build the mesh representing an 8-floor building. 
   string input_file("../8andares02.txt");
-  TIME_SEC_BEG(timer,"Reading building mesh from " << input_file);
+  TIME_SEC_BEG_LOG(perflog, timer,"Reading building mesh from " << input_file);
   TPZGeoMesh* gmesh = BuildBuildingMesh(input_file.c_str());
-  TIME_SEC_END(ta,timer,"Reading building mesh from " << input_file);
+  TIME_SEC_END_LOG(perflog, ta,timer,"Reading building mesh from " << input_file);
   
   if (dump_mesh) {
     ofstream output_f("malhaPZ.txt");
     gmesh->Print(output_f);
   }
 
-  //goto skip_all;
-  
   {
-    TIME_SEC_BEG(timer,"Build cmesh");
+    TIME_SEC_BEG_LOG(perflog, timer,"Build cmesh");
     TPZAutoPointer<TPZCompMesh> cmesh;
+    // What is the difference between a cmesh and a gmesh?
     cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDimModel(dim);
     InsertElasticity(cmesh);
     cmesh->AutoBuild();
-    TIME_SEC_END(ta,timer,"Build cmesh");
+    TIME_SEC_END_LOG(perflog, ta,timer,"Build cmesh");
 		
     LOG4CXX_INFO(perflog, "# of equations " << cmesh->NEquations());
 
     TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
+    //TPZCompMesh auto pointer, fNumThreads(nt_compute), fNumThreadsDecompose(nt_decompose), pthread_mutex_init(fAccessElement)
+    //
+    //TPZDohrStructMatrix is friend of ThreadDohrmanAssembly
+    TIME_SEC_BEG_LOG(perflog, timer,"Building the DohrmanStructMatrix");
     TPZDohrStructMatrix dohrstruct(cmeshauto,
-				   TPZStructMatrix_assemble_numthreads,
-				   TPZDohrStructMatrix_decompose_numthreads);
+				   nthreads_nsubmesh_assemble,
+				   nthreads_nsubmesh_decompose);
     dohrstruct.IdentifyExternalConnectIndexes();
+    TIME_SEC_END_LOG(perflog,ta,timer,"Building the DohrmanStructMatrix");
   
     // FIX: remove TPZfTime?
     //		TPZfTime timetosub; // init of timer
   
-    TIME_SEC_BEG(timer,"Substructuring the mesh");
+    TIME_SEC_BEG_LOG(perflog, timer,"SubStructure: partition the mesh in submeshes");
 
-    dohrstruct.SubStructure(substructure_sz);
+    dohrstruct.SubStructure(n_substructures);
 
+    TIME_SEC_END_LOG(perflog, ta, timer,"SubStructure: partition the mesh in submeshes");
+
+    TIME_SEC_BEG_LOG(perflog, timer,"Build rhs matrix");
     //EBORIN: # threads? It looks like it is already set at the constructor. (REMOVE)
     // dohrstruct.SetNumThreads(numthreads);
     TPZAutoPointer<TPZGuiInterface> gui;
     TPZFMatrix rhs(cmesh->NEquations(),1,0.);
-    TIME_SEC_END(ta,timer,"Substructuring the mesh");
+    TIME_SEC_END_LOG(perflog, ta,timer,"Build rhs matrix");
 
     //EBORIN: CreateAssemble -- dim2_2threads: 12.9%
-    TIME_SEC_BEG(timer,"CreateAssemble");
+    //EBORIN: For each NSubMesh, create a (ThreadDohrmanAssembly) work and append it to worklist (ThreadDohrmanAssemblyList).
+    TIME_SEC_BEG_LOG(perflog, timer,"CreateAssemble");
+    //The TPZDohrStructMatrix::CreateAssemble perform three tasks for each submesh
+    // - ThreadDohrmanAssembly::EComputeMatrix
+    // - ThreadDohrmanAssembly::EDecomposeBig
+    // - ThreadDohrmanAssembly::EDecomposeInternal
+    // When using the parallel version, it first computes the first
+    // task for all the submeshs, then synchronizes (waits for all
+    // threads to join). After this, it computes the other two tasks
+    // for the submeshs.
     TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
-    TIME_SEC_END(ta,timer,"CreateAssemble");
+    TIME_SEC_END_LOG(perflog,ta,timer,"CreateAssemble");
 
-    TIME_SEC_BEG(timer,"Preconditioner");
+    TIME_SEC_BEG_LOG(perflog,timer,"Preconditioner");
     TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
-    TIME_SEC_END(ta,timer,"Preconditioner");
+    TIME_SEC_END_LOG(perflog,ta,timer,"Preconditioner");
   
     TPZFMatrix diag(dohr->Rows(),1,5.);
     TPZFMatrix produto(dohr->Rows(),1);
     LOG4CXX_INFO(perflog, "# of equations " << dohr->Rows());
 
-    TIME_SEC_BEG(timer,"Multiply started");
+    TIME_SEC_BEG_LOG(perflog, timer,"Multiply started");
     dohr->Multiply(diag,produto);
-    TIME_SEC_END(ta,timer,"Multiply started");
+    TIME_SEC_END_LOG(perflog, ta,timer,"Multiply started");
 		
     TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = 
       dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
@@ -279,27 +274,27 @@ int main(int argc, char *argv[])
       DebugStop();
     }
   
-    TIME_SEC_BEG(timer,"AdjustResidual");
+    TIME_SEC_BEG_LOG(perflog, timer,"AdjustResidual");
     dohrptr->AdjustResidual(produto);
-    TIME_SEC_END(ta,timer,"AdjustResidual");
+    TIME_SEC_END_LOG(perflog, ta,timer,"AdjustResidual");
 		
-    TIME_SEC_BEG(timer,"Solver setup");
+    TIME_SEC_BEG_LOG(perflog, timer,"Solver setup");
     diag.Zero();
     TPZStepSolver pre(precond);
     pre.SetMultiply();
     TPZStepSolver cg(dohr);
     cg.SetCG(500,pre,1.e-8,0);
-    TIME_SEC_END(ta,timer,"Solver setup");
+    TIME_SEC_END_LOG(perflog, ta,timer,"Solver setup");
 
-    TIME_SEC_BEG(timer,"cg.Solve");
+    TIME_SEC_BEG_LOG(perflog, timer,"cg.Solve");
     cg.Solve(rhs,diag);
-    TIME_SEC_END(ta,timer,"cg.Solve");
+    TIME_SEC_END_LOG(perflog, ta,timer,"cg.Solve");
 
-    TIME_SEC_BEG(timer,"AddInternalSolution");
+    TIME_SEC_BEG_LOG(perflog, timer,"AddInternalSolution");
     dohrptr->AddInternalSolution(diag);
-    TIME_SEC_END(ta,timer,"AddInternalSolution");
+    TIME_SEC_END_LOG(perflog, ta,timer,"AddInternalSolution");
 
-    TIME_SEC_BEG(timer,"Final steps");
+    TIME_SEC_BEG_LOG(perflog, timer,"Final steps");
     typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;
     const subtype &sublist = dohrptr->SubStructures(); 
     subtype::const_iterator it = sublist.begin();
@@ -331,7 +326,7 @@ int main(int argc, char *argv[])
       vecnames[0] = "state";
     }
     std::string postprocessname("dohrmann.vtk");
-    TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
+    TPZVTKGraphMesh vtkmesh(cmesh.operator->(),3,mat,scalnames,vecnames);
     vtkmesh.SetFileName(postprocessname);
     vtkmesh.SetResolution(1);
     int numcases = 1;
@@ -345,7 +340,7 @@ int main(int argc, char *argv[])
   // Must delete out of scope so that Mesh autopointer does not break... :-(
   delete gmesh;
 
-  TIME_SEC_END(ta,timer,"Final steps");
+  TIME_SEC_END_LOG(perflog, ta,timer,"Final steps");
 
  skip_all:
 
@@ -365,6 +360,9 @@ int main(int argc, char *argv[])
   ta.share_report(std::cout, total_timer.getUnits());
   printrusage2(std::cout, "Self", self, "Children", children);
 #endif;
+
+  pzp_thread_log_stop();
+  pzp_thread_log_report(std::cout);
 
   return EXIT_SUCCESS;
 }

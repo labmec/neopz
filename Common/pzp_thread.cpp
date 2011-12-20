@@ -18,12 +18,45 @@ struct pz_pthread_info_t
   // Join time
 };
 
+class pz_pthread_mutex_t
+{
+public: 
+  pz_pthread_mutex_t() 
+  {
+    pthread_mutex_init(&mutex, NULL);
+  }
+  ~pz_pthread_mutex_t()
+  {
+    pthread_mutex_destroy(&mutex);
+  }
+
+  int lock() {
+    int ret = pthread_mutex_lock(&mutex);
+    if (ret) {
+      cerr << "ERROR: (" << __FILE__ << ":" << __LINE__ << ") pthread_mutex_lock(&mutex) returned " << ret << endl;
+    }
+    return ret;
+  }
+
+  int unlock() {
+    return pthread_mutex_unlock(&mutex);
+  }
+
+
+private:
+  
+  pthread_mutex_t mutex;
+
+};
+
+
 map<int,pz_pthread_info_t> threads_info;
 static bool pz_pthread_logging = false;
 static unsigned max_sim_threads = 0;
 static unsigned sim_threads = 0;
 
-pthread_mutex_t pz_pthread_mutex;
+pz_pthread_mutex_t pzp_mutex;
+
 
 void pzp_thread_log_start()
 {
@@ -51,7 +84,7 @@ int pz_pthread_join(pthread_t thread, void **value_ptr, const char* fn,
 
   if (pz_pthread_logging && (ret == 0)) {
 
-    pthread_mutex_lock(&pz_pthread_mutex);
+    pzp_mutex.lock();
 
     sim_threads--;
     std::cout << (int*) thread << " -> "
@@ -59,7 +92,7 @@ int pz_pthread_join(pthread_t thread, void **value_ptr, const char* fn,
 	      << fn << " (" << file << ":" << line << ")."
 	      << " sim_threads = " << sim_threads << std::endl;
 
-    pthread_mutex_unlock(&pz_pthread_mutex);
+    pzp_mutex.unlock();
 
   }
 
@@ -74,7 +107,7 @@ int pz_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
 
   if (pz_pthread_logging && (ret == 0)) {
 
-    pthread_mutex_lock(&pz_pthread_mutex);
+    pzp_mutex.lock();
 
     sim_threads++;
     if (sim_threads > max_sim_threads) max_sim_threads = sim_threads;
@@ -84,7 +117,7 @@ int pz_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
 	      << fn << " (" << file << ":" << line << ")."
 	      << " sim_threads = " << sim_threads << std::endl;
 
-    pthread_mutex_unlock(&pz_pthread_mutex);
+    pzp_mutex.unlock();
 
   }
 
