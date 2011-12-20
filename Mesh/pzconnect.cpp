@@ -55,7 +55,10 @@ void TPZConnect::operator=(const TPZConnect &copy) {
 }
 
 void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<" Order = " << fCompose.fOrder << " NState = " << fCompose.fNState << " NShape " << fCompose.fNShape ;
+	int orde = fCompose.fOrder;
+	int nstate  = fCompose.fNState;
+	int nshape  = fCompose.fNShape;
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape;
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
