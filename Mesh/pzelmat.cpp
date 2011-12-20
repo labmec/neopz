@@ -284,7 +284,7 @@ void TPZElementMatrix::ApplyConstraints(){
 				int ieq;
 				REAL coef;
 				int idf;
-				int numstate = this->fNumStateVars;
+				int numstate = dfn->NState();//this->fNumStateVars;
 				for(send=inpos; send<inpos+insize; send += numstate) {
 					for(receive=deppos; receive<deppos+depsize; receive += numstate) {
 						coef = dep->fDepMatrix((send-inpos)/numstate,(receive-deppos)/numstate);
