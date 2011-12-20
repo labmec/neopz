@@ -173,7 +173,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 	AffineTransform(tr);
 	for(int ii=0;ii<tr.size();ii++)
 	{
-		out << std::endl; 
+		out << "\n"<<std::endl; 
 		out << "Transformacao para o elemento de index "<< fElementVec[ii]->Index() <<"  pertencente a malha computacional " << ii+1 << std::endl;
 		out << tr[ii] << std::endl;
 	}
@@ -308,13 +308,14 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 		numeq += Connect(ic).NDof(*Mesh());
 	}
 	
-//	int nref = this->fElementVec.size();
-	int nstate=1;
-//	for (int iref=0; iref<nref; iref++) {
-//			
-//		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-//		nstate += msp->Material()->NStateVariables();
-//	}
+	int nref = this->fElementVec.size();
+	int nstate;
+	//nstate=1;
+	for (int iref=0; iref<nref; iref++) {
+		
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		nstate += msp->Material()->NStateVariables();
+	}
 		
 	const int numstate = nstate;
 	ek.fMat.Redim(numeq,numeq);
