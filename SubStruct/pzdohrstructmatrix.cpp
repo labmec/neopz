@@ -319,6 +319,9 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	// #2  0x0000000100291ac6 in ThreadDohrmanAssembly::AssembleMatrices (this=0x1056a3ec0, threadtest=@0x1056a3ec0) at pzdohrstructmatrix.cpp:1158
 	// #3  0x000000010029236c in ThreadDohrmanAssemblyList::ThreadWork (voidptr=0x7fff5fbfaed8) at pzdohrstructmatrix.cpp:1224
 
+	//TPZPairStructMatrix::Assemble calls Multi_Assemble, which calls
+	//numthread  ThreadData::ThreadWork, 1 ThreadData::Assemble1 and 1 ThreadData::Assemble2
+
 	ThreadDohrmanAssemblyList worklistAssemble(worklist);
 	std::list<TPZAutoPointer<ThreadDohrmanAssembly> >::iterator itwork = worklistAssemble.fList.begin();
 	while (itwork != worklistAssemble.fList.end()) {

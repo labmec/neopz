@@ -185,7 +185,10 @@ int main(int argc, char *argv[])
 		dohrstruct.SetNumThreads(numthreads_assemble);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
-		TPZFMatrix rhs;
+
+		TPZFMatrix rhs(cmesh->NEquations(),1,0.); // New SubStruct
+		//TPZFMatrix rhs; // Nathan
+
 		TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
 		TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
 		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());

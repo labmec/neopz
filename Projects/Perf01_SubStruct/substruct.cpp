@@ -236,12 +236,16 @@ int main(int argc, char *argv[])
 
     TIME_SEC_END_LOG(perflog, ta, timer,"SubStructure: partition the mesh in submeshes");
 
-    TIME_SEC_BEG_LOG(perflog, timer,"Build rhs matrix");
+    //TIME_SEC_BEG_LOG(perflog, timer,"Build rhs matrix");
+
     //EBORIN: # threads? It looks like it is already set at the constructor. (REMOVE)
     // dohrstruct.SetNumThreads(numthreads);
     TPZAutoPointer<TPZGuiInterface> gui;
+
+    //EBORIN: Na versão do Nathan o rhs não toma nenhum argumento no construtor.
     TPZFMatrix rhs(cmesh->NEquations(),1,0.);
-    TIME_SEC_END_LOG(perflog, ta,timer,"Build rhs matrix");
+
+    //TIME_SEC_END_LOG(perflog, ta,timer,"Build rhs matrix");
 
     //EBORIN: CreateAssemble -- dim2_2threads: 12.9%
     //EBORIN: For each NSubMesh, create a (ThreadDohrmanAssembly) work and append it to worklist (ThreadDohrmanAssemblyList).
@@ -258,9 +262,9 @@ int main(int argc, char *argv[])
     TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
     TIME_SEC_END_LOG(perflog,ta,timer,"CreateAssemble");
 
-    TIME_SEC_BEG_LOG(perflog,timer,"Preconditioner");
+    //TIME_SEC_BEG_LOG(perflog,timer,"Preconditioner");
     TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
-    TIME_SEC_END_LOG(perflog,ta,timer,"Preconditioner");
+    //TIME_SEC_END_LOG(perflog,ta,timer,"Preconditioner");
   
     TPZFMatrix diag(dohr->Rows(),1,5.);
     TPZFMatrix produto(dohr->Rows(),1);
@@ -268,39 +272,43 @@ int main(int argc, char *argv[])
 
 
 #if 1 // Nathan's code
-	  TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix <TPZDohrSubstructCondense> *> (dohr.operator->());
-	  TPZDohrPrecond<TPZDohrSubstructCondense> *precondptr = dynamic_cast<TPZDohrPrecond<TPZDohrSubstructCondense> *> (precond.operator->());
-	  dohrptr->SetNumThreads(nthreads_multiply);
-	  precondptr->SetNumThreads(nthreads_multiply);
+    TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix <TPZDohrSubstructCondense> *> (dohr.operator->());
+    TPZDohrPrecond<TPZDohrSubstructCondense> *precondptr = dynamic_cast<TPZDohrPrecond<TPZDohrSubstructCondense> *> (precond.operator->());
+    dohrptr->SetNumThreads(nthreads_multiply);
+    precondptr->SetNumThreads(nthreads_multiply);
 #endif
 	  
-    TIME_SEC_BEG_LOG(perflog, timer,"Multiply started");
+    TIME_SEC_BEG_LOG(perflog, timer,"Multiply");
     dohr->Multiply(diag,produto);
-    TIME_SEC_END_LOG(perflog, ta,timer,"Multiply started");
+    TIME_SEC_END_LOG(perflog, ta,timer,"Multiply");
 		
     if (!dohrptr) {
       DebugStop();
     }
   
-    TIME_SEC_BEG_LOG(perflog, timer,"AdjustResidual");
+    //TIME_SEC_BEG_LOG(perflog, timer,"AdjustResidual");
     dohrptr->AdjustResidual(produto);
-    TIME_SEC_END_LOG(perflog, ta,timer,"AdjustResidual");
+    //TIME_SEC_END_LOG(perflog, ta,timer,"AdjustResidual");
 		
-    TIME_SEC_BEG_LOG(perflog, timer,"Solver setup");
+    //TIME_SEC_BEG_LOG(perflog, timer,"Solver setup");
     diag.Zero();
     TPZStepSolver pre(precond);
     pre.SetMultiply();
     TPZStepSolver cg(dohr);
+
+    //EBORIN: O substruct do Nathan está usando: cg.SetCG(1000,pre,1.e-8,0);
+
     cg.SetCG(500,pre,1.e-8,0);
-    TIME_SEC_END_LOG(perflog, ta,timer,"Solver setup");
+    //TIME_SEC_END_LOG(perflog, ta,timer,"Solver setup");
 
     TIME_SEC_BEG_LOG(perflog, timer,"cg.Solve");
+    //EBORIN: O outro substruct utiliza produto em vez de produto
     cg.Solve(rhs,diag);
     TIME_SEC_END_LOG(perflog, ta,timer,"cg.Solve");
 
-    TIME_SEC_BEG_LOG(perflog, timer,"AddInternalSolution");
+    //TIME_SEC_BEG_LOG(perflog, timer,"AddInternalSolution");
     dohrptr->AddInternalSolution(diag);
-    TIME_SEC_END_LOG(perflog, ta,timer,"AddInternalSolution");
+    //TIME_SEC_END_LOG(perflog, ta,timer,"AddInternalSolution");
 
     TIME_SEC_BEG_LOG(perflog, timer,"Final steps");
     typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;

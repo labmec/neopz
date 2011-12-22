@@ -364,6 +364,39 @@ Common/pzerror.h,46
 #define PZERRORH6,60
 #define PZError 15,202
 
+Common/pzp_thread.cpp,830
+struct pz_pthread_info_t9,83
+  pz_pthread_info_t(pz_pthread_info_t::pz_pthread_info_t11,110
+class pz_pthread_mutex_t21,248
+  pz_pthread_mutex_t(pz_pthread_mutex_t::pz_pthread_mutex_t24,284
+  ~pz_pthread_mutex_t(pz_pthread_mutex_t::~pz_pthread_mutex_t28,354
+  int lock(pz_pthread_mutex_t::lock33,422
+  int unlock(pz_pthread_mutex_t::unlock41,637
+map<int,pz_pthread_info_t> threads_info;53,744
+static bool pz_pthread_logging 54,785
+static unsigned max_sim_threads 55,825
+static unsigned sim_threads 56,862
+pz_pthread_mutex_t pzp_mutex;58,896
+void pzp_thread_log_start(60,927
+void pzp_thread_log_stop(67,1031
+void pzp_thread_log_report(72,1093
+int pz_pthread_join(79,1260
+int pz_pthread_create(101,1757
+void pzp_thread_log_stop(128,2446
+void pzp_thread_log_start(129,2476
+void pzp_thread_log_report(130,2507
+
+Common/pzp_thread.h,132
+#define PZP_THREAD_CREATE(19,471
+#define PZP_THREAD_JOIN(22,596
+#define PZP_THREAD_CREATE(27,700
+#define PZP_THREAD_JOIN(30,801
+
+Common/pzp_thread.h~,150
+pthread_create(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata)threaddata3,21
+#define THREAD_NOTES5,98
+#define PZP_THREAD_CREATE(9,141
+
 Common/pzreal.cpp,174
 TPZCounter TPZFlopCounter::gCount;24,383
 static string names[names26,419
@@ -438,6 +471,10 @@ inline const T& Min(413,13539
 Common/pzstream.h,50
 #define PZSTREAMH6,69
 #define TPZostream 15,204
+
+Common/pzthread.h~,123
+pthread_create(&allthreads[itr], NULL,ThreadData::ThreadWork, &threaddata)threaddata3,21
+#define PZP_THREAD_CREATE(5,98
 
 Common/pzversion.h,88
 #define VERSIONH6,91
@@ -3669,28 +3706,28 @@ inline REAL TemplateSum(201,6170
 inline REAL TemplateSum<TemplateSum207,6352
 
 Matrix/pzskylmatpar.cpp,1007
-pthread_mutex_t skymutex 36,521
-pthread_cond_t condition 38,610
-const int templatedepth 41,728
-TPZSkylParMatrix::TPZSkylParMatrix(50,915
-TPZSkylParMatrix::TPZSkylParMatrix(66,1203
-TPZSkylParMatrix::TPZSkylParMatrix(71,1422
-TPZSkylParMatrix::~TPZSkylParMatrix(84,1724
-void TPZSkylParMatrix::SetSkyline(87,1767
-void TPZSkylParMatrix::PrintState(97,1991
-void TPZSkylParMatrix::ColumnToWork(115,2484
-void TPZSkylParMatrix::ColumnToWork(141,2980
-void * TPZSkylParMatrix::ParallelCholesky(181,3713
-void * TPZSkylParMatrix::ParallelLDLt(249,5214
-void * TPZSkylParMatrix::ParallelLDLt2(310,6601
-int TPZSkylParMatrix::Decompose_Cholesky(356,7700
-int TPZSkylParMatrix::Decompose_Cholesky(366,7948
-int TPZSkylParMatrix::Decompose_LDLt(422,9115
-int TPZSkylParMatrix::Decompose_LDLt(432,9356
-void TPZSkylParMatrix::DecomposeColumnCholesky(491,10528
-void TPZSkylParMatrix::DecomposeColumnLDLt(569,12240
-void TPZSkylParMatrix::DecomposeColumnLDLt2(620,13291
-int TPZSkylParMatrix::main_nada(680,14621
+pthread_mutex_t skymutex 38,546
+pthread_cond_t condition 40,635
+const int templatedepth 43,753
+TPZSkylParMatrix::TPZSkylParMatrix(52,940
+TPZSkylParMatrix::TPZSkylParMatrix(68,1228
+TPZSkylParMatrix::TPZSkylParMatrix(73,1447
+TPZSkylParMatrix::~TPZSkylParMatrix(86,1749
+void TPZSkylParMatrix::SetSkyline(89,1792
+void TPZSkylParMatrix::PrintState(99,2016
+void TPZSkylParMatrix::ColumnToWork(117,2509
+void TPZSkylParMatrix::ColumnToWork(143,3005
+void * TPZSkylParMatrix::ParallelCholesky(183,3738
+void * TPZSkylParMatrix::ParallelLDLt(251,5239
+void * TPZSkylParMatrix::ParallelLDLt2(312,6626
+int TPZSkylParMatrix::Decompose_Cholesky(358,7725
+int TPZSkylParMatrix::Decompose_Cholesky(368,7973
+int TPZSkylParMatrix::Decompose_LDLt(430,9203
+int TPZSkylParMatrix::Decompose_LDLt(440,9444
+void TPZSkylParMatrix::DecomposeColumnCholesky(504,10678
+void TPZSkylParMatrix::DecomposeColumnLDLt(582,12390
+void TPZSkylParMatrix::DecomposeColumnLDLt2(633,13441
+int TPZSkylParMatrix::main_nada(693,14771
 
 Matrix/pzskylmatpar.h,122
 #define TSKYLPARMATH21,588
@@ -3814,33 +3851,33 @@ class TPZSYsmpMatrix 32,844
 inline void TPZSYsmpMatrix::SetData(90,2403
 
 Matrix/pzysmp.cpp,1205
-void TPZFYsmpMatrix::InitializeData(27,578
-void TPZFYsmpMatrix::MultiplyDummy(28,618
-TPZFYsmpMatrix::TPZFYsmpMatrix(50,1177
-TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(TPZFYsmpMatrix::operator=59,1306
-TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(TPZFYsmpMatrix::operator=87,1928
-int TPZFYsmpMatrix::PutVal(140,2784
-void TPZFYsmpMatrix::AddKel(161,3202
-void TPZFYsmpMatrix::AddKel(203,4511
-void TPZFYsmpMatrix::AddKelOld(245,5808
-TPZFYsmpMatrix::TPZFYsmpMatrix(342,8057
-TPZFYsmpMatrix::~TPZFYsmpMatrix(357,8395
-const REAL & TPZFYsmpMatrix::GetVal(379,8900
-void TPZFYsmpMatrix::MultAddMT(401,9594
-void TPZFYsmpMatrix::MultAdd(504,12291
-void TPZFYsmpMatrix::Print(585,14312
-void TPZFYsmpMatrix::ComputeDiagonal(616,15109
-void TPZFYsmpMatrix::SolveSOR(626,15283
-int TPZFYsmpMatrix::Zero(660,16202
-void TPZFYsmpMatrix::SolveJacobi(680,16853
-void *TPZFYsmpMatrix::ExecuteMT(TPZFYsmpMatrix::ExecuteMT726,17946
-static int  FindCol(781,19411
-int TPZFYsmpMatrix::GetSub(797,19714
-void TPZFYsmpMatrix::GetSub(812,20104
-void TPZFYsmpMatrix::RowLUUpdate(839,20809
-int TPZFYsmpMatrix::Decompose_LU(891,22063
-int TPZFYsmpMatrix::Decompose_LU(895,22150
-int TPZFYsmpMatrix::Substitution(915,22473
+void TPZFYsmpMatrix::InitializeData(29,603
+void TPZFYsmpMatrix::MultiplyDummy(30,643
+TPZFYsmpMatrix::TPZFYsmpMatrix(52,1202
+TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(TPZFYsmpMatrix::operator=61,1331
+TPZFYsmpMatrix &TPZFYsmpMatrix::operator=(TPZFYsmpMatrix::operator=89,1953
+int TPZFYsmpMatrix::PutVal(142,2809
+void TPZFYsmpMatrix::AddKel(163,3227
+void TPZFYsmpMatrix::AddKel(205,4536
+void TPZFYsmpMatrix::AddKelOld(247,5833
+TPZFYsmpMatrix::TPZFYsmpMatrix(344,8082
+TPZFYsmpMatrix::~TPZFYsmpMatrix(359,8420
+const REAL & TPZFYsmpMatrix::GetVal(381,8925
+void TPZFYsmpMatrix::MultAddMT(403,9619
+void TPZFYsmpMatrix::MultAdd(506,12316
+void TPZFYsmpMatrix::Print(590,14390
+void TPZFYsmpMatrix::ComputeDiagonal(621,15187
+void TPZFYsmpMatrix::SolveSOR(631,15361
+int TPZFYsmpMatrix::Zero(665,16280
+void TPZFYsmpMatrix::SolveJacobi(685,16931
+void *TPZFYsmpMatrix::ExecuteMT(TPZFYsmpMatrix::ExecuteMT731,18024
+static int  FindCol(786,19489
+int TPZFYsmpMatrix::GetSub(802,19792
+void TPZFYsmpMatrix::GetSub(817,20182
+void TPZFYsmpMatrix::RowLUUpdate(844,20887
+int TPZFYsmpMatrix::Decompose_LU(896,22141
+int TPZFYsmpMatrix::Decompose_LU(900,22228
+int TPZFYsmpMatrix::Substitution(920,22551
 
 Matrix/pzysmp.h,202
 #define YSMPMATH19,564
@@ -5509,31 +5546,20 @@ class CycleTimer18,459
   std::string getTime(CycleTimer::getTime37,737
   std::string uint64_to_string(CycleTimer::uint64_to_string47,892
 
-PerfUtil/timing_analysis.h,488
+PerfUtil/timing_analysis.h,558
 #define TIME_ANALYSIS_ADD(7,78
-#define TIME_SEC_BEG(12,289
-#define TIME_SEC_END(16,412
-typedef std::pair<double,double21,707
-typedef std::pair<double,std::string> section_timing_t;21,707
-typedef std::set<section_timing_t> timing_set_t;22,763
-class TimingAnalysis24,813
-  TimingAnalysis(TimingAnalysis::TimingAnalysis27,845
-  void add(TimingAnalysis::add29,871
-  void share_report(TimingAnalysis::share_report34,1000
-  void share_report(TimingAnalysis::share_report45,1383
-
-PerfUtil/timing_analysis.h~,488
-#define TIME_ANALYSIS_ADD(7,78
-#define TIME_SEC_BEG(12,289
-#define TIME_SEC_END(16,412
-typedef std::pair<double,double21,707
-typedef std::pair<double,std::string> section_timing_t;21,707
-typedef std::set<section_timing_t> timing_set_t;22,763
-class TimingAnalysis24,813
-  TimingAnalysis(TimingAnalysis::TimingAnalysis27,845
-  void add(TimingAnalysis::add29,871
-  void share_report(TimingAnalysis::share_report34,1000
-  void share_report(TimingAnalysis::share_report44,1373
+#define TIME_SEC_BEG_LOG(12,289
+#define TIME_SEC_END_LOG(16,411
+#define TIME_SEC_BEG(21,683
+#define TIME_SEC_END(24,753
+typedef std::pair<double,double28,945
+typedef std::pair<double,std::string> section_timing_t;28,945
+typedef std::set<section_timing_t> timing_set_t;29,1001
+class TimingAnalysis31,1051
+  TimingAnalysis(TimingAnalysis::TimingAnalysis34,1083
+  void add(TimingAnalysis::add36,1109
+  void share_report(TimingAnalysis::share_report41,1238
+  void share_report(TimingAnalysis::share_report59,1836
 
 PlaneFracture/CMakeLists.txt,23
 file(3,88
@@ -7381,12 +7407,12 @@ class TPZFrontStructMatrix 33,980
 	TPZFrontStructMatrix(TPZFrontStructMatrix::TPZFrontStructMatrix62,1944
 
 StrMatrix/TPZMTAssemble.cpp,318
-std::vector< std::pair< TPZElementMatrix *, SMTAssembleResidual*> > TPZMTAssemble::gComputedEF;26,490
-TPZMTAssemble::TPZMTAssemble(28,587
-TPZMTAssemble::~TPZMTAssemble(32,623
-void * TPZMTAssemble::ExecuteAssembleResidualMT(36,660
-void TPZMTAssemble::AssembleMT(61,1343
-void TPZMTAssemble::ContributeEFs(116,2712
+std::vector< std::pair< TPZElementMatrix *, SMTAssembleResidual*> > TPZMTAssemble::gComputedEF;28,515
+TPZMTAssemble::TPZMTAssemble(30,612
+TPZMTAssemble::~TPZMTAssemble(34,648
+void * TPZMTAssemble::ExecuteAssembleResidualMT(38,685
+void TPZMTAssemble::AssembleMT(63,1368
+void TPZMTAssemble::ContributeEFs(119,2782
 
 StrMatrix/TPZMTAssemble.h,271
 #define TPZMTASSEMBLE_H8,208
@@ -7396,20 +7422,20 @@ struct SMTAssembleResidual{SMTAssembleResidual24,537
 class TPZMTAssemble{TPZMTAssemble58,1359
 
 StrMatrix/TPZParFrontStructMatrix.cpp,893
-pthread_mutex_t mutex 44,806
-pthread_mutex_t mutex_element_assemble 46,914
-pthread_mutex_t mutex_global_assemble 48,1045
-pthread_cond_t condassemble 51,1163
-pthread_cond_t stackfull 53,1233
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZParFrontStructMatrix57,1310
-TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZParFrontStructMatrix64,1485
-void TPZParFrontStructMatrix<front>::SetNumberOfThreads(SetNumberOfThreads70,1703
-TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(Clone87,2079
-void *TPZParFrontStructMatrix<front>::ElementAssemble(ElementAssemble97,2266
-void *TPZParFrontStructMatrix<front>::GlobalAssemble(GlobalAssemble238,6706
-void TPZParFrontStructMatrix<front>::Assemble(Assemble381,10915
-int TPZParFrontStructMatrix<front>::main(main476,13744
-TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(CreateAssemble653,18760
+pthread_mutex_t mutex 46,831
+pthread_mutex_t mutex_element_assemble 48,939
+pthread_mutex_t mutex_global_assemble 50,1070
+pthread_cond_t condassemble 53,1188
+pthread_cond_t stackfull 55,1258
+TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZParFrontStructMatrix59,1335
+TPZParFrontStructMatrix<front>::TPZParFrontStructMatrix(TPZParFrontStructMatrix66,1510
+void TPZParFrontStructMatrix<front>::SetNumberOfThreads(SetNumberOfThreads72,1728
+TPZStructMatrix * TPZParFrontStructMatrix<front>::Clone(Clone89,2104
+void *TPZParFrontStructMatrix<front>::ElementAssemble(ElementAssemble99,2291
+void *TPZParFrontStructMatrix<front>::GlobalAssemble(GlobalAssemble240,6731
+void TPZParFrontStructMatrix<front>::Assemble(Assemble383,10940
+int TPZParFrontStructMatrix<front>::main(main483,13881
+TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(CreateAssemble660,18897
 
 StrMatrix/TPZParFrontStructMatrix.h,78
 #define TPZPARFRONTSTRUCTMATRIX_H7,169
@@ -7503,29 +7529,29 @@ StrMatrix/pzskylstrmatrix.h,76
 #define TPZSKYLINESTRUCTMATRIX_H7,149
 class TPZSkylineStructMatrix 19,380
 
-StrMatrix/pzstrmatrix.cpp,1200
-TPZStructMatrix::TPZStructMatrix(45,1108
-TPZStructMatrix::TPZStructMatrix(57,1375
-TPZStructMatrix::TPZStructMatrix(69,1691
-TPZStructMatrix::~TPZStructMatrix(78,1929
-TPZMatrix *TPZStructMatrix::Create(TPZStructMatrix::Create80,1969
-TPZStructMatrix *TPZStructMatrix::Clone(TPZStructMatrix::Clone85,2083
-void TPZStructMatrix::Assemble(90,2201
-void TPZStructMatrix::Assemble(99,2470
-void TPZStructMatrix::Serial_Assemble(108,2696
-void TPZStructMatrix::Serial_Assemble(293,7312
-void TPZStructMatrix::MultiThread_Assemble(360,9091
-void TPZStructMatrix::MultiThread_Assemble(385,9712
-void TPZStructMatrix::FilterEquations(392,9946
-TPZMatrix * TPZStructMatrix::CreateAssemble(411,10380
-TPZStructMatrix::ThreadData::ThreadData(453,11455
-TPZStructMatrix::ThreadData::~ThreadData(488,12401
-void *TPZStructMatrix::ThreadData::ThreadWork(TPZStructMatrix::ThreadData::ThreadWork498,12566
-void *TPZStructMatrix::ThreadData::ThreadAssembly(TPZStructMatrix::ThreadData::ThreadAssembly580,14959
-int TPZStructMatrix::ThreadData::NextElement(675,18050
-void TPZStructMatrix::ThreadData::ComputedElementMatrix(720,19158
-void TPZStructMatrix::SetMaterialIds(735,19656
-void UniformRefine(782,20849
+StrMatrix/pzstrmatrix.cpp,1202
+TPZStructMatrix::TPZStructMatrix(47,1133
+TPZStructMatrix::TPZStructMatrix(59,1400
+TPZStructMatrix::TPZStructMatrix(71,1716
+TPZStructMatrix::~TPZStructMatrix(80,1954
+TPZMatrix *TPZStructMatrix::Create(TPZStructMatrix::Create82,1994
+TPZStructMatrix *TPZStructMatrix::Clone(TPZStructMatrix::Clone87,2108
+void TPZStructMatrix::Assemble(92,2226
+void TPZStructMatrix::Assemble(101,2495
+void TPZStructMatrix::Serial_Assemble(110,2721
+void TPZStructMatrix::Serial_Assemble(295,7337
+void TPZStructMatrix::MultiThread_Assemble(362,9116
+void TPZStructMatrix::MultiThread_Assemble(388,9782
+void TPZStructMatrix::FilterEquations(395,10016
+TPZMatrix * TPZStructMatrix::CreateAssemble(414,10450
+TPZStructMatrix::ThreadData::ThreadData(456,11525
+TPZStructMatrix::ThreadData::~ThreadData(491,12471
+void *TPZStructMatrix::ThreadData::ThreadWork(TPZStructMatrix::ThreadData::ThreadWork501,12636
+void *TPZStructMatrix::ThreadData::ThreadAssembly(TPZStructMatrix::ThreadData::ThreadAssembly583,15029
+int TPZStructMatrix::ThreadData::NextElement(678,18120
+void TPZStructMatrix::ThreadData::ComputedElementMatrix(723,19228
+void TPZStructMatrix::SetMaterialIds(738,19726
+void UniformRefine(785,20919
 
 StrMatrix/pzstrmatrix.h,722
 #define TPZSTRUCTMATRIX_H8,227
@@ -7578,37 +7604,37 @@ SubStruct/TPZfTime.h,46
 #define TPZFTIME_H6,98
 class TPZfTime28,448
 
-SubStruct/pzdohrstructmatrix.cpp,1664
-TPZDohrStructMatrix::TPZDohrStructMatrix(64,1918
-fDohrPrecond(0), fMesh(66,2102
-TPZDohrStructMatrix::TPZDohrStructMatrix(74,2261
-TPZDohrStructMatrix::~TPZDohrStructMatrix(80,2541
-TPZMatrix * TPZDohrStructMatrix::Create(86,2664
-		typedef TPZDohrSubstructCondense::ENumbering ENumbering;205,6217
-		typedef std::pair<ENumbering,ENumbering> Numberingpair;206,6276
-TPZMatrix * TPZDohrStructMatrix::CreateAssemble(252,7913
-void TPZDohrStructMatrix::Assemble(371,11807
-void TPZDohrStructMatrix::IdentifyCornerNodes(408,12952
-void TPZDohrStructMatrix::IdentifyEqNumbers(655,19642
-int NSubMesh(692,20771
-TPZSubCompMesh *SubMesh(SubMesh708,21126
-void TPZDohrStructMatrix::ComputeInternalEquationPermutation(726,21704
-void TPZDohrStructMatrix::IdentifySubCornerEqs(790,23565
-void TPZDohrStructMatrix::SubStructure(834,24783
-void AssembleMatrices(928,27214
-		typedef TPZDohrSubstructCondense::ENumbering ENumbering;940,27583
-		typedef std::pair<ENumbering,ENumbering> pairnumbering;941,27642
-void DecomposeBig(1076,32574
-void DecomposeInternal(1089,32969
-void ThreadDohrmanAssembly::AssembleMatrices(1102,33395
-ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList(1134,34323
-ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList(1141,34469
-void ThreadDohrmanAssemblyList::Append(1147,34610
-TPZAutoPointer<ThreadDohrmanAssembly> ThreadDohrmanAssemblyList::NextObject(1154,34804
-void *ThreadDohrmanAssemblyList::ThreadWork(ThreadDohrmanAssemblyList::ThreadWork1166,35116
-void TPZDohrStructMatrix::IdentifyExternalConnectIndexes(1181,35513
-int TPZDohrStructMatrix::SeparateUnconnected(1253,37515
-int TPZDohrStructMatrix::ClusterIslands(1356,40367
+SubStruct/pzdohrstructmatrix.cpp,1665
+TPZDohrStructMatrix::TPZDohrStructMatrix(67,1996
+fDohrPrecond(0), fMesh(69,2180
+TPZDohrStructMatrix::TPZDohrStructMatrix(77,2339
+TPZDohrStructMatrix::~TPZDohrStructMatrix(83,2619
+TPZMatrix * TPZDohrStructMatrix::Create(89,2742
+		typedef TPZDohrSubstructCondense::ENumbering ENumbering;208,6295
+		typedef std::pair<ENumbering,ENumbering> Numberingpair;209,6354
+TPZMatrix * TPZDohrStructMatrix::CreateAssemble(255,7991
+void TPZDohrStructMatrix::Assemble(430,14292
+void TPZDohrStructMatrix::IdentifyCornerNodes(467,15437
+void TPZDohrStructMatrix::IdentifyEqNumbers(714,22127
+int NSubMesh(751,23256
+TPZSubCompMesh *SubMesh(SubMesh767,23611
+void TPZDohrStructMatrix::ComputeInternalEquationPermutation(785,24189
+void TPZDohrStructMatrix::IdentifySubCornerEqs(849,26050
+void TPZDohrStructMatrix::SubStructure(893,27268
+void AssembleMatrices(987,29699
+		typedef TPZDohrSubstructCondense::ENumbering ENumbering;999,30068
+		typedef std::pair<ENumbering,ENumbering> pairnumbering;1000,30127
+void DecomposeBig(1135,35059
+void DecomposeInternal(1148,35454
+void ThreadDohrmanAssembly::AssembleMatrices(1161,35880
+ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList(1193,36808
+ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList(1200,36954
+void ThreadDohrmanAssemblyList::Append(1206,37095
+TPZAutoPointer<ThreadDohrmanAssembly> ThreadDohrmanAssemblyList::NextObject(1213,37289
+void *ThreadDohrmanAssemblyList::ThreadWork(ThreadDohrmanAssemblyList::ThreadWork1227,37731
+void TPZDohrStructMatrix::IdentifyExternalConnectIndexes(1242,38128
+int TPZDohrStructMatrix::SeparateUnconnected(1314,40130
+int TPZDohrStructMatrix::ClusterIslands(1417,42982
 
 SubStruct/pzdohrstructmatrix.h,1061
 #define PZDOHRSTRUCTMATRIX13,298
@@ -7652,13 +7678,13 @@ SubStruct/tpzdohrassembly.h,62
 class TPZDohrAssembly 25,463
 
 SubStruct/tpzdohrmatrix.cpp,478
-TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZDohrMatrix39,1751
-TPZDohrMatrix<TSubStruct>::~TPZDohrMatrix(~TPZDohrMatrix46,1918
-void TPZDohrMatrix<TSubStruct>::MultAdd(MultAdd52,1995
-void TPZDohrMatrix<TSubStruct>::Initialize(Initialize101,3842
-void TPZDohrMatrix<TSubStruct>::AdjustResidual(AdjustResidual147,5243
-void TPZDohrMatrix<TSubStruct>::AddInternalSolution(AddInternalSolution159,5533
-void *TPZDohrThreadMultList<TSubStruct>::ThreadWork(ThreadWork168,5776
+TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZDohrMatrix41,1776
+TPZDohrMatrix<TSubStruct>::~TPZDohrMatrix(~TPZDohrMatrix48,1943
+void TPZDohrMatrix<TSubStruct>::MultAdd(MultAdd54,2020
+void TPZDohrMatrix<TSubStruct>::Initialize(Initialize106,3946
+void TPZDohrMatrix<TSubStruct>::AdjustResidual(AdjustResidual152,5347
+void TPZDohrMatrix<TSubStruct>::AddInternalSolution(AddInternalSolution164,5637
+void *TPZDohrThreadMultList<TSubStruct>::ThreadWork(ThreadWork173,5880
 
 SubStruct/tpzdohrmatrix.h,1427
 #define TPZDOHRMATRIX_H26,1605
@@ -7686,33 +7712,33 @@ struct TPZDohrThreadMultList180,5596
 	TPZDohrThreadMultData<TSubStruct> PopItem(TPZDohrThreadMultList::PopItem215,6972
 
 SubStruct/tpzdohrprecond.cpp,532
-TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(TPZDohrPrecond49,1964
-TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(TPZDohrPrecond57,2305
-TPZDohrPrecond<TSubStruct>::~TPZDohrPrecond(~TPZDohrPrecond65,2622
-void TPZDohrPrecond<TSubStruct>::MultAdd(MultAdd75,2754
-void TPZDohrPrecond<TSubStruct>::Initialize(Initialize188,6259
-void TPZDohrPrecond<TSubStruct>::ComputeV1(ComputeV1242,7676
-void TPZDohrPrecond<TSubStruct>::ComputeV2(ComputeV2299,9397
-void *TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork(ThreadWork333,10324
+TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(TPZDohrPrecond51,1989
+TPZDohrPrecond<TSubStruct>::TPZDohrPrecond(TPZDohrPrecond59,2330
+TPZDohrPrecond<TSubStruct>::~TPZDohrPrecond(~TPZDohrPrecond67,2647
+void TPZDohrPrecond<TSubStruct>::MultAdd(MultAdd77,2779
+void TPZDohrPrecond<TSubStruct>::Initialize(Initialize195,6394
+void TPZDohrPrecond<TSubStruct>::ComputeV1(ComputeV1249,7811
+void TPZDohrPrecond<TSubStruct>::ComputeV2(ComputeV2306,9532
+void *TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork(ThreadWork340,10459
 
 SubStruct/tpzdohrprecond.h,1244
 #define TPZDOHRPRECOND_H26,1670
-struct TPZDohrPrecondThreadV1Data 130,4993
-	TPZDohrPrecondThreadV1Data(TPZDohrPrecondThreadV1Data::TPZDohrPrecondThreadV1Data131,5029
-	TPZDohrPrecondThreadV1Data(TPZDohrPrecondThreadV1Data::TPZDohrPrecondThreadV1Data134,5105
-	static void *ComputeV1(TPZDohrPrecondThreadV1Data::ComputeV1145,5575
-struct TPZDohrPrecondV2SubData 157,5972
-	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData159,6007
-	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData163,6092
-	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData169,6404
-	TPZDohrPrecondV2SubData &operator=(TPZDohrPrecondV2SubData::operator=174,6583
-	bool IsValid(TPZDohrPrecondV2SubData::IsValid182,6784
-	~TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::~TPZDohrPrecondV2SubData187,6832
-struct TPZDohrPrecondV2SubDataList 205,7289
-	TPZDohrPrecondV2SubDataList(TPZDohrPrecondV2SubDataList::TPZDohrPrecondV2SubDataList206,7326
-	~TPZDohrPrecondV2SubDataList(TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList210,7478
-	void AddItem(TPZDohrPrecondV2SubDataList::AddItem219,7837
-	TPZDohrPrecondV2SubData<TSubStruct> PopItem(TPZDohrPrecondV2SubDataList::PopItem226,8060
+struct TPZDohrPrecondThreadV1Data 138,5171
+	TPZDohrPrecondThreadV1Data(TPZDohrPrecondThreadV1Data::TPZDohrPrecondThreadV1Data139,5207
+	TPZDohrPrecondThreadV1Data(TPZDohrPrecondThreadV1Data::TPZDohrPrecondThreadV1Data142,5283
+	static void *ComputeV1(TPZDohrPrecondThreadV1Data::ComputeV1153,5753
+struct TPZDohrPrecondV2SubData 165,6150
+	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData167,6185
+	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData171,6270
+	TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::TPZDohrPrecondV2SubData177,6582
+	TPZDohrPrecondV2SubData &operator=(TPZDohrPrecondV2SubData::operator=182,6761
+	bool IsValid(TPZDohrPrecondV2SubData::IsValid190,6962
+	~TPZDohrPrecondV2SubData(TPZDohrPrecondV2SubData::~TPZDohrPrecondV2SubData195,7010
+struct TPZDohrPrecondV2SubDataList 213,7467
+	TPZDohrPrecondV2SubDataList(TPZDohrPrecondV2SubDataList::TPZDohrPrecondV2SubDataList214,7504
+	~TPZDohrPrecondV2SubDataList(TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList218,7656
+	void AddItem(TPZDohrPrecondV2SubDataList::AddItem227,8015
+	TPZDohrPrecondV2SubData<TSubStruct> PopItem(TPZDohrPrecondV2SubDataList::PopItem234,8238
 
 SubStruct/tpzdohrsubstruct.cpp,1467
 TPZDohrSubstruct::EWeightType TPZDohrSubstruct::fWeightType 34,1661
@@ -7842,22 +7868,22 @@ SubStruct/tpzmatredstructmatrix.h,73
 #define TPZMATREDSTRUCTMATRIX15,249
 class TPZMatRedStructMatrix 26,480
 
-SubStruct/tpzpairstructmatrix.cpp,983
-int TPZPairStructMatrix::gNumThreads 32,652
-TPZPairStructMatrix::TPZPairStructMatrix(34,695
-void TPZPairStructMatrix::SerialAssemble(41,867
-void TPZPairStructMatrix::PermuteScatter(112,3099
-void TPZPairStructMatrix::Assemble(122,3285
-void TPZPairStructMatrix::MultiThread_Assemble(136,3647
-TPZPairStructMatrix::ThreadData::ThreadData(160,4380
-TPZPairStructMatrix::ThreadData::~ThreadData(169,4697
-void *TPZPairStructMatrix::ThreadData::ThreadWork(TPZPairStructMatrix::ThreadData::ThreadWork174,4790
-void TPZPairStructMatrix::ThreadData::PermuteScatter(233,6539
-void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(TPZPairStructMatrix::ThreadData::ThreadAssembly1245,6786
-void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(TPZPairStructMatrix::ThreadData::ThreadAssembly2312,9035
-int TPZPairStructMatrix::ThreadData::NextElement(378,11025
-void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(427,12174
-void TPZPairStructMatrix::SetMaterialIds(440,12668
+SubStruct/tpzpairstructmatrix.cpp,984
+int TPZPairStructMatrix::gNumThreads 34,677
+TPZPairStructMatrix::TPZPairStructMatrix(36,720
+void TPZPairStructMatrix::SerialAssemble(44,1001
+void TPZPairStructMatrix::PermuteScatter(115,3233
+void TPZPairStructMatrix::Assemble(125,3419
+void TPZPairStructMatrix::MultiThread_Assemble(140,3900
+TPZPairStructMatrix::ThreadData::ThreadData(166,4701
+TPZPairStructMatrix::ThreadData::~ThreadData(175,5018
+void *TPZPairStructMatrix::ThreadData::ThreadWork(TPZPairStructMatrix::ThreadData::ThreadWork180,5111
+void TPZPairStructMatrix::ThreadData::PermuteScatter(239,6860
+void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(TPZPairStructMatrix::ThreadData::ThreadAssembly1251,7107
+void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(TPZPairStructMatrix::ThreadData::ThreadAssembly2318,9356
+int TPZPairStructMatrix::ThreadData::NextElement(384,11346
+void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(433,12495
+void TPZPairStructMatrix::SetMaterialIds(446,12989
 
 SubStruct/tpzpairstructmatrix.h,265
 #define PAIRSTRUCTMATRIX14,238
@@ -8516,82 +8542,6 @@ include_directories(2,1
 
 skel/Makefile.am,22
 DISTCLEANFILES 9,109
-
-Util/pzvecmesh.cpp,0
-
-Util/pzvecgen.cpp,0
-
-Util/pzstackgen.cpp,0
-
-Util/pzmanvectorgen.cpp,0
-
-Util/pzchunkgen.cpp,0
-
-Util/pzadmchunkgen.cpp,0
-
-Util/doxutil.h,0
-
-UnitTest_PZ/CMakeLists.txt,0
-
-Topology/doxtopology.h,0
-
-SubStruct/doxsubstrmatrix.h,0
-
-StrMatrix/doxstrmatrix.h,0
-
-Shape/doxshape.h,0
-
-Save/pzbfilestream.cpp,0
-
-Save/doxsave.h,0
-
-Refine/doxrefine.h,0
-
-Projects/simple.cfg,0
-
-Projects/pz.cfg,0
-
-Projects/CMakeLists.txt,0
-
-Pre/doxpre.h,0
-
-Post/doxpost.h,0
-
-OutOfDate/doxoutofdate.h,0
-
-Mesh/tpzagglomeratemesh.cpp,0
-
-Mesh/pzvecmesh.cpp,0
-
-Mesh/pzstackmesh.cpp,0
-
-Mesh/pzmultiphysicselement.cpp,0
-
-Mesh/doxmesh.h,0
-
-Matrix/doxmatrix.h,0
-
-Material/doxmaterial.h,0
-
-Integral/tpzintpoints.cpp,0
-
-Integral/tpzint1point.cpp,0
-
-Integral/doxintegral.h,0
-
-Geom/pznoderep.cpp,0
-
-Geom/doxgeometry.h,0
-
-Frontal/pzvecfrontal.cpp,0
-
-External/fblaswr.h,0
-
-Documentation/pzmainpage.h,0
-
-Common/doxcommon.h,0
-
-Analysis/doxanalysis.h,0
 
 External/sloan/CMakeLists.txt,23
 file(3,90
@@ -11088,29 +11038,52 @@ Projects/Perf01_SubStruct/building_mesh.cpp,68
 void InsertElasticity(12,163
 TPZGeoMesh* BuildBuildingMesh(29,704
 
-Projects/Perf01_SubStruct/building_mesh.o,34
-ÿÀ‰Eä‹Eä5,15270
-‰EÜ‹EÜ6,16214
-
 Projects/Perf01_SubStruct/log4cxx_perf.cfg,34
 log4j.rootLogger=rootLogger2,61
 
-Projects/Perf01_SubStruct/log4cxx_perf.cfg~,34
-log4j.rootLogger=rootLogger2,61
-
-Projects/Perf01_SubStruct/substruct.cpp,283
+Projects/Perf01_SubStruct/substruct.cpp,341
 #define LOG4CXX_TRACE(60,2169
 #define LOG4CXX_DEBUG(61,2211
 #define LOG4CXX_INFO(62,2253
 #define LOG4CXX_WARN(63,2294
 #define LOG4CXX_ERROR(64,2335
 #define LOG4CXX_FATAL(65,2377
-int main(84,2882
-  typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;200,6452
+void printrusage(86,2945
+void printrusage2(113,4609
+int main(148,7380
+    typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;312,13837
 
-Projects/Perf01_SubStruct/util.o,34
-ÿÀ‰Eä‹Eä5,15270
-‰EÜ‹EÜ6,16214
+Projects/Perf02_SubStruct-Merge/CMakeLists.txt,32
+file(2,1
+add_executable(7,112
+
+Projects/Perf02_SubStruct-Merge/substruct.cpp,169
+int main(75,2515
+int main2(284,9492
+void InsertElasticity(514,15226
+TPZGeoMesh *MalhaPredio(MalhaPredio531,15754
+int SubStructure(723,19857
+REAL Height(809,21747
+
+Projects/Perf02_SubStruct-Nathan/CMakeLists.txt,32
+file(2,1
+add_executable(7,112
+
+Projects/Perf02_SubStruct-Nathan/substruct.cpp,169
+int main(74,2490
+int main2(284,9171
+void InsertElasticity(514,14905
+TPZGeoMesh *MalhaPredio(MalhaPredio531,15433
+int SubStructure(723,19536
+REAL Height(809,21426
+
+Projects/Perf02_SubStruct-Nathan/substruct_old.cpp,169
+int main(75,2515
+int main2(284,9492
+void InsertElasticity(514,15226
+TPZGeoMesh *MalhaPredio(MalhaPredio531,15754
+int SubStructure(723,19857
+REAL Height(809,21747
 
 Projects/PoissonFAD/CMakeLists.txt,55
 include_directories(2,1
@@ -13587,266 +13560,6 @@ UnitTest_PZ/TestTopology/TestTopology.cpp,134
 void TestingSideProjections2(23,378
 BOOST_AUTO_TEST_SUITE(41,980
 
-UnitTest_PZ/TestMaterial/CubeStiffMatrix.txt,0
-
-Refine/RefPatterns/refB.rpt,0
-
-Refine/RefPatterns/refA.rpt,0
-
-Refine/RefPatterns/3D_Tetra_Rib_Side_4.rpt,0
-
-Refine/RefPatterns/3D_Tetra_5ribs.rpt,0
-
-Refine/RefPatterns/3D_Tetra_2nodes_003.rpt,0
-
-Refine/RefPatterns/3D_Tetra_2nodes_000.rpt,0
-
-Refine/RefPatterns/3D_Tetra_2ladosopostos.rpt,0
-
-Refine/RefPatterns/3D_Tetra_1lado.rpt,0
-
-Refine/RefPatterns/3D_Prism_Rib_Side_6_7_12_13.rpt,0
-
-Refine/RefPatterns/3D_Prism_Rib_Side_15.rpt,0
-
-Refine/RefPatterns/3D_Prism_Rib_Side_12.rpt,0
-
-Refine/RefPatterns/3D_Prism_Rib_Side_10.rpt,0
-
-Refine/RefPatterns/3D_Piram_Rib_Side_5.rpt,0
-
-Refine/RefPatterns/3D_Piram_Rib_Side_10.rpt,0
-
-Refine/RefPatterns/3D_Piram_BaseFace.rpt,0
-
-Refine/RefPatterns/3D_Piram_BaseEdge_Directional.rpt,0
-
-Refine/RefPatterns/3D_Piram_2lados_lateral.rpt,0
-
-Refine/RefPatterns/3D_Piram_2RaisedEdges.rpt,0
-
-Refine/RefPatterns/3D_Piram_1lado_lateral.rpt,0
-
-Refine/RefPatterns/3D_Piram_1RaisedEdge_Directional.rpt,0
-
-Refine/RefPatterns/3D_Hexa_directional_3faces_cross.rpt,0
-
-Refine/RefPatterns/3D_Hexa_directional_3faces.rpt,0
-
-Refine/RefPatterns/3D_Hexa_directional_2faces.rpt,0
-
-Refine/RefPatterns/3D_Hexa_directional_1face.rpt,0
-
-Refine/RefPatterns/3D_Hexa_Rib_Side_16_17.rpt,0
-
-Refine/RefPatterns/3D_Hexa_Rib_Side_08.rpt,0
-
-Refine/RefPatterns/2D_Triang_Rib_Side_3_4.rpt,0
-
-Refine/RefPatterns/2D_Triang_Rib_4.rpt,0
-
-Refine/RefPatterns/2D_Triang_Face_Side_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_5_6_7.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_5_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_5_5_7.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_5_5_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_5.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_4_6_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_4_6.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_4_5_5.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_4_5.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4_4.rpt,0
-
-Refine/RefPatterns/2D_Quad_Rib_Side_4.rpt,0
-
-Refine/RefPatterns/2D_Quad_Diag.rpt,0
-
-Projects/visualmatrix/visualmatrix.dx,0
-
-Projects/testgeom/testgeom.h,0
-
-Projects/testgeom/output.dx,0
-
-Projects/testgeom/doxtestgeom.h,0
-
-Projects/testeisotropia/teste2.ttt,0
-
-Projects/testeisotropia/teste1.ttt,0
-
-Projects/teste/pontos.in,0
-
-Projects/teste/placatest.dat,0
-
-Projects/teste/placa1.dat,0
-
-Projects/teste/placa.pos,0
-
-Projects/teste/placa.dat,0
-
-Projects/teste/outgm1.dat,0
-
-Projects/teste/mensagem.cpp,0
-
-Projects/teste/malha.dat,0
-
-Projects/teste/log.dat,0
-
-Projects/teste/graph.chk.keep.cpp,0
-
-Projects/teste/graph.chk,0
-
-Projects/teste/error.dat,0
-
-Projects/teste/cyclerefinements,0
-
-Projects/pzvc/saida,0
-
-Projects/pzvc/pzvc.plg,0
-
-Projects/pzvc/pzvc.opt,0
-
-Projects/pzvc/placatest.dat,0
-
-Projects/pzvc/placaex1.dat,0
-
-Projects/pzvc/placa3.dat,0
-
-Projects/pzvc/placa2.dat,0
-
-Projects/pzvc/placa1.dat,0
-
-Projects/pzvc/placa03.pos,0
-
-Projects/pzvc/placa0.pos,0
-
-Projects/pzvc/placa.dat,0
-
-Projects/pzvc/param.dat,0
-
-Projects/pzvc/outcm2.dat,0
-
-Projects/pzvc/graph.chk,0
-
-Projects/pzvc/flavio.dat,0
-
-Projects/pzvc/chapeuiso.dat,0
-
-Projects/pzvc/chapeuani.dat,0
-
-Projects/pzvc/chapeu.dat,0
-
-Projects/placyl/placatest.dat,0
-
-Projects/placyl/multplaca3.dat,0
-
-Projects/placyl/multplaca.dat,0
-
-Projects/multplaca/placatest.dat,0
-
-Projects/multplaca/multplaca3.dat,0
-
-Projects/multplaca/multplaca2.dat,0
-
-Projects/multplaca/multplaca.dat,0
-
-Projects/multicamada/bibliotoc.bib,0
-
-Projects/matrix/matrix.ide,0
-
-Projects/descontinuo/choque-3T-g0-n2-CFL=0.3-DT=0.019-140it-3seg.dx,0
-
-Projects/descontinuo/CHOQUE_QUAD_G0_N1_1000IT_CFL0.2.dx,0
-
-Projects/descontinuo/CHOQUE_3D_N0_G0_10000IT_CFL0.2_83SEG.dx,0
-
-Projects/ThermalStress/PerkinsGonzalez.h,0
-
-Projects/Test_RefPattern/Quad_Unif.rpt,0
-
-Projects/SubStruct/8andares02.txt,0
-
-Projects/Steklov/visual.h,0
-
-Projects/Steklov/visual.cpp,0
-
-Projects/Steklov/substructeigen.h,0
-
-Projects/Steklov/Instantiate.h,0
-
-Projects/Steklov/GenerateSquare.h,0
-
-Projects/SteamInjection/steamInjectionFILE.txt,0
-
-Projects/Steam/tpbrthermalsolution.cpp,0
-
-Projects/Steam/TPBrSteamSimulation.h,0
-
-Projects/SingularShapeFunction/arq_dx.cfg,0
-
-Projects/Perf01_SubStruct/substruct.o,0
-
-Projects/Perf01_SubStruct/building_mesh.h,0
-
-Projects/Perf01_SubStruct/8andares02.txt,0
-
-Projects/OlivierRoussel/tools.h,0
-
-Projects/OlivierRoussel/malhas.h,0
-
-Projects/OlivierRoussel/MultiResMesh.h,0
-
-Projects/OlivierRoussel/LaraRefineTriangle.txt,0
-
-Projects/OlivierRoussel/LaraRefineTetrahedron.txt,0
-
-Projects/Descontinuo2/RadialShock.cpp,0
-
-Projects/CursoPZ/CMakeLists.txt,0
-
-Projects/Cubo_do_Nathan/cube1.txt,0
-
-Projects/Conductivity/voidflux_test.h,0
-
-Projects/BlackOil/postprocess.h,0
-
-Projects/BlackOil/malha.h,0
-
-Projects/BlackOil/blackoil.cfg,0
-
-Projects/BRUReader/funil_ref9.5,0
-
-Projects/BRUReader/adapt_nodes.2,0
-
-Projects/BRUReader/adapt_incid.3,0
-
-Projects/BRUReader/adapt.restart,0
-
-Projects/BRUReader/adapt.log,0
-
-Projects/BRUReader/adapt.0,0
-
-Projects/AltoDes/teste.mat,0
-
-Projects/Adapt_MultThread/malhageometrica,0
-
-Projects/Adapt_MultThread/includes.h,0
-
-OutOfDate/Material/doxmaterialdeprecated.h,0
-
-OutOfDate/Cosys/doxcosys.h,0
-
 Projects/CursoPZ/Class_1/CMakeLists.txt,34
 file(3,110
 add_executable(9,196
@@ -14123,3 +13836,343 @@ package project.TESTE.Debug.Default;Default2,24
 class Default 36,1009
 
 Projects/CursoPZ/Class_1/README,0
+
+UnitTest_PZ/TestMaterial/CubeStiffMatrix.txt,0
+
+Refine/RefPatterns/refB.rpt,0
+
+Refine/RefPatterns/refA.rpt,0
+
+Refine/RefPatterns/3D_Tetra_Rib_Side_4.rpt,0
+
+Refine/RefPatterns/3D_Tetra_5ribs.rpt,0
+
+Refine/RefPatterns/3D_Tetra_2nodes_003.rpt,0
+
+Refine/RefPatterns/3D_Tetra_2nodes_000.rpt,0
+
+Refine/RefPatterns/3D_Tetra_2ladosopostos.rpt,0
+
+Refine/RefPatterns/3D_Tetra_1lado.rpt,0
+
+Refine/RefPatterns/3D_Prism_Rib_Side_6_7_12_13.rpt,0
+
+Refine/RefPatterns/3D_Prism_Rib_Side_15.rpt,0
+
+Refine/RefPatterns/3D_Prism_Rib_Side_12.rpt,0
+
+Refine/RefPatterns/3D_Prism_Rib_Side_10.rpt,0
+
+Refine/RefPatterns/3D_Piram_Rib_Side_5.rpt,0
+
+Refine/RefPatterns/3D_Piram_Rib_Side_10.rpt,0
+
+Refine/RefPatterns/3D_Piram_BaseFace.rpt,0
+
+Refine/RefPatterns/3D_Piram_BaseEdge_Directional.rpt,0
+
+Refine/RefPatterns/3D_Piram_2lados_lateral.rpt,0
+
+Refine/RefPatterns/3D_Piram_2RaisedEdges.rpt,0
+
+Refine/RefPatterns/3D_Piram_1lado_lateral.rpt,0
+
+Refine/RefPatterns/3D_Piram_1RaisedEdge_Directional.rpt,0
+
+Refine/RefPatterns/3D_Hexa_directional_3faces_cross.rpt,0
+
+Refine/RefPatterns/3D_Hexa_directional_3faces.rpt,0
+
+Refine/RefPatterns/3D_Hexa_directional_2faces.rpt,0
+
+Refine/RefPatterns/3D_Hexa_directional_1face.rpt,0
+
+Refine/RefPatterns/3D_Hexa_Rib_Side_16_17.rpt,0
+
+Refine/RefPatterns/3D_Hexa_Rib_Side_08.rpt,0
+
+Refine/RefPatterns/2D_Triang_Rib_Side_3_4.rpt,0
+
+Refine/RefPatterns/2D_Triang_Rib_4.rpt,0
+
+Refine/RefPatterns/2D_Triang_Face_Side_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_5_6_7.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_5_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_5_5_7.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_5_5_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_5.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_4_6_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_4_6.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_4_5_5.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_4_5.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4_4.rpt,0
+
+Refine/RefPatterns/2D_Quad_Rib_Side_4.rpt,0
+
+Refine/RefPatterns/2D_Quad_Diag.rpt,0
+
+Projects/visualmatrix/visualmatrix.dx,0
+
+Projects/testgeom/testgeom.h,0
+
+Projects/testgeom/output.dx,0
+
+Projects/testgeom/doxtestgeom.h,0
+
+Projects/testeisotropia/teste2.ttt,0
+
+Projects/testeisotropia/teste1.ttt,0
+
+Projects/teste/pontos.in,0
+
+Projects/teste/placatest.dat,0
+
+Projects/teste/placa1.dat,0
+
+Projects/teste/placa.pos,0
+
+Projects/teste/placa.dat,0
+
+Projects/teste/outgm1.dat,0
+
+Projects/teste/mensagem.cpp,0
+
+Projects/teste/malha.dat,0
+
+Projects/teste/log.dat,0
+
+Projects/teste/graph.chk.keep.cpp,0
+
+Projects/teste/graph.chk,0
+
+Projects/teste/error.dat,0
+
+Projects/teste/cyclerefinements,0
+
+Projects/pzvc/saida,0
+
+Projects/pzvc/pzvc.plg,0
+
+Projects/pzvc/pzvc.opt,0
+
+Projects/pzvc/placatest.dat,0
+
+Projects/pzvc/placaex1.dat,0
+
+Projects/pzvc/placa3.dat,0
+
+Projects/pzvc/placa2.dat,0
+
+Projects/pzvc/placa1.dat,0
+
+Projects/pzvc/placa03.pos,0
+
+Projects/pzvc/placa0.pos,0
+
+Projects/pzvc/placa.dat,0
+
+Projects/pzvc/param.dat,0
+
+Projects/pzvc/outcm2.dat,0
+
+Projects/pzvc/graph.chk,0
+
+Projects/pzvc/flavio.dat,0
+
+Projects/pzvc/chapeuiso.dat,0
+
+Projects/pzvc/chapeuani.dat,0
+
+Projects/pzvc/chapeu.dat,0
+
+Projects/placyl/placatest.dat,0
+
+Projects/placyl/multplaca3.dat,0
+
+Projects/placyl/multplaca.dat,0
+
+Projects/multplaca/placatest.dat,0
+
+Projects/multplaca/multplaca3.dat,0
+
+Projects/multplaca/multplaca2.dat,0
+
+Projects/multplaca/multplaca.dat,0
+
+Projects/multicamada/bibliotoc.bib,0
+
+Projects/matrix/matrix.ide,0
+
+Projects/descontinuo/choque-3T-g0-n2-CFL=0.3-DT=0.019-140it-3seg.dx,0
+
+Projects/descontinuo/CHOQUE_QUAD_G0_N1_1000IT_CFL0.2.dx,0
+
+Projects/descontinuo/CHOQUE_3D_N0_G0_10000IT_CFL0.2_83SEG.dx,0
+
+Projects/ThermalStress/PerkinsGonzalez.h,0
+
+Projects/Test_RefPattern/Quad_Unif.rpt,0
+
+Projects/SubStruct/8andares02.txt,0
+
+Projects/Steklov/visual.h,0
+
+Projects/Steklov/visual.cpp,0
+
+Projects/Steklov/substructeigen.h,0
+
+Projects/Steklov/Instantiate.h,0
+
+Projects/Steklov/GenerateSquare.h,0
+
+Projects/SteamInjection/steamInjectionFILE.txt,0
+
+Projects/Steam/tpbrthermalsolution.cpp,0
+
+Projects/Steam/TPBrSteamSimulation.h,0
+
+Projects/SingularShapeFunction/arq_dx.cfg,0
+
+Projects/Perf02_SubStruct-Nathan/8andares02.txt,0
+
+Projects/Perf02_SubStruct-Merge/8andares02.txt,0
+
+Projects/Perf01_SubStruct/building_mesh.h,0
+
+Projects/Perf01_SubStruct/8andares02.txt,0
+
+Projects/OlivierRoussel/tools.h,0
+
+Projects/OlivierRoussel/malhas.h,0
+
+Projects/OlivierRoussel/MultiResMesh.h,0
+
+Projects/OlivierRoussel/LaraRefineTriangle.txt,0
+
+Projects/OlivierRoussel/LaraRefineTetrahedron.txt,0
+
+Projects/Descontinuo2/RadialShock.cpp,0
+
+Projects/CursoPZ/CMakeLists.txt,0
+
+Projects/Cubo_do_Nathan/cube1.txt,0
+
+Projects/Conductivity/voidflux_test.h,0
+
+Projects/BlackOil/postprocess.h,0
+
+Projects/BlackOil/malha.h,0
+
+Projects/BlackOil/blackoil.cfg,0
+
+Projects/BRUReader/funil_ref9.5,0
+
+Projects/BRUReader/adapt_nodes.2,0
+
+Projects/BRUReader/adapt_incid.3,0
+
+Projects/BRUReader/adapt.restart,0
+
+Projects/BRUReader/adapt.log,0
+
+Projects/BRUReader/adapt.0,0
+
+Projects/AltoDes/teste.mat,0
+
+Projects/Adapt_MultThread/malhageometrica,0
+
+Projects/Adapt_MultThread/includes.h,0
+
+OutOfDate/Material/doxmaterialdeprecated.h,0
+
+OutOfDate/Cosys/doxcosys.h,0
+
+Util/pzvecmesh.cpp,0
+
+Util/pzvecgen.cpp,0
+
+Util/pzstackgen.cpp,0
+
+Util/pzmanvectorgen.cpp,0
+
+Util/pzchunkgen.cpp,0
+
+Util/pzadmchunkgen.cpp,0
+
+Util/doxutil.h,0
+
+UnitTest_PZ/CMakeLists.txt,0
+
+Topology/doxtopology.h,0
+
+SubStruct/doxsubstrmatrix.h,0
+
+StrMatrix/doxstrmatrix.h,0
+
+Shape/doxshape.h,0
+
+Save/pzbfilestream.cpp,0
+
+Save/doxsave.h,0
+
+Refine/doxrefine.h,0
+
+Projects/simple.cfg,0
+
+Projects/pz.cfg,0
+
+Projects/CMakeLists.txt,0
+
+Pre/doxpre.h,0
+
+Post/doxpost.h,0
+
+OutOfDate/doxoutofdate.h,0
+
+Mesh/tpzagglomeratemesh.cpp,0
+
+Mesh/pzvecmesh.cpp,0
+
+Mesh/pzstackmesh.cpp,0
+
+Mesh/pzmultiphysicselement.cpp,0
+
+Mesh/doxmesh.h,0
+
+Matrix/doxmatrix.h,0
+
+Material/doxmaterial.h,0
+
+Integral/tpzintpoints.cpp,0
+
+Integral/tpzint1point.cpp,0
+
+Integral/doxintegral.h,0
+
+Geom/pznoderep.cpp,0
+
+Geom/doxgeometry.h,0
+
+Frontal/pzvecfrontal.cpp,0
+
+External/fblaswr.h,0
+
+Documentation/pzmainpage.h,0
+
+Common/pzp_thread.cpp~,0
+
+Common/doxcommon.h,0
+
+Analysis/doxanalysis.h,0
