@@ -3,7 +3,7 @@
 #include<pthread.h>
 #include<iostream> // cout, ostream
 
-#define THREAD_NOTES
+//#define THREAD_NOTES
 
 #ifdef THREAD_NOTES
 

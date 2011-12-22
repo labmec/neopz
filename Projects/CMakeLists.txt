@@ -67,6 +67,7 @@ if(BUILD_PROJECTS)
 	add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(Perf01_SubStruct)
+	add_subdirectory(Perf02_SubStruct-Nathan)
 	add_subdirectory(MultiphysicsSimulation)
 	#add_subdirectory(prodindex)
 	

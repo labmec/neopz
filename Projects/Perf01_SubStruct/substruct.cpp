@@ -266,13 +266,18 @@ int main(int argc, char *argv[])
     TPZFMatrix produto(dohr->Rows(),1);
     LOG4CXX_INFO(perflog, "# of equations " << dohr->Rows());
 
+
+#if 1 // Nathan's code
+	  TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix <TPZDohrSubstructCondense> *> (dohr.operator->());
+	  TPZDohrPrecond<TPZDohrSubstructCondense> *precondptr = dynamic_cast<TPZDohrPrecond<TPZDohrSubstructCondense> *> (precond.operator->());
+	  dohrptr->SetNumThreads(nthreads_multiply);
+	  precondptr->SetNumThreads(nthreads_multiply);
+#endif
+	  
     TIME_SEC_BEG_LOG(perflog, timer,"Multiply started");
     dohr->Multiply(diag,produto);
     TIME_SEC_END_LOG(perflog, ta,timer,"Multiply started");
 		
-    TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = 
-      dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
-
     if (!dohrptr) {
       DebugStop();
     }

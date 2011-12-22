@@ -92,6 +92,14 @@ public:
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();
     
+        /**
+         * Specify the number of threads for preconditioning
+         */
+        void SetNumThreads(int numthreads)
+        {
+	  fNumThreads = numthreads;
+        }
+
 	//void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
     
 	/**

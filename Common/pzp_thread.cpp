@@ -57,7 +57,6 @@ static unsigned sim_threads = 0;
 
 pz_pthread_mutex_t pzp_mutex;
 
-
 void pzp_thread_log_start()
 {
   pz_pthread_logging = true;
@@ -123,5 +122,11 @@ int pz_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
 
   return ret;
 }
-  
+
+#else // #ifdef THREAD_NOTES
+
+void pzp_thread_log_stop() {}
+void pzp_thread_log_start() {}
+void pzp_thread_log_report(std::ostream& o) {}
+
 #endif
