@@ -96,6 +96,10 @@ public:
 	 * method which checks the working of the class
 	 */
 	static int main();
+    
+    /** Fill the matrix with random values (non singular matrix) */
+    void AutoFill();
+
 	
 private:
 	

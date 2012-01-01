@@ -633,3 +633,26 @@ void TPZBlockDiagonal::UpdateFrom(TPZAutoPointer<TPZMatrix> mat)
 		firsteq += bsize;
 	}
 }
+
+/** Fill the matrix with random values (non singular matrix) */
+void TPZBlockDiagonal::AutoFill() {
+
+	int b, bsize, eq = 0, pos;
+	int nb = fBlockSize.NElements(), r, c;
+	for ( b=0; b<nb; b++) {
+		pos= fBlockPos[b];
+		bsize = fBlockSize[b];
+		for(r=0; r<bsize; r++) {
+            REAL sum = 0.;
+			for(c=0; c<bsize; c++) {
+                REAL val = ((REAL)rand())/RAND_MAX;
+				fStorage[pos+c+r*bsize] = val;
+                if(c!= r) sum += fabs(val);
+			}
+            if (fabs(fStorage[pos+r+r*bsize]) < sum) {
+                fStorage[pos+r+r*bsize] = sum+1.;
+            }
+		}
+		eq += bsize;
+	}
+}
