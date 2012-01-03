@@ -22,6 +22,9 @@
 #include "pzvec.h"
 #include "pzgeoelside.h"
 
+#include "TPZPlaneFractureMaterials.h"
+
+
 
 /// Real as tolerance 
 const double __smallNum = 1.E-10;
@@ -33,9 +36,9 @@ const double __maxLength = 4.;
 const double __lengthFactor = 1.5;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
-//
 /** @note Quantity of stretches for coarse edge intersection modulation */
 const int __minTrimQTD = 4; //will be used for refpatterns
+
 /** @brief Multiplier of __minTrimQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 5; //will be used for searching direction between dots from poligonal chain
 
@@ -55,9 +58,10 @@ class TPZPlaneFracture
 	 * @param lw [in] : (positive) well length (positive)
 	 * @param bulletDepthIni [in] : bullets perforation initial (positive) depth
 	 * @param bulletDepthFin [in] : bullets perforation final (positive) depth
-	 * @param pos_stressUp_stressDown [in] : stress profile indexed by the depths and respective stresses immediately before (up) and after (down)
+	 * @param pos_stress [in] : stress profile described by stretches
+     *              Obs.: Stress profile in each stretch is linear
 	 */
-    TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, std::map< double , std::pair<double,double> > & pos_stressUp_stressDown);
+    TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, TPZVec< std::map<double,double> > & pos_stress);
     
 	~TPZPlaneFracture();
     
@@ -245,8 +249,8 @@ class TPZPlaneFracture
 	TPZGeoMesh * f3DMesh;
     
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
-    std::map< double , std::pair<double,double> > fpos_stressUp_stressDown;
-    std::map< double , std::pair<double,double> >::iterator f_it;
+    TPZVec< std::map<double,double> > fpos_stress;
+    std::map<double,double>::iterator f_it;
     
 	/** @brief It limits the amount of possible points in the edge of the elements */
 	int fTrimQTD;

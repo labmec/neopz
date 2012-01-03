@@ -19,7 +19,7 @@
 
 class TPZGeoNode;
 class TPZCompMesh;
-class TPZGeoElBC;
+//class TPZGeoElBC;
 class TPZGeoEl;
 class TPZGeoElSideIndex;
 class TPZGeoElSide;

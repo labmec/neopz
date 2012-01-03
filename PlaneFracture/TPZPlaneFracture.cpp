@@ -19,34 +19,20 @@
 #include "pznoderep.h"
 #include "pzgeoel.h"
 #include "TPZVTKGeoMesh.h"
-//#include "TPZPoligonalChain.h"
+#include "TPZPoligonalChain.h"
 #include "tpzgeoelrefpattern.h"
 #include "pzgeoelside.h"
 
-using namespace pzgeom;
-
-/** @brief Material index to create TPZGeoElRefPattern */
-const int __aux1DEl_Mat = -1;
-
-/** @brief Material index to create TPZGeoElRefPattern to linear element */
-const int __fractureLine_Mat = -2;
-
-const int __2DfractureMat = 1;//2D elements inside fracture
-const int __2DrockMat = 2;//2D elements outside fracture
-const int __3DRockMat = 3;//3D elements surrounding fracture plane
 
 
 TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, 
-                                   std::map< double , std::pair<double,double> > & pos_stressUp_stressDown)
+                                   TPZVec< std::map<double,double> > & pos_stress)
 {
-    fpos_stressUp_stressDown = pos_stressUp_stressDown;
+    fpos_stress = pos_stress;
     fTrimQTD = __minTrimQTD;
     
     fplaneMesh = new TPZGeoMesh;
     f3DMesh = new TPZGeoMesh;
-    
-    f_it = pos_stressUp_stressDown.end();
-    f_it--;
         
     std::set<double> espacamentoVertical;
     
@@ -55,10 +41,14 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
     espacamentoVertical.insert(bulletDepthIni);
     espacamentoVertical.insert(bulletDepthFin);
     
-    for(f_it = pos_stressUp_stressDown.begin(); f_it != pos_stressUp_stressDown.end(); f_it++)
+    int nstretches = pos_stress.NElements();
+    for(int s = 0; s < nstretches; s++)
     {
-        double pos = f_it->first;
-        espacamentoVertical.insert(pos);
+        for(f_it = pos_stress[s].begin(); f_it != pos_stress[s].end(); f_it++)
+        {
+            double pos = f_it->first;
+            espacamentoVertical.insert(pos);
+        }
     }
     
     double pos0 = 0.;
@@ -88,7 +78,7 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
 TPZPlaneFracture::~TPZPlaneFracture()
 {
     delete fplaneMesh;
-    fpos_stressUp_stressDown.clear();
+    fpos_stress.Resize(0);
 	fTrimQTD = 0;
 }
 //------------------------------------------------------------------------------------------------------------
@@ -201,7 +191,7 @@ lastPos = 4.;//AQUICAJU
                 Topol[6] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
                 Topol[7] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                 
-                new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DRockMat,*f3DMesh);
+                new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat,*f3DMesh);
                 elId++;
             }
         }
@@ -251,7 +241,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 {
 	#ifdef DEBUG
 	int ncoord = poligonalChain.NElements();
-	if(ncoord%3 != 0)
+	if(ncoord%2 != 0)
 	{
 		std::cout << "poligonalChain boundary dont have groups of 3 coordinates (x,y,z)!" << std::endl;
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
@@ -321,7 +311,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 		}
 	}
 	
-	GenerateCrackBoundary(fractMesh, fractMesh3D, elIdSequence);//AQUICAJU
+	GenerateCrackBoundary(fractMesh, fractMesh3D, elIdSequence);
 	
 	return fractMesh3D;
 }
@@ -334,7 +324,7 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
                                           std::map< int, std::set<double> > &elId_TrimCoords, 
                                           std::list< std::pair<int,double> > &elIdSequence)
 {
-	int npoints = (poligonalChain.NElements())/3;
+	int npoints = (poligonalChain.NElements())/2;
 	int nelem = fractMesh->NElements();
 	
     TPZGeoEl * firstGel = PointElement(0, fractMesh, poligonalChain);
@@ -366,19 +356,31 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 	{
 		nElsCrossed = 0;
 		alphaMin = 0.;
-		thispoint = 3*p;
-		nextpoint = 3*(p+1);
-		for(int c = 0; c < 3; c++)
-		{
-            double xcoord = poligonalChain[thispoint+c];
-			x[c] = xcoord;
+		thispoint = 2*p;
+		nextpoint = 2*(p+1);
+            //-----------------------
+            double xcoord = poligonalChain[thispoint+0];
+			x[0] = xcoord;
             
-            double dxcoord = poligonalChain[nextpoint+c] - poligonalChain[thispoint+c];
-			dx[c] = dxcoord;
+            double dxcoord = poligonalChain[nextpoint+0] - poligonalChain[thispoint+0];
+			dx[0] = dxcoord;
             
-            double xnextcoord = poligonalChain[nextpoint+c];
-			xNext[c] = xnextcoord;
-		}
+            double xnextcoord = poligonalChain[nextpoint+0];
+			xNext[0] = xnextcoord;
+            //-----------------------
+            x[1] = 0.;
+            dx[1] = 0.;
+            xNext[1] = 0.;
+            //-----------------------
+            xcoord = poligonalChain[thispoint+1];
+            x[2] = xcoord;
+            
+            dxcoord = poligonalChain[nextpoint+1] - poligonalChain[thispoint+1];
+            dx[2] = dxcoord;
+            
+            xnextcoord = poligonalChain[nextpoint+1];
+            xNext[2] = xnextcoord;
+            //-----------------------
 		
 		double norm = 0.;
 		for(int c = 0; c < 3; c++)
@@ -418,12 +420,13 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
     dx[2] =  0.;//direcao oposta ao eixo x do sistema de coordenadas
 	
 	p = 0;//Fechando o inicio da fratura
-	thispoint = 3*p;
-	nextpoint = 3*(p+1);
-	for(int c = 0; c < 3; c++)
-	{
-		x[c] = poligonalChain[thispoint+c];
-	}
+	thispoint = 2*p;
+	nextpoint = 2*(p+1);
+
+		x[0] = poligonalChain[thispoint+0];
+        x[1] = 0.;
+        x[2] = poligonalChain[thispoint+1];
+
 	nextGel = firstGel;
 	gel = NULL;
 	alphaMin = 0.;
@@ -434,13 +437,13 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 		alphaMin = __smallNum;
 	}
 	
-	p = npoints-1;//Fechando o final da fratura
-	thispoint = 3*p;
-	nextpoint = 3*(p+1);
-	for(int c = 0; c < 3; c++)
-	{
-		x[c] = poligonalChain[thispoint+c];
-	}
+	p = npoints;//Fechando o final da fratura
+	thispoint = 2*(p-1);
+
+        x[0] = poligonalChain[thispoint+0];
+        x[1] = 0.;
+        x[2] = poligonalChain[thispoint+1];
+    
 	nextGel = lastGel;
 	gel = NULL;
 	alphaMin = 0.;
@@ -704,10 +707,11 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 TPZGeoEl * TPZPlaneFracture::PointElement(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain)
 {
 	TPZVec<REAL> x(3), qsi2D(2);
-	for(int c = 0; c < 3; c++)
-	{
-		x[c] = poligonalChain[3*p+c];
-	}
+	
+		x[0] = poligonalChain[2*p+0];
+        x[1] = 0.;
+        x[2] = poligonalChain[2*p+1];
+    
 	TPZGeoEl * gel = NULL;
 	int nelem = fractMesh->NElements();
 	for(int el = 0; el < nelem; el++)//hunting the first element (that it contains the first point)
@@ -990,10 +994,10 @@ void TPZPlaneFracture::UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::
 						  TPZVec<REAL> &poligonalChainUpdated)
 {
 	int nptos = elIdSequence.size();
-	poligonalChainUpdated.Resize(3*nptos);
+	poligonalChainUpdated.Resize(2*nptos);
 
 	TPZVec<REAL> qsi1Dvec(1), ptoCoord(3);
-	int el1Did, posX, posY, posZ, p = 0;
+	int el1Did, posX, posZ, p = 0;
 	double qsi1D;
 	
 	std::list< std::pair<int,double> >::iterator it;
@@ -1017,12 +1021,10 @@ void TPZPlaneFracture::UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::
 		
 		el1D->X(qsi1Dvec, ptoCoord);
 		
-		posX = 3*p;
-		posY = 3*p+1;
-		posZ = 3*p+2;
+		posX = 2*p;
+		posZ = 2*p+1;
 		
 		poligonalChainUpdated[posX] = ptoCoord[0];
-		poligonalChainUpdated[posY] = ptoCoord[1];
 		poligonalChainUpdated[posZ] = ptoCoord[2];
 		
 		p++;

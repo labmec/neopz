@@ -315,7 +315,7 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::DragModelPatNodes(TPZGeoEl * g
 	}
 	modelPat_copy->ComputeTransforms();
 	modelPat_copy->ComputePartition();
-	modelPat_copy->GenerateSideRefPatterns();
+	modelPat_copy->GenerateSideRefPatterns(); 
 	if(!gRefDBase.FindRefPattern(modelPat_copy))
 	{
 		gRefDBase.InsertRefPattern(modelPat_copy);
@@ -846,10 +846,12 @@ void TPZRefPatternTools::RefineDirectional(TPZGeoEl *gel, std::set<int> &matids)
 		int i;
 		for (i=0 ; i<gel->NSides() ; i++)
 		{
-			/*		if(cornerstorefine[i] == 1)
-			 {
-			 arquivo << " " << i << " ";
-			 }     */
+			/*		
+            if(cornerstorefine[i] == 1)
+			{
+             arquivo << " " << i << " ";
+            }     
+            */
 			if (sidestorefine[i] == 1) {
 				arquivo << " " << i << " " ;
 			}

@@ -78,13 +78,19 @@ void TPZRefPatternDataBase::ReadRefPatternDBase(const std::string &filename)
 //.........................................................................................................................................................................................
 void TPZRefPatternDataBase::ReadRefPatternDBase(std::ifstream &filename)
 {
+    fElTypeRefPatterns.clear();
+    fIdRefPatterns.clear();
+    
 	int nRefpatterns;
 	filename >> nRefpatterns;
 	for(int i = 0; i < nRefpatterns; i++)
 	{
 		TPZAutoPointer<TPZRefPattern> refP = new TPZRefPattern;
 		refP->ReadPattern(filename);
-		InsertRefPattern(refP);
+		
+        MElementType eltype = refP->Element(0)->Type();
+        fElTypeRefPatterns[eltype].push_back(refP);
+        fIdRefPatterns[refP->Id()] = refP;
 	}
 }
 
@@ -163,7 +169,7 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 			count++;
 		}
 	}
-	
+
 #ifndef BORLAND
 	pclose(fp);
 #else
@@ -584,7 +590,7 @@ void TPZRefPatternDataBase::InsertRefPattern(TPZAutoPointer<TPZRefPattern> &refp
 		return;
 	}
 	
-	MElementType eltype = refpat->Element(0)->Type();	
+	MElementType eltype = refpat->Element(0)->Type();
 	
 	if(!refpat->IdInitialized())
 	{

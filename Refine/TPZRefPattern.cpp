@@ -20,6 +20,7 @@
 
 #include <fstream>
 #include <sstream>
+#include "pzbfilestream.h"
 
 using namespace std;
 
@@ -1019,7 +1020,63 @@ void TPZRefPattern::ExportPattern(std::ostream &out)
 
 void TPZRefPattern::ReadPattern(std::istream &in)
 {
-	ImportPattern(in);
+	///////////////////
+    int nnodes, nelems;
+	in >> nnodes >> nelems;
+	in >> fId >> fName;
+	
+	fNSubEl = nelems - 1;
+	TPZVec<REAL> coord(3);
+	fRefPatternMesh.NodeVec().Resize(nnodes);
+	
+	//criacao dos nohs
+	for(int inode = 0; inode < nnodes; inode++)
+	{
+		in >> coord[0];
+		in >> coord[1];
+		in >> coord[2];
+		fRefPatternMesh.NodeVec()[inode].Initialize(inode,coord,fRefPatternMesh);
+	}
+	
+	TPZGeoEl *father;
+	//criacao dos elementos geometricos que definem a particao
+	int ntype, nummat, naorners, incid, el;
+	for(el=0; el<nelems; el++)//os sub-elementos podem nao ter de uma mesma geometria
+	{
+		in >> ntype >> nummat;
+		MElementType etype = (MElementType) ntype;
+		naorners = MElementType_NNodes(etype);
+		TPZVec<int> nodes(naorners);
+		for(incid = 0; incid < naorners; incid++)
+		{
+			in >> nodes[incid];
+		}
+		int index;
+		TPZGeoEl *subel = fRefPatternMesh.CreateGeoElement(etype, nodes, nummat, index, 0);
+		if(el == 0)
+		{
+			father = subel;
+		}
+		if(el > 0)
+		{
+			subel->SetFather(father);
+			subel->SetFather(father->Index());
+		}
+	}
+	
+    
+    //AQUICAJU : apos ler e escrever o fPermutations (ver proximo AQUICAJU abaixo), chavear para quais dos metodos abaixo podem ser omitidos!
+	//SetRefPatternMeshToMasterDomain();
+	fRefPatternMesh.BuildConnectivity();//conectividades entre sub-elementos
+	GeneratePermutations(father);
+	ComputeTransforms();//calcula as transformacoes entre filhos e pai
+	ComputePartition();//efetua a particao do elemento pai de acordo com os lados dos sub-elementos
+	GenerateSideRefPatterns();
+    ///////////////////
+    
+    
+    
+    
 	
 	int nperm;
 	in >> nperm;
@@ -1031,7 +1088,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		fPermutedRefPatterns[el] = ip;
 	}
 	
-	TPZGeoEl *father = fRefPatternMesh.ElementVec()[0];
+	//TPZGeoEl *father = fRefPatternMesh.ElementVec()[0];
 	int nsides = father->NSides();
 	fSideRefPattern.Resize(nsides,-1);
 	fSideRefPattern[nsides-1] = this->Id();
@@ -1043,7 +1100,7 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 	}
 	
 #ifdef DEBUG
-	TPZRefPatternTools::TransformationTest(this);
+	//TPZRefPatternTools::TransformationTest(this);
 #endif
 }
 
@@ -1067,6 +1124,29 @@ void TPZRefPattern::WritePattern(std::ofstream &out)
 		out << fSideRefPattern[is] << ' ';
 	}
 	out << std::endl;
+   
+//AQUICAJU    
+//    FALTA ESCREVER E LER O fPermutations
+ //   // AAAAAQQQQQUUUUUUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.........................................................................
+//    //std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
+//    nperm = fPermutations.size();
+//    out << nperm << std::endl;
+//    std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> >::iterator itP;
+//    std::list<TPZRefPattern::TPZRefPatternPermute>::iterator itL;
+//    for(itP = fPermutations.begin(); itP != fPermutations.end(); itP++)
+//    {
+//        MElementType eltype = itP->first;
+//        std::list<TPZRefPattern::TPZRefPatternPermute> myList = itP->second;
+//        int listSz = myList.size();
+//        out << int(eltype) << ' ' << listSz << ' ';
+//        
+//        for(itL = myList.begin(); itL != myList.end(); itL++)
+//        {
+//            TPZRefPattern::TPZRefPatternPermute refpPerm = *itL;
+//            TPZFileStream fStr;
+//            refpPerm.Write(fStr);
+//        }
+//    }
 }
 
 int TPZRefPattern::SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side)
