@@ -31,8 +31,8 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
     fpos_stress = pos_stress;
     fTrimQTD = __minTrimQTD;
     
-    fplaneMesh = new TPZGeoMesh;
-    f3DMesh = new TPZGeoMesh;
+    fPlaneMesh = new TPZGeoMesh;
+    fFullMesh = new TPZGeoMesh;
         
     std::set<double> espacamentoVertical;
     
@@ -70,14 +70,14 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
     }
     
     GeneratePlaneMesh(espacamentoVertical);
-    Generate3DMesh(espacamentoVertical);
+    GenerateFullMesh(espacamentoVertical);
 }
 //------------------------------------------------------------------------------------------------------------
 
 
 TPZPlaneFracture::~TPZPlaneFracture()
 {
-    delete fplaneMesh;
+    delete fPlaneMesh;
     fpos_stress.Resize(0);
 	fTrimQTD = 0;
 }
@@ -94,13 +94,13 @@ void TPZPlaneFracture::GeneratePlaneMesh(std::set<double> & espacamento, double 
     int nNodesByLayer = nrows*ncols;
 	
 	//initializing gmesh->NodeVec()
-	fplaneMesh->NodeVec().Resize(nNodesByLayer);
+	fPlaneMesh->NodeVec().Resize(nNodesByLayer);
 	TPZVec <TPZGeoNode> Node(nNodesByLayer);
 	for(int n = 0; n < nNodesByLayer; n++)
 	{
 		Node[n].SetNodeId(n);
 		Node[n].SetCoord(NodeCoord[n]);
-		fplaneMesh->NodeVec()[n] = Node[n]; 
+		fPlaneMesh->NodeVec()[n] = Node[n]; 
 	}
 	
 	//inserting quadrilaterals
@@ -111,16 +111,16 @@ void TPZPlaneFracture::GeneratePlaneMesh(std::set<double> & espacamento, double 
 		for(int c = 0; c < (ncols-1); c++)
 		{
 			Topol[0] = ncols*r+c; Topol[1] = ncols*(r+1)+c; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*r+c+1;
-			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat,*fplaneMesh);
+			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat,*fPlaneMesh);
 			elId++;
 		}
 	}
 	
-	fplaneMesh->BuildConnectivity();
+	fPlaneMesh->BuildConnectivity();
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFracture::Generate3DMesh(std::set<double> & espacamento, double lengthFactor)
+void TPZPlaneFracture::GenerateFullMesh(std::set<double> & espacamento, double lengthFactor)
 {
     TPZVec< TPZVec<REAL> > NodeCoord(0);
     int nrows, ncols;
@@ -145,7 +145,7 @@ lastPos = 4.;//AQUICAJU
     int Qnodes = nNodesByLayer * nLayers;
 	
 	//initializing gmesh->NodeVec()
-	f3DMesh->NodeVec().Resize(Qnodes);
+	fFullMesh->NodeVec().Resize(Qnodes);
     
     int pos = 0;
 	TPZGeoNode Node;
@@ -155,7 +155,7 @@ lastPos = 4.;//AQUICAJU
         {
             Node.SetNodeId(pos);
             Node.SetCoord(NodeCoord[pos]);
-            f3DMesh->NodeVec()[pos] = Node;
+            fFullMesh->NodeVec()[pos] = Node;
             pos++;
         }
     }
@@ -168,7 +168,7 @@ lastPos = 4.;//AQUICAJU
 		for(int c = 0; c < (ncols-1); c++)
 		{
 			Topol[0] = ncols*r+c;  Topol[1] = ncols*(r+1)+c; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*r+c+1;
-			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat,*f3DMesh);
+			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat,*fFullMesh);
 			elId++;
 		}
 	}
@@ -191,14 +191,14 @@ lastPos = 4.;//AQUICAJU
                 Topol[6] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
                 Topol[7] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                 
-                new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat,*f3DMesh);
+                new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat,*fFullMesh);
                 elId++;
             }
         }
     }
     
     
-	f3DMesh->BuildConnectivity();
+	fFullMesh->BuildConnectivity();
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -243,14 +243,14 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 	int ncoord = poligonalChain.NElements();
 	if(ncoord%2 != 0)
 	{
-		std::cout << "poligonalChain boundary dont have groups of 3 coordinates (x,y,z)!" << std::endl;
+		std::cout << "poligonalChain boundary dont have groups of 2 coordinates (x,z)!" << std::endl;
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 		DebugStop();
 	}
 	#endif
 	
-    TPZGeoMesh * fractMesh3D = new TPZGeoMesh(*f3DMesh);
-	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fplaneMesh);
+    TPZGeoMesh * fractMesh3D = new TPZGeoMesh(*fFullMesh);
+	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fPlaneMesh);
 	int nelem = fractMesh->NElements();
     
 	std::map< int, std::set<double> > elId_TrimCoords;
@@ -1074,9 +1074,9 @@ void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &polig
 {
     #ifdef DEBUG
 	int ncoord = poligonalChain.NElements();
-	if(ncoord%3 != 0)
+	if(ncoord%2 != 0)
 	{
-		std::cout << "poligonalChain boundary dont have groups of 3 coordinates (x,y,z)!" << std::endl;
+		std::cout << "poligonalChain boundary dont have groups of 2 coordinates (x,z)!" << std::endl;
 		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
 		DebugStop();
 	}
@@ -1084,7 +1084,7 @@ void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &polig
     
     sidesCrossed.clear();
 	
-	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fplaneMesh);
+	TPZGeoMesh * fractMesh = new TPZGeoMesh(*fPlaneMesh);
 	
 	std::map< int, std::set<double> > elId_TrimCoords;
 	std::list< std::pair<int,double> > elIdSequence;

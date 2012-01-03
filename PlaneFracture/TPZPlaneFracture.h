@@ -66,7 +66,7 @@ class TPZPlaneFracture
 	~TPZPlaneFracture();
     
     void GeneratePlaneMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
-    void Generate3DMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
+    void GenerateFullMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
     
     void GenerateNodesAtPlaneY(std::set<double> & espacamento, double lengthFactor, 
                                TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
@@ -243,10 +243,10 @@ class TPZPlaneFracture
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	/** @brief Original plane mesh (keeped intact for any poligonalChain configuration) */
-	TPZGeoMesh * fplaneMesh;
+	TPZGeoMesh * fPlaneMesh;
     
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
-	TPZGeoMesh * f3DMesh;
+	TPZGeoMesh * fFullMesh;
     
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
     TPZVec< std::map<double,double> > fpos_stress;
