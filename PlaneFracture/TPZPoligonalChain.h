@@ -19,7 +19,7 @@
 #include "pzgmesh.h"
 #include "pzvec.h"
 
-#include <ostream.h>
+#include <ostream>
 
 /** 
  * @brief Implements a poligonal chain 
