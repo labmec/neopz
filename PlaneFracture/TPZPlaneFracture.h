@@ -49,6 +49,91 @@ const int __TrimQTDmultiplier = 5; //will be used for searching direction betwee
  * @author Cesar Lucci
  * @since 09/08/2010
  */
+
+struct TPZFracture2DEl
+{
+public:
+    
+    TPZFracture2DEl()
+    {
+        fEdge.clear();
+        fElem2D = NULL;
+    }
+    
+    TPZFracture2DEl(TPZGeoEl * gel)
+    {
+        #ifdef DEBUG
+        if(gel->HasSubElement())
+        {
+            std::cout << "The special kind of element TPZFracture2DEl cant be already refined!\n";
+            std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+        }
+        #endif
+        
+        fEdge.clear();
+        fElem2D = gel;
+        if(gel->Type() == ETriangle)
+        {
+            fEdge.insert(3);
+            fEdge.insert(4);
+            fEdge.insert(5);
+        }
+        else if(gel->Type() == EQuadrilateral)
+        {
+            fEdge.insert(4);
+            fEdge.insert(5);
+            fEdge.insert(6);
+            fEdge.insert(7);
+        }
+        #ifdef DEBUG
+        else
+        {
+            std::cout << "The special kind of element TPZFracture2DEl can be just 2D!\n";
+            std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+        }
+        #endif
+    }
+    
+    ~TPZFracture2DEl()
+    {
+        fEdge.clear();
+        fElem2D = NULL;
+    }
+    
+    void RemoveThisEdge(int edg)
+    {
+        std::set<int>::iterator edgIt = fEdge.find(edg);
+        if(edgIt != fEdge.end())
+        {
+            fEdge.erase(edgIt);
+        }
+    }
+    
+    int Id()
+    {
+        int elId = fElem2D->Id();
+        return elId;
+    }
+    
+    bool IsOver()
+    {
+        int nEdges = fEdge.size();
+        if(nEdges == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    std::set<int> fEdge;
+    TPZGeoEl * fElem2D;
+};
+
 class TPZPlaneFracture
 {
 	public:
@@ -237,7 +322,10 @@ class TPZPlaneFracture
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
                                TPZGeoMesh * gmesh3D,
-                               std::list< std::pair<int,double> > &elIdSequence);
+                               std::list< std::pair<int,double> > &elIdSequence,
+                               TPZVec<int> &crackBoundaryElementsIds);
+    
+    void ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -250,7 +338,6 @@ class TPZPlaneFracture
     
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
     TPZVec< std::map<double,double> > fpos_stress;
-    std::map<double,double>::iterator f_it;
     
 	/** @brief It limits the amount of possible points in the edge of the elements */
 	int fTrimQTD;
