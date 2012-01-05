@@ -22,6 +22,7 @@
 #include "TPZPoligonalChain.h"
 #include "tpzgeoelrefpattern.h"
 #include "pzgeoelside.h"
+#include "tpzchangeel.h"
 
 
 std::map<double,double>::iterator f_it;
@@ -1102,12 +1103,30 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
 		fullMesh->NodeVec()[gel->SideNodeIndex(inner1Dside, 1)].GetCoordinates(n1);
         
         TPZGeoElSide side1D(gel,inner1Dside);
-        TPZGeoElSide sideEl2D = side1D.Neighbour();
-        while(sideEl2D != side1D)
+        TPZGeoElSide sideNeigh = side1D.Neighbour();
+        while(sideNeigh != side1D)
         {
-            int neighSide = sideEl2D.Side();
-            TPZGeoEl * neigh = sideEl2D.Element();
-            if(neigh->Dimension() == 2 && !neigh->HasSubElement())
+            int neighSide = sideNeigh.Side();
+            TPZGeoEl * neigh = sideNeigh.Element();
+            if(neigh->HasSubElement())
+            {
+                sideNeigh = sideNeigh.Neighbour();
+                continue;
+            }
+
+#define PhilsHelpMe
+#ifdef PhilsHelpMe
+            //Aproveitando para mudar os elementos 3D que encostam no contorno da fratura em quarterpoints
+            if(neigh->Dimension() == 3)
+            {
+                neigh = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh->Id(), neighSide);
+                neigh->SetMaterialId(__3DrockMatquarterPoint);
+                sideNeigh.SetElement(neigh);
+                sideNeigh.SetSide(neighSide);
+            }
+            else 
+#endif
+            if(neigh->Dimension() == 2)
             {
                 TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
                 neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
@@ -1128,10 +1147,12 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
                     fractEl.RemoveThisEdge(neighSide);
                     fracturedElems[fractEl.Id()] = fractEl;                    
                     
+#ifndef PhilsHelpMe
                     break;
+#endif
                 }
             }
-            sideEl2D = sideEl2D.Neighbour();
+            sideNeigh = sideNeigh.Neighbour();
         }
     }
     

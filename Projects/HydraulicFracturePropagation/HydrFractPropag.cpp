@@ -73,26 +73,41 @@ int main(int argc, char * const argv[])
     
     TPZVec<REAL> fractureDots;
     
-    //FillFractureDotsExampleEllipse(fractureDots);
+    
+    
+    
     FillFractureDotsExampleCrazy(fractureDots);
     
-    
-//    std::ofstream outMC("cudeanu.txt");
-//    TPZPoligonalChain::JustSplitAndPrint(fractureDots, outMC);
-    
-    TPZTimer clockIni("PartyBegins");
-    clockIni.start();
-    //
+    TPZTimer clockIni1("PartyBegins1");
+    clockIni1.start();
+
     TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
-    clockIni.stop();
-    std::cout << "DeltaT get fracture mesh = " << clockIni.seconds() << " s" << std::endl;
-    //
+    clockIni1.stop();
+    std::cout << "DeltaT get fracture mesh = " << clockIni1.seconds() << " s" << std::endl;
+
     InsertDots4VTK(fractureMesh, fractureDots);
 
-
-
-    std::ofstream out("FractureZprofile.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out, true);
+    std::ofstream out1("FractureZprofile1.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out1, true);
+    
+    
+    
+    
+    FillFractureDotsExampleEllipse(fractureDots);
+    
+    TPZTimer clockIni2("PartyBegins2");
+    clockIni2.start();
+    
+    TPZGeoMesh * fractureMesh2 = plfrac.GetFractureMesh(fractureDots);
+    clockIni2.stop();
+    std::cout << "DeltaT get fracture mesh = " << clockIni2.seconds() << " s" << std::endl;
+    
+    InsertDots4VTK(fractureMesh2, fractureDots);
+    
+    std::ofstream out2("FractureZprofile2.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh2, out2, true);
+    
+    
     
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);

@@ -98,11 +98,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticLine>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }  
@@ -152,11 +147,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticTrig>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }
@@ -209,11 +199,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticQuad>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }
@@ -272,11 +257,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticTetra>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }
@@ -341,11 +321,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticPyramid>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }    
@@ -413,11 +388,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticPrism>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }
@@ -494,11 +464,6 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             
             /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticCube>(oldId,NodesSequence,oldMatId,*Mesh);
-            for(int s = 0; s < nsides; s++)
-            {   
-                TPZGeoElSide neigh = oldNeigh[s];
-                NewElem->SetNeighbour(s, neigh);
-            }
             
             break;
         }
@@ -509,10 +474,16 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         }
     }
     
+    for(int s = 0; s < nsides; s++)
+    {   
+        TPZGeoElSide neigh = oldNeigh[s];
+        NewElem->SetNeighbour(s, neigh);
+    }
+    
 	return NewElem;
 }
 
-TPZGeoEl* TPZChangeEl::DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int targetSide)
+TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int targetSide)
 {
     TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
     
@@ -648,9 +619,6 @@ TPZGeoEl* TPZChangeEl::DragQuarterPoints(TPZGeoMesh *Mesh, int ElemIndex, int ta
         int middleNodeId = edg; 
         //********************
         
-std::cout << "Coords antes:\n";
-Mesh->NodeVec()[middleNodeId].Print();
-        
         int initNode = gelSide.SideNodeIndex(0);
         int finalNode = gelSide.SideNodeIndex(1); 
         int meshInitNode = gel->NodeIndex(initNode);
@@ -675,10 +643,6 @@ Mesh->NodeVec()[middleNodeId].Print();
                 Mesh->NodeVec()[middleNodeId].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
             }
         }
-
-std::cout << "Coords depois:\n";
-Mesh->NodeVec()[middleNodeId].Print();
-
     }				
     
     return gel;

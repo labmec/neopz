@@ -458,7 +458,7 @@ int main(int argc, char * const argv[])
     
     {
         int targetSide = 4;
-        TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+        TPZGeoEl * quarterGel = TPZChangeEl::ChangeToQuarterPoint(gmesh, 0, targetSide);
         
         std::cout << "QuarterPoint:\n";
         int nDiv = 2;
@@ -607,7 +607,7 @@ int main(int argc, char * const argv[])
  
  {
  int targetSide = 17;
- TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+ TPZGeoEl * quarterGel = TPZChangeEl::ChangeToQuarterPoint(gmesh, 0, targetSide);
  
  std::cout << "QuarterPoint:\n";
  int nDiv = 2;
@@ -923,7 +923,7 @@ int main(int argc, char * const argv[])
  
  {
  int targetSide = 20;
- TPZGeoEl * quarterGel = TPZChangeEl::DragQuarterPoints(gmesh, 0, targetSide);
+ TPZGeoEl * quarterGel = TPZChangeEl::ChangeToQuarterPoint(gmesh, 0, targetSide);
  
  std::cout << "QuarterPoint:\n";
  int nDiv = 2;

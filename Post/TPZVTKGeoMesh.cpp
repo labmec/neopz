@@ -45,7 +45,17 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 			continue;
 		}
 		
-		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+        MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = 0;
+        if(elt == EPoint) elNnodes = 1;
+        else if(elt == EOned) elNnodes = 2;
+        else if(elt == ETriangle) elNnodes = 3;
+        else if(elt == EQuadrilateral) elNnodes = 4;
+        else if(elt == ETetraedro) elNnodes = 4;
+        else if(elt == EPiramide) elNnodes = 5;
+        else if(elt == EPrisma) elNnodes = 6;
+        else if(elt == ECube) elNnodes = 8;
+        
 		size += (1+elNnodes);
 		connectivity << elNnodes;
 		
@@ -590,7 +600,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case(EOned):
 		{
-			if(gel->NNodes() == 2)
+			//if(gel->NNodes() == 2)
 			{
 				elType = 3;	
 			}
@@ -598,7 +608,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (ETriangle):
 		{
-			if(gel->NNodes() == 3)
+			//if(gel->NNodes() == 3)
 			{
 				elType = 5;	
 			}
@@ -607,7 +617,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (EQuadrilateral):
 		{
-			if(gel->NNodes() == 4)
+			//if(gel->NNodes() == 4)
 			{
 				elType = 9;					
 			}
@@ -616,7 +626,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (ETetraedro):
 		{
-			if(gel->NNodes() == 4)
+			//if(gel->NNodes() == 4)
 			{
 				elType = 10;	
 			}
@@ -624,7 +634,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (EPiramide):
 		{
-			if(gel->NNodes() == 5)
+			//if(gel->NNodes() == 5)
 			{
 				elType = 14;	
 			}
@@ -632,7 +642,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (EPrisma):
 		{
-			if(gel->NNodes() == 6)
+			//if(gel->NNodes() == 6)
 			{
 				elType = 13;	
 			}
@@ -640,7 +650,7 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case (ECube):
 		{
-			if(gel->NNodes() == 8)
+			//if(gel->NNodes() == 8)
 			{
 				elType = 12;	
 			}
@@ -653,6 +663,12 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 			break;	
 		}
 	}
+    if(elType == -1)
+    {
+        std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << "MIGHT BE CURVED ELEMENT (quadratic or quarter point)" << std::endl;
+        DebugStop();
+    }
 	
 	return elType;
 }

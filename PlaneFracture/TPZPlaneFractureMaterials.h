@@ -18,3 +18,5 @@ const int __2DfractureMat_outside = 1;//2D elements outside fracture
 const int __2DfractureMat_inside = 20;//2D elements inside fracture
 
 const int __3DrockMat = 4;//3D elements surrounding fracture plane
+
+const int __3DrockMatquarterPoint = 40;//3D elements surrounding crack tip
