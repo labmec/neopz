@@ -740,6 +740,9 @@ void TPZRefPattern::CreateMidSideNodes(TPZGeoEl * gel, int side, TPZVec<int> &ne
 				LOGPZ_ERROR(logger,sout.str())
 			}
 #endif
+            std::cout << "Refpattern trying to create midnode but there is an other node closer!\n";
+            std::cout << "refnodCoords(" << refnodecoord[0] << "," << refnodecoord[1] << "," << refnodecoord[2] << ")" << std::endl;
+            std::cout << "neighbourCoords(" << neighbouraoord[0] << "," << neighbouraoord[1] << "," << neighbouraoord[2] << ")" << std::endl;
 			DebugStop();
 		}
 		if (newnodeindexes[index] == -1)

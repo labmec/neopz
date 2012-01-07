@@ -80,6 +80,10 @@ inline int MElementType_NNodes(MElementType elType)
 {
 	switch(elType)
 	{
+        case(0)://point
+        {
+            return 1;
+        }
 		case(1)://line
 		{
 			return 2;

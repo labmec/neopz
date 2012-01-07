@@ -312,6 +312,19 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
     ChangeMaterialsOfFractureInterior(fullMesh, crackBoundaryElementsIds);
     
     delete planeMesh;
+    
+    /////just4fun (to see quarterpoints in vtk in a better way) AQUICAJU
+    nelem = fullMesh->NElements();
+    for(int el = 0; el < nelem; el++)
+	{
+		TPZGeoEl * gel = fullMesh->ElementVec()[el];//2D element in 2D mesh
+        if(gel->MaterialId() == __3DrockMatquarterPoint)
+        {
+            TPZVec<TPZGeoEl *> sons;
+            gel->Divide(sons);
+        }
+    }
+    /////
 	
 	return fullMesh;
 }
@@ -596,7 +609,7 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 										TPZVec< TPZVec<REAL> > &ExactIntersect, TPZVec< TPZVec<REAL> > &ModulatedIntersect, double alphaMin)
 {
 	int nearNode;
-	bool IsNearNode = TPZPlaneFracture::NearestNode(gel, x, nearNode, __smallNum);
+	bool IsNearNode = TPZChangeEl::NearestNode(gel, x, nearNode, __smallNum);
 	
 	edge.Resize(0);
 	ExactIntersect.Resize(0);
@@ -799,75 +812,6 @@ double TPZPlaneFracture::ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec
 }
 //------------------------------------------------------------------------------------------------------------
 
-
-bool TPZPlaneFracture::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &node, double tol)
-{    
-	node = -1;
-	bool IsNear = false;
-	
-	TPZVec<REAL> nodeCoord(3);
-	int nnodes = gel->NNodes();
-	
-	for(int n = 0; n < nnodes; n++)
-	{
-		double dist = 0.;
-		gel->NodePtr(n)->GetCoordinates(nodeCoord);
-		for(int c = 0; c < 3; c++)
-		{
-			dist += (x[c] - nodeCoord[c])*(x[c] - nodeCoord[c]);
-		}
-		dist = sqrt(dist);
-		
-		if(dist <= tol)
-		{
-			node = n;
-			IsNear = true;
-			break;
-		}
-	}
-	
-	return IsNear;
-}
-//------------------------------------------------------------------------------------------------------------
-
-
-int TPZPlaneFracture::NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol)
-{
-	int node = -1;
-	
-	TPZVec<REAL> nodeCoord(3);
-	int nnodes = gmesh->NNodes();
-	
-	for(int n = 0; n < nnodes; n++)
-	{
-		double dist = 0.;
-		gmesh->NodeVec()[n].GetCoordinates(nodeCoord);
-		for(int c = 0; c < 3; c++)
-		{
-			dist += (x[c] - nodeCoord[c])*(x[c] - nodeCoord[c]);
-		}
-		dist = sqrt(dist);
-		
-		if(dist <= tol)
-		{
-			node = n;
-			break;
-		}
-	}
-	
-	if(node == -1)
-	{
-		std::cout << "Node not found for coordinates ( " << x[0] << " , " << x[1] << " , " << x[2] << " )" << std::endl;
-		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
-		
-		DebugStop();
-	}
-	
-	return node;
-}
-//------------------------------------------------------------------------------------------------------------
-
-
 double TPZPlaneFracture::LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1)
 {
 	double dL = 0., L = 0.;
@@ -1058,7 +1002,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 		qsi0 = crackit0->second;
 		qsi0vec[0] = qsi0;
 		el0->X(qsi0vec, node0coord);
-		n0 = NearestNode(gmesh3D, node0coord, __smallNum);
+		n0 = TPZChangeEl::NearestNode(gmesh3D, node0coord, __smallNum);
 		Topol[0] = n0;
 		
 		el1id = crackit1->first;
@@ -1066,7 +1010,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 		qsi1 = crackit1->second;
 		qsi1vec[0] = qsi1;
 		el1->X(qsi1vec, node1coord);
-		n1 = NearestNode(gmesh3D, node1coord, __smallNum);
+		n1 = TPZChangeEl::NearestNode(gmesh3D, node1coord, __smallNum);
 		Topol[1] = n1;
 		
 		TPZGeoEl * crack1D = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear >(Topol, __1DcrackTipMat, *gmesh3D);
@@ -1114,9 +1058,7 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
                 continue;
             }
 
-#define PhilsHelpMe
-#ifdef PhilsHelpMe
-            //Aproveitando para mudar os elementos 3D que encostam no contorno da fratura em quarterpoints
+            //Aproveitando para mudar os elementos 3D que encostam no contorno da fratura para quarterpoints
             if(neigh->Dimension() == 3)
             {
                 neigh = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh->Id(), neighSide);
@@ -1124,9 +1066,7 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
                 sideNeigh.SetElement(neigh);
                 sideNeigh.SetSide(neighSide);
             }
-            else 
-#endif
-            if(neigh->Dimension() == 2)
+            else if(neigh->Dimension() == 2)
             {
                 TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
                 neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
@@ -1146,10 +1086,6 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
                     TPZFracture2DEl fractEl(neigh);
                     fractEl.RemoveThisEdge(neighSide);
                     fracturedElems[fractEl.Id()] = fractEl;                    
-                    
-#ifndef PhilsHelpMe
-                    break;
-#endif
                 }
             }
             sideNeigh = sideNeigh.Neighbour();

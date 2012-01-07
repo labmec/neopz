@@ -46,15 +46,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		}
 		
         MElementType elt = gmesh->ElementVec()[el]->Type();
-		int elNnodes = 0;
-        if(elt == EPoint) elNnodes = 1;
-        else if(elt == EOned) elNnodes = 2;
-        else if(elt == ETriangle) elNnodes = 3;
-        else if(elt == EQuadrilateral) elNnodes = 4;
-        else if(elt == ETetraedro) elNnodes = 4;
-        else if(elt == EPiramide) elNnodes = 5;
-        else if(elt == EPrisma) elNnodes = 6;
-        else if(elt == ECube) elNnodes = 8;
+		int elNnodes = MElementType_NNodes(elt);
         
 		size += (1+elNnodes);
 		connectivity << elNnodes;
@@ -148,7 +140,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 			continue;
 		}
 		
-		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
 		size += (1+elNnodes);
 		connectivity << elNnodes;
 		
@@ -194,6 +188,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	
 	file.close();
 }
+
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVector<int> &elData)
 {
@@ -235,7 +230,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 			continue;
 		}
 		
-		int elNnodes = gmesh->ElementVec()[el]->NCornerNodes();
+		MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
 		size += (1+elNnodes);
 		connectivity << elNnodes;
 		
@@ -285,6 +282,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 	
 	file.close();
 }
+
 // Generate an output of all geomesh to VTK, associating to each one the given data, creates a file with filename given
 void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 {
@@ -436,7 +434,9 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 			continue;
 		}
 		
-		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
 		size += (1+elNnodes);
 		connectivity << elNnodes;
 		
@@ -528,7 +528,9 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 			continue;
 		}
 		
-		int elNnodes = gmesh->ElementVec()[el]->NNodes();
+		MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
 		size += (1+elNnodes);
 		connectivity << elNnodes;
 		
@@ -600,60 +602,37 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 		}
 		case(EOned):
 		{
-			//if(gel->NNodes() == 2)
-			{
-				elType = 3;	
-			}
+			elType = 3;	
 			break;
 		}
 		case (ETriangle):
 		{
-			//if(gel->NNodes() == 3)
-			{
-				elType = 5;	
-			}
-			
+			elType = 5;
 			break;				
 		}
 		case (EQuadrilateral):
 		{
-			//if(gel->NNodes() == 4)
-			{
-				elType = 9;					
-			}
-			
+			elType = 9;
 			break;				
 		}
 		case (ETetraedro):
 		{
-			//if(gel->NNodes() == 4)
-			{
-				elType = 10;	
-			}
+			elType = 10;
 			break;				
 		}
 		case (EPiramide):
 		{
-			//if(gel->NNodes() == 5)
-			{
-				elType = 14;	
-			}
+			elType = 14;
 			break;				
 		}
 		case (EPrisma):
 		{
-			//if(gel->NNodes() == 6)
-			{
-				elType = 13;	
-			}
+            elType = 13;
 			break;				
 		}
 		case (ECube):
 		{
-			//if(gel->NNodes() == 8)
-			{
-				elType = 12;	
-			}
+			elType = 12;
 			break;				
 		}
 		default:

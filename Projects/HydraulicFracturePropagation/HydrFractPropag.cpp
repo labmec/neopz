@@ -76,19 +76,19 @@ int main(int argc, char * const argv[])
     
     
     
-    FillFractureDotsExampleCrazy(fractureDots);
-    
-    TPZTimer clockIni1("PartyBegins1");
-    clockIni1.start();
-
-    TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
-    clockIni1.stop();
-    std::cout << "DeltaT get fracture mesh = " << clockIni1.seconds() << " s" << std::endl;
-
-    InsertDots4VTK(fractureMesh, fractureDots);
-
-    std::ofstream out1("FractureZprofile1.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out1, true);
+//    FillFractureDotsExampleCrazy(fractureDots);
+//    
+//    TPZTimer clockIni1("PartyBegins1");
+//    clockIni1.start();
+//
+//    TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
+//    clockIni1.stop();
+//    std::cout << "DeltaT get fracture mesh = " << clockIni1.seconds() << " s" << std::endl;
+//
+//    InsertDots4VTK(fractureMesh, fractureDots);
+//
+//    std::ofstream out1("FractureZprofile1.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out1, true);
     
     
     
@@ -108,9 +108,10 @@ int main(int argc, char * const argv[])
     TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh2, out2, true);
     
     
-    
+    #ifndef writeAgain
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
+    #endif
     
     return 0;
 }

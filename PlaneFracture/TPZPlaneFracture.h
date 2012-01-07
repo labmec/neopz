@@ -286,16 +286,6 @@ class TPZPlaneFracture
 	double ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode);
 	
 	/**
-	 * @brief Return if a given point x is near to some node of a given geo element
-	 * @param gel [in] given geo element
-	 * @param x [in] given point
-	 * @param node [out] id of node that is in the x range
-	 * @param tol [in] x range radius
-	 */
-	static bool NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &node, double tol);
-    int NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
-    
-	/**
 	 * @brief Given 2 nodes (n0 and n1) and one point (x) in \f$ n0->n1 \f$ line, returns the point x in the line parametric space \f$ [-1,+1]\f$
 	 */
 	static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);

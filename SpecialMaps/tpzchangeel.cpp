@@ -33,10 +33,12 @@ using namespace pztopology;
 TPZChangeEl::TPZChangeEl()
 {
 }
+//------------------------------------------------------------------------------------------------------------
 
 TPZChangeEl::~TPZChangeEl()
 {
 }
+//------------------------------------------------------------------------------------------------------------
 
 TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 {
@@ -48,423 +50,86 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         std::cout << "Null geoel on " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
+    if(!OldElem->IsLinearMapping())
+    {
+        return OldElem;
+    }
     #endif
+    
+    int midN, nsides = OldElem->NSides();
+    
+    //backingup oldElem neighbourhood
+    TPZVec<REAL> Coord(3);
+    TPZVec< std::vector<TPZGeoElSide> > neighbourhood(nsides);
+    TPZVec<int> NodesSequence(0);
+    for(int s = 0; s < nsides; s++)
+    {
+        neighbourhood[s].resize(0);
+        TPZGeoElSide mySide(OldElem,s);
+        TPZGeoElSide neighS = mySide.Neighbour();
+        if(mySide.Dimension() == 0)
+        {
+            int oldSz = NodesSequence.NElements();
+            NodesSequence.resize(oldSz+1);
+            NodesSequence[oldSz] = OldElem->NodeIndex(s);
+        }
+        if(CreateMiddleNodeAtEdge(Mesh, ElemIndex, s, midN))
+        {
+            int oldSz = NodesSequence.NElements();
+            NodesSequence.resize(oldSz+1);
+            NodesSequence[oldSz] = midN;
+        }
+        while(mySide != neighS)
+        {
+            neighbourhood[s].push_back(neighS);
+            neighS = neighS.Neighbour();
+        }
+    }
     
     MElementType elType = OldElem->Type();
     int oldId = OldElem->Id();
     int oldMatId = OldElem->MaterialId();
-    int nsides = OldElem->NSides();
-    
-    TPZVec<TPZGeoElSide> oldNeigh(nsides);
-    for(int s = 0; s < nsides; s++)
-    {   
-        TPZGeoElSide mySide(OldElem, s);
-        oldNeigh[s] = mySide.Neighbour();
-    }
     
 	TPZGeoEl * NewElem = NULL;
     
-    switch(elType) 
+    /** Deleting OldElem */
+    Mesh->DeleteElement(OldElem);
+
+    switch(elType) /** Inserting New Element in Mesh */
     {
         case(EOned) :
-        {
-            /** Creating Midnodes */
-            TPZGeoNode Node2;
-            TPZVec<REAL> Coord2(3);
-            
-            /** Setting Midnodes Coordinates */
-            TPZGeoNode Node0 = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(0)];
-            TPZGeoNode Node1 = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(1)];
-            for(int i = 0; i < 3; i++)
-            {
-                Coord2[i] = (Node0.Coord(i) + Node1.Coord(i)) / 2.;
-            }
-            Node2.SetCoord(Coord2);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId);
-            Node2.SetNodeId(NewNodeId);
-            
-            /** Allocating Memory for MidNodes and Pushing Them */
-            TPZVec <int> NodesSequence(3) ;
-            NodesSequence[0]  = OldElem->NodeIndex(0);
-            NodesSequence[1]  = OldElem->NodeIndex(1);
-            NodesSequence[2]  = Mesh->NodeVec().AllocateNewElement();
-            Mesh->NodeVec()[NodesSequence[2]] = Node2;               
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
+        {             
             NewElem = new TPZGeoElRefPattern<TPZQuadraticLine>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }  
         case(ETriangle) :
-        {
-            int oldNNodes = 3;
-            int newNNodes = 6;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[3].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[4].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[0].Coord(i)) / 2.;
-            node[5].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
+        {            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticTrig>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }
         case(EQuadrilateral) :
         {
-            int oldNNodes = 4;
-            int newNNodes = 8;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[4].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[5].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[3].Coord(i)) / 2.;
-            node[6].SetCoord(Coord);
-
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[0].Coord(i)) / 2.;
-            node[7].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticQuad>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }
         case(ETetraedro) :
         {
-            int oldNNodes = 4;
-            int newNNodes = 10;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[4].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[5].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[0].Coord(i)) / 2.;
-            node[6].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[3].Coord(i)) / 2.;
-            node[7].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[3].Coord(i)) / 2.;
-            node[8].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[3].Coord(i)) / 2.;
-            node[9].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticTetra>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }
         case(EPiramide) :
         {
-            int oldNNodes = 5;
-            int newNNodes = 13;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[5].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[6].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[3].Coord(i)) / 2.;
-            node[7].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[0].Coord(i)) / 2.;
-            node[8].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[4].Coord(i)) / 2.;
-            node[9].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[4].Coord(i)) / 2.;
-            node[10].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[4].Coord(i)) / 2.;
-            node[11].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[4].Coord(i)) / 2.;
-            node[12].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticPyramid>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }    
         case(EPrisma) :
         {
-            int oldNNodes = 6;
-            int newNNodes = 15;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[6].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[7].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[0].Coord(i)) / 2.;
-            node[8].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[3].Coord(i)) / 2.;
-            node[9].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[4].Coord(i)) / 2.;
-            node[10].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[5].Coord(i)) / 2.;
-            node[11].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[4].Coord(i)) / 2.;
-            node[12].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[4].Coord(i) + node[5].Coord(i)) / 2.;
-            node[13].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[5].Coord(i) + node[3].Coord(i)) / 2.;
-            node[14].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticPrism>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }
         case(ECube) :
         {
-            int oldNNodes = 8;
-            int newNNodes = 20;
-            
-            TPZVec<int> NodesSequence(newNNodes);
-            
-            /** Creating Midnodes */
-            TPZVec<TPZGeoNode> node(newNNodes);
-            for(int n = 0; n < oldNNodes; n++)
-            {
-                node[n] = Mesh->NodeVec()[Mesh->ElementVec()[ElemIndex]->NodeIndex(n)];
-                NodesSequence[n]  = Mesh->ElementVec()[ElemIndex]->NodeIndex(n);
-            }
-            TPZVec<REAL> Coord(3);
-            
-            /** Setting Midnodes Coordinates */
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[1].Coord(i)) / 2.;
-            node[8].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[2].Coord(i)) / 2.;
-            node[9].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[3].Coord(i)) / 2.;
-            node[10].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[0].Coord(i)) / 2.;
-            node[11].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[0].Coord(i) + node[4].Coord(i)) / 2.;
-            node[12].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[1].Coord(i) + node[5].Coord(i)) / 2.;
-            node[13].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[2].Coord(i) + node[6].Coord(i)) / 2.;
-            node[14].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[3].Coord(i) + node[7].Coord(i)) / 2.;
-            node[15].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[4].Coord(i) + node[5].Coord(i)) / 2.;
-            node[16].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[5].Coord(i) + node[6].Coord(i)) / 2.;
-            node[17].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[6].Coord(i) + node[7].Coord(i)) / 2.;
-            node[18].SetCoord(Coord);
-            
-            for(int i = 0; i < 3; i++) Coord[i] = (node[7].Coord(i) + node[4].Coord(i)) / 2.;
-            node[19].SetCoord(Coord);
-            
-            /** Setting Midnodes Id's */
-            int NewNodeId = Mesh->NNodes();
-            Mesh->SetNodeIdUsed(NewNodeId + (newNNodes - oldNNodes - 1));
-            int nCount = 0;
-            for(int n = oldNNodes; n < newNNodes; n++)
-            {
-                node[n].SetNodeId(NewNodeId + nCount);
-                
-                /** Allocating Memory for MidNodes and Pushing Them */
-                NodesSequence[n]  = Mesh->NodeVec().AllocateNewElement();
-                Mesh->NodeVec()[NodesSequence[n]] = node[n];
-                
-                nCount++;
-            }
-            
-            /** Deleting OldElem */
-            Mesh->DeleteElement(OldElem);
-            
-            /** Inserting New Element in Mesh */            
             NewElem = new TPZGeoElRefPattern<TPZQuadraticCube>(oldId,NodesSequence,oldMatId,*Mesh);
-            
             break;
         }
         default :
@@ -475,13 +140,28 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
     }
     
     for(int s = 0; s < nsides; s++)
-    {   
-        TPZGeoElSide neigh = oldNeigh[s];
-        NewElem->SetNeighbour(s, neigh);
+    {
+        TPZGeoEl * tempEl = NewElem;
+        TPZGeoElSide tempSide(NewElem,s);
+        int byside = s;
+        for(unsigned int n = 0; n < neighbourhood[s].size(); n++)
+        {
+            TPZGeoElSide neighS = neighbourhood[s][n];
+            tempEl->SetNeighbour(byside, neighS);
+            tempEl = neighS.Element();
+            byside = neighS.Side();
+        }
+        tempEl->SetNeighbour(byside, tempSide);
+    }
+        
+    if(NewElem->HasSubElement())
+    {
+        //Mudar subelementos para TPZGeoElMapped
     }
     
 	return NewElem;
 }
+//------------------------------------------------------------------------------------------------------------
 
 TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int targetSide)
 {
@@ -587,7 +267,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
     }
     if(targetSideEl.Dimension() == 1)
     {
-        targetSideNodes_set.insert(targetSide);
+        targetSideEdges_set.insert(targetSide);
     }
     for(int sd = gel->NCornerNodes(); sd < gel->NSides(); sd++)
     {
@@ -608,6 +288,10 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
         int edg = *it;
         TPZGeoElSide gelSide(gel,edg);
         
+        int initNode = gelSide.SideNodeLocIndex(0);
+        int finalNode = gelSide.SideNodeLocIndex(1);; 
+        int meshInitNode = gelSide.SideNodeIndex(0);
+        int meshFinalNode = gelSide.SideNodeIndex(1);
         /**
          * Embora o elemento quadratico possua mais nohs (NNodes), a topologia segue igual ao
          * elemento linear no qual o elemento quadratico foi baseado.
@@ -616,13 +300,9 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
          *
          * Com isso a numeracao dos nohs nos meios das arestas coincide com a numeracao dos lados unidimensionais do elemento.
          */
-        int middleNodeId = edg; 
+        int meshMiddleNode = gel->NodeIndex(edg);
         //********************
-        
-        int initNode = gelSide.SideNodeIndex(0);
-        int finalNode = gelSide.SideNodeIndex(1); 
-        int meshInitNode = gel->NodeIndex(initNode);
-        int meshFinalNode = gel->NodeIndex(finalNode);
+                                            
         double coordNear, coordFar;
         
         if(targetSideNodes_set.find(initNode) != targetSideNodes_set.end())//drag middle node to node 0 of this edge
@@ -631,7 +311,7 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
             {
                 coordNear = Mesh->NodeVec()[meshInitNode].Coord(c);
                 coordFar = Mesh->NodeVec()[meshFinalNode].Coord(c);
-                Mesh->NodeVec()[middleNodeId].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
             }
         }
         else if(targetSideNodes_set.find(finalNode) != targetSideNodes_set.end())//drag middle node to node 1 of this edge
@@ -640,13 +320,14 @@ TPZGeoEl* TPZChangeEl::ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int
             {
                 coordNear = Mesh->NodeVec()[meshFinalNode].Coord(c);
                 coordFar = Mesh->NodeVec()[meshInitNode].Coord(c);
-                Mesh->NodeVec()[middleNodeId].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
+                Mesh->NodeVec()[meshMiddleNode].SetCoord(c, 0.75*coordNear + 0.25*coordFar);
             }
         }
     }				
     
     return gel;
 }
+//------------------------------------------------------------------------------------------------------------
 
 TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 {
@@ -688,6 +369,123 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 	NewElem->BuildBlendConnectivity();
 	
 	return NewElem;
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, double tol)
+{    
+	meshNode = -1;
+	bool IsNear = false;
+	
+	TPZVec<REAL> nodeCoord(3);
+	int nnodes = gel->NNodes();
+	
+	for(int n = 0; n < nnodes; n++)
+	{
+		double dist = 0.;
+		gel->NodePtr(n)->GetCoordinates(nodeCoord);
+		for(int c = 0; c < 3; c++)
+		{
+			dist += (x[c] - nodeCoord[c])*(x[c] - nodeCoord[c]);
+		}
+		dist = sqrt(dist);
+		
+		if(dist <= tol)
+		{
+			meshNode = gel->NodeIndex(n);
+			IsNear = true;
+			break;
+		}
+	}
+	
+	return IsNear;
+}
+//------------------------------------------------------------------------------------------------------------
+
+
+int TPZChangeEl::NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol)
+{
+	int meshNode = -1;
+	
+	TPZVec<REAL> nodeCoord(3);
+	int nnodes = gmesh->NNodes();
+	
+	for(int n = 0; n < nnodes; n++)
+	{
+		double dist = 0.;
+		gmesh->NodeVec()[n].GetCoordinates(nodeCoord);
+		for(int c = 0; c < 3; c++)
+		{
+			dist += (x[c] - nodeCoord[c])*(x[c] - nodeCoord[c]);
+		}
+		dist = sqrt(dist);
+		
+		if(dist <= tol)
+		{
+			meshNode = n;
+			break;
+		}
+	}
+	
+	if(meshNode == -1)
+	{
+		std::cout << "Node not found for coordinates ( " << x[0] << " , " << x[1] << " , " << x[2] << " )" << std::endl;
+		std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+		
+		DebugStop();
+	}
+	
+	return meshNode;
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZChangeEl::CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int ElemIndex, int edge, int &middleNodeId)
+{
+    TPZGeoEl * gel = Mesh->ElementVec()[ElemIndex];
+    
+    TPZGeoElSide myEdge(gel,edge);
+    TPZGeoElSide neighEdge(myEdge.Neighbour());
+    if(myEdge.Dimension() != 1)
+    {
+        return false;
+    }
+    
+    TPZVec<REAL> n0Coord(3), n1Coord(3), middleCoordLocal(1), middleCoord(3);
+    middleCoordLocal[0] = 0.;//middle node in edge (1D master element) is on qsi=0
+    
+    int nearestN;
+    myEdge.X(middleCoordLocal,middleCoord);
+    if(NearestNode(gel, middleCoord, nearestN, 1.E-8))
+    {
+        middleNodeId = nearestN;//a malha jah contem um noh na coordenada desejada (middleCoord)
+        return true;
+    }
+    //else...
+    while(neighEdge != myEdge)
+    {
+        neighEdge.X(middleCoordLocal,middleCoord);
+        if(NearestNode(neighEdge.Element(), middleCoord, nearestN, 1.E-8))
+        {
+            middleNodeId = nearestN;//a malha jah contem um noh na coordenada desejada (middleCoord)
+            return true;
+        }
+        neighEdge = neighEdge.Neighbour();
+    }
+    
+    //if not returned true...
+    TPZGeoNode midNode;
+    midNode.SetCoord(middleCoord);
+    
+    /** Setting Midnodes Id's */
+    int NewNodeId = Mesh->NNodes();
+    Mesh->SetNodeIdUsed(NewNodeId);
+    midNode.SetNodeId(NewNodeId);
+    
+    /** Allocating Memory for MidNodes and Pushing Them */
+    middleNodeId = Mesh->NodeVec().AllocateNewElement();
+    Mesh->NodeVec()[middleNodeId] = midNode;
+
+    return true;
 }
 
 
