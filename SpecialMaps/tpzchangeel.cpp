@@ -56,6 +56,8 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
     }
     #endif
     
+    TPZGeoEl * father = OldElem->Father();
+    
     int midN, nsides = OldElem->NSides();
     
     //backingup oldElem neighbourhood
@@ -137,6 +139,11 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
             DebugStop();
             break;
         }
+    }
+    
+    if(father)
+    {
+        NewElem->SetFather(father);
     }
     
     for(int s = 0; s < nsides; s++)

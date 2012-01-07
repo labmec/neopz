@@ -309,22 +309,9 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 	
     TPZVec<int> crackBoundaryElementsIds(0);
 	GenerateCrackBoundary(planeMesh, fullMesh, elIdSequence, crackBoundaryElementsIds);    
-    ChangeMaterialsOfFractureInterior(fullMesh, crackBoundaryElementsIds);
+    ChangeElementsSurroundingCrackTip(fullMesh, crackBoundaryElementsIds);
     
     delete planeMesh;
-    
-    /////just4fun (to see quarterpoints in vtk in a better way) AQUICAJU
-    nelem = fullMesh->NElements();
-    for(int el = 0; el < nelem; el++)
-	{
-		TPZGeoEl * gel = fullMesh->ElementVec()[el];//2D element in 2D mesh
-        if(gel->MaterialId() == __3DrockMatquarterPoint)
-        {
-            TPZVec<TPZGeoEl *> sons;
-            gel->Divide(sons);
-        }
-    }
-    /////
 	
 	return fullMesh;
 }
@@ -1023,75 +1010,84 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 }
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds)
+void TPZPlaneFracture::ChangeElementsSurroundingCrackTip(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds)
 {
-    int inner1Dside = 2;
     int n1Dels = crackBoundaryElementsIds.NElements();
     std::map<int,TPZFracture2DEl> fracturedElems;
     
-    //Capturando subelementos que encostam no contorno da fratura
-    for(int el = 0; el < n1Dels; el++)
+    int inner1Dside = 2;
+    TPZVec<int> requiredSequence(3);
+    requiredSequence[0] = inner1Dside;//primeiro deve-se tornar quarterpoint os vizinhos pelo lado 2
+    requiredSequence[1] = 0;//side 0 (node 0)
+    requiredSequence[2] = 1;//side 1 (node 1)
+    for(int sd = 0; sd < requiredSequence.NElements(); sd++)
     {
-        int id = crackBoundaryElementsIds[el];
-        TPZGeoEl * gel = fullMesh->ElementVec()[id];//1D element of crach boundary
-        
-        #ifdef DEBUG
-        if(gel->Dimension() != 1)
+        //Capturando subelementos que encostam no contorno da fratura
+        for(int el = 0; el < n1Dels; el++)
         {
-            DebugStop();
-        }
-        #endif
-        
-        TPZVec<REAL> n0(3), n1(3);
-        fullMesh->NodeVec()[gel->SideNodeIndex(inner1Dside, 0)].GetCoordinates(n0);
-		fullMesh->NodeVec()[gel->SideNodeIndex(inner1Dside, 1)].GetCoordinates(n1);
-        
-        TPZGeoElSide side1D(gel,inner1Dside);
-        TPZGeoElSide sideNeigh = side1D.Neighbour();
-        while(sideNeigh != side1D)
-        {
-            int neighSide = sideNeigh.Side();
-            TPZGeoEl * neigh = sideNeigh.Element();
-            if(neigh->HasSubElement())
+            int id = crackBoundaryElementsIds[el];
+            TPZGeoEl * gel = fullMesh->ElementVec()[id];//1D element of crach boundary
+            
+            #ifdef DEBUG
+            if(gel->Dimension() != 1)
             {
-                sideNeigh = sideNeigh.Neighbour();
-                continue;
+                DebugStop();
             }
-
-            //Aproveitando para mudar os elementos 3D que encostam no contorno da fratura para quarterpoints
-            if(neigh->Dimension() == 3)
+            #endif
+            
+            TPZVec<REAL> n0(3), n1(3);
+            fullMesh->NodeVec()[gel->SideNodeIndex(inner1Dside, 0)].GetCoordinates(n0);
+            fullMesh->NodeVec()[gel->SideNodeIndex(inner1Dside, 1)].GetCoordinates(n1);
+            
+            TPZGeoElSide side1D(gel,requiredSequence[sd]);
+            TPZGeoElSide sideNeigh = side1D.Neighbour();
+            while(sideNeigh != side1D)
             {
-                neigh = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh->Id(), neighSide);
-                neigh->SetMaterialId(__3DrockMatquarterPoint);
-                sideNeigh.SetElement(neigh);
-                sideNeigh.SetSide(neighSide);
-            }
-            else if(neigh->Dimension() == 2)
-            {
-                TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
-                neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
-                neigh->X(neighCenterQSI, neighCenterX);
-                
-                //Como o contorno da fratura foi construido no sentido antihorario no plano x,z (normal Y > 0),
-                //interessam os elementos aa direita do elemento 1D. Portanto eh feito produto vetorial entre os vetores
-                //frac=(n1-n0) e cg_neigh=(cg-n0). O vizinho aa direita apresentarah componente em Y positiva.
-                double crossYcomp = n0[2]*n1[0] - n0[0]*n1[2] -
-                                    n0[2]*neighCenterX[0] + n1[2]*neighCenterX[0] +
-                                    n0[0]*neighCenterX[2] - n1[0]*neighCenterX[2];
-                
-                if(crossYcomp > 0.)
+                int neighSide = sideNeigh.Side();
+                TPZGeoEl * neigh = sideNeigh.Element();
+                if(neigh->HasSubElement())
                 {
-                    neigh->SetMaterialId(__2DfractureMat_inside);
-                    
-                    TPZFracture2DEl fractEl(neigh);
-                    fractEl.RemoveThisEdge(neighSide);
-                    fracturedElems[fractEl.Id()] = fractEl;                    
+                    sideNeigh = sideNeigh.Neighbour();
+                    continue;
                 }
+
+                //Aproveitando para mudar os elementos 3D que encostam no contorno da fratura para quarterpoints
+                if(neigh->Dimension() == 3 && neigh->MaterialId() != __3DrockMatquarterPoint)
+                {
+                    neigh = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh->Id(), neighSide);
+                    neigh->SetMaterialId(__3DrockMatquarterPoint);
+                    sideNeigh.SetElement(neigh);
+                    sideNeigh.SetSide(neighSide);
+                }
+                else if(sd == 0 && neigh->Dimension() == 2 && neigh->MaterialId() != __2DfractureMat_inside)
+                {
+                    TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
+                    neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
+                    neigh->X(neighCenterQSI, neighCenterX);
+                    
+                    //Como o contorno da fratura foi construido no sentido antihorario no plano x,z (normal Y > 0),
+                    //interessam os elementos aa direita do elemento 1D. Portanto eh feito produto vetorial entre os vetores
+                    //frac=(n1-n0) e cg_neigh=(cg-n0). O vizinho aa direita apresentarah componente em Y positiva.
+                    double crossYcomp = n0[2]*n1[0] - n0[0]*n1[2] -
+                                        n0[2]*neighCenterX[0] + n1[2]*neighCenterX[0] +
+                                        n0[0]*neighCenterX[2] - n1[0]*neighCenterX[2];
+                    
+                    if(crossYcomp > 0.)
+                    {
+                        neigh = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh->Id(), neighSide);
+                        neigh->SetMaterialId(__2DfractureMat_inside);
+                        sideNeigh.SetElement(neigh);
+                        sideNeigh.SetSide(neighSide);
+                        
+                        TPZFracture2DEl fractEl(neigh);
+                        fractEl.RemoveThisEdge(neighSide);
+                        fracturedElems[fractEl.Id()] = fractEl;                    
+                    }
+                }
+                sideNeigh = sideNeigh.Neighbour();
             }
-            sideNeigh = sideNeigh.Neighbour();
         }
     }
-    
     //capturanto demais elementos no interior da fratura
     std::set<int> finishedFracturedElems;
     while(fracturedElems.size() > 0)
@@ -1134,8 +1130,18 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
                     }
                     else
                     {
-                        neighEl->SetMaterialId(__2DfractureMat_inside);
-                        
+                        int touchSide;
+                        if(TouchCrackTip(neighEl, touchSide))
+                        {
+                            neighEl = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neighEl->Id(), touchSide);
+                            neighEl->SetMaterialId(__2DfractureMat_inside);
+                            neighElSide.SetElement(neighEl);
+                            neighElSide.SetSide(neighSide);
+                        }
+                        else
+                        {
+                            neighEl->SetMaterialId(__2DfractureMat_inside);
+                        }
                         TPZFracture2DEl fractEl(neighEl);
                         fractEl.RemoveThisEdge(neighSide);
                         fracturedElems[fractEl.Id()] = fractEl;   
@@ -1150,6 +1156,28 @@ void TPZPlaneFracture::ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, 
         finishedFracturedElems.insert(actEl.Id());
         fracturedElems.erase(edgIt);
     }
+}
+//------------------------------------------------------------------------------------------------------------
+
+bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, int &bySide)
+{
+    int nsides = gel->NSides();
+    for(int s = 0; s < nsides; s++)
+    {
+        TPZGeoElSide gelSide(gel,s);
+        TPZGeoElSide neighSide(gelSide.Neighbour());
+        while(gelSide != neighSide)
+        {
+            if(neighSide.Element()->MaterialId() == __1DcrackTipMat)
+            {
+                bySide = s;
+                return true;
+            }
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    bySide = -1;
+    return false;
 }
 //------------------------------------------------------------------------------------------------------------
 

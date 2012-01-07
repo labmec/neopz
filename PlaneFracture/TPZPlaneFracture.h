@@ -315,7 +315,9 @@ class TPZPlaneFracture
                                std::list< std::pair<int,double> > &elIdSequence,
                                TPZVec<int> &crackBoundaryElementsIds);
     
-    void ChangeMaterialsOfFractureInterior(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds);
+    void ChangeElementsSurroundingCrackTip(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds);
+    
+    bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
