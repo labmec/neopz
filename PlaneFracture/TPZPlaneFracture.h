@@ -37,9 +37,9 @@ const double __lengthFactor = 1.5;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
-const int __minTrimQTD = 4; //will be used for refpatterns
+const int __EdgeStretchesQTD = 4; //will be used for refpatterns
 
-/** @brief Multiplier of __minTrimQTD for fine edge intersection modulation */
+/** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 5; //will be used for searching direction between dots from poligonal chain
 
 
@@ -141,19 +141,21 @@ class TPZPlaneFracture
 	/**
 	 * @brief Constructor
 	 * @param lw [in] : (positive) well length (positive)
-	 * @param bulletDepthIni [in] : bullets perforation initial (positive) depth
-	 * @param bulletDepthFin [in] : bullets perforation final (positive) depth
-	 * @param pos_stress [in] : stress profile described by stretches
+	 * @param bulletDepthIni [in] : bullets perforation initial (TVD) depth
+	 * @param bulletDepthFin [in] : bullets perforation final (TVD) depth
+	 * @param pos_stress [in] : stress profile described by stretches (TVD)
      *              Obs.: Stress profile in each stretch is linear
+     *
+     * TVD: Total vertical depth (positive positions)
 	 */
     TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, TPZVec< std::map<double,double> > & pos_stress);
     
 	~TPZPlaneFracture();
     
-    void GeneratePlaneMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
-    void GenerateFullMesh(std::set<double> & espacamento, double lengthFactor = __lengthFactor);
+    void GeneratePlaneMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
+    void GenerateFullMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
     
-    void GenerateNodesAtPlaneY(std::set<double> & espacamento, double lengthFactor, 
+    void GenerateNodesAtPlaneY(std::list<double> & espacamento, double lengthFactor, 
                                TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
                                double Y);
 	
@@ -230,7 +232,7 @@ class TPZPlaneFracture
 	 * @param dx [in] direction from point p
 	 * @param edge [out] side Id of element edge that will be intersected by (x+alphaX.dx) line
 	 * @param ExactIntersect [out] exact intersection coordinates with respect to edges parameter
-	 * @param ModulatedIntersect [out] exact intersection coordinates, dragged to the nearest module (defined by fTrimQTD atribute)
+	 * @param ModulatedIntersect [out] exact intersection coordinates, dragged to the nearest module (defined by __EdgeStretchesQTD constant)
 	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections\n
 	 *					    so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
 	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
@@ -256,7 +258,9 @@ class TPZPlaneFracture
 	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
-	static TPZGeoEl * PointElement(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain);
+	static TPZGeoEl * PointElementOnPlaneMesh(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain);
+    
+    TPZGeoEl * PointQPointElement(TPZGeoMesh * fullMesh, TPZVec<REAL> & x, TPZVec<REAL> & qsi);
 	
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dnode e cruza a reta (x+alphaX.dx)
@@ -269,8 +273,8 @@ class TPZPlaneFracture
 	 * @param dnode
 	 * @param norm [in] norm of edge that belongs to (node + alphaNode.dnode) line
 	 * @param modulate [in] set if alphaNode will be modulated by stretches
-	 * @param smooth [in] if alphaNode will be modulated, set if the stretches will be (norm/fTrimQTD) or smallest stretches \n
-	 *							defined by (norm/(fTrimQTD*__TrimQTDmultiplier)).
+	 * @param smooth [in] if alphaNode will be modulated, set if the stretches will be (norm/__EdgeStretchesQTD) or smallest stretches \n
+	 *							defined by (norm/(fEdgeStretchesQTD*__TrimQTDmultiplier)).
 	 * @note Obs.: alphaNode modulation is useful to reduce the possibilities of non regular refpatterns.
  	 * @note OBS.: dx and dnode MUST BE UNIT VECTORS!!!
 	 */
@@ -312,10 +316,9 @@ class TPZPlaneFracture
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
                                TPZGeoMesh * gmesh3D,
-                               std::list< std::pair<int,double> > &elIdSequence,
-                               TPZVec<int> &crackBoundaryElementsIds);
+                               std::list< std::pair<int,double> > &elIdSequence);
     
-    void ChangeElementsSurroundingCrackTip(TPZGeoMesh * fullMesh, TPZVec<int> &crackBoundaryElementsIds);
+    void ChangeElementsSurroundingCrackTip(TPZGeoMesh * fullMesh);
     
     bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
 
@@ -331,8 +334,15 @@ class TPZPlaneFracture
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
     TPZVec< std::map<double,double> > fpos_stress;
     
-	/** @brief It limits the amount of possible points in the edge of the elements */
-	int fTrimQTD;
+    /** @brief 1D elements Ids that compose crack boundary */
+    TPZVec<int> fcrackBoundaryElementsIds;
+    
+    /** @brief Quarter points 3D elements Ids that surround crack boundary */
+    TPZVec<int> fcrackQpointsElementsIds;
+    
+    /** @brief smaller radius that defines the cylinder that involves the
+     crack boundary inside quarter points elements (J integral) */
+    double fMinimumRadius;
     
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 

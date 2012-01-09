@@ -9,6 +9,7 @@
  */
 
 #include "TPZRefPatternTools.h"
+#include "TPZVTKGeoMesh.h"
 #define debugCaju
 
 using namespace std;
@@ -244,9 +245,11 @@ TPZAutoPointer<TPZRefPattern> TPZRefPatternTools::PerfectMatchRefPattern(TPZGeoE
 		{
 			std::cout << "\nModelRefPattern NOT FOUND in " << __PRETTY_FUNCTION__ << std::endl;
 			std::cout << "You should create it and add in Refinement Patterns Folder!" << std::endl;
-			std::cout << "Referred element:\n";
-			gel->Print();
+			std::cout << "Open file ModelRefPatternNOTFOUND.vtk in Paraview to see the neighbourhood\n";
             
+            std::ofstream outNotFound("ModelRefPatternNOTFOUND.vtk");
+            TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(gel->Mesh(), gel->Id(), outNotFound);
+			
             DebugStop();
 		}
 	}

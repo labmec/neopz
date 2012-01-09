@@ -11,8 +11,11 @@
  */
 
 #include "TPZVTKGeoMesh.h"
-
+#include "pzgeoel.h"
+#include "tpzgeoelrefpattern.h"
+#include "pzgeopoint.h"
 #include <sstream>
+
 
 /**
  * Generate an output of all geomesh to VTK
@@ -495,6 +498,64 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 	file.close();
 }
 
+void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std::ofstream &file)
+{	
+    int matTemp = 908760;
+    std::set<int> myMaterial;
+    myMaterial.insert(matTemp);
+    
+    TPZGeoMesh * gmeshCP(gmesh);
+    
+    TPZGeoEl * gel = gmeshCP->ElementVec()[elId];
+    
+    int nsides = gel->NSides();
+    for(int s = 0; s < nsides; s++)
+    {
+        TPZGeoElSide thisSide(gel, s);
+        TPZGeoElSide neighSide = thisSide.Neighbour();
+        
+        while(thisSide != neighSide)
+        {
+            TPZGeoEl * neighEl = neighSide.Element();
+            SetMaterial(neighEl, matTemp);
+            
+            neighSide = neighSide.Neighbour();
+        }
+
+    }
+    PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, false);
+}
+
+void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
+{
+    gel->SetMaterialId(mat);
+    
+    int nnodes = gel->NNodes();
+    for(int nd = 0; nd < nnodes; nd++)
+    {
+        TPZVec<REAL> NodeCoord(3);
+        TPZVec<int> Topol(1);
+        
+        int elId;
+        
+        Topol[0] = gel->NodeIndex(nd);
+        
+        gel->Mesh()->NodeVec()[gel->NodeIndex(nd)].GetCoordinates(NodeCoord);
+        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol, mat,*(gel->Mesh()));
+    }
+    gel->Mesh()->BuildConnectivity();
+    
+    if(gel->HasSubElement())
+    {
+        int nSons = gel->NSubElements();
+        for(int s = 0; s < nSons; s++)
+        {
+            TPZGeoEl * son = gel->SubElement(s);
+            SetMaterial(son, mat);
+        }
+    }
+}
+
 /**
  * Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
  */
@@ -517,7 +578,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 	
 	for(int el = 0; el < nelements; el++)
 	{				
-		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+		if(!gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}

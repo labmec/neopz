@@ -10,13 +10,22 @@
 /** @brief Material index of auxiliar 1D elements in 2D refpatterns generation */
 const int __aux1DEl_Mat = -1;
 
-/** @brief Material index to create 1D elements in crack tip */
-const int __1DcrackTipMat = -2;
+//BCs
+const int __1DcrackTipMat = -10;//1D crack tip elements
 
-const int __2DfractureMat_outside = 10;//2D elements outside fracture
+const int __1DbulletMat = -20;//1D elements that introduces injection flow rate
 
-const int __2DfractureMat_inside = 20;//2D elements inside fracture
+const int __2DfractureMat_outside = -30;//2D elements outside fracture (i.e.: not fractured yet)
 
-const int __3DrockMat = 30;//3D elements surrounding fracture plane
+const int __2DfractureMat_inside = -40;//2D elements inside fracture (i.e.: already fractured)
 
-const int __3DrockMatquarterPoint = 40;//3D elements surrounding crack tip
+const int __2DfarfieldXZMat = -50;//2D elements in plane x,z (Y=farfield)
+
+const int __2DlateralconfinementMat = -60;//2D elements in plane y,z (one in x=0 "left farfield" and another in x="right farfield")
+
+const int __2DbottomMat = -70;//2D elements in plane x,y (
+
+//Domain
+const int __3DrockMat_linear = 10;//3D elements that surround fracture plane (i.e.: porous media)
+
+const int __3DrockMat_quarterPoint = 20;//3D elements surrounding crack tip

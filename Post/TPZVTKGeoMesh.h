@@ -45,6 +45,12 @@ public:
 	 * @brief Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
 	 */
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh *gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
+    
+    /**
+     * @brief Print the elements that surround a givel geoel
+     */
+    static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std::ofstream &file);
+    static void SetMaterial(TPZGeoEl * gel, int mat);
 	
 	/**
 	 * @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
