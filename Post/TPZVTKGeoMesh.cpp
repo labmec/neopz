@@ -500,13 +500,16 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 
 void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std::ofstream &file)
 {	
-    int matTemp = 908760;
+    int elMat = 908760;
+    int surrMat = 908761;
     std::set<int> myMaterial;
-    myMaterial.insert(matTemp);
+    myMaterial.insert(elMat);
+    myMaterial.insert(surrMat);
     
     TPZGeoMesh * gmeshCP(gmesh);
     
     TPZGeoEl * gel = gmeshCP->ElementVec()[elId];
+    SetMaterial(gel, elMat);
     
     int nsides = gel->NSides();
     for(int s = 0; s < nsides; s++)
@@ -517,7 +520,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std
         while(thisSide != neighSide)
         {
             TPZGeoEl * neighEl = neighSide.Element();
-            SetMaterial(neighEl, matTemp);
+            SetMaterial(neighEl, surrMat);
             
             neighSide = neighSide.Neighbour();
         }
@@ -543,7 +546,6 @@ void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
         gel->Mesh()->NodeVec()[gel->NodeIndex(nd)].GetCoordinates(NodeCoord);
         new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol, mat,*(gel->Mesh()));
     }
-    gel->Mesh()->BuildConnectivity();
     
     if(gel->HasSubElement())
     {
@@ -578,7 +580,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKmy_material(TPZGeoMesh * gmesh, std::ofstream &
 	
 	for(int el = 0; el < nelements; el++)
 	{				
-		if(!gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+		if(gmesh->ElementVec()[el]->Dimension() == 1)//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}
