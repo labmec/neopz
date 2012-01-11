@@ -46,7 +46,7 @@ int main(int argc, char * const argv[])
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();
     
-    #define writeAgain
+    //#define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
         
@@ -117,8 +117,8 @@ int main(int argc, char * const argv[])
     int nelem = fractureMesh2->NElements();
     for(int el = 0; el < nelem; el++)
     {
-        TPZGeoEl * gel = fractureMesh2->ElementVec()[el];//2D element in 2D mesh
-        if(!gel->IsLinearMapping())
+        TPZGeoEl * gel = fractureMesh2->ElementVec()[el];
+        if(!gel->IsLinearMapping() && !gel->HasSubElement())
         {
             TPZVec<TPZGeoEl *> sons;
             gel->Divide(sons);
@@ -128,14 +128,12 @@ int main(int argc, char * const argv[])
     
     InsertDots4VTK(fractureMesh2, fractureDots);
     
-    std::ofstream out2("FractureZprofile2.vtk");
+    std::ofstream out2("PL3DFrac.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh2, out2, true);
     
     
-    #ifndef writeAgain
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
-    #endif
     
     return 0;
 }
@@ -475,7 +473,7 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
     
     node = 73;
     
-    fractureDots[2*node] = 30.; fractureDots[2*node+1] = shiftZ + -1.;//5.53573;
+    fractureDots[2*node] = 30.; fractureDots[2*node+1] = shiftZ - 5.;//5.53573;
     
     node = 74;
     

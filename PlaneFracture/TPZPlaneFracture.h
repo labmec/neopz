@@ -318,7 +318,7 @@ class TPZPlaneFracture
                                TPZGeoMesh * gmesh3D,
                                std::list< std::pair<int,double> > &elIdSequence);
     
-    void ChangeElementsSurroundingCrackTip(TPZGeoMesh * fullMesh);
+    void HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh);
     
     bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
 
@@ -338,7 +338,7 @@ class TPZPlaneFracture
     TPZVec<int> fcrackBoundaryElementsIds;
     
     /** @brief Quarter points 3D elements Ids that surround crack boundary */
-    TPZVec<int> fcrackQpointsElementsIds;
+    std::map< int,std::set<int> > fcrackQpointsElementsIds;
     
     /** @brief smaller radius that defines the cylinder that involves the
      crack boundary inside quarter points elements (J integral) */

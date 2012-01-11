@@ -333,8 +333,9 @@ int main(int argc, char * const argv[])
     
 //    TPZChangeEl::ChangeToQuadratic(gmesh, 0);
 //    TPZChangeEl::ChangeToQuadratic(gmesh, 1);
-    TPZChangeEl::ChangeToQuarterPoint(gmesh, 0, 1);
-    TPZChangeEl::ChangeToQuarterPoint(gmesh, 1, 0);
+    
+    TPZChangeEl::ChangeToQuarterPoint(gmesh, 0, 0);
+    TPZChangeEl::ChangeToQuarterPoint(gmesh, 1, 1);
     
     std::ofstream outDepois("meshDepois.txt");
     gmesh->Print(outDepois);
@@ -379,7 +380,7 @@ int main(int argc, char * const argv[])
     
     //Teste do refinamento
     std::cout << "Uniform refinement:\n";
-    int nDiv = 5;
+    int nDiv = 1;
     for(int D = 0; D < nDiv; D++)
     {
         int nels = gmesh->NElements();
