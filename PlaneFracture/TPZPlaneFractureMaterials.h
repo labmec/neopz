@@ -19,11 +19,11 @@ const int __2DfractureMat_outside = -30;//2D elements outside fracture (i.e.: no
 
 const int __2DfractureMat_inside = -40;//2D elements inside fracture (i.e.: already fractured)
 
-const int __2DfarfieldXZMat = -50;//2D elements in plane x,z (Y=farfield)
+const int __2DfarfieldXZMat = -50;//2D elements in plane x,z (y_max > 0 = farfield)
 
-const int __2DlateralconfinementMat = -60;//2D elements in plane y,z (one in x=0 "left farfield" and another in x="right farfield")
+const int __2Dleft_rightMat = -60;//2D elements in plane y,z (one in x=0 "left farfield" and another in x_max > 0 "right farfield")
 
-const int __2DbottomMat = -70;//2D elements in plane x,y (
+const int __2Dtop_bottomMat = -70;//2D elements in plane x,y (vertical confinement)
 
 //Domain
 const int __3DrockMat_linear = 10;//3D elements that surround fracture plane (i.e.: porous media)

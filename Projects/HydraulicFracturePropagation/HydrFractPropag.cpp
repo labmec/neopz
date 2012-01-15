@@ -114,16 +114,16 @@ int main(int argc, char * const argv[])
     std::cout << "DeltaT get fracture mesh = " << clockIni2.seconds() << " s" << std::endl;
     
     /////just4fun (to see quarterpoints in vtk in a better way) AQUICAJU
-    int nelem = fractureMesh2->NElements();
-    for(int el = 0; el < nelem; el++)
-    {
-        TPZGeoEl * gel = fractureMesh2->ElementVec()[el];
-        if(!gel->IsLinearMapping() && !gel->HasSubElement())
-        {
-            TPZVec<TPZGeoEl *> sons;
-            gel->Divide(sons);
-        }
-    }
+//    int nelem = fractureMesh2->NElements();
+//    for(int el = 0; el < nelem; el++)
+//    {
+//        TPZGeoEl * gel = fractureMesh2->ElementVec()[el];
+//        if(!gel->IsLinearMapping() && !gel->HasSubElement())
+//        {
+//            TPZVec<TPZGeoEl *> sons;
+//            gel->Divide(sons);
+//        }
+//    }
     /////
     
     InsertDots4VTK(fractureMesh2, fractureDots);

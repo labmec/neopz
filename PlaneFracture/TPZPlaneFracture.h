@@ -152,14 +152,7 @@ class TPZPlaneFracture
     
 	~TPZPlaneFracture();
     
-    void GeneratePlaneMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
-    void GenerateFullMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
-    
-    void GenerateNodesAtPlaneY(std::list<double> & espacamento, double lengthFactor, 
-                               TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
-                               double Y);
-	
-	/**
+    /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
 	 * @param poligonalChain [in] vector of boundary points coordinates
 	 *
@@ -180,6 +173,23 @@ class TPZPlaneFracture
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
 	private:
+    
+    /** @brief Generation of the persistent 2D mesh that contains the fracture
+     *  @note This method set the fPlaneMesh atribute that will not be changed for every fracture time step
+     */
+    void GeneratePlaneMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
+    
+    /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
+     *  @note This method set the fFullMesh atribute that will not be changed for every fracture time step
+     */
+    void GenerateFullMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
+    
+    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateFullMesh
+     *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
+     */
+    void GenerateNodesAtPlaneY(std::list<double> & espacamento, double lengthFactor,
+                               TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
+                               double Y);
 	
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
@@ -260,6 +270,10 @@ class TPZPlaneFracture
 	 */
 	static TPZGeoEl * PointElementOnPlaneMesh(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain);
     
+    /**
+     * @brief for a given mesh and an point (x) on that, returns the element that contains it and\n
+     *          the respective coordinates in parametric space (qsi)
+     */
     TPZGeoEl * PointQPointElement(TPZGeoMesh * fullMesh, TPZVec<REAL> & x, TPZVec<REAL> & qsi);
 	
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
@@ -318,9 +332,22 @@ class TPZPlaneFracture
                                TPZGeoMesh * gmesh3D,
                                std::list< std::pair<int,double> > &elIdSequence);
     
+    /**
+     * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
+     */
     void HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh);
+
+    /**
+     * @brief Once the fcrackQpointsElementsIds atribute is filled (by HuntElementsSurroundingCrackTip method),\n
+     *          the respective elements must be turned into quarterpoints,\n
+     *          ruled by respective sides (that could be more than one by element)
+     */
+    void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
     
-    bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
+    static void OneLeveUpDimensionSides(TPZGeoEl * gel, int side, TPZStack<int> &sides);
+    
+    
+    //bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
