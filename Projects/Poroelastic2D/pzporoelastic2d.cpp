@@ -73,11 +73,11 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	//Equacao da elasticidade
 	// Calculate the matrix contribution for elastic problem
 	TPZAutoPointer <TPZElasticityMaterial> matelast = new TPZElasticityMaterial(fmatId, fE, fnu, ff[0], ff[1], fPlaneStress);
-	TPZFNMatrix<10000> ekelastic(2*phru,2*phru),efelastic(2*phru,1);
+	TPZFNMatrix<10000> ekelastic(2*phru,2*phru), efelastic(2*phru,1);
 	matelast->Contribute(datavec[0], weight, ekelastic, efelastic);
 	// It adds Source matrix on current matrix from position (sRow, sCol). 
-	ek.AddSub(0,0, ekelastic);
-	ef.AddSub(0, 0, efelastic);		
+	ek.PutSub(0,0, ekelastic);
+	ef.PutSub(0, 0, efelastic);		
 	
 	//Equacao de Poisson: pressao 
 	// Calculate the matrix contribution for transport problem from
@@ -86,7 +86,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		
 		for(int jn = 0; jn < phrp; jn++) {
 			for(int kd=0; kd<fDim; kd++) {
-				ek(in+2*phru, jn+2*phru) += weight *dphip(kd,in)*dphip(kd,jn); 
+				ek(in+2*phru, jn+2*phru) += weight *(fk/fvisc)*dphip(kd,in)*dphip(kd,jn); 
 			}
 		}
 	}
@@ -96,10 +96,10 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	if(logdata->isDebugEnabled())
 	{
 		std::stringstream sout;
-		ek.Print("ek = ",sout,EMathematicaInput);
-		ef.Print("ef = ",sout,EMathematicaInput);
 		ekelastic.Print("ekelastic = ",sout,EMathematicaInput);
 		efelastic.Print("efelastic = ",sout,EMathematicaInput);
+		ek.Print("ek = ",sout,EMathematicaInput);
+		ef.Print("ef = ",sout,EMathematicaInput);
 		LOGPZ_DEBUG(logdata,sout.str())
 	}
 #endif
@@ -133,23 +133,24 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 	int phrp = phip.Rows();
 	short in,jn;
 	REAL v2[3];
-	v2[0] = bc.Val2()(0,0);
-	v2[1] = bc.Val2()(1,0);
-	v2[2] = bc.Val2()(2,0);
-		
+	v2[0] = bc.Val2()(0,0);//referente a elasticidade em x
+	v2[1] = bc.Val2()(1,0);//referente a elasticidade em y
+	v2[2] = bc.Val2()(2,0);//referente a pressao
+	
+	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition for two equations
 			//Equacao da elasticidade
 			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += gBigNumber * v2[0] *   // x displacement
-				phiu(in,0) * weight;        // forced v2 displacement
-				ef(2*in+1,0) += gBigNumber * v2[1] * // x displacement
-				phiu(in,0) * weight;        // forced v2 displacement
+				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
+				phiu(in,0)*weight;        // forced v2 displacement
+				ef(2*in+1,0) += BIGNUMBER*v2[1]* // y displacement
+				phiu(in,0)*weight;        // forced v2 displacement
 				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += gBigNumber * phiu(in,0) *
-					phiu(jn,0) * weight;
-					ek(2*in+1,2*jn+1) += gBigNumber * phiu(in,0) *
-					phiu(jn,0) * weight;
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
+					phiu(jn,0)*weight;
+					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*
+					phiu(jn,0)*weight;
 				}
 			}
 						
@@ -166,8 +167,8 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 		case 11 :		// Neumann condition for two equations
 			//Equacao da elasticidade
 			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
-				ef(2*in,0) += v2[0] * phiu(in,0)*weight;   // tracao em x  (ou pressao)
-				ef(2*in+1,0) += v2[1] * phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
+				ef(2*in,0) += v2[0]*phiu(in,0)*weight;   // tracao em x  (ou pressao)
+				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
 			}      // ou deslocamento nulo  v2 = 0
 			
 			
@@ -224,12 +225,121 @@ void TPZPoroElastic2d::Print(std::ostream &out) {
 
 /** Returns the variable index associated with the name */
 int TPZPoroElastic2d::VariableIndex(const std::string &name){
-	if(!strcmp("SolutionU",name.c_str()))        return  1;
-	if(!strcmp("SolutionP",name.c_str()))        return  2;
-	if(!strcmp("DerivateU",name.c_str()))        return  3;
-	if(!strcmp("DerivateP",name.c_str()))        return  4;
-	
+	//variaveis da elasticidade
+	if(!strcmp("Desplacement",name.c_str()))        return  1;
+	if(!strcmp("Pressure",name.c_str()))        return  2;
+	if(!strcmp("SigmaX",name.c_str()))        return  3;
+	if(!strcmp("SigmaY",name.c_str()))        return  4;
+	if(!strcmp("TauXY",name.c_str()))        return  5;
+	//variaveis da pressao
+	if(!strcmp("SolutionP",name.c_str()))        return  6;
+	if(!strcmp("MinusKGradP",name.c_str()))        return  7;
+		
 	return TPZMaterial::VariableIndex(name);
+}
+
+int TPZPoroElastic2d::NSolutionVariables(int var){
+	if(var == 1) return 3;
+	if(var == 2) return 1;
+	if(var == 3) return 1;
+	if(var == 4) return 1;
+	if(var == 5) return 1;
+	if(var == 6) return 1;
+	if(var == 7) return fDim;
+	return TPZMaterial::NSolutionVariables(var);
+}
+
+void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+	
+	Solout.Resize( this->NSolutionVariables(var));
+	
+	TPZVec<REAL> SolU, SolP;
+	TPZFMatrix DSolU, DSolP;
+	TPZFMatrix axesU, axesP;
+	
+	SolU=datavec[0].sol;
+	DSolU=datavec[0].dsol;
+	axesU=datavec[0].axes;
+	SolP=datavec[1].sol;
+	DSolP=datavec[1].dsol;
+	axesP=datavec[1].axes;
+	
+	//function (state variable u)
+	if(var == 1){
+		Solout[0] = SolU[0];
+		Solout[1] = SolU[1];
+		Solout[2] = 0.;
+		return;
+	}//var1
+	
+	//-----------------
+	if(var == 6) {
+		Solout[0] = SolP[0];//derivate of P
+		return;
+	}//var6
+	
+	if (var == 7){ //MinusKGradU
+		int id;
+		//REAL val = 0.;
+		TPZFNMatrix<9> dsoldx;
+		TPZAxesTools::Axes2XYZ(DSolP, dsoldx, axesP);
+		for(id=0 ; id<fDim; id++) {
+			Solout[id] = -1.*(fk/fvisc)*dsoldx(id,0);
+		}
+		return;
+	}//var7
+			
+	//-----------------
+	REAL epsx;
+	REAL epsy;
+	REAL epsxy;
+	REAL SigX;
+	REAL SigY;
+	REAL Tau, DSolxy[2][2];
+					
+	// dudx - dudy
+	DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0);
+	DSolxy[1][0] = DSolU(0,0)*axesU(0,1)+DSolU(1,0)*axesU(1,1);
+	
+	// dvdx - dvdy
+	DSolxy[0][1] = DSolU(0,1)*axesU(0,0)+DSolU(1,1)*axesU(1,0);
+	DSolxy[1][1] = DSolU(0,1)*axesU(0,1)+DSolU(1,1)*axesU(1,1);
+	
+	epsx = DSolxy[0][0];// du/dx
+	epsy = DSolxy[1][1];// dv/dy
+	epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+	REAL Gmodule = fE/(1-fnu*fnu);
+	
+	if (this->fPlaneStress){
+		SigX = Gmodule*(epsx+fnu*epsy);
+		SigY = Gmodule*(fnu*epsx+epsy);
+	}
+	else{
+		SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy);
+		SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy);
+	}
+			
+	if(var == 2) {
+		Solout[0] = SigX+SigY;
+		return;
+	}//var2
+	
+	if(var ==3) {
+		Solout[0] = SigX;
+		return;
+	}//var3
+	
+	if(var == 4) {
+		Solout[0] = SigY;
+		return;
+	}//var4
+	
+	if(var == 5) {
+		Tau = fE*epsxy/(1.+fnu);
+		Solout[0] = Tau;
+		return;
+	}//var5
+
 }
 
 

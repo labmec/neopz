@@ -28,7 +28,7 @@
  *\f$ T(u) =  tr(E(u) − alpha*p*I)lambda*I + 2*nu*(E(u) − alpha*p*I)\f$
  *
  *@ingroup equacao da pressao
- * \f$ -Laplac(u)  = 0 ==> Int{Grad(u)Grad(v)}dx - Int{Grad(u).n v}ds  = 0   (Eq. 2)  \f$ 
+ * \f$ -1/visc*div(gradu k)  = 0 ==> k/visc*Int{Grad(u)Grad(v)}dx - Int{k/visv*Grad(u).n v}ds  = 0   (Eq. 2)  \f$ 
  *
  */
  
@@ -141,16 +141,9 @@ public:
 	//void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
 	
 	virtual int VariableIndex(const std::string &name);
-//	{
-//	DebugStop();
-//	}
 	
-	virtual int NSolutionVariables(int var)
-	{ 
-		DebugStop();
-		return 0;
-	}
-	
+	virtual int NSolutionVariables(int var);
+		
 	//protected:
 	//	
 	//	/**
@@ -164,11 +157,8 @@ public:
 	//	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
 	
 	//public:
-	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout)
-	{
-	DebugStop();
-	}
-	
+	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+		
 //	virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
 	
 	/**
