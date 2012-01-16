@@ -182,6 +182,17 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
     if (this->IsSymetric()){    
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
+	
+#ifdef LOG4CXX
+	if(logger->isDebugEnabled())
+	{
+		std::stringstream sout;
+		ek.Print("ek_poisson3d = ",sout,EMathematicaInput);
+		ef.Print("ef_poisson3d = ",sout,EMathematicaInput);
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+	
     
 }
 
