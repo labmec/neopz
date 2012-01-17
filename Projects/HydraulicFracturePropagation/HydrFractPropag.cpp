@@ -46,12 +46,9 @@ int main(int argc, char * const argv[])
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();
     
-    //#define writeAgain
+    #define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
-        
-        std::ofstream outRefP("RefPatternsUsed.txt");
-        gRefDBase.WriteRefPatternDBase(outRefP);
     #else
         std::ifstream inRefP("RefPatternsUsed.txt");
         gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
@@ -449,11 +446,11 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
     
     node = 67;
     
-    fractureDots[2*node] = 60.; fractureDots[2*node+1] = shiftZ + 7.18313;
+    fractureDots[2*node] = 56.; fractureDots[2*node+1] = shiftZ + 7.18313;
     
     node = 68;
     
-    fractureDots[2*node] = 55.; fractureDots[2*node+1] = shiftZ + 6.82703;
+    fractureDots[2*node] = 55.; fractureDots[2*node+1] = shiftZ - 7.;//+ 6.82703;
     
     node = 69;
     
@@ -469,11 +466,11 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
     
     node = 72;
     
-    fractureDots[2*node] = 35.; fractureDots[2*node+1] = shiftZ + 5.73079;
+    fractureDots[2*node] = 31.; fractureDots[2*node+1] = shiftZ + 5.73079;
     
     node = 73;
     
-    fractureDots[2*node] = 30.; fractureDots[2*node+1] = shiftZ - 5.;//5.53573;
+    fractureDots[2*node] = 29.; fractureDots[2*node+1] = shiftZ - 6.;//5.53573;
     
     node = 74;
     

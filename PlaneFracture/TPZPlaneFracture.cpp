@@ -1315,45 +1315,50 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
                     edgesMustRefine = true;
                 }
             }
-            if(edgesMustRefine)
-            {   //satisfeita condicao proposta acima, ou seja, encontrou nohs que encostam no cracktip
-                //que devem ter sua(s) aresta(s) particionada(s) para isola-los
-                TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(qpointEl, sidestorefine);
-                if(refp)
-                {
-                    qpointEl->SetRefPattern(refp);
-                    TPZVec<TPZGeoEl*> sons;
-                    qpointEl->Divide(sons);
-                    
-                    //realimentando o mapa fcrackQpointsElementsIds com os subelementos que encostam no cracktip
-                    std::set<int> bySides;
-                    for(int sn = 0; sn < sons.NElements(); sn++)
-                    {
-                        if(TouchCrackTip(sons[sn],bySides))
-                        {
-                            fcrackQpointsElementsIds[sons[sn]->Id()] = bySides;
-                        }
-                    }
-                    elementsToRemove.insert(qpointEl->Id());
-                }
-                else
-                {
-                    std::cout << "\nRefPattern NOT FOUND in " << __PRETTY_FUNCTION__ << std::endl;
-                    std::cout << "You should create it and add in Refinement Patterns Folder!" << std::endl;
-                    std::cout << "Open file QpointRefPatternNOTFOUND.vtk in Paraview to see the neighbourhood\n";
-                    
-                    std::ofstream outNotFound("QpointRefPatternNOTFOUND.vtk");
-                    TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(qpointEl->Mesh(), qpointEl->Id(), outNotFound);
-                    
-                    DebugStop();
-                }
-            }
-            else
+            if(edgesMustRefine == false)
             {
                 //Eh o caso em que temos 2, 3 ou 4 arestas encostando no cracktip, devendo refinar "pelos nohs", e nao pelas arestas.
                 //Para isso eh realizado o refinamento baricentrico pela face do plano da fratura
-                //** realizar refinamento baricentrico na face do plano da fratura */
+                TPZVec<int> sideNodeIds(targetSides0D.size());
+                int pos = 0;
+                for(its = targetSides0D.begin(); its != targetSides0D.end(); its++)
+                {
+                    sideNodeIds[pos] = *its;
+                    pos++;
+                }
+                int sidePlaneFracture = qpointEl->WhichSide(sideNodeIds);
+                sidestorefine[sidePlaneFracture] = 1;
             }
+            
+            TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(qpointEl, sidestorefine);
+            if(refp)
+            {
+                qpointEl->SetRefPattern(refp);
+                TPZVec<TPZGeoEl*> sons;
+                qpointEl->Divide(sons);
+                
+                //realimentando o mapa fcrackQpointsElementsIds com os subelementos que encostam no cracktip
+                std::set<int> bySides;
+                for(int sn = 0; sn < sons.NElements(); sn++)
+                {
+                    if(TouchCrackTip(sons[sn],bySides))
+                    {
+                        fcrackQpointsElementsIds[sons[sn]->Id()] = bySides;
+                    }
+                }
+                elementsToRemove.insert(qpointEl->Id());
+            }
+            else
+            {
+                std::cout << "\nRefPattern NOT FOUND in " << __PRETTY_FUNCTION__ << std::endl;
+                std::cout << "You should create it and add in Refinement Patterns Folder!" << std::endl;
+                std::cout << "Open file QpointRefPatternNOTFOUND.vtk in Paraview to see the neighbourhood\n";
+                
+                std::ofstream outNotFound("QpointRefPatternNOTFOUND.vtk");
+                TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(qpointEl->Mesh(), qpointEl->Id(), outNotFound);
+                
+                DebugStop();
+            }   
         }
     }
     for(its = elementsToRemove.begin(); its != elementsToRemove.end(); its++)

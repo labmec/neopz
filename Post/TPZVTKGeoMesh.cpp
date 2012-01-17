@@ -500,8 +500,8 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbour_material(TPZGeoMesh * gmesh, std::ofs
 
 void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std::ofstream &file)
 {	
-    int elMat = 908760;
-    int surrMat = 908761;
+    int elMat = 999;
+    int surrMat = 555;
     std::set<int> myMaterial;
     myMaterial.insert(elMat);
     myMaterial.insert(surrMat);
@@ -526,7 +526,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std
         }
 
     }
-    PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, false);
+    PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, true);
 }
 
 void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
