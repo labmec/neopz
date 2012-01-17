@@ -15,13 +15,8 @@
 
 #include "TPZPlaneFracture.h"
 #include "TPZGeoLinear.h"
-//#include "TPZGeoCube.h"
-//#include "pznoderep.h"
-//#include "pzgeoel.h"
-//#include "TPZVTKGeoMesh.h"
-//#include "TPZPoligonalChain.h"
+#include "TPZVTKGeoMesh.h"
 #include "tpzgeoelrefpattern.h"
-//#include "pzgeoelside.h"
 #include "tpzchangeel.h"
 
 using namespace pztopology;
@@ -1248,6 +1243,11 @@ void TPZPlaneFracture::HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh)
 
 void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
 {
+    //List of elements ids that will be refined, so will NOT be turned into quarterpoints (but their sons).
+    //These elements must be removed from fcrackQpointsElementsIds map.
+    std::set<int> elementsToRemove;
+    
+    std::set<int>::iterator its;
     std::map< int , std::set<int> >::iterator it;
     for(it = fcrackQpointsElementsIds.begin(); it != fcrackQpointsElementsIds.end(); it++)
     {
@@ -1257,9 +1257,9 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
         std::set<int> targetSides = it->second;
         std::set<int> targetSides0D, targetSides1D;
         
-        std::set<int>::iterator its;
         for(its = targetSides.begin(); its != targetSides.end(); its++)
         {
+            //separando os lados que encostam no cracktip por suas dimensoes
             int targetSide = *its;
             TPZGeoElSide side(qpointEl,targetSide);
             if(side.Dimension() == 0)
@@ -1273,7 +1273,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
         }
         int Ntargets0D = targetSides0D.size();
         int Ntargets1D = targetSides1D.size();
-        if(Ntargets0D == 1)//soh encosta no cracktip por 1 noh apenas
+        if(Ntargets0D == 1 && Ntargets1D == 0)//Soh encosta no cracktip por 1 noh apenas
         {
             if(qpointEl->Dimension() == 3)
             {
@@ -1282,7 +1282,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
             int targetSide = *(targetSides0D.begin());
             TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
         }
-        else if(Ntargets1D == 1)//soh encosta no cracktip por 1 aresta apenas
+        else if(Ntargets1D == 1 && Ntargets0D == 2)//Soh encosta no cracktip por 1 aresta apenas
         {
             if(qpointEl->Dimension() == 3)
             {
@@ -1291,12 +1291,15 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
             int targetSide = *(targetSides1D.begin());
             TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
         }
-        else
+        else//Encosta no cracktip por aresta(s) e/ou noh(s), portanto precisa refinar para isolar estes lados.
+            //Isso porque o quarterpoint contempla o deslocamento dos midnodes para um lado apenas.
+            //Obs.: Sao rarissimas excecoes que entram neste escopo.
         {
-            bool mustRefine = false;
+            bool edgesMustRefine = false;
             TPZVec<int> sidestorefine(qpointEl->NSides(),0.);
             for(int edg = qpointEl->NNodes(); edg < qpointEl->NSides(); edg++)
-            {
+            {   //se 02 nohs de uma aresta aparecem na lista dos targetSides0D, e a propria aresta nao aparece na lista dos targetSides1D,
+                //esta aresta deve ser particionada. Para isso, insere-se esta aresta no vetor sidestorefine
                 TPZGeoElSide elSide(qpointEl,edg);
                 if(elSide.Dimension() != 1)
                 {
@@ -1309,197 +1312,157 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
                    targetSides1D.find(edg) == targetSides1D.end())
                 {
                     sidestorefine[edg] = 1;
-                    mustRefine = true;
+                    edgesMustRefine = true;
                 }
             }
-            if(mustRefine)
-            {
+            if(edgesMustRefine)
+            {   //satisfeita condicao proposta acima, ou seja, encontrou nohs que encostam no cracktip
+                //que devem ter sua(s) aresta(s) particionada(s) para isola-los
                 TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(qpointEl, sidestorefine);
                 if(refp)
                 {
                     qpointEl->SetRefPattern(refp);
                     TPZVec<TPZGeoEl*> sons;
                     qpointEl->Divide(sons);
+                    
+                    //realimentando o mapa fcrackQpointsElementsIds com os subelementos que encostam no cracktip
+                    std::set<int> bySides;
+                    for(int sn = 0; sn < sons.NElements(); sn++)
+                    {
+                        if(TouchCrackTip(sons[sn],bySides))
+                        {
+                            fcrackQpointsElementsIds[sons[sn]->Id()] = bySides;
+                        }
+                    }
+                    elementsToRemove.insert(qpointEl->Id());
                 }
                 else
                 {
-                    //  2D: refinebaricenter innerside
-                    //  3D: refinebaricenter 2D side
+                    std::cout << "\nRefPattern NOT FOUND in " << __PRETTY_FUNCTION__ << std::endl;
+                    std::cout << "You should create it and add in Refinement Patterns Folder!" << std::endl;
+                    std::cout << "Open file QpointRefPatternNOTFOUND.vtk in Paraview to see the neighbourhood\n";
+                    
+                    std::ofstream outNotFound("QpointRefPatternNOTFOUND.vtk");
+                    TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(qpointEl->Mesh(), qpointEl->Id(), outNotFound);
+                    
+                    DebugStop();
                 }
-                // 1. ver quais subelementos tocam a fratura e por quais lados
-                // 2. remover father do fcrackQpointsElementsIds e inserir os subelementos do item 1.
-                // 3. recursividade deste metodo para os subelementos tornarem-se quarterpoints
+            }
+            else
+            {
+                //Eh o caso em que temos 2, 3 ou 4 arestas encostando no cracktip, devendo refinar "pelos nohs", e nao pelas arestas.
+                //Para isso eh realizado o refinamento baricentrico pela face do plano da fratura
+                //** realizar refinamento baricentrico na face do plano da fratura */
             }
         }
     }
+    for(its = elementsToRemove.begin(); its != elementsToRemove.end(); its++)
+    {
+        //deleting elements that was refined (those sons was turned into quarterpoints, and NOT themselves)
+        it = fcrackQpointsElementsIds.find(*its);
+        fcrackQpointsElementsIds.erase(it);
+    }
 }
+//------------------------------------------------------------------------------------------------------------
 
-/** backup do metodo */
-//void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
+//void TPZPlaneFracture::OneLeveUpDimensionSides(TPZGeoEl *gel, int side, TPZStack<int> &highSides)
 //{
-//    std::map< int , std::set<int> >::iterator it;
-//    for(it = fcrackQpointsElementsIds.begin(); it != fcrackQpointsElementsIds.end(); it++)
+//    TPZGeoElSide gelSide(gel,side);
+//    int sideDim = gelSide.Dimension();
+//    if(sideDim > 2)
 //    {
-//        int qpointId = it->first;
-//        TPZGeoEl * qpointEl = fullMesh->ElementVec()[qpointId];
-//        
-//        std::set<int> targetSides = it->second;
-//        std::set<int> targetSides0D, targetSides1D;
-//        
-//        std::set<int>::iterator its;
-//        for(its = targetSides.begin(); its != targetSides.end(); its++)
+//        return;
+//    }
+//    
+//    TPZStack<int> highSidestemp;
+//    MElementType gelType = gel->Type();
+//    switch(gelType)
+//    {
+//        case (EPoint):
 //        {
-//            int targetSide = *its;
-//            TPZGeoElSide side(qpointEl,targetSide);
-//            if(side.Dimension() == 0)
-//            {
-//                targetSides0D.insert(targetSide);
-//            }
-//            else if(side.Dimension() == 1)
-//            {
-//                targetSides1D.insert(targetSide);
-//            }
+//            //Cant be point
+//            break;
 //        }
-//        int Ntargets0D = targetSides0D.size();
-//        int Ntargets1D = targetSides1D.size();
-//        if(Ntargets0D == 1)//soh encosta no cracktip por 1 noh apenas
+//        case (EOned):
 //        {
-//            if(qpointEl->Dimension() == 3)
-//            {
-//                qpointEl->SetMaterialId(__3DrockMat_quarterPoint);
-//            }
-//            int targetSide = *(targetSides0D.begin());
-//            TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
+//            //Cant ne edge
+//            break;
 //        }
-//        else if(Ntargets1D == 1)//soh encosta no cracktip por 1 aresta apenas
+//        case (ETriangle):
 //        {
-//            if(qpointEl->Dimension() == 3)
-//            {
-//                qpointEl->SetMaterialId(__3DrockMat_quarterPoint);
-//            }
-//            int targetSide = *(targetSides1D.begin());
-//            TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
+//            TPZTriangle::HigherDimensionSides(side, highSidestemp);
+//            break;
 //        }
-//        else if(Ntargets1D == 0)//soh encosta no cracktip por mais de 1 noh (nenhuma aresta)
+//        case (EQuadrilateral):
 //        {
-//            TPZStack<int> highSides;
-//            for(its = targetSides0D.begin(); its != targetSides0D.end(); its++)
-//            {
-//                int targetSide = *its;
-//                OneLeveUpDimensionSides(qpointEl, targetSide, highSides);
-//            }
-//            TPZVec<int> sidestorefine(qpointEl->NSides(),0.);
-//            for(int i = 0; i < highSides.NElements(); i++)
-//            {
-//                sidestorefine[highSides[i]] = 1;
-//            }
-//            TPZAutoPointer<TPZRefPattern> refp = TPZRefPatternTools::PerfectMatchRefPattern(qpointEl, sidestorefine);
-//            if(refp)
-//            {
-//                qpointEl->SetRefPattern(refp);
-//                TPZVec<TPZGeoEl*> sons;
-//                qpointEl->Divide(sons);
-//            }
-//            else
-//            {
-//                //      DebugStop();
-//            }
+//            TPZQuadrilateral::HigherDimensionSides(side, highSidestemp);
+//            break;
+//        }
+//        case (ETetraedro):
+//        {
+//            TPZTetrahedron::HigherDimensionSides(side, highSidestemp);
+//            break;
+//        }
+//        case (EPiramide):
+//        {
+//            TPZPyramid::HigherDimensionSides(side, highSidestemp);
+//            break;
+//        }
+//        case (EPrisma):
+//        {
+//            TPZPrism::HigherDimensionSides(side, highSidestemp);
+//            break;
+//        }
+//        case (ECube):
+//        {
+//            TPZCube::HigherDimensionSides(side, highSidestemp);
+//            break;
+//        }
+//        default:
+//        {
+//            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
+//            DebugStop();
+//        }
+//    }
+//    for(int s = 0; s < highSidestemp.NElements(); s++)
+//    {
+//        int hs = highSidestemp[s];
+//        TPZGeoElSide hside(gel,hs);
+//        int hsideDim = hside.Dimension();
+//        if(hsideDim == (sideDim+1))
+//        {
+//            highSides.Push(hs);
 //        }
 //    }
 //}
 //------------------------------------------------------------------------------------------------------------
 
-void TPZPlaneFracture::OneLeveUpDimensionSides(TPZGeoEl *gel, int side, TPZStack<int> &highSides)
+bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides)
 {
-    TPZGeoElSide gelSide(gel,side);
-    int sideDim = gelSide.Dimension();
-    if(sideDim > 2)
+    bySides.clear();
+    int nsides = gel->NSides();
+    for(int s = 0; s < nsides; s++)
     {
-        return;
-    }
-    
-    TPZStack<int> highSidestemp;
-    MElementType gelType = gel->Type();
-    switch(gelType)
-    {
-        case (EPoint):
+        TPZGeoElSide gelSide(gel,s);
+        TPZGeoElSide sideNeigh(gelSide.Neighbour());
+        while(gelSide != sideNeigh)
         {
-            //Cant be point
-            break;
-        }
-        case (EOned):
-        {
-            //Cant ne edge
-            break;
-        }
-        case (ETriangle):
-        {
-            TPZTriangle::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        case (EQuadrilateral):
-        {
-            TPZQuadrilateral::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        case (ETetraedro):
-        {
-            TPZTetrahedron::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        case (EPiramide):
-        {
-            TPZPyramid::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        case (EPrisma):
-        {
-            TPZPrism::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        case (ECube):
-        {
-            TPZCube::HigherDimensionSides(side, highSidestemp);
-            break;
-        }
-        default:
-        {
-            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
+            if(sideNeigh.Element()->MaterialId() == __1DcrackTipMat)
+            {
+                bySides.insert(s);
+            }
+            sideNeigh = sideNeigh.Neighbour();
         }
     }
-    for(int s = 0; s < highSidestemp.NElements(); s++)
+    if(bySides.size() > 0)
     {
-        int hs = highSidestemp[s];
-        TPZGeoElSide hside(gel,hs);
-        int hsideDim = hside.Dimension();
-        if(hsideDim == (sideDim+1))
-        {
-            highSides.Push(hs);
-        }
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
-
-//bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, int &bySide)
-//{
-//    int nsides = gel->NSides();
-//    for(int s = 0; s < nsides; s++)
-//    {
-//        TPZGeoElSide gelSide(gel,s);
-//        TPZGeoElSide sideNeigh(gelSide.Neighbour());
-//        while(gelSide != sideNeigh)
-//        {
-//            if(sideNeigh.Element()->MaterialId() == __1DcrackTipMat)
-//            {
-//                bySide = s;
-//                return true;
-//            }
-//            sideNeigh = sideNeigh.Neighbour();
-//        }
-//    }
-//    bySide = -1;
-//    return false;
-//}
 //------------------------------------------------------------------------------------------------------------
 
 

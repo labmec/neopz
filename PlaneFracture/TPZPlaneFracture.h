@@ -344,10 +344,9 @@ class TPZPlaneFracture
      */
     void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
     
-    static void OneLeveUpDimensionSides(TPZGeoEl * gel, int side, TPZStack<int> &sides);
+    //static void OneLeveUpDimensionSides(TPZGeoEl * gel, int side, TPZStack<int> &sides);
     
-    
-    //bool TouchCrackTip(TPZGeoEl * gel, int &bySide);
+    bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
