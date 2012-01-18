@@ -214,7 +214,7 @@ void TPZCompEl::LoadSolution() {
 		LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
 		return;
 	}
-	int numstate = mat->NStateVariables();
+	//int numstate = mat->NStateVariables(); 
 	TPZBlock &block = Mesh()->Block();
 	TPZFMatrix &MeshSol = Mesh()->Solution();
 	int maxdep = 0;
@@ -231,6 +231,7 @@ void TPZCompEl::LoadSolution() {
 			if(!dfn->HasDependency()) continue;
 			int bl = dfn->SequenceNumber();
 			int nvar = block.Size(bl);
+			int numstate = dfn->NState(); //numstate eh fornecida pelo connect 
 			//         int numshape = nvar/numstate;
 			TPZConnect::TPZDepend *dep = dfn->FirstDepend();
 			int blpos = block.Position(bl);
