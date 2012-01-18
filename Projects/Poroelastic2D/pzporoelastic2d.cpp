@@ -51,18 +51,104 @@ int TPZPoroElastic2d::NStateVariables() {
 
 void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
-	
 	int nref =  datavec.size();
 	if (nref != 2 ) {
 		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
 		DebugStop();
 	}
+
+//--------- Matrix size is for each element is  phiu.Rows() plus  phip.Rows() ---------------
+	//Setting the size of first block of first problem. Elastic problem
+	TPZFMatrix  &phiu =  datavec[0].phi;
+	TPZFMatrix &dphiu = datavec[0].dphix;
+	TPZFMatrix &axes=datavec[0].axes;
+	int phcu, phru, dphcu, dphru;
+	phru = phiu.Rows();
+	phcu = phiu.Cols();
+	dphcu = dphiu.Cols();
+	dphru = dphiu.Rows();
 	
-	// Matrix size is for each element is  phiu.Rows() plus  phip.Rows()
+	if(phcu != 1 || dphru != 2 || phru != dphcu) 
+	{
+		PZError << "\n inconsistent input Elasticity data : \n" <<
+		"phi.Cols() = " << phiu.Cols() << " dphi.Cols() = " << dphiu.Cols() <<
+		" phi.Rows = " << phiu.Rows() << " dphi.Rows = " << dphiu.Rows() <<"\n";
+		return;
+	}
 	
+	// Setting the size of second block of second problem. transport problem 
+	TPZFMatrix  &phip =  datavec[1].phi;
+	TPZFMatrix &dphip = datavec[1].dphix;
+	int phrp = phip.Rows();
+	
+	int efr, efc, ekr, ekc;  
+	efr = ef.Rows();
+	efc = ef.Cols();
+	ekr = ek.Rows();
+	ekc = ek.Cols();
+	
+	if(ekr != (2*phru + phrp) || ekc != (2*phru + phrp) || efr != (2*phru + phrp) || efc != 1)
+	{
+		PZError << "\n inconsistent input data : \n" << "\nek.Rows() = " << ek.Rows() <<
+		" ek.Cols() = " << ek.Cols() << "\nef.Rows() = " << ef.Rows() << " ef.Cols() = " << ef.Cols() << "\n";
+		return;
+	}
+
+	   
+//----- Elastic equation: Calculate the matrix contribution for elastic problem ----
+	   TPZFMatrix du(2,2);
+	   REAL fEover1MinNu2 = fE/(1-fnu*fnu);  
+	   REAL fEover21PlusNu = fE/(2.*(1+fnu));
+	   /*
+		* Plain strain materials values
+		*/
+	   REAL nu1 = 1 - fnu;//(1-nu)
+	   REAL nu2 = (1-2*fnu)/2;
+	   REAL F = fE/((1+fnu)*(1-2*fnu));
+	   
+	   for(int in = 0; in < phru; in++ )
+	   {
+		   du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
+		   du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
+		   
+		   ef(2*in, 0) += weight*ff[0]*phiu(in, 0); 
+		   ef(2*in+1, 0) += weight*ff[1]*phiu(in, 0);
+		     
+		   for(int jn = 0; jn < phru; jn++)
+		   {
+			   du(0,1) = dphiu(0,jn)*axes(0,0)+dphiu(1,jn)*axes(1,0);
+			   du(1,1) = dphiu(0,jn)*axes(0,1)+dphiu(1,jn)*axes(1,1);
+			   			   
+			   if (fPlaneStress != 1){
+				   /* Plain Strain State */
+				   ek(2*in,2*jn) += weight*(nu1*du(0,0)*du(0,1) + nu2*du(1,0)*du(1,1))*F;
+				   
+				   ek(2*in,2*jn+1) += weight*(fnu*du(0,0)*du(1,1) + nu2*du(1,0)*du(0,1))*F;
+				   
+				   ek(2*in+1,2*jn) += weight*(fnu*du(1,0)*du(0,1) + nu2*du(0,0)*du(1,1))*F;
+				   
+				   ek(2*in+1,2*jn+1) += weight*(nu1*du(1,0)*du(1,1) + nu2*du(0,0)*du(0,1))*F;
+			   }
+			   else{
+				   /* Plain stress state */
+				   ek(2*in,2*jn) += weight*(fEover1MinNu2*du(0,0)*du(0,1) + fEover21PlusNu*du(1,0)*du(1,1));
+				   
+				   ek(2*in,2*jn+1) += weight*(fEover1MinNu2*fnu*du(0,0)*du(1,1) + fEover21PlusNu*du(1,0)*du(0,1));
+				   
+				   ek(2*in+1,2*jn) += weight*(fEover1MinNu2*fnu*du(1,0)*du(0,1) + fEover21PlusNu*du(0,0)*du(1,1));
+				   
+				   ek(2*in+1,2*jn+1) += weight*(fEover1MinNu2*du(1,0)*du(1,1) + fEover21PlusNu*du(0,0)*du(0,1));
+			   }
+		   }
+	   }
+	   
+	   
+//------------------------------------------------------------------------------	   
+	/**
+	//  Matrix size is for each element is  phiu.Rows() plus  phip.Rows()
 	// Setting the size of first block of first problem. Elastic problem
 	TPZFMatrix  &phiu =  datavec[0].phi;
-//	TPZFMatrix &dphiu = datavec[0].dphix;
+	TPZFMatrix &dphiu = datavec[0].dphix;
 	int phru = phiu.Rows();
 	
 	// Setting the size of second block of second problem. transport problem 
@@ -78,6 +164,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	// It adds Source matrix on current matrix from position (sRow, sCol). 
 	ek.PutSub(0,0, ekelastic);
 	ef.PutSub(0, 0, efelastic);		
+	*/
+		
 	
 	//Equacao de Poisson: pressao 
 	// Calculate the matrix contribution for transport problem from
@@ -96,8 +184,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	if(logdata->isDebugEnabled())
 	{
 		std::stringstream sout;
-		ekelastic.Print("ekelastic = ",sout,EMathematicaInput);
-		efelastic.Print("efelastic = ",sout,EMathematicaInput);
+		//ekelastic.Print("ekelastic = ",sout,EMathematicaInput);
+		//efelastic.Print("efelastic = ",sout,EMathematicaInput);
 		ek.Print("ek = ",sout,EMathematicaInput);
 		ef.Print("ef = ",sout,EMathematicaInput);
 		LOGPZ_DEBUG(logdata,sout.str())
