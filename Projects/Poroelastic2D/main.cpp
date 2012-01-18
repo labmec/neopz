@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG();
 #endif
 	
-	int p=1;
+	int p=2;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 	PrintGMeshVTK(gmesh, file1);
 	
 	// First computational mesh
-	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p);
+	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+1);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 	
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	//RefinUniformElemComp(cmesh1,3);
+	//RefinUniformElemComp(cmesh1,2);
 	RefinElemComp(cmesh1,4);
 	RefinElemComp(cmesh1,7);
 	cmesh1->AdjustBoundaryElements();
