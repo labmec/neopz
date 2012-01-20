@@ -337,11 +337,7 @@ void TPZSubCompMesh::MakeExternal(int local){
         int nshape = c.NShape();
         int nstate = c.NState();
         int order  = c.Order();
-		int blocksize = fConnectVec[local].NDof(*(TPZCompMesh *)this);
 		extconnect = FatherMesh()->AllocateNewConnect(nshape,nstate,order);
-		
-		//		int lastext = fConnectIndex.NElements();
-		//		fConnectIndex.Resize(lastext+1);
 		
 		fConnectIndex[lastext] = extconnect;
 		fExternalLocIndex[local] = lastext;
@@ -458,7 +454,6 @@ void TPZSubCompMesh::TransferDependencies(int local)
 	}
 }
 
-
 void TPZSubCompMesh::MakeInternal(int local){
 	TransferDependencies(local);
 	int i;
@@ -483,7 +478,6 @@ void TPZSubCompMesh::MakeInternalFast(int local){
 	fFatherToLocal.erase(fatherindex);
 	fExternalLocIndex[local]= -1;
 }
-
 
 TPZCompMesh * TPZSubCompMesh::RootMesh(int local){
 	if (fExternalLocIndex[local] == -1) return this;

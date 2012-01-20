@@ -31,7 +31,6 @@
 using namespace std;
 
 // Program to reproduce issue 1 into CodeGoogle NeoPZ
-#define REFPATTERNDIR "/Users/jorge/Labmec/GoogleCodes/neopz/Refine/RefPatterns"
 
 void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv);
 
