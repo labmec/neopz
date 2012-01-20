@@ -36,9 +36,7 @@
 
 using namespace std;
 
-// Program to reproduce the situation as issue 1 into CodeGoogle NeoPZ
-#define REFPATTERNDIR "/Users/jorge/Labmec/GoogleCodes/neopz/Refine/RefPatterns"
-
+/** Make a uniform refinement of the gmesh, nDiv times */
 void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv);
 
 int main() {
@@ -175,7 +173,7 @@ void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv)
     {
         int nels = gmesh->NElements();
         for(int elem = 0; elem < nels; elem++)
-        {    
+        {
             TPZVec< TPZGeoEl * > filhos;
             TPZGeoEl * gel = gmesh->ElementVec()[elem];
             gel->Divide(filhos);
