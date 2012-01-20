@@ -1,13 +1,8 @@
-/*
- *  IntegNumTest.cpp
- *  PZ
- *
- *  Created by Jorge on 1/16/12.
- *  Copyright 2012 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
+ * @brief Unit test for numerical integration module.
  */
 
-//#include "IntegNumTest.h"
 #include "pzvec.h"
 #include "pzquad.h"
 
@@ -21,10 +16,12 @@ using namespace std;
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN pz numericintegration tests
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/floating_point_comparison.hpp>
+#include "boost/test/unit_test.hpp"
+#include "boost/test/floating_point_comparison.hpp"
 
 #endif
+
+#define MAXORDER 13
 
 // Computing coefficient of the polinomial function a(i,p) = sin(i*p*p)
 double CoefficientX(int i, int p) {
@@ -75,61 +72,177 @@ void TestingNumericIntegrationRule(int exp, int order, REAL intvalue) {
 	REAL integral = 0.;
 	
 	//=====1D Rule=====================================
-	NumInteg ordem1d (order);
-	int npoints = ordem1d.NPoints();
+	NumInteg intrule(order);
+	int npoints = intrule.NPoints();
 	int it;
+	cout << "\nIntegration dimension = " << intrule.Dimension() << "\torder = " << order << "\tNPoints = " << npoints << "\n";
 	for (it=0;it<npoints;it++){
-		ordem1d.Point(it,point,weight);
+		intrule.Point(it,point,weight);
+		cout << "\tPoint " << it << " : " << point[0] << "\t" << point[1] << "\t" << point[2] << std::endl;
+		cout << "\t Weight : " << weight << std::endl;
 		integral += weight * Funcao(point,exp,order);
 	}
 	
-	cout << "Numerical integration value = " << integral << endl;
-	cout << "Integration order = " << order << "\tNPoints = " << npoints << "\n";
-	for(it=0;it<npoints;it++) {
-		cout << "\tPoint " << it << " : " << point[0] << "\t" << point[1] << "\t" << point[2] << endl;
-		cout << "\t Weight : " << weight << endl;
-	}
-	cout << "\t Diferença = " << fabs(integral - intvalue) << endl; 
+	cout << "Numerical integration value = " << integral << "\tDiff = " << fabs(intvalue - integral) << std::endl << std::endl;
 
 	BOOST_CHECK(IsZero(intvalue-integral));
 }
 
 /**
- * Using Mathematica, we had the following values:
- * i=2, p=6, from x = -1 until x = 1 then  integral = 2.169215575174690848712687509073837669906381782925
+ * Using Mathematica, I had the following values:
+ * (1D) i=2, p=6, from x = -1 until x = 1 then  integral = 2.169215575174690848712687509073837669906381782925
  * para 2D:
- * i=2, p=6, from x = -1 until x = 1, and y=-1 until y=1 then  integral = 3.6230005930154684018715427138244729500584455281477
+ * i=2, p=6, from x = -1 until x = 1, and y=-1 until y=1 then  integral = 3.6230005930154684018715427138244729500584455281477 (quadrilateral)
+ * i=2, p=6, from x = 0. until x = 1, and y=0 until y=1-x then integral = 0.2645718117897931699940052644354916134028121112478236818865112770629 (triangular)
  * para 3D:
- * i=2, p=6, from x = -1 until x = 1, and y=-1 until y=1 and z=-1 until z=1 then  integral = 9.6707943242327546581324717367469321473229043134898 
+ * i=2, p=6, from x = -1 until x = 1, and y=-1 until y=1 and z=-1 until z=1 then  integral = 9.6707943242327546581324717367469321473229043134898 (cube)
  */
 
 BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	int i = 2;
-	int order = 6;
-	REAL intvalue = 2.169215575174690848712687509073837669906381782925;
-	TestingNumericIntegrationRule<TPZInt1d>(i,order,intvalue);   // OK
+	int order;
+	REAL intvalue[MAXORDER];
+	intvalue[0] = 2.000000000000000;
+	intvalue[1] = 2.606198284550454;
+	intvalue[2] = 2.659572164415588;
+	intvalue[3] = 1.499341835485549;
+	intvalue[4] = 2.367617787494460;
+	intvalue[5] = 1.825083430864047;
+	intvalue[6] = 2.169215575174691;
+	intvalue[7] = 1.617745418673051;
+	intvalue[8] = 2.480691807001154;
+	intvalue[9] = 1.347699766137747;
+	intvalue[10] = 1.417801801857337;
+	intvalue[11] = 1.935192061654517;
+	intvalue[12] = 1.429663752832786;
+	for(order=0;order<MAXORDER;order++) {
+		TestingNumericIntegrationRule<TPZInt1d>(i,order,intvalue[order]);   // OK
+	}
+	// Conclusion: It's failed at order = 1. But the erro is proportional e-10 from order = 8
 }
 
 BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	int i = 2;
-	int order = 6;
-	REAL intvalue = 3.6230005930154684018715427138244729500584455281477;
-	TestingNumericIntegrationRule<TPZIntTriang>(i,order,intvalue);
-	TestingNumericIntegrationRule<TPZIntQuad>(i,order,intvalue);   // OK
+	int order;
+	// Quadrilateral parametric space
+	REAL intvalue[MAXORDER];
+	intvalue[0] = 4.;
+	intvalue[1] = 6.424793138201817;
+	intvalue[2] = 4.310074335087271;
+	intvalue[3] = 2.626129673372531;
+	intvalue[4] = 6.054379903820096;
+	intvalue[5] = 2.924805380542269;
+	intvalue[6] = 3.6230005930154684018715427138244729500584455281477;
+	intvalue[7] = 4.556300644939264;
+	intvalue[8] = 4.577512525115554;
+	intvalue[9] = 1.6940832032465925;
+	intvalue[10] = 4.052863938018176;
+	intvalue[11] = 3.858582377588495;
+	intvalue[12] = 1.6518896896567403;
+
+	for(order=0;order<MAXORDER;order++) {
+		TestingNumericIntegrationRule<TPZIntQuad>(i,order,intvalue[order]);   // OK
+	}
+	// Conclusion: We have problem at order 1. But the erro is proportional e-10 from order = 8
+
+	// Triangular parametric space
+	intvalue[0] = 0.5;
+	intvalue[1] = 0.9320398994069123;
+	intvalue[2] = 0.54479546786258;
+	intvalue[3] = 0.5063395201360538;
+	intvalue[4] = 0.45428110865992366;
+	intvalue[5] = 0.2509209988237399;
+	intvalue[6] = 0.2645718117897931699940052644354916134028121112478236818865112770629;
+	intvalue[7] = 0.4853077813019233;
+	intvalue[8] = 0.8543252469564175;
+	intvalue[9] = 0.3195852820307958;
+	intvalue[10] = 0.3282395374596146;
+	intvalue[11] = 0.49096556829476024;
+	intvalue[12] = 0.18197735362039558;
+	for(order=0;order<MAXORDER;order++) {
+		TestingNumericIntegrationRule<TPZIntTriang>(i,order,intvalue[order]);
+	}
+	// Conclusion: We have problem at order 1 and 5. It's failed at order >= 10.
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	int i = 2;
-	int order = 6;
-	REAL intvalue = 9.6707943242327546581324717367469321473229043134898;
-	TestingNumericIntegrationRule<TPZIntTetra3D>(i,order,intvalue);
-	TestingNumericIntegrationRule<TPZIntPyram3D>(i,order,intvalue);
-	TestingNumericIntegrationRule<TPZIntPrism3D>(i,order,intvalue);
-	TestingNumericIntegrationRule<TPZIntCube3D>(i,order,intvalue);   // OK
-}
+	int order;
+	// Cube
+	REAL intvalue[MAXORDER];
+	intvalue[0] = 10.42479313820182;
+	intvalue[1] = 15.27437941460545;
+	intvalue[2] = 11.04494180837636;
+	intvalue[3] = 7.677052484946879;
+	intvalue[4] = 14.53355294584201;
+	intvalue[5] = 8.274403899286355;
+	intvalue[6] = 9.670794324232754;
+	intvalue[7] = 11.53739442808034;
+	intvalue[8] = 11.57981818843293;
+	intvalue[9] = 5.812959544695003;
+	intvalue[10] = 10.53052101423817;
+	intvalue[11] = 10.14195789337881;
+	intvalue[12] = 5.728572517515299;
+	for(order=0;order<MAXORDER;order++) {
+		TestingNumericIntegrationRule<TPZIntCube3D>(i,order,intvalue[order]);   // OK
+	}
+	// Conclusion: We have problem at order 1. But the erro is proportional e-10 from order = 8
 
+/*
+	// Tetrahedram
+	intvalue[0] = ;
+	intvalue[1] = ;
+	intvalue[2] = ;
+	intvalue[3] = ;
+	intvalue[4] = ;
+	intvalue[5] = ;
+	intvalue[6] = ;
+	intvalue[7] = ;
+	intvalue[8] = ;
+	intvalue[9] = ;
+	intvalue[10] = ;
+	intvalue[11] = ;
+	intvalue[12] = ;
+	for(order=0;order<MAXORDER;order++)
+		TestingNumericIntegrationRule<TPZIntTetra3D>(i,order,intvalue[order]);
+	
+	// Pyramidal
+	intvalue[0] = ;
+	intvalue[1] = ;
+	intvalue[2] = ;
+	intvalue[3] = ;
+	intvalue[4] = ;
+	intvalue[5] = ;
+	intvalue[6] = ;
+	intvalue[7] = ;
+	intvalue[8] = ;
+	intvalue[9] = ;
+	intvalue[10] = ;
+	intvalue[11] = ;
+	intvalue[12] = ;
+	for(order=0;order<MAXORDER;order++)
+		TestingNumericIntegrationRule<TPZIntPyram3D>(i,order,intvalue[order]);
+	
+	// Prism
+	intvalue[0] = ;
+	intvalue[1] = ;
+	intvalue[2] = ;
+	intvalue[3] = ;
+	intvalue[4] = ;
+	intvalue[5] = ;
+	intvalue[6] = ;
+	intvalue[7] = ;
+	intvalue[8] = ;
+	intvalue[9] = ;
+	intvalue[10] = ;
+	intvalue[11] = ;
+	intvalue[12] = ;
+	for(order=0;order<MAXORDER;order++)
+		TestingNumericIntegrationRule<TPZIntPrism3D>(i,order,intvalue[order]);
+ */
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 	
