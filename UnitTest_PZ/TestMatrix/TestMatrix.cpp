@@ -40,6 +40,7 @@ int TestingGeneratingDiagonalDominantMatrix(matx &matr) {
 	return 1;
 }
 
+
 #ifdef USING_BOOST
 
 /**
