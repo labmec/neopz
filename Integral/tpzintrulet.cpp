@@ -18,30 +18,48 @@
 #include "pzvec.h"
 
 TPZIntRuleT::TPZIntRuleT(int precision){
-	
+	//precision eh a ordem polinomial
 	if(precision < 0 && precision >= NUMINT_RULEST){
 		PZError << "TPZIntRule creation precision = " << precision << " not available\n";
 		//		PZError.show();
 		precision = NUMINT_RULEST-1;
 		PZError << "TPZIntRule creation precision gotten = " << precision << "\n";
 	}
-	
-	fNumInt =  precision;
-	int rule = 0;
+	//precision eh a ordem polinomial
+	int rule = 0;//rule eh o numero de pontos da regra de integracao
 	if (precision ==  0 || precision == 1) rule = 1;//fNumInt =  1;//integra constantes
+	else if (precision ==  2) rule = 3;//3
+	else if (precision ==  3) rule = 4;
+	else if (precision ==  4) rule = 6;
+	else if (precision ==  5) rule = 7;
+	else if (precision ==  6) rule = 12;
+	else if (precision ==  7) rule = 13;
+	else if (precision ==  8) rule = 16;
+	else if (precision ==  9) rule = 19;
+	else if (precision ==  10) rule = 25;
+	else if (precision ==  11) rule = 27;
+	else if (precision ==  12) rule = 33;
+	else if (precision ==  13) rule = 37;
+	else if (precision ==  14) rule = 42;
+	else if (precision ==  15) rule = 48;
+	else if (precision ==  16) rule = 52;
+	else if (precision ==  17) rule = 61;
+	else if (precision ==  18) rule = 70;
+	else if (precision ==  19) rule = 73;
+	/*
 	else if (precision <=  2) rule = 2;
 	else if (precision <=  4) rule = 4;//fNumInt =  3;//integra at� grau  2 : cte, x, y, xy, x2, y2
-	else if (precision <=  6) rule = 6;//fNumInt =  4;//integra at� grau  4 : anteriores + x3,x4,xy2,x2y,y3,y4
-	else if (precision <=  8) rule = 8;//fNumInt = 13;//integra at� grau  6 : anteriores + etc
-	else if (precision <=  10) rule = 10;//fNumInt = 25;//integra at� grau  8
-	else if (precision <=  12) rule = 12;//fNumInt = 30;//integra at� grau 10
+	else if (precision <=  6) rule = 6;//fNumInt =  4;//integra ate grau  4 : anteriores + x3,x4,xy2,x2y,y3,y4
+	else if (precision <=  8) rule = 8;//fNumInt = 13;//integra ate grau  6 : anteriores + etc
+	else if (precision <=  10) rule = 10;//fNumInt = 25;//integra ate grau  8
+	else if (precision <=  12) rule = 12;//fNumInt = 30;//integra ate grau 10
 	else if (precision <=  14) rule = 14;
 	else if (precision <=  16) rule = 17;
 	else if (precision <=  18) rule = 19;
-	
-	int NRGAUPO [20] = {1,1,3,4,6,7,12,13,16,19,25,27,33,37,42,48,52,61,70,73};
-	fNumInt = NRGAUPO[rule];
-	//  cout << "fNumInt " << fNumInt << "\t" << "precision" << precision << endl; 
+	*/
+	int NRGAUPO [20] = {1,1,3,4,6,7,12,13,16,19,25,27,33,37,42,48,52,61,70,73};//{1,1,3,4,6,7,12,13,16,19,25,27,33,37,42,48,52,61,70,73};
+	fNumInt = NRGAUPO[precision];
+	std::cout << "fNumInt " << fNumInt << "\t" << "precision (polynomial order)" << precision << std::endl; 
 	
 	fLocationKsi = new REAL[fNumInt];
 	fLocationEta = new REAL[fNumInt];
@@ -53,357 +71,370 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 	}
 	//rule = precision;
 	//  switch(/*fNumInt*/NSELECT[precision]){
-	switch (rule){
+	switch (precision){
+			//case eh a ordem polinomial
 		case 0:
 		case 1:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= 0.5;
+			if(fNumInt!=1){DebugStop();}
+			fLocationKsi[0]=0.3333333333333333;// 1./3.;//0.333333333333;
+			fLocationEta[0]=0.3333333333333333;//1./3.;//0.333333333333;
+			fWeight[0]= 0.5000000000000000;
 			break;
 			
 		case 2:
-			fLocationKsi[0]= 0.166666666667;
-			fLocationEta[0]= 0.166666666667;
-			fWeight[0]= 0.166666666667;
-			fLocationKsi[1]= 0.166666666667;
-			fLocationEta[1]= 0.666666666667;
-			fWeight[1]= 0.166666666667;
-			fLocationKsi[2]= 0.666666666667;
-			fLocationEta[2]= 0.166666666667;
-			fWeight[2]= 0.166666666667;
+			if(fNumInt!=3){DebugStop();}
+			std::cout<<"  Polinomial Order " <<precision<< " Number of integral points " <<fNumInt<<std::endl;
+			fLocationKsi[0]= 0.16666666666666666667;//1./6.;//0.166666666667;
+			fLocationEta[0]= 0.16666666666666666667;//1./6.;//0.166666666667;
+			fWeight[0]= 0.16666666666666666667;//1./6.;//0.166666666667;
+			fLocationKsi[1]= 0.16666666666666666667;//1./6.;//0.166666666667;
+			fLocationEta[1]= 0.666666666667;//2./3.;//0.666666666667;
+			fWeight[1]=0.16666666666666667;// 1./6.;//0.166666666667;
+			fLocationKsi[2]= 0.666666666666667;//2./3.;//0.666666666667;
+			fLocationEta[2]= 0.1666666666666667;//1./6.;//0.166666666667;
+			fWeight[2]= 0.1666666666666667;//1./6.;//0.166666666667;
 			break;
 			
 		case 3:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= -0.28125;
+			if(fNumInt!=4){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;//
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= -0.28125000000000000;
 			fLocationKsi[1]= 0.200000000000;
 			fLocationEta[1]= 0.200000000000;
-			fWeight[1]= 0.260417;
+			fWeight[1]= 0.2604166666666666666666666;
 			fLocationKsi[2]= 0.200000000000;
 			fLocationEta[2]= 0.600000000000;
-			fWeight[2]= 0.260417;
+			fWeight[2]= 0.26041666666666666666666666;
 			fLocationKsi[3]= 0.600000000000;
 			fLocationEta[3]= 0.200000000000;
-			fWeight[3]= 0.260417;
+			fWeight[3]= 0.26041666666666666666666666;
 			break;
 			
 		case 4:
-			fLocationKsi[0]= 0.445948490916;
-			fLocationEta[0]= 0.445948490916;
-			fWeight[0]= 0.111691;
-			fLocationKsi[1]= 0.445948490916;
-			fLocationEta[1]= 0.108103018168;
-			fWeight[1]= 0.111691;
-			fLocationKsi[2]= 0.108103018168;
-			fLocationEta[2]= 0.445948490916;
-			fWeight[2]= 0.111691;
-			fLocationKsi[3]= 0.091576213510;
-			fLocationEta[3]= 0.091576213510;
-			fWeight[3]= 0.0549759;
-			fLocationKsi[4]= 0.091576213510;
-			fLocationEta[4]= 0.816847572980;
-			fWeight[4]= 0.0549759;
-			fLocationKsi[5]= 0.816847572980;
-			fLocationEta[5]= 0.091576213510;
-			fWeight[5]= 0.0549759;
+			if(fNumInt!=6){DebugStop();}
+			fLocationKsi[0]= 0.445948490915965;
+			fLocationEta[0]= 0.445948490915965;
+			fWeight[0]= 0.1116907948390055;//0.111657948390055;//0.111691;
+			fLocationKsi[1]= 0.445948490915965;
+			fLocationEta[1]= 0.108103018168070;
+			fWeight[1]= 0.1116907948390055;//0.111691;
+			fLocationKsi[2]= 0.108103018168070;
+			fLocationEta[2]= 0.445948490915065;
+			fWeight[2]= 0.1116907948390055;//0.111691;
+			fLocationKsi[3]= 0.091576213509771;
+			fLocationEta[3]= 0.091576213509771;
+			fWeight[3]= 0.054975871827661;//0.0549759;
+			fLocationKsi[4]= 0.091576213509771;
+			fLocationEta[4]= 0.816847572980459;
+			fWeight[4]=0.054975871827661;// 0.0549759;
+			fLocationKsi[5]= 0.816847572980459;
+			fLocationEta[5]= 0.091576213509771;
+			fWeight[5]= 0.054975871827661;//0.0549759;
 			break;
 			
 		case 5:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= 0.1125;
-			fLocationKsi[1]= 0.470142064105;
-			fLocationEta[1]= 0.470142064105;
-			fWeight[1]= 0.0661971;
-			fLocationKsi[2]= 0.470142064105;
-			fLocationEta[2]= 0.059715871790;
-			fWeight[2]= 0.0661971;
-			fLocationKsi[3]= 0.059715871790;
-			fLocationEta[3]= 0.470142064105;
-			fWeight[3]= 0.0661971;
-			fLocationKsi[4]= 0.101286507323;
-			fLocationEta[4]= 0.101286507323;
-			fWeight[4]= 0.0629696;
-			fLocationKsi[5]= 0.101286507323;
-			fLocationEta[5]= 0.797426985353;
-			fWeight[5]= 0.0629696;
-			fLocationKsi[6]= 0.797426985353;
-			fLocationEta[6]= 0.101286507323;
-			fWeight[6]= 0.0629696;
+			if(fNumInt!=7){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= 0.11251500000;//0.1125;
+			fLocationKsi[1]= 0.470142064105115;
+			fLocationEta[1]= 0.470142064105115;
+			fWeight[1]= 0.0661970763942530;//0.0661971;
+			fLocationKsi[2]= 0.470142064105115;
+			fLocationEta[2]= 0.059715871789770;
+			fWeight[2]= 0.0661970763942530;//0.0661971;
+			fLocationKsi[3]= 0.059715871789770;
+			fLocationEta[3]= 0.470142064105115;
+			fWeight[3]= 0.0661970763942530;//0.0661971;
+			fLocationKsi[4]= 0.101286507323456;
+			fLocationEta[4]= 0.101286507323456;
+			fWeight[4]= 0.0629695902724135;//0.0629696;
+			fLocationKsi[5]= 0.101286507323456;
+			fLocationEta[5]= 0.797426985353087;
+			fWeight[5]= 0.0629695902724135;//0.0629696;
+			fLocationKsi[6]= 0.797426985353087;
+			fLocationEta[6]= 0.101286507323456;
+			fWeight[6]= 0.0629695902724135;//0.0629696;
 			break;
 			
 		case 6:
-			fLocationKsi[0]= 0.249286745171;
-			fLocationEta[0]= 0.249286745171;
-			fWeight[0]= 0.0583931;
-			fLocationKsi[1]= 0.249286745171;
-			fLocationEta[1]= 0.501426509658;
-			fWeight[1]= 0.0583931;
-			fLocationKsi[2]= 0.501426509658;
-			fLocationEta[2]= 0.249286745171;
-			fWeight[2]= 0.0583931;
-			fLocationKsi[3]= 0.063089014492;
-			fLocationEta[3]= 0.063089014492;
-			fWeight[3]= 0.0254225;
-			fLocationKsi[4]= 0.063089014492;
-			fLocationEta[4]= 0.873821971017;
-			fWeight[4]= 0.0254225;
-			fLocationKsi[5]= 0.873821971017;
-			fLocationEta[5]= 0.063089014492;
-			fWeight[5]= 0.0254225;
-			fLocationKsi[6]= 0.310352451034;
-			fLocationEta[6]= 0.636502499121;
-			fWeight[6]= 0.0414255;
-			fLocationKsi[7]= 0.636502499121;
-			fLocationEta[7]= 0.053145049845;
-			fWeight[7]= 0.0414255;
-			fLocationKsi[8]= 0.053145049845;
-			fLocationEta[8]= 0.310352451034;
-			fWeight[8]= 0.0414255;
-			fLocationKsi[9]= 0.310352451034;
-			fLocationEta[9]= 0.053145049845;
-			fWeight[9]= 0.0414255;
-			fLocationKsi[10]= 0.636502499121;
-			fLocationEta[10]= 0.310352451034;
-			fWeight[10]= 0.0414255;
-			fLocationKsi[11]= 0.053145049845;
-			fLocationEta[11]= 0.636502499121;
-			fWeight[11]= 0.0414255;
+			if(fNumInt!=12){DebugStop();}
+			fLocationKsi[0]= 0.249286745170910;
+			fLocationEta[0]= 0.249286745170910;
+			fWeight[0]= 0.0583931378631895;//0.0583931;
+			fLocationKsi[1]= 0.249286745170910;
+			fLocationEta[1]= 0.501426509658179;
+			fWeight[1]= 0.0583931378631895;//0.0583931;
+			fLocationKsi[2]= 0.501426509658179;
+			fLocationEta[2]= 0.249286745170910;
+			fWeight[2]= 0.0583931378631895;//0.0583931;
+			fLocationKsi[3]= 0.063089014491502;
+			fLocationEta[3]= 0.063089014491502;
+			fWeight[3]= 0.0254224531851035;//0.0254225;
+			fLocationKsi[4]= 0.063089014491502;
+			fLocationEta[4]= 0.873821971016996;
+			fWeight[4]= 0.0254224531851035;//0.0254225;
+			fLocationKsi[5]= 0.873821971016996;
+			fLocationEta[5]= 0.063089014491502;
+			fWeight[5]= 0.0254224531851035;//0.0254225;
+			fLocationKsi[6]= 0.310352451033784;
+			fLocationEta[6]= 0.636502499121399;
+			fWeight[6]= 0.0414255378091870;//0.0414255;
+			fLocationKsi[7]= 0.636502499121399;
+			fLocationEta[7]= 0.053145049844817;
+			fWeight[7]= 0.0414255378091870;//0.0414255;
+			fLocationKsi[8]= 0.053145049844817;
+			fLocationEta[8]= 0.310352451033784;
+			fWeight[8]= 0.0414255378091870;//0.0414255;
+			fLocationKsi[9]= 0.310352451033784;
+			fLocationEta[9]= 0.053145049844817;
+			fWeight[9]= 0.0414255378091870;//0.0414255;
+			fLocationKsi[10]= 0.636502499121399;
+			fLocationEta[10]= 0.310352451033784;
+			fWeight[10]= 0.0414255378091870;//0.0414255;
+			fLocationKsi[11]= 0.053145049844817;
+			fLocationEta[11]= 0.636502499121399;
+			fWeight[11]= 0.0414255378091870;//0.0414255;
 			break;
 			
 		case 7:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= -0.074785;
-			fLocationKsi[1]= 0.260345966079;
-			fLocationEta[1]= 0.260345966079;
-			fWeight[1]= 0.0878076;
-			fLocationKsi[2]= 0.260345966079;
-			fLocationEta[2]= 0.479308067842;
-			fWeight[2]= 0.0878076;
-			fLocationKsi[3]= 0.479308067842;
-			fLocationEta[3]= 0.260345966079;
-			fWeight[3]= 0.0878076;
-			fLocationKsi[4]= 0.065130102902;
-			fLocationEta[4]= 0.065130102902;
-			fWeight[4]= 0.0266736;
-			fLocationKsi[5]= 0.065130102902;
-			fLocationEta[5]= 0.869739794196;
-			fWeight[5]= 0.0266736;
-			fLocationKsi[6]= 0.869739794196;
-			fLocationEta[6]= 0.065130102902;
-			fWeight[6]= 0.0266736;
-			fLocationKsi[7]= 0.312865496005;
-			fLocationEta[7]= 0.638444188570;
-			fWeight[7]= 0.0385569;
-			fLocationKsi[8]= 0.638444188570;
-			fLocationEta[8]= 0.048690315425;
-			fWeight[8]= 0.0385569;
-			fLocationKsi[9]= 0.048690315425;
-			fLocationEta[9]= 0.312865496005;
-			fWeight[9]= 0.0385569;
-			fLocationKsi[10]= 0.312865496005;
-			fLocationEta[10]= 0.048690315425;
-			fWeight[10]= 0.0385569;
-			fLocationKsi[11]= 0.638444188570;
-			fLocationEta[11]= 0.312865496005;
-			fWeight[11]= 0.0385569;
-			fLocationKsi[12]= 0.048690315425;
-			fLocationEta[12]= 0.638444188570;
-			fWeight[12]= 0.0385569;
+			if(fNumInt!=13){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= -0.0747850222338350;//-0.074785;
+			fLocationKsi[1]= 0.260345966079040;
+			fLocationEta[1]=0.260345966079040;
+			fWeight[1]= 0.0878076287166020;//0.0878076;
+			fLocationKsi[2]= 0.260345966079040;
+			fLocationEta[2]= 0.479308067841920;
+			fWeight[2]= 0.0878076287166020;//0.0878076;
+			fLocationKsi[3]= 0.479308067841920;
+			fLocationEta[3]= 0.260345966079040;
+			fWeight[3]=0.0878076287166020;// 0.0878076;
+			fLocationKsi[4]= 0.065130102902216;
+			fLocationEta[4]= 0.065130102902216;
+			fWeight[4]= 0.0266736178044195;//0.0266736;
+			fLocationKsi[5]= 0.065130102902216;
+			fLocationEta[5]= 0.869739794195568;
+			fWeight[5]= 0.0266736178044195;//0.0266736;
+			fLocationKsi[6]= 0.869739794195568;
+			fLocationEta[6]= 0.065130102902216;
+			fWeight[6]= 0.0266736178044195;//0.0266736;
+			fLocationKsi[7]= 0.312865496004874;
+			fLocationEta[7]= 0.638444188569810;
+			fWeight[7]= 0.0385568804451285;//0.0385569;
+			fLocationKsi[8]= 0.638444188569810;
+			fLocationEta[8]= 0.048690315425316;
+			fWeight[8]= 0.0385568804451285;//0.0385569;
+			fLocationKsi[9]= 0.048690315425316;
+			fLocationEta[9]= 0.312865496004874;
+			fWeight[9]= 0.0385568804451285;//0.0385569;
+			fLocationKsi[10]= 0.312865496004874;
+			fLocationEta[10]= 0.048690315425316;
+			fWeight[10]=0.0385568804451285;// 0.0385569;
+			fLocationKsi[11]= 0.638444188569810;
+			fLocationEta[11]= 0.312865496004874;
+			fWeight[11]= 0.0385568804451285;//0.0385569;
+			fLocationKsi[12]= 0.048690315425316;
+			fLocationEta[12]= 0.638444188569810;
+			fWeight[12]= 0.0385568804451285;//0.0385569;
 			break;
 			
 		case 8:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= 0.0721578;
-			fLocationKsi[1]= 0.459292588293;
-			fLocationEta[1]= 0.459292588293;
-			fWeight[1]= 0.0475458;
-			fLocationKsi[2]= 0.459292588293;
-			fLocationEta[2]= 0.081414823415;
-			fWeight[2]= 0.0475458;
-			fLocationKsi[3]= 0.081414823415;
-			fLocationEta[3]= 0.459292588293;
-			fWeight[3]= 0.0475458;
-			fLocationKsi[4]= 0.170569307752;
-			fLocationEta[4]= 0.170569307752;
-			fWeight[4]= 0.0516087;
-			fLocationKsi[5]= 0.170569307752;
-			fLocationEta[5]= 0.658861384496;
-			fWeight[5]= 0.0516087;
-			fLocationKsi[6]= 0.658861384496;
-			fLocationEta[6]= 0.170569307752;
-			fWeight[6]= 0.0516087;
-			fLocationKsi[7]= 0.050547228317;
-			fLocationEta[7]= 0.050547228317;
-			fWeight[7]= 0.0162292;
-			fLocationKsi[8]= 0.050547228317;
-			fLocationEta[8]= 0.898905543366;
-			fWeight[8]= 0.0162292;
-			fLocationKsi[9]= 0.898905543366;
-			fLocationEta[9]= 0.050547228317;
-			fWeight[9]= 0.0162292;
-			fLocationKsi[10]= 0.263112829635;
-			fLocationEta[10]= 0.728492392955;
-			fWeight[10]= 0.0136152;
-			fLocationKsi[11]= 0.728492392955;
-			fLocationEta[11]= 0.008394777410;
-			fWeight[11]= 0.0136152;
-			fLocationKsi[12]= 0.008394777410;
-			fLocationEta[12]= 0.263112829635;
-			fWeight[12]= 0.0136152;
-			fLocationKsi[13]= 0.263112829635;
-			fLocationEta[13]= 0.008394777410;
-			fWeight[13]= 0.0136152;
-			fLocationKsi[14]= 0.728492392955;
-			fLocationEta[14]= 0.263112829635;
-			fWeight[14]= 0.0136152;
-			fLocationKsi[15]= 0.008394777410;
-			fLocationEta[15]= 0.728492392955;
-			fWeight[15]= 0.0136152;
+			if(fNumInt!=16){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= 0.0721578038388935;//0.0721578;
+			fLocationKsi[1]= 0.459292588292723;
+			fLocationEta[1]= 0.459292588292723;
+			fWeight[1]= 0.0475458171336425;//0.0475458;
+			fLocationKsi[2]= 0.459292588292723;
+			fLocationEta[2]= 0.081414823414554;
+			fWeight[2]= 0.0475458171336425;//0.0475458;
+			fLocationKsi[3]= 0.081414823414554;
+			fLocationEta[3]= 0.459292588292723;
+			fWeight[3]= 0.0475458171336425;//0.0475458;
+			fLocationKsi[4]= 0.170569307751760;
+			fLocationEta[4]= 0.170569307751760;
+			fWeight[4]= 0.0516086852673590;//0.0516087;
+			fLocationKsi[5]= 0.170569307751760;
+			fLocationEta[5]= 0.658861384496480;
+			fWeight[5]= 0.0516086852673590;//0.0516087;
+			fLocationKsi[6]= 0.658861384496480;
+			fLocationEta[6]= 0.170569307751760;
+			fWeight[6]= 0.0516086852673590;//0.0516087;
+			fLocationKsi[7]= 0.050547228317031;
+			fLocationEta[7]= 0.050547228317031;
+			fWeight[7]= 0.0162292488115990;//0.0162292;
+			fLocationKsi[8]= 0.050547228317031;
+			fLocationEta[8]= 0.898905543365938;
+			fWeight[8]= 0.0162292488115990;//0.0162292;
+			fLocationKsi[9]= 0.898905543365938;
+			fLocationEta[9]= 0.050547228317031;
+			fWeight[9]= 0.0162292488115990;//0.0162292;
+			fLocationKsi[10]= 0.263112829634638;
+			fLocationEta[10]= 0.728492392955404;
+			fWeight[10]= 0.0136151570872175;//0.0136152;
+			fLocationKsi[11]= 0.728492392955404;
+			fLocationEta[11]= 0.008394777409958;
+			fWeight[11]= 0.0136151570872175;//0.0136152;
+			fLocationKsi[12]= 0.008394777409958;
+			fLocationEta[12]= 0.263112829634638;
+			fWeight[12]= 0.0136151570872175;//0.0136152;
+			fLocationKsi[13]= 0.263112829634638;
+			fLocationEta[13]= 0.008394777409958;
+			fWeight[13]= 0.0136151570872175;//0.0136152;
+			fLocationKsi[14]= 0.728492392955404;
+			fLocationEta[14]= 0.263112829634638;
+			fWeight[14]= 0.0136151570872175;//0.0136152;
+			fLocationKsi[15]= 0.008394777409958;
+			fLocationEta[15]= 0.728492392955404;
+			fWeight[15]= 0.0136151570872175;//0.0136152;
 			break;
 			
 		case 9:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= 0.0485679;
-			fLocationKsi[1]= 0.489682519199;
-			fLocationEta[1]= 0.489682519199;
-			fWeight[1]= 0.0156674;
-			fLocationKsi[2]= 0.489682519199;
-			fLocationEta[2]= 0.020634961603;
-			fWeight[2]= 0.0156674;
-			fLocationKsi[3]= 0.020634961603;
-			fLocationEta[3]= 0.489682519199;
-			fWeight[3]= 0.0156674;
-			fLocationKsi[4]= 0.437089591493;
-			fLocationEta[4]= 0.437089591493;
-			fWeight[4]= 0.0389138;
-			fLocationKsi[5]= 0.437089591493;
-			fLocationEta[5]= 0.125820817014;
-			fWeight[5]= 0.0389138;
-			fLocationKsi[6]= 0.125820817014;
-			fLocationEta[6]= 0.437089591493;
-			fWeight[6]= 0.0389138;
-			fLocationKsi[7]= 0.188203535619;
-			fLocationEta[7]= 0.188203535619;
-			fWeight[7]= 0.0398239;
-			fLocationKsi[8]= 0.188203535619;
-			fLocationEta[8]= 0.623592928762;
-			fWeight[8]= 0.0398239;
-			fLocationKsi[9]= 0.623592928762;
-			fLocationEta[9]= 0.188203535619;
-			fWeight[9]= 0.0398239;
-			fLocationKsi[10]= 0.044729513394;
-			fLocationEta[10]= 0.044729513394;
-			fWeight[10]= 0.0127888;
-			fLocationKsi[11]= 0.044729513394;
-			fLocationEta[11]= 0.910540973211;
-			fWeight[11]= 0.0127888;
-			fLocationKsi[12]= 0.910540973211;
-			fLocationEta[12]= 0.044729513394;
-			fWeight[12]= 0.0127888;
-			fLocationKsi[13]= 0.221962989161;
-			fLocationEta[13]= 0.741198598784;
-			fWeight[13]= 0.0216418;
-			fLocationKsi[14]= 0.741198598784;
-			fLocationEta[14]= 0.036838412055;
-			fWeight[14]= 0.0216418;
-			fLocationKsi[15]= 0.036838412055;
-			fLocationEta[15]= 0.221962989161;
-			fWeight[15]= 0.0216418;
-			fLocationKsi[16]= 0.221962989161;
-			fLocationEta[16]= 0.036838412055;
-			fWeight[16]= 0.0216418;
-			fLocationKsi[17]= 0.741198598784;
-			fLocationEta[17]= 0.221962989161;
-			fWeight[17]= 0.0216418;
-			fLocationKsi[18]= 0.036838412055;
-			fLocationEta[18]= 0.741198598784;
-			fWeight[18]= 0.0216418;
+			if(fNumInt!=19){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= 0.0485678981413995;//0.0485679;
+			fLocationKsi[1]= 0.489682519198738;
+			fLocationEta[1]= 0.489682519198738;
+			fWeight[1]= 0.0156673501106950;//0.0156674;
+			fLocationKsi[2]= 0.489682519198738;
+			fLocationEta[2]= 0.020634961602525;
+			fWeight[2]=  0.0156673501106950;//0.0156674;
+			fLocationKsi[3]= 0.020634961602525;
+			fLocationEta[3]= 0.489682519198738;
+			fWeight[3]=  0.0156673501106950;//0.0156674;
+			fLocationKsi[4]= 0.437089591492937;
+			fLocationEta[4]= 0.437089591492937;
+			fWeight[4]= 0.0389137705023870;//0.0389138;
+			fLocationKsi[5]= 0.437089591492937;
+			fLocationEta[5]= 0.125820817014127;
+			fWeight[5]= 0.0389137705023870;//0.0389138;
+			fLocationKsi[6]= 0.125820817014127;
+			fLocationEta[6]= 0.437089591492937;
+			fWeight[6]= 0.0389137705023870;//0.0389138;
+			fLocationKsi[7]= 0.188203535619033;
+			fLocationEta[7]= 0.188203535619033;
+			fWeight[7]= 0.0398238694636050;//0.0398239;
+			fLocationKsi[8]= 0.188203535619033;
+			fLocationEta[8]= 0.623592928761935;
+			fWeight[8]=0.0398238694636050;// 0.0398239;
+			fLocationKsi[9]= 0.623592928761935;
+			fLocationEta[9]= 0.188203535619033;
+			fWeight[9]= 0.0398238694636050;//0.0398239;
+			fLocationKsi[10]= 0.044729513394453;
+			fLocationEta[10]= 0.044729513394453;
+			fWeight[10]= 0.0127888378293490;//0.0127888;
+			fLocationKsi[11]= 0.044729513394453;
+			fLocationEta[11]= 0.910540973211095;
+			fWeight[11]= 0.0127888378293490;//0.0127888;
+			fLocationKsi[12]= 0.910540973211095;
+			fLocationEta[12]= 0.044729513394453;
+			fWeight[12]= 0.0127888378293490;//0.0127888;
+			fLocationKsi[13]= 0.221962989160766;
+			fLocationEta[13]= 0.741198598784498;
+			fWeight[13]= 0.0216417696886445;//0.0216418;
+			fLocationKsi[14]= 0.741198598784498;
+			fLocationEta[14]= 0.036838412054736;
+			fWeight[14]= 0.0216417696886445;//0.0216418;
+			fLocationKsi[15]= 0.036838412054736;
+			fLocationEta[15]= 0.221962989160766;
+			fWeight[15]= 0.0216417696886445;//0.0216418;
+			fLocationKsi[16]= 0.221962989160766;
+			fLocationEta[16]= 0.036838412054736;
+			fWeight[16]= 0.0216417696886445;//0.0216418;
+			fLocationKsi[17]= 0.741198598784498;
+			fLocationEta[17]= 0.221962989160766;
+			fWeight[17]= 0.0216417696886445;//0.0216418;
+			fLocationKsi[18]= 0.036838412054736;
+			fLocationEta[18]= 0.741198598784498;
+			fWeight[18]= 0.0216417696886445;//0.0216418;
 			break;
 			
 		case 10:
-			fLocationKsi[0]= 0.333333333333;
-			fLocationEta[0]= 0.333333333333;
-			fWeight[0]= 0.045409;
-			fLocationKsi[1]= 0.485577633384;
-			fLocationEta[1]= 0.485577633384;
-			fWeight[1]= 0.018363;
-			fLocationKsi[2]= 0.485577633384;
-			fLocationEta[2]= 0.028844733233;
-			fWeight[2]= 0.018363;
-			fLocationKsi[3]= 0.028844733233;
-			fLocationEta[3]= 0.485577633384;
-			fWeight[3]= 0.018363;
-			fLocationKsi[4]= 0.109481575485;
-			fLocationEta[4]= 0.109481575485;
-			fWeight[4]= 0.0226605;
-			fLocationKsi[5]= 0.109481575485;
-			fLocationEta[5]= 0.781036849030;
-			fWeight[5]= 0.0226605;
-			fLocationKsi[6]= 0.781036849030;
-			fLocationEta[6]= 0.109481575485;
-			fWeight[6]= 0.0226605;
-			fLocationKsi[7]= 0.307939838764;
-			fLocationEta[7]= 0.550352941821;
-			fWeight[7]= 0.036379;
-			fLocationKsi[8]= 0.550352941821;
-			fLocationEta[8]= 0.141707219415;
-			fWeight[8]= 0.036379;
-			fLocationKsi[9]= 0.141707219415;
-			fLocationEta[9]= 0.307939838764;
-			fWeight[9]= 0.036379;
-			fLocationKsi[10]= 0.307939838764;
-			fLocationEta[10]= 0.141707219415;
-			fWeight[10]= 0.036379;
-			fLocationKsi[11]= 0.550352941821;
-			fLocationEta[11]= 0.307939838764;
-			fWeight[11]= 0.036379;
-			fLocationKsi[12]= 0.141707219415;
-			fLocationEta[12]= 0.550352941821;
-			fWeight[12]= 0.036379;
-			fLocationKsi[13]= 0.246672560640;
-			fLocationEta[13]= 0.728323904597;
-			fWeight[13]= 0.0141636;
-			fLocationKsi[14]= 0.728323904597;
-			fLocationEta[14]= 0.025003534763;
-			fWeight[14]= 0.0141636;
-			fLocationKsi[15]= 0.025003534763;
-			fLocationEta[15]= 0.246672560640;
-			fWeight[15]= 0.0141636;
-			fLocationKsi[16]= 0.246672560640;
-			fLocationEta[16]= 0.025003534763;
-			fWeight[16]= 0.0141636;
-			fLocationKsi[17]= 0.728323904597;
-			fLocationEta[17]= 0.246672560640;
-			fWeight[17]= 0.0141636;
-			fLocationKsi[18]= 0.025003534763;
-			fLocationEta[18]= 0.728323904597;
-			fWeight[18]= 0.0141636;
-			fLocationKsi[19]= 0.066803251012;
-			fLocationEta[19]= 0.923655933587;
-			fWeight[19]= 0.00471083;
-			fLocationKsi[20]= 0.923655933587;
-			fLocationEta[20]= 0.009540815400;
-			fWeight[20]= 0.00471083;
-			fLocationKsi[21]= 0.009540815400;
-			fLocationEta[21]= 0.066803251012;
-			fWeight[21]= 0.00471083;
-			fLocationKsi[22]= 0.066803251012;
-			fLocationEta[22]= 0.009540815400;
-			fWeight[22]= 0.00471083;
-			fLocationKsi[23]= 0.923655933587;
-			fLocationEta[23]= 0.066803251012;
-			fWeight[23]= 0.00471083;
-			fLocationKsi[24]= 0.009540815400;
-			fLocationEta[24]= 0.923655933587;
-			fWeight[24]= 0.00471083;
+			if(fNumInt!=25){DebugStop();}
+			fLocationKsi[0]= 1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
+			fWeight[0]= 0.0454089951913770;//0.045409;
+			fLocationKsi[1]= 0.485577633383657;
+			fLocationEta[1]= 0.485577633383657;
+			fWeight[1]= 0.0183629788782335;//0.018363;
+			fLocationKsi[2]= 0.485577633383657;
+			fLocationEta[2]= 0.028844733232685;
+			fWeight[2]= 0.0183629788782335;//0.018363;
+			fLocationKsi[3]= 0.028844733232685;
+			fLocationEta[3]= 0.485577633383657;
+			fWeight[3]= 0.0183629788782335;//0.018363;
+			fLocationKsi[4]= 0.109481575485037;
+			fLocationEta[4]= 0.109481575485037;
+			fWeight[4]= 0.0226605297177640;//0.0226605;
+			fLocationKsi[5]= 0.109481575485037;
+			fLocationEta[5]= 0.781036849029926;
+			fWeight[5]= 0.0226605297177640;//0.0226605;
+			fLocationKsi[6]= 0.781036849029926;
+			fLocationEta[6]= 0.109481575485037;
+			fWeight[6]= 0.0226605297177640;//0.0226605;
+			fLocationKsi[7]= 0.307939838764121;
+			fLocationEta[7]= 0.550352941820999;
+			fWeight[7]= 0.0363789584227100;//0.036379;
+			fLocationKsi[8]= 0.550352941820999;
+			fLocationEta[8]= 0.141707219414880;
+			fWeight[8]= 0.0363789584227100;//0.036379;
+			fLocationKsi[9]= 0.141707219414880;
+			fLocationEta[9]= 0.307939838764121;
+			fWeight[9]= 0.0363789584227100;//0.036379;
+			fLocationKsi[10]= 0.307939838764121;
+			fLocationEta[10]= 0.141707219414880;
+			fWeight[10]= 0.0363789584227100;//0.036379;
+			fLocationKsi[11]= 0.550352941820999;
+			fLocationEta[11]= 0.307939838764121;
+			fWeight[11]= 0.0363789584227100;//0.036379;
+			fLocationKsi[12]= 0.141707219414880;
+			fLocationEta[12]= 0.550352941820999;
+			fWeight[12]= 0.0363789584227100;//0.036379;
+			fLocationKsi[13]= 0.2466725606639903;
+			fLocationEta[13]= 0.728323904597411;
+			fWeight[13]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[14]= 0.728323904597411;
+			fLocationEta[14]= 0.025003534762686;
+			fWeight[14]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[15]= 0.025003534762686;//0.025003534763;
+			fLocationEta[15]= 0.2466725606639903;
+			fWeight[15]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[16]= 0.2466725606639903;
+			fLocationEta[16]= 0.025003534762686;//0.025003534763;
+			fWeight[16]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[17]= 0.728323904597411;//0.728323904597;
+			fLocationEta[17]= 0.2466725606639903;
+			fWeight[17]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[18]= 0.025003534762686;//0.025003534763;
+			fLocationEta[18]= 0.728323904597411;//0.728323904597;
+			fWeight[18]= 0.0141636212655285;//0.0141636;
+			fLocationKsi[19]= 0.066803251012200;
+			fLocationEta[19]= 0.923655933587500;
+			fWeight[19]= 0.00471083348186500;//0.00471083;
+			fLocationKsi[20]= 0.923655933587500;//0.923655933587;
+			fLocationEta[20]= 0.009540815400299;
+			fWeight[20]= 0.00471083348186500;//0.00471083;
+			fLocationKsi[21]= 0.009540815400299;
+			fLocationEta[21]= 0.066803251012200;//0.066803251012;
+			fWeight[21]= 0.00471083348186500;//0.00471083;
+			fLocationKsi[22]= 0.066803251012200;//0.066803251012;
+			fLocationEta[22]= 0.009540815400299;
+			fWeight[22]= 0.00471083348186500;//0.00471083;
+			fLocationKsi[23]= 0.923655933587500;//0.923655933587;
+			fLocationEta[23]= 0.066803251012200;//0.066803251012;
+			fWeight[23]= 0.00471083348186500;//0.00471083;
+			fLocationKsi[24]= 0.009540815400299;
+			fLocationEta[24]= 0.923655933587500;//0.923655933587;
+			fWeight[24]= 0.00471083348186500;//0.00471083;
 			break;
 			
 		case 11:
+			if(fNumInt!=27){DebugStop();}
 			fLocationKsi[0]= 0.534611048271;
 			fLocationEta[0]= 0.534611048271;
 			fWeight[0]= 0.000463503;
@@ -488,6 +519,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 12:
+			if(fNumInt!=33){DebugStop();}
 			fLocationKsi[0]= 0.488217389774;
 			fLocationEta[0]= 0.488217389774;
 			fWeight[0]= 0.0128655;
@@ -590,6 +622,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 13:
+			if(fNumInt!=37){DebugStop();}
 			fLocationKsi[0]= 0.333333333333;
 			fLocationEta[0]= 0.333333333333;
 			fWeight[0]= 0.0262605;
@@ -704,6 +737,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 14:
+			if(fNumInt!=42){DebugStop();}
 			fLocationKsi[0]= 0.488963910362;
 			fLocationEta[0]= 0.488963910362;
 			fWeight[0]= 0.0109418;
@@ -833,6 +867,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 15:
+			if(fNumInt!=48){DebugStop();}
 			fLocationKsi[0]= 0.506972916858;
 			fLocationEta[0]= 0.506972916858;
 			fWeight[0]= 0.000958438;
@@ -980,6 +1015,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 16:
+			if(fNumInt!=52){DebugStop();}
 			fLocationKsi[0]= 0.333333333333;
 			fLocationEta[0]= 0.333333333333;
 			fWeight[0]= 0.0234378;
@@ -1139,6 +1175,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 17:
+			if(fNumInt!=61){DebugStop();}
 			fLocationKsi[0]= 0.333333333333;
 			fLocationEta[0]= 0.333333333333;
 			fWeight[0]= 0.0167186;
@@ -1325,6 +1362,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 18:
+			if(fNumInt!=70){DebugStop();}
 			fLocationKsi[0]= 0.333333333333;
 			fLocationEta[0]= 0.333333333333;
 			fWeight[0]= 0.015405;
@@ -1538,6 +1576,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			break;
 			
 		case 19:
+			if(fNumInt!=73){DebugStop();}
 			fLocationKsi[0]= 0.333333333333;
 			fLocationEta[0]= 0.333333333333;
 			fWeight[0]= 0.0164532;
