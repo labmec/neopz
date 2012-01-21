@@ -154,7 +154,7 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	intvalue[3] = 0.5063395201360538;
 	intvalue[4] = 0.45428110865992366;
 	intvalue[5] = 0.2509209988237399;
-	intvalue[6] = 0.2645718117897931699940052644354916134028121112478236818865112770629;
+	intvalue[6] = 0.26457181178979317;
 	intvalue[7] = 0.4853077813019233;
 	intvalue[8] = 0.8543252469564175;
 	intvalue[9] = 0.3195852820307958;
@@ -190,24 +190,25 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	}
 	// Conclusion: We have problem at order 1. But the erro is proportional e-10 from order = 8
 
-/*
 	// Tetrahedram
-	intvalue[0] = ;
-	intvalue[1] = ;
-	intvalue[2] = ;
-	intvalue[3] = ;
-	intvalue[4] = ;
-	intvalue[5] = ;
-	intvalue[6] = ;
-	intvalue[7] = ;
-	intvalue[8] = ;
-	intvalue[9] = ;
-	intvalue[10] = ;
-	intvalue[11] = ;
-	intvalue[12] = ;
+	intvalue[0] = 0.21688291481409032598;
+	intvalue[1] = 0.31731541110893806824;
+	intvalue[2] = 0.2271127993891759;
+	intvalue[3] = 0.2227611387537444;
+	intvalue[4] = 0.2227611387537444;
+	intvalue[5] = 0.1579731476556451;
+	intvalue[6] = 0.1592039908614216;
+	intvalue[7] = 0.2114714205797953;
+	intvalue[8] = 0.3036594998229580;
+	intvalue[9] = 0.1789852244559073;
+	intvalue[10] = 0.1737775985061321;
+	intvalue[11] = 0.2150662368602839;
+	intvalue[12] = 0.1447150978897556;
 	for(order=0;order<MAXORDER;order++)
 		TestingNumericIntegrationRule<TPZIntTetra3D>(i,order,intvalue[order]);
-	
+	// Conclusion: It's failed at order = 1 and order = 4
+
+/*
 	// Pyramidal
 	intvalue[0] = ;
 	intvalue[1] = ;
@@ -224,24 +225,24 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	intvalue[12] = ;
 	for(order=0;order<MAXORDER;order++)
 		TestingNumericIntegrationRule<TPZIntPyram3D>(i,order,intvalue[order]);
-	
+*/	
 	// Prism
-	intvalue[0] = ;
-	intvalue[1] = ;
-	intvalue[2] = ;
-	intvalue[3] = ;
-	intvalue[4] = ;
-	intvalue[5] = ;
-	intvalue[6] = ;
-	intvalue[7] = ;
-	intvalue[8] = ;
-	intvalue[9] = ;
-	intvalue[10] = ;
-	intvalue[11] = ;
-	intvalue[12] = ;
+	intvalue[0] = 1.303099142275227;
+	intvalue[1] = 2.167178941089052;
+	intvalue[2] = 1.392690078000387;
+	intvalue[3] = 1.315778182547335;
+	intvalue[4] = 1.211661359595075;
+	intvalue[5] = 0.8049411399227070;
+	intvalue[6] = 0.8322427658548136;
+	intvalue[7] = 1.273714704879074;
+	intvalue[8] = 2.011749636188062;
+	intvalue[9] = 0.9422697063368188;
+	intvalue[10] = 0.9595782171944565;
+	intvalue[11] = 1.285030278864748;
+	intvalue[12] = 0.6670538495160184;
 	for(order=0;order<MAXORDER;order++)
 		TestingNumericIntegrationRule<TPZIntPrism3D>(i,order,intvalue[order]);
- */
+	// Conclusion: It's failed at order = 1 and order = 0
 }
 
 BOOST_AUTO_TEST_SUITE_END()
