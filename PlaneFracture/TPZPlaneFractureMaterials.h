@@ -10,7 +10,7 @@
 /** @brief Material index of auxiliar 1D elements in 2D refpatterns generation */
 const int __aux1DEl_Mat = -1;
 
-//BCs
+//BCs plane fracture
 const int __1DcrackTipMat = -10;//1D crack tip elements
 
 const int __1DbulletMat = -20;//1D elements that introduces injection flow rate
@@ -19,6 +19,7 @@ const int __2DfractureMat_outside = -30;//2D elements outside fracture (i.e.: no
 
 const int __2DfractureMat_inside = -40;//2D elements inside fracture (i.e.: already fractured)
 
+//BCs surrounding
 const int __2DfarfieldXZMat = -50;//2D elements in plane x,z (y_max > 0 = farfield)
 
 const int __2Dleft_rightMat = -60;//2D elements in plane y,z (one in x=0 "left farfield" and another in x_max > 0 "right farfield")

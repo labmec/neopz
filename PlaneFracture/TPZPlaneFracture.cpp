@@ -22,7 +22,13 @@
 using namespace pztopology;
 
 /** PUBLIC METHODS */
+TPZPlaneFracture::TPZPlaneFracture()
+{
+    std::cout << "Default constructor would not be used in this class!\n";
+    DebugStop();
+}
 //------------------------------------------------------------------------------------------------------------
+
 TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, 
                                    TPZVec< std::map<double,double> > & pos_stress)
 {
@@ -128,7 +134,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 	
 	DetectEdgesCrossed(poligonalChain, planeMesh, elId_TrimCoords, elIdSequence);
 	
-	//Refining 1D elements
+	//Refining auxiliar 1D elements
 	TPZVec<TPZGeoEl*> sons;
 	std::map< int, std::set<double> >::iterator it;
 	for(it = elId_TrimCoords.begin(); it != elId_TrimCoords.end(); it++)
@@ -142,7 +148,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 		el1D->Divide(sons);
 	}
     
-	//Refining 2D and 3D elements
+	//Refining 2D and 3D elements with the intention to match the geometry of the crack boundary
 	for(int el = 0; el < nelem; el++)
 	{
 		TPZGeoEl * gel = planeMesh->ElementVec()[el];//2D element in 2D mesh
@@ -165,6 +171,22 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
                     gel->SetRefPattern(elRefp);
                     gel->Divide(sons);
                 }
+                int firstFace = 20;
+                int lastFace = 25;
+                for(int f = firstFace; f < lastFace; f++)//2D BC element in 3D mesh
+                {
+                    TPZGeoElSide hexaFace(gel,f);
+                    TPZGeoElSide quadriFace = hexaFace.Neighbour();
+                    if( quadriFace != hexaFace && IsDomainBC_Material(quadriFace.Element()) )
+                    {
+                        elRefp = TPZRefPatternTools::PerfectMatchRefPattern(quadriFace.Element());
+                        if(elRefp)
+                        {
+                            quadriFace.Element()->SetRefPattern(elRefp);
+                            quadriFace.Element()->Divide(sons);
+                        }
+                    }
+                }
             }
             else
             {
@@ -174,7 +196,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 	}
 	
 	GenerateCrackBoundary(planeMesh, fullMesh, elIdSequence);    
-    HuntElementsSurroundingCrackTip(fullMesh);
+    SeparateElementsInMaterialSets(fullMesh);
     
     delete planeMesh;
 	
@@ -277,13 +299,13 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
 	}
     
     //inserting hexaedrons
-	Topol.Resize(8);
     for(int l = 0; l < (nLayers-1); l++)
     {
         for(int r = 0; r < (nrows-1); r++)
         {
             for(int c = 0; c < (ncols-1); c++)
             {
+               	Topol.Resize(8);
                 Topol[0] = ncols*r+c + l*nNodesByLayer;
                 Topol[1] = ncols*(r+1)+c + l*nNodesByLayer;
                 Topol[2] = ncols*(r+1)+c+1 + l*nNodesByLayer;
@@ -296,6 +318,58 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 
                 new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat_linear,*fFullMesh);
                 elId++;
+                
+                Topol.Resize(4);
+                if(l == (nLayers-2))//farfield cc
+                {
+                    Topol[0] = ncols*r+c + (l+1)*nNodesByLayer;
+                    Topol[1] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                    Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                    
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfarfieldXZMat,*fFullMesh);
+                    elId++;
+                }
+                if(c == 0)//left cc
+                {
+                    Topol[0] = ncols*r+c + l*nNodesByLayer;
+                    Topol[1] = ncols*(r+1)+c + l*nNodesByLayer;
+                    Topol[2] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*r+c + (l+1)*nNodesByLayer;
+                    
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dleft_rightMat,*fFullMesh);
+                    elId++;
+                }
+                else if(c == (ncols - 2))//right cc
+                {
+                    Topol[0] = ncols*r+c+1 + l*nNodesByLayer;
+                    Topol[1] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                    Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*(r+1)+c+1 + l*nNodesByLayer;
+                    
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dleft_rightMat,*fFullMesh);
+                    elId++;
+                }
+                if(r == 0)//bottom cc
+                {
+                    Topol[0] = ncols*r+c + l*nNodesByLayer;
+                    Topol[1] = ncols*r+c + (l+1)*nNodesByLayer;
+                    Topol[2] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*r+c+1 + l*nNodesByLayer;
+                    
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dtop_bottomMat,*fFullMesh);
+                    elId++;
+                }
+                else if(r == (nrows - 2))//top cc
+                {
+                    Topol[0] = ncols*(r+1)+c + l*nNodesByLayer;
+                    Topol[1] = ncols*(r+1)+c+1 + l*nNodesByLayer;
+                    Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                    
+                    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dtop_bottomMat,*fFullMesh);
+                    elId++;
+                }
             }
         }
     }
@@ -779,33 +853,6 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnPlaneMesh(int p, TPZGeoMesh * planeMe
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZGeoEl * TPZPlaneFracture::PointQPointElement(TPZGeoMesh * fullMesh, TPZVec<REAL> & x, TPZVec<REAL> & qsi)
-{
-    TPZGeoEl * pointedQPointGel = NULL;
-    
-    std::map< int,std::set<int> >::iterator it;
-    for(it = fcrackQpointsElementsIds.begin(); it != fcrackQpointsElementsIds.end(); it++)
-    {
-        int elId = it->first;
-        TPZGeoEl * firstGel = fullMesh->ElementVec()[elId];
-		if(!firstGel || firstGel->Dimension() != 3 || firstGel->MaterialId() != __3DrockMat_quarterPoint)
-		{
-            std::cout << "Quarter point element not found on " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
-		}
-        qsi.Resize(firstGel->Dimension());
-		if(firstGel->ComputeXInverse(x, qsi))
-		{
-			pointedQPointGel = firstGel;
-			break;
-		}
-    }
-    
-    return pointedQPointGel;
-}
-//------------------------------------------------------------------------------------------------------------
-
-
 double TPZPlaneFracture::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
                                           TPZVec<REAL> &node, TPZVec<REAL> &dnode,
                                           double norm, bool modulate, bool smooth)
@@ -1083,7 +1130,7 @@ void TPZPlaneFracture::GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
 //------------------------------------------------------------------------------------------------------------
 
 
-void TPZPlaneFracture::HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh)
+void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * fullMesh)
 {
     int n1Dels = fcrackBoundaryElementsIds.NElements();
     std::map<int,TPZFracture2DEl> fracturedElems;
@@ -1111,15 +1158,17 @@ void TPZPlaneFracture::HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh)
             {
                 int sideNeighbyside = sideNeigh.Side();
                 TPZGeoEl * neigh = sideNeigh.Element();
+                
                 if(neigh->HasSubElement() || neigh->Dimension() == 1)
                 {
                     sideNeigh = sideNeigh.Neighbour();
                     continue;
                 }
 
-                //primeiro estagio da identificacao dos elementos 2D que estao no interior da fratura
-                //brief: primeiramente sao identificados os elementos no interior da fratura que encostam no crack tip
-                if(sd == 2 && neigh->Dimension() == 2)
+                //Primeiro estagio da identificacao dos elementos 2D que estao no interior da fratura.
+                //brief: primeiramente sao identificados os elementos no interior da fratura que encostam no crack tip.
+                //Obs.: A condicao (IsDomainBC_Material(neigh) == false) eh para excluir os quadrilateros de condicao de contorno.
+                if(sd == 2 && neigh->Dimension() == 2 && IsDomainBC_Material(neigh) == false)
                 {
                     TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
                     neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
@@ -1194,7 +1243,7 @@ void TPZPlaneFracture::HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh)
             {
                 int sideNeighbyside = neighElSide.Side();
                 TPZGeoEl * neighEl = neighElSide.Element();
-                if(neighEl->Dimension() == 2 && !neighEl->HasSubElement())
+                if(neighEl->Dimension() == 2 && neighEl->MaterialId() == __2DfractureMat_outside && !neighEl->HasSubElement())
                 {
                     int neighElId = neighEl->Id();
                     if(finishedFracturedElems.find(neighElId) != finishedFracturedElems.end())
@@ -1278,6 +1327,10 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
             if(qpointEl->Dimension() == 3)
             {
                 qpointEl->SetMaterialId(__3DrockMat_quarterPoint);
+            }
+            else
+            {
+                elementsToRemove.insert(qpointEl->Id());
             }
             int targetSide = *(targetSides0D.begin());
             TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
@@ -1370,78 +1423,6 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
 }
 //------------------------------------------------------------------------------------------------------------
 
-//void TPZPlaneFracture::OneLeveUpDimensionSides(TPZGeoEl *gel, int side, TPZStack<int> &highSides)
-//{
-//    TPZGeoElSide gelSide(gel,side);
-//    int sideDim = gelSide.Dimension();
-//    if(sideDim > 2)
-//    {
-//        return;
-//    }
-//    
-//    TPZStack<int> highSidestemp;
-//    MElementType gelType = gel->Type();
-//    switch(gelType)
-//    {
-//        case (EPoint):
-//        {
-//            //Cant be point
-//            break;
-//        }
-//        case (EOned):
-//        {
-//            //Cant ne edge
-//            break;
-//        }
-//        case (ETriangle):
-//        {
-//            TPZTriangle::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        case (EQuadrilateral):
-//        {
-//            TPZQuadrilateral::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        case (ETetraedro):
-//        {
-//            TPZTetrahedron::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        case (EPiramide):
-//        {
-//            TPZPyramid::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        case (EPrisma):
-//        {
-//            TPZPrism::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        case (ECube):
-//        {
-//            TPZCube::HigherDimensionSides(side, highSidestemp);
-//            break;
-//        }
-//        default:
-//        {
-//            std::cout << "Element type not found on " << __PRETTY_FUNCTION__ << std::endl;
-//            DebugStop();
-//        }
-//    }
-//    for(int s = 0; s < highSidestemp.NElements(); s++)
-//    {
-//        int hs = highSidestemp[s];
-//        TPZGeoElSide hside(gel,hs);
-//        int hsideDim = hside.Dimension();
-//        if(hsideDim == (sideDim+1))
-//        {
-//            highSides.Push(hs);
-//        }
-//    }
-//}
-//------------------------------------------------------------------------------------------------------------
-
 bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides)
 {
     bySides.clear();
@@ -1470,6 +1451,25 @@ bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides)
 }
 //------------------------------------------------------------------------------------------------------------
 
+bool TPZPlaneFracture::IsDomainBC_Material(TPZGeoEl * gel)
+{
+    int materialId = gel->MaterialId();
+    
+    if(materialId == __2DfarfieldXZMat)
+    {
+        return true;
+    }
+    else if(materialId == __2Dleft_rightMat)
+    {
+        return true;
+    }
+    else if(materialId == __2Dtop_bottomMat)
+    {
+        return true;
+    }
+    
+    return false;
+}
 
 /** to Phil - TESTAR NOVAMENTE DEPOIS DE TANTAS ALTERACOES!!! */
 void TPZPlaneFracture::GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain,

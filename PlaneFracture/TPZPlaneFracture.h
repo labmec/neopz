@@ -137,6 +137,8 @@ public:
 class TPZPlaneFracture
 {
 	public:
+    
+    TPZPlaneFracture();
 	
 	/**
 	 * @brief Constructor
@@ -270,12 +272,6 @@ class TPZPlaneFracture
 	 */
 	static TPZGeoEl * PointElementOnPlaneMesh(int p, TPZGeoMesh * fractMesh, const TPZVec<REAL> &poligonalChain);
     
-    /**
-     * @brief for a given mesh and an point (x) on that, returns the element that contains it and\n
-     *          the respective coordinates in parametric space (qsi)
-     */
-    TPZGeoEl * PointQPointElement(TPZGeoMesh * fullMesh, TPZVec<REAL> & x, TPZVec<REAL> & qsi);
-	
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dnode e cruza a reta (x+alphaX.dx)
 	/**
@@ -335,7 +331,7 @@ class TPZPlaneFracture
     /**
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
      */
-    void HuntElementsSurroundingCrackTip(TPZGeoMesh * fullMesh);
+    void SeparateElementsInMaterialSets(TPZGeoMesh * fullMesh);
 
     /**
      * @brief Once the fcrackQpointsElementsIds atribute is filled (by HuntElementsSurroundingCrackTip method),\n
@@ -344,9 +340,9 @@ class TPZPlaneFracture
      */
     void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
     
-    //static void OneLeveUpDimensionSides(TPZGeoEl * gel, int side, TPZStack<int> &sides);
-    
     bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
+    
+    static bool IsDomainBC_Material(TPZGeoEl * gel);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
