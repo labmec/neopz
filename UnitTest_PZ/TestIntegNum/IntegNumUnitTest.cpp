@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+#include <string>
 
 // Using Unit Test of the Boost Library
 #ifdef USING_BOOST
@@ -28,6 +29,8 @@ using namespace std;
 // Output file with the first test.
 bool first_run = false;
 int FirstOrder = 0;
+
+std::string dirname = PZSOURCEDIR;
 
 // Numerical integration values obtained using Mathematica: one-dim, quadrilateral, triangular, cube, tetrahedram, pyramidal, prism
 REAL intvalue[7][MAXORDER] = { {2.000000000000000,2.606198284550454,2.659572164415588,1.499341835485549,2.367617787494460,1.825083430864047,2.169215575174691,1.617745418673051,2.480691807001154,1.347699766137747,1.417801801857337,1.935192061654517,1.429663752832786},
@@ -127,9 +130,11 @@ void TestingNumericIntegrationRule(int exp, int p, REAL intvalue,boost::test_too
 BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
-	
-	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult1D.txt",false);
-	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult1D.txt");
+
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult1D.txt";
+	boost::test_tools::output_test_stream output(filename,false);
+	std::ofstream FirstResult(filename.c_str());
 	
 	int i = 2;
 	int order;
@@ -147,8 +152,10 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	
-	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult2D.txt",false);
-	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult2D.txt");
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult2D.txt";
+	boost::test_tools::output_test_stream output(filename,false);
+	std::ofstream FirstResult(filename.c_str());
 	
 	int i = 2;
 	int order;
@@ -174,9 +181,11 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
-	
-	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult3D.txt",false);
-	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult3D.txt");
+
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult3D.txt";
+	boost::test_tools::output_test_stream output(filename,false);
+	std::ofstream FirstResult(filename.c_str());
 	
 	int i = 2;
 	int order;
@@ -200,11 +209,10 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	
 	// Pyramidal
 	for(order=FirstOrder;order<MAXORDER;order++) {
-		FirstResult << 1.0 << std::endl;
 		//		TestingNumericIntegrationRule<TPZIntPyram3D>(i,order,out);  // It isn't implemented yet
 	}
-	if(first_run) FirstResult << std::endl;
-	else output << std::endl;
+//	if(first_run) FirstResult << std::endl;
+//	else output << std::endl;
 	
 	// Prism
 	for(order=FirstOrder;order<MAXORDER;order++) {
