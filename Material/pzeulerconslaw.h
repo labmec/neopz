@@ -816,12 +816,6 @@ inline REAL val(T & number)
 }
 #endif
 
-/** @brief Returns value of the variable */ 
-inline REAL val(REAL & number)
-{
-	return number;
-}
-
 template< class T >
 inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> &U)
 {

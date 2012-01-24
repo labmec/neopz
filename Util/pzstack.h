@@ -74,8 +74,8 @@ TPZStack<T, NumExtAlloc>::TPZStack() : TPZManVector<T, NumExtAlloc>(0) {
 // Puts an object on the stack
 template<class T, int NumExtAlloc >
 void TPZStack<T, NumExtAlloc>::Push(const T object) {
-	Resize(this->NElements()+1);
-	operator[](this->NElements()-1) = object;
+	this->Resize(this->NElements()+1);
+	this->operator[](this->NElements()-1) = object;
 }
 
 // Retrieve an object from the stack
@@ -99,7 +99,7 @@ T & TPZStack<T, NumExtAlloc>::Peek() const {
 		PZError.flush();
 		exit(-1);
 	}
-	return operator[](this->NElements()-1);
+	return this->operator[](this->NElements()-1);
 }
 
 #endif // PZSTACK_H

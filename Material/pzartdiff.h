@@ -19,6 +19,13 @@
 #include "fadType.h"
 #endif
 
+
+/** @brief Returns value of the variable */ 
+inline REAL val(REAL & number)
+{
+	return number;
+}
+
 /**
  * @ingroup material 
  * @enum TPZArtDiffType
