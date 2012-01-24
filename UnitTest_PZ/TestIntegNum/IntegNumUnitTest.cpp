@@ -128,8 +128,8 @@ BOOST_AUTO_TEST_SUITE(numinteg_tests)
 
 BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	
-	boost::test_tools::output_test_stream output("FirstResult1D.txt",false);
-	std::ofstream FirstResult("FirstResult1D.txt");
+	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult1D.txt",false);
+	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult1D.txt");
 	
 	int i = 2;
 	int order;
@@ -147,8 +147,8 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	
-	boost::test_tools::output_test_stream output("FirstResult2D.txt",false);
-	std::ofstream FirstResult("FirstResult2D.txt");
+	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult2D.txt",false);
+	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult2D.txt");
 	
 	int i = 2;
 	int order;
@@ -175,8 +175,8 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	
-	boost::test_tools::output_test_stream output("FirstResult3D.txt",false);
-	std::ofstream FirstResult("FirstResult3D.txt");
+	boost::test_tools::output_test_stream output("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult3D.txt",false);
+	std::ofstream FirstResult("../../../../neopz/UnitTest_PZ/TestIntegNum/FirstResult3D.txt");
 	
 	int i = 2;
 	int order;
