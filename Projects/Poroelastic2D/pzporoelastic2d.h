@@ -89,7 +89,7 @@ public:
 	
 	/** 
 	 * @brief Set parameters of elastic material:
-	  * @param E elasticity modulus
+	* @param E elasticity modulus
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
