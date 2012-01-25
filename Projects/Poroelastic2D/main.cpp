@@ -86,21 +86,21 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	InitializePZLOG();
+	InitializePZLOG("../mylog.cfg");
 #endif
 	
-	int p=2;
+	int p=1;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom(10.,10.);
+	TPZGeoMesh * gmesh = MalhaGeom(2.,2.);
 	ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
 	ofstream file1("malhageoInicial.vtk");
 	PrintGMeshVTK(gmesh, file1);
 	
 	// First computational mesh
-	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+1);
+	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 	
@@ -113,8 +113,7 @@ int main(int argc, char *argv[])
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
 	//RefinUniformElemComp(cmesh1,2);
-	RefinElemComp(cmesh1,4);
-	RefinElemComp(cmesh1,7);
+	RefinElemComp(cmesh1,1);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -161,6 +160,10 @@ int main(int argc, char *argv[])
 	meshvec[0] = cmesh1;
 	meshvec[1] = cmesh2;
 	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec);
+	
+	ofstream file6("mphysics.vtk");
+	PrintGMeshVTK(gmesh, file6);
+	
 	TPZAnalysis an(mphysics);
 	SolveSist(an, mphysics);
 	std::string plotfile3("saidaMultphysics.vtk");
@@ -364,6 +367,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL Eyoung = 100.;
 	REAL nu = 0.35;
 	REAL alpha=1.0;
+	REAL biot=1.0;
+	REAL bulk=2.0;	
 	REAL rockrho = 2330.0; // SI system
 	REAL gravity = 9.8; // SI system
 	REAL fx=0.0;
@@ -380,6 +385,11 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mymaterial->SetParameters(Eyoung, nu, alpha, fx, fy);
 	mymaterial->SetParameters(perm,visc);
 	mymaterial->SetfPlaneProblem(planestress);
+	
+	// Biot's parameter @biot
+	// Bulk rock parameter @bulk
+	mymaterial->SetAlpha(biot,bulk);
+	
 	
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
