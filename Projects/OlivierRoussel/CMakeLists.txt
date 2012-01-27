@@ -3,7 +3,7 @@ file(GLOB source *.cpp)
 
 set(HPAdaptive_SRCS ${header} ${source})
 
-add_executable(HPAdaptive ${HPAdaptive_SRCS})
+add_executable(OlivierRoussel ${HPAdaptive_SRCS})
 
-target_link_libraries(HPAdaptive pz)
+target_link_libraries(OlivierRoussel pz)
 

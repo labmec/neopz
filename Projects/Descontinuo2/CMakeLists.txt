@@ -3,6 +3,6 @@ file(GLOB sources *.cpp)
 
 set(main_SRCS ${sources} ${headers})
 
-add_executable(EulerDescontinuous2 ${main_SRCS} ${headers})
+add_executable(Descontinuous2_Euler ${main_SRCS} ${headers})
 
-target_link_libraries(EulerDescontinuous2 pz pthread)
+target_link_libraries(Descontinuous2_Euler pz pthread)

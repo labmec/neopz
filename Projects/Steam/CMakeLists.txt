@@ -14,9 +14,9 @@ set(MarxLang_SRCS ConvertionMethods.cpp PropertiesTable.cpp
 
 set(main_SRCS ${locheaders} ${MarxLang_SRCS})
 
-add_executable(MarxLang ${main_SRCS} ${locheader})
+add_executable(Steam_MarxLang ${main_SRCS} ${locheader})
 
-target_link_libraries(MarxLang pz pthread)
+target_link_libraries(Steam_MarxLang pz pthread)
 
 set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
     TPBrSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp ThermalMethodsTables.cpp ConvertionMethods.cpp tpbrcellconservation.cpp PropertiesTable.cpp

@@ -8,7 +8,7 @@ set(main_SRCS
 
 add_executable(BlackOil ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
+target_link_libraries(BlackOil pz pthread)
 
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS BlackOil ${INSTALL_TARGETS_DEFAULT_ARGS})
 

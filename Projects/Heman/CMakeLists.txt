@@ -12,9 +12,9 @@ set(HeMan_SRCS
     Quad_1_Rib_Marked.cpp
     Quad_2_Rib_Ad_Marked.cpp)
 
-add_executable(HeMan ${HeMan_SRCS})
+add_executable(Heman ${HeMan_SRCS})
 
-target_link_libraries(HeMan ${KDE4_KDECORE_LIBS})
+target_link_libraries(Heman ${KDE4_KDECORE_LIBS})
 
-install(TARGETS HeMan ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS Heman ${INSTALL_TARGETS_DEFAULT_ARGS})
 

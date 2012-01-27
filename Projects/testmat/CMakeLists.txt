@@ -4,7 +4,7 @@ file(GLOB header *.h)
 
 set(pztutormat ${pztutormat} ${source} ${header} PARENT_SCOPE)
 
-add_executable(TutorialMatrix ${source} ${header})
+add_executable(testmat_Tutorial ${source} ${header})
 
-target_link_libraries(TutorialMatrix pz pthread)
+target_link_libraries(testmat_Tutorial pz pthread)
 

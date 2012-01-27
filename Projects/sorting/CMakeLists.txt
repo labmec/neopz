@@ -6,10 +6,10 @@ include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
 
 set(sort_SRCS sort.cpp)
 
-add_executable(sort ${sort_SRCS})
+add_executable(sorting ${sort_SRCS})
 
-target_link_libraries(sort ${KDE4_KDECORE_LIBS} pz metis)
+target_link_libraries(sorting ${KDE4_KDECORE_LIBS} pz metis)
 
-install(TARGETS sort ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS sorting ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 

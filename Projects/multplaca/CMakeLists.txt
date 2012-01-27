@@ -6,9 +6,9 @@ include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
 
 set(jornadas_SRCS jornadas.cpp)
 
-add_executable(jornadas ${jornadas_SRCS})
+add_executable(multplaca ${jornadas_SRCS})
 
-target_link_libraries(jornadas ${KDE4_KDECORE_LIBS})
+target_link_libraries(multplaca ${KDE4_KDECORE_LIBS})
 
-install(TARGETS jornadas ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS multplaca ${INSTALL_TARGETS_DEFAULT_ARGS})
 

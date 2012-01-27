@@ -1,9 +1,9 @@
 
 set(main_SRCS main.cpp)
 
-add_executable(ArtificialDiffusion ${main_SRCS})
+add_executable(ArtDiff ${main_SRCS})
 
-target_link_libraries(ArtificialDiffusion pz metis)
+target_link_libraries(ArtDiff pz metis)
 
 
 

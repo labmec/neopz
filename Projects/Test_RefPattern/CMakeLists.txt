@@ -6,9 +6,9 @@ include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
 
 set(RefPat_SRCS main.cpp)
 
-add_executable(RefPat ${RefPat_SRCS})
+add_executable(Test_RefPattern ${RefPat_SRCS})
 
-target_link_libraries(RefPat ${KDE4_KDECORE_LIBS} pz metis)
+target_link_libraries(Test_RefPattern ${KDE4_KDECORE_LIBS} pz metis)
 
-install(TARGETS RefPat ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS Test_RefPattern ${INSTALL_TARGETS_DEFAULT_ARGS})
 

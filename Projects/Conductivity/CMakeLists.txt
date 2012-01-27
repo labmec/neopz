@@ -8,19 +8,17 @@ set(flux_SRCS pzvoidflux.cpp voidflux_test.cpp TPZConductivityProblem.cpp)
 
 set(conduct_SRCS pzvoidflux.cpp TPZConductivityProblem.cpp TPZConductivityMain.cpp)
 
+# First executable: main function in conductivity.cpp
 add_executable(conductivity ${main_SRCS} ${header})
-
-if(USING_BOOST)
-add_executable(VoidFluxTest ${flux_SRCS} ${header})
-endif()
-
-add_executable(VoidFlux ${conduct_SRCS} ${header})
-
 target_link_libraries(conductivity pz pthread)
 
-if(USING_BOOST)
-target_link_libraries(VoidFluxTest pz pthread boost_unit_test_framework)
-endif()
+# Second executable: main function in TPZConductivityMain.cpp
+add_executable(conductivity_VoidFlux ${conduct_SRCS} ${header})
+target_link_libraries(conductivity_VoidFlux pz pthread)
 
-target_link_libraries(VoidFlux pz pthread)
+# Third executable: main function in voidflux_test.cpp - It is a Unit Test project????
+if(USING_BOOST)
+	add_executable(conductivity_VoidFluxTest ${flux_SRCS} ${header})
+	target_link_libraries(conductivity_VoidFluxTest pz pthread boost_unit_test_framework)
+endif()
 

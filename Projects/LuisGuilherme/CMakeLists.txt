@@ -6,9 +6,9 @@ include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
 
 set(main_SRCS main.cc)
 
-add_executable(main ${main_SRCS})
+add_executable(LuisGuilherme ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
+target_link_libraries(LuisGuilherme ${KDE4_KDECORE_LIBS})
 
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS LuisGuilherme ${INSTALL_TARGETS_DEFAULT_ARGS})
 

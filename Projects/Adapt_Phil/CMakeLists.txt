@@ -5,9 +5,7 @@ set(main_SRCS
     pzcclonemesh.cc
     pzgclonemesh.cc)
 
-add_executable(AdaptPhil ${main_SRCS})
+add_executable(Adapt_Phil ${main_SRCS})
 
-target_link_libraries(AdaptPhil pz metis)
-
-##install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+target_link_libraries(Adapt_Phil pz metis)
 

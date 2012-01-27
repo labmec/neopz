@@ -10,9 +10,9 @@ set(main_SRCS
     pzcclonemesh.cpp
     pzgclonemesh.cpp)
 
-add_executable(main ${main_SRCS})
+add_executable(qualif ${main_SRCS})
 
-target_link_libraries(main ${KDE4_KDECORE_LIBS})
+target_link_libraries(qualif ${KDE4_KDECORE_LIBS})
 
-install(TARGETS main ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS qualif ${INSTALL_TARGETS_DEFAULT_ARGS})
 

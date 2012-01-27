@@ -6,7 +6,7 @@ file(GLOB source *.cpp)
 
 set(pzclass5 ${source} PARENT_SCOPE)
 
-add_executable(Class_5 ${source} ${header})
+add_executable(CursoPZ_Class5 ${source} ${header})
 
-target_link_libraries(Class_5 pz pthread)
+target_link_libraries(CursoPZ_Class5 pz pthread)
 

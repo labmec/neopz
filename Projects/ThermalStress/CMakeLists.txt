@@ -4,7 +4,7 @@ file(GLOB header *.h)
 
 file(GLOB sources *.cpp)
 
-add_executable(PerkinsGonzalez ${sources} ${header})
+add_executable(ThermalStress ${sources} ${header})
 
-target_link_libraries(PerkinsGonzalez pz pthread)
+target_link_libraries(ThermalStress pz pthread)
 

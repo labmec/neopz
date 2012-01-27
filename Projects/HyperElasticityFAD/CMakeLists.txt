@@ -6,7 +6,7 @@ file(GLOB header *.h)
 
 set(main_SRCS main.cpp)
 
-add_executable(HyperElasticity ${main_SRCS} ${header})
+add_executable(HyperElasticityFAD ${main_SRCS} ${header})
 
-target_link_libraries(HyperElasticity pz pthread)
+target_link_libraries(HyperElasticityFAD pz pthread)
 
