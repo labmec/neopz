@@ -1352,9 +1352,16 @@ int TPZSubCompMesh::NumInternalEquations() {
 	for (i=0; i< nmeshnodes; i++){
 		if(fExternalLocIndex[i] == -1) {
 			TPZConnect &df = fConnectVec[i];
-			if(df.HasDependency() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
+			if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
+            int dfsize = df.NShape()*df.NState();
+#ifdef DEBUG
 			int seqnum = df.SequenceNumber();
-			numeq += Block().Size(seqnum);
+			int blsize = Block().Size(seqnum);
+            if (blsize != dfsize) {
+                DebugStop();
+            }
+#endif
+            numeq += dfsize;
 		}
 	}
 	return numeq;
