@@ -73,7 +73,8 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
 			int conind = ek.fConstrConnect[b];
-			if(Mesh()->ConnectVec()[conind].HasDependency()) continue;
+            TPZConnect &con = Mesh()->ConnectVec()[conind];
+			if(con.HasDependency() || con.IsCondensed()) continue;
 			TPZFMatrix ekbl(blsize,blsize);
 			int r,c;
 			TPZBlock &mbl = ek.fConstrBlock;
@@ -93,6 +94,9 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
 			TPZFMatrix ekbl(blsize,blsize);
+			int conind = ek.fConnect[b];
+            TPZConnect &con = Mesh()->ConnectVec()[conind];
+			if(con.HasDependency() || con.IsCondensed()) continue;
 			int r,c;
 			TPZBlock &mbl = ek.fBlock;
 			for(r=0; r<blsize; r++) {
@@ -191,8 +195,10 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int>
 
 TPZCompEl::~TPZCompEl() {
 	int index = Index();
-	fMesh->ElementVec()[index] = 0;
-	fMesh->ElementVec().SetFree(index);
+    if (fMesh->ElementVec()[index] == this) {
+        fMesh->ElementVec()[index] = 0;
+        fMesh->ElementVec().SetFree(index);        
+    }
 }
 
 MElementType TPZCompEl::Type() {
@@ -487,7 +493,7 @@ int TPZCompEl::NEquations(){
 	int numeq=0;
 	for (;i<NConnects(); i++){
 		TPZConnect &df = Connect(i);
-		if(df.HasDependency() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
+		if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
 		int seqnum = df.SequenceNumber();
 		numeq += Mesh()->Block().Size(seqnum);
 	}

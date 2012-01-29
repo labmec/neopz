@@ -17,6 +17,7 @@
 #include "pzreal.h" // Added by ClassView
 #include "pzsave.h"
 #include "pzgmesh.h"
+#include "pzcreateapproxspace.h"
 
 //#include "pzanalysis.h"
 //#include <iostream>
@@ -112,6 +113,11 @@ protected:
 	 * @brief Default order for all elements of this mesh
 	 */
 	int fDefaultOrder;
+    
+    /**
+     * @brief The object which defines the type of space being created
+     */
+    TPZCreateApproximationSpace fCreate;
 	
 public:
 	
@@ -485,6 +491,14 @@ private:
 	
 public:
 	
+    /**
+     * @brief Create a computational element based on the geometric element
+     */
+    TPZCompEl *CreateCompEl(TPZGeoEl *gel, int &index)
+    {
+        return fCreate.CreateCompEl(gel, *this, index);
+    }
+    
 	/**
 	 * @brief Creates the computational elements, and the degree of freedom nodes
 	 */ 
@@ -504,15 +518,51 @@ public:
 	 * indices contains the type of the element. Element type are given by the enumerate MCreationType.
 	 */
 	virtual void AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const TPZVec<TPZGeoEl*> &discontinuous);
+    
+    TPZCreateApproximationSpace &ApproxSpace()
+    {
+        return fCreate;
+    }
 	
-	static  void SetAllCreateFunctionsDiscontinuous();
-	static  void SetAllCreateFunctionsContinuous();
-	static  void SetAllCreateFunctionsDiscontinuousReferred();
-	static  void SetAllCreateFunctionsContinuousReferred();
-	static  void SetAllCreateFunctionsHDiv();
-	static  void SetAllCreateFunctions(TPZCompEl &cel);
-	static  void SetAllCreateFunctionsMultiphysicElem();
-    static void SetAllCreateFunctionsContinuousWithMem();
+    void SetAllCreateFunctionsDiscontinuous()
+    {
+        fCreate.SetAllCreateFunctionsDiscontinuous();
+    }
+    
+    void SetAllCreateFunctionsContinuous()
+    {
+        fCreate.SetAllCreateFunctionsContinuous();
+    }
+    
+    void SetAllCreateFunctionsDiscontinuousReferred()
+    {
+        fCreate.SetAllCreateFunctionsDiscontinuousReferred();
+    }
+    
+    void SetAllCreateFunctionsContinuousReferred()
+    {
+        fCreate.SetAllCreateFunctionsContinuousReferred();
+    }
+    
+    void SetAllCreateFunctionsHDiv()
+    {
+        fCreate.SetAllCreateFunctionsHDiv();
+    }
+    
+    void SetAllCreateFunctions(TPZCompEl &cel)
+    {
+        fCreate.SetAllCreateFunctions(cel, this);
+    }
+
+    void SetAllCreateFunctionsMultiphysicElem()
+    {
+        fCreate.SetAllCreateFunctionsMultiphysicElem();
+    }
+
+    void SetAllCreateFunctionsContinuousWithMem()
+    {
+        fCreate.SetAllCreateFunctionsContinuousWithMem();
+    }
 		
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */
 	/** Put material pointers into the elements. Check on the number of dof of the connects */
