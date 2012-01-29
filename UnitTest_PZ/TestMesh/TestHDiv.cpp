@@ -37,7 +37,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 
 #include <boost/test/unit_test.hpp>
 
-TPZAutoPointer<TPZCompMesh> GenerateMesh(int type);
+static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type);
 int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
 int CompareSideShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB);
 
@@ -50,6 +50,7 @@ BOOST_AUTO_TEST_SUITE(mesh_tests)
 
 BOOST_AUTO_TEST_CASE(sideshape_continuity)
 {
+    InitializePZLOG();
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     TPZGeoMesh *gmesh = cmesh->Reference();
     TPZManVector<int,4> nodeids(4,0), nodesperm(4,0);
@@ -174,7 +175,7 @@ void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
 
 BOOST_AUTO_TEST_SUITE_END()
 
-TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
+static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
 {
     TPZManVector<int,3> nx(2,3);
     TPZManVector<REAL,3> x0(3,0.),x1(3,3.);
