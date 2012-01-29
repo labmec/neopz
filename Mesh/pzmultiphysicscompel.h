@@ -156,7 +156,7 @@ public:
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(){
-		TPZCompMesh::SetAllCreateFunctionsMultiphysicElem();
+		Mesh()->SetAllCreateFunctionsMultiphysicElem();
 	}
     
     /** @brief add an element to the datastructure */
