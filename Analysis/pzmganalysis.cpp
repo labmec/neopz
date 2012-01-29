@@ -469,7 +469,7 @@ TPZCompMesh  *TPZMGAnalysis::UniformlyRefineMesh(TPZCompMesh *mesh, bool withP) 
 		int celindex;
 		for(isub=0; isub<nsub; isub++) {
 			TPZInterpolatedElement *csint;
-			csint = (TPZInterpolatedElement *) sub[isub]->CreateCompEl(*cmesh,celindex);
+			csint = (TPZInterpolatedElement *) cmesh->CreateCompEl(sub[isub],celindex);
 			if(withP) csint->PRefine(porder+1);
 			else csint->PRefine(porder);
 		}
