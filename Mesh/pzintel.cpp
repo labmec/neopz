@@ -651,8 +651,9 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 			newnodeindex = cmesh->AllocateNewConnect(nshape,nvar,order);
 			TPZConnect &newnod = cmesh->ConnectVec()[newnodeindex];
 			if(newnod.HasDependency()) {
-				LOGPZ_DEBUG(logger, "CreateMidSideConnect, new node has dependency");
+				LOGPZ_ERROR(logger, "CreateMidSideConnect, new node has dependency");
 				newnod.Print(*cmesh);
+                DebugStop();
 			}
 			int seqnum = newnod.SequenceNumber();
 			SetConnectIndex(nodloc,newnodeindex);   //Is true only to one-dimensional case
@@ -738,8 +739,9 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 		if(Connect(MidSideConnectLocId(side)).HasDependency()) {
 			stringstream sout;
 			sout << "TPZInterpolatedElement fodeu side " << side << endl;
-			LOGPZ_WARN(logger,sout.str());
+			LOGPZ_ERROR(logger,sout.str());
 			father = thisside.LowerLevelElementList(1);
+            DebugStop();
 		}
 		elvec.Resize(0);
 		thisside.EqualLevelElementList(elvec,1,0);
@@ -828,7 +830,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 		return;
 	}
 	if(locallargeref.Dimension() == 0) {
-		LOGPZ_INFO(logger, "Exiting RestrainSide - dimension of large element is 0");
+		LOGPZ_ERROR(logger, "Exiting RestrainSide - dimension of large element is 0");
 		return;
 	}
 	TPZGeoElSide thisgeoside(Reference(),side);
@@ -837,7 +839,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	thisgeoside.SideTransform3(largeside,t);
 	TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side,SideOrder(side)*2);
 	if(!intrule) {
-		LOGPZ_WARN(logger, "Exiting RestrainSide - cannot create side integration rule");
+		LOGPZ_ERROR(logger, "Exiting RestrainSide - cannot create side integration rule");
 		return;
 	}
 	int numint = intrule->NPoints();
@@ -1329,7 +1331,7 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 /**Implement the refinement of an interpolated element*/
 void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolatesolution) {
 	
-	TPZCompMesh::SetAllCreateFunctions(*this);
+	Mesh()->SetAllCreateFunctions(*this);
 	
 	//necessary to allow continuous and discontinuous elements in same simulation
 	this->RemoveInterfaces();
@@ -1389,7 +1391,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 	fMesh->SetDefaultOrder( PreferredSideOrder(ncon-1) );
 	for (i=0;i<nsubelements;i++) {
 		cref = pv[i];//ponteiro para subelemento i
-		cref->CreateCompEl(*fMesh,sub[i]);
+		fMesh->CreateCompEl(cref,sub[i]);
 		//    cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
 		//    cel->CheckConstraintConsistency();
 		//    if(chk.CheckConnectOrderConsistency() != -1) {
