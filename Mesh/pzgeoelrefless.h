@@ -108,7 +108,7 @@ public:
 	
 	/** return 1 if the element has subelements along side */
 	//virtual int HasSubElement();
-	virtual  TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
+	//virtual  TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
 	
 	
 	/** @brief Returns 1 if the element has subelements along side*/
@@ -340,11 +340,13 @@ int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<RE
 	return side;
 }
 
+/*
 template<class TGeo>
 inline
 TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
 	return TGeo::fp(this,mesh,index);
 }
+*/
 
 #include "pzgeoelrefless.h.h"
 
