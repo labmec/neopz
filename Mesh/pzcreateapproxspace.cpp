@@ -13,6 +13,7 @@
 #include "pzgeoel.h"
 #include "pzcmesh.h"
 #include "pzelctemp.h"
+#include "pzcondensedcompel.h"
 
 #include "pzshapecube.h"
 #include "pzshapelinear.h"
@@ -43,7 +44,10 @@ TPZCompEl *CreatePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 }
 TPZCompEl *CreateLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	if(!gel->Reference() && gel->NumInterfaces() == 0)
-		return new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
+    {
+		TPZCompEl *result = new TPZIntelGen<TPZShapeLinear>(mesh,gel,index);
+        return result;//new TPZCondensedCompel(result);
+    }
 	return NULL;
 }
 TPZCompEl *CreateQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
@@ -120,8 +124,37 @@ TPZCompEl *CreateTetraElWithMem(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return NULL;
 }
 
-void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
+/**
+ * @brief Creates the computational elements, and the degree of freedom nodes
+ */ 
+/** Only element of material id in the set<int> will be created */
+void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs){
+    cmesh.AutoBuild(MaterialIDs);
+}
+
+/** @brief Creates the computational elements, and the degree of freedom nodes */
+void TPZCreateApproximationSpace::AutoBuild(TPZCompMesh &cmesh){
+    cmesh.AutoBuild();
+}
+
+void TPZCreateApproximationSpace::SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh){
+	cel.SetCreateFunctions(mesh);
+}
+
+
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous(){
 	
+    fp[EPoint] = TPZCompElDisc::CreateDisc;
+    fp[EOned] = TPZCompElDisc::CreateDisc;
+    fp[ETriangle] = TPZCompElDisc::CreateDisc;
+    fp[EQuadrilateral] = TPZCompElDisc::CreateDisc;
+    fp[ETetraedro] = TPZCompElDisc::CreateDisc;
+    fp[EPiramide] = TPZCompElDisc::CreateDisc;
+    fp[EPrisma] = TPZCompElDisc::CreateDisc;
+    fp[ECube] = TPZCompElDisc::CreateDisc;
+    
+    /*
 	pzgeom::TPZGeoPoint::fp = TPZCompElDisc::CreateDisc;
 	pzgeom::TPZGeoLinear::fp = TPZCompElDisc::CreateDisc;
 	pzgeom::TPZGeoQuad::fp = TPZCompElDisc::CreateDisc;
@@ -130,10 +163,21 @@ void TPZCompMesh::SetAllCreateFunctionsDiscontinuous(){
 	pzgeom::TPZGeoTetrahedra::fp = TPZCompElDisc::CreateDisc;
 	pzgeom::TPZGeoPyramid::fp = TPZCompElDisc::CreateDisc;
 	pzgeom::TPZGeoCube::fp = TPZCompElDisc::CreateDisc;
+     */
 }
 
 
-void TPZCompMesh::SetAllCreateFunctionsContinuous(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
+    fp[EPoint] = CreatePointEl;
+    fp[EOned] = CreateLinearEl;
+    fp[ETriangle] = CreateTriangleEl;
+    fp[EQuadrilateral] = CreateQuadEl;
+    fp[ETetraedro] = CreateTetraEl;
+    fp[EPiramide] = CreatePyramEl;
+    fp[EPrisma] = CreatePrismEl;
+    fp[ECube] = CreateCubeEl;
+    
+    /*
 	pzgeom::TPZGeoPoint::fp =  CreatePointEl;
 	pzgeom::TPZGeoLinear::fp =  CreateLinearEl;
 	pzgeom::TPZGeoQuad::fp = CreateQuadEl;
@@ -142,12 +186,23 @@ void TPZCompMesh::SetAllCreateFunctionsContinuous(){
 	pzgeom::TPZGeoTetrahedra::fp = CreateTetraEl;
 	pzgeom::TPZGeoPyramid::fp = CreatePyramEl;
 	pzgeom::TPZGeoCube::fp = CreateCubeEl;
-	
+	*/
 	
 }
 
-void TPZCompMesh::SetAllCreateFunctionsContinuousWithMem()
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
 {
+    fp[EPoint] = CreatePointElWithMem;
+    fp[EOned] = CreateLinearElWithMem;
+    fp[ETriangle] = CreateTriangleElWithMem;
+    fp[EQuadrilateral] = CreateQuadElWithMem;
+    fp[ETetraedro] = CreateTetraElWithMem;
+    fp[EPiramide] = CreatePyramElWithMem;
+    fp[EPrisma] = CreatePrismElWithMem;
+    fp[ECube] = CreateCubeElWithMem;
+    
+
+    /*
 	pzgeom::TPZGeoPoint::fp =  CreatePointElWithMem;
 	pzgeom::TPZGeoLinear::fp =  CreateLinearElWithMem;
 	pzgeom::TPZGeoQuad::fp = CreateQuadElWithMem;
@@ -156,13 +211,24 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousWithMem()
 	pzgeom::TPZGeoTetrahedra::fp = CreateTetraElWithMem;
 	pzgeom::TPZGeoPyramid::fp = CreatePyramElWithMem;
 	pzgeom::TPZGeoCube::fp = CreateCubeElWithMem;
+     */
 }
 
 
 #include "pzelchdiv.h"
 
-void TPZCompMesh::SetAllCreateFunctionsHDiv(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
 	
+    fp[EPoint] = CreateHDivPointEl;
+    fp[EOned] = CreateHDivLinearEl;
+    fp[ETriangle] = CreateHDivTriangleEl;
+    fp[EQuadrilateral] = CreateHDivQuadEl;
+    fp[ETetraedro] = CreateHDivTetraEl;
+    fp[EPiramide] = CreateHDivPyramEl;
+    fp[EPrisma] = CreateHDivPrismEl;
+    fp[ECube] = CreateHDivCubeEl;
+    
+    /*
     pzgeom::TPZGeoPoint::fp =  CreateHDivPointEl;
 	pzgeom::TPZGeoLinear::fp =  CreateHDivLinearEl;
 	pzgeom::TPZGeoQuad::fp = CreateHDivQuadEl;
@@ -171,13 +237,24 @@ void TPZCompMesh::SetAllCreateFunctionsHDiv(){
 	pzgeom::TPZGeoTetrahedra::fp = CreateHDivTetraEl;
 	pzgeom::TPZGeoPyramid::fp = CreateHDivPyramEl;
 	pzgeom::TPZGeoCube::fp = CreateHDivCubeEl;
+     */
 }
 
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
-void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuousReferred(){
 	
+    fp[EPoint] = CreateReferredDisc;
+    fp[EOned] = CreateReferredDisc;
+    fp[ETriangle] = CreateReferredDisc;
+    fp[EQuadrilateral] = CreateReferredDisc;
+    fp[ETetraedro] = CreateReferredDisc;
+    fp[EPiramide] = CreateReferredDisc;
+    fp[EPrisma] = CreateReferredDisc;
+    fp[ECube] = CreateReferredDisc;
+    
+    /*
 	pzgeom::TPZGeoPoint::fp =  CreateReferredDisc;
 	pzgeom::TPZGeoLinear::fp =  CreateReferredDisc;
 	pzgeom::TPZGeoQuad::fp = CreateReferredDisc;
@@ -186,10 +263,21 @@ void TPZCompMesh::SetAllCreateFunctionsDiscontinuousReferred(){
 	pzgeom::TPZGeoTetrahedra::fp = CreateReferredDisc;
 	pzgeom::TPZGeoPyramid::fp = CreateReferredDisc;
 	pzgeom::TPZGeoCube::fp = CreateReferredDisc;
+     */
 }
 
-void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousReferred(){
 	
+    fp[EPoint] = CreateReferredPointEl;
+    fp[EOned] = CreateReferredLinearEl;
+    fp[ETriangle] = CreateReferredTriangleEl;
+    fp[EQuadrilateral] = CreateReferredQuadEl;
+    fp[ETetraedro] = CreateReferredTetraEl;
+    fp[EPiramide] = CreateReferredPyramEl;
+    fp[EPrisma] = CreateReferredPrismEl;
+    fp[ECube] = CreateReferredCubeEl;
+    
+    /*
 	pzgeom::TPZGeoPoint::fp =  CreateReferredPointEl;
 	pzgeom::TPZGeoLinear::fp =  CreateReferredLinearEl;
 	pzgeom::TPZGeoQuad::fp = CreateReferredQuadEl;
@@ -198,12 +286,23 @@ void TPZCompMesh::SetAllCreateFunctionsContinuousReferred(){
 	pzgeom::TPZGeoTetrahedra::fp = CreateReferredTetraEl;
 	pzgeom::TPZGeoPyramid::fp = CreateReferredPyramEl;
 	pzgeom::TPZGeoCube::fp = CreateReferredCubeEl;
+     */
 	
 }
 
 #include "pzmultiphysicscompel.h"
-void TPZCompMesh::SetAllCreateFunctionsMultiphysicElem(){
+void TPZCreateApproximationSpace::SetAllCreateFunctionsMultiphysicElem(){
 	
+    fp[EPoint] = CreateMultiphysicsPointEl;
+    fp[EOned] = CreateMultiphysicsLinearEl;
+    fp[ETriangle] = CreateMultiphysicsTriangleEl;
+    fp[EQuadrilateral] = CreateMultiphysicsQuadEl;
+    fp[ETetraedro] = CreateMultiphysicsTetraEl;
+    fp[EPiramide] = CreateMultiphysicsPyramEl;
+    fp[EPrisma] = CreateMultiphysicsPrismEl;
+    fp[ECube] = CreateMultiphysicsCubeEl;
+    
+    /*
 	pzgeom::TPZGeoPoint::fp =  CreateMultiphysicsPointEl;
 	pzgeom::TPZGeoLinear::fp =  CreateMultiphysicsLinearEl;
 	pzgeom::TPZGeoTriangle::fp =  CreateMultiphysicsTriangleEl;
@@ -212,6 +311,95 @@ void TPZCompMesh::SetAllCreateFunctionsMultiphysicElem(){
 	pzgeom::TPZGeoPrism::fp = CreateMultiphysicsPrismEl;
 	pzgeom::TPZGeoTetrahedra::fp = CreateMultiphysicsTetraEl;
 	pzgeom::TPZGeoPyramid::fp = CreateMultiphysicsPyramEl;
+     */
 }
 
+/*
+ * @brief Create a computational element using the function pointer for the topology
+ */
+TPZCompEl *TPZCreateApproximationSpace::CreateCompEl(TPZGeoEl *gel, TPZCompMesh &mesh, int &index)
+{
+    switch (gel->Type()) {
+        case EPoint:
+            return fp[EPoint](gel,mesh,index);
+            break;
+        case EOned:
+            return fp[EOned](gel,mesh,index);
+            break;
+        case EQuadrilateral:
+            return fp[EQuadrilateral](gel,mesh,index);
+            break;
+        case ETriangle:
+            return fp[ETriangle](gel,mesh,index);
+            break;
+        case EPiramide:
+            return fp[EPiramide](gel,mesh,index);
+            break;
+        case EPrisma:
+            return fp[EPrisma](gel,mesh,index);
+            break;
+        case ETetraedro:
+            return fp[ETetraedro](gel,mesh,index);
+            break;
+        case ECube:
+            return fp[ECube](gel,mesh,index);
+            break;
+        default:
+            DebugStop();
+            break;
+    }
+    return 0;
+}
 
+/**
+ * @brief Set custom function pointers
+ */
+
+void TPZCreateApproximationSpace::SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs)
+{
+    fp[EPoint] = createfuncs[EPoint];
+    fp[EOned] = createfuncs[EOned];
+    fp[ETriangle] = createfuncs[ETriangle];
+    fp[EQuadrilateral] = createfuncs[EQuadrilateral];
+    fp[ETetraedro] = createfuncs[ETetraedro];
+    fp[EPiramide] = createfuncs[EPiramide];
+    fp[EPrisma] = createfuncs[EPrisma];
+    fp[ECube] = createfuncs[ECube];
+    
+}
+
+#include "pzcondensedcompel.h"
+
+/**
+ * @brief Encapsulate the elements in condensed computational elements
+ */
+void TPZCreateApproximationSpace::CondenseLocalEquations(TPZCompMesh &cmesh)
+{
+    int nel = cmesh.NElements();
+    int iel;
+    for (iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cmesh.ElementVec()[iel];
+        if(!cel) {
+            continue;
+        }
+        new TPZCondensedCompEl(cel);
+    }
+
+}
+
+/**
+ * @brief Undo the encapsulate elements
+ */
+void TPZCreateApproximationSpace::UndoCondenseLocalEquations(TPZCompMesh &cmesh)
+{
+    int nel = cmesh.NElements();
+    int iel;
+    for (iel=0; iel<nel; iel++) {
+        TPZCompEl *cel = cmesh.ElementVec()[iel];
+        TPZCondensedCompEl *condel = dynamic_cast<TPZCondensedCompEl *>(cel);
+        if(!condel) {
+            continue;
+        }
+        condel->Unwrap();
+    }    
+}
