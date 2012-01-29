@@ -15,6 +15,7 @@
 #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pzsave.h"
+#include "pzcreateapproxspace.h"
 //#include "pzmaterial.h"
 
 
@@ -117,8 +118,8 @@ public:
 	static int GetgOrder();
 	
 	/** @brief Sets create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(){
-		TPZCompMesh::SetAllCreateFunctionsContinuous();
+	virtual void SetCreateFunctions(TPZCompMesh *mesh){
+		mesh->SetAllCreateFunctionsContinuous();
 	}
 	
 	/** @brief Returns the volume of the geometric element associated. */
