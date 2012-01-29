@@ -163,7 +163,7 @@ REAL yla(REAL x)
 #include "pzeulerconslaw.h"
 
 void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int nSubdiv);
-TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
                                TPZVec< TPZVec< int > > & elms,
                                MElementType ElType, int matId,
                                TPZVec<TPZGeoEl *> & gEls,
@@ -172,7 +172,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 // for the reflected shock problem.
 
 TPZFlowCompMesh *
-NACACompMesh(REAL CFL, REAL delta,
+NACACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
              int degree, int nSubdiv,
              TPZArtDiffType DiffType,
              TPZTimeDiscr Diff_TD,

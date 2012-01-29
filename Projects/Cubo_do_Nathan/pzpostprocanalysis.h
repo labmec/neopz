@@ -55,9 +55,10 @@ void TransferSolution();
  */
 void SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<std::string> &varNames);
 		
-static void SetAllCreateFunctionsPostProc();
-static void SetAllCreateFunctionsContinuous();
-		void AutoBuildDisc();
+static void SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh);
+//static void SetAllCreateFunctionsContinuous(TPZCompMesh *cmesh);
+void AutoBuildDisc();
+    
 protected:
 	
 	TPZAnalysis * fpMainAnalysis;

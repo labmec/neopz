@@ -122,8 +122,8 @@ int main() {
 	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,1,val1,val2)));   // Neumann condition - fluxo livre
 	
 	// Making all the computational elements as discontinuous
-//	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
-	TPZCompMesh::SetAllCreateFunctionsContinuous();
+//	TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous();
+	cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->SetDefaultOrder(p);
 	TPZCompElDisc::SetgOrder(p);
 
@@ -154,7 +154,7 @@ int main() {
 	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-3,1,val_1,val_2)));   // Neumann condition - fluxo livre
 	
 	// Making all the computational elements as discontinuous
-	//	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+	//	TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous();
 	cmesh3->SetDefaultOrder(p);
 	//TPZCompElDisc::SetgOrder(p);
 	

@@ -604,7 +604,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 	}
 	
 	//AQUI: SetAllCreateFunctionsContinuous
-	cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->SetAllCreateFunctionsContinuous();
 	
 	//AQUI: AutoBuild(mat1)
 	set<int> SETmat1;

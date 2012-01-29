@@ -1084,8 +1084,8 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
-				gel->CreateCompEl(*cmesh,index);
-                        gel->ResetReference();
+				cmesh->CreateCompEl(gel,index);
+                gel->ResetReference();
 			}
 		}
 	}
@@ -1162,8 +1162,8 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			
 			if(!gel->Reference())
 			{
-				gel->CreateCompEl(*cmesh,index);
-                        gel->ResetReference();
+				cmesh->CreateCompEl(gel,index);
+                gel->ResetReference();
 			}
 		}
 	}

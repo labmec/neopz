@@ -269,7 +269,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	bnd = automat->CreateBC (automat,-4,2,val1,val2);
 	comp->InsertMaterialObject(bnd);
 	
-	comp->SetAllCreateFunctionsHDiv();
+    comp->SetAllCreateFunctionsHDiv();
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional

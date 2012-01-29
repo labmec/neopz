@@ -91,13 +91,13 @@ void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms)
 
 }
 
-TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateRSNAGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
 {
-   TPZGeoMesh * gmesh = new TPZGeoMesh;
+   //TPZGeoMesh * gmesh = new TPZGeoMesh;
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
@@ -141,7 +141,7 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
+TPZFlowCompMesh * RSNACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
                  int degree, int nSubdiv,
 		 TPZArtDiffType DiffType,
 		 TPZTimeDiscr Diff_TD,
@@ -170,9 +170,9 @@ TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
    RSNAMeshPoints(nodes, elms);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateRSNAGeoMesh(nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
+   TPZGeoMesh * gmesh = CreateRSNAGeoMesh(cmesh->Reference(), nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
-   TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
+   //TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
    cmesh->SetDimModel(2);
 
 // Creating the materials

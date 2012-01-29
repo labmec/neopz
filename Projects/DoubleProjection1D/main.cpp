@@ -273,7 +273,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	TPZCompEl::SetgOrder(pOrder);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
-	cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
 	
 

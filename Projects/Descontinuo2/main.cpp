@@ -189,7 +189,9 @@ int run(std::istream & input, std::ostream & output)
 	int p = 0;
 	int nSubdiv = 0;
 	TPZFlowCompMesh * cmesh;
-	TPZGeoMesh * gmesh;
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+    cmesh = new TPZFlowCompMesh(gmesh);
+    
 	std::ofstream options("options.txt");
 	
 	output << "\nProblem type:\n\t0: OneElement\n\t1: SimpleShock\n\t2: ReflectedShock\n\t3: ReflectedShock - NonAlignedMesh\n\t4: ShockTube\n\t5: RadialShock\n\t6: NACA\n\t7: GenerateNACAProfile\n\t8: From File\n\t9: Sphere3D\n";
@@ -239,16 +241,16 @@ int run(std::istream & input, std::ostream & output)
 			switch(temp)
 			{
 				case 0:
-					TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+					cmesh->SetAllCreateFunctionsDiscontinuous();
 					filename += "_disc";
 					break;
 				case 1:
-					TPZCompMesh::SetAllCreateFunctionsContinuous();
+					cmesh->SetAllCreateFunctionsContinuous();
 					filename += "_cont";
 					break;
 				default:
 					output << "Wrong parameter, setting discontinuous\n";
-					TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+					cmesh->SetAllCreateFunctionsDiscontinuous();
 					filename += "_disc";
 					break;
 			}
@@ -365,42 +367,42 @@ int run(std::istream & input, std::ostream & output)
 		case 0:
 			file = "OE_";
 			cmesh =
-			OneElCompMesh(CFL, delta, p, nSubdiv, DiffType,
+			OneElCompMesh(cmesh,CFL, delta, p, nSubdiv, DiffType,
 						  Diff_TD, ConvVol_TD, ConvFace_TD);
 			break;
 		case 1:
 			file = "SS_";
 			cmesh =
-			SSCompMesh(CFL, delta, p, nSubdiv, DiffType,
+			SSCompMesh(cmesh,CFL, delta, p, nSubdiv, DiffType,
 					   Diff_TD, ConvVol_TD, ConvFace_TD);
 			break;
 		case 2:
 			file = "RS_";
 			cmesh =
-			RSCompMesh(CFL, delta, p, nSubdiv, DiffType,
+			RSCompMesh(cmesh,CFL, delta, p, nSubdiv, DiffType,
 					   Diff_TD, ConvVol_TD, ConvFace_TD);
 			break;
 		case 3:
 			file = "RSNA_";
 			cmesh =
-			RSNACompMesh(CFL, delta, p, nSubdiv, DiffType,
+			RSNACompMesh(cmesh,CFL, delta, p, nSubdiv, DiffType,
 						 Diff_TD, ConvVol_TD, ConvFace_TD);
 			break;
 		case 4:
 			file = "ST_";
 			cmesh =
-			STCompMesh(CFL, delta, p, nSubdiv, DiffType,
+			STCompMesh(cmesh,CFL, delta, p, nSubdiv, DiffType,
 					   Diff_TD, ConvVol_TD, ConvFace_TD);
 			break;
 		case 5:
 			file = "SRS_";
 			cmesh =
-			SRSCompMesh(CFL, delta, p, nSubdiv, DiffType,
+			SRSCompMesh(cmesh, CFL, delta, p, nSubdiv, DiffType,
 						Diff_TD, ConvVol_TD, ConvFace_TD);
 		case 6:
 			file = "NACA_";
 			cmesh =
-			NACACompMesh(CFL, delta, p, nSubdiv, DiffType,
+			NACACompMesh(cmesh, CFL, delta, p, nSubdiv, DiffType,
 						 Diff_TD, ConvVol_TD, ConvFace_TD,options);
 			break;
 			

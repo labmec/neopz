@@ -51,9 +51,9 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 	}
 	
 	
-	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
 
 	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+	SetAllCreateFunctionsPostProc(pcPostProcMesh);
 	
 	
 	fCompMesh = pcPostProcMesh;
@@ -184,7 +184,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 			}
 			
 			//if(!gel->Reference() && gel->NumInterfaces() == 0)
-			gel->CreateCompEl(*Mesh(),index);
+			Mesh()->CreateCompEl(gel,index);
 			gel->ResetReference();
 			
 		}
@@ -270,18 +270,22 @@ void TPZPostProcAnalysis::TransferSolution()
 
 #include "pzelctemp.h"
 
+#include "pzcreateapproxspace.h"
 
 
-void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc()
+
+void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 {
-	pzgeom::TPZGeoPoint::fp = TPZPostProcAnalysis::CreatePointEl;
-	pzgeom::TPZGeoLinear::fp = TPZPostProcAnalysis::CreateLinearEl;
-	pzgeom::TPZGeoQuad::fp = TPZPostProcAnalysis::CreateQuadEl;
-	pzgeom::TPZGeoTriangle::fp = TPZPostProcAnalysis::CreateTriangleEl;
-	pzgeom::TPZGeoPrism::fp = TPZPostProcAnalysis::CreatePrismEl;
-	pzgeom::TPZGeoTetrahedra::fp = TPZPostProcAnalysis::CreateTetraEl;
-	pzgeom::TPZGeoPyramid::fp = TPZPostProcAnalysis::CreatePyramEl;
-	pzgeom::TPZGeoCube::fp = TPZPostProcAnalysis::CreateCubeEl;
+    TPZManVector<TCreateFunction,10> functions(8);
+    functions[EPoint] = &TPZPostProcAnalysis::CreatePointEl;
+	functions[EOned] = TPZPostProcAnalysis::CreateLinearEl;
+	functions[EQuadrilateral] = TPZPostProcAnalysis::CreateQuadEl;
+	functions[ETriangle] = TPZPostProcAnalysis::CreateTriangleEl;
+	functions[EPrisma] = TPZPostProcAnalysis::CreatePrismEl;
+	functions[ETetraedro] = TPZPostProcAnalysis::CreateTetraEl;
+	functions[EPiramide] = TPZPostProcAnalysis::CreatePyramEl;
+	functions[ECube] = TPZPostProcAnalysis::CreateCubeEl;
+    cmesh->ApproxSpace().SetCreateFunctions(functions);
 
 
 }

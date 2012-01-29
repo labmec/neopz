@@ -9,7 +9,7 @@
 #include "pzeulerconslaw.h"
 
 void SRSPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms);
-TPZGeoMesh * CreateSRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateSRSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
                               TPZVec< TPZVec< int > > & elms,
                               MElementType ElType, int matId,
                               TPZVec<TPZGeoEl *> & gEls,
@@ -18,7 +18,7 @@ TPZGeoMesh * CreateSRSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // for the reflected shock problem.
 
 TPZFlowCompMesh *
-SRSCompMesh(REAL CFL, REAL delta,
+SRSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
             int degree, int nSubdiv,
             TPZArtDiffType DiffType,
             TPZTimeDiscr Diff_TD,

@@ -700,13 +700,13 @@ void NACAPoints(TPZNACAXXXX &profile, TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVe
    }
 }
 
-TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateNACAGeoMesh(TPZGeoMesh *gmesh, TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & nodes,
                            TPZVec< TPZVec< int > > & elms,
 			   MElementType ElType, int matId,
 			   TPZVec<TPZGeoEl *> & gEls,
 			   int nSubdiv)
 {
-   TPZGeoMesh * gmesh = new TPZGeoMesh;
+   //TPZGeoMesh * gmesh = new TPZGeoMesh;
 
    gEls.Resize(elms.NElements());
    gmesh->NodeVec().Resize(nodes.NElements());
@@ -870,7 +870,7 @@ TPZGeoMesh * CreateNACAGeoMesh(TPZNACAXXXX &profile, TPZVec< TPZVec< REAL > > & 
 // for the reflected shock problem.
 
 TPZFlowCompMesh *
-   NACACompMesh(REAL CFL, REAL delta,
+   NACACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
                  int degree, int nSubdiv,
 		 TPZArtDiffType DiffType,
 		 TPZTimeDiscr Diff_TD,
@@ -914,9 +914,9 @@ TPZFlowCompMesh *
    NACAPoints(profile, nodes, elms, nSubdiv);
 
 // Creating the geometric mesh
-   TPZGeoMesh * gmesh = CreateNACAGeoMesh(profile, nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
+   TPZGeoMesh * gmesh = CreateNACAGeoMesh(cmesh->Reference(), profile, nodes, elms, EQuadrilateral, 1, gElem, nSubdiv);
 
-   TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
+   //TPZFlowCompMesh * cmesh = new TPZFlowCompMesh(gmesh);
 
 // Creating the materials
    TPZEulerConsLaw * matp = new TPZEulerConsLaw(1/*nummat*/,

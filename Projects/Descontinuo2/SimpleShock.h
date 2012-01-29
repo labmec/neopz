@@ -11,7 +11,7 @@
 // Creates a mesh for the simple shock problem
 
 void SSMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms);
-TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateSSGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
                              TPZVec< TPZVec< int > > & elms,
                              MElementType ElType, int matId,
                              TPZVec<TPZGeoEl *> & gEls,
@@ -19,7 +19,7 @@ TPZGeoMesh * CreateSSGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * SSCompMesh(REAL CFL, REAL delta,
+TPZFlowCompMesh * SSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
                              int degree, int nSubdiv,
                              TPZArtDiffType DiffType,
                              TPZTimeDiscr Diff_TD,

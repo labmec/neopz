@@ -9,7 +9,7 @@
 #include "pzeulerconslaw.h"
 
 void OneElMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms);
-TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateOneElGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
                                 TPZVec< TPZVec< int > > & elms,
                                 MElementType ElType, int matId,
                                 TPZVec<TPZGeoEl *> & gEls,
@@ -19,7 +19,7 @@ TPZGeoMesh * CreateOneElGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // for the reflected shock problem.
 
 TPZFlowCompMesh *
-OneElCompMesh(REAL CFL, REAL delta,
+OneElCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
               int degree, int nSubdiv,
               TPZArtDiffType DiffType,
               TPZTimeDiscr Diff_TD,

@@ -9,7 +9,7 @@
 #include "pzeulerconslaw.h"
 
 void RSNAMeshPoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms);
-TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
+TPZGeoMesh * CreateRSNAGeoMesh(TPZGeoMesh *gmesh, TPZVec< TPZVec< REAL > > & nodes,
                                TPZVec< TPZVec< int > > & elms,
                                MElementType ElType, int matId,
                                TPZVec<TPZGeoEl *> & gEls,
@@ -17,7 +17,7 @@ TPZGeoMesh * CreateRSNAGeoMesh(TPZVec< TPZVec< REAL > > & nodes,
 // Creating all the geometric and computational meshes
 // for the reflected shock problem.
 
-TPZFlowCompMesh * RSNACompMesh(REAL CFL, REAL delta,
+TPZFlowCompMesh * RSNACompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
                                int degree, int nSubdiv,
                                TPZArtDiffType DiffType,
                                TPZTimeDiscr Diff_TD,

@@ -55,7 +55,7 @@ int main() {
   TPZVec<REAL> sol(1,0.);
   TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
   cmesh->InsertMaterialObject(material);
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetAllCreateFunctionsDiscontinuous();
   TPZCompEl::SetgOrder(1);
   cmesh->SetDefaultOrder(1);
   cmesh->AutoBuild();
@@ -304,7 +304,7 @@ int main1(){
   cmesh->InsertMaterialObject(bcFora);
   cmesh->InsertMaterialObject(bcDentro);
   
-  TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetAllCreateFunctionsDiscontinuous();
 
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
