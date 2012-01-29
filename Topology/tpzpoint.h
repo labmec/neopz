@@ -160,7 +160,7 @@ namespace pztopology {
 		/**
 		 * @brief Function pointer which determines what type of computational element will be created
 		 */
-		static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+		//static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 		/**
 		 * @brief Method which identifies the transformation based on the IDs
 		 * of the corner nodes

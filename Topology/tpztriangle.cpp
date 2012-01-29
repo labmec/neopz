@@ -28,7 +28,7 @@ using namespace std;
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZTriangle::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
+//	TPZCompEl *(*TPZTriangle::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
 	
 	static int sidedimension[7] = {0,0,0,1,1,1,2};
 	

@@ -133,7 +133,7 @@ namespace pztopology {
 		 * @brief Function pointer which determines what type of computational element will be created
 		 * @returns the local connect number of the connect "c" along side "side"
 		 */
-		static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+		//static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 		static int ContainedSideLocId(int side, int c);
 		
 		/**

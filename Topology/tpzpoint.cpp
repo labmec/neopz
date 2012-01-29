@@ -22,7 +22,7 @@
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
+//	TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
 	
 	
 	TPZPoint::TPZPoint()

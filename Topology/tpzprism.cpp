@@ -36,7 +36,7 @@ using namespace std;
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZPrism::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
+//	TPZCompEl *(*TPZPrism::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
 	
 	
 	TPZPrism::TPZPrism()

@@ -32,7 +32,7 @@ using namespace std;
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZLine::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
+//	TPZCompEl *(*TPZLine::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
 	
 	TPZLine::TPZLine()
 	{

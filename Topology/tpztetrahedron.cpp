@@ -32,7 +32,7 @@ using namespace std;
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZTetrahedron::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;	
+//	TPZCompEl *(*TPZTetrahedron::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;	
 	
 	TPZTetrahedron::TPZTetrahedron()
 	{

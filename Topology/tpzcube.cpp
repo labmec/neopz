@@ -36,7 +36,7 @@ namespace pztopology {
 	/**
 	 * function pointer which determines what type of computational element will be created
 	 **/
-	TPZCompEl *(*TPZCube::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
+//	TPZCompEl *(*TPZCube::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
 	
 	TPZCube::TPZCube()
 	{

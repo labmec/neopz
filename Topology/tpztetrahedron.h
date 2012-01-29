@@ -147,7 +147,7 @@ namespace pztopology {
 		 * @param id indexes of the corner nodes
 		 * @return index of the transformation of the point corresponding to the topology
 		 */
-		static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
+		//static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
 		static int GetTransformId(TPZVec<int> &id);
 		
 		/**

@@ -34,7 +34,7 @@ using namespace std;
 
 namespace pztopology {
 	
-	TPZCompEl *(*TPZQuadrilateral::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;	
+//	TPZCompEl *(*TPZQuadrilateral::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;	
 	
 	TPZQuadrilateral::TPZQuadrilateral()
 	{
