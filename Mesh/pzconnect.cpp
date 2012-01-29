@@ -58,7 +58,7 @@ void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
 	int orde = fCompose.fOrder;
 	int nstate  = fCompose.fNState;
 	int nshape  = fCompose.fNShape;
-	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape;
+	out << "TPZConnect : " << "Sequence number = " << fSequenceNumber <<"  Order = " << orde << "  NState = " << nstate << "  NShape " << nshape << " IsCondensed " << IsCondensed() << " IsLagrMult " << IsPressure();
 	if(fSequenceNumber > -1)
 	{
 		out << "\tNumElCon = " << fNElConnected << " Block size " << mesh.Block().Size(fSequenceNumber);
