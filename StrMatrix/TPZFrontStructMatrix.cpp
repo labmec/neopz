@@ -46,7 +46,7 @@ void TPZFrontStructMatrix<front>::GetNumElConnected(TPZVec <int> &numelconnected
 	
 	for(ic=0; ic<fMesh->ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = fMesh->ConnectVec()[ic];
-		if(cn.HasDependency()) continue;
+		if(cn.HasDependency() || cn.IsCondensed()) continue;
 		int seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
 		int firsteq = fMesh->Block().Position(seqn);

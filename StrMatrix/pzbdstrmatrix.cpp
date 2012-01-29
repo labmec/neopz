@@ -72,7 +72,7 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
     int c;
     for(c=0; c<nc; c++) {
         TPZConnect &con = connectvec[c];
-        if(con.HasDependency() || con.SequenceNumber() < 0) continue;
+        if(con.HasDependency() || con.IsCondensed() || con.SequenceNumber() < 0) continue;
 		//        int bl = con.SequenceNumber();
         nblocks++;
     }
@@ -80,7 +80,7 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
     int bl,blsize;
     for(c=0; c<nc; c++) {
         TPZConnect &con = connectvec[c];
-        if(con.HasDependency() || con.SequenceNumber() < 0) continue;
+        if(con.HasDependency() || con.IsCondensed() || con.SequenceNumber() < 0) continue;
         bl = con.SequenceNumber();
         blsize = con.NDof(*fMesh);
         int blpos = fMesh->Block().Position(bl);

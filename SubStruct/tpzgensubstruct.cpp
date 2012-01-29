@@ -786,7 +786,8 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	for(ic=0; ic<ncon; ic++)
 	{
 		// skip dependent connects
-		if(sub->ConnectVec()[ic].HasDependency()) continue;
+        TPZConnect &con = sub->ConnectVec()[ic];
+		if(con.HasDependency() || con.IsCondensed()) continue;
 		int locseq = sub->ConnectVec()[ic].SequenceNumber();
 		// skip unused connects
 		if(locseq < 0) continue;

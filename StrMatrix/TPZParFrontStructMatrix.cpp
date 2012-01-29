@@ -558,7 +558,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	//	cmesh.Block().Print("Block",out);
 	for(ic=0; ic<cmesh.ConnectVec().NElements(); ic++) {
 		TPZConnect &cn = cmesh.ConnectVec()[ic];
-		if(cn.HasDependency()) continue;
+		if(cn.HasDependency() || cn.IsCondensed()) continue;
 		int seqn = cn.SequenceNumber();
 		if(seqn < 0) continue;
 		int firsteq = cmesh.Block().Position(seqn);
