@@ -246,7 +246,7 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 			
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
-				gel->CreateCompEl(*this,index);
+				CreateCompEl(gel,index);
 			}
 		}
 	}
@@ -275,7 +275,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 	fBlock.SetNBlocks(nbl);
 	
 	//Creating continuous elements
-	this->SetAllCreateFunctionsContinuous();
+	fCreate.SetAllCreateFunctionsContinuous();
 	int ncont = continuous.NElements();
 	for(int i = 0; i < ncont; i++){
 		TPZGeoEl *gel = continuous[i];
@@ -287,13 +287,13 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				gel->CreateCompEl(*this,index);
+				CreateCompEl(gel,index);
 			}
 		}
 	}
 	
 	//Creating discontinuous elements
-	this->SetAllCreateFunctionsDiscontinuous();
+	fCreate.SetAllCreateFunctionsDiscontinuous();
 	int ndisc = discontinuous.NElements();
 	for(int i = 0; i < ndisc; i++){
 		TPZGeoEl *gel = discontinuous[i];
@@ -305,7 +305,7 @@ void TPZCompMesh::AutoBuildContDisc(const TPZVec<TPZGeoEl*> &continuous, const T
 			}
 			
 			if(gel->NumInterfaces() == 0){
-				gel->CreateCompEl(*this,index);
+				CreateCompEl(gel,index);
 			}
 		}
 	}
@@ -396,7 +396,7 @@ void TPZCompMesh::LoadReferences() {
 void TPZCompMesh::CleanUpUnconnectedNodes() {
 	ComputeNodElCon();
 	int i, nelem = NConnects();
-	int ndepblocks = 0, nvalidblocks = 0, nremoved = 0;
+	int ndepblocks = 0, nvalidblocks = 0, nremoved = 0, ncondensed = 0;
 	for (i=0;i<nelem;i++)
     {
 		TPZConnect &no = fConnectVec[i];
@@ -405,7 +405,8 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		{
 			nremoved++;
 		}
-		else if(!no.HasDependency() && no.NElConnected()) nvalidblocks++;
+		else if(!no.HasDependency() && no.NElConnected() && !no.IsCondensed()) nvalidblocks++;
+        else if(!no.HasDependency() && no.NElConnected() && no.IsCondensed()) ncondensed++;
 		else if(no.HasDependency() && no.NElConnected()) ndepblocks++;
     }
 	int need = 0;
@@ -425,7 +426,11 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		{
 			need = 1;
 			break;
-		} else if(!no.HasDependency() && no.SequenceNumber() >= nvalidblocks)
+		} else if(!no.HasDependency() && !no.IsCondensed() && no.SequenceNumber() >= nvalidblocks)
+		{
+			need = 1;
+			break;
+		} else if(!no.HasDependency() && no.IsCondensed() && no.SequenceNumber() < nvalidblocks)
 		{
 			need = 1;
 			break;
@@ -433,7 +438,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	}
 	int nblocks = fBlock.NBlocks();
 	TPZManVector<int> permute(nblocks,-1), down(nblocks,0);
-	int idepblocks = 0, iremovedblocks= 0;
+	int idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
 		for(i=0; i<nelem; i++) {
@@ -442,7 +447,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 			int seq = no.SequenceNumber();
 			if(no.NElConnected() == 0)
 			{
-				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks;
+				permute[seq] = nvalidblocks+ndepblocks+iremovedblocks+ncondensed;
 				down[seq] = 1;
 				fBlock.Set(seq,0);
                 no.Reset();
@@ -451,10 +456,17 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 				iremovedblocks++;
 			}
 			else if(no.HasDependency()) {
-				permute[seq] = nvalidblocks+idepblocks;
+				permute[seq] = nvalidblocks+ncondensed+idepblocks;
 				down[seq] = 1;
 				idepblocks++;
 			}
+            else if(no.IsCondensed())
+            {
+				permute[seq] = nvalidblocks+icondensed;
+				down[seq] = 1;
+				icondensed++;
+                
+            }
 		}
 		for(i=1; i<nblocks; i++) down[i] += down[i-1];
 		for(i=0; i<nblocks; i++)
@@ -551,9 +563,19 @@ int TPZCompMesh::NEquations() {
 	int i, ncon = NConnects();
 	for(i=0; i<ncon; i++) {
 		TPZConnect &df = fConnectVec[i];
-		if(df.HasDependency() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
-		int seqnum = df.SequenceNumber();
-		neq += fBlock.Size(seqnum);
+		if(df.HasDependency() || df.IsCondensed() || !df.NElConnected() || df.SequenceNumber() == -1) continue;
+        int dofsize = df.NShape()*df.NState();
+#ifdef DEBUG
+        // check the consistency between the block size and the data structure of the connect
+        {
+            int seqnum = df.SequenceNumber();
+            int blsize = fBlock.Size(seqnum);
+            if (blsize != dofsize) {
+                DebugStop();
+            }
+        }
+#endif
+        neq += dofsize;
 	}
 	return neq;
 }
@@ -574,9 +596,10 @@ int TPZCompMesh::BandWidth() {
 		el->BuildConnectList(connectlist);
 		int nnod = connectlist.NElements();
 		if(!nnod) continue;
+        // look for a node which has equations associated with it
 		int ifirstnode = 0;
 		TPZConnect *np = &fConnectVec[connectlist[ifirstnode++]];
-		while(ifirstnode < nnod && (np->HasDependency() || !fBlock.Size(np->SequenceNumber()))) {
+		while(ifirstnode < nnod && (np->HasDependency() || np->IsCondensed() || !fBlock.Size(np->SequenceNumber()))) {
 			np = &fConnectVec[connectlist[ifirstnode++]];
 		}
 		int ibl = np->SequenceNumber();
@@ -584,7 +607,7 @@ int TPZCompMesh::BandWidth() {
 		int higheq = loweq+fBlock.Size(ibl)-1;
 		for(int n=ifirstnode;n<nnod;n++) {
 			np = &fConnectVec[connectlist[n]];
-			if(np->HasDependency()) continue;
+			if(np->HasDependency() || np->IsCondensed() ) continue;
 			int ibl = np->SequenceNumber();
 			if(!fBlock.Size(ibl)) continue;
 			int leq = fBlock.Position(ibl);
@@ -619,9 +642,10 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 		el->BuildConnectList(connectlist);
 		int nnod = connectlist.NElements();
 		if(!nnod) continue;
+        // look for a connect with global equations associated to it
 		int ifirstnode = 0;
 		TPZConnect *np = &fConnectVec[connectlist[0]];
-		while(ifirstnode < nnod && np->HasDependency()) {
+		while(ifirstnode < nnod && (np->HasDependency() || np->IsCondensed()) ) {
 			ifirstnode++;
 			np = &fConnectVec[connectlist[ifirstnode]];
 		}
@@ -630,7 +654,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 		int higheq = loweq+fBlock.Size(ibl)-1;
 		for(n=ifirstnode;n<nnod;n++) {
 			np = &fConnectVec[connectlist[n]];
-			if(np->HasDependency()) continue;
+			if(np->HasDependency() || np->IsCondensed()) continue;
 			int ibl = np->SequenceNumber();
 			int leq = fBlock.Position(ibl);
 			int heq = leq+fBlock.Size(ibl)-1;
@@ -645,7 +669,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 		//cout << endl;
 		for(n=ifirstnode;n<nnod;n++) {
 			np = &fConnectVec[connectlist[n]];
-			if(np->HasDependency()) continue;
+			if(np->HasDependency() || np->IsCondensed()) continue;
 			int ibl = np->SequenceNumber();
 			int leq = fBlock.Position(ibl);
 			int heq = leq+fBlock.Size(ibl);
@@ -850,7 +874,7 @@ int TPZCompMesh::NIndependentConnects() {
 	int NIndependentConnects = 0;
 	for(i=0; i<ncon; i++) {
 		TPZConnect &c = fConnectVec[i];
-		if(c.HasDependency() || c.SequenceNumber() == -1) continue;
+		if(c.HasDependency() || c.IsCondensed() || c.SequenceNumber() == -1) continue;
 		NIndependentConnects++;
 	}
 	return NIndependentConnects;
@@ -878,7 +902,7 @@ void TPZCompMesh::ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphind
 		for(in=0; in<ncon; in++) {
 			int ic = connectstack[in];
 			TPZConnect &c = fConnectVec[ic];
-			if(c.HasDependency()) continue;
+			if(c.HasDependency() || c.IsCondensed()) continue;
 			//      if(fBlock.Size(c.SequenceNumber()))
 			//      {
 			elgraph.Push(c.SequenceNumber());
@@ -966,10 +990,10 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
 		if (cel) delete cel;
 	}
 	
-	if (CreateDiscontinuous) this->SetAllCreateFunctionsDiscontinuous();
-	else this->SetAllCreateFunctionsContinuous();
+	if (CreateDiscontinuous) fCreate.SetAllCreateFunctionsDiscontinuous();
+	else fCreate.SetAllCreateFunctionsContinuous();
 	
-	TPZCompEl * newcel = father->CreateCompEl(*this,index);
+	TPZCompEl * newcel = CreateCompEl(father,index);
 	
 	TPZCompElDisc * newdisc = dynamic_cast<TPZCompElDisc*>(newcel);
 	if (newdisc){
@@ -1002,8 +1026,8 @@ void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool 
 	//  this->fElementVec[ cel->Index() ] = NULL;
 	//  delete cel;
 	
-	this->SetAllCreateFunctionsContinuous();
-	TPZCompEl * newcel = ref->CreateCompEl(*this,new_index);
+	fCreate.SetAllCreateFunctionsContinuous();
+	TPZCompEl * newcel = CreateCompEl(ref,new_index);
 	TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement*>(newcel);
 	intel->CreateInterfaces(false);
 	
@@ -1842,7 +1866,7 @@ void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
 	int ic,ncon = fConnectVec.NElements();
 	for(ic=0; ic<ncon; ic++) {
 		TPZConnect &c = fConnectVec[ic];
-		if(c.HasDependency() || c.SequenceNumber() < 0) continue;
+		if(c.HasDependency() || c.IsCondensed() || c.SequenceNumber() < 0) continue;
 		seqtoconnect[c.SequenceNumber()] = &c;
 	}
 	int iseqnum;
@@ -2057,10 +2081,6 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
 
-
-void TPZCompMesh::SetAllCreateFunctions(TPZCompEl &cel){
-	cel.SetCreateFunctions();
-}
 
 void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous){
 	const int nelements = this->NElements();
