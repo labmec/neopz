@@ -308,7 +308,7 @@ public:
 	//@}
 	
 	/** @brief Method which creates a computational element based on the current geometric element*/
-	virtual TPZCompEl *CreateCompEl(TPZCompMesh &cmesh,int &index) = 0;
+	//virtual TPZCompEl *CreateCompEl(TPZCompMesh &cmesh,int &index) = 0;
 	
 	/**
 	 * @brief Method which creates a computational boundary condition element based on the current geometric element, \n

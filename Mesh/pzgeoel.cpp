@@ -937,7 +937,7 @@ REAL TPZGeoEl::SideArea(int side){
 TPZCompEl *TPZGeoEl::CreateBCCompEl(int side,int bc,TPZCompMesh &cmesh) {
 	TPZGeoEl *gel = CreateBCGeoEl(side,bc);
 	int index;
-	return gel->CreateCompEl(cmesh,index);
+	return cmesh.CreateCompEl(gel,index);
 }
 
 void TPZGeoEl::RemoveConnectivities(){
