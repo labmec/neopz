@@ -26,28 +26,27 @@ class TPZCondensedCompEl : public TPZCompEl
     
 public:
     
-    TPZCondensedCompEl(TPZCompEl *ref)
-    {
-        if(!ref)
-        {
-            DebugStop();
-        }
-        fReferenceCompEl = ref;
-        fMesh = ref->Mesh();
-        SetReference(ref->Reference()->Index());
-        SetIndex(ref->Index());
-        fMesh->ElementVec()[fIndex] = this;
-        int ncon = ref->NConnects();
-        fIndexes.resize(ncon);
-        for (int i=0; i<ncon ; ++i) {
-            fIndexes[i] = i;
-        }
-    }
+    TPZCondensedCompEl(TPZCompEl *ref);
     
+    /**
+     * @brief create a copy of the condensed computational element in the other mesh
+     */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
     
     virtual ~TPZCondensedCompEl();
 
+    /**
+	 * @brief Prints element data
+	 * @param out Indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream &out = std::cout) const;
+	
+
+    /**
+     * @brief unwrap the condensed element from the computational element and delete the condensed element
+     */
+    void Unwrap();
+    
     /**
 	 * @brief Set the index i to node inode
 	 * @param inode node to set index
@@ -80,7 +79,15 @@ public:
     {
         return new TPZCondensedCompEl(*this,mesh);
     }
-	
+
+    /**
+	 * @brief Loads the solution within the internal data structure of the element
+	 */ 
+	/** Is used to initialize the solution of connect objects with dependency
+	 * Is also used to load the solution within SuperElements
+	 */
+	virtual void LoadSolution();
+
 	/**
 	 * @brief Method for creating a copy of the element in a patch mesh
 	 * @param mesh Patch clone mesh
