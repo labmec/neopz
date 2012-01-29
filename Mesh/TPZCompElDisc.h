@@ -147,8 +147,8 @@ public:
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index);
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions(){
-		TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+	virtual void SetCreateFunctions(TPZCompMesh *mesh){
+		mesh->SetAllCreateFunctionsDiscontinuous();
 	}
 	
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const {

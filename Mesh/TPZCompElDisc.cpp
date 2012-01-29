@@ -473,7 +473,7 @@ REAL TPZCompElDisc::SizeOfElement()
 
 void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesolution){
 	
-	TPZCompMesh::SetAllCreateFunctions(*this);
+	Mesh()->SetAllCreateFunctions(*this);
 	
 	if (Mesh()->ElementVec()[index] != this) {
 		PZError << "TPZInterpolatedElement::Divide index error";
@@ -517,7 +517,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
 	deg = this->Degree();
 	
 	for (i=0;i<nsubs;i++){
-		geosubs[i]->CreateCompEl(*Mesh(),subindex[i]);//aqui
+		Mesh()->CreateCompEl(geosubs[i],subindex[i]);//aqui
 		//new TPZCompElDisc(*Mesh(),geosubs[i],subindex[i]);
 		discel = dynamic_cast<TPZCompElDisc *> (Mesh()->ElementVec()[subindex[i]]);
 		if (!discel){
