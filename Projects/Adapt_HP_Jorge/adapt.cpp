@@ -121,7 +121,7 @@ int mainAdapt ( int argc, char *argv[] )
 	TPZCompMesh * cDummyMesh = new TPZCompMesh ( gDummyMesh );
 	
 	// Specify the use of discontinuous interpolation space
-	TPZCompMesh::SetAllCreateFunctionsDiscontinuous();
+	cDummyMesh->SetAllCreateFunctionsDiscontinuous();
 	
 	// --- Material / Equation data:
 	// first parameter is the material identifier ( identifier is defined in element sectio of file LaraMesh.txt )
