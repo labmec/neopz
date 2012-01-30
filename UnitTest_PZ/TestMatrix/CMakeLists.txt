@@ -10,7 +10,7 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestMatrix ${headers} ${sources})
 
-	target_link_libraries(TestMatrix pz)
+	target_link_libraries(TestMatrix pz boost_unit_test_framework)
 
 endif()
 

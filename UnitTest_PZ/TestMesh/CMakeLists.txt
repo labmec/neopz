@@ -10,7 +10,7 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestMesh ${headers} ${sources})
 
-	target_link_libraries(TestMesh pz)
+	target_link_libraries(TestMesh pz boost_unit_test_framework)
 
 endif()
 

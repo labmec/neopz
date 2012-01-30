@@ -1,4 +1,4 @@
-# @file neopz/UnitTest_PZ/TestMatrix/CMakeLists.txt  -- CMake file for unit test of the matrix module
+# @file neopz/UnitTest_PZ/TestIntegNum/CMakeLists.txt  -- CMake file for unit test of the matrix module
 
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
@@ -10,7 +10,7 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestIntNum ${headers} ${sources})
 
-	target_link_libraries(TestIntNum pz)
+	target_link_libraries(TestIntNum pz boost_unit_test_framework)
 
 endif()
 
