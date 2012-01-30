@@ -36,8 +36,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testmesh"));
 
 #ifdef USING_BOOST
 
-//#define BOOST_TEST_DYN_LINK
-//#define BOOST_TEST_MAIN pz matrix tests
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN pz matrix tests
 
 #include <boost/test/unit_test.hpp>
 
