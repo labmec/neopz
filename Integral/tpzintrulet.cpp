@@ -77,7 +77,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 		case 1:
 			if(fNumInt!=1){DebugStop();}
 			fLocationKsi[0]= 1./3.;//0.333333333333;
-			fLocationEta[0]=1./3.;//0.333333333333;
+			fLocationEta[0]= 1./3.;//0.333333333333;
 			fWeight[0]= 0.5000000000000000;
 			break;
 			
@@ -85,7 +85,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			if(fNumInt!=3){DebugStop();}
 			std::cout<<"  Polinomial Order " <<precision<< " Number of integral points " <<fNumInt<<std::endl;
 			fLocationKsi[0]= 1./6.;//0.166666666667;
-			fLocationEta[0]=1./6.;//0.166666666667;
+			fLocationEta[0]= 1./6.;//0.166666666667;
 			fWeight[0]= 1./6.;//0.166666666667;
 			fLocationKsi[1]= 1./6.;//0.166666666667;
 			fLocationEta[1]= 2./3.;//0.666666666667;
@@ -137,7 +137,7 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			if(fNumInt!=7){DebugStop();}
 			fLocationKsi[0]= 1./3.;//0.333333333333;
 			fLocationEta[0]= 1./3.;//0.333333333333;
-			fWeight[0]= 0.11251500000;//0.1125;
+			fWeight[0]= 0.11250000000;//0.1125;
 			fLocationKsi[1]= 0.470142064105115;
 			fLocationEta[1]= 0.470142064105115;
 			fWeight[1]= 0.0661970763942530;//0.0661971;
@@ -149,13 +149,13 @@ TPZIntRuleT::TPZIntRuleT(int precision){
 			fWeight[3]= 0.0661970763942530;//0.0661971;
 			fLocationKsi[4]= 0.101286507323456;
 			fLocationEta[4]= 0.101286507323456;
-			fWeight[4]= 0.0629695902724135;//0.0629696;
+			fWeight[4]= 0.062969590272414;//0.0629696;
 			fLocationKsi[5]= 0.101286507323456;
 			fLocationEta[5]= 0.797426985353087;
-			fWeight[5]= 0.0629695902724135;//0.0629696;
+			fWeight[5]= 0.062969590272414;//0.0629696;
 			fLocationKsi[6]= 0.797426985353087;
 			fLocationEta[6]= 0.101286507323456;
-			fWeight[6]= 0.0629695902724135;//0.0629696;
+			fWeight[6]= 0.062969590272414;//0.0629696;
 			break;
 			
 		case 6:
