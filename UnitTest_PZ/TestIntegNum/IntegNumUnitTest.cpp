@@ -27,10 +27,10 @@ using namespace std;
 #define MAXORDER 13
 
 // Output file with the first test.
-bool first_run = false;
 int FirstOrder = 0;
 int max_order = MAXORDER;
-int expo = 3;
+int expo = 2;
+int NDigitsPrec = 14;
 
 std::string dirname = PZSOURCEDIR;
 
@@ -55,20 +55,18 @@ double Funcao(TPZVec<REAL> &point, int expo, int p) {
 	REAL y = point[1];
 	REAL z = point[2];
 	int ii, jj;
+	// The degree p can not to be lower than expo
+	if(p<expo) expo = p;
 	val = CoefficientX(0,p);
-	for(ii=1; ii<= expo; ii++) {
-		power = 1.;
-		for(jj=0;jj<ii;jj++)
-			power *= x;
-		val += (CoefficientX(ii,p) * power);
-		power = 1.;
-		for(jj=0;jj<ii;jj++)
-			power *= y;
-		val += (CoefficientY(ii,p) * power);
-		power = 1.;
-		for(jj=0;jj<ii;jj++)
-			power *= z;
-		val += (CoefficientZ(ii,p) * power);
+	if(!p) return val;
+	val += ((CoefficientX(1,p)*x)+(CoefficientY(1,p)*y)+(CoefficientZ(1,p)*z));
+	if(p==1) {
+		return val;
+	}
+	for(ii=2; ii<= expo; ii++) {
+		val += (CoefficientX(ii,p) * x * x);
+		val += (CoefficientY(ii,p) * y * y);
+		val += (CoefficientZ(ii,p) * z * z);
 	}
 	return val;
 }
@@ -94,8 +92,10 @@ void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test
 	REAL weight = 0.;
 	REAL integral = 0.;
 	char text[64];
+	char format[32];
 	TPZVec<int> order(3,p);
-	memset(text,0,64);
+	memset(text,0,strlen(text));
+	memset(format,0,strlen(format));
 
 	// Integration rule
 	NumInteg intrule(p);
@@ -107,15 +107,16 @@ void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test
 	cout << "\nIntegration dimension = " << intrule.Dimension() << "\t order = " << p << "\t NPoints = " << npoints << "\n";
 	for (it=0;it<npoints;it++) {
 		intrule.Point(it,point,weight);
-		cout << "\t Point " << it << " : " << point[0] << "\t" << point[1] << "\t" << point[2] << std::endl;
-		cout << "\t Weight : " << weight << std::endl;
+//		cout << "\t Point " << it << " : " << point[0] << "\t" << point[1] << "\t" << point[2] << std::endl;
+//		cout << "\t Weight : " << weight << std::endl;
 		integral += weight * Funcao(point,exp,p);
 	}
 	
-	sprintf(text,"%.7lf\n",integral);
+	sprintf(format,"%%.%dlf",NDigitsPrec);
+	sprintf(text,format,integral);
 	cout << "Numerical integration value = " << text << std::endl;
 	// Stores the obtained integral value
-	out << text;
+	out << text << "\n";
 
 	BOOST_CHECK( out.match_pattern() );
 }
@@ -141,11 +142,6 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	int order;
 	// Whether FirstResult.txt is empty then it is a first run
 	for(order=FirstOrder;order<max_order;order++) {
-		if(order == 1) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
 		TestingNumericIntegrationRule<TPZInt1d>(expo,order,output);   // OK
 	}
 	// Conclusion: It's failed at order = 1. But the erro is proportional e-10 from order = 8
@@ -155,16 +151,11 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult2D.txt";
-	boost::test_tools::output_test_stream output(filename,false);
+	boost::test_tools::output_test_stream output(filename,true);
 	
 	int order;
 	// Quadrilateral parametric space
 	for(order=FirstOrder;order<max_order;order++) {
-		if(order == 1) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
 		TestingNumericIntegrationRule<TPZIntQuad>(expo,order,output);   // OK
 	}
 	// Conclusion: We have problem at order 1. But the erro is proportional e-10 from order = 8
@@ -173,11 +164,6 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	
 	// Triangular parametric space
 	for(order=FirstOrder;order<max_order;order++) {
-		if(order == 1 || order == 5) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
 		TestingNumericIntegrationRule<TPZIntTriang>(expo,order,output);
 	}
 	// Conclusion: We have problem at order 1 and 5. It's failed at order >= 10.
@@ -185,14 +171,16 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 
 BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 
+	if(NDigitsPrec > 9)
+		NDigitsPrec = 9;
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult3D.txt";
-	boost::test_tools::output_test_stream output(filename,false);
+	boost::test_tools::output_test_stream output(filename,true);
 	
 	int order;
 	// Cube
 	for(order=FirstOrder;order<max_order;order++) {
-		if(!order || order == 1) {
+		if(!order) {
 			output << "\n";
 			BOOST_CHECK( output.match_pattern() );	
 			continue;
@@ -205,7 +193,7 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	
 	// Tetrahedram
 	for(order=FirstOrder;order<max_order;order++) {
-		if(!order || order == 1 || order == 4) {
+		if(!order) {
 			output << "\n";
 			BOOST_CHECK( output.match_pattern() );	
 			continue;
@@ -223,7 +211,7 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 	
 	// Prism
 	for(order=FirstOrder;order<max_order;order++) {
-		if(!order || order == 1 || order == 5) {
+		if(!order) {
 			output << "\n";
 			BOOST_CHECK( output.match_pattern() );	
 			continue;

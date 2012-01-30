@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[     20522,        553]
-NotebookOptionsPosition[     18743,        489]
-NotebookOutlinePosition[     19084,        504]
-CellTagsIndexPosition[     19041,        501]
+NotebookDataLength[     33238,        902]
+NotebookOptionsPosition[     30993,        827]
+NotebookOutlinePosition[     31333,        842]
+CellTagsIndexPosition[     31290,        839]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -23,13 +23,39 @@ Cell[CellGroupData[{
 Cell["Numeric Integration Test", "Title",
  CellChangeTimes->{{3.535808617010837*^9, 3.5358086392212954`*^9}}],
 
-Cell["Numeric Integration Rule One Dimensional", "Subtitle",
- CellChangeTimes->{{3.535808643340662*^9, 3.5358086626364594`*^9}}],
+Cell[CellGroupData[{
 
-Cell[BoxData[
+Cell["Numeric Integration Rule One Dimensional", "Subtitle",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.535808643340662*^9, 3.5358086626364594`*^9}, 
+   3.536747145170236*^9}],
+
+Cell[BoxData[{
  RowBox[{
   RowBox[{
-   RowBox[{"fun1D", "[", 
+   RowBox[{"fun1D0", "[", 
+    RowBox[{"x_", ",", "p_"}], "]"}], ":=", " ", "1."}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fun1D1", "[", 
+    RowBox[{"x_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}]}]}], " ", ";", 
+  RowBox[{
+   RowBox[{"fun1D2", "[", 
+    RowBox[{"x_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}], " ", "+", 
+    RowBox[{"x", "*", "x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"2", "*", "p", "*", "p"}], "]"}]}]}]}], ";", 
+  RowBox[{
+   RowBox[{"fun1D3", "[", 
     RowBox[{"x_", ",", "p_"}], "]"}], ":=", " ", 
    RowBox[{"1.", "+", 
     RowBox[{"x", "*", 
@@ -40,14 +66,23 @@ Cell[BoxData[
       RowBox[{"2", "*", "p", "*", "p"}], "]"}]}], "+", 
     RowBox[{"x", "*", "x", "*", "x", "*", 
      RowBox[{"Sin", "[", 
-      RowBox[{"3", "*", "p", "*", "p"}], "]"}]}]}]}], ";"}]], "Input",
- CellChangeTimes->{3.536674320597898*^9}],
-
-Cell[CellGroupData[{
+      RowBox[{"3", "*", "p", "*", "p"}], "]"}]}]}]}], ";"}]}], "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{
+  3.536674320597898*^9, 3.536747145170354*^9, {3.536919545446754*^9, 
+   3.536919610737812*^9}}],
 
 Cell[BoxData[{
  RowBox[{
   RowBox[{"MaxOrder", " ", "=", " ", "13"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"NDigits", " ", "=", " ", "18"}], ";"}]}], "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{{3.536747089401966*^9, 3.5367470954483843`*^9}, 
+   3.536747145170435*^9, {3.536919621959166*^9, 3.536919622999296*^9}, {
+   3.536927888909519*^9, 3.536927906354517*^9}}],
+
+Cell[BoxData[{
  RowBox[{
   RowBox[{"f1D", "=", 
    RowBox[{
@@ -59,16 +94,38 @@ Cell[BoxData[{
    RowBox[{"f1D", ",", "MaxOrder"}], "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f1D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Write", "[", 
+   RowBox[{"f1D", ",", 
+    RowBox[{"NIntegrate", "[", 
+     RowBox[{
+      RowBox[{"fun1D0", "[", 
+       RowBox[{"x", ",", "0"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Write", "[", 
+   RowBox[{"f1D", ",", 
+    RowBox[{"NIntegrate", "[", 
+     RowBox[{
+      RowBox[{"fun1D1", "[", 
+       RowBox[{"x", ",", "1"}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun1D", "[", 
+       RowBox[{"fun1D2", "[", 
         RowBox[{"x", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", 
@@ -76,6 +133,7 @@ Cell[BoxData[{
     RowBox[{"Write", "[", 
      RowBox[{"f1D", ",", "value"}], "]"}]}]}], "]"}], "\[IndentingNewLine]", 
  RowBox[{"Close", "[", "f1D", "]"}], "\[IndentingNewLine]"}], "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
  CellChangeTimes->{{3.5358105279318743`*^9, 3.535810534659135*^9}, {
    3.535810565298674*^9, 3.535810600495385*^9}, {3.535810980546145*^9, 
    3.535810984999486*^9}, {3.5366681311620092`*^9, 3.536668133351763*^9}, {
@@ -87,13 +145,23 @@ Cell[BoxData[{
    3.536674890836329*^9, 3.5366748974020557`*^9}, {3.536675151620348*^9, 
    3.536675156769902*^9}, {3.5366752640876102`*^9, 3.536675302274078*^9}, {
    3.536676534400649*^9, 3.536676536743106*^9}, {3.5366791916625013`*^9, 
-   3.536679278553585*^9}}],
+   3.536679278553585*^9}, {3.5367470857910337`*^9, 3.536747110186717*^9}, 
+   3.536747145170513*^9, {3.536747367525146*^9, 3.536747371409995*^9}, {
+   3.536919648238969*^9, 3.53691972099586*^9}, {3.536919760593738*^9, 
+   3.536919766273457*^9}, {3.536920889344165*^9, 3.536920892191532*^9}, {
+   3.5369246034989223`*^9, 3.536924603906418*^9}, {3.536924815584567*^9, 
+   3.536924816037848*^9}, {3.53692539142106*^9, 3.536925434207233*^9}, {
+   3.536925477239316*^9, 3.536925504772791*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult1D.txt\"\>"], "Output",
- CellChangeTimes->{3.5366751922188272`*^9, 3.536675358682562*^9, 
-  3.536676545493635*^9, 3.5366767917118607`*^9, 3.536677732485465*^9, 
-  3.536679363630149*^9}]
+ CellGroupingRules->{GroupTogetherGrouping, 10000.},
+ CellChangeTimes->{
+  3.5366751922188272`*^9, 3.536675358682562*^9, 3.536676545493635*^9, 
+   3.5366767917118607`*^9, 3.536677732485465*^9, 3.536679363630149*^9, {
+   3.536747145170596*^9, 3.536747151766219*^9}, 3.5367473870124693`*^9, 
+   3.53692071209107*^9, 3.536920973221059*^9, 3.536924637160611*^9, 
+   3.536924861583746*^9, 3.536925528286182*^9, 3.53692603813802*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -105,10 +173,39 @@ Cell["Numeric Integration Rule Two Dimensional", "Subtitle",
 Cell["Quadrilateral parametric space", "Subsubtitle",
  CellChangeTimes->{{3.5360749649621077`*^9, 3.536074979000927*^9}}],
 
-Cell[BoxData[
+Cell[BoxData[{
  RowBox[{
   RowBox[{
-   RowBox[{"fun2D", "[", 
+   RowBox[{"fun2D0", "[", 
+    RowBox[{"x_", ",", "y_", ",", "p_"}], "]"}], ":=", " ", "1."}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fun2D1", "[", 
+    RowBox[{"x_", ",", "y_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", 
+     RowBox[{"Sin", "[", "p", "]"}]}]}]}], ";", 
+  RowBox[{
+   RowBox[{"fun2D2", "[", 
+    RowBox[{"x_", ",", "y_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", 
+     RowBox[{"Sin", "[", "p", "]"}]}], "+", 
+    RowBox[{"x", "*", "x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"2", "*", "p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", "y", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"2", "*", "p"}], "]"}]}]}]}], ";", 
+  RowBox[{
+   RowBox[{"fun2D3", "[", 
     RowBox[{"x_", ",", "y_", ",", "p_"}], "]"}], ":=", " ", 
    RowBox[{"1.", "+", 
     RowBox[{"x", "*", 
@@ -127,9 +224,10 @@ Cell[BoxData[
       RowBox[{"3", "*", "p", "*", "p"}], "]"}]}], "+", 
     RowBox[{"y", "*", "y", "*", "y", "*", 
      RowBox[{"Sin", "[", 
-      RowBox[{"3", "*", "p"}], "]"}]}]}]}], ";"}]], "Input",
+      RowBox[{"3", "*", "p"}], "]"}]}]}]}], ";"}]}], "Input",
  CellChangeTimes->{
-  3.536674368221458*^9, {3.536674622675644*^9, 3.536674640212863*^9}}],
+  3.536674368221458*^9, {3.536674622675644*^9, 3.536674640212863*^9}, {
+   3.536919781520773*^9, 3.536919841085408*^9}}],
 
 Cell[CellGroupData[{
 
@@ -145,16 +243,42 @@ Cell[BoxData[{
    RowBox[{"f2D", ",", "MaxOrder"}], "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f2D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f2D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun2D0", "[", 
+      RowBox[{"x", ",", "y", ",", "0"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f2D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun2D1", "[", 
+      RowBox[{"x", ",", "y", ",", "1"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun2D", "[", 
+       RowBox[{"fun2D2", "[", 
         RowBox[{"x", ",", "y", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", 
@@ -163,7 +287,10 @@ Cell[BoxData[{
         RowBox[{"y", ",", 
          RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], ";", 
     RowBox[{"Write", "[", 
-     RowBox[{"f2D", ",", "value"}], "]"}]}]}], "]"}], "\[IndentingNewLine]", 
+     RowBox[{"f2D", ",", 
+      RowBox[{"N", "[", 
+       RowBox[{"value", ",", "NDigits"}], "]"}]}], "]"}]}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"Close", "[", "f2D", "]"}]}], "Input",
  CellChangeTimes->{{3.536081805891046*^9, 3.536081816069354*^9}, {
    3.5360819480548162`*^9, 3.536081948301886*^9}, {3.5360819883890533`*^9, 
@@ -174,12 +301,19 @@ Cell[BoxData[{
    3.536674707222076*^9, 3.5366747075179358`*^9}, {3.53667491315422*^9, 
    3.536674916241194*^9}, 3.5366753157056017`*^9, {3.536676524025378*^9, 
    3.536676524560381*^9}, 3.536679290402614*^9, {3.5366793309035892`*^9, 
-   3.5366793361915827`*^9}}],
+   3.5366793361915827`*^9}, 3.536747126683002*^9, {3.536747376482469*^9, 
+   3.536747379737956*^9}, {3.536919864459443*^9, 3.536919889690078*^9}, {
+   3.536919959935219*^9, 3.5369199969238043`*^9}, {3.536920908488062*^9, 
+   3.5369209117272663`*^9}, {3.5369246204251337`*^9, 3.536924620785718*^9}, {
+   3.536924831446022*^9, 3.536924832870099*^9}, {3.536927922569807*^9, 
+   3.536927936332856*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult2D.txt\"\>"], "Output",
  CellChangeTimes->{3.536674987139557*^9, 3.5366753731965523`*^9, 
-  3.536676549565433*^9, 3.5366767952662277`*^9, 3.5366793679877768`*^9}]
+  3.536676549565433*^9, 3.5366767952662277`*^9, 3.5366793679877768`*^9, 
+  3.53674739474436*^9, 3.536920730812642*^9, 3.536920978096243*^9, 
+  3.536924641169324*^9, 3.53692486553508*^9, 3.5369255315500917`*^9}]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -199,16 +333,40 @@ Cell[BoxData[{
 \"", "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f2D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f2D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun2D0", "[", 
+      RowBox[{"x", ",", "y", ",", "0"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f2D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun2D1", "[", 
+      RowBox[{"x", ",", "y", ",", "1"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun2D", "[", 
+       RowBox[{"fun2D2", "[", 
         RowBox[{"x", ",", "y", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
@@ -216,19 +374,27 @@ Cell[BoxData[{
         RowBox[{"y", ",", "0.", ",", 
          RowBox[{"1.", "-", "x"}]}], "}"}]}], "]"}]}], ";", 
     RowBox[{"Write", "[", 
-     RowBox[{"f2D", ",", "value"}], "]"}]}]}], "]"}], "\[IndentingNewLine]", 
+     RowBox[{"f2D", ",", 
+      RowBox[{"N", "[", 
+       RowBox[{"value", ",", "NDigits"}], "]"}]}], "]"}]}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"Close", "[", "f2D", "]"}]}], "Input",
  CellChangeTimes->{{3.536673967403819*^9, 3.536673993387437*^9}, {
    3.5366744091626177`*^9, 3.5366744139270287`*^9}, {3.536674675088443*^9, 
    3.536674703926256*^9}, {3.536674929219862*^9, 3.536674931624359*^9}, 
    3.536675323152441*^9, {3.536675418268808*^9, 3.536675431817884*^9}, {
    3.536676518033882*^9, 3.5366765189850063`*^9}, {3.5366767791610737`*^9, 
-   3.53667677957654*^9}, 3.5366792954589033`*^9}],
+   3.53667677957654*^9}, 3.5366792954589033`*^9, {3.536919915752282*^9, 
+   3.536919933935351*^9}, {3.536920009322652*^9, 3.5369200745808687`*^9}, {
+   3.536920293906492*^9, 3.536920295522044*^9}, {3.5369209218311863`*^9, 
+   3.5369209237664347`*^9}, {3.536927953180723*^9, 3.536927957467546*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult2D.txt\"\>"], "Output",
  CellChangeTimes->{3.5366750127406588`*^9, 3.536675376918212*^9, 
-  3.536676551886201*^9, 3.536676797028845*^9, 3.5366793701675*^9}]
+  3.536676551886201*^9, 3.536676797028845*^9, 3.5366793701675*^9, 
+  3.5367473972885933`*^9, 3.536920734752351*^9, 3.53692098008748*^9, 
+  3.536924867632246*^9, 3.536925533674493*^9}]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]],
@@ -246,10 +412,47 @@ Cell["Cube parametric space", "Subsubtitle",
    3.5360754980420628`*^9, 3.536075501609651*^9}, {3.536093274207541*^9, 
    3.536093292790193*^9}, 3.53609335077737*^9}],
 
-Cell[BoxData[
+Cell[BoxData[{
  RowBox[{
   RowBox[{
-   RowBox[{"fun3D", "[", 
+   RowBox[{"fun3D0", "[", 
+    RowBox[{"x_", ",", "y_", ",", "z_", ",", "p_"}], "]"}], ":=", " ", "1."}],
+   ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fun3D1", "[", 
+    RowBox[{"x_", ",", "y_", ",", "z_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", 
+     RowBox[{"Sin", "[", "p", "]"}]}], "+", 
+    RowBox[{"z", "*", 
+     RowBox[{"Sin", "[", "1", "]"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fun3D2", "[", 
+    RowBox[{"x_", ",", "y_", ",", "z_", ",", "p_"}], "]"}], ":=", " ", 
+   RowBox[{"1.", "+", 
+    RowBox[{"x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", 
+     RowBox[{"Sin", "[", "p", "]"}]}], "+", 
+    RowBox[{"z", "*", 
+     RowBox[{"Sin", "[", "1", "]"}]}], "+", 
+    RowBox[{"x", "*", "x", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"2", "*", "p", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"y", "*", "y", "*", 
+     RowBox[{"Sin", "[", 
+      RowBox[{"2", "*", "p"}], "]"}]}], "+", 
+    RowBox[{"z", "*", "z", "*", 
+     RowBox[{"Sin", "[", "2", "]"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"fun3D3", "[", 
     RowBox[{"x_", ",", "y_", ",", "z_", ",", "p_"}], "]"}], ":=", " ", 
    RowBox[{"1.", "+", 
     RowBox[{"x", "*", 
@@ -274,8 +477,9 @@ Cell[BoxData[
      RowBox[{"Sin", "[", 
       RowBox[{"3", "*", "p"}], "]"}]}], "+", 
     RowBox[{"z", "*", "z", "*", "z", "*", 
-     RowBox[{"Sin", "[", "3", "]"}]}]}]}], ";"}]], "Input",
- CellChangeTimes->{3.5366741311702538`*^9}],
+     RowBox[{"Sin", "[", "3", "]"}]}]}]}], ";"}]}], "Input",
+ CellChangeTimes->{
+  3.5366741311702538`*^9, {3.5369200915350933`*^9, 3.5369201700348682`*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -289,16 +493,48 @@ Cell[BoxData[{
    RowBox[{"f3D", ",", "MaxOrder"}], "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f3D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D0", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "0"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D1", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "1"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun3D", "[", 
+       RowBox[{"fun3D2", "[", 
         RowBox[{"x", ",", "y", ",", "z", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", 
@@ -322,7 +558,9 @@ Cell[BoxData[{
    3.536675848241435*^9}, {3.536675897525655*^9, 3.536675907373994*^9}, {
    3.5366759699160013`*^9, 3.5366760293508787`*^9}, {3.536676060127502*^9, 
    3.536676061284801*^9}, {3.5366764575670967`*^9, 3.5366764731076117`*^9}, 
-   3.5366793023699913`*^9, {3.536679346079423*^9, 3.5366793509101963`*^9}}],
+   3.5366793023699913`*^9, {3.536679346079423*^9, 3.5366793509101963`*^9}, {
+   3.536920193529462*^9, 3.536920282931484*^9}, {3.5369209369351788`*^9, 
+   3.536920938742359*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult3D.txt\"\>"], "Output",
@@ -330,7 +568,8 @@ FirstResult3D.txt\"\>"], "Output",
   3.536675705861185*^9, 3.536675750215001*^9, 3.536675868693389*^9, 
   3.536675975511444*^9, 3.536676031414544*^9, 3.536676062541391*^9, 
   3.536676476101454*^9, 3.5366765565978127`*^9, 3.536676801214929*^9, 
-  3.5366793743741627`*^9}],
+  3.5366793743741627`*^9, 3.536747402426858*^9, 3.536920744950287*^9, 
+  3.536920985832438*^9, 3.536924874524724*^9}],
 
 Cell[CellGroupData[{
 
@@ -350,16 +589,50 @@ Cell[BoxData[{
 \"", "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f3D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D0", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "0"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", "0.", ",", 
+       RowBox[{"1", "-", 
+        RowBox[{"(", 
+         RowBox[{"x", "+", "y"}], ")"}]}]}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D1", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "1"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", "0.", ",", 
+       RowBox[{"1", "-", 
+        RowBox[{"(", 
+         RowBox[{"x", "+", "y"}], ")"}]}]}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun3D", "[", 
+       RowBox[{"fun3D2", "[", 
         RowBox[{"x", ",", "y", ",", "z", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
@@ -385,12 +658,14 @@ Cell[BoxData[{
    3.5366749578552647`*^9}, 3.536675336160492*^9, {3.536675445306142*^9, 
    3.5366754507298517`*^9}, 3.536676506171774*^9, {3.536676588077739*^9, 
    3.53667659610214*^9}, {3.5366767722512093`*^9, 3.536676773249318*^9}, 
-   3.5366793059941483`*^9}],
+   3.5366793059941483`*^9, 3.5369203184653893`*^9, {3.53692037067247*^9, 
+   3.536920395580975*^9}, {3.536920948942737*^9, 3.5369209526668777`*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult3D.txt\"\>"], "Output",
  CellChangeTimes->{3.5366750286653843`*^9, 3.536676559177464*^9, 
-  3.5366768036769657`*^9, 3.536679376814539*^9}]
+  3.5366768036769657`*^9, 3.536679376814539*^9, 3.536747406893364*^9, 
+  3.5369207484662523`*^9, 3.5369209886806393`*^9, 3.5369248771662683`*^9}]
 }, Open  ]]
 }, Open  ]],
 
@@ -441,16 +716,46 @@ Cell[BoxData[{
 \"", "]"}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Write", "[", "f3D", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D0", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "0"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Write", "[", 
+  RowBox[{"f3D", ",", 
+   RowBox[{"NIntegrate", "[", 
+    RowBox[{
+     RowBox[{"fun3D1", "[", 
+      RowBox[{"x", ",", "y", ",", "z", ",", "1"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"y", ",", "0.", ",", 
+       RowBox[{"1.", "-", "x"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"z", ",", 
+       RowBox[{"-", "1."}], ",", "1."}], "}"}]}], "]"}]}], 
+  "]"}], "\[IndentingNewLine]", 
  RowBox[{"For", "[", 
   RowBox[{
-   RowBox[{"p", "=", "0"}], ",", 
+   RowBox[{"p", "=", "2"}], ",", 
    RowBox[{"p", "<", "MaxOrder"}], ",", 
    RowBox[{"p", "++"}], ",", 
    RowBox[{
     RowBox[{"value", "=", 
      RowBox[{"NIntegrate", "[", 
       RowBox[{
-       RowBox[{"fun3D", "[", 
+       RowBox[{"fun3D2", "[", 
         RowBox[{"x", ",", "y", ",", "z", ",", "p"}], "]"}], ",", 
        RowBox[{"{", 
         RowBox[{"x", ",", "0.", ",", "1."}], "}"}], ",", 
@@ -474,21 +779,54 @@ Cell[BoxData[{
    3.53667480680795*^9}, {3.536674967022522*^9, 3.536674968606433*^9}, 
    3.5366753451197443`*^9, 3.536675462593563*^9, {3.5366765116419373`*^9, 
    3.536676512081559*^9}, {3.5366766133960247`*^9, 3.536676627754798*^9}, {
-   3.5366767289573383`*^9, 3.536676729988353*^9}, 3.536679309729727*^9}],
+   3.5366767289573383`*^9, 3.536676729988353*^9}, 3.536679309729727*^9, {
+   3.53692041125133*^9, 3.536920475800061*^9}, {3.536920957973763*^9, 
+   3.5369209612636414`*^9}}],
 
 Cell[BoxData["\<\"Labmec/GoogleCodes/neopz/UnitTest_PZ/TestIntegNum/\
 FirstResult3D.txt\"\>"], "Output",
  CellChangeTimes->{
   3.536675034638973*^9, 3.53667656198279*^9, {3.536676645927771*^9, 
    3.536676670684005*^9}, {3.536676732303196*^9, 3.536676739954977*^9}, 
-   3.536676806096272*^9, 3.536679379557004*^9}]
+   3.536676806096272*^9, 3.536679379557004*^9, 3.536747408900916*^9, 
+   3.5369207525937433`*^9, 3.5369209927626867`*^9, 3.536924880331704*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+
+Testando os valores da fun\[CCedilla]\[ATilde]o f1D0, ..., f3D2 para os \
+pontos de coordenadas en coord_values\
+\>", "Section",
+ CellChangeTimes->{{3.536923967839918*^9, 3.536924052726952*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"coordValues", "=", 
+   RowBox[{"List", "[", 
+    RowBox[{"0.75", ",", "0.5", ",", "0.25", ",", "0.125", ",", "0.0"}], 
+    "]"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.536924059868621*^9, 3.536924096502421*^9}, {
+  3.536924308513575*^9, 3.536924310288971*^9}}],
+
+Cell[BoxData[
+ RowBox[{"For", "[", 
+  RowBox[{
+   RowBox[{"k", "=", "0"}], ",", 
+   RowBox[{"k", "<", 
+    RowBox[{"Dimensions", "[", "coordValues", "]"}]}], ",", 
+   RowBox[{
+    RowBox[{"k", "++"}], ";"}]}]}]], "Input",
+ CellChangeTimes->{{3.536924103434857*^9, 3.5369241146764107`*^9}, {
+  3.536924292587944*^9, 3.5369243273522263`*^9}}]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]
 },
 WindowSize->{697, 796},
-WindowMargins->{{Automatic, 142}, {Automatic, 60}},
+WindowMargins->{{312, Automatic}, {Automatic, 9}},
 FrontEndVersion->"7.0 for Mac OS X x86 (32-bit) (November 10, 2008)",
 StyleDefinitions->"Default.nb"
 ]
@@ -505,52 +843,63 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[567, 22, 109, 1, 76, "Title"],
-Cell[679, 25, 128, 1, 46, "Subtitle"],
-Cell[810, 28, 530, 15, 27, "Input"],
 Cell[CellGroupData[{
-Cell[1365, 47, 1911, 42, 163, "Input"],
-Cell[3279, 91, 266, 4, 27, "Output"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[3582, 100, 179, 2, 46, "Subtitle"],
-Cell[3764, 104, 121, 1, 26, "Subsubtitle"],
-Cell[3888, 107, 873, 24, 43, "Input"],
-Cell[CellGroupData[{
-Cell[4786, 135, 1764, 41, 133, "Input"],
-Cell[6553, 178, 243, 3, 27, "Output"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[6833, 186, 171, 2, 26, "Subsubtitle"],
-Cell[CellGroupData[{
-Cell[7029, 192, 1364, 33, 118, "Input"],
-Cell[8396, 227, 237, 3, 27, "Output"]
-}, Open  ]]
-}, Open  ]]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[8694, 237, 230, 3, 46, "Subtitle"],
-Cell[8927, 242, 288, 4, 26, "Subsubtitle",
+Cell[701, 27, 207, 3, 46, "Subtitle",
  CellGroupingRules->{GroupTogetherGrouping, 10000.}],
-Cell[9218, 248, 1071, 29, 58, "Input"],
-Cell[10292, 279, 1942, 45, 148, "Input",
+Cell[911, 32, 1345, 40, 73, "Input",
  CellGroupingRules->{GroupTogetherGrouping, 10000.}],
-Cell[12237, 326, 406, 6, 27, "Output"],
+Cell[2259, 74, 415, 8, 43, "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[2677, 84, 2995, 69, 178, "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[5675, 155, 532, 8, 27, "Output",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}]
+}, Open  ]],
 Cell[CellGroupData[{
-Cell[12668, 336, 220, 3, 26, "Subsubtitle"],
+Cell[6244, 168, 179, 2, 46, "Subtitle"],
+Cell[6426, 172, 121, 1, 26, "Subsubtitle"],
+Cell[6550, 175, 1874, 54, 103, "Input"],
 Cell[CellGroupData[{
-Cell[12913, 343, 1962, 44, 133, "Input"],
-Cell[14878, 389, 219, 3, 27, "Output"]
+Cell[8449, 233, 3022, 75, 178, "Input"],
+Cell[11474, 310, 381, 5, 27, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[11892, 320, 171, 2, 26, "Subsubtitle"],
+Cell[CellGroupData[{
+Cell[12088, 326, 2464, 63, 163, "Input"],
+Cell[14555, 391, 354, 5, 27, "Output"]
+}, Open  ]]
 }, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[15146, 398, 216, 3, 26, "Subsubtitle"],
-Cell[15365, 403, 792, 19, 43, "Input"]
+Cell[14970, 403, 230, 3, 46, "Subtitle"],
+Cell[15203, 408, 288, 4, 26, "Subsubtitle",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[15494, 414, 2392, 67, 133, "Input"],
+Cell[17889, 483, 3079, 79, 178, "Input",
+ CellGroupingRules->{GroupTogetherGrouping, 10000.}],
+Cell[20971, 564, 497, 7, 27, "Output"],
+Cell[CellGroupData[{
+Cell[21493, 575, 220, 3, 26, "Subsubtitle"],
+Cell[CellGroupData[{
+Cell[21738, 582, 3208, 79, 193, "Input"],
+Cell[24949, 663, 316, 4, 27, "Output"]
+}, Open  ]]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[16194, 427, 213, 3, 26, "Subsubtitle"],
+Cell[25314, 673, 216, 3, 26, "Subsubtitle"],
+Cell[25533, 678, 792, 19, 43, "Input"]
+}, Open  ]],
 Cell[CellGroupData[{
-Cell[16432, 434, 1942, 42, 133, "Input"],
-Cell[18377, 478, 314, 5, 27, "Output"]
+Cell[26362, 702, 213, 3, 26, "Subsubtitle"],
+Cell[CellGroupData[{
+Cell[26600, 709, 3042, 74, 193, "Input"],
+Cell[29645, 785, 410, 6, 27, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[30092, 796, 205, 5, 111, "Section"],
+Cell[30300, 803, 298, 7, 27, "Input"],
+Cell[30601, 812, 340, 9, 27, "Input"]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]
