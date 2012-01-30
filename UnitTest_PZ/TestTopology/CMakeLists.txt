@@ -10,7 +10,7 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestTopology ${headers} ${sources})
 
-	target_link_libraries(TestTopology pz)
+	target_link_libraries(TestTopology pz boost_unit_test_framework)
 
 endif()
 
