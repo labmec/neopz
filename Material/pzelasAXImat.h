@@ -92,6 +92,15 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Returns the number of state variables associated with the material */
 	virtual  int NStateVariables();
 	
+	/** 
+     * @brief Gets the order of the integration rule necessary to integrate an
+     * element with polinomial order p
+     */
+    virtual int IntegrationRuleOrder(int elPMaxOrder) const
+    {
+        return 2*(elPMaxOrder-1);
+    }
+	
 	/** @brief Prints the material data */
 	virtual void Print(std::ostream & out = std::cout);
 	
