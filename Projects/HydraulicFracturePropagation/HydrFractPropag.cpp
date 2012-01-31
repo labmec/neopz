@@ -97,7 +97,7 @@ int main(int argc, char * const argv[])
 	step.SetDirect(ELDLt); //caso simetrico
 	an.SetSolver(step);
 	an.Run();
-    svn
+
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
     
