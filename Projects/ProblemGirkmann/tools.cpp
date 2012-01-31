@@ -680,18 +680,28 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 
 ///-----------------------------------------SolveSist()---------------------------------------------
 #define VTK
-void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
+void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 {
 	//TPZFStructMatrix full(fCmesh);
 	//TPZFrontStructMatrix<TPZFrontNonSym> full(fCmesh);
 	//full.SetNumberOfThreads(3);
 	
-	//TPZBandStructMatrix full(fCmesh); //caso nao simetrico
-	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
-	an.SetStructuralMatrix(full);
+	if(sim==1){
+		TPZBandStructMatrix full(fCmesh);
+		an.SetStructuralMatrix(full);
+	} //caso nao simetrico
+	else{
+		TPZSkylineStructMatrix full(fCmesh);
+		an.SetStructuralMatrix(full);
+	}//caso simetrico
+	
 	TPZStepSolver step;
-	//step.SetDirect(ELU); //caso nao simetrico
-	step.SetDirect(ELDLt); //caso simetrico
+	if(sim==1){
+		step.SetDirect(ELU);
+	} //caso nao simetrico
+	else{
+		step.SetDirect(ELDLt);
+	}//caso simetrico
 	an.SetSolver(step);
 	an.Run();
 	static int count = 0;
@@ -812,7 +822,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 					nr = n(0,0); nz = n(1,0);
 					
 					TPZGeoEl *gel =Cel->Reference();
-					TPZIntPoints *intr = gel->CreateSideIntegrationRule(gel->NSides()-1,20);
+					TPZIntPoints *intr = gel->CreateSideIntegrationRule(gel->NSides()-1,14);
 					TPZGeoElSide gels(gel,2); // Elemento geom.  e lado
 					TPZGeoElSide neigh = neighbours[jn].Reference();
 					TPZGeoElSide neighhigh(neigh.Element(),neigh.Element()->NSides() - 1);
@@ -924,7 +934,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 					nr = n(0,0); nz = n(1,0);
 					
 					TPZGeoEl *gel =Cel->Reference();
-					TPZIntPoints *intr = gel->CreateSideIntegrationRule(gel->NSides()-1,20);
+					TPZIntPoints *intr = gel->CreateSideIntegrationRule(gel->NSides()-1,14);
 					TPZGeoElSide gels(gel,2); // Elemento geom.  e lado
 					TPZGeoElSide neigh = neighbours[jn].Reference();
 					TPZGeoElSide neighhigh(neigh.Element(),neigh.Element()->NSides() - 1);

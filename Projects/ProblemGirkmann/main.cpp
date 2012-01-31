@@ -44,12 +44,12 @@ int main(int argc, char *argv[])
 	
 	tools * Shell = new tools(rc, h, alpha, a, b, pesoEspecifico,E,poisson,anelleve);
 	
-	int ndiv = 60;
-	int nDiv_DirectRefR = 0;
-	int nDiv_DirectRefL = 0;
-	int nDiv_DirectRefp = 0;
-	REAL sim = -1.;
-	REAL pen = 0.;//100.*E;
+	int ndiv = 240;
+	int nDiv_DirectRefCasca = 1;
+	int nDiv_DirectRefAnel = 4;
+	int nDiv_DirectRefPonto = 1;
+	REAL sim = /*-1.;*/1.;
+	REAL pen = /*0.;*/10.e10;
 		
 	for(int nh = 0; nh<= 0; nh++) 
 	{
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 			REAL Qreal =942.5 /*943.8*/;
 		
 			//------------- RESOLUCAO MALHA CONTINUA ---------------------------------------------------------------------------------------
-			TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefR, nDiv_DirectRefL,nDiv_DirectRefp, false, 4);
+			TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
 			ofstream arg("gmeshContin.txt");
 			gmesh->Print(arg);
 		
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 			ofstream arg4("cmeshContin.txt");
 			cmesh->Print(arg4);
 				
-			Shell->SolveSist(an, cmesh);
+			Shell->SolveSist(an, cmesh,sim);
 				
 			TPZVec<REAL> QeM(9,0.);
 			QeM = Shell->CalcCortMomento(cmesh);
@@ -83,8 +83,9 @@ int main(int argc, char *argv[])
 			delete gmesh;
 			gmesh = 0;
 			
-				
-			outfile <<"=====Calculo com, nh = " << nh << ", Ndiv = "<< ndiv <<" e p = " << p <<endl;/*"", RefDir = "<< nDiv_DirectRefL<<" e RefDirp = "<< nDiv_DirectRefp<<" ====" <<endl;*/
+			outfile <<"\n Termo de simetria, sim = " << sim <<endl;	
+			outfile <<"=====Calculo com, nh = " << nh << ", Ndiv = "<< ndiv <<" e p = " << p <<endl;
+			outfile<<" RefDirAnel = "<< nDiv_DirectRefAnel<<"   RefDirCasca = "<< nDiv_DirectRefCasca<<" e   RefDirPonto = "<< nDiv_DirectRefPonto<<endl<<endl;
 			outfile<<"RESULTADOS SEM INTERFACE"<<endl;
 			outfile <<" MomentoR = "<<QeM[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[0])/Mreal)*100.<<" %"<<endl;
 			outfile <<" MomentoL = "<<QeM[2]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[2])/Mreal)*100.<<" %"<<endl;
@@ -102,7 +103,7 @@ int main(int argc, char *argv[])
 		
 		
 			//------------- RESOLUCAO MALHA DESCONTINUA ---------------------------------------------------------------------------------------
-			TPZGeoMesh * gmesh2 = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefR, nDiv_DirectRefL, nDiv_DirectRefp, true, 4);
+			TPZGeoMesh * gmesh2 = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel, nDiv_DirectRefPonto, true, 4);
 							
 			//Shell->RefinamentoUniforme(*gmesh2, nh);
 		
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
 			cout << "\n Numero de Equacoes = " << nEq<<endl;
 		
 			TPZAnalysis an_ch(cmesh_changed);
-			Shell->SolveSist(an_ch, cmesh_changed);
+			Shell->SolveSist(an_ch, cmesh_changed,sim);
 			
 			
 			cmesh_changed->Print();

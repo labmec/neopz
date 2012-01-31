@@ -109,7 +109,7 @@ public:
 	/**
      * Resolve o sistema matricial [M]{c}=[b]
 	 */
-    void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
+    void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh,  int sim);
 	
 	/**
 	 *Pos-processamento, calcular a cortante e o momento 
