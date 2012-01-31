@@ -33,7 +33,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testhdiv"));
 #ifdef USING_BOOST
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN pz matrix tests
+#define BOOST_TEST_MAIN pz meshHDiv tests
 
 #include <boost/test/unit_test.hpp>
 
@@ -168,10 +168,10 @@ BOOST_AUTO_TEST_CASE(drham_permute_check)
 
 }
 
-void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
-{
-    force[0] = x[0];
-}
+//void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
+//{
+//    force[0] = x[0];
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 

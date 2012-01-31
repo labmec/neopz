@@ -6,7 +6,7 @@
 //  Copyright 2012 UNICAMP. All rights reserved.
 //
 
-#include "TestCondensedElement.h"
+//#include "TestCondensedElement.h"
 
 #include "pzmanvector.h"
 #include "pztrnsform.h"
@@ -37,7 +37,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.testmesh"));
 #ifdef USING_BOOST
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN pz matrix tests
+#define BOOST_TEST_MAIN pz mesh tests
 
 #include <boost/test/unit_test.hpp>
 
@@ -83,10 +83,10 @@ BOOST_AUTO_TEST_CASE(globalcompute)
 
 
 
-void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
-{
-    force[0] = x[0];
-}
+//void linpress(TPZVec<REAL> &x, TPZVec<REAL> &force)
+//{
+//    force[0] = x[0];
+//}
 
 BOOST_AUTO_TEST_SUITE_END()
 

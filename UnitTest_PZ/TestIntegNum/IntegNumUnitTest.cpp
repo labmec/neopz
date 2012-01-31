@@ -6,6 +6,8 @@
 #include "pzvec.h"
 #include "pzquad.h"
 
+#include <math.h>
+
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -31,6 +33,10 @@ int FirstOrder = 0;
 int max_order = MAXORDER;
 int expo = 2;
 int NDigitsPrec = 14;
+int NMaxPoints = 1000;
+
+long double *Points;
+long double *Weights;
 
 std::string dirname = PZSOURCEDIR;
 
@@ -45,16 +51,63 @@ double CoefficientY(int i, int p) {
 double CoefficientZ(int i, int p) {
 	return sin((double)(i));
 }
+// Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0]
+void ComputingGaussLegendreQuadrature(int Npoints,ofstream &GaussLegQuadrature) {
+	const long double tol = 1.e-16;
+	long double z1, z, pp, p3, p2, p1;
+	int i;
+	Points = new long double[Npoints];
+	Weights = new long double[Npoints];
+	
+	int m = (Npoints+1)*0.5;
+	
+	for(i=0;i<m;i++) {
+		z = cos(M_PI*(i+0.75)/(Npoints+0.5));
+		do {
+			p1 = 1.0;
+			p2 = 0.0;
+			for(int j=0;j<Npoints;j++) {
+				p3 = p2;
+				p2 = p1;
+				p1 = ((2.0*j+1.0)*z*p2-j*p3)/(j+1);
+			}
+			pp = Npoints*(z*p1-p2)/(z*z-1.0);
+			z1 = z;
+			z = z1-p1/pp;
+		}while(fabs(z-z1) > tol);
+		Points[i] = -z;
+		Points[Npoints-1-i] = z;
+		Weights[i] = 2.0/((1.0-z*z)*pp*pp);
+		Weights[Npoints-1-i] = Weights[i];
+	}
+	// Printing points and weights
+	char text[64];
+	char format[32];
+	memset(text,0,strlen(text));
+	memset(format,0,strlen(format));
 
+	GaussLegQuadrature << Npoints << "\n";
+	sprintf(format,"%%.%dLf",25);
+	for(i=0;i<Npoints;i++) {
+		sprintf(text,format,Points[i]);
+		GaussLegQuadrature << text << "\t";
+		sprintf(text,format,Weights[i]);
+		GaussLegQuadrature << text << "\n";
+	}
+	GaussLegQuadrature << "\n";
+	
+	if(Points) delete[] Points;
+	if(Weights) delete[] Weights;
+}
 // Defining a function to integrate f(x,y,z,i,p) = CoeffX(0,p) + CoeffX(1,p)x + CoeffX(2,p)x^2 + ... + CoeffX(i,p)x^i 
 //                                                             + CoeffY(1,p)y + CoeffY(2,p)y^2 + ... + CoeffY(i,p)y^i
 //                                                             + CoeffZ(1,p)z + CoeffZ(2,p)z^2 + ... + CoeffZ(i,p)z^i 
 double Funcao(TPZVec<REAL> &point, int expo, int p) {
-	REAL val = 0.0, power;
+	REAL val = 0.0;
 	REAL x = point[0];
 	REAL y = point[1];
 	REAL z = point[2];
-	int ii, jj;
+	int ii;
 	// The degree p can not to be lower than expo
 	if(p<expo) expo = p;
 	val = CoefficientX(0,p);
@@ -111,7 +164,7 @@ void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test
 //		cout << "\t Weight : " << weight << std::endl;
 		integral += weight * Funcao(point,exp,p);
 	}
-	
+
 	sprintf(format,"%%.%dlf",NDigitsPrec);
 	sprintf(text,format,integral);
 	cout << "Numerical integration value = " << text << std::endl;
@@ -138,13 +191,19 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult1D.txt";
 	boost::test_tools::output_test_stream output(filename,true);
-	
+
 	int order;
+	ofstream GaussLegQuadrature("GaussLegQuadrature.txt");
+	// Generating points and weights for Gauss Legendre quadrature in file
+	for(order=1;order<=NMaxPoints;order++)
+		ComputingGaussLegendreQuadrature(order,	GaussLegQuadrature);
+	GaussLegQuadrature.close();
+
 	// Whether FirstResult.txt is empty then it is a first run
 	for(order=FirstOrder;order<max_order;order++) {
 		TestingNumericIntegrationRule<TPZInt1d>(expo,order,output);   // OK
 	}
-	// Conclusion: It's failed at order = 1. But the erro is proportional e-10 from order = 8
+	// Conclusion: It's failed at order = 1. But the erro is proportional 1.e-10 from order = 8
 }
 
 BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
