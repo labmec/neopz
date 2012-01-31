@@ -17,10 +17,8 @@
 //using namespace std;
 
 #include <set>
-#include "pzfmatrix.h"
-#include "pzgmesh.h"
-#include "pzvec.h"
-#include "pzgeoelside.h"
+#include "pzgeoel.h"
+
 
 #include "TPZPlaneFractureMaterials.h"
 
@@ -170,7 +168,8 @@ class TPZPlaneFracture
 	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
-	TPZGeoMesh * GetFractureMesh(const TPZVec<REAL> &poligonalChain);
+	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
+    TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	

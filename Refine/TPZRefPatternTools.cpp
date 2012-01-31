@@ -10,7 +10,6 @@
 
 #include "TPZRefPatternTools.h"
 #include "TPZVTKGeoMesh.h"
-#define debugCaju
 
 using namespace std;
 

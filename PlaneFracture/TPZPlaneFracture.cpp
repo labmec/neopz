@@ -11,13 +11,14 @@
  *
  */
 
-#define DEBUGcaju
-
 #include "TPZPlaneFracture.h"
+
 #include "TPZGeoLinear.h"
 #include "TPZVTKGeoMesh.h"
 #include "tpzgeoelrefpattern.h"
 #include "tpzchangeel.h"
+#include "pzelast3d.h"
+#include "pzbndcond.h"
 
 using namespace pztopology;
 
@@ -113,7 +114,7 @@ TPZPlaneFracture::~TPZPlaneFracture()
 //------------------------------------------------------------------------------------------------------------
 
 
-TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChain)
+TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain)
 {
 #ifdef DEBUG
 	int ncoord = poligonalChain.NElements();
@@ -204,6 +205,86 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureMesh(const TPZVec<REAL> &poligonalChai
 }
 //------------------------------------------------------------------------------------------------------------
 
+TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder)
+{
+    ////GeoMesh
+    TPZGeoMesh * gmesh = this->GetFractureGeoMesh(poligonalChain);
+    
+    ////CompMesh
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    
+    cmesh->SetDimModel(3);
+    cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->SetDefaultOrder(porder);
+
+    REAL young = 1000.;
+    REAL poisson = 0.2;
+    TPZVec<REAL> force(3,0.);
+
+    TPZElasticity3D * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
+    TPZAutoPointer<TPZMaterial> matL(materialLin);
+
+    TPZElasticity3D * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
+    TPZAutoPointer<TPZMaterial> matQ(materialQpoint);
+
+    cmesh->InsertMaterialObject(matL); 
+    cmesh->InsertMaterialObject(matQ);
+    
+    ////BCs
+    TPZFMatrix k(3,3,0.), f(3,1,0.);
+    int dirichlet = 0, newmann = 1;
+    
+    TPZBndCond * dirichetBC1L = materialLin->CreateBC(matL,__2DfarfieldXZMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc1L(dirichetBC1L);
+    //
+    TPZBndCond * dirichetBC2L = materialLin->CreateBC(matL,__2Dleft_rightMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc2L(dirichetBC2L);
+    //
+    TPZBndCond * dirichetBC3L = materialLin->CreateBC(matL,__2Dtop_bottomMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc3L(dirichetBC3L);
+    //
+    TPZBndCond * dirichetBC4L = materialLin->CreateBC(matL,__2DfractureMat_outside, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc4L(dirichetBC4L);
+    //
+    TPZBndCond * newmannBCL = materialLin->CreateBC(matL,__2DfractureMat_inside, newmann, k, f); 
+    TPZAutoPointer<TPZMaterial> NbcL(newmannBCL);
+    //
+    cmesh->InsertMaterialObject(Dbc1L);
+    cmesh->InsertMaterialObject(Dbc2L);
+    cmesh->InsertMaterialObject(Dbc3L);
+    cmesh->InsertMaterialObject(Dbc4L);
+    cmesh->InsertMaterialObject(NbcL);
+    
+    
+    k(1,1) = 1.;//Pressao constante e unitaria na direcao Y>0
+    TPZBndCond * dirichetBC1Q = materialQpoint->CreateBC(matQ,__2DfarfieldXZMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc1Q(dirichetBC1Q);
+    //
+    TPZBndCond * dirichetBC2Q = materialQpoint->CreateBC(matQ,__2Dleft_rightMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc2Q(dirichetBC2Q);
+    //
+    TPZBndCond * dirichetBC3Q = materialQpoint->CreateBC(matQ,__2Dtop_bottomMat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc3Q(dirichetBC3Q);
+    //
+    TPZBndCond * dirichetBC4Q = materialQpoint->CreateBC(matQ,__2DfractureMat_outside, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> Dbc4Q(dirichetBC4Q);
+    //
+    TPZBndCond * newmannBCQ = materialQpoint->CreateBC(matQ,__2DfractureMat_inside, newmann, k, f); 
+    TPZAutoPointer<TPZMaterial> NbcQ(newmannBCQ);
+    //
+    cmesh->InsertMaterialObject(Dbc1Q);
+    cmesh->InsertMaterialObject(Dbc2Q);
+    cmesh->InsertMaterialObject(Dbc3Q);
+    cmesh->InsertMaterialObject(Dbc4Q);
+    cmesh->InsertMaterialObject(NbcQ);
+    
+    
+    
+    cmesh->AutoBuild();
+    
+    return cmesh;
+}
+//------------------------------------------------------------------------------------------------------------
 
 
 /** PRIVATE METHODS */
@@ -234,7 +315,7 @@ void TPZPlaneFracture::GeneratePlaneMesh(std::list<double> & espacamento, double
 	{
 		for(int c = 0; c < (ncols-1); c++)
 		{
-			Topol[0] = ncols*r+c; Topol[1] = ncols*(r+1)+c; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*r+c+1;
+			Topol[0] = ncols*r+c; Topol[1] = ncols*r+c+1; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*(r+1)+c;
 			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat_outside,*fPlaneMesh);
 			elId++;
 		}
@@ -292,7 +373,7 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
 	{
 		for(int c = 0; c < (ncols-1); c++)
 		{
-			Topol[0] = ncols*r+c;  Topol[1] = ncols*(r+1)+c; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*r+c+1;
+			Topol[0] = ncols*r+c; Topol[1] = ncols*r+c+1; Topol[2] = ncols*(r+1)+c+1; Topol[3] = ncols*(r+1)+c;
 			new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfractureMat_outside,*fFullMesh);
 			elId++;
 		}
@@ -312,9 +393,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 Topol[3] = ncols*r+c+1 + l*nNodesByLayer;
                 //
                 Topol[4] = ncols*r+c + (l+1)*nNodesByLayer;
-                Topol[5] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                Topol[5] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                 Topol[6] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
-                Topol[7] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                Topol[7] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
                 
                 new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat_linear,*fFullMesh);
                 elId++;
@@ -323,9 +404,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 if(l == (nLayers-2))//farfield cc
                 {
                     Topol[0] = ncols*r+c + (l+1)*nNodesByLayer;
-                    Topol[1] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                    Topol[1] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                     Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
-                    Topol[3] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
                     
                     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2DfarfieldXZMat,*fFullMesh);
                     elId++;
@@ -333,9 +414,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 if(c == 0)//left cc
                 {
                     Topol[0] = ncols*r+c + l*nNodesByLayer;
-                    Topol[1] = ncols*(r+1)+c + l*nNodesByLayer;
+                    Topol[1] = ncols*r+c + (l+1)*nNodesByLayer;
                     Topol[2] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
-                    Topol[3] = ncols*r+c + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*(r+1)+c + l*nNodesByLayer;
                     
                     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dleft_rightMat,*fFullMesh);
                     elId++;
@@ -343,9 +424,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 else if(c == (ncols - 2))//right cc
                 {
                     Topol[0] = ncols*r+c+1 + l*nNodesByLayer;
-                    Topol[1] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                    Topol[1] = ncols*(r+1)+c+1 + l*nNodesByLayer;
                     Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
-                    Topol[3] = ncols*(r+1)+c+1 + l*nNodesByLayer;
+                    Topol[3] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                     
                     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dleft_rightMat,*fFullMesh);
                     elId++;
@@ -353,9 +434,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 if(r == 0)//bottom cc
                 {
                     Topol[0] = ncols*r+c + l*nNodesByLayer;
-                    Topol[1] = ncols*r+c + (l+1)*nNodesByLayer;
+                    Topol[1] = ncols*r+c+1 + l*nNodesByLayer;
                     Topol[2] = ncols*r+c+1 + (l+1)*nNodesByLayer;
-                    Topol[3] = ncols*r+c+1 + l*nNodesByLayer;
+                    Topol[3] = ncols*r+c + (l+1)*nNodesByLayer;
                     
                     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dtop_bottomMat,*fFullMesh);
                     elId++;
@@ -363,9 +444,9 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
                 else if(r == (nrows - 2))//top cc
                 {
                     Topol[0] = ncols*(r+1)+c + l*nNodesByLayer;
-                    Topol[1] = ncols*(r+1)+c+1 + l*nNodesByLayer;
+                    Topol[1] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
                     Topol[2] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
-                    Topol[3] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                    Topol[3] = ncols*(r+1)+c+1 + l*nNodesByLayer;
                     
                     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (elId,Topol,__2Dtop_bottomMat,*fFullMesh);
                     elId++;
@@ -432,6 +513,7 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 	int nelem = planeMesh->NElements();
 	
     TPZGeoEl * firstGel = PointElementOnPlaneMesh(0, planeMesh, poligonalChain);
+
 	TPZGeoEl * gel = firstGel;
 	TPZGeoEl * nextGel = NULL;
 	
@@ -451,8 +533,8 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 	std::map< int, std::set<double> >::iterator it;
 	std::set<double> trim;
 	TPZVec< TPZVec<REAL> > intersectionPoint;
-	TPZVec<REAL> x(3), dx(3);
-	TPZVec<REAL> xNext(3), qsi2D(2);
+	TPZManVector<REAL,3> x(3,0.), dx(3,0.);
+    TPZManVector<REAL,3> xNext(3,0.), qsi2D(2,0.);
 	TPZVec <int> Topol(2), edgeVec;
 	
 	int p;
@@ -586,7 +668,7 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
         #ifdef DEBUG
 		if(haveIntersection == false)
 		{
-            TPZVec<REAL> qsi2D(2);
+            TPZManVector<REAL,3> qsi2D(2,0.);
             if(gel->ComputeXInverse(x, qsi2D))
             {
                 std::cout << "The point inside element does NOT intersect its edges! EdgeIntersection method face an exeption!" << std::endl;
@@ -818,7 +900,7 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 
 TPZGeoEl * TPZPlaneFracture::PointElementOnPlaneMesh(int p, TPZGeoMesh * planeMesh, const TPZVec<REAL> &poligonalChain)
 {
-	TPZVec<REAL> x(3), qsi2D(2);
+	TPZManVector<REAL,3> x(3), qsi2D(2,0.);
 	
     x[0] = poligonalChain[2*p+0];
     x[1] = 0.;
@@ -840,13 +922,13 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnPlaneMesh(int p, TPZGeoMesh * planeMe
 		}
 	}
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(!gel)
     {
         std::cout << "Point DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-    #endif
+#endif
 	
 	return gel;
 }

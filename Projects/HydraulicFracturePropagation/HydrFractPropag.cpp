@@ -22,6 +22,8 @@
 #include "pzgmesh.h"
 #include "tpzmathtools.h"
 
+#include "pzfstrmatrix.h"
+
 #include "TPZPlaneFracture.h"
 #include "TPZPoligonalChain.h"
 
@@ -44,9 +46,8 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 int main(int argc, char * const argv[])
 {	
     TPZTimer readRef("ReadingRefPatterns");
-    readRef.start();
-    
-    #define writeAgain
+    readRef.start();    
+//    #define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
     #else
@@ -58,8 +59,7 @@ int main(int argc, char * const argv[])
     
     double lw = 202.;
     double bulletDepthIni = 20.;
-    double bulletDepthFin = 80.;
-    
+    double bulletDepthFin = 80.;    
     TPZVec< std::map<double,double> > pos_stress(5);
     //stretch #0
     pos_stress[0][0.]  = 2.;
@@ -76,59 +76,49 @@ int main(int argc, char * const argv[])
     //stretch #4
     pos_stress[4][63.] = 8.;
     pos_stress[4][210.] = 10.;
-    
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
-    
     TPZVec<REAL> fractureDots;
-    
-    
-    
-    
-//    FillFractureDotsExampleCrazy(fractureDots);
-//    
-//    TPZTimer clockIni1("PartyBegins1");
-//    clockIni1.start();
-//
-//    TPZGeoMesh * fractureMesh = plfrac.GetFractureMesh(fractureDots);
-//    clockIni1.stop();
-//    std::cout << "DeltaT get fracture mesh = " << clockIni1.seconds() << " s" << std::endl;
-//
-//    InsertDots4VTK(fractureMesh, fractureDots);
-//
-//    std::ofstream out1("FractureZprofile1.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh, out1, true);
-    
-    
-    
-    
     FillFractureDotsExampleEllipse(fractureDots);
     
     TPZTimer clockIni2("PartyBegins2");
-    clockIni2.start();
+    clockIni2.start();    
     
-    TPZGeoMesh * fractureMesh2 = plfrac.GetFractureMesh(fractureDots);
+    int porder = 1;
+    TPZCompMesh * fractureCMesh = plfrac.GetFractureCompMesh(fractureDots, porder);
+    
+	TPZAnalysis an(fractureCMesh);
+    
+    //TPZBandStructMatrix full(fractureCMesh); //caso nao simetrico
+	TPZSkylineStructMatrix full(fractureCMesh); //caso simetrico
+    an.SetStructuralMatrix(full);
+    
+	TPZStepSolver step;
+	//step.SetDirect(ELU); //caso nao simetrico
+	step.SetDirect(ELDLt); //caso simetrico
+	an.SetSolver(step);
+	an.Run();
+    svn
     clockIni2.stop();
-    std::cout << "DeltaT get fracture mesh = " << clockIni2.seconds() << " s" << std::endl;
+    std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
     
     /////just4fun (to see quarterpoints in vtk in a better way) AQUICAJU
-    int nelem = fractureMesh2->NElements();
-    for(int el = 0; el < nelem; el++)
-    {
-        TPZGeoEl * gel = fractureMesh2->ElementVec()[el];
-        if(!gel->IsLinearMapping() && !gel->HasSubElement())
-        {
-            TPZVec<TPZGeoEl *> sons;
-            gel->Divide(sons);
-        }
-    }
+//      TPZGeoMesh * fractureGMesh = fractureCMesh->Reference();
+//    int nelem = fractureGMesh->NElements();
+//    for(int el = 0; el < nelem; el++)
+//    {
+//        TPZGeoEl * gel = fractureGMesh->ElementVec()[el];
+//        if(!gel->IsLinearMapping() && !gel->HasSubElement())
+//        {
+//            TPZVec<TPZGeoEl *> sons;
+//            gel->Divide(sons);
+//        }
+//    }
     /////
     
-    InsertDots4VTK(fractureMesh2, fractureDots);
-    
-    std::ofstream out2("PL3DFrac.vtk");
-    TPZVTKGeoMesh::PrintGMeshVTK(fractureMesh2, out2, true);
-    
-    
+//    InsertDots4VTK(fractureGMesh, fractureDots);    
+//    std::ofstream out("PL3DFrac.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(fractureGMesh, out, true);
+  
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
     
