@@ -349,6 +349,8 @@ public:
 	
 	/** @brief Print all relevant data of the element to cout*/
 	virtual  void Print(std::ostream & out = std::cout);
+    
+    virtual void PrintNodesCoordinates(std::ostream & out = std::cout);
 	
 	/** @brief Make the current element reference to the computational element*/
 	void SetReference(TPZCompEl *elp);
@@ -490,7 +492,10 @@ public:
 	/// Checks the structure of the Father() and GetSubelement2()
 	void CheckSubelDataStructure();
 	
-	/// Computes the XInverse and returns if ksi belongs to master element domain
+	/// Computes the XInverse and returns true if ksi belongs to master element domain
+    /**
+     * ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
+     */
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol = 1.e-12);
 	
 	/**

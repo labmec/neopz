@@ -220,7 +220,7 @@ class TPZPlaneFracture
 	 * @param gel [in] gel crossed by the line
 	 * @param x [input and output data]  
 	 *				x [as input] start point of line \n
-	 *				x [as output] end point of line in gel and gel->Neighbour interface
+	 *				x [as output] end point of line in gel interface
 	 * @param dx [in] direction of line from point x (input)
 	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
 	 *				        so, using alphaMin=0, in this case the first intersection (the x itself) is included...
@@ -341,7 +341,7 @@ class TPZPlaneFracture
     
     bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
     
-    static bool IsDomainBC_Material(TPZGeoEl * gel);
+    static bool IsBoundaryMaterial(TPZGeoEl * gel);
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------

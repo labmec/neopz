@@ -47,7 +47,7 @@ int main(int argc, char * const argv[])
 {	
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();    
-//    #define writeAgain
+    #define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
     #else
@@ -83,7 +83,7 @@ int main(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    int porder = 1;
+    int porder = 2;
     TPZCompMesh * fractureCMesh = plfrac.GetFractureCompMesh(fractureDots, porder);
     
 	TPZAnalysis an(fractureCMesh);

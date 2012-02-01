@@ -253,6 +253,20 @@ void TPZGeoEl::Print(std::ostream & out) {
 	out << "fNumInterfaces = " << fNumInterfaces << endl;
 }
 
+void TPZGeoEl::PrintNodesCoordinates(std::ostream & out) {
+    int elId = this->Id();
+    int nnodes = this->NNodes();
+    out << "Element id: " << elId << "\n";
+    
+    for(int n = 0; n < nnodes; n++) {
+        double nodeX = this->NodePtr(n)->Coord(0);
+        double nodeY = this->NodePtr(n)->Coord(1);
+        double nodeZ = this->NodePtr(n)->Coord(2);
+        
+        out << "Node " << n << " : " << nodeX << " , " << nodeY << " , " << nodeZ << "\n";
+    }
+}
+
 std::ostream &operator<<(std::ostream &out,TPZGeoEl & el) {
 	el.Print(out);
 	return out;
@@ -608,6 +622,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 			} else {
 				axest.Multiply(J,JX,0,1);
 			}
+
 			JX.Transpose(&JXt);
 			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
 			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
@@ -634,29 +649,29 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, double Tol){
 #endif
 	}//if
 	
-	if(this->IsInParametricDomain(ksi) == false)
-	{
-		std::stringstream sout;
-		this->IsInParametricDomain(ksi);//for debug purposes only
-		sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
-		sout << " - ksi = ";
-		for(int i = 0; i < ksi.NElements(); i++)
-		{
-			sout << ksi[i] << "\t";
-		}
-		sout << "iter = " << iter << ", nMaxIter = " << nMaxIter << "\t";
-		sout << "X = ";
-		for(int i = 0; i < XD.NElements(); i++)
-		{
-			sout << XD[i] << "\t";
-		}
-		sout << "\n";this->Print(sout);
-		PZError << "\n" << sout.str() << "\n";
-		
-#ifdef LOG4CXX
-		LOGPZ_ERROR(logger,sout.str().c_str());
-#endif
-	}//if
+//	if(this->IsInParametricDomain(ksi) == false)
+//	{
+//		std::stringstream sout;
+//		this->IsInParametricDomain(ksi);//for debug purposes only
+//		sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
+//		sout << " - ksi = ";
+//		for(int i = 0; i < ksi.NElements(); i++)
+//		{
+//			sout << ksi[i] << "\t";
+//		}
+//		sout << "iter = " << iter << ", nMaxIter = " << nMaxIter << "\t";
+//		sout << "X = ";
+//		for(int i = 0; i < XD.NElements(); i++)
+//		{
+//			sout << XD[i] << "\t";
+//		}
+//		sout << "\n";this->Print(sout);
+//		PZError << "\n" << sout.str() << "\n";
+//		
+//#ifdef LOG4CXX
+//		LOGPZ_ERROR(logger,sout.str().c_str());
+//#endif
+//	}//if
 #endif
 	
 	return ( this->IsInParametricDomain(ksi) );

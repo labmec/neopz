@@ -13,6 +13,7 @@
 
 #include "TPZPlaneFracture.h"
 
+#include "pzgeopoint.h"/////MUSTDELETE
 #include "TPZGeoLinear.h"
 #include "TPZVTKGeoMesh.h"
 #include "tpzgeoelrefpattern.h"
@@ -178,7 +179,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalC
                 {
                     TPZGeoElSide hexaFace(gel,f);
                     TPZGeoElSide quadriFace = hexaFace.Neighbour();
-                    if( quadriFace != hexaFace && IsDomainBC_Material(quadriFace.Element()) )
+                    if( quadriFace != hexaFace && IsBoundaryMaterial(quadriFace.Element()) )
                     {
                         elRefp = TPZRefPatternTools::PerfectMatchRefPattern(quadriFace.Element());
                         if(elRefp)
@@ -215,7 +216,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     
     cmesh->SetDimModel(3);
     cmesh->SetAllCreateFunctionsContinuous();
-    cmesh->SetDefaultOrder(porder);
+    //cmesh->SetDefaultOrder(porder);
 
     REAL young = 1000.;
     REAL poisson = 0.2;
@@ -223,62 +224,54 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
 
     TPZElasticity3D * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
     TPZAutoPointer<TPZMaterial> matL(materialLin);
-
+    cmesh->InsertMaterialObject(matL); 
+    
     TPZElasticity3D * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
     TPZAutoPointer<TPZMaterial> matQ(materialQpoint);
-
-    cmesh->InsertMaterialObject(matL); 
     cmesh->InsertMaterialObject(matQ);
     
     ////BCs
     TPZFMatrix k(3,3,0.), f(3,1,0.);
+    REAL bigN = 1.E12, pressureY = 1.;
     int dirichlet = 0, newmann = 1;
     
-    TPZBndCond * dirichetBC1L = materialLin->CreateBC(matL,__2DfarfieldXZMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc1L(dirichetBC1L);
+//    TPZBndCond * dirichetBC1L = materialLin->CreateBC(matL,__2DfarfieldXZMat, dirichlet, k, f);
+//    TPZAutoPointer<TPZMaterial> Dbc1L(dirichetBC1L);
+//    cmesh->InsertMaterialObject(Dbc1L);
+//    //
+//    TPZBndCond * dirichetBC2L = materialLin->CreateBC(matL,__2Dleft_rightMat, dirichlet, k, f);
+//    TPZAutoPointer<TPZMaterial> Dbc2L(dirichetBC2L);
+//    cmesh->InsertMaterialObject(Dbc2L);
+//    //
+//    TPZBndCond * dirichetBC3L = materialLin->CreateBC(matL,__2Dtop_bottomMat, dirichlet, k, f);
+//    TPZAutoPointer<TPZMaterial> Dbc3L(dirichetBC3L);
+//    cmesh->InsertMaterialObject(Dbc3L);
     //
-    TPZBndCond * dirichetBC2L = materialLin->CreateBC(matL,__2Dleft_rightMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc2L(dirichetBC2L);
-    //
-    TPZBndCond * dirichetBC3L = materialLin->CreateBC(matL,__2Dtop_bottomMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc3L(dirichetBC3L);
-    //
+    k(1,1) = bigN;
     TPZBndCond * dirichetBC4L = materialLin->CreateBC(matL,__2DfractureMat_outside, dirichlet, k, f);
     TPZAutoPointer<TPZMaterial> Dbc4L(dirichetBC4L);
-    //
-    TPZBndCond * newmannBCL = materialLin->CreateBC(matL,__2DfractureMat_inside, newmann, k, f); 
-    TPZAutoPointer<TPZMaterial> NbcL(newmannBCL);
-    //
-    cmesh->InsertMaterialObject(Dbc1L);
-    cmesh->InsertMaterialObject(Dbc2L);
-    cmesh->InsertMaterialObject(Dbc3L);
     cmesh->InsertMaterialObject(Dbc4L);
-    cmesh->InsertMaterialObject(NbcL);
     
-    
-    k(1,1) = 1.;//Pressao constante e unitaria na direcao Y>0
-    TPZBndCond * dirichetBC1Q = materialQpoint->CreateBC(matQ,__2DfarfieldXZMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc1Q(dirichetBC1Q);
-    //
-    TPZBndCond * dirichetBC2Q = materialQpoint->CreateBC(matQ,__2Dleft_rightMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc2Q(dirichetBC2Q);
-    //
-    TPZBndCond * dirichetBC3Q = materialQpoint->CreateBC(matQ,__2Dtop_bottomMat, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc3Q(dirichetBC3Q);
-    //
-    TPZBndCond * dirichetBC4Q = materialQpoint->CreateBC(matQ,__2DfractureMat_outside, dirichlet, k, f);
-    TPZAutoPointer<TPZMaterial> Dbc4Q(dirichetBC4Q);
-    //
+    k(1,1) = pressureY;//Pressao constante e unitaria na direcao Y>0
     TPZBndCond * newmannBCQ = materialQpoint->CreateBC(matQ,__2DfractureMat_inside, newmann, k, f); 
     TPZAutoPointer<TPZMaterial> NbcQ(newmannBCQ);
-    //
-    cmesh->InsertMaterialObject(Dbc1Q);
-    cmesh->InsertMaterialObject(Dbc2Q);
-    cmesh->InsertMaterialObject(Dbc3Q);
-    cmesh->InsertMaterialObject(Dbc4Q);
     cmesh->InsertMaterialObject(NbcQ);
     
+    /////////////////////MUSTDELETE
+    k(0,0) = bigN;
+    k(1,1) = 0.;
+    k(2,2) = bigN;
+    TPZBndCond * dirichPT_BCL1 = materialQpoint->CreateBC(matL,__aux0DEl_Mat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> DPT1(dirichPT_BCL1);
+    cmesh->InsertMaterialObject(DPT1);
     
+    k(0,0) = 0.;
+    k(1,1) = 0.;
+    k(2,2) = bigN;
+    TPZBndCond * dirichPT_BCL2 = materialQpoint->CreateBC(matL,__aux0DEl_Mat, dirichlet, k, f);
+    TPZAutoPointer<TPZMaterial> DPT2(dirichPT_BCL2);
+    cmesh->InsertMaterialObject(DPT2);
+    ///////////////////////////////
     
     cmesh->AutoBuild();
     
@@ -455,8 +448,20 @@ lastPos = 4.;//AQUICAJU : no desenvolvimento da malha eu permito apenas uma cama
         }
     }
     
+    //////////////////para validar primeira simulacao completa
+    Topol.Resize(1);
+    Topol[0] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat,*fFullMesh);
+    elId++;
+    
+    Topol[0] = 79;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat,*fFullMesh);
+    elId++;
+    //////////////////////////////////////////////////////////MUSTDELETE
     
 	fFullMesh->BuildConnectivity();
+    fFullMesh->SetMaxElementId(fFullMesh->NElements()-1);
+    fFullMesh->SetMaxNodeId(fFullMesh->NNodes()-1);
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -1249,8 +1254,8 @@ void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * fullMesh)
 
                 //Primeiro estagio da identificacao dos elementos 2D que estao no interior da fratura.
                 //brief: primeiramente sao identificados os elementos no interior da fratura que encostam no crack tip.
-                //Obs.: A condicao (IsDomainBC_Material(neigh) == false) eh para excluir os quadrilateros de condicao de contorno.
-                if(sd == 2 && neigh->Dimension() == 2 && IsDomainBC_Material(neigh) == false)
+                //Obs.: A condicao (IsBoundaryMaterial(neigh) == false) eh para excluir os quadrilateros de condicao de contorno.
+                if(sd == 2 && neigh->Dimension() == 2 && IsBoundaryMaterial(neigh) == false)
                 {
                     TPZVec<REAL> neighCenterQSI(neigh->Dimension()), neighCenterX(3);
                     neigh->CenterPoint(neigh->NSides()-1, neighCenterQSI);
@@ -1533,7 +1538,7 @@ bool TPZPlaneFracture::TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides)
 }
 //------------------------------------------------------------------------------------------------------------
 
-bool TPZPlaneFracture::IsDomainBC_Material(TPZGeoEl * gel)
+bool TPZPlaneFracture::IsBoundaryMaterial(TPZGeoEl * gel)
 {
     int materialId = gel->MaterialId();
     

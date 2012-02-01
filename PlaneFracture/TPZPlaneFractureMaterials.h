@@ -9,6 +9,7 @@
 
 /** @brief Material index of auxiliar 1D elements in 2D refpatterns generation */
 const int __aux1DEl_Mat = -1;
+const int __aux0DEl_Mat = -2;
 
 //BCs plane fracture
 const int __1DcrackTipMat = -10;//1D crack tip elements

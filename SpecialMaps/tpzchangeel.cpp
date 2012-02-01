@@ -382,7 +382,7 @@ TPZGeoEl * TPZChangeEl::ChangeToGeoBlend(TPZGeoMesh *Mesh, int ElemIndex)
 bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, double tol)
 {    
 	meshNode = -1;
-	bool IsNear = false;
+	bool IsNearSomeNode = false;
 	
 	TPZVec<REAL> nodeCoord(3);
 	int nnodes = gel->NNodes();
@@ -400,12 +400,12 @@ bool TPZChangeEl::NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, do
 		if(dist <= tol)
 		{
 			meshNode = gel->NodeIndex(n);
-			IsNear = true;
+			IsNearSomeNode = true;
 			break;
 		}
 	}
 	
-	return IsNear;
+	return IsNearSomeNode;
 }
 //------------------------------------------------------------------------------------------------------------
 

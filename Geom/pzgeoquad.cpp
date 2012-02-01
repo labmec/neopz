@@ -261,12 +261,12 @@ namespace pzgeom {
 		//    PZError << "TPZGeoQuad.jacobian only implemented for"
 		//      " 4 nodes, NumberOfNodes = " << nnodes << "\n";
 		//  }
-		if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
-			PZError << "TPZGeoQuad.jacobian. param out of range : "
-			" param.NElements() = " << param.NElements() <<
-			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
-			//return;
-		}
+//		if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
+//			PZError << "TPZGeoQuad.jacobian. param out of range : "
+//			" param.NElements() = " << param.NElements() <<
+//			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
+//			//return;
+//		}
 #endif
 		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
 		TPZFNMatrix<4> phi(4,1);
