@@ -461,6 +461,8 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 	///Computational Mesh
 	TPZCompEl::SetgOrder(p);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetAllCreateFunctionsContinuous();
+	
 	cmesh->InsertMaterialObject(matCasca);
 	cmesh->InsertMaterialObject(matAnel);
 	cmesh->InsertMaterialObject(matInterface);
@@ -526,7 +528,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//		cmesh->InsertMaterialObject(ContBC);
 		//-------------------------------------------------------------------------------
 	}
-	
+		
 	cmesh->AutoBuild();
 	
 	//ofstream arg("cmesh.txt");
@@ -686,22 +688,18 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	//TPZFrontStructMatrix<TPZFrontNonSym> full(fCmesh);
 	//full.SetNumberOfThreads(3);
 	
+	TPZStepSolver step;
 	if(sim==1){
 		TPZBandStructMatrix full(fCmesh);
 		an.SetStructuralMatrix(full);
+		step.SetDirect(ELU);
 	} //caso nao simetrico
 	else{
 		TPZSkylineStructMatrix full(fCmesh);
 		an.SetStructuralMatrix(full);
-	}//caso simetrico
-	
-	TPZStepSolver step;
-	if(sim==1){
-		step.SetDirect(ELU);
-	} //caso nao simetrico
-	else{
 		step.SetDirect(ELDLt);
 	}//caso simetrico
+			
 	an.SetSolver(step);
 	an.Run();
 	static int count = 0;
@@ -721,8 +719,8 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	 */	
 	TPZAutoPointer<TPZMaterial> mat1 = fCmesh->FindMaterial(mat1Id);
 	TPZAutoPointer<TPZMaterial> mat2 = fCmesh->FindMaterial(mat2Id);
-//	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
-//	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
+	//TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
+	//TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
 	
 	
 	ofstream file("Solution.out");

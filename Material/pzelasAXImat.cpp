@@ -298,6 +298,16 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 			ek(2*in+1,2*jn+1) += weight * R2PI * term11;
 		}
 	}
+	
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		ek.Print("ek = ",sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+	
 }
 
 void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)

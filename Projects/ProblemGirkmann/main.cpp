@@ -44,16 +44,16 @@ int main(int argc, char *argv[])
 	
 	tools * Shell = new tools(rc, h, alpha, a, b, pesoEspecifico,E,poisson,anelleve);
 	
-	int ndiv = 240;
-	int nDiv_DirectRefCasca = 1;
-	int nDiv_DirectRefAnel = 4;
-	int nDiv_DirectRefPonto = 1;
-	REAL sim = /*-1.;*/1.;
+	int ndiv = 30;
+	int nDiv_DirectRefCasca = 0;
+	int nDiv_DirectRefAnel = 0;
+	int nDiv_DirectRefPonto = 0;
+	REAL sim = /*1.;*/-1.;
 	REAL pen = /*0.;*/10.e10;
 		
 	for(int nh = 0; nh<= 0; nh++) 
 	{
-		for (int p = 2; p < 9; p++)
+		for (int p = 2; p < 3; p++)
 		{
 			REAL Mreal =-37.45 /*-41.12*/;
 			REAL Qreal =942.5 /*943.8*/;
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 			Shell->SolveSist(an_ch, cmesh_changed,sim);
 			
 			
-			cmesh_changed->Print();
+			//cmesh_changed->Print();
 		
 			Shell->PrintInterface(cmesh_changed);
 			

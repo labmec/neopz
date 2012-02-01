@@ -91,16 +91,7 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Returns the number of state variables associated with the material */
 	virtual  int NStateVariables();
-	
-	/** 
-     * @brief Gets the order of the integration rule necessary to integrate an
-     * element with polinomial order p
-     */
-    virtual int IntegrationRuleOrder(int elPMaxOrder) const
-    {
-        return 2*(elPMaxOrder-1);
-    }
-	
+			
 	/** @brief Prints the material data */
 	virtual void Print(std::ostream & out = std::cout);
 	
@@ -112,9 +103,6 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Return the number of components which form the flux function */
 	virtual int NFluxes(){ return 3;}
-	
-	/**Cria as condicoes de contorno*/
-	//virtual TPZBndCond *CreateBc(long num, int typ, TPZFMatrix &val1, TPZFMatrix &val2);
 	
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
@@ -149,9 +137,6 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
-	
-	//virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	//		      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){}
 	
 	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE;}
