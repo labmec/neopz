@@ -44,10 +44,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
-//#include "pzelct2d.h"
-//template<class T>
-//class TPZVec;
-//#define NOTDEBUG
+
 
 #include "pzgengrid.h"
 

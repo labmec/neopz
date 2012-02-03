@@ -324,7 +324,7 @@ inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
 
 inline void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
 	TPZGeoElSide neigh = Neighbour();
-#ifndef NDEBUG
+#ifndef NODEBUG
 	if(! Exists() || ! neigh.Exists()) 
     {
 		std::cout << "TPZGeoElSide AllNeighbours inconsistent\n";

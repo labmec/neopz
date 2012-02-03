@@ -387,7 +387,7 @@ void TPZManVector< T, NumExtAlloc >::Shrink()
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize, const T& object)
 {
-#ifndef NDEBUG
+#ifndef NODEBUG
 	if (newsize < 0)
 	{
 		PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;
@@ -453,7 +453,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int newsize, const T& object)
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
 {
-#ifndef NDEBUG
+#ifndef NODEBUG
 	if (newsize < 0)
 	{
 		PZError << "TManVec::Resize. Bad parameter newsize." << std::endl;

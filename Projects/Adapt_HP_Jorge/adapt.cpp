@@ -391,7 +391,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 						  TPZVec < TPZCompMesh * > & gradedMeshVec )
 {
-#ifndef NDEBUG
+#ifndef NODEBUG
 	{
 		if ( !CheckReferences( OriginalMesh ) )
 		{
@@ -439,7 +439,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	gradedMeshVec [0] = OriginalMesh.Clone();
 	(gradedMeshVec [0])->LoadReferences();
 	
-#ifndef NDEBUG
+#ifndef NODEBUG
 	{
 		if ( !CheckReferences(*gradedMeshVec[0]) )
 		{
@@ -474,7 +474,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	{
 		cout << "clonando nivel " << im << "\n"; cout.flush(); 
 		gradedMeshVec[ im ] = CoarsenOneLevel ( * (gradedMeshVec [ im - 1 ]) );
-#ifndef NDEBUG
+#ifndef NODEBUG
 		{
 			if ( !CheckReferences ( *gradedMeshVec [ im ] ) )
 			{
@@ -633,7 +633,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		}
 		int coarseIdx = -1;
 		CoarseMesh->Coarsen ( subCElVec, coarseIdx, true );
-#ifndef NDEBUG
+#ifndef NODEBUG
 		if ( !CheckReferences(*CoarseMesh) )
 		{
 			cout << "Teje pego!\n";
@@ -845,7 +845,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	CMesh.Reference()->ResetReference();
 	CMesh.LoadReferences();
 	
-#ifndef NDEBUG
+#ifndef NODEBUG
 	if (! CheckReferences(CMesh) )
 	{
 		cout << "teje pego\n";

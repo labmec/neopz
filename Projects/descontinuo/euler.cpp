@@ -1,8 +1,8 @@
 /**
  * @file
  * @brief Contains a tutorial example using a discontinuous approximation function.
- */
-//c = sqrt(gama*p/ro)  velocidade do som
+ * @note c = sqrt(gama*p/ro)  velocidade do som
+*/
 
 #include "TPZGeoCube.h"
 #include "pzshapecube.h"
@@ -118,9 +118,9 @@ void NivelDivide(TPZCompMesh *cmesh);
 void SequenceDivide2();
 void SequenceDivide(int fat[100],int numbel);
 void TestShapesDescontinous();
-static clock_t end;//,start,begin,ttot=0;
+static clock_t end;
 void CoutTime(clock_t &start);
-//void ResetReference(TPZCompMesh *aggcmesh);
+
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
 static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh),
 *aggcmesh = new TPZFlowCompMesh(gmesh);
@@ -130,12 +130,7 @@ static int problem=0;;
 static REAL CFL=-1.0,deltaT = -1.0;
 static REAL gama = 1.4;
 static int meshdim = -1;
-//void Forcing(TPZVec<REAL> &x,TPZVec<REAL> &result);
-//#define NOTDEBUG
-//#define CEDRICDEBUG
 
-//* _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_
-//    * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ * _MAIN_ *
 
 int main() {
 
