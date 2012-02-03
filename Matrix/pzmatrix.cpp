@@ -318,7 +318,7 @@ void TPZMatrix::Print(const char *name, std::ostream& out,const MatrixOutputForm
 			out << "\n{ ";
 			for ( int col = 0; col < Cols(); col++ ) {
 				REAL val = Get (row, col);
-				sprintf(number, "%16.16lf", val);
+				sprintf(number, "%16.16lf",(double)val);
 				out << number;
 				if(col < Cols()-1)
 					out << ", ";

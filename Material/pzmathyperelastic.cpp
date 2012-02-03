@@ -454,16 +454,16 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	Solution(u,dudx,axes,2,sol);
 	Solution(u,dudx,axes,3,dsol);
 	//values[1] : erro em norma L2
-	values[1]  = pow(sol[0] - u_exact[0],2.0);
-	values[1] += pow(sol[1] - u_exact[1],2.0);
-	values[1] += pow(sol[2] - u_exact[2],2.0);
+	values[1]  = pow(sol[0] - u_exact[0],(REAL)2.0);
+	values[1] += pow(sol[1] - u_exact[1],(REAL)2.0);
+	values[1] += pow(sol[2] - u_exact[2],(REAL)2.0);
 	//values[2] : erro em semi norma H1
 	int k=0;
 	values[2] = 0.;
 	for(int i=0;i<3;i++) {
-		values[2] += pow(dsol[k++] - du_exact(0,i),2.0);
-		values[2] += pow(dsol[k++] - du_exact(1,i),2.0);
-		values[2] += pow(dsol[k++] - du_exact(2,i),2.0);
+		values[2] += pow(dsol[k++] - du_exact(0,i),(REAL)2.0);
+		values[2] += pow(dsol[k++] - du_exact(1,i),(REAL)2.0);
+		values[2] += pow(dsol[k++] - du_exact(2,i),(REAL)2.0);
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];

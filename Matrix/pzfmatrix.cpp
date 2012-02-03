@@ -1606,7 +1606,7 @@ void TPZFMatrix::PrintStatic(const REAL *ptr, int rows, int cols, const char *na
 			out << "\n{ ";
 			for ( int col = 0; col < cols; col++ ) {
 				REAL val = SELECTEL(ptr,rows,row, col);
-				sprintf(number, "%16.16lf", val);
+				sprintf(number, "%16.16lf", (double)val);
 				out << number;
 				if(col < cols-1)
 					out << ", ";
