@@ -105,17 +105,17 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         REAL u, v;
         REAL u3 = -q / 2. + sqrt(D);
         if (u3 < 0) {
-            u = -pow((double)-u3, (REAL) 1. / 3.);
+            u = -pow((REAL)-u3, (REAL)(1./3.));
         }
         else {
-            u = pow((double)u3, (REAL) 1. / 3.);
+            u = pow((REAL)u3, (REAL)(1./3.));
         }
         REAL v3 = -q / 2. - sqrt(D);
         if (v3 < 0.) {
-            v = -pow((double)-v3, (REAL) 1. / 3.);
+            v = -pow((REAL)-v3, (REAL)(1./3.));
         }
         else {
-            v = pow((double) v3, (REAL) 1. / 3.);
+            v = pow((REAL) v3, (REAL)(1./3.));
         }
         raiz[0] = u + v - A / 3.;
         Delta = (A + raiz[0]) * (A + raiz[0]) + 4 * C / raiz[0];
