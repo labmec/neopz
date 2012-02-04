@@ -9,6 +9,8 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+#include <cmath>
+
 using namespace std;
 
 
@@ -334,11 +336,11 @@ void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	REAL dy = dsol[0]*axes(0,1)+dsol[1]*axes(1,1)+dsol[2]*axes(2,1);
 	REAL dz = dsol[0]*axes(0,2)+dsol[1]*axes(1,2)+dsol[2]*axes(2,2);
 	//values[1] : eror em norma L2
-	values[1]  = pow(sol[0] - u_exact[0],2.0);
+	values[1]  = pow(sol[0] - u_exact[0],(REAL)2.0);
 	//values[2] : erro em semi norma H1
-	values[2]  = pow(dx - du_exact(0,0),2.0);
-	values[2] += pow(dy - du_exact(1,0),2.0);
-	values[2] += pow(dz - du_exact(2,0),2.0);
+	values[2]  = pow(dx - du_exact(0,0),(REAL)2.0);
+	values[2] += pow(dy - du_exact(1,0),(REAL)2.0);
+	values[2] += pow(dz - du_exact(2,0),(REAL)2.0);
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
 }

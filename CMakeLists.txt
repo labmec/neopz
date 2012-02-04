@@ -68,8 +68,13 @@ source_group(CMakefilesUnitTest FILES ${makefilesunittest})
 add_custom_target(CMake_Files SOURCES ${makefiles})
 add_custom_target(Doxygen_Files SOURCES  ${doxyfiles})
 
+## inserting main definitions
+#specifying the path to neopz source code
+add_definitions(-DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
 #specify where the refinement patterns can be found (default behaviour when running the code)
 add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
+#To check REAL as TPZFlopCount  - Jorge
+#add_definitions(-Dcontar)
 
 #Defining variables
 #To cmake
@@ -130,7 +135,7 @@ if(USING_LOG4CXX)
 	if(LOG4CXX_LIB-NOTFOUND)
 		set (LOG4CXX_LIB "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
-	add_definitions(-DLOG4CXX -DPZSOURCEDIR=\"${PROJECT_SOURCE_DIR}\")
+	add_definitions(-DLOG4CXX)
 	include_directories(${LOG4CXX_INCLUDE})
 	link_directories(${LOG4CXX_LIB})
 	link_libraries(log4cxx)

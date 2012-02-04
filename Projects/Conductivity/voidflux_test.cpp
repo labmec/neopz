@@ -9,11 +9,14 @@
 #ifdef USING_BOOST
 
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MAIN my application tests
+#define BOOST_TEST_MAIN pz voidflux tests
 
-#include <boost/test/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
 
-#include <boost/test/output/compiler_log_formatter.hpp>
+//#include <boost/test/output/compiler_log_formatter.hpp>
+
+#include "boost/test/unit_test.hpp"
+#include "boost/test/floating_point_comparison.hpp"
 #include "xcode_log_formatter.hpp"
 
 using namespace boost::unit_test;
@@ -48,8 +51,8 @@ BOOST_AUTO_TEST_CASE(geometry_test)
     TPZGeoMesh * gmesh = cmesh->Reference();
     REAL perimeter = problem.Perimeter(*gmesh);
     REAL area = problem.DomainArea(*gmesh);
-    BOOST_CHECK_SMALL(area-1., 1.e-6);
-    BOOST_CHECK_SMALL(perimeter-20., 1.e-6);
+    BOOST_CHECK_SMALL(area-(REAL)(1.L), (REAL)1.e-6L);
+    BOOST_CHECK_SMALL(perimeter-(REAL)(20.L), (REAL)1.e-6L);
 }
 
 BOOST_AUTO_TEST_CASE(linearity_test)
@@ -63,12 +66,12 @@ BOOST_AUTO_TEST_CASE(linearity_test)
     delx[1] *= 2.;
     problem.SetDomainSize(delx[0],delx[1]);
     REAL flux2 = problem.ComputeFlux();
-    BOOST_CHECK_SMALL((flux- flux2/2.)/flux, 1.e-6);
+    BOOST_CHECK_SMALL((flux- flux2/((REAL)(2.L)))/flux, (REAL)1.e-6L);
     REAL conductivity = problem.GetConductivity();
     conductivity *= 2.;
     problem.SetConductivity(conductivity);
     REAL flux3 = problem.ComputeFlux();
-    BOOST_CHECK_SMALL((flux2- flux3/2.)/flux2, 1.e-6);
+    BOOST_CHECK_SMALL((flux2- flux3/((REAL)(2.0L)))/flux2, (REAL)1.e-6L);
 }
 
 

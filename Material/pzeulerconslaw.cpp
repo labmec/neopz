@@ -18,9 +18,8 @@
 #include "pzsave.h"
 #include "pzerror.h"
 
-//#define FASTEST_IMPLICIT
-
-//#define DIVTIMESTEP
+#include <cmath>
+using namespace std;
 
 #include "pzlog.h"
 
@@ -179,7 +178,7 @@ int TPZEulerConsLaw::NSolutionVariables(int var){
 
 REAL TPZEulerConsLaw::DeltaX(REAL detJac)
 {
-	return REAL(2.) * pow(fabs(detJac), REAL(1./((double) fDim)));
+	return REAL(2.) * pow(fabs(detJac),(REAL)(1./fDim));
 }
 
 REAL TPZEulerConsLaw::Det(TPZFMatrix & Mat)
@@ -1166,13 +1165,13 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), fGamma - 1.));
+					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (fGamma - 1.)));
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
 					// computing ghost values
 					cghost = (w5 - w1) * T((fGamma - 1.)/4.);
-					solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
+					solR[0] = pow(cghost * cghost / (T(fGamma) * w2), (1./(fGamma - 1.)));
 					unghost = (w1 + w5) / T(2.);
 					usghost = us / un * unghost;
 					for(i = 1; i < nstate - 1; i++)
@@ -1222,7 +1221,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					// is imposed. As a rule, the imposition of pressure is applied
 					// instead.
 					
-					solR[0] = solL[0] * pow(bc.Val2()(nstate-1,0)/p, 1./fGamma);
+					solR[0] = solL[0] * pow(bc.Val2()(nstate-1,0)/p, (1./fGamma));
 					
 					cghost = sqrt(fGamma * bc.Val2()(nstate-1,0)/ solR[0]);
 					
@@ -1306,13 +1305,13 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					w1 = uninf - T(2.) * cinf/ T(fGamma - 1.);
 					// Modified w2 invariant: w2 = p/rho^(gamma-1)
 					// or w2 = c^2/(gamma * rho^(gamma-1))
-					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), fGamma - 1.));
+					w2 = cinf * cinf / T(fGamma * pow(bc.Val2()(0,0), (fGamma - 1.)));   // Unbelived - only is defined for pow(float, float) and pow(long double, long double) !!! Jorge
 					// w5 computed based on flow state
 					w5 = un + T(2.) * c / T(fGamma - 1.);
 					
 					// computing ghost values
 					cghost = (w5 - w1) * T((fGamma - 1.)/4.);
-					solR[0] = pow(cghost * cghost / (T(fGamma) * w2), 1./(fGamma - 1.));
+					solR[0] = pow(cghost * cghost / (T(fGamma) * w2),(1./(fGamma - 1.)));
 					unghost = (w1 + w5) / T(2.);
 					usghost = us / un * unghost;
 					for(i = 1; i < nstate - 1; i++)
@@ -1355,7 +1354,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 			cghost = c + T((fGamma - 1.)/2.)*un;
 			// ghost density
 			// rhoghost = (cghost^2*rho^gamma/(gamma * p))^(1/gamma -1)
-			solR[0] = pow(cghost * cghost * pow(solL[0],fGamma)/ (p * fGamma), 1./(fGamma - 1.));
+			solR[0] = pow(cghost * cghost * pow(solL[0],fGamma)/ (p * fGamma), (1./(fGamma - 1.)));
 			
 			// computing velocity vector
 			usghost = 0.;
@@ -1372,7 +1371,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 										  cghost * cghost /T(fGamma * (fGamma - 1.)) +
 										  usghost * usghost / T(2.));
 			break;
-		case 12://Symmetry
+		case 12: //Symmetry
 			for(i=1;i<nstate-1;i++) vpn += solL[i]*T(normal[i-1]);//v.n
 			for(i=1;i<nstate-1;i++) solR[i] = solL[i] - T(2.0*normal[i-1])*vpn;
 			solR[0] = solL[0];

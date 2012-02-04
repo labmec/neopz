@@ -25,6 +25,9 @@
 #include "pzbiharmonic.h"
 #include "pzbndcond.h"
 
+#include <cmath>
+using namespace std;
+
 TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, REAL f):
 TPZBiharmonic( nummat,  f)
 {
@@ -103,8 +106,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
 	// //int POrder=data.p;
-	int LeftPOrder=data.leftp;
-	int RightPOrder=data.rightp;
+	int LeftPOrder = (REAL)data.leftp;
+	int RightPOrder = (REAL)data.rightp;
 	// TPZVec<REAL> sol=data.sol;
 	TPZVec<REAL> solL=data.soll;
 	TPZVec<REAL> solR=data.solr;
@@ -113,8 +116,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	TPZFMatrix dsolR=data.dsolr;
 	REAL faceSize=data.HSize;
 	
-	REAL alpha=gSigmaA*(pow(LeftPOrder,gL_alpha)+pow(RightPOrder, gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
-	REAL betta=gSigmaB*(pow(LeftPOrder,gL_betta)+pow(RightPOrder, gL_betta) ) /(2.*pow(faceSize, gM_betta) );
+	REAL alpha=gSigmaA*(pow((REAL)LeftPOrder,gL_alpha)+pow((REAL)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
+	REAL betta=gSigmaB*(pow((REAL)LeftPOrder,gL_betta)+pow((REAL)RightPOrder,gL_betta)) /(2.*pow(faceSize,gM_betta) );
 	
 	// std::cout<<"alpha: "<< alpha<<" | betta  "<< betta<<std::endl;
 	
@@ -269,8 +272,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	// std::cout<<"x: "<<data.x[0]<<","<<data.x[1]<< std::endl;
 	
-	REAL alpha = gSigmaA*pow(LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
-	REAL betta = gSigmaB*pow(LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
+	REAL alpha = gSigmaA*pow((REAL)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
+	REAL betta = gSigmaB*pow((REAL)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
 	
 	REAL u = data.soll[0];
 	REAL gradu[2];

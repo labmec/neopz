@@ -26,8 +26,12 @@ public:
 	virtual ~TPZStream() {}
 	
 	virtual void Write(int *p, int size=1)=0;
-	
+
+#ifdef contar
+	virtual void Write(double  *p, int size=1)=0;
+#else
 	virtual void Write(REAL  *p, int size=1)=0;
+#endif
 	
 	virtual void Write(const char *p, int size=1)=0;
 	
@@ -42,8 +46,12 @@ public:
 #endif
 	
 	virtual void Read(int *p, int size=1)=0;
-	
+
+#ifdef contar
+	virtual void Read(double *p, int size=1)=0;
+#else
 	virtual void Read(REAL *p, int size=1)=0;
+#endif
 	
 #ifndef ELLIPS
 	void Read(TPZFlopCounter *p, int size=1)

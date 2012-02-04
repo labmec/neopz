@@ -505,7 +505,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 	
 	//values[1] : erro em norma L2 em deslocamentos
-	values[1] = pow(fabs(u[0] - u_exact[0]),2.0)+pow(fabs(u[1] - u_exact[1]),2.0);
+	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0)+pow(fabs(u[1] - u_exact[1]),(REAL)2.0);
 	
 	//values[2] : erro estimado
 	values[2] = 0.;

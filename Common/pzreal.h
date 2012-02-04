@@ -65,6 +65,17 @@ struct TPZCounter {
 /** @brief Re-implements << operator to show the counter (count) data */
 std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 
+class TPZFlopCounter;
+
+#ifdef contar
+/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
+typedef TPZFlopCounter REAL;
+
+#else
+/** @brief This is the type of floating point number PZ will use. */
+typedef float REAL;
+
+#endif
 
 /**
  * By modifying the definition of the type of REAL, the number of floating point operations can be counted. \n
@@ -77,7 +88,11 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 class TPZFlopCounter {
 public:
 	/** @brief Floating point value */
+#ifdef contar
 	double fVal;
+#else
+	REAL fVal;
+#endif
 	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
 	
@@ -385,15 +400,6 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 }
 #endif
 
-#ifdef contar
-/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
-typedef std::TPZFlopCounter REAL;
-
-#else
-/** @brief This is the type of floating point number PZ will use. */
-typedef double REAL;
-
-#endif
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance(){
@@ -416,5 +422,11 @@ inline const T& Min( const T & a, const T &b ){
 
 /** @}
  */
+
+// In the math library (cmath.h) don't exist some overloading for some functions
+
+inline float
+pow(float __x, double __y)
+{ return pow(__x, (float)(__y)); }
 
 #endif

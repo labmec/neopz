@@ -16,8 +16,10 @@
 #include "pzmaterial.h"
 
 #include <sstream> 
+#include <cmath>
 
 using namespace std;
+
 TPZAnalysisError::TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out) : TPZAnalysis(mesh,out),fElIndexes(0),fElErrors(0),
 fSingular(),fTotalError(0.),fAdmissibleError(0.0),fEtaAdmissible(0.05),fNIterations(4) {}
 
@@ -38,7 +40,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 	fNIterations--;
 	while(iter++ < fNIterations) {
 		arq << "\n iter = " << iter << endl;
-		CurrentEtaAdmissible = pow(fEtaAdmissible,sqrt(iter*1./(fNIterations*1.)));//error admissivel corrigido
+		CurrentEtaAdmissible = pow(fEtaAdmissible,sqrt((REAL)(iter*1./(fNIterations*1.))));//error admissivel corrigido
 		// Print data
 		PlotLocal(iter,CurrentEtaAdmissible,out);
 		//if more norms than 3 are available, the pzvec is resized in the material error method
@@ -379,7 +381,7 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 			for(int coordi=0;coordi<3;coordi++) {
 				REAL coor1 = gel->NodePtr(conni)->Coord(coordi);
 				REAL coor2 = gel->NodePtr(connj)->Coord(coordi);
-				cicjdist += pow( coor1 - coor2, 2.0);
+				cicjdist += pow( coor1 - coor2, (REAL)2.0);
 			}
 			cicjdist = sqrt(cicjdist);
 			if(h < cicjdist) h = cicjdist;

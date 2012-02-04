@@ -31,12 +31,6 @@
 #include "pzstack.h"
 #include "pzvec.h"
 #include "pzsolve.h"
-//#include "pzelct2d.h"
-//#include "pzelcc3d.h"
-//#include "pzelgt3d.h"
-//#include "pzelct3d.h"
-//#include "pzelgpi3d.h"
-//#include "pzelcpi3d.h"
 #include "pzelmat.h"
 #include "pzelasmat.h"
 #include "pzmattest.h"
@@ -78,9 +72,12 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+
 #include <iostream>
 #include <ostream>
+#include <cmath>
 
+using namespace std;
 using namespace pzgeom;
 using namespace pzrefine;
 
@@ -575,7 +572,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	cout << "\nmain::Divisao Nivel final da malha ? : ";
 	cin >> nivel;
 	REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-	REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+	REAL delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );//0.5;
 	REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
 	//calculando novos valores
 	delta_t = delta_x*cfl;
@@ -684,7 +681,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	cout << "\nmain::Divisao Nivel final da malha ? : ";
 	cin >> nivel;
 	REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-	REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+	REAL delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );//0.5;
 	REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
 	REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
 	gama = 1.4;//do ar

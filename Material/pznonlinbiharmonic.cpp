@@ -11,6 +11,8 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+#include <cmath>
+
 //	NIPG	SIPG	SSIPG1	SSIPG2
 REAL TPZNonLinBiharmonic::gLambda1 = 1.0; //	-1	1	-1	1
 REAL TPZNonLinBiharmonic::gLambda2 = 1.0; //	-1	1	1	-1
@@ -186,29 +188,29 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data,
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
-	int &LeftPOrder=data.leftp;
-	int &RightPOrder=data.rightp;
+	int LeftPOrder=data.leftp;
+	int RightPOrder=data.rightp;
 	// TPZVec<REAL> &sol=data.sol;
 	TPZVec<REAL> &solL=data.soll;
 	TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
 	TPZFMatrix &dsolL=data.dsoll;
 	TPZFMatrix &dsolR=data.dsolr;
-	REAL &faceSize=data.HSize;
+	REAL faceSize=data.HSize;
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
 	int il,jl,ir,jr,id;
 	REAL Re_1 = 1./Re;
 	
-	REAL alpha=gSigmaA*(pow(LeftPOrder,gL_alpha)+pow(RightPOrder, gL_alpha) ) /
+	REAL alpha=gSigmaA*(pow(((REAL)LeftPOrder),gL_alpha)+pow(((REAL)RightPOrder), gL_alpha) ) /
     (2. * pow(faceSize, gM_alpha) );
 	// cout <<  "faceSize em ContributeInterface = " <<faceSize << endl;
 	//  cout <<  "LeftPOrder em ContributeInterface = " <<LeftPOrder << endl;
 	//  cout <<  "alpha em ContributeInterface = " <<alpha << endl;
 	
 	
-	REAL betta=gSigmaB*(pow(LeftPOrder,gL_betta)+pow(RightPOrder, gL_betta) ) /
+	REAL betta=gSigmaB*(pow(((REAL)LeftPOrder),gL_betta)+pow(((REAL)RightPOrder), gL_betta) ) /
     (2. * pow(faceSize, gM_betta) );
 	// cout <<  "betta em ContributeInterface = " <<betta << endl;
 	
@@ -625,7 +627,7 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data,
 	// TPZFMatrix &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
-	int &POrder=data.p;
+	int POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
 	// TPZVec<REAL> &sol=data.sol;
@@ -634,10 +636,10 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data,
 	// TPZFMatrix &dsol=data.dsol;
 	TPZFMatrix &dsolL=data.dsoll;
 	// TPZFMatrix &dsolR=data.dsolr;
-	REAL &faceSize=data.HSize;
+	REAL faceSize=data.HSize;
 	
-	REAL alpha = gSigmaA*pow(POrder, gL_alpha) /  pow(faceSize, gM_alpha);
-	REAL betta = gSigmaB*pow(POrder, gL_betta) /  pow(faceSize, gM_betta);
+	REAL alpha = gSigmaA*pow(((REAL)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
+	REAL betta = gSigmaB*pow(((REAL)POrder), gL_betta) /  pow(faceSize, gM_betta);
 	//   cout <<  "faceSize em ContributeBCInterface = " <<faceSize << endl;
 	//   cout <<  "POrder em ContributeBCInterface = " <<POrder << endl;
 	//   cout <<  "alpha em ContributeBCInterface = " <<alpha << endl;

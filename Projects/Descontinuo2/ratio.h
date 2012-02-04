@@ -3,10 +3,14 @@
 
 #include "pzreal.h"
 
+#include <cmath>
+
+using namespace std;
+
 // used by xpg
 inline REAL Spg(REAL a0, REAL q, int N)
 {
-   return a0*(pow(q, N+1.)-1.)/(q-1.);
+   return a0*(pow(q, (REAL)(N+1.))-1.)/(q-1.);
 }
 
 // returns a real between 0 and 1, as the

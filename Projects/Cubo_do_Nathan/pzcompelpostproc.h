@@ -24,6 +24,8 @@ class TPZMaterialData;
 
 #include "TPZShapeDisc.h" 
 
+#include <cmath>
+
 #ifdef LOG4CXX
 static LoggerPtr CompElPostProclogger(Logger::getLogger("mesh.TPZCompElPostProc"));
 #endif
@@ -447,7 +449,7 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 		DebugStop();
 		return 0; // dimensions and number of integration points shall match
 	}
-	for(i = 0; i < dim; i++)res += pow(d1.x[i]-d2.x[i],2.); // integration points must be at the same locations
+	for(i = 0; i < dim; i++)res += pow(d1.x[i]-d2.x[i],(REAL)2.L); // integration points must be at the same locations
 	/*for(i = 0; i < nshape; i++)
 	{
 		int j;

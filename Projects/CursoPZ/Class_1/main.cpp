@@ -5,8 +5,9 @@
 #include "pzvec.h"
 #include "pzquad.h"
 
-//IO
 #include <iostream>
+#include <cmath>
+
 using namespace std;
 
 //Functions declaration

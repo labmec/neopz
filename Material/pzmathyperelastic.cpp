@@ -10,6 +10,8 @@
 //#include "pztempmat.h"
 #include "pzerror.h"
 #include <math.h>
+
+#include <cmath>
 using namespace std;
 
 TPZMatHyperElastic::TPZMatHyperElastic(int nummat,REAL e,REAL mu,REAL nu,

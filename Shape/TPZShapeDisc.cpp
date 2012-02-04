@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <cmath>
+
+using namespace std;
+
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
 

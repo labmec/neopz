@@ -16,6 +16,8 @@
 #include "pzshapetetra.h"
 #include "tpzgeoelrefpattern.h"
 
+#include <cmath>
+
 using namespace pzshape;
 using namespace std;
 

@@ -225,7 +225,7 @@ public:
 	/// return the size of ith cell
 	REAL CellSize(int ic)
 	{
-		return fFirstCellSize*pow(fGeometricProgression, (double)ic);
+		return fFirstCellSize*pow(fGeometricProgression, (REAL)ic);
 	}
 	
 	/// number of equations

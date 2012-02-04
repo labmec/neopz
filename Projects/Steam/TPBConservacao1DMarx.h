@@ -421,7 +421,7 @@ inline void TPBrCellMarx::InternalEquations(TPZVec<T> &state, TPZVec<T> &residua
 	residual[EqSumSaturation] = state[ESaturationOil]+state[ESaturationWater]+state[ESaturationSteam] - 1.;
 	
 	// ENERGIA **************
-	T TempSaturation = TemperatureSaturation(fInitialState[EPressureWater]);
+	T TempSaturation = TemperatureSaturation(T(fInitialState[EPressureWater]));
 	//([kJ/kg][kg/m3] + [kJ/kg][kg/m3])*[m3] - ([kJ/(kg*Kelvin)][Celsius][kg/m3])*(m3) ->...->[kJ]
 	T EnergiaT = fCellVolume*fPorosityRock*(EnthalpyOil(TempSaturation)*DensityOil(TempSaturation)*state[ESaturationOil]
 											+EnthalpyWater(TempSaturation)*DensityWater(TempSaturation)*(state[ESaturationWater]/*+state[ESaturationSteam]*/)

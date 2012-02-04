@@ -852,7 +852,7 @@ inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> 
 				return;
 			}
 	if(val(press) < 0){
-		T temp = (gamma-1.)*U[nstate-1];
+		T temp = ((T)(gamma-1.))*U[nstate-1];
 		PZError << "TPZEulerConsLaw::Pressure> Negative pressure: " << press << " (gama-1)*E = " << temp << std::endl;
 		TPZOutofRange obj;
 		throw(obj);

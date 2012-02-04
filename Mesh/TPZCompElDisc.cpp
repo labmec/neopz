@@ -35,7 +35,9 @@
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
 #include "pzmeshid.h"
+
 #include <sstream>
+#include <cmath>
 
 #include "time.h"
 #include "pzgeoel.h"
@@ -197,14 +199,14 @@ REAL TPZCompElDisc::NormalizeConst()
 	REAL maxdist,dist;
 	int inode = ref->NodeIndex(0);//primeiro n�do elemento
 	TPZGeoNode node = ref->Mesh()->NodeVec()[inode];
-	maxdist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
-	maxdist += pow(node.Coord(2)-fCenterPoint[2],2.);
+	maxdist = pow(node.Coord(0)-fCenterPoint[0],(REAL)2.)+pow(node.Coord(1)-fCenterPoint[1],(REAL)2.);   // I do casting because the developer use double exponent (2.) - I think better using int (2) - Jorge
+	maxdist += pow(node.Coord(2)-fCenterPoint[2],(REAL)2.);
 	maxdist = sqrt(maxdist);
 	for(i=1;i<nnodes;i++){
 		inode = ref->NodeIndex(i);//n� sub-seguintes
 		node = ref->Mesh()->NodeVec()[inode];
-		dist = pow(node.Coord(0)-fCenterPoint[0],2.)+pow(node.Coord(1)-fCenterPoint[1],2.);
-		dist += pow(node.Coord(2)-fCenterPoint[2],2.);
+		dist = pow(node.Coord(0)-fCenterPoint[0],(REAL)2.)+pow(node.Coord(1)-fCenterPoint[1],(REAL)2.);
+		dist += pow(node.Coord(2)-fCenterPoint[2],(REAL)2.);
 		dist = sqrt(dist);
 		if(maxdist < dist) maxdist = dist;
 	}

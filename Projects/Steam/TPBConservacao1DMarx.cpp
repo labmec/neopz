@@ -173,7 +173,7 @@ void TPBrCellMarx::SetInjectionState(REAL pressurewater, TPZVec<REAL> &massflux,
 	//dados numerico
 //	REAL TimeStep =10.;//(1260. s = tempo para atingir a Energia máxima)
 	//REAL TimeStep_target =1400.;
-	REAL temperature = TemperatureSaturation (pressurewater);
+	REAL temperature = TemperatureSaturation(pressurewater);
 	leftstate[ETemperature] = temperature;
 	leftstate[EEnthalpyOil] = EnthalpyOil(temperature);
 	leftstate[EEnthalpyWater] = EnthalpyWater(temperature);

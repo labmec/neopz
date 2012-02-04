@@ -20,7 +20,7 @@
 static LoggerPtr logger(Logger::getLogger("br.steammesh"));
 #endif
 
-#ifdef _AUTODIFF
+//#ifdef _AUTODIFF
 
 static WaterDataInStateOfSaturation waterdata;
 
@@ -880,18 +880,18 @@ void TPBrSteamMesh::SetWaterInjection(REAL massflux, REAL temperature)
 /// initialize the steam quality for the inlet pressure
 void TPBrSteamMesh::SetSteamQuality(REAL quality, REAL referencepressure)
 {
-    double pressure = referencepressure;
-    double massflux = TPBrSteamFlux::fInletMassFlux;
-    double temperature = TPBrCellConservation::TemperatureSaturation(referencepressure);
-    double enthalpywater  = waterdata.getSaturationStateSpecificEnthalpyToLiquidWater(temperature);
-    double enthalpysteam = waterdata.getSaturationStateSpecificEnthalpyToSteam(temperature);
-    double masswater = (1.-quality)*massflux;
-    double masssteam = quality*massflux;
-    double energyflux = enthalpywater*masswater+enthalpysteam*masssteam;
+//    REAL pressure = referencepressure;
+    REAL massflux = TPBrSteamFlux::fInletMassFlux;
+    REAL temperature = TPBrCellConservation::TemperatureSaturation(referencepressure);
+    REAL enthalpywater  = waterdata.getSaturationStateSpecificEnthalpyToLiquidWater(temperature);
+    REAL enthalpysteam = waterdata.getSaturationStateSpecificEnthalpyToSteam(temperature);
+    REAL masswater = (1.-quality)*massflux;
+    REAL masssteam = quality*massflux;
+    REAL energyflux = enthalpywater*masswater+enthalpysteam*masssteam;
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-        sout << "Inlet pressure " << pressure;
+        sout << "Inlet pressure " << referencepressure;
         sout << "\nMass flux " << massflux;
         sout << "\ntemperature " << temperature;
         sout << "\nenthalpywater " << enthalpywater;
@@ -1135,4 +1135,4 @@ void TPBrSteamMesh::UpdateConfinementLayer()
 
 
 
-#endif
+//#endif

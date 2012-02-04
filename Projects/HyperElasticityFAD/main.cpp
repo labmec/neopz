@@ -114,7 +114,7 @@ int main()
   TPZVec<FADFADREAL> solFAD(ndof);
   TPZVec<FADFADREAL> dsolFAD(ndof * dim);// x, y and z data aligned
 
-  FADREAL defaultFAD(ndof*numShape, 0., 0.);
+  FADREAL defaultFAD(ndof*numShape, (REAL)0., (REAL)0.);
   if(defaultFAD.dx(0)==1.)PZError << "\nError: FAD doesn't have default constructor for parameters: (number of derivatives, default value, default derivative value) !";
   FADFADREAL defaultFADFAD(ndof*numShape, defaultFAD, defaultFAD);
 

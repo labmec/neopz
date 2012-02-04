@@ -9,6 +9,9 @@
 #include "pzreal.h"
 #include "pzaxestools.h"
 
+#include <cmath>
+using namespace std;
+
 /** @brief Inicializing local variable TCoeff */
 double TCoeff = 1./60.;
 /** @brief Inicializing local variable LCoeff */
@@ -153,7 +156,7 @@ REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
 	REAL TR = this->fThetaR;
 	REAL TS = this->fThetaS;
 	REAL a = this->fAlpha;
-	REAL result = (m*n*pow(pow(a,2.)*pow(sol,2.),n/2.)*pow(1./(1. + pow(pow(a,2.)*pow(sol,2.),n/2.)),1. + m)*(TR - TS))/sol;
+	REAL result = (m*n*pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)*pow(1./(1. + pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)),1. + m)*(TR - TS))/sol;
 	
 	//filter
 	//   if(sol > -0.3 || sol < -12.) return sol*sol;
@@ -165,7 +168,7 @@ REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
 REAL TPZSpaceTimeRichardsEq::Se(REAL sol){
 	REAL n = this->fN;
 	REAL m = 1.-(1./n);
-	REAL result = pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m);
+	REAL result = pow((REAL)(1./(1.+pow(fabs(this->fAlpha*sol),n))),m);
 	return result;
 }
 
@@ -235,7 +238,7 @@ REAL TPZSpaceTimeRichardsEq::K_Coef(REAL sol){
 	REAL m = 1.-(1./n);
 	REAL Se = this->Se(sol);
 	REAL Ks = this->fKs;
-	REAL result = Ks*sqrt(Se)*pow(1.-pow(1.-pow(Se,1./m),m), 2.);
+	REAL result = Ks*sqrt(Se)*pow(((REAL)1.)-pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m),(REAL)2.);
 	
 	return result*LCoeff/TCoeff;
 }
@@ -254,7 +257,7 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
 	REAL n = this->fN;
 	REAL m = 1.-(1./n);  
 	REAL Se = this->Se(sol);
-	REAL DkDSe = 0.5 * this->fKs * (1.-pow(1.-pow(Se,1./m),m))*(4.*pow(Se,-0.5+1./m)*pow(1.-pow(Se,1./m),m-1.)-(-1.+pow(1.-pow(Se,1./m),m))/sqrt(Se));
+	REAL DkDSe = 0.5 * this->fKs * (1.-pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))*(4.*pow(Se,((REAL)-0.5)+(((REAL)1.)/m))*pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m-((REAL)1.))-(-1.+pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))/sqrt(Se));
 	REAL DSeDsol = -(1./sol)*m*n*pow(fabs(this->fAlpha*sol),n)*pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m+1.);
 	REAL dkdsol = DkDSe * DSeDsol;
 	

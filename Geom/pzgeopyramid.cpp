@@ -23,6 +23,8 @@
 static LoggerPtr logger(Logger::getLogger("pz.geom.pzgeopyramid"));
 #endif
 
+#include <cmath>
+
 using namespace pzshape;
 using namespace std;
 

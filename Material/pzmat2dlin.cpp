@@ -241,7 +241,7 @@ void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix &dudx,TP
 	REAL parc2 = dy-du_exact(1,0) ;
 	values[0] = parc1*parc1 + parc2*parc2;/*pow(parc1,2.)+pow(parc2,2.);*/
 	//Norma L2
-	values[1] = pow(fabs(u[0] - u_exact[0]),2.0);
+	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
 	values[2] = 0.;
 }
 

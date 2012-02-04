@@ -380,14 +380,14 @@ void TPBrSteamFlux::ComputeLeftState(TPZVec<T> &inletstate, TPZVec<T> &leftstate
 	T saturationSteam = inletstate[EInletSteamSaturation];
     T temperature = inletstate[EInletTemperature];
 
-    leftstate[TPBrCellConservation::ESaturationWater] = 1.-saturationSteam;
-	leftstate[TPBrCellConservation::ESaturationOil] = 0.;
+    leftstate[TPBrCellConservation::ESaturationWater] = T(1.0)-saturationSteam;
+	leftstate[TPBrCellConservation::ESaturationOil] = T(0.0);
     leftstate[TPBrCellConservation::ESaturationSteam] = saturationSteam;
 	leftstate[TPBrCellConservation::ETemperature] = temperature;
 	leftstate[TPBrCellConservation::EPressureWater] = pressure;
 	leftstate[TPBrCellConservation::EPressureSteam] = pressure;
 	leftstate[TPBrCellConservation::EPressureOil] = pressure;
-	leftstate[TPBrCellConservation::EPhaseChange] = 0.;
+	leftstate[TPBrCellConservation::EPhaseChange] = T(0.0);
 	
 }
 
@@ -679,7 +679,7 @@ void TPBrSteamFlux::InletScales(TPZVec<REAL> &eqscales, TPZVec<REAL> &statescale
 template<class T>
 T TPBrSteamFlux::TemperatureSaturation(T pressuresteam)//[K]
 {
-    T pressadapt = pressuresteam/1000.;
+    T pressadapt = pressuresteam/(T(1000.0));
     T temp_de_saturac = waterdata.getSaturationStateTemperature(pressadapt);
     /*
      T  val_log, temp;

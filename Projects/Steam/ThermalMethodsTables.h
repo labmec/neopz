@@ -353,11 +353,11 @@ inline T WaterDataInStateOfSaturation::getSpecificEnthalpyToLiquidWater(T temp) 
 	if((temp - T(0.01 - ZeroTolerance())) < 0. && (-temp + T(0.01) - T(ZeroTolerance())) < 0.)
 		return T(0.0);
 	else if(temp < T(130.))
-		return (4.2*temp);
+		return (T(4.2)*temp);
 	else if(temp < T(310))
-		return (4.2*temp + (0.003*(temp-T(130.))*(temp-T(130))));
+		return (T(4.2)*temp + (T(0.003)*(temp-T(130.))*(temp-T(130))));
 	else if(temp < T(373.))
-		return (4.2*temp + (0.003*(temp-T(130.))*(temp-T(130.))) + (0.0008*(temp-T(310.))*(temp-T(310.))*(temp-T(310.))));
+		return (T(4.2)*temp + (T(0.003)*(temp-T(130.))*(temp-T(130.))) + (0.0008*(temp-T(310.))*(temp-T(310.))*(temp-T(310.))));
 	return getSaturationStateSpecificEnthalpyToLiquidWater(temp);
 }
 
@@ -455,8 +455,8 @@ inline T getInterpolatedValue(std::vector<std::vector<double> > &fTable,T var,in
 
 template<class T>
 inline T DataInTable::getInterpolatedValue(double initialvar,double initialvalue,double finalvar,double finalvalue,T var) {
-    T zero = T(0.);
-	if(initialvar > var || finalvar < var)
+    T zero = T(0.0);
+	if(T(initialvar) > var || T(finalvar) < var)
 		return zero;
 	return (T(initialvalue) + ((var-T(initialvar))*T((finalvalue-initialvalue)/(finalvar-initialvar))));
 }
@@ -477,13 +477,13 @@ template<class T>
 inline int DataInTable::getIndex(T temp) {
 	int indice = -1;
 	int last = fTable.size();
-	if(last < 2 || temp < fTable[0][fIndependentVarIndex] || temp > fTable[last-1][fIndependentVarIndex])
+	if(last < 2 || temp < T(fTable[0][fIndependentVarIndex]) || temp > T(fTable[last-1][fIndependentVarIndex]))
 	{
 		DebugStop();
 	}
 	// Procurando a linha i até a qual superamos o valor de temp
 	for(indice=1;indice<last;indice++)
-		if(temp < fTable[indice][fIndependentVarIndex])
+		if(temp < T(fTable[indice][fIndependentVarIndex]))
 			return indice;
 	return -1;
 }

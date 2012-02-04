@@ -289,7 +289,7 @@ void SpherePoints(TPZVec< TPZVec<REAL> > & pt, TPZVec< TPZVec< int> > &elms, int
    //creating all points
    for(i = nLayerPts-1; i >= 0; i--)
    {
-      alpha = ri + xpg(pow(ro,1./((double) nLayerPts-1)), i, nLayerPts-1) * (ro - ri);
+      alpha = ri + xpg(pow(ro,(REAL)(1./(nLayerPts-1))), i, nLayerPts-1) * (ro - ri);
       for(j = 0; j < nPtsPerSphereLayer; j++)
       {
          coord[0] = pt[j][0] * alpha;

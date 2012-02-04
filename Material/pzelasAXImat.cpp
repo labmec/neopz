@@ -10,6 +10,7 @@
 #include "pzfmatrix.h"
 #include "pzerror.h"
 #include <math.h>
+#include <cmath>
 #include "pzaxestools.h"
 #include "pzlog.h"
 
@@ -1142,7 +1143,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		case 8: //MohrCoulomb plasticity criteria
 		{
 			Solout.Resize(1);
-			double i1, i2, i3, j1, j2, j3;
+			REAL i1, i2, i3, j1, j2, j3;
 			
 			i1 = T(0,0) + T(1,1) + T(2,2);
 			TPZFMatrix T2(3,3,0.);
@@ -1156,9 +1157,9 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 			j2 = 1./3.*(i1*i1 - 3.*i2);
 			j3 = 1./27.*(2.*i1*i1*i1 - 9.*i1*i2 + 27.*i3);
 			
-			double cos3theta = 3.*sqrt(3.)/2. * j3/(pow(j2,1.5));
+			REAL cos3theta = 3.*sqrt(3.)/2. * j3/(pow(j2,(REAL)1.5));
 			
-			double theta = acos(cos3theta)/3.;
+			REAL theta = acos(cos3theta)/3.;
 			
 			Solout[0] = 1./3.*i1*sin(f_phi) + sqrt(i2)*sin(theta + M_PI/3.) + sqrt(i2/3.)*cos(theta + M_PI/3.)*sin(f_phi) - f_c*cos(f_phi);
 #ifdef LOG4CXX
@@ -1239,7 +1240,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 	
 	//values[1] : erro em norma L2 em deslocamentos
-	values[1] = pow(fabs(u[0] - u_exact[0]),2.0)+pow(fabs(u[1] - u_exact[1]),2.0);
+	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0)+pow(fabs(u[1] - u_exact[1]),(REAL)2.0);  // It is important when REAL is long double, because fabs(...) returns long double then pow() must to return long double - Jorge
 	
 	//values[2] : erro estimado
 	values[2] = 0.;

@@ -5,6 +5,9 @@
 #include "tpzmathtools.h"
 #include "tpzintpoints.h"
 
+#include <cmath>
+using namespace std;
+
 TPZMathTools::TPZMathTools()
 {
 }
@@ -369,7 +372,7 @@ void TPZMathTools::JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint)
 
 void TPZMathTools::Function(const TPZVec<REAL> &x, REAL &fx)
 {
-	REAL temp = 1./pow(x[0]*x[0]+x[1]*x[1],.5);// (1/r)
+	REAL temp = 1./pow(x[0]*x[0]+x[1]*x[1],(REAL).5);// (1/r)
 	REAL ang = atan(x[1]/x[0]);
 	//      fx = temp*cos(ang*0./2.);;
 	//      fx = temp*cos(ang*1./2.);

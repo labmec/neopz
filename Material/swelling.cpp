@@ -12,7 +12,10 @@
 #include "checkconv.h"
 #include <math.h>
 
+#include <cmath>
+
 using namespace std;
+
 REAL TPZSwelling::gFaraday = 96.4853;
 REAL TPZSwelling::gVPlus = 2.3;
 REAL TPZSwelling::gVMinus = 15.17;
@@ -909,7 +912,7 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 	
 	
 	REAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
-	N[0] = pow(fac2/(expc1+expc2),1./(fGamma-1));
+	N[0] = pow(fac2/(expc1+expc2),(float)1./(fGamma-1));
 	REAL N0Gamma = pow(N[0],fGamma);
 	
 	N[1] = N0Gamma*expc1*gVPlus;

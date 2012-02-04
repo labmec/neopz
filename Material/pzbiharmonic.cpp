@@ -12,6 +12,8 @@
 #include "pzerror.h"
 #include <math.h>
 
+#include <cmath>
+
 //	NIPG	SIPG	SSIPG1	SSIPG2
 REAL TPZBiharmonic::gLambda1 = 1.0; //	-1	1	-1	1
 REAL TPZBiharmonic::gLambda2 = 1.0; //	-1	1	1	-1
@@ -195,9 +197,9 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
 	//REAL faceSize=data.HSize;
 	// TPZFMatrix &jacinv = data.jacinv;
 	// TPZFMatrix &axes = data.axes;
-	int &LeftPOrder=data.leftp;
-	int &RightPOrder=data.rightp;
-	REAL &faceSize=data.HSize;
+	int LeftPOrder=data.leftp;
+	int RightPOrder=data.rightp;
+	REAL faceSize=data.HSize;
 	
 	
 	
@@ -205,14 +207,14 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
 	int nrowr = phiR.Rows();
 	int il,jl,ir,jr,id;
 	
-	REAL alpha=gSigmaA*(pow(LeftPOrder,gL_alpha)+pow(RightPOrder, gL_alpha) ) /
+	REAL alpha=gSigmaA*(pow(((REAL)LeftPOrder),gL_alpha)+pow(((REAL)RightPOrder), gL_alpha) ) /
     (2. * pow(faceSize, gM_alpha) );
 	// cout <<  "faceSize em ContributeInterface = " <<faceSize << endl;
 	//  cout <<  "LeftPOrder em ContributeInterface = " <<LeftPOrder << endl;
 	//  cout <<  "alpha em ContributeInterface = " <<alpha << endl;
 	
 	
-	REAL betta=gSigmaB*(pow(LeftPOrder,gL_betta)+pow(RightPOrder, gL_betta) ) /
+	REAL betta=gSigmaB*(pow(((REAL)LeftPOrder),gL_betta)+pow(((REAL)RightPOrder), gL_betta) ) /
     (2. * pow(faceSize, gM_betta) );
 	// cout <<  "betta em ContributeInterface = " <<betta << endl;
 	
@@ -451,11 +453,11 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data,
 	// TPZFMatrix &axes = data.axes;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	int &POrder=data.p;
-	REAL &faceSize=data.HSize;
+	int POrder=data.p;                            // I need some explains, why you use reference & - Jorge
+	REAL faceSize=data.HSize;
 	
-	REAL alpha = gSigmaA*pow(POrder, gL_alpha) /  pow(faceSize, gM_alpha);
-	REAL betta = gSigmaB*pow(POrder, gL_betta) /  pow(faceSize, gM_betta);
+	REAL alpha = gSigmaA*pow(((REAL)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
+	REAL betta = gSigmaB*pow(((REAL)POrder), gL_betta) /  pow(faceSize, gM_betta);
 	//   cout <<  "faceSize em ContributeBCInterface = " <<faceSize << endl;
 	//   cout <<  "POrder em ContributeBCInterface = " <<POrder << endl;
 	//   cout <<  "alpha em ContributeBCInterface = " <<alpha << endl;

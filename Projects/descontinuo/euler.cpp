@@ -68,9 +68,12 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include <iostream>
 #include <ostream>
-#include <string.h>
+#include <cmath>
+
 using namespace std;
 
 static double quadrado[4][3] = { {0.,0.,0.},{4.,0.,0.},{4.,4.,0.},{0.,4.,0.} };
@@ -678,7 +681,7 @@ TPZMaterial *Hexaedro(int grau){
   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
+  delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );
   delta_t = cfl*delta_x;//delta_t � <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -801,7 +804,7 @@ TPZMaterial *ProblemaT2D(int grau){
   cout << "\nmain::Divisao Nivel final da malha ? : ";
   cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-  REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+  REAL delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );//0.5;
   REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -915,7 +918,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   //cout << "\nmain::Divisao Nivel final da malha ? : ";
   //cin >> nivel;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  REAL delta_x = 1.0;//( 1.0 / pow(2.0,(REAL)nivel ) );
+  REAL delta_x = 1.0;//( 1.0 / pow((REAL)2.0,(REAL)nivel ) );
   REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -1034,7 +1037,7 @@ TPZMaterial *TresTriangulos(int grau){
 	//cout << "\nmain::Divisao Nivel final da malha ? : ";
   //cin >> nivel;
 //   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );//0.5;
-//   REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+//   REAL delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );//0.5;
 //   REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
   //calculando novos valores
 //   delta_t = delta_x*cfl;
@@ -1153,7 +1156,7 @@ TPZMaterial *TresPrismas(int grau){
   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
+  delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );
   delta_t = cfl*delta_x;//delta_t � <= que este valor
   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
@@ -1269,7 +1272,7 @@ TPZMaterial *FluxConst3D(int grau){
   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
 
   cfl = ( 1./(2.0*(REAL)grau+1.0) );
-  delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
+  delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );
   delta_t = cfl*delta_x;//delta_t � <= que este valor
   //calculando novos valores
   delta_t = delta_x*cfl;
@@ -1360,7 +1363,7 @@ TPZMaterial *FluxConst2D(int grau){
   cin >> nivel;
   //nivel = 2;
   REAL cfl = ( 1./(2.0*(REAL)grau+1.0) );///0.5;
-  REAL delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );//0.5;
+  REAL delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );//0.5;
   REAL delta_t = cfl*delta_x;//delta_t � <= que este valor
   REAL delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
   gama = 1.4;
@@ -1968,7 +1971,7 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //   REAL cfl,delta_x,delta_t,delta,gama;//,maxflinha;
 
 //   cfl = ( 1./(2.0*(REAL)grau+1.0) );
-//   delta_x =  ( 1.0 / pow(2.0,(REAL)nivel) );
+//   delta_x =  ( 1.0 / pow((REAL)2.0,(REAL)nivel) );
 //   delta_t = cfl*delta_x;//delta_t � <= que este valor
 //   delta =  (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10.;
 //   gama = 1.4;

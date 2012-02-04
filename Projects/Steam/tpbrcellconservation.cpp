@@ -180,7 +180,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	(
 	 fPorosityRock*(EnthalpyOil(Temp)*DensityOil(Temp)*cellstate[ESaturationOil]
 					+EnthalpyWater(Temp)*DensityWater(Temp)*(cellstate[ESaturationWater]+cellstate[ESaturationSteam]))
-	 +(1. - fPorosityRock)*fSpecificHeatRock*fDensityRock*cellstate[ETemperature]
+	 +(((REAL)1.0) - fPorosityRock)*fSpecificHeatRock*fDensityRock*cellstate[ETemperature]
 	 );
 		
 	// total energy -> ETotalEnergy
@@ -193,7 +193,7 @@ void TPBrCellConservation::CellResidual(TPZVec<T> &leftflux, TPZVec<T> &cellstat
 	T TotalEnergy = fPorosityRock*(EnthalpyOil(cellstate[ETemperature])*DensityOil(cellstate[ETemperature])*cellstate[ESaturationOil]
 																 +EnthalpyWater(cellstate[ETemperature])*DensityWater(cellstate[ETemperature])*cellstate[ESaturationWater]
 																 +EnthalpySteam(cellstate[ETemperature])*DensitySteam(cellstate[ETemperature])*cellstate[ESaturationSteam])*volume
-					+(1.-fPorosityRock)*fSpecificHeatRock*fDensityRock*volume*cellstate[ETemperature];
+					+(((REAL)1.0)-fPorosityRock)*fSpecificHeatRock*fDensityRock*volume*cellstate[ETemperature];
 	
 	// conservation of energy internal contribution -> ETemperature -> EPhaseChange
 	//[kJ]
@@ -296,7 +296,7 @@ T TPBrCellConservation::DensitySteam(T temp)//[kg/m3]
 template<class T>
 T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
 {
-    T press1000 = pressuresteam/1000.;
+    T press1000 = pressuresteam/T(1000.);
     T temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
     /*
      T  val_log, temp;
@@ -309,11 +309,11 @@ T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
 	return temp_de_saturac;
 }
 
-template<>
-double TPBrCellConservation::TemperatureSaturation(double pressuresteam)//[Celsius]
-{
-    double press1000 = pressuresteam/1000.;
-    double temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
+//template<>
+//double TPBrCellConservation::TemperatureSaturation(double pressuresteam)//[Celsius]
+//{
+//    double press1000 = pressuresteam/1000.;
+//    double temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
     /*
      T  val_log, temp;
      T temp_de_saturac;
@@ -322,8 +322,8 @@ double TPBrCellConservation::TemperatureSaturation(double pressuresteam)//[Celsi
      0.0342030*(val_log*val_log*val_log*val_log);
      temp_de_saturac = (temp - 32. - 459.67)/1.8;
      */
-	return temp_de_saturac;
-}
+//	return temp_de_saturac;
+//}
 
 template<class T>
 T TPBrCellConservation::EnthalpyWater(T temperature)//[kJ/kg]
