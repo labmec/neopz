@@ -81,16 +81,17 @@ TPZIntRuleT3D::TPZIntRuleT3D(int precision){
 	switch(fNumInt){
 			
 		case 1://integra lineares
-			fLocationKsi[0]  = 0.25;//1./4.
-			fLocationEta[0]  = 0.25;//1./4.
-			fLocationZeta[0] = 0.25;//1./4.
-			fWeight[0]       = 1./6.;
+			p = (0.25L);
+			fLocationKsi[0]  = p;//1./4.
+			fLocationEta[0]  = p;//1./4.
+			fLocationZeta[0] = p;//1./4.
+			fWeight[0]       = (1.0L)/(6.0L);
 			break;
 			
 		case 4://integra quadraticas
-			p = 1./4. - sqrt(5.)/20.;
-			q = 1./4. + 3 * sqrt(5.)/20.;
-			w = 1./24.;
+			p = (0.25L) - sqrt(5.0L)/(20.0L);
+			q = (0.25L) + 3 * sqrt(5.0L)/(20.0L);
+			w = (1.0L)/(24.0L);
 			
 			fLocationKsi[0]  = p;
 			fLocationEta[0]  = p;
@@ -146,97 +147,96 @@ TPZIntRuleT3D::TPZIntRuleT3D(int precision){
 			
         case 18://integra cubicas com todos os pesos positivos
 			
-			fLocationKsi[0]  = 0.092060081835903;
-			fLocationEta[0]  = 0.010320791771678;
-			fLocationZeta[0] = 0.887298334620742;
-			fWeight[0]       = 0.000193968091080;
+			fLocationKsi[0]  = 0.092060081835903L;
+			fLocationEta[0]  = 0.010320791771678L;
+			fLocationZeta[0] = 0.887298334620742L;
+			fWeight[0]       = 0.000193968091080L;
 			
-			fLocationKsi[1]  = 0.408423786490229;
-			fLocationEta[1]  = 0.045788106754886;
-			fLocationZeta[1] = 0.500000000000000;
-			fWeight[1]       = 0.006108430203073;
+			fLocationKsi[1]  = 0.408423786490229L;
+			fLocationEta[1]  = 0.045788106754886L;
+			fLocationZeta[1] = 0.500000000000000L;
+			fWeight[1]       = 0.006108430203073L;
 			
-			fLocationKsi[2]  = 0.724787491144556;
-			fLocationEta[2]  = 0.081255421738093;
-			fLocationZeta[2] = 0.112701665379258;
-			fWeight[2]       = 0.012022892315067;
+			fLocationKsi[2]  = 0.724787491144556L;
+			fLocationEta[2]  = 0.081255421738093L;
+			fLocationZeta[2] = 0.112701665379258L;
+			fWeight[2]       = 0.012022892315067L;
 			
-			fLocationKsi[3]  = 0.010320791771678;
-			fLocationEta[3]  = 0.092060081835903;
-			fLocationZeta[3] = 0.887298334620742;
-			fWeight[3]       = 0.000193968091080;
+			fLocationKsi[3]  = 0.010320791771678L;
+			fLocationEta[3]  = 0.092060081835903L;
+			fLocationZeta[3] = 0.887298334620742L;
+			fWeight[3]       = 0.000193968091080L;
 			
-			fLocationKsi[4]  = 0.045788106754886;
-			fLocationEta[4]  = 0.408423786490229;
-			fLocationZeta[4] = 0.500000000000000;
-			fWeight[4]       = 0.006108430203073;
+			fLocationKsi[4]  = 0.045788106754886L;
+			fLocationEta[4]  = 0.408423786490229L;
+			fLocationZeta[4] = 0.500000000000000L;
+			fWeight[4]       = 0.006108430203073L;
 			
-			fLocationKsi[5]  = 0.081255421738093;
-			fLocationEta[5]  = 0.724787491144556;
-			fLocationZeta[5] = 0.112701665379258;
-			fWeight[5]       = 0.012022892315067;
+			fLocationKsi[5]  = 0.081255421738093L;
+			fLocationEta[5]  = 0.724787491144556L;
+			fLocationZeta[5] = 0.112701665379258L;
+			fWeight[5]       = 0.012022892315067L;
 			
-			fLocationKsi[6]  = 0.010320791771678;
-			fLocationEta[6]  = 0.010320791771678;
-			fLocationZeta[6] = 0.887298334620742;
-			fWeight[6]       = 0.000193968091080;
+			fLocationKsi[6]  = 0.010320791771678L;
+			fLocationEta[6]  = 0.010320791771678L;
+			fLocationZeta[6] = 0.887298334620742L;
+			fWeight[6]       = 0.000193968091080L;
 			
-			fLocationKsi[7]  = 0.045788106754886;
-			fLocationEta[7]  = 0.045788106754886;
-			fLocationZeta[7] = 0.500000000000000;
-			fWeight[7]       = 0.006108430203073;
+			fLocationKsi[7]  = 0.045788106754886L;
+			fLocationEta[7]  = 0.045788106754886L;
+			fLocationZeta[7] = 0.500000000000000L;
+			fWeight[7]       = 0.006108430203073L;
 			
-			fLocationKsi[8]  = 0.081255421738093;
-			fLocationEta[8]  = 0.081255421738093;
-			fLocationZeta[8] = 0.112701665379258;
-			fWeight[8]       = 0.012022892315067;
+			fLocationKsi[8]  = 0.081255421738093L;
+			fLocationEta[8]  = 0.081255421738093L;
+			fLocationZeta[8] = 0.112701665379258L;
+			fWeight[8]       = 0.012022892315067L;
 			
-			fLocationKsi[9]  = 0.012183390180066;
-			fLocationEta[9]  = 0.050259137599596;
-			fLocationZeta[9] = 0.887298334620742;
-			fWeight[9]       = 0.000394071972775;
+			fLocationKsi[9]  = 0.012183390180066L;
+			fLocationEta[9]  = 0.050259137599596L;
+			fLocationZeta[9] = 0.887298334620742L;
+			fWeight[9]       = 0.000394071972775L;
 			
-			fLocationKsi[10]  = 0.054051509084035;
-			fLocationEta[10]  = 0.222974245457983;
-			fLocationZeta[10] = 0.500000000000000;
-			fWeight[10]       = 0.012410088315445;
+			fLocationKsi[10]  = 0.054051509084035L;
+			fLocationEta[10]  = 0.222974245457983L;
+			fLocationZeta[10] = 0.500000000000000L;
+			fWeight[10]       = 0.012410088315445L;
 			
-			fLocationKsi[11]  = 0.095919627988004;
-			fLocationEta[11]  = 0.395689353316369;
-			fLocationZeta[11] = 0.112701665379258;
-			fWeight[11]       = 0.024426104658116;
+			fLocationKsi[11]  = 0.095919627988004L;
+			fLocationEta[11]  = 0.395689353316369L;
+			fLocationZeta[11] = 0.112701665379258L;
+			fWeight[11]       = 0.024426104658116L;
 			
-			fLocationKsi[12]  = 0.050259137599596;
-			fLocationEta[12]  = 0.012183390180066;
-			fLocationZeta[12] = 0.887298334620742;
-			fWeight[12]       = 0.000394071972775;
+			fLocationKsi[12]  = 0.050259137599596L;
+			fLocationEta[12]  = 0.012183390180066L;
+			fLocationZeta[12] = 0.887298334620742L;
+			fWeight[12]       = 0.000394071972775L;
 			
-			fLocationKsi[13]  = 0.222974245457983;
-			fLocationEta[13]  = 0.054051509084035;
-			fLocationZeta[13] = 0.500000000000000;
-			fWeight[13]       = 0.012410088315445;
+			fLocationKsi[13]  = 0.222974245457983L;
+			fLocationEta[13]  = 0.054051509084035L;
+			fLocationZeta[13] = 0.500000000000000L;
+			fWeight[13]       = 0.012410088315445L;
 			
-			fLocationKsi[14]  = 0.395689353316369;
-			fLocationEta[14]  = 0.095919627988004;
-			fLocationZeta[14] = 0.112701665379258;
-			fWeight[14]       = 0.024426104658116;
+			fLocationKsi[14]  = 0.395689353316369L;
+			fLocationEta[14]  = 0.095919627988004L;
+			fLocationZeta[14] = 0.112701665379258L;
+			fWeight[14]       = 0.024426104658116L;
 			
-			fLocationKsi[15]  = 0.050259137599596;
-			fLocationEta[15]  = 0.050259137599596;
-			fLocationZeta[15] = 0.887298334620742;
-			fWeight[15]       = 0.000394071972775;
+			fLocationKsi[15]  = 0.050259137599596L;
+			fLocationEta[15]  = 0.050259137599596L;
+			fLocationZeta[15] = 0.887298334620742L;
+			fWeight[15]       = 0.000394071972775L;
 			
-			fLocationKsi[16]  = 0.222974245457983;
-			fLocationEta[16]  = 0.222974245457983;
-			fLocationZeta[16] = 0.500000000000000;
-			fWeight[16]       = 0.012410088315445;
+			fLocationKsi[16]  = 0.222974245457983L;
+			fLocationEta[16]  = 0.222974245457983L;
+			fLocationZeta[16] = 0.500000000000000L;
+			fWeight[16]       = 0.012410088315445L;
 			
-			fLocationKsi[17]  = 0.395689353316369;
-			fLocationEta[17]  = 0.395689353316369;
-			fLocationZeta[17] = 0.112701665379258;
-			fWeight[17]       = 0.024426104658116;
-			
-			
+			fLocationKsi[17]  = 0.395689353316369L;
+			fLocationEta[17]  = 0.395689353316369L;
+			fLocationZeta[17] = 0.112701665379258L;
+			fWeight[17]       = 0.024426104658116L;
+
 			break;
 			
 		case 24://integra at� grau 4

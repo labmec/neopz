@@ -17,48 +17,117 @@
 #include "tpzintrulelist.h"
 #include "pzerror.h"
 
+#include "pzvec.h"
+
 //***************************************
 //***************************************
 TPZGaussRule::TPZGaussRule(int precision){
-	
+
+	// Cleaning storage
+	fNumInt = 0;
+	fLocation.Resize(0);
+	fWeight.Resize(0);
+	// Bad call
 	if(precision < 1 && precision > NUMINT_RULES){
 		PZError << "TPZGaussRule creation precision = " << precision << " not allowable\n";
-		fNumInt = 0;
-		fLocation = NULL;
-		fWeight = NULL;
 		return;
 	}
-	// #define SUPERRULE
-#ifdef SUPERRULE
-#define GAUSS
-#ifdef GAUSS
-	//     int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,1000,1000,1000,1000,1000,1000,1000,1000};
-	//     int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,200,200,200,200,200,200,200,200};
-	int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,100,100,100,100,100,100,100,100};
-	//     int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,60,60,60,60,60,60,60,60};
-#else
-	int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,200,200,200,200,200,200,200,200};
-	//     int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,100,100,100,100,100,100,100,100};
-	//     int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,50,50,50,50,50,50,50,50};
-#endif
-#else
-	/// codigo original default
-	int intpoints[] = {1,1,2,3,4,5,6,7,8,9,10,12,12,20,20,20,20,20,20,20,20};
-#endif
-	//   int numpoints = (precision+1) >> 1;
-	//   if(!(precision%2)) numpoints++;
+
+	// computing right number of points to wished precision (degree of the polynomial that is integrated exactly with this quadrature rule)
 	int numpoints = (int)((precision+1.)/2.+0.5);   // Because order = 2*npoints - 1, then npoints = (order + 1)/2, but we need take a superior next integer
-	if(numpoints > 20) DebugStop();
-	fNumInt =  intpoints[numpoints];
-	fLocation = new REAL[fNumInt];
-	fWeight = new REAL[fNumInt];
+	fNumInt = numpoints;
+		
+	fNumInt = numpoints;    // Don't need verifying fNumInt = 0 because precision is at least zero then numpoints is 1.
+	// Computing the points and weights for the symmetric Gaussian quadrature (using Legendre polynomials) 
+	ComputingGaussLegendreQuadrature(numpoints,fLocation,fWeight);
+	return;
+}
+// Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
+void TPZGaussRule::ComputingGaussLegendreQuadrature(int Npoints,TPZVec<REAL> &points,TPZVec<REAL> &weights) {
+	if(Npoints < 1 || fNumInt < 1) DebugStop();
+	long double tol = 1.e-19L;
+	long double z1, z, pp, p3, p2, p1, dif, den;
+	int i, j;
+	long iteration;
 	
-	if(fLocation == NULL || fWeight == NULL){
-		fNumInt = 0;
-		return;
+	// Cleaning vector to storage
+	points.Resize(0);
+	weights.Resize(0);
+	points.Resize(fNumInt);
+	weights.Resize(fNumInt);
+	
+	int m = (Npoints+1)*0.5;
+
+	for(i=0;i<m;i++) {
+		p1 = i+(0.75L);
+		p2 = Npoints+0.5L;
+		z = cosl((((long double)M_PI)*p1)/p2);   // p2 never is zero
+		iteration = 0L;
+		do {
+			iteration++;
+			p1 = 1.0L;
+			p2 = 0.0L;
+			for(j=0;j<Npoints;j++) {
+				p3 = p2;
+				p2 = p1;
+				p1 = (((2.0L)*j+(1.0L))*z*p2-(j*p3))/(j+(1.0L));   // denominator never will be zero
+			}
+			den = z*z - (1.0L);
+			if(fabs(den)<1.e-16L)
+				z = 0.5L;
+			pp = ((long double)Npoints)*(z*p1-p2)/den;
+			z1 = z;
+			if(fabs(pp)<1.e-16L)
+				z = 0.5L;
+			else z = z1-p1/pp;
+			dif = fabs(z - z1);
+			if(iteration > 1000000) {
+				std::cout << "Reached maxime number of iterations for NPOINTS = " << Npoints << ".\n";
+				break;
+			}
+		}while(fabs(dif) > tol);
+		points[i] = -z;
+		points[Npoints-1-i] = z;
+		weights[i] = 2.0/((1.0-z*z)*pp*pp);
+		weights[Npoints-1-i] = weights[i];
 	}
+}
+
+//***************************************
+//***************************************
+TPZGaussRule::~TPZGaussRule(){
 	
-	switch(fNumInt){
+	fLocation.Resize(0);
+	fWeight.Resize(0);
+	
+}
+
+//***************************************
+//***************************************
+REAL TPZGaussRule::Loc(int i) const {
+	
+	if (i>=0 && i<fNumInt)
+		return fLocation[i];
+	else {
+		PZError << "ERROR(TPZGaussRule::loc) Out of bounds!!\n";
+		return 0.0;
+	}
+}
+
+//***************************************
+//***************************************
+REAL TPZGaussRule::W(int i) const {
+	
+	if (i>=0 && i<fNumInt)
+		return fWeight[i];
+	else {
+		PZError << "ERROR(TPZGaussRule::w) Out of bounds!!\n";
+		return 0.0;
+	}
+}
+
+/*
+switch(fNumInt){
 			
 		case 1:
 			fLocation[0] = 0.;
@@ -787,37 +856,5 @@ TPZGaussRule::TPZGaussRule(int precision){
 			
 			fNumInt = 0;
 	}
-}
+}*/
 
-//***************************************
-//***************************************
-TPZGaussRule::~TPZGaussRule(){
-	
-	if (fLocation) delete []fLocation;
-	if (fWeight)   delete []fWeight;
-	
-}
-
-//***************************************
-//***************************************
-REAL TPZGaussRule::Loc(int i) const {
-	
-	if (fLocation && i>=0 && i<fNumInt)
-		return fLocation[i];
-	else {
-		PZError << "ERROR(TPZGaussRule::loc) Out of bounds!!\n";
-		return 0.0;
-	}
-}
-
-//***************************************
-//***************************************
-REAL TPZGaussRule::W(int i) const {
-	
-	if (fWeight && i>=0 && i<fNumInt)
-		return fWeight[i];
-	else {
-		PZError << "ERROR(TPZGaussRule::w) Out of bounds!!\n";
-		return 0.0;
-	}
-}

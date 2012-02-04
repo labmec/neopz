@@ -32,7 +32,10 @@ using namespace std;
 // Global variables to test
 int max_order = MAXORDER;
 int expo = 2;
-unsigned int NDigitsPrec = 18;
+unsigned int NDigitsPrec = 14;
+// Conclusion:	Using NDigitsPrec = 7 can to run with REAL = float
+//				Using NDigitsPrec = 14 can to run with REAL = double
+//				Using NDigitsPrec = 18 can to run with REAL = long double
 
 std::string dirname = PZSOURCEDIR;
 
@@ -141,8 +144,8 @@ void TestingNumericIntegrationRule(int exp, int p,std::ifstream &input) {
 	NumInteg intrule(p);
 	intrule.SetOrder(order);
 	
-	int npoints = intrule.NPoints();
-	int it;
+	unsigned int npoints = intrule.NPoints();
+	unsigned int it;
 	
 	// Computing the definite integral for Funcao on parametric element
 	for (it=0;it<npoints;it++) {
@@ -152,12 +155,13 @@ void TestingNumericIntegrationRule(int exp, int p,std::ifstream &input) {
 
 	// USING IMPORTED DATA FROM FILE WITH WISHED VALUES
 	// Variables to import data from file with wished data
-	REAL inputdata;
-	long double tol = 1.e-17L;
+	long double inputdata;
+	long double tol = 1.L;
 	input >> inputdata;
 	// Making tol compatible with the wished significant digits
-	for(it=0;it<(18-NDigitsPrec);it++)
-		tol *= 10.L;
+	for(it=0;it<NDigitsPrec;it++)
+		tol *= 0.1L;
+	
 	if(inputdata > 10.0)
 		tol *= 10.L;
 	if(inputdata > 100.0)
@@ -194,10 +198,10 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	}
 }
 
-BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
+BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
 	
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult2D.txt";
+	filename += "FirstResult2DQ.txt";
 	std::ifstream olddata(filename.c_str());
 
 	int order;
@@ -205,7 +209,15 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	for(order=0;order<max_order;order++) {
 		TestingNumericIntegrationRule<TPZIntQuad>(expo,order,olddata);   // OK
 	}
+}
+
+BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult2DT.txt";
+	std::ifstream olddata(filename.c_str());
+	
+	int order;
 	// Triangular parametric space
 	NDigitsPrec -= 7;                       // because the precision of the points and weights is to 15 digits
 	for(order=0;order<max_order-2;order++) {
@@ -214,10 +226,10 @@ BOOST_AUTO_TEST_CASE(numinteg2D_tests) {
 	NDigitsPrec += 7;
 }
 
-BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
+BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
 
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3D.txt";
+	filename += "FirstResult3DC.txt";
 	std::ifstream olddata(filename.c_str());
 
 	int order;
@@ -230,7 +242,15 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 		TestingNumericIntegrationRule<TPZIntCube3D>(expo,order,olddata);   // OK
 		if(order==12) NDigitsPrec += 2;
 	}
+}
+
+BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 	
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult3DT.txt";
+	std::ifstream olddata(filename.c_str());
+	
+	int order;
 	// Tetrahedram
 	NDigitsPrec -= 9;                       // because the precision of the points and weights is to 15 digits
 	for(order=0;order<max_order;order++) {
@@ -240,14 +260,30 @@ BOOST_AUTO_TEST_CASE(numinteg3D_tests) {
 		TestingNumericIntegrationRule<TPZIntTetra3D>(expo,order,olddata);   // OK
 	}
 	NDigitsPrec += 9;
+}
+
+BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 	
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult3DPy.txt";
+	std::ifstream olddata(filename.c_str());
+	
+	int order;
 	// Pyramidal
 	NDigitsPrec -= 9;                       // because the precision of the points and weights is to 15 digits
 	for(order=2;order<max_order;order++) {
 		TestingNumericIntegrationRule<TPZIntPyram3D>(expo,order,olddata);   // OK
 	}
 	NDigitsPrec += 9;
+}
+
+BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
 	
+	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
+	filename += "FirstResult3DPr.txt";
+	std::ifstream olddata(filename.c_str());
+	
+	int order;
 	// Prism
 	NDigitsPrec -= 8;                       // because the precision of the points and weights is to 15 digits
 	for(order=0;order<max_order-2;order++) {

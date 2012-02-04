@@ -1,6 +1,6 @@
 /**
 * @file
-* @brief Contains Unit Tests for methods of the matrices classes.
+* @brief Contains Unit Tests for methods of the material classes.
 */
 
 //#include "pzmatrix.h"
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 		for (int j = 0 ; j < 9 ; j++) 
 		{
 			dif = fabs(stiff(i,j) - RightStiff(i,j));
-			BOOST_CHECK_SMALL(dif, 0.01);
+			BOOST_CHECK_SMALL(dif, (REAL)0.01L);
 		}
 	}
 	//ek.Print("ek: ");	
