@@ -59,6 +59,12 @@ public:
 		return new TPZCompElHDiv<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
+    /** @brief Set create function in TPZCompMesh to create elements of this type
+	 */
+	virtual void SetCreateFunctions(TPZCompMesh *mesh){
+		mesh->SetAllCreateFunctionsHDiv();
+	}
+
 	
 	virtual MElementType Type();
 	
@@ -142,8 +148,11 @@ public:
 	 * Special implementation to Hdiv
 	 */
 	void FirstShapeIndex(TPZVec<int> &Index);
-	/** @brief Returns a matrix index of the shape and vector  associate to element*/
-	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
+	/** @brief Returns a matrix index of the shape and vector  associate to element
+     * @param VectorSide input : indicates the side associated with each vector
+     * @param IndexVecShape output : indicates for the vector/shape function for the approximation space
+     */
+	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
 	
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi);
