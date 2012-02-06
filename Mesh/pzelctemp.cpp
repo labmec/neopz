@@ -220,7 +220,7 @@ int TPZIntelGen<TSHAPE>::ConnectIndex(int con) const{
 #ifndef NODEBUG
 	if(con<0 || con>= NConnects()) {
 		std::cout << "TPZIntelgen::ConnectIndex wrong parameter con " << con <<
-		" NSides " << TSHAPE::NSides << std::endl;
+		" NSides " << TSHAPE::NSides << " NConnects " << NConnects() << std::endl;
 		return -1;
 	}
 	
