@@ -175,8 +175,6 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 
 // Coupling terms right upper side of global matrix 
- 
-	
 	for(int in = 0; in < phru; in++ )
 	{
 		du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
@@ -184,15 +182,13 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		
 		for(int jn = 0; jn < phrp; jn++)
 		{
-			ek(2*in,2*phru+jn) += falpha*weight*(phip(jn,0)*du(0,0));		
-		    ek(2*in+1,2*phru+jn) += falpha*weight*(phip(jn,0)*du(1,0));							
+			ek(2*in,2*phru+jn) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
+		    ek(2*in+1,2*phru+jn) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
 		}
 	}
 
 	
 // Coupling terms left lower side of global matrix 
-
-	
 	for(int in = 0; in < phru; in++ )
 	{
 		du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
@@ -200,8 +196,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		
 		for(int jn = 0; jn < phrp; jn++)
 		{
-			ek(2*phru+jn,2*in) += falpha*weight*(phip(jn,0)*du(0,0));		
-		    ek(2*phru+jn,2*in+1) += falpha*weight*(phip(jn,0)*du(1,0));							
+			ek(2*phru+jn,2*in) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
+		    ek(2*phru+jn,2*in+1) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
 		}
 	}
 	
@@ -216,7 +212,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		
 		for(int jn = 0; jn < phrp; jn++) {
 			for(int kd=0; kd<fDim; kd++) {
-				ek(in+2*phru, jn+2*phru) += weight *(fk/fvisc)*dphip(kd,in)*dphip(kd,jn); 
+				ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*fTimeStep*dphip(kd,in)*dphip(kd,jn) - weight*fSe*phip(kd,in)*phip(kd,jn); 
 			}
 		}
 	}
@@ -304,7 +300,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 			//Equacao de Poisson: pressao 
 			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*phip(in,0) * weight;
+				ef(in+2*phru,0) += v2[2]*fTimeStep*phip(in,0) * weight;
 			}
 			break;
 			

@@ -47,8 +47,9 @@ protected:
 	/** @brief Poison coeficient */
 	REAL fnu;
 	
-	/** @brief constant poroelastic Biot and K is the drained bulk modulus*/
-	REAL falpha; //[1/pa]
+	/** @brief constants poroelastic Biot*/
+	REAL falpha; //parAmetro poroelestico de Biot-Willis [adimensional]
+	REAL fSe; //ou 1/M coeficiente poroelastico de armazenamento a volume constante [adimensional]
 	
 	/** @brief Problem dimension */
 	int fDim;
@@ -62,6 +63,11 @@ protected:
 	*@ fPlaneStress != 1 => Plain Strain state 
 	*/
 	int fPlaneStress;
+	
+	/// timestep [s]
+	REAL fTimeStep;
+	
+	REAL fPressureIntitial
 	
 	REAL fmatId;
 	
@@ -107,9 +113,10 @@ public:
 	 *@param biot : constant poroelastic Biot [dimensionless]
 	 *@param bulk : drained bulk modulus [Pa]
 	 */
-	void SetAlpha(REAL biot, REAL bulk)
+	void SetBiotParameters(REAL alpha, REAL Se)
 	{
-		falpha = biot/bulk;
+		falpha = alpha; //biot/bulk;
+		fSe = Se; 
 	}
 	
 	/** @brief Set plane problem  
@@ -119,6 +126,12 @@ public:
 	void SetfPlaneProblem(int planestress)
 	{
 		fPlaneStress = planestress;
+	}
+	
+	/// Set the timestep
+	void SetTimeStep(REAL delt)
+	{
+		fTimeStep = delt;
 	}
 	
 	//
