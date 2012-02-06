@@ -496,7 +496,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 	
 	REAL beta;
 	if (symmetry==1.0) {
-		beta=0.;
+		beta=1.;
 	}else {
 		beta=1.0;
 	}

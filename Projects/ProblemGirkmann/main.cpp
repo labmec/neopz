@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
 	gRefDBase.InitializeRefPatterns();
+//	std::ifstream inFileRefPat("refpatternsAgnaldo.txt");
+//	gRefDBase.ReadRefPatternDBase(inFileRefPat);
 	
 	outfile.precision(16);
 	
@@ -44,22 +46,22 @@ int main(int argc, char *argv[])
 	
 	tools * Shell = new tools(rc, h, alpha, a, b, pesoEspecifico,E,poisson,anelleve);
 	
-	int ndiv = 30;
-	int nDiv_DirectRefCasca = 0;
-	int nDiv_DirectRefAnel = 0;
-	int nDiv_DirectRefPonto = 0;
-	REAL sim = /*1.;*/-1.;
-	REAL pen = /*0.;*/10.e10;
+	int ndiv = 240;
+	int nDiv_DirectRefCasca = 1;
+	int nDiv_DirectRefAnel = 4;
+	int nDiv_DirectRefPonto = 1;
+	REAL sim = 1.;/*-1.;*/
+	REAL pen = 0.;/*10.e10;*/
 		
-	for(int nh = 0; nh<= 0; nh++) 
+	for(int nh = 1; nh<= 1; nh++) 
 	{
-		for (int p = 2; p < 3; p++)
+		for (int p = 2; p < 9; p++)
 		{
 			REAL Mreal =-37.45 /*-41.12*/;
 			REAL Qreal =942.5 /*943.8*/;
-		
+
 			//------------- RESOLUCAO MALHA CONTINUA ---------------------------------------------------------------------------------------
-			TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
+			/*TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
 			ofstream arg("gmeshContin.txt");
 			gmesh->Print(arg);
 		
@@ -82,11 +84,11 @@ int main(int argc, char *argv[])
 			cmesh = 0;
 			delete gmesh;
 			gmesh = 0;
-			
+		*/	
 			outfile <<"\n Termo de simetria, sim = " << sim <<endl;	
 			outfile <<"=====Calculo com, nh = " << nh << ", Ndiv = "<< ndiv <<" e p = " << p <<endl;
 			outfile<<" RefDirAnel = "<< nDiv_DirectRefAnel<<"   RefDirCasca = "<< nDiv_DirectRefCasca<<" e   RefDirPonto = "<< nDiv_DirectRefPonto<<endl<<endl;
-			outfile<<"RESULTADOS SEM INTERFACE"<<endl;
+		/*	outfile<<"RESULTADOS SEM INTERFACE"<<endl;
 			outfile <<" MomentoR = "<<QeM[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[0])/Mreal)*100.<<" %"<<endl;
 			outfile <<" MomentoL = "<<QeM[2]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[2])/Mreal)*100.<<" %"<<endl;
 			outfile <<" MomentoMedia = "<<QeM[4]<<"  Erro Relativo ==> " << fabs((Mreal - QeM[4])/Mreal)*100.<<" %"<<endl;
@@ -100,12 +102,12 @@ int main(int argc, char *argv[])
 			outfile <<" T1z = "<<QeM[8]<<endl;
 			outfile <<endl;
 		
-		
+		*/
 		
 			//------------- RESOLUCAO MALHA DESCONTINUA ---------------------------------------------------------------------------------------
 			TPZGeoMesh * gmesh2 = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel, nDiv_DirectRefPonto, true, 4);
 							
-			//Shell->RefinamentoUniforme(*gmesh2, nh);
+			Shell->RefinamentoUniforme(*gmesh2, nh);
 		
 			ofstream arg3("gmeshdiscont.txt");
 			gmesh2->Print(arg3);
@@ -151,5 +153,8 @@ int main(int argc, char *argv[])
 	}
 	
 		
+	std::ofstream outFileRefPat("refpatternsAgnaldo.txt");
+	gRefDBase.WriteRefPatternDBase(outFileRefPat);
+	
     return EXIT_SUCCESS;
 }
