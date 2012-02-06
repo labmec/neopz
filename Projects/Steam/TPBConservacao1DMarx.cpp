@@ -44,7 +44,7 @@ void TPBrCellMarx::SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, R
 	fCellSize = cellsize;
 }
 
-WaterDataInStateOfSaturation waterdata;
+//WaterDataInStateOfSaturation waterdata;
 OilData oildata;
 
 void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );

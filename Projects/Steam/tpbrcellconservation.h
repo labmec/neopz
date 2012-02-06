@@ -37,7 +37,7 @@ public:
 	static T DensitySteam(T temp);//[kg/m3]
 
 	template<class T>
-	static T TemperatureSaturation(T p);//[Celsius]
+	static T TemperatureSaturation(T pressure);//[Celsius]
 	template<class T>
 	static T EnthalpyWater(T temperature);//[kJ/kg]
 	template<class T>
@@ -110,6 +110,17 @@ inline void TPBrCellConservation::Initialize(TPZVec<REAL> &state, TPZVec<TFad<N,
 	fadstate[EPhaseChange].fastAccessDx(EPhaseChange+offset) = 1.;
 	
 }
+
+extern WaterDataInStateOfSaturation waterdata;
+
+template<class T>
+inline T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
+{
+    T press1000 = pressuresteam/T(1000.0);
+    T temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
+	return temp_de_saturac;
+}
+
 
 // Nothing is compiled if _AUTODIFF isnt defined
 #endif

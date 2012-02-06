@@ -22,7 +22,7 @@ static LoggerPtr logger(Logger::getLogger("br.steam.steamflux"));
 static LoggerPtr logger2(Logger::getLogger("br.steam.steamflux"));
 #endif
 
-static WaterDataInStateOfSaturation waterdata;
+//WaterDataInStateOfSaturation waterdata;
 //extern WaterDataInStateOfSaturation waterdata;
 static OilData oildata;
 
@@ -701,7 +701,7 @@ T TPBrSteamFlux::EnthalpyWater(T temperature)//[kJ/kg]
 }
 
 template<>
-double TPBrSteamFlux::EnthalpyWater(double temperature)//[kJ/kg]
+REAL TPBrSteamFlux::EnthalpyWater(REAL temperature)//[kJ/kg]
 {
 	return waterdata.getSaturationStateSpecificEnthalpyToLiquidWater(temperature);
 }

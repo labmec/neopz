@@ -11,10 +11,10 @@
 #include "tpbrsteamflux.h"
 #include "PropertiesTable.h"
 
-#ifdef _AUTODIFF
-
-static WaterDataInStateOfSaturation waterdata;
+//WaterDataInStateOfSaturation waterdata;
 static OilData oildata;
+
+#ifdef _AUTODIFF
 
 #include "fadType.h"
 
@@ -293,35 +293,14 @@ T TPBrCellConservation::DensitySteam(T temp)//[kg/m3]
 	return waterdata.getSaturationStateDensityToSteam(temp);
 }
 
-template<class T>
-T TPBrCellConservation::TemperatureSaturation(T pressuresteam)//[Celsius]
-{
-    T press1000 = pressuresteam/T(1000.);
-    T temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
-    /*
-     T  val_log, temp;
-     T temp_de_saturac;
-     val_log = log(pressuresteam*0.0001450377438972831);
-     temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
-     0.0342030*(val_log*val_log*val_log*val_log);
-     temp_de_saturac = (temp - 32. - 459.67)/1.8;
-     */
-	return temp_de_saturac;
-}
+//template<>
+//REAL TPBrCellConservation::TemperatureSaturation<REAL>(REAL pressuresteam); //[Celsius]
 
 //template<>
-//double TPBrCellConservation::TemperatureSaturation(double pressuresteam)//[Celsius]
+//REAL TPBrCellConservation::TemperatureSaturation(REAL pressuresteam) //[Celsius]
 //{
-//    double press1000 = pressuresteam/1000.;
-//    double temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
-    /*
-     T  val_log, temp;
-     T temp_de_saturac;
-     val_log = log(pressuresteam*0.0001450377438972831);
-     temp=561.435 + 33.8866*val_log + 2.18893*(val_log*val_log) + 0.0808998*(val_log*val_log*val_log) +
-     0.0342030*(val_log*val_log*val_log*val_log);
-     temp_de_saturac = (temp - 32. - 459.67)/1.8;
-     */
+ //   double press1000 = pressuresteam/1000.;
+   // double temp_de_saturac = waterdata.getSaturationStateTemperature(press1000);
 //	return temp_de_saturac;
 //}
 

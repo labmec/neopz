@@ -17,7 +17,7 @@
 static LoggerPtr logger(Logger::getLogger("br.steamsimulation"));
 #endif
 
-static WaterDataInStateOfSaturation waterdata;
+WaterDataInStateOfSaturation waterdata;
 //OilData oildata;
 
 using namespace std;
