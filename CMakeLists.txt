@@ -79,6 +79,7 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 #Defining variables
 #To cmake
 	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG" CACHE STRING "c++ debug flags go here" FORCE)
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -DNODEBUG" CACHE STRING "c++ debug flags go here" FORCE)
 #To search files or libraries
 	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/lib /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../libs/metis-5.0.1 ./../libs/metis-5.0.1/include ./../libs/metis-5.0.1/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./../externallibs/metis-5.0.1 ./../externallibs/metis-4.0 ./../externallibs/metis-5.0.1/include ./../externallibs/metis-4.0/include ./../externallibs/metis-5.0.1/lib)
 #To install neopz/include
