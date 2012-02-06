@@ -211,8 +211,9 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		ef(in+2*phru, 0) += 0.; 
 		
 		for(int jn = 0; jn < phrp; jn++) {
+			ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
 			for(int kd=0; kd<fDim; kd++) {
-				ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*fTimeStep*dphip(kd,in)*dphip(kd,jn) - weight*fSe*phip(kd,in)*phip(kd,jn); 
+				ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*fTimeStep*dphip(kd,in)*dphip(kd,jn);
 			}
 		}
 	}
