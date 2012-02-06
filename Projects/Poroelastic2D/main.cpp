@@ -388,7 +388,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	
 	// Biot's parameter @biot
 	// Bulk rock parameter @bulk
-	mymaterial->SetAlpha(biot,bulk);
+	mymaterial->SetBiotParameters(biot,bulk);
 	
 	
 	ofstream argm("mymaterial.txt");

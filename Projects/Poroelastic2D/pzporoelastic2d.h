@@ -67,7 +67,7 @@ protected:
 	/// timestep [s]
 	REAL fTimeStep;
 	
-	REAL fPressureIntitial
+	REAL fPressureIntitial;
 	
 	REAL fmatId;
 	
