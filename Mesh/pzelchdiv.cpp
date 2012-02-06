@@ -65,6 +65,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
     int nstate = 1;
 	int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,fPressureOrder);
 	TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
+    newnod.SetPressure(true);
 	this->fConnectIndexes[i]=newnodeindex;
 	int seqnum = newnod.SequenceNumber();
     newnod.SetPressure(true);
@@ -467,7 +468,7 @@ int TPZCompElHDiv<TSHAPE>::PreferredSideOrder(int side) {
 	}
 	if(connect<NConnects()) {
 		int order =this->fPreferredOrder;
-		return this->AdjustPreferredSideOrder(connect,order);
+		return this->AdjustPreferredSideOrder(side,order);
 	}
 	PZError << "TPZCompElHDiv<TSHAPE>::PreferredSideOrder called for connect = " << connect << "\n";
 	return 0;
