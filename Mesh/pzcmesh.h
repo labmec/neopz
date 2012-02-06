@@ -683,6 +683,7 @@ inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
     c.SetNShape(nshape);
     c.SetNState(nstate);
     c.SetOrder(order);
+    c.SetPressure(false);
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fBlock.Set(blocknum,nshape*nstate);
