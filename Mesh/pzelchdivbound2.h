@@ -59,6 +59,11 @@ public:
 		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
+	/** @brief Set create function in TPZCompMesh to create elements of this type
+	 */
+	virtual void SetCreateFunctions(TPZCompMesh *mesh){
+		mesh->SetAllCreateFunctionsHDiv();
+	}
 	
 	virtual MElementType Type();
 	

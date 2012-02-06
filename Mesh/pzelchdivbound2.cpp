@@ -431,7 +431,10 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension ){
 		return ;
 	}
-	TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,phi,dphi);
+    phi.Zero();
+    dphi.Zero();
+    return;
+//	TPZIntelGen<TSHAPE>::SideShapeFunction(side,point,phi,dphi);
 	
 }
 
