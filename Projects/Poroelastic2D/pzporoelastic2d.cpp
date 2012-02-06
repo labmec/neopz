@@ -207,13 +207,20 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 	//Equacao de Poisson: pressao 
 	// Calculate the matrix contribution for transport problem from
+	REAL dudx  =  datavec[0].dsol(0,0)*datavec[0].axes(0,0)+datavec[0].dsol(1,0)*datavec[0].axes(1,0);
+	REAL dvdy  =  datavec[0].dsol(0,1)*datavec[0].axes(0,1)+datavec[0].dsol(1,1)*datavec[0].axes(1,1);
+	REAL divu = dudx+dvdy;
+	REAL p = datavec[1].sol(0,0);
+	REAL carga = p*fSe+falpha*divu;
+	const REAL DeltaT = this->fTimeStep;
+	
 	for(int in = 0; in < phrp; in++) {
-		ef(in+2*phru, 0) += 0.; 
+		ef(in+2*phru, 0) += 0.- weight*carga*phip(in,0); 
 		
 		for(int jn = 0; jn < phrp; jn++) {
 			ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
 			for(int kd=0; kd<fDim; kd++) {
-				ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*fTimeStep*dphip(kd,in)*dphip(kd,jn);
+				ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*DeltaT*dphip(kd,in)*dphip(kd,jn);
 			}
 		}
 	}
@@ -300,8 +307,9 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 			
 			//Equacao de Poisson: pressao 
+			const REAL DeltaT = this->fTimeStep;
 			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*fTimeStep*phip(in,0) * weight;
+				ef(in+2*phru,0) += v2[2]*DeltaT*phip(in,0) * weight;
 			}
 			break;
 			
