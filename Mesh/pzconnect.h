@@ -134,12 +134,12 @@ public:
     /**
      * @brief Number of state variables associated with the connect
      */
-    int NState() const
+    unsigned char NState() const
     {
         return fCompose.fNState;
     }
     
-    int NShape() const
+    unsigned char NShape() const
     {
         return fCompose.fNShape;
     }
@@ -183,20 +183,20 @@ public:
     }
 	
 	/** @brief Access function to return the order associated with the connect */
-	int Order() const {
+	unsigned char Order() const {
 		return fCompose.fOrder;
 	}
     
     /** @brief Access method to return the indication whether the connect is condensed or not
      */
-    int IsCondensed() const
+    bool IsCondensed() const
     {
         return fCompose.fIsCondensed;
     }
     
     /** @brief Access method to return the indication whether the connect is associated with a pressure lagrange multiplier
      */
-    int IsPressure() const
+    bool IsPressure() const
     {
         return fCompose.fIsPressure;
     }
