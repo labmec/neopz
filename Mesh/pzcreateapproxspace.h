@@ -108,6 +108,18 @@ public:
      * @brief Undo the encapsulate elements
      */
     static void UndoCondenseLocalEquations(TPZCompMesh &cmesh);
+    
+    /**
+     * @brief transform in low order Raviar Tomas
+     */
+    static void MakeRaviartTomas(TPZCompMesh &cmesh);
+    
+    /**
+     * @brief transform in low order Raviar Tomas
+     */
+    static void UndoMakeRaviartTomas(TPZCompMesh &cmesh);
+    
+    
 };
 
 /** @brief Creates computational point element */

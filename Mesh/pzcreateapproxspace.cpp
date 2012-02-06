@@ -403,3 +403,92 @@ void TPZCreateApproximationSpace::UndoCondenseLocalEquations(TPZCompMesh &cmesh)
         condel->Unwrap();
     }    
 }
+
+/**
+ * @brief transform in low order Raviar Tomas
+ */
+void TPZCreateApproximationSpace::MakeRaviartTomas(TPZCompMesh &cmesh)
+{
+    int numcell = cmesh.NElements();
+    int el;
+    for (el = 0; el<numcell ; el++) {
+        TPZCompEl *cel = cmesh.ElementVec()[el];
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) {
+            continue;
+        }
+        intel->SetPreferredOrder(1);
+    }
+    cmesh.ExpandSolution();
+    for (el = 0; el<numcell ; el++) {
+        TPZCompEl *cel = cmesh.ElementVec()[el];
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        int geldim = gel->Dimension();
+        int is;
+        int nsides = gel->NSides();
+        for (is=0; is<nsides; is++) {
+            if (gel->SideDimension(is) != geldim-1) {
+                continue;
+            }
+            int nsconnects = intel->NSideConnects(is);
+            // only interested in HDiv elements
+            if (nsconnects != 1) {
+                continue;
+            }
+            int cindex = intel->SideConnectIndex(0, is);
+            TPZConnect &c = intel->Connect(intel->SideConnectLocId(0,is));
+            if (c.HasDependency()) {
+                continue;
+            }
+            int nshape = 1;
+            int nstate = 1;
+            int order = 0;
+            int cindex2 = cmesh.AllocateNewConnect(nshape, nstate, order);
+//            TPZConnect &c2 = cmesh.ConnectVec()[cindex];
+            TPZFNMatrix<2> depmat(2,1,1.);
+            c.AddDependency(cindex, cindex2, depmat, 0, 0, 2, 1);
+        }
+    }
+    cmesh.ExpandSolution();
+}
+
+/**
+ * @brief transform in low order Raviar Tomas
+ */
+void TPZCreateApproximationSpace::UndoMakeRaviartTomas(TPZCompMesh &cmesh)
+{
+    int numcell = cmesh.NElements();
+    int el;
+    for (el = 0; el<numcell ; el++) {
+        TPZCompEl *cel = cmesh.ElementVec()[el];
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        int geldim = gel->Dimension();
+        int is;
+        int nsides = gel->NSides();
+        for (is=0; is<nsides; is++) {
+            if (gel->SideDimension(is) != geldim-1) {
+                continue;
+            }
+            int nsconnects = intel->NSideConnects(is);
+            // only interested in HDiv elements
+            if (nsconnects != 1) {
+                continue;
+            }
+//            int cindex = intel->SideConnectIndex(0, is);
+            TPZConnect &c = intel->Connect(intel->SideConnectLocId(0,is));
+            if (c.HasDependency()) {
+                c.RemoveDepend();
+            }
+        }
+    }
+    cmesh.ExpandSolution();
+    cmesh.CleanUpUnconnectedNodes();
+}
