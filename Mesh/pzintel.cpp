@@ -821,11 +821,11 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 		 return;
 		 */
 	}
-	TPZConnect &myconnect = Connect(side);
+	TPZConnect &myconnect = Connect(MidSideConnectLocId(side));
 	if(myconnect.HasDependency() && locallargeref.Dimension() > 0) {
 		LOGPZ_WARN(logger, "RestrainSide - unnecessary call to restrainside");
 	}
-	if (cel->ConnectIndex(locallarge.Side()) == -1){
+	if (cel->ConnectIndex(cel->MidSideConnectLocId(locallarge.Side())) == -1){
 		LOGPZ_ERROR(logger, "Exiting RestrainSide - Side of large element not initialized");
 		return;
 	}
@@ -918,8 +918,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 #ifdef HUGE_DEBUG
 	CheckConstraintConsistency(side);
 #endif
-	TPZConnect &inod = Connect(side);
-	int inodindex = ConnectIndex(side);
+	TPZConnect &inod = Connect(MidSideConnectLocId(side));
+	int inodindex = ConnectIndex(MidSideConnectLocId(side));
 	int ndepend = 0;
 	in = numsidenodes_small-1;
 	for(jn = 0; jn<numsidenodes_large; jn++) {
@@ -931,7 +931,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	}
 	
 	if (! ndepend){
-		//  cout << "Caso esquisito!!! Chame o Boss que vc receber�um pr�io\n";
+		cout << "Caso esquisito!!! Chame o Boss que vc receberem premio\n";
 		for(jn = 0; jn<numsidenodes_large; jn++) {
 			int jnodindex = large->SideConnectIndex(jn,neighbourside);
 			inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
@@ -1193,8 +1193,8 @@ void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
 	}
 	int js;
 	int nsfather = smallfather->NSideConnects(smallfatherside);
-	int dfiindex = ConnectIndex(side);
-	TPZConnect *dfi = &Connect(side);
+	int dfiindex = ConnectIndex(MidSideConnectLocId(side));
+	TPZConnect *dfi = &Connect(MidSideConnectLocId(side));
 	for(js=0; js<nsfather; js++) {
 		int dfjindex = smallfather->SideConnectIndex(js,smallfatherside);
 		dfi->RemoveDepend(dfiindex,dfjindex);
@@ -1222,6 +1222,10 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 	int side,nelem,iel;
 	if(mode == EDelete) {
 		for(side = 0; side<numsides; side++) {
+            if(NSideConnects(side) == 0) 
+            {
+                continue;
+            }
 			TPZCompElSide thisside(this,side);
 			elemset.Resize(0);
 			thisside.EqualLevelElementList(elemset,1,0);//iguais
@@ -1240,7 +1244,8 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 					nsmall = smallset.NElements();
 					for(iel=0; iel<nsmall; iel++) {
 						TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[iel].Element());
-						if (cel) cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
+                        int smallside = smallset[iel].Side();
+						if (cel && cel->NSideConnects(smallside) > 0) cel->RemoveSideRestraintWithRespectTo(smallset[iel].Side(),thisside);
 					}
 				}//ab3
 			}
@@ -1725,7 +1730,7 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 		return order;
 	}
 	int dim = gel->SideDimension(side);
-	if(dim != 2 || ConnectIndex(side) == -1) {
+	if(dim != 2 || ConnectIndex(MidSideConnectLocId(side)) == -1) {
 		//    std::stringstream sout;
 		//    sout << "Exiting AdjustPreferredSideOrder: dimension != 2 " << dim;
 		//    LOGPZ_ERROR(logger,sout.str().c_str());
