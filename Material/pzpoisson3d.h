@@ -208,6 +208,8 @@ public:
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+	void ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+
 	
 	virtual int NEvalErrors() {return 5;}
 	
