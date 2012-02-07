@@ -45,7 +45,9 @@ private:
     
 protected:
     void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
-    
+	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
+   void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
+								  TPZVec<REAL> &pressure,TPZFMatrix &flux);
     /** @brief Defines whether the equation context is linear solver or non linear */
     /**
      * True means linear (default)
@@ -241,8 +243,19 @@ public:
     {
         fForcingFunction = fp;
     }
+	
+//	 void fForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux))
+//	{
+//		fForcingFunctionExact = fp;
+//	}
+	void SetForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,
+											TPZVec<REAL> &pressure,TPZFMatrix &flux))
+	{
+		fForcingFunctionExact = fp;
+	}
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
+	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
     
     /** 
      * @brief Gets the order of the integration rule necessary to integrate an
@@ -277,7 +290,11 @@ public:
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-    
+	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values){
+		PZError << __PRETTY_FUNCTION__ << std::endl;
+		PZError << "Nao sei o q fazer." << std::endl;
+		
+	}
     /** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
     virtual int NEvalErrors() {return 3;}
     
