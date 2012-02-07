@@ -71,6 +71,10 @@ protected:
 	
 	REAL fmatId;
 	
+	/** @brief State: one ou one+1 */
+	enum EState { ELastState = 0, ECurrentState = 1 };
+	static EState gState;
+	
 public:
 	TPZPoroElastic2d();
 	
@@ -85,6 +89,9 @@ public:
 	int Dimension() {return fDim;}
 	
 	virtual int NStateVariables();
+	
+	void SetLastState(){ gState = ELastState; }
+	void SetCurrentState(){ gState = ECurrentState; }
 
 	/** @brief Parameters of rock and fluid: */
 	void SetParameters(REAL perm, REAL visc)
@@ -132,6 +139,19 @@ public:
 	void SetTimeStep(REAL delt)
 	{
 		fTimeStep = delt;
+	}
+	
+	void SetInitialSolution(TPZAnalysis an, TPZFMatrix & InitialSol){
+		/*const int nrows = an->Mesh()->Solution().Rows();
+		const int ncols = an->Mesh()->Solution().Cols();
+		if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
+			PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << std::endl;
+		}
+		else{
+			an->fSolution = InitialSol;
+		}
+		TPZAnalysis::LoadSolution();
+		 */
 	}
 	
 	//
