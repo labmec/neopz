@@ -51,6 +51,8 @@ public :
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
+	virtual void	ContributeInterface(TPZMaterialData &dataright,TPZMaterialData &dataleft, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
+
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
