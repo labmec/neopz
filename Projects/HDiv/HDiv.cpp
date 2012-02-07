@@ -82,12 +82,12 @@ int main()
 	}
 #endif
 	
-	for (int porder= 4; porder<5; porder++) {
+	for (int porder= 5; porder<6; porder++) {
 		
-		for(int h=2;h<3;h++){
+		for(int h=1;h<6;h++){
 			
 			
-			TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
+			TPZGeoMesh *gmesh2 = MalhaGeoT(h);//malha geometrica
 			
 			
 			TPZCompMeshReferred *cmesh = CreateMesh2d(*gmesh2,porder);//malha computacional
@@ -95,18 +95,18 @@ int main()
 			int submeshindex = -1;
 			TPZSubCompMesh *submesh = 0;
 			// Aq faz a condensacao estatica			
-			if(h >0)
+			if(h >=0)
 				if(-1)
 				{
 					submeshindex = SubStructure(cmesh,1);//monto a submalha com os elementos q serao condesados (externos) e retorna o numero de elementos computacionais da malha
 					submesh = dynamic_cast<TPZSubCompMesh *> (cmesh->ElementVec()[submeshindex]);//converte os elementos computacionais para um objeto do tipo TPZSubCompMesh
-					submesh->SetNumberRigidBodyModes(10);//aq defino o numero de pivos nulos que podera ter o sistema?
+					submesh->SetNumberRigidBodyModes(1);//aq defino o numero de pivos nulos que podera ter o sistema?
 					cmesh->ExpandSolution();//ajusta o vetor de solucao
 					TPZAutoPointer<TPZGuiInterface> guiInter = new TPZGuiInterface;
 					int numThreads=0;
-					submesh->SetAnalysisFrontal(numThreads, guiInter);
+					submesh->SetAnalysisSkyline(numThreads,1, guiInter);
 				}
-			/*
+			
 			cmesh->SetName("Malha depois de SubStructure-----");
 #ifdef LOG4CXX
 			{
@@ -115,21 +115,14 @@ int main()
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
-			*/
+			
 			
 			cmesh->LoadReferences();//mapeia para a malha geometrica lo
 			
 			TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
 			
 			TPZAnalysis analysis(cmesh);
-			
-
-			if (submesh) {
-				SaddlePermute(submesh);
-			}
-			
-			SaddlePermute(cmesh);	
-			cmesh->SetName("Malha apos Saddle Permute ");
+			//SaddlePermute(cmesh);
 		
 #ifdef LOG4CXX
 			{
@@ -185,11 +178,33 @@ int main()
 			TPZAutoPointer<TPZMatrix> B = str.CreateAssemble(rhs,guiInter);
 			
 			{
-				std::ofstream eig("Eigenvalues.nb");
-				A->Print("Acondense = ",eig,EMathematicaInput);
-				B->Print("Bcondense = ",eig,EMathematicaInput);
 				
-			}	
+				std::stringstream hstr; hstr << h;
+				
+				std::stringstream pstr; pstr << porder;
+				
+				
+				
+				std::string fileNameEigen = "IntRuleGmresP";
+				
+				fileNameEigen += pstr.str();
+				
+				fileNameEigen += "h";
+				
+				fileNameEigen += hstr.str();
+				
+				fileNameEigen += ".nb";
+				
+				std::ofstream eig3(fileNameEigen.c_str());					
+				
+				
+				
+				A->Print("Acondense = ",eig3,EMathematicaInput);
+				
+				B->Print("Bcondense = ",eig3,EMathematicaInput);
+				B->Print("1/Eigenvalues[{Bcondense,Acondense}] ",eig3,EMathematicaInput);
+				
+			}		
 			// restore the original state
 		}
 	}
@@ -299,7 +314,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 int SubStructure(TPZCompMesh *cmesh, int materialid)
 {
 	int index;
-	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh Ž inicializado com o parametro index que sera o numero de elementos computacionais da malha
+	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh Ã© inicializado com o parametro index que sera o numero de elementos computacionais da malha
 	
 	int nelem = cmesh->NElements();
 	int iel;
@@ -343,9 +358,6 @@ void ValFunction(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &B
 }
 
 TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
-	
-	
-	
 	TPZGeoMesh *gmesh = new TPZGeoMesh();
 	TPZGeoEl *elvec[2];
 	//Criar ns
@@ -593,7 +605,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	
 	
 	//	Refinamento uniforme
-	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
+	/*for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
 		TPZVec<TPZGeoEl *> filhos;
 		int n = gmesh->NElements();
 		for(int i = 0; i < n; i++){
@@ -603,6 +615,21 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 				gel->Divide(filhos);
 			}		
 			}
+		
+	}*/
+	for(int ref = 0; ref < h; ref++){// h indica o numero de refinamentos
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for(int i = 0; i < n; i++){
+			TPZGeoEl * gel = gmesh->ElementVec()[i];
+			if(!gel->HasSubElement())
+			{
+				gel->Divide(filhos);
+			}		
+			
+			
+		}
+		
 		
 	}
 #ifdef LOG4CXX
