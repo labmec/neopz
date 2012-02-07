@@ -169,6 +169,36 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 {
 	if(connect == 0)
 	{
+		TPZManVector<int,1> order(1,ConnectOrder(connect));
+		//se a ordem eh maior depedenra do tipo de TSHAPE
+		
+		if (order[0]==1) {
+			return TSHAPE::NShapeF(order);
+		}
+		else{
+			TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
+			TPZGeoElSide neighbour = gelside.Neighbour();
+			while(gelside != neighbour)
+			{	switch (neighbour.Element()->Type()) {
+				case EQuadrilateral:
+					return TSHAPE::NShapeF(order)-1;
+					break;
+				case ETriangle:
+					return TSHAPE::NShapeF(order);
+					break;
+				default : DebugStop();return -1;
+			}
+				neighbour = neighbour.Neighbour();
+				
+				
+			}
+			
+			
+		}
+		
+	}
+	/*if(connect == 0)
+	{
 		
 		TPZManVector<int,1> order(1,ConnectOrder(connect));
 		//se a ordem eh maior depedenra do tipo de TSHAPE
@@ -188,6 +218,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 		DebugStop();
 		return -1;
 	}
+	 */
 }
 
 template<class TSHAPE>
@@ -306,11 +337,15 @@ template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 {
 	TPZIntelGen<TSHAPE>::InitMaterialData(data);
+	
 #ifdef LOG4CXX
 	{
 		LOGPZ_DEBUG(logger,"Initializing normal vectors")
 	}
 #endif
+	
+	//data.fVecShapeIndex=true;
+	
 	TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
 	TPZGeoElSide neighbour = gelside.Neighbour();
 	while(gelside != neighbour && neighbour.Element()->Dimension() != TSHAPE::Dimension+1)
@@ -324,19 +359,54 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZGeoEl *neighel = neighbour.Element();
 	TPZManVector<int> normalsides;
 	neighel->ComputeNormals(neighbour.Side(),data.fNormalVec, normalsides);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout << "normal side depois do ComputeNormals " << normalsides << std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+		
 	// relate the sides indicated in vecindex to the sides of the current element
 	int nvec = normalsides.NElements();
 	int ivec;
 	for(ivec=0; ivec<nvec; ivec++)
 	{
 		TPZGeoElSide neigh(neighel,normalsides[ivec]);
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "normal side depois do TPZGeoElSide " << normalsides << std::endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 		while(neigh.Element() != this->Reference())
 		{
+		
 			neigh = neigh.Neighbour();
 		}
-		normalsides[ivec] = neigh.Side();
+		
+			normalsides[ivec]=neigh.Side();
+
+		
+std::cout<< "neigh aqui ------"<<neigh.Side()<<std::endl;
+		
+#ifdef LOG4CXX
+		{
+			std::stringstream sout;
+			sout << "ivec " << ivec<< "normal side " << neigh.Side() << std::endl;
+			LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	}
 	IndexShapeToVec(normalsides,data.fVecShapeIndex);
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<< "normal sides depois de IndexShapeToVec "<<normalsides<<std::endl;
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	//	TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (neighel->Reference());
 	data.numberdualfunctions = 0;
 #ifdef LOG4CXX
@@ -347,6 +417,7 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 
 }
 
 
@@ -380,6 +451,7 @@ void TPZCompElHDivBound2<TSHAPE>::ComputeShapeIndex(TPZVec<int> &sides, TPZVec<i
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	 
 }
 
 /**return the first shape associate to each side*/
@@ -391,8 +463,16 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	
 	for(int iside=0;iside<TSHAPE::NSides;iside++)
 	{
+		if(TSHAPE::Type()==EQuadrilateral){
 		int order= SideOrder(iside)-1;
-		Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+		}
+		else{
+		int order= SideOrder(iside);
+			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+		}
+		
+		
 		
 	}
 	/*
