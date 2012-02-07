@@ -385,6 +385,11 @@ public:
 	 */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
+	virtual void ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data)	{
+		std::cout <<"Imposed for Hdiv spolution ";
+		DebugStop();
+	};
+	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate
@@ -423,7 +428,6 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
 								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol) = 0;
-	
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
