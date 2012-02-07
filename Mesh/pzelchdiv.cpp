@@ -205,64 +205,6 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 #endif
 }
 
-/*template<class TSHAPE>
- int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect) const
- {
- if(connect< NConnects()-1){//tirando o connect da pressao
- int iside = TSHAPE::NSides - NConnects() + connect+1;//é o lado do elemento q estou, acrescentei um connect a mais
- if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
- {
- PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
- return -1;
- 
- }
- int order = ConnectOrder(connect);
- 
- if(order < 0) return 0;
- 
- TPZStack<int> smallsides;
- TSHAPE::LowerDimensionSides(iside,smallsides);
- if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)//i.e., trata-se do lado de mesma dimensao que o elemento
- {
- int NShapeFace = 0;
- for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
- int sideorder= this->SideOrder(nside);
- NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
- 
- }
- return (NShapeFace + TSHAPE::Dimension*TSHAPE::NConnectShapeF(iside,order))  ;
- 
- }
- else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)//i.e., trata-se do lado de 1 dimensao a menos que a dimensao do elemento
- {
- int NShapeF = 0;
- for(int j=0;j< smallsides.NElements();j++)
- {
- NShapeF += TSHAPE::NConnectShapeF(j,order);
- }
- int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
- return (result);
- }
- }
- 
- else
- {
- int dualorder=this->fPressureOrder;
- return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc::ETensorial);
- 
- }
- 
- #ifdef LOG4CXX
- {
- std::stringstream sout;
- sout <<__PRETTY_FUNCTION__<< "unhandled case ";
- LOGPZ_ERROR(logger,sout.str())
- }
- #endif
- return -1;
- 
- 
- }*/
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 {
@@ -619,47 +561,6 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 }
 //return a matrix with index shape and vector associate to element
 template<class TSHAPE>
-/*void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec){
- 
- // VectorSide indicates the side associated with each vector entry
- TPZVec<int> FirstIndex;
- // the first index of the shape functions
- FirstShapeIndex(FirstIndex);
- 
- #ifdef LOG4CXX
- {
- std::stringstream sout;
- sout << "FirstIndex of shape functions " << FirstIndex;
- LOGPZ_DEBUG(logger,sout.str())
- }
- #endif
- 
- //	int dualorder=this->fPressureOrder;
- int tamanho= this->NShapeF() - NConnectShapeF(NConnects()-1);//estou tirando as funcoes da variavel dual
- 
- ShapeAndVec.Resize(tamanho);
- int count=0;
- for(int jvec=0;jvec< VectorSide.NElements();jvec++)
- {
- int lside=VectorSide[jvec];
- int fshape1= FirstIndex[lside];
- int fshape2= FirstIndex[lside+1];
- for (int ishape=fshape1; ishape<fshape2; ishape++)
- {
- ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
- }
- 
- }
- 
- #ifdef LOG4CXX
- std::stringstream sout;
- sout << " VecShapeIndex " << ShapeAndVec;
- LOGPZ_DEBUG(logger,sout.str())
- #endif
- 
- 
- }
- */
 void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec){
 	
 	
@@ -938,6 +839,13 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
     
 }
 
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data){
+	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+    this->ComputeSolution(data);
+	
+    
+}
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
@@ -945,9 +853,31 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, 
     TPZMaterialData data;
     InitMaterialData(data);
     this->ComputeSolution(data);
+	
     
 }
 
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+	
+	//	TPZFMatrix dphix,phi;
+	//	ComputeShape()
+	//	this->ComputeSolution(qsi,phi,dphix,axes,sol,dsol);
+	
+	TPZGeoEl * ref = this->Reference();
+	const int nshape = this->NShapeF();
+	const int dim = ref->Dimension();
+	TPZFMatrix phix(nshape,1),dphix(dim,nshape);
+	
+	TPZFNMatrix<9> jacobian(dim,dim);
+	TPZFNMatrix<9> jacinv(dim,dim);
+	REAL detjac;
+	
+	TPZManVector<REAL,3> x(3,0.);
+	this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
+	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+	
+}
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
@@ -960,13 +890,9 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
 	TPZBlock &block =this->Mesh()->Block();
     TPZFMatrix &MeshSol = this->Mesh()->Solution();
     
-	
-	data.sol.Resize(4,1);
-	
-    data.sol[0]=0.;
-    data.sol[1]=0.;
-    data.sol[2]=0.;
-    data.sol[3]=0.;
+	int nsol= this->Dimension()+2;
+	data.sol.Resize(nsol,1);//2 componente para fluxo+ 1 para pressao +1 para div
+	data.sol.Fill(0);
 	//solucao associada a fluxo
 	int iv = 0,ishape=0,ivec=0,cols, jv=0;
     for(int in=0; in<ncon-1 ; in++) {//estou tirando o connect da pressao
@@ -979,9 +905,26 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
 			ivec=data.fVecShapeIndex[jv ].first;
 			ishape=data.fVecShapeIndex[jv].second;
 			
-			for (int ilinha=0; ilinha<3; ilinha++) {
+			TPZFNMatrix<3> ivecDiv(3,1);
+			ivecDiv(0,0) = data.fNormalVec(0,ivec);
+			ivecDiv(1,0) = data.fNormalVec(1,ivec);
+			ivecDiv(2,0) = data.fNormalVec(2,ivec);
+			TPZFNMatrix<3> axesvec(3,1);
+			data.axes.Multiply(ivecDiv,axesvec);
+			
+			for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
 				cols=iv%numdof;
+				
+				//	 #ifdef LOG4CXX
+				//	 std::stringstream sout;
+				//	 sout << " vetor  " << ivec << " shape  " << ishape<<" coef "<< MeshSol(pos+jn,0)<<endl;
+				//	 LOGPZ_DEBUG(logger,sout.str())
+				//	 #endif
+				
 				data.sol[ilinha] += data.fNormalVec(ilinha,ivec)* data.phi(ishape,0)*MeshSol(pos+jn,0);
+				
+				
+				data.sol[nsol-1] +=  axesvec(ilinha,0)*data.dphix(ilinha,ishape)*MeshSol(pos+jn,0);//divergente
            		
 			}
 			
@@ -990,6 +933,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
 		
 		iv++;
 	}
+	
+	
     //colocando a solucao para o connect interno usando shape descontinua
     
     TPZConnect *df2 = &this->Connect(ncon-1);
@@ -998,7 +943,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
     
     for (int idesc=0; idesc<data.numberdualfunctions; idesc++) {
 		int iphi= data.phi.Rows()-data.numberdualfunctions +idesc;
-		data.sol[3]+= data.phi(iphi,0)*MeshSol(pos2+idesc,0);
+		data.sol[nsol-2]+= data.phi(iphi,0)*MeshSol(pos2+idesc,0);
 		
     }
     
