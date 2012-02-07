@@ -34,6 +34,8 @@ class TPZMatrix;
 class TPZFMatrix;
 class TPZBlock;
 
+class TPZMaterialData;
+
 template<class T>
 class TPZVec;
 template<class T, int N>
