@@ -166,10 +166,11 @@ public:
     
     ///Compute the solution for a given variable
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
-    
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+		virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
 	
+	virtual void ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
+                                 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);	
     /**   
 	 * @brief Compute the solution using Hdiv structure
 	 */
