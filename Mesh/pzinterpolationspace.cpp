@@ -252,11 +252,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		return;
 	}
 	
-	/*  {
+	  {
 	 std::stringstream sout;
 	 sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
 	 LOGPZ_DEBUG(logger,sout.str());
-	 }*/
+	 }
 	this->InitializeElementMatrix(ek,ef);
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
@@ -281,6 +281,14 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	//    material->SetIntegrationRule(intrule, data.p, dim);
 	
 	int intrulepoints = intrule->NPoints();
+#ifdef LOG4CXX
+	{
+		std::stringstream sout;
+		sout<< "---Ptos e Pesos ---"<<std::endl;
+		
+		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
 		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
@@ -944,15 +952,32 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
 		intrule->Point(nint,intpoint,weight);
 		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
 		weight *= fabs(data.detjac);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		
+		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+		//this->ComputeSolution(intpoint, data);
 		//contribuicoes dos erros
 		if(fp) {
 			fp(data.x,u_exact,du_exact);
-			material->Errors(data.x,data.sol,data.dsol,data.axes,flux_el,u_exact,du_exact,values);
+			//		std::cout<<" funcao exata calculada no pto X " << data.x<< " valor "<< u_exact<<" dudx "<<du_exact <<std::endl;
+			
+			//tentando implementar um erro meu
+			if(data.fVecShapeIndex.NElements())
+			{
+				this->ComputeSolution(intpoint, data);
+				//		std::cout<<"erro ANTES de Hdiv 1 "<<values<<std::endl;
+				material->ErrorsHdiv(data,u_exact,du_exact,values);
+				//		std::cout<<"erro depois de Hdiv 1 "<<values<<std::endl;
+				
+			}
+			else{
+				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+				material->Errors(data.x,data.sol,data.dsol,data.axes,flux_el,u_exact,du_exact,values);
+			}
+			
+			//	std::cout<<"erro depois de Hdiv 2 "<<values<<std::endl;
 			for(int ier = 0; ier < NErrors; ier++)
 				errors[ier] += values[ier]*weight;
 		}
+		
 	}//fim for : integration rule
 	//Norma sobre o elemento
 	for(int ier = 0; ier < NErrors; ier++){
