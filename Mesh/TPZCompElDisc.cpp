@@ -108,14 +108,15 @@ TPZCompElDisc::~TPZCompElDisc() {
 	}//if (ref)
 }
 
-TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fExternalShape(), fCenterPoint(3,0.)
+TPZCompElDisc::TPZCompElDisc() : TPZInterpolationSpace(), fConnectIndex(-1), fExternalShape(), fCenterPoint(3,0.)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;
 	this->fIntRule = this->CreateIntegrationRule();
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,int &index) :
-TPZInterpolationSpace(mesh,0,index), fExternalShape(), fCenterPoint(3){
+TPZInterpolationSpace(mesh,0,index), fExternalShape(), fConnectIndex(-1), fCenterPoint(3)
+{
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	this->fIntRule = this->CreateIntegrationRule();
 }
@@ -137,8 +138,7 @@ TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(cop
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              const TPZCompElDisc &copy,
                              std::map<int,int> &gl2lcConMap,
-                             std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy),
-fCenterPoint(copy.fCenterPoint)
+                             std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
 {
 	fShapefunctionType = copy.fShapefunctionType;
 	TPZAutoPointer<TPZMaterial> mat = copy.Material();
@@ -155,7 +155,7 @@ fCenterPoint(copy.fCenterPoint)
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy,int &index) :
-TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
+TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
 	//criando nova malha computacional
 	Reference()->SetReference(this);
@@ -174,7 +174,8 @@ TPZInterpolationSpace(mesh,copy,index), fCenterPoint(copy.fCenterPoint) {
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fCenterPoint(3){
+TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fConnectIndex(-1), fCenterPoint(3)
+{
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);
 	CreateMidSideConnect();
