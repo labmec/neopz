@@ -310,45 +310,96 @@ void TPZAnalysis::Print( const std::string &name , std::ostream &out )
 
 void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
 	
-	int neq = fCompMesh->NEquations();
+	int i, neq = fCompMesh->NEquations();
 	TPZVec<REAL> ux((int) neq);
 	TPZVec<REAL> sigx((int) neq);
-	TPZManVector<REAL,3> values(3,0.);
+	TPZManVector<REAL,10> values(10,0.);
+	TPZManVector<REAL,10> values2(10,0.);
 	fCompMesh->LoadSolution(fSolution);
 	//	SetExact(&Exact);
 	TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
-	TPZManVector<REAL,3> errors(3);
+	TPZManVector<REAL,10> errors(10);
 	errors.Fill(0.0);
 	int nel = elvec.NElements();
-	for(int i=0;i<nel;i++) {
+	int matId0;
+	for(i=0;i<nel;i++) {
+		matId0=elvec[i]->Material()->Id();
+		if(matId0 > 0)
+			break;
+	}
+	bool lastEl=false;
+	for(i=0;i<nel;i++) {
 		TPZCompEl *el = (TPZCompEl *) elvec[i];
 		if(el) {
 			errors.Fill(0.0);
 			el->EvaluateError(fExact, errors, 0);
-			int nerrors = errors.NElements();
-			values.Resize(nerrors, 0.);
-			for(int ier = 0; ier < nerrors; ier++)
-				values[ier] += errors[ier] * errors[ier];
+			if(matId0==el->Material()->Id()){
+				for(int ier = 0; ier < errors.NElements(); ier++) 	values[ier] += errors[ier] * errors[ier];
+				lastEl=false;
+			}
+			else{
+				for(int ier = 0; ier < errors.NElements(); ier++)	values2[ier] += errors[ier] * errors[ier];
+				lastEl=true;
+			}
 		}
+		
 	}
-	
 	int nerrors = errors.NElements();
 	
-	if (nerrors < 3) {
-		PZError << endl << "TPZAnalysis::PostProcess - At least 3 norms are expected." << endl;
-		out<<endl<<"############"<<endl;
-		for(int ier = 0; ier < nerrors; ier++)
-			out << endl << "error " << ier << "  = " << sqrt(values[ier]);
+	if (nerrors==4) {
+		if(lastEl){
+			out << endl << "############" << endl;
+			out << endl << "L2 Norm for pressure  = "  << sqrt(values2[0]) << endl;
+			out << endl << "L2 Norm for flux = "    << sqrt(values2[1]) << endl;
+			out << endl << "L2 Norm for divergence = "    << sqrt(values2[2])  <<endl;
+			out << endl << "Hdiv Norm for flux = "    << sqrt(values2[3])  <<endl;
+
+			out << endl << "############" << endl;
+			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
+			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
+			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
+			
+		}
+		else{
+			out << endl << "############" << endl;
+			out << endl << "L2 Norm for pressure  = "  << sqrt(values[0]) << endl;
+			out << endl << "L2 Norm for flux = "    << sqrt(values[1]) << endl;
+			out << endl << "L2 Norm for divergence = "    << sqrt(values[2])  <<endl;
+			out << endl << "Hdiv Norm for flux = "    << sqrt(values[3])  <<endl;
+			
+			out << endl << "############" << endl;
+			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
+			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
+			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
+		}
 	}
-	else{
-		out << endl << "############" << endl;
-		out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
-		out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
-		out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
-		for(int ier = 3; ier < nerrors; ier++)
-			out << endl << "other norms = " << sqrt(values[ier]) << endl;
+	else {
+		if(lastEl){
+			out << endl << "############" << endl;
+			out << endl << "L2 Norm for pressure  = "  << sqrt(values[0]) << endl;
+			out << endl << "L2 Norm for flux = "    << sqrt(values[1]) << endl;
+			out << endl << "L2 Norm for divergence = "    << sqrt(values[2])  <<endl;
+			out << endl << "Hdiv Norm for flux = "    << sqrt(values[3])  <<endl;
+			
+			out << endl << "############" << endl;
+			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
+			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
+			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
+			
+		}
+		else{
+			out << endl << "############" << endl;
+			out << endl << "L2 Norm for pressure  = "  << sqrt(values2[0]) << endl;
+			out << endl << "L2 Norm for flux = "    << sqrt(values2[1]) << endl;
+			out << endl << "L2 Norm for divergence = "    << sqrt(values2[2])  <<endl;
+			out << endl << "Hdiv Norm for flux = "    << sqrt(values2[3])  <<endl;
+			
+			out << endl << "############" << endl;
+			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
+			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
+			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
+		}
 	}
-	
 	return;
 }
 
