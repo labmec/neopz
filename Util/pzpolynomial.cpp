@@ -121,7 +121,7 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         Delta = (A + raiz[0]) * (A + raiz[0]) + 4 * C / raiz[0];
         REAL Real = -(A + raiz[0]) / 2.0;
         REAL K = fabs(Delta);
-        REAL Imag = sqrt(K) / 2.0;
+        REAL Imag = sqrt(K) / 2.0L;
 		
         if (Delta < 0) {
 			/*
@@ -161,7 +161,7 @@ void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, cons
     for (i = 0; i < 4; i++) {
         if (fabs(fCo[i]) > max) max = fabs(fCo[i]);
     }
-    max = fabs(max * 1e-6);
+    max = fabs(max * 1e-6L);
     SetTolerance(max);
     Tartaglia(fCo, fReal, fImagem);
     //SetRoots();
@@ -170,12 +170,12 @@ void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, cons
 /** Store the given coefficients into fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
 void TPZPolynomial::SetCoef(const TPZVec<REAL> &coef) {
     int i;
-    REAL max;
+    REAL max = 0.L;
     for (i = 0; i < 4; i++) {
         fCo[i] = coef[i];
         if (fabs(fCo[i]) > max) max = fabs(fCo[i]);
     }
-    max = max * 1e-6;
+    max = max * 1e-6L;
     SetTolerance(max);
     Tartaglia(fCo, fReal, fImagem);
     //SetRoots();

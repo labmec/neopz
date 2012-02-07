@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras over the quadrilateral two-dimensional elements
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	TPZExtendGridDimension gmeshextend(gmesh2,0.3);
 	
 	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-5,-6);
