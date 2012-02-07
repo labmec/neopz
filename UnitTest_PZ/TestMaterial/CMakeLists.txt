@@ -12,7 +12,11 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestMaterial ${headers} ${sources})
 
+if(USING_BOOST)
 	target_link_libraries(TestMaterial pz boost_unit_test_framework)
+else()
+	target_link_libraries(TestMaterial pz)
+endif()
 
 endif()
 

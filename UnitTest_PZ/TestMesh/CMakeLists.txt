@@ -13,8 +13,13 @@ if(BUILD_UNITTESTING)
 	add_executable(TestMesh1 ${headers} ${sources1})
 	add_executable(TestMesh2 ${headers} ${sources2})
 
+if(USING_BOOST)
 	target_link_libraries(TestMesh1 pz boost_unit_test_framework)
 	target_link_libraries(TestMesh2 pz boost_unit_test_framework)
+else()
+	target_link_libraries(TestMesh1 pz)
+	target_link_libraries(TestMesh2 pz)
+endif()
 
 endif()
 

@@ -17,8 +17,11 @@ add_executable(conductivity_VoidFlux ${conduct_SRCS} ${header})
 target_link_libraries(conductivity_VoidFlux pz pthread)
 
 # Third executable: main function in voidflux_test.cpp - It is a Unit Test project????
+add_executable(conductivity_VoidFluxTest ${flux_SRCS} ${header})
 if(USING_BOOST)
-	add_executable(conductivity_VoidFluxTest ${flux_SRCS} ${header})
 	target_link_libraries(conductivity_VoidFluxTest pz pthread boost_unit_test_framework)
+else()
+	target_link_libraries(conductivity_VoidFluxTest pz pthread)
 endif()
+
 

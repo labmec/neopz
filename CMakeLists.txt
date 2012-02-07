@@ -176,7 +176,9 @@ endif(USING_METIS)
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
 	add_definitions(-DBUILD_UNITTESTING)
-	link_libraries(boost_unit_test_framework)
+	if(USING_BOOST)
+		link_libraries(boost_unit_test_framework)
+	endif()
 endif()
 
 

@@ -10,7 +10,11 @@ if(BUILD_UNITTESTING)
 
 	add_executable(TestIntNum ${headers} ${sources})
 
+if(USING_BOOST)
 	target_link_libraries(TestIntNum pz boost_unit_test_framework)
+else()
+	target_link_libraries(TestIntNum pz)
+endif()
 
 endif()
 
