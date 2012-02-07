@@ -19,6 +19,9 @@
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
+
+TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ELastState;
+
 TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0) {
 	fE = 0.;
 	fDim = 2;
@@ -56,8 +59,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
 		DebugStop();
 	}
-
-//--------- Matrix size is for each element is  phiu.Rows() plus  phip.Rows() ---------------
+	
+	//--------- Matrix size is for each element is  phiu.Rows() plus  phip.Rows() ---------------
 	//Setting the size of first block of first problem. Elastic problem
 	TPZFMatrix  &phiu =  datavec[0].phi;
 	TPZFMatrix &dphiu = datavec[0].dphix;
@@ -81,6 +84,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	TPZFMatrix &dphip = datavec[1].dphix;
 	int phrp = phip.Rows();
 	
+	TPZFMatrix du(2,2);
+	
 	int efr, efc, ekr, ekc;  
 	efr = ef.Rows();
 	efc = ef.Cols();
@@ -93,11 +98,10 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		" ek.Cols() = " << ek.Cols() << "\nef.Rows() = " << ef.Rows() << " ef.Cols() = " << ef.Cols() << "\n";
 		return;
 	}
-
+	
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{	   
-		TPZFMatrix du(2,2);
 		REAL fEover1MinNu2 = fE/(1-fnu*fnu);  
 		REAL fEover21PlusNu = fE/(2.*(1+fnu));
 		/*
@@ -186,7 +190,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 				}
 			}
 		}
-}
+	}
 	//Last state (n)
 	if(gState == ELastState)
 	{				
@@ -206,7 +210,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 			}
 		}
 	}
-		
+	
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
 	{
@@ -216,7 +220,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		LOGPZ_DEBUG(logdata,sout.str())
 	}
 #endif
-			
+	
 }
 
 void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,
@@ -278,6 +282,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			break;
 			
 		case 11 :		// Neumann condition for two equations
+		{
 			//Equacao da elasticidade
 			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
 				ef(2*in,0) += v2[0]*phiu(in,0)*weight;   // tracao em x  (ou pressao)
@@ -286,13 +291,13 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 			
 			//Equacao de Poisson: pressao 
-			const REAL DeltaT = this->fTimeStep;
+			const REAL DeltT = fTimeStep;
 			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*DeltaT*phip(in,0) * weight;
+				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
 			}
 			break;
-			
-			case 22 : // // Mixed condition for two equations
+		}	
+		case 22 : // // Mixed condition for two equations
 			//Equacao da elasticidade			
 			for(in = 0 ; in < phru; in++) {
 				ef(2*in, 0) += v2[0] * phiu(in, 0) * weight;   // Neumann , Sigmaij

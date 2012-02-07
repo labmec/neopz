@@ -23,7 +23,7 @@
  */
 /**
  **@ingroup equacao da elasticidade
- * \f$  div(T(u))  + fXf2 = 0  ==> Int{Grad(v).T(u)}dx - Int{v.gN}ds  = Int{ff.v}dx   (Eq. 1) \f$
+ * \f$  div(T(u))  + fXf2 = 0  ==> Int{Grad(v).T(u)}dx - Int{v.gN}ds  = Int{ff.v}dx  \f$ (Eq. 1) 
  *
  *\f$ T(u) =  tr(E(u) − alpha*p*I)lambda*I + 2*nu*(E(u) − alpha*p*I)\f$
  *
@@ -31,8 +31,6 @@
  * \f$ -1/visc*div(gradu k)  = 0 ==> k/visc*Int{Grad(u)Grad(v)}dx - Int{k/visv*Grad(u).n v}ds  = 0   (Eq. 2)  \f$ 
  *
  */
- 
-
 
 class TPZPoroElastic2d : public TPZDiscontinuousGalerkin {
 	
@@ -54,13 +52,13 @@ protected:
 	/** @brief Problem dimension */
 	int fDim;
 	
-	/**@ permeability of the rock and fluid viscosity*/
+	/** @brief Permeability of the rock and fluid viscosity*/
 	REAL fk; 
 	REAL fvisc;
 	
 	/** @brief Uses plain stress 
-	*@ fPlaneStress = 1 => Plain stress state 
-	*@ fPlaneStress != 1 => Plain Strain state 
+	* @note \f$fPlaneStress = 1\f$ => Plain stress state 
+	* @note \f$fPlaneStress != 1\f$ => Plain Strain state 
 	*/
 	int fPlaneStress;
 	
@@ -102,7 +100,7 @@ public:
 	
 	/** 
 	 * @brief Set parameters of elastic material:
-	* @param E elasticity modulus
+	 * @param E elasticity modulus
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
@@ -117,8 +115,8 @@ public:
 	}
 	
 	/** @brief Set falpha parameter
-	 *@param biot : constant poroelastic Biot [dimensionless]
-	 *@param bulk : drained bulk modulus [Pa]
+	 * @param biot : constant poroelastic Biot [dimensionless]
+	 * @param bulk : drained bulk modulus [Pa]
 	 */
 	void SetBiotParameters(REAL alpha, REAL Se)
 	{
@@ -127,8 +125,8 @@ public:
 	}
 	
 	/** @brief Set plane problem  
-	 *@ planestress = 1 => Plain stress state 
-	 *@ planestress != 1 => Plain Strain state 
+	 * planestress = 1 => Plain stress state 
+	 * planestress != 1 => Plain Strain state 
 	 */
 	void SetfPlaneProblem(int planestress)
 	{
@@ -141,24 +139,6 @@ public:
 		fTimeStep = delt;
 	}
 	
-	void SetInitialSolution(TPZAnalysis an, TPZFMatrix & InitialSol){
-		/*const int nrows = an->Mesh()->Solution().Rows();
-		const int ncols = an->Mesh()->Solution().Cols();
-		if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
-			PZError << "ERROR! " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << std::endl;
-		}
-		else{
-			an->fSolution = InitialSol;
-		}
-		TPZAnalysis::LoadSolution();
-		 */
-	}
-	
-	//
-//	virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
-//		return new TPZPoroElastic2d(*this);
-//	}
-	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -170,29 +150,12 @@ public:
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
-		
-	//void ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
-	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
-		
-	//protected:
-	//	
-	//	/**
-	//     * @brief It return a solution to multiphysics simulation.
-	//     * @param Sol [in] is the solution 
-	//     * @param DSol [in] is the Gradient
-	//     * @param axes  [in] is the points of the coordinate axes
-	//     * @param var [in] number of solution variables. See  NSolutionVariables() method
-	//     * @param Solout [out] is the solution vector
-	//     */	
-	//	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
-	
+
 	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
-		
-//	virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
@@ -215,7 +178,6 @@ public:
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
-
 	/** @name Contribute methods
 	 * @{
 	 */
@@ -244,5 +206,6 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
 		DebugStop();
 	}
+	/* @} */
 };
 #endif
