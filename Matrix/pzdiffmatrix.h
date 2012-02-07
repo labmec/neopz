@@ -14,6 +14,12 @@
 #include "fadType.h"
 #endif
 
+#ifdef _AUTODIFF
+#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-20 )
+#else
+#define IsZero( a )  ( fabs( a ) < 1.e-20 )
+#endif
+
 /** @ingroup matrix */
  enum EStatus {EOk = 0, EIncompDim, EZeroPivot};
 
