@@ -179,7 +179,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		
 		//Equacao de Poisson: pressao 
 		// Calculate the matrix contribution for transport problem from
-		const REAL DeltaT = this->fTimeStep;
+		const REAL DeltaT = fTimeStep;
 		for(int in = 0; in < phrp; in++) {
 			ef(in+2*phru, 0) += 0.; 
 			
@@ -226,7 +226,11 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,
 									   TPZFMatrix &ef,TPZBndCond &bc) 
 {
-		
+	//The Last state (n) not include boundary conditions
+	if(gState == ELastState){
+		return;
+	}
+			
 	int nref =  datavec.size();
 	if (nref != 2) {
 		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";

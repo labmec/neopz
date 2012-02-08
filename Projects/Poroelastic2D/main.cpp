@@ -38,7 +38,7 @@
 #include "pzmultiphysicselement.h"
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
-
+#include "TPZSpStructMatrix.h"
 #include "pzporoelastic2d.h"
 
 #include "pzlog.h"
@@ -52,6 +52,11 @@
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
 #endif
+
+#ifdef LOG4CXX
+static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+#endif
+
 
 using namespace std;
 
@@ -68,8 +73,9 @@ const int bcDL = -4;
 TPZGeoMesh *MalhaGeom(REAL h,REAL L);
 TPZCompMesh *MalhaCompPressao(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder);
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec);
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElastic2d  *&mymaterial);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
+void SolveSistTransient(TPZAnalysis &an, TPZCompMesh *fCmesh, REAL DeltaT);
 
 void PosProcess(TPZAnalysis &an, std::string plotfile);
 void PosProcess2(TPZAnalysis &an, std::string plotfile);
@@ -86,14 +92,14 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	InitializePZLOG("../mylog.cfg");
+	InitializePZLOG("../mylog4cxx.cfg");
 #endif
 	
 	int p=1;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom(2.,2.);
+	TPZGeoMesh * gmesh = MalhaGeom(1.,1.);
 	ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
 	ofstream file1("malhageoInicial.vtk");
@@ -112,8 +118,8 @@ int main(int argc, char *argv[])
 	// Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	//RefinUniformElemComp(cmesh1,2);
-	RefinElemComp(cmesh1,1);
+	RefinUniformElemComp(cmesh1,0);
+	//RefinElemComp(cmesh1,3);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -129,7 +135,7 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,1);
+	RefinUniformElemComp(cmesh2,0);
 	//RefinElemComp(cmesh2,4);
 	//RefinElemComp(cmesh2,7);
 	cmesh2->AdjustBoundaryElements();
@@ -144,7 +150,7 @@ int main(int argc, char *argv[])
 	
 	
 	//--- Resolver usando a primeira malha computacional ---
-	TPZAnalysis an1(cmesh1);
+	/*TPZAnalysis an1(cmesh1);
 	SolveSist(an1, cmesh1);
 	std::string plotfile("saidaSolution_cmesh1.vtk");
 	PosProcess2(an1, plotfile);
@@ -154,13 +160,13 @@ int main(int argc, char *argv[])
 	SolveSist(an2, cmesh2);
 	std::string plotfile2("saidaSolution_cmesh2.vtk");
 	PosProcess(an2, plotfile2);
-		
+	 
 	//--- Resolver usando a malha computacional multifisica ---
 	TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
 	meshvec[1] = cmesh2;
-	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec);
-	
+	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,1);
+	 
 	ofstream file6("mphysics.vtk");
 	PrintGMeshVTK(gmesh, file6);
 	
@@ -168,7 +174,61 @@ int main(int argc, char *argv[])
 	SolveSist(an, mphysics);
 	std::string plotfile3("saidaMultphysics.vtk");
 	PosProcessMultphysics(meshvec,mphysics, an, plotfile3);
+	 */
+	
+	
+	TPZVec<TPZCompMesh *> meshvec(2);
+	meshvec[0] = cmesh1;
+	meshvec[1] = cmesh2;
+	TPZPoroElastic2d  *mymaterial ;
+	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
 
+	REAL delta = 1.;
+	mymaterial->SetTimeStep(delta);
+	
+	//Criando matriz K2
+	mymaterial->SetLastState();
+	TPZAnalysis an(mphysics);
+	TPZSpStructMatrix matsp(mphysics);
+	std::set< int > materialid;
+	int matid = 1;
+	materialid.insert(matid);
+	matsp.SetMaterialIds (materialid);
+	TPZAutoPointer<TPZGuiInterface> guiInterface;
+	TPZFMatrix Un;
+	TPZAutoPointer <TPZMatrix> matK2 = matsp.CreateAssemble(Un,guiInterface);
+	
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		matK2->Print("K2 = ", sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+	
+	//Criando matriz K1
+	mymaterial->SetCurrentState();
+	TPZSkylineStructMatrix matsk(mphysics);
+	materialid.insert(bcDL);
+	materialid.insert(bcDR);
+	materialid.insert(bcNL);
+	materialid.insert(bcNU);
+	matsk.SetMaterialIds (materialid);
+	TPZFMatrix Lf;
+	TPZAutoPointer <TPZMatrix> matK1 = matsk.CreateAssemble(Lf,guiInterface);
+	
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		matK1->Print("K1 = ", sout,EMathematicaInput);
+		Lf.Print("Lf = ", sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+		
+	
 	return EXIT_SUCCESS;
 }
 
@@ -355,7 +415,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	
 }
 
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec)
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElastic2d  * &mymaterial)
 {
 	//Creating computational mesh for multiphysic elements
 	gmesh->ResetReference();
@@ -379,18 +439,17 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL perm = 1.;
 	REAL visc = 10.;
 	int planestress = 1;
-	
-	TPZPoroElastic2d  *mymaterial = new TPZPoroElastic2d (MatId, dim);
+		
+	mymaterial = new TPZPoroElastic2d (MatId, dim);
 	
 	mymaterial->SetParameters(Eyoung, nu, alpha, fx, fy);
 	mymaterial->SetParameters(perm,visc);
 	mymaterial->SetfPlaneProblem(planestress);
-	
-	// Biot's parameter @biot
-	// Bulk rock parameter @bulk
 	mymaterial->SetBiotParameters(biot,bulk);
 	
-	
+	//REAL delta = 1.;
+	//mymaterial->SetTimeStep(delta);
+		
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
 	TPZAutoPointer<TPZMaterial> mat(mymaterial);
@@ -440,7 +499,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR, dirich, val12, val22);
 	mphysics->InsertMaterialObject(BCondDR);
 	//-----------
-	
+			
 	mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();
 	mphysics->CleanUpUnconnectedNodes();

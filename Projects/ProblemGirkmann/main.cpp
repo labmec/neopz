@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
 	gRefDBase.InitializeRefPatterns();
-//	std::ifstream inFileRefPat("refpatternsAgnaldo.txt");
-//	gRefDBase.ReadRefPatternDBase(inFileRefPat);
+	//std::ifstream inFileRefPat("refpatternsAgnaldo.txt");
+	//gRefDBase.ReadRefPatternDBase(inFileRefPat);
 	
 	outfile.precision(16);
 	
@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
 	int ndiv = 240;
 	int nDiv_DirectRefCasca = 1;
 	int nDiv_DirectRefAnel = 4;
-	int nDiv_DirectRefPonto = 1;
+	int nDiv_DirectRefPonto = 0;
 	REAL sim = 1.;/*-1.;*/
-	REAL pen = 0.;/*10.e10;*/
+	REAL pen = 10.;/*10.e10;*/
 		
 	for(int nh = 1; nh<= 1; nh++) 
 	{
