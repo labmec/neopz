@@ -150,15 +150,15 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	
 	cout << "\nMesh data: ncirc?(int) ";
 	//ncirc = 10;
-	cin >> ncirc;
+	ncirc=8;//cin >> ncirc;
 	
 	cout << "Mesh data: ioratio?(sugg. 10.) ";
 	//ioRatio =  10.;
-	cin >> ioRatio;
+	ioRatio=10.;//cin >> ioRatio;
 	
 	cout << "Mesh data: pOrder? ";
 	//pOrder =2;
-	cin >> pOrder;
+	pOrder=2;//cin >> pOrder;
 	
 	fileName << "_ncirc" << ncirc << "_IO" << ioRatio << "_p" << pOrder;
 	
@@ -171,7 +171,7 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	cout << "\n";
 	
 	//valType = 0 ;
-	cin >> valType;
+	valType=0;//cin >> valType;
 		
 	switch(valType)
 	{
@@ -318,10 +318,8 @@ cout <<"<\n>"<<SigmaV;
 #endif
 	
 	//End of material initialization
-    
-
 	
-	// ja cria a malha com tipo de elemento CompElWithMem
+	
 	TPZCompMesh * pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
 
 	//TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
@@ -764,7 +762,7 @@ int main()
 	cout << "\n1) Wellbore Drilling Load - Porous Medium";
 	
 	
-	cin >> testNumber;
+	testNumber=0;//cin >> testNumber;
 	
 	cout << "\nMaterial Type:";
 	cout << "\n0)Lade Kim: FineSilicaSand";
@@ -781,7 +779,7 @@ int main()
 	cout << "\n";
 
 
-        cin >> matNumber;
+        matNumber=9;//cin >> matNumber;
 	
 	switch(matNumber)
 	{
@@ -873,7 +871,7 @@ int main()
 	
 	cout << "\nPlastic Integration Tolerance:(sugg. 0.0001) ";
 	
-	cin >> plasticTol;
+	plasticTol=0.0001;//cin >> plasticTol;
 
 	fileName << "_pTol" << plasticTol;
 	
@@ -1301,7 +1299,8 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	
 	// Creating Computation Mesh
 	TPZCompMesh * pCMesh = new TPZCompMesh(pGMesh);
-    pCMesh->SetAllCreateFunctionsContinuousWithMem();
+	
+	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh);
 	
 	//Preparing Material
 	pMat -> SetForcingFunction(NULL);
