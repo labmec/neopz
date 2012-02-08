@@ -75,6 +75,8 @@ if(BUILD_PROJECTS)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
 	add_subdirectory(ProblemGirkmann)
+	#projeto Diogo 08-FEB-2012
+	add_subdirectory(Plasticity)
 	#add_subdirectory(prodindex)
 	
 	
