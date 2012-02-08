@@ -318,11 +318,13 @@ cout <<"<\n>"<<SigmaV;
 #endif
 	
 	//End of material initialization
+    
+
 	
-	
+	// ja cria a malha com tipo de elemento CompElWithMem
 	TPZCompMesh * pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
 
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
+	//TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
 	
 	//building analysis
 	TPZElastoPlasticAnalysis EPAnalysis(pCMesh, std::cout);
@@ -1299,6 +1301,7 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	
 	// Creating Computation Mesh
 	TPZCompMesh * pCMesh = new TPZCompMesh(pGMesh);
+    pCMesh->SetAllCreateFunctionsContinuousWithMem();
 	
 	//Preparing Material
 	pMat -> SetForcingFunction(NULL);

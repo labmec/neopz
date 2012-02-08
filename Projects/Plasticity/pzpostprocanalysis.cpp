@@ -51,9 +51,9 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 	}
 	
 	
-	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
 
 	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
 	
 	
 	fCompMesh = pcPostProcMesh;

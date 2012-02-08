@@ -876,6 +876,12 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 												TPZFMatrix & Stress, TPZFMatrix & Dep)
 {
 	int intPt = data.intPtIndex;//, plasticSteps;
+    if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
+    {
+        std::cout << "The Elastoplastic material does not have a properly initialized memory\n";
+        std::cout << "The type of element should be MatWithMem (see TPZCreateApproximationSpace\n";
+        DebugStop();
+    }
     fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
 	TPZTensor<REAL> EpsT, Sigma;
 	EpsT.CopyFrom(DeltaStrain);

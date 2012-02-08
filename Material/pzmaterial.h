@@ -93,6 +93,15 @@ public:
      */
    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
+    /**
+     * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
+     */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+    {
+        // default is no specific data requirements
+    }
+
+    
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
     

@@ -270,7 +270,9 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 	   */
 		virtual void FillDataRequirements(TPZMaterialData &data);
 
-
+        /**
+         * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
+         */
 		virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data);
 
 
