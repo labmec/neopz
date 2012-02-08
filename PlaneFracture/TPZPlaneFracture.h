@@ -25,13 +25,13 @@
 
 
 /// Real as tolerance 
-const double __smallNum = 1.E-10;
+const double __smallNum = 1.E-5;
 
 /** @brief maximum element edge length */
 const double __maxLength = 4.;
 
 /** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
-const double __lengthFactor = 1.5;
+const double __lengthFactor = 1.;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
@@ -170,6 +170,7 @@ class TPZPlaneFracture
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
     TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
+    void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -367,6 +368,9 @@ class TPZPlaneFracture
     
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
+    //** just for visualize given dots in vtk */
+    static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
+    
 public:
     /**
      * Metodo solicitado pelo Philippe para acidificacao

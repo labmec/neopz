@@ -1,40 +1,19 @@
 #include <iostream>
-#include "pzfmatrix.h"
-#include "pzelasmat.h"
-#include "pzcmesh.h"
-#include "pzcompel.h"
-#include "pzbndcond.h"
-#include "pzanalysis.h"
-#include "pzskylstrmatrix.h"
-#include "pzstepsolver.h"
-#include "pzlog.h"
-#include "tpzgeoblend.h"
-#include "tpzellipse3d.h"
-#include "tpzarc3d.h"
-#include "TPZGeoLinear.h"
-#include "pzgeotriangle.h"
-#include "pzgeopoint.h"
-#include "pzgeopyramid.h"
-#include "pzgeoquad.h"
-#include "TPZRefPatternDataBase.h"
-#include "TPZRefPatternTools.h"
-#include "TPZVTKGeoMesh.h"
+
 #include "pzgmesh.h"
-#include "tpzmathtools.h"
-
-#include "pzfstrmatrix.h"
-
-#include "TPZPlaneFracture.h"
+#include "pzgeopoint.h"
+//#include "TPZVTKGeoMesh.h"
+//#include "TPZRefPatternTools.h"
+#include "TPZRefPatternDataBase.h"
+#include "tpzgeoelrefpattern.h"
 #include "TPZPoligonalChain.h"
-
-#include "pzgengrid.h"
+#include "TPZPlaneFracture.h"
 
 using namespace std;
 
 const int matPoint = -3;
 
 //** just for visualize given dots in vtk */
-void InsertDots4VTK(TPZGeoMesh * gmesh, TPZVec<REAL> &fractureDots);
 
 void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots);
 void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
@@ -47,7 +26,7 @@ int main(int argc, char * const argv[])
 {	
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();    
-    #define writeAgain
+    //#define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
     #else
@@ -83,21 +62,9 @@ int main(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    int porder = 2;
-    TPZCompMesh * fractureCMesh = plfrac.GetFractureCompMesh(fractureDots, porder);
+    std::string vtkFile = "fracturePconstant.vtk";
+    plfrac.RunThisFractureGeometry(fractureDots, vtkFile);
     
-	TPZAnalysis an(fractureCMesh);
-    
-    //TPZBandStructMatrix full(fractureCMesh); //caso nao simetrico
-	TPZSkylineStructMatrix full(fractureCMesh); //caso simetrico
-    an.SetStructuralMatrix(full);
-    
-	TPZStepSolver step;
-	//step.SetDirect(ELU); //caso nao simetrico
-	step.SetDirect(ELDLt); //caso simetrico
-	an.SetSolver(step);
-	an.Run();
-
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
     
@@ -114,48 +81,11 @@ int main(int argc, char * const argv[])
 //        }
 //    }
     /////
-    
-//    InsertDots4VTK(fractureGMesh, fractureDots);    
-//    std::ofstream out("PL3DFrac.vtk");
-//    TPZVTKGeoMesh::PrintGMeshVTK(fractureGMesh, out, true);
   
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
     
     return 0;
-}
-
-//** just for visualize given dots in vtk */
-void InsertDots4VTK(TPZGeoMesh * gmesh, TPZVec<REAL> &fractureDots)
-{
-    int nDots = fractureDots.size() / 2;
-    int nnodesOriginal = gmesh->NNodes();
-	int Qnodes = nnodesOriginal + nDots;
-    	
-	//initializing gmesh->NodeVec()
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZGeoNode Node;
-    TPZVec<REAL> NodeCoord(3);
-    TPZVec<int> Topol(1);
-    
-    int elId = gmesh->NElements();
-	for(int n = nnodesOriginal; n < Qnodes; n++)
-	{
-        Topol[0] = n;
-
-        int actDot = n - nnodesOriginal;
-        
-        NodeCoord[0] = fractureDots[2*actDot];
-        NodeCoord[1] = 0.;
-        NodeCoord[2] = fractureDots[2*actDot + 1];
-        
-		Node.SetNodeId(n);
-		Node.SetCoord(NodeCoord);
-		gmesh->NodeVec()[n] = Node; 
-        
-        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol, matPoint,*gmesh);
-        elId++;
-	}
 }
 
 
