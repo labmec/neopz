@@ -181,7 +181,7 @@ void CMeshBean(TPZCompMesh *CMESH, TPZAutoPointer<TPZMaterial> mat);
 
 //#include "TPZPlasticityTest.h"
 
-int main(int argc, char * const argv[]) 
+int main28(int argc, char * const argv[]) 
 {
 	
 	InitializePZLOG("log4cxx.cfg");

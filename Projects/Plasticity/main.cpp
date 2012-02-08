@@ -740,7 +740,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 
 #include "TPZPlasticityTest.h"
 
-int main28()
+int main()
 {
     InitializeLOG();
 	
