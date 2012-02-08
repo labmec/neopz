@@ -20,7 +20,7 @@
 static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
 
-TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ELastState;
+TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ECurrentState;
 
 TPZPoroElastic2d::TPZPoroElastic2d():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), falpha(0.), fk(0.), fvisc(0.), fPlaneStress(0) {
 	fE = 0.;
@@ -54,6 +54,7 @@ int TPZPoroElastic2d::NStateVariables() {
 
 void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
+
 	int nref =  datavec.size();
 	if (nref != 2 ) {
 		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";

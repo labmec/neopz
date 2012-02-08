@@ -40,14 +40,14 @@
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSpStructMatrix.h"
 #include "pzporoelastic2d.h"
-
 #include "pzlog.h"
-
 #include <iostream>
 #include <string>
 
 #include <math.h>
 #include <set>
+
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	InitializePZLOG("../mylog4cxx.cfg");
-#endif
+#endif	
 	
 	int p=1;
 	//primeira malha
@@ -184,6 +184,7 @@ int main(int argc, char *argv[])
 	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
 
 	REAL delta = 1.;
+	REAL Maxtime = 1.0;
 	mymaterial->SetTimeStep(delta);
 	
 	//Criando matriz K2
@@ -227,7 +228,61 @@ int main(int argc, char *argv[])
 		LOGPZ_DEBUG(logdata,sout.str())
 	}
 #endif
+	
+	
+	//	Setting initial coditions 
+	//	In this case we start with zero initial values
+	int K1Rows;
+	int K1Cols;
+	K1Rows = matK1->Rows();
+	K1Cols = matK1->Rows();	
+	TPZFMatrix Lastsolution(K1Rows,1,10.0);
+	TPZFMatrix TotalRhs(K1Rows,1,0.0);
+	TPZFMatrix Residual(K1Rows,1,0.0);
+	TPZFMatrix TemporalSol(K1Rows,1,0.0);
+	
+	// Transient Calculations
+	int cent = 0;
+	while (cent*delta < Maxtime ) {
+		//	Begin the calculations
 		
+		TPZStepSolver step;
+		//	Symmetric case
+		step.SetDirect(ELDLt);
+		//step.SetDirect(ELU);
+		an.SetSolver(step);
+		
+		an.Solve();
+		
+//		inline TPZMatrixSolver &
+//		
+//		TPZAnalysis::Solver(){
+//			return (*fSolver);
+//		}		
+//		
+		TotalRhs.Print();
+		matK2->Print();		
+		//	Update the Right hand side
+		TotalRhs = TotalRhs + matK2*Lastsolution;
+		TotalRhs.Print();		
+		
+		TemporalSol = an.Solution();
+		
+#ifdef LOG4CXX
+		if(logdata->isDebugEnabled())
+		{
+			//	Print the temporal solution
+			std::stringstream sout;
+			TemporalSol.Print("Temporal Solution = ", sout,EMathematicaInput);
+			LOGPZ_DEBUG(logdata,sout.str())
+		}
+#endif
+		
+		//	General post-processing
+		
+		// Next Calculation
+		cent++;
+	}
 	
 	return EXIT_SUCCESS;
 }
