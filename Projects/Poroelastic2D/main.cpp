@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
 #endif	
 	
 	int p=1;
+	
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -183,14 +184,15 @@ int main(int argc, char *argv[])
 	TPZPoroElastic2d  *mymaterial ;
 	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
 
-	REAL delta = 1.;
-	REAL Maxtime = 1.0;
+	REAL delta = 10.;
+	REAL Maxtime = 100.0;
 	mymaterial->SetTimeStep(delta);
 	
 	//Criando matriz K2
 	mymaterial->SetLastState();
 	TPZAnalysis an(mphysics);
-	TPZSpStructMatrix matsp(mphysics);
+//	TPZSpStructMatrix matsp(mphysics);
+	TPZSkylineStructMatrix matsp(mphysics);	
 	std::set< int > materialid;
 	int matid = 1;
 	materialid.insert(matid);
@@ -216,69 +218,125 @@ int main(int argc, char *argv[])
 	materialid.insert(bcNL);
 	materialid.insert(bcNU);
 	matsk.SetMaterialIds (materialid);
+	
+	TPZFMatrix matK1;	
 	TPZFMatrix Lf;
-	TPZAutoPointer <TPZMatrix> matK1 = matsk.CreateAssemble(Lf,guiInterface);
+		
+	//	thinking.. how to avoid this line 
+//	TPZAutoPointer <TPZMatrix> matK1 = matsk.CreateAssemble(Lf,guiInterface);
+	
+	//	Set the structtural sky line matrix to our analysis
+	an.SetStructuralMatrix(matsk);
+		
+	//	Create Solver object
+	TPZStepSolver step;
+	
+	//	Symmetric case
+	step.SetDirect(ELDLt);
+	//step.SetDirect(ELU);
+	//	Set solver
+	an.SetSolver(step);
+	
+	//	Excecute an analysis to obtain the Rhs vector
+	//	In this case we start with zero initial values
+	an.Run();
+	
+	//	Storage the global matrix and load vector 
+	matK1 = an.StructMatrix();
+	Lf = an.Rhs();
 	
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
 	{
+		// just one for checking purpose
 		std::stringstream sout;
-		matK1->Print("K1 = ", sout,EMathematicaInput);
-		Lf.Print("Lf = ", sout,EMathematicaInput);
+		matK1.Print("K1 = ", sout,EMathematicaInput);
+		Lf.Print("Lf = ", sout,EMathematicaInput);		
 		LOGPZ_DEBUG(logdata,sout.str())
 	}
-#endif
-	
+#endif	
 	
 	//	Setting initial coditions 
-	//	In this case we start with zero initial values
 	int K1Rows;
-	int K1Cols;
-	K1Rows = matK1->Rows();
-	K1Cols = matK1->Rows();	
-	TPZFMatrix Lastsolution(K1Rows,1,10.0);
-	TPZFMatrix TotalRhs(K1Rows,1,0.0);
-	TPZFMatrix Residual(K1Rows,1,0.0);
-	TPZFMatrix TemporalSol(K1Rows,1,0.0);
+	K1Rows = matK1.Rows();
+	//	In this case we start with zero initial values	
+	TPZFMatrix Lastsolution(K1Rows,1,0.0);
+	// how can i obtain this seize? 12
+	TPZFMatrix TotalRhs(12,1,0.0);
+	TPZFMatrix TotalRhstemp(K1Rows,1,0.0);	
+	
+	Lastsolution = an.Solution();
+	TotalRhs = Lf;
+	
+//	
+//	TPZSkylineStructMatrix Temp2(matsp);	
+
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		//	Print the temporal solution
+		std::stringstream sout;
+		Lastsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+		TPZFMatrix Temp;
+		TPZFMatrix Temp2;
+		matK2->Multiply(Lastsolution,Temp);
+		Temp.Print("Temp K2 = ", sout,EMathematicaInput);	
+		
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif	
+	
+	
+	std::string outputfile;
+	outputfile = "TransientSolution";
 	
 	// Transient Calculations
 	int cent = 0;
 	while (cent*delta < Maxtime ) {
 		//	Begin the calculations
 		
-		TPZStepSolver step;
-		//	Symmetric case
-		step.SetDirect(ELDLt);
-		//step.SetDirect(ELU);
-		an.SetSolver(step);
-		
-		an.Solve();
-		
-//		inline TPZMatrixSolver &
-//		
-//		TPZAnalysis::Solver(){
-//			return (*fSolver);
-//		}		
-//		
-		TotalRhs.Print();
-		matK2->Print();		
 		//	Update the Right hand side
-		TotalRhs = TotalRhs + matK2*Lastsolution;
-		TotalRhs.Print();		
+//		matK2->MultAdd(Lastsolution,Lf,TotalRhs,1.0,1.0);
 		
-		TemporalSol = an.Solution();
+		matK2->Multiply(Lastsolution,TotalRhstemp);
+		TotalRhs = Lf + TotalRhstemp;
+//		TotalRhs.Add(TotalRhstemp,TotalRhs);
+		an.Rhs() = TotalRhs;
+		
+		
 		
 #ifdef LOG4CXX
 		if(logdata->isDebugEnabled())
 		{
 			//	Print the temporal solution
 			std::stringstream sout;
-			TemporalSol.Print("Temporal Solution = ", sout,EMathematicaInput);
+			TotalRhs.Print("Temporal TotalRhs used = ", sout,EMathematicaInput);
+			TotalRhstemp.Print("Temporal TotalRhstemp used = ", sout,EMathematicaInput);
+			LOGPZ_DEBUG(logdata,sout.str())
+		}
+#endif	
+		
+		//	Solve the current Linear system
+		an.Solve();
+		
+		//	Save the current solution
+		Lastsolution = an.Solution();
+		
+#ifdef LOG4CXX
+		if(logdata->isDebugEnabled())
+		{
+			//	Print the temporal solution
+			std::stringstream sout;
+			Lastsolution.Print("Temporal Solution = ", sout,EMathematicaInput);
 			LOGPZ_DEBUG(logdata,sout.str())
 		}
 #endif
 		
 		//	General post-processing
+		std::stringstream outputfiletemp;
+		outputfiletemp << outputfile << ".vtk";
+		std::string plotfile = outputfiletemp.str();
+		PosProcessMultphysics(meshvec,mphysics,an,plotfile);		
 		
 		// Next Calculation
 		cent++;
