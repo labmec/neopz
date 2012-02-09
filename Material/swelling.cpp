@@ -12,9 +12,9 @@
 #include "checkconv.h"
 #include <math.h>
 
-#include <cmath>
-
 using namespace std;
+
+#include <cmath>
 
 REAL TPZSwelling::gFaraday = 96.4853;
 REAL TPZSwelling::gVPlus = 2.3;
