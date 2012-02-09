@@ -1,15 +1,15 @@
+if(USING_FAD)
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
+	set(main_SRCS main.cpp)
 
+	add_executable(ShapeFAD ${main_SRCS})
 
-########### next target ###############
+	if(USING_METIS)
+		target_link_libraries(ShapeFAD pz metis)
+	else()
+		target_link_libraries(ShapeFAD pz)
+	endif()
 
-set(main_SRCS main.cpp)
+	install(TARGETS ShapeFAD ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-add_executable(ShapeFAD ${main_SRCS})
-
-target_link_libraries(ShapeFAD ${KDE4_KDECORE_LIBS} pz metis)
-
-install(TARGETS ShapeFAD ${INSTALL_TARGETS_DEFAULT_ARGS})
-
-
+endif()

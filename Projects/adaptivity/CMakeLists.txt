@@ -7,5 +7,9 @@ set(main_SRCS
 
 add_executable(adaptivity ${main_SRCS})
 
-target_link_libraries(adaptivity pz metis)
+if(USING_METIS)
+	target_link_libraries(adaptivity pz metis)
+else()
+	target_link_libraries(adaptivity pz)
+endif()
 

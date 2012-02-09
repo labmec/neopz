@@ -1,12 +1,13 @@
 # @file neopz/Projects/HyperElasticityFAD/CMakeLists.txt  -- CMake file for the HyperElasticityFAD project 
 
-########### next target ###############
+if(USING_FAD) 
 
-file(GLOB header *.h)
+	file(GLOB header *.h)
 
-set(main_SRCS main.cpp)
+	set(main_SRCS main.cpp)
 
-add_executable(HyperElasticityFAD ${main_SRCS} ${header})
+	add_executable(HyperElasticityFAD ${main_SRCS} ${header})
 
-target_link_libraries(HyperElasticityFAD pz pthread)
+	target_link_libraries(HyperElasticityFAD pz pthread)
 
+endif()

@@ -3,7 +3,10 @@ set(main_SRCS main.cpp)
 
 add_executable(ArtDiff ${main_SRCS})
 
-target_link_libraries(ArtDiff pz metis)
-
+if(USING_METIS)
+	target_link_libraries(ArtDiff pz metis)
+else()
+	target_link_libraries(ArtDiff pz)
+endif()
 
 

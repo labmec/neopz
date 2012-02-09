@@ -1,14 +1,14 @@
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
-
-
-########### next target ###############
 
 set(main_SRCS main.cpp)
 
 add_executable(BRUReader ${main_SRCS})
 
-target_link_libraries(BRUReader pz metis)
+if(USING_METIS)
+	target_link_libraries(BRUReader pz metis)
+else()
+	target_link_libraries(BRUReader pz)
+endif()
 
 install(TARGETS BRUReader ${INSTALL_TARGETS_DEFAULT_ARGS})
 

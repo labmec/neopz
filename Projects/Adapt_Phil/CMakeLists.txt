@@ -7,5 +7,8 @@ set(main_SRCS
 
 add_executable(Adapt_Phil ${main_SRCS})
 
-target_link_libraries(Adapt_Phil pz metis)
-
+if(USING_METIS)
+	target_link_libraries(Adapt_Phil pz metis)
+else()
+	target_link_libraries(Adapt_Phil pz)
+endif()
