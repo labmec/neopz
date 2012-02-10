@@ -3,7 +3,11 @@ file(GLOB sources *.cpp)
 
 set(main_SRCS ${sources} ${headers})
 
-add_executable(Plasticity ${main_SRCS})
+if(USING_FAD)
 
-target_link_libraries(Plasticity pz pthread)
+	add_executable(Plasticity ${main_SRCS})
+
+	target_link_libraries(Plasticity pz pthread)
+
+endif()
 
