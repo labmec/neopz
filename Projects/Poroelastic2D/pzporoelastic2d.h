@@ -65,7 +65,7 @@ protected:
 	/// timestep [s]
 	REAL fTimeStep;
 	
-	REAL fPressureIntitial;
+	//REAL fPressureIntitial;
 	
 	REAL fmatId;
 	
@@ -106,7 +106,7 @@ public:
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	void SetParameters(REAL E, REAL nu, REAL falpha, REAL fx, REAL fy)
+	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy)
 	{
 		fE = E;
 		fnu = nu;
@@ -115,12 +115,12 @@ public:
 	}
 	
 	/** @brief Set falpha parameter
-	 * @param biot : constant poroelastic Biot [dimensionless]
-	 * @param bulk : drained bulk modulus [Pa]
+	 * @param alpha : constant poroelastic Biot [dimensionless]
+	 * @param Se : Coeficiente poroelastico de armazenamento a volume constante [adimensional]
 	 */
 	void SetBiotParameters(REAL alpha, REAL Se)
 	{
-		falpha = alpha; //biot/bulk;
+		falpha = alpha;
 		fSe = Se; 
 	}
 	

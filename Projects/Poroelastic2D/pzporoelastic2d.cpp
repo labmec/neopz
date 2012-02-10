@@ -181,31 +181,36 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		//Equacao de Poisson: pressao 
 		// Calculate the matrix contribution for transport problem from
 		const REAL DeltaT = fTimeStep;
-		for(int in = 0; in < phrp; in++) {
+		for(int in = 0; in < phrp; in++)
+		{
 			ef(in+2*phru, 0) += 0.; 
-			
-			for(int jn = 0; jn < phrp; jn++) {
+			for(int jn = 0; jn < phrp; jn++)
+			{
 				ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
-				for(int kd=0; kd<fDim; kd++) {
+				for(int kd=0; kd<fDim; kd++) 
+				{
 					ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*DeltaT*dphip(kd,in)*dphip(kd,jn);
 				}
 			}
 		}
-	}
+	}//end if
+	
 	//Last state (n)
 	if(gState == ELastState)
 	{				
-		for(int in = 0; in < phru; in++ ){
+		for(int in = 0; in < phru; in++ )
+		{
 			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
 			du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
 			
-			for(int jn = 0; jn < phrp; jn++){
+			for(int jn = 0; jn < phrp; jn++)
+			{
 				ek(2*phru+jn,2*in) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
 				ek(2*phru+jn,2*in+1) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
 			}
 		}
 		
-		for(int in = 0; in < phrp; in++) {
+		for(int in = 0; in < phrp; in++){
 			for(int jn = 0; jn < phrp; jn++) {
 				ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
 			}
@@ -303,6 +308,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			break;
 		}	
 		case 22 : // // Mixed condition for two equations
+		{
 			//Equacao da elasticidade			
 			for(in = 0 ; in < phru; in++) {
 				ef(2*in, 0) += v2[0] * phiu(in, 0) * weight;   // Neumann , Sigmaij
@@ -328,6 +334,52 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 					phip(jn,0)*weight;     // peso de contorno => integral de contorno
 				}
 			}
+			
+			break;
+		}
+			
+		case 10: //Neumann condition for elastic and Dirichlet condition for pressure
+		{			
+		
+			//Neumann para Equacao da elasticidade
+			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
+				ef(2*in,0) += v2[0]*phiu(in,0)*weight;   // tracao em x  (ou pressao)
+				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
+			}      // ou deslocamento nulo  v2 = 0
+			
+			//Dirichlet para Equacao de Poisson: pressao 
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
+				for (jn = 0 ; jn < phrp; jn++) {
+					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+				}
+			}
+			
+			break;
+		}
+			
+			case 100:///Froteira livre: Dirichlet para as duas equacoes mas com fronteira livre na direcao y na equacao da elasticiade
+				
+			//Equacao da elasticidade
+			for(in = 0 ; in < phru; in++) {
+				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
+				phiu(in,0)*weight;        // forced v2 displacement
+				
+				for (jn = 0 ; jn < phru; jn++) {
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
+					phiu(jn,0)*weight;
+				}
+			}
+			
+			//Equacao de Poisson: pressao 
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
+				for (jn = 0 ; jn < phrp; jn++) {
+					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+				}
+			}
+			break;
+
 	}
 	
 }
