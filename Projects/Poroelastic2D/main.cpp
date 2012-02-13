@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,1);
+	RefinUniformElemComp(cmesh2,2);
 	//RefinElemComp(cmesh2,4);
 	//RefinElemComp(cmesh2,7);
 	cmesh2->AdjustBoundaryElements();
@@ -461,7 +461,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL alpha=1.0;
 	REAL Se=1.0;
 	REAL rockrho = 2330.0; // SI system
-	REAL gravity = 0.;//9.8; // SI system
+	REAL gravity = -9.8; // SI system
 	REAL fx=0.0;
 	REAL fy=gravity*rockrho;
 	REAL overburdendepth = 2000.0; // SI system
@@ -485,13 +485,15 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 
 	///--- --- Inserir condicoes de contorno
 {
-	TPZFMatrix val1(3,2,0.), val2(3,1,0.);
+	
 	
 	///Inserir CC Neumann para elasticidade e Dirichlet para Pressao
-	int neumdirich = 10;
-	REAL uNtopx=0.;
-	REAL uNtopy=0.; //rockrho*gravity*overburdendepth;
+	TPZFMatrix val1(3,2,0.), val2(3,1,0.);
+	int neumdirich = 200;
 	REAL pDtop=100.;
+	REAL uNtopx=0.;
+	REAL uNtopy=0.-alpha*pDtop; //rockrho*gravity*overburdendepth;
+	
 	
 	val2(0,0)=uNtopx;
 	val2(1,0)=uNtopy;
@@ -500,32 +502,34 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mphysics->InsertMaterialObject(BCondT);
 	
 	///Inserir condicao de contorno de Dirichlet
+	TPZFMatrix val12(3,2,0.), val22(3,1,0.);
 	int dirich =0;
 	REAL uDbotx=0.; 
 	REAL uDboty=0.;
 	REAL pDbot=100.;
-	val2(0,0)=uDbotx;
-	val2(1,0)=uDboty;
-	val2(2,0)=pDbot;
-	TPZAutoPointer<TPZMaterial> BCondBt = mymaterial->CreateBC(mat, bcBottom,dirich, val1, val2);
+	val22(0,0)=uDbotx;
+	val22(1,0)=uDboty;
+	val22(2,0)=pDbot;
+	TPZAutoPointer<TPZMaterial> BCondBt = mymaterial->CreateBC(mat, bcBottom,dirich, val12, val22);
 	mphysics->InsertMaterialObject(BCondBt);
 	
 	///Inserir condicao de fronteira livre em y para a elasticidade e Dirichlet para pressao
-	int freeby = 10;
-	
+	int freeby = 100;
+	TPZFMatrix val13(3,2,0.), val23(3,1,0.);
 	REAL ufreeLx = 0.;
 	REAL pDLeft=100.;
-	val2(0,0)=ufreeLx;
-	val2(2,0)=pDLeft;
-	TPZAutoPointer<TPZMaterial> BCondL = mymaterial->CreateBC(mat, bcLeft, freeby, val1, val2);
+	val23(0,0)=ufreeLx;
+	val23(2,0)=pDLeft;
+	TPZAutoPointer<TPZMaterial> BCondL = mymaterial->CreateBC(mat, bcLeft, freeby, val13, val23);
 	mphysics->InsertMaterialObject(BCondL);
 	
+	TPZFMatrix val14(3,2,0.), val24(3,1,0.);
 	REAL ufreeRx = 0.;
 	REAL pDRight=100.;
-	val2(0,0)=ufreeRx;
-	val2(2,0)=pDRight;
-	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcRight, freeby, val1, val2);
-	mphysics->InsertMaterialObject(BCondDR);
+	val24(0,0)=ufreeRx;
+	val24(2,0)=pDRight;
+	TPZAutoPointer<TPZMaterial> BCondR = mymaterial->CreateBC(mat, bcRight, freeby, val14, val24);
+	mphysics->InsertMaterialObject(BCondR);
 	//-----------
 }
 				
@@ -659,12 +663,14 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 {
 	TPZBuildMultiphysicsMesh * Objectdumy;
 	Objectdumy->TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(4), vecnames(2);
+	TPZManVector<std::string,10> scalnames(6), vecnames(2);
 	scalnames[0] = "SigmaX";
 	scalnames[1] = "SigmaY";
-	scalnames[2] = "Pressure";
-	scalnames[3] = "SolutionP";
-	vecnames[0]= "Desplacement";
+	scalnames[2] = "DisplacementX";
+	scalnames[3] = "DisplacementY";
+	scalnames[4] = "Pressure";
+	scalnames[5] = "SolutionP";
+	vecnames[0]= "Displacement";
 	vecnames[1]= "MinusKGradP";
 			
 	const int dim = 2;

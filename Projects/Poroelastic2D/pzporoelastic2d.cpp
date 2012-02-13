@@ -358,27 +358,46 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			break;
 		}
 			
-			case 100:///Froteira livre: Dirichlet para as duas equacoes mas com fronteira livre na direcao y na equacao da elasticiade
-				
-			//Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
-				phiu(in,0)*weight;        // forced v2 displacement
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
-					phiu(jn,0)*weight;
-				}
-			}
+		case 200: //Neumann condition free in x for elastic and Dirichlet condition for pressure
+		{			
 			
-			//Equacao de Poisson: pressao 
+			//Neumann para Equacao da elasticidade
+			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
+				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
+			}      // ou deslocamento nulo  v2 = 0
+			
+			//Dirichlet para Equacao de Poisson: pressao 
 			for(in = 0 ; in < phrp; in++) {
 				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
 				for (jn = 0 ; jn < phrp; jn++) {
 					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
 				}
 			}
+			
 			break;
+		}
+			
+		case 100:///Froteira livre: Dirichlet para as duas equacoes mas com fronteira livre na direcao y na equacao da elasticiade
+			
+		//Equacao da elasticidade
+		for(in = 0 ; in < phru; in++) {
+			ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
+			phiu(in,0)*weight;        // forced v2 displacement
+			
+			for (jn = 0 ; jn < phru; jn++) {
+				ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
+				phiu(jn,0)*weight;
+			}
+		}
+		
+		//Equacao de Poisson: pressao 
+		for(in = 0 ; in < phrp; in++) {
+			ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
+			for (jn = 0 ; jn < phrp; jn++) {
+				ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+			}
+		}
+		break;
 
 	}
 	
@@ -402,7 +421,7 @@ void TPZPoroElastic2d::Print(std::ostream &out) {
 /** Returns the variable index associated with the name */
 int TPZPoroElastic2d::VariableIndex(const std::string &name){
 	//variaveis da elasticidade
-	if(!strcmp("Desplacement",name.c_str()))        return  1;
+	if(!strcmp("Displacement",name.c_str()))        return  1;
 	if(!strcmp("Pressure",name.c_str()))        return  2;
 	if(!strcmp("SigmaX",name.c_str()))        return  3;
 	if(!strcmp("SigmaY",name.c_str()))        return  4;
@@ -410,6 +429,8 @@ int TPZPoroElastic2d::VariableIndex(const std::string &name){
 	//variaveis da pressao
 	if(!strcmp("SolutionP",name.c_str()))        return  6;
 	if(!strcmp("MinusKGradP",name.c_str()))        return  7;
+	if(!strcmp("DisplacementX",name.c_str()))  return 8;
+	if(!strcmp("DisplacementY",name.c_str()))  return 9;
 		
 	return TPZMaterial::VariableIndex(name);
 }
@@ -422,6 +443,8 @@ int TPZPoroElastic2d::NSolutionVariables(int var){
 	if(var == 5) return 1;
 	if(var == 6) return 1;
 	if(var == 7) return fDim;
+	if(var == 8) return 1;
+	if(var == 9) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -447,6 +470,19 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		Solout[2] = 0.;
 		return;
 	}//var1
+	
+	//function (state variable ux)
+	if(var == 8){
+		Solout[0] = SolU[0];
+		return;
+	}//var8
+	
+	//function (state variable uy)
+	if(var == 9){
+		Solout[0] = SolU[1];
+		return;
+	}//var9
+
 	
 	//-----------------
 	if(var == 6) {
