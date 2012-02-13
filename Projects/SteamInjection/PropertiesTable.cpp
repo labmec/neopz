@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  PropertiesTable.cpp
  *  FrenteDoVapor
  *

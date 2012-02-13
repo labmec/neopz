@@ -1,4 +1,4 @@
-﻿/*
+/*
  *  ThermalMethodsTables.cpp
  *  FrenteVapor
  *

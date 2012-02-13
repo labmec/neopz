@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file
  * @brief Contains the TPZElasticityAxiMaterial class which implements a two dimensional elastic material in plane stress or strain.
  */

@@ -1,4 +1,4 @@
-﻿//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
+//$Id: TSWXMaxSigmaTheta.cpp,v 1.5 2009-07-03 19:43:07 caju Exp $
 
 /*
  *  TSWXMaxSigmaTheta.cpp

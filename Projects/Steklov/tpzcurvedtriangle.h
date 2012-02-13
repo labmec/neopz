@@ -1,4 +1,4 @@
-﻿#ifndef TPZCURVEDTRIANGLE_H
+#ifndef TPZCURVEDTRIANGLE_H
 #define TPZCURVEDTRIANGLE_H
 
 // #include "pzfmatrix.h"
