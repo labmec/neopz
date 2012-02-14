@@ -58,12 +58,17 @@ int TPZSpaceTimeRichardsEq::NStateVariables(){
 void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	TPZFMatrix &phi = data.phi;
 	TPZFMatrix &dphi = data.dphix;
-	const REAL sol = data.sol[0];
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	const REAL sol = data.sol[0][0];
 	
 	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
 	
 	TPZFNMatrix<2> dsol(2,1,0.);
-	TPZAxesTools::Axes2XYZ(data.dsol, dsol, data.axes);
+	TPZAxesTools::Axes2XYZ(data.dsol[0], dsol, data.axes);
 	
 	const int phr = phi.Rows();
 	int i, j;
@@ -86,13 +91,18 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 	TPZFMatrix &phi = data.phi;
 	const int phr = phi.Rows();
 	int in, jn;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	
 	switch (bc.Type()){
 			
 			// Dirichlet condition
 		case 0 : {
 			for(in = 0 ; in < phr; in++) {
-				ef(in,0) += weight * ( gBigNumber * phi(in,0) * (v2 - data.sol[0]) );
+				ef(in,0) += weight * ( gBigNumber * phi(in,0) * (v2 - data.sol[0][0]) );
 				for (jn = 0 ; jn < phr; jn++) {
 					ek(in,jn) +=  gBigNumber * phi(in,0) * phi(jn,0) * weight;
 				}
@@ -109,7 +119,7 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 			// outflow condition
 		case 3 : { 
 			
-			const REAL sol = data.sol[0];
+			const REAL sol = data.sol[0][0];
 			//       const REAL C = this->C_Coef(sol);
 			//       REAL ConvDir[2] = {0., C};
 			REAL ConvDir[2] = {0., 1.}; 

@@ -504,6 +504,11 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 	double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
 	double mu =  fE/(2.*(1. + fnu));
 	
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -515,35 +520,35 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 		sout << "Lambda = " << lambda << ";" << std::endl;
 		sout << "Mu = " << mu << ";" << std::endl;
 		sout << "weight = " << weight << ";" << std::endl;
-		data.dsol.Print("dsol = ",sout,EMathematicaInput);
+		data.dsol[0].Print("dsol = ",sout,EMathematicaInput);
 		LOGPZ_DEBUG(logdata,sout.str())
 	}
 #endif
 	
 #ifdef LOG4CXX
 	TPZFNMatrix<4> DSolLAxes(2,2), DSolRAxes(2,2);
-	DSolLAxes(0,0) = data.dsoll(0,0)*axis0DOTrL+data.dsoll(1,0)*axis1DOTrL;
-	DSolLAxes(1,0) = data.dsoll(0,0)*axis0DOTzL+data.dsoll(1,0)*axis1DOTzL;
-	DSolLAxes(0,1) = data.dsoll(0,1)*axis0DOTrL+data.dsoll(1,1)*axis1DOTrL;
-	DSolLAxes(1,1) = data.dsoll(0,1)*axis0DOTzL+data.dsoll(1,1)*axis1DOTzL;
+	DSolLAxes(0,0) = data.dsoll[0](0,0)*axis0DOTrL+data.dsoll[0](1,0)*axis1DOTrL;
+	DSolLAxes(1,0) = data.dsoll[0](0,0)*axis0DOTzL+data.dsoll[0](1,0)*axis1DOTzL;
+	DSolLAxes(0,1) = data.dsoll[0](0,1)*axis0DOTrL+data.dsoll[0](1,1)*axis1DOTrL;
+	DSolLAxes(1,1) = data.dsoll[0](0,1)*axis0DOTzL+data.dsoll[0](1,1)*axis1DOTzL;
 	
-	DSolRAxes(0,0) = data.dsolr(0,0)*axis0DOTrR+data.dsolr(1,0)*axis1DOTrR;
-	DSolRAxes(1,0) = data.dsolr(0,0)*axis0DOTzR+data.dsolr(1,0)*axis1DOTzR;
-	DSolRAxes(0,1) = data.dsolr(0,1)*axis0DOTrR+data.dsolr(1,1)*axis1DOTrR;
-	DSolRAxes(1,1) = data.dsolr(0,1)*axis0DOTzR+data.dsolr(1,1)*axis1DOTzR;
+	DSolRAxes(0,0) = data.dsolr[0](0,0)*axis0DOTrR+data.dsolr[0](1,0)*axis1DOTrR;
+	DSolRAxes(1,0) = data.dsolr[0](0,0)*axis0DOTzR+data.dsolr[0](1,0)*axis1DOTzR;
+	DSolRAxes(0,1) = data.dsolr[0](0,1)*axis0DOTrR+data.dsolr[0](1,1)*axis1DOTrR;
+	DSolRAxes(1,1) = data.dsolr[0](0,1)*axis0DOTzR+data.dsolr[0](1,1)*axis1DOTzR;
 	
 	TPZFNMatrix<9> DeformL(3,3,0.),DeformR(3,3,0.);
 	DeformL(0,0) = DSolLAxes(0,0); 
 	DeformL(1,1) = DSolLAxes(1,1);
 	DeformL(0,1) = (DSolLAxes(0,1)+DSolLAxes(1,0))/2.;
 	DeformL(1,0) = DeformL(0,1);
-	DeformL(2,2) = data.soll[0]/R;
+	DeformL(2,2) = data.soll[0][0]/R;
 	
 	DeformR(0,0) = DSolRAxes(0,0); 
 	DeformR(1,1) = DSolRAxes(1,1);
 	DeformR(0,1) = (DSolRAxes(0,1)+DSolRAxes(1,0))/2.;
 	DeformR(1,0) = DeformR(0,1);
-	DeformR(2,2) = data.solr[0]/R;
+	DeformR(2,2) = data.solr[0][0]/R;
 	
 	TPZFNMatrix<9> TensorL(3,3,0.),TensorR(3,3,0.);
 	REAL TrDeformL, TrDeformR;
@@ -896,9 +901,14 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		TPZMaterial::Solution(data,var,Solout);
 		return;
 	}
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	TPZFMatrix &axes = data.axes;
-	TPZVec<REAL> &SolAxes = data.sol;
-	TPZFMatrix &DSolAxes = data.dsol;
+	TPZVec<REAL> &SolAxes = data.sol[0];
+	TPZFMatrix &DSolAxes = data.dsol[0];
 	
     // R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
     REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
@@ -950,7 +960,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	Einf.PutVal(0,1,0.5*(DSolrz(0,1) + DSolrz(1,0)));
 	Einf.PutVal(1,0,0.5*(DSolrz(0,1) + DSolrz(1,0))); 
 	Einf.PutVal(1,1,DSolrz(1,1));
-	Einf.PutVal(2,2,data.sol[0]/R);
+	Einf.PutVal(2,2,data.sol[0][0]/R);
 	
 #ifdef LOG4CXX
 	{
@@ -1178,7 +1188,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		default:
 		{
 			cout << "TPZElasticityAxiMaterial::Solution Error -> default\n";
-			TPZMaterial::Solution(data.sol,data.dsol,data.axes,var,Solout);
+			TPZMaterial::Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 		}
 			break;
 	}
@@ -1208,10 +1218,10 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 	sigma[0] = fEover1MinNu2*(du(0,0)+fnu*du(1,1));
 	sigma[1] = fEover1MinNu2*(fnu*du(0,0)+du(1,1));
 	sigma[2] = fE*0.5/(1.+fnu)*gamma;
-	
+
 	TPZMaterialData mydata;
-	mydata.sol  = u;
-	mydata.dsol = du;
+	mydata.sol[0]  = u;
+	mydata.dsol[0] = du;
 	mydata.axes = axes;
 	mydata.x = x;
 	

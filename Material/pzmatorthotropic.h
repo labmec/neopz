@@ -79,7 +79,11 @@ protected:
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
-		Solution(data.sol,data.dsol,data.axes,var,Solout);
+        int numbersol = data.sol.size();
+        if (numbersol != 1) {
+            DebugStop();
+        }
+		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */

@@ -230,20 +230,24 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
 	}
 	return;
 #endif
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
 	
 	if(gType == EFlux){
 		fGradientFlux.ApplyLimiter(data);
-		TPZEulerEquation::FromPrimitiveToConservative(data.soll,gGamma);
-		TPZEulerEquation::FromPrimitiveToConservative(data.solr,gGamma);
+		TPZEulerEquation::FromPrimitiveToConservative(data.soll[0],gGamma);
+		TPZEulerEquation::FromPrimitiveToConservative(data.solr[0],gGamma);
 		TPZManVector<REAL,15> Flux(5);
-		fAUSMFlux.ComputeFlux(data.soll,data.solr,data.normal,Flux);
+		fAUSMFlux.ComputeFlux(data.soll[0],data.solr[0],data.normal,Flux);
 		
 		for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		for(int i = 0; i < 5; i++) ef(i+20,0) += -1. * weight*Flux[i];
 	}
 	if(gType == EGradient){
 		TPZManVector<REAL,15> Flux(15);
-		fGradientFlux.ComputeFlux(data.soll,data.solr,data.normal,Flux);
+		fGradientFlux.ComputeFlux(data.soll[0],data.solr[0],data.normal,Flux);
 		
 		for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		for(int i = 0; i < 15; i++) ef(i+20+5,0) += -1. * weight*Flux[i];
@@ -271,6 +275,12 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 											 REAL weight,
 											 TPZFMatrix &ef,
 											 TPZBndCond &bc){
+    
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 #ifdef LinearConvection
 	if(gType == EFlux){
 		if (bc.Type() == EFreeSlip){
@@ -283,25 +293,25 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 	if(gType == EGradient){
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
-			fGradientFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
+			fGradientFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
 			for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}
 	return;
 #endif
 	if(gType == EFlux){
-		TPZEulerEquation::FromPrimitiveToConservative(data.soll,gGamma);
+		TPZEulerEquation::FromPrimitiveToConservative(data.soll[0],gGamma);
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
 // #warning One needs to invert the velocity component
-			fAUSMFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
+			fAUSMFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
 			for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}
 	if(gType == EGradient){
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
-			fGradientFlux.ComputeFlux(data.soll,data.soll,data.normal,Flux);
+			fGradientFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
 			for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}

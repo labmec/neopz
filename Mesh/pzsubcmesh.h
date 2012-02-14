@@ -345,7 +345,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -361,8 +361,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-								 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -374,7 +374,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/** @} */
 	

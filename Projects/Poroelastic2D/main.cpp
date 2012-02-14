@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,2);
+	RefinUniformElemComp(cmesh2,0);
 	//RefinElemComp(cmesh2,4);
 	//RefinElemComp(cmesh2,7);
 	cmesh2->AdjustBoundaryElements();

@@ -248,10 +248,12 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	{		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
 		datavec[iref].p = msp->MaxOrder();
-		datavec[iref].sol.Resize(numdof);
+        datavec[iref].sol.resize(1);
+		datavec[iref].sol[0].Resize(numdof);
 		datavec[iref].sol.Fill(0.);
-		datavec[iref].dsol.Redim(dim,numdof);
-		datavec[iref].dsol.Zero();
+        datavec[iref].dsol.resize(1);
+		datavec[iref].dsol[0].Redim(dim,numdof);
+		datavec[iref].dsol[0].Zero();
 		datavec[iref].axes.Redim(dim,3);
 		datavec[iref].axes.Zero();
 		
@@ -269,7 +271,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-				TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+				TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }//method
@@ -277,15 +279,15 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 					 TPZVec<REAL> &normal,
-					 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-					 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+					 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+					 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-					 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+					 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
@@ -376,8 +378,10 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	
 		if (dataVec[iref].fNeedsSol)
 		{
-			dataVec[iref].sol.Resize(nstate);
-			dataVec[iref].dsol.Redim(dim,nstate);
+            dataVec[iref].sol.resize(1);
+            dataVec[iref].dsol.resize(1);
+			dataVec[iref].sol[0].Resize(nstate);
+			dataVec[iref].dsol[0].Redim(dim,nstate);
 		}
 	}
 	

@@ -54,11 +54,16 @@ public:
                             REAL weight,
                             TPZFMatrix &ek,
                             TPZFMatrix &ef) {
+        int numbersol = data.sol.size();
+        if(numbersol != 1) 
+        {
+            DebugStop();
+        }
 		if (TPZBurger::gStabilizationScheme == ESUPG){
-			this->ContributeSUPG(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek,ef);
+			this->ContributeSUPG(data.x,data.jacinv,data.sol[0],data.dsol[0],weight,data.axes,data.phi,data.dphix,ek,ef);
 		}
 		if (TPZBurger::gStabilizationScheme == EGRADIENT){
-			this->ContributeGradStab(data.x,data.jacinv,data.sol,data.dsol,weight,data.axes,data.phi,data.dphix,ek,ef);
+			this->ContributeGradStab(data.x,data.jacinv,data.sol[0],data.dsol[0],weight,data.axes,data.phi,data.dphix,ek,ef);
 		}
 	}//Contribute
 	

@@ -1243,7 +1243,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 	
 }//end of method
 
-void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
+void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
 	if(!mat || mat->Name() == "no_name"){
@@ -1270,8 +1270,11 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
 	data.x.Resize(3);
 	REAL weight;
 	
-	jump.Resize(njump);
-	jump.Fill(0.);
+    int numbersol = jump.size();
+    for (int is=0; is<numbersol; is++) {
+        jump[is].Resize(njump);
+        jump[is].Fill(0.);
+    }
     ///LOOP OVER INTEGRATION POINTS
 	for(int ip = 0; ip < npoints; ip++){
 		intrule->Point(ip,intpoint,weight);
@@ -1287,38 +1290,43 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt){
 		
 		if (LeftElement()->NConnects() == 0){
 			data.soll.Resize(0);
-			data.dsoll.Resize(0,0);
+			data.dsoll.Resize(0);
 		}
 		
 		if (RightElement()->NConnects() == 0){
 			data.solr.Resize(0);
-			data.dsolr.Resize(0,0);
+			data.dsolr.Resize(0);
 		}
-		
-		TPZManVector<REAL> localjump(njump,0.);
+		TPZManVector<TPZFemSol> localjump(numbersol);
+        for (int is=0; is<numbersol; is++) {
+            localjump[is].Resize(njump,0.);
+        }
 		mat->InterfaceJump(data.x, data.soll, data.solr, localjump);
 		
-		if(opt == 0){
-			for(int ier = 0; ier < njump; ier++){
-				jump[ier] += localjump[ier]*localjump[ier]*weight;
-			}
-		}
-		if(opt == 1){
-			for(int ier = 0; ier < njump; ier++){
-				if( fabs(localjump[ier]) > jump[ier] ){
-					jump[ier] = fabs( localjump[ier] );
-				}///if
-			}///for
-		}///if
-		
+        for (int is=0; is<numbersol; is++) {
+            if(opt == 0){
+                for(int ier = 0; ier < njump; ier++){
+                    jump[is][ier] += localjump[is][ier]*localjump[is][ier]*weight;
+                }
+            }
+            if(opt == 1){
+                for(int ier = 0; ier < njump; ier++){
+                    if( fabs(localjump[is][ier]) > jump[is][ier] ){
+                        jump[is][ier] = fabs( localjump[is][ier] );
+                    }///if
+                }///for
+            }///if
+        }		
 	}///loop over integration points
 	
 	///Norma sobre o elemento
-	if(opt == 0){
-		for(int ier = 0; ier < njump; ier++){
-			jump[ier] = sqrt(jump[ier]);
-		}///for
-	}///if
+    for (int is=0; is<numbersol; is++) {
+        if(opt == 0){
+            for(int ier = 0; ier < njump; ier++){
+                jump[is][ier] = sqrt(jump[is][ier]);
+            }///for
+        }///if
+    }
 	
 }///method
 
@@ -1537,7 +1545,7 @@ bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, T
 }//void
 
 void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi,
-                                            TPZVec<REAL> &sol, TPZFMatrix &dsol,
+                                            TPZSolVec &sol, TPZGradSolVec &dsol,
                                             TPZFMatrix &NeighborAxes){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
 	const int neighdim = neighel->Dimension();
@@ -1547,22 +1555,22 @@ void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REA
 }
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                          const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+                                          const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	sol.Resize(0);
-	dsol.Resize(0,0);
+	dsol.Resize(0);
 }
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
-                                          TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+                                          TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
 	sol.Resize(0);
-	dsol.Resize(0,0);
+	dsol.Resize(0);
 	axes.Zero();
 }
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 										  TPZVec<REAL> &normal,
-										  TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-										  TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+										  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+										  TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	this->Normal(qsi, normal);
 	this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, dleftsol, leftaxes);
 	this->NeighbourSolution(this->fRightElSide, qsi, rightsol, drightsol, rightaxes);
@@ -1596,12 +1604,19 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 	data.jacinv.Redim(dim,dim);
 	data.leftjacinv.Redim(diml,diml);
 	data.rightjacinv.Redim(dimr,dimr);
+    int numbersol = Mesh()->Solution().Cols();
+    data.soll.resize(numbersol);
+    data.solr.resize(numbersol);
+    data.dsoll.resize(numbersol);
+    data.dsolr.resize(numbersol);
 	data.x.Resize(3);
 	if (data.fNeedsNeighborSol){
-		data.soll.Resize(nstatel);
-		data.solr.Resize(nstater);
-		data.dsoll.Redim(diml,nstatel);
-		data.dsolr.Redim(dimr,nstater);
+        for (int is=0; is<numbersol; is++) {
+            data.soll[is].Resize(nstatel);
+            data.solr[is].Resize(nstater);
+            data.dsoll[is].Redim(diml,nstatel);
+            data.dsolr[is].Redim(dimr,nstater);
+        }
 	}
 	
 	///this values needs to be computed only once

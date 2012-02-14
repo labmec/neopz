@@ -25,6 +25,8 @@ TPZMaterialData::TPZMaterialData() : numberdualfunctions(0){
 	this->intPtIndex = -1;
 	this->leftdetjac = 0.;
 	this->rightdetjac = 0.;
+    this->sol.Resize(1);
+    this->dsol.Resize(1);
 	
 }
 
@@ -150,12 +152,36 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 	buf.Write(&p,1);
 	buf.Write(&leftp,1);
 	buf.Write(&rightp,1);
-	buf.Write(sol);
-	buf.Write(soll);
-	buf.Write(solr);
-	dsol.Write(buf,0);
-	dsoll.Write(buf,0);
-	dsolr.Write(buf,0);
+    int nsol = sol.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(sol[is]);
+    }
+    nsol = soll.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(soll[is]);
+    }
+    nsol = solr.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        buf.Write(solr[is]);
+    }
+    nsol = dsol.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        dsol[is].Write(buf,0);
+    }
+    nsol = dsoll.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        dsoll[is].Write(buf,0);
+    }
+    nsol = dsolr.size();
+    buf.Write(&nsol);
+    for (int is=0; is<nsol; is++) {
+        dsolr[is].Write(buf,0);
+    }
 	buf.Write(&HSize,1);
 	buf.Write(&detjac,1);
 	buf.Write(&leftdetjac,1);
@@ -190,12 +216,29 @@ void TPZMaterialData::Read(TPZStream &buf, void *context)
 	buf.Read(&p,1);
 	buf.Read(&leftp,1);
 	buf.Read(&rightp,1);
-	buf.Read(sol);
-	buf.Read(soll);
-	buf.Read(solr);
-	dsol.Read(buf,0);
-	dsoll.Read(buf,0);
-	dsolr.Read(buf,0);
+    int nsol;
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(sol[is]);
+    }
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(soll[is]);
+    }
+    buf.Read(&nsol,1);
+    for (int is=0; is<nsol; is++) {
+        buf.Read(solr[is]);
+    }
+    buf.Read(&nsol,1);
+    for (int is = 0; is<nsol; is++) {
+        dsol[is].Read(buf,0);
+    }
+    for (int is = 0; is<nsol; is++) {
+        dsoll[is].Read(buf,0);
+    }
+    for (int is = 0; is<nsol; is++) {
+        dsolr[is].Read(buf,0);
+    }
 	buf.Read(&HSize,1);
 	buf.Read(&detjac,1);
 	buf.Read(&leftdetjac,1);
@@ -371,9 +414,21 @@ void TPZMaterialData::Print(std::ostream &out) const
 	out << "sol " << sol << std::endl;
 	out << "soll " << soll << std::endl;
 	out << "solr " << solr << std::endl;
-	dsol.Print("dsol",out);
-	dsoll.Print("dsoll",out);
-	dsolr.Print("dsolr",out);
+    int nsol = dsol.size();
+    for (int is=0; is<nsol; is++) {
+        dsol[is].Print("dsol",out);
+
+    }
+    nsol = dsoll.size();
+    for (int is=0; is<nsol; is++) {
+        dsoll[is].Print("dsoll",out);
+        
+    }
+    nsol = dsolr.size();
+    for (int is=0; is<nsol; is++) {
+        dsolr[is].Print("dsolr",out);
+        
+    }
 	out << "HSize " << HSize << std::endl;
 	out << "detjac " << detjac << std::endl;
 	out << "leftdetjac " << leftdetjac << std::endl;
@@ -411,9 +466,24 @@ void TPZMaterialData::PrintMathematica(std::ostream &out) const
 	out << "sol = { " << sol << "};" << std::endl;
 	out << "soll = { " << soll << "};" << std::endl;
 	out << "solr = { " << solr << "};" << std::endl;
-	dsol.Print("dsol = ",out,EMathematicaInput);
-	dsoll.Print("dsoll = ",out,EMathematicaInput);
-	dsolr.Print("dsolr = ",out,EMathematicaInput);
+    int nsol=dsol.size();
+    for (int is=0; is<nsol; is++) {
+        std::stringstream sout;
+        sout << "dsol" << is << " = ";
+        dsol[is].Print(sout.str().c_str(),out,EMathematicaInput);
+    }
+    nsol=dsoll.size();
+    for (int is=0; is<nsol; is++) {
+        std::stringstream sout;
+        sout << "dsoll" << is << " = ";
+        dsoll[is].Print(sout.str().c_str(),out,EMathematicaInput);
+    }
+    nsol=dsolr.size();
+    for (int is=0; is<nsol; is++) {
+        std::stringstream sout;
+        sout << "dsolr" << is << " = ";
+        dsolr[is].Print(sout.str().c_str(),out,EMathematicaInput);
+    }
 	out << "HSize = " << HSize << ";" << std::endl;
 	out << "detjac = " << detjac << ";" << std::endl;
 	out << "leftdetjac =  " << leftdetjac << ";" << std::endl;

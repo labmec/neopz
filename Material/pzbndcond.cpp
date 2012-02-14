@@ -58,7 +58,7 @@ void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
  */
 //#endif
 
-void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump){
+void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
 	
 	if(!mat) return;
@@ -154,6 +154,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
 	 sout << __PRETTY_FUNCTION__ << "bc type " <<  fType << " x " << data.x;
 	 LOGPZ_DEBUG(logger,sout.str().c_str());
 	 }*/
+    int numbersol = data.sol.size();
 	int typetmp = fType;
 	if (fType == 50){
 		int i;
@@ -165,8 +166,10 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
 		}
 #endif
 		for (i = 0; i <data.sol.NElements(); i++){
-			fBCVal2(i,0) = gBigNumber*data.sol[i];
-			fBCVal1(i,i) = gBigNumber;
+            for (int is=0; is<numbersol; is++) {
+                fBCVal2(i,0) = gBigNumber*data.sol[is][i];
+                fBCVal1(i,i) = gBigNumber;
+            }
 		}
 		fType = 2;
 	}
@@ -206,7 +209,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 	this->UpdataBCValues(data);
-	
+	int numbersol = data.sol.size();
 	//clone meshes required analysis
 	int typetmp = fType;
 	if (fType == 50){
@@ -219,7 +222,9 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 		}
 #endif
 		for (i = 0; i <data.sol.NElements(); i++){
-			fBCVal2(i,0) = gBigNumber*data.sol[i];
+            for (int is=0; is<numbersol; is++) {
+                fBCVal2(i,0) = gBigNumber*data.sol[is][i];
+            }
 			fBCVal1(i,i) = gBigNumber;
 		}
 		fType = 2;

@@ -32,6 +32,7 @@
 #include "pzgengrid.h"
 #include "pzbndcond.h"
 #include "pzmaterial.h"
+#include "pzelmat.h"
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -82,7 +83,7 @@ int main()
 	}
 #endif
 	
-	for (int porder= 5; porder<6; porder++) {
+	for (int porder= 1; porder<2; porder++) {
 		
 		for(int h=1;h<6;h++){
 			
@@ -92,6 +93,28 @@ int main()
 			
 			TPZCompMeshReferred *cmesh = CreateMesh2d(*gmesh2,porder);//malha computacional
 			
+            /*
+            TPZCompEl *cel = cmesh->ElementVec()[0];
+            TPZManVector<int,5> subindex(4,-1);
+            int index;
+            cel->Divide(index , subindex);
+            cmesh->AdjustBoundaryElements();
+            cmesh->ExpandSolution();
+            cmesh->CleanUpUnconnectedNodes();
+            
+            TPZCreateApproximationSpace::MakeRaviartTomas(*cmesh);
+            TPZCompEl *cel = cmesh->ElementVec()[0];
+            TPZElementMatrix ek(cmesh,TPZElementMatrix::EK),ef(cmesh,TPZElementMatrix::EF);
+            cel->CalcStiff(ek, ef);
+            ek.ApplyConstraints();
+            */
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                cmesh->Print(sout);
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
 			int submeshindex = -1;
 			TPZSubCompMesh *submesh = 0;
 			// Aq faz a condensacao estatica			
@@ -314,7 +337,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 int SubStructure(TPZCompMesh *cmesh, int materialid)
 {
 	int index;
-	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh é inicializado com o parametro index que sera o numero de elementos computacionais da malha
+	TPZSubCompMesh *submesh = new TPZSubCompMesh(*cmesh,index);//alocacao de memoria...o constructor do tpzsubcompmesh eh inicializado com o parametro index que sera o numero de elementos computacionais da malha
 	
 	int nelem = cmesh->NElements();
 	int iel;

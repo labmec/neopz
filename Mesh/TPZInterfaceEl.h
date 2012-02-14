@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include "TPZCompElDisc.h"
+#include "pzmaterialdata.h"
 
 
 /**
@@ -73,7 +74,7 @@ public:
 	 * @param [out] dsol
 	 * @param [out] NeighborAxes
 	 */
-	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol, TPZFMatrix &NeighborAxes);
+	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix &NeighborAxes);
 	
 protected:
 	
@@ -256,8 +257,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-								 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -269,7 +270,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -279,7 +280,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
 	
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 	
@@ -329,7 +330,7 @@ public:
 	 * \f$ opt = 0 \f$ ->  Evaluates \f$ \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
 	 * \f$ opt = 1 \f$ ->  Evaluates \f$ Max { | leftsol - rightsol | } \f$
 	 */
-	void EvaluateInterfaceJump(TPZVec<REAL> &jump, int opt);
+	void EvaluateInterfaceJump(TPZSolVec &jump, int opt);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

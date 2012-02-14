@@ -106,62 +106,75 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 }//method
 
 template < class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-													   TPZFMatrix &dsol, TPZFMatrix &axes){
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+													   TPZGradSolVec&dsol, TPZFMatrix &axes)
+{
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<REAL> ThisSol(sol);
-	TPZFNMatrix<100> ThisDSol(dsol);
+	TPZManVector<TPZManVector<REAL,10>, 10> ThisSol(sol);
+	TPZManVector<TPZFNMatrix<30>, 10> ThisDSol(dsol);
 	
-	TPZManVector<REAL> OtherSol;
-	TPZFNMatrix<100> OtherDSol,OtherDSol2;
+	TPZManVector<TPZManVector<REAL,10>,10> OtherSol;
+	TPZManVector<TPZFNMatrix<30>,10> OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-	if(sol.NElements()){
-		AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
-	}
-	else if(OtherSol.NElements()){
-		OtherDSol2 = OtherDSol;
-		axes = otheraxes;
-	}
-	Append(ThisSol,OtherSol,sol);
-	Append(ThisDSol,OtherDSol2,dsol);
+    int numbersol = sol.size();
+    for (int is=0; is<numbersol; is++) {
+        if(sol[is].NElements()){
+            AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
+        }
+        else if(OtherSol[is].NElements()){
+            OtherDSol2[is] = OtherDSol[is];
+            axes = otheraxes;
+        }
+        Append(ThisSol[is],OtherSol[is],sol[is]);
+        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+    }
 }
 
 template < class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-													   TPZFMatrix &dsol, const TPZFMatrix &axes){
+void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+													   TPZGradSolVec&dsol, const TPZFMatrix &axes)
+{
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<REAL> ThisSol(sol);
-	TPZFNMatrix<100> ThisDSol(dsol);
+	TPZManVector<TPZManVector<REAL,10>, 10> ThisSol(sol);
+	TPZManVector<TPZFNMatrix<30>, 10> ThisDSol(dsol);
 	
-	TPZManVector<REAL> OtherSol;
-	TPZFNMatrix<100> OtherDSol,OtherDSol2;
+	TPZManVector<TPZManVector<REAL,10>,10> OtherSol;
+	TPZManVector<TPZFNMatrix<30>,10> OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
-	if(OtherSol.NElements() && ThisSol.NElements()){
-		AdjustSolutionDerivatives(OtherDSol,otheraxes,OtherDSol2,axes);
-	}
-	Append(ThisSol,OtherSol,sol);
-	Append(ThisDSol,OtherDSol2,dsol);
+    int numbersol = sol.size();
+    for (int is=0; is<numbersol; is++) {
+        if(sol[is].NElements()){
+            AdjustSolutionDerivatives(OtherDSol[is],otheraxes,OtherDSol2[is],axes);
+        }
+        else if(OtherSol[is].NElements()){
+            OtherDSol2[is] = OtherDSol[is];
+            //axes = otheraxes;
+        }
+        Append(ThisSol[is],OtherSol[is],sol[is]);
+        Append(ThisDSol[is],OtherDSol2[is],dsol[is]);
+    }
 }
 
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
                                                        TPZVec<REAL> &normal,
-                                                       TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
-                                                       TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+                                                       TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
+                                                       TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<REAL> ThisLeftSol(leftsol), ThisRightSol(rightsol);
-	TPZFNMatrix<100> ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
+	TPZManVector<TPZManVector<REAL,10>, 10> ThisLeftSol(leftsol), ThisRightSol(rightsol);
+	TPZManVector<TPZFNMatrix<30>, 10> ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
 	
-	TPZManVector<REAL> OtherLeftSol(0), OtherRightSol(0), OtherNormal(0);
-	TPZFNMatrix<100> OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
+	TPZManVector<TPZManVector<REAL,10>, 10> OtherLeftSol(0), OtherRightSol(0);
+    TPZManVector<REAL,3> OtherNormal(0);
+	TPZManVector<TPZFNMatrix<30>, 10> OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
 	TPZFNMatrix<9> OtherLeftAxes(3,3,0.), OtherRightAxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherNormal,
 						   OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
@@ -178,26 +191,28 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
 		}//if (normal.NElements() == 0)
 	}//if other has solution
 	
-	if(leftsol.NElements()){
-		AdjustSolutionDerivatives(OtherDLeftSol,OtherLeftAxes,OtherDLeftSol2,leftaxes);
-	}
-	else if(OtherLeftSol.NElements()){
-		OtherDLeftSol2 = OtherDLeftSol;
-		leftaxes = OtherLeftAxes;
-	}
+	int numbersol = ThisLeftSol.size();
+    for (int is=0; is<numbersol; is++) {
+        if(leftsol.NElements()){
+            AdjustSolutionDerivatives(OtherDLeftSol[is],OtherLeftAxes,OtherDLeftSol2[is],leftaxes);
+        }
+        else if(OtherLeftSol.NElements()){
+            OtherDLeftSol2[is] = OtherDLeftSol[is];
+            leftaxes = OtherLeftAxes;
+        }
 	
-	if(rightsol.NElements()){
-		AdjustSolutionDerivatives(OtherDRightSol,OtherRightAxes,OtherDRightSol2,rightaxes);
-	}
-	else if(OtherRightSol.NElements()){
-		OtherDRightSol2 = OtherDRightSol;
-		rightaxes = OtherRightAxes;
-	}
-	
-	Append(ThisLeftSol, OtherLeftSol, leftsol);
-	Append(ThisDLeftSol, OtherDLeftSol, dleftsol);
-	Append(ThisRightSol, OtherRightSol, rightsol);
-	Append(ThisDRightSol, OtherDRightSol, drightsol);
+        if(rightsol.NElements()){
+            AdjustSolutionDerivatives(OtherDRightSol[is],OtherRightAxes,OtherDRightSol2[is],rightaxes);
+        }
+        else if(OtherRightSol.NElements()){
+            OtherDRightSol2[is] = OtherDRightSol[is];
+            rightaxes = OtherRightAxes;
+        }
+        Append(ThisLeftSol[is], OtherLeftSol[is], leftsol[is]);
+        Append(ThisDLeftSol[is], OtherDLeftSol[is], dleftsol[is]);
+        Append(ThisRightSol[is], OtherRightSol[is], rightsol[is]);
+        Append(ThisDRightSol[is], OtherDRightSol[is], drightsol[is]);
+    }
 }
 
 template <  >
@@ -215,8 +230,8 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZFMatrix &phi,
                                                    TPZFMatrix &dphix,
                                                    const TPZFMatrix &axes,
-                                                   TPZVec<REAL> &sol,
-                                                   TPZFMatrix &dsol){
+                                                   TPZSolVec &sol,
+                                                   TPZGradSolVec &dsol){
 	TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
 	this->AppendOtherSolution(qsi, sol, dsol, axes);
 }//method
@@ -225,8 +240,8 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZVec<REAL> &normal,
-                                                   TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
-                                                   TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
+                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 	this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }

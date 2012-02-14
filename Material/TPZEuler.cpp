@@ -62,7 +62,12 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
@@ -171,7 +176,12 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;

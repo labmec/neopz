@@ -351,8 +351,8 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	if(gState == ECurrentState) stateVal = +1.;
 	
 	//pressao e saturacao
-	const BFadREAL po(data.sol[0],0);
-	const BFadREAL So(data.sol[1],1);
+	const BFadREAL po(data.sol[0][0],0);
+	const BFadREAL So(data.sol[0][1],1);
 	BFadREAL pc;
 	this->PressaoCapilar(So,pc);
 	const BFadREAL pw = po - pc;
@@ -405,10 +405,10 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	dist = sqrt(dist);
 	
 	//pressao e saturacao
-	const BFadREAL poL(data.soll[0],0);
-	const BFadREAL SoL(data.soll[1],1);
-	const BFadREAL poR(data.solr[0],2);
-	const BFadREAL SoR(data.solr[1],3);
+	const BFadREAL poL(data.soll[0][0],0);
+	const BFadREAL SoL(data.soll[0][1],1);
+	const BFadREAL poR(data.solr[0][0],2);
+	const BFadREAL SoR(data.solr[0][1],3);
 	
 	BFadREAL pcL,pcR;
 	this->PressaoCapilar(SoL,pcL);

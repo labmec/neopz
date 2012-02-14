@@ -47,8 +47,13 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 	TPZFMatrix &dphi = data.dphix;
 	TPZFMatrix &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
-	TPZVec<REAL> &sol=data.sol;
-	TPZFMatrix &dsol=data.dsol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
+	TPZFMatrix &dsol=data.dsol[0];
 	TPZFMatrix &axes=data.axes;
 	TPZFMatrix &jacinv=data.jacinv;
 	
@@ -183,8 +188,13 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 	TPZFMatrix &dphi = data.dphix;
 	TPZFMatrix &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
-	TPZVec<REAL> &sol=data.sol;
-	TPZFMatrix &dsol=data.dsol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
+	TPZFMatrix &dsol=data.dsol[0];
 	TPZFMatrix &axes=data.axes;
 	TPZFMatrix &jacinv=data.jacinv;
 	
@@ -293,7 +303,12 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
                                          TPZFMatrix &ef,
                                          TPZBndCond &bc){
 	TPZFMatrix &phi = data.phi;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
 	TPZFMatrix &axes=data.axes;
 	
 	int phr = phi.Rows();
@@ -379,10 +394,15 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
 	TPZFMatrix &phiL = data.phil;
 	TPZFMatrix &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
-	TPZVec<REAL> &solL=data.soll;
-	TPZVec<REAL> &solR=data.solr;
-	TPZFMatrix &dsolL=data.dsoll;
-	TPZFMatrix &dsolR=data.dsolr;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &solL=data.soll[0];
+	TPZVec<REAL> &solR=data.solr[0];
+	TPZFMatrix &dsolL=data.dsoll[0];
+	TPZFMatrix &dsolR=data.dsolr[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolR);
@@ -533,8 +553,13 @@ void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data,
 	TPZFMatrix &dphiL = data.dphixl;
 	TPZFMatrix &phiL = data.phil;
 	TPZManVector<REAL,3> &normal = data.normal;
-	TPZVec<REAL> &solL=data.soll;
-	TPZFMatrix &dsolL=data.dsoll;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &solL=data.soll[0];
+	TPZFMatrix &dsolL=data.dsoll[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolL);

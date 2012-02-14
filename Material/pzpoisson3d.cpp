@@ -493,7 +493,11 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	TPZVec<REAL> pto(3);
 	TPZFMatrix flux(3,1);
 	
-	
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	
 	switch (var) {
 		case 8:
@@ -502,21 +506,21 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 		case 10:
 			if (data.numberdualfunctions) {
 				
-				Solout[0]=data.sol[0];
-				Solout[1]=data.sol[1];
+				Solout[0]=data.sol[0][0];
+				Solout[1]=data.sol[0][1];
 				
 			}
 			else {
-				this->Solution(data.sol, data.dsol, data.axes, 2, Solout);
+				this->Solution(data.sol[0], data.dsol[0], data.axes, 2, Solout);
 			}
 			
 			break;
 		case 11:
 			if (data.numberdualfunctions) {
-				Solout[0]=data.sol[2];
+				Solout[0]=data.sol[0][2];
 			}
 			else{
-				Solout[0]=data.sol[0];
+				Solout[0]=data.sol[0][0];
 			}
 			break;
 			
@@ -539,11 +543,11 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				Solout[1]=flux(1,0);
 				break;
 			case 14:
-				Solout[0]=data.sol[data.sol.NElements()-1];
+				Solout[0]=data.sol[0][data.sol[0].NElements()-1];
 				break;
 			case 16:
 				if (data.numberdualfunctions) {
-					Solout[0]=data.sol[2];
+					Solout[0]=data.sol[0][2];
 				}
 				else {
 					std::cout<<"Pressao somente em Omega1"<<std::endl;
@@ -553,7 +557,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				break;
 			case 17:
 				if (!data.numberdualfunctions) {
-					Solout[0]=data.sol[0];
+					Solout[0]=data.sol[0][0];
 				}
 				else {
 					std::cout<<"Pressao somente em omega2"<<std::endl;
@@ -563,8 +567,8 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				break;
 			case 18:
 				if( data.numberdualfunctions){
-					Solout[0]=data.sol[0];//fluxo de omega1
-					Solout[1]=data.sol[1];
+					Solout[0]=data.sol[0][0];//fluxo de omega1
+					Solout[1]=data.sol[0][1];
 					//	Solout[2]=data.sol[2];
 					return;
 				}
@@ -579,7 +583,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 			default:
 				break;
 			
-		this->Solution(data.sol, data.dsol, data.axes, var, Solout);	
+		this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);	
 			
 	}
 	
@@ -720,15 +724,18 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	
 }
 
-void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump){
-	jump.Resize(1);
-	if(bc.Type() == 0){ //DIRICHLET
-		REAL f = bc.Val2()(0,0);
-		jump[0] = leftu[0] - f;
-	}
-	else{
-		jump.Fill(0.);
-	}
+void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump){
+    int numbersol = leftu.size();
+    for (int is=0; is<numbersol ; is++) {
+        jump[is].Resize(1);
+        if(bc.Type() == 0){ //DIRICHLET
+            REAL f = bc.Val2()(0,0);
+            jump[is][0] = leftu[is][0] - f;
+        }
+        else{
+            jump[is].Fill(0.);
+        }
+    }
 }//method
 
 #ifdef _AUTODIFF

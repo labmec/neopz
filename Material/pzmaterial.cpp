@@ -133,7 +133,11 @@ int TPZMaterial::NSolutionVariables(int index) {
 }
 
 void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
-	this->Solution(data.sol, data.dsol, data.axes, var, Solout);
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);
 }
 
 void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
@@ -265,6 +269,10 @@ int TPZMaterial::ClassId() const
  */
 void TPZMaterial::Write(TPZStream &buf, int withclassid)
 {
+    if(ClassId() == TPZMATERIALID)
+    {
+        DebugStop();
+    }
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write(&fId,1);
 	buf.Write(&gBigNumber,1);

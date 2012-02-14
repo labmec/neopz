@@ -20,6 +20,13 @@
  * @since April 10, 2007
  */
 
+/// Represent the state variables of a finite element approximation
+typedef TPZManVector<REAL, 10> TPZFemSol;
+/// Represents the gradient of a state variable of a finite element approximation
+typedef TPZFNMatrix<30> TPZFemGradSol;
+typedef TPZVec<TPZFemSol > TPZSolVec;
+typedef TPZVec<TPZFemGradSol > TPZGradSolVec;
+
 
 class TPZMaterialData : public TPZSaveable {
 	
@@ -40,8 +47,8 @@ public:
 	TPZManVector<REAL,3> normal;
 	TPZManVector<REAL,3> x;
 	int p, leftp, rightp;
-	TPZManVector<REAL,10> sol, soll, solr;
-	TPZFNMatrix<30> dsol, dsoll, dsolr;
+	TPZManVector<TPZFemSol, 10> sol, soll, solr;
+	TPZManVector<TPZFemGradSol, 10> dsol, dsoll, dsolr;
 	REAL HSize;
 	REAL detjac, leftdetjac, rightdetjac;
 	TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;

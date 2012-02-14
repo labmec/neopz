@@ -455,12 +455,16 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	TPZVec<REAL> SolU, SolP;
 	TPZFMatrix DSolU, DSolP;
 	TPZFMatrix axesU, axesP;
+    
+    if (datavec[0].sol.size() != 1) {
+        DebugStop();
+    }
 	
-	SolU=datavec[0].sol;
-	DSolU=datavec[0].dsol;
+	SolU=datavec[0].sol[0];
+	DSolU=datavec[0].dsol[0];
 	axesU=datavec[0].axes;
-	SolP=datavec[1].sol;
-	DSolP=datavec[1].dsol;
+	SolP=datavec[1].sol[0];
+	DSolP=datavec[1].dsol[0];
 	axesP=datavec[1].axes;
 	
 	//function (state variable u)

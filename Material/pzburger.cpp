@@ -198,13 +198,18 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
 	// TPZFMatrix &dphi = data.dphix;
 	// TPZFMatrix &dphiL = data.dphixl;
 	// TPZFMatrix &dphiR = data.dphixr;
+    int numbersol = data.sol.size();
+    if(numbersol != 1)
+    {
+        DebugStop();
+    }
 	TPZFMatrix &phi = data.phi;
 	// TPZFMatrix &phiL = data.phil;
 	// TPZFMatrix &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
-	TPZVec<REAL> &sol=data.sol;
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
@@ -292,6 +297,10 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data,
                                     TPZFMatrix &ek,
                                     TPZFMatrix &ef){
 	// TPZFMatrix &dphi = data.dphix;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
 	TPZFMatrix &dphiL = data.dphixl;
 	TPZFMatrix &dphiR = data.dphixr;
 	// TPZFMatrix &phi = data.phi;
@@ -301,11 +310,11 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data,
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll;
-	TPZVec<REAL> &solR=data.solr;
+	TPZVec<REAL> &solL=data.soll[0];
+	TPZVec<REAL> &solR=data.solr[0];
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll;
-	TPZFMatrix &dsolR=data.dsolr;
+	TPZFMatrix &dsolL=data.dsoll[0];
+	TPZFMatrix &dsolR=data.dsolr[0];
 	// REAL &faceSize=data.HSize;
 	// TPZFMatrix &axes=data.axes;
 	
@@ -456,6 +465,10 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data,
                                       TPZFMatrix &ek,
                                       TPZFMatrix &ef,
                                       TPZBndCond &bc) {
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
 	// TPZFMatrix &dphi = data.dphix;
 	TPZFMatrix &dphiL = data.dphixl;
 	// TPZFMatrix &dphiR = data.dphixr;
@@ -466,10 +479,10 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data,
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll;
+	TPZVec<REAL> &solL=data.soll[0];
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll;
+	TPZFMatrix &dsolL=data.dsoll[0];
 	// TPZFMatrix &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
 	// TPZFMatrix &axes=data.axes;

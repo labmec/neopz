@@ -61,7 +61,12 @@ void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	TPZFMatrix &dsol=data.dsol;
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZFMatrix &dsol=data.dsol[0];
 	// TPZFMatrix &dsolL=data.dsoll;
 	// TPZFMatrix &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
@@ -191,11 +196,16 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data,
 	int LeftPOrder=data.leftp;
 	int RightPOrder=data.rightp;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll;
-	TPZVec<REAL> &solR=data.solr;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &solL=data.soll[0];
+	TPZVec<REAL> &solR=data.solr[0];
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll;
-	TPZFMatrix &dsolR=data.dsolr;
+	TPZFMatrix &dsolL=data.dsoll[0];
+	TPZFMatrix &dsolR=data.dsolr[0];
 	REAL faceSize=data.HSize;
 	
 	int nrowl = phiL.Rows();
@@ -631,10 +641,15 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data,
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &solL=data.soll[0];
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll;
+	TPZFMatrix &dsolL=data.dsoll[0];
 	// TPZFMatrix &dsolR=data.dsolr;
 	REAL faceSize=data.HSize;
 	

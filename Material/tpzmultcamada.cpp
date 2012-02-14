@@ -30,8 +30,8 @@ void TPZMultCamada::Solution(TPZVec < REAL > & Sol, TPZFMatrix & DSol, TPZFMatri
 		Solout.Resize(3);
 		for (j = 0; j < 3; j++) Ma[j] = 0.;
 		TPZMaterialData data;
-		data.sol = Sol;
-		data.dsol = DSol;
+		data.sol[0] = Sol;
+		data.dsol[0] = DSol;
 		data.axes = axes;
 		for (i = 0; i < fCamadas.NElements(); i++) {
 			if(var < 54) fCamadas[i]->Solution(data, 50, SoloutAcc);

@@ -115,7 +115,7 @@ public:
   * @param dsol solution derivatives
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+                               const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 
  /**
   * Avoids the calling of the TPZCompElReferred::ComputeSolution wich would attempt to
@@ -135,8 +135,8 @@ public:
   */
   virtual void ComputeSolution(TPZVec<REAL> &qsi,
                              TPZVec<REAL> &normal,
-                             TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                             TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+                             TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+                             TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
 
 	
   /**
@@ -468,16 +468,16 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZFMatrix &phi,
                                                    TPZFMatrix &dphix,
                                                    const TPZFMatrix &axes,
-                                                   TPZVec<REAL> &sol,
-                                                   TPZFMatrix &dsol){
+                                                   TPZSolVec &sol,
+                                                   TPZGradSolVec &dsol){
   TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
 }//method
 
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZVec<REAL> &normal,
-                                                   TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
-                                                   TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
+                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
   TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 

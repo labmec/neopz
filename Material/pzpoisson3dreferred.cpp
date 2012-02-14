@@ -61,8 +61,12 @@ void TPZMatPoisson3dReferred::Contribute(TPZMaterialData &data,
                                          REAL weight,
                                          TPZFMatrix &ek, 
                                          TPZFMatrix &ef){
-	
-	this->SetConvectionTerm(data.dsol, data.axes);
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	this->SetConvectionTerm(data.dsol[0], data.axes);
 	TPZMatPoisson3d::Contribute(data, weight, ek, ef);
 }
 
@@ -78,8 +82,13 @@ void TPZMatPoisson3dReferred::ContributeInterface(TPZMaterialData &data,
                                                   REAL weight,
                                                   TPZFMatrix &ek,
                                                   TPZFMatrix &ef){
-	TPZFMatrix dsolL=data.dsoll;
-	TPZFMatrix dsolR=data.dsolr;
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZFMatrix dsolL=data.dsoll[0];
+	TPZFMatrix dsolR=data.dsolr[0];
 	this->SetConvectionTerm(dsolL, dsolR);
 	TPZMatPoisson3d::ContributeInterface(data, weight, ek, ef);
 }
@@ -89,6 +98,11 @@ void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data,
                                                     TPZFMatrix &ek,
                                                     TPZFMatrix &ef,
                                                     TPZBndCond &bc){
-	this->SetConvectionTerm(data.dsoll, data.dsoll);
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	this->SetConvectionTerm(data.dsoll[0], data.dsoll[0]);
 	TPZMatPoisson3d::ContributeBCInterface(data, weight,  ek, ef, bc);
 }

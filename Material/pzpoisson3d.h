@@ -251,7 +251,7 @@ public:
 	 * @return Returns sol-u_dirichlet
 	 * @since Mar 08, 2006
 	 */
-	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
+	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
 	
 	virtual int IsInterfaceConservative(){ return 1;}
 	

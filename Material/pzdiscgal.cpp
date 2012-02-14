@@ -45,20 +45,23 @@ int TPZDiscontinuousGalerkin::IsInterfaceConservative(){
 }
 
 void TPZDiscontinuousGalerkin::InterfaceJump(TPZVec<REAL> &x, 
-											 TPZVec<REAL> &leftu,
-											 TPZVec<REAL> &rightu,
-											 TPZVec<REAL> &jump){
-	const int n = leftu.NElements();
-	jump.Resize(n);
-	for(int i = 0; i < n; i++){
-		jump[i] = leftu[i] - rightu[i];
-	}
+											 TPZSolVec &leftu,
+											 TPZSolVec &rightu,
+											 TPZSolVec &jump){
+    int numbersol = leftu.size();
+    for (int is=0; is<numbersol; is++) {
+        const int n = leftu[is].NElements();
+        jump[is].Resize(n);
+        for(int i = 0; i < n; i++){
+            jump[is][i] = leftu[is][i] - rightu[is][i];
+        }
+    }
 }
 
 void TPZDiscontinuousGalerkin::BCInterfaceJump(TPZVec<REAL> &x, 
-                                               TPZVec<REAL> &leftu,
+                                               TPZSolVec &leftu,
                                                TPZBndCond &bc,
-                                               TPZVec<REAL> & jump){
+                                               TPZSolVec & jump){
 	PZError << __PRETTY_FUNCTION__ << " - method not implemented in derived class" << std::endl;
 	DebugStop();
 }

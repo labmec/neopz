@@ -128,8 +128,11 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 	data.jacinv.Redim(dim,dim);
 	data.x.Resize(3);
 	if (data.fNeedsSol){
-		data.sol.Resize(nstate);
-		data.dsol.Redim(dim,nstate);
+        int nsol = data.sol.size();
+        for (int is=0; is<nsol; is++) {
+            data.sol[is].Resize(nstate);
+            data.dsol[is].Redim(dim,nstate);            
+        }
 	}
 }//void
 
@@ -427,10 +430,6 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 	const int numdof = material->NStateVariables();
 	TPZMaterialData data;
 	data.p = this->MaxOrder();
-	data.sol.Resize(numdof);
-	data.sol.Fill(0.);
-	data.dsol.Redim(dim,numdof);
-	data.dsol.Zero();
 	data.axes.Redim(dim,3);
 	data.axes.Zero();
 	this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
@@ -500,8 +499,10 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	TPZFNMatrix<9> axes(3,3,0.), coarseaxes(3,3,0.);
 	REAL zero = 0.;
 	TPZManVector<REAL,3> x(3,zero);
-	TPZManVector<REAL,10> u(nvar);
-	TPZFNMatrix<30> du(dimension,nvar);
+	TPZManVector<TPZManVector<REAL,10>, 10> u(1);
+    u[0].resize(nvar);
+	TPZManVector<TPZFNMatrix<30>, 10> du(1);
+    du[0].Redim(dimension,nvar);
 	
 	int numintpoints = intrule->NPoints();
 	REAL weight;
@@ -522,7 +523,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 				loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
 			}
 			for(cjn=0; cjn<nvar; cjn++) {
-				projectmat(lin,cjn) += weight*locphi(lin,0)*u[cjn];
+				projectmat(lin,cjn) += weight*locphi(lin,0)*u[0][cjn];
 			}
 		}
 		jacobian.Zero();
@@ -970,7 +971,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<
 			}
 			else{
 				this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-				material->Errors(data.x,data.sol,data.dsol,data.axes,flux_el,u_exact,du_exact,values);
+				material->Errors(data.x,data.sol[0],data.dsol[0],data.axes,flux_el,u_exact,du_exact,values);
 			}
 			
 			//	std::cout<<"erro depois de Hdiv 2 "<<values<<std::endl;
@@ -1052,13 +1053,13 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 	for(ip=0;ip<npoints;ip++){
 		intrule.Point(ip,intpoint,weight);
 		data.sol.Fill(0.);
-		this->Solution(intpoint, variable, data.sol);
+		this->Solution(intpoint, variable, data.sol[0]);
 		//Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
 		//       It means that the next call would not be necessary if I wrote the whole code here.
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++){
-			value[iv] += data.sol[iv]*weight;
+			value[iv] += data.sol[0][iv]*weight;
 		}//for iv
 	}//for ip
 }//method
@@ -1094,7 +1095,7 @@ void TPZInterpolationSpace::IntegrateSolution(TPZVec<REAL> & value){
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++){
-			value[iv] += data.sol[iv]*weight;
+			value[iv] += data.sol[0][iv]*weight;
 		}//for iv
 	}//for ip
 }//method
@@ -1142,7 +1143,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 		weight *= fabs(data.detjac);
 		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		
-		material->Flux(data.x,data.sol,data.dsol,data.axes,flux);
+		material->Flux(data.x,data.sol[0],data.dsol[0],data.axes,flux);
 		for(int in=0; in<nshape; in++){
 			for(int ifl=0; ifl<num_flux; ifl++){
 				(ef.fMat)(in,ifl) += flux[ifl]*data.phi(in,0)*weight;
@@ -1174,23 +1175,23 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
 	TPZManVector<int,3> maxorder(dim,intrule->GetMaxOrder());
 	intrule->SetOrder(maxorder);
 	
-	TPZManVector<REAL,10> sol;
-	TPZFNMatrix<30> dsol;
+	TPZManVector<TPZManVector<REAL,10>, 10> sol;
+	TPZManVector<TPZFNMatrix<30>, 10> dsol;
 	TPZFNMatrix<9> axes(3,3,0.);
 	REAL weight;
 	
 	int intrulepoints = intrule->NPoints();
 	intrule->Point(0,intpoint,weight);
 	this->ComputeSolution(intpoint, sol, dsol, axes);
-	min = sol;
-	max = sol;
+	min = sol[0];
+	max = sol[0];
 	const int nvars = sol.NElements();
 	for(int int_ind = 1; int_ind < intrulepoints; int_ind++){
 		intrule->Point(int_ind,intpoint,weight);
 		this->ComputeSolution(intpoint, sol, dsol, axes);
 		for(int iv = 0; iv < nvars; iv++){
-			if (sol[iv] < min[iv]) min[iv] = sol[iv];
-			if (sol[iv] > max[iv]) max[iv] = sol[iv];
+			if (sol[0][iv] < min[iv]) min[iv] = sol[0][iv];
+			if (sol[0][iv] > max[iv]) max[iv] = sol[0][iv];
 		}//iv
 	}//loop over integratin points
 	

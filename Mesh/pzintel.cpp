@@ -1920,7 +1920,7 @@ void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 }
 
 
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes){
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
 	
 	const int nshape = this->NShapeF();
 	TPZGeoEl * ref = this->Reference();
@@ -1968,18 +1968,24 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &so
 }//method
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-											 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+											 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
+    TPZFMatrix &MeshSol = Mesh()->Solution();
+    int numbersol = MeshSol.Cols();
+    sol.Resize(numbersol);
+    dsol.Resize(numbersol);
 	
-    sol.Resize(numdof);
-    sol.Fill(0.);
-    dsol.Redim(dim, numdof);
-    dsol.Zero();
+    for (int is=0 ; is<numbersol; is++) {
+        sol[is].Resize(numdof);
+        sol[is].Fill(0.);
+        dsol[is].Redim(dim, numdof);
+        dsol[is].Zero();
+        
+    }
 	
     TPZBlock &block = Mesh()->Block();
-    TPZFMatrix &MeshSol = Mesh()->Solution();
     int iv = 0, d;
     for(int in=0; in<ncon; in++) {
 		TPZConnect *df = &this->Connect(in);
@@ -1987,10 +1993,12 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
 		int dfvar = block.Size(dfseq);
 		int pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
-			sol[iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,0);
-			for(d=0; d<dim; d++){
-				dsol(d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,0);
-			}
+            for (int is=0; is<numbersol; is++) {
+                sol[is][iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,is);                
+                for(d=0; d<dim; d++){
+                    dsol[is](d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,is);
+                }
+            }
 			iv++;
 		}
     }
@@ -1998,14 +2006,14 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
 											 TPZVec<REAL> &normal,
-											 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-											 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+											 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+											 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	//TPZInterpolatedElement has no left/right elements. Only interface elements have it.
 	leftsol.Resize(0);
-	dleftsol.Resize(0,0);
+	dleftsol.Resize(0);
 	leftaxes.Zero();
 	rightsol.Resize(0);
-	drightsol.Resize(0,0);
+	drightsol.Resize(0);
 	rightaxes.Zero();
 	normal.Resize(0);
 }//method

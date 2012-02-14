@@ -7,15 +7,16 @@
 #ifndef PZSPECIAL
 #define PZSPECIAL
 
-class TPZElementMatrix;
+struct TPZElementMatrix;
 class TPZCompEl;
 class TPZInterpolatedElement;
 class TPZCompElDisc;
 class TPZGeoEl;
 class TPZCompMesh;
-class TPZFMatrix;
+#include "pzfmatrix.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
+#include "pzmaterialdata.h"
 #include <map>
 #include <set>
 
@@ -58,7 +59,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -76,8 +77,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-								 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
 	
 	/**
 	 * @brief Prints element data
@@ -88,17 +89,17 @@ public:
 protected:
 	
 	/** @brief Append solution of the referred element. */
-	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-							 TPZFMatrix &dsol,  TPZFMatrix &axes);
+	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+							 TPZGradSolVec &dsol,  TPZFMatrix &axes);
 	
 	/** @brief Append solution of the referred element. */
-	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol,
-							 TPZFMatrix &dsol,  const TPZFMatrix &axes);
+	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
+							 TPZGradSolVec &dsol,  const TPZFMatrix &axes);
 	
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &normal,
-							 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol, TPZFMatrix &leftaxes,
-							 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes);
+							 TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
+							 TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
 };
 
 /** @brief Adjust the derivatives from one system of axes to the other */

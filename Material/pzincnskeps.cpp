@@ -86,7 +86,11 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
                                         TPZFMatrix &ek,
                                         TPZFMatrix &ef){
 	
-	
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	TPZFMatrix &dphi = data.dphix;
 	// TPZFMatrix &dphiL = data.dphixl;
 	// TPZFMatrix &dphiR = data.dphixr;
@@ -98,10 +102,10 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	TPZFMatrix &dsol=data.dsol;
+	TPZFMatrix &dsol=data.dsol[0];
 	// TPZFMatrix &dsolL=data.dsoll;
 	// TPZFMatrix &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;

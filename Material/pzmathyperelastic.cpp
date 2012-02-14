@@ -67,7 +67,11 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	TPZFMatrix &dsol=data.dsol;
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	TPZFMatrix &dsol=data.dsol[0];
 	// TPZFMatrix &dsolL=data.dsoll;
 	// TPZFMatrix &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
@@ -486,7 +490,11 @@ void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	//TPZFMatrix &dsol=data.dsol;

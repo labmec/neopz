@@ -21,7 +21,13 @@ void TPZThermicElast3D::Contribute(TPZMaterialData &data,
 								   TPZFMatrix &ef){
 	
 	TPZElasticity3D::Contribute(data, weight, ek, ef);
-	this->ContributeThermalStress(data.sol, data.phi, data.dphix, weight, ef);
+    
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	this->ContributeThermalStress(data.sol[0], data.phi, data.dphix, weight, ef);
 }
 
 void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ef){

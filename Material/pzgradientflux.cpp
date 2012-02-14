@@ -31,6 +31,11 @@ void TPZGradientFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, const 
 }//void
 
 void TPZGradientFlux::ApplyLimiter(TPZMaterialData &data){
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	const int nstate = 5;
 	const int dim = 3;
 	TPZManVector<REAL,dim> dL(dim), dR(dim);
@@ -42,10 +47,10 @@ void TPZGradientFlux::ApplyLimiter(TPZMaterialData &data){
 	TPZManVector<REAL,dim> gradL(3), gradR(3);
 	for(int is = 0; is < nstate; is++){
 		for(int id = 0; id < dim; id++){
-			gradL[id] = data.soll[ nstate + is*dim +id ];
-			gradR[id] = data.solr[ nstate + is*dim +id ];
+			gradL[id] = data.soll[0][ nstate + is*dim +id ];
+			gradR[id] = data.solr[0][ nstate + is*dim +id ];
 		}//for id
-		this->ApplyVanAlbadaLimiter(data.soll[is], data.solr[is], gradL, gradR, data.normal, dL, dR);
+		this->ApplyVanAlbadaLimiter(data.soll[0][is], data.solr[0][is], gradL, gradR, data.normal, dL, dR);
 		//     this->ApplyMinModLimiter(data.soll[is], data.solr[is], gradL, gradR, data.normal, dL, dR);
 	}//for is
 }//void

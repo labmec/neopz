@@ -54,7 +54,11 @@ void TPZCoupledTransportDarcy::ContributeInterface(TPZMaterialData &data,
 												   REAL weight,
 												   TPZFMatrix &ek,
 												   TPZFMatrix &ef){
-	this->UpdateConvectionDirInterface(data.dsoll, data.dsolr);
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	this->UpdateConvectionDirInterface(data.dsoll[0], data.dsolr[0]);
 	this->GetCurrentMaterial()->ContributeInterface(data, weight, ek, ef);
 }
 
@@ -63,14 +67,22 @@ void TPZCoupledTransportDarcy::ContributeBCInterface(TPZMaterialData &data,
 													 TPZFMatrix &ek,
 													 TPZFMatrix &ef,
 													 TPZBndCond &bc){
-	this->UpdateConvectionDir(data.dsoll); 
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	this->UpdateConvectionDir(data.dsoll[0]); 
 	this->GetCurrentMaterial()->ContributeBCInterface( data, weight, ek, ef, bc );
 }
 
 void TPZCoupledTransportDarcy::Contribute(TPZMaterialData &data,
                                           REAL weight,
                                           TPZFMatrix &ek,TPZFMatrix &ef) {
-	this->UpdateConvectionDir(data.dsol);
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	this->UpdateConvectionDir(data.dsol[0]);
 	this->GetCurrentMaterial()->Contribute(data, weight, ek, ef);
 }
 
@@ -94,8 +106,10 @@ int TPZCoupledTransportDarcy::NSolutionVariables(int var){
 void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
 										int var,TPZVec<REAL> &Solout){
 	TPZMaterialData data;
-	data.sol = Sol;
-	data.dsol = DSol;
+    data.sol.Resize(1);
+    data.dsol.Resize(1);
+	data.sol[0] = Sol;
+	data.dsol[0] = DSol;
 	data.axes = axes;
 	return this->GetCurrentMaterial()->Solution(data, var, Solout);
 }//method

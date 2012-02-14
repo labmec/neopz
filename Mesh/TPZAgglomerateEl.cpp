@@ -194,6 +194,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	int nshape = NShapeF();
 	TPZBlock &block = Mesh()->Block();
 	TPZFMatrix &MeshSol = Mesh()->Solution();
+    int numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
 	
 	
@@ -227,9 +228,11 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		data.x[2] = points[3*ip+2];
 		weight = weights[ip];
 		ShapeX(data.x,data.phi,data.dphix);
-		//solu� da itera� anterior
-		data.sol.Fill(0.);
-		data.dsol.Zero();
+		//solucao da iteracao anterior
+        for (int is=0; is<numbersol; is++) {
+            data.sol[is].Fill(0.);
+            data.dsol[is].Zero();
+        }
 		for(int in=0; in<ncon; in++) {
 			TPZConnect *df = &Connect(in);
 			int dfseq = df->SequenceNumber();
@@ -237,8 +240,10 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 			int pos = block.Position(dfseq);
 			int iv = 0,d;
 			for(int jn=0; jn<dfvar; jn++) {
-				data.sol[iv%nstate] += data.phi(iv/nstate,0)*MeshSol(pos+jn,0);
-				for(d=0; d<dim; d++) data.dsol(d,iv%nstate) += data.dphix(d,iv/nstate)*MeshSol(pos+jn,0);
+                for (int is=0; is<numbersol; is++) {
+                    data.sol[is][iv%nstate] += data.phi(iv/nstate,0)*MeshSol(pos+jn,is);
+                    for(d=0; d<dim; d++) data.dsol[is](d,iv%nstate) += data.dphix(d,iv/nstate)*MeshSol(pos+jn,is);
+                }
 				iv++;
 			}
 		}

@@ -101,7 +101,7 @@ public :
 	 * @brief Computes interface jump = leftu - rightu
 	 * @since Feb 14, 2006
 	 */
-	virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
+	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump);
 	
 	
 	/** 
@@ -109,7 +109,7 @@ public :
 	 * It has to reimplemented
 	 * @since Mar 08, 2006
 	 */
-	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZBndCond &bc,TPZVec<REAL> & jump);
+	virtual void BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCond &bc,TPZSolVec & jump);
 	
 	
 	virtual int NStateVariables() = 0;

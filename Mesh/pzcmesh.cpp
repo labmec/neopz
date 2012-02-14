@@ -1957,7 +1957,7 @@ int TPZCompMesh::ClassId() const
 void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 {
 	TPZSaveable::Write(buf,withclassid);
-	Reference()->Write(buf,1);
+	//Reference()->Write(buf,1);
 	buf.Write(&fName,1);
 	buf.Write(&fDimModel,1);
 	TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
@@ -1976,6 +1976,19 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	}
 	WriteObjectPointers<TPZMaterial>(buf,temp2);
 	WriteObjectPointers<TPZMaterial>(buf,temp1);
+    
+    {
+        static int count = 0;
+        count++;
+        if(count ==2)
+        {
+            TPZFileStream writeCrude;
+            writeCrude.OpenWrite("../Vertical.txt");
+            Write(writeCrude,0);
+            std::ofstream out2("../Check.txt");
+            Print(out2);            
+        }
+    }
 	WriteObjectPointers<TPZCompEl>(buf,fElementVec);
 	fSolution.Write(buf,0);
 	fSolutionBlock.Write(buf,0);
@@ -1996,9 +2009,9 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	}
 	TPZSaveable::Read(buf,context);
 	TPZGeoMesh *gmesh;
-	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
-	gmesh = dynamic_cast<TPZGeoMesh *>(obj);
-	context = gmesh;
+//	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
+	gmesh = (TPZGeoMesh *)(context);
+//	context = gmesh;
     {
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " calling load references";
@@ -2085,6 +2098,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous){
 	const int nelements = this->NElements();
 	celJumps.Resize(nelements);
+    int numbersol = Solution().Cols();
 	TPZVec<TPZCompEl*> AllCels(nelements);
 	AllCels.Fill(NULL);
 	celJumps.Fill(0.0);
@@ -2097,7 +2111,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 			AllCels[i] = cel;
 			continue;
 		}
-		TPZManVector<REAL> facejump;
+		TPZManVector<TPZFemSol> facejump;
 		face->EvaluateInterfaceJump(facejump,opt);
 		const int leftel  = face->LeftElement()->Index();
 		const int rightel = face->RightElement()->Index();
@@ -2113,9 +2127,11 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 #endif
 		
 		double jumpNorm = 0.;
-		for(int ij = 0; ij < facejump.NElements(); ij++){
-			jumpNorm += facejump[ij]*facejump[ij];
-		}
+        for (int is=0; is<numbersol; is++) {
+            for(int ij = 0; ij < facejump.NElements(); ij++){
+                jumpNorm += facejump[is][ij]*facejump[is][ij];
+            }
+        }
 		jumpNorm = sqrt(jumpNorm);
 		
 		celJumps[leftel] += jumpNorm;

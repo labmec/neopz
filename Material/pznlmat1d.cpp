@@ -92,7 +92,11 @@ void TPZNLMat1d::Contribute(TPZMaterialData &data,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
@@ -234,7 +238,11 @@ void TPZNLMat1d::Contribute(TPZMaterialData &data,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;

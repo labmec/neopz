@@ -56,10 +56,10 @@ private:
 		//int POrder=data.p;
 		//int LeftPOrder=data.leftp;
 		//int RightPOrder=data.rightp;
-		TPZVec<REAL> &sol=data.sol;
+		TPZVec<REAL> &sol=data.sol[0];
 		// TPZVec<REAL> &solL=data.soll;
 		// TPZVec<REAL> &solR=data.solr;
-		TPZFMatrix &dsol=data.dsol;
+		TPZFMatrix &dsol=data.dsol[0];
 		// TPZFMatrix &dsolL=data.dsoll;
 		// TPZFMatrix &dsolR=data.dsolr;
 		//REAL faceSize=data.HSize;
@@ -90,8 +90,8 @@ private:
 			TPZMaterialData data;
 			data.x = x;
 			data.jacinv = jacinv;
-			data.sol = sol;
-			data.dsol = dsol;
+			data.sol[0] = sol;
+			data.dsol[0] = dsol;
 			data.axes = axes;
 			data.phi = phi;
 			data.dphix = dphi;

@@ -16,6 +16,7 @@
 #include "pzgeoel.h"
 #include "pzsave.h"
 #include "pzcreateapproxspace.h"
+#include "pzmaterialdata.h"
 //#include "pzmaterial.h"
 
 
@@ -388,7 +389,7 @@ public:
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
 	virtual void ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data)	{
-		std::cout <<"Imposed for Hdiv spolution ";
+		std::cout <<"Imposed for Hdiv solution ";
 		DebugStop();
 	};
 	
@@ -400,7 +401,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix &axes) = 0;
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes) = 0;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -416,8 +417,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-								 TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes) = 0;
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes) = 0;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -429,7 +430,7 @@ public:
 	 * @param dsol solution derivatives
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol) = 0;
+								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol) = 0;
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects

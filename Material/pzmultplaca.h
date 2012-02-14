@@ -19,7 +19,11 @@ public:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
-		Solution(data.sol,data.dsol,data.axes,var,Solout);
+        int numbersol = data.sol.size();
+        if (numbersol != 1) {
+            DebugStop();
+        }
+		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
 	
 	TPZMultPlaca(int num, REAL h, TPZVec<REAL> &esp, REAL f, REAL E1 , REAL E2 ,

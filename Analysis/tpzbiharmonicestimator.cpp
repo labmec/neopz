@@ -59,10 +59,14 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	
-	
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	TPZManVector<REAL,3> x = data.x;
-	TPZVec<REAL> sol  = data.sol;
-	TPZFMatrix   dsol = data.dsol;
+	TPZVec<REAL> sol  = data.sol[0];
+	TPZFMatrix   dsol = data.dsol[0];
 	//   REAL Laplac = dsol(2,0);
 	REAL LaplacLaplac = dsol(8,0);
 	//   REAL DuDx = dsol(0,0);
@@ -109,11 +113,16 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	int LeftPOrder = (REAL)data.leftp;
 	int RightPOrder = (REAL)data.rightp;
 	// TPZVec<REAL> sol=data.sol;
-	TPZVec<REAL> solL=data.soll;
-	TPZVec<REAL> solR=data.solr;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> solL=data.soll[0];
+	TPZVec<REAL> solR=data.solr[0];
 	// TPZFMatrix dsol=data.dsol;
-	TPZFMatrix dsolL=data.dsoll;
-	TPZFMatrix dsolR=data.dsolr;
+	TPZFMatrix dsolL=data.dsoll[0];
+	TPZFMatrix dsolR=data.dsolr[0];
 	REAL faceSize=data.HSize;
 	
 	REAL alpha=gSigmaA*(pow((REAL)LeftPOrder,gL_alpha)+pow((REAL)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
@@ -257,10 +266,15 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	int LeftPOrder=data.leftp;
 	//int RightPOrder=data.rightp;
 	// TPZVec<REAL> sol=data.sol;
-	TPZVec<REAL> solL=data.soll;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> solL=data.soll[0];
 	// TPZVec<REAL> solR=data.solr;
 	// TPZFMatrix dsol=data.dsol;
-	TPZFMatrix dsolL=data.dsoll;
+	TPZFMatrix dsolL=data.dsoll[0];
 	// TPZFMatrix dsolR=data.dsolr;
 	REAL faceSize=data.HSize;
 	
@@ -275,28 +289,28 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	REAL alpha = gSigmaA*pow((REAL)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
 	REAL betta = gSigmaB*pow((REAL)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
 	
-	REAL u = data.soll[0];
+	REAL u = data.soll[0][0];
 	REAL gradu[2];
-	gradu[0] = data.dsoll(0,0);
-	gradu[1] = data.dsoll(1,0);
+	gradu[0] = data.dsoll[0](0,0);
+	gradu[1] = data.dsoll[0](1,0);
 	
-	REAL dualhp = data.soll[2];//pq a dual hp está na terceira coluna
+	REAL dualhp = data.soll[0][2];//pq a dual hp está na terceira coluna
 	REAL GRADdualhp[2];//
 	REAL GRADLaplacdualhp[2];
-	GRADdualhp[0] = data.dsoll(0,2);
-	GRADdualhp[1] = data.dsoll(1,2);
-	REAL Laplacdualhp = data.dsoll(2,2);
-	GRADLaplacdualhp[0] = data.dsoll(3,2);
-	GRADLaplacdualhp[1] = data.dsoll(4,2);
+	GRADdualhp[0] = data.dsoll[0](0,2);
+	GRADdualhp[1] = data.dsoll[0](1,2);
+	REAL Laplacdualhp = data.dsoll[0](2,2);
+	GRADLaplacdualhp[0] = data.dsoll[0](3,2);
+	GRADLaplacdualhp[1] = data.dsoll[0](4,2);
 	
-	REAL dualhpPlus = data.soll[3];// 
+	REAL dualhpPlus = data.soll[0][3];// 
 	REAL GRADdualhpPlus[2];//
 	REAL GRADLaplacdualhpPlus[2];//
-	GRADdualhpPlus[0]= data.dsoll(0,3);//
-	GRADdualhpPlus[1]= data.dsoll(1,3);//
-	REAL LaplacdualhpPlus = data.dsoll(2,3);
-	GRADLaplacdualhpPlus[0] = data.dsoll(3,3);
-	GRADLaplacdualhpPlus[1] = data.dsoll(4,3);
+	GRADdualhpPlus[0]= data.dsoll[0](0,3);//
+	GRADdualhpPlus[1]= data.dsoll[0](1,3);//
+	REAL LaplacdualhpPlus = data.dsoll[0](2,3);
+	GRADLaplacdualhpPlus[0] = data.dsoll[0](3,3);
+	GRADLaplacdualhpPlus[1] = data.dsoll[0](4,3);
 	
 	
 	REAL gradZ[2];
@@ -482,8 +496,13 @@ void TPZBiharmonicEstimator::Psi(TPZVec<REAL> &x, TPZVec<REAL> &pisci) {
 
 void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 {
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	data.phi.Resize(6,1);
-	data.dphix.Resize(data.dsol.Rows(),6);
+	data.dphix.Resize(data.dsol[0].Rows(),6);
 	data.phi(0,0) = data.sol[3]- data.sol[2];//erro aprox. dual
 	data.phi(1,0) = data.sol[1]- data.sol[0];//erro aprox. primal 
 	data.phi(2,0) = 0.;//erro exato dual p
@@ -495,8 +514,8 @@ void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 	int id;
 	for(id=0; id<nd; id++)
 	{
-		data.dphix(id,0) = data.dsol(id,3)-data.dsol(id,2);// derivada do erro aprox dual 
-		data.dphix(id,1) = data.dsol(id,1)-data.dsol(id,0);// derivada do erro aprox. primal
+		data.dphix(id,0) = data.dsol[0](id,3)-data.dsol[0](id,2);// derivada do erro aprox dual 
+		data.dphix(id,1) = data.dsol[0](id,1)-data.dsol[0](id,0);// derivada do erro aprox. primal
 		data.dphix(id,2) = 0. ;// derivada do erro exato dual
 		data.dphix(id,3) = 0. ;// derivada do erro exato primal
 		data.dphix(id,4) = 0. ;// derivada do erro exato dual enriquecido
@@ -509,31 +528,36 @@ void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 	// erro exato primal 
 	if (this->fPrimalExactSol )
 	{ this->fPrimalExactSol(data.x,u_exactp,du_exactp);
-		data.phi(3,0)=u_exactp[0]-data.sol[0];
+		data.phi(3,0)=u_exactp[0]-data.sol[0][0];
 		for(id=0; id<nd; id++)
-		{ data.dphix(id,3) = du_exactp(id,0)- data.dsol(id,0);// derivada do erro primal exato 
-			data.dphix(id,5) = du_exactp(id,0)- data.dsol(id,1);// derivada do erro primal exato enriquecido
+		{ data.dphix(id,3) = du_exactp(id,0)- data.dsol[0](id,0);// derivada do erro primal exato 
+			data.dphix(id,5) = du_exactp(id,0)- data.dsol[0](id,1);// derivada do erro primal exato enriquecido
 		}
 	}
 	
 	//erro exato dual
 	if (this->fDualExactSol )
 	{ this->fDualExactSol(data.x,u_exactd,du_exactd);
-		data.phi(2,0)=u_exactd[0]-data.sol[2];
+		data.phi(2,0)=u_exactd[0]-data.sol[0][2];
 		// std::cout<< "dual exato= "<< u_exactd[0]<< std::endl;
 		// std::cout<< "dual aprx p2= "<< data.sol[2]<< std::endl;
 		// std::cout<< "dual aprx q3= "<< data.sol[3]<< std::endl;
 		for(id=0; id<nd; id++)
-		{ data.dphix(id,2) = du_exactd(id,0)- data.dsol(id,2);// derivada do erro dual exato 
-			data.dphix(id,4) = du_exactd(id,0)- data.dsol(id,3);// derivada do erro dual exato enriquecido 
+		{ data.dphix(id,2) = du_exactd(id,0)- data.dsol[0](id,2);// derivada do erro dual exato 
+			data.dphix(id,4) = du_exactd(id,0)- data.dsol[0](id,3);// derivada do erro dual exato enriquecido 
 		}
 	}
 }
 
 void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data)
 {
+    int numbersol = data.dsoll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	data.phil.Resize(6,1);
-	data.dphixl.Resize(data.dsoll.Rows(),6);
+	data.dphixl.Resize(data.dsoll[0].Rows(),6);
 	data.phil(0,0) = data.soll[3]-data.soll[2];//erro aprox. dual
 	data.phil(1,0) = data.soll[1]-data.soll[0];//erro aprox. primal 
 	data.phil(2,0) = 0.;//erro exato dual   
@@ -545,8 +569,8 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data)
 	int id;
 	for(id=0; id<nd; id++)
 	{
-		data.dphixl(id,0) = data.dsoll(id,3)-data.dsoll(id,2);// derivada do erro aprox dual 
-		data.dphixl(id,1) = data.dsoll(id,1)-data.dsoll(id,0);// derivada do erro aprox. primal
+		data.dphixl(id,0) = data.dsoll[0](id,3)-data.dsoll[0](id,2);// derivada do erro aprox dual 
+		data.dphixl(id,1) = data.dsoll[0](id,1)-data.dsoll[0](id,0);// derivada do erro aprox. primal
 		data.dphixl(id,2) = 0. ;// derivada do erro exato dual
 		data.dphixl(id,3) = 0. ;// derivada do erro exato primal
 		data.dphixl(id,4) = 0. ;// derivada do erro exato dual enriquecido
@@ -562,11 +586,11 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data)
 	if (this->fPrimalExactSol )
 	{
 		this->fPrimalExactSol(data.x,u_exactp,du_exactp);
-		data.phil(3,0)=u_exactp[0]-data.soll[0];
-		data.phil(5,0)=u_exactp[0]-data.soll[1];
+		data.phil(3,0)=u_exactp[0]-data.soll[0][0];
+		data.phil(5,0)=u_exactp[0]-data.soll[0][1];
 		for(id=0; id<nd; id++)
-		{ data.dphixl(id,3) = du_exactp(id,0)- data.dsoll(id,0);// derivada do erro primal exato
-			data.dphixl(id,5) = du_exactp(id,0)- data.dsoll(id,1);// derivada do erro primal exato enriquecido 
+		{ data.dphixl(id,3) = du_exactp(id,0)- data.dsoll[0](id,0);// derivada do erro primal exato
+			data.dphixl(id,5) = du_exactp(id,0)- data.dsoll[0](id,1);// derivada do erro primal exato enriquecido 
 		}
 	}
 	
@@ -574,19 +598,24 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data)
 	if (this->fDualExactSol )
 	{
 		this->fDualExactSol(data.x,u_exactd,du_exactd);
-		data.phil(2,0)=u_exactd[0]-data.soll[2];
-		data.phil(4,0)=u_exactd[0]-data.soll[3];
+		data.phil(2,0)=u_exactd[0]-data.soll[0][2];
+		data.phil(4,0)=u_exactd[0]-data.soll[0][3];
 		for(id=0; id<nd; id++)
-		{ data.dphixl(id,2) = du_exactd(id,0)- data.dsoll(id,2);// derivada do erro dual exato 
-			data.dphixl(id,4) = du_exactd(id,0)- data.dsoll(id,3);// derivada do erro dual exato enriquecido
+		{ data.dphixl(id,2) = du_exactd(id,0)- data.dsoll[0](id,2);// derivada do erro dual exato 
+			data.dphixl(id,4) = du_exactd(id,0)- data.dsoll[0](id,3);// derivada do erro dual exato enriquecido
 		}
 	}
 }
 
 void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data)
 {
+    int numbersol = data.dsolr.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	data.phir.Resize(6,1);
-	data.dphixr.Resize(data.dsolr.Rows(),6);
+	data.dphixr.Resize(data.dsolr[0].Rows(),6);
 	data.phir(0,0) = data.solr[3]-data.solr[2];//erro aprox. dual
 	data.phir(1,0) = data.solr[1]-data.solr[0];//erro aprox. primal 
 	data.phir(2,0) = 0.;//erro exato dual   
@@ -598,8 +627,8 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data)
 	int id;
 	for(id=0; id<nd; id++)
 	{
-		data.dphixr(id,0) = data.dsolr(id,3)-data.dsolr(id,2);// derivada do erro aprox dual 
-		data.dphixr(id,1) = data.dsolr(id,1)-data.dsolr(id,0);// derivada do erro aprox. primal
+		data.dphixr(id,0) = data.dsolr[0](id,3)-data.dsolr[0](id,2);// derivada do erro aprox dual 
+		data.dphixr(id,1) = data.dsolr[0](id,1)-data.dsolr[0](id,0);// derivada do erro aprox. primal
 		data.dphixr(id,2) = 0. ;// derivada do erro exato dual
 		data.dphixr(id,3) = 0. ;// derivada do erro exato primal
 		data.dphixr(id,4) = 0. ;// derivada do erro exato dual enriquecido
@@ -615,22 +644,22 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data)
 	// erro exato primal 
 	if (this->fPrimalExactSol )
 	{ this->fPrimalExactSol(data.x,u_exactp,du_exactp);
-		data.phir(3,0)=u_exactp[0]-data.solr[0];
-		data.phir(5,0)=u_exactp[0]-data.solr[1];
+		data.phir(3,0)=u_exactp[0]-data.solr[0][0];
+		data.phir(5,0)=u_exactp[0]-data.solr[0][1];
 		for(id=0; id<nd; id++)
-		{ data.dphixr(id,3) = du_exactp(id,0)- data.dsolr(id,0);// derivada do erro primal exato 
-			data.dphixr(id,5) = du_exactp(id,0)- data.dsolr(id,1);// derivada do erro primal exato enriquecido
+		{ data.dphixr(id,3) = du_exactp(id,0)- data.dsolr[0](id,0);// derivada do erro primal exato 
+			data.dphixr(id,5) = du_exactp(id,0)- data.dsolr[0](id,1);// derivada do erro primal exato enriquecido
 		}
 	}
 	
 	//erro exato dual
 	if (this->fDualExactSol )
 	{ this->fDualExactSol(data.x,u_exactd,du_exactd);
-		data.phir(2,0)=u_exactd[0]-data.solr[2];
-		data.phir(4,0)=u_exactd[0]-data.solr[3];
+		data.phir(2,0)=u_exactd[0]-data.solr[0][2];
+		data.phir(4,0)=u_exactd[0]-data.solr[0][3];
 		for(id=0; id<nd; id++)
-		{ data.dphixr(id,2) = du_exactd(id,0)- data.dsolr(id,2);// derivada do erro dual exato 
-			data.dphixr(id,4) = du_exactd(id,0)- data.dsolr(id,3);// derivada do erro dual exato enriquecido
+		{ data.dphixr(id,2) = du_exactd(id,0)- data.dsolr[0](id,2);// derivada do erro dual exato 
+			data.dphixr(id,4) = du_exactd(id,0)- data.dsolr[0](id,3);// derivada do erro dual exato enriquecido
 		}
 	}
 	

@@ -243,7 +243,7 @@ protected:
 	 * \f$ values[2] = (dsolleft - dsolright)^2 \f$ \n
 	 * \f$ values[0] = values[1] + values[2] \f$
 	 */
-	virtual void InterfaceJump(TPZVec<REAL> &x, TPZVec<REAL> &leftu,TPZVec<REAL> &rightu,TPZVec<REAL> &jump);
+	virtual void InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

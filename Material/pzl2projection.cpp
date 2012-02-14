@@ -44,7 +44,11 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	if (this->HasForcingFunction()){
 		this->fForcingFunction(data.x, this->fSol);
 	}
-	
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	const int nvars = this->fNStateVars;
 	if (this->fIsReferred){
 		this->fSol.Resize(nvars);
@@ -53,7 +57,7 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 		}//if
 		else{
 			for(int i = 0; i < nvars; i++){
-				this->fSol[i] = data.sol[i+nvars];
+				this->fSol[i] = data.sol[0][i+nvars];
 			}//for
 		}//else
 	}//if

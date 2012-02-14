@@ -943,7 +943,7 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMatrix &dsol,TPZFMatrix & axes){
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix & axes){
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
@@ -959,21 +959,25 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &sol, TPZFMa
 }//method
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                    const TPZFMatrix &axes, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+                                    const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	
 	const int nstate = this->Material()->NStateVariables();
 	const int ncon = this->NConnects();
 	TPZBlock &block = Mesh()->Block();
 	TPZFMatrix &MeshSol = Mesh()->Solution();
+    int numbersol = MeshSol.Cols();
 	
 	int solVecSize = nstate;
 	if(!ncon) solVecSize = 0;
 	
-	sol.Resize(solVecSize);
-	sol.Fill(0.);
-	dsol.Redim(dphix.Rows(), solVecSize);
-	dsol.Zero();
-	
+    sol.resize(numbersol);
+    dsol.resize(numbersol);
+    for (int is = 0; is<numbersol; is++) {
+        sol[is].Resize(solVecSize);
+        sol[is].Fill(0.);
+        dsol[is].Redim(dphix.Rows(), solVecSize);
+        dsol[is].Zero();
+    }	
 	int iv = 0, d;
 	for(int in=0; in<ncon; in++) {
 		TPZConnect *df = &Connect(in);
@@ -981,10 +985,12 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
 		int dfvar = block.Size(dfseq);
 		int pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
-			sol[iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,0);
-			for(d=0; d<dphix.Rows(); d++){
-				dsol(d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,0);
-			}
+            for (int is=0; is<numbersol; is++) {
+                sol[is][iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,is);
+                for(d=0; d<dphix.Rows(); d++){
+                    dsol[is](d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,is);
+                }
+            }
 			iv++;
 		}
 	}
@@ -993,14 +999,14 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
                                     TPZVec<REAL> &normal,
-                                    TPZVec<REAL> &leftsol, TPZFMatrix &dleftsol,TPZFMatrix &leftaxes,
-                                    TPZVec<REAL> &rightsol, TPZFMatrix &drightsol,TPZFMatrix &rightaxes){
+                                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
+                                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
 	//TPZCompElDisc has no left/right elements. Only interface elements have it.
-	leftsol.Resize(0);
-	dleftsol.Resize(0,0);
+	leftsol.resize(0);
+	dleftsol.resize(0);
 	leftaxes.Zero();
 	rightsol.Resize(0);
-	drightsol.Resize(0,0);
+	drightsol.Resize(0);
 	rightaxes.Zero();
 	normal.Resize(0);
 }//method
@@ -1093,7 +1099,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 		disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
 		disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
 		weight *= fabs(data.detjac);
-		SquareResidual += material->ComputeSquareResidual(data.x,data.sol,data.dsol) * weight;
+		SquareResidual += material->ComputeSquareResidual(data.x,data.sol[0],data.dsol[0]) * weight;
 	}//loop over integration points  
 	
 	delete disc;

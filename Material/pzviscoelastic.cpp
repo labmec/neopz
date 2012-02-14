@@ -90,7 +90,12 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	TPZFNMatrix<9> DSolXYZ(3,3,0.);
 	TPZFNMatrix<6> Strain(6,1);
 	int index = data.intPtIndex;
-	DSolXYZ = data.dsol;
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	DSolXYZ = data.dsol[0];
 	qsi = MemItem(index);
 	//data.axes.Multiply(data.dsol,DSolXYZ,1/*transpose*/);
 	
@@ -150,7 +155,12 @@ int TPZViscoelastic::NSolutionVariables(int var)
 
 void TPZViscoelastic::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data)
 {
-	TPZFNMatrix<9> Dsol = data.dsol;
+    int numbersol = data.dsol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZFNMatrix<9> Dsol = data.dsol[0];
 	TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::ComputeStressTensor(Stress,Dsol);
 	TPZFNMatrix<6> qsi;
 	const int index = data.intPtIndex;
@@ -175,10 +185,15 @@ void TPZViscoelastic::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &d
 
 void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	if(var == TPZElasticity3D::EDisplacement){
 		int i;
 		for(i = 0; i < 3; i++){
-			TPZVec<REAL> Sol(data.sol); 
+			TPZVec<REAL> Sol(data.sol[0]); 
 			Solout[i] = Sol[i];
 		}//for
 		return;
@@ -186,21 +201,21 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	if(var == TPZElasticity3D::EDisplacementX){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol); 
+		TPZVec<REAL> Sol(data.sol[0]); 
 		Solout[0] = Sol[0];
 		return;
 	}//TPZElasticity3D::EDisplacementX
 	
 	if(var == TPZElasticity3D::EDisplacementY){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol); 
+		TPZVec<REAL> Sol(data.sol[0]); 
 		Solout[0] = Sol[1];
 		return;
 	}//TPZElasticity3D::EDisplacementY  
 	
 	if(var == TPZElasticity3D::EDisplacementZ){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol); 
+		TPZVec<REAL> Sol(data.sol[0]); 
 		Solout[0] = Sol[2];
 		return;
 	}//TPZElasticity3D::EDisplacementZ  
@@ -208,7 +223,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	if(var == TPZElasticity3D::EPrincipalStrain){
 		TPZFNMatrix<9> StrainTensor(3,3);
-		TPZFMatrix DSol(data.dsol);
+		TPZFMatrix DSol(data.dsol[0]);
 		TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;

@@ -63,7 +63,12 @@ void TPZConsLawTest::Contribute(TPZMaterialData &data,
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-	TPZVec<REAL> &sol=data.sol;
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
@@ -189,8 +194,13 @@ void TPZConsLawTest::ContributeInterface(TPZMaterialData &data,
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll;
-	TPZVec<REAL> &solR=data.solr;
+    int numbersol = data.soll.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
+	TPZVec<REAL> &solL=data.soll[0];
+	TPZVec<REAL> &solR=data.solr[0];
 	// TPZFMatrix &dsol=data.dsol;
 	// TPZFMatrix &dsolL=data.dsoll;
 	// TPZFMatrix &dsolR=data.dsolr;

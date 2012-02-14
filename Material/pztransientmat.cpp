@@ -40,21 +40,26 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
                                                   TPZFMatrix &ef){
 	
 	// Mostly for implicit
+    int numbersol = data.sol.size();
+    if (numbersol != 1) {
+        DebugStop();
+    }
+
 	if (this->fStep == ECurrent){
 		TBASEMAT::Contribute(data,weight,ek,ef);
-		this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
-		this->ContributeTangent(data.sol, data.phi, weight, ek);
+		this->ContributeSolutionRhs(data.sol[0], data.phi, weight, ef);
+		this->ContributeTangent(data.sol[0], data.phi, weight, ek);
 		return;
 	}
 	
 	if (this->fStep == ELast){
-		this->ContributeSolutionRhs(data.sol, data.phi, weight, ef);
+		this->ContributeSolutionRhs(data.sol[0], data.phi, weight, ef);
 		return;
 	}
 	
 	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
-		this->ContributeTangent(data.sol, data.phi, weight, ek);
+		this->ContributeTangent(data.sol[0], data.phi, weight, ek);
 		return;
 	}
 	
