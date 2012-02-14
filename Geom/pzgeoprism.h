@@ -61,7 +61,23 @@ namespace pzgeom {
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
 		static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+
+		/* brief compute the coordinate of a point given in parameter space */
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            X(coord,loc,result);
+        }
 		
+        /* @brief compute the jacobian of the map between the master element and deformed element */
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+        
 		/** @brief Computes the jacobian*/
 		static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 		

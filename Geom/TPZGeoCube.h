@@ -60,6 +60,22 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Hexa";} 
 		
+		/* brief compute the coordinate of a point given in parameter space */
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            X(coord,loc,result);
+        }
+		
+        /* @brief compute the jacobian of the map between the master element and deformed element */
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+        
 		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
 		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */

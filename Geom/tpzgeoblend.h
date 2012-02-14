@@ -49,11 +49,36 @@ namespace pzgeom
 		
 		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TGeo(cp) {
 		}
-		
+        
+        void Read(TPZStream &buf,void *context)
+        {
+            TGeo::Read(buf,context);
+            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Read(buf);
+            }
+            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Read(buf);
+            }
+        }
+        
+        void Write(TPZStream &buf)
+        {
+            TGeo::Write(buf);
+            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
+                fNeighbours[is].Write(buf);
+            }
+            for (int is=0; is < 1+TGeo::NSides - TGeo::NNodes; is++) {
+                fTrans[is].Write(buf);
+            }
+		}
+
 		void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans);
 		
-		TPZGeoElSide Neighbour(int side) {
-			return fNeighbours[side-TGeo::NNodes];
+		TPZGeoElSide Neighbour(int side,TPZGeoMesh *gmesh) {
+            if (side < TGeo::NNodes) {
+                DebugStop();
+            }
+			return TPZGeoElSide(fNeighbours[side-TGeo::NNodes],gmesh);
 		}
 		
 		TPZTransform TransfBetweenNeigh(int side) {
@@ -65,9 +90,9 @@ namespace pzgeom
 		 */
 		static std::string TypeName() { return TGeo::TypeName();} 
 		
-		void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+		void X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		
-		void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 		
 		/** @brief Print all relevant data of the element to cout*/
 		void Print(std::ostream & out = std::cout);
@@ -95,6 +120,7 @@ namespace pzgeom
 		
 		TPZGeoEl *CreateGeoBlend(TPZGeoMesh &mesh, MElementType type, TPZVec<int>& nodeindexes, int matid, int& index);
 		
+        
 		
 	public:
 		/**
@@ -108,8 +134,8 @@ namespace pzgeom
 	protected:
 		
 		/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
-		bool MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
-		TPZGeoElSide fNeighbours[1+TGeo::NSides - TGeo::NNodes];
+		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
+		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 	};
 	

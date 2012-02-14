@@ -66,12 +66,36 @@ namespace pzgeom {
 		/** 
 		 construct the normal vector for element Hdiv
 		 */
-		static void VecHdiv(TPZFMatrix & coord,TPZFMatrix &fNormalVec,TPZVec<int> & fVectorSide);
+		static void VecHdiv(TPZFMatrix & coord,TPZFMatrix &NormalVec,TPZVec<int> & VectorSide);
 		/** @brief Computes the vecorial product of the two vectors*/ 
 		static void VectorialProduct(TPZVec<REAL> &v1, TPZVec<REAL> &v2,TPZVec<REAL> &result);
 		/** @brief Computes normal vector to plane determinated by three points */
 		static void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
 		
+		/* brief compute the coordinate of a point given in parameter space */
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            X(coord,loc,result);
+        }
+        
+		/* brief compute the coordinate of a point given in parameter space */
+        void VecHdiv(const TPZGeoEl &gel,TPZFMatrix &NormalVec,TPZVec<int> & VectorSide) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            VecHdiv(coord,NormalVec,VectorSide);
+        }
+		
+        /* @brief compute the jacobian of the map between the master element and deformed element */
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+        
 		/** @brief Computes the jacobian*/
 		static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
 		

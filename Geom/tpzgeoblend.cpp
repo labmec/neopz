@@ -20,7 +20,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.geoblend"));
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans)
 {
-	if(!fNeighbours[side-TGeo::NNodes].Element())
+	if(!fNeighbours[side-TGeo::NNodes].ElementIndex() != -1)
 	{
 		fNeighbours[side-TGeo::NNodes] = neigh;
 		fTrans[side - TGeo::NNodes] = trans;
@@ -40,9 +40,8 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 }
 
 template <class TGeo>
-bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
+bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide)
 {
-	int SideDim    = fNeighbours[side-TGeo::NNodes].Dimension();
 	TPZFNMatrix<9> JacSide;
 	
 	TPZManVector< REAL, 3 > SidePar(SideDim);
@@ -96,8 +95,11 @@ bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, TPZVec<REAL> &InternalP
 }
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result)
+void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result)
 {
+    TPZFNMatrix<45> coord(3,TGeo::NNodes);
+    this->CornerCoordinates(gel,coord);
+    
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
@@ -118,10 +120,12 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<
 	
     TPZFNMatrix<9> blend(TGeo::NNodes,1), Dblend(TGeo::Dimension,TGeo::NNodes), NotUsedHere;
     TGeo::Shape(par,blend,Dblend);
+    TPZGeoMesh *gmesh = gel.Mesh();
 	
     for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
     {
-        if(fNeighbours[byside-TGeo::NNodes].Exists())
+        TPZGeoElSide gelside(fNeighbours[byside-TGeo::NNodes],gmesh);
+        if(gelside.Exists())
         {
             TGeo::LowerDimensionSides(byside,LowNodeSides,0);
             TGeo::LowerDimensionSides(byside,LowAllSides);
@@ -130,8 +134,9 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<
             {
                 blendTemp += blend(LowNodeSides[a],0);
             }
+            int sidedim = gelside.Dimension();
 			
-            if(!MapToNeighSide(byside,par,NeighPar,NotUsedHere))
+            if(!MapToNeighSide(byside,sidedim,par,NeighPar,NotUsedHere))
 			{
 #ifdef LOG4CXX
 				if(logger->isDebugEnabled())
@@ -144,7 +149,8 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<
 				
 				continue;
 			}
-            Neighbour(byside).X(NeighPar,Xside);
+            
+            Neighbour(byside,gmesh).X(NeighPar,Xside);
 			
 #ifdef LOG4CXX
 			if(logger->isDebugEnabled())
@@ -199,8 +205,11 @@ void pzgeom::TPZGeoBlend<TGeo>::X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
+void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
 {
+    TPZFNMatrix<45> coord(3,TGeo::NNodes);
+    this->CornerCoordinates(gel,coord);
+
     TPZManVector<REAL,3> NeighPar, SidePar, Xside(3,0.), XNode(3,0.);
     int majorSide = TGeo::NSides - 1;
 	
@@ -221,19 +230,23 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, 
 	
     TPZFNMatrix<9> J1, J2, Ax, JacTemp(3,TGeo::Dimension, 0.), Jneighbourhood;
     REAL Det;
+    TPZGeoMesh *gmesh = gel.Mesh();
     for(int byside = majorSide; byside >= TGeo::NNodes; byside--)
     {
-        if(Neighbour(byside).Exists())
+        TPZGeoElSide neighbyside = Neighbour(byside, gmesh);
+        if(neighbyside.Exists())
         {
             TGeo::LowerDimensionSides(byside,LowNodeSides,0);
             TGeo::LowerDimensionSides(byside,LowAllSides);
-            TPZFNMatrix<9> Inv(fNeighbours[byside-TGeo::NNodes].Dimension(),fNeighbours[byside-TGeo::NNodes].Dimension());
-            if(!MapToNeighSide(byside,par,NeighPar, Jneighbourhood))
+            int dim = Neighbour(byside, gmesh).Dimension();
+            TPZFNMatrix<9> Inv(dim,dim);
+            int sidedim = neighbyside.Dimension();
+            if(!MapToNeighSide(byside,sidedim,par,NeighPar, Jneighbourhood))
 			{
 				continue;
 			}
-            Neighbour(byside).X(NeighPar,Xside);
-            Neighbour(byside).Jacobian(NeighPar,J1,Ax,Det,Inv);
+            Neighbour(byside,gmesh).X(NeighPar,Xside);
+            Neighbour(byside,gmesh).Jacobian(NeighPar,J1,Ax,Det,Inv);
             Ax.Transpose(); 
             Ax.Multiply(J1,J2);
 			
@@ -242,8 +255,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, 
 			{
 				std::stringstream sout;
 				sout << "byside " << byside << std::endl;
-        		sout << "side of the neighbour " << Neighbour(byside).Side() << std::endl;
-        		Neighbour(byside).Element()->Print(sout);
+        		sout << "side of the neighbour " << Neighbour(byside,gmesh).Side() << std::endl;
+        		Neighbour(byside,gmesh).Element()->Print(sout);
 				sout << "neighbour parameter(NeighPar) " << NeighPar << std::endl;
 				sout << "Jacobian of the map(Jneighborhood) " << Jneighbourhood << std::endl;
 				sout << "Xside " << Xside << std::endl;
@@ -396,11 +409,8 @@ void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out)
 	int is;
 	for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
 	{
-		if(fNeighbours[is-TGeo::NNodes].Element())
-		{
-			out << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
-			fNeighbours[is-TGeo::NNodes].Side() << '\n';
-		}
+        out << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].ElementIndex() << ":" <<
+        fNeighbours[is-TGeo::NNodes].Side() << '\n';
 	}
 }
 
@@ -460,9 +470,10 @@ TPZGeoEl *pzgeom::TPZGeoBlend<TGeo>::CreateBCGeoEl(TPZGeoEl *orig, int side,int 
 		return 0;
 	}
 	bool straight = true;
+    TPZGeoMesh *gmesh = orig->Mesh();
 	for(int lowside = 0; lowside < LowAllSides.NElements(); lowside++)
 	{
-		if(LowAllSides[lowside] >= TGeo::NNodes && fNeighbours[LowAllSides[lowside]-TGeo::NNodes].Element())
+		if(LowAllSides[lowside] >= TGeo::NNodes && Neighbour(LowAllSides[lowside],gmesh).Element())
 		{
 			straight = false;
 		}

@@ -27,6 +27,7 @@
 class TPZGeoMesh;
 class TPZGeoEl;
 class TPZGeoElSide;
+#include "pzgeoel.h"
 
 #include "pzlog.h"
 #ifdef LOG4CXX
@@ -97,7 +98,17 @@ namespace pzgeom {
 		{
 			memcpy(fNodeIndexes,cp.fNodeIndexes,N*sizeof(int));
 		}
-		
+        
+        void Read(TPZStream &buf, void *context)
+        {
+            buf.Read(fNodeIndexes,NNodes);
+        }
+        
+        void Write(TPZStream &buf)
+        {
+            buf.Write(fNodeIndexes,NNodes);
+		}
+        
 		void Initialize(TPZVec<int> &nodeindexes)
 		{
 			int nn = nodeindexes.NElements() < N ? nodeindexes.NElements() : N;
@@ -121,6 +132,18 @@ namespace pzgeom {
 		void Initialize(TPZGeoEl *refel)
 		{
 		}
+        
+        void CornerCoordinates(const TPZGeoEl &gel, TPZFMatrix &coord) const
+        {
+            TPZGeoNode *np;
+            int i,j;
+            for(i=0;i<NNodes;i++) {
+                np = gel.NodePtr(i);
+                for(j=0;j<3;j++) {
+                    coord(j,i) = np->Coord(j);
+                }
+            }
+        }
 		/**
 		 * Create an element along the side with material id bc
 		 */
