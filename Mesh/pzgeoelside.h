@@ -52,7 +52,7 @@ public:
 	
 	void SetSide(int side);
 	
-	TPZGeoEl *Element(TPZGeoMesh *mesh) const;
+	TPZGeoEl *Element(const TPZGeoMesh *mesh) const;
 	
 	void SetElement(TPZGeoEl* geoel);
 	
@@ -129,7 +129,7 @@ public:
 	 */
 	TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes);
 	
-	TPZGeoElSide(const TPZGeoElSideIndex &index, TPZGeoMesh * mesh){
+	TPZGeoElSide(const TPZGeoElSideIndex &index, const TPZGeoMesh * mesh){
 		this->fSide = index.Side();
 		this->fGeoEl = index.Element(mesh);
 	}//end of method
@@ -398,7 +398,7 @@ inline void TPZGeoElSideIndex::SetSide(int side){
     this->fSide = side;
 }  
 
-inline TPZGeoEl *TPZGeoElSideIndex::Element(TPZGeoMesh *mesh) const{
+inline TPZGeoEl *TPZGeoElSideIndex::Element(const TPZGeoMesh *mesh) const{
     if (this->fSide == -1 || this->fGeoElIndex == -1){
 		return NULL;
     }

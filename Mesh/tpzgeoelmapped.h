@@ -64,6 +64,22 @@ public:
 	}
 	
 	virtual int ClassId() const;
+    
+    /** @brief Save the element data to a stream */
+	virtual void Write(TPZStream &buf, int withclassid)
+    {
+        TBase::Write(buf,withclassid);
+        fCornerCo.Write(buf,0);
+    }
+	
+	/** @brief Read the element data from a stream */
+	virtual void Read(TPZStream &buf, void *context)
+    {
+        TBase::Read(buf,context);
+        fCornerCo.Read(buf,0);
+    }
+	
+
 	
 	virtual bool IsLinearMapping() const
 	{

@@ -110,7 +110,7 @@ TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NodeIndex(int node) {
+TPZGeoElRefLess<TGeo>::NodeIndex(int node) const {
 	if(node<0 || node>=fGeo.NNodes) return -1;
 	return fGeo.fNodeIndexes[node];
 }
@@ -334,17 +334,7 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
-	TPZFNMatrix<3*TGeo::NNodes> nodes(3,TGeo::NNodes);
-	TPZGeoNode *np;
-	TPZAdmChunkVector<TPZGeoNode> &nodevec = Mesh()->NodeVec();
-	int i,j;
-	for(i=0;i<TGeo::NNodes;i++) {
-		np = &nodevec[fGeo.fNodeIndexes[i]];
-		for(j=0;j<3;j++) {
-			nodes(j,i) = np->Coord(j);
-		}
-	}
-	fGeo.Jacobian(nodes,coordinate,jac,axes,detjac,jacinv);
+	fGeo.Jacobian(*this,coordinate,jac,axes,detjac,jacinv);
 	
 #ifdef DEBUG
 	if(IsZero(detjac)){
@@ -364,17 +354,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMat
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
-	TPZFNMatrix<3*TGeo::NNodes> nodes(3,TGeo::NNodes);
-	TPZGeoNode *np;
-	TPZAdmChunkVector<TPZGeoNode> &nodevec = Mesh()->NodeVec();
-	int i,j;
-	for(i=0;i<TGeo::NNodes;i++) {
-		np = &nodevec[fGeo.fNodeIndexes[i]];
-		for(j=0;j<3;j++) {
-			nodes(j,i) = np->Coord(j);
-		}
-	}
-	fGeo.X(nodes,coordinate,result);
+	fGeo.X(*this,coordinate,result);
 }
 
 template<class TGeo>
@@ -462,7 +442,7 @@ TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
 template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 	TPZGeoEl::Read(buf,context);
-	buf.Read(fGeo.fNodeIndexes,TGeo::NNodes);
+    fGeo.Read(buf,context);
 	int i, n = TGeo::NSides;
 	for(i = 0; i < n; i++){
 		this->fNeighbours[i].Read(buf);
@@ -472,7 +452,7 @@ void TPZGeoElRefLess<TGeo>::Read(TPZStream &buf, void *context){
 template<class TGeo>
 void TPZGeoElRefLess<TGeo>::Write(TPZStream &buf, int withclassid){
 	TPZGeoEl::Write(buf,withclassid);
-	buf.Write(fGeo.fNodeIndexes,TGeo::NNodes);
+    fGeo.Write(buf);
 	int i, n = TGeo::NSides;
 	for(i = 0; i < n; i++){
 		this->fNeighbours[i].Write(buf);
@@ -620,20 +600,20 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 
 //HDiv
 template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
 {
-    pzgeom::TPZGeoQuad::VecHdiv(coordinate,normalvec,sidevector);
+    fGeo.VecHdiv(*this,normalvec,sidevector);
 }
 
 template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
 {
-	pzgeom::TPZGeoTriangle::VecHdiv(coordinate,normalvec,sidevector);
+	fGeo.VecHdiv(*this,normalvec,sidevector);
 }
 
 
 template<class TGeo>
-inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
 {
     PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
 }

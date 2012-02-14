@@ -120,10 +120,10 @@ public:
 	 */
 	virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 	
-	virtual  int NodeIndex(int node);
+	virtual  int NodeIndex(int node) const;
 	
 	//HDiv
-	virtual void VecHdiv(TPZFMatrix &coordinate, TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
+	virtual void VecHdiv(TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
 	
 	/**
 	 * @brief Compute the permutation for an HDiv side
