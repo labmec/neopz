@@ -170,7 +170,7 @@ double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, do
 
 ///////////////
 /** Mapping -> result = f(NodesCoord,qsi) */
-void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
+void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
 {
 	/** Computing initialVector = (iniR2 - CenterR2) */
 	TPZVec<REAL> MappedBASE2D(3,0.);
@@ -196,7 +196,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 	{
 		for(int j = 0; j < 3; j++)
 		{
-			vectRotated += fIBaseCn(i,j)*MappedBASE2D[j];
+			vectRotated += fIBaseCn.GetVal(i,j)*MappedBASE2D[j];
 		}
 		result[i] = vectRotated + nodes(i,2);
 		if( fabs(result[i]) < 0.001) result[i] = 0.;
@@ -205,7 +205,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 }
 
 ///////////////
-void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv)
+void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const
 {
 	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
 	jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);

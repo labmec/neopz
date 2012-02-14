@@ -71,18 +71,34 @@ namespace pzgeom
 		 */
 		void SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<REAL> SemiAxeY);
 		
+		/* brief compute the coordinate of a point given in parameter space */
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            X(coord,loc,result);
+        }
+		
+        /* @brief compute the jacobian of the map between the master element and deformed element */
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+        
 		/**
 		 * Este metodo estabelece o mapeamento de um elemento linear de dominio [-1,1]
 		 * para o arco de elipse definido pelos nohs inicial e final, os quais devem pertencer ao lugar geometrico da elipse,
 		 * ========> SEGUINDO A REGRA DA MAO DIREITA (sentido anti-horario em relacao ao sistema local definido pelos vetores dos semi-eixos X e Y).
 		 */
-		void X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x);
+		void X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x) const;
 		
 		/**
 		 * Este metodo estabelece a matriz jacobiana do mapeamento X (acima declarado)
 		 * @brief Computes the jacobian matrix to X mapping
 		 */
-		void Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix &jac, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
+		void Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix &jac, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const;
 		
 		static std::string TypeName() { return "Linear";}
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
@@ -125,24 +141,24 @@ namespace pzgeom
 		 * Este metodo retorna o angulo[ang(vini),ang(vfin)] que corresponde a um qsi[-1,1]
 		 * @brief Returns the angle corresponding to qsi
 		 */
-		double Angle(double qsi, TPZFMatrix &vini, TPZFMatrix &vfin);
+		double Angle(double qsi, TPZFMatrix &vini, TPZFMatrix &vfin) const;
 		
 		/**
 		 * Este metodo retorna a derivada do angulo[ang(vini),ang(vfin)] com respeito a qsi[-1,1]
 		 * @brief Returns the derivate of the angle with respect to qsi
 		 */
-		double DAngleDqsi(TPZFMatrix &vini, TPZFMatrix &vfin);
+		double DAngleDqsi(TPZFMatrix &vini, TPZFMatrix &vfin) const;
 		
 		/**
 		 * Equacao em R2 da elipse em funcao do angulo[ 0 , 2pi]
 		 * @brief Compute de equation of the elipse as function of the angle
 		 */
-		TPZFMatrix EllipseR2equation(double ang);
+		TPZFMatrix EllipseR2equation(double ang) const;
 		
 		/**
 		 * Derivada da equacao em R2 da elipse em funcao com respeito ao angulo
 		 */
-		TPZFMatrix DEllipseR2equationDang(double ang);
+		TPZFMatrix DEllipseR2equationDang(double ang) const;
 		
 	private:
 		

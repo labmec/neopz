@@ -73,7 +73,7 @@ void TPZEllipse3D::SetAxes(TPZVec<REAL> Origin, TPZVec<REAL> SemiAxeX, TPZVec<RE
 	fsAxeY = sqrt(fSemiAxeY[0]*fSemiAxeY[0] + fSemiAxeY[1]*fSemiAxeY[1] + fSemiAxeY[2]*fSemiAxeY[2]);
 }
 
-void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
+void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x) const
 {
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
@@ -155,7 +155,7 @@ void TPZEllipse3D::X(TPZFMatrix &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x)
 	x[2] = xCn(2,0) + fOrigin[2];
 }
 
-void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix &jac, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv)
+void TPZEllipse3D::Jacobian(TPZFMatrix &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix &jac, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const
 {
 	TPZFNMatrix<6> ICnEllip(2,3,0.);
 	TPZFNMatrix<6> IEllipCn(3,2,0.);
@@ -372,7 +372,7 @@ TPZGeoEl *TPZEllipse3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 	return 0;
 }
 
-double TPZEllipse3D::Angle(double qsi, TPZFMatrix &vini, TPZFMatrix &vfin)
+double TPZEllipse3D::Angle(double qsi, TPZFMatrix &vini, TPZFMatrix &vfin) const
 {
 	double angIni = atan2(vini(1,0)*fsAxeX, vini(0,0)*fsAxeY);
 	double angFin = atan2(vfin(1,0)*fsAxeX, vfin(0,0)*fsAxeY);
@@ -386,7 +386,7 @@ double TPZEllipse3D::Angle(double qsi, TPZFMatrix &vini, TPZFMatrix &vfin)
 	return (  (1. - qsi)/2. * angIni  +  (1. + qsi)/2. * angFin  );
 }
 
-double TPZEllipse3D::DAngleDqsi(TPZFMatrix &vini, TPZFMatrix &vfin)
+double TPZEllipse3D::DAngleDqsi(TPZFMatrix &vini, TPZFMatrix &vfin) const
 {
 	double angIni = atan2(vini(1,0)*fsAxeX, vini(0,0)*fsAxeY);
 	double angFin = atan2(vfin(1,0)*fsAxeX, vfin(0,0)*fsAxeY);
@@ -400,7 +400,7 @@ double TPZEllipse3D::DAngleDqsi(TPZFMatrix &vini, TPZFMatrix &vfin)
 	return ( angFin/2. - angIni/2. );
 }
 
-TPZFMatrix TPZEllipse3D::EllipseR2equation(double ang)
+TPZFMatrix TPZEllipse3D::EllipseR2equation(double ang) const
 {
 	TPZFNMatrix<2> x(2,1,0.);
 	x(0,0) = fsAxeX * cos(ang);
@@ -409,7 +409,7 @@ TPZFMatrix TPZEllipse3D::EllipseR2equation(double ang)
 	return x;
 }
 
-TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang)
+TPZFMatrix TPZEllipse3D::DEllipseR2equationDang(double ang) const
 {
 	TPZFNMatrix<2> x(2,1,0.);
 	x(0,0) = - fsAxeX * sin(ang);

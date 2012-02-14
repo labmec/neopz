@@ -85,10 +85,25 @@ namespace pzgeom
 		}
 		
 		
-		void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result);
-		void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
+		void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
+		void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const;
 		
-		static std::string TypeName() { return "Linear";}
+        void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            X(coord,loc,result);
+        }
+		
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+        {
+            TPZFNMatrix<3*NNodes> coord(3,NNodes);
+            CornerCoordinates(gel, coord);
+            Jacobian(coord, param, jacobian, axes, detjac, jacinv);
+        }
+
+		
+        static std::string TypeName() { return "Linear";}
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 	public:
@@ -107,6 +122,34 @@ namespace pzgeom
 			fICnBase.Print("fICnBase", out);
 			fIBaseCn.Print("fIBaseCn", out);
 		}
+        
+        void Read(TPZStream &buf,void *context)
+        {
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Read(buf,0);
+            fICnBase.Read(buf,0);
+            fIBaseCn.Read(buf,0);
+            TPZSaveable::ReadObjects<3>(buf, fCenter3D);
+            TPZSaveable::ReadObjects<3>(buf,finitialVector);
+            buf.Read(&fAngle,1);
+            buf.Read(&fRadius,1);
+            buf.Read(&fXcenter,1);
+            buf.Read(&fYcenter,1);
+        }
+        
+        void Write(TPZStream &buf)
+        {
+            pzgeom::TPZNodeRep<3,pztopology::TPZLine>::Write(buf);
+            fICnBase.Write(buf,0);
+            fIBaseCn.Write(buf,0);
+            TPZSaveable::WriteObjects(buf, fCenter3D);
+            TPZSaveable::WriteObjects(buf,finitialVector);
+            buf.Write(&fAngle,1);
+            buf.Write(&fRadius,1);
+            buf.Write(&fXcenter,1);
+            buf.Write(&fYcenter,1);
+		}
+        
+
 		
 	protected:
 		
