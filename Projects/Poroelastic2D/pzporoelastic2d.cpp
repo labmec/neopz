@@ -269,15 +269,12 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 		case 0 :			// Dirichlet condition for two equations
 			//Equacao da elasticidade
 			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
-				phiu(in,0)*weight;        // forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER*v2[1]* // y displacement
-				phiu(in,0)*weight;        // forced v2 displacement
+				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;  /// x displacement  forced v2 displacement      
+				ef(2*in+1,0) += BIGNUMBER*v2[1]*	phiu(in,0)*weight;   /// y displacement  forced v2 displacement 
+				
 				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
-					phiu(jn,0)*weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*
-					phiu(jn,0)*weight;
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
+					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
 				}
 			}
 						
@@ -291,7 +288,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			}
 			break;
 			
-		case 11 :		// Neumann condition for two equations
+		case 11 :/// Neumann condition for two equations
 		{
 			//Equacao da elasticidade
 			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
@@ -307,7 +304,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			}
 			break;
 		}	
-		case 22 : // // Mixed condition for two equations
+		case 22 : /// Mixed condition for two equations
 		{
 			//Equacao da elasticidade			
 			for(in = 0 ; in < phru; in++) {
@@ -326,7 +323,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 				}
 			} 
 			
-			//Equacao de Poisson: pressao 
+			///Equacao de Poisson: pressao 
 			for(in = 0 ; in < phrp; in++) {
 				ef(in+2*phru, 0) += v2[2] * phip(in, 0)*weight;
 				for (jn = 0 ; jn < phrp; jn++) {
@@ -358,15 +355,60 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			break;
 		}
 			
-		case 200: //Neumann condition free in x for elastic and Dirichlet condition for pressure
+		case 1: //Dirichlet condition for elastic (0) and  Neumann condition (1) for pressure
 		{			
 			
+			//Dirichlet para Equacao da elasticidade
+			for(in = 0 ; in < phru; in++) {
+				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;    /// x displacement forced v2 displacement
+				ef(2*in+1,0) += BIGNUMBER*v2[1]*phiu(in,0)*weight;   /// y displacement  forced v2 displacement      
+				
+				for (jn = 0 ; jn < phru; jn++) {
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
+					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
+				}
+			}
+			
+			//Neumann para Equacao de Poisson: pressao 
+			const REAL DeltT = fTimeStep;
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
+			}
+						
+			break;
+		}	
+		
+		///Condicoes de fronteiras livres
+		case 100:///Dirichlet para as duas equacoes mas com fronteira livre em y na equacao da elasticiade
+			
+			//Equacao da elasticidade
+			for(in = 0 ; in < phru; in++) {
+				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
+				phiu(in,0)*weight;        // forced v2 displacement
+				
+				for (jn = 0 ; jn < phru; jn++) {
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
+					phiu(jn,0)*weight;
+				}
+			}
+			
+			//Equacao de Poisson: pressao 
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
+				for (jn = 0 ; jn < phrp; jn++) {
+					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+				}
+			}
+			break;
+					
+		case 200: //Neumann condition free in x for elastic and Dirichlet condition for pressure
+		{			
 			//Neumann para Equacao da elasticidade
 			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
 				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
 			}      // ou deslocamento nulo  v2 = 0
 			
-			//Dirichlet para Equacao de Poisson: pressao 
+			//Dirichlet para Equacao da pressao 
 			for(in = 0 ; in < phrp; in++) {
 				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
 				for (jn = 0 ; jn < phrp; jn++) {
@@ -376,28 +418,25 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 			break;
 		}
-			
-		case 100:///Froteira livre: Dirichlet para as duas equacoes mas com fronteira livre na direcao y na equacao da elasticiade
-			
-		//Equacao da elasticidade
-		for(in = 0 ; in < phru; in++) {
-			ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
-			phiu(in,0)*weight;        // forced v2 displacement
-			
-			for (jn = 0 ; jn < phru; jn++) {
-				ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
-				phiu(jn,0)*weight;
+		case 300: //Dirichlet condition free in y for elastic and Neumann condition for pressure
+		{			
+			///Dirichlet para Equacao da elasticidade
+			for(in = 0 ; in < phru; in++) {
+				ef(2*in,0) += BIGNUMBER*v2[0] *phiu(in,0)*weight;     /// x displacement forced v2 displacement
+				
+				for (jn = 0 ; jn < phru; jn++) {
+					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight; /// x displacement
+				}
 			}
-		}
-		
-		//Equacao de Poisson: pressao 
-		for(in = 0 ; in < phrp; in++) {
-			ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-			for (jn = 0 ; jn < phrp; jn++) {
-				ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+			
+			///Neumann para Equacao da pressao 
+			const REAL DeltT = fTimeStep;
+			for(in = 0 ; in < phrp; in++) {
+				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
 			}
+				
+			break;
 		}
-		break;
 
 	}
 	

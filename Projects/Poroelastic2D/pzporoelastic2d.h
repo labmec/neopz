@@ -64,9 +64,7 @@ protected:
 	
 	/// timestep [s]
 	REAL fTimeStep;
-	
-	//REAL fPressureIntitial;
-	
+			
 	REAL fmatId;
 	
 	/** @brief State: one ou one+1 */
@@ -138,6 +136,13 @@ public:
 	{
 		fTimeStep = delt;
 	}
+	
+	/// Set the timestep
+	//void SetInitialSolution(t)
+	//{
+		
+	//}
+	
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
