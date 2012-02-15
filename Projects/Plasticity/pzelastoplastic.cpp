@@ -237,15 +237,15 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement){
 		int i;
 		for(i = 0; i < 3; i++){
-			Solout[i] = data.sol[i];
+			Solout[i] = data.sol[0][i];
 		}//for
 	}//EDisplacement
 	
-	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)Solout[0] = data.sol[0];
+	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementX)Solout[0] = data.sol[0][0];
 	
-	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)Solout[0] = data.sol[1];
+	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementY)Solout[0] = data.sol[0][1];
 	
-	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)Solout[0] = data.sol[2];
+	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacementZ)Solout[0] = data.sol[0][2];
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalStrain){
 		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
@@ -702,9 +702,9 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
   switch (bc.Type()) {
   case 0: // Dirichlet condition
     for(in = 0 ; in < phr; in++) {
-      ef(nstate*in+0,0) += BIGNUMBER * (v2[0] - data.sol[0]) * phi(in,0) * weight;
-      ef(nstate*in+1,0) += BIGNUMBER * (v2[1] - data.sol[1]) * phi(in,0) * weight;        
-      ef(nstate*in+2,0) += BIGNUMBER * (v2[2] - data.sol[2]) * phi(in,0) * weight;        
+      ef(nstate*in+0,0) += BIGNUMBER * (v2[0] - data.sol[0][0]) * phi(in,0) * weight;
+      ef(nstate*in+1,0) += BIGNUMBER * (v2[1] - data.sol[0][1]) * phi(in,0) * weight;        
+      ef(nstate*in+2,0) += BIGNUMBER * (v2[2] - data.sol[0][2]) * phi(in,0) * weight;        
       for (jn = 0 ; jn < phr; jn++) {
         ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
         ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
@@ -738,9 +738,9 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 		
   case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
     for(in = 0 ; in < phr; in++) {
-      ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0]) * v2[0] * phi(in,0) * weight;
-      ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[1]) * v2[1] * phi(in,0) * weight;        
-      ef(nstate*in+2,0) += BIGNUMBER * (0. - data.sol[2]) * v2[2] * phi(in,0) * weight;        
+      ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
+      ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;        
+      ef(nstate*in+2,0) += BIGNUMBER * (0. - data.sol[0][2]) * v2[2] * phi(in,0) * weight;        
       for (jn = 0 ; jn < phr; jn++) {
         ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
         ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
@@ -849,7 +849,7 @@ template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain)
 {
 	TPZFNMatrix<9> DSolXYZ(3,3,0.);
-	data.axes.Multiply(data.dsol,DSolXYZ,1/*transpose*/);
+	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
 	
     DeltaStrain.Redim(6,1);
     DeltaStrain(_XX_,0) = DSolXYZ(0,0);

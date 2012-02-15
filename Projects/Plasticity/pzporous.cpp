@@ -179,7 +179,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
 			TBASEPOROUS(T, TMEM)::fForce[2] * dphiXYZ(2,in) )
 		  * fDeltaT;
 	//qS contribution (referring to the deltaP iterative solution)
-	val -= fStorageEps * phi(in,0) * data.sol[dim];// / fDeltaT;
+	val -= fStorageEps * phi(in,0) * data.sol[0][dim];// / fDeltaT;
 	//qH contribution 
 	val -= (fk / fMu) * 
 		   ( dphiXYZ(0,in)*dPp[0] +
@@ -188,9 +188,9 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
 		  * fDeltaT;
 	//qQT  (referring to the deltaP iterative solution)
 	val -= fAlpha *
-		   ( phi(in, 0) * data.dsol(0, 0) +
-	         phi(in, 0) * data.dsol(1, 1) +
-	         phi(in, 0) * data.dsol(2, 2) );// /fDeltaT
+		   ( phi(in, 0) * data.dsol[0](0, 0) +
+	         phi(in, 0) * data.dsol[0](1, 1) +
+	         phi(in, 0) * data.dsol[0](2, 2) );// /fDeltaT
 	  
 	ef(in*nstate+dim,0) += weight * val;
 	  
@@ -428,8 +428,8 @@ void TPZMatPorous<T, TMEM >::ComputePorePressure(TPZMaterialData & data, REAL & 
 	dPp = TBASEPOROUS(T, TMEM)::fMemory[intPt].fdPorePressure;
 	
 	// adding deltaP information from n+1 time
-	Pp += data.sol[dim];
-	for(i = 0; i < dim; i++)dPp[i] += data.dsol(i, dim);
+	Pp += data.sol[0][dim];
+	for(i = 0; i < dim; i++)dPp[i] += data.dsol[0](i, dim);
 }
 
 template <class T, class TMEM>
@@ -439,11 +439,11 @@ void TPZMatPorous<T, TMEM >::UpdatePorePressure(TPZMaterialData & data)
 	int intPt = data.intPtIndex;
 	
 	// updating n+1 information
-	TBASEPOROUS(T, TMEM)::fMemory[intPt].fPorePressure += data.sol[dim];
+	TBASEPOROUS(T, TMEM)::fMemory[intPt].fPorePressure += data.sol[0][dim];
 		
     for(i = 0; i < dim; i++)
 	{
-		TBASEPOROUS(T, TMEM)::fMemory[intPt].fdPorePressure[i] += data.dsol(i, dim); 
+		TBASEPOROUS(T, TMEM)::fMemory[intPt].fdPorePressure[i] += data.dsol[0](i, dim); 
 	}
 }
 

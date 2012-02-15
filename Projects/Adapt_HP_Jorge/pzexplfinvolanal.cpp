@@ -492,8 +492,8 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
    }
 
   TPZMaterialData data;
-  data.soll = LeftSol;
-  data.solr = RightSol;
+  data.soll[0] = LeftSol;
+  data.solr[0] = RightSol;
   //neighbour centers
   {
     TPZManVector<REAL,3> qsi(3);

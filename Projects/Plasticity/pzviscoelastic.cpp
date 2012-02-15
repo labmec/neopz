@@ -104,7 +104,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 	    qsi = MemItem(index);
 		
 		TPZFNMatrix<9> DSolXYZ(3,3,0.);
-		DSolXYZ = data.dsol;
+		DSolXYZ = data.dsol[0];
 		//data.axes.Multiply(data.dsol,DSolXYZ,1/*transpose*/);
 		
 		Strain.Redim(6,1);

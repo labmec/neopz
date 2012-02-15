@@ -110,7 +110,7 @@ void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solo
 	
 	Solout.Resize(numeq);	
 
-	for(i = 0; i < numeq; i++)Solout[i] = data.sol[offset+i];
+	for(i = 0; i < numeq; i++)Solout[i] = data.sol[0][offset+i];
 }
 
 void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
@@ -125,7 +125,7 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &
 //#endif
 	
   TPZFMatrix &phi = data.phi;
-  TPZVec<REAL> &sol = data.sol;
+  TPZVec<REAL> &sol = data.sol[0];
   int nstate = NStateVariables();
 			
   int nshape = phi.Rows();

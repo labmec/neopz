@@ -274,11 +274,11 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 	TPZFMatrix DSolU, DSolP;
 	TPZFMatrix axesU, axesP;
 	
-	SolU=datavec[0].sol;
-	DSolU=datavec[0].dsol;
+	SolU=datavec[0].sol[0];
+	DSolU=datavec[0].dsol[0];
 	axesU=datavec[0].axes;
-	SolP=datavec[1].sol;
-	DSolP=datavec[1].dsol;
+	SolP=datavec[1].sol[0];
+	DSolP=datavec[1].dsol[0];
 	axesP=datavec[1].axes;
 	
 	if(var == 1){

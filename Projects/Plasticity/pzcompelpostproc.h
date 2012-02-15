@@ -362,7 +362,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 	      ef.Reset();
 	      return;
       }
-      data.sol.Resize(stackedVarSize,0.);
+      data.sol[0].Resize(stackedVarSize,0.);
       int index = 0;
       // stacking the solutions to post process.
       for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
@@ -370,7 +370,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 		  int nsolvars = pMaterialRef->NSolutionVariables(varIndex[var_ind]);
 		  Sol.Resize(nsolvars);
           pMaterialRef->Solution(dataRef, varIndex[var_ind], Sol);
-          for(int i = 0; i <nsolvars; i++)data.sol[index+i] = Sol[i];
+          for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 		  index += nsolvars;		
       }
       

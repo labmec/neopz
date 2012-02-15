@@ -100,8 +100,8 @@ int main()
  TPZMatHyperElastic hyp(1, 1.e4, 0.2);
 	TPZMaterialData data;
 	data.x = x;
-	data.sol = sol;
-	data.dsol = dsol;
+	data.sol[0] = sol;
+	data.dsol[0] = dsol;
 	data.axes = axes;
 	data.phi = phi;
 	data.dphix = dphi;

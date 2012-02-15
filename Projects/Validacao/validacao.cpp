@@ -779,8 +779,12 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 	TPZFMatrix phi;
 	TPZFMatrix dphix;
 	
-	TPZManVector<REAL> sol(1);
-	TPZFMatrix dsol(3,1,0.);
+	//TPZManVector<REAL> sol(1);
+	TPZSolVec sol;
+	sol[0].Resize(1);
+	//TPZFMatrix dsol(3,1,0.);
+	TPZGradSolVec dsol;
+	dsol[0].Redim(3,1);
 	
 	///Percorrer todos elementos 
 	for(int el=0; el < nelem; el++){
@@ -813,7 +817,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 				gel->X(pto,xco);
 				SolExata(xco, p, fluxo);
 				Cel->ComputeSolution(xco,sol,dsol,axes);
-				GraficoSol<<"{ "<<xco[0]<< " , "<< xco[1]<< ","<<sol<<"},"<<std::endl;
+				GraficoSol<<"{ "<<xco[0]<< " , "<< xco[1]<< ","<<sol[0]<<"},"<<std::endl;
 				
 				
 			}

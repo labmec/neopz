@@ -42,8 +42,8 @@ void TPZConvHyper::Residual(TPZFMatrix &residual, int icase) {
   TPZMaterialData data;
   data.x = fX;
   data.jacinv = jacinv;
-  data.sol = fSol;
-  data.dsol = fState;
+  data.sol[0] = fSol;
+  data.dsol[0] = fState;
   data.axes = fAxes;
   data.phi = fPhi;
   data.dphix = fDphi;
@@ -64,8 +64,8 @@ void TPZConvHyper::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int 
   TPZMaterialData data;
   data.x = fX;
   data.jacinv = jacinv;
-  data.sol = fSol;
-  data.dsol = fState;
+  data.sol[0] = fSol;
+  data.dsol[0] = fState;
   data.axes = fAxes;
   data.phi = fPhi;
   data.dphix = fDphi;

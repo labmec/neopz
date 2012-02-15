@@ -85,8 +85,8 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
         TPZMaterialData data;
         data.x = x;
         data.jacinv = jacinv;
-        data.sol = sol;
-        data.dsol = dsol;
+        data.sol[0] = sol;
+        data.dsol[0] = dsol;
         data.axes = axes;
         data.phi = phi;
         data.dphix = dphi;
@@ -144,8 +144,8 @@ void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
         TPZMaterialData data;
         data.x = x;
         data.jacinv = jacinv;
-        data.sol = sol;
-        data.dsol = dsol;
+        data.sol[0] = sol;
+        data.dsol[0] = dsol;
         data.axes = axes;
         data.phi = phi;
         data.dphix = dphi;

@@ -51,10 +51,10 @@ int main()
     TPZMaterialData data;
 	
 	// emulating state variables
-	data.dsol.Redim(dim,nstate);
+	data.dsol[0].Redim(dim,nstate);
 	data.dphix.Redim(dim,nphi);
 	data.phi.Redim(nphi,1);
-	data.sol.Resize(nstate);
+	data.sol[0].Resize(nstate);
 	
 	TPZFMatrix ef(nphi * nstate, 1, 0.);
 	TPZFMatrix ek(nphi * nstate, nphi * nstate, 0.);
@@ -87,11 +87,11 @@ int main()
 	cout << "\nu" << u;
 	
 	//flattening solution
-	Flatten(u, data.phi, data.dphix, data.sol, data.dsol);
+	Flatten(u, data.phi, data.dphix, data.sol[0], data.dsol[0]);
 	
-	cout << "\nsol" << data.sol;
+	cout << "\nsol" << data.sol[0];
 	
-	cout << "\ndsol" << data.dsol;
+	cout << "\ndsol" << data.dsol[0];
 	
 	data.jacinv.Redim(dim, dim);
 	data.x.Resize(3);
@@ -178,7 +178,7 @@ void CheckConv(const double step,
 	//   TPZFMatrix jacinv(dim, dim, 7.);
 	data.x.Resize(3);
 	
-	Flatten(coeff, data.phi, data.dphix, data.sol, data.dsol);
+	Flatten(coeff, data.phi, data.dphix, data.sol[0], data.dsol[0]);
 	
 	MatTest.Contribute(data, 13., Tangent, F0);
 	
@@ -203,11 +203,11 @@ void CheckConv(const double step,
 		F2.Zero();
 		
 		updatedCoeff = coeff + deltaCoeff1;
-		Flatten(updatedCoeff, data.phi, data.dphix, data.sol, data.dsol);
+		Flatten(updatedCoeff, data.phi, data.dphix, data.sol[0], data.dsol[0]);
 		MatTest.Contribute(data, 13., TrashTangent, F1);
 		
 		updatedCoeff = coeff + deltaCoeff2;
-		Flatten(updatedCoeff, data.phi, data.dphix, data.sol, data.dsol);
+		Flatten(updatedCoeff, data.phi, data.dphix, data.sol[0], data.dsol[0]);
 		MatTest.Contribute(data, 13., TrashTangent, F2);
 		
 		F1 -= F0;
