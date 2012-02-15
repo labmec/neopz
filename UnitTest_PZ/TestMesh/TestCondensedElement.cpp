@@ -124,7 +124,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     return cmesh;
 }
 
-
+// @TODO include tests with condensed elements and different type of solvers, substructed meshes etc. Verify the time gain of condensed elements
 
 
 #endif
