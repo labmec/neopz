@@ -71,13 +71,13 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 	nel=fElementVec.size();
 	trVec.Resize(nel);
 	TPZGeoEl *gelmf = Reference();
-	if(gelmf->Dimension() ==  1){   // whether the geometric element is TPZGeoPoint
-		side = gelmf->NSides();
-	}
-	else{
-		side = gelmf->NSides()-1;
-	}
-	
+//	if(gelmf->Dimension() ==  1){   // whether the geometric element is TPZGeoPoint
+//		side = gelmf->NSides();
+//	}
+//	else{
+//		side = gelmf->NSides()-1;
+//	}
+	side = gelmf->NSides()-1;
 	TPZGeoEl  *geoel;
 	for (int i = 0; i<nel; i++) {
 		geoel = fElementVec[i]->Reference();
