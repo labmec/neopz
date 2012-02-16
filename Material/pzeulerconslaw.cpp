@@ -673,7 +673,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		// forcing explicit contribution and issueing an warning
 		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 		//         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
-		ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
+		ContributeExplConvFace(data.x,data.soll[0],data.solr[0],weight,data.normal,data.phil,data.phir,ef);
 #endif
 	}
 	else if(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
