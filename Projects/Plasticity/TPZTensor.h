@@ -17,8 +17,9 @@
 #define _YZ_ 4
 #define _ZZ_ 5
 
-
+#ifdef LOG4CXX
 static LoggerPtr loggerr(Logger::getLogger("logtensor"));
+#endif
 /**
  Classe que implementa o comportamento de um tensor simetrico
  */
@@ -1020,7 +1021,7 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
 */
 	
 
-#ifdef LOG4CXX_PLASTICITY
+#ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		sout << "\n  TPZTENSOR \n"<<endl;
