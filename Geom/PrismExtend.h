@@ -2,6 +2,10 @@
  * @file
  * @brief Contains the Pr class(template) which defines the Prismatic extension of a topology.
  */
+
+#ifndef TTPZGEOMPRISMEXTENDHPP
+#define TTPZGEOMPRISMEXTENDHPP
+
 #pragma once
 
 #include "pzstack.h"
@@ -10,9 +14,8 @@
 #include "tpzprinteg.h"
 #include "tpzpoint.h"
 
-namespace pztopology 
-{
-	
+namespace pztopology {
+
 	/**
 	 * @ingroup topology
 	 * @brief Defines the Prismatic extension of a topology. \ref topology "Topology"
@@ -120,6 +123,7 @@ namespace pztopology
 		 */
 		static void Diagnostic();
 	};
-	
+
 }
 
+#endif
