@@ -1,50 +1,45 @@
-/*
- *  ConvertionMethods.cpp
- *  FrenteDoVapor
- *
- *  Created by Jorge Calle on 11/04/10.
- *  Copyright 2010 Labmec. All rights reserved.
- *
+/**
+ * @file
+ * @brief Contains the implementation of the convertion methods.
  */
 
 #include "ConvertionMethods.h"
 
-//--------- Unidades de comprimento --------------------
-double ConvertFeetToMeter(double lenght) {
-	return (lenght*0.30480061);
+/// Length units
+REAL ConvertFeetToMeter(REAL lenght) {
+	return (lenght*0.30480061L);
 }
 
-//------------ Unidades de energia -----------------------------
-double ConvertBtuperFtCuboTokJpermCubo(double value) {
-	return (37.259*value);
+/// Energy units
+REAL ConvertBtuperFtCuboTokJpermCubo(REAL value) {
+	return (37.259L*value);
 }
 
-double ConvertBtuTokJ(double value) {
-	return value*1.055056; 
+REAL ConvertBtuTokJ(REAL value) {
+	return value*1.055056L; 
 }
 
-double ConvertBtuPerHourTokJPerSecond(double value) {
-	return value*(1.055056/3600.0);
+REAL ConvertBtuPerHourTokJPerSecond(REAL value) {
+	return value*(1.055056L/3600.0L);
 }
 
-//double ConvertBtuperFtCuboFTokJpermCuboK(double value) {
-//	return (67.066*value);
-//}
-
-double ConvertWTokJperH(double value) {
-	return (3.6*value);
+REAL ConvertWTokJperH(REAL value) {
+	return (3.6L*value);
+}
+REAL ConvertWTokJperSecond(REAL value) {
+	return (0.001L*value);
 }
 
-//----------- Unidades de temperatura --------------------
-double ConvertCToF(double temperature) {
-	return (1.8*temperature + 32.);
+/// Temperature units
+REAL ConvertCToF(REAL temperature) {
+	return (1.8L*temperature + 32.L);
 }
 
-double ConvertCToK(double temperature) {
-	return (temperature + 273.15);
+REAL ConvertCToK(REAL temperature) {
+	return (temperature + 273.15L);
 }
 
-//----------- Unidades em tempo -----------------------
-double ConvertHourToSecond(double horas) {
-	return horas*3600;
+/// Time units
+REAL ConvertHourToSecond(REAL horas) {
+	return horas*3600L;
 }
