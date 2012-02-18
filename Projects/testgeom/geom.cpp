@@ -106,10 +106,11 @@ void LerMalhaGeom(const std::string &nome, TPZGeoMesh &grid) {
 #include "tpzpoint.h"
 #include "pzgeopoint.h"
 
+
 void TestTopology()
 {
     // A line is a prismatic extension of a point
-    pztopology::Pr<pztopology::TPZPoint> line;
+//    pztopology::Pr<pztopology::TPZPoint> line;
     typedef pztopology::Pr<pztopology::TPZPoint> tline;
     // A quadrilateral is a prismatic extension of a line
     pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> > quad;
@@ -123,7 +124,7 @@ void TestTopology()
     
     tline::Diagnostic();
     quad.Diagnostic();
-    geoline.Diagnostic(coordd);
+	geoline.Diagnostic(coordd);
 }
 
 void LargeMesh(int nrefloop)
