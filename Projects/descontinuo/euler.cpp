@@ -545,7 +545,7 @@ void FileNB(TPZGeoMesh &gmesh,std::ostream &out,int var) {
       TPZGeoEl *gel = el->Reference();
       if(el && gel) {
 	if(gel->Id()==count){
-	  int nsides = gel->NSides();
+	  //int nsides = gel->NSides();
 	  TPZManVector<REAL> sol(1);
 	  TPZVec<REAL> csi(3,0.),x(3);
 	  //int var = 1;//densidade

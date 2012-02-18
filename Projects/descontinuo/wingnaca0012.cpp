@@ -563,7 +563,8 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	// TPZGeoElement</*TPZShapeTriang,*/TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	//TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	// TPZGeoElement</*TPZShapeLinear,*/TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-	int interfdim = 1,i;
+	//int interfdim = 1;
+	int i;
 	// TPZCompElDisc::gInterfaceDimension = interfdim;
 	gmesh->BuildConnectivity();
 	int nummat = 1;
@@ -592,7 +593,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	mat->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(mat);
 	
-	//condi��es de contorno
+	// boundary conditions
 	TPZBndCond *bc;
 	TPZFMatrix val1(4,4),val2(4,1);
 	
@@ -672,7 +673,8 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	//  TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	//TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
 	//TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-	int interfdim = 2,i;
+	//int interfdim = 2;
+	int i;
 	int nivel;
 	// TPZCompElDisc::gInterfaceDimension = interfdim;
 	gmesh->BuildConnectivity();
