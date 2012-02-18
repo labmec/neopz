@@ -254,7 +254,7 @@ int main()
 		
 		std::ofstream erro("CoupleSemEnrriqP2h5.txt");
 		REAL PI=4.*atan(1);
-	REAL a = PI/2.;
+	//REAL a = PI/2.;
 		
 		for(int jorder=2;jorder<3;jorder++){
 				erro<<"order "<<jorder<<std::endl;
@@ -406,7 +406,7 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		
 		//indice dos elementos
 			
-		int index;
+	//	int index;
 		
 		TPZVec<int> nodind1(4);
 		nodind1[0] = 0;
@@ -855,7 +855,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 		//indice dos elementos
 		
-		int index;
+		//int index;
 		
 		TPZVec<int> nodind1(3);
 		nodind1[0] = 0;
