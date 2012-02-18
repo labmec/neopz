@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGeoElSide methods.
  */
-//$Id: pzgeoelside.cpp,v 1.38 2011-05-15 21:09:19 phil Exp $
+
 #include "pzgeoelside.h"
 #include "pzgeoel.h"
 #include "pztrnsform.h"
@@ -13,12 +13,12 @@
 #include "pzshapetriang.h"
 #include "pzcompel.h"
 #include "pzintel.h"
-#include "tpzintrule.h"
 
 using namespace pzshape;
 using namespace std;
 
 #include "pzlog.h"
+
 #include <sstream>
 
 #ifdef LOG4CXX
@@ -58,21 +58,21 @@ bool TPZGeoElSide::IsAncestor(TPZGeoElSide other){
 	if(father.Element()){
 		if(father.Element() == other.Element()){
 			return true;
-		}///if
+		}
 		else{
 			if(father.IsAncestor(other)){
 				return true;
-			}///if
-		}///else
-	}///father
+			}
+		}
+	}
 	return false;
-}///method
+}
 
 bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 	if( this->IsAncestor(other) ) return true;
 	if( other.IsAncestor(*this) ) return true;
 	return false;
-}///method
+}
 
 void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {
 	

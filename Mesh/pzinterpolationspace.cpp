@@ -1054,7 +1054,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 		intrule.Point(ip,intpoint,weight);
 		data.sol.Fill(0.);
 		this->Solution(intpoint, variable, data.sol[0]);
-		//Tiago: Next call is performet only for computing detcaj. The previous method (Solution) has already computed jacobian.
+		//Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
 		//       It means that the next call would not be necessary if I wrote the whole code here.
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
