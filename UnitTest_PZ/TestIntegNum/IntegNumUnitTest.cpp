@@ -6,6 +6,8 @@
 #include "pzvec.h"
 #include "pzquad.h"
 
+#include "tpzgausspyramid.h"
+
 #include <math.h>
 
 #include <iostream>
@@ -27,34 +29,34 @@ using namespace std;
 
 #endif
 
-#define MAXORDER 13
+#define MAXORDER 12
 
 // Global variables to test
 int max_order = MAXORDER;
 int expo = 2;
-unsigned int NDigitsPrec = 14;
+unsigned int NDigitsPrec = 12;
 // Conclusion:	Using NDigitsPrec = 7 can to run with REAL = float
 //				Using NDigitsPrec = 14 can to run with REAL = double
 //				Using NDigitsPrec = 18 can to run with REAL = long double
 
 std::string dirname = PZSOURCEDIR;
 
+int NTypes = 2;
 
-// Computing coefficient of the polinomial function a(i,p) = sin(i*p*p)
-REAL CoefficientX(int i, int p) {
-	if(!i) return (REAL)(0.125L);
-	return (REAL)(i*p*p);
-}
-REAL CoefficientY(int i, int p) {
-	return (REAL)(i*p);
-}
-REAL CoefficientZ(int i, int p) {
-	return (REAL)(i);
-}
+/** 
+ * @name Testing a numeric integration rule of order p for function with argument and coefficients
+ * depending on p.
+ * @{ 
+ */
 
-// Defining a function to integrate f(x,y,z,i,p) = CoeffX(0,p) + CoeffX(1,p)x + CoeffX(2,p)x^2 + ... + CoeffX(i,p)x^i 
-//                                                             + CoeffY(1,p)y + CoeffY(2,p)y^2 + ... + CoeffY(i,p)y^i
-//                                                             + CoeffZ(1,p)z + CoeffZ(2,p)z^2 + ... + CoeffZ(i,p)z^i 
+REAL CoefficientX(int i, int p);
+REAL CoefficientY(int i, int p);
+REAL CoefficientZ(int i, int p);
+
+/**
+ * @brief Defining a function to integrate \f$ f(x,y,z,i,p) = Cx(0,p) + Cx(1,p)x + Cx(2,p)x^2 + ... + Cx(i,p)x^i \f$
+ *      \f$ + Cy(1,p)y + Cy(2,p)y^2 + ... + Cy(i,p)y^i + Cz(1,p)z + Cz(2,p)z^2 + ... + Cz(i,p)z^i \f$
+ */
 REAL Funcao(TPZVec<REAL> &point, int expo, int p) {
 	REAL val = (REAL)(0.0L);
 	REAL x = point[0];
@@ -77,6 +79,70 @@ REAL Funcao(TPZVec<REAL> &point, int expo, int p) {
 	return val;
 }
 
+/** @brief Compute the coefficient of the polinomial function \f$Cx(i,p) = i*p*p\f$ but \f$ Cx(0,p) = 0.125 \f$*/
+REAL CoefficientX(int i, int p) {
+	if(!i) return (REAL)(0.125L);
+	return (REAL)(i*p*p);
+}
+/** @brief Compute the coefficient of the polinomial function \f$Cy(i,p) = i*p\f$ */
+REAL CoefficientY(int i, int p) {
+	return (REAL)(i*p);
+}
+/** @brief Compute the coefficient of the polinomial function \f$Cz(i,p) = i \f$ */
+REAL CoefficientZ(int i, int p) {
+	return (REAL)(i);
+}
+
+/* @} */
+
+/** 
+ * @name Testing a numeric integration rule of order p for polinomial of order N
+ * @{ 
+ */
+
+/** @brief Compute the value of polinomial \f$ P(x) = (N+1)*x^N + N^2 \f$. \n
+ * The integral over \f$ [a,b] \f$ is \f$ \int[P(x)dx]\sub{a} = (b^{N+1} - a^{N+1}) + N^2 (b-a) \f$
+ */
+REAL PolinomialN(int N,REAL x) {
+	REAL valuex = 1.0L;
+	// Computes the value of \f$ x^N \f$
+	for(int i=0;i<N;i++)
+		valuex *= x;
+	return (((REAL)(N+1))*valuex + ((REAL)(N*N)));
+}
+/**
+ * @brief Compute the integral value of PolinomialN over the interval \f$[LimInf=a, LimSup=b]\f$ 
+ * @param N Degree of the polinomial
+ */
+REAL IntegralOfPolinomialN(int N,REAL LimInf, REAL LimSup) {
+	REAL A = 1.0L, B = 1.0L;
+	for(int i=0;i<(N+1);i++) {
+		A *= LimInf;
+		B *= LimSup;
+	}
+	return ((B-A)+(((REAL)(N*N))*(LimSup-LimInf)));
+}
+/**
+ * @brief Linear transformation to transform a interval [-1.,1.] to [a,b] 
+ * @param point Point within the master element [-1.,1.]
+ * @param LimInf Initial point of the interval image of the master
+ * @param LimSup Final point of the interval image of the master
+ */
+REAL LinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
+	return (0.5L * ((LimSup - LimInf)*point + (LimSup + LimInf)));
+}
+/**
+ * @brief Linear transformation to transform a interval [-1.,1.] to [a,b] 
+ * @param point Point within the master element [-1.,1.]
+ * @param LimInf Initial point of the interval image of the master
+ * @param LimSup Final point of the interval image of the master
+ */
+REAL DifferenceOfLinearTransformFromMaster(REAL point,REAL LimInf, REAL LimSup) {
+	return (0.5L * (LimSup - LimInf));
+}
+
+/** @} */
+
 #ifdef USING_BOOST
 
 /**
@@ -92,7 +158,7 @@ REAL Funcao(TPZVec<REAL> &point, int expo, int p) {
  * Para i = 2, order = 6, 2D, integral = 
  */
 template <class NumInteg>
-void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test_stream &out) {
+void TestingNumericIntegrationRule(int exp, int p,int type,boost::test_tools::output_test_stream &out) {
 	// Variables to computing numerical integration
 	TPZVec<REAL> point(3,0.L);
 	REAL weight = 0.L;
@@ -107,6 +173,7 @@ void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test
 	
 	// Integration rule
 	NumInteg intrule(p);
+	intrule.SetType(type);
 	intrule.SetOrder(order);
 
 	int npoints = intrule.NPoints();
@@ -133,7 +200,7 @@ void TestingNumericIntegrationRule(int exp, int p,boost::test_tools::output_test
 	BOOST_CHECK_MESSAGE( out.match_pattern() , "\nIntegration: Dim = " << intrule.Dimension() << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << text << "\n");
 }
 template <class NumInteg>
-void TestingNumericIntegrationRule(int exp, int p,std::ifstream &input) {
+void TestingNumericIntegrationRule(int exp, int p,int type,std::ifstream &input) {
 	// Variables to computing numerical integration
 	TPZVec<REAL> point(3,0.L);
 	REAL weight = 0.L;
@@ -142,14 +209,16 @@ void TestingNumericIntegrationRule(int exp, int p,std::ifstream &input) {
 		
 	// Integration rule
 	NumInteg intrule(p);
-	intrule.SetOrder(order);
+	intrule.SetOrder(order,type);
 	
 	unsigned int npoints = intrule.NPoints();
 	unsigned int it;
 	
 	// Computing the definite integral for Funcao on parametric element
+	cout << "Type " << type << std::endl;
 	for (it=0;it<npoints;it++) {
 		intrule.Point(it,point,weight);
+	//	cout << "\tPoint : " << point[0] << "\t" << point[1] << "\t" << point[2] << "\t Weight " << weight << std::endl;
 		integral = integral + weight * Funcao(point,exp,p);
 	}
 
@@ -170,11 +239,39 @@ void TestingNumericIntegrationRule(int exp, int p,std::ifstream &input) {
 		tol *= 10.L;
 
 	// SEE -> check the predicate, if the predicate is false then the message will be displayed.
-	BOOST_CHECK_MESSAGE( fabs(integral-inputdata) < tol , "\nIntegration: Dim = " << intrule.Dimension() << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << integral << " - " << fabs(integral-inputdata) << "\n");
+	BOOST_CHECK_MESSAGE( fabs(integral-inputdata) < tol , "\nIntegration: Dim = " << intrule.Dimension() << "\t Order = " << p << "\t NPoints = " << npoints << "\t Value = " << integral << " - (" << fabs(integral-inputdata) << ")\n");
+}
+
+template<class NumInteg>
+void ComparePointsWithNewRule(int p) {
+	// Variables to computing numerical integration
+	TPZVec<REAL> point(3,0.L);
+	REAL weight = 0.L;
+	TPZVec<int> order(3,p);
+	
+	// Integration rule
+	NumInteg intrule(p);
+	intrule.SetOrder(order);
+	intrule.Print();
+	
+	unsigned int npoints = intrule.NPoints();
+	unsigned int it;
+	
+	// Call the method to compute Jacobi points and weights
+	TPZVec<long double> x;
+	TPZVec<long double> w;
+	Jacobi_Compute(p,1.0L,1.0L,x,w);
+	
+	// Computing the definite integral for Funcao on parametric element
+	for (it=0;it<npoints;it++) {
+		intrule.Point(it,point,weight);
+		BOOST_CHECK(fabsl(point[0]-x[it]));
+		BOOST_CHECK(fabsl(weight-w[it]));
+	}
 }
 
 /**
- * Using Mathematica, I had the following values:
+ * For first Function. Using Mathematica, I had the following values:
  * (1D) i=2, p=6, from x = -1 until x = 1 then  integral = 2.169215575174690848712687509073837669906381782925
  * para 2D:
  * i=2, p=6, from x = -1 until x = 1, and y=-1 until y=1 then  integral = 3.6230005930154684018715427138244729500584455281477 (quadrilateral)
@@ -192,9 +289,13 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 	filename += "FirstResult1D.txt";
 	std::ifstream olddata(filename.c_str());
 
-	// Whether FirstResult.txt is empty then it is a first run
-	for(int order=0;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZInt1d>(expo,order,olddata);   // OK
+	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
+	for(int type=0;type<NTypes;type++) {
+		for(int order=0;order<max_order;order++) {
+			TestingNumericIntegrationRule<TPZInt1d>(expo,order,type,olddata);   // OK
+		}
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
 }
 
@@ -206,8 +307,13 @@ BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
 
 	int order;
 	// Quadrilateral parametric space
-	for(order=0;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZIntQuad>(expo,order,olddata);   // OK
+	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
+	for(int type=0;type<NTypes;type++) {
+		for(order=0;order<max_order;order++) {
+			TestingNumericIntegrationRule<TPZIntQuad>(expo,order,type,olddata);   // OK
+		}
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
 }
 
@@ -218,12 +324,13 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	std::ifstream olddata(filename.c_str());
 	
 	int order;
-	// Triangular parametric space
-	NDigitsPrec -= 7;                       // because the precision of the points and weights is to 15 digits
+	int NDigits = NDigitsPrec;
+	NDigitsPrec = 11;
 	for(order=0;order<max_order-2;order++) {
-		TestingNumericIntegrationRule<TPZIntTriang>(expo,order,olddata);   // OK
+		if(order > 8) NDigitsPrec = 9;
+		TestingNumericIntegrationRule<TPZIntTriang>(expo,order,0,olddata);   // OK
 	}
-	NDigitsPrec += 7;
+	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
@@ -234,13 +341,15 @@ BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
 
 	int order;
 	// Cube
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			continue;
+	for(int type=0;type<NTypes;type++) {
+		for(order=0;order<max_order;order++) {
+			if(!order) {
+				continue;
+			}
+			TestingNumericIntegrationRule<TPZIntCube3D>(expo,order,type,olddata);   // OK
 		}
-		if(order==12) NDigitsPrec -= 2;
-		TestingNumericIntegrationRule<TPZIntCube3D>(expo,order,olddata);   // OK
-		if(order==12) NDigitsPrec += 2;
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
 }
 
@@ -251,15 +360,22 @@ BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 	std::ifstream olddata(filename.c_str());
 	
 	int order;
-	// Tetrahedram
-	NDigitsPrec -= 9;                       // because the precision of the points and weights is to 15 digits
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			continue;
+	int NDigits = NDigitsPrec;
+	for(int type=0;type<NTypes;type++) {
+		for(order=0;order<max_order;order++) {
+			if(!order) {
+				continue;
+			}
+			else if(order > 3 && order < 7)
+				NDigitsPrec = 9;
+			else
+				NDigitsPrec = 8;
+			TestingNumericIntegrationRule<TPZIntTetra3D>(expo,order,type,olddata);   // OK
 		}
-		TestingNumericIntegrationRule<TPZIntTetra3D>(expo,order,olddata);   // OK
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
-	NDigitsPrec += 9;
+	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
@@ -269,12 +385,16 @@ BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 	std::ifstream olddata(filename.c_str());
 	
 	int order;
-	// Pyramidal
-	NDigitsPrec -= 9;                       // because the precision of the points and weights is to 15 digits
-	for(order=2;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZIntPyram3D>(expo,order,olddata);   // OK
+	int NDigits = NDigitsPrec;
+	NDigitsPrec = 7;
+	for(int type=0;type<NTypes;type++) {
+		for(order=2;order<max_order;order++) {
+			TestingNumericIntegrationRule<TPZIntPyram3D>(expo,order,type,olddata);   // OK
+		}
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
-	NDigitsPrec += 9;
+	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
@@ -284,113 +404,111 @@ BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
 	std::ifstream olddata(filename.c_str());
 	
 	int order;
-	// Prism
-	NDigitsPrec -= 8;                       // because the precision of the points and weights is to 15 digits
-	for(order=0;order<max_order-2;order++) {
-		if(!order) {
-			continue;
+	int NDigits = NDigitsPrec;
+	for(int type=0;type<NTypes;type++) {
+		for(order=0;order<max_order-2;order++) {
+			if(!order) {
+				continue;
+			}
+			else if(order > 7)
+				NDigitsPrec = 8;
+			TestingNumericIntegrationRule<TPZIntPrism3D>(expo,order,type,olddata);   // OK
 		}
-		TestingNumericIntegrationRule<TPZIntPrism3D>(expo,order,olddata);   // OK
+		olddata.close();
+		olddata.open(filename.c_str());
 	}
-	NDigitsPrec += 8;
+	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
 
 /**
- 
-BOOST_AUTO_TEST_CASE(numinteg1DM_tests) {
+ * @brief Suite for test of numeric integration of the PolinomialN with lower order and higher order.
+ * For lower order the test check must to be right. For higher order the test must to failed.
+ */
+
+int NN = 6;
+REAL a = -0.5L;
+REAL b = 2.1L;
+
+template <class NumInteg>
+void TestingNumericLowerIntegrationRule(int order,int type,REAL LimInf,REAL LimSup) {
+	// Variables to computing numerical integration
+	TPZVec<REAL> point(3,0.L);
+	REAL pointx;
+	REAL jacob = 0.5L*(b-a);
+	REAL weight = 0.L;
+	REAL integral = 0.L;
+	TPZVec<int> orderVec(3,order);
 	
-	// 
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult1D.txt";
-	boost::test_tools::output_test_stream output(filename,true);
+	// Integration rule
+	NumInteg intrule(order);
+	intrule.SetOrder(orderVec,type);
 	
-	// Whether FirstResult.txt is empty then it is a first run
-	for(int order=0;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZInt1d>(expo,order,output);
+	unsigned int npoints = intrule.NPoints();
+	unsigned int it;
+	
+	// Computing the definite integral for Funcao on parametric element
+	cout << "Testing PolinomialN : N = " << NN << " \t order = " << order << " \ttype = " << type << " \t NPoints = " << npoints << std::endl;
+	for (it=0;it<npoints;it++) {
+		intrule.Point(it,point,weight);
+		pointx = LinearTransformFromMaster(point[0],LimInf,LimSup);   // x=T(w)   where w pertence [-1.,1.]
+		integral +=  weight * PolinomialN(NN,pointx) * jacob;
 	}
+	
+	// Making tol compatible with the wished significant digits
+	long double tol = 1.0L;
+	REAL integ = IntegralOfPolinomialN(NN,a,b);
+	for(it=0;it<NDigitsPrec;it++)
+		tol *= 0.1L;
+	integ = fabsl(integral-integ);
+	if(order <= NN)
+		cout << "Difference: " << integ << ".\n";
+	else
+		BOOST_CHECK_MESSAGE(integ < tol,"Failed Test of Integral with higher order than polinomial: " << integ << ".\n");
 }
 
-BOOST_AUTO_TEST_CASE(numinteg2DM_tests) {
-	
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult2D.txt";
-	boost::test_tools::output_test_stream output(filename,true);
-	
-	int order;
-	// Quadrilateral parametric space
-	for(order=0;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZIntQuad>(expo,order,output);
+BOOST_AUTO_TEST_SUITE(numint_test2)
+
+BOOST_AUTO_TEST_CASE(LowerOrderTest) {
+	NN = 3;
+	int NDigits = NDigitsPrec;
+	while(NN<(2*MAXORDER)) {
+		NN++;
+		for(int type=0;type<NTypes;type++) {
+			for(int order=0;order<NN;order++) {
+				if(order > 10)
+					NDigitsPrec = 6;
+				TestingNumericLowerIntegrationRule<TPZInt1d>(order+1,type,a,b);
+			}
+		}
 	}
-	output << "\n";
-	BOOST_CHECK( output.match_pattern() );	
-	
-	// Triangular parametric space
-	for(order=0;order<max_order;order++) {
-		TestingNumericIntegrationRule<TPZIntTriang>(expo,order,output);
-	}
+	NDigitsPrec = NDigits;
 }
 
-BOOST_AUTO_TEST_CASE(numinteg3DM_tests) {
-	
-	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
-	filename += "FirstResult3D.txt";
-	boost::test_tools::output_test_stream output(filename,true);
-	
-	int order;
-	// Cube
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
+BOOST_AUTO_TEST_CASE(HigherOrderTest) {
+	NN = 3;
+	int NDigits = NDigitsPrec;
+	while(NN<(2*MAXORDER)) {
+		NN++;
+		for(int type=0;type<NTypes;type++) {
+			for(int order=(NN+1);order<(NN+max_order);order++) {
+				if(order > 10)
+					NDigitsPrec = 6;
+				TestingNumericLowerIntegrationRule<TPZInt1d>(order,type,a,b);
+			}
 		}
-		TestingNumericIntegrationRule<TPZIntCube3D>(expo,order,output);
 	}
-	output << "\n";
-	BOOST_CHECK( output.match_pattern() );
-	
-	// Tetrahedram
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
-		TestingNumericIntegrationRule<TPZIntTetra3D>(expo,order,output);
-	}
-	output << "\n";	
-	BOOST_CHECK( output.match_pattern() );
-	
-	// Pyramidal
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
-		TestingNumericIntegrationRule<TPZIntPyram3D>(expo,order,output);
-	}
-	output << "\n";	
-	BOOST_CHECK( output.match_pattern() );
-	
-	// Prism
-	for(order=0;order<max_order;order++) {
-		if(!order) {
-			output << "\n";
-			BOOST_CHECK( output.match_pattern() );	
-			continue;
-		}
-		TestingNumericIntegrationRule<TPZIntPrism3D>(expo,order,output);
-	}
+	NDigitsPrec = NDigits;
 }
-*/
+
+BOOST_AUTO_TEST_SUITE_END()
 
 #endif
 
 
-// Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0]
+/// Computes the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0]
+/// and stores the values in GaussLegQuadrature file
 void ComputingGaussLegendreQuadrature(int Npoints,ofstream &GaussLegQuadrature) {
 	const long double tol = 1.e-16;
 	long double z1, z, pp, p3, p2, p1;
