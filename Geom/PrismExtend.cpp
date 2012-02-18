@@ -292,7 +292,7 @@ namespace pztopology {
 	template<class TFather>
 	std::string Pr<TFather>::StrType()
 	{
-		return "Pr:" + TFather::StrType();
+		return "Pr:" + MElementType_Name(TFather::Type());
 	}
 	
 	template<class TFather>
@@ -300,9 +300,9 @@ namespace pztopology {
 	{
 		if(side < 2*TFather::NSides)
 		{
-			return TFather::StrType(side%(TFather::NSides));
+			return MElementType_Name(TFather::Type(side%(TFather::NSides)));
 		}
-		return "Pr:" + TFather::StrType(side%(TFather::NSides));
+		return "Pr:" + MElementType_Name(TFather::Type(side%(TFather::NSides)));
 	}
 	
 	template<class TFather>
@@ -491,9 +491,6 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		
-		// typedef TPZInt1d IntruleType;
-		// typedef TPZGraphEl1dd GraphElType;
-		
 		//  static std::string StrType() ;//{ return EOned;}
 		{
 			std::stringstream sout;
@@ -576,11 +573,13 @@ namespace pztopology {
 	template<>
 	REAL Pr< pztopology::TPZPoint >::RefElVolume()
 	{
-		return 2.0;
+		return 2.0L;
 	}
 	
-};
+	template class Pr<TPZPoint>;
+	template class Pr<Pr<TPZPoint> >;
+
+}
 
 
-template class pztopology::Pr<pztopology::TPZPoint>;
-template class pztopology::Pr<pztopology::Pr<pztopology::TPZPoint> >;
+
