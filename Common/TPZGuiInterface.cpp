@@ -16,7 +16,7 @@ TPZGuiInterface::TPZGuiInterface(){
 }
 
 TPZGuiInterface::~TPZGuiInterface(){
-	///nothing to be done
+	//nothing to be done
 }
 
 void TPZGuiInterface::UpdateCaption(){
