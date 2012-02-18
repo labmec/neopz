@@ -2,16 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZCube methods. 
  */
-// C++ Implementation: tpzcube
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzcube.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
@@ -31,22 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pzcube"));
 using namespace std;
 
 namespace pztopology {
-	
-	/// function pointer which determines the type of computational element
-	/**
-	 * function pointer which determines what type of computational element will be created
-	 **/
-//	TPZCompEl *(*TPZCube::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateCubeEl;
-	
-	TPZCube::TPZCube()
-	{
-	}
-	
-	
-	TPZCube::~TPZCube()
-	{
-	}
-	
+
 	static int FaceConnectLocId[6][9] = { {0,1,2,3,8,9,10,11,20},{0,1,5,4,8,13,16,12,21},
 		{1,2,6,5,9,14,17,13,22},{3,2,6,7,10,14,18,15,23},//{2,3,7,6,10,15,18,14,23}
 		{0,3,7,4,11,15,19,12,24},{4,5,6,7,16,17,18,19,25} };
@@ -580,14 +556,13 @@ namespace pztopology {
 			PZError << "TPZCube::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		//SideOrder corrige sides de 8 a 26 para 0 a 18
-		if(side<8)   return new TPZInt1Point();//cantos 0 a 7
-		if(side<20)  return new TPZInt1d(order);//lados 8 a 19
-		if(side<26)  {//faces : 20 a 25
+		if(side<8)   return new TPZInt1Point();            // sides 0 to 7 are vertices (corners)
+		if(side<20)  return new TPZInt1d(order);           // sides 8 to 19 are lines
+		if(side<26)  {                                     // sides 20 to 25 are quadrilaterals
 			return new TPZIntQuad(order,order);
 		}
-		if(side==26) {//integra�o do elemento
-			return new TPZIntCube3D(order,order,order);
+		if(side==26) {
+			return new IntruleType(order,order,order);     // integration of the element
 		}
 		return 0;
 		
@@ -796,7 +771,5 @@ namespace pztopology {
 	void TPZCube::GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather)
 	{
 	}
-	
-	
-	
-};
+
+}

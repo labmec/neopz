@@ -2,15 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZTriangle methods. 
  */
-// C++ Implementation: tpztriangle
-//
-// Description: 
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpztriangle.h"
 #include "pzquad.h"
 #include "tpzint1point.h"
@@ -27,8 +19,6 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pztriangle"));
 using namespace std;
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZTriangle::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTriangleEl;
 	
 	static int sidedimension[7] = {0,0,0,1,1,1,2};
 	
@@ -280,9 +270,9 @@ namespace pztopology {
 			PZError << "TPZTriangle::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side<3) return new TPZInt1Point();
-		if(side<6) return new TPZInt1d(order);
-		if(side==6)return new TPZIntTriang(order);
+		if(side<3) return new TPZInt1Point();     // sides 0 to 2 are vertices (corners)
+		if(side<6) return new TPZInt1d(order);    // sides 3 to 5 are lines
+		if(side==6)return new IntruleType(order); // integration of the element
 		return 0;
 	}
 	
@@ -348,23 +338,6 @@ namespace pztopology {
 				return -1;
 		}
 	}
-	
-	/*
-	 * return the connect associate to side side 
-	 */
-	//int TPZTriangleNContainedSides(int side){
-	//		
-	//		switch(SideDimension(side)) {
-	//			case 0:
-	//				PZError << "TPZTriangle::ContainedSideLocId no connect associate " <<  endl;
-	//				return -1;
-	//			case 1:
-	//				return (side - 3)%3;
-	//			case 2: 
-	//				return 3;
-	//				
-	//		}
-	//}
 	
 	/**
 	 * Method which identifies the transformation based on the IDs

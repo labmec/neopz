@@ -2,16 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZTetrahedron methods. 
  */
-// C++ Implementation: tpztetrahedron
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpztetrahedron.h"
 
 #include "pzmanvector.h"
@@ -31,17 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pztetrahedron"));
 using namespace std;
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZTetrahedron::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateTetraEl;	
-	
-	TPZTetrahedron::TPZTetrahedron()
-	{
-	}
-	
-	TPZTetrahedron::~TPZTetrahedron()
-	{
-	}
-	
+
 	static int nhighdimsides[15] = {7,7,7,7,3,3,3,3,3,3,1,1,1,1,0};
 	
 	int TPZTetrahedron::FaceNodes[4][3]  = { {0,1,2},{0,1,3},{1,2,3},{0,2,3} };
@@ -427,14 +408,13 @@ namespace pztopology {
 			PZError << "TPZTetrahedron::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		//SideOrder corrige sides de 4 a 14 para 0 a 10
-		if(side<4)   return new TPZInt1Point();//cantos 0 a 3 : cria regra com um ponto
-		if(side<10)  return new TPZInt1d(order);//lados 4 a 9
-		if(side<14)  {//faces : 10 a 13
+		if(side<4)   return new TPZInt1Point();    // sides 0 to 3 are points (vertices)
+		if(side<10)  return new TPZInt1d(order);   // sides 4 to 9 are lines
+		if(side<14)  {                             // sides 10 to 13 are triangles
 			return new TPZIntTriang(order);
 		}
-		if(side==14) {//integra�o do elemento
-			return new TPZIntTetra3D(order);
+		if(side==14) {                            // integration of the element
+			return new IntruleType(order);
 		}
 		return 0;
 	}

@@ -2,17 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZPoint methods. 
  */
-//
-// C++ Implementation: tpzpoint
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzpoint.h"
 #include "pzquad.h"
 #include "tpzint1point.h"
@@ -21,18 +11,6 @@
 #include "pzcreateapproxspace.h"
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZPoint::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePointEl;
-	
-	
-	TPZPoint::TPZPoint()
-	{
-	}
-	
-	
-	TPZPoint::~TPZPoint()
-	{
-	}
 	
 	TPZIntPoints *TPZPoint::CreateSideIntegrationRule(int side, int order)
 	{

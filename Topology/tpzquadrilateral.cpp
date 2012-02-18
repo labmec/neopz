@@ -2,16 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZQuadrilateral methods. 
  */
-// C++ Implementation: tpzquadrilateral
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzquadrilateral.h"
 
 #include "pzmanvector.h"
@@ -33,18 +24,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pzquadrilateral"));
 using namespace std;
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZQuadrilateral::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateQuadEl;	
-	
-	TPZQuadrilateral::TPZQuadrilateral()
-	{
-	}
-	
-	
-	TPZQuadrilateral::~TPZQuadrilateral()
-	{
-	}
-	
+
 	static int nsidenodes[9] = {
 		1,1,1,1,2,2,2,2,4};
 	
@@ -165,9 +145,9 @@ namespace pztopology {
 			PZError << "TPZQuadrilateral::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side<4) return new TPZInt1Point();
-		if(side<8) return new TPZInt1d(order);
-		if(side==8) return new TPZIntQuad(order,order);
+		if(side<4) return new TPZInt1Point();              // sides 0 to 3 are vertices (corners)
+		if(side<8) return new TPZInt1d(order);             // sides 4 to 7 are lines
+		if(side==8) return new IntruleType(order,order);   // integration of the element
 		return 0;
 	}
 	
@@ -180,8 +160,8 @@ namespace pztopology {
 		}
 		
 		TPZTransform t(sidedimension[side],2);//t(dimto,2)
-		t.Mult().Zero();	//TPZGeoElQ2d *gq;
-		t.Sum().Zero();//int dimto = gq->SideDimension(side);
+		t.Mult().Zero();
+		t.Sum().Zero();
 		
 		switch(side){
 			case 0:
@@ -190,7 +170,7 @@ namespace pztopology {
 			case 3:
 				return t;
 			case 4:
-				t.Mult()(0,0) = 1.0;//par. var.
+				t.Mult()(0,0) = 1.0;
 				return t;
 			case 5 :
 				t.Mult()(0,1) = 1.0;
@@ -539,6 +519,5 @@ namespace pztopology {
 		}
 		LOGPZ_ERROR(logger,"Wrong side parameter")
 	}
-	
 	
 }

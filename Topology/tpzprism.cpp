@@ -2,16 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZPrism methods. 
  */
-// C++ Implementation: tpzprism
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzprism.h"
 
 #include "pzshapequad.h"
@@ -35,19 +26,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pzprism"));
 using namespace std;
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZPrism::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePrismEl;
-	
-	
-	TPZPrism::TPZPrism()
-	{
-	}
-	
-	
-	TPZPrism::~TPZPrism()
-	{
-	}
-	
+
 	static int FaceConnectLocId[5][9] = { {0,1,2,6,7,8,15,-1,-1},{0,1,4,3,6,10,12,9,16},
 		{1,2,5,4,7,11,13,10,17},{0,2,5,3,8,11,14,9,18},{3,4,5,12,13,14,19,-1,-1} };
 	
@@ -280,7 +259,7 @@ namespace pztopology {
 	//Tentando criar o metodo
 	int TPZPrism::NumSides(int dimension) {
 		if(dimension<0 || dimension> 3) {
-			PZError << "TPZPyramid::NumSides. Bad parameter i.\n";
+			PZError << "TPZPrism::NumSides. Bad parameter i.\n";
 			return 0;
 		}
 		if(dimension==0) return 6;
@@ -557,15 +536,14 @@ namespace pztopology {
 			PZError << "TPZPrism::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		//SideOrder corrige sides de 5 a 18 para 0 a 13
-		if(side<6)   return new TPZInt1Point();//cantos 0 a 5
-		if(side<15)  return new TPZInt1d(order);//lados 6 a 14
-		if(side==15 || side==19) return new TPZIntTriang(order);
-		if(side<20)  {//faces : 16 a 18
-			return new TPZIntQuad(order,order);
+		if(side<6)   return new TPZInt1Point();                   // sides 0 to 7 are vertices
+		if(side<15)  return new TPZInt1d(order);                  // sides 7 to 14 are lines
+		if(side==15 || side==19) return new TPZIntTriang(order);  // sides 15 and 19 are triangles
+		if(side<20)  {
+			return new TPZIntQuad(order,order);                   // sides 16 to 18 are quadrilaterals
 		}
-		if(side==20) {//integra�o do elemento
-			return new TPZIntPrism3D(order,order);
+		if(side==20) {
+			return new IntruleType(order,order);                  // integration of the element
 		}
 		return 0;
 	}
@@ -721,6 +699,5 @@ namespace pztopology {
 		for(iel=0; iel<nel; iel++)
 			permgather[iel]=iel;
 	}
-	
-	
+
 }

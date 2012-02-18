@@ -2,16 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZLine methods. 
  */
-// C++ Implementation: tpzline
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzline.h"
 
 #include "pzerror.h"
@@ -31,17 +22,7 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pzline"));
 using namespace std;
 
 namespace pztopology {
-	
-//	TPZCompEl *(*TPZLine::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreateLinearEl;
-	
-	TPZLine::TPZLine()
-	{
-	}
-	
-	TPZLine::~TPZLine()
-	{
-	}
-	
+
 	static int nhighdimsides[3] = {1,1,0};
 	
 	static int sidedimension[3] = {0,0,1};
@@ -237,8 +218,8 @@ namespace pztopology {
 			PZError << "TPZLine::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side != 2) return new TPZInt1Point();
-		return new TPZInt1d(order);
+		if(side != 2) return new TPZInt1Point();   // sides 0 and 1 are vertices (corners)
+		return new IntruleType(order);
 		
 		
 	}
@@ -358,7 +339,5 @@ namespace pztopology {
 		}
 		LOGPZ_ERROR(logger,"Wrong input parameter")
 	}
-	
-	
-	
+
 }

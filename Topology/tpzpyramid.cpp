@@ -1,17 +1,8 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZPyramid methods. 
+ * @brief Contains the implementation of the TPZPyramid methods into the pztopology scope.
  */
-// C++ Implementation: tpzpyramid
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzpyramid.h"
 #include "pzmanvector.h"
 #include "pzerror.h"
@@ -28,21 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.topology.pzpyramid"));
 
 using namespace std;
 
-namespace pztopology {
-	
-//	TPZCompEl *(*TPZPyramid::fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index) = CreatePyramEl;
-	
-	
-	TPZPyramid::TPZPyramid()
-	{
-	}
-	
-	
-	TPZPyramid::~TPZPyramid()
-	{
-	}
-	
-	
+namespace pztopology {	
+
 	static int FaceConnectLocId[5][9] = { {0,1,2,3,5,6,7,8,13},{0,1,4,5,10,9,14,-1,-1},
 		{1,2,4,6,11,10,15,-1,-1},{3,2,4,7,11,12,16,-1,-1},{0,3,4,8,12,9,17,-1,-1} };
 	
@@ -500,28 +478,26 @@ namespace pztopology {
 	
 	TPZIntPoints * TPZPyramid::CreateSideIntegrationRule(int side, int order){
 		if(side<0 || side>18) {
-			PZError << "TPZPyramid::CreateSideIntegrationRule. bad side number.\n";
+			PZError << "TPZPyramid::CreateSideIntegrationRule. Bad side number.\n";
 			return 0;
 		}
-		//SideOrder corrige sides de 5 a 18 para 0 a 13
-		if(side<5)   return new TPZInt1Point();//cantos 0 a 3
-		if(side<13)  return new TPZInt1d(order);//lados 5 a 12
-		if(side==13) return new TPZIntQuad(order,order);
-		if(side<18)  {//faces : 14 a 17
-			return new TPZIntTriang(order);
+		if(side<5)   return new TPZInt1Point();            // sides 0 to 4 are vertices
+		if(side<13)  return new TPZInt1d(order);           // sides 5 to 12 are lines
+		if(side==13) return new TPZIntQuad(order,order);   // side 13 are quadrilateral (pyramid base)
+		if(side<18)  {
+			return new TPZIntTriang(order);                // sides 14 to 17 are triangles
 		}
-		if(side==18) {//integra�o do elemento
-			return new TPZIntPyram3D(order);
+		if(side==18) {
+			return new IntruleType(order);               // integration of the element
 		}
 		return 0;
 	}
-	
-	
+
 	MElementType TPZPyramid::Type()
 	{
 		return EPiramide;
 	}
-	
+
 	MElementType TPZPyramid::Type(int side)
 	{
 		switch(side) {
@@ -627,7 +603,7 @@ namespace pztopology {
 		}  
 		
 		
-	}///method
+	}//method
 	
 	
 	/**
