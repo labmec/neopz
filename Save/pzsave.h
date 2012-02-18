@@ -481,9 +481,8 @@ inline TPZSaveable *Restore<TPZSaveable>(TPZStream &buf, void *context) {
 	return 0;
 }
 
-/** @}
- */
-//#endif //borland
+/** @} */
+
 #endif //ellips
 
 #endif //PZSAVEH
