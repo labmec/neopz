@@ -215,7 +215,7 @@ void CC2(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 	
 }
 void CC3(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
-	double x=pt[0];
+	//double x=pt[0];
 	//double y=pt[1];
 	f[0]=0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
