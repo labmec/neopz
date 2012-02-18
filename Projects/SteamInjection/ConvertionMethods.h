@@ -1,16 +1,29 @@
-/*
- *  ConvertionMethods.h
- *  FrenteDoVapor
- *
- *  Created by Jorge Calle on 11/04/10.
- *  Copyright 2010 Labmec. All rights reserved.
- *
+/**
+ * @file
+ * @brief Contains some units conversions.
  */
 
 #ifndef CONVERTIONMETHODSHH
 #define CONVERTIONMETHODSHH
 
-double ConvertCToK(double temperature);
-double ConvertWTokJperSecond(double value);
+/// Space measures
+REAL ConvertFeetToMeter(REAL lenght);
+
+/// Energy measures
+REAL ConvertBtuperFtCuboTokJpermCubo(REAL value);
+REAL ConvertBtuTokJ(REAL value);
+REAL ConvertBtuPerHourTokJPerSecond(REAL value);
+
+/// Temperature measures
+REAL ConvertCToF(REAL temperature);
+
+REAL ConvertCToK(REAL temperature);
+
+REAL ConvertWTokJperH(REAL value);
+
+REAL ConvertWTokJperSecond(REAL value);
+
+/// Time measures
+REAL ConvertHourToSecond(REAL horas);
 
 #endif
