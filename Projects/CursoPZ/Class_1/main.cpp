@@ -2,11 +2,14 @@
  * @file
  * @brief Implements the use of the vectors and integration rules routines as tutorial example of the util and integral NeoPZ modules
  */
+
 #include "pzvec.h"
 #include "pzquad.h"
+#include "tpzintrulep3d.h"
 
 #include <iostream>
 #include <cmath>
+#include <fstream>
 
 using namespace std;
 
@@ -22,23 +25,29 @@ int main() {
 	int p = 6;
 	TPZVec<REAL> point(1,0.);
 	REAL weight = 0.;
-	REAL integral = 0.;
-
+	REAL integral;
+		
 	//=====1D Rule=====================================
 	TPZInt1d ordem1d (p);
-	int npoints = ordem1d.NPoints();
-	int it;
-	for (it=0;it<npoints;it++){
-		ordem1d.Point(it,point,weight);
-		integral += weight * Funcao(point,i,j,k,p);
+	int it, it2, npoints;
+	for(it2=0;it2<2;it2++) {
+		integral = 0.0;
+		ordem1d.SetType(it2);
+		npoints = ordem1d.NPoints();
+		for (it=0;it<npoints;it++){
+			ordem1d.Point(it,point,weight);
+			integral += weight * Funcao(point,i,j,k,p);
+		}
+		ordem1d.Print();
+		cout << "1D - Integral = " << integral << endl;
 	}
 	//=====End of 1D Rule================================
-	cout << "1D - Integral = " << integral << endl;
 	
 	//=====2D Triangle Rule==============================
 	point.Resize(2);
 	TPZIntTriang ordem2dt (p);
 	npoints = ordem2dt.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem2dt.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -49,6 +58,7 @@ int main() {
 	//=====2D Quad Rule==================================
 	TPZIntQuad ordem2dq (p,p);
 	npoints = ordem2dq.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem2dq.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -60,6 +70,7 @@ int main() {
 	point.Resize(3);
 	TPZIntTetra3D ordem3dt (p);
 	npoints = ordem3dt.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem3dt.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -70,6 +81,7 @@ int main() {
 	//=====3D Pyramid Rule==================================
 	TPZIntPyram3D ordem3dpy (p);
 	npoints = ordem3dpy.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem3dpy.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -80,6 +92,7 @@ int main() {
 	//=====3D Prism Rule===================================
 	TPZIntPrism3D ordem3dpr (p);
 	npoints = ordem3dpr.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem3dpr.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -90,6 +103,7 @@ int main() {
 	//=====3D Hexa Rule====================================
 	TPZIntCube3D ordem3dc (p);
 	npoints = ordem3dc.NPoints();
+	integral = 0.0;
 	for (it=0;it<npoints;it++){
 		ordem3dc.Point(it,point,weight);
 		integral += weight * Funcao(point,i,j,k,p);
@@ -97,6 +111,21 @@ int main() {
 	//=====End of 3D Hexa Rule=============================
 	cout << "3D - Hexa Integral = " << integral << endl;
 
+	
+	/** Knowing the points and weight to some Gaussian rules */
+	int np = 1;
+	std::ofstream nome("PyramidQuad.txt",ios::app);
+	while(np) {
+		cout << "\nOrder of the polinomials integrated exactly by gaussian rule (0 - quit) : ";
+		cin >> np;
+		TPZIntRuleP3D *rule;
+		rule = gIntRuleList.GetRuleP3D(np);
+		rule->Print(nome);
+		rule->ComputePyramidPointsAndWeights(np,np+1);
+		rule->Print(nome);
+	}
+	nome.close();
+	
 	return 0;
 }
 
