@@ -36,6 +36,7 @@ using namespace log4cxx::helpers;
 /**
  * \addtogroup util
  * \{ */
+
 /// External variable to mutex which controls write log
 extern pthread_mutex_t glogmutex;
 

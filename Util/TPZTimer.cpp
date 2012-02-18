@@ -49,7 +49,7 @@ void TPZTimer::stop()
 	AccumSec = ((double) resources.elapsed)/CLOCKS_PER_SEC;
 }
 
-/// Prints the time nicely formated.
+// Prints the time nicely formated.
 std::ostream& operator<<( std::ostream& Out, const TPZTimer& t )
 {
 	double AcS = t.AccumSec;
@@ -79,7 +79,7 @@ std::ostream& operator<<( std::ostream& Out, const TPZTimer& t )
 	return Out;
 }
 
-/// Prints the time nicely formated.
+// Prints the time nicely formated.
 std::ostream& operator<<( std::ostream& Out, const TPZMultiTimer& t )
 {
 	// First, we find the bigger process name, to align things.

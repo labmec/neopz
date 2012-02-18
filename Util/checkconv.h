@@ -41,6 +41,8 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 	
 	int ncoefs = coefs.NElements();
 	
+#ifdef _AUTODIFF
+	
 	for(icase = 0; icase < numcases; icase++) {
 		
 		obj.LoadState(state);
@@ -83,7 +85,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 			// cout << "difnorm = " << difnorm[interval];
 			
 		}
-		
+
 		std::cout << "icase = " << icase << std::endl;
 		log << "icase = " << icase << std::endl;
 		
@@ -102,6 +104,10 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 		}
 		
 	}
+
+#endif
+	
 	log.flush();
 
 }
+

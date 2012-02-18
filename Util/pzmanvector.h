@@ -2,7 +2,6 @@
  * @file
  * @brief Free store vector implementation.
  */
-// $Id: pzmanvector.h,v 1.13 2011-03-24 19:58:12 phil Exp $
 
 #ifndef PZMANVECTOR_H
 #define PZMANVECTOR_H
@@ -12,6 +11,7 @@
 
 /// To allocate vector by default
 const int DEFAULTVEC_ALLOC = 200;
+
 /**
  * @ingroup util
  * @see Shrink
