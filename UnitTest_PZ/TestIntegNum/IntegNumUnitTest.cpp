@@ -6,8 +6,6 @@
 #include "pzvec.h"
 #include "pzquad.h"
 
-#include "tpzgausspyramid.h"
-
 #include <math.h>
 
 #include <iostream>
@@ -213,9 +211,11 @@ void TestingNumericIntegrationRule(int exp, int p,int type,std::ifstream &input)
 	
 	unsigned int npoints = intrule.NPoints();
 	unsigned int it;
+	std::string namerule;
+	intrule.Name(namerule);
 	
 	// Computing the definite integral for Funcao on parametric element
-	cout << "Type " << type << std::endl;
+	cout << " Cubature rule: " << namerule << "  Type " << type << " \tOrder " << p << " \tNPoints " << npoints << std::endl;
 	for (it=0;it<npoints;it++) {
 		intrule.Point(it,point,weight);
 	//	cout << "\tPoint : " << point[0] << "\t" << point[1] << "\t" << point[2] << "\t Weight " << weight << std::endl;
@@ -248,28 +248,43 @@ void ComparePointsWithNewRule(int p) {
 	TPZVec<REAL> point(3,0.L);
 	REAL weight = 0.L;
 	TPZVec<int> order(3,p);
+	long double tol = 1.0e-18;
 	
 	// Integration rule
 	NumInteg intrule(p);
 	intrule.SetOrder(order);
 	intrule.Print();
 	
+	TPZVec<REAL> point2(3,0.L);
+	REAL weight2 = 0.L;
+	NumInteg intrule2(p);
+	intrule2.SetParametersJacobi(0.0L, 0.0L);
+	intrule2.SetOrder(order,1);
+	intrule2.Print();
+	
 	unsigned int npoints = intrule.NPoints();
+	unsigned int npoints2 = intrule2.NPoints();
+	BOOST_CHECK(npoints == npoints2);
+	if(npoints != npoints2) return;
 	unsigned int it;
 	
-	// Call the method to compute Jacobi points and weights
-	TPZVec<long double> x;
-	TPZVec<long double> w;
-	Jacobi_Compute(p,1.0L,1.0L,x,w);
-	
-	// Computing the definite integral for Funcao on parametric element
+	// Comparating the points and weights of the two rules
 	for (it=0;it<npoints;it++) {
 		intrule.Point(it,point,weight);
-		BOOST_CHECK(fabsl(point[0]-x[it]));
-		BOOST_CHECK(fabsl(weight-w[it]));
+		intrule2.Point(it,point2,weight2);
+		BOOST_CHECK(fabsl(point[0]-point2[0]) < tol);
+		BOOST_CHECK(fabsl(weight-weight2) < tol);
 	}
 }
 
+template<class T>
+void TestingCubatureRuleAllOrders(int type,std::ifstream &olddata) {
+	T rule(2);
+	int maxord = rule.GetMaxOrder();
+	for(int order=0;order<maxord+1;order++) {
+		TestingNumericIntegrationRule<T>(expo,order,type,olddata);   // OK
+	}
+}	
 /**
  * For first Function. Using Mathematica, I had the following values:
  * (1D) i=2, p=6, from x = -1 until x = 1 then  integral = 2.169215575174690848712687509073837669906381782925
@@ -291,9 +306,7 @@ BOOST_AUTO_TEST_CASE(numinteg1D_tests) {
 
 	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
 	for(int type=0;type<NTypes;type++) {
-		for(int order=0;order<max_order;order++) {
-			TestingNumericIntegrationRule<TPZInt1d>(expo,order,type,olddata);   // OK
-		}
+		TestingCubatureRuleAllOrders<TPZInt1d>(type,olddata);
 		olddata.close();
 		olddata.open(filename.c_str());
 	}
@@ -305,13 +318,10 @@ BOOST_AUTO_TEST_CASE(numinteg2DQ_tests) {
 	filename += "FirstResult2DQ.txt";
 	std::ifstream olddata(filename.c_str());
 
-	int order;
 	// Quadrilateral parametric space
 	// Testing over GaussLegendre, GaussLobatto and GaussJacobi rules and over all order < 13
 	for(int type=0;type<NTypes;type++) {
-		for(order=0;order<max_order;order++) {
-			TestingNumericIntegrationRule<TPZIntQuad>(expo,order,type,olddata);   // OK
-		}
+		TestingCubatureRuleAllOrders<TPZIntQuad>(type,olddata);
 		olddata.close();
 		olddata.open(filename.c_str());
 	}
@@ -323,13 +333,9 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	filename += "FirstResult2DT.txt";
 	std::ifstream olddata(filename.c_str());
 	
-	int order;
 	int NDigits = NDigitsPrec;
 	NDigitsPrec = 11;
-	for(order=0;order<max_order-2;order++) {
-		if(order > 8) NDigitsPrec = 9;
-		TestingNumericIntegrationRule<TPZIntTriang>(expo,order,0,olddata);   // OK
-	}
+	TestingCubatureRuleAllOrders<TPZIntTriang>(0,olddata);
 	NDigitsPrec = NDigits;
 }
 
@@ -339,15 +345,9 @@ BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
 	filename += "FirstResult3DC.txt";
 	std::ifstream olddata(filename.c_str());
 
-	int order;
 	// Cube
 	for(int type=0;type<NTypes;type++) {
-		for(order=0;order<max_order;order++) {
-			if(!order) {
-				continue;
-			}
-			TestingNumericIntegrationRule<TPZIntCube3D>(expo,order,type,olddata);   // OK
-		}
+		TestingCubatureRuleAllOrders<TPZIntCube3D>(type,olddata);
 		olddata.close();
 		olddata.open(filename.c_str());
 	}
@@ -358,23 +358,10 @@ BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult3DT.txt";
 	std::ifstream olddata(filename.c_str());
-	
-	int order;
+
 	int NDigits = NDigitsPrec;
-	for(int type=0;type<NTypes;type++) {
-		for(order=0;order<max_order;order++) {
-			if(!order) {
-				continue;
-			}
-			else if(order > 3 && order < 7)
-				NDigitsPrec = 9;
-			else
-				NDigitsPrec = 8;
-			TestingNumericIntegrationRule<TPZIntTetra3D>(expo,order,type,olddata);   // OK
-		}
-		olddata.close();
-		olddata.open(filename.c_str());
-	}
+	NDigitsPrec = 10;
+	TestingCubatureRuleAllOrders<TPZIntTetra3D>(0,olddata);
 	NDigitsPrec = NDigits;
 }
 
@@ -383,17 +370,10 @@ BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult3DPy.txt";
 	std::ifstream olddata(filename.c_str());
-	
-	int order;
+
 	int NDigits = NDigitsPrec;
 	NDigitsPrec = 7;
-	for(int type=0;type<NTypes;type++) {
-		for(order=2;order<max_order;order++) {
-			TestingNumericIntegrationRule<TPZIntPyram3D>(expo,order,type,olddata);   // OK
-		}
-		olddata.close();
-		olddata.open(filename.c_str());
-	}
+	TestingCubatureRuleAllOrders<TPZIntPyram3D>(0,olddata);
 	NDigitsPrec = NDigits;
 }
 
@@ -402,21 +382,9 @@ BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
 	std::string filename = dirname + "/UnitTest_PZ/TestIntegNum/";
 	filename += "FirstResult3DPr.txt";
 	std::ifstream olddata(filename.c_str());
-	
-	int order;
+
 	int NDigits = NDigitsPrec;
-	for(int type=0;type<NTypes;type++) {
-		for(order=0;order<max_order-2;order++) {
-			if(!order) {
-				continue;
-			}
-			else if(order > 7)
-				NDigitsPrec = 8;
-			TestingNumericIntegrationRule<TPZIntPrism3D>(expo,order,type,olddata);   // OK
-		}
-		olddata.close();
-		olddata.open(filename.c_str());
-	}
+	TestingCubatureRuleAllOrders<TPZIntPrism3D>(0,olddata);
 	NDigitsPrec = NDigits;
 }
 
