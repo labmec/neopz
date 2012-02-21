@@ -32,7 +32,7 @@ int main() {
 	int it, it2, npoints;
 	for(it2=0;it2<2;it2++) {
 		integral = 0.0;
-		ordem1d.SetType(it2);
+		ordem1d.SetType(it2,p);
 		npoints = ordem1d.NPoints();
 		for (it=0;it<npoints;it++){
 			ordem1d.Point(it,point,weight);
@@ -115,14 +115,22 @@ int main() {
 	/** Knowing the points and weight to some Gaussian rules */
 	int np = 1;
 	std::ofstream nome("PyramidQuad.txt",ios::app);
-	while(np) {
-		cout << "\nOrder of the polinomials integrated exactly by gaussian rule (0 - quit) : ";
-		cin >> np;
+	while(np < 17) {
+//		cout << "\nOrder of the polinomials integrated exactly by gaussian rule (0 - quit) : ";
+//		cin >> np;
+		TPZGaussRule *grule;
+		grule = gIntRuleList.GetRule(np);
+		grule->Print(nome);
+		np++;
+	}
+	np = 1;
+	while(np < 7) {
 		TPZIntRuleP3D *rule;
 		rule = gIntRuleList.GetRuleP3D(np);
 		rule->Print(nome);
-		rule->ComputePyramidPointsAndWeights(np,np+1);
-		rule->Print(nome);
+//		rule->ComputePyramidPointsAndWeights(np,np+1);
+//		rule->Print(nome);
+		np++;
 	}
 	nome.close();
 	
