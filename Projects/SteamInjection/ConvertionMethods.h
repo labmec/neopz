@@ -6,6 +6,8 @@
 #ifndef CONVERTIONMETHODSHH
 #define CONVERTIONMETHODSHH
 
+#include "pzreal.h"
+
 /// Space measures
 REAL ConvertFeetToMeter(REAL lenght);
 
