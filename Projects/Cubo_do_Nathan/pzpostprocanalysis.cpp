@@ -227,7 +227,6 @@ void TPZPostProcAnalysis::TransferSolution()
 
 #include "pzintel.h"
 
-#include "tpzint1point.h"
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
