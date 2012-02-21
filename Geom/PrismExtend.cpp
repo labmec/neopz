@@ -4,7 +4,6 @@
  */
 #include "PrismExtend.h"
 #include "tpzpoint.h"
-#include "tpzint1point.h"
 
 using namespace std;
 
