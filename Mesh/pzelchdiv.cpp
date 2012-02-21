@@ -1197,7 +1197,6 @@ void TPZCompElHDiv<TSHAPE>::Read(TPZStream &buf, void *context)
 }
 
 
-#include "tpzint1point.h"
 #include "pzshapecube.h"
 #include "TPZRefCube.h"
 #include "pzshapelinear.h"

@@ -410,7 +410,6 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 }//void
 
 void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
-	
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
@@ -422,12 +421,11 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 	}
 	
 	TPZAutoPointer<TPZMaterial> material = this->Material();
-	if(!material){
+	if(!material) {
 		sol.Resize(0);
 		return;
 	}
 	
-	const int numdof = material->NStateVariables();
 	TPZMaterialData data;
 	data.p = this->MaxOrder();
 	data.axes.Redim(dim,3);
@@ -447,7 +445,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZAutoPointer<TPZMaterial> material = Material();
-	if(!material){
+	if(!material) {
 		PZError << __PRETTY_FUNCTION__ << " this->Material() == NULL " << std::endl;
 		return;
 	}
@@ -483,7 +481,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	// Cesar 2003-11-25 -->> To avoid integration warnings...
 	maxorder = (2*maxorder > intrule->GetMaxOrder() ) ? intrule->GetMaxOrder() : 2*maxorder;
 	TPZManVector<int,3> order(dimension,maxorder);
-	for(int dim = 0; dim < dimension; dim++){
+	for(int dim = 0; dim < dimension; dim++) {
 		order[dim] = maxorder*2;
 	}
 	intrule->SetOrder(order);
@@ -545,7 +543,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	intrule->SetOrder(prevorder);
 }//InterpolateSolution
 
-void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous){
+void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous) {
 	//nao verifica-se caso o elemento de contorno
 	//eh maior em tamanho que o interface associado
 	//caso AdjustBoundaryElement nao for aplicado
@@ -555,7 +553,7 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous){
 	int InterfaceDimension = this->Material()->Dimension() - 1;
 	int side;
 	nsides--;//last face
-	for(side=nsides;side>=0;side--){
+	for(side=nsides;side>=0;side--) {
 		if(ref->SideDimension(side) != InterfaceDimension) continue;
 		TPZCompElSide thisside(this,side);
 		if(this->ExistsInterface(thisside.Reference())) {
@@ -565,7 +563,7 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous){
 		TPZStack<TPZCompElSide> highlist;
 		thisside.HigherLevelElementList(highlist,0,1);
 		//a interface se cria uma vez so quando existem ambos
-		//elementos esquerdo e direito (computacionais)
+		//elementos esquerdo e direito (compu tacionais)
 		if(!highlist.NElements()) {
 			this->CreateInterface(side, BetweenContinuous);//s�tem iguais ou grande => pode criar a interface
 		} else {

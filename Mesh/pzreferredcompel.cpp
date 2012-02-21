@@ -12,7 +12,6 @@
 #include "TPZInterfaceEl.h"
 
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "TPZGeoElement.h"
 #include "pzgeopoint.h"
 #include "pzshapepoint.h" 

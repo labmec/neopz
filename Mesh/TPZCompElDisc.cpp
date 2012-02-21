@@ -174,7 +174,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 }
 
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index) :
-TPZInterpolationSpace(mesh,ref,index), fExternalShape(), fConnectIndex(-1), fCenterPoint(3)
+TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCenterPoint(3)
 {
 	this->fShapefunctionType = pzshape::TPZShapeDisc::ETensorial;  
 	ref->SetReference(this);

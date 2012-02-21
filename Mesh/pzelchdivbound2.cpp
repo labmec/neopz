@@ -17,8 +17,6 @@
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
 
-#include "tpzint1point.h"
-
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 #endif
