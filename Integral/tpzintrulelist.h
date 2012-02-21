@@ -2,21 +2,15 @@
  * @file
  * @brief Contains the TPZIntRuleList class which creates instances of all integration rules for rapid selection.
  */
-//
-// C++ Interface: tpzintrulelist
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef TPZINTRULELIST_H
 #define TPZINTRULELIST_H
 
-class TPZIntRule;
+#include "pzvec.h"
+
+class TPZGaussRule;
+class TPZGaussLegendreRule;
+class TPZGaussLobattoRule;
 class TPZIntRuleT;
 class TPZIntRuleT3D;
 class TPZIntRuleP3D;
@@ -28,42 +22,53 @@ class TPZIntRuleP3D;
  */
 class TPZIntRuleList {
 	
-	/** @brief Number of integration rules available */
-    int		intavail;
-	/** @brief Number of integration rules available for triangles */
-    int        	intavailT;
-    int        	intavailT3D;
-    int        	intavailP3D;
-	/** @brief Pointer to an array of integration rules */
-    TPZIntRule	**intlist;
-	/** @brief Pointer to an array of integration rules */
-    TPZIntRuleT   **intlistT;
-    TPZIntRuleT3D **intlistT3D;
-    TPZIntRuleP3D **intlistP3D;
+	/** @brief Pointer to an array of integration rules (Gauss Legendre) for line, quad and cube elements */
+    TPZVec<TPZGaussRule* >	fintlist;
+
+	/** @brief Pointer to an array of integration rules for triangle */
+    TPZVec<TPZIntRuleT* >   fintlistT;
+	/** @brief Pointer to an array of integration rules for tetrahedra */
+    TPZVec<TPZIntRuleT3D* > fintlistT3D;
+	/** @brief Pointer to an array of integration rules for pyramid */
+    TPZVec<TPZIntRuleP3D* > fintlistP3D;
 	
     public :
 	
-	/** @brief Method which initializes all integration rules 
-	 * @note should be called only once!
+	/** 
+	 * @brief Method which initializes all integration rule vectors 
+	 * @note Should be called only once!
 	 */
 	TPZIntRuleList();
-	
+
+	/** @brief Destructor of all integration rule vectors */
 	~TPZIntRuleList();
 	
-	/** @brief Returns a pointer to an integration
-	 * rule with numint integration points
+	/** 
+	 * @brief Returns a pointer to an gaussian integration rule with numint points. This method computes the number of points to right Gaussian quadrature 
+	 * @param order Degree of the polinomial for which the integration is exact. 
+	 * @param type Type values: 0 - Gauss Legendre (default), 1 - Gauss Lobatto, 2 - Gauss Jacobi
 	 */
-	TPZIntRule *GetRule(int numint);
+	TPZGaussRule *GetRule(int order,int type = 0);
 	
-	/** @brief Returns a pointer to an integration
-	 * rule for a triangle
+	/** 
+	 * @brief Returns a pointer to an integration rule for a triangle 
+	 * @param order Degree of the polinomial for which the integration is exact. 
 	 */
-	TPZIntRuleT *GetRuleT(int numint);
-	TPZIntRuleT3D *GetRuleT3D(int numint);
-	TPZIntRuleP3D *GetRuleP3D(int numint);
+	TPZIntRuleT *GetRuleT(int order);
+	/** 
+	 * @brief Returns a pointer to an integration rule for a tetrahedra 
+	 * @param order Degree of the polinomial for which the integration is exact. 
+	 */
+	TPZIntRuleT3D *GetRuleT3D(int order);
+	/** 
+	 * @brief Returns a pointer to an integration rule for a  pyramid
+	 * @param order Degree of the polinomial for which the integration is exact. 
+	 */
+	TPZIntRuleP3D *GetRuleP3D(int order);
 };
 
-/** @ingroup integral
+/** 
+ * @ingroup integral
  * @brief Extern variable with list of all integration rules
  */
 extern  TPZIntRuleList  gIntRuleList;

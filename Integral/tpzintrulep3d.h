@@ -2,23 +2,12 @@
  * @file
  * @brief Contains the TPZIntRuleP3D class which defines the integration rule for pyramid.
  */
-//
-// C++ Interface: tpzintrulep3d
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef TPZINTRULEP3D_H
 #define TPZINTRULEP3D_H
 
 #include "pzreal.h"
-template<class T>
-class TPZVec;
+#include "pzvec.h"
 
 /**
  * @ingroup integral
@@ -30,22 +19,26 @@ class TPZIntRuleP3D {
 	friend class TPZIntRuleList;
 	
 	/** @brief Number of integration points for this object */
-	short	 fNumInt;
+    short	   fNumInt;
 	/** @brief Location of the integration point Ksi */
-	REAL	*fLocationKsi;
+    TPZVec<long double>	fLocationKsi;
 	/** @brief Location of the integration point Eta */
-	REAL	*fLocationEta;
+    TPZVec<long double>	fLocationEta;
 	/** @brief Location of the integration point ZEta */
-	REAL	*fLocationZeta;
+    TPZVec<long double>	fLocationZeta;
 	/** @brief Weight of the integration point */
-	REAL	*fWeight;
-	
-	TPZIntRuleP3D(int i = 2);
+    TPZVec<long double>	fWeight;
+
+	/** 
+	 * @brief Constructor of cubature rule for pyramid 
+	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
+	 */
+	TPZIntRuleP3D(int order = 2);
 	~TPZIntRuleP3D();
 	
 public:
 	
-    enum {NUMINT_RULESP3D = 8};
+    enum {NRULESPYRAMID_ORDER = 21};
 	
 	/** @brief Returns number of integration points */
     int NInt() const{ return fNumInt; }
@@ -55,7 +48,22 @@ public:
 	
 	/** @brief Returns weight for the ith point */
 	REAL W(int i) const;
-	
+
+	/** @brief Prints the number of integration points, all points and weights (as one dimension) */
+	void Print(std::ostream & out = std::cout);
+
+protected:
+
+	/**
+	 * @brief Computes the points and weights for pyramid cubature rule as first version of PZ 
+	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
+	 */
+	void ComputingCubatureRuleForPyramid(int order);
+	/**
+	 * @brief Computes the points and weights for pyramid cubature rule as first version of PZ 
+	 * @note Obsolete.
+	 */
+	void ComputingCubatureRuleForPyramidOldVersion(int order);
 };
 
 #endif

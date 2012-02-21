@@ -1,170 +1,116 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZIntRuleList methods. 
+ * @brief Contains the implementation of the TPZIntRuleList methods. It is created a list of all integration rules avaliables
+ * the rule was created at first time that it is required.
  */
-//
-// C++ Implementation: tpzintrulelist
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #include "tpzintrulelist.h"
 #include "pzerror.h"
-#include "tpzintrule.h"
+#include "tpzgaussrule.h"
 #include "tpzintrulet.h"
 #include "tpzintrulet3d.h"
 #include "tpzintrulep3d.h"
 
-TPZIntRuleList::TPZIntRuleList(){
+TPZIntRuleList  gIntRuleList;
+
+TPZIntRuleList::TPZIntRuleList() {
 	
 	static int	first = 1;
 	
 	if(first != 1) {
 		PZError << "second initialization of the integration rule list\n"
-        " something fishy is going on!\n";
-		//		PZError.show();
+        << " something fishy is going on!\n";
+		DebugStop();
 	}
 	
+	// Cleaning integration rules vectors
+	fintlist.Resize(0);
+	fintlistT.Resize(0);
+	fintlistT3D.Resize(0);
+	fintlistP3D.Resize(0);
+
 	first++;
-	
-	intavail    = TPZIntRule::NUMINT_RULES;//reta, quadrilatero, cubo
-	intavailT   = TPZIntRuleT::NUMINT_RULEST;//triangulo
-	intavailT3D = TPZIntRuleT3D::NUMINT_RULEST3D+1;//tetraedro
-	intavailP3D = TPZIntRuleP3D::NUMINT_RULESP3D;//piramide
-	
-	intlist    = new TPZIntRule*[intavail];
-	intlistT   = new TPZIntRuleT*[intavailT];
-	intlistT3D = new TPZIntRuleT3D*[intavailT3D];
-	intlistP3D = new TPZIntRuleP3D*[intavailP3D];
-	
-	
-	if(intlist == NULL || intlistT == NULL || intlistT3D == NULL || intlistP3D == NULL){
-		PZError << "TPZIntRuleList unable to initialize a list of integration rules\n";
-		//		PZError.show();
-		intavail = 0;
-		
-	} else {
-		
-		int i;
-		for(i = 1; i<=intavail; ++i) {
-			intlist[i-1] = new TPZIntRule(i-1);
-			if(intlist[i-1] == NULL) {
-				PZError << "TPZIntRuleList error: some integration rules"
-				"could not be initialized\n";
-				//				PZError.show();
-			}
-		}
-		
-		for(i = 0; i<intavailT; ++i) {
-			intlistT[i] = new TPZIntRuleT(i);
-			if(intlistT[i] == NULL) {
-				PZError << "TPZIntRuleList error: some integration rules"
-				"for triangles could not be initialized\n";
-				//				PZError.show();
-			}
-		}
-		for(i = 0; i<intavailT3D; ++i) {
-			intlistT3D[i] = new TPZIntRuleT3D(i);
-			if(intlistT3D[i] == NULL) {
-				PZError << "TPZIntRuleList error: some integration rules"
-				"for tetrahedros could not be initialized\n";
-				//				PZError.show();
-			}
-		}
-		for(i = 1; i<=intavailP3D; ++i) {
-			intlistP3D[i-1] = new TPZIntRuleP3D(i);
-			if(intlistP3D[i-1] == NULL) {
-				PZError << "TPZIntRuleList error: some integration rules"
-				"for pyramides could not be initialized\n";
-				//				PZError.show();
-			}
-		}
-		
-		
-	}
 }
 
-//***************************************
-//***************************************
-TPZIntRuleList::~TPZIntRuleList(){
-	
-	if (!intlist) return;
+TPZIntRuleList::~TPZIntRuleList() {
 	int i;
-	for(i=0 ; i<intavail ; ++i)    if (intlist[i])    delete intlist[i];
-	for(i=0 ; i<intavailT ; ++i)   if (intlistT[i])   delete intlistT[i];
-	for(i=0 ; i<intavailT3D ; ++i) if (intlistT3D[i]) delete intlistT3D[i];
-	for(i=0 ; i<intavailP3D ; ++i) if (intlistP3D[i]) delete intlistP3D[i];
-	delete []intlistT3D;
-	delete []intlistP3D;
-	delete []intlist;
-	delete []intlistT;
+	/** Deleting dinamic allocation of the Gauss integration rules at the vector */
+	for(i=0 ; i<fintlist.NElements() ; i++)   if (fintlist[i])   delete fintlist[i];
+	fintlist.Resize(0);
+	/** Deleting dinamic allocation of the cubature rules for triangle at the vector */
+	for(i=0 ; i<fintlistT.NElements() ; i++)   if (fintlistT[i])   delete fintlistT[i];
+	fintlistT.Resize(0);
+	/** Deleting dinamic allocation of the cubature rules for tetrahedra at the vector */
+	for(i=0 ; i<fintlistT3D.NElements() ; i++)   if (fintlistT3D[i])   delete fintlistT3D[i];
+	fintlistT3D.Resize(0);
+	
+	/** Deleting dinamic allocation of the cubature rules for pyramid at the vector */
+	for(i=0 ; i<fintlistP3D.NElements() ; i++)   if (fintlistP3D[i])   delete fintlistP3D[i];
+	fintlistP3D.Resize(0);
 }
 
-//***************************************
-//***************************************
-TPZIntRule* TPZIntRuleList::GetRule(int fNumInt) {
-	
-	if (fNumInt < 0 || fNumInt >= intavail) {
-		
-		static bool verbose = true;
-		if(verbose){  
-			PZError << "\nERROR(TPZIntRuleList::getrule)-> Numint = " << fNumInt;
-		}
-		//		PZError.show();
-		fNumInt = intavail-1;
-		if(verbose){
-			PZError << "\n                     precision obtained = " << fNumInt << "\n";
-			PZError.flush();
-			verbose = false;
-		}
-		//return NULL;
+TPZGaussRule* TPZIntRuleList::GetRule(int order,int type) {
+	if(order < 0) {
+		order = 1;
 	}
-	if(fNumInt == 0) fNumInt = 1;
-	//return intlist[fNumInt-1];
-	return intlist[fNumInt];
-}
-
-//**************************************
-//**************************************
-TPZIntRuleT* TPZIntRuleList::GetRuleT(int precision) {
-	
-	if (precision < 0 || precision >= intavailT) {
-		static bool verbose = true;
-		if(verbose){
-			PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision;
-		}
-		precision = intavailT-1;
-		if(verbose){
-			PZError << "\n                                 precision obtained = " << precision;
-			PZError.flush();
-			verbose = false;
-		}
+	if(type == 1) {
+		if(order > TPZGaussRule::NRULESLOBATTO_ORDER)
+			order = 1;
 	}
-	
-	return intlistT[precision];
+	else {
+		if(order > TPZGaussRule::NRULESLEGENDRE_ORDER)
+			order = TPZGaussRule::NRULESLEGENDRE_ORDER;
+	}
+	// The vectors of integration rules will be created based on order value
+	if(fintlist.NElements()<order+1)
+		fintlist.Resize(order+1,NULL);
+	if(!fintlist[order])
+		fintlist[order] = new TPZGaussRule(order,type);
+	else if(fintlist[order]->Type() != type) {
+		delete fintlist[order];
+		fintlist[order] = new TPZGaussRule(order,type);
+	}
+	return fintlist[order];
 }
 
 //**************************************
-TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int precision) {
-	
-	if (precision >= intavailT3D) {
-		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << std::endl;
-		precision = intavailT3D-1;
-		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << std::endl;
+TPZIntRuleT* TPZIntRuleList::GetRuleT(int order) {
+	if(order < 0) order = 1;
+	if(order > TPZIntRuleT::NRULESTRIANGLE_ORDER) {
+		order = TPZIntRuleT::NRULESTRIANGLE_ORDER;
 	}
-	if (precision < 0) {
-		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision required = " << precision << std::endl;
-		precision = 0;
-		PZError << "\nERROR(TPZIntRuleList::getrule)-> precision gotten = " << precision << std::endl;
-	}
-	
-	return intlistT3D[precision];
+
+	if(fintlistT.NElements()<order+1)
+		fintlistT.Resize(order+1,NULL);
+	if(!fintlistT[order])
+		fintlistT[order] = new TPZIntRuleT(order);
+	return fintlistT[order];
 }
 
+//**************************************
+TPZIntRuleT3D* TPZIntRuleList::GetRuleT3D(int order) {
+	if(order < 0) order = 1;
+	if(order > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
+		order = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
+	}
+	
+	if(fintlistT3D.NElements()<order+1)
+		fintlistT3D.Resize(order+1,NULL);
+	if(!fintlistT3D[order])
+		fintlistT3D[order] = new TPZIntRuleT3D(order);
+	return fintlistT3D[order];
+}
 
-TPZIntRuleList  gIntRuleList;
+//**************************************
+TPZIntRuleP3D* TPZIntRuleList::GetRuleP3D(int order) {
+	if(order < 0) order = 1;
+	if(order > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
+		order = TPZIntRuleP3D::NRULESPYRAMID_ORDER;
+	}
+
+	if(fintlistP3D.NElements()<order+1)
+		fintlistP3D.Resize(order+1,NULL);
+	if(!fintlistP3D[order])
+		fintlistP3D[order] = new TPZIntRuleP3D(order);
+	return fintlistP3D[order];
+}

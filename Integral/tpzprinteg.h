@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the TPZPrInteg class which defines prismatic extension of an integration rule.
  */
-//
-// C++ Interface: tpzprinteg
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2008
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef TPZPRINTEG_H
 #define TPZPRINTEG_H
@@ -22,7 +12,7 @@
 class TPZIntPoints;
 
 #include "tpzintrulelist.h"
-#include "tpzintrule.h"
+#include "tpzgaussrule.h"
 
 /**
  * @ingroup integral
@@ -35,14 +25,14 @@ class TPZPrInteg : public TFather
 public:
 	enum {Dim = TFather::Dim+1};
 	int fOrdKsi;
-	TPZIntRule *fIntP;
+	TPZGaussRule *fIntP;
 public:
-    TPZPrInteg(int order = 0) : TFather(order)
+    TPZPrInteg(int order) : TFather(order)
     {
 		if(order>0)
 		{
-			fOrdKsi = order;
 			fIntP   = gIntRuleList.GetRule(order);
+			fOrdKsi = order;
 		}
 		else
 		{
@@ -114,6 +104,10 @@ public:
 		return new TPZPrInteg<TFather>(*this);
 	}
 	
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZPrInteg";
+	}
 };
 
 #endif

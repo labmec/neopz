@@ -17,7 +17,7 @@ class TPZManVector;
 
 class TPZIntRuleT3D;
 class TPZIntRuleP3D;
-class TPZIntRule;
+
 #include "tpzintrulet.h"
 #include "tpzintpoints.h"
 #include "tpzprinteg.h"
@@ -33,12 +33,12 @@ class TPZIntRule;
 /** 
  * @brief Handles the numerical integration for one-dimensional problems. \ref integral "Numerical Integration"
  */
-class TPZInt1d : public TPZIntPoints{
+class TPZInt1d : public TPZIntPoints {
 	int fOrdKsi;
-	TPZIntRule *fIntP;
+	TPZGaussRule *fIntP;
 public:
 	enum {Dim = 1};
-	TPZInt1d(int OrdK = 0);
+	TPZInt1d(int OrdK = 0,int type = 0);
 	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP)
 	{
 	}
@@ -47,9 +47,9 @@ public:
 	}
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
-	virtual void SetOrder(TPZVec<int> &ord);
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;
+	virtual int GetRealMaxOrder() const;
 	virtual int Dimension() const
 	{
 		return Dim;
@@ -62,11 +62,21 @@ public:
 	{
 		return new TPZInt1d(*this);
 	}
+	virtual void SetType(int type,int order) {
+		fIntP->SetType(type,order);
+	}
+	void Print(std::ostream &out = std::cout) {
+		if(fIntP) fIntP->Print(out);
+	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZInt1D";
+	}
 };
+
 //*******************************************************************
 // Base Class TPZIntTriang - which handles the integration
-//									for 2D problems, triangle
-//									elements
+//									for 2D problems, triangle elements
 //*******************************************************************
 /**
  * @brief Handles the numerical integration for two-dimensional problems using triangular elements. \ref integral "Numerical Integration"
@@ -76,14 +86,14 @@ class TPZIntTriang : public TPZIntPoints{
 	TPZIntRuleT *fIntKsi;
 public:
 	enum {Dim = 2};
-	TPZIntTriang(	int OrdK = 2);
+	TPZIntTriang(int OrdK = 2);
 	virtual ~TPZIntTriang()
 	{
 	}
 	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-	virtual void SetOrder(TPZVec<int> &ord);
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int  NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	virtual void GetOrder(TPZVec<int> &ord) const;
@@ -101,11 +111,15 @@ public:
 		return new TPZIntTriang(*this);
 	}
 	
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntTriang";
+	}
 };
+
 //*******************************************************************
 // Base Class TPZIntQuad - 	which handles the integration
-//									for 2D problems, quadrilaterals
-//									elements
+//									for 2D problems, quadrilaterals elements
 //*******************************************************************
 /** 
  * @brief Handles the numerical integration for two-dimensional problems using quadrilateral elements. \ref integral "Numerical Integration"
@@ -113,22 +127,29 @@ public:
 class TPZIntQuad : public TPZIntPoints{
 	int fOrdKsi;
 	int fOrdEta;
-	TPZIntRule *fIntKsi;
-	TPZIntRule *fIntEta;
+	TPZGaussRule *fIntKsi;
+	TPZGaussRule *fIntEta;
 public:
 	enum {Dim = 2};
-	TPZIntQuad(int OrdK = 2, int OrdE = 2);
-	virtual ~TPZIntQuad()
-	{
+	/**
+	 * @brief Constructor with two one dimensional rules.
+	 * @param OrdK Order for \f$ \ksi \f$ axe
+	 * @param OrdE Order for \f$ \eta \f$ axe at master element.
+	 */
+	TPZIntQuad(int OrdK = 2,int OrdE = 2);
+	/** @brief Destructor */
+	virtual ~TPZIntQuad() {
 	}
+	/** @brief Copy constructor */
 	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta)
 	{
 	}
-	virtual void SetOrder(TPZVec<int> &ord);
+	
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;  
+	virtual int GetRealMaxOrder() const;  
 	virtual int Dimension() const
 	{
 		return Dim;
@@ -141,16 +162,17 @@ public:
 	{
 		return new TPZIntQuad(*this);
 	}
+	virtual void SetType(int type,int order) {
+		fIntKsi->SetType(type,order);
+		fIntEta->SetType(type,order);
+	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntQuad";
+	}
 };
 
-//#########################################################################
-//          Cedric 24/04/98
-//*******************************************************************
-// Clase Base TPZIntCube3D - 	Manipula regra de integracao para
-//			        problemas tridimensionais
-//   				elemento hexaedro
-//*******************************************************************
-// Cedric
+
 /** 
  * @brief Handles the numerical integration for three-dimensional problems using cube elements. \ref integral "Numerical Integration"
  */
@@ -159,24 +181,32 @@ class TPZIntCube3D : public TPZIntPoints{
 	int fOrdKsi;
 	int fOrdEta;
 	int fOrdZeta;
-	TPZIntRule *fIntKsi;
-	TPZIntRule *fIntEta;
-	TPZIntRule *fIntZeta;
+	TPZGaussRule *fIntKsi;
+	TPZGaussRule *fIntEta;
+	TPZGaussRule *fIntZeta;
 public:
 	enum {Dim = 3};
-	TPZIntCube3D(int OrdK = 2, int OrdE = 2, int OrdZ = 2);
-	virtual ~TPZIntCube3D()
-	{
+	/**
+	 * @brief Constructor with three one dimensional rules.
+	 * @param OrdK Order for \f$ \ksi \f$ axe
+	 * @param OrdE Order for \f$ \eta \f$ axe
+	 * @param OrdZ Order for \f$ \zeta \f$ axe at master element.
+	 */
+	TPZIntCube3D(int OrdK = 2,int OrdE = 2,int OrdZ = 2);
+	/** @brief Destructor */
+	virtual ~TPZIntCube3D() {
 	}
+	/** @brief Copy constructor */
 	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
 	fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta)
 	{
 	}
-	virtual void SetOrder(TPZVec<int> &ord);
+	
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	virtual void GetOrder(TPZVec<int> &ord) const;
-	virtual int GetMaxOrder() const;
+	virtual int GetRealMaxOrder() const;
 	virtual int Dimension() const
 	{
 		return Dim;
@@ -189,16 +219,18 @@ public:
 	{
 		return new TPZIntCube3D(*this);
 	}
+	virtual void SetType(int type,int order) {
+		fIntKsi->SetType(type,order);
+		fIntEta->SetType(type,order);
+		fIntZeta->SetType(type,order);
+	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntCube3D";
+	}
 };
 
-//#########################################################################
-//          Cedric 24/05/98
-//*******************************************************************
-// Clase Base TPZIntTetra3D - Manipula regra de integracao para
-//			      problemas tridimensionais
-//  			      elemento Tetraedro
-//*******************************************************************
-// Cedric
+
 /** 
  * @brief Handles the numerical integration for three-dimensional problems using tetraedra elements. \ref integral "Numerical Integration"
  */
@@ -211,7 +243,7 @@ public:
 	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-	virtual void SetOrder(TPZVec<int> &ord);
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	virtual void GetOrder(TPZVec<int> &ord) const;
@@ -228,16 +260,13 @@ public:
 	{
 		return new TPZIntTetra3D(*this);
 	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntTetra3D";
+	}
 };
-//#########################################################################
-//#########################################################################
-//          Cedric 06/09/98
-//*******************************************************************
-// Clase Base TPZIntPyram3D - Manipula regra de integracao para
-//			      problemas tridimensionais
-//  			      elemento Pir�mide
-//*******************************************************************
-// Cedric
+
+
 /** 
  * @brief Handles the numerical integration for three-dimensional problems using pyramid elements. \ref integral "Numerical Integration"
  */
@@ -250,7 +279,7 @@ public:
 	TPZIntPyram3D(const TPZIntPyram3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
 	{
 	}
-	virtual void SetOrder(TPZVec<int> &ord);
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	virtual void GetOrder(TPZVec<int> &ord) const;
@@ -267,18 +296,15 @@ public:
 	{
 		return new TPZIntPyram3D(*this);
 	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntPyram3D";
+	}
 };
-//#########################################################################
-//#########################################################################
-//          Cedric 06/09/98
-//*******************************************************************
-// Clase Base TPZIntPrism3D - Manipula regra de integracao para
-//			      problemas tridimensionais
-//  			      elemento Prisma
-//*******************************************************************
-// Cedric
-/** 
+
+/**
  * @brief Handles the numerical integration for three-dimensional problems using prism elements. \ref integral "Numerical Integration"
+ * This cubature rule uses a cubature rule for one dimension (zeta) and a cubature rule for triangle (base).
  */
 class TPZIntPrism3D  : public TPZIntPoints {
 	int fOrdKsi,fOrdKti;
@@ -287,13 +313,21 @@ class TPZIntPrism3D  : public TPZIntPoints {
 public:
 	
 	enum {Dim = 3};
+	/**
+	 * @brief Constructor with orders for a one dimensional rule and a cubature rule for triangle.
+	 * @param OrdK Order for one dimensional cubature rule
+	 * @param OrdL Order for cubature rule for triangle
+	 */
 	TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
+	/** @brief Copy constructor */
 	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), fIntRule1D(copy.fIntRule1D),
 	fIntTriang(copy.fIntTriang)
 	{
 	}
+	/** @brief Destructor */
 	virtual ~TPZIntPrism3D();
-	void SetOrder(TPZVec<int> &ord) ;
+	
+	void SetOrder(TPZVec<int> &ord,int type = 0);
 	int NPoints() const;
 	void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
 	void GetOrder(TPZVec<int> &ord) const;
@@ -310,7 +344,80 @@ public:
 	{
 		return new TPZIntPrism3D(*this);
 	}
+	virtual void SetType(int type,int order) {
+		fIntRule1D.SetType(type,order);
+	}
+	/** @brief Returns the name of the cubature rule */
+	void Name(std::string &name) {
+		name = "TPZIntPrism3D";
+	}
 };
+
+/**
+ * @brief Integration rule for one point. \ref integral "Numerical Integration"
+ */
+class TPZInt1Point : public TPZIntPoints {
+	
+public:
+	
+    enum {Dim = 0};
+    TPZInt1Point(int order = 0);
+//    TPZInt1Point(TPZVec<int> &ord);
+	TPZInt1Point(const TPZInt1Point &copy ) : TPZIntPoints(copy) {
+	}
+    virtual ~TPZInt1Point();
+	
+    void SetOrder(TPZVec<int> &ord,int type = 0);
+    int NPoints() const;
+    void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+    void GetOrder(TPZVec<int> &ord) const;
+    int GetMaxOrder() const;  
+    int Dimension() const {
+		return Dim;
+    }
+    TPZIntPoints *PrismExtend(int order);
+	TPZIntPoints *Clone() const {
+		return new TPZInt1Point(*this);
+	}
+	/** @brief Returns the name of the cubature rule */
+	virtual void Name(std::string &name) {
+		name = "TPZInt1Point";
+	}
+};
+
+inline TPZInt1Point::~TPZInt1Point() {
+}
+
+inline TPZInt1Point::TPZInt1Point(int order) {
+}
+
+inline void  TPZInt1Point::SetOrder(TPZVec<int> &ord,int type) {
+}
+
+inline int TPZInt1Point::NPoints() const{
+	return 1;
+}
+
+inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
+#ifndef NODEBUG
+	if(ip!=0) {
+		std::cout << "TPZInt1Point:: Bad number point " << ip << std::endl;
+		return;
+	}
+#endif
+	w = 1.;
+}
+
+inline void TPZInt1Point::GetOrder(TPZVec<int> &/* ord */) const {
+}
+
+inline int TPZInt1Point::GetMaxOrder() const {
+	return 1;
+}
+
+inline TPZIntPoints *TPZInt1Point::PrismExtend(int order) {
+	return new TPZPrInteg<TPZInt1Point> (order);
+}
 
 /** @} */
 
