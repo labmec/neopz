@@ -9,7 +9,6 @@
 #include "pzreal.h"
 #include "pztrnsform.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 
 #include "pzlog.h"
@@ -218,7 +217,7 @@ namespace pztopology {
 			PZError << "TPZLine::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side != 2) return new TPZInt1Point();   // sides 0 and 1 are vertices (corners)
+		if(side != 2) return new TPZInt1Point(order);   // sides 0 and 1 are vertices (corners)
 		return new IntruleType(order);
 		
 		

@@ -8,7 +8,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzeltype.h"
-#include "tpzint1point.h"
 
 #include "pzcreateapproxspace.h"
 #include "pzlog.h"
@@ -481,7 +480,7 @@ namespace pztopology {
 			PZError << "TPZPyramid::CreateSideIntegrationRule. Bad side number.\n";
 			return 0;
 		}
-		if(side<5)   return new TPZInt1Point();            // sides 0 to 4 are vertices
+		if(side<5)   return new TPZInt1Point(order);            // sides 0 to 4 are vertices
 		if(side<13)  return new TPZInt1d(order);           // sides 5 to 12 are lines
 		if(side==13) return new TPZIntQuad(order,order);   // side 13 are quadrilateral (pyramid base)
 		if(side<18)  {

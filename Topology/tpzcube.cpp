@@ -8,7 +8,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 #include "tpzquadrilateral.h"
 
@@ -556,7 +555,7 @@ namespace pztopology {
 			PZError << "TPZCube::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		if(side<8)   return new TPZInt1Point();            // sides 0 to 7 are vertices (corners)
+		if(side<8)   return new TPZInt1Point(order);            // sides 0 to 7 are vertices (corners)
 		if(side<20)  return new TPZInt1d(order);           // sides 8 to 19 are lines
 		if(side<26)  {                                     // sides 20 to 25 are quadrilaterals
 			return new TPZIntQuad(order,order);

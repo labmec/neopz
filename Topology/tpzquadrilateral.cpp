@@ -9,7 +9,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
@@ -145,7 +144,7 @@ namespace pztopology {
 			PZError << "TPZQuadrilateral::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side<4) return new TPZInt1Point();              // sides 0 to 3 are vertices (corners)
+		if(side<4) return new TPZInt1Point(order);              // sides 0 to 3 are vertices (corners)
 		if(side<8) return new TPZInt1d(order);             // sides 4 to 7 are lines
 		if(side==8) return new IntruleType(order,order);   // integration of the element
 		return 0;

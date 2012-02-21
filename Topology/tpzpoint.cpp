@@ -5,7 +5,6 @@
 
 #include "tpzpoint.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"

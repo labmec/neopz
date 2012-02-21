@@ -9,7 +9,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
@@ -408,7 +407,7 @@ namespace pztopology {
 			PZError << "TPZTetrahedron::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		if(side<4)   return new TPZInt1Point();    // sides 0 to 3 are points (vertices)
+		if(side<4)   return new TPZInt1Point(order);    // sides 0 to 3 are points (vertices)
 		if(side<10)  return new TPZInt1d(order);   // sides 4 to 9 are lines
 		if(side<14)  {                             // sides 10 to 13 are triangles
 			return new TPZIntTriang(order);

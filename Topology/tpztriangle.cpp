@@ -5,7 +5,6 @@
 
 #include "tpztriangle.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 
 #include "pzshapetriang.h"
 #include "pzcreateapproxspace.h"
@@ -270,7 +269,7 @@ namespace pztopology {
 			PZError << "TPZTriangle::CreateSideIntegrationRule wrong side " << side << endl;
 			return 0;
 		}
-		if(side<3) return new TPZInt1Point();     // sides 0 to 2 are vertices (corners)
+		if(side<3) return new TPZInt1Point(order);     // sides 0 to 2 are vertices (corners)
 		if(side<6) return new TPZInt1d(order);    // sides 3 to 5 are lines
 		if(side==6)return new IntruleType(order); // integration of the element
 		return 0;

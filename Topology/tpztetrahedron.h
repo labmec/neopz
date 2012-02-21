@@ -169,7 +169,9 @@ namespace pztopology {
 		static void GetSideHDivPermutation(int side, TPZVec<int> &id, TPZVec<int> &permgather);
 		
 		/** @brief Volume of the master element (measure) */
-		static REAL RefElVolume(){return (1.0L/6.0L);}
+		static REAL RefElVolume() {
+			return (1.0L/6.0L);
+		}
 
 	protected:
 		/** @name Data structure which defines the tetrahedral transformations */

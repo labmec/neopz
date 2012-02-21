@@ -13,7 +13,6 @@
 #include "pzerror.h"
 #include "pzreal.h"
 #include "pzquad.h"
-#include "tpzint1point.h"
 #include "pzeltype.h"
 
 #include "pzcreateapproxspace.h"
@@ -536,7 +535,7 @@ namespace pztopology {
 			PZError << "TPZPrism::CreateSideIntegrationRule. bad side number.\n";
 			return 0;
 		}
-		if(side<6)   return new TPZInt1Point();                   // sides 0 to 7 are vertices
+		if(side<6)   return new TPZInt1Point(order);                   // sides 0 to 7 are vertices
 		if(side<15)  return new TPZInt1d(order);                  // sides 7 to 14 are lines
 		if(side==15 || side==19) return new TPZIntTriang(order);  // sides 15 and 19 are triangles
 		if(side<20)  {
