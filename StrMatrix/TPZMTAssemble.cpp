@@ -94,7 +94,7 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, i
 					ithread--;
 					continue;
 				} 
-			}///if
+			}//if
 			
 			SMTAssembleResidual * data = new SMTAssembleResidual(el, &rhs, mineq, maxeq, MaterialIds, ithread);
 			pthread_create(&allthreads[ithread],NULL,ExecuteAssembleResidualMT, data);

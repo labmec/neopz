@@ -81,7 +81,7 @@ namespace pztopology {
 		}
 	}
 	
-	bool TPZLine::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol){
+	bool TPZLine::IsInParametricDomain(TPZVec<REAL> &pt, REAL tol) {
 		const REAL qsi = pt[0];
 		if( fabs(qsi) <= 1. + tol){
 			return true;
@@ -89,7 +89,7 @@ namespace pztopology {
 		else{
 			return false;
 		}  
-	}///method
+	}//method
 	
 	void TPZLine::HigherDimensionSides(int side, TPZStack<int> &high)
 	{

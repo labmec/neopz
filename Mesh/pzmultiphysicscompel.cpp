@@ -510,30 +510,30 @@ void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grme
 			new TPZGraphElT2dMapped(this,&grmesh);
 			return;
 		}
-	}///2d
+	}//2d
 	
 	if(dimension == 3 && mat > 0){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;
-		}///cube
+		}//cube
 		if(nsides == 21){
 			new TPZGraphElPrismMapped(this,&grmesh);
 			return;
-		}///prism
+		}//prism
 		if(nsides == 15){
 			new TPZGraphElT3d(this,&grmesh);
 			return;
-		}///tetra
+		}//tetra
 		if(nsides == 19){
 			new TPZGraphElPyramidMapped(this,&grmesh);
 			return;
-		}///pyram
-	}///3d
+		}//pyram
+	}//3d
 	
 	if(dimension == 1 && mat > 0){
 		new TPZGraphEl1dd(this,&grmesh);
-	}///1d
+	}//1d
 }
 
 

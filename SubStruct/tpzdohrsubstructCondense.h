@@ -244,36 +244,11 @@ public:
 	
 	const TPZVec<int> &ScatterVec(ENumbering origin, ENumbering destination) const;
 	
-	/// Indices of the equations in the global system corresponding to the local equations
-	//	TPZVec<std::pair<int,int> > fGlobalEqs;
-	/**
-	 * Inverted (LU or Cholesky) stiffness matrix
-	 * Calculado
-	 */
-	//    TPZStepSolver fInvertedStiffness; //Ke, or K_star
 	/**
 	 * @brief Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom
 	 * Calculado
 	 */
 	mutable TPZAutoPointer<TPZMatRed<TPZFMatrix> > fMatRed; //R(Ii)*K(i)*R(Ii)invertida
-	/**
-	 * Sparse matrices corresponding to the matrices after the internal equations were reordered as first
-	 */
-	//	TPZFYsmpMatrix fK01,fK10,fK11;
-	/**
-	 * Inverted restraint matrix
-	 * Calculado
-	 */
-	//    TPZStepSolver fKCInvert; //K(c) invertida
-	/**
-	 * internal nodes
-	 * Dado
-	 */
-	//    TPZVec<int> fInternalEqs; //R(Ii)
-	/**
-	 * equations corresponding to boundary of the substructure
-	 */
-	//	TPZVec<int> fBoundaryEqs;
 	/**
 	 * @brief Local load vector
 	 * 
@@ -284,14 +259,6 @@ public:
 	 * @brief Local weighted residual - W(i)*R(i)*r
 	 */
 	TPZFMatrix fLocalWeightedResidual; //W(i)*R(i)*r - Actually it's a vector
-	/**
-	 * The columns of fEigenVectors are the eigenvectors of fStiffness, or K(i), associated with the null eigenvalue
-	 */
-	//    TPZFMatrix fEigenVectors;
-	/**
-	 * Needed to compute v2. Is the solution of a system
-	 */
-	//    TPZFMatrix fzi; //z(i)
 	
 	/**
 	 * @brief Solution vector which needs to be added to the converged system solution

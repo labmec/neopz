@@ -245,7 +245,6 @@ public:
 	 */
 	TPZTransform SideToSideTransform(TPZGeoElSide &higherdimensionside);
 	
-	////////////////////////////////////////////////////////////////////////////////
 	/** Returns the number of fathers that can be followed*/
 	//int Level();
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/

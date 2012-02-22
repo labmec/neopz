@@ -50,28 +50,28 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 	REAL A, B, L, M;
 	TPZFMatrix ak, bk, lambdak, muk, Interval;
 	REAL NormResLambda, NormResMu;
-	///ak = Wn + 0.1 * DeltaW
+	//ak = Wn + 0.1 * DeltaW
 	ak = DeltaW;
 	A = 0.1;
 	ak *= A;
 	ak += Wn;
-	///bk = Wn + 2. DeltaW
+	//bk = Wn + 2. DeltaW
 	bk = DeltaW;
 	B = 2.;
 	bk *= B;
 	bk += Wn;
-	///Interval = (bk-ak)
+	//Interval = (bk-ak)
 	Interval = bk; Interval -= ak;
 	int iter = 0;
-	int KeptVal = -1;///0 means I have residual(labmda); 1 means I have residual(mu); -1 means I have nothing
+	int KeptVal = -1; //0 means I have residual(labmda); 1 means I have residual(mu); -1 means I have nothing
 	while(error > tol && iter < niter){
 		iter++;
 		
 		if (KeptVal != 0){
 			L = 0.382*(B-A)+A;
-			///lambdak = ak + 0.382*(bk-ak)
+			//lambdak = ak + 0.382*(bk-ak)
 			lambdak = Interval; lambdak *= 0.382; lambdak += ak;
-			///computing residual
+			//computing residual
 			this->LoadSolution(lambdak);
 			LOGPZ_DEBUG(logger,"After LoadSolution")
 			//		LogWellSolution(*this->Mesh(), 6);
@@ -82,7 +82,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 		}
 		
 		if (KeptVal != 1){
-			///muk = ak + 0.618*(bk-ak)
+			//muk = ak + 0.618*(bk-ak)
 			M = 0.618*(B-A)+A;
 			muk = Interval; muk *= 0.618; muk += ak;
 			this->LoadSolution(muk);
@@ -106,13 +106,13 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 			NormResMu = NormResLambda;
 			KeptVal = 1;
 		}
-		///error = Norm(bk-ak)
+		//error = Norm(bk-ak)
 		Interval = bk; Interval -= ak; error = Norm(Interval);
 		
-		///alpha shall be alpha <= 1
+		//alpha shall be alpha <= 1
 		if(A > 1. && B > 1.) break;
 		
-	}///while
+	}//while
 	
 	double ALPHA = 0.5*(A + B);
 	NextW = ak;
@@ -121,7 +121,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 	
 	
 #ifdef DEBUGLINESEARCH
-	///debug: valor do alpha
+	//debug: valor do alpha
 	TPZFMatrix alpha;
 	alpha = NextW;
 	alpha -= Wn;
@@ -139,7 +139,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 	alphafile.flush();
 #endif
 	
-	if(ALPHA > 1.){ ///alpha shall be alpha <= 1
+	if(ALPHA > 1.){ //alpha shall be alpha <= 1
 		NextW = Wn;
 		NextW += DeltaW;
 #ifdef DEBUGLINESEARCH
@@ -150,7 +150,7 @@ REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, T
 	
 	return ALPHA;
 	
-}///void
+}//void
 
 void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv) {
 	

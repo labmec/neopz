@@ -44,7 +44,7 @@ void TPZMathTools::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 		for(int i = 0; i < 11; i++)
 		{
 			alpha = i/10.;
-			///aproximate compute
+			//aproximate compute
 			Object.X(QsiEtaIni,OutReal);
 			//                std::cout << "\nalpha = " << alpha << std::endl;
 			//                std::cout << "f(x)                     : x = " << OutReal[0] << " | y = " << OutReal[1] << " | z = " << OutReal[2] << "\n";
@@ -58,7 +58,7 @@ void TPZMathTools::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 			dZ = alpha*( jacobian.GetVal(0,0)*deltaQsi )*Axes(0,2);
 			OutAprox[2] = OutReal[2] + dZ;
 			
-			///real compute
+			//real compute
 			StartPoint[0] = QsiEtaIni[0] + alpha*deltaQsi;
 			Object.X(StartPoint,OutReal);//for real compute
 			

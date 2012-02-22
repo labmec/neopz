@@ -651,7 +651,7 @@ public:
 	 */
 	TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
 	
-	//inline////////////////////////////////////////////////////////////////////////
+	//inline//
 	
 	/** @brief Returns the index of the middle side connect alon fSide */
     int ConnectIndex() const;

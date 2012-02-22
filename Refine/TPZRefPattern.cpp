@@ -1023,7 +1023,6 @@ void TPZRefPattern::ExportPattern(std::ostream &out)
 
 void TPZRefPattern::ReadPattern(std::istream &in)
 {
-	///////////////////
     int nnodes, nelems;
 	in >> nnodes >> nelems;
 	in >> fId >> fName;
@@ -1075,9 +1074,6 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 	ComputeTransforms();//calcula as transformacoes entre filhos e pai
 	ComputePartition();//efetua a particao do elemento pai de acordo com os lados dos sub-elementos
 	GenerateSideRefPatterns();
-    ///////////////////
-    
-    
     
     
 	

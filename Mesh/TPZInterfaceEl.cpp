@@ -296,7 +296,7 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	this->InitMaterialData(data,left,right);
 	this->InitializeElementMatrix(ef);
 	
-	///LOOKING FOR MAX INTERPOLATION ORDER
+	//LOOKING FOR MAX INTERPOLATION ORDER
 	data.leftp = left->MaxOrder();
 	data.rightp = right->MaxOrder();
 	//Max interpolation order
@@ -1257,7 +1257,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	const int nstater = this->RightElement()->Material()->NStateVariables();
 	const int njump = (nstatel > nstater) ? nstatel : nstater;
 	
-	///LOOKING FOR MAX INTERPOLATION ORDER
+	//LOOKING FOR MAX INTERPOLATION ORDER
 	TPZGeoEl *ref = Reference();
 	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2 );
 	TPZManVector<int> order(3);
@@ -1275,16 +1275,16 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
         jump[is].Resize(njump);
         jump[is].Fill(0.);
     }
-    ///LOOP OVER INTEGRATION POINTS
+    //LOOP OVER INTEGRATION POINTS
 	for(int ip = 0; ip < npoints; ip++){
 		intrule->Point(ip,intpoint,weight);
 		ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		ref->X(intpoint,data.x);
 		weight *= fabs(data.detjac);
 		
-		///method NeighbourSolution will compute the transformation in this->MapQsi every time it is called
-		///(which means for all integration point). Instead of calling NeighbourSolution the whole method
-		///may be written here but keeping the transformation computed at first integration point (as done in CalcStiff).
+		//method NeighbourSolution will compute the transformation in this->MapQsi every time it is called
+		//(which means for all integration point). Instead of calling NeighbourSolution the whole method
+		//may be written here but keeping the transformation computed at first integration point (as done in CalcStiff).
 		this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
 		this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
 		
@@ -1313,22 +1313,22 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
                 for(int ier = 0; ier < njump; ier++){
                     if( fabs(localjump[is][ier]) > jump[is][ier] ){
                         jump[is][ier] = fabs( localjump[is][ier] );
-                    }///if
-                }///for
-            }///if
+                    }//if
+                }//for
+            }//if
         }		
-	}///loop over integration points
+	}//loop over integration points
 	
-	///Norma sobre o elemento
+	//Norma sobre o elemento
     for (int is=0; is<numbersol; is++) {
         if(opt == 0){
             for(int ier = 0; ier < njump; ier++){
                 jump[is][ier] = sqrt(jump[is][ier]);
-            }///for
-        }///if
+            }//for
+        }//if
     }
 	
-}///method
+}//method
 
 void TPZInterfaceElement::ComputeErrorFace(int errorid,
 										   TPZVec<REAL> &errorL,
@@ -1453,7 +1453,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		return;
 	}
 	
-	///local variables
+	//local variables
 	REAL weight;
 	TPZMaterialData data;
 	this->InitMaterialData(data,left,right);
@@ -1462,10 +1462,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	data.rightp = right->MaxOrder();
 	TPZManVector<REAL, 3> intpoint(dim,0.);
 	const int varsize = material->NSolutionVariables(variable);
-	///Max interpolation order
+	//Max interpolation order
 	const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
 	
-	///Integration rule
+	//Integration rule
     int intorder = material->IntegrationRuleOrder(p);
 	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, intorder);
     if(material->HasForcingFunction())
@@ -1476,7 +1476,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
     }
 	//  material->SetIntegrationRule(intrule, p, ref->Dimension());
 	
-	///loop over integration points
+	//loop over integration points
 	const int npoints = intrule->NPoints();
 	int ip, iv;
 	value.Resize(varsize);
@@ -1493,10 +1493,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		material->Solution(data, variable, locval);
 		for(iv = 0; iv < varsize; iv++){
 			value[iv] += locval[iv]*weight;
-		}///for iv
-	}///for ip
+		}//for iv
+	}//for ip
 	
-}///method
+}//method
 
 void TPZInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
@@ -1619,7 +1619,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
         }
 	}
 	
-	///this values needs to be computed only once
+	//this values needs to be computed only once
 	if(data.fNeedsNeighborCenter){
 		TPZManVector<REAL,3> qsi(3);
 		data.XLeftElCenter.Resize(3);

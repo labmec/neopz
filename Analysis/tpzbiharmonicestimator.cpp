@@ -192,7 +192,7 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	REAL  GRADLaplacianodualhpPlusR[2];
 	GRADLaplacianodualhpPlusR[0] = dsolR(3,3);
 	GRADLaplacianodualhpPlusR[1] = dsolR(4,3);
-	///debug
+	//debug
 	
 	// std::cout<<"x: "<<data.x[0]<<" , "<<data.x[1] << std::endl;
 	// std::cout<<"uL-uR: "<<uL-uR << std::endl;

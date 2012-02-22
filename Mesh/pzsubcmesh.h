@@ -2,11 +2,6 @@
  * @file
  * @brief Contains declaration of TPZSubCompMesh class which implements a group of computational elements as a mesh and an element.
  */
-//$Id: pzsubcmesh.h,v 1.29 2011-05-11 02:54:17 phil Exp $
-
-// subcmesh.h: interface for the TPZSubCompMesh class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #ifndef SUBCMESH_H
 #define SUBCMESH_H

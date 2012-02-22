@@ -223,7 +223,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, TPZAuto
 	
 	TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
 	
-	/// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
+	// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
 	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
 	if (subcmesh) {
 		int nrigid = subcmesh->NumberRigidBodyModes();

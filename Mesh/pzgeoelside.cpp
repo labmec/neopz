@@ -145,7 +145,7 @@ void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix 
 	}
 }
 
-/// return the number of sides in which the current side can be decomposed
+/// Returns the number of sides in which the current side can be decomposed
 int TPZGeoElSide::NSides()
 {
     TPZStack<int> lower;
@@ -840,7 +840,7 @@ void TPZGeoElSide::BuildConnectivities(TPZVec<TPZGeoElSide> &sidevec,TPZVec<TPZG
 	/**
 	 os vetores trazem a partic� do lado comum a  
 	 dois vizinhos segundo os seus proprios padr�s de
-	 refinamento, a divis� �identica para este lado comum*///cout << "Sao iguais: acertar as vizinhancas!!!\n";
+	 refinamento, a divis� �identica para este lado comum*/ //cout << "Sao iguais: acertar as vizinhancas!!!\n";
 	int size = sidevec.NElements();
 	int neighsize = neighvec.NElements();
 	if(size!=neighsize || !size){

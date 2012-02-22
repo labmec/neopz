@@ -2,11 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSubCompMesh methods.
  */
-//$Id: pzsubcmesh.cpp,v 1.53 2011-05-30 20:35:37 denise Exp $
-
-// subcmesh.cpp: implementation of the TPZSubCompMesh class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #include "pzsubcmesh.h"
 #include "pzgmesh.h"
@@ -51,9 +46,9 @@ static void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
 	disp[2] = 0.;
 }
 
-//////////////////////////////////////////////////////////////////////
+
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+
 int TPZSubCompMesh::main() {
 	//	int index;
 	
@@ -984,8 +979,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 			}
 		}
 		
-		///Trying to get a derived Analysis which is a SubMeshAnalysis.
-		///It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
+		//Trying to get a derived Analysis which is a SubMeshAnalysis.
+		//It could be better done with an abstract class SubMeshAnalysis which defines CondensedSolution method
 		TPZSubMeshAnalysis * castedAnal = dynamic_cast<TPZSubMeshAnalysis *>(fAnalysis.operator->());
 		if(castedAnal){
 			castedAnal->CondensedSolution(ek.fMat,ef.fMat);
@@ -1093,7 +1088,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	if(numThreads){
 		fstr = new TPZParFrontStructMatrix<TPZFrontNonSym>(this);
 		static_cast<TPZParFrontStructMatrix<TPZFrontNonSym> *>(fstr.operator->())
-		->SetNumberOfThreads(numThreads+2);///o frontal tem dois threads auxiliares
+		->SetNumberOfThreads(numThreads+2); //o frontal tem dois threads auxiliares
 	}
 	else{
 		fstr = new TPZFrontStructMatrix<TPZFrontNonSym>(this);

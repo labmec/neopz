@@ -314,7 +314,7 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	
 	this->InitializeElementMatrix(ef);
 	
-	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
+	if (this->NConnects() == 0) return; //boundary discontinuous elements have this characteristic
 	
 	TPZMaterialData data;
 	this->InitMaterialData(data);

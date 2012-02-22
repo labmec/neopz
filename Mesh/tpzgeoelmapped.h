@@ -124,7 +124,7 @@ public:
 		TPZManVector<REAL,3> nodeX(3);
 		TPZManVector<REAL,3> ptancestor(Geo::Dimension), aux(Geo::Dimension);
 		
-		///  Pira 18 maio 2009: abaixo nao funciona para mapeamento nao-linear (nem bilinear)
+		//  Pira 18 maio 2009: abaixo nao funciona para mapeamento nao-linear (nem bilinear)
 		/*    for(in=0; in<nnodes; in++)
 		 {
 		 TPZTransform tr = Geo::SideToSideTransform(in,Geo::NSides-1);
@@ -145,7 +145,7 @@ public:
 		 }
 		 */
 		
-		///  Pira 18 maio 2009: nova implementação
+		//  Pira 18 maio 2009: nova implementação
 		for(in=0; in<nnodes; in++)
 		{
 			for(int id = 0; id < 3; id++){
@@ -179,7 +179,7 @@ public:
 				double ksidiff = 0.;
 				for(int i = 0; i < ptancestor.NElements(); i++){
 					ksidiff += (aux[i]-ptancestor[i])*(aux[i]-ptancestor[i]);
-				}///i
+				}//i
 				ksidiff = sqrt(ksidiff);
 				if(ksidiff > 1e-8){
 					std::cout.precision(12);
@@ -304,7 +304,7 @@ public:
 		TPZFNMatrix<9> aux(dim,dim);
 		
 		//jacinv
-		axeslocal.Resize(dim,dim); ///reducing axes local to its correct dimension in this context
+		axeslocal.Resize(dim,dim); //reducing axes local to its correct dimension in this context
 		axeslocal.Multiply(jacinvfather,aux);
 		jacinvlocal.Multiply(aux,jacinv);
 		
@@ -495,7 +495,7 @@ private:
 	TPZFNMatrix<Geo::Dimension*Geo::NNodes> fCornerCo;
 #endif
 	
-    /// Compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
+    // Compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
     {
 		const int dim = Geo::Dimension;
@@ -518,7 +518,7 @@ private:
 		}
     }
 	
-    /// Compute the map of the point ksi to the ancestor ksibar
+    // Compute the map of the point ksi to the ancestor ksibar
     void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar)
     {
 		const int dim = Geo::Dimension;

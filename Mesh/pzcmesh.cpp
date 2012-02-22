@@ -112,7 +112,7 @@ void TPZCompMesh::CleanUp() {
 	}
 	int i, nelem = this->NElements();
 	
-	///deleting interfaces
+	//deleting interfaces
 	for(i=0; i<nelem; i++){
 		TPZCompEl *el = fElementVec[i];
 		TPZInterfaceElement * face = dynamic_cast<TPZInterfaceElement*>(el);
@@ -121,7 +121,7 @@ void TPZCompMesh::CleanUp() {
 		}
 	}
 	
-	///deleting other elements
+	//deleting other elements
 	for(i=0; i<nelem; i++) {
 		TPZCompEl *el = fElementVec[i];
 		if(!el) continue;
@@ -238,7 +238,7 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 				gel->Print(cout);
 			}
 			
-			///checking material in MaterialIDs
+			//checking material in MaterialIDs
 			if(MaterialIDs){
 				std::set<int>::const_iterator found = MaterialIDs->find(matid);
 				if (found == MaterialIDs->end()) continue;
@@ -2136,7 +2136,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		
 		celJumps[leftel] += jumpNorm;
 		celJumps[rightel] += jumpNorm;
-	}///for i
+	}//for i
 	
 	for(int i = 0; i < nelements; i++){
 		if (!AllCels[i]) continue;
@@ -2147,8 +2147,8 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		if (celJumpError < eps){
 			int index;
 			this->Discontinuous2Continuous(i, index, InterfaceBetweenContinuous);
-		}///if
-	}///for i
+		}//if
+	}//for i
 	
 	this->CleanUpUnconnectedNodes();
 	this->AdjustBoundaryElements();

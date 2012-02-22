@@ -1058,7 +1058,7 @@ void TPZMatrix::Write( TPZStream &buf, int withclassid ) {
 	buf.Write(&tmp,1);
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
+// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
@@ -1082,7 +1082,7 @@ bool TPZMatrix::Compare(TPZSaveable *copy, bool override)
 	return result;
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
+// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
@@ -1193,11 +1193,11 @@ bool TPZMatrix::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<RE
 	TPZFNMatrix<9> Matrix(size,size); //fast constructor in case of this is a stress or strain tensor.
 	for(int i = 0; i < size; i++) for(int j = 0; j < size; j++) Matrix(i,j) = this->Get(i,j);
 	
-	/** Compute Eigenvalues *//////////////////////////////////////
+	/** Compute Eigenvalues */
 	bool result = Matrix.SolveEigenvaluesJacobi(numiterations, tol, &Eigenvalues);
 	if (result == false) return false;
 	
-	/** Compute Eigenvectors *//////////////////////////////////////
+	/** Compute Eigenvectors */
 	TPZFNMatrix<3> VecIni(size,1,0.), VecIni_cp(size,1,0.);
 	
 	Eigenvectors.Resize(size, size);

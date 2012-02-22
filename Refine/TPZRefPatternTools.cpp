@@ -1254,9 +1254,9 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
     }
 #endif
 	
-	/// Computing BasisChange Matrix
-	/// Where NewBase X_axis is defined by IniNode->FinNode orientation
-	/// and   NewBase Y_axis is perpendicular to X_axis in XY plane counter-clockwise
+	// Computing BasisChange Matrix
+	// Where NewBase X_axis is defined by IniNode->FinNode orientation
+	// and   NewBase Y_axis is perpendicular to X_axis in XY plane counter-clockwise
     TPZFMatrix IfromCntoBase(dim,dim,0.);
     IfromCntoBase(dim-1, dim-1) = 1.;
     double norm = 0.;

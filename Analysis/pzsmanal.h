@@ -2,9 +2,6 @@
  * @file
  * @brief Contains TPZSubMeshAnalysis class which implements the analysis procedure to computational sub mesh.
  */
-// TPZSubMeshAnalysis.h: interface for the TPZSubMeshAnalysis class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #ifndef TPZSUBMESHANALYSIS_H
 #define TPZSUBMESHANALYSIS_H

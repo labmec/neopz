@@ -151,7 +151,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, T
 				int matid = mat->Id();
 				if (this->ShouldCompute(matid) == false) continue;
 			}
-		}///if
+		}//if
 		
 		count++;
 		if(!(count%20))
@@ -385,7 +385,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TP
 
 void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-	///please implement me
+	//please implement me
 	this->Serial_Assemble(rhs, guiInterface);
 }
 

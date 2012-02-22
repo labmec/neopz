@@ -13,7 +13,7 @@
 
 #include "TPZPlaneFracture.h"
 
-#include "pzgeopoint.h"/////MUSTDELETE
+#include "pzgeopoint.h"    //MUSTDELETE
 #include "TPZGeoLinear.h"
 #include "TPZVTKGeoMesh.h"
 #include "tpzgeoelrefpattern.h"
@@ -212,10 +212,10 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalC
 
 TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder)
 {
-    ////GeoMesh
+    //GeoMesh
     TPZGeoMesh * gmesh = this->GetFractureGeoMesh(poligonalChain);
-    
-    ////CompMesh
+
+    //CompMesh
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     
     cmesh->SetDimModel(3);
@@ -231,7 +231,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     TPZAutoPointer<TPZMaterial> materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
     cmesh->InsertMaterialObject(materialQpoint);
     
-    ////BCs    
+    //BCs    
     TPZFMatrix k(3,3,0.), f(3,1,0.);
     int dirichlet = 0, newmann = 1, mista = 2;
     
@@ -300,24 +300,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     TPZBndCond * newmanInside = new TPZBndCond(materialNewman,__2DfractureMat_inside, newmann, k, f); 
     cmesh->InsertMaterialObject(newmanInside);
 
-    
-    /////////////////////MUSTDELETE
-//    TPZAutoPointer<TPZMaterial> point1 = new TPZElasticity3D(-202, young, poisson, force);
-//    f(0,0) = 1.;
-//    f(1,0) = 0.;
-//    f(2,0) = 1.;
-//    TPZBndCond * dirichPT_BCL1 = point1->CreateBC(point1,__aux0DEl_Mat1, dirichlet, k, f);
-//    cmesh->InsertMaterialObject(dirichPT_BCL1);
-//    
-//    TPZAutoPointer<TPZMaterial> point2 = new TPZElasticity3D(-203, young, poisson, force);
-//    f(0,0) = 0.;
-//    f(1,0) = 0.;
-//    f(2,0) = 1.;
-//    TPZBndCond * dirichPT_BCL2 = point2->CreateBC(point2,__aux0DEl_Mat2, dirichlet, k, f);
-//    cmesh->InsertMaterialObject(dirichPT_BCL2);
-    ///////////////////////////////
-    
-    cmesh->AutoBuild();
+	cmesh->AutoBuild();
     
     return cmesh;
 }
@@ -325,14 +308,14 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
 
 void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile)
 {
-    ////CompMesh
+    //CompMesh
     int porder = 1;
     TPZCompMesh * fractureCMesh = this->GetFractureCompMesh(poligonalChain, porder);
     
     int neq = fractureCMesh->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
     
-    ////Analysis
+    //Analysis
 	TPZAnalysis an(fractureCMesh);
     
 	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
@@ -343,7 +326,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
 	an.SetSolver(step);
 	an.Run();
 
-    ////Post Processing
+    //Post Processing
     TPZManVector<std::string,10> scalnames(3), vecnames(0);
     scalnames[0] = "DisplacementX";
     scalnames[1] = "DisplacementY";
@@ -544,7 +527,7 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
         }
     }
     
-    // ////////////////para validar primeira simulacao completa
+    //para validar primeira simulacao completa
     Topol.Resize(1);
     Topol[0] = 0;
     new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat1,*fFullMesh);
@@ -553,7 +536,7 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
     Topol[0] = ncols-1;
     new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat2,*fFullMesh);
     elId++;
-    // ////////////////////////////////////////////////////////MUSTDELETE
+    // //MUSTDELETE
     
 	fFullMesh->BuildConnectivity();
     fFullMesh->SetMaxElementId(fFullMesh->NElements()-1);

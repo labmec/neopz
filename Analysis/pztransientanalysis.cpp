@@ -94,13 +94,13 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegin
 		TPZTransientAnalysis::gTime = this->TimeStep() * this->fCurrentIter;
 		
 		//Computing residual of last state solution
-		///     this->fSolution = prevsol;
+		//     this->fSolution = prevsol;
 		this->SetLastState();
 		this->Assemble();
 		laststate = this->fRhs;
 		prevsol = fSolution;
 		lastsol = fSolution;
-		///Newton's method
+		//Newton's method
 		this->SetCurrentState();        
 		REAL error = this->fNewtonTol * 2. + 1.;    
 		int iter = 0;

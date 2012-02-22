@@ -471,7 +471,7 @@ void TPZGeoMesh::BuildConnectivity()
 		}
     }
 	
-	///Verify node coordinates for curved elements
+	//Verify node coordinates for curved elements
 #ifdef DEBUG
 	const int nel = this->NElements();
 	for(int el = 0; el < nel; el++)
@@ -479,17 +479,17 @@ void TPZGeoMesh::BuildConnectivity()
 		TPZGeoEl * gel = this->ElementVec()[el];
 		if(!gel) continue;
 		gel->VerifyNodeCoordinates();
-	}///for el
+	}//for el
 #endif
 	
-	///Build the data structure of blend elements
+	//Build the data structure of blend elements
 	int Qelem = this->NElements();
 	for(int el = 0; el < Qelem; el++)
 	{
 		TPZGeoEl * gel = this->ElementVec()[el];
 		if(!gel) continue;
 		gel->BuildBlendConnectivity();
-	}///for el
+	}//for el
 	
 }
 

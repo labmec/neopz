@@ -970,7 +970,6 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 	if (this->IsSymetric()){
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
 	}
-	///////
 	
 	if (this->fPenaltyConstant == 0.) return;
 	
@@ -1170,7 +1169,6 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, REAL weight,
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
 	
-	//////////////
 	if (this->fPenaltyConstant == 0.) return;
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){  

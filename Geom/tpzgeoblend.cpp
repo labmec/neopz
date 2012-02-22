@@ -202,7 +202,7 @@ void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec
 #endif
 	
 }
-/////////////////////////////////////////////////////////////////////////////////////////////
+
 
 template <class TGeo>
 void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
@@ -438,7 +438,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Initialize(TPZGeoEl *refel)
 }
 
 /*
- ///inseri este método pois o compilador não encontrou
+ //inseri este método pois o compilador não encontrou
  template <class TGeo>
  void TPZGeoBlend<TGeo>::Initialize(TPZVec<int> &nodeindexes)
  {

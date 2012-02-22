@@ -75,13 +75,13 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 		this->fTimeStep = nextDeltaT;
 		this->SetAllMaterialsDeltaT();
 		
-		///Computing residual of last state solution
+		//Computing residual of last state solution
 		this->SetLastState();
 		this->Assemble();
 		fLastState = this->fRhs;
 		prevsol = fSolution;
 		lastsol = fSolution;
-		///Newton's method
+		//Newton's method
 		this->SetCurrentState();
 		REAL error = this->fNewtonTol * 2. + 1.;
 		int iter = 0;
@@ -115,7 +115,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			iter++;
 			
 			if((iter % 20) == 0){
-				///Computing residual of last state solution
+				//Computing residual of last state solution
 				fSolution = prevsol;
 				TPZAnalysis::LoadSolution();
 				double fator = 0.1;//(sqrt(5.)-1.)/2.;

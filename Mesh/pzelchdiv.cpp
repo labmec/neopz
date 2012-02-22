@@ -1159,7 +1159,6 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 }
 
 ///  Save the element data to a stream
-
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Write(TPZStream &buf, int withclassid)
 {

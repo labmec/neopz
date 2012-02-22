@@ -276,12 +276,12 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
 		double norm = 0.;
 		for(int i = 0; i < this->Rows(); i++){
 			norm += this->GetVal(i,j)*this->GetVal(i,j);
-		}///for i
+		}//for i
 		norm = sqrt(norm);
 		if(norm > 1e-10){
 			if(1./norm > scale) scale = 1./norm;
 		}
-    }///for j
+    }//for j
 	
     this->operator *=( scale );
 	
@@ -289,7 +289,7 @@ void TPZFMatrix::GramSchmidt(TPZFMatrix &Orthog, TPZFMatrix &TransfToOrthog)
     int QTDvec = Cols();
     Orthog.Resize(QTDcomp,QTDvec);
     Orthog.Zero();
-    /// Making a copy of *this (Ortog = *this)
+    // Making a copy of *this (Ortog = *this)
     for(int r = 0; r < QTDcomp; r++)
     {
         for(int c = 0; c < QTDvec; c++)
@@ -1493,7 +1493,7 @@ void TPZFMatrix::Write( TPZStream &buf, int withclassid ) {
 	buf.Write(fElem,fRow*fCol);
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
+// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true
@@ -1532,7 +1532,7 @@ bool TPZFMatrix::Compare(TPZSaveable *copy, bool override)
 	return matresult;
 }
 
-/// Compare the object for identity with the object pointed to, eventually copy the object
+// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
  * overwrite the calling object if the override flag is true

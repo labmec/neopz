@@ -91,7 +91,7 @@ void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatri
     dphi(0,i) = dshapes[i]*dbdx;
   }
 
-}///method
+}//method
 
 void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n){
 #ifdef DEBUG

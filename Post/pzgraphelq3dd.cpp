@@ -2,16 +2,12 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElQ3dd methods. 
  */
-// TPZGraphElQ3dd.cpp: implementation of the TPZGraphElQ3dd class.
-//
-//////////////////////////////////////////////////////////////////////
 
 #include "pzgraphelq3dd.h"
 using namespace std;
 
-//////////////////////////////////////////////////////////////////////
+
 // Construction/Destruction
-//////////////////////////////////////////////////////////////////////
 
 TPZGraphElQ3dd::TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl(cel,gmesh,fConnect){
 }

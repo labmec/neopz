@@ -228,15 +228,15 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	ref->X(intpoint, X);
 	this->Shape(intpoint,X,phi,dphix);
 	
-	///axes is identity in discontinuous elements
+	//axes is identity in discontinuous elements
 	axes.Resize(dphix.Rows(), dphix.Rows());
 	axes.Identity();
 	/*  for(int i = 0; i < axes.Rows(); i++){
 	 for(int j = 0; j < axes.Cols(); j++){
 	 if(i == j) axes(i,j) = 1.;
 	 else axes(i,j) = 0.;
-	 }///j
-	 }///i*/
+	 }//j
+	 }//i*/
 	
 }
 
@@ -265,24 +265,24 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
 	const int dim = this->Dimension();
 	TPZShapeDisc::Shape(dim, fConstC,fCenterPoint,X,Degree,phi,dphi,fShapefunctionType);
 	
-	///now appending external shape functions
+	//now appending external shape functions
 	this->AppendExternalShapeFunctions(X,phi,dphi);
 	
 	
-}///method
+}//method
 
 void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
 	
-	///adding external shape functions whether they exist
+	//adding external shape functions whether they exist
 	if(!this->fExternalShape.operator ->()) return;
 	
 	TPZManVector<REAL> extPhi;
 	TPZFNMatrix<100> extDPhi, ThisPhi, ThisDPhi;  
 	
-	///computing external shape functions
+	//computing external shape functions
 	this->fExternalShape->Execute(X, extPhi, extDPhi);
 	
-	///now appending all shape functions
+	//now appending all shape functions
 	
 	{
 		
@@ -587,30 +587,30 @@ void TPZCompElDisc::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 			new TPZGraphElT2dMapped(this,&grmesh);
 			return;
 		}
-	}///2d
+	}//2d
 	
 	if(dimension == 3 && mat > 0){
 		if(nsides == 27){
 			new TPZGraphElQ3dd(this,&grmesh);
 			return;
-		}///cube
+		}//cube
 		if(nsides == 21){
 			new TPZGraphElPrismMapped(this,&grmesh);
 			return;
-		}///prism
+		}//prism
 		if(nsides == 15){
 			new TPZGraphElT3d(this,&grmesh);
 			return;
-		}///tetra
+		}//tetra
 		if(nsides == 19){
 			new TPZGraphElPyramidMapped(this,&grmesh);
 			return;
-		}///pyram
-	}///3d
+		}//pyram
+	}//3d
 	
 	if(dimension == 1 && mat > 0){
 		new TPZGraphEl1dd(this,&grmesh);
-	}///1d
+	}//1d
 }
 
 int TPZCompElDisc::NSides(){
@@ -837,7 +837,7 @@ void TPZCompElDisc::SetDegree(int degree) {
 
 void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes){
 	this->fExternalShape = externalShapes;
-	///in order of ajust block size because NShapeF may have changed
+	//in order of ajust block size because NShapeF may have changed
 	if (fConnectIndex < 0) return;
 	TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
 	int seqnum = c.SequenceNumber();

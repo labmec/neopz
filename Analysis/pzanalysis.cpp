@@ -125,7 +125,7 @@ TPZAnalysis::~TPZAnalysis(void){
 }
 
 void TPZAnalysis::SetBlockNumber(){
-	///enquanto nao compilamos o BOOST no windows, vai o sloan antigo
+	//enquanto nao compilamos o BOOST no windows, vai o sloan antigo
 #ifdef WIN32
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
