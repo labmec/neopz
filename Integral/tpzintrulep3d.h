@@ -16,6 +16,7 @@
  */
 class TPZIntRuleP3D {
 	
+	/** @brief The list can to access the constructor of the current class. */
 	friend class TPZIntRuleList;
 	
 	/** @brief Number of integration points for this object */
@@ -34,8 +35,16 @@ class TPZIntRuleP3D {
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
 	TPZIntRuleP3D(int order = 2);
+	/** @brief Default destructor. */
 	~TPZIntRuleP3D();
 	
+	/**
+	 * @brief Checks sum of the weights is equal than measure of the master element, 
+	 * and all of integration points belong to the master element.
+	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
+	 */
+	bool CheckCubatureRule();
+
 public:
 	
     enum {NRULESPYRAMID_ORDER = 21};
@@ -59,11 +68,6 @@ protected:
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
 	void ComputingCubatureRuleForPyramid(int order);
-	/**
-	 * @brief Computes the points and weights for pyramid cubature rule as first version of PZ 
-	 * @note Obsolete.
-	 */
-	void ComputingCubatureRuleForPyramidOldVersion(int order);
 };
 
 #endif

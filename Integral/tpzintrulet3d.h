@@ -16,6 +16,7 @@
  */
 class TPZIntRuleT3D {
 	
+	/** @brief The list can to access the constructor of the current class. */
     friend class TPZIntRuleList;
     
 	/** @brief Number of integration points for this object */
@@ -51,11 +52,11 @@ class TPZIntRuleT3D {
 	void TransformBarycentricCoordInCartesianCoord(long double baryvec[],long double weightvec[]);
 
 	/**
-	 * @brief Computes the cubature rules at original PZ version
-	 * @param order Order of the polinomial will be exactly integrated
-	 * @note Obsolete
+	 * @brief Checks sum of the weights is equal than measure of the master element, 
+	 * and all of integration points belong to the master element.
+	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
 	 */
-	void ComputingCubatureRuleOldVersion(int order);
+	bool CheckCubatureRule();
 
 public:
 	enum {NRULESTETRAHEDRA_ORDER = 14};

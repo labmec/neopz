@@ -39,14 +39,16 @@ class TPZInt1d : public TPZIntPoints {
 public:
 	enum {Dim = 1};
 	TPZInt1d(int OrdK = 0,int type = 0);
-	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP)
-	{
+	TPZInt1d(const TPZInt1d &copy ) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntP(copy.fIntP) {
 	}
-	virtual ~TPZInt1d()
-	{
+	virtual ~TPZInt1d() {
 	}
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetType(int type,int order) {
+		fIntP->SetType(type,order);
+	}
 	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;
@@ -54,6 +56,7 @@ public:
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZInt1d>(order);
@@ -62,12 +65,10 @@ public:
 	{
 		return new TPZInt1d(*this);
 	}
-	virtual void SetType(int type,int order) {
-		fIntP->SetType(type,order);
-	}
 	void Print(std::ostream &out = std::cout) {
 		if(fIntP) fIntP->Print(out);
 	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZInt1D";
@@ -84,24 +85,26 @@ public:
 class TPZIntTriang : public TPZIntPoints{
 	int fOrdKsi;
 	TPZIntRuleT *fIntKsi;
+
 public:
 	enum {Dim = 2};
 	TPZIntTriang(int OrdK = 2);
-	virtual ~TPZIntTriang()
-	{
+	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi) {
 	}
-	TPZIntTriang(const TPZIntTriang &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
-	{
+	virtual ~TPZIntTriang() {
 	}
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+
 	virtual int  NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetMaxOrder() const;
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntTriang>(order);
@@ -137,23 +140,28 @@ public:
 	 * @param OrdE Order for \f$ \eta \f$ axe at master element.
 	 */
 	TPZIntQuad(int OrdK = 2,int OrdE = 2);
+	/** @brief Copy constructor */
+	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta) {
+	}
 	/** @brief Destructor */
 	virtual ~TPZIntQuad() {
 	}
-	/** @brief Copy constructor */
-	TPZIntQuad(const TPZIntQuad &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fIntKsi(copy.fIntKsi),fIntEta(copy.fIntEta)
-	{
-	}
 	
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetType(int type,int order) {
+		fIntKsi->SetType(type,order);
+		fIntEta->SetType(type,order);
+	}
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;  
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntQuad>(order);
@@ -162,10 +170,7 @@ public:
 	{
 		return new TPZIntQuad(*this);
 	}
-	virtual void SetType(int type,int order) {
-		fIntKsi->SetType(type,order);
-		fIntEta->SetType(type,order);
-	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZIntQuad";
@@ -193,24 +198,30 @@ public:
 	 * @param OrdZ Order for \f$ \zeta \f$ axe at master element.
 	 */
 	TPZIntCube3D(int OrdK = 2,int OrdE = 2,int OrdZ = 2);
+	/** @brief Copy constructor */
+	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
+		fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta) {
+	}
 	/** @brief Destructor */
 	virtual ~TPZIntCube3D() {
 	}
-	/** @brief Copy constructor */
-	TPZIntCube3D(const TPZIntCube3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdEta(copy.fOrdEta), fOrdZeta(copy.fOrdZeta),
-	fIntKsi(copy.fIntKsi), fIntEta(copy.fIntEta), fIntZeta(copy.fIntZeta)
-	{
-	}
 	
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetType(int type,int order) {
+		fIntKsi->SetType(type,order);
+		fIntEta->SetType(type,order);
+		fIntZeta->SetType(type,order);
+	}
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetRealMaxOrder() const;
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntCube3D>(order);
@@ -219,11 +230,7 @@ public:
 	{
 		return new TPZIntCube3D(*this);
 	}
-	virtual void SetType(int type,int order) {
-		fIntKsi->SetType(type,order);
-		fIntEta->SetType(type,order);
-		fIntZeta->SetType(type,order);
-	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZIntCube3D";
@@ -240,18 +247,20 @@ class TPZIntTetra3D : public TPZIntPoints {
 public:
 	enum {Dim = 3};
 	TPZIntTetra3D(int OrdK = 2);
-	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
-	{
+	TPZIntTetra3D(const TPZIntTetra3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi) {
 	}
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetMaxOrder() const;  
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntTetra3D>(order);
@@ -260,6 +269,7 @@ public:
 	{
 		return new TPZIntTetra3D(*this);
 	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZIntTetra3D";
@@ -276,18 +286,21 @@ class TPZIntPyram3D : public TPZIntPoints {
 public:
 	enum {Dim =3};
 	TPZIntPyram3D(int OrdK = 2);
-	TPZIntPyram3D(const TPZIntPyram3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fIntKsi(copy.fIntKsi)
-	{
+	TPZIntPyram3D(const TPZIntPyram3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), 
+			fIntKsi(copy.fIntKsi) {
 	}
-	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
+	
 	virtual int NPoints() const;
 	virtual void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+	
+	virtual void SetOrder(TPZVec<int> &ord,int type = 0);
 	virtual void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetMaxOrder() const;  
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntPyram3D>(order);
@@ -296,6 +309,7 @@ public:
 	{
 		return new TPZIntPyram3D(*this);
 	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZIntPyram3D";
@@ -320,22 +334,26 @@ public:
 	 */
 	TPZIntPrism3D(int OrdK = 2,int OrdL = 2);
 	/** @brief Copy constructor */
-	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), fIntRule1D(copy.fIntRule1D),
-	fIntTriang(copy.fIntTriang)
-	{
+	TPZIntPrism3D(const TPZIntPrism3D &copy) : TPZIntPoints(copy), fOrdKsi(copy.fOrdKsi), fOrdKti(copy.fOrdKti), 
+			fIntRule1D(copy.fIntRule1D), fIntTriang(copy.fIntTriang) {
 	}
 	/** @brief Destructor */
 	virtual ~TPZIntPrism3D();
 	
-	void SetOrder(TPZVec<int> &ord,int type = 0);
 	int NPoints() const;
 	void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+	virtual void SetType(int type,int order) {
+		fIntRule1D.SetType(type,order);
+	}
+	void SetOrder(TPZVec<int> &ord,int type = 0);
 	void GetOrder(TPZVec<int> &ord) const;
 	virtual int GetMaxOrder() const;  
 	virtual int Dimension() const
 	{
 		return Dim;
 	}
+
 	virtual TPZIntPoints *PrismExtend(int order)
 	{
 		return new TPZPrInteg<TPZIntPrism3D>(order);
@@ -344,9 +362,7 @@ public:
 	{
 		return new TPZIntPrism3D(*this);
 	}
-	virtual void SetType(int type,int order) {
-		fIntRule1D.SetType(type,order);
-	}
+
 	/** @brief Returns the name of the cubature rule */
 	void Name(std::string &name) {
 		name = "TPZIntPrism3D";
@@ -362,36 +378,36 @@ public:
 	
     enum {Dim = 0};
     TPZInt1Point(int order = 0);
-//    TPZInt1Point(TPZVec<int> &ord);
+
 	TPZInt1Point(const TPZInt1Point &copy ) : TPZIntPoints(copy) {
 	}
     virtual ~TPZInt1Point();
 	
-    void SetOrder(TPZVec<int> &ord,int type = 0);
     int NPoints() const;
     void Point(int ip, TPZVec<REAL> &pos, REAL &w) const;
+
+    void SetOrder(TPZVec<int> &ord,int type = 0);
     void GetOrder(TPZVec<int> &ord) const;
     int GetMaxOrder() const;  
     int Dimension() const {
 		return Dim;
     }
+
     TPZIntPoints *PrismExtend(int order);
 	TPZIntPoints *Clone() const {
 		return new TPZInt1Point(*this);
 	}
+
 	/** @brief Returns the name of the cubature rule */
 	virtual void Name(std::string &name) {
 		name = "TPZInt1Point";
 	}
 };
 
-inline TPZInt1Point::~TPZInt1Point() {
-}
-
 inline TPZInt1Point::TPZInt1Point(int order) {
 }
 
-inline void  TPZInt1Point::SetOrder(TPZVec<int> &ord,int type) {
+inline TPZInt1Point::~TPZInt1Point() {
 }
 
 inline int TPZInt1Point::NPoints() const{
@@ -406,6 +422,9 @@ inline void TPZInt1Point::Point(int ip, TPZVec<REAL> &pos, REAL &w) const {
 	}
 #endif
 	w = 1.;
+}
+
+inline void  TPZInt1Point::SetOrder(TPZVec<int> &ord,int type) {
 }
 
 inline void TPZInt1Point::GetOrder(TPZVec<int> &/* ord */) const {
