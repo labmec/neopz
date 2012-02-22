@@ -27,15 +27,13 @@ using namespace std;
 
 #endif
 
-#define MAXORDER 12
-
 // Global variables to test
-int max_order = MAXORDER;
 int expo = 2;
-unsigned int NDigitsPrec = 12;
-// Conclusion:	Using NDigitsPrec = 7 can to run with REAL = float
-//				Using NDigitsPrec = 14 can to run with REAL = double
-//				Using NDigitsPrec = 18 can to run with REAL = long double
+unsigned int NDigitsPrec = 13;
+// Conclusion:	Using NDigitsPrec = 4 can to run with REAL = float
+//				Using NDigitsPrec = 13 can to run with REAL = double
+//				Using NDigitsPrec = 13 can to run with REAL = long double
+//  FOR ALL CUBATURE RULES
 
 std::string dirname = PZSOURCEDIR;
 
@@ -333,10 +331,10 @@ BOOST_AUTO_TEST_CASE(numinteg2DT_tests) {
 	filename += "FirstResult2DT.txt";
 	std::ifstream olddata(filename.c_str());
 	
-	int NDigits = NDigitsPrec;
-	NDigitsPrec = 11;
+//	int NDigits = NDigitsPrec;
+//	NDigitsPrec = 11;
 	TestingCubatureRuleAllOrders<TPZIntTriang>(0,olddata);
-	NDigitsPrec = NDigits;
+//	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DC_tests) {
@@ -359,10 +357,10 @@ BOOST_AUTO_TEST_CASE(numinteg3DT_tests) {
 	filename += "FirstResult3DT.txt";
 	std::ifstream olddata(filename.c_str());
 
-	int NDigits = NDigitsPrec;
-	NDigitsPrec = 10;
+//	int NDigits = NDigitsPrec;
+//	NDigitsPrec = 10;
 	TestingCubatureRuleAllOrders<TPZIntTetra3D>(0,olddata);
-	NDigitsPrec = NDigits;
+//	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
@@ -371,10 +369,10 @@ BOOST_AUTO_TEST_CASE(numinteg3DPy_tests) {
 	filename += "FirstResult3DPy.txt";
 	std::ifstream olddata(filename.c_str());
 
-	int NDigits = NDigitsPrec;
-	NDigitsPrec = 7;
+//	int NDigits = NDigitsPrec;
+//	NDigitsPrec = 7;
 	TestingCubatureRuleAllOrders<TPZIntPyram3D>(0,olddata);
-	NDigitsPrec = NDigits;
+//	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
@@ -383,9 +381,9 @@ BOOST_AUTO_TEST_CASE(numinteg3DPr_tests) {
 	filename += "FirstResult3DPr.txt";
 	std::ifstream olddata(filename.c_str());
 
-	int NDigits = NDigitsPrec;
+//	int NDigits = NDigitsPrec;
 	TestingCubatureRuleAllOrders<TPZIntPrism3D>(0,olddata);
-	NDigitsPrec = NDigits;
+//	NDigitsPrec = NDigits;
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -405,8 +403,8 @@ void TestingNumericLowerIntegrationRule(int order,int type,REAL LimInf,REAL LimS
 	TPZVec<REAL> point(3,0.L);
 	REAL pointx;
 	REAL jacob = 0.5L*(b-a);
-	REAL weight = 0.L;
-	REAL integral = 0.L;
+	REAL weight = 0.0L;
+	REAL integral = 0.0L;
 	TPZVec<int> orderVec(3,order);
 	
 	// Integration rule
@@ -417,7 +415,7 @@ void TestingNumericLowerIntegrationRule(int order,int type,REAL LimInf,REAL LimS
 	unsigned int it;
 	
 	// Computing the definite integral for Funcao on parametric element
-	cout << "Testing PolinomialN : N = " << NN << " \t order = " << order << " \ttype = " << type << " \t NPoints = " << npoints << std::endl;
+	cout << "Testing PolinomialN : N = " << NN << " \t order = " << order << " \ttype = " << type << " \t NPoints = " << npoints << "  ";
 	for (it=0;it<npoints;it++) {
 		intrule.Point(it,point,weight);
 		pointx = LinearTransformFromMaster(point[0],LimInf,LimSup);   // x=T(w)   where w pertence [-1.,1.]
@@ -427,13 +425,16 @@ void TestingNumericLowerIntegrationRule(int order,int type,REAL LimInf,REAL LimS
 	// Making tol compatible with the wished significant digits
 	long double tol = 1.0L;
 	REAL integ = IntegralOfPolinomialN(NN,a,b);
+	REAL result;
 	for(it=0;it<NDigitsPrec;it++)
 		tol *= 0.1L;
-	integ = fabsl(integral-integ);
+	result = fabsl(integral-integ);
 	if(order <= NN)
-		cout << "Difference: " << integ << ".\n";
-	else
-		BOOST_CHECK_MESSAGE(integ < tol,"Failed Test of Integral with higher order than polinomial: " << integ << ".\n");
+		cout << "Difference: " << result << ".\n";
+	else {
+		cout << std::endl;
+		BOOST_CHECK_MESSAGE(result < tol,"Failed Test of Integral with higher order than polinomial: " << result << ".\n");
+	}
 }
 
 BOOST_AUTO_TEST_SUITE(numint_test2)
@@ -441,7 +442,9 @@ BOOST_AUTO_TEST_SUITE(numint_test2)
 BOOST_AUTO_TEST_CASE(LowerOrderTest) {
 	NN = 3;
 	int NDigits = NDigitsPrec;
-	while(NN<(2*MAXORDER)) {
+	TPZInt1d rule(1);
+	int maxord = rule.GetMaxOrder();
+	while(NN<(2*maxord)) {
 		NN++;
 		for(int type=0;type<NTypes;type++) {
 			for(int order=0;order<NN;order++) {
@@ -457,10 +460,12 @@ BOOST_AUTO_TEST_CASE(LowerOrderTest) {
 BOOST_AUTO_TEST_CASE(HigherOrderTest) {
 	NN = 3;
 	int NDigits = NDigitsPrec;
-	while(NN<(2*MAXORDER)) {
+	TPZInt1d rule;
+	int maxord = rule.GetMaxOrder();
+	while(NN<(2*maxord) && NN<25) {
 		NN++;
 		for(int type=0;type<NTypes;type++) {
-			for(int order=(NN+1);order<(NN+max_order);order++) {
+			for(int order=(NN+1);order<(NN+maxord);order++) {
 				if(order > 10)
 					NDigitsPrec = 6;
 				TestingNumericLowerIntegrationRule<TPZInt1d>(order,type,a,b);
@@ -474,53 +479,3 @@ BOOST_AUTO_TEST_SUITE_END()
 
 #endif
 
-
-/// Computes the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0]
-/// and stores the values in GaussLegQuadrature file
-void ComputingGaussLegendreQuadrature(int Npoints,ofstream &GaussLegQuadrature) {
-	const long double tol = 1.e-16;
-	long double z1, z, pp, p3, p2, p1;
-	int i;
-	TPZVec<long double> Points(Npoints);
-	TPZVec<long double> Weights(Npoints);
-	
-	int m = (Npoints+1)*0.5;
-	
-	for(i=0;i<m;i++) {
-		p1 = ((REAL)i)+(REAL)0.75;
-		p2 = ((REAL)Npoints)+(REAL)(0.5);
-		
-		z = cosl(((REAL)M_PI)*p1/p2);
-		do {
-			p1 = (REAL)1.0;
-			p2 = (REAL)0.0;
-			for(int j=0;j<Npoints;j++) {
-				p3 = p2;
-				p2 = p1;
-				p1 = (((REAL)(2.0*j+1.0))*z*p2-((REAL)j)*p3)/((REAL)(j+1));
-			}
-			pp = ((REAL)Npoints)*(z*p1-p2)/(z*z-((REAL)1.0));
-			z1 = z;
-			z = z1-p1/pp;
-		}while(fabs(z-z1) > tol);
-		Points[i] = -z;
-		Points[Npoints-1-i] = z;
-		Weights[i] = 2.0/((1.0-z*z)*pp*pp);
-		Weights[Npoints-1-i] = Weights[i];
-	}
-	// Printing points and weights
-	char text[64];
-	char format[32];
-	memset(text,0,strlen(text));
-	memset(format,0,strlen(format));
-	
-	GaussLegQuadrature << Npoints << "\n";
-	sprintf(format,"%%.%dLf",25);
-	for(i=0;i<Npoints;i++) {
-		sprintf(text,format,Points[i]);
-		GaussLegQuadrature << text << "\t";
-		sprintf(text,format,Weights[i]);
-		GaussLegQuadrature << text << "\n";
-	}
-	GaussLegQuadrature << "\n";
-}
