@@ -545,7 +545,143 @@ void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &
 	}
 }
 
+#ifdef NEW_MULT_ADD
+void TPZFMatrix::MultAdd(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+			 const REAL alpha, const REAL beta, const int opt, const int stride) const 
+{
+  if (opt == 0)
+    return MultAdd_opt0(x, y, z, alpha, beta, stride);
+  else
+    return MultAdd_opt1(x, y, z, alpha, beta, stride);
+}
 
+void TPZFMatrix::MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+			      const REAL alpha, const REAL beta, const int stride) const 
+{
+  if (Cols()*stride != x.Rows()) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != 0. && ((Rows()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+
+  if(z.Cols() != x.Cols() || z.Rows() != Rows()*stride) {
+    z.Redim(Rows()*stride,x.Cols());
+  }
+  if(Cols() == 0) {
+    z.Zero();
+  }
+  
+  unsigned numeq = Rows();
+  long rows = Rows();
+  long cols = Cols();
+  long xcols = x.Cols();
+  int ic, c;
+  if(!(rows*cols)) return;
+
+  for (ic = 0; ic < xcols; ic++) {
+    REAL *zp = &z(0,ic), *zlast = zp+numeq*stride;
+    if(beta != 0.) {
+      const REAL *yp = &y.g(0,ic);
+      if(beta != 1. || (&z != &y && stride != 1)) {
+	while(zp < zlast) {
+	  *zp = beta * (*yp);
+	  zp += stride;
+	  yp += stride;
+	}
+      } else if(&z != &y) {
+	memcpy(zp,yp,numeq*sizeof(REAL));
+      }
+    } else {
+      while(zp != zlast) {
+	*zp = 0.;
+	zp += stride;
+      }
+    }
+  }
+    
+  for (ic = 0; ic < xcols; ic++) {
+    for (c = 0; c < cols; c++) {
+      REAL* zp = &z(0,ic);
+      REAL* zlast = zp+rows*stride;
+      REAL* fp = fElem +rows*c;
+      const REAL * xp = &x.g(c*stride,ic);
+      while(zp < zlast) {
+	*zp += alpha* *fp++ * *xp;
+	zp += stride;
+      }
+    }
+  }
+}
+
+void TPZFMatrix::MultAdd_opt1(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+			      const REAL alpha, const REAL beta, const int stride) const 
+{
+  if (Rows()*stride != x.Rows()) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != 0. && ((Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+
+  if(z.Cols() != x.Cols() || z.Rows() != Cols()*stride) {
+    z.Redim(Cols()*stride,x.Cols());
+  }
+
+  if(Cols() == 0) {
+    z.Zero();
+  }
+  unsigned numeq = Cols();
+  long rows = Rows();
+  long cols = Cols();
+  long xcols = x.Cols();
+  int ic, c;
+  if(!(rows*cols)) return;
+  for (ic = 0; ic < xcols; ic++) {
+    REAL *zp = &z(0,ic), *zlast = zp+numeq*stride;
+    if(beta != 0.) {
+      const REAL *yp = &y.g(0,ic);
+      if(beta != 1. || (&z != &y && stride != 1)) {
+	while(zp < zlast) {
+	  *zp = beta * (*yp);
+	  zp += stride;
+	  yp += stride;
+	}
+      } else if(&z != &y) {
+	memcpy(zp,yp,numeq*sizeof(REAL));
+      }
+    } else {
+      while(zp != zlast) {
+	*zp = 0.;
+	zp += stride;
+      }
+    }
+  }
+  
+  
+  for (ic = 0; ic < xcols; ic++) {
+    REAL * fp = fElem,  *zp = &z(0,ic);
+    for (c = 0; c<cols; c++) {
+      REAL val = 0.;
+      // bug correction philippe 5/2/97
+      //					 REAL * xp = &x(0,ic), xlast = xp + numeq*stride;
+      const REAL *xp = &x.g(0,ic);
+      const REAL *xlast = xp + rows*stride;
+      while(xp < xlast) {
+	val += *fp++ * *xp;
+	xp += stride;
+      }
+      *zp += alpha *val;
+      zp += stride;
+    }
+  }
+ }
+
+#else
 void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 						 const REAL alpha,const REAL beta,const int opt,const int stride) const {
 	if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows())) {
@@ -627,7 +763,7 @@ void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 	}
 }
 
-
+#endif
 
 /********************************/
 /*** Operator+=( TPZFMatrix & ) ***/

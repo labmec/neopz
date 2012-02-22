@@ -127,6 +127,13 @@ public:
 	
 	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 						 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+
+#ifdef NEW_MULT_ADD
+void MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+		  const REAL alpha, const REAL beta, const int stride) const;
+void MultAdd_opt1(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+		  const REAL alpha, const REAL beta, const int stride) const;
+#endif
 	
 	static void MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 						const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 );
