@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
 		
 		gmesh = cmesh->Reference();
 		
-		dohrstruct.SetNumThreads(numthreads_assemble);
+		//dohrstruct.SetNumThreads(numthreads_assemble);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
 		//TPZFMatrix rhs; // Nathan

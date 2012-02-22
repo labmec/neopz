@@ -396,7 +396,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
 	}
 
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing added after Nathan");
 
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
@@ -411,7 +411,9 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 		(*it)->ContributeRhs(rhsloc);
 		fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
-		
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing added after Nathan");
+
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
 	dohr->Initialize();
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precond = new TPZDohrPrecond<TPZDohrSubstructCondense> (*dohr,fDohrAssembly);
 	precond->Initialize();
