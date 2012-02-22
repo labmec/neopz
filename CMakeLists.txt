@@ -87,7 +87,8 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG" CACHE STRING "c++ release flags go here" FORCE)
 	endif()
 #To search files or libraries
-	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/lib /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../libs/metis-5.0.1 ./../libs/metis-5.0.1/include ./../libs/metis-5.0.1/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./../externallibs/metis-5.0.1 ./../externallibs/metis-4.0 ./../externallibs/metis-5.0.1/include ./../externallibs/metis-4.0/include ./../externallibs/metis-5.0.1/lib)
+	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/lib /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib)
+
 #To install neopz/include
 	set(NEOPZ_INCLUDE ${PROJECT_SOURCE_DIR}/../externallibs/neopz/include)
 #To install neopz library
@@ -132,7 +133,7 @@ if(USING_FAD)
 endif(USING_FAD)
 
 #enabling to use LOG4CXX library
-option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
+option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" ON)
 if(USING_LOG4CXX)
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/include)
 	find_path(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/lib)
@@ -151,8 +152,8 @@ endif(USING_LOG4CXX)
 #enabling METIS library
 option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
-	find_path(METIS_INCLUDE metis.h PATHS ${SEARCH_DIRS} ./../metis-5.0.1 ./../metis-5.0.1/include ./../metis-4.0 ./../metis-4.0/include)
-	find_path(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.a PATHS ${SEARCH_DIRS} ./../metis-5.0.1/libmetis ./../metis-5.0.1/lib ./../metis-4.0)
+	find_path(METIS_INCLUDE metis.h PATHS ${SEARCH_DIRS})
+	find_path(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.a PATHS ${SEARCH_DIRS})
 	if(METIS_INCLUDE-NOTFOUND)
 		set (METIS_INCLUDE "/usr/local/include" CACHE PATH "Directory where metis header files can be found")
 	endif()
@@ -160,11 +161,7 @@ if(USING_METIS)
 		set (METIS_LIB "/usr/local/lib" CACHE PATH "Directory where the metis library can be found")
 	endif()
 	#verifying whether the metis is metis-5
-	string(FIND ${METIS_INCLUDE} "metis-5" METIS5)
 	add_definitions(-DUSING_METIS)
-	if(${METIS5} GREATER -1)
-		add_definitions(-DMETIS_5)
-	endif()
 	include_directories(${METIS_INCLUDE})
 	link_directories(${METIS_LIB})
 	link_libraries(metis)
