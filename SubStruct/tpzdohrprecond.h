@@ -33,6 +33,9 @@
 #include "tpzdohrmatrix.h"
 #include "tpzdohrassembly.h"
 #include "tpzdohrassemblelist.h"
+
+#include "pzp_thread.h"
+
 /**
  * \addtogroup substructure
  * @{
@@ -213,11 +216,11 @@ template <class TSubStruct>
 struct TPZDohrPrecondV2SubDataList {
 	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList> &assemble) : fAssemblyStructure(assemble)
 	{
-		pthread_mutex_init(&fAccessLock, 0);
+	  PZP_THREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrPrecondV2SubDataList::TPZDohrPrecondV2SubDataList()");
 	}
 	~TPZDohrPrecondV2SubDataList()
 	{
-		pthread_mutex_destroy(&fAccessLock);
+	  PZP_THREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList()");
 	}
 	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
@@ -226,20 +229,20 @@ struct TPZDohrPrecondV2SubDataList {
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrPrecondV2SubData<TSubStruct> &data)
 	{
-		pthread_mutex_lock(&fAccessLock);
-		fWork.push_back(data);
-		pthread_mutex_unlock(&fAccessLock);
+	  PZP_THREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
+	  fWork.push_back(data);
+	  PZP_THREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrPrecondV2SubData<TSubStruct> PopItem()
 	{
 		TPZDohrPrecondV2SubData<TSubStruct> result;
-		pthread_mutex_lock(&fAccessLock);
+		PZP_THREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-		pthread_mutex_unlock(&fAccessLock);
+		PZP_THREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		return result;
 	}
 	

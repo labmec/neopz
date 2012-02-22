@@ -10,7 +10,7 @@
 #include "TPZFrontNonSym.h"
 #include "TPZFrontSym.h"
 
-#include <pthread.h>
+#include "pzp_thread.h"
 
 #include "TPZStackEqnStorage.h"
 #include "pzvec.h"

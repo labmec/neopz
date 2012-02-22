@@ -2,8 +2,6 @@
 
 #include<map>
 
-#ifdef THREAD_NOTES
-
 using namespace std;
 
 struct pz_pthread_info_t
@@ -42,26 +40,28 @@ public:
     return pthread_mutex_unlock(&mutex);
   }
 
-
 private:
   
   pthread_mutex_t mutex;
 
 };
 
+#if (defined THREAD_NOTES || defined THREAD_MUTEX_NOTES || defined THREAD_COND_NOTES)
 
 map<int,pz_pthread_info_t> threads_info;
 static bool pz_pthread_logging = false;
 static unsigned max_sim_threads = 0;
 static unsigned sim_threads = 0;
-
 pz_pthread_mutex_t pzp_mutex;
 
 void pzp_thread_log_start()
 {
   pz_pthread_logging = true;
+
+#ifdef THREAD_NOTES
   max_sim_threads = 0;
   sim_threads = 0;
+#endif //THREAD_NOTES
 }
 
 void pzp_thread_log_stop()
@@ -72,9 +72,22 @@ void pzp_thread_log_stop()
 void pzp_thread_log_report(ostream& o)
 {
   cout << "pzp_thread_log_report:" << endl;
+#ifdef THREAD_NOTES
   cout << "Max number of simultaneous threads = " << max_sim_threads << endl;
+#endif //THREAD_NOTES
 }
 
+#else // THREAD_NOTES || THREAD_MUTEX_NOTES || THREAD_COND_NOTES
+
+void pzp_thread_log_stop() {}
+void pzp_thread_log_start() {}
+void pzp_thread_log_report(std::ostream& o) {}
+
+#endif // THREAD_NOTES || THREAD_MUTEX_NOTES || THREAD_COND_NOTES
+
+
+
+#ifdef THREAD_NOTES
 
 int pz_pthread_join(pthread_t thread, void **value_ptr, const char* fn,
 		    const char* file, unsigned line)
@@ -123,10 +136,186 @@ int pz_pthread_create(pthread_t *thread, const pthread_attr_t *attr, void
   return ret;
 }
 
-#else // #ifdef THREAD_NOTES
+#endif //THREAD_NOTES
 
-void pzp_thread_log_stop() {}
-void pzp_thread_log_start() {}
-void pzp_thread_log_report(std::ostream& o) {}
+
+#ifdef THREAD_MUTEX_NOTES
+
+int pz_pthread_mutex_init(pthread_mutex_t* mutex, const pthread_mutexattr_t* attr,
+			  const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_mutex_init(mutex, attr);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_mutex_init() ret : " << ret 
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+
+  return ret;
+}
+
+int pz_pthread_mutex_destroy(pthread_mutex_t *mutex,
+			     const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_mutex_destroy(mutex);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_mutex_destroy() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_mutex_lock(pthread_mutex_t *mutex,
+			  const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_mutex_lock(mutex);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_mutex_lock() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_mutex_unlock(pthread_mutex_t *mutex,
+			    const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_mutex_unlock(mutex);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_mutex_unlock() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
 
 #endif
+
+
+#ifdef THREAD_COND_NOTES
+
+int pz_pthread_cond_init(pthread_cond_t* cond, const pthread_condattr_t* attr,
+			 const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_cond_init(cond,attr);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_cond_init() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_cond_destroy(pthread_cond_t *cond,
+			    const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_cond_destroy(cond);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_cond_destroy() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_cond_wait(pthread_cond_t* cond, pthread_mutex_t* mutex,
+			 const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_cond_wait(cond, mutex);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_cond_wait() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_cond_broadcast(pthread_cond_t *cond,
+			      const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_cond_broadcast(cond);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_cond_broadcast() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+int pz_pthread_cond_signal(pthread_cond_t *cond,
+			   const char* fn, const char* file, unsigned line)
+{
+  int ret = pthread_cond_signal(cond);
+
+  if (pz_pthread_logging) {
+
+    pzp_mutex.lock();
+
+    std::cout << "pthread_cond_signal() ret : " << ret
+	      << " : self thread " << (int*) pthread_self() << " : at : "		 
+	      << fn << " : " << file << " : " << line << std::endl;
+    
+    pzp_mutex.unlock();
+
+  }
+  return ret;
+}
+
+#endif //THREAD_COND_NOTES

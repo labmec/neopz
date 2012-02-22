@@ -12,7 +12,7 @@
 #include "pzonedref.h"
 #include "pzcheckmesh.h"
 //multithread -->>
-#include <pthread.h>
+#include "pz_thread.h"
 #include <signal.h>
 
 int TPZAdaptMesh::fThreads_in_use = 0;
@@ -146,22 +146,22 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
   pthread_t *allthreads = new pthread_t[(const int)fNClones_to_Analyse];
   while (fNClones_to_Analyse) {
     if (fThreads_in_use <=  nthreads){
-      pthread_mutex_lock(&fLock_clindex);
+      PZP_THREAD_MUTEX_LOCK(&fLock_clindex,"TPZAdaptMesh::GetAdaptedMesh()");
       int thr_index = fNClones_to_Analyse-1;
       fNClones_to_Analyse --;
       fThreads_in_use ++;
-      int result =   pthread_create(&allthreads[thr_index],NULL,(void*(*)(void*))TPZAdaptMesh::MeshError,this);
+      int result =   PZP_THREAD_CREATE(&allthreads[thr_index],NULL,(void*(*)(void*))TPZAdaptMesh::MeshError,this,"TPZAdaptMesh::GetAdaptedMesh()");
       if (result){
         cout << "TPZAdaptMesh::GetAdaptMesh : Error on thread creation... exiting\n" << result << "\t "<< EAGAIN << endl;
         exit (-1);
       }
     }
-    pthread_cond_wait (&fSignal_free,&fLock_clindex);
-    pthread_mutex_unlock(&fLock_clindex);
+    PZP_THREAD_COND_WAIT(&fSignal_free,&fLock_clindex,"TPZAdaptMesh::GetAdaptedMesh()");
+    PZP_THREAD_MUTEX_UNLOCK(&fLock_clindex,"TPZAdaptMesh::GetAdaptedMesh()");
   }
 
   for(i=0;i<fClonestoAnalyse.NElements();i++){
-    pthread_join(allthreads[i],0);
+    PZP_THREAD_JOIN(allthreads[i],0,"TPZAdaptMesh::GetAdaptedMesh()");
   }
   delete[] allthreads;
   truervec = fTrueErrorVec;
@@ -230,7 +230,7 @@ void TPZAdaptMesh::GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> 
 
 void * TPZAdaptMesh::MeshError(void *t){
   TPZAdaptMesh *adapt = (TPZAdaptMesh *) (t);
-  pthread_mutex_lock(&adapt->fLock_clindex);
+  PZP_THREAD_MUTEX_LOCK(&adapt->fLock_clindex,"TPZAdaptMesh::MeshError()");
   int cliter = adapt->fClonestoAnalyse[adapt->fNClones_to_Analyse];
 //   TPZGeoCloneMesh *gcmesh = dynamic_cast<TPZGeoCloneMesh *> (adapt->fCloneMesh[cliter]->Reference());
 //  adapt->fFineCloneMesh [cliter] = adapt->fCloneMesh[cliter]->UniformlyRefineMesh();
@@ -242,15 +242,15 @@ void * TPZAdaptMesh::MeshError(void *t){
 //     pthread_mutex_unlock(&adapt->fLock_clindex);
 //     return 0;
 //   }
-  pthread_cond_signal (&adapt->fSignal_free);
-  pthread_mutex_unlock(&adapt->fLock_clindex);
+  PZP_THREAD_COND_SIGNAL(&adapt->fSignal_free,"TPZAdaptMesh::MeshError()");
+  PZP_THREAD_MUTEX_UNLOCK(&adapt->fLock_clindex,"TPZAdaptMesh::MeshError()");
   if(adapt->fGeoRef[cliter]->MaterialId() >= 0) {
     adapt->ProcessPatch(cliter);
   }
-  pthread_mutex_lock(&adapt->fLock_clindex);
+  PZP_THREAD_MUTEX_LOCK(&adapt->fLock_clindex,"TPZAdaptMesh::MeshError()");
   fThreads_in_use --;
-  pthread_cond_signal (&adapt->fSignal_free);
-  pthread_mutex_unlock(&adapt->fLock_clindex);
+  PZP_THREAD_COND_SIGNAL(&adapt->fSignal_free,"TPZAdaptMesh::MeshError()");
+  PZP_THREAD_MUTEX_UNLOCK(&adapt->fLock_clindex,"TPZAdaptMesh::MeshError()");
   return 0;
 }
 
@@ -258,7 +258,7 @@ void TPZAdaptMesh::ProcessPatch(int icl) {
   if(fGeoRef[icl]->MaterialId() < 0) return;
   TPZCompCloneMesh *coarse = 0;
   TPZCompMesh *fine = 0;
-  pthread_mutex_lock(&fLock_clindex);
+  PZP_THREAD_MUTEX_LOCK(&fLock_clindex, "TPZAdaptMesh::ProcessPatch()");
   coarse = fCloneStructs[icl].fCloneMesh;
   if(! coarse) {
     CreatePatch(icl);
@@ -269,7 +269,7 @@ void TPZAdaptMesh::ProcessPatch(int icl) {
     fCloneStructs[icl].fFineCloneMesh = fCloneStructs[icl].fCloneMesh->UniformlyRefineMesh();
     fine = fCloneStructs[icl].fFineCloneMesh;
   }
-  pthread_mutex_unlock(&fLock_clindex);
+  PZP_THREAD_MUTEX_UNLOCK(&fLock_clindex, "TPZAdaptMesh::ProcessPatch()");
   coarse->MeshError( fine,fElementError,fExact,fTrueErrorVec);
   coarse->ComputeRefPattern(fine, fCloneStructs[icl].fRefinedElements,fCloneStructs[icl].fRefinedOrders);
   fCloneStructs[icl].Cleanup();

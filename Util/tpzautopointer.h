@@ -16,7 +16,7 @@
 #ifndef TPZAUTOPOINTER_H
 #define TPZAUTOPOINTER_H
 
-#include <pthread.h>
+#include "pzp_thread.h"
 
 /**
  * \addtogroup util
@@ -65,18 +65,18 @@ class TPZAutoPointer{
 		/** @brief Increment the counter */
 		void Increment()
 		{
-			pthread_mutex_lock(&gAutoPointerMutex);
+		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, "TPZReference::Increment()");
 			fCounter++;
-			pthread_mutex_unlock(&gAutoPointerMutex);
+			PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, "TPZReference::Increment()");
 		}
 		/** @brief Decrease the counter. If the counter is zero, delete myself */
 		void Decrease()
 		{
 			int should_delete = 0;
-			pthread_mutex_lock(&gAutoPointerMutex);
+		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, "TPZReference::Decrease()");
 			fCounter--;
 			if(fCounter <= 0) should_delete = 1;
-			pthread_mutex_unlock(&gAutoPointerMutex);
+		        PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, "TPZReference::Decrease()");
 			if(should_delete) 
 			{
 				delete this;

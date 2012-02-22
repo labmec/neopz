@@ -122,7 +122,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		
 		//Lock a mutex and get an element number
 		
-		pthread_mutex_lock(&mutex_element_assemble);
+		PZP_THREAD_MUTEX_LOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
 		
 		//Stack is full and process must wait here!
 		if(parfront->felnum.NElements()==parfront->fMaxStackSize){
@@ -137,7 +137,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
-			pthread_cond_wait(&stackfull,&mutex_element_assemble);
+			PZP_THREAD_COND_WAIT(&stackfull,&mutex_element_assemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
 			//cout << "Mutex LOCKED leaving Condwait" << endl;
 			
 		}
@@ -162,8 +162,8 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//cout << "Computing Element " << parfront->fCurrentElement << endl;
 		//cout << "Unlocking mutex_element_assemble" << endl;
 		//cout.flush();
-		pthread_mutex_unlock(&mutex_element_assemble);
-		
+		PZP_THREAD_MUTEX_UNLOCK(&mutex_element_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
+
 		
 		if(parfront->fElementOrder[local_element] < 0) continue;
 		TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
@@ -176,7 +176,7 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		//if mutex is locked go to condwait waiting for an specific condvariable
 		// este mutex deve ser outro mutex -> mutexassemble
 		
-		pthread_mutex_lock(&mutex_global_assemble);
+		PZP_THREAD_MUTEX_LOCK(&mutex_global_assemble, "TPZParFrontStructMatrix<front>::ElementAssemble()");
 		//cout << "Locking mutex_global_assemble" << endl;
 		//cout << "Pushing variables to the stack" << endl;
 		//cout.flush();
@@ -212,9 +212,9 @@ void *TPZParFrontStructMatrix<front>::ElementAssemble(void *t){
 		 */
 		//Alterado cond_broadcast para cond_signal
 		//invertendo a sequ�cia das chamadas
-		pthread_cond_broadcast(&condassemble);
-		pthread_mutex_unlock(&mutex_global_assemble);
-		
+		PZP_THREAD_COND_BROADCAST(&condassemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
+		PZP_THREAD_MUTEX_UNLOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::ElementAssemble()");
+
 		// o thread de assemblagem utiliza mutexassemble
 		// e feito em outro thread     AssembleElement(el, ek, ef, stiffness, rhs);
 		
@@ -289,7 +289,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		int i=0;
 		int aux = -1;
 		TPZElementMatrix *ekaux, *efaux;
-		pthread_mutex_lock(&mutex_global_assemble);
+		PZP_THREAD_MUTEX_LOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -308,7 +308,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
                     ektemp = parfront->fekstack.Pop();
                     eftemp = parfront->fefstack.Pop();
                     if(parfront->felnum.NElements()<parfront->fMaxStackSize){
-						pthread_cond_broadcast(&stackfull);
+						PZP_THREAD_COND_BROADCAST(&stackfull,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
                     }
                     if(i < parfront->felnum.NElements()) {
 						
@@ -329,7 +329,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 					LOGPZ_DEBUG(logger,sout.str())
 				}
 #endif
-				pthread_cond_wait(&condassemble, &mutex_global_assemble);
+				PZP_THREAD_COND_WAIT(&condassemble, &mutex_global_assemble, "TPZParFrontStructMatrix<front>::GlobalAssemble()");
 			}
 		}
 #ifdef LOG4CXX
@@ -339,7 +339,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		pthread_mutex_unlock(&mutex_global_assemble);
+		PZP_THREAD_MUTEX_UNLOCK(&mutex_global_assemble,"TPZParFrontStructMatrix<front>::GlobalAssemble()");
 		parfront->AssembleElement(el, *ekaux, *efaux, *parfront->fStiffness, *parfront->fRhs);
 		if(parfront->fCurrentAssembled == parfront->fNElements)
 		{

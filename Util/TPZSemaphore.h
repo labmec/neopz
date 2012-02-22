@@ -5,7 +5,7 @@
 #ifndef TPZSEMAPHOREHPP
 #define TPZSEMAPHOREHPP
 
-#include <pthread.h>
+#include "pzp_thread.h"
 
 /**
  * @ingroup util

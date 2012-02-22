@@ -13,6 +13,8 @@
 
 #include "tpzdohrassemblelist.h"
 
+#include "pzp_thread.h"
+
 TPZDohrAssembleList::TPZDohrAssembleList(int numitems, TPZFMatrix &output, TPZAutoPointer<TPZDohrAssembly> assembly) : fNumItems(numitems),
 fAssembleIndexes(assembly), fOutput(&output)
 {
@@ -34,14 +36,14 @@ fAssembleIndexes(assembly), fOutput(&output)
 	 }
 	 #endif
 	 */	
-	pthread_mutex_init(&fAssemblyLock, 0);
-	pthread_mutex_init(&fListAccessLock, 0);
+  PZP_THREAD_MUTEX_INIT(&fAssemblyLock, 0, "TPZDohrAssembleList::TPZDohrAssembleList");
+  PZP_THREAD_MUTEX_INIT(&fListAccessLock, 0, "TPZDohrAssembleList::TPZDohrAssembleList");
 }
 
 TPZDohrAssembleList::~TPZDohrAssembleList()
 {
-	pthread_mutex_destroy(&fAssemblyLock);
-	pthread_mutex_destroy(&fListAccessLock);
+  PZP_THREAD_MUTEX_DESTROY(&fAssemblyLock, "TPZDohrAssembleList::TPZDohrAssembleList");
+  PZP_THREAD_MUTEX_DESTROY(&fListAccessLock, "TPZDohrAssembleList::TPZDohrAssembleList");
 	/*
 	 #ifdef MACOSX
 	 sem_close(fSemaphore);
@@ -54,7 +56,7 @@ TPZDohrAssembleList::~TPZDohrAssembleList()
 // Add an item to the list in a thread safe way
 void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleItem)
 {
-	pthread_mutex_lock(&fListAccessLock);
+  PZP_THREAD_MUTEX_LOCK(&fListAccessLock,"TPZDohrAssembleList::AddItem()");
 	fWork.push_back(assembleItem);
 	fSemaphore.Post();
 	/*
@@ -64,19 +66,19 @@ void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleIt
 	 sem_post(&fSemaphore);
 	 #endif
 	 */
-	pthread_mutex_unlock(&fListAccessLock);
+  PZP_THREAD_MUTEX_UNLOCK(&fListAccessLock,"TPZDohrAssembleList::AddItem()");
 }
 // remove an item from the list
 TPZAutoPointer<TPZDohrAssembleItem> TPZDohrAssembleList::PopItem()
 {
 	TPZAutoPointer<TPZDohrAssembleItem> result;
-	pthread_mutex_lock(&fListAccessLock);
+	PZP_THREAD_MUTEX_LOCK(&fListAccessLock,"TPZDohrAssembleList::PopItem()");
 	if (fWork.begin() != fWork.end()) {
 		fNumItems--;
 		result = *fWork.begin();
 		fWork.pop_front();
 	}
-	pthread_mutex_unlock(&fListAccessLock);
+	PZP_THREAD_MUTEX_UNLOCK(&fListAccessLock,"TPZDohrAssembleList::PopItem()");
 	return result;
 }
 
@@ -86,9 +88,9 @@ void *TPZDohrAssembleList::Assemble(void *voidptr)
 	while (myptr->fNumItems > 0) {
 		TPZAutoPointer<TPZDohrAssembleItem> work = myptr->PopItem();
 		if (work) {
-			pthread_mutex_lock(&myptr->fAssemblyLock);
+		        PZP_THREAD_MUTEX_LOCK(&myptr->fAssemblyLock,"TPZDohrAssembleList::Assemble()");
 			myptr->fAssembleIndexes->Assemble(work->fSubIndex,work->fAssembleData,*(myptr->fOutput));
-			pthread_mutex_unlock(&myptr->fAssemblyLock);
+		        PZP_THREAD_MUTEX_UNLOCK(&myptr->fAssemblyLock,"TPZDohrAssembleList::Assemble()");
 		}
 		else {
 			// wait for a signal

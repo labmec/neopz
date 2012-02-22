@@ -465,7 +465,7 @@ fNextElement(0)
 {
 	
 	fMaterialIds = MaterialIds;
-	pthread_mutex_init(&fAccessElement,NULL);
+	PZP_THREAD_MUTEX_INIT(&fAccessElement,NULL,"TPZStructMatrix::ThreadData::ThreadData()");
 	/*	sem_t *sem_open( ... );
 	 int sem_close(sem_t *sem);
 	 int sem_unlink(const char *name);
@@ -490,7 +490,7 @@ fNextElement(0)
 
 TPZStructMatrix::ThreadData::~ThreadData()
 {
-	pthread_mutex_destroy(&fAccessElement);
+	PZP_THREAD_MUTEX_DESTROY(&fAccessElement,"TPZStructMatrix::ThreadData::~ThreadData()");
 #ifdef MACOSX
 	sem_close(fAssembly);
 #else
@@ -568,13 +568,13 @@ void *TPZStructMatrix::ThreadData::ThreadWork(void *datavoid)
 		// compute the next element (this method is threadsafe)
 		iel = data->NextElement();
 	}
-	pthread_mutex_lock(&data->fAccessElement);
+	PZP_THREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadWork");
 #ifdef MACOSX
 	sem_post(data->fAssembly);
 #else
 	sem_post(&data->fAssembly);
 #endif
-	pthread_mutex_unlock(&data->fAccessElement);	
+	PZP_THREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadWork");
 	
 	return 0;
 }
@@ -586,7 +586,7 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 	TPZCompMesh *cmesh = data->fMesh;
 	TPZAutoPointer<TPZGuiInterface> guiInterface = data->fGuiInterface;
 	int nel = cmesh->NElements();
-	pthread_mutex_lock(&(data->fAccessElement));
+	PZP_THREAD_MUTEX_LOCK(&(data->fAccessElement),"TPZStructMatrix::ThreadData::ThreadAssembly");
 	int nextel = data->fNextElement;
 	int numprocessed = data->fProcessed.size();
 	bool globalresult = true;
@@ -631,7 +631,7 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 				}
 #endif
 				// Release the mutex
-				pthread_mutex_unlock(&data->fAccessElement);
+				PZP_THREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 				// Assemble the matrix
 				if(!ek->HasDependency())
 				{
@@ -644,12 +644,12 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 					data->fGlobRhs->AddFel(ef->fConstrMat,ek->fSourceIndex,ek->fDestinationIndex);				
 				}
 				// acquire the mutex
-				pthread_mutex_lock(&data->fAccessElement);
+				PZP_THREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 			}
 		}
 		if(!keeplooking)
 		{
-			pthread_mutex_unlock(&data->fAccessElement);
+		        PZP_THREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 			LOGPZ_DEBUG(logger,"Going to sleep within assembly")
 			// wait for a signal
 #ifdef MACOSX
@@ -658,7 +658,7 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 			sem_wait(&data->fAssembly);
 #endif
 			LOGPZ_DEBUG(logger,"Waking up for assembly")
-			pthread_mutex_lock(&data->fAccessElement);
+		        PZP_THREAD_MUTEX_LOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 		}
 		nextel = data->fNextElement;
 		numprocessed = data->fProcessed.size();
@@ -671,13 +671,13 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 		sout << "The comparaison results are : consistency check " << globalresult;
 		LOGPZ_DEBUG(loggerCheck,sout.str())
 	}
-	pthread_mutex_unlock(&data->fAccessElement);
+	PZP_THREAD_MUTEX_UNLOCK(&data->fAccessElement,"TPZStructMatrix::ThreadData::ThreadAssembly");
 	return 0;	
 }		
 
 int TPZStructMatrix::ThreadData::NextElement()
 {
-	pthread_mutex_lock(&fAccessElement);
+        PZP_THREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
 	int iel;
 	int nextel = fNextElement;
 	TPZCompMesh *cmesh = fMesh;
@@ -708,7 +708,7 @@ int TPZStructMatrix::ThreadData::NextElement()
 	fNextElement = iel+1;
 	nextel = iel;
 	if(iel<nel) fProcessed.insert(iel);
-	pthread_mutex_unlock(&fAccessElement);
+        PZP_THREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::NextElement()");
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -722,7 +722,7 @@ int TPZStructMatrix::ThreadData::NextElement()
 // put the computed element matrices in the map
 void TPZStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
 {
-	pthread_mutex_lock(&fAccessElement);
+        PZP_THREAD_MUTEX_LOCK(&fAccessElement,"TPZStructMatrix::ThreadData::ComputedElementMatrix()");
 	std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek,ef);
 	fSubmitted[iel] = el;
 #ifdef MACOSX
@@ -730,8 +730,7 @@ void TPZStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<
 #else
 	sem_post(&fAssembly);
 #endif
-	pthread_mutex_unlock(&fAccessElement);	
-	
+        PZP_THREAD_MUTEX_UNLOCK(&fAccessElement,"TPZStructMatrix::ThreadData::ComputedElementMatrix()");
 }
 
 /// Set the set of material ids which will be considered when assembling the system

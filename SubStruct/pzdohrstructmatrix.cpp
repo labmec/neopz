@@ -71,18 +71,18 @@ fDohrPrecond(0), fMesh(cmesh)
 	fNumThreads = numthreads_compute;
 	fNumThreadsDecompose = numthreads_decompose;
 	
-	pthread_mutex_init(&fAccessElement, 0);
+	PZP_THREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fNumThreadsDecompose(copy.fNumThreadsDecompose), fDohrAssembly(copy.fDohrAssembly),
 fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
 {
-	pthread_mutex_init(&fAccessElement, 0);
+	PZP_THREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix(copy)");
 }
 
 TPZDohrStructMatrix::~TPZDohrStructMatrix()
 {
-	pthread_mutex_destroy(&fAccessElement);
+	PZP_THREAD_MUTEX_DESTROY(&fAccessElement, "TPZDohrStructMatrix::~TPZDohrStructMatrix()");
 }
 
 // this will create a DohrMatrix
@@ -1194,33 +1194,32 @@ void ThreadDohrmanAssembly::AssembleMatrices(pthread_mutex_t &threadtest)
 
 ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()
 {
-	pthread_mutex_init(&fAccessElement,NULL);
-	pthread_mutex_init(&fTestThreads,NULL);
-	
+  PZP_THREAD_MUTEX_INIT(&fAccessElement,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
+  PZP_THREAD_MUTEX_INIT(&fTestThreads,NULL,"ThreadDohrmanAssemblyList::ThreadDohrmanAssemblyList()");
 }
 
 ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()
 {
-	pthread_mutex_destroy(&fAccessElement);
-	pthread_mutex_destroy(&fTestThreads);
+  PZP_THREAD_MUTEX_DESTROY(&fAccessElement,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
+  PZP_THREAD_MUTEX_DESTROY(&fTestThreads,"ThreadDohrmanAssemblyList::~ThreadDohrmanAssemblyList()");
 }
 
 void ThreadDohrmanAssemblyList::Append(TPZAutoPointer<ThreadDohrmanAssembly> object)
 {
-	pthread_mutex_lock(&fAccessElement);
-	fList.push_back(object);
-	pthread_mutex_unlock(&fAccessElement);
+  PZP_THREAD_MUTEX_LOCK(&fAccessElement, "ThreadDohrmanAssemblyList::Append()");
+  fList.push_back(object);
+  PZP_THREAD_MUTEX_UNLOCK(&fAccessElement, "ThreadDohrmanAssemblyList::Append()");
 }
 
 TPZAutoPointer<ThreadDohrmanAssembly> ThreadDohrmanAssemblyList::NextObject()
 {
 	TPZAutoPointer<ThreadDohrmanAssembly> result;
-	pthread_mutex_lock(&fAccessElement);
+	PZP_THREAD_MUTEX_LOCK(&fAccessElement, "ThreadDohrmanAssemblyList::NextObject()");
 	if (fList.begin() != fList.end()) {
 		result = *fList.begin();
 		fList.pop_front();
 	}
-	pthread_mutex_unlock(&fAccessElement);
+	PZP_THREAD_MUTEX_UNLOCK(&fAccessElement, "ThreadDohrmanAssemblyList::NextObject()");
 	return result;
 }
 
