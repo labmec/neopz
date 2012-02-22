@@ -634,7 +634,6 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 
 #include "pzintel.h"
 
-#include "tpzint1point.h"
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapepoint.h"
