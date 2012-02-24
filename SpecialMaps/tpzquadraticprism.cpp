@@ -132,25 +132,20 @@ void TPZQuadraticPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMat
 #endif
 	
 	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
+    jacobian.Zero(); axes.Zero();
+    for(int d = 0; d < 3; d++) axes(d,d) = 1.;
 	
 	REAL spacephi[15]; REAL spacedphi[45];
 	TPZFMatrix phi(15,1,spacephi,15);
 	TPZFMatrix dphi(3,15,spacedphi,45);
-	Shape(param,phi,dphi);
-	jacobian.Zero();
-	
-	TPZFMatrix VecMatrix(3,3,0.);
+	Shape(param,phi,dphi);	
 	for(int i = 0; i < 15; i++) {
 		for(int j = 0; j < 3; j++) {
-			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-			VecMatrix(j,1) += coord(j,i)*dphi(1,i);
-			VecMatrix(j,2) += coord(j,i)*dphi(2,i);
+			jacobian(j,0) += coord(j,i)*dphi(0,i);
+			jacobian(j,1) += coord(j,i)*dphi(1,i);
+			jacobian(j,2) += coord(j,i)*dphi(2,i);
 		}
 	}
-	
-	TPZFMatrix axest;
-	VecMatrix.GramSchmidt(axest,jacobian);
-	axest.Transpose(&axes);
 	
 	detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0)
 	+ jacobian(0,1)*jacobian(1,2)*jacobian(2,0)

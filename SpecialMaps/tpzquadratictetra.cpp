@@ -90,11 +90,12 @@ void TPZQuadraticTetra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMat
 #endif
 	
 	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
+    jacobian.Zero(); axes.Zero();
+    for(int d = 0; d < 3; d++) axes(d,d) = 1.;
+    
 	TPZFNMatrix<10> phi(10,1);
 	TPZFNMatrix<30> dphi(3,10);
-	Shape(param,phi,dphi);
-	jacobian.Resize(3,3); jacobian.Zero();
-	
+	Shape(param,phi,dphi);	
 	for(int i = 0; i < 10; i++)
 	{
 		for(int j = 0; j < 3; j++)
@@ -121,9 +122,6 @@ void TPZQuadraticTetra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMat
 	jacinv(2,0) = (-jacobian(1,1)*jacobian(2,0)+jacobian(1,0)*jacobian(2,1))/detjac;//-a11 a20 + a10 a21
 	jacinv(2,1) = ( jacobian(0,1)*jacobian(2,0)-jacobian(0,0)*jacobian(2,1))/detjac;// a01 a20 - a00 a21
 	jacinv(2,2) = (-jacobian(0,1)*jacobian(1,0)+jacobian(0,0)*jacobian(1,1))/detjac;//-a01 a10 + a00 a11
-	
-	axes.Resize(3,3); axes.Zero();
-	for(int i = 0; i < 3; i++) axes(i,i) = 1.;
 }
 
 

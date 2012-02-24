@@ -27,7 +27,7 @@ class TPZElasticity3D : public TPZMaterial {
 	
 	enum SOLUTIONVARS{ENone = -1, EDisplacement = 0, EDisplacementX, EDisplacementY, EDisplacementZ,
 		EPrincipalStress, EPrincipalStrain, EPrincipalDirection1, EPrincipalDirection2, EPrincipalDirection3,
-		EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain,EStressX};
+		EVonMisesStress, EStress, EStrain, EStrain1, EStress1, ENormalStress, ENormalStrain,EStressX, EStressY, EStressZ};
 	
 	/** 
 	 * @brief Class constructor
@@ -59,7 +59,7 @@ class TPZElasticity3D : public TPZMaterial {
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const
     {
-        return 2*(elPMaxOrder-1);
+        return 2*(elPMaxOrder);
     }
 
 	/** @brief Print material report */

@@ -328,6 +328,8 @@ int TPZElasticity3D::VariableIndex(const std::string &name){
 	if(!strcmp("NormalStress",name.c_str()))  return TPZElasticity3D::ENormalStress;
 	if(!strcmp("NormalStrain",name.c_str()))  return TPZElasticity3D::ENormalStrain;
 	if(!strcmp("StressX",name.c_str()))  return TPZElasticity3D::EStressX;
+	if(!strcmp("StressY",name.c_str()))  return TPZElasticity3D::EStressY;
+	if(!strcmp("StressZ",name.c_str()))  return TPZElasticity3D::EStressZ;
 	PZError << "TPZElasticity3D::VariableIndex Error\n";
 	return -1;
 }
@@ -350,6 +352,8 @@ int TPZElasticity3D::NSolutionVariables(int var){
 	if(var == TPZElasticity3D::ENormalStress)        return 3;  
 	if(var == TPZElasticity3D::ENormalStrain)        return 3; 
 	if(var == TPZElasticity3D::EStressX)						 return 1; 
+    if(var == TPZElasticity3D::EStressY)						 return 1;
+    if(var == TPZElasticity3D::EStressZ)						 return 1;
 	PZError << "TPZElasticity3D::NSolutionVariables Error\n";
 	return -1;
 }
@@ -508,7 +512,21 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 		this->ComputeStressTensor(Stress, DSol);
 		Solout[0] = Stress(0,0);
 		return;
-	}//TPZElasticity3D::ENormalStrain
+	}//TPZElasticity3D::EStressX
+    
+    if(var == TPZElasticity3D::EStressY){
+		TPZFNMatrix<9> Stress(3,3);
+		this->ComputeStressTensor(Stress, DSol);
+		Solout[0] = Stress(1,1);
+		return;
+	}//TPZElasticity3D::EStressY
+    
+    if(var == TPZElasticity3D::EStressZ){
+		TPZFNMatrix<9> Stress(3,3);
+		this->ComputeStressTensor(Stress, DSol);
+		Solout[0] = Stress(2,2);
+		return;
+	}//TPZElasticity3D::EStressZ
 	
 }//Solution
 

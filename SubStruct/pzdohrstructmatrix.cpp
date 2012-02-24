@@ -614,7 +614,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	}
 	pointgmesh->BuildConnectivity();
 	std::ofstream arquivo("PointMesh.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(pointgmesh.operator->(),arquivo);
+	TPZVTKGeoMesh::PrintGMeshVTK(pointgmesh.operator->(),arquivo,true);
 #endif
 	
 #ifdef LOG4CXX

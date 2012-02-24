@@ -328,12 +328,13 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
             }
         }
     }
-    TPZFNMatrix<9> axest;
-    JacTemp.GramSchmidt(axest,jacobian);
-    axest.Transpose(&axes);
 	
     if(TGeo::Dimension == 1)
     {
+        TPZFNMatrix<9> axest;
+        JacTemp.GramSchmidt(axest,jacobian);
+        axest.Transpose(&axes);
+        
         detjac = jacobian(0,0);
         if(IsZero(detjac)){
             detjac = ZeroTolerance();
@@ -341,6 +342,10 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         jacinv(0,0) = 1./detjac;
     } else if(TGeo::Dimension == 2)
     {
+        TPZFNMatrix<9> axest;
+        JacTemp.GramSchmidt(axest,jacobian);
+        axest.Transpose(&axes);
+        
         detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
         if(IsZero(detjac)){
             detjac = ZeroTolerance();
@@ -352,6 +357,9 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
     }
     else
     {
+        jacobian = JacTemp;
+        axes.Resize(3,3); axes.Zero();
+        axes(0,0) = 1.; axes(1,1) = 1.; axes(2,2) = 1.;
         detjac = -jacobian(0,2)*jacobian(1,1)*jacobian(2,0);//- a02 a11 a20
         detjac += jacobian(0,1)*jacobian(1,2)*jacobian(2,0);//+ a01 a12 a20
         detjac += jacobian(0,2)*jacobian(1,0)*jacobian(2,1);//+ a02 a10 a21

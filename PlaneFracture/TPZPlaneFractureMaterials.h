@@ -11,6 +11,8 @@
 const int __aux1DEl_Mat = -1;
 const int __aux0DEl_Mat1 = -2;
 const int __aux0DEl_Mat2 = -3;
+const int __aux0DEl_Mat3 = -4;
+const int __aux0DEl_Mat4 = -5;
 
 //BCs plane fracture
 const int __1DcrackTipMat = -10;//1D crack tip elements
