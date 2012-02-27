@@ -416,7 +416,8 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix &,std::ostream & )//pos,out
 
 void TPZAnalysis::ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, char *plotfile, std::ostream &) {//1o :TPZConnect  *nod,
 	
-	TPZV3DGraphMesh gg(fCompMesh,2,fCompMesh->MaterialVec()[0]);
+    TPZAutoPointer<TPZMaterial> mat = fCompMesh->MaterialVec().rbegin()->second;
+	TPZV3DGraphMesh gg(fCompMesh,2,mat);
 	
 	gg.SetFileName(plotfile);
 	gg.SetResolution(0);
