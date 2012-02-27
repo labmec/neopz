@@ -2239,16 +2239,19 @@ void TPZCompMesh::SaddlePermute()
         int eqmax=0;
         if(!elvec)continue;
         int ncon=elvec->NConnects();
+        std::set<int> connects;
+        elvec->BuildConnectList(connects );
         //	if(ncon==1) continue;
         int pressureconectindex = elvec->PressureConnectIndex();
         if(pressureconectindex == -1) continue;
         int eqpress=elvec->Connect(pressureconectindex).SequenceNumber();
-        for (int icon=0; icon< ncon-1; icon++) {
-            TPZConnect &coel=elvec->Connect(icon);
+
+        for (std::set<int>::const_iterator it= connects.begin(); it != connects.end(); it++) {
+//        for (int icon=0; icon< ncon-1; icon++) {
+            if(*it == pressureconectindex) continue;
+            TPZConnect &coel= fConnectVec[*it];
+            if(coel.HasDependency()) continue;
             int eqflux=coel.SequenceNumber();
-            if (eqflux >= numinternalconnects) {
-                continue;
-            }
             eqmax = max(eqmax,eqflux);
         }
         
