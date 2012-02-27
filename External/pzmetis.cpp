@@ -138,6 +138,8 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
 
+#define METIS_5
+#ifdef METIS_5
 	TPZVec<int> Options(METIS_NOPTIONS);
 	METIS_SetDefaultOptions(&Options[0]);
 	
@@ -145,6 +147,14 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	if(METIS_PartGraphRecursive(&nVertices, &ncon, &AdjacencyIndex[0], &Adjacency[0], NULL, NULL, NULL,   // &AdjacencyWeight[0],
 					&nParts, NULL, NULL, &Options[0], &nEdgesCutted, &Domains[0]) != METIS_OK)
 		DebugStop();
+#else
+    int flag1 = 0;    // Flag needed by Metis 4, is not necessary by Metis 5
+    int flag2 = 0;    // Flag needed by Metis 4, is not necessary by Metis 5
+	TPZVec<int> Options(5);
+	Options[0] = 0;
+	METIS_PartGraphRecursive(&nVertices, &AdjacencyIndex[0], &Adjacency[0], NULL, NULL,   // &AdjacencyWeight[0], &flag1,
+					&flag1, &flag2, &nParts, &Options[0], &nEdgesCutted, &Domains[0]);
+#endif
 #else
     DebugStop();
 #endif
