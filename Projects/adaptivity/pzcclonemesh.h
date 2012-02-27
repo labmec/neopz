@@ -4,6 +4,8 @@
 #define PZCCLONEMESHHPP
 
 #include "pzcmesh.h"
+#include "pzonedref.h"
+#include <map>
 
 class TPZCompEl;
 class TPZGeoEl;
@@ -37,7 +39,7 @@ class TPZCompCloneMesh : public TPZCompMesh {
   /**
    * Maps connect index from original mesh to cloned mesh
    */
-  TPZAVLMap <int,int> fMapConnects;
+    std::map<int,int> fMapConnects;
   
   /**
    * Maps connect index from cloned mesh to original mesh
@@ -148,7 +150,7 @@ protected:
   void AdaptElements (TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 
 
-  void TPZCompCloneMesh::DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
+  void DeduceRefPattern(TPZVec<TPZRefPattern> &refpat,	
 					  TPZVec<int> &cornerids,
 					  TPZVec<int> &porders,
 					  int originalp);

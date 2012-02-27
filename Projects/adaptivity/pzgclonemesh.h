@@ -18,6 +18,8 @@ contained within the TPZGeoMesh.
 #include "pzadaptmesh.h"
 #include "pzstack.h"
 
+#include <map>
+
 class TPZGeoNode;
 class TPZGeoEl;
 
@@ -31,10 +33,10 @@ protected:
   	TPZGeoMesh 	*fGeoReference;
 
 	/** Maps node id from cloned mesh to the mesh*/
-	TPZAVLMap <int,int> fMapNodes;
+    std::map<int,int> fMapNodes;
 
 	/** Maps element pointers from mesh to the cloned mesh*/
-	TPZAVLMap <TPZGeoEl *,TPZGeoEl *> fMapElements;
+    std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
 
 	/** Maps element id from cloned mesh to mesh */
 	TPZStack<TPZGeoEl *> fReferenceElement;

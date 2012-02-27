@@ -1,15 +1,8 @@
+file(GLOB header *.h)
 
-set(main_SRCS
-    main.cpp
-    pzadaptmesh.cpp
-    pzcclonemesh.cpp
-    pzgclonemesh.cpp)
+file(GLOB sources *.cpp)
 
-add_executable(adaptivity ${main_SRCS})
+add_executable(adaptivity ${sources} ${header})
 
-if(USING_METIS)
-	target_link_libraries(adaptivity pz metis)
-else()
-	target_link_libraries(adaptivity pz)
-endif()
+target_link_libraries(adaptivity pz pthread)
 

@@ -214,7 +214,10 @@ public:
 	 */
 	//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) = 0;
 	
-	/** @brief Returns the reference geometric element patch */
+	/** @brief Returns the reference geometric element patch 
+     * Look for a geometric element which refers to a computational element and
+     * Is neighbour of the current element AND is larger than the current element
+     */
 	TPZGeoEl * GetRefElPatch();
 	
 	//void SetIntegrationRule(int order);

@@ -931,7 +931,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	}
 	
 	if (! ndepend){
-		cout << "Caso esquisito!!! Chame o Boss que vc receberem premio\n";
+		//cout << "Caso esquisito!!! Chame o Boss que vc receberem premio\n";
 		for(jn = 0; jn<numsidenodes_large; jn++) {
 			int jnodindex = large->SideConnectIndex(jn,neighbourside);
 			inod.AddDependency(inodindex,jnodindex,MSL,MBlocksmall.Position(in),MBlocklarge.Position(jn),
