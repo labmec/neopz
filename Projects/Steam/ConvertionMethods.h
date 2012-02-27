@@ -23,7 +23,13 @@ REAL ConvertCToK(REAL temperature);
 
 REAL ConvertWTokJperH(REAL value);
 
-REAL ConvertWTokJperSecond(REAL value);
+inline REAL ConvertWTokJperH(REAL value) {
+	return (3.6*value);
+}
+
+inline REAL ConvertCToK(REAL temperature) {
+	return (temperature + 273.15);
+}
 
 /// Time measures
 REAL ConvertHourToSecond(REAL horas);

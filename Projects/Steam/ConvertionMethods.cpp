@@ -23,21 +23,22 @@ REAL ConvertBtuPerHourTokJPerSecond(REAL value) {
 	return value*(1.055056L/3600.0L);
 }
 
-REAL ConvertWTokJperH(REAL value) {
-	return (3.6L*value);
-}
-REAL ConvertWTokJperSecond(REAL value) {
-	return (0.001L*value);
-}
+//double ConvertBtuperFtCuboFTokJpermCuboK(double value) {
+//	return (67.066*value);
+//}
+
+//double ConvertWTokJperH(double value) {
+//	return (3.6*value);
+//}
 
 /// Temperature units
 REAL ConvertCToF(REAL temperature) {
 	return (1.8L*temperature + 32.L);
 }
 
-REAL ConvertCToK(REAL temperature) {
-	return (temperature + 273.15L);
-}
+//double ConvertCToK(double temperature) {
+//	return (temperature + 273.15);
+//}
 
 /// Time units
 REAL ConvertHourToSecond(REAL horas) {
