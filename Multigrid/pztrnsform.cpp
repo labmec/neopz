@@ -9,7 +9,9 @@ using namespace std;
 
 TPZTransform::TPZTransform(int dim) :
 fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
-	
+	for (int i=0; i<12; i++) {
+        fStore[i] = 0.;
+    }
 	fRow = dim;
 	fCol = dim;
 	fMult.Zero();
@@ -24,6 +26,9 @@ fMult(dim,dim,fStore,9), fSum(dim,1,fStore+9,3) {
 
 TPZTransform::TPZTransform() :
 fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
+	for (int i=0; i<12; i++) {
+        fStore[i] = 0.;
+    }
     fRow = 0;
     fCol = 0;
 }
@@ -32,6 +37,9 @@ fMult(0,0,fStore,9), fSum(0,1,fStore+9,3) {
 
 TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
 ,fSum(row,1,fStore+9,3) {
+	for (int i=0; i<12; i++) {
+        fStore[i] = 0.;
+    }
 	fRow = row;
 	fCol = col;
 	fMult.Zero();
@@ -46,6 +54,9 @@ TPZTransform::TPZTransform(int row,int col) : fMult(row,col,fStore,9)
 
 TPZTransform::TPZTransform(const TPZTransform &t) : fMult(t.fRow,t.fCol,fStore,9),
 fSum(t.fRow,1,fStore+9,3) {
+	for (int i=0; i<12; i++) {
+        fStore[i] = 0.;
+    }
 	fRow = t.fRow;
 	fCol = t.fCol;
 	fMult = t.fMult;
