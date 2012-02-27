@@ -60,6 +60,11 @@ public:
 	
 	TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> dohrassembly);
 	
+	TPZDohrMatrix() : TPZMatrix()
+    {
+        
+    }
+	
 	TPZDohrMatrix(const TPZDohrMatrix &cp) : fGlobal(cp.fGlobal), fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), 
 	fAssembly(cp.fAssembly)
 	{

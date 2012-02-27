@@ -36,7 +36,7 @@
  * @author Philippe Devloo
  * @ingroup substructure
  */
-class TPZDohrSubstructCondense
+class TPZDohrSubstructCondense : public TPZSaveable
 {
 public:
 	TPZDohrSubstructCondense();
