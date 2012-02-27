@@ -67,7 +67,7 @@ namespace pzshape {
 		phi(is,0) = phi(is1,0)*phi(is2,0)*phi(is3,0);
 		dphi(0,is) = dphi(0,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(0,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(0,is3);
 		dphi(1,is) = dphi(1,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(1,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(1,is3);
-#ifndef OLDSTYLESHAPE
+
 		// Make the generating shape functions linear and unitary
 		REAL mult[] = {1.,1.,1.,4.,4.,4.,27.};
 		for(is=3;is<NSides; is++)
@@ -76,7 +76,7 @@ namespace pzshape {
 			dphi(0,is) *= mult[is];
 			dphi(1,is) *= mult[is];
 		}
-#endif
+
 		
 	}
 	

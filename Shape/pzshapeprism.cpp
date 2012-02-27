@@ -146,7 +146,6 @@ namespace pzshape {
 					;
 			}
 		}
-#ifndef OLDSTYLESHAPE
 		// Make the generating shape functions linear and unitary
 		for(is=6; is<NSides; is++)
 		{
@@ -171,7 +170,6 @@ namespace pzshape {
 			dphi(1,is) *= mult[is];
 			dphi(2,is) *= mult[is];
 		}
-#endif
 		
 	}
 	

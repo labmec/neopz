@@ -163,7 +163,7 @@ namespace pzshape {
 			dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
 		}
 		
-#ifndef OLDSTYLESHAPE
+
 		// Make the generating shape functions linear and unitary
 		// contribute the ribs
 		for(is=NCornerNodes; is<NCornerNodes+4; is++)
@@ -185,7 +185,7 @@ namespace pzshape {
 				dphi(2,is) *= sidescale[is];
 			}
 		}
-#endif
+
 		
 	}
 	

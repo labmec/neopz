@@ -72,7 +72,7 @@ namespace pzshape {
 		phi(8,0) = phi(0,0)*phi(2,0);
 		dphi(0,8) = dphi(0,0)*phi(2,0)+phi(0,0)*dphi(0,2);
 		dphi(1,8) = dphi(1,0)*phi(2,0)+phi(0,0)*dphi(1,2);
-#ifndef OLDSTYLESHAPE
+
 		// Make the generating shape functions linear and unitary
 		for(is=4; is<8; is++)
 		{
@@ -86,7 +86,6 @@ namespace pzshape {
 		phi(8,0) *= 16.;
 		dphi(0,8) *= 16.;
 		dphi(1,8) *= 16.;
-#endif
 	}
 	
 	void TPZShapeQuad::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,

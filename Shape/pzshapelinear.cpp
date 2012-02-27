@@ -204,10 +204,10 @@ namespace pzshape {
 		
 		phi(2,0) = phi(0,0)*phi(1,0);
 		dphi(0,2) = dphi(0,0)*phi(1,0)+phi(0,0)*dphi(0,1);
-#ifndef OLDSTYLESHAPE
+
 		phi(2,0) *= 4.;
 		dphi(0,2) *= 4.;
-#endif
+
 	}
 	
 	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {

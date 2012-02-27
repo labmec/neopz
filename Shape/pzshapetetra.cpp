@@ -123,7 +123,7 @@ namespace pzshape {
 					DebugStop();
 			}
 		}
-#ifndef OLDSTYLESHAPE
+
 		REAL mult[] = {1.,1.,1.,1.,4.,4.,4.,4.,4.,4.,27.,27.,27.,27.,54.};
 		for(is=4;is<NSides; is++)
 		{
@@ -132,7 +132,7 @@ namespace pzshape {
 			dphi(1,is) *= mult[is];
 			dphi(2,is) *= mult[is];
 		}
-#endif
+		 
 	}
 	
 	
