@@ -451,7 +451,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 				down[seq] = 1;
 				fBlock.Set(seq,0);
                 no.Reset();
-//				no.SetSequenceNumber(-1);
+                //				no.SetSequenceNumber(-1);
 				fConnectVec.SetFree(i);
 				iremovedblocks++;
 			}
@@ -1567,7 +1567,7 @@ void TPZCompMesh::GetRefPatches(TPZStack<TPZGeoEl *> &grpatch){
 			TPZGeoEl *gel = fElementVec[i]->Reference();
 			if (gel)
 				//gel = fElementVec[i]->Reference();
-				//	cout << "Iniciando procura do elemento de refer�cia do elemento " << fElementVec[i]->Index() << endl;
+				//	cout << "Iniciando procura do elemento de referencia do elemento " << fElementVec[i]->Index() << endl;
 				gel = fElementVec[i]->GetRefElPatch();
 			//	gel->Print();
 			if (gel){
@@ -2009,9 +2009,9 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 	}
 	TPZSaveable::Read(buf,context);
 	TPZGeoMesh *gmesh;
-//	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
+    //	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
 	gmesh = (TPZGeoMesh *)(context);
-//	context = gmesh;
+    //	context = gmesh;
     {
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " calling load references";
