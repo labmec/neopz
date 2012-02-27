@@ -139,7 +139,8 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
 	if (data.fNeedsNeighborSol){
-		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
+        DebugStop();
+//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
 	}//fNeedsNeighborSol
 	
 	if (data.fNeedsSol){

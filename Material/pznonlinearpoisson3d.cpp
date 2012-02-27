@@ -385,24 +385,24 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
+void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                 REAL weight,
                                                 TPZFMatrix &ek,
                                                 TPZFMatrix &ef){
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phiL = data.phil;
-	TPZFMatrix &phiR = data.phir;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &dphiR = dataright.dphix;
+	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	TPZVec<REAL> &solL=data.soll[0];
-	TPZVec<REAL> &solR=data.solr[0];
-	TPZFMatrix &dsolL=data.dsoll[0];
-	TPZFMatrix &dsolR=data.dsolr[0];
+	TPZVec<REAL> &solL=dataleft.sol[0];
+	TPZVec<REAL> &solR=dataright.sol[0];
+	TPZFMatrix &dsolL=dataleft.dsol[0];
+	TPZFMatrix &dsolR=dataright.dsol[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolR);
@@ -545,21 +545,21 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data,
 	}
 }
 
-void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data,
+void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                                   REAL weight, 
                                                   TPZFMatrix &ek,
                                                   TPZFMatrix &ef,
                                                   TPZBndCond &bc) {
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &phiL = data.phil;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	TPZVec<REAL> &solL=data.soll[0];
-	TPZFMatrix &dsolL=data.dsoll[0];
+	TPZVec<REAL> &solL=dataleft.sol[0];
+	TPZFMatrix &dsolL=dataleft.dsol[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolL);

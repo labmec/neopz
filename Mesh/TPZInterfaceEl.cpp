@@ -289,18 +289,23 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 	}
 #endif
 	
-	TPZMaterialData data;
+    // data holds geometric data for integrating over the interface element
+    // datal holds the approximation space data of the left element
+    // datar holds the approximation space data of the right element
+	TPZMaterialData data,datal,datar;
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
-	this->InitMaterialData(data,left,right);
+    this->InitMaterialData(data);
+	this->InitMaterialData(datal,left);
+    this->InitMaterialData(datar, right);
 	this->InitializeElementMatrix(ef);
 	
 	//LOOKING FOR MAX INTERPOLATION ORDER
-	data.leftp = left->MaxOrder();
-	data.rightp = right->MaxOrder();
+	datal.p = left->MaxOrder();
+	datar.p = right->MaxOrder();
 	//Max interpolation order
-	const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
+	const int p = (datal.p > datar.p) ? datal.p : datar.p;
 	
 	TPZGeoEl *ref = Reference();
     int intorder = mat->IntegrationRuleOrder(p);
@@ -339,11 +344,13 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 		
-		left->ComputeShape(LeftIntPoint, data.x, data.leftjac, data.axesleft, data.leftdetjac, data.leftjacinv, data.phil, data.dphixl);
-		right->ComputeShape(RightIntPoint, data.x, data.rightjac, data.axesright, data.rightdetjac, data.rightjacinv, data.phir, data.dphixr);
+		left->ComputeShape(LeftIntPoint, data.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
+		right->ComputeShape(RightIntPoint, data.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
 		
-		this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
-		mat->ContributeInterface(data, weight, ef.fMat);
+		this->ComputeRequiredData(datal, left, LeftIntPoint);
+		this->ComputeRequiredData(datar, right, RightIntPoint);
+        this->ComputeRequiredData(data);
+		mat->ContributeInterface(data, datal, datar, weight, ef.fMat);
 		
 	}//loop over integration points
 	
@@ -1094,9 +1101,11 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
+    TPZMaterialData data;
 	
-	left->InitMaterialData(dataleft);
-	right->InitMaterialData(dataright);
+	InitMaterialData(dataleft,left);
+	InitMaterialData(dataright,right);
+    InitMaterialData(data);
 	
 	dataleft.fNeedsNormal=true;
 	
@@ -1170,14 +1179,15 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int p = (leftmaxp > rightmaxp) ? leftmaxp : rightmaxp;
 	
 	TPZGeoEl *ref = Reference();
-	TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p+1) );
-	if(mat->HasForcingFunction()){
+	TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p) );
+/*	if(mat->HasForcingFunction()){
 		TPZManVector<int,10> order(3);
 		intrule->GetOrder(order);
 		int maxorder = intrule->GetMaxOrder();
 		order.Fill(maxorder);
 		intrule->SetOrder(order);
 	}
+ */
 	const int npoints = intrule->NPoints();
 	
 	
@@ -1193,10 +1203,10 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	for(int ip = 0; ip < npoints; ip++){
 		
 		intrule->Point(ip,intpoint,weight);
-		ref->Jacobian( intpoint, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv);
-		weight *= fabs(dataleft.detjac);
+		ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+		weight *= fabs(data.detjac);
 		
-		this->Normal(dataright.axes,dataright.normal);
+//		this->Normal(data.axes,data.normal);
 		
 		TransfLeft.Apply( intpoint, LeftIntPoint );
 		TransfRight.Apply( intpoint, RightIntPoint );
@@ -1206,12 +1216,14 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 		
-		this->ComputeRequiredData(dataleft, left, right, intpoint, LeftIntPoint, RightIntPoint);
+		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
+		this->ComputeRequiredData(dataright, right, RightIntPoint);
+		this->ComputeRequiredData(data);
 		
 		left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
 		right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
 		
-		mat->ContributeInterface(dataright,dataleft, weight, ek.fMat, ef.fMat);
+		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		
 	}//loop over integration points
 	
@@ -1252,7 +1264,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 		return;
 	}
 	
-	TPZMaterialData data;
+	TPZMaterialData datal, datar, data;
 	const int nstatel = this->LeftElement()->Material()->NStateVariables();
 	const int nstater = this->RightElement()->Material()->NStateVariables();
 	const int njump = (nstatel > nstater) ? nstatel : nstater;
@@ -1285,23 +1297,23 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 		//method NeighbourSolution will compute the transformation in this->MapQsi every time it is called
 		//(which means for all integration point). Instead of calling NeighbourSolution the whole method
 		//may be written here but keeping the transformation computed at first integration point (as done in CalcStiff).
-		this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
-		this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
+		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
+		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
 		
 		if (LeftElement()->NConnects() == 0){
-			data.soll.Resize(0);
-			data.dsoll.Resize(0);
+			datal.sol.Resize(0);
+			datal.dsol.Resize(0);
 		}
 		
 		if (RightElement()->NConnects() == 0){
-			data.solr.Resize(0);
-			data.dsolr.Resize(0);
+			datar.sol.Resize(0);
+			datar.dsol.Resize(0);
 		}
 		TPZManVector<TPZFemSol> localjump(numbersol);
         for (int is=0; is<numbersol; is++) {
             localjump[is].Resize(njump,0.);
         }
-		mat->InterfaceJump(data.x, data.soll, data.solr, localjump);
+		mat->InterfaceJump(data.x, datal.sol, datar.sol, localjump);
 		
         for (int is=0; is<numbersol; is++) {
             if(opt == 0){
@@ -1356,10 +1368,14 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		return;
 	}
 	
-	TPZMaterialData data;
+	TPZMaterialData data, datal, datar;
 	data.SetAllRequirements(true);
-	this->InitMaterialData(data,left,right);
-	
+	datal.SetAllRequirements(true);
+	datar.SetAllRequirements(true);
+	this->InitMaterialData(datal,left);
+	this->InitMaterialData(datar,right);
+	this->InitMaterialData(data);
+    
 	//   data.fPrimalExactSol = fp;
 	//   data.fDualExactSol = fd;
 	
@@ -1369,10 +1385,10 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 	const int dimr = right->Dimension();
 	
 	//LOOKING FOR MAX INTERPOLATION ORDER
-	data.leftp = left->MaxOrder();
-	data.rightp = right->MaxOrder();
+	datal.p = left->MaxOrder();
+	datar.p = right->MaxOrder();
 	//Max interpolation order
-	const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
+	const int p = (datal.p > datar.p) ? datal.p : datar.p;
 	
 	TPZGeoEl *ref = Reference();
     int intorder = mat->IntegrationRuleOrder(p);
@@ -1410,12 +1426,14 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 		
-		left->ComputeShape(LeftIntPoint, data.x, data.leftjac, data.axesleft, data.leftdetjac, data.leftjacinv, data.phil, data.dphixl);
-		right->ComputeShape(RightIntPoint, data.x, data.rightjac, data.axesright, data.rightdetjac, data.rightjacinv, data.phir, data.dphixr);
+		left->ComputeShape(LeftIntPoint, datal.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
+		right->ComputeShape(RightIntPoint, datar.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
 		
-		this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
+		this->ComputeRequiredData(datal, left, LeftIntPoint);
+		this->ComputeRequiredData(datar, right, RightIntPoint);
+		this->ComputeRequiredData(data);
 		
-		mat->ContributeInterfaceErrors(data, weight,errorL,errorR,errorid);
+		mat->ContributeInterfaceErrors(data, datal, datar, weight,errorL,errorR,errorid);
 		
 	}//loop over integration points
 	
@@ -1452,18 +1470,21 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		DebugStop();
 		return;
 	}
+    TPZDiscontinuousGalerkin *discgal = dynamic_cast<TPZDiscontinuousGalerkin *>(material.operator->());
 	
 	//local variables
 	REAL weight;
-	TPZMaterialData data;
-	this->InitMaterialData(data,left,right);
+	TPZMaterialData data, datal, datar;
+	this->InitMaterialData(datal,left);
+	this->InitMaterialData(datar,right);
+	this->InitMaterialData(data);
 	TPZGeoEl *ref = Reference();
-	data.leftp = left->MaxOrder();
-	data.rightp = right->MaxOrder();
+	datal.p = left->MaxOrder();
+	datar.p = right->MaxOrder();
 	TPZManVector<REAL, 3> intpoint(dim,0.);
 	const int varsize = material->NSolutionVariables(variable);
 	//Max interpolation order
-	const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
+	const int p = (datal.p > datar.p) ? datal.p : datar.p;
 	
 	//Integration rule
     int intorder = material->IntegrationRuleOrder(p);
@@ -1487,10 +1508,10 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		this->Normal(data.axes,data.normal);
-		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		this->NeighbourSolution(this->LeftElementSide(), intpoint, data.soll, data.dsoll, data.axesleft);
-		this->NeighbourSolution(this->RightElementSide(), intpoint, data.solr, data.dsolr, data.axesright);
-		material->Solution(data, variable, locval);
+//		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
+		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
+		discgal->Solution(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++){
 			value[iv] += locval[iv]*weight;
 		}//for iv
@@ -1576,7 +1597,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 	this->NeighbourSolution(this->fRightElSide, qsi, rightsol, drightsol, rightaxes);
 }//method
 
-void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left, TPZInterpolationSpace *right){
+void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
 	TPZMaterial *matorig = Material().operator->();
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(matorig);
 	if (!mat){
@@ -1584,68 +1605,61 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 		DebugStop();
 	}
 	mat->FillDataRequirementsInterface(data);
-	int nshapel = left->NShapeF();
-	int nshaper = right->NShapeF();
-	const int nstatel = left->Material()->NStateVariables();
-	const int nstater = right->Material()->NStateVariables();
-	const int dim = this->Dimension();
-	const int diml = left->Dimension();
-	const int dimr = right->Dimension();
-	data.phil.Redim(nshapel,1);
-	data.dphixl.Redim(diml,nshapel);
-	data.phir.Redim(nshaper,1);
-	data.dphixr.Redim(dimr,nshaper);
+	int nshape = elem->NShapeF();
+	const int nstate = elem->Material()->NStateVariables();
+	const int dim = elem->Dimension();
+	data.phi.Redim(nshape,1);
+	data.dphix.Redim(dim,nshape);
 	data.axes.Redim(dim,3);
-	data.axesleft.Redim(diml,3);
-	data.axesright.Redim(dimr,3);
 	data.jacobian.Redim(dim,dim);
-	data.leftjac.Redim(diml,diml);
-	data.rightjac.Redim(dimr,dimr);
 	data.jacinv.Redim(dim,dim);
-	data.leftjacinv.Redim(diml,diml);
-	data.rightjacinv.Redim(dimr,dimr);
     int numbersol = Mesh()->Solution().Cols();
-    data.soll.resize(numbersol);
-    data.solr.resize(numbersol);
-    data.dsoll.resize(numbersol);
-    data.dsolr.resize(numbersol);
-	data.x.Resize(3);
+    data.sol.resize(numbersol);
+    data.dsol.resize(numbersol);
 	if (data.fNeedsNeighborSol){
         for (int is=0; is<numbersol; is++) {
-            data.soll[is].Resize(nstatel);
-            data.solr[is].Resize(nstater);
-            data.dsoll[is].Redim(diml,nstatel);
-            data.dsolr[is].Redim(dimr,nstater);
+            data.sol[is].Resize(nstate);
+            data.dsol[is].Redim(dim,nstate);
         }
 	}
 	
 	//this values needs to be computed only once
 	if(data.fNeedsNeighborCenter){
 		TPZManVector<REAL,3> qsi(3);
-		data.XLeftElCenter.Resize(3);
-		data.XRightElCenter.Resize(3);
-		TPZGeoEl * gel = this->LeftElement()->Reference();
+		data.XCenter.Resize(3);
+		TPZGeoEl * gel = elem->Reference();
 		gel->CenterPoint(gel->NSides()-1,qsi);
-		gel->X(qsi,data.XLeftElCenter);
-		gel = this->RightElement()->Reference();
-		gel->CenterPoint(gel->NSides()-1,qsi);
-		gel->X(qsi,data.XRightElCenter);
+		gel->X(qsi,data.XCenter);
 	}
 	
-	data.normal = this->fCenterNormal;
 }//void
 
+
+void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data){
+//	TPZMaterial *matorig = Material().operator->();
+    const int dim = this->Dimension();
+    data.axes.Redim(dim,3);
+    data.jacobian.Redim(dim,dim);
+	data.jacinv.Redim(dim,dim);
+	data.x.Resize(3);
+	data.normal = this->fCenterNormal;
+}
+
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
-                                              TPZInterpolationSpace *left, TPZInterpolationSpace *right,
-                                              TPZVec<REAL> &qsi,
-                                              TPZVec<REAL> &LeftIntPoint, TPZVec<REAL> &RightIntPoint){
+                                              TPZInterpolationSpace *elem,
+                                              TPZVec<REAL> &IntPoint){
 	if (data.fNeedsNeighborSol){
-		left->ComputeSolution(  LeftIntPoint, data.phil, data.dphixl, data.axesleft, data.soll, data.dsoll );
-		right->ComputeSolution( RightIntPoint,data.phir, data.dphixr, data.axesright, data.solr, data.dsolr );
+		elem->ComputeSolution(  IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
 	}
-	
+
+}
+void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
+{
+
 	if (data.fNeedsSol){
-		this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+        // the interface elements have no approximation space!!
+        DebugStop();
+		//this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);//chamando acima porque senao nao chega
 		//a TPZReferredCompEl<TPZInterfaceElement>
 	}
@@ -1655,7 +1669,10 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
 		REAL faceSize;
 		if (dim == 0){//it means I am a point
 			//2*(a+b)/2
-			faceSize = left->InnerRadius() + right->InnerRadius();
+            // the formulation cannot depend on the face size in this case
+            DebugStop();
+            faceSize = 1.;
+//			faceSize = left->InnerRadius() + right->InnerRadius();
 		}
 		else{
 			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio

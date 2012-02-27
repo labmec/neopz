@@ -123,7 +123,7 @@ void TPZBndCond::Read(TPZStream &buf, void *context)
 	}
 }
 
-void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data,
+void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 										   REAL weight,
 										   TPZVec<REAL> &nkL,
 										   TPZVec<REAL> &nkR,
@@ -134,12 +134,13 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data,
 	
     this->UpdataBCValues( data );
 	
-	if(data.soll.NElements() < data.solr.NElements()){
-		data.InvertLeftRightData();
-		mat->ContributeInterfaceBCErrors(data,weight,nkR,*this, errorid);
+	if(dataleft.sol.NElements() < dataright.sol.NElements()){
+//		data.InvertLeftRightData();
+        for(int i=0; i<3; i++) data.normal[i] *= -1.;
+		mat->ContributeInterfaceBCErrors(data,dataright,weight,nkR,*this, errorid);
 	}
 	else {
-		mat->ContributeInterfaceBCErrors(data,weight,nkL,*this, errorid);
+		mat->ContributeInterfaceBCErrors(data,dataleft,weight,nkL,*this, errorid);
 	}
 	
 }
@@ -242,35 +243,44 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef
 	DebugStop();//nothing to be done here
 }
 
-void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
 	if(!mat) DebugStop();// return;
 	this->UpdataBCValues(data);
 	
-	if(data.phil.Rows() == 0){//it meanst right data has been filled
+	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
-		data.InvertLeftRightData();
+        // shouldn't we invert the normal vector?
+        for (int i=0; i<3; i++) data.normal[i] *= -1.;
+        mat->ContributeBCInterface(data,dataright,weight,ek,ef,*this);
 	}
-	mat->ContributeBCInterface(data,weight,ek,ef,*this);
+    else
+    {
+        mat->ContributeBCInterface(data,dataleft,weight,ek,ef,*this);
+    }
 }//void
 
-void TPZBndCond::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
 	if(!mat) DebugStop();//return;
 	this->UpdataBCValues(data);
 	
-	if(data.phil.Rows() == 0){//it meanst right data has been filled
+	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
-		data.InvertLeftRightData();
-	}
-	mat->ContributeBCInterface(data,weight,ef,*this);
+        for(int i=0; i<3; i++) data.normal[i] *= -1.;
+        mat->ContributeBCInterface(data,dataright,weight,ef,*this);
+//		data.InvertLeftRightData();
+	} else
+    {
+        mat->ContributeBCInterface(data,dataleft,weight,ef,*this);        
+    }
 }
 
-void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 
-void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 

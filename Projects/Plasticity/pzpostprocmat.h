@@ -128,7 +128,8 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
        * @param ek [out] is the stiffness matrix
        * @param ef [out] is the load vector
        */
-      virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+      virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                       REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 
       /**
        * It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -138,7 +139,8 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
        * @param ef [out] is the load vector
        * @param bc [in] is the boundary condition object
        */
-      virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+      virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
+                                         REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 
 	
       /**

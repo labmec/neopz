@@ -834,13 +834,14 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 //   return true;
 // }
 
-void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
+void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
+                                          REAL weight,
                                           TPZFMatrix &ek,TPZFMatrix &ef){
 	
-	TPZFMatrix &dphiLdAxes = data.dphixl;
-	TPZFMatrix &dphiRdAxes = data.dphixr;
-	TPZFMatrix &phiL = data.phil;
-	TPZFMatrix &phiR = data.phir;
+	TPZFMatrix &dphiLdAxes = dataleft.dphix;
+	TPZFMatrix &dphiRdAxes = dataright.dphix;
+	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	
 	
@@ -853,11 +854,11 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 	// }
 	
 	TPZFNMatrix<660> dphiL, dphiR;
-	TPZAxesTools::Axes2XYZ(dphiLdAxes, dphiL, data.axesleft);
-	TPZAxesTools::Axes2XYZ(dphiRdAxes, dphiR, data.axesright);
+	TPZAxesTools::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+	TPZAxesTools::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
-	int &LeftPOrder=data.leftp;
-	int &RightPOrder=data.rightp;
+	int &LeftPOrder=dataleft.p;
+	int &RightPOrder=dataright.p;
 	
 	REAL &faceSize=data.HSize;
 	
@@ -1083,14 +1084,14 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data,REAL weight,
 }
 
 /** Termos de penalidade. */
-void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, REAL weight,
+void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
+                                            REAL weight,
                                             TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &phiL = data.phil;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	int POrder= data.leftp;
-	if (data.rightp > data.leftp) POrder = data.rightp;
+	int POrder= dataleft.p;
 	REAL faceSize=data.HSize;
 	
 	//  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";

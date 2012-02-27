@@ -24,6 +24,7 @@
  */
 class TPZCoupledTransportDarcyBC : public TPZBndCond{
 	
+#warning THIS CLASS IS NOT THREADSAFE!!!
 protected:
 	
 	TPZBndCond * fMaterials[2];
@@ -124,17 +125,17 @@ protected:
 		val.Fill(0.);
 	}
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix &ef);
 	
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ek,
 									   TPZFMatrix &ef,
@@ -142,12 +143,12 @@ protected:
 		//NOTHING TO BE DONE HERE
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc)
 	{
-		TPZBndCond::ContributeBCInterface(data,weight,ef,bc);
+		TPZBndCond::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 };

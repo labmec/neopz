@@ -121,7 +121,8 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                     REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
     
     /**
      * It computes a contribution to residual vector at one integration point
@@ -130,7 +131,8 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+    virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                     REAL weight, TPZFMatrix &ef);
     
     /**
      * It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -141,7 +143,8 @@ public:
      * @param bc [in] is the boundary condition object
      * @since April 16, 2007
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
+                                       REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
     
     /**
      * It computes a contribution to residual vector at one BC integration point
@@ -151,7 +154,7 @@ public:
      * @param bc [in] is the boundary condition object
      * @since April 16, 2007
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
     
     /**
      * Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.
@@ -176,7 +179,7 @@ public:
     
     /**returns the solution associated with the var index based on
      * the finite element approximation*/
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+    virtual void Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout);
 
     /**
      * Unique identifier for serialization purposes

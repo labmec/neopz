@@ -121,18 +121,18 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &e
  * @param ef [out] is the load vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
-    int nleft = data.phil.Rows();
-    int nright = data.phir.Rows();
+    int nleft = dataleft.phi.Rows();
+    int nright = dataright.phi.Rows();
     if (nleft != 1 || nright != 1) {
         std::cout << __PRETTY_FUNCTION__ << " works only for constant shape functions\n";
         DebugStop();
     }
     TPZManVector<REAL,3> delleft(3), delright(3);
     for (int i=0; i<3; i++) {
-        delleft[i] = data.x[i]-data.XLeftElCenter[i];
-        delright[i] = data.x[i] - data.XRightElCenter[i];
+        delleft[i] = data.x[i]-dataleft.XCenter[i];
+        delright[i] = data.x[i] - dataright.XCenter[i];
     }
     REAL distleft(0.),distright(0.);
     for (int i=0; i<3; i++) {
@@ -145,22 +145,22 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMa
     int il,jl,ir,jr;
     for (il=0; il<nleft; il++) {
         for (jl=0; jl<nleft; jl++) {
-            ek(il,jl) += weight*fConductivity*mult*data.phil(il,0)*data.phil(jl,0);
+            ek(il,jl) += weight*fConductivity*mult*dataleft.phi(il,0)*dataleft.phi(jl,0);
         }
     }
     for (il=0; il<nleft; il++) {
         for (jr=0; jr<nright; jr++) {
-            ek(il,nleft+jr) -= weight*fConductivity*mult*data.phil(il,0)*data.phir(jr,0);
+            ek(il,nleft+jr) -= weight*fConductivity*mult*dataleft.phi(il,0)*dataright.phi(jr,0);
         }
     }
     for (ir=0; ir<nright; ir++) {
         for (jl=0; jl<nleft; jl++) {
-            ek(ir+nleft,jl) -= weight*fConductivity*mult*data.phir(ir,0)*data.phil(jl,0);
+            ek(ir+nleft,jl) -= weight*fConductivity*mult*dataright.phi(ir,0)*dataleft.phi(jl,0);
         }
     }
     for (ir=0; ir<nright; ir++) {
         for (jr=0; jr<nright; jr++) {
-            ek(ir+nleft,jr+nleft) += weight*fConductivity*mult*data.phir(ir,0)*data.phir(jr,0);
+            ek(ir+nleft,jr+nleft) += weight*fConductivity*mult*dataright.phi(ir,0)*dataright.phi(jr,0);
         }
     }
 }
@@ -172,7 +172,7 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMa
  * @param ef [out] is the load vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();
@@ -187,15 +187,15 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMa
  * @param bc [in] is the boundary condition object
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
 {
-    int nleft = data.phil.Rows();
+    int nleft = dataleft.phi.Rows();
     if (nleft != 1) {
         DebugStop();
     }
     TPZManVector<REAL,3> delleft(3);
     for (int i=0; i<3; i++) {
-        delleft[i] = data.x[i]-data.XLeftElCenter[i];
+        delleft[i] = data.x[i]-dataleft.XCenter[i];
     }
     REAL distleft(0.);
     for (int i=0; i<3; i++) {
@@ -212,7 +212,7 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZF
             int il,jl;
             for (il=0; il<nleft; il++) {
                 for (jl=0; jl<nleft; jl++) {
-                    ek(il,jl) += weight*fConductivity*mult*data.phil(il,0)*data.phil(jl,0);
+                    ek(il,jl) += weight*fConductivity*mult*dataleft.phi(il,0)*dataleft.phi(jl,0);
                 }
                 ef(il,0) += weight*fConductivity*mult*bc.Val2()(0,0);
             }
@@ -240,7 +240,7 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZF
  * @param bc [in] is the boundary condition object
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();
@@ -283,9 +283,9 @@ int TPZVoidFlux::NSolutionVariables(int var)
 
 /**returns the solution associated with the var index based on
  * the finite element approximation*/
-void TPZVoidFlux::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPZVoidFlux::Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 {
-    return TPZDiscontinuousGalerkin::Solution(data, var , Solout);
+    return TPZDiscontinuousGalerkin::Solution(data, dataleft, dataright, var , Solout);
 }
 
 /**

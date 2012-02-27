@@ -392,23 +392,23 @@ void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 	cout << "Error: This method shoud not be called. " << __PRETTY_FUNCTION__ << "\n";
 }//method
 
-void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
 	if(gState == ELastState) return;
 	
 	//calculando distancia entre centro dos elementos
 	double dist = 0;
 	for(int i = 0; i < 3; i++){
-		double val = data.XRightElCenter[i] - data.XLeftElCenter[i];
+		double val = dataright.XCenter[i] - dataleft.XCenter[i];
 		dist += val*val;
 	}
 	dist = sqrt(dist);
 	
 	//pressao e saturacao
-	const BFadREAL poL(data.soll[0][0],0);
-	const BFadREAL SoL(data.soll[0][1],1);
-	const BFadREAL poR(data.solr[0][0],2);
-	const BFadREAL SoR(data.solr[0][1],3);
+	const BFadREAL poL(dataleft.sol[0][0],0);
+	const BFadREAL SoL(dataleft.sol[0][1],1);
+	const BFadREAL poR(dataright.sol[0][0],2);
+	const BFadREAL SoR(dataright.sol[0][1],3);
 	
 	BFadREAL pcL,pcR;
 	this->PressaoCapilar(SoL,pcL);
@@ -521,7 +521,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	
 }//method
 
-void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	
 	if(gState == ELastState) return;
 	
@@ -534,12 +534,13 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 	}//impondo vazao da injecao de agua
 	
 	if(bc.Type() == 2) return;//Parede ou simetria
+    TPZMaterialData dataright;
 	
 	if((bc.Type() == 0) || (bc.Type() == 1)){
 		
 		//pressao e saturacao
-		data.solr[0] = bc.Val2()(0,0);
-		data.solr[1] = bc.Val2()(1,0);
+		dataright.sol[0][0] = bc.Val2()(0,0);
+		dataright.sol[0][1] = bc.Val2()(1,0);
 		
 		//     if(bc.Type() == 1){//forcar outflow
 		//       if(data.soll[0] < data.solr[0]){
@@ -548,7 +549,7 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, REAL weight, 
 		//     }
 		
 		TPZFNMatrix<16> auxek(4,4,0.), auxef(4,1,0.);
-		this->ContributeInterface(data,weight,auxek,auxef);
+		this->ContributeInterface(data,dataleft,dataright,weight,auxek,auxef);
 		
 		for(int i = 0; i < 2; i++){
 			ef(i,0) += auxef(i,0);

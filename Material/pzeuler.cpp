@@ -198,13 +198,13 @@ void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
-void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-	this->ContributeInterface(data,weight,ef);
+void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	this->ContributeInterface(data,dataleft,dataright,weight,ef);
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 
-void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
 #ifdef LinearConvection
 	if(gType == EFlux){
 		fGradientFlux.ApplyLimiter(data);
@@ -212,10 +212,10 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
 		double dot = 0.;
 		for(int i = 0; i < 3; i++) dot += data.normal[i]*fCelerity[i];
 		if(dot > 0.){
-			Flux[0] = dot*data.soll[0];
+			Flux[0] = dot*dataleft.sol[0];
 		}
 		else{
-			Flux[0] = dot*data.solr[0];
+			Flux[0] = dot*dataright.sol[0];
 		}
 		
 		for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
@@ -223,31 +223,31 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, REAL weight, T
 	}
 	if(gType == EGradient){
 		TPZManVector<REAL,15> Flux(15);
-		fGradientFlux.ComputeFlux(data.soll,data.solr,data.normal,Flux);
+		fGradientFlux.ComputeFlux(dataleft.sol,dataright.sol,data.normal,Flux);
 		
 		for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		for(int i = 0; i < 15; i++) ef(i+20+5,0) += -1. * weight*Flux[i];
 	}
 	return;
 #endif
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	
 	if(gType == EFlux){
-		fGradientFlux.ApplyLimiter(data);
-		TPZEulerEquation::FromPrimitiveToConservative(data.soll[0],gGamma);
-		TPZEulerEquation::FromPrimitiveToConservative(data.solr[0],gGamma);
+		fGradientFlux.ApplyLimiter(data,dataleft,dataright);
+		TPZEulerEquation::FromPrimitiveToConservative(dataleft.sol[0],gGamma);
+		TPZEulerEquation::FromPrimitiveToConservative(dataright.sol[0],gGamma);
 		TPZManVector<REAL,15> Flux(5);
-		fAUSMFlux.ComputeFlux(data.soll[0],data.solr[0],data.normal,Flux);
+		fAUSMFlux.ComputeFlux(dataleft.sol[0],dataright.sol[0],data.normal,Flux);
 		
 		for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		for(int i = 0; i < 5; i++) ef(i+20,0) += -1. * weight*Flux[i];
 	}
 	if(gType == EGradient){
 		TPZManVector<REAL,15> Flux(15);
-		fGradientFlux.ComputeFlux(data.soll[0],data.solr[0],data.normal,Flux);
+		fGradientFlux.ComputeFlux(dataleft.sol[0],dataright.sol[0],data.normal,Flux);
 		
 		for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		for(int i = 0; i < 15; i++) ef(i+20+5,0) += -1. * weight*Flux[i];
@@ -263,20 +263,20 @@ void TPZEulerEquation::ContributeBC(TPZMaterialData &data,
 	DebugStop();
 }
 
-void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZFMatrix &ek,TPZFMatrix &ef,
 											 TPZBndCond &bc){
-	this->ContributeBCInterface(data,weight,ef,bc);
+	this->ContributeBCInterface(data,dataleft,weight,ef,bc);
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }//void
 
-void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZFMatrix &ef,
 											 TPZBndCond &bc){
     
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -285,7 +285,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 	if(gType == EFlux){
 		if (bc.Type() == EFreeSlip){
 			TPZFNMatrix<100> fakeef(2*ef.Rows(),ef.Cols(),0);
-			data.solr = data.soll;
+			dataright.sol = dataleft.sol;
 			this->ContributeInterface(data,weight,fakeef);
 			for(int i = 0; i < ef.Rows(); i++) ef(i,0) += fakeef(i,0);
 		}//if FreeSlip
@@ -293,25 +293,25 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data,
 	if(gType == EGradient){
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
-			fGradientFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
+			fGradientFlux.ComputeFlux(dataleft.sol[0],dataleft.sol[0],data.normal,Flux);
 			for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}
 	return;
 #endif
 	if(gType == EFlux){
-		TPZEulerEquation::FromPrimitiveToConservative(data.soll[0],gGamma);
+		TPZEulerEquation::FromPrimitiveToConservative(dataleft.sol[0],gGamma);
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
 // #warning One needs to invert the velocity component
-			fAUSMFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
+			fAUSMFlux.ComputeFlux(dataleft.sol[0],dataleft.sol[0],data.normal,Flux);
 			for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}
 	if(gType == EGradient){
 		if (bc.Type() == EFreeSlip){
 			TPZManVector<REAL,15> Flux(5);
-			fGradientFlux.ComputeFlux(data.soll[0],data.soll[0],data.normal,Flux);
+			fGradientFlux.ComputeFlux(dataleft.sol[0],dataleft.sol[0],data.normal,Flux);
 			for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		}//if FreeSlip
 	}

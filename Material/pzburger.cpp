@@ -292,29 +292,29 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-void TPZBurger::ContributeInterface(TPZMaterialData &data,
+void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                     REAL weight,
                                     TPZFMatrix &ek,
                                     TPZFMatrix &ef){
 	// TPZFMatrix &dphi = data.dphix;
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &dphiR = data.dphixr;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &dphiR = dataright.dphix;
 	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = data.phil;
-	TPZFMatrix &phiR = data.phir;
+	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll[0];
-	TPZVec<REAL> &solR=data.solr[0];
+	TPZVec<REAL> &solL=dataleft.sol[0];
+	TPZVec<REAL> &solR=dataright.sol[0];
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll[0];
-	TPZFMatrix &dsolR=data.dsolr[0];
+	TPZFMatrix &dsolL=dataleft.dsol[0];
+	TPZFMatrix &dsolR=dataright.dsol[0];
 	// REAL &faceSize=data.HSize;
 	// TPZFMatrix &axes=data.axes;
 	
@@ -460,29 +460,29 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data,
 	}
 }
 
-void TPZBurger::ContributeBCInterface(TPZMaterialData &data,
+void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                       REAL weight,
                                       TPZFMatrix &ek,
                                       TPZFMatrix &ef,
                                       TPZBndCond &bc) {
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = data.dphixl;
+	TPZFMatrix &dphiL = dataleft.dphix;
 	// TPZFMatrix &dphiR = data.dphixr;
 	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = data.phil;
+	TPZFMatrix &phiL = dataleft.phi;
 	// TPZFMatrix &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
-	TPZVec<REAL> &solL=data.soll[0];
+	TPZVec<REAL> &solL=dataleft.sol[0];
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=data.dsoll[0];
+	TPZFMatrix &dsolL=dataleft.dsol[0];
 	// TPZFMatrix &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
 	// TPZFMatrix &axes=data.axes;

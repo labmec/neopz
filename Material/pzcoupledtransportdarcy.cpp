@@ -50,29 +50,29 @@ void TPZCoupledTransportDarcy::Print(std::ostream &out) {
 	TPZMaterial::Print(out);
 }
 
-void TPZCoupledTransportDarcy::ContributeInterface(TPZMaterialData &data,
+void TPZCoupledTransportDarcy::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 												   REAL weight,
 												   TPZFMatrix &ek,
 												   TPZFMatrix &ef){
-    int numbersol = data.dsoll.size();
+    int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	this->UpdateConvectionDirInterface(data.dsoll[0], data.dsolr[0]);
-	this->GetCurrentMaterial()->ContributeInterface(data, weight, ek, ef);
+	this->UpdateConvectionDirInterface(dataleft.dsol[0], dataright.dsol[0]);
+	this->GetCurrentMaterial()->ContributeInterface(data, dataleft, dataright, weight, ek, ef);
 }
 
-void TPZCoupledTransportDarcy::ContributeBCInterface(TPZMaterialData &data,
+void TPZCoupledTransportDarcy::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 													 REAL weight, 
 													 TPZFMatrix &ek,
 													 TPZFMatrix &ef,
 													 TPZBndCond &bc){
-    int numbersol = data.dsoll.size();
+    int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	this->UpdateConvectionDir(data.dsoll[0]); 
-	this->GetCurrentMaterial()->ContributeBCInterface( data, weight, ek, ef, bc );
+	this->UpdateConvectionDir(dataleft.dsol[0]); 
+	this->GetCurrentMaterial()->ContributeBCInterface( data, dataleft, weight, ek, ef, bc );
 }
 
 void TPZCoupledTransportDarcy::Contribute(TPZMaterialData &data,

@@ -184,7 +184,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
@@ -193,7 +193,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -204,7 +204,7 @@ protected:
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point
@@ -214,7 +214,7 @@ protected:
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
 	
 	//#ifdef _AUTODIFF
 	
@@ -253,7 +253,7 @@ protected:
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
-	void ContributeInterfaceErrors(TPZMaterialData &data,
+	void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 								   REAL weight,
 								   TPZVec<REAL> &nkL,
 								   TPZVec<REAL> &nkR,
@@ -267,7 +267,7 @@ protected:
 	};
 	
 	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data,
+	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZVec<REAL> &nk,
 											 TPZBndCond &bc,

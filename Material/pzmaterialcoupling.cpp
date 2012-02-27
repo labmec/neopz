@@ -29,7 +29,7 @@ TPZMaterialCoupling::TPZMaterialCoupling() {
 TPZMaterialCoupling::~TPZMaterialCoupling() {
 }
 
-void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &dataright,TPZMaterialData &dataleft, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
 				
 		TPZFMatrix  &phiH1 = dataright.phi;
 		TPZFMatrix  &phiHdiv = dataleft.phi;		
@@ -41,9 +41,9 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &dataright,TPZMate
 		TPZFMatrix ekCouple(numvec+numdual,nrowH1,0.);
 		//vou precisar da  orientacao das normais na interface
 		
-		REAL leftX0=dataright.normal[0];
-		REAL leftX1=dataright.normal[1];
-		REAL leftX2=dataright.normal[2];
+		REAL leftX0=data.normal[0];
+		REAL leftX1=data.normal[1];
+		REAL leftX2=data.normal[2];
 		
 				
 		for(int ilinha=0; ilinha<numvec; ilinha++) {
@@ -95,32 +95,33 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &dataright,TPZMate
 		
 }
 
-void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                              REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
 		
 		
 		
 		
-    TPZFMatrix  &dphixL = data.dphixl;
-		TPZFMatrix  &phixL = data.phil;
+    TPZFMatrix  &dphixL = dataleft.dphix;
+		TPZFMatrix  &phixL = dataleft.phi;
 		
-		TPZFMatrix  &phixR = data.phir;
+		TPZFMatrix  &phixR = dataright.phi;
 		
 		
 		
-		int numvec=data.fVecShapeIndex.NElements();
-		int nrowR=phixR.Rows();//funcao a esquerda Hdiv
-		int nrowL=phixL.Rows();//Funcao a direita H1
-		int numdual = data.numberdualfunctions;
+		int numvec=dataright.fVecShapeIndex.NElements();
+		int nrowR=phixR.Rows();//funcao a direita Hdiv
+		int nrowL=phixL.Rows();//Funcao a esquerda H1
+		int numdual = dataright.numberdualfunctions;
 
-		std::cout << "numero de funcoes de Hdiv( esquerda ) " << nrowR<<std::endl;
-		std::cout << "numero de funcoes de de pressao(esquerda) " << numdual<<std::endl;
-		std::cout << "numero de funcoes de H1 (direita ) " << nrowL<<std::endl;
+		std::cout << "numero de funcoes de Hdiv( direita ) " << nrowR<<std::endl;
+		std::cout << "numero de funcoes de de pressao(direita) " << numdual<<std::endl;
+		std::cout << "numero de funcoes de H1 (esquerda ) " << nrowL<<std::endl;
 #ifdef LOG4CXX
 		{
 				std::stringstream sout;
-				sout << "numero de funcoes de Hdiv( esquerda ) " << nrowR<<std::endl;
-				sout << "numero de funcoes de de pressao(esquerda) " << numdual<<std::endl;
-				sout << "numero de funcoes de H1 (direita ) " << nrowL<<std::endl;
+				sout << "numero de funcoes de Hdiv( direita ) " << nrowR<<std::endl;
+				sout << "numero de funcoes de de pressao(direita) " << numdual<<std::endl;
+				sout << "numero de funcoes de H1 (esquerda ) " << nrowL<<std::endl;
 				LOGPZ_DEBUG(logger, sout.str().c_str());
 		}
 #endif
@@ -137,8 +138,8 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data,REAL weight,
 		
 		
 		for(int ir=0; ir<nrowR-1; ir++) {
-				int ivecind = data.fVecShapeIndex[ir].first;
-				int ishapeind = data.fVecShapeIndex[ir].second;
+				int ivecind = dataright.fVecShapeIndex[ir].first;
+				int ishapeind = dataright.fVecShapeIndex[ir].second;
 				for(int jl=0; jl<nrowL; jl++) {
 						REAL prod1 =	phixR(ishapeind,0)* phixL(jl);
 #ifdef LOG4CXX

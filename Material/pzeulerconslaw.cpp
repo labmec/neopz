@@ -586,12 +586,12 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 //       // then the FAD classes must be initialized
 //       #ifdef _AUTODIFF
 //          #ifdef FASTEST_IMPLICIT
-//             ContributeFastestImplConvFace(fDim, data.x, data.soll, data.solr,
-//                          weight, data.normal, data.phil, data.phir, ek, ef);
+//             ContributeFastestImplConvFace(fDim, data.x, dataleft.sol, dataright.sol,
+//                          weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 // 	 #else
 //          TPZVec<FADREAL> FADsolL, FADsolR;
-//          PrepareInterfaceFAD(data.soll, data.solr, data.phil, data.phir, FADsolL, FADsolR);
-//          ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, data.phil, data.phir, ek, ef);
+//          PrepareInterfaceFAD(dataleft.sol, dataright.sol, dataleft.phi, dataright.phi, FADsolL, FADsolR);
+//          ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 // #ifdef LOG4CXX
 //           if(fluxroe->isDebugEnabled()) {
 //             std::stringstream sout;
@@ -604,7 +604,7 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 //       #else
 //       // forcing explicit contribution and issueing an warning
 //          cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-//          ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
+//          ContributeExplConvFace(data.x,dataleft.sol,dataright.sol,weight,data.normal,dataleft.phi,dataright.phi,ef);
 //       #endif
 //       }
 //       else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
@@ -612,8 +612,8 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 // #ifdef _AUTODIFF
 //         REAL facesize = 0.;
 //         TPZVec<FADREAL> FADsolL, FADsolR;
-//         PrepareInterfaceFAD(data.soll, data.solr, data.phil, data.phir, FADsolL, FADsolR);
-//         ContributeApproxImplConvFace(data.x,facesize,FADsolL,FADsolR, weight, data.normal, data.phil, data.phir, ek, ef);
+//         PrepareInterfaceFAD(dataleft.sol, dataright.sol, dataleft.phi, dataright.phi, FADsolL, FADsolR);
+//         ContributeApproxImplConvFace(data.x,facesize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 // #endif
 // #ifdef LOG4CXX
 //         if(fluxroe->isDebugEnabled()){
@@ -628,21 +628,22 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
 //
 //    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 //    {
-//       ContributeExplConvFace(data.x,data.soll,data.solr,weight,data.normal,data.phil,data.phir,ef);
+//       ContributeExplConvFace(data.x,dataleft.sol,dataright.sol,weight,data.normal,dataleft.phi,dataright.phi,ef);
 //    }
 // }
 
-void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                          REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
 {
 #ifdef LOG4CXX
     if(fluxroe->isDebugEnabled()){
 		std::stringstream sout;
-		sout << "solL " << data.soll << std::endl << "solR " << data.solr << std::endl;
+		sout << "solL " << dataleft.sol << std::endl << "solR " << dataright.sol << std::endl;
 		LOGPZ_DEBUG(fluxroe,sout.str().c_str());
 		LOGPZ_DEBUG(fluxappr,sout.str().c_str());
     }
 #endif
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -654,12 +655,12 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		// then the FAD classes must be initialized
 #ifdef _AUTODIFF
 #ifdef FASTEST_IMPLICIT
-		ContributeFastestImplConvFace(fDim, data.x, data.soll, data.solr,
-									  weight, data.normal, data.phil, data.phir, ek, ef);
+		ContributeFastestImplConvFace(fDim, data.x, dataleft.sol[0], dataright.sol[0],
+									  weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 #else
 		TPZVec<FADREAL> FADsolL, FADsolR;
-		PrepareInterfaceFAD(data.soll[0], data.solr[0], data.phil, data.phir, FADsolL, FADsolR);
-		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, data.phil, data.phir, ek, ef);
+		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
+		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 #ifdef LOG4CXX
         if(fluxroe->isDebugEnabled()){
 			std::stringstream sout;
@@ -673,15 +674,15 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		// forcing explicit contribution and issueing an warning
 		std::cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
 		//         ContributeApproxImplConvFace(x,data.HSize,FADsolL,FADsolR, weight, normal, phiL, phiR, ek, ef);
-		ContributeExplConvFace(data.x,data.soll[0],data.solr[0],weight,data.normal,data.phil,data.phir,ef);
+		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
 #endif
 	}
 	else if(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	{
 #ifdef _AUTODIFF
 		TPZVec<FADREAL> FADsolL, FADsolR;
-		PrepareInterfaceFAD(data.soll[0], data.solr[0], data.phil, data.phir, FADsolL, FADsolR);
-		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, data.phil, data.phir, ek, ef);
+		PrepareInterfaceFAD(dataleft.sol[0], dataright.sol[0], dataleft.phi, dataright.phi, FADsolL, FADsolR);
+		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, dataright.phi, ek, ef);
 #endif
 #ifdef LOG4CXX
 		if(fluxappr->isDebugEnabled()){
@@ -695,12 +696,13 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 	
 	if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 	{
-		ContributeExplConvFace(data.x,data.soll[0],data.solr[0],weight,data.normal,data.phil,data.phir,ef);
+		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
 	}
 }
 
 
-void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                          REAL weight, TPZFMatrix &ef)
 {
 	
 	// contributing face-based quantities
@@ -710,7 +712,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, REAL weight, TP
 		||
 		fConvFace == Explicit_TD && fContributionTime == Last_CT)
 	{
-		ContributeExplConvFace(data.x,data.soll[0],data.solr[0],weight,data.normal,data.phil,data.phir,ef);
+		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
 	}
 	
 }
@@ -755,19 +757,19 @@ void TPZEulerConsLaw::ContributeBC(TPZMaterialData &data,
 	}
 }
 
-void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZFMatrix &ek,TPZFMatrix &ef,
 											 TPZBndCond &bc)
 {
 	int nstate = NStateVariables();
 	TPZVec<REAL> solR(nstate,0.);
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	TPZFMatrix dsolR(data.dsoll[0].Rows(), data.dsoll[0].Cols(),0.);
+	TPZFMatrix dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
 	TPZFMatrix phiR(0,0), dphiR(0,0);
 	int entropyFix;
 	
@@ -793,13 +795,13 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 		//           }
 		
 #ifdef FASTEST_IMPLICIT
-		ContributeFastestBCInterface(fDim, data.x, data.soll[0], data.dsoll[0],
-									 weight, data.normal, data.phil, data.dphixl, data.axesleft, ek, ef, bc);
+		ContributeFastestBCInterface(fDim, data.x, dataleft.sol[0], dataleft.dsol[0],
+									 weight, data.normal, dataleft.phi, data.dphixl, data.axesleft, ek, ef, bc);
 #else
 		TPZVec<FADREAL> FADsolL, FADsolR;
-		PrepareInterfaceFAD(data.soll[0], solR, data.phil, phiR, FADsolL, FADsolR);
+		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
-		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, data.phil, phiR, ek, ef, entropyFix);
+		ContributeImplConvFace(data.x,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
 #ifdef LOG4CXX
         if(fluxroe->isDebugEnabled()){
 			std::stringstream sout;
@@ -820,9 +822,9 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 	{
 #ifdef _AUTODIFF
 		TPZVec<FADREAL> FADsolL, FADsolR;
-		PrepareInterfaceFAD(data.soll[0], solR, data.phil, phiR, FADsolL, FADsolR);
+		PrepareInterfaceFAD(dataleft.sol[0], solR, dataleft.phi, phiR, FADsolL, FADsolR);
 		ComputeGhostState(FADsolL, FADsolR, data.normal, bc, entropyFix);
-		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, data.phil, phiR, ek, ef, entropyFix);
+		ContributeApproxImplConvFace(data.x,data.HSize,FADsolL,FADsolR, weight, data.normal, dataleft.phi, phiR, ek, ef, entropyFix);
 #ifdef LOG4CXX
 		if(fluxappr->isDebugEnabled()){
 			std::stringstream sout;
@@ -839,8 +841,8 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 	
 	if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 	{
-		ComputeGhostState(data.soll[0], solR, data.normal, bc, entropyFix);
-		ContributeExplConvFace(data.x,data.soll[0],solR,weight,data.normal,data.phil,phiR,ef, entropyFix);
+		ComputeGhostState(dataleft.sol[0], solR, data.normal, bc, entropyFix);
+		ContributeExplConvFace(data.x,dataleft.sol[0],solR,weight,data.normal,dataleft.phi,phiR,ef, entropyFix);
 	}
 }
 
@@ -851,7 +853,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 // {
 //    int nstate = NStateVariables();
 //    TPZVec<REAL> solR(nstate,0.);
-//    TPZFMatrix dsolR(data.dsoll.Rows(), data.dsoll.Cols(),0.);
+//    TPZFMatrix dsolR(dataleft.dsol.Rows(), dataleft.dsol.Cols(),0.);
 //    TPZFMatrix phiR(0,0), dphiR(0,0);
 //    int entropyFix;
 //
@@ -897,7 +899,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 //       #else
 //       // forcint explicit contribution and issueing an warning
 //          cout << "TPZEulerConsLaw::ContributeInterface> Implicit face convective contribution: _AUTODIFF directive not configured";
-//          ContributeExplConvFace(data.x,data.soll,solR,weight,data.normal,data.phil,phiR,ef);
+//          ContributeExplConvFace(data.x,dataleft.sol,solR,weight,data.normal,dataleft.phi,phiR,ef);
 //       #endif
 //       }
 //       else if (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
@@ -921,25 +923,25 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 //
 //    if(fConvFace == Explicit_TD && fContributionTime == Last_CT)
 //    {
-//          ComputeGhostState(data.soll, solR, data.normal, bc, entropyFix);
-//          ContributeExplConvFace(data.x,data.soll,solR,weight,data.normal,data.phil,phiR,ef, entropyFix);
+//          ComputeGhostState(dataleft.sol, solR, data.normal, bc, entropyFix);
+//          ContributeExplConvFace(data.x,dataleft.sol,solR,weight,data.normal,dataleft.phi,phiR,ef, entropyFix);
 //    }
 // }
 
 
-void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
+void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZFMatrix &ef,
 											 TPZBndCond &bc)
 {
-    int numbersol = data.soll.size();
+    int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
 	int nstate = NStateVariables();
 	TPZVec<REAL> solR(nstate,0.);
-	TPZFMatrix dsolR(data.dsoll[0].Rows(), data.dsoll[0].Cols(),0.);
+	TPZFMatrix dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
 	TPZFMatrix phiR(0,0), dphiR(0,0);
 	int entropyFix;
 	
@@ -949,7 +951,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 	   ||
 	   fConvFace == Explicit_TD && fContributionTime == Last_CT)
 	{
-		ComputeGhostState(data.soll[0], solR, data.normal, bc, entropyFix);
+		ComputeGhostState(dataleft.sol[0], solR, data.normal, bc, entropyFix);
 		
 		if(fDim == 2)
 		{// flux tests
@@ -958,8 +960,8 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
             normal2[0] = -data.normal[0];
             normal2[1] = -data.normal[1];
             TPZManVector<REAL,5 > flux(nstate,0.);
-            Roe_Flux<REAL>(data.soll[0], solR, data.normal, fGamma, flux);
-            Roe_Flux<REAL>(solR, data.soll[0], normal2, fGamma, flux2);
+            Roe_Flux<REAL>(dataleft.sol[0], solR, data.normal, fGamma, flux);
+            Roe_Flux<REAL>(solR, dataleft.sol[0], normal2, fGamma, flux2);
             REAL fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
             if(fluxs > 1.e-10)
             {
@@ -973,16 +975,16 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data,
 				if(err > 1.e-5)
 				{
 					std::cout << "fluxo de parede errado 2 err " << err << std::endl;
-					Roe_Flux<REAL>(data.soll[0],solR,data.normal,fGamma,flux);
+					Roe_Flux<REAL>(dataleft.sol[0],solR,data.normal,fGamma,flux);
 				} else
 				{
-					Roe_Flux<REAL>(data.soll[0],solR,data.normal,fGamma,flux);
+					Roe_Flux<REAL>(dataleft.sol[0],solR,data.normal,fGamma,flux);
 				}
             }
 		} // end of tests
 		
-		ContributeExplConvFace(data.x,data.soll[0],solR,weight,data.normal,
-							   data.phil,phiR,ef,entropyFix);
+		ContributeExplConvFace(data.x,dataleft.sol[0],solR,weight,data.normal,
+							   dataleft.phi,phiR,ef,entropyFix);
 	}
 }
 

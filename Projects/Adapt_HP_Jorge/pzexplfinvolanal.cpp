@@ -491,20 +491,20 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
       return;
    }
 
-  TPZMaterialData data;
-  data.soll[0] = LeftSol;
-  data.solr[0] = RightSol;
+  TPZMaterialData data,dataleft,dataright;
+  dataleft.sol[0] = LeftSol;
+  dataright.sol[0] = RightSol;
   //neighbour centers
   {
     TPZManVector<REAL,3> qsi(3);
-    data.XLeftElCenter.Resize(3);
-    data.XRightElCenter.Resize(3);
+    dataleft.XCenter.Resize(3);
+    dataright.XCenter.Resize(3);
     TPZGeoEl * gel = face->LeftElement()->Reference();
     gel->CenterPoint(gel->NSides()-1,qsi);
-    gel->X(qsi,data.XLeftElCenter);
+      gel->X(qsi,dataleft.XCenter);
     gel = face->RightElement()->Reference();
     gel->CenterPoint(gel->NSides()-1,qsi);
-    gel->X(qsi,data.XRightElCenter);
+    gel->X(qsi,dataright.XCenter);
   }
 
   //Init ef parameter
@@ -557,8 +557,8 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
    REAL weight;
 
    //phil must have a size. I copy the solution
-   data.phil.Redim(data.soll.NElements(),1);
-   data.phir.Redim(data.solr.NElements(),1);
+   dataleft.phi.Redim(dataleft.sol.NElements(),1);
+   dataright.phi.Redim(dataright.sol.NElements(),1);
 
    //LOOP OVER INTEGRATION POINTS
    for(int ip = 0; ip < npoints; ip++){
@@ -567,7 +567,7 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
       ref->X(intpoint,data.x);
       weight *= fabs(data.detjac);
       face->Normal(data.axes,data.normal);
-      mat->ContributeInterface(data, weight, ef.fMat);
+      mat->ContributeInterface(data, dataleft, dataright, weight, ef.fMat);
    }//loop over integration points
 
    delete intrule;

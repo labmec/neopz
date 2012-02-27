@@ -77,15 +77,15 @@ public:
 	 * It performs \f$ nk[0] += weight * ( residuo(u )*(Z1-Z) ) \f$ ; \n
 	 * where u is the current solution and Z and Z1 are the dual solution.
 	 */
-	virtual void ContributeInterfaceErrors(TPZMaterialData &data, REAL weight,
+	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
 										   TPZVec<REAL> &nkL, TPZVec<REAL> &nkR,
 										   int &errorid)
 	{
-		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,weight,nkL,nkR);
-		if (errorid == 2) this->ContributeInterfaceErrorsSimple(data,weight,nkL,nkR);
+		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,dataleft,dataright,weight,nkL,nkR);
+		if (errorid == 2) this->ContributeInterfaceErrorsSimple(data,dataleft,dataright,weight,nkL,nkR);
 	}
 	
-	virtual void ContributeInterfaceErrorsDual(TPZMaterialData &data,
+	virtual void ContributeInterfaceErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 											   REAL weight,
 											   TPZVec<REAL> &nkL, 
 											   TPZVec<REAL> &nkR);
@@ -95,19 +95,19 @@ public:
 	 * It performs \f$ nk[0] += weight * ( residuo(u ) * (Z1-Z) ) \f$ ; \n
 	 * where u is the current solution and Z and Z1 are the dual solution.
 	 */
-	virtual void ContributeInterfaceBCErrorsDual(TPZMaterialData &data,
+	virtual void ContributeInterfaceBCErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft,
 												 REAL weight,
 												 TPZVec<REAL> &nk, 
 												 TPZBndCond &bc);
 	
-	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data,
+	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
 											 TPZVec<REAL> &nk,
 											 TPZBndCond &bc,
 											 int &errorid)
 	{
-		if (errorid == 0) this->ContributeInterfaceBCErrorsDual(data,weight,nk,bc);
-		if (errorid == 2) this->ContributeInterfaceBCErrorsSimple(data,weight,nk,bc);
+		if (errorid == 0) this->ContributeInterfaceBCErrorsDual(data,dataleft,weight,nk,bc);
+		if (errorid == 2) this->ContributeInterfaceBCErrorsSimple(data,dataleft,weight,nk,bc);
 	}
 	
 	virtual void ContributeErrorsSimple(TPZMaterialData &data,
@@ -115,13 +115,13 @@ public:
 										TPZVec<REAL> &nk);
 	
 	
-	virtual void ContributeInterfaceErrorsSimple(TPZMaterialData &data,
+	virtual void ContributeInterfaceErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 												 REAL weight,
 												 TPZVec<REAL> &nkL, 
 												 TPZVec<REAL> &nkR);
 	
 	
-	virtual void ContributeInterfaceBCErrorsSimple(TPZMaterialData &data,
+	virtual void ContributeInterfaceBCErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft,
 												   REAL weight,
 												   TPZVec<REAL> &nk,
 												   TPZBndCond &bc);
@@ -139,8 +139,8 @@ public:
 	
 	void OrderSolution(TPZMaterialData &data);
 	void OrderSolution2(TPZMaterialData &data);
-	void OrderSolutionRight(TPZMaterialData &data);
-	void OrderSolutionLeft(TPZMaterialData &data);
+	void OrderSolutionRight(TPZMaterialData &data, TPZMaterialData &dataright);
+	void OrderSolutionLeft(TPZMaterialData &data, TPZMaterialData &dataleft);
 	
 };
 

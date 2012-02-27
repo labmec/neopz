@@ -60,7 +60,7 @@ class TPZConsLawTest  : public TPZConservationLaw {
 		TPZConservationLaw::Contribute(data,weight,ef);
 	}
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);

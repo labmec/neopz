@@ -598,11 +598,13 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 }
 
 
-void TPZPoroElastic2d::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZPoroElastic2d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                           REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	DebugStop();
 }
 
-void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
+                                             REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	DebugStop();
 }
 

@@ -48,16 +48,20 @@ class TPZInterfaceElement : public TPZCompEl {
 	
 protected:
 	
-	/** @brief Initialize a material data and its attributes based on element dimension, number
-	 * of state variables and material definitions
+	/** @brief Initialize a material data and its attributes based on element dimension, number of state variables and material definitions
 	 */
-	void InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left, TPZInterpolationSpace *right);
+	void InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left);
+    
+    /** @brief Initialize the material data with the geometric data of the interface element */
+    void InitMaterialData(TPZMaterialData &data);
 	
-	/** @brief Compute and fill data with requested attributes */
+	/** @brief Compute and fill data with requested attributes for neighbouring element */
 	void ComputeRequiredData(TPZMaterialData &data,
-							 TPZInterpolationSpace *left, TPZInterpolationSpace *right,
-							 TPZVec<REAL> &qsi,
-							 TPZVec<REAL> &LeftIntPoint, TPZVec<REAL> &RightIntPoint);
+							 TPZInterpolationSpace *elem,
+							 TPZVec<REAL> &IntPoint);
+    
+    /** @brief Compute the required geometric data for the interface element */
+    void ComputeRequiredData(TPZMaterialData &data);
 	
 public:
 	

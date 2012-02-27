@@ -82,22 +82,22 @@ public:
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
@@ -141,6 +141,13 @@ public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
+	}
+
+	
+    /** @brief Returns the solution associated with the var index based on the finite element approximation*/
+	virtual void Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+	{
+		TPZDiscontinuousGalerkin::Solution(data,dataleft,dataright,var,Solout);
 	}
 
 };

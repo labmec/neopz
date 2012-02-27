@@ -39,19 +39,20 @@ public:
 	
 	/** @name Attributes to be computed in CalcStiff */
 	/** @{ */
-	TPZFNMatrix<220> phi, phil, phir;
-	TPZFNMatrix<660> dphix, dphixl, dphixr;
-	TPZFNMatrix<9> axes, axesleft, axesright;
-	TPZFNMatrix<9> jacobian, leftjac, rightjac;
-	TPZFNMatrix<9> jacinv, leftjacinv, rightjacinv;
+	TPZFNMatrix<220> phi;//, phil, phir;
+	TPZFNMatrix<660> dphix;//, dphixl, dphixr;
+	TPZFNMatrix<9> axes;//, axesleft, axesright;
+	TPZFNMatrix<9> jacobian;//, leftjac, rightjac;
+	TPZFNMatrix<9> jacinv;//, leftjacinv, rightjacinv;
 	TPZManVector<REAL,3> normal;
 	TPZManVector<REAL,3> x;
-	int p, leftp, rightp;
-	TPZManVector<TPZFemSol, 10> sol, soll, solr;
-	TPZManVector<TPZFemGradSol, 10> dsol, dsoll, dsolr;
+	int p;//, leftp, rightp;
+	TPZManVector<TPZFemSol, 10> sol;//, soll, solr;
+	TPZManVector<TPZFemGradSol, 10> dsol;//, dsoll, dsolr;
 	REAL HSize;
-	REAL detjac, leftdetjac, rightdetjac;
-	TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
+	REAL detjac;//, leftdetjac, rightdetjac;
+    TPZManVector<REAL,3> XCenter;
+	//TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
 	
 	int numberdualfunctions;
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
@@ -75,7 +76,7 @@ public:
 	/** @brief Set all flags at once */
 	void SetAllRequirements(bool set);
 	
-	void InvertLeftRightData();
+	//void InvertLeftRightData();
 	
 	TPZMaterialData &operator= (const TPZMaterialData &cp );
 	

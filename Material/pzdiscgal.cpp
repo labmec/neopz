@@ -26,18 +26,15 @@ void TPZDiscontinuousGalerkin::FillDataRequirementsInterface(TPZMaterialData &da
 	}
 }
 
-void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                                   REAL weight, TPZFMatrix &ef){
 	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
-	this->ContributeInterface(data, weight, fakeek, ef);
+	this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
 }
-void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &dataright,TPZMaterialData &dataleft, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+
+void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
-	this->ContributeInterface(dataright,dataleft, weight, fakeek, ef);
-	
-}
-void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
-	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
-	this->ContributeBCInterface(data, weight, fakeek, ef, bc);
+	this->ContributeBCInterface(data, dataleft, weight, fakeek, ef, bc);
 }
 
 int TPZDiscontinuousGalerkin::IsInterfaceConservative(){

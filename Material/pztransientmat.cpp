@@ -107,14 +107,14 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data,
+void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                            REAL weight,
                                                            TPZFMatrix &ek,
                                                            TPZFMatrix &ef){
 	
 	// Mostly for implicit
 	if (this->fStep == ECurrent){
-		TBASEMAT::ContributeInterface(data, weight, ek, ef);
+		TBASEMAT::ContributeInterface(data,dataleft,dataright, weight, ek, ef);
 		return;
 	}
 	
@@ -127,7 +127,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
 		return;
 	}
 	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-		TBASEMAT::ContributeInterface(data, weight, ek, ef);
+		TBASEMAT::ContributeInterface(data,dataleft,dataright, weight, ek, ef);
 		return;
 	}
 	
@@ -137,14 +137,14 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &data,
+void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                                              REAL weight, 
                                                              TPZFMatrix &ek,
                                                              TPZFMatrix &ef,
                                                              TPZBndCond &bc){
 	// Mostly for implicit
 	if (this->fStep == ECurrent){
-		TBASEMAT::ContributeBCInterface(data, weight,ek, ef, bc);
+		TBASEMAT::ContributeBCInterface(data,dataleft, weight,ek, ef, bc);
 		return;
 	}
 	
@@ -158,7 +158,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
 		return;
 	}
 	if (this->fStep == EFluxOnly){ //Calcula ef = F-ku
-		TBASEMAT::ContributeBCInterface(data, weight,  ek, ef, bc);
+		TBASEMAT::ContributeBCInterface(data, dataleft, weight,  ek, ef, bc);
 		return;
 	}
 	

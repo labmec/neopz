@@ -313,11 +313,11 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 
-void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	DebugStop();
 }
 
-void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
 	DebugStop();
 }
 //int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const

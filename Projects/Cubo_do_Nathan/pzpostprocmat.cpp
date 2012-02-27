@@ -157,11 +157,11 @@ void TPZPostProcMat::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix
 	return;
 }
 
-void TPZPostProcMat::ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek){
+void TPZPostProcMat::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek){
   // do nothing
 }
 
-void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek,TPZBndCond &bc){
+void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek,TPZBndCond &bc){
   // do nothing
 }
 

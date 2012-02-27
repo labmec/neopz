@@ -424,28 +424,29 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 }         // 1 Val1 : a leitura �00 01 10 11
 
 //---------------------------- --------------------------------------
-void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL weight,
+void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
+                                                   REAL weight,
 												   TPZFMatrix &ek, TPZFMatrix &ef){
 	
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phiL = data.phil;
-	TPZFMatrix &phiR = data.phir;
-	TPZFMatrix &axesL = data.axesleft;
-	TPZFMatrix &axesR = data.axesright;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &dphiR = dataright.dphix;
+	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix &phiR = dataright.phi;
+	TPZFMatrix &axesL = dataleft.axes;
+	TPZFMatrix &axesR = dataright.axes;
 	
 	TPZManVector<REAL,3> &normal = data.normal;
 	
-	int &LeftPOrder=data.leftp;
-	int &RightPOrder=data.rightp;
+	int &LeftPOrder=dataleft.p;
+	int &RightPOrder=dataright.p;
 	
 	REAL &faceSize=data.HSize;
 	
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		data.phil.Print("phil",sout);
-		data.phir.Print("phir",sout);
+		dataleft.phi.Print("phil",sout);
+		dataright.phi.Print("phir",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -504,7 +505,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 	double lambda = -((fE*fnu)/((1. + fnu)*(2.*fnu-1.)));
 	double mu =  fE/(2.*(1. + fnu));
 	
-    int numbersol = data.dsoll.size();
+    int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
@@ -527,28 +528,28 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data,REAL we
 	
 #ifdef LOG4CXX
 	TPZFNMatrix<4> DSolLAxes(2,2), DSolRAxes(2,2);
-	DSolLAxes(0,0) = data.dsoll[0](0,0)*axis0DOTrL+data.dsoll[0](1,0)*axis1DOTrL;
-	DSolLAxes(1,0) = data.dsoll[0](0,0)*axis0DOTzL+data.dsoll[0](1,0)*axis1DOTzL;
-	DSolLAxes(0,1) = data.dsoll[0](0,1)*axis0DOTrL+data.dsoll[0](1,1)*axis1DOTrL;
-	DSolLAxes(1,1) = data.dsoll[0](0,1)*axis0DOTzL+data.dsoll[0](1,1)*axis1DOTzL;
+	DSolLAxes(0,0) = dataleft.dsol[0](0,0)*axis0DOTrL+dataleft.dsol[0](1,0)*axis1DOTrL;
+	DSolLAxes(1,0) = dataleft.dsol[0](0,0)*axis0DOTzL+dataleft.dsol[0](1,0)*axis1DOTzL;
+	DSolLAxes(0,1) = dataleft.dsol[0](0,1)*axis0DOTrL+dataleft.dsol[0](1,1)*axis1DOTrL;
+	DSolLAxes(1,1) = dataleft.dsol[0](0,1)*axis0DOTzL+dataleft.dsol[0](1,1)*axis1DOTzL;
 	
-	DSolRAxes(0,0) = data.dsolr[0](0,0)*axis0DOTrR+data.dsolr[0](1,0)*axis1DOTrR;
-	DSolRAxes(1,0) = data.dsolr[0](0,0)*axis0DOTzR+data.dsolr[0](1,0)*axis1DOTzR;
-	DSolRAxes(0,1) = data.dsolr[0](0,1)*axis0DOTrR+data.dsolr[0](1,1)*axis1DOTrR;
-	DSolRAxes(1,1) = data.dsolr[0](0,1)*axis0DOTzR+data.dsolr[0](1,1)*axis1DOTzR;
+	DSolRAxes(0,0) = dataright.dsol[0](0,0)*axis0DOTrR+dataright.dsol[0](1,0)*axis1DOTrR;
+	DSolRAxes(1,0) = dataright.dsol[0](0,0)*axis0DOTzR+dataright.dsol[0](1,0)*axis1DOTzR;
+	DSolRAxes(0,1) = dataright.dsol[0](0,1)*axis0DOTrR+dataright.dsol[0](1,1)*axis1DOTrR;
+	DSolRAxes(1,1) = dataright.dsol[0](0,1)*axis0DOTzR+dataright.dsol[0](1,1)*axis1DOTzR;
 	
 	TPZFNMatrix<9> DeformL(3,3,0.),DeformR(3,3,0.);
 	DeformL(0,0) = DSolLAxes(0,0); 
 	DeformL(1,1) = DSolLAxes(1,1);
 	DeformL(0,1) = (DSolLAxes(0,1)+DSolLAxes(1,0))/2.;
 	DeformL(1,0) = DeformL(0,1);
-	DeformL(2,2) = data.soll[0][0]/R;
+	DeformL(2,2) = dataleft.sol[0][0]/R;
 	
 	DeformR(0,0) = DSolRAxes(0,0); 
 	DeformR(1,1) = DSolRAxes(1,1);
 	DeformR(0,1) = (DSolRAxes(0,1)+DSolRAxes(1,0))/2.;
 	DeformR(1,0) = DeformR(0,1);
-	DeformR(2,2) = data.solr[0][0]/R;
+	DeformR(2,2) = dataright.sol[0][0]/R;
 	
 	TPZFNMatrix<9> TensorL(3,3,0.),TensorR(3,3,0.);
 	REAL TrDeformL, TrDeformR;

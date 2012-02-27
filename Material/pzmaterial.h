@@ -99,6 +99,10 @@ public:
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
     {
         // default is no specific data requirements
+        if(type == 50)
+        {
+            data.fNeedsSol = true;
+        }
     }
 
     

@@ -150,21 +150,21 @@ public:
 
 	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix &ek, TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ek,TPZFMatrix &ef,
 									   TPZBndCond &bc);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc);

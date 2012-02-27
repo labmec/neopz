@@ -52,12 +52,12 @@ public:
 							  TPZFMatrix &ef,
 							  TPZBndCond &bc);
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
                                      TPZFMatrix &ek,
                                      TPZFMatrix &ef);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                        REAL weight,
                                        TPZFMatrix &ek,
                                        TPZFMatrix &ef,

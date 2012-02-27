@@ -73,28 +73,28 @@ public:
 		TPZMatPoisson3dReferred::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix &ek,
 									 TPZFMatrix &ef);
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix &ef)
 	{
-		TPZMatPoisson3dReferred::ContributeInterface(data,weight,ef);
+		TPZMatPoisson3dReferred::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ek,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc);
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc)
 	{
-		TPZMatPoisson3dReferred::ContributeBCInterface(data,weight,ef,bc);
+		TPZMatPoisson3dReferred::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 protected:

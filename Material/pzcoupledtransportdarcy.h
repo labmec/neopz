@@ -161,9 +161,9 @@ public:
 	 * @brief Returns the solution associated with the var index based on
 	 * the finite element approximation
 	 */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
-		TPZDiscontinuousGalerkin::Solution(data,var,Solout);
+		TPZDiscontinuousGalerkin::Solution(data,dataleft,dataright,var,Solout);
 	}
 	
 	
@@ -174,30 +174,30 @@ public:
 				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix &ek,
 									 TPZFMatrix &ef);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ek,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc);
 	
-	virtual void ContributeInterface(TPZMaterialData &data,
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix &ef)
 	{
-		TPZDiscontinuousGalerkin::ContributeInterface(data,weight,ef);
+		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix &ef,
 									   TPZBndCond &bc)
 	{
-		TPZDiscontinuousGalerkin::ContributeBCInterface(data,weight,ef,bc);
+		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,

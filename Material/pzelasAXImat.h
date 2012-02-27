@@ -111,11 +111,14 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
+                                     REAL weight, TPZFMatrix &ek,TPZFMatrix &ef);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
-		return;
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
+                                       REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+		
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
+        DebugStop();
 	}
 	
 	/** @brief Returns the variable index associated with the name */

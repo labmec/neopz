@@ -172,17 +172,17 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx
 // }
 
 
-void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
+void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                         REAL weight,
                                         TPZFMatrix &ek,
                                         TPZFMatrix &ef){
 	
 	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = data.dphixl;
-	TPZFMatrix &dphiR = data.dphixr;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	TPZFMatrix &dphiR = dataright.dphix;
 	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = data.phil;
-	TPZFMatrix &phiR = data.phir;
+	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	//int POrder=data.p;
@@ -197,8 +197,8 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
 	//REAL faceSize=data.HSize;
 	// TPZFMatrix &jacinv = data.jacinv;
 	// TPZFMatrix &axes = data.axes;
-	int LeftPOrder=data.leftp;
-	int RightPOrder=data.rightp;
+	int LeftPOrder=dataleft.p;
+	int RightPOrder=dataright.p;
 	REAL faceSize=data.HSize;
 	
 	
@@ -425,17 +425,17 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
 // 
 // }
 
-void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data,
+void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                           REAL weight,
                                           TPZFMatrix &ek,
                                           TPZFMatrix &ef,
                                           TPZBndCond &bc) {
 	
 	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
+	TPZFMatrix &dphiL = dataleft.dphix;
+	// TPZFMatrix &dphiR = dataright.dphix;
 	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = data.phil;
+	TPZFMatrix &phiL = dataleft.phi;
 	// TPZFMatrix &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;

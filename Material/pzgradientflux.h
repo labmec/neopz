@@ -30,7 +30,7 @@ public:
 	void ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, const TPZVec<REAL> &normal, TPZVec<REAL> & F);
 	
 	/** @brief Apply limiter */
-	void ApplyLimiter(TPZMaterialData &data);
+	void ApplyLimiter(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright);
 	
 private:
 	
