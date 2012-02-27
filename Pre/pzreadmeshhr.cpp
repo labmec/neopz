@@ -312,10 +312,10 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	//   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
 	//   //val1(1,1) = 10000000000000.0;
 	//   //val2(1,0) = 1.;
-	//   TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2);
+	//   TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2) ERRADO;
 	//   CMesh.InsertMaterialObject(bndFrac);
 	// //    val2(1,0) = -1.;
-	//   bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2);
+	//   bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2) ERRADO;
 	//   CMesh.InsertMaterialObject(bndFrac);
 }
 
