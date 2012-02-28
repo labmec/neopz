@@ -87,7 +87,9 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
 
-
+void SolucaoExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix &flux);
+void DeslocamentoYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix &flux);
+void SigmaYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix &flux);
 
 int main(int argc, char *argv[])
 {
@@ -95,7 +97,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG("../mylog4cxx.cfg");
 #endif	
 	
-	int p=2;
+	int p=1;
 	
 	//primeira malha
 	
@@ -107,7 +109,7 @@ int main(int argc, char *argv[])
 	PrintGMeshVTK(gmesh, file1);
 	
 	// First computational mesh
-	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+1);
+	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+2);
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 	
@@ -119,7 +121,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	RefinUniformElemComp(cmesh1,4);
+	RefinUniformElemComp(cmesh1,5);
 	//RefinElemComp(cmesh1,3);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
@@ -136,11 +138,12 @@ int main(int argc, char *argv[])
 	cmesh2->LoadReferences();
 	
 	//refinamento uniform
-	RefinUniformElemComp(cmesh2,4);
+	RefinUniformElemComp(cmesh2,5);
 	//RefinElemComp(cmesh2,4);
 	//RefinElemComp(cmesh2,7);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
+	cmesh2->ExpandSolution();
 	
 	ofstream arg6("cmesh22.txt");
 	cmesh2->Print(arg6);
@@ -178,8 +181,8 @@ int main(int argc, char *argv[])
 	
 	///set initial pressure 
 	int nrs = an2.Solution().Rows();
-	TPZFMatrix solucao1(nrs,1,296.296);
-	cmesh2->Solution() = solucao1;
+	TPZFMatrix solucao1(nrs,1,1000./*296.296*/);
+	cmesh2->LoadSolution(solucao1);
 		
 	TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
@@ -271,6 +274,41 @@ int main(int argc, char *argv[])
 	SolveSistTransient(matK1, matK2, fvec, Initialsolution, an, meshvec,  mphysics);
 			
 	return EXIT_SUCCESS;
+}
+
+
+void SolucaoExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix &flux){
+	//REAL x = ptx[0];
+	REAL x = ptx[1];
+	
+	REAL pini = 1000.;
+	REAL lamb = 8333.33;
+	REAL mi = 12500.;
+	REAL visc =0.001; 
+	REAL perm =  1.e-10;
+	REAL H=1.;
+	REAL tp = 10.;
+	int in;
+	REAL pD, uD, sigD;
+	REAL PI = atan(1.)*4.;
+	
+	sol[0]=0.;
+	sol[1]=0.;
+	sol[2]=0.;
+	
+	REAL tD = (lamb+2.*mi)*perm*tp/(visc*H);
+	REAL xD = fabs(x-1.)/H;
+	for (in =0; in<1000; in++) {
+		
+		REAL M = PI*(2.*in+1.)/2.;
+		pD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
+		uD += (2./(M*M))*cos(M*xD)*exp(-1.*M*M*tD);
+		sigD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
+	}
+	
+	sol[0] = pD*pini;
+	sol[1] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
+	sol[2] = (-1.+ sigD)*pini;
 }
 
 
@@ -409,7 +447,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	force[1]=gravity*rockrho;
 	//force[0] = 0.;
 	TPZElasticityMaterial *material;
-	int planestress = 1;
+	int planestress = -1;
 	material = new TPZElasticityMaterial(matId, E, poisson, force[0], force[1], planestress); 
 	
 	
@@ -465,10 +503,10 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	
 	int MatId = 1;
 	int dim = 2;
-	REAL Eyoung =1.1152*1.e10;// 3.e4;
-	REAL poisson = 0.18;//0.2;
-	REAL alpha=0.74;//1.0;
-	REAL Se=0.0;
+	REAL Eyoung =/*1.1152*1.e10;*/ 3.e4;
+	REAL poisson = /*0.18;*/0.2;
+	REAL alpha=/*0.74;*/1.0;
+	REAL Se=/*1.13846*1e-10;*/0.0;
 	REAL rockrho = 2330.0; // SI system
 	REAL gravity = 0.0;//-9.8; // SI system
 	REAL fx=0.0;
@@ -476,8 +514,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL overburdendepth = 2000.0; // SI system
 	REAL layerthickness = 10.0;  // SI system
 	
-	REAL perm = 5.544*1e-15;//1.e-10;
-	REAL visc = 1.e-3;
+	REAL perm =/* 5.544*1e-15;*/1.e-10;
+	REAL visc = /*0.00994176;*/1.e-3;
 	int planestress = 1;
 		
 	mymaterial = new TPZPoroElastic2d (MatId, dim);
@@ -486,6 +524,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mymaterial->SetParameters(perm,visc);
 	mymaterial->SetfPlaneProblem(planestress);
 	mymaterial->SetBiotParameters(alpha,Se);
+	
+	mymaterial->SetForcingFunctionExact(SolucaoExata);
 	
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
@@ -515,7 +555,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZFMatrix val12(3,2,0.), val22(3,1,0.);
 	int dirichneuman =1;
 	REAL uDbotx=0.; 
-	REAL uDboty=0.;
+	REAL uDboty=/*2.80396*1e-9;*/0.;
 	REAL pNbot=0.;
 	val22(0,0)=uDbotx;
 	val22(1,0)=uDboty;
@@ -548,10 +588,9 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mphysics->CleanUpUnconnectedNodes();
 	
 	// Creating multiphysic elements into mphysics computational mesh
-	TPZBuildMultiphysicsMesh * Objectdumy;
-	Objectdumy->AddElements(meshvec, mphysics);
-	Objectdumy->AddConnects(meshvec,mphysics);
-	Objectdumy->TransferFromMeshes(meshvec, mphysics);
+	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 	
 #ifdef LOG4CXX
     {
@@ -594,7 +633,7 @@ void SolveSistTransient(TPZFMatrix matK1, TPZAutoPointer <TPZMatrix> matK2, TPZF
 	outputfile = "TransientSolution";
 	
 	REAL delt = 1.;
-	REAL Maxtime = 10;
+	REAL Maxtime = 10.;
 	int cent = 0;
 	while (cent*delt < Maxtime)
 	{	
@@ -673,18 +712,21 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 {
 	TPZBuildMultiphysicsMesh * Objectdumy;
 	Objectdumy->TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(6), vecnames(2);
+	TPZManVector<std::string,10> scalnames(9), vecnames(2);
 	scalnames[0] = "SigmaX";
 	scalnames[1] = "SigmaY";
 	scalnames[2] = "DisplacementX";
 	scalnames[3] = "DisplacementY";
 	scalnames[4] = "Pressure";
 	scalnames[5] = "SolutionP";
+	scalnames[6] = "PressaoExata";
+	scalnames[7] = "DeslocamentoYExata";
+	scalnames[8] = "SigmaYExata";
 	vecnames[0]= "Displacement";
 	vecnames[1]= "MinusKGradP";
 			
 	const int dim = 2;
-	int div = 0;
+	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
