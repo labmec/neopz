@@ -103,13 +103,15 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{	   
-		REAL fEover1MinNu2 = fE/(1-fnu*fnu);  
-		REAL fEover21PlusNu = fE/(2.*(1+fnu));
+		REAL fEover1MinNu2 = fE/(1-fnu*fnu);  ///4G(lamb+G)/(lamb+2G)
+		REAL fEover21PlusNu = 2.*fE/(2.*(1+fnu));/*fE/(2.*(1+fnu));*/ ///2G=2mi
+		
 		/*
 		 * Plain strain materials values
+		 * 2G=2mi=nu2*F, lamb=fnu*F, lamb+2G=nu1*F 
 		 */
-		REAL nu1 = 1 - fnu;//(1-nu)
-		REAL nu2 = (1-2*fnu)/2;
+		REAL nu1 = 1 - fnu;
+		REAL nu2 = (1-2*fnu);//(1-2*fnu)/2;
 		REAL F = fE/((1+fnu)*(1-2*fnu));
 		
 		//Elastic equation: Calculate the matrix contribution for elastic problem 
@@ -465,11 +467,17 @@ int TPZPoroElastic2d::VariableIndex(const std::string &name){
 	if(!strcmp("SigmaX",name.c_str()))        return  3;
 	if(!strcmp("SigmaY",name.c_str()))        return  4;
 	if(!strcmp("TauXY",name.c_str()))        return  5;
+	if(!strcmp("DisplacementX",name.c_str()))  return 8;
+	if(!strcmp("DisplacementY",name.c_str()))  return 9;
+	
 	//variaveis da pressao
 	if(!strcmp("SolutionP",name.c_str()))        return  6;
 	if(!strcmp("MinusKGradP",name.c_str()))        return  7;
-	if(!strcmp("DisplacementX",name.c_str()))  return 8;
-	if(!strcmp("DisplacementY",name.c_str()))  return 9;
+	
+	//solucao exata problema teste 1D
+	if(!strcmp("PressaoExata",name.c_str()))  return 10;
+	if(!strcmp("DeslocamentoYExata",name.c_str()))  return 11;
+	if(!strcmp("SigmaYExata",name.c_str()))  return 12;
 		
 	return TPZMaterial::VariableIndex(name);
 }
@@ -484,6 +492,9 @@ int TPZPoroElastic2d::NSolutionVariables(int var){
 	if(var == 7) return fDim;
 	if(var == 8) return 1;
 	if(var == 9) return 1;
+	if(var == 10) return 1;
+	if(var == 11) return 1;
+	if(var == 12) return 1;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -494,6 +505,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	TPZVec<REAL> SolU, SolP;
 	TPZFMatrix DSolU, DSolP;
 	TPZFMatrix axesU, axesP;
+	
+	TPZVec<REAL> ptx(3), solExata(3);
+	TPZFMatrix flux(3,1);
     
     if (datavec[0].sol.size() != 1) {
         DebugStop();
@@ -526,6 +540,27 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		return;
 	}//var9
 
+	//solucao pressao exata
+	if(var == 10){
+		fForcingFunctionExact(datavec[1].x, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}//var10
+	
+	//solucao deslocamento y exata
+	if(var == 11){
+		fForcingFunctionExact(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[1];
+		return;
+	}//var11
+	
+	//solucao sigmaY exata
+	if(var == 12){
+		fForcingFunctionExact(datavec[0].x, solExata,flux);
+		Solout[0] = solExata[2];
+		return;
+	}//var12
+	
 	
 	//-----------------
 	if(var == 6) {
