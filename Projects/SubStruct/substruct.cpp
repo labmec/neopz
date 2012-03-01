@@ -397,7 +397,7 @@ TPZGeoMesh *MalhaPredio()
 	int numelements=-1;
 	
 	string FileName;
-	FileName = "../8andares02.txt";
+	FileName = "8andares02.txt";//"../8andares02.txt";
 	
 	{
 		bool countnodes = false;
