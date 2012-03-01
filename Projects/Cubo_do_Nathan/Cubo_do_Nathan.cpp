@@ -297,12 +297,10 @@ int main()
 	InsertViscoElasticity(cmesh);
 
 	cmesh->SetDefaultOrder(porder);
-<<<<<<< .mine
+
 	//cmesh->SetAllCreateFunctionsContinuousWithMem();
 	cmesh->SetAllCreateFunctionsContinuous(); //elastic
-=======
-    cmesh->SetAllCreateFunctionsContinuousWithMem();
->>>>>>> .r3471
+
 	cmesh->AutoBuild();
 
 	TPZSkylineStructMatrix skylstruct(cmesh);
