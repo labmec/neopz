@@ -677,8 +677,8 @@ int TPZElasticity3D::ClassId() const
 void TPZElasticity3D::FillDataRequirements(TPZMaterialData &data){
   	
 	TPZMaterial::FillDataRequirements(data);
+	data.fNeedsSol = false;
 	
-	data.SetAllRequirements(true);
 }
 
 #ifndef BORLAND

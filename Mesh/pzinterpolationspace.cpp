@@ -138,10 +138,10 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 
 void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
-	if (data.fNeedsNeighborSol){
-        DebugStop();
+	//if (data.fNeedsNeighborSol){
+        //DebugStop();
 //		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
-	}//fNeedsNeighborSol
+	//}//fNeedsNeighborSol
 	
 	if (data.fNeedsSol){
 		if (data.phi.Rows()){//if shape functions are available
