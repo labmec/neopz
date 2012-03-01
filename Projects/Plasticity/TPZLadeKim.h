@@ -557,8 +557,4 @@ inline void TPZLadeKim::Residual(TPZFMatrix &res,int icase)
 
 //////////////////CheckConv related methods/////////////////////
 
-
-
-
-
 #endif //TPZLADEKIM_H
