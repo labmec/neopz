@@ -191,12 +191,6 @@ public:
 	/**
 	 * Returns the tensor eigenvalues and derivatives through an analytical approach
 	 */
-	void EigenValue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTensor<T> &dSigma2,TPZTensor<T> &dSigma3)const;
-	
-	
-	/**
-	 * Returns the tensor eigenvalues and derivatives through an analytical approach
-	 */
 	void Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTensor<T> &dSigma2,TPZTensor<T> &dSigma3)const;
 	
 	/**
