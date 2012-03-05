@@ -291,23 +291,23 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
         TPZBndCond * pontoDeApoio1 = new TPZBndCond(materialMixedPoint1,__aux0DEl_Mat1, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio1);
 
-        f(0,0) = -0.00419999999972;
-        f(1,0) = 0.0209999999608;
-        f(2,0) = 1.0919999908765021E-6;
+        f(0,0) = -329.8672286269283;
+        f(1,0) = 0.;
+        f(2,0) = 0.;
         TPZAutoPointer<TPZMaterial> materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
         TPZBndCond * pontoDeApoio2 = new TPZBndCond(materialMixedPoint2,__aux0DEl_Mat2, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio2);
 
-        f(0,0) = -2.0999999605919584E-7;
-        f(1,0) = 0.008400419955758938;
-        f(2,0) = -0.004199159975361625;
+        f(0,0) = 0.;
+        f(1,0) = 0.;
+        f(2,0) = -329.8672286269283;
         TPZAutoPointer<TPZMaterial> materialMixedPoint3 = new TPZElasticity3D(-303, young, poisson, force);
         TPZBndCond * pontoDeApoio3 = new TPZBndCond(materialMixedPoint3,__aux0DEl_Mat3, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio3);
 
-        f(0,0) = -0.004200209999709159;
-        f(1,0) = 0.029400419916558937;
-        f(2,0) = -0.004198067975380582;
+        f(0,0) = -329.8672286269283;
+        f(1,0) = 0.;
+        f(2,0) = -329.86722862692837;
         TPZAutoPointer<TPZMaterial> materialMixedPoint4 = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * pontoDeApoio4 = new TPZBndCond(materialMixedPoint4,__aux0DEl_Mat4, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio4);

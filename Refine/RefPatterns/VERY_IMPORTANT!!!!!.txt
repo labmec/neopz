@@ -14,14 +14,14 @@ The refPattern file must follow this instructions:
  * begin of file ....................................
  *
  * //block 1
- * int(nNodes)	int(nElements)
- * int(Id)	string(refName)
+ * int(ref_MeshNNodes)	int(ref_meshNElements)
+ * int(ref_Id)	string(ref_Name)
  *
  * //block 2 - [the line above repeat for each node]
- * double(nodeCoordinates)
+ * double(mesh_NodeCoordinates)
  * 
  * //block 3 - [the line above repeat for each element]
- * int(elType)		int(matId)		int(topologySequence)
+ * int(el_Type)		int(el_NNodes)		int(el_topologySequence)
  * 
  * ................................................................. end of file
  *
