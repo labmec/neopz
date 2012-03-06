@@ -131,9 +131,10 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	int nVertices = AdjacencyIndex.NElements() -1;
 	
 #ifdef USING_METIS
+	int nVertices = AdjacencyIndex.NElements() -1;
+
 	Domains.Resize(nVertices);
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
