@@ -25,7 +25,7 @@ template <class TConv>
 void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs) {
 
 	TPZFMatrix incval(range);
-	int i,j,numrows;
+	int i,numrows;
 	
 	numrows = state.Rows();
 	for(i=0; i<numrows; i++) {
@@ -35,13 +35,13 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 	
 	std::ofstream log("conv.log");
 	
-	int icase;
+#ifdef _AUTODIFF
+	int icase, j;
 	
 	int numcases = obj.NumCases();
 	
 	int ncoefs = coefs.NElements();
 	
-#ifdef _AUTODIFF
 	
 	for(icase = 0; icase < numcases; icase++) {
 		
