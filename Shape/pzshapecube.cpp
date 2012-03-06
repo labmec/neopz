@@ -29,8 +29,8 @@ namespace pzshape {
 		{ { 1.,0.,0.},{0.,1.,0.} }
 	};
 	
-	static int FaceSides[6][4] = { {8,9,10,11},{8,13,16,12},{9,14,17,13},
-		{10,14,18,15},{11,15,19,12},{16,17,18,19} };
+//	static int FaceSides[6][4] = { {8,9,10,11},{8,13,16,12},{9,14,17,13},
+//		{10,14,18,15},{11,15,19,12},{16,17,18,19} };
 
 	
 	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
