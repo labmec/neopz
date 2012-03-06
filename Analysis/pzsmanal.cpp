@@ -117,8 +117,8 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix &sol)
     {
         TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
         matred->UGlobal(soltemp,uglobal);        
-        fReferenceSolution.Print("Solucao de referencia\n");
-        uglobal.Print("uglobal");
+//        fReferenceSolution.Print("Solucao de referencia\n");
+//        uglobal.Print("uglobal");
         fSolution = fReferenceSolution + uglobal;
     }
 	TPZAnalysis::LoadSolution();
