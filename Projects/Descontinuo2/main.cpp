@@ -106,7 +106,8 @@ void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 		}
 	}
 	
-	int nstate = cmesh->MaterialVec()[0]->NStateVariables();
+    TPZAutoPointer<TPZMaterial> mat = cmesh->MaterialVec().rbegin()->second;
+	int nstate = mat->NStateVariables();
 	
 	arq << "State Variables\n";
 	
