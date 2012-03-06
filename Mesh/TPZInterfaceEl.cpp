@@ -1167,8 +1167,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		sout << "ordem maxima na esquerda-->H1 " << leftmaxp<<std::endl;
-		sout << "ordem maxima na direita-->Hdiv " << rightmaxp<<std::endl;
+		sout << "ordem maxima na esquerda " << leftmaxp<<std::endl;
+		sout << "ordem maxima na direita " << rightmaxp<<std::endl;
 		
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
@@ -1215,13 +1215,14 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
-		
+
+        left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
+		right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
+
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
 		this->ComputeRequiredData(data);
 		
-		left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
-		right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
 		
 		mat->ContributeInterface(data,dataleft,dataright, weight, ek.fMat, ef.fMat);
 		
@@ -1613,6 +1614,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 	data.axes.Redim(dim,3);
 	data.jacobian.Redim(dim,dim);
 	data.jacinv.Redim(dim,dim);
+    data.x.Resize(3, 0.);
     int numbersol = Mesh()->Solution().Cols();
     data.sol.resize(numbersol);
     data.dsol.resize(numbersol);
