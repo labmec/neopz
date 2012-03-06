@@ -1276,7 +1276,7 @@ int TPZCompElHDiv<TPZShapeLinear>::ClassId() const
 }
 
 template class
-TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZINTELLINEARID>;
+TPZRestoreClass< TPZCompElHDiv<TPZShapeLinear>, TPZHDIVLINEARID>;
 
 template<>
 int TPZCompElHDiv<TPZShapeTriang>::ClassId() const
