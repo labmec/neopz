@@ -53,7 +53,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 	if(fForcingFunction)
 	{
 		TPZManVector<REAL> xfloat(fXf.Rows());
-		fForcingFunction(x,xfloat);//fXf = xfloat
+		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
 		int i;
 		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
 	}

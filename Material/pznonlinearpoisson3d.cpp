@@ -65,7 +65,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 	
 	if(fForcingFunction) {      
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);  
+		fForcingFunction->Execute(x,res);  
 		fXf = res[0];
 	}
 	REAL delx = 0.;
@@ -206,7 +206,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 	
 	if(fForcingFunction) {      
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);  
+		fForcingFunction->Execute(x,res);  
 		fXf = res[0];
 	}
 	REAL delx = 0.;

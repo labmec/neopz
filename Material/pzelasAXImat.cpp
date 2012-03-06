@@ -205,7 +205,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	if(fForcingFunction)
 	{
 		TPZManVector<REAL> res(3);
-		fForcingFunction(data.x,res);
+		fForcingFunction->Execute(data.x,res);
 		ff[0] = res[0];
 		ff[1] = res[1];
 		ff[2] = res[2];

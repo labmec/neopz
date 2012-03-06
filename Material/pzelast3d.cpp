@@ -90,7 +90,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	
 	const int phr = phi.Rows();
 	if(this->fForcingFunction){
-		this->fForcingFunction(x,this->fForce);
+		this->fForcingFunction->Execute(x,this->fForce);
 	}
 	
 	//this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},

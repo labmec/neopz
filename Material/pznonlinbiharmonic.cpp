@@ -76,7 +76,7 @@ void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	//Equa�o de non linear biharmonic

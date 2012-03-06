@@ -75,7 +75,7 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
     if (this->fForcingFunction)
 	{
 		TPZManVector<REAL, 1> result(1);
-		this->fForcingFunction(x, result);
+		this->fForcingFunction->Execute(x, result);
 		this->fXf = result[0];
 	}
 	CE << "x: "<< x[0]<<","<<x[1]<<std::endl;

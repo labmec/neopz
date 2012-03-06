@@ -120,7 +120,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	REAL delx = 0.;
@@ -208,7 +208,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	 **/
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(data.x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	int numvec = data.fVecShapeIndex.NElements();
@@ -1277,7 +1277,7 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, 
 	// residual = -fK Laplac(u) + fC * div(fConvDir*u) - (-fXf)
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(1);
-		fForcingFunction(X,res);
+		fForcingFunction->Execute(X,res);
 		fXf = res[0];
 	}
 	

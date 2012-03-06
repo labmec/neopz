@@ -92,8 +92,7 @@ public:
 	/**
 	 * @brief Sets the forcing funtion for all fluid materials in the mesh.
 	 */
-	void SetFlowforcingFunction(void (*fp)(TPZVec<REAL> &loc,
-										   TPZVec<REAL> &result));
+	void SetFlowforcingFunction(TPZAutoPointer<TPZFunction> fp);
 	
 	/**
 	 * @brief Creates the computational elements, and the degree of freedom nodes.

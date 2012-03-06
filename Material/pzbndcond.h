@@ -56,7 +56,7 @@ protected:
 		fType = bc.fType;
 	}
 	/** @brief Default constructor */
-	TPZBndCond() : TPZDiscontinuousGalerkin(0), fBCVal1(),
+	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCVal1(),
     fBCVal2(), fValFunction(NULL){
 	}
 	/** @brief Default destructor */

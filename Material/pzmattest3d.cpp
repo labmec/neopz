@@ -73,7 +73,7 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 	int phr = phi.Rows();
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf(0,0) = res[0];
 	}
 	if(geq3==0) {

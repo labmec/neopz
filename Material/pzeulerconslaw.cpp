@@ -402,7 +402,7 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	{
 		TPZVec<REAL> res;
 		int i, nState = NStateVariables();
-		fForcingFunction(data.x, res);
+		fForcingFunction->Execute(data.x, res);
 		for(i = 0; i < nState; i++)
 			data.sol[0][i] = res[i];
 	}
@@ -443,7 +443,7 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	{
 		TPZVec<REAL> res;
 		int i, nState = NStateVariables();
-		fForcingFunction(data.x, res);
+		fForcingFunction->Execute(data.x, res);
 		for(i = 0; i < nState; i++)
 			data.sol[i] = res[i];
 	}
@@ -1053,7 +1053,7 @@ void TPZEulerConsLaw::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 	if(fForcingFunction)
 	{
 		TPZVec<REAL> res;
-		fForcingFunction(x, res);
+		fForcingFunction->Execute(x, res);
 		for(int i = 0; i < nstate; i++)
 			solL[i] = solR[i] = res[i];
 	}

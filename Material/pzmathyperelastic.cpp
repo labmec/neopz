@@ -80,7 +80,7 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(3);
-		fForcingFunction(x,res);
+		fForcingFunction->Execute(x,res);
 		fXf[0] = res[0];
 		fXf[1] = res[1];
 		fXf[2] = res[2];

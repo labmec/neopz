@@ -145,7 +145,7 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
 	int phr = phi.Rows();
 	if(fForcingFunction) {            
 		TPZManVector<REAL> res(3);//,&fXf(0,0),3);// phi(in, 0) = phi_in
-		fForcingFunction(x,res);    // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);    // dphi(i,j) = dphi_j/dxi
 		int i;
 		for(i=0; i<3; i++) fXf(i,0) = res[i];
 	}

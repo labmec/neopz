@@ -42,7 +42,7 @@ TPZAutoPointer<TPZMaterial> TPZL2Projection::NewMaterial(){
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
 	
 	if (this->HasForcingFunction()){
-		this->fForcingFunction(data.x, this->fSol);
+		this->fForcingFunction->Execute(data.x, this->fSol);
 	}
     int numbersol = data.sol.size();
     if (numbersol != 1) {

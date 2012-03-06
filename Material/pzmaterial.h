@@ -15,6 +15,7 @@
 #include "tpzautopointer.h"
 #include "pzsave.h"
 #include "pzmaterialdata.h"
+#include "pzfunction.h"
 
 #include <iostream>
 #include <string>
@@ -44,7 +45,9 @@ private:
     int fId;
     
 protected:
-    void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
+    
+    TPZAutoPointer<TPZFunction> fForcingFunction;
+    //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
    void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
 								  TPZVec<REAL> &pressure,TPZFMatrix &flux);
@@ -117,6 +120,7 @@ public:
         if(id == 0) {
             std::cout << "\n*** Material Id can't be ZERO! ***\n";
             std::cout << "*** This Will Be a Disaster!!! ***\n";
+            DebugStop();
         }
         fId = id; }
     
@@ -251,8 +255,7 @@ public:
 	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
 	 * @note Parameter result contains the forces resulting
 	 */
-    void SetForcingFunction(void (*fp)(TPZVec<REAL> &loc,
-                                       TPZVec<REAL> &result))
+    void SetForcingFunction(TPZAutoPointer<TPZFunction> fp)
     {
         fForcingFunction = fp;
     }

@@ -82,7 +82,7 @@ void TPZConsLawTest::Contribute(TPZMaterialData &data,
 	
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);//fXf(0,0) = res[0];//if(!sol[0]) 
+		fForcingFunction->Execute(x,res);//fXf(0,0) = res[0];//if(!sol[0]) 
 		sol[0] = res[0];//solu�o inicial, na itera�o 0 sol = 0 e res != 0 
 	}                  //nas itera�es > 0 sol != 0 e res = 0
 	int dim = dphi.Rows();
@@ -214,7 +214,7 @@ void TPZConsLawTest::ContributeInterface(TPZMaterialData &data, TPZMaterialData 
 	
 	if(fForcingFunction) {      // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);// dphi(i,j) = dphi_j/dxi
-		fForcingFunction(x,res);
+		fForcingFunction->Execute(x,res);
 		if(phrl) solL[0] = res[0];//solu�o inicial interior (t=0), na itera�o 0 sol = 0 e res != 0
 		if(phrr) solR[0] = res[0];//nas itera�es > 0 sol != 0 e res = 0
 	}

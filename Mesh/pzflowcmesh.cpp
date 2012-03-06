@@ -180,8 +180,7 @@ void TPZFlowCompMesh::SetContributionTime(TPZContributeTime time)
 	}
 }
 
-void TPZFlowCompMesh::SetFlowforcingFunction(void (*fp)(TPZVec<REAL> &loc,
-														TPZVec<REAL> &result))
+void TPZFlowCompMesh::SetFlowforcingFunction(TPZAutoPointer<TPZFunction> fp)
 {
 	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)

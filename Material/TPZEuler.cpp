@@ -207,7 +207,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
     }
     if(fState == 0) {
 		TPZVec<REAL> force(4);
-		fForcingFunction(x,force);
+		fForcingFunction->Execute(x,force);
 		for(in=0; in<nshape; in++) {
 			for(idf=0; idf<4; idf++) {
 				ef(4*in+idf) += weight*phi(in,0)*gBigNumber*force[idf];

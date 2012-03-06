@@ -142,7 +142,7 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 		dphi.Rows() << "\n";
 	}
 	if(fForcingFunction) {
-		fForcingFunction(x,fXF);//fXf = xfloat
+		fForcingFunction->Execute(x,fXF);//fXf = xfloat
 	}
 	
 	

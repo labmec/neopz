@@ -58,7 +58,7 @@ void TPZMaterialTest::Contribute(TPZMaterialData &data,
 	
 	if(fForcingFunction) {            // phi(in, 0) :  fun�o de forma associada ao n�in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) :  derivada c/r a xi da fun�o de forma j
+		fForcingFunction->Execute(x,res);       // dphi(i,j) :  derivada c/r a xi da fun�o de forma j
 		fXf(0,0) = res[0];
 	}
 	//cout << x[0] << ' ' << x[1] << ' ' << fXf(0,0) << endl;

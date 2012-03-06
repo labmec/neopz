@@ -40,7 +40,7 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	REAL delx = 0.;
@@ -122,7 +122,7 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-		fForcingFunction(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	REAL delx = 0.;
