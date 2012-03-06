@@ -104,7 +104,8 @@ int TPZSubCompMesh::main() {
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
 	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
-	bnd->SetForcingFunction(Forcing);
+    DebugStop();
+	//bnd->SetForcingFunction(Forcing);
 	mesh.InsertMaterialObject(bnd);
 	
 	mesh.AutoBuild();
