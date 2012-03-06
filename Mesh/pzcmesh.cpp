@@ -2238,7 +2238,7 @@ void TPZCompMesh::SaddlePermute()
         //	int idtroca=0;
         int eqmax=0;
         if(!elvec)continue;
-        int ncon=elvec->NConnects();
+//        int ncon=elvec->NConnects();
         std::set<int> connects;
         elvec->BuildConnectList(connects );
         //	if(ncon==1) continue;
