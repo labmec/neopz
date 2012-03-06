@@ -140,7 +140,7 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
 
   const int phr = phi.Rows();
   if(this->fForcingFunction)
-     this->fForcingFunction(x,this->fForce);
+     this->fForcingFunction->Execute(x,this->fForce);
     
   int dim = Dimension();
   int nstate = NStateVariables();

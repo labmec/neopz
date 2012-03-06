@@ -700,7 +700,7 @@ TPZMaterial *Hexaedro(int grau){
   TPZAutoPointer<TPZMaterial> matauto(mat);
 
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   cmesh->InsertMaterialObject(matauto);
 
   //condi��es de contorno
@@ -821,7 +821,7 @@ TPZMaterial *ProblemaT2D(int grau){
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
   //condi��es de contorno
@@ -935,7 +935,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 
   int dim = 2;
   TPZMaterial *mat = new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1055,7 +1055,7 @@ TPZMaterial *TresTriangulos(int grau){
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
   //condi��es de contorno
@@ -1172,7 +1172,7 @@ TPZMaterial *TresPrismas(int grau){
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1290,7 +1290,7 @@ TPZMaterial *FluxConst3D(int grau){
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1378,7 +1378,7 @@ TPZMaterial *FluxConst2D(int grau){
 
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1454,7 +1454,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
   gama = 1.4;//ar
   int dim = 2;
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1676,7 +1676,7 @@ TPZMaterial *NoveCubos(int grau){
   TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 
   //((TPZConservationLaw *)mat)->SetIntegDegree(grau);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 
@@ -1915,7 +1915,7 @@ TPZMaterial *Quadrado(int grau){
   //  int nummat = 1;
   //  int dim = 2;
   TPZMaterial *mat;// = new TPZMatHybrid(nummat,dim);
-  mat->SetForcingFunction(Function);
+  DebugStop(); //mat->SetForcingFunction(Function);
   TPZAutoPointer<TPZMaterial> matauto(mat);
   cmesh->InsertMaterialObject(matauto);
 

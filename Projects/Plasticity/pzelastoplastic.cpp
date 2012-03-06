@@ -473,7 +473,7 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 	*/
   const int phr = phi.Rows();
   if(this->fForcingFunction)
-     this->fForcingFunction(x,this->fForce);
+     this->fForcingFunction->Execute(x,this->fForce);
   
   //this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
                           //{dvdy*dudx, dvdy*dudy, dvdy*dudz},

@@ -49,6 +49,8 @@
 #include "TPZRefPatternDataBase.h"
 #include "TPZFrontStructMatrix.h"
 
+#include "pzfunction.h"
+
 #ifdef LOG4CXX
 
 static LoggerPtr logger(Logger::getLogger("Acoplamento.main"));
@@ -562,8 +564,8 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		//setando forcing function para os dois materiais- Omega1 e 2
 		
-	  mat1->SetForcingFunction(Forcing1);
-		mat2->SetForcingFunction(Forcing1);
+	  DebugStop();//mat1->SetForcingFunction(Forcing1);
+		//mat2->SetForcingFunction(Forcing1);
 		mat1->SetForcingFunctionExact(SolExata);
 		mat2->SetForcingFunctionExact(SolExata);
 		

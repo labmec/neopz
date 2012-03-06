@@ -590,7 +590,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	int dim = 2;
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-	mat->SetForcingFunction(Function);
+	DebugStop(); //mat->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(mat);
 	
 	// boundary conditions
@@ -698,7 +698,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	int dim = 3;
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-	mat->SetForcingFunction(Function);
+	DebugStop(); //mat->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(mat);
 	
 	// boundary conditions

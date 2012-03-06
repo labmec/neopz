@@ -261,7 +261,7 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	//REAL flux = 0.;
 	
 	//	material->SetParameters(diff, conv, convdir);
-	material->SetForcingFunction(ForcingFunction);
+	DebugStop(); //material->SetForcingFunction(ForcingFunction);
 	
 	TPZCompEl::SetgOrder(p);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

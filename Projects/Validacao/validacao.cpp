@@ -402,7 +402,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZAutoPointer<TPZMaterial> automat(mat);
 	comp->InsertMaterialObject(automat);
 	
-	mat->SetForcingFunction(Forcing1);
+	DebugStop(); //mat->SetForcingFunction(Forcing1);
 	mat->SetForcingFunctionExact(SolExata);
 	///Inserir condicoes de contorno
 	
@@ -414,10 +414,10 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
 	
 	
-	bnd->SetForcingFunction(CC1);
-	bnd2->SetForcingFunction(CC1);
-	bnd3->SetForcingFunction(CC1);
-	bnd4->SetForcingFunction(CC1);
+	DebugStop(); //bnd->SetForcingFunction(CC1);
+	//bnd2->SetForcingFunction(CC1);
+	//bnd3->SetForcingFunction(CC1);
+	//bnd4->SetForcingFunction(CC1);
 	
 	comp->InsertMaterialObject(bnd);
 	comp->InsertMaterialObject(bnd2);

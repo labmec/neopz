@@ -156,9 +156,9 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
     cmesh->InsertMaterialObject(bcauto);
     TPZBndCond *bc2 = new TPZBndCond(autopoiss, -2, 0, val1, val2);
     g_Length = L;
-    bc2->SetForcingFunction(forcingfunction);
+    DebugStop(); //bc2->SetForcingFunction(forcingfunction);
     TPZAutoPointer<TPZMaterial> bcauto2(bc2);
-    bcauto2->SetForcingFunction(forcingfunction);
+    DebugStop(); //bcauto2->SetForcingFunction(forcingfunction);
     cmesh->InsertMaterialObject(bcauto2);
 
     TPZBndCond *bc4 = new TPZBndCond(autopoiss, -4, 0, val1, val2);

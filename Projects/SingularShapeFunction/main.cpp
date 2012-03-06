@@ -280,7 +280,7 @@ int main1(){
   cmesh->SetDimModel(2);
   
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
-  mat->SetForcingFunction( LoadFunction );
+  DebugStop(); //mat->SetForcingFunction( LoadFunction );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
   matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
@@ -297,8 +297,8 @@ int main1(){
   val2(0,0) = 2.;
   TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
   
-  bcFora->SetForcingFunction(Dirichlet);
-  bcDentro->SetForcingFunction(Dirichlet);
+  DebugStop(); //bcFora->SetForcingFunction(Dirichlet);
+  //bcDentro->SetForcingFunction(Dirichlet);
   
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcFora);
