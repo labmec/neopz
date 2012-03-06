@@ -123,7 +123,7 @@ TPZConnect *TPZInterpolatedElement::SideConnect(int connect,int side) {
 }
 
 void TPZInterpolatedElement::ForceSideOrder(int side, int order){
-	if(side < Reference()->NCornerNodes() || side >= Reference()->NSides())
+	if((side < Reference()->NCornerNodes() && order != 0) || side >= Reference()->NSides())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " setting an order for a corner side " << side << " order " << order;
@@ -139,6 +139,7 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
 	int sideorder = SideOrder(side);
 	int neworder = order;
 	int orderchanged = (sideorder != neworder);
+    if(!orderchanged) return;
 	TPZStack<TPZCompElSide> elvec;
 	thisside.EqualLevelElementList(elvec,1,0);
 	elvec.Push(thisside);
