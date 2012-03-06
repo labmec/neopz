@@ -15,6 +15,7 @@
 #include "tpzautopointer.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
+#include "TPZSemaphore.h"
 
 class TPZCompMesh;
 class TPZMatrix;
@@ -160,11 +161,7 @@ protected:
 		/// Mutexes (to choose which element is next)
 		pthread_mutex_t fAccessElement;
 		/// Semaphore (to wake up assembly thread)
-#ifdef MACOSX
-		sem_t *fAssembly;
-#else
-		sem_t fAssembly;
-#endif
+		TPZSemaphore fAssembly;
 		/// Global matrix
 		TPZMatrix *fGlobMatrix;
 		/// Global rhs vector
