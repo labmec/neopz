@@ -195,6 +195,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 		}
 		
 	}
+    return -1;
 	/*if(connect == 0)
 	{
 		
