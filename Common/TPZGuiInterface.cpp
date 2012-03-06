@@ -51,7 +51,7 @@ void TPZGuiInterface::End(){
 
 void TPZGuiInterface::ShowErrorMessage(std::string message){
 	PZError << message.c_str() << "\n";
-	DebugStop();
+//	DebugStop();
 }
 
 
