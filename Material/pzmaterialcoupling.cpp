@@ -34,7 +34,7 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		TPZFMatrix  &phiH1 = dataright.phi;
 		TPZFMatrix  &phiHdiv = dataleft.phi;		
 		int numvec=dataleft.fVecShapeIndex.NElements();
-		int nrowHdiv=phiHdiv.Rows();//funcao a esquerda Hdiv
+//		int nrowHdiv=phiHdiv.Rows();//funcao a esquerda Hdiv
 		int nrowH1=phiH1.Rows();//Funcao a direita H1
 		int numdual = dataleft.numberdualfunctions;
 		
@@ -101,7 +101,7 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 		
 		
 		
-    TPZFMatrix  &dphixL = dataleft.dphix;
+//    TPZFMatrix  &dphixL = dataleft.dphix;
 		TPZFMatrix  &phixL = dataleft.phi;
 		
 		TPZFMatrix  &phixR = dataright.phi;
@@ -126,19 +126,20 @@ void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMateria
 		}
 #endif
 		
-		
+		/*
 		for(int ir=0; ir<nrowL; ir++) {
 				
 				for(int jl=0; jl<nrowL; jl++) {
 						REAL prod1 =	phixL(ir)* phixL(jl);
 				}
 		}
+         */
 		
 		
 		
 		
 		for(int ir=0; ir<nrowR-1; ir++) {
-				int ivecind = dataright.fVecShapeIndex[ir].first;
+//				int ivecind = dataright.fVecShapeIndex[ir].first;
 				int ishapeind = dataright.fVecShapeIndex[ir].second;
 				for(int jl=0; jl<nrowL; jl++) {
 						REAL prod1 =	phixR(ishapeind,0)* phixL(jl);
