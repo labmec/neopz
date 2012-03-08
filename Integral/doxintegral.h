@@ -30,6 +30,7 @@
  of the same quadrature rule and associated with same weight \f$w\f$.
  
  
+ \subsection Some References
  
  [1] Linbo Zhang, Tao Cui and Hui Liu, "Set of symmetric quadrature rules of triangles and tetrahedra." J. Comput. Mathematics, v 27, 89-96, 2009.\n
  [2] H. Li, J. Sun and Y. Xu, Discrete fourier analysis, cubature and interpolation on a hexagon and
