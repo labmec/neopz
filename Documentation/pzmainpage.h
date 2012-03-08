@@ -176,7 +176,7 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  
  \section topology Topology
  
- \section integral Numerical integration
+ \subsection symm_quads Symmetric quadrature rules
  
  \section shapes Shape functions
  
