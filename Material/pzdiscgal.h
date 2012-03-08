@@ -45,6 +45,8 @@ public :
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @param data [in]
+	 * @param dataleft [in]
+	 * @param dataright [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -56,6 +58,8 @@ public :
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
 	 * @param data [in]
+	 * @param dataleft [in]
+	 * @param dataright [in]
 	 * @param weight [in]
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
@@ -65,6 +69,7 @@ public :
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
+	 * @param dataleft [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -76,6 +81,7 @@ public :
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point
 	 * @param data [in]
+	 * @param dataleft [in]
 	 * @param weight [in]
 	 * @param ef [out] is the load vector
 	 * @param bc [in] is the boundary condition object
