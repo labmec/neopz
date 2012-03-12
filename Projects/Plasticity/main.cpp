@@ -119,6 +119,65 @@ void InitializeLOG()
 }
 
 
+void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
+							int BCId,int BCId2, int nsteps, REAL PGRatio,
+							TPZFMatrix & val1Begin, TPZFMatrix & val1End,
+							TPZFMatrix & val2Begin, TPZFMatrix & val2End)
+{
+    
+	if(!analysis.Mesh())return;
+    
+	// computing the initial value for the PG progression such that its sum equals one;
+	REAL a0;
+	if(fabs(PGRatio - 1.) < 1.e-3)
+	{
+	    a0 = 1. / REAL(nsteps);
+	}else{
+		a0 = (PGRatio - 1) / (pow(PGRatio,nsteps) - 1.);
+	}
+	TPZFNMatrix<36> val1(6,6,0.), deltaVal1(6,6,0.);
+	TPZFNMatrix< 6> val2(6,1,0.), deltaVal2(6,1,0.);
+	
+	deltaVal1 = val1End;
+	deltaVal1.ZAXPY(-1., val1Begin);
+	deltaVal2 = val2End;
+	deltaVal2.ZAXPY(-1., val2Begin);
+	
+	// ZAXPY operation: *this += alpha * p			
+    
+	TPZAutoPointer<TPZMaterial> mat = analysis.Mesh()->FindMaterial(BCId);
+	TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat.operator->());
+	if(!pBC)return;
+    
+    int i;
+	for(i = 0; i < nsteps; i++)
+	{
+		REAL stepLen;
+		if(fabs(PGRatio - 1.) < 1.e-3)
+		{
+			stepLen = REAL(i+1) / REAL(nsteps);
+		}else{
+		    stepLen = a0 * (pow(PGRatio,i+1) - 1) / (PGRatio - 1.);
+		}
+		
+		val1 = val1Begin;
+		val1.ZAXPY(stepLen, deltaVal1);
+		val2 = val2Begin;
+		val2.ZAXPY(stepLen, deltaVal2);
+		
+		pBC->Val1() = val1;
+		pBC->Val2() = val2;
+		
+		analysis.IterativeProcess(out, tol, numiter);
+		
+		
+		//analysis.AcceptSolution();
+
+	}
+    
+}
+
+
 
 void SolveSistLin2(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
@@ -137,6 +196,209 @@ void SolveSistLin2(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	step.SetDirect(ELDLt);
 	an.SetSolver(step);
 }
+
+template <class T>
+void WellboreLoadTestWithoutPostProcess(stringstream & fileName, T & mat, 
+                      REAL loadMultipl, REAL plasticTol)
+{
+	REAL L, LDA, alpha, GammaSea, MudWeight, kh, kH, OCR, s;
+	s = loadMultipl;
+	REAL SigmaV=0., SigmaH=0., Sigmah=0.;
+	REAL Pa = 14.7;
+	int ncirc, ioRatio, pOrder, valType;
+	
+	cout << "\nMesh data: ncirc?(int) ";
+	//ncirc = 10;
+	ncirc=8;//cin >> ncirc;
+	
+	cout << "Mesh data: ioratio?(sugg. 10.) ";
+	//ioRatio =  10.;
+	ioRatio=10.;//cin >> ioRatio;
+	
+	cout << "Mesh data: pOrder? ";
+	//pOrder =2;
+	pOrder=2;//cin >> pOrder;
+	
+	fileName << "_ncirc" << ncirc << "_IO" << ioRatio << "_p" << pOrder;
+	
+	cout << "\nSelect one of the following load case (Load):";
+	cout << "\n0) L=3000 LDA=1200 alpha=0.8 GammaSea=8.6 MudWeight=9.2 kh=0.8 kH=0.9 OCR=1.10";
+	cout << "\n1) L=3000 LDA=1200 alpha=0.8 GammaSea=8.6 MudWeight=9.2 kh=0.6 kH=0.8 OCR=1.10";
+	cout << "\n2) L=5227 LDA=2135 alpha=0.5 GammaSea=9.5 MudWeight=10. kh=0.96 kH=1.09 OCR=1.10 Biot=0.5";
+	cout << "\n3) L=5227 LDA=2135 alpha=0.5 GammaSea=9.5 MudWeight=10. kh=0.96 kH=1.09 OCR=1.10 Biot=1.0";
+	cout << "\n4) L=5227 LDA=2135 alpha=0.5 GammaSea=9.5 MudWeight=9.5 kh=0.80 kH=1.30 OCR=1.10 Biot=1.0";
+	cout << "\n";
+	
+	//valType = 0 ;
+	valType=0;//cin >> valType;
+    
+	switch(valType)
+	{
+		case(0):
+		    L=3000;
+		    LDA=1200;
+		    alpha = 0.8;
+		    GammaSea = 8.6;
+		    MudWeight = 9.2;
+		    kh = 0.8;
+		    kH = 0.9;
+		    OCR = 1.1;
+		    fileName << "_Load0";
+            break;
+		case(1):
+		    L=3000;
+		    LDA=1200;
+		    alpha = 0.8;
+		    GammaSea = 8.6;
+		    MudWeight = 9.2;
+		    kh = 0.6;
+		    kH = 0.8;
+		    OCR = 1.1;
+		    fileName << "_Load1";
+            break;
+		case(2):
+		    L=5227;
+		    LDA=2135;
+		    alpha = 0.5;
+		    GammaSea = 9.5;
+		    MudWeight = 9.5;
+		    SigmaV= loadMultipl * 84.4 * 145.03773801/Pa;
+		    kh = 0.96;
+		    kH = 1.09;
+		    OCR = 1.1;
+		    fileName << "_Load2";
+            break;
+		case(3):
+		    L=5227;
+		    LDA=2135;
+		    alpha = 1.;
+		    GammaSea = 9.5;
+		    MudWeight = 10;
+		    SigmaV= loadMultipl * 84.4 * 145.03773801/Pa;
+		    kh = 0.96;
+		    kH = 1.09;
+		    OCR = 1.1;
+		    fileName << "_Load3";
+            break;
+		case(4):
+		    L=5227;
+		    LDA=2135;
+		    alpha = 1.;
+		    GammaSea = 9.5;
+		    MudWeight = 10;
+		    SigmaV= loadMultipl * 84.4 * 145.03773801/Pa;
+		    kh = 0.80;
+		    kH = 1.30;
+		    OCR = 1.1;
+		    fileName << "_Load3";
+            break;
+		default:
+			cout << "Unhandled Case. Exiting...";
+            break;
+	}
+	
+	fileName << ".vtk";
+	
+	cout << endl << fileName.str() << endl;
+	
+	//Overconsolidating the material
+	
+	TPZTensor<REAL> OCStress, beginOCStress, loadStress, loadStress2, initialStrain, FarFieldStress, TestStress;
+	TPZFNMatrix<3*3> BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
+	TPZFNMatrix<3*1> val1(3,1,0.);
+	
+	const REAL a = 0.17046;
+	REAL PorePressure = s * GammaSea * L * a / Pa;
+    
+    cout << PorePressure;
+    cout <<"<\n>"<<SigmaV;
+	if(SigmaV==0.) SigmaV  = s * (0.9 * (L-LDA) / 0.3048 + GammaSea * LDA * a) / Pa;
+	Sigmah       = kh * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
+	SigmaH       = kH * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
+    
+	REAL FluidWeight  = s * MudWeight * a * L / Pa;
+	
+	FarFieldStress.fData[_XX_] = Sigmah - PorePressure * alpha;
+	FarFieldStress.fData[_YY_] = SigmaH - PorePressure * alpha;
+	FarFieldStress.fData[_ZZ_] = SigmaV - PorePressure * alpha;
+	FarFieldStress *= Pa;
+    
+	beginOCStress.Identity();
+	beginOCStress *= s * 0.01 *Pa;
+	
+	OCStress = FarFieldStress;
+	OCStress *= OCR;
+	
+	loadStress.Identity();
+	
+	loadStress *= (Sigmah - PorePressure * alpha) *Pa;
+	
+	loadStress2.Identity();
+	loadStress2 *= (FluidWeight - PorePressure * alpha) *Pa;
+	
+	loadStress.    CopyToTensor(EndStress);
+	loadStress2.   CopyToTensor(EndStress2);
+	FarFieldStress.CopyToTensor(BeginStress);
+	
+	cout << "\nInitial Stress State: " << FarFieldStress;
+	cout << "\nLoad Stress State  : " << loadStress;
+	cout << "\nLoad Stress State 2: " << loadStress2;
+	cout << "\n" ;
+	
+	PrepareInitialMat(mat, beginOCStress, OCStress, 10);
+	
+	// Returning the strain state back to the correspondent imposed stress state
+    
+	mat.ApplyLoad(FarFieldStress, initialStrain);
+	
+	cout << "\nApplied Desired Stress State: " << FarFieldStress <<"\n resulted in strain: "<< initialStrain <<"\n";
+	
+	mat.ApplyStrainComputeSigma(initialStrain, TestStress);
+	
+	cout << "\nApplied Desired Strain State: " << initialStrain <<"\n resulted in stress: "<< TestStress <<"\n";
+    
+	cout << "\n Plastic State = " << mat.GetState();
+	
+	//Attributing the material history to the PZ ElastoPlastic material object
+	
+	TPZMatElastoPlastic<T> EPMat(1);
+	
+	EPMat.SetPlasticity(mat);
+	
+	
+	TPZCompMesh * pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
+	
+	//building analysis
+	TPZElastoPlasticAnalysis EPAnalysis(pCMesh, std::cout);
+	
+	SolveSistLin2(EPAnalysis,pCMesh);
+	EPAnalysis.SetBiCGStab(5000, 1.e-12);
+    
+//    void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
+//                                int BCId,int BCId2, int nsteps, REAL PGRatio,
+//                                TPZFMatrix & val1Begin, TPZFMatrix & val1End,
+//                                TPZFMatrix & val2Begin, TPZFMatrix & val2End)
+	REAL tol = 1.e-5;
+    int numiter = 30;
+    int nsteps = 1;
+    REAL pgratio = 1.;
+    
+    
+    
+	ManageIterativeProcess(EPAnalysis,cout,tol, numiter,
+                           -7 /*BCId*/, 2 /*nsteps*/, nsteps, pgratio,
+                           BeginStress/*val1Begin*/, EndStress/*val1End*/,
+                           val1/*val2Begin*/, val1/*val2End*/);
+	
+	ManageIterativeProcess(EPAnalysis,cout, tol, numiter,
+                           -7 /*BCId*/, 2 /*nsteps*/, nsteps,pgratio,
+                           EndStress/*val1Begin*/, EndStress2/*val1End*/,
+                           val1/*val2Begin*/, val1/*val2End*/);
+    return;
+    
+    
+}
+
 
 template <class T>
 void WellboreLoadTest(stringstream & fileName, T & mat, 
@@ -760,9 +1022,9 @@ int main()
 	cout << "\nPlease enter test type:";
 	cout << "\n0) Wellbore Drilling Load";
 	cout << "\n1) Wellbore Drilling Load - Porous Medium";
+	cout << "\n2) Wellbore Drilling Load # with out postprocess # (FOR TESTS PURPOSE) ";
 	
-	
-	testNumber=0;//cin >> testNumber;
+	testNumber=2;//cin >> testNumber;
 	
 	cout << "\nMaterial Type:";
 	cout << "\n0)Lade Kim: FineSilicaSand";
@@ -779,7 +1041,7 @@ int main()
 	cout << "\n";
 
 
-        matNumber=9;//cin >> matNumber;
+        matNumber=8;//cin >> matNumber;
 	
 	switch(matNumber)
 	{
@@ -893,6 +1155,14 @@ int main()
 		    if(pSD)PorousWellboreLoadTest(fileName, *pSD, loadMultipl, plasticTol);
 		    if(pDP)PorousWellboreLoadTest(fileName, *pDP, loadMultipl, plasticTol);
 		break;
+        case(2):
+			copyStr << fileName.str();
+			fileName.str(""); // clearing the buffer
+		    fileName << "PorousWB" << copyStr.str();
+		    if(pLK)WellboreLoadTestWithoutPostProcess(fileName, *pLK, loadMultipl, plasticTol);
+		    if(pSD)WellboreLoadTestWithoutPostProcess(fileName, *pSD, loadMultipl, plasticTol);
+		    if(pDP)WellboreLoadTestWithoutPostProcess(fileName, *pDP, loadMultipl, plasticTol);
+            break;
 		default:
 			cout << "\nUnhandled Test Type. Exiting...";
 		delete pMat;
