@@ -221,7 +221,7 @@ public:
 };
 
 template <class T>
-inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield = 0) const
+inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const
 {
 	// the termoforce A in this case is assumed to be the
 	// plastic volumetric strain itself. In fact it is not,
@@ -289,7 +289,7 @@ inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma,const T & A
 }
 
 template <class T> 
-inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const
+inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
 
 	// the termoforce A in this case is assumed to be the
@@ -403,7 +403,7 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 }
 
 template <class T> 
-inline void TPZYCSandlerDimaggio::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h, int checkForcedYield = 0) const
+inline void TPZYCSandlerDimaggio::H(const TPZTensor<T> & sigma,const T & A, TPZVec<T> & h, int checkForcedYield) const
 {
 
  	// the termoforce A in this case is assumed to be the

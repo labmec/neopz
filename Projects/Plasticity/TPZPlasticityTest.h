@@ -1733,8 +1733,8 @@ inline void TPZPlasticTest::UndocumentedTest4()
 	TPZVec<TFAD> res_FAD(2);
 	TPZVec<TPZTensor<REAL> > NDir(2);
 	
-	YCSD.N(sigma, A, NDir);
-	YCSD.Compute(sigma_FAD, A_FAD, res_FAD);
+	YCSD.N(sigma, A, NDir,0);
+	YCSD.Compute(sigma_FAD, A_FAD, res_FAD,0);
 	
 	cout << "\nNDir = " << NDir;
 	cout << "\nres_FAD = " << res_FAD;

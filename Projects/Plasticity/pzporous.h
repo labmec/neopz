@@ -8,7 +8,6 @@
 #include "pzmattemporal.h" 
 #include "pzporoelastoplasticmem.h"
 #include "pzelastoplastic.h"
-
   /**
    * Implements an porous media material to be used together with elastic 
    * elastoplastic mechanical counterparts.

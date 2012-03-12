@@ -11,7 +11,7 @@
  * Interface setup for all classes involving temporal behaviour
  */
 
-class TPZMatTemporal : TPZMaterialData
+class TPZMatTemporal : public TPZMaterialData
 {
 	public:
 	TPZMatTemporal():fDeltaT(1.), fTime(Advanced_CT)
