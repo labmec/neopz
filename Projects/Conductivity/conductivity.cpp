@@ -76,7 +76,7 @@ REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix &solution, int bc)
 ///Parametro para a funcao
 static REAL g_Length = 0.;
 ///Insercao de uma condicao de contorno dada por uma funcao
-void forcingfunction(TPZVec<REAL> &ponto, TPZVec<REAL> &force);
+void forcingfunction(const TPZVec<REAL> &ponto, TPZVec<REAL> &force);
 
 int main()
 {
@@ -156,9 +156,10 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
     cmesh->InsertMaterialObject(bcauto);
     TPZBndCond *bc2 = new TPZBndCond(autopoiss, -2, 0, val1, val2);
     g_Length = L;
-    DebugStop(); //bc2->SetForcingFunction(forcingfunction);
+    TPZAutoPointer<TPZFunction> force = new TPZDummyFunction(forcingfunction);
+    bc2->SetForcingFunction(force);
     TPZAutoPointer<TPZMaterial> bcauto2(bc2);
-    DebugStop(); //bcauto2->SetForcingFunction(forcingfunction);
+    bcauto2->SetForcingFunction(force);
     cmesh->InsertMaterialObject(bcauto2);
 
     TPZBndCond *bc4 = new TPZBndCond(autopoiss, -4, 0, val1, val2);
@@ -373,7 +374,7 @@ REAL FluxoSaida(TPZAutoPointer<TPZCompMesh> cmesh, TPZFMatrix &solution, int bc)
 
 
 
-void forcingfunction(TPZVec<REAL> &p, TPZVec<REAL> &f) 
+void forcingfunction(const TPZVec<REAL> &p, TPZVec<REAL> &f) 
 {
     f[0] = p[0]/g_Length;
 }
