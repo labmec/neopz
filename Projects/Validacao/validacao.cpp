@@ -185,7 +185,7 @@ TPZGeoMesh * MalhaGeoQ2(const int h);
 TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder);
 int SubStructure(TPZCompMesh *cmesh, int materialid);
 void SaddlePermute(TPZCompMesh * cmesh);
-void Forcing1(TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	double x = pt[0];
 	double y = pt[1];
 	disp[0]= -2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
@@ -202,24 +202,24 @@ void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix &flux ) {
 	
 	
 }
-void CC1(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC1(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 	//double x=pt[0];
 	//double y=pt[1];
 	f[0] = 0.;//2*(1-x*x);// 
 	
 }
-void CC2(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC2(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 	//double x=pt[0];
 	double y=pt[1];
 	f[0] = Pi*cos(Pi*y);//0.;//2*(1-x*x);// 
 	
 }
-void CC3(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC3(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 	//double x=pt[0];
 	//double y=pt[1];
 	f[0]=0.;//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
 }
-void CC4(TPZVec<REAL> &pt, TPZVec<REAL> &f) {
+void CC4(const TPZVec<REAL> &pt, TPZVec<REAL> &f) {
 	//double x=pt[0];
 	double y=pt[1];
 	f[0]=-Pi*cos(Pi*y);//2.*exp(x)*(1. - pow(x,2.));	//0.;//	
@@ -402,7 +402,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZAutoPointer<TPZMaterial> automat(mat);
 	comp->InsertMaterialObject(automat);
 	
-	DebugStop(); //mat->SetForcingFunction(Forcing1);
+    TPZAutoPointer<TPZFunction> force1 = new TPZDummyFunction(Forcing1);
+	mat->SetForcingFunction(force1);
 	mat->SetForcingFunctionExact(SolExata);
 	///Inserir condicoes de contorno
 	
@@ -413,11 +414,11 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
 	TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
 	
-	
-	DebugStop(); //bnd->SetForcingFunction(CC1);
-	//bnd2->SetForcingFunction(CC1);
-	//bnd3->SetForcingFunction(CC1);
-	//bnd4->SetForcingFunction(CC1);
+	TPZAutoPointer<TPZFunction> fCC1 = new TPZDummyFunction(CC1);
+	bnd->SetForcingFunction(fCC1);
+	bnd2->SetForcingFunction(fCC1);
+	bnd3->SetForcingFunction(fCC1);
+	bnd4->SetForcingFunction(fCC1);
 	
 	comp->InsertMaterialObject(bnd);
 	comp->InsertMaterialObject(bnd2);

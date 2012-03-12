@@ -221,7 +221,7 @@ TPZGeoMesh * MalhaGeoT(const int h);
  */
 TPZFMatrix MatrixR(REAL ang);
 
-void Forcing1(TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
+void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	/*	double x = pt[0];
 		double y = pt[1];
 		disp[0]= -2.*(1.-x*x) -2.*(1.-y*y);
@@ -563,9 +563,9 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		
 		//setando forcing function para os dois materiais- Omega1 e 2
-		
-	  DebugStop();//mat1->SetForcingFunction(Forcing1);
-		//mat2->SetForcingFunction(Forcing1);
+        TPZAutoPointer<TPZFunction> force = new TPZDummyFunction(Forcing1);
+	  mat1->SetForcingFunction(force);
+		mat2->SetForcingFunction(force);
 		mat1->SetForcingFunctionExact(SolExata);
 		mat2->SetForcingFunctionExact(SolExata);
 		

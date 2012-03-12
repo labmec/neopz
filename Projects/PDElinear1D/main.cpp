@@ -70,7 +70,7 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b);
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 // Right handside term of our Linear PDE
-void ForcingFunction(TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) 
+void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) 
 {
 	double x=pto[0];
 	xfloat[0] = x;
@@ -261,7 +261,7 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	//REAL flux = 0.;
 	
 	//	material->SetParameters(diff, conv, convdir);
-	DebugStop(); //material->SetForcingFunction(ForcingFunction);
+	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
 	
 	TPZCompEl::SetgOrder(p);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);

@@ -141,12 +141,13 @@ void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
   deriv(1,0) = (2.6704656055626725*Yp)/(r*r);
 }
 
-void Dirichlet(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void Dirichlet(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   TPZFNMatrix<2> deriv(2,1);
-  ExactSolution(x,f,deriv);
+    TPZManVector<REAL, 3> xcopy(x);
+  ExactSolution(xcopy,f,deriv);
 }
 
-void LoadFunction(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void LoadFunction(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   f.Resize(1);
   f[0] = 0.;
 }
@@ -280,7 +281,7 @@ int main1(){
   cmesh->SetDimModel(2);
   
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
-  DebugStop(); //mat->SetForcingFunction( LoadFunction );
+  mat->SetForcingFunction( new TPZDummyFunction(LoadFunction) );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
   matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
@@ -297,8 +298,8 @@ int main1(){
   val2(0,0) = 2.;
   TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
   
-  DebugStop(); //bcFora->SetForcingFunction(Dirichlet);
-  //bcDentro->SetForcingFunction(Dirichlet);
+  bcFora->SetForcingFunction(new TPZDummyFunction(Dirichlet));
+  bcDentro->SetForcingFunction(new TPZDummyFunction(Dirichlet));
   
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcFora);
