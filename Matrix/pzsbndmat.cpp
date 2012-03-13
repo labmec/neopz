@@ -41,7 +41,7 @@ TPZSBMatrix::TPZSBMatrix( int dim, int band )
 : TPZMatrix( dim, dim )
 {
 	fBand = ( band > (dim - 1) ? (dim - 1) : band );
-	fDiag = new( REAL[Size()] );
+	fDiag = new REAL[Size()] ;
 	if ( fDiag == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSBMatrix( dim ) <Error creating Matrix>" );
 	
@@ -425,7 +425,7 @@ TPZSBMatrix::Resize(const int newDim ,const int)
 	if (fBand>Dim()-1) fBand=Dim()-1;//misael:19/10/96
 	// Cria nova matrix.
 	int  newSize  = newDim * (fBand + 1);
-	REAL *newDiag = new( REAL[newSize] );
+	REAL *newDiag = new REAL[newSize] ;
 	
 	// Copia os elementos para a nova matriz.
 	REAL *src = fDiag;
@@ -464,7 +464,7 @@ TPZSBMatrix::Redim(const int newDim ,const int)
 		fRow = fCol = newDim;
 		if ( fDiag != NULL )
 			delete( fDiag );
-		fDiag = new( REAL[Size()] );
+		fDiag = new REAL[Size()] ;
 		if ( fDiag == NULL )
 			TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>" );
     }
@@ -504,7 +504,7 @@ TPZSBMatrix::SetBand(const int newBand )
 	if ( fBand > (Dim() - 1) )
 		return( 0 );
 	
-	REAL *newDiag = new( REAL[Dim() * (newBand + 1)] );
+	REAL *newDiag = new REAL[Dim() * (newBand + 1)] ;
 	
 	// Copia os elementos antigos para a nova alocacao.
 	REAL *pNew = newDiag;
@@ -894,7 +894,7 @@ TPZSBMatrix::Copy(const TPZSBMatrix &A )
 {
 	fBand = A.fBand;
 	fRow = fCol = A.Dim();
-	fDiag = new( REAL[Size()] );
+	fDiag = new REAL[Size()] ;
 	fDecomposed  = A.fDecomposed;
 	fDefPositive = A.fDefPositive;
 	

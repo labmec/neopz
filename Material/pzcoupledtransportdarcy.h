@@ -161,9 +161,9 @@ public:
 	 * @brief Returns the solution associated with the var index based on
 	 * the finite element approximation
 	 */
-	virtual void Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
-		TPZDiscontinuousGalerkin::Solution(data,dataleft,dataright,var,Solout);
+		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
 	

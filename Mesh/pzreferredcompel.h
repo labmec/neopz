@@ -44,7 +44,7 @@ public:
 	~TPZReferredCompEl();
 	
 	/** @brief Set create function in TPZCompMesh to create elements of this type */
-	virtual void SetCreateFunctions();
+	virtual void SetCreateFunctions(TPZCompMesh *mesh);
 	
 	/** @brief Returns referred element of this */
 	TPZCompEl * ReferredElement();

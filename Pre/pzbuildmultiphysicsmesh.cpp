@@ -9,6 +9,7 @@
 
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"
+#include "pzmaterial.h"
 
 #include "TPZInterfaceEl.h"
 

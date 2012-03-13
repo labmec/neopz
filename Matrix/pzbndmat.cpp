@@ -48,7 +48,7 @@ TPZFBMatrix::TPZFBMatrix( int dim, int band_width )
 	fBand = band_width;
 	size  = dim * (2*fBand + 1);
 	if(size) {
-		fElem = new( REAL[ size ] );
+		fElem = new REAL[ size ] ;
 		if ( fElem == NULL ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 	} else {
 		fElem = NULL;
@@ -72,7 +72,7 @@ TPZFBMatrix::TPZFBMatrix (const TPZFBMatrix & A)
 	// Philippe 20/10/97
 	int size = A.Dim()*(2 * A.fBand + 1);
 	fBand = A.fBand;
-	fElem = new( REAL[ size ] );
+	fElem = new REAL[ size ] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -144,7 +144,7 @@ TPZFBMatrix::operator=(const TPZFBMatrix & A )
 	int oldsize = Dim()+2*fBand;
 	if(oldsize != size && fElem) delete [] fElem;
 	
-	if(oldsize != size && size) fElem = new( REAL[size] );
+	if(oldsize != size && size) fElem = new REAL[size] ;
 	else if(size == 0) fElem = 0;
 	if ( size && fElem == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
@@ -476,7 +476,7 @@ TPZFBMatrix::Resize(const int newRows,const int newCols)
 		return( 1 );
 	
 	int bandSize = 2 * fBand + 1;
-	REAL *newElem = new( REAL[ newRows * bandSize ] );
+	REAL *newElem = new REAL[ newRows * bandSize ] ;
 	if ( !newElem )
 		return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	
@@ -519,7 +519,7 @@ TPZFBMatrix::Redim(const int newRows,const int newCols )
 	
 	int size = newRows * (2 * fBand + 1);
 	if(size) {
-		fElem = new( REAL[ size ] );
+		fElem = new REAL[ size ] ;
 		if ( fElem == NULL ) TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	} else {
 		fElem = NULL;
@@ -562,7 +562,7 @@ TPZFBMatrix::SetBand( int newBand )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "SetBand <the band must be lower than the matrix dimension " );
 	
 	int newSize = Dim() * (2 * newBand + 1);
-	REAL *newElem = new( REAL[ newSize ] );
+	REAL *newElem = new REAL[ newSize ] ;
 	if ( newElem == NULL )
 		return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	

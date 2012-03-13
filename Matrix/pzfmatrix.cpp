@@ -97,7 +97,7 @@ TPZFMatrix::TPZFMatrix (const TPZFMatrix & A)
 : TPZMatrix( A.fRow, A.fCol ), fElem(0), fGiven(0), fSize(0) {
     int size = fRow * fCol;
     if(!size) return;
-    fElem = new( REAL[ size ] );
+    fElem = new REAL[ size ] ;
 #ifdef DEBUG2
     if ( size && fElem == NULL ) Error( "Constructor <memory allocation error>." );
 #endif
@@ -175,7 +175,7 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZFMatrix &A ) {
 	
 	REAL * newElem = fElem;
 	if(fSize < size && size != fRow*fCol) {
-		newElem = new( REAL[size] );
+		newElem = new REAL[size] ;
 	} else if (fSize >= size) {
 		newElem = fGiven;
 	}
@@ -719,7 +719,7 @@ TPZFMatrix &TPZFMatrix::operator=(const TPZMatrix &A ) {
 	fRow  =  arows;
 	fCol  = acols;
 	if(fSize < size) {
-		fElem = new( REAL[ arows * acols ] );
+		fElem = new REAL[ arows * acols ] ;
 	} else {
 		fElem = fGiven;
 	}
@@ -932,7 +932,7 @@ int TPZFMatrix::Resize(const int newRows,const int newCols) {
 		newElem = fGiven;
 	} else 
 	{
-		newElem = new( REAL[ newRows * newCols ] );
+		newElem = new REAL[ newRows * newCols ] ;
 	}
 	if ( newElem == NULL )
 		Error( "Resize <memory allocation error>." );
@@ -1646,7 +1646,7 @@ int TPZFMatrix::SetSize(const int newRows,const int newCols) {
 		fElem = fGiven;
 	} else 
 	{
-		fElem = new( REAL[ newRows * newCols ] );
+		fElem = new REAL[ newRows * newCols ] ;
 	}
 	if (newsize && fElem == NULL )
 		Error( "Resize <memory allocation error>." );

@@ -23,7 +23,7 @@
 #include <pthread.h>
 //#endif
 
-class TPZElementMatrix;
+struct TPZElementMatrix;
 
 class TPZMatrix;
 class TPZFMatrix;

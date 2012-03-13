@@ -195,7 +195,7 @@ protected:
 		
 	};
 	
-	friend class ThreadData;
+	friend struct ThreadData;
 protected:
 	
 	/**

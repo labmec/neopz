@@ -133,6 +133,11 @@ public:
 		this->fSide = index.Side();
 		this->fGeoEl = index.Element(mesh);
 	}//end of method
+    
+    TPZGeoElSide(int zero) : fGeoEl(0), fSide(-1)
+    {
+        
+    }
 	
 	TPZGeoEl *Element()const{return fGeoEl;}
 	

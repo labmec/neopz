@@ -62,7 +62,7 @@ public:
 		pos[Dim-1] = fIntP->Loc(iploc);
 		w *= fIntP->W(iploc);
     }
-    void SetOrder(TPZVec<int> &ord)
+    void SetOrder(TPZVec<int> &ord, int type = 0)
     {
 #ifndef NODEBUG
 		if(ord.NElements() < Dim) {
@@ -70,7 +70,7 @@ public:
 			return;
 		}
 #endif
-		TFather::SetOrder(ord);
+		TFather::SetOrder(ord,type);
 		fOrdKsi = ord[Dim-1];
 		fIntP   = gIntRuleList.GetRule(ord[Dim-1]);
     }

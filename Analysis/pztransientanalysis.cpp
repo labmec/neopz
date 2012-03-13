@@ -55,7 +55,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetInitialSolutionAsZero(){
 }
 
 template<class TRANSIENTCLASS>
-void TPZTransientAnalysis<TRANSIENTCLASS>::Run(std::ostream &out, bool FromBegining, bool linesearch){
+void TPZTransientAnalysis<TRANSIENTCLASS>::RunTransient(std::ostream &out, bool FromBegining, bool linesearch){
 	
 	this->SetImplicit();
 	

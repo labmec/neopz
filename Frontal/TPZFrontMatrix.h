@@ -77,7 +77,7 @@ public:
     /** Static main for testing */
 	static void main();
     /** @brief Prints a FrontMatrix object */
-	void Print(const char * name, std::ostream & out) const;
+	void Print(const char * name, std::ostream & out ,const MatrixOutputFormat form = EFormatted) const;
     /** @brief Simple Destructor */
     ~TPZFrontMatrix();
     /** @brief Simple Constructor */
@@ -89,7 +89,7 @@ public:
 	TPZFrontMatrix(int globalsize);
 	
 	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix(cp), fStorage(cp.fStorage),
-	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(fNumElConnectedBackup)
+	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
     {
     }
     

@@ -168,11 +168,7 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 {
-	TPZGeoMesh *gmesh;
-	
-	//	RefPatternMesh();
-	//TPZGeoMesh * gmesh = refp->Mesh();
-	PrintGMeshVTK(gmesh, file);
+    refp->PrintVTK(file);
 }
 const REAL Pi=4.*atan(1.);
 void SolveLU ( TPZAnalysis &an );

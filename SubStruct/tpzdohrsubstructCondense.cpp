@@ -62,7 +62,7 @@ void TPZDohrSubstructCondense::Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarsei
 	int j;
 	for (i=0;i<fCoarseNodes.NElements();i++) {
 		for (j=0;j<fCoarseNodes.NElements();j++) {
-			if (Kc.IsSimetric() && coarseindex[j] >= coarseindex[i] || !Kc.IsSimetric()) {
+			if ((Kc.IsSimetric() && coarseindex[j] >= coarseindex[i]) || !Kc.IsSimetric()) {
 				Kc(coarseindex[i],coarseindex[j]) += fKCi(i,j);				
 			}
 		}

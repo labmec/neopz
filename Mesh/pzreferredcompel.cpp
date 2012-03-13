@@ -215,13 +215,13 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
 }
 
 template <  >
-void TPZReferredCompEl< TPZCompElDisc >::SetCreateFunctions(){
-	this->Mesh()->SetAllCreateFunctionsDiscontinuousReferred();
+void TPZReferredCompEl< TPZCompElDisc >::SetCreateFunctions(TPZCompMesh *mesh){
+	mesh->SetAllCreateFunctionsDiscontinuousReferred();
 }
 
 template< class TCOMPEL >
-void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(){
-	this->Mesh()->SetAllCreateFunctionsContinuousReferred();
+void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(TPZCompMesh *mesh){
+	mesh->SetAllCreateFunctionsContinuousReferred();
 }
 
 template< class TCOMPEL >

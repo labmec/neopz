@@ -18,7 +18,7 @@
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
 
-class TPZElementMatrix;
+struct TPZElementMatrix;
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZEqnArray;

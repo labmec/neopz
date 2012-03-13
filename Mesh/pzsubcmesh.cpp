@@ -40,7 +40,7 @@ const int numel=1;
 static REAL angle = 0.2;
 
 /// Defining function force (external to material) \f$ F(x,y) = (0.5-y)seno(angle) + (x-0.5)[coseno(angle) - 1] \f$ \f$ (F = disp) \f$
-static void Forcing(TPZVec<REAL> &x, TPZVec<REAL> &disp){
+static void Forcing(const TPZVec<REAL> &x, TPZVec<REAL> &disp){
 	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
 	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);
 	disp[2] = 0.;
@@ -104,8 +104,8 @@ int TPZSubCompMesh::main() {
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
 	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
-    DebugStop();
-	//bnd->SetForcingFunction(Forcing);
+    
+	bnd->SetForcingFunction(new TPZDummyFunction(Forcing));
 	mesh.InsertMaterialObject(bnd);
 	
 	mesh.AutoBuild();
@@ -1017,7 +1017,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	
-	if(numThreads && 0){
+	if(numThreads > 0){
 		str = new TPZParSkylineStructMatrix(this,numThreads);
 		str->AssembleOnlyInternalEquations();
 	}

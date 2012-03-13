@@ -1488,7 +1488,7 @@ REAL TPZMatrix::ConditionNumber(int p, int numiter, REAL tol){
 }
 
 void TPZMatrix::Multiply(const TPZFMatrix &A, TPZFMatrix&B, int opt, int stride) const {
-	if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
+	if ((opt==0 && Cols()*stride != A.Rows()) || (opt ==1 && Rows()*stride != A.Rows()))
 		Error( "Multiply (TPZMatrix &,TPZMatrix&) <incompatible dimensions>" );
 	if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
 		B.Redim(Rows()*stride,A.Cols());

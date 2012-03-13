@@ -204,7 +204,8 @@ public:
 public:
 	virtual void ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol) const;
 	void ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol) const;
-	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol) const;
+	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data) const;
+    void ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol) const;
 	void ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol) const;
 	void ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out) const;
 	void PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction) const;

@@ -170,13 +170,13 @@ public:
     
     virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
 	
-	virtual void ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data);
+    void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
                                  const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
     /**   
 	 * @brief Compute the solution using Hdiv structure
 	 */
-	virtual void ComputeSolution(TPZMaterialData &data);
+	void ComputeSolutionHDiv(TPZMaterialData &data);
 	
 	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);

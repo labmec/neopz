@@ -798,7 +798,7 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 	TPZGeoElSide lowidneigh(gelside);
 	//if(!neighbour.Element()) return expandvec;
 	int lowid = gelside.Id();
-	int in, nneigh = neighbourset.NElements()-1;
+	int in = 0, nneigh = neighbourset.NElements()-1;
 	while(in < nneigh) {
 		TPZCompEl *ref = neighbourset[in].Reference().Element();
 		if(neighbourset[in].Id() < lowid && ref && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref)    )) {

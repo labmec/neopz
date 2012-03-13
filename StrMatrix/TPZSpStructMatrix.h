@@ -13,7 +13,7 @@
 #include "pzsubcmesh.h"
 #include "pzelmat.h"
 
-class TPZElementMatrix;
+struct TPZElementMatrix;
 class TPZCompMesh;
 class TPZFMatrix;
 class TPZMatrix;

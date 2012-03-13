@@ -706,11 +706,11 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 {
 	
 	// contributing face-based quantities
-	if (fConvFace == Implicit_TD && fContributionTime == Advanced_CT
+	if ((fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
 		||
-		fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT
+		(fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 		||
-		fConvFace == Explicit_TD && fContributionTime == Last_CT)
+		(fConvFace == Explicit_TD && fContributionTime == Last_CT))
 	{
 		ContributeExplConvFace(data.x,dataleft.sol[0],dataright.sol[0],weight,data.normal,dataleft.phi,dataright.phi,ef);
 	}
@@ -945,11 +945,11 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	TPZFMatrix phiR(0,0), dphiR(0,0);
 	int entropyFix;
 	
-	if(fConvFace == Implicit_TD && fContributionTime == Advanced_CT
+	if((fConvFace == Implicit_TD && fContributionTime == Advanced_CT)
 	   ||
-	   fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT
+	   (fConvFace == ApproxImplicit_TD && fContributionTime == Advanced_CT)
 	   ||
-	   fConvFace == Explicit_TD && fContributionTime == Last_CT)
+	   (fConvFace == Explicit_TD && fContributionTime == Last_CT))
 	{
 		ComputeGhostState(dataleft.sol[0], solR, data.normal, bc, entropyFix);
 		

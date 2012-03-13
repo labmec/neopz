@@ -550,6 +550,11 @@ public:
 	 * @param side index of the side
 	 */
 	TPZCompElSide(TPZCompEl *cel,int side);
+    
+    /// constructor which allows us to create a vector of objects
+    TPZCompElSide(int zero) : fEl(0), fSide(-1)
+    {
+    }
 	
 	/** @brief Gives a pointer to the reference computational element */
 	TPZCompEl *Element() const {return fEl;}

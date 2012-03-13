@@ -199,7 +199,7 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontM
 }
 
 template<class store, class front>
-void TPZFrontMatrix<store, front>::Print(const char *name, std::ostream& out) const
+void TPZFrontMatrix<store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
 	int i;
 	out << "Frontal Matrix associated"<< endl;

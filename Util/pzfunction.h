@@ -145,14 +145,12 @@ public:
 	virtual void Write(TPZStream &buf, int withclassid)
     {
         DebugStop();
-        return -1;
     }
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context)
     {
         DebugStop();
-        return -1;
     }
 
     

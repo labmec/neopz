@@ -1512,7 +1512,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 //		this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		this->NeighbourSolution(this->LeftElementSide(), intpoint, datal.sol, datal.dsol, datal.axes);
 		this->NeighbourSolution(this->RightElementSide(), intpoint, datar.sol, datar.dsol, datar.axes);
-		discgal->Solution(data, datal, datar, variable, locval);
+		discgal->SolutionDisc(data, datal, datar, variable, locval);
 		for(iv = 0; iv < varsize; iv++){
 			value[iv] += locval[iv]*weight;
 		}//for iv

@@ -59,7 +59,7 @@ public:
 	/** 
 	 * @brief Executes a Newton's method for the solution of the implicit in time equation 
 	 */
-	virtual void Run(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
+	virtual void RunTransient(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
 	
 	/** 
 	 * @brief Solves a explicit Euler's scheme in time

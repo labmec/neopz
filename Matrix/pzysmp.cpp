@@ -900,7 +900,7 @@ int TPZFYsmpMatrix::Decompose_LU()
 	{
 		//    int firstcol = fIA[row];
 		int lastcol = fIA[row+1];
-		int colind;
+		int colind = 0;
 		if(fJA[lastcol-1] < row) continue;
 		while(fJA[colind] < row)
 		{

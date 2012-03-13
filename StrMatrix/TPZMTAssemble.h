@@ -15,7 +15,7 @@ class TPZCompMesh;
 class TPZMatrix;
 class TPZFMatrix;
 class TPZCompEl;
-class TPZElementMatrix;
+struct TPZElementMatrix;
 
 /** 
  * @ingroup structural

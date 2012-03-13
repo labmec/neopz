@@ -86,7 +86,7 @@ T TPZStack<T, NumExtAlloc>::Pop() {
 		this->fNElements = 0;
 		PZError << "TPZStack popping beyond the stack object" << std::endl;
 		PZError.flush();
-		T temp;
+		T temp(0);
 		return temp;
 	}
 	return this->fStore[this->fNElements];

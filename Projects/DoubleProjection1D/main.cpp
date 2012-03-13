@@ -553,11 +553,7 @@ void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
 
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 {
-	TPZGeoMesh *gmesh;
-	
-	//    RefPatternMesh();
-	//TPZGeoMesh * gmesh = refp->Mesh();
-	PrintGMeshVTK(gmesh, file);
+    refp->PrintVTK(file);
 }
 
 void GeoElMultiphysicVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &geoelVec){

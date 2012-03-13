@@ -539,7 +539,7 @@ void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
         TPZVec<REAL> NodeCoord(3);
         TPZVec<int> Topol(1);
         
-        int elId;
+        int elId = 0;
         
         Topol[0] = gel->NodeIndex(nd);
         

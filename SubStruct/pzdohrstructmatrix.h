@@ -123,7 +123,7 @@ private:
 	/** @brief Mutexes (to choose which submesh is next) */
 	pthread_mutex_t fAccessElement;
 	
-	friend class ThreadDohrmanAssembly;
+	friend struct ThreadDohrmanAssembly;
 	
 };
 

@@ -834,15 +834,15 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
 	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
 	
 	
-	this->ComputeSolution(data);
+	this->ComputeSolutionHDiv(data);
 	this->Material()->Solution(data,var,sol);
     
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data){
+void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data){
 	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
-    this->ComputeSolution(data);
+    this->ComputeSolutionHDiv(data);
 	
     
 }
@@ -852,7 +852,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, 
                                             const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     TPZMaterialData data;
     InitMaterialData(data);
-    this->ComputeSolution(data);
+    this->ComputeSolutionHDiv(data);
 	
     
 }
@@ -880,7 +880,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZMaterialData &data){
+void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
 	//const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();

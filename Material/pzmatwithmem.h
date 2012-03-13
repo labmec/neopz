@@ -45,7 +45,7 @@ public:
 	virtual std::string Name() { return "TPZMatWithMem< >"; }
 	
 	/** @brief Prints out the data associated with the material */
-	virtual void Print(std::ostream &out = std::cout, const int memory = 0);
+	virtual void PrintMem(std::ostream &out = std::cout, const int memory = 0);
 	
 	virtual TMEM & MemItem(const int i);
 	
@@ -103,10 +103,10 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM,TFather>::~TPZMatWithMem(){ }
 
 template <>
-inline void TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::Print(std::ostream &out, const int memory)
+inline void TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::PrintMem(std::ostream &out, const int memory)
 {
 	
-    out << "\nTPZMatWithMem<TPZFMatrix,TPZViscoelastic> Material\n";
+    out << "\nTPZMatWithMem<TPZFMatrix,TPZElasticity3D> Material\n";
     out << "\n fDefaultMem = \n" << fDefaultMem;
     out << "\n fUpdateMem = " << fUpdateMem;
     int i, size = fMemory.NElements();
@@ -120,12 +120,12 @@ inline void TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::Print(std::ostream &out, 
             fMemory[i].Print("visc",out);
         }
     }
-    out << "\nEnd of TPZMatWithMem<TPZFMatrix,TPZViscoelastic >::Print\n";
+    out << "\nEnd of TPZMatWithMem<TPZFMatrix,TPZElasticity3D >::Print\n";
     TPZElasticity3D::Print(out);
 }
 
 template <class TMEM, class TFather>
-void TPZMatWithMem<TMEM,TFather>::Print(std::ostream &out, const int memory)
+void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
 {
 	TMEM fooMEM;
 	//out << "\nTPZMatWithMem< " << fooMEM.Name() << " > Material\n";

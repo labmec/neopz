@@ -35,7 +35,7 @@ using namespace std;
 TPZSFMatrix::TPZSFMatrix(const int dim )
 : TPZMatrix( dim, dim )
 {
-	fElem = new( REAL[ Size() ] );
+	fElem = new REAL[ Size() ] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -50,7 +50,7 @@ TPZSFMatrix::TPZSFMatrix(const int dim )
 TPZSFMatrix::TPZSFMatrix (const TPZSFMatrix & A)
 : TPZMatrix( A.Dim(), A.Dim() )
 {
-	fElem = new( REAL[Size()] );
+	fElem = new REAL[Size()] ;
 	if ( fElem == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 	
@@ -70,7 +70,7 @@ TPZSFMatrix::TPZSFMatrix (const TPZSFMatrix & A)
 TPZSFMatrix::TPZSFMatrix(const  TPZMatrix &A )
 : TPZMatrix( A )
 {
-	fElem = new( REAL[Size()] );
+	fElem = new REAL[Size()] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -107,7 +107,7 @@ TPZSFMatrix::operator=(const TPZSFMatrix &A )
     {
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new( REAL[ A.Size() ] );
+		fElem = new REAL[ A.Size() ] ;
 		if ( fElem == NULL )
 			TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
     }
@@ -231,7 +231,7 @@ TPZSFMatrix::operator=(const TPZMatrix &A )
     {
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new( REAL[ size ] );
+		fElem = new REAL[ size ] ;
     }
 	
 	// Copia a matriz.
@@ -434,7 +434,7 @@ TPZSFMatrix::Resize( int newDim , int )
 	
 	int newSize = newDim * (newDim + 1) / 2;
 	int oldSize = Size();
-	REAL *newElem = new( REAL[newSize] );
+	REAL *newElem = new REAL[newSize] ;
 	if ( newElem == NULL )
 		return TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	
@@ -475,7 +475,7 @@ TPZSFMatrix::Redim( int newDim , int)
 		fRow = fCol = newDim;
 		if ( fElem != NULL )
 			delete( fElem );
-		fElem = new( REAL[Size()] );
+		fElem = new REAL[Size()] ;
     }
 	
 	// Zera a matriz.

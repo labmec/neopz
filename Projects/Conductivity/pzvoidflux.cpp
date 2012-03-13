@@ -283,9 +283,9 @@ int TPZVoidFlux::NSolutionVariables(int var)
 
 /**returns the solution associated with the var index based on
  * the finite element approximation*/
-void TPZVoidFlux::Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+void TPZVoidFlux::SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 {
-    return TPZDiscontinuousGalerkin::Solution(data, dataleft, dataright, var , Solout);
+    return TPZDiscontinuousGalerkin::SolutionDisc(data, dataleft, dataright, var , Solout);
 }
 
 /**

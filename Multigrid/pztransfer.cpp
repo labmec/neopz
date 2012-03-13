@@ -296,9 +296,10 @@ void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
 
 void TPZTransfer::Multiply(const TPZFMatrix &A, TPZFMatrix &B,const int opt,
 						   const int stride) const {
-	if (opt==0 && Cols()*stride != A.Rows() || opt ==1 && Rows()*stride != A.Rows())
+	if ((opt==0 && Cols()*stride != A.Rows()) || (opt ==1 && Rows()*stride != A.Rows()))
+    {
 		Error( "TPZTransfer::Multiply incompatible dimensions" );
-	
+	}
 	if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
 		B.Redim(Rows()*stride,A.Cols());
 	}

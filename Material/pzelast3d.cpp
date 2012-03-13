@@ -570,9 +570,13 @@ void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol) 
 	Strain(2,2) = DSol(2,2);
 }
 
-void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &DSol) const{
+void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data) const{
+    ComputeStressTensor(Stress, data.dsol[0]);
+}
+
+void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &dsol) const{
 	TPZFNMatrix<6> Vec(6,1);
-	this->ComputeStressVector(Vec, DSol);
+	this->ComputeStressVector(Vec, dsol);
 	
 	Stress.Redim(3,3);
 	Stress(0,0) = Vec(0,0);

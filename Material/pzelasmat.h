@@ -95,7 +95,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
@@ -114,9 +114,9 @@ protected:
 public:
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
-		TPZDiscontinuousGalerkin::Solution(data,dataleft,dataright,var,Solout);
+		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
