@@ -333,6 +333,16 @@ protected:
 	* @param [in] epsTotal Imposed total strain tensor
     */
     virtual void ProcessStrain(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
+    
+    
+    /**
+     * Imposes the specified strain tensor and performs plastic integration when necessary.
+     * This function DO NOT calls PlasticIntegrate
+     * @param [in] epsTotal Imposed total strain tensor
+     */
+    virtual void ProcessStrainNoSubIncrement(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
+    
+    
 	
     /**
     * Imposes the specified stress tensor and performs plastic integration when necessary.

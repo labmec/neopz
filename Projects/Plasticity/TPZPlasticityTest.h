@@ -248,7 +248,7 @@ inline void SandlerDimaggioIsotropicCompression()//
     
     TPZSandlerDimaggio SD;
     
-    cout << "\n Put the value of strain you want to add in each step of your loat test: ";
+    cout << "\n Put the value of strain you want to add in each step of your loat test: (sugg.0.0001) ";
     REAL straininput;
     cin >> straininput;
     deltastrain.XX() = -straininput;
@@ -268,7 +268,7 @@ inline void SandlerDimaggioIsotropicCompression()//
     int choice;
     cin >> choice;
     
-    cout << "\n Put the numbers of steps you want: ";
+    cout << "\n Put the numbers of steps you want: (sugg. 20)";
     int length;
     cin >> length;
     
@@ -348,38 +348,50 @@ inline void SandlerDimaggioIsotropicCompression()//
         }    
         case(5):
         {
-            cout<< "\n Young Modulus ";
+            
+//            REAL E = 9000, 
+//            poisson = 0.25;
+//            
+//            material.fER.SetUp(E, poisson);
+//            
+//            REAL A = 18, 
+//            B = 0.0245, 
+//            C = 17.7, 
+//            D = 0.00735, 
+//            R = 1.5,
+//            W = 0.0908;
+            cout<< "\n Young Modulus 9000.";
             REAL E; 
             cin >> E;
             
-            cout<< "\n poisson ";
+            cout<< "\n poisson 0.25 ";
             REAL poisson;
             cin >> poisson;
             
             
             SD.fER.SetUp(E, poisson);
             
-            cout<< "\n A "; 
+            cout<< "\n A (sugg.18)"; 
             REAL A;
             cin >> A;
             
-            cout << "\n B ";
+            cout << "\n B (sugg. 0.0245) ";
             REAL B;
             cin >> B;
             
-            cout << "\n C ";
+            cout << "\n C (sugg. 17.7) ";
             REAL C;
             cin >> C;
             
-            cout << "\n D ";
+            cout << "\n D (sugg.0.00735) ";
             REAL D;
             cin >> D;
             
-            cout << "\n R ";
+            cout << "\n R (sugg. 1.5) ";
             REAL R;
             cin >> R;
             
-            cout << "\n W ";
+            cout << "\n W (sugg. 0.0908) ";
             REAL W;
             cin >> W;
             
@@ -447,7 +459,7 @@ inline void LKIsotropicCompression()
     TPZTensor<REAL> stress, strain, deltastress, deltastrain;
     TPZFNMatrix<6*6> Dep(6,6,0.);
     
-    cout << "\n Put the value of strain you want to add in each step of your loat test: ";
+    cout << "\n Put the value of strain you want to add in each step of your loat test: (sugg. 0.0001) ";
     REAL straininput;
     cin >> straininput;
     
@@ -468,7 +480,7 @@ inline void LKIsotropicCompression()
     int choice;
     cin >> choice;
     
-    cout << "\n Put the numbers of steps you want: ";
+    cout << "\n Put the numbers of steps you want:(sugg. 20)";
     int length;
     cin >> length;
     
@@ -532,60 +544,60 @@ inline void LKIsotropicCompression()
         }
         case(4):
         {
-            cout << "\n poisson ";
+            cout << "\n poisson (sugg. 0.18)";
             REAL poisson;// = 0.18;
             cin>>poisson; 
             
-            cout << "\n M ";
+            cout << "\n M (sugg. 361800.)";
             REAL M;//       = 361800.;
             cin >> M;
             
-            cout << "\nlambda";
+            cout << "\nlambda (sugg. 0.)";
             REAL lambda;//  = 0.;
             cin >> lambda;
             
-            cout << "\n a";
+            cout << "\n a (sugg. 28.5)";
             REAL a;//       = 28.5;
             cin >> a;
             
-            cout << "\n m";
+            cout << "\n m (sugg. 1.113)";
             REAL m;//       = 1.113;
             cin >> m;
             
-            cout << "\n neta1";
+            cout << "\n neta1 (sugg. 159800.)";
             REAL neta1;//   = 159800.;
             cin >> neta1;
             
-            cout << "\n ksi2";
+            cout << "\n ksi2 (sugg. -2.92)";
             REAL ksi2; //   = -2.92;
             cin >> ksi2;
             
-            cout << "\n mu ";
+            cout << "\n mu (sugg. 5.06)";
             REAL mu;//     = 5.06;
             cin >> mu;
             
-            cout << "\n C";
+            cout << "\n C (sugg. 0.712E-12)";
             REAL C;//       = 0.712E-12;
             cin >> C;
             
-            cout << "\n p ";
+            cout << "\n p (sugg. 3.8)";
             REAL p;//       = 3.8;
             cin >> p;
             
-            cout <<"\n h";
+            cout <<"\n h (sugg. 1.990) ";
             REAL h;//       = 1.990;
             cin >> h;
             
-            cout << "\n alpha";
+            cout << "\n alpha (sugg. 0.75) ";
             REAL alpha;//   = 0.75;
             cin >> alpha;
             
-            cout << "\n pa";
+            cout << "\n pa (sugg. 14.7) ";
             REAL pa;//      = 14.7;
             cin >> pa;
             
             REAL restol;
-            cout << "\n Tolerance";
+            cout << "\n Tolerance (sugg. 0.0001) ";
             cin >> restol;
             
             LK2.fResTol = restol;
@@ -792,7 +804,7 @@ inline void DruckerIsotropicCompression()
 {
     TPZDruckerPrager DP;
     ofstream outfiletxt("DruckerPragerIsotropicCompression.txt");
-    cout << "\n Put the value of strain you want to add in each step of your loat test: ";
+    cout << "\n Put the value of strain you want to add in each step of your loat test: (sugg. 0.0001)";
     REAL straininput;
     cin >> straininput;
     TPZFNMatrix<6*6> Dep(6,6,0.);
@@ -807,16 +819,16 @@ inline void DruckerIsotropicCompression()
     
     cout << "\n4 - Put the material parameters you want";
     
-    cout << "\n Young modulus ";
+    cout << "\n Young modulus (sugg. 20000.)";
     REAL E;
     cin >> E;
     
-    cout << "\n Poisson";
+    cout << "\n Poisson (sugg. 0.2)";
     REAL poisson;
     cin >> poisson;
     
     int mcfit;
-    cout << "\n choose 0 for Iner Morh-Coulomb fit or 1 for outer Morh-Coulomb Fit ";
+    cout << "\n choose 0 for Iner Morh-Coulomb fit or 1 for outer Morh-Coulomb Fit (sugg. 0) ";
     cin >> mcfit;
     
     if(mcfit!= 0 || mcfit!= 1)
@@ -826,15 +838,15 @@ inline void DruckerIsotropicCompression()
     }
     
     REAL phi;
-    cout << "\n Type the internal frictional angle";
+    cout << "\n Type the internal frictional angle in degrees(sugg. 20.)";
     cin >> phi;
     
     REAL c;
-    cout << "\n Type the material coesion ";
+    cout << "\n Type the material coesion (sugg. 9.)";
     cin >> c;
     
     REAL h;
-    cout << "\n Type the material hardening modulus ";
+    cout << "\n Type the material hardening modulus (sugg. 1000.)";
     cin >> h;
     
     DP.fYC.SetUp(phi/180. *M_PI ,mcfit);
@@ -886,7 +898,7 @@ inline void LKBiaxialTest()
     int choice;
     cin >> choice;
     
-    cout << "\n Put the numbers of steps you want: ";
+    cout << "\n Put the numbers of steps you want: (sugg. 20)";
     int length;
     cin >> length;
     
@@ -962,60 +974,60 @@ inline void LKBiaxialTest()
         }
         case(4):
         {
-            cout << "\n poisson ";
+            cout << "\n poisson (sugg. 0.18)";
             REAL poisson;// = 0.18;
             cin>>poisson; 
             
-            cout << "\n M ";
+            cout << "\n M (sugg. 361800.)";
             REAL M;//       = 361800.;
             cin >> M;
             
-            cout << "\nlambda";
+            cout << "\nlambda (sugg. 0.)";
             REAL lambda;//  = 0.;
             cin >> lambda;
             
-            cout << "\n a";
+            cout << "\n a (sugg. 28.5)";
             REAL a;//       = 28.5;
             cin >> a;
             
-            cout << "\n m";
+            cout << "\n m (sugg. 1.113)";
             REAL m;//       = 1.113;
             cin >> m;
             
-            cout << "\n neta1";
+            cout << "\n neta1 (sugg. 159800.)";
             REAL neta1;//   = 159800.;
             cin >> neta1;
             
-            cout << "\n ksi2";
+            cout << "\n ksi2 (sugg. -2.92)";
             REAL ksi2; //   = -2.92;
             cin >> ksi2;
             
-            cout << "\n mu ";
+            cout << "\n mu (sugg. 5.06)";
             REAL mu;//     = 5.06;
             cin >> mu;
             
-            cout << "\n C";
+            cout << "\n C (sugg. 0.712E-12)";
             REAL C;//       = 0.712E-12;
             cin >> C;
             
-            cout << "\n p ";
+            cout << "\n p (sugg. 3.8)";
             REAL p;//       = 3.8;
             cin >> p;
             
-            cout <<"\n h";
+            cout <<"\n h (sugg. 1.990) ";
             REAL h;//       = 1.990;
             cin >> h;
             
-            cout << "\n alpha";
+            cout << "\n alpha (sugg. 0.75) ";
             REAL alpha;//   = 0.75;
             cin >> alpha;
             
-            cout << "\n pa";
+            cout << "\n pa (sugg. 14.7) ";
             REAL pa;//      = 14.7;
             cin >> pa;
             
             REAL restol;
-            cout << "\n Tolerance";
+            cout << "\n Tolerance (sugg. 0.0001) ";
             cin >> restol;
             
             LK2.fResTol = restol;

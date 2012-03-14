@@ -1061,13 +1061,17 @@ void MaterialPointTests()
 int main()
 {
     //InitializeLOG();
-    
+  //  LKIsotropicCompression();
+  //  SandlerDimaggioIsotropicCompression();
+  //   DruckerIsotropicCompression();
+   // LKBiaxialTest();
     
     cout << "\nPlease enter test type:";
     cout << "\n0 Material Point test ";
     cout << "\n1 Finite Elements test ";
     
     int testnum;
+   // testnum =3;
     cin >> testnum;
     
     switch (testnum) {

@@ -271,7 +271,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
     }
 #endif
 	
-	ProcessStrain(epsTotal);
+    
+    ProcessStrainNoSubIncrement(epsTotal);
+//	ProcessStrain(epsTotal);
 	
 	int n = fPlasticMem.NElements();
 	
@@ -398,6 +400,95 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
     PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
 	  
 }
+
+
+
+template <class YC_t, class TF_t, class ER_t>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep)
+{
+#ifdef LOG4CXX_PLASTICITY
+    {
+        std::stringstream sout1;
+        sout1 << ">>> ProcessStrain ***";
+        sout1 << ">>> EElastoPlastic ***" << ep;
+        LOGPZ_INFO(logger,sout1.str().c_str());
+    }
+#endif
+    
+    //    
+    REAL yieldMultipl = 0;
+    
+    fPlasticMem.Resize(0);
+    PushPlasticMem(fN, 0. /*k*/,0. /*lambda*/,TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,0 /*forceYield*/);
+    
+    TPZPlasticState<REAL> stateAtYield(fN),Np1(fN); // Np1 state with fN guesses
+    
+    Np1.fEpsT = epsTotal;
+    
+    bool elastic = true;
+    
+    if( ep == EForceElastic)
+    {
+        elastic = true;
+    }
+    
+    if( ep == EForcePlastic)
+    {
+        elastic = false;
+    }
+    
+    if( ep == EAuto ) 
+    {
+        elastic = IsStrainElastic(Np1) == 1;
+    }
+    
+    if(elastic)
+    {
+        PushPlasticMem(Np1,1. /*k*/,0. /*lambda unused - elastic state*/,TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
+                       TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,0 /*forceYield*/);
+        return;
+    }    
+    
+    // Plastic Integration needed
+    //else
+    //{
+    yieldMultipl = FindPointAtYield(Np1.EpsT(), stateAtYield);
+    
+    PushPlasticMem(stateAtYield,yieldMultipl /*k*/,0. /*lambda unused - elastic state*/,TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
+                   TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,0 /*forceYield*/);
+    
+    REAL multipl = 0.99;
+    TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
+    DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
+    Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
+    
+    ///*********///////**********//////////****************************************************************************************************************
+    
+    
+    int succeeded;
+    
+    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
+    TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+    
+    REAL normEpsPErr = 0.;
+    REAL lambda = 0.;
+    
+    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+    
+    REAL TolEpsPErr = 0.00000001;
+    
+    if(normEpsPErr < TolEpsPErr && succeeded)
+    {
+        //        cout << "PLASTIC LOOP CONVERGED " << succeeded << endl;    
+        PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+        return; 
+    }
+    cout << "PLASTIC LOOP NOT ACHIEVED THE REQUIRED TOL " << succeeded << endl;
+    PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+    
+}
+
+
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal,
@@ -2038,7 +2129,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 //	ApplyStrainComputeDep(epsTotal, EEpsilon, Dep_mat);
 	
 	
-	    ProcessStrain(epsTotal, EAuto);//, ep);TESTE
+    
+    ProcessStrainNoSubIncrement(epsTotal, EAuto);
+    
+//	    ProcessStrain(epsTotal, EAuto);//, ep);TESTE
 		//ProcessStrain(epsTotal, ep);
 		ComputeDep(EEpsilon, Dep_mat);
 	
@@ -2086,7 +2180,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		
 		
 		//TESTE
-		ProcessStrain(epsTotal,ep);
+        
+        ProcessStrainNoSubIncrement(epsTotal, ep);
+//		ProcessStrain(epsTotal,ep);
 		ComputeDep(EEpsilon,Dep_mat);
 		
 		
