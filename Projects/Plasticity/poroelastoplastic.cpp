@@ -30,7 +30,7 @@
 
 #include "TPZDruckerPrager.h"
 
-#include "TPZPlasticityTest.h"
+//#include "TPZPlasticityTest.h"
 #include "pzlog.h"
 #include "TPZYCMohrCoulomb.h"
 #include "TPZYCWillamWarnke.h"
@@ -234,7 +234,7 @@ int main28(int argc, char * const argv[])
 	
 	//	TPZPlasticTest::VonMisesTest();
 	//	TPZPlasticTest::DruckerTest();
-	TPZPlasticTest::MohrCoulombTest();
+	//TPZPlasticTest::MohrCoulombTest();
 //	TPZPlasticTest::WillamWarnkeTest();
 	
     return 0;
@@ -361,7 +361,7 @@ void CheckConvTests(int a)
 	
 	TPZYCWillamWarnke WW;
 	TPZYCMohrCoulomb  MC;
-	TPZYCModifiedMohrCoulomb MMC;
+//	TPZYCModifiedMohrCoulomb MMC;
 	//	TPZYCVonMises  VM;
 	TPZFNMatrix<6> input(6,1), Range(6,1);
 	input(_XX_) = -2;
@@ -372,90 +372,7 @@ void CheckConvTests(int a)
 	input(_YZ_) =  0.;
 	Range = input * (1./19.);
 	TPZVec< REAL > Coefs(1,1.);
-//	CheckConvergence(MC, input, Range, Coefs);
-//	CheckConvergence(WW, input, Range, Coefs);
-	CheckConvergence(MMC, input, Range, Coefs);
-	/*
-	 
-	 TPZYCWillamWarnke WW;
-	 TPZFNMatrix<6> input(6,1), Range(6,1);
-	 input(_XX_) = 40;
-	 input(_YY_) = 20.;
-	 input(_ZZ_) = 10.;
-	 input(_XY_) = 45.;
-	 input(_XZ_) = 60.;
-	 input(_YZ_) = 50.;
-	 Range = input * (1./19.);
-	 TPZVec< REAL > Coefs(1,1.);
-	 CheckConvergence(WW, input, Range, Coefs);
-	 */
-	
-	//copyy.XX() = -30.;
-	//	copyy.YY() = -60.;
-	//	copyy.ZZ() = -1200.;
-	//	copyy.XY() = 100.;
-	//	copyy.XZ() = 10.;
-	//	copyy.YZ() = 40.;
-	/*
-	 TPZTensor<REAL> copyy,dj2,dj3,s;
-	 REAL j2,j3,i1;
-	 copyy.XX() = 40.;
-	 copyy.YY() = 20.;
-	 copyy.ZZ() = 10.;
-	 copyy.XY() = 45.;
-	 copyy.XZ() = 60.;
-	 copyy.YZ() = 50.;
-	 
-	 j2 = copyy.J2();
-	 j3 = copyy.J3();
-	 copyy.dJ2(dj2);
-	 copyy.dJ3(dj3);
-	 copyy.S(s);
-	 i1 = copyy.I1();
-	 
-	 cout << " i1 " << endl;
-	 cout << i1 << endl;
-	 cout << " J2 " << endl;
-	 cout << j2 << endl;
-	 cout << " J3 " << endl;
-	 cout << j3 << endl;
-	 cout << " dJ2 " << endl;
-	 cout << dj2 << endl;
-	 cout << " dJ3 " << endl;
-	 cout << dj3 << endl;
-	 cout << " S " << endl;
-	 cout << s << endl;
-	 
-	 TPZTensor<REAL> eigenval,dSigma1,dSigma2,dSigma3,derivLode;
-	 copyy.EigenValue(eigenval, dSigma1, dSigma2, dSigma3);
-	 cout << " eigenval " << endl;
-	 cout << eigenval << endl;
-	 cout << " dSigma1 " << endl;
-	 cout << dSigma1 << endl;
-	 cout << " dSigma2 " << endl;
-	 cout << dSigma2 << endl;
-	 cout << " dSigma3 " << endl;
-	 cout << dSigma3 << endl;
-	 cout << "\n**********************\n";
-	 copyy.Eigenvalue(eigenval, dSigma1, dSigma2, dSigma3);
-	 cout << " eigenval2 " << endl;
-	 cout << eigenval << endl;
-	 cout << " dSigma12 " << endl;
-	 cout << dSigma1 << endl;
-	 cout << " dSigma22" << endl;
-	 cout << dSigma2 << endl;
-	 cout << " dSigma32 " << endl;
-	 cout << dSigma3 << endl;
-	 
-	 TPZTensor<REAL> gradlode;
-	 REAL lode;
-	 copyy.Lodeangle(gradlode,lode, dj2, dj3, i1, j2, j3);
-	 cout << " gradlode " << endl;
-	 cout << gradlode << endl;
-	 cout << " lode " << endl;
-	 cout << lode << endl;
-	 */
-	
+//	CheckConvergence(MMC, input, Range, Coefs);
 	
 	//StressAtPoint.DruckerPragerTest();
 }
