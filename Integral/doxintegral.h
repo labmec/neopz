@@ -5,11 +5,15 @@
 
 /** 
  * @defgroup integral The Numerical Integration classes.
- * @brief Defines integration rules for lines, quadrilaterals, triangles, \n
+ * @brief Defines integration rules for lines, quadrilaterals, triangles,
  * cubes, tetrahedra, pyramids and prisms.
  * 
  * Allow the user to define the order of the polynomial, the rule should be able to integrate exactly.
+ *
+ * All the computations into this module use and return long double values. Because the precision of the points and weights will be right and are independent of the 
+ * typedef REAL definition.
  */
+
 /**
  \page numinteg Over numeric integration
  
