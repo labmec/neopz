@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZCheckRestraint methods.
  */
-//$Id: pzcheckrestraint.cpp,v 1.11 2007-11-29 18:20:56 phil Exp $
 
 #include "pzcheckrestraint.h"
 #include "pzintel.h"
@@ -17,44 +16,56 @@
 using namespace std;
 
 TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
-	
+	// Stores the small computational element with commom side
 	fSmall = small;
+	// Gets one element in lower level than small
 	fLarge = small.LowerLevelElementList(1);
+	// Checking whether element in lower level is neighbour than large element with commom side
 	if (!large.Reference().NeighbourExists(fLarge.Reference())) {
 		cout << "TPZCheckRestraint created for a wrong large  element\n";
 	}
+	// Stores large element with commom side
 	fLarge = large;
     
+	// The small element as interpolate element
 	TPZInterpolatedElement *smallel = dynamic_cast<TPZInterpolatedElement *> (small.Element());
+	// Gets the number of shape functions for small element over the commom side
 	int smallsize = smallel->NSideShapeF(fSmall.Side());
+	// Gets the number of connects over the commom side for small element
 	int nsmallconnect = smallel->NSideConnects(fSmall.Side());
 	int smallside = fSmall.Side();
+
+	// The large element as interpolate element
 	TPZInterpolatedElement *largel = dynamic_cast<TPZInterpolatedElement *> (fLarge.Element());
 	if(!largel) {
 		cout << "TPZCheckRestraint created for an element/side without restraint\n";
 		largel = smallel;
 		fLarge = fSmall;
 	}
+	// Gets the number of shape functions for large element over the commom side
 	int largesize = largel->NSideShapeF(fLarge.Side());
+	// Gets the number of connects over the commom side for large element
 	int nlargeconnect = largel->NSideConnects(fLarge.Side());
 	int largeside = fLarge.Side();
+	
+	// Redimensioning of restraint matrix
 	fRestraint.Redim(smallsize,largesize);
 	fMesh = smallel->Mesh();
 	int nmat = fMesh->MaterialVec().size();  
 	int nstate = 1;
-	if(nmat) 
-	{
+	if(nmat) {
 		std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit = fMesh->MaterialVec().begin();
 		nstate = mit->second->NStateVariables();
 	}
+
 	fSmallSize.Resize(nsmallconnect);
 	fSmallPos.Resize(nsmallconnect);
 	fSmallConnect.Resize(nsmallconnect);
 	fLargeSize.Resize(nlargeconnect);
 	fLargePos.Resize(nlargeconnect);
 	fLargeConnect.Resize(nlargeconnect);
-	int ic,nc;
-	nc = nsmallconnect;
+	int ic;
+	int nc = nsmallconnect;
 	if(nc) fSmallPos[0] = 0;
 	for(ic=0; ic<nc; ic++) {
 		int connect = smallel->SideConnectLocId(ic,smallside);
@@ -303,8 +314,6 @@ void TPZCheckRestraint::Print(ostream &out){
 
 void TPZCheckRestraint::Diagnose() {
 	
-	
-	//  TPZGeoMesh *gmesh = fMesh->Reference();
 	TPZCheckGeom chkgeo;
 	chkgeo.CheckSubFatherTransform(fSmall.Element()->Reference(),fSmall.Side());
 	chkgeo.CheckRefinement(fSmall.Element()->Reference()->Father());
