@@ -136,7 +136,7 @@ public:
 	enum {Dim = 2};
 	/**
 	 * @brief Constructor with two one dimensional rules.
-	 * @param OrdK Order for \f$ \ksi \f$ axe
+	 * @param OrdK Order for \f$ \xi \f$ axe
 	 * @param OrdE Order for \f$ \eta \f$ axe at master element.
 	 */
 	TPZIntQuad(int OrdK = 2,int OrdE = 2);
@@ -193,7 +193,7 @@ public:
 	enum {Dim = 3};
 	/**
 	 * @brief Constructor with three one dimensional rules.
-	 * @param OrdK Order for \f$ \ksi \f$ axe
+	 * @param OrdK Order for \f$ \xi \f$ axe
 	 * @param OrdE Order for \f$ \eta \f$ axe
 	 * @param OrdZ Order for \f$ \zeta \f$ axe at master element.
 	 */
