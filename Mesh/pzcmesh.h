@@ -628,15 +628,26 @@ public:
 	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
 					   TPZVec<REAL> &errorSum);
 	
-	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */
-	/** 
-	 * It may be compared the following values to eps:
-	 * int val = 0: \f$ \sqrt [ \int [ (leftsol - rightsol)^2 ] ] \f$
-	 * int val = 1: \f$ Max[ Abs[ leftsol - rightsol ] ] \f$
+	/**
+	 * @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. 
+	 *
+	 * It may be compared the following values to eps: \n
+	 * If \f$ opt = 0 \f$ then  \f$ eps \approx \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
+	 * If \f$ opt = 1 \f$ then \f$ eps \approx Max{ \| leftsol - rightsol } \| \f$
+	 *
+	 * @param eps Tolerancy of the jump to cancel and to convert discontinuous element in continuous
+	 * @param opt Option by type of norm (\f$ L_2 \f$ norm or \f$ L \infty \f$ norm).
+	 * @param dim Dimension of the working discontinuous elements
+	 * @param celJumps Vector to store the diference between the values from right and left elements connected on the interface
 	 */
-	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous);
+	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps);
 	
-	void Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous);
+	/**
+	 * @brief This method convert a discontinuous element with index disc_index in continuous element
+	 * @param disc_index Index of the discontinuous element to be converted
+	 * @param new_index Returns the index of the new continuous element created
+	 */
+	void Discontinuous2Continuous(int disc_index, int &new_index);
 	
 	//@}
 	

@@ -1002,7 +1002,7 @@ void TPZCompMesh::Coarsen(TPZVec<int> &elements, int &index, bool CreateDisconti
 	
 }//method
 
-void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index, bool InterfaceBetweenContinuous) {
+void TPZCompMesh::Discontinuous2Continuous(int disc_index, int &new_index) {
 	
 	TPZInterpolationSpace *cel = dynamic_cast<TPZInterpolationSpace*> (fElementVec[disc_index]);
 	if (!cel) {
@@ -2095,7 +2095,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 #include "pzshapepoint.h"
 
 
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps, bool InterfaceBetweenContinuous){
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps){
 	const int nelements = this->NElements();
 	celJumps.Resize(nelements);
     int numbersol = Solution().Cols();
@@ -2146,7 +2146,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		const REAL celJumpError = celJumps[i];
 		if (celJumpError < eps){
 			int index;
-			this->Discontinuous2Continuous(i, index, InterfaceBetweenContinuous);
+			this->Discontinuous2Continuous(i, index);
 		}//if
 	}//for i
 	
