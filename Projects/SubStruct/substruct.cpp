@@ -108,7 +108,8 @@ int main(int argc, char *argv[])
 			//gmesh = MalhaCubo();
 			cmesh = new TPZCompMesh(gmesh);
 			cmesh->SetDimModel(3);
-			InsertViscoElasticity(cmesh);
+			//InsertViscoElasticity(cmesh);
+			InsertElasticity(cmesh);
 			cmesh->AutoBuild();
 		}
 		
@@ -213,6 +214,7 @@ int main(int argc, char *argv[])
 			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
 			submesh->LoadSolution(subu);
 			
+			/* ViscoElastico
 			//Atualizando memoria do material
 			std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(submesh->MaterialVec());
 			std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator itmat;
@@ -224,7 +226,8 @@ int main(int argc, char *argv[])
 				{
 					vmat->SetUpdateMem();
 				}
-			}			
+			}	
+			 */
 			subcount++;
 			it++;
 		}
@@ -268,6 +271,8 @@ int main(int argc, char *argv[])
 		int istep = 0, nsteps = 2;
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
+		
+		/* ViscoElastico
 		std::cout << "To seguindo!!!" << std::endl;
 		for (istep = 1 ; istep < nsteps ; istep++)
 		{
@@ -277,6 +282,8 @@ int main(int argc, char *argv[])
 			vtkmesh.DrawMesh(numcases);
 			vtkmesh.DrawSolution(istep, 1.);			
 		}
+		 */
+		 
 		
 		
 	}
