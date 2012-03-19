@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef POISSONDESACOPLADOSH
-#define POISSONDESACOPLADOSH
+#ifndef PZPOROELASTIC2DH 
+#define PZPOROELASTIC2DH
 
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
