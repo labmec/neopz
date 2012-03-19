@@ -141,12 +141,12 @@ int main(int argc, char *argv[])
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
-		TPZFMatrix rhs(cmesh->NEquations(),1,0.);
-		TPZAutoPointer<TPZMatrix> dohr = dohrstruct.CreateAssemble(rhs, gui);
-		TPZAutoPointer<TPZMatrix> precond = dohrstruct.Preconditioner();
+		TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
+		TPZAutoPointer<TPZMatrix<REAL> > dohr = dohrstruct.CreateAssemble(rhs, gui);
+		TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
 		
 		
-		TPZFMatrix diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
+		TPZFMatrix<REAL> diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
 		//		tempo.fNumEqCoarse = dohr->Rows();											// alimenta timeTemp com o numero de equacoes coarse
 		dohr->Multiply(diag,produto);
@@ -166,9 +166,9 @@ int main(int argc, char *argv[])
 		}
 #endif
 		diag.Zero();
-		TPZStepSolver pre(precond);
+		TPZStepSolver<REAL> pre(precond);
 		pre.SetMultiply();
-		TPZStepSolver cg(dohr); 
+		TPZStepSolver<REAL> cg(dohr); 
 		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 		
 		cg.SetCG(500,pre,1.e-8,0);
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 		int subcount=0;
 		while (it != sublist.end()) 
 		{
-			TPZFMatrix subext,subu;
+			TPZFMatrix<REAL> subext,subu;
 			dohrptr->fAssembly->Extract(subcount,diag,subext);
 			(*it)->UGlobal(subext,subu);
 			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
@@ -304,8 +304,8 @@ int main2(int argc, char *argv[])
 	InitializePZLOG("log4cxx.cfg");
 	
 	/*
-	 TPZFMatrix teste(2,2);
-	 TPZFMatrix parte;
+	 TPZFMatrix<REAL> teste(2,2);
+	 TPZFMatrix<REAL> parte;
 	 teste(0,0)=1;
 	 teste(0,1)=2;
 	 teste(1,0)=3;
@@ -324,7 +324,7 @@ int main2(int argc, char *argv[])
 	 dohrprecond.SetMultiply();
 	 TPZStepSolver cg(matriz);
 	 cg.SetCG(10,dohrprecond,1.e-7,1);
-	 TPZFMatrix rhs,result;
+	 TPZFMatrix<REAL> rhs,result;
 	 cg.Solve(rhs,result);*/
 	//meuobjeto.
 	/*  int dim = 2;
@@ -379,7 +379,7 @@ int main2(int argc, char *argv[])
 	TPZAutoPointer<TPZDohrAssembly> dohrassembly2 = new TPZDohrAssembly;
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr2 = new TPZDohrMatrix<TPZDohrSubstructCondense>(dohrassembly2);
 	dohrptr2->SetNumThreads(4);
-	TPZAutoPointer<TPZMatrix> dohr2(dohrptr2);
+	TPZAutoPointer<TPZMatrix<REAL> > dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
 	dohrptr2->Initialize();
 #ifdef LOG4CXX
@@ -418,10 +418,10 @@ int main2(int argc, char *argv[])
 	
 	
 	
-	TPZAutoPointer<TPZMatrix> precond2(precondptr2);
+	TPZAutoPointer<TPZMatrix<REAL> > precond2(precondptr2);
 	
 	
-	TPZFMatrix diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
+	TPZFMatrix<REAL> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
 #ifdef LOG4CXX
 	{
@@ -444,14 +444,14 @@ int main2(int argc, char *argv[])
 	{
 		int dim=dohr->Rows();
 		
-		TPZFMatrix teste1(dim,dim);
+		TPZFMatrix<REAL> teste1(dim,dim);
 		teste1.Zero();
-		TPZFMatrix teste2(dim,dim);
+		TPZFMatrix<REAL> teste2(dim,dim);
 		teste2.Zero();
 		
 		int i,j;
-		TPZFMatrix col(dim,1); //column of the identity matrix
-		TPZFMatrix resul(dohr->Rows(),1);
+		TPZFMatrix<REAL> col(dim,1); //column of the identity matrix
+		TPZFMatrix<REAL> resul(dohr->Rows(),1);
 		for (i=0;i<dim;i++) {
 			col.Zero();
 			col(i,0)=1;
@@ -483,9 +483,9 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	diag.Zero();
-	TPZStepSolver pre(precond2);
+	TPZStepSolver<REAL> pre(precond2);
 	pre.SetMultiply();
-	TPZStepSolver cg(dohr2);
+	TPZStepSolver<REAL> cg(dohr2);
 	//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
 	
 	cg.SetCG(500,pre,1.e-8,0);
@@ -508,7 +508,7 @@ int main2(int argc, char *argv[])
 #endif
 	//diag.Print("Resultado do solve");
 	/* Solve
-	 TPZFMatrix *teste = new TPZFMatrix(2,2);
+	 TPZFMatrix<REAL> *teste = new TPZFMatrix(2,2);
 	 (*teste)(0,0)=1;
 	 (*teste)(0,1)=2;
 	 (*teste)(1,0)=3;
@@ -516,12 +516,12 @@ int main2(int argc, char *argv[])
 	 TPZStepSolver coef;
 	 coef.SetMatrix(teste);
 	 coef.SetDirect(ELU);
-	 TPZFMatrix resul(2,2);
+	 TPZFMatrix<REAL> resul(2,2);
 	 resul(0,0)=2;
 	 resul(0,1)=3;
 	 resul(1,0)=4;
 	 resul(1,1)=5;
-	 TPZFMatrix res(2,2);
+	 TPZFMatrix<REAL> res(2,2);
 	 coef.Solve(resul,res);
 	 cout << res << endl;*/
 	
@@ -539,7 +539,7 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	force[1] = 20.;
 	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
 	TPZAutoPointer<TPZMaterial> elastauto(elast);
-	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto(bc);
 	mesh->InsertMaterialObject(elastauto);
@@ -560,7 +560,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	alphaT = 0.1;	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
 	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
-	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);

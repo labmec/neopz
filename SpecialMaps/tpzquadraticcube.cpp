@@ -21,7 +21,7 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	REAL qsi = param[0], eta = param[1], zeta = param[2];
 	
@@ -132,7 +132,7 @@ void TPZQuadraticCube::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	dphi(2,19) =  1./4.*((-1. + eta*eta)*(-1. + qsi));
 }
 
-void TPZQuadraticCube::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+void TPZQuadraticCube::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
 	
 	TPZFNMatrix<20> phi(20,1);
 	TPZFNMatrix<60> dphi(3,20);
@@ -148,7 +148,7 @@ void TPZQuadraticCube::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 	}
 }
 
-void TPZQuadraticCube::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+void TPZQuadraticCube::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 #ifdef DEBUG
 	if (NNodes != 20) {
 		PZError << "TPZQuadraticCube.jacobian only implemented for 20, NumberOfNodes = " << NNodes << "\n";
@@ -166,8 +166,8 @@ void TPZQuadraticCube::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
     for(int d = 0; d < 3; d++) axes(d,d) = 1.;
 	
 	REAL spacephi[20]; REAL spacedphi[60];
-	TPZFMatrix phi(20,1,spacephi,20);
-	TPZFMatrix dphi(3,20,spacedphi,60);
+	TPZFMatrix<REAL> phi(20,1,spacephi,20);
+	TPZFMatrix<REAL> dphi(3,20,spacedphi,60);
 	Shape(param,phi,dphi);
 	for(int i = 0; i < 20; i++) {
 		for(int j = 0; j < 3; j++) {

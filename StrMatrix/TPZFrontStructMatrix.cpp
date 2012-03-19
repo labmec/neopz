@@ -69,7 +69,7 @@ TPZFrontStructMatrix<front>::~TPZFrontStructMatrix(){}
 
 
 template<class front>
-TPZMatrix * TPZFrontStructMatrix<front>::Create(){
+TPZMatrix<REAL> * TPZFrontStructMatrix<front>::Create(){
 	
     /* TPZVec <int> numelconnected(fMesh->NEquations(),0);
 	 // TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
@@ -206,7 +206,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 }
 
 template<class front>
-TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<REAL> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int neq = fMesh->NEquations();
 	if(HasRange())
@@ -256,7 +256,7 @@ TPZMatrix * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs, TPZAuto
 }
 
 template<class front>
-void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int iel;
 	int numel = 0, nelem = fMesh->NElements();
@@ -327,7 +327,7 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix & stiffness, TPZFMatrix 
 
 
 template<class front>
-void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int iel;
 	int numel = 0, nelem = fMesh->NElements();
@@ -406,7 +406,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix & stiffness, TPZFMatrix & r
 
 //Verificar declaracao dos parametros !!!!!
 template<class front>
-void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix & stiffness, TPZFMatrix & rhs){
+void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs){
 	
 	
 	if(!el->HasDependency()) {
@@ -503,12 +503,12 @@ int TPZFrontStructMatrix<front>::main() {
 	
 	
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumatptr(meumat);
 	cmesh.InsertMaterialObject(meumatptr);
 	
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
@@ -571,7 +571,7 @@ int TPZFrontStructMatrix<front>::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
-	TPZStepSolver sol;
+	TPZStepSolver<REAL> sol;
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
 	//	sol2.SetDirect(ECholesky);
@@ -611,7 +611,7 @@ int TPZFrontStructMatrix<front>::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);

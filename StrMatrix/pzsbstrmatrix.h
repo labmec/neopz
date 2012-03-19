@@ -9,7 +9,9 @@
 #include "pzstrmatrix.h"
 
 class TPZCompMesh;
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TPZMatrix;
 
 /**
@@ -21,9 +23,9 @@ public:
 	
     TPZSBandStructMatrix(TPZCompMesh *);
 	
-    virtual TPZMatrix * Create();
+    virtual TPZMatrix<REAL> * Create();
 	
-    virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone();
 	

@@ -11,7 +11,7 @@
 //#include "TPZPlacaOrthotropic.h"
 
 TPZBCTension::TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,
-						   TPZFMatrix &val1,TPZFMatrix &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :
+						   TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :
 TPZBndCond(material,id,type,val1,val2) {
 	fCamada = camada;
 	fMultCam = mult;

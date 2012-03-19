@@ -83,7 +83,7 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 }
 
 // this will create a DohrMatrix
-TPZMatrix * TPZDohrStructMatrix::Create()
+TPZMatrix<REAL> * TPZDohrStructMatrix::Create()
 {
 	
 	TPZfTime timeforcopute; // init of timer for compute
@@ -143,7 +143,7 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 #ifdef DEBUG 
 		std::stringstream filename;
 		filename << "SubMatrix" << submesh->Index() << ".vtk";
-		TPZFMatrix fillin(50,50);
+		TPZFMatrix<REAL> fillin(50,50);
 		submesh->ComputeFillIn(50, fillin);
 		VisualMatrix(fillin, filename.str().c_str());
 #endif
@@ -249,10 +249,10 @@ TPZMatrix * TPZDohrStructMatrix::Create()
 }
 
 // this will create a DohrMatrix and compute its matrices
-TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<REAL> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	std::cout << "Computing the system of equations for each substructure\n";
-	TPZMatrix *dohrgeneric = Create();
+	TPZMatrix<REAL> *dohrgeneric = Create();
 	
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohrgeneric);
 	const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist = dohr->SubStructures();
@@ -351,7 +351,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 		
 		// const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
 		// *it represents the substructure
-		TPZFMatrix rhsloc((*it)->fNumExternalEquations,1,0.);
+		TPZFMatrix<REAL> rhsloc((*it)->fNumExternalEquations,1,0.);
 		(*it)->ContributeRhs(rhsloc);
 		fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
@@ -368,7 +368,7 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 /**
  * @brief Assemble the global right hand side
  */
-void TPZDohrStructMatrix::Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZDohrStructMatrix::Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	
     TPZDohrPrecond<TPZDohrSubstructCondense> *precond = dynamic_cast<TPZDohrPrecond<TPZDohrSubstructCondense> *>(fDohrPrecond.operator->());
@@ -395,7 +395,7 @@ void TPZDohrStructMatrix::Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterf
 		
 		// const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist
 		// *it represents the substructure
-		TPZFMatrix rhsloc((*it)->fNumExternalEquations,1,0.);
+		TPZFMatrix<REAL> rhsloc((*it)->fNumExternalEquations,1,0.);
 		(*it)->ContributeRhs(rhsloc);
 		fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
@@ -729,8 +729,8 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
-	TPZBlock destblock = sub->Block();
-	TPZBlock &origblock = sub->Block();
+	TPZBlock<REAL> destblock = sub->Block();
+	TPZBlock<REAL> &origblock = sub->Block();
 	int nblocks = origblock.NBlocks();
 	if(scatterpermuteblock.NElements() != origblock.NBlocks())
 	{
@@ -948,10 +948,10 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		skylstr.AssembleAllEquations();
 		
 		
-		TPZAutoPointer<TPZMatrix> Stiffness = skylstr.Create();
+		TPZAutoPointer<TPZMatrix<REAL> > Stiffness = skylstr.Create();
 		
 		
-		TPZMatRed<TPZFMatrix> *matredbig = new TPZMatRed<TPZFMatrix>(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
+		TPZMatRed<REAL, TPZFMatrix<REAL> > *matredbig = new TPZMatRed<REAL,TPZFMatrix<REAL> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
 		
 		
 		matredbig->SetK00(Stiffness);
@@ -1003,8 +1003,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 		
 		// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-		TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix> redstruct(submesh);
-		TPZMatRed<TPZVerySparseMatrix> *matredptr = dynamic_cast<TPZMatRed<TPZVerySparseMatrix> *>(redstruct.Create());
+		TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<REAL> > redstruct(submesh);
+		TPZMatRed<REAL, TPZVerySparseMatrix<REAL> > *matredptr = dynamic_cast<TPZMatRed<REAL, TPZVerySparseMatrix<REAL> > *>(redstruct.Create());
 		//TPZAutoPointer<TPZMatRed<TPZVerySparseMatrix> > matred = matredptr;
 		
 		// create a structural matrix which will assemble both stiffnesses simultaneously
@@ -1017,12 +1017,12 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 			invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 		}
-		TPZAutoPointer<TPZMatrix> InternalStiffness = matredptr->K00();
+		TPZAutoPointer<TPZMatrix<REAL> > InternalStiffness = matredptr->K00();
 		
 #ifdef DEBUG 
 		std::stringstream filename;
 		filename << "SubMatrixInternal" << submesh->Index() << ".vtk";
-		TPZFMatrix fillin(50,50);
+		TPZFMatrix<REAL> fillin(50,50);
 		submesh->ComputeFillIn(50, fillin);
 		VisualMatrix(fillin, filename.str().c_str());
 #endif
@@ -1058,18 +1058,18 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 			matredbig->operator()(coarse,neq+ic) = 1.;
 		}
 		//substruct->fStiffness = Stiffness;
-		TPZStepSolver *InvertedStiffness = new TPZStepSolver(Stiffness);
+		TPZStepSolver<REAL> *InvertedStiffness = new TPZStepSolver<REAL>(Stiffness);
 		InvertedStiffness->SetMatrix(Stiffness);
 		InvertedStiffness->SetDirect(ECholesky);
 		matredbig->SetSolver(InvertedStiffness);
 		
 		
-		TPZStepSolver *InvertedInternalStiffness = new TPZStepSolver(InternalStiffness);
+		TPZStepSolver<REAL> *InvertedInternalStiffness = new TPZStepSolver<REAL>(InternalStiffness);
 		InvertedInternalStiffness->SetMatrix(InternalStiffness);
 		InvertedInternalStiffness->SetDirect(ECholesky);
 		matredptr->SetSolver(InvertedInternalStiffness);
 		matredptr->SetReduced();
-		TPZMatRed<TPZFMatrix> *matredfull = new TPZMatRed<TPZFMatrix>(*matredptr);
+		TPZMatRed<REAL,TPZFMatrix<REAL> > *matredfull = new TPZMatRed<REAL,TPZFMatrix<REAL> >(*matredptr);
 		substruct->fMatRed = matredfull;
 		
 	}
@@ -1079,9 +1079,9 @@ void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructConden
 {
 	
 	{
-		TPZAutoPointer<TPZMatRed<TPZFMatrix> > matredbig = substruct->fMatRedComplete;
+		TPZAutoPointer<TPZMatRed<REAL,TPZFMatrix<REAL> > > matredbig = substruct->fMatRedComplete;
 		
-		TPZAutoPointer<TPZMatrix> Stiffness = matredbig->K00();
+		TPZAutoPointer<TPZMatrix<REAL> > Stiffness = matredbig->K00();
 		
 		Stiffness->Decompose_Cholesky();
 		substruct->Initialize();
@@ -1092,8 +1092,8 @@ void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructC
 {
 	
 	{
-		TPZAutoPointer<TPZMatRed<TPZFMatrix> > matred = substruct->fMatRed;
-		TPZAutoPointer<TPZMatrix> InternalStiffness = matred->K00();
+		TPZAutoPointer<TPZMatRed<REAL,TPZFMatrix<REAL> > > matred = substruct->fMatRed;
+		TPZAutoPointer<TPZMatrix<REAL> > InternalStiffness = matred->K00();
 		InternalStiffness->Decompose_Cholesky();
 	}
 	

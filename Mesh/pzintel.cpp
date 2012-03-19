@@ -44,7 +44,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
  * with the data in the FADFADREAL U second and first derivatives.
  *
  */
-// static void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+// static void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef);
 #endif
 
 #include <sstream>
@@ -466,7 +466,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	int nvar = coarsel.Material()->NStateVariables();
 	
 	// number of blocks is cornod
-	TPZBlock corblock(0,cornod);
+	TPZBlock<REAL> corblock(0,cornod);
 	int in;
 	// corblock and corblocksize have the same function
 	for(in = 0; in < NConnects(); in++) {
@@ -520,7 +520,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	}
 	intrule->SetOrder(order);
 	
-	TPZBlock locblock(0,locnod);
+	TPZBlock<REAL> locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
 		locblock.Set(in,NConnectShapeF(in));
@@ -528,15 +528,15 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	locblock.Resequence();
 	
 	REAL locphistore[50]={0.},locdphistore[150]={0.};
-	TPZFMatrix locphi(locmatsize,1,locphistore,50);
-	TPZFMatrix locdphi(dimension,locmatsize,locdphistore,150);
+	TPZFMatrix<REAL> locphi(locmatsize,1,locphistore,50);
+	TPZFMatrix<REAL> locdphi(dimension,locmatsize,locdphistore,150);
 	locphi.Zero();
 	locdphi.Zero();
 	// derivative of the shape function
 	// in the master domain
 	
-	TPZFMatrix corphi(cormatsize,1);
-	TPZFMatrix cordphi(dimension,cormatsize);
+	TPZFMatrix<REAL> corphi(cormatsize,1);
+	TPZFMatrix<REAL> cordphi(dimension,cormatsize);
 	// derivative of the shape function
 	// in the master domain
 	
@@ -544,8 +544,8 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	axesstore[9];
 	TPZManVector<REAL> int_point(dimension),
 	coarse_int_point(dimension);
-	TPZFMatrix jacobian(dimension,dimension,jacobianstore,9),jacinv(dimension,dimension);
-	TPZFMatrix axes(3,3,axesstore,9);
+	TPZFMatrix<REAL> jacobian(dimension,dimension,jacobianstore,9),jacinv(dimension,dimension);
+	TPZFMatrix<REAL> axes(3,3,axesstore,9);
 	TPZManVector<REAL> x(3);
 	int_point.Fill(0.,0);
 	REAL jac_det = 1.;
@@ -602,7 +602,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix small(locblocksize,corblocksize,0.);
+			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
 							 locblocksize,corblocksize,small);
 			REAL tol = Norm(small);
@@ -620,7 +620,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix small(locblocksize,corblocksize,0.);
+			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
 			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
 		}
@@ -846,8 +846,8 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	int numint = intrule->NPoints();
 	int numshape = NSideShapeF(side);
 	int numshapel = large->NSideShapeF(neighbourside);
-	TPZFMatrix phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
-	TPZFMatrix MSL(numshape,numshapel,0.);
+	TPZFMatrix<REAL> phis(numshape,1),dphis(2,numshape),phil(numshapel,1),dphil(2,numshapel);
+	TPZFMatrix<REAL> MSL(numshape,numshapel,0.);
 	TPZFNMatrix<1000> *M = new TPZFNMatrix<1000>(numshape,numshape,0.);
 	TPZVec<REAL> par(3),pointl(3),point(3);
 	int in,jn;
@@ -866,7 +866,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 			}
 		}
 	}
-	TPZStepSolver MSolve(M);
+	TPZStepSolver<REAL> MSolve(M);
 	MSolve.SetDirect(ELU);
 	MSolve.Solve(MSL,MSL);
 	//MSolve.ResetMatrix();
@@ -874,7 +874,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	// Philippe 12/3/99
 	//  int numsidenodes_large = NSideConnects(neighbourside);
 	int numsidenodes_large = large->NSideConnects(neighbourside);
-	TPZBlock MBlocksmall(0,numsidenodes_small), MBlocklarge(0,numsidenodes_large);
+	TPZBlock<REAL> MBlocksmall(0,numsidenodes_small), MBlocklarge(0,numsidenodes_large);
 	for(in = 0; in<numsidenodes_small; in++) {
 		int locid = SideConnectLocId(in,side);
         int nshape = NConnectShapeF(locid);
@@ -901,7 +901,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	
 	MBlocksmall.Resequence();
 	MBlocklarge.Resequence();
-	TPZFMatrix blocknorm(numsidenodes_small,numsidenodes_large,0.);
+	TPZFMatrix<REAL> blocknorm(numsidenodes_small,numsidenodes_large,0.);
 	for(in = 0; in< numsidenodes_small; in++) {
 		int ibl = MBlocksmall.Size(in);
 		if(!ibl) continue;
@@ -963,7 +963,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 		return;
 	}
 	
-	TPZFMatrix mslc (MSL);
+	TPZFMatrix<REAL> mslc (MSL);
 	mslc -= test.RestraintMatrix();
 	
 	REAL normmsl = 0.;
@@ -1048,8 +1048,8 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 		}
 		int idim;
 		int nshapes = NSideShapeF(iside);
-		TPZFMatrix phis(nshapes,1);
-		TPZFMatrix dphis(dimsmall,nshapes);
+		TPZFMatrix<REAL> phis(nshapes,1);
+		TPZFMatrix<REAL> dphis(dimsmall,nshapes);
 		for (idim = (dimsmall + 1); idim <= dimel; idim++){
 			TPZStack <TPZGeoElSide> geoelsidevec;
 			celside.Reference().Element()->AllHigherDimensionSides(iside,idim,geoelsidevec);
@@ -1059,8 +1059,8 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 			for (inh = 0; inh < nelhigh; inh++){
 				int sidel =  geoelsidevec[inh].Side();
 				int nshapel =  NSideShapeF(sidel);
-				TPZFMatrix phil(nshapel, 1);
-				TPZFMatrix dphil(idim,nshapel);
+				TPZFMatrix<REAL> phil(nshapel, 1);
+				TPZFMatrix<REAL> dphil(idim,nshapel);
 				int npts = sirule->NPoints();
 				int ipt;
 				TPZTransform transform (Reference()->SideToSideTransform(iside,sidel));
@@ -1086,7 +1086,7 @@ int TPZInterpolatedElement::CheckElementConsistency(){
 	return 1;
 }
 
-int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix &phis, TPZFMatrix &dphis, TPZFMatrix &phil, TPZFMatrix &dphil, TPZTransform &transform){
+int TPZInterpolatedElement::CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform &transform){
 	int ncons = NSideConnects(sides);
 	int nconl = NSideConnects(sidel);
 	TPZVec<int> posl(nconl+1), poss(ncons+1);
@@ -1624,9 +1624,9 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 	TPZManVector<REAL> sol(nvars,0.);
 	
 	int i;
-	TPZFMatrix axes(3,3,0.);
-	TPZFMatrix jacobian(dim,dim);
-	TPZFMatrix jacinv(dim,dim);
+	TPZFMatrix<REAL> axes(3,3,0.);
+	TPZFMatrix<REAL> jacobian(dim,dim);
+	TPZFMatrix<REAL> jacinv(dim,dim);
 	REAL detjac;
 	TPZVec<REAL> intpoint(dim,0.);
 	REAL weight = 0., meanvalue = 0.;
@@ -1661,7 +1661,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	int ncon = NConnects();
 	int dim = Dimension();
 	int nshape = NShapeF();
-	TPZBlock &block = Mesh()->Block();
+	TPZBlock<REAL> &block = Mesh()->Block();
 	
 	int numeq = nshape*numdof;
 	ef.fMat.Redim(numeq,1);
@@ -1686,12 +1686,12 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	for(i=0; i<ncon; ++i)
 		(ef.fConnect)[i] = ConnectIndex(i);
 	
-	TPZFMatrix phi(nshape,1);
-	TPZFMatrix dphi(dim,nshape);
-	TPZFMatrix dphix(dim,nshape);
-	TPZFMatrix axes(3,3,0.);
-	TPZFMatrix jacobian(dim,dim);
-	TPZFMatrix jacinv(dim,dim);
+	TPZFMatrix<REAL> phi(nshape,1);
+	TPZFMatrix<REAL> dphi(dim,nshape);
+	TPZFMatrix<REAL> dphix(dim,nshape);
+	TPZFMatrix<REAL> axes(3,3,0.);
+	TPZFMatrix<REAL> jacobian(dim,dim);
+	TPZFMatrix<REAL> jacinv(dim,dim);
 	REAL detjac;
 	TPZVec<REAL> x(3,0.);
 	TPZVec<REAL> intpoint(dim,0.);
@@ -1773,7 +1773,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 	int dim = Dimension();
 	int nshape = NShapeF();
 	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix &MeshSol = Mesh()->Solution();
+	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	
 	int numeq = nshape*numdof;
@@ -1872,7 +1872,7 @@ void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &
 	FADToMatrix(U, ek.fMat, ef.fMat);
 }
 
-void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
+void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef)
 {
 	int efsz = ef.Rows();
 	int ekrows = ek.Rows();
@@ -1921,7 +1921,7 @@ void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 }
 
 
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 	
 	const int nshape = this->NShapeF();
 	TPZGeoEl * ref = this->Reference();
@@ -1968,12 +1968,12 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, 
 	
 }//method
 
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-											 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+											 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
-    TPZFMatrix &MeshSol = Mesh()->Solution();
+    TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     sol.Resize(numbersol);
     dsol.Resize(numbersol);
@@ -1986,7 +1986,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
         
     }
 	
-    TPZBlock &block = Mesh()->Block();
+    TPZBlock<REAL> &block = Mesh()->Block();
     int iv = 0, d;
     for(int in=0; in<ncon; in++) {
 		TPZConnect *df = &this->Connect(in);
@@ -2007,8 +2007,8 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi,
 
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
 											 TPZVec<REAL> &normal,
-											 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-											 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+											 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+											 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	//TPZInterpolatedElement has no left/right elements. Only interface elements have it.
 	leftsol.Resize(0);
 	dleftsol.Resize(0);

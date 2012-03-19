@@ -67,7 +67,7 @@ public:
 	
 	/// calcula a contribuicao para o residuo e matriz tangente
 	void CalcStiff(TPZVec<REAL> &leftflux, TPZVec<REAL> &cellstate, TPZVec<REAL> &rightflux, TPZVec<REAL> &initialstate, 
-				   REAL volume, REAL delt, TPZFMatrix &ek, TPZFMatrix &ef);
+				   REAL volume, REAL delt, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/// Incorporate the partial derivatives in the state variables
 	template<int N>

@@ -18,7 +18,9 @@
 #include "TPZSemaphore.h"
 
 class TPZCompMesh;
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZFMatrix;
 
 #include "TPZGuiInterface.h"
@@ -73,44 +75,44 @@ public:
 		fOnlyInternal = false;
 	}
 	
-	virtual TPZMatrix * Create();
+	virtual TPZMatrix<REAL> * Create();
 	
-	virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	virtual TPZStructMatrix * Clone();
 	
 	/**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-	virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 protected:
 	
 	/**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-	virtual void Serial_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Serial_Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Serial_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Serial_Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void MultiThread_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void MultiThread_Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-	virtual void MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void MultiThread_Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 public:
 	
@@ -151,7 +153,7 @@ protected:
 	struct ThreadData
 	{
 		/// Initialize the mutex semaphores and others
-		ThreadData(TPZCompMesh &mesh,TPZMatrix &mat, TPZFMatrix &rhs, int mineq, int maxeq, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
+		ThreadData(TPZCompMesh &mesh,TPZMatrix<REAL> &mat, TPZFMatrix<REAL> &rhs, int mineq, int maxeq, std::set<int> &MaterialIds, TPZAutoPointer<TPZGuiInterface> guiInterface);
 		/// Destructor: Destroy the mutex semaphores and others
 		~ThreadData();
 		/// Current structmatrix object
@@ -163,9 +165,9 @@ protected:
 		/// Semaphore (to wake up assembly thread)
 		TPZSemaphore fAssembly;
 		/// Global matrix
-		TPZMatrix *fGlobMatrix;
+		TPZMatrix<REAL> *fGlobMatrix;
 		/// Global rhs vector
-		TPZFMatrix *fGlobRhs;
+		TPZFMatrix<REAL> *fGlobRhs;
 		/// Minimum equation to be assembled
 		int fMinEq;
 		/// Maximum equation to be assembled

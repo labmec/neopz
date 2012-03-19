@@ -52,13 +52,13 @@ void TPZMatHyperElastic::Print(std::ostream &out) {
 	TPZMaterial::Print(out);
 }
 
-void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -71,12 +71,12 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZFMatrix &dsol=data.dsol[0];
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	TPZFMatrix<REAL> &dsol=data.dsol[0];
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(3);
@@ -385,7 +385,7 @@ int TPZMatHyperElastic::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 1) Solout.Resize(6,0.);
 	if(var == 2) Solout.Resize(3,0.);
@@ -409,12 +409,12 @@ void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix 
 		}
 		else if(var == 4) {
 			
-			TPZFMatrix F(DSol),Ft(3,3,0.0),I(3,3,0.),S(3,3,0.);
+			TPZFMatrix<REAL> F(DSol),Ft(3,3,0.0),I(3,3,0.),S(3,3,0.);
 			F(0,0)+=1;
 			F(1,1)+=1;
 			F(2,2)+=1;//a diagonal e' sempre a mesma
 			F.Transpose(&Ft);
-			TPZFMatrix B = F*Ft;
+			TPZFMatrix<REAL> B = F*Ft;
 			
 			REAL ux,uy,uz,vx,vy,vz,wx,wy,wz;
 			ux = DSol(0,0);
@@ -434,7 +434,7 @@ void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix 
 			I(0,0)=1.0;
 			I(1,1)=1.0;
 			I(2,2)=1.0;
-			TPZFMatrix sigmaF = (fNu/J*B+(fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J*I);
+			TPZFMatrix<REAL> sigmaF = (fNu/J*B+(fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J*I);
 			REAL trsigma = sigmaF(0,0)+ sigmaF(1,1)+ sigmaF(2,2);
 			S = sigmaF - (trsigma/3.0)*I;
 			int i,j;
@@ -447,13 +447,13 @@ void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix 
 		else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMatHyperElastic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+void TPZMatHyperElastic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
 void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-								TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-								TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+								TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
+								TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	
 	//TPZVec<REAL> sol(1),dsol(3);
 	TPZManVector<REAL> sol(3),dsol(9);
@@ -477,14 +477,14 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 
 
 
-void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	
-	//   TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	//   TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -497,12 +497,12 @@ void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	//TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	//TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
@@ -750,7 +750,7 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 	}
 }
 
-void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix &dsol, TFad<9,TFad<9,REAL> > &energy){
+void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &dsol, TFad<9,TFad<9,REAL> > &energy){
 	TFad<9,TFad<9,REAL> > tensor[3][3],J,TrC;
 	int i,j;
 	//  dsol.Print( "Solution gradient ");

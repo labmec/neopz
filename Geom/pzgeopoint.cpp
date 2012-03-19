@@ -16,24 +16,24 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoPoint::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	void TPZGeoPoint::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		int i;
 		for (i=0;i<coord.Rows();i++){
 			result[i] = coord(i,0);
 		}
 	}
 	
-	bool TPZGeoPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool TPZGeoPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		SidePar.Resize(0); JacToSide.Resize(0,0);
 		return true;
 	}
 	
-	void TPZGeoPoint::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoPoint::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		phi(0,0) = 1.;
 	}
 	
-	void TPZGeoPoint::Jacobian(TPZFMatrix coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-							   TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+	void TPZGeoPoint::Jacobian(TPZFMatrix<REAL> coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+							   TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 		/*result*/jacobian.Redim(0,0);
 		jacinv.Redim(0,0);
 		detjac = 1.;

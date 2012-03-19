@@ -85,7 +85,7 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {
 	fGeoEl->X(locElement, result);
 }
 
-void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 	
 	if(!fGeoEl) return;
 	int DIM = fGeoEl->Dimension();

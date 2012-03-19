@@ -246,7 +246,7 @@ int mainTestes(int argc, char * const argv[])
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs    
-    TPZFMatrix k(3,3,0.), f(3,1,0.);
+    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
     int dirichlet = 0;
     
     //    //teste 2: mov. corpo rigido (rotacao)
@@ -274,7 +274,7 @@ int mainTestes(int argc, char * const argv[])
 	TPZAnalysis an(cmesh);
     
 	TPZSkylineStructMatrix skylin(cmesh); //caso simetrico
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
     
     an.SetStructuralMatrix(skylin);

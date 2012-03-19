@@ -316,7 +316,7 @@ double TPZBlackOil2P3D::ViscAgua(){
 
 /** Permeabilidade absoluta 
  */
-void TPZBlackOil2P3D::K(TPZFMatrix &K){
+void TPZBlackOil2P3D::K(TPZFMatrix<REAL> &K){
 	K.Resize(3,3);
 	K.Zero();
 	K(0,0) = 2.96077e-13;//10;
@@ -343,7 +343,7 @@ TPZAutoPointer<TPZMaterial> TPZBlackOil2P3D::NewMaterial(){
 	return new TPZBlackOil2P3D(*this);
 }
 
-void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
 	//un ou un+1
 	double stateVal = 0.;
@@ -388,11 +388,11 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	
 }//method
 
-void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	cout << "Error: This method shoud not be called. " << __PRETTY_FUNCTION__ << "\n";
 }//method
 
-void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
 	if(gState == ELastState) return;
 	
@@ -521,7 +521,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 }//method
 
-void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	
 	if(gState == ELastState) return;
 	
@@ -602,8 +602,8 @@ int TPZBlackOil2P3D::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-							   TPZFMatrix &axes, int var, TPZVec<REAL> &Solout){
+void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+							   TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	const double po = Sol[0];
 	const double So = Sol[1];
 	

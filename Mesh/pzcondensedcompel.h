@@ -17,7 +17,7 @@
 class TPZCondensedCompEl : public TPZCompEl
 {
 
-    TPZMatRed<TPZFMatrix> fCondensed;
+    TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
     TPZCompEl *fReferenceCompEl;
     TPZManVector<int,27> fIndexes; 
     
@@ -111,7 +111,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
     
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -127,8 +127,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -139,8 +139,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 
 	/**
 	 * @brief Computes the element stifness matrix and right hand side

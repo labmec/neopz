@@ -16,7 +16,9 @@
 
 struct TPZElementMatrix;
 
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZFMatrix;
 class TPZCompMesh;
 
@@ -69,8 +71,8 @@ public:
     /** @brief Class destructor */ 
 	~TPZFrontStructMatrix();
 	
-	/** @brief Returns a pointer to TPZMatrix */
-	TPZMatrix * Create();
+	/** @brief Returns a pointer to TPZMatrix<REAL> */
+	TPZMatrix<REAL> * Create();
 	
 	/** @brief Clones a TPZFrontStructMatrix */
 	TPZStructMatrix * Clone();
@@ -81,8 +83,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void AssembleNew(TPZMatrix & stiffness
-					 , TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void AssembleNew(TPZMatrix<REAL> & stiffness
+					 , TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble a stiffness matrix.
@@ -90,8 +92,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void Assemble(TPZMatrix & stiffness
-				  , TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void Assemble(TPZMatrix<REAL> & stiffness
+				  , TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Computes element matrices.
@@ -105,7 +107,7 @@ public:
 	 * Each computed element matrices would then be added to Stiffness matrix
 	 */
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
-						 , TPZElementMatrix & ef, TPZMatrix & stiffness, TPZFMatrix & rhs); 
+						 , TPZElementMatrix & ef, TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs); 
 	
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
@@ -116,7 +118,7 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     void SetQuiet(int quiet);
 	

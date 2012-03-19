@@ -17,7 +17,9 @@
 class TPZGraphNode;
 class TPZCompMesh;
 class TPZGraphEl;
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TPZBlock;
 
 /** @ingroup post */

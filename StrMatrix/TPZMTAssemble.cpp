@@ -58,7 +58,7 @@ void * TPZMTAssemble::ExecuteAssembleResidualMT(void * ExtData){
 	return NULL;
 }
 
-void TPZMTAssemble::AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds){
+void TPZMTAssemble::AssembleMT(TPZFMatrix<REAL> & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds){
 	int iel;
 	const int nelem = mesh.NElements();
 	

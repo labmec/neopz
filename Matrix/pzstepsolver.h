@@ -11,6 +11,8 @@
 #include "pzstream.h"
 
 #include <list>
+
+template<class TVar>
 class TPZFMatrix;
 
 /** @ingroup solvers */
@@ -20,43 +22,44 @@ class TPZFMatrix;
  @brief Defines step solvers class. \ref solver "Solver"
  @ingroup solver
  */
-class TPZStepSolver: public TPZMatrixSolver
+template<class TVar>
+class TPZStepSolver: public TPZMatrixSolver<TVar>
 {
 public:
-	TPZStepSolver(TPZAutoPointer<TPZMatrix> refmat = 0);
+	TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat = 0);
 	
-	TPZStepSolver(const TPZStepSolver & copy);
+	TPZStepSolver(const TPZStepSolver<TVar> & copy);
 	
 	virtual ~TPZStepSolver();
 	
-	void SetSOR(const int numiterations, const REAL overrelax, const REAL tol,
+	void SetSOR(const int numiterations, const TVar overrelax, const TVar tol,
 				const int FromCurrent);
 	
-	void SetSSOR(const int numiterations, const REAL overrelax, const REAL tol,
+	void SetSSOR(const int numiterations, const TVar overrelax, const TVar tol,
 				 const int FromCurrent);
 	
 	void
-	SetJacobi(const int numiterations, const REAL tol, const int FromCurrent);
+	SetJacobi(const int numiterations, const TVar tol, const int FromCurrent);
 	
-	void SetCG(const int numiterations, const TPZMatrixSolver &pre,
-			   const REAL tol, const int FromCurrent);
+	void SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre,
+			   const TVar tol, const int FromCurrent);
 	
 	void SetGMRES(const int numiterations, const int numvectors,
-				  const TPZMatrixSolver &pre, const REAL tol, const int FromCurrent);
+				  const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent);
 	
-	void SetBiCGStab(const int numiterations, const TPZMatrixSolver &pre,
-					 const REAL tol, const int FromCurrent);
+	void SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar> &pre,
+					 const TVar tol, const int FromCurrent);
 	
 	void SetDirect(const DecomposeType decomp);
 	
 	void SetMultiply();
 	
-	virtual TPZSolver *Clone() const
+	virtual TPZSolver<TVar> *Clone() const
 	{
-		return new TPZStepSolver(*this);
+		return new TPZStepSolver<TVar>(*this);
 	}
 	
-	void SetTolerance(REAL tol)
+	void SetTolerance(TVar tol)
 	{
 		fTol = tol;
 	}
@@ -64,7 +67,7 @@ public:
     /** @brief reset the data structure of the solver object */
 	void ResetSolver();
     
-    virtual MSolver Solver()
+    virtual typename TPZMatrixSolver<TVar>::MSolver Solver()
     {
         return fSolver;
     }
@@ -84,15 +87,15 @@ public:
 	/**
 	 * @brief Updates the values of the current matrix based on the values of the matrix
 	 */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
 	{
 		if (fPrecond)
 			fPrecond->UpdateFrom(matrix);
-		TPZMatrixSolver::UpdateFrom(matrix);
+		TPZMatrixSolver<TVar>::UpdateFrom(matrix);
 	}
 	
     
-	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
     
     /**
      * @brief Decompose the system of equations if a direct solver is used
@@ -100,10 +103,10 @@ public:
     virtual void Decompose();
     
     /** @brief Define the preconditioner as a solver object */
-	void SetPreconditioner(TPZSolver &solve);
+	void SetPreconditioner(TPZSolver<TVar> &solve);
     
     /** @brief access method to the preconditioner */
-    TPZSolver *PreConditioner()
+    TPZSolver<TVar> *PreConditioner()
     {
         return fPrecond;
     }
@@ -118,15 +121,15 @@ public:
 	
 	
 private:
-	MSolver fSolver;
+	typename TPZMatrixSolver<TVar>::MSolver fSolver;
 	DecomposeType fDecompose;
 	int fNumIterations;
 	int fNumVectors;
-	REAL fTol;
-	REAL fOverRelax;
+	TVar fTol;
+	TVar fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
-	TPZSolver *fPrecond;
+	TPZSolver<TVar> *fPrecond;
 	int fFromCurrent;
 	
 	std::list<int> fSingular;

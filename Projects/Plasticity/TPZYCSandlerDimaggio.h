@@ -202,11 +202,11 @@ public:
     /**
     LoadState will keep a given state as static variable of the class
     */
-    inline void LoadState(TPZFMatrix &state);
+    inline void LoadState(TPZFMatrix<REAL> &state);
 
-    inline void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase);
+    inline void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase);
 
-    inline void Residual(TPZFMatrix &res,int icase);
+    inline void Residual(TPZFMatrix<REAL> &res,int icase);
 
     static void CheckConv();
 	
@@ -538,7 +538,7 @@ inline int TPZYCSandlerDimaggio::NumCases()
     return 4;
 }
 
-inline void TPZYCSandlerDimaggio::LoadState(TPZFMatrix &state)
+inline void TPZYCSandlerDimaggio::LoadState(TPZFMatrix<REAL> &state)
 {
 
   int i;
@@ -555,7 +555,7 @@ inline void TPZYCSandlerDimaggio::LoadState(TPZFMatrix &state)
 #endif
 }
 
-inline void TPZYCSandlerDimaggio::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase)
+inline void TPZYCSandlerDimaggio::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
 {
 
   const int nVars = 6;
@@ -600,7 +600,7 @@ inline void TPZYCSandlerDimaggio::ComputeTangent(TPZFMatrix &tangent, TPZVec<REA
 #endif
 }
 
-inline void TPZYCSandlerDimaggio::Residual(TPZFMatrix &res,int icase)
+inline void TPZYCSandlerDimaggio::Residual(TPZFMatrix<REAL> &res,int icase)
 {
 
   int i;

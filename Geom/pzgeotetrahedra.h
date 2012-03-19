@@ -13,7 +13,7 @@
 
 #include <string>
 
-
+template<class TVar>
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
@@ -59,7 +59,7 @@ namespace pzgeom {
 		static std::string TypeName() { return "Tetra";} 
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
-		static  void Shape(TPZVec<REAL> &x,TPZFMatrix &phi,TPZFMatrix &dphi);
+		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		/* brief compute the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
@@ -70,7 +70,7 @@ namespace pzgeom {
         }
 		
         /* @brief compute the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -78,13 +78,13 @@ namespace pzgeom {
         }
         
 		/** @brief Computes the jacobian*/
-		static  void Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		static  void Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		/** @brief Computes the geometric location*/
-		static  void X(TPZFMatrix & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+		static  void X(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		
 		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */
-		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 

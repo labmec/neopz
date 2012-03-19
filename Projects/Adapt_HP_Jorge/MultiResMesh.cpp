@@ -138,7 +138,7 @@ TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh){
 
   TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
-  TPZFMatrix val1,val2;
+  TPZFMatrix<REAL> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
 
   cmesh->SetAllCreateFunctionsDiscontinuous();
@@ -163,7 +163,7 @@ TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh){
 }
 
 /** initial solution */
-void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionMultires(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
   for(int iel = 0; iel < cmesh->NElements(); iel++){

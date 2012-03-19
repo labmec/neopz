@@ -66,7 +66,7 @@ void TPZEulerAnalysis::SetContributionTime(TPZContributeTime time)
 	fFlowCompMesh->SetContributionTime(time);
 }
 
-void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix & deltaSol, REAL & epsilon)
+void TPZEulerAnalysis::UpdateSolAndRhs(TPZFMatrix<REAL> & deltaSol, REAL & epsilon)
 {
     REAL initEpsilon = epsilon;
     int outofrange = 0;
@@ -135,7 +135,7 @@ REAL TPZEulerAnalysis::EvaluateFluxEpsilon()
 {
 	// enabling the flux evaluation type
 	fFlowCompMesh->SetResidualType(Flux_RT);
-	TPZFMatrix Flux;
+	TPZFMatrix<REAL> Flux;
 	Flux.Redim(fCompMesh->NEquations(),1);
 	Flux.Zero();
 	// contribution of last state
@@ -180,7 +180,7 @@ void TPZEulerAnalysis::Assemble()
 	// contributing referring to the last state
 	fRhs = fRhsLast;
 	
-	TPZAutoPointer<TPZMatrix>  pTangentMatrix = fSolver->Matrix();
+	TPZAutoPointer<TPZMatrix<REAL> >  pTangentMatrix = fSolver->Matrix();
 	
 	if(!pTangentMatrix || dynamic_cast<TPZParFrontStructMatrix <TPZFrontNonSym> *>(fStructMatrix.operator->()))
 	{
@@ -240,11 +240,11 @@ void TPZEulerAnalysis::AssembleRhs()
 
 //ofstream eulerout("Matrizes.out");
 
-int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delSol) {
+int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix<REAL> * residual, TPZFMatrix<REAL> & delSol) {
 	int numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) return 0;
 	
-	TPZFMatrix rhs(fRhs);
+	TPZFMatrix<REAL> rhs(fRhs);
 	
 	fSolver->Solve(rhs, delSol);
 	
@@ -274,24 +274,24 @@ int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delS
 
 int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 {
-	TPZFMatrix delSol(fRhs.Rows(),1);
+	TPZFMatrix<REAL> delSol(fRhs.Rows(),1);
 	
 	int i = 0;
 	REAL res;// residual of linear invertion.
 	epsilon = fNewtonEps * REAL(2.);// ensuring the loop will be
 	// performed at least once.
 	
-	TPZFMatrix residual;
+	TPZFMatrix<REAL> residual;
 	//    REAL res1,res2 = 0.;
 	if(fHasFrontalPreconditioner)
 	{
 		TPZFrontStructMatrix <TPZFrontNonSym> StrMatrix(Mesh());
 		StrMatrix.SetQuiet(1);
-		TPZMatrix *front = StrMatrix.CreateAssemble(fRhs,NULL);
-		TPZStepSolver FrontSolver;
+		TPZMatrix<REAL> *front = StrMatrix.CreateAssemble(fRhs,NULL);
+		TPZStepSolver<REAL> FrontSolver;
 		FrontSolver.SetDirect(ELU);
 		FrontSolver.SetMatrix(front);
-		TPZStepSolver *step = dynamic_cast<TPZStepSolver *>(fSolver);
+		TPZStepSolver<REAL> *step = dynamic_cast<TPZStepSolver<REAL> *>(fSolver);
 		step->SetPreconditioner(FrontSolver);
 	}
 	
@@ -540,7 +540,7 @@ void TPZEulerAnalysis::SetEvolCFL(int EvolCFL)
 	fEvolCFL = EvolCFL;
 }
 
-void TPZEulerAnalysis::SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag)
+void TPZEulerAnalysis::SetBlockDiagonalPrecond(TPZBlockDiagonal<REAL> * blockDiag)
 {
 	fpBlockDiag = blockDiag;
 }
@@ -554,12 +554,12 @@ void TPZEulerAnalysis::WriteCMesh( const char * str)
 }
 
 
-int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &direction)
+int TPZEulerAnalysis::LineSearch(REAL &residual, TPZFMatrix<REAL> &sol0, TPZFMatrix<REAL> &direction)
 {
 	REAL smallestincr = 1.e-3;
 	REAL dist = 0.;
 	REAL incr = 1.0;
-	TPZFMatrix solution;
+	TPZFMatrix<REAL> solution;
 	fFlowCompMesh->LoadSolution(sol0);
 	AssembleRhs();
 	REAL preverr = Norm(fRhs);
@@ -644,9 +644,9 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 {
 	TPZFrontStructMatrix <TPZFrontNonSym> strfront(Mesh());
 	strfront.SetQuiet(1);
-	TPZMatrix *front = strfront.CreateAssemble(fRhs,NULL);
+	TPZMatrix<REAL> *front = strfront.CreateAssemble(fRhs,NULL);
 	
-	TPZStepSolver FrontSolver;
+	TPZStepSolver<REAL> FrontSolver;
 	FrontSolver.SetDirect(ELU);
 	FrontSolver.SetMatrix(front);
 	
@@ -655,8 +655,8 @@ void TPZEulerAnalysis::SetGMResFront(REAL tol, int numiter, int numvectors)
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix * mat = StrMatrix.Create();
-	TPZStepSolver Solver;
+	TPZMatrix<REAL> * mat = StrMatrix.Create();
+	TPZStepSolver<REAL> Solver;
 	Solver.SetGMRES(numiter,
 					numvectors,
 					FrontSolver,
@@ -676,9 +676,9 @@ void TPZEulerAnalysis::SetFrontalSolver()
 {
 	TPZFrontStructMatrix <TPZFrontNonSym> *StrMatrix = new TPZFrontStructMatrix <TPZFrontNonSym>(Mesh());
 	StrMatrix->SetQuiet(1);
-	//  TPZMatrix *front = StrMatrix.CreateAssemble(fRhs);
+	//  TPZMatrix<REAL> *front = StrMatrix.CreateAssemble(fRhs);
 	SetStructuralMatrix(StrMatrix);
-	TPZStepSolver FrontSolver;
+	TPZStepSolver<REAL> FrontSolver;
 	FrontSolver.SetDirect(ELU);
 	//  FrontSolver.SetMatrix(front);
 	SetSolver(FrontSolver);
@@ -695,14 +695,14 @@ void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 	//TPZFStructMatrix StrMatrix(cmesh);
 	SetStructuralMatrix(StrMatrix);
 	
-	TPZMatrix * mat = StrMatrix.Create();
+	TPZMatrix<REAL> * mat = StrMatrix.Create();
 	TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
-	TPZStepSolver Pre;
-	TPZBlockDiagonal * block = new TPZBlockDiagonal();//blockDiag.Create();
+	TPZStepSolver<REAL> Pre;
+	TPZBlockDiagonal<REAL> * block = new TPZBlockDiagonal<REAL>();//blockDiag.Create();
 	strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure
 	Pre.SetMatrix(block);
 	Pre.SetDirect(ELU);
-	TPZStepSolver Solver;
+	TPZStepSolver<REAL> Solver;
 	Solver.SetGMRES(numiter,
 					numvec,
 					Pre,

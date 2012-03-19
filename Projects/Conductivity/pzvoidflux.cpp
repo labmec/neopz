@@ -64,7 +64,7 @@ int TPZVoidFlux::NStateVariables()
  * @param ef[out] is the load vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     
 }
@@ -78,7 +78,7 @@ void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek,
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc)
+void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     DebugStop();
@@ -91,7 +91,7 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &e
  * @param ef[out] is the residual vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 }
 
@@ -104,7 +104,7 @@ void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
  * @param bc[in] is the boundary condition material
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc)
+void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     DebugStop();    
@@ -121,7 +121,7 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &e
  * @param ef [out] is the load vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     int nleft = dataleft.phi.Rows();
     int nright = dataright.phi.Rows();
@@ -172,7 +172,7 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
  * @param ef [out] is the load vector
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();
@@ -187,7 +187,7 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
  * @param bc [in] is the boundary condition object
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
     int nleft = dataleft.phi.Rows();
     if (nleft != 1) {
@@ -240,7 +240,7 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
  * @param bc [in] is the boundary condition object
  * @since April 16, 2007
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();

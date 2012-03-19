@@ -16,13 +16,14 @@
 
 #include "pzstrmatrix.h"
 class TPZSubCompMesh;
+template <class TVar>
 class TPZFMatrix;
 
 /**
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub Structure"
  */
-template< class TStructMatrix, class TSparseMatrix>
+template<class TStructMatrix, class TSparseMatrix>
 class TPZMatRedStructMatrix : TPZStructMatrix
 {
 public:
@@ -35,7 +36,7 @@ public:
 	
 	virtual TPZStructMatrix *Clone();
 	
-	virtual TPZMatrix *Create();
+	virtual TPZMatrix<REAL> *Create();
 	
 private:
 	

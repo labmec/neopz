@@ -25,7 +25,7 @@ void TPZStackEqnStorage::Reset()
 {
 	fEqnStack.Resize(0);
 }
-void TPZStackEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
+void TPZStackEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 {
 	int i, stack_size;
 	stack_size=fEqnStack.NElements();
@@ -34,7 +34,7 @@ void TPZStackEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
 	}
 	
 }
-void TPZStackEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
+void TPZStackEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 {
 	int i, stack_size;
 	stack_size=fEqnStack.NElements();

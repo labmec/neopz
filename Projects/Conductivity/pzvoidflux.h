@@ -79,7 +79,7 @@ public:
      * @param ef[out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -90,7 +90,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     /**
      * It computes a contribution to the residual vector at one integration point.
@@ -99,7 +99,7 @@ public:
      * @param ef[out] is the residual vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -110,7 +110,7 @@ public:
      * @param bc[in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     
     /// computes a contribution to stiffness matrix and load vector at one integration point
@@ -122,7 +122,7 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                     REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+                                     REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to residual vector at one integration point
@@ -132,7 +132,7 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                     REAL weight, TPZFMatrix &ef);
+                                     REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -144,7 +144,7 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
-                                       REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+                                       REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
     
     /**
      * It computes a contribution to residual vector at one BC integration point
@@ -154,7 +154,7 @@ public:
      * @param bc [in] is the boundary condition object
      * @since April 16, 2007
      */
-    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
+    virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc);
     
     /**
      * Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.

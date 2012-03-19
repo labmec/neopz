@@ -81,10 +81,10 @@ public:
 	 * @brief Compute a tension state corresponding to the difference between the target state \n
 	 * and tension state loaded in the solution
 	 */
-	void AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &tensor);
+	void AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix<REAL> &tensor);
 	
 	/** @brief Tensor which needs to be applied at the given coordinate */
-	void Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &tensor);
+	void Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix<REAL> &tensor);
 	/** @brief Computes the global efforts of the finite element solution */
 	void ComputeCenterForces();
 	
@@ -151,7 +151,7 @@ public:
 	
 	void PrintTensors(std::ostream &out);
 	
-	void PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
+	void PrintTensors(std::ostream &out,TPZFMatrix<REAL> &tensorin,TPZFMatrix<REAL> &tensorout);
 	
 	void PrintCenterForces(std::ostream &out);
 };

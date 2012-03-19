@@ -62,7 +62,7 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -73,7 +73,7 @@ public:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
 	/** @brief Computes coeficient C(sol) based on current solution sol */
 	REAL C_Coef(REAL sol);

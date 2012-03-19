@@ -51,7 +51,7 @@ int main()
     mesh.Print();
     int neq = mesh.NumEquations();
     
-    TPZFMatrix tangent(neq,neq),residual(neq,1);
+    TPZFMatrix<REAL> tangent(neq,neq),residual(neq,1);
 /*    TPZStack<REAL> scales;
     mesh.StateScales(scales);
 #ifdef LOG4CXX

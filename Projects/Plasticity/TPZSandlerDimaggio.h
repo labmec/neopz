@@ -160,7 +160,7 @@ public:
     * Imposes the specified strain tensor and performs plastic integration when necessary.
 	*
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep)
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 	{
 
 		SANDLERDIMAGGIOPARENT::ApplyStrainComputeDep_Internal(epsTotal, sigma, Dep);
@@ -190,7 +190,7 @@ protected:
 	* @param [out] sigma resultant stress tensor
 	* @param [out] Dep Incremental constitutive relation
     */
-    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix &Dep)
+    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 	{
 		const int nyield = fYC.NYield;
 		

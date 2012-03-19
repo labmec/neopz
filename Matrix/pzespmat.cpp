@@ -38,16 +38,16 @@ using namespace std;
 /**************************** PUBLIC ****************************/
 /**************************/
 /*** Construtor (int) ***/
-
-TPZSpMatrix::TPZSpMatrix(const int rows,const int cols )
-: TPZMatrix( rows, cols )
+template<class TVar>
+TPZSpMatrix<TVar>::TPZSpMatrix(const int rows,const int cols )
+: TPZMatrix<TVar>( rows, cols )
 #ifdef WORKPOOL
 , fWp()
 #endif
 {
 	fElem = new TPZLink<TPZNode>[ rows ] ;
 	if ( fElem == NULL )
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSpMatrix( dim ) <Error creating Matrix>" );
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSpMatrix( dim ) <Error creating Matrix>" );
 #ifdef WORKPOOL
 	for(int i=0; i<rows; i++) fElem[i].SetWorkPool(&fWp);
 #endif
@@ -57,7 +57,8 @@ TPZSpMatrix::TPZSpMatrix(const int rows,const int cols )
 /*****************/
 /*** Destrutor ***/
 
-TPZSpMatrix::~TPZSpMatrix ()
+template<class TVar>
+TPZSpMatrix<TVar>::~TPZSpMatrix ()
 {
 	Clear();
 }
@@ -66,11 +67,12 @@ TPZSpMatrix::~TPZSpMatrix ()
 /***********/
 /*** Put ***/
 
+template<class TVar>
 int
-TPZSpMatrix::Put(const int row,const int col,const REAL & value )
+TPZSpMatrix<TVar>::Put(const int row,const int col,const TVar& value )
 {
-	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0)
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "Put <indices out of band matrix range>" );
+	if ( (row >= this->Rows()) || (col >= this->Cols()) || row <0 || col<0)
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Put <indices out of band matrix range>" );
 	
 	return( PutVal( row, col, value ) );
 }
@@ -80,11 +82,12 @@ TPZSpMatrix::Put(const int row,const int col,const REAL & value )
 /***********/
 /*** Get ***/
 
-const REAL &
-TPZSpMatrix::Get(const int row,const int col ) const
+template<class TVar>
+const TVar &
+TPZSpMatrix<TVar>::Get(const int row,const int col ) const
 {
-	if ( (row >= Rows()) || (col >= Cols()) || row<0 || col<0)
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
+	if ( (row >= this->Rows()) || (col >= this->Cols()) || row<0 || col<0)
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Get <indices out of band matrix range>" );
 	
 	return( GetVal( row, col ) );
 }
@@ -98,8 +101,9 @@ TPZSpMatrix::Get(const int row,const int col ) const
 //  O valor da linha (row) deve ser maior ou igual ao da coluna
 // (col).
 //
+template<class TVar>
 int
-TPZSpMatrix::PutVal(const int row,const int col,const REAL & value )
+TPZSpMatrix<TVar>::PutVal(const int row,const int col,const TVar & value )
 {
 	TPZLink<TPZNode> *pRow = &fElem[row];
 	TPZNode        node;
@@ -144,8 +148,9 @@ TPZSpMatrix::PutVal(const int row,const int col,const REAL & value )
 //  Le um elemento da matriz, sem verificar fronteiras. O valor
 // da linha (row) deve ser maior ou igual ao da coluna (col).
 //
-const REAL &
-TPZSpMatrix::GetVal(const int row,const int col ) const
+template<class TVar>
+const TVar &
+TPZSpMatrix<TVar>::GetVal(const int row,const int col ) const
 {
 	TPZLink<TPZNode> *pRow = &fElem[row];
 	TPZNode        node;
@@ -162,8 +167,8 @@ TPZSpMatrix::GetVal(const int row,const int col ) const
 	if ( node.col == col )
 		return( pRow->GetNode()->elem );
 	else {
-		gZero = 0.;
-		return( gZero );
+		this->gZero = 0.;
+		return( this->gZero );
 	}
 }
 
@@ -175,8 +180,9 @@ TPZSpMatrix::GetVal(const int row,const int col ) const
 /******************/
 /*** Operator = ***/
 
-TPZSpMatrix &
-TPZSpMatrix::operator=(const TPZSpMatrix &A )
+template<class TVar>
+TPZSpMatrix<TVar> &
+TPZSpMatrix<TVar>::operator=(const TPZSpMatrix<TVar> &A )
 {
 	delete [] fElem;
 	fCopy( &A );
@@ -188,12 +194,13 @@ TPZSpMatrix::operator=(const TPZSpMatrix &A )
 /******************/
 /*** Operator + ***/
 
-TPZSpMatrix
-TPZSpMatrix::operator+(const TPZSpMatrix &A ) const
+template<class TVar>
+TPZSpMatrix<TVar>
+TPZSpMatrix<TVar>::operator+(const TPZSpMatrix<TVar> &A ) const
 {
-	TPZSpMatrix res( *this );
+	TPZSpMatrix<TVar> res( *this );
 	if ( ! res.fAdd( &A ) )
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+ (TPZSpMatrix&) <incompatible dimensions>" );
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+ (TPZSpMatrix&) <incompatible dimensions>" );
 	
 	return( res );
 }
@@ -203,12 +210,13 @@ TPZSpMatrix::operator+(const TPZSpMatrix &A ) const
 /******************/
 /*** Operator - ***/
 
-TPZSpMatrix
-TPZSpMatrix::operator-(const TPZSpMatrix &A ) const
+template<class TVar>
+TPZSpMatrix<TVar>
+TPZSpMatrix<TVar>::operator-(const TPZSpMatrix<TVar> &A ) const
 {
-	TPZSpMatrix res( *this );
+	TPZSpMatrix<TVar> res( *this );
 	if ( ! res.fSub( &A ) )
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "Operator+( TPZSpMatrix ) <incompatible dimensions>" );
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator+( TPZSpMatrix ) <incompatible dimensions>" );
 	
 	return( res );
 }
@@ -244,11 +252,12 @@ TPZSpMatrix::operator-(const TPZSpMatrix &A ) const
 /*******************/
 /*** Operator += ***/
 
-TPZSpMatrix &
-TPZSpMatrix::operator+=(const TPZSpMatrix &A )
+template<class TVar>
+TPZSpMatrix<TVar> &
+TPZSpMatrix<TVar>::operator+=(const TPZSpMatrix<TVar> &A )
 {
 	if ( ! fAdd( &A ) )
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "operator+( TPZSpMatrix ) <incompatible dimensions>" );
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator+( TPZSpMatrix ) <incompatible dimensions>" );
 	return( *this );
 }
 
@@ -257,11 +266,12 @@ TPZSpMatrix::operator+=(const TPZSpMatrix &A )
 /*******************/
 /*** Operator -= ***/
 
-TPZSpMatrix &
-TPZSpMatrix::operator-=(const TPZSpMatrix &A )
+template<class TVar>
+TPZSpMatrix<TVar> &
+TPZSpMatrix<TVar>::operator-=(const TPZSpMatrix<TVar> &A )
 {
 	if ( ! fSub( &A ) )
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "operator-( TPZSpMatrix ) <incompatible dimensions>" );
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "operator-( TPZSpMatrix ) <incompatible dimensions>" );
 	return( *this );
 }
 
@@ -291,11 +301,11 @@ TPZSpMatrix::operator-=(const TPZSpMatrix &A )
 
 /*****************************/
 /*** Operator * ( REAL ) ***/
-
-TPZSpMatrix
-TPZSpMatrix::operator*(const REAL value ) const
+template<class TVar>
+TPZSpMatrix<TVar>
+TPZSpMatrix<TVar>::operator*(const TVar value ) const
 {
-	TPZSpMatrix res( *this );
+	TPZSpMatrix<TVar> res( *this );
 	res.fMult( value );
 	return( res );
 }
@@ -318,8 +328,9 @@ TPZSpMatrix::operator*(const REAL value ) const
 /******************************/
 /*** Operator *= ( REAL ) ***/
 
-TPZSpMatrix &
-TPZSpMatrix::operator*=(const REAL value )
+template<class TVar>
+TPZSpMatrix<TVar> &
+TPZSpMatrix<TVar>::operator*=(const TVar value )
 {
 	if ( IsZero( value ) )
 		return( Reset() );
@@ -334,10 +345,11 @@ TPZSpMatrix::operator*=(const REAL value )
 
 /*************/
 /*** Reset ***/
-TPZSpMatrix &
-TPZSpMatrix::Reset()
+template<class TVar>
+TPZSpMatrix<TVar> &
+TPZSpMatrix<TVar>::Reset()
 {
-	for ( int i = 0; i < Rows(); i++ )
+	for ( int i = 0; i < this->Rows(); i++ )
 		fElem[i].Clear();
 	return( *this );
 }
@@ -350,20 +362,21 @@ TPZSpMatrix::Reset()
 // Muda as dimensoes da matriz, mas matem seus valores antigos. Novas
 // posicoes sao criadas com ZEROS.
 //
+template<class TVar>
 int
-TPZSpMatrix::Resize(const int newRows,const int newCols )
+TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
 {
 	//  if ( newRows != newCols )
 	//	 TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <rows and cols must be equals>" );
 	
-	if ( newRows == Rows() )
+	if ( newRows == this->Rows() )
 		return( 1 );
 	
 	// Cria nova matrix.
 	TPZLink<TPZNode> *newDiag = new TPZLink<TPZNode>[ newRows ] ;
 	
 	// Copia os elementos para a nova matriz.
-	int min = MIN( newRows, Rows() );
+	int min = MIN( newRows, this->Rows() );
 	for ( int i = 0; i < min; i++ )
 		newDiag[i] = fElem[i];
 	
@@ -371,7 +384,7 @@ TPZSpMatrix::Resize(const int newRows,const int newCols )
 	delete( fElem );
 	fElem = newDiag;
 	// fRow  = fCol = newRows;
-	fRow=newRows;fCol=newCols;
+	this->fRow=newRows;this->fCol=newCols;
 	return( 1 );
 }
 
@@ -382,26 +395,28 @@ TPZSpMatrix::Resize(const int newRows,const int newCols )
 //
 // Muda as dimensoes da matriz e ZERA seus elementos.
 //
+template<class TVar>
 int
-TPZSpMatrix::Redim(const int newRows,const int newCols )
+TPZSpMatrix<TVar>::Redim(const int newRows,const int newCols )
 {
-	fCol = newCols;
+	this->fCol = newCols;
 	delete [] fElem;
 	fElem = new TPZLink<TPZNode>[ newRows ];
 	//fRow  = fCol = newRows;
-	fRow=newRows;
+	this->fRow=newRows;
 	return( 1 );
 }
 
 /*************/
 /*** Zero ***/
+template<class TVar>
 int
-TPZSpMatrix::Zero()
+TPZSpMatrix<TVar>::Zero()
 {
 	
 	delete [] fElem;
-	fElem = new TPZLink<TPZNode>[ fRow ];
-	fDecomposed = 0;
+	fElem = new TPZLink<TPZNode>[ this->fRow ];
+	this->fDecomposed = 0;
 	return( 1 );
 }
 
@@ -443,17 +458,18 @@ TPZSpMatrix::Zero()
 /*****************/
 /*** fAdd (mat) ***/
 
+template<class TVar>
 int
-TPZSpMatrix::fAdd(const TPZSpMatrix *const A )
+TPZSpMatrix<TVar>::fAdd(const TPZSpMatrix<TVar> *const A )
 {
-	if ( (Rows() != A->Rows()) || (Cols() != A->Cols()) )
+	if ( (this->Rows() != A->Rows()) || (this->Cols() != A->Cols()) )
 		return( 0 );
 	
 	TPZNode mNode, aNode;
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
 	
-	for ( int row = 0; row < Rows(); row++, pm++, pa++ )
+	for ( int row = 0; row < this->Rows(); row++, pm++, pa++ )
     {
 		// Soma uma linha.
 		pm->Head();
@@ -517,17 +533,18 @@ TPZSpMatrix::fAdd(const TPZSpMatrix *const A )
 /*****************/
 /*** fSub (mat) ***/
 
+template<class TVar>
 int
-TPZSpMatrix::fSub(const TPZSpMatrix *const A )
+TPZSpMatrix<TVar>::fSub(const TPZSpMatrix<TVar> *const A )
 {
-	if ( (Rows() != A->Rows()) || (Cols() != A->Cols()) )
+	if ( (this->Rows() != A->Rows()) || (this->Cols() != A->Cols()) )
 		return( 0 );
 	
 	TPZNode mNode, aNode;
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
 	
-	for ( int row = 0; row < Rows(); row++, pm++, pa++ )
+	for ( int row = 0; row < this->Rows(); row++, pm++, pa++ )
     {
 		// Soma uma linha.
 		pm->Head();
@@ -618,19 +635,20 @@ TPZSpMatrix::fSub(const TPZSpMatrix *const A )
 //
 //  Aloca as linhas e copia os elementos.
 //
+template<class TVar>
 int
-TPZSpMatrix::fCopy(const TPZSpMatrix *const A )
+TPZSpMatrix<TVar>::fCopy(const TPZSpMatrix<TVar> *const A )
 {
-	fCol  = A->Cols();
-	fRow  = A->Rows();
-	fElem = new TPZLink<TPZNode>[ fRow ];
+	this->fCol  = A->Cols();
+	this->fRow  = A->Rows();
+	fElem = new TPZLink<TPZNode>[ this->fRow ];
 	
 	if ( fElem == NULL )
 		return( 0 );
 	
 	TPZLink<TPZNode> *pm = &fElem[0];
 	TPZLink<TPZNode> *pa = &A->fElem[0];
-	for ( int i = 0; i < fRow; i++ )
+	for ( int i = 0; i < this->fRow; i++ )
 		*pm++ = *pa++;
 	
 	return( 1 );
@@ -640,14 +658,14 @@ TPZSpMatrix::fCopy(const TPZSpMatrix *const A )
 
 /*********************/
 /*** fMult (value) ***/
-
+template<class TVar>
 int
-TPZSpMatrix::fMult(const REAL value )
+TPZSpMatrix<TVar>::fMult(const TVar value )
 {
 	TPZNode        node;
 	TPZLink<TPZNode> *pm = &fElem[0];
 	
-	for ( int row = 0; row < Rows(); row++, pm++ )
+	for ( int row = 0; row < this->Rows(); row++, pm++ )
     {
 		pm->Head();
 		while ( pm->Get( &node ) )
@@ -683,11 +701,12 @@ TPZSpMatrix::fMult(const REAL value )
 
 /****************/
 /*** Prod Esc ***/
+template<class TVar>
 REAL
-TPZSpMatrix::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
+TPZSpMatrix<TVar>::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 					 int k )
 {
-	REAL prod = 0.0;
+	TVar prod = 0.0;
 	
 	TPZNode node_i, node_j;
 	
@@ -736,18 +755,19 @@ TPZSpMatrix::ProdEsc( TPZLink<TPZNode> *row_i, TPZLink<TPZNode> *row_j,
 	return( prod );
 }
 
-void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+template<class TVar>
+void TPZSpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						  const REAL alpha,const REAL beta,const int opt,const int stride) const  {
-	if ((!opt && Cols()*stride != x.Rows()) || Rows()*stride != x.Rows())
-		TPZMatrix::Error(__PRETTY_FUNCTION__, "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
+	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "TPZSpMatrix::MultAdd <matrixs with incompatible dimensions>" );
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
-		TPZMatrix::Error(__PRETTY_FUNCTION__,"TPZSpMatrix::MultAdd incompatible dimensions\n");
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSpMatrix::MultAdd incompatible dimensions\n");
 	}
-	int rows = Rows();
+	int rows = this->Rows();
 	int xcols = x.Cols();
 	int ic, r;
-	PrepareZ(y,z,beta,opt,stride);
-	REAL val;
+	this->PrepareZ(y,z,beta,opt,stride);
+	TVar val;
 	for (ic = 0; ic < xcols; ic++) {
 		if(!opt) {
 			const REAL* firstel = &x.g(0,ic);
@@ -765,10 +785,10 @@ void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 				z(r*stride,ic) += alpha*val;
 			}
 		} else {
-			REAL * firstelz = &z(0,ic);
+			TVar * firstelz = &z(0,ic);
 			TPZNode *currentnode;
 			for (r = 0; r<rows; r++) {
-				REAL elx = x.g(r*stride,ic);
+				TVar elx = x.g(r*stride,ic);
 				TPZLink<TPZNode> *runner = &fElem[r];
 				if(!runner->Head()) continue;
 				do {
@@ -783,14 +803,15 @@ void TPZSpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 
 #ifdef OOPARLIB
 
-int TPZSpMatrix::Unpack( TReceiveStorage *buf ){
+template<class TVar>
+int TPZSpMatrix<TVar>::Unpack( TReceiveStorage *buf ){
 	TMatrix::Unpack(buf);
 	int rows;
 	buf->UpkInt(&rows);
 	Redim(rows);
 	int nelem;
 	int col;
-	REAL val;
+	TVar val;
 	for(int i=0;i<rows;i++) {
 		buf->UpkInt(&nelem);
 		buf->UpkDouble(&val);
@@ -801,14 +822,15 @@ int TPZSpMatrix::Unpack( TReceiveStorage *buf ){
 }
 
 
-
-TSaveable *TPZSpMatrix::Restore(TReceiveStorage *buf) {
-	TPZSpMatrix *m = new TPZSpMatrix();
+template<class TVar>
+TSaveable *TPZSpMatrix<TVar>::Restore(TReceiveStorage *buf) {
+	TPZSpMatrix<TVar> *m = new TPZSpMatrix<TVar>();
 	m->Unpack(buf);
 	return m;
 }
 
-int TPZSpMatrix::Pack( TSendStorage *buf ) const {
+template<class TVar>
+int TPZSpMatrix<TVar>::Pack( TSendStorage *buf ) const {
 	TMatrix::Pack(buf);
 	TPZNode        node;
 	TPZLink<TPZNode> *pm = &fElem[0];
@@ -836,13 +858,14 @@ int TPZSpMatrix::Pack( TSendStorage *buf ) const {
 	return 1;
 }
 
-
-int TPZSpMatrix::DerivedFrom(const long Classid) const {
+template<class TVar>
+int TPZSpMatrix<TVar>::DerivedFrom(const long Classid) const {
 	if(Classid == GetClassID()) return 1;
 	return TMatrix::DerivedFrom(Classid);
 }
 
-int TPZSpMatrix::DerivedFrom(const char *classname) const {
+template<class TVar>
+int TPZSpMatrix<TVar>::DerivedFrom(const char *classname) const {
 	
 	if(!strcmp(ClassName(),classname)) return 1;
 	return TMatrix::DerivedFrom(classname);
@@ -850,3 +873,5 @@ int TPZSpMatrix::DerivedFrom(const char *classname) const {
 
 #endif
 
+
+template class TPZSpMatrix<REAL>;

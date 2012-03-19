@@ -26,46 +26,49 @@
 
 #endif
 
+template<class TVar>
 class TPZFMatrix;
 
 /**
  * @brief Implements symmetric band matrices. \ref matrix "Matrix"
  * @ingroup matrix
  */
-class TPZSBMatrix : public TPZMatrix
+template<class TVar>
+class TPZSBMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSBMatrix() : TPZMatrix(0,0) { fDiag = NULL; fBand = 0; }
+	TPZSBMatrix() : TPZMatrix<TVar>(0,0) { fDiag = NULL; fBand = 0; }
 	TPZSBMatrix(const int dim,const int band );
-	TPZSBMatrix(const TPZSBMatrix &A ) : TPZMatrix(A)  { Copy(A); }
+	TPZSBMatrix(const TPZSBMatrix<TVar> &A ) : TPZMatrix<TVar>(A)  { Copy(A); }
 	
 	CLONEDEF(TPZSBMatrix)
 	
 	~TPZSBMatrix() { Clear(); }
 	
-	int    PutVal(const int row,const int col,const REAL& element );
-	const REAL &GetVal(const int row,const int col ) const;
+	int    PutVal(const int row,const int col,const TVar& element );
+	const TVar &GetVal(const int row,const int col ) const;
 	
 	/** @brief Computes z = beta * y + alpha * opt(this)*x */
 	/** z and x cannot overlap in memory */
-	void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
 	
 	void Print(const char *name = NULL, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
-	friend std::ostream & operator<<(std::ostream& out,const TPZSBMatrix &A);
+	//friend std::ostream & operator<< <>(std::ostream& out,const TPZSBMatrix<TVar>  &A); Leonardo removendo o '<>' antes do (std...
+	template<class TT>friend std::ostream & operator<< (std::ostream& out,const TPZSBMatrix<TT>  &A); 
 	
 	/// Operadores com matrizes SKY LINE.
 	// @{
-	TPZSBMatrix &operator= (const TPZSBMatrix &A );
-	TPZSBMatrix operator+  (const TPZSBMatrix &A ) const;
-	TPZSBMatrix operator-  (const TPZSBMatrix &A ) const;
-	TPZSBMatrix &operator+=(const TPZSBMatrix &A );
-	TPZSBMatrix &operator-=(const TPZSBMatrix &A );
+	TPZSBMatrix &operator= (const TPZSBMatrix<TVar> &A );
+	TPZSBMatrix operator+  (const TPZSBMatrix<TVar> &A ) const;
+	TPZSBMatrix operator-  (const TPZSBMatrix<TVar> &A ) const;
+	TPZSBMatrix &operator+=(const TPZSBMatrix<TVar> &A );
+	TPZSBMatrix &operator-=(const TPZSBMatrix<TVar> &A );
 	// @}
-	TPZSBMatrix operator*  (const REAL v ) const;
-	TPZSBMatrix &operator*=(const REAL v );
+	TPZSBMatrix<TVar> operator*  (const TVar v ) const;
+	TPZSBMatrix<TVar> &operator*=(const TVar v );
 	
-	TPZSBMatrix operator-() const { return operator*(-1.0); }
+	TPZSBMatrix<TVar> operator-() const { return operator*(-1.0); }
 	
 	/// Redimension the matrix keeping original elements.
 	int Resize(const int newDim ,const int);
@@ -88,11 +91,11 @@ public:
 	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
 	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
 	
-	int Subst_Forward  ( TPZFMatrix *b ) const;
-	int Subst_Backward ( TPZFMatrix *b ) const;
-	int Subst_LForward ( TPZFMatrix *b ) const;
-	int Subst_LBackward( TPZFMatrix *b ) const;
-	int Subst_Diag     ( TPZFMatrix *b ) const;
+	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
+	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LBackward( TPZFMatrix<TVar> *b ) const;
+	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
 	// @}
 	
 #ifdef OOPARLIB
@@ -109,14 +112,14 @@ public:
 	
 private:
 	
-	int  Size() const    { return( Dim() * (fBand + 1) ); }
+	int  Size() const    { return( this->Dim() * (fBand + 1) ); }
 	int  PutZero();
 	//static int  Error(const char *msg1,const char* msg2="" ) ;
 	int  Clear();
-	void Copy (const TPZSBMatrix & );
+	void Copy (const TPZSBMatrix<TVar> & );
 	
 	
-	REAL *fDiag;
+	TVar *fDiag;
 	int  fBand;
 };
 

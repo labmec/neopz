@@ -236,19 +236,19 @@ public:
 	 Derivadas sao decartadas
 	 @param [out] target onde os valores serao copiados
 	 */
-    void CopyTo(TPZFMatrix & target) const;
+    void CopyTo(TPZFMatrix<REAL> & target) const;
 	
 	/**
 	 Copia os valores do vetor para o tensor
 	 Derivadas sao zeradas
 	 @param [in] source onde os valores serao copiados
 	 */
-    void CopyFrom(const TPZFMatrix & source);
+    void CopyFrom(const TPZFMatrix<REAL> & source);
 	
 	/** Converts the stress vector onto a symmetric stress tensor
 	 * @param Tensor [out]
 	 */
-	void CopyToTensor(TPZFMatrix & Tensor);
+	void CopyToTensor(TPZFMatrix<REAL> & Tensor);
 	
     /**
 	 Initializa o valor do tensor (tensor de deformacao)
@@ -362,14 +362,14 @@ void TPZTensor<T>::CopyTo(TPZTensor<T1> & target) const {
 }
 
 template < class T >
-void TPZTensor<T>::CopyTo(TPZFMatrix & target) const
+void TPZTensor<T>::CopyTo(TPZFMatrix<REAL> & target) const
 {
 	int i;
 	for(i = 0 ; i < 6; i++)target(i,0) = shapeFAD::val(fData[i] );
 }
 
 template < class T >
-void TPZTensor<T>::CopyFrom(const TPZFMatrix & source)
+void TPZTensor<T>::CopyFrom(const TPZFMatrix<REAL> & source)
 {
 	int i;
 	for(i = 0; i < 6; i++)fData[i] = source.Get(i,0);
@@ -542,7 +542,7 @@ void TPZTensor<T>::dJ3(TPZTensor<T> &deriv) const
 }
 
 template <class T>
-void TPZTensor<T>::CopyToTensor(TPZFMatrix & Tensor)
+void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 {
 	Tensor.Resize(3,3);
 	Tensor(0,0) = shapeFAD::val( XX() ); //xx

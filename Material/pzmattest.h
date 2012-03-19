@@ -18,7 +18,7 @@ class TPZMaterialTest : public TPZMaterial {
 	REAL fNumMat;//material id
 	REAL fAlfa;//intensity of singularity
 	REAL fX0;//singularity
-	TPZFMatrix fXf;//fonte
+	TPZFMatrix<REAL> fXf;//fonte
 	
 	public :
 	
@@ -30,7 +30,7 @@ class TPZMaterialTest : public TPZMaterial {
 	
 	REAL   X0() {return fX0;}
 	
-	void SetMaterial(TPZFMatrix &xkin){
+	void SetMaterial(TPZFMatrix<REAL> &xkin){
 		fXf = xkin;
 	}
 	
@@ -44,19 +44,19 @@ class TPZMaterialTest : public TPZMaterial {
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -64,7 +64,7 @@ class TPZMaterialTest : public TPZMaterial {
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -77,7 +77,7 @@ class TPZMaterialTest : public TPZMaterial {
 	virtual int NFluxes(){ return 2;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -86,11 +86,11 @@ public:
 	}
 	
 	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-		        TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+		        TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
 };
 
 #endif

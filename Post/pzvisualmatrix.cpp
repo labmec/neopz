@@ -9,7 +9,7 @@ using namespace std;
 /** This function creates adequated file that allow to visualization of the value of a matrix passed as parameter. \n
  *  Depends on disponible visualization package 
  */
-void VisualMatrix(TPZFMatrix & matrix, const std::string &outfilename)
+void VisualMatrix(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 {
 	int posdx = outfilename.rfind(".dx");
 	int posvtk = outfilename.rfind(".vtk");
@@ -24,7 +24,7 @@ void VisualMatrix(TPZFMatrix & matrix, const std::string &outfilename)
 }	
 
 /** This function creates a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
-void VisualMatrixDX(TPZFMatrix & matrix, const std::string &outfilename)
+void VisualMatrixDX(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();
 	const int nely = matrix.Rows();
@@ -72,7 +72,7 @@ void VisualMatrixDX(TPZFMatrix & matrix, const std::string &outfilename)
 }
 
 /** This function creates a Visualization Tool Kit (VTK) file that allow to visualization of the value of a matrix passed as parameter */
-void VisualMatrixVTK(TPZFMatrix & matrix, const std::string &outfilename)
+void VisualMatrixVTK(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();
 	const int nely = matrix.Rows();

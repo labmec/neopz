@@ -52,10 +52,10 @@ int main(){
  gpt[0] = 1.5; gpt[1] = 0.65; gpt[2] = 0.5;
  elvec[1]->ComputeXInverse (gpt, mpt);
  
- TPZFMatrix jac(dim,dim,0.);
- TPZFMatrix axes(3,3,0.);
+ TPZFMatrix<REAL> jac(dim,dim,0.);
+ TPZFMatrix<REAL> axes(3,3,0.);
  REAL detjac;
- TPZFMatrix jacinv(dim,dim,0.);
+ TPZFMatrix<REAL> jacinv(dim,dim,0.);
  elvec[1]->Jacobian(mpt, jac, axes, detjac, jacinv);
  cout << "Jacobiana\n" << jac << endl << "Axes\n" << axes
        << "Det = " << detjac << "Inversa Jacobiana\n" << jacinv << endl;			

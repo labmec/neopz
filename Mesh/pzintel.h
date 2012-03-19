@@ -13,6 +13,7 @@
 struct TPZElementMatrix;
 
 class TPZIntPoints;
+template <class TVar>
 class TPZBlockDiagonal;
 #include "TPZCompElDisc.h"
 
@@ -261,7 +262,7 @@ public:
 	//  virtual TPZIntPoints *CreateSideIntegrationRule(int side) = 0;
 	
 	/** @brief Compute the values of the shape function along the side*/
-	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix &phi, TPZFMatrix &dphi) = 0;
+	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) = 0;
 	
 	//@}
 	
@@ -281,7 +282,7 @@ public:
 	 * @param dsol solution derivatives
 	 * @param axes axes indicating the direction of the derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -292,8 +293,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.\n
@@ -309,8 +310,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Compare the L2 norm of the difference between the ¨var¨ solution of the current element with
@@ -456,7 +457,7 @@ public:
 	 * @param dphil large side gradient function values
 	 * @param transform transformation matrix from large side to small side
 	 */
-	int CompareShapeF(int sides, int sidel, TPZFMatrix &phis, TPZFMatrix &dphis, TPZFMatrix &phil, TPZFMatrix &dphil, TPZTransform &transform);
+	int CompareShapeF(int sides, int sidel, TPZFMatrix<REAL> &phis, TPZFMatrix<REAL> &dphis, TPZFMatrix<REAL> &phil, TPZFMatrix<REAL> &dphil, TPZTransform &transform);
 	
 	/**
 	 * @brief Returns the transformation which transform a point from the side to the interior of the element

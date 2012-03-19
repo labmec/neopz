@@ -123,7 +123,7 @@ public:
 	virtual  int NodeIndex(int node) const;
 	
 	//HDiv
-	virtual void VecHdiv(TPZFMatrix &normalvec ,TPZVec<int> &sidevector);
+	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector);
 	
 	/**
 	 * @brief Compute the permutation for an HDiv side
@@ -275,7 +275,7 @@ public:
 	virtual  TPZTransform BuildTransform2(int side, TPZGeoEl *father,TPZTransform &t);
 	
 	/** @brief Returns the Jacobian matrix at the point*/
-	virtual  void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+	virtual  void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
 	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result);

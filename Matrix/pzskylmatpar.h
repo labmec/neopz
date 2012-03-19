@@ -39,7 +39,8 @@
  * @brief Implements a skyline storage format to parallelized process. \ref matrix "Matrix"
  * @ingroup matrix
  */
-class TPZSkylParMatrix : public TPZSkylMatrix
+template<class TVar>
+class TPZSkylParMatrix : public TPZSkylMatrix<TVar>
 {
 public:
 	static int main();
@@ -48,7 +49,7 @@ public:
 	TPZSkylParMatrix(const int dim);
 	TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads);
 	//TPZSkylParMatrix (const int dim,int NumThreads);
-	TPZSkylParMatrix(const TPZSkylParMatrix &A);
+	TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &A);
 	
 	CLONEDEF(TPZSkylParMatrix)
     //    : TPZMatrix(A.Dim(), A.Dim()), fElem(0), fStorage(0) {Copy(A); }

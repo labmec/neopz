@@ -12,7 +12,9 @@
 #include "pzvec.h"
 #include "tpzautopointer.h"
 class TPZCompMesh;
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZFMatrix;
 class TPZCompEl;
 struct TPZElementMatrix;
@@ -25,7 +27,7 @@ struct SMTAssembleResidual{
 	/// Pointer to computational element
 	TPZCompEl * compel;
 	/// Residual matrix
-	TPZFMatrix * rhs;
+	TPZFMatrix<REAL> * rhs;
 	/// Material identifiers
 	std::set<int> *MaterialIds;
 	/// Index of the first equation
@@ -36,7 +38,7 @@ struct SMTAssembleResidual{
 	int index;
 
 	/// Constructor
-	SMTAssembleResidual( TPZCompEl * _compel, TPZFMatrix * _rhs, int _mineq, int _maxeq, std::set<int> * _MaterialIds, int _index)
+	SMTAssembleResidual( TPZCompEl * _compel, TPZFMatrix<REAL> * _rhs, int _mineq, int _maxeq, std::set<int> * _MaterialIds, int _index)
 	{
 		compel = _compel;
 		rhs = _rhs;
@@ -65,7 +67,7 @@ public:
 	~TPZMTAssemble();
 	
 	/** @brief Multi-threading assemblage process */
-	static void AssembleMT(TPZFMatrix & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds);
+	static void AssembleMT(TPZFMatrix<REAL> & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds);
 	
 protected:
 	

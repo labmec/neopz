@@ -63,8 +63,8 @@ void TestingInverseWithAutoFill(int dim) {
 	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
 	// Making ma copy because ma is modified by Inverse method (it's decomposed)
 	matx cpy(ma);
-	TPZFMatrix inv(dim,dim);
-	TPZFMatrix res(inv);
+	TPZFMatrix<REAL> inv(dim,dim);
+	TPZFMatrix<REAL> res(inv);
 	// getting inverse twice
 	cpy.Inverse(inv);
 	inv.Inverse(res);
@@ -84,8 +84,8 @@ void TestingInverseWithAutoFill(int rows,int bnd) {
 	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<matx>(ma),1);
 	// Making ma copy because ma is modified by Inverse method (it's decomposed)
 	matx cpy(ma);
-	TPZFMatrix inv(rows,rows);
-	TPZFMatrix res(rows,rows);
+	TPZFMatrix<REAL> inv(rows,rows);
+	TPZFMatrix<REAL> res(rows,rows);
 	// getting inverse twice
 	cpy.Inverse(inv);
 	inv.Inverse(res);
@@ -187,34 +187,34 @@ BOOST_AUTO_TEST_CASE(diagonaldominant_tests) {
 	
 	// Unit Test for full matrix
 	for(dim=3;dim<100;dim+=7) {
-		TPZFMatrix ma(dim,dim);
+		TPZFMatrix<REAL> ma(dim,dim);
 		ma.AutoFill();
-		BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFMatrix>(ma),1);
+		BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFMatrix<REAL> >(ma),1);
 	}
 	
 	// Unit Test for block diagonal matrix
 	TPZVec<int> blocks(13);
 	for(i=0;i<13;i++)
 		blocks[i] = 15+(i%4);
-	TPZBlockDiagonal mabd(blocks);
+	TPZBlockDiagonal<REAL> mabd(blocks);
 	mabd.AutoFill();
-	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZBlockDiagonal>(mabd),1);
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZBlockDiagonal<REAL> >(mabd),1);
 	
 	// Unit Test No Symmetric Banded matrix
-	TPZFBMatrix mafb(17,5);
+	TPZFBMatrix<REAL> mafb(17,5);
 	mafb.AutoFill();
-	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix>(mafb),1);
+	BOOST_CHECK_EQUAL(TestingGeneratingDiagonalDominantMatrix<TPZFBMatrix<REAL> >(mafb),1);
 }
 
 BOOST_AUTO_TEST_CASE(inverse_tests)
 {
 	int dim;
 	for(dim = 9;dim < 100; dim+=5) {
-		TestingInverseWithAutoFill<TPZFMatrix>(dim);
+		TestingInverseWithAutoFill<TPZFMatrix<REAL> >(dim);
 	//	TestingInverseWithAutoFill<TPZBlockDiagonal>(dim);
-		TestingInverseWithAutoFill<TPZFBMatrix>(dim,7);
-		TestingInverseWithAutoFill<TPZSpMatrix>(dim,dim);
-		TestingInverseWithAutoFill<TPZFNMatrix<9> >(dim,dim);
+		TestingInverseWithAutoFill<TPZFBMatrix<REAL> >(dim,7);
+		TestingInverseWithAutoFill<TPZSpMatrix<REAL> >(dim,dim);
+		TestingInverseWithAutoFill<TPZFNMatrix<9,REAL> >(dim,dim);
 	//	TestingInverseWithAutoFill<TPZSBMatrix>(dim);
 	//	TestingInverseWithAutoFill<TPZSFMatrix>(dim);
 	}
@@ -224,14 +224,14 @@ BOOST_AUTO_TEST_CASE(multiply_tests)
 {
 	int dim;
 	for(dim = 3;dim < 100; dim+=5) {
-		TestingMultiplyWithAutoFill<TPZFMatrix>(dim);
+		TestingMultiplyWithAutoFill<TPZFMatrix<REAL> >(dim);
 	}
 }
 BOOST_AUTO_TEST_CASE(multiplyoperator_tests)
 {
 	int dim;
 	for(dim = 3;dim < 100; dim+=5) {
-		TestingMultiplyOperatorWithAutoFill<TPZFMatrix>(dim);
+		TestingMultiplyOperatorWithAutoFill<TPZFMatrix<REAL> >(dim);
 	}
 }
 BOOST_AUTO_TEST_CASE(transpose_tests)
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(transpose_tests)
 	int rows, cols;
 	for(rows = 3;rows < 4; rows+=5) {
 		for(cols = 3;cols < 100;cols+=5) {
-			TestingTransposeWithAutoFill<TPZFMatrix>(rows,cols);
+			TestingTransposeWithAutoFill<TPZFMatrix<REAL> >(rows,cols);
 		}
 	}
 }

@@ -88,7 +88,7 @@ private:
 	TPZGradientFlux fGradientFlux;
 	
 	/** @brief Compute Euler Flux */
-	void ComputeEulerFlux(TPZVec<REAL> &sol, TPZFMatrix & F);
+	void ComputeEulerFlux(TPZVec<REAL> &sol, TPZFMatrix<REAL> & F);
 	
 public:
 	
@@ -138,7 +138,7 @@ public:
 	
 	virtual int NSolutionVariables(int var);
 	
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 
 	/** 
 	 * @name Contribute methods 
@@ -146,27 +146,27 @@ public:
 	 */
 	/** @{ */
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek, TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ek,TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	/** @} */
 	

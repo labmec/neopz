@@ -20,7 +20,7 @@ using namespace pztopology;
 using namespace pzshape;
 
 
-void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
+void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
 {
 #ifdef DEBUG
 	/** Cross[(mid-ini),(fin-ini)] */
@@ -96,7 +96,7 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
 
 
 /** This method compute the 3 given points with respect to R2 Basis */
-void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb)
+void TPZArc3D::ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb)
 {
 	/** vector (ini - middle) written in new R2 base */
 	TPZVec<REAL> Axe(3,0.), Temp(3,0.);
@@ -121,7 +121,7 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
 
 /** This method return the absolute angle with respect of the arc formed between (ini - center) and (fin - center), passing by midnode
  Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
-double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const
+double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double xb, double yb) const
 {
 	REAL Xcenter, Ycenter, arcAngle, sinBig, cosBig;
 	
@@ -168,12 +168,12 @@ double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, do
 }
 
 /** Mapping -> result = f(NodesCoord,qsi) */
-void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
+void TPZArc3D::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
 {
 	/** Computing initialVector = (iniR2 - CenterR2) */
 	TPZVec<REAL> MappedBASE2D(3,0.);
 	
-	TPZFMatrix RotMatrix(2,2);
+	TPZFMatrix<REAL> RotMatrix(2,2);
 	double deflection = fAngle * fRadius * (loc[0] + 1.) / (2.*fRadius);
 	RotMatrix(0,0) =  cos(deflection); RotMatrix(0,1) = sin(deflection);
 	RotMatrix(1,0) = -sin(deflection); RotMatrix(1,1) = cos(deflection);
@@ -203,7 +203,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
 }
 
 
-void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const
+void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const
 {
 	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
 	jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);

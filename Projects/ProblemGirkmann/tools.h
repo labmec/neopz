@@ -58,7 +58,7 @@ public:
 	 *Matriz de revolucao
 	 *theta (Pi rad): Angulo meridional entre a casca e o anel 
 	 */
-	TPZFMatrix MatrixR(REAL theta);
+	TPZFMatrix<REAL> MatrixR(REAL theta);
 	
 	/**
 	 *Criar malha geometrica
@@ -127,7 +127,7 @@ public:
 	/**
 	 * Teste os vetores de carga
 	 */
-	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix &solution);
+	void TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<REAL> &solution);
 	
 	/**
 	 * Find the indices of the corner connects

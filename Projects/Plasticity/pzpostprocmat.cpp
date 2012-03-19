@@ -113,7 +113,7 @@ void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solo
 	for(i = 0; i < numeq; i++)Solout[i] = data.sol[0][offset+i];
 }
 
-void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 
 //#ifdef LOG4CXX
@@ -124,13 +124,13 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &
 //  }
 //#endif
 	
-  TPZFMatrix &phi = data.phi;
+  TPZFMatrix<REAL> &phi = data.phi;
   TPZVec<REAL> &sol = data.sol[0];
   int nstate = NStateVariables();
 			
   int nshape = phi.Rows();
 	
-  TPZFMatrix L2(nshape,nshape,0.);
+  TPZFMatrix<REAL> L2(nshape,nshape,0.);
   int i, j, i_var;
 
   for(i = 0; i < nshape; i++)
@@ -145,23 +145,23 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &
 	}
 }
 
-void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcMat::Contribute(ef) should never be called\n";
 	return;
 }
 
-void TPZPostProcMat::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc)
+void TPZPostProcMat::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 {
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcMat::ContributeBC() should never be called\n";
 	return;
 }
 
-void TPZPostProcMat::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek){
+void TPZPostProcMat::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef, TPZFMatrix<REAL> &ek){
   // do nothing
 }
 
-void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef, TPZFMatrix &ek,TPZBndCond &bc){
+void TPZPostProcMat::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef, TPZFMatrix<REAL> &ek,TPZBndCond &bc){
   // do nothing
 }
 

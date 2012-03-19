@@ -16,6 +16,7 @@
 #include "pzgraphmesh.h"
 #include "pzvec.h"
 
+template<class TVar>
 class TPZBlock;
 
 /**
@@ -33,7 +34,7 @@ public:
 	virtual void DrawNodes();
 	virtual void DrawConnectivity(MElementType type);
 	virtual void DrawSolution(int step, REAL time);
-	virtual void DrawSolution(TPZBlock &Sol);
+	virtual void DrawSolution(TPZBlock<REAL> &Sol);
 	virtual void DrawSolution(char *var = 0);
 	
 protected:

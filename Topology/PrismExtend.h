@@ -112,7 +112,7 @@ namespace pztopology {
 		 * @brief Computes the linear map from an internal point to the parameter space of the side
 		 * returns the jacobian of the transformation
 		 */
-		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
 		/** @} */
 		

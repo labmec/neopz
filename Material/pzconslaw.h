@@ -166,8 +166,8 @@ public:
 	 * @{ */
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
-						  TPZFMatrix &axes,int var,
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
+						  TPZFMatrix<REAL> &axes,int var,
 						  TPZVec<REAL> &Solout)=0;
 public:
 	/** 
@@ -190,35 +190,35 @@ public:
 	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,TPZFMatrix &ef)=0;
+							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)=0;
 	
 	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ek,TPZFMatrix &ef)=0;
+									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)=0;
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ef)
+									 TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)=0;
 	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);

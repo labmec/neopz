@@ -267,7 +267,7 @@ public:
 	
 	
 	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
+	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
 	{
 		/**
 		 * @brief Creating Variables
@@ -357,10 +357,10 @@ public:
 	/**Avaliate the Jacobian 2D (2x2 size) by Expected Convergence Order*/
 	//   virtual void JacobianConv(TPZVec< REAL > QsiEta,  TPZVec< REAL > &XYZ)
 	//   {std::cout << "***USING THE JACOBIAN FOR 2D ELEMENTS METHOD***\n\n";
-	//           TPZFMatrix jacobian(2,2);
-	//           TPZFMatrix Axes(3,3);
+	//           TPZFMatrix<REAL> jacobian(2,2);
+	//           TPZFMatrix<REAL> Axes(3,3);
 	//           REAL detJacobian;
-	//           TPZFMatrix InvJac(2,2);
+	//           TPZFMatrix<REAL> InvJac(2,2);
 	//           TPZVec< REAL > QsiEtaIni (2,1);
 	//           QsiEtaIni[0] = QsiEta[0];
 	//           QsiEtaIni[1] = QsiEta[1];
@@ -372,7 +372,7 @@ public:
 	//           std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << "\n\n";
 	// 
 	//           TPZVec< REAL > XYZaprox(3);
-	//           TPZFMatrix error(11,1,0.);
+	//           TPZFMatrix<REAL> error(11,1,0.);
 	//           int edge;
 	//           double dX, dY, dZ;
 	//           for(int i = 0; i <= 10; i++)
@@ -423,10 +423,10 @@ public:
 	/** @brief Avaliate the Jacobian 3D (3x3 size) by Expected Convergence Order*/
 	virtual void JacobianConv(TPZVec< REAL > QsiEta,  TPZVec< REAL > &XYZ)
 	{std::cout << "\n***USING THE JACOBIAN FOR 3D ELEMENTS METHOD***\n";
-		TPZFMatrix jacobian(3,3);
-		TPZFMatrix Axes(3,3);
+		TPZFMatrix<REAL> jacobian(3,3);
+		TPZFMatrix<REAL> Axes(3,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(3,3);
+		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni (3,1);
 		QsiEtaIni[0] = QsiEta[0];
 		QsiEtaIni[1] = QsiEta[1];
@@ -440,7 +440,7 @@ public:
 		std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << " | deltaZeta = const = " << deltaZeta <<"\n\n";
 		
 		TPZVec< REAL > XYZaprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		int edge;
 		double dX, dY, dZ;
 		for(int i = 0; i <= 10; i++)
@@ -496,7 +496,7 @@ private:
 #endif
 	
     // Compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi
-    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix &jac)
+    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix<REAL> &jac)
     {
 		const int dim = Geo::Dimension;
 		TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);

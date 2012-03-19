@@ -121,7 +121,7 @@ public:
     /**
     LoadState will keep a given state as static variable of the class
     */
-    void LoadState(TPZFMatrix &state)
+    void LoadState(TPZFMatrix<REAL> &state)
     {
     #ifdef LOG4CXX_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
@@ -134,7 +134,7 @@ public:
 	#endif
     }
 
-    void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase)
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
     {
     #ifdef LOG4CXX_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));
@@ -157,7 +157,7 @@ public:
     #endif
     }
 
-    void Residual(TPZFMatrix &res,int icase)
+    void Residual(TPZFMatrix<REAL> &res,int icase)
     {
     #ifdef LOG4CXX_PLASTICITY
         LoggerPtr logger(Logger::getLogger("plasticity.ladekimthermoforce"));

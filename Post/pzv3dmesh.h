@@ -31,7 +31,7 @@ public:
 	virtual void DrawMesh(int numcases);
 	
 	/** @brief Draw the solution associated with Sol (not implemented) */
-	virtual void DrawSolution(TPZBlock &Sol);
+	virtual void DrawSolution(TPZBlock<REAL> &Sol);
 	/** @brief Draw the solution associated with the variable name */
 	virtual void DrawSolution(char * var = 0);
 	/** @brief Draw the solution sequence */

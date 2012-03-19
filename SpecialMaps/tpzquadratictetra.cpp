@@ -15,7 +15,7 @@ TPZQuadraticTetra::~TPZQuadraticTetra()
 {
 }
 
-void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
 	REAL qsi = pt[0], eta = pt[1], zeta = pt[2];
 	
@@ -62,7 +62,7 @@ void TPZQuadraticTetra::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dph
 	dphi(2,9) =   4.*eta;
 }
 
-void TPZQuadraticTetra::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
+void TPZQuadraticTetra::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result)
 {
 	TPZFNMatrix<10> phi(10,1);
 	TPZFNMatrix<30> dphi(3,10); Shape(loc,phi,dphi);
@@ -73,7 +73,7 @@ void TPZQuadraticTetra::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &r
 	}
 }
 
-void TPZQuadraticTetra::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
+void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
 {
 #ifdef DEBUG
 	int nnodes = NNodes;

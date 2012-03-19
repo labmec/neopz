@@ -45,9 +45,9 @@ TPZDohrSubstruct::~TPZDohrSubstruct()
 	//Limpesa
 }
 
-void TPZDohrSubstruct::ContributeTestV1(TPZFMatrix &testV1, int NumCoarse) {
+void TPZDohrSubstruct::ContributeTestV1(TPZFMatrix<REAL> &testV1, int NumCoarse) {
 	/* temp1 will be equal to W(i)*Phi(i) */
-	TPZFMatrix temp1(fNEquations,fCoarseIndex.NElements());
+	TPZFMatrix<REAL> temp1(fNEquations,fCoarseIndex.NElements());
 	int i,j;
 	for(i=0;i<fPhiC.Rows();i++) {
 		for(j=0;j<fPhiC.Cols();j++) {
@@ -55,8 +55,8 @@ void TPZDohrSubstruct::ContributeTestV1(TPZFMatrix &testV1, int NumCoarse) {
 		}
 	}
 	/* And now temp2 will be equal to temp1*R(ci) */
-	TPZFMatrix col(fNEquations,1);
-	TPZFMatrix temp2(fNEquations,NumCoarse,0.);
+	TPZFMatrix<REAL> col(fNEquations,1);
+	TPZFMatrix<REAL> temp2(fNEquations,NumCoarse,0.);
 	for(i=0;i<fCoarseIndex.NElements();i++) {
 		temp1.GetSub(0,i,temp1.Rows(),1,col);
 		temp2.PutSub(0,fCoarseIndex[i],col);
@@ -72,9 +72,9 @@ void TPZDohrSubstruct::ContributeTestV1(TPZFMatrix &testV1, int NumCoarse) {
 	}
 }
 
-void TPZDohrSubstruct::ContributeResidual(TPZFMatrix &u, TPZFMatrix &r){
-	TPZFMatrix ulocal(fNEquations,1,0.);
-	TPZFMatrix reslocal(fNEquations,1);
+void TPZDohrSubstruct::ContributeResidual(TPZFMatrix<REAL> &u, TPZFMatrix<REAL> &r){
+	TPZFMatrix<REAL> ulocal(fNEquations,1,0.);
+	TPZFMatrix<REAL> reslocal(fNEquations,1);
 	int i;
 	int neqs = fGlobalEqs.NElements();
 	for (i=0;i<neqs;i++) 
@@ -89,7 +89,7 @@ void TPZDohrSubstruct::ContributeResidual(TPZFMatrix &u, TPZFMatrix &r){
 	}
 }
 
-void TPZDohrSubstruct::LoadWeightedResidual(const TPZFMatrix &r_global){
+void TPZDohrSubstruct::LoadWeightedResidual(const TPZFMatrix<REAL> &r_global){
 	int i;
 	fLocalWeightedResidual.Resize(fNEquations,1);
 	int neqs = fGlobalEqs.NElements();
@@ -100,9 +100,9 @@ void TPZDohrSubstruct::LoadWeightedResidual(const TPZFMatrix &r_global){
 	}
 }
 
-void TPZDohrSubstruct::Contribute_rc(TPZFMatrix &rc) {
+void TPZDohrSubstruct::Contribute_rc(TPZFMatrix<REAL> &rc) {
 	int i;
-	TPZFMatrix temp;
+	TPZFMatrix<REAL> temp;
 	fPhiC.Multiply(fLocalWeightedResidual, temp, 1, 1);
 	for (i=0;i<fCoarseIndex.NElements();i++) {
 		rc(fCoarseIndex[i],0) += temp(i,0);
@@ -113,13 +113,13 @@ void TPZDohrSubstruct::Contribute_rc(TPZFMatrix &rc) {
  * It computes the local contribution to r(c).
  * The method LoadWeightedResidual must be called before this one.
  */
-void TPZDohrSubstruct::Contribute_rc_local(TPZFMatrix &residual_local, TPZFMatrix &rc_local)
+void TPZDohrSubstruct::Contribute_rc_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &rc_local)
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1, 1);
 }
 
 
-void TPZDohrSubstruct::Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coaseindex) {
+void TPZDohrSubstruct::Contribute_Kc(TPZMatrix<REAL> &Kc, TPZVec<int> &coaseindex) {
 	int i;
 	int j;
 	for (i=0;i<fCoarseIndex.NElements();i++) {
@@ -129,11 +129,11 @@ void TPZDohrSubstruct::Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coaseindex) {
 	}
 }
 
-void TPZDohrSubstruct::Contribute_v1(TPZFMatrix &v1, TPZFMatrix &invKc_rc) {
+void TPZDohrSubstruct::Contribute_v1(TPZFMatrix<REAL> &v1, TPZFMatrix<REAL> &invKc_rc) {
 	int i;
 	//  int j;
-	TPZFMatrix temp(fCoarseIndex.NElements(), 1);
-	TPZFMatrix temp2;
+	TPZFMatrix<REAL> temp(fCoarseIndex.NElements(), 1);
+	TPZFMatrix<REAL> temp2;
 	//temp = R(ci)*K(c)_inverted*r(c)
 	for (i=0;i<fCoarseIndex.NElements();i++) {
 		temp(i, 0) = invKc_rc(fCoarseIndex[i],0);
@@ -154,13 +154,13 @@ void TPZDohrSubstruct::Contribute_v1(TPZFMatrix &v1, TPZFMatrix &invKc_rc) {
 	}
 }
 
-void TPZDohrSubstruct::Contribute_v1_local(TPZFMatrix &v1_local, TPZFMatrix &invKc_rc_local) {
+void TPZDohrSubstruct::Contribute_v1_local(TPZFMatrix<REAL> &v1_local, TPZFMatrix<REAL> &invKc_rc_local) {
 	int neqs = fGlobalEqs.NElements();
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
 }
 
-void TPZDohrSubstruct::Contribute_v2(TPZFMatrix &v2) {
+void TPZDohrSubstruct::Contribute_v2(TPZFMatrix<REAL> &v2) {
 	int i;
 	SolveSystemZi();
 #ifdef ZERO_INTERNAL_RESIDU
@@ -180,9 +180,9 @@ void TPZDohrSubstruct::Contribute_v2(TPZFMatrix &v2) {
 /*
  * It computes the local contribution to v2.
  */
-void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatrix &v2_local)
+void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &v2_local)
 {
-	TPZFMatrix LocalWeightedResidual(fNEquations,1,0.);
+	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations,1,0.);
 	int neqs = fGlobalEqs.NElements();
 	int i;
 	for (i=0;i<neqs;i++) 
@@ -199,17 +199,17 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatri
 	//Constructing I star is the same I star for Phi
 	//C star is the same C star for Phi
 	//Constructing I_lambda
-	TPZFMatrix I_lambda(ncoarse+nnull,1);
+	TPZFMatrix<REAL> I_lambda(ncoarse+nnull,1);
 	I_lambda.Zero();
 	//K_star_inv*C_star_trans is the same used for Phi
 	/* Computing K_star_inv*W(i)*R(i)*r = K_star_inv*fLocalWeightedResidual */
-	TPZFMatrix KWeightedResidual(nglob,1);
+	TPZFMatrix<REAL> KWeightedResidual(nglob,1);
 	fInvertedStiffness.Solve(LocalWeightedResidual,KWeightedResidual);
 	//Obtaining lambda_star
-	TPZFMatrix Lambda_star(ncoarse+nnull,1);
-	TPZFMatrix CstarKW(ncoarse+nnull,1);
+	TPZFMatrix<REAL> Lambda_star(ncoarse+nnull,1);
+	TPZFMatrix<REAL> CstarKW(ncoarse+nnull,1);
 	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0,1);
-	TPZFMatrix temp2(ncoarse+nnull,1);
+	TPZFMatrix<REAL> temp2(ncoarse+nnull,1);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
 #ifdef LOG4CXX
@@ -221,7 +221,7 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatri
 	}
 #endif
 	//Obtaining z(i)
-	TPZFMatrix zi(nglob,1);
+	TPZFMatrix<REAL> zi(nglob,1);
 	temp2.Resize(nglob,1);
 	fKeC_star.Multiply(Lambda_star,temp2);
 	temp2 *= -1.;
@@ -251,7 +251,7 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatri
 	
 }
 
-void TPZDohrSubstruct::Contribute_v3(TPZFMatrix &v3, const TPZFMatrix &r, TPZFMatrix &v1Plusv2) const {
+void TPZDohrSubstruct::Contribute_v3(TPZFMatrix<REAL> &v3, const TPZFMatrix<REAL> &r, TPZFMatrix<REAL> &v1Plusv2) const {
 	TPZFNMatrix<100> vec_t(fNEquations,1,0.);
 	TPZFNMatrix<100> vec_t2(fNEquations,1,0.);
 	TPZFNMatrix<100> vec_t3(fInternalEqs.NElements(),1,0.);
@@ -293,7 +293,7 @@ void TPZDohrSubstruct::Contribute_v3(TPZFMatrix &v3, const TPZFMatrix &r, TPZFMa
 	
 }
 
-void TPZDohrSubstruct::Contribute_v3_local(TPZFMatrix &v1Plusv2, TPZFMatrix &v3) const {
+void TPZDohrSubstruct::Contribute_v3_local(TPZFMatrix<REAL> &v1Plusv2, TPZFMatrix<REAL> &v3) const {
 	TPZFNMatrix<100> vec_t2(fNEquations,1,0.);
 	TPZFNMatrix<100> vec_t3(fInternalEqs.NElements(),1,0.);
 	TPZFNMatrix<100> inv_sys(fInternalEqs.NElements(),1,0.);
@@ -355,7 +355,7 @@ void TPZDohrSubstruct::SolveSystemPhi() {
 	//  std::cout << ncoarse;// << endl;
 	//  std::cout << endl;
 	//Constructing I_lambda
-	TPZFMatrix I_lambda(ncoarse+fNullPivots.Rows(),ncoarse);
+	TPZFMatrix<REAL> I_lambda(ncoarse+fNullPivots.Rows(),ncoarse);
 	I_lambda.Zero();
 	for (i=0;i<ncoarse;i++) {
 		I_lambda(i,i)=1;
@@ -363,7 +363,7 @@ void TPZDohrSubstruct::SolveSystemPhi() {
 	//  I_lambda.Print("ILambda = ",out,EMathematicaInput);
 	
 	//Obtaining lambda_star
-	TPZFMatrix Lambda_star(ncoarse+fNullPivots.Rows(),ncoarse);
+	TPZFMatrix<REAL> Lambda_star(ncoarse+fNullPivots.Rows(),ncoarse);
 	//  temp1->Print("temp1 = ",out,EMathematicaInput);
 	//  out.flush();
 	finv.Solve(I_lambda, Lambda_star);
@@ -379,7 +379,7 @@ void TPZDohrSubstruct::SolveSystemPhi() {
 	//Obtaining Phi
 	/** Acho q posso comentar essas duas linhas abaixo, pq naum tou vendo aplicacao pra temp2 */
 	/*
-	 TPZFMatrix temp2(fNEquations,ncoarse);
+	 TPZFMatrix<REAL> temp2(fNEquations,ncoarse);
 	 C_star.MultAdd(Lambda_star,Lambda_star,temp2,-1,0,1,1);
 	 */
 	fPhiC.Resize(fNEquations,ncoarse);
@@ -400,17 +400,17 @@ void TPZDohrSubstruct::SolveSystemZi() {
 	//Constructing I star is the same I star for Phi
 	//C star is the same C star for Phi
 	//Constructing I_lambda
-	TPZFMatrix I_lambda(ncoarse+nnull,1);
+	TPZFMatrix<REAL> I_lambda(ncoarse+nnull,1);
 	I_lambda.Zero();
 	//K_star_inv*C_star_trans is the same used for Phi
 	/* Computing K_star_inv*W(i)*R(i)*r = K_star_inv*fLocalWeightedResidual */
-	TPZFMatrix KWeightedResidual(nglob,1);
+	TPZFMatrix<REAL> KWeightedResidual(nglob,1);
 	fInvertedStiffness.Solve(fLocalWeightedResidual,KWeightedResidual);
 	//Obtaining lambda_star
-	TPZFMatrix Lambda_star(ncoarse+nnull,1);
-	TPZFMatrix CstarKW(ncoarse+nnull,1);
+	TPZFMatrix<REAL> Lambda_star(ncoarse+nnull,1);
+	TPZFMatrix<REAL> CstarKW(ncoarse+nnull,1);
 	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0,1);
-	TPZFMatrix temp2(ncoarse+nnull,1);
+	TPZFMatrix<REAL> temp2(ncoarse+nnull,1);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
 	//Obtaining z(i)
@@ -422,7 +422,7 @@ void TPZDohrSubstruct::SolveSystemZi() {
 }
 
 void TPZDohrSubstruct::ComputeCoarseStiffness() {
-	TPZFMatrix temp1(fNEquations,fCoarseIndex.NElements());
+	TPZFMatrix<REAL> temp1(fNEquations,fCoarseIndex.NElements());
 	fKCi.Resize(fCoarseIndex.NElements(),fCoarseIndex.NElements());
 	fStiffness->Multiply(fPhiC,temp1);
 #ifdef LOG4CXX
@@ -444,7 +444,7 @@ void TPZDohrSubstruct::ComputeCoarseStiffness() {
 #endif
 }
 
-void TPZDohrSubstruct::ContributeGlobalDiagonal(TPZFMatrix &StiffnessDiag) {
+void TPZDohrSubstruct::ContributeGlobalDiagonal(TPZFMatrix<REAL> &StiffnessDiag) {
 	int i;
 	fWeights.Resize(fNEquations);
 	//fWeights = diag(kci) if u(i) is on coarse or diag(Ki)
@@ -482,7 +482,7 @@ void TPZDohrSubstruct::ContributeGlobalDiagonal(TPZFMatrix &StiffnessDiag) {
 	}
 }
 
-void TPZDohrSubstruct::ContributeDiagonalLocal(TPZFMatrix &StiffnessDiagLocal) {
+void TPZDohrSubstruct::ContributeDiagonalLocal(TPZFMatrix<REAL> &StiffnessDiagLocal) {
 	int i;
 	fWeights.Resize(fNEquations);
 	//fWeights = diag(kci) if u(i) is on coarse or diag(Ki)
@@ -521,7 +521,7 @@ void TPZDohrSubstruct::ContributeDiagonalLocal(TPZFMatrix &StiffnessDiagLocal) {
 	}
 }
 
-void TPZDohrSubstruct::ComputeWeights(TPZFMatrix &StiffnessDiag) {
+void TPZDohrSubstruct::ComputeWeights(TPZFMatrix<REAL> &StiffnessDiag) {
 	int i;
 	//fWeights.Fill(1.);
 	int neqs = fGlobalEqs.NElements();
@@ -542,7 +542,7 @@ void TPZDohrSubstruct::ComputeWeights(TPZFMatrix &StiffnessDiag) {
 #endif
 }
 
-void TPZDohrSubstruct::ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal) {
+void TPZDohrSubstruct::ComputeWeightsLocal(TPZFMatrix<REAL> &StiffnessDiagLocal) {
 	int i;
 	int neqs = fGlobalEqs.NElements();
 	for (i=0;i<neqs;i++) {
@@ -583,16 +583,16 @@ void TPZDohrSubstruct::ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal) {
 	}
 }
 
-void TPZDohrSubstruct::ContributeKU(const REAL alpha, const TPZFMatrix &uglobal, TPZFMatrix &z) const
+void TPZDohrSubstruct::ContributeKU(const REAL alpha, const TPZFMatrix<REAL> &uglobal, TPZFMatrix<REAL> &z) const
 {
 	int i,j;
 	int nglob = fNEquations;
 	int nglobglob = uglobal.Rows();
 	int ncols = uglobal.Cols();
-	TPZFMatrix uloc(nglob,ncols);
+	TPZFMatrix<REAL> uloc(nglob,ncols);
 	TPZFNMatrix<100> temp1(nglob,ncols),v3(nglob,ncols);
 	TPZFNMatrix<100> temp1glob(nglobglob,ncols,0.),zero(nglobglob,ncols,0.),v3glob(nglobglob,ncols,0.);
-	TPZFMatrix kuloc;
+	TPZFMatrix<REAL> kuloc;
 	uloc = 0.;
 	int neqs = fGlobalEqs.NElements();
 	/* Performing R(i)*u=uloc */
@@ -673,14 +673,14 @@ void TPZDohrSubstruct::ContributeKU(const REAL alpha, const TPZFMatrix &uglobal,
 	}
 }
 
-void TPZDohrSubstruct::ContributeKULocal(const REAL alpha, const TPZFMatrix &u, TPZFMatrix &z) const
+void TPZDohrSubstruct::ContributeKULocal(const REAL alpha, const TPZFMatrix<REAL> &u, TPZFMatrix<REAL> &z) const
 {
 	int i,j;
 	int nglob = fNEquations;
 	int ncols = u.Cols();
-	TPZFMatrix uloc(nglob,ncols,0.);
+	TPZFMatrix<REAL> uloc(nglob,ncols,0.);
 	TPZFNMatrix<100> temp1(nglob,ncols),v3(nglob,ncols);
-	TPZFMatrix kuloc;
+	TPZFMatrix<REAL> kuloc;
 	uloc = 0.;
 	int neqs = u.Rows();
 	/* Performing R(i)*u=uloc */
@@ -751,7 +751,7 @@ void TPZDohrSubstruct::Initialize() {
 
 void TPZDohrSubstruct::PrepareSystems() {
 	int ncoarse = fCoarseIndex.NElements();
-	//TPZFMatrix C_transposed;
+	//TPZFMatrix<REAL> C_transposed;
 	/****************************************
 	 * TEMPORARIO!!!!!!!!!!!!!!
 	 */
@@ -766,10 +766,10 @@ void TPZDohrSubstruct::PrepareSystems() {
 	//  ofstream out("saida.nb");
 	//  this->fStiffness->Print("fK = ",out,EMathematicaInput);
 	//  fC.Print("fCi = ",out,EMathematicaInput);
-	TPZFMatrix C_transposed(fC.Cols(),fC.Rows());
+	TPZFMatrix<REAL> C_transposed(fC.Cols(),fC.Rows());
 	fC.Transpose(&C_transposed);
 	//Ke_inv*C(i)_trans
-	TPZFMatrix KeC(fNEquations,ncoarse);
+	TPZFMatrix<REAL> KeC(fNEquations,ncoarse);
 	fInvertedStiffness.Solve(C_transposed,KeC);
 	/** */
 #ifdef LOG4CXX
@@ -802,7 +802,7 @@ void TPZDohrSubstruct::PrepareSystems() {
 	//  NullPivots.Print("fNullPivots = ",out,EMathematicaInput);
 	
 	//Constructing I star
-	TPZFMatrix I_star(ncoarse+fNullPivots.Rows(),ncoarse+fNullPivots.Rows());
+	TPZFMatrix<REAL> I_star(ncoarse+fNullPivots.Rows(),ncoarse+fNullPivots.Rows());
 	I_star.Zero();
 	int i;
 	for (i=ncoarse;i<ncoarse+fNullPivots.Rows();i++) {
@@ -815,11 +815,11 @@ void TPZDohrSubstruct::PrepareSystems() {
 	//  C_star.Print("CStar = ",out,EMathematicaInput);
 	//constructing K_star_inv*C_star_trans and storing it in fKeC_star
 	fKeC_star.Resize(fNEquations,ncoarse+fNullPivots.Rows());
-	TPZFMatrix C_star_trans(fNEquations,ncoarse+fNullPivots.Rows());
+	TPZFMatrix<REAL> C_star_trans(fNEquations,ncoarse+fNullPivots.Rows());
 	fC_star.Transpose(&C_star_trans);
 	fInvertedStiffness.Solve(C_star_trans,fKeC_star);
 	//Constructing StepSolver finv
-	TPZFMatrix *temp1 = new TPZFMatrix(ncoarse+fNullPivots.Rows(),ncoarse+fNullPivots.Rows());
+	TPZFMatrix<REAL> *temp1 = new TPZFMatrix<REAL>(ncoarse+fNullPivots.Rows(),ncoarse+fNullPivots.Rows());
 	fC_star.MultAdd(fKeC_star,I_star,*temp1,-1,1,0,1);
 	finv.SetMatrix(temp1);
 	finv.SetDirect(ELU);
@@ -829,11 +829,11 @@ void TPZDohrSubstruct::PrepareSystems() {
  * Adjust the residual to reflect a static condensation
  * The residual corresponding to the internal nodes will be zeroed
  */
-void TPZDohrSubstruct::AdjustResidual(TPZFMatrix &r_global)
+void TPZDohrSubstruct::AdjustResidual(TPZFMatrix<REAL> &r_global)
 {
 	int nglob = fNEquations;
 	int nint = this->fInternalEqs.NElements();
-	TPZFMatrix rint(nint,1,0.),radapt(nglob,1,0.);
+	TPZFMatrix<REAL> rint(nint,1,0.),radapt(nglob,1,0.);
 	int i;
 	for(i=0; i<nint; i++)
 	{
@@ -860,7 +860,7 @@ void TPZDohrSubstruct::AdjustResidual(TPZFMatrix &r_global)
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	TPZFMatrix rloc(nglob,1,0.),radjust(nglob,1,0.);
+	TPZFMatrix<REAL> rloc(nglob,1,0.),radjust(nglob,1,0.);
 	for(i=0; i<nint; i++)
 	{
 		rloc(fInternalEqs[i],0) = fAdjustSolution(i,0);
@@ -886,11 +886,11 @@ void TPZDohrSubstruct::AdjustResidual(TPZFMatrix &r_global)
 /**
  * Add the internal solution to the final result
  */
-void TPZDohrSubstruct::AddInternalSolution(TPZFMatrix &sol)
+void TPZDohrSubstruct::AddInternalSolution(TPZFMatrix<REAL> &sol)
 {
 	int nglob = fNEquations;
 	int nint = this->fInternalEqs.NElements();
-	TPZFMatrix rint(nint,1),radapt(nglob,1,0.);
+	TPZFMatrix<REAL> rint(nint,1),radapt(nglob,1,0.);
 	int i,c,nc = sol.Cols();
 	for(i=0; i<nint; i++) for(c=0; c<nc; c++)
 	{

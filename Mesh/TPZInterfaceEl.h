@@ -78,7 +78,7 @@ public:
 	 * @param [out] dsol
 	 * @param [out] NeighborAxes
 	 */
-	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix &NeighborAxes);
+	void NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi, TPZSolVec &sol, TPZGradSolVec &dsol, TPZFMatrix<REAL> &NeighborAxes);
 	
 protected:
 	
@@ -97,7 +97,7 @@ protected:
 	
 	/** @brief Computes normal based on already computed axes matrix. */
 	/** Axes has been computed in the desired qsi coordinate */
-	void ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal);
+	void ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &normal);
 	
 	/** @brief Computes normal for linear geometric elements. */
 	/** For linear geometry the normal vector is constant. */
@@ -195,7 +195,7 @@ public:
 	 * Axes has been computed in the desired qsi coordinate
 	 * If geometric element has LinearMapping the CenterNormal is returned
 	 */
-	void Normal(TPZFMatrix &axes, TPZVec<REAL> &normal);
+	void Normal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &normal);
 	
 	/** @brief Returns normal at qsi point */
 	/** If geometric element has LinearMapping the CenterNormal is returned */
@@ -261,8 +261,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -273,8 +273,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -284,7 +284,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	
 	void VetorialProd(TPZVec<REAL> &ivet,TPZVec<REAL> &jvet,TPZVec<REAL> &kvet);
 	
@@ -317,8 +317,8 @@ public:
 	
 	static int main(TPZCompMesh &cmesh);
 	
-	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-					   TPZVec<REAL> &errors, TPZBlock * /*flux */);
+	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+					   TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */);
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeErrorFace(int errorid,

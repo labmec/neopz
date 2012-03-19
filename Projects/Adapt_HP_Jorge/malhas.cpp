@@ -99,7 +99,7 @@ using namespace std;
 
 // #define ROTACAO
 #ifdef ROTACAO
-void Rotacao(TPZFMatrix &R){
+void Rotacao(TPZFMatrix<REAL> &R){
   R.Redim(3,3);
   double Pi = 4.*atan(1.);
   double t = Pi/6.;
@@ -108,7 +108,7 @@ void Rotacao(TPZFMatrix &R){
   R(2,0) = 0.;      R(2,1) = 0.;      R(2,2) = 1.;
 }
 
-void Rotacao2(TPZFMatrix &R){
+void Rotacao2(TPZFMatrix<REAL> &R){
   R.Redim(3,3);
   double Pi = 4.*atan(1.);
   double t = Pi/6.;
@@ -117,7 +117,7 @@ void Rotacao2(TPZFMatrix &R){
   R(2,0) = -sin(t);  R(2,1) = 0.; R(2,2) = cos(t);
 }
 
-// void ApplyRotacao(TPZFMatrix &R, TPZVec<REAL> &coord){
+// void ApplyRotacao(TPZFMatrix<REAL> &R, TPZVec<REAL> &coord){
 //   double c0 = coord[0];
 //   double c1 = coord[1];
 //   double c2 = coord[2];
@@ -132,7 +132,7 @@ void Rotacao2(TPZFMatrix &R){
 //   ApplyRotacao(R,coord);
 // }
 
-void Gira(TPZFMatrix & R, double &u,double &v,double &w){
+void Gira(TPZFMatrix<REAL> & R, double &u,double &v,double &w){
   double c0 = u;
   double c1 = v;
   double c2 = w;
@@ -230,7 +230,7 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
 
   TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
-  TPZFMatrix val1,val2;
+  TPZFMatrix<REAL> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
 
   cmesh->SetAllCreateFunctionsDiscontinuous();
@@ -255,7 +255,7 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
 }
 
 /** initial solution */
-void InitialSolutionLaxAndSod(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLaxAndSod(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
   for(int iel = 0; iel < cmesh->NElements(); iel++){
@@ -410,7 +410,7 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
 
   TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
-  TPZFMatrix val1,val2;
+  TPZFMatrix<REAL> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
 
   cmesh->SetAllCreateFunctionsDiscontinuous();
@@ -434,7 +434,7 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
 
 }
 
-void InitialSolutionLax2D(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLax2D(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
   for(int iel = 0; iel < cmesh->NElements(); iel++){
@@ -517,7 +517,7 @@ TPZCompMesh *CreateMeshLinearConvection(int L, REAL &timeStep){
 }
 
 /*
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){
   InitialSol.Redim(cmesh->NEquations(),1);
   InitialSol.Zero();
   for(int iel = 0; iel < cmesh->NElements(); iel++){

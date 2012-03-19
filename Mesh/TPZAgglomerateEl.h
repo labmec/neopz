@@ -136,7 +136,7 @@ public:
 	REAL VolumeOfEl();
 	
 	/** @brief Computes the residual of the solution to father element from clustered subelements. */
-	void CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el);
+	void CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el);
 	
 	void CalcResidual(TPZElementMatrix &ef)
 	{
@@ -217,7 +217,7 @@ public:
 	
 	void Print(TPZStack<int> &listindex);
 	
-	void ProjectSolution(TPZFMatrix &projectsol);
+	void ProjectSolution(TPZFMatrix<REAL> &projectsol);
 	
 	
 	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);

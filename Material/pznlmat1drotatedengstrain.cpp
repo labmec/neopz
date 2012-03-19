@@ -16,8 +16,8 @@ TPZNLMat1dRotatedEngStrain::~TPZNLMat1dRotatedEngStrain()
 
 
 REAL TPZNLMat1dRotatedEngStrain::Eps( TPZVec<REAL> &sol,
-									 TPZFMatrix &axes,
-									 TPZFMatrix &dphi)
+									 TPZFMatrix<REAL> &axes,
+									 TPZFMatrix<REAL> &dphi)
 {
 	//sol -> (u1,w1,u2,w2)
 	//dphi = 2/l => l0 = 2/dphi

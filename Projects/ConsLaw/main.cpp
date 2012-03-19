@@ -13,16 +13,16 @@
 int gDebug;
 using namespace std;
 
-void Flatten(TPZFMatrix & coeff,
-			 TPZFMatrix &phi,
-			 TPZFMatrix &dphi,
+void Flatten(TPZFMatrix<REAL> & coeff,
+			 TPZFMatrix<REAL> &phi,
+			 TPZFMatrix<REAL> &dphi,
 			 TPZVec<REAL> &sol,
-			 TPZFMatrix & dsol);
+			 TPZFMatrix<REAL> & dsol);
 
 void CheckConv(const double step,
-			   TPZFMatrix & coeff,
-			   TPZFMatrix &phi,
-			   TPZFMatrix &dphi,
+			   TPZFMatrix<REAL> & coeff,
+			   TPZFMatrix<REAL> &phi,
+			   TPZFMatrix<REAL> &dphi,
 			   TPZEulerConsLaw & MatTest);
 
 #ifdef _AUTODIFF
@@ -56,8 +56,8 @@ int main()
 	data.phi.Redim(nphi,1);
 	data.sol[0].Resize(nstate);
 	
-	TPZFMatrix ef(nphi * nstate, 1, 0.);
-	TPZFMatrix ek(nphi * nstate, nphi * nstate, 0.);
+	TPZFMatrix<REAL> ef(nphi * nstate, 1, 0.);
+	TPZFMatrix<REAL> ek(nphi * nstate, nphi * nstate, 0.);
 	
 	// generating data
 	
@@ -77,7 +77,7 @@ int main()
 			data.dphix(i,j)=45.8*i-3.2*j+2.; // any choice
 	
 	// individual solution coefficients
-	TPZFMatrix u(nstate * nphi,1, 0.);
+	TPZFMatrix<REAL> u(nstate * nphi,1, 0.);
 	for(i = 0; i < nstate * nphi; i++)
 	{
 		u(i,0) = 10. * (double)(i+1) / (double)(i+2);
@@ -114,11 +114,11 @@ int main()
 	return 0;
 }
 
-void Flatten(TPZFMatrix & coeff,
-			 TPZFMatrix &phi,
-			 TPZFMatrix &dphi,
+void Flatten(TPZFMatrix<REAL> & coeff,
+			 TPZFMatrix<REAL> &phi,
+			 TPZFMatrix<REAL> &dphi,
 			 TPZVec<REAL> &sol,
-			 TPZFMatrix & dsol)
+			 TPZFMatrix<REAL> & dsol)
 {
 	int nshape = phi.Rows();
 	int dim = dphi.Rows();
@@ -149,9 +149,9 @@ void Flatten(TPZFMatrix & coeff,
 }
 
 void CheckConv(const double step,
-			   TPZFMatrix & coeff,
-			   TPZFMatrix &phi,
-			   TPZFMatrix &dphi,
+			   TPZFMatrix<REAL> & coeff,
+			   TPZFMatrix<REAL> &phi,
+			   TPZFMatrix<REAL> &dphi,
 			   TPZEulerConsLaw & MatTest)
 {
 	
@@ -160,13 +160,13 @@ void CheckConv(const double step,
 	
 	int nCoeff = coeff.Rows(), i, j;
 	
-	TPZFMatrix deltaCoeff1(nCoeff, 1, 0.),
+	TPZFMatrix<REAL> deltaCoeff1(nCoeff, 1, 0.),
 	deltaCoeff2(nCoeff, 1, 0.),
 	updatedCoeff(nCoeff, 1, 0.);
 	
-	TPZFMatrix Tangent(nCoeff, nCoeff, 0.),
+	TPZFMatrix<REAL> Tangent(nCoeff, nCoeff, 0.),
 	TrashTangent(nCoeff, nCoeff, 0.);
-	TPZFMatrix F0(nCoeff,1, 0.),
+	TPZFMatrix<REAL> F0(nCoeff,1, 0.),
 	F1(nCoeff,1, 0.),
 	F2(nCoeff,1, 0.);
 	
@@ -175,7 +175,7 @@ void CheckConv(const double step,
     data.phi = phi;
     data.dphix = dphi;
     data.jacinv.Resize(dim,dim);
-	//   TPZFMatrix jacinv(dim, dim, 7.);
+	//   TPZFMatrix<REAL> jacinv(dim, dim, 7.);
 	data.x.Resize(3);
 	
 	Flatten(coeff, data.phi, data.dphix, data.sol[0], data.dsol[0]);
@@ -249,7 +249,7 @@ void CheckJacobFlux(
 	cout << "\nCheckJacobFlux on Flux Jacobian matrix\n";
 	
 	TPZVec<REAL> sol;
-	TPZFMatrix dsol;
+	TPZFMatrix<REAL> dsol;
 	
 	int nState = dim + 2, i, j, k;
 	

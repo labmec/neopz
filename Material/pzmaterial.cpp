@@ -149,7 +149,7 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REA
 	}
 }
 
-void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &/*DSol*/,TPZFMatrix &/*axes*/,int var,
+void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
 						   TPZVec<REAL> &Solout){
 	if(var == 0) Solout = Sol;
 	else if(var == 99 || var == 100 || var == 101 || var == 102) {
@@ -158,7 +158,7 @@ void TPZMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix &/*DSol*/,TPZFMatrix &/*
 	} else Solout.Resize(0);
 }
 
-TPZBndCond *TPZMaterial::CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1, TPZFMatrix &val2) {
+TPZBndCond *TPZMaterial::CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<REAL> &val1, TPZFMatrix<REAL> &val2) {
 	return new TPZBndCond(reference,id,typ,val1,val2);
 }
 
@@ -172,25 +172,25 @@ TPZAutoPointer<TPZMaterial> TPZMaterial::NewMaterial() {
 	return 0;
 }
 
-void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
-	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
+void TPZMaterial::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){
+	TPZFMatrix<REAL> fakeek(ef.Rows(), ef.Rows(), 0.);
 	this->Contribute(data, weight, fakeek, ef);
 }
 
-void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
-	TPZFMatrix fakeek(ef.Rows(), ef.Rows(), 0.);
+void TPZMaterial::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+	TPZFMatrix<REAL> fakeek(ef.Rows(), ef.Rows(), 0.);
 	this->ContributeBC(data, weight, fakeek, ef, bc);
 }
 
-void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZMaterial::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	int nref=datavec.size();
 	if (nref== 1) {
 		this->Contribute(datavec[0], weight, ek,ef);
 	}
 }
 
-void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, 
-							   TPZFMatrix &ef, TPZBndCond &bc){
+void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, 
+							   TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	int nref=datavec.size();
 	if (nref== 1) {
 		this->ContributeBC(datavec[0], weight, ek,ef,bc);

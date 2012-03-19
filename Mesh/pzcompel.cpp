@@ -58,7 +58,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
 #endif
 
-void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
+void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<REAL> & blockdiag) {
 	TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK),ef(this->Mesh(), TPZElementMatrix::EF);
 	int b;
 	CalcStiff(ek,ef);
@@ -75,9 +75,9 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
 			int conind = ek.fConstrConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
-			TPZFMatrix ekbl(blsize,blsize);
+			TPZFMatrix<REAL> ekbl(blsize,blsize);
 			int r,c;
-			TPZBlock &mbl = ek.fConstrBlock;
+			TPZBlock<REAL> &mbl = ek.fConstrBlock;
 			for(r=0; r<blsize; r++) {
 				for(c=0; c<blsize; c++) {
 					ekbl(r,c) = (mbl)(b,b,r,c);
@@ -93,12 +93,12 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
 		connectlist = ek.fConnect;
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
-			TPZFMatrix ekbl(blsize,blsize);
+			TPZFMatrix<REAL> ekbl(blsize,blsize);
 			int conind = ek.fConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
 			int r,c;
-			TPZBlock &mbl = ek.fBlock;
+			TPZBlock<REAL> &mbl = ek.fBlock;
 			for(r=0; r<blsize; r++) {
 				for(c=0; c<blsize; c++) {
 					ekbl(r,c) = (mbl)(b,b,r,c);
@@ -112,14 +112,14 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal &
 int TPZCompEl::gOrder = 2;
 
 /*
- void (*TPZCompEl::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::Chebyshev;
- void (*TPZShapeLinear::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeQuad::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeTriang::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeTetra::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapePiram::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapePrism::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeCube::fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZCompEl::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::Chebyshev;
+ void (*TPZShapeLinear::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapeQuad::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapeTriang::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapeTetra::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapePiram::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapePrism::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
+ void (*TPZShapeCube::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
  */
 
 TPZCompEl::TPZCompEl() {
@@ -221,8 +221,8 @@ void TPZCompEl::LoadSolution() {
 		return;
 	}
 	//int numstate = mat->NStateVariables(); 
-	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix &MeshSol = Mesh()->Solution();
+	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	int maxdep = 0;
 	int in;
 	int iv,jv,idf;
@@ -387,7 +387,7 @@ void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
 	for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
 }
 
-// void TPZCompEl::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+// void TPZCompEl::Chebyshev(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 //   // Quadratic or higher shape functions
 //   if(num <= 0) {
 //     LOGPZ_INFO(logger, "Exiting Chebyshev - num <= 0");
@@ -414,8 +414,8 @@ inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate)
 	LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
 
-void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-                              TPZVec<REAL> &/*errors*/,TPZBlock * /*flux*/) {
+void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                              TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/) {
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }
 
@@ -637,7 +637,7 @@ void TPZCompEl::Read(TPZStream &buf, void *context)
 }
 
 void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
-														 TPZFMatrix & phi,TPZFMatrix & dphi)) {
+														 TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi)) {
 	pzshape::TPZShapeLinear::fOrthogonal = orthogonal;
 }
 

@@ -7,52 +7,63 @@
 #include "pzseqsolver.h"
 using namespace std;
 
-TPZSequenceSolver::TPZSequenceSolver(TPZMatrix *refmat) : TPZMatrixSolver(refmat), fSolvers() {
+template<class TVar>
+TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZMatrixSolver<TVar>(refmat), fSolvers() {
 }
-TPZSequenceSolver::TPZSequenceSolver(const TPZSequenceSolver & copy)
-: TPZMatrixSolver(copy) {
+template<class TVar>
+TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy) {
     int nums = copy.fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) AppendSolver(*copy.fSolvers[s]);
 }
+template <class TVar>
 class TPZSolver;
+
+template<class TVar>
 class TPZMatrixSolver;
 
-TPZSolver * TPZSequenceSolver::Clone() const {
+template <class TVar>
+TPZSolver<TVar> * TPZSequenceSolver<TVar>::Clone() const {
     return new TPZSequenceSolver(*this);
 }
-void TPZSequenceSolver::AppendSolver(TPZMatrixSolver & solve){
-    fSolvers.Push((TPZMatrixSolver *) solve.Clone());
+
+template<class TVar>
+void TPZSequenceSolver<TVar>::AppendSolver(TPZMatrixSolver<TVar> & solve){
+    fSolvers.Push((TPZMatrixSolver<TVar> *) solve.Clone());
 }
-void TPZSequenceSolver::ResetSolver() {
+
+template <class TVar>
+void TPZSequenceSolver<TVar>::ResetSolver() {
     int nums = fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) delete fSolvers.Pop();
 }
-void TPZSequenceSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
-	if(!Matrix()) {
+
+template<class TVar>
+void TPZSequenceSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual){
+	if(!this->Matrix()) {
 		cout << "TPZSequenceSolver::Solve called without a matrix pointer\n";
 	}
-	TPZAutoPointer<TPZMatrix> mat = Matrix();
+	TPZAutoPointer<TPZMatrix<TVar> > mat = this->Matrix();
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
 		result.Redim(mat->Rows(),F.Cols());
 	}
 	
-	fScratch = F;
-	TPZFMatrix delu(result.Rows(),result.Cols(),0.);
-	TPZFMatrix resloc(F.Rows(),F.Cols(),0.);
+	this->fScratch = F;
+	TPZFMatrix<TVar> delu(result.Rows(),result.Cols(),0.);
+	TPZFMatrix<TVar> resloc(F.Rows(),F.Cols(),0.);
 	result.Zero();
-	if(fScratch.Rows() != result.Rows() || fScratch.Cols() != result.Cols()) {
-		fScratch.Redim(result.Rows(),result.Cols());
+	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
+		this->fScratch.Redim(result.Rows(),result.Cols());
 	}
     int nums = fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) {
-        fSolvers[s]->Solve(fScratch,delu,&resloc);
+        fSolvers[s]->Solve(this->fScratch,delu,&resloc);
         result += delu;
-        mat->Residual(result,F,fScratch);
+        mat->Residual(result,F,this->fScratch);
     }
-    if(residual) *residual = fScratch;
+    if(residual) *residual = this->fScratch;
 }
 
 
@@ -60,32 +71,35 @@ void TPZSequenceSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatri
  This method will reset the matrix associated with the solver
  This is useful when the matrix needs to be recomputed in a non linear problem
  */
-void TPZSequenceSolver::ResetMatrix()
+template<class TVar>
+void TPZSequenceSolver<TVar>::ResetMatrix()
 {
     int nums = fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) {
         fSolvers[s]->ResetMatrix();
     }
-    TPZMatrixSolver::ResetMatrix();
+    TPZMatrixSolver<TVar>::ResetMatrix();
 }
 
 /**
  Updates the values of the preconditioner based on the values of the matrix
  */
-void TPZSequenceSolver::UpdateFrom(TPZAutoPointer<TPZMatrix> matrix)
+template <class TVar>
+void TPZSequenceSolver<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
 {
     int nums = fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) {
         fSolvers[s]->UpdateFrom(matrix);
     }
-    TPZMatrixSolver::UpdateFrom(matrix);
+    TPZMatrixSolver<TVar>::UpdateFrom(matrix);
 }
 
-void TPZSequenceSolver::Write(TPZStream &buf, int withclassid)
+template<class TVar>
+void TPZSequenceSolver<TVar>::Write(TPZStream &buf, int withclassid)
 {
-	TPZMatrixSolver::Write(buf, withclassid);
+	TPZMatrixSolver<TVar>::Write(buf, withclassid);
 	int StackSz = fSolvers.NElements();
 	buf.Write(&StackSz, 1);
 	int i = 0;
@@ -95,17 +109,19 @@ void TPZSequenceSolver::Write(TPZStream &buf, int withclassid)
 	}
 	
 }
-void TPZSequenceSolver::Read(TPZStream &buf, void *context)
+template <class TVar>
+void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZMatrixSolver::Read(buf, context);
+	TPZMatrixSolver<TVar>::Read(buf, context);
 	int StackSz = 0;
 	buf.Read(&StackSz, 1);
 	fSolvers.Resize(StackSz);
 	int i = 0;
 	for(i = 0; i< StackSz; i++)
 	{
-		fSolvers[i] = dynamic_cast<TPZMatrixSolver *>(TPZSaveable::Restore(buf, context));
+		fSolvers[i] = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
 	}
 }
 
-template class TPZRestoreClass< TPZSequenceSolver, TPZSQUENCESOLVER_ID>;
+
+template class TPZRestoreClass< TPZSequenceSolver<REAL>, TPZSQUENCESOLVER_ID>;

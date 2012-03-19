@@ -5,9 +5,10 @@
 //$Id: pzcmesh.cpp,v 1.98 2011-05-11 02:39:30 phil Exp $
 //METHODS DEFINITIONS FOR CLASS COMPUTATIONAL MESH
 // _*_ c++ _*_
+
+#include "pzcmesh.h"
 #include "pzeltype.h"
 #include "pzerror.h"
-#include "pzcmesh.h"
 #include "pzgmesh.h"
 #include "pzcompel.h"
 #include "pzintel.h"
@@ -15,6 +16,7 @@
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include "pzmaterial.h"
+
 #include "pzsolve.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
@@ -322,7 +324,7 @@ void TPZCompMesh::ExpandSolution() {
 	fBlock.Resequence();
 	int ibl,nblocks = fBlock.NBlocks();
 	
-	TPZFMatrix OldSolution(fSolution);
+	TPZFMatrix<REAL> OldSolution(fSolution);
 	
 	int cols = fSolution.Cols();
 	fSolution.Redim(fBlock.Dim(),cols);
@@ -362,7 +364,7 @@ void TPZCompMesh::ExpandSolution() {
 	fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(const TPZFMatrix &mat){
+void TPZCompMesh::LoadSolution(const TPZFMatrix<REAL> &mat){
 	
 	int nrow = mat.Rows();
 	int ncol = mat.Cols();
@@ -682,8 +684,8 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 
 void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer) {
 	
-	TPZBlock &localblock = Block();
-	TPZBlock &coarseblock = coarsemesh.Block();
+	TPZBlock<REAL> &localblock = Block();
+	TPZBlock<REAL> &coarseblock = coarsemesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int i, nmat = NMaterials();
@@ -738,8 +740,8 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
 void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 										  TPZTransfer &transfer) {
 	
-	TPZBlock &localblock = Block();
-	TPZBlock &transferblock = transfermesh.Block();
+	TPZBlock<REAL> &localblock = Block();
+	TPZBlock<REAL> &transferblock = transfermesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int i, nmat = NMaterials();
@@ -1111,7 +1113,7 @@ void TPZCompMesh::Permute(TPZVec<int> &permute) {
 	for (i = 0; i < permutenel; i++) fBlock.Set(permute[i],fSolutionBlock.Size(i));
 	fBlock.Resequence();
 	if (fSolution.Rows() != 0) {
-		TPZFMatrix	newsol(fSolution);
+		TPZFMatrix<REAL>	newsol(fSolution);
 		for (i=0;i<fBlock.NBlocks();i++) {
 			int oldpos = fSolutionBlock.Position(i);
 			int newpos;
@@ -1157,7 +1159,7 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 }
 
 void TPZCompMesh::EvaluateError(
-								void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+								void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 								TPZVec<REAL> &errorSum) {
 	
 	errorSum.Resize(3);
@@ -1166,7 +1168,7 @@ void TPZCompMesh::EvaluateError(
 	TPZManVector<REAL,3> true_error(3);
 	true_error.Fill(0.);
 	
-	TPZBlock *flux = 0;
+	TPZBlock<REAL> *flux = 0;
 	TPZCompEl *cel;
 	
 	//soma de erros sobre os elementos
@@ -1319,7 +1321,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  }
  }*/
 /*
- void TPZCompMesh::hp_Adaptive_Mesh_Design(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv),
+ void TPZCompMesh::hp_Adaptive_Mesh_Design(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
  REAL nadmerror,int niter,TPZVec<REAL> &singularpoint,TPZAnalysis &an,ostream &out) {
  int index;
  int Q = 2;//valor dado > 1 na procura de hn para elementos proximos ao ponto singular
@@ -1343,7 +1345,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  InitializeBlock();
  TPZAnalysis step_an(this,out);
  int numeq = NEquations();
- TPZFMatrix *stiff = new TPZFMatrix(numeq,numeq);
+ TPZFMatrix<REAL> *stiff = new TPZFMatrix(numeq,numeq);
  step_an.SetMatrix(stiff);
  step_an.Solver().SetDirect(ELU);
  cout << "\n\nStep " << (iter+1) << endl;
@@ -1464,7 +1466,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  }
  
  void TPZCompMesh::Step4(
- void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv),
+ void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
  REAL w,REAL nadmerror,REAL tol,int maxiter,TPZStack<int> &indexlist) {
  
  REAL H1_error,L2_error,estimate;
@@ -1504,7 +1506,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  }
  }
  
- REAL TPZCompMesh::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv)) {
+ REAL TPZCompMesh::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv)) {
  
  REAL H1_error,L2_error,estimate;
  TPZVec<REAL> flux(0);
@@ -1517,8 +1519,8 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  return maxerror;
  }
  
- void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix &deriv);
- REAL TPZCompMesh::AdmLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv),REAL nadmerror) {
+ void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
+ REAL TPZCompMesh::AdmLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),REAL nadmerror) {
  
  REAL H1_e,H1_uhp,L2_error,estimate;
  int m = NElements();
@@ -1528,7 +1530,7 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
  return admerror;
  }
  
- void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv) {
+ void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
  
  val = 0*point[0];
  deriv(0,0) = 0.;
@@ -1850,7 +1852,7 @@ REAL TPZCompMesh::LesserEdgeOfMesh(){
 /** This method will fill the matrix passed as parameter with a representation of the fillin of the global stiffness matrix, based on the sequence number of the connects
  @param resolution Number of rows and columns of the matrix
  @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element */
-void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
+void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix<REAL> &fillin){
 	ComputeNodElCon();
 	int nequations = NEquations();
 	int divider = nequations/resolution;
@@ -1904,7 +1906,7 @@ void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix &fillin){
 		}
 	}
 }
-void TPZCompMesh::ProjectSolution(TPZFMatrix &projectsol) {
+void TPZCompMesh::ProjectSolution(TPZFMatrix<REAL> &projectsol) {
 	
 	//  * * A MALHA ATUAL DEVE SER AGLOMERADA * * *
 	
@@ -2155,7 +2157,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 	
 }//method
 
-void TPZCompMesh::AssembleError(TPZFMatrix &estimator, int errorid){
+void TPZCompMesh::AssembleError(TPZFMatrix<REAL> &estimator, int errorid){
 	int iel, i;
 	const int nelem = this->NElements();
 	TPZManVector<REAL> locerror(7), errorL(7), errorR(7);

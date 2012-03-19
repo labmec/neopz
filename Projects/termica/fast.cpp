@@ -32,13 +32,13 @@ void RunFast()
 //  string filename("matriz12.in");
 //  string filename("matriz16000.in");
   string filename("matriz260000.in");
-  TPZFMatrix rhs,sol;
+  TPZFMatrix<REAL> rhs,sol;
   
   TPZMultiTimer timer(5);
   cout << "Leitura\n";
   timer.processName(0) = "Leitura da matriz";
   timer.start(0);
-  TPZFYsmpMatrix *faster = ReadMatrix(filename,rhs);
+  TPZFYsmpMatrix<REAL> *faster = ReadMatrix(filename,rhs);
   timer.stop(0);
   
   cout << "Multiplicacao Numero de termos " << faster->NumTerms() << "\n";
@@ -57,7 +57,7 @@ void RunFast()
 
 }
 // this function will read the matrix
-TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
+TPZFYsmpMatrix<REAL> *ReadMatrix(const std::string &filename, TPZFMatrix<REAL> &rhs)
 {
   ifstream input(filename.c_str());
   int neq,nelem, issymetric;
@@ -140,14 +140,14 @@ TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs)
   memcpy(JA,&nodegraph[0],nodegraph.NElements()*sizeof(int));
   memcpy(A,&avec[0],avec.NElements()*sizeof(REAL));
   
-  TPZFYsmpMatrix *result = new TPZFYsmpMatrix(neq,neq);
+  TPZFYsmpMatrix<REAL> *result = new TPZFYsmpMatrix<REAL>(neq,neq);
   result->SetData(IA,JA,A);
   return result;
 }
 
-void TimeMultiply(TPZMatrix *mat, TPZMultiTimer &timer)
+void TimeMultiply(TPZMatrix<REAL> *mat, TPZMultiTimer &timer)
 {
-  TPZFMatrix sol(mat->Rows(),1),rhs(mat->Rows(),1),y;
+  TPZFMatrix<REAL> sol(mat->Rows(),1),rhs(mat->Rows(),1),y;
   int ieq,neq = mat->Rows();
   for(ieq=0; ieq<neq; ieq++) sol(ieq,0) = rand()/2147483647.;
   
@@ -165,12 +165,12 @@ void TimeMultiply(TPZMatrix *mat, TPZMultiTimer &timer)
   return;
 }
 
-void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
+void SolveJacobi(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol,TPZMultiTimer &timer)
 {
-  TPZFMatrix sol(rhs.Rows(),1);
-  TPZStepSolver prec(mat);
+  TPZFMatrix<REAL> sol(rhs.Rows(),1);
+  TPZStepSolver<REAL> prec(mat);
   prec.SetJacobi(1,0.,0);
-  TPZStepSolver step(0);
+  TPZStepSolver<REAL> step(0);
   step.ShareMatrix(prec);
   step.SetCG(3000,prec,tol,0);
   timer.processName(3) = "Solucao Jacobi";
@@ -181,11 +181,11 @@ void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
   return;
 }
 
-void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer)
+void SolveCG(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer)
 {
-  TPZFMatrix sol(rhs.Rows(),1);
-  TPZCopySolve prec(mat);
-  TPZStepSolver step(0);
+  TPZFMatrix<REAL> sol(rhs.Rows(),1);
+  TPZCopySolve<REAL> prec(mat);
+  TPZStepSolver<REAL> step(0);
   step.ShareMatrix(prec);
   step.SetCG(3000,prec,tol,0);
   timer.processName(2) = "Solucao CG";
@@ -196,12 +196,12 @@ void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer)
   return;
 }
 
-void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
+void SolveSSOR(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol,TPZMultiTimer &timer)
 {
-  TPZFMatrix sol(rhs.Rows(),1);
-  TPZStepSolver prec(mat);
+  TPZFMatrix<REAL> sol(rhs.Rows(),1);
+  TPZStepSolver<REAL> prec(mat);
   prec.SetSSOR(1,1.,0.,0);
-  TPZStepSolver step(0);
+  TPZStepSolver<REAL> step(0);
   step.ShareMatrix(prec);
   step.SetCG(3000,prec,tol,0);
   timer.processName(4) = "Solucao SSOR";
@@ -212,10 +212,10 @@ void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol,TPZMultiTimer &timer)
   return;
 }
 
-void Compare(TPZMatrix *first, TPZMatrix *second)
+void Compare(TPZMatrix<REAL> *first, TPZMatrix<REAL> *second)
 {
-  TPZFMatrix sol(first->Rows(),1),rhs1(first->Rows(),1),rhs2(first->Rows(),1),y;
-  TPZFMatrix sol1(rhs1),sol2(rhs1);
+  TPZFMatrix<REAL> sol(first->Rows(),1),rhs1(first->Rows(),1),rhs2(first->Rows(),1),y;
+  TPZFMatrix<REAL> sol1(rhs1),sol2(rhs1);
   int ieq,neq = first->Rows();
   for(ieq=0; ieq<neq; ieq++) sol(ieq,0) = rand()/2147483647.;
   
@@ -228,9 +228,9 @@ void Compare(TPZMatrix *first, TPZMatrix *second)
   
   rhs1.Print("Difference");
   
-  TPZStepSolver prec1(first);
+  TPZStepSolver<REAL> prec1(first);
   prec1.SetSSOR(1,1.,0.,0);
-  TPZStepSolver prec2(second);
+  TPZStepSolver<REAL> prec2(second);
   prec2.SetSSOR(1,1.,0.,0);
   
   prec1.Solve(rhs2,sol1);

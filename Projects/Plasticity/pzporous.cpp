@@ -127,15 +127,15 @@ void TPZMatPorous<T, TMEM >::Solution(TPZMaterialData &data, int var, TPZVec<REA
 }
 
 template <class T, class TMEM>
-void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
   int in, jn;
   REAL val, Pp;
   TPZVec<REAL> dPp;
 	
-  TPZFMatrix &dphi = data.dphix, dphiXYZ;
-  TPZFMatrix &phi  = data.phi;
-  TPZFMatrix &axes = data.axes, axesT;
+  TPZFMatrix<REAL> &dphi = data.dphix, dphiXYZ;
+  TPZFMatrix<REAL> &phi  = data.phi;
+  TPZFMatrix<REAL> &axes = data.axes, axesT;
   TPZManVector<REAL,3> &x = data.x;
 
   const int phr = phi.Rows();
@@ -265,8 +265,8 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
 template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
 				                       REAL weight,
-									   TPZFMatrix &ek,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 {
 	
@@ -277,7 +277,7 @@ void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
     LOGPZ_DEBUG(porousLogger,sout.str().c_str());
   }
 #endif
-  TPZFMatrix &phi = data.phi;
+  TPZFMatrix<REAL> &phi = data.phi;
 
   const REAL BIGNUMBER  = 1.e12;
 	
@@ -325,7 +325,7 @@ void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
 }
 
 template <class T, class TMEM>
-void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 	TPZMaterial::Contribute(data, weight, ef);//not efficient but here to remember reimplementing it when Contribute becomes robust
 }
@@ -333,16 +333,16 @@ void TPZMatPorous<T, TMEM >::Contribute(TPZMaterialData &data, REAL weight, TPZF
 template <class T, class TMEM>
 void TPZMatPorous<T, TMEM >::ContributeBC(TPZMaterialData &data,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 {
     TPZMaterial::ContributeBC(data, weight, ef, bc);//not efficient but here to remember reimplementing it when ContributeBC becomes robust 
 }
 
 template <class T, class TMEM>
-void TPZMatPorous<T, TMEM >::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx, 
-                    TPZFMatrix &axes, TPZVec<REAL> &flux,
-                    TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
+void TPZMatPorous<T, TMEM >::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, 
+                    TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                    TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
 	TBASEPOROUS(T, TMEM)::Errors(x,u,dudx, axes, flux, u_exact, du_exact, values);
                           

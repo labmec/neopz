@@ -33,23 +33,23 @@ namespace pzshape {
          * @param dphi:   values of the derivatives of the shape functions
          * @param n:      number of derivatives to be computed
          */
-        static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+        static void Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
-        static void PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+        static void PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
-        static void IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n = 1);
+        static void IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int n = 1);
         
-        static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+        static void Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
-        static void ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+        static void ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
-        static void LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n = 1);
+        static void LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
         /**
          * UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
          * @since Mar 31, 2004
          */
-        static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n);
+        static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi, int n);
         
     public:
         
@@ -61,7 +61,7 @@ namespace pzshape {
         
         ~TPZShapeDisc();
         
-        static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
+        static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
         /**
 		 * @brief Number of shapefunctions dependent on the dimension and order of interpolation
@@ -72,27 +72,27 @@ namespace pzshape {
         /**
 		 * @brief Discontinous polynomials of the line element
          */
-        static void Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi);
+        static void Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /**
 		 * @brief Discontinous polynomials of the line element
          */
-        static void Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi);
+        static void Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
         /**
 		 * @brief Discontinous bases of the two-dimensional elements 
          */
-        static void Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
+        static void Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
         /**
 		 * @brief Discontinous bases of the two-dimensional elements with many derivatives!
          */
-        static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
+        static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
         /**
 		 * @brief Discontinous bases of the three-dimensional elements 
          */
-        static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type);
+        static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
     };
     

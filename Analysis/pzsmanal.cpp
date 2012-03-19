@@ -34,10 +34,10 @@ void TPZSubMeshAnalysis::Assemble(){
 	fRhs.Redim(numeq,1);
     if(!fReducableStiff) 
     {
-        fReducableStiff = new TPZMatRed<> ();
+        fReducableStiff = new TPZMatRed<REAL, TPZFMatrix<REAL> > ();
     }
 	fReducableStiff->Redim(numeq,numinternal);
-	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
+	TPZMatRed<REAL, TPZFMatrix<REAL> > *matred = dynamic_cast<TPZMatRed<REAL, TPZFMatrix<REAL> > *> (fReducableStiff.operator->());
     if(!fSolver->Matrix())
     {
         fSolver->SetMatrix(fStructMatrix->Create());	
@@ -45,7 +45,7 @@ void TPZSubMeshAnalysis::Assemble(){
     matred->SetMaxNumberRigidBodyModes(fMesh->NumberRigidBodyModes());
 	//	fReducableStiff.SetK00(fSolver->Matrix());
 	// this will initialize fK00 too
-	matred->SetSolver(dynamic_cast<TPZMatrixSolver *>(fSolver->Clone()));
+	matred->SetSolver(dynamic_cast<TPZMatrixSolver<REAL> *>(fSolver->Clone()));
 	//	TPZStructMatrix::Assemble(fReducableStiff,fRhs, *fMesh);
 	time_t before = time (NULL);
 	fStructMatrix->Assemble(fReducableStiff,fRhs,fGuiInterface);
@@ -67,7 +67,7 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
 	if (!fReducableStiff) {
         DebugStop();
     }
-	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
+	TPZMatRed<REAL, TPZFMatrix<REAL> > *matred = dynamic_cast<TPZMatRed<REAL, TPZFMatrix<REAL> > *> (fReducableStiff.operator->());
 	matred->SetF(fRhs);
 	//fReducableStiff.Print("Reducable stiff assembled");
 	//fBlock->Print("Block structure",out);
@@ -81,12 +81,12 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
     //fRhs->Print("Residual",out);
     //out.flush();
 }
-void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	time_t tempo = time(NULL);
 	if (!fReducableStiff) {
         DebugStop();
     }
-	TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
+	TPZMatRed<REAL, TPZFMatrix<REAL> > *matred = dynamic_cast<TPZMatRed<REAL, TPZFMatrix<REAL> > *> (fReducableStiff.operator->());
 	ek = matred->K11Red();
 	ef = matred->F1Red();
 	//ek.Print("ek condensed");
@@ -98,13 +98,13 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
 	
 }
 
-void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix &sol)
+void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<REAL> &sol)
 {
 	
 	//	sol.Print("sol");
 	int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
-	TPZFMatrix soltemp(numeq-numinter,1,0.);
+	TPZFMatrix<REAL> soltemp(numeq-numinter,1,0.);
 	//	fSolution->Print("Solucao a analise\n");
 	//	fReferenceSolution.Print("Solucao de referencia\n");
 	//	cout.flush();
@@ -112,10 +112,10 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix &sol)
 	for(i=0; i<numeq-numinter; i++) {
 		soltemp(i,0) = sol.GetVal(numinter+i,0)-fReferenceSolution(numinter+i,0);
 	}
-	TPZFMatrix uglobal(numeq,1,0.);
+	TPZFMatrix<REAL> uglobal(numeq,1,0.);
     if(fReducableStiff)
     {
-        TPZMatRed<> *matred = dynamic_cast<TPZMatRed<> *> (fReducableStiff.operator->());
+        TPZMatRed<REAL, TPZFMatrix<REAL> > *matred = dynamic_cast<TPZMatRed<REAL, TPZFMatrix<REAL> > *> (fReducableStiff.operator->());
         matred->UGlobal(soltemp,uglobal);        
 //        fReferenceSolution.Print("Solucao de referencia\n");
 //        uglobal.Print("uglobal");

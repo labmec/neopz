@@ -103,15 +103,15 @@ public:
 	
 	/// calcula a contribuicao para a matriz de rigidez
 	void CalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-				   TPZFMatrix &ek, TPZFMatrix &ef);
+				   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
 	void InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-				   TPZFMatrix &ek, TPZFMatrix &ef);
+				   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
 	void OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-						TPZFMatrix &ek, TPZFMatrix &ef);
+						TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
     /// Compute a limit for correcting the solution
     static REAL LimitRangeInlet(REAL scale,TPZVec<REAL> &inletstate,TPZVec<REAL> &cellstate, TPZVec<REAL> &inletcorrection, TPZVec<REAL> &cellcorrection);

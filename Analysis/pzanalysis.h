@@ -7,10 +7,14 @@
 
 class TPZGeoMesh;
 class TPZCompMesh;
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZBlock;
 class TPZConnect;
+template<class TVar>
 class TPZSolver;
+template<class TVar>
 class TPZMatrixSolver;
 class TPZCompEl;
 class TPZGraphMesh;
@@ -58,15 +62,15 @@ protected:
 	/**
 	 * @brief Load vector ???
 	 */
-	TPZFMatrix fRhs;
+	TPZFMatrix<REAL> fRhs;
 	/**
 	 * @brief Solution vector
 	 */
-	TPZFMatrix fSolution;
+	TPZFMatrix<REAL> fSolution;
 	/**
 	 * @brief Type of solver to be applied
 	 */
-	TPZMatrixSolver *fSolver;
+	TPZMatrixSolver<REAL> *fSolver;
 	/**
 	 * @brief Scalar variables names - to post process
 	 */
@@ -114,7 +118,7 @@ protected:
     /**
      * @brief Exact solution ??? not implemented???
      */
-    void (*fExact)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv);
+    void (*fExact)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv);
 	
 	/**
 	 * @brief Create an TPZAnalysis object from one mesh pointer
@@ -189,13 +193,13 @@ protected:
 	/**
 	 * @brief Returns the load vector
 	 **/
-	TPZFMatrix &Rhs() { return fRhs;}
+	TPZFMatrix<REAL> &Rhs() { return fRhs;}
 	
 	
 	/**
 	 * @brief Returns the solution matrix
 	 **/
-	TPZFMatrix &Solution() { return fSolution;}
+	TPZFMatrix<REAL> &Solution() { return fSolution;}
 	
 	/**
 	 * @brief Returns the pointer to the computational mesh
@@ -211,7 +215,7 @@ protected:
 	 *
 	 * This method will create the stiffness matrix but without assembling
 	 */
-	TPZMatrixSolver *BuildPreconditioner(EPrecond preconditioner, bool overlap);
+	TPZMatrixSolver<REAL> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
 	
 	void SetTime(REAL time);
 	REAL GetTime();
@@ -221,7 +225,7 @@ private:
 	/**
 	 * @brief Build a sequence solver based on the block graph and its colors
 	 */
-	TPZMatrixSolver *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
+	TPZMatrixSolver<REAL> *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
 	
 	
 public:
@@ -264,25 +268,25 @@ public:
 	 */
 	virtual void LoadSolution();
 	
-	virtual void LoadSolution(const TPZFMatrix &sol){
+	virtual void LoadSolution(const TPZFMatrix<REAL> &sol){
 		this->Solution() = sol;
 		this->LoadSolution();
 	}
 	
-	void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv));
+	void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv));
 	
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 	
-	void PostProcessTable(  TPZFMatrix &pos,std::ostream &out= std::cout );
+	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
 	
 	void Print( const std::string &name , std::ostream &out );
 	
-	TPZMatrixSolver & Solver();
+	TPZMatrixSolver<REAL> & Solver();
 	
 	void AnimateRun(int num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
 	
-	void SetSolver(TPZMatrixSolver &solver);
+	void SetSolver(TPZMatrixSolver<REAL> &solver);
 	
 	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
 	
@@ -293,12 +297,12 @@ public:
 
 inline void
 
-TPZAnalysis::SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv))
+TPZAnalysis::SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv))
 {
 	fExact=f;
 }
 
-inline TPZMatrixSolver &
+inline TPZMatrixSolver<REAL> &
 
 TPZAnalysis::Solver(){
 	return (*fSolver);

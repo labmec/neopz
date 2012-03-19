@@ -15,7 +15,7 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
     
 	REAL qsi = param[0], eta = param[1];
 	
@@ -48,7 +48,7 @@ void TPZQuadraticQuad::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	dphi(1,7) =  eta*(-1. + qsi);
 }
 
-void TPZQuadraticQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+void TPZQuadraticQuad::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
 	
     TPZFNMatrix<9> phi(8,1);
     TPZFNMatrix<16> dphi(2,8);
@@ -60,7 +60,7 @@ void TPZQuadraticQuad::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
     }
 }
 
-void TPZQuadraticQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 #ifdef DEBUG
 	if (NNodes != 8) {
 		PZError << "TPZQuadraticQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
@@ -76,12 +76,12 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
 	
 	REAL spacephi[8]; REAL spacedphi[16];
-	TPZFMatrix phi(8,1,spacephi,8);
-	TPZFMatrix dphi(2,8,spacedphi,16);
+	TPZFMatrix<REAL> phi(8,1,spacephi,8);
+	TPZFMatrix<REAL> dphi(2,8,spacedphi,16);
 	Shape(param,phi,dphi);
 	jacobian.Zero();
 	
-	TPZFMatrix VecMatrix(3,2,0.);
+	TPZFMatrix<REAL> VecMatrix(3,2,0.);
 	for(int i = 0; i < 8; i++) {
 		for(int j = 0; j < 3; j++) {
 			VecMatrix(j,0) += coord(j,i)*dphi(0,i);
@@ -89,7 +89,7 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatr
 		}
 	}
 	
-	TPZFMatrix axest;
+	TPZFMatrix<REAL> axest;
 	VecMatrix.GramSchmidt(axest,jacobian);
 	axest.Transpose(&axes);
 	

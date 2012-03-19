@@ -12,6 +12,7 @@
 class TPZGeoEl;
 class TPZTransform;
 class TPZCompElSide;
+template<class TVar>
 class TPZFMatrix;
 
 #include "pzvec.h"
@@ -94,7 +95,7 @@ public:
 	void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
 	
 	/// Jacobian associated with the side of the element
-	void Jacobian(TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+	void Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
     
     /// Area associated with the side
     REAL Area();

@@ -7,17 +7,20 @@
 
 using namespace std;
 
-TPZVerySparseMatrix::TPZVerySparseMatrix() : fExtraSparseData()
+template<class TVar>
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix() : fExtraSparseData()
 {
 }
 
-TPZVerySparseMatrix::~TPZVerySparseMatrix()
+template<class TVar>
+TPZVerySparseMatrix<TVar>::~TPZVerySparseMatrix()
 {
 }
 
-int TPZVerySparseMatrix::PutVal(int row, int col, const REAL &val)
+template<class TVar>
+int TPZVerySparseMatrix<TVar>::PutVal(int row, int col, const TVar &val)
 {
-    if (row < 0 || col < 0 || row >fRow || col >fCol)
+    if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
         cout<< "ERRO! em TPZVerySparseMatrix::PutVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
         return -1;
@@ -40,26 +43,27 @@ int TPZVerySparseMatrix::PutVal(int row, int col, const REAL &val)
 	return 0;
 }
 
-TPZVerySparseMatrix::TPZVerySparseMatrix(const TPZFMatrix &cp) : TPZMatrix(cp)
+template<class TVar>
+TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZMatrix<TVar>(cp)
 {
-	for(int i=0; i<fRow; i++)
+	for(int i=0; i<this->fRow; i++)
 	{
-		for(int j=0; j<fCol; j++)
+		for(int j=0; j<this->fCol; j++)
 		{
-			REAL a = cp.GetVal(i,j);
+			TVar a = cp.GetVal(i,j);
 			if(a) PutVal(i,j,a);
 		}
 	}
 }
 
-
-const REAL & TPZVerySparseMatrix::GetVal(int row, int col) const
+template<class TVar>
+const TVar & TPZVerySparseMatrix<TVar>::GetVal(int row, int col) const
 {
-    if (row < 0 || col < 0 || row >fRow || col >fCol)
+    if (row < 0 || col < 0 || row >this->fRow || col >this->fCol)
     {
         cout<< "ERRO! em TPZVerySparseMatrix::GetVal: The row i or column j are incompatible with the rows or columns of a matrix"<< endl;
-        gZero = 0.;
-		return gZero;
+        this->gZero = 0.;
+		return this->gZero;
     }
 	
     pair <int,int> position(row,col);
@@ -68,26 +72,27 @@ const REAL & TPZVerySparseMatrix::GetVal(int row, int col) const
 	
     if (it == fExtraSparseData.end() )
     {
-        gZero = 0.;
-        return gZero;
+        this->gZero = 0.;
+        return this->gZero;
     }
     
     return it->second;
 }
 
-void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TPZFMatrix & z,
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y, TPZFMatrix<TVar> & z,
 								  const REAL alpha, const REAL beta, const int opt, const int stride ) const
 {
     if (!opt) 
     {
-        if(Cols() != x.Rows()*stride || Rows() != y.Rows()*stride)
+        if(this->Cols() != x.Rows()*stride || this->Rows() != y.Rows()*stride)
         {
             cout << "\nERROR! em TPZVerySparseMatrix::MultiplyAdd: incompatible dimensions in opt=false\n";
             return;
         } 
     } 
 	else
-		if (Rows() != x.Rows()*stride || Cols() != y.Rows()*stride)
+		if (this->Rows() != x.Rows()*stride || this->Cols() != y.Rows()*stride)
 		{
 			cout << "\nERROR! em TPZVerySparseMatrix::MultiplyAdd: incompatible dimensions in opt=true\n";
 			return; 
@@ -100,8 +105,8 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
     
     int xcols = x.Cols();
     int ic, c, r;
-    PrepareZ(y,z,beta,opt,stride);
-    REAL val = 0.;
+    this->PrepareZ(y,z,beta,opt,stride);
+    TVar val = 0.;
 	
     for (ic = 0; ic < xcols; ic++)
     {
@@ -114,7 +119,7 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
 				pair <int, int> position(it->first);
 				c = position.second;
 				r = position.first;
-				REAL matrixval = it->second;
+				TVar matrixval = it->second;
 				
 				val = z(r*stride,ic) + alpha * matrixval * x.GetVal(c*stride,ic);
 				z.PutVal(r*stride,ic,val);
@@ -134,7 +139,8 @@ void TPZVerySparseMatrix::MultAdd(const TPZFMatrix & x, const TPZFMatrix & y, TP
 		}
     }
 }
-void TPZVerySparseMatrix::Write(TPZStream &buf, int withclassid)
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
 {
 	TPZSaveable::Write(buf, withclassid);
 	buf.Write(&this->fCol, 1);
@@ -145,7 +151,8 @@ void TPZVerySparseMatrix::Write(TPZStream &buf, int withclassid)
 	WriteMap(buf, withclassid, this->fExtraSparseData);
 	
 }
-void TPZVerySparseMatrix::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, REAL> & TheMap)
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, REAL> & TheMap)
 {
 	int mapsz = TheMap.size();
 	buf.Write(&mapsz, 1);
@@ -161,7 +168,8 @@ void TPZVerySparseMatrix::WriteMap(TPZStream &buf, int withclassid, std::map<std
 	}
 }
 
-void TPZVerySparseMatrix::Read(TPZStream &buf, void *context)
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZSaveable::Read(buf, context);
 	buf.Read(&this->fCol, 1);
@@ -172,7 +180,8 @@ void TPZVerySparseMatrix::Read(TPZStream &buf, void *context)
 	ReadMap(buf, context, this->fExtraSparseData);
 	
 }
-void TPZVerySparseMatrix::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, REAL> & TheMap)
+template<class TVar>
+void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, REAL> & TheMap)
 {
 	TheMap.clear();
 	int size = 0;
@@ -181,7 +190,7 @@ void TPZVerySparseMatrix::ReadMap(TPZStream &buf, void *context, std::map<std::p
 	for(i = 0; i < size; i++)
 	{
 		int ii = 0, jj = 0;
-		REAL value = 0.;
+		TVar value = 0.;
 		buf.Read(&ii, 1);
 		buf.Read(&jj, 1);
 		std::pair<int, int> item(ii, jj);
@@ -190,4 +199,7 @@ void TPZVerySparseMatrix::ReadMap(TPZStream &buf, void *context, std::map<std::p
 		TheMap.insert(fullitem);
 	}
 }
+
+template class TPZVerySparseMatrix<REAL>;
+
 

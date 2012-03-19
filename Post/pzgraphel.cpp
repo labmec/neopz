@@ -105,7 +105,7 @@ void TPZGraphEl::DrawSolution(TPZGraphNode *n,int solind,TPZDrawStyle st) {
 	DrawSolution(n,sol,st);
 }
 
-void TPZGraphEl::DrawSolution(TPZGraphNode * /*n*/,TPZBlock &,TPZDrawStyle /*st*/) {
+void TPZGraphEl::DrawSolution(TPZGraphNode * /*n*/,TPZBlock<REAL> &,TPZDrawStyle /*st*/) {
 }
 
 void TPZGraphEl::DrawSolution(TPZGraphNode *n,TPZVec<int> &solind,TPZDrawStyle st)

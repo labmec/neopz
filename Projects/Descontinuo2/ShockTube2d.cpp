@@ -195,7 +195,7 @@ TPZFlowCompMesh * STCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
    REAL rhoer = pr/(gamma - 1.) + rhor * (ur * ur + vr * vr);
 
    //CC Todas as arestas : PAREDE
-   TPZFMatrix val1, val2;
+   TPZFMatrix<REAL> val1, val2;
    val1.Zero();
    val2.Zero();
    int i;
@@ -226,7 +226,7 @@ TPZFlowCompMesh * STCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix Solution = cmesh->Solution();
+   TPZFMatrix<REAL> Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
    for(int k = 0; k < nVars; k++)Solution(k)=-.1;

@@ -16,6 +16,7 @@
 
 class TPZBndCond;
 class TPZCompMesh;
+template<class TVar>
 class TPZBlock;
 class TPZStream;
 
@@ -70,7 +71,7 @@ public:
 		TPZFNMatrix<50>	fDepMatrix;
 		TPZDepend		*fNext;
 		
-		TPZDepend(int DepConnectIndex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
+		TPZDepend(int DepConnectIndex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize);
 		
 		TPZDepend(const TPZDepend &copy);
 		TPZDepend(int connectindex);
@@ -239,7 +240,7 @@ public:
 	 * @param depmat [in] dependency matrix which defines the relation between the connects
 	 * @param ipos, jpos, isize, jsize are parameters which define the submatrix within depmat which is to be used
 	 */
-	void AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize);
+	void AddDependency(int myindex, int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize);
 	
 	/**
 	 * @brief Remove dependency between connects if exist
@@ -267,7 +268,7 @@ public:
 	
 	void SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentOrder,TPZVec<int> &connectlist,TPZVec<int> &DependenceOrder);
 	
-	void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi);
+	void ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Saves the element data to a stream */
 	void Write(TPZStream &buf, int withclassid);

@@ -15,7 +15,7 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
     
 	REAL qsi = param[0];
 	
@@ -28,7 +28,7 @@ void TPZQuadraticLine::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	dphi(0,2) = -2.*qsi;
 }
 
-void TPZQuadraticLine::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
 	TPZFNMatrix<9> phi(NNodes,1);
 	TPZFNMatrix<16> dphi(1,NNodes);
 	Shape(loc,phi,dphi);
@@ -39,7 +39,7 @@ void TPZQuadraticLine::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &re
 	}
 }
 
-void TPZQuadraticLine::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 #ifdef DEBUG
 	if( param[0] < -1.001 || param[0] > 1.001) {
 		PZError << "TPZQuadraticLine.jacobian. param out of range : "

@@ -187,7 +187,7 @@ int TPZMulticamadaOrthotropic::NPlacas(){
 	return fPlacaOrth.NElements();
 }
 
-void TPZMulticamadaOrthotropic::AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix &tensor) {
+void TPZMulticamadaOrthotropic::AnalyticTensor(TPZVec<REAL> &co, TPZFMatrix<REAL> &tensor) {
 	
 	REAL z = co[2];
 	REAL x = co[0];
@@ -367,7 +367,7 @@ void TPZMulticamadaOrthotropic::ComputeCenterForces() {
 	
 }
 
-void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix &tensor) {
+void TPZMulticamadaOrthotropic::Tensor(TPZVec<REAL> &x, int placa, TPZFMatrix<REAL> &tensor) {
 	
 	REAL zmin = fPlacaOrth[placa].ZMin();
 	REAL zmax = fPlacaOrth[placa].ZMax();
@@ -395,7 +395,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
-	TPZStepSolver solve;
+	TPZStepSolver<REAL> solve;
 	solve.SetDirect(ELDLt);
 	an.SetSolver(solve);
 	
@@ -410,7 +410,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
-	TPZStepSolver solve;
+	TPZStepSolver<REAL> solve;
 	solve.SetDirect(ELDLt);
 	an.SetSolver(solve);
 	an.Solution().Zero();
@@ -469,7 +469,7 @@ void TPZMulticamadaOrthotropic::PrintTensors(std::ostream &out) {
 	out << endl << endl;
 }
 
-void TPZMulticamadaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+void TPZMulticamadaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix<REAL> &tensorin,TPZFMatrix<REAL> &tensorout) {
 	
 	out << "Output for the tensors at the center of the plates\n\n";
 	int nplaca = fPlacaOrth.NElements();

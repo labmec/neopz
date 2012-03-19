@@ -29,7 +29,7 @@ TPZBlackOilAnalysis::~TPZBlackOilAnalysis(){
 	//nothing to be done here
 }
 
-void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix & InitialSol){
+void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix<REAL> & InitialSol){
 	const int nrows = this->Mesh()->Solution().Rows();
 	const int ncols = this->Mesh()->Solution().Cols();
 	if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
@@ -42,7 +42,7 @@ void TPZBlackOilAnalysis::SetInitialSolution(TPZFMatrix & InitialSol){
 }
 
 void TPZBlackOilAnalysis::SetInitialSolutionAsZero(){
-	TPZFMatrix & MeshSol = this->Mesh()->Solution();
+	TPZFMatrix<REAL> & MeshSol = this->Mesh()->Solution();
 	this->fSolution.Redim( MeshSol.Rows(), MeshSol.Cols() );
 	this->fSolution.Zero();
 }
@@ -68,7 +68,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 	this->SetAllMaterialsDeltaT();
 	const double TotalTime = fTimeStep*fNIter;
 	
-	TPZFMatrix prevsol, lastsol;
+	TPZFMatrix<REAL> prevsol, lastsol;
 	
 	for(; this->fSimulationTime < TotalTime; ){
 		
@@ -94,7 +94,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 			this->Solve();
 			
 			if (linesearch){
-				TPZFMatrix nextSol;
+				TPZFMatrix<REAL> nextSol;
 				REAL LineSearchTol = 1e-3 * Norm(fSolution);
 				const int niter = 3;
 				this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);
@@ -256,7 +256,7 @@ void TPZBlackOilAnalysis::Assemble(){
 	}
 	else{
 // #warning FIX ME
-		//    TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs);
+		//    TPZMatrix<REAL> *mat = fStructMatrix->CreateAssemble(fRhs);
 		//    fSolver->SetMatrix(mat);
 	}
 	fSolver->UpdateFrom(fSolver->Matrix());

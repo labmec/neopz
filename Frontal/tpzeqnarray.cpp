@@ -82,7 +82,7 @@ void TPZEqnArray::Reset(){
 	fSymmetric=EIsUndefined;
 	
 }
-void TPZEqnArray::EqnBackward(TPZFMatrix & U, DecomposeType dec){
+void TPZEqnArray::EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec){
 	int n;
 	if(IsSymmetric()==EIsSymmetric){
     	for(n=fNumEq-1; n>=0; n--) {
@@ -127,7 +127,7 @@ void TPZEqnArray::EqnBackward(TPZFMatrix & U, DecomposeType dec){
     }
 }
 
-void TPZEqnArray::EqnForward(TPZFMatrix & F, DecomposeType dec){
+void TPZEqnArray::EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec){
 	int j;
 	if(IsSymmetric()==EIsSymmetric){
 		
@@ -266,7 +266,7 @@ void TPZEqnArray::main()
 	cin >> filename;
 	ofstream output(filename,ios::app);
 	
-	TPZFMatrix MatrixA(10,10);
+	TPZFMatrix<REAL> MatrixA(10,10);
 	int i, j; 
 	for(i=0;i<10;i++) {
 		for(j=i;j<10;j++) {
@@ -293,7 +293,7 @@ void TPZEqnArray::main()
 		Test.EndEquation(); 
 	}
 	
-	TPZFMatrix rhs(10,1), rhs2(10,1);
+	TPZFMatrix<REAL> rhs(10,1), rhs2(10,1);
 	//Inicializar rhs:
 	rhs.Zero();
 	rhs(0,0) = 1.;

@@ -40,14 +40,14 @@
 
 #ifdef _AUTODIFF
 #include "fadType.h"
-void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef);
+void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef);
 #endif
 
 TPZCompMesh *CreateMesh();
 int mainFull();
-void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh);
+void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, TPZCompMesh & Mesh);
 TPZCompMesh *CreateMesh();
-TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh);
+TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh);
 
 /*
 void error(char * err)
@@ -63,12 +63,12 @@ int main()
  const int dim = 3;
 
 
-//void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix &,TPZVec<REAL> &/*sol*/,TPZFMatrix &dsol,REAL weight,
-//			  TPZFMatrix &/*axes*/,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef) {
- TPZFMatrix phi(numShape,1), dphi(dim,numShape), dsol(dim, ndof, 0.);
- TPZFMatrix ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.),ekFAD(numShape * ndof, numShape * ndof, 0.), efFAD(numShape * ndof, 1, 0.);
+//void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix<REAL> &,TPZVec<REAL> &/*sol*/,TPZFMatrix<REAL> &dsol,REAL weight,
+//			  TPZFMatrix<REAL> &/*axes*/,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+ TPZFMatrix<REAL> phi(numShape,1), dphi(dim,numShape), dsol(dim, ndof, 0.);
+ TPZFMatrix<REAL> ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.),ekFAD(numShape * ndof, numShape * ndof, 0.), efFAD(numShape * ndof, 1, 0.);
  TPZVec<REAL> x(3,0.), sol(3,0.);
- TPZFMatrix axes(3,3,0.),jacinv(3,3,0.);
+ TPZFMatrix<REAL> axes(3,3,0.),jacinv(3,3,0.);
  REAL weight = 1.;
  int id, idf, ishape, i;
 	double xdsol[]= {1.e-3,1.e-2,1.e-4,1.e-1,3.e-2,2.e-2,4.e-5,25.e-4,33.e-3};
@@ -181,11 +181,11 @@ TPZCompEl::SetgOrder(2);
 	}
       TPZAnalysis an (cmesh);
       TPZSkylineStructMatrix strskyl(cmesh);
-      TPZFMatrix rhs(24,1,0.);
+      TPZFMatrix<REAL> rhs(24,1,0.);
       TPZMatrix *stiff1 = CreateAssemble(rhs,1, *cmesh);
       TPZMatrix *stiff2 = CreateAssemble(rhs,0, *cmesh);
-      TPZFMatrix one(*stiff1);
-      TPZFMatrix two(*stiff2);
+      TPZFMatrix<REAL> one(*stiff1);
+      TPZFMatrix<REAL> two(*stiff2);
       one -= two;
       one.Print("difference");
       REAL norm = Norm(one);
@@ -276,7 +276,7 @@ TPZCompMesh *CreateMesh(){
 
   // Condições de contorno
   // Dirichlet
-  TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+  TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
   TPZMaterial *bnd = meumat->CreateBC (-1,0,val1,val2);
   comp->InsertMaterialObject(bnd);
 
@@ -301,7 +301,7 @@ TPZCompMesh *CreateMesh(){
     return comp;
 }
 
-TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh){
+TPZMatrix * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh){
     int neq = Mesh.NEquations();
     TPZVec<int> skyline;
     Mesh.Skyline(skyline);
@@ -312,7 +312,7 @@ TPZMatrix * CreateAssemble(TPZFMatrix &rhs, int method, TPZCompMesh & Mesh){
 }
 
 
-void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh & Mesh){
+void Assemble(TPZMatrix & stiffness, TPZFMatrix<REAL> & rhs, int method, TPZCompMesh & Mesh){
 
   int iel;
   //int numel = 0;
@@ -421,7 +421,7 @@ void Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, int method, TPZCompMesh &
 
 #ifdef _AUTODIFF
 
-void FADToMatrix(FADFADREAL &U, TPZFMatrix & ek, TPZFMatrix & ef)
+void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef)
 {
 //  int efsz = ef.Rows();
 //  int ekrows = ek.Rows();

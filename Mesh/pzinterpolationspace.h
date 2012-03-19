@@ -61,11 +61,11 @@ public:
 	 * This method uses the order of interpolation
 	 * of the element along the sides to compute the number of shapefunctions
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi) = 0;
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) = 0;
 	
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
-	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes,
-							  REAL &detjac, TPZFMatrix &jacinv, TPZFMatrix &phi, TPZFMatrix &dphix);
+	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
 	
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
@@ -162,8 +162,8 @@ public:
 	 * @param errors (output) the L2 norm or true error of the error of the solution
 	 * @param flux (input) value of the interpolated flux values
 	 */
-	virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-                               TPZVec<REAL> &errors,TPZBlock * flux );
+	virtual void EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                               TPZVec<REAL> &errors,TPZBlock<REAL> * flux );
 	
 	/** @brief Computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error);
@@ -239,7 +239,7 @@ protected:
 	 * if these shapefunctions are dependent upon other shapefunctions (because of constraints) then the vectors
 	 * are expanded to include the value of the independent shapefunctions and their derivatives as well
 	 */
-    void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphi);
+    void ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 };
 

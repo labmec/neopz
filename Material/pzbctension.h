@@ -37,20 +37,20 @@ private:
     
     ~TPZBCTension(){}
 	
-	TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
+	TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 	
 	virtual int NFluxes(){ return Material()->NFluxes(); }
 	
 	int NStateVariables() { return Material()->NStateVariables(); }
 	
-	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
 
-		TPZFMatrix &dphi = data.dphix;
-		// TPZFMatrix &dphiL = data.dphixl;
-		// TPZFMatrix &dphiR = data.dphixr;
-		TPZFMatrix &phi = data.phi;
-		// TPZFMatrix &phiL = data.phil;
-		// TPZFMatrix &phiR = data.phir;
+		TPZFMatrix<REAL> &dphi = data.dphix;
+		// TPZFMatrix<REAL> &dphiL = data.dphixl;
+		// TPZFMatrix<REAL> &dphiR = data.dphixr;
+		TPZFMatrix<REAL> &phi = data.phi;
+		// TPZFMatrix<REAL> &phiL = data.phil;
+		// TPZFMatrix<REAL> &phiR = data.phir;
 		// TPZManVector<REAL,3> &normal = data.normal;
 		TPZManVector<REAL,3> &x = data.x;
 		//int POrder=data.p;
@@ -59,12 +59,12 @@ private:
 		TPZVec<REAL> &sol=data.sol[0];
 		// TPZVec<REAL> &solL=data.soll;
 		// TPZVec<REAL> &solR=data.solr;
-		TPZFMatrix &dsol=data.dsol[0];
-		// TPZFMatrix &dsolL=data.dsoll;
-		// TPZFMatrix &dsolR=data.dsolr;
+		TPZFMatrix<REAL> &dsol=data.dsol[0];
+		// TPZFMatrix<REAL> &dsolL=data.dsoll;
+		// TPZFMatrix<REAL> &dsolR=data.dsolr;
 		//REAL faceSize=data.HSize;
-		TPZFMatrix &jacinv = data.jacinv;
-		TPZFMatrix &axes = data.axes;
+		TPZFMatrix<REAL> &jacinv = data.jacinv;
+		TPZFMatrix<REAL> &axes = data.axes;
 		
 		
 		
@@ -99,7 +99,7 @@ private:
 		}
 		
 	}
-	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ef)
+	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ef)
 	{
 		TPZBndCond::Contribute(data,weight,ef);
 	}

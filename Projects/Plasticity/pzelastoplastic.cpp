@@ -210,7 +210,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ApplyDirection(TPZFMatrix &vectorTensor, TPZVec<REAL> &Out)
+void TPZMatElastoPlastic<T,TMEM>::ApplyDirection(TPZFMatrix<REAL> &vectorTensor, TPZVec<REAL> &Out)
 {
   Out.Resize(3);
   TPZVec<REAL> &Dir = this->fPostProcessDirection;
@@ -398,7 +398,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
-	/*	TPZFMatrix a(3,3,0.);
+	/*	TPZFMatrix<REAL> a(3,3,0.);
 		a.PutVal(0,0,plasticStrain.XX());
 		a.PutVal(0,1,plasticStrain.XY());
 		a.PutVal(0,2,plasticStrain.XZ());
@@ -445,7 +445,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 
 #ifdef LOG4CXX
@@ -457,9 +457,9 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
   }
 #endif
 	
-  TPZFMatrix &dphi = data.dphix, dphiXYZ;
-  TPZFMatrix &phi  = data.phi;
-  TPZFMatrix &axes = data.axes, axesT;
+  TPZFMatrix<REAL> &dphi = data.dphix, dphiXYZ;
+  TPZFMatrix<REAL> &phi  = data.phi;
+  TPZFMatrix<REAL> &axes = data.axes, axesT;
   TPZManVector<REAL,3> &x = data.x;
 
   // rotating the shape functions to the XYZ coordinates
@@ -670,8 +670,8 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 				                       REAL weight,
-									   TPZFMatrix &ek,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 {
 #ifdef LOG4CXX
@@ -681,7 +681,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
     LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
   }
 #endif
-  TPZFMatrix &phi = data.phi;
+  TPZFMatrix<REAL> &phi = data.phi;
 
   const REAL BIGNUMBER  = 1.e12;
 	
@@ -696,7 +696,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
   v2[2] = bc.Val2()(2,0);
 
 	
-	TPZFMatrix &v1 = bc.Val1();
+	TPZFMatrix<REAL> &v1 = bc.Val1();
 	//bc.Print(cout);
 	//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
   switch (bc.Type()) {
@@ -791,7 +791,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
 	TPZMaterial::Contribute(data, weight, ef);//not efficient but here to remember reimplementing it when Contribute becomes robust
 }
@@ -799,16 +799,16 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 template <class T, class TMEM>
 void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 {
     TPZMaterial::ContributeBC(data, weight, ef, bc);//not efficient but here to remember reimplementing it when ContributeBC becomes robust 
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx, 
-                    TPZFMatrix &axes, TPZVec<REAL> &flux,
-                    TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
+void TPZMatElastoPlastic<T,TMEM>::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, 
+                    TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                    TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
   int i, j;
    
@@ -835,7 +835,7 @@ void TPZMatElastoPlastic<T,TMEM>::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMa
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TPZFMatrix &Strain)
+void TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain)
 {
     ComputeDeltaStrainVector(data, Strain);
 	
@@ -846,7 +846,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeStrainVector(TPZMaterialData & data, TP
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain)
+void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
 {
 	TPZFNMatrix<9> DSolXYZ(3,3,0.);
 	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
@@ -861,7 +861,7 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & dat
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TPZFMatrix &Stress)
+void TPZMatElastoPlastic<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress)
 {
 	
     TPZFNMatrix<6> DeltaStrain;
@@ -872,8 +872,8 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeStressVector(TPZMaterialData & data, TP
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix & DeltaStrain, 
-												TPZFMatrix & Stress, TPZFMatrix & Dep)
+void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 	int intPt = data.intPtIndex;//, plasticSteps;
     if(intPt >= TPZMatWithMem<TMEM>::fMemory.NElements())
@@ -931,8 +931,8 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix & Strain, 
-												TPZFMatrix & Stress)
+void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & Strain, 
+												TPZFMatrix<REAL> & Stress)
 {
 	int intPt = data.intPtIndex;
 	fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
@@ -975,7 +975,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix & vectorTensor, TPZVec<REAL> & ev)
+void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix<REAL> & vectorTensor, TPZVec<REAL> & ev)
 {
     TPZFNMatrix<9> Tensor(3,3);
 	ev.Resize(3);
@@ -1001,7 +1001,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenValues(TPZFMatrix & vectorTensor, TPZVec<
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix &vectorTensor, TPZVec< REAL > &Solout, int direction)
+void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix<REAL> &vectorTensor, TPZVec< REAL > &Solout, int direction)
 {
     TPZFNMatrix<9> Tensor(3,3);
     this->vectorToTensor(vectorTensor, Tensor);
@@ -1095,7 +1095,7 @@ void TPZMatElastoPlastic<T,TMEM>::SetBulkDensity(const REAL & bulk)
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic<T,TMEM>::vectorToTensor(const TPZFMatrix & vectorTensor, TPZFMatrix & Tensor)
+void TPZMatElastoPlastic<T,TMEM>::vectorToTensor(const TPZFMatrix<REAL> & vectorTensor, TPZFMatrix<REAL> & Tensor)
 {
 	TPZTensor<REAL> vecT;
 	vecT.CopyFrom(vectorTensor);

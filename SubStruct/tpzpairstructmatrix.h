@@ -48,17 +48,17 @@ public:
 	/** @brief Set the set of material ids which will be considered when assembling the system */
 	void SetMaterialIds(const std::set<int> &materialids);
 	
-	void Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs);
+	void Assemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs);
 	
-	void SerialAssemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs);
+	void SerialAssemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs);
 	
-	void MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs);
+	void MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs);
 	
 	/** @brief Contains the thread data for matrices divided in sub structures. */
 	struct ThreadData
 	{
 		/** @brief Initialize the mutex semaphores and others */
-		ThreadData(TPZCompMesh &mesh,TPZMatrix &mat1, TPZMatrix &mat2, TPZFMatrix &rhs, int mineq, int maxeq);
+		ThreadData(TPZCompMesh &mesh,TPZMatrix<REAL> &mat1, TPZMatrix<REAL> &mat2, TPZFMatrix<REAL> &rhs, int mineq, int maxeq);
 		/** @brief Destroy the mutex semaphores and others */
 		~ThreadData();
 		/** @brief Current structmatrix object */
@@ -70,11 +70,11 @@ public:
 		/** @brief Semaphore (to wake up the second assembly thread) */
 		TPZSemaphore fAssembly2;
 		/** @brief Global matrix1 */
-		TPZMatrix *fGlobMatrix1;
+		TPZMatrix<REAL> *fGlobMatrix1;
 		/** @brief Global matrix2 */
-		TPZMatrix *fGlobMatrix2;
+		TPZMatrix<REAL> *fGlobMatrix2;
 		/** @brief Global rhs */
-		TPZFMatrix *fGlobRhs;
+		TPZFMatrix<REAL> *fGlobRhs;
 		/** @brief Minimum equation to be assembled */
 		int fMinEq;
 		/** @brief Maximum equation to be assembled */

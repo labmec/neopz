@@ -93,7 +93,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	 * @brief Computes the determinant of a 2d or 3d matrix. \n
 	 * Used by recompute the element size
 	 */
-	REAL Det(TPZFMatrix & Mat);
+	REAL Det(TPZFMatrix<REAL> & Mat);
 	
 	/**
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
@@ -134,7 +134,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
 
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
 	/** @brief returns the solution associated with the var index based on the finite element approximation */
@@ -293,8 +293,8 @@ public:
 	 * @param[out] FADsol Vector of solutions and coefficient derivatives (phi) at the point
 	 * @param[out] FADdsol Vector of spatial derivatives of solution and coefficient derivatives (dphi) at the point
 	 */
-	void PrepareFAD(TPZVec<REAL> & sol, TPZFMatrix & dsol,
-					TPZFMatrix & phi, TPZFMatrix & dphi,
+	void PrepareFAD(TPZVec<REAL> & sol, TPZFMatrix<REAL> & dsol,
+					TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi,
 					TPZVec<FADREAL> & FADsol,
 					TPZVec<FADREAL> & FADdsol);
 	
@@ -310,7 +310,7 @@ public:
 	 */
 	void PrepareInterfaceFAD(
 							 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
-							 TPZFMatrix &phiL,TPZFMatrix &phiR,
+							 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 							 TPZVec<FADREAL> & FADsolL,
 							 TPZVec<FADREAL> & FADsolR);
 	
@@ -334,22 +334,22 @@ public:
 	/** @name Contributions methods */
 	/** @{ */
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
 
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek, TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
     	TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
@@ -357,12 +357,12 @@ public:
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ek,TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	
 	/** @name Internal contributions */
@@ -370,81 +370,81 @@ public:
 	
 	void ContributeFastestBCInterface(int dim,
 									  TPZVec<REAL> &x,
-									  TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+									  TPZVec<REAL> &solL, TPZFMatrix<REAL> &dsolL,
 									  REAL weight, TPZVec<REAL> &normal,
-									  TPZFMatrix &phiL, TPZFMatrix &dphiL,
-									  TPZFMatrix &axesleft,
-									  TPZFMatrix &ek,TPZFMatrix &ef, TPZBndCond &bc);
+									  TPZFMatrix<REAL> &phiL, TPZFMatrix<REAL> &dphiL,
+									  TPZFMatrix<REAL> &axesleft,
+									  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
 	template <int dim>
 	void ContributeFastestBCInterface_dim(
 										  TPZVec<REAL> &x,
-										  TPZVec<REAL> &solL, TPZFMatrix &dsolL,
+										  TPZVec<REAL> &solL, TPZFMatrix<REAL> &dsolL,
 										  REAL weight, TPZVec<REAL> &normal,
-										  TPZFMatrix &phiL,TPZFMatrix &dphiL,
-										  TPZFMatrix &axesleft,
-										  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+										  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &dphiL,
+										  TPZFMatrix<REAL> &axesleft,
+										  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 
-	virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix &jacinv,
-								TPZVec<REAL> &sol,TPZFMatrix &dsol,
+	virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
+								TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 								REAL weight,
-								TPZFMatrix &phi,TPZFMatrix &dphi,
-								TPZFMatrix &ef);
+								TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+								TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
-							   TPZVec<REAL> &sol,TPZFMatrix &dsol,
+	virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
+							   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 							   REAL weight,
-							   TPZFMatrix &phi,TPZFMatrix &dphi,
-							   TPZFMatrix &ek,TPZFMatrix &ef);
+							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+							   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix &jacinv,
-							   TPZVec<REAL> &sol,TPZFMatrix &dsol,
+	virtual void ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
+							   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 							   REAL weight,
-							   TPZFMatrix &phi,TPZFMatrix &dphi,
-							   TPZFMatrix &ef);
+							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+							   TPZFMatrix<REAL> &ef);
 	
 	void ContributeApproxImplDiff(TPZVec<REAL> &x,
-								  TPZFMatrix &jacinv,
-								  TPZVec<REAL> &sol,TPZFMatrix &dsol,
+								  TPZFMatrix<REAL> &jacinv,
+								  TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 								  REAL weight,
-								  TPZFMatrix &phi,TPZFMatrix &dphi,
-								  TPZFMatrix &ek,TPZFMatrix &ef);
+								  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+								  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	void ContributeExplDiff(TPZVec<REAL> &x,
-							TPZFMatrix &jacinv,
-							TPZVec<REAL> &sol,TPZFMatrix &dsol,
+							TPZFMatrix<REAL> &jacinv,
+							TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 							REAL weight,
-							TPZFMatrix &phi, TPZFMatrix &dphi,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
+							TPZFMatrix<REAL> &ef);
 	
 #ifdef _AUTODIFF
 	void ContributeImplDiff(TPZVec<REAL> &x,
-							TPZFMatrix &jacinv,
+							TPZFMatrix<REAL> &jacinv,
 							TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 							REAL weight,
-							TPZFMatrix &ek,TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	void ContributeFastestImplDiff(int dim,
 								   TPZVec<REAL> &x,
-								   TPZFMatrix &jacinv,
-								   TPZVec<REAL> &sol,TPZFMatrix &dsol,
-								   TPZFMatrix &phi,TPZFMatrix &dphi,
+								   TPZFMatrix<REAL> &jacinv,
+								   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+								   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
 								   REAL weight,
-								   TPZFMatrix &ek,TPZFMatrix &ef);
+								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 #endif
 	
 	void ContributeExplConvFace(TPZVec<REAL> &x,
 								TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 								REAL weight,TPZVec<REAL> &normal,
-								TPZFMatrix &phiL,TPZFMatrix &phiR,
-								TPZFMatrix &ef, int entropyFix = 1);
+								TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+								TPZFMatrix<REAL> &ef, int entropyFix = 1);
 	
 	void ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 									  TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 									  REAL weight,TPZVec<REAL> &normal,
-									  TPZFMatrix &phiL,TPZFMatrix &phiR,
-									  TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1
+									  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+									  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1
 									  );
 	
 #ifdef _AUTODIFF
@@ -452,76 +452,76 @@ public:
 	void ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
 									  TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 									  REAL weight,TPZVec<REAL> &normal,
-									  TPZFMatrix &phiL,TPZFMatrix &phiR,
-									  TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1
+									  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+									  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1
 									  );
 	
 	void ContributeImplConvFace(TPZVec<REAL> &x,
 								TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 								REAL weight,TPZVec<REAL> &normal,
-								TPZFMatrix &phiL,TPZFMatrix &phiR,
-								TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
+								TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+								TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
 
 	void ContributeFastestImplConvFace(int dim,
 									   TPZVec<REAL> &x,
 									   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 									   REAL weight,TPZVec<REAL> &normal,
-									   TPZFMatrix &phiL,TPZFMatrix &phiR,
-									   TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
+									   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
 
 	template <int dim>
 	void ContributeFastestImplConvFace_dim(
 										   TPZVec<REAL> &x,
 										   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 										   REAL weight,TPZVec<REAL> &normal,
-										   TPZFMatrix &phiL,TPZFMatrix &phiR,
-										   TPZFMatrix &ek,TPZFMatrix &ef, int entropyFix = 1);
+										   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+										   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
 
 	template <class T>
 	void ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 										 TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 										 REAL weight,TPZVec<REAL> &normal,
-										 TPZFMatrix &phiL,TPZFMatrix &phiR,
-										 TPZFMatrix &ek,TPZFMatrix &ef,int entropyFix = 1);
+										 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
+										 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,int entropyFix = 1);
 
 #endif
 	
 	void ContributeImplConvVol(TPZVec<REAL> &x,
-							   TPZVec<REAL> &sol,TPZFMatrix &dsol,
+							   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 							   REAL weight,
-							   TPZFMatrix &phi,TPZFMatrix &dphi,
-							   TPZFMatrix &ek,TPZFMatrix &ef);
+							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+							   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	void ContributeExplConvVol(TPZVec<REAL> &x,
 							   TPZVec<REAL> &sol,
 							   REAL weight,
-							   TPZFMatrix &phi, TPZFMatrix &dphi,
-							   TPZFMatrix &ef);
+							   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
+							   TPZFMatrix<REAL> &ef);
 	
 #ifdef _AUTODIFF
 	void ContributeImplConvVol(TPZVec<REAL> &x,
 							   TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 							   REAL weight,
-							   TPZFMatrix &ek,TPZFMatrix &ef);
+							   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 #endif
 	
 	void ContributeExplT1(TPZVec<REAL> &x,
-						  TPZVec<REAL> &sol,TPZFMatrix &dsol,
+						  TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 						  REAL weight,
-						  TPZFMatrix &phi,TPZFMatrix &dphi,
-						  TPZFMatrix &ef);
+						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+						  TPZFMatrix<REAL> &ef);
 	
 	void ContributeImplT1(TPZVec<REAL> &x,
-						  TPZVec<REAL> &sol,TPZFMatrix &dsol,
+						  TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 						  REAL weight,
-						  TPZFMatrix &phi,TPZFMatrix &dphi,
-						  TPZFMatrix &ek,TPZFMatrix &ef);
+						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+						  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	void ContributeExplT2(TPZVec<REAL> &x,
 						  TPZVec<REAL> &sol,
 						  REAL weight,
-						  TPZFMatrix &phi,
-						  TPZFMatrix &ef);
+						  TPZFMatrix<REAL> &phi,
+						  TPZFMatrix<REAL> &ef);
 	/** @} */
 	
 	/** @} */

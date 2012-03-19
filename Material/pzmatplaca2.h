@@ -22,20 +22,20 @@ class TPZMatPlaca2 : public TPZMaterial{
 protected:
 	int fIdfMax;
 	REAL fE1, fE2, fG12, fG13, fG23, fh,ff,fmi,fni1,fni2;
-	TPZFMatrix fnaxes;
-	TPZFMatrix fRmat,fRmatT;
-	TPZFMatrix fKxxR,fKyyR,fKxyR,fKyxR,fBx0R,fB0xR,fBy0R,fB0yR,fB00R;
-	TPZFMatrix fKxx,fKyy,fKxy,fKyx,fBx0,fB0x,fBy0,fB0y,fB00;
+	TPZFMatrix<REAL> fnaxes;
+	TPZFMatrix<REAL> fRmat,fRmatT;
+	TPZFMatrix<REAL> fKxxR,fKyyR,fKxyR,fKyxR,fBx0R,fB0xR,fBy0R,fB0yR,fB00R;
+	TPZFMatrix<REAL> fKxx,fKyy,fKxy,fKyx,fBx0,fB0x,fBy0,fB0y,fB00;
 	TPZVec<REAL> fXF;
 	
 	/** @brief Modify the direction of the fibres for the plate */
-	void SetNAxes(TPZFMatrix &n);
+	void SetNAxes(TPZFMatrix<REAL> &n);
 	
 	public :
 	
 	TPZMatPlaca2(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
 				 REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-				 REAL G23 , TPZFMatrix &naxes, TPZVec<REAL> &xf);
+				 REAL G23 , TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf);
 	
 	virtual int NStateVariables() { return fIdfMax; }
 	
@@ -47,29 +47,29 @@ protected:
 	
 	virtual std::string Name() { return "TPZMatPlaca2"; }
 	
-	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
+	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2);
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef);
+                            TPZFMatrix<REAL> &ek,
+                            TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
-                              TPZFMatrix &ek,
-                              TPZFMatrix &ef,
+                              TPZFMatrix<REAL> &ek,
+                              TPZFMatrix<REAL> &ef,
                               TPZBndCond &bc);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -77,10 +77,10 @@ protected:
 	
 	virtual int NFluxes();
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &fl);
 	
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-						TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+						TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
 	
 	/** @brief Returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);
@@ -93,7 +93,7 @@ protected:
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on
 	 * the finite element approximation */

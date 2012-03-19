@@ -61,7 +61,7 @@ TPZMatElastoPlastic2D<T,TMEM>::~TPZMatElastoPlastic2D()
 }
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix & DeltaStrain,TPZFMatrix & Stress, TPZFMatrix & Dep)
+void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain,TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep)
 {
 	
 	TPZFNMatrix<6> DeltaStrain3D(6,1,0.);
@@ -103,12 +103,12 @@ void TPZMatElastoPlastic2D<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData &
 
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef)
+void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	
-	TPZFMatrix &dphi = data.dphix, dphiXY;
-	TPZFMatrix &phi  = data.phi;
-	TPZFMatrix &axes = data.axes, axesT;
+	TPZFMatrix<REAL> &dphi = data.dphix, dphiXY;
+	TPZFMatrix<REAL> &phi  = data.phi;
+	TPZFMatrix<REAL> &axes = data.axes, axesT;
 	
 	axes.Transpose(&axesT);
 	axesT.Multiply(dphi,dphiXY);	
@@ -244,11 +244,11 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 template <class T, class TMEM>
 void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 											   REAL weight,
-											   TPZFMatrix &ek,
-											   TPZFMatrix &ef,
+											   TPZFMatrix<REAL> &ek,
+											   TPZFMatrix<REAL> &ef,
 											   TPZBndCond &bc)
 {
-	TPZFMatrix &phi = data.phi;
+	TPZFMatrix<REAL> &phi = data.phi;
 	const REAL BIGNUMBER  = 1.e12;
 	int dim = Dimension();
 	int nstate = NStateVariables();
@@ -259,7 +259,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
 
-	TPZFMatrix &v1 = bc.Val1();
+	TPZFMatrix<REAL> &v1 = bc.Val1();
 	//bc.Print(cout);
 	//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
 	switch (bc.Type()){
@@ -363,7 +363,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZ
 
 
 template <class T, class TMEM>
-void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain)
+void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain)
 {
 	TPZFNMatrix<4> DSolXYZ(3,3,0.);
 	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);

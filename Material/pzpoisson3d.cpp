@@ -102,7 +102,7 @@ void TPZMatPoisson3d::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef) {
+void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
 	
 	if(data.numberdualfunctions)
 	{
@@ -111,11 +111,11 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 		return;
 	}
 	
-	TPZFMatrix  &phi = data.phi;
-	TPZFMatrix &dphi = data.dphix;
+	TPZFMatrix<REAL>  &phi = data.phi;
+	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZVec<REAL>  &x = data.x;
-	TPZFMatrix &axes = data.axes;
-	TPZFMatrix &jacinv = data.jacinv;
+	TPZFMatrix<REAL> &axes = data.axes;
+	TPZFMatrix<REAL> &jacinv = data.jacinv;
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
@@ -199,7 +199,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 }
 
 /// Compute the contribution at an integration point to the stiffness matrix of the HDiv formulation
-void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef)
+void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
 {
 	/** monta a matriz
 	 |A B^T |  = |0 |
@@ -297,15 +297,15 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 }
 
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
-									   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
 	int numvec = data.fVecShapeIndex.NElements();
 	//int numdual = data.numberdualfunctions;
 //	int numprimalshape = data.phi.Rows()-numdual;
 	
-	TPZFMatrix  &phi = data.phi;
+	TPZFMatrix<REAL>  &phi = data.phi;
 	//int numvec= phi.Rows();
 	//numvec=phi.Rows();
-	//   TPZFMatrix &dphi = data.dphix;
+	//   TPZFMatrix<REAL> &dphi = data.dphix;
 	//   TPZVec<REAL>  &x = data.x;
 	REAL v2[1];
 	v2[0] = bc.Val2()(0,0);
@@ -363,7 +363,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 		 
 }
 void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
-								   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
+								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
 	
 	if(data.fVecShapeIndex.NElements())
 	{
@@ -374,10 +374,10 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 		return;
 	}
 	
-	TPZFMatrix  &phi = data.phi;
-	//   TPZFMatrix &dphi = data.dphix;
+	TPZFMatrix<REAL>  &phi = data.phi;
+	//   TPZFMatrix<REAL> &dphi = data.dphix;
 	//   TPZVec<REAL>  &x = data.x;
-	TPZFMatrix &axes = data.axes;
+	TPZFMatrix<REAL> &axes = data.axes;
 	int phr = phi.Rows();
 	short in,jn;
 	REAL v2[1];
@@ -491,7 +491,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	TPZVec<REAL> pressure(1);
 	TPZVec<REAL> pto(3);
-	TPZFMatrix flux(3,1);
+	TPZFMatrix<REAL> flux(3,1);
 	
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -528,7 +528,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 			//if (fForcingFunctionExact) {
 				//TPZVec<REAL> pressure(1);
 				//TPZVec<REAL> pto(3);
-			//	TPZFMatrix flux(3,1);
+			//	TPZFMatrix<REAL> flux(3,1);
 				
 				fForcingFunctionExact(data.x,pressure,flux);
 				
@@ -590,7 +590,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 }
 
 #include "pzaxestools.h"
-void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables( var ) );
 	
@@ -602,26 +602,26 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 		int id;
 		for(id=0 ; id<fDim; id++) {
 			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+			TPZAxesTools<REAL>::Axes2XYZ(DSol, dsoldx, axes);
 			Solout[id] = dsoldx(id,0);//derivate
 		}
 		return;
 	}//var == 2
 	if (var == 3){ //KDuDx
 		TPZFNMatrix<9> dsoldx;
-		TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+		TPZAxesTools<REAL>::Axes2XYZ(DSol, dsoldx, axes);
 		Solout[0] = dsoldx(0,0) * this->fK;
 		return;
 	}//var ==3
 	if (var == 4){ //KDuDy
 		TPZFNMatrix<9> dsoldx;
-		TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+		TPZAxesTools<REAL>::Axes2XYZ(DSol, dsoldx, axes);
 		Solout[0] = dsoldx(1,0) * this->fK;
 		return;
 	}//var == 4 
 	if (var == 5){ //KDuDz
 		TPZFNMatrix<9> dsoldx;
-		TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+		TPZAxesTools<REAL>::Axes2XYZ(DSol, dsoldx, axes);
 		Solout[0] = dsoldx(2,0) * this->fK;
 		return;
 	}//var == 5
@@ -638,7 +638,7 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 		int id;
 		//REAL val = 0.;
 		TPZFNMatrix<9> dsoldx;
-		TPZAxesTools::Axes2XYZ(DSol, dsoldx, axes);
+		TPZAxesTools<REAL>::Axes2XYZ(DSol, dsoldx, axes);
 		for(id=0 ; id<fDim; id++) {
 			Solout[id] = -1. * this->fK * dsoldx(id,0);
 		}
@@ -654,10 +654,10 @@ void TPZMatPoisson3d::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 	
 }//method
 
-void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+void TPZMatPoisson3d::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
-void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values){
+void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values){
 	
 	//	std::cout<<"vetor VALUES no ERROSHDIV "<<values<<std::endl;
 	
@@ -694,8 +694,8 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZ
 
 //ofstream ErroFile("erro.txt");
 void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-							 TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-							 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+							 TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
+							 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	
 	values.Resize(5);
 	TPZManVector<REAL> dudxEF(1), dudyEF(1);
@@ -812,7 +812,7 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 #endif
 
-// bool IsIdentity(TPZFMatrix &axes){
+// bool IsIdentity(TPZFMatrix<REAL> &axes){
 //   int dim = axes.Rows();
 //   if(dim > axes.Cols()) dim = axes.Cols();
 //   double val;
@@ -836,12 +836,12 @@ void TPZMatPoisson3d::ContributeBCEnergy(TPZVec<REAL> & x,TPZVec<FADFADREAL> & s
 
 void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                           REAL weight,
-                                          TPZFMatrix &ek,TPZFMatrix &ef){
+                                          TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 	
-	TPZFMatrix &dphiLdAxes = dataleft.dphix;
-	TPZFMatrix &dphiRdAxes = dataright.dphix;
-	TPZFMatrix &phiL = dataleft.phi;
-	TPZFMatrix &phiR = dataright.phi;
+	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	
 	
@@ -854,8 +854,8 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	// }
 	
 	TPZFNMatrix<660> dphiL, dphiR;
-	TPZAxesTools::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
-	TPZAxesTools::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
 	
 	int &LeftPOrder=dataleft.p;
 	int &RightPOrder=dataright.p;
@@ -1086,10 +1086,10 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 /** Termos de penalidade. */
 void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
                                             REAL weight,
-                                            TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+                                            TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	
-	TPZFMatrix &dphiL = dataleft.dphix;
-	TPZFMatrix &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	int POrder= dataleft.p;
 	REAL faceSize=data.HSize;
@@ -1212,15 +1212,15 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 }
 
 void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
-                                      TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/ 
-									  TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/ 
+                                      TPZVec<REAL> &leftu, TPZFMatrix<REAL> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/ 
+									  TPZVec<REAL> &rightu, TPZFMatrix<REAL> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/ 
                                       TPZVec<REAL> &/*flux*/,
-									  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values, 
+									  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values, 
 									  TPZVec<REAL> normal, REAL elsize) {
 // #warning Metodo nao funcional
 	TPZManVector<REAL,3> Lsol(1), Ldsol(3,0.), Rsol(1), Rdsol(3,0.);
 	
-	TPZFMatrix fake_axes(fDim,fDim,0.);  
+	TPZFMatrix<REAL> fake_axes(fDim,fDim,0.);  
 	
 	Solution(leftu,leftdudx,fake_axes,1,Lsol);
 	Solution(leftu,leftdudx,fake_axes,2,Ldsol);
@@ -1273,7 +1273,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	values[0]  = values[1]+values[2];
 }
 
-REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol){
 	// residual = -fK Laplac(u) + fC * div(fConvDir*u) - (-fXf)
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(1);

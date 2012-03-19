@@ -378,7 +378,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 }
 
 template<class front>
-void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix & matref, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<REAL> & matref, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	this->fGuiInterface = guiInterface;
 	
@@ -520,12 +520,12 @@ int TPZParFrontStructMatrix<front>::main() {
 	
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	mat2d->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumat = mat2d;
 	cmesh.InsertMaterialObject(meumat);
 	
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
@@ -594,7 +594,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
-	TPZStepSolver sol;
+ 	TPZStepSolver<REAL> sol;
 	//	sol.SetDirect(ELU);
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
@@ -635,7 +635,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);
@@ -650,7 +650,7 @@ int TPZParFrontStructMatrix<front>::main() {
 }
 
 template<class front>
-TPZMatrix * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<REAL> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());

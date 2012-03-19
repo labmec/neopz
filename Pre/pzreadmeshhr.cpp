@@ -176,7 +176,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 				fInputFile >> nstate;
 				
 				int ist,jst;
-				TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+				TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
 				//xk
 				for(ist=0; ist<nstate; ist++)
 				{
@@ -266,7 +266,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	for (i=0;i<NMat;i++)
 	{
 		fInputFile >> id >> type;
-		TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+		TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 		fInputFile >> val1 (0,0) >> val1(0,1) >> val1(0,2)
         >> val1 (1,0) >> val1(1,1) >> val1(1,2)
         >> val1 (2,0) >> val1(2,1) >> val1(2,2);
@@ -309,7 +309,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	}
 	
 	//   //Materiais da Fratura
-	//   TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	//   TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	//   //val1(1,1) = 10000000000000.0;
 	//   //val2(1,0) = 1.;
 	//   TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2) ERRADO;

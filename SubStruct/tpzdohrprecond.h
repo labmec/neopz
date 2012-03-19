@@ -42,7 +42,7 @@
  @author Philippe Devloo
  */
 template <class TSubStruct = TPZDohrSubstruct> 
-class TPZDohrPrecond : public TPZMatrix
+class TPZDohrPrecond : public TPZMatrix<REAL>
 {
 	/**
 	 * @brief The matrix class is a placeholder for a list of substructures
@@ -51,15 +51,15 @@ class TPZDohrPrecond : public TPZMatrix
 	/**
 	 * @brief The global matrix associated with the coarse degrees of freedom
 	 */
-	TPZStepSolver * fCoarse; //K(c)
+	TPZStepSolver<REAL> * fCoarse; //K(c)
 	/**
 	 * The global residual vector associated with the coarse degrees of freedom
 	 */
-	//  TPZFMatrix fCoarseResidual; //r(c)
+	//  TPZFMatrix<REAL> fCoarseResidual; //r(c)
 	/**
 	 * The product K(c)_inv*r(c)
 	 */
-	//  TPZFMatrix fInvKcrc; //r(c)
+	//  TPZFMatrix<REAL> fInvKcrc; //r(c)
 	/**
 	 * @brief Size of the coarse system
 	 */
@@ -78,7 +78,8 @@ public:
 	
     ~TPZDohrPrecond();
     
-    CLONEDEF(TPZDohrPrecond)
+   // CLONEDEF(TPZDohrPrecond)
+		virtual TPZMatrix<REAL>*Clone() const { return new TPZDohrPrecond(*this); }
     
     /**
 	 * @brief The matrix class is a placeholder for a list of substructures
@@ -109,16 +110,16 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+	virtual void MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,
 						 const REAL alpha,const REAL beta,const int opt,const int stride) const;
 	
 	/** @brief Specify the solution process for the coarse matrix */
-	void SetSolver(TPZSolver &solver);
+	void SetSolver(TPZSolver<REAL> &solver);
 	
 	/** @brief Compute the contribution of the coarse matrix */
-	void ComputeV1(const TPZFMatrix &x, TPZFMatrix &v1) const;
+	void ComputeV1(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v1) const;
 	/** @brief Compute the contribution of the sub domains */
-	void ComputeV2(const TPZFMatrix &x, TPZFMatrix &v2) const;
+	void ComputeV2(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v2) const;
 };
 
 #include <pthread.h>
@@ -131,16 +132,16 @@ struct TPZDohrPrecondThreadV1Data {
 	TPZDohrPrecondThreadV1Data() : fDohrMatrix(0), fInput(0), fOutput(0)
 	{
 	}
-	TPZDohrPrecondThreadV1Data(const TPZDohrPrecond<TSubStruct> *ptr, const TPZFMatrix &input, TPZFMatrix &output) : fDohrMatrix(ptr),
+	TPZDohrPrecondThreadV1Data(const TPZDohrPrecond<TSubStruct> *ptr, const TPZFMatrix<REAL> &input, TPZFMatrix<REAL> &output) : fDohrMatrix(ptr),
 	fInput(&input), fOutput(&output)
 	{
 	}
 	/** @brief Pointer to the dohr matrix */
 	const TPZDohrPrecond<TSubStruct> * fDohrMatrix;
 	/** @brief Input matrix */
-	const TPZFMatrix * fInput;
+	const TPZFMatrix<REAL> * fInput;
 	/** @brief Matrix where the coarse solution will be contributed */
-	TPZFMatrix *fOutput;
+	TPZFMatrix<REAL> *fOutput;
 	/** @brief Compute the contribution of the coarse matrix */
 	static void *ComputeV1(void *dataptr)
 	{
@@ -160,7 +161,7 @@ struct TPZDohrPrecondV2SubData {
 	{
 	}
 	
-	TPZDohrPrecondV2SubData(int subindex, const TPZAutoPointer<TSubStruct> &substruct, TPZAutoPointer<TPZFMatrix> res_local) : fSubStructure(substruct),
+	TPZDohrPrecondV2SubData(int subindex, const TPZAutoPointer<TSubStruct> &substruct, TPZAutoPointer<TPZFMatrix<REAL> > res_local) : fSubStructure(substruct),
 	fInput_local(res_local)
 	{
 		fv2_local = new TPZDohrAssembleItem(subindex, res_local->Rows());
@@ -191,7 +192,7 @@ struct TPZDohrPrecondV2SubData {
 	/** @brief Pointer to the dohr matrix */
 	TPZAutoPointer<TSubStruct> fSubStructure;
 	/** @brief Input matrix */
-	TPZAutoPointer<TPZFMatrix> fInput_local;
+	TPZAutoPointer<TPZFMatrix<REAL> > fInput_local;
 	/** @brief The local contribution to the v2 vector */
 	TPZAutoPointer<TPZDohrAssembleItem> fv2_local;
 };

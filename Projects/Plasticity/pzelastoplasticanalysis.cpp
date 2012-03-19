@@ -85,7 +85,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 
    TPZAnalysis::LoadSolution();
 
-   TPZFMatrix prevSol(fSolution);
+   TPZFMatrix<REAL> prevSol(fSolution);
    if(prevSol.Rows() != numeq) prevSol.Redim(numeq,1);
 
    fRhs.Zero();
@@ -112,7 +112,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	  //* Performs an ZAXPY operation being *this += alpha * p
    	  //* @param alpha Being alpha on above opereation
       //* @param p Being p on above operation
-      // ZAXPY(const REAL alpha, const TPZFMatrix &p);
+      // ZAXPY(const REAL alpha, const TPZFMatrix<REAL> &p);
 
 /* 
 	  REAL alpha = 1 / log(normRhs);
@@ -191,11 +191,11 @@ REAL TPZElastoPlasticAnalysis::LocalAssemble(int precond)
 	
 	REAL norm = 0;
 	
-    TPZMatrix * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
+    TPZMatrix<REAL> * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
 	
     if(precond && pMatrix)
 	{
-		TPZFMatrix localRhs = fRhs;
+		TPZFMatrix<REAL> localRhs = fRhs;
 		int i;
 		for (i = 0; i < size; i++)localRhs(i,0) /= pMatrix->operator()(i,i);
 		norm = Norm(localRhs);
@@ -327,7 +327,7 @@ void TPZElastoPlasticAnalysis::CheckConv(std::ostream &out, REAL range) {
 	
    int numeq = fCompMesh->NEquations();
 
-   TPZFMatrix rangeMatrix(numeq, 1, range);
+   TPZFMatrix<REAL> rangeMatrix(numeq, 1, range);
    
    TPZVec<REAL> coefs(1,1.);
 
@@ -335,11 +335,11 @@ void TPZElastoPlasticAnalysis::CheckConv(std::ostream &out, REAL range) {
    
 }
 
-void TPZElastoPlasticAnalysis::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase){
+void TPZElastoPlasticAnalysis::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase){
 
 	int neq = fCompMesh->NEquations();
 	tangent.Redim(neq,neq);
-	TPZFMatrix rhs(neq,1);
+	TPZFMatrix<REAL> rhs(neq,1);
 	TPZFStructMatrix substitute(Mesh());
 	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
 	substitute.Assemble(tangent,rhs,guiInterface);
@@ -350,9 +350,9 @@ int TPZElastoPlasticAnalysis::NumCases(){
 	return 1;
 }
 
-void TPZElastoPlasticAnalysis::Residual(TPZFMatrix &residual, int icase){
+void TPZElastoPlasticAnalysis::Residual(TPZFMatrix<REAL> &residual, int icase){
 	int neq = fCompMesh->NEquations();
-	TPZFMatrix tangent(neq,neq);
+	TPZFMatrix<REAL> tangent(neq,neq);
 	residual.Redim(neq,1);
 	TPZFStructMatrix substitute(Mesh());
 	TPZAutoPointer<TPZGuiInterface> guiInterface(0);
@@ -361,19 +361,19 @@ void TPZElastoPlasticAnalysis::Residual(TPZFMatrix &residual, int icase){
 	residual *= -1;
 }
 
-void TPZElastoPlasticAnalysis::SetPrecond(TPZMatrixSolver &precond){
+void TPZElastoPlasticAnalysis::SetPrecond(TPZMatrixSolver<REAL> &precond){
   if(fPrecond) delete fPrecond;
-    fPrecond = (TPZMatrixSolver *) precond.Clone();
+    fPrecond = (TPZMatrixSolver<REAL> *) precond.Clone();
 }
 
 void TPZElastoPlasticAnalysis::UpdatePrecond()
 {
    if(fPrecond)
    {
-		TPZMatrix * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
-		TPZMatrix * pPrecondMat = fPrecond->Matrix().operator->();
+		TPZMatrix<REAL> * pMatrix = TPZAnalysis::fSolver->Matrix().operator->();
+		TPZMatrix<REAL> * pPrecondMat = fPrecond->Matrix().operator->();
 		pPrecondMat->Zero();
-		TPZBlockDiagonal *pBlock = dynamic_cast<TPZBlockDiagonal *>(pPrecondMat);
+		TPZBlockDiagonal<REAL> *pBlock = dynamic_cast<TPZBlockDiagonal<REAL> *>(pPrecondMat);
 		pBlock->BuildFromMatrix(*pMatrix);
    }
 }
@@ -390,11 +390,11 @@ void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
 
 	TPZSpStructMatrix StrMatrix(Mesh());
     this->SetStructuralMatrix(StrMatrix);
-	TPZMatrix * mat = StrMatrix.Create();
+	TPZMatrix<REAL> * mat = StrMatrix.Create();
 
     TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
-    TPZStepSolver Pre;
-    TPZBlockDiagonal * block = new TPZBlockDiagonal();
+    TPZStepSolver<REAL> Pre;
+    TPZBlockDiagonal<REAL> * block = new TPZBlockDiagonal<REAL>();
 	
 #ifdef LOG4CXX
 {
@@ -407,7 +407,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab(int numiter, REAL tol)
     strBlockDiag.AssembleBlockDiagonal(*block); // just to initialize structure
 	Pre.SetMatrix(block);
     Pre.SetDirect(ELU);
-    TPZStepSolver Solver;
+    TPZStepSolver<REAL> Solver;
  	Solver.SetBiCGStab(numiter, Pre, tol, 0);
     Solver.SetMatrix(mat);
     this->SetSolver(Solver);
@@ -437,11 +437,11 @@ void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
 	TPZSpStructMatrix StrMatrix(Mesh());
 //	TPZFStructMatrix StrMatrix(Mesh());
     this->SetStructuralMatrix(StrMatrix);
-	TPZMatrix * mat = StrMatrix.Create();
+	TPZMatrix<REAL> * mat = StrMatrix.Create();
 
     TPZBlockDiagonalStructMatrix strBlockDiag(Mesh());
-    TPZStepSolver Pre;
-    TPZBlockDiagonal * block = new TPZBlockDiagonal();
+    TPZStepSolver<REAL> Pre;
+    TPZBlockDiagonal<REAL> * block = new TPZBlockDiagonal<REAL>();
 	
 #ifdef LOG4CXX
 {
@@ -455,7 +455,7 @@ void TPZElastoPlasticAnalysis::SetBiCGStab_Jacobi(int numiter, REAL tol)
 	Pre.SetMatrix(block);
     //Pre.SetDirect(ELU);
 	Pre.SetJacobi(numiter, tol, 0);
-    TPZStepSolver Solver;
+    TPZStepSolver<REAL> Solver;
  	Solver.SetBiCGStab(numiter, Pre, tol, 0);
     Solver.SetMatrix(mat);
     this->SetSolver(Solver);
@@ -483,9 +483,9 @@ void TPZElastoPlasticAnalysis::SetLU()
     TPZFStructMatrix StrMatrix(Mesh());
     this->SetStructuralMatrix(StrMatrix);
 
-    TPZMatrix * mat = StrMatrix.Create();
+    TPZMatrix<REAL> * mat = StrMatrix.Create();
 
-    TPZStepSolver Solver;
+    TPZStepSolver<REAL> Solver;
     //Solver.SetDirect(ELU);// ECholesky -> simétrica e positiva definida
 	Solver.SetDirect(ELU);
     Solver.SetMatrix(mat);
@@ -495,7 +495,7 @@ void TPZElastoPlasticAnalysis::SetLU()
 
 void TPZElastoPlasticAnalysis::TransferSolution(TPZPostProcAnalysis & ppanalysis)
 {
-	TPZFMatrix bkpSolution = fSolution;
+	TPZFMatrix<REAL> bkpSolution = fSolution;
 	
 	fSolution = fCumSol;
 	
@@ -510,8 +510,8 @@ void TPZElastoPlasticAnalysis::TransferSolution(TPZPostProcAnalysis & ppanalysis
 
 void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol,int numiter,
 									int BCId, int nsteps, REAL PGRatio,
-									TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-									TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+									TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+									TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
 									TPZPostProcAnalysis * ppAnalysis, int res)
 {
 										

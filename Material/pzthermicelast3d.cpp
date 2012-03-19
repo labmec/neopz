@@ -17,8 +17,8 @@ TPZThermicElast3D::~TPZThermicElast3D(){}
 
 void TPZThermicElast3D::Contribute(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix &ek,
-								   TPZFMatrix &ef){
+                                   TPZFMatrix<REAL> &ek,
+								   TPZFMatrix<REAL> &ef){
 	
 	TPZElasticity3D::Contribute(data, weight, ek, ef);
     
@@ -30,7 +30,7 @@ void TPZThermicElast3D::Contribute(TPZMaterialData &data,
 	this->ContributeThermalStress(data.sol[0], data.phi, data.dphix, weight, ef);
 }
 
-void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ef){
+void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<REAL> &ef){
 	
 	const int nshape = phi.Rows();  
 	const REAL E  = this->fE;
@@ -55,8 +55,8 @@ void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &p
 	
 }//method
 
-void TPZThermicElast3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                                 TPZFMatrix &axes, int var, TPZVec<REAL> &Solout){
+void TPZThermicElast3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+                                 TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	
 	if (var == EPrincipalStress || var == EVonMisesStress || var == EStress || var == EStress1){
 		//When computing a stress solution, the thermal stress must be subtracted from the elastic stress

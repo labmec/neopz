@@ -77,14 +77,14 @@ public:
 	 * @param f Full matrix already decomposed
 	 * @param dec Decomposition type of f
 	 */
-    void Backward(TPZFMatrix &f, DecomposeType dec) const;
+    void Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const;
 	
     /**
 	 * @brief Executes a Forward substitution 
 	 * @param f Full matrix already decomposed
 	 * @param dec Decomposition type of f
 	 */
-    void Forward(TPZFMatrix &f, DecomposeType dec) const;
+    void Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const;
 
     /**
 	 * @brief Stores from ieq to jeq equations on a binary file 

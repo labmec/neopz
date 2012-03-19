@@ -73,24 +73,24 @@ public:
 		return this->fReferred;
 	}
 	
-	void ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix &phi, TPZFMatrix &dphi, REAL weight, TPZFMatrix &ef);
+	void ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<REAL> &ef);
 	
 	/** @brief Contribute to stiff matrix and load vector */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZElasticity3D::Contribute(data,weight,ef);
 	}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{

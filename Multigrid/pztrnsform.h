@@ -17,8 +17,8 @@ class TPZVec;
 class TPZTransform {
 	
 	int fRow,fCol;     //Matrix dimensions
-	TPZFMatrix fMult;	// multiplication matrix
-	TPZFMatrix fSum;		// matrix used to sum
+	TPZFMatrix<REAL> fMult;	// multiplication matrix
+	TPZFMatrix<REAL> fSum;		// matrix used to sum
 	REAL fStore[12];	// storage the matrix objects use to avoid
 	// dynamic memory allocation
 public:
@@ -35,16 +35,16 @@ public:
 	
 	TPZTransform &operator=(const TPZTransform &t);
 	
-	const TPZFMatrix  & Mult() const {return fMult;}
+	const TPZFMatrix<REAL>  & Mult() const {return fMult;}
 	
-	const TPZFMatrix  & Sum() const {return fSum;}
+	const TPZFMatrix<REAL>  & Sum() const {return fSum;}
 	
-	TPZFMatrix  & Mult() {return fMult;}
+	TPZFMatrix<REAL>  & Mult() {return fMult;}
 	
-	TPZFMatrix  & Sum()  {return fSum;}
+	TPZFMatrix<REAL>  & Sum()  {return fSum;}
 	
 	/**Sets the transformation matrices*/
-	void SetMatrix(TPZFMatrix &mult,TPZFMatrix &sum);
+	void SetMatrix(TPZFMatrix<REAL> &mult,TPZFMatrix<REAL> &sum);
 	
 	/**Multiply the transformation object to the right with right*/
 	TPZTransform Multiply(TPZTransform &right);

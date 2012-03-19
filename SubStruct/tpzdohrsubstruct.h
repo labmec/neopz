@@ -62,44 +62,44 @@ public:
 	 * It makes \f$ u(i)=R(i)*u \f$, \f$ r(i)=F(i)-K(i)*u(i) \f$ and \f$ R(i)*r(novo)=R(i)*r+r(i) \f$ where r(novo) is the new global residual
      * It puts r(novo) in r
 	 */
-    void ContributeResidual(TPZFMatrix &u, TPZFMatrix &r);
+    void ContributeResidual(TPZFMatrix<REAL> &u, TPZFMatrix<REAL> &r);
 	
-    void ContributeTestV1(TPZFMatrix &testV1, int NumCoarse);
+    void ContributeTestV1(TPZFMatrix<REAL> &testV1, int NumCoarse);
     /**
      * @brief It computes W(i)*R(i)*r and stores it in fLocalWeightedResidual;
      * @param r_global is the residual to the global solution
      */
-    void LoadWeightedResidual(const TPZFMatrix &r_global);
+    void LoadWeightedResidual(const TPZFMatrix<REAL> &r_global);
 	
     /** @brief Adjust the residual to reflect a static condensation */
 	/** The residual corresponding to the internal nodes will be zeroed */
-    void AdjustResidual(TPZFMatrix &r_global);
+    void AdjustResidual(TPZFMatrix<REAL> &r_global);
     /** @brief It computes the local contribution to r(c). */
 	/** The method LoadWeightedResidual must be called before this one. */
-    void Contribute_rc(TPZFMatrix &rc);
+    void Contribute_rc(TPZFMatrix<REAL> &rc);
     /** @brief It computes the local contribution to r(c). */
 	/** The method LoadWeightedResidual must be called before this one. */
-    void Contribute_rc_local(TPZFMatrix &residual_local, TPZFMatrix &rc_local);
+    void Contribute_rc_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &rc_local);
     /** @brief It computes the local contribution to K(c) */
-    void Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarseindex);
+    void Contribute_Kc(TPZMatrix<REAL> &Kc, TPZVec<int> &coarseindex);
     /**
 	 * @brief It computes the local contribution to v1.
 	 * @param v1 
 	 * @param invKc_rc is the product K(c)_inverted*r(c) 
 	 */
 	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
-    void Contribute_v1(TPZFMatrix &v1, TPZFMatrix &invKc_rc);
+    void Contribute_v1(TPZFMatrix<REAL> &v1, TPZFMatrix<REAL> &invKc_rc);
     /**
 	 * @brief It computes the local contribution to v1.
 	 * @param v1_local 
 	 * @param invKc_rc is the product K(c)_inverted*r(c)
 	 */
 	/** Of course r(c) must be computed, using Contribute_rc(), before calling this method */
-    void Contribute_v1_local(TPZFMatrix &v1_local, TPZFMatrix &invKc_rc);
+    void Contribute_v1_local(TPZFMatrix<REAL> &v1_local, TPZFMatrix<REAL> &invKc_rc);
     /** @brief It computes the local contribution to v2. */
-    void Contribute_v2(TPZFMatrix &v2);
+    void Contribute_v2(TPZFMatrix<REAL> &v2);
     /** @brief It computes the local contribution to v2. */
-    void Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatrix &v2_local
+    void Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &v2_local
 							 );
     /**
 	 * @brief It computes the local contribution to v(3)
@@ -107,42 +107,42 @@ public:
 	 * @param r is the global residual
 	 * @param v1Plusv2 is the sum "v1 + v2"
 	 */
-    void Contribute_v3(TPZFMatrix &v3, const TPZFMatrix &r, TPZFMatrix &v1Plusv2) const;
+    void Contribute_v3(TPZFMatrix<REAL> &v3, const TPZFMatrix<REAL> &r, TPZFMatrix<REAL> &v1Plusv2) const;
     /**
 	 * @brief It computes the local contribution to v(3)
 	 * @param v3 
 	 * @param v1Plusv2 is the sum "v1 + v2"
 	 */
-    void Contribute_v3_local(TPZFMatrix &v3, TPZFMatrix &v1Plusv2) const;
+    void Contribute_v3_local(TPZFMatrix<REAL> &v3, TPZFMatrix<REAL> &v1Plusv2) const;
 	
     void Print(std::ostream &out) const;
     /**
      * @brief Contribute to the global matrix vector multiplication. It's needed to the MultAdd method of TPZDohrMatrix.
      */
-    void ContributeKU(const REAL alpha, const TPZFMatrix &uglobal, TPZFMatrix &z) const;
+    void ContributeKU(const REAL alpha, const TPZFMatrix<REAL> &uglobal, TPZFMatrix<REAL> &z) const;
 	
 	/** @brief Compute the multiplication of the local stiffness matrix with the vector u */
-	void ContributeKULocal(const REAL alpha, const TPZFMatrix &u, TPZFMatrix &z) const;
+	void ContributeKULocal(const REAL alpha, const TPZFMatrix<REAL> &u, TPZFMatrix<REAL> &z) const;
     /**
 	 * @brief Computes the contribution of each substructure node to global Stiffness diagonal (or something like that).
 	 * @param StiffnessDiag is the diagonal of the stiffness matrix
 	 */
-    void ContributeGlobalDiagonal(TPZFMatrix &StiffnessDiag);
+    void ContributeGlobalDiagonal(TPZFMatrix<REAL> &StiffnessDiag);
     /**
 	 * @brief Computes the contribution of each substructure node to global Stiffness diagonal (or something like that).
 	 * @param StiffnessDiag is the diagonal of the stiffness matrix
 	 */
-    void ContributeDiagonalLocal(TPZFMatrix &StiffnessDiag);
+    void ContributeDiagonalLocal(TPZFMatrix<REAL> &StiffnessDiag);
     /**
 	 * @brief Computes the weight matrix.
 	 * @param StiffnessDiag is the diagonal of the global matrix (global numbering)
 	 */
-    void ComputeWeights(TPZFMatrix &StiffnessDiag);
+    void ComputeWeights(TPZFMatrix<REAL> &StiffnessDiag);
     /**
 	 * @brief Computes the weight matrix.
 	 * @param StiffnessDiagLocal is the diagonal of the global matrix (local numbering)
 	 */
-    void ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal);
+    void ComputeWeightsLocal(TPZFMatrix<REAL> &StiffnessDiagLocal);
     /**
 	 * @brief Initializes the substructure.
 	 */
@@ -152,12 +152,12 @@ public:
     /**
      * @brief Assembles the contribution to the coarse residual
      */
-    void GetCoarseResidual(TPZFMatrix &rc, TPZVec<int> &indices);
+    void GetCoarseResidual(TPZFMatrix<REAL> &rc, TPZVec<int> &indices);
     
     /**
      * @brief Assembles the coarse dof stiffness matrix
      */
-    void GetCoarseStiffness(TPZMatrix &stiff, TPZVec<int> &indices);
+    void GetCoarseStiffness(TPZMatrix<REAL> &stiff, TPZVec<int> &indices);
 public:
     /**
 	 * @brief It prepares the datas for solving systems for phi and zi
@@ -172,13 +172,13 @@ public:
     /** @brief Computes K(ci) and stores it in fKCi */
     void ComputeCoarseStiffness();
 	/** @brief Add the internal solution to the final result */
-	void AddInternalSolution(TPZFMatrix &sol);
+	void AddInternalSolution(TPZFMatrix<REAL> &sol);
 	
     /** @brief Variables needed to solve the systems for phi and zi */
-	TPZFMatrix fC_star;
-    TPZFMatrix fKeC_star; //K_star_inv*C_star_trans
-    TPZStepSolver finv;
-    TPZFMatrix fNullPivots;
+	TPZFMatrix<REAL> fC_star;
+    TPZFMatrix<REAL> fKeC_star; //K_star_inv*C_star_trans
+    TPZStepSolver<REAL> finv;
+    TPZFMatrix<REAL> fNullPivots;
 
 	/** @brief Number of equations of the substructure */
 	int fNEquations; 
@@ -195,11 +195,11 @@ public:
      * @brief Constraint definition associated with this substructure
      */
 	/** Input data */
-    TPZFMatrix fC; //C(i)
+    TPZFMatrix<REAL> fC; //C(i)
     /** @brief Vectors associated with each constraint */
-    TPZFMatrix fPhiC; //Phí(i)
+    TPZFMatrix<REAL> fPhiC; //Phí(i)
 	/** @brief Phi * W matrix and condensed to the equations which are part of the global system */
-	TPZFMatrix fPhiC_Weighted_Condensed;
+	TPZFMatrix<REAL> fPhiC_Weighted_Condensed;
     /**
      * @brief Global index associated with each coarse degree of freedom
 	 */
@@ -214,12 +214,12 @@ public:
      * @brief Stiffness matrix associated with the substructure.
 	 */
 	/** Input data */
-    TPZAutoPointer<TPZMatrix> fStiffness; //K(i)
+    TPZAutoPointer<TPZMatrix<REAL> > fStiffness; //K(i)
     /**
      * @brief Stiffness matrix associated with the constraints
 	 */
 	/** Computed */
-    TPZFMatrix fKCi; //K(ci)
+    TPZFMatrix<REAL> fKCi; //K(ci)
     /**
      * @brief Global vector indices of the equations/degrees of freedom
 	 */
@@ -233,17 +233,17 @@ public:
      * @brief Inverted (LU or Cholesky) stiffness matrix
 	 */
 	/** Computed */
-    TPZStepSolver fInvertedStiffness; //Ke, or K_star
+    TPZStepSolver<REAL> fInvertedStiffness; //Ke, or K_star
     /**
      * @brief Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom
      */
 	/** Computed */
-    mutable TPZStepSolver fInvertedInternalStiffness; //R(Ii)*K(i)*R(Ii)invertida
+    mutable TPZStepSolver<REAL> fInvertedInternalStiffness; //R(Ii)*K(i)*R(Ii)invertida
     /**
      * @brief Inverted restraint matrix
      */
 	/** Computed */
-    TPZStepSolver fKCInvert; //K(c) invertida
+    TPZStepSolver<REAL> fKCInvert; //K(c) invertida
     /**
      * @brief Internal nodes
 	 */
@@ -257,25 +257,25 @@ public:
      * @brief Local load vector
      */
 	/** Data */
-    TPZFMatrix fLocalLoad; //F(i) - Actually it's a vector
+    TPZFMatrix<REAL> fLocalLoad; //F(i) - Actually it's a vector
     /**
 	 * @brief Local weighted residual - W(i)*R(i)*r
 	 */
-    TPZFMatrix fLocalWeightedResidual; //W(i)*R(i)*r - Actually it's a vector
+    TPZFMatrix<REAL> fLocalWeightedResidual; //W(i)*R(i)*r - Actually it's a vector
     /**
 	 * The columns of fEigenVectors are the eigenvectors of fStiffness, or K(i), associated with the null eigenvalue
 	 */
-	//    TPZFMatrix fEigenVectors;
+	//    TPZFMatrix<REAL> fEigenVectors;
     /**
 	 * @brief Needed to compute v2. Is the solution of a system
 	 */
-    TPZFMatrix fzi; //z(i)
+    TPZFMatrix<REAL> fzi; //z(i)
 	
 	/**
 	 * @brief Solution vector which needs to be added to the converged system solution
 	 */
 	/** This variable is initialized and set in the AdjustResidual method */
-	TPZFMatrix fAdjustSolution;
+	TPZFMatrix<REAL> fAdjustSolution;
 	
 };
 

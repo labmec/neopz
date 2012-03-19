@@ -21,6 +21,7 @@
 static LoggerPtr loggernoderep2(Logger::getLogger("pz.geom.extend"));
 #endif
 
+template <class TVAR>
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
@@ -98,25 +99,25 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pr:"+TFather::TypeName();} 
 		
-		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+		static void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
-		static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-							 TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+							 TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
-		static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian);
+		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian);
 		
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
-		static void Diagnostic(TPZFMatrix &coord);
+		static void Diagnostic(TPZFMatrix<REAL> &coord);
 		
 		
 	};
 	
 	template<class TFather, class Topology>
-	inline void GPr<TFather, Topology>::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMatrix &jacobian) 
+	inline void GPr<TFather, Topology>::Jacobian(TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) 
 	{
 		
 		int spacedim = coord.Rows();
@@ -147,7 +148,7 @@ namespace pzgeom {
 	}
 	
 	template<class TFather, class Topology>
-	void GPr<TFather, Topology>::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv)
+	void GPr<TFather, Topology>::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
 	{
 		TPZFNMatrix<16> axest,VecMatrix;
 		Jacobian(coord,param,VecMatrix);
@@ -158,7 +159,7 @@ namespace pzgeom {
 	}
 	
 	template<class TFather, class Topology>
-	inline void GPr<TFather, Topology>::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	inline void GPr<TFather, Topology>::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		
 		
 		int spacedim = coord.Rows();
@@ -180,7 +181,7 @@ namespace pzgeom {
 	}
 	
 	template<class TFather, class Topology>
-	void GPr<TFather, Topology>::Diagnostic(TPZFMatrix & coord)
+	void GPr<TFather, Topology>::Diagnostic(TPZFMatrix<REAL> & coord)
 	{
 #ifdef LOG4CXX
 		LoggerPtr logger(Logger::getLogger("pz.geom.pzgeoextend"));
@@ -193,7 +194,7 @@ namespace pzgeom {
 		for(ip=0; ip<np; ip++)
 		{
 			integ->Point(ip,pos,w);
-			TPZFMatrix jacobian(coord.Rows(),Top::Dimension);
+			TPZFMatrix<REAL> jacobian(coord.Rows(),Top::Dimension);
 			Jacobian(coord,pos,jacobian);
 			{
 				std::stringstream sout;
@@ -201,8 +202,8 @@ namespace pzgeom {
 				sout << "position " <<  pos << " jacobian " << jacobian;
 				LOGPZ_DEBUG(logger,sout.str());
 			}
-			TPZFMatrix axes(Top::Dimension,coord.Rows());
-			TPZFMatrix jacinv(Top::Dimension,Top::Dimension);
+			TPZFMatrix<REAL> axes(Top::Dimension,coord.Rows());
+			TPZFMatrix<REAL> jacinv(Top::Dimension,Top::Dimension);
 			REAL detjac;
 			Jacobian(coord,pos,jacobian,axes,detjac,jacinv);
 			{

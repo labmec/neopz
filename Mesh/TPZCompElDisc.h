@@ -24,11 +24,13 @@
 #include "pzfunction.h"
 
 struct TPZElementMatrix;
+template<class TVar>
 class TPZFMatrix;
 class TPZBndCond;
 class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
+template<class TVar>
 class TPZMatrix;
 class TPZCompMesh;
 
@@ -109,7 +111,7 @@ public:
 	 * @brief Sets the orthogonal function which will be used throughout the program.
 	 * @param orthogonal pointer to a function which will be used to generate the shape functions
 	 */
-	static void SetOrthogonalFunction(void (*orthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n)){
+	static void SetOrthogonalFunction(void (*orthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi, int n)){
 		pzshape::TPZShapeDisc::fOrthogonal = orthogonal;
 	}
 	
@@ -180,7 +182,7 @@ public:
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
 	 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
 	 */
-	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi);
+	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 	/** 
 	 * @brief Compute shape functions.
@@ -189,16 +191,16 @@ public:
 	 * @param phi [out] vector of values of shapefunctions,
 	 * @param dphi [out] matrix of derivatives of shapefunctions,
 	 */
-	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi);
+	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
-	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv, TPZFMatrix &phi, TPZFMatrix &dphix);
+	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
 	
 	/**
 	 */
-	void ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
+	void ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Add extenal shape function into already computed phi and dphi discontinuous functions. */
-	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi);
+	void AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const;
@@ -293,7 +295,7 @@ public:
 	 * @param dsol solution derivatives
 	 * @param axes axes associated with the derivative of the solution
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix & axes);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -304,8 +306,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -321,8 +323,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	virtual void AccumulateIntegrationRule(int degree, TPZStack<REAL> &point, TPZStack<REAL> &weight);
 	

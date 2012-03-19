@@ -7,7 +7,7 @@
 #include "tpzmultcamada.h"
 #include "pzmatplaca2.h"
 
-void TPZMultCamada::Solution(TPZVec < REAL > & Sol, TPZFMatrix & DSol, TPZFMatrix & axes, int var, TPZVec < REAL > & Solout) {
+void TPZMultCamada::Solution(TPZVec < REAL > & Sol, TPZFMatrix<REAL> & DSol, TPZFMatrix<REAL> & axes, int var, TPZVec < REAL > & Solout) {
 	
 	
 	if(var == 2) {
@@ -90,8 +90,8 @@ void TPZMultCamada::Solution(TPZVec < REAL > & Sol, TPZFMatrix & DSol, TPZFMatri
 
 void TPZMultCamada::Contribute(TPZMaterialData &data,
                                REAL weight,
-                               TPZFMatrix &ek,
-                               TPZFMatrix &ef) {
+                               TPZFMatrix<REAL> &ek,
+                               TPZFMatrix<REAL> &ef) {
 	
 	int i;
 	for (i = 0; i < fCamadas.NElements(); i++) 
@@ -100,8 +100,8 @@ void TPZMultCamada::Contribute(TPZMaterialData &data,
 
 void TPZMultCamada::ContributeBC(TPZMaterialData &data,
                                  REAL weight, 
-                                 TPZFMatrix &ek, 
-                                 TPZFMatrix &ef, 
+                                 TPZFMatrix<REAL> &ek, 
+                                 TPZFMatrix<REAL> &ef, 
                                  TPZBndCond &bc){
 	if(fCamadas.NElements()) fCamadas[0]->ContributeBC(data,weight,ek,ef,bc);
 }

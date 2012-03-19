@@ -37,8 +37,8 @@ namespace pzshape {
 		 * These values depend on the point, the order of interpolation and ids of the corner points
 		 * The shapefunction computation uses the shape functions of the linear and triangular element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the corner shape functions for a tetrahedral element
@@ -46,7 +46,7 @@ namespace pzshape {
 		 * @param phi (output) value of the (4) shape functions
 		 * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -54,7 +54,7 @@ namespace pzshape {
 		 * @param phi (input/output) value of the (4) shape functions
 		 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		
 		/** 
@@ -70,7 +70,7 @@ namespace pzshape {
 		 * Shape3dTetraInternal is basically a call to the orthogonal shapefunction with the transformation
 		 * determined by the transformation index (also on the faces)
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
@@ -111,7 +111,7 @@ namespace pzshape {
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
 		 */
-		static void TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix &dphi);
+		static void TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Transforms the derivative of a shapefunction computed on the face into the three dimensional derivative
@@ -120,7 +120,7 @@ namespace pzshape {
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions (modified in place)
 		 */
-		static void TransformDerivativeFromFaceToTetra(int face,int num,TPZFMatrix &dphi);
+		static void TransformDerivativeFromFaceToTetra(int face,int num,TPZFMatrix<REAL> &dphi);
 		
 		/** @brief Data structure which defines the tetrahedral transformations and topology */
 		static REAL gVet1dTetr[6];

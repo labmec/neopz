@@ -39,11 +39,11 @@ namespace pzshape{
 		 * The shapefunction computation uses the shape functions of the linear element for its implementation
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-						  TPZFMatrix &phi,TPZFMatrix &dphi) {
+						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 			phi(0,0) = 1.;
 		}
 		
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 			if(side == 0) Shape(pt,id,order,phi,dphi);
 		}
 		

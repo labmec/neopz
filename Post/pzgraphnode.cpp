@@ -71,7 +71,7 @@ void TPZGraphNode::DrawSolution(TPZVec<int> &solind, TPZDrawStyle st) {
 	if(fGraphEl) fGraphEl->DrawSolution(this,solind,st);
 }
 
-void TPZGraphNode::DrawSolution(TPZBlock &bl, TPZDrawStyle st) {
+void TPZGraphNode::DrawSolution(TPZBlock<REAL> &bl, TPZDrawStyle st) {
 	if(fGraphEl) fGraphEl->DrawSolution(this,bl,st);
 }
 

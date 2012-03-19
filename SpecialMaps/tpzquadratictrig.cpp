@@ -33,7 +33,7 @@ using namespace pztopology;
  / 2007
  */
 
-void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi)
+void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi)
 {
 	REAL qsi = param[0], eta = param[1];
     
@@ -47,12 +47,12 @@ void TPZQuadraticTrig::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dph
 	dphi(1,0) = 1.-4.*(1.-qsi-eta); dphi(1,1) = 0.; dphi(1,2) = -1.+4.*eta; dphi(1,3) = -4.*qsi; dphi(1,4) = 4.*qsi; dphi(1,5) = 4.*(1.-qsi-eta)-4.*eta;
 }
 
-void TPZQuadraticTrig::X(TPZFMatrix &coord, TPZVec<REAL>& par, TPZVec< REAL >& result)
+void TPZQuadraticTrig::X(TPZFMatrix<REAL> &coord, TPZVec<REAL>& par, TPZVec< REAL >& result)
 {
 	TPZVec<REAL> parMap(2);
 	REAL spacephi[6],spacedphi[12];
-	TPZFMatrix phi(6,1,spacephi,6);
-	TPZFMatrix dphi(2,6,spacedphi,12);
+	TPZFMatrix<REAL> phi(6,1,spacephi,6);
+	TPZFMatrix<REAL> dphi(2,6,spacedphi,12);
 	Shape(par,phi,dphi);
 	for(int i = 0; i < 3; i++)
 	{
@@ -61,16 +61,16 @@ void TPZQuadraticTrig::X(TPZFMatrix &coord, TPZVec<REAL>& par, TPZVec< REAL >& r
 	}
 }
 
-void TPZQuadraticTrig::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv)
+void TPZQuadraticTrig::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv)
 {
 	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
 	REAL spacephi[6],spacedphi[12];
-	TPZFMatrix phi(6,1,spacephi,6);
-	TPZFMatrix dphi(2,6,spacedphi,12);
+	TPZFMatrix<REAL> phi(6,1,spacephi,6);
+	TPZFMatrix<REAL> dphi(2,6,spacedphi,12);
 	Shape(par,phi,dphi);
 	jacobian.Zero();
 	
-	TPZFMatrix VecMatrix(3,2,0.);
+	TPZFMatrix<REAL> VecMatrix(3,2,0.);
 	for(int i = 0; i < 6; i++)
 	{
 		for(int j = 0; j < 3; j++)
@@ -79,7 +79,7 @@ void TPZQuadraticTrig::Jacobian(TPZFMatrix & coord, TPZVec<REAL>& par, TPZFMatri
 			VecMatrix(j,1) += coord(j,i)*dphi(1,i);
 		}
 	}
-	TPZFMatrix axest;
+	TPZFMatrix<REAL> axest;
 	VecMatrix.GramSchmidt(axest,jacobian);
 	axest.Transpose(&axes);
 	

@@ -71,13 +71,13 @@ public:
 	 * @param F Matrix to execute a Forward substitution on 
 	 * @param dec Type of decomposition, depends on what method was used in its decomposition
 	 */
-    void EqnForward(TPZFMatrix & F, DecomposeType dec);
+    void EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec);
     /** 
 	 * @brief Backward substitution on equations stored in EqnArray 
 	 * @param U Matrix to execute a Forward substitution
 	 * @param dec Type of decomposition, depends on what method was used in its decomposition
 	 */
-    void EqnBackward(TPZFMatrix & U, DecomposeType dec);
+    void EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec);
 	
     /** @brief Resets data structure */
     void Reset();

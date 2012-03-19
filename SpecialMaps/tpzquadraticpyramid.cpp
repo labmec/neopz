@@ -21,7 +21,7 @@ using namespace pzshape;
 using namespace pzgeom;
 using namespace pztopology;
 
-void TPZQuadraticPyramid::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZQuadraticPyramid::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	REAL qsi = param[0], eta = param[1], zeta = param[2];
     if(fabs(zeta - 1.) < 1.E-3)
@@ -153,7 +153,7 @@ void TPZQuadraticPyramid::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &
 
 
 
-void TPZQuadraticPyramid::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
+void TPZQuadraticPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result) {
 	
 	TPZFNMatrix<13> phi(13,1);
 	TPZFNMatrix<39> dphi(3,13);
@@ -169,7 +169,7 @@ void TPZQuadraticPyramid::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> 
 	}
 }
 
-void TPZQuadraticPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 #ifdef DEBUG
 	if (NNodes != 13) {
 		PZError << "TPZGeoPyramid.jacobian only implemented for 13, NumberOfNodes = " << NNodes << "\n";
@@ -189,8 +189,8 @@ void TPZQuadraticPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFM
     for(int d = 0; d < 3; d++) axes(d,d) = 1.;
     
 	REAL spacephi[13]; REAL spacedphi[39];
-	TPZFMatrix phi(13,1,spacephi,13);
-	TPZFMatrix dphi(3,13,spacedphi,39);
+	TPZFMatrix<REAL> phi(13,1,spacephi,13);
+	TPZFMatrix<REAL> dphi(3,13,spacedphi,39);
 	Shape(param,phi,dphi);	
 	for(int i = 0; i < 13; i++) {
 		for(int j = 0; j < 3; j++) {

@@ -20,7 +20,10 @@
 
 struct TPZElementMatrix;
 class TPZCompMesh;
+
+template<class TVar>
 class TPZFMatrix;
+
 class TPZEqnArray;
 
 
@@ -60,7 +63,8 @@ public:
         fwritecond = clocal;
 	}
 	
-	CLONEDEF(TPZParFrontMatrix)
+	//CLONEDEF(TPZParFrontMatrix)
+	virtual TPZMatrix<REAL>*Clone() const { return new TPZParFrontMatrix(*this); }
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -68,14 +72,14 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    void AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
 	
     /**
 	 * @brief Add a contribution of a stiffness matrix putting it on destination indexes position
 	 * @param elmat Member stiffness matrix beeing added
 	 * @param destinationindex Positioning of such members on global stiffness matrix
      */
-    virtual void AddKel(TPZFMatrix & elmat, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex);
 	
 	/** @brief Sets the flag fFinish to its true value*/    		
 	void FinishWriting();    		

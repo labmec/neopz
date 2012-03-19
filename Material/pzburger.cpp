@@ -27,9 +27,9 @@ TPZBurger::~TPZBurger(){
 	
 }
 
-void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-								   TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,
-								   TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
+								   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
+								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 	if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
@@ -112,8 +112,8 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REA
 	}                          
 }
 
-void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &sol,TPZFMatrix &dsol,REAL weight,
-							   TPZFMatrix &axes,TPZFMatrix &phi,TPZFMatrix &dphi,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
+							   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 	if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
@@ -192,31 +192,31 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix &jacinv,TPZVec<REAL> &
 
 void TPZBurger::ContributeBC(TPZMaterialData &data,
                              REAL weight,
-                             TPZFMatrix &ek,
-                             TPZFMatrix &ef,
+                             TPZFMatrix<REAL> &ek,
+                             TPZFMatrix<REAL> &ef,
                              TPZBndCond &bc){
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
     int numbersol = data.sol.size();
     if(numbersol != 1)
     {
         DebugStop();
     }
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// // REAL &faceSize=data.HSize;
-	TPZFMatrix &axes=data.axes;
+	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
 	short in,jn;
@@ -294,29 +294,29 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
 
 void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                     REAL weight,
-                                    TPZFMatrix &ek,
-                                    TPZFMatrix &ef){
-	// TPZFMatrix &dphi = data.dphix;
+                                    TPZFMatrix<REAL> &ek,
+                                    TPZFMatrix<REAL> &ef){
+	// TPZFMatrix<REAL> &dphi = data.dphix;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZFMatrix &dphiL = dataleft.dphix;
-	TPZFMatrix &dphiR = dataright.dphix;
-	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = dataleft.phi;
-	TPZFMatrix &phiR = dataright.phi;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiR = dataright.dphix;
+	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
 	TPZVec<REAL> &solL=dataleft.sol[0];
 	TPZVec<REAL> &solR=dataright.sol[0];
-	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=dataleft.dsol[0];
-	TPZFMatrix &dsolR=dataright.dsol[0];
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
+	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolR);
@@ -462,30 +462,30 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 
 void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                       REAL weight,
-                                      TPZFMatrix &ek,
-                                      TPZFMatrix &ef,
+                                      TPZFMatrix<REAL> &ek,
+                                      TPZFMatrix<REAL> &ef,
                                       TPZBndCond &bc) {
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = dataleft.dphix;
-	// TPZFMatrix &dphiR = data.dphixr;
-	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = dataleft.phi;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
 	TPZVec<REAL> &solL=dataleft.sol[0];
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=dataleft.dsol[0];
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolL);

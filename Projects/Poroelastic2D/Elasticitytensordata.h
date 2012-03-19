@@ -81,12 +81,12 @@ protected:
     /**
      * Constant elastic tensor C
      */
-    TPZFMatrix fCelastic;
+    TPZFMatrix<REAL> fCelastic;
 
 	/**
      * Vector mapping m
      */
-	TPZFMatrix fm;	
+	TPZFMatrix<REAL> fm;	
 };
 
 #endif

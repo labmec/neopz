@@ -32,7 +32,7 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
-	void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoPyramid::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(fabs(pt[0])<1.e-10 && fabs(pt[1])<1.e-10 && pt[2]==1.) {
 			//para testes com transforma�es geometricas-->>Que  o que faz o RefPattern!!
 			//(0,0,1) nunca �um ponto de integra�o
@@ -97,7 +97,7 @@ namespace pzgeom {
 		dphi(2,4) =  1.0;
 	}
 	
-	void TPZGeoPyramid::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
+	void TPZGeoPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 		
 #ifdef DEBUG
@@ -116,9 +116,9 @@ namespace pzgeom {
 #endif
         jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		REAL spacephi[5];
-		TPZFMatrix phi(5,1,spacephi,5);
+		TPZFMatrix<REAL> phi(5,1,spacephi,5);
 		REAL spacedphi[15];
-		TPZFMatrix dphi(3,5,spacedphi,15);
+		TPZFMatrix<REAL> dphi(3,5,spacedphi,15);
 		Shape(param,phi,dphi);
 		jacobian.Zero();
 		
@@ -165,11 +165,11 @@ namespace pzgeom {
 		axes(2,2) = 1.;
 	}
 	
-	void TPZGeoPyramid::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		REAL spacephi[10],spacedphi[20];
 		int i,j;
-		TPZFMatrix phi(5,1,spacephi,10);
-		TPZFMatrix dphi(3,5,spacedphi,20);
+		TPZFMatrix<REAL> phi(5,1,spacephi,10);
+		TPZFMatrix<REAL> dphi(3,5,spacedphi,20);
 		Shape(loc,phi,dphi);
 		for(j=0;j<3;j++) {
 			result[j] = 0.0;
@@ -177,7 +177,7 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool TPZGeoPyramid::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		double zero = 1.E-5;
 		
 		REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];

@@ -14,7 +14,7 @@
 
 #include <string>
 
-
+template<class TVar>
 class TPZFMatrix;
 class TPZGeoEl;
 class TPZGeoMesh;
@@ -69,22 +69,22 @@ namespace pzgeom {
         }
 		
         /* @brief compute the jacobian of the map between the master element and deformed element */
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
             Jacobian(coord, param, jacobian, axes, detjac, jacinv);
         }
         
-		static void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+		static void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
 		/** @brief Returns the projection of a given point from "NSide - 1" side to "side". */
-		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
-		static void Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-							 TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+							 TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
 		
@@ -128,7 +128,7 @@ namespace pzgeom {
 	//     axes(0,ic) = v1[ic]/mod1;
 	//   }
 	
-	inline void TPZGeoLinear::X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	inline void TPZGeoLinear::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		
 		int ic;
 		REAL xi = loc[0];
@@ -148,7 +148,7 @@ namespace pzgeom {
 		
 	}
 	
-	inline bool TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	inline bool TPZGeoLinear::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		TPZTransform Transf = pztopology::TPZLine::SideToSideTransform(TPZGeoLinear::NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);

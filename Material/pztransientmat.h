@@ -43,24 +43,24 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef);
+                            TPZFMatrix<REAL> &ek,
+                            TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef);
+                                     TPZFMatrix<REAL> &ek,
+                                     TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                        REAL weight,
-                                       TPZFMatrix &ek,
-                                       TPZFMatrix &ef,
+                                       TPZFMatrix<REAL> &ek,
+                                       TPZFMatrix<REAL> &ef,
                                        TPZBndCond &bc);
 	
 	/** @brief Set material to compute only Integral[- un/deltaT * v, Omega] */
@@ -111,9 +111,9 @@ protected:
 	
 	REAL fTimeStep;
 	
-	virtual void ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix &phi, REAL weight, TPZFMatrix &ek);
+	virtual void ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ek);
 };
 
 template<class TBASEMAT>

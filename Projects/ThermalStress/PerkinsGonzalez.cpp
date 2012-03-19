@@ -66,7 +66,7 @@ int main()
     }
 #endif
     TPZSkylineStructMatrix skylstruct(cmesh);
-    TPZStepSolver step;
+    TPZStepSolver<REAL> step;
     step.SetDirect(ECholesky);
     TPZAnalysis an(cmesh);
     an.SetStructuralMatrix(skylstruct);
@@ -113,7 +113,7 @@ TPZAutoPointer<TPZCompMesh> BuildCompMesh(TPZAutoPointer<TPZGeoMesh> gmesh)
     TPZAutoPointer<TPZMaterial> autoaximat(aximat);
     cmesh->InsertMaterialObject(autoaximat);
     int mixed = 2;
-    TPZFMatrix val1(2,2,0.),val2(2,1,0.);
+    TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
     val1(1,1) = 100.;
     TPZBndCond *bnd = aximat->CreateBC(autoaximat, pointbc, mixed, val1, val2);
     TPZAutoPointer<TPZMaterial> autobnd(bnd);

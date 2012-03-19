@@ -33,7 +33,7 @@ public:
    * @param f function values
    * @param df function derivatives
    */
-  virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df){
+  virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
     f.Resize(3);
     f.Fill(0.);
     df.Resize(3,3);

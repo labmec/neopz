@@ -200,7 +200,7 @@ void TPZFrontSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
     fDecomposeType=ECholesky;
 	//	PrintGlobal("After", output);
 }
-void TPZFrontSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
+void TPZFrontSym::AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
 {
 	int i, j, ilocal, jlocal, nel;
 	nel=sourceindex.NElements();
@@ -216,7 +216,7 @@ void TPZFrontSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<in
 		}
 	}
 }
-void TPZFrontSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex)
+void TPZFrontSym::AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &destinationindex)
 {
 	int i, j, ilocal, jlocal, nel;
 	nel = destinationindex.NElements();
@@ -339,7 +339,7 @@ void TPZFrontSym::main()
 	 * 	Populates data structure
 	 */
 	int matsize=6;
-	TPZFMatrix TestMatrix(matsize,matsize);
+	TPZFMatrix<REAL> TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
 		for(j=i;j<matsize;j++) {
 			int random = rand();
@@ -350,11 +350,11 @@ void TPZFrontSym::main()
 		}
 	}
 	
-	TPZFMatrix Prova;
+	TPZFMatrix<REAL> Prova;
 	Prova=TestMatrix;
 	
 	//	Prova.Decompose_Cholesky();
-	Prova.Print("TPZFMatrix Cholesky");
+	Prova.Print("TPZFMatrix<REAL> Cholesky");
 	
 	TPZFrontSym TestFront(matsize);
 	
@@ -394,7 +394,7 @@ void TPZFrontSym::main()
 	Result.Print("TestEQNArray.txt",outeqn);
 	
 	
-	TPZFMatrix Load(matsize);
+	TPZFMatrix<REAL> Load(matsize);
 	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
@@ -402,7 +402,7 @@ void TPZFrontSym::main()
 		Load(i,0)=rnd;
 	}
 	
-	TPZFMatrix Load_2(matsize);
+	TPZFMatrix<REAL> Load_2(matsize);
 	Load_2=Load;
 	
 	//	Prova.Subst_Forward(&Load);
@@ -428,7 +428,7 @@ std::string TPZFrontSym::GetMatrixType(){
 	return "Symmetric matrix";
 }
 
-void TPZFrontSym::ExtractFrontMatrix(TPZFMatrix &front)
+void TPZFrontSym::ExtractFrontMatrix(TPZFMatrix<REAL> &front)
 {
 	int maxeq = fLocal.NElements();
 	int mineq = 0;

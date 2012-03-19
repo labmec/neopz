@@ -187,7 +187,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	disp[0]= -2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
 	return;
 }
-void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix &flux ) {
+void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 	double x = pt[0];
 	double y = pt[1];
 	TPZVec<REAL> disp;
@@ -403,8 +403,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	mat->SetForcingFunctionExact(SolExata);
 	///Inserir condicoes de contorno
 	
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
-	TPZFMatrix val11(1,1,0.), val22(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<REAL> val11(1,1,0.), val22(1,1,0.);
 	TPZMaterial *bnd = automat->CreateBC (automat,-1,0,val1,val2);//1
 	TPZMaterial *bnd2 = automat->CreateBC (automat,-2,0,val1,val2);
 	TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
@@ -768,18 +768,18 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera com 2 elementos
 void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 	const int nelem = malha->NElements();
 	
-	//TPZFMatrix sol(4,1,0.);
+	//TPZFMatrix<REAL> sol(4,1,0.);
 	TPZManVector<REAL,4> solP(1);
 	TPZManVector<REAL,4> solF(3,0.);
 	
-	TPZFMatrix axes(3,1,0.);
-	TPZFMatrix phi;
-	TPZFMatrix dphix;
+	TPZFMatrix<REAL> axes(3,1,0.);
+	TPZFMatrix<REAL> phi;
+	TPZFMatrix<REAL> dphix;
 	
 	//TPZManVector<REAL> sol(1);
 	TPZSolVec sol;
 	sol[0].Resize(1);
-	//TPZFMatrix dsol(3,1,0.);
+	//TPZFMatrix<REAL> dsol(3,1,0.);
 	TPZGradSolVec dsol;
 	dsol[0].Redim(3,1);
 	
@@ -800,7 +800,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 				TPZVec<REAL> pto(2),pto2(1);
 				intr->Point(in, pto, peso);
 				
-				TPZFMatrix jac(2,2),invjac(2,2),axes(3,3);
+				TPZFMatrix<REAL> jac(2,2),invjac(2,2),axes(3,3);
 				REAL jacdet;
 				gel->Jacobian(pto,jac,axes,jacdet,invjac);
 				
@@ -808,7 +808,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
 				
 				
 				TPZManVector< REAL,3 > xco(3), p(1);
-				TPZFMatrix fluxo(3,0);
+				TPZFMatrix<REAL> fluxo(3,0);
 				TPZManVector<REAL,4> solF(3,0.);
 				
 				gel->X(pto,xco);
@@ -833,15 +833,15 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
  REAL NormaP=0.,NormaF=0.,auxNormaP=0.,auxNormaF=0.;
  REAL NormaPexact=0.,NormaFexact=0.,auxNormaPexact=0.,auxNormaFexact=0.;
  
- //TPZFMatrix sol(4,1,0.);
+ //TPZFMatrix<REAL> sol(4,1,0.);
  TPZManVector<REAL,4> solP(1);
  
  TPZManVector<REAL,4> solF(3,0.);
  TPZManVector<REAL,3> fatErroF(3,0.);
  TPZFNMatrix<660> dsol(3,1,0.);
- TPZFMatrix axes(3,1,0.);
- TPZFMatrix phi;
- TPZFMatrix dphix;
+ TPZFMatrix<REAL> axes(3,1,0.);
+ TPZFMatrix<REAL> phi;
+ TPZFMatrix<REAL> dphix;
  ///Percorrer todos elementos 
  for(int el=0; el < nelem; el++){
  TPZCompEl * Cel = malha->ElementVec()[el];
@@ -859,7 +859,7 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
  TPZVec<REAL> pto(2),pto2(1);
  intr->Point(in, pto, peso);
  
- TPZFMatrix jac(2,2),invjac(2,2),axes(3,3);
+ TPZFMatrix<REAL> jac(2,2),invjac(2,2),axes(3,3);
  REAL jacdet;
  gel->Jacobian(pto,jac,axes,jacdet,invjac);
  
@@ -926,11 +926,11 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol){
  TPZVec<REAL> pto(2);
  intr->Point(in, pto, peso);
  
- TPZFMatrix jac(2,2),invjac(2,2),axes(3,3);
+ TPZFMatrix<REAL> jac(2,2),invjac(2,2),axes(3,3);
  REAL jacdet;
  gel->Jacobian(pto,jac,axes,jacdet,invjac);
  TPZManVector<REAL> sol(1);
- TPZFMatrix dsol(3,1,0.);
+ TPZFMatrix<REAL> dsol(3,1,0.);
  Cel->ComputeSolution(pto, sol, dsol, axes);
  
  TPZVec< REAL > xco(3), p(1);
@@ -1044,7 +1044,7 @@ void SolveLU ( TPZAnalysis &an ){
 	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 	TPZFStructMatrix mat( malha );
 	//	TPZSpStructMatrix mat( malha );
-	TPZStepSolver solv;
+	TPZStepSolver<REAL> solv;
 	
 	solv.SetDirect ( ELU );
 	//		solv.SetDirect(ECholesky);

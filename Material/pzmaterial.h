@@ -50,7 +50,7 @@ protected:
     //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
    void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
-								  TPZVec<REAL> &pressure,TPZFMatrix &flux);
+								  TPZVec<REAL> &pressure,TPZFMatrix<REAL> &flux);
     /** @brief Defines whether the equation context is linear solver or non linear */
     /**
      * True means linear (default)
@@ -150,18 +150,18 @@ public:
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+    virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
     
 public:
     
     /** @brief Computes the value of the flux function to be used by ZZ error estimator */
     virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
-                      TPZFMatrix &DSol, TPZFMatrix &axes,
+                      TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes,
                       TPZVec<REAL> &flux) {}
     
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
-    virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix &val1,
-                                 TPZFMatrix &val2);
+    virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<REAL> &val1,
+                                 TPZFMatrix<REAL> &val2);
     
     /** @name Contribute methods
 	 * @{
@@ -174,7 +174,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef) = 0;
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) = 0;
     
 	
     /**
@@ -184,7 +184,7 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -195,7 +195,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc) = 0;
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) = 0;
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -207,7 +207,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 18, 2011
      */
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     /**
      * @brief It computes a contribution to the residual vector at one integration point.
@@ -216,7 +216,7 @@ public:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -226,7 +226,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
     /** @} */
 	
@@ -265,7 +265,7 @@ public:
 //		fForcingFunctionExact = fp;
 //	}
 	void SetForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,
-											TPZVec<REAL> &pressure,TPZFMatrix &flux))
+											TPZVec<REAL> &pressure,TPZFMatrix<REAL> &flux))
 	{
 		fForcingFunctionExact = fp;
 	}
@@ -299,14 +299,14 @@ public:
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                        TPZFMatrix &axes, TPZVec<REAL> &flux,
-                        TPZVec<REAL> &uexact, TPZFMatrix &duexact,
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+                        TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                        TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,
                         TPZVec<REAL> &val) {
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values){
+	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values){
 		PZError << __PRETTY_FUNCTION__ << std::endl;
 		PZError << "Nao sei o q fazer." << std::endl;
 		
@@ -342,7 +342,7 @@ public:
      * @param sol is the solution vector
      * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
      */    
-    virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol){
+    virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
         return -1.;
     }

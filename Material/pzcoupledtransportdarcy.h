@@ -45,7 +45,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 public:
 	
-	virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &mat, int id, int typ, TPZFMatrix &val1,TPZFMatrix &val2){
+	virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &mat, int id, int typ, TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2){
 		PZError << "Error! - This method should not be called - " << __PRETTY_FUNCTION__ << std::endl;
 		return 0;
 	}
@@ -56,9 +56,9 @@ public:
 	
 	static int CurrentEquation();
 	
-	void UpdateConvectionDir(TPZFMatrix &dsol);
+	void UpdateConvectionDir(TPZFMatrix<REAL> &dsol);
 	
-	void UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
+	void UpdateConvectionDirInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR);
 	
 	virtual int HasForcingFunction() {return this->GetCurrentMaterial()->HasForcingFunction();}
 	
@@ -125,24 +125,24 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
@@ -155,7 +155,7 @@ public:
 	virtual int NFluxes(){ return 3;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	/**
 	 * @brief Returns the solution associated with the var index based on
@@ -168,43 +168,43 @@ public:
 	
 	
 	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ek,
-									 TPZFMatrix &ef);
+									 TPZFMatrix<REAL> &ek,
+									 TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ek,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ef)
+									 TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,
-						 TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/
-						 TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/
+						 TPZVec<REAL> &leftu, TPZFMatrix<REAL> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/
+						 TPZVec<REAL> &rightu, TPZFMatrix<REAL> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/
 						 TPZVec<REAL> &/*flux*/,
-						 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values,
+						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values,
 						 TPZVec<REAL> normal, REAL elsize);
 	
 	virtual int IsInterfaceConservative(){ return 1;}

@@ -133,7 +133,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<R
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
 	int multipl = SignCorrection();
 	TPZTensor<REAL> epsTotal_Internal(epsTotal);
@@ -493,7 +493,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal,
 															 TPZTensor<REAL> &sigma,
-															 TPZFMatrix &Dep)
+															 TPZFMatrix<REAL> &Dep)
 {
 
 	#ifdef LOG4CXX
@@ -537,7 +537,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 {
 	
 	const int nyield = YC_t::NYield;
@@ -664,7 +664,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
 				tangent_FAD.Reset(); // resets the LU Decomposition flag
 		
 				ExtractTangent(epsRes_FADFAD, residual_FAD,
-								resnorm, tangent_FAD, // TPZFMatrix for T1=fad<real> type
+								resnorm, tangent_FAD, // TPZFMatrix<REAL> for T1=fad<real> type
     	            	        fPlasticMem[i].fValidEqs,
 							    1 /*precond*/, 1 /*resetInvalidEqs*/);
 
@@ -1297,7 +1297,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(const TPZPlasticState<REAL> &N
 	
          TPZFNMatrix<nVars*nVars> *matc = new TPZFNMatrix<nVars*nVars>(nVars,nVars);
          *matc = tangent;
-         TPZStepSolver st(matc);
+         TPZStepSolver<REAL> st(matc);
 	  // enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
          st.SetDirect(ELU);
 	  // st.SetDirect(ECholesky);
@@ -1686,9 +1686,9 @@ template <class YC_t, class TF_t, class ER_t>
 template<class T1, class T_VECTOR, class T_MATRIX>//T1:input residual fad type (FAD FAD or FAD), T_MATRIX: output matrix &vector of type (FAD or REAL, respectvly)
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
 						const TPZVec<T1> & epsRes_FAD,
-						T_VECTOR & ResVal, //TPZFMatrix for the T1=fad<real> type
+						T_VECTOR & ResVal, //TPZFMatrix<REAL> for the T1=fad<real> type
 						REAL & resnorm, // REAL 
-						T_MATRIX & tangent, // TPZFMatrix for T1=fad<real> type
+						T_MATRIX & tangent, // TPZFMatrix<REAL> for T1=fad<real> type
                         TPZVec<int> & validEqs,
 						const int precond,
 						const int resetInvalidEqs)
@@ -2153,7 +2153,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		
 
 		
-        TPZStepSolver st(matc);
+        TPZStepSolver<REAL> st(matc);
         st.SetDirect(ELU);
 //		st.SetDirect(ELDLt);
 		

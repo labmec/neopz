@@ -58,44 +58,44 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	virtual int NFluxes(){ return 3;}
 	
 	/* * Cria as condicoes de contorno */
-	//virtual TPZBndCond *CreateBc(long num, int typ, TPZFMatrix &val1, TPZFMatrix &val2);
+	//virtual TPZBndCond *CreateBc(long num, int typ, TPZFMatrix<REAL> &val1, TPZFMatrix<REAL> &val2);
 	
 	/** @name Contribute methods */
 	/** @{ */
 	
 	/** @brief Calculates the element stiffness matrix */
-	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	/** @brief Calculates the element stiffness matrix */
-	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ef)
+	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix &ef,TPZBndCond &bc)
+							  TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}
 	
@@ -110,7 +110,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	virtual int NSolutionVariables(int var);
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
@@ -120,18 +120,18 @@ public:
 	}
 
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	/** 
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
 	
-	//virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
-	//		      TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){}
+	//virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+	//		      TPZVec<REAL> &uexact,TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val){}
 	
 	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE;}

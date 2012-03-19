@@ -22,9 +22,9 @@ template <class TConv>
  * -# ComputeTangent : which will compute a tangent matrix \n
  * -# Residual : which will compute a residual vector
  */
-void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<REAL> &coefs) {
+void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &range, TPZVec<REAL> &coefs) {
 
-	TPZFMatrix incval(range);
+	TPZFMatrix<REAL> incval(range);
 	int i,numrows;
 	
 	numrows = state.Rows();
@@ -46,7 +46,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 	for(icase = 0; icase < numcases; icase++) {
 		
 		obj.LoadState(state);
-		TPZFMatrix ReferenceResidual, Tangent, EstimateRes;
+		TPZFMatrix<REAL> ReferenceResidual, Tangent, EstimateRes;
 		
 		obj.ComputeTangent(Tangent,coefs,icase);
 		
@@ -65,8 +65,8 @@ void CheckConvergence(TConv &obj, TPZFMatrix &state, TPZFMatrix &range, TPZVec<R
 		
 		for(interval = 1; interval < 10; interval++) {
 			
-			TPZFMatrix actualstate(state);
-			TPZFMatrix residual;
+			TPZFMatrix<REAL> actualstate(state);
+			TPZFMatrix<REAL> residual;
 			
 			for(i=0; i<numrows; i++) {
 				for(j=0; j<ncoefs; j++) {

@@ -38,6 +38,7 @@
 #include "pzmatdefs.h"
 #endif
 
+template<class TVar>
 class TPZFMatrix;
 
 /**
@@ -49,13 +50,14 @@ class TPZFMatrix;
  *			\f[ [K00] [U0] + [K01] [U1] = [F0] \f]
  *			\f[ [K10] [U0] + [K11] [U1] = [F1] \f]
  */
-template<class TSideMatrix = TPZFMatrix>
-class TPZMatRed: public TPZMatrix
+
+template<class TVar, class TSideMatrix >
+class TPZMatRed: public TPZMatrix<TVar>
 {
 public:
 	
-	friend class TPZMatRed<TPZFMatrix>;
-	friend class TPZMatRed<TPZVerySparseMatrix>;
+	friend class TPZMatRed<TVar, TPZFMatrix<TVar> >;
+	friend class TPZMatRed<TVar ,TPZVerySparseMatrix<TVar> >;
 	/** @brief Simple constructor */
 	TPZMatRed();
 	
@@ -67,7 +69,7 @@ public:
 	TPZMatRed(const int dim, const int dim00);
 	
 	template<class TSideCopy>
-	TPZMatRed<TSideMatrix>(const TPZMatRed<TSideCopy> &cp): TPZMatrix(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes)
+	TPZMatRed<TVar ,TSideMatrix>(const TPZMatRed<TVar, TSideCopy> &cp): TPZMatrix<TVar>(cp), fK11(cp.fK11), fK01(cp.fK01), fK10(cp.fK10), fF0(cp.fF0), fF1(cp.fF1),fMaxRigidBodyModes(cp.fMaxRigidBodyModes),fNumberRigidBodyModes(cp.fNumberRigidBodyModes)
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
@@ -92,7 +94,7 @@ public:
 	/** @brief changes the declared dimension of the matrix to fDim1 */
 	void SetReduced()
 	{
-		TPZMatrix::Resize(fDim1, fDim1);
+		TPZMatrix<TVar>::Resize(fDim1, fDim1);
 		fIsReduced = 1;
 	}
 	
@@ -100,9 +102,9 @@ public:
 	 * @brief Put and Get values without bounds checking
 	 * these methods are faster than "Put" e "Get" if DEBUG is defined
 	 */
-	virtual int PutVal(const int row, const int col, const REAL& value);
-	virtual const REAL &GetVal(const int row, const int col) const;
-	virtual REAL &s(int row, int col);
+	virtual int PutVal(const int row, const int col, const TVar& value);
+	virtual const TVar &GetVal(const int row, const int col) const;
+	virtual TVar &s(int row, int col);
 	
 	/** @brief This method will zero all submatrices associated with this reducable matrix class */
 	virtual int Zero();
@@ -111,9 +113,9 @@ public:
 	 * @brief Sets the matrix pointer of the upper left matrix to K00
 	 * @param K00 pointer to an upper left matrix
 	 */
-	void SetK00(TPZAutoPointer<TPZMatrix> K00);
+	void SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00);
 	
-	TPZAutoPointer<TPZMatrix> K00()
+	TPZAutoPointer<TPZMatrix<TVar> > K00()
 	{
 		return fK00;
 	}
@@ -125,8 +127,8 @@ public:
 	{
 		return fK10;
 	}
-	void SetSolver(TPZAutoPointer<TPZMatrixSolver> solver);
-    TPZAutoPointer<TPZMatrixSolver> Solver()
+	void SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver);
+    TPZAutoPointer<TPZMatrixSolver<TVar> > Solver()
     {
         return fSolver;
     }
@@ -134,7 +136,7 @@ public:
 	 * @brief Copies the F vector in the internal data structure
 	 * @param F vector containing data to stored in current object
 	 */
-	void SetF(const TPZFMatrix & F);
+	void SetF(const TPZFMatrix<TVar> & F);
     
     /** @brief indicate how many degrees of freedom are reserved for rigid body modes */
     void SetMaxNumberRigidBodyModes(int maxrigid)
@@ -160,25 +162,25 @@ public:
 	}
 	
 	/** @brief Computes the reduced version of the right hand side \f$ [F1]=[F1]-[K10][A00^-1][F0] \f$ */
-	const TPZFMatrix & F1Red();
+	const TPZFMatrix<TVar> & F1Red();
 	
 	/** @brief Computes the K11 reduced \f$ [K11]=[K11]-[K10][A00^-1][A01] \f$ */
-	const TPZFMatrix & K11Red();
+	const TPZFMatrix<TVar> & K11Red();
 	
 	/**
 	 * @brief Returns the second vector, inverting K11
 	 * @param F contains second vector
 	 */
-	void U1(TPZFMatrix & F);
+	void U1(TPZFMatrix<TVar> & F);
 	
 	/**
 	 * @brief Computes the complete vector based on the solution u1.
 	 * @param U1 right hand side
 	 * @param result contains the result of the operation
 	 */
-	void UGlobal(const TPZFMatrix & U1, TPZFMatrix & result);
-	void UGlobal2(TPZFMatrix & U1, TPZFMatrix & result);
-	//  TPZFMatrix U0(TPZMatrix *u1 = NULL);
+	void UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result);
+	void UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result);
+	//  TPZFMatrix<>U0(TPZMatrix<>*u1 = NULL);
 	
 	
 	/** @brief Prints the object data structure */
@@ -201,8 +203,8 @@ public:
 	 * @param stride Indicates n/N where n is dimension of the right hand side
 	 * vector and N is matrix dimension
 	 */
-	void MultAdd(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
-				 const REAL alpha, const REAL beta, const int opt, const int stride) const;
+	void MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+				 const TVar alpha, const TVar beta, const int opt, const int stride) const;
 	
 	/** @brief If fK00 is simetric, only part of the matrix is accessible to external objects. */
 	/** Simetrizes copies the data of the matrix to make its data simetric */
@@ -236,16 +238,16 @@ private:
     void DecomposeK00();
 	
 	/** @brief Stiffnes matrix */
-	TPZAutoPointer<TPZMatrix> fK00;
+	TPZAutoPointer<TPZMatrix<TVar> > fK00;
 	
 	/** @brief Solution method for inverting \f$ fK00 \f$ */
-	TPZAutoPointer<TPZMatrixSolver> fSolver;
+	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
 	/** @brief Full Stiffnes matrix */
 	TSideMatrix fK11;
 	TSideMatrix fK01, fK10;
 	
 	/** @brief Right hand side or force matrix */
-	TPZFMatrix fF0, fF1;
+	TPZFMatrix<TVar> fF0, fF1;
 
 	/** @brief Stores matricess \f$ fKij \f$ dimensions */
 	int fDim0, fDim1;
@@ -278,8 +280,8 @@ private:
 /************/
 /*** Swap ***/
 /* @note Modificacao por Philippe Devloo (insercao de inline )*/
-template<class TSideMatrix>
-inline void TPZMatRed<TSideMatrix>::Swap(int *a, int *b)
+template<class TVar, class TSideMatrix>
+inline void TPZMatRed<TVar, TSideMatrix>::Swap(int *a, int *b)
 {
 	int aux = *a;
 	*a = *b;

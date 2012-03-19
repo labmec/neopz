@@ -38,16 +38,20 @@
 
 #endif
 
+template<class TVar>
 class TPZFMatrix;
 
+template<class TVar>
+class TPZSSpMatrix;
 /**
  * @brief Defines sparce matrix class. \ref matrix "Matrix"
  * @ingroup matrix
  */
 /** Stores data as a linked list of nonzero elements */
-class TPZSpMatrix : public TPZMatrix
+template<class TVar>
+class TPZSpMatrix : public TPZMatrix<TVar>
 {
-	friend class TPZSSpMatrix;
+		friend class TPZSSpMatrix<TVar>;
 	
 public:
 	
@@ -68,7 +72,7 @@ public:
 	 * @brief Simple constructor
 	 */
 	TPZSpMatrix ()
-    : TPZMatrix( 0, 0 )  { fElem = NULL; }
+    : TPZMatrix<TVar>( 0, 0 )  { fElem = NULL; }
 	/**
      @brief Constructor with initialization parameters
      @param rows Number of rows
@@ -79,8 +83,8 @@ public:
      @brief Copy constructor
      @param A Model object
 	 */
-	TPZSpMatrix (const TPZSpMatrix &A )
-    : TPZMatrix( A )  { fCopy( &A ); }
+	TPZSpMatrix (const TPZSpMatrix<TVar> &A )
+    : TPZMatrix<TVar>( A )  { fCopy( &A ); }
 	
 	CLONEDEF(TPZSpMatrix)
 	/**
@@ -88,29 +92,29 @@ public:
 	 */
 	~TPZSpMatrix();
 	
-	int    Put(const int row,const int col,const REAL & value );
-	const REAL &Get(const int row,const int col ) const;
+	int    Put(const int row,const int col,const TVar & value );
+	const TVar &Get(const int row,const int col ) const;
 	
 	// Nao verifica limites da matriz (e' mais rapido).
-	int    PutVal(const int row,const int col,const REAL & element );
-	const REAL &GetVal(const int row,const int col ) const;
+	int    PutVal(const int row,const int col,const TVar & element );
+	const TVar &GetVal(const int row,const int col ) const;
 	
 	/// Operadores com matrizes ESPARSAS NAO simetricas.
 	//@{
 	/**
      @brief Generic overloaded operator
 	 */ 
-	TPZSpMatrix &operator= (const TPZSpMatrix &A );
-	TPZSpMatrix operator+  (const TPZSpMatrix &A ) const;
-	TPZSpMatrix operator-  (const TPZSpMatrix &A ) const;
-	//  TPZSpMatrix operator*  ( TPZSpMatrix &A );
-	TPZSpMatrix &operator+=(const TPZSpMatrix &A );
-	TPZSpMatrix &operator-=(const TPZSpMatrix &A );
+	TPZSpMatrix &operator= (const TPZSpMatrix<TVar> &A );
+	TPZSpMatrix operator+  (const TPZSpMatrix<TVar> &A ) const;
+	TPZSpMatrix operator-  (const TPZSpMatrix<TVar> &A ) const;
+	//  TPZSpMatrix operator*  ( TPZSpMatrix<TVar> &A );
+	TPZSpMatrix &operator+=(const TPZSpMatrix<TVar> &A );
+	TPZSpMatrix &operator-=(const TPZSpMatrix<TVar> &A );
 	
 	// Operadores com matrizes GENERICAS.
-	TPZSpMatrix &operator=(const TPZMatrix &A );
+	TPZSpMatrix &operator=(const TPZMatrix<TVar> &A );
 	//@}
-	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const REAL alpha ,const REAL beta = 0.,const int opt = 0,const int stride = 1) const;
 	
 	
@@ -119,8 +123,8 @@ public:
 	/**
      @brief Numerical values operator
 	 */
-	TPZSpMatrix operator*  (const REAL v ) const;
-	TPZSpMatrix &operator*=(const REAL v );
+	TPZSpMatrix operator*  (const TVar v ) const;
+	TPZSpMatrix &operator*=(const TVar v );
 	
 	TPZSpMatrix operator-() const { return operator*(-1.0); }
 	//@}
@@ -169,16 +173,16 @@ protected:
 	/**
 	 *  @see TPZSpMatrix::operator+=
 	 */
-	int fAdd(const TPZSpMatrix *const A );               // operator +=
-	int fAdd(const TPZSpMatrix *A, TPZSpMatrix *B ); // operator +
+	int fAdd(const TPZSpMatrix<TVar> *const A );               // operator +=
+	int fAdd(const TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator +
 	
-	int fSub(const TPZSpMatrix *const A );               // operator -=
-	int fSub( TPZSpMatrix *A, TPZSpMatrix *B ); // operator -
+	int fSub(const TPZSpMatrix<TVar> *const A );               // operator -=
+	int fSub( TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator -
 	
 	//  int fCopy( REAL val );                // operator =
-	int fCopy(const TPZSpMatrix *const A );              // operator =
+	int fCopy(const TPZSpMatrix<TVar> *const A );              // operator =
 	
-	int fMult( REAL val );                // operator *
+	int fMult( TVar val );                // operator *
 	
 	
 	/** Swap (troca) the values of the variables */
@@ -215,9 +219,9 @@ private:
 
 
 /*** Swap ***/
-
+template<class TVar>
 inline void
-TPZSpMatrix::Swap( int *a, int *b )
+TPZSpMatrix<TVar>::Swap( int *a, int *b )
 {
 	int c = *a;
 	*a = *b;

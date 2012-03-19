@@ -36,7 +36,7 @@ public:
 	virtual void SetFileName(const std::string &filename);
 
   virtual void DrawMesh(int numcases);
-  virtual void DrawSolution(TPZBlock &Sol);
+  virtual void DrawSolution(TPZBlock<REAL> &Sol);
   virtual void DrawSolution(char * var = 0);
   virtual void DrawSolution(int step, REAL time);
 

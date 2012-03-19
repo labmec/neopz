@@ -71,7 +71,7 @@ public:
 	 Computes the elastic matrix, writing it to the matrix Kep 
 	 @param Kef[out] matrix to write to
 	*/
-    void ElasticMat(TPZFMatrix & Kef)
+    void ElasticMat(TPZFMatrix<REAL> & Kef)
 	{
 		REAL Mu2    = 2 * fMu;
 		

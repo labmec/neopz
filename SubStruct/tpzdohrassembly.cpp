@@ -21,7 +21,7 @@ static LoggerPtr logger(Logger::getLogger("substruct.dohrassembly"));
 #endif
 
 // sum the values in the local matrix into the global matrix
-void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix &local, TPZFMatrix &global)
+void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
@@ -42,7 +42,7 @@ void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix &local, TPZFMatrix &gl
 }
 
 // extract the values from the global matrix into the local matrix
-void TPZDohrAssembly::Extract(int isub, const TPZFMatrix &global, TPZFMatrix &local)
+void TPZDohrAssembly::Extract(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
@@ -64,7 +64,7 @@ void TPZDohrAssembly::Extract(int isub, const TPZFMatrix &global, TPZFMatrix &lo
 }
 
 // sum the values in the local matrix into the global matrix
-void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix &local, TPZFMatrix &global)
+void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();
@@ -85,7 +85,7 @@ void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix &local, TPZFMatr
 }
 
 // extract the values from the global matrix into the local matrix
-void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix &global, TPZFMatrix &local)
+void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();

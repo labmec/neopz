@@ -271,7 +271,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
-				TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
+				TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }//method
@@ -279,15 +279,15 @@ void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi,
 					 TPZVec<REAL> &normal,
-					 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-					 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+					 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+					 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
 
 template <class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-					 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZMultiphysicsCompEl<TGeometry>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+					 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();
 }
@@ -434,7 +434,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	intrule->SetOrder(intorder);	
 	int intrulepoints = intrule->NPoints();
 		
-	TPZFMatrix jac, axe, jacInv;
+	TPZFMatrix<REAL> jac, axe, jacInv;
 	REAL detJac; 
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{		

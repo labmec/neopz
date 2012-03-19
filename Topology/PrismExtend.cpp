@@ -305,7 +305,7 @@ namespace pztopology {
 	}
 	
 	template<class TFather>
-	bool Pr<TFather>::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool Pr<TFather>::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		TPZTransform Transf = SideToSideTransform(NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
@@ -505,7 +505,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		
-		//  static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide);
+		//  static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		{
 			std::stringstream sout;
 			TPZManVector<REAL> par(Dimension,sqrt(2.));
@@ -514,7 +514,7 @@ namespace pztopology {
 			for(is=0; is<NSides; is++)
 			{
 				TPZManVector<REAL> sidepar(SideDimension(is));
-				TPZFMatrix jactoside (SideDimension(is),Dimension);
+				TPZFMatrix<REAL> jactoside (SideDimension(is),Dimension);
 				MapToSide(is,par,sidepar,jactoside);
 				sout << "side " << is << " sidepar " << sidepar << " jactoside " << jactoside << endl;
 			}

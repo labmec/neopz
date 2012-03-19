@@ -13,6 +13,8 @@
 
 #include <set>
 #include <ostream>
+
+template <class TVar>
 class TPZFMatrix;
 
 
@@ -30,7 +32,7 @@ public:
     virtual	~TPZPlasticBase(){}; 
 	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal) = 0;
 	virtual void ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma) = 0;
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep) = 0;
+	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) = 0;
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal) = 0;
     virtual void SetState(const TPZPlasticState<REAL> &state) = 0;
 	virtual const TPZPlasticState<REAL> GetState() const = 0;
@@ -145,7 +147,7 @@ public:
 	* @param [out] sigma Resultant stress
 	* @param [out] Dep Incremental constitutive relation
     */
-	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep);
+	virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 
    /**
 	* Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
@@ -189,7 +191,7 @@ protected:
 	* @param [out] sigma Resultant stress
 	* @param [out] Dep Incremental constitutive relation
     */
-    void ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep);
+    void ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
     * Imposes the specified strain tensor and returns the correspondent stress state.
@@ -361,7 +363,7 @@ protected:
 	* @param [out] sigma resultant stress tensor
 	* @param [out] Dep Incremental constitutive relation
     */
-    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix &Dep);
+    virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
 	*  Evaluates the sigma stress tensor and the thermoForceA for use in several
@@ -514,9 +516,9 @@ protected:
     template<class T1, class T_VECTOR, class T_MATRIX>//T1:input residual fad type (FAD FAD or FAD), T_MATRIX: output matrix &vector of type (FAD or REAL, respectvly)
     void ExtractTangent(
 						const TPZVec<T1> & epsRes_FAD,
-						T_VECTOR & ResVal, //TPZFMatrix for the T1=fad<real> type
+						T_VECTOR & ResVal, //TPZFMatrix<REAL> for the T1=fad<real> type
 						REAL & resnorm, // REAL 
-						T_MATRIX & tangent, // TPZFMatrix for T1=fad<real> type
+						T_MATRIX & tangent, // TPZFMatrix<REAL> for T1=fad<real> type
                         TPZVec<int> & validEqs,
 						const int precond = 1,
 						const int resetInvalidEqs = 1);
@@ -633,13 +635,13 @@ public:
     /**
     LoadState will keep a given state as static variable of the class
     */
-    void LoadState(TPZFMatrix &state)
+    void LoadState(TPZFMatrix<REAL> &state)
     {
       int i;
       for(i=0; i<6; i++) gRefDeform.fData[i] = state(i,0);
     }
 
-    void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase)
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
     {
     #ifdef LOG4CXX_PLASTICITY
       LoggerPtr logger(Logger::getLogger("plasticity.plasticstep"));
@@ -664,7 +666,7 @@ public:
       }
     }
 	
-    void Residual(TPZFMatrix &res,int icase)
+    void Residual(TPZFMatrix<REAL> &res,int icase)
     {
       #ifdef LOG4CXX_PLASTICITY
       LoggerPtr logger(Logger::getLogger("plasticity.plasticstep"));
@@ -674,7 +676,7 @@ public:
       {
         case 0:
           TPZTensor<REAL> sig;
-          TPZFMatrix tangent(6,6);
+          TPZFMatrix<REAL> tangent(6,6);
           res.Redim(6,1);
           {
 		     ProcessStrain(gRefDeform);

@@ -100,7 +100,7 @@ public:
 	/** 
 	 * Also updates the CompMesh soution.
 	 */
-	void UpdateSolAndRhs(TPZFMatrix & deltaSol, REAL & epsilon);
+	void UpdateSolAndRhs(TPZFMatrix<REAL> & deltaSol, REAL & epsilon);
 	
 	/**
 	 * @brief After a call to UpdateSolution, this method
@@ -158,7 +158,7 @@ public:
 	 * @param delSol [out] returns the delta Solution vector.
 	 * @return 1 if everything fine, 0 otherwise (no better solution found)
 	 */
-	int Solve(REAL & res, TPZFMatrix * residual, TPZFMatrix & delSol);
+	int Solve(REAL & res, TPZFMatrix<REAL> * residual, TPZFMatrix<REAL> & delSol);
 	
 	virtual void Solve()
 	{
@@ -210,7 +210,7 @@ public:
 	/**
 	 * @brief Informs a block diagonal to be used as preconditioning
 	 */
-	void SetBlockDiagonalPrecond(TPZBlockDiagonal * blockDiag);
+	void SetBlockDiagonalPrecond(TPZBlockDiagonal<REAL> * blockDiag);
 	
 	/**
 	 * @brief This method will search for the \f$ sol0 + \alpha dir\f$ solution which minimizes the residual
@@ -219,7 +219,7 @@ public:
 	 * @param dir [in] search direction
 	 * @return 1 if a direction was found, 0 otherwise
 	 */
-	int LineSearch(REAL &residual, TPZFMatrix &sol0, TPZFMatrix &dir);
+	int LineSearch(REAL &residual, TPZFMatrix<REAL> &sol0, TPZFMatrix<REAL> &dir);
     void CompareRhs();
 	
 	/**
@@ -253,7 +253,7 @@ protected:
 	TPZFlowCompMesh * fFlowCompMesh;
 	
 	/** @brief Vector to hold the contribution of last state to the rhs. */
-	TPZFMatrix fRhsLast;
+	TPZFMatrix<REAL> fRhsLast;
 	
 	/** @brief Stop criteria for the Newton and time integration loops. */
 	REAL fLinSysEps;
@@ -269,7 +269,7 @@ protected:
 	int fEvolCFL;
 	
 	/** @brief Preconditioner */
-	TPZBlockDiagonal * fpBlockDiag;
+	TPZBlockDiagonal<REAL> * fpBlockDiag;
 	
 	/** @brief Total number of newton iterations during this run */
 	int fTotalNewton;

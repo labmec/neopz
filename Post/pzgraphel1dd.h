@@ -11,6 +11,7 @@
 
 class TPZGraphMesh;
 class TPZGraphNode;
+template<class TVar> 
 class TPZBlock;
 
 /**

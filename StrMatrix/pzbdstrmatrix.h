@@ -9,8 +9,11 @@
 #include "pzstrmatrix.h"
 
 class TPZCompMesh;
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZBlockDiagonal;
 template <class T>
 class TPZVec;
@@ -34,15 +37,15 @@ public:
 	}
 	
 	// @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed
-	virtual TPZMatrix * Create();
+	virtual TPZMatrix<REAL> * Create();
     
-	virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	virtual TPZStructMatrix * Clone();    
 	
 public:
 	
-	void AssembleBlockDiagonal(TPZBlockDiagonal & block);
+	void AssembleBlockDiagonal(TPZBlockDiagonal<REAL> & block);
 private:
 	
     void BlockSizes(TPZVec < int > & blocksizes);

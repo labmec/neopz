@@ -24,6 +24,7 @@ class TPZGeoNode;
 struct TPZGeoNodeBC;
 class TPZGeoEl;
 class TPZCosys;
+template<class TVar>
 class TPZMatrix;
 class TPZCompMesh;
 class TPZRefPattern;

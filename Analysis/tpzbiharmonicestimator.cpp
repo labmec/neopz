@@ -39,8 +39,8 @@ TPZBiharmonicEstimator::~TPZBiharmonicEstimator()
 }
 
 void TPZBiharmonicEstimator::SetExactSolutions(
-											   void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-											   void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual)){
+											   void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+											   void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix<REAL> &derivdual)){
 	this->fPrimalExactSol = fp;
 	this->fDualExactSol = fd;
 }
@@ -53,9 +53,9 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 												  REAL weight,
 												  TPZVec<REAL> &nk){
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(9,1);
+	TPZFMatrix<REAL> du_exactp(9,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(9,1);
+	TPZFMatrix<REAL> du_exactd(9,1);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	
@@ -66,7 +66,7 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 
 	TPZManVector<REAL,3> x = data.x;
 	TPZVec<REAL> sol  = data.sol[0];
-	TPZFMatrix   dsol = data.dsol[0];
+	TPZFMatrix<REAL>   dsol = data.dsol[0];
 	//   REAL Laplac = dsol(2,0);
 	REAL LaplacLaplac = dsol(8,0);
 	//   REAL DuDx = dsol(0,0);
@@ -101,12 +101,12 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 														   REAL weight,
 														   TPZVec<REAL> &nkL, 
 														   TPZVec<REAL> &nkR ){
-	// TPZFMatrix dphi = data.dphix;
-	// TPZFMatrix dphiL = dataleft.dphix;
-	// TPZFMatrix dphiR = dataright.dphix;
-	// TPZFMatrix phi = data.phi;
-	// TPZFMatrix phiL = dataleft.phi;
-	// TPZFMatrix phiR = dataright.phi;
+	// TPZFMatrix<REAL> dphi = data.dphix;
+	// TPZFMatrix<REAL> dphiL = dataleft.dphix;
+	// TPZFMatrix<REAL> dphiR = dataright.dphix;
+	// TPZFMatrix<REAL> phi = data.phi;
+	// TPZFMatrix<REAL> phiL = dataleft.phi;
+	// TPZFMatrix<REAL> phiR = dataright.phi;
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
 	// //int POrder=data.p;
@@ -120,9 +120,9 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 
 	TPZVec<REAL> solL=dataleft.sol[0];
 	TPZVec<REAL> solR=dataright.sol[0];
-	// TPZFMatrix dsol=data.dsol;
-	TPZFMatrix dsolL=dataleft.dsol[0];
-	TPZFMatrix dsolR=dataright.dsol[0];
+	// TPZFMatrix<REAL> dsol=data.dsol;
+	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
+	TPZFMatrix<REAL> dsolR=dataright.dsol[0];
 	REAL faceSize=data.HSize;
 	
 	REAL alpha=gSigmaA*(pow((REAL)LeftPOrder,gL_alpha)+pow((REAL)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
@@ -132,9 +132,9 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	
 	// solucoes exatas
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(9,1);
+	TPZFMatrix<REAL> du_exactp(9,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(9,1);
+	TPZFMatrix<REAL> du_exactd(9,1);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	
@@ -254,12 +254,12 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 															 REAL weight,
 															 TPZVec<REAL> &nk,
 															 TPZBndCond &bc){
-	TPZFMatrix dphi = data.dphix;
-	TPZFMatrix dphiL = dataleft.dphix;
-	// TPZFMatrix dphiR = dataright.dphix;
-	TPZFMatrix phi = data.phi;
-	TPZFMatrix phiL = dataleft.phi;
-	// TPZFMatrix phiR = dataright.phi;
+	TPZFMatrix<REAL> dphi = data.dphix;
+	TPZFMatrix<REAL> dphiL = dataleft.dphix;
+	// TPZFMatrix<REAL> dphiR = dataright.dphix;
+	TPZFMatrix<REAL> phi = data.phi;
+	TPZFMatrix<REAL> phiL = dataleft.phi;
+	// TPZFMatrix<REAL> phiR = dataright.phi;
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
 	// int POrder=data.p;
@@ -273,15 +273,15 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 
 	TPZVec<REAL> solL=dataleft.sol[0];
 	// TPZVec<REAL> solR=dataright.sol;
-	// TPZFMatrix dsol=data.dsol;
-	TPZFMatrix dsolL=dataleft.dsol[0];
-	// TPZFMatrix dsolR=dataright.dsol;
+	// TPZFMatrix<REAL> dsol=data.dsol;
+	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
+	// TPZFMatrix<REAL> dsolR=dataright.dsol;
 	REAL faceSize=data.HSize;
 	
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(9,1);
+	TPZFMatrix<REAL> du_exactp(9,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(9,1);
+	TPZFMatrix<REAL> du_exactd(9,1);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	// std::cout<<"x: "<<data.x[0]<<","<<data.x[1]<< std::endl;
@@ -450,9 +450,9 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsSimple( TPZMaterialData 
 
 
 
-void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
-									TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-									TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
+void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+									TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
+									TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
 									TPZVec<REAL> &values) {
 	TPZVec<REAL> sol(1), dsol(9,0.);
 	
@@ -522,9 +522,9 @@ void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 		data.dphix(id,5) = 0. ;// derivada do erro exato primal enriquecido
 	}
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(nd,1);
+	TPZFMatrix<REAL> du_exactp(nd,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(nd,1);
+	TPZFMatrix<REAL> du_exactd(nd,1);
 	// erro exato primal 
 	if (this->fPrimalExactSol )
 	{ this->fPrimalExactSol(data.x,u_exactp,du_exactp);
@@ -578,9 +578,9 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data, TPZMateria
 	}
 	
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(nd,1);
+	TPZFMatrix<REAL> du_exactp(nd,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(nd,1);
+	TPZFMatrix<REAL> du_exactd(nd,1);
 	
 	// erro exato primal 
 	if (this->fPrimalExactSol )
@@ -637,9 +637,9 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data, TPZMateri
 	}
 	
 	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix du_exactp(8,1);
+	TPZFMatrix<REAL> du_exactp(8,1);
 	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix du_exactd(8,1);
+	TPZFMatrix<REAL> du_exactd(8,1);
 	
 	// erro exato primal 
 	if (this->fPrimalExactSol )

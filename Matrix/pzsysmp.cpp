@@ -30,7 +30,8 @@
 // 
 // ****************************************************************************
 
-TPZSYsmpMatrix::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix(rows,cols) {
+template<class TVar>
+TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix<TVar>(rows,cols) {
 	// Constructs an empty TPZSYsmpMatrix
 	//    fRows = rows;
 	//    fCols = cols;
@@ -47,7 +48,8 @@ TPZSYsmpMatrix::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix(rows,
 #endif
 }
 
-TPZSYsmpMatrix::~TPZSYsmpMatrix() {
+template<class TVar>
+TPZSYsmpMatrix<TVar>::~TPZSYsmpMatrix() {
 	// Deletes everything associated with a TPZSYsmpMatrix
 	delete fDiag;       fDiag = 0;
 	delete fIA;			fIA = 0;
@@ -64,7 +66,8 @@ TPZSYsmpMatrix::~TPZSYsmpMatrix() {
 //
 // ****************************************************************************
 
-const REAL & TPZSYsmpMatrix::GetVal(const int r,const int c ) const {
+template<class TVar>
+const TVar &TPZSYsmpMatrix<TVar>::GetVal(const int r,const int c ) const {
 	// Get the matrix entry at (row,col) without bound checking
 	
 	// Now look through the requested row and see if there is anything
@@ -79,8 +82,8 @@ const REAL & TPZSYsmpMatrix::GetVal(const int r,const int c ) const {
 	for(int ic=fIA[row]-1 ; ic < fIA[row+1]-1; ic++ ) {
 		if ( fJA[ic] == col ) return fA[ic];
 	}
-	gZero = 0.;
-	return gZero;
+	this->gZero = 0.;
+	return this->gZero;
 }
 
 // ****************************************************************************
@@ -89,19 +92,20 @@ const REAL & TPZSYsmpMatrix::GetVal(const int r,const int c ) const {
 //
 // ****************************************************************************
 
-void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
-							 TPZFMatrix &z,
-							 const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
+							 TPZFMatrix<TVar> &z,
+							 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	int  ir, ic;
-	int  r = (opt) ? Cols() : Rows();
+	int  r = (opt) ? this->Cols() : this->Rows();
 	
 	// Determine how to initialize z
 	if(beta != 0) {
-		REAL *zp = &(z(0,0));
+		TVar *zp = &(z(0,0));
 		const REAL *yp = &(y.g(0,0));
-		REAL *zlast = zp+r*stride;
+		TVar *zlast = zp+r*stride;
 		if(beta != 1. || (&z != &y && stride != 1)) {
 			while(zp < zlast) {
 				*zp = beta * (*yp);
@@ -110,10 +114,10 @@ void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			}
 		}
 		else if(&z != &y) {
-			memcpy(zp,yp,r*sizeof(REAL));
+			memcpy(zp,yp,r*sizeof(TVar));
 		}
 	} else {
-		REAL *zp = &(z(0,0)), *zlast = zp+r*stride;
+		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
 		while(zp != zlast) {
 			*zp = 0.;
 			zp += stride;
@@ -122,8 +126,8 @@ void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 	
 	// Compute alpha * A * x
 	int jc;
-	for(ir=0; ir<Rows(); ir++) {
-		REAL xi = x.g(ir,0);
+	for(ir=0; ir<this->Rows(); ir++) {
+		TVar xi = x.g(ir,0);
 		for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
 			jc = fJA[ic] - 1;
 			z(ir*stride,0) += alpha * fA[ic] * x.g(jc*stride,0);
@@ -141,28 +145,29 @@ void TPZSYsmpMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 //
 // ****************************************************************************
 
-void TPZSYsmpMatrix::Print(const char *title, std::ostream &out ,const MatrixOutputFormat form) const {
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::Print(const char *title, std::ostream &out ,const MatrixOutputFormat form) const {
 	// Print the matrix along with a identification title
 	if(form != EInputFormat) {
 		out << "\nTSYsmpMatrix Print: " << title << '\n'
-		<< "\tRows    = " << Rows()  << '\n'
-		<< "\tColumns = " << Cols() << '\n';
+		<< "\tRows    = " << this->Rows()  << '\n'
+		<< "\tColumns = " << this->Cols() << '\n';
 		int i;
 		out << "\tIA\tJA\tA\n"
 		<< "\t--\t--\t-\n";
-		for(i=0; i<=Rows(); i++) {
+		for(i=0; i<=this->Rows(); i++) {
 			std::cout << i      << '\t'
 			<< fIA[i] << '\t'
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
-		for(i=Rows()+1; i<fIA[Rows()]-1; i++) {
+		for(i=this->Rows()+1; i<fIA[this->Rows()]-1; i++) {
 			std::cout << i      << "\t\t"
 			<< fJA[i] << '\t'
 			<< fA[i]  << '\n';
 		}
 	} else {
-		TPZMatrix::Print(title,out,form);
+		TPZMatrix<TVar>::Print(title,out,form);
 	}
 }
 
@@ -173,18 +178,18 @@ void TPZSYsmpMatrix::Print(const char *title, std::ostream &out ,const MatrixOut
 //
 // ****************************************************************************
 
-
-void TPZSYsmpMatrix::ComputeDiagonal() {
-	if(!fDiag) fDiag = new REAL[Rows()];
-	for(int ir=0; ir<Rows(); ir++) {
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::ComputeDiagonal() {
+	if(!fDiag) fDiag = new TVar[this->Rows()];
+	for(int ir=0; ir<this->Rows(); ir++) {
 		fDiag[ir] = GetVal(ir,ir);
 	}
 }
 
-
-void TPZSYsmpMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
-							  TPZFMatrix *residual, TPZFMatrix &scratch,
-							  const REAL overrelax, REAL &tol,
+template<class TVar>
+void TPZSYsmpMatrix<TVar>::SolveSOR( int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+							  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
+							  const TVar overrelax, TVar &tol,
 							  const int FromCurrent,const int direction )  {
 	
 	if(!fDiag) {
@@ -196,25 +201,25 @@ void TPZSYsmpMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMat
 		}
 		return;
 	}
-	int irStart = 0,irLast = Rows(),irInc = 1;
+	int irStart = 0,irLast = this->Rows(),irInc = 1;
 	if(direction < 0) {
-		irStart = Rows()-1;
+		irStart = this->Rows()-1;
 		irLast = -1;
 		irInc = -1;
 	}
 	if(!FromCurrent) x.Zero();
-	REAL eqres = 2.*tol;
-	REAL xnewval;
+	TVar eqres = 2.*tol;
+	TVar xnewval;
 	
 	int  iteration, ij, ic;
-	REAL xi;
+	TVar xi;
 	
 	for(iteration=0; iteration<numiterations && eqres >= tol; iteration++) {
 		eqres = 0.;
 		int ir=irStart;
 		if( irInc < 0 ) {
 			scratch = rhs;
-			for(ir=0; ir<Rows(); ir++) {
+			for(ir=0; ir<this->Rows(); ir++) {
 				xi = x(ir,0);
 				for(ic=fIA[ir]-1; ic<fIA[ir+1]-1; ic++) {
 					ij = fJA[ic]-1;

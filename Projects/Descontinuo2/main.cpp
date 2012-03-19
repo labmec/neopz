@@ -62,7 +62,7 @@ int gDebug;
 
 void InitialGuess(TPZVec<REAL> &x,TPZVec<REAL> &result){
 	// makes nothing
-	result.Resize(4 /*(2 dimensıes + rho + energy)*/);
+	result.Resize(4 /*(2 dimensƒ±es + rho + energy)*/);
 	result.Fill(0.);
 }
 
@@ -477,10 +477,10 @@ int run(std::istream & input, std::ostream & output)
 			}
 			TPZTransfer transfer;
 			cmesh->BuildTransferMatrix(tempmesh,transfer);
-			TPZFMatrix coarsesol = tempmesh.Solution();
+			TPZFMatrix<REAL> coarsesol = tempmesh.Solution();
 			coarsesol.Remodel(4,coarsesol.Rows()/4);
 			coarsesol.Transpose();
-			TPZFMatrix finesol;
+			TPZFMatrix<REAL> finesol;
 			transfer.Multiply(coarsesol,finesol,0,1);
 			finesol.Transpose();
 			finesol.Remodel(finesol.Rows()*finesol.Cols(),1);
@@ -549,14 +549,14 @@ int run(std::istream & input, std::ostream & output)
 	 TPZFStructMatrix StrMatrix(cmesh);
 	 An.SetStructuralMatrix(StrMatrix);
 	 
-	 TPZMatrix * mat = StrMatrix.Create();
+	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
 	 An.SetLinSysCriteria(1e-10, 10);
 	 An.SetNewtonCriteria(1e-10, 10);
 	 An.SetTimeIntCriteria(1e-10, MaxIter);
 	 
 	 TPZStepSolver Solver;
-	 Solver.SetDirect(ELU);// ECholesky -> simÈtrica e positiva definida
+	 Solver.SetDirect(ELU);// ECholesky -> sim√àtrica e positiva definida
 	 Solver.SetMatrix(mat);
 	 
 	 An.SetSolver(Solver);
@@ -568,7 +568,7 @@ int run(std::istream & input, std::ostream & output)
 	 //TPZFStructMatrix StrMatrix(cmesh);
 	 An.SetStructuralMatrix(StrMatrix);
 	 
-	 TPZMatrix * mat = StrMatrix.Create();
+	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
 	 An.SetLinSysCriteria(1e-8, 100);
 	 An.SetNewtonCriteria(1e-8, 8);
@@ -607,7 +607,7 @@ int run(std::istream & input, std::ostream & output)
 	 //TPZFStructMatrix StrMatrix(cmesh);
 	 An.SetStructuralMatrix(StrMatrix);
 	 
-	 TPZMatrix * mat = StrMatrix.Create();
+	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
 	 int numnewton = 4;
 	 REAL NewtonTol = 1.e-8;
@@ -665,7 +665,7 @@ int run(std::istream & input, std::ostream & output)
 	 TPZFStructMatrix StrMatrix(cmesh);
 	 An.SetStructuralMatrix(StrMatrix);
 	 
-	 TPZMatrix * mat = StrMatrix.Create();
+	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
 	 An.SetLinSysCriteria(1e-10, 1000);
 	 An.SetNewtonCriteria(1e-9, 10);
@@ -685,7 +685,7 @@ int run(std::istream & input, std::ostream & output)
 	 normal[0] = 1.;
 	 normal[1] = 1.e-5;
 	 //  ResequenceByGeometry(cmesh,normal);
-	 TPZFMatrix fillin(100,100);
+	 TPZFMatrix<REAL> fillin(100,100);
 	 cmesh->ComputeFillIn(100,fillin);
 	 VisualMatrix(fillin,"matrix.dx");
 	 
@@ -693,7 +693,7 @@ int run(std::istream & input, std::ostream & output)
 	 StrMatrix.SetQuiet(1);
 	 An.SetStructuralMatrix(StrMatrix);
 	 
-	 TPZMatrix * mat = NULL;//StrMatrix.CreateAssemble(An.Rhs());
+	 TPZMatrix<REAL> * mat = NULL;//StrMatrix.CreateAssemble(An.Rhs());
 	 
 	 int numnewton = 4;
 	 REAL NewtonTol = 1.e-8;

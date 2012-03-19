@@ -11,6 +11,7 @@
 /** @brief Id for MG solver */
 #define TPZMGSOLVER_ID 28291008
 
+template <class TVar>
 class TPZFMatrix;
 class TPZTransfer;
 
@@ -18,16 +19,17 @@ class TPZTransfer;
  * @ingroup solver
  * @brief Represents a solution process in three steps: transfer of the residual, execute a solver on the coarse mesh, extend the solution. \ref solver "Solver"
  */
-class TPZMGSolver: public TPZMatrixSolver
+template <class TVar>
+class TPZMGSolver: public TPZMatrixSolver<TVar>
 {
 public:
-	TPZMGSolver() : TPZMatrixSolver() {}
-	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver &sol,
-				int nvar, TPZAutoPointer<TPZMatrix> refmat);
-	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver &sol,
+	TPZMGSolver() : TPZMatrixSolver<TVar>() {}
+	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol,
+				int nvar, TPZAutoPointer<TPZMatrix<TVar> > refmat);
+	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar);
 	
-	TPZMGSolver(const TPZMGSolver & copy);
+	TPZMGSolver(const TPZMGSolver<TVar> & copy);
 	
 	~TPZMGSolver();
 	
@@ -37,12 +39,12 @@ public:
 	
 	TPZAutoPointer<TPZTransfer> TransferMatrix()
 	{
-		return fStep;
+		return this->fStep;
 	}
 	
-	TPZSolver * Clone() const;
+	TPZSolver<TVar> * Clone() const;
 	
-	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
 	
 	virtual int ClassId() const
 	{
@@ -53,7 +55,7 @@ public:
 	
 	
 private:
-	TPZMatrixSolver * fCoarse;
+	TPZMatrixSolver<TVar> * fCoarse;
 	int fNVar;
 	TPZAutoPointer<TPZTransfer> fStep;
 	//    TPZMatrixSolver::TPZContainer *fTransfer;

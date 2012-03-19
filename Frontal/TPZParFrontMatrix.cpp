@@ -76,7 +76,7 @@ TPZParFrontMatrix<store, front>::~TPZParFrontMatrix(){
 }
 
 template<class store, class front>
-void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & destinationindex)
+void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex)
 {
 	
 	// message #1.3 to fFront:TPZFront
@@ -120,7 +120,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > 
 	this->fDecomposed = this->fFront.GetDecomposeType();
 } 
 template<class store, class front>
-void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
+void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX

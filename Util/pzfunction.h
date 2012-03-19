@@ -32,11 +32,11 @@ public:
 	 * @param f function values
 	 * @param df function derivatives
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df) = 0;
+	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df) = 0;
 
     /** Versao do Execute recebendo axes. Utilizado em shape functions.
      */
-    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix &axes, TPZVec<REAL> &f, TPZFMatrix &df){
+    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
         DebugStop();
     }
     
@@ -104,14 +104,14 @@ public:
 	 * @param f function values
 	 * @param df function derivatives
 	 */
-	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df)
+	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df)
     {
         DebugStop();
     }
     
     /** Versao do Execute recebendo axes. Utilizado em shape functions.
      */
-    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix &axes, TPZVec<REAL> &f, TPZFMatrix &df){
+    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
         DebugStop();
     }
     

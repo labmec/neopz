@@ -19,13 +19,13 @@ TPZLinearConvection::TPZLinearConvection(int id, TPZVec<REAL>& conv) : TPZMateri
 }
 
 void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
-									   TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc) {
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -34,9 +34,9 @@ void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
 	
 	if(bc.Material().operator ->() != this){
@@ -101,7 +101,7 @@ TPZAutoPointer<TPZMaterial> TPZLinearConvection::NewMaterial() {
 	
 	return result;
 }
-void TPZLinearConvection::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,
+void TPZLinearConvection::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,
 								   TPZVec<REAL> &Solout){
 	if(var == 1) {
 		Solout.Resize(2);
@@ -128,13 +128,13 @@ int TPZLinearConvection::Dimension() {
     return 2;
 }
 void TPZLinearConvection::Contribute(TPZMaterialData &data, REAL weight,
-									 TPZFMatrix &ek,TPZFMatrix &ef) {
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -143,12 +143,12 @@ void TPZLinearConvection::Contribute(TPZMaterialData &data, REAL weight,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	TPZFMatrix &daxesdksi=data.jacinv;
-	TPZFMatrix &axes=data.axes;
+	TPZFMatrix<REAL> &daxesdksi=data.jacinv;
+	TPZFMatrix<REAL> &axes=data.axes;
 	
     REAL convectax[2];
     convectax[0] = fConvect[0]*axes(0,0)+fConvect[1]*axes(0,1);

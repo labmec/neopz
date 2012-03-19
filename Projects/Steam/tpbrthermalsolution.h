@@ -18,7 +18,7 @@ class TPBRThermalSolution
 {
 private:
 	/// Solution vector [C]
-	TPZFMatrix fSolution;
+	TPZFMatrix<REAL> fSolution;
 	/// Area associated with the thermal problem [m2]
 	REAL fArea; 
 	/// Energy associated with the solution [KJ]
@@ -50,13 +50,13 @@ public:
     }
     
 	/// Update the solution and associated energy
-	void UpdateSolution(TPZFMatrix &solution, REAL energy)
+	void UpdateSolution(TPZFMatrix<REAL> &solution, REAL energy)
 	{
 		fSolution = solution;
 		fEnergy = energy;
 	}
 	/// Access method to the solution
-	TPZFMatrix &Solution()
+	TPZFMatrix<REAL> &Solution()
 	{
 		return fSolution;
 	}

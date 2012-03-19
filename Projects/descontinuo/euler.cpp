@@ -328,7 +328,7 @@ void TestShapeDescontinous(){
   X[1] = 0.3;
   X[2] = 0.4;
   int degree = 3;
-  TPZFMatrix phi,dphi;
+  TPZFMatrix<REAL> phi,dphi;
   //  int const N=1;
   TPZShapeDisc::Shape1D(C[0],X0,X,degree,phi,dphi);
   phi.Print("Uni-dimensional",cout);
@@ -706,7 +706,7 @@ TPZMaterial *Hexaedro(int grau){
   //condi��es de contorno
   TPZBndCond *bc;
   //REAL big = 1.e12;
-  TPZFMatrix val1(5,5,0.),val2(5,1,0.);
+  TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
 
   //CC FACE 20: parede
   val1.Zero();
@@ -827,7 +827,7 @@ TPZMaterial *ProblemaT2D(int grau){
   //condi��es de contorno
   TPZBndCond *bc;
   //REAL big = 1.e12;
-  TPZFMatrix val1(4,4,0.),val2(4,1,0.);
+  TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
 
   //TYPE CC
   //0: Dirichlet
@@ -942,7 +942,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
   //condi��es de contorno
   TPZBndCond *bc;
   //REAL big = 1.e12;
-  TPZFMatrix val1(4,4),val2(4,1);
+  TPZFMatrix<REAL> val1(4,4),val2(4,1);
 
   //CC ARESTA INFERIOR
   val1.Zero();
@@ -1060,7 +1060,7 @@ TPZMaterial *TresTriangulos(int grau){
   cmesh->InsertMaterialObject(matauto);
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(4,4,0.),val2(4,1,0.);
+  TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
 
   //CC ARESTA INFERIOR: PAREDE
   val1.Zero();
@@ -1178,7 +1178,7 @@ TPZMaterial *TresPrismas(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(5,5,0.),val2(5,1,0.);
+  TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
 
   //CC parede
   val1.Zero();
@@ -1296,7 +1296,7 @@ TPZMaterial *FluxConst3D(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(5,5,0.),val2(5,1,0.);
+  TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
 
   //CC FACE: parede
   val1.Zero();
@@ -1384,7 +1384,7 @@ TPZMaterial *FluxConst2D(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(4,4),val2(4,1);
+  TPZFMatrix<REAL> val1(4,4),val2(4,1);
   REAL ro,u,v,vel2,p;
 
   //CC ARESTAS INFERIOR E SUPERIOR
@@ -1460,7 +1460,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(4,4),val2(4,1);
+  TPZFMatrix<REAL> val1(4,4),val2(4,1);
 
   //CC ARESTA INFERIOR : PAREDE
   val1.Zero();
@@ -1682,7 +1682,7 @@ TPZMaterial *NoveCubos(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(5,5,0.),val2(5,1,0.);
+  TPZFMatrix<REAL> val1(5,5,0.),val2(5,1,0.);
 
   //CC ARESTA INFERIOR : PAREDE
   val1.Zero();
@@ -1921,7 +1921,7 @@ TPZMaterial *Quadrado(int grau){
 
   //condi��es de contorno
   TPZBndCond *bc;
-  TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+  TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 
   //CC DE NEUMANN
 
@@ -1991,7 +1991,7 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //static TPZRefPattern linha2("linha2.in");//aresta mestre 2 sub-elementos*/
 
 //   if(0){
-//     TPZFMatrix TS(4,4,0.),D(4,4,0.),TI(4,4),mat(4,4,0.);
+//     TPZFMatrix<REAL> TS(4,4,0.),D(4,4,0.),TI(4,4),mat(4,4,0.);
 //     TS(0,0) = 1.0; TS(0,1) = 1.0; TS(0,2) = 2.0; TS(0,3) = 4.0;
 //     TS(1,1) = 1.0; TS(1,2) = 3.0; TS(1,3) = 5.0;
 //     TS(2,2) = 1.0; TS(2,3) = 6.0;
@@ -2017,7 +2017,7 @@ void SetDeltaTime(TPZMaterial *mat,TPZCompMesh *cmesh){
 //     solver.SetDirect(ELDLt);//ELU, ECholesky
 //     an.SetSolver(solver);
 //     an.Solver().SetMatrix(&mat);
-//     TPZFMatrix sol(4,1,0.),res(4,1,0.),anres(4,1,0.);
+//     TPZFMatrix<REAL> sol(4,1,0.),res(4,1,0.),anres(4,1,0.);
 //     sol(0,0) = 1.0;
 //     sol(1,0) = 1.0;
 //     sol(2,0) = 1.0;

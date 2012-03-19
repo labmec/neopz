@@ -6,8 +6,8 @@
 #include "pzvec.h"
 #include "pzreal.h"
 
-void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi);
-void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi);
+void ExemploElasticidade(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+void ExemploGenerico2D(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 
 using namespace pzshape;
 using namespace std;
@@ -26,7 +26,7 @@ int main() {
 	TPZVec<REAL> pt(2,0.);
 
 	// definir a matriz que ira armazenar as funcoes de forma e derivadas
-	TPZFMatrix phi(16,1),dphi(2,16);
+	TPZFMatrix<REAL> phi(16,1),dphi(2,16);
 
 	TPZFlopCounter::gCount.Print();
 	// calculo das funcoes de forma
@@ -48,7 +48,7 @@ int main() {
 
 }
 
-void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
+void ExemploElasticidade(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 
 	int i;
 	// definir um objeto tipo material elastico
@@ -72,15 +72,15 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	TPZVec<REAL> sol(nstate,0.);
 
 	// uma matriz com as derivadas da funcao no ponto
-	TPZFMatrix dsol(2,nstate,0.);
+	TPZFMatrix<REAL> dsol(2,nstate,0.);
 
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
-	TPZFMatrix axes(3,3,0.);
+	TPZFMatrix<REAL> axes(3,3,0.);
 	for(i=0; i<3; i++) axes(i,i)=1.;
-	TPZFMatrix jacinv(axes);
+	TPZFMatrix<REAL> jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
-	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
+	TPZFMatrix<REAL> ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
         TPZMaterialData data;
         data.x = x;
@@ -100,14 +100,14 @@ void ExemploElasticidade(TPZFMatrix &phi, TPZFMatrix &dphi) {
 
 }
 
-void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
+void ExemploGenerico2D(TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 
 	int i;
 	// definir um objeto tipo material elastico
 	TPZMat2dLin matexemplo(1);
 
 	// inicializar os dados do material
-	TPZFMatrix xk(1,1,1),xc(1,2,1.),xf(1,1,1.);
+	TPZFMatrix<REAL> xk(1,1,1),xc(1,2,1.),xf(1,1,1.);
 
 	matexemplo.SetMaterial(xk,xc,xf);
 
@@ -131,15 +131,15 @@ void ExemploGenerico2D(TPZFMatrix &phi, TPZFMatrix &dphi) {
 	TPZVec<REAL> sol(nstate,0.);
 
 	// uma matriz com as derivadas da funcao no ponto
-	TPZFMatrix dsol(2,nstate,0.);
+	TPZFMatrix<REAL> dsol(2,nstate,0.);
 
 	// uma matriz indicando os eixos correspondentes as derivadas da funcao
-	TPZFMatrix axes(3,3,0.);
+	TPZFMatrix<REAL> axes(3,3,0.);
 	for(i=0; i<3; i++) axes(i,i)=1.;
-	TPZFMatrix jacinv(axes);
+	TPZFMatrix<REAL> jacinv(axes);
 
 	// a matriz de rigidez e a matriz do vetor de carga
-	TPZFMatrix ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
+	TPZFMatrix<REAL> ek(nstate*nshape,nstate*nshape,0.),ef(nstate*nshape,1,0.);
 
         TPZMaterialData data;
         data.x = x;

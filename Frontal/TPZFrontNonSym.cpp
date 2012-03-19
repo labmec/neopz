@@ -161,9 +161,10 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
 	//eqnarray.SetNonSymmetric();
 	int i, ilocal;
 	ilocal = Local(ieq);
-	double diagonal=fabs(Element(ilocal,ilocal));
+
 #ifdef LOG4CXX
 	{
+       	double diagonal=fabs(Element(ilocal,ilocal));
 		std::stringstream sout;
 		sout<<" Valor da Diagonal ( " << ilocal<< ", "<< ilocal<< " ) = "<< diagonal<<std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
@@ -289,7 +290,7 @@ void TPZFrontNonSym::DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray)
     fDecomposeType=ELU;
 	//	PrintGlobal("After", output);
 }
-void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
+void TPZFrontNonSym::AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex)
 {
 	int i, j, ilocal, jlocal, nel;
 	nel=sourceindex.NElements();
@@ -305,7 +306,7 @@ void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec
 		}
 	}
 }
-void TPZFrontNonSym::AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex)
+void TPZFrontNonSym::AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &destinationindex)
 {
     int i, j, ilocal, jlocal, nel;
     nel = destinationindex.NElements();
@@ -435,7 +436,7 @@ void TPZFrontNonSym::main()
 	 * 	Populates data structure
 	 */
 	int matsize=6;
-	TPZFMatrix TestMatrix(matsize,matsize);
+	TPZFMatrix<REAL> TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
 		for(j=i;j<matsize;j++) {
 			int random = rand();
@@ -446,11 +447,11 @@ void TPZFrontNonSym::main()
 		}
 	}
 	
-	TPZFMatrix Prova;
+	TPZFMatrix<REAL> Prova;
 	Prova=TestMatrix;
 	
 	//	Prova.Decompose_Cholesky();
-	Prova.Print("TPZFMatrix Cholesky");
+	Prova.Print("TPZFMatrix<REAL> Cholesky");
 	
 	TPZFrontNonSym TestFront(matsize);
 	
@@ -490,7 +491,7 @@ void TPZFrontNonSym::main()
 	Result.Print("TestEQNArray.txt",outeqn);
 	
 	
-	TPZFMatrix Load(matsize);
+	TPZFMatrix<REAL> Load(matsize);
 	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
@@ -498,7 +499,7 @@ void TPZFrontNonSym::main()
 		Load(i,0)=rnd;
 	}
 	
-	TPZFMatrix Load_2(matsize);
+	TPZFMatrix<REAL> Load_2(matsize);
 	Load_2=Load;
 	
 	//	Prova.Subst_Forward(&Load);
@@ -524,7 +525,7 @@ std::string TPZFrontNonSym::GetMatrixType(){
 	return "Non symmetric matrix";
 }
 
-void TPZFrontNonSym::ExtractFrontMatrix(TPZFMatrix &front)
+void TPZFrontNonSym::ExtractFrontMatrix(TPZFMatrix<REAL> &front)
 {
 	// Extend the front with the non initialized rigid body modes
 	int ieq;

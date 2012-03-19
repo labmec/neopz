@@ -22,7 +22,7 @@ class TPZCheckRestraint {
 	/** @brief Computational element with side including fSmall */
 	TPZCompElSide fLarge;
 	/** @brief Restraints matrix */
-	TPZFMatrix fRestraint;
+	TPZFMatrix<REAL> fRestraint;
 	/** @brief Number of shape function corresponding to the connect associated with side of the small element */
 	TPZVec<int> fSmallSize;
 	TPZVec<int> fSmallPos;
@@ -41,7 +41,7 @@ public:
 	/** @brief Constructor with small and large element with commom side */
 	TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large);
 	/** @brief Returns the restraint matrix */
-	TPZFMatrix &RestraintMatrix();
+	TPZFMatrix<REAL> &RestraintMatrix();
 	
 	/** @brief Gets the shape functions over the sides of the small and large elements and check the matrix restraint making multiplication of matrizes */
 	int CheckRestraint();
@@ -58,7 +58,7 @@ private:
 	
 	void AddConnect(int connectindex);
 	
-	void AddDependency(int smallconnectid, int largeconnectid, TPZFMatrix &depend);
+	void AddDependency(int smallconnectid, int largeconnectid, TPZFMatrix<REAL> &depend);
 	
 };
 

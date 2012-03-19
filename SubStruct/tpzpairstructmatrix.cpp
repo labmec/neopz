@@ -38,7 +38,7 @@ TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permute
 	fNumThreads = gNumThreads;
 }
 
-void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs)
+void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs)
 {
 	int iel;
 	TPZCompMesh &mesh = *fMesh;
@@ -119,7 +119,7 @@ void TPZPairStructMatrix::PermuteScatter(TPZVec<int> &index)
 	}
 }
 
-void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs)
+void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs)
 {
 	std::cout << "Assembling the system of equations with " << fNumThreads << " threads\n";
 	if(fNumThreads <= 0)
@@ -133,7 +133,7 @@ void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMa
 	}
 }
 
-void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *first, TPZMatrix *second, TPZFMatrix &rhs)
+void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<REAL> *first, TPZMatrix<REAL> *second, TPZFMatrix<REAL> &rhs)
 {
 	ThreadData threaddata(*fMesh,*first,*second,rhs,mineq,maxeq);
 	threaddata.fPermuteScatter = fPermuteScatter;
@@ -157,8 +157,8 @@ void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix *
 	}
 }
 
-TPZPairStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat1, TPZMatrix &mat2, 
-											TPZFMatrix &rhs, int mineq, int maxeq)
+TPZPairStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix<REAL> &mat1, TPZMatrix<REAL> &mat2, 
+											TPZFMatrix<REAL> &rhs, int mineq, int maxeq)
 : fMesh(&mesh), 
 fGlobMatrix1(&mat1), fGlobMatrix2(&mat2), fGlobRhs(&rhs),
 fMinEq(mineq), fMaxEq(maxeq),fNextElement(0)

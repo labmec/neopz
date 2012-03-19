@@ -72,8 +72,8 @@ namespace pzshape {
 		 * These values depend on the point, the order of interpolation and ids of the corner points
 		 * The shapefunction computation uses the shape functions of the linear and quadrilateral element for its implementation
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi, TMem &memory);
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, TMem &memory);
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		
 		/**
@@ -82,7 +82,7 @@ namespace pzshape {
 		 * @param phi (output) value of the (8) shape functions
 		 * @param dphi (output) value of the derivatives of the (8) shape functions holding the derivatives in a column
 		 */
-		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
@@ -130,13 +130,13 @@ namespace pzshape {
 		 * Shape3dCubeInternal is basically a call to the orthogonal shapefunction with the transformation
 		 * determined by the transformation index
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-								  TPZFMatrix &dphi);//,int quad_transformation_index
+		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+								  TPZFMatrix<REAL> &dphi);//,int quad_transformation_index
 
 	};
 	
 	template<class TFather>
-	inline void SPr<TFather>::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &shape,TPZFMatrix &dshape, TMem &mem)
+	inline void SPr<TFather>::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &shape,TPZFMatrix<REAL> &dshape, TMem &mem)
 	{
 		if(!mem.IsInitialized())
 		{
@@ -222,7 +222,7 @@ namespace pzshape {
 	 * Computes the corner shape functions for a hexahedral element
 	 */
 	template<class TFather>
-    inline void SPr<TFather>::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+    inline void SPr<TFather>::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		TPZManVector<REAL,FatTop::NCornerNodes> phifather;
 		TPZFNMatrix<TFather::TOP::Dimension*TFather::TOP::NCornerNodes> dphifather(FatTop::Dimension,FatTop::NCornerNodes);

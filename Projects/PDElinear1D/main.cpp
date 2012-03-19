@@ -77,7 +77,7 @@ void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &xfloat)
 }
 
 // Exact Solution u(x)
-void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix &du_exact)
+void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact)
 {
 	double x=pto[0];
 	//	double y=pto[1];
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 			cmesh->Print(arg2);
 			
 			// Print Solution			
-			TPZFMatrix toprint = an.Solution();
+			TPZFMatrix<REAL> toprint = an.Solution();
 			toprint.Print("Solution", file);
 			
 			
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 			//				TPZCompEl * cel = cmesh->ElementVec()[i];
 			//				TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
 			//				TPZVec<REAL> qsi(1,0.), sol(1,0.), outfem(1,0.);
-			//				TPZFMatrix axes(1,3,0.), dsol(1,1,0.);
+			//				TPZFMatrix<REAL> axes(1,3,0.), dsol(1,1,0.);
 			//				if(i != 0) std::cout << ",";
 			//				for(int j = 0; j < 11; j++)
 			//				{
@@ -243,10 +243,10 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	TPZMat1dLin *material;
 	material = new TPZMat1dLin(matId); 
 	
-	TPZFMatrix xkin(1,1,1.0);
-	TPZFMatrix xcin(1,1,0.0);
-	TPZFMatrix xbin(1,1,1.0);
-	TPZFMatrix xfin(1,1,0.0);
+	TPZFMatrix<REAL> xkin(1,1,1.0);
+	TPZFMatrix<REAL> xcin(1,1,0.0);
+	TPZFMatrix<REAL> xbin(1,1,1.0);
+	TPZFMatrix<REAL> xfin(1,1,0.0);
 	
 	material->SetMaterial(xkin,xcin,xbin,xfin);
 	
@@ -273,11 +273,11 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	///Inserir condicao de contorno
 	REAL uD=0.;
 //	REAL uN=1-cosh(1.)/sinh(1.);
-	TPZFMatrix val1(1,1,0.), val2(1,1,uD);
+	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,uD);
 	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
-	TPZFMatrix val12(1,1,0.), val22(1,1,uD);
+	TPZFMatrix<REAL> val12(1,1,0.), val22(1,1,uD);
 	TPZAutoPointer<TPZMaterial> BCond2 = material->CreateBC(mat, bc2,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCond2);
 	
@@ -299,7 +299,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	// Caso simetrico	
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico	
 	an.SetStructuralMatrix(full);
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	an.SetSolver(step);
 	an.Run();

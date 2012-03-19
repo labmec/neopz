@@ -215,7 +215,7 @@ TPZGeoMesh * MalhaGeoT(const int h);
 /**
  *Matrix de rotacao
  */
-TPZFMatrix MatrixR(REAL ang);
+TPZFMatrix<REAL> MatrixR(REAL ang);
 
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	/*	double x = pt[0];
@@ -228,7 +228,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		return;
 }
 
-void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix &flux ) {
+void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
@@ -345,7 +345,7 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		TPZVec<TPZGeoNode> Node(Qnodes);
 		
 		//indice dos nos
-		TPZFMatrix mA(2,6,0.), mR(2,2), mRA(2,9);
+		TPZFMatrix<REAL> mA(2,6,0.), mR(2,2), mRA(2,9);
 	
 	/*	
 		mA.Put(0,0,0.); mA.Put(1,0,0.);//(0,0)      
@@ -502,9 +502,9 @@ TPZGeoMesh *MalhaGeoGen(int h, REAL &anglo)
 		return gMesh;	
 }
 
-TPZFMatrix MatrixR(REAL ang)
+TPZFMatrix<REAL> MatrixR(REAL ang)
 {
-		TPZFMatrix r(2,2,0.);
+		TPZFMatrix<REAL> r(2,2,0.);
 		r(0,0) = cos(ang); r(0,1) = -sin(ang);
 		r(1,0) = sin(ang);	r(1,1) =  cos(ang);
 		
@@ -565,7 +565,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		mat1->SetForcingFunctionExact(SolExata);
 		mat2->SetForcingFunctionExact(SolExata);
 		
-		TPZFMatrix k(1,1,0.),f(1,1,0.);
+		TPZFMatrix<REAL> k(1,1,0.),f(1,1,0.);
 		//k(0,0)=BIG;
 		//	k(1,1)=BIG;
 		
@@ -576,7 +576,7 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 			//condicoes em omega2
 		TPZMaterial *bnd3 =  automat2->CreateBC(automat2, mat2BC1, dirichlet,k,f);
-		//TPZFMatrix k2(1,1,0.),f2(1,1,1.);
+		//TPZFMatrix<REAL> k2(1,1,0.),f2(1,1,1.);
 		TPZMaterial *bnd4 =  automat2->CreateBC(automat2, mat2BC2, dirichlet,k,f);
 		TPZMaterial *bnd5 =  automat2->CreateBC(automat2, mat2BC3, dirichlet,k,f);
 		
@@ -697,7 +697,7 @@ void SolveLU ( TPZAnalysis &an ){
 	//	TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
 		TPZFStructMatrix mat( malha );
 		//	TPZSpStructMatrix mat( malha );
-		TPZStepSolver solv;
+		TPZStepSolver<REAL> solv;
 		
 		solv.SetDirect ( ELU );
 		//		solv.SetDirect(ECholesky);

@@ -13,7 +13,7 @@
 
 #include "tpzdohrassemblelist.h"
 
-TPZDohrAssembleList::TPZDohrAssembleList(int numitems, TPZFMatrix &output, TPZAutoPointer<TPZDohrAssembly> assembly) : fNumItems(numitems),
+TPZDohrAssembleList::TPZDohrAssembleList(int numitems, TPZFMatrix<REAL> &output, TPZAutoPointer<TPZDohrAssembly> assembly) : fNumItems(numitems),
 fAssembleIndexes(assembly), fOutput(&output)
 {
 	/*

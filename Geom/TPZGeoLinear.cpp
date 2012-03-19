@@ -20,7 +20,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoLinear::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		REAL x = pt[0];
 		phi(0,0) = (1-x)/2.;
 		phi(1,0) = (1+x)/2.;
@@ -67,8 +67,8 @@ namespace pzgeom {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
 	
-    void TPZGeoLinear::Jacobian(TPZFMatrix &coord,TPZVec<REAL> &param,TPZFMatrix &jacobian,
-								TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) {
+    void TPZGeoLinear::Jacobian(TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+								TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
         
         //VERSAO FUNCIONAL
         jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);

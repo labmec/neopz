@@ -31,8 +31,8 @@ public:
 		 * method to possibilite the coupling between H(div) and H1  
 		 */
 		virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright, 
-                                         REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
-		virtual void ContributeInterface2(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
+                                         REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
+		virtual void ContributeInterface2(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
     virtual void InitMaterialData(TPZMaterialData &data);		
 		
 		virtual ~TPZMaterialCoupling();

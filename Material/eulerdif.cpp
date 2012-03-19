@@ -40,7 +40,7 @@ void TEulerDiffusivity::Flux(TPZVec<REAL> &U,TPZVec<REAL> &flux) {
 	flux[7] = (U[2]/U[0])*(U[3] + pressao);
 }
 
-void TEulerDiffusivity::JacobFlux(TPZVec<REAL> &U,TPZFMatrix &Ajacob,TPZFMatrix &Bjacob) {
+void TEulerDiffusivity::JacobFlux(TPZVec<REAL> &U,TPZFMatrix<REAL> &Ajacob,TPZFMatrix<REAL> &Bjacob) {
 	if(U[0] > -1.e-6 && U[0] < 1.e-6) {
 		cout << "\nERRO : Densidade NULA. Falla jacobiano.\n";
 		exit(1);
@@ -74,7 +74,7 @@ void TEulerDiffusivity::JacobFlux(TPZVec<REAL> &U,TPZFMatrix &Ajacob,TPZFMatrix 
 	Bjacob(3,0) = (aux-(fGamma*ener))*vely;
 }
 
-void TEulerDiffusivity::ValJacobFlux(TPZVec<REAL> &U,TPZFMatrix &valjacob,TPZVec<REAL> &normal) {
+void TEulerDiffusivity::ValJacobFlux(TPZVec<REAL> &U,TPZFMatrix<REAL> &valjacob,TPZVec<REAL> &normal) {
 	valjacob.Zero();
 	REAL rho = U[0];
 	REAL vx, vy, /*lambda,*/ cval, cval2, u, kt, st, aa, bb;
@@ -111,7 +111,7 @@ void TEulerDiffusivity::ValJacobFlux(TPZVec<REAL> &U,TPZFMatrix &valjacob,TPZVec
 	REAL aabbnorm2 = aa*aa+bb*bb;
 	REAL aabbnorm = sqrt(aabbnorm2);
 	//Para o computo da matrix direita
-	TPZFMatrix right(4,4);
+	TPZFMatrix<REAL> right(4,4);
 	TPZVec<REAL> diag(4);
 	REAL aascal = aa/aabbnorm;
 	REAL bbscal = bb/aabbnorm;
@@ -136,7 +136,7 @@ void TEulerDiffusivity::ValJacobFlux(TPZVec<REAL> &U,TPZFMatrix &valjacob,TPZVec
 	right(3,3) = gM1/2.;
 	
 	//matriz esquerda RtQX*val(autovalores)
-	TPZFMatrix left(4,4);
+	TPZFMatrix<REAL> left(4,4);
 	left(0,0) = 0.;
 	left(0,1) = 1.;
 	left(0,2) = 1/cval2;
@@ -179,7 +179,7 @@ void TEulerDiffusivity::ValJacobFlux(TPZVec<REAL> &U,TPZFMatrix &valjacob,TPZVec
 }
 
 //Dada uma matrix da forma {{0,a,b,x},{c,d,e,f},{g,h,i,j},{k,l,m,n}} retorna a inversa dela
-void TEulerDiffusivity::InverseJacob(TPZFMatrix &jac) {
+void TEulerDiffusivity::InverseJacob(TPZFMatrix<REAL> &jac) {
 	REAL a=jac.GetVal(0,0), b=jac.GetVal(0,1), c=jac.GetVal(0,2), d=jac.GetVal(0,3);
 	REAL e=jac.GetVal(1,0), f=jac.GetVal(1,1), g=jac.GetVal(1,2), h=jac.GetVal(1,3);
 	REAL i=jac.GetVal(2,0), j=jac.GetVal(2,1), k=jac.GetVal(2,2), l=jac.GetVal(2,3);
@@ -215,7 +215,7 @@ void TEulerDiffusivity::InverseJacob(TPZFMatrix &jac) {
 	jac(3,3) = (-det)*(i*CFBG+e*BKCJ+a*GJFK);
 }
 
-void TEulerDiffusivity::InvJacob2d(TPZFMatrix &axes,TPZFMatrix &jacinv) {
+void TEulerDiffusivity::InvJacob2d(TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &jacinv) {
 	
 	REAL tmp[2][2];
 	// d(ksi) / dx
@@ -232,10 +232,10 @@ void TEulerDiffusivity::InvJacob2d(TPZFMatrix &axes,TPZFMatrix &jacinv) {
 	jacinv(1,0) = tmp[1][0];
 	jacinv(1,1) = tmp[1][1];
 }
-
-void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix &axes, TPZFMatrix &jacinv,
-								   TPZFMatrix &ATauA,TPZFMatrix &ATauB,TPZFMatrix &BTauA,
-								   TPZFMatrix &BTauB) {
+	
+void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &jacinv,
+								   TPZFMatrix<REAL> &ATauA,TPZFMatrix<REAL> &ATauB,TPZFMatrix<REAL> &BTauA,
+								   TPZFMatrix<REAL> &BTauB) {
 	
 	//Computando o jacobiano da transformacao do elemento mestre ao elemento triangular
 	InvJacob2d(axes,jacinv);
@@ -244,10 +244,10 @@ void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix &axes, TPZFMatri
 	// Vetor de coeficientes dos jacobianos (alfa,beta) onde alfa*B+beta*B
 	TPZVec<REAL> Beta(2);
 	
-	TPZFMatrix Ajacob(4,4);
-	TPZFMatrix Bjacob(4,4);
-	TPZFMatrix valjacob(4,4);
-	TPZFMatrix invvaljacob(4,4,0.);
+	TPZFMatrix<REAL> Ajacob(4,4);
+	TPZFMatrix<REAL> Bjacob(4,4);
+	TPZFMatrix<REAL> valjacob(4,4);
+	TPZFMatrix<REAL> invvaljacob(4,4,0.);
 	
 	JacobFlux(sol,Ajacob,Bjacob);
 	
@@ -285,7 +285,7 @@ void TEulerDiffusivity::MatrixDiff(TPZVec<REAL> &sol,TPZFMatrix &axes, TPZFMatri
 	}
 }
 
-void TEulerDiffusivity::JacobFlux(TPZVec<REAL> &U,TPZFMatrix &jacob,TPZVec<REAL>
+void TEulerDiffusivity::JacobFlux(TPZVec<REAL> &U,TPZFMatrix<REAL> &jacob,TPZVec<REAL>
 								  &normal) {
 	
 	REAL velx, vely, ener, aux, gammam1 = fGamma-1.;
@@ -325,9 +325,9 @@ int TEulerDiffusivity::main() {
 	TPZVec<REAL> normal(2);
 	normal[0] = 0.5;
 	normal[1] = sqrt(.75);
-	TPZFMatrix A(4,4);
-	TPZFMatrix B(4,4);
-	TPZFMatrix jacob(4,4);
+	TPZFMatrix<REAL> A(4,4);
+	TPZFMatrix<REAL> B(4,4);
+	TPZFMatrix<REAL> jacob(4,4);
 	eul.JacobFlux(U,A,B);
 	eul.JacobFlux(U,jacob,normal);
 	A *= normal[0];
@@ -339,7 +339,7 @@ int TEulerDiffusivity::main() {
 	
 	eul.ValJacobFlux(U,jacob,normal);
 	jacob.Print("ValJacob");
-	TPZFMatrix axes(3,3,0.),jacinv(2,2,0.), ATA(4,4), ATB(4,4), BTA(4,4),BTB(4,4);
+	TPZFMatrix<REAL> axes(3,3,0.),jacinv(2,2,0.), ATA(4,4), ATB(4,4), BTA(4,4),BTB(4,4);
 	axes(0,0)=1.5; axes(0,1)=2.3; axes(1,0)=.1; axes(1,1)=-1.9;
 	jacinv(0,0) = 1.3;jacinv(0,1) = -2.4;jacinv(1,0)=3.5;jacinv(1,1)=5.2;
 	eul.MatrixDiff(U,axes,jacinv,ATA,ATB,BTA,BTB);

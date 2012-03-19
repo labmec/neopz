@@ -13,16 +13,18 @@ ConvTest::~ConvTest()
 {
 }
 
+#include "pzgeoel.h"
+
 /**Avaliate the Jacobian by Obtained Convergence Order*/
 void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 {
 	TPZVec< REAL > Out(3,0.);
 	if(Object.Dimension() == 1)
 	{
-		TPZFMatrix jacobian(1,1);
-		TPZFMatrix Axes(1,3);
+		TPZFMatrix<REAL> jacobian(1,1);
+		TPZFMatrix<REAL> Axes(1,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(1,1);
+		TPZFMatrix<REAL> InvJac(1,1);
 		TPZVec< REAL > QsiEtaIni(1);
 		QsiEtaIni[0] = StartPoint[0];
 		const double deltaQsi = 0.1;
@@ -32,7 +34,7 @@ void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 		std::cout << "deltaQsi = const = " << deltaQsi << "\n\n";
 		
 		TPZVec< REAL > OutAprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		double dX, dY, dZ;
 		
 		Object.Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
@@ -83,10 +85,10 @@ void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 	
 	if(Object.Dimension() == 2)
 	{
-		TPZFMatrix jacobian(2,2);
-		TPZFMatrix Axes(2,3);
+		TPZFMatrix<REAL> jacobian(2,2);
+		TPZFMatrix<REAL> Axes(2,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(2,2);
+		TPZFMatrix<REAL> InvJac(2,2);
 		TPZVec< REAL > QsiEtaIni(2);
 		QsiEtaIni[0] = StartPoint[0];
 		QsiEtaIni[1] = StartPoint[1];
@@ -98,7 +100,7 @@ void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 		std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << "\n\n";
 		
 		TPZVec< REAL > OutAprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		double dX, dY, dZ;
 		
 		Object.Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
@@ -149,10 +151,10 @@ void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 	
 	if(Object.Dimension() == 3)
 	{
-		TPZFMatrix jacobian(3,3);
-		TPZFMatrix Axes(3,3);
+		TPZFMatrix<REAL> jacobian(3,3);
+		TPZFMatrix<REAL> Axes(3,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(3,3);
+		TPZFMatrix<REAL> InvJac(3,3);
 		TPZVec< REAL > QsiEtaIni(3);
 		QsiEtaIni[0] = StartPoint[0];
 		QsiEtaIni[1] = StartPoint[1];
@@ -166,7 +168,7 @@ void ConvTest::JacobianConv(TPZGeoEl &Object, TPZVec< REAL > StartPoint)
 		std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << " | deltaZeta = const = " << deltaZeta <<"\n\n";
 		
 		TPZVec< REAL > OutAprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		double dX, dY, dZ;
 		
 		Object.Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
@@ -228,10 +230,10 @@ void ConvTest::JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint)
 	TPZVec< REAL > Out(3,0.);
 	if(Object.Dimension() == 1)
 	{
-		TPZFMatrix jacobian(1,1);
-		TPZFMatrix Axes(1,3);
+		TPZFMatrix<REAL> jacobian(1,1);
+		TPZFMatrix<REAL> Axes(1,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(1,1);
+		TPZFMatrix<REAL> InvJac(1,1);
 		TPZVec< REAL > QsiEtaIni(1);
 		QsiEtaIni[0] = StartPoint[0];
 		const double deltaQsi = 0.1;
@@ -241,7 +243,7 @@ void ConvTest::JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint)
 		std::cout << "deltaQsi = const = " << deltaQsi << "\n\n";
 		
 		TPZVec< REAL > OutAprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		double dX, dY, dZ;
 		
 		Object.Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);
@@ -292,10 +294,10 @@ void ConvTest::JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint)
 	
 	if(Object.Dimension() == 2)
 	{
-		TPZFMatrix jacobian(2,2);
-		TPZFMatrix Axes(2,3);
+		TPZFMatrix<REAL> jacobian(2,2);
+		TPZFMatrix<REAL> Axes(2,3);
 		REAL detJacobian;
-		TPZFMatrix InvJac(2,2);
+		TPZFMatrix<REAL> InvJac(2,2);
 		TPZVec< REAL > QsiEtaIni(2);
 		QsiEtaIni[0] = StartPoint[0];
 		QsiEtaIni[1] = StartPoint[1];
@@ -307,7 +309,7 @@ void ConvTest::JacobianConv(TPZGeoElSide &Object, TPZVec< REAL > StartPoint)
 		std::cout << "deltaQsi = const = " << deltaQsi << " | deltaEta = const = " << deltaEta << "\n\n";
 		
 		TPZVec< REAL > OutAprox(3);
-		TPZFMatrix error(11,1,0.);
+		TPZFMatrix<REAL> error(11,1,0.);
 		double dX, dY, dZ;
 		
 		Object.Jacobian(QsiEtaIni,jacobian,Axes,detJacobian,InvJac);

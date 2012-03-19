@@ -37,13 +37,13 @@ struct TPZElementMatrix {
 	/** @brief Pointer to a blocked matrix object*/
 	TPZFNMatrix<1000>	fMat;
 	/** @brief Block structure associated with fMat*/
-	TPZBlock	       fBlock;
+	TPZBlock<REAL>	       fBlock;
 	/** @brief Vector of all nodes connected to the element*/
 	TPZStack<int>	fConstrConnect;
 	/** @brief Pointer to the constrained matrix object*/
 	TPZFNMatrix<1000>		fConstrMat;
 	/** @brief Block structure associated with fConstrMat*/
-	TPZBlock		fConstrBlock;
+	TPZBlock<REAL>		fConstrBlock;
 	
 	TPZManVector<int> fDestinationIndex, fSourceIndex;
 	

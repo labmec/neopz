@@ -50,7 +50,7 @@ static LoggerPtr logger(Logger::getLogger("Steklov.main"));
 
 
 
-void ValFunction(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
+void ValFunction(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType);
 TPZGeoMesh * MalhaGeo(const int h);
 TPZGeoMesh * MalhaGeoT(const int h);
 TPZGeoMesh * MalhaGeo2(const int h);
@@ -176,12 +176,12 @@ int main()
 			if(submeshindex >= 0) cmesh->ElementVec()[submeshindex] = 0;
 
 			 
-			TPZFMatrix rhs;//matriz cheia
+			TPZFMatrix<REAL> rhs;//matriz cheia
 			// this will be the matrix with only the boundary condition
 			
 			TPZAutoPointer<TPZGuiInterface> guiInter = new TPZGuiInterface;
 			
-			TPZAutoPointer<TPZMatrix> A = str.CreateAssemble(rhs,guiInter);
+			TPZAutoPointer<TPZMatrix<REAL> > A = str.CreateAssemble(rhs,guiInter);
 			
 			
 			
@@ -198,7 +198,7 @@ int main()
 			}			
 			 
 			
-			TPZAutoPointer<TPZMatrix> B = str.CreateAssemble(rhs,guiInter);
+			TPZAutoPointer<TPZMatrix<REAL> > B = str.CreateAssemble(rhs,guiInter);
 			
 			{
 				
@@ -235,7 +235,7 @@ int main()
 	 int autovecsize = cmesh->Solution().Rows();
 	 
 	 
-	 TPZFMatrix autovec(autovecsize,1,0.);
+	 TPZFMatrix<REAL> autovec(autovecsize,1,0.);
 	 ifstream file;
 	 file.open("Autovec.txt");
 	 float vec;
@@ -282,7 +282,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	
 	
 	// Condicoes de contorno
-	TPZFMatrix val1(1,1,1.),val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,1.),val2(1,1,0.);
 	
 	TPZMaterial *bnd = automat->CreateBC (automat,-1,2,val1,val2);//misto tbem
 	comp->InsertMaterialObject(bnd);
@@ -372,7 +372,7 @@ int SubStructure(TPZCompMesh *cmesh, int materialid)
 }
 
 
-void ValFunction(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType)
+void ValFunction(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType)
 {
 	BCType = 2;
 	Val1.Redim(1, 1);

@@ -22,7 +22,7 @@ template<class TSHAPE>
 class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	
 	/** @brief Method to append vectors */
-	void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
+	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
@@ -125,10 +125,10 @@ public:
 	//	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexShapeToVec);
 	
 	/** @brief Compute the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Compute the shape function at the integration point */
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	/** @brief Returns a matrix index of the shape and vector  associate to element*/
 	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);

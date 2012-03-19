@@ -106,7 +106,7 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
-													   TPZGradSolVec&dsol, TPZFMatrix &axes)
+													   TPZGradSolVec&dsol, TPZFMatrix<REAL> &axes)
 {
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
@@ -134,7 +134,7 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
-													   TPZGradSolVec&dsol, const TPZFMatrix &axes)
+													   TPZGradSolVec&dsol, const TPZFMatrix<REAL> &axes)
 {
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
@@ -163,8 +163,8 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
                                                        TPZVec<REAL> &normal,
-                                                       TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
-                                                       TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+                                                       TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+                                                       TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
@@ -226,9 +226,9 @@ void TPZReferredCompEl< TCOMPEL >::SetCreateFunctions(TPZCompMesh *mesh){
 
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
-                                                   TPZFMatrix &phi,
-                                                   TPZFMatrix &dphix,
-                                                   const TPZFMatrix &axes,
+                                                   TPZFMatrix<REAL> &phi,
+                                                   TPZFMatrix<REAL> &dphix,
+                                                   const TPZFMatrix<REAL> &axes,
                                                    TPZSolVec &sol,
                                                    TPZGradSolVec &dsol){
 	TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
@@ -239,14 +239,14 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 template< class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZVec<REAL> &normal,
-                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
-                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 	this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
-void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
-                               TPZFMatrix &dsolto, const TPZFMatrix &axesto)
+void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
+                               TPZFMatrix<REAL> &dsolto, const TPZFMatrix<REAL> &axesto)
 {
 	TPZFNMatrix<9> axesinner, axesfromlocal;
 	axesfrom.Transpose(&axesfromlocal);
@@ -281,7 +281,7 @@ void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12)
 	for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
 }
 
-void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12)
+void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12)
 {
 	int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
 	int ru12 = ru1 < ru2 ? ru2 : ru1;

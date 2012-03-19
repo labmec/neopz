@@ -100,7 +100,7 @@ int TPZSubCompMesh::main() {
 	TPZVec<int> skyline;
 	
 	// Insert the boundary conditions
-	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
 	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
@@ -140,11 +140,11 @@ int TPZSubCompMesh::main() {
 	
 	//	mesh.Print(output);
 	output.flush();
-	//	TPZFMatrix *rhs = new TPZFMatrix(skyline);
+	//	TPZFMatrix<REAL> *rhs = new TPZFMatrix(skyline);
 	TPZSkylineStructMatrix strskyl(&mesh);
 	an.SetStructuralMatrix(strskyl);
 	an.Solution().Zero();
-	TPZStepSolver sol;
+	TPZStepSolver<REAL> sol;
 	//	sol.ShareMatrix(an.Solver());
 	sol.SetDirect(ELDLt);
 	an.SetSolver(sol);
@@ -809,8 +809,8 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	
 	
-	TPZBlock &block = Mesh()->Block();
-	//	TPZFMatrix &MeshSol = Mesh()->Solution();
+	TPZBlock<REAL> &block = Mesh()->Block();
+	//	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	
 	//	int nmeshnodes = fConnectVec.NElements();
@@ -957,7 +957,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	if (! fAnalysis){
 		TPZFStructMatrix local(this);
-		TPZAutoPointer<TPZMatrix> stiff = local.CreateAssemble(ef.fMat,NULL);
+		TPZAutoPointer<TPZMatrix<REAL> > stiff = local.CreateAssemble(ef.fMat,NULL);
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
@@ -1030,17 +1030,17 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 	
 	str->SetNumThreads(numThreads);
-    TPZAutoPointer<TPZMatrix> mat = str->Create();
-    TPZAutoPointer<TPZMatrix> mat2 = mat->Clone();
+    TPZAutoPointer<TPZMatrix<REAL> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<REAL> > mat2 = mat->Clone();
 	
 	fAnalysis->SetStructuralMatrix(str);
-	TPZStepSolver *step = new TPZStepSolver(mat);
-    TPZStepSolver *gmrs = new TPZStepSolver(mat2);
+	TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(mat);
+    TPZStepSolver<REAL> *gmrs = new TPZStepSolver<REAL>(mat2);
     step->SetReferenceMatrix(mat2);
 	step->SetDirect(ELDLt);
     gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
-	TPZAutoPointer<TPZMatrixSolver> autostep = step;
-    TPZAutoPointer<TPZMatrixSolver> autogmres = gmrs;
+	TPZAutoPointer<TPZMatrixSolver<REAL> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<REAL> > autogmres = gmrs;
     if(preconditioned)
     {
         fAnalysis->SetSolver(autogmres);
@@ -1052,7 +1052,7 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 #ifdef DEBUG 
 	{
-		TPZFMatrix fillin;
+		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
 		ComputeFillIn(resolution,fillin);		
 #ifdef USING_BOOST
@@ -1073,7 +1073,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	
 #ifdef DEBUG
 	{
-		TPZFMatrix fillin;
+		TPZFMatrix<REAL> fillin;
 		int resolution = 100;
 		ComputeFillIn(resolution,fillin);		
 #ifdef USING_BOOST
@@ -1098,7 +1098,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	fstr->SetNumThreads(numThreads);
 	fAnalysis->SetStructuralMatrix(fstr);
 	
-	TPZStepSolver solver;
+	TPZStepSolver<REAL> solver;
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
@@ -1313,7 +1313,7 @@ void TPZSubCompMesh::LoadSolution() {
 	int seqnumint;
 	//	int numinteq = NumInternalEquations();
 	int size;
-	TPZFMatrix &sol = Mesh()->Solution();
+	TPZFMatrix<REAL> &sol = Mesh()->Solution();
 	
 	for (i=0;i<fConnectVec.NElements(); i++) {
 		if (fExternalLocIndex[i] != -1) {
@@ -1435,19 +1435,19 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
 }
 
 void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
-                                     TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
+                                     TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
 }
 
-void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-									 const TPZFMatrix &axes,  TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+									 const TPZFMatrix<REAL> &axes,  TPZSolVec &sol, TPZGradSolVec &dsol){
 	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
 }
 
 void TPZSubCompMesh::ComputeSolution(TPZVec<REAL> &qsi,
 									 TPZVec<REAL> &normal,
-									 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-									 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+									 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+									 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	PZError << __PRETTY_FUNCTION__ << " - ERROR! This method is not implemented\n";
 }
 

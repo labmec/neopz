@@ -278,7 +278,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	
 
 	///Inserir condicao de contorno
-	TPZFMatrix val1(1,1,0.), val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> BCond = material->CreateBC(mat, bc0,0, val1, val2);
 	cmesh->InsertMaterialObject(BCond);
 	

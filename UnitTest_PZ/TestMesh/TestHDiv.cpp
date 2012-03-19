@@ -358,18 +358,18 @@ int CompareShapeFunctions(TPZCompElSide celsideA, TPZCompElSide celsideB)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix> L2, TPZFMatrix &inner);
+static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<REAL> > L2, TPZFMatrix<REAL> &inner);
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix &multiplier);
+static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &multiplier);
 
 /// verify if the divergence of each vector function is included in the pressure space
 static void CheckDRham(TPZInterpolatedElement *intel)
 {
-    TPZFMatrix inner, multiplier;
-    TPZAutoPointer<TPZMatrix> L2 = new TPZFMatrix;
+    TPZFMatrix<REAL> inner, multiplier;
+    TPZAutoPointer<TPZMatrix<REAL> > L2 = new TPZFMatrix<REAL>;
     GenerateProjectionMatrix(intel, L2, inner);
-    TPZStepSolver step(L2);
+    TPZStepSolver<REAL> step(L2);
     step.SetDirect(ELU);
     step.Solve(inner,multiplier);
     int nwrong = 0;
@@ -384,7 +384,7 @@ static void CheckDRham(TPZInterpolatedElement *intel)
 }
 
 /// Generate the L2 matrix of the pressure space and the inner product of the divergence and the pressure shape functions
-static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix> L2, TPZFMatrix &inner)
+static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPointer<TPZMatrix<REAL> > L2, TPZFMatrix<REAL> &inner)
 {
     TPZMaterialData dataA;
     intel->InitMaterialData(dataA);
@@ -432,7 +432,7 @@ static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPoint
 }
 
 /// Given the multiplier coefficients of the pressure space, verify the correspondence of the divergence of the vector function and the L2 projection
-static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix &multiplier)
+static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &multiplier)
 {
     TPZMaterialData dataA;
     intel->InitMaterialData(dataA);

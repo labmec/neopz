@@ -16,7 +16,7 @@
 #include <fstream>
 using namespace std;
 
-TPZMatOrthotropic::TPZMatOrthotropic(int nummat,TPZFMatrix naxes,REAL eppx,REAL eppy,
+TPZMatOrthotropic::TPZMatOrthotropic(int nummat,TPZFMatrix<REAL> naxes,REAL eppx,REAL eppy,
                                      REAL eppz,REAL vxy,REAL vyz,REAL vzx,
 									 REAL gxy,REAL gyz,REAL gzx) :
 TPZMaterial(nummat),
@@ -118,15 +118,15 @@ void TPZMatOrthotropic::Print(std::ostream &out) {
 ofstream MatrizesK("MatrizesK.out");
 void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix &ek,
-                                   TPZFMatrix &ef) {
+                                   TPZFMatrix<REAL> &ek,
+                                   TPZFMatrix<REAL> &ef) {
 	
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -135,12 +135,12 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
 	if(fForcingFunction) {            
@@ -150,10 +150,10 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
 		for(i=0; i<3; i++) fXf(i,0) = res[i];
 	}
 	
-	TPZFMatrix Rt(fLocAxs),R(3,3,0.),newaxes(3,3,0.);
-	TPZFMatrix kxx(3,3,0.),kxy(3,3,0.),kxz(3,3,0.);
-	TPZFMatrix kyx(3,3,0.),kyy(3,3,0.),kyz(3,3,0.);
-	TPZFMatrix kzx(3,3,0.),kzy(3,3,0.),kzz(3,3,0.);
+	TPZFMatrix<REAL> Rt(fLocAxs),R(3,3,0.),newaxes(3,3,0.);
+	TPZFMatrix<REAL> kxx(3,3,0.),kxy(3,3,0.),kxz(3,3,0.);
+	TPZFMatrix<REAL> kyx(3,3,0.),kyy(3,3,0.),kyz(3,3,0.);
+	TPZFMatrix<REAL> kzx(3,3,0.),kzy(3,3,0.),kzz(3,3,0.);
 	
 	Rt.Transpose(&R);
 	/** as linhas de axes s� as derivadas nas direc�s do jacobiano,
@@ -221,16 +221,16 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
 
 void TPZMatOrthotropic::ContributeBC(TPZMaterialData &data,
                                      REAL weight,
-                                     TPZFMatrix &ek,
-                                     TPZFMatrix &ef,
+                                     TPZFMatrix<REAL> &ek,
+                                     TPZFMatrix<REAL> &ef,
                                      TPZBndCond &bc) {
 	
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -239,12 +239,12 @@ void TPZMatOrthotropic::ContributeBC(TPZMaterialData &data,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	const REAL BIGNUMBER  = 1.e12;
 	
@@ -330,7 +330,7 @@ int TPZMatOrthotropic::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){ //OBS.:acrescentado ostream
+void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){ //OBS.:acrescentado ostream
 	
 	if(var == 0){
 		Solout.Resize(1);
@@ -357,7 +357,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 	if(var==3 || var==4 || var==5 || var==7){  
 		cout << "TPZMatOrthotropic::Solution not implemented\n";
 		return;
-		TPZFMatrix SolN(3,1,0.),sol(3,1,0.);
+		TPZFMatrix<REAL> SolN(3,1,0.),sol(3,1,0.);
 		sol(0,0) = Sol[0];
 		sol(1,0) = Sol[1];
 		sol(2,0) = Sol[2];
@@ -387,15 +387,15 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 	}
 	if(var > 7 && var < 16) {    
 		Solout.Resize(6);
-		TPZFMatrix axest(3,3,0.),floc_axt(3,3,0.),grdUGdn(3,3,0.),grdUlocdn(3,3,0.);
+		TPZFMatrix<REAL> axest(3,3,0.),floc_axt(3,3,0.),grdUGdn(3,3,0.),grdUlocdn(3,3,0.);
 		axes.Transpose(&axest);
 		floc_axt = fLocAxs*axest;
 		grdUGdn = floc_axt*DSol;
-		TPZFMatrix grdUGdnT(3,3,0.),grdULdn(3,3,0.),grdULdnT(3,3,0.);
+		TPZFMatrix<REAL> grdUGdnT(3,3,0.),grdULdn(3,3,0.),grdULdnT(3,3,0.);
 		grdUGdn.Transpose(&grdUGdnT);
 		grdULdn = fLocAxs*grdUGdnT;
 		grdULdn.Transpose(&grdULdnT);
-		TPZFMatrix FibStrain(3,3,0.);
+		TPZFMatrix<REAL> FibStrain(3,3,0.);
 		FibStrain = 0.5*(grdULdnT + grdULdn);
 		
 		REAL epsx  = FibStrain(0,0);// du/dx
@@ -413,7 +413,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 		REAL TauYZ = 2.*fGyz*epsyz;
 		REAL TauZX = 2.*fGzx*epszx;
 		
-		TPZFMatrix Tensor(3,3,0.);
+		TPZFMatrix<REAL> Tensor(3,3,0.);
 		Tensor(0,0) = SigX;
 		Tensor(1,1) = SigY;
 		Tensor(2,2) = SigZ;
@@ -430,9 +430,9 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 		//     cout << "Tensor(2,0) = Tensor(0,2) = TauZX" << "  =  " << TauZX << endl;
 		//final do trecho
 		
-		TPZFMatrix locaxsT(3,3,0.);
+		TPZFMatrix<REAL> locaxsT(3,3,0.);
 		fLocAxs.Transpose(&locaxsT);
-		TPZFMatrix SigGlob = locaxsT*(Tensor*fLocAxs);
+		TPZFMatrix<REAL> SigGlob = locaxsT*(Tensor*fLocAxs);
 		
 		if(var == 10){
 			Solout.Resize(1);
@@ -491,13 +491,13 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &
 	}
 }
 
-void TPZMatOrthotropic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+void TPZMatOrthotropic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
 void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-							   TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-							   TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+							   TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
+							   TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	
 	//TPZVec<REAL> sol(1),dsol(3);
 	TPZManVector<REAL> sol(1),dsol(3);
@@ -526,7 +526,7 @@ void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	values[0]  = values[1]+values[2];
 }
 
-void TPZMatOrthotropic::Normalize(TPZFMatrix &naxes){
+void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes){
 	
 	/** 
 	 * os eixos devem vir por linhas e 

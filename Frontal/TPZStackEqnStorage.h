@@ -62,14 +62,14 @@ public:
 	 * @param f Matrix to apply Backward substitution on
 	 * @param dec Decomposition type of f, depends on what decomposition method was used to decompose f
 	 */
-    void Backward(TPZFMatrix &f, DecomposeType dec) const ;
+    void Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const ;
 	
     /** 
 	 * @brief Executes a Forward substitution Stack object 
 	 * @param f Matrix to apply Forward substitution on
 	 * @param dec Decomposition type of f. Depends on what decomposition method was used to decompose f
 	 */
-    void Forward(TPZFMatrix &f, DecomposeType dec) const;
+    void Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const;
 	
 	//Only to make it compatible with FIleEqnStorage
 

@@ -14,7 +14,7 @@ namespace pzshape {
 	// REAL TPZShapeLinear::fJacobiAlfa = 1.;
 	// REAL TPZShapeLinear::fJacobiBeta = 1.;
 	
-	void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+	void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 		// Quadratic or higher shape functions
 		if(num <= 0) return;
 		phi.Put(0,0,1.0);
@@ -29,7 +29,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 		
 		// Quadratic or higher shape functions
 		if (num <= 0) return;
@@ -75,7 +75,7 @@ namespace pzshape {
 		
 	} //end of method
 	
-	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi, int nderiv){
+	void TPZShapeLinear::Legendre(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int nderiv){
 		
 		// Quadratic or higher shape functions
 		if (num <= 0) return;
@@ -135,7 +135,7 @@ namespace pzshape {
 	} //end of method
 	
 	
-	// void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi){
+	// void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 	// 
 	// 
 	//   // Quadratic or higher shape functions
@@ -190,7 +190,7 @@ namespace pzshape {
 	//    }
 	// }
 	
-	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix &, TPZFMatrix &) = TPZShapeLinear::Chebyshev;
+	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;
 	
 	//  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
 	/**
@@ -199,7 +199,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the  shape functions
 	 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
 	 */
-	void TPZShapeLinear::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+	void TPZShapeLinear::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		
 		phi(2,0) = phi(0,0)*phi(1,0);
@@ -210,7 +210,7 @@ namespace pzshape {
 
 	}
 	
-	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		//	num = number of functions to compute
 #ifndef NODEBUG
 		if ( order[0] < 0 ) {
@@ -266,7 +266,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeLinear::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		switch(side) {
 			case 0:
 			case 1:
@@ -278,7 +278,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeLinear::ShapeInternal(TPZVec<REAL>  &x, int ord,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index){
+	void TPZShapeLinear::ShapeInternal(TPZVec<REAL>  &x, int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int transformation_index){
 		// Quadratic or higher shape functions
 		int num = ord-1;
 		if(num <= 0) return;
@@ -293,7 +293,7 @@ namespace pzshape {
 		else          out = -in;
 	}
 	
-	void TPZShapeLinear::TransformDerivative1d(int transid,int num,TPZFMatrix &in) {
+	void TPZShapeLinear::TransformDerivative1d(int transid,int num,TPZFMatrix<REAL> &in) {
 		
 		if(transid == 0) return;
 		int i;

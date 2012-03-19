@@ -61,15 +61,15 @@ int main()
 	TPZElasticity3D elast3d(nummat, Ela, poisson, force);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);
-	TPZFMatrix phi(3,1,0.);
-	TPZFMatrix dphi(3,3,0.);
+	TPZFMatrix<REAL> phi(3,1,0.);
+	TPZFMatrix<REAL> dphi(3,3,0.);
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
 	cubodata.phi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
-	TPZFMatrix ek(9,9,0), ef(9,1,0);
+	TPZFMatrix<REAL> ek(9,9,0), ef(9,1,0);
 	REAL weight = 8.;
 	elast3d.Contribute(cubodata, weight, ek, ef);
 	ek.Print("ek: ");	
@@ -84,15 +84,15 @@ int main()
 	TPZVec<REAL> force(3,0.);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);
-	TPZFMatrix phi(3,1,0.);
-	TPZFMatrix dphi(3,3,0.);
+	TPZFMatrix<REAL> phi(3,1,0.);
+	TPZFMatrix<REAL> dphi(3,3,0.);
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
 	cubodata.phi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
-	TPZFMatrix ek(9,9,0), ef(9,1,0);
+	TPZFMatrix<REAL> ek(9,9,0), ef(9,1,0);
 	REAL weight = 8.;
 	
 	// Cria matriz rigidez de um cubo de -1 a 1 para material viscoelástico
@@ -119,13 +119,13 @@ int main()
 	TPZStepSolver solver;
 	solver.SetMatrix(matrix);
 	solver.SetDirect(ECholesky);
-	TPZFMatrix result(9,1,0.);
+	TPZFMatrix<REAL> result(9,1,0.);
 	solver.Solve(ef, result);
 	// system solved
 	
 	viscomat.SetUpdateMem();
 	int i,j,k;	
-	TPZFMatrix dsol(3,3,0.);
+	TPZFMatrix<REAL> dsol(3,3,0.);
 	for (k = 0 ; k < 3 ; k++)
 	{
 		for (i = 0 ; i < 3 ; i++)
@@ -137,9 +137,9 @@ int main()
 		}	
 	}
 	cubodata.dsol = dsol;
-	TPZFMatrix Stress;
+	TPZFMatrix<REAL> Stress;
 	viscomat.ComputeStressTensor(Stress, cubodata); // Nao pode dar update no qsi para calcular a tensao!
-	TPZFMatrix Strain;
+	TPZFMatrix<REAL> Strain;
 	viscomat.ComputeStrainTensor(Strain, dsol);
 	TPZVec <REAL> Strainxx(numsteps+1), Stressxx(numsteps+1);
 	Strainxx[0] = Strain(0,0);
@@ -169,7 +169,7 @@ int main()
 		//result.Print("result");
 
 		int i,j,k;	
-		TPZFMatrix dsol(3,3,0.);
+		TPZFMatrix<REAL> dsol(3,3,0.);
 		for (k = 0 ; k < 3 ; k++)
 		{
 			for (i = 0 ; i < 3 ; i++)
@@ -219,15 +219,15 @@ int main()
 	TPZVec<REAL> force(3,0.);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);
-	TPZFMatrix phi(3,1,0.);
-	TPZFMatrix dphi(3,3,0.);
+	TPZFMatrix<REAL> phi(3,1,0.);
+	TPZFMatrix<REAL> dphi(3,3,0.);
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
 	cubodata.phi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
-	TPZFMatrix ek(9,9,0), ef(9,1,0);
+	TPZFMatrix<REAL> ek(9,9,0), ef(9,1,0);
 	REAL weight = 8.;
 	
 	// Cria matriz rigidez de um cubo de -1 a 1 para material viscoelástico
@@ -246,10 +246,10 @@ int main()
 	viscomat.SetDefaultMem(qsi);
 	index = viscomat.PushMemItem();
 	cubodata.intPtIndex = index;
-	TPZFMatrix Dsol(3,3,0.);
+	TPZFMatrix<REAL> Dsol(3,3,0.);
 	Dsol(0,0) = 0.001;
 	cubodata.dsol = Dsol;
-	TPZFMatrix Stress;
+	TPZFMatrix<REAL> Stress;
 	viscomat.ComputeStressTensor(Stress,cubodata);	
 	TPZVec <REAL> Stressxx(numsteps+1);
 	Stressxx[0] = Stress(0,0);
@@ -304,7 +304,7 @@ int main()
 	cmesh->AutoBuild();
 
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -404,7 +404,7 @@ int main()
 	//postan.Solution().Print("Deus do ceu:", std::cout);
 		
 	//TPZAutoPointer <TPZGuiInterface> toto;
-	//TPZFMatrix rhs;
+	//TPZFMatrix<REAL> rhs;
 	//skylstruct.Assemble(rhs,toto);
 
 	return 0;
@@ -438,7 +438,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	mesh->InsertMaterialObject(viscoelastauto);
 	
 	// Neumann em x = 1;
-	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	val2(0,0) = 1.;
 	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto4(bc4);
@@ -674,7 +674,7 @@ TPZGeoMesh *MalhaCubo()
 //TESTE Step Solver
 /*
  TPZAutoPointer <TPZMatrix> matrixteste = new TPZFMatrix(2,2,0.);
- TPZFMatrix b(2,1,0.);
+ TPZFMatrix<REAL> b(2,1,0.);
  matrixteste->operator()(0,0) = 3.;
  matrixteste->operator()(0,1) = 2.;
  matrixteste->operator()(1,0) = 5.;
@@ -686,7 +686,7 @@ TPZGeoMesh *MalhaCubo()
  TPZStepSolver solver;
  solver.SetMatrix(matrixteste);
  solver.SetDirect(ELU);
- TPZFMatrix result(2,1,0.);
+ TPZFMatrix<REAL> result(2,1,0.);
  result.Print("desloc:");
  solver.Solve(b, result);
  */
@@ -737,7 +737,7 @@ void Teste()
 	cmesh->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -754,7 +754,7 @@ void Teste()
 	cmesh2->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct2(cmesh2);
-	TPZStepSolver step2;
+	TPZStepSolver<REAL> step2;
 	step2.SetDirect(ECholesky);
 	TPZAnalysis an2(cmesh2);
 	an2.SetStructuralMatrix(skylstruct2);
@@ -807,10 +807,11 @@ void Teste()
 	cmesh->ExpandSolution();
 	
 	//Olhando residuo
-	TPZAutoPointer<TPZMatrix> mat = an2.Solver().Matrix();
-	TPZFMatrix carga = an2.Rhs();
-	const TPZFMatrix sol = cmesh->Solution();
-	TPZFMatrix Ku;
+	TPZAutoPointer<TPZMatrix<REAL> > mat = an2.Solver().Matrix();
+	
+	TPZFMatrix<REAL> carga = an2.Rhs();
+	const TPZFMatrix<REAL> sol = cmesh->Solution();
+	TPZFMatrix<REAL> Ku;
 	mat->Multiply(sol,Ku);
 	
 	if (cmesh->Solution().Rows() != Ku.Rows()) 
@@ -818,7 +819,7 @@ void Teste()
 		std::cout << "Solucoes de tamanho diferente" << std::endl;
 		DebugStop();
 	}
-	TPZFMatrix sub(cmesh->Solution().Rows(),cmesh->Solution().Cols());
+	TPZFMatrix<REAL> sub(cmesh->Solution().Rows(),cmesh->Solution().Cols());
 	for (int is = 0 ; is < cmesh->Solution().Rows() ; is++) 
 	{
 		sub(is,0) = Ku(is,0) - carga(is,0);

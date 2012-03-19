@@ -115,7 +115,7 @@ void TPZConnect::Print(TPZCompMesh &mesh, TPZVec<REAL> &cp, std::ostream & out)
 	}
 }
 
-void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,int ipos,int jpos,int isize,int jsize){
+void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos,int isize,int jsize){
 	if(dependindex == myindex) return;
 	TPZDepend *connect =0;
 	if(dependindex == -1) {
@@ -129,7 +129,7 @@ void TPZConnect::AddDependency(int myindex, int dependindex,TPZFMatrix &depmat,i
 		connect->fNext = fDependList;
 		fDependList = connect;
 	} else {
-		TPZFMatrix temp(isize,jsize);
+		TPZFMatrix<REAL> temp(isize,jsize);
 		int i,j;
 		for(i=0; i<isize; i++) for(j=0; j<jsize; j++) temp(i,j) = depmat(ipos+i,jpos+j);
 		
@@ -232,7 +232,7 @@ void TPZConnect::SetDependenceOrder(int myindex, TPZCompMesh &mesh, int CurrentO
 	}
 }
 
-TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix &depmat,int ipos,int jpos, int isize, int jsize) :
+TPZConnect::TPZDepend::TPZDepend(int dependindex,TPZFMatrix<REAL> &depmat,int ipos,int jpos, int isize, int jsize) :
 fDepMatrix(isize,jsize) {
 	fDepConnectIndex = dependindex;
 	int i,j;
@@ -318,7 +318,7 @@ int TPZConnect::CheckDependency(int nshape, TPZCompMesh *mesh, int nstate) {
 	return 0;
 }
 
-void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix &phi, TPZFMatrix &dphi){
+void TPZConnect::ExpandShape(int cind, TPZVec<int> &connectlist, TPZVec<int> &blocksize, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
 	
     if(!fDependList) return;
     int dim = dphi.Rows();

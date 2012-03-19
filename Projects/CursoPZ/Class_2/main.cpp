@@ -12,15 +12,15 @@
 
 using namespace std;
 
-void FillMatrix(TPZMatrix &mat,int neq, int banda);
-void FillF(TPZFMatrix &f, int neq, int nst);
+void FillMatrix(TPZMatrix<REAL> &mat,int neq, int banda);
+void FillF(TPZFMatrix<REAL> &f, int neq, int nst);
 
 int main(){
   int neq=1000;
   int banda=50;
   int i;
  
-  TPZFMatrix  *cheia = new TPZFMatrix(neq,neq, 0.);
+  TPZFMatrix<REAL>  *cheia = new TPZFMatrix<REAL>(neq,neq, 0.);
   FillMatrix(*cheia,neq,banda);
 
   TPZVec <int> skyvec(neq,0);
@@ -29,23 +29,23 @@ int main(){
     if(skyvec[i] < 0) skyvec[i] = 0;
   }
 
-  TPZSkylMatrix  *skyline = new TPZSkylMatrix(neq,skyvec);
+  TPZSkylMatrix<REAL>  *skyline = new TPZSkylMatrix<REAL>(neq,skyvec);
   FillMatrix(*skyline,neq,banda);
 
   cheia->Print( "Matriz cheia ",cout);
   skyline->Print( "Matriz skyline ",cout);
 
-  TPZFMatrix F;
+  TPZFMatrix<REAL> F;
   FillF(F,neq,1);
   F.Print("Vetor de Carga ",cout);
 
-  TPZFMatrix resultcheia;
+  TPZFMatrix<REAL> resultcheia;
   /*  TPZStepSolver direct(&cheia);
   direct.SetDirect(ECholesky);
   direct.Solve(F,resultcheia);*/
 
-  TPZStepSolver step(cheia);
-  TPZStepSolver precond(step);
+  TPZStepSolver<REAL> step(cheia);
+  TPZStepSolver<REAL> precond(step);
   int numiterpre =2;
   int numiter = 5;
   double overrelax = 1.1;
@@ -59,7 +59,7 @@ int main(){
 	return 0;
 }
 
-void FillMatrix(TPZMatrix &mat,int neq, int banda){
+void FillMatrix(TPZMatrix<REAL> &mat,int neq, int banda){
   int i,j;
   for ( i=0;i<neq;i++){
     mat(i,i)=2000.;
@@ -72,7 +72,7 @@ void FillMatrix(TPZMatrix &mat,int neq, int banda){
   }
 }
 
-void FillF(TPZFMatrix &f,int neq, int nst){
+void FillF(TPZFMatrix<REAL> &f,int neq, int nst){
   double PI = 3.1416;
   f.Resize(neq,nst);
   int i,j;

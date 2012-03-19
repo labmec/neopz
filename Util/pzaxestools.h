@@ -15,6 +15,7 @@
  * @brief Implements method to verify whether axes is an orthogonal normalizes matrix and to transformation from given axes \n
  * to euclidian basis and viceverse. \ref util "Utility"
  */
+template<class TVar>
 class TPZAxesTools{ 
 public:
 	/// simple constructor
@@ -26,7 +27,7 @@ public:
 	 * @brief Verify whether parameter axes is an orthogonal normalized matrix.
 	 * @param axes Object to check if it is a orthogonal and normalized matrix
 	 */
-	static void VerifyAxes(const TPZFMatrix &axes){
+	static void VerifyAxes(const TPZFMatrix<TVar> &axes){
 #ifdef DEBUG
 		const double tol = 1.e-8;
 		bool check = true;
@@ -57,7 +58,7 @@ public:
 	 * @param dudaxes Input matrix
 	 * @param axes Must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
-	static void Axes2XYZ(const TPZFMatrix &dudaxes, TPZFMatrix &dudx, const TPZFMatrix &axes){
+	static void Axes2XYZ(const TPZFMatrix<> &dudaxes, TPZFMatrix<> &dudx, const TPZFMatrix<> &axes){
 		TPZAxesTools::VerifyAxes(axes);
 		TPZFNMatrix<9> axesT;
 		axes.Transpose(&axesT);
@@ -72,7 +73,7 @@ public:
 	 * @param dudx Output matrix
 	 * @param axes must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
-	static void XYZ2Axes(TPZFMatrix &dudaxes, const TPZFMatrix &dudx, const TPZFMatrix &axes){
+	static void XYZ2Axes(TPZFMatrix<> &dudaxes, const TPZFMatrix<> &dudx, const TPZFMatrix<> &axes){
 		TPZAxesTools::VerifyAxes(axes);
 		dudaxes.Resize(axes.Rows(), dudx.Cols());
 		dudaxes.Zero();
@@ -81,17 +82,17 @@ public:
 	
 	/** Test code */
 	static int main(){
-		TPZFMatrix axes(2,3,0.);
+		TPZFMatrix<> axes(2,3,0.);
 		axes(0,0) = sqrt(2.)/2.;
 		axes(0,1) = 0.;
 		axes(0,2) = sqrt(2.)/2.;
 		axes(1,0) = 0.;
 		axes(1,1) = 1.;
 		axes(1,2) = 0.;
-		TPZFMatrix dudaxes(2,1);
+		TPZFMatrix<> dudaxes(2,1);
 		dudaxes(0,0) = 0.3;
 		dudaxes(1,0) = 0.7;
-		TPZFMatrix dudx;
+		TPZFMatrix<> dudx;
 		dudaxes.Print("dudaxes=",std::cout);
 		TPZAxesTools::Axes2XYZ(dudaxes,dudx,axes);
 		dudx.Print("dudx=",std::cout);

@@ -22,7 +22,7 @@ namespace pzgeom {
 	
 	static const double tol = pzgeom_TPZNodeRep_tol;
 	
-	void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoPrism::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 
 		phi(0,0)  = .5*(1.-pt[0]-pt[1])*(1.-pt[2]);
 		phi(1,0)  = .5*pt[0]*(1.-pt[2]);
@@ -58,7 +58,7 @@ namespace pzgeom {
 	}
 	
 	
-	void TPZGeoPrism::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
+	void TPZGeoPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 		
 #ifdef DEBUG
@@ -78,9 +78,9 @@ namespace pzgeom {
 #endif
 		jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		REAL spacephi[6];
-		TPZFMatrix phi(6,1,spacephi,6);
+		TPZFMatrix<REAL> phi(6,1,spacephi,6);
 		REAL spacedphi[18];
-		TPZFMatrix dphi(3,6,spacedphi,18);
+		TPZFMatrix<REAL> dphi(3,6,spacedphi,18);
 		Shape(param,phi,dphi);
 		jacobian.Zero();
 		//  TPZGeoNode *np;
@@ -125,11 +125,11 @@ namespace pzgeom {
 		axes(2,2) = 1.;
 	}
 	
-	void TPZGeoPrism::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoPrism::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		REAL spacephi[6],spacedphi[18];
 		int i,j;
-		TPZFMatrix phi(6,1,spacephi,5);
-		TPZFMatrix dphi(3,6,spacedphi,18);
+		TPZFMatrix<REAL> phi(6,1,spacephi,5);
+		TPZFMatrix<REAL> dphi(3,6,spacedphi,18);
 		Shape(loc,phi,dphi);
 		for(j=0;j<3;j++) {
 			result[j] = 0.0;
@@ -137,7 +137,7 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool TPZGeoPrism::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
         double zero = 1.E-5;
 		
 		REAL qsi = InternalPar[0]; 

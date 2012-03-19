@@ -24,7 +24,6 @@ void TPZFileEqnStorage::WriteHeaders(){
 	 *WriteHeaders is called
 	 */
 	fNumBlocks++;
-	int i;
     TPZVec<long int> Position(fNumHeaders,0);
 	/**
 	 *If fCurrentBlock = 0 then a fBlockPos.Push must be called to 
@@ -52,7 +51,7 @@ void TPZFileEqnStorage::WriteHeaders(){
 	{
 		std::stringstream sout;
 		sout << "Writing the position of the headers, numheaders " << fNumHeaders << " position ";
-		for(i=0; i<fNumHeaders; i++) sout << Position[i] << ' ';
+		for(int i=0; i<fNumHeaders; i++) sout << Position[i] << ' ';
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -154,7 +153,7 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 	}
 }
 
-void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
+void TPZFileEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 {
 	//  cout << "Inside TPZFileEqnStorage::Forward" << endl;
 	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
@@ -188,7 +187,7 @@ void TPZFileEqnStorage::Forward(TPZFMatrix &f, DecomposeType dec) const
 		}
 	} 
 }
-void TPZFileEqnStorage::Backward(TPZFMatrix &f, DecomposeType dec) const
+void TPZFileEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 {
 	//  cout << "Inside TPZFileEqnStorage::Backward" << endl;
 	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
@@ -339,7 +338,7 @@ void TPZFileEqnStorage::main()
 	ifstream input("MatrizInversa.txt");
 	double aux;
 	int i, j;
-	TPZFMatrix DecMat(Loop_Limit,Loop_Limit);
+	TPZFMatrix<REAL> DecMat(Loop_Limit,Loop_Limit);
 	for(i=0;i<Loop_Limit;i++){
 		for(j=0;j<Loop_Limit;j++){
 			input >> aux;
@@ -368,7 +367,7 @@ void TPZFileEqnStorage::main()
 	
 	FileStoreW.Print("Teste",output);
 	
-	TPZFMatrix f(Loop_Limit,1);
+	TPZFMatrix<REAL> f(Loop_Limit,1);
 	
 	for(i=0;i<Loop_Limit;i++) {
 		f(i,0) = (i+1)*2.1/23;

@@ -28,7 +28,7 @@ TPZExplFinVolAnal::~TPZExplFinVolAnal(){
 //nothing to be done here
 }
 
-void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix & InitialSol){
+void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix<REAL> & InitialSol){
   const int nrows = this->Mesh()->Solution().Rows();
   const int ncols = this->Mesh()->Solution().Cols();
   if ( (InitialSol.Rows() != nrows) || (InitialSol.Cols() != ncols) ){
@@ -41,7 +41,7 @@ void TPZExplFinVolAnal::SetInitialSolution(TPZFMatrix & InitialSol){
 }
 
 void TPZExplFinVolAnal::SetInitialSolutionAsZero(){
-  TPZFMatrix & MeshSol = this->Mesh()->Solution();
+  TPZFMatrix<REAL> & MeshSol = this->Mesh()->Solution();
   this->fSolution.Redim( MeshSol.Rows(), MeshSol.Cols() );
   this->fSolution.Zero();
 }
@@ -63,7 +63,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
   fSimulationTime = 0.;
 
   this->DX(0, "testeinicialadapt_");
-  TPZFMatrix LastSol, NextSol;
+  TPZFMatrix<REAL> LastSol, NextSol;
   LastSol = fSolution;
 
   for(int iter = 0; iter < this->fNMaxIter; iter++){
@@ -139,7 +139,7 @@ void TPZExplFinVolAnal::Run(std::ostream &out){
 
   this->PostProcess(this->fDXResolution);
 
-  TPZFMatrix LastSol, NextSol;
+  TPZFMatrix<REAL> LastSol, NextSol;
   LastSol = fSolution;
 
   REAL steadynorm;
@@ -216,7 +216,7 @@ REAL TPZExplFinVolAnal::TimeStep(){
 }
 
 
-void TPZExplFinVolAnal::FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution){
+void TPZExplFinVolAnal::FromConservativeToPrimitiveAndLoad(const TPZFMatrix<REAL> & Solution){
   this->fSolution.Redim(this->Mesh()->NEquations(),1);//fSolution is now zeroed
   const int nv = this->NStateVariables();
   const int dim = this->Dimension();
@@ -283,7 +283,7 @@ void TPZExplFinVolAnal::ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrLi
   }//for iel = TPZInterfaceElement
 }//void
 
-void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix &vec, double alpha){
+void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix<REAL> &vec, double alpha){
   std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > >:: iterator wVol;
   for(wVol = this->fVolumeData.begin(); wVol != this->fVolumeData.end(); wVol++){
     TPZInterpolationSpace *sp = wVol->first;
@@ -303,7 +303,7 @@ void TPZExplFinVolAnal::DivideByVolume(TPZFMatrix &vec, double alpha){
   }//for iel = TPZInterpolationSpace
 }//void
 
-void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
+void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix<REAL> & SolutionConsVars){
   this->FromConservativeToPrimitiveAndLoad(SolutionConsVars);
 
   //compute gradient into fRhs
@@ -315,7 +315,7 @@ void TPZExplFinVolAnal::ComputeGradient(const TPZFMatrix & SolutionConsVars){
   fSolution += fRhs;//fRhs has zeros in state variables position and fSolution has zeros in gradient positions
 }
 
-void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix & Solution){
+void TPZExplFinVolAnal::AssembleFluxes2ndOrder(const TPZFMatrix<REAL> & Solution){
   this->FromConservativeToPrimitiveAndLoad(Solution);
 
   //compute gradient into fRhs
@@ -360,7 +360,7 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
 
 }//void
 
-void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol){
+void TPZExplFinVolAnal::TimeEvolution(TPZFMatrix<REAL> &LastSol, TPZFMatrix<REAL> &NextSol){
 
   const int order = 3;
   if(order == 1){
@@ -573,7 +573,7 @@ void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face
    delete intrule;
 }
 
-void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad){
+void TPZExplFinVolAnal::ComputeGradientForDetails(const TPZFMatrix<REAL> & PrimitiveSolution, TPZFMatrix<REAL> & SolutionWithGrad){
 	this->InitializeAuxiliarVariables();
 	fSolution = PrimitiveSolution;
 	this->LoadSolution();	

@@ -55,9 +55,9 @@ int TPZSpaceTimeRichardsEq::NStateVariables(){
 	return 1;
 }
 
-void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
-	TPZFMatrix &phi = data.phi;
-	TPZFMatrix &dphi = data.dphix;
+void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+	TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &dphi = data.dphix;
     int numbersol = data.sol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -68,7 +68,7 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
 	
 	TPZFNMatrix<2> dsol(2,1,0.);
-	TPZAxesTools::Axes2XYZ(data.dsol[0], dsol, data.axes);
+	TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], dsol, data.axes);
 	
 	const int phr = phi.Rows();
 	int i, j;
@@ -85,10 +85,10 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 	
 }//Contribute
 
-void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	
 	const REAL v2 = bc.Val2()(0,0);
-	TPZFMatrix &phi = data.phi;
+	TPZFMatrix<REAL> &phi = data.phi;
 	const int phr = phi.Rows();
 	int in, jn;
     int numbersol = data.sol.size();
@@ -205,7 +205,7 @@ REAL TPZSpaceTimeRichardsEq::DCDsol(REAL sol){
 
 void TPZSpaceTimeRichardsEq::AnalysisOfParameters(REAL sol0, REAL solL, char* filename){
 	int np = 100;
-	TPZFMatrix C(np,2), K(np,2), dCdSol(np,2), dKdsol(np,2);
+	TPZFMatrix<REAL> C(np,2), K(np,2), dCdSol(np,2), dKdsol(np,2);
 	double delta = (solL - sol0)/(np-1);
 	double sol;
 	for(int i = 0; i < np; i++){
@@ -417,7 +417,7 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
  TPZAutoPointer<TPZMaterial> mat = new TPZSpaceTimeRichardsEq(matid,Alpha,N,ThetaS,ThetaR,Ks);
  
  int nstate = 1;
- TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+ TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
  
  val2(0,0) = -10.*LCoeff;
  TPZAutoPointer<TPZMaterial> bcT0 ( mat->CreateBC(mat,-1, 0,val1,val2) );

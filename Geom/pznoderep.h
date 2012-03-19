@@ -133,7 +133,7 @@ namespace pzgeom {
 		{
 		}
         
-        void CornerCoordinates(const TPZGeoEl &gel, TPZFMatrix &coord) const
+        void CornerCoordinates(const TPZGeoEl &gel, TPZFMatrix<REAL> &coord) const
         {
             TPZGeoNode *np;
             int i,j;

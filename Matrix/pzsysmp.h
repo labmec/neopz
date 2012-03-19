@@ -19,7 +19,7 @@
 #define SYSMPMATH
 
 #include "pzmatrix.h"
-
+template<class TVar>
 class TPZFMatrix;
 
 /**
@@ -29,23 +29,24 @@ class TPZFMatrix;
   * @brief Implements a symmetric sparse matrix. \ref matrix "Matrix"
   * @ingroup matrix
   */
-class TPZSYsmpMatrix : public TPZMatrix {
+template<class TVar>
+class TPZSYsmpMatrix : public TPZMatrix<TVar>{
 	
 	public :
 	
     TPZSYsmpMatrix( int rows, int cols );
 	
-    TPZSYsmpMatrix(const TPZSYsmpMatrix &cp) : TPZMatrix(cp)
+    TPZSYsmpMatrix(const TPZSYsmpMatrix<TVar> &cp) : TPZMatrix<TVar>(cp)
     {
-		int fjasize = fIA[Rows()];
-		fIA = new int[Rows()+1];
-		fDiag = new REAL[Rows()];
+		int fjasize = fIA[this->Rows()];
+		fIA = new int[this->Rows()+1];
+		fDiag = new TVar[this->Rows()];
 		fJA = new int[fjasize];
-		fA = new REAL[fjasize];
-		memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
+		fA = new TVar[fjasize];
+		memcpy(fIA,cp.fIA,(this->Rows()+1)*sizeof(int));
 		memcpy(fJA,cp.fJA,fjasize*sizeof(int));
-		memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
-		memcpy(fA,cp.fA,fjasize*sizeof(REAL));
+		memcpy(fDiag,cp.fDiag,this->Rows()*sizeof(TVar));
+		memcpy(fA,cp.fA,fjasize*sizeof(TVar));
 		
     }
     
@@ -55,22 +56,22 @@ class TPZSYsmpMatrix : public TPZMatrix {
 	
 	
 	/// Get the matrix entry at (row,col) without bound checking
-	virtual const REAL &GetVal(const int row,const int col ) const;
+	virtual const TVar &GetVal(const int row,const int col ) const;
 	
 	/// computes z = beta * y + alpha * opt(this)*x \n
 	///          z and x cannot overlap in memory
-	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-						 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+						 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
 	
 	/// Pass the data to the class.
-	virtual void SetData( int *const IA, int *const JA, REAL *const A );
+	virtual void SetData( int *const IA, int *const JA, TVar *const A );
 	
 	/// Print the matrix along with a identification title
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat = EFormatted ) const;
 	
-	void SolveSOR(int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
-				  TPZFMatrix *residual, TPZFMatrix &scratch,
-				  const REAL overrelax, REAL &tol,
+	void SolveSOR(int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
+				  const TVar overrelax, TVar &tol,
 				  const int FromCurrent = 0,const int direction = 1 ) ;
 	
 	
@@ -80,14 +81,14 @@ private:
 	
 	int  *fIA;
 	int  *fJA;
-	REAL *fA;
+	TVar *fA;
 	
 	
-	REAL *fDiag;
+	TVar *fDiag;
 };
 
-
-inline void TPZSYsmpMatrix::SetData( int *IA, int *JA, REAL *A ) {
+template<class TVar>
+inline void TPZSYsmpMatrix<TVar>::SetData( int *IA, int *JA, TVar *A ) {
 	// Pass the data to the class.
 	fIA = IA;
 	fJA = JA;

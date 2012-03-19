@@ -16,7 +16,7 @@ using namespace std;
 /// groups all classes dedicated to the computation of shape functions
 namespace pzshape {
 
-	void (*TPZShapeDisc::fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix & phi, TPZFMatrix & dphi, int n) = TPZShapeDisc::Polynomial;
+	void (*TPZShapeDisc::fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi, int n) = TPZShapeDisc::Polynomial;
 
 TPZShapeDisc::TPZShapeDisc(){
 
@@ -31,7 +31,7 @@ TPZShapeDisc::~TPZShapeDisc(){
 }
 
 
-void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n){
+void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -93,7 +93,7 @@ void TPZShapeDisc::IntegratedLegendre(REAL C,REAL x0,REAL x,int degree,TPZFMatri
 
 }//method
 
-void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, int n){
+void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -125,7 +125,7 @@ void TPZShapeDisc::Polynomial(REAL C,REAL x0,REAL x,int degree,TPZFMatrix &phi,T
    }
 }
 
-void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -157,7 +157,7 @@ void TPZShapeDisc::PolynomialWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFM
    }         
 }
 
-void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -179,7 +179,7 @@ void TPZShapeDisc::Legendre(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TP
 
 } //end of method
 
-void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -194,7 +194,7 @@ void TPZShapeDisc::ChebyshevWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMa
 } //end of method
 
 
-void TPZShapeDisc::LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix & phi,TPZFMatrix & dphi, int n){
+void TPZShapeDisc::LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n){
 #ifdef DEBUG
   if(IsZero(C)){
     DebugStop();
@@ -208,7 +208,7 @@ void TPZShapeDisc::LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMat
 
 } //end of method
 
-void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type){
   switch (dimension){
     case(0) :{
       TPZShapeDisc::Shape0D(C,X0,X,degree,phi,dphi);
@@ -241,7 +241,7 @@ void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,
     
 
 
-void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 
   if(degree < 0){
     PZError << "TPZShapeDisc::Polynomial the degree of the polynomial cannot be minus, aborting\n";
@@ -253,7 +253,7 @@ void  TPZShapeDisc::Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
 		dphi.Redim(0,0);//nÔøΩ existe a derivada em um ponto: dimensÔøΩ nula
 }
 
-void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi){
+void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 
 		//suponha a componente nÔøΩ nula sendo a primeira
   REAL x0 = X0[0];
@@ -263,7 +263,7 @@ void  TPZShapeDisc::Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
 
 }
 
-void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type){
 
   if(degree == 0) {
     phi(0,0) = 1.;
@@ -369,7 +369,7 @@ void TPZShapeDisc::Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TP
   dphi(1,nshape-1) = dphi0[1];
 }
 
-void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];
@@ -426,7 +426,7 @@ void  TPZShapeDisc::Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,T
 }
 
 
-void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix &phi,TPZFMatrix &dphi, MShapeType type){
+void  TPZShapeDisc::Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type){
 
   REAL x0 = X0[0];
   REAL y0 = X0[1];

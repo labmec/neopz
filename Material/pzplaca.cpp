@@ -15,7 +15,7 @@ using namespace std;
 
 TPZPlaca::TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
                    REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-                   REAL G23 , TPZFMatrix &naxes, TPZVec<REAL> &xf) :
+                   REAL G23 , TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf) :
 TPZMaterial(num), fnaxes(naxes),
 fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
 fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
@@ -24,12 +24,12 @@ fKxxR(6,6,0.),fKyyR(6,6,0.),fKxyR(6,6,0.),fKyxR(6,6,0.),
 fBx0R(6,6,0.),fXF(xf) {
 	
 	
-	TPZFMatrix Kxx(6,6,0.),Kxy(6,6,0.),Kyx(6,6,0.),Kyy(6,6,0.),
+	TPZFMatrix<REAL> Kxx(6,6,0.),Kxy(6,6,0.),Kyx(6,6,0.),Kyy(6,6,0.),
     Bx0(6,6,0.),B0x(6,6,0.),By0(6,6,0.),B0y(6,6,0.),B00(6,6,0.),
     B0xR(6,6,0.),By0R(6,6,0.),B0yR(6,6,0.),B00R(6,6,0.);
-	TPZFMatrix Kn1n1(6,6,0.),Kn1n2(6,6,0.),Kn2n1(6,6,0.),Kn2n2(6,6,0.),
+	TPZFMatrix<REAL> Kn1n1(6,6,0.),Kn1n2(6,6,0.),Kn2n1(6,6,0.),Kn2n2(6,6,0.),
     Bn10(6,6,0.),B0n1(6,6,0.),Bn20(6,6,0.),B0n2(6,6,0.),B000(6,6,0.);
-	//   TPZFMatrix fRmat(6,6),fRmatT(6,6);
+	//   TPZFMatrix<REAL> fRmat(6,6),fRmatT(6,6);
 	REAL Small , k, mi;
 	Small = 1.E-5;
 	k = 5./6.; // coeficiente de cisalhamento
@@ -107,15 +107,15 @@ fBx0R(6,6,0.),fXF(xf) {
 
 void TPZPlaca::Contribute(TPZMaterialData &data,
                           REAL weight,
-                          TPZFMatrix &ek,
-                          TPZFMatrix &ef) {
+                          TPZFMatrix<REAL> &ek,
+                          TPZFMatrix<REAL> &ef) {
 	
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -124,12 +124,12 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	TPZFMatrix<REAL> &axes=data.axes;
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
 	
@@ -153,7 +153,7 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 	Dax2n1 = axes(1,0)* fnaxes(0,0) + axes(1,1)* fnaxes(0,1) + axes(1,2)* fnaxes(0,2);
 	Dax2n2 = axes(1,0)* fnaxes(1,0) + axes(1,1)* fnaxes(1,1) + axes(1,2)* fnaxes(1,2);
 	
-	TPZFMatrix Kn1n1(6,6),Kn1n2(6,6),Kn2n1(6,6),Kn2n2(6,6),
+	TPZFMatrix<REAL> Kn1n1(6,6),Kn1n2(6,6),Kn2n1(6,6),Kn2n2(6,6),
 	Bn10(6,6),B0n1(6,6),Bn20(6,6),B0n2(6,6),B000(6,6);
 	
 	
@@ -181,11 +181,11 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 	
 	int idf,jdf,i,j;
 	int nshape = phi.Rows();
-	TPZFMatrix KIJ(6,6);
+	TPZFMatrix<REAL> KIJ(6,6);
 	
 	for(i=0; i<nshape; i++) {
 		if(fExactFunction) {
-			TPZFMatrix u(6,1),du(2,6),Fun(6,1),dux(6,1),duy(6,1);
+			TPZFMatrix<REAL> u(6,1),du(2,6),Fun(6,1),dux(6,1),duy(6,1);
 			fExactFunction(axes,x,u,du);
 			for(int k=0;k<6;k++){
 				dux(k,0) = du(0,k);
@@ -223,16 +223,16 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 
 void TPZPlaca::ContributeBC(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef,
+                            TPZFMatrix<REAL> &ek,
+                            TPZFMatrix<REAL> &ef,
                             TPZBndCond &bc) {
 	
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -241,12 +241,12 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
@@ -303,7 +303,7 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
 
 int TPZPlaca::NFluxes() {return 1;}
 
-void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix &/*dudx*/,TPZFMatrix &/*axes*/,TPZVec<REAL> &/*fl*/) {
+void TPZPlaca::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix<REAL> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<REAL> &/*fl*/) {
 	PZError << "TPZPlaca::Flux is called\n";
 }
 
@@ -314,7 +314,7 @@ void TPZPlaca::Print(std::ostream & out) {
 	//out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-/*TPZBndCond *TPZPlaca::CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2) {
+/*TPZBndCond *TPZPlaca::CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2) {
  PZError << "TPZPlaca::CreateBC is called\n";
  return 0;
  }        */
@@ -361,8 +361,8 @@ int TPZPlaca::NSolutionVariables(int var){
 }
 
 /**returns the solution associated with the var index based on the finite element approximation*/
-void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
-						TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
+						TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	
 	if(var == 2) {
@@ -389,7 +389,7 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 	if(var > 4) {
 		Solout.Resize(1);
 		TPZVec<REAL> Soln(6);
-		TPZFMatrix DSolnax(2,6),DSolnn(2,6);
+		TPZFMatrix<REAL> DSolnax(2,6),DSolnn(2,6);
 		int idf,jdf;
 		for(idf=0; idf<6; idf++) {
 			Soln[idf] = 0;
@@ -485,13 +485,13 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,
 }
 
 
-void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatrix &axes,TPZVec<REAL> &flux,
-					  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &axes,TPZVec<REAL> &flux,
+					  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	
 	//ENERGY NORM
 	//solution error:
 	int ndof = NStateVariables();
-	TPZFMatrix err(ndof,1),dxerr(ndof,1),dyerr(ndof,1);
+	TPZFMatrix<REAL> err(ndof,1),dxerr(ndof,1),dyerr(ndof,1);
 	int i;
 	// u - uh
 	for(i=0;i<6;i++) err(i,0) = u_exact[i] - u[i];
@@ -501,11 +501,11 @@ void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatri
 		dyerr(i,0) = du_exact(1,i) - dudx(1,i);
 	}
 	// error transpose
-	TPZFMatrix errt(1,ndof),dxerrt(1,ndof),dyerrt(1,ndof);
+	TPZFMatrix<REAL> errt(1,ndof),dxerrt(1,ndof),dyerrt(1,ndof);
 	err.Transpose(&errt);
 	dxerr.Transpose(&dxerrt);
 	dyerr.Transpose(&dyerrt);
-	TPZFMatrix ENERGY(1,1);
+	TPZFMatrix<REAL> ENERGY(1,1);
 	
 	//ENERGY norm calculation
 	ENERGY  = dxerrt * (fKxxR * dxerr) + dyerrt * (fKyyR * dyerr);

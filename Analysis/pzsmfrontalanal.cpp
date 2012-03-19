@@ -45,7 +45,7 @@ void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
     }
     
 }
-void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	//	ek = fReducableStiff.K11Red();
 	//	ef = fReducableStiff.F1Red();
 	//ek.Print("ek condensed");
@@ -61,14 +61,14 @@ void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef
 	}
 }
 
-void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix &sol)
+void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix<REAL> &sol)
 {
 	
 	//	sol.Print("sol");
 	//	cout.flush();
 	int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
-	TPZFMatrix soltemp(numeq,1,0.);
+	TPZFMatrix<REAL> soltemp(numeq,1,0.);
 	//	fSolution.Print("Solucao a analise\n");
 	//	fReferenceSolution.Print("Solucao de referencia\n");
 	//	cout.flush();

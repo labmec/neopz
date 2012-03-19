@@ -51,13 +51,13 @@ TPZDohrSubstructCondense::~TPZDohrSubstructCondense()
  * It computes the local contribution to r(c).
  * The method LoadWeightedResidual must be called before this one.
  */
-void TPZDohrSubstructCondense::Contribute_rc_local(TPZFMatrix &residual_local, TPZFMatrix &rc_local)
+void TPZDohrSubstructCondense::Contribute_rc_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &rc_local)
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1, 1);
 }
 
 
-void TPZDohrSubstructCondense::Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarseindex) {
+void TPZDohrSubstructCondense::Contribute_Kc(TPZMatrix<REAL> &Kc, TPZVec<int> &coarseindex) {
 	int i;
 	int j;
 	for (i=0;i<fCoarseNodes.NElements();i++) {
@@ -70,7 +70,7 @@ void TPZDohrSubstructCondense::Contribute_Kc(TPZMatrix &Kc, TPZVec<int> &coarsei
 }
 
 
-void TPZDohrSubstructCondense::Contribute_v1_local(TPZFMatrix &v1_local, TPZFMatrix &invKc_rc_local) {
+void TPZDohrSubstructCondense::Contribute_v1_local(TPZFMatrix<REAL> &v1_local, TPZFMatrix<REAL> &invKc_rc_local) {
 	int neqs = fNumExternalEquations;
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
@@ -80,11 +80,11 @@ void TPZDohrSubstructCondense::Contribute_v1_local(TPZFMatrix &v1_local, TPZFMat
 /**
  * It computes the local contribution to v2.
  */
-void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix &residual_local, TPZFMatrix &v2_local)
+void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &v2_local)
 {
 	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
-	TPZFMatrix LocalWeightedResidual(fNEquations+ncoarse,1,0.);
+	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations+ncoarse,1,0.);
 	int ninput = residual_local.Rows();
 	int i;
 	for (i=0;i<ninput;i++) 
@@ -100,7 +100,7 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix &residual_local, T
 	}
 #endif
 	fMatRedComplete->SetF(LocalWeightedResidual);
-	TPZFMatrix U1(ncoarse,1,0.), UGlobal(fNEquations+ncoarse,0.);
+	TPZFMatrix<REAL> U1(ncoarse,1,0.), UGlobal(fNEquations+ncoarse,0.);
 	fMatRedComplete->U1(U1);
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -127,7 +127,7 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix &residual_local, T
 	}
 }
 
-void TPZDohrSubstructCondense::Contribute_v3_local(TPZFMatrix &v1Plusv2, TPZFMatrix &v3) const {
+void TPZDohrSubstructCondense::Contribute_v3_local(TPZFMatrix<REAL> &v1Plusv2, TPZFMatrix<REAL> &v3) const {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
 }
 
@@ -157,7 +157,7 @@ void TPZDohrSubstructCondense::Print(std::ostream &out) const
 void TPZDohrSubstructCondense::SolveSystemPhi() {
 	int ncoarse = fCoarseNodes.NElements();
 	int i,j;
-	TPZFMatrix rhs(this->fNEquations+ncoarse,ncoarse,0.);
+	TPZFMatrix<REAL> rhs(this->fNEquations+ncoarse,ncoarse,0.);
 	for(i=0; i<ncoarse; i++)
 	{
 		rhs(fNEquations+i,i) = 1.;
@@ -190,7 +190,7 @@ void TPZDohrSubstructCondense::SolveSystemPhi() {
 
 
 
-void TPZDohrSubstructCondense::ContributeDiagonalLocal(TPZFMatrix &StiffnessDiagLocal) {
+void TPZDohrSubstructCondense::ContributeDiagonalLocal(TPZFMatrix<REAL> &StiffnessDiagLocal) {
 	int i;
 #ifdef LOG4CXX
 	{
@@ -209,7 +209,7 @@ void TPZDohrSubstructCondense::ContributeDiagonalLocal(TPZFMatrix &StiffnessDiag
 	}
 }
 
-void TPZDohrSubstructCondense::ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLocal) {
+void TPZDohrSubstructCondense::ComputeWeightsLocal(TPZFMatrix<REAL> &StiffnessDiagLocal) {
 	int i;
 	//fWeights.Fill(1.);
 	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
@@ -243,7 +243,7 @@ void TPZDohrSubstructCondense::ComputeWeightsLocal(TPZFMatrix &StiffnessDiagLoca
  * Computes the condensed right hand side for the substructure
  * @param rhs the right hand side ordered external first
  */
-void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
+void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix<REAL> &rhs)
 {
 	int nglob = fNEquations;
 	int ncols = rhs.Cols();
@@ -258,7 +258,7 @@ void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
 		DebugStop();
 		return;
 	}
-	TPZFMatrix resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
+	TPZFMatrix<REAL> resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
 	PermuteGather (itrelat2->second, fLocalLoad, resglobal, 0, nglob);
 	fMatRed->SetF(resglobal);
 	resloc = fMatRed->F1Red();
@@ -277,7 +277,7 @@ void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
 	}
 #endif
 #ifdef DEBUG 
-	TPZFMatrix test(resloc);
+	TPZFMatrix<REAL> test(resloc);
 	test -= rhs;
 	//	REAL err = Norm(test);
 #endif
@@ -286,7 +286,7 @@ void TPZDohrSubstructCondense::ContributeRhs(TPZFMatrix &rhs)
 /**
  * Computes the global solution based on the interface solution
  */
-void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
+void TPZDohrSubstructCondense::UGlobal(TPZFMatrix<REAL> &UGlob, TPZFMatrix<REAL> &USub)
 {
 	int nglob = fNEquations;
 	int ncols = UGlob.Cols();
@@ -302,7 +302,7 @@ void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
 		DebugStop();
 		return;
 	}
-		TPZFMatrix uloc(nglob,ncols,0.);
+		TPZFMatrix<REAL> uloc(nglob,ncols,0.);
 		{
 			TPZFNMatrix<200> uext(fNumExternalEquations,ncols);
 			fMatRed->UGlobal2(UGlob,uloc);
@@ -322,13 +322,13 @@ void TPZDohrSubstructCondense::UGlobal(TPZFMatrix &UGlob, TPZFMatrix &USub)
 }
 
 
-void TPZDohrSubstructCondense::ContributeKULocal(const REAL alpha, const TPZFMatrix &u, TPZFMatrix &z) const
+void TPZDohrSubstructCondense::ContributeKULocal(const REAL alpha, const TPZFMatrix<REAL> &u, TPZFMatrix<REAL> &z) const
 {
 	int i,j;
 	int nglob = fNEquations;
 	int ncols = u.Cols();
 	int neqs = fNEquations-fNumInternalEquations;
-	TPZFMatrix uloc(nglob,ncols,0.), uborder(fNEquations-fNumInternalEquations,ncols,0.),resborder(fNEquations-fNumInternalEquations,ncols,0.);
+	TPZFMatrix<REAL> uloc(nglob,ncols,0.), uborder(fNEquations-fNumInternalEquations,ncols,0.),resborder(fNEquations-fNumInternalEquations,ncols,0.);
 	typedef std::pair<ENumbering,ENumbering> Numbering;
 	Numbering relat(ExternalFirst,Submesh);
 	Numbering relat2(InternalFirst,Submesh);
@@ -362,7 +362,7 @@ void TPZDohrSubstructCondense::ContributeKULocal(const REAL alpha, const TPZFMat
 #endif
 	fMatRed->Multiply(uborder,resborder);
 	
-	TPZFMatrix resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
+	TPZFMatrix<REAL> resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
 	PermuteScatter(itrelat2->second, resborder, resglobal, fNumInternalEquations, fNEquations);
 	PermuteGather(itrelat->second, resglobal, resloc, 0, u.Rows());
 #ifdef LOG4CXX
@@ -397,7 +397,7 @@ void TPZDohrSubstructCondense::PrepareSystems() {
  * Adjust the residual to reflect a static condensation
  * The residual corresponding to the internal nodes will be zeroed
  */
-void TPZDohrSubstructCondense::AdjustResidual(TPZFMatrix &r_global)
+void TPZDohrSubstructCondense::AdjustResidual(TPZFMatrix<REAL> &r_global)
 {
 	//	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
 }
@@ -405,7 +405,7 @@ void TPZDohrSubstructCondense::AdjustResidual(TPZFMatrix &r_global)
 /**
  * Add the internal solution to the final result
  */
-void TPZDohrSubstructCondense::AddInternalSolution(TPZFMatrix &sol)
+void TPZDohrSubstructCondense::AddInternalSolution(TPZFMatrix<REAL> &sol)
 {	
 }
 
@@ -414,7 +414,7 @@ void TPZDohrSubstructCondense::AddInternalSolution(TPZFMatrix &sol)
  * output[permute[i]] = input[i-first], first <= i < last
  * this method does not resize the elements
  */
-void TPZDohrSubstructCondense::PermuteScatter(const TPZVec<int> &permute, const TPZFMatrix &input, TPZFMatrix &output, int first, int last) 
+void TPZDohrSubstructCondense::PermuteScatter(const TPZVec<int> &permute, const TPZFMatrix<REAL> &input, TPZFMatrix<REAL> &output, int first, int last) 
 {
 	int i,j,ncol = input.Cols();
 	for(i=first; i<last; i++) for(j=0; j<ncol; j++)
@@ -427,7 +427,7 @@ void TPZDohrSubstructCondense::PermuteScatter(const TPZVec<int> &permute, const 
  * output[i-first] = input[permute[i]], first <= i < last
  * this method does not resize the elements
  */
-void TPZDohrSubstructCondense::PermuteGather(const TPZVec<int> &permute, const TPZFMatrix &input, TPZFMatrix &output, int first, int last)
+void TPZDohrSubstructCondense::PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<REAL> &input, TPZFMatrix<REAL> &output, int first, int last)
 {
 	int i,j,ncol = input.Cols();
 	for(i=first; i<last; i++) for(j=0; j<ncol; j++)

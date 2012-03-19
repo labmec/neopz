@@ -35,7 +35,7 @@ TPZPlacaOrthotropic::TPZPlacaOrthotropic(){
 	fTensorVar = -1;
 }
 
-void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T) {
+void TPZPlacaOrthotropic::Tensor(TPZVec<REAL> &ksi, TPZFMatrix<REAL> &T) {
 	if(fTensorVar == -1) {
 		if(!fIntel) fIntel = dynamic_cast<TPZInterpolatedElement *>(fGeoEl->Reference());
 		if(!fIntel) return;
@@ -135,12 +135,12 @@ void TPZPlacaOrthotropic::IdentifyCompEl() {
 	
 }
 
-REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol);
-void TPZPlacaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout) {
+REAL TensionNorm(TPZFMatrix<REAL> &tension,int dimrow,int dimcol);
+void TPZPlacaOrthotropic::PrintTensors(std::ostream &out,TPZFMatrix<REAL> &tensorin,TPZFMatrix<REAL> &tensorout) {
 	
 	TPZInt1d rule(8);
 	int np = rule.NPoints();
-	TPZFMatrix TensorOut(np,9),DiffTension(np,9);
+	TPZFMatrix<REAL> TensorOut(np,9),DiffTension(np,9);
 	TPZManVector<REAL,3> pos(1,0.), ksi(3,0.), x(3,0.);
 	TPZFNMatrix<9> tensor(3,3,0.);
 	int ip,i,j;
@@ -203,7 +203,7 @@ void TPZPlacaOrthotropic::PrintTensors(std::ostream &out) {
 }
 
 /** @brief Returns norm of the tension */
-REAL TensionNorm(TPZFMatrix &tension,int dimrow,int dimcol) {
+REAL TensionNorm(TPZFMatrix<REAL> &tension,int dimrow,int dimcol) {
 	
 	int i,j;
 	REAL val = 0.0;
@@ -286,7 +286,7 @@ REAL TPZPlacaOrthotropic::GradForce(TPZVec<REAL> &graddir, TPZVec<REAL> &normal,
 	return force;
 }
 
-void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, TPZFMatrix &T) {
+void TPZPlacaOrthotropic::GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi, TPZFMatrix<REAL> &T) {
 	if(fTensorVar == -1) {
 		if(!fIntel) fIntel = dynamic_cast<TPZInterpolatedElement *>(fGeoEl->Reference());
 		if(!fIntel) return;

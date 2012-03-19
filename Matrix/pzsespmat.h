@@ -33,55 +33,57 @@
 #include "pzmatdefs.h"
 
 #endif
-
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TSFMatrix;
 
 /**
  * @brief Implements sparce symmetric matrix using a linked list of elements. \ref matrix "Matrix"
  * @ingroup matrix
  */
-class TPZSSpMatrix : public TPZMatrix
+template<class TVar>
+class TPZSSpMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSSpMatrix() : TPZMatrix(0,0)  {}
-	TPZSSpMatrix(const int dim ) : TPZMatrix(dim,dim), fMat(dim, dim) {}
-	TPZSSpMatrix(const TPZSSpMatrix & );
+	TPZSSpMatrix() : TPZMatrix<TVar>(0,0)  {}
+	TPZSSpMatrix(const int dim ) : TPZMatrix<TVar>(dim,dim), fMat(dim, dim) {}
+	TPZSSpMatrix(const TPZSSpMatrix<TVar> & );
 	
 	CLONEDEF(TPZSSpMatrix)
 	
-	inline int    PutVal(const int row,const int col,const REAL&  element );
-	inline const REAL & GetVal(const int row,const int col ) const;
+	inline int    PutVal(const int row,const int col,const TVar&  element );
+	inline const TVar & GetVal(const int row,const int col ) const;
 	
 	/// Operators with SYMMETRIC sparse matrices.
 	// @{
-	TPZSSpMatrix &operator= (const TPZSSpMatrix &A );
-	TPZSSpMatrix operator+  (const TPZSSpMatrix &A ) const;
-	TPZSSpMatrix operator-  (const TPZSSpMatrix &A ) const;
-	TPZSSpMatrix &operator+=(const TPZSSpMatrix &A );
-	TPZSSpMatrix &operator-=(const TPZSSpMatrix &A );
+	TPZSSpMatrix &operator= (const TPZSSpMatrix<TVar> &A );
+	TPZSSpMatrix operator+  (const TPZSSpMatrix<TVar> &A ) const;
+	TPZSSpMatrix operator-  (const TPZSSpMatrix<TVar> &A ) const;
+	TPZSSpMatrix &operator+=(const TPZSSpMatrix<TVar> &A );
+	TPZSSpMatrix &operator-=(const TPZSSpMatrix<TVar> &A );
 	// @}
 	
 	/// Operators with Generic matrices.
 	// @{
-	TPZSpMatrix operator+(const TPZSpMatrix &A ) const;
-	TPZSpMatrix operator-(const TPZSpMatrix &A ) const;
+	TPZSpMatrix<TVar> operator+(const TPZSpMatrix<TVar> &A ) const;
+	TPZSpMatrix<TVar> operator-(const TPZSpMatrix<TVar> &A ) const;
 	// @}
 	
 	/// Operators with numeric values.
 	// @{
-	TPZSSpMatrix operator*  (const REAL v ) const;
-	TPZSSpMatrix &operator*=(const REAL v );
+	TPZSSpMatrix operator*  (const TVar v ) const;
+	TPZSSpMatrix &operator*=(const TVar v );
 	// @}
 	
 	/// Resize the array but keeps its entirety.
 	int Resize(const int newDim ,const int )
-    { fRow = fCol = newDim; return fMat.Resize( newDim, newDim ); }
+    { this->fRow = this->fCol = newDim; return fMat.Resize( newDim, newDim ); }
 	
 	/// Resize the array and resets its entirety.
 	int Redim(const int newDim) { return Redim(newDim,newDim);}
 	int Redim(const int newDim ,const int )
-    { fRow = fCol = newDim; return fMat.Redim( newDim, newDim ); }
+    { this->fRow = this->fCol = newDim; return fMat.Redim( newDim, newDim ); }
 	
 	// Zeroes all the elements
 	int Zero()
@@ -95,11 +97,11 @@ public:
 	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
 	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
 	
-	int Subst_Forward  ( TPZFMatrix *b ) const;
-	//int Subst_Backward ( TPZMatrix *b );
-	int Subst_LForward ( TPZFMatrix *b ) const;
-	//int Subst_LBackward( TPZMatrix *b );
-	int Subst_Diag     ( TPZFMatrix *b ) const;
+	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
+	//int Subst_Backward ( TPZMatrix<>*b );
+	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
+	//int Subst_LBackward( TPZMatrix<>*b );
+	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
 	// @}
 	
 #ifdef OOPARLIB
@@ -123,10 +125,10 @@ private:
 	 *  posicionadas no elemento de coluna 'k' (ou onde ele deveria
 	 *  estar).
 	 */
-	REAL ProdEsc( TPZLink<TPZSpMatrix::TPZNode> *row_i,
-				 TPZLink<TPZSpMatrix::TPZNode> *row_j, int k );
+	TVar ProdEsc( TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_i,
+				 TPZLink<TPZSpMatrix<REAL>::TPZNode> *row_j, int k );
 	
-	TPZSpMatrix fMat;
+	TPZSpMatrix<TVar> fMat;
 };
 
 
@@ -137,16 +139,17 @@ private:
 //  O valor da linha (row) deve ser maior ou igual ao da coluna
 // (col).
 //
+template<class TVar>
 inline int
-TPZSSpMatrix::PutVal(const int r,const int c,const REAL&  value )
+TPZSSpMatrix<TVar>::PutVal(const int r,const int c,const TVar&  value )
 {
 	// Inicializando row e col para trabalhar com a matriz
 	//  triangular inferior.
 	int row(r),col(c);
 	if ( row < col )
-		Swap( &row, &col );
+		this->Swap( &row, &col );
 	
-	fDecomposed = 0;
+	this->fDecomposed = 0;
 	return( fMat.PutVal( row, col, value ) );
 }
 
@@ -156,14 +159,15 @@ TPZSSpMatrix::PutVal(const int r,const int c,const REAL&  value )
 //  Le um elemento da matriz, sem verificar fronteiras. O valor
 // da linha (row) deve ser maior ou igual ao da coluna (col).
 //
-inline const REAL &
-TPZSSpMatrix::GetVal(const int r,const int c ) const
+template<class TVar>
+inline const TVar &
+TPZSSpMatrix<TVar>::GetVal(const int r,const int c ) const
 {
 	// inicializando row e col para trabalhar com a matriz
 	// triangular inferior.
 	int row(r),col(c);
 	if ( row < col )
-		Swap( &row, &col );
+		this->Swap( &row, &col );
 	
 	return( fMat.GetVal( row, col ) );
 }

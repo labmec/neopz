@@ -36,7 +36,7 @@ fA(0,0), fB(0,0), fC(0,0) {
 	JacobFlux(U,fA,fB,fC);
 }
 
-void TPZDiffusionConsLaw::GradientOfTheFlow(TPZFMatrix &DF1,TPZFMatrix &DF2,TPZFMatrix &DF3){
+void TPZDiffusionConsLaw::GradientOfTheFlow(TPZFMatrix<REAL> &DF1,TPZFMatrix<REAL> &DF2,TPZFMatrix<REAL> &DF3){
 	
 	DF1 = fA;
 	DF2 = fB;
@@ -61,11 +61,11 @@ REAL TPZDiffusionConsLaw::DeltaOtimo(){
 	return delta;
 }
 
-void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
+void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix<REAL> &diverg){
 	
 	fArtificialDiffusion = "LS";
 	std::string type = fArtificialDiffusion;
-	TPZFMatrix diffterm(0,0);
+	TPZFMatrix<REAL> diffterm(0,0);
 	PointOperator(dphi,diffterm);
 	int i,j,nstate=2+fDimension;
 	diverg.Redim(nstate,1);
@@ -75,7 +75,7 @@ void TPZDiffusionConsLaw::Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg){
 	fArtificialDiffusion = type;
 }
 
-void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term){
+void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix<REAL> &diff_term){
 	
 	diff_term.Zero();
 	int size = dphi.NElements();
@@ -84,8 +84,8 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
 		//esta forma permite trabalhar com 1, 2 e 3 dimens�s
 		cout << "TPZDiffusionConsLaw::PointOperator error data size";
 	}
-	TPZFMatrix Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
-	TPZFMatrix Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
+	TPZFMatrix<REAL> Tx(nstate,nstate),Ty(nstate,nstate),Tz(nstate,nstate);
+	TPZFMatrix<REAL> Trx(nstate,nstate),Try(nstate,nstate),Trz(nstate,nstate);
 	diff_term.Redim(nstate,nstate);
 	Tau(Tx,Ty,Tz);
 	Tx.Transpose(&Trx);
@@ -100,7 +100,7 @@ void TPZDiffusionConsLaw::PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term
 	}
 }
 
-void TPZDiffusionConsLaw::Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
+void TPZDiffusionConsLaw::Tau(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz){
 	
 	if(!strcmp(fArtificialDiffusion.c_str(),"SUPG")){
 		SUPG(Tx,Ty,Tz);
@@ -117,22 +117,22 @@ void TPZDiffusionConsLaw::Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
 	cout << "\nTPZDiffusionConsLaw::Tau case not implemented\n";
 }
 
-void TPZDiffusionConsLaw::SUPG(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
+void TPZDiffusionConsLaw::SUPG(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz){
 	cout << "TPZDiffusionConsLaw:: SUPG artificial diffusion SUPG not implemented\n";
 }
 
-void TPZDiffusionConsLaw::LS(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
+void TPZDiffusionConsLaw::LS(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz){
 	
 	fA.Transpose(&Tx);
 	fB.Transpose(&Ty);
 	fC.Transpose(&Tz);
 }
 
-void TPZDiffusionConsLaw::Bornhaus(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz){
+void TPZDiffusionConsLaw::Bornhaus(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz){
     cout << "TPZDiffusionConsLaw::Bornhaus artificial diffusion Bornhaus not implemented\n";
 }
 
-void TPZDiffusionConsLaw::JacobFlux(TPZVec<REAL> U,TPZFMatrix &A,TPZFMatrix &B,TPZFMatrix &C) {//OK
+void TPZDiffusionConsLaw::JacobFlux(TPZVec<REAL> U,TPZFMatrix<REAL> &A,TPZFMatrix<REAL> &B,TPZFMatrix<REAL> &C) {//OK
 	
 	if(fabs(U[0]) < 1.e-6) {
 		cout << "\nTPZDiffusionConsLaw::JacobFlux: Densidade quase nula, o jacobiano falha\n";

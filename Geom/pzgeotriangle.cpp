@@ -24,7 +24,7 @@ namespace pzgeom {
 	
 	const double tol = pzgeom_TPZNodeRep_tol;
 	
-	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoTriangle::Shape(TPZVec<REAL> &param,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		REAL qsi = param[0], eta = param[1];
 		phi(0,0) = 1.-qsi-eta;
 		phi(1,0) = qsi;
@@ -34,7 +34,7 @@ namespace pzgeom {
 		dphi(1,1) = dphi(0,2) =  0.;
 	}
 	
-	void TPZGeoTriangle::Jacobian(TPZFMatrix & coord, TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
+	void TPZGeoTriangle::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
         int spacedim = coord.Rows();
         jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
@@ -72,11 +72,11 @@ namespace pzgeom {
         }
 	}
 	
-	void TPZGeoTriangle::X(TPZFMatrix & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoTriangle::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		
 		REAL spacephi[3],spacedphi[6];
-		TPZFMatrix phi(3,1,spacephi,3);
-		TPZFMatrix dphi(2,3,spacedphi,6);
+		TPZFMatrix<REAL> phi(3,1,spacephi,3);
+		TPZFMatrix<REAL> dphi(2,3,spacedphi,6);
 		Shape(loc,phi,dphi);
         int space = coord.Rows();
 		
@@ -85,7 +85,7 @@ namespace pzgeom {
 			for(int j = 0; j < 3; j++) result[i] += phi(j,0)*coord(i,j);
 		}
 	}
-	void TPZGeoTriangle::VecHdiv(TPZFMatrix & coord, TPZFMatrix & fNormalVec,TPZVec<int> &fVectorSide){
+	void TPZGeoTriangle::VecHdiv(TPZFMatrix<REAL> & coord, TPZFMatrix<REAL> & fNormalVec,TPZVec<int> &fVectorSide){
 		if(coord.Rows()!=3)
 		{
 			cout<< "Erro na dimens‹o das linhas de coord"<< endl;
@@ -190,10 +190,10 @@ namespace pzgeom {
 		midle[0]=(1./3.)*(coord(0,2)+coord(0,0)+coord(0,1));
 		midle[1]=(1./3.)*(coord(1,2)+coord(1,0)+coord(1,1));		
 		midle[2]=(1./3.)*(coord(2,2)+coord(2,0)+coord(2,1));
-		TPZFMatrix jacobian;
-		TPZFMatrix axes;
+		TPZFMatrix<REAL> jacobian;
+		TPZFMatrix<REAL> axes;
 		REAL detjac;
-		TPZFMatrix jacinv;
+		TPZFMatrix<REAL> jacinv;
 		Jacobian(coord,midle,jacobian,axes,detjac,jacinv);
 		fNormalVec(12,0)=axes(0,0);
 		fNormalVec(12,1)=axes(0,1);
@@ -261,7 +261,7 @@ namespace pzgeom {
 	}
 	
 	
-	bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool TPZGeoTriangle::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		
 		double zero = 1.E-5;
 		REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];

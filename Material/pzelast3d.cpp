@@ -66,25 +66,25 @@ void TPZElasticity3D::Print(std::ostream & out){
 
 void TPZElasticity3D::Contribute(TPZMaterialData &data,
                                  REAL weight,
-                                 TPZFMatrix &ek,
-                                 TPZFMatrix &ef){
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+                                 TPZFMatrix<REAL> &ek,
+                                 TPZFMatrix<REAL> &ef){
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &jacinv = data.jacinv;
+	// TPZFMatrix<REAL> &jacinv = data.jacinv;
 	
 	
 	
@@ -205,26 +205,26 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 
 void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix &ek,
-                                   TPZFMatrix &ef,
+                                   TPZFMatrix<REAL> &ek,
+                                   TPZFMatrix<REAL> &ef,
                                    TPZBndCond &bc){
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &jacinv = data.jacinv;
+	// TPZFMatrix<REAL> &jacinv = data.jacinv;
 	
 	
 	const REAL BIGNUMBER  = 1.e12;
@@ -235,7 +235,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
 	v2[2] = bc.Val2()(2,0);
-	TPZFMatrix &v1 = bc.Val1();
+	TPZFMatrix<REAL> &v1 = bc.Val1();
     
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -358,7 +358,7 @@ int TPZElasticity3D::NSolutionVariables(int var){
 	return -1;
 }
 
-void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == TPZElasticity3D::EDisplacement){
 		int i;
@@ -530,9 +530,9 @@ void TPZElasticity3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &ax
 	
 }//Solution
 
-void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx, 
-							 TPZFMatrix &axes, TPZVec<REAL> &flux,
-							 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values){
+void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, 
+							 TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+							 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values){
 	int i, j;
 	
 	/** L2 norm */
@@ -557,7 +557,7 @@ void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
 	
 }
 
-void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol) const{
+void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix<REAL> &Strain, TPZFMatrix<REAL> &DSol) const{
 	Strain.Redim(3,3);
 	Strain(0,0) = DSol(0,0);
 	Strain(0,1) = 0.5 * ( DSol(1,0) + DSol(0,1) );
@@ -570,11 +570,11 @@ void TPZElasticity3D::ComputeStrainTensor(TPZFMatrix &Strain, TPZFMatrix &DSol) 
 	Strain(2,2) = DSol(2,2);
 }
 
-void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data) const{
+void TPZElasticity3D::ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const{
     ComputeStressTensor(Stress, data.dsol[0]);
 }
 
-void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &dsol) const{
+void TPZElasticity3D::ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZFMatrix<REAL> &dsol) const{
 	TPZFNMatrix<6> Vec(6,1);
 	this->ComputeStressVector(Vec, dsol);
 	
@@ -590,7 +590,7 @@ void TPZElasticity3D::ComputeStressTensor(TPZFMatrix &Stress, TPZFMatrix &dsol) 
 	Stress(2,2) = Vec(2,0);
 }
 
-void TPZElasticity3D::ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol) const{
+void TPZElasticity3D::ComputeStrainVector(TPZFMatrix<REAL> &Strain, TPZFMatrix<REAL> &DSol) const{
 	Strain.Redim(6,1);
 	Strain(0,0) = DSol(0,0);
 	Strain(1,0) = DSol(1,1);
@@ -600,7 +600,7 @@ void TPZElasticity3D::ComputeStrainVector(TPZFMatrix &Strain, TPZFMatrix &DSol) 
 	Strain(5,0) = 0.5 * ( DSol(2,1) + DSol(1,2) );
 }
 
-void TPZElasticity3D::ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol) const{
+void TPZElasticity3D::ComputeStressVector(TPZFMatrix<REAL> &Stress, TPZFMatrix<REAL> &DSol) const{
 	REAL const1 = -1. + this->fPoisson;
 	REAL const2 = -1. + this->fPoisson + 2. * fPoisson * fPoisson;
 	const REAL E = this->fE;
@@ -616,7 +616,7 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix &Stress, TPZFMatrix &DSol) 
 	Stress(5,0) = E * ( DSol(2,1) + DSol(1,2) ) / const3;
 }
 
-void TPZElasticity3D::ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out) const{
+void TPZElasticity3D::ApplyDirection(TPZFMatrix<REAL> &StrVec, TPZVec<REAL> &Out) const{
 	Out.Resize(3);
 	const TPZVec<REAL> &Dir = this->fPostProcessDirection;
 	Out[0] = Dir[0] * StrVec(0,0) + Dir[1] * StrVec(3,0) + Dir[2] * StrVec(4,0);
@@ -624,7 +624,7 @@ void TPZElasticity3D::ApplyDirection(TPZFMatrix &StrVec, TPZVec<REAL> &Out) cons
 	Out[2] = Dir[2] * StrVec(2,0) + Dir[0] * StrVec(4,0) + Dir[1] * StrVec(5,0);
 }
 
-void TPZElasticity3D::PrincipalDirection(TPZFMatrix &DSol, TPZVec< REAL > &Solout, int direction) const{
+void TPZElasticity3D::PrincipalDirection(TPZFMatrix<REAL> &DSol, TPZVec< REAL > &Solout, int direction) const{
 	
 	TPZFNMatrix<9> StrainTensor(3,3);
 	TPZManVector<REAL,3> Eigenvalues;

@@ -38,7 +38,7 @@ struct TPZDohrAssembleItem {
 	/** @brief Substructure index */
 	int fSubIndex;
 	/** @brief The data which should be assembled */
-	TPZFMatrix fAssembleData;
+	TPZFMatrix<REAL> fAssembleData;
 };
 
 /**
@@ -47,7 +47,7 @@ struct TPZDohrAssembleItem {
  */ 
 struct TPZDohrAssembleList {
 	/** @brief Constructor indicating the number of items that will be assembled and the target matrix */
-	TPZDohrAssembleList(int numitems, TPZFMatrix &output, TPZAutoPointer<TPZDohrAssembly> assembly);
+	TPZDohrAssembleList(int numitems, TPZFMatrix<REAL> &output, TPZAutoPointer<TPZDohrAssembly> assembly);
 	/// destructor
 	~TPZDohrAssembleList();
 	/** @brief The number of items that will be assembled before returning */
@@ -67,7 +67,7 @@ struct TPZDohrAssembleList {
 	/** @brief Assembly indexes */
 	TPZAutoPointer<TPZDohrAssembly> fAssembleIndexes;
 	/** @brief Target Matrix */
-	TPZFMatrix *fOutput;
+	TPZFMatrix<REAL> *fOutput;
 	/** @brief Procedure which performs the assembly process */
 	static void *Assemble(void *voidptr);
 };

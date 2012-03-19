@@ -14,6 +14,8 @@
 #include <iostream>
 
 class TPZCompMesh;
+
+template<class TVar>
 class TPZFMatrix;
 class TPZFStructMatrix;
 class TMTFaceData;
@@ -31,7 +33,7 @@ public:
   /**
    * Assemble fluxes
   **/
-  void AssembleFluxes(const TPZFMatrix & Solution, std::set<int> *MaterialIds = NULL){
+  void AssembleFluxes(const TPZFMatrix<REAL> & Solution, std::set<int> *MaterialIds = NULL){
     this->AssembleFluxes2ndOrder(Solution);
   }
 
@@ -45,7 +47,7 @@ public:
 
   /** Computes next solution based on the last
    */
-  void TimeEvolution(TPZFMatrix &LastSol, TPZFMatrix &NextSol);
+  void TimeEvolution(TPZFMatrix<REAL> &LastSol, TPZFMatrix<REAL> &NextSol);
 
   virtual void Run(std::ostream &out = std::cout);
 
@@ -68,7 +70,7 @@ public:
 
   REAL TimeStep();
 
-  void SetInitialSolution(TPZFMatrix & InitialSol);
+  void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
 
   void SetInitialSolutionAsZero();
 
@@ -78,9 +80,9 @@ public:
   * in primitive vars
   * <!> fRhs is modified
   */
-  void ComputeGradient(const TPZFMatrix & SolutionConsVars);
+  void ComputeGradient(const TPZFMatrix<REAL> & SolutionConsVars);
 	
-  void ComputeGradientForDetails(const TPZFMatrix & PrimitiveSolution, TPZFMatrix & SolutionWithGrad);
+  void ComputeGradientForDetails(const TPZFMatrix<REAL> & PrimitiveSolution, TPZFMatrix<REAL> & SolutionWithGrad);
 
 protected:
 
@@ -88,14 +90,14 @@ protected:
   void DX(int iter, std::string filename);
 
   /** divide vec elements by cell volume and multiply by alpha */
-  void DivideByVolume(TPZFMatrix &vec, double alpha);
+  void DivideByVolume(TPZFMatrix<REAL> &vec, double alpha);
 
   /** Make loop over interfaces requesting flux computation */
   void ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   void ParallelComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   static void * ExecuteParallelComputeFlux(void * ExtData);
 
-  void AssembleFluxes2ndOrder(const TPZFMatrix & Solution);
+  void AssembleFluxes2ndOrder(const TPZFMatrix<REAL> & Solution);
 
 
   void GetNeighbourSolution(TPZInterfaceElement *face, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
@@ -113,7 +115,7 @@ protected:
    */
   void CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face, TPZElementMatrix &ef, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
 
-  void FromConservativeToPrimitiveAndLoad(const TPZFMatrix & Solution);
+  void FromConservativeToPrimitiveAndLoad(const TPZFMatrix<REAL> & Solution);
 
   /** Simulation time step */
   REAL fTimeStep;

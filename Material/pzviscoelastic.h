@@ -33,7 +33,7 @@ const int _ZZ_ = 5;
  * @author Nathan Shauer
  * @since 7/16/2010.
  */
-class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix, TPZElasticity3D>
+class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D>
 {
 		
 public:
@@ -44,8 +44,8 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	void UpdateQsi(TPZMaterialData &data);
 	
@@ -59,7 +59,7 @@ public:
 	 Computes the stress. 
 	 Remember you cant update qsi if you want to calculate stress 
 	 */
-	virtual void ComputeStressTensor(TPZFMatrix &Stress, TPZMaterialData &data);
+	virtual void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);

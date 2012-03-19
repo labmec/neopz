@@ -93,7 +93,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       /** Compute the value of the flux function to be used by ZZ error estimator.
        * Method not implemented.
        */
-      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 	  {
          PZError << "TPZMatPorous<TBASEPOROUS(T, TMEM)>::Flux - Method not implemented\n";
       }
@@ -101,9 +101,9 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       /** Evaluate error between approximate (FEM) and exact solutions.
 	   *  Method not implemented
        */
-      virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
-                          TPZFMatrix &axes, TPZVec<REAL> &flux,
-                          TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+      virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+                          TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
       /**
        * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
 	   * Method not implemented
@@ -117,7 +117,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ek[out] is the stiffness matrix
        * @param ef[out] is the load vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -127,7 +127,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ef[out] is the load vector
        * @param bc[in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**
        * It computes a contribution to the residual vector at one integration point.
@@ -135,7 +135,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param weight[in] is the weight of the integration rule
        * @param ef[out] is the residual vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -145,7 +145,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * @param ef[out] is the load vector
        * @param bc[in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**To create another material of the same type*/
       virtual TPZAutoPointer<TPZMaterial> NewMaterial();

@@ -466,7 +466,7 @@ TPZFlowCompMesh *
 // Boundary conditions
 
    TPZBndCond *bc;
-   TPZFMatrix val1(5,5), val2(5,1);
+   TPZFMatrix<REAL> val1(5,5), val2(5,1);
 
    int nn = nSubdiv + 1;
    int nElsPerLayer = nn * 2;
@@ -559,7 +559,7 @@ TPZFlowCompMesh *
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix Solution = cmesh->Solution();
+   TPZFMatrix<REAL> Solution = cmesh->Solution();
    Solution.Zero();
 
    int nVars = Solution.Rows();

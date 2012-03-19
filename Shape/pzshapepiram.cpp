@@ -39,7 +39,7 @@ namespace pzshape {
 	
 	REAL TPZShapePiram::gFaceSum3dPiram2d[5][2] = { {.0,0.},{-.5,0.},{-.5,0.},{-.5,0.},{-.5,0.} };//{ {.0,0.},{-.5,0.},{-.5,0.},{-.5,0.},{-.5,0.} };//original
 	
-	void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+	void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		/*if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
 		 //para testes com transforma��es geometricas
@@ -113,7 +113,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the (4) shape functions
 	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+	void TPZShapePiram::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// contribute the ribs
@@ -193,7 +193,7 @@ namespace pzshape {
 	 return ( ( ( 1 - pt1 ) - pt0 ) / 2 / (1 - pt1) );
 	 }
 	 
-	 void TPZCompEl::ShapeCornerPira(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+	 void TPZCompEl::ShapeCornerPira(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	 
 	 
 	 double c = pt[0] , e = pt[1], z = 1 - pt[2];
@@ -228,7 +228,7 @@ namespace pzshape {
 	 dphi(2,4) = 1.0;
 	 }*/
 	
-	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -262,7 +262,7 @@ namespace pzshape {
 			ids[1] = id[id1];
 			REAL store1[20],store2[60];
 			int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
-			TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
 			phin.Zero();
 			dphin.Zero();
 			TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
@@ -349,7 +349,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapePiram::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>18) PZError << "TPZCompElPi3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==18) Shape(point,id,order,phi,dphi);
@@ -364,13 +364,13 @@ namespace pzshape {
 		
 	}
 	
-	void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-									  TPZFMatrix &dphi) {
+	void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+									  TPZFMatrix<REAL> &dphi) {
 		//valor da fun��o e derivada do produto das fun��es ortogonais
 		if(order < 3) return;
 		int ord = order-2;
 		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		TPZFMatrix phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
+		TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
 		dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
 		TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);//f e df            -1<=x0<=1
 		TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);//g e dg            -1<=x1<=1
@@ -392,7 +392,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapePiram::TransformDerivativeFromRibToPiram(int rib,int num,TPZFMatrix &dphi) {
+	void TPZShapePiram::TransformDerivativeFromRibToPiram(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gRibTrans3dPiram1d[rib][2]*dphi(0,j);
 			dphi(1,j) = gRibTrans3dPiram1d[rib][1]*dphi(0,j);
@@ -400,7 +400,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapePiram::TransformDerivativeFromFaceToPiram(int face,int num,TPZFMatrix &dphi) {
+	void TPZShapePiram::TransformDerivativeFromFaceToPiram(int face,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gFaceTrans3dPiram2d[face][0][2]*dphi(0,j)+gFaceTrans3dPiram2d[face][1][2]*dphi(1,j);
 			REAL dphi1j = dphi(1,j);
@@ -409,7 +409,7 @@ namespace pzshape {
 		}
 	}
 	//transforma a derivada no ponto dentro da face
-	void TPZShapePiram::TransformDerivativeFace3dPiram(int transid, int face, int num, TPZFMatrix &in) {
+	void TPZShapePiram::TransformDerivativeFace3dPiram(int transid, int face, int num, TPZFMatrix<REAL> &in) {
 		if (!face) TPZShapeQuad::TransformDerivative2dQ(transid,num,in);//face 13
 		else       TPZShapeTriang::TransformDerivative2dT(transid,num,in);//outras
 	}

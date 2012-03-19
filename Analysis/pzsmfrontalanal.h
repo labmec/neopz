@@ -22,14 +22,14 @@ class TPZFront;
 class TPZSubMeshFrontalAnalysis : public TPZAnalysis  
 {
 private:
-	TPZFMatrix fReferenceSolution;
+	TPZFMatrix<REAL> fReferenceSolution;
 	
 	TPZSubCompMesh *fMesh;
 	
 	TPZFront *fFront;
 	
 public:
-	virtual void LoadSolution(const TPZFMatrix &sol);
+	virtual void LoadSolution(const TPZFMatrix<REAL> &sol);
 	/**
 	 * @brief Constructor: create an object analysis from one mesh
 	 **/
@@ -50,7 +50,7 @@ public:
 	 * @brief CondensedSolution: returns the condensed stiffness
 	 *matrix - ek - and the condensed solution vector - ef
 	 */
-	void CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef);
+	void CondensedSolution(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief Sets the front matrix

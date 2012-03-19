@@ -65,9 +65,9 @@ public:
     TPZAutoPointer<TPZCompMesh> GenerateMesh();
     
     /** @brief Initialize the TPZDohrMatrix structure */
-    void InitializeDohr(TPZAutoPointer<TPZMatrix> dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
+    void InitializeDohr(TPZAutoPointer<TPZMatrix<REAL> > dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
     /** @brief Initialize the TPZDohrMatrix structure */
-    void InitializeDohrCondense(TPZAutoPointer<TPZMatrix> dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
+    void InitializeDohrCondense(TPZAutoPointer<TPZMatrix<REAL> > dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
 	
 	void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
 							  TPZVec<int> &internalnodes);

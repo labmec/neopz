@@ -76,7 +76,7 @@ virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
  * @param ek[out] is the stiffness matrix
  * @param ef[out] is the load vector
  */
-virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
 /**
  * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -86,14 +86,14 @@ virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZF
  * @param ef[out] is the load vector
  * @param bc[in] is the boundary condition material
  */
-virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
 
 /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
  * @param Strain[out] 
  * @param DSol[in]
  */
-void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain);
+void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
 
 
 /** Calls the plasticity template aggregate applyStrainComputeDep method
@@ -102,8 +102,8 @@ void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain);
  *  @param Stress[out]
  *  @param Dep[out]
  */
-void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix & DeltaStrain, 
-								TPZFMatrix & Stress, TPZFMatrix & Dep);
+void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+								TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
 
 
 /**To create another material of the same type*/

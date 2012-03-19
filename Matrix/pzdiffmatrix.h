@@ -14,12 +14,6 @@
 #include "fadType.h"
 #endif
 
-#ifdef _AUTODIFF
-#define IsZero( a )  ( fabs(shapeFAD::val(shapeFAD::val(a)) ) < 1.e-20 )
-#else
-#define IsZero( a )  ( fabs( a ) < 1.e-20 )
-#endif
-
 /** @ingroup matrix */
  enum EStatus {EOk = 0, EIncompDim, EZeroPivot};
 
@@ -212,6 +206,7 @@ inline void TPZDiffMatrix<T>::PutVal(const int row,const int col,const T & value
 {
 	fStore[index(row,col)] = value;	
 }
+
 
 template <class T>
 inline const T & TPZDiffMatrix<T>::GetVal(const int row,const int col ) const

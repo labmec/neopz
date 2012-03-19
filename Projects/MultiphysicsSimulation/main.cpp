@@ -185,19 +185,19 @@ int main(int argc, char *argv[])
 	mphysics->InsertMaterialObject(mat);
 	
 	///Inserir condicao de contorno
-	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	val2(0,0)=0.;
 	val2(1,0)=0.;
 	TPZAutoPointer<TPZMaterial> BCondN = mymaterial->CreateBC(mat, bcN,neumann, val1, val2);
 	mphysics->InsertMaterialObject(BCondN);
 	
-	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	val22(0,0)=0.;
 	val22(1,0)=2.;
 	TPZAutoPointer<TPZMaterial> BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
 	mphysics->InsertMaterialObject(BCondDL);
 	
-	TPZFMatrix val13(2,2,0.), val23(2,1,0.);
+	TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
 	val23(0,0)=0.;
 	val23(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
@@ -445,14 +445,14 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	
 
 	///Inserir condicao de contorno
-	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
 	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
-	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
 	val22(0,0)=uD;
 	//val22(1,0)=uD;
@@ -493,14 +493,14 @@ TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
 	
 	
 	///Inserir condicao de contorno
-	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
 	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
-	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uDL=2.;
 	val22(0,0)=uDL;
 	//val22(1,0)=uD;
@@ -552,14 +552,14 @@ TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
 	
 	
 	///Inserir condicao de contorno
-	TPZFMatrix val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
 	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat1, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
-	TPZFMatrix val12(2,2,0.), val22(2,1,0.);
+	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
 	val22(0,0)=uD;
 	//val22(1,0)=uD;
@@ -581,7 +581,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//TPZBandStructMatrix full(fCmesh);
 	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt); //caso simetrico
 	//step.SetDirect(ELU);
 	an.SetSolver(step);
@@ -993,10 +993,10 @@ void TransferFromMeshes(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMesh)
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
-    TPZBlock &blockMF = MFMesh->Block();
+    TPZBlock<REAL> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int ncon = cmeshVec[imesh]->NConnects();
-        TPZBlock &block = cmeshVec[imesh]->Block();
+        TPZBlock<REAL> &block = cmeshVec[imesh]->Block();
         int ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];
@@ -1021,10 +1021,10 @@ void TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &cmeshVec, TPZCompMesh *MFMe
     for (imesh = 0; imesh < nmeshes; imesh++) {
         FirstConnectIndex[imesh+1] = FirstConnectIndex[imesh]+cmeshVec[imesh]->NConnects();
     }
-    TPZBlock &blockMF = MFMesh->Block();
+    TPZBlock<REAL> &blockMF = MFMesh->Block();
     for (imesh = 0; imesh < nmeshes; imesh++) {
         int ncon = cmeshVec[imesh]->NConnects();
-        TPZBlock &block = cmeshVec[imesh]->Block();
+        TPZBlock<REAL> &block = cmeshVec[imesh]->Block();
         int ic;
         for (ic=0; ic<ncon; ic++) {
             TPZConnect &con = cmeshVec[imesh]->ConnectVec()[ic];

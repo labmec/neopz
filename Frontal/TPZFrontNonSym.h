@@ -106,7 +106,7 @@ public:
 	 * @param elmat Already formed element matrix
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    void AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex);
+    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix
@@ -114,10 +114,10 @@ public:
 	 * @param sourceindex Source index
 	 * @param destinationindex Destine index on the global matrix
 	 */
-    void AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
+    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
 	
 	/** @brief Extract the front matrix */
-	virtual void ExtractFrontMatrix(TPZFMatrix &front);
+	virtual void ExtractFrontMatrix(TPZFMatrix<REAL> &front);
 	
 private:    
 	

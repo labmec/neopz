@@ -41,14 +41,14 @@ void TPZBiharmonic::Print(std::ostream &out) {
 
 void TPZBiharmonic::Contribute(TPZMaterialData &data,
                                REAL weight,
-                               TPZFMatrix &ek,
-							   TPZFMatrix &ef) {
-	TPZFMatrix &dphi = data.dphix;
-	//TPZFMatrix &dphiL = data.dphixl;
-	//TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	//TPZFMatrix &phiL = data.phil;
-	//TPZFMatrix &phiR = data.phir;
+                               TPZFMatrix<REAL> &ek,
+							   TPZFMatrix<REAL> &ef) {
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	//TPZFMatrix<REAL> &dphiL = data.dphixl;
+	//TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	//TPZFMatrix<REAL> &phiL = data.phil;
+	//TPZFMatrix<REAL> &phiR = data.phir;
 	//TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	//int POrder=data.p;
@@ -57,18 +57,18 @@ void TPZBiharmonic::Contribute(TPZMaterialData &data,
 	/*TPZVec<REAL> &sol=data.sol;
 	 TPZVec<REAL> &solL=data.soll;
 	 TPZVec<REAL> &solR=data.solr;
-	 TPZFMatrix &dsol=data.dsol;
-	 TPZFMatrix &dsolL=data.dsoll;
-	 TPZFMatrix &dsolR=data.dsolr;*/
+	 TPZFMatrix<REAL> &dsol=data.dsol;
+	 TPZFMatrix<REAL> &dsolL=data.dsoll;
+	 TPZFMatrix<REAL> &dsolR=data.dsolr;*/
 	//REAL faceSize=data.HSize;
-	//TPZFMatrix &jacinv = data.jacinv;
-	//TPZFMatrix &axes = data.axes;
+	//TPZFMatrix<REAL> &jacinv = data.jacinv;
+	//TPZFMatrix<REAL> &axes = data.axes;
 	
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<REAL> res(1);
-        TPZFMatrix grad;
+        TPZFMatrix<REAL> grad;
 		fForcingFunction->Execute(x,res,grad);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
@@ -84,8 +84,8 @@ void TPZBiharmonic::Contribute(TPZMaterialData &data,
 
 void TPZBiharmonic::ContributeBC(TPZMaterialData &data,
                                  REAL weight,
-                                 TPZFMatrix &ek,
-                                 TPZFMatrix &ef,
+                                 TPZFMatrix<REAL> &ek,
+                                 TPZFMatrix<REAL> &ef,
                                  TPZBndCond &bc) {
 	
 	//NOT TO BE DONE HERE
@@ -112,7 +112,7 @@ int TPZBiharmonic::NSolutionVariables(int var){
 	//  return 0;
 }
 
-void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*axes*/,
+void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &/*axes*/,
 							 int var,TPZVec<REAL> &Solout){
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
@@ -125,14 +125,14 @@ void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &/*ax
 }
 
 void TPZBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/,
-						 TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/,
+						 TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
 						 TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
-void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx,
-						   TPZFMatrix &axes, TPZVec<REAL> &/*flux*/,
-						   TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
+void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+						   TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
+						   TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
 						   TPZVec<REAL> &values) {
 	TPZVec<REAL> sol(1), dsol(8,0.);
 	Solution(u,dudx,axes,1,sol);
@@ -163,7 +163,7 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx
 
 
 // void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
-//                                         REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+//                                         REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 // 
 //    PZError << "TPZBiharmonic::ContributeInterface - this material requires left and right p order and interface size." << endl
 // 	   << "Assuming pL = pR = 3 and faceSize = 1." << endl;
@@ -175,15 +175,15 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix &dudx
 
 void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                         REAL weight,
-                                        TPZFMatrix &ek,
-                                        TPZFMatrix &ef){
+                                        TPZFMatrix<REAL> &ek,
+                                        TPZFMatrix<REAL> &ef){
 	
-	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = dataleft.dphix;
-	TPZFMatrix &dphiR = dataright.dphix;
-	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = dataleft.phi;
-	TPZFMatrix &phiR = dataright.phi;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiR = dataright.dphix;
+	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	//int POrder=data.p;
@@ -192,12 +192,12 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	//REAL faceSize=data.HSize;
-	// TPZFMatrix &jacinv = data.jacinv;
-	// TPZFMatrix &axes = data.axes;
+	// TPZFMatrix<REAL> &jacinv = data.jacinv;
+	// TPZFMatrix<REAL> &axes = data.axes;
 	int LeftPOrder=dataleft.p;
 	int RightPOrder=dataright.p;
 	REAL faceSize=data.HSize;
@@ -415,8 +415,8 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 
 // void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data,
 //                                           REAL weight,  
-//                                           TPZFMatrix &ek,
-//                                           TPZFMatrix &ef,
+//                                           TPZFMatrix<REAL> &ek,
+//                                           TPZFMatrix<REAL> &ef,
 //                                           TPZBndCond &bc){
 // 
 //   PZError << "TPZBiharmonic::ContributeBCInterface - this material requires p order and interface size." << endl
@@ -428,16 +428,16 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 
 void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                           REAL weight,
-                                          TPZFMatrix &ek,
-                                          TPZFMatrix &ef,
+                                          TPZFMatrix<REAL> &ek,
+                                          TPZFMatrix<REAL> &ef,
                                           TPZBndCond &bc) {
 	
-	// TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &dphiL = dataleft.dphix;
-	// TPZFMatrix &dphiR = dataright.dphix;
-	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = dataleft.phi;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	// TPZFMatrix<REAL> &dphiR = dataright.dphix;
+	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	//int POrder=data.p;
@@ -446,12 +446,12 @@ void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	//REAL faceSize=data.HSize;
-	// TPZFMatrix &jacinv = data.jacinv;
-	// TPZFMatrix &axes = data.axes;
+	// TPZFMatrix<REAL> &jacinv = data.jacinv;
+	// TPZFMatrix<REAL> &axes = data.axes;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
 	int POrder=data.p;                            // I need some explains, why you use reference & - Jorge

@@ -39,26 +39,26 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	virtual TPZMatrix * Create();
+	virtual TPZMatrix<REAL> * Create();
 	
 	/**
 	 * @brief This will return the pointer to the preconditioner AND abandon the pointer
 	 * @warning This method can only be called once
 	 */
-	TPZAutoPointer<TPZMatrix> Preconditioner()
+	TPZAutoPointer<TPZMatrix<REAL> > Preconditioner()
 	{
-		TPZAutoPointer<TPZMatrix> result = fDohrPrecond;
+		TPZAutoPointer<TPZMatrix<REAL> > result = fDohrPrecond;
 		fDohrPrecond = 0;
 		return result;
 	}
 	
 	/** @brief This will create a DohrMatrix and compute its matrices */
-	virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/** @brief Creates a copy of itself */
 	virtual TPZStructMatrix * Clone()
@@ -86,7 +86,7 @@ protected:
 	
 	TPZAutoPointer<TPZDohrAssembly> fDohrAssembly;
 	
-	TPZAutoPointer<TPZMatrix > fDohrPrecond;
+	TPZAutoPointer<TPZMatrix<REAL> > fDohrPrecond;
 	
 	/* @brief Get the global equation numbers of a substructure (and their inverse) */
 	void IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv);

@@ -137,7 +137,7 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 	}
 }
 
-void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix &dependmatrix) {
+void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix<REAL> &dependmatrix) {
 	
 	int small = SmallConnect(smallconnectindex);
 	//  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
@@ -200,14 +200,14 @@ void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectind
 				//return;
 			}
 			
-			TPZFMatrix depmat = dependmatrix * depend->fDepMatrix;
+			TPZFMatrix<REAL> depmat = dependmatrix * depend->fDepMatrix;
 			AddDependency(smallconnectindex,depend->fDepConnectIndex,depmat);
 			depend = depend->fNext;
 		}
 	}
 }
 
-TPZFMatrix& TPZCheckRestraint::RestraintMatrix(){
+TPZFMatrix<REAL>& TPZCheckRestraint::RestraintMatrix(){
 	
 	return fRestraint;
 	
@@ -234,8 +234,8 @@ int TPZCheckRestraint::CheckRestraint() {
 	int numint = intrule->NPoints();
 	int numshapes = fRestraint.Rows();
 	int numshapel = fRestraint.Cols();
-	TPZFMatrix phis(numshapes,1),dphis(dims,numshapes),phil(numshapel,1),dphil(diml,numshapel);
-	TPZFMatrix philcheck(numshapel,1);
+	TPZFMatrix<REAL> phis(numshapes,1),dphis(dims,numshapes),phil(numshapel,1),dphil(diml,numshapel);
+	TPZFMatrix<REAL> philcheck(numshapel,1);
 	TPZVec<REAL> points(3),pointl(3),point(3);
 	int in,check = 0;
 	REAL weight,error;

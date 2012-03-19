@@ -37,7 +37,7 @@ static LoggerPtr logger(Logger::getLogger("substruct.dohrsubstruct"));
 
 template<class TSubStruct>
 TPZDohrMatrix<TSubStruct>::TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> assembly)
-: TPZMatrix(), fNumThreads(0), fAssembly(assembly)
+: TPZMatrix<REAL>(), fNumThreads(0), fAssembly(assembly)
 {
 }
 
@@ -49,7 +49,7 @@ TPZDohrMatrix<TSubStruct>::~TPZDohrMatrix()
 
 
 template<class TSubStruct>
-void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,
 										const REAL alpha,const REAL beta,const int opt,const int stride) const
 {
 	TPZfTime mult;
@@ -64,7 +64,7 @@ void TPZDohrMatrix<TSubStruct>::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 	int isub = 0;
 	if (fNumThreads == 0) {
 		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
-			TPZFMatrix xlocal,zlocal;
+			TPZFMatrix<REAL> xlocal,zlocal;
 			fAssembly->Extract(isub,x,xlocal);
 			zlocal.Redim(xlocal.Rows(),xlocal.Cols());
 			(*iter)->ContributeKULocal(alpha,xlocal,zlocal);
@@ -102,13 +102,13 @@ void TPZDohrMatrix<TSubStruct>::Initialize()
 {
 	std::cout << "Number of substructures " << fGlobal.size() << std::endl;
 	tempo.fNumSub = fGlobal.size();																// alimenta timeTemp com o numero de substruturas
-	TPZFMatrix diag(Rows(),1,0.);
+	TPZFMatrix<REAL> diag(Rows(),1,0.);
 	typename SubsList::iterator iter;
 	int isub = 0;
 	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
         //Basic initialization for each substructure (compute the matrices)
         //(*iter)->Initialize();
-		TPZFMatrix diaglocal;
+		TPZFMatrix<REAL> diaglocal;
         (*iter)->ContributeDiagonalLocal(diaglocal);
 		LOGPZ_DEBUG(logger,"Before assemble diagonal")
 		this->fAssembly->Assemble(isub,diaglocal,diag);
@@ -133,7 +133,7 @@ void TPZDohrMatrix<TSubStruct>::Initialize()
 	std::cout << std::endl;
 	for (iter=fGlobal.begin(),isub=0;iter!=fGlobal.end();iter++,isub++) {
         //Computes the Weights for each substructure
-		TPZFMatrix diaglocal;
+		TPZFMatrix<REAL> diaglocal;
 		this->fAssembly->Extract(isub,diag,diaglocal);
         (*iter)->ComputeWeightsLocal(diaglocal);
 		
@@ -144,7 +144,7 @@ void TPZDohrMatrix<TSubStruct>::Initialize()
  * Adjust the residual to zero the residual of the internal connects
  */
 template<class TSubStruct>
-void TPZDohrMatrix<TSubStruct>::AdjustResidual(TPZFMatrix &res)
+void TPZDohrMatrix<TSubStruct>::AdjustResidual(TPZFMatrix<REAL> &res)
 {
 	typename SubsList::iterator iter;
 	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++) {
@@ -156,7 +156,7 @@ void TPZDohrMatrix<TSubStruct>::AdjustResidual(TPZFMatrix &res)
  * Add the solution corresponding to the internal residual
  */
 template<class TSubStruct>
-void TPZDohrMatrix<TSubStruct>::AddInternalSolution(TPZFMatrix &solution)
+void TPZDohrMatrix<TSubStruct>::AddInternalSolution(TPZFMatrix<REAL> &solution)
 {
 	typename SubsList::iterator iter;
 	for (iter=fGlobal.begin();iter!=fGlobal.end();iter++) {
@@ -170,7 +170,7 @@ void *TPZDohrThreadMultList<TSubStruct>::ThreadWork(void *ptr)
 	TPZDohrThreadMultList<TSubStruct> *myptr = (TPZDohrThreadMultList<TSubStruct> *) ptr;
 	TPZDohrThreadMultData<TSubStruct> runner = myptr->PopItem();
 	while (runner.IsValid()) {
-		TPZFMatrix xlocal;
+		TPZFMatrix<REAL> xlocal;
 		myptr->fAssembly->Extract(runner.fisub,*(myptr->fInput),xlocal);
 		TPZAutoPointer<TPZDohrAssembleItem> assembleItem = new TPZDohrAssembleItem(runner.fisub,xlocal.Rows(),xlocal.Cols());
 		runner.fSub->ContributeKULocal(myptr->fAlpha,xlocal,assembleItem->fAssembleData);

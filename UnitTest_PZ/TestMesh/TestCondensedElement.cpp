@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(globalcompute)
     TPZAnalysis an(cmesh);
     TPZSkylineStructMatrix skylstr(cmesh);
     an.SetStructuralMatrix(skylstr);
-    TPZStepSolver step;
+    TPZStepSolver<REAL> step;
     step.SetDirect(ECholesky);
     an.SetSolver(step);
     an.Run();

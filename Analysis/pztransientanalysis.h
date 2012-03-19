@@ -16,6 +16,8 @@
 #include <list>
 
 class TPZCompMesh;
+
+template <class TVar>
 class TPZFMatrix;
 class TPZFStructMatrix;
 
@@ -94,7 +96,7 @@ public:
 	
 	/** @brief Access to saved solution. Pair of (solution vec, simulation time)
 	 */
-	std::list< std::pair<TPZFMatrix, REAL> > & GetSavedSolutions();
+	std::list< std::pair<TPZFMatrix<REAL>, REAL> > & GetSavedSolutions();
 	
 	/** 
 	 * @brief Defines max number of steps and error convergence tolerance for Newton's method.
@@ -107,7 +109,7 @@ public:
 	
 	/** @brief Sets problem initial solution
 	 */
-	void SetInitialSolution(TPZFMatrix & InitialSol);
+	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
 	
 	/** @brief Sets problem initial solution as zero
 	 */
@@ -156,7 +158,7 @@ protected:
 	 *
 	 * This attribute is cleaned every time Run method is called
 	 */
-	std::list< std::pair< TPZFMatrix, REAL> > fSavedSolutionVec;
+	std::list< std::pair< TPZFMatrix<REAL>, REAL> > fSavedSolutionVec;
 	
 	/** @brief If fSaveSolutionVecFrequency != 0, save current solution vector in fSavedSolutionVec attribute. */
 	void SaveCurrentSolutionVec();

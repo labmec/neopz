@@ -50,7 +50,7 @@ namespace pzshape {
 		{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}//{1.,1.,2.} , {-1.,0.,1. } , {0.,-1.,1.}
 	};
 	
-	void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+	void TPZShapeTetra::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		phi(0,0)  = 1-pt[0]-pt[1]-pt[2];
 		phi(1,0)  = pt[0];
 		phi(2,0)  = pt[1];
@@ -76,7 +76,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the (4) shape functions
 	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+	void TPZShapeTetra::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// 6 ribs
@@ -137,7 +137,7 @@ namespace pzshape {
 	
 	
 	//ifstream inn("mats.dt");
-	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeTetra::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		CornerShape(pt,phi,dphi);
 		bool linear = true;
@@ -171,7 +171,7 @@ namespace pzshape {
 			ids[1] = id[id1];
 			REAL store1[20],store2[60];
 			int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
-			TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
 			phin.Zero();
 			dphin.Zero();
 			TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
@@ -198,7 +198,7 @@ namespace pzshape {
 			//ord2 = ord1;
 			if(ord1<3) continue;
 			int ordin =  (ord1-2)*(ord1-1)/2;
-			TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
+			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);//ponto na face
 			phin.Zero();
 			dphin.Zero();
 			TPZManVector<int> ids(3);
@@ -262,12 +262,12 @@ namespace pzshape {
 		out[1] = gFaceTrans3dTetr2d[face][1][0]*in[0]+gFaceTrans3dTetr2d[face][1][1]*in[1]+gFaceTrans3dTetr2d[face][1][2]*in[2]+gVet2dTetr[face][1];
 	}
 	
-	void TPZShapeTetra::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-									  TPZFMatrix &dphi) {
+	void TPZShapeTetra::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+									  TPZFMatrix<REAL> &dphi) {
 		if(order < 4) return;
 		int ord = order-3;
 		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		TPZFMatrix phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
+		TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
 		dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
 		TPZShapeLinear::fOrthogonal(2.*x[0]-1.,ord,phi0,dphi0);
 		TPZShapeLinear::fOrthogonal(2.*x[1]-1.,ord,phi1,dphi1);
@@ -289,7 +289,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeTetra::TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix &dphi) {
+	void TPZShapeTetra::TransformDerivativeFromRibToTetra(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gRibTrans3dTetra1d[rib][2]*dphi(0,j);
 			dphi(1,j) = gRibTrans3dTetra1d[rib][1]*dphi(0,j);
@@ -297,7 +297,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeTetra::TransformDerivativeFromFaceToTetra(int face,int num,TPZFMatrix &dphi) {
+	void TPZShapeTetra::TransformDerivativeFromFaceToTetra(int face,int num,TPZFMatrix<REAL> &dphi) {
 		
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gFaceTrans3dTetra2d[face][0][2]*dphi(0,j)+gFaceTrans3dTetra2d[face][1][2]*dphi(1,j);
@@ -343,7 +343,7 @@ namespace pzshape {
 		return res;
 	}
 	
-	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeTetra::SideShape(int side, TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		if(side<0 || side>15) PZError << "TPZCompElT3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==14) Shape(point,id,order,phi,dphi);

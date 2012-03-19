@@ -30,7 +30,7 @@ public:
 	
     ~TPZSparseBlockDiagonalStructMatrix();
 	
-	virtual TPZMatrix * Create();
+	virtual TPZMatrix<REAL> * Create();
 	
     virtual TPZStructMatrix* Clone();
     int NumColors();

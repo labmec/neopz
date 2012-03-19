@@ -54,7 +54,7 @@ void TPZV3DGraphMesh::DrawMesh(int numcases){
 }
 // Draw the nodal coordinates and the connectivity
 
-void TPZV3DGraphMesh::DrawSolution(TPZBlock &/*Sol*/){
+void TPZV3DGraphMesh::DrawSolution(TPZBlock<REAL> &/*Sol*/){
 	cout << "TPZV3DGraphMesh::DrawSolution(TPZBlock &) not implemented\n";
 }
 // Draw the solution associated with Sol (not implemented)

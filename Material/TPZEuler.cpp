@@ -19,7 +19,7 @@ TPZAutoPointer<TPZMaterial> TPZEuler::NewMaterial() {
 	
 	return result;
 }
-void TPZEuler::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,
+void TPZEuler::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,
 						TPZVec<REAL> &Solout){
 	if(var == 1) {
 		Solout.Resize(1);
@@ -49,14 +49,14 @@ void TPZEuler::Print(std::ostream & out) {
     TPZMaterial::Print(out);
 }
 void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef,TPZBndCond &bc) {
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -70,12 +70,12 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(fState == 0) return;
 	if(bc.Material().operator ->() != this){
@@ -139,7 +139,7 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 					}
 				}
 			case 3: {
-				TPZFMatrix A(4,4),B(4,4);
+				TPZFMatrix<REAL> A(4,4),B(4,4);
 				gEul.JacobFlux(sol,A,B);
 				for(in=0; in<numnod; in++) {
 					for(idf=0; idf<4; idf++) {
@@ -163,14 +163,14 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 			}//fim switch
 	}
 }
-void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
-						  TPZFMatrix &ef) {
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,
+						  TPZFMatrix<REAL> &ef) {
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -184,12 +184,12 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	TPZFMatrix &daxesdksi=data.jacinv;
-	TPZFMatrix &axes=data.axes;
+	TPZFMatrix<REAL> &daxesdksi=data.jacinv;
+	TPZFMatrix<REAL> &axes=data.axes;
 	
     int nshape = phi.Rows();
     REAL dphix[2];
@@ -228,8 +228,8 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix &ek,
 	 for(i=0; i<4; i++) cout << dsol(1,i) << ' ';
 	 cout << endl;
 	 */
-    TPZFMatrix KXX(4,4),KXY(4,4),KYX(4,4),KYY(4,4),A(4,4),B(4,4);
-    TPZFMatrix jacinv(2,2);
+    TPZFMatrix<REAL> KXX(4,4),KXY(4,4),KYX(4,4),KYY(4,4),A(4,4),B(4,4);
+    TPZFMatrix<REAL> jacinv(2,2);
     REAL jacdet = daxesdksi(0,0)*daxesdksi(1,1)-daxesdksi(0,1)*daxesdksi(1,0);
     jacinv(0,0) = daxesdksi(1,1)/jacdet;
     jacinv(1,1) = daxesdksi(0,0)/jacdet;

@@ -214,9 +214,9 @@ void TPZAnalysis::Assemble()
 	}
 	else
 	{
-		TPZMatrix *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
+		TPZMatrix<REAL> *mat = fStructMatrix->CreateAssemble(fRhs,fGuiInterface);
 		fSolver->SetMatrix(mat);
-		//aqui TPZFMatrix n� �nula
+		//aqui TPZFMatrix<REAL> n� �nula
 	}
 	
 	//   ofstream fileout("rigidez.txt");
@@ -233,8 +233,8 @@ void TPZAnalysis::Solve() {
 	int numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) return;
 	
-	TPZFMatrix residual(fRhs);
-	TPZFMatrix delu(numeq,1,0.);
+	TPZFMatrix<REAL> residual(fRhs);
+	TPZFMatrix<REAL> delu(numeq,1,0.);
 	/*	if(fSolution.Rows() != numeq) {
 	 fSolution.Redim(numeq,1);
 	 } else {
@@ -254,7 +254,7 @@ void TPZAnalysis::Solve() {
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		TPZStepSolver *step = dynamic_cast<TPZStepSolver *> (fSolver);
+		TPZStepSolver<REAL> *step = dynamic_cast<TPZStepSolver<REAL> *> (fSolver);
 		if(!step) DebugStop();
 		int nsing = step->Singular().size();
 		sout << "Number of singular equations " << nsing;
@@ -403,7 +403,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
 	return;
 }
 
-void TPZAnalysis::PostProcessTable( TPZFMatrix &,std::ostream & )//pos,out
+void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 {
 	TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
 	int nel = elvec.NElements();
@@ -549,7 +549,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 	int numeq = fCompMesh->NEquations();
 	if(fRhs.Rows() != numeq ) return;
 	
-	TPZFMatrix residual(fRhs);
+	TPZFMatrix<REAL> residual(fRhs);
 	int dim = HighestDimension();
 	TPZAutoPointer<TPZMaterial> mat = 0;
 	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
@@ -579,7 +579,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 	for(i=1; i<=num_iter;i+=steps){
 		
 		
-		TPZStepSolver sol;
+		TPZStepSolver<REAL> sol;
 		sol.ShareMatrix(Solver());
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
@@ -700,12 +700,12 @@ void TPZAnalysis::PostProcessTable() {
 	}
 	*(fTable.fOutfile) << endl;
 }
-void TPZAnalysis::SetSolver(TPZMatrixSolver &solver){
+void TPZAnalysis::SetSolver(TPZMatrixSolver<REAL> &solver){
 	if(fSolver) delete fSolver;
-    fSolver = (TPZMatrixSolver *) solver.Clone();
+    fSolver = (TPZMatrixSolver<REAL> *) solver.Clone();
 }
 
-TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
+TPZMatrixSolver<REAL> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool overlap)
 {
 	if(!fSolver || !fSolver->Matrix())
 	{
@@ -776,8 +776,8 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 #endif
 		if(overlap && !(preconditioner == EBlockJacobi))
 		{
-			TPZSparseBlockDiagonal *sp = new TPZSparseBlockDiagonal(expblockgraph,expblockgraphindex,neq);
-			TPZStepSolver *step = new TPZStepSolver(sp);
+			TPZSparseBlockDiagonal<REAL> *sp = new TPZSparseBlockDiagonal<REAL>(expblockgraph,expblockgraphindex,neq);
+			TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(sp);
 			step->SetDirect(ELU);
 			step->SetReferenceMatrix(fSolver->Matrix());
 			return step;
@@ -785,7 +785,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 		else if (overlap)
 		{
 			TPZBlockDiagonalStructMatrix blstr(fCompMesh);
-			TPZBlockDiagonal *sp = new TPZBlockDiagonal();
+			TPZBlockDiagonal<REAL> *sp = new TPZBlockDiagonal<REAL>();
 			blstr.AssembleBlockDiagonal(*sp);
 			//      std::ofstream out("Direct assembly");
 			//      sp->Print("Directly assembled",out);
@@ -802,7 +802,7 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 			 }
 			 }
 			 */
-			TPZStepSolver *step = new TPZStepSolver(sp);
+			TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(sp);
 			step->SetDirect(ELU);
 			return step;
 		}
@@ -819,22 +819,22 @@ TPZMatrixSolver *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner, bool 
 /**
  * Build a sequence solver based on the block graph and its colors
  */
-TPZMatrixSolver *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors)
+TPZMatrixSolver<REAL> *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors)
 {
 	//  std::ofstream out("sequence.txt");
-	TPZVec<TPZMatrix *> blmat(numcolors);
-	TPZVec<TPZStepSolver *> steps(numcolors);
+	TPZVec<TPZMatrix<REAL> *> blmat(numcolors);
+	TPZVec<TPZStepSolver<REAL> *> steps(numcolors);
 	int c;
 	for(c=0; c<numcolors; c++)
 	{
-		blmat[c] = new TPZSparseBlockDiagonal(graph,graphindex, neq, c, colors);
+		blmat[c] = new TPZSparseBlockDiagonal<REAL>(graph,graphindex, neq, c, colors);
 		//    blmat[c]->Print("Sparseblock matrix");
-		steps[c] = new TPZStepSolver(blmat[c]);
+		steps[c] = new TPZStepSolver<REAL>(blmat[c]);
 		steps[c]->SetDirect(ELU);
 		steps[c]->SetReferenceMatrix(fSolver->Matrix());
 	}
 	if(numcolors == 1) return steps[0];
-	TPZSequenceSolver *result = new TPZSequenceSolver;
+	TPZSequenceSolver<REAL> *result = new TPZSequenceSolver<REAL>;
 	result->ShareMatrix(*fSolver);
 	for(c=numcolors-1; c>=0; c--)
 	{

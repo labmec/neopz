@@ -233,11 +233,11 @@ public:
     /**
     LoadState will keep a given state as static variable of the class
     */
-    inline void LoadState(TPZFMatrix &state);
+    inline void LoadState(TPZFMatrix<REAL> &state);
 
-    inline void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase);
+    inline void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase);
 
-    inline void Residual(TPZFMatrix &res,int icase);
+    inline void Residual(TPZFMatrix<REAL> &res,int icase);
 
     static void CheckConv()
 {
@@ -537,7 +537,7 @@ inline int TPZYCLadeKim::NumCases()
     return 2;
 }
 
-inline void TPZYCLadeKim::LoadState(TPZFMatrix &state)
+inline void TPZYCLadeKim::LoadState(TPZFMatrix<REAL> &state)
 {
 #ifdef LOG4CXX_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
@@ -551,7 +551,7 @@ inline void TPZYCLadeKim::LoadState(TPZFMatrix &state)
 #endif
 }
 
-inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase)
+inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
 {
 #ifdef LOG4CXX_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
@@ -596,7 +596,7 @@ inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, in
 #endif
 }
 
-inline void TPZYCLadeKim::Residual(TPZFMatrix &res,int icase)
+inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
 {
 #ifdef LOG4CXX_PLASTICITY
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));

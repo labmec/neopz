@@ -23,7 +23,7 @@ class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
 	int fPressureOrder;
 	
 	/** @brief To append vectors */
-	void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
+	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 public:
 	
 	TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
@@ -155,24 +155,24 @@ public:
 	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
 	
 	/** @brief Computes the values of the shape function of the side*/
-	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi);
+	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 	/** 
 	 * @brief Compute the shape functions corresponding to the dual space
 	 */
-	virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphi);
+	virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
-	void Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
     
     ///Compute the solution for a given variable
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
     
     
-    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes);
+    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	
     void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                                 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
     /**   
 	 * @brief Compute the solution using Hdiv structure
 	 */

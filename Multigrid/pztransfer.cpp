@@ -13,10 +13,9 @@ fNStateVar(0),fRowBlock(),fColBlock(),fColPosition(0),fNumberofColumnBlocks(0),f
 fColumnBlockNumber(0),fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUsed(0) {
 }
 
-
-TPZTransfer::TPZTransfer(TPZBlock &row, TPZBlock &col,int nvar, int nrowblocks, int ncolblocks) :
+TPZTransfer::TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks) :
 // the sparse matrix blocks are defined by row, col
-TPZMatrix(), fNStateVar(nvar), fRowBlock(), fColBlock(),
+TPZMatrix<REAL>(), fNStateVar(nvar), fRowBlock(), fColBlock(),
 fColPosition(), fNumberofColumnBlocks(),
 fColumnBlockPosition(0),fColumnBlockNumber(0),
 fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUsed(0) {
@@ -60,7 +59,7 @@ void TPZTransfer::Print(const char *name,ostream &out,const MatrixOutputFormat f
 				" column position number " << colnumber << endl;
 				out << "block sizes : row : " << rowsize << " col "  << colsize << endl;
 			}
-			TPZFMatrix loc(rowsize,colsize,locval,rowsize*colsize);
+			TPZFMatrix<REAL> loc(rowsize,colsize,locval,rowsize*colsize);
 			if(form == EFormatted) {
 				loc.Print(0,out,form);
 			} else {
@@ -75,7 +74,7 @@ void TPZTransfer::Print(const char *name,ostream &out,const MatrixOutputFormat f
 	}
 }
 
-void TPZTransfer::SetBlocks(TPZBlock &row,TPZBlock &col,int nvar, int nrowblocks, int ncolblocks){
+void TPZTransfer::SetBlocks(TPZBlock<REAL> &row,TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks){
 	// this operation will reset the matrix to zero
 	// with no rows defined
 	fRowBlock = row;
@@ -139,7 +138,7 @@ void TPZTransfer::ExpandColumnVectorEntries(int num){
 }
 
 
-void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix &mat){
+void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix<REAL> &mat){
 	// sets the row,col block equal to matrix mat
 	// if row col was not specified by AddBlockNumbers, an error
 	//		will be issued and exit
@@ -170,7 +169,7 @@ void TPZTransfer::SetBlockMatrix(int row, int col, TPZFMatrix &mat){
 		DebugStop();
 	}
 	ExpandDoubleValueEntries(nblrows*nblcols);
-	TPZFMatrix bl(nblrows,nblcols,&fDoubleValues[fDoubleValLastUsed],nblrows*nblcols);
+	TPZFMatrix<REAL> bl(nblrows,nblcols,&fDoubleValues[fDoubleValLastUsed],nblrows*nblcols);
 	bl = mat;
 	fColumnBlockPosition[ic] = fDoubleValLastUsed;
 	fDoubleValLastUsed += nblrows*nblcols;
@@ -186,7 +185,7 @@ void TPZTransfer::ExpandDoubleValueEntries(int num){
 }
 
 
-void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+void TPZTransfer::MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,
 						  REAL alpha, REAL beta, int opt, int stride) const{
 	// multiplies the transfer matrix and puts the result in z
 	if ((!opt && Cols()*stride != x.Rows()) || (opt && Rows()*stride != x.Rows()))
@@ -208,13 +207,13 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 				if(colpos == -1) continue;
 				int numcolbl = fNumberofColumnBlocks[r];
 				if(numcolbl == 0) continue;
-				TPZFMatrix zloc(rowblocksize*stride,1,&z(rowblockpos*stride,ic),rowblocksize*stride);
+				TPZFMatrix<REAL> zloc(rowblocksize*stride,1,&z(rowblockpos*stride,ic),rowblocksize*stride);
 				for( c=0; c < numcolbl; c++) {
 					int col = fColumnBlockNumber[colpos+c];
 					int colblockpos = fColBlock.Position(col);
 					int colblocksize = fColBlock.Size(col);
-					TPZFMatrix xloc(colblocksize*stride,1,&x.g(colblockpos*stride,ic), colblocksize*stride);
-					TPZFMatrix aloc(rowblocksize,colblocksize,
+					TPZFMatrix<REAL> xloc(colblocksize*stride,1,&x.g(colblockpos*stride,ic), colblocksize*stride);
+					TPZFMatrix<REAL> aloc(rowblocksize,colblocksize,
 									&fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
 					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
 				}
@@ -224,7 +223,7 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 				int rowblockpos = fRowBlock.Position(r);
 				int rowblocksize = fRowBlock.Size(r);
 				if(!rowblocksize) continue;
-				TPZFMatrix xloc(rowblocksize*stride,1,&x.g(rowblockpos*stride,ic),rowblocksize*stride);
+				TPZFMatrix<REAL> xloc(rowblocksize*stride,1,&x.g(rowblockpos*stride,ic),rowblocksize*stride);
 				int colpos = fColPosition[r];
 				if(colpos == -1) continue;
 				int numcolbl = fNumberofColumnBlocks[r];
@@ -233,8 +232,8 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
 					int col = fColumnBlockNumber[colpos+c];
 					int colblockpos = fColBlock.Position(col);
 					int colblocksize = fColBlock.Size(col);
-					TPZFMatrix zloc(colblocksize*stride,1,&z(colblockpos*stride,ic),colblocksize*stride);
-					TPZFMatrix aloc(rowblocksize,colblocksize,
+					TPZFMatrix<REAL> zloc(colblocksize*stride,1,&z(colblockpos*stride,ic),colblocksize*stride);
+					TPZFMatrix<REAL> aloc(rowblocksize,colblocksize,
 									&fDoubleValues[fColumnBlockPosition[colpos+c]],rowblocksize*colblocksize);
 					aloc.MultAdd(xloc,zloc,zloc,alpha,1.,opt,stride);
 					col = rowblockpos-1;
@@ -249,7 +248,7 @@ void TPZTransfer::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z
  * Will transfer the solution, taking into acount there may be more than
  * one state variable
  */
-void TPZTransfer::TransferSolution(const TPZFMatrix &coarsesol, TPZFMatrix &finesol){
+void TPZTransfer::TransferSolution(const TPZFMatrix<REAL> &coarsesol, TPZFMatrix<REAL> &finesol){
 	int iv;
 	int nrf = finesol.Rows();
 	int ncf = finesol.Cols();
@@ -263,8 +262,8 @@ void TPZTransfer::TransferSolution(const TPZFMatrix &coarsesol, TPZFMatrix &fine
 	for(iv=0; iv<fNStateVar; iv++) {
 		REAL *fvp = &finesol.g(iv,0);
 		REAL *cvp = &coarsesol.g(iv,0);
-		TPZFMatrix finewrap(nrf,ncf,fvp,nrf*ncf);
-		TPZFMatrix coarsewrap(nrc,ncc,cvp,nrc*ncc);
+		TPZFMatrix<REAL> finewrap(nrf,ncf,fvp,nrf*ncf);
+		TPZFMatrix<REAL> coarsewrap(nrc,ncc,cvp,nrc*ncc);
 		Multiply(coarsewrap,finewrap,0,fNStateVar);
 	}
 }
@@ -274,7 +273,7 @@ void TPZTransfer::TransferSolution(const TPZFMatrix &coarsesol, TPZFMatrix &fine
  * one state variable
  */
 
-void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
+void TPZTransfer::TransferResidual(const TPZFMatrix<REAL> &fine, TPZFMatrix<REAL> &coarse){
 	int iv;
 	int nrf = fine.Rows();
 	int ncf = fine.Cols();
@@ -288,13 +287,13 @@ void TPZTransfer::TransferResidual(const TPZFMatrix &fine, TPZFMatrix &coarse){
 	for(iv=0; iv<fNStateVar; iv++) {
 		REAL *fvp = &fine.g(iv,0);
 		REAL *cvp = &coarse.g(iv,0);
-		TPZFMatrix finewrap(nrf,ncf,fvp,nrf*ncf);
-		TPZFMatrix coarsewrap(nrc,ncc,cvp,nrc*ncc);
+		TPZFMatrix<REAL> finewrap(nrf,ncf,fvp,nrf*ncf);
+		TPZFMatrix<REAL> coarsewrap(nrc,ncc,cvp,nrc*ncc);
 		Multiply(finewrap, coarsewrap,1,fNStateVar);
 	}
 }
 
-void TPZTransfer::Multiply(const TPZFMatrix &A, TPZFMatrix &B,const int opt,
+void TPZTransfer::Multiply(const TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B,const int opt,
 						   const int stride) const {
 	if ((opt==0 && Cols()*stride != A.Rows()) || (opt ==1 && Rows()*stride != A.Rows()))
     {

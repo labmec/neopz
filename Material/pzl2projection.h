@@ -74,30 +74,30 @@ public:
         fScale = scale;
     }
     
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef){
 		//NOTHING TO BE DONE HERE
 	}
 	
 	/** @brief To satisfy base class interface. */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 		//NOTHING TO BE DONE HERE
 	}
 	
@@ -115,8 +115,8 @@ public:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc)
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
@@ -134,8 +134,8 @@ public:
 	
 protected:
 	/** @brief It returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation*/
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)

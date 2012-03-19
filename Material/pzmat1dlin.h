@@ -23,7 +23,7 @@ class TPZVec;
  */
 class TPZMat1dLin : public TPZMaterial{
 	
-	TPZFMatrix		fXk,fXc,fXb,fXf;
+	TPZFMatrix<REAL>		fXk,fXc,fXb,fXf;
 	
 	public :
 	
@@ -37,7 +37,7 @@ class TPZMat1dLin : public TPZMaterial{
 	
 	void Print(std::ostream & out);
 	
-	void SetMaterial(TPZFMatrix &xkin,TPZFMatrix &xcin,TPZFMatrix &xbin,TPZFMatrix &xfin){
+	void SetMaterial(TPZFMatrix<REAL> &xkin,TPZFMatrix<REAL> &xcin,TPZFMatrix<REAL> &xbin,TPZFMatrix<REAL> &xfin){
 		fXk = xkin;
 		fXc = xcin;
 		fXb = xbin;
@@ -52,14 +52,14 @@ class TPZMat1dLin : public TPZMaterial{
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at an integration point*/
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -68,25 +68,25 @@ class TPZMat1dLin : public TPZMaterial{
 	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand
 	 * side at the integration point of a boundary*/
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &fl);
 	
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-						TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+						TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
 };
 
 #endif

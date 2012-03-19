@@ -47,7 +47,7 @@ TPBrSteamFlux::TPBrSteamFlux()
 
 /// calcula a contribuicao para a matriz de rigidez
 void TPBrSteamFlux::CalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-			   TPZFMatrix &ek, TPZFMatrix &ef)
+			   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	const int totaleq = 2*TPBrCellConservation::NumCellEq+TPBrSteamFlux::NumFluxEq;
 	TPZManVector<TFad<totaleq,REAL> , TPBrCellConservation::NumCellEq> leftcellfad(TPBrCellConservation::NumCellEq),rightcellfad(TPBrCellConservation::NumCellEq);
@@ -82,7 +82,7 @@ void TPBrSteamFlux::CalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &rightstate,
 
 /// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
 void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-					TPZFMatrix &ek, TPZFMatrix &ef)
+					TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	const int totaleq = NumInletVars+NumFluxEq+TPBrCellConservation::NumCellEq;
 //	TPZManVector<TFad<totaleq,REAL> , NumInletVars> inletfad(NumInletVars);
@@ -135,7 +135,7 @@ void TPBrSteamFlux::InletCalcStiff(TPZVec<REAL> &rightstate, TPZVec<REAL> &inter
 
 /// calcula a contribuicao para a matriz de rigidez das equacoes de entrada
 void TPBrSteamFlux::OutletCalcStiff(TPZVec<REAL> &leftstate, TPZVec<REAL> &interfacestate, REAL delx, REAL area, REAL delt, 
-					 TPZFMatrix &ek, TPZFMatrix &ef)
+					 TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	const int totaleq = NumFluxEq+TPBrCellConservation::NumCellEq;
 	TPZManVector<TFad<totaleq,REAL> , TPBrCellConservation::NumCellEq> leftcellfad(TPBrCellConservation::NumCellEq);

@@ -15,7 +15,7 @@ void TPBRSolutionList::AdvanceAllSolutions(REAL delt, REAL inletTemp, REAL &flux
 	fDiscretization.SetTimeStep(delt);
 	fDiscretization.ComputeStiffness();
     fDelt = delt;
-	TPZFMatrix nextsol;
+	TPZFMatrix<REAL> nextsol;
 	flux = 0.;
 	DQDT = 0.;
 	REAL localDQDT = fDiscretization.DQDT();
@@ -75,7 +75,7 @@ REAL TPBRSolutionList::Energy(int icell)
 /// Compute the solution for the next timestep
 void TPBRSolutionList::AdvanceSolution(int icell, REAL inletTemp, REAL &flux, REAL &DQDT, bool storesolution)
 {
-	TPZFMatrix nextsol;
+	TPZFMatrix<REAL> nextsol;
 	flux = 0.;
 	DQDT = 0.;
 	REAL localDQDT = fDiscretization.DQDT();

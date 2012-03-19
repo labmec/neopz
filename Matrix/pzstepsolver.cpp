@@ -14,12 +14,14 @@ using namespace std;
 static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
-TPZStepSolver::TPZStepSolver(TPZAutoPointer<TPZMatrix> refmat) : TPZMatrixSolver(refmat) {
+template <class TVar>
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat) {
 	fPrecond = 0;
 	ResetSolver();
 }
 
-TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy), fSingular(copy.fSingular) {
+template <class TVar>
+TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fSingular(copy.fSingular) {
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
     fNumIterations = copy.fNumIterations;
@@ -31,69 +33,72 @@ TPZStepSolver::TPZStepSolver(const TPZStepSolver & copy) : TPZMatrixSolver(copy)
     fNumVectors = copy.fNumVectors;//Cedric: 24/04/2003 - 12:39
 }
 
-TPZStepSolver::~TPZStepSolver() {
+template <class TVar>
+TPZStepSolver<TVar>::~TPZStepSolver() {
 	if(fPrecond) delete fPrecond;
 }
 /**
  This method will reset the matrix associated with the solver
  This is useful when the matrix needs to be recomputed in a non linear problem
  */
-void TPZStepSolver::ResetMatrix()
+template <class TVar>
+void TPZStepSolver<TVar>::ResetMatrix()
 {
-	TPZMatrixSolver::ResetMatrix();
+	TPZMatrixSolver<TVar>::ResetMatrix();
 }
 
 /**
  * @brief Decompose the system of equations if a direct solver is used
  */
-void TPZStepSolver::Decompose()
+template <class TVar>
+void TPZStepSolver<TVar>::Decompose()
 {
-    if (fSolver == EDirect) {
-        Matrix()->Decompose(fDecompose,fSingular);
+    if (fSolver == this->EDirect) {
+        this->Matrix()->Decompose(fDecompose,fSingular);
     }
 }
 
-
-void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual){
-	if(!Matrix()) {
+template <class TVar>
+void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual){
+	if(!this->Matrix()) {
 		cout << "TPZMatrixSolver::Solve called without a matrix pointer\n";
 		DebugStop();
 	}
 	
-	TPZAutoPointer<TPZMatrix> mat = Matrix();
+	TPZAutoPointer<TPZMatrix<TVar> > mat = this->Matrix();
     // update the matrix to which the preconditioner refers
     if(fPrecond)
     {
         
-        fPrecond->UpdateFrom(Matrix());
+        fPrecond->UpdateFrom(this->Matrix());
     }
     
 	if(result.Rows() != mat->Rows() || result.Cols() != F.Cols()) {
 		result.Redim(mat->Rows(),F.Cols());
 	}
 	
-	if(fScratch.Rows() != result.Rows() || fScratch.Cols() != result.Cols()) {
-		fScratch.Redim(result.Rows(),result.Cols());
+	if(this->fScratch.Rows() != result.Rows() || this->fScratch.Cols() != result.Cols()) {
+		this->fScratch.Redim(result.Rows(),result.Cols());
 	}
 	
-	REAL tol = fTol;
+	TVar tol = fTol;
 	int numiterations = fNumIterations;
 	switch(fSolver) {
-		case ENoSolver:
+		case TPZStepSolver::ENoSolver:
 		default:
 			cout << "TPZMatrixSolver::Solve called without initialized solver, Jacobi used\n";
 			SetJacobi(1,0.,0);
-		case EJacobi:
+		case TPZStepSolver::EJacobi:
 			//    cout << "fScratch dimension " << fScratch.Rows() << ' ' << fScratch.Cols() << endl;
-			mat->SolveJacobi(numiterations,F,result,residual,fScratch,tol,fFromCurrent);
+			mat->SolveJacobi(numiterations,F,result,residual,this->fScratch,tol,fFromCurrent);
 			break;
-		case ESOR:
-			mat->SolveSOR(numiterations,F,result,residual,fScratch,fOverRelax,tol,fFromCurrent);
+		case TPZStepSolver::ESOR:
+			mat->SolveSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
 			break;
-		case ESSOR:
-			mat->SolveSSOR(numiterations,F,result,residual,fScratch,fOverRelax,tol,fFromCurrent);
+		case TPZStepSolver::ESSOR:
+			mat->SolveSSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
 			break;
-		case ECG:
+		case TPZStepSolver::ECG:
 			mat->SolveCG(numiterations,*fPrecond,F,result,residual,tol,fFromCurrent);
 #ifdef LOG4CXX
 		{
@@ -104,8 +109,8 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 		}
 #endif
 			break;
-		case EGMRES: {
-			TPZFMatrix H(fNumVectors+1,fNumVectors+1,0.);
+		case TPZStepSolver::EGMRES: {
+			TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
 			mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
 			if(numiterations == fNumIterations || tol >= fTol)
 			{
@@ -121,7 +126,7 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 #endif
 		}
 			break;
-		case EBICGSTAB: 
+		case TPZStepSolver::EBICGSTAB: 
 			mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
 			
 			if(numiterations == fNumIterations || tol >= fTol)
@@ -137,19 +142,20 @@ void TPZStepSolver::Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *r
 		}
 #endif
 			break;
-		case EDirect:
+		case TPZStepSolver::EDirect:
 			result = F;
 			mat->SolveDirect(result,fDecompose,fSingular);
 			if(residual) residual->Redim(F.Rows(),F.Cols());
 			break;
-		case EMultiply:
+		case TPZStepSolver::EMultiply:
 			mat->Multiply(F,result);
 			if(residual) mat->Residual(result,F,*residual);
 			
 	}
 }
-void TPZStepSolver::ResetSolver() {
-	fSolver = ENoSolver;
+template<class TVar>
+void TPZStepSolver<TVar>::ResetSolver() {
+	fSolver = this->ENoSolver;
 	fDecompose  = ENoDecompose;
 	fNumIterations = 0;
 	fTol = 0.;
@@ -159,14 +165,16 @@ void TPZStepSolver::ResetSolver() {
 	fPrecond = 0;
 	fFromCurrent = 0;
 }
-void TPZStepSolver::SetDirect (const DecomposeType decomp){
+template <class TVar>
+void TPZStepSolver<TVar>::SetDirect (const DecomposeType decomp){
 	ResetSolver();
-	fSolver = EDirect;
+	fSolver = this->EDirect;
 	fDecompose = decomp;
 }
-void TPZStepSolver::SetCG(const int numiterations, const TPZMatrixSolver &pre, const REAL tol, const int FromCurrent){
+template <class TVar>
+void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent){
 	ResetSolver();
-	fSolver = ECG;
+	fSolver = this->ECG;
 	fNumIterations = numiterations;
 	fTol = tol;
 	//	fPrecond = &pre;
@@ -174,9 +182,10 @@ void TPZStepSolver::SetCG(const int numiterations, const TPZMatrixSolver &pre, c
 	fPrecond = pre.Clone();
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetGMRES(const int numiterations, const int numvectors, const TPZMatrixSolver &pre, const REAL tol, const int FromCurrent){
+template<class TVar>
+void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent){
 	ResetSolver();
-	fSolver = EGMRES;
+	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
 	fNumIterations = numiterations;
 	fTol = tol;
@@ -185,9 +194,10 @@ void TPZStepSolver::SetGMRES(const int numiterations, const int numvectors, cons
 	fPrecond = pre.Clone();
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetBiCGStab(const int numiterations, const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent){
+template<class TVar>
+void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar>&pre,const TVar tol,const int FromCurrent){
 	ResetSolver();
-	fSolver = EBICGSTAB;
+	fSolver = this->EBICGSTAB;
 	fNumIterations = numiterations;
 	fTol = tol;
 	//	fPrecond = &pre;
@@ -195,50 +205,55 @@ void TPZStepSolver::SetBiCGStab(const int numiterations, const TPZMatrixSolver &
 	fPrecond = pre.Clone();
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetJacobi(const int numiterations, const REAL tol, const int FromCurrent) {
+template<class TVar>
+void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const TVar tol, const int FromCurrent) {
 	ResetSolver();
-	fSolver = EJacobi;
+	fSolver = this->EJacobi;
 	fNumIterations = numiterations;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetSSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent) {
+template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,const TVar overrelax,const TVar tol,const int FromCurrent) {
 	ResetSolver();
-	fSolver = ESSOR;
+	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
 	fNumIterations = numiterations;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent){
+template <class TVar>
+void TPZStepSolver<TVar>::SetSOR(const int numiterations,const TVar overrelax,const TVar tol,const int FromCurrent){
 	ResetSolver();
-	fSolver = ESOR;
+	fSolver = this->ESOR;
 	fNumIterations = numiterations;
 	fOverRelax = overrelax;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-void TPZStepSolver::SetMultiply() {
+template<class TVar>
+void TPZStepSolver<TVar>::SetMultiply() {
 	ResetSolver();
-	fSolver = EMultiply;
+	fSolver = this->EMultiply;
 }
 
 
 /*!
  \fn TPZStepSolver::SetPreconditioner(TPZSolver &solve);
  */
-void TPZStepSolver::SetPreconditioner(TPZSolver &solve)
+template <class TVar>
+void TPZStepSolver<TVar>::SetPreconditioner(TPZSolver<TVar> &solve)
 {
-    if (fSolver == EDirect) {
+    if (fSolver == this->EDirect) {
         DebugStop();
     }
 	if(fPrecond) delete fPrecond;
 	fPrecond = solve.Clone();
 }
 
-void TPZStepSolver::Write(TPZStream &buf, int withclassid)
+template <class TVar>
+void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
 {
-	TPZSolver::Write(buf, withclassid);
+	TPZSolver<TVar>::Write(buf, withclassid);
 	fPrecond->Write(buf, 1);
 	int lfSolver = fSolver;
 	buf.Write(&lfSolver, 1);
@@ -257,14 +272,15 @@ void TPZStepSolver::Write(TPZStream &buf, int withclassid)
 		buf.Write(&*it, 1);
 	}
 }
-void TPZStepSolver::Read(TPZStream &buf, void *context)
+template <class TVar>
+void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSolver::Read(buf, context);
-	fPrecond = dynamic_cast<TPZSolver *>(TPZSaveable::Restore(buf, context));
+	TPZSolver<TVar>::Read(buf, context);
+	fPrecond = dynamic_cast<TPZSolver<TVar> *>(TPZSaveable::Restore(buf, context));
 	
 	int lfSolver = 0;
 	buf.Read(&lfSolver, 1);
-	fSolver = (TPZMatrixSolver::MSolver)lfSolver;
+	fSolver = (typename TPZMatrixSolver<TVar>::MSolver)lfSolver;
 	int lfDT = 0;
 	buf.Read(&lfDT, 1);
 	fDecompose = (DecomposeType)lfDT;
@@ -283,4 +299,6 @@ void TPZStepSolver::Read(TPZStream &buf, void *context)
 	}
 }
 
-template class TPZRestoreClass< TPZStepSolver, TPZSTEPSOLVER_ID>;
+template class TPZStepSolver<REAL>;
+
+template class TPZRestoreClass< TPZStepSolver<REAL>, TPZSTEPSOLVER_ID>;

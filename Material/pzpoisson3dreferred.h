@@ -28,11 +28,11 @@ protected:
 	REAL falpha;
 	
 	/** @brief Sets convection term */
-	void SetConvectionTerm(TPZFMatrix &dsol, TPZFMatrix &axes);
+	void SetConvectionTerm(TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &axes);
 	
 	/** @brief Sets convection term for ContributeInterface methods */
 	/** It expect dsolL and dsolR to be dSol/dX, i.e. the derivatives with respect to the global coordinates. */
-	void SetConvectionTermInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR);
+	void SetConvectionTermInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR);
 	
 public:
 	
@@ -61,48 +61,48 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek, 
-                            TPZFMatrix &ef);
+                            TPZFMatrix<REAL> &ek, 
+                            TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
-							  TPZFMatrix &ek,
-                              TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+                              TPZFMatrix<REAL> &ef,
                               TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ek,
-									 TPZFMatrix &ef);
+									 TPZFMatrix<REAL> &ek,
+									 TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ek,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc);
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMatPoisson3d::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMatPoisson3d::ContributeBC(data,weight,ef,bc);
 	}
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix &ef)
+									 TPZFMatrix<REAL> &ef)
 	{
 		TPZMatPoisson3d::ContributeInterface(data,dataleft, dataright, weight,ef);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &ef,
 									   TPZBndCond &bc)
 	{
 		TPZMatPoisson3d::ContributeBCInterface(data,dataleft,weight,ef,bc);

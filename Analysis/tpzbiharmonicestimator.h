@@ -38,16 +38,16 @@ class TPZBiharmonicEstimator: public  TPZBiharmonic
 private:
 	/** @brief Attributes required for goal oriented error estimation validation */
 	
-	void (*fPrimalExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv);
-	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv);
+	void (*fPrimalExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv);
+	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv);
 	
 public:
     TPZBiharmonicEstimator(int nummat, REAL f);
 	
     ~TPZBiharmonicEstimator();
 	
-    void SetExactSolutions(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-                           void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix &derivdual));
+    void SetExactSolutions(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+                           void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix<REAL> &derivdual));
 	
 	/**
 	 * @brief Returns the number of norm errors. Default is 3: energy, L2 and H1.
@@ -130,9 +130,9 @@ public:
 	 * @brief Compute the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
-				TPZFMatrix &axes, TPZVec<REAL> & /*flux*/ ,
-				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,
+	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+				TPZFMatrix<REAL> &axes, TPZVec<REAL> & /*flux*/ ,
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
 				TPZVec<REAL> &values);
 	
 	void Psi(TPZVec<REAL> &x, TPZVec<REAL> &pisci);

@@ -20,7 +20,7 @@ class TPZVec;
  */
 class TPZMat2dLin : public TPZMaterial{
 	
-	TPZFMatrix    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
+	TPZFMatrix<REAL>    fKxx, fKxy, fKyx, fKyy, fKx0, fK0x, fKy0, fK0y, fK00, fXf;
 	public :
 	
     TPZMat2dLin(int num = 0) : TPZMaterial(num), fKxx(), fKxy(),
@@ -40,7 +40,7 @@ class TPZMat2dLin : public TPZMaterial{
 	
 	void Print(std::ostream & out = std::cout);
 	
-	void SetMaterial(TPZFMatrix &xkin,TPZFMatrix &xcin,TPZFMatrix &xfin){
+	void SetMaterial(TPZFMatrix<REAL> &xkin,TPZFMatrix<REAL> &xcin,TPZFMatrix<REAL> &xfin){
 		int r = xkin.Rows();
 		fKxx = xkin;
 		fKyy = xkin;
@@ -56,45 +56,45 @@ class TPZMat2dLin : public TPZMaterial{
 	
 	void ConvectionDiffusion(REAL angle,REAL diff);
 	
-	TPZFMatrix &Xk() {return fKxx;}
-	TPZFMatrix &Ck() {return fK00;}
-	TPZFMatrix &Xf() {return fXf;}
+	TPZFMatrix<REAL> &Xk() {return fKxx;}
+	TPZFMatrix<REAL> &Ck() {return fK00;}
+	TPZFMatrix<REAL> &Xf() {return fXf;}
 	
 	virtual std::string Name() { return "TPZMat2dLin"; }
 	
-	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix &val1,TPZFMatrix &val2);
+	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2);
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix &ek,TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix &ef,TPZBndCond &bc)
+							  TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
 	virtual int NFluxes();
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &fl);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix &dudx,TPZFMatrix &axes,TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &axes,TPZVec<REAL> &flux,
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
 	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int index);
 	
 protected:
-	void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes, int var,TPZVec<REAL> &Solout);
+	void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{

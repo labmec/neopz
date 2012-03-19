@@ -116,8 +116,8 @@ public:
   * @param sol finite element solution
   * @param dsol solution derivatives
   */
-  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                               const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+  virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                               const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 
  /**
   * Avoids the calling of the TPZCompElReferred::ComputeSolution wich would attempt to
@@ -137,8 +137,8 @@ public:
   */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 
 	
   /**
@@ -147,9 +147,9 @@ public:
    * by the method InitializeShapeFunctios().
    */
   virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
-                                 TPZFMatrix &jacobian, TPZFMatrix &axes,
-                                 REAL &detjac, TPZFMatrix &jacinv,
-                                 TPZFMatrix &phi, TPZFMatrix &dphix);
+                                 TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                                 REAL &detjac, TPZFMatrix<REAL> &jacinv,
+                                 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
 	
 public:
 
@@ -281,7 +281,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 
   int numeq = ef.fMat.Rows();
-  TPZFMatrix efTemp(numeq,1,0.);
+  TPZFMatrix<REAL> efTemp(numeq,1,0.);
 
   TPZMaterialData data, dataRef;
   this      ->InitMaterialData(data);
@@ -318,7 +318,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   }
 	
   int nshape = this->NShapeF();
-  TPZFMatrix ekTemp(nshape, nshape, 0.);
+  TPZFMatrix<REAL> ekTemp(nshape, nshape, 0.);
   
   TPZVec<int> varIndex;
   int stackedVarSize = pPostProcMat->NStateVariables();
@@ -386,18 +386,18 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 	  
   }//loop over integration points
 	
-  TPZFMatrix ekCopy(ekTemp);
+  TPZFMatrix<REAL> ekCopy(ekTemp);
 
 	//cout << "\nekTemp = \n " << ekTemp;
 	//cout << endl << endl;
 
-  TPZFMatrix rhsTemp(nshape, 1, 0.);
+  TPZFMatrix<REAL> rhsTemp(nshape, 1, 0.);
   for(int i_st = 0; i_st < stackedVarSize; i_st++)
   {
 	  
 		efTemp.GetSub(i_st*nshape, 0, nshape, 1, rhsTemp);
 	  
-	    TPZFMatrix rhsCopy(rhsTemp), result;
+	    TPZFMatrix<REAL> rhsCopy(rhsTemp), result;
   	//	int status = ekTemp.Solve_Cholesky(&(rhsTemp));
 	    int status = ekTemp.Solve_LU(&(rhsTemp));
 	  
@@ -469,9 +469,9 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
-                                                   TPZFMatrix &phi,
-                                                   TPZFMatrix &dphix,
-                                                   const TPZFMatrix &axes,
+                                                   TPZFMatrix<REAL> &phi,
+                                                   TPZFMatrix<REAL> &dphix,
+                                                   const TPZFMatrix<REAL> &axes,
                                                    TPZSolVec &sol,
                                                    TPZGradSolVec &dsol){
   TCOMPEL::ComputeSolution(qsi, phi, dphix, axes, sol, dsol);
@@ -480,16 +480,16 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeSolution(TPZVec<REAL> &qsi,
                                                    TPZVec<REAL> &normal,
-                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
-                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+                                                   TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+                                                   TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
   TCOMPEL::ComputeSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
-                                 TPZFMatrix &jacobian, TPZFMatrix &axes,
-                                 REAL &detjac, TPZFMatrix &jacinv,
-                                 TPZFMatrix &phi, TPZFMatrix &dphix){
+                                 TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                                 REAL &detjac, TPZFMatrix<REAL> &jacinv,
+                                 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
   TPZGeoEl * ref = this->Reference();
   if (!ref){
     PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";

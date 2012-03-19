@@ -23,13 +23,13 @@ REAL TPZSwelling::gRGas = 8.3145;
 REAL TPZSwelling::gTemp = 293.;
 REAL TPZSwelling::gMuRef[3] = {0.,0.,0.};
 
-TPZFMatrix TPZSwelling::gState;
-TPZFMatrix TPZSwelling::gphi(1,1,1.);
-TPZFMatrix TPZSwelling::gdphi(3,1,0.34);
+TPZFMatrix<REAL> TPZSwelling::gState;
+TPZFMatrix<REAL> TPZSwelling::gphi(1,1,1.);
+TPZFMatrix<REAL> TPZSwelling::gdphi(3,1,0.34);
 
 #ifdef _AUTODIFF
 
-void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix &ek);
+void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<REAL> &ek);
 
 #endif
 
@@ -107,7 +107,7 @@ int TPZSwelling::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout){
+void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
@@ -117,17 +117,17 @@ void TPZSwelling::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,i
 
 void TPZSwelling::ContributeBC(TPZMaterialData &data,
                                REAL weight,
-                               TPZFMatrix &ek,
-                               TPZFMatrix &ef,
+                               TPZFMatrix<REAL> &ek,
+                               TPZFMatrix<REAL> &ef,
                                TPZBndCond &bc) {
 	
 	
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -141,12 +141,12 @@ void TPZSwelling::ContributeBC(TPZMaterialData &data,
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
@@ -256,8 +256,8 @@ void TPZSwelling::ContributeElastEnergy(TPZVec<FADFADREAL> &dsol,
 void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 									 TPZVec<FADREAL> & sol, 
 									 TPZVec<FADREAL> &dsol,
-									 TPZFMatrix &phi,
-									 TPZFMatrix &dphi,
+									 TPZFMatrix<REAL> &phi,
+									 TPZFMatrix<REAL> &dphi,
 									 TPZVec<FADREAL> &RES,
 									 REAL weight){
 	const int nstate = 8;
@@ -379,8 +379,8 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 										 TPZVec<FADREAL> & sol,
 										 TPZVec<FADREAL> &dsol,
-										 TPZFMatrix &phi,
-										 TPZFMatrix &dphi,
+										 TPZFMatrix<REAL> &phi,
+										 TPZFMatrix<REAL> &dphi,
 										 TPZVec<FADREAL> &RES,
 										 REAL weight){
 	const int nstate = 8;
@@ -510,7 +510,7 @@ void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<REAL> &N) {
 
 void TPZSwelling::ComputeN(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N) {
 	
-	TPZFMatrix res,tangent;
+	TPZFMatrix<REAL> res,tangent;
 	ExactSolution(mu,ksi,pressure,N);
 	NResidual(mu,ksi,pressure,N,res,tangent);
 	// compute the residual of the current N values
@@ -528,7 +528,7 @@ void TPZSwelling::ComputeN(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REA
 	}
 }
 
-void TPZSwelling::NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix &res, TPZFMatrix &tangent) {
+void TPZSwelling::NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix<REAL> &res, TPZFMatrix<REAL> &tangent) {
 	
 	FADREAL defaultFAD(3,REAL(0.),REAL(0.));
 	FADFADREAL defaultFADFAD(3,defaultFAD,defaultFAD),W;
@@ -650,7 +650,7 @@ int TPZSwelling::main() {
 	
 	// initialize a set of variables as they would be setup by the element
 	int ieq,d;
-	TPZFMatrix phi(1,1),dphi(3,1);
+	TPZFMatrix<REAL> phi(1,1),dphi(3,1);
 	phi(0,0) = 1.;
 	for(ieq=0; ieq<3; ieq++) {
 		dphi(ieq,0) = 0.34;
@@ -683,7 +683,7 @@ int TPZSwelling::main() {
 	// procedure to check whether the stiffness matrix is tangent to the residual vector
 	
 	REAL rangeval[11] = {0.1,0.1,0.1,0.0001,0.01,1.,1.,0.1,0.,0.,0.};
-	TPZFMatrix state(11,1),range(11,1,0.0);
+	TPZFMatrix<REAL> state(11,1),range(11,1,0.0);
 	for(ieq=0; ieq<8; ieq++) {
 		state(ieq,0) = values[ieq];
 		range(ieq,0) = rangeval[ieq];
@@ -700,7 +700,7 @@ int TPZSwelling::main() {
 	// this procedure was built to check whether the stiffness matrix is symetric
 	
 	test.ContributeResidual(x,sol,dsol,phi,dphi,RES,weight);
-	TPZFMatrix ek;
+	TPZFMatrix<REAL> ek;
 	ToMatrix(RES,ek);
 	ek.Print("stiffness matrix");
 	
@@ -709,7 +709,7 @@ int TPZSwelling::main() {
 	
 }
 
-void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix &ek) {
+void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<REAL> &ek) {
 	int nel = vec.NElements();
 	ek.Redim(nel,nel);
 	int ieq,jeq;
@@ -728,13 +728,13 @@ int TPZSwelling::NumCases() {
 	return 1;
 }
 
-void TPZSwelling::LoadState(TPZFMatrix &state) {
+void TPZSwelling::LoadState(TPZFMatrix<REAL> &state) {
 	if(state.Rows() != 11) {
 		cout << "TPZSwelling LoadState wrong number of variables expect bad things\n";
 	}
 	gState = state;
 }
-void TPZSwelling::ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int cases) {
+void TPZSwelling::ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, int cases) {
 	tangent.Redim(11,11);
 	int ieq,jeq,d;
 	FADREAL defaultFAD(8,REAL(0.),REAL(0.));
@@ -768,7 +768,7 @@ void TPZSwelling::ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int ca
 		}
 	}
 }
-void TPZSwelling::Residual(TPZFMatrix &res, int cases) {
+void TPZSwelling::Residual(TPZFMatrix<REAL> &res, int cases) {
 	res.Redim(11,1);
 	int ieq,d;
 	FADREAL defaultFAD(8,REAL(0.),REAL(0.));

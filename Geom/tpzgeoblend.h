@@ -92,7 +92,7 @@ namespace pzgeom
 		
 		void X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		
-		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix &jacobian, TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv);
+		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		/** @brief Print all relevant data of the element to cout*/
 		void Print(std::ostream & out = std::cout);
@@ -134,7 +134,7 @@ namespace pzgeom
 	protected:
 		
 		/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
-		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix &JacNeighSide);
+		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide);
 		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 	};

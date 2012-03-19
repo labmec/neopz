@@ -36,13 +36,13 @@ private:
 	REAL fInitialTemp;
 	
 	/// matrix solution procedure for computing the next solution
-	TPZAutoPointer<TPZSolver> fSolver;
+	TPZAutoPointer<TPZSolver<REAL> > fSolver;
 	
 	/// timestep [s]
 	REAL fTimeStep;
 	
 	/// variation of the temperature with the thermal flux
-	TPZFMatrix fUnitFluxSolution;
+	TPZFMatrix<REAL> fUnitFluxSolution;
 	
 public:
 	/// create an invalid object
@@ -96,7 +96,7 @@ public:
         ComputeStiffness();
 	}
     
-    void InitializeSolution(TPZFMatrix &sol)
+    void InitializeSolution(TPZFMatrix<REAL> &sol)
     {
         sol.Redim(fNElements+1, 1);
         sol += fInitialTemp;
@@ -112,7 +112,7 @@ public:
 	}
 	
 	/// Compute the energy associated with the solution
-	REAL Energy(TPZFMatrix &solution)
+	REAL Energy(TPZFMatrix<REAL> &solution)
 	{
 #ifdef DEBUG
 		if (solution.Rows() != fNElements+1) {
@@ -130,6 +130,6 @@ public:
 	}
 	
 	/// Compute the next solution
-	void NextSolution(REAL inletTemp, TPZFMatrix &prevSol, TPZFMatrix &nextSol, REAL &flux);
+	void NextSolution(REAL inletTemp, TPZFMatrix<REAL> &prevSol, TPZFMatrix<REAL> &nextSol, REAL &flux);
 };
 #endif

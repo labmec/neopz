@@ -70,7 +70,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		SetBlockNumber();
 		TPZSkylineStructMatrix skystr(fCompMesh);
 		SetStructuralMatrix(skystr);
-		TPZStepSolver sol;
+		TPZStepSolver<REAL> sol;
 		sol.ShareMatrix(Solver());
 		
 		sol.SetDirect(ECholesky);//ECholesky
@@ -391,7 +391,7 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 }
 
 /*
- REAL TPZAnalysisError::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv)) {
+ REAL TPZAnalysisError::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv)) {
  
  REAL H1_error,L2_error,estimate;
  TPZBlock *flux=0;
@@ -406,9 +406,9 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
  }
  */
 /** @brief Function to zeroes data */
-void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix &deriv);
+void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
 
-void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix &deriv) {
+void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
 	
     val[0] = 0.*point[0];
     deriv(0,0) = 0.;
@@ -539,7 +539,7 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 	TPZManVector<REAL,3> errorSum(3);
 	errorSum.Fill(0.0);
 	
-	TPZBlock *flux = 0;
+	TPZBlock<REAL> *flux = 0;
 	int elcounter=0;
 	int numel = Mesh()->ElementVec().NElements();
 	fElErrors.Resize(numel);

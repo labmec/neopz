@@ -10,7 +10,7 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic(TPZMatWithMem<TPZFMatrix, TPZElasticity3D> &matwithmem,int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT):TPZMatWithMem<TPZFMatrix, TPZElasticity3D>(matwithmem), flambdaE(lambdaE),fmuE(muE),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
+TPZViscoelastic::TPZViscoelastic(TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D> &matwithmem,int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT):TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D>(matwithmem), flambdaE(lambdaE),fmuE(muE),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
 {
 
 	REAL lambda = flambdaE-(falphaT*flambdaV)/(1+falphaT);
@@ -28,19 +28,19 @@ TPZViscoelastic::TPZViscoelastic(TPZMatWithMem<TPZFMatrix, TPZElasticity3D> &mat
 	std::cout<<fE<<std::endl;
 	std::cout<<"poisson"<<std::endl;
 	std::cout<<fPoisson<<std::endl;
-	TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::Print(std::cout,id);
+	TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::Print(std::cout,id);
 	
 	
 }
 
-void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef)
+void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
 {
 	
 	if(fUpdateMem== 0){
 		
-		TPZMatWithMem<TPZFMatrix,TPZElasticity3D>::Contribute(data,weight,ek,ef);
-		TPZFMatrix dphi = data.dphix;
-		TPZFMatrix phi = data.phi;
+		TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::Contribute(data,weight,ek,ef);
+		TPZFMatrix<REAL> dphi = data.dphix;
+		TPZFMatrix<REAL> phi = data.phi;
 		
 		const int phr = phi.Rows();
 		//this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
@@ -87,8 +87,8 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &e
 	}
 	else{
 		
-		TPZFMatrix dphi = data.dphix;
-		TPZFMatrix phi = data.phi;
+		TPZFMatrix<REAL> dphi = data.dphix;
+		TPZFMatrix<REAL> phi = data.phi;
 		
 		//this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
 		//{dvdy*dudx, dvdy*dudy, dvdy*dudz},

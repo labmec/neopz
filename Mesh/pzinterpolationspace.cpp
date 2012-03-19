@@ -64,9 +64,9 @@ int TPZInterpolationSpace::MaxOrder(){
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
-                                         TPZFMatrix &jacobian, TPZFMatrix &axes,
-                                         REAL &detjac, TPZFMatrix &jacinv,
-                                         TPZFMatrix &phi, TPZFMatrix &dphix){
+                                         TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                                         REAL &detjac, TPZFMatrix<REAL> &jacinv,
+                                         TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
 	TPZGeoEl * ref = this->Reference();
 	if (!ref){
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
@@ -469,8 +469,8 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		return ;
 	}
 	
-	TPZFMatrix loclocmat(locmatsize,locmatsize,0.);
-	TPZFMatrix projectmat(locmatsize,nvar,0.);
+	TPZFMatrix<REAL> loclocmat(locmatsize,locmatsize,0.);
+	TPZFMatrix<REAL> projectmat(locmatsize,nvar,0.);
 	
 	TPZManVector<int,3> prevorder(dimension);
 	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
@@ -530,7 +530,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
-	TPZBlock &fineblock = Mesh()->Block();
+	TPZBlock<REAL> &fineblock = Mesh()->Block();
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
@@ -903,8 +903,8 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-										  TPZVec<REAL> &errors,TPZBlock * /*flux */){
+void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);
 	errors.Fill(0.);
@@ -1232,7 +1232,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	int nvar = coarsel.Material()->NStateVariables();
 	
 	// number of blocks is cornod
-	TPZBlock corblock(0,cornod);
+	TPZBlock<REAL> corblock(0,cornod);
 	int in;
 	
 	cormatsize = 0;
@@ -1276,7 +1276,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	}
 	intrule->SetOrder(order);
 	
-	TPZBlock locblock(0,locnod);
+	TPZBlock<REAL> locblock(0,locnod);
 	
 	for(in = 0; in < locnod; in++) {
         int nshape = NConnectShapeF(in);
@@ -1292,15 +1292,15 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	locblock.Resequence();
 	
 	REAL locphistore[50]={0.},locdphistore[150]={0.};
-	TPZFMatrix locphi(locmatsize,1,locphistore,50);
-	TPZFMatrix locdphi(dimension,locmatsize,locdphistore,150);
+	TPZFMatrix<REAL> locphi(locmatsize,1,locphistore,50);
+	TPZFMatrix<REAL> locdphi(dimension,locmatsize,locdphistore,150);
 	locphi.Zero();
 	locdphi.Zero();
 	// derivative of the shape function
 	// in the master domain
 	
-	TPZFMatrix corphi(cormatsize,1);
-	TPZFMatrix cordphi(dimension,cormatsize);
+	TPZFMatrix<REAL> corphi(cormatsize,1);
+	TPZFMatrix<REAL> cordphi(dimension,cormatsize);
 	// derivative of the shape function
 	// in the master domain
 	
@@ -1308,8 +1308,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	axesstore[9];
 	TPZManVector<REAL> int_point(dimension),
 	coarse_int_point(dimension);
-	TPZFMatrix jacobian(dimension,dimension,jacobianstore,9),jacinv(dimension,dimension);
-	TPZFMatrix axes(3,3,axesstore,9);
+	TPZFMatrix<REAL> jacobian(dimension,dimension,jacobianstore,9),jacinv(dimension,dimension);
+	TPZFMatrix<REAL> axes(3,3,axesstore,9);
 	TPZManVector<REAL> x(3);
 	int_point.Fill(0.,0);
 	REAL jac_det = 1.;
@@ -1366,7 +1366,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix small(locblocksize,corblocksize,0.);
+			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
 							 locblocksize,corblocksize,small);
 			REAL tol = Norm(small);
@@ -1384,7 +1384,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix small(locblocksize,corblocksize,0.);
+			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
 			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
 		}
@@ -1393,7 +1393,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 }
 
 
-void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix &phi, TPZFMatrix &dphix) {
+void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVec<int> &dependencyorder, TPZVec<int> &blocksizes, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix) {
 	int numblocks =  connectlist.NElements();
 	TPZCompMesh &mesh = *Mesh();
 	int nhandled=0;

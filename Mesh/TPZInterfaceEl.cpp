@@ -558,7 +558,7 @@ void TPZInterfaceElement::ComputeNormal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
 	this->ComputeNormal(axes,normal);
 }
 
-void TPZInterfaceElement::ComputeNormal(TPZFMatrix &axes, TPZVec<REAL> &normal){
+void TPZInterfaceElement::ComputeNormal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &normal){
 	
 	normal.Resize(3);
 	
@@ -678,7 +678,7 @@ void TPZInterfaceElement::CenterNormal(TPZVec<REAL> &CenterNormal) const{
 	for(int i = 0; i < n; i++) CenterNormal[i] = fCenterNormal[i];
 }
 
-void TPZInterfaceElement::Normal(TPZFMatrix &axes, TPZVec<REAL> &normal){
+void TPZInterfaceElement::Normal(TPZFMatrix<REAL> &axes, TPZVec<REAL> &normal){
 	TPZGeoEl * gel = this->Reference();
 	if(gel->IsLinearMapping()) return this->CenterNormal(normal);
 	return this->ComputeNormal(axes, normal);
@@ -690,8 +690,8 @@ void TPZInterfaceElement::Normal(TPZVec<REAL>&qsi, TPZVec<REAL> &normal){
 	return this->ComputeNormal(qsi, normal);
 }
 
-void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-										TPZVec<REAL> &errors, TPZBlock * /*flux */) {
+void TPZInterfaceElement::EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+										TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */) {
 	errors.Fill(0.0);
 }
 
@@ -1568,7 +1568,7 @@ bool TPZInterfaceElement::CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, T
 
 void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REAL> & qsi,
                                             TPZSolVec &sol, TPZGradSolVec &dsol,
-                                            TPZFMatrix &NeighborAxes){
+                                            TPZFMatrix<REAL> &NeighborAxes){
 	TPZGeoEl * neighel = Neighbor.Element()->Reference();
 	const int neighdim = neighel->Dimension();
 	TPZManVector<REAL,3> NeighIntPoint(neighdim);
@@ -1576,14 +1576,14 @@ void TPZInterfaceElement::NeighbourSolution(TPZCompElSide & Neighbor, TPZVec<REA
 	Neighbor.Element()->ComputeSolution(NeighIntPoint, sol, dsol, NeighborAxes);
 }
 
-void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                          const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                                          const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	sol.Resize(0);
 	dsol.Resize(0);
 }
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
-                                          TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
+                                          TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 	sol.Resize(0);
 	dsol.Resize(0);
 	axes.Zero();
@@ -1591,8 +1591,8 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 
 void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 										  TPZVec<REAL> &normal,
-										  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-										  TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+										  TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+										  TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	this->Normal(qsi, normal);
 	this->NeighbourSolution(this->fLeftElSide, qsi, leftsol, dleftsol, leftaxes);
 	this->NeighbourSolution(this->fRightElSide, qsi, rightsol, drightsol, rightaxes);

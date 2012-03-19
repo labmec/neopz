@@ -181,7 +181,7 @@ TPZFlowCompMesh *
 // Boundary conditions
 
    TPZAutoPointer<TPZMaterial>  bc;
-   TPZFMatrix val1(4,4), val2(4,1);
+   TPZFMatrix<REAL> val1(4,4), val2(4,1);
    REAL ro = 1.7,
 	//u = 5.5,
 	//v = 0,//3.3,
@@ -222,7 +222,7 @@ TPZFlowCompMesh *
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix Solution = cmesh->Solution();
+   TPZFMatrix<REAL> Solution = cmesh->Solution();
    Solution.Zero();
 
    int nVars = Solution.Rows();

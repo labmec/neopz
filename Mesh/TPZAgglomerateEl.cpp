@@ -173,7 +173,7 @@ REAL TPZAgglomerateElement::VolumeOfEl(){
 }
 
 
-void TPZAgglomerateElement::CalcResidual(TPZFMatrix &Rhs,TPZCompElDisc *el){
+void TPZAgglomerateElement::CalcResidual(TPZFMatrix<REAL> &Rhs,TPZCompElDisc *el){
 	
 	PZError << "TPZAgglomerateElement::CalcResidual DEVE SER IMPLEMENTADO";
 }
@@ -192,8 +192,8 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	int dim = Dimension();
 	int nstate = Material()->NStateVariables();
 	int nshape = NShapeF();
-	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix &MeshSol = Mesh()->Solution();
+	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
 	
@@ -635,7 +635,7 @@ void TPZAgglomerateElement::Print(TPZStack<int> &listindex){
  }
  */
 
-void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
+void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<REAL> &projectsol){
 	
 	//projeta a solu�o dos elementos contidos na aglomera�o
 	//no elemento por eles aglomerado
@@ -643,8 +643,8 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
 	int dimension = Dimension();
 	int aggmatsize = NShapeF();
 	int nvar = Material()->NStateVariables();
-	TPZFMatrix aggmat(aggmatsize,aggmatsize,0.);
-	TPZFMatrix loadvec(aggmatsize,nvar,0.);
+	TPZFMatrix<REAL> aggmat(aggmatsize,aggmatsize,0.);
+	TPZFMatrix<REAL> loadvec(aggmatsize,nvar,0.);
 	//verificar que o grau do grande �<= que o grau de cada um dos pequenos ???
 	TPZStack<int> elvec;
 	//  IndexesDiscSubEls(elvec);
@@ -672,11 +672,11 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
 	//     ref->CreateSideIntegrationRule(ref->NSides()-1,maxdegree + coarsedeg);
 	//eventualmente pode criar uma regra para cada sub-elemento dentro do la�
 	//de integra�o para reduzir o nmero de pontos caso os grus s� distintos
-	TPZFMatrix aggphix(aggmatsize,1);
-	TPZFMatrix aggdphix(dimension,aggmatsize);
+	TPZFMatrix<REAL> aggphix(aggmatsize,1);
+	TPZFMatrix<REAL> aggdphix(dimension,aggmatsize);
 	TPZStack<REAL> accintpoint, accweight;
-	TPZFMatrix jacobian(dimension,dimension),jacinv(dimension,dimension);
-	TPZFMatrix axes(3,3,0.);
+	TPZFMatrix<REAL> jacobian(dimension,dimension),jacinv(dimension,dimension);
+	TPZFMatrix<REAL> axes(3,3,0.);
 	TPZManVector<REAL,3> x(3,0.);
 	TPZVec<REAL> uh(nvar);
 	REAL weight;
@@ -714,7 +714,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix &projectsol){
 	aggmat.SolveDirect(loadvec,ELDLt);//ELU
 	//transferindo a solu�o obtida por restri�o
 	int iv=0,d;
-	TPZBlock &block = Mesh()->Block();
+	TPZBlock<REAL> &block = Mesh()->Block();
 	TPZConnect *df = &Connect(0);
 	int dfseq = df->SequenceNumber();
 	int dfvar = block.Size(dfseq);

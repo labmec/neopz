@@ -15,6 +15,8 @@
 #include <iostream>
 
 class TPZCompMesh;
+
+template <class TVar>
 class TPZFMatrix;
 class TPZFStructMatrix;
 
@@ -28,7 +30,7 @@ class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 	
 private:
 	
-	TPZFMatrix fLastState;
+	TPZFMatrix<REAL> fLastState;
 	
 public:
 	
@@ -74,7 +76,7 @@ public:
 	
 	REAL &TimeStep();
 	
-	void SetInitialSolution(TPZFMatrix & InitialSol);
+	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
 	void SetInitialSolutionAsZero();
 	
 protected:

@@ -7,9 +7,11 @@
 
 
 #include "pzvec.h"
-#include "pzgeoel.h"
-#include "pzgeoelside.h"
+//#include "pzgeoel.h"
+//#include "pzgeoelside.h"
 
+class TPZGeoEl;
+class TPZGeoElSide;
 /**
  * @brief Implements methods to evaluate jacobians by obtained convergence order to geometric element. \ref geometry "Geometry"
  * @author Paulo Cesar de Alvarenga Lucci

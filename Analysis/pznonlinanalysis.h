@@ -11,6 +11,8 @@
 #include "pzvec.h"
 #include <iostream>
 class TPZCompMesh;
+
+template<class TVar> 
 class TPZFMatrix;
 
 /**
@@ -42,21 +44,21 @@ public:
 	 * as DeltaW. \n But fSolution changes in the linesearch procedure when LoadSolution
 	 * is called before AssembleResidual.
 	 */
-	REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
+	REAL LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter);
 	
 	REAL SolutionNorm();
 	
-	virtual void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
+	virtual void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase);
 	
 	int NumCases();
 	
-	virtual void Residual(TPZFMatrix &residual, int icase);
+	virtual void Residual(TPZFMatrix<REAL> &residual, int icase);
 	
 	virtual void LoadSolution();
 	
-	virtual void LoadSolution(const TPZFMatrix &state);
+	virtual void LoadSolution(const TPZFMatrix<REAL> &state);
 	
-	void LoadState(TPZFMatrix &state);
+	void LoadState(TPZFMatrix<REAL> &state);
 	
 };
 

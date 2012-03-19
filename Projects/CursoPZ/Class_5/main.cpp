@@ -51,9 +51,9 @@ int main(){
   TPZCompMesh *cmesh = new TPZCompMesh(mesh);
 
   TPZMat2dLin *mat2d = new TPZMat2dLin (1);
-  TPZFMatrix xkin (1,1,1e6);
-  TPZFMatrix xcin (1,1,0.);
-  TPZFMatrix xfin (1,1,1e3);
+  TPZFMatrix<REAL> xkin (1,1,1e6);
+  TPZFMatrix<REAL> xcin (1,1,0.);
+  TPZFMatrix<REAL> xfin (1,1,1e3);
   mat2d->SetMaterial(xkin,xcin,xfin);
   TPZAutoPointer<TPZMaterial> mat(mat2d);
   cmesh->InsertMaterialObject (mat);

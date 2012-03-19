@@ -17,7 +17,7 @@ using namespace std;
 int gLMax;
 
 void InitializeSolver(TPZAnalysis &an);
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh *cmesh);
+void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 /** 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 	cout << "\nnequations = " << cmesh->NEquations();
 	cout << "\nNiter = " << niter << "\n";
 	
-	TPZFMatrix InitialSol;
+	TPZFMatrix<REAL> InitialSol;
 	InitialSolutionLinearConvection(InitialSol,cmesh);
 
 	an.SetInitialSolution(InitialSol);
@@ -213,14 +213,14 @@ void PrintGeoMeshVTKWithData(TPZGeoMesh *gmesh,char *filename,int var) {
 }	*/
 
 void InitializeSolver(TPZAnalysis &an) {
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	TPZBandStructMatrix matrix(an.Mesh());
 	an.SetStructuralMatrix(matrix);
 	step.SetDirect(ELU);
 	an.SetSolver(step);
 }
 
-void InitialSolutionLinearConvection(TPZFMatrix &InitialSol, TPZCompMesh * cmesh){
+void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){
 	InitialSol.Redim(cmesh->NEquations(),1);
 	InitialSol.Zero();
 	for(int iel = 0; iel < cmesh->NElements(); iel++){

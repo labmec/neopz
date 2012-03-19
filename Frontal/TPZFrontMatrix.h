@@ -17,6 +17,7 @@
 #include "TPZFileEqnStorage.h"
 #include "pzmatrix.h"
 
+template<class TVar>
 class TPZFMatrix;
 
 /**
@@ -26,15 +27,15 @@ class TPZFMatrix;
 /**
  @brief Implements a matrix stored in a frontal decomposition scheme. \ref frontal "Frontal"
  */
-class TPZAbstractFrontMatrix : public TPZMatrix
+class TPZAbstractFrontMatrix : public TPZMatrix<REAL>
 {
 public:
 	
-	TPZAbstractFrontMatrix() : TPZMatrix()
+	TPZAbstractFrontMatrix() : TPZMatrix<REAL>()
 	{
 	}
 	
-	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix(ieq,jeq)
+	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix<REAL>(ieq,jeq)
 	{
 	}
 	
@@ -93,8 +94,8 @@ public:
     {
     }
     
-    CLONEDEF(TPZFrontMatrix)
-	
+  //  CLONEDEF(TPZFrontMatrix)
+	virtual TPZMatrix<REAL>*Clone() const { return new TPZFrontMatrix(*this); }
     /** 
 	 * @brief Sends a message to decompose equations from lower_eq to upper_eq, according to destination index
 	 * @param destinationindex Contains destination indexes of equations
@@ -105,7 +106,7 @@ public:
 	
 	
     /** Add a matrix to the frontal matrix */
-	//    void AssembleMatrix(TPZVec < int > & eqnumbers, TPZFMatrix & ek, TPZFMatrix & ef);
+	//    void AssembleMatrix(TPZVec < int > & eqnumbers, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef);
 	
     /** 
 	 * @brief Initializes the number of elements connected to each equation 
@@ -118,7 +119,7 @@ public:
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix & elmat, TPZVec < int > & destinationindex);
+	virtual void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
@@ -132,19 +133,19 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    void AddKel(TPZFMatrix & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
 	
     /** 
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
 	 */
-	int Subst_Forward(TPZFMatrix *b) const;
+	int Subst_Forward(TPZFMatrix<REAL> *b) const;
 	
     /** @brief Backward substitution and result is on b*/
-	int Subst_Backward(TPZFMatrix *b) const;
-    /** @brief Executes a substitution on a TPZFmatrix object
+	int Subst_Backward(TPZFMatrix<REAL> *b) const;
+    /** @brief Executes a substitution on a TPZFMatrix<REAL> object
 	 applies both forward and backward substitution automaticaly */
-	int Substitution(TPZFMatrix *) const;
+	int Substitution(TPZFMatrix<REAL> *) const;
     /*
 	 void SetFileName(
 	 const char *name = SetTempFileName() //! Name of the file

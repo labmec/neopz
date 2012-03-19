@@ -26,7 +26,7 @@ class TPZSwelling : public TPZMaterial {
 	 */
 	int fComputationMode;
 	/** @brief Hydraulic permeability \f$ [mm^4 / (Ns)] \f$ */
-	TPZFMatrix fKperm;
+	TPZFMatrix<REAL> fKperm;
 	/** @brief Compression modulus [N/mm^2] */
 	REAL fLambda;
 	/** @brief Shear modulus [N/mm^2] */
@@ -126,24 +126,24 @@ class TPZSwelling : public TPZMaterial {
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef){
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef){
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef){
+							TPZFMatrix<REAL> &ef){
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -162,8 +162,8 @@ class TPZSwelling : public TPZMaterial {
 	virtual void ContributeResidual(TPZVec<REAL> & x,
 									TPZVec<FADREAL> & sol,
 									TPZVec<FADREAL> &dsol,
-									TPZFMatrix &phi,
-									TPZFMatrix &dphi,
+									TPZFMatrix<REAL> &phi,
+									TPZFMatrix<REAL> &dphi,
 									TPZVec<FADREAL> &RES,
 									REAL weight);
 	
@@ -171,8 +171,8 @@ class TPZSwelling : public TPZMaterial {
 	virtual void ContributePrevResidual(TPZVec<REAL> & x,
 										TPZVec<FADREAL> & sol,
 										TPZVec<FADREAL> &dsol,
-										TPZFMatrix &phi,
-										TPZFMatrix &dphi,
+										TPZFMatrix<REAL> &phi,
+										TPZFMatrix<REAL> &dphi,
 										TPZVec<FADREAL> &RES,
 										REAL weight);
 
@@ -220,7 +220,7 @@ private:
 #endif
 	/** @brief Computes the residual and tangent vector of the system of equations which determines N */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix &res, TPZFMatrix &tangent);
+	void NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix<REAL> &res, TPZFMatrix<REAL> &tangent);
 	
 #ifdef _AUTODIFF
 	/** 
@@ -244,15 +244,15 @@ public:
 	/** Number of cases which are considered for convergence checks */
 	int NumCases();
 	/** @brief Loads the state within the current object, to be used when computing the tangent matrix */
-	void LoadState(TPZFMatrix &state);
+	void LoadState(TPZFMatrix<REAL> &state);
 	/** @brief Computes the tangent matrix for a given loadcase */
-	void ComputeTangent(TPZFMatrix &tangent,TPZVec<REAL> &coefs, int cases);
+	void ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, int cases);
 	/** @brief Computes the residual for the given state variable */
-	void Residual(TPZFMatrix &res, int cases);
+	void Residual(TPZFMatrix<REAL> &res, int cases);
 	/** @brief Variables which holds the state variables used in the check convergence procedure */
-	static TPZFMatrix gState;
+	static TPZFMatrix<REAL> gState;
 	/** @brief Variables which holds the state variables used in the check convergence procedure */
-	static TPZFMatrix gphi,gdphi;
+	static TPZFMatrix<REAL> gphi,gdphi;
 	
 public:
 
@@ -263,7 +263,7 @@ public:
 	
 protected:
 	/** @brief Computes a post-processed solution variable corresponding to the variable index */
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{

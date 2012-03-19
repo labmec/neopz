@@ -39,9 +39,9 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	Vector *res = residual;
 	
 #ifdef TEST
-	std::list< TPZFMatrix > plist,qlist;
-	std::list< TPZFMatrix >::iterator jt;
-	std::list< TPZFMatrix >::iterator kt;
+	std::list< TPZFMatrix<REAL> > plist,qlist;
+	std::list< TPZFMatrix<REAL> >::iterator jt;
+	std::list< TPZFMatrix<REAL> >::iterator kt;
 	Vector Au;
 #endif
 	
@@ -107,7 +107,7 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		std::cout << "cg iter = " << i <<  " res = " << resid /*<< " energy " << energy */ << std::endl;
 #ifdef TEST
 		std::cout << " energy " << energy << std::endl;
-		TPZFMatrix inner(plist.size(),plist.size(),0.);
+		TPZFMatrix<REAL> inner(plist.size(),plist.size(),0.);
 		{
 			int j,k;
 			for(j=0, jt = plist.begin(); jt != plist.end(); jt++,j++)

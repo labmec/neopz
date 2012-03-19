@@ -40,7 +40,7 @@ namespace pzshape {
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
-		static void (*fOrthogonal)(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+		static void (*fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
 		
 #ifdef _AUTODIFF
@@ -60,7 +60,7 @@ namespace pzshape {
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
-		static void Chebyshev(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+		static void Chebyshev(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
 		/**
 		 * @brief Legendre orthogonal function, computes num orthogonal functions at the point x
@@ -69,13 +69,13 @@ namespace pzshape {
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
-		static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi);
+		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
 		/**
 		 * @brief Legendre function computing several derivatives.
 		 * @see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
 		 */
-		static void Legendre(REAL x,int num,TPZFMatrix & phi,TPZFMatrix & dphi, int nderiv);
+		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int nderiv);
 		
 #ifdef _AUTODIFF
 		/**
@@ -102,9 +102,9 @@ namespace pzshape {
 		 * if \f$ id[0] < id[1] \f$ the shapefunctions are unchanged
 		 * if \f$ id[0] > id[1] \f$ the odd ordered shapefunctions are inverted
 		 */
-		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix &phi,TPZFMatrix &dphi);
+		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the values of the orthogonal shapefunctions before multiplying them by the
@@ -121,7 +121,7 @@ namespace pzshape {
 		 * The shape1dInternal function is extensively used by the shapefunction computation of
 		 * the other elements
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix &phi,TPZFMatrix &dphi,int transformation_index);
+		static void ShapeInternal(TPZVec<REAL> &x,int ord,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int transformation_index);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -129,7 +129,7 @@ namespace pzshape {
 		 * @param phi (input/output) value of the  shape functions
 		 * @param dphi (input/output) value of the derivatives of the shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 #ifdef _AUTODIFF
 		/**
@@ -182,7 +182,7 @@ namespace pzshape {
 		 * @param in matrix containing the values of the derivatives of the shapefunctions as a row vector \n
 		 * the values of the derivatives contained in this matrix are modified upon return
 		 */
-		static void TransformDerivative1d(int transid,int num,TPZFMatrix &in);
+		static void TransformDerivative1d(int transid,int num,TPZFMatrix<REAL> &in);
 #ifdef _AUTODIFF
 		/**
 		 * Applies the transformation on the values of the derivatives of the shape functions of the

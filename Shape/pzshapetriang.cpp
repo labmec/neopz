@@ -31,7 +31,7 @@ namespace pzshape {
 	REAL TPZShapeTriang::gVet1dT[3] = {-1.,0.,1.};
 	
 	
-	void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+	void TPZShapeTriang::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		phi(0,0) =  1.-pt[0]-pt[1];
 		phi(1,0) =  pt[0];
@@ -50,7 +50,7 @@ namespace pzshape {
 	 * @param phi (input/output) value of the (4) shape functions
 	 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+	void TPZShapeTriang::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		for(is=3; is<6; is++)
@@ -81,7 +81,7 @@ namespace pzshape {
 	}
 	
 	void TPZShapeTriang::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-							   TPZFMatrix &phi,TPZFMatrix &dphi) {
+							   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		if (order[0] < 2 && order[1] < 2 && order[2] < 2 && order[3] < 3) return;
 		int is,d;
@@ -107,7 +107,7 @@ namespace pzshape {
 			ids[1] = id[(rib+1)%3];
 			REAL store1[20],store2[40];
 			int ord2 = order[rib]-1;//numero de shapes por lado rib
-			TPZFMatrix phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
+			TPZFMatrix<REAL> phin(ord2,1,store1,20),dphin(2,ord2,store2,40);
 			TPZShapeLinear *shplin=0;
 			shplin->ShapeInternal(outvec,order[rib],phin,dphin,shplin->GetTransformId1d(ids));
 			TransformDerivativeFromRibToTriang(rib,ord2,dphin);
@@ -124,7 +124,7 @@ namespace pzshape {
 		REAL store1[20],store2[40];
 		int ord =  order[3]-2;//num de shapes da face
 		int nsh = (ord*(ord+1))/2;
-		TPZFMatrix phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
+		TPZFMatrix<REAL> phin(nsh,1,store1,20),dphin(2,nsh,store2,40);
 		ShapeInternal(pt,order[3]-2,phin,dphin,GetTransformId2dT(id));
 		for(int i=0;i<nsh;i++)	{//number of internal shape equal maximal order
 			phi(shape,0) = phiblend(6,0)*phin(i,0);
@@ -137,7 +137,7 @@ namespace pzshape {
 	}
 	
 	void TPZShapeTriang::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-								   TPZFMatrix &phi,TPZFMatrix &dphi) {
+								   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>6) PZError << "TPZShapeTriang::SideShape. Bad paramenter side.\n";
 		else if(side==6) Shape(pt,id,order,phi,dphi);
 		else if(side<3) {
@@ -148,8 +148,8 @@ namespace pzshape {
 		
 		
 	}
-	void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-									   TPZFMatrix &dphi,int triangle_transformation_index) {
+	void TPZShapeTriang::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+									   TPZFMatrix<REAL> &dphi,int triangle_transformation_index) {
 		
 		if(order < 0) return;
 		int ord1 = order;
@@ -163,7 +163,7 @@ namespace pzshape {
 			dphi.Resize(dphi.Rows(),numshape);
 		}
 		REAL store1[20],store2[20],store3[20],store4[20];
-		TPZFMatrix phi0(numshape,1,store1,20),phi1(numshape,1,store2,20),dphi0(1,numshape,store3,20),dphi1(1,numshape,store4,20);
+		TPZFMatrix<REAL> phi0(numshape,1,store1,20),phi1(numshape,1,store2,20),dphi0(1,numshape,store3,20),dphi1(1,numshape,store4,20);
 		
 		TPZShapeLinear::fOrthogonal(2.*out[0]-1.,numshape,phi0,dphi0);
 		TPZShapeLinear::fOrthogonal(2.*out[1]-1.,numshape,phi1,dphi1);
@@ -186,7 +186,7 @@ namespace pzshape {
 		out = gRibTrans2dT1d[rib][0]*in[0]+gRibTrans2dT1d[rib][1]*in[1]+gVet1dT[rib];
 	}
 	
-	void TPZShapeTriang::TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix &dphi) {
+	void TPZShapeTriang::TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		
 		for (int j = 0;j<num;j++) {
 			
@@ -225,7 +225,7 @@ namespace pzshape {
 		out[1] = gTrans2dT[transid][1][0]*in[0]+gTrans2dT[transid][1][1]*in[1]+gVet2dT[transid][1];
 	}
 	
-	void TPZShapeTriang::TransformDerivative2dT(int transid, int num, TPZFMatrix &in) {
+	void TPZShapeTriang::TransformDerivative2dT(int transid, int num, TPZFMatrix<REAL> &in) {
 		
 		int i;
 		for(i=0;i<num;i++) { //ds/dcsi

@@ -215,9 +215,9 @@ REAL TPZCompElDisc::NormalizeConst()
 }
 
 void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
-                                 TPZFMatrix &jacobian, TPZFMatrix &axes,
-                                 REAL &detjac, TPZFMatrix &jacinv,
-                                 TPZFMatrix &phi, TPZFMatrix &dphix){
+                                 TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
+                                 REAL &detjac, TPZFMatrix<REAL> &jacinv,
+                                 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix){
 	TPZGeoEl * ref = this->Reference();
 	if (!ref){
 		PZError << "\nERROR AT " << __PRETTY_FUNCTION__ << " - this->Reference() == NULL\n";
@@ -240,13 +240,13 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	
 }
 
-void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix &phi,TPZFMatrix &dphi){
+void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 	TPZManVector<REAL,4> x(3);
 	this->Reference()->X(qsi,x);
 	this->Shape(qsi,x,phi,dphi);
 }
 
-void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZFMatrix &dphi){
+void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 	
 	const int Degree = this->Degree();
 	if(Degree < 0){
@@ -259,7 +259,7 @@ void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix &phi,TPZF
 	
 }
 
-void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
+void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
 	const int Degree = this->Degree();
 	if(Degree < 0) return;
 	const int dim = this->Dimension();
@@ -271,7 +271,7 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
 	
 }//method
 
-void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix &phi, TPZFMatrix &dphi){
+void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
 	
 	//adding external shape functions whether they exist
 	if(!this->fExternalShape.operator ->()) return;
@@ -553,12 +553,12 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
 
 void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<REAL> &uh){
 	TPZCompMesh *finemesh = Mesh();
-	TPZBlock &fineblock = finemesh->Block();
+	TPZBlock<REAL> &fineblock = finemesh->Block();
 	int nstate = Material()->NStateVariables();
-	TPZFMatrix &FineMeshSol = finemesh->Solution();
+	TPZFMatrix<REAL> &FineMeshSol = finemesh->Solution();
 	int matsize = NShapeF(),dim = Dimension();
-	TPZFMatrix phix(matsize,1,0.);
-	TPZFMatrix dphix(dim,matsize,0.);
+	TPZFMatrix<REAL> phix(matsize,1,0.);
+	TPZFMatrix<REAL> dphix(dim,matsize,0.);
 	ShapeX(x,phix,dphix);
 	TPZConnect *df = &Connect(0);
 	int dfseq = df->SequenceNumber();
@@ -663,7 +663,7 @@ void TPZCompElDisc::AccumulateIntegrationRule(int degree, TPZStack<REAL> &point,
 	
 	int i,npoints;
 	TPZVec<REAL> pt(3),x(3,0.0);
-	TPZFMatrix jacobian(3,3),jacinv(3,3),axes(3,3);
+	TPZFMatrix<REAL> jacobian(3,3),jacinv(3,3),axes(3,3);
 	REAL detjac,wt;
 	
 	TPZGeoEl *subgel = Reference();
@@ -717,7 +717,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 	}
 	
 	TPZFNMatrix<500> loclocmat(locnshape,locnshape);
-	TPZFMatrix loccormat(locnshape,cornshape);
+	TPZFMatrix<REAL> loccormat(locnshape,cornshape);
 	loclocmat.Zero();
 	loccormat.Zero();
 	
@@ -733,14 +733,14 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 	// derivative of the shape function
 	// in the master domain
 	
-	TPZFMatrix corphi(cornshape,1);
-	TPZFMatrix cordphi(dimension,cornshape);
+	TPZFMatrix<REAL> corphi(cornshape,1);
+	TPZFMatrix<REAL> cordphi(dimension,cornshape);
 	// derivative of the shape function
 	// in the master domain
 	
 	TPZManVector<REAL> int_point(dimension);
 	TPZFNMatrix<9> jacobian(dimension,dimension);
-	TPZFMatrix jacinv(dimension,dimension);
+	TPZFMatrix<REAL> jacinv(dimension,dimension);
 	TPZFNMatrix<9> axes(3,3);
 	TPZManVector<REAL> x(3);
 	
@@ -785,7 +785,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 	int corblockseq = con.SequenceNumber();
 	if(locnshape == 0 || cornshape == 0)
 		PZError << "TPZCompElDisc::BuilTransferMatrix error I\n";
-	TPZFMatrix small(locnshape,cornshape,0.);
+	TPZFMatrix<REAL> small(locnshape,cornshape,0.);
 	loccormat.GetSub(0,0,locnshape,cornshape,small);
 	REAL tol = Norm(small);
 	if(tol >= 1.e-10) {
@@ -943,11 +943,11 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	
 }
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix & axes){
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes){
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-	TPZFMatrix phix(nshape,1),dphix(dim,nshape);
+	TPZFMatrix<REAL> phix(nshape,1),dphix(dim,nshape);
 	
 	TPZFNMatrix<9> jacobian(dim,dim);
 	TPZFNMatrix<9> jacinv(dim,dim);
@@ -958,13 +958,13 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSo
 	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 }//method
 
-void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                    const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                                    const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
 	
 	const int nstate = this->Material()->NStateVariables();
 	const int ncon = this->NConnects();
-	TPZBlock &block = Mesh()->Block();
-	TPZFMatrix &MeshSol = Mesh()->Solution();
+	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
 	
 	int solVecSize = nstate;
@@ -999,8 +999,8 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatr
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi,
                                     TPZVec<REAL> &normal,
-                                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-                                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes){
+                                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	//TPZCompElDisc has no left/right elements. Only interface elements have it.
 	leftsol.resize(0);
 	dleftsol.resize(0);

@@ -10,7 +10,7 @@ int main() {
   int numnod = 3;
   int nn3 = 3*numnod;
   TPZConvHyper mat(numnod,1,1000., 0.3,500.,1000.);
-  TPZFMatrix state(nn3,1,0.),range(nn3,1,0.);
+  TPZFMatrix<REAL> state(nn3,1,0.),range(nn3,1,0.);
   TPZVec<REAL> coefs(1,1.);
 //  randomize();
   int i;

@@ -146,7 +146,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 }
 
 
-void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	this->UpdataBCValues(data);
 	
 	//clone meshes required analysis
@@ -180,7 +180,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, 
 }
 
 //----
-void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
 	//this->UpdataBCValues(datavec);
 	
@@ -208,7 +208,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 }
 //----
 
-void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
+void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){
 	this->UpdataBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
@@ -235,15 +235,15 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef){
 	fType = typetmp;
 }
 
-void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 
-void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 
-void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
 	if(!mat) DebugStop();// return;
 	this->UpdataBCValues(data);
@@ -260,7 +260,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
     }
 }//void
 
-void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef){
+void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
 	if(!mat) DebugStop();//return;
 	this->UpdataBCValues(data);
@@ -276,11 +276,11 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
     }
 }
 
-void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 
-void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc){
+void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();//nothing to be done here
 }
 

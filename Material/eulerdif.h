@@ -49,17 +49,17 @@ public:
 	static  REAL Pressure(TPZVec<REAL> &U);
 	/** @brief Calculates the fluxes \f$ F_x \f$ and \f$ F_y \f$ */
 	static  void Flux(TPZVec<REAL> &u,TPZVec<REAL> &flux);
-	static  void JacobFlux(TPZVec<REAL> &u,TPZFMatrix &Ajacob,TPZFMatrix &Bjacob);
-	static	void JacobFlux(TPZVec<REAL> &U,TPZFMatrix &jacob,TPZVec<REAL> &normal);
+	static  void JacobFlux(TPZVec<REAL> &u,TPZFMatrix<REAL> &Ajacob,TPZFMatrix<REAL> &Bjacob);
+	static	void JacobFlux(TPZVec<REAL> &U,TPZFMatrix<REAL> &jacob,TPZVec<REAL> &normal);
 	
-	static  void ValJacobFlux(TPZVec<REAL> &u,TPZFMatrix &valjacob,TPZVec<REAL> &normal);
+	static  void ValJacobFlux(TPZVec<REAL> &u,TPZFMatrix<REAL> &valjacob,TPZVec<REAL> &normal);
 	
-	static  void MatrixDiff(TPZVec<REAL> &sol, TPZFMatrix &axes, TPZFMatrix &jacinv,TPZFMatrix
-							&ATauA,TPZFMatrix &ATauB,TPZFMatrix &BTauA,TPZFMatrix &BTauB);
+	static  void MatrixDiff(TPZVec<REAL> &sol, TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &jacinv,TPZFMatrix<REAL>
+							&ATauA,TPZFMatrix<REAL> &ATauB,TPZFMatrix<REAL> &BTauA,TPZFMatrix<REAL> &BTauB);
 	
-	static  void InvJacob2d(TPZFMatrix &axes,TPZFMatrix &jacinv);
+	static  void InvJacob2d(TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &jacinv);
 	
-	static  void InverseJacob(TPZFMatrix &jac);
+	static  void InverseJacob(TPZFMatrix<REAL> &jac);
 	/// Static main for test
 	static int main();
 	

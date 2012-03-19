@@ -82,7 +82,7 @@ int main()
     TPZCompMesh cmesh(&gmesh);
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
     TPZAutoPointer<TPZMaterial> autopoiss(poiss);
-    TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     cmesh.InsertMaterialObject(autopoiss);
     TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
     TPZAutoPointer<TPZMaterial> bcauto(bc);
@@ -93,7 +93,7 @@ int main()
     TPZSkylineStructMatrix strskyl(&cmesh);
     strskyl.SetNumThreads(2);
     an.SetStructuralMatrix(strskyl);
-    TPZStepSolver solve;
+    TPZStepSolver<REAL> solve;
     solve.SetDirect(ECholesky);
     an.SetSolver(solve);
     std::cout << "before running\n";
@@ -106,7 +106,7 @@ int main()
     boost::posix_time::ptime t2 = boost::posix_time::microsec_clock::local_time();
     std::cout << "t1 " << t1 << " t2 " << t2 << " elapse " << t2-t1 << "finished\n";
 #endif
-    TPZFMatrix vismat;
+    TPZFMatrix<REAL> vismat;
     cmesh.ComputeFillIn(100,vismat);
     VisualMatrixVTK(vismat,"matrixstruct.vtk");
     return 0;
@@ -116,17 +116,17 @@ int main()
 int main44(){
 	int n = 34, m = 42, p = 25;
 	std::ofstream matrices("matrices.txt");
-	TPZFMatrix A(m,n);
+	TPZFMatrix<REAL> A(m,n);
 	double val = 0.;
 	for(int i = 0; i < m; i++) for(int j = 0; j < n; j++){
 		val = rand()/100000000.;
 		A(i,j) = val;
 	}
-	TPZFMatrix x(n,p);
+	TPZFMatrix<REAL> x(n,p);
 	for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = random()/100000000.;
 	A.Print("A=", matrices, EMathematicaInput);
 	x.Print("x=", matrices, EMathematicaInput);
-	TPZFMatrix B;
+	TPZFMatrix<REAL> B;
 	A.ConstMultiply(x,B);
 	B.Print("B=", matrices, EMathematicaInput);
 	return 0;
@@ -188,7 +188,7 @@ int main22() {
 //  string filename("matriz12.in");
 //  string filename("matriz16000.in");
 //  string filename("matriz260000.in");
-  TPZFMatrix rhs,sol;
+  TPZFMatrix<REAL> rhs,sol;
   //Define-se o espa� de aproxima�o
   malhacomp->AutoBuild();
 
@@ -200,7 +200,7 @@ int main22() {
 
 
   //Verifica�o e melhoria da banda da matriz de rigidez (Opcional)
-  TPZFMatrix before, after;
+  TPZFMatrix<REAL> before, after;
   malhacomp->ComputeFillIn(100,before);
 
   // Cria-se um objeto an�ise. O nico par�etro �a malha computacional
@@ -224,14 +224,14 @@ int main22() {
   an.SetStructuralMatrix(strmat);
 
   //Cria�o e defini�o do solver
-  TPZStepSolver step;
+  TPZStepSolver<REAL> step;
 //  step.SetDirect(ECholesky);
   //Define-se o solver para a an�ise
   an.SetSolver(step);
 
 //  an.Assemble();
   //TPZMatrixSolver *precond = an.BuildPreconditioner(TPZAnalysis::EBlockJacobi,false);
-  TPZStepSolver jac;
+  TPZStepSolver<REAL> jac;
   jac.SetJacobi(1,0.,0);
   jac.ShareMatrix(step);
   step.SetCG(10000,jac,1.e-10,0);
@@ -501,7 +501,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //deve-se consultar a documenta�o para verificar como definir os
   //par�etros. No caso em quest� o material requer tr� matrizes
   //e uma fun�o de c�culo tamb� �fornecida
-  TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+  TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
   meumatp->SetMaterial (xk,xc,xf);
 //  meumat->SetForcingFunction(forcingfunction);
 
@@ -528,7 +528,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   //  - 1 = Neumann
   //  - 2 = Mista
   int nstate = atual->NStateVariables();
-  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
+  TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
 
   //Os par�etros necess�ios �cria�o de uma condi�o de contorno s�:
   // 1) Identificador da condi�o de contorno (lembre-se que uma BC �como um material)

@@ -87,7 +87,7 @@ TPZStack<int> fPorousMaterialIds;
  * Stores the last state RHS assembled state, sparing computational time by avoiding
  * evaluating the same contributions in each assemble() operation.
  */
-TPZFMatrix fRhsLast;
+TPZFMatrix<REAL> fRhsLast;
 };
 
 #endif

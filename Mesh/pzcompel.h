@@ -20,6 +20,7 @@
 //#include "pzmaterial.h"
 
 
+template <class TVar>
 class TPZBlockDiagonal;
 
 struct TPZElementMatrix;
@@ -31,8 +32,11 @@ class TPZConnect;
 class TPZMaterial;
 class TPZGeoEl;
 class TPZGeoNode;
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TPZBlock;
 
 class TPZMaterialData;
@@ -48,6 +52,8 @@ class TPZGraphMesh;
 class TPZIntPoints;
 
 class TPZTransform;
+
+
 class TPZTransfer;
 #include "pzeltype.h"
 
@@ -312,8 +318,8 @@ public:
 	 * by default this function is the Chebyshev function
 	 * @param orthogonal pointer to a function which will be used to generate the shape functions
 	 */
-	static void SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,TPZFMatrix & phi,
-														 TPZFMatrix & dphi));
+	static void SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,
+														 TPZFMatrix<REAL> & dphi));
 	
 	//  /**
 	//   * Coarsen the group of elements in elements
@@ -343,7 +349,7 @@ public:
 	 * @param phi values of the function
 	 * @param dphi values of derivative of the function
 	 */
-	static void Chebyshev(REAL x,int num,TPZFMatrix &phi,TPZFMatrix &dphi);
+	static void Chebyshev(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 	/**
 	 * @brief Divide the computational element. If interpolate = 1, the solution is interpolated to the sub elements
@@ -367,8 +373,8 @@ public:
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
-							   TPZVec<REAL> &errors,TPZBlock *flux);
+	virtual void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
 	
 	/** @brief ComputeError computes the element error estimator */
 	virtual void ComputeError(int errorid, TPZVec<REAL> &error){
@@ -404,7 +410,7 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
-								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes) = 0;
+								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) = 0;
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n
@@ -420,8 +426,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes) = 0;
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes) = 0;
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -432,8 +438,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol) = 0;
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol) = 0;
 	/**
 	 * @brief Builds the list of all connectivities related to the element including the
 	 * connects pointed to by dependent connects
@@ -491,7 +497,7 @@ public:
 	 * @param connectlist stack list to calculates the diagonal block
 	 * @param block object to receive the diagonal block
 	 */
-	virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & block);
+	virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<REAL> & block);
 	
 	REAL MaximumRadiusOfEl();
 	

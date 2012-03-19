@@ -36,9 +36,9 @@ namespace pzshape {
 		 * The shapefunction computation uses the shape functions of the linear element for its implementation
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-						  TPZFMatrix &phi,TPZFMatrix &dphi);
+						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-							  TPZFMatrix &phi,TPZFMatrix &dphi);
+							  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the corner shape functions for a triangular element
@@ -46,7 +46,7 @@ namespace pzshape {
 		 * @param phi (output) value of the (3) shape functions
 		 * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -54,7 +54,7 @@ namespace pzshape {
 		 * @param phi (input/output) value of the (4) shape functions
 		 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Compute the internal functions of the triangle shape function at a point
@@ -72,7 +72,7 @@ namespace pzshape {
 		 * Shape2dTriangleInternal is basically a call to the orthogonal shapefunction with the transformation
 		 * determined by the transformation index
 		 */
-		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,TPZFMatrix &dphi,int triangle_transformation_index);
+		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int triangle_transformation_index);
 
 		/**
 		 * @brief Projects a point from the interior of the element to a rib
@@ -89,7 +89,7 @@ namespace pzshape {
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions
 		 */
-		static void TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix &dphi);
+		static void TransformDerivativeFromRibToTriang(int rib,int num,TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Method which identifies the triangular transformation based on the IDs
@@ -115,7 +115,7 @@ namespace pzshape {
 		 * @param in matrix containing the values of the derivatives of the shapefunctions as a row vector \n
 		 * the values of the derivatives contained in this matrix are modified upon return
 		 */
-		static void TransformDerivative2dT(int transid, int num, TPZFMatrix &in);
+		static void TransformDerivative2dT(int transid, int num, TPZFMatrix<REAL> &in);
 		
 		/** @brief Data structure which defines the triangle transformations*/
 		static REAL gTrans2dT[6][2][2];

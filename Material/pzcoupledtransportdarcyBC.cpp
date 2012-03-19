@@ -18,8 +18,8 @@ TPZCoupledTransportDarcyBC::~TPZCoupledTransportDarcyBC(){}
 
 void TPZCoupledTransportDarcyBC::Contribute(TPZMaterialData &data,
                                             REAL weight,
-                                            TPZFMatrix &ek,
-                                            TPZFMatrix &ef){
+                                            TPZFMatrix<REAL> &ek,
+                                            TPZFMatrix<REAL> &ef){
 	
 	
 	TPZBndCond * bc = this->GetCurrentMaterial();
@@ -35,7 +35,7 @@ void TPZCoupledTransportDarcyBC::Contribute(TPZMaterialData &data,
 
 void TPZCoupledTransportDarcyBC::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                      REAL weight,
-                                                     TPZFMatrix &ef) {
+                                                     TPZFMatrix<REAL> &ef) {
 	
     int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
@@ -52,20 +52,20 @@ void TPZCoupledTransportDarcyBC::ContributeInterface(TPZMaterialData &data, TPZM
 void TPZCoupledTransportDarcyBC::
 ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 					REAL weight,
-					TPZFMatrix &ek,
-					TPZFMatrix &ef){
+					TPZFMatrix<REAL> &ek,
+					TPZFMatrix<REAL> &ef){
 	
     int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	// TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	// TPZFMatrix &phi = data.phi;
-	TPZFMatrix &phiL = dataleft.phi;
-	TPZFMatrix &phiR = dataright.phi;
+	// TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -74,12 +74,12 @@ ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMateria
 	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix &dsol=data.dsol;
-	TPZFMatrix &dsolL=dataleft.dsol[0];
-	TPZFMatrix &dsolR=dataright.dsol[0];
+	// TPZFMatrix<REAL> &dsol=data.dsol;
+	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
+	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	
 	TPZBndCond * bc = this->GetCurrentMaterial();
@@ -88,7 +88,7 @@ ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMateria
 	bc->ContributeInterface(data, dataleft, dataright, weight, ek, ef);
 }
 
-void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix &dsol){
+void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix<REAL> &dsol){
 	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material().operator ->());
 	if (!mat){
 		PZError << __PRETTY_FUNCTION__ << " FATAL ERROR" << std::endl;
@@ -97,8 +97,8 @@ void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix &dsol){
 	mat->UpdateConvectionDir(dsol);
 }
 
-void TPZCoupledTransportDarcyBC::UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR,
-                                                              TPZFMatrix &phiL, TPZFMatrix &phiR){
+void TPZCoupledTransportDarcyBC::UpdateConvectionDirInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR,
+                                                              TPZFMatrix<REAL> &phiL, TPZFMatrix<REAL> &phiR){
 	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material().operator ->());
 	if (!mat){
 		PZError << __PRETTY_FUNCTION__ << " FATAL ERROR" << std::endl;

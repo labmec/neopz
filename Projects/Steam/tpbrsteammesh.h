@@ -90,10 +90,10 @@ public:
     TPBrConfinementLayer fLayer;
     
 	/// state at timestep n
-	TPZFMatrix fPrevState;
+	TPZFMatrix<REAL> fPrevState;
 	
 	/// guess of state at timestep n+1
-	TPZFMatrix fNextState;
+	TPZFMatrix<REAL> fNextState;
 private:
 	TPBrSteamFlux fInterface;
 	
@@ -105,23 +105,23 @@ private:
     void InitializeThermalProblem();
 	
 	/// extract the state variables of the cell
-	void ExtractCellState(int cell, TPZFMatrix &glob, TPZVec<REAL> &cellstate);
+	void ExtractCellState(int cell, TPZFMatrix<REAL> &glob, TPZVec<REAL> &cellstate);
 	
 	/// extract the state variables of the interface element
-	void ExtractInletfaceState(TPZFMatrix &glob, TPZVec<REAL> &interfacestate);
+	void ExtractInletfaceState(TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate);
 	
 	/// extract the state variables of the interface element
-	void ExtractInterfaceState(int interface, TPZFMatrix &glob, TPZVec<REAL> &interfacestate);
+	void ExtractInterfaceState(int interface, TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate);
 	
 	/// assemble the contribution of the cell
-	void AssembleCell(int cell, TPZFMatrix &ekcell, TPZFMatrix &efcell, TPZMatrix &glob, TPZFMatrix &res,
+	void AssembleCell(int cell, TPZFMatrix<REAL> &ekcell, TPZFMatrix<REAL> &efcell, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res,
                       TPZVec<REAL> &statescales);
 	
 	/// assemble the contribution of the cell
-	void AssembleInterface(int interface, TPZFMatrix &ekinterface, TPZFMatrix &efinterface, TPZMatrix &glob, TPZFMatrix &res, TPZVec<REAL> &statescales);
+	void AssembleInterface(int interface, TPZFMatrix<REAL> &ekinterface, TPZFMatrix<REAL> &efinterface, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res, TPZVec<REAL> &statescales);
 	
 	/// abstract assemble procedure
-	void AssembleElement(TPZFMatrix &ek, TPZFMatrix &ef, TPZVec<int> &equation, TPZVec<int> &state, TPZMatrix &glob, TPZFMatrix &res);
+	void AssembleElement(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZVec<int> &equation, TPZVec<int> &state, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res);
 	
 	/// equation and state destination indexes for a cell
 	void CellDestination(int cell, TPZVec<int> &equation, TPZVec<int> &state);
@@ -238,10 +238,10 @@ public:
 	REAL Iterate();
 	
 	/// compute the tangent matrix and residual
-	void ComputeTangent(TPZMatrix &tangent, TPZFMatrix &residual, TPZVec<REAL> &statescales);
+	void ComputeTangent(TPZMatrix<REAL> &tangent, TPZFMatrix<REAL> &residual, TPZVec<REAL> &statescales);
 	
 	/// compute the tangent matrix and residual for checking purposes
-	void ComputeTangent2(TPZMatrix &tangent, TPZFMatrix &residual, TPZVec<REAL> &statescales);
+	void ComputeTangent2(TPZMatrix<REAL> &tangent, TPZFMatrix<REAL> &residual, TPZVec<REAL> &statescales);
 	
 	/// perform a time step
 	void TimeStep(REAL delt);
@@ -256,16 +256,16 @@ public:
     }
     
     /// Limit correction range
-    REAL LimitRange(TPZFMatrix &prevsol, TPZFMatrix &correction);
+    REAL LimitRange(TPZFMatrix<REAL> &prevsol, TPZFMatrix<REAL> &correction);
     
     /// Project the solution to an allowable state
-    void ProjectSolution(TPZFMatrix &solution);
+    void ProjectSolution(TPZFMatrix<REAL> &solution);
     
     /// print the state of the mesh
     void Print(std::ostream &out = std::cout);
     
     /// verify the consistency of the tangent matrix
-    void VerifyTangent(TPZFMatrix &direction);
+    void VerifyTangent(TPZFMatrix<REAL> &direction);
     
     /// verify the conservation of energy between prevstate and nextstate
     void EnergyBalance(REAL &leftin, REAL &rightout, REAL &energychange);

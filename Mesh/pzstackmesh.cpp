@@ -22,7 +22,7 @@ template class TPZStack<TPZEqnArray *>;
 #include "pzelmat.h"
 
 class TPZFMatrix;
-template class TPZStack<TPZFMatrix *>;
+template class TPZStack<TPZFMatrix<REAL> *>;
 class TPZMatPlaca2;
 template class TPZStack<TPZMatPlaca2 *>;
 class TPZCompEl;

@@ -17,6 +17,7 @@
 #include "pzvec.h"
 #include "pzsave.h"
 
+template<class TVar> 
 class TPZFMatrix;
 
 /**
@@ -38,16 +39,16 @@ public:
 	TPZVec< TPZVec< int > > fCoarseEqs;
 	
 	/** @brief Sum the values in the local matrix into the global matrix */
-	void Assemble(int isub, const TPZFMatrix &local, TPZFMatrix &global);
+	void Assemble(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global);
 	
 	/** @brief Extract the values from the global matrix into the local matrix */
-	void Extract(int isub, const TPZFMatrix &global, TPZFMatrix &local);
+	void Extract(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local);
 	
 	/** @brief Sum the values in the local matrix into the global matrix */
-	void AssembleCoarse(int isub, const TPZFMatrix &local, TPZFMatrix &global);
+	void AssembleCoarse(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global);
 	
 	/** @brief Extract the values from the global matrix into the local matrix */
-	void ExtractCoarse(int isub, const TPZFMatrix &global, TPZFMatrix &local);
+	void ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local);
 };
 
 #endif

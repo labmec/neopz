@@ -44,9 +44,9 @@ namespace pzshape{
 		 * The shapefunction computation uses the shape functions of the linear element for its implementation
 		 */
 		static void Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-						  TPZFMatrix &phi,TPZFMatrix &dphi);
+						  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,
-							  TPZFMatrix &phi,TPZFMatrix &dphi);
+							  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 
 		/**
 		 * @brief Computes the corner shape functions for a quadrilateral element
@@ -54,7 +54,7 @@ namespace pzshape{
 		 * @param phi (output) value of the (4) shape functions
 		 * @param dphi (output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/**
 		 * @brief Computes the generating shape functions for a quadrilateral element
@@ -62,7 +62,7 @@ namespace pzshape{
 		 * @param phi (input/output) value of the (4) shape functions
 		 * @param dphi (input/output) value of the derivatives of the (4) shape functions holding the derivatives in a column
 		 */
-		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi);
+		static void ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 		
 		/** 
 		 * @brief Compute the internal functions of the quadrilateral shape function at a point
@@ -81,7 +81,7 @@ namespace pzshape{
 		 * determined by the transformation index
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,
-								  TPZFMatrix &phi,TPZFMatrix &dphi,int quad_transformation_index);
+								  TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,int quad_transformation_index);
 		
 #ifdef _AUTODIFF
 		/**
@@ -110,7 +110,7 @@ namespace pzshape{
 		 * @param in matrix containing the values of the derivatives of the shapefunctions as a row vector \n
 		 * the values of the derivatives contained in this matrix are modified upon return
 		 */
-		static void TransformDerivative2dQ(int transid, int num, TPZFMatrix &in);
+		static void TransformDerivative2dQ(int transid, int num, TPZFMatrix<REAL> &in);
 		
 #ifdef _AUTODIFF
 		/**
@@ -166,7 +166,7 @@ namespace pzshape{
 		 * @param num number of shapefunction derivatives which need to be transformed
 		 * @param dphi values of the derivatives of the shapefunctions
 		 */
-		static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix &dphi);
+		static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix<REAL> &dphi);
 
 #ifdef _AUTODIFF
 

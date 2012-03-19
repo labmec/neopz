@@ -47,9 +47,10 @@ const int templatedepth = 10;
  fNthreads = NumThreads;
  }
  */
-TPZSkylParMatrix::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads)
+template<class TVar>
+TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads)
 
-: TPZSkylMatrix(dim, skyline),fDec(dim), fCorrectSingular(false)
+: TPZSkylMatrix<TVar>(dim, skyline),fDec(dim), fCorrectSingular(false)
 {
 	int i;
 	
@@ -63,13 +64,15 @@ TPZSkylParMatrix::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int
 	fEqDec = -1;
 }
 
-TPZSkylParMatrix::TPZSkylParMatrix(const TPZSkylParMatrix &copy) : TPZSkylMatrix(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
+template<class TVar>
+TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &copy) : TPZSkylMatrix<TVar>(copy), fDec(copy.fDec),fSkyline(copy.fSkyline),fEqDec(copy.fEqDec),
 fNthreads(copy.fNthreads),fThreadUsed(0),fCorrectSingular(false)
 {
 }
 
-TPZSkylParMatrix::TPZSkylParMatrix()
-: TPZSkylMatrix(),fDec(0),fCorrectSingular(false)
+template<class TVar>
+TPZSkylParMatrix<TVar>::TPZSkylParMatrix()
+: TPZSkylMatrix<TVar>(),fDec(0),fCorrectSingular(false)
 {
 	//something
 }
@@ -81,26 +84,29 @@ TPZSkylParMatrix::TPZSkylParMatrix()
 //   fEqDec = cp.fEqDec;
 // }
 
-TPZSkylParMatrix::~TPZSkylParMatrix() {
+template<class TVar>
+TPZSkylParMatrix<TVar>::~TPZSkylParMatrix() {
 }
 
-void TPZSkylParMatrix::SetSkyline(const TPZVec<int> &skyline)
+template<class TVar>
+void TPZSkylParMatrix<TVar>::SetSkyline(const TPZVec<int> &skyline)
 {
 	fSkyline = skyline;
-	int i,neq=Dim();
+	int i,neq=this->Dim();
 	for(i=0;i<neq;i++) fDec[i]=skyline[i]-1;
 	fEqDec=-1;
 	fCorrectSingular = false;
-	TPZSkylMatrix::SetSkyline(skyline);
+	TPZSkylMatrix<TVar>::SetSkyline(skyline);
 }
 
-void TPZSkylParMatrix::PrintState() {
+template<class TVar>
+void TPZSkylParMatrix<TVar>::PrintState() {
 	int i;
 	cout << "Decomposed equations " << fEqDec << ' ' << " Thread 'i' working on equation" << ' ';
 	for(i=0; i<fNthreads; i++) cout << fThreadUsed[i] << ' ';
 	cout << endl;
 	cout << "Columns to work " << ' ';
-	int neq = Dim();
+	int neq = this->Dim();
 	for(i=0; i<neq; i++) cout << fDec[i] << ' ';
 	cout << endl;
 	cout << "Singular equations ";
@@ -111,9 +117,9 @@ void TPZSkylParMatrix::PrintState() {
 	cout.flush();
 }
 
-
-void TPZSkylParMatrix::ColumnToWork(int &lcol, int &lprevcol) {
-	int neq = Dim();
+template<class TVar>
+void TPZSkylParMatrix<TVar>::ColumnToWork(int &lcol, int &lprevcol) {
+	int neq = this->Dim();
 	for(lcol=fEqDec+1;lcol<neq;lcol++)
     {
 		int i;
@@ -138,8 +144,9 @@ void TPZSkylParMatrix::ColumnToWork(int &lcol, int &lprevcol) {
 	}
 }
 
-void TPZSkylParMatrix::ColumnToWork(int &lcol) {
-	int neq = Dim();
+template<class TVar>
+void TPZSkylParMatrix<TVar>::ColumnToWork(int &lcol) {
+	int neq = this->Dim();
 	int lcolentry = lcol;
 #ifdef DEBUG
 	if(lcolentry < 0 || lcolentry >= neq)
@@ -177,10 +184,10 @@ void TPZSkylParMatrix::ColumnToWork(int &lcol) {
 }
 
 
-
-void * TPZSkylParMatrix::ParallelCholesky(void *t) {
+template<class TVar>
+void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 	
-	TPZSkylParMatrix *loc = (TPZSkylParMatrix *) t;
+	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
 	int aux_col;//, k;
 	int col, prevcol;
 	prevcol=0;
@@ -246,9 +253,10 @@ void * TPZSkylParMatrix::ParallelCholesky(void *t) {
 	
 }
 
-void * TPZSkylParMatrix::ParallelLDLt(void *t) {
+template<class TVar>
+void * TPZSkylParMatrix<TVar>::ParallelLDLt(void *t) {
 	
-	TPZSkylParMatrix *loc = (TPZSkylParMatrix *) t;
+	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
 	int aux_col;//, k;
 	int col, prevcol;
 	prevcol=0;
@@ -307,9 +315,10 @@ void * TPZSkylParMatrix::ParallelLDLt(void *t) {
 	
 }
 
-void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
+template<class TVar>
+void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 	
-	TPZSkylParMatrix *loc = (TPZSkylParMatrix *) t;
+	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
 	int col = 0, prevcol;
 	prevcol=0;
 	pthread_mutex_lock(&skymutex);
@@ -353,7 +362,8 @@ void * TPZSkylParMatrix::ParallelLDLt2(void *t) {
 	
 }
 
-int TPZSkylParMatrix::Decompose_Cholesky(std::list<int> &singular)
+template<class TVar>
+int TPZSkylParMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 {
 	bool sing = this->fCorrectSingular;
 	this->fCorrectSingular = true;
@@ -363,12 +373,13 @@ int TPZSkylParMatrix::Decompose_Cholesky(std::list<int> &singular)
 	return ans;
 }
 
-int TPZSkylParMatrix::Decompose_Cholesky()
+template<class TVar>
+int TPZSkylParMatrix<TVar>::Decompose_Cholesky()
 {
 	
-	if (fDecomposed == ECholesky) return 1;
+	if (this->fDecomposed == ECholesky) return 1;
 	
-	int neq = Dim();
+	int neq = this->Dim();
 	
 	cout << endl << "TPZSkylParMatrix::Decompose_Cholesky() -> Number of Equations = " << neq << endl;
 #ifdef BLAS
@@ -407,19 +418,20 @@ int TPZSkylParMatrix::Decompose_Cholesky()
 		LOGPZ_WARN(logger,sout.str())
 	}
 #endif
-	for(i=0;i<Dim();i++) {
+	for(i=0;i<this->Dim();i++) {
 		fDec[i]=fSkyline[i]-1;
 	}
-	fDecomposed = ECholesky;
+	this->fDecomposed = ECholesky;
 	
 	fEqDec = -1;
 	
-	fDecomposed = ECholesky;
+	this->fDecomposed = ECholesky;
 	
 	return 1;
 }
 
-int TPZSkylParMatrix::Decompose_LDLt(std::list<int> &singular)
+template<class TVar>
+int TPZSkylParMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
 {
 	bool sing = this->fCorrectSingular;
 	this->fCorrectSingular = true;
@@ -429,12 +441,13 @@ int TPZSkylParMatrix::Decompose_LDLt(std::list<int> &singular)
 	return ans;	
 }
 
-int TPZSkylParMatrix::Decompose_LDLt()
+template<class TVar>
+int TPZSkylParMatrix<TVar>::Decompose_LDLt()
 {
 	//	return TPZSkylMatrix::Decompose_LDLt();
-	if (fDecomposed == ELDLt) return 1;
+	if (this->fDecomposed == ELDLt) return 1;
 	
-	int neq = Dim();
+	int neq = this->Dim();
 	
 	cout << endl << "TPZSkylParMatrix::Decompose_LDLt() -> Number of Equations = " << neq << endl;
 #ifdef BLAS
@@ -457,7 +470,7 @@ int TPZSkylParMatrix::Decompose_LDLt()
 	for(i=0; i<fNthreads;i++) fThreadUsed[i]=-1;
 	
 	fNumDecomposed = 0;
-	for(i=0;i<Dim();i++) {
+	for(i=0;i<this->Dim();i++) {
 		fDec[i]=fSkyline[i]-1;
 		if(fDec[i] == i-1) 
 		{
@@ -476,31 +489,32 @@ int TPZSkylParMatrix::Decompose_LDLt()
 	delete []fThreadUsed;
 	fThreadUsed = 0;
 	
-	for(i=0;i<Dim();i++) {
+	for(i=0;i<this->Dim();i++) {
 		fDec[i]=fSkyline[i];
 	}
-	fDecomposed = ELDLt;
+	this->fDecomposed = ELDLt;
 	
 	fEqDec = -1;
 	
-	fDecomposed = ELDLt;
+	this->fDecomposed = ELDLt;
 	
 	return 1;
 }
 
-void TPZSkylParMatrix::DecomposeColumnCholesky(int col, int prevcol){
+template<class TVar>
+void TPZSkylParMatrix<TVar>::DecomposeColumnCholesky(int col, int prevcol){
 	
 	//Cholesky Decomposition
-	REAL *ptrprev;     //Pointer to prev column
-	REAL *ptrcol;      //Pointer to col column
+	TVar *ptrprev;     //Pointer to prev column
+	TVar *ptrcol;      //Pointer to col column
 	int skprev, skcol; //prev and col Skyline height respectively
 	int minline;
 	
-	skprev = SkyHeight(prevcol);
-	skcol = SkyHeight(col);
+	skprev = this->SkyHeight(prevcol);
+	skcol = this->SkyHeight(col);
 	
-	ptrprev = Diag(prevcol);
-	ptrcol = Diag(col);
+	ptrprev = this->Diag(prevcol);
+	ptrcol = this->Diag(col);
 	
 	if((prevcol-skprev) > (col-skcol)){
 		minline = prevcol - skprev;
@@ -513,9 +527,9 @@ void TPZSkylParMatrix::DecomposeColumnCholesky(int col, int prevcol){
 		cout.flush();
 		return;
 	}
-	REAL *run1 = ptrprev + (prevcol-minline);
-	REAL *run2 = ptrcol + (col-minline);
-	REAL sum = 0;
+	TVar *run1 = ptrprev + (prevcol-minline);
+	TVar *run2 = ptrcol + (col-minline);
+	TVar sum = 0;
 	
 	//  long n1=1;
 	//  long n2=1;  
@@ -566,19 +580,20 @@ void TPZSkylParMatrix::DecomposeColumnCholesky(int col, int prevcol){
 	
 }
 
-void TPZSkylParMatrix::DecomposeColumnLDLt(int col, int prevcol){
+template<class TVar>
+void TPZSkylParMatrix<TVar>::DecomposeColumnLDLt(int col, int prevcol){
 	
 	//Cholesky Decomposition
-	REAL *ptrprev;     //Pointer to prev column
-	REAL *ptrcol;      //Pointer to col column
+	TVar *ptrprev;     //Pointer to prev column
+	TVar *ptrcol;      //Pointer to col column
 	int skprev, skcol; //prev and col Skyline height respectively
 	int minline;
 	
-	skprev = SkyHeight(prevcol);
-	skcol = SkyHeight(col);
+	skprev = this->SkyHeight(prevcol);
+	skcol = this->SkyHeight(col);
 	
-	ptrprev = Diag(prevcol);
-	ptrcol = Diag(col);
+	ptrprev = this->Diag(prevcol);
+	ptrcol = this->Diag(col);
 	
 	if((prevcol-skprev) > (col-skcol)){
 		minline = prevcol - skprev;
@@ -592,15 +607,15 @@ void TPZSkylParMatrix::DecomposeColumnLDLt(int col, int prevcol){
 		return;
 	}
 	int k = minline;
-	REAL *run1 = ptrprev + (prevcol-minline);
-	REAL *run2 = ptrcol + (col-minline);
-	REAL sum = 0;
+	TVar *run1 = ptrprev + (prevcol-minline);
+	TVar *run2 = ptrcol + (col-minline);
+	TVar sum = 0;
 	
 	//  long n1=1;
 	//  long n2=1;  
 	
 	
-	while(run1 != ptrprev) sum += (*run1--)*(*run2--)* *fElem[k++];
+	while(run1 != ptrprev) sum += (*run1--)*(*run2--)* *this->fElem[k++];
 	*run2-=sum;
 	if(run1 != run2){
 		*run2 /= *run1;
@@ -616,23 +631,23 @@ void TPZSkylParMatrix::DecomposeColumnLDLt(int col, int prevcol){
 }
 
 
-
-void TPZSkylParMatrix::DecomposeColumnLDLt2(int col){
+template<class TVar>
+void TPZSkylParMatrix<TVar>::DecomposeColumnLDLt2(int col){
 	
 	//Cholesky Decomposition
-	REAL *ptrprev;     //Pointer to prev column
-	REAL *ptrcol;      //Pointer to col column
+	TVar *ptrprev;     //Pointer to prev column
+	TVar *ptrcol;      //Pointer to col column
 	int skprev, skcol; //prev and col Skyline height respectively
 	int minline;
 	int prevcol;
 	while((fDec[col] < col && fDec[fDec[col]+1] == fDec[col]+1) || fDec[col] == col-1)
 	{
 		prevcol = fDec[col]+1;
-		skprev = SkyHeight(prevcol);
-		skcol = SkyHeight(col);
+		skprev = this->SkyHeight(prevcol);
+		skcol = this->SkyHeight(col);
 		
-		ptrprev = Diag(prevcol);
-		ptrcol = Diag(col);
+		ptrprev = this->Diag(prevcol);
+		ptrcol = this->Diag(col);
 		
 		if((prevcol-skprev) > (col-skcol)){
 			minline = prevcol - skprev;
@@ -646,15 +661,15 @@ void TPZSkylParMatrix::DecomposeColumnLDLt2(int col){
 			return;
 		}
 		int k = minline;
-		REAL *run1 = ptrprev + (prevcol-minline);
-		REAL *run2 = ptrcol + (col-minline);
-		REAL sum = 0;
+		TVar *run1 = ptrprev + (prevcol-minline);
+		TVar *run2 = ptrcol + (col-minline);
+		TVar sum = 0;
 		
 		//  long n1=1;
 		//  long n2=1;  
 		
 		
-		while(run1 != ptrprev) sum += (*run1--)*(*run2--)* *fElem[k++];
+		while(run1 != ptrprev) sum += (*run1--)*(*run2--)* *this->fElem[k++];
 		*run2-=sum;
 		if(run1 != run2){
 			*run2 /= *run1;
@@ -676,8 +691,8 @@ void TPZSkylParMatrix::DecomposeColumnLDLt2(int col){
 	
 }
 
-
-int TPZSkylParMatrix::main_nada()  
+template<class TVar>
+int TPZSkylParMatrix<TVar>::main_nada()  
 {
 	
 	cout << "Calling constructor"<< endl;
@@ -729,7 +744,7 @@ int TPZSkylParMatrix::main_nada()
 		for(i=0;i<dim;i++) skyline[i] = 0;//random()%(i+1); //0
 		//for(i=0;i<dim;i++) cout << skyline[i] << ' ';
 		cout << endl;
-		TPZSkylParMatrix MySky(dim,skyline,2); 
+		TPZSkylParMatrix<TVar> MySky(dim,skyline,2); 
 		int j; 
 		for(i=0;i<dim;i++) {
 			if(i%100==0) {cout << i << ' '; cout.flush();}
@@ -741,7 +756,7 @@ int TPZSkylParMatrix::main_nada()
 			}
 		}
 		//MySky.SetSkyline(skyline); 
-		TPZSkylMatrix misael(MySky);
+		TPZSkylMatrix<TVar> misael(MySky);
 		// MySky.Print("Gustavo");
 		//misael.Print("Misael");
 		
@@ -786,3 +801,5 @@ int TPZSkylParMatrix::main_nada()
 	
 	return 1;
 }
+
+template class TPZSkylParMatrix<REAL>;

@@ -33,7 +33,7 @@ namespace pzshape {
 //		{10,14,18,15},{11,15,19,12},{16,17,18,19} };
 
 	
-	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
 		x[0]  = (1.-pt[0])/2.;
@@ -89,7 +89,7 @@ namespace pzshape {
 	 * @param phi (input) value of the (8) shape functions
 	 * @param dphi (input) value of the derivatives of the (8) shape functions holding the derivatives in a column
 	 */
-	void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+	void TPZShapeCube::ShapeGenerating(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{
 		int is;
 		// contribute the ribs
@@ -151,7 +151,7 @@ namespace pzshape {
 	}
 	
 	
-	void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeCube::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		ShapeCorner(pt,phi,dphi);
 		bool linear = true;
 		int is,d;
@@ -182,7 +182,7 @@ namespace pzshape {
 			ids[1] = id[id1];
 			REAL store1[20],store2[60];
 			int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
-			TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+			TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
 			phin.Zero();
 			dphin.Zero();
 			TPZShapeLinear::ShapeInternal(outvalvec,order[rib],phin,dphin,TPZShapeLinear::GetTransformId1d(ids));//ordin = ordem de um lado
@@ -208,7 +208,7 @@ namespace pzshape {
 			//    FaceOrder(face,ord1,ord2);
 			if(ord1<2 || ord2<2) continue;
 			int ord =  (ord1-1)*(ord2-1);
-			TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);//ponto na face
+			TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(3,ord,store2,60);//ponto na face
 			phin.Zero();
 			dphin.Zero();
 			int ordin =  (ord1 > ord2) ? ord1 : ord2;
@@ -235,7 +235,7 @@ namespace pzshape {
 		REAL store1[20],store2[60];
 		int ordmin1 = (order[18]-1);
 		int ord =  ordmin1*ordmin1*ordmin1;//(p-1)^3 : 0<=n1,n2,n3<=p-2
-		TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
+		TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(3,ord,store2,60);
 		phin.Zero();
 		dphin.Zero();
 		ShapeInternal(pt,ordmin1,phin,dphin);
@@ -249,7 +249,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZShapeCube::SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		if(side<0 || side>26) PZError << "TPZCompElC3d::SideShapeFunction. Bad paramenter side.\n";
 		else if(side==26) Shape(pt,id,order,phi,dphi);
 		else if(side<8) TPZShapePoint::Shape(pt,id,order,phi,dphi);
@@ -265,15 +265,15 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeCube::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix &phi,
-									 TPZFMatrix &dphi) {//,int cube_transformation_index
+	void TPZShapeCube::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
+									 TPZFMatrix<REAL> &dphi) {//,int cube_transformation_index
 		if(order < 1) return;
 		int ord = order;//fSideOrder[18]-1;
 		order = order*order*order;
 		phi.Resize(order,1);
 		dphi.Resize(3,order);
 		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		TPZFMatrix phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
+		TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
 		dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
 		TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);
 		TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);
@@ -291,7 +291,7 @@ namespace pzshape {
 		}
 	}
 	
-	void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZFMatrix &dphi) {
+	void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gRibTrans3dCube1d[rib][2]*dphi(0,j);
 			dphi(1,j) = gRibTrans3dCube1d[rib][1]*dphi(0,j);
@@ -308,7 +308,7 @@ namespace pzshape {
 		outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0]+gFaceTrans3dCube2d[face][1][1]*in[1]+gFaceTrans3dCube2d[face][1][2]*in[2];
 	}
 	
-	void TPZShapeCube::TransformDerivativeFromFaceToCube(int rib,int num,TPZFMatrix &dphi) {
+	void TPZShapeCube::TransformDerivativeFromFaceToCube(int rib,int num,TPZFMatrix<REAL> &dphi) {
 		
 		for (int j = 0;j<num;j++) {
 			dphi(2,j) = gFaceTrans3dCube2d[rib][0][2]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][2]*dphi(1,j);
@@ -407,7 +407,7 @@ namespace pzshape {
 			ids[1] = id[id1];
 			//REAL store1[20], store2[60];
 			int ordin = order[rib]-1;//three orders : order in x , order in y and order in z
-			//TPZFMatrix phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
+			//TPZFMatrix<REAL> phin(ordin,1,store1,20),dphin(3,ordin,store2,60);
 			//phin.Zero();
 			//dphin.Zero();
 			TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
@@ -438,7 +438,7 @@ namespace pzshape {
 			//    FaceOrder(face,ord1,ord2); // already commented in the non-FAD version
 			if(ord1<2 || ord2<2) continue;
 			int ord =  (ord1-1)*(ord2-1);
-			//TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);//ponto na face
+			//TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(3,ord,store2,60);//ponto na face
 			TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
 			//phin.Zero();
 			//dphin.Zero();
@@ -468,7 +468,7 @@ namespace pzshape {
 		//REAL store1[20],store2[60];
 		int ordmin1 = (order[18]-1);
 		int ord =  ordmin1*ordmin1*ordmin1;//(p-1)^3 : 0<=n1,n2,n3<=p-2
-		//TPZFMatrix phin(ord,1,store1,20),dphin(3,ord,store2,60);
+		//TPZFMatrix<REAL> phin(ord,1,store1,20),dphin(3,ord,store2,60);
 		TPZVec<FADREAL> phin(20, FADREAL(ndim, 0.0)); //3d
 		//phin.Zero();
 		//dphin.Zero();
@@ -570,7 +570,7 @@ namespace pzshape {
 		//phi.Resize(order, 1);
 		//dphi.Resize(3,order);
 		//REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		//TPZFMatrix phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
+		//TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
 		//  dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
 		TPZShapeLinear::FADfOrthogonal(x[0],ord,phi0);
 		TPZShapeLinear::FADfOrthogonal(x[1],ord,phi1);

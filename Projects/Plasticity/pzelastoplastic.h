@@ -119,7 +119,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       /** Compute the value of the flux function to be used by ZZ error estimator.
        * Method not implemented.
        */
-      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+      virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 	  {
          PZError << "TPZMatElastoPlastic::Flux - Method not implemented\n";
       }
@@ -127,9 +127,9 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       /** Evaluate error between approximate (FEM) and exact solutions.
 	   *  Method not implemented
        */
-      virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudx,
-                          TPZFMatrix &axes, TPZVec<REAL> &flux,
-                          TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+      virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
+                          TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                          TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
       /**
        * Returns the number of norm errors: 3 (Semi H1, L2 and H1)
 	   * Method not implemented
@@ -143,7 +143,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
        * @param ek[out] is the stiffness matrix
        * @param ef[out] is the load vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -153,7 +153,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
        * @param ef[out] is the load vector
        * @param bc[in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**
        * It computes a contribution to the residual vector at one integration point.
@@ -161,7 +161,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
        * @param weight[in] is the weight of the integration rule
        * @param ef[out] is the residual vector
        */
-      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+      virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -171,25 +171,25 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
        * @param ef[out] is the load vector
        * @param bc[in] is the boundary condition material
        */
-      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
+      virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
 	  /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
 	   * @param data[in] 
 	   * @param Strain[out]
 	   */
-	  void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix &Strain);
+	  void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
 	
 	  /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
 	   * @param Strain[out] 
 	   * @param DSol[in]
 	   */
-	  void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix &DeltaStrain);
+	  void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
 	
 	  /** Evaluates the Stress vector based on an available DSol (solution derivatives set) vector.
 	   * @param data[in]
 	   * @param Stress[out] 
 	   */
-	  void ComputeStressVector(TPZMaterialData & data, TPZFMatrix &Stress);
+	  void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
 	
 	  /** Calls the plasticity template aggregate applyStrainComputeDep method
 	   *  @param data[in]
@@ -197,41 +197,41 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 	   *  @param Stress[out]
 	   *  @param Dep[out]
 	   */
-	 void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix & DeltaStrain, 
-												TPZFMatrix & Stress, TPZFMatrix & Dep);
+	 void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
 	
 	  /** Calls the plasticity template aggregate applyStrain method
 	   *  @param data[in]
 	   *  @param DeltaStrain[in]
 	   *  @param Stress[out]
 	   */
-	  void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix & DeltaStrain, 
-												TPZFMatrix & Stress);
+	  void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
+												TPZFMatrix<REAL> & Stress);
 
 	  /** Applies the tensor in vectorial form to an internally stored direction
 	   * @param vectorTensor[in]
 	   * @param Out[out]
 	   */
-      void ApplyDirection(TPZFMatrix &vectorTensor, TPZVec<REAL> &Out);
+      void ApplyDirection(TPZFMatrix<REAL> &vectorTensor, TPZVec<REAL> &Out);
 	
 	  /** Converts the stress vector onto a symmetric stress tensor
 	   * @param vectorTensor [in]
 	   * @param Tensor [out]
 	   */
-	  void vectorToTensor(const TPZFMatrix & vectorTensor, TPZFMatrix & Tensor);
+	  void vectorToTensor(const TPZFMatrix<REAL> & vectorTensor, TPZFMatrix<REAL> & Tensor);
 	
 	  /** Evaluates the eigenvalues of the tensor vectorTensor (in compact vectorial form)
 	   * @param vectorTensor [in] compact vectorial form of a symmetrical tensor
 	   * @param ev[out] evaluated eigenvalues
 	   */
-	  void EigenValues(TPZFMatrix & vectorTensor, TPZVec<REAL> & ev);
+	  void EigenValues(TPZFMatrix<REAL> & vectorTensor, TPZVec<REAL> & ev);
 
 	  /** Evaluates the eigenvectors of the tensor vectorTensor (in compact vectorial form)
 	   * @param vectorTensor [in] compact vectorial form of a symmetrical tensor
 	   * @param Solout[out] evaluated eigenvector
 	   * @param direction[in] selected direction (0 to 2)
 	   */
-      void EigenVectors(TPZFMatrix &vectorTensor, TPZVec< REAL > &Solout, int direction);
+      void EigenVectors(TPZFMatrix<REAL> &vectorTensor, TPZVec< REAL > &Solout, int direction);
 	
       /**To create another material of the same type*/
       virtual TPZAutoPointer<TPZMaterial> NewMaterial();

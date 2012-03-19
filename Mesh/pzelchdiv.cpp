@@ -750,7 +750,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 //compute the values of the shape function of the side
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	// this is an exception
 	// when the sides parameter is "out of bounds", the method appends the dualshape functions
@@ -848,8 +848,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialDa
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                                            const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
+void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                                            const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     TPZMaterialData data;
     InitMaterialData(data);
     this->ComputeSolutionHDiv(data);
@@ -858,16 +858,16 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, 
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes){
+void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 	
-	//	TPZFMatrix dphix,phi;
+	//	TPZFMatrix<REAL> dphix,phi;
 	//	ComputeShape()
 	//	this->ComputeSolution(qsi,phi,dphix,axes,sol,dsol);
 	
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-	TPZFMatrix phix(nshape,1),dphix(dim,nshape);
+	TPZFMatrix<REAL> phix(nshape,1),dphix(dim,nshape);
 	
 	TPZFNMatrix<9> jacobian(dim,dim);
 	TPZFNMatrix<9> jacinv(dim,dim);
@@ -887,8 +887,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
 	
 	
     
-	TPZBlock &block =this->Mesh()->Block();
-    TPZFMatrix &MeshSol = this->Mesh()->Solution();
+	TPZBlock<REAL> &block =this->Mesh()->Block();
+    TPZFMatrix<REAL> &MeshSol = this->Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     
 	int nsol= this->Dimension()+2;
@@ -959,7 +959,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
 
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12)
+void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12)
 {
 	bool Is_u1PHI = (u1.Cols() == 1) ? true : false;
 	bool Is_u2PHI = (u2.Cols() == 1) ? true : false;
@@ -997,7 +997,7 @@ void TPZCompElHDiv<TSHAPE>::Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u
  *
  */
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphi)
+void TPZCompElHDiv<TSHAPE>::ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
 	int dimension= TSHAPE::Dimension;
 	REAL C=1;//fator de escala utilizado neste metodo
@@ -1010,7 +1010,7 @@ void TPZCompElHDiv<TSHAPE>::ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMa
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi) {
+void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZManVector<int,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0); //nao vou acrescentar aq a ordem da variavel dual
 	//	TPZVec<int> ord(NConnects()-1);

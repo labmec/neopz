@@ -10,7 +10,7 @@ TExtFunction::~TExtFunction(){
 
 }
     
-void TExtFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df){
+void TExtFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
   f.Resize(1);
   df.Resize(2,1);
   double r = 2.-x[0];

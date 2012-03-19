@@ -13,6 +13,7 @@
 
 class TPZGraphMesh;
 class TPZGraphEl;
+template<class TVar>
 class TPZBlock;
 
 /**
@@ -38,7 +39,7 @@ public:
 	void DrawCo(TPZDrawStyle st = EDXStyle);
 	void DrawSolution(int solutionid, TPZDrawStyle st = EDXStyle);
 	void DrawSolution(TPZVec<int> &solutionid, TPZDrawStyle st= EDXStyle);
-	void DrawSolution(TPZBlock &sol, TPZDrawStyle st = EDXStyle);
+	void DrawSolution(TPZBlock<REAL> &sol, TPZDrawStyle st = EDXStyle);
 	
 	long FirstPoint();
 	

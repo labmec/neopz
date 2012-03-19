@@ -52,7 +52,7 @@ int TPZPoroElastic2d::NStateVariables() {
 }
 
 
-void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
 
 	int nref =  datavec.size();
@@ -63,9 +63,9 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 	//--------- Matrix size is for each element is  phiu.Rows() plus  phip.Rows() ---------------
 	//Setting the size of first block of first problem. Elastic problem
-	TPZFMatrix  &phiu =  datavec[0].phi;
-	TPZFMatrix &dphiu = datavec[0].dphix;
-	TPZFMatrix &axes=datavec[0].axes;
+	TPZFMatrix<REAL>  &phiu =  datavec[0].phi;
+	TPZFMatrix<REAL> &dphiu = datavec[0].dphix;
+	TPZFMatrix<REAL> &axes=datavec[0].axes;
 	int phcu, phru, dphcu, dphru;
 	phru = phiu.Rows();
 	phcu = phiu.Cols();
@@ -81,11 +81,11 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	}
 	
 	// Setting the size of second block of second problem. transport problem 
-	TPZFMatrix  &phip =  datavec[1].phi;
-	TPZFMatrix &dphip = datavec[1].dphix;
+	TPZFMatrix<REAL>  &phip =  datavec[1].phi;
+	TPZFMatrix<REAL> &dphip = datavec[1].dphix;
 	int phrp = phip.Rows();
 	
-	TPZFMatrix du(2,2);
+	TPZFMatrix<REAL> du(2,2);
 	
 	int efr, efc, ekr, ekc;  
 	efr = ef.Rows();
@@ -231,8 +231,8 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 }
 
-void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,
-									   TPZFMatrix &ef,TPZBndCond &bc) 
+void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,TPZBndCond &bc) 
 {
 	//The Last state (n) not include boundary conditions
 	if(gState == ELastState){
@@ -255,8 +255,8 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 		DebugStop();
 	}
 	
-	TPZFMatrix  &phiu = datavec[0].phi;
-	TPZFMatrix  &phip = datavec[1].phi;
+	TPZFMatrix<REAL>  &phiu = datavec[0].phi;
+	TPZFMatrix<REAL>  &phip = datavec[1].phi;
 	
 	int phru = phiu.Rows();
 	int phrp = phip.Rows();
@@ -503,11 +503,11 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	Solout.Resize( this->NSolutionVariables(var));
 	
 	TPZVec<REAL> SolU, SolP;
-	TPZFMatrix DSolU, DSolP;
-	TPZFMatrix axesU, axesP;
+	TPZFMatrix<REAL> DSolU, DSolP;
+	TPZFMatrix<REAL> axesU, axesP;
 	
 	TPZVec<REAL> ptx(3), solExata(3);
-	TPZFMatrix flux(3,1);
+	TPZFMatrix<REAL> flux(3,1);
     
     if (datavec[0].sol.size() != 1) {
         DebugStop();
@@ -572,7 +572,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		int id;
 		//REAL val = 0.;
 		TPZFNMatrix<9> dsoldx;
-		TPZAxesTools::Axes2XYZ(DSolP, dsoldx, axesP);
+		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
 		for(id=0 ; id<fDim; id++) {
 			Solout[id] = -1.*(fk/fvisc)*dsoldx(id,0);
 		}
@@ -634,12 +634,12 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 
 
 void TPZPoroElastic2d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                           REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+                                           REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	DebugStop();
 }
 
 void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
-                                             REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+                                             REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 

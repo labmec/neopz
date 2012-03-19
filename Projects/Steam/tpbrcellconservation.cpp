@@ -34,7 +34,7 @@ REAL TPBrCellConservation::fResidualOil = 0.0;
 /// calcula a contribuicao para o residuo e matriz tangente
 
 void TPBrCellConservation::CalcStiff(TPZVec<REAL> &leftflux, TPZVec<REAL> &cellstate, TPZVec<REAL> &rightflux, TPZVec<REAL> &initialstate,
-									 REAL volume, REAL delt, TPZFMatrix &ek, TPZFMatrix &ef)
+									 REAL volume, REAL delt, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
 	const int totaleq = 2*TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq;
 	TPZManVector<TFad<totaleq,REAL> , TPBrCellConservation::NumCellEq> cellfad(TPBrCellConservation::NumCellEq); 

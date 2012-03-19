@@ -155,13 +155,13 @@ public:
 	virtual std::string Name() { return "TPZMatPoisson3d"; }
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix &ek,TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	virtual void ContributeBCHDiv(TPZMaterialData &data,REAL weight,
-								  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
-	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef);
+								  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	virtual void ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix &ef)
+							TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
@@ -175,10 +175,10 @@ public:
 #endif
 	
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix &ef,TPZBndCond &bc)
+							  TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
@@ -198,34 +198,34 @@ public:
 	virtual int NFluxes(){ return 3;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
-	void ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);
+				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+	void ErrorsHdiv(TPZMaterialData &data,TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
 
 	
 	virtual int NEvalErrors() {return 5;}
 	
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
-									 TPZFMatrix &ek,TPZFMatrix &ef);
+									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
 	
-	virtual void ContributeBCInterface(TPZMaterialData &data,TPZMaterialData &dataleft,REAL weight,TPZFMatrix &ef,TPZBndCond &bc)
+	virtual void ContributeBCInterface(TPZMaterialData &data,TPZMaterialData &dataleft,REAL weight,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,REAL weight,
-									 TPZFMatrix &ef)
+									 TPZFMatrix<REAL> &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -236,14 +236,14 @@ public:
 	 * @param sol is the solution vector
 	 * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
 	 */   
-	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 	
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,
-						 TPZVec<REAL> &leftu, TPZFMatrix &leftdudx, /* TPZFMatrix &leftaxes,*/
-						 TPZVec<REAL> &rightu, TPZFMatrix &rightdudx, /* TPZFMatrix &rightaxes,*/
+						 TPZVec<REAL> &leftu, TPZFMatrix<REAL> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/
+						 TPZVec<REAL> &rightu, TPZFMatrix<REAL> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/
 						 TPZVec<REAL> &/*flux*/,
-						 TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values,
+						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values,
 						 TPZVec<REAL> normal, REAL elsize);
 	
 	/** 

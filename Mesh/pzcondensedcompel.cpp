@@ -119,7 +119,7 @@ TPZCompEl *TPZCondensedCompEl::ClonePatchEl(TPZCompMesh &mesh,
  * @param axes axes associated with the derivative of the solution
  */
 void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi,
-                             TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix &axes)
+                             TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes)
 {
     fReferenceCompEl->ComputeSolution(qsi,sol,dsol,axes);
 }
@@ -138,8 +138,8 @@ void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi,
  */
 void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi,
                              TPZVec<REAL> &normal,
-                             TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-                             TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes)
+                             TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+                             TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes)
 {
     fReferenceCompEl->ComputeSolution(qsi,normal,leftsol,dleftsol,leftaxes,rightsol,drightsol,rightaxes);
 }
@@ -153,8 +153,8 @@ void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi,
  * @param sol finite element solution
  * @param dsol solution derivatives
  */
-void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-                             const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
+void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+                             const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol)
 {
     fReferenceCompEl->ComputeSolution(qsi,phi,dphix,axes,sol,dsol);
 }
@@ -193,8 +193,8 @@ void TPZCondensedCompEl::Resequence()
     for (int i=0; i<notcondensed.size(); ++i) {
         fIndexes[i+ncond] = notcondensed[i];
     }
-    TPZAutoPointer<TPZMatrix> k00 = new TPZFMatrix(nint,nint,0.);
-    TPZStepSolver *step = new TPZStepSolver(k00);
+    TPZAutoPointer<TPZMatrix<REAL> > k00 = new TPZFMatrix<REAL>(nint,nint,0.);
+    TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(k00);
     step->SetDirect(ECholesky);
     fCondensed.SetSolver(step);
     fCondensed.Redim(nint+next,nint);
@@ -219,8 +219,8 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 //    fCondensed = ek.fMat;
     fCondensed.SetF(ef.fMat);
-    const TPZFMatrix &k11 = fCondensed.K11Red();
-    const TPZFMatrix &f1 = fCondensed.F1Red();
+    const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
+    const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     int dim0 = dim-k11.Rows();
     for (int i=dim0; i<dim; i++) {
         ef.fMat(i,0) = f1.GetVal(i-dim0,0);
@@ -240,7 +240,7 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     fReferenceCompEl->CalcResidual(ef);
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
-    const TPZFMatrix &f1 = fCondensed.F1Red();
+    const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
     int dim1 = f1.Rows();
     int dim = ef.fMat.Rows();
     int dim0 = dim-dim1;
@@ -294,10 +294,10 @@ void TPZCondensedCompEl::LoadSolution()
             nc1++;
         }
     }
-    TPZBlock &bl = Mesh()->Block();
+    TPZBlock<REAL> &bl = Mesh()->Block();
     int count = 0;
-    TPZFMatrix u1(dim1,1,0.);
-    TPZFMatrix elsol(dim0+dim1,1,0.);
+    TPZFMatrix<REAL> u1(dim1,1,0.);
+    TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
     for (ic=nc0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
         int seqnum = c.SequenceNumber();

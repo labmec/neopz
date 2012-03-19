@@ -33,8 +33,8 @@ using namespace std;
 // Constructors and the destructor
 // 
 // ****************************************************************************
-
-TPZStencilMatrix::TPZStencilMatrix( int rows, int cols ) {
+template<class TVar>
+TPZStencilMatrix<TVar>::TPZStencilMatrix( int rows, int cols ) {
 	// Constructs an empty TPZStencilMatrix
 	fRows = rows;
 	fCols = cols;
@@ -50,7 +50,8 @@ TPZStencilMatrix::TPZStencilMatrix( int rows, int cols ) {
 #endif
 }
 
-TPZStencilMatrix::~TPZStencilMatrix() {
+template<class TVar>
+TPZStencilMatrix<TVar>::~TPZStencilMatrix() {
 	// Deletes everything associated with a TPZStencilMatrix
 	for(int i=0; i<fNumberOfStencilPointers; i++) delete fMystencils[i];
 	delete fMystencils;
@@ -72,7 +73,8 @@ TPZStencilMatrix::~TPZStencilMatrix() {
 //
 // ****************************************************************************
 
-const REAL & TPZStencilMatrix::GetVal(const int row,const int col ) const {
+template<class TVar>
+const TVar & TPZStencilMatrix<TVar>::GetVal(const int row,const int col ) const {
 	// Get the matrix entry at (row,col) without bound checking
 	int stenindex;
 	MPStencil *st;
@@ -103,7 +105,7 @@ const REAL & TPZStencilMatrix::GetVal(const int row,const int col ) const {
 	st = fMystencils[fStencilNumbers[row]];
 	int nitems = st->fNumberOfItems;
 	int *ia = st->fIA;
-	REAL *a = st->fA;
+	TVar *a = st->fA;
 	int it=0;
 	
 	while(++it<nitems) {
@@ -115,7 +117,7 @@ const REAL & TPZStencilMatrix::GetVal(const int row,const int col ) const {
 		}
 		a+=numintegers+1;
 	}
-	return gZero;
+	return this->gZero;
 }
 
 // ****************************************************************************
@@ -124,16 +126,17 @@ const REAL & TPZStencilMatrix::GetVal(const int row,const int col ) const {
 // 
 // ****************************************************************************
 
-void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
-							   TPZFMatrix &z,
-							   const REAL alpha,const REAL beta,const int opt,const int stride ) const {
+template<class TVar>
+void TPZStencilMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
+							   TPZFMatrix<TVar> &z,
+							   const TVar alpha,const TVar beta,const int opt,const int stride ) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	int ix=0;
 	int r = (opt) ? Cols() : Rows();
 	if(beta != 0) {
-		REAL *zp = &(z(0,0)), *zlast = zp+r*stride;
-		const REAL *yp = &(y.GetVal(0,0));
+		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
+		const TVar *yp = &(y.GetVal(0,0));
 		if(beta != 1. || (&z != &y && stride != 1)) {
 			while(zp < zlast) {
 				*zp = beta * (*yp);
@@ -145,7 +148,7 @@ void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			memcpy(zp,yp,r*sizeof(REAL));
 		}
 	} else {
-		REAL *zp = &(z(0,0)), *zlast = zp+r*stride;
+		TVar *zp = &(z(0,0)), *zlast = zp+r*stride;
 		while(zp != zlast) {
 			*zp = 0.;
 			zp += stride;
@@ -158,14 +161,14 @@ void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			MPStencil *st = fMystencils[stenindex];
 			int nitems = st->fNumberOfItems;
 			int *ia = st->fIA;
-			REAL *a = st->fA;
+			TVar *a = st->fA;
 			int it=0;
 			while(++it<nitems) {
 				int numintegers = *ia++;
 				int *ialast = ia+numintegers;
-				REAL val;
+				TVar val;
 				val = 0.;
-				const REAL *xp = &(x.GetVal(ix*stride,0));
+				const TVar *xp = &(x.GetVal(ix*stride,0));
 				while(ia < ialast) {
 					val += *(xp+((*ia++)*stride));
 					it++;
@@ -182,12 +185,12 @@ void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 			MPStencil *st = fMystencils[fStencilNumbers[ir]];
 			int nitems = st->fNumberOfItems;
 			int *ia = st->fIA;
-			REAL *a = st->fA;
+			TVar *a = st->fA;
 			int it=0;
 			while(++it<nitems) {
 				int numintegers = *ia++;
 				int *ialast = ia + numintegers;
-				REAL xval = alpha*x.GetVal(ir*stride,0)*(*a);
+				TVar xval = alpha*x.GetVal(ir*stride,0)*(*a);
 				while(ia<ialast) {
 					z((ix+(*ia++))*stride,0) += xval;
 					it++;
@@ -205,7 +208,8 @@ void TPZStencilMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y,
 // 
 // ****************************************************************************
 
-void TPZStencilMatrix::Print(const char *title, ostream &out,const MatrixOutputFormat form ) const {
+template<class TVar>
+void TPZStencilMatrix<TVar>::Print(const char *title, ostream &out,const MatrixOutputFormat form ) const {
 	// Print the matrix along with a identification title
 	if(form != EInputFormat) {
 		out << "\nTStencilMatrix Print: " << title << '\n'
@@ -217,7 +221,7 @@ void TPZStencilMatrix::Print(const char *title, ostream &out,const MatrixOutputF
 			if (st != 0) {
 				int nitems = st->fNumberOfItems;
 				int *ia = st->fIA;
-				REAL *a = st->fA;
+				TVar *a = st->fA;
 				out << "\nStencil " << ir
 				<< ", increment " << st->fInc  << ", "
 				<< nitems << " items\n";
@@ -254,8 +258,8 @@ void TPZStencilMatrix::Print(const char *title, ostream &out,const MatrixOutputF
 //
 // ****************************************************************************
 
-
-void TPZStencilMatrix::ComputeDiagonal() {
+template<class TVar>
+void TPZStencilMatrix<TVar>::ComputeDiagonal() {
 	
 	if(fDiag) return;
 	fDiag = new REAL[Rows()];
@@ -263,7 +267,7 @@ void TPZStencilMatrix::ComputeDiagonal() {
 		MPStencil *st = fMystencils[fStencilNumbers[ir]];
 		int nitems = st->fNumberOfItems;
 		int *ia = st->fIA;
-		REAL *a = st->fA;
+		TVar *a = st->fA;
 		if(st->fInc != 1) {
 			cout << "TPZStencilMatrix::ComputeDiagonal "
 			"Computing the diagonal of a nonsquare matrix?";
@@ -285,9 +289,10 @@ void TPZStencilMatrix::ComputeDiagonal() {
 	}
 }
 
-void TPZStencilMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
-								TPZFMatrix *residual, TPZFMatrix &/*scratch*/,
-								const REAL overrelax, REAL &tol,
+template<class TVar>
+void TPZStencilMatrix<TVar>::SolveSOR( int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+								TPZFMatrix<TVar> *residual, TPZFMatrix<TVar>&/*scratch*/,
+								const TVar overrelax, TVar &tol,
 								const int FromCurrent, const int direction ) {
 	
 	if(!fDiag) ComputeDiagonal();
@@ -298,7 +303,7 @@ void TPZStencilMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFM
 		irInc = -1;
 	}
 	if(!FromCurrent) x.Zero();
-	REAL eqres = 2.*tol;
+	TVar eqres = 2.*tol;
 	int iteration;
 	for(iteration=0; iteration<numiterations && eqres >= tol; iteration++) {
 		eqres = 0.;
@@ -308,14 +313,14 @@ void TPZStencilMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFM
 			MPStencil *st = fMystencils[stenindex];
 			int nitems = st->fNumberOfItems;
 			int *ia = st->fIA;
-			REAL *a = st->fA;
+			TVar *a = st->fA;
 			int it=0;
-			REAL xnewval=rhs.GetVal(ir,0);
+			TVar xnewval=rhs.GetVal(ir,0);
 			while(++it<nitems) {
 				int numintegers = *ia++;
 				int *ialast = ia+numintegers;
-				REAL val =0.;
-				REAL *xp = &x(ir,0);
+				TVar val =0.;
+				TVar *xp = &x(ir,0);
 				while(ia < ialast) {
 					val -= *(xp+(*ia++));
 					it++;
@@ -341,8 +346,9 @@ void TPZStencilMatrix::SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFM
 //
 // ****************************************************************************
 
-void TPZStencilMatrix::SetStencil( int stencilnumber, int inc,
-								  int *IA, REAL *A ) {
+template<class TVar>
+void TPZStencilMatrix<TVar>::SetStencil( int stencilnumber, int inc,
+								  int *IA, TVar *A ) {
 	// initiates Stencil number "stencilnumber" with the data
 	
 	if(stencilnumber < 0) return;
@@ -352,7 +358,8 @@ void TPZStencilMatrix::SetStencil( int stencilnumber, int inc,
 	fMystencils[stencilnumber] = new MPStencil(inc,IA,A);
 }
 
-void TPZStencilMatrix::IncreaseStencilPointers( int numsten ) {
+template<class TVar>
+void TPZStencilMatrix<TVar>::IncreaseStencilPointers( int numsten ) {
 	int newnum = fNumberOfStencilPointers+10;
 	if(newnum < numsten) newnum = numsten+1;
 	MPStencil **newptr = new MPStencil*[newnum];
@@ -364,7 +371,8 @@ void TPZStencilMatrix::IncreaseStencilPointers( int numsten ) {
 	fNumberOfStencilPointers = newnum;
 }
 
-void TPZStencilMatrix::SetNodeStencils( int *stencilnumber ) {
+template<class TVar>
+void TPZStencilMatrix<TVar>::SetNodeStencils( int *stencilnumber ) {
 	// Associates the given stencil number with each row
 	if(fStencilNumbers) delete fStencilNumbers;
 	fStencilNumbers = new int[fRows];
@@ -378,7 +386,8 @@ void TPZStencilMatrix::SetNodeStencils( int *stencilnumber ) {
 // 
 // ****************************************************************************
 
-TPZStencilMatrix::MPStencil::MPStencil( int inc, int *IA, REAL *A ) {
+template<class TVar>
+TPZStencilMatrix<TVar>::MPStencil::MPStencil( int inc, int *IA, TVar *A ) {
 	fInc = inc;
 	fNumberOfItems=0;
 	int *IAPtr = IA;
@@ -388,12 +397,12 @@ TPZStencilMatrix::MPStencil::MPStencil( int inc, int *IA, REAL *A ) {
 	}
 	fNumberOfItems++;
 	fIA = new int[fNumberOfItems];
-	fA = new REAL[fNumberOfItems];
+	fA = new TVar[fNumberOfItems];
 	memcpy(fIA,IA,sizeof(int)*fNumberOfItems);
-	memcpy(fA,A,sizeof(REAL)*fNumberOfItems);
+	memcpy(fA,A,sizeof(TVar)*fNumberOfItems);
 }
-
-TPZStencilMatrix::MPStencil::~MPStencil() {
+template<class TVar>
+TPZStencilMatrix<TVar>::MPStencil::~MPStencil() {
 	fNumberOfItems = 0;
 	delete fIA; fIA = 0;
 	delete fA; fA = 0;

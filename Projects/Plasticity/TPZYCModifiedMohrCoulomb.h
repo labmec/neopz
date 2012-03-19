@@ -138,12 +138,12 @@ public:
     /**
 	 LoadState will keep a given state as static variable of the class
 	 */
-    void LoadState(TPZFMatrix &state)
+    void LoadState(TPZFMatrix<REAL> &state)
     {
 		int i;
 		for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
     }
-    void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase)
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
     {
 		switch(icase)
 		{
@@ -212,7 +212,7 @@ public:
 		}
     }
 	
-    void Residual(TPZFMatrix &res,int icase)
+    void Residual(TPZFMatrix<REAL> &res,int icase)
     {
 		
 		res.Redim(1,1);

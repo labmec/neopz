@@ -48,8 +48,8 @@ public:
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -60,19 +60,19 @@ public:
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ek,
-                            TPZFMatrix &ef);
+                            TPZFMatrix<REAL> &ek,
+                            TPZFMatrix<REAL> &ef);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -86,7 +86,7 @@ public:
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix &ef);
+                            TPZFMatrix<REAL> &ef);
 
 	virtual void Write(TPZStream &buf, int withclassid);
 	
@@ -94,7 +94,7 @@ public:
 	
 	virtual int ClassId() const;
 	
-	virtual REAL Eps(TPZVec<REAL> &sol,TPZFMatrix &axes,TPZFMatrix &dphi) = 0;
+	virtual REAL Eps(TPZVec<REAL> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 	
 protected:
 	/** @brief Cross Section Area */

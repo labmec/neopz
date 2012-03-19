@@ -20,7 +20,7 @@ int TPZConvHyper::NumCases() {
   return 1;
 }
 
-void TPZConvHyper::LoadSolution(TPZFMatrix &state) {
+void TPZConvHyper::LoadSolution(TPZFMatrix<REAL> &state) {
   int i,j,n;
   for(i=0; i<3; i++) {
     for(j=0; j<3; j++) {
@@ -33,12 +33,12 @@ void TPZConvHyper::LoadSolution(TPZFMatrix &state) {
   //fState.Print("state");
 }
 
-void TPZConvHyper::Residual(TPZFMatrix &residual, int icase) {
-  TPZFMatrix ek(3*fNumNod,3*fNumNod);
+void TPZConvHyper::Residual(TPZFMatrix<REAL> &residual, int icase) {
+  TPZFMatrix<REAL> ek(3*fNumNod,3*fNumNod);
   residual.Redim(3*fNumNod,1);
 //  int i;
   //for(i=0; i<3; i++) residual(i,0) = fState(0,i)*fState(0,i);
-  TPZFMatrix jacinv(3,3,0.);
+  TPZFMatrix<REAL> jacinv(3,3,0.);
   TPZMaterialData data;
   data.x = fX;
   data.jacinv = jacinv;
@@ -53,12 +53,12 @@ void TPZConvHyper::Residual(TPZFMatrix &residual, int icase) {
   //residual.Print("residual");
 }
 
-void TPZConvHyper::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase) {
-  TPZFMatrix ef(3*fNumNod,1);
+void TPZConvHyper::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase) {
+  TPZFMatrix<REAL> ef(3*fNumNod,1);
   tangent.Redim(3*fNumNod,3*fNumNod);
 //  int i;
   //for(i=0; i<3; i++) tangent(i,i) = 2.*fState(0,i);
-  TPZFMatrix jacinv(3,3,0.);
+  TPZFMatrix<REAL> jacinv(3,3,0.);
   int j;
   for(j = 0; j < 3; j++) jacinv(j,j) = 1.;  
   TPZMaterialData data;

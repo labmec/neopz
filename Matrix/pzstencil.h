@@ -21,6 +21,7 @@
 
 #include "pzmatrix.h"
 
+template<class TVar>
 class TPZFMatrix;
 
 /**
@@ -30,7 +31,8 @@ class TPZFMatrix;
  /**
   * Purpose:  Define operations on sparse matrices stored by stencils
   */
-class TPZStencilMatrix : public TPZMatrix {
+template<class TVar>
+class TPZStencilMatrix : public TPZMatrix<TVar> {
 	
 	public :
 	
@@ -45,23 +47,23 @@ class TPZStencilMatrix : public TPZMatrix {
 	virtual int Cols() const;
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
-	virtual const REAL &GetVal(const int row,const int col ) const;
+	virtual const TVar &GetVal(const int row,const int col ) const;
 	
 	/** @brief computes \f$ z = beta * y + alpha * opt(this)*x \f$ */
 	/**          z and x cannot overlap in memory */
-	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-						 const REAL alpha=1., const REAL beta = 0., const int opt = 0 , const int stride = 1) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+						 const TVar alpha=1., const TVar beta = 0., const int opt = 0 , const int stride = 1) const;
 	
 	/** @brief Print the matrix along with a identification title */
 	virtual void Print(const char *title, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
 	
-	void SolveSOR( int &numiterations,const TPZFMatrix &rhs, TPZFMatrix &x,
-				  TPZFMatrix *residual, TPZFMatrix &scratch,
-				  const REAL overrelax, REAL &tol,
+	void SolveSOR( int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
+				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
+				  const TVar overrelax, TVar &tol,
 				  const int FromCurrent = 0,const int direction = 1 );
 	
 	/** @brief initiates Stencil number "stencilnumber" with the data */
-	void SetStencil( int stencilnumber, int inc, int *IA, REAL *A );
+	void SetStencil( int stencilnumber, int inc, int *IA, TVar *A );
 	
 	/** @brief associates the given stencil number with each row */
 	void SetNodeStencils( int *stencilnumber );
@@ -76,9 +78,9 @@ private:
 		int fNumberOfItems;
 		int fInc;
 		int *fIA;
-		REAL *fA;
+		TVar *fA;
 		
-		MPStencil( int inc, int *IA, REAL *A );
+		MPStencil( int inc, int *IA, TVar *A );
 		~MPStencil();
 		
 	} **fMystencils;
@@ -87,18 +89,20 @@ private:
 	int   fRows, fCols;
 	int  *fStencilNumbers;
 	
-	REAL *fDiag;
+	TVar *fDiag;
 	int   fSolver;
 	int   fMaxIterations;
 	
-	REAL fSORRelaxation;
+	TVar fSORRelaxation;
 };
 
-inline int TPZStencilMatrix::Rows() const{
+template<class TVar>
+inline int TPZStencilMatrix<TVar>::Rows() const{
 	return fRows;
 }
 
-inline int TPZStencilMatrix::Cols() const{
+template<class TVar>
+inline int TPZStencilMatrix<TVar>::Cols() const{
 	return fCols;
 }
 

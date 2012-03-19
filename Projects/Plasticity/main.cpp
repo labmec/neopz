@@ -121,8 +121,8 @@ void InitializeLOG()
 
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
                             int BCId,int BCId2, int nsteps, REAL PGRatio,
-                            TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-                            TPZFMatrix & val2Begin, TPZFMatrix & val2End)
+                            TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+                            TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End)
 {
     
     if(!analysis.Mesh())return;
@@ -135,8 +135,8 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &o
     }else{
         a0 = (PGRatio - 1) / (pow(PGRatio,nsteps) - 1.);
     }
-    TPZFNMatrix<36> val1(6,6,0.), deltaVal1(6,6,0.);
-    TPZFNMatrix< 6> val2(6,1,0.), deltaVal2(6,1,0.);
+    TPZFNMatrix<36,REAL > val1(6,6,0.), deltaVal1(6,6,0.);
+    TPZFNMatrix< 6,REAL > val2(6,1,0.), deltaVal2(6,1,0.);
     
     deltaVal1 = val1End;
     deltaVal1.ZAXPY(-1., val1Begin);
@@ -192,7 +192,7 @@ void SolveSistLin2(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
     TPZSkylineStructMatrix full(fCmesh);
     an.SetStructuralMatrix(full);
-    TPZStepSolver step;
+    TPZStepSolver<REAL> step;
     full.SetNumThreads(8);
     step.SetDirect(ELDLt);
     an.SetSolver(step);
@@ -377,8 +377,8 @@ void WellboreLoadTestWithoutPostProcess(stringstream & fileName, T & mat,
     
     //    void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
     //                                int BCId,int BCId2, int nsteps, REAL PGRatio,
-    //                                TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-    //                                TPZFMatrix & val2Begin, TPZFMatrix & val2End)
+    //                                TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+    //                                TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End)
     REAL tol = 1.e-5;
     int numiter = 30;
     int nsteps = 1;
@@ -886,7 +886,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
     {// Replacing BC to include Pore Pressure
         TPZAutoPointer<TPZMaterial> mat(&EPMat);
-        TPZFMatrix val2(4,1,0.), val1(4,4,0.);
+        TPZFMatrix<REAL> val2(4,1,0.), val1(4,4,0.);
         val2.Zero();
         val2(0,0) = 1.;
         val2(1,0) = 1.;
@@ -1588,8 +1588,8 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
                                         int ncirc,
                                         REAL ioratio,
                                         TPZMaterial * pMat,
-                                        TPZFMatrix & BCStressState,
-                                        TPZFMatrix & WellboreStressState,
+                                        TPZFMatrix<REAL> & BCStressState,
+                                        TPZFMatrix<REAL> & WellboreStressState,
                                         int allNeumannBC = 0)
 {
 #ifdef LOG4CXX
@@ -1611,9 +1611,9 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
     TPZVec< TPZVec< int > > el;
     TPZVec< MElementType > elType;
     TPZVec< TPZString > elName;
-    TPZFMatrix val1(nstate,nstate), val2(nstate,1);
-    TPZFMatrix bcNormal(nstate, 1, 0.);
-    TPZFMatrix bcStressState(nstate, nstate, 0.),
+    TPZFMatrix<REAL> val1(nstate,nstate), val2(nstate,1);
+    TPZFMatrix<REAL> bcNormal(nstate, 1, 0.);
+    TPZFMatrix<REAL> bcStressState(nstate, nstate, 0.),
     wellboreStressState(nstate, nstate, 0.);
     
     QuarterWellboreGeom(ncirc, ioratio, pt, el, elType, elName, nrad);

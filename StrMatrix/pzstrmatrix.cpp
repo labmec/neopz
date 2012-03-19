@@ -77,7 +77,7 @@ TPZStructMatrix::TPZStructMatrix(const TPZStructMatrix &copy){
 
 TPZStructMatrix::~TPZStructMatrix() {}
 
-TPZMatrix *TPZStructMatrix::Create() {
+TPZMatrix<REAL> *TPZStructMatrix::Create() {
 	cout << "TPZStructMatrix::Create should never be called\n";
 	return 0;
 }
@@ -87,7 +87,7 @@ TPZStructMatrix *TPZStructMatrix::Clone() {
 	return 0;
 }
 
-void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrix::Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	if(this->fNumThreads){
 		this->MultiThread_Assemble(stiffness,rhs,guiInterface);
 	}
@@ -96,7 +96,7 @@ void TPZStructMatrix::Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs,TPZAutoPo
 	}
 }
 
-void TPZStructMatrix::Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrix::Assemble(TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	if(this->fNumThreads){
 		this->MultiThread_Assemble(rhs,guiInterface);
 	}
@@ -105,7 +105,7 @@ void TPZStructMatrix::Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> 
 	}
 }
 
-void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
+void TPZStructMatrix::Serial_Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
 	
 	if(!fMesh){
 		LOGPZ_ERROR(logger,"pthread_Assemble called without mesh")
@@ -293,7 +293,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix & stiffness, TPZFMatrix & rhs, T
 }
 
 
-void TPZStructMatrix::Serial_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZStructMatrix::Serial_Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int iel;
 	int nelem = fMesh->NElements();
@@ -360,7 +360,7 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInt
 	
 }
 
-void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrix::MultiThread_Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	ThreadData threaddata(*fMesh,mat,rhs,fMinEq,fMaxEq,fMaterialIds,guiInterface);
 	const int numthreads = this->fNumThreads;
@@ -385,7 +385,7 @@ void TPZStructMatrix::MultiThread_Assemble(TPZMatrix & mat, TPZFMatrix & rhs, TP
 	
 }
 
-void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZStructMatrix::MultiThread_Assemble(TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	//please implement me
 	this->Serial_Assemble(rhs, guiInterface);
@@ -411,9 +411,9 @@ void TPZStructMatrix::FilterEquations(TPZVec<int> &origindex, TPZVec<int> &desti
 	
 }
 
-TPZMatrix * TPZStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<REAL> * TPZStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
-	TPZMatrix *stiff = Create();
+	TPZMatrix<REAL> *stiff = Create();
 	int neq = stiff->Rows();
 	rhs.Redim(neq,1);
     Assemble(*stiff,rhs,guiInterface);
@@ -453,8 +453,8 @@ TPZMatrix * TPZStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZG
  };
  */
 
-TPZStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix &mat,
-										TPZFMatrix &rhs, int mineq, int maxeq,
+TPZStructMatrix::ThreadData::ThreadData(TPZCompMesh &mesh, TPZMatrix<REAL> &mat,
+										TPZFMatrix<REAL> &rhs, int mineq, int maxeq,
 										std::set<int> &MaterialIds,
 										TPZAutoPointer<TPZGuiInterface> guiInterface)
 : fMesh(&mesh),

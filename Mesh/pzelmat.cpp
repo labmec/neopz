@@ -63,7 +63,7 @@ void TPZElementMatrix::Print(std::ostream &out){
 		ComputeDestinationIndices();
 		bool hasdepend = HasDependency();
 		int size = fSourceIndex.NElements();
-		TPZFMatrix constrmatrix(size,size,0.);
+		TPZFMatrix<REAL> constrmatrix(size,size,0.);
 		int in,jn;
 		for(in=0; in<size; in++)
 		{

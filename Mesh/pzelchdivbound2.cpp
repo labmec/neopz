@@ -505,7 +505,7 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 }
 
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix &phi,TPZFMatrix &dphi) {
+void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
 	if(TSHAPE::SideDimension(side)!= TSHAPE::Dimension ){
 		return ;
@@ -521,7 +521,7 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
  * Compute the shape function at the integration point
  */
 template<class TSHAPE>
-void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix &phi, TPZFMatrix &dphi)
+void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
 	//TPZFNMatrix<300> phi1;
 	//TPZFNMatrix<600> dphi1;

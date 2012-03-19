@@ -33,17 +33,17 @@ const int _ZZ_ = 5;
 
 
 
-class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix, TPZElasticity3D>
+class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D>
 {
 	
 public:
-	TPZViscoelastic( TPZMatWithMem<TPZFMatrix, TPZElasticity3D> &matwithmem, int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT);
+	TPZViscoelastic( TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D> &matwithmem, int id,REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT);
 	
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
 	
 protected:

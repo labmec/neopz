@@ -5,12 +5,14 @@ class TPZCompMesh;
 class TPZGeoEl;
 #include <set>
 #include <pzvec.h>
+
+template <class TVar>
 class TPZFMatrix;
 
 
 /** Principal work */
 TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh);
-void InitialSolutionMultires(TPZFMatrix &InitialSol, TPZCompMesh * cmesh);
+void InitialSolutionMultires(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh);
 
 double ComputeTimeStep(double CFL, int Level, TPZGeoMesh * gmesh);
 

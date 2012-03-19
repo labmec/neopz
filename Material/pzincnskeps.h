@@ -43,10 +43,10 @@ private:
     TPZVec<REAL> fBodyForce; //fc = {0,0,-fc}
     
     /** @brief Dot for matrices with same dimensions. \f$ Tr[A B]. \f$ No consistence test is made. */
-    REAL Dot(TPZFMatrix &A, TPZFMatrix &B);
+    REAL Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B);
     
     /** @brief Dot of vector A with row BRow of matrix B. */
-    REAL Dot(TPZVec<REAL> &A, TPZFMatrix &B, int BRow);
+    REAL Dot(TPZVec<REAL> &A, TPZFMatrix<REAL> &B, int BRow);
 	
     /** @brief Dot for vectors with same dimensions. No consistence test is made. */        
     REAL Dot(TPZVec<REAL> &A, TPZVec<REAL> &B);
@@ -77,8 +77,8 @@ public:
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-						  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -90,26 +90,26 @@ public:
     /** @brief Computes contribution to the tangent matrix and residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ek,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ek,
+							TPZFMatrix<REAL> &ef);
 	
     /** @brief Computes contribution to the residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix &ef);
+							TPZFMatrix<REAL> &ef);
 	
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ek,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ek,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix &ef,
+							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
         TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -120,9 +120,9 @@ public:
 	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed \n
 	 * based on the derivative of the solution
      */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol,
-                        TPZFMatrix &axes, TPZVec<REAL> &flux,
-                        TPZVec<REAL> &uexact, TPZFMatrix &duexact,
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+                        TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                        TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,
                         TPZVec<REAL> &val){
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;

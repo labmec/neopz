@@ -29,16 +29,16 @@ TPZMaterialCoupling::TPZMaterialCoupling() {
 TPZMaterialCoupling::~TPZMaterialCoupling() {
 }
 
-void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft,TPZMaterialData &dataright, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 				
-		TPZFMatrix  &phiH1 = dataright.phi;
-		TPZFMatrix  &phiHdiv = dataleft.phi;		
+		TPZFMatrix<REAL>  &phiH1 = dataright.phi;
+		TPZFMatrix<REAL>  &phiHdiv = dataleft.phi;		
 		int numvec=dataleft.fVecShapeIndex.NElements();
 //		int nrowHdiv=phiHdiv.Rows();//funcao a esquerda Hdiv
 		int nrowH1=phiH1.Rows();//Funcao a direita H1
 		int numdual = dataleft.numberdualfunctions;
 		
-		TPZFMatrix ekCouple(numvec+numdual,nrowH1,0.);
+		TPZFMatrix<REAL> ekCouple(numvec+numdual,nrowH1,0.);
 		//vou precisar da  orientacao das normais na interface
 		
 		REAL leftX0=data.normal[0];
@@ -96,15 +96,15 @@ void TPZMaterialCoupling::ContributeInterface(TPZMaterialData &data, TPZMaterial
 }
 
 void TPZMaterialCoupling::ContributeInterface2(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                              REAL weight,TPZFMatrix &ek,TPZFMatrix &ef){
+                                              REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 		
 		
 		
 		
-//    TPZFMatrix  &dphixL = dataleft.dphix;
-		TPZFMatrix  &phixL = dataleft.phi;
+//    TPZFMatrix<REAL>  &dphixL = dataleft.dphix;
+		TPZFMatrix<REAL>  &phixL = dataleft.phi;
 		
-		TPZFMatrix  &phixR = dataright.phi;
+		TPZFMatrix<REAL>  &phixR = dataright.phi;
 		
 		
 		

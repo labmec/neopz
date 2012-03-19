@@ -176,7 +176,7 @@ TPZFlowCompMesh * SSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
 // Boundary conditions
 
    TPZBndCond *bc;
-   TPZFMatrix val1(4,4), val2(4,1);
+   TPZFMatrix<REAL> val1(4,4), val2(4,1);
    REAL rhol  = 1.,
         rhoul = 1.,
 	rhovl = 0.,
@@ -255,7 +255,7 @@ TPZFlowCompMesh * SSCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
    compOut.close();
 
 // generating initial guess for the mesh solution
-   TPZFMatrix Solution = cmesh->Solution();
+   TPZFMatrix<REAL> Solution = cmesh->Solution();
 
    int nVars = Solution.Rows();
    for(int k = 0; k < nVars; k++)Solution(k)=-.01;

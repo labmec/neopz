@@ -9,6 +9,7 @@
 #include "pzvec.h"
 template<class>
 class TPZVec;
+template <class TVAR>
 class TPZFMatrix;
 class TPZInterpolatedElement;
 class TPZCompEl;
@@ -50,7 +51,7 @@ public:
 	 * @param ksi point in the parametric space
 	 * @param T Tension values [out]
 	 */
-	void Tensor(TPZVec<REAL> &ksi, TPZFMatrix &T);
+	void Tensor(TPZVec<REAL> &ksi, TPZFMatrix<REAL> &T);
 
 	/**Dados dois vetores n1 e n2 retorna o momento*/
 	REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
@@ -73,11 +74,11 @@ public:
 	 * gradiente do tensor na direcao indicada por graddir (a direcao e dada em espaco parametrico)
 	 * a derivada e devolvida em espaco real
 	 */
-	void GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi,  TPZFMatrix &gradtensor);
+	void GradTensor(TPZVec<REAL> &graddir, TPZVec<REAL> &ksi,  TPZFMatrix<REAL> &gradtensor);
 	
 	void PrintTensors(std::ostream &out);
 	
-	void PrintTensors(std::ostream &out,TPZFMatrix &tensorin,TPZFMatrix &tensorout);
+	void PrintTensors(std::ostream &out,TPZFMatrix<REAL> &tensorin,TPZFMatrix<REAL> &tensorout);
 	
 	REAL Height(){return fH;}
 	

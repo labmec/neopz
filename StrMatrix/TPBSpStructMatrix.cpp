@@ -75,12 +75,12 @@ int TPBSpStructMatrix::main() {
 	
 	TPZGeoElBC gelbc(gel,4,-4);
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumatptr(meumat);
 	cmesh.InsertMaterialObject(meumatptr);
 	
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	
 	cmesh.InsertMaterialObject(bnd);
@@ -152,7 +152,7 @@ int TPBSpStructMatrix::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
-	TPZStepSolver sol;
+	TPZStepSolver<REAL> sol;
 	//	sol.SetDirect(ELU);
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
@@ -193,7 +193,7 @@ int TPBSpStructMatrix::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);
@@ -209,20 +209,20 @@ int TPBSpStructMatrix::main() {
 TPZStructMatrix * TPBSpStructMatrix::Clone(){
     return new TPBSpStructMatrix(*this);
 }
-TPZMatrix * TPBSpStructMatrix::CreateAssemble(TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<REAL> * TPBSpStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
     int neq = fMesh->NEquations();
     if(fMesh->FatherMesh()) {
 		cout << "TPZSpStructMatrix should not be called with CreateAssemble for a substructure mesh\n";
-		return new TPZFYsmpMatrix(0,0);
+		return new TPZFYsmpMatrix<REAL>(0,0);
     }
-    TPZMatrix *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
+    TPZMatrix<REAL> *stiff = Create();//new TPZFYsmpMatrix(neq,neq);
     rhs.Redim(neq,1);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     Assemble(*stiff,rhs, guiInterface);
     //stiff->Print("Stiffness TPZFYsmpMatrix :: CreateAssemble()");
     return stiff;
 }
-TPZMatrix * TPBSpStructMatrix::Create(){
+TPZMatrix<REAL> * TPBSpStructMatrix::Create(){
     //checked
     int neq = fMesh->NEquations();
     if(HasRange())
@@ -234,7 +234,7 @@ TPZMatrix * TPBSpStructMatrix::Create(){
 		fMinEq = 0;
 		fMaxEq = neq;
     }
-    TPZFYsmpMatrix * mat = new TPZFYsmpMatrix(neq,neq);
+    TPZFYsmpMatrix<REAL> * mat = new TPZFYsmpMatrix<REAL>(neq,neq);
 	
     /**Rearange elements order*/
 	//    TPZVec<int> elorder(fMesh->NEquations(),0);

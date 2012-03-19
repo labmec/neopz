@@ -84,7 +84,7 @@ private:
 	
 public:
 	/** @brief Extracts the so far condensed matrix */
-	virtual	void ExtractFrontMatrix(TPZFMatrix &front) {
+	virtual	void ExtractFrontMatrix(TPZFMatrix<REAL> &front) {
 		std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
 		DebugStop();
 	}

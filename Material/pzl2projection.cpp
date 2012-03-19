@@ -39,7 +39,7 @@ TPZAutoPointer<TPZMaterial> TPZL2Projection::NewMaterial(){
 	return new TPZL2Projection(*this);
 }
 
-void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
 	if (this->HasForcingFunction()){
 		this->fForcingFunction->Execute(data.x, this->fSol);
@@ -80,10 +80,10 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix 
 	}//for i
 }
 
-void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc){
+void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	
 	const int nvars = this->fNStateVars;
-	TPZFMatrix &phi = data.phi;
+	TPZFMatrix<REAL> &phi = data.phi;
 	const int phr = phi.Rows();
 	int in, jn, iv;
 	
@@ -131,8 +131,8 @@ int TPZL2Projection::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZL2Projection::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-                               TPZFMatrix &axes, int var, TPZVec<REAL> &Solout){
+void TPZL2Projection::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+                               TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	if (var == ESolution){
 		Solout = Sol;
 		return;

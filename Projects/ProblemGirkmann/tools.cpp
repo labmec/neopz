@@ -88,9 +88,9 @@ tools::~tools()
 }
 
 ///---------------------- MatrixR() ---------------------------------------------------
-TPZFMatrix tools::MatrixR(REAL theta)
+TPZFMatrix<REAL> tools::MatrixR(REAL theta)
 {
-	TPZFMatrix r(3,3,0.);
+	TPZFMatrix<REAL> r(3,3,0.);
 	r(0,0) = cos(theta); r(0,1) = sin(theta);
 	r(1,0) = -sin(theta); r(1,1) =  cos(theta);
 	
@@ -108,7 +108,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 	
 	gmesh->NodeVec().Resize(Qnodes);
 	
-	TPZFMatrix v(3,1,0.), vl(3,1,0.), vltemp(3,1,0.);
+	TPZFMatrix<REAL> v(3,1,0.), vl(3,1,0.), vltemp(3,1,0.);
 	v(0,0) = 0.;
 	v(1,0) = 1.;
 	
@@ -471,7 +471,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//Boundary Conditions
 		
 		//Inserir Mola em um ponto da base do anel 
-		TPZFMatrix k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
+		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		k1(1,1) = 1.e-3;
 		TPZAutoPointer<TPZMaterial> ContBC = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
 		cmesh->InsertMaterialObject(ContBC);
@@ -481,20 +481,20 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//cmesh->InsertMaterialObject(ContBC2);
 		
 		//Reacao de apoio no anel
-		TPZFMatrix Reac1(2,2,0.), Reac2(2,1,0.);
+		TPZFMatrix<REAL> Reac1(2,2,0.), Reac2(2,1,0.);
 		Reac2(1,0) = FDistribuidaBase; 
 		TPZAutoPointer<TPZMaterial> Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
 		cmesh->InsertMaterialObject(Cont);
 		
 		//Calcular momento e cortante
-		TPZFMatrix Reac12(2,2,0.), Reac22(2,1,0.);
+		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
 		TPZAutoPointer<TPZMaterial> ContBC1 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		cmesh->InsertMaterialObject(ContBC1);
 		
 		
 		
 		//------------------- cond contorno Hidrostatica: so para validar o programa---------------------
-		//TPZFMatrix val1(2,2,0.),val2(2,1,0.);
+		//TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
 		//		REAL peso = 100.;
 		//				
 		//		val2(0,0) = -peso;
@@ -514,7 +514,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//		TPZAutoPointer<TPZMaterial> CondBc5 = matAnel->CreateBC(matAnel, mat2BaseBCDois, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc5);
 		//		
-		//		TPZFMatrix k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
+		//		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		//		k1(1,1) = 1.;
 		//		TPZAutoPointer<TPZMaterial> ContBC6 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
 		//		cmesh->InsertMaterialObject(ContBC6);
@@ -523,7 +523,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//		TPZAutoPointer<TPZMaterial> ContBC7 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
 		//		cmesh->InsertMaterialObject(ContBC7);
 		//		
-		//		TPZFMatrix Reac12(2,2,0.), Reac22(2,1,0.);
+		//		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
 		//		TPZAutoPointer<TPZMaterial> ContBC = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		//		cmesh->InsertMaterialObject(ContBC);
 		//-------------------------------------------------------------------------------
@@ -582,7 +582,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		//Boundary Conditions
 		
 		//Inserir Mola em um ponto da base do anel 
-		TPZFMatrix k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
+		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		k1(1,1) = 1.e-3;
 		
 		TPZAutoPointer<TPZMaterial> BCPoint7 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
@@ -593,13 +593,13 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		//cmesh->InsertMaterialObject(ContBC3);
 		
 		//Reacao de apoio no anel
-		TPZFMatrix Reac1(2,2,0.), Reac2(2,1,0.);
+		TPZFMatrix<REAL> Reac1(2,2,0.), Reac2(2,1,0.);
 		Reac2(1,0) = FDistribuidaBase; 
 		TPZAutoPointer<TPZMaterial> Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
 		cmesh->InsertMaterialObject(Cont);
 		
 		//Calcular momento e cortante
-		TPZFMatrix Reac12(2,2,0.), Reac22(2,1,0.);
+		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
 		TPZAutoPointer<TPZMaterial> ContBC2 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		cmesh->InsertMaterialObject(ContBC2);
 		
@@ -688,7 +688,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	//TPZFrontStructMatrix<TPZFrontNonSym> full(fCmesh);
 	//full.SetNumberOfThreads(3);
 	
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	if(sim==1){
 		TPZBandStructMatrix full(fCmesh);
 		an.SetStructuralMatrix(full);
@@ -711,7 +711,7 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	count++;
 	
 	/*	TPZAutoPointer<TPZGuiInterface> gui;
-	 TPZFMatrix rhs, residual;
+	 TPZFMatrix<REAL> rhs, residual;
 	 TPZAutoPointer<TPZMatrix> test = full.CreateAssemble(rhs, gui );
 	 test->MultAdd(an.Solution(),rhs,residual,1,-1);
 	 REAL resnorm = Norm(residual);
@@ -799,8 +799,8 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 			{
 				int idneigh =neighbours[jn].Reference().Element()->MaterialId();
 				
-				TPZFMatrix n(3,1,0.);//normal
-				TPZFMatrix tn(3,1,0.);//tangente
+				TPZFMatrix<REAL> n(3,1,0.);//normal
+				TPZFMatrix<REAL> tn(3,1,0.);//tangente
 				REAL nr = 0., nz=0., tnr=0.,tnz=0.;
 				REAL Tr=0., Tz=0.;
 //				REAL w, detJac;
@@ -954,7 +954,7 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 					{
 						REAL w, detJac;
 						TPZVec<REAL> loc(1),loc2d(2), loc2(2),loc3(2), xco(3), xco1(3), xco2(3),xco3(3); 
-						TPZFMatrix jac(2,2),invJac(2,2),axes(3,3);
+						TPZFMatrix<REAL> jac(2,2),invJac(2,2),axes(3,3);
 						TPZVec<REAL> solsigr(1), solsigz(1), solsigt(1), soltaurz(1);
 						
 						intr->Point(in,loc,w);
@@ -1071,7 +1071,7 @@ void tools::PrintInterface(TPZCompMesh  *malha)
 }
 
 ///-------------------------TesteInterface()-----------------------------------------
-void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix &solution)
+void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix<REAL> &solution)
 {
 	TPZSkylineStructMatrix full(cmesh);
 	std::set<int> materialIds;
@@ -1080,8 +1080,8 @@ void tools::TesteInterface(TPZCompMesh *cmesh, TPZFMatrix &solution)
 	full.SetMaterialIds(materialIds);
 	
 	TPZAutoPointer<TPZGuiInterface> gui;
-	TPZFMatrix rhs, residual;
-	TPZAutoPointer<TPZMatrix> test = full.CreateAssemble(rhs, gui );
+	TPZFMatrix<REAL> rhs, residual;
+	TPZAutoPointer<TPZMatrix<REAL> > test = full.CreateAssemble(rhs, gui );
 	test->MultAdd(solution,rhs,residual,1,-1);
 	//	REAL resnorm = Norm(residual);
 	//	std::cout << "residual norm " << resnorm << std::endl;

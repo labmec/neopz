@@ -9,6 +9,7 @@
 #include "pzsolve.h"
 #include "pzstack.h"
 
+template<class TVar>
 class TPZFMatrix;
 
 /** 
@@ -21,20 +22,21 @@ class TPZFMatrix;
  * @brief Defines sequence solvers. \ref solver "Solver"
  * @ingroup solver
  */
-class TPZSequenceSolver : public TPZMatrixSolver {
+template <class TVar>
+class TPZSequenceSolver : public TPZMatrixSolver<TVar> {
 public:
 	/**
      * @brief Constructor with initialization parameter
      * @param refmat Sets reference matrix to NILL
 	 */
-	TPZSequenceSolver(TPZMatrix *refmat = 0);
+	TPZSequenceSolver(TPZMatrix<TVar> *refmat = 0);
 	/**
      * @brief Copy constructor
      * @param copy Model object to be copied from
 	 */
-	TPZSequenceSolver(const TPZSequenceSolver & copy);
+	TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy);
 	
-	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual = 0);
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual = 0);
 	
 	/** @brief This method will reinitialize the solver object, including the solution procedure */  
 	void ResetSolver();
@@ -46,15 +48,15 @@ public:
 	virtual void ResetMatrix();
 	
 	/** @brief Updates the values of the preconditioner based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 	// /**
 	// This method gives a preconditioner to share a matrix with the referring solver object
 	// */
 	//  virtual void SetMatrix(TPZMatrixSolver *solver);
 	
-	void AppendSolver(TPZMatrixSolver & solve);
+	void AppendSolver(TPZMatrixSolver<TVar>& solve);
 	
-	virtual TPZSolver * Clone() const;
+	virtual TPZSolver<TVar> * Clone() const;
 	
 	/** @brief Saveable specific methods */
 	virtual int ClassId() const
@@ -66,7 +68,7 @@ public:
 	
 	
 private:    
-	TPZStack < TPZMatrixSolver * > fSolvers;
+	TPZStack < TPZMatrixSolver<TVar> * > fSolvers;
 };
 
 #endif //TPZSEQUENCESOLVER_H

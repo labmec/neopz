@@ -20,13 +20,13 @@ class TPZSubCompMesh;
 class TPZSubMeshAnalysis : public TPZAnalysis  
 {
 private:
-	TPZFMatrix fReferenceSolution;
+	TPZFMatrix<REAL> fReferenceSolution;
 	
-	TPZAutoPointer<TPZMatrix > fReducableStiff;
+	TPZAutoPointer<TPZMatrix<REAL> > fReducableStiff;
 	TPZSubCompMesh *fMesh;
 	
 public:
-	virtual void LoadSolution(const TPZFMatrix &sol);
+	virtual void LoadSolution(const TPZFMatrix<REAL> &sol);
 	/**
 	 * @brief Constructor: create an object analysis from one mesh
 	 **/
@@ -37,7 +37,7 @@ public:
 	 **/
 	virtual ~TPZSubMeshAnalysis();
 	
-	TPZAutoPointer<TPZMatrix> Matrix()
+	TPZAutoPointer<TPZMatrix<REAL> > Matrix()
 	{
 		return fReducableStiff;
 	}
@@ -51,7 +51,7 @@ public:
 	 * @brief CondensedSolution: returns the condensed stiffness
 	 *matrix - ek - and the condensed solution vector - ef
 	 */
-	void CondensedSolution(TPZFMatrix &ek, TPZFMatrix &ef);
+	void CondensedSolution(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief Assemble the global stiffness matrix and put it into the 

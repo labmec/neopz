@@ -49,7 +49,7 @@ public:
 	
 private:
 	/** @brief Matrix computation derivatives of fluxes: dFx/dx, dFy/dy, dFz/dz */
-	TPZFMatrix fA,fB,fC;
+	TPZFMatrix<REAL> fA,fB,fC;
 	
 	/** @brief Problem dimension */
 	int fDimension;
@@ -64,7 +64,7 @@ public:
 	
 	//static void SetDelta(REAL delta){TPZDiffusionConsLaw::fDelta = delta;}
 	
-	void GradientOfTheFlow(TPZFMatrix &DF1,TPZFMatrix &DF2,TPZFMatrix &DF3);
+	void GradientOfTheFlow(TPZFMatrix<REAL> &DF1,TPZFMatrix<REAL> &DF2,TPZFMatrix<REAL> &DF3);
 	
 	REAL DeltaOtimo();
 	
@@ -76,23 +76,23 @@ public:
 	
 	//static void SetArtificialDiffusion(char *type){TPZDiffusionConsLaw::fArtificialDiffusion = type;}
 	
-	//void DiffusionTerm(TPZFMatrix &dphi,TPZFMatrix &diff_term);
+	//void DiffusionTerm(TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &diff_term);
 	
 	/** @brief Jacobiano of the tensor flux of Euler */
-	static void JacobFlux(TPZVec<REAL> U,TPZFMatrix &A,TPZFMatrix &B,TPZFMatrix &C);
+	static void JacobFlux(TPZVec<REAL> U,TPZFMatrix<REAL> &A,TPZFMatrix<REAL> &B,TPZFMatrix<REAL> &C);
 	
-	void Divergence(TPZVec<REAL> &dphi,TPZFMatrix &diverg);
+	void Divergence(TPZVec<REAL> &dphi,TPZFMatrix<REAL> &diverg);
 	
 	/** @brief Operation product point in the diffusion term */
-	void PointOperator(TPZVec<REAL> &dphi,TPZFMatrix &diff_term);
+	void PointOperator(TPZVec<REAL> &dphi,TPZFMatrix<REAL> &diff_term);
 	
-	void Tau(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
+	void Tau(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz);
 	
-	void SUPG(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
+	void SUPG(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz);
 	
-	void LS(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
+	void LS(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz);
 	
-	void Bornhaus(TPZFMatrix &Tx,TPZFMatrix &Ty,TPZFMatrix &Tz);
+	void Bornhaus(TPZFMatrix<REAL> &Tx,TPZFMatrix<REAL> &Ty,TPZFMatrix<REAL> &Tz);
 	
 	/** @brief Flux of Roe (MOUSE program) */
 	static void Roe_Flux(REAL rho_f, REAL rhou_f, REAL rhov_f, REAL rhow_f, REAL rhoE_f, 

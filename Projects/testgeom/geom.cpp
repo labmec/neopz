@@ -118,7 +118,7 @@ void TestTopology()
     pzshape::SPr<pzshape::TPZShapePoint> shline;
     // the topologic extension of a point is a line (geometry)
     pzgeom::GPr<pzgeom::TPZGeoPoint,pztopology::Pr<pztopology::TPZPoint> > geoline;
-    TPZFMatrix coordd(3,2,0.);
+    TPZFMatrix<REAL> coordd(3,2,0.);
     int ic;
     for(ic=0;ic<3;ic++) coordd(ic,1) = 1.;
     

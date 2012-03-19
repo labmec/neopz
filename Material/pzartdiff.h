@@ -160,8 +160,8 @@ public:
 	 * @param[out] dDiv an apposimation to the matrix tangent to the divergent
 	 */
 	
-	void Divergent(TPZFMatrix &dsol,
-				   TPZFMatrix & dphi,
+	void Divergent(TPZFMatrix<REAL> &dsol,
+				   TPZFMatrix<REAL> & dphi,
 				   TPZVec<TPZDiffMatrix<REAL> > & Ai,
 				   TPZVec<REAL> & Div,
 				   TPZDiffMatrix<REAL> * dDiv);
@@ -181,9 +181,9 @@ public:
 	 * @note T must be a FAD class type, so the consistent Divergent jacobian is evaluated
 	 */
 	template <class T>
-	void Divergent(TPZFMatrix &dsol,
-				   TPZFMatrix & phi,
-				   TPZFMatrix & dphi,
+	void Divergent(TPZFMatrix<REAL> &dsol,
+				   TPZFMatrix<REAL> & phi,
+				   TPZFMatrix<REAL> & dphi,
 				   TPZVec<TPZDiffMatrix<T> > & Ai,
 				   TPZVec<REAL> & Div,
 				   TPZDiffMatrix<REAL> * dDiv);
@@ -213,7 +213,7 @@ public:
 	 */
 	template <class T>
 	void ComputeTau(int dim,
-					TPZFMatrix &jacinv,
+					TPZFMatrix<REAL> &jacinv,
 					TPZVec<T> & Sol,
 					TPZVec<TPZDiffMatrix<T> > &Ai,
 					TPZVec<TPZDiffMatrix<T> > &Tau);
@@ -254,7 +254,7 @@ private:
 	void LST(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 	
 	template <class T>
-	void Bornhaus(int dim, TPZFMatrix &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
+	void Bornhaus(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 	
 public:
 	
@@ -272,7 +272,7 @@ public:
 	 */
 	template <class T>
 	void PrepareDiff(int dim,
-					 TPZFMatrix &jacinv, TPZVec<T> &U,
+					 TPZFMatrix<REAL> &jacinv, TPZVec<T> &U,
 					 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau);
 	
 	/**
@@ -288,8 +288,8 @@ public:
 	 * derivative is evaluated.
 	 */
 	void PrepareFastDiff(int dim,
-						 TPZFMatrix &jacinv, TPZVec<REAL> &sol,
-						 TPZFMatrix &dsol, TPZFMatrix & dphi,
+						 TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol,
+						 TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> & dphi,
 						 TPZVec<TPZVec<REAL> > & TauDiv,
 						 TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL);
 	
@@ -303,15 +303,15 @@ public:
 	 * @param[out] TauDiv Vector of Vectors to store the values of \f$Tau_i*Div\f$
 	 */
 	void PrepareFastDiff(int dim,
-						 TPZFMatrix &jacinv, TPZVec<FADREAL> &sol,
+						 TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol,
 						 TPZVec<FADREAL> &dsol, TPZVec<TPZVec<FADREAL> > & TauDiv);
 	
 	template <int dim>
-	void PrepareFastestDiff(TPZFMatrix &jacinv,
+	void PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 							TPZVec<REAL> &sol,
-							TPZFMatrix &dsol,
-							TPZFMatrix &phi,
-							TPZFMatrix &dphi,
+							TPZFMatrix<REAL> &dsol,
+							TPZFMatrix<REAL> &phi,
+							TPZFMatrix<REAL> &dphi,
 							TPZVec<TPZVec<REAL> > & TauDiv,
 							TPZVec<TPZDiffMatrix<REAL> > & dTauDiv);
 	/** @} */
@@ -336,10 +336,10 @@ public:
 	 * @param[in] deltaX Diameter of element (used only if \f$fDelta > 0\f$);
 	 */
 	void ContributeApproxImplDiff(int dim,
-								  TPZFMatrix &jacinv,
-								  TPZVec<REAL> &sol, TPZFMatrix &dsol,
-								  TPZFMatrix &dphix,
-								  TPZFMatrix &ek, TPZFMatrix &ef,
+								  TPZFMatrix<REAL> &jacinv,
+								  TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+								  TPZFMatrix<REAL> &dphix,
+								  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 								  REAL weight, REAL timeStep,
 								  REAL deltaX);
 	
@@ -356,10 +356,10 @@ public:
 	 * @param[in] deltaX Diameter of element (used only if fDelta > 0);
 	 */
 	void ContributeExplDiff(int dim,
-							TPZFMatrix &jacinv,
-							TPZVec<REAL> &sol, TPZFMatrix &dsol,
-							TPZFMatrix &dphix,
-							TPZFMatrix &ef,
+							TPZFMatrix<REAL> &jacinv,
+							TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+							TPZFMatrix<REAL> &dphix,
+							TPZFMatrix<REAL> &ef,
 							REAL weight, REAL timeStep,
 							REAL deltaX);
 	
@@ -378,9 +378,9 @@ public:
 	 * @param[in] deltaX Diameter of element (used only if \f$ fDelta > 0\f$);
 	 */
 	void ContributeImplDiff(int dim,
-							TPZFMatrix &jacinv,
+							TPZFMatrix<REAL> &jacinv,
 							TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
-							TPZFMatrix &ek, TPZFMatrix &ef,
+							TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 							REAL weight, REAL timeStep,
 							REAL deltaX);
 	
@@ -398,19 +398,19 @@ public:
 	 * @param[in] timeStep Time step
 	 * @param[in] deltaX Diameter of element (used only if \f$fDelta > 0\f$);
 	 */
-	void ContributeFastestImplDiff(int dim, TPZFMatrix &jacinv,
-								   TPZVec<REAL> &sol, TPZFMatrix &dsol,
-								   TPZFMatrix &phi, TPZFMatrix &dphi,
-								   TPZFMatrix &ek, TPZFMatrix &ef,
+	void ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv,
+								   TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+								   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
+								   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 								   REAL weight, REAL timeStep,
 								   REAL deltaX);
 
 	template <int dim>
 	void ContributeFastestImplDiff_dim(
-									   TPZFMatrix &jacinv,
-									   TPZVec<REAL> &sol, TPZFMatrix &dsol,
-									   TPZFMatrix &phi, TPZFMatrix &dphi,
-									   TPZFMatrix &ek, TPZFMatrix &ef,
+									   TPZFMatrix<REAL> &jacinv,
+									   TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+									   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
+									   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 									   REAL weight, REAL timeStep,
 									   REAL deltaX);
 

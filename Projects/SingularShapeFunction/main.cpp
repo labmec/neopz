@@ -69,7 +69,7 @@ int main() {
   const int npoints = cel->GetIntegrationRule().NPoints();
   TPZVec<REAL> qsi(2);
   REAL w;
-  TPZFMatrix phi, dphi;
+  TPZFMatrix<REAL> phi, dphi;
   ofstream saidaX("saidaX.txt");
   ofstream saidaY("saidaY.txt");
   saidaX << "{";
@@ -123,7 +123,7 @@ int main() {
 #include "TPZCopySolve.h"
 #include "TPZSpStructMatrix.h"
 
-void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix &deriv) {
+void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &deriv) {
   u.Resize(1);
   deriv.Resize(2,1);
   double Xp = x[0];
@@ -293,7 +293,7 @@ int main1(){
   REAL diff = 1.;
   matcast->SetParameters(diff, 0., convdir);
   int nstate = 1;
-  TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,10.);
+  TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,10.);
   TPZAutoPointer<TPZMaterial> bcFora ( mat->CreateBC(mat,-2, 0,val1,val2) );
   val2(0,0) = 2.;
   TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
@@ -344,7 +344,7 @@ int main1(){
 //   TPZFStructMatrix matrix(cmesh);
   TPZBandStructMatrix matrix(cmesh);
   an.SetStructuralMatrix(matrix);
-  TPZStepSolver step;
+  TPZStepSolver<REAL> step;
   
 // #define DIRETO
 #ifdef DIRETO  
@@ -352,9 +352,9 @@ int main1(){
 #else 
 //       TPZCopySolve precond( matrix.Create() );step.ShareMatrix( precond );  
 	TPZAutoPointer<TPZGuiInterface> gui;
-	TPZFMatrix fakeRhs(cmesh->NEquations(),1);
+	TPZFMatrix<REAL> fakeRhs(cmesh->NEquations(),1);
 	TPZBandStructMatrix PrecondMatrix(cmesh); 
-	TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
+	TPZStepSolver<REAL> precond(PrecondMatrix.CreateAssemble(fakeRhs,gui));
 	precond.SetDirect(ELU);
       
       step.SetGMRES( 300000, 160, precond, 1.e-14, 0 );
@@ -374,7 +374,7 @@ int main1(){
  
   /** checando residuo da sol exata descontinua */
  /* {
-            TPZFMatrix mySol = an.Rhs();
+            TPZFMatrix<REAL> mySol = an.Rhs();
             int nshapeperel = TPZShapeDisc::NShapeF(p,2,TPZShapeDisc::EOrdemTotal)+ExternalShapes->NFunctions();
             const int ndiscel = mySol.Rows() / nshapeperel;
             mySol.Zero();
@@ -384,7 +384,7 @@ int main1(){
               pos = (i+1)*nshapeperel - 2;
               mySol(pos, 0) = 8.148974294721926;
             }
-            TPZFMatrix myRhs;
+            TPZFMatrix<REAL> myRhs;
             an.Solver().Matrix()->Multiply(mySol, myRhs);
             myRhs -= an.Rhs();
             ofstream residuofile("residuo.nb");

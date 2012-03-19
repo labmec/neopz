@@ -29,7 +29,7 @@
 #include "pzmatdefs.h"
 
 #endif
-
+template<class TVar>
 class TPZFMatrix;
 
 /**@note  Esta classe gerencia matrizes do tipo SkyLine. Todas
@@ -40,17 +40,18 @@ class TPZFMatrix;
  * @brief Implements a skyline storage format. A Skyline matrix is symmetric so square. \ref matrix "Matrix"
  * @ingroup matrix
  */
-class TPZSkylMatrix : public TPZMatrix
+template<class TVar>
+class TPZSkylMatrix : public TPZMatrix<TVar>
 {
 public:
-	TPZSkylMatrix() : TPZMatrix(0,0),fElem(0),fStorage(0) { }
+	TPZSkylMatrix() : TPZMatrix<TVar>(0,0),fElem(0),fStorage(0) { }
 	TPZSkylMatrix(const int dim);
 	/**
      @brief Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
 	 */
 	TPZSkylMatrix(const int dim ,const TPZVec<int> &skyline);
-	TPZSkylMatrix(const TPZSkylMatrix &A ) : TPZMatrix(A), fElem(0), fStorage(0)  { Copy(A); }
+	TPZSkylMatrix(const TPZSkylMatrix<TVar> &A ) : TPZMatrix<TVar>(A), fElem(0), fStorage(0)  { Copy(A); }
 	
 	CLONEDEF(TPZSkylMatrix)
 	/**
@@ -67,7 +68,7 @@ public:
 	/** @brief Add a skyline matrix B with same structure of this
 	 *  It makes this += k * B
 	 */
-	void AddSameStruct(TPZSkylMatrix &B, double k = 1.);
+	void AddSameStruct(TPZSkylMatrix<TVar> &B, double k = 1.);
 	
 	/** @brief declare the object as simetric matrix*/
 	virtual int IsSimetric() const {return 1;}
@@ -78,34 +79,34 @@ public:
     /**
 	 * @brief Updates the values of the matrix based on the values of the matrix
 	 */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 
 	
-	int    PutVal(const int row,const int col,const REAL &element );
-	const REAL &GetVal(const int row,const int col ) const;
+	int    PutVal(const int row,const int col,const TVar &element );
+	const TVar &GetVal(const int row,const int col ) const;
 	
 	
-	REAL &operator()(const int row, const int col);
-	virtual REAL &s(const int row, const int col);
+	TVar &operator()(const int row, const int col);
+	virtual TVar &s(const int row, const int col);
 	
 	
-	REAL &operator()(const int row);
+	TVar &operator()(const int row);
 	
-	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-						 const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) const ;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+						 const TVar alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
 	// Operadores com matrizes SKY LINE.
-	TPZSkylMatrix &operator= (const TPZSkylMatrix &A );
+	TPZSkylMatrix &operator= (const TPZSkylMatrix<TVar> &A );
 	//TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
 	
-	TPZSkylMatrix operator+  (const TPZSkylMatrix &A ) const;
-	TPZSkylMatrix operator-  (const TPZSkylMatrix &A ) const;
+	TPZSkylMatrix operator+  (const TPZSkylMatrix<TVar> &A ) const;
+	TPZSkylMatrix operator-  (const TPZSkylMatrix<TVar> &A ) const;
 	
-	TPZSkylMatrix &operator+=(const TPZSkylMatrix &A );
-	TPZSkylMatrix &operator-=(const TPZSkylMatrix &A );
+	TPZSkylMatrix &operator+=(const TPZSkylMatrix<TVar> &A );
+	TPZSkylMatrix &operator-=(const TPZSkylMatrix<TVar> &A );
 	
 	// Operadores com valores NUMERICOS.
-	TPZSkylMatrix operator*  (const REAL v ) const;
-	TPZSkylMatrix &operator*=( REAL v );
+	TPZSkylMatrix operator*  (const TVar v ) const;
+	TPZSkylMatrix &operator*=( TVar value );
 	
 	TPZSkylMatrix operator-() const;// { return operator*(-1.0); }
 	
@@ -124,8 +125,8 @@ public:
 	
 	/*** @brief To Solve Linear Equations ***/
 	// @{
-	virtual void SolveSOR(int &numiterations,const TPZFMatrix &F, TPZFMatrix &result,
-						  TPZFMatrix *residual,TPZFMatrix &scratch,const REAL overrelax, REAL &tol,
+	virtual void SolveSOR(int &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
+						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const TVar overrelax, TVar &tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	
 	
@@ -134,11 +135,11 @@ public:
 	int Decompose_Cholesky(std::list<int> &singular);  // Faz A = GGt.
 	int Decompose_LDLt    (std::list<int> &singular);  // Faz A = LDLt.
 	
-	int Subst_Forward  ( TPZFMatrix *b ) const;
-	int Subst_Backward ( TPZFMatrix *b ) const;
-	int Subst_LForward ( TPZFMatrix *b ) const;
-	int Subst_LBackward( TPZFMatrix *b ) const;
-	int Subst_Diag     ( TPZFMatrix *b ) const;
+	int Subst_Forward  ( TPZFMatrix<TVar> *b ) const;
+	int Subst_Backward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LForward ( TPZFMatrix<TVar> *b ) const;
+	int Subst_LBackward( TPZFMatrix<TVar> *b ) const;
+	int Subst_Diag     ( TPZFMatrix<TVar> *b ) const;
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
@@ -160,7 +161,7 @@ protected:
 	/**
      @brief This method returns a pointer to the diagonal element of the matrix of the col column
 	 */
-	REAL *Diag(int col) { return fElem[col];}
+	TVar *Diag(int col) { return fElem[col];}
 	
 	void DecomposeColumn(int col, int prevcol);
 	void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
@@ -172,14 +173,14 @@ private:
 	
 	//static int  Error(const char *msg1,const char* msg2="" );
 	int  Clear();
-	void Copy (const TPZSkylMatrix & );
+	void Copy (const TPZSkylMatrix<TVar> & );
 	int Size(const int column) const {return fElem[column+1]-fElem[column];}
 	static int NumElements(const TPZVec<int> &skyline);
 	static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<REAL> &storage, TPZVec<REAL *> &elem);
 	/**
      @brief Computes the highest skyline of both objects
 	 */
-	static void ComputeMaxSkyline(const TPZSkylMatrix &first, const TPZSkylMatrix &second, TPZVec<int> &res);
+	static void ComputeMaxSkyline(const TPZSkylMatrix<TVar> &first, const TPZSkylMatrix<TVar> &second, TPZVec<int> &res);
 	
 protected:
 	/** @brief Storage to keep the first elements to each equation
@@ -197,8 +198,8 @@ private:
 };
 
 /** @brief Implements iterative sum over N steps */
-template<int N>
-inline REAL TemplateSum(const REAL *p1, const REAL *p2){
+template<int N,class TVar>
+inline TVar TemplateSum(const TVar *p1, const TVar *p2){
 	return *p1* *p2 + TemplateSum<N-1>(p1+1,p2+1);
 	
 }

@@ -135,7 +135,7 @@ int mainAdapt ( int argc, char *argv[] )
 	// first parameter is the material wich boundary condition will be applied
 	// second parameter is material identifier ( as specified into the element definition section of the file LaraMesh.txt
 	// third and fourth parameters: depends on the material... Ask to Tiago
-	TPZFMatrix val1( 1, 1, 0. ), val2( 1, 1, 0. );
+	TPZFMatrix<REAL> val1( 1, 1, 0. ), val2( 1, 1, 0. );
 	TPZAutoPointer < TPZMaterial > boundaryCondition = eulerMaterial->CreateBC ( eulerMaterial, -1, 1, val1, val2 );
 	
 	// Method to create the interpolation spaces
@@ -150,7 +150,7 @@ int mainAdapt ( int argc, char *argv[] )
 		
 		TPZSkylineStructMatrix strskyl ( cDummyMesh );
 		eulerAnalysis.SetStructuralMatrix ( strskyl );
-		TPZStepSolver * direct = new TPZStepSolver;
+		TPZStepSolver<REAL> * direct = new TPZStepSolver<REAL>;
 		direct->SetDirect ( ECholesky );
 		eulerAnalysis.SetSolver ( * direct );
 		delete direct;
@@ -227,7 +227,7 @@ void GetSolution ( TPZCompMesh & CMesh,
 	Gradients.Resize ( 15 );
 	TPZConnect connect = CEl->Connect ( 0 );
 	int seqnum = connect.SequenceNumber();
-	TPZBlock &block = CMesh.Block();
+	TPZBlock<REAL> &block = CMesh.Block();
 	int i = 0;
 	for ( i = 0; i < 5; i++ )
 	{
@@ -657,7 +657,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 		
 		TPZConnect coarseCon = coarseEl->Connect(0);
 		int coarseSeqNum = coarseCon.SequenceNumber();
-		TPZBlock &coarseBlock = CoarseMesh->Block();
+		TPZBlock<REAL> &coarseBlock = CoarseMesh->Block();
 		int coarseblocksize = coarseBlock.Size(coarseSeqNum);
 		//solution
 		for ( isol = 0; isol < 5; isol++)
@@ -677,7 +677,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
     CoarseMesh->ExpandSolution();
 	
 	TPZExplFinVolAnal gradAnalysis ( CoarseMesh );
-	TPZFMatrix solAndGrad;
+	TPZFMatrix<REAL> solAndGrad;
 	gradAnalysis.ComputeGradientForDetails( CoarseMesh->Solution(),solAndGrad );
 	CoarseMesh->LoadSolution(solAndGrad);
 #ifdef HUGE_DEBUG	
@@ -1086,7 +1086,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 			
 			TPZConnect coarseCon = coarseEl->Connect(0);
 			int coarseSeqNum = coarseCon.SequenceNumber();
-			TPZBlock &coarseBlock = CMesh.Block();
+			TPZBlock<REAL> &coarseBlock = CMesh.Block();
 			int coarseblocksize = coarseBlock.Size(coarseSeqNum);
 			//solution
 			REAL fatherVolume = fabs(father->Volume());
@@ -1290,7 +1290,7 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 		DummyFunction2(xptr,val);
 		TPZConnect &c = disc->Connect(0);
 		int seqnum = c.SequenceNumber();
-		TPZBlock &bl = cmesh->Block();
+		TPZBlock<REAL> &bl = cmesh->Block();
 		int i;
 		for(i=0; i<5; i++)
 		{

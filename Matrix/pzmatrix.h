@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains TPZMatrix class, root matrix class.
+ * @brief Contains TPZMatrix<TVar>class, root matrix class.
  */
 //
 // Author: MISAEL LUIS SANTANA MANDUJANO.
@@ -27,14 +27,19 @@
 #include <sstream>
 
 /** @brief To create clone matrix */
-#define CLONEDEF(A) virtual TPZMatrix *Clone() const { return new A(*this); }
+#define CLONEDEF(A) virtual TPZMatrix<TVar>*Clone() const { return new A(*this); }
 
 /** @brief Gets maxime value between a and b */
 #define MAX( a, b )   ( (a) > (b) ? (a) : (b) )
 /** @brief Gets minime value between a and b */
 #define MIN( a, b )   ( (a) < (b) ? (a) : (b) )
+template<class TVar>
+class TPZMatrix;
 
+template<class TVar>
 class TPZFMatrix;
+
+template<class TVar>
 class TPZSolver;
 
 template<class T>
@@ -61,11 +66,10 @@ enum DecomposeType {ENoDecompose, ELU, ELUPivot, ECholesky, ELDLt};
 /** @brief Defines output format */
 enum MatrixOutputFormat {EFormatted, EInputFormat, EMathematicaInput, EMatlabNonZeros};
 
-class TPZFMatrix;
-
 /** @brief Root matrix class (abstract). \ref matrix "Matrix" */
-/** Abstract class TPZMatrix which defines interface of derived matrix classes. */
-class TPZMatrix  : public TPZSaveable
+/** Abstract class TPZMatrix<TVar>which defines interface of derived matrix classes. */
+template<class TVar=REAL>
+class TPZMatrix: public TPZSaveable
 
 {
 public:
@@ -78,13 +82,13 @@ public:
 		gZero = 0.;
 	}
 	
-	TPZMatrix(const TPZMatrix &cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
+	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
 	{
 	}
 	/** @brief Simple destructor */
 	virtual ~TPZMatrix();
 	
-	virtual TPZMatrix *Clone() const = 0;
+	virtual TPZMatrix<TVar>*Clone() const = 0;
 	
 	/** @brief Fill matrix storage with randomic values */
 	/** This method use GetVal and PutVal which are implemented by each type matrices */
@@ -99,47 +103,47 @@ public:
      @param col Column number.
      @param value Value being put.
 	 */
-	virtual int Put(const int row,const int col,const REAL & value );
+	virtual int Put(const int row,const int col,const TVar & value );
 	/**
 	 * @brief Get value with bound checking
      * @param row Row number.
      * @param col Column number.
 	 */
-	virtual const REAL &Get(const int row,const int col ) const;
+	virtual const TVar &Get(const int row,const int col ) const;
 	
 	/**
 	 * @brief Substitution for the () operator when const arguments are needed
      * @param row Row number.
      * @param col Column number.
 	 */
-	const REAL &g(const int row, const int col) const {return Get(row,col);}
+	const TVar &g(const int row, const int col) const {return Get(row,col);}
 	
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
 	 * @param col Column number.
 	 */
-	REAL &operator() (const int row,const int col );
+	TVar &operator() (const int row,const int col );
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
      * @param col Column number.
 	 */
-	virtual REAL &s(const int row, const int col);
+	virtual TVar &s(const int row, const int col);
 	/**
 	 * @brief The operators check on the bounds if the DEBUG variable is defined
      * @param row Row number.
 	 */
-	REAL &operator()(const int row);
+	TVar &operator()(const int row);
 	
 	/** @brief Put values without bounds checking \n
 	 *  This method is faster than "Put" if DEBUG is defined.
 	 */
-	virtual int PutVal(const int /*row*/,const int /*col*/,const REAL & /*val*/ ) { return 0; }
+	virtual int PutVal(const int /*row*/,const int /*col*/,const TVar & /*val*/ ) { return 0; }
 	/** @brief Get values without bounds checking \n
 	 *  This method is faster than "Get" if DEBUG is defined.
 	 */
-	virtual const REAL &GetVal(const int /*row*/, const int /*col*/ ) const  { return gZero; }
+	virtual const TVar &GetVal(const int /*row*/, const int /*col*/ ) const  { return gZero; }
 	
 	/** @name Algebraic
 	 *  @brief Implements algebraic operations with matrices
@@ -147,19 +151,19 @@ public:
 	//@{
 	
 	/**
-	 * @brief It mutiplies itself by TPZMatrix A putting the result in res
-	 * @param A TPZMatrix object to multiplied to
-	 * @param res TPZFMatrix containing the result
+	 * @brief It mutiplies itself by TPZMatrix<TVar>A putting the result in res
+	 * @param A TPZMatrix<TVar>object to multiplied to
+	 * @param res TPZFMatrix<TVar>containing the result
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void Multiply(const TPZFMatrix & A,TPZFMatrix & res, int opt = 0, int stride = 1) const;
+	virtual void Multiply(const TPZFMatrix<TVar>& A,TPZFMatrix<TVar>& res, int opt = 0, int stride = 1) const;
 	/**
-	 * @brief It adds itself to TPZMatrix A putting the result in res
-	 * @param A TPZMatrix to added to current matrix
+	 * @brief It adds itself to TPZMatrix<TVar>A putting the result in res
+	 * @param A TPZMatrix<TVar>to added to current matrix
 	 * @param res Contains the result
 	 */
-	virtual void Add(const TPZMatrix & A,TPZMatrix & res) const;
+	virtual void Add(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& res) const;
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation
@@ -170,17 +174,17 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void MultAdd(const TPZFMatrix & x,const TPZFMatrix & y, TPZFMatrix & z,
-						 const REAL alpha=1., const REAL beta = 0., const int opt = 0, const int stride = 1 ) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
+						 const TVar alpha=1., const TVar beta = 0., const int opt = 0, const int stride = 1 ) const;
 	
 	/**
 	 * @brief Computes res = rhs - this * x
 	 */
-	virtual void Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res ) ;
+	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
 	/**
 	 * @brief It substracts A from storing the result in result
 	 */
-	virtual void Substract(const TPZMatrix & A,TPZMatrix & result) const;
+	virtual void Substract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
 	
 	
 	/** @brief Converts the matrix in an identity matrix*/
@@ -188,14 +192,14 @@ public:
 	/**
 	 * @brief It makes *T the transpose of current matrix.
 	 */
-	virtual void Transpose(TPZMatrix *const T) const;
+	virtual void Transpose(TPZMatrix<TVar>*const T) const;
 	
 	/**
-	 * @brief It makes Inv = Inverse[this].
+	 * @brief It makes Inv =[this].
 	 * IMPORTANT OBSERVATION --> The original matrix (calling object) no is more equal. 
 	 * It containts the some decomposition (LU or Cholesky or ...)
 	 */
-	int Inverse(TPZFMatrix &Inv);
+	int Inverse(TPZFMatrix<TVar>&Inv);
 	
 	/**
 	 * @brief Computes the matrix norm of this
@@ -211,7 +215,7 @@ public:
 	 * Be careful when choosing 2-norm. It has a high computational cost.
 	 
 	 */
-	REAL MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const;
+	TVar MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const; // -<
 	
 	/**
 	 * @brief Computes the matrix condition number of this
@@ -225,7 +229,7 @@ public:
 	 * All norms require the computation of the inverse matrix.
 	 * It has a high computational cost and a high memory requirement.
 	 */
-	REAL ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);
+	TVar ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);
 	
 	//@}
 	
@@ -239,7 +243,7 @@ public:
 	virtual void Input(std::istream & in = std::cin );
 	
 	/** @brief Input operation*/
-	friend std::istream & operator>>(std::istream& in,TPZMatrix & A);
+	template <class TT> friend std::istream & operator >> (std::istream& in,TPZMatrix<TT>& A) ;
 	
 	/** @brief It prints the matrix data in a MatrixFormat Rows X Cols */
 	virtual void Print(const char *name = 0, std::ostream &out = std::cout ,const MatrixOutputFormat form = EFormatted) const;
@@ -282,7 +286,7 @@ public:
 	
 	/** @brief Zeroes the matrix */
 	virtual int Zero(){
-		std::cout << "WARNING! TPZMatrix::Zero is called\n";
+		std::cout << "WARNING! TPZMatrix<TVar>::Zero is called\n";
 		return 0; }
 	
 	//@}
@@ -298,7 +302,7 @@ public:
 	 * @param sCol Specifies starting column on current object.
 	 * @param Source The matrix to be inserted
 	 */
-	virtual int PutSub( const int sRow, const int sCol, const TPZFMatrix & Source );
+	virtual int PutSub( const int sRow, const int sCol, const TPZFMatrix<TVar>& Source );
 	
 	/**
 	 * @brief Gets submatrix storing it on Target.
@@ -309,7 +313,7 @@ public:
 	 * @param Target The matrix to be aquired.
 	 */
 	virtual int GetSub( const int sRow, const int sCol, const int rowSize,
-					   const int colSize, TPZFMatrix & Target ) const;
+					   const int colSize, TPZFMatrix<TVar>& Target ) const;
 	
 	/**
 	 * @brief It adds Source matrix on current matrix from position (sRow, sCol)
@@ -317,7 +321,7 @@ public:
 	 * @param sCol Specifies starting column on current object.
 	 * @param Source The matrix to be added
 	 */
-	virtual int AddSub(const int sRow, const int sCol, const TPZFMatrix & Source );
+	virtual int AddSub(const int sRow, const int sCol, const TPZFMatrix<TVar>& Source );
 	
 	//insere uma submatriz do objeto corrente para *Target sem redimencionar-la
 	/**
@@ -332,7 +336,7 @@ public:
 	 * @param Target The matrix to be inserted.
 	 */
 	virtual int InsertSub(const int sRow,const int sCol,const int rowSize,const int colSize,
-						  const int pRow,const int pCol, TPZMatrix * Target ) const;
+						  const int pRow,const int pCol, TPZMatrix<TVar>* Target ) const;
 	
 	//adiciona uma submatriz do objeto corrente para *target
 	//10-10-95
@@ -347,7 +351,7 @@ public:
 	 * @param pA The matrix to be added.
 	 */
 	virtual int AddSub(const int sRow,const int sCol,const int rowSize,
-					   const int colSize,const int pRow,const int pCol, TPZMatrix * pA ) const;
+					   const int colSize,const int pRow,const int pCol, TPZMatrix<TVar>* pA ) const;
 	
 	
 	//@}
@@ -357,7 +361,7 @@ public:
 	 * @param elmat Element matrix to be contributed
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex);
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int> &destinationindex);
 	
 	/**
 	 * @brief Add a contribution of a stiffness matrix
@@ -365,7 +369,7 @@ public:
 	 * @param sourceindex Contains source indexes on current matrix
 	 * @param destinationindex Contains destine indexes on current matrix
 	 */
-	virtual  void AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
+	virtual  void AddKel(TPZFMatrix<TVar>&elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);
 	
 	/**
 	 * @name Inquire
@@ -375,9 +379,9 @@ public:
 	/**
 	 * @brief Updates the values of the matrix based on the values of the matrix
 	 */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> /* mat*/)
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > /* mat*/)    
 	{
-		std::cout << "TPZMatrix::UdateFrom is not implemented\n";
+		std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
         DebugStop();
 	}
 	//@{
@@ -425,8 +429,8 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveJacobi(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
-							 TPZFMatrix * residual, TPZFMatrix & scratch, REAL & tol, const int FromCurrent = 0);
+	virtual void SolveJacobi(int & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+							 TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, REAL & tol, const int FromCurrent = 0);
 	
 	/**
 	 * @brief Solves the linear system using Successive Over Relaxation method (Gauss Seidel). \n
@@ -440,8 +444,8 @@ public:
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 * @param direction Indicates interaction direction, from first to last (default 1) or from last to first (-1)
 	 */
-	virtual void SolveSOR(int & numiterations, const TPZFMatrix & F, TPZFMatrix & result,
-						  TPZFMatrix * residual,TPZFMatrix & scratch,const REAL overrelax, REAL & tol,
+	virtual void SolveSOR(int & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+						  TPZFMatrix<TVar>* residual,TPZFMatrix<TVar>& scratch,const TVar overrelax, TVar & tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	/**
 	 * @brief Solves the linear system using Symmetric Successive Over Relaxation method (Gauss Seidel). \n
@@ -454,8 +458,8 @@ public:
 	 * @param tol The tolerance value..
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveSSOR(int & numiterations,const TPZFMatrix & F, TPZFMatrix & result,
-						   TPZFMatrix * residual, TPZFMatrix & scratch, const REAL overrelax, REAL & tol,
+	virtual void SolveSSOR(int & numiterations,const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+						   TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, const TVar overrelax, TVar & tol,
 						   const int FromCurrent = 0) ;
 	
 	/**
@@ -468,9 +472,9 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveCG(int & numiterations, TPZSolver & preconditioner,
-						 const TPZFMatrix & F, TPZFMatrix & result,
-						 TPZFMatrix * residual, REAL & tol,
+	virtual void SolveCG(int & numiterations, TPZSolver<TVar> & preconditioner,
+						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+						 TPZFMatrix<TVar>* residual, TVar & tol,
 						 const int FromCurrent = 0) ;
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient method. \n
@@ -480,9 +484,9 @@ public:
 	 * @param result The solution.
 	 * @param tol The tolerance value.
 	 */
-	virtual void SolveBICG(int & numiterations, TPZSolver & preconditioner,
-						   const TPZFMatrix & F, TPZFMatrix & result,
-						   REAL & tol) ;
+	virtual void SolveBICG(int & numiterations, TPZSolver<TVar> & preconditioner,
+						   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+						   TVar & tol) ;
 	
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient stabilized method. \n
@@ -494,9 +498,9 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent.
 	 */
-	virtual void SolveBICGStab(int & numiterations, TPZSolver & preconditioner,
-							   const TPZFMatrix & F, TPZFMatrix & result,
-							   TPZFMatrix * residual, REAL & tol,
+	virtual void SolveBICGStab(int & numiterations, TPZSolver<TVar> & preconditioner,
+							   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+							   TPZFMatrix<TVar>* residual, TVar & tol,
 							   const int FromCurrent = 0) ;
 	
 	/**
@@ -511,10 +515,10 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveGMRES(int & numiterations, TPZSolver & preconditioner,
-							TPZFMatrix & H, int & numvectors,
-							const TPZFMatrix & F, TPZFMatrix & result,
-							TPZFMatrix * residual, REAL & tol,const int FromCurrent) ;
+	virtual void SolveGMRES(int & numiterations, TPZSolver<TVar> & preconditioner,
+							TPZFMatrix<TVar>& H, int & numvectors,
+							const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+							TPZFMatrix<TVar>* residual, TVar & tol,const int FromCurrent) ;
 	
 	/**
 	 * @brief Solves the linear system using IR method. \n
@@ -526,9 +530,9 @@ public:
 	 * @param tol The tolerance value.
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
-	virtual void SolveIR(int & numiterations, TPZSolver & preconditioner,
-						 const TPZFMatrix & F, TPZFMatrix & result,
-						 TPZFMatrix * residual, REAL & tol,
+	virtual void SolveIR(int & numiterations, TPZSolver<TVar> & preconditioner,
+						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
+						 TPZFMatrix<TVar>* residual, TVar & tol,
 						 const int FromCurrent = 0);
 	
 	/** @brief Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.
@@ -538,7 +542,7 @@ public:
 	 * @param Sort diagonal values from big to small
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort = 0);
+	virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL &tol, TPZVec<REAL> * Sort = 0);
 	
 	/** @brief Compute Eigenvalues and Eigenvectors of this matrix. \n
 	 * This method is efficient only for small matrices.
@@ -548,7 +552,7 @@ public:
 	 * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix & Eigenvectors) const;
+	virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix<TVar>& Eigenvectors) const;
 	
 	/**
 	 * @brief Solves the linear system using Direct methods
@@ -556,13 +560,13 @@ public:
 	 * @param dt Indicates type of decomposition
 	 * @param singular
 	 */
-	virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt, std::list<int> &singular);
+	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt, std::list<int> &singular);
 	/**
 	 * @brief Solves the linear system using Direct methods
 	 * @param F The right hand side of the system and where the solution is stored.
 	 * @param dt Indicates type of decomposition
 	 */
-	virtual int SolveDirect ( TPZFMatrix & F , const DecomposeType dt);
+	virtual int SolveDirect ( TPZFMatrix<TVar>& F , const DecomposeType dt);
 	
     /** @brief decompose the system of equations acording to the decomposition scheme */
     virtual int Decompose(const DecomposeType dt, std::list<int> &singular)
@@ -586,19 +590,19 @@ public:
 	/**
 	 * @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
 	 */
-	static REAL ReturnNearestValue(REAL val, TPZVec<REAL> &Vec, REAL tol);
+	static TVar ReturnNearestValue(TVar val, TPZVec<REAL> &Vec, TVar tol);
 	
 	/**
 	 * @brief Solves the linear system using LU method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LU ( TPZFMatrix * B, std::list<int> &singular );
+	int Solve_LU ( TPZFMatrix<TVar>* B, std::list<int> &singular );
 	/**
 	 * @brief Solves the linear system using LU method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 */
-	int Solve_LU ( TPZFMatrix * B );
+	int Solve_LU ( TPZFMatrix<TVar>* B );
 	
 	//para usar estos solves e' responsabilidade do usuario
 	//que a matriz corrente seja simetrica
@@ -606,24 +610,24 @@ public:
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 */
-	int Solve_Cholesky( TPZFMatrix * B);
+	int Solve_Cholesky( TPZFMatrix<TVar>* B);
 	/**
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular );
+	int Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 * @param singular
 	 */
-	int Solve_LDLt    ( TPZFMatrix * B, std::list<int> &singular );
+	int Solve_LDLt    ( TPZFMatrix<TVar>* B, std::list<int> &singular );
 	/**
 	 * @brief Solves the linear system using LDLt method\n
 	 * @param B The right hand side of the system and where the solution is stored.
 	 */
-	int Solve_LDLt    ( TPZFMatrix * B);
+	int Solve_LDLt    ( TPZFMatrix<TVar>* B);
 	
 	//@}
 	/**
@@ -673,41 +677,41 @@ public:
 	 * @brief Computes Forward and Backward substitution for a "LU" decomposed matrix.
 	 * @param B right hand side and result after all
 	 */
-	virtual int Substitution( TPZFMatrix * B ) const;
+	virtual int Substitution( TPZFMatrix<TVar>* B ) const;
 	
 	/**
 	 * @brief Computes B = Y, where A*Y = B, A is lower triangular.
 	 * @param b right hand side and result after all
 	 */
-	virtual int Subst_Forward( TPZFMatrix * b ) const;
+	virtual int Subst_Forward( TPZFMatrix<TVar>* b ) const;
 	
 	/**
 	 * @brief Computes B = Y, where A*Y = B, A is upper triangular.
 	 * @param b right hand side and result after all
 	 */
-	virtual int Subst_Backward( TPZFMatrix * b ) const;
+	virtual int Subst_Backward( TPZFMatrix<TVar>* b ) const;
 	
 	/**
 	 * @brief Computes B = Y, where A*Y = B, A is lower triangular with A(i,i)=1.
 	 * @param b right hand side and result after all
 	 */
-	virtual int Subst_LForward( TPZFMatrix * b ) const;
+	virtual int Subst_LForward( TPZFMatrix<TVar>* b ) const;
 	
 	/**
 	 * @brief Computes B = Y, where A*Y = B, A is upper triangular with A(i,i)=1.
 	 * @param b right hand side and result after all
 	 */
-	virtual int Subst_LBackward( TPZFMatrix * b ) const;
+	virtual int Subst_LBackward( TPZFMatrix<TVar>* b ) const;
 	
 	/**
 	 * @brief Computes B = Y, where A*Y = B, A is diagonal matrix.
 	 * @param b right hand side and result after all
 	 */
-	virtual int Subst_Diag( TPZFMatrix * b ) const;
+	virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
 	//@}
 	/**
 	 * @name TPZSaveable
-	 * Methods which would make TPZMatrix compliant with TPZSaveable
+	 * Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
 	 */
 	//@{
 	/**
@@ -739,12 +743,12 @@ public:
 	/**
 	 * @brief Extract the block indicated by the indices from the matrix
 	 */
-	virtual void GetSub(const TPZVec<int> &indices,TPZFMatrix &block) const;
+	virtual void GetSub(const TPZVec<int> &indices,TPZFMatrix<TVar>&block) const;
 	
 	/**
 	 * @brief Compare values of this to B, with a precision tolerance tol.
 	 */
-    bool CompareValues(TPZMatrix &M, REAL tol);
+    bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
 	
 protected:
 	
@@ -752,14 +756,14 @@ protected:
 	 * @brief Is an auxiliar method used by MultiplyAdd
 	 * @see MultAdd
 	 */
-	void PrepareZ(const TPZFMatrix & y, TPZFMatrix & z,const REAL beta,const int opt,const int stride) const;
+	void PrepareZ(const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,const TVar beta,const int opt,const int stride) const;
 	
 	/**
 	 * @brief Constructor
 	 * @param row Number of rows
 	 * @param col Number of cols
 	 */
-	inline  TPZMatrix (const int row,const int col )
+	inline  TPZMatrix<TVar>(const int row,const int col )
 	{ fRow = row; fCol = col;fDefPositive=0; fDecomposed = 0;}
 	
 public:
@@ -781,7 +785,7 @@ protected:
 	 */
 	static void Swap(int *a, int *b);
 	/* inline void
-	 TPZMatrix::Swap( int *a, int *b ) const
+	 TPZMatrix<TVar>::Swap( int *a, int *b ) const
 	 {
 	 int aux = *a;
 	 *a = *b;
@@ -796,37 +800,44 @@ protected:
 	char  fDecomposed;
 	/** @brief Definite Posistiveness of current matrix */
 	char fDefPositive;
-	static REAL gZero;
+	static TVar gZero;
 };
 
 /** @} */
 
 /** @brief Overload << operator to print entries of the matrix ***/
-std::ostream & operator<<(std::ostream& out, const TPZMatrix & A);
+template<class TVar>
+std::ostream & operator<<(std::ostream& out, const TPZMatrix<TVar> & A);
 
 /******** Inline ********/
 
-inline int TPZMatrix::Rows() const {
+
+template<class TVar>
+inline int TPZMatrix<TVar>::Rows() const {
 	return fRow;
 }
 
-inline int TPZMatrix::Cols() const {
+
+template<class TVar>
+inline int TPZMatrix<TVar>::Cols() const {
 	return fCol;
 }
 
-inline void TPZMatrix::Residual(const TPZFMatrix & x,const TPZFMatrix & rhs, TPZFMatrix & res )  {
+template<class TVar>
+inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
 	MultAdd( x, rhs, res, -1.0, 1.0 );
 }
 
 /***********/
 /*** Put ***/
 
-inline int TPZMatrix::Put(const int row,const int col,const REAL & value ) {
+template<class TVar>
+inline int TPZMatrix<TVar>::Put(const int row,const int col,const TVar & value ) {     
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifdef DEBUG
 	if ( row >= Rows() || col >= Cols() || row <0 || col < 0 ) {
 		std::stringstream sout;
-		sout << "TPZMatrix::Put" << " Index out of range row = " << row << " col = " << col << " Rows() " << Rows() << " Cols() " << Cols() << std::endl;
+		sout << "TPZMatrix<TVar>::Put" << " Index out of range row = " << row << " col = " << col << " Rows() " << Rows() << " Cols() " << Cols() << std::endl;
 		Error(sout.str().c_str());
 	}
 #endif
@@ -839,7 +850,8 @@ inline int TPZMatrix::Put(const int row,const int col,const REAL & value ) {
 /***********/
 /*** Get ***/
 
-inline const REAL &TPZMatrix::Get(const int row, const int col ) const {
+template<class TVar>
+inline const TVar &TPZMatrix<TVar>::Get(const int row, const int col ) const {
 	// verificando se o elemento pedido esta dentro da matriz
 #ifdef DEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
@@ -851,43 +863,47 @@ inline const REAL &TPZMatrix::Get(const int row, const int col ) const {
 	return( GetVal( row, col ) );
 }
 
-
-inline REAL &TPZMatrix::operator()(const int row, const int col) {
+template<class TVar>
+inline TVar &TPZMatrix<TVar>::operator()(const int row, const int col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
 		gZero = 0.;
-		Error("TPZMatrix::Operator()","Index out of range");
+		Error("TPZMatrix<TVar>::Operator()","Index out of range");
 		return gZero;
 	}
 #endif
 	return s(row,col);
 }
 
-inline REAL &TPZMatrix::s(const int row, const int col) {
+template<class TVar>
+inline TVar &TPZMatrix<TVar>::s(const int row, const int col) {
 	// verificando se o elemento a inserir esta dentro da matriz
-	std::cout << "TPZMatrix::s not implemented\n";
+	std::cout << "TPZMatrix<TVar>::s not implemented\n";
 	return gZero;
 }
 
-inline REAL &TPZMatrix::operator()(const int row) {
+template<class TVar>
+inline TVar &TPZMatrix<TVar>::operator()(const int row) {
 	return operator()(row,0);
 }
 
-
-inline int TPZMatrix::Dim() const{
+template<class TVar>
+inline int TPZMatrix<TVar>::Dim() const{
 	if ( IsSquare() ) return Rows();
 	Error( "matrix is not square" );
 	return ( 0 );
 }
 //***Solve LU ***/
 
-inline int TPZMatrix::Solve_LU( TPZFMatrix *B, std::list<int> &singular) {
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B, std::list<int> &singular) {
 	if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU(singular) )?  0 : Substitution( B )  );
 }
 
-inline int TPZMatrix::Solve_LU( TPZFMatrix *B ) {
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_LU( TPZFMatrix<TVar>*B ) {
 	if ( IsSimetric() ) Error( "LU decomposition is a not symetric decomposition" );
 	return ( ( !Decompose_LU() )?  0 : Substitution( B )  );
 }
@@ -897,14 +913,16 @@ inline int TPZMatrix::Solve_LU( TPZFMatrix *B ) {
 //  Se nao conseguir resolver por Cholesky retorna 0 e a matriz
 //   sera' modificada (seu valor perdera' o sentido).
 //
-inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B )
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B )
 {
 	return(
 		   ( !Decompose_Cholesky() )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
 		   );
 }
 
-inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular ) {
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int> &singular ) {
 	return(
 		   ( !Decompose_Cholesky(singular) )?  0 :( Subst_Forward( B ) && Subst_Backward( B ) )
 		   );
@@ -914,7 +932,9 @@ inline int TPZMatrix::Solve_Cholesky( TPZFMatrix * B, std::list<int> &singular )
 
 /******************/
 /*** Solve LDLt ***/
-inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B ) {
+
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B ) {
 	
 	return(
 		   ( !Decompose_LDLt() )? 0 :
@@ -924,8 +944,8 @@ inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B ) {
 
 
 
-
-inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B, std::list<int> &singular ) {
+template<class TVar>
+inline int TPZMatrix<TVar>::Solve_LDLt( TPZFMatrix<TVar>* B, std::list<int> &singular ) {
 	
 	return(
 		   ( !Decompose_LDLt(singular) )? 0 :
@@ -933,8 +953,9 @@ inline int TPZMatrix::Solve_LDLt( TPZFMatrix * B, std::list<int> &singular ) {
 		   );
 }
 
+template<class TVar>
 inline void
-TPZMatrix::Swap( int *a, int *b )
+TPZMatrix<TVar>::Swap( int *a, int *b )
 {
 	int aux = *a;
 	*a = *b;

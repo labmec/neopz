@@ -45,7 +45,7 @@ void TwoUncoupledPoisson::Print(std::ostream &out) {
 	out << "\n";
 }
 
-void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 
 	
 	int nref =  datavec.size();
@@ -54,12 +54,12 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 		DebugStop();
 	}
 	
-	TPZFMatrix  &phiu =  datavec[0].phi;
-	TPZFMatrix &dphiu = datavec[0].dphix;
+	TPZFMatrix<REAL>  &phiu =  datavec[0].phi;
+	TPZFMatrix<REAL> &dphiu = datavec[0].dphix;
 	int phru = phiu.Rows();
 
-	TPZFMatrix  &phip =  datavec[1].phi;
-	TPZFMatrix &dphip = datavec[1].dphix;
+	TPZFMatrix<REAL>  &phip =  datavec[1].phi;
+	TPZFMatrix<REAL> &dphip = datavec[1].dphix;
 	int phrp = phip.Rows();
 	
 	//Equacao de Poisson
@@ -88,8 +88,8 @@ void TwoUncoupledPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weig
 
 }
 
-void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix &ek,
-									   TPZFMatrix &ef,TPZBndCond &bc) {
+void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
+									   TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
 	
 	
 	int nref =  datavec.size();
@@ -102,8 +102,8 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 		DebugStop();
 	}
 	
-	TPZFMatrix  &phiu = datavec[0].phi;
-	TPZFMatrix  &phip = datavec[1].phi;
+	TPZFMatrix<REAL>  &phiu = datavec[0].phi;
+	TPZFMatrix<REAL>  &phip = datavec[1].phi;
 		
 	int phru = phiu.Rows();
 	int phrp = phip.Rows();
@@ -147,12 +147,12 @@ void TwoUncoupledPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL wei
 }
 
 //void TwoUncoupledPoisson::ContributeInterface(TPZVec<TPZMaterialData> &datavec, REAL weight,
-//                                          TPZFMatrix &ek,TPZFMatrix &ef){
+//                                          TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
 //	
-//	TPZFMatrix &dphiLdAxesu = datavec[0].dphixl;
-//	TPZFMatrix &dphiRdAxesu = datavec[0].dphixr;
-//	TPZFMatrix &phiLu = datavec[0].phil;
-//	TPZFMatrix &phiRu = datavec[0].phir;
+//	TPZFMatrix<REAL> &dphiLdAxesu = datavec[0].dphixl;
+//	TPZFMatrix<REAL> &dphiRdAxesu = datavec[0].dphixr;
+//	TPZFMatrix<REAL> &phiLu = datavec[0].phil;
+//	TPZFMatrix<REAL> &phiRu = datavec[0].phir;
 //	TPZManVector<REAL,3> &normalu = datavec[0].normal;
 //	
 //			
@@ -271,8 +271,8 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 	Solout.Resize( this->NSolutionVariables(var));
 	
 	TPZVec<REAL> SolU, SolP;
-	TPZFMatrix DSolU, DSolP;
-	TPZFMatrix axesU, axesP;
+	TPZFMatrix<REAL> DSolU, DSolP;
+	TPZFMatrix<REAL> axesU, axesP;
 	
 	SolU=datavec[0].sol[0];
 	DSolU=datavec[0].dsol[0];
@@ -295,7 +295,7 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 		int id;
 		for(id=0 ; id<fDim; id++) {
 			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools::Axes2XYZ(DSolU, dsoldx, axesU);
+			TPZAxesTools<REAL>::Axes2XYZ(DSolU, dsoldx, axesU);
 			Solout[id] = dsoldx(id,0);//derivate of u
 		}
 		return;
@@ -305,7 +305,7 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 		int id;
 		for(id=0 ; id<fDim; id++) {
 			TPZFNMatrix<9> dsoldx;
-			TPZAxesTools::Axes2XYZ(DSolP, dsoldx, axesP);
+			TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
 			Solout[id] = dsoldx(id,0);//derivate of p
 		}
 		return;
@@ -313,11 +313,11 @@ void TwoUncoupledPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TP
 }
 
 
-void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef){
+void TwoUncoupledPoisson::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	DebugStop();
 }
 
-void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc){
+void TwoUncoupledPoisson::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();
 }
 //int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const

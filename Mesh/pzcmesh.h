@@ -34,6 +34,7 @@ struct TPZConnectBC;
 class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
+
 class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
@@ -90,21 +91,21 @@ protected:
 	/**
 	 * @brief Block structure of the solution vector ????
 	 */
-	TPZBlock		fSolutionBlock;
+	TPZBlock<REAL>		fSolutionBlock;
 	
 	/** @brief Solution vector*/
-	TPZFMatrix	fSolution;
+	TPZFMatrix<REAL>	fSolution;
 	
 	/**
 	 * @brief Block structure to right construction of the
 	 * stiffness matrix and load vector
 	 */
-	TPZBlock		fBlock;
+	TPZBlock<REAL>		fBlock;
 	
 	/**
 	 * @brief Solution vectors organized by element
 	 */
-	TPZFMatrix fElementSolution;
+	TPZFMatrix<REAL> fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
@@ -248,22 +249,22 @@ public:
 	/**
 	 * @brief Access the block structure of the solution vector
 	 */
-	const TPZBlock &Block() const { return fBlock;}
+	const TPZBlock<REAL> &Block() const { return fBlock;}
 	
 	/**
 	 * @brief Access the block structure of the solution vector
 	 */
-	TPZBlock &Block() { return fBlock;}
+	TPZBlock<REAL> &Block() { return fBlock;}
 	
 	/**
 	 * @brief Access the solution vector
 	 */
-	TPZFMatrix &Solution(){ return fSolution;}
+	TPZFMatrix<REAL> &Solution(){ return fSolution;}
 	
 	/**
 	 * @brief Access method for the element solution vectors
 	 */
-	TPZFMatrix &ElementSolution() { return fElementSolution;}
+	TPZFMatrix<REAL> &ElementSolution() { return fElementSolution;}
 	//@}
 	
 	/**
@@ -465,7 +466,7 @@ public:
 	 * @param estimator vector where will be assembled the errors
 	 * @param errorid index for dual or wheeler estimator
 	 */
-	void AssembleError(TPZFMatrix &estimator, int errorid);
+	void AssembleError(TPZFMatrix<REAL> &estimator, int errorid);
 	
 	/**
 	 * @brief Builds the transfer matrix from the current grid to the coarse grid
@@ -478,7 +479,7 @@ public:
 	 * @brief To discontinuous elements
 	 */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
-	void ProjectSolution(TPZFMatrix &projectsol);
+	void ProjectSolution(TPZFMatrix<REAL> &projectsol);
 	
 private:
 	
@@ -577,7 +578,7 @@ public:
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
-	void LoadSolution(const TPZFMatrix &sol);
+	void LoadSolution(const TPZFMatrix<REAL> &sol);
 	
 	/**
 	 * @brief Divide the element corresponding to index
@@ -625,7 +626,7 @@ public:
 	 * @note Parameter deriv - ????
 	 * @param errorSum - return the L1 error
 	 */
-	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 					   TPZVec<REAL> &errorSum);
 	
 	/**
@@ -676,7 +677,7 @@ public:
 	 * @param resolution Number of rows and columns of the matrix
 	 * @param fillin Matrix which is mapped onto the global system of equations and represents the fillin be assigning a value between 0. and 1. in each element 
 	 */
-	void ComputeFillIn(int resolution, TPZFMatrix &fillin);
+	void ComputeFillIn(int resolution, TPZFMatrix<REAL> &fillin);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

@@ -125,13 +125,13 @@ class TPZPlasticTest
 			LoadState will keep a given state as static variable of the class
 		*/
 		
-		void LoadState(TPZFMatrix &state)
+		void LoadState(TPZFMatrix<REAL> &state)
 		{
 			int i;
 			for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
 		}
 		
-		void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase)
+		void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
 		{
 			switch(icase)
 			{
@@ -150,7 +150,7 @@ class TPZPlasticTest
 			}
 		}
 		
-		void Residual(TPZFMatrix &res,int icase)
+		void Residual(TPZFMatrix<REAL> &res,int icase)
 		{
 			
 			res.Redim(1,1);
@@ -174,9 +174,9 @@ class TPZPlasticTest
 		
 		
 		
-		static void RotateMatrix(TPZFMatrix &Mat, double thetaRad,int rotateaboutaxes);
+		static void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes);
 		
-		//static void RotationMatrix(TPZFMatrix &R, double thetaRad, int axis);
+		//static void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis);
 		
 		template <class T>
 		static void PlasticIntegratorCheck(int thetaintervals,T mat);
@@ -2158,7 +2158,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 
 
 #include <math.h>
-inline void RotationMatrix(TPZFMatrix &R, double thetaRad, int axis)
+inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
 {
 	R.Resize(3,3);
 	
@@ -2222,7 +2222,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 	std::ifstream input("SnubDodecahedron.txt");
 	int sizedirs;
 	input >>sizedirs; 
-	TPZFMatrix directions(sizedirs,3,0.);
+	TPZFMatrix<REAL> directions(sizedirs,3,0.);
 	
 	TPZTensor<REAL> DiagonalStress,epst,epsp;
 	
@@ -2366,7 +2366,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 	
 	TPZVec<REAL>  funcs(nyield);
 	int checkForcedYield;
-	TPZFMatrix sigma1(3,1,0.);//Cria um vetor no espaco das tensoes principais que quase ultrapassa a superficie de plastificacao
+	TPZFMatrix<REAL> sigma1(3,1,0.);//Cria um vetor no espaco das tensoes principais que quase ultrapassa a superficie de plastificacao
 	
 	REAL thetatotal = 2.* M_PI;
 	REAL theta = 0.;
@@ -2401,7 +2401,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 		for(int i=0;i<thetaintervals;i++)
 		{
 			
-			TPZFMatrix R,resp;
+			TPZFMatrix<REAL> R,resp;
 			TPZFNMatrix<6> Dep(6,6,0.);
 			RotationMatrix(R, theta,rotateaboutaxes);
 			R.Multiply(sigma1,resp);

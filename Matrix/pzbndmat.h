@@ -30,11 +30,12 @@
  * @brief Defines a non symmetric banded matrix. \ref matrix "Matrix"
  * @ingroup matrix
  */
-class TPZFBMatrix : public TPZMatrix
+template<class TVar>
+class TPZFBMatrix : public TPZMatrix<TVar>
 {
 	
 public:
-	virtual int Substitution(TPZFMatrix *B) const;
+	virtual int Substitution(TPZFMatrix<TVar> *B) const;
 	/**
 	 * @brief Simple constructor
 	 */
@@ -48,7 +49,7 @@ public:
 	/**
      @brief Copy constructor
 	 */
-	TPZFBMatrix (const TPZFBMatrix & );
+	TPZFBMatrix (const TPZFBMatrix<TVar> & );
 	
 	CLONEDEF(TPZFBMatrix)
 	/**
@@ -56,17 +57,17 @@ public:
 	 */
 	~TPZFBMatrix();
 	
-	int    Put(const int row,const int col,const REAL& value );
-	const REAL &Get(const int row,const int col ) const;
+	int    Put(const int row,const int col,const TVar& value );
+	const TVar &Get(const int row,const int col ) const;
 	
-	REAL &operator()(const int row, const int col);
-	virtual REAL &s(const int row, const int col);
+	TVar &operator()(const int row, const int col);
+	virtual TVar &s(const int row, const int col);
 	//estos metodos nao verificam a existencia do elemento
 	//sao mas rapidos que Put e Get
-	inline int    PutVal(const int row,const int col,const REAL& value );
-	inline const REAL &GetVal(const int row,const int col ) const;
+	inline int    PutVal(const int row,const int col,const TVar& value );
+	inline const TVar &GetVal(const int row,const int col ) const;
 	
-	void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
+	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 				 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const;
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
@@ -74,18 +75,18 @@ public:
 	// Peforms the product (*this)T x D x (*this).
 	//  TPZFBMatrix  InnerProd(TPZFBMatrix &D );
 	
-	TPZFBMatrix &operator= (const TPZFBMatrix & A );
-	TPZFBMatrix operator+  (const TPZFBMatrix & A ) const;
-	TPZFBMatrix operator-  (const TPZFBMatrix & A ) const;
-	TPZFBMatrix &operator+=(const TPZFBMatrix & A );
-	TPZFBMatrix &operator-=(const TPZFBMatrix & A );
+	TPZFBMatrix &operator= (const TPZFBMatrix<TVar> & A );
+	TPZFBMatrix operator+  (const TPZFBMatrix<TVar> & A ) const;
+	TPZFBMatrix operator-  (const TPZFBMatrix<TVar> & A ) const;
+	TPZFBMatrix &operator+=(const TPZFBMatrix<TVar> & A );
+	TPZFBMatrix &operator-=(const TPZFBMatrix<TVar> & A );
 	
-	TPZFBMatrix operator*  (const REAL val ) const;
-	TPZFBMatrix &operator*=(const REAL val );
+	TPZFBMatrix operator*  (const TVar val ) const;
+	TPZFBMatrix &operator*=(const TVar val );
 	
 	TPZFBMatrix operator-() const;
 	
-	int Dim() const     { return Rows(); }
+	int Dim() const     { return this->Rows(); }
 	/**
      @brief Returns band size
 	 */
@@ -109,7 +110,7 @@ public:
 	// Zera os elementos da matriz
 	int Zero();
 	
-	void Transpose(TPZMatrix *const T) const;
+	void Transpose(TPZMatrix<TVar> *const T) const;
 	int       Decompose_LU(std::list<int> &singular);
 	int       Decompose_LU();
 	
@@ -131,7 +132,7 @@ private:
 	//static  int Error(const char *msg1,const char *msg2="" );
 	int Clear();
 	
-	REAL *fElem;
+	TVar *fElem;
 	int  fBand;
 };
 
@@ -139,8 +140,9 @@ private:
 
 /**************/
 /*** PutVal ***/
+template<class TVar>
 inline int
-TPZFBMatrix::PutVal(const int row,const int col,const REAL& value )
+TPZFBMatrix<TVar>::PutVal(const int row,const int col,const TVar& value )
 {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
 		fElem[ fBand * (2*row + 1) + col ] = value;
@@ -151,25 +153,27 @@ TPZFBMatrix::PutVal(const int row,const int col,const REAL& value )
 
 /**************/
 /*** GetVal ***/
-inline const REAL &
-TPZFBMatrix::GetVal(const int row,const int col ) const {
+template<class TVar>
+inline const TVar &
+TPZFBMatrix<TVar>::GetVal(const int row,const int col ) const {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
 		return( fElem[ fBand * (2*row + 1) + col ] );
-	gZero = 0.;
-	return( gZero );
+	this->gZero = 0.;
+	return( this->gZero );
 }
 
-inline REAL &TPZFBMatrix::operator()(const int row, const int col){  
+template<class TVar>
+inline TVar &TPZFBMatrix<TVar>::operator()(const int row, const int col){  
 	if( (col+fBand >= row) && (col <= (row+fBand)) )
 	{
 		return( fElem[ fBand * (2*row + 1) + col ] );
 	}
     DebugStop();
-	gZero = 0.;
-	return( gZero );
+	this->gZero = 0.;
+	return( this->gZero );
 }
-
-inline REAL &TPZFBMatrix::s(const int row, const int col) {
+template<class TVar>
+inline TVar &TPZFBMatrix<TVar>::s(const int row, const int col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 	return operator()(row,col);
 }

@@ -194,7 +194,7 @@ public:
     /**
     * Load the converged solution, updating the damage variables
     */
-    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep) 
+    virtual void ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep) 
     {
        TPZTensor<REAL> translatedEpsTotal(epsTotal);
        // Deformation translation from the cohesive to the equivalent cohesionless material
@@ -386,11 +386,11 @@ public:
     /**
     LoadState will keep a given state as static variable of the class
     */
-    inline void LoadState(TPZFMatrix &state);
+    inline void LoadState(TPZFMatrix<REAL> &state);
 
-    inline void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase);
+    inline void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase);
 
-    inline void Residual(TPZFMatrix &res,int icase);
+    inline void Residual(TPZFMatrix<REAL> &res,int icase);
 
 
 
@@ -445,7 +445,7 @@ inline int TPZLadeKim::NumCases()
     return 1;
 }
 
-inline void TPZLadeKim::LoadState(TPZFMatrix &state)
+inline void TPZLadeKim::LoadState(TPZFMatrix<REAL> &state)
 {
   int i;
   const int nVars = 6+6+1+TPZYCLadeKim::NYield;
@@ -460,7 +460,7 @@ inline void TPZLadeKim::LoadState(TPZFMatrix &state)
 //#endif
 }
 
-inline void TPZLadeKim::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int icase)
+inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
 {
   const int nyield = TPZYCLadeKim::NYield;
   const int nVars = 7+nyield+6; // also includes epsTotal
@@ -514,7 +514,7 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &, int 
 //#endif
 }
 
-inline void TPZLadeKim::Residual(TPZFMatrix &res,int icase)
+inline void TPZLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
 {
   const int nyield = TPZYCLadeKim::NYield;
   const int nVars = 7+nyield+6; // also includes epsTotal

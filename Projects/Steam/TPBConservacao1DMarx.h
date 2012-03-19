@@ -141,12 +141,12 @@ public:
 	template<class T>
 	void TotalResidual(TPZVec<REAL> &leftval, TPZVec<T> &state, TPZVec<T> &residual);
 	
-	static void ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &input, TPZFMatrix &output);
+	static void ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &input, TPZFMatrix<REAL> &output);
 	
-	static void ExtractMatrix(TPZManVector<REAL> &input, TPZFMatrix &output);
+	static void ExtractMatrix(TPZManVector<REAL> &input, TPZFMatrix<REAL> &output);
 	
 	template<class T>
-	void ConvertState(TPZFMatrix &input, TPZManVector<T> &output);
+	void ConvertState(TPZFMatrix<REAL> &input, TPZManVector<T> &output);
 	
 	// metodos para recuperar os dados tabulados em funcao
 	template<class T>
@@ -555,7 +555,7 @@ inline void TPBrCellMarx::InitializeState(TPZManVector<REAL> &state)
 }
 
 template<>
-inline void TPBrCellMarx::ConvertState(TPZFMatrix &input, TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &output)
+inline void TPBrCellMarx::ConvertState(TPZFMatrix<REAL> &input, TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &output)
 {
 	int nrows = input.Rows();
 	int i;
@@ -565,7 +565,7 @@ inline void TPBrCellMarx::ConvertState(TPZFMatrix &input, TPZManVector<TFad<TPBr
 	}
 }
 template<class T>
-void TPBrCellMarx::ConvertState(TPZFMatrix &input, TPZManVector<T> &output)
+void TPBrCellMarx::ConvertState(TPZFMatrix<REAL> &input, TPZManVector<T> &output)
 {
 	InitializeState(output);
 	int nrows = input.Rows();

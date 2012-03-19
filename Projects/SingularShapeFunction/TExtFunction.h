@@ -31,7 +31,7 @@ public:
    * @param f function values
    * @param df function derivatives
    */
-  virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df);
+  virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df);
   
  /** Returns number of functions.
   */ 

@@ -94,7 +94,7 @@ void TPZTransform::Write(TPZStream &buf){
 	buf.Write(&fStore[0], 12);
 }
 
-void TPZTransform::SetMatrix(TPZFMatrix &mult, TPZFMatrix &sum) {
+void TPZTransform::SetMatrix(TPZFMatrix<REAL> &mult, TPZFMatrix<REAL> &sum) {
 	fRow = mult.Rows();
 	fCol = mult.Cols();
 	fMult = mult;

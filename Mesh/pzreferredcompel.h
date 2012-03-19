@@ -58,8 +58,8 @@ public:
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
-	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix &phi, TPZFMatrix &dphix,
-								 const TPZFMatrix &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+								 const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -77,8 +77,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix &leftaxes,
-								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Prints element data
@@ -90,21 +90,21 @@ protected:
 	
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
-							 TPZGradSolVec &dsol,  TPZFMatrix &axes);
+							 TPZGradSolVec &dsol,  TPZFMatrix<REAL> &axes);
 	
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
-							 TPZGradSolVec &dsol,  const TPZFMatrix &axes);
+							 TPZGradSolVec &dsol,  const TPZFMatrix<REAL> &axes);
 	
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &normal,
-							 TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix &leftaxes,
-							 TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix &rightaxes);
+							 TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+							 TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 };
 
 /** @brief Adjust the derivatives from one system of axes to the other */
-void AdjustSolutionDerivatives(TPZFMatrix &dsolfrom, TPZFMatrix &axesfrom,
-                               TPZFMatrix &dsolto, const TPZFMatrix &axesto);
+void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
+                               TPZFMatrix<REAL> &dsolto, const TPZFMatrix<REAL> &axesto);
 
 /** @brief Creates discontinuous referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
@@ -129,7 +129,7 @@ TPZCompEl *CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12);
 /** @brief Append u2 matrix following u1 matrix in u12 matrix */
 /** Returns u12 = [u1][u2]. Then: \f$ u12.Rows = max(u1.Rows, u2.Rows) \f$ and \f$ u12.Cols = u1.Cols + u2.Cols \f$ */
-void Append(TPZFMatrix &u1, TPZFMatrix &u2, TPZFMatrix &u12);
+void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
 /** @brief Returns true whether \f$ |Aij - Bij| < tol \f$ for all the entries of the matrices */
 bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol = 1e-10);
 

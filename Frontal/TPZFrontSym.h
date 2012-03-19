@@ -98,13 +98,13 @@ public:
         return fData[(j*(j+1))/2+i];
     }
     /** @brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix &elmat, TPZVec<int> &destinationindex);
+    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &destinationindex);
 	
     /**@brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
+    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
 	
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
-	virtual void ExtractFrontMatrix(TPZFMatrix &front);
+	virtual void ExtractFrontMatrix(TPZFMatrix<REAL> &front);
 	
 private:    
 	

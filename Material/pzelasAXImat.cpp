@@ -176,11 +176,11 @@ void TPZElasticityAxiMaterial::Print(std::ostream &out) {
 	out << "\tF   = " << ff[0] << ' ' << ff[1]   << endl;
 }
 
-void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef)
+void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
 {
-	TPZFMatrix &dphi = data.dphix;
-	TPZFMatrix &phi  = data.phi;
-	TPZFMatrix &axes = data.axes;
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	TPZFMatrix<REAL> &phi  = data.phi;
+	TPZFMatrix<REAL> &axes = data.axes;
 	
 	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
 	phc = phi.Cols();
@@ -311,9 +311,9 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	
 }
 
-void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc)
+void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
-	TPZFMatrix &phi = data.phi;
+	TPZFMatrix<REAL> &phi = data.phi;
 	
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	
@@ -426,14 +426,14 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 //---------------------------- --------------------------------------
 void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                    REAL weight,
-												   TPZFMatrix &ek, TPZFMatrix &ef){
+												   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
 	
-	TPZFMatrix &dphiL = dataleft.dphix;
-	TPZFMatrix &dphiR = dataright.dphix;
-	TPZFMatrix &phiL = dataleft.phi;
-	TPZFMatrix &phiR = dataright.phi;
-	TPZFMatrix &axesL = dataleft.axes;
-	TPZFMatrix &axesR = dataright.axes;
+	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
+	TPZFMatrix<REAL> &dphiR = dataright.dphix;
+	TPZFMatrix<REAL> &phiL = dataleft.phi;
+	TPZFMatrix<REAL> &phiR = dataright.phi;
+	TPZFMatrix<REAL> &axesL = dataleft.axes;
+	TPZFMatrix<REAL> &axesR = dataright.axes;
 	
 	TPZManVector<REAL,3> &normal = data.normal;
 	
@@ -907,9 +907,9 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
         DebugStop();
     }
 
-	TPZFMatrix &axes = data.axes;
+	TPZFMatrix<REAL> &axes = data.axes;
 	TPZVec<REAL> &SolAxes = data.sol[0];
-	TPZFMatrix &DSolAxes = data.dsol[0];
+	TPZFMatrix<REAL> &DSolAxes = data.dsol[0];
 	
     // R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
     REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
@@ -1157,7 +1157,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 			REAL i1, i2, i3, j1, j2, j3;
 			
 			i1 = T(0,0) + T(1,1) + T(2,2);
-			TPZFMatrix T2(3,3,0.);
+			TPZFMatrix<REAL> T2(3,3,0.);
 			T.Multiply(T,T2);
 			
 			i2 = 0.5*( i1*i1 - (T2(0,0) + T2(1,1) + T2(2,2)) );
@@ -1195,7 +1195,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	}
 }
 
-void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6)
 	{
@@ -1204,15 +1204,15 @@ void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatr
 	}
 }
 
-void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix &dudaxes, TPZFMatrix &axes, TPZVec<REAL> &flux,
-									  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values)
+void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+									  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
 	values[0] = 0.;
 	TPZManVector<REAL> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy,gamma;
 	
 	TPZFNMatrix<9> du;//du = dudx
-	TPZAxesTools::Axes2XYZ(dudaxes, du, axes);
+	TPZAxesTools<REAL>::Axes2XYZ(dudaxes, du, axes);
 	
 	//tensoes aproximadas : uma forma
 	gamma = du(1,0)+du(0,1);

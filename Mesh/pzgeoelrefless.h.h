@@ -333,7 +333,7 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix &jac,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
+TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 	fGeo.Jacobian(*this,coordinate,jac,axes,detjac,jacinv);
 	
 #ifdef DEBUG
@@ -600,20 +600,20 @@ inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permut
 
 //HDiv
 template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
 {
     fGeo.VecHdiv(*this,normalvec,sidevector);
 }
 
 template<>
-inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
 {
 	fGeo.VecHdiv(*this,normalvec,sidevector);
 }
 
 
 template<class TGeo>
-inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix &normalvec,TPZVec<int> &sidevector )
+inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )
 {
     PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
 }

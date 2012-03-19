@@ -166,7 +166,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 
 	nconnects = el->NConnects();
 	nshapef = el->NShapeF();
-        TPZFMatrix phiint(nshapef,1,0.), dphiint(3,nshapef,0.);
+        TPZFMatrix<REAL> phiint(nshapef,1,0.), dphiint(3,nshapef,0.);
         TPZVec<int> firstindexinternal(nconnects+1,0);
 	for(con=0;con<nconnects;con++) 
 		firstindexinternal[con+1] = firstindexinternal[con]+el->NConnectShapeF(con);
@@ -176,7 +176,7 @@ void TestShapeWithPrint(TPZInterpolatedElement *el,int order,ostream &saida) {
 	for(side=0;side<nsides;side++) {
 		nsideconnects = el->NSideConnects(side);
 		nsideshapef = el->NSideShapeF(side);
-                TPZFMatrix phi(nsideshapef,1,0.), dphi(3,nsideshapef,0.);
+                TPZFMatrix<REAL> phi(nsideshapef,1,0.), dphi(3,nsideshapef,0.);
                 TPZVec<int> firstindexside(nsideconnects+1,0);
 		for(conside=0;conside<nsideconnects;conside++) {
 			firstindexside[conside+1] = firstindexside[conside] + el->NConnectShapeF(el->SideConnectLocId(conside,side));
@@ -243,9 +243,9 @@ void TestShapeIsLinear(TPZAutoPointer<TPZCompMesh> cmesh, MElementType type ,int
 	REAL prod_int1(0.), prod_int2(0.), prod_int3(0.);
 	TPZVec<REAL> p_pointIntRule(3,0.);
         int nshapef = cel->NShapeF();
-        TPZFMatrix phi1(nshapef,1,0.), dphi1(3,nshapef,0.);
-        TPZFMatrix phi2(nshapef,1,0.), dphi2(3,nshapef,0.);
-        TPZFMatrix phi3(nshapef,1,0.), dphi3(3,nshapef,0.);
+        TPZFMatrix<REAL> phi1(nshapef,1,0.), dphi1(3,nshapef,0.);
+        TPZFMatrix<REAL> phi2(nshapef,1,0.), dphi2(3,nshapef,0.);
+        TPZFMatrix<REAL> phi3(nshapef,1,0.), dphi3(3,nshapef,0.);
 	int nsideconnects, nconnectshapef;
 	int conn, sideconnect, sideconnectshapef, point;
 	TPZIntPoints *pointIntRule = 0;
@@ -318,8 +318,8 @@ void TestShape(TPZInterpolatedElement *el,int order,ostream &saida) {
 	int npoints;
 	TPZVec<REAL> p(3,0);
 	TPZVec<REAL> p_int(3,0);
-	TPZFMatrix phi(100,1,0.), dphi(3,100,0.);
-	TPZFMatrix phiint(100,1,0.), dphiint(3,100,0.);
+	TPZFMatrix<REAL> phi(100,1,0.), dphi(3,100,0.);
+	TPZFMatrix<REAL> phiint(100,1,0.), dphiint(3,100,0.);
 	int nsideconnects, nsideshapef;
 	int nconnects, nshapef;
 	int i, j;

@@ -47,8 +47,8 @@ void TPBrCellMarx::SetGeometry(REAL cellvolume, REAL leftarea, REAL rightarea, R
 //WaterDataInStateOfSaturation waterdata;
 OilData oildata;
 
-void ScaleFactor(TPZFMatrix &tangentmatrix, TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
-void ScaleFactorSol(TPZFMatrix &residualmatrix, TPZManVector<REAL> &scalevalues );
+void ScaleFactor(TPZFMatrix<REAL> &tangentmatrix, TPZFMatrix<REAL> &residualmatrix, TPZManVector<REAL> &scalevalues, TPZManVector<REAL> &statescalevalues );
+void ScaleFactorSol(TPZFMatrix<REAL> &residualmatrix, TPZManVector<REAL> &scalevalues );
 
 /// compute the flux and energy timestepping with step delt
 void FluxEvolution(REAL tinlet, REAL delt, REAL Tfinal, const std::string &fluxfilename, const std::string &energyfilename);
@@ -211,7 +211,7 @@ void TPBrCellMarx::SetCellState(REAL pressurewater, TPZVec<REAL> &saturation, RE
 }
 
 
-void TPBrCellMarx::ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &input, TPZFMatrix &output)
+void TPBrCellMarx::ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> > &input, TPZFMatrix<REAL> &output)
 {
 	output.Resize(NUMVARS, NUMVARS);
 	int i,j;
@@ -222,7 +222,7 @@ void TPBrCellMarx::ExtractMatrix(TPZManVector<TFad<TPBrCellMarx::NUMVARS,REAL> >
 	}
 }
 
-void TPBrCellMarx::ExtractMatrix(TPZManVector<REAL> &input, TPZFMatrix &output)
+void TPBrCellMarx::ExtractMatrix(TPZManVector<REAL> &input, TPZFMatrix<REAL> &output)
 {
 	output.Resize(input.NElements(), 1);
 	int i;

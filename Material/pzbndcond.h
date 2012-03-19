@@ -39,14 +39,14 @@ protected:
 	/** @brief boundary condition type */
 	int 		fType;
 	/** @brief first value of boundary condition */
- 	TPZFMatrix	fBCVal1;
+ 	TPZFMatrix<REAL> fBCVal1;
 	/** @brief second value of boundary condition */
-	TPZFMatrix	fBCVal2;
+	TPZFMatrix<REAL> fBCVal2;
 	/** @brief pointer to material which created bc */
 	TPZAutoPointer<TPZMaterial> fMaterial;
 	
 	/** @brief Function to allow fBCVal1 to be variable */
-	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType);
+	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType);
 	
 	public :
 	/** @brief Copy constructor */
@@ -62,7 +62,7 @@ protected:
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
-	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix &val1,TPZFMatrix &val2) :
+	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
@@ -78,7 +78,7 @@ protected:
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
 	
-	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix &Val1, TPZVec<REAL> &Val2, int &BCType)){
+	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType)){
 		fValFunction = fp;
 	}
 	
@@ -98,14 +98,14 @@ protected:
 	
 	void SetType(int type){ this->fType = type; }
 	
-	TPZFMatrix &Val1() { return fBCVal1; }
+	TPZFMatrix<REAL> &Val1() { return fBCVal1; }
 	
-	TPZFMatrix &Val2() { return fBCVal2; }
+	TPZFMatrix<REAL> &Val2() { return fBCVal2; }
 	
 	TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux){
+	void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux){
 		flux.Fill(0.);
 	}
 	
@@ -133,7 +133,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point 
@@ -144,7 +144,7 @@ protected:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -155,7 +155,7 @@ protected:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
 	/**
 	 * @brief It computes a contribution to the residual vector at one integration point.
@@ -164,7 +164,7 @@ protected:
 	 * @param ef [out] is the residual vector
 	 * @since April 16, 2007
 	 */
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -174,34 +174,34 @@ protected:
 	 * @param bc [in] is the boundary condition material
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ek,TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix &dsol, TPZFMatrix &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &uexact,TPZFMatrix &duexact,TPZVec<REAL> &val){
+	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+				TPZVec<REAL> &uexact,TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val){
 		val.Fill(0.);
 	}
 	

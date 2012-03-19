@@ -52,8 +52,8 @@ void TPZCoupledTransportDarcy::Print(std::ostream &out) {
 
 void TPZCoupledTransportDarcy::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 												   REAL weight,
-												   TPZFMatrix &ek,
-												   TPZFMatrix &ef){
+												   TPZFMatrix<REAL> &ek,
+												   TPZFMatrix<REAL> &ef){
     int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -64,8 +64,8 @@ void TPZCoupledTransportDarcy::ContributeInterface(TPZMaterialData &data, TPZMat
 
 void TPZCoupledTransportDarcy::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 													 REAL weight, 
-													 TPZFMatrix &ek,
-													 TPZFMatrix &ef,
+													 TPZFMatrix<REAL> &ek,
+													 TPZFMatrix<REAL> &ef,
 													 TPZBndCond &bc){
     int numbersol = dataleft.dsol.size();
     if (numbersol != 1) {
@@ -77,7 +77,7 @@ void TPZCoupledTransportDarcy::ContributeBCInterface(TPZMaterialData &data, TPZM
 
 void TPZCoupledTransportDarcy::Contribute(TPZMaterialData &data,
                                           REAL weight,
-                                          TPZFMatrix &ek,TPZFMatrix &ef) {
+                                          TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -89,7 +89,7 @@ void TPZCoupledTransportDarcy::Contribute(TPZMaterialData &data,
 
 void TPZCoupledTransportDarcy::ContributeBC(TPZMaterialData &data,
                                             REAL weight,
-                                            TPZFMatrix &ek,TPZFMatrix &ef,
+                                            TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
                                             TPZBndCond &bc) {
 	this->GetCurrentMaterial()->ContributeBC(data, weight, ek, ef, bc);
 }
@@ -103,7 +103,7 @@ int TPZCoupledTransportDarcy::NSolutionVariables(int var){
 	return this->GetCurrentMaterial()->NSolutionVariables(var);
 }
 
-void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,
+void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,
 										int var,TPZVec<REAL> &Solout){
 	TPZMaterialData data;
     data.sol.Resize(1);
@@ -114,13 +114,13 @@ void TPZCoupledTransportDarcy::Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFM
 	return this->GetCurrentMaterial()->Solution(data, var, Solout);
 }//method
 
-void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix &/*DSol*/, TPZFMatrix &/*axes*/, TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux)
+void TPZCoupledTransportDarcy::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
 void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-									  TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-									  TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values) {
+									  TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+									  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	this->GetCurrentMaterial()->Errors(x, u, dudx, axes, flux, u_exact, du_exact, values);
 }
 
@@ -129,7 +129,7 @@ TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC(int id){
 	return new TPZCoupledTransportDarcyBC(this, id);
 }
 
-void TPZCoupledTransportDarcy::UpdateConvectionDir(TPZFMatrix &dsol){
+void TPZCoupledTransportDarcy::UpdateConvectionDir(TPZFMatrix<REAL> &dsol){
 	if (TPZCoupledTransportDarcy::CurrentEquation() == 1){
 		//It is necessary to set Beta1 = alpha * (-K0 Grad[p] )
 		REAL K, C;
@@ -149,7 +149,7 @@ void TPZCoupledTransportDarcy::UpdateConvectionDir(TPZFMatrix &dsol){
 	}
 }
 
-void TPZCoupledTransportDarcy::UpdateConvectionDirInterface(TPZFMatrix &dsolL, TPZFMatrix &dsolR){
+void TPZCoupledTransportDarcy::UpdateConvectionDirInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR){
 	if (TPZCoupledTransportDarcy::CurrentEquation() == 1){
 		int i, j;
 		int nrows = dsolL.Rows();

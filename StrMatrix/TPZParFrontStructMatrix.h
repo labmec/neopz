@@ -25,7 +25,9 @@
 
 struct TPZElementMatrix;
 
+template<class TVar>
 class TPZMatrix;
+template<class TVar>
 class TPZFMatrix;
 class TPZCompMesh;
 class TPZFileEqnStorage;
@@ -69,10 +71,10 @@ public:
 	 * @param rhs Load matrix
 	 * @param guiInterface pointer to user interface
 	 */
-	virtual TPZMatrix * CreateAssemble( TPZFMatrix &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<REAL> * CreateAssemble( TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
-	virtual void Assemble(TPZMatrix & mat, TPZFMatrix & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/** Used only for testing */
 	static int main();
@@ -109,9 +111,9 @@ private:
 	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
 	/** @brief Local pointer to stiffness matrix*/
-	TPZMatrix * fStiffness;
+	TPZMatrix<REAL> * fStiffness;
 	/** @brief Local pointer to load matrix*/
-	TPZFMatrix * fRhs;
+	TPZFMatrix<REAL> * fRhs;
 	
 	/** @brief Stack containing elements to be assembled on Stiffness matrix. */
 	/** 

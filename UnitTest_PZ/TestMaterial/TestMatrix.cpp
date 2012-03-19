@@ -25,7 +25,7 @@
  * @note The stiffness is created with the following basis function: (x,0,0), (0,x,0), (0,0,x), (y,0,0), (0,y,0), (0,0,y), (z,0,0), (0,z,0), (0,0,z) 
  * 
  */
-TPZFMatrix CubeStiffness()
+TPZFMatrix<REAL> CubeStiffness()
 {
 	int nummat = 1;
 	REAL Ela = 1000, poisson = 0.2;
@@ -33,26 +33,26 @@ TPZFMatrix CubeStiffness()
 	TPZElasticity3D elast3d(nummat, Ela, poisson, force);
 	TPZMaterialData cubodata;
 	TPZVec <REAL> pt(3,0.);
-	TPZFMatrix phi(3,1,0.);
-	TPZFMatrix dphi(3,3,0.);
+	TPZFMatrix<REAL> phi(3,1,0.);
+	TPZFMatrix<REAL> dphi(3,3,0.);
 	dphi(0,0) = 1;
 	dphi(1,1) = 1;
 	dphi(2,2) = 1;
 	cubodata.phi = phi;
 	cubodata.dphix = dphi;
 	cubodata.x = pt;
-	TPZFMatrix ek(9,9,0), ef(9,1,0);
+	TPZFMatrix<REAL> ek(9,9,0), ef(9,1,0);
 	REAL weight = 8.;
 	elast3d.Contribute(cubodata, weight, ek, ef);
 	return ek;
 }
 
-TPZFMatrix ReadStiff(std::string &FileName)
+TPZFMatrix<REAL> ReadStiff(std::string &FileName)
 {
 	std::ifstream in(FileName.c_str());
 	char buf[1024];
 	in.getline(buf,1024);
-	TPZFMatrix RightStiff(9,9,0.);
+	TPZFMatrix<REAL> RightStiff(9,9,0.);
 	REAL temp;
 	for (int i = 0 ; i < 9 ; i++) 
 	{
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(test_tonto)
 BOOST_AUTO_TEST_CASE(test_matriz_rigidez_cubo)
 {
 	std::string name = "CubeStiffMatrix.txt";
-	TPZFMatrix RightStiff(ReadStiff(name)), stiff(CubeStiffness());
+	TPZFMatrix<REAL> RightStiff(ReadStiff(name)), stiff(CubeStiffness());
 	REAL tol = 1.e-8;
 	bool sym = stiff.VerifySymmetry(tol);
 	std::cout << sym << std::endl;

@@ -51,8 +51,8 @@ int TPZIncNavierStokesKEps::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
-									  TPZFMatrix &axes, int var, TPZVec<REAL> &Solout){
+void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+									  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	
 	if (var == EK){
 		Solout[0] = Sol[EK];  
@@ -83,20 +83,20 @@ void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix &DSol,
 
 void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
                                         REAL weight,
-                                        TPZFMatrix &ek,
-                                        TPZFMatrix &ef){
+                                        TPZFMatrix<REAL> &ek,
+                                        TPZFMatrix<REAL> &ef){
 	
     int numbersol = data.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	TPZFMatrix &dphi = data.dphix;
-	// TPZFMatrix &dphiL = data.dphixl;
-	// TPZFMatrix &dphiR = data.dphixr;
-	TPZFMatrix &phi = data.phi;
-	// TPZFMatrix &phiL = data.phil;
-	// TPZFMatrix &phiR = data.phir;
+	TPZFMatrix<REAL> &dphi = data.dphix;
+	// TPZFMatrix<REAL> &dphiL = data.dphixl;
+	// TPZFMatrix<REAL> &dphiR = data.dphixr;
+	TPZFMatrix<REAL> &phi = data.phi;
+	// TPZFMatrix<REAL> &phiL = data.phil;
+	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
 	// TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
@@ -105,12 +105,12 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	TPZVec<REAL> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
-	TPZFMatrix &dsol=data.dsol[0];
-	// TPZFMatrix &dsolL=data.dsoll;
-	// TPZFMatrix &dsolR=data.dsolr;
+	TPZFMatrix<REAL> &dsol=data.dsol[0];
+	// TPZFMatrix<REAL> &dsolL=data.dsoll;
+	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
-	// TPZFMatrix &daxesdksi=data.daxesdksi;
-	// TPZFMatrix &axes=data.axes;
+	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	REAL valor;
 	
@@ -215,21 +215,21 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 
 void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
                                         REAL weight,
-                                        TPZFMatrix &ef){
+                                        TPZFMatrix<REAL> &ef){
 	
 }
 
 
 void TPZIncNavierStokesKEps::ContributeBC(TPZMaterialData &data,
                                           REAL weight,
-                                          TPZFMatrix &ek,
-                                          TPZFMatrix &ef,
+                                          TPZFMatrix<REAL> &ek,
+                                          TPZFMatrix<REAL> &ef,
                                           TPZBndCond &bc){
 	
 }
 
 
-REAL TPZIncNavierStokesKEps::Dot(TPZFMatrix &A, TPZFMatrix &B){
+REAL TPZIncNavierStokesKEps::Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B){
 	REAL sum = 0.;
 	int i, j, rows, cols;
 	rows = A.Rows();
@@ -252,7 +252,7 @@ REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZVec<REAL> &B){
 	return sum;
 }
 
-REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZFMatrix &B, int BRow){
+REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZFMatrix<REAL> &B, int BRow){
 	REAL sum = 0.;
 	int i, dim;
 	dim = A.NElements();

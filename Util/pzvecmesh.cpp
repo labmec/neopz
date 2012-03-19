@@ -16,7 +16,7 @@ struct TPZConnectBC;
 class TPZMatPlaca2;
 class TPZFMatrix;
 class TPZCompElQ2d;
-template class TPZVec<TPZFMatrix *>;
+template class TPZVec<TPZFMatrix<REAL> *>;
 template class TPZVec<TPZCompEl *>;
 template class TPZVec<TPZCompEl **>;
 template class TPZVec<TPZCompElQ2d *>;

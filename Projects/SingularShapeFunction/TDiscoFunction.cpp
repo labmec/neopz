@@ -10,7 +10,7 @@
 
 }
     
-void  TDiscoFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix &df){
+void  TDiscoFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
   f.Resize(1);
   df.Resize(8,1);
   df.Zero();

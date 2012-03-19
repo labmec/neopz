@@ -210,6 +210,5 @@ TPZLink<ElemType>::operator=( TPZLink<ElemType> &src )
 
 /*********************** Tipos usados *************************/
 
-
-template class TPZLink<TPZSpMatrix::TPZNode>;
+template class TPZLink<TPZSpMatrix<REAL>::TPZNode>;
 

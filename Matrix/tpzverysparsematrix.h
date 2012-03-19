@@ -10,6 +10,7 @@
 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
+template<class TVar>
 class TPZFYsmpMatrix;
 
 /** @ingroup matrix */
@@ -20,41 +21,42 @@ class TPZFYsmpMatrix;
  @brief Implements a matrix whose nonzero elements are stored in binary tree. \ref matrix "Matrix"
  @ingroup matrix
  */
-class TPZVerySparseMatrix: public TPZMatrix
+template<class TVar>
+class TPZVerySparseMatrix: public TPZMatrix<TVar>
 {
 public:
 	
-	friend class TPZFYsmpMatrix;
+	friend class TPZFYsmpMatrix<TVar>;
 	
 	TPZVerySparseMatrix();
 	
 	TPZVerySparseMatrix(int rows, int cols) :
-    TPZMatrix(rows, cols)
+    TPZMatrix<TVar>(rows, cols)
 	{
 	}
-	TPZVerySparseMatrix(int rows, int cols, REAL val) :
-    TPZMatrix(rows, cols)
+	TPZVerySparseMatrix(int rows, int cols, TVar val) :
+    TPZMatrix<TVar>(rows, cols)
 	{
 	}
 	
 	virtual ~TPZVerySparseMatrix();
 	
-	TPZVerySparseMatrix(const TPZVerySparseMatrix &copy) :
-    TPZMatrix(copy), fExtraSparseData(copy.fExtraSparseData)
+	TPZVerySparseMatrix(const TPZVerySparseMatrix<TVar> &copy) :
+    TPZMatrix<TVar>(copy), fExtraSparseData(copy.fExtraSparseData)
 	{
 	}
 	
-	TPZVerySparseMatrix(const TPZFMatrix &cp);
+	TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp);
 	
 	/**
 	 * @brief Put values checking bounds\n
 	 */
-	virtual int PutVal(const int row, const int col, const REAL &val);
+	virtual int PutVal(const int row, const int col, const TVar &val);
 	
 	/**
 	 * @brief Get values checking bounds\n
 	 */
-	virtual const REAL &GetVal(const int row, const int col) const;
+	virtual const TVar &GetVal(const int row, const int col) const;
 	
 	/**
 	 @brief The operators check on the bounds if the DEBUG variable is defined
@@ -64,12 +66,12 @@ public:
 	virtual REAL &s(const int row, const int col)
 	{
 #ifdef DEBUG
-		if(row >= Rows() || row<0 || col >= Cols() || col<0)
+		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)
 		{
-			Error("TPZFMatrix::operator() "," Index out of bounds");
+			this->Error("TPZFMatrix::operator() "," Index out of bounds");
 			DebugStop();
-			gZero = 0.;
-			return gZero;
+			this->gZero = 0.;
+			return this->gZero;
 		}
 #endif
 		return fExtraSparseData[std::pair<int, int>(row, col)];
@@ -87,8 +89,8 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void MultAdd(const TPZFMatrix & x, const TPZFMatrix & y,
-						 TPZFMatrix & z, const REAL alpha = 1., const REAL beta = 0.,
+	virtual void MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y,
+						 TPZFMatrix<TVar> & z, const REAL alpha = 1., const REAL beta = 0.,
 						 const int opt = 0, const int stride = 1) const;
 	
 	/**

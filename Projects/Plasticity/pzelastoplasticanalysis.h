@@ -51,8 +51,8 @@ virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter);
  */
 virtual void ManageIterativeProcess(std::ostream &out,REAL tol,int numiter,
 									int BCId, int nsteps, REAL PGRatio,
-									TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-									TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+									TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+									TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
 									TPZPostProcAnalysis * ppAnalysis = NULL, int res = 0);
 
 /**
@@ -65,7 +65,7 @@ virtual void ManageIterativeProcess(std::ostream &out,REAL tol,int numiter,
  */
 virtual REAL AcceptSolution(const int ResetOutputDisplacements = 0);
 	
-void SetPrecond(TPZMatrixSolver &precond);
+void SetPrecond(TPZMatrixSolver<REAL> &precond);
 	
 void SetBiCGStab(int numiter, REAL tol);
 	
@@ -96,11 +96,11 @@ public:
 
 void CheckConv(std::ostream &out, REAL range);
 		
-virtual void ComputeTangent(TPZFMatrix &tangent, TPZVec<REAL> &coefs, int icase);
+virtual void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase);
 	
 virtual int NumCases();
 
-virtual void Residual(TPZFMatrix &residual, int icase);
+virtual void Residual(TPZFMatrix<REAL> &residual, int icase);
 	
 static void SetAllCreateFunctionsWithMem(TPZCompMesh *cmesh);
 		
@@ -108,9 +108,9 @@ static void SetAllCreateFunctionsWithMem(TPZCompMesh *cmesh);
 protected:
 		
 	/* Cumulative solution vector*/
-	TPZFMatrix fCumSol;
+	TPZFMatrix<REAL> fCumSol;
 	
-	TPZMatrixSolver * fPrecond;
+	TPZMatrixSolver<REAL> * fPrecond;
 		
 /**
  * TPZCompElWithMem<TBASE> creation function setup

@@ -14,25 +14,31 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 using namespace std;
 
 /**
+ 
+ 
  Destructor
  */
-TPZSolver::~TPZSolver()
+template <class TVar>
+TPZSolver<TVar>::~TPZSolver()
 {
 }
 
-TPZMatrixSolver::TPZMatrixSolver(TPZAutoPointer<TPZMatrix> Refmat) :
+template <class TVar>
+TPZMatrixSolver<TVar>::TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> > Refmat) :
 fScratch()
 {
 	fContainer = Refmat;
 }
 
-TPZMatrixSolver::TPZMatrixSolver() :
+template<class TVar>
+TPZMatrixSolver<TVar>::TPZMatrixSolver() :
 fScratch()
 {
 }
 
 //misael
-TPZMatrixSolver::TPZMatrixSolver(const TPZMatrixSolver &Source) :
+template <class TVar>
+TPZMatrixSolver<TVar>::TPZMatrixSolver(const TPZMatrixSolver<TVar> &Source) :
 fScratch()
 {
 	fReferenceMatrix = Source.fReferenceMatrix;
@@ -40,29 +46,33 @@ fScratch()
 }
 
 // philippe 6/2/97
-TPZMatrixSolver::~TPZMatrixSolver()
+template <class TVar>
+TPZMatrixSolver<TVar>::~TPZMatrixSolver()
 {
 }
 
-void TPZMatrixSolver::SetMatrix(TPZAutoPointer<TPZMatrix> Refmat)
+template <class TVar>
+void TPZMatrixSolver<TVar>::SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat)
 {
 	fContainer = Refmat;
 }
 
-void TPZMatrixSolver::ResetMatrix()
+template <class TVar>
+void TPZMatrixSolver<TVar>::ResetMatrix()
 {
-	TPZAutoPointer<TPZMatrix> reset;
+	TPZAutoPointer<TPZMatrix<TVar> > reset;
 	fContainer = reset;
 }
 
-void TPZMatrixSolver::ShareMatrix(TPZMatrixSolver &other)
+template <class TVar>
+void TPZMatrixSolver<TVar>::ShareMatrix(TPZMatrixSolver<TVar> &other)
 {
 	if (this == &other)
 		return;
 	fContainer = other.fContainer;
 }
-
-void TPZMatrixSolver::Write(TPZStream &buf, int withclassid)
+template <class TVar>
+void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid)
 {
 #ifdef LOG4CXX
 	{
@@ -114,12 +124,15 @@ void TPZMatrixSolver::Write(TPZStream &buf, int withclassid)
 #endif
 }
 
-void TPZMatrixSolver::Read(TPZStream &buf, void *context)
+template <class TVar>
+void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 {
 	TPZSaveable::Read(buf,context);
-	fContainer = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
-	fReferenceMatrix = dynamic_cast<TPZMatrix *>(TPZSaveable::Restore(buf, context));
+	fContainer = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
+	fReferenceMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
 }
 
+template class TPZMatrixSolver<REAL>;
 //template class TPZRestoreClass< TPZMatrixSolver, TPZMATRIXSOLVER_ID>;
+
 

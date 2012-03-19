@@ -1232,7 +1232,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
 	
     /** Changing NodesCoords from Cartesian Notation to Vectorial Notation */
     /** with respect to IniNode coordinate */
-    TPZFMatrix VectorialNotation(VecSize,dim);
+    TPZFMatrix<REAL> VectorialNotation(VecSize,dim);
     for(int pos = 0; pos < VecSize; pos++)
     {
         if(gMesh.NodeVec()[pos].Id() == IdIni) posIni = pos;
@@ -1257,7 +1257,7 @@ void TPZRefPatternTools::NodesHunter(TPZGeoMesh &gMesh, TPZVec<int>& NodesHunted
 	// Computing BasisChange Matrix
 	// Where NewBase X_axis is defined by IniNode->FinNode orientation
 	// and   NewBase Y_axis is perpendicular to X_axis in XY plane counter-clockwise
-    TPZFMatrix IfromCntoBase(dim,dim,0.);
+    TPZFMatrix<REAL> IfromCntoBase(dim,dim,0.);
     IfromCntoBase(dim-1, dim-1) = 1.;
     double norm = 0.;
 	

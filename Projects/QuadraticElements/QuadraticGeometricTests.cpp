@@ -106,7 +106,7 @@ const int matElId = 1;
  int npts = 4;
  
  pzgeom::TPZQuadraticLine * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticLine*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int xi = 0; xi <= npts; xi++)
  {
  qsi[0] = -1. + xi*2./npts;
@@ -222,7 +222,7 @@ const int matElId = 1;
  int npts = 4;
  
  pzgeom::TPZQuadraticTrig * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticTrig*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int xi = 0; xi <= npts; xi++)
  {
  for(int et = 0; et <= npts; et++)
@@ -363,7 +363,7 @@ int main(int argc, char * const argv[])
     int npts = 4;
     
     pzgeom::TPZQuadraticQuad * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticQuad*>(myGel);
-    TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+    TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
     for(int xi = 0; xi <= npts; xi++)
     {
         for(int et = 0; et <= npts; et++)
@@ -504,7 +504,7 @@ int main(int argc, char * const argv[])
  std::cout << "Summ of phi's at many points:\n";
  int npts = 4;
  pzgeom::TPZQuadraticTetra * myQuadraticGel = dynamic_cast<pzgeom::TPZQuadraticTetra*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int xi = 0; xi <= npts; xi++)
  {
  for(int et = 0; et <= npts; et++)
@@ -653,7 +653,7 @@ int main(int argc, char * const argv[])
  std::cout << "Summ of phi's at many points:\n";
  int npts = 4;
  pzgeom::TPZQuadraticPyramid * myPyramid = dynamic_cast<pzgeom::TPZQuadraticPyramid*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int zet = 0; zet <= npts; zet++)
  {
  for(int et = 0; et <= npts; et++)
@@ -803,7 +803,7 @@ int main(int argc, char * const argv[])
  std::cout << "Summ of phi's at many points:\n";
  int npts = 4;
  pzgeom::TPZQuadraticPrism * myPrism = dynamic_cast<pzgeom::TPZQuadraticPrism*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int xi = 0; xi <= npts; xi++)
  {
  for(int et = 0; et <= npts; et++)
@@ -969,7 +969,7 @@ int main(int argc, char * const argv[])
  std::cout << "Summ of phi's at many points:\n";
  int npts = 4;
  TPZQuadraticCube * myCube = dynamic_cast<TPZQuadraticCube*>(myGel);
- TPZFMatrix phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
+ TPZFMatrix<REAL> phi(myGel->NNodes(),1), dphi(myGel->Dimension(),myGel->NNodes());
  for(int xi = 0; xi <= npts; xi++)
  {
  for(int et = 0; et <= npts; et++)

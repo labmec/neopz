@@ -40,7 +40,7 @@ TPZStructMatrix * TPZParSkylineStructMatrix::Clone(){
     return new TPZParSkylineStructMatrix(*this);
 }
 
-TPZMatrix * TPZParSkylineStructMatrix::Create(){
+TPZMatrix<REAL> * TPZParSkylineStructMatrix::Create(){
     int neq = fMesh->NEquations();
     TPZVec<int> skyline;
 	if (fOnlyInternal) {
@@ -64,10 +64,10 @@ TPZMatrix * TPZParSkylineStructMatrix::Create(){
 		// This statement is needed for compatibility with TPZSubCompMesh The number of equations of the stiffness matrix corresponds to "only" the internal nodes
 		neq = skyline.NElements();
 	}
-    return new TPZSkylParMatrix(neq,skyline,fNumThreads);
+    return new TPZSkylParMatrix<REAL>(neq,skyline,fNumThreads);
 }
-TPZMatrix * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix *mat = Create();
+TPZMatrix<REAL> * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix<REAL> *mat = Create();
 	rhs.Redim(mat->Rows(),1);
 	Assemble(*mat,rhs,guiInterface);
 	return mat;
@@ -120,12 +120,12 @@ int TPZParSkylineStructMatrix::main() {
 	
 	
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumatptr = meumat;
 	cmesh.InsertMaterialObject(meumatptr);
 	
-	TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
@@ -195,7 +195,7 @@ int TPZParSkylineStructMatrix::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
-	TPZStepSolver sol;
+	TPZStepSolver<REAL> sol;
 	//	sol.SetDirect(ELU);
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
@@ -236,7 +236,7 @@ int TPZParSkylineStructMatrix::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);

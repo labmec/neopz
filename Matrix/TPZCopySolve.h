@@ -7,22 +7,25 @@
 #ifndef TPZCOPYSOLVE_H
 #define TPZCOPYSOLVE_H
 #include "pzsolve.h"
+
+template <class TVar>
 class TPZFMatrix;
 
 /**
  * @ingroup solver
  * @brief To solve clones of the given matrix. \ref solver "Solver"
  */
-class TPZCopySolve: public TPZMatrixSolver
+template<class TVar>
+class TPZCopySolve: public TPZMatrixSolver<TVar>
 {
 public:
 	
-	TPZCopySolve(TPZMatrix *mat) :
-    TPZMatrixSolver(mat)
+	TPZCopySolve(TPZMatrix<TVar> *mat) :
+    TPZMatrixSolver<TVar>(mat)
 	{
 	}
 	TPZCopySolve(const TPZCopySolve &other) :
-    TPZMatrixSolver(other)
+    TPZMatrixSolver<TVar>(other)
 	{
 	}
 	/**
@@ -32,7 +35,7 @@ public:
 	 * @param result contains the solution
 	 * @param residual [out] residual computed
 	 */
-	void Solve(const TPZFMatrix &F, TPZFMatrix &result, TPZFMatrix *residual)
+	void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual)
 	{
 		result = F;
 	}
@@ -40,7 +43,7 @@ public:
 	/**
 	 * @brief Clones the current object returning a pointer of type TPZSolver
 	 */
-	TPZSolver *Clone() const
+	TPZSolver<TVar> *Clone() const
 	{
 		return new TPZCopySolve(*this);
 	}

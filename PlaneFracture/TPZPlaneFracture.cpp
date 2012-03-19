@@ -238,7 +238,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs    
-    TPZFMatrix k(3,3,0.), f(3,1,0.);
+    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
     int dirichlet = 0, newmann = 1, mista = 2;
     
     REAL pressureY = 1.;
@@ -365,7 +365,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
 	TPZAnalysis an(fractureCMesh);
     
 	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
     
     an.SetStructuralMatrix(skylin);

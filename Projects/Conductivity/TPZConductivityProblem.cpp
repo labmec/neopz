@@ -6,13 +6,13 @@
 //  Copyright 2011 UNICAMP. All rights reserved.
 //
 
+#include "pzstepsolver.h"
 #include "TPZConductivityProblem.h"
 #include "pzgengrid.h"
 #include "pzvoidflux.h"
 #include "pzbndcond.h"
 #include "pzgeoel.h"
 #include "pzfstrmatrix.h"
-#include "pzstepsolver.h"
 #include "pzanalysis.h"
 #include "TPZInterfaceEl.h"
 
@@ -23,7 +23,7 @@ REAL TPZConductivityProblem::ComputeFlux()
     TPZFStructMatrix fstrmatrix(cmesh);
     TPZAnalysis an(cmesh);
     an.SetStructuralMatrix(fstrmatrix);
-    TPZStepSolver solve;
+    TPZStepSolver<REAL> solve;
     solve.SetDirect(ELU);
     an.SetSolver(solve);
     an.Run();
@@ -32,8 +32,8 @@ REAL TPZConductivityProblem::ComputeFlux()
     an.DefineGraphMesh(2, scalnames, vecnames, this->fGraphicsFile );
     an.PostProcess(1);
 //    TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
-//    TPZFMatrix rhs;
-//    TPZMatrix *matrix = fstrmatrix.CreateAssemble(rhs, gui);
+//    TPZFMatrix<REAL> rhs;
+//    TPZMatrix<REAL> *matrix = fstrmatrix.CreateAssemble(rhs, gui);
 //    matrix->Print("Global matrix",std::cout);
 //    rhs.Transpose();
 //    rhs.Print("Rhs",std::cout);
@@ -135,7 +135,7 @@ TPZAutoPointer<TPZCompMesh> TPZConductivityProblem::GenerateCompMesh()
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZAutoPointer<TPZMaterial> vflux = new TPZVoidFlux(1,conductivity,bridgesize);
     cmesh->InsertMaterialObject(vflux);
-    TPZFMatrix val1(1,1,0.),val2(1,1,fDelPressure);
+    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,fDelPressure);
     TPZAutoPointer<TPZMaterial> bc1 = vflux->CreateBC(vflux, -1, 0, val1, val2);
     cmesh->InsertMaterialObject(bc1);
     val2(0,0) = 0.;
@@ -193,9 +193,9 @@ REAL TPZConductivityProblem::MeshFlux(TPZAutoPointer<TPZCompMesh> cmesh)
     std::set<int> matids;
     matids.insert(1);
     fstr.SetMaterialIds(matids);
-    TPZFMatrix rhs;
+    TPZFMatrix<REAL> rhs;
     TPZAutoPointer<TPZGuiInterface> gui = new TPZGuiInterface;
-    TPZMatrix *stiff = fstr.CreateAssemble(rhs,gui);
+    TPZMatrix<REAL> *stiff = fstr.CreateAssemble(rhs,gui);
     stiff->Multiply(cmesh->Solution(),rhs);
 //    rhs.Print("residual", std::cout);
     std::set<int> lefteq,righteq;

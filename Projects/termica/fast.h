@@ -16,22 +16,26 @@
 #include <string>
 #include "pzreal.h"
 #include "TPZTimer.h"
+template<class TVar>
 class TPZFYsmpMatrix;
+
+template<class TVar>
 class TPZFMatrix;
+template<class TVar>
 class TPZMatrix;
 
 void RunFast();
 // this function will read the matrix
-TPZFYsmpMatrix *ReadMatrix(const std::string &filename, TPZFMatrix &rhs);
+TPZFYsmpMatrix<REAL> *ReadMatrix(const std::string &filename, TPZFMatrix<REAL> &rhs);
 
-void TimeMultiply(TPZMatrix *mat, TPZMultiTimer &timer);
+void TimeMultiply(TPZMatrix<REAL> *mat, TPZMultiTimer &timer);
 
-void SolveJacobi(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveJacobi(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveCG(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveCG(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
 
-void SolveSSOR(TPZMatrix *mat, TPZFMatrix &rhs, REAL tol, TPZMultiTimer &timer);
+void SolveSSOR(TPZMatrix<REAL> *mat, TPZFMatrix<REAL> &rhs, REAL tol, TPZMultiTimer &timer);
 
-void Compare(TPZMatrix *first, TPZMatrix *second);
+void Compare(TPZMatrix<REAL> *first, TPZMatrix<REAL> *second);
 
 #endif

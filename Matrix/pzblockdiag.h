@@ -26,7 +26,8 @@
  @brief Defines block diagonal matrices. \ref matrix "Matrix"
  @ingroup matrix
  */
-class TPZBlockDiagonal : public TPZMatrix
+template <class TVar>
+class TPZBlockDiagonal : public TPZMatrix<TVar>
 {
 	
 public:
@@ -37,7 +38,7 @@ public:
      @param blocksizes Size of blocks on Block Diagonal matrix
      @param glob Global matrix which will be blocked
 	 */
-	TPZBlockDiagonal (const TPZVec<int> &blocksizes, const TPZFMatrix &glob );
+	TPZBlockDiagonal (const TPZVec<int> &blocksizes, const TPZFMatrix<TVar> &glob );
 	/**
      @brief Constructor with initialization parameters
      @param blocksizes Size of blocks on Block Diagonal matrix
@@ -50,18 +51,18 @@ public:
 	/** @brief Simple destructor */
 	~TPZBlockDiagonal();
 	
-	int    Put(const int row,const int col,const REAL& value );
-	const REAL &Get(const int row,const int col ) const;
+	int    Put(const int row,const int col,const TVar& value );
+	const TVar &Get(const int row,const int col ) const;
 	
-	REAL &operator()(const int row, const int col);
-	virtual REAL &s(const int row, const int col);
+	TVar &operator()(const int row, const int col);
+	virtual TVar &s(const int row, const int col);
 	//estos metodos nao verificam a existencia do elemento
 	//sao mas rapidos que Put e Get
-	int    PutVal(const int row,const int col,const REAL& value );
-	const REAL &GetVal(const int row,const int col ) const;
+	int    PutVal(const int row,const int col,const TVar& value );
+	const  TVar &GetVal(const int row,const int col ) const;
 	
-	void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
-				 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const ;
+	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+				 const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 ) const ;
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	
@@ -69,7 +70,7 @@ public:
 	//  TPZBlockDiagonal  InnerProd(TPZBlockDiagonal &D );
 	
 	
-	int Dim() const     { return Rows(); }
+	int Dim() const     { return this->Rows(); }
 	
 	// Zera os elementos da matriz
 	int Zero();
@@ -80,17 +81,17 @@ public:
 	 */
 	int GetSizeofBlock(int blockid) {return fBlockSize[blockid];}
 	
-	void Transpose(TPZMatrix *const T) const;
+	void Transpose(TPZMatrix<TVar> *const T) const;
 	virtual int Decompose_LU();
 	virtual int Decompose_LU(std::list<int> &singular);
 	
 	// Faz o Backward e Forward substitutions para a matriz
 	// decomposta com LU
 	/// Makes the backward and forward substitutions whether the matrix was LU decomposed
-	virtual int Substitution( TPZFMatrix * B ) const;
+	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
 	
 	/** @brief Updates the values of the matrix based on the values of the matrix */
-	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix> mat);
+	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 	
 	/**
 	 * method which checks the working of the class
@@ -118,26 +119,26 @@ public:
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void AddBlock(int i, TPZFMatrix &block);
+	void AddBlock(int i, TPZFMatrix<TVar> &block);
 	/**
      * @brief Sets a block in the current matrix
      * @param i Adds in ith position
      * @param block Block to be added
 	 */
-	void SetBlock(int i, TPZFMatrix &block);
+	void SetBlock(int i, TPZFMatrix<TVar> &block);
 	
 	/**
      * @brief Gets a block from current matrix
      * @param i Returns teh ith block
      * @param block Contains returned block
 	 */
-	void GetBlock(int i, TPZFMatrix &block);
+	void GetBlock(int i, TPZFMatrix<TVar> &block);
 	
 	/**
      @brief Builds a block from matrix
      @param matrix Matrix to build from
 	 */
-	void BuildFromMatrix(TPZMatrix &matrix);
+	void BuildFromMatrix(TPZMatrix<TVar> &matrix);
 	/**
 	 * @brief Prints current matrix data
      * @param message Message to be printed
@@ -163,10 +164,10 @@ protected:
 	TPZVec<int> fBlockSize;
 };
 
-
-inline REAL &TPZBlockDiagonal::s(const int row, const int col) {
+template<class TVar>
+inline TVar &TPZBlockDiagonal<TVar>::s(const int row, const int col) {
 	// verificando se o elemento a inserir esta dentro da matriz
-	return operator()(row,col);
+	return this->operator()(row,col);
 }
 
 

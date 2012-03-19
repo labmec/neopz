@@ -63,7 +63,7 @@ namespace pzgeom
 			}
 		}
 		
-		TPZArc3D(TPZFMatrix &coord){
+		TPZArc3D(TPZFMatrix<REAL> &coord){
 			ComputeAtributes(coord);
 		}
 		
@@ -71,7 +71,7 @@ namespace pzgeom
 		void Initialize(TPZGeoEl *refel)
 		{
 			int nnod = 3;
-			TPZFMatrix coord(3,nnod);
+			TPZFMatrix<REAL> coord(3,nnod);
 			int nod, co;
 			for(nod=0; nod<3; nod++)
 			{
@@ -85,8 +85,8 @@ namespace pzgeom
 		}
 		
 		
-		void X(TPZFMatrix &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
-		void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv) const;
+		void X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
+		void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
         {
@@ -95,7 +95,7 @@ namespace pzgeom
             X(coord,loc,result);
         }
 		
-		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv) const
+		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
@@ -153,9 +153,9 @@ namespace pzgeom
 		
 	protected:
 		
-		void ComputeAtributes(TPZFMatrix &coord);
-		void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb);
-		double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb) const;
+		void ComputeAtributes(TPZFMatrix<REAL> &coord);
+		void ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb);
+		double ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double xb, double yb) const;
 		
 		/** @name Atributes */
 		// @{

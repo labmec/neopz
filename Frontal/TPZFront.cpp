@@ -178,7 +178,7 @@ void TPZFront::main()
 	 Populates data structure
 	 */
 	int matsize=6;
-	TPZFMatrix TestMatrix(matsize,matsize);
+	TPZFMatrix<REAL> TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
 		for(j=i;j<matsize;j++) {
 			int random = rand();
@@ -189,11 +189,11 @@ void TPZFront::main()
 		}
 	}
 	
-	TPZFMatrix Prova;
+	TPZFMatrix<REAL> Prova;
 	Prova=TestMatrix;
 	
 	//	Prova.Decompose_Cholesky();
-	Prova.Print("TPZFMatrix Cholesky");
+	Prova.Print("TPZFMatrix<REAL> Cholesky");
 	
 	TPZFront TestFront(matsize);
 	
@@ -233,7 +233,7 @@ void TPZFront::main()
 	Result.Print("TestEQNArray.txt",outeqn);
 	
 	
-	TPZFMatrix Load(matsize);
+	TPZFMatrix<REAL> Load(matsize);
 	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
@@ -241,7 +241,7 @@ void TPZFront::main()
 		Load(i,0)=rnd;
 	}
 	
-	TPZFMatrix Load_2(matsize);
+	TPZFMatrix<REAL> Load_2(matsize);
 	Load_2=Load;
 	
 	//	Prova.Subst_Forward(&Load);

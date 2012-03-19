@@ -11,7 +11,9 @@
 #define TPZPARSKYLINESTRUCTMATRIX_H
 
 class TPZCompMesh;
+template<class TVar> 
 class TPZFMatrix;
+template<class TVar>
 class TPZMatrix;
 
 /**
@@ -29,9 +31,9 @@ public:
     
     TPZParSkylineStructMatrix(const TPZParSkylineStructMatrix &cp);
 	
-    virtual TPZMatrix * Create();
+    virtual TPZMatrix<REAL> * Create();
 	
-    virtual TPZMatrix * CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+    virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone();
 	

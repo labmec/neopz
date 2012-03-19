@@ -30,7 +30,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 	
 	virtual ~TPZMatHyperElastic();
 	
-	void SetMaterial(TPZFMatrix &xfin){
+	void SetMaterial(TPZFMatrix<REAL> &xfin){
 		fXf[0] = xfin(0,0);
 		fXf[1] = xfin(1,0);
 		fXf[2] = xfin(2,0);
@@ -44,15 +44,15 @@ class TPZMatHyperElastic : public TPZMaterial {
 	
 	std::string Name() { return "TPZMatHyperElastic"; }
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef);
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix &ef)
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ek, TPZFMatrix &ef, TPZBndCond &bc);
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
-	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix &ef, TPZBndCond &bc)
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
@@ -66,7 +66,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 								  FADFADREAL &U,
 								  REAL weight);
 	
-	static void ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix &dsol, TFad<9,TFad<9,REAL> > &energy);
+	static void ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &dsol, TFad<9,TFad<9,REAL> > &energy);
 	
 	/** @brief Computes contribution of BC to the Energy*/
 	virtual void ContributeBCEnergy(TPZVec<REAL> & x,
@@ -82,7 +82,7 @@ class TPZMatHyperElastic : public TPZMaterial {
 	virtual int NFluxes(){ return 9;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix &DSol,TPZFMatrix &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -92,11 +92,11 @@ public:
 	
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix &DSol, TPZFMatrix &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix &dudx, TPZFMatrix &axes, TPZVec<REAL> &flux,
-		        TPZVec<REAL> &u_exact,TPZFMatrix &du_exact,TPZVec<REAL> &values);//Cedric
+				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+		        TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
 };
 
 #endif

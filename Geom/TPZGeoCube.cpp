@@ -20,7 +20,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoCube::X(TPZFMatrix &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoCube::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		
 		int nrow = nodes.Rows();
 		int ncol = nodes.Cols();
@@ -37,7 +37,7 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix &JacToSide) {
+	bool TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
 		TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(TPZGeoCube::NSides - 1, side);
 		SidePar.Resize(SideDimension(side));
 		Transf.Apply(InternalPar,SidePar);
@@ -53,7 +53,7 @@ namespace pzgeom {
 		return true;
 	}
 	
-	void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix &phi,TPZFMatrix &dphi) {
+	void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
 		x[0] = (1.-pt[0])/2.;
@@ -103,7 +103,7 @@ namespace pzgeom {
 		dphi(2,7) = x[0]*y[1]*dz[1];
 	}
 	
-	void TPZGeoCube::Jacobian(TPZFMatrix &nodes,TPZVec<REAL> &param,TPZFMatrix &jacobian,TPZFMatrix &axes,REAL &detjac,TPZFMatrix &jacinv){
+	void TPZGeoCube::Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 #ifdef DEBUG
 		//  if (NNodes != 8) {
