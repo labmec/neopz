@@ -53,18 +53,17 @@ const int dirichlet = 0;
 const int neumann = 1;
 
 //
-//	This program solve  a system of linear PDE - 1D I hope! (Biot poroelastic problem)
-//	- a.u''(x) + b.u'(x) = f(x), em  0< x <1
-//	With : u(0) = uD, du/dn = uN on x =1
-//	using uD=0 e uN=0
+//	This program solve  a system of linear PDE - 1D I hope! 
+//	- a.u''(x) + b.u'(x) = f(x),   0< x <1    --->  Now a=1 and b=1 and  f(x)=x
+//	using uD = 0  x = 0  and  x = 1.
 //
 
 
 // Create a Geometrical Mesh
-TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR);
+TPZGeoMesh *GeomMesh(int h, TPZVec<REAL> &xL, TPZVec<REAL> &xR);
 
 // Create a Computational Mesh
-TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b);
+TPZCompMesh * CompMesh(TPZGeoMesh *gmesh, int p, REAL a, REAL b);
 
 // Assemble and Solve the generate linear System
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
@@ -87,9 +86,56 @@ void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exac
 	//	u_exact[1] =0.;
 	du_exact(0,0) = 1.-cosh(x)/sinh(1.);//dx
 	//	du_exact(1,0) =0.;//dy
-} 
+}
 
 int main(int argc, char *argv[])
+//int main_firs(int argc, char *argv[])
+{	
+	std::string logs("log4cxx.doubleprojection1d");
+	InitializePZLOG();
+	// gRefDBase.InitializeRefPatterns();
+	
+	std::ofstream arg1("gmesh.txt");
+	std::ofstream arg2("cmesh.txt");	
+	std::ofstream file("Solution.txt",ios::app);	
+	std::ofstream outerror("erros.txt",ios::app);
+
+	outerror << "\n\n Solving with P = 1\n";
+	int p = 1;
+	int h = 2;
+	
+	// Creating a geometric mesh
+	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the mesh. Coordinates are zeros.
+	x1[0] = 1.0;
+	TPZGeoMesh *gmesh = GeomMesh(h,x0,x1);
+	// Print Geometrical Mesh	
+	gmesh->Print(arg1);
+	
+	REAL a=1.;
+	REAL b=1.;
+			
+	TPZCompMesh * cmesh = CompMesh(gmesh,p,a,b);
+	// Print Computational mesh			
+	cmesh->Print(arg2);
+
+	TPZAnalysis an(cmesh);
+	SolveSist(an,cmesh);
+	
+	// Print Solution			
+	TPZFMatrix<REAL> toprint = an.Solution();
+	toprint.Print("Solution", file);
+
+	/// Plot erro (norms) 
+	an.SetExact(SolExata);
+	TPZVec<REAL> posproc;
+	an.PostProcess(posproc,outerror); // Compute the errors
+	outerror<<endl;
+	
+	return EXIT_SUCCESS;
+}
+
+//int main(int argc, char *argv[])
+int main_refinemet(int argc, char *argv[])
 {	
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
@@ -106,12 +152,14 @@ int main(int argc, char *argv[])
 		{	
 			outerror << "\n\n Solving with P = " << p << " E H = " << pow(2.,h) << "\n";
 			
-			TPZGeoMesh * gmesh = MalhaGeom(h, 0., 1.);
+			TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the mesh. Coordinates are zeros.
+			x1[0] = 1.0;
+			TPZGeoMesh * gmesh = GeomMesh(h, x0, x1);
 			//int p=1;
 			REAL a=1.;
 			REAL b=1.;
 			
-			TPZCompMesh * cmesh = MalhaComp(gmesh,p,a,b);
+			TPZCompMesh * cmesh = CompMesh(gmesh,p,a,b);
 			TPZAnalysis an(cmesh);
 			
 			SolveSist(an,cmesh);
@@ -174,7 +222,7 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR){
+TPZGeoMesh *GeomMesh(int h, TPZVec<REAL> &xL, TPZVec<REAL> &xR){
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	int Qnodes = 2;
@@ -188,11 +236,11 @@ TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR){
 	//indice dos nos
 	int id = 0;
 	int ndiv = 1;
-	REAL dx = fabs(xR - xL)/ndiv;
+	REAL dx = fabs(xR[0] - xL[0])/ndiv;
 	REAL pointco;
 	for(int xi = 0; xi < Qnodes; xi++)
 	{
-		pointco = xL+xi*dx;
+		pointco = xL[0]+xi*dx;
 		Node[id].SetNodeId(id);
 		Node[id].SetCoord(0 ,pointco);//coord X
 		gmesh->NodeVec()[id] = Node[id];
@@ -235,7 +283,7 @@ TPZGeoMesh * MalhaGeom(int h, REAL xL, REAL  xR){
 	return gmesh;
 }
 
-TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
+TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	
 	/// criar materiais
 	int dim = 1;
@@ -256,8 +304,8 @@ TPZCompMesh * MalhaComp(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	
 	
 	
-	TPZVec<REAL> convdir(3,0.);
-	convdir[0]=1.;
+//	TPZVec<REAL> convdir(3,0.);
+//	convdir[0]=1.;
 	//REAL flux = 0.;
 	
 	//	material->SetParameters(diff, conv, convdir);
