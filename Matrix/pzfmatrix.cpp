@@ -549,12 +549,17 @@ void TPZFMatrix::MultAdd(const REAL *ptr, int rows, int cols, const TPZFMatrix &
 void TPZFMatrix::MultAdd(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
 			 const REAL alpha, const REAL beta, const int opt, const int stride) const 
 {
-  if (opt == 0)
-    return MultAdd_opt0(x, y, z, alpha, beta, stride);
+  if (opt == 0) {
+    if (stride == 1)
+      return MultAdd_opt0_str1(x, y, z, alpha, beta);
+    else
+      return MultAdd_opt0(x, y, z, alpha, beta, stride);
+  }
   else
     return MultAdd_opt1(x, y, z, alpha, beta, stride);
 }
 
+//Edson: stride e geralmente 1. Especializar a funcao.
 void TPZFMatrix::MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
 			      const REAL alpha, const REAL beta, const int stride) const 
 {
@@ -578,9 +583,10 @@ void TPZFMatrix::MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatr
   long rows = Rows();
   long cols = Cols();
   long xcols = x.Cols();
-  int ic, c;
+  int ic, c, l;
   if(!(rows*cols)) return;
 
+  //Init matrix z with (beta * y)
   for (ic = 0; ic < xcols; ic++) {
     REAL *zp = &z(0,ic), *zlast = zp+numeq*stride;
     if(beta != 0.) {
@@ -592,9 +598,11 @@ void TPZFMatrix::MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatr
 	  yp += stride;
 	}
       } else if(&z != &y) {
+	// copia todos, pois stride e 1 e beta e 1.0
 	memcpy(zp,yp,numeq*sizeof(REAL));
       }
     } else {
+      // beta e 0, se stride for 1 podemos usar o memset
       while(zp != zlast) {
 	*zp = 0.;
 	zp += stride;
@@ -602,18 +610,160 @@ void TPZFMatrix::MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatr
     }
   }
     
+  // Z += (alpha . this) x  X
+  // - Sera que a transposta melhoraria a localidade de cache?
+  // - Outra opcao e experimentar com o BLAS.
+
   for (ic = 0; ic < xcols; ic++) {
     for (c = 0; c < cols; c++) {
-      REAL* zp = &z(0,ic);
-      REAL* zlast = zp+rows*stride;
-      REAL* fp = fElem +rows*c;
-      const REAL * xp = &x.g(c*stride,ic);
-      while(zp < zlast) {
-	*zp += alpha* *fp++ * *xp;
-	zp += stride;
+      REAL x_val = x.g(c*stride,ic);
+      for (l = 0; l < rows; l++) {
+	z(l*stride,ic) += alpha * g(l,c) * x_val;
+	/*
+	  REAL* zp = &z(0,ic);
+	  REAL* zlast = zp+rows*stride;
+	  REAL* fp = fElem +rows*c;
+	  const REAL * xp = &x.g(c*stride,ic);
+	  while(zp < zlast) {
+	  *zp += alpha* *fp++ * *xp;
+	  zp += stride;
+	  }
+	*/
       }
     }
   }
+}
+
+//Edson: stride e geralmente 1. Especializar a funcao.
+void TPZFMatrix::MultAdd_opt0_str1(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
+				   const REAL alpha, const REAL beta) const 
+{
+  if (Cols() != x.Rows()) {
+    Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
+    return;
+  }
+  if(beta != 0. && ((Rows() != y.Rows()) || y.Cols() != x.Cols())) {
+    Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
+    return;
+  }
+
+  if(z.Cols() != x.Cols() || z.Rows() != Rows()) {
+    z.Redim(Rows(),x.Cols());
+  }
+  if(Cols() == 0) {
+    z.Zero();
+  }
+  
+  unsigned numeq = Rows();
+  long rows = Rows();
+  long cols = Cols();
+  long xcols = x.Cols();
+  int ic, c, l;
+  if(!(rows*cols)) return;
+
+  //Init matrix z with (beta * y)
+  for (ic = 0; ic < xcols; ic++) {
+    REAL *zp = &z(0,ic), *zlast = zp+numeq;
+    if(beta != 0.) {
+      const REAL *yp = &y.g(0,ic);
+      if(beta != 1.) {
+	while(zp < zlast) {
+	  *zp = beta * (*yp);
+	  zp += 1;
+	  yp += 1;
+	}
+      } else if(&z != &y) {
+	// copia todos, pois stride e 1 e beta e 1.0
+	memcpy(zp,yp,numeq*sizeof(REAL));
+      }
+    } else {
+      // beta e 0, se stride for 1 podemos usar o memset
+      memset(zp, 0, numeq*sizeof(REAL));
+    }
+  }
+    
+#if 1 // Original: Philippe
+  for (ic = 0; ic < xcols; ic++) {
+    for ( c = 0; c<cols; c++) {
+      REAL * zp = &z(0,ic), *zlast = zp+rows;
+      REAL * fp = fElem +rows*c;
+      const REAL * xp = &x.g(c,ic);
+      while(zp < zlast) {
+	*zp += alpha* *fp++ * *xp;
+	zp += 1;
+      }
+    }
+  }
+
+  // Z[rows:xcols] += (alpha . this[rows:cols]) x  X[cols:xcols]
+  // - Sera que a transposta melhoraria a localidade de cache?
+  // - Outra opcao e experimentar com o BLAS.
+#elif 0 // GCC -ftree-vectorize was not able to vectorize.
+  for (ic = 0; ic < xcols; ic++) {
+    for (c = 0; c < cols; c++) {
+      REAL x_val = alpha * x.g(c,ic);
+      REAL* zp = &z(0,ic);
+      REAL* tp = &g(0,c);
+      for (l = 0; l < rows; l++) {
+	zp[l] += tp[l] * x_val;
+      }
+    }
+  }
+#elif 0
+#define CACHE_SZ (1024 * 1024 * 4) /* 4 MB? */
+  int rowsPerCache = CACHE_SZ / cols;
+  int istep = rowsPerCache >> 1;
+  int jstep = istep;
+  for (int i0=0; i0 < rows; i0 += istep) {
+    for (int j0=0; j0 < xcols; j0 += jstep) {
+      int maxi = i0+istep-1;
+      maxi = maxi<rows?maxi:rows;
+      int maxj = i0+jstep-1;
+      maxj = maxj<xcols?maxj:xcols;
+      for (int i=i0; i < maxi; i++) {
+	for (int j=i0; j < maxj; j++) {
+	  REAL zv = z.g(i,j);
+	  for (int k=0; k < cols; k++) {
+	    zv += this->g(i,k) * x.g(k,j) * alpha;
+	  }
+	  z(i,j) = zv;
+	}
+      }
+    }
+  }
+
+  /*
+  for (int i = 0; i < rows; i++)
+    for (int j=0; j < xcols; j++)
+      for (int k=0; k < cols; k++)
+	z(i,j) = z(i,j) + this->g(i,k) * x.g(k,j) * alpha;
+  */
+  }
+
+#else
+
+  // Z[rows:xcols] += (alpha . this[rows:cols]) x  X[cols:xcols]
+  REAL* sp = new REAL[cols];
+
+  for (int i=0; i<rows; i++) {
+
+    // Place row i of this at sp[...]
+    REAL* tp = this->fElem + i;
+    for (c=0; c < cols; c++, tp+=fRow)
+      sp[c] = *tp;
+
+    for (int j=0; j<xcols; j++) {
+      // Multiply row i of this by column j of x
+      REAL zv = z.g(i,j);
+      REAL* xp = &x.g(0,j);
+      for (c=0; c < cols; c++) {
+	zv += sp[c] * xp[c];
+      }
+      z(i,j) = zv * alpha;
+    }
+  }
+  delete [] sp;
+#endif
 }
 
 void TPZFMatrix::MultAdd_opt1(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
@@ -679,7 +829,7 @@ void TPZFMatrix::MultAdd_opt1(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatr
       zp += stride;
     }
   }
- }
+}
 
 #else
 void TPZFMatrix::MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,

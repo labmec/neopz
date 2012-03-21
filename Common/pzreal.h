@@ -70,6 +70,18 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
  * By modifying the definition of the type of REAL, the number of floating point operations can be counted. \n
  * To modify you need to define "contar": \#define contar.
  */
+//#define contar
+
+#ifdef contar
+/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
+typedef TPZFlopCounter REAL;
+typedef double FVAL_TYPE;
+#else
+/** @brief This is the type of floating point number PZ will use. */
+typedef float REAL;
+typedef REAL FVAL_TYPE;
+#endif
+
 /** @brief This class implements floating point number associated with a counter of the operations performed with it by type. \n
  * (arithmetic, trigonometric, exponencial and logarithmic operations performed with it). \ref common "Common"
  * @note How to sure the counter initializing from ZERO ??? I don't see where the counter vector is clean. (Jorge)
@@ -77,14 +89,14 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count);
 class TPZFlopCounter {
 public:
 	/** @brief Floating point value */
-	double fVal;
+	FVAL_TYPE fVal;
 	/** @brief Containts the counter vector by operation performed */
 	static TPZCounter gCount;
 	
 	inline TPZFlopCounter()
 	{
 	}
-	inline TPZFlopCounter(const double &val)
+	inline TPZFlopCounter(const FVAL_TYPE &val)
 	{
 		fVal = val;
 	}
@@ -333,7 +345,7 @@ inline TPZFlopCounter log10(const TPZFlopCounter &orig)
 	return result;
 }
 /** @brief Performs \f$ val1 * val2\f$. Doesn't increments counters. */
-inline TPZFlopCounter operator*(double val1, const TPZFlopCounter &val2)
+inline TPZFlopCounter operator*(FVAL_TYPE val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
 	result = TPZFlopCounter(val1)*val2;
@@ -341,7 +353,7 @@ inline TPZFlopCounter operator*(double val1, const TPZFlopCounter &val2)
 	
 }
 /** @brief Performs \f$ val1 / val2\f$. Doesn't increments counters. */
-inline TPZFlopCounter operator/(double val1, const TPZFlopCounter &val2)
+inline TPZFlopCounter operator/(FVAL_TYPE val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
 	result = TPZFlopCounter(val1)/val2;
@@ -349,7 +361,7 @@ inline TPZFlopCounter operator/(double val1, const TPZFlopCounter &val2)
 	
 }
 /** @brief Performs \f$ val1 + val2\f$. Doesn't increments counters. */
-inline TPZFlopCounter operator+(double val1, const TPZFlopCounter &val2)
+inline TPZFlopCounter operator+(FVAL_TYPE val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
 	result = TPZFlopCounter(val1)+val2;
@@ -357,7 +369,7 @@ inline TPZFlopCounter operator+(double val1, const TPZFlopCounter &val2)
 	
 }
 /** @brief Performs \f$ val1 + val2\f$. Doesn't increments counters. */
-inline TPZFlopCounter operator+(const TPZFlopCounter &val2, double val1 )
+inline TPZFlopCounter operator+(const TPZFlopCounter &val2, FVAL_TYPE val1 )
 {
 	TPZFlopCounter result;
 	result = TPZFlopCounter(val1)+val2;
@@ -365,7 +377,7 @@ inline TPZFlopCounter operator+(const TPZFlopCounter &val2, double val1 )
 	
 }
 /** @brief Performs \f$ val1 - val2\f$. Doesn't increments counters. */
-inline TPZFlopCounter operator-(double val1, const TPZFlopCounter &val2)
+inline TPZFlopCounter operator-(FVAL_TYPE val1, const TPZFlopCounter &val2)
 {
 	TPZFlopCounter result;
 	result = TPZFlopCounter(val1)-val2;
@@ -383,16 +395,6 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 {
 	return out >> val.fVal;
 }
-#endif
-
-#ifdef contar
-/** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
-typedef std::TPZFlopCounter REAL;
-
-#else
-/** @brief This is the type of floating point number PZ will use. */
-typedef double REAL;
-
 #endif
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */

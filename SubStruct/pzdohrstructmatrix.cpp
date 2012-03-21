@@ -70,6 +70,9 @@ fDohrPrecond(0), fMesh(cmesh)
 {
 	fNumThreads = numthreads_compute;
 	fNumThreadsDecompose = numthreads_decompose;
+
+	std::cout << "TPZDohrStructMatrix::TPZDohrStructMatrix() - fNumThreads: " << fNumThreads 
+	<<	", fNumThreadsDecompose: " << fNumThreadsDecompose << std::endl;	
 	
 	PZP_THREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
@@ -271,6 +274,9 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	ThreadDohrmanAssemblyList worklist;
 	
 	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Initial setup");
+
+	std::cout << "TPZDohrStructMatrix::CreateAssemble() - fNumThreads: " << fNumThreads 
+	<<	", fNumThreadsDecompose: " << fNumThreadsDecompose << std::endl;	
 
 	if (fNumThreads > 0) {
 	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly setup");

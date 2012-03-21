@@ -65,18 +65,18 @@ class TPZAutoPointer{
 		/** @brief Increment the counter */
 		void Increment()
 		{
-		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, "TPZReference::Increment()");
+		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
 			fCounter++;
-			PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, "TPZReference::Increment()");
+			PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
 		}
 		/** @brief Decrease the counter. If the counter is zero, delete myself */
 		void Decrease()
 		{
 			int should_delete = 0;
-		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, "TPZReference::Decrease()");
+		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
 			fCounter--;
 			if(fCounter <= 0) should_delete = 1;
-		        PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, "TPZReference::Decrease()");
+		        PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
 			if(should_delete) 
 			{
 				delete this;

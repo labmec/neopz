@@ -4,9 +4,9 @@
 #include<pthread.h>
 #include<iostream> // cout, ostream
 
-#define THREAD_NOTES
-#define THREAD_MUTEX_NOTES
-#define THREAD_COND_NOTES
+//#define THREAD_NOTES
+//#define THREAD_MUTEX_NOTES
+//#define THREAD_COND_NOTES
 
 #ifdef THREAD_NOTES
 
@@ -124,7 +124,7 @@ int pz_pthread_cond_signal(pthread_cond_t *cond,
   pthread_cond_destroy(cond)
 
 #define PZP_THREAD_COND_WAIT(cond,mutex,fn)	\
-  pthread_cond_destroy(cond,mutex)
+  pthread_cond_wait(cond,mutex)
 
 #define PZP_THREAD_COND_SIGNAL(cond,fn)		\
   pthread_cond_signal(cond)
