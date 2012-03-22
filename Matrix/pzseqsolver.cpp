@@ -10,18 +10,20 @@ using namespace std;
 template<class TVar>
 TPZSequenceSolver<TVar>::TPZSequenceSolver(TPZMatrix<TVar> *refmat) : TPZMatrixSolver<TVar>(refmat), fSolvers() {
 }
+
 template<class TVar>
 TPZSequenceSolver<TVar>::TPZSequenceSolver(const TPZSequenceSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy) {
     int nums = copy.fSolvers.NElements();
     int s;
     for(s=0; s<nums; s++) AppendSolver(*copy.fSolvers[s]);
 }
+/*
 template <class TVar>
 class TPZSolver;
 
 template<class TVar>
 class TPZMatrixSolver;
-
+*/
 template <class TVar>
 TPZSolver<TVar> * TPZSequenceSolver<TVar>::Clone() const {
     return new TPZSequenceSolver(*this);
@@ -123,5 +125,6 @@ void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 	}
 }
 
+template class TPZSequenceSolver<REAL>;
 
 template class TPZRestoreClass< TPZSequenceSolver<REAL>, TPZSQUENCESOLVER_ID>;
