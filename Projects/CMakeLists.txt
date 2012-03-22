@@ -38,39 +38,39 @@ endif(BUILD_TUTORIAL)
 
 if(BUILD_PROJECTS)
 	
-	add_subdirectory(Cubo_do_Nathan)
+	#add_subdirectory(Cubo_do_Nathan)
 	
-	add_subdirectory(HyperElasticityFAD)
+	#add_subdirectory(HyperElasticityFAD)
 
 	#Increment singular shape function: SingularShapeFunction
-	add_subdirectory(SingularShapeFunction)
-	add_subdirectory(angletest)
-	add_subdirectory(checkconv)
+	#add_subdirectory(SingularShapeFunction)
+	#add_subdirectory(angletest)
+	#add_subdirectory(checkconv)
 
 	#Orthogonalization process of Gram-Schmidt
-	add_subdirectory(matrix)
+	#add_subdirectory(matrix)
 
 	#Inserting material and boundary conditions by function
-	add_subdirectory(termica)
-	add_subdirectory(Steam)
-	add_subdirectory(QuadraticElements)
-	add_subdirectory(ThermalStress)
-	add_subdirectory(HDiv)
-	add_subdirectory(Conductivity)
-	add_subdirectory(ConsLaw)
-	add_subdirectory(Descontinuo2)
-	add_subdirectory(HydraulicFracturePropagation)
+	#add_subdirectory(termica)
+	#add_subdirectory(Steam)
+	#add_subdirectory(QuadraticElements)
+	#add_subdirectory(ThermalStress)
+	#add_subdirectory(HDiv)
+	#add_subdirectory(Conductivity)
+	#add_subdirectory(ConsLaw)
+	#add_subdirectory(Descontinuo2)
+	#add_subdirectory(HydraulicFracturePropagation)
 
-	add_subdirectory(SteamInjection)
+	#add_subdirectory(SteamInjection)
 	
 	#projeto agnaldo 09-09-2011
-	add_subdirectory(DoubleProjection1D)
+	#add_subdirectory(DoubleProjection1D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(Perf01_SubStruct)
 	add_subdirectory(Perf02_SubStruct-Nathan)
         add_subdirectory(Perf02_SubStruct-Nathan-Timed)
 	add_subdirectory(Perf02_SubStruct-Merge)
-	add_subdirectory(MultiphysicsSimulation)
+	#add_subdirectory(MultiphysicsSimulation)
 	#add_subdirectory(prodindex)
 	
 	
