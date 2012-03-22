@@ -54,7 +54,7 @@ const int neumann = 1;
 
 //
 //	This program solve  a system of linear PDE - 1D I hope! 
-//	- a.u''(x) + b.u'(x) = f(x),   0< x <1    --->  Now a=1 and b=1 and  f(x)=x
+//	- a.u''(x) + b.u'(x) = f(x),   0<= x <=1    --->  Now a=1 and b=1 and  f(x)=x
 //	using uD = 0  x = 0  and  x = 1.
 //
 
@@ -88,7 +88,7 @@ void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exac
 	//	du_exact(1,0) =0.;//dy
 }
 
-int main(int argc, char *argv[])
+int main()
 //int main_firs(int argc, char *argv[])
 {	
 	std::string logs("log4cxx.doubleprojection1d");
@@ -134,8 +134,69 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+TPZGeoMesh *GeomMesh(int h, TPZVec<REAL> &xL, TPZVec<REAL> &xR){
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	int Qnodes = 2;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <int> TopolLine(2);
+	TPZVec <int> TopolPoint(1);
+	
+	//indice dos nos
+	int id = 0;
+	int ndiv = 1;
+	REAL dx = fabs(xR[0] - xL[0])/ndiv;
+	REAL pointco;
+	for(int xi = 0; xi < Qnodes; xi++)
+	{
+		pointco = xL[0]+xi*dx;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0 ,pointco);//coord X
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+	
+	//indice dos elementos
+	id=0;
+	TopolPoint[0] = 0;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1, *gmesh);
+	id++;
+	
+	for (int eli=0; eli<ndiv; eli++) {
+		TopolLine[0] = eli;
+		TopolLine[1] = eli+1;
+		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+		id++;
+	}
+	
+	TopolPoint[0] = Qnodes-1;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc2,*gmesh);
+	
+	gmesh->BuildConnectivity();
+	
+	
+	//refinamento uniforme
+	for (int ref = 0; ref < h; ref++){
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for ( int i = 0; i < n; i++ ){
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			if (gel->Dimension() == 1) gel->Divide (filhos);
+		}//for i
+	}//ref
+	
+	
+	//	ofstream arg("gmesh.txt");
+	//	gmesh->Print(arg);
+	
+	return gmesh;
+}
+
 //int main(int argc, char *argv[])
-int main_refinemet(int argc, char *argv[])
+int main_refinement(int argc, char *argv[])
 {	
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
@@ -222,66 +283,6 @@ int main_refinemet(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-TPZGeoMesh *GeomMesh(int h, TPZVec<REAL> &xL, TPZVec<REAL> &xR){
-	
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	int Qnodes = 2;
-	gmesh->SetMaxNodeId(Qnodes-1);
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZVec<TPZGeoNode> Node(Qnodes);
-	
-	TPZVec <int> TopolLine(2);
-	TPZVec <int> TopolPoint(1);
-	
-	//indice dos nos
-	int id = 0;
-	int ndiv = 1;
-	REAL dx = fabs(xR[0] - xL[0])/ndiv;
-	REAL pointco;
-	for(int xi = 0; xi < Qnodes; xi++)
-	{
-		pointco = xL[0]+xi*dx;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,pointco);//coord X
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-	}
-	
-	//indice dos elementos
-	id=0;
-	TopolPoint[0] = 0;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1, *gmesh);
-	id++;
-	
-	for (int eli=0; eli<ndiv; eli++) {
-		TopolLine[0] = eli;
-		TopolLine[1] = eli+1;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
-		id++;
-	}
-	
-	TopolPoint[0] = Qnodes-1;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc2,*gmesh);
-	
-	gmesh->BuildConnectivity();
-	
-	
-	//refinamento uniforme
-	for (int ref = 0; ref < h; ref++){
-		TPZVec<TPZGeoEl *> filhos;
-		int n = gmesh->NElements();
-		for ( int i = 0; i < n; i++ ){
-			TPZGeoEl * gel = gmesh->ElementVec() [i];
-			if (gel->Dimension() == 1) gel->Divide (filhos);
-		}//for i
-	}//ref
-	
-	
-	//	ofstream arg("gmesh.txt");
-	//	gmesh->Print(arg);
-	
-	return gmesh;
-}
 
 TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	
@@ -301,23 +302,16 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	//	TPZMatPoisson3d *material;
 	//	material = new TPZMatPoisson3d(matId,dim); 
 	TPZAutoPointer<TPZMaterial> mat(material);
-	
-	
-	
-//	TPZVec<REAL> convdir(3,0.);
-//	convdir[0]=1.;
-	//REAL flux = 0.;
-	
+
 	//	material->SetParameters(diff, conv, convdir);
 	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
-	
+
 	TPZCompEl::SetgOrder(p);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
 	cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
-	
-	
+
 	///Inserir condicao de contorno
 	REAL uD=0.;
 //	REAL uN=1-cosh(1.)/sinh(1.);
@@ -333,12 +327,8 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int p, REAL a, REAL b){
 	cmesh->AutoBuild();
 	cmesh->AdjustBoundaryElements(); 
 	cmesh->CleanUpUnconnectedNodes();
-	
-	//	ofstream arg("cmesh.txt");
-	//	cmesh->Print(arg);
-	
+
 	return cmesh;
-	
 }
 
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
