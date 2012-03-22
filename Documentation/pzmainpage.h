@@ -1,6 +1,6 @@
 /**
 \mainpage The NeoPZ environment
-
+ 
 \author Philippe Remy Bernard Devloo <a href="http://lattes.cnpq.br/6051486998967925">Lattes</a>
 \author Jorge Lizardo Diaz Calle <a href="http://lattes.cnpq.br/2049910703027682">Lattes</a>
 \author Edimar Cesar Rylo <a href="http://lattes.cnpq.br/7462096912445959">Lattes</a>
@@ -62,8 +62,130 @@ The section \ref page_finite_element_different is dedicated to describing which 
 environment are different from regular finite element codes
 
 
-\page page_finite_element_different Differences from Regular Finite Element Computations
-\section sec_finite_element_different Differences from Regular Finite Element Computations
+ \page init INITIAL INFORMATION
+ 
+ The information over utilitaries to work, update and get documentation is in the following pages:
+ \li Utilities needed to configure the NeoPZ environment \ref utilitaries
+ \li External Libraries used in NeoPZ \ref externlibs
+ 
+ \page utilitaries - Utilities needed to configure the NeoPZ environment
+ 
+ \section svn Getting NeoPZ code
+ 
+ It is recommended to use <a href="http://www.syntevo.com/smartsvn/download.html?all=true">SmartSVN</a> to get the NeoPZ code. Actually we are using SmartSVN 6.6.9 .
+ 
+ \section cmake Creating project depending on the system user
+ 
+ It is recommended to use <a href="http://www.cmake.org/cmake/resources/software.html">CMake</a> to generate the neopz project depending on your system. \n
+ Actually we are using CMake 2.8.5 .
+ 
+ \section doxygen Generating documentation
+ 
+ It is recommended to use <a href="http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc">Doxygen</a> to generate the neopz documentation. \n
+ Actually we are using Doxygen 1.7.5.1 . To right compiling using doxygen you must to have the following executables:
+ 
+ \li <a href="http://www.cs.utah.edu/dept/old/texinfo/dvips/dvips.html">dvips</a> or 
+ <a href="http://rpmfind.net/linux/rpm2html/search.php?query=ghostscript-dvipdf">dvipdf</a> - Convert tex to ps (post script) or pdf format.
+ 
+ \section manuals Manuals
+ 
+ To get or access the manuals clik on following links:
+ \li <a href="http://www.syntevo.com/download/smartsvn/smartsvn-reference.pdf">SmartSVN</a>
+ \li <a href="http://www.cmake.org/cmake/help/cmake-2-8-docs.html">CMake</a> 
+ \li <a href="ftp://ftp.stack.nl/pub/users/dimitri/doxygen_manual-1.7.5.1.pdf.zip">Doxygen</a> 
+
+
+ \page externlibs - External Libraries used in NeoPZ
+ 
+ It is recommended to create a directory libs or externallibs at the same level as neopz project. \n
+ External libraries which are not necessarily installed at root lib directory or root include directory \n
+ can to be installed or copied into the indicated directory.
+ 
+ NeoPZ uses until five external libraries:
+ \li pthread - For the POSIX pthread threading.
+ \li boost - It provides free portable peer-reviewed C++ libraries. We mainly was used as unit test framework.
+ \li log4cxx - For efficient log messages.
+ \li fad - For automatic differentiation.
+ \li metis - To partitioning finite element meshes, and producing fill reducing orderings for sparse matrices
+ 
+ \section metis Metis library
+ If you set USING_METIS as TRUE, you must to install Metis library. \n
+ Metis library is avaliable 
+ from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
+ 
+ The least metis version actually suported by PZ is 5.0.x \n
+ METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, \n
+ and producing fill reducing orderings for sparse matrices.
+ 
+ \section boost Boost library
+ If you set USING_BOOST as TRUE it is necessary to install the Boost library. \n
+ Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge</a>. \n
+ 
+ It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.47.0">1.47.0</a>
+ 
+ Use boost_1_47_0.tar.gz or boost_1_47_0.tar.bz2 for unix or mac systems. \n
+ Use boost_1_47_0.7z or boost_1_47_0.zip for windows system.
+ 
+ To install following next steps:\n
+ Uncompress the version downloaded. \n
+ Using command line change into the uncompress directory. \n
+ For mac or unix systems, type the following commands and execute: \n
+ \li sudo ./bootstrap.sh
+ \li sudo ./bjam install
+ 
+ For Windows systems, execute: \n
+ \li ./bootstrap.bat
+ \li ./bjam install
+ 
+ See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
+ 
+ \section fad Fad library
+ 
+ The neopz project uses a old library to fast automatic differentiation <a href=" http://www.ann.jussieu.fr/~pironnea/">FAD</a>, but it seems inactive. 
+ You can to claim a copy of the source code sending e-mail to phil@fec.unicamp.br.
+ 
+ We are testing now using another library <a href="http://www.fadbad.com/fadbad.html">FADBAD++</a>. (2007)\n
+ This library implements the forward, backward and Taylor methods utilizing C++ templates and operator overloading. 
+ 
+ Also we are testing using <a href="http://admb-project.org/downloads">AUTODIF</a> which is a library for automatic differentiation used as the building block for AD Model Builder.
+ This library is current and it has versions to Windows, unix and Max systems.
+ 
+ \section log4cxx Log4cxx library
+ 
+ Apache <a href="http://logging.apache.org/log4cxx/">log4cxx</a> is a logging framework for C++ pattern. It has three main components: loggers, appenders and layouts.
+ These three types of components work together to enable developers to log messages according to message type and level, 
+ and to control at runtime how these messages are formatted and where they are reported.
+ 
+ To install, <a href="http://logging.apache.org/log4cxx/download.html">download</a> apache-log4cxx-0.10.0.zip for windows system, or apache-log4cxx-0.10.0.tar.gz for unix or mac systems. \n
+ Then uncompress the archive. Using command line change into uncompress directory. \n
+ Type de following commands: \n
+ \li ./configure
+ \li make check
+ \li sudo make install
+ 
+ \section pthread Pthread library
+ 
+ The neopz project uses <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/">PThread</a> library for the POSIX pthread threading. 
+ To install for unix or mac systems, make <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/PThread.tar.gz">download</a> of the source code. Uncompress the archive and using command line change into the uncompress directory with PThread.
+ Use the following commands:
+ \li ./configure
+ \li make
+ \li sudo make install
+ 
+ For windows system, get the header files and release libraries (dll, lib) from <a href="http://sourceware.org/pthreads-win32/>sourceware</a>. You can to connect with server as guest and then copy the include and lib directories into your system.
+
+ 
+ \page neopz OVER PZ LIBRARY
+
+ The description of the neopzlib is in the following pages:
+ \ref page_finite_element_different
+ \ref page_structure 
+ \ref adv_technologies
+ \ref teoria
+ 
+\page page_finite_element_different - Differences from Regular Finite Element Computations
+
+ \section sec_finite_element_different Differences from Regular Finite Element Computations
 NeoPZ integrates zero, one, two and three dimensional simulations into a single finite element library.
 It also incorporates non linear geometric maps, hp adaptive meshes and runs a large variety of finite
 element simulations. It should therefore come as no surprise that its structure is somewhat different
@@ -155,9 +277,9 @@ This affine transformation is returned in the SideToSideTransform method
  
  
 
-\page page_structure Structure of the Environment
+\page page_structure - Structure of the Environment
 
-\page adv_technologies Advance Finite element Technologies
+\page adv_technologies - Advance Finite element Technologies
 
 \section sec_advanced Advanced Finite Element Technologies
 As advanced finite element technologies we denominate finite element techniques which are 
@@ -172,7 +294,7 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
 \subsection sec_restraints Shape Function Restraints
 \subsection sec_discontinous Discontinous Approximation Spaces
 
- \page teoria Theorical concepts implemented in NeoPZ
+ \page teoria - Theorical concepts implemented in NeoPZ
  
  \section topology Topology
  
@@ -182,113 +304,21 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  
  \section analysis Analysis: Solving process
  
- \page utilitaries Utilities needed to configure the NeoPZ environment
- 
- \section svn Getting NeoPZ code
- 
- It is recommended to use <a href="http://www.syntevo.com/smartsvn/download.html?all=true">SmartSVN</a> to get the NeoPZ code. Actually we are using SmartSVN 6.6.9 .
- 
- \section cmake Creating project depending on the system user
- 
- It is recommended to use <a href="http://www.cmake.org/cmake/resources/software.html">CMake</a> to generate the neopz project depending on your system. \n
- Actually we are using CMake 2.8.5 .
- 
- \section doxygen Generating documentation
- 
- It is recommended to use <a href="http://www.stack.nl/~dimitri/doxygen/download.html#latestsrc">Doxygen</a> to generate the neopz documentation. \n
- Actually we are using Doxygen 1.7.5.1 . To right compiling using doxygen you must to have the following executables:
- 
- \li <a href="http://www.cs.utah.edu/dept/old/texinfo/dvips/dvips.html">dvips</a> or 
- <a href="http://rpmfind.net/linux/rpm2html/search.php?query=ghostscript-dvipdf">dvipdf</a> - Convert tex to ps (post script) or pdf format.
 
- \section manuals Manuals
+ \page app_pz TUTORIAL AND APPLICATION PROJECTS
  
- To get or access the manuals clik on following links:
- \li <a href="http://www.syntevo.com/download/smartsvn/smartsvn-reference.pdf">SmartSVN</a>
-\li <a href="http://www.cmake.org/cmake/help/cmake-2-8-docs.html">CMake</a> 
- \li <a href="ftp://ftp.stack.nl/pub/users/dimitri/doxygen_manual-1.7.5.1.pdf.zip">Doxygen</a> 
+ The description of the examples, application projects and unit test projects are in the following pages:
+ \ref tutorial
+ \ref projects
+ \ref unit_test
  
-\page externlibs External Libraries used in NeoPZ
+ \page tutorial - Tutorial examples
 
-It is recommended to create a directory libs or externallibs at the same level as neopz project. \n
-External libraries which are not necessarily installed at root lib directory or root include directory \n
-can to be installed or copied into the indicated directory.
-
-NeoPZ uses until five external libraries:
- \li pthread - For the POSIX pthread threading.
- \li boost - It provides free portable peer-reviewed C++ libraries. We mainly was used as unit test framework.
- \li log4cxx - For efficient log messages.
- \li fad - For automatic differentiation.
- \li metis - To partitioning finite element meshes, and producing fill reducing orderings for sparse matrices
+ The examples as tutorials are related by module of the PZ.
+  
+ \section tut_matrix Creating, Filling and Operating matrizes and Solving Linear Systems
  
-\section metis Metis library
-If you set USING_METIS as TRUE, you must to install Metis library. \n
-Metis library is avaliable 
-from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
-
-The least metis version actually suported by PZ is 5.0.x \n
-METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, \n
-and producing fill reducing orderings for sparse matrices.
- 
-\section boost Boost library
-If you set USING_BOOST as TRUE it is necessary to install the Boost library. \n
-Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge</a>. \n
-
-It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.47.0">1.47.0</a>
- 
-Use boost_1_47_0.tar.gz or boost_1_47_0.tar.bz2 for unix or mac systems. \n
-Use boost_1_47_0.7z or boost_1_47_0.zip for windows system.
- 
-To install following next steps:\n
-Uncompress the version downloaded. \n
- Using command line change into the uncompress directory. \n
- For mac or unix systems, type the following commands and execute: \n
- \li sudo ./bootstrap.sh
- \li sudo ./bjam install
-
- For Windows systems, execute: \n
- \li ./bootstrap.bat
- \li ./bjam install
-
- See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
-
-\section fad Fad library
- 
- The neopz project uses a old library to fast automatic differentiation <a href=" http://www.ann.jussieu.fr/~pironnea/">FAD</a>, but it seems inactive. 
- You can to claim a copy of the source code sending e-mail to phil@fec.unicamp.br.
- 
- We are testing now using another library <a href="http://www.fadbad.com/fadbad.html">FADBAD++</a>. (2007)\n
- This library implements the forward, backward and Taylor methods utilizing C++ templates and operator overloading. 
- 
- Also we are testing using <a href="http://admb-project.org/downloads">AUTODIF</a> which is a library for automatic differentiation used as the building block for AD Model Builder.
- This library is current and it has versions to Windows, unix and Max systems.
- 
-\section log4cxx Log4cxx library
-
-Apache <a href="http://logging.apache.org/log4cxx/">log4cxx</a> is a logging framework for C++ pattern. It has three main components: loggers, appenders and layouts.
-These three types of components work together to enable developers to log messages according to message type and level, 
-and to control at runtime how these messages are formatted and where they are reported.
- 
-To install, <a href="http://logging.apache.org/log4cxx/download.html">download</a> apache-log4cxx-0.10.0.zip for windows system, or apache-log4cxx-0.10.0.tar.gz for unix or mac systems. \n
-Then uncompress the archive. Using command line change into uncompress directory. \n
-Type de following commands: \n
- \li ./configure
- \li make check
- \li sudo make install
-
-\section pthread Pthread library
- 
-The neopz project uses <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/">PThread</a> library for the POSIX pthread threading. 
-To install for unix or mac systems, make <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/PThread.tar.gz">download</a> of the source code. Uncompress the archive and using command line change into the uncompress directory with PThread.
-Use the following commands:
- \li ./configure
- \li make
- \li sudo make install
- 
- For windows system, get the header files and release libraries (dll, lib) from <a href="http://sourceware.org/pthreads-win32/>sourceware</a>. You can to connect with server as guest and then copy the include and lib directories into your system.
- 
-\page tutorial Tutorial examples
-\section use_matrix Using matrices classes
+ \section use_matrix Using matrices classes
 See <a href="group__matrix.html">Matrix</a> module
  
 \section use_integral Using numerical integration classes
@@ -311,9 +341,13 @@ See <a href="group__util.html">Utility</a> module
  
 \section use_material Creating material from differential equation
  
+\section tut_compmesh Computational mesh construction
+
 \section use_analysis Solving differential equation
  
- \page projects Projects with NeoPZ
+
+ 
+\page projects - Projects with NeoPZ
  
  \section steam_injection Steam Injection in Reservoir
  
@@ -323,4 +357,23 @@ See <a href="group__util.html">Utility</a> module
  
  \section adaptive hp-Adaptivity
   
+\page unit_test - Unit Test Projects for PZ Modules 
+ 
+ In this projects we are using Boost framework for unit test boost_unit_test_framework. See information in \ref boost Boost .
+ 
+ \page special_pages SPECIAL PAGES
+ 
+ This pages contains suplementary information over the description and implementation of the PZ modules that can be called separately.
+ 
+ \ref numinteg
+ 
+ 
+\page numinteg - Over numeric integration
+
+ 
+ \page deprecated OBSOLETE
+ 
+ */
+/*! \li \ref TutorialGeometry
+
 */

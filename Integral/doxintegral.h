@@ -15,7 +15,7 @@
  */
 
 /**
- \page numinteg Over numeric integration
+ \page numinteg - Over numeric integration
  
  \section integral Quadrature rules
 
