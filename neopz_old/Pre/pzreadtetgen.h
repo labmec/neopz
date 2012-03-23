@@ -1,0 +1,65 @@
+// -*- c++ -*-
+//$Id: pzreadtetgen.h,v 1.1 2006-03-04 15:39:36 tiago Exp $
+
+#ifndef TPZREADTETGEN
+#define TPZREADTETGEN
+
+#include <string>
+#include <map>
+class TPZGeoMesh;
+
+
+/** 
+ * This class implement the interface between TPZGeoMesh and the files produced by tetgen.
+ * What is tetgen ? Take a look on http://tetgen.berlios.de/index.html
+ * "TetGen - A Quality Tetrahedral Mesh Generator and Three-Dimensional Delaunay Triangulator. 
+ *  Hang Si
+ *  Research Group of Numerical Mathematics and Scientific Computing Weierstrass Institute for Applied Analysis and Stochastics
+ *  Mohrenstr. 39  10117 Berlin, Germany
+ *  si@wias-berlin.de"
+ * @since March 03, 2006
+ */
+class TPZReadTetGen{
+  public:
+  
+    TPZReadTetGen();
+    
+    ~TPZReadTetGen();
+    
+    /**
+     * Convert tetgen files in a TPZGeoMesh object
+     * If something does not work in the process, a null pointer is returned.
+     */
+    TPZGeoMesh * Process(std::string NodeFileName, std::string FaceFileName, std::string TetraFileName);
+    
+  private:
+  
+    /** 
+     * Process nodes.
+     * Return true if the process worked succesfuly and false otherwise.
+     */
+    bool ProcessNodes(std::string NodeFileName,  TPZGeoMesh &gmesh, int & numbernodes);
+    
+    /** 
+     * Process faces.
+     * Return true if the process worked succesfuly and false otherwise.
+     */    
+    bool ProcessFaces(std::string FaceFileName,  TPZGeoMesh &gmesh, int & numberfaces);
+    
+    /** 
+     * Process tetrahedras.
+     * Return true if the process worked succesfuly and false otherwise.
+     */    
+    bool ProcessTetra(std::string TetraFileName, TPZGeoMesh &gmesh, int & numbervols);
+    
+    /**
+     * Nodes in tetgen are counted from 1 to n as a fortran based code.
+     * In PZ, nodes have one Id and one index. index is defined by TPZGeoMesh
+     * when a new node is allocated in NodeVec().
+     * This object maps from the Id to the index. fNodeIndices[ Id ] = index.
+     */
+    std::map<int, int> fNodeIndices;
+    
+};
+
+#endif //TPZREADTETGEN
