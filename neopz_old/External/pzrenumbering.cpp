@@ -7,6 +7,7 @@
 #include "pzstack.h"
 #include <map>
 #include <set>
+#include <algorithm> // Edson: needed for std:includes
 #include "pzlog.h"
 
 #ifdef LOG4CXX
