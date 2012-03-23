@@ -138,13 +138,30 @@ void TPZMetis::Subdivide(int nParts, TPZVec < int > & Domains)
 	// Upon successful completion, nEdgesCutted stores the edge-cut or the total communication volume of the partitioning solution.
 	int nEdgesCutted = 0;
 
-	TPZVec<int> Options(METIS_NOPTIONS);
+#ifdef USING_METIS_40
+#warning "Using METIS 4.0?"
+	TPZVec<int> Options(5);
+	Options.Resize(5);
+	Options[0]=0;
+	int flag1 = 0;
+	int flag2 = 0;
+	TPZVec<int> partIndex(nVertices);
+	partIndex.Resize(nVertices);
+
+        METIS_PartGraphRecursive(&nVertices, &AdjacencyIndex[0], &Adjacency[0], NULL, &AdjacencyWeight[0], &flag1,
+				  &flag2, &nParts, Options, &nEdgesCutted, &Domains[0]);
+#else // USING_METIS_40
+
+  	TPZVec<int> Options(METIS_NOPTIONS);
 	METIS_SetDefaultOptions(&Options[0]);
 	
-    int ncon = 2;
+	int ncon = 2;
+
 	if(METIS_PartGraphRecursive(&nVertices, &ncon, &AdjacencyIndex[0], &Adjacency[0], NULL, NULL, NULL,   // &AdjacencyWeight[0],
 					&nParts, NULL, NULL, &Options[0], &nEdgesCutted, &Domains[0]) != METIS_OK)
 		DebugStop();
+#endif // USING_METIS_40
+
 #else
     DebugStop();
 #endif
