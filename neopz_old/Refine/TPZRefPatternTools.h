@@ -1,0 +1,159 @@
+#ifndef TPZREFPATTERNTOOLSH
+#define TPZREFPATTERNTOOLSH 
+
+/*
+ *  TPZRefPatternTools.h
+ *  Crack
+ *
+ *  Created by Cesar Lucci on 10/03/10.
+ *  Copyright 2010 LabMeC. All rights reserved.
+ *
+ */
+
+using namespace std;
+
+#include <set>
+
+#include "pzgeoel.h"
+#include "TPZRefPattern.h"
+#include "tpzintpoints.h"
+
+class TPZRefPatternTools
+{
+	
+public:
+	
+	TPZRefPatternTools();
+  ~TPZRefPatternTools();
+	
+	/**
+	 * Search for refpatterns that could be used by a given element with respect to their neighbours.
+	 * @param gel - input data: geometric element for which the list of compatible refpatterns will be filled
+	 * @param refs - output data: list of compatible refpatterns with respect to their neighbours
+	 */
+	static void GetCompatibleRefPatterns(TPZGeoEl *gel, std::list<TPZAutoPointer<TPZRefPattern> > &refs);
+	
+	/**
+	 * Returns the refpattern that matches the sides refinement by neighbours
+	 * @param gel - input data: geometric element for which the model refpattern will be returned
+	 * @param neighCorresp - output data:	map that group (neighbour geoelement)
+	 *									and nodes correspondences between (neighbour->SideRefpattern) and (gel->SideRefpattern),
+	 *									indexed by (gel->Side)
+	 * IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
+	 */
+	static TPZAutoPointer<TPZRefPattern> ModelRefPattern(TPZGeoEl *gel, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp);
+	
+	/**
+	 * This methos is used by RefineDirectional method!!!
+	 * Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sidestorefine vector
+	 * @param gel - input data: geometric element for which the perfect match refpattern will be returned
+	 * @param sidestorefine - input data: vector filled with sides refinement intensity
+	 */
+	static TPZAutoPointer<TPZRefPattern> PerfectMatchRefPattern(TPZGeoEl *gel, TPZVec<int> &sidestorefine);
+	
+	/**
+	 * Returns the refpattern that matches the sides refinement intensity and midnodes coordinates with respect to sideNeighbours
+	 * @param gel - input data: geometric element for which the perfect match refpatterns will be returned
+	 * IF THERE IS NO NEIGHBOUR ALREADY REFINED, IT RETURNS NULL
+	 */
+	static TPZAutoPointer<TPZRefPattern> PerfectMatchRefPattern(TPZGeoEl *gel);
+	
+	/**
+	 * Return an refpattern based on a gived one (modelPat), whose midnodes was dragged to match with a geoel neighbourhood refinement
+	 * @param gel - input data: geometric element for which the model refpattern nodes will be dragged
+	 * @param modelPat - input data: Model RefPattern that is topologicaly compatible with neighbourhood
+	 * @param neighCorresp - input data: map that group (neighbour geoelement) and nodes correspondences between (neighbour->SideRefpattern) and (gel->SideRefpattern), indexed by (gel->Side)
+	 */
+	static TPZAutoPointer<TPZRefPattern> DragModelPatNodes(TPZGeoEl * gel, TPZAutoPointer<TPZRefPattern> modelPat, std::map<int, std::pair<TPZGeoEl *, std::map<int,int> > > &neighCorresp);
+	
+	/**
+	 * Returns if the given refPatterns (refA and refB) are topologicaly compatibles.
+	 * If they are, pairNodes represents the correspondence between nodesIds from refAmesh to refBmesh.
+	 * @param refA - input data: first refpattern to be compared
+	 * @param refB - input data: second refpattern to be compared
+	 * @param fromAtoB - input data: Linear Transformation from refA->RefPatternMesh to refB->RefPatternMesh() (its needed to pair Nodes correctly in permuted cases)
+	 * @param pairNodes - output data: correspondence between refA and refB nodes, in case they are topologicaly compatibles
+	 */
+	static bool CompareTopologies(TPZAutoPointer<TPZRefPattern> refA, TPZAutoPointer<TPZRefPattern> refB, TPZTransform &fromAtoB, std::map<int, int> &pairNodes);
+
+	/**
+	 * This method pair CORNER nodes from refA->mesh.father to refB->mesh.father, using the givem transformation from refA->mesh to refB->mesh to match coordinates.
+	 * The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId.
+	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
+	 * @param meshA - input data: mesh of first refpattern that will be considered its nodes coordinates
+	 * @param meshB - input data: mesh of second refpattern that will be considered its nodes coordinates
+	 * @param fromAtoB - input data: Linear Transformation from refA->mesh to refB->mesh (its needed to pair Nodes correctly in permuted cases)
+	 * @param pairedNodes - output data: correspondence between refA->mesh and refB->mesh nodes that matches its coordinates in fathers elements
+	 */
+	static void PairMeshesCornerNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes);
+	
+	/**
+	 * This method pair nodes from refA->mesh to refB->mesh, using the givem transformation from refA->mesh to refB->mesh to match coordinates.
+	 * The output is the map pairNodes, thar represents the A_nodeId paired with B_nodeId.
+	 * Obs.: Be careful with the output interpretation! It contains the nodeIds, NOT the nodes positions in mesh.NodeVec()!!!
+	 * @param meshA - input data: mesh of first refpattern that will be considered its nodes coordinates
+	 * @param meshB - input data: mesh of second refpattern that will be considered its nodes coordinates
+	 * @param fromAtoB - input data: Linear Transformation from refA->mesh to refB->mesh (its needed to pair Nodes correctly in permuted cases)
+	 * @param pairedNodes - output data: correspondence between refA->mesh and refB->mesh nodes that matches its coordinates
+	 */
+	static void PairMeshesNodesMatchingCoordinates(TPZGeoMesh meshA, TPZGeoMesh meshB, TPZTransform fromAtoB, std::map<int, int> &pairedNodes);
+	
+	/**
+	 * Returns the the name of refpattern model.
+	 * To do this, it starts with the 3 initial characters of element nametype,
+	 * followed by the quantity of midnodes for each side of element.
+	 */
+	static std::string BuildRefPatternModelName(TPZRefPattern &refp);
+	static std::string BuildRefPatternModelName(TPZAutoPointer<TPZRefPattern> refp);
+	static std::string BuildRefPatternModelName(TPZGeoEl *gel);
+	
+	/**
+	 * Returns if there is any neigbour already refined
+	 * @param gel - input data: geometric element whose refinements of the neighbors will define the refinement of its sides
+	 * @sidestoref - output data: vector whose positions mention the sides of gel, and its contents mention the intensity of refinement of the respective side
+	 */
+	static bool SidesToRefine(TPZGeoEl *gel, TPZVec<int> &sidestoref);
+	
+	/**
+     * Refine the element if it touches an element with a material id included in matids
+     */
+	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids);
+	static void RefineDirectional(TPZGeoEl *gel, std::set<int> &matids, int gelMat);
+	
+	static void RefineUniformIfNeighMat(TPZGeoEl *gel, std::set<int> &matids);
+	
+	/**
+	 * Method to test if the jacobian of a TPZGeoElSide element is constant
+	 */
+	static bool ConstJacobian(TPZGeoElSide gelside, REAL tol = 1.e-6);
+	
+	/**
+	 * Algorithm that evaluates the veracity of the hashings between sides
+     * of the elements children and corresponding sides of the father. A
+     * point p in the parametric space of the side of the sub-element is
+     * overcome and is calculated it mentioned hashing getting pf point in
+     * the element father. One calculates for p and pf the corresponding
+     * deformed point. Itself the hashing is consistent the deformed point
+     * must the same be.
+     */
+	static void TransformationTest(TPZRefPattern * refp);
+	
+	/**
+	 * NodesHunted vector is the sequential nodesIds that belongs (i.e.: "Tol" far) to InitialNode(IdIni)~FinalNode(IdFin) alignment of gMesh.NodeVec()
+	 * Obs.: InitialNode and FinalNode are also included!!!
+	 */
+	static void NodesHunter(TPZGeoMesh &gMesh, std::vector<int>& NodesHunted, int IdIni, int IdFin, double Tol = 1.E-1);
+
+	/**
+	 * Fill the TPZVec "permutation" with the valid permutations of "gel"
+	 * Note: The permutations is with respect to Master Element nodes, NOT Gel nodes in a geomesh context (i.e.: NOT geomesh nodes ids)
+	 */
+	static void GetGelPermutations(TPZGeoEl * gel, TPZVec< TPZVec<int> > &permutation);
+	
+	/**
+	 * Fill the TPZVec "permutation" with the valid permutations of a given element type
+	 */
+	static void GetElTypePermutations(MElementType elType, TPZVec< TPZVec<int> > &permutation);
+};
+
+#endif
