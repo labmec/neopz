@@ -10,6 +10,7 @@ if(BUILD_TUTORIAL)
 
 	#Curso PZ:
 	add_subdirectory(CursoPZ)
+	add_subdirectory(PDElinear1D)
 
 	#Generic Example 2D with elasticity, using matrices phi, phi, etc
 	add_subdirectory(testmat)
@@ -70,7 +71,6 @@ if(BUILD_PROJECTS)
 	
 	#projeto agnaldo 09-09-2011
 	add_subdirectory(DoubleProjection1D)
-	add_subdirectory(PDElinear1D)
 	add_subdirectory(Poroelastic2D)
 	add_subdirectory(SubStruct)
 	add_subdirectory(MultiphysicsSimulation)
