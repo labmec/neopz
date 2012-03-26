@@ -128,7 +128,7 @@ public:
 	virtual void MultAdd(const TPZFMatrix &x,const TPZFMatrix &y, TPZFMatrix &z,
 						 const REAL alpha=1.,const REAL beta = 0.,const int opt = 0,const int stride = 1 ) const ;
 
-#define NEW_MULT_ADD
+	//#define NEW_MULT_ADD
 
 #ifdef NEW_MULT_ADD
 void MultAdd_opt0(const TPZFMatrix &x, const TPZFMatrix &y, TPZFMatrix &z,
