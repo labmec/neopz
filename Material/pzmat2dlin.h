@@ -8,7 +8,7 @@
 #include <iostream>
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
-//#include "pzreal.h"
+
 struct TPZElementMatrix;
 class TPZBndCond;
 template<class T>
@@ -33,8 +33,6 @@ class TPZMat2dLin : public TPZMaterial{
 	fK0y(copy.fK0y), fK00(copy.fK00), fXf(copy.fXf){}
 	
 	virtual int NStateVariables() { return fKxx.Rows(); }
-	
-	//  int NFluxes() { return NStateVariables(); }
 	
 	int Dimension() { return 2; }
 	
@@ -61,8 +59,6 @@ class TPZMat2dLin : public TPZMaterial{
 	TPZFMatrix<REAL> &Xf() {return fXf;}
 	
 	virtual std::string Name() { return "TPZMat2dLin"; }
-	
-	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2);
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
 							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
