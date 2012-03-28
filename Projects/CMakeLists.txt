@@ -11,6 +11,7 @@ if(BUILD_TUTORIAL)
 	#Curso PZ:
 	add_subdirectory(CursoPZ)
 	add_subdirectory(PDElinear1D)
+	add_subdirectory(PDElinear2D)
 
 	#Generic Example 2D with elasticity, using matrices phi, phi, etc
 	add_subdirectory(testmat)
