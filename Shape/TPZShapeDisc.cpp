@@ -238,6 +238,24 @@ void TPZShapeDisc::Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,
     }
   }
 }
+		
+		void TPZShapeDisc::Shape(int &dimension,int &degree,TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,MShapeType type)
+		{
+				REAL C=1;//fator de escala utilizado neste metodo
+				TPZManVector<REAL,3> X0(3,0.);//centro do elemento
+				
+				if(type == ETensorial ||type == EOrdemTotal){
+						TPZShapeDisc::Shape2D(C,X0,X,degree,phi,dphi,type);
+				}
+				else {
+						std::cout<<"Not implement"<<std::endl;
+						DebugStop();
+				}
+				
+				
+				
+		}
+		
     
 
 

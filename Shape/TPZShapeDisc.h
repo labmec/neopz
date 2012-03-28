@@ -62,6 +62,21 @@ namespace pzshape {
         ~TPZShapeDisc();
         
         static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
+				
+				
+				/**
+				 * @brief Computes the shape function set at the point qsi for dual space.
+				 * @param dimension dimension of element
+				 * @param degree degree of polynomial
+				 * @param qsi point in master element coordinates
+				 * @param phi vector of values of shapefunctions, dimension (numshape,1)
+				 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
+				 * @param type type of polinomial space
+				 */
+				
+				static void Shape(int &dimension,int &degree,TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,MShapeType type);	
+				
+				
         
         /**
 		 * @brief Number of shapefunctions dependent on the dimension and order of interpolation
