@@ -83,12 +83,12 @@ int main()
 	}
 #endif
 	
-	for (int porder= 1; porder<2; porder++) {
+	for (int porder= 2; porder<3; porder++) {
 		
-		for(int h=1;h<6;h++){
+		for(int h=1;h<2;h++){
 			
 			
-			TPZGeoMesh *gmesh2 = MalhaGeoT(h);//malha geometrica
+			TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
 			
 			
 			TPZCompMeshReferred *cmesh = CreateMesh2d(*gmesh2,porder);//malha computacional
