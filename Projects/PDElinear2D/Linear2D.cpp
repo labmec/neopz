@@ -23,7 +23,7 @@
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
 
-#include "../PZ_Process.h"
+#include "PZ_Process.h"
 
 #include <iostream>
 #include <string>

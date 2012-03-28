@@ -1,4 +1,4 @@
-file(GLOB headers ../*.h)
+file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 file(GLOB sources2 ../*.cpp)
 

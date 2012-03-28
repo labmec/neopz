@@ -144,21 +144,21 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	if(!matId.NElements() || bc.NElements() < 2)
 		return NULL;
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
-	int Qnodes = 9;
-	gmesh->SetMaxNodeId(Qnodes-1);
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZVec<TPZGeoNode> Node(Qnodes);
+//	int Qnodes = 9;
+//	gmesh->SetMaxNodeId(Qnodes-1);
+//	gmesh->NodeVec().Resize(Qnodes);
+//	TPZVec<TPZGeoNode> Node(Qnodes);
 	
 	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.5 and hy = 0.5  
 	gen.SetElementType(0);       // type = 0 means rectangular elements  --> type = 1 means triangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 	
 	// setting bc condition -2 (u = 0) from (0.0, 0.0) until (1.0, 0.0)
-	x1[0] = 0.0;
-	gen.SetBC(gmesh,x1,x0,-2);
+	x1[1] = 0.0;
+	gen.SetBC(gmesh,x0,x1,-2);
 	// setting bc condition -1 from (0.0, 1.0) until (1.0, 1.0)
-	x0[0] = 1.; x0[1] = 1.;
+	x0[0] = x0[1] = 1.;
 	gen.SetBC(gmesh,x1,x0,-1);
 	// setting bc condition -1 from (1.0, 1.0) until (0.0, 1.0)
 	x1[0] = 0.;	x1[1] = 1.;
