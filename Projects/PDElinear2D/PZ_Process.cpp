@@ -143,7 +143,8 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 {
 	if(!matId.NElements() || bc.NElements() < 2)
 		return NULL;
-	TPZGeoMesh *gmesh = new TPZGeoMesh;
+//	TPZGeoMesh *gmesh = new TPZGeoMesh;
+    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
 //	int Qnodes = 9;
 //	gmesh->SetMaxNodeId(Qnodes-1);
 //	gmesh->NodeVec().Resize(Qnodes);
@@ -156,6 +157,8 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	
 	// setting bc condition -2 (u = 0) from (0.0, 0.0) until (1.0, 0.0)
 	x1[1] = 0.0;
+//	cout << x0[0] << " " << x0[1] << " " << x0[2] << endl;
+//	cout << x1[0] << " " << x1[1] << " " << x1[2] << endl;
 	gen.SetBC(gmesh,x0,x1,-2);
 	// setting bc condition -1 from (0.0, 1.0) until (1.0, 1.0)
 	x0[0] = x0[1] = 1.;
@@ -173,7 +176,7 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	// If necessary it refines level by level initial mesh
 	UniformRefine(h,gmesh);
 	
-	return gmesh;
+	return gmesh.operator->();
 }
 TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int> &bc,TPZVec<int> &bcType) {
 	

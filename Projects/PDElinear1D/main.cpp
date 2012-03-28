@@ -28,7 +28,7 @@ using namespace std;
 
 //
 //	This program solve  a system of linear PDE - 1D I hope! 
-//	- a.u''(x) + b.u'(x) = f(x),   0<= x <=1    --->  Now a=1 and b=1 and  f(x)=x
+//	- k.u''(x) + b.u'(x) = f(x),   0<= x <=1    --->  Now a=1 and b=1 and  f(x)=x
 //	using uD = 0  x = 0  and  x = 1.
 //
 
@@ -67,6 +67,9 @@ int main_firs(int argc, char *argv[])
 	// Files for output solution as multiplier coefficients
 	std::ofstream FileSolution("Solution.txt");	
 	std::ofstream FileError("erros.txt");
+
+	// File for Mathematica output format
+	std::ofstream outMath("Mathematica.txt");
 
 	// p -> interpolation order
 	int p = 2;
@@ -111,6 +114,9 @@ int main_firs(int argc, char *argv[])
 	// Print Solution as multiplier coefficients
 	TPZFMatrix<REAL> toprint = an.Solution();
 	toprint.Print("Solution", FileSolution);
+
+	// Solution output for Mathematica
+	OutputMathematica(outMath, cmesh);
 
 	// Plot erro (norms) 
 	an.SetExact(SolExata);
