@@ -45,6 +45,7 @@
 #include "TPZTimer.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzgeotetrahedra.h"
+#include "pzskylstrmatrix.h"
 
 #include "tpzarc3d.h"
 //
@@ -64,9 +65,12 @@ static LoggerPtr logger(Logger::getLogger("main"));
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
+void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
 TPZGeoMesh *MalhaPredio();
 TPZGeoMesh *MalhaCubo();
 void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc);
+REAL Height(TPZGeoMesh *gmesh);
+int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height);
 
 using namespace std;
 
@@ -86,8 +90,8 @@ int main(int argc, char *argv[])
 	int sublevel = 3;
 	int plevel = 1;
 	TPZPairStructMatrix::gNumThreads = 2;
-	int numthreads = 2;
-	//	tempo.fNumthreads = numthreads;					// alimenta timeTemp com o numero de threads
+	int numthreads = 4;
+	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
 		TPZCompEl::SetgOrder(plevel);
@@ -104,32 +108,61 @@ int main(int argc, char *argv[])
 		else 
 		{
 			dim = 3;
-			gmesh = MalhaPredio();
-			//gmesh = MalhaCubo();
-			cmesh = new TPZCompMesh(gmesh);
-			cmesh->SetDimModel(3);
-			//InsertViscoElasticity(cmesh);
-			InsertElasticity(cmesh);
-			cmesh->AutoBuild();
+			if (1) // Predio Elastisco
+			{
+				gmesh = MalhaPredio();
+				cmesh = new TPZCompMesh(gmesh);
+				cmesh->SetDimModel(3);
+				InsertElasticity(cmesh);
+				cmesh->AutoBuild();
+				
+			}
+			else // Cubo Viscoso
+			{
+				gmesh = MalhaCubo();
+				cmesh = new TPZCompMesh(gmesh);
+				cmesh->SetDimModel(3);
+				cmesh->SetDefaultOrder(plevel);
+				//cmesh->SetAllCreateFunctionsContinuousWithMem();
+				//cmesh->SetAllCreateFunctionsContinuous();
+				InsertViscoElasticityCubo(cmesh);
+				cmesh->AutoBuild();
+				
+				//Teste caso fosse uma malha normal. Funciona!!
+				/*
+				 TPZSkylineStructMatrix skylstruc(cmesh);
+				 TPZStepSolver<REAL> step;
+				 step.SetDirect(ECholesky);
+				 TPZAnalysis an(cmesh);
+				 an.SetStructuralMatrix(skylstruc);
+				 an.SetSolver(step);
+				 an.Run();
+				 */
+			}
+			
+			
 		}
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
-		int numthread_assemble = 16;
-		int numthread_decompose = 16;
+		int numthread_assemble = 4;
+		int numthread_decompose = 4;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
 		std::cout << "Substructuring the mesh\n";
-		//		TPZfTime timetosub; // init of timer
-		dohrstruct.SubStructure(8);
-		//		tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
-		//		std::cout << tempo.ft0sub << std::endl;
+		//	TPZfTime timetosub; // init of timer
+		REAL height = Height(gmesh);
+		//int nsubstruct = SubStructure(cmesh, height/2);
 		
-		//		sub.SubStructure();
-#ifdef LOG4CXX2
+		dohrstruct.SubStructure(4);
+		//	tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
+		//	std::cout << tempo.ft0sub << std::endl;
+		
+		//	sub.SubStructure();
+#ifdef LOG4CXX
 		{
 			std::stringstream str;
 			cmesh->Print(str);
@@ -148,7 +181,7 @@ int main(int argc, char *argv[])
 		
 		TPZFMatrix<REAL> diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
-		//		tempo.fNumEqCoarse = dohr->Rows();											// alimenta timeTemp com o numero de equacoes coarse
+		//	tempo.fNumEqCoarse = dohr->Rows();	// alimenta timeTemp com o numero de equacoes coarse
 		dohr->Multiply(diag,produto);
 		
 		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
@@ -174,23 +207,23 @@ int main(int argc, char *argv[])
 		cg.SetCG(500,pre,1.e-8,0);
 		
 		
-		//		TPZfTime timetosolve; // init of timer
+		//	TPZfTime timetosolve; // init of timer
 		cg.Solve(rhs,diag);
-		//		tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
-		//		cout << "Total: " << tempo.ft6iter << std::endl;
+		//	tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
+		//	cout << "Total: " << tempo.ft6iter << std::endl;
 		
-		//		cout << "Tempos para multiplicacao: " << tempo.fMultiply << std::endl;
-		//		cout << "Tempos para precondicionamento: " << tempo.fPreCond << std::endl;
+		//	cout << "Tempos para multiplicacao: " << tempo.fMultiply << std::endl;
+		//	cout << "Tempos para precondicionamento: " << tempo.fPreCond << std::endl;
 		
 		string FileName;
 		FileName = "Times_in_Line.txt";
 		ofstream OutputFile;
 		
-		//		bool shouldprint = tempo.NeedsHeader(FileName);			// verify the need of a header
-		//		OutputFile.open(FileName.c_str(), ios::app);					// creates the file
-		//		if (shouldprint == true) tempo.PrintHeader(OutputFile);		// prints the header if It is the first time the program is executed
+		//	bool shouldprint = tempo.NeedsHeader(FileName);	// verify the need of a header
+		//	OutputFile.open(FileName.c_str(), ios::app);	// creates the file
+		//	if (shouldprint == true) tempo.PrintHeader(OutputFile);	// prints the header if It is the first time the program is executed
 		
-		//		tempo.PrintLine(OutputFile);		// print all the information in one line
+		//	tempo.PrintLine(OutputFile);	// print all the information in one line
 		
 #ifdef LOG4CXX
 		{
@@ -214,8 +247,9 @@ int main(int argc, char *argv[])
 			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
 			submesh->LoadSolution(subu);
 			
-			/* ViscoElastico
+			//ViscoElastico
 			//Atualizando memoria do material
+			/*
 			std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(submesh->MaterialVec());
 			std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator itmat;
 			for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
@@ -227,7 +261,7 @@ int main(int argc, char *argv[])
 					vmat->SetUpdateMem();
 				}
 			}	
-			 */
+			*/
 			subcount++;
 			it++;
 		}
@@ -237,15 +271,15 @@ int main(int argc, char *argv[])
 			std::stringstream sout;
 			diag.Print("Resultado do processo iterativo",sout);
 			LOGPZ_INFO(loggerconverge,sout.str())
-	   	}
-#endif		
+		}
+#endif	
 		
 		TPZAutoPointer<TPZMaterial> mat = cmeshauto->FindMaterial(1);
 		int nstate = mat->NStateVariables();
 		int nscal = 0, nvec = 0;
 		if(nstate ==1) 
 		{
-            nscal = 1;
+			nscal = 1;
 		}
 		else
 		{
@@ -272,26 +306,22 @@ int main(int argc, char *argv[])
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
 		
-		/* ViscoElastico
+		//ViscoElastico
+		/*
 		std::cout << "To seguindo!!!" << std::endl;
 		for (istep = 1 ; istep < nsteps ; istep++)
 		{
 			TPZAutoPointer<TPZGuiInterface> guifake;
 			dohrstruct.Assemble( rhs, guifake);
-			cg.Solve(rhs,diag);			
+			cg.Solve(rhs,diag);	
 			vtkmesh.DrawMesh(numcases);
-			vtkmesh.DrawSolution(istep, 1.);			
+			vtkmesh.DrawSolution(istep, 1.);	
 		}
 		 */
-		 
-		
-		
 	}
 	
 	total.stop();
 	std::cout << "TEMPO = " << total.seconds() << std::endl;
-    
-	
 	
 	delete gmesh;
 	return EXIT_SUCCESS;
@@ -342,7 +372,7 @@ int main2(int argc, char *argv[])
 	//	int ik;
 	//	for(ik=1; ik<nk; ik++)
 	//	{
-	//		sub.fK[ik] = 1.;//50.*ik;
+	//	sub.fK[ik] = 1.;//50.*ik;
 	//	}
 	//sub.fMatDist = TPZGenSubStruct::RandomMat;
 	
@@ -430,7 +460,7 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(loggerconverge,sout.str())
 	}
 #endif
-
+	
 	precondptr2->Multiply(diag,produto2);
 #ifdef LOG4CXX
 	{
@@ -567,6 +597,70 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	mesh->InsertMaterialObject(bcauto);	
 }
 
+void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
+{
+	mesh->SetDimModel(3);
+	int nummat = 1, neumann = 1, mixed = 2;
+	//	int dirichlet = 0;
+	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
+	TPZManVector<REAL> force(3,0.);
+	//force[1] = 0.;
+	REAL Ela = 1000, poisson = 0.; 
+	REAL lambdaV = 0, muV = 0, alphaT = 0;
+	lambdaV = 11.3636;
+	muV = 45.4545;
+	alphaT = 0.01;	
+	
+	
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+	
+	TPZFNMatrix<6> qsi(6,1,0.);
+	//viscoelast->SetDefaultMem(qsi); //elast
+	//int index = viscoelast->PushMemItem(); //elast
+	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
+	mesh->InsertMaterialObject(viscoelastauto);
+	
+	// Neumann em x = 1;
+	TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
+	val2(0,0) = 1.;
+	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto4(bc4);
+	mesh->InsertMaterialObject(bcauto4);
+	
+	// Neumann em x = -1;
+	val2(0,0) = -1.;
+	TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto5(bc5);
+	mesh->InsertMaterialObject(bcauto5);
+	
+	val2.Zero();
+	// Dirichlet em -1 -1 -1 xyz;
+	val1(0,0) = 1e-12;
+	val1(1,1) = 1e-12;
+	val1(2,2) = 1e-12;
+	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto1(bc1);
+	mesh->InsertMaterialObject(bcauto1);
+	
+	// Dirichlet em 1 -1 -1 yz;
+	val1(0,0) = 0.;
+	val1(1,1) = 1e-12;
+	val1(2,2) = 1e-12;
+	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto2(bc2);
+	mesh->InsertMaterialObject(bcauto2);
+	
+	// Dirichlet em 1 1 -1 z;
+	val1(0,0) = 0.;
+	val1(1,1) = 0.;
+	val1(2,2) = 1e-12;
+	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
+	TPZAutoPointer<TPZMaterial> bcauto3(bc3);
+	mesh->InsertMaterialObject(bcauto3);
+	
+}
+
 TPZGeoMesh *MalhaPredio()
 {
 	//int nBCs = 1;
@@ -672,7 +766,7 @@ TPZGeoMesh *MalhaPredio()
 		
 		gMesh->BuildConnectivity();
 		// Colocando as condicoes de contorno
-
+		
 		for(el=0; el<numelements; el++)
 		{
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
@@ -696,7 +790,7 @@ TPZGeoMesh *MalhaPredio()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,matBCid);		
+				TPZGeoElBC(tetraSide,matBCid);	
 			}
 		}
 	}
@@ -706,7 +800,7 @@ TPZGeoMesh *MalhaPredio()
 	// identificando as superficies que terao cond de contorno. Coord z dos 3 nos = 0
 	//	for (int el = 0; el < numnodes-1; el++) 
 	//	{
-	//		Nodefind[el] = gMesh->NodeVec()[el];
+	//	Nodefind[el] = gMesh->NodeVec()[el];
 	//
 	//	}
 	//	Nodefind.Print(std::cout);
@@ -806,7 +900,7 @@ TPZGeoMesh *MalhaCubo()
 		
 		int el;
 		int neumann1 = -4, neumann2 = -5, dirp2 = -6;
-        int index = 0;
+		int index = 0;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
 		{
@@ -825,8 +919,9 @@ TPZGeoMesh *MalhaCubo()
 			int index = el;
 			
 			//TPZGeoEl * tetra = gMesh->CreateGeoElement(ETetraedro, TopolTetra, matElId, index);
-			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
+			//TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 			
+			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
 		
 		gMesh->BuildConnectivity();
@@ -858,7 +953,7 @@ TPZGeoMesh *MalhaCubo()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,neumann1);		
+				TPZGeoElBC(tetraSide,neumann1);	
 			}
 			
 			// Na face x = -1
@@ -881,7 +976,7 @@ TPZGeoMesh *MalhaCubo()
 			{
 				int lado = tetra->WhichSide(ncoordzVec);
 				TPZGeoElSide tetraSide(tetra, lado);
-				TPZGeoElBC(tetraSide,neumann2);		
+				TPZGeoElBC(tetraSide,neumann2);	
 			}
 			
 		}
@@ -894,10 +989,9 @@ TPZGeoMesh *MalhaCubo()
 		SetPointBC(gMesh, yz, bcidyz);
 		SetPointBC(gMesh, z, bcidz);
 		
-		//gMesh->BuildConnectivity();
 	}
 	
-	ofstream arg("malhaPZ.txt");
+	ofstream arg("malhaPZ1BC.txt");
 	gMesh->Print(arg);
 	
 	std::ofstream out("Cube.vtk");
@@ -930,4 +1024,104 @@ void SetPointBC(TPZGeoMesh *gr, TPZVec<REAL> &x, int bc)
 			return;
 		}
 	}
+}
+
+REAL Height(TPZGeoMesh *gmesh)
+{
+	TPZAdmChunkVector<TPZGeoNode> &nodevec = gmesh->NodeVec();
+	int nnodes = nodevec.NElements();
+	int in;
+	REAL maxz = 0.;
+	for (in=0; in<nnodes; in++) {
+		REAL z = nodevec[in].Coord(2);
+		maxz = (maxz < z) ? z : maxz;
+	}
+	return maxz;
+}
+
+
+int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
+{
+	int nelem = cmesh->NElements();
+	TPZManVector<int> subindex(nelem,-1);
+	int iel;
+	int nsub = 0;
+	for (iel=0; iel<nelem; iel++) 
+	{
+		TPZCompEl *cel = cmesh->ElementVec()[iel];
+		if (!cel) {
+			continue;
+		}
+		TPZGeoEl *gel = cel->Reference();
+		if (!gel) {
+			continue;
+		}
+		int nsides = gel->NSides();
+		TPZManVector<REAL> center(gel->Dimension(),0.), xco(3,0.);
+		gel->CenterPoint(nsides-1,center);
+		gel->X(center,xco);
+		REAL z = xco[2];
+		int floor = (int) z/height;
+		nsub = (floor+1) > nsub ? (floor+1) : nsub;
+		subindex[iel] = floor;
+	}
+	
+#ifdef DEBUG 
+	{
+		TPZGeoMesh *gmesh = cmesh->Reference();
+		int nelgeo = gmesh->NElements();
+		TPZVec<int> domaincolor(nelgeo,-999);
+		int cel;
+		int nel = cmesh->NElements();
+		for (cel=0; cel<nel; cel++) {
+			TPZCompEl *compel = cmesh->ElementVec()[cel];
+			if(!compel) continue;
+			TPZGeoEl *gel = compel->Reference();
+			if (!gel) {
+				continue;
+			}
+			domaincolor[gel->Index()] = subindex[cel];
+		}
+		ofstream vtkfile("partition.vtk");
+		TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkfile, domaincolor);
+	}
+#endif
+	
+	int isub;
+	TPZManVector<TPZSubCompMesh *> submeshes(nsub,0);
+	for (isub=0; isub<nsub; isub++) 
+	{
+		int index;
+		std::cout << '^'; std::cout.flush();
+		submeshes[isub] = new TPZSubCompMesh(cmesh,index);
+		
+		if (index < subindex.NElements()) 
+		{
+			subindex[index] = -1;
+		}
+	}
+	for (iel=0; iel<nelem; iel++) 
+	{
+		int domindex = subindex[iel];
+		if (domindex >= 0) 
+		{
+			TPZCompEl *cel = cmesh->ElementVec()[iel];
+			if (!cel) 
+			{
+				continue;
+			}
+			submeshes[domindex]->TransferElement(cmesh.operator->(),iel);
+		}
+	}
+	cmesh->ComputeNodElCon();
+	for (isub=0; isub<nsub; isub++) 
+	{
+		submeshes[isub]->MakeAllInternal();
+		std::cout << '*'; std::cout.flush();
+	}
+	
+	cmesh->ComputeNodElCon();
+	cmesh->CleanUpUnconnectedNodes();
+	return nsub;
+	
 }
