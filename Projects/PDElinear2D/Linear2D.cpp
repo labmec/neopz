@@ -52,7 +52,8 @@ void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exac
 {
 }
 
-int main()
+int main_2D()
+//int main()
 {
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
@@ -69,9 +70,9 @@ int main()
 	std::ofstream outMath("Mathematica.txt");
 
 	// p -> interpolation order
-	int p = 2;
+	int p = 21;
 	// h -> level of uniform refinement of the initial mesh
-	int h = 8;
+	int h = 3;
 	
 	// Creating main extremes and material for current project
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the mesh.
@@ -94,7 +95,7 @@ int main()
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
-	TPZGeoMesh *gmesh = GeomMesh2D(h,matId,bc,x0,x1,1);
+	TPZGeoMesh *gmesh = GeomMesh2D(h,matId,bc,x0,x1,1);   // 1 -> triangular   0 -> quadrilateral
 	gmesh->Print(infoGeoMesh);	
 
 	// Creating a computational mesh and printing computational information.
@@ -132,7 +133,9 @@ int main()
 #include "TPZExtendGridDimension.h"
 #include "pzmattest3d.h"
 
-int main3D() {
+//int main3D()
+int main()
+{
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
