@@ -167,8 +167,6 @@ if(USING_METIS)
 	link_libraries(metis)
 endif(USING_METIS)
 
-
-
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)
@@ -189,6 +187,8 @@ endif()
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
 
+#To building all the specific projects developed with PZ environment
+option(BUILD_STATE_PROJECTS "To build projects no floating point." OFF)
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
