@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZSaveable methods.
  */
+
 #include "pzsave.h"
 #include "pzfilebuffer.h"
 
@@ -69,14 +70,7 @@ TPZSaveable *TPZSaveable::Restore(TPZStream &buf, void *context) {
 		}
 		return 0;
 	}
-	//  std::cout << __PRETTY_FUNCTION__ << " classid " << classid << std::endl;
-	/*#ifdef LOG4CXX
-	 if(logger->isDebugEnabled()) {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " restoring object " << classid;
-	 LOGPZ_DEBUG(logger,sout.str().c_str());
-	 }
-	 #endif*/
+	
 	TPZRestore_t fun= it->second;
 	return (*fun)(buf,context);
 #else
@@ -109,6 +103,5 @@ bool TPZSaveable::Compare(TPZSaveable *copy, bool override) const
 	LOGPZ_ERROR(loggerCheck,sout.str())
 	return false;
 }
-
 
 template class TPZRestoreClass<TPZSaveable, -1>;

@@ -2,16 +2,6 @@
  * @file
  * @brief Contains declaration of the TPZBFileStream class which implements the interface to a binary file.
  */
-//
-// C++ Interface: TPZBFileStream
-//
-// Description: 
-//
-//
-// Author: Thiago M. N. Oliveira <thiago@labmec.fec.unicamp.br>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef STDPZBFILESTREAM_H
 #define STDPZBFILESTREAM_H

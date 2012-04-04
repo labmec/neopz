@@ -81,9 +81,9 @@ class TPZFileStream : public TPZStream {
 	
 public:
 	
-	TPZFileStream(){}
+	TPZFileStream() { }
 	
-	virtual ~TPZFileStream();
+	virtual ~TPZFileStream() { }
 	
 	void OpenWrite(const std::string &filename) {
 		fo.open(filename.c_str());
@@ -149,7 +149,6 @@ public:
 			fi.getline(buf,100);
 		}
 	}
-	
 };
 
 #endif

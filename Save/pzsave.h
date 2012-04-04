@@ -2,6 +2,7 @@
  * @file
  * @brief Contains declaration of the TPZSaveable class which defines the interface to save and restore objects from TPZStream objects.
  */
+
 #ifndef PZSAVEH
 #define PZSAVEH
 
@@ -23,10 +24,10 @@ class TPZSaveable;
  * \addtogroup save
  * @{
  */
-/// Identifier as saveable object
+/** @brief Identifier as saveable object */
 const int TPZSAVEABLEID = -1;
 
-/// Typedef of TPZRestore_t
+/** @brief Typedef of TPZRestore_t */
 typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
@@ -54,7 +55,6 @@ public:
 	virtual ~TPZSaveable()
 	{
 	}
-	
 	
 	/** @brief Define the class id associated with the class */
 	/**
@@ -131,7 +131,7 @@ public:
 		}
 		WriteObjects(buf, cp);
 	}
-
+	
     static void WriteObjects(TPZStream &buf, const std::map<REAL,REAL> &vec)
 	{
 		int sz = vec.size();
@@ -144,7 +144,7 @@ public:
 		}
 		WriteObjects(buf, cp);
 	}
-
+	
 	
 	template<class T>
 	static void WriteObjectPointers(TPZStream &buf, TPZVec<T *> &vec)
@@ -434,6 +434,7 @@ TPZSaveable *Restore(TPZStream &buf, void *context) {
 }
 
 #ifndef ELLIPS
+
 /**
  * @brief Implements an interface to register a class id and a restore function. \ref save "Persistency"
  */
