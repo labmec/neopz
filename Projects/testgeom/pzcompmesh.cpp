@@ -56,7 +56,7 @@ int main() {
 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator 
 	gen.SetElementType(0);       // type = 0 means rectangular elements
-	gen.Read(*(gmesh.operator->()));            // generating mesh in gmesh
+	gen.Read(gmesh);            // generating mesh in gmesh
 
 	ofstream saida("malhateste.txt");
 	strncpy(expression,"Malha inicial",strlen("Malha inicial")+1);
