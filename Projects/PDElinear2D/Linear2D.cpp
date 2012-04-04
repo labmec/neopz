@@ -69,9 +69,9 @@ int main()
 	std::ofstream outMath("Mathematica.txt");
 
 	// p -> interpolation order
-	int p = 21;
+	int p = 2;
 	// h -> level of uniform refinement of the initial mesh
-	int h = 2;
+	int h = 8;
 	
 	// Creating main extremes and material for current project
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the mesh.
@@ -182,11 +182,12 @@ int main3D() {
 	gmesh3D->Print(infoGeoMesh);
 	
 	// Creating a computational mesh and printing computational information.
-	TPZCompMesh * cmesh = CompMesh(gmesh3D,p,material,bc,bcType);
+	TPZCompMesh *cmesh = CompMesh(gmesh3D,p,material,bc,bcType);
 	cmesh->Print(infoCompMesh);
 	
 	// Assembling and Solving linear system
 	TPZAnalysis an(cmesh);
 	SolveSist(an,cmesh);
 	
+	return 0;
 }
