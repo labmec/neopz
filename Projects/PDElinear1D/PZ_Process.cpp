@@ -8,6 +8,8 @@
 
 #include "PZ_Process.h"
 
+#include <map>
+
 using namespace std;
 
 TPZGeoMesh *GeomMesh(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL,TPZVec<REAL> &xR)
@@ -54,19 +56,19 @@ TPZGeoMesh *GeomMesh(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL,T
 	gmesh->BuildConnectivity();
 	
 	// If necessary it refines level by level initial mesh
-	UniformRefine(h,gmesh);
+	UniformRefinement(h,gmesh);
 	
 	return gmesh;
 }
 
-void UniformRefine(int h,TPZGeoMesh *gmesh) {
+void UniformRefinement(int h,TPZGeoMesh *gmesh) {
 	//uniform refinement
 	TPZVec<TPZGeoEl *> filhos;
 	for (int ref = 0; ref < h; ref++) {
 		int n = gmesh->NElements();
 		for(int i = 0; i < n; i++ ) {
 			TPZGeoEl *gel = gmesh->ElementVec()[i];
-			gel->Divide(filhos);
+			if(gel->Type() != EPoint) gel->Divide(filhos);  // You can to divide point element but it do nothing (only error message)
 		}
 	}
 }
@@ -112,6 +114,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	// Symmetric case	
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
+	an.Solution().Zero();
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt);
 	an.SetSolver(step);
@@ -134,29 +137,84 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 }
 
 // Output as Mathematica format
-void OutputMathematica(std::ofstream &outMath, TPZCompMesh *cmesh) {
-	outMath << "Saida = {";
+void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCompMesh *cmesh) {
+	int i, j, k, nnodes;
 	int nelem = cmesh->ElementVec().NElements();
-	int pointsInElement = 11;
-	for(int i = 0;  i< nelem; i++)
-	{
-		TPZCompEl * cel = cmesh->ElementVec()[i];
-		if(cel->Reference()->Dimension() < cmesh->Dimension()) continue;
+	int dim = cmesh->Dimension();   // Dimension of the model
+	double w;
+	if(var-1 < 0) var = 1;
+	// Map to store the points and values 
+	map<REAL,TPZVec<REAL> > Graph;
+	TPZVec<REAL> tograph(4,0.);
+	
+	for(i=0;i<nelem;i++) {
+		TPZCompEl *cel = cmesh->ElementVec()[i];
+		TPZGeoEl *gel = cel->Reference();
 		TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
-		TPZVec<REAL> qsi(1,0.), sol(1,0.), outfem(3,0.);
-		TPZFMatrix<REAL> axes(1,3,0.), dsol(1,1,0.);
-		for(int j = 0; j < pointsInElement; j++)
-		{
-			qsi[0] = -1.+2.*j/10.;
+		int nstates = cel->Material()->NStateVariables();
+		// If var is higher than nstates of the element, go to next element
+		if(var > nstates)
+			continue;
+		TPZVec<REAL> qsi(3,0.), sol(nstates,0.), outfem(3,0.);
+		nnodes = gel->NNodes();
+		if(pointsByElement < nnodes) pointsByElement = nnodes;
+		for(j=0;j<gel->NNodes();j++) {
+			// Get corners points to compute solution on
+			gel->CenterPoint(j,qsi);
 			sp->Solution(qsi,0,sol);
 			cel->Reference()->X(qsi,outfem);
-			outMath << "{" << outfem[0] << "," << sol[0] << "}";
-			if(j != pointsInElement-1) outMath << ",";
+			// Jointed point coordinates and solution value on			
+			for(k=0;k<3;k++) tograph[k] = outfem[k];
+			tograph[k] = sol[var-1];
+			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
+			// If cel is point gets one point value
+			if(cel->Type() == EPoint) {
+				break;
+			}
 		}
-		if(i == nelem-1) outMath << "};" << std::endl;
-		else outMath << ",";
+		// If cel is point gets one point value
+		if(cel->Type() == EPoint) continue;
+		// Print another points using integration points
+		TPZIntPoints *rule = NULL;
+		int order = 1, npoints = 0;
+		while(pointsByElement-(npoints+nnodes) > 0) {
+			if(rule) delete rule;   // Cleaning unnecessary allocation
+			int nsides = gel->NSides();
+			// Get the integration rule to compute internal points to print, not to print
+			rule = gel->CreateSideIntegrationRule(nsides-1,order);
+			if(!rule) break;
+			npoints = rule->NPoints();
+			order += 2;
+		}
+		for(j=0;j<npoints;j++) {
+			// Get integration points to get internal points
+			rule->Point(j,qsi,w);
+			sp->Solution(qsi,0,sol);
+			cel->Reference()->X(qsi,outfem);
+			// Jointed point coordinates and solution value on
+			for(k=0;k<3;k++) tograph[k] = outfem[k];
+			tograph[k] = sol[var-1];
+			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
+		}
 	}
-	outMath << "ListPlot[Saida,Joined->True]"<< endl;
+	
+	// Printing the points and values into the Mathematica file
+	map<REAL,TPZVec<REAL> >::iterator it;
+	outMath << "Saida = { ";
+	for(it=Graph.begin();it!=Graph.end();it++) {
+		if(it!=Graph.begin()) outMath << ",";
+		outMath << "{";
+		for(j=0;j<dim;j++)
+			outMath << (*it).second[j] << ",";
+		outMath << (*it).second[3] << "}";
+	}
+	outMath << "}" << std::endl;
+	
+	// Choose Mathematica command depending on model dimension
+	if(dim < 2)
+		outMath << "ListPlot[Saida,Joined->True]"<< endl;
+	else 
+		outMath << "ListPlot3D[Saida]"<< endl;
 }
 
 // Output as VTK (Visualization Tool Kit) format

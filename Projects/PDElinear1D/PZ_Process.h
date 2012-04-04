@@ -42,7 +42,7 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh, int p, TPZMaterial *material, TPZVec<in
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
 
 // Refines geometric mesh level by level from given mesh
-void UniformRefine(int h,TPZGeoMesh *gmesh);
+void UniformRefinement(int h,TPZGeoMesh *gmesh);
 
 
 /* AUXILIAR FUNCTIONS TO HELP US VISUALIZATION */
@@ -50,6 +50,6 @@ void UniformRefine(int h,TPZGeoMesh *gmesh);
 // Output as VTK (Visualization Tool Kit) format
 void OutputVTK(std::string &outVTK, TPZCompMesh *cmesh,TPZAnalysis &an);
 // Output as Mathematica format
-void OutputMathematica(std::ofstream &outMath, TPZCompMesh *cmesh);
+void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCompMesh *cmesh);
 
 #endif

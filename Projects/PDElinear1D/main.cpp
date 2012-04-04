@@ -28,9 +28,8 @@ using namespace std;
 
 //
 //	This program solve  a system of linear PDE - 1D I hope! 
-//	- k.u''(x) + b.u'(x) = f(x),   0<= x <=1    --->  Now a=1 and b=1 and  f(x)=x
-//	using uD = 0  x = 0  and  x = 1.
-//
+//	- k.u''(x) + b.u'(x) = f(x),   0<= x <=1    --->  Now k=1 and b=1 and  f(x)=x
+//	using uDirichlet = u(x) = 0  on  x = 0  and  x = 1.
 
 /* RELATED TO MODEL */
 
@@ -54,13 +53,15 @@ void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exac
 	//	du_exact(1,0) =0.;//dy
 }
 
-//int main()
-int main_firs(int argc, char *argv[])
+int main()
+//int main_firs(int argc, char *argv[])
 {
+#ifdef LOG4CXX
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
-	
+#endif
+
 	// Files for information (geometric mesh and computational mesh)
 	std::ofstream infoGeoMesh("gmesh.txt");
 	std::ofstream infoCompMesh("cmesh.txt");	
@@ -101,7 +102,7 @@ int main_firs(int argc, char *argv[])
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
 	TPZGeoMesh *gmesh = GeomMesh(h,matId,bc,x0,x1);
-	gmesh->Print(infoGeoMesh);	
+	gmesh->Print(infoGeoMesh);
 	
 	// Creating a computational mesh and printing computational information.
 	TPZCompMesh * cmesh = CompMesh(gmesh,p,material,bc,bcType);
@@ -116,7 +117,7 @@ int main_firs(int argc, char *argv[])
 	toprint.Print("Solution", FileSolution);
 
 	// Solution output for Mathematica
-	OutputMathematica(outMath, cmesh);
+	OutputMathematica(outMath,1,10, cmesh);
 
 	// Plot erro (norms) 
 	an.SetExact(SolExata);
@@ -130,12 +131,13 @@ int main_firs(int argc, char *argv[])
 	infoCompMesh.close();
 	FileSolution.close();
 	FileError.close();
+	outMath.close();
 
 	return EXIT_SUCCESS;
 }
 
-int main(int argc, char *argv[])
-//int main_refinement(int argc, char *argv[])
+//int main(int argc, char *argv[])
+int main_refinement(int argc, char *argv[])
 {	
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
@@ -176,10 +178,10 @@ int main(int argc, char *argv[])
 	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
 	
 	// Loop over p -> interpolation order
-	for(int p = 1; p < 20; p++)
+	for(int p = 1; p < 7; p++)
 	{
 		// Loop over h -> level of uniform refinement
-		for(int h = 2; h <10; h++)
+		for(int h = 2; h < 10; h+=2)
 		{
 			// Creating a geometric mesh and printing geometric information.  Note: The coordinates of the nodes are 3D
 			TPZGeoMesh *gmesh = GeomMesh(h,matId,bc,x0,x1);
@@ -198,7 +200,7 @@ int main(int argc, char *argv[])
 			toprint.Print("Solution", FileSolution);
 
 			// Solution output for Mathematica
-			OutputMathematica(outMath, cmesh);
+			OutputMathematica(outMath,1,5,cmesh);
 
 			// Computing the errors (and plot)
 			an.SetExact(SolExata);
@@ -218,6 +220,7 @@ int main(int argc, char *argv[])
 	infoCompMesh.close();
 	FileSolution.close();
 	FileError.close();
+	outMath.close();
 	
 	return EXIT_SUCCESS;
 }

@@ -11,7 +11,7 @@
 using namespace std;
 
 TPZGeoMesh *GeomMesh1D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL,TPZVec<REAL> &xR)
-{	
+{
 	if(!matId.NElements() || bc.NElements() < 2)
 		return NULL;
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
@@ -35,7 +35,7 @@ TPZGeoMesh *GeomMesh1D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
-
+	
 	// Creating geometric elements (point and linear)
 	id=0;
 	TopolPoint[0] = 0;
@@ -54,25 +54,24 @@ TPZGeoMesh *GeomMesh1D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL
 	gmesh->BuildConnectivity();
 	
 	// If necessary it refines level by level initial mesh
-	UniformRefine(h,gmesh);
+	UniformRefinement(h,gmesh);
 	
 	return gmesh;
 }
 
-void UniformRefine(int h,TPZGeoMesh *gmesh) {
+void UniformRefinement(int h,TPZGeoMesh *gmesh) {
 	//uniform refinement
 	TPZVec<TPZGeoEl *> filhos;
 	for (int ref = 0; ref < h; ref++) {
 		int n = gmesh->NElements();
 		for(int i = 0; i < n; i++ ) {
 			TPZGeoEl *gel = gmesh->ElementVec()[i];
-			gel->Divide(filhos);
+			if(gel->Type() != EPoint) gel->Divide(filhos);  // You can to divide point element but it do nothing (only error message)
 		}
 	}
 }
 
 TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int> &bc,TPZVec<int> &bcType) {
-
 	if(!material || bc.NElements()<2 || bcType.NElements() != bc.NElements()) return NULL;
 	int dim = 1;
 	
@@ -90,7 +89,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	//	REAL uN=1-cosh(1.)/sinh(1.);
 	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
 	if(!bcType[0])  // dirichlet
-		val2.PutVal(0,0,0.);
+		val2.PutVal(0,0,0.0);
 	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
@@ -98,7 +97,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 		val2.PutVal(0,0,0.0);
 	TPZAutoPointer<TPZMaterial> BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
-
+	
 	//Adjusting data
 	cmesh->AutoBuild();
 	cmesh->AdjustBoundaryElements(); 
@@ -112,11 +111,12 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	// Symmetric case	
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
+	an.Solution().Zero();
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ELDLt);
 	an.SetSolver(step);
 	an.Run();
-
+	
 	//	Nonsymmetric case
 	//	TPZBandStructMatrix full(fCmesh);
 	//	an.SetStructuralMatrix(full);
@@ -124,41 +124,29 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	//	step.SetDirect(ELU);
 	//	an.SetSolver(step);
 	//	an.Run();
-
-	//	TPZAutoPointer<TPZMaterial> mat = fCmesh->FindMaterial(matId);
-	//	TPZMatPoisson3d * aximat1 = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
-	//	
-	//	ofstream file("Solution.out");
-	//	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
-	//	
 }
 
 
 // CASE 2D
 
 #include "pzgengrid.h"
-#include "TPZExtendGridDimension.h"
 
-TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0,TPZVec<REAL> &x1)
+TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0,TPZVec<REAL> &x1,int elementType)
 {
-	if(!matId.NElements() || bc.NElements() < 2)
+	if(!matId.NElements() || bc.NElements() < 2 || elementType < 0)
 		return NULL;
-//	TPZGeoMesh *gmesh = new TPZGeoMesh;
-    TPZAutoPointer<TPZGeoMesh> gmesh = new TPZGeoMesh;
-//	int Qnodes = 9;
-//	gmesh->SetMaxNodeId(Qnodes-1);
-//	gmesh->NodeVec().Resize(Qnodes);
-//	TPZVec<TPZGeoNode> Node(Qnodes);
+	if(elementType)
+		elementType = 1;
+	
+    TPZGeoMesh *gmesh = new TPZGeoMesh;
 	
 	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.5 and hy = 0.5  
-	gen.SetElementType(0);       // type = 0 means rectangular elements  --> type = 1 means triangular elements
+	gen.SetElementType(elementType);       // type = 0 means rectangular elements  --> type = 1 means triangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
-	
+
 	// setting bc condition -2 (u = 0) from (0.0, 0.0) until (1.0, 0.0)
 	x1[1] = 0.0;
-//	cout << x0[0] << " " << x0[1] << " " << x0[2] << endl;
-//	cout << x1[0] << " " << x1[1] << " " << x1[2] << endl;
 	gen.SetBC(gmesh,x0,x1,-2);
 	// setting bc condition -1 from (0.0, 1.0) until (1.0, 1.0)
 	x0[0] = x0[1] = 1.;
@@ -171,15 +159,16 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	gen.SetBC(gmesh, x1, x0, -1);
 
 	// Building the connectivity between elements as (element, side)
+	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
 	// If necessary it refines level by level initial mesh
-	UniformRefine(h,gmesh);
+	UniformRefinement(h,gmesh);
 	
-	return gmesh.operator->();
+	return gmesh;
 }
-TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int> &bc,TPZVec<int> &bcType) {
-	
+
+TPZCompMesh *CompMesh(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int> &bc,TPZVec<int> &bcType) {	
 	if(!material || bc.NElements()<2 || bcType.NElements() != bc.NElements()) return NULL;
 	int dim = 2;
 	
@@ -217,41 +206,97 @@ TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 // OUTPUT FORMAT
 
 // Output as Mathematica format
-void OutputMathematica(std::ofstream &outMath, TPZCompMesh *cmesh) {
-	outMath << "Saida = {";
-	int i, j, k;
+void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCompMesh *cmesh) {
+	int i, j, k, nnodes;
 	int nelem = cmesh->ElementVec().NElements();
-	int pointsInElement = 11;
-	int dim = cmesh->Dimension();
-	for(i = 0;  i< nelem; i++)
-	{
+	int dim = cmesh->Dimension();   // Dimension of the model
+	double w;
+	if(var-1 < 0) var = 1;
+	// Map to store the points and values 
+	map<REAL,TPZVec<REAL> > Graph;
+	TPZVec<REAL> tograph(4,0.);
+	map<TPZVec<REAL>,REAL> Graphics;
+	
+	for(i=0;i<nelem;i++) {
 		TPZCompEl *cel = cmesh->ElementVec()[i];
-		if(cel->Reference()->Dimension() < cmesh->Dimension()) continue;
+		TPZGeoEl *gel = cel->Reference();
 		TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
-		TPZVec<REAL> qsi(1,0.), sol(1,0.), outfem(3,0.);
-		TPZFMatrix<REAL> axes(1,3,0.), dsol(1,1,0.);
-		for(j = 0; j < pointsInElement; j++)
-		{
-			qsi[0] = -1.+2.*j/10.;
+		int nstates = cel->Material()->NStateVariables();
+		// If var is higher than nstates of the element, go to next element
+		if(var > nstates)
+			continue;
+		TPZVec<REAL> qsi(3,0.), sol(nstates,0.), outfem(3,0.);
+		nnodes = gel->NNodes();
+		if(pointsByElement < nnodes) pointsByElement = nnodes;
+		for(j=0;j<gel->NNodes();j++) {
+			// Get corners points to compute solution on
+			gel->CenterPoint(j,qsi);
 			sp->Solution(qsi,0,sol);
 			cel->Reference()->X(qsi,outfem);
-			outMath << "{{";
-			for(k=0;k<dim;k++) {
-				outMath << outfem[k];
-				if(k!=dim-1) outMath << ",";
+			// Jointed point coordinates and solution value on			
+			for(k=0;k<3;k++) tograph[k] = outfem[k];
+			tograph[k] = sol[var-1];
+			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
+			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,sol[var-1]));
+			// If cel is point gets one point value
+			if(cel->Type() == EPoint) {
+				break;
 			}
-			outMath << "},{";
-			for(k=0;k<dim;k++) {
-				outMath << sol[k];
-				if(k!=dim-1) outMath << ",";
-			}
-			outMath << "}}";
-			if(j != pointsInElement-1) outMath << ",";
 		}
-		if(i == nelem-1) outMath << "};" << std::endl;
-		else outMath << ",";
+		// If cel is point gets one point value
+		if(cel->Type() == EPoint) continue;
+		// Print another points using integration points
+		TPZIntPoints *rule = NULL;
+		int order = 1, npoints = 0;
+		while(pointsByElement-(npoints+nnodes) > 0) {
+			if(rule) delete rule;   // Cleaning unnecessary allocation
+			int nsides = gel->NSides();
+			// Get the integration rule to compute internal points to print, not to print
+			rule = gel->CreateSideIntegrationRule(nsides-1,order);
+			if(!rule) break;
+			npoints = rule->NPoints();
+			order += 2;
+		}
+		for(j=0;j<npoints;j++) {
+			// Get integration points to get internal points
+			rule->Point(j,qsi,w);
+			sp->Solution(qsi,0,sol);
+			cel->Reference()->X(qsi,outfem);
+			// Jointed point coordinates and solution value on
+			for(k=0;k<3;k++) tograph[k] = outfem[k];
+			tograph[k] = sol[var-1];
+			Graph.insert(pair<REAL,TPZVec<REAL> >(outfem[0],tograph));
+			Graphics.insert(pair<TPZVec<REAL>,REAL>(outfem,sol[var-1]));
+		}
 	}
-	outMath << "ListPlot[Saida,Joined->True]"<< endl;
+	
+	// Printing the points and values into the Mathematica file
+	outMath << "Saida = { ";
+	if(dim<2) {
+		map<REAL,TPZVec<REAL> >::iterator it;
+		for(it=Graph.begin();it!=Graph.end();it++) {
+			if(it!=Graph.begin()) outMath << ",";
+			outMath << "{";
+			for(j=0;j<dim;j++)
+				outMath << (*it).second[j] << ",";
+			outMath << (*it).second[3] << "}";
+		}
+		outMath << "}" << std::endl;
+		// Choose Mathematica command depending on model dimension
+		outMath << "ListPlot[Saida,Joined->True]"<< endl;
+	}
+	else {
+		map<TPZVec<REAL>,REAL>::iterator it;
+		for(it=Graphics.begin();it!=Graphics.end();it++) {
+			if(it!=Graphics.begin()) outMath << ",";
+			outMath << "{";
+			for(j=0;j<dim;j++)
+				outMath << (*it).first[j] << ",";
+			outMath << (*it).second << "}";
+		}
+		outMath << "}" << std::endl;
+		outMath << "ListPlot3D[Saida]"<< endl;
+	}
 }
 
 // Output as VTK (Visualization Tool Kit) format
