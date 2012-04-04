@@ -555,8 +555,8 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	REAL TrDeformL, TrDeformR;
 	TrDeformL = DeformL(0,0)+DeformL(1,1)+DeformL(2,2);
 	TrDeformR = DeformR(0,0)+DeformR(1,1)+DeformR(2,2);
-	TensorL = (2.*mu)*DeformL;
-	TensorR = (2.*mu)*DeformR;
+	TensorL = REAL(2.*mu)*DeformL;
+	TensorR = REAL(2.*mu)*DeformR;
 	REAL normalCompL, normalCompR;
 	for (int i=0; i<3; i++) {
 		TensorL(i,i) += lambda*TrDeformL;

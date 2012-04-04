@@ -396,7 +396,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 		grdULdn = fLocAxs*grdUGdnT;
 		grdULdn.Transpose(&grdULdnT);
 		TPZFMatrix<REAL> FibStrain(3,3,0.);
-		FibStrain = 0.5*(grdULdnT + grdULdn);
+		FibStrain = ((REAL)0.5)*(grdULdnT + grdULdn);
 		
 		REAL epsx  = FibStrain(0,0);// du/dx
 		REAL epsy  = FibStrain(1,1);// dv/dy

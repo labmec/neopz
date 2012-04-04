@@ -49,7 +49,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix( int dim, int band_width )
 	fBand = band_width;
 	size  = dim * (2*fBand + 1);
 	if(size) {
-		fElem = new REAL[ size ] ;
+		fElem = new TVar[ size ] ;
 		if ( fElem == NULL ) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
 	} else {
 		fElem = NULL;
@@ -74,7 +74,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix (const TPZFBMatrix<TVar> & A)
 	// Philippe 20/10/97
 	int size = A.Dim()*(2 * A.fBand + 1);
 	fBand = A.fBand;
-	fElem = new REAL[ size ] ;
+	fElem = new TVar[ size ] ;
 	
 	if ( fElem == NULL )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Constructor <memory allocation error>." );
@@ -150,7 +150,7 @@ TPZFBMatrix<TVar>::operator=(const TPZFBMatrix<TVar> & A )
 	int oldsize = Dim()+2*fBand;
 	if(oldsize != size && fElem) delete [] fElem;
 	
-	if(oldsize != size && size) fElem = new REAL[size] ;
+	if(oldsize != size && size) fElem = new TVar[size] ;
 	else if(size == 0) fElem = 0;
 	if ( size && fElem == NULL )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Operator= <memory allocation error>." );
@@ -491,7 +491,7 @@ TPZFBMatrix<TVar>::Resize(const int newRows,const int newCols)
 		return( 1 );
 	
 	int bandSize = 2 * fBand + 1;
-	REAL *newElem = new REAL[ newRows * bandSize ] ;
+	TVar *newElem = new TVar[ newRows * bandSize ] ;
 	if ( !newElem )
 		return TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Resize <memory allocation error>." );
 	
@@ -873,3 +873,5 @@ int TPZFBMatrix<TVar>::DerivedFrom(const char *classname) const {
 #endif
 
 template class TPZFBMatrix<double>;
+template class TPZFBMatrix<int>;
+template class TPZFBMatrix<float>;

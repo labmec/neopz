@@ -464,7 +464,7 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 		for(ir=0; ir<r; ir++) {
 			int icolmin = fIA[ir];
 			int icolmax = fIA[ir+1];
-			const REAL *xptr = &(x.g(0,0));
+			const TVar *xptr = &(x.g(0,0));
 			TVar *Aptr = fA;
 			int *JAptr = fJA;
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
@@ -756,7 +756,7 @@ void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 		for(ir=data->fFirsteq; ir<data->fLasteq; ir++) {
 			int icolmin = mat->fIA[ir];
 			int icolmax = mat->fIA[ir+1];
-			const REAL *xptr = &(data->fX->g(0,0));
+			const TVar *xptr = &(data->fX->g(0,0));
 			TVar *Aptr = mat->fA;
 			int *JAptr = mat->fJA;
 			for(sum = 0.0, icol=icolmin; icol<icolmax; icol++ ) {
@@ -993,3 +993,5 @@ int TPZFYsmpMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const
 }
 
 template class TPZFYsmpMatrix<double>;
+template class TPZFYsmpMatrix<float>;
+template class TPZFYsmpMatrix<int>;

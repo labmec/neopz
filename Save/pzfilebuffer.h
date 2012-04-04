@@ -27,11 +27,11 @@ public:
 	
 	virtual void Write(int *p, int size=1)=0;
 
-#ifdef contar
+	virtual void Write(float  *p, int size=1)=0;
+	
 	virtual void Write(double  *p, int size=1)=0;
-#else
-	virtual void Write(REAL  *p, int size=1)=0;
-#endif
+	
+	virtual void Write(long double  *p, int size=1)=0;
 	
 	virtual void Write(const char *p, int size=1)=0;
 	
@@ -47,11 +47,11 @@ public:
 	
 	virtual void Read(int *p, int size=1)=0;
 
-#ifdef contar
+	virtual void Read(float *p, int size=1)=0;
+	
 	virtual void Read(double *p, int size=1)=0;
-#else
-	virtual void Read(REAL *p, int size=1)=0;
-#endif
+	
+	virtual void Read(long double *p, int size=1)=0;
 	
 #ifndef ELLIPS
 	void Read(TPZFlopCounter *p, int size=1)
@@ -97,8 +97,16 @@ public:
 		Writes<int>(p,size);
 	}
 	
-	virtual void Write(REAL *p, int size) {
-		Writes<REAL>(p,size);
+	virtual void Write(float *p, int size) {
+		Writes<float>(p,size);
+	}
+	
+	virtual void Write(double *p, int size) {
+		Writes<double>(p,size);
+	}
+	
+	virtual void Write(long double *p, int size) {
+		Writes<long double>(p,size);
 	}
 	
 	virtual void Write(const char *p, int size) {
@@ -121,8 +129,16 @@ public:
 		Reads<int>(p,size);
 	}
 	
-	virtual void Read(REAL *p, int size) {
-		Reads<REAL>(p,size);
+	virtual void Read(float *p, int size) {
+		Reads<float>(p,size);
+	}
+	
+	virtual void Read(double *p, int size) {
+		Reads<double>(p,size);
+	}
+	
+	virtual void Read(long double *p, int size) {
+		Reads<long double>(p,size);
 	}
 	
 	virtual void Read(char *p, int size) {

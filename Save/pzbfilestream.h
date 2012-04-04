@@ -50,8 +50,16 @@ public:
 		Writes<int>(p,size);
 	}
 	/** @brief Writes size floating points at pointer location p */
-	virtual void Write(REAL *p, int size) {
-		Writes<REAL>(p,size);
+	virtual void Write(float *p, int size) {
+		Writes<float>(p,size);
+	}
+	/** @brief Writes size floating points at pointer location p */
+	virtual void Write(double *p, int size) {
+		Writes<double>(p,size);
+	}
+	/** @brief Writes size floating points at pointer location p */
+	virtual void Write(long double *p, int size) {
+		Writes<long double>(p,size);
 	}
 	/** @brief Writes size chars at pointer location p */
 	virtual void Write(const char *p, int size) {
@@ -78,8 +86,16 @@ public:
 		Reads<int>(p,size);
 	}
 	/** @brief Reads size floating points from pointer location p */
-	virtual void Read(REAL *p, int size) {
-		Reads<REAL>(p,size);
+	virtual void Read(float *p, int size) {
+		Reads<float>(p,size);
+	}
+	/** @brief Reads size floating points from pointer location p */
+	virtual void Read(double *p, int size) {
+		Reads<double>(p,size);
+	}
+	/** @brief Reads size floating points from pointer location p */
+	virtual void Read(long double *p, int size) {
+		Reads<long double>(p,size);
 	}
 	/** @brief Reads size chars from pointer location p */
 	virtual void Read(char *p, int size) {

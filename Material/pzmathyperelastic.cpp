@@ -434,9 +434,9 @@ void TPZMatHyperElastic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFM
 			I(0,0)=1.0;
 			I(1,1)=1.0;
 			I(2,2)=1.0;
-			TPZFMatrix<REAL> sigmaF = (fNu/J*B+(fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J*I);
+			TPZFMatrix<REAL> sigmaF = (REAL(fNu/J)*B+REAL((fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J)*I);
 			REAL trsigma = sigmaF(0,0)+ sigmaF(1,1)+ sigmaF(2,2);
-			S = sigmaF - (trsigma/3.0)*I;
+			S = sigmaF - REAL(trsigma/3.0)*I;
 			int i,j;
 			REAL J2=0.0;
 			for(i=0;i<3;i++)  for(j=0;j<3;j++) J2 += S(i,j)* S(i,j);

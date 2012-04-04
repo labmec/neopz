@@ -63,7 +63,7 @@ public:
 	 @param row Row number.
 	 @param col Column number.
 	 */
-	virtual REAL &s(const int row, const int col)
+	virtual TVar &s(const int row, const int col)
 	{
 #ifdef DEBUG
 		if(row >= this->Rows() || row<0 || col >= this->Cols() || col<0)

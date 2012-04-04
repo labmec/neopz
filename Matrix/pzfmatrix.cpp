@@ -1425,6 +1425,7 @@ int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
 	
 	return( 1 );
 }
+
 template class TPZFMatrix<double>;
 template class TPZFMatrix<int>;
 template class TPZFMatrix<float>;
