@@ -1,23 +1,12 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZBlock methods.
+ * @brief Contains the implementation of the TPZBlock methods. Purpose: Let to see selected block of a matrix.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tblock.cc
-//
-// Class:  TPZBlock
-//
-// Obs.:   Permite a visualizacao de matrizes atraves de blocos.
-//
-// Versao: 12 / 1994.
 
 #include <stdlib.h>
 #include <stdio.h>
 #include "pzerror.h"
 #include "pzblock.h"
-#include "pzmatrixid.h"
 #include "pzstream.h"
 
 #include <sstream>
@@ -28,7 +17,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzblock"));
 
 using namespace std;
 template<class TVar>
-REAL TPZBlock<TVar>::gZero = 0;//Cedric
+REAL TPZBlock<TVar>::gZero = 0;
 
 
 /*************************** Public ***************************/
@@ -73,14 +62,6 @@ TPZBlock<TVar>::TPZBlock( TPZMatrix<TVar> *const pMatrix,const int nBlocks,const
 
 template<class TVar>
 TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : fBlock(bl.fBlock) {
-	//  fBlock = bl.fBlock;
-	//  fMaxBlocks = bl.fMaxBlocks;
-	//  fBlock = new( TNode[fMaxBlocks] );
-	//  int ibl;
-	//  for(ibl=0; ibl<fMaxBlocks; ibl++) {
-	//    fBlock[ibl].pos = bl.fBlock[ibl].pos;
-	//    fBlock[ibl].dim = bl.fBlock[ibl].dim;
-	//  }
 	fpMatrix = bl.fpMatrix;
 }
 
@@ -89,16 +70,7 @@ TPZBlock<TVar>::TPZBlock(const TPZBlock<TVar> &bl) : fBlock(bl.fBlock) {
 template<class TVar>
 TPZBlock<TVar> &TPZBlock<TVar>::operator=(const TPZBlock<TVar> & bl) {
 	if(this == &bl) return *this;
-	//  if(fMaxBlocks != bl.fMaxBlocks) {
-	//    delete [] fBlock;
-	//    fBlock = new( TNode[bl.fMaxBlocks] );
-	//  }
 	fBlock = bl.fBlock;
-	//  fMaxBlocks = bl.fMaxBlocks;
-	//  int ibl;
-	//  for(ibl=0; ibl<fMaxBlocks; ibl++) {
-	//    fBlock[ibl] = bl.fBlock[ibl];
-	//  }
 	fpMatrix = bl.fpMatrix;
 	return *this;
 }
@@ -107,7 +79,6 @@ TPZBlock<TVar> &TPZBlock<TVar>::operator=(const TPZBlock<TVar> & bl) {
 /***  Destrutor ***/
 template<class TVar>
 TPZBlock<TVar>::~TPZBlock() {
-	//  delete[] fBlock;
 }
 
 /******************/
@@ -132,31 +103,6 @@ TPZBlock<TVar>::SetNBlocks(const int num_of_blocks )
 	TNode copy;
 	fBlock.Resize(num_of_blocks,copy);
 	if(num_of_blocks == MaxBlocks) return 1;
-	/*
-	 if ( num_of_blocks <= MaxBlocks )
-	 {
-	 int i;
-	 for (i = num_of_blocks; i < MaxBlocks; i++ ){
-	 fBlock[i].pos=0;fBlock[i].dim=0;
-	 }
-	 MaxBlocks = num_of_blocks;
-	 return( 1 );
-	 }
-	 
-	 TNode *newBlocks = new( TNode[num_of_blocks] );
-	 int i;
-	 int lastpos = Dim();
-	 for ( i = 0; i < fMaxBlocks; i++ )
-	 newBlocks[i] = fBlock[i];
-	 for ( ; i < num_of_blocks; i++ ) {
-	 newBlocks[i].dim = 0;
-	 newBlocks[i].pos = lastpos;
-	 }
-	 
-	 delete []fBlock;
-	 fBlock     = newBlocks;
-	 fMaxBlocks = num_of_blocks;
-	 */
 	return ( 1 );
 }
 
@@ -229,8 +175,6 @@ TPZBlock<TVar>::Remove(const int index )
 	return( 1 );
 }
 
-
-
 /***************/
 /*** Verify ****/
 template<class TVar>
@@ -245,7 +189,6 @@ TPZBlock<TVar>::Verify() const
 		return ( 0 );
 	return ( 1 );
 }
-
 
 /***********/
 /*** Get ***/
@@ -273,14 +216,12 @@ TPZBlock<TVar>::Get(const int bRow,const int bCol,const int r,const int c ) cons
 	return( fpMatrix->Get( row, col ) );
 }
 
-
-
 /***********/
 /*** Put ***/
 template<class TVar>
 int
 TPZBlock<TVar>::Put(const int bRow,const int bCol,const int r,const int c,
-			  const TVar& value )
+					const TVar& value )
 {
 	int MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
@@ -300,7 +241,6 @@ TPZBlock<TVar>::Put(const int bRow,const int bCol,const int r,const int c,
 	col += fBlock[bCol].pos;
 	return( fpMatrix->Put( row, col, value ) );
 }
-
 
 /***********/
 /*** Get ***/
@@ -332,14 +272,12 @@ TPZBlock<TVar>::Get(const int bRow,const int r,const int c ) const
 	return( fpMatrix->Get( row, col ) );
 }
 
-
-
 /***********/
 /*** Put ***/
 template<class TVar>
 int
 TPZBlock<TVar>::Put(const int bRow,const int r,const int c,
-			  const TVar& value )
+					const TVar& value )
 {
 	int MaxBlocks = fBlock.NElements();
 	int row(r),col(c);
@@ -357,8 +295,6 @@ TPZBlock<TVar>::Put(const int bRow,const int r,const int c,
 	row += fBlock[bRow].pos;
 	return( fpMatrix->Put( row, col, value ) );
 }
-
-
 
 /**************/
 /*** GetVal ***/
@@ -392,22 +328,18 @@ TPZBlock<TVar>::operator()(const int bRow,const int bCol,const int r,const int c
 	return( (*fpMatrix)( row, col ) );
 }
 
-
-
 /**************/
 /*** PutVal ***/
 template<class TVar>
 int
 TPZBlock<TVar>::PutVal(const int bRow,const int bCol,const int r,const int c,
-				 const TVar& value )
+					   const TVar& value )
 {
 	int row(r),col(c);
 	row += fBlock[bRow].pos;
 	col += fBlock[bCol].pos;
 	return( fpMatrix->Put( row, col, value ) );
 }
-
-
 
 /*****************/
 /*** Put Block ***/
@@ -418,8 +350,6 @@ TPZBlock<TVar>::PutBlock(const int bRow,const int bCol,const TPZFMatrix<TVar> & 
 	return( fpMatrix->PutSub( fBlock[bRow].pos,
 							 fBlock[bCol].pos, block ) );
 }
-
-
 
 /*****************/
 /*** Get Block ***/
@@ -437,8 +367,6 @@ TPZBlock<TVar>::GetBlock(const int bRow,const int bCol, TPZFMatrix<TVar> *const 
 		return( 0 );
 }
 
-
-
 /*****************/
 /*** Add Block ***/
 template<class TVar>
@@ -448,12 +376,13 @@ TPZBlock<TVar>::AddBlock(const int bRow,const int bCol,const TPZFMatrix<TVar>& b
 	return( fpMatrix->AddSub( fBlock[bRow].pos,
 							 fBlock[bCol].pos, block ) );
 }
+
 /********************/
 /**** InsertBLock****/
 template<class TVar>
 int
 TPZBlock<TVar>::InsertBlock(const int block_row,const int block_col,
-					  const int target_row,const int target_col, TPZMatrix<TVar> &target) const
+							const int target_row,const int target_col, TPZMatrix<TVar> &target) const
 {
 	int rowDim = fBlock[block_row].dim;
 	int colDim = fBlock[block_col].dim;
@@ -475,17 +404,12 @@ TPZBlock<TVar>::InsertBlock(const int block_row,const int block_col,
 	return( 1 );
 }
 
-
-
-
-
-
 /*******************/
 /*** Print Block ***/
 template<class TVar>
 int
 TPZBlock<TVar>::PrintBlock(const int bRow,const int bCol,const char *title,
-					 TPZostream &out ) const
+						   TPZostream &out ) const
 {
 	out << title << ":";
 	
@@ -498,8 +422,6 @@ TPZBlock<TVar>::PrintBlock(const int bRow,const int bCol,const char *title,
 	out << "\n";
 	return( 1 );
 }
-
-
 
 /*************/
 /*** Print ***/
@@ -551,18 +473,6 @@ TPZBlock<TVar>::PrintSolution(const char *title, TPZostream &out) {
 
 /*************************** Private ***************************/
 
-/*************/
-/*** Error ***/
-/*int
- TPZBlock::Error(const char *msg )
- {
- ostringstream out;
- out << "TPZBlock::" << msg << ".\n";
- // pzerror.Show();
- LOGPZ_ERROR (logger, out.str().c_str());
- DebugStop();
- }
- */
 template<class TVar>
 void TPZBlock<TVar>::TNode::Read(TPZStream &buf, void *context)
 {
@@ -577,9 +487,7 @@ void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
 	buf.Write(&pos,1);
 }
 
-/**
- * returns the unique identifier for reading/writing objects to streams
- */
+/** Returns the unique identifier for reading/writing objects to streams */
 template<class TVar>
 int TPZBlock<TVar>::ClassId() const
 {
@@ -589,9 +497,7 @@ int TPZBlock<TVar>::ClassId() const
 
 template class TPZRestoreClass< TPZBlock<REAL> , TPZBLOCKID>;
 
-/**
- Save the element data to a stream
- */
+/** Saves the element data to a stream */
 template<class TVar>
 void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
 {
@@ -600,9 +506,7 @@ void TPZBlock<TVar>::Write(TPZStream &buf, int withclassid)
 	
 }
 
-/**
- Read the element data from a stream
- */
+/** Reads the element data from a stream */
 template<class TVar>
 void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 {
@@ -612,4 +516,3 @@ void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 }
 
 template class TPZBlock<REAL>;
-

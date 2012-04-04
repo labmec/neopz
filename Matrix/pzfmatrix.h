@@ -2,17 +2,7 @@
  * @file
  * @brief Contains TPZMatrixclass which implements full matrix.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tfullmat.hh
-//
-// Class:  TPZFMatrix
-//
-// Obs.:   Implements matrix classes (normais).
-//
-// Versao: 04 / 1996.
-//
+
 #ifndef _TMATRIXHH_
 #include "pzmatrix.h"
 #endif
@@ -27,16 +17,18 @@
 
 #include <math.h>
 
-
 #include "pzsave.h"
-#include "pzmatrixid.h"
-
 
 template <class T>
 class TPZVec;
 
-/** \addtogroup matrix
- * @{ */
+/** 
+ * @addtogroup matrix
+ * @{ 
+ */
+
+/** @brief Id of full matrix */
+const int TPZFMATRIXID = 100;
 
 /** @brief MACRO to get MAT(row,col) entry */
 #define GETVAL(MAT,rows,row,col) MAT->fElem[((unsigned)col)*rows+row]
@@ -48,15 +40,15 @@ class TPZVec;
 /**
  * @brief Full matrix class. \ref matrix "Matrix"
  * @note The full matrix class is special in that the data is stored column wise
+ * @author Misael Mandujano
+ * @since 04/1996
  */
 
 template<class TVar=REAL>
 class TPZFMatrix: public TPZMatrix<TVar> {
 	
 public:
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZFMatrix() : TPZMatrix<TVar>( 0, 0 ), fElem(0),fGiven(0),fSize(0) {}
 	/**
      @brief Constructor with initialization parameters
@@ -81,7 +73,7 @@ public:
 	inline  TPZFMatrix(const int rows ,const int columns = 1) : TPZMatrix<TVar>(rows,columns), fElem(0),fGiven(0),fSize(0) {
 		if(rows*columns) fElem = new TVar[rows*columns];
 	}
-	//@{
+
 	/**
      * @brief Copy constructor
      * @param refmat Used as a model for current object
@@ -89,16 +81,9 @@ public:
 	TPZFMatrix(const TPZFMatrix<TVar> & refmat);
 	
 	CLONEDEF(TPZFMatrix<TVar>)
-	
-	TPZFMatrix(const TPZMatrix<TVar> &refmat); // copy the elements one by one
-	//@}
-	/**
-     @brief Constructor that uses a temporary matrix
-	 */
-	//  TPZFMatrix(TPZTempFMatrix);
-	/**
-     @brief Simple destructor
-	 */
+	TPZFMatrix(const TPZMatrix<TVar> & refmat);
+
+	/** @brief Simple destructor */
 	virtual  ~TPZFMatrix();
 	
 	int PutVal(const int row,const int col,const TVar & value );
@@ -133,31 +118,29 @@ public:
 	static void MultAdd(const TVar *ptr, int rows, int cols, const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						const TVar alpha=1.,const TVar beta = 0.,const int opt = 0,const int stride = 1 );  
 	
-	//@{
 	/**
-     @brief Generic operator with TVar type
+     * @name Generic operator with TVar type
+	 * @{
 	 */
 	TVar &operator()(const int row,const int col);
 	TVar &operator()(const int row);
-	//@}
+	/** @} */
+	
 	/**
-     @name FULL
-     @brief Operations with FULL matrices
+     * @name Operations with FULL matrices
+	 * @{
 	 */
-	//@{
-	/**
-     @brief Generic operator with FULL matrices
-	 */
+	
+	/** @brief Generic operator with FULL matrices */
 	virtual TPZFMatrix&operator= (const TPZFMatrix<TVar> &A );
-	//TPZMatrix&operator= ( TPZTempFMatrix<TVar> A);
 	TPZFMatrix<TVar> operator+  (const TPZFMatrix<TVar> &A ) const;
-	//TPZTempFMatrix operator+ (TPZTempFMatrix<TVar> A);
 	TPZFMatrix<TVar> operator-  (const TPZFMatrix<TVar> &A ) const;
 	TPZFMatrix<TVar> operator*  ( TPZFMatrix<TVar> A ) const ;
 	TPZFMatrix<TVar> &operator+=(const TPZFMatrix<TVar> &A );
-	//    TPZMatrix&operator+=(TPZTempFMatrix<TVar> A );
 	TPZFMatrix<TVar> &operator-=(const TPZFMatrix<TVar> &A );
-	//@}
+	
+	/** @} */
+	
 	/**
 	 * @brief Performs an ZAXPY operation being *this += alpha * p
 	 * @param alpha Being alpha on above opereation
@@ -171,58 +154,41 @@ public:
 	 */
 	void TimesBetaPlusZ(const TVar beta, const TPZFMatrix<TVar> &z);
 	
-	/// Operations with matrices GENERICAS.
-	/**
-     @name Generics
-     @brief Generic operators with matrices
-	 */
-	//@{
-	/**
-     @brief Generic operator with matrices
-	 */
+	/** @brief Generic operator with matrices */
 	TPZFMatrix&operator= (const TPZMatrix<TVar> &A );
-	//  TPZMatrixoperator+  (const TPZMatrix<TVar> &A ) const;
-	//  TPZMatrixoperator-  (const TPZMatrix<TVar> &A ) const;
-	//  TPZMatrixoperator*  (const TPZMatrix<TVar> &A ) const;
-	//  TPZMatrix&operator+=(const TPZMatrix<TVar> &A );
-	//  TPZMatrix&operator-=(const TPZMatrix<TVar> &A );
-	//@}
-	// Operations with values NUMERICOS.
 	
 	/**
-     @name Numerics
-     @brief Numeric operations with matrices
+     * @name Numerics
+     * @brief Numeric operations with matrices
+	 * @{
 	 */
-	//@{
-	/**
-     Numeric operator with matrices
-	 */
+	
+	/** @brief Numeric operator with matrices */
 	TPZFMatrix<TVar> &operator= (const TVar val );
 	TPZFMatrix<TVar> operator+  (const TVar val ) const;
-	TPZFMatrix<TVar> operator-  (const TVar val ) const;// { return operator+( -val ); }
+	TPZFMatrix<TVar> operator-  (const TVar val ) const;
 	TPZFMatrix<TVar> operator*  (const TVar val ) const;
 	TPZFMatrix<TVar> &operator+=(const TVar val );
 	TPZFMatrix<TVar> &operator-=(const TVar val )  { return operator+=( -val ); }
 	TPZFMatrix<TVar> &operator*=(const TVar val );
 	
 	TPZFMatrix<TVar> operator-() const;// { return operator*( -1.0 ); }
-	//@}
-	//  void Input( istream & in = cin );
+
+	/** @} */
 	
-	/// Redimension a matrix, but maintain your elements.
+	/** @brief Redimension a matrix, but maintain your elements. */
 	int Resize(const int newRows,const int wCols );
 	
-	/// Redimension the matrix doing nothing with the elements
+	/** @brief Redimension the matrix doing nothing with the elements */
 	int SetSize(int newRows, int newCols);
 	
-	/// Remodel the shape of the  matrix, but keeping the same dimension.
+	/** @brief Remodel the shape of the  matrix, but keeping the same dimension. */
 	int Remodel(const int newRows,const int wCols );
-	
-	
-	/// Redimension a matrix and ZERO your elements.
+
+	/** @brief Redimension a matrix and ZERO your elements. */
 	int Redim(const int newRows,const int newCols );
 	
-	/// Makes Zero all the elements
+	/** @brief Makes Zero all the elements */
 	int Zero();
 	
 	/** 
@@ -237,9 +203,8 @@ public:
 	void DeterminantInverse(TVar &determinant, TPZFMatrix<TVar> &inverse);
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
-	/**
-     @see TPZMatrix<TVar>::Transpose
-	 */
+	
+	/** @see TPZMatrix<TVar>::Transpose */
 	
 	void Transpose();
 	
@@ -252,42 +217,33 @@ public:
 	
 	static int Substitution(const TVar *ptr, int rows, TPZFMatrix<TVar> *B);
 	
-	
 	virtual int Substitution( TPZFMatrix<TVar> *B ) const;
 	
-	/** @brief LU Decomposition using pivot
-	 * @author Edimar Cesar Rylo
-	 */
+	/** @brief LU Decomposition using pivot */
 	virtual int Decompose_LU(TPZVec<int> &index);
 	
-	/** @brief LU substitution using pivot.
-	 * @author Edimar Cesar Rylo
-	 */
+	/** @brief LU substitution using pivot. */
 	virtual int Substitution( TPZFMatrix<TVar> *B, TPZVec<int> &index ) const;
 	
-	/** @brief LU substitution using pivot. Static version.
-	 * @author Edimar Cesar Rylo - Philippe Devloo
-	 */
+	/** @brief LU substitution using pivot. Static version. */
 	static int Substitution(const TVar *ptr, int rows,  TPZFMatrix<TVar> *B, TPZVec<int> &index );
 	
-	/**
-	 * @}
-	 */
+	/** @} */
 	
-	/// routines to send and receive messages
+	/** @brief Routines to send and receive messages */
 	virtual int ClassId() const;
 	
 	virtual void Read( TPZStream &buf, void *context );
 	virtual void Write(TPZStream &buf, int withclassid );
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compare the object for identity with the object pointed to, eventually copy the object */
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * overwrite the calling object if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false);
 	
-	/// Compare the object for identity with the object pointed to, eventually copy the object
+	/** @brief Compare the object for identity with the object pointed to, eventually copy the object */
 	/**
 	 * compare both objects bitwise for identity. Put an entry in the log file if different
 	 * generate an interupt if the override flag is true and the objects are different
@@ -297,8 +253,7 @@ public:
 	operator const TVar*() const { return fElem; }
 	
 	static void PrintStatic(const TVar *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form);
-	
-	
+
 private:
 	
 	static int Error(const char *msg1,const char *msg2=0 );
@@ -541,15 +496,8 @@ inline int TPZFMatrix<TVar>::Zero() {
 	return( 1 );
 }
 
-
 /**************************/
 /*** Operations Global ***/
-
-
-
-//inline TPZFMatrix<TVar> &TPZFMatrix<TVar>::operator+=(TPZTempFMatrix A) {
-//	return (*this) += A.Object();
-//}
 
 inline int Norm(const TPZFMatrix<int> &A) {
 	return sqrt(Dot(A,A));
@@ -559,12 +507,9 @@ inline float Norm(const TPZFMatrix<float> &A) {
 	return sqrt(Dot(A,A));
 }
 
-
 inline double Norm(const TPZFMatrix<double> &A) {
 	return sqrt(Dot(A,A));
 }
-
-
 
 #endif
 
