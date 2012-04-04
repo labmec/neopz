@@ -188,7 +188,7 @@ endif()
 option(BUILD_PROJECTS "To build specific projects." OFF)
 
 #To building all the specific projects developed with PZ environment
-option(BUILD_STATE_PROJECTS "To build projects no floating point." OFF)
+option(BUILD_COMPLEX_PROJECTS "To build no floating point projects." OFF)
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
