@@ -6,6 +6,7 @@
 
 #include "TPZBoostGraph.h"
 #include <fstream>
+#include "pzmanvector.h"
 
 #ifdef USING_BOOST
 
@@ -55,7 +56,7 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
   Graph G;
   size_type i;
   size_type elgraphsize = fElementGraphIndex.NElements()-1;
-  TPZVec<int> nconnects(fNNodes,0);
+  TPZManVector<int> nconnects(fNNodes,0);
   for(i=0; i < elgraphsize; i++)
   {
     int first, second;
@@ -64,10 +65,10 @@ void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
     int j,k;
     for(j=first; j< second; j++)
     {
-      nconnects[fElementGraph[j]]++;
       for(k=j+1; k<second; k++)
       {
         add_edge(fElementGraph[j],fElementGraph[k],G);
+        nconnects[fElementGraph[j]]++;
       }
     }
   }
