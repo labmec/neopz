@@ -29,6 +29,17 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du
 
 }
 
+// Variable coefficient of first derivative
+void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &alpha) {
+	if(!alpha.NElements()) return;
+	alpha[0] = 1.;
+}
+// Variable coefficient of the u
+void BetaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &beta) {
+	if(!beta.NElements()) return;
+	beta[0] = 1.;
+}
+
 int main() {
 	
 #ifdef LOG4CXX
@@ -45,10 +56,12 @@ int main() {
 	int p = 1;
 	// h -> level of uniform refinement of the initial mesh
 	int h = 4;
+	// Last point of the one-dimensional domain
+	double L = 1.;
 	
 	// Creating main extremes and material for current project
 	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the mesh. Coordinates are zeros.
-	x1[0] = 1.0;
+	x1[0] = L;
 	// id of material and boundary conditions
 	TPZVec<int> matId(1,1);
 	TPZVec<int> bc(2,-1);
@@ -59,7 +72,9 @@ int main() {
 	
 	// Material data
 	TPZHelmholtz1D *material;
-	material = new TPZHelmholtz1D(matId[0],1); 
+	material = new TPZHelmholtz1D(matId[0],1);
+	material->SetAlphaFunction(new TPZDummyFunction(AlphaFunction));
+	material->SetBetaFunction(new TPZDummyFunction(BetaFunction));
 
 //	material->SetMaterial(xkin,xcin,xbin,xfin);
 	

@@ -26,6 +26,11 @@
  */
 class TPZHelmholtz1D  : public TPZMaterial
 {
+	/** @brief Pointer to alpha function, coefficient of the first derivative of u */
+    TPZAutoPointer<TPZFunction> fAlpha;
+	/** @brief Pointer to beta function, variable coefficient of the u */
+    TPZAutoPointer<TPZFunction> fBeta;
+
 public:
 	/** @brief Simple constructor with material id and dimension of the spatial domain */
 	TPZHelmholtz1D(int nummat,int dim);
@@ -67,6 +72,15 @@ public:
      * @since October 07, 2011
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+	
+	/** @brief Sets the variable coefficient alpha */
+	void SetAlphaFunction(TPZAutoPointer<TPZFunction> falpha) {
+		fAlpha = falpha;
+	}
+	/** @brief Sets the variable coefficient beta */
+	void SetBetaFunction(TPZAutoPointer<TPZFunction> fbeta) {
+		fBeta = fbeta;
+	}
 };
 
 #endif
