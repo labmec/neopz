@@ -2,13 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZDohrStructMatrix methods. 
  */
-/*
- *  pzdohrstructmatrix.cpp
- *  SubStruct
- *  Created by Philippe Devloo on 28/06/10.
- *  Copyright 2010 UNICAMP. All rights reserved.
- *
- */
 
 #include "pzdohrstructmatrix.h"
 #include "tpzdohrmatrix.h"

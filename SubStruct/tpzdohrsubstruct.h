@@ -29,8 +29,8 @@
 #include "pzstepsolver.h"
 
 /**
- @ingroup substructure
- @author Philippe Devloo
+ * @ingroup substructure
+ * @author Philippe Devloo
  */
 
 // #warning Hardcoded definition of MAKEINTERNAL !!!!

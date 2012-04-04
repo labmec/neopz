@@ -2,13 +2,7 @@
  * @file
  * @brief Contains the TPZDohrStructMatrix class which implements structural matrix divided in sub structures.
  */
-/*
- *  pzdohrstructmatrix.h
- *  SubStruct
- *
- *  Created by Philippe Devloo on 28/06/10.
- *  Copyright 2010 UNICAMP. All rights reserved.
- */
+
 #ifndef PZDOHRSTRUCTMATRIX 
 #define PZDOHRSTRUCTMATRIX
 
@@ -20,6 +14,8 @@
 /**
  * @ingroup substructure structural
  * @brief Implements structural matrix divided in sub structures. \ref structural "Structural Matrix" \ref substructure "Sub structure"
+ * @author Philippe Devloo
+ * @since 28/06/2010
  */
 class TPZDohrStructMatrix : public TPZStructMatrix
 {
@@ -91,11 +87,8 @@ protected:
 	/* @brief Get the global equation numbers of a substructure (and their inverse) */
 	void IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv);
 	
-	/**
-	 * @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
-	 */ 
-	 /** The mesh is modified during this method but is returned to its original state at the end of execution
-	 */
+	/** @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering */ 
+	/** The mesh is modified during this method but is returned to its original state at the end of execution */
 	void ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 											TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute);
 	

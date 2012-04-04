@@ -92,7 +92,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 		TPZVec<int> nx(2,1);
 		TPZVec<REAL> x0(2,0.),x1(2,1.);
 		TPZGenGrid gen(nx,x0,x1,1,0.);
-		gen.Read(*gmesh);
+		gen.Read(gmesh);
 	} else if(fDimension == 3)
 	{
 		int ic;
