@@ -83,3 +83,14 @@ if(BUILD_PROJECTS)
 	
 	
 endif(BUILD_PROJECTS)
+
+if(BUILD_COMPLEX_PROJECTS)
+
+	#Example to work with scalar as complex
+	add_subdirectory(Helmholtz1D)
+
+	#Examples used as tutorial for FEEC group (Prof Hugo)
+	add_subdirectory(PDElinear1D)
+	add_subdirectory(PDElinear2D)
+
+endif(BUILD_COMPLEX_PROJECTS)
