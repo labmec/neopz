@@ -6,6 +6,7 @@
 //Classes Geom�ricas
 #include "pzgmesh.h"
 #include "pzgeoel.h"
+#include "pzgeoelbc.h"
 
 //Classes Computacionais
 #include "pzcmesh.h"
@@ -74,7 +75,7 @@ int main()
     TPZVec<REAL> x0(2,0.),x1(2,1.);
     TPZGenGrid grid(nx,x0,x1);
     TPZGeoMesh gmesh;
-    grid.Read(gmesh);
+    grid.Read(&gmesh);
     grid.SetBC(&gmesh,0,-1);
     grid.SetBC(&gmesh,1,-1);
     grid.SetBC(&gmesh,2,-1);
