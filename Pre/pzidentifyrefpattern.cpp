@@ -2,22 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZIdentifyRefPattern methods. 
  */
-/***************************************************************************
-													pzidentifyrefpattern.cpp  -  description
-                             -------------------
-    begin                : Mon Mar 8 2004
-    copyright            : (C) 2004 by cesar
-    email                : cesar@becks.fec.unicamp.br
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #include "pzidentifyrefpattern.h"
 #include "pzgeoel.h"
@@ -225,5 +209,3 @@ TPZAutoPointer<TPZRefPattern> TPZIdentifyRefPattern::GetSideRefPattern(TPZGeoEl 
 	TPZRefPattern *rp = new TPZRefPattern(fullfilename);
 	return rp;
 }
-
-

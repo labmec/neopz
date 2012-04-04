@@ -2,18 +2,6 @@
  * @file
  * @brief Contains the TPZGenPartialGrid class which implements the generation of a geometric grid.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO/Philippe Devloo
-//
-// File:   tpargrid.h
-//
-// Class:  tparrid
-//
-// Obs.:   Gera uma malha retangular:
-//
-// Versao: 06 / 1996.
-//
-
 
 #ifndef _TPZPARGRIDHH_
 #define _TPZPARGRIDHH_

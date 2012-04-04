@@ -2,12 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZReadMeshHR methods. 
  */
-/*****************************************************************************
- * O contedo desse arquivo �de propriedade do LabMeC-DES-FEC-UNICAMP e do
- * CENPES-Petrobras.
- * O uso de qualquer parte ou do todo est�condicionado �expressa autoriza�o
- * dos propriet�ios.
- *****************************************************************************/
 
 #include "pzreadmeshhr.h"
 
@@ -28,14 +22,11 @@
 static LoggerPtr logger(Logger::getLogger("pz.pre.tpzmeshreaderhr"));
 #endif
 
-
 TPZReadMeshHR::TPZReadMeshHR(const char* infInputFile): TPZReadMesh(infInputFile)
 {}
 
-
 TPZReadMeshHR::~TPZReadMeshHR()
 {}
-
 
 TPZCompMesh* TPZReadMeshHR::ReadMesh()
 {
@@ -67,7 +58,6 @@ void TPZReadMeshHR::removeComents (std::string &NumberOf)
 	}
 }
 
-
 void TPZReadMeshHR::ReadNodes (int NNos, TPZGeoMesh & GMesh)
 {
 	int i,c;
@@ -81,7 +71,6 @@ void TPZReadMeshHR::ReadNodes (int NNos, TPZGeoMesh & GMesh)
 		GMesh.NodeVec()[index] = TPZGeoNode(id,coord,GMesh);
 	}
 }
-
 
 void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 {
@@ -150,7 +139,6 @@ void TPZReadMeshHR::ReadElements (int NElem, TPZGeoMesh & GMesh)
 		GMesh.CreateGeoElement(etype,corneridx,matid,id,1);
 	}
 }
-
 
 void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 {
@@ -235,7 +223,6 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 	}
 }
 
-
 void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 {
 	int i;
@@ -273,52 +260,9 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 		fInputFile >> val2(0,0) >> val2(1,0) >> val2(2,0);
 		TPZAutoPointer<TPZMaterial> bnd;
 		bnd = mat->CreateBC (mat,id,type,val1,val2);
-		/*    switch (type)
-		 {
-		 case (0) :
-		 { // Dirichlet
-		 bnd = mat->CreateBC (id,0,val1,val2);
-		 break;
-		 }
-		 case (1) :
-		 { // Neumann
-		 bnd = mat->CreateBC (id,1,val1,val2);
-		 break;
-		 }
-		 case (2) :
-		 {// Mista
-		 bnd = mat->CreateBC (id,2,val1,val2);
-		 break;
-		 }
-		 default:
-		 {
-		 std::stringstream sout;
-		 #ifndef WINDOWS
-		 sout << __PRETTY_FUNCTION__;
-		 #endif
-		 sout << "\tBC tipo " << type << " n� identificada!";
-		 #ifdef LOG4CXX
-		 LOGPZ_WARN (logger, sout.str().c_str());
-		 #else
-		 cout << sout.str().c_str() << endl;
-		 #endif
-		 continue;
-		 }
-		 }*/
 		CMesh.InsertMaterialObject(bnd);
 	}
-	
-	//   //Materiais da Fratura
-	//   TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-	//   //val1(1,1) = 10000000000000.0;
-	//   //val2(1,0) = 1.;
-	//   TPZAutoPointer<TPZMaterial> bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-100,1,val1,val2) ERRADO;
-	//   CMesh.InsertMaterialObject(bndFrac);
-	// //    val2(1,0) = -1.;
-	//   bndFrac = new TPZBndCond (CMesh.MaterialVec()[0],-101,1,val1,val2) ERRADO;
-	//   CMesh.InsertMaterialObject(bndFrac);
 }
-
 
 int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
 {
@@ -349,10 +293,6 @@ int TPZReadMeshHR::GetNodeIndex(TPZGeoMesh *GMesh,int Id)
 	return -1;
 }
 
-
-/*!
- \fn TPZReadMeshHR::readGeoMesh()
- */
 TPZGeoMesh * TPZReadMeshHR::readGeoMesh()
 {
 	TPZGeoMesh *gmesh = new TPZGeoMesh;

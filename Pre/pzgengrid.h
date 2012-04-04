@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the TPZGenGrid class which implements the generation of a multilayered geometric grid (two-dimensional).
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   TGenGrid.h
-//
-// Class:  TGenGrid
-//
-// Obs.:   Gera uma malha bi-dimensional:
-//
-// Versao: 06 / 1996.
-//
 
 #ifndef _TPZGENGRIDHH_
 #define _TPZGENGRIDHH_
@@ -34,9 +23,9 @@ class TPZGeoMesh;
  */
 /** This class uses DEPRECATED objects, but can be easily updated */
 class TPZGenGrid {
-
+	
 public:
-
+	
     /**
 	 * @brief Constructor of the rectangular domain
 	 * @param nx numbers of partition intervals for x (nx[0]) and for y (nx[1])
@@ -47,24 +36,22 @@ public:
 	 * @note All the layers has a common interval \f$ [(x0[0],0,0);(x1[0],0,0)] \f$
      */
     TPZGenGrid(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int numl = 1, REAL rot = 0.5);
-
+	
 	/** @brief Default destructor */
     virtual ~TPZGenGrid();
-
+	
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 */
-    virtual short Read(TPZGeoMesh &mesh);
+    virtual short Read(TPZGeoMesh *mesh);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
 	 */
-    short Read(TPZAutoPointer<TPZGeoMesh> mesh);
+    short Read(TPZAutoPointer<TPZGeoMesh> &mesh);
     
-    /**
-	 * @brief Compute the geometric progression such that the first elements have this size
-	 */
+    /** @brief Compute the geometric progression such that the first elements have this size */
     static REAL GeometricProgression(REAL minsize, REAL size, int numdiv);
 	
     /** @brief Compute the geometric progression such that the first elements have this size */
@@ -193,13 +180,13 @@ protected:
 	 * @brief Creates the geometric nodes, it depends on fElementType, layer and fRotAngle
 	 * @param grid Object mesh in which will be stored the created nodes
 	 */
-    virtual bool GenerateNodes(TPZGeoMesh &grid);
+    virtual bool GenerateNodes(TPZGeoMesh *grid);
     
 	/**
 	 * @brief Creates the geometric element: triangles or quadrilaterals
 	 * @param grid Object mesh in which will be stored the created elements
 	 */
-    virtual bool GenerateElements(TPZGeoMesh &grid);
+    virtual bool GenerateElements(TPZGeoMesh *grid);
     
     /** @brief Number of elements in both directions */
 	TPZVec<int> fNx;

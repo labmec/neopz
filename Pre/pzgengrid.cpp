@@ -2,17 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGenGrid methods. 
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   TPZGenGrid.cpp
-//
-// Class:  TPZGenGrid
-//
-// Obs.:   Gera uma malha sobre um dominio rectangular
-//
-// Versao: 10 / 1996.
-//
+
 #include "pzgengrid.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"
@@ -48,17 +38,18 @@ fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot) {
 TPZGenGrid::~TPZGenGrid() {    
 }
 
-short TPZGenGrid::Read(TPZGeoMesh &grid) {
+short TPZGenGrid::Read(TPZGeoMesh *grid) {
+	if(!grid) return 1;
 	if(!GenerateNodes(grid))
 		return 1;
     if(!GenerateElements(grid))
 		return 1;
     return 0;
 }
-short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> grid) {
-	if(!GenerateNodes(*(grid.operator->())))
+short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
+	if(!GenerateNodes(grid.operator->()))
 		return 1;
-    if(!GenerateElements(*(grid.operator->())))
+    if(!GenerateElements(grid.operator->()))
 		return 1;
     return 0;
 }
@@ -121,7 +112,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 			nodetomerge->SetNodeId(-1);
 		}
 	}
-
+	
 	// changing the id of the repeated nodes into the geometric elements of the gridtomerge
 	for(i=0;i<nnodestomerge;i++) {
 		nodetomerge = &(gridtomerge->NodeVec()[i]);
@@ -135,7 +126,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 					gel->SetNodeIndex(p,idnew);
 		}
 	}
-
+	
 	// creating new element into gridinitial corresponding for each element in gridtomerge
 	for(i=0;i<gridtomerge->NElements();i++) {
 		gel = gridtomerge->ElementVec()[i];
@@ -155,37 +146,39 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	return true;
 }
 
-bool TPZGenGrid::GenerateNodes(TPZGeoMesh &grid) {
+bool TPZGenGrid::GenerateNodes(TPZGeoMesh *grid) {
+	if(!grid) return false;
     // create the geometric nodes
 	TPZVec<REAL> coor(3,0.);
 	int i;
 	// grid can not to contain other nodes and elements
-	if(grid.NNodes()) {
+	if(grid->NNodes()) {
 #ifdef LOG4CXX
 		LOGPZ_DEBUG(logger,"Mesh is not empty");
 #endif
 		return false;
 	}
-
+	
 	// resizing the vector of the nodes
-	grid.NodeVec().Resize(fNumNodes);
+	grid->NodeVec().Resize(fNumNodes);
 	for(i=0; i<fNumNodes; i++) {
 		// computes the coordinates of the ith-node, depends on fElementType, layer and fRotAngle.
 		Coord(i,coor);
-		grid.NodeVec()[i].Initialize(coor,grid);
+		grid->NodeVec()[i].Initialize(coor,(*grid));
 	}
 	return true;
 }
 
-bool TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
+bool TPZGenGrid::GenerateElements(TPZGeoMesh *grid) {
+	if(!grid) return false;
 	// create the geometric elements (retangular)    
 	int num_rectangles=fNx[0]*fNx[1]*fNumLayers;
 	TPZVec<int> nos(9);
 	if(fElementType == 0) nos.Resize(4);
     int i, index;
-
+	
 	// grid can not to contain other elements
-	if(grid.NElements()) {
+	if(grid->NElements()) {
 #ifdef LOG4CXX
 		LOGPZ_DEBUG(logger,"Mesh is not empty");
 #endif
@@ -194,19 +187,19 @@ bool TPZGenGrid::GenerateElements(TPZGeoMesh &grid) {
 	for(i=0; i<num_rectangles; i++) {
 		ElementConnectivity(i,nos);
 		if(fElementType == 0) {
-            grid.CreateGeoElement(EQuadrilateral,nos, 1, index,0);
+            grid->CreateGeoElement(EQuadrilateral,nos, 1, index,0);
 		} else if(fElementType == 1) {
-            grid.CreateGeoElement(ETriangle,nos, 1, index,0);  
+            grid->CreateGeoElement(ETriangle,nos, 1, index,0);  
 			nos[1] = nos[2];
 			nos[2] = nos[3];
-			grid.CreateGeoElement(ETriangle,nos, 1, index,0);  
+			grid->CreateGeoElement(ETriangle,nos, 1, index,0);  
 		} else if(fElementType == 2) {
             std::cout << __PRETTY_FUNCTION__ << " - Quadratic interpolation is not available";
             DebugStop();
-			grid.CreateGeoElement(EQuadrilateral,nos, 1, index,0);  
+			grid->CreateGeoElement(EQuadrilateral,nos, 1, index,0);  
         }
 	}
-	grid.BuildConnectivity();
+	grid->BuildConnectivity();
 	return true;
 }
 

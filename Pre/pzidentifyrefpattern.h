@@ -3,22 +3,6 @@
  * @brief Contains the TPZIdentifyRefPattern class which identifies the refinement pattern given the father element and their sons.\n
  * Also contains TSide structure.
  */
-/***************************************************************************
- pzidentifyrefpattern.h  -  description
- -------------------
- begin                : Mon Mar 8 2004
- copyright            : (C) 2004 by cesar
- email                : cesar@labmec.fec.unicamp.br
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #ifndef PZIDENTIFYREFPATTERN_H
 #define PZIDENTIFYREFPATTERN_H

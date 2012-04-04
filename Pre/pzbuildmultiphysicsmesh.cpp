@@ -1,10 +1,6 @@
 /*
- *  pzbuildmultiphysicsmesh.cpp
- *  PZ
- *
- *  Created by Agnaldo on 10/31/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+ * @file
+ * @brief Implementations to mesh multiphysics
  */
 
 #include "pzbuildmultiphysicsmesh.h"

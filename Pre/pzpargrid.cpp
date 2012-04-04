@@ -2,17 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGenPartialGrid methods. 
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   TGenGrid.cpp
-//
-// Class:  TGenGrid
-//
-// Obs.:   Gera uma malha retangular:
-//
-// Versao: 06 / 1996.
-//
+
 #include "pzpargrid.h"
 #include "pzcmesh.h"
 #include "pzgmesh.h"
@@ -52,11 +42,6 @@ int TPZGenPartialGrid::ElementIndex(int x, int y) {
 short
 TPZGenPartialGrid::Read (TPZGeoMesh &grid) {
 	
-	
-	//	int num_rectangles=fNx[0]*fNx[1];
-	
-	// create the geometric nodes
-	//
 	TPZVec<REAL> coor(2,0.);
 	int i,j;
 	int index;
@@ -112,10 +97,7 @@ void TPZGenPartialGrid::ElementConnectivity(int i, TPZVec<int> &rectangle_nodes)
 	rectangle_nodes[3] = (yel+1)*(fNx[0]+1)+xel;
 }
 
-
-
-void
-TPZGenPartialGrid::Print( char *name , ostream &out  )
+void TPZGenPartialGrid::Print( char *name , ostream &out  )
 {
 	
 	out<<"\n"<<name<<"\n";
@@ -126,9 +108,6 @@ TPZGenPartialGrid::Print( char *name , ostream &out  )
 }
 
 void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
-	//	int ielfirst = 0;
-	//	int iellast = 0;
-	//	int ielinc;
 	if(side == 0 && fRangey[0] != 0) return;
 	if(side == 1 && fRangex[1] != fNx[0]) return;
 	if(side == 2 && fRangey[1] != fNx[1]) return;
@@ -148,35 +127,5 @@ void TPZGenPartialGrid::SetBC(TPZGeoMesh &g, int side, int bc) {
 			TPZGeoElBC(gel,Sides[el],bc);
 		}
 	}
-	/*
-	 switch(side) {
-	 case 0:
-	 ielfirst = 0;
-	 iellast = fNx[0];
-	 ielinc = 1;
-	 break;
-	 case 1:
-	 ielfirst = fNx[0]-1;
-	 iellast = fNx[0]*fNx[1];
-	 ielinc = fNx[0];
-	 break;
-	 case 2:
-	 ielfirst = fNx[0]*(fNx[1]-1);
-	 iellast = fNx[0]*fNx[1];
-	 ielinc = 1;
-	 break;
-	 case 3:
-	 ielfirst = 0;
-	 iellast = fNx[0]*(fNx[1]-1)+1;
-	 ielinc = fNx[0];
-	 break;
-	 }
-	 
-	 int i;
-	 for(i = ielfirst; i< iellast; i+= ielinc) {
-	 TGeoEl *gel = (TGeoEl *) gr->ElementMap()[i];
-	 gel->SetSide(side,bc);
-	 }
-	 */
 }
 

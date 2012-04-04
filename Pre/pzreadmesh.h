@@ -8,6 +8,7 @@
  * O uso de qualquer parte ou do todo está condicionado à expressa autorização
  * dos proprietários.
  *****************************************************************************/
+
 #ifndef PZREADMESH_H
 #define PZREADMESH_H
 
@@ -29,19 +30,19 @@ public:
 	 */
 	TPZReadMesh(const char * inFile);
 	
-	/**
-	 * @brief Default destructor
-	 */
-	virtual ~TPZReadMesh();
+	/** @brief Default destructor */
+	virtual ~TPZReadMesh() {
+	}
 	
 	virtual TPZCompMesh *ReadMesh() = 0;
 	
-    
 protected:
-	/**
-	 * @brief Input file
-	 */
+	/** @brief Input file */
 	std::ifstream fInputFile;
 };
+
+inline TPZReadMesh::TPZReadMesh(const char * FileFullPath) : fInputFile(FileFullPath)
+{
+}
 
 #endif

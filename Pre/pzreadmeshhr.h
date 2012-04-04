@@ -8,6 +8,7 @@
  * O uso de qualquer parte ou do todo est�condicionado �expressa autoriza�o
  * dos propriet�ios.
  *****************************************************************************/
+
 #ifndef PZREADMESHHR_H
 #define PZREADMESHHR_H
 
@@ -36,17 +37,12 @@ public:
 	 */
 	TPZReadMeshHR(const char* inFile);
 	
-	/**
-	 * @brief Default Destructor
-	 */
+	/** @brief Default Destructor */
 	virtual ~TPZReadMeshHR();
 	
-	/**
-	 * @brief Read and return the mesh from a given file
-	 */
+	/** @brief Read and return the mesh from a given file */
 	virtual TPZCompMesh* ReadMesh();
     TPZGeoMesh * readGeoMesh();
-	
 	
 protected:
 	
@@ -84,9 +80,7 @@ protected:
 	 */
 	void removeComents (std::string &NumberOf);
 	
-	/**
-	 * @brief Translate a node id to a node index
-	 */
+	/** @brief Translate a node id to a node index */
 	int GetNodeIndex(TPZGeoMesh *GMesh,int Id);
 };
 
