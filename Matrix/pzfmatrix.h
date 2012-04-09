@@ -156,7 +156,6 @@ public:
 	
 	/** @brief Generic operator with matrices */
 	TPZFMatrix<TVar> &operator= (const TPZMatrix<TVar> &A );
-	TPZFMatrix&operator= (const TPZMatrix<TVar> &A );
 	
 	/**
      * @name Numerics
