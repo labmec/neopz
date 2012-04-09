@@ -69,7 +69,7 @@ TPZFMatrix<TVar>::TPZFMatrix(const TPZMatrix<TVar> &mat) : TPZMatrix<TVar>(mat),
 }
 
 /********************************/
-/*** Constructor( TPZFMatrix& ) ***/
+/*** Constructor( TPZFMatrix<TVar> & ) ***/
 
 template<class TVar>
 TPZFMatrix<TVar>::TPZFMatrix(const TPZFMatrix<TVar> &A)
@@ -508,28 +508,31 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 	long cols = this->Cols();
 	long xcols = x.Cols();
 	int ic, c;
-	if(!(rows*cols)) return;
-	for (ic = 0; ic < xcols; ic++) {
-		TVar *zp = &z(0,ic), *zlast = zp+numeq*stride;
-		if(beta != 0.) {
-			const TVar *yp = &y.g(0,ic);
-			if(beta != 1. || (&z != &y && stride != 1)) {
-				while(zp < zlast) {
-					*zp = beta * (*yp);
-					zp += stride;
-					yp += stride;
-				}
-			} else if(&z != &y) {
-				memcpy(zp,yp,numeq*sizeof(TVar));
-			}
-		} else {
-			while(zp != zlast) {
-				*zp = 0.;
-				zp += stride;
-			}
-		}
-	}
+    if (numeq)
+    {
+        for (ic = 0; ic < xcols; ic++) {
+            TVar *zp = &z(0,ic), *zlast = zp+numeq*stride;
+            if(beta != 0.) {
+                const TVar *yp = &y.g(0,ic);
+                if(beta != 1. || (&z != &y && stride != 1)) {
+                    while(zp < zlast) {
+                        *zp = beta * (*yp);
+                        zp += stride;
+                        yp += stride;
+                    }
+                } else if(&z != &y) {
+                    memcpy(zp,yp,numeq*sizeof(TVar));
+                }
+            } else {
+                while(zp != zlast) {
+                    *zp = 0.;
+                    zp += stride;
+                }
+            }
+        }
+    }
 	
+	if(!(rows*cols)) return;
 	
 	for (ic = 0; ic < xcols; ic++) {
 		if(!opt) {
