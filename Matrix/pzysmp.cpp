@@ -696,7 +696,7 @@ int TPZFYsmpMatrix<TVar>::Zero()
  * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
  */
 template<class TVar>
-void TPZFYsmpMatrix<TVar>::SolveJacobi(int & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result, TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, TVar & tol, const int FromCurrent) 
+void TPZFYsmpMatrix<TVar>::SolveJacobi(int & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result, TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent) 
 {
 	if(!fDiag) {
 		cout << "TPZSYsmpMatrix::Jacobi cannot be called without diagonal\n";

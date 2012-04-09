@@ -372,7 +372,7 @@ TPZFBMatrix<TVar>::operator-=(const TPZFBMatrix<TVar> & A )
 
 template<class TVar>
 void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						  const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
+						  const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())

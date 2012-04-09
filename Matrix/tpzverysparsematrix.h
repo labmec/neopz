@@ -90,7 +90,7 @@ public:
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> & x, const TPZFMatrix<TVar> & y,
-						 TPZFMatrix<TVar> & z, const REAL alpha = 1., const REAL beta = 0.,
+						 TPZFMatrix<TVar> & z, const TVar alpha = 1, const TVar beta = 0,
 						 const int opt = 0, const int stride = 1) const;
 	
 	/**

@@ -135,7 +135,7 @@ public:
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
 	virtual void SolveJacobi(int & numiterations, const TPZFMatrix<TVar> & F, TPZFMatrix<TVar> & result,
-							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, TVar & tol, const int FromCurrent = 0) ;
+							 TPZFMatrix<TVar> * residual, TPZFMatrix<TVar> & scratch, REAL & tol, const int FromCurrent = 0) ;
 	
 	void SolveSOR(int &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
 				  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,
