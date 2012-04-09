@@ -65,7 +65,7 @@ TPZSFMatrix<TVar> ::TPZSFMatrix (const TPZSFMatrix<TVar>  & A)
 
 
 /*******************************/
-/*** Constructor( TPZMatrix& ) ***/
+/*** Constructor( TPZMatrix<TVar> & ) ***/
 
 template<class TVar>
 TPZSFMatrix<TVar> ::TPZSFMatrix(const  TPZMatrix<TVar>  &A )

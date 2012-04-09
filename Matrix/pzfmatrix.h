@@ -155,6 +155,7 @@ public:
 	void TimesBetaPlusZ(const TVar beta, const TPZFMatrix<TVar> &z);
 	
 	/** @brief Generic operator with matrices */
+	TPZFMatrix<TVar> &operator= (const TPZMatrix<TVar> &A );
 	TPZFMatrix&operator= (const TPZMatrix<TVar> &A );
 	
 	/**
@@ -303,7 +304,7 @@ inline TPZFMatrix<TVar> operator*(TVar val, const TPZFMatrix<TVar> &A)
 
 
 /*******************************/
-/*** Operator*( TPZMatrix& ) ***/
+/*** Operator*( TPZMatrix<TVar> & ) ***/
 template<class TVar>
 inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*( TPZFMatrix<TVar> A ) const {
 	if ( this->Cols() != A.Rows() )

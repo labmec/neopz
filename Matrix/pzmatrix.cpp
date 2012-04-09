@@ -1515,7 +1515,7 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, int numiter, REAL tol){
 template<class TVar>
 void TPZMatrix<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar>&B, int opt, int stride) const {
 	if ((opt==0 && Cols()*stride != A.Rows()) || (opt ==1 && Rows()*stride != A.Rows()))
-		Error( "Multiply (TPZMatrix<>&,TPZMatrix&) <incompatible dimensions>" );
+		Error( "Multiply (TPZMatrix<>&,TPZMatrix<TVar> &) <incompatible dimensions>" );
 	if(!opt && (B.Rows() != Rows()*stride || B.Cols() != A.Cols())) {
 		B.Redim(Rows()*stride,A.Cols());
 	}
