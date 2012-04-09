@@ -16,7 +16,7 @@
 #include <set>
 #include "pzgeoel.h"
 #include "pzcompel.h"
-
+class TPZCompMesh;
 /**
  * @ingroup post
  * @author Cesar Lucci
@@ -58,6 +58,9 @@ public:
 	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false);
 	
 	static int GetVTK_ElType(TPZGeoEl *gel);
+    
+    /** Print a pointmesh whose values are the polynomial orders */
+    static void PrintPOrderPoints(TPZCompMesh &cmesh,std::set<int> dimensions, std::ofstream &outfile);
 };
 
 #endif

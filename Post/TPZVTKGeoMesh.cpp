@@ -714,3 +714,74 @@ int TPZVTKGeoMesh::GetVTK_ElType(TPZGeoEl * gel)
 	
 	return elType;
 }
+
+/** Print a pointmesh whose values are the polynomial orders */
+void TPZVTKGeoMesh::PrintPOrderPoints(TPZCompMesh &cmesh,std::set<int> dimensions, std::ofstream &file)
+{
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+    std::stringstream points;
+    int numpoints = 0;
+    std::stringstream celldata;
+    std::stringstream fielddata;
+    int pointtype = 1;
+    int nel = cmesh.NElements();
+    for (int iel =0; iel<nel; iel++) {
+        TPZCompEl *cel = cmesh.ElementVec()[iel];
+        if (!cel) {
+            continue;
+        }
+        TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        int nsides = gel->NSides();
+        for (int side=0; side < nsides; side++) {
+            if(intel->NSideConnects(side) == 0)
+            {
+                continue;
+            }
+            int sidedim = gel->SideDimension(side);
+            if (dimensions.find(sidedim) == dimensions.end()) {
+                continue;
+            }
+            
+            TPZManVector<REAL,4> coord(3,0.),xi(gel->Dimension(),0.);
+            gel->CenterPoint(side, xi);
+            gel->X(xi, coord);
+            points << coord << std::endl;
+            celldata << "1 " << numpoints << std::endl;
+            numpoints++;
+            TPZConnect &c  = intel->MidSideConnect(side);
+            int corder = c.Order();
+            fielddata << corder << std::endl;
+            
+        }
+    }
+	file << numpoints << " float" << std::endl << points.str();
+	
+	file << "CELLS " << numpoints << " ";
+	
+	file << 2*numpoints << std::endl;
+	file << celldata.str() << std::endl;
+	
+	file << "CELL_TYPES " << numpoints << std::endl;
+    for (int i=0; i<numpoints; i++) {
+        file << pointtype << std::endl;
+    }
+	
+	file << "CELL_DATA" << " " << numpoints << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+    file << "porder 1 " << numpoints << " int" << std::endl;
+	file << fielddata.str();
+    file << std::endl;
+	
+	file.close();
+    
+}
