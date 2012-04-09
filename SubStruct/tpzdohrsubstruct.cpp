@@ -182,14 +182,18 @@ void TPZDohrSubstruct::Contribute_v2(TPZFMatrix<REAL> &v2) {
  */
 void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZFMatrix<REAL> &v2_local)
 {
-	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations,1,0.);
+    int ncols = residual_local.Cols();
+	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations,ncols,0.);
 	int neqs = fGlobalEqs.NElements();
 	int i;
-	for (i=0;i<neqs;i++) 
-	{
-		std::pair<int,int> ind = fGlobalEqs[i];
-		LocalWeightedResidual(ind.first,0) += fWeights[ind.first] * residual_local(i,0);
-	}
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for (i=0;i<neqs;i++) 
+        {
+            std::pair<int,int> ind = fGlobalEqs[i];
+            LocalWeightedResidual(ind.first,ic) += fWeights[ind.first] * residual_local(i,ic);
+        }
+    }
 	int ncoarse = fCoarseIndex.NElements();
 	// size of the kernel
 	int nnull = fNullPivots.Rows();
@@ -199,17 +203,17 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZ
 	//Constructing I star is the same I star for Phi
 	//C star is the same C star for Phi
 	//Constructing I_lambda
-	TPZFMatrix<REAL> I_lambda(ncoarse+nnull,1);
+	TPZFMatrix<REAL> I_lambda(ncoarse+nnull,ncols);
 	I_lambda.Zero();
 	//K_star_inv*C_star_trans is the same used for Phi
 	/* Computing K_star_inv*W(i)*R(i)*r = K_star_inv*fLocalWeightedResidual */
-	TPZFMatrix<REAL> KWeightedResidual(nglob,1);
+	TPZFMatrix<REAL> KWeightedResidual(nglob,ncols);
 	fInvertedStiffness.Solve(LocalWeightedResidual,KWeightedResidual);
 	//Obtaining lambda_star
 	TPZFMatrix<REAL> Lambda_star(ncoarse+nnull,1);
-	TPZFMatrix<REAL> CstarKW(ncoarse+nnull,1);
+	TPZFMatrix<REAL> CstarKW(ncoarse+nnull,ncols);
 	fC_star.MultAdd(KWeightedResidual,KWeightedResidual,CstarKW,-1,0,0,1);
-	TPZFMatrix<REAL> temp2(ncoarse+nnull,1);
+	TPZFMatrix<REAL> temp2(ncoarse+nnull,ncols);
 	I_lambda.Add(CstarKW,temp2);
 	finv.Solve(temp2, Lambda_star);
 #ifdef LOG4CXX
@@ -221,8 +225,8 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZ
 	}
 #endif
 	//Obtaining z(i)
-	TPZFMatrix<REAL> zi(nglob,1);
-	temp2.Resize(nglob,1);
+	TPZFMatrix<REAL> zi(nglob,ncols);
+	temp2.Resize(nglob,ncols);
 	fKeC_star.Multiply(Lambda_star,temp2);
 	temp2 *= -1.;
 	temp2.Add(KWeightedResidual,zi);
@@ -240,13 +244,15 @@ void TPZDohrSubstruct::Contribute_v2_local(TPZFMatrix<REAL> &residual_local, TPZ
 		zi(fInternalEqs[i],0) = 0.;
 	}
 #endif
-	v2_local.Resize(neqs, 1);
-	for (i=0;i<neqs;i++) 
-	{
-		std::pair<int,int> ind = fGlobalEqs[i];
-		v2_local(i,0) = fWeights[ind.first] * zi(ind.first,0);
-	}
-	
+	v2_local.Resize(neqs, ncols);
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for (i=0;i<neqs;i++) 
+        {
+            std::pair<int,int> ind = fGlobalEqs[i];
+            v2_local(i,ic) = fWeights[ind.first] * zi(ind.first,ic);
+        }
+    }	
 	
 	
 }

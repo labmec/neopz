@@ -84,13 +84,17 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix<REAL> &residual_lo
 {
 	TPZVec<int> &scatter = ScatterVec(ExternalFirst, Submesh);
 	int ncoarse = fCoarseNodes.NElements();
-	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations+ncoarse,1,0.);
+    int ncols = residual_local.Cols();
+	TPZFMatrix<REAL> LocalWeightedResidual(fNEquations+ncoarse,ncols,0.);
 	int ninput = residual_local.Rows();
 	int i;
-	for (i=0;i<ninput;i++) 
-	{
-		LocalWeightedResidual(scatter[i],0) += fWeights[scatter[i]] * residual_local(i,0);
-	}
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for (i=0;i<ninput;i++) 
+        {
+            LocalWeightedResidual(scatter[i],ic) += fWeights[scatter[i]] * residual_local(i,ic);
+        }
+    }
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
 	{
@@ -100,7 +104,7 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix<REAL> &residual_lo
 	}
 #endif
 	fMatRedComplete->SetF(LocalWeightedResidual);
-	TPZFMatrix<REAL> U1(ncoarse,1,0.), UGlobal(fNEquations+ncoarse,0.);
+	TPZFMatrix<REAL> U1(ncoarse,ncols,0.), UGlobal(fNEquations+ncoarse,ncols,0.);
 	fMatRedComplete->U1(U1);
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -120,11 +124,14 @@ void TPZDohrSubstructCondense::Contribute_v2_local(TPZFMatrix<REAL> &residual_lo
 	}
 #endif
 	TPZVec<int> &gather2 = GatherVec(Submesh, ExternalFirst);
-	v2_local.Resize(ninput, 1);
-	for (i=0;i<ninput;i++) 
-	{
-		v2_local(i,0) = fWeights[gather2[i]] * UGlobal(gather2[i],0);
-	}
+	v2_local.Resize(ninput, ncols);
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for (i=0;i<ninput;i++) 
+        {
+            v2_local(i,ic) = fWeights[gather2[i]] * UGlobal(gather2[i],ic);
+        }
+    }
 }
 
 void TPZDohrSubstructCondense::Contribute_v3_local(TPZFMatrix<REAL> &v1Plusv2, TPZFMatrix<REAL> &v3) const {
