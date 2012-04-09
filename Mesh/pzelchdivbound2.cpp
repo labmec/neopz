@@ -238,6 +238,8 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 		 return -1;
 		 }
 		 */
+    DebugStop();
+    return -1;
 }
 
 template<class TSHAPE>
