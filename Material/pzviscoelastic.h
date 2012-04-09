@@ -59,7 +59,7 @@ public:
 	 Computes the stress. 
 	 Remember you cant update qsi if you want to calculate stress 
 	 */
-	virtual void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data);
+	virtual void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const;
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);

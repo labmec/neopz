@@ -153,7 +153,7 @@ int TPZViscoelastic::NSolutionVariables(int var)
 	return -1;
 }
 
-void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data)
+void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const
 {
     int numbersol = data.dsol.size();
     if (numbersol != 1) {

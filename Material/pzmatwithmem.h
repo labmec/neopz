@@ -47,7 +47,7 @@ public:
 	/** @brief Prints out the data associated with the material */
 	virtual void PrintMem(std::ostream &out = std::cout, const int memory = 0);
 	
-	virtual TMEM & MemItem(const int i);
+	virtual TMEM & MemItem(const int i) const;
 	
 public:
 	
@@ -147,7 +147,7 @@ void TPZMatWithMem<TMEM,TFather>::PrintMem(std::ostream &out, const int memory)
 }
 
 template <class TMEM, class TFather>
-TMEM & TPZMatWithMem<TMEM,TFather>::MemItem(const int i)
+TMEM & TPZMatWithMem<TMEM,TFather>::MemItem(const int i) const
 {
 	return fMemory[i];
 }
