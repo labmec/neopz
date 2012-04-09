@@ -77,10 +77,14 @@ void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix<REAL> &local, TP
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();
 	int ieq;
-	for(ieq=0; ieq<neq; ieq++)
-	{
-		global(avec[ieq],0) += local.GetVal(ieq,0);
-	}
+    int ncols = local.Cols();
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for(ieq=0; ieq<neq; ieq++)
+        {
+            global(avec[ieq],ic) += local.GetVal(ieq,ic);
+        }
+    }
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -98,9 +102,13 @@ void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TP
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();
 	int ieq;
-	local.Resize(neq,1);
-	for(ieq=0; ieq<neq; ieq++)
-	{
-		local(ieq,0) = global.GetVal(avec[ieq],0);
-	}
+    int ncols = global.Cols();
+	local.Resize(neq,ncols);
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for(ieq=0; ieq<neq; ieq++)
+        {
+            local(ieq,ic) = global.GetVal(avec[ieq],ic);
+        }
+    }
 }
