@@ -25,11 +25,15 @@ void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix<REAL> &local, TPZFMatr
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
+    int ncols = local.Cols();
 	int ieq;
-	for(ieq=0; ieq<neq; ieq++)
-	{
-		global(avec[ieq],0) += local.GetVal(ieq,0);
-	}
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for(ieq=0; ieq<neq; ieq++)
+        {
+            global(avec[ieq],ic) += local.GetVal(ieq,ic);
+        }
+    }
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -46,12 +50,16 @@ void TPZDohrAssembly::Extract(int isub, const TPZFMatrix<REAL> &global, TPZFMatr
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
+    int ncols = global.Cols();
 	int ieq;
-	local.Resize(neq,1);
-	for(ieq=0; ieq<neq; ieq++)
-	{
-		local(ieq,0) = global.GetVal(avec[ieq],0);
-	}
+	local.Resize(neq,ncols);
+    for (int ic=0; ic<ncols; ic++) 
+    {
+        for(ieq=0; ieq<neq; ieq++)
+        {
+            local(ieq,ic) = global.GetVal(avec[ieq],ic);
+        }
+    }
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
