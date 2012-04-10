@@ -70,12 +70,42 @@ class TPZFlopCounter;
 #ifdef contar
 /** @brief PZ will use a double floating point number with a counter of the operations performed on (Jorge) */
 typedef TPZFlopCounter REAL;
-
-#else
-/** @brief This is the type of floating point number PZ will use. */
-typedef double REAL;//long double REAL
-
 #endif
+
+/** @brief This is the type of floating point number PZ will use. */
+#ifdef REALfloat
+typedef float REAL;
+#endif
+#ifdef REALdouble
+typedef double REAL; //This is the default configuration
+#endif
+#ifdef REALlongdouble
+typedef long double REAL;
+#endif
+
+/** @brief This is the type of State PZ will use. */
+#ifdef STATEfloat
+typedef float STATE;
+#endif
+#ifdef STATEdouble
+typedef double STATE; //This is the default configuration
+#endif
+#ifdef STATElongdouble
+typedef long double STATE;
+#endif
+#ifdef STATEcomplexf
+#include <complex>
+typedef std::complex<float> STATE;
+#endif
+#ifdef STATEcomplexd
+#include <complex>
+typedef std::complex<double> STATE;
+#endif
+#ifdef STATEcomplexld
+#include <complex>
+typedef std::complex<long double> STATE;
+#endif
+
 
 /**
  * By modifying the definition of the type of REAL, the number of floating point operations can be counted. \n

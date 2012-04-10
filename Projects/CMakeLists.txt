@@ -81,9 +81,12 @@ if(BUILD_PROJECTS)
 	add_subdirectory(Plasticity)
 #	add_subdirectory(prodindex)
 	
-	
 endif(BUILD_PROJECTS)
 
+#
+# COMPLEX NUMBER PROJECTS
+#
+# If your project use Complex numbers (STATE type = complex any type), please add it on the list below
 if(BUILD_COMPLEX_PROJECTS)
 
 	#Example to work with scalar as complex

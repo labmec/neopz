@@ -97,8 +97,8 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 #ENABLING EXTERNAL LIBRARIES
 
 #enabling pthread library
-find_path(PTHREAD_INCLUDE pthread.h PATHS ${SEARCH_DIRS})
-find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib libpthread.a PATHS ${SEARCH_DIRS})
+find_path(PTHREAD_INCLUDE NAMES PThread.h pthread.h PATHS ${SEARCH_DIRS})
+find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib libPThread.a libpthread.a PATHS ${SEARCH_DIRS})
 if(PTHREAD_INCLUDE-NOTFOUND)
 	set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
 endif()
@@ -187,8 +187,44 @@ endif()
 #To building all the specific projects developed with PZ environment
 option(BUILD_PROJECTS "To build specific projects." OFF)
 
-#To building all the specific projects developed with PZ environment
-option(BUILD_COMPLEX_PROJECTS "To build no floating point projects." OFF)
+#To select type of REAL
+set(REALTypesAre "Types are: double, float, long double")
+set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
+
+if (REAL_TYPE STREQUAL "double")
+  add_definitions(-DREALdouble)
+elseif (REAL_TYPE STREQUAL "float")
+  add_definitions(-DREALfloat)
+elseif (REAL_TYPE STREQUAL "long double")
+  add_definitions(-DREALlongdouble)
+else()
+  message (FATAL_ERROR "ERROR: Please specify a valid type for REAL. ${REALTypesAre}")
+endif()
+message ("Using REAL type = ${REAL_TYPE}")
+
+#To select type of STATE
+set(STATETypesAre "Types are: double, float, long double, complex<float>, complex<double>, complex<long double>")
+set(STATE_TYPE "double" CACHE STRING "${STATETypesAre}")
+
+if (STATE_TYPE STREQUAL "double")
+  add_definitions(-DSTATEdouble)
+elseif (STATE_TYPE STREQUAL "float")
+  add_definitions(-DSTATEfloat)
+elseif (STATE_TYPE STREQUAL "long double")
+  add_definitions(-DSTATElongdouble)
+elseif (STATE_TYPE STREQUAL "complex<float>")
+  add_definitions(-DSTATEcomplexf)
+  set (BUILD_COMPLEX_PROJECTS ON)
+elseif (STATE_TYPE STREQUAL "complex<double>")
+  add_definitions(-DSTATEcomplexd)
+  set (BUILD_COMPLEX_PROJECTS ON)
+elseif (STATE_TYPE STREQUAL "complex<long double>")
+  add_definitions(-DSTATEcomplexld)
+  set (BUILD_COMPLEX_PROJECTS ON)
+else()
+  message (FATAL_ERROR "ERROR: Please specify a valid type for STATE. ${STATETypesAre}")
+endif()
+message ("Using STATE type = ${STATE_TYPE}")
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
