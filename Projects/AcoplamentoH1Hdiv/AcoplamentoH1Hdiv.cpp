@@ -224,7 +224,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		*/
 		double x = pt[0];
 		double y = pt[1];
-		disp[0]= -2.*pow(Pi,2.)*sin(Pi*x)*sin(Pi*y);
+		disp[0]= -2.*pow(Pi,(REAL)2.)*sin(Pi*x)*sin(Pi*y);
 		return;
 }
 
@@ -235,7 +235,7 @@ void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
     p[0]= sin(Pi*x)*sin(Pi*y);
 		flux(0,0)= -Pi*cos(Pi*x)*sin(Pi*y);
 		flux(1,0)= - Pi*cos(Pi*y)*sin(Pi*x);
-		flux(2,0)=2.*pow(Pi,2.)*sin(Pi*x)*sin(Pi*y);//coloco o divergente aq para testar
+		flux(2,0)=2.*pow(Pi,(REAL)2.)*sin(Pi*x)*sin(Pi*y);//coloco o divergente aq para testar
 		
 		return;		
 		
