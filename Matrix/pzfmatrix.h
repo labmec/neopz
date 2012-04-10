@@ -511,6 +511,10 @@ inline double Norm(const TPZFMatrix<double> &A) {
 	return sqrt(Dot(A,A));
 }
 
+inline long double Norm(const TPZFMatrix<long double> &A) {
+	return sqrt(Dot(A,A));
+}
+
 #endif
 
 

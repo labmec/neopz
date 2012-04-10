@@ -1196,6 +1196,9 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
 }
 
 template
+long double Dot(const TPZFMatrix<long double> &A, const TPZFMatrix<long double> &B);
+
+template
 double Dot(const TPZFMatrix<double> &A, const TPZFMatrix<double> &B);
 
 template
@@ -1429,6 +1432,7 @@ int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
 	return( 1 );
 }
 
+template class TPZFMatrix<long double>;
 template class TPZFMatrix<double>;
 template class TPZFMatrix<int>;
 template class TPZFMatrix<float>;

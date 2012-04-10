@@ -872,6 +872,7 @@ int TPZFBMatrix<TVar>::DerivedFrom(const char *classname) const {
 
 #endif
 
+template class TPZFBMatrix<long double>;
 template class TPZFBMatrix<double>;
 template class TPZFBMatrix<int>;
 template class TPZFBMatrix<float>;

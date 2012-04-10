@@ -1603,6 +1603,7 @@ void TPZMatrix<TVar>::AutoFill() {
 
 #include <complex>
 
+template class TPZMatrix<long double>;
 template class TPZMatrix<double>;
 template class TPZMatrix<int>;
 template class TPZMatrix<float>;
