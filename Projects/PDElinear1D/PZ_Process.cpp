@@ -141,7 +141,7 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 	int i, j, k, nnodes;
 	int nelem = cmesh->ElementVec().NElements();
 	int dim = cmesh->Dimension();   // Dimension of the model
-	double w;
+	REAL w;
 	if(var-1 < 0) var = 1;
 	// Map to store the points and values 
 	map<REAL,TPZVec<REAL> > Graph;
