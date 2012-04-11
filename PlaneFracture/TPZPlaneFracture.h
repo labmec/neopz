@@ -152,6 +152,12 @@ class TPZPlaneFracture
     
 	~TPZPlaneFracture();
     
+    void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+		
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	private:
+    
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
 	 * @param poligonalChain [in] vector of boundary points coordinates
@@ -169,12 +175,8 @@ class TPZPlaneFracture
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
+    
     TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
-    void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
-		
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
-	
-	private:
     
     /** @brief Generation of the persistent 2D mesh that contains the fracture
      *  @note This method set the fPlaneMesh atribute that will not be changed for every fracture time step
@@ -336,12 +338,18 @@ class TPZPlaneFracture
     /**
      * @brief Once the fcrackQpointsElementsIds atribute is filled (by HuntElementsSurroundingCrackTip method),\n
      *          the respective elements must be turned into quarterpoints,\n
-     *          ruled by respective sides (that could be more than one by element)
+     *          ruled by involved sides (that could be more than one by element)
      */
     void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
     
+    /**
+     * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
+     */
     bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
     
+    /**
+     * @brief Returns if a given element is from boundary of domain
+     */
     static bool IsBoundaryMaterial(TPZGeoEl * gel);
 
 	
@@ -360,6 +368,7 @@ class TPZPlaneFracture
     TPZVec<int> fcrackBoundaryElementsIds;
     
     /** @brief Quarter points 3D elements Ids that surround crack boundary */
+    //map< elementId , set< sides of this element that touch 1d cracktip > >
     std::map< int,std::set<int> > fcrackQpointsElementsIds;
     
     /** @brief smaller radius that defines the cylinder that involves the

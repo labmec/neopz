@@ -79,20 +79,6 @@ int main(int argc, char * const argv[])
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
-    
-    /////just4fun (to see quarterpoints in vtk in a better way) AQUICAJU
-//      TPZGeoMesh * fractureGMesh = fractureCMesh->Reference();
-//    int nelem = fractureGMesh->NElements();
-//    for(int el = 0; el < nelem; el++)
-//    {
-//        TPZGeoEl * gel = fractureGMesh->ElementVec()[el];
-//        if(!gel->IsLinearMapping() && !gel->HasSubElement())
-//        {
-//            TPZVec<TPZGeoEl *> sons;
-//            gel->Divide(sons);
-//        }
-//    }
-    /////
   
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
