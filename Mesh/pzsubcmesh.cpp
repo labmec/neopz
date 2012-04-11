@@ -707,7 +707,24 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 			cel->SetConnectIndex(i,subindex);
 		}
 	}
+    if(cel->Reference())
+    {
+        TPZAutoPointer<TPZMaterial> matfather;
+        matfather = cel->Material();
+        if(!matfather)
+        {
+            // I don't know what to do...
+            DebugStop();
+        }
+        TPZAutoPointer<TPZMaterial> matthis = FindMaterial(matfather->Id());
+        
+        // perform a "shallow copy" of the material
+        if (!matthis) {
+            MaterialVec()[matfather->Id()] = matfather;
+        }
+    }
 	cel->SetMesh(this);
+    /*
 	if(cel->Reference())
 	{
 		TPZAutoPointer<TPZMaterial> mat = cel->Material();
@@ -716,7 +733,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
             father->CopyMaterials(*this);
 		}
 	}
-	
+	*/
 	//	int blocksize=mesh->ConnectVec()[elindex].NDof((TPZCompMesh *)mesh);
 	int newelind = fElementVec.AllocateNewElement();
 	fElementVec[newelind] = cel;
