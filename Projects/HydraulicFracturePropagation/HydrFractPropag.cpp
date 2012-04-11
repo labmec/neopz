@@ -33,7 +33,46 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 
 #include "TPZTimer.h"
 
+
+#include "adapt.h"
+
+class funcao
+{
+public:
+    
+    funcao()
+    {
+        
+    }
+    ~funcao()
+    {
+        
+    }
+    
+    static REAL func(REAL x)
+    {
+        REAL val = x*x*sin(x)*cos(x) - exp(x/10.)/x*cos(x);
+        return val;
+    }
+};
+
 int main(int argc, char * const argv[])
+{
+    Adapt intRule(1.E-30);
+    
+    funcao funcaoOBJ;
+    
+    const REAL a = 10.;
+    const REAL b = 20.;
+    double integr = intRule.integrate(funcaoOBJ.func,a,b);
+    
+    std::cout.precision(16);
+    std::cout << std::endl << integr << std::endl;
+    
+    return 0;
+}
+
+int mainOriginal(int argc, char * const argv[])
 {	
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
