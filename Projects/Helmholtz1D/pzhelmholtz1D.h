@@ -7,6 +7,7 @@
 #define HELMHOLTZ1DHH
 
 #include "pzmaterial.h"
+#include "pzmat1dlin.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
 
@@ -24,7 +25,7 @@
  * @brief Implements the interface for Helmholtz equation one-dimensional
  * @ingroup material
  */
-class TPZHelmholtz1D  : public TPZMaterial
+class TPZHelmholtz1D  : public TPZMat1dLin
 {
 	/** @brief Pointer to alpha function, coefficient of the first derivative of u */
     TPZAutoPointer<TPZFunction> fAlpha;
@@ -71,7 +72,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+//    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	
 	/** @brief Sets the variable coefficient alpha */
 	void SetAlphaFunction(TPZAutoPointer<TPZFunction> falpha) {
