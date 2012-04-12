@@ -16,9 +16,10 @@ TPZHelmholtz1D::~TPZHelmholtz1D() {
 
 void TPZHelmholtz1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
 
-    TPZManVector<REAL,2> alphaval(2), betaval(2);
+    TPZManVector<REAL,2> alphaval(2), betaval(2), phiaval(2);
     fAlpha->Execute(data.x, alphaval);
     fBeta->Execute(data.x, betaval);
+    fPhi->Execute(data.x, phiaval);
     TPZFNMatrix<4,REAL> xk(2,2),xb(2,2),xc(2,2,0.),xf(2,1);
     xk(0,0) = alphaval[0];
     xk(0,1) = -alphaval[1];
@@ -28,7 +29,9 @@ void TPZHelmholtz1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<R
     xb(0,1) = -betaval[1];
     xb(1,0) = betaval[1];
     xb(1,1) = betaval[0];
-    
+    xf(0,0) = -phiaval[0];
+    xf(1,0) = -phiaval[1];
+  
     // atualizar xf, adicionar uma funcao para tal.
     
     SetMaterial(xk, xc, xb, xf);

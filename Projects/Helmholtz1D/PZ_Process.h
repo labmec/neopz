@@ -32,6 +32,10 @@
 #include <string>
 #include <math.h>
 
+static REAL L = 15;
+static REAL lambda = 3.;
+static REAL theta = 0;
+
 /* GENERIC FUNCTIONS TO APPLY FEM USING PZ */
 
 /// Creates a Geometrical Mesh. It is related with one-dimensional domain - interval (into space)

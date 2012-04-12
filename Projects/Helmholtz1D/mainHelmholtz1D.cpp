@@ -31,14 +31,47 @@ void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du
 
 // Variable coefficient of first derivative
 void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &alpha) {
-	if(!alpha.NElements()) return;
-	alpha[0] = 1.;
+#ifdef DEBUG
+        if(alpha.NElements() != 2) {            
+            DebugStop();
+        }            
+#endif
+        std::complex<REAL> m(2,-0.1);
+        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+        std::complex<REAL> alph = 1. / eps;   
+        
+        alpha[0] = alph.real();
+        alpha[1] = alph.imag();
 }
+
 // Variable coefficient of the u
 void BetaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &beta) {
-	if(!beta.NElements()) return;
-	beta[0] = 1.;
+#ifdef DEBUG
+        if(beta.NElements() != 2) {            
+            DebugStop();
+        }            
+#endif
+        REAL k0 = 2. * M_PI / lambda;
+        std::complex<REAL> m(2,-0.1);
+        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+        std::complex<REAL> alph = 1. / eps;
+        std::complex<REAL> bet = -(k0 * k0) * (m - alph * (std::sin(theta) * std::sin(theta)));
+        
+        beta[0] = bet.real();
+        beta[1] = bet.imag();
 }
+
+void PhiFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &phi){
+#ifdef DEBUG
+        if(phi.NElements() != 2) {
+            
+            DebugStop();
+        }            
+#endif   
+        phi[0] = 0;
+        phi[1] = 0;
+}
+
 
 int main() {
 	
@@ -75,6 +108,7 @@ int main() {
 	material = new TPZHelmholtz1D(matId[0],1);
 	material->SetAlphaFunction(new TPZDummyFunction(AlphaFunction));
 	material->SetBetaFunction(new TPZDummyFunction(BetaFunction));
+        material->SetPhiFunction(new TPZDummyFunction(PhiFunction));
 
 //	material->SetMaterial(xkin,xcin,xbin,xfin);
 	
@@ -99,7 +133,6 @@ int main() {
 	an.SetExact(ExactSolution);
 	TPZVec<REAL> posproc;
 	an.PostProcess(posproc,FileError); // Compute the errors
-	
 	
 	return 0;
 }

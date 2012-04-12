@@ -31,7 +31,9 @@ class TPZHelmholtz1D  : public TPZMat1dLin
     TPZAutoPointer<TPZFunction> fAlpha;
 	/** @brief Pointer to beta function, variable coefficient of the u */
     TPZAutoPointer<TPZFunction> fBeta;
-
+        /** @brief Pointer to phi function */
+    TPZAutoPointer<TPZFunction> fPhi;
+    
 public:
 	/** @brief Simple constructor with material id and dimension of the spatial domain */
 	TPZHelmholtz1D(int nummat,int dim);
@@ -82,6 +84,10 @@ public:
 	void SetBetaFunction(TPZAutoPointer<TPZFunction> fbeta) {
 		fBeta = fbeta;
 	}
+        
+        void SetPhiFunction(TPZAutoPointer<TPZFunction> fphi){
+                fPhi = fphi;
+        }
 };
 
 #endif
