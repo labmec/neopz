@@ -48,23 +48,28 @@ public:
     {
         
     }
+    double operator()(double x)
+    {
+        double val = this->func(x);
+        return val;
+    }
     
     static REAL func(REAL x)
     {
-        REAL val = x*x*sin(x)*cos(x) - exp(x/10.)/x*cos(x);
+        REAL val = sin(log10(x) + x*4.*atan(1.))*x*x;
         return val;
     }
 };
 
 int main(int argc, char * const argv[])
 {
-    Adapt intRule(1.E-30);
+    Adapt intRule(1.E-100);
     
     funcao funcaoOBJ;
     
-    const REAL a = 10.;
-    const REAL b = 20.;
-    double integr = intRule.integrate(funcaoOBJ.func,a,b);
+    const REAL a = 2.;
+    const REAL b = 10.;
+    double integr = intRule.integrate(funcaoOBJ,a,b);
     
     std::cout.precision(16);
     std::cout << std::endl << integr << std::endl;
@@ -76,7 +81,8 @@ int mainOriginal(int argc, char * const argv[])
 {	
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
-    readRef.start();    
+    readRef.start();
+    
     //#define writeAgain
     #ifdef writeAgain
         gRefDBase.InitializeRefPatterns();
@@ -84,6 +90,7 @@ int mainOriginal(int argc, char * const argv[])
         std::ifstream inRefP("RefPatternsUsed.txt");
         gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
     #endif
+    
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
