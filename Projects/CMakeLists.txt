@@ -79,7 +79,11 @@ if(BUILD_PROJECTS)
 
 	#projeto Diogo 08-FEB-2012
 	add_subdirectory(Plasticity)
-#	add_subdirectory(prodindex)
+	#add_subdirectory(prodindex)
+
+	#Projeto Lua 2012
+	add_subdirectory(Lua01)
+	
 	
 endif(BUILD_PROJECTS)
 
