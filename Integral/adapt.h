@@ -12,6 +12,7 @@
 #define ADAPTH
 
 #include "pzreal.h"
+#include "limits"
 
 struct Adapt
 {
