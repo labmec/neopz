@@ -531,14 +531,14 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
             {
                	Topol.Resize(8);
                 Topol[0] = ncols*r+c + l*nNodesByLayer;
-                Topol[1] = ncols*(r+1)+c + l*nNodesByLayer;
+                Topol[1] = ncols*r+c+1 + l*nNodesByLayer;
                 Topol[2] = ncols*(r+1)+c+1 + l*nNodesByLayer;
-                Topol[3] = ncols*r+c+1 + l*nNodesByLayer;
+                Topol[3] = ncols*(r+1)+c + l*nNodesByLayer;
                 //
                 Topol[4] = ncols*r+c + (l+1)*nNodesByLayer;
-                Topol[5] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
+                Topol[5] = ncols*r+c+1 + (l+1)*nNodesByLayer;
                 Topol[6] = ncols*(r+1)+c+1 + (l+1)*nNodesByLayer;
-                Topol[7] = ncols*r+c+1 + (l+1)*nNodesByLayer;
+                Topol[7] = ncols*(r+1)+c + (l+1)*nNodesByLayer;
                 
                 new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol,__3DrockMat_linear,*fFullMesh);
                 elId++;
@@ -622,7 +622,6 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
     fFullMesh->SetMaxElementId(fFullMesh->NElements()-1);
     fFullMesh->SetMaxNodeId(fFullMesh->NNodes()-1);
     
-    //    InsertDots4VTK(fullMesh, poligonalChain);    
 //    std::ofstream out("FullMesh.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(fFullMesh, out, true);
 }
@@ -678,7 +677,12 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 	int npoints = (poligonalChain.NElements())/2;
 	int nelem = planeMesh->NElements();
 	
-    TPZGeoEl * firstGel = PointElementOnPlaneMesh(0, planeMesh, poligonalChain);
+    TPZVec<REAL> coord(3,0.);
+    int firstPt = 0;
+    coord[0] = poligonalChain[2*firstPt];
+    coord[2] = poligonalChain[2*firstPt+1];
+    int elFoundId = PointElementOnPlaneMesh(coord);
+    TPZGeoEl * firstGel = planeMesh->ElementVec()[elFoundId];
 
 	TPZGeoEl * gel = firstGel;
 	TPZGeoEl * nextGel = NULL;
@@ -1061,24 +1065,22 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZGeoEl * TPZPlaneFracture::PointElementOnPlaneMesh(int p, TPZGeoMesh * planeMesh, const TPZVec<REAL> &poligonalChain)
+int TPZPlaneFracture::PointElementOnPlaneMesh(const TPZVec<REAL> & x)
 {
-	TPZManVector<REAL,3> x(3), qsi2D(2,0.);
-	
-    x[0] = poligonalChain[2*p+0];
-    x[1] = 0.;
-    x[2] = poligonalChain[2*p+1];
+	TPZManVector<REAL,3> coord(x), qsi2D(2,0.);
+    coord[1] = 0.;
     
 	TPZGeoEl * gel = NULL;
-	int nelem = planeMesh->NElements();
+	int nelem = fPlaneMesh->NElements();
 	for(int el = 0; el < nelem; el++)//hunting the first element (that contains the first point)
 	{
-		TPZGeoEl * firstGel = planeMesh->ElementVec()[el];
+		TPZGeoEl * firstGel = fPlaneMesh->ElementVec()[el];
+
 		if(firstGel->Dimension() != 2)
 		{
 			continue;
 		}
-		if(firstGel->ComputeXInverse(x, qsi2D))
+		if(firstGel->ComputeXInverse(coord, qsi2D))
 		{
 			gel = firstGel;
 			break;
@@ -1093,9 +1095,59 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnPlaneMesh(int p, TPZGeoMesh * planeMe
     }
 #endif
 	
-	return gel;
+    int id = gel->Id();
+	return id;
 }
 //------------------------------------------------------------------------------------------------------------
+
+TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(const TPZVec<REAL> & x, TPZGeoMesh * fullMesh)
+{
+    int elFoundId = PointElementOnPlaneMesh(x);
+    TPZGeoEl * gelfractmesh = fPlaneMesh->ElementVec()[elFoundId];
+    
+    // Da maneira com que esta classe foi construida, o elemento 2D encontrado na malha fractMesh apresenta como seu dual
+    // (na malha fullMesh) o elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
+    TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[gelfractmesh->Id()];
+    
+    TPZManVector<REAL,3> coord(x), qsi3D(3);
+    while(gelfullmesh->Type() != ECube)
+    {
+        int side = gelfullmesh->NSides()-1;
+        gelfullmesh = gelfullmesh->Neighbour(side).Element();
+    }
+    while(gelfullmesh->ComputeXInverse(coord, qsi3D) == false)
+    { 
+        gelfullmesh->PrintNodesCoordinates();
+        int cubeFace_in_Y_direction = 25;//confirmar
+        TPZGeoEl * nextGel = gelfullmesh->Neighbour(cubeFace_in_Y_direction).Element();
+        if(nextGel->Type() != ECube)
+        {
+            std::cout << "Elemento encontrado nao eh cubo!!!\n";
+            DebugStop();
+        }
+        if(nextGel == gelfullmesh)
+        {
+            std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+        }
+        gelfullmesh = nextGel;
+    }
+    while(gelfullmesh->HasSubElement())
+    {    
+        int nsons = gelfullmesh->NSubElements();
+        for(int s = 0; s < nsons; s++)
+        {
+            TPZGeoEl * sonGel = gelfullmesh->SubElement(s);
+            if(sonGel->ComputeXInverse(coord, qsi3D) == true)
+            {
+                gelfullmesh = sonGel;
+                break;
+            }
+        }
+    }
+    
+    return gelfullmesh;
+}
 
 double TPZPlaneFracture::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
                                           TPZVec<REAL> &node, TPZVec<REAL> &dnode,

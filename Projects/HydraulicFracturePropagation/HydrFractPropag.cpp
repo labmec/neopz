@@ -33,6 +33,8 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 
 #include "TPZTimer.h"
 
+/** Exemplo da utilizacao da quadratura adaptativa (integral adaptativa) */
+/*
 
 #include "adapt.h"
 
@@ -76,8 +78,9 @@ int main(int argc, char * const argv[])
     
     return 0;
 }
+*/
 
-int mainOriginal(int argc, char * const argv[])
+int main(int argc, char * const argv[])
 {	
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -341,6 +344,7 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
     fractureDots.Resize(2*nnodes, 0.);
     int node;
     double shiftZ = -100.;
+    
     node = 0;
     
     fractureDots[2*node] = 0.5; fractureDots[2*node+1] = shiftZ + 95.;
