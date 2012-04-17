@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <complex>
 #include "pzmanvector.h"
 #include "pzreal.h"
 
@@ -37,6 +38,12 @@ public:
 	
 	virtual void Write(std::string *p, int size=1) = 0;
 	
+	virtual void Write(std::complex< float > *p, int size=1)=0;
+	
+	virtual void Write(std::complex< double > *p, int size=1)=0;
+	
+	virtual void Write(std::complex< long double > *p, int size=1)=0;
+	
 #ifndef ELLIPS
 	void Write(TPZFlopCounter *p, int size=1) 
 	{
@@ -52,6 +59,12 @@ public:
 	virtual void Read(double *p, int size=1)=0;
 	
 	virtual void Read(long double *p, int size=1)=0;
+
+	virtual void Read(std::complex< float > *p, int size=1)=0;
+	
+	virtual void Read(std::complex< double > *p, int size=1)=0;
+	
+	virtual void Read(std::complex< long double > *p, int size=1)=0;
 	
 #ifndef ELLIPS
 	void Read(TPZFlopCounter *p, int size=1)
@@ -116,9 +129,21 @@ public:
 	virtual void Write(std::string *p, int size) {
 		Writes<std::string>(p,size);
 	}
-	
+
+	virtual void Write(std::complex <float> *p, int size) {
+		Writes< std::complex <float> >(p,size);
+	}
+
+	virtual void Write(std::complex <double> *p, int size) {
+		Writes< std::complex <double> >(p,size);
+	}
+
+	virtual void Write(std::complex <long double> *p, int size) {
+		Writes< std::complex <long double> >(p,size);
+	}
+
 	template<class T>
-    void  Writes(const T *p, int size) 
+	void  Writes(const T *p, int size) 
 	{
 		int c;
 		for(c=0; c<size; c++) fo << p[c] << std::endl;
@@ -154,9 +179,21 @@ public:
 			p[c] = buf;
 		}
 	}
-	
+
+	virtual void Read(std::complex <float> *p, int size) {
+		Reads< std::complex <float> >(p,size);
+	}
+
+	virtual void Read(std::complex <double> *p, int size) {
+		Reads< std::complex <double> >(p,size);
+	}
+
+	virtual void Read(std::complex <long double> *p, int size) {
+		Reads< std::complex <long double> >(p,size);
+	}
+
 	template<class T>
-    void Reads(T *p, int size) {
+	void Reads(T *p, int size) {
 		int c;
 		char buf[100];
 		if(size)

@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <iostream>
+#include <complex>
 
 #ifdef WIN32
 #define  __PRETTY_FUNCTION__ __FILE__
@@ -86,25 +87,37 @@ typedef long double REAL;
 /** @brief This is the type of State PZ will use. */
 #ifdef STATEfloat
 typedef float STATE;
-#endif
-#ifdef STATEdouble
+#elif STATEdouble
 typedef double STATE; //This is the default configuration
-#endif
-#ifdef STATElongdouble
+#elif STATElongdouble
 typedef long double STATE;
-#endif
-#ifdef STATEcomplexf
-#include <complex>
+#elif STATEcomplexf
 typedef std::complex<float> STATE;
-#endif
-#ifdef STATEcomplexd
-#include <complex>
+#elif STATEcomplexd
 typedef std::complex<double> STATE;
-#endif
-#ifdef STATEcomplexld
-#include <complex>
+#elif STATEcomplexld
 typedef std::complex<long double> STATE;
 #endif
+
+// fabs function adapted to complex numbers.
+inline float
+fabs(std::complex <float> __x)
+{
+  std::complex <float> ret = abs(__x);
+  return std::abs(ret.real());
+}
+inline double
+fabs(std::complex <double> __x)
+{
+  std::complex <double> ret = abs(__x);
+  return std::abs(ret.real());
+}
+inline long double
+fabs(std::complex <long double> __x)
+{
+  std::complex <long double> ret = abs(__x);
+  return std::abs(ret.real());
+}
 
 
 /**
@@ -453,6 +466,18 @@ inline bool IsZero( double a ){
 }
 //template<>
 inline bool IsZero( float a ){
+	return ( fabs( a ) < ZeroTolerance() );
+}
+//template<>
+inline bool IsZero( std::complex<long double> a ){
+	return ( fabs( a ) < ZeroTolerance() );
+}
+//template<>
+inline bool IsZero( std::complex<double> a ){
+	return ( fabs( a ) < ZeroTolerance() );
+}
+//template<>
+inline bool IsZero( std::complex<float> a ){
 	return ( fabs( a ) < ZeroTolerance() );
 }
 //template<>

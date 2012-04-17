@@ -34,11 +34,11 @@ public:
 		for(int i = 0; i < axes.Rows(); i++){
 			for(int j = 0; j < axes.Rows(); j++){
 				if(i == j) continue;
-				double sum = 0.;
+				TVar sum = 0.;
 				for(int k = 0; k < axes.Cols(); k++){
 					sum += axes.GetVal(i,k)*axes.GetVal(j,k);
 				}//k
-				if(sum > tol){
+				if(fabs(sum) > tol){
 					check = false;
 				}//if
 			}//for j

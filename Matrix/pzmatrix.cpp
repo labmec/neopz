@@ -125,14 +125,14 @@ void TPZMatrix<TVar>::PrepareZ(const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,co
 	for (ic = 0; ic < xcols; ic++)
 	{
 		TVar *zp = &z(0,ic), *zlast = zp+numeq;
-		if(beta != 0)
+		if(beta != (TVar)0)
 		{
 			const TVar *yp = &y.g(0,ic);
-			if(beta != 1. || (beta == 1. && stride != 1 && &z != &y))
+			if(beta != (TVar)1. || (beta == (TVar)1. && stride != 1 && &z != &y))
 			{
 				while(zp < zlast)
 				{
-					*zp = beta * (*yp);
+					*zp = (TVar)beta * (*yp);
 					zp += stride;
 					yp += stride;
 				}
@@ -321,7 +321,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 		for ( int row = 0; row < Rows(); row++) {
 			for ( int col = 0; col < Cols(); col++ ) {
 				TVar val = Get (row, col);
-				if(val != 0.) out << row << ' ' << col << ' ' << val << std::endl;
+				if(val != (TVar)0.) out << row << ' ' << col << ' ' << val << std::endl;
 			}
 		}
 		out << "-1 -1 0.\n";
@@ -333,7 +333,7 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 			out << "\n{ ";
 			for ( int col = 0; col < Cols(); col++ ) {
 				TVar val = Get (row, col);
-				sprintf(number, "%16.16lf",(double)val);
+				sprintf(number, "%16.16lf",(REAL)fabs(val));
 				out << number;
 				if(col < Cols()-1)
 					out << ", ";
@@ -624,7 +624,7 @@ void TPZMatrix<TVar>::SolveJacobi(int &numiterations,const TPZFMatrix<TVar> &F, 
 	res = Norm(scratch);
 	int r = Dim();
 	int c = F.Cols();
-	for(int it=0; it<numiterations && res > tol; it++) {
+	for(int it=0; it<numiterations && fabs(res) > tol; it++) {
 		for(int ic=0; ic<c; ic++) {
 			for(int i=0; i<r; i++) {
 				result(i,ic) += (scratch)(i,ic)/GetVal(i,i);
@@ -645,7 +645,7 @@ void TPZMatrix<TVar>::SolveSOR(int & numiterations, const TPZFMatrix<TVar> &F,
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
 		return;
 	}
-	REAL res = 2*tol+1.;
+	TVar res = (TVar)2*tol+(TVar)1.;
 	if(residual) res = Norm(*residual);
 	if(!FromCurrent) {
 		result.Zero();
@@ -660,7 +660,7 @@ void TPZMatrix<TVar>::SolveSOR(int & numiterations, const TPZFMatrix<TVar> &F,
 		iinc = -1;
 	}
 	TVar eqres;
-	for(it=0; it<numiterations && res > tol; it++) {
+	for(it=0; it<numiterations && fabs(res) > fabs(tol); it++) {
 		res = 0.;
 		for(int ic=0; ic<c; ic++) {
 			for(i=ifirst; i!=ilast; i+= iinc) {
@@ -686,7 +686,7 @@ void TPZMatrix<TVar>::SolveSSOR(int &numiterations, const TPZFMatrix<TVar> &F,
 	TVar res = (tol*TVar(2.))+TVar(1.);
 	int i, one = 1;
 	int fromcurrent = FromCurrent;
-	for(i=0; i<numiterations && res > tol; i++) {
+	for(i=0; i<numiterations && fabs(res) > fabs(tol); i++) {
 		one = 1;
 		res = tol;
 		SolveSOR(one,F,result,residual,scratch,overrelax,res,fromcurrent,1);
@@ -706,6 +706,27 @@ void TPZMatrix<TVar>::SolveCG(int &numiterations, TPZSolver<TVar> &preconditione
 						const	TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 						TPZFMatrix<TVar> *residual, TVar &tol, const int FromCurrent) {
 	CG(*this, result, F, preconditioner, residual, numiterations, tol, FromCurrent);
+}
+
+template <>
+void TPZMatrix< std::complex<float> >::SolveCG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
+						const	TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
+						TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol, const int FromCurrent) {
+	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<double> >::SolveCG(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
+						const	TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
+						TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol, const int FromCurrent) {
+	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<long double> >::SolveCG(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+						const	TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
+						TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol, const int FromCurrent) {
+	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 #include "gmres.h"
@@ -740,6 +761,32 @@ void TPZMatrix<TVar>::SolveGMRES(int &numiterations, TPZSolver<TVar> &preconditi
     }
 }
 
+template <>
+void TPZMatrix< std::complex<float> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
+						   TPZFMatrix< std::complex<float> > &H, int &numvectors,
+						   const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
+						   TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,const int FromCurrent)  
+{
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<double> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
+						   TPZFMatrix< std::complex<double> > &H, int &numvectors,
+						   const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
+						   TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,const int FromCurrent)  
+{
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<long double> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+						   TPZFMatrix< std::complex<long double> > &H, int &numvectors,
+						   const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
+						   TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,const int FromCurrent)  
+{
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
 
 
 #include "bicg.h"
@@ -751,12 +798,57 @@ void TPZMatrix<TVar>::SolveBICG(int &numiterations, TPZSolver<TVar> &preconditio
 	BiCG (*this, result,F,preconditioner,numiterations,tol);
 }
 
+template<>
+void TPZMatrix< std::complex<float> >::SolveBICG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
+						  const TPZFMatrix< std::complex<float> > &F,
+						  TPZFMatrix< std::complex<float> > &result,
+						   std::complex<float>  &tol)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template<>
+void TPZMatrix< std::complex<double> >::SolveBICG(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
+						  const TPZFMatrix< std::complex<double> > &F,
+						  TPZFMatrix< std::complex<double> > &result,
+						   std::complex<double>  &tol)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template<>
+void TPZMatrix< std::complex<long double> >::SolveBICG(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+						  const TPZFMatrix< std::complex<long double> > &F,
+						  TPZFMatrix< std::complex<long double> > &result,
+						   std::complex<long double>  &tol)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
 #include "bicgstab.h"
 template <class TVar>
 void TPZMatrix<TVar>::SolveBICGStab(int &numiterations, TPZSolver<TVar> &preconditioner,
 							  const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 							  TPZFMatrix<TVar> *residual, TVar &tol,const int FromCurrent)  {
 	BiCGSTAB(*this,result,F,preconditioner,numiterations,tol,residual,FromCurrent);
+}
+
+template <>
+void TPZMatrix< std::complex<float> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
+							  const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
+							  TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,const int FromCurrent)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<double> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
+							  const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
+							  TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,const int FromCurrent)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<long double> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+							  const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
+							  TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,const int FromCurrent)  {
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 
@@ -768,6 +860,30 @@ void TPZMatrix<TVar>::SolveIR(int &numiterations, TPZSolver<TVar> &preconditione
 						TPZFMatrix<TVar> *residual, TVar &tol,
 						const int FromCurrent)  {
 	IR(*this,result,F,preconditioner,residual,numiterations,tol,FromCurrent);
+}
+
+template <>
+void TPZMatrix< std::complex<float> >::SolveIR(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
+						const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
+						TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,
+						const int FromCurrent)  {
+	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<double> >::SolveIR(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
+						const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
+						TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,
+						const int FromCurrent)  {
+	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+void TPZMatrix< std::complex<long double> >::SolveIR(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
+						const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
+						TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,
+						const int FromCurrent)  {
+	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 
@@ -880,7 +996,7 @@ int TPZMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular) {
 		for(int k=0; k<i; k++) {             //elementos da diagonal
 			PutVal( i,i,GetVal(i,i)-GetVal(i,k)*GetVal(i,k) );
 		}
-		if(GetVal(i,i) <= 1.e-12)
+		if(fabs(GetVal(i,i)) <= 1.e-12)
 		{
 			singular.push_back(i);
 			PutVal(i,i,1.);
@@ -967,11 +1083,11 @@ int TPZMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const {
 	
 	if ( (B->Rows() != Dim()) || !fDecomposed || fDecomposed != ECholesky) return( 0 );
 	for ( int r = Dim()-1;  r >= 0;  r-- ) {
-		REAL pivot = GetVal( r, r );
+		TVar pivot = GetVal( r, r );
 		for ( int c = 0; c < B->Cols(); c++ ) {
 			// Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
 			//
-			REAL sum = 0.0;
+			TVar sum = 0.0;
 			for ( int i = Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
             // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
             //
@@ -997,7 +1113,7 @@ int TPZMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
         for ( int c = 0; c < B->Cols();  c++ )    {
             // Faz sum = SOMA( A[r,i] * B[i,c] ); i = 0, ..., r-1.
             //
-            REAL sum = 0.0;
+            TVar sum = 0.0;
             for ( int i = 0; i < r; i++ ) sum += GetVal(r, i) * B->GetVal(i, c);
 			
             // Faz B[r,c] = (B[r,c] - sum) / A[r,r].
@@ -1025,7 +1141,7 @@ int TPZMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const {
         for ( int c = 0; c < B->Cols(); c++ ) {
             // Faz sum = SOMA( A[r,i] * B[i,c] ); i = N, ..., r+1.
             //
-            REAL sum = 0.0;
+            TVar sum = 0.0;
             for ( int i = Dim()-1; i > r; i-- ) sum += GetVal(r, i) * B->GetVal(i, c);
 			
             // Faz B[r,c] = B[r,c] - sum.
@@ -1047,7 +1163,7 @@ int TPZMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const {
         Error("TPZMatrix::Subst_Diag incompatible dimensions\n");
 	}
 	for ( int r = 0; r < Dim(); r++ ) {
-		REAL pivot = GetVal( r, r );
+		TVar pivot = GetVal( r, r );
 		for ( int c = 0; c < B->Cols(); c++ ) {
 			B->PutVal( r, c, B->GetVal( r, c ) / pivot );
 		}
@@ -1187,7 +1303,7 @@ bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 	for( int i = 0; i < nrows; i++)
 		for( int j = 0; j < ncols; j++){
 			diff = fabs( this->Get(i,j) - M.Get(i,j) );
-			if (diff > tol) return false;
+			if (diff > fabs(tol)) return false;
 		}
 	
 	return true;
@@ -1195,12 +1311,12 @@ bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 template <class TVar>
 TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<REAL>& Vec, TVar tol)
 {
-    TVar diff0 = fabs(val - Vec[0]) >= tol ?  (val - Vec[0]) : 1.E10;
-    TVar diff1, res = Vec[0];
+    TVar diff0 = fabs(val - (TVar)Vec[0]) >= fabs(tol) ?  (val - (TVar)Vec[0]) : (TVar)1.E10;
+    TVar diff1, res = (TVar)Vec[0];
     for(int i = 1; i < Vec.NElements(); i++)
     {
-        diff1 = val - Vec[i];
-        diff0 = ( fabs(diff1) >= tol && fabs(diff1) < fabs(diff0) ) ? res = Vec[i],diff1 : diff0;
+        diff1 = val - (TVar)Vec[i];
+        diff0 = ( fabs(diff1) >= fabs(tol) && fabs(diff1) < fabs(diff0) ) ? res = Vec[i],diff1 : diff0;
     }
     return res;
 }
@@ -1249,19 +1365,19 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
         TPZFNMatrix<9,TVar> Matrix(*this);
 		
         TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
-        if(fabs(answ - Eigenvalues[eigen]) > 1.E-5)
+        if(fabs(fabs(answ) - Eigenvalues[eigen]) > 1.E-5)
         {
-            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - 0.01 * fabs(answ-Eigenvalues[eigen])) );
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - 0.01 * fabs(answ-(TVar)Eigenvalues[eigen])) );
         }
         else
         {
-            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - 0.01) );
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - 0.01) );
         }
 		
         /** Normalizing Initial Eigenvec */
         REAL norm1 = 0.;
-        for(int i = 0; i < size; i++) norm1 += VecIni(i,0) * VecIni(i,0); norm1 = sqrt(norm1);
-        for(int i = 0; i < size; i++) VecIni(i,0) = VecIni(i,0)/norm1;
+        for(int i = 0; i < size; i++) norm1 += fabs(VecIni(i,0)) * fabs(VecIni(i,0)); norm1 = sqrt(norm1);
+        for(int i = 0; i < size; i++) VecIni(i,0) = VecIni(i,0)/(TVar)norm1;
 		
         int count = 0;
         double dif = 10., difTemp = 0.;
@@ -1275,14 +1391,14 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
 			
 			/** Normalizing Final Eigenvec */
 			REAL norm2 = 0.;
-			for(int i = 0; i < size; i++) norm2 += VecIni(i,0) * VecIni(i,0);
+			for(int i = 0; i < size; i++) norm2 += fabs(VecIni(i,0)) * fabs(VecIni(i,0));
 			norm2 = sqrt(norm2);
 			
 			difTemp = 0.;
 			for(int i = 0; i < size; i++)
 			{
-                VecIni(i,0) = VecIni(i,0)/norm2;
-                difTemp += (VecIni_cp(i,0) - VecIni(i,0)) * (VecIni_cp(i,0) - VecIni(i,0));
+                VecIni(i,0) = VecIni(i,0)/(TVar)norm2;
+                difTemp += fabs((VecIni_cp(i,0) - VecIni(i,0)) * (VecIni_cp(i,0) - VecIni(i,0)));
 			}
 			dif = sqrt(difTemp);
 			count++;
@@ -1291,14 +1407,14 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
         /** Copy values from AuxVector to Eigenvectors */
         for(int i = 0; i < size; i++)
         {
-			double val = VecIni(i,0);
+			TVar val = VecIni(i,0);
 			if(fabs(val) < 1.E-5) val = 0.;
 			Eigenvectors(eigen,i) = val;
         }
 		
 #ifdef DEBUG2
         double norm = 0.;
-        for(int i = 0; i < size; i++) norm += VecIni(i,0) * VecIni(i,0);
+        for(int i = 0; i < size; i++) norm += fabs(VecIni(i,0)) * fabs(VecIni(i,0));
         if (fabs(norm - 1.) > 1.e-10)
         {
             PZError << __PRETTY_FUNCTION__ << endl;
@@ -1321,6 +1437,21 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
 	
 }//method
 
+template <>
+bool TPZMatrix< std::complex< float > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+bool TPZMatrix< std::complex< double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+template <>
+bool TPZMatrix< std::complex< long double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
 template <class TVar>
 bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
 	
@@ -1337,17 +1468,17 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 #endif
 	
 	int iter = 0;
-	REAL res = 2. * tol;
+	TVar res = (TVar)2. * (TVar)tol;
 	const int size = this->Rows();
 	int i, j;
 	int p, q;
-	REAL maxval, theta, cost, sint, aux, aux2, Spp, Sqq, Spq;
+	TVar maxval, theta, cost, sint, aux, aux2, Spp, Sqq, Spq;
 	while (iter < numiterations){
 		/** First of all find the max value off diagonal */
 		maxval = 0.;
 		for(i = 0; i < size; i++){
 			for(j = 0; j < i; j++) {
-				if( fabs(this->operator ( )(i,j) ) > maxval ) {
+				if( fabs(this->operator ( )(i,j) ) > fabs(maxval) ) {
 					p = i;
 					q = j;
 					maxval = fabs( this->operator ( )(i,j) );
@@ -1359,7 +1490,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 		
 		/** Check if max value off diagonal is lesser than required tolerance */
 		res = maxval;
-		if (res < tol) break;
+		if (fabs(res) < tol) break;
 		//     {
 		//       tol = res;
 		//       numiterations = iter;
@@ -1367,7 +1498,7 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 		//     }//if
 		
 		/** Compute angle of rotation */
-		theta = 0.5 * atan(2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
+		theta = 0.5 * atan((TVar)2. * this->operator ( )(p,q) / (this->operator ( )(q,q) - this->operator ( )(p,p) ) );
 		cost = cos(theta);
 		sint = sin(theta);
 		
@@ -1375,8 +1506,8 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 		for(i = 0; i < size; i++){
 			if (i != p && i != q){
 				
-				aux = this->operator ( )(i,p) * cost - this->operator ( )(i,q) * sint;
-				aux2 = this->operator ( )(i,p) * sint + this->operator ( )(i,q) * cost;
+				aux = this->operator ( )(i,p) * (TVar)cost - this->operator ( )(i,q) * (TVar)sint;
+				aux2 = this->operator ( )(i,p) * (TVar)sint + this->operator ( )(i,q) * (TVar)cost;
 				
 				this->operator ( )(i,p) = aux;
 				this->operator ( )(p,i) = aux;
@@ -1387,8 +1518,8 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 			}//if
 		}//for i
 		
-		Spp = this->operator ( )(p,p) * cost * cost -2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * sint * sint;
-		Sqq = this->operator ( )(p,p) * sint * sint +2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * cost * cost;
+		Spp = this->operator ( )(p,p) * cost * cost -(TVar)2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * sint * sint;
+		Sqq = this->operator ( )(p,p) * sint * sint +(TVar)2. * this->operator ( )(p,q) * sint * cost + this->operator ( )(q,q) * cost * cost;
 		Spq = ( this->operator ( )(p,p) - this->operator ( )(q,q) ) * cost * sint + this->operator ( )(p,q)*( cost*cost - sint*sint );
 		
 		this->operator ( )(p,p) = Spp;
@@ -1418,13 +1549,13 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 	}//if (Sort)
 	
 	
-	if (res < tol){
-		tol = res;
+	if (fabs(res) < tol){
+		tol = fabs(res);
 		numiterations = iter;
 		return true;
 	}
 	
-	tol = res;
+	tol = fabs(res);
 	numiterations = iter;
 	return false;
 	
@@ -1448,8 +1579,8 @@ TVar TPZMatrix<TVar>::MatrixNorm(int p, int numiter, REAL tol) const{
 			int i, j;
 			for(i = 0; i < n; i++){
 				REAL sum = 0.;
-				for(j = 0; j < n; j++) sum += abs( this->Get(i,j) );
-				if (sum> max) max = sum;
+				for(j = 0; j < n; j++) sum += fabs( this->Get(i,j) );
+				if (sum > fabs(max)) max = sum;
 			}
 			return max;
 		}
@@ -1457,9 +1588,9 @@ TVar TPZMatrix<TVar>::MatrixNorm(int p, int numiter, REAL tol) const{
 			TVar max = 0.;
 			int i, j;
 			for(i = 0; i < n; i++){
-				TVar sum = 0.;
+				REAL sum = 0.;
 				for(j = 0; j < n; j++) sum += fabs( this->Get(j,i) );
-				if (sum > max) max = sum;
+				if (sum > fabs(max)) max = sum;
 			}
 			return max;
 		}
@@ -1469,7 +1600,7 @@ TVar TPZMatrix<TVar>::MatrixNorm(int p, int numiter, REAL tol) const{
 			//TRANSPOSE
 			for(i = 0; i < n; i++) for(j = 0; j < n; j++) transp(i,j) = this->Get(j,i);
 			//MULTIPLY transp = transp.this
-			TPZVec<REAL> ROW(n);
+			TPZVec<TVar> ROW(n);
 			for(i = 0; i < n; i++){
 				for(j = 0; j < n; j++) ROW[j] = transp(i,j);
 				for(j = 0; j < n; j++){
@@ -1503,7 +1634,7 @@ TVar TPZMatrix<TVar>::ConditionNumber(int p, int numiter, REAL tol){
 	int localnumiter = numiter;
 	REAL localtol = tol;
 	TPZFMatrix<TVar> Inv;
-	REAL thisnorm = this->MatrixNorm(p, localnumiter, localtol);
+	TVar thisnorm = this->MatrixNorm(p, localnumiter, localtol);
 	if (!this->Inverse(Inv)){
 		PZError << __PRETTY_FUNCTION__ << " - it was not possible to compute the inverse matrix." << std:: endl;
 		return 0.;
@@ -1553,7 +1684,7 @@ int TPZMatrix<TVar>::Inverse(TPZFMatrix<TVar>&Inv){
 template <class TVar>
 void TPZMatrix<TVar>::AutoFill() {
 	long i, j;
-	REAL val, sum;
+	TVar val, sum;
 	/** Fill data */
 	for(i=0;i<Rows();i++) {
 		sum = 0.0;
@@ -1564,7 +1695,7 @@ void TPZMatrix<TVar>::AutoFill() {
 			if(i!=j) sum += fabs(val);
 		}
 		/** Making diagonally dominant and non zero in diagonal */
-		if(sum > GetVal(i,i))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
+		if(fabs(sum) > fabs(GetVal(i,i)))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
 			PutVal(i,i,sum);
 		// To sure diagonal is not zero.
 		if(IsZero(sum) && IsZero(GetVal(i,i)))
@@ -1602,6 +1733,9 @@ void TPZMatrix<TVar>::AutoFill() {
 //
 
 #include <complex>
+template class TPZMatrix< std::complex<float> >;
+template class TPZMatrix< std::complex<double> >;
+template class TPZMatrix< std::complex<long double> >;
 
 template class TPZMatrix<long double>;
 template class TPZMatrix<double>;

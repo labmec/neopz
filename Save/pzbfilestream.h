@@ -75,9 +75,21 @@ public:
 			Write(p[c].c_str(),p[c].size());
 		}
 	}
+	/** @brief Writes size complex-float at pointer location p */
+	virtual void Write(std::complex <float> *p, int size) {
+		Writes< std::complex <float> >(p,size);
+	}
+	/** @brief Writes size complex-double at pointer location p */
+	virtual void Write(std::complex <double> *p, int size) {
+		Writes< std::complex <double> >(p,size);
+	}
+	/** @brief Writes size complex-long double at pointer location p */
+	virtual void Write(std::complex <long double> *p, int size) {
+		Writes< std::complex <long double> >(p,size);
+	}
 	/** @brief Writes size objects of the class T at pointer location p */
 	template<class T>
-    void  Writes(const T *p, int size) 
+	void  Writes(const T *p, int size) 
 	{
 		fwrite(p,sizeof(T),size,ofd);
 	}
@@ -115,9 +127,21 @@ public:
 			p[c] = buf;
 		}
 	}
+	/** @brief Reads size complex-float from pointer location p */
+	virtual void Read(std::complex <float> *p, int size) {
+		Reads< std::complex <float> >(p,size);
+	}
+	/** @brief Reads size complex-double from pointer location p */
+	virtual void Read(std::complex <double> *p, int size) {
+		Reads< std::complex <double> >(p,size);
+	}
+	/** @brief Reads size complex-long double from pointer location p */
+	virtual void Read(std::complex <long double> *p, int size) {
+		Reads< std::complex <long double> >(p,size);
+	}
 	/** @brief Reads size objects of the class T from pointer location p */
 	template<class T>
-    void Reads(T *p, int size)
+	void Reads(T *p, int size)
 	{
 		if(ifd)
 		{

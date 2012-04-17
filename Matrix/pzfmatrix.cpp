@@ -207,7 +207,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     for(int j = 0; j < this->Cols(); j++){
 		double norm = 0.;
 		for(int i = 0; i < this->Rows(); i++){
-			norm += this->GetVal(i,j)*this->GetVal(i,j);
+			norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
 		}
 		norm = sqrt(norm);
 		if(norm > 1e-10){
@@ -249,7 +249,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     }
 #endif
 	
-    double dotUp, dotDown;
+    TVar dotUp, dotDown;
     for(int c = 1; c < QTDvec; c++)
     {
         for(int stop = 0; stop < c; stop++)
@@ -261,7 +261,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
                 dotUp += GetVal(r,c)*Orthog(r,stop);
                 dotDown += Orthog(r,stop)*Orthog(r,stop);
             }
-            if(dotDown < 1.E-8) 
+            if(fabs(dotDown) < 1.E-8) 
             { 
 #ifdef DEBUG
                 if(check == 0)
@@ -300,7 +300,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
         {
             dotUp += Orthog(r,c)*Orthog(r,c);
         }
-        if(dotUp > 1.e-8)
+        if(fabs(dotUp) > 1.e-8)
         {
             for(int r = 0; r < QTDcomp; r++)
             {
@@ -409,7 +409,7 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int rows, int cols, const TPZFMa
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;
 	}
-	if(beta != 0. && ((!opt && rows*stride != y.Rows()) || (opt && cols*stride != y.Rows()) || y.Cols() != x.Cols())) {
+	if(beta != (TVar)0. && ((!opt && rows*stride != y.Rows()) || (opt && cols*stride != y.Rows()) || y.Cols() != x.Cols())) {
 		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
 		return;
 	}
@@ -428,9 +428,9 @@ void TPZFMatrix<TVar>::MultAdd(const TVar *ptr, int rows, int cols, const TPZFMa
 	if(!(rows*cols)) return;
 	for (ic = 0; ic < xcols; ic++) {
 		TVar *zp = &z(0,ic), *zlast = zp+numeq*stride;
-		if(beta != 0.) {
+		if(beta != (TVar)0.) {
 			const TVar *yp = &y.g(0,ic);
-			if(beta != 1. || (&z != &y && stride != 1)) {
+			if(beta != (TVar)1. || (&z != &y && stride != 1)) {
 				while(zp < zlast) {
 					*zp = beta * (*yp);
 					zp += stride;
@@ -486,7 +486,7 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
 		Error( "TPZFMatrix::MultAdd matrix x with incompatible dimensions>" );
 		return;
 	}
-	if(beta != 0. && ((!opt && this->Rows()*stride != y.Rows()) || (opt && this->Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
+	if(beta != (TVar)0. && ((!opt && this->Rows()*stride != y.Rows()) || (opt && this->Cols()*stride != y.Rows()) || y.Cols() != x.Cols())) {
 		Error( "TPZFMatrix::MultAdd matrix y with incompatible dimensions>" );
 		return;
 	}
@@ -512,9 +512,9 @@ void TPZFMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> 
     {
         for (ic = 0; ic < xcols; ic++) {
             TVar *zp = &z(0,ic), *zlast = zp+numeq*stride;
-            if(beta != 0.) {
+            if(beta != (TVar)0.) {
                 const TVar *yp = &y.g(0,ic);
-                if(beta != 1. || (&z != &y && stride != 1)) {
+                if(beta != (TVar)1. || (&z != &y && stride != 1)) {
                     while(zp < zlast) {
                         *zp = beta * (*yp);
                         zp += stride;
@@ -1196,6 +1196,15 @@ TVar Dot(const TPZFMatrix<TVar> &A, const TPZFMatrix<TVar> &B) {
 }
 
 template
+std::complex<float> Dot(const TPZFMatrix< std::complex<float> > &A, const TPZFMatrix< std::complex<float> > &B);
+
+template
+std::complex<double> Dot(const TPZFMatrix< std::complex<double> > &A, const TPZFMatrix< std::complex<double> > &B);
+
+template
+std::complex<long double> Dot(const TPZFMatrix< std::complex<long double> > &A, const TPZFMatrix< std::complex<long double> > &B);
+
+template
 long double Dot(const TPZFMatrix<long double> &A, const TPZFMatrix<long double> &B);
 
 template
@@ -1371,8 +1380,8 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
 		out << rows << " " << cols << endl;
 		for ( int row = 0; row < rows; row++) {
 			for ( int col = 0; col < cols; col++ ) {
-				REAL val = SELECTEL(ptr,rows,row, col);
-				if(val != 0.) out << row << ' ' << col << ' ' << val << std::endl;
+				TVar val = SELECTEL(ptr,rows,row, col);
+				if(val != (TVar)0.) out << row << ' ' << col << ' ' << val << std::endl;
 			}
 		}
 		out << "-1 -1 0.\n";
@@ -1383,8 +1392,8 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
 		for ( int row = 0; row < rows; row++) {
 			out << "\n{ ";
 			for ( int col = 0; col < cols; col++ ) {
-				REAL val = SELECTEL(ptr,rows,row, col);
-				sprintf(number, "%16.16lf", (double)val);
+				TVar val = SELECTEL(ptr,rows,row, col);
+				sprintf(number, "%16.16lf", (REAL)fabs(val));
 				out << number;
 				if(col < cols-1)
 					out << ", ";
@@ -1431,6 +1440,11 @@ int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
 	
 	return( 1 );
 }
+
+#include <complex>
+template class TPZFMatrix< std::complex<float> >;
+template class TPZFMatrix< std::complex<double> >;
+template class TPZFMatrix< std::complex<long double> >;
 
 template class TPZFMatrix<long double>;
 template class TPZFMatrix<double>;

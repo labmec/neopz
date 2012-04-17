@@ -12,7 +12,6 @@
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
 #include "pzfilebuffer.h"
-#include "pzmatrixid.h"
 #include "pzmaterialid.h"
 #include "pzmeshid.h"
 #include "pzbfilestream.h"
@@ -46,7 +45,7 @@ int main()
 	InsertElasticity(cmesh);
 	cmesh->AutoBuild();
 	TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
 	TPZAnalysis an(cmesh);
 	an.SetStructuralMatrix(skylstruct);
@@ -163,7 +162,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 	mesh->InsertMaterialObject(elastauto);
 	
 	// Neumann em x = 1;
-	TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = elast->CreateBC(elastauto, dir, dirichlet, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto(bc);
 	mesh->InsertMaterialObject(bcauto);
