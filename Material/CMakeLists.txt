@@ -7,3 +7,8 @@ file(GLOB sources *.cpp)
 
 set(pzmaterial_STAT_SRCS ${headers} ${sources} PARENT_SCOPE)
 
+if(BUILD_COMPLEX_PROJECTS)
+  add_subdirectory(Complex)
+else()
+  add_subdirectory(REAL)
+endif(BUILD_COMPLEX_PROJECTS)
