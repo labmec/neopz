@@ -197,10 +197,10 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 
 }
 
-REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter){
+REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter){
 	REAL error = 2.*tol+1.;
 	REAL A, B, L, M;
-	TPZFMatrix ak, bk, lambdak, muk, Interval;
+	TPZFMatrix<REAL> ak, bk, lambdak, muk, Interval;
 	REAL NormResLambda, NormResMu;
 	//ak = Wn + 0.1 * DeltaW
 	ak = DeltaW;
@@ -313,12 +313,12 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 	//Mesh()->Solution().Zero();
 	//fSolution->Zero();
 	
-	TPZFMatrix prevsol(fSolution);
+	TPZFMatrix<REAL> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
 	
 	if(checkconv){
 		TPZVec<REAL> coefs(1,1.);
-		TPZFMatrix range(numeq,1,1.);
+		TPZFMatrix<REAL> range(numeq,1,1.);
 		CheckConvergence(*this,fSolution,range,coefs);
 	}
 	
@@ -328,7 +328,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		Assemble();
 		Solve();
 		if (linesearch){
-			TPZFMatrix nextSol;
+			TPZFMatrix<REAL> nextSol;
 			REAL LineSearchTol = 1e-3 * Norm(fSolution);
 			const int niter = 10;
 			this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);

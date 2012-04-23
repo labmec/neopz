@@ -131,7 +131,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<R
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
 	int multipl = SignCorrection();
 	TPZTensor<REAL> epsTotal_Internal(epsTotal);
@@ -556,7 +556,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal,
                                                                       TPZTensor<REAL> &sigma,
-                                                                      TPZFMatrix &Dep)
+                                                                      TPZFMatrix<REAL> &Dep)
 {
     
 #ifdef LOG4CXX
@@ -600,7 +600,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix &Dep)
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 {
 	
 	const int nyield = YC_t::NYield;
@@ -1161,7 +1161,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             
             TPZFNMatrix<nVars*nVars> *matc = new TPZFNMatrix<nVars*nVars>(nVars,nVars);
             *matc = tangent;
-            TPZStepSolver st(matc);
+            TPZStepSolver<REAL> st(matc);
             st.SetDirect(ELU);
             
             //		 cout << " RESVAL " <<endl;
@@ -2410,7 +2410,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		//		cout << "\nNewton Method Step " << k << "\nDep=" << Dep_mat << endl << residual_mat;
 		//		cout.flush();
 		
-        TPZStepSolver st(matc);
+        TPZStepSolver<REAL> st(matc);
         st.SetDirect(ELU);
 		
         

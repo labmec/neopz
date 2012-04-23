@@ -2400,7 +2400,7 @@ inline void FragGranade()
     
 	int sizedirs;
 	input >>sizedirs; 
-	TPZFMatrix directions(sizedirs,3,0.);
+	TPZFMatrix<REAL> directions(sizedirs,3,0.);
 	
 	TPZTensor<REAL> DiagonalStress,epst,epsp,DeltaDiagonalStress;
     TPZLadeKim LK;

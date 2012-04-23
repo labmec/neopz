@@ -129,14 +129,14 @@ void CMesh2DBCII(TPZCompMesh *CMESH, TPZAutoPointer<TPZMaterial> mat);
 void SetUPPostProcessVariablesII(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames );
 void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
 							int BCId,int BCId2, int nsteps, REAL PGRatio,
-							TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-							TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+							TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+							TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
 							TPZPostProcAnalysis * ppAnalysis, int res);
 
 void ManageIterativeProcessIII(std::ostream &out,REAL tol,int numiter,
                                int BCId, int nsteps, REAL PGRatio,
-                               TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-                               TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+                               TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+                               TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
                                TPZPostProcAnalysis * ppAnalysis, int res);
 
 
@@ -1968,8 +1968,8 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 
 void BrazilianPlasticAnalysis2D()
 {
-	TPZFMatrix BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
-	TPZFMatrix val1(3,1,0.);TPZFMatrix val2(3,1,0.);TPZFMatrix BeginForce(3,1,0.);TPZFMatrix EndForce(3,1,0.);
+	TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
+	TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
 	
 	int BC1,BC2,nsteps,taxa,nnewton;
 	int h=3;
@@ -2116,72 +2116,72 @@ void CMesh2DBCII(TPZCompMesh *CMESH, TPZAutoPointer<TPZMaterial> mat)
 	
 	
 	//down line
-	TPZFMatrix k1(2,2,0.);
-	TPZFMatrix f1(2,1,0.);
+	TPZFMatrix<REAL> k1(2,2,0.);
+	TPZFMatrix<REAL> f1(2,1,0.);
 	f1(1,0) = 17.;
 	TPZAutoPointer<TPZMaterial> ContBC1 = mat->CreateBC(mat, -2, neumann, k1, f1);
 	CMESH->InsertMaterialObject(ContBC1);
 	
 	//upper line
-	TPZFMatrix k2(2,2,0.);
-	TPZFMatrix f2(2,1,0.);
+	TPZFMatrix<REAL> k2(2,2,0.);
+	TPZFMatrix<REAL> f2(2,1,0.);
 	f2(1,0) = -17.;
 	TPZAutoPointer<TPZMaterial> ContBC2 = mat->CreateBC(mat, -3, neumann, k2, f2);
 	CMESH->InsertMaterialObject(ContBC2);
     
     
-	TPZFMatrix k6(2,2,0.);
-	TPZFMatrix f6(2,1,0.);
+	TPZFMatrix<REAL> k6(2,2,0.);
+	TPZFMatrix<REAL> f6(2,1,0.);
 	TPZAutoPointer<TPZMaterial> ContBC6 = mat->CreateBC(mat, -8, 0, k6, f6);
 	CMESH->InsertMaterialObject(ContBC6);
     
-    TPZFMatrix k7(2,2,0.);
-	TPZFMatrix f7(2,1,0.);
+    TPZFMatrix<REAL> k7(2,2,0.);
+	TPZFMatrix<REAL> f7(2,1,0.);
     //f7(1,0)=1.;
     k7(1,1)=BIG;
 	TPZAutoPointer<TPZMaterial> ContBC7 = mat->CreateBC(mat, -9, 2, k7, f7);
 	CMESH->InsertMaterialObject(ContBC7);
     
-    TPZFMatrix k8(2,2,0.);
-	TPZFMatrix f8(2,1,0.);
+    TPZFMatrix<REAL> k8(2,2,0.);
+	TPZFMatrix<REAL> f8(2,1,0.);
     //f8(1,0)=1.;
     k8(1,1)=BIG;
 	TPZAutoPointer<TPZMaterial> ContBC8 = mat->CreateBC(mat, -10, 2, k8, f8);
 	CMESH->InsertMaterialObject(ContBC8);
     
-    TPZFMatrix k3(2,2,0.);
-	TPZFMatrix f3(2,1,0.);
+    TPZFMatrix<REAL> k3(2,2,0.);
+	TPZFMatrix<REAL> f3(2,1,0.);
     //f3(0,0)=1.;
     k3(0,0)=BIG;
 	TPZAutoPointer<TPZMaterial> ContBC3 = mat->CreateBC(mat, -11, 2, k3, f3);
 	CMESH->InsertMaterialObject(ContBC3);
 	
     
-	TPZFMatrix k4(2,2,0.);
-	TPZFMatrix f4(2,1,0.);
+	TPZFMatrix<REAL> k4(2,2,0.);
+	TPZFMatrix<REAL> f4(2,1,0.);
     //f4(0,0)=1.;
     k4(0,0)=BIG;
 	TPZAutoPointer<TPZMaterial> ContBC4 = mat->CreateBC(mat, -12, 2, k4, f4);
 	CMESH->InsertMaterialObject(ContBC4);
 /*	
 
-	TPZFMatrix k3(2,2,0.);
-	TPZFMatrix f3(2,1,0.);
+	TPZFMatrix<REAL> k3(2,2,0.);
+	TPZFMatrix<REAL> f3(2,1,0.);
 	TPZAutoPointer<TPZMaterial> ContBC3 = mat->CreateBC(mat, -4, mixed, k3, f3);
 	CMESH->InsertMaterialObject(ContBC3);
 	
-	TPZFMatrix k4(3,3,0.);
-	TPZFMatrix f4(3,1,0.);
+	TPZFMatrix<REAL> k4(3,3,0.);
+	TPZFMatrix<REAL> f4(3,1,0.);
 	TPZAutoPointer<TPZMaterial> ContBC4 = mat->CreateBC(mat, -5, mixed, k4, f4);
 	CMESH->InsertMaterialObject(ContBC4);
     
-	TPZFMatrix k5(3,3,0.);
-	TPZFMatrix f5(3,1,0.);
+	TPZFMatrix<REAL> k5(3,3,0.);
+	TPZFMatrix<REAL> f5(3,1,0.);
 	TPZAutoPointer<TPZMaterial> ContBC5 = mat->CreateBC(mat, -6, mixed, k5, f5);
 	CMESH->InsertMaterialObject(ContBC5);
     
-	TPZFMatrix k6(3,3,0.);
-	TPZFMatrix f6(3,1,0.);
+	TPZFMatrix<REAL> k6(3,3,0.);
+	TPZFMatrix<REAL> f6(3,1,0.);
 	TPZAutoPointer<TPZMaterial> ContBC6 = mat->CreateBC(mat, -7, mixed, k6, f6);
 	CMESH->InsertMaterialObject(ContBC6);
 */	
@@ -2192,39 +2192,39 @@ void CMeshTwoMaterials(TPZCompMesh *CMESH, TPZAutoPointer<TPZMaterial> matelast,
 {
 	
     //Deslocamento na linha superior sinal negativo
-    TPZFMatrix k1(2,2,0.);
-	TPZFMatrix f1(2,1,0.);
+    TPZFMatrix<REAL> k1(2,2,0.);
+	TPZFMatrix<REAL> f1(2,1,0.);
     f1(1,0)=-1.;
 	TPZAutoPointer<TPZMaterial> ContBC1 = matelast->CreateBC(matelast, -5, 1, k1, f1);
 	CMESH->InsertMaterialObject(ContBC1);
     
     
     //Deslocamento na linha inferior sinal positvo
-    TPZFMatrix k2(2,2,0.);
-	TPZFMatrix f2(2,1,0.);
+    TPZFMatrix<REAL> k2(2,2,0.);
+	TPZFMatrix<REAL> f2(2,1,0.);
     f2(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC2 = matelast->CreateBC(matelast, -6, 1, k2, f2);
 	CMESH->InsertMaterialObject(ContBC2);
     
     
     //Nos centrail
-    TPZFMatrix k3(2,2,0.);
-	TPZFMatrix f3(2,1,0.);
+    TPZFMatrix<REAL> k3(2,2,0.);
+	TPZFMatrix<REAL> f3(2,1,0.);
     f3(0,0) = 1.;
     f3(1,0) = 1.;
 	TPZAutoPointer<TPZMaterial> ContBC3 = matplastic->CreateBC(matplastic, -1, 3, k3, f3);
 	CMESH->InsertMaterialObject(ContBC3);
     
     //Nos direita
-    TPZFMatrix k4(2,2,0.);
-	TPZFMatrix f4(2,1,0.);
+    TPZFMatrix<REAL> k4(2,2,0.);
+	TPZFMatrix<REAL> f4(2,1,0.);
     f4(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC4 = matplastic->CreateBC(matplastic, -2, 3, k4, f4);
 	CMESH->InsertMaterialObject(ContBC4);
     
     //Nos esquerda
-    TPZFMatrix k5(2,2,0.);
-	TPZFMatrix f5(2,1,0.);
+    TPZFMatrix<REAL> k5(2,2,0.);
+	TPZFMatrix<REAL> f5(2,1,0.);
     f5(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC5 = matplastic->CreateBC(matplastic, -3, 3, k5, f5);
 	CMESH->InsertMaterialObject(ContBC5);
@@ -2242,39 +2242,39 @@ void CMeshGid(TPZCompMesh *CMESH, TPZAutoPointer<TPZMaterial> mat)
 {
     
     //Deslocamento na linha superior sinal negativo
-    TPZFMatrix k1(2,2,0.);
-	TPZFMatrix f1(2,1,0.);
+    TPZFMatrix<REAL> k1(2,2,0.);
+	TPZFMatrix<REAL> f1(2,1,0.);
     f1(1,0)=-1.;
 	TPZAutoPointer<TPZMaterial> ContBC1 = mat->CreateBC(mat, -5, 1, k1, f1);
 	CMESH->InsertMaterialObject(ContBC1);
     
     
     //Deslocamento na linha inferior sinal positvo
-    TPZFMatrix k2(2,2,0.);
-	TPZFMatrix f2(2,1,0.);
+    TPZFMatrix<REAL> k2(2,2,0.);
+	TPZFMatrix<REAL> f2(2,1,0.);
     f2(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC2 = mat->CreateBC(mat, -6, 1, k2, f2);
 	CMESH->InsertMaterialObject(ContBC2);
     
     
     //Nos centrail
-    TPZFMatrix k3(2,2,0.);
-	TPZFMatrix f3(2,1,0.);
+    TPZFMatrix<REAL> k3(2,2,0.);
+	TPZFMatrix<REAL> f3(2,1,0.);
    // f3(0,0) = 1.;
     //f3(1,0) = 1.;
 	TPZAutoPointer<TPZMaterial> ContBC3 = mat->CreateBC(mat, -1, 0, k3, f3);
 	CMESH->InsertMaterialObject(ContBC3);
     
     //Nos direita
-    TPZFMatrix k4(2,2,0.);
-	TPZFMatrix f4(2,1,0.);
+    TPZFMatrix<REAL> k4(2,2,0.);
+	TPZFMatrix<REAL> f4(2,1,0.);
     //f4(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC4 = mat->CreateBC(mat, -2, 0, k4, f4);
 	CMESH->InsertMaterialObject(ContBC4);
     
     //Nos esquerda
-    TPZFMatrix k5(2,2,0.);
-	TPZFMatrix f5(2,1,0.);
+    TPZFMatrix<REAL> k5(2,2,0.);
+	TPZFMatrix<REAL> f5(2,1,0.);
    // f5(1,0)=1.;
 	TPZAutoPointer<TPZMaterial> ContBC5 = mat->CreateBC(mat, -3, 0, k5, f5);
 	CMESH->InsertMaterialObject(ContBC5);
@@ -2355,8 +2355,8 @@ void SetUPPostProcessVariablesII(TPZVec<std::string> &postprocvars, TPZVec<std::
 
 void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
 							int BCId,int BCId2, int nsteps, REAL PGRatio,
-							TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-							TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+							TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+							TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
 							TPZPostProcAnalysis * ppAnalysis, int res)
 {
 	if(!analysis.Mesh())return;
@@ -2472,8 +2472,8 @@ void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream 
 
 void ManageIterativeProcessIII(TPZElastoPlasticAnalysis &analysis ,std::ostream &out,REAL tol,int numiter,
                                                       int BCId, int nsteps, REAL PGRatio,
-                                                      TPZFMatrix & val1Begin, TPZFMatrix & val1End,
-                                                      TPZFMatrix & val2Begin, TPZFMatrix & val2End,
+                                                      TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+                                                      TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,
                                                       TPZPostProcAnalysis * ppAnalysis, int res)
 {
 	// computing the initial value for the PG progression such that its sum equals one;
@@ -2544,7 +2544,7 @@ void SolveSistII(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	an.SetStructuralMatrix(full);
     
     
-	TPZStepSolver step;
+	TPZStepSolver<REAL> step;
   //  step.SetDirect(ELDLt);
   //  step.SetJacobi(5000, 1.e-12,0);
     step.SetDirect(ECholesky);
