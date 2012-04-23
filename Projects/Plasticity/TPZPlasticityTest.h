@@ -2395,7 +2395,7 @@ inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
 inline void FragGranade()
 {
     
-    std::ifstream input("SnubDodecahedron.txt");
+    std::ifstream input("../SnubDodecahedron.txt");
    // std::ofstream vetoresmathematica("outnb.nb");
     
 	int sizedirs;
@@ -2499,7 +2499,7 @@ template <class T>
 inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 {
 	
-	std::ifstream input("SnubDodecahedron.txt");
+	std::ifstream input("../SnubDodecahedron.txt");
 	int sizedirs;
 	input >>sizedirs; 
 	TPZFMatrix<REAL> directions(sizedirs,3,0.);
@@ -2566,8 +2566,8 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 			//PHIS MAIORES DO QUE ZERO SEMPRE com 1.1 nao comentado
 			plasticModelCopy.fYC.Compute(DiagonalStress,plasticModelCopy.fTFA.Compute( plasticModelCopy.GetState().Alpha() ),funcs,checkForcedYield);
 			plasticModelCopy.ApplyLoad(DiagonalStress,epst);
-			TPZFNMatrix<6*6> Dep(6,6,0.);
-			plasticModelCopy.ApplyStrainComputeDep(plasticModelCopy.GetState().EpsT(),DiagonalStress,Dep);
+		//	TPZFNMatrix<6*6> Dep(6,6,0.);
+		//	plasticModelCopy.ApplyStrainComputeDep(plasticModelCopy.GetState().EpsT(),DiagonalStress,Dep);
 			DiagonalStress*=1.1;
 
 			
@@ -2576,7 +2576,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 			{
 				
 				std::stringstream sout;
-				sout << " \n Dep = " << Dep << endl;
+	//			sout << " \n Dep = " << Dep << endl;
 				sout << " \n funcs[0] = " << funcs[0] << endl;
 				sout << " \n DiagonalStress = " << DiagonalStress <<endl;
 				sout << " \n fTFA = " << plasticModelCopy.fTFA.Compute( plasticModelCopy.GetState().Alpha() ) <<endl;
