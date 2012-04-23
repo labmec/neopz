@@ -380,7 +380,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         if(normEpsPErr < fIntegrTol && succeeded)
         {
             PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-            return 1; 
+            return; 
         }
         
     
