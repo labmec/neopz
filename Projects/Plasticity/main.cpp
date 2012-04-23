@@ -1100,7 +1100,7 @@ int main()
    // LK.PlainConcrete(LK);
    // LK.ApplyLoad(sigma,eps);
   //  FragGranade();
- //   LKIsotropicCompression();
+   // LKIsotropicCompression();
 
   //  BrazilianPlasticAnalysis2D();
     
@@ -1108,8 +1108,12 @@ int main()
   //  mesh = BrazilianTestGeoMesh::MalhaPredio();
 //    mesh = MalhaPredio();
     
-    
-    FragGranade();
+    TPZLadeKim LK;
+    LK.PlainConcrete(LK);
+    TPZDruckerPrager DP;
+    DP.PlainConcreteMPa(DP);
+    FragGranade(DP);
+   // TPZPlasticTest::PlasticIntegratorCheck(20, DP);
     cout << "\nRuning finished " << endl;
 /*  
     TPZPlasticTest::LoadTest("testeFineSilicaIsotropic.loadpath");

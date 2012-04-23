@@ -75,7 +75,9 @@ class TPZPlasticTest
         
         static void LadeKimTriaxialLooseSand();
         
-        static void FragGranade();
+        
+        template <class T>
+        static void FragGranade(T & plasticModel);
 		
 		static void DruckerPragerTest();
 		
@@ -2392,85 +2394,76 @@ inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
 	
 }
 
-inline void FragGranade()
+
+template <class T>
+inline void FragGranade(T & plasticModel)
 {
     
     std::ifstream input("../SnubDodecahedron.txt");
-   // std::ofstream vetoresmathematica("outnb.nb");
     
 	int sizedirs;
 	input >>sizedirs; 
 	TPZFMatrix<REAL> directions(sizedirs,3,0.);
 	
 	TPZTensor<REAL> DiagonalStress,epst,epsp,DeltaDiagonalStress;
-    TPZLadeKim LK;
-    TPZLadeKim::PlainConcrete(LK);	
-	int nyield = LK.NYield;
+	int nyield = plasticModel.NYield;
 	
 	TPZVec<REAL>  funcs(nyield);
-//	int checkForcedYield;
-	
-
-//	REAL pa = 14.7;
-	 TPZFNMatrix<6*6> Dep(6,6,0.);
+    TPZFNMatrix<6*6> Dep(6,6,0.);
     REAL coordxx,coordyy,coordzz;
 	for(int i=0;i<sizedirs;i++)
 	{
 
-        
-
         input >> coordxx >> coordyy >> coordzz;
-        DeltaDiagonalStress.XX()=coordxx;
-        DeltaDiagonalStress.YY()=coordyy;
-        DeltaDiagonalStress.ZZ()=coordzz;
-        DiagonalStress = DeltaDiagonalStress;
-        LK.ApplyLoad(DiagonalStress,epst);
-        
+        DiagonalStress.XX()=coordxx;
+        DiagonalStress.YY()=coordyy;
+        DiagonalStress.ZZ()=coordzz;
+        plasticModel.ApplyLoad(DiagonalStress,epst);
         
         bool Plastifica = false;
+        bool noconvergence = false;
+        
 #ifdef LOG4CXX
         {
             
             std::stringstream sout;
             sout << " \n Dep = " << Dep << endl;
             sout << " \n DIRECTION Number = " << i << "\n " <<endl;
-            sout << " \n DeltaDiagonalStress = " << DeltaDiagonalStress << "\n " <<endl;
+            sout << " \n DiagonalStress = " << DiagonalStress << "\n " <<endl;
             LOGPZ_INFO(plasticIntegrLogger,sout.str());
         }
 #endif
         int count =0;
-		//REAL func;
+        
 		do{
         
-			//LK.ApplyLoad(DiagonalStress,epst);
-            LK.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
-            //epst+=epst;
-            epst*=1.1;
-          //  DiagonalStress+=DeltaDiagonalStress;
-             LK.Phi(epst, funcs);
+			plasticModel.ApplyLoad(DiagonalStress,epst);
+           // plasticModel.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
+           // epst*=1.1;
+            DiagonalStress*=1.1;
+            plasticModel.Phi(epst, funcs);
 #ifdef LOG4CXX
 			{
 				
 				std::stringstream sout;
-             //   sout << " \n\n While loop number  = " << count << endl;
-			//	sout << " \n\n Dep = " << Dep << endl;
-				sout << " \n\n funcs[0] = " << funcs[0] <<"\n"<< endl;
-			//	sout << " \n\n DiagonalStressInsideWhile = " << DiagonalStress <<endl;
+                sout << " \n\n While loop number  = " << count << endl;
+				sout << " \n\n Dep = " << Dep << endl;
+				sout << " \n\n funcs = " << funcs <<"\n"<< endl;
+				sout << " \n\n DiagonalStressInsideWhile = " << DiagonalStress <<endl;
                 sout<< "\nvector"<<count<<" = {" << DiagonalStress.XX()<<","<<DiagonalStress.YY()<<","<<DiagonalStress.ZZ()<< "};" << endl;
-				//sout << " \n fTFA = " << LK.fTFA.Compute( LK.GetState().Alpha() ) <<endl;
-				//sout << " \n Alpha() = " << LK.GetState().Alpha() << endl;
-				//sout << " \n epst = " << LK.GetState().EpsT() <<endl;
-				//sout << " \n epsP = " << LK.GetState().EpsP() <<endl;
-                //	sout << "\n Dep  = " << Dep << endl;
+				sout << " \n fTFA = " << plasticModel.fTFA.Compute( plasticModel.GetState().Alpha() ) <<endl;
+				sout << " \n Alpha() = " << plasticModel.GetState().Alpha() << endl;
+				sout << " \n epst = " << plasticModel.GetState().EpsT() <<endl;
+				sout << " \n epsP = " << plasticModel.GetState().EpsP() <<endl;
+                sout << "\n Dep  = " << Dep << endl;
 				LOGPZ_INFO(plasticIntegrLogger,sout.str());
 			}
 #endif
             
-            
-           // vetoresmathematica << "vector"<<count<<" = {" << DiagonalStress.XX()<<","<<DiagonalStress.YY()<<","<<DiagonalStress.ZZ()<< "};" << endl;
              
             for(int j = 0;j<nyield;j++)
             {
+                if(funcs[j] < -1000.)noconvergence=true;
                 if(funcs[j]>=0)
                 {
                     Plastifica = true;
@@ -2478,7 +2471,7 @@ inline void FragGranade()
                
             }
             count++;
-        }while(Plastifica==false);
+        }while(Plastifica==false && noconvergence ==false);
 #ifdef LOG4CXX
         {
             
@@ -2488,7 +2481,7 @@ inline void FragGranade()
         }
 #endif
 	}
-    
+        
 }
 
 
@@ -2618,11 +2611,11 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
 		Range = input * (1./19.);
 		TPZVec< REAL > Coefs(1,1.);
 		TPZPlasticTest test;
-		CheckConvergence(test, input, Range, Coefs);
+	//	CheckConvergence(test, input, Range, Coefs);
 		
 		epst = plasticModelCopy.GetState().EpsT();
 	
-	//	GlobalCheckConv(plasticModelCopy, epst, 0.0001);
+		GlobalCheckConv(plasticModelCopy, epst, 0.0001);
 		
 		
 		/*
