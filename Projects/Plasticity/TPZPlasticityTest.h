@@ -2413,18 +2413,20 @@ inline void FragGranade()
 
 //	REAL pa = 14.7;
 	 TPZFNMatrix<6*6> Dep(6,6,0.);
+    REAL coordxx,coordyy,coordzz;
 	for(int i=0;i<sizedirs;i++)
 	{
 
         
-        REAL coordxx,coordyy,coordzz;
+
         input >> coordxx >> coordyy >> coordzz;
         DeltaDiagonalStress.XX()=coordxx;
         DeltaDiagonalStress.YY()=coordyy;
         DeltaDiagonalStress.ZZ()=coordzz;
         DiagonalStress = DeltaDiagonalStress;
-        
         LK.ApplyLoad(DiagonalStress,epst);
+        
+        
         bool Plastifica = false;
 #ifdef LOG4CXX
         {
@@ -2442,7 +2444,8 @@ inline void FragGranade()
         
 			//LK.ApplyLoad(DiagonalStress,epst);
             LK.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
-            epst+=epst;
+            //epst+=epst;
+            epst*=1.1;
           //  DiagonalStress+=DeltaDiagonalStress;
              LK.Phi(epst, funcs);
 #ifdef LOG4CXX
