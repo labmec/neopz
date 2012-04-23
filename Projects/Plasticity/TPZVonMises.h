@@ -56,8 +56,8 @@ public:
 	{
 		
 		//VONMISESPARENT::fYC.SetUp();
-		VONMISESPARENT::fTFA.SetUp(210./* sigmaY = MPa */,    1164./*endurecimento para cada 0.1% de deformacao em MPa(290/0.249)*/);
-		VONMISESPARENT::fER.SetUp(/*young*/ 210000., /*poisson*/ 0.3);
+		//VONMISESPARENT::fTFA.SetUp(210./* sigmaY = MPa */,    1164./*endurecimento para cada 0.1% de deformacao em MPa(290/0.249)*/);
+		//VONMISESPARENT::fER.SetUp(/*young*/ 210000., /*poisson*/ 0.3);
 		
 	}
 	
@@ -87,6 +87,12 @@ public:
 	virtual void Read(TPZStream &buf, void *context)
 	{
 	}	
+    
+    static void Steel(TPZVonMises & material)
+    {
+        material.fTFA.SetUp(210./* sigmaY = MPa */,    1164./*endurecimento para cada 0.1% de deformacao em MPa(290/0.249)*/);
+		material.fER.SetUp(/*young*/ 210000., /*poisson*/ 0.3);
+    }
 	
 	
 public:

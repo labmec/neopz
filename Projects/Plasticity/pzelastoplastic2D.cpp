@@ -159,7 +159,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
 #endif
-	
+/*	
 	//NAN detector
 	res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
 	if(res)
@@ -167,7 +167,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
 		DebugStop();
 	}
-
+*/
 	int nstate = NStateVariables();
 	REAL val;/*,val1,val2,val3,val4*/;
 	
@@ -292,6 +292,8 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 					for(idf=0; idf<2; idf++) for(jdf=0; jdf<2; jdf++)
 					{
 						ek(nstate*in+idf,nstate*jn+jdf) += bc.Val1()(idf,jdf);
+                        //BUG FALTA COLOCAR VAL2
+                        DebugStop();
 					}
 				}
 			}//in

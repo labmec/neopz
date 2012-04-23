@@ -31,6 +31,10 @@ virtual REAL LocalSolve();
  * In this implementation, the line search is temporarily disabled.
  */
 virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter);
+    
+virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch, bool checkconv);
+    
+virtual REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
 	
 /**
  * The code below manages the update of a certain boundary condition (BCId)

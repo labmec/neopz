@@ -73,12 +73,12 @@ public:
 	 Yield Function:     h,       alpha
 	 Atmospheric pression pa - to dimensionalize/adim. the stresses
 	 */
-	void SetUp()
+	void SetUp(REAL young,REAL poisson, REAL fangle, REAL coesion, REAL hardeningModulus,int InnerOuter=0/*Inner*/ )
 	{
 		
-//		DRUCKERPARENT::fYC.SetUp(/*phi=20*/ 20./180. * M_PI ,/*innerMCFit*/0);
-//		DRUCKERPARENT::fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ 9.2376, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1000.);
-//		DRUCKERPARENT::fER.SetUp(/*young*/ 20000., /*poisson*/ 0.2);
+		DRUCKERPARENT::fYC.SetUp( fangle/180. * M_PI ,InnerOuter);
+		DRUCKERPARENT::fTFA.SetUp(coesion,hardeningModulus);
+		DRUCKERPARENT::fER.SetUp(young, poisson);
 //		DRUCKERPARENT::fYC.SetUp(/*phi=20*/ 20./180. * M_PI ,/*innerMCFit*/0);
 //		DRUCKERPARENT::fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ 9.2376, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1000.);
 //		DRUCKERPARENT::fER.SetUp(/*young*/ 20000., /*poisson*/ 0.2);
@@ -122,7 +122,43 @@ public:
 		
 		fPlasticMem.Resize(0);
 	}
-	
+
+
+public:
+    
+    // The following static members load test data from article 
+    // Lade, Paul V. Kim, Moon K. Single Hardening Constitutove Model for Soil, Rock and Concrete. 
+    // Int. Journal of Solid Structures, vol.32, No14. pp 1963-1978. Elsevier Science, 1994
+    
+    // Plain Concrete MPA
+    static void PlainConcreteMPa(TPZDruckerPrager & material)
+    {
+        REAL poisson = 0.20;
+        REAL young       = 20000.;
+        REAL fangle      = 20.;
+        REAL hardeningModulus       = 1.;
+        REAL coesion       = 9.4;
+        material.fResTol = 1.e-8;
+        
+        
+        material.SetUp(young,poisson,fangle,coesion,hardeningModulus);
+        
+    }
+    
+    static void VeryRigidMaterial(TPZDruckerPrager & material)
+    {
+        REAL poisson = 0.20;
+        REAL young       = 10000000000.;
+        REAL fangle      = 20.;
+        REAL hardeningModulus       = 10000000000.;
+        REAL coesion       = 10000.;
+        material.fResTol = 1.e-8;
+        
+        
+        material.SetUp(young,poisson,fangle,coesion,hardeningModulus);
+        
+    }
+    
 	
 private:
 	
@@ -143,9 +179,15 @@ private:
 	 * initially undeformed state.
 	 */
     TPZPlasticState<REAL> fInitialEps;
+    
+    
+
+
 	
 	
 };
+
+
 
 
 #endif //TPZDruckerPrager_H

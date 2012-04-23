@@ -75,6 +75,8 @@ public:
 	static TPZGeoMesh * TwoDMeshSlopeStability452(int h, int dir);
 	static TPZGeoMesh * MisesPressure(int h, int dir);
 	static TPZGeoMesh * MisesPressure2(int h, int dir);
+    static TPZGeoMesh * MalhaPredio();
+    static TPZGeoMesh * TwoDMeshII(int h, int dir);
 	
 	
 };

@@ -343,6 +343,7 @@ protected:
      * @param [in] epsTotal Imposed total strain tensor
      */
     virtual void ProcessStrainNoSubIncrement(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
+  //  virtual void ProcessStrainNoSubIncrement(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
     
     
 	

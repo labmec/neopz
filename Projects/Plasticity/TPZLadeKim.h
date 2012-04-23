@@ -287,6 +287,34 @@ public:
 			pa);
 	
     }
+    
+    static void PlainConcreteMPa(TPZLadeKim & material)
+    {
+        REAL poisson = 0.18;
+        REAL M       = 361800.*0.0068948;
+        REAL lambda  = 0.;
+        REAL a       = 28.5;//dimensionless
+        REAL m       = 1.113;//dimensionless
+        REAL neta1   = 159800.;//dimensionless
+        REAL ksi2    = -2.92;//dimensionless
+        REAL mu      = 5.06;//dimensionless
+        REAL C       = 0.712E-12;
+        REAL p       = 3.8;
+        REAL h       = 1.990;
+        REAL alpha   = 0.75;
+        REAL pa      = 14.7*0.0068948;
+        
+        material.fResTol = 1.e-8;
+		
+        material.SetUp(poisson, M, lambda,
+                       a, m, neta1,
+                       ksi2, mu,
+                       C, p,
+                       h, alpha,
+                       pa);
+        
+    }
+
 
     // Loose Sacramento River Sand
     static void LooseSacrRiverSand(TPZLadeKim & material)
@@ -369,6 +397,62 @@ public:
 			C, p,
 			h, alpha,
 			pa);
+		
+    }
+    
+    // Fine Silica Sand
+    static void FineSilicaSandPaperIII(TPZLadeKim & material)
+    {
+        REAL poisson = 0.2;
+        REAL M       = 440.;
+        REAL lambda  = 0.22;
+        REAL a       = 0.;
+        REAL m       = 0.1;
+        REAL neta1   = 24.7;
+        REAL ksi2    = -3.69;
+        REAL mu      = 2.26;
+        REAL C       = 0.324E-3;
+        REAL p       = 1.25;
+        REAL h       = 0.355;
+        REAL alpha   = 0.515;
+        REAL pa      = 14.7;
+        
+        material.fResTol = 1.e-8;
+		
+        material.SetUp(poisson, M, lambda,
+                       a, m, neta1,
+                       ksi2, mu,
+                       C, p,
+                       h, alpha,
+                       pa);
+		
+    }
+    
+    // Loose Santa Monica Beach Sand
+    static void LooseSantaMonicaBeachSand(TPZLadeKim & material)
+    {
+        REAL poisson = 0.26;
+        REAL M       = 600.;
+        REAL lambda  = 0.27;
+        REAL a       = 0.;
+        REAL m       = 0.107;
+        REAL neta1   = 32.6;
+        REAL ksi2    = -3.65;
+        REAL mu      = 2.10;
+        REAL C       = 0.000204;
+        REAL p       = 1.51;
+        REAL h       = 0.60;
+        REAL alpha   = 0.79;
+        REAL pa      = 14.7;
+        
+        material.fResTol = 1.e-8;
+		
+        material.SetUp(poisson, M, lambda,
+                       a, m, neta1,
+                       ksi2, mu,
+                       C, p,
+                       h, alpha,
+                       pa);
 		
     }
 
