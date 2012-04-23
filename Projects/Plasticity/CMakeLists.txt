@@ -8,6 +8,8 @@ if(USING_FAD)
 	add_executable(Plasticity ${main_SRCS})
 
 	target_link_libraries(Plasticity pz pthread)
+	
+	file(COPY SnubDodecahedron.txt DESTINATION .)
 
 endif()
 
