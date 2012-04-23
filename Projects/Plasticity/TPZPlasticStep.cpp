@@ -265,8 +265,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
     }
 #endif
 	
-//    ProcessStrainNoSubIncrement(epsTotal);
-	ProcessStrain(epsTotal);
+    ProcessStrainNoSubIncrement(epsTotal);
+	//ProcessStrain(epsTotal);
 	
 	int n = fPlasticMem.NElements();
 	
@@ -382,9 +382,28 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
             PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
             return; 
         }
-        
     
-    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+    TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
+	deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
+         REAL resnorm = 0.;
+    do {
+        
+
+        
+        Np1.fEpsT.Add(deltaEpsTotal,1.);
+        succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+        
+        TPZFMatrix<REAL> residual_mat(6,1);
+        TPZTensor<REAL> res(Np1.fEpsT),epstyield(stateAtYield.fEpsT);
+        int k;
+        for(k = 0; k < 6; k++)residual_mat(k,0) = res.fData[k] - epstyield.fData[k];
+        for(k = 0; k < 6; k++)resnorm += pow(residual_mat(k,0),2.);
+        resnorm = sqrt(resnorm);
+
+        
+    } while ( resnorm > 1.e-3 && succeeded);
+    
+//    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
         PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
     
         cout << "\n ProcessStrainNoSubIncrement  ";
@@ -392,62 +411,6 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         cout << "\n lambda = " << lambda;
         cout << "\n delGamma = " << delGamma;
         cout << "\n fIntegrTol = " << fIntegrTol;
-    
-        int discarded = 1;
-  /*      
-        // Substepping state variables
-        TPZPlasticState<REAL> Nk(stateAtYield),
-        Nkp1;
-        
-        TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
-        deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
-        
-        REAL k = 0., q = 1., kp1 = 0., multipl1;
-        
-        while(k < 1.)
-        {
-            
-            multipl1 = 0.95 * pow(fIntegrTol/normEpsPErr, 0.5);
-            
-            if(multipl1 < 0.1) multipl1 = 0.1;
-            if(multipl1 > 10.) multipl1 = 10.;
-            
-            if(!succeeded)multipl1 = 0.5;
-            
-            q*= multipl1;
-            
-            if(q < fMinStepSize)q = fMinStepSize;
-            
-            kp1 = min(1.0, k + q);
-            q = kp1 - k; // needed when k+q exceeds 1
-            Nkp1.fEpsT = stateAtYield.EpsT();
-            Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-            Nkp1.fAlpha = Nk.Alpha();
-            Nkp1.fEpsP  = Nk.EpsP();
-            for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-            
-            succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-            
-            
-            if((normEpsPErr < fIntegrTol && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
-            {
-                
-                PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-                
-                counter++;
-                // the k-th integration step respects the estimated tolerance
-                // proceeding with time evolution...
-                Nk = Nkp1;			
-                k =  kp1;
-            }
-            else{
-                discarded++;
-            }// otherwise the answer isn't accepted and the next q will be
-            // recomputed in order to lie within the desired tolerance.
-            // If the method works fine this situation should rarely happen.
-        }
-       */ 
-
 
 }
 
@@ -2388,8 +2351,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 	//cout.flush();
 	
 	// evaluating the plastic integration, stress tensor and jacobian
- //   ProcessStrainNoSubIncrement(epsTotal,EAuto);
-	ProcessStrain(epsTotal, EAuto);
+    ProcessStrainNoSubIncrement(epsTotal,EAuto);
+	//ProcessStrain(epsTotal, EAuto);
 	ComputeDep(EEpsilon, Dep_mat);
 	
 	//cout << "\nended ProcessStrain/ComputeDep";
@@ -2426,8 +2389,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		//cout.flush();
 		
         // evaluating the plastic integration, stress tensor and jacobian
- //       ProcessStrainNoSubIncrement(epsTotal,ep);
-        ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
+        ProcessStrainNoSubIncrement(epsTotal,ep);
+    //    ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
         ComputeDep(EEpsilon, Dep_mat);
         
 		//cout << "\nended ProcessStrain/ComputeDep";
