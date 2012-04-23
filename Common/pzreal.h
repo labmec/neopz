@@ -20,6 +20,7 @@
 #include <math.h>
 #include <iostream>
 #include <complex>
+#include <config.h>
 
 #ifdef WIN32
 #define  __PRETTY_FUNCTION__ __FILE__
