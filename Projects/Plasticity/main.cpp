@@ -1112,7 +1112,7 @@ int main()
     LK.PlainConcrete(LK);
     TPZDruckerPrager DP;
     DP.PlainConcreteMPa(DP);
-    FragGranade(DP);
+    MultiDirectionsMaterialPointTest(LK);
    // TPZPlasticTest::PlasticIntegratorCheck(20, DP);
     cout << "\nRuning finished " << endl;
 /*  

@@ -265,8 +265,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
     }
 #endif
 	
-    ProcessStrainNoSubIncrement(epsTotal);
-	//ProcessStrain(epsTotal);
+    //ProcessStrainNoSubIncrement(epsTotal);
+	ProcessStrain(epsTotal);
 	
 	int n = fPlasticMem.NElements();
 	
@@ -2351,8 +2351,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 	//cout.flush();
 	
 	// evaluating the plastic integration, stress tensor and jacobian
-    ProcessStrainNoSubIncrement(epsTotal,EAuto);
-	//ProcessStrain(epsTotal, EAuto);
+    //ProcessStrainNoSubIncrement(epsTotal,EAuto);
+	ProcessStrain(epsTotal, EAuto);
 	ComputeDep(EEpsilon, Dep_mat);
 	
 	//cout << "\nended ProcessStrain/ComputeDep";
@@ -2389,8 +2389,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		//cout.flush();
 		
         // evaluating the plastic integration, stress tensor and jacobian
-        ProcessStrainNoSubIncrement(epsTotal,ep);
-    //    ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
+     //   ProcessStrainNoSubIncrement(epsTotal,ep);
+       ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
         ComputeDep(EEpsilon, Dep_mat);
         
 		//cout << "\nended ProcessStrain/ComputeDep";

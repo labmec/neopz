@@ -77,7 +77,7 @@ class TPZPlasticTest
         
         
         template <class T>
-        static void FragGranade(T & plasticModel);
+        static void MultiDirectionsMaterialPointTest(T & plasticModel);
 		
 		static void DruckerPragerTest();
 		
@@ -2396,7 +2396,7 @@ inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
 
 
 template <class T>
-inline void FragGranade(T & plasticModel)
+inline void MultiDirectionsMaterialPointTest(T & plasticModel)
 {
     
     std::ifstream input("../SnubDodecahedron.txt");
@@ -2418,10 +2418,17 @@ inline void FragGranade(T & plasticModel)
         DiagonalStress.XX()=coordxx;
         DiagonalStress.YY()=coordyy;
         DiagonalStress.ZZ()=coordzz;
+        DiagonalStress*=1.;
+        
         plasticModel.ApplyLoad(DiagonalStress,epst);
+//        TPZPlasticState<REAL> stateN =  plasticModel.GetState();
+//        TPZPlasticState<REAL> stateN1;
+//        plasticModel.FindPointAtYield(epst,stateN1);
+
+ //       cout << "\n stateN " << stateN << endl;
+  //      cout << "\n stateN1 " << stateN1 << endl;
         
         bool Plastifica = false;
-        bool noconvergence = false;
         
 #ifdef LOG4CXX
         {
@@ -2437,15 +2444,24 @@ inline void FragGranade(T & plasticModel)
         
 		do{
         
-			plasticModel.ApplyLoad(DiagonalStress,epst);
-           // plasticModel.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
-           // epst*=1.1;
+			
+            //epst*=1.1;
             DiagonalStress*=1.1;
+            cout << " \ncount "<< count << endl;
+            cout << "\n DiagonalStress " << DiagonalStress << endl;
+            cout << "\n epsT " << epst << endl;
+            cout << "\n funcs " << funcs << endl;
             plasticModel.Phi(epst, funcs);
+            //plasticModel.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
+            plasticModel.ApplyLoad(DiagonalStress,epst);
+
+         //   Dep.VerifySymmetry();
 #ifdef LOG4CXX
 			{
 				
 				std::stringstream sout;
+                
+            
                 sout << " \n\n While loop number  = " << count << endl;
 				sout << " \n\n Dep = " << Dep << endl;
 				sout << " \n\n funcs = " << funcs <<"\n"<< endl;
@@ -2456,22 +2472,22 @@ inline void FragGranade(T & plasticModel)
 				sout << " \n epst = " << plasticModel.GetState().EpsT() <<endl;
 				sout << " \n epsP = " << plasticModel.GetState().EpsP() <<endl;
                 sout << "\n Dep  = " << Dep << endl;
+             
 				LOGPZ_INFO(plasticIntegrLogger,sout.str());
 			}
 #endif
-            
+            if(funcs[0] < -1000.)break;
              
             for(int j = 0;j<nyield;j++)
             {
-                if(funcs[j] < -1000.)noconvergence=true;
-                if(funcs[j]>=0)
+                if(funcs[j]>=0.)
                 {
                     Plastifica = true;
                 }
                
             }
             count++;
-        }while(Plastifica==false && noconvergence ==false);
+        }while(Plastifica==false);
 #ifdef LOG4CXX
         {
             
