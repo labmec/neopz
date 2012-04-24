@@ -21,9 +21,9 @@
  */
 
 /// Represent the state variables of a finite element approximation
-typedef TPZManVector<REAL, 10> TPZFemSol;
+typedef TPZManVector<STATE, 10> TPZFemSol;
 /// Represents the gradient of a state variable of a finite element approximation
-typedef TPZFNMatrix<30> TPZFemGradSol;
+typedef TPZFNMatrix<30,STATE> TPZFemGradSol;
 typedef TPZVec<TPZFemSol > TPZSolVec;
 typedef TPZVec<TPZFemGradSol > TPZGradSolVec;
 
@@ -39,11 +39,11 @@ public:
 	
 	/** @name Attributes to be computed in CalcStiff */
 	/** @{ */
-	TPZFNMatrix<220> phi;//, phil, phir;
-	TPZFNMatrix<660> dphix;//, dphixl, dphixr;
-	TPZFNMatrix<9> axes;//, axesleft, axesright;
-	TPZFNMatrix<9> jacobian;//, leftjac, rightjac;
-	TPZFNMatrix<9> jacinv;//, leftjacinv, rightjacinv;
+	TPZFNMatrix<220, REAL> phi;//, phil, phir;
+	TPZFNMatrix<660, REAL> dphix;//, dphixl, dphixr;
+	TPZFNMatrix<9,REAL> axes;//, axesleft, axesright;
+	TPZFNMatrix<9,REAL> jacobian;//, leftjac, rightjac;
+	TPZFNMatrix<9,REAL> jacinv;//, leftjacinv, rightjacinv;
 	TPZManVector<REAL,3> normal;
 	TPZManVector<REAL,3> x;
 	int p;//, leftp, rightp;
@@ -58,8 +58,8 @@ public:
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
 	TPZFNMatrix<100> fNormalVec;
 	/** @} */
-
-
+	
+	
 	/** @brief Index of the current integration point being evaluated **/
 	/** Needed for materials with memory **/
 	int intPtIndex;
@@ -103,7 +103,7 @@ public:
 	 * overwrite the calling object if the override flag is true
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
-
+	
 	virtual int ClassId() const
 	{
 		return TPZMATERIALDATAID;

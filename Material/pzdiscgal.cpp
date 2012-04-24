@@ -27,13 +27,13 @@ void TPZDiscontinuousGalerkin::FillDataRequirementsInterface(TPZMaterialData &da
 }
 
 void TPZDiscontinuousGalerkin::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                                   REAL weight, TPZFMatrix<REAL> &ef){
-	TPZFMatrix<REAL> fakeek(ef.Rows(), ef.Rows(), 0.);
+                                                   REAL weight, TPZFMatrix<STATE> &ef){
+	TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
 	this->ContributeInterface(data, dataleft, dataright, weight, fakeek, ef);
 }
 
-void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc){
-	TPZFMatrix<REAL> fakeek(ef.Rows(), ef.Rows(), 0.);
+void TPZDiscontinuousGalerkin::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc){
+	TPZFMatrix<STATE> fakeek(ef.Rows(), ef.Rows(), 0.);
 	this->ContributeBCInterface(data, dataleft, weight, fakeek, ef, bc);
 }
 

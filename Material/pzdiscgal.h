@@ -19,7 +19,7 @@ class TPZMaterialData;
  */
 class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	
-public :
+	public :
 	/** @brief Simple constructor */
 	TPZDiscontinuousGalerkin();
 	/** @brief Constructor with the index of the material object within the vector */
@@ -52,8 +52,8 @@ public :
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) = 0;
-
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
+	
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point
@@ -64,7 +64,7 @@ public :
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
@@ -76,7 +76,7 @@ public :
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) = 0;
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) = 0;
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one BC integration point
@@ -87,7 +87,7 @@ public :
 	 * @param bc [in] is the boundary condition object
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
     void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
@@ -95,7 +95,7 @@ public :
         std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     }
 	
-
+	
 	/**
 	 * @brief Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.
 	 * @since Feb 05, 2004

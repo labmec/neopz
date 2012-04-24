@@ -49,8 +49,8 @@ protected:
     TPZAutoPointer<TPZFunction> fForcingFunction;
     //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
-   void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
-								  TPZVec<REAL> &pressure,TPZFMatrix<REAL> &flux);
+	void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
+								   TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux);
     /** @brief Defines whether the equation context is linear solver or non linear */
     /**
      * True means linear (default)
@@ -94,7 +94,7 @@ public:
 	 * Contribute method. Here, in base class, all requirements are considered as necessary. 
 	 * Each derived class may optimize performance by selecting only the necessary data.
      */
-   virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
     /**
      * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
@@ -107,7 +107,7 @@ public:
             data.fNeedsSol = true;
         }
     }
-
+	
     
     /** @brief Returns the name of the material */
     virtual std::string Name() { return "no_name"; }
@@ -150,7 +150,7 @@ public:
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
     
 public:
     
@@ -160,8 +160,8 @@ public:
                       TPZVec<REAL> &flux) {}
     
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
-    virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<REAL> &val1,
-                                 TPZFMatrix<REAL> &val2);
+    virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<STATE> &val1,
+                                 TPZFMatrix<STATE> &val2);
     
     /** @name Contribute methods
 	 * @{
@@ -174,7 +174,7 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) = 0;
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
     
 	
     /**
@@ -184,7 +184,7 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -195,7 +195,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 07, 2011
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc) = 0;
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) = 0;
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point
@@ -207,7 +207,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since October 18, 2011
      */
-    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
     
     /**
      * @brief It computes a contribution to the residual vector at one integration point.
@@ -216,7 +216,7 @@ public:
      * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
     
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -226,7 +226,7 @@ public:
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
-    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
+    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc);
 	
     /** @} */
 	
@@ -260,12 +260,12 @@ public:
         fForcingFunction = fp;
     }
 	
-//	 void fForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux))
-//	{
-//		fForcingFunctionExact = fp;
-//	}
+	//	 void fForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux))
+	//	{
+	//		fForcingFunctionExact = fp;
+	//	}
 	void SetForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,
-											TPZVec<REAL> &pressure,TPZFMatrix<REAL> &flux))
+											TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux))
 	{
 		fForcingFunctionExact = fp;
 	}
@@ -379,7 +379,7 @@ inline bool TPZMaterial::GetLinearContext() const{
 }
 
 /** @brief Extern variable - Vector of force values */
-extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<REAL>& ) > GFORCINGVEC;
+extern TPZVec< void(*) ( TPZVec<REAL> &, TPZVec<STATE>& ) > GFORCINGVEC;
 
 #endif
 
