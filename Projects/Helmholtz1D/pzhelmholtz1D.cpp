@@ -29,8 +29,10 @@ void TPZHelmholtz1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<R
     xb(0,1) = -betaval[1];
     xb(1,0) = betaval[1];
     xb(1,1) = betaval[0];
-    xf(0,0) = -phiaval[0];
-    xf(1,0) = -phiaval[1];
+    xf(0,0) = phiaval[0];
+    xf(1,0) = phiaval[1];
+    
+    
   
     // atualizar xf, adicionar uma funcao para tal.
     

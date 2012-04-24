@@ -1,102 +1,35 @@
 /**
  * \file
- * @brief Contains implementations of the TPZNLMat1d methods.
+ * @brief Contains implementations of the TPZMat1dLin methods.
  */
-//$Id: pznlmat1d.cpp,v 1.7 2008-10-20 11:56:21 longhin Exp $
-
-#include "pznlmat1d.h"
+#include "pzmat1dlin.h"
+#include "pzmaterial.h"
+//#include "pztempmat.h"
+#include "pzconnect.h"
 #include "pzbndcond.h"
+#include "pzerror.h"
+#include "pzvec.h"
+//#include "pzmatrix.h"
 
-#include "pzlog.h"
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.material.tpznlmat1d"));
-#endif
+#include <math.h>
+using namespace std;
 
-TPZNLMat1d::TPZNLMat1d(int id)
-: TPZMaterial(id)
-{
-	fArea = 0.;
-	fE = 0.;
-}
-
-
-TPZNLMat1d::~TPZNLMat1d()
-{
-	//Nothing to be done here!
-}
-
-void TPZNLMat1d::Print(std::ostream &out)
-{
-	out << __PRETTY_FUNCTION__ << std::endl;
-	out << "Cross section initial area = " << fArea << std::endl;
-	out << "Young module = " << fE << std::endl;
-}
-
-int TPZNLMat1d::VariableIndex(const std::string &name)
-{
-	if (!strcmp(name.c_str(),"Tens�")) return 0;
-	else return -1;
-}
-
-int TPZNLMat1d::NSolutionVariables(int var)
-{
-	return (var==0) ? 1 : -1;
-}
-
-int TPZNLMat1d::ClassId() const
-{
-	return TPZNLMAT1D;
-}
-
-void TPZNLMat1d::SetData(std::istream &data)
-{
-	data >> fArea >> fE;
-}
-
-void TPZNLMat1d::Write(TPZStream &buf, int withclassid)
-{
-	TPZMaterial::Write(buf,withclassid);
-	buf.Write(&fArea);
-	buf.Write(&fE);
-	int classid = ClassId();
-	buf.Write(&classid);
-}
-
-void TPZNLMat1d::Read(TPZStream &buf, void *context)
-{
-	TPZMaterial::Read(buf,context);
-	buf.Read(&fArea);
-	buf.Read(&fE);
-	int classid;
-	buf.Read (&classid);
-	
-	if (classid != ClassId())
-	{
-		LOGPZ_ERROR (logger, " wrong classid");
-	}
-}
-
-void TPZNLMat1d::Contribute(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef)
-{
+void TPZMat1dLin::Contribute(TPZMaterialData &data,
+                             REAL weight,
+                             TPZFMatrix<REAL> &ek, 
+                             TPZFMatrix<REAL> &ef){
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
 	// TPZFMatrix<REAL> &dphiR = data.dphixr;
-	// TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &phi = data.phi;
 	// TPZFMatrix<REAL> &phiL = data.phil;
 	// TPZFMatrix<REAL> &phiR = data.phir;
 	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
+	TPZManVector<REAL,3> &x = data.x;
 	// int &POrder=data.p;
 	// int &LeftPOrder=data.leftp;
 	// int &RightPOrder=data.rightp;
-    int numbersol = data.sol.size();
-    if (numbersol != 1) {
-        DebugStop();
-    }
-	TPZVec<REAL> &sol=data.sol[0];
+	// TPZVec<REAL> &sol=data.sol;
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix<REAL> &dsol=data.dsol;
@@ -104,78 +37,45 @@ void TPZNLMat1d::Contribute(TPZMaterialData &data,
 	// TPZFMatrix<REAL> &dsolR=data.dsolr;
 	// REAL &faceSize=data.HSize;
 	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	TPZFMatrix<REAL> &axes=data.axes;
+	// TPZFMatrix<REAL> &axes=data.axes;
 	
+	// this method adds the contribution of the material to the stiffness
+	// matrix and right hand side
 	
-	//   //sol -> (u1,w1,u2,w2)
-	//   //dphi = 2/l => l0 = 2/dphi
-	//   //x21 = delta x = l cos theta
-	//   //z21 = delta y = l sen theta
-	//   //theta = arctg (axes (0,1) / axes (0,0) )
-	double theta = atan(axes (0,1) / axes (0,0) );
-	double l = 2./ dphi(0,0);
-	double x21 = l * cos(theta);
-	double z21 = l * sin(theta);
-	double u1,u2,w1,w2;
-	u1 = sol [0];
-	u2 = sol [2];
-	w1 = sol [1];
-	w2 = sol [3];
-	double u21 = u2 - u1;
-	double w21 = w2 - w1;
-	double alpha0 = l/2.;
+	// check on the validity of the arguments
 	
-	double eps = Eps(sol,axes,dphi);
-	double sigma = eps * fE;
-	
-	int i,j;
-	double fqi = 0.;
-	fqi += 2.*alpha0*fArea*sigma;
-	
-	//b1
-	TPZVec<REAL> b1 (4,0.), b2(4,0.), b(4,0.);
-	b1[0] = -x21;  b2[0] = -u21;
-	b1[1] =  x21;  b2[1] =  u21;
-	b1[2] = -z21;  b2[2] = -w21;
-	b1[3] =  z21;  b2[3] =  w21;
-	
-	double fac = (1. / 4.) / (alpha0 * alpha0);
-	for (i=0;i<4;i++)
-	{
-		b1[i] *= fac;
-		b2[i] *= fac;
-		b [i] = b1[i] + b2[i];
-		ef(i,0) = fqi * b[i] / l;
+	if(phi.Cols() != 1 || dphi.Rows() != 1 || phi.Rows() != dphi.Cols()){
+		PZError << "TPZMat1dLin.contr, inconsistent input data : phi.Cols() = "
+	    << phi.Cols() << " dphi.Cols + " << dphi.Cols() <<
+		" phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
+		dphi.Rows() << "\n";
 	}
 	
-	TPZFMatrix<REAL> Kt1(4,4,0.);
-	TPZFMatrix<REAL> Kt2(4,4,0.);
-	TPZFMatrix<REAL> Kts(4,4,0.);
-	
-	fac = 2. * fE * fArea * alpha0;
-	Kts(1,0) = -1.;
-	Kts(0,1) = -1.;
-	Kts(2,3) = -1.;
-	Kts(3,2) = -1.;
-	for (i=0;i<4;i++)
-	{
-		Kts(i,i) = 1.;
-		for (j=0;j<4;j++)
-		{
-			Kt1(i,j) = fac * b1[i] * b1[j];
-			Kt2(i,j) = fac * (b1[i] * b2[j] + b2[i] * b1[j] + b2[i] * b2[j]);
-			Kts(i,j) *= fArea * sigma / (2. * alpha0);
-			ek(i,j) = ( Kt1(i,j) + Kt2(i,j) + Kts(i,j) ) / l;
+	if(fForcingFunction) {
+		TPZManVector<REAL> xfloat(fXf.Rows());
+		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
+		int i;
+		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
+	}
+	int r = fXk.Rows();
+	int c = fXk.Cols();
+	TPZFMatrix<REAL> submat(r,c);
+	for(int in=0 ; in < phi.Rows() ; ++in){
+		ef.AddSub(in*r, 0, (fXf*(phi(in,0)*weight)));
+		for(int jn=0 ; jn<phi.Rows() ; ++jn){
+			submat =  fXb*(phi(in,0)*phi(jn,0)*weight);
+			submat += fXk*(dphi(0,in)*dphi(0,jn)*weight);
+			submat += fXc*(phi(in,0)*dphi(0,jn)*weight);
+			ek.AddSub(in*r,jn*c,submat);
 		}
 	}
 }
 
-void TPZNLMat1d::ContributeBC(TPZMaterialData &data,
-							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
-							  TPZBndCond &bc)
-{
+void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
+                               REAL weight,
+                               TPZFMatrix<REAL> &ek,
+                               TPZFMatrix<REAL> &ef,
+                               TPZBndCond &bc){
 	// TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
 	// TPZFMatrix<REAL> &dphiR = data.dphixr;
@@ -197,101 +97,132 @@ void TPZNLMat1d::ContributeBC(TPZMaterialData &data,
 	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	// TPZFMatrix<REAL> &axes=data.axes;
 	
-	int phr = phi.Rows();
-	short in,jn;
-	REAL v2[1];
-	v2[0] = bc.Val2()(0,0);
+	//void TPZMat1dLin::ContributeBc(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*sol*/, TElementMatrix &ek, TElementMatrix &ef, TPZBndCond &bc, int nod) {
 	
-	switch (bc.Type()) {
-		case 0 :      // Dirichlet condition
-			for(in = 0 ; in < phr; in++) {
-				ef(in,0) += gBigNumber * v2[0] * phi(in,0) * weight;
-				for (jn = 0 ; jn < phr; jn++) {
-					ek(in,jn) += gBigNumber * phi(in,0) * phi(jn,0) * weight;
+	// this method applies the boundary condition itype to ek and ef
+	
+	if(bc.Material().operator ->() != this){
+		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
+	}
+	
+	if(bc.Type() < 0 && bc.Type() > 2){
+		PZError << "TPZMat1dLin.aplybc, unknown boundary condition type :"  <<
+		bc.Type() << " boundary condition ignored\n";
+	}
+	int bcv1r,bcv1c,bcv2r,bcv2c;
+	int r = fXk.Rows();
+	int numnod = ek.Rows()/r;
+	//	ekrsub = ek.mat->rowsub(0,0);
+	bcv1r = bc.Val1().Rows();
+	bcv1c = bc.Val1().Cols();
+	bcv2r = bc.Val2().Rows();
+	bcv2c = bc.Val1().Cols();
+	if( bcv1r != r ||
+	   bcv1c != r ||
+	   bcv2r != r ||
+	   bcv2c != 1 ) {
+		PZError << "TPZMat1dLin.aplybc, incompatible number of degrees of " <<
+		"freedom, \n"
+		" val1.Rows =" << bc.Val1().Rows() << " xk.Rows = " << fXk.Rows() << "\n"
+		" val2.Cols() = " << bc.Val2().Cols() << " val2.Rows() = " << bc.Val2().Rows() << "\n"
+		" val1.Cols() = " << bc.Val1().Cols() << "\n";
+		//		pzerror.show();
+	}
+	
+	int idf,jdf,in,jn;
+	switch(bc.Type()){
+			
+		case 0:
+			for(in=0 ; in<numnod ; ++in){
+				for(idf = 0;idf<r;idf++) {
+					(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*bc.Val2()(idf,0)*weight;
+				}
+				for(jn=0 ; jn<numnod ; ++jn) {
+					for(idf = 0;idf<r;idf++) {
+						ek(in*r+idf,jn*r+idf) += gBigNumber*phi(in,0)*phi(jn,0)*weight;
+					}
 				}
 			}
 			break;
-		case 1 :      // Neumann condition
-			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(in,0) += v2[0] * phi(in,0) * weight;
+			
+		case 1:
+			for(in=0 ; in<numnod ; ++in){
+				for(idf = 0;idf<r;idf++) {
+					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+				}
 			}
 			break;
-		default :
-			PZError << __PRETTY_FUNCTION__ << " boundary condition type not implemented\n";
+			
+		case 2:
+			for(in=0 ; in<numnod ; ++in){
+				for(idf = 0;idf<r;idf++) {
+					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+				}
+				for(jn=0 ; jn<numnod ; ++jn) {
+					for(idf = 0;idf<r;idf++) {
+						for(jdf = 0;jdf<r;jdf++) {
+							ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+						}
+					}
+				}
+			}
+			break;
+			
 	}
-	
+	//	pzerror.show();
 }
 
+void TPZMat1dLin::Print(std::ostream & out){
+	
+	out << "Material type TPZMat1dLin -- number = " << Id() << "\n";
+	out << "Matrix xk ->  "; fXk.Print("fXk",out);
+	out << "Matrix xc ->  "; fXc.Print("fXc",out);
+	out << "Matrix xb ->  "; fXb.Print("fXb",out);
+	out << "Matrix xf ->  "; fXf.Print("fXf",out);
+}
 
-void TPZNLMat1d::Contribute(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix<REAL> &ef)
-{
-	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
-	// TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-    int numbersol = data.sol.size();
-    if (numbersol != 1) {
-        DebugStop();
-    }
-	TPZVec<REAL> &sol=data.sol[0];
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	TPZFMatrix<REAL> &axes=data.axes;
+void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*u*/, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &fl) {
 	
+	int row = NStateVariables();
+	for(int i=0; i<row; i++){
+		fl[i]  = 0.;
+		for(int j=0; j<row; j++) {
+			fl[i] += -fXk(i,j)*dudx(0,j);
+		}
+	}
+}
+
+void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &flux,
+						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
 	
-	//   //sol -> (u1,w1,u2,w2)
-	//   //dphi = 2/l => l0 = 2/dphi
-	//   //x21 = delta x = l cos theta
-	//   //z21 = delta y = l sen theta
-	//   //theta = arctg (axes (0,1) / axes (0,0) )
-	double theta = atan(axes (0,1) / axes (0,0) );
-	double l = 2./ dphi(0,0);
-	double x21 = l * cos(theta);
-	double z21 = l * sin(theta);
-	double u1,u2,w1,w2;
-	u1 = sol [0];
-	u2 = sol [2];
-	w1 = sol [1];
-	w2 = sol [3];
-	double u21 = u2 - u1;
-	double w21 = w2 - w1;
-	double alpha0 = l/2.;
+	TPZVec<REAL> udif(u);
+	int nelem= udif.NElements(),i;
+	for(i=0; i<nelem; i++) udif[i] -= u_exact[i];
+	TPZFMatrix<REAL> dudif(dudx);
 	
-	double eps = Eps(sol,axes,dphi);
-	double sigma = eps * fE;
+	int r = NStateVariables();
+	TPZVec<REAL> flux_el( r );
+	short idf;
+	for(idf=0; idf<r; idf++) {
+		dudif(0,idf) -= du_exact(0,idf);
+	}
 	
-	int i;
-	double fqi = 0.;
-	fqi += 2.*alpha0*fArea*sigma;
+	values.Fill(0.);  //misael
 	
-	//b1
-	TPZVec<REAL> b1 (4,0.), b2(4,0.), b(4,0.);
-	b1[0] = -x21;  b2[0] = -u21;
-	b1[1] =  x21;  b2[1] =  u21;
-	b1[2] = -z21;  b2[2] = -w21;
-	b1[3] =  z21;  b2[3] =  w21;
+	for (idf=0; idf<r; idf++) {
+		values[1] += udif[idf]*udif[idf];
+		for (short jdf=0; jdf<r; jdf++) {
+			values[0] += dudif(0,idf)*fXk(idf,jdf)*dudif(0,jdf) + udif[idf]*fXb(idf,jdf)*udif[jdf];
+			flux_el[idf] -= fXk(idf,jdf)*dudx(0,jdf);
+		}
+	}
 	
-	double fac = (1. / 4.) / (alpha0 * alpha0);
-	for (i=0;i<4;i++)
-	{
-		b1[i] *= fac;
-		b2[i] *= fac;
-		b [i] = b1[i] + b2[i];
-		ef(i,0) = fqi * b[i] / l;
+	for (idf=0; idf<r; idf++) {
+		REAL dif = flux[idf]-flux_el[idf];
+		if(fabs(fXk(idf,idf)) >= 1.e-10)
+		{ //Erico cout<<endl<<fXk(idf,idf)<<endl;
+			values[2] += dif*dif/sqrt(fabs( fXk(idf,idf) ));
+		}
 	}
 }
 
