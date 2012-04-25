@@ -1086,7 +1086,17 @@ void MaterialPointTests()
 
 int main()
 {
-//   InitializeLOG();
+    
+    
+    InitializeLOG();
+    TPZLadeKim LK;
+    LK.PlainConcrete(LK);
+    TPZDruckerPrager DP;
+    DP.PlainConcreteMPa(DP);
+    REAL dirMult = 10.;
+    MultiDirectionsMaterialPointTest(DP,dirMult);
+    
+    
 //    TPZPlasticTest::DruckerTest();
 //    LadeKimTriaxialLooseSand();
  //   LKIsotropicCompression();
@@ -1108,11 +1118,7 @@ int main()
   //  mesh = BrazilianTestGeoMesh::MalhaPredio();
 //    mesh = MalhaPredio();
 /*    
-    TPZLadeKim LK;
-    LK.PlainConcrete(LK);
-    TPZDruckerPrager DP;
-    DP.PlainConcreteMPa(DP);
-    REAL dirMult = 10.;
+
     MultiDirectionsMaterialPointTest(DP,dirMult);
    // TPZPlasticTest::PlasticIntegratorCheck(20, DP);
     cout << "\nRuning finished " << endl;
@@ -1152,6 +1158,7 @@ int main()
   //   DruckerIsotropicCompression();
    // LKBiaxialTest();
    
+ /*   
     cout << "\nPlease enter test type:";
     cout << "\n0 Material Point test ";
     cout << "\n1 Finite Elements test ";
@@ -1200,7 +1207,7 @@ int main()
             cout << "\n";
             
             
-            matNumber=9;//cin >> matNumber;
+            matNumber=6;//cin >> matNumber;
             
             switch(matNumber)
             {
@@ -1334,7 +1341,7 @@ int main()
             break;
         }
     }
-    
+    */
     
     return EXIT_SUCCESS;
     
