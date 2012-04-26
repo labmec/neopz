@@ -87,7 +87,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	
 	// Related to boundary conditions
 	//	REAL uN=1-cosh(1.)/sinh(1.);
-	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.0);
 	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
@@ -183,7 +183,7 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int>
 	
 	// Related to boundary conditions
 	//	REAL uN=1-cosh(1.)/sinh(1.);
-	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.);
 	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);

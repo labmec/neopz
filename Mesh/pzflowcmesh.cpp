@@ -24,6 +24,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	
 	int nel = ElementVec().NElements(), i, nstate, dim, elDim;
 	TPZManVector<REAL> density(1), sol, velocity(1);// sol(nstate);
+	//TPZManVector<STATE> density(1), sol, velocity(1);// sol(nstate);
 	REAL maxvel = 0.0, veloc, sound, press, gamma;
 	TPZVec<REAL> param(3,0.);
 	
@@ -269,7 +270,8 @@ void TPZFlowCompMesh::ExpandSolution2()
 			int position = fSolutionBlock.Position(ibl);
 			int lastStatePos = position + size - nstate;
 			int ieq;
-			REAL temp;
+			//REAL temp;
+			STATE temp;
 			for(ieq=0; ieq<nstate; ieq++) {
 				temp = fSolution(position+ieq,ic);
 				fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);
@@ -286,7 +288,8 @@ void TPZFlowCompMesh::ExpandSolution2()
 			int position = fSolutionBlock.Position(ibl);
 			int lastStatePos = position + size - nstate;
 			int ieq;
-			REAL temp;
+			//REAL temp;
+			STATE temp;
 			for(ieq=0; ieq<nstate; ieq++) {
 				temp = fSolution(position+ieq,ic);
 				fSolution(position+ieq,ic) = fSolution(lastStatePos+ieq,ic);

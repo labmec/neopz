@@ -324,7 +324,8 @@ void TPZCompMesh::ExpandSolution() {
 	fBlock.Resequence();
 	int ibl,nblocks = fBlock.NBlocks();
 	
-	TPZFMatrix<REAL> OldSolution(fSolution);
+	//TPZFMatrix<REAL> OldSolution(fSolution);
+	TPZFMatrix<STATE> OldSolution(fSolution);
 	
 	int cols = fSolution.Cols();
 	fSolution.Redim(fBlock.Dim(),cols);
@@ -684,8 +685,10 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 
 void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer) {
 	
-	TPZBlock<REAL> &localblock = Block();
-	TPZBlock<REAL> &coarseblock = coarsemesh.Block();
+	//TPZBlock<REAL> &localblock = Block();
+	TPZBlock<STATE> &localblock = Block();
+	//TPZBlock<REAL> &coarseblock = coarsemesh.Block();
+	TPZBlock<STATE> &coarseblock = coarsemesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int i, nmat = NMaterials();
@@ -740,8 +743,10 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
 void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 										  TPZTransfer &transfer) {
 	
-	TPZBlock<REAL> &localblock = Block();
-	TPZBlock<REAL> &transferblock = transfermesh.Block();
+	//TPZBlock<REAL> &localblock = Block();
+	TPZBlock<STATE> &localblock = Block();
+	//TPZBlock<REAL> &transferblock = transfermesh.Block();
+	TPZBlock<STATE> &transferblock = transfermesh.Block();
 	// adapt the block size of the blocks, dividing by the number of variables
 	//  of the material
 	int i, nmat = NMaterials();
@@ -1113,7 +1118,8 @@ void TPZCompMesh::Permute(TPZVec<int> &permute) {
 	for (i = 0; i < permutenel; i++) fBlock.Set(permute[i],fSolutionBlock.Size(i));
 	fBlock.Resequence();
 	if (fSolution.Rows() != 0) {
-		TPZFMatrix<REAL>	newsol(fSolution);
+		//TPZFMatrix<REAL>	newsol(fSolution);
+		TPZFMatrix<STATE> newsol(fSolution);
 		for (i=0;i<fBlock.NBlocks();i++) {
 			int oldpos = fSolutionBlock.Position(i);
 			int newpos;
@@ -2131,7 +2137,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		double jumpNorm = 0.;
         for (int is=0; is<numbersol; is++) {
             for(int ij = 0; ij < facejump.NElements(); ij++){
-                jumpNorm += facejump[is][ij]*facejump[is][ij];
+                (STATE)jumpNorm += facejump[is][ij]*facejump[is][ij];
             }
         }
 		jumpNorm = sqrt(jumpNorm);
@@ -2146,6 +2152,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		if (!disc) continue;
 		if(disc->Reference()->Dimension() != dim) continue;
 		const REAL celJumpError = celJumps[i];
+		//const STATE celJumpError = celJumps[i];
 		if (celJumpError < eps){
 			int index;
 			this->Discontinuous2Continuous(i, index);

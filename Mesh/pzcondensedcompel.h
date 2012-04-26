@@ -17,7 +17,8 @@
 class TPZCondensedCompEl : public TPZCompEl
 {
 
-    TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+    //TPZMatRed<REAL, TPZFMatrix<REAL> > fCondensed;
+	TPZMatRed<STATE, TPZFMatrix<STATE> > fCondensed;
     TPZCompEl *fReferenceCompEl;
     TPZManVector<int,27> fIndexes; 
     

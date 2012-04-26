@@ -942,11 +942,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
 		//const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
-		
-		
-    
-	TPZBlock<REAL> &block =this->Mesh()->Block();
-    TPZFMatrix<REAL> &MeshSol = this->Mesh()->Solution();
+			
+	//TPZBlock<REAL> &block =this->Mesh()->Block();
+	TPZBlock<STATE> &block =this->Mesh()->Block();
+    //TPZFMatrix<REAL> &MeshSol = this->Mesh()->Solution();
+	TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     
 		int nsol= this->Dimension()+2;

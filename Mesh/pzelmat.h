@@ -33,17 +33,21 @@ struct TPZElementMatrix {
 	TPZCompMesh * fMesh;
 	
 	/** @brief Vector of pointers to TPZConnect objects*/
-	TPZStack<int>	fConnect;
+	TPZStack<int> fConnect;
 	/** @brief Pointer to a blocked matrix object*/
-	TPZFNMatrix<1000>	fMat;
+	//TPZFNMatrix<1000> fMat;
+	TPZFNMatrix<1000, STATE> fMat;
 	/** @brief Block structure associated with fMat*/
-	TPZBlock<REAL>	       fBlock;
+	//TPZBlock<REAL> fBlock;
+	TPZBlock<STATE> fBlock;
 	/** @brief Vector of all nodes connected to the element*/
-	TPZStack<int>	fConstrConnect;
+	TPZStack<int> fConstrConnect;
 	/** @brief Pointer to the constrained matrix object*/
-	TPZFNMatrix<1000>		fConstrMat;
+	//TPZFNMatrix<1000> fConstrMat;
+	TPZFNMatrix<1000, STATE> fConstrMat;
 	/** @brief Block structure associated with fConstrMat*/
-	TPZBlock<REAL>		fConstrBlock;
+	//TPZBlock<REAL> fConstrBlock;
+	TPZBlock<STATE> fConstrBlock;
 	
 	TPZManVector<int> fDestinationIndex, fSourceIndex;
 	

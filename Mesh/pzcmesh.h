@@ -91,16 +91,19 @@ protected:
 	/**
 	 * @brief Block structure of the solution vector ????
 	 */
-	TPZBlock<REAL>		fSolutionBlock;
+	//TPZBlock<REAL>		fSolutionBlock;
+	TPZBlock<STATE>		fSolutionBlock;
 	
 	/** @brief Solution vector*/
-	TPZFMatrix<REAL>	fSolution;
+	//TPZFMatrix<REAL>	fSolution;
+	TPZFMatrix<STATE>	fSolution;
 	
 	/**
 	 * @brief Block structure to right construction of the
 	 * stiffness matrix and load vector
 	 */
-	TPZBlock<REAL>		fBlock;
+	//TPZBlock<REAL>		fBlock;
+	TPZBlock<STATE>		fBlock;
 	
 	/**
 	 * @brief Solution vectors organized by element
@@ -249,17 +252,20 @@ public:
 	/**
 	 * @brief Access the block structure of the solution vector
 	 */
-	const TPZBlock<REAL> &Block() const { return fBlock;}
+	//const TPZBlock<REAL> &Block() const { return fBlock;}
+	const TPZBlock<STATE> &Block() const { return fBlock;}
 	
 	/**
 	 * @brief Access the block structure of the solution vector
 	 */
-	TPZBlock<REAL> &Block() { return fBlock;}
+	//TPZBlock<REAL> &Block() { return fBlock;}
+	TPZBlock<STATE> &Block() { return fBlock;}
 	
 	/**
 	 * @brief Access the solution vector
 	 */
-	TPZFMatrix<REAL> &Solution(){ return fSolution;}
+	//TPZFMatrix<REAL> &Solution(){ return fSolution;}
+	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
 	/**
 	 * @brief Access method for the element solution vectors

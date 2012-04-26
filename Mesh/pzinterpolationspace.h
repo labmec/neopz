@@ -107,6 +107,7 @@ public:
 	 * It is not a cheap method because it computes solution for
 	 * all integration points ( with intrule.MaxOrder() )
 	 */
+	
 	void MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
@@ -172,7 +173,7 @@ public:
 	virtual void Integrate(int variable, TPZVec<REAL> & value);
 	
 	/** @brief Integrate the solution over the element */
-	virtual void IntegrateSolution(TPZVec<REAL> & value);
+	virtual void IntegrateSolution(TPZVec<STATE> & value);
 	
 	/**
 	 * @brief Will project the flux associated with the variational statement onto the finite element interpolation space

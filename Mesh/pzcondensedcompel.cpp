@@ -193,9 +193,11 @@ void TPZCondensedCompEl::Resequence()
     for (int i=0; i<notcondensed.size(); ++i) {
         fIndexes[i+ncond] = notcondensed[i];
     }
-    TPZAutoPointer<TPZMatrix<REAL> > k00 = new TPZFMatrix<REAL>(nint,nint,0.);
-    TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(k00);
-    step->SetDirect(ECholesky);
+    //TPZAutoPointer<TPZMatrix<REAL> > k00 = new TPZFMatrix<REAL>(nint,nint,0.);
+	TPZAutoPointer<TPZMatrix<STATE> > k00 = new TPZFMatrix<STATE>(nint, nint, 0.);
+    //TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(k00);
+    TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(k00);
+	step->SetDirect(ECholesky);
     fCondensed.SetSolver(step);
     fCondensed.Redim(nint+next,nint);
 }
@@ -219,8 +221,10 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 //    fCondensed = ek.fMat;
     fCondensed.SetF(ef.fMat);
-    const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
-    const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
+    //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
+	const TPZFMatrix<STATE> &k11 = fCondensed.K11Red();
+    //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
+	const TPZFMatrix<STATE> &f1 = fCondensed.F1Red();
     int dim0 = dim-k11.Rows();
     for (int i=dim0; i<dim; i++) {
         ef.fMat(i,0) = f1.GetVal(i-dim0,0);
@@ -240,7 +244,8 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     fReferenceCompEl->CalcResidual(ef);
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
-    const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
+    //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
+	const TPZFMatrix<STATE> &f1 = fCondensed.F1Red();
     int dim1 = f1.Rows();
     int dim = ef.fMat.Rows();
     int dim0 = dim-dim1;
@@ -294,10 +299,13 @@ void TPZCondensedCompEl::LoadSolution()
             nc1++;
         }
     }
-    TPZBlock<REAL> &bl = Mesh()->Block();
+    //TPZBlock<REAL> &bl = Mesh()->Block();
+	TPZBlock<STATE> &bl = Mesh()->Block();
     int count = 0;
-    TPZFMatrix<REAL> u1(dim1,1,0.);
-    TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
+    //TPZFMatrix<REAL> u1(dim1,1,0.);
+	TPZFMatrix<STATE> u1(dim1,1,0.);
+    //TPZFMatrix<REAL> elsol(dim0+dim1,1,0.);
+	TPZFMatrix<STATE> elsol(dim0+dim1,1,0.);
     for (ic=nc0; ic<nc ; ic++) {
         TPZConnect &c = Connect(ic);
         int seqnum = c.SequenceNumber();

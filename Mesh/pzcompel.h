@@ -497,7 +497,7 @@ public:
 	 * @param connectlist stack list to calculates the diagonal block
 	 * @param block object to receive the diagonal block
 	 */
-	virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<REAL> & block);
+	virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<STATE> & block);
 	
 	REAL MaximumRadiusOfEl();
 	

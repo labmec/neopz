@@ -25,8 +25,8 @@ class TPZTransfer : public TPZMatrix<REAL> {
     TPZTransfer();
 	
 	/** @brief The sparse matrix blocks are defined by row, col */
-	TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
-	
+	//TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
+	TPZTransfer(TPZBlock<STATE> &row, TPZBlock<STATE> &col,int nvar, int nrowblocks, int ncolblocks);
 	TPZTransfer(const TPZTransfer &cp) : TPZMatrix<REAL>(cp),
 	fNStateVar(cp.fNStateVar), fRowBlock(cp.fRowBlock),
 	fColBlock(cp.fColBlock),fColPosition(cp.fColPosition),
@@ -55,7 +55,8 @@ class TPZTransfer : public TPZMatrix<REAL> {
 	 * @param ncolblocks number of columns of the block
      * @note the stride of the matrix will be initialized by nvar
 	 */
-	void SetBlocks(TPZBlock<REAL> &row, TPZBlock<REAL> &col, int nvar, int nrowblocks, int ncolblocks);
+	//void SetBlocks(TPZBlock<REAL> &row, TPZBlock<REAL> &col, int nvar, int nrowblocks, int ncolblocks);
+	void SetBlocks(TPZBlock<STATE> &row, TPZBlock<STATE> &col, int nvar, int nrowblocks, int ncolblocks);
 	
 	/** @brief Returns 1 if the row is defined (i.e. has column entries)*/
 	int HasRowDefinition(int row);
@@ -101,9 +102,11 @@ private:
 	/** @brief Number of variables associated with each shape function*/
 	int fNStateVar;
 	/** @brief Block sizes of the rows*/
-	TPZBlock<REAL> fRowBlock;
+	//TPZBlock<REAL> fRowBlock;
+	TPZBlock<STATE> fRowBlock;
 	/** @brief Block sizes of the columns*/
-	TPZBlock<REAL> fColBlock;
+	//TPZBlock<REAL> fColBlock;
+	TPZBlock<STATE> fColBlock;
 	/** @brief Vector indicating the starting column block for each row*/
 	TPZVec<int> fColPosition;
 	/** @brief Vector indicating the number of column blocks associated with each row*/

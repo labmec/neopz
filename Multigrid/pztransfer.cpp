@@ -13,7 +13,8 @@ fNStateVar(0),fRowBlock(),fColBlock(),fColPosition(0),fNumberofColumnBlocks(0),f
 fColumnBlockNumber(0),fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUsed(0) {
 }
 
-TPZTransfer::TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks) :
+//TPZTransfer::TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks) :
+TPZTransfer::TPZTransfer(TPZBlock<STATE> &row, TPZBlock<STATE> &col,int nvar, int nrowblocks, int ncolblocks) :
 // the sparse matrix blocks are defined by row, col
 TPZMatrix<REAL>(), fNStateVar(nvar), fRowBlock(), fColBlock(),
 fColPosition(), fNumberofColumnBlocks(),
@@ -74,7 +75,8 @@ void TPZTransfer::Print(const char *name,ostream &out,const MatrixOutputFormat f
 	}
 }
 
-void TPZTransfer::SetBlocks(TPZBlock<REAL> &row,TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks){
+//void TPZTransfer::SetBlocks(TPZBlock<REAL> &row,TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks){
+void TPZTransfer::SetBlocks(TPZBlock<STATE> &row,TPZBlock<STATE> &col,int nvar, int nrowblocks, int ncolblocks){
 	// this operation will reset the matrix to zero
 	// with no rows defined
 	fRowBlock = row;

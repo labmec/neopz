@@ -155,9 +155,9 @@ protected:
 public:
     
     /** @brief Computes the value of the flux function to be used by ZZ error estimator */
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol,
-                      TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes,
-                      TPZVec<REAL> &flux) {}
+    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol,
+                      TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes,
+                      TPZVec<STATE> &flux) {}
     
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
     virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<STATE> &val1,
@@ -299,7 +299,7 @@ public:
 	 * @brief Computes the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
                         TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
                         TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,
                         TPZVec<REAL> &val) {

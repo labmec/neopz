@@ -58,7 +58,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompel"));
 static LoggerPtr loggerSide(Logger::getLogger("pz.mesh.tpzcompelside"));
 #endif
 
-void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<REAL> & blockdiag) {
+void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<STATE> & blockdiag) {
 	TPZElementMatrix ek(this->Mesh(), TPZElementMatrix::EK),ef(this->Mesh(), TPZElementMatrix::EF);
 	int b;
 	CalcStiff(ek,ef);
@@ -67,17 +67,23 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<R
 		ef.ApplyConstraints();
 		int numblock = ek.fConstrConnect.NElements();
 		TPZVec<int> blocksize(numblock);
+		
 		for(b=0; b<numblock; b++) blocksize[b] = ek.fConstrBlock.Size(b);
+		
 		blockdiag.Initialize(blocksize);
 		connectlist = ek.fConstrConnect;
+		
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
 			int conind = ek.fConstrConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
-			TPZFMatrix<REAL> ekbl(blsize,blsize);
+			//TPZFMatrix<REAL> ekbl(blsize,blsize);
+			TPZFMatrix<STATE> ekbl(blsize,blsize);
 			int r,c;
-			TPZBlock<REAL> &mbl = ek.fConstrBlock;
+			//TPZBlock<REAL> &mbl = ek.fConstrBlock;
+			TPZBlock<STATE> &mbl = ek.fConstrBlock;
+			
 			for(r=0; r<blsize; r++) {
 				for(c=0; c<blsize; c++) {
 					ekbl(r,c) = (mbl)(b,b,r,c);
@@ -88,19 +94,26 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<R
 	} else {
 		int numblock = ek.fConnect.NElements();
 		TPZVec<int> blocksize(numblock);
+		
 		for(b=0; b<numblock; b++) blocksize[b] = ek.fBlock.Size(b);
+		
 		blockdiag.Initialize(blocksize);
 		connectlist = ek.fConnect;
+		
 		for(b=0; b<numblock; b++) {
 			int blsize = blocksize[b];
-			TPZFMatrix<REAL> ekbl(blsize,blsize);
+			//TPZFMatrix<REAL> ekbl(blsize,blsize);
+			TPZFMatrix<STATE> ekbl(blsize,blsize);
 			int conind = ek.fConnect[b];
             TPZConnect &con = Mesh()->ConnectVec()[conind];
 			if(con.HasDependency() || con.IsCondensed()) continue;
-			int r,c;
-			TPZBlock<REAL> &mbl = ek.fBlock;
+			int r, c;
+			//TPZBlock<REAL> &mbl = ek.fBlock;
+			TPZBlock<STATE> &mbl = ek.fBlock;
+
 			for(r=0; r<blsize; r++) {
 				for(c=0; c<blsize; c++) {
+					//ekbl(r,c) = (mbl)(b,b,r,c);
 					ekbl(r,c) = (mbl)(b,b,r,c);
 				}
 			}
@@ -221,8 +234,10 @@ void TPZCompEl::LoadSolution() {
 		return;
 	}
 	//int numstate = mat->NStateVariables(); 
-	TPZBlock<REAL> &block = Mesh()->Block();
-	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
+	//TPZBlock<REAL> &block = Mesh()->Block();
+	TPZBlock<STATE> &block = Mesh()->Block();
+	//TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
+	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
 	int maxdep = 0;
 	int in;
 	int iv,jv,idf;
@@ -349,7 +364,8 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s)
 		LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which has unknown variable index");
 		return;
 	}
-	TPZManVector<REAL> sol(numvar);
+	//TPZManVector<REAL> sol(numvar);
+	TPZManVector<STATE> sol(numvar);
 	sol.Fill(0.);
 	Solution(point,varindex,sol);
 	for(int i=0; i<sol.NElements(); i++) {
@@ -419,7 +435,7 @@ void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &va
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
+void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
 	if(var >= 100) {
 		int ind = Index();
 		if(fMesh->ElementSolution().Cols() > var-100) {

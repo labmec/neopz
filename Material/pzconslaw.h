@@ -195,7 +195,7 @@ public:
 	/** @brief Contributes to the residual vector and tangent matrix the volume-based quantities. */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -206,7 +206,7 @@ public:
 	/** @brief Contributes to the residual vector and tangent matrix the face-based quantities. */
 	virtual void ContributeInterface(TPZMaterialData &data,TPZMaterialData &dataleft,TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<REAL> &ef)
+									 TPZFMatrix<STATE> &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
@@ -218,7 +218,7 @@ public:
 	/** @brief Contributes to the residual vector the boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);

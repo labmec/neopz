@@ -23,9 +23,9 @@
 /// Represent the state variables of a finite element approximation
 typedef TPZManVector<STATE, 10> TPZFemSol;
 /// Represents the gradient of a state variable of a finite element approximation
-typedef TPZFNMatrix<30,STATE> TPZFemGradSol;
-typedef TPZVec<TPZFemSol > TPZSolVec;
-typedef TPZVec<TPZFemGradSol > TPZGradSolVec;
+typedef TPZFNMatrix<30, STATE> TPZFemGradSol;
+typedef TPZVec<TPZFemSol> TPZSolVec;
+typedef TPZVec<TPZFemGradSol> TPZGradSolVec;
 
 
 class TPZMaterialData : public TPZSaveable {

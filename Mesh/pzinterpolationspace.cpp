@@ -299,7 +299,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		weight *= fabs(data.detjac);
 		data.intPtIndex = int_ind;
 		this->ComputeRequiredData(data, intpoint);
-		material->Contribute(data,weight,ek.fMat,ef.fMat);
+		material->Contribute(data, weight, ek.fMat, ef.fMat);
 	}//loop over integratin points
 	
 }//CalcStiff
@@ -469,8 +469,10 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		return ;
 	}
 	
-	TPZFMatrix<REAL> loclocmat(locmatsize,locmatsize,0.);
-	TPZFMatrix<REAL> projectmat(locmatsize,nvar,0.);
+	//TPZFMatrix<REAL> loclocmat(locmatsize,locmatsize,0.);
+	TPZFMatrix<STATE> loclocmat(locmatsize,locmatsize,0.);
+	//TPZFMatrix<REAL> projectmat(locmatsize,nvar,0.);
+	TPZFMatrix<STATE> projectmat(locmatsize,nvar,0.);
 	
 	TPZManVector<int,3> prevorder(dimension);
 	TPZAutoPointer<TPZIntPoints> intrule = GetIntegrationRule().Clone();
@@ -498,9 +500,11 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	TPZFNMatrix<9> axes(3,3,0.), coarseaxes(3,3,0.);
 	REAL zero = 0.;
 	TPZManVector<REAL,3> x(3,zero);
-	TPZManVector<TPZManVector<REAL,10>, 10> u(1);
+	//TPZManVector<TPZManVector<REAL,10>, 10> u(1);
+	TPZManVector<TPZManVector<STATE, 10>, 10> u(1);
     u[0].resize(nvar);
-	TPZManVector<TPZFNMatrix<30>, 10> du(1);
+	//TPZManVector<TPZFNMatrix<30>, 10> du(1);
+	TPZManVector<TPZFNMatrix<30, STATE>, 10> du(1);
     du[0].Redim(dimension,nvar);
 	
 	int numintpoints = intrule->NPoints();
@@ -530,14 +534,14 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
-	TPZBlock<REAL> &fineblock = Mesh()->Block();
+	TPZBlock<STATE> &fineblock = Mesh()->Block();
 	int iv=0,in;
 	for(in=0; in<locnod; in++) {
 		df = &Connect(in);
 		int dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+			(STATE)fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}
@@ -1049,21 +1053,22 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
 	int npoints = intrule.NPoints(), ip, iv;
+	TPZManVector<REAL> sol(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule.Point(ip,intpoint,weight);
-		data.sol.Fill(0.);
-		this->Solution(intpoint, variable, data.sol[0]);
+		sol.Fill(0.);
+		this->Solution(intpoint, variable, sol);
 		//Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
 		//       It means that the next call would not be necessary if I wrote the whole code here.
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++){
-			value[iv] += data.sol[0][iv]*weight;
+			value[iv] += sol[iv]*weight;
 		}//for iv
 	}//for ip
 }//method
 
-void TPZInterpolationSpace::IntegrateSolution(TPZVec<REAL> & value){
+void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
 	TPZAutoPointer<TPZMaterial> material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
@@ -1085,6 +1090,7 @@ void TPZInterpolationSpace::IntegrateSolution(TPZVec<REAL> & value){
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
 	int npoints = intrule.NPoints(), ip, iv;
+	
 	for(ip=0;ip<npoints;ip++){
 		intrule.Point(ip,intpoint,weight);
 		data.sol.Fill(0.);
@@ -1132,7 +1138,8 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 	TPZMaterialData data;
 	this->InitMaterialData(data);
 	
-	TPZManVector<REAL> flux(num_flux,1);
+	//TPZManVector<REAL> flux(num_flux,1);
+	TPZManVector<STATE> flux(num_flux,1);
 	TPZManVector<REAL,3> intpoint(dim);
 	REAL weight = 0.;
 	for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
@@ -1162,7 +1169,10 @@ void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
 	TPZCompEl::Write(buf,withclassid);
 	buf.Write(&fPreferredOrder,1);
 }
+
+
 void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max){
+#ifndef STATE_COMPLEX
 	
 	const int dim = Dimension();
 	TPZManVector<REAL,3> intpoint(dim,0.);
@@ -1174,8 +1184,8 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
 	TPZManVector<int,3> maxorder(dim,intrule->GetMaxOrder());
 	intrule->SetOrder(maxorder);
 	
-	TPZManVector<TPZManVector<REAL,10>, 10> sol;
-	TPZManVector<TPZFNMatrix<30>, 10> dsol;
+	TPZManVector<TPZManVector<STATE,10>, 10> sol;
+	TPZManVector<TPZFNMatrix<30,STATE>, 10> dsol;
 	TPZFNMatrix<9> axes(3,3,0.);
 	REAL weight;
 	
@@ -1195,8 +1205,13 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
 	}//loop over integratin points
 	
 	intrule->SetOrder(prevorder);
+#else
+	DebugStop();
+#endif
 	
 }//void
+
+
 void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
