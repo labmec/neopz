@@ -34,6 +34,9 @@ public:
 	/** @brief Generate an output of all geomesh to VTK */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
 	
+	/** @brief Generate an output of all geometric elements that have a computational counterpart to VTK */
+	static void PrintCMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, bool matColor = false);
+	
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, std::ofstream &file, TPZVec<int> &elData);
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data (int), creates a file with filename given */

@@ -45,6 +45,7 @@ template <class TGeo> class TPZGeoElRefPattern;
  * Various methods are defined to add, delete or loop over the items which are contained within the TPZGeoMesh. \n
  * Other auxiliary data structures help in the construction of the mesh
  */
+
 class  TPZGeoMesh : public TPZSaveable {
 	
 	/** @brief TPZGeoMesh name for model identification */

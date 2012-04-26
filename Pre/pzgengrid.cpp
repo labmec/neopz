@@ -47,6 +47,10 @@ short TPZGenGrid::Read(TPZGeoMesh *grid) {
     return 0;
 }
 short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
+    if(!grid)
+    {
+        DebugStop();
+    }
 	if(!GenerateNodes(grid.operator->()))
 		return 1;
     if(!GenerateElements(grid.operator->()))
@@ -74,6 +78,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	
 	int i,j,k,nnodestomerge = gridtomerge->NNodes();
 	int nnodesinitial = gridinitial->NNodes();
+    int nneltomerge = gridtomerge->NElements();
 	TPZVec<REAL> coordinitial(3,0.);
 	TPZVec<REAL> coordtomerge(3,0.);
 	TPZGeoNode *nodetomerge;
@@ -128,7 +133,8 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	}
 	
 	// creating new element into gridinitial corresponding for each element in gridtomerge
-	for(i=0;i<gridtomerge->NElements();i++) {
+    int nelmerge = gridtomerge->NElements();
+	for(i=0; i< nelmerge; i++) {
 		gel = gridtomerge->ElementVec()[i];
 		if(!gel) continue;
 		TPZVec<int> nos;

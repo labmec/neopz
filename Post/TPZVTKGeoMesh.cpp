@@ -16,6 +16,101 @@
 #include "pzgeopoint.h"
 #include <sstream>
 
+/**
+ * Generate an output of all geomesh to VTK
+ */
+void TPZVTKGeoMesh::PrintCMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool matColor)
+{
+	file.clear();
+	int nelements = gmesh->NElements();
+	
+	std::stringstream node, connectivity, type, material;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	
+	for(int el = 0; el < nelements; el++)
+	{	
+        TPZGeoEl *gel = gmesh->ElementVec()[el];
+        if(!gel) continue;
+		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+		{
+			continue;
+		}
+		if(! gel->Reference())
+		{
+			continue;
+		}
+		
+        MElementType elt = gel->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}			
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
+		type << elType << std::endl;
+		
+		if(matColor == true)
+		{
+			material << gel->MaterialId() << std::endl;
+		}
+		else
+		{
+			material << elType << std::endl;
+		}
+		
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+	if(matColor == true)
+	{
+		file << "material 1 " << nVALIDelements << " int" << std::endl;
+	}
+	else
+	{
+		file << "ElementType 1 " << nVALIDelements << " int" << std::endl;
+	}
+	file << material.str();
+	
+	file.close();
+}
+
+
 
 /**
  * Generate an output of all geomesh to VTK
@@ -320,8 +415,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 	{
 		gel = gmesh->ElementVec()[el];
 		// Print only to elements not refines (computational elements actives?)
-		if(!gel || gel->HasSubElement())
-			continue;
+//		if(!gel || gel->HasSubElement())
+//			continue;
+        if(!gel) continue;
 		cel = gel->Reference();
 		if(!cel) continue;
 		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D

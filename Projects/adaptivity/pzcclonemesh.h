@@ -77,23 +77,29 @@ class TPZCompCloneMesh : public TPZCompMesh {
 
 
   /**
-   * return the element index in reference mesh
+   * @brief Given the index in the CompClone mesh return the comp element index in the reference mesh
    */
   int GetOriginalElementIndex(int elindex);
 
 
+    /**
+     * @brief Given the pointer to the element in the CompClone mesh return the pointer to the comp element in the reference mesh
+     */
   TPZInterpolatedElement *GetOriginalElement(TPZCompEl *el);
 
   /**
-   * Returns the Reference Mesh
+   * @brief Returns the Reference Mesh
    */
   TPZCompMesh *GetReferenceMesh(){return fCloneReference;}
 
   /**
    * Evaluates the mesh error as being the difference between reference solution and
-   * a solution gived by a uniformly refined mesh
+   * a solution computed on a uniformly refined mesh
+   * The mesh error is computed for the current clone mesh
+   * the error and true error are accumulated in ervec and truervec
+   * ervec and truervec are indexed according to the original computational mesh
    */
-  void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),TPZVec<REAL> &truervec);
+  void MeshError(TPZCompMesh *fine, TPZVec<REAL> &ervec, void(*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),TPZVec<REAL> &truervec);
 
   /**
    * Returns the uniformly hp refined mesh base on this mesh
@@ -104,18 +110,18 @@ class TPZCompCloneMesh : public TPZCompMesh {
   REAL ElementError(TPZInterpolatedElement *fine, 
 		    TPZInterpolatedElement *coarse, 
        		    TPZTransform &tr,
-		    void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv),
+		    void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
 		    REAL &truerror);
 
   /**
    * Returns hp pattern of reference elements
    * @param minerror Minimum error for the element be analysed
    * @param error Vector containing all elements error
-   * @param finee Uniformly refined mesh
+   * @param fineMesh Uniformly refined mesh
    * @param gelstack Geometric elements stack. This stack will include the h / hp refined elements
    * @param porder p order of the elements contained in gelstack
    */
-  void ApplyRefPattern(REAL minerror, TPZVec<REAL> &error, TPZCompMesh *finee, 
+  void ApplyRefPattern(REAL minerror, TPZVec<REAL> &error, TPZCompMesh *fineMesh, 
 		       TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &porder);
 
 
@@ -134,7 +140,7 @@ protected:
    * Verifies if the given element is son of the Geometric Reference Element
    * @param el - element to analyse
    */
-  int IsFather(TPZGeoEl *el);
+  int IsSonOfRootElement(TPZGeoEl *el);
 
 
   /**
@@ -179,7 +185,7 @@ public:
    * solution for the restricted nodes
    * @param sol given solution matrix
    */
-  void LoadSolution(TPZFMatrix &sol);
+  void LoadSolution(TPZFMatrix<REAL> &sol);
 
 
   void Print(std::ostream &out);

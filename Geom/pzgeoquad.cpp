@@ -274,15 +274,28 @@ namespace pzgeom {
 		TPZFNMatrix<6> axest(3,2);
 		Shape(param,phi,dphi);
 		jacobian.Zero();
+        TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
 		
 		int spacedim = coord.Rows();
+        
+        for (int j=0; j<spacedim; j++) {
+            minx[j] = coord(j,0);
+            maxx[j] = coord(j,0);
+        }
 		TPZFMatrix<REAL> VecMatrix(3,2,0.);
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < spacedim; j++) {
+                minx[j] = minx[j] < coord(j,i) ? minx[j]:coord(j,i);
+                maxx[j] = maxx[j] > coord(j,i) ? maxx[j]:coord(j,i);
 				VecMatrix(j,0) += coord(j,i)*dphi(0,i);
 				VecMatrix(j,1) += coord(j,i)*dphi(1,i);
 			}
 		}
+        REAL delx = 0.;
+        for (int j=0; j<spacedim; j++) {
+            delx = delx > (maxx[j]-minx[j]) ? delx : (maxx[j]-minx[j]);
+        }
+        VecMatrix *= 1./delx;
 		VecMatrix.GramSchmidt(axest,jacobian);
 		axest.Transpose(&axes);
 		detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
@@ -304,6 +317,10 @@ namespace pzgeom {
 		{
 			jacinv.Zero();
 		}
+        jacobian *= delx;
+        jacinv *= 1./delx;
+        detjac *= (delx*delx);
+        
 	}
 	
 	void TPZGeoQuad::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){

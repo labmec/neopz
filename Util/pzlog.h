@@ -27,11 +27,17 @@
   #define DEBUG2
 #endif
 
+#include <iostream>
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/propertyconfigurator.h>
 using namespace log4cxx;
 using namespace log4cxx::helpers;
+
+inline void StopError()
+{
+    std::cout << "Ponto de parada\n";
+}
 
 /**
  * \addtogroup util
@@ -54,7 +60,7 @@ extern pthread_mutex_t glogmutex;
                           pthread_mutex_unlock(&glogmutex); }
 /// Define log for errors
 #define LOGPZ_ERROR(A,B) {pthread_mutex_lock(&glogmutex); \
-                        LOG4CXX_ERROR(A,B) \
+                        LOG4CXX_ERROR(A,B); StopError(); \
                           pthread_mutex_unlock(&glogmutex); }
 /// Define log for fatal errors
 #define LOGPZ_FATAL(A,B) {pthread_mutex_lock(&glogmutex); \

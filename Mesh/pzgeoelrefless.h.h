@@ -336,8 +336,32 @@ void
 TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 	fGeo.Jacobian(*this,coordinate,jac,axes,detjac,jacinv);
 	
+    
 #ifdef DEBUG
-	if(IsZero(detjac)){
+    TPZManVector<REAL,3> minx(3,0.),maxx(3,0.);
+    int ncorners = NNodes();
+    TPZFNMatrix<54,REAL> cornerco(3,ncorners);
+    fGeo.CornerCoordinates(*this,cornerco);
+    int spacedim = cornerco.Rows();
+    
+    for (int j=0; j<spacedim; j++) {
+        minx[j] = cornerco(j,0);
+        maxx[j] = cornerco(j,0);
+    }
+    for (int i=0; i<ncorners; i++) {
+        for (int d=0; d<spacedim; d++) {
+            minx[d] = minx[d] < cornerco(d,i) ? minx[d] : cornerco(d,i);
+            maxx[d] = maxx[d] > cornerco(d,i) ? maxx[d] : cornerco(d,i);
+        }
+    }
+    REAL delx=0.;
+    for (int i=0; i<ncorners; i++) {
+        for (int d=0; d<spacedim; d++) {
+            delx = delx < maxx[d]-minx[d] ? maxx[d]-minx[d] : delx;
+        }
+    }
+
+	if(TGeo::Dimension != 0 && (IsZero(delx) || IsZero(detjac/(delx*delx)))){
 		std::stringstream sout;
 		sout << "Jacobiano nulo\n";
 		LOGPZ_ERROR(loggerrefless,sout.str())

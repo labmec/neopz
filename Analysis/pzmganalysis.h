@@ -79,7 +79,7 @@ public:
 	 */
 	static  void MeshError (  TPZCompMesh *fine,TPZCompMesh *coarse,	
 							TPZVec<REAL> &ervec,
-							void (*f) (TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+							void (*f) (const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
 							TPZVec<REAL> &truervec);
 	
 private:    
@@ -108,7 +108,7 @@ private:
 	static  REAL ElementError (TPZInterpolatedElement *fine,
 							   TPZInterpolatedElement *coarse,
 							   TPZTransform &tr,
-							   void (*f) (TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+							   void (*f) (const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
 							   REAL &truerror);
 	
 };

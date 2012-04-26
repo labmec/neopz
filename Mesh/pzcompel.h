@@ -373,7 +373,7 @@ public:
 	 * @param errors [out] the L2 norm of the error of the solution
 	 * @param flux [in] value of the interpolated flux values
 	 */
-	virtual void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+	virtual void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 							   TPZVec<REAL> &errors,TPZBlock<REAL> *flux);
 	
 	/** @brief ComputeError computes the element error estimator */

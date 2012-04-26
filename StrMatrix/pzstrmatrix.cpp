@@ -239,6 +239,12 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<RE
 			{
 				std::stringstream sout;
 				sout << "Element index " << iel << std::endl;
+                TPZGeoEl *gel = el->Reference();
+                int nsides = gel->NSides();
+                TPZManVector<REAL> ksi(gel->Dimension()), co(3);
+                gel->CenterPoint(nsides-1, ksi);
+                gel->X(ksi, co);
+                sout << "center point " << co << std::endl;
 //				sout << "Element stiffness matrix\n";
 //				ek.fMat.Print("Element Stiffness Matrix", sout);
 				ek.Print(sout);

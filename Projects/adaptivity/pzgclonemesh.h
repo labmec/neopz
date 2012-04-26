@@ -35,14 +35,18 @@ protected:
 	/** Maps node id from cloned mesh to the mesh*/
     std::map<int,int> fMapNodes;
 
-	/** Maps element pointers from mesh to the cloned mesh*/
+	/** Maps element pointers from the original (reference) mesh to the cloned mesh
+     */
     std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
 
 	/** Maps element id from cloned mesh to mesh */
 	TPZStack<TPZGeoEl *> fReferenceElement;
 
-	/** Elements corresponding to the patch */
+    /** Elements of the original (reference) mesh which defined the cloned mesh
+     * fPatchReferenceElements is initialized in SetElements */
 	TPZStack<TPZGeoEl *> fPatchReferenceElements;
+    
+    /** Elements of the cloned mesh corresponding to the patch defined in the original mesh */
 	TPZStack<TPZGeoEl *> fPatchElements;
 
 	/**
@@ -52,12 +56,22 @@ protected:
 	TPZAdaptMesh * fAdaptMesh;
 
 	/**
-	 * Geometric Element Reference to get the clone mesh patch
+	 * Geometric Element int the cloned mesh corresponding to the root element in the original mesh
 	 */
-	TPZGeoEl* fGeoElRef;    
+	TPZGeoEl* fGeoRoot;    
 
-	int IsPatchReferenceElement(TPZGeoEl *refpatch);
+    /**
+     * @brief returns true if the element belongs to the patch as defined in the original mesh (gel belongs to the original mesh)
+     */
+	int IsPatchReferenceElement(TPZGeoEl *gel);
+    
+    /**
+     * @brief returns true if the element belongs to the patch elements in the cloned mesh */
 	int IsPatchElement(TPZGeoEl *refpatch);
+    
+    /**
+     * Given an element in the original mesh add all neighbours which correspond to boundary conditions to the clone
+     */
 	void AddBoundaryConditionElements(TPZGeoEl *eltoadd);
 
 public:
@@ -101,7 +115,7 @@ public:
 	/**
 	 * Return reference element index
 	 */
-	TPZGeoEl * GetMeshReferenceElement(){return fGeoElRef;}
+	TPZGeoEl * GetMeshRootElement(){return fGeoRoot;}
 
 	int IsPatchSon(TPZGeoEl *gel);
 

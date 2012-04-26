@@ -44,7 +44,7 @@ class TPZAdaptMesh {
   TPZCompMesh * GetAdaptedMesh(REAL &error,
 			       REAL &truerror,
 			       TPZVec<REAL> &ervec, 
-			       void (*f)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix &deriv),
+			       void (*f)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 			       TPZVec<REAL> &truervec, 
 			       TPZVec<REAL> &effect,
 			       int use_trueerror = 0);
@@ -52,7 +52,7 @@ class TPZAdaptMesh {
 
 static void DeleteElements(TPZCompMesh *mesh);
 
-  REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv));
+  REAL UseTrueError(TPZInterpolatedElement *coarse, void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv));
 
  protected:
   
@@ -105,7 +105,7 @@ static void DeleteElements(TPZCompMesh *mesh);
   static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
   
   /** @brief Computational reference mesh */
-  TPZCompMesh *fReference;
+  TPZCompMesh *fReferenceCompMesh;
   
   /** @brief Geometric reference elements vector */
   TPZStack < TPZGeoEl * > fGeoRef;
@@ -120,10 +120,10 @@ static void DeleteElements(TPZCompMesh *mesh);
   TPZStack < REAL > fElementError;
   
   /** @brief Clone meshes vector */
-  TPZStack<TPZCompCloneMesh *> fCloneMesh;
+  TPZStack<TPZCompCloneMesh *> fCloneMeshes ;
   
   /** @brief Refined clone meshes */
-  TPZStack <TPZCompMesh *> fFineCloneMesh;
+  TPZStack <TPZCompMesh *> fFineCloneMeshes ;
   
   /** @brief Delete temporary clone meshes from memory */
   void CleanUp();

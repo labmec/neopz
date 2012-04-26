@@ -118,7 +118,7 @@ protected:
     /**
      * @brief Exact solution ??? not implemented???
      */
-    void (*fExact)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv);
+    void (*fExact)(const TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv);
 	
 	/**
 	 * @brief Create an TPZAnalysis object from one mesh pointer
@@ -273,7 +273,7 @@ public:
 		this->LoadSolution();
 	}
 	
-	void SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv));
+	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv));
 	
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 	
@@ -297,7 +297,7 @@ public:
 
 inline void
 
-TPZAnalysis::SetExact(void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv))
+TPZAnalysis::SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix<REAL> &deriv))
 {
 	fExact=f;
 }

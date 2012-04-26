@@ -147,7 +147,7 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
 	TPZInterpolatedElement *equal;
 	int equalside;
 	if(orderchanged == 1) {
-		elvec.Push(thisside);
+//		elvec.Push(thisside);
 		cap = elvec.NElements();
 		for(il=0; il<cap; il++) {
 			equal = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
@@ -1325,6 +1325,13 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 	}
 	TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[0].Element());
 	int minorder = cel->PreferredSideOrder(smallset[0].Side());
+#ifdef LOG4CXX2
+    {
+        std::stringstream sout;
+        sout << "Order of first side "<< minorder;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	int iel;
 	for(iel=1; iel<nelem; iel++) {
 		cel = dynamic_cast<TPZInterpolatedElement *> (smallset[iel].Element());
@@ -1737,6 +1744,12 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 		//    LOGPZ_ERROR(logger,sout.str().c_str());
 		return order;
 	}
+    TPZGeoElSide gelside(gel,side);
+    TPZStack<TPZCompElSide> celsidestack;
+    gelside.HigherLevelCompElementList2(celsidestack, 1, 1);
+    if (celsidestack.size() == 0) {
+        return order;
+    }
 	TPZStack<int> elsides;
 	gel->LowerDimensionSides(side,elsides);
 	int maxorder = order;

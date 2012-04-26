@@ -531,6 +531,15 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		}
 		jacobian.Zero();
 	}
+    REAL large = 0.;
+    for (lin = 0; lin < locmatsize; lin++) {
+        for (cjn = 0; cjn < locmatsize; cjn++) {
+            REAL val = fabs(loclocmat(lin,cjn));
+            large = large<val ? val : large;
+        }
+    }
+    loclocmat *= 1./large;
+    projectmat *= 1./large;
 	
 	loclocmat.SolveDirect(projectmat,ELU);
 	// identify the non-zero blocks for each row
@@ -907,7 +916,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZInterpolationSpace::EvaluateError(  void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);

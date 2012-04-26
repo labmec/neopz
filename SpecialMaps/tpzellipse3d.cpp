@@ -31,7 +31,7 @@ using namespace pztopology;
 using namespace pzshape;
 
 /// Tolerance value (Is zero)
-const double tolerance = 1.E-10;
+const double tolerance = 1.E-9;
 /// Pi value in radians
 const double pi = 4.*atan(1.);
 
@@ -129,7 +129,8 @@ void TPZEllipse3D::X(TPZFMatrix<REAL> &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> 
 	varx = vfinEllip(0,0);
 	Func_varx = fsAxeY * sqrt( 1.0 - (varx*varx) / (fsAxeX*fsAxeX) );
 	vary = vfinEllip(1,0);
-	if(fabs(fabs(Func_varx) - fabs(vary)) > tolerance)
+    REAL diff = fabs(Func_varx)-fabs(vary);
+	if(fabs(diff) > tolerance)
 	{
 		cout << "\nFinal node doesn't belong to an ellipse defined by the given axis on TPZEllipse3D!!!\n";
 		cout << "See " << __PRETTY_FUNCTION__ << endl;

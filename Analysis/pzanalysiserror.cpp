@@ -408,7 +408,7 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 /** @brief Function to zeroes data */
 void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
 
-void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
+void NullFunction(const TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
 	
     val[0] = 0.*point[0];
     deriv(0,0) = 0.;

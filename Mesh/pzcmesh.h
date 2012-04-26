@@ -157,13 +157,7 @@ public:
 	 * @brief Gives all patches of the mesh
 	 * @param grpatch - stack where will be inserted the geometric elements
 	 */
-	void GetRefPatches(TPZStack<TPZGeoEl *> &grpatch);
-	/**
-	 * @brief Gives all patches of the mesh
-	 * @param grpatch - set with all reference geometric elements
-	 */
-	void GetRefPatches(std::set<TPZGeoEl *>  &grpatch);
-	
+	void GetRefPatches(std::set<TPZGeoEl *> &grpatch);
 	/**
 	 * @brief Gives the conects graphs
 	 */
@@ -288,7 +282,7 @@ public:
 	
 	/**
 	 * @brief Insert a material object in the datastructure
-	 * @ @param mat pointer to the material
+	 * @param mat pointer to the material
 	 */
 	int InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat);
 	
@@ -632,7 +626,7 @@ public:
 	 * @note Parameter deriv - ????
 	 * @param errorSum - return the L1 error
 	 */
-	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 					   TPZVec<REAL> &errorSum);
 	
 	/**

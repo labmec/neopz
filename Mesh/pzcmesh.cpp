@@ -1165,7 +1165,7 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 }
 
 void TPZCompMesh::EvaluateError(
-								void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+								void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 								TPZVec<REAL> &errorSum) {
 	
 	errorSum.Resize(3);
@@ -1563,38 +1563,6 @@ void TPZCompMesh::SetElementSolution(int i, TPZVec<REAL> &sol) {
 	for(el=0; el<nel; el++) {
 		fElementSolution(el,i) = sol[el];
 	}
-}
-
-void TPZCompMesh::GetRefPatches(TPZStack<TPZGeoEl *> &grpatch){
-	int i,j;
-	bool test = 0;
-	int nel = NElements();
-	//	cout << "GetRefPatches\n" << nel << endl;
-	for (i=0; i<nel; i++){
-		if (fElementVec[i]){
-			TPZGeoEl *gel = fElementVec[i]->Reference();
-			if (gel)
-				//gel = fElementVec[i]->Reference();
-				//	cout << "Iniciando procura do elemento de referencia do elemento " << fElementVec[i]->Index() << endl;
-				gel = fElementVec[i]->GetRefElPatch();
-			//	gel->Print();
-			if (gel){
-				test = false;
-				int npat =grpatch.NElements();
-				for (j=0; j<npat; j++){
-					//	grpatch[j]->Print();
-					if (grpatch[j] == gel) {
-						test = true;
-						break;
-					}
-				}
-				if (!test){
-					grpatch.Push(gel);
-				}
-			}
-		}
-	}
-	return;
 }
 
 void TPZCompMesh::GetRefPatches(std::set<TPZGeoEl *> &grpatch){

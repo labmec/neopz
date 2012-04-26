@@ -430,7 +430,7 @@ inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate)
 	LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
 
-void TPZCompEl::EvaluateError(void (* /*fp*/)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
                               TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/) {
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }
@@ -538,44 +538,45 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
 	std::stringstream sout;
-	sout << "Obtendo elemento geometrico de referencia " << Index() << endl;
+	sout << "Obtendo elemento geometrico de referencia para elemento " << Index() << endl;
+    sout << "Impressao dos ancestrais\n";
 	Print(sout);
 	TPZGeoEl *ref = Reference();
 	if (!ref) {
-		LOGPZ_WARN(logger, "reached a null reference");
+		LOGPZ_ERROR(logger, "reached a null reference");
 		return (0);
 	}
 	ref->Print(sout);
-	TPZStack <TPZGeoEl *> father;
-	father.Push(ref);
+	TPZStack <TPZGeoEl *> ancestors;
+	ancestors.Push(ref);
 	while(ref->Father()){
-		father.Push(ref->Father());
+		ancestors.Push(ref->Father());
 		ref = ref->Father();
 		ref->Print(sout);
 	}
 	int j;
 	LOGPZ_DEBUG(logger, sout.str());
-	while(father.NElements()) {
-		TPZGeoEl *aux = father.Pop();
-		for (j=0; j<aux->NSides(); j++){
-			int sidedimension = aux->SideDimension(j);
-			if(!sidedimension){
+	while(ancestors.NElements()) {
+		TPZGeoEl *larger = ancestors.Pop();
+		for (j=0; j<larger->NSides(); j++){
+			int sidedimension = larger->SideDimension(j);
+			if(sidedimension == 0){
 				continue;
 			}
-			TPZGeoElSide side(aux,j);
+			TPZGeoElSide gelside(larger,j);
 			TPZStack <TPZCompElSide> stack;
-			side.EqualLevelCompElementList(stack,1,1);
+			gelside.EqualLevelCompElementList(stack,1,1);
+            // the first geometric element that has a neighbour is a reference element
 			if(stack.NElements()){
 				//cout << " \n \n \n ==================================\n ================================\nElemento PatchReference\n";
 				//aux->Print();
-				LOGPZ_INFO(logger, "Exing GetRefElPatch");
-				return aux;
+				return larger;
 			}
 		}
 	}
 	//cout << " \n \n \n ==================================\n ================================\nElemento PatchReference falho\n";
 	//Reference()->Print();
-	LOGPZ_WARN(logger, "Exing GetRefElPatch - Elemento PatchReference falho");
+	LOGPZ_DEBUG(logger, "Exit GetRefElPatch - Element is its own patch");
 	return (Reference());
 }
 

@@ -182,8 +182,8 @@ TPZCompEl::SetgOrder(2);
       TPZAnalysis an (cmesh);
       TPZSkylineStructMatrix strskyl(cmesh);
       TPZFMatrix<REAL> rhs(24,1,0.);
-      TPZMatrix *stiff1 = CreateAssemble(rhs,1, *cmesh);
-      TPZMatrix *stiff2 = CreateAssemble(rhs,0, *cmesh);
+      TPZMatrix<REAL> *stiff1 = CreateAssemble(rhs,1, *cmesh);
+      TPZMatrix<REAL> *stiff2 = CreateAssemble(rhs,0, *cmesh);
       TPZFMatrix<REAL> one(*stiff1);
       TPZFMatrix<REAL> two(*stiff2);
       one -= two;
@@ -301,7 +301,7 @@ TPZCompMesh *CreateMesh(){
     return comp;
 }
 
-TPZMatrix * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh){
+TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh){
     int neq = Mesh.NEquations();
     TPZVec<int> skyline;
     Mesh.Skyline(skyline);
@@ -312,7 +312,7 @@ TPZMatrix * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh
 }
 
 
-void Assemble(TPZMatrix & stiffness, TPZFMatrix<REAL> & rhs, int method, TPZCompMesh & Mesh){
+void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, TPZCompMesh & Mesh){
 
   int iel;
   //int numel = 0;

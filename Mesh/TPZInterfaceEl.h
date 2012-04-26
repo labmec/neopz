@@ -317,7 +317,7 @@ public:
 	
 	static int main(TPZCompMesh &cmesh);
 	
-	void EvaluateError(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 					   TPZVec<REAL> &errors, TPZBlock<REAL> * /*flux */);
 	
 	/** @brief ComputeError computes the element error estimator */

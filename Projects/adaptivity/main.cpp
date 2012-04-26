@@ -33,6 +33,16 @@
 #include "pzmattest3d.h"
 #include "pzmatplaca2.h"
 
+#include "pzfunction.h"
+#include "TPZVTKGeoMesh.h"
+
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.adaptivity"));
+static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
+#endif
+
 #include <time.h>
 #include <stdio.h>
 #include <fstream>
@@ -59,28 +69,31 @@ TPZCompMesh *Create3DExpMesh();
 
 TPZCompMesh *ReadKumar(char *filename);
 int MaxLevel(TPZCompMesh *mesh);
-static int nstate = 3;
+static int nstate = 1;
 
-void NeumannExp(TPZVec<REAL> &x, TPZVec<REAL> &force);
-void Neumann2(TPZVec<REAL> &x, TPZVec<REAL> &force);
-void Neumann3(TPZVec<REAL> &x, TPZVec<REAL> &force);
-void Neumann4(TPZVec<REAL> &x, TPZVec<REAL> &force);
-void Neumann5(TPZVec<REAL> &x, TPZVec<REAL> &force);
-void Exact(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
-void Exact3DExp(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol);
+void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 static std::ofstream MALHAG("malhageometrica");//CEDRIC
 static int mygorder = 1;
 void CompareNeighbours(TPZGeoMesh *mesh);
-void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result);
-void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv);
-void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du);
+void BCSolution(const TPZVec<REAL> &x,TPZVec<REAL> &result);
+void Solution(const TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix<REAL> &deriv);
+void LoadSolution(TPZFMatrix<REAL> &axes,const TPZVec<REAL> &X,TPZFMatrix<REAL> &u,TPZFMatrix<REAL> &du);
 
 int gDebug = 1;
 
+
+
 int main(){
     
+    InitializePZLOG();
     int nref = 0;
     int dim = 0;
     int opt = 0;
@@ -109,17 +122,18 @@ int main(){
     scalnames.Push("Error");
     
     if(nstate == 1) {
-        //   an.SetExact(Exact);
+//        an.SetExact(Exact);
+        scalnames.Push("state");
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
     }else if(nstate == 2) {
         scalnames.Push("sig_x");
         scalnames.Push("sig_y");
         scalnames.Push("tau_xy");
+        vecnames.Push("state");
     }
     
-    vecnames.Push("state");
-    if(dim < 3){
+    if(dim < 3 && nstate == 2){
         vecnames.Push("displacement");
     }
     std::ofstream out("output.txt");
@@ -155,9 +169,17 @@ int main(){
             }
             //char buf [256];
             //sprintf(buf,"hptest%d.dx",r);
-            std::stringstream sout;
-            sout << "hptest" << r << ".vtk";
-            an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+            {
+                std::stringstream sout;
+                sout << "hptest." << r << ".vtk";
+                an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+            }
+            std::string MeshFileName;
+            {
+                std::stringstream sout;
+                sout << "mesh." << r << ".vtk";
+                MeshFileName = sout.str();
+            }
             
             cmesh->SetName("Malha computacional adaptada");
             
@@ -169,7 +191,7 @@ int main(){
             TPZSkylineStructMatrix strskyl(cmesh);
             an.SetStructuralMatrix(strskyl);
             
-            TPZStepSolver *direct = new TPZStepSolver;
+            TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
             direct->SetDirect(ECholesky);
             an.SetSolver(*direct);
             delete direct;
@@ -179,8 +201,15 @@ int main(){
             //an.Rhs().Print();
             //an.Solution().Print();
             
-            if (r==nref -1)
-                an.PostProcess(0,dim);
+            //if (r==nref -1)
+                
+            an.PostProcess(4,dim);
+            {
+                std::ofstream out(MeshFileName.c_str());
+                cmesh->LoadReferences();
+                TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
+                
+            }
             
             REAL valerror =0.;
             REAL valtruerror=0.;
@@ -236,9 +265,17 @@ int main(){
             << "time elapsed " << time_elapsed << "\n\n\n\n";
             
             int prt;
-            std::cout << "neq = " << cmesh->NEquations() << " erestimate = " << valerror
-            << " true " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+            std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+            << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
             
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+                << " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+                LOGPZ_DEBUG(loggerconv, sout.str())
+            }
+#endif
             
             convergence  << cmesh->NEquations() << "\t"
             << valerror << "\t"
@@ -273,6 +310,14 @@ int main(){
             /*      } */
         }
     }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        cmesh->ExpandSolution();
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     //TPZMatrixSolver::Diagnose();
     CompareNeighbours(cmesh->Reference());
     delete cmesh;
@@ -291,7 +336,7 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     << "\n4 - 3D Simples \n5 - 3D Canto\n" <<"6 - Tetraedro\n7 - Prisma\n8 - All elements\n9 - All topologies\n10 Aleatorio\n"
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
-    opt = 0;
+    opt = 1;
 //    std::cin >> opt;
     
     TPZCompMesh *cmesh;
@@ -358,12 +403,12 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     opt > 3 ? dim=3 : dim = 2;
     
     std::cout << "number of refinement steps : ";
-    nref = 2;
+    nref = 40;
 //    std::cin >> nref;
     
     std::cout << "Maximum p order:    ";
     int p;
-    p=4;
+    p=8;
 //    std::cin >> p;
     std::cout << std::endl;
     
@@ -433,9 +478,9 @@ TPZCompMesh *CreateSillyMesh(){
      */
     
     // Criação das condições de contorno geométricas
+    geomesh->BuildConnectivity();
     TPZGeoElBC t3(gel[0],4,-1);
     TPZGeoElBC t4(gel[0],6,-2);
-    geomesh->BuildConnectivity();
     geomesh->Print(std::cout);
     
     // Criação da malha computacional
@@ -449,7 +494,7 @@ TPZCompMesh *CreateSillyMesh(){
     
     // Condições de contorno
     // Dirichlet
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
     bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
@@ -458,7 +503,7 @@ TPZCompMesh *CreateSillyMesh(){
     // comp->InsertMaterialObject(bnd);
     
     // Neumann
-    TPZFMatrix val3(3,3,1);
+    TPZFMatrix<REAL> val3(3,3,1);
     val2(0,0)=1.;
     bnd = meumat->CreateBC (meumat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
@@ -552,7 +597,15 @@ TPZCompMesh *CreateMesh() {
     // bc -6 -> Homogeneous Neumann
     TPZGeoElBC gbc8(elvec[2],7,-6);
     
+    int nel = gmesh->NElements();
+    for (int iel=0; iel<nel; iel++) {
+        TPZManVector<TPZGeoEl *> subels;
+        TPZGeoEl *gel = gmesh->ElementVec()[iel];
+        gel->Divide(subels);
+    }
+    
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(2);
     
     TPZAutoPointer<TPZMaterial> mat;
     if(nstate == 2) {
@@ -560,7 +613,7 @@ TPZCompMesh *CreateMesh() {
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -570,18 +623,18 @@ TPZCompMesh *CreateMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(nstate,nstate,0.),val2(nstate,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[5];
+    TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
+    TPZManVector<TPZAutoPointer<TPZMaterial>,6> bc(6);
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     if(nstate == 1) {
         for(i=1; i<6; i++) {
             bc[i] = mat->CreateBC(mat,-i-1,1,val1,val2);
         }
-        bc[1]->SetForcingFunction(Neumann2);
-        bc[2]->SetForcingFunction(Neumann3);
-        bc[3]->SetForcingFunction(Neumann4);
-        bc[4]->SetForcingFunction(Neumann5);
+        bc[1]->SetForcingFunction(new TPZDummyFunction(Neumann2));
+        bc[2]->SetForcingFunction(new TPZDummyFunction(Neumann3));
+        bc[3]->SetForcingFunction(new TPZDummyFunction(Neumann4));
+        bc[4]->SetForcingFunction(new TPZDummyFunction(Neumann5));
     } else {
         for(i=1; i<6; i++) {
             bc[i] = mat->CreateBC(mat,-i-1,0,val1,val2);
@@ -596,6 +649,13 @@ TPZCompMesh *CreateMesh() {
     cmesh->CleanUpUnconnectedNodes();
     //  cmesh->ExpandSolution();
     
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
     return cmesh;
 }
 
@@ -654,11 +714,10 @@ TPZCompMesh *CreateTriangularMesh(){
     TPZAutoPointer<TPZMaterial> meumat = mat;
     
     // inserir a condicao de contorno
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     
     TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
-    bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
     
     val2(0,0)=1.;
     bnd = meumat->CreateBC (meumat,-2,1,val1,val2);
@@ -745,7 +804,7 @@ TPZCompMesh *CreatePlanMesh() {
     
     // Condições de contorno
     // Dirichlet
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
     
@@ -830,14 +889,14 @@ TPZCompMesh *CreateSimple3DMesh() {
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (3,1,0.);
+        TPZFMatrix<REAL> mp (3,1,0.);
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -847,7 +906,7 @@ TPZCompMesh *CreateSimple3DMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
@@ -951,7 +1010,7 @@ TPZCompMesh *Create3DMesh() {
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -961,7 +1020,7 @@ TPZCompMesh *Create3DMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bc[4];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
@@ -1044,7 +1103,7 @@ TPZCompMesh *Create3DTetraMesh() {
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (3,1,1.);
+        TPZFMatrix<REAL> mp (3,1,1.);
         
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
         TPZMaterialTest3D::geq3=1;
@@ -1052,7 +1111,7 @@ TPZCompMesh *Create3DTetraMesh() {
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -1062,7 +1121,7 @@ TPZCompMesh *Create3DTetraMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
@@ -1147,7 +1206,7 @@ TPZCompMesh *Create3DPrismMesh() {
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (1,1,0.);
+        TPZFMatrix<REAL> mp (1,1,0.);
         
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
         TPZMaterialTest3D::geq3=1;
@@ -1155,7 +1214,7 @@ TPZCompMesh *Create3DPrismMesh() {
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -1165,7 +1224,7 @@ TPZCompMesh *Create3DPrismMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     TPZAutoPointer<TPZMaterial> bc[3];
     bc[0] = mat->CreateBC(mat,-3,0,val1,val2);
     int i;
@@ -1315,14 +1374,14 @@ TPZCompMesh * CreateTestMesh() {
     TPZAutoPointer<TPZMaterial> mat;
     if(nstate == 3) {
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (3,1,0.);
+        TPZFMatrix<REAL> mp (3,1,0.);
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -1333,7 +1392,7 @@ TPZCompMesh * CreateTestMesh() {
         mat = mat2d;
     }
     
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
@@ -1358,7 +1417,7 @@ TPZCompMesh * CreateTestMesh() {
 static REAL onethird = 0.33333333333333333;
 static REAL PI = 3.141592654;
 
-void Exact(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
+void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
@@ -1367,7 +1426,7 @@ void Exact(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
   	dsol(1,0) = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
-void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
+void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]+x[2]*x[2]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
@@ -1377,14 +1436,14 @@ void Exact3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
 }
 
 
-void ExactSimple3D(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
+void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	sol[0] = x[2];
   	dsol(0,0) = 0.;
   	dsol(1,0) = 0.;
 	dsol(2,0) = 1.;
 }
 
-void Exact3DExp(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
+void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     
     sol[0] = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[1]*x[2];
     dsol(0,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*(1 - x[1])*x[1]*x[2] -
@@ -1398,19 +1457,19 @@ void Exact3DExp(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix &dsol) {
     dsol(2,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[1];
 }
 
-void NeumannExp(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     f[0] = pow(exp(1.),1/(0.1 + pow(-0.5 + x[0],2) + pow(-0.5 + x[1],2)))*(1 - x[0])*x[0]*(1 - x[1])*x[1];
 }
 
 
-void Neumann2(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
   	f[0] = -onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
-void Neumann3(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
@@ -1418,13 +1477,13 @@ void Neumann3(TPZVec<REAL> &x, TPZVec<REAL> &f) {
 }
 
 
-void Neumann4(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
   	f[0] = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
-void Neumann5(TPZVec<REAL> &x, TPZVec<REAL> &f) {
+void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL r = sqrt(x[0]*x[0]+x[1]*x[1]);
   	REAL theta = atan2(x[1],x[0]);
   	REAL rexp = pow(r,onethird);
@@ -1520,7 +1579,7 @@ TPZCompMesh *ReadKumar(char *filename) {
   	E = e1212*(1+nu);
     
   	TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(3,E,nu,0.,0.);
-  	TPZFMatrix val1(2,2,0.),val2(2,1,0.);
+  	TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
   	TPZAutoPointer<TPZMaterial> bc1 = mat->CreateBC(mat,-1,0,val1,val2);
   	val2(1,0) = -1.;
   	TPZAutoPointer<TPZMaterial> bc2 = mat->CreateBC(mat,-2,1,val1,val2);
@@ -1599,7 +1658,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (3,1,0.);
+        TPZFMatrix<REAL> mp (3,1,0.);
         
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
         TPZMaterialTest3D::geq3=1;
@@ -1607,7 +1666,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     } else {
         TPZMat2dLin *mat2d = new TPZMat2dLin(1);
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -1617,7 +1676,7 @@ TPZCompMesh *CreateAleatorioMesh() {
         mat2d->SetMaterial(xk,xc,xf);
         mat = mat2d;
     }
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
@@ -1741,7 +1800,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
-    TPZFMatrix mp (3,1,0.);
+    TPZFMatrix<REAL> mp (3,1,0.);
     
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
     TPZMaterialTest3D::geq3=1;
@@ -1749,7 +1808,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     //   } else {
     //     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
     //     int ist,jst;
-    //     TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+    //     TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
     //     for(ist=0; ist<nstate; ist++) {
     //       if(nstate != 1) xf(ist,0) = 1.;
     //       for(jst=0; jst<nstate; jst++) {
@@ -1759,7 +1818,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     //     mat2d->SetMaterial(xk,xc,xf);
     //     mat = mat2d;
     //   }
-    TPZFMatrix val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
@@ -1886,14 +1945,14 @@ TPZCompMesh *Create3DDiscMesh() {
     TPZMaterial *mat;
     if(nstate == 3) {
         mat = new TPZMaterialTest3D(1);
-        TPZFMatrix mp (3,1,0.);
+        TPZFMatrix<REAL> mp (3,1,0.);
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
         //   TPZPoison3D *mat3d = new TPZPoison3D();
         int ist,jst;
-        TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+        TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
         for(ist=0; ist<nstate; ist++) {
             if(nstate != 1) xf(ist,0) = 1.;
             for(jst=0; jst<nstate; jst++) {
@@ -2052,7 +2111,7 @@ TPZCompMesh *PlateMesh (){
 
 TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {
     std::ifstream input(filename);
-    TPZFMatrix naxes(3,3);
+    TPZFMatrix<REAL> naxes(3,3);
     REAL ni1,ni2,h,E1,E2,G12,G13,G23,f;
     REAL n00,n01,n02,n10,n11,n12,n20,n21,n22;
     TPZVec<REAL> xf(6);
@@ -2091,32 +2150,32 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
     //BIG number
     //REAL big = 1.e12;
     //valor das CC
-    TPZFMatrix val1(6,6,0.),val2(6,1,0.);
+    TPZFMatrix<REAL> val1(6,6,0.),val2(6,1,0.);
     TPZGeoElBC(elg0,3,-1);
     TPZGeoElBC(elg1,3,-1);
     TPZGeoElBC(elg2,3,-1);
     TPZGeoElBC(elg3,3,-1);
     TPZAutoPointer<TPZMaterial> bc = placa->CreateBC(placa,-1,0,val1,val2);
-    bc->SetForcingFunction(BCSolution);
+    bc->SetForcingFunction(new TPZDummyFunction(BCSolution));
     cmesh->InsertMaterialObject(bc);
 }
 
-void BCSolution(TPZVec<REAL> &x,TPZVec<REAL> &result){
-    TPZFMatrix deriv(2,6);
+void BCSolution(const TPZVec<REAL> &x,TPZVec<REAL> &result){
+    TPZFMatrix<REAL> deriv(2,6);
     Solution(x,result,deriv);
 }
 
-void Solution(TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix &deriv){
-    TPZFMatrix eixos(3,3,0.);
+void Solution(const TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix<REAL> &deriv){
+    TPZFMatrix<REAL> eixos(3,3,0.);
     eixos(0,0) = 1.0;
     eixos(1,1) = 1.0;
     eixos(2,2) = 1.0;
-    TPZFMatrix u(6,1);
+    TPZFMatrix<REAL> u(6,1);
     LoadSolution(eixos,x,u,deriv);
     for(int i=0;i<6;i++) result[i] = u(i,0);
 }
 
-void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du){
+void LoadSolution(TPZFMatrix<REAL> &axes,const TPZVec<REAL> &X,TPZFMatrix<REAL> &u,TPZFMatrix<REAL> &du){
     
     REAL k,eps,div;
     static int key = 1;
@@ -2159,7 +2218,7 @@ void LoadSolution(TPZFMatrix &axes,TPZVec<REAL> &X,TPZFMatrix &u,TPZFMatrix &du)
     u(5,0) =  0.0;//øz
     
     //du exact
-    TPZFMatrix dur(2,6);
+    TPZFMatrix<REAL> dur(2,6);
     dur(0,0)  =  0.0;//du/dx
     dur(1,0)  =  0.0;//du/dy
     
@@ -2264,7 +2323,7 @@ TPZCompMesh *Create3DExpMesh() {
     //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
-    TPZFMatrix mp (3,1,0.);
+    TPZFMatrix<REAL> mp (3,1,0.);
     TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
     TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
@@ -2272,7 +2331,7 @@ TPZCompMesh *Create3DExpMesh() {
     //   } else {
     //     TPZMat2dLin *mat2d = new TPZMat2dLin(1);
     //     int ist,jst;
-    //     TPZFMatrix xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+    //     TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
     //     for(ist=0; ist<nstate; ist++) {
     //       if(nstate != 1) xf(ist,0) = 1.;
     //       for(jst=0; jst<nstate; jst++) {
@@ -2282,14 +2341,14 @@ TPZCompMesh *Create3DExpMesh() {
     //     mat2d->SetMaterial(xk,xc,xf);
     //     mat = mat2d;
     //   }
-    TPZFMatrix val1(1,1,0.),val2(1,1,0.);
+    TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     TPZAutoPointer<TPZMaterial> bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     
     val2(0,0)=1.;
     bc[1] = mat->CreateBC(mat,-2,0,val1,val2);
-    bc[1]->SetForcingFunction(NeumannExp);
+    bc[1]->SetForcingFunction(new TPZDummyFunction(NeumannExp));
     
     cmesh->InsertMaterialObject(mat);
     for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
