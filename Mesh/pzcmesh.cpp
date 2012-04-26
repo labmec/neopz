@@ -2137,7 +2137,7 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		double jumpNorm = 0.;
         for (int is=0; is<numbersol; is++) {
             for(int ij = 0; ij < facejump.NElements(); ij++){
-                (STATE)jumpNorm += facejump[is][ij]*facejump[is][ij];
+                jumpNorm += (REAL)facejump[is][ij]*(REAL)facejump[is][ij];
             }
         }
 		jumpNorm = sqrt(jumpNorm);

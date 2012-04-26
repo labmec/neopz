@@ -541,7 +541,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 		int dfseq = df->SequenceNumber();
 		int dfvar = fineblock.Size(dfseq);
 		for(ljn=0; ljn<dfvar; ljn++) {
-			(STATE)fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
+			fineblock(dfseq,0,ljn,0) = projectmat(iv/nvar,iv%nvar);
 			iv++;
 		}
 	}
