@@ -347,6 +347,48 @@ void *TPZDohrPrecondV2SubDataList<TSubStruct>::ThreadWork(void *voidptr)
 	return voidptr;
 }
 
+/** @brief Routines to send and receive messages */
+
+template<>
+int TPZDohrPrecond<TPZDohrSubstruct>::ClassId() const
+{
+    return TPZDOHRPRECOND;
+}
+template<>
+int TPZDohrPrecond<TPZDohrSubstructCondense>::ClassId() const
+{
+    return TPZDOHRPRECONDCONDENSE;
+}
+/**
+ * @brief Unpacks the object structure from a stream of bytes
+ * @param buf The buffer containing the object in a packed form
+ * @param context 
+ */
+template<class TSubStruct>
+void TPZDohrPrecond<TSubStruct>::Read(TPZStream &buf, void *context )
+{
+    TPZDohrMatrix<TSubStruct> *ptr = (TPZDohrMatrix<TSubStruct> *)(context);
+    fAssemble = ptr->fAssembly;
+    fGlobal = ptr->SubStructures();
+    buf.Read(&fNumCoarse);
+    buf.Read(&fNumThreads);
+    fCoarse = dynamic_cast<TPZStepSolver<REAL> *>(TPZSaveable::Restore(buf, 0));
+}
+/**
+ * @brief Packs the object structure in a stream of bytes
+ * @param buf Buffer which will receive the bytes
+ * @param withclassid
+ */
+template<class TSubStruct>
+void TPZDohrPrecond<TSubStruct>::Write( TPZStream &buf, int withclassid )
+{
+    buf.Write(&fNumCoarse);
+    buf.Write(&fNumThreads);
+    fCoarse->Write(buf,1);
+}
+
+
+
 
 template class TPZDohrPrecond<TPZDohrSubstruct>;
 template class TPZDohrPrecond<TPZDohrSubstructCondense>;

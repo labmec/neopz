@@ -475,3 +475,93 @@ const TPZVec<int> &TPZDohrSubstructCondense::ScatterVec(ENumbering origin, ENumb
 		return dummyvec;
 	}
 }
+
+/** @brief method for streaming the object to a stream */
+void TPZDohrSubstructCondense::Write(TPZStream &out)
+{
+    if(fMatRedComplete)
+    {
+        int one = 1;
+        out.Write(&one);
+        fMatRedComplete->Write(out,0);
+    }
+    else {
+        int zero = 0;
+        out.Write(&zero);
+    }
+    out.Write(&fNEquations);
+    out.Write(&fNumInternalEquations);
+    out.Write(&fNumExternalEquations);
+    TPZSaveable::WriteObjects(out, fCoarseNodes);
+    fPhiC.Write(out, 0);
+    fPhiC_Weighted_Condensed.Write(out, 0);
+    TPZSaveable::WriteObjects(out, fWeights);
+    fKCi.Write(out, 0);
+    std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
+    int sc = fPermutationsScatter.size();
+    out.Write(&sc);
+    for (it=fPermutationsScatter.begin(); it != fPermutationsScatter.end(); it++) {
+        int a = it->first.first;
+        int b = it->first.second;
+        out.Write(&a);
+        out.Write(&b);
+        TPZSaveable::WriteObjects(out, it->second);
+    }
+    if (fMatRed) {
+        int one = 1;
+        out.Write(&one);
+        fMatRed->Write(out, 0);
+    }
+    else {
+        int zero = 0;
+        out.Write(&zero);
+    }
+    
+    fLocalLoad.Write(out, 0);
+    fLocalWeightedResidual.Write(out, 0);
+    fAdjustSolution.Write(out, 0);
+}
+
+/** @brief method for reading the object for a stream */
+void TPZDohrSubstructCondense::Read(TPZStream &input)
+{
+    int a;
+    input.Read(&a);
+    if (a) {
+        fMatRedComplete = new TPZMatRed<REAL, TPZFMatrix<REAL> >;
+        fMatRedComplete->Read(input,0);
+    }
+    
+    input.Read(&fNEquations);
+    input.Read(&fNumInternalEquations);
+    input.Read(&fNumExternalEquations);
+    TPZSaveable::ReadObjects(input, fCoarseNodes);
+    fPhiC.Read(input, 0);
+    fPhiC_Weighted_Condensed.Read(input, 0);
+    TPZSaveable::ReadObjects(input, fWeights);
+    fKCi.Read(input, 0);
+    int nc;
+    input.Read(&nc);
+    for (int ic=0; ic<nc; ic++) {
+        int a;
+        int b;
+        input.Read(&a);
+        input.Read(&b);
+        ENumbering orig = (ENumbering)(a),dest = (ENumbering)(b);
+        std::pair<ENumbering, ENumbering> p(orig,dest);
+        TPZSaveable::ReadObjects(input, fPermutationsScatter[p]);
+    }
+    int control;
+    input.Read(&control);
+    if(control)
+    {
+        fMatRed = new TPZMatRed<REAL, TPZFMatrix<REAL> >;
+        fMatRed->Read(input, 0);
+    }
+    fLocalLoad.Read(input, 0);
+    fLocalWeightedResidual.Read(input, 0);
+    fAdjustSolution.Read(input, 0);
+    
+    
+}
+

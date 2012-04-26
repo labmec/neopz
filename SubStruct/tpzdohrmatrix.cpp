@@ -180,6 +180,74 @@ void *TPZDohrThreadMultList<TSubStruct>::ThreadWork(void *ptr)
 	return ptr;
 }
 
+template <>
+int TPZDohrMatrix<TPZDohrSubstructCondense>::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCTCONDENSE;
+}
+
+template <>
+int TPZDohrMatrix<TPZDohrSubstruct>::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCT;
+}
+
+/**
+ * @brief Unpacks the object structure from a stream of bytes
+ * @param buf The buffer containing the object in a packed form
+ * @param context 
+ */
+template <>
+void TPZDohrMatrix<TPZDohrSubstructCondense>::Read(TPZStream &buf, void *context )
+{
+    TPZMatrix<REAL>::Read(buf, context);
+    fAssembly = new TPZDohrAssembly;
+    fAssembly->Read(buf);
+    buf.Read(&fNumCoarse);
+    buf.Read(&fNumThreads);
+    int sz;
+    buf.Read(&sz);
+    for (int i=0; i<sz; i++) {
+        TPZAutoPointer<TPZDohrSubstructCondense> sub = new TPZDohrSubstructCondense;
+        sub->Read(buf);
+        fGlobal.push_back(sub);
+    }
+}
+/**
+ * @brief Packs the object structure in a stream of bytes
+ * @param buf Buffer which will receive the bytes
+ * @param withclassid
+ */
+template <>
+void TPZDohrMatrix<TPZDohrSubstructCondense>::Write( TPZStream &buf, int withclassid )
+{
+    TPZMatrix<REAL>::Write(buf, withclassid);
+    fAssembly->Write(buf);
+    buf.Write(&fNumCoarse);
+    buf.Write(&fNumThreads);
+    SubsList::iterator it;
+    int size = fGlobal.size();
+    buf.Write(&size);
+    for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
+        (*it)->Write(buf);
+    }
+    size = 0;
+}
+
+template <>
+void TPZDohrMatrix<TPZDohrSubstruct>::Read(TPZStream &buf, void *context )
+{
+    DebugStop();
+}
+
+template <>
+void TPZDohrMatrix<TPZDohrSubstruct>::Write( TPZStream &buf, int withclassid )
+{
+    DebugStop();
+}
+
 template class TPZDohrMatrix<TPZDohrSubstruct>;
 template class TPZDohrMatrix<TPZDohrSubstructCondense>;
+
+template class TPZRestoreClass< TPZDohrMatrix<TPZDohrSubstructCondense> , TPZDOHRMATRIXSUBSTRUCTCONDENSE>;
+template class TPZRestoreClass< TPZDohrMatrix<TPZDohrSubstruct> , TPZDOHRMATRIXSUBSTRUCT>;
+
 

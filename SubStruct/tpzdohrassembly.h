@@ -24,7 +24,7 @@ class TPZFMatrix;
  * @ingroup substructure
  * @brief Assembling using Dohrmann algorithm. \ref substructure "Sub structure"
  */
-class TPZDohrAssembly : public TPZSaveable
+class TPZDohrAssembly
 // @TODO Implement the methods to make the class actually saveable
 {
 public:
@@ -49,6 +49,12 @@ public:
 	
 	/** @brief Extract the values from the global matrix into the local matrix */
 	void ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local);
+    
+    /** @brief method for streaming the object to a stream */
+    void Write(TPZStream &out);
+    
+    /** @brief method for reading the object for a stream */
+    void Read(TPZStream &input);
 };
 
 #endif

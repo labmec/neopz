@@ -191,6 +191,7 @@ template<>
 void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &TransfToOrthog)
 {
 	std::cout << "Nothing to do\n";
+    DebugStop();
 }
 
 template <class TVar>

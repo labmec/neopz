@@ -43,7 +43,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat): TPZMaterial(nummat),fE(0.), fPoiss
     SetC();
 }
 
-TPZElasticity3D::TPZElasticity3D() : TPZMaterial(0),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
+TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
 fFy(0.){}
 
 TPZElasticity3D::~TPZElasticity3D(){}

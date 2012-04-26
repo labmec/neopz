@@ -18,6 +18,7 @@
 #include <math.h>
 
 #include "pzsave.h"
+#include "pzmatrixid.h"
 
 template <class T>
 class TPZVec;
@@ -27,8 +28,6 @@ class TPZVec;
  * @{ 
  */
 
-/** @brief Id of full matrix */
-const int TPZFMATRIXID = 100;
 
 /** @brief MACRO to get MAT(row,col) entry */
 #define GETVAL(MAT,rows,row,col) MAT->fElem[((unsigned)col)*rows+row]

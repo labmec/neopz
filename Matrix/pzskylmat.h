@@ -144,17 +144,27 @@ public:
 	
 	//void TestSpeed(int col, int prevcol);
 	
-#ifdef OOPARLIB
 	
-	virtual long GetClassID() const    { return TSKYMATRIX_ID; }
-	virtual int Unpack( TReceiveStorage *buf );
-	static TSaveable *Restore(TReceiveStorage *buf);
-	virtual int Pack( TSendStorage *buf ) const;
+	virtual int ClassId() const    
+    { 
+        return TSKYLMATRIX_ID; 
+    }
+    /**
+	 * @brief Unpacks the object structure from a stream of bytes
+	 * @param buf The buffer containing the object in a packed form
+	 * @param context 
+	 */
+	virtual void  Read(TPZStream &buf, void *context );
+	/**
+	 * @brief Packs the object structure in a stream of bytes
+	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
+	 */
+	virtual void Write( TPZStream &buf, int withclassid );
+	
+
 	virtual char *ClassName() const   { return( "TPZSkylMatrix"); }
-	virtual int DerivedFrom(const long Classid) const;
-	virtual int DerivedFrom(const char *classname) const; // a class with name classname
 	
-#endif
 	
 protected:
 	
@@ -176,7 +186,7 @@ private:
 	void Copy (const TPZSkylMatrix<TVar> & );
 	int Size(const int column) const {return fElem[column+1]-fElem[column];}
 	static int NumElements(const TPZVec<int> &skyline);
-	static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<REAL> &storage, TPZVec<REAL *> &elem);
+	static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
 	/**
      @brief Computes the highest skyline of both objects
 	 */
@@ -189,23 +199,23 @@ protected:
 	 * fElem[i] is the first element of the skyline of equation i
 	 * fElem[Rows()] is one element beyond the last equation
 	 */
-	TPZVec<REAL *> fElem;
+	TPZVec<TVar *> fElem;
 private:
 	/**
      @brief fStorage is a unique vector which contains all the data of the skyline matrix
 	 */
-	TPZManVector<REAL> fStorage;
+	TPZManVector<TVar> fStorage;
 };
 
 /** @brief Implements iterative sum over N steps */
-template<int N,class TVar>
+template<class TVar,int N>
 inline TVar TemplateSum(const TVar *p1, const TVar *p2){
 	return *p1* *p2 + TemplateSum<N-1>(p1+1,p2+1);
 	
 }
 /** @brief Implements product of the values into p1 and p2 */
 template<>
-inline REAL TemplateSum<1>(const REAL *p1, const REAL *p2){
+inline double TemplateSum<double,1>(const double *p1, const double *p2){
 	return *p1 * *p2;
 }
 

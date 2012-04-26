@@ -120,6 +120,23 @@ public:
 	void ComputeV1(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v1) const;
 	/** @brief Compute the contribution of the sub domains */
 	void ComputeV2(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v2) const;
+    
+	/** @brief Routines to send and receive messages */
+	virtual int ClassId() const;	
+    /**
+	 * @brief Unpacks the object structure from a stream of bytes
+	 * @param buf The buffer containing the object in a packed form
+	 * @param context 
+	 */
+	virtual void  Read(TPZStream &buf, void *context );
+	/**
+	 * @brief Packs the object structure in a stream of bytes
+	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
+	 */
+	virtual void Write( TPZStream &buf, int withclassid );
+	
+
 };
 
 #include <pthread.h>

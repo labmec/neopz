@@ -36,7 +36,7 @@
  * @author Philippe Devloo
  * @ingroup substructure
  */
-class TPZDohrSubstructCondense : public TPZSaveable
+class TPZDohrSubstructCondense
 {
 public:
 	TPZDohrSubstructCondense();
@@ -144,6 +144,12 @@ public:
 	/** This method does not resize the elements */
 	static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<REAL> &input, TPZFMatrix<REAL> &output, int first, int last);
 	
+    /** @brief method for streaming the object to a stream */
+    void Write(TPZStream &out);
+    
+    /** @brief method for reading the object for a stream */
+    void Read(TPZStream &input);
+
 public:
 	/**
 	 * @brief It prepares the datas for solving systems for phi and zi

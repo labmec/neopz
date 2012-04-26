@@ -15,8 +15,6 @@
 template<class TVar>
 class TPZFMatrix;
 
-/** @ingroup solvers */
-#define TPZSTEPSOLVER_ID 28291007
 
 /**
  @brief Defines step solvers class. \ref solver "Solver"
@@ -112,10 +110,7 @@ public:
     }
 	
 	/** @brief Serialization methods */
-	virtual int ClassId() const
-	{
-		return TPZSTEPSOLVER_ID;
-	}
+	virtual int ClassId() const;
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
 	

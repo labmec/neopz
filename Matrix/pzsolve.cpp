@@ -81,7 +81,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid)
 		LOGPZ_DEBUG(logger,sout.str());
 	}
 #endif
-	TPZSaveable::Write(buf,withclassid);
+	TPZSolver<TVar>::Write(buf,withclassid);
 	if(fContainer)
 	{
 #ifdef LOG4CXX
@@ -127,7 +127,7 @@ void TPZMatrixSolver<TVar>::Write(TPZStream &buf, int withclassid)
 template <class TVar>
 void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 {
-	TPZSaveable::Read(buf,context);
+	TPZSolver<TVar>::Read(buf,context);
 	fContainer = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
 	fReferenceMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
 }

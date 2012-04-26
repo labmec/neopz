@@ -77,8 +77,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	/* Quando se está usando o tal log4cxx */
+	// Quando se está usando o tal log4cxx 
 	//	InitializePZLOG("log4cxx.cfg");
+    
 	InitializePZLOG();
 	
 	TPZTimer total;
@@ -89,8 +90,8 @@ int main(int argc, char *argv[])
 	int maxlevel = 5;
 	int sublevel = 3;
 	int plevel = 1;
-	TPZPairStructMatrix::gNumThreads = 2;
-	int numthreads = 4;
+	TPZPairStructMatrix::gNumThreads = 0;
+	int numthreads = 0;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
 		else 
 		{
 			dim = 3;
-			if (1) // Predio Elastisco
+			if (0) // Predio Elastisco
 			{
 				gmesh = MalhaPredio();
 				cmesh = new TPZCompMesh(gmesh);
@@ -128,16 +129,7 @@ int main(int argc, char *argv[])
 				InsertViscoElasticityCubo(cmesh);
 				cmesh->AutoBuild();
 				
-				//Teste caso fosse uma malha normal. Funciona!!
-				/*
-				 TPZSkylineStructMatrix skylstruc(cmesh);
-				 TPZStepSolver<REAL> step;
-				 step.SetDirect(ECholesky);
-				 TPZAnalysis an(cmesh);
-				 an.SetStructuralMatrix(skylstruc);
-				 an.SetSolver(step);
-				 an.Run();
-				 */
+
 			}
 			
 			
@@ -145,8 +137,8 @@ int main(int argc, char *argv[])
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
-		int numthread_assemble = 4;
-		int numthread_decompose = 4;
+		int numthread_assemble = 0;
+		int numthread_decompose = 0;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
@@ -169,25 +161,117 @@ int main(int argc, char *argv[])
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
-		
+        {
+            TPZFileStream CheckPoint1;
+            CheckPoint1.OpenWrite("CheckPoint1.txt");
+            cmesh->Reference()->Write(CheckPoint1, 0);
+            cmesh->Write(CheckPoint1, 0);
+        }
+        {
+            TPZFileStream CheckPoint1;
+            CheckPoint1.OpenRead("CheckPoint1.txt");
+            TPZGeoMesh locgmesh;
+            locgmesh.Read(CheckPoint1, 0);
+            TPZCompMesh loccmesh(&locgmesh);
+            loccmesh.Read(CheckPoint1, &locgmesh);
+            
+        }
 		
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
 		TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
-		TPZAutoPointer<TPZMatrix<REAL> > dohr = dohrstruct.CreateAssemble(rhs, gui);
+        
+        TPZMatrix<REAL> *matptr = dohrstruct.Create();
+        {
+            TPZFileStream CheckPoint2;
+            CheckPoint2.OpenWrite("CheckPoint2.txt");
+            cmesh->Reference()->Write(CheckPoint2, 0);
+            cmesh->Write(CheckPoint2, 0);
+            matptr->Write(CheckPoint2, 1);
+        }
+        {
+            TPZFileStream CheckPoint2;
+            CheckPoint2.OpenRead("CheckPoint2.txt");
+            TPZGeoMesh gmesh;
+            gmesh.Read(CheckPoint2,0);
+            TPZCompMesh cmesh;
+            cmesh.Read(CheckPoint2, &gmesh);
+            TPZMatrix<REAL> *mat;
+            mat = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            delete mat;
+            
+        }
+        dohrstruct.Assemble(*matptr,rhs, gui);
+        
+        
+        
+		TPZAutoPointer<TPZMatrix<REAL> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
 		
+        {
+            TPZFileStream CheckPoint3;
+            CheckPoint3.OpenWrite("CheckPoint3.txt");
+            cmesh->Reference()->Write(CheckPoint3, 0);
+            cmesh->Write(CheckPoint3, 0);
+            dohr->Write(CheckPoint3, 1);
+            precond->Write(CheckPoint3, 1);
+        }
+        {
+            TPZFileStream CheckPoint3;
+            CheckPoint3.OpenRead("CheckPoint3.txt");
+            TPZGeoMesh gmesh;
+            gmesh.Read(CheckPoint3, 0);
+            TPZCompMesh cmesh;
+            cmesh.Read(CheckPoint3, &gmesh);
+            TPZMatrix<REAL> *matdohr;
+            matdohr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZMatrix<REAL> *matprecond;
+            matprecond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            delete matprecond;
+            delete matdohr;
+        }
+        
+        int neq = dohr->Rows();
+        
+        
+        TPZFMatrix<REAL> unitary(neq,neq);
+        unitary.Identity();
+        TPZFMatrix<REAL> result;
+        dohr->Multiply(unitary, result);
+        std::list<int> sing;
+        {
+            std::ofstream resfile("result.nb");
+            result.Print("result = ",resfile,EMathematicaInput);
+            result.Decompose_Cholesky(sing);
+            
+        }
 		
-		TPZFMatrix<REAL> diag(dohr->Rows(),1,5.), produto(dohr->Rows(),1);
+		TPZFMatrix<REAL> diag(dohr->Rows(),1,0.), produto(dohr->Rows(),1);
+        
+        
+        std::list<int>::iterator it2;
+        it2 = sing.begin();
+        if (it2 != sing.end()) {
+            diag(*it2,0) = 1.;
+        }
+        result.SolveDirect(diag, ECholesky, sing);
+        
+        
+        
+        
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
-		//	tempo.fNumEqCoarse = dohr->Rows();	// alimenta timeTemp com o numero de equacoes coarse
-		dohr->Multiply(diag,produto);
-		
+        
 		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
 		if (!dohrptr) {
 			DebugStop();
 		}
+        
+        /*
+        
+		//	tempo.fNumEqCoarse = dohr->Rows();	// alimenta timeTemp com o numero de equacoes coarse
+		dohr->Multiply(diag,produto);
+		
 		dohrptr->AdjustResidual(produto);
 		
 #ifdef LOG4CXX
@@ -224,7 +308,8 @@ int main(int argc, char *argv[])
 		//	if (shouldprint == true) tempo.PrintHeader(OutputFile);	// prints the header if It is the first time the program is executed
 		
 		//	tempo.PrintLine(OutputFile);	// print all the information in one line
-		
+		*/
+         
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -249,7 +334,6 @@ int main(int argc, char *argv[])
 			
 			//ViscoElastico
 			//Atualizando memoria do material
-			/*
 			std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(submesh->MaterialVec());
 			std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator itmat;
 			for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
@@ -261,7 +345,6 @@ int main(int argc, char *argv[])
 					vmat->SetUpdateMem();
 				}
 			}	
-			*/
 			subcount++;
 			it++;
 		}
@@ -307,23 +390,24 @@ int main(int argc, char *argv[])
 		vtkmesh.DrawSolution(istep, 1.);
 		
 		//ViscoElastico
-		/*
-		std::cout << "To seguindo!!!" << std::endl;
-		for (istep = 1 ; istep < nsteps ; istep++)
-		{
-			TPZAutoPointer<TPZGuiInterface> guifake;
-			dohrstruct.Assemble( rhs, guifake);
-			cg.Solve(rhs,diag);	
-			vtkmesh.DrawMesh(numcases);
-			vtkmesh.DrawSolution(istep, 1.);	
-		}
-		 */
+		
+//		std::cout << "To seguindo!!!" << std::endl;
+//		for (istep = 1 ; istep < nsteps ; istep++)
+//		{
+//			TPZAutoPointer<TPZGuiInterface> guifake;
+//			dohrstruct.Assemble( rhs, guifake);
+//			cg.Solve(rhs,diag);	
+//			vtkmesh.DrawMesh(numcases);
+//			vtkmesh.DrawSolution(istep, 1.);	
+//		}
+		 
 	}
 	
 	total.stop();
 	std::cout << "TEMPO = " << total.seconds() << std::endl;
 	
 	delete gmesh;
+
 	return EXIT_SUCCESS;
 }
 
@@ -636,17 +720,17 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	
 	val2.Zero();
 	// Dirichlet em -1 -1 -1 xyz;
-	val1(0,0) = 1e-12;
-	val1(1,1) = 1e-12;
-	val1(2,2) = 1e-12;
+	val1(0,0) = 1e4;
+	val1(1,1) = 1e4;
+	val1(2,2) = 1e4;
 	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto1(bc1);
 	mesh->InsertMaterialObject(bcauto1);
 	
 	// Dirichlet em 1 -1 -1 yz;
 	val1(0,0) = 0.;
-	val1(1,1) = 1e-12;
-	val1(2,2) = 1e-12;
+	val1(1,1) = 1e4;
+	val1(2,2) = 1e4;
 	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto2(bc2);
 	mesh->InsertMaterialObject(bcauto2);
@@ -654,7 +738,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	// Dirichlet em 1 1 -1 z;
 	val1(0,0) = 0.;
 	val1(1,1) = 0.;
-	val1(2,2) = 1e-12;
+	val1(2,2) = 1e4;
 	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
 	TPZAutoPointer<TPZMaterial> bcauto3(bc3);
 	mesh->InsertMaterialObject(bcauto3);

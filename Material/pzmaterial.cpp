@@ -277,7 +277,14 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write(&fId,1);
 	buf.Write(&gBigNumber,1);
-    fForcingFunction->Write(buf, 1);
+    if(fForcingFunction)
+    {
+        fForcingFunction->Write(buf, 1);
+    }
+    else {
+        int minone = -1;
+        buf.Write(&minone);
+    }
     /*
 	 int forcingIdx = -1;
 	 if (fForcingFunction)
@@ -308,6 +315,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
 	buf.Read(&fId,1);
 	buf.Read(&gBigNumber,1);
     TPZSaveable *sav = TPZSaveable::Restore(buf, context);
+    if(sav)
     {
         TPZFunction *func = dynamic_cast<TPZFunction *>(sav);
         if(!func) 

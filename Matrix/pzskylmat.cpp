@@ -107,7 +107,7 @@ void TPZSkylMatrix<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat)
     if (fStorage.NElements() != skylmat->fStorage.NElements()) {
         DebugStop();
     }
-    memcpy(&fStorage[0], &(skylmat->fStorage[0]) , fStorage.NElements()*sizeof(REAL));
+    memcpy(&fStorage[0], &(skylmat->fStorage[0]) , fStorage.NElements()*sizeof(TVar));
     this->fDecomposed = skylmat->fDecomposed;
     this->fDefPositive = skylmat->fDefPositive;
 }
@@ -128,7 +128,7 @@ int TPZSkylMatrix<TVar>::NumElements(const TPZVec<int> &skyline) {
 }
 
 template<class TVar>
-void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline, TPZManVector<REAL> &storage, TPZVec<REAL *> &point) {
+void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &point) {
 	int dim = skyline.NElements();
 	int nel = NumElements(skyline);
 	storage.Resize(nel);
@@ -342,7 +342,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 				for(i=ifirst; i!=ilast; i+= iinc) {
 					//TPZColuna *mydiag = &fDiag[i];
 					int offset = Size(i);
-					//	REAL val = scratch(i,ic);
+					//	TVar val = scratch(i,ic);
 					TVar *diag;
 					TVar *diaglast = fElem[i];
 					TVar *scratchp = &scratch(i-offset+1,ic);
@@ -556,7 +556,7 @@ TPZSkylMatrix<TVar>::operator-=(const TPZSkylMatrix<TVar> &A )
 
 
 /*****************************/
-/*** Operator * ( REAL ) ***/
+/*** Operator * ( TVar ) ***/
 
 template<class TVar>
 TPZSkylMatrix<TVar>
@@ -582,7 +582,7 @@ TPZSkylMatrix<TVar>::operator*(const TVar value ) const
 
 
 /******************************/
-/*** Operator *= ( REAL ) ***/
+/*** Operator *= ( TVar ) ***/
 
 template<class TVar>
 TPZSkylMatrix<TVar> &
@@ -882,7 +882,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	// Third try
 	TVar *elj,*ell;
 	int j,l,minj,minl,minrow,dimension = this->Dim();
-	TPZVec<REAL> diag(dimension);
+	TPZVec<TVar> diag(dimension);
 	for(j=0; j<dimension; j++)
 	{
 		diag[j] = *fElem[j];
@@ -1107,7 +1107,7 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 		for ( int j = 0; j < B->Cols(); j++ ) {
 			// Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
 			//
-			//		REAL val = 0.0;
+			//		TVar val = 0.0;
 			TVar *elem_ki = fElem[k]+1;
 			TVar *end_ki  = fElem[k+1];
 			TVar *BPtr = &(*B)(k,j);
@@ -1201,58 +1201,39 @@ TPZSkylMatrix<TVar>
 TPZSkylMatrix<TVar>::operator-() const { return operator*(-1.0); }
 
 
-#ifdef OOPARLIB
-
-int TPZSkylMatrix<TVar>::Unpack (TReceiveStorage *buf ){
-	TSimMatrix::Unpack(buf);
-	int rows;
-	buf->UpkInt(&rows);
-	Redim(rows,rows);
-	int sz;
-	for(int i=0;i<rows;i++) {
-		sz=fDiag[i].size;
-		buf->UpkInt(&sz);
-		for (int j=0;j<sz;j++) {
-			buf->UpkDouble(fDiag[i].pElem);
-		}
-	}
-	return 1;
+template <class TVar>
+void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
+{
+    TPZMatrix<TVar>::Read(buf, context);
+    TPZSaveable::ReadObjects(buf, fStorage);
+    TPZVec<int> skyl(this->Rows()+1,0);
+    TPZSaveable::ReadObjects(buf, skyl);
+    TVar *ptr = 0;
+    if (this->Rows()) {
+        ptr = &fStorage[0];
+    }
+    fElem.Resize(this->Rows()+1);
+    for (int i=0; i<this->Rows()+1; i++) {
+        fElem[i] = skyl[i] + ptr;
+    }
 }
 
-int TPZSkylMatrix::Pack( TSendStorage *buf ){
-	TSimMatrix::Pack(buf);
-	int rows = Rows();
-	int sz;
-	for (int i=0;i<rows;i++) {
-		buf->PkInt(&sz);
-		fDiag[i].size=sz;
-		fDiag[i].vetSize=sz;
-		fDiag[i].pElem=new REAL[sz];
-		for (int j=0;j<sz;j++) {
-			buf->PkDouble(fDiag[i].pElem);
-		}
-	}
-	return 1;
+template <class TVar>
+void TPZSkylMatrix<TVar>::Write( TPZStream &buf, int withclassid )
+{
+	TPZMatrix<TVar>::Write(buf,withclassid);
+    TPZSaveable::WriteObjects(buf, fStorage);
+    TPZVec<int> skyl(this->Rows()+1,0);
+    TVar *ptr = 0;
+    if (this->Rows()) {
+        ptr = &fStorage[0];
+    }
+    for (int i=0; i<this->Rows()+1; i++) {
+        skyl[i] = fElem[i] - ptr;
+    }
+    TPZSaveable::WriteObjects(buf, skyl);
 }
 
-TSaveable *TPZSkylMatrix::Restore(TReceiveStorage *buf) {
-	TPZSkylMatrix *m = new TPZSkylMatrix(0);
-	m->Unpack(buf);
-	return m;
-}
-
-
-int TPZSkylMatrix::DerivedFrom(long Classid){
-	if(Classid == GetClassID()) return 1;
-	return TSimMatrix::DerivedFrom(Classid);
-}
-
-int TPZSkylMatrix::DerivedFrom(char *classname){
-	if(!strcmp(ClassName(),classname)) return 1;
-	return TSimMatrix::DerivedFrom(classname);
-}
-
-#endif
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::DecomposeColumn(int col, int prevcol){
@@ -1482,4 +1463,6 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
  }
  */
 
-template class TPZSkylMatrix<REAL>;
+template class TPZSkylMatrix<double>;
+
+template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_ID>;

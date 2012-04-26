@@ -51,6 +51,12 @@ public:
 	/** @brief This will create a DohrMatrix and compute its matrices */
 	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
+    /**
+	 * @brief Assemble the global system of equations into the matrix which has already been created
+	 */
+	virtual void Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	
+
 	/**
 	 * @brief Assemble the global right hand side
 	 */

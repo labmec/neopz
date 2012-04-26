@@ -112,3 +112,47 @@ void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TP
         }
     }
 }
+
+/**
+ * @brief For each substructure the equation numbering of the substructures
+ * 
+ * The order of the equations follows the ordering of the connects
+ */
+//TPZVec< TPZVec< int > > fFineEqs;
+
+/** @brief For each substructure the equation numbering of the coarse equations */
+//TPZVec< TPZVec< int > > fCoarseEqs;
+
+
+/** @brief method for streaming the object to a stream */
+void TPZDohrAssembly::Write(TPZStream &out)
+{
+    int nfine = fFineEqs.size();
+    out.Write(&nfine,1);
+    for (int f=0; f<nfine; f++) {
+        TPZSaveable::WriteObjects(out, fFineEqs[f]);
+    }
+    int ncoarse = fCoarseEqs.size();
+    out.Write(&ncoarse,1);
+    for (int nc=0; nc<ncoarse; nc++) {
+        TPZSaveable::WriteObjects(out, fCoarseEqs[nc]);
+    }
+}
+
+/** @brief method for reading the object for a stream */
+void TPZDohrAssembly::Read(TPZStream &input)
+{
+    int nfine;
+    input.Read(&nfine);
+    fFineEqs.resize(nfine);
+    for (int f=0; f<nfine; f++) {
+        TPZSaveable::ReadObjects(input, fFineEqs[f]);
+    }
+    int ncoarse;
+    input.Read(&ncoarse);
+    fCoarseEqs.resize(ncoarse);
+    for (int nc=0; nc<ncoarse; nc++) {
+        TPZSaveable::ReadObjects(input, fCoarseEqs[nc]);
+    }    
+}
+

@@ -241,12 +241,23 @@ TPZMatrix<REAL> * TPZDohrStructMatrix::Create()
 	return dohr;
 }
 
+
+
 // this will create a DohrMatrix and compute its matrices
 TPZMatrix<REAL> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	std::cout << "Computing the system of equations for each substructure\n";
 	TPZMatrix<REAL> *dohrgeneric = Create();
-	
+    Assemble(*dohrgeneric, rhs, guiInterface);
+    return dohrgeneric;
+}
+    /**
+     * @brief Assemble the global system of equations into the matrix which has already been created
+     */
+void TPZDohrStructMatrix::Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+    
+    TPZMatrix<REAL> *dohrgeneric = &mat;    
 	TPZDohrMatrix<TPZDohrSubstructCondense> *dohr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohrgeneric);
 	const std::list<TPZAutoPointer<TPZDohrSubstructCondense> > &sublist = dohr->SubStructures();
 	
@@ -836,7 +847,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	TPZStack<int> elgraph,elgraphindex;
 	fMesh->ComputeElGraph(elgraph,elgraphindex);
 	metis.SetElementGraph(elgraph, elgraphindex);
-	TPZVec<int> domain_index(nel,-1);
+	TPZManVector<int> domain_index(nel,-1);
 	metis.Subdivide(nsub, domain_index);
 #ifdef DEBUG 
 	{

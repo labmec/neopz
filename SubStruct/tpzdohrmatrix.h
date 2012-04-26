@@ -141,6 +141,29 @@ public:
 	
 	/** @brief Add the solution corresponding to the internal residual */
 	void AddInternalSolution(TPZFMatrix<REAL> &solution);
+    
+	/**
+	 * @name TPZSaveable
+	 * Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 */
+	//@{
+	/**
+	 * @brief Unpacks the object structure from a stream of bytes
+	 * @param buf The buffer containing the object in a packed form
+	 * @param context 
+	 */
+	virtual void  Read(TPZStream &buf, void *context );
+	/**
+	 * @brief Packs the object structure in a stream of bytes
+	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
+	 */
+	virtual void Write( TPZStream &buf, int withclassid );
+    
+    /** @brief Routines to send and receive messages */
+	virtual int ClassId() const;
+	
+
 	
 };
 

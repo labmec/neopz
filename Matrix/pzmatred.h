@@ -21,11 +21,8 @@
 #define _TMATREDHH_
 
 //#include "tintvec.h"
+#include "pzmatrixid.h"
 
-/** @brief Id of TPZMATRED matrix very sparse */
-#define TPZMATRED_VERYSPARSE_ID 28291103
-/** @brief If of TPZMATRED full matrix */
-#define TPZMATRED_FMATRIX_ID 28291102
 
 #include "pzmatrix.h"
 #include "pzreal.h"
