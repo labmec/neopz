@@ -88,16 +88,24 @@ typedef long double REAL;
 /** @brief This is the type of State PZ will use. */
 #ifdef STATEfloat
 typedef float STATE;
-#elif STATEdouble
+#endif
+#ifdef STATEdouble
 typedef double STATE; //This is the default configuration
-#elif STATElongdouble
+#endif
+#ifdef STATElongdouble
 typedef long double STATE;
-#elif STATEcomplexf
+#endif
+#ifdef STATEcomplexf
 typedef std::complex<float> STATE;
-#elif STATEcomplexd
+#define STATE_COMPLEX
+#endif
+#ifdef STATEcomplexd
 typedef std::complex<double> STATE;
-#elif STATEcomplexld
+#define STATE_COMPLEX
+#endif
+#ifdef STATEcomplexld
 typedef std::complex<long double> STATE;
+#define STATE_COMPLEX
 #endif
 
 // fabs function adapted to complex numbers.
