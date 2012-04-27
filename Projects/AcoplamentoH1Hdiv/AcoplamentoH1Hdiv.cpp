@@ -228,7 +228,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		return;
 }
 
-void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
+void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 		double x = pt[0];
 		double y = pt[1];
 		TPZVec<REAL> disp;
@@ -562,8 +562,9 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
         TPZAutoPointer<TPZFunction> force = new TPZDummyFunction(Forcing1);
 	  mat1->SetForcingFunction(force);
 		mat2->SetForcingFunction(force);
-		mat1->SetForcingFunctionExact(SolExata);
-		mat2->SetForcingFunctionExact(SolExata);
+		TPZAutoPointer<TPZFunction> exata = new TPZDummyFunction(SolExata);
+		mat1->SetForcingFunctionExact(exata);
+		mat2->SetForcingFunctionExact(exata);
 		
 		TPZFMatrix<REAL> k(1,1,0.),f(1,1,0.);
 		//k(0,0)=BIG;

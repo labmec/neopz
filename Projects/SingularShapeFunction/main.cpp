@@ -123,7 +123,7 @@ int main() {
 #include "TPZCopySolve.h"
 #include "TPZSpStructMatrix.h"
 
-void ExactSolution(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &deriv) {
+void ExactSolution(const TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &deriv) {
   u.Resize(1);
   deriv.Resize(2,1);
   double Xp = x[0];

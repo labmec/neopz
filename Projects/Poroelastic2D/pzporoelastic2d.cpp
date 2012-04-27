@@ -542,21 +542,21 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 
 	//solucao pressao exata
 	if(var == 10){
-		fForcingFunctionExact(datavec[1].x, solExata,flux);
+		fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
 		Solout[0] = solExata[0];
 		return;
 	}//var10
 	
 	//solucao deslocamento y exata
 	if(var == 11){
-		fForcingFunctionExact(datavec[0].x, solExata,flux);
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[1];
 		return;
 	}//var11
 	
 	//solucao sigmaY exata
 	if(var == 12){
-		fForcingFunctionExact(datavec[0].x, solExata,flux);
+		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
 		Solout[0] = solExata[2];
 		return;
 	}//var12

@@ -530,14 +530,14 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				//TPZVec<REAL> pto(3);
 			//	TPZFMatrix<REAL> flux(3,1);
 				
-				fForcingFunctionExact(data.x,pressure,flux);
+				fForcingFunctionExact->Execute(data.x,pressure,flux);
 				
 				Solout[0]=pressure[0];
 			//}
 			break;
 		case 13:
 			//if (fForcingFunctionExact) {
-				fForcingFunctionExact(data.x,pressure,flux);
+				fForcingFunctionExact->Execute(data.x,pressure,flux);
 				
 				Solout[0]=flux(0,0);
 				Solout[1]=flux(1,0);

@@ -69,12 +69,14 @@ class TPZDummyFunction : public TPZFunction
 {
 
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<REAL> &f);
+    void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &gradf);
 public:
 	
 	/** @brief Class constructor */
 	TPZDummyFunction()
     {
         fFunc = 0;
+	fFunc2 = 0;
     }
 	
 	/** @brief Class destructor */
@@ -86,9 +88,16 @@ public:
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<REAL> &val))
     {
         fFunc = FuncPtr;
+	fFunc2 = 0;
     }
     
-    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc)
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<REAL> &val, TPZFMatrix<REAL> &gradf))
+    {
+        fFunc2 = FuncPtr;
+	fFunc = 0;
+    }
+    
+    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2)
     {
         
     }
@@ -96,6 +105,7 @@ public:
     TPZDummyFunction &operator=(const TPZDummyFunction &cp)
     {
         fFunc = cp.fFunc;
+	fFunc2 = cp.fFunc2;
         return *this;
     }
 	/**
@@ -106,7 +116,10 @@ public:
 	 */
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df)
     {
-        DebugStop();
+        if (!fFunc2) {
+	  DebugStop();
+	}
+        fFunc2(x, f, df);
     }
     
     /** Versao do Execute recebendo axes. Utilizado em shape functions.
@@ -118,6 +131,9 @@ public:
     /** Simpler version of Execute method which does not compute function derivatives
      */
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f){
+      if (!fFunc) {
+	DebugStop();
+      }
         fFunc(x,f);
     }
     

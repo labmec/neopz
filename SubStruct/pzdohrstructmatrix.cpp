@@ -294,7 +294,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs
 	int itr;
 	if(guiInterface){
 		if(guiInterface->AmIKilled()){
-			return 0;
+			return ;//0;
 		}
 	}
 	
@@ -365,7 +365,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs
 	TPZDohrPrecond<TPZDohrSubstructCondense> *precond = new TPZDohrPrecond<TPZDohrSubstructCondense> (*dohr,fDohrAssembly);
 	precond->Initialize();
 	fDohrPrecond = precond;
-	return dohrgeneric;
+	return ;//dohrgeneric;
 	
 }
 

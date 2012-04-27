@@ -187,7 +187,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	disp[0]= -2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
 	return;
 }
-void SolExata(TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
+void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
 	double x = pt[0];
 	double y = pt[1];
 	TPZVec<REAL> disp;
@@ -400,7 +400,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	
     TPZAutoPointer<TPZFunction> force1 = new TPZDummyFunction(Forcing1);
 	mat->SetForcingFunction(force1);
-	mat->SetForcingFunctionExact(SolExata);
+	TPZAutoPointer<TPZFunction> exata1 = new TPZDummyFunction(SolExata);
+	mat->SetForcingFunctionExact(exata1);
 	///Inserir condicoes de contorno
 	
 	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);

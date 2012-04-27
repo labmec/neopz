@@ -49,8 +49,9 @@ protected:
     TPZAutoPointer<TPZFunction> fForcingFunction;
     //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
-	void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
-								   TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux);
+//	void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
+//								   TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux);
+    TPZAutoPointer<TPZFunction> fForcingFunctionExact;
     /** @brief Defines whether the equation context is linear solver or non linear */
     /**
      * True means linear (default)
@@ -264,8 +265,7 @@ public:
 	//	{
 	//		fForcingFunctionExact = fp;
 	//	}
-	void SetForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,
-											TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux))
+	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction> fp)
 	{
 		fForcingFunctionExact = fp;
 	}

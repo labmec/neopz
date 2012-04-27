@@ -87,7 +87,7 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
 
-void SolucaoExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+void SolucaoExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 void DeslocamentoYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 void SigmaYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
@@ -277,7 +277,7 @@ int main(int argc, char *argv[])
 }
 
 
-void SolucaoExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void SolucaoExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 	//REAL x = ptx[0];
 	REAL x = ptx[1];
 	
@@ -525,7 +525,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mymaterial->SetfPlaneProblem(planestress);
 	mymaterial->SetBiotParameters(alpha,Se);
 	
-	mymaterial->SetForcingFunctionExact(SolucaoExata);
+	TPZAutoPointer<TPZFunction> exata = new TPZDummyFunction(SolucaoExata);
+	mymaterial->SetForcingFunctionExact(exata);
 	
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
