@@ -482,6 +482,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 	}
 #ifdef LOG4CXX
 	if(need)
+        if (logger->isDebugEnabled())
     {
 		std::stringstream sout;
 		sout << "permute to put the free connects to the back\n";

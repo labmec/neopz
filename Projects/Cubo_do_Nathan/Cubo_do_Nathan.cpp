@@ -314,6 +314,7 @@ int main()
 	//an.Solution().Print("Solution");
 
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -765,6 +766,7 @@ void Teste()
 	//an.Solution().Print("Solution");
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		an.Solution().Print("Solution",str);
@@ -773,6 +775,7 @@ void Teste()
 #endif
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		an2.Solution().Print("Solution",str);
@@ -826,6 +829,7 @@ void Teste()
 	}
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		sub.Print("Subtracao",str);

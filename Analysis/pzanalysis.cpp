@@ -243,6 +243,7 @@ void TPZAnalysis::Solve() {
 	//      STATE normres  = Norm(residual);
 	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
 #ifdef LOG4CXX_KEEP
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Residual norm " << Norm(residual) << std::endl;
@@ -270,6 +271,7 @@ void TPZAnalysis::Solve() {
 	}
 #endif
 #ifdef LOG4CXX_KEEP
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Solution norm " << Norm(delu) << std::endl;
@@ -755,23 +757,26 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 		nodeset.ExpandGraph(blockgraph,blockgraphindex,fCompMesh->Block(),expblockgraph,expblockgraphindex);
 #ifdef LOG4CXX
 #ifdef DEBUG2
-		std::map<int,int> blocksizes;
-		int i;
-		int totalsize;
-		for(i=0; i< expblockgraphindex.NElements()-1;i++)
-		{
-			int bls = expblockgraphindex[i+1]-expblockgraphindex[i];
-			blocksizes[bls]++;
-			totalsize += bls*bls;
-		}
-		std::map<int,int>::iterator it;
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " total size of allocation " << totalsize << std::endl;
-		for(it=blocksizes.begin(); it != blocksizes.end(); it++)
-		{
-			sout << "block size " << (*it).first << " number of blocks " << (*it).second << std::endl;
-		}
-		LOGPZ_DEBUG(logger,sout.str().c_str());
+        if (logger->isDebugEnabled())
+        {
+            std::map<int,int> blocksizes;
+            int i;
+            int totalsize;
+            for(i=0; i< expblockgraphindex.NElements()-1;i++)
+            {
+                int bls = expblockgraphindex[i+1]-expblockgraphindex[i];
+                blocksizes[bls]++;
+                totalsize += bls*bls;
+            }
+            std::map<int,int>::iterator it;
+            std::stringstream sout;
+            sout << __PRETTY_FUNCTION__ << " total size of allocation " << totalsize << std::endl;
+            for(it=blocksizes.begin(); it != blocksizes.end(); it++)
+            {
+                sout << "block size " << (*it).first << " number of blocks " << (*it).second << std::endl;
+            }
+            LOGPZ_DEBUG(logger,sout.str().c_str());
+        }
 #endif
 #endif
 		if(overlap && !(preconditioner == EBlockJacobi))

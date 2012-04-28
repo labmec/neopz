@@ -249,7 +249,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 #ifdef LOG4CXX
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " Bad side or order " << side << " order " << order;
-		LOGPZ_DEBUG(logger,sout.str())
+		LOGPZ_ERROR(logger,sout.str())
 #endif
 		return;
 	}

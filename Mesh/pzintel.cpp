@@ -1326,6 +1326,7 @@ int TPZInterpolatedElement::ComputeSideOrder(TPZVec<TPZCompElSide> &smallset) {
 	TPZInterpolatedElement *cel = dynamic_cast<TPZInterpolatedElement *> (smallset[0].Element());
 	int minorder = cel->PreferredSideOrder(smallset[0].Side());
 #ifdef LOG4CXX2
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         sout << "Order of first side "<< minorder;

@@ -311,26 +311,28 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 	Detail.Resize ( nel, 0.0 );
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
-	
-	map < int, vector < vector < double > > >::iterator it;
-	for ( it = levelToElementUhatVec.begin(); it != levelToElementUhatVec.end(); it++ )
+    if (logger->isDebugEnabled())
 	{
-		std::stringstream sout;
-		sout << it->first << endl;
-		vector < vector < double > > & solElVec = it->second;
-		int nel = solElVec.size();
-		for ( iel = 0; iel < nel; iel++ )
-		{
-			sout << "\tElement [ " << iel << " ] = \t";
-			vector < double > & solution = solElVec [ iel ];
-			for ( int isol = 0; isol < solution.size(); isol++ )
-			{
-				sout << "\t" << solution [ isol ] ;
-			}
-			sout << endl;
-		}
-		LOGPZ_DEBUG ( logger, sout.str().c_str() );
-	}
+        map < int, vector < vector < double > > >::iterator it;
+        for ( it = levelToElementUhatVec.begin(); it != levelToElementUhatVec.end(); it++ )
+        {
+            std::stringstream sout;
+            sout << it->first << endl;
+            vector < vector < double > > & solElVec = it->second;
+            int nel = solElVec.size();
+            for ( iel = 0; iel < nel; iel++ )
+            {
+                sout << "\tElement [ " << iel << " ] = \t";
+                vector < double > & solution = solElVec [ iel ];
+                for ( int isol = 0; isol < solution.size(); isol++ )
+                {
+                    sout << "\t" << solution [ isol ] ;
+                }
+                sout << endl;
+            }
+            LOGPZ_DEBUG ( logger, sout.str().c_str() );
+        }
+    }
 #endif
 #endif
 	
@@ -379,7 +381,7 @@ void EvaluateDetail ( TPZCompMesh & CMesh,
 		
 		Detail [ celIdx ] = maxDetail;
 #ifdef LOG4CXX
-		sout << "Detail for element [ " << celIdx << " ] = " << sol[0] << " - " << uhat[0] << " = " << dRho << " | " << dVel << " | " << dP << endl;
+        if (logger->isDebugEnabled()) sout << "Detail for element [ " << celIdx << " ] = " << sol[0] << " - " << uhat[0] << " = " << dRho << " | " << dVel << " | " << dP << endl;
 #endif
 	}
 #ifdef LOG4CXX
@@ -420,6 +422,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	int im = 0;
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
@@ -454,6 +457,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
@@ -488,6 +492,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 #endif
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			stringstream sout;
 			gradedMeshVec[im]->Print(sout);
@@ -500,6 +505,7 @@ void ProduceGradedMeshes ( TPZCompMesh & OriginalMesh,
 	//Verify the projection method
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	for ( im = 0; im < nlevels; im++ )
 	{
 		TPZCompMesh * cmesh = gradedMeshVec[ im ];
@@ -518,6 +524,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	int maxLevel = 0;
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
@@ -538,6 +545,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	CoarseMesh->LoadReferences();
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		TPZGeoMesh * gMesh = OriginalMesh.Reference();
 		int i =0;
@@ -560,6 +568,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		stringstream sout;
 		sout << "Solution after clone ! " << endl;
@@ -682,6 +691,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	CoarseMesh->LoadSolution(solAndGrad);
 #ifdef HUGE_DEBUG	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		stringstream sout;
 		PrintMeshSolution(CoarseMesh, sout);
@@ -758,6 +768,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 				}
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+                if (logger->isDebugEnabled())
 				{
 					stringstream sout;
 					sout << "Uhat for [ " << subcelIdx  << " ] = " << uhat [ 0 ] << " , "
@@ -774,6 +785,7 @@ void EvaluateUHat ( TPZVec < TPZCompMesh * > & gradedMeshVec, map < int, vector 
 		}
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			stringstream sout;
 			sout << "UhatVAL for LEVEL " << im << ":\n";
@@ -884,6 +896,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		}
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Elements to divide or coarsen ";
@@ -908,6 +921,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 		if (cel->Reference()->Level() > gLMax ) continue;
 		TPZManVector<int,8> subIndex;
 #ifdef LOG4CXX_KEEP
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Element to divide " << el << std::endl;
@@ -959,6 +973,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	CMesh.AdjustBoundaryElements();
 	CMesh.ExpandSolution();
 #ifdef LOG4CXX_KEEP
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		CMesh.ExpandSolution();
@@ -1134,6 +1149,7 @@ void SelectElementsByLevel ( TPZCompMesh & CMesh,
 							list < int > & SelectedElementsIdx )
 {
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		CMesh.Print(sout);
@@ -1298,6 +1314,7 @@ void LoadDummySolution(TPZCompMesh *cmesh)
 		}
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		stringstream sout;
 		sout << "Solution after LoadDummySolution: "; 

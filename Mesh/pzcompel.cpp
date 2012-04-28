@@ -537,22 +537,34 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 }
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
+#ifdef LOG4CXX
 	std::stringstream sout;
-	sout << "Obtendo elemento geometrico de referencia para elemento " << Index() << endl;
-    sout << "Impressao dos ancestrais\n";
-	Print(sout);
+    if (logger->isDebugEnabled())
+    {
+        sout << "Obtendo elemento geometrico de referencia para elemento " << Index() << endl;
+        sout << "Impressao dos ancestrais\n";
+        Print(sout);
+    }
+    
 	TPZGeoEl *ref = Reference();
 	if (!ref) {
 		LOGPZ_ERROR(logger, "reached a null reference");
 		return (0);
 	}
-	ref->Print(sout);
+    if (logger->isDebugEnabled())
+    {
+        ref->Print(sout);
+    }
+#endif
+    
 	TPZStack <TPZGeoEl *> ancestors;
 	ancestors.Push(ref);
 	while(ref->Father()){
 		ancestors.Push(ref->Father());
 		ref = ref->Father();
+#ifdef LOG4CXX
 		ref->Print(sout);
+#endif
 	}
 	int j;
 	LOGPZ_DEBUG(logger, sout.str());

@@ -321,6 +321,7 @@ namespace pztopology {
 	void Pr<TFather>::Diagnostic()
 	{
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ ;
@@ -329,6 +330,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing smallsides\n";
@@ -350,6 +352,7 @@ namespace pztopology {
 		}
 		
 		//  static void HigherDimensionSides(int side, TPZStack<int> &high);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing HigherDimensionSides\n";
@@ -363,6 +366,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static int NSideNodes(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout <<  "Testing NSideNodes\n";
@@ -377,6 +381,7 @@ namespace pztopology {
 		 * returns the local node number of the node "node" along side "side"
 		 */
 		//  static int SideNodeLocId(int side, int node);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing SideNodeLocId\n";
@@ -395,6 +400,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static void CenterPoint(int side, TPZVec<REAL> &center);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing CenterPoint\n";
@@ -408,6 +414,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static REAL RefElVolume(){return 2.0*TFather::RefElVolume();}
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing RefelVolume\n";
@@ -415,6 +422,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static int SideDimension(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing SideDimension\n";
@@ -427,6 +435,7 @@ namespace pztopology {
 		}
 		
 		//  static TPZTransform SideToSideTransform(int sidefrom, int sideto);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing SideToSideTransform\n";
@@ -447,6 +456,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static TPZTransform TransformElementToSide(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing TransformElementToSide\n";
@@ -459,6 +469,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static TPZTransform TransformSideToElement(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing TransformSideToElement\n";
@@ -471,6 +482,7 @@ namespace pztopology {
 		}
 		
 		//  static TPZIntPoints *CreateSideIntegrationRule(int side, int order);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing CreateSideIntegrationRule order 3\n";
@@ -486,6 +498,7 @@ namespace pztopology {
 		}
 		
 		//  static std::string StrType() ;//{ return EOned;}
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing StrType\n";
@@ -494,6 +507,7 @@ namespace pztopology {
 		}
 		
 		//  static std::string StrType(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing StrType(side)\n";
@@ -506,6 +520,7 @@ namespace pztopology {
 		}
 		
 		//  static void MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			TPZManVector<REAL> par(Dimension,sqrt(2.));
@@ -522,6 +537,7 @@ namespace pztopology {
 		}
 		
 		//  static int NSides;
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing NumSides\n";
@@ -530,6 +546,7 @@ namespace pztopology {
 		}
 		
 		//  static int NContainedSides(int side);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing NContainedSides(side)\n";
@@ -541,6 +558,7 @@ namespace pztopology {
 			LOGPZ_DEBUG(logger,sout.str());
 		}
 		//  static int ContainedSideLocId(int side, int c);
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "Testing ContainedSideLocId(is,ic)\n";

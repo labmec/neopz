@@ -89,6 +89,7 @@ template<class TVar>
 void TPZBlockDiagonal<TVar>::Initialize(const TPZVec<int> &blocksize){
 	int nblock = blocksize.NElements();
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Number of blocks \t" << nblock;
@@ -497,10 +498,13 @@ TPZBlockDiagonal<TVar>::Decompose_LU()
 		bsize = fBlockSize[b];
 		if(!bsize) continue;
 		
-#ifdef DEBUG
-		std::stringstream mess;
-		mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;
-		LOGPZ_DEBUG(logger,mess.str());
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
+        {
+            std::stringstream mess;
+            mess << "TPZBlockDiagonal::Decompose_LU() - bsize = " << bsize << ", bsize*bsize = " << bsize*bsize;
+            LOGPZ_DEBUG(logger,mess.str());
+        }
 #endif
 		
 		TPZFMatrix<TVar> temp(bsize,bsize,&fStorage[pos],bsize*bsize);

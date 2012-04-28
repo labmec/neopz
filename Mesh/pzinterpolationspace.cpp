@@ -255,12 +255,15 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		ef.Reset();
 		return;
 	}
-	
+
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	  {
 	 std::stringstream sout;
 	 sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
 	 LOGPZ_DEBUG(logger,sout.str());
 	 }
+#endif
 	this->InitializeElementMatrix(ek,ef);
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
@@ -286,6 +289,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	
 	int intrulepoints = intrule->NPoints();
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout<< "---Ptos e Pesos ---"<<std::endl;
@@ -663,6 +667,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 		if(!gel){
 			DebugStop();
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << "CreateBCGeoEl devolveu zero!@@@@";
@@ -766,6 +771,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			TPZCompElSide thiscompelside(this, thisside);
 			TPZCompElSide lowcelcompelside(lowcel, neighside);
 #ifdef LOG4CXX_KEEP
+            if (logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				sout << __PRETTY_FUNCTION__ << " left element";
@@ -893,6 +899,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << " no interface element found\n";
@@ -906,6 +913,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	TPZCompEl *cel = list[i].Element();
 	TPZGeoEl *gel = cel->Reference();
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " element index " << Index() << " side " << std::endl;

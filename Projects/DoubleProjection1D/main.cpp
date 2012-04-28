@@ -115,6 +115,7 @@ int main(int argc, char *argv[])
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->AutoBuild();
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         mphysics->Print(sout);

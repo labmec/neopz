@@ -75,11 +75,12 @@ int main()
 {
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		InitializePZLOG();
 		std::stringstream sout;
 		sout<< "Problema de Steklov"<<endl;
-		LOGPZ_DEBUG(logger, sout.str().c_str());
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif
 	
@@ -109,6 +110,7 @@ int main()
             ek.ApplyConstraints();
             */
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
             {
                 std::stringstream sout;
                 cmesh->Print(sout);
@@ -148,6 +150,7 @@ int main()
 			//SaddlePermute(cmesh);
 		
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
 			{
 				std::stringstream sout;
 				cmesh->Print(sout);
@@ -319,6 +322,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->SetName("Malha Computacional Original");
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		comp->Print(sout);
@@ -360,6 +364,7 @@ int SubStructure(TPZCompMesh *cmesh, int materialid)
 	//	submesh->SetAnalysisSkyline(numThreads4Assemble, guiInterface);
 	// submesh->SetAnalysis();
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Mesh after substructuring\n";
@@ -459,10 +464,11 @@ TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera
 	
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
-		LOGPZ_DEBUG(logger, sout.str().c_str());
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif 		 		 
 	return gmesh;
@@ -542,10 +548,11 @@ TPZGeoMesh * MalhaGeo(const int h){//malha quadrilatera
 	
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
-		LOGPZ_DEBUG(logger, sout.str().c_str());
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif 		 		 
 	return gmesh;
@@ -656,10 +663,11 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 		
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		gmesh->Print(sout);
-		LOGPZ_DEBUG(logger, sout.str().c_str());
+		LOGPZ_DEBUG(logger, sout.str());
 	}
 #endif 		 		 
 	return gmesh;
@@ -726,6 +734,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 		}
 		/*
 #ifdef LOG4CXX
+         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "vetor SaddlePermute  do elemento - "<<jel<< " - " <<permute;

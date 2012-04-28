@@ -1440,16 +1440,19 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
 template <>
 bool TPZMatrix< std::complex< float > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+    return false;
 }
 
 template <>
 bool TPZMatrix< std::complex< double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+    return false;
 }
 
 template <>
 bool TPZMatrix< std::complex< long double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+    return false;
 }
 
 template <class TVar>

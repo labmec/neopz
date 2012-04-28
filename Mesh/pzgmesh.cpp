@@ -222,6 +222,7 @@ void TPZGeoMesh::GetBoundaryElements(int NodFrom, int NodTo,TPZStack<TPZGeoEl *>
 		//	from elmap which do not contain the node
 		BuildElementsAroundNode(currentnode,elmap);
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			std::map<int, TPZGeoEl *>::iterator it;
@@ -862,11 +863,9 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 {
 	try
 	{
-		LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
 		TPZSaveable::Read(buf,context);
 		int classid;
 		buf.Read(&classid,1);
-		LOGPZ_DEBUG(logger,"rg1");
 		
 		if (classid != ClassId() )
 		{
@@ -874,18 +873,12 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 		}
 		
 		buf.Read(&fName,1);
-		LOGPZ_DEBUG(logger,"rg2");
 		ReadObjects(buf,fNodeVec,this);
-		LOGPZ_DEBUG(logger,"rg3");
 		ReadObjectPointers(buf,fElementVec,this);
-		LOGPZ_DEBUG(logger,"rg4");
 		buf.Read(&fNodeMaxId,1);
-		LOGPZ_DEBUG(logger,"rg5");
 		buf.Read(&fElementMaxId,1);
-		LOGPZ_DEBUG(logger,"rg6");
 		int ninterfacemaps;
 		buf.Read(&ninterfacemaps,1);
-		LOGPZ_DEBUG(logger,"rg7");
 		int c;
 		for(c=0; c< ninterfacemaps; c++)
 		{
@@ -893,7 +886,6 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 			buf.Read(vals,3);
 			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
 		}
-		LOGPZ_DEBUG(logger,"rg8");
 		
 		/*
 		 //Reading TPZRefPattern's
@@ -936,18 +928,12 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		int classid = ClassId();
 		buf.Write(&classid,1);
 		buf.Write(&fName,1);
-		LOGPZ_DEBUG(logger,"g0");
 		WriteObjects(buf,fNodeVec);
-		LOGPZ_DEBUG(logger,"g1");
 		WriteObjectPointers(buf,fElementVec);
-		LOGPZ_DEBUG(logger,"g2");
 		buf.Write(&fNodeMaxId,1);
-		LOGPZ_DEBUG(logger,"g3");
 		buf.Write(&fElementMaxId,1);
-		LOGPZ_DEBUG(logger,"g4");
 		int ninterfacemaps = fInterfaceMaterials.size();
 		buf.Write(&ninterfacemaps,1);
-		LOGPZ_DEBUG(logger,"g5");
 		InterfaceMaterialsMap::iterator it = fInterfaceMaterials.begin();
 		for(; it != fInterfaceMaterials.end(); it++)
 		{
@@ -957,7 +943,6 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 			vals[2] = it->second;
 			buf.Write(vals,3);
 		}
-		LOGPZ_DEBUG(logger,"g6");
 		
 		/*
 		 //Writing TPZRefPattern's
@@ -984,7 +969,6 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 		 //Finishing writing TPZRefPattern's
 		 */
 		
-		LOGPZ_DEBUG(logger,"end of gmesh");
 	}
 	catch(const exception& e)
 	{

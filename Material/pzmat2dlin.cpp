@@ -293,6 +293,7 @@ template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 {
 #ifdef DEBUG2
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " before write material ";
@@ -301,6 +302,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 #endif
 	TPZMaterial::Write(buf,withclassid);
 #ifdef DEBUG2
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__ << " after write material ";

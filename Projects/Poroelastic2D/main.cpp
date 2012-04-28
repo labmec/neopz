@@ -594,6 +594,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         mphysics->Print(sout);

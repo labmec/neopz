@@ -150,7 +150,9 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 	this->UpdataBCValues(data);
 	
 	//clone meshes required analysis
-	/*  {
+	/*  
+     if (logger->isDebugEnabled())
+     {
 	 std::stringstream sout;
 	 sout << __PRETTY_FUNCTION__ << "bc type " <<  fType << " x " << data.x;
 	 LOGPZ_DEBUG(logger,sout.str().c_str());
@@ -159,7 +161,8 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 	int typetmp = fType;
 	if (fType == 50){
 		int i;
-#ifdef DEBUG2
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
@@ -187,7 +190,8 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 	int typetmp = fType;
 	if (fType == 50) {
 		//		int i;
-#ifdef DEBUG2
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			for(int iref=0; iref < datavec.size(); iref++){
 				std::stringstream sout;

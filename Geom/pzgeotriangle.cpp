@@ -224,6 +224,7 @@ namespace pzgeom {
 			fNormalVec(kk*3+1,1) *=1./temp2;
 		}	
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			fNormalVec.Print("fNormalVec", sout);		

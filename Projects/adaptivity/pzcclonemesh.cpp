@@ -181,6 +181,7 @@ void TPZCompCloneMesh::AutoBuild() {
                         TPZInterpolatedElement *clintel = dynamic_cast<TPZInterpolatedElement *> (cloned_cel);
 
 #ifdef LOG4CXX2
+                        if (logger->isDebugEnabled())
                         {
                             std::stringstream sout;
                             sout << "TPZCompCloneMesh::AutoBuild :Computational Element Before  PRefine:\n " << endl;
@@ -207,6 +208,7 @@ void TPZCompCloneMesh::AutoBuild() {
                             clintel->ForceSideOrder(j, porder);
                             
 #ifdef LOG4CXX2
+                            if (logger->isDebugEnabled())
                             {
                                 int cloneorder = clintel->SideOrder(j);
                                 if(cloneorder != porder || c.NDof(*this) != corg.NDof(*fCloneReference))
@@ -269,6 +271,7 @@ void TPZCompCloneMesh::AutoBuild() {
         {
             //      Print(cout);
 #ifdef LOG4CXX
+            if (logger->isDebugEnabled())
             {
                 std::stringstream sout;
                 Print(sout);
@@ -418,6 +421,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
             //     int orgconstraints = ConnectVec()[clconid].HasDependency();
             if (orgelcon > clelcon || cllarge.Exists() != large.Exists()){
 #ifdef LOG4CXX
+                if (logger->isDebugEnabled())
                 {
                     std::stringstream sout;
                     
@@ -467,6 +471,7 @@ void TPZCompCloneMesh::CreateCloneBC(){
         }
         
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
         {
             std::stringstream sout;
             sout << "Element Side " << bcelsides[ibc].Side() << std::endl;
@@ -870,14 +875,31 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
     //  int lin,ljn,cjn;
     int i,j,k;
     
-    TPZVec<REAL> truesol(numdof);
-    TPZFMatrix<REAL> truedsol(dimension,numdof);
+    TPZManVector<REAL,3> truesol(numdof);
+    TPZFNMatrix<6,REAL> truedsol(dimension,numdof);
     for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
         intrule->Point(int_ind,int_point,weight);
         REAL jacdetfine;
         fine->Reference()->Jacobian( int_point, jacfine , axesfine, jacdetfine, jacinvfine);
         fine->Reference()->X(int_point, xfine);
         if(f) f(xfine,truesol,truedsol);
+#ifdef DEBUG
+        {
+            for(int i=0; i<truesol.size(); i++)
+            {
+                if (truesol[i] < 0. && truesol[i] > 0.) {
+                    DebugStop();
+                }
+            }
+            for (int d=0; d<truedsol.Rows(); d++) {
+                for (int c=0; c<truedsol.Cols(); c++) {
+                    if (truedsol(d,c) < 0. && truedsol(d,c) > 0.) {
+                        DebugStop();
+                    }
+                }
+            }
+        }
+#endif
         fine->Shape(int_point,locphi,locdphi);
         tr.Apply(int_point,coarse_int_point);
         coarse->Shape(coarse_int_point,corphi,cordphi);
@@ -997,6 +1019,9 @@ REAL TPZCompCloneMesh::ElementError(TPZInterpolatedElement *fine, TPZInterpolate
             for(d=0; d<dim; d++) {
                 error += (locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*weight;
                 if(f) truerror += (cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*weight;
+                if (!(truerror < 0.) && !(truerror >= 0.)) {
+                    DebugStop();
+                }
             }
         }
     }
@@ -1093,6 +1118,12 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     for(ids=0; ids<ncorners; ids++) {
         cornerid[ids] = gel->NodePtr(ids)->Id();
         cornerindexes[ids] = gel->NodeIndex(ids);
+    }
+    bool HasDependency = false;
+    for (ids=0; ids<ncon; ids++) {
+        if (cint->Connect(ids).HasDependency()) {
+            HasDependency = true;
+        }
     }
     int n1dsides = 0;
     int nsides = gel->NSides();
@@ -1245,7 +1276,13 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     int gelindex =  gclmesh->Index(gel);
     TPZGeoEl *orgel = gclmesh->ReferenceElement(gelindex);
     
-    if(localporders[1] == -1) {
+    if (HasDependency) {
+        int p = cint->GetPreferredOrder()+1;
+        subels.Push(orgel);
+        porders.Push(p);
+        return;
+    }
+    else if(localporders[1] == -1) {
         //    cout << "Inserindo elemento com refinamento p\n";
         //    orgel->Print();
         subels.Push(orgel);

@@ -140,6 +140,7 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
     std::ofstream output("conductivitygmesh.vtk");
     TPZVTKGeoMesh::PrintGMeshVTK(gmesh.operator->(),output,true);
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

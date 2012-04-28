@@ -58,6 +58,7 @@ int main()
     TPZAutoPointer<TPZCompMesh> cmesh = BuildCompMesh(gmesh);
     
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
     {
         std::stringstream sout;
         gmesh->Print(sout);

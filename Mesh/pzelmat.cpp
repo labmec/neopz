@@ -111,6 +111,7 @@ void TPZElementMatrix::ComputeDestinationIndices(){
         this->fSourceIndex.Resize(destindex);
         this->fDestinationIndex.Resize(destindex);		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout<<" fSourceIndex " <<fSourceIndex<< " fDestinationIndex "<<fDestinationIndex<<std::endl;
