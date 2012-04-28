@@ -677,7 +677,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
 			}
 			else
 			{
-				fSolver->Write(buf, 0);
+				fSolver->Write(buf, 1);
 				//TODO Enviar o solver, atenção com a Matrix do Solver;
 			}
 			
@@ -730,6 +730,16 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 		this->fK01.Read(buf, 0);
 		this->fK10.Read(buf, 0);
 		this->fK11.Read(buf, 0);
+        TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
+        TPZMatrixSolver<TVar> *matsolv = dynamic_cast<TPZMatrixSolver<TVar> *>(sav);
+        if (sav && !matsolv) {
+            DebugStop();
+        }
+        if(matsolv)
+        {
+            fSolver = matsolv;
+        }
+        
 		//    if(!fSolver)
 		//    {
 		//      TPZMatrixSolver * solver = new TPZMatrixSolver;

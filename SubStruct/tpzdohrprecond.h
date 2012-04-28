@@ -75,6 +75,8 @@ public:
     TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly<TVar> > assemble);
 	/** @brief Copy constructor */
 	TPZDohrPrecond(const TPZDohrPrecond &copy);
+    /** @brief Empty constructor for restoring */
+    TPZDohrPrecond();
 	
     ~TPZDohrPrecond();
     

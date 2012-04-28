@@ -511,6 +511,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	std::set<int> othercornereqs;
 	renum.CornerEqs(3,nelprev,othercornereqs);
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		int nelem = fMesh->NElements();
@@ -622,6 +623,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 #endif
 	
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream str;
 		str << "number of corner equations " << fCornerEqs.size() << std::endl;
@@ -796,6 +798,7 @@ void TPZDohrStructMatrix::IdentifySubCornerEqs(std::map<int,int> &globaltolocal,
 											   TPZVec<int> &coarseindex)
 {
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Input data for IdentifySubCornerEqs \nglobaltolocal";
@@ -967,6 +970,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		substruct->fNumInternalEquations = submesh->NumInternalEquations();
 		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << " Before permutation sequence numbers ";
@@ -984,6 +988,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		//	pthread_mutex_lock(&TestThread);
 		
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << " After permutation sequence numbers ";
@@ -996,6 +1001,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		}
 #endif
 #ifdef LOG4CXX
+        if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
 			sout << "SubMesh Index = " << submesh->Index() << "\nComputed scatter vector ";
@@ -1125,6 +1131,7 @@ void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest)
 	}
 #ifdef LOG4CXX
 	if (fTask == EComputeMatrix)
+        if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		/*      sout << "Submesh for element " << iel << std::endl;
@@ -1345,6 +1352,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 		}
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Number of elements per domain ";
@@ -1472,6 +1480,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 		}
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		int isub;
@@ -1493,6 +1502,7 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 		domain_index[d] = domain_dest[domain_index[d]];
 	}
 #ifdef LOG4CXX
+    if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Number of elements per domain ";

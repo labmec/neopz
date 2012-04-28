@@ -259,7 +259,7 @@ void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
         fPrecond->Write(buf, 1);
     }
     else {
-        int zero = 0;
+        int zero = -1;
         buf.Write(&zero );
     }
 	int lfSolver = fSolver;

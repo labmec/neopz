@@ -196,6 +196,10 @@ public:
 	void Reads(T *p, int size) {
 		int c;
 		char buf[100];
+        if(!fi)
+        {
+            DebugStop();
+        }
 		if(size)
 		{
 			for(c=0; c<size; c++) fi >> p[c];

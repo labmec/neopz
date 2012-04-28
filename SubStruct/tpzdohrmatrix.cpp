@@ -210,6 +210,11 @@ void TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >::Read(TPZStream &b
         sub->Read(buf);
         fGlobal.push_back(sub);
     }
+    int classid;
+    buf.Read(&classid );
+    if (classid != ClassId()) {
+        DebugStop();
+    }
 }
 /**
  * @brief Packs the object structure in a stream of bytes
@@ -230,6 +235,8 @@ void TPZDohrMatrix<double,TPZDohrSubstructCondense<double> >::Write( TPZStream &
         (*it)->Write(buf);
     }
     size = 0;
+    int classid = ClassId();
+    buf.Write(&classid );
 }
 
 template <>

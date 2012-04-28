@@ -642,7 +642,7 @@ void TPZFYsmpMatrix<TVar>::ComputeDiagonal() {
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::SolveSOR( int &numiterations, const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
 							  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &/*scratch*/,
-							  const TVar overrelax, TVar &tol,
+							  const REAL overrelax, REAL &tol,
 							  const int FromCurrent,const int direction ) {
 	
 	//    if(!fDiag) ComputeDiagonal();
