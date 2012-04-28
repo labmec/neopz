@@ -516,9 +516,16 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out)
     out.Write(&fNEquations);
     out.Write(&fNumInternalEquations);
     out.Write(&fNumExternalEquations);
+    std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
     TPZSaveable::WriteObjects(out, fCoarseNodes);
+    std::cout << fCoarseNodes << std::endl;
+    int one(1),two(2),three(3),four(4);
+    
+    out.Write(&one);
     fPhiC.Write(out, 0);
+    out.Write(&two);
     fPhiC_Weighted_Condensed.Write(out, 0);
+    out.Write(&three);
     TPZSaveable::WriteObjects(out, fWeights);
     fKCi.Write(out, 0);
     typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
@@ -544,6 +551,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out)
     fLocalLoad.Write(out, 0);
     fLocalWeightedResidual.Write(out, 0);
     fAdjustSolution.Write(out, 0);
+
 }
 
 /** @brief method for reading the object for a stream */
@@ -560,11 +568,19 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input)
     input.Read(&fNEquations);
     input.Read(&fNumInternalEquations);
     input.Read(&fNumExternalEquations);
+    std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
     TPZSaveable::ReadObjects(input, fCoarseNodes);
+    std::cout << fCoarseNodes << std::endl;
+    int one(-1),two(-2),three(-3),four(-4);
+
+    input.Read(&one);
     fPhiC.Read(input, 0);
+    input.Read(&two);
     fPhiC_Weighted_Condensed.Read(input, 0);
+    input.Read(&three);
     TPZSaveable::ReadObjects(input, fWeights);
     fKCi.Read(input, 0);
+    input.Read(&four);
     int nc;
     input.Read(&nc);
     for (int ic=0; ic<nc; ic++) {

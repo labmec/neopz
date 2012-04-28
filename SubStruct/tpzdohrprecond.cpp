@@ -61,6 +61,14 @@ fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble)
 		fCoarse = (TPZStepSolver<TVar> *) cp.fCoarse->Clone();
 	}
 }
+
+/** @brief Empty constructor for restoring */
+template<class TVar, class TSubStruct>
+TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond() : fCoarse(0), fNumCoarse(-1), fNumThreads(-1)
+{
+    
+}
+
 template<class TVar, class TSubStruct>
 TPZDohrPrecond<TVar, TSubStruct>::~TPZDohrPrecond()
 {
@@ -367,6 +375,7 @@ int TPZDohrPrecond<double,TPZDohrSubstructCondense<double> >::ClassId() const
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
 {
+    TPZMatrix<TVar>::Read(buf,context);
     TPZDohrMatrix<TVar,TSubStruct> *ptr = (TPZDohrMatrix<TVar,TSubStruct> *)(context);
     fAssemble = ptr->fAssembly;
     fGlobal = ptr->SubStructures();
@@ -382,11 +391,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::Read(TPZStream &buf, void *context )
 template<class TVar, class TSubStruct>
 void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
 {
+    TPZMatrix<TVar>::Write(buf, withclassid);
     buf.Write(&fNumCoarse);
     buf.Write(&fNumThreads);
     fCoarse->Write(buf,1);
 }
 
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND>;
 
 
 
