@@ -192,8 +192,8 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	int dim = Dimension();
 	int nstate = Material()->NStateVariables();
 	int nshape = NShapeF();
-	TPZBlock<REAL> &block = Mesh()->Block();
-	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
+	TPZBlock<STATE> &block = Mesh()->Block();
+	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
 	
@@ -635,7 +635,7 @@ void TPZAgglomerateElement::Print(TPZStack<int> &listindex){
  }
  */
 
-void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<REAL> &projectsol){
+void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 	
 	//projeta a solu�o dos elementos contidos na aglomera�o
 	//no elemento por eles aglomerado
@@ -643,8 +643,8 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<REAL> &projectsol){
 	int dimension = Dimension();
 	int aggmatsize = NShapeF();
 	int nvar = Material()->NStateVariables();
-	TPZFMatrix<REAL> aggmat(aggmatsize,aggmatsize,0.);
-	TPZFMatrix<REAL> loadvec(aggmatsize,nvar,0.);
+	TPZFMatrix<STATE> aggmat(aggmatsize,aggmatsize,0.);
+	TPZFMatrix<STATE> loadvec(aggmatsize,nvar,0.);
 	//verificar que o grau do grande �<= que o grau de cada um dos pequenos ???
 	TPZStack<int> elvec;
 	//  IndexesDiscSubEls(elvec);
@@ -678,7 +678,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<REAL> &projectsol){
 	TPZFMatrix<REAL> jacobian(dimension,dimension),jacinv(dimension,dimension);
 	TPZFMatrix<REAL> axes(3,3,0.);
 	TPZManVector<REAL,3> x(3,0.);
-	TPZVec<REAL> uh(nvar);
+	TPZVec<STATE> uh(nvar);
 	REAL weight;
 	int in,jn,kn,ip,ind;
 	TPZCompElDisc *finedisc;
@@ -714,7 +714,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<REAL> &projectsol){
 	aggmat.SolveDirect(loadvec,ELDLt);//ELU
 	//transferindo a solu�o obtida por restri�o
 	int iv=0,d;
-	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZBlock<STATE> &block = Mesh()->Block();
 	TPZConnect *df = &Connect(0);
 	int dfseq = df->SequenceNumber();
 	int dfvar = block.Size(dfseq);

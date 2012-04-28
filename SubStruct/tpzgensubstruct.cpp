@@ -404,10 +404,10 @@ void TPZGenSubStruct::IdentifyCornerNodes()
 }
 
 // initialize the TPZDohrMatrix structure
-void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<REAL> > dohrmatrix, TPZAutoPointer<TPZDohrAssembly> assembly)
+void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<STATE> > dohrmatrix, TPZAutoPointer<TPZDohrAssembly<STATE> > assembly)
 {
 	//Isolate each subcompmesh and put it in the dohrmann matrix
-	TPZDohrMatrix<TPZDohrSubstruct> *dohr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstruct> *>(dohrmatrix.operator->());
+	TPZDohrMatrix<STATE,TPZDohrSubstruct<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstruct<STATE> > *>(dohrmatrix.operator->());
 	fCMesh->ComputeNodElCon();
 	
 	int neq = fCMesh->NEquations();
@@ -430,7 +430,7 @@ void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<REAL> > dohrmatrix
 		std::cout << '*';
 		// creating the substructure HERE
 		std::cout.flush();
-		TPZAutoPointer<TPZDohrSubstruct> substruct = new TPZDohrSubstruct();
+		TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct = new TPZDohrSubstruct<STATE>();
 		// for each subcompmesh, reorder the nodes
 		//TPZAnalysis an(submesh);
 		
@@ -502,10 +502,10 @@ void TPZGenSubStruct::InitializeDohr(TPZAutoPointer<TPZMatrix<REAL> > dohrmatrix
 }
 
 // initialize the TPZDohrMatrix structure
-void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<REAL> > dohrmatrix, TPZAutoPointer<TPZDohrAssembly> assembly)
+void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<STATE> > dohrmatrix, TPZAutoPointer<TPZDohrAssembly<STATE> > assembly)
 {
 	//Isolate each subcompmesh and put it in the dohrmann matrix
-	TPZDohrMatrix<TPZDohrSubstructCondense> *dohr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *>(dohrmatrix.operator->());
+	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *>(dohrmatrix.operator->());
 	fCMesh->ComputeNodElCon();
 	
 	int neq = fCMesh->NEquations();
@@ -528,7 +528,7 @@ void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<REAL> > do
 		std::cout << '*';
 		// creating the substructure HERE
 		std::cout.flush();
-		TPZAutoPointer<TPZDohrSubstructCondense> substruct = new TPZDohrSubstructCondense();
+		TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct = new TPZDohrSubstructCondense<STATE>();
 		// for each subcompmesh, reorder the nodes
 		//TPZAnalysis an(submesh);
 		
@@ -563,12 +563,12 @@ void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<REAL> > do
 		}
 		
 		// initialize the permutations from the mesh enumeration to the external enumeration
-		typedef TPZDohrSubstructCondense::ENumbering ENumbering;
+		typedef TPZDohrSubstructCondense<STATE>::ENumbering ENumbering;
 		typedef std::pair<ENumbering,ENumbering> Numberingpair;
 		ENumbering tsub,text,tint;
-		tsub = TPZDohrSubstructCondense::Submesh;
-		text = TPZDohrSubstructCondense::ExternalFirst;
-		tint = TPZDohrSubstructCondense::InternalFirst;
+		tsub = TPZDohrSubstructCondense<STATE>::Submesh;
+		text = TPZDohrSubstructCondense<STATE>::ExternalFirst;
+		tint = TPZDohrSubstructCondense<STATE>::InternalFirst;
 		
 		TPZVec<int> &toexternal = substruct->fPermutationsScatter[Numberingpair(tsub,text)];
 		TPZVec<int> &fromexternal = substruct->fPermutationsScatter[Numberingpair(text,tsub)];
@@ -958,7 +958,7 @@ int TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)
 }
 
 // This is a lengthy process which should run on the remote processor
-void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct> substruct, TPZDohrAssembly &dohrassembly)
+void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct, TPZDohrAssembly<STATE> &dohrassembly)
 {
 	// this should happen in the remote processor
     TPZSkylineStructMatrix skylstr(submesh);
@@ -991,11 +991,11 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 }
 
 // This is a lengthy process which should run on the remote processor
-void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZDohrAssembly &dohrassembly)
+void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZDohrAssembly<STATE> &dohrassembly)
 {
-	typedef TPZDohrSubstructCondense::ENumbering ENumbering;
+	typedef TPZDohrSubstructCondense<STATE>::ENumbering ENumbering;
 	typedef std::pair<ENumbering,ENumbering> pairnumbering;
-	pairnumbering fromsub(TPZDohrSubstructCondense::Submesh,TPZDohrSubstructCondense::InternalFirst);
+	pairnumbering fromsub(TPZDohrSubstructCondense<STATE>::Submesh,TPZDohrSubstructCondense<STATE>::InternalFirst);
 	TPZVec<int> &permutescatter = substruct->fPermutationsScatter[fromsub];
 	
 	// create a skyline matrix based on the current numbering of the mesh

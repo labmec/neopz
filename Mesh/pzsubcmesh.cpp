@@ -9,7 +9,6 @@
 #include "TPZInterfaceEl.h"
 #include "pzcmesh.h"
 #include "pzelmat.h"
-#include "pzmathyperelastic.h"
 #include "pznonlinanalysis.h"
 #include "pzskylmat.h"
 #include "pzsolve.h"
@@ -23,6 +22,7 @@
 #include "pzsmanal.h"
 #include "pzbndcond.h"
 #include "pzvisualmatrix.h"
+#include "pzmathyperelastic.h"
 
 #include <stdio.h>
 
@@ -48,7 +48,7 @@ static void Forcing(const TPZVec<REAL> &x, TPZVec<REAL> &disp){
 
 
 // Construction/Destruction
-
+#ifndef STATE_COMPLEX
 int TPZSubCompMesh::main() {
 	//	int index;
 	
@@ -100,7 +100,7 @@ int TPZSubCompMesh::main() {
 	TPZVec<int> skyline;
 	
 	// Insert the boundary conditions
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
 	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
@@ -159,6 +159,11 @@ int TPZSubCompMesh::main() {
 	
 	return 0;
 }
+#else
+int TPZSubCompMesh::main() {
+    return 0;
+}
+#endif
 
 
 TPZSubCompMesh::TPZSubCompMesh(TPZCompMesh &mesh, int &index) : TPZCompMesh(mesh.Reference()), TPZCompEl(mesh,0,index),
@@ -826,7 +831,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	
 	
-	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZBlock<STATE> &block = Mesh()->Block();
 	//	TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
 	// clean ek and ef
 	
@@ -974,7 +979,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	if (! fAnalysis){
 		TPZFStructMatrix local(this);
-		TPZAutoPointer<TPZMatrix<REAL> > stiff = local.CreateAssemble(ef.fMat,NULL);
+		TPZAutoPointer<TPZMatrix<STATE> > stiff = local.CreateAssemble(ef.fMat,NULL);
 		ek.fMat = *(stiff.operator->());
 		//		TPZStructMatrix::Assemble(ek.fMat,ef.fMat,*this,-1,-1);
 	}
@@ -990,7 +995,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		TPZSubMeshFrontalAnalysis *sman = dynamic_cast<TPZSubMeshFrontalAnalysis *> (fAnalysis.operator->());
 		if(sman)
 		{
-			TPZAbstractFrontMatrix *frontmat = dynamic_cast<TPZAbstractFrontMatrix *> (fAnalysis->Solver().Matrix().operator->());
+			TPZAbstractFrontMatrix<STATE> *frontmat = dynamic_cast<TPZAbstractFrontMatrix<STATE> *> (fAnalysis->Solver().Matrix().operator->());
 			if(frontmat)
 			{
 				sman->SetFront(frontmat->GetFront());
@@ -1047,17 +1052,17 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
 	
 	
 	str->SetNumThreads(numThreads);
-    TPZAutoPointer<TPZMatrix<REAL> > mat = str->Create();
-    TPZAutoPointer<TPZMatrix<REAL> > mat2 = mat->Clone();
+    TPZAutoPointer<TPZMatrix<STATE> > mat = str->Create();
+    TPZAutoPointer<TPZMatrix<STATE> > mat2 = mat->Clone();
 	
 	fAnalysis->SetStructuralMatrix(str);
-	TPZStepSolver<REAL> *step = new TPZStepSolver<REAL>(mat);
-    TPZStepSolver<REAL> *gmrs = new TPZStepSolver<REAL>(mat2);
+	TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(mat);
+    TPZStepSolver<STATE> *gmrs = new TPZStepSolver<STATE>(mat2);
     step->SetReferenceMatrix(mat2);
 	step->SetDirect(ELDLt);
     gmrs->SetGMRES(20, 20, *step, 1.e-20, 0);
-	TPZAutoPointer<TPZMatrixSolver<REAL> > autostep = step;
-    TPZAutoPointer<TPZMatrixSolver<REAL> > autogmres = gmrs;
+	TPZAutoPointer<TPZMatrixSolver<STATE> > autostep = step;
+    TPZAutoPointer<TPZMatrixSolver<STATE> > autogmres = gmrs;
     if(preconditioned)
     {
         fAnalysis->SetSolver(autogmres);
@@ -1104,18 +1109,18 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
 	
 	TPZAutoPointer<TPZStructMatrix> fstr = NULL;
 	if(numThreads){
-		fstr = new TPZParFrontStructMatrix<TPZFrontNonSym>(this);
-		static_cast<TPZParFrontStructMatrix<TPZFrontNonSym> *>(fstr.operator->())
+		fstr = new TPZParFrontStructMatrix<TPZFrontNonSym<STATE> >(this);
+		static_cast<TPZParFrontStructMatrix<TPZFrontNonSym<STATE> > *>(fstr.operator->())
 		->SetNumberOfThreads(numThreads+2); //o frontal tem dois threads auxiliares
 	}
 	else{
-		fstr = new TPZFrontStructMatrix<TPZFrontNonSym>(this);
+		fstr = new TPZFrontStructMatrix<TPZFrontNonSym<STATE> >(this);
 	}
 	
 	fstr->SetNumThreads(numThreads);
 	fAnalysis->SetStructuralMatrix(fstr);
 	
-	TPZStepSolver<REAL> solver;
+	TPZStepSolver<STATE> solver;
     solver.SetDirect(ELU);
 	fAnalysis->SetSolver(solver);
 	
@@ -1330,7 +1335,7 @@ void TPZSubCompMesh::LoadSolution() {
 	int seqnumint;
 	//	int numinteq = NumInternalEquations();
 	int size;
-	TPZFMatrix<REAL> &sol = Mesh()->Solution();
+	TPZFMatrix<STATE> &sol = Mesh()->Solution();
 	
 	for (i=0;i<fConnectVec.NElements(); i++) {
 		if (fExternalLocIndex[i] != -1) {

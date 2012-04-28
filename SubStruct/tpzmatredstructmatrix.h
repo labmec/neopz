@@ -36,7 +36,7 @@ public:
 	
 	virtual TPZStructMatrix *Clone();
 	
-	virtual TPZMatrix<REAL> *Create();
+	virtual TPZMatrix<STATE> *Create();
 	
 private:
 	

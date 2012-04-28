@@ -41,8 +41,8 @@
  @brief Implements a matrix which computes the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
  @author Philippe Devloo
  */
-template <class TSubStruct = TPZDohrSubstruct> 
-class TPZDohrPrecond : public TPZMatrix<REAL>
+template <class TVar, class TSubStruct> 
+class TPZDohrPrecond : public TPZMatrix<TVar>
 {
 	/**
 	 * @brief The matrix class is a placeholder for a list of substructures
@@ -51,15 +51,15 @@ class TPZDohrPrecond : public TPZMatrix<REAL>
 	/**
 	 * @brief The global matrix associated with the coarse degrees of freedom
 	 */
-	TPZStepSolver<REAL> * fCoarse; //K(c)
+	TPZStepSolver<TVar> * fCoarse; //K(c)
 	/**
 	 * The global residual vector associated with the coarse degrees of freedom
 	 */
-	//  TPZFMatrix<REAL> fCoarseResidual; //r(c)
+	//  TPZFMatrix<TVar> fCoarseResidual; //r(c)
 	/**
 	 * The product K(c)_inv*r(c)
 	 */
-	//  TPZFMatrix<REAL> fInvKcrc; //r(c)
+	//  TPZFMatrix<TVar> fInvKcrc; //r(c)
 	/**
 	 * @brief Size of the coarse system
 	 */
@@ -68,18 +68,18 @@ class TPZDohrPrecond : public TPZMatrix<REAL>
 	/** @brief Number of threads used during preconditioning */
 	int fNumThreads;
 	
-	TPZAutoPointer<TPZDohrAssembly> fAssemble;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssemble;
 	
 public:
     /** @brief Constructor with matrix */
-    TPZDohrPrecond(TPZDohrMatrix<TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly> assemble);
+    TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct> &origin, TPZAutoPointer<TPZDohrAssembly<TVar> > assemble);
 	/** @brief Copy constructor */
 	TPZDohrPrecond(const TPZDohrPrecond &copy);
 	
     ~TPZDohrPrecond();
     
    // CLONEDEF(TPZDohrPrecond)
-		virtual TPZMatrix<REAL>*Clone() const { return new TPZDohrPrecond(*this); }
+		virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrPrecond(*this); }
     
     /**
 	 * @brief The matrix class is a placeholder for a list of substructures
@@ -110,16 +110,16 @@ public:
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
-	virtual void MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,
-						 const REAL alpha,const REAL beta,const int opt,const int stride) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+						 const TVar alpha,const TVar beta,const int opt,const int stride) const;
 	
 	/** @brief Specify the solution process for the coarse matrix */
-	void SetSolver(TPZSolver<REAL> &solver);
+	void SetSolver(TPZSolver<TVar> &solver);
 	
 	/** @brief Compute the contribution of the coarse matrix */
-	void ComputeV1(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v1) const;
+	void ComputeV1(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v1) const;
 	/** @brief Compute the contribution of the sub domains */
-	void ComputeV2(const TPZFMatrix<REAL> &x, TPZFMatrix<REAL> &v2) const;
+	void ComputeV2(const TPZFMatrix<TVar> &x, TPZFMatrix<TVar> &v2) const;
     
 	/** @brief Routines to send and receive messages */
 	virtual int ClassId() const;	
@@ -144,25 +144,25 @@ public:
 /**
  * @brief Auxiliar structure with thread to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
  */
-template <class TSubStruct> 
+template <class TVar, class TSubStruct> 
 struct TPZDohrPrecondThreadV1Data {
 	TPZDohrPrecondThreadV1Data() : fDohrMatrix(0), fInput(0), fOutput(0)
 	{
 	}
-	TPZDohrPrecondThreadV1Data(const TPZDohrPrecond<TSubStruct> *ptr, const TPZFMatrix<REAL> &input, TPZFMatrix<REAL> &output) : fDohrMatrix(ptr),
+	TPZDohrPrecondThreadV1Data(const TPZDohrPrecond<TVar, TSubStruct> *ptr, const TPZFMatrix<TVar> &input, TPZFMatrix<TVar> &output) : fDohrMatrix(ptr),
 	fInput(&input), fOutput(&output)
 	{
 	}
 	/** @brief Pointer to the dohr matrix */
-	const TPZDohrPrecond<TSubStruct> * fDohrMatrix;
+	const TPZDohrPrecond<TVar, TSubStruct> * fDohrMatrix;
 	/** @brief Input matrix */
-	const TPZFMatrix<REAL> * fInput;
+	const TPZFMatrix<TVar> * fInput;
 	/** @brief Matrix where the coarse solution will be contributed */
-	TPZFMatrix<REAL> *fOutput;
+	TPZFMatrix<TVar> *fOutput;
 	/** @brief Compute the contribution of the coarse matrix */
 	static void *ComputeV1(void *dataptr)
 	{
-		TPZDohrPrecondThreadV1Data<TSubStruct> *ptr = (TPZDohrPrecondThreadV1Data<TSubStruct> *) dataptr;
+		TPZDohrPrecondThreadV1Data<TVar, TSubStruct> *ptr = (TPZDohrPrecondThreadV1Data<TVar, TSubStruct> *) dataptr;
 		ptr->fDohrMatrix->ComputeV1(*(ptr->fInput),*(ptr->fOutput));
 		return dataptr;
 	}
@@ -171,20 +171,20 @@ struct TPZDohrPrecondThreadV1Data {
 /**
  * @brief Auxiliar structure for v2 vector to compute the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
  */
-template <class TSubStruct> 
+template <class TVar, class TSubStruct> 
 struct TPZDohrPrecondV2SubData {
 	
 	TPZDohrPrecondV2SubData() : fSubStructure(0), fInput_local(0), fv2_local(0)
 	{
 	}
 	
-	TPZDohrPrecondV2SubData(int subindex, const TPZAutoPointer<TSubStruct> &substruct, TPZAutoPointer<TPZFMatrix<REAL> > res_local) : fSubStructure(substruct),
+	TPZDohrPrecondV2SubData(int subindex, const TPZAutoPointer<TSubStruct> &substruct, TPZAutoPointer<TPZFMatrix<TVar> > res_local) : fSubStructure(substruct),
 	fInput_local(res_local)
 	{
-		fv2_local = new TPZDohrAssembleItem(subindex, res_local->Rows());
+		fv2_local = new TPZDohrAssembleItem<TVar>(subindex, res_local->Rows());
 	}
 	/** @note Protect ourselves from default copy constructors */
-	TPZDohrPrecondV2SubData(const TPZDohrPrecondV2SubData<TSubStruct> &copy) : fSubStructure(copy.fSubStructure), fInput_local(copy.fInput_local),
+	TPZDohrPrecondV2SubData(const TPZDohrPrecondV2SubData<TVar, TSubStruct> &copy) : fSubStructure(copy.fSubStructure), fInput_local(copy.fInput_local),
 	fv2_local(copy.fv2_local)
 	{
 	}
@@ -209,19 +209,20 @@ struct TPZDohrPrecondV2SubData {
 	/** @brief Pointer to the dohr matrix */
 	TPZAutoPointer<TSubStruct> fSubStructure;
 	/** @brief Input matrix */
-	TPZAutoPointer<TPZFMatrix<REAL> > fInput_local;
+	TPZAutoPointer<TPZFMatrix<TVar> > fInput_local;
 	/** @brief The local contribution to the v2 vector */
-	TPZAutoPointer<TPZDohrAssembleItem> fv2_local;
+	TPZAutoPointer<TPZDohrAssembleItem<TVar> > fv2_local;
 };
 
+template<class TVar>
 struct TPZDohrAssembleList;
 
 /**
  * @brief Auxiliar structure with list for v2 vector data. \ref substructure "Sub Structure"
  */
-template <class TSubStruct> 
+template <class TVar, class TSubStruct> 
 struct TPZDohrPrecondV2SubDataList {
-	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList> &assemble) : fAssemblyStructure(assemble)
+	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemble) : fAssemblyStructure(assemble)
 	{
 		pthread_mutex_init(&fAccessLock, 0);
 	}
@@ -232,18 +233,18 @@ struct TPZDohrPrecondV2SubDataList {
 	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
 	/** @brief The list of structures which need to be computed */
-	std::list<TPZDohrPrecondV2SubData<TSubStruct> > fWork;
+	std::list<TPZDohrPrecondV2SubData<TVar, TSubStruct> > fWork;
 	/** @brief Interface to add items in a thread safe way */
-	void AddItem(TPZDohrPrecondV2SubData<TSubStruct> &data)
+	void AddItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> &data)
 	{
 		pthread_mutex_lock(&fAccessLock);
 		fWork.push_back(data);
 		pthread_mutex_unlock(&fAccessLock);
 	}
 	/** @brief Interface to pop an item in a thread safe way */
-	TPZDohrPrecondV2SubData<TSubStruct> PopItem()
+	TPZDohrPrecondV2SubData<TVar, TSubStruct> PopItem()
 	{
-		TPZDohrPrecondV2SubData<TSubStruct> result;
+		TPZDohrPrecondV2SubData<TVar, TSubStruct> result;
 		pthread_mutex_lock(&fAccessLock);
 		if (fWork.size()) {
 			result = *fWork.begin();
@@ -254,7 +255,7 @@ struct TPZDohrPrecondV2SubDataList {
 	}
 	
 	/** @brief The local contribution to the v2 vector */
-	TPZAutoPointer<TPZDohrAssembleList> fAssemblyStructure;
+	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
 	
 	/** @brief The procedure which executes the lengthy process */
 	static void *ThreadWork(void *voidptr);

@@ -10,6 +10,7 @@
 #include "pzstack.h"
 #include "pzvec.h"
 
+template<class TVar>
 class TPZEqnArray;
 
 /** 
@@ -20,6 +21,7 @@ class TPZEqnArray;
  * @ingroup frontal
  * @brief Abstract class implements storage and decomposition process of the frontal matrix. \ref frontal "Frontal"
  */
+template<class TVar>
 class TPZFront {
 	
 public:
@@ -37,7 +39,7 @@ public:
 			 int GlobalSize //! Initial size of the Frontal Matrix
 			 );
 	
-	TPZFront(const TPZFront &cp);
+	TPZFront(const TPZFront<TVar> &cp);
 	
     /** 
 	 * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
@@ -84,7 +86,7 @@ private:
 	
 public:
 	/** @brief Extracts the so far condensed matrix */
-	virtual	void ExtractFrontMatrix(TPZFMatrix<REAL> &front) {
+	virtual	void ExtractFrontMatrix(TPZFMatrix<TVar> &front) {
 		std::cout << "TPZFront ExtractFrontMatrix should never be called\n";
 		DebugStop();
 	}
@@ -134,7 +136,7 @@ protected:
     TPZStack <int> fFree;
 	
     /** @brief Frontal matrix data */
-    TPZVec<REAL> fData;
+    TPZVec<TVar> fData;
     
     /** @brief Expansion Ratio of frontal matrix */
     int fExpandRatio;

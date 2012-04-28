@@ -24,6 +24,7 @@ class TPZCompMesh;
 template<class TVar>
 class TPZFMatrix;
 
+template<class TVar>
 class TPZEqnArray;
 
 
@@ -36,8 +37,8 @@ class TPZEqnArray;
  * assume the values TPZFileEqnStorage or TPZStackEqnStorage for store and TPZFrontSym or TPZFrontNonSym \n
  * for front.
  */ 
-template <class store, class front>
-class TPZParFrontMatrix : public TPZFrontMatrix<store, front> 
+template <class TVar, class store, class front>
+class TPZParFrontMatrix : public TPZFrontMatrix<TVar, store, front> 
 {
 public: 
 	
@@ -54,7 +55,7 @@ public:
 	 */
 	TPZParFrontMatrix(int globalsize);
 	
-	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZFrontMatrix<store,front>(cp), fFinish(0)
+	TPZParFrontMatrix(const TPZParFrontMatrix &cp) : TPZFrontMatrix<TVar, store,front>(cp), fFinish(0)
 	{
         fEqnStack.Resize(0);
         pthread_mutex_t mlocal = PTHREAD_MUTEX_INITIALIZER;
@@ -64,7 +65,7 @@ public:
 	}
 	
 	//CLONEDEF(TPZParFrontMatrix)
-	virtual TPZMatrix<REAL>*Clone() const { return new TPZParFrontMatrix(*this); }
+	virtual TPZMatrix<TVar>*Clone() const { return new TPZParFrontMatrix(*this); }
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix 
@@ -72,21 +73,21 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
 	
     /**
 	 * @brief Add a contribution of a stiffness matrix putting it on destination indexes position
 	 * @param elmat Member stiffness matrix beeing added
 	 * @param destinationindex Positioning of such members on global stiffness matrix
      */
-    virtual void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex);
+    virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex);
 	
 	/** @brief Sets the flag fFinish to its true value*/    		
 	void FinishWriting();    		
 	
 private:    
 	/** @brief Buffer of pointers to decomposed equations. Stored in a Stack.*/
-	TPZStack<TPZEqnArray *> fEqnStack;
+	TPZStack<TPZEqnArray<TVar> *> fEqnStack;
 	/** @brief Boolean responsibility. Assumes values 0 and 1*/
 	int fFinish;
 	/** @brief Mutual exclusion locks used in management of writeing to disk and decomposition.*/

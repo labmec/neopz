@@ -342,7 +342,7 @@ public:
      * @param sol is the solution vector
      * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
      */    
-    virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol){
+    virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol){
         PZError << "Error at " << __PRETTY_FUNCTION__ << " - Method not implemented\n";
         return -1.;
     }

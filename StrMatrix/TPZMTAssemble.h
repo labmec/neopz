@@ -27,7 +27,7 @@ struct SMTAssembleResidual{
 	/// Pointer to computational element
 	TPZCompEl * compel;
 	/// Residual matrix
-	TPZFMatrix<REAL> * rhs;
+	TPZFMatrix<STATE> * rhs;
 	/// Material identifiers
 	std::set<int> *MaterialIds;
 	/// Index of the first equation
@@ -38,7 +38,7 @@ struct SMTAssembleResidual{
 	int index;
 
 	/// Constructor
-	SMTAssembleResidual( TPZCompEl * _compel, TPZFMatrix<REAL> * _rhs, int _mineq, int _maxeq, std::set<int> * _MaterialIds, int _index)
+	SMTAssembleResidual( TPZCompEl * _compel, TPZFMatrix<STATE> * _rhs, int _mineq, int _maxeq, std::set<int> * _MaterialIds, int _index)
 	{
 		compel = _compel;
 		rhs = _rhs;
@@ -67,7 +67,7 @@ public:
 	~TPZMTAssemble();
 	
 	/** @brief Multi-threading assemblage process */
-	static void AssembleMT(TPZFMatrix<REAL> & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds);
+	static void AssembleMT(TPZFMatrix<STATE> & rhs, TPZCompMesh &mesh, int mineq, int maxeq, std::set<int> *MaterialIds);
 	
 protected:
 	

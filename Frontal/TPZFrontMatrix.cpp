@@ -25,12 +25,12 @@ static LoggerPtr loggerfw(Logger::getLogger("pz.frontal.frontmatrix.fw"));
 
 using namespace std;
 
-template<class store, class front>
-int TPZFrontMatrix<store, front>::Work(){
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar, store, front>::Work(){
 	return fFront.Work();
 }
-template<class store, class front>
-void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq)
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::EquationsToDecompose(TPZVec<int> &destinationindex, int &lower_eq, int &upper_eq)
 {
 	int i;
 	int loop_limit, global;
@@ -53,8 +53,8 @@ void TPZFrontMatrix<store, front>::EquationsToDecompose(TPZVec<int> &destination
 }
 
 /** Initializes the number of elements connected to each equation */
-template<class store, class front>
-void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnected){
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::SetNumElConnected(TPZVec < int > &numelconnected){
 	fNumElConnected.Resize(numelconnected.NElements());
 	fNumElConnected=numelconnected;
 	fNumElConnectedBackup = fNumElConnected;
@@ -81,8 +81,8 @@ void TPZFrontMatrix<store, front>::SetNumElConnected(TPZVec < int > &numelconnec
 }
 
 /** Add a contribution of a stiffness matrix */
-template<class store, class front>
-void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex){
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex){
 	
 	// message #1.3 to fFront:TPZFront
 	fFront.AddKel(elmat, destinationindex);
@@ -103,7 +103,7 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int
 	int mineq, maxeq;
 	
 	EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray AuxEqn;
+	TPZEqnArray<TVar> AuxEqn;
 	if(maxeq >= mineq) {
 		
 		fFront.DecomposeEquations(mineq,maxeq,AuxEqn);
@@ -118,8 +118,8 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int
 }
 
 /** Add a contribution of a stiffness matrix */
-template<class store, class front>
-void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
 	fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -139,7 +139,7 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int
 	//          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray AuxEqn;
+	TPZEqnArray<TVar> AuxEqn;
 	if(maxeq >= mineq) {
 		fFront.DecomposeEquations(mineq,maxeq,AuxEqn);
 		CheckCompress();
@@ -156,8 +156,8 @@ void TPZFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int
 
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-template<class store, class front>
-void TPZFrontMatrix<store, front>::SymbolicAddKel(TPZVec < int > & destinationindex)
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::SymbolicAddKel(TPZVec < int > & destinationindex)
 {
 	fFront.SymbolicAddKel(destinationindex);
 	int mineq, maxeq;
@@ -171,13 +171,13 @@ void TPZFrontMatrix<store, front>::SymbolicAddKel(TPZVec < int > & destinationin
 }
 
 
-template<class store, class front>
-TPZFrontMatrix<store, front>::~TPZFrontMatrix(){
+template<class TVar, class store, class front>
+TPZFrontMatrix<TVar,store, front>::~TPZFrontMatrix(){
 }
 
 
-template<class store, class front>
-TPZFrontMatrix<store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix()
+template<class TVar, class store, class front>
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix<TVar>()
 {
 	fFront.Reset();
 	fStorage.Reset();
@@ -187,8 +187,8 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix() : TPZAbstractFrontMatrix()
 	fNumEq=0;
 }
 
-template<class store, class front>
-TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontMatrix(globalsize,globalsize)
+template<class TVar, class store, class front>
+TPZFrontMatrix<TVar,store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontMatrix<TVar>(globalsize,globalsize)
 {
 	fFront.Reset(globalsize);
 	fStorage.Reset();
@@ -198,8 +198,8 @@ TPZFrontMatrix<store, front>::TPZFrontMatrix(int globalsize) : TPZAbstractFrontM
 	fNumEq=globalsize;
 }
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const
 {
 	int i;
 	out << "Frontal Matrix associated"<< endl;
@@ -213,10 +213,10 @@ void TPZFrontMatrix<store, front>::Print(const char *name, std::ostream& out,con
 	}
 }
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::main()
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::main()
 {
-	TPZFMatrix<REAL> KEl1(2,2);
+	TPZFMatrix<TVar> KEl1(2,2);
 	KEl1(0,0)=4.;
 	KEl1(0,1)=6.;
 	KEl1(1,0)=6.;
@@ -226,7 +226,7 @@ void TPZFrontMatrix<store, front>::main()
 	DestInd1[1]=1;
 	
 	
-	TPZFMatrix<REAL> KEl2(4,4);
+	TPZFMatrix<TVar> KEl2(4,4);
 	KEl2(0,0)=4.;
 	KEl2(0,1)=-6.;
 	KEl2(0,2)=2.;
@@ -254,7 +254,7 @@ void TPZFrontMatrix<store, front>::main()
 	
 	
 	
-	TPZFMatrix<REAL> KEl3(2,2);
+	TPZFMatrix<TVar> KEl3(2,2);
 	KEl3(0,0)=3.;
 	KEl3(0,1)=3.;
 	KEl1(1,0)=3.;
@@ -286,8 +286,8 @@ void TPZFrontMatrix<store, front>::main()
 	TestFront.AddKel(KEl3,DestInd3);
 }
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::CheckCompress()
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::CheckCompress()
 {
 	double nfreerate = ( (double)fFront.NFree() / (double)fFront.FrontSize() ) * 100;
 	if(nfreerate>20.) 
@@ -310,22 +310,22 @@ void TPZFrontMatrix<store, front>::CheckCompress()
 	}
 }
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::AllocData()
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::AllocData()
 {
 	fFront.AllocData();
 	fLastDecomposed=-1;
 }
 
-template<class store, class front>
-int TPZFrontMatrix<store, front>::Substitution(TPZFMatrix<REAL> *b) const {
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::Substitution(TPZFMatrix<TVar> *b) const {
 	fStorage.Forward(*b, ELU);
 	fStorage.Backward(*b, ELU);
 	return 1;
 }
 
-template<class store, class front>
-int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix<REAL> *b) const {
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::Subst_Forward(TPZFMatrix<TVar> *b) const {
 	cout << "Entering Forward Substitution\n";
 	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
@@ -334,8 +334,8 @@ int TPZFrontMatrix<store, front>::Subst_Forward(TPZFMatrix<REAL> *b) const {
 	return 1;
 }
 
-template<class store, class front>
-int TPZFrontMatrix<store, front>::Subst_Backward(TPZFMatrix<REAL> *b) const {
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::Subst_Backward(TPZFMatrix<TVar> *b) const {
 	cout << "Entering Backward Substitution\n";
 	cout.flush();
 	DecomposeType dec = fFront.GetDecomposeType();
@@ -344,31 +344,31 @@ int TPZFrontMatrix<store, front>::Subst_Backward(TPZFMatrix<REAL> *b) const {
 	return 1;
 }
 /*
- template<class store, class front>
- void TPZFrontMatrix<store, front>::SetFileName(const char *name) {
+ template<class TVar, class store, class front>
+ void TPZFrontMatrix<TVar,store, front>::SetFileName(const char *name) {
  //     char * bin_template[8]; 
  //     bin_template = "bfXXXXXX"
  //     const char *name = mktemp(template);
  //	fStorage.('w', name);
  }*/
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::SetFileName(char option, const char *name) {
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::SetFileName(char option, const char *name) {
 	fStorage.OpenGeneric(option, name);
 }
 
 
-template<class store, class front>
-void TPZFrontMatrix<store, front>::FinishWriting() {
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::FinishWriting() {
 	fStorage.FinishWriting();
 }
-template<class store, class front>
-void TPZFrontMatrix<store, front>::ReOpen() {
+template<class TVar, class store, class front>
+void TPZFrontMatrix<TVar,store, front>::ReOpen() {
 	fStorage.ReOpen();
 }
 
-template<class store, class front>
-int TPZFrontMatrix<store, front>::Zero() {
+template<class TVar, class store, class front>
+int TPZFrontMatrix<TVar,store, front>::Zero() {
 	fStorage.Zero();
 	fNumElConnected = fNumElConnectedBackup;
 	fLastDecomposed = -1;
@@ -376,12 +376,21 @@ int TPZFrontMatrix<store, front>::Zero() {
 	return 0;
 }
 
+template<class TVar>
 class TPZStackEqnStorage;
+template<class TVar>
 class TPZFileEqnStorage;
+template<class TVar>
 class TPZFrontSym;
+template<class TVar>
 class TPZFrontNonSym;
 
-template class TPZFrontMatrix<TPZStackEqnStorage, TPZFrontSym>;
-template class TPZFrontMatrix<TPZFileEqnStorage, TPZFrontSym>;
-template class TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>;
-template class TPZFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>;
+template class TPZFrontMatrix<double,TPZStackEqnStorage<double>, TPZFrontSym<double> >;
+template class TPZFrontMatrix<double,TPZFileEqnStorage<double>, TPZFrontSym<double> >;
+template class TPZFrontMatrix<double,TPZStackEqnStorage<double>, TPZFrontNonSym<double> >;
+template class TPZFrontMatrix<double,TPZFileEqnStorage<double>, TPZFrontNonSym<double> >;
+
+template class TPZFrontMatrix<std::complex<double> ,TPZStackEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
+template class TPZFrontMatrix<std::complex<double> ,TPZFileEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
+template class TPZFrontMatrix<std::complex<double> ,TPZStackEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
+template class TPZFrontMatrix<std::complex<double> ,TPZFileEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;

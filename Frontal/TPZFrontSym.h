@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZFrontSym class which implements decomposition process of the frontal matrix (case symmetric).
  */
+template<class TVar>
 class TPZEqnArray;
 
 #ifndef TPZFRONTSYM_H
@@ -35,7 +36,8 @@ extern "C"{
  * @brief Abstract class implements storage and decomposition process of the frontal matrix involving simmetry characteristics. \ref frontal "Frontal"
  * @ingroup frontal
  */
-class TPZFrontSym : public TPZFront {
+template <class TVar>
+class TPZFrontSym : public TPZFront<TVar> {
 public:
 	/** @brief Returns its type*/
 	std::string GetMatrixType();
@@ -47,7 +49,7 @@ public:
     /** @brief Simple constructor */
     TPZFrontSym();
     
-    TPZFrontSym(const TPZFrontSym &cp) : TPZFront(cp),
+    TPZFrontSym(const TPZFrontSym<TVar> &cp) : TPZFront<TVar>(cp),
     fDecomposeType(cp.fDecomposeType)
     {
     }
@@ -61,7 +63,7 @@ public:
 	 * @param maxeq index of equations to be decomposed
 	 * @param result result of decomposition
      */
-    void DecomposeEquations(int mineq, int maxeq, TPZEqnArray & result);
+    void DecomposeEquations(int mineq, int maxeq, TPZEqnArray<TVar> & result);
 	
     /**
      * @brief Decompose these equations in a symbolic way and store freed indexes in fFree 
@@ -80,31 +82,31 @@ public:
 	void Expand(int largefrontsize);
 	
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-	REAL & Element(int i, int j){
+	TVar & Element(int i, int j){
 		if(i>j){
 			int i_temp=i;
 			i=j;
 			j=i_temp;
 		}
-		return fData[(j*(j+1))/2+i];
+		return this->fData[(j*(j+1))/2+i];
 	}
     /** @brief Returns ith, jth element of matrix. \f$ (sourceindex[i],sourceindex[j]) \f$ */
-    const REAL & Element(int i, int j) const {
+    const TVar & Element(int i, int j) const {
         if(i>j){
             int i_temp=i;
             i=j;
             j=i_temp;
         }
-        return fData[(j*(j+1))/2+i];
+        return this->fData[(j*(j+1))/2+i];
     }
     /** @brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &destinationindex);
+    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex);
 	
     /**@brief Add a contribution of a stiffness matrix*/
-    void AddKel(TPZFMatrix<REAL> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
+    void AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &sourceindex,  TPZVec<int> &destinationindex);    
 	
 	/** @brief Reorders the elements of the frontmatrix into the full matrix */
-	virtual void ExtractFrontMatrix(TPZFMatrix<REAL> &front);
+	virtual void ExtractFrontMatrix(TPZFMatrix<TVar> &front);
 	
 private:    
 	
@@ -113,7 +115,7 @@ private:
 	 * @param ieq Index of equation to be decomposed 
 	 * @param eqnarray EqnArray to store resulting members
 	 */
-    void DecomposeOneEquation(int ieq, TPZEqnArray &eqnarray);
+    void DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray);
 	
     /**
      * @brief Sets the global equation as freed, allowing the space 

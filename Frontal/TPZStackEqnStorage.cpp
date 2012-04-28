@@ -11,21 +11,26 @@
 
 using namespace std;
 
-void TPZStackEqnStorage::SetBlockSize(){}
+template<class TVar>
+void TPZStackEqnStorage<TVar>::SetBlockSize(){}
 
-void TPZStackEqnStorage::ReOpen(){}
+template<class TVar>
+void TPZStackEqnStorage<TVar>::ReOpen(){}
 
-void TPZStackEqnStorage::Print(const char *name, std::ostream& out) const {
+template<class TVar>
+void TPZStackEqnStorage<TVar>::Print(const char *name, std::ostream& out) const {
     int i, loop_limit;
 	loop_limit=fEqnStack.NElements();
     out <<  "Number of entries on EqnStack  "<< fEqnStack.NElements() << endl;
     for(i=0;i<loop_limit;i++) fEqnStack[i].Print(name, out);
 }
-void TPZStackEqnStorage::Reset()
+template<class TVar>
+void TPZStackEqnStorage<TVar>::Reset()
 {
 	fEqnStack.Resize(0);
 }
-void TPZStackEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
+template<class TVar>
+void TPZStackEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	int i, stack_size;
 	stack_size=fEqnStack.NElements();
@@ -34,7 +39,8 @@ void TPZStackEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 	}
 	
 }
-void TPZStackEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
+template<class TVar>
+void TPZStackEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	int i, stack_size;
 	stack_size=fEqnStack.NElements();
@@ -44,35 +50,49 @@ void TPZStackEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 	
 }
 
-void TPZStackEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
+template<class TVar>
+void TPZStackEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 {
 	fEqnStack.Push(*EqnArray);
 }
 
-TPZStackEqnStorage::TPZStackEqnStorage()
+template<class TVar>
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage()
 {
 }
 
-void TPZStackEqnStorage::Zero()
+template<class TVar>
+void TPZStackEqnStorage<TVar>::Zero()
 {
 	fEqnStack.Resize(0);
 }
 
-TPZStackEqnStorage::~TPZStackEqnStorage()
+template<class TVar>
+TPZStackEqnStorage<TVar>::~TPZStackEqnStorage()
 {
 }
 
-void TPZStackEqnStorage::main()
+template<class TVar>
+void TPZStackEqnStorage<TVar>::main()
 {
 }
 
-TPZStackEqnStorage::TPZStackEqnStorage(char option, const char *name)
+template<class TVar>
+TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name)
 {
 	
 }
-//void TPZStackEqnStorage::SetFileName(const char *name){}
-void TPZStackEqnStorage::OpenGeneric(char option, const char * name){}
-void TPZStackEqnStorage::ReadBlockPositions() {}
-void TPZStackEqnStorage::FinishWriting(){}
-std::string TPZStackEqnStorage::GetStorage() {return "Stack Storage";}
+//void TPZStackEqnStorage<TVar>::SetFileName(const char *name){}
+template<class TVar>
+void TPZStackEqnStorage<TVar>::OpenGeneric(char option, const char * name){}
+template<class TVar>
+void TPZStackEqnStorage<TVar>::ReadBlockPositions() {}
+template<class TVar>
+void TPZStackEqnStorage<TVar>::FinishWriting(){}
+template<class TVar>
+std::string TPZStackEqnStorage<TVar>::GetStorage() {return "Stack Storage";}
+
+template class TPZStackEqnStorage<double>;
+template class TPZStackEqnStorage<std::complex<double> >;
+
 

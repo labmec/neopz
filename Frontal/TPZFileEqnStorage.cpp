@@ -18,7 +18,8 @@ static LoggerPtr logger(Logger::getLogger("pz.frontal.tpzfileeqnstorage"));
 #include <fstream>
 using namespace std;
 
-void TPZFileEqnStorage::WriteHeaders(){
+template<class TVar>
+void TPZFileEqnStorage<TVar>::WriteHeaders(){
 	/**
 	 *Updates fNumBlocks information each time 
 	 *WriteHeaders is called
@@ -98,7 +99,8 @@ void TPZFileEqnStorage::WriteHeaders(){
 /*void TPZFileEqnStorage::SetBlockSize(int bs){
  fBlockSize = bs;
  }*/
-void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	//Initial tests with C input output files !
 	int loop_limit=100;// = jeq-ieq;
 	int i;
@@ -153,13 +155,14 @@ void TPZFileEqnStorage::Store(int ieq, int jeq, const char *name){
 	}
 }
 
-void TPZFileEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	//  cout << "Inside TPZFileEqnStorage::Forward" << endl;
 	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
 	
 	//if(!fIOStream) SetFileName(fFileName);
-	TPZEqnArray REqnArray;
+	TPZEqnArray<TVar> REqnArray;
 	int i;
 	for(i=0;i<fBlockPos.NElements();i++) {
 		if (fBlockPos[i]) {
@@ -187,12 +190,13 @@ void TPZFileEqnStorage::Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 		}
 	} 
 }
-void TPZFileEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
 	//  cout << "Inside TPZFileEqnStorage::Backward" << endl;
 	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
 	
-	TPZEqnArray REqnArray;
+	TPZEqnArray<TVar> REqnArray;
 	int i;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
 		if (fBlockPos[i]) {
@@ -209,14 +213,16 @@ void TPZFileEqnStorage::Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const
 	
 }
 
-void TPZFileEqnStorage::Reset()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Reset()
 {
 	
 }
 
-void TPZFileEqnStorage::Print(const char *name, std::ostream& out) const {
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Print(const char *name, std::ostream& out) const {
     int i;
-	TPZEqnArray REqnArray;
+	TPZEqnArray<TVar> REqnArray;
 	out <<  "Number of entries on File  "<< fBlockPos.NElements() << endl;
 	for(i=0;i<fBlockPos.NElements();i++) {
 		if (fBlockPos[i]) {
@@ -229,7 +235,8 @@ void TPZFileEqnStorage::Print(const char *name, std::ostream& out) const {
 
 // Redefine TPZFileEqnStorage so it can handle parallel writeing!!!
 
-void TPZFileEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
+template<class TVar>
+void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 {
 #ifdef LOG4CXX
 	{
@@ -289,7 +296,8 @@ void TPZFileEqnStorage::AddEqnArray(TPZEqnArray *EqnArray)
 	//	cout << "NumHeaders " << fNumHeaders << endl;
 }
 
-TPZFileEqnStorage::TPZFileEqnStorage(char option, const std::string & name)
+template<class TVar>
+TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name)
 {
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
@@ -319,12 +327,14 @@ TPZFileEqnStorage::TPZFileEqnStorage(char option, const std::string & name)
 	
 }
 
-TPZFileEqnStorage::~TPZFileEqnStorage()
+template<class TVar>
+TPZFileEqnStorage<TVar>::~TPZFileEqnStorage()
 {
 	remove(fFileName.c_str());
 }
 
-void TPZFileEqnStorage::main()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::main()
 {
 	int Loop_Limit=24;
 	//cout << "Loop_Limit <";
@@ -333,12 +343,12 @@ void TPZFileEqnStorage::main()
 	filename = "testbinary.txt\0";
 	TPZFileEqnStorage FileStoreW('w',filename);
 	//	FileStoreW.SetBlockSize(10); 
-	TPZEqnArray EqnArray;
+	TPZEqnArray<TVar> EqnArray;
 	
 	ifstream input("MatrizInversa.txt");
 	double aux;
 	int i, j;
-	TPZFMatrix<REAL> DecMat(Loop_Limit,Loop_Limit);
+	TPZFMatrix<TVar> DecMat(Loop_Limit,Loop_Limit);
 	for(i=0;i<Loop_Limit;i++){
 		for(j=0;j<Loop_Limit;j++){
 			input >> aux;
@@ -367,7 +377,7 @@ void TPZFileEqnStorage::main()
 	
 	FileStoreW.Print("Teste",output);
 	
-	TPZFMatrix<REAL> f(Loop_Limit,1);
+	TPZFMatrix<TVar> f(Loop_Limit,1);
 	
 	for(i=0;i<Loop_Limit;i++) {
 		f(i,0) = (i+1)*2.1/23;
@@ -380,7 +390,9 @@ void TPZFileEqnStorage::main()
 }
 
 static char filenamestorage[256];
-TPZFileEqnStorage::TPZFileEqnStorage()
+
+template<class TVar>
+TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 #ifdef WIN32
@@ -416,7 +428,8 @@ TPZFileEqnStorage::TPZFileEqnStorage()
 	
 }
 
-TPZFileEqnStorage::TPZFileEqnStorage(const TPZFileEqnStorage &)
+template<class TVar>
+TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 {
 	strcpy(filenamestorage, "/tmp/binary_frontalXXXXXX");
 #ifdef WIN32
@@ -452,7 +465,8 @@ TPZFileEqnStorage::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	
 }
 
-void TPZFileEqnStorage::Zero()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::Zero()
 {
 	if(fIOStream) FinishWriting();
 	remove(fFileName.c_str());
@@ -492,7 +506,8 @@ void TPZFileEqnStorage::Zero()
 	
 }
 
-void TPZFileEqnStorage::ReOpen()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::ReOpen()
 {
 #ifdef LOG4CXX
 	LOGPZ_DEBUG(logger,"reopening the file")
@@ -508,7 +523,8 @@ void TPZFileEqnStorage::ReOpen()
 	
 }
 
-void TPZFileEqnStorage::OpenGeneric(char option, const char * name)
+template<class TVar>
+void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 {
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
@@ -564,7 +580,8 @@ void TPZFileEqnStorage::OpenGeneric(char option, const char * name)
  fread(readvec[iblock],sizeof(double),loop_limit,fIOStream);
  }*/
 
-void TPZFileEqnStorage::FinishWriting()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::FinishWriting()
 {
 #ifdef LOG4CXX
 	LOGPZ_DEBUG(logger,"Closing the binary file")
@@ -577,7 +594,8 @@ void TPZFileEqnStorage::FinishWriting()
 	fIOStream = 0;
 }
 
-void TPZFileEqnStorage::ReadBlockPositions()
+template<class TVar>
+void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 {
 #ifdef LOG4CXX
 	LOGPZ_DEBUG(logger,"Reading block positions")
@@ -604,4 +622,10 @@ void TPZFileEqnStorage::ReadBlockPositions()
 	
 }
 
-std::string TPZFileEqnStorage::GetStorage() {return "File Storage";}
+template<class TVar>
+std::string TPZFileEqnStorage<TVar>::GetStorage() {
+    return "File Storage";
+}
+
+template class TPZFileEqnStorage<double>;
+template class TPZFileEqnStorage<std::complex<double> >;

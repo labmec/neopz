@@ -445,7 +445,7 @@ public:
 	 * @param direction Indicates interaction direction, from first to last (default 1) or from last to first (-1)
 	 */
 	virtual void SolveSOR(int & numiterations, const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-						  TPZFMatrix<TVar>* residual,TPZFMatrix<TVar>& scratch,const TVar overrelax, TVar & tol,
+						  TPZFMatrix<TVar>* residual,TPZFMatrix<TVar>& scratch,const REAL overrelax, REAL & tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	/**
 	 * @brief Solves the linear system using Symmetric Successive Over Relaxation method (Gauss Seidel). \n
@@ -459,7 +459,7 @@ public:
 	 * @param FromCurrent It starts the solution based on FromCurrent. Obtaining solution FromCurrent + 1.
 	 */
 	virtual void SolveSSOR(int & numiterations,const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-						   TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, const TVar overrelax, TVar & tol,
+						   TPZFMatrix<TVar>* residual, TPZFMatrix<TVar>& scratch, const REAL overrelax, REAL & tol,
 						   const int FromCurrent = 0) ;
 	
 	/**
@@ -474,7 +474,7 @@ public:
 	 */
 	virtual void SolveCG(int & numiterations, TPZSolver<TVar> & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-						 TPZFMatrix<TVar>* residual, TVar & tol,
+						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0) ;
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient method. \n
@@ -486,7 +486,7 @@ public:
 	 */
 	virtual void SolveBICG(int & numiterations, TPZSolver<TVar> & preconditioner,
 						   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-						   TVar & tol) ;
+						   REAL & tol) ;
 	
 	/**
 	 * @brief Solves the linear system using Bi-Conjugate Gradient stabilized method. \n
@@ -500,7 +500,7 @@ public:
 	 */
 	virtual void SolveBICGStab(int & numiterations, TPZSolver<TVar> & preconditioner,
 							   const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-							   TPZFMatrix<TVar>* residual, TVar & tol,
+							   TPZFMatrix<TVar>* residual, REAL & tol,
 							   const int FromCurrent = 0) ;
 	
 	/**
@@ -518,7 +518,7 @@ public:
 	virtual void SolveGMRES(int & numiterations, TPZSolver<TVar> & preconditioner,
 							TPZFMatrix<TVar>& H, int & numvectors,
 							const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-							TPZFMatrix<TVar>* residual, TVar & tol,const int FromCurrent) ;
+							TPZFMatrix<TVar>* residual, REAL & tol,const int FromCurrent) ;
 	
 	/**
 	 * @brief Solves the linear system using IR method. \n
@@ -532,7 +532,7 @@ public:
 	 */
 	virtual void SolveIR(int & numiterations, TPZSolver<TVar> & preconditioner,
 						 const TPZFMatrix<TVar>& F, TPZFMatrix<TVar>& result,
-						 TPZFMatrix<TVar>* residual, TVar & tol,
+						 TPZFMatrix<TVar>* residual, REAL & tol,
 						 const int FromCurrent = 0);
 	
 	/** @brief Transforms this matrix in a diagonal matrix, where the diagonal values are its eigenvalues.

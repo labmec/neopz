@@ -27,19 +27,20 @@ class TPZFMatrix;
 /**
  @brief Implements a matrix stored in a frontal decomposition scheme. \ref frontal "Frontal"
  */
-class TPZAbstractFrontMatrix : public TPZMatrix<REAL>
+template<class TVar>
+class TPZAbstractFrontMatrix : public TPZMatrix<TVar>
 {
 public:
 	
-	TPZAbstractFrontMatrix() : TPZMatrix<REAL>()
+	TPZAbstractFrontMatrix() : TPZMatrix<TVar>()
 	{
 	}
 	
-	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix<REAL>(ieq,jeq)
+	TPZAbstractFrontMatrix(int ieq, int jeq) : TPZMatrix<TVar>(ieq,jeq)
 	{
 	}
 	
-	virtual TPZFront & GetFront() = 0;
+	virtual TPZFront<TVar> & GetFront() = 0;
 	
 };
 
@@ -49,8 +50,8 @@ public:
 /** 
  * Manages the remaining classes connecting them
  */
-template <class store, class front>
-class TPZFrontMatrix : public TPZAbstractFrontMatrix {
+template <class TVar, class store, class front>
+class TPZFrontMatrix : public TPZAbstractFrontMatrix<TVar> {
 protected:
 	
     /** @brief Indicates storage schema. Assumes values TPZFileEqnStorage for binary file and TPZStackEqnStorage for a TPZStack storage */
@@ -71,7 +72,7 @@ public:
 	void AllocData();
 	
 	/** @brief returns a pointer to the front matrix */
-	front &GetFront() { return fFront;}
+	TPZFront<TVar> &GetFront() { return fFront;}
     /** @brief Checks if FrontMatrix needs a compression,
 	 if so calls Compress method */
 	void CheckCompress();
@@ -89,13 +90,13 @@ public:
 	 */
 	TPZFrontMatrix(int globalsize);
 	
-	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix(cp), fStorage(cp.fStorage),
+	TPZFrontMatrix(const TPZFrontMatrix &cp) : TPZAbstractFrontMatrix<TVar>(cp), fStorage(cp.fStorage),
 	fFront(cp.fFront),fNumEq(cp.fNumEq),fLastDecomposed(cp.fLastDecomposed), fNumElConnected(cp.fNumElConnected),fNumElConnectedBackup(cp.fNumElConnectedBackup)
     {
     }
     
   //  CLONEDEF(TPZFrontMatrix)
-	virtual TPZMatrix<REAL>*Clone() const { return new TPZFrontMatrix(*this); }
+	virtual TPZMatrix<TVar>*Clone() const { return new TPZFrontMatrix(*this); }
     /** 
 	 * @brief Sends a message to decompose equations from lower_eq to upper_eq, according to destination index
 	 * @param destinationindex Contains destination indexes of equations
@@ -119,7 +120,7 @@ public:
 	 * @param elmat Indicates number of elements connected to that equation
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-	virtual void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex);
+	virtual void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex);
 	
     /** 
 	 * @brief Add a contribution of a stiffness matrix using the indexes to compute the frontwidth. It does it symbolicaly
@@ -133,19 +134,19 @@ public:
 	 * @param sourceindex Source position of values on member stiffness matrix
 	 * @param destinationindex Positioning of such members on global stiffness matrix
 	 */
-    void AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
+    void AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex);
 	
     /** 
 	 * @brief Forward substitution and result is on b
 	 * @param b Result of the substitution
 	 */
-	int Subst_Forward(TPZFMatrix<REAL> *b) const;
+	int Subst_Forward(TPZFMatrix<TVar> *b) const;
 	
     /** @brief Backward substitution and result is on b*/
-	int Subst_Backward(TPZFMatrix<REAL> *b) const;
+	int Subst_Backward(TPZFMatrix<TVar> *b) const;
     /** @brief Executes a substitution on a TPZFMatrix<REAL> object
 	 applies both forward and backward substitution automaticaly */
-	int Substitution(TPZFMatrix<REAL> *) const;
+	int Substitution(TPZFMatrix<TVar> *) const;
     /*
 	 void SetFileName(
 	 const char *name = SetTempFileName() //! Name of the file

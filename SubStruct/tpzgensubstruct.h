@@ -28,10 +28,12 @@
 #include "pzcmesh.h"
 #include "tpzdohrassembly.h"
 
-template<class T>
+template<class TVar,class TSubstruct>
 class TPZDohrMatrix;
 class TPZSubCompMesh;
+template<class TVar>
 class TPZDohrSubstruct;
+template<class TVar>
 class TPZDohrSubstructCondense;
 
 /** \addtogroup substructure
@@ -65,9 +67,9 @@ public:
     TPZAutoPointer<TPZCompMesh> GenerateMesh();
     
     /** @brief Initialize the TPZDohrMatrix structure */
-    void InitializeDohr(TPZAutoPointer<TPZMatrix<REAL> > dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
+    void InitializeDohr(TPZAutoPointer<TPZMatrix<STATE> > dohr, TPZAutoPointer<TPZDohrAssembly<STATE> > assembly);
     /** @brief Initialize the TPZDohrMatrix structure */
-    void InitializeDohrCondense(TPZAutoPointer<TPZMatrix<REAL> > dohr, TPZAutoPointer<TPZDohrAssembly> assembly);
+    void InitializeDohrCondense(TPZAutoPointer<TPZMatrix<STATE> > dohr, TPZAutoPointer<TPZDohrAssembly<STATE> > assembly);
 	
 	void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
 							  TPZVec<int> &internalnodes);
@@ -120,10 +122,10 @@ private:
 };
 
 /** @brief This is a lengthy process which should run on the remote processor */
-void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct> substruct,  TPZDohrAssembly &dohrassembly);
+void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstruct<STATE> > substruct,  TPZDohrAssembly<STATE> &dohrassembly);
 
 /** @brief This is a lengthy process which should run on the remote processor */
-void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstructCondense> substruct,  TPZDohrAssembly &dohrassembly);
+void InitializeMatrices(TPZSubCompMesh *sub, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct,  TPZDohrAssembly<STATE> &dohrassembly);
 
 /** @brief Return the number of submeshes */
 int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);

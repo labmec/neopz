@@ -22,7 +22,7 @@ TPZBlockDiagonalStructMatrix::~TPZBlockDiagonalStructMatrix(){
 	
 }
 
-void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<REAL> & block){
+void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block){
 	
 	TPZVec<int> blocksizes;
 	BlockSizes(blocksizes);
@@ -31,13 +31,13 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<REAL> 
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
 	TPZAdmChunkVector<TPZConnect> &connectvec = fMesh->ConnectVec();
 	TPZStack<int> connectlist;
-	TPZBlockDiagonal<REAL> elblock;
+	TPZBlockDiagonal<STATE> elblock;
 	int numel = elementvec.NElements();
 	int el;
 	for(el=0; el<numel; el++) {
 		TPZCompEl *cel = elementvec[el];
 		if(!cel) continue;
-		TPZBlockDiagonal<REAL> eldiag;
+		TPZBlockDiagonal<STATE> eldiag;
 		cel->CalcBlockDiagonal(connectlist,elblock);
 		//    elblock.Print("Element block diagonal");
 		int ncon = connectlist.NElements();
@@ -53,7 +53,7 @@ void TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal(TPZBlockDiagonal<REAL> 
 				cout << "TPZBlockDiagonalStructMatrix::AssembleBlockDiagonal wrong data structure\n";
 				continue;
 			}
-			TPZFMatrix<REAL> temp(bsize,bsize);
+			TPZFMatrix<STATE> temp(bsize,bsize);
 			elblock.GetBlock(c,temp);
 			block.AddBlock(seqnum,temp);
 		}
@@ -98,10 +98,10 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
 TPZStructMatrix * TPZBlockDiagonalStructMatrix::Clone(){
     return new TPZBlockDiagonalStructMatrix(*this);
 }
-TPZMatrix<REAL> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	int neq = fMesh->NEquations();
 	//cout << "TPZBlockDiagonalStructMatrix::CreateAssemble will not assemble the right hand side\n";
-	TPZBlockDiagonal<REAL> *block = new TPZBlockDiagonal<REAL>();
+	TPZBlockDiagonal<STATE> *block = new TPZBlockDiagonal<STATE>();
 	rhs.Redim(neq,1);
 	//  TPZStructMatrix::Assemble(rhs, *fMesh,fMinEq,fMaxEq);
 	Assemble(rhs,guiInterface);
@@ -109,10 +109,10 @@ TPZMatrix<REAL> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<REAL> 
 	//  block->Print("Block Diagonal matrix");
 	return block;
 }
-TPZMatrix<REAL> * TPZBlockDiagonalStructMatrix::Create(){
+TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){
 	TPZVec<int> blocksize;
 	BlockSizes(blocksize);
-	return new TPZBlockDiagonal<REAL>(blocksize);
+	return new TPZBlockDiagonal<STATE>(blocksize);
 }
 TPZBlockDiagonalStructMatrix::TPZBlockDiagonalStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh),fBlockStructure(EVertexBased),fOverlap(0)
 {

@@ -44,6 +44,8 @@
  * It contains a forward and a backward method. \n
  * It is sparce, symmetric or not.
  */
+
+template<class TVar>
 class TPZEqnArray {     
 	
 	/** @brief It defines two diferent types of storage Symmetric and NonSymmetric an also an undefined status */
@@ -71,13 +73,13 @@ public:
 	 * @param F Matrix to execute a Forward substitution on 
 	 * @param dec Type of decomposition, depends on what method was used in its decomposition
 	 */
-    void EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec);
+    void EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec);
     /** 
 	 * @brief Backward substitution on equations stored in EqnArray 
 	 * @param U Matrix to execute a Forward substitution
 	 * @param dec Type of decomposition, depends on what method was used in its decomposition
 	 */
-    void EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec);
+    void EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec);
 	
     /** @brief Resets data structure */
     void Reset();
@@ -91,7 +93,7 @@ public:
 	 * @param col The collumn position of val
 	 * @param val The value beeing added itself.
 	 */
-    void AddTerm(int col, REAL val)
+    void AddTerm(int col, TVar val)
 	{
 		fIndex.Push(col);
 		fEqValues.Push(val);
@@ -137,7 +139,7 @@ private:
     TPZStack < int , 100 > fEqNumber;
 	
     /** @brief Equations coefficients values */
-    TPZStack < REAL, 1000 > fEqValues;
+    TPZStack < TVar, 1000 > fEqValues;
 	
     /** @brief Line/Column number associated to each fEqValues values. */
     TPZStack < int , 1000 > fIndex;

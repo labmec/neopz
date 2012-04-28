@@ -13,7 +13,8 @@
 
 #include "tpzdohrassemblelist.h"
 
-TPZDohrAssembleList::TPZDohrAssembleList(int numitems, TPZFMatrix<REAL> &output, TPZAutoPointer<TPZDohrAssembly> assembly) : fNumItems(numitems),
+template<class TVar>
+TPZDohrAssembleList<TVar>::TPZDohrAssembleList(int numitems, TPZFMatrix<TVar> &output, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly) : fNumItems(numitems),
 fAssembleIndexes(assembly), fOutput(&output)
 {
 	/*
@@ -38,7 +39,8 @@ fAssembleIndexes(assembly), fOutput(&output)
 	pthread_mutex_init(&fListAccessLock, 0);
 }
 
-TPZDohrAssembleList::~TPZDohrAssembleList()
+template<class TVar>
+TPZDohrAssembleList<TVar>::~TPZDohrAssembleList()
 {
 	pthread_mutex_destroy(&fAssemblyLock);
 	pthread_mutex_destroy(&fListAccessLock);
@@ -52,7 +54,8 @@ TPZDohrAssembleList::~TPZDohrAssembleList()
 }
 
 // Add an item to the list in a thread safe way
-void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleItem)
+template<class TVar>
+void TPZDohrAssembleList<TVar>::AddItem(TPZAutoPointer<TPZDohrAssembleItem<TVar> > assembleItem)
 {
 	pthread_mutex_lock(&fListAccessLock);
 	fWork.push_back(assembleItem);
@@ -67,9 +70,10 @@ void TPZDohrAssembleList::AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleIt
 	pthread_mutex_unlock(&fListAccessLock);
 }
 // remove an item from the list
-TPZAutoPointer<TPZDohrAssembleItem> TPZDohrAssembleList::PopItem()
+template<class TVar>
+TPZAutoPointer<TPZDohrAssembleItem<TVar> > TPZDohrAssembleList<TVar>::PopItem()
 {
-	TPZAutoPointer<TPZDohrAssembleItem> result;
+	TPZAutoPointer<TPZDohrAssembleItem<TVar> > result;
 	pthread_mutex_lock(&fListAccessLock);
 	if (fWork.begin() != fWork.end()) {
 		fNumItems--;
@@ -80,11 +84,12 @@ TPZAutoPointer<TPZDohrAssembleItem> TPZDohrAssembleList::PopItem()
 	return result;
 }
 
-void *TPZDohrAssembleList::Assemble(void *voidptr)
+template<class TVar>
+void *TPZDohrAssembleList<TVar>::Assemble(void *voidptr)
 {
 	TPZDohrAssembleList *myptr = (TPZDohrAssembleList *) voidptr;
 	while (myptr->fNumItems > 0) {
-		TPZAutoPointer<TPZDohrAssembleItem> work = myptr->PopItem();
+		TPZAutoPointer<TPZDohrAssembleItem<TVar> > work = myptr->PopItem();
 		if (work) {
 			pthread_mutex_lock(&myptr->fAssemblyLock);
 			myptr->fAssembleIndexes->Assemble(work->fSubIndex,work->fAssembleData,*(myptr->fOutput));
@@ -105,3 +110,6 @@ void *TPZDohrAssembleList::Assemble(void *voidptr)
 	}
 	return voidptr;
 }
+
+template struct TPZDohrAssembleList<double>;
+template struct TPZDohrAssembleList<std::complex<double> >;

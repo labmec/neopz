@@ -40,8 +40,8 @@
  * @ingroup substructure matrix
  * @author Philippe Devloo
  */
-template <class TSubStruct> 
-class TPZDohrMatrix : public TPZMatrix<REAL>
+template <class TVar, class TSubStruct> 
+class TPZDohrMatrix : public TPZMatrix<TVar>
 {
 public:
 	/** @brief The matrix class is a placeholder for a list of substructures */
@@ -56,11 +56,11 @@ private:
 	
 public:
 	
-	TPZAutoPointer<TPZDohrAssembly> fAssembly;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
 	
-	TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly> dohrassembly);
+	TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly<TVar> > dohrassembly);
 	
-	TPZDohrMatrix() : TPZMatrix<REAL>()
+	TPZDohrMatrix() : TPZMatrix<TVar>()
     {
         
     }
@@ -71,7 +71,7 @@ public:
 	}
 	
 //	CLONEDEF(TPZDohrMatrix)
-		virtual TPZMatrix<REAL>*Clone() const { return new TPZDohrMatrix(*this); }
+		virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrMatrix(*this); }
 	
 	~TPZDohrMatrix();
 	
@@ -134,13 +134,13 @@ public:
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
 	 */
 	/** The only method any matrix class needs to implement */
-	virtual void MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,const REAL alpha,const REAL beta,const int opt,const int stride) const;
+	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,const TVar alpha,const TVar beta,const int opt,const int stride) const;
 	
 	/** @brief Adjust the residual to zero the residual of the internal connects */
-	void AdjustResidual(TPZFMatrix<REAL> &res);
+	void AdjustResidual(TPZFMatrix<TVar> &res);
 	
 	/** @brief Add the solution corresponding to the internal residual */
-	void AddInternalSolution(TPZFMatrix<REAL> &solution);
+	void AddInternalSolution(TPZFMatrix<TVar> &solution);
     
 	/**
 	 * @name TPZSaveable
@@ -205,23 +205,23 @@ struct TPZDohrThreadMultData
  * @ingroup substructure
  * @brief .. . \ref substructure "Sub structure"
  */
-template <class TSubStruct> 
+template <class TVar, class TSubStruct> 
 struct TPZDohrThreadMultList
 {
 	/** @brief The vector with which we will multiply */
-	const TPZFMatrix<REAL> *fInput;
+	const TPZFMatrix<TVar> *fInput;
 	/** @brief Scalar multiplication factor */
-	REAL fAlpha;
+	TVar fAlpha;
 	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
 	/** @brief The data structure which defines the assemble destinations */
-	TPZAutoPointer<TPZDohrAssembly> fAssembly;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
 	/** @brief The list of data objects which need to treated by the threads */
 	std::list<TPZDohrThreadMultData<TSubStruct> > fWork;
 	/** @brief The local contribution to the v2 vector */
-	TPZAutoPointer<TPZDohrAssembleList> fAssemblyStructure;
+	TPZAutoPointer<TPZDohrAssembleList<TVar> > fAssemblyStructure;
 	
-	TPZDohrThreadMultList(const TPZFMatrix<REAL> &x, REAL alpha, TPZAutoPointer<TPZDohrAssembly> assembly, TPZAutoPointer<TPZDohrAssembleList> &assemblestruct) : fInput(&x), fAlpha(alpha), 
+	TPZDohrThreadMultList(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha), 
 	fAssembly(assembly), fAssemblyStructure(assemblestruct)
 	{
 		pthread_mutex_init(&fAccessLock, 0);

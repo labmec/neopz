@@ -21,7 +21,8 @@ static LoggerPtr logger(Logger::getLogger("substruct.dohrassembly"));
 #endif
 
 // sum the values in the local matrix into the global matrix
-void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global)
+template<class TVar>
+void TPZDohrAssembly<TVar>::Assemble(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
@@ -46,7 +47,8 @@ void TPZDohrAssembly::Assemble(int isub, const TPZFMatrix<REAL> &local, TPZFMatr
 }
 
 // extract the values from the global matrix into the local matrix
-void TPZDohrAssembly::Extract(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local)
+template<class TVar>
+void TPZDohrAssembly<TVar>::Extract(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local)
 {
 	TPZVec<int> &avec = fFineEqs[isub];
 	int neq = avec.NElements();
@@ -72,7 +74,8 @@ void TPZDohrAssembly::Extract(int isub, const TPZFMatrix<REAL> &global, TPZFMatr
 }
 
 // sum the values in the local matrix into the global matrix
-void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix<REAL> &local, TPZFMatrix<REAL> &global)
+template<class TVar>
+void TPZDohrAssembly<TVar>::AssembleCoarse(int isub, const TPZFMatrix<TVar> &local, TPZFMatrix<TVar> &global)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();
@@ -97,7 +100,8 @@ void TPZDohrAssembly::AssembleCoarse(int isub, const TPZFMatrix<REAL> &local, TP
 }
 
 // extract the values from the global matrix into the local matrix
-void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TPZFMatrix<REAL> &local)
+template<class TVar>
+void TPZDohrAssembly<TVar>::ExtractCoarse(int isub, const TPZFMatrix<TVar> &global, TPZFMatrix<TVar> &local)
 {
 	TPZVec<int> &avec = fCoarseEqs[isub];
 	int neq = avec.NElements();
@@ -125,7 +129,8 @@ void TPZDohrAssembly::ExtractCoarse(int isub, const TPZFMatrix<REAL> &global, TP
 
 
 /** @brief method for streaming the object to a stream */
-void TPZDohrAssembly::Write(TPZStream &out)
+template<class TVar>
+void TPZDohrAssembly<TVar>::Write(TPZStream &out)
 {
     int nfine = fFineEqs.size();
     out.Write(&nfine,1);
@@ -140,7 +145,8 @@ void TPZDohrAssembly::Write(TPZStream &out)
 }
 
 /** @brief method for reading the object for a stream */
-void TPZDohrAssembly::Read(TPZStream &input)
+template<class TVar>
+void TPZDohrAssembly<TVar>::Read(TPZStream &input)
 {
     int nfine;
     input.Read(&nfine);
@@ -156,3 +162,5 @@ void TPZDohrAssembly::Read(TPZStream &input)
     }    
 }
 
+template class TPZDohrAssembly<double>;
+template class TPZDohrAssembly<std::complex<double> >;

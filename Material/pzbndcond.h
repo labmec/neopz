@@ -39,14 +39,14 @@ protected:
 	/** @brief boundary condition type */
 	int 		fType;
 	/** @brief first value of boundary condition */
- 	TPZFMatrix<REAL> fBCVal1;
+ 	TPZFMatrix<STATE> fBCVal1;
 	/** @brief second value of boundary condition */
-	TPZFMatrix<REAL> fBCVal2;
+	TPZFMatrix<STATE> fBCVal2;
 	/** @brief pointer to material which created bc */
 	TPZAutoPointer<TPZMaterial> fMaterial;
 	
 	/** @brief Function to allow fBCVal1 to be variable */
-	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType);
+	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType);
 	
 	public :
 	/** @brief Copy constructor */
@@ -62,7 +62,7 @@ protected:
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
-	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2) :
+	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
@@ -78,7 +78,7 @@ protected:
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
 	
-	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<REAL> &Val1, TPZVec<REAL> &Val2, int &BCType)){
+	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType)){
 		fValFunction = fp;
 	}
 	
@@ -98,14 +98,14 @@ protected:
 	
 	void SetType(int type){ this->fType = type; }
 	
-	TPZFMatrix<REAL> &Val1() { return fBCVal1; }
+	TPZFMatrix<STATE> &Val1() { return fBCVal1; }
 	
-	TPZFMatrix<REAL> &Val2() { return fBCVal2; }
+	TPZFMatrix<STATE> &Val2() { return fBCVal2; }
 	
 	TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux){
+	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
 		flux.Fill(0.);
 	}
 	

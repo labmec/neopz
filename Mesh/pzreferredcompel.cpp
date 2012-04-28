@@ -106,16 +106,16 @@ TPZReferredCompEl<TCOMPEL>::~TPZReferredCompEl(){
 
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSolVec &sol,
-													   TPZGradSolVec&dsol, TPZFMatrix<REAL> &axes)
+													   TPZGradSolVec &dsol, TPZFMatrix<REAL> &axes)
 {
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<TPZManVector<REAL,10>, 10> ThisSol(sol);
-	TPZManVector<TPZFNMatrix<30>, 10> ThisDSol(dsol);
+	TPZSolVec ThisSol(sol);
+	TPZGradSolVec ThisDSol(dsol);
 	
-	TPZManVector<TPZManVector<REAL,10>,10> OtherSol;
-	TPZManVector<TPZFNMatrix<30>,10> OtherDSol,OtherDSol2;
+	TPZSolVec OtherSol;
+	TPZGradSolVec OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int numbersol = sol.size();
@@ -139,11 +139,11 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<TPZManVector<REAL,10>, 10> ThisSol(sol);
-	TPZManVector<TPZFNMatrix<30>, 10> ThisDSol(dsol);
+	TPZSolVec ThisSol(sol);
+	TPZGradSolVec ThisDSol(dsol);
 	
-	TPZManVector<TPZManVector<REAL,10>,10> OtherSol;
-	TPZManVector<TPZFNMatrix<30>,10> OtherDSol,OtherDSol2;
+	TPZSolVec OtherSol;
+	TPZGradSolVec OtherDSol,OtherDSol2;
 	TPZFNMatrix<9> otheraxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherSol, OtherDSol, otheraxes);
     int numbersol = sol.size();
@@ -163,17 +163,17 @@ void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi, TPZSol
 template < class TCOMPEL >
 void TPZReferredCompEl< TCOMPEL >::AppendOtherSolution(TPZVec<REAL> &qsi,
                                                        TPZVec<REAL> &normal,
-                                                       TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
-                                                       TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
+                                                       TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+                                                       TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
 	TPZCompEl * other = this->ReferredElement();
 	if (!other) return;
 	
-	TPZManVector<TPZManVector<REAL,10>, 10> ThisLeftSol(leftsol), ThisRightSol(rightsol);
-	TPZManVector<TPZFNMatrix<30>, 10> ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
+	TPZSolVec ThisLeftSol(leftsol), ThisRightSol(rightsol);
+	TPZGradSolVec ThisDLeftSol(dleftsol), ThisDRightSol(drightsol);
 	
-	TPZManVector<TPZManVector<REAL,10>, 10> OtherLeftSol(0), OtherRightSol(0);
+	TPZSolVec OtherLeftSol(0), OtherRightSol(0);
     TPZManVector<REAL,3> OtherNormal(0);
-	TPZManVector<TPZFNMatrix<30>, 10> OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
+	TPZGradSolVec OtherDSol2(0), OtherDLeftSol(0), OtherDLeftSol2(0), OtherDRightSol(0), OtherDRightSol2(0);
 	TPZFNMatrix<9> OtherLeftAxes(3,3,0.), OtherRightAxes(3,3,0.);
 	other->ComputeSolution(qsi, OtherNormal,
 						   OtherLeftSol,  OtherDLeftSol,  OtherLeftAxes,
@@ -245,8 +245,8 @@ void TPZReferredCompEl< TCOMPEL >::ComputeSolution(TPZVec<REAL> &qsi,
 	this->AppendOtherSolution(qsi, normal, leftsol, dleftsol, leftaxes, rightsol, drightsol, rightaxes);
 }
 
-void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
-                               TPZFMatrix<REAL> &dsolto, const TPZFMatrix<REAL> &axesto)
+void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
+                               TPZFMatrix<STATE> &dsolto, const TPZFMatrix<REAL> &axesto)
 {
 	TPZFNMatrix<9> axesinner, axesfromlocal;
 	axesfrom.Transpose(&axesfromlocal);
@@ -257,7 +257,7 @@ void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axe
 	int id,jd,is;
 	for(is=0; is<nstate; is++)
 	{
-		TPZManVector<REAL> dval(nderiv,0.);
+		TPZManVector<STATE> dval(nderiv,0.);
 		for(id=0; id<nderiv; id++)
 		{
 			for(jd=0; jd<nderiv; jd++)
@@ -272,7 +272,8 @@ void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axe
 	}
 }
 
-void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12)
+template<class TVar>
+void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12)
 {
 	int nu1 = u1.NElements(),nu2 = u2.NElements();
 	u12.Resize(nu1+nu2);
@@ -281,7 +282,8 @@ void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12)
 	for(i=0; i<nu2; i++) u12[i+nu1] = u2[i];
 }
 
-void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12)
+template<class TVar>
+void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12)
 {
 	int ru1 = u1.Rows(), cu1 = u1.Cols(), ru2 = u2.Rows(), cu2 = u2.Cols();
 	int ru12 = ru1 < ru2 ? ru2 : ru1;

@@ -26,6 +26,7 @@
  * @ingroup substructure
  * @brief To assembling one item using Dohrmann algorithm. \ref substructure "Sub structure"
  */
+template<class TVar>
 struct TPZDohrAssembleItem {
 	/** @brief Initialize the assemble item based on the submesh index and size of the local contribution */
 	TPZDohrAssembleItem(int subindex, int size) : fSubIndex(subindex), fAssembleData(size,1,0.)
@@ -38,16 +39,17 @@ struct TPZDohrAssembleItem {
 	/** @brief Substructure index */
 	int fSubIndex;
 	/** @brief The data which should be assembled */
-	TPZFMatrix<REAL> fAssembleData;
+	TPZFMatrix<TVar> fAssembleData;
 };
 
 /**
  * @ingroup substruture
  * @brief List of items to assembling using Dohrmann algorithm
  */ 
+template<class TVar>
 struct TPZDohrAssembleList {
 	/** @brief Constructor indicating the number of items that will be assembled and the target matrix */
-	TPZDohrAssembleList(int numitems, TPZFMatrix<REAL> &output, TPZAutoPointer<TPZDohrAssembly> assembly);
+	TPZDohrAssembleList(int numitems, TPZFMatrix<TVar> &output, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly);
 	/// destructor
 	~TPZDohrAssembleList();
 	/** @brief The number of items that will be assembled before returning */
@@ -59,15 +61,15 @@ struct TPZDohrAssembleList {
 	/** @brief This is the mutex which controls the assembly */
 	pthread_mutex_t fAssemblyLock;
 	/** @brief List of objects needed to be assembled */
-	std::list<TPZAutoPointer<TPZDohrAssembleItem> > fWork;
+	std::list<TPZAutoPointer<TPZDohrAssembleItem<TVar> > > fWork;
 	/** @brief Add an item to the list in a thread safe way */
-	void AddItem(TPZAutoPointer<TPZDohrAssembleItem> assembleItem);
+	void AddItem(TPZAutoPointer<TPZDohrAssembleItem<TVar> > assembleItem);
 	/** @brief Remove an item from the list */
-	TPZAutoPointer<TPZDohrAssembleItem> PopItem();
+	TPZAutoPointer<TPZDohrAssembleItem<TVar> > PopItem();
 	/** @brief Assembly indexes */
-	TPZAutoPointer<TPZDohrAssembly> fAssembleIndexes;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembleIndexes;
 	/** @brief Target Matrix */
-	TPZFMatrix<REAL> *fOutput;
+	TPZFMatrix<TVar> *fOutput;
 	/** @brief Procedure which performs the assembly process */
 	static void *Assemble(void *voidptr);
 };

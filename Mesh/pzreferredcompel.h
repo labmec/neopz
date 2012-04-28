@@ -98,13 +98,13 @@ protected:
 	
 	/** @brief Append solution of the referred element. */
 	void AppendOtherSolution(TPZVec<REAL> &qsi, TPZVec<REAL> &normal,
-							 TPZVec<TPZManVector<REAL, 10> > &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
-							 TPZVec<TPZManVector<REAL, 10> > &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+							 TPZSolVec &leftsol, TPZGradSolVec &dleftsol, TPZFMatrix<REAL> &leftaxes,
+							 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 };
 
 /** @brief Adjust the derivatives from one system of axes to the other */
-void AdjustSolutionDerivatives(TPZFMatrix<REAL> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
-                               TPZFMatrix<REAL> &dsolto, const TPZFMatrix<REAL> &axesto);
+void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &axesfrom,
+                               TPZFMatrix<STATE> &dsolto, const TPZFMatrix<REAL> &axesto);
 
 /** @brief Creates discontinuous referred computational element related with geometric element gel */
 TPZCompEl *CreateReferredDisc(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
@@ -126,10 +126,12 @@ TPZCompEl *CreateReferredPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 TPZCompEl *CreateReferredTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 /** @brief Append u2 vector after u1 vector in u12 vector */
-void Append(TPZVec<REAL> &u1, TPZVec<REAL> &u2, TPZVec<REAL> &u12);
+template<class TVar>
+void Append(TPZVec<TVar> &u1, TPZVec<TVar> &u2, TPZVec<TVar> &u12);
 /** @brief Append u2 matrix following u1 matrix in u12 matrix */
 /** Returns u12 = [u1][u2]. Then: \f$ u12.Rows = max(u1.Rows, u2.Rows) \f$ and \f$ u12.Cols = u1.Cols + u2.Cols \f$ */
-void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+template<class TVar>
+void Append(TPZFMatrix<TVar> &u1, TPZFMatrix<TVar> &u2, TPZFMatrix<TVar> &u12);
 /** @brief Returns true whether \f$ |Aij - Bij| < tol \f$ for all the entries of the matrices */
 bool AreEqual(const TPZVec<REAL> &A, const TPZVec<REAL> &B, REAL tol = 1e-10);
 

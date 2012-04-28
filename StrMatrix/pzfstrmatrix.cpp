@@ -18,8 +18,8 @@ static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
 
 using namespace std;
 
-TPZMatrix<REAL> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix<REAL> *stiff = Create();
+TPZMatrix<STATE> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix<STATE> *stiff = Create();
 	int neq = stiff->Rows();
 	rhs.Redim(neq,1);
 	Assemble(*stiff,rhs,guiInterface);
@@ -36,7 +36,7 @@ TPZMatrix<REAL> * TPZFStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAuto
     return stiff;
 }
 
-TPZMatrix<REAL> * TPZFStructMatrix::Create(){
+TPZMatrix<STATE> * TPZFStructMatrix::Create(){
 	int neq = fMesh->NEquations();
 	if(HasRange())
 	{
@@ -48,7 +48,7 @@ TPZMatrix<REAL> * TPZFStructMatrix::Create(){
 		fMinEq = 0;
 	}
     
-	return new TPZFMatrix<REAL>(neq,neq,0.);
+	return new TPZFMatrix<STATE>(neq,neq,0.);
 }
 
 TPZFStructMatrix::TPZFStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)

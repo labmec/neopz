@@ -37,15 +37,15 @@ public:
 	}
 	
 	// @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed
-	virtual TPZMatrix<REAL> * Create();
+	virtual TPZMatrix<STATE> * Create();
     
-	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	virtual TPZStructMatrix * Clone();    
 	
 public:
 	
-	void AssembleBlockDiagonal(TPZBlockDiagonal<REAL> & block);
+	void AssembleBlockDiagonal(TPZBlockDiagonal<STATE> & block);
 private:
 	
     void BlockSizes(TPZVec < int > & blocksizes);

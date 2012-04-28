@@ -638,14 +638,14 @@ void TPZMatrix<TVar>::SolveJacobi(int &numiterations,const TPZFMatrix<TVar> &F, 
 
 template<class TVar>
 void TPZMatrix<TVar>::SolveSOR(int & numiterations, const TPZFMatrix<TVar> &F,
-							   TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &/*scratch*/, const TVar overrelax,
-							   TVar &tol,const int FromCurrent,const int direction) {
+							   TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &/*scratch*/, const REAL overrelax,
+							   REAL &tol,const int FromCurrent,const int direction) {
 	
 	if(residual == &F) {
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
 		return;
 	}
-	TVar res = (TVar)2*tol+(TVar)1.;
+	TVar res = (TVar)2*(TVar)tol+(TVar)1.;
 	if(residual) res = Norm(*residual);
 	if(!FromCurrent) {
 		result.Zero();
@@ -669,21 +669,21 @@ void TPZMatrix<TVar>::SolveSOR(int & numiterations, const TPZFMatrix<TVar> &F,
 					eqres -= GetVal(i,j)*result(j,ic);
 				}
 				res += eqres*eqres;
-				result(i,ic) += overrelax*eqres/GetVal(i,i);
+				result(i,ic) += (TVar)overrelax*eqres/GetVal(i,i);
 			}
 		}
 		res = sqrt(res);
 	}
 	if(residual) Residual(result,F,*residual);
 	numiterations = it;
-	tol = res;
+	tol = fabs(res);
 }
  
 template <class TVar>
 void TPZMatrix<TVar>::SolveSSOR(int &numiterations, const TPZFMatrix<TVar> &F,
-						  TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch, const TVar overrelax,
-						  TVar &tol,const int FromCurrent) {
-	TVar res = (tol*TVar(2.))+TVar(1.);
+						  TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch, const REAL overrelax,
+						  REAL &tol,const int FromCurrent) {
+	REAL res = tol*2.+1.;
 	int i, one = 1;
 	int fromcurrent = FromCurrent;
 	for(i=0; i<numiterations && fabs(res) > fabs(tol); i++) {
@@ -704,28 +704,28 @@ void TPZMatrix<TVar>::SolveSSOR(int &numiterations, const TPZFMatrix<TVar> &F,
 template <class TVar>
 void TPZMatrix<TVar>::SolveCG(int &numiterations, TPZSolver<TVar> &preconditioner,
 						const	TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-						TPZFMatrix<TVar> *residual, TVar &tol, const int FromCurrent) {
+						TPZFMatrix<TVar> *residual, REAL &tol, const int FromCurrent) {
 	CG(*this, result, F, preconditioner, residual, numiterations, tol, FromCurrent);
 }
 
 template <>
 void TPZMatrix< std::complex<float> >::SolveCG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						const	TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol, const int FromCurrent) {
+						TPZFMatrix< std::complex<float> > *residual,  REAL  &tol, const int FromCurrent) {
 	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 template <>
 void TPZMatrix< std::complex<double> >::SolveCG(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
 						const	TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol, const int FromCurrent) {
+						TPZFMatrix< std::complex<double> > *residual,  REAL  &tol, const int FromCurrent) {
 	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 template <>
 void TPZMatrix< std::complex<long double> >::SolveCG(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 						const	TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol, const int FromCurrent) {
+						TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol, const int FromCurrent) {
 	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
@@ -735,7 +735,7 @@ template <class TVar>
 void TPZMatrix<TVar>::SolveGMRES(int &numiterations, TPZSolver<TVar> &preconditioner,
 						   TPZFMatrix<TVar> &H, int &numvectors,
 						   const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-						   TPZFMatrix<TVar> *residual, TVar &tol,const int FromCurrent)  
+						   TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  
 {
     if(F.Cols() > 1)
     {
@@ -765,7 +765,7 @@ template <>
 void TPZMatrix< std::complex<float> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						   TPZFMatrix< std::complex<float> > &H, int &numvectors,
 						   const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						   TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,const int FromCurrent)  
+						   TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,const int FromCurrent)  
 {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
@@ -774,7 +774,7 @@ template <>
 void TPZMatrix< std::complex<double> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
 						   TPZFMatrix< std::complex<double> > &H, int &numvectors,
 						   const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						   TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,const int FromCurrent)  
+						   TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,const int FromCurrent)  
 {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
@@ -783,7 +783,7 @@ template <>
 void TPZMatrix< std::complex<long double> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 						   TPZFMatrix< std::complex<long double> > &H, int &numvectors,
 						   const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						   TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,const int FromCurrent)  
+						   TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,const int FromCurrent)  
 {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
@@ -794,7 +794,7 @@ template<class TVar>
 void TPZMatrix<TVar>::SolveBICG(int &numiterations, TPZSolver<TVar> &preconditioner,
 						  const TPZFMatrix<TVar> &F,
 						  TPZFMatrix<TVar> &result,
-						  TVar &tol)  {
+						  REAL &tol)  {
 	BiCG (*this, result,F,preconditioner,numiterations,tol);
 }
 
@@ -802,7 +802,7 @@ template<>
 void TPZMatrix< std::complex<float> >::SolveBICG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						  const TPZFMatrix< std::complex<float> > &F,
 						  TPZFMatrix< std::complex<float> > &result,
-						   std::complex<float>  &tol)  {
+						   REAL  &tol)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
@@ -810,7 +810,7 @@ template<>
 void TPZMatrix< std::complex<double> >::SolveBICG(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
 						  const TPZFMatrix< std::complex<double> > &F,
 						  TPZFMatrix< std::complex<double> > &result,
-						   std::complex<double>  &tol)  {
+						   REAL  &tol)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
@@ -818,7 +818,7 @@ template<>
 void TPZMatrix< std::complex<long double> >::SolveBICG(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 						  const TPZFMatrix< std::complex<long double> > &F,
 						  TPZFMatrix< std::complex<long double> > &result,
-						   std::complex<long double>  &tol)  {
+						   REAL  &tol)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
@@ -826,28 +826,28 @@ void TPZMatrix< std::complex<long double> >::SolveBICG(int &numiterations, TPZSo
 template <class TVar>
 void TPZMatrix<TVar>::SolveBICGStab(int &numiterations, TPZSolver<TVar> &preconditioner,
 							  const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-							  TPZFMatrix<TVar> *residual, TVar &tol,const int FromCurrent)  {
+							  TPZFMatrix<TVar> *residual, REAL &tol,const int FromCurrent)  {
 	BiCGSTAB(*this,result,F,preconditioner,numiterations,tol,residual,FromCurrent);
 }
 
 template <>
 void TPZMatrix< std::complex<float> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 							  const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-							  TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,const int FromCurrent)  {
+							  TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,const int FromCurrent)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 template <>
 void TPZMatrix< std::complex<double> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
 							  const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-							  TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,const int FromCurrent)  {
+							  TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,const int FromCurrent)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
 template <>
 void TPZMatrix< std::complex<long double> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 							  const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-							  TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,const int FromCurrent)  {
+							  TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,const int FromCurrent)  {
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
 
@@ -857,7 +857,7 @@ void TPZMatrix< std::complex<long double> >::SolveBICGStab(int &numiterations, T
 template <class TVar>
 void TPZMatrix<TVar>::SolveIR(int &numiterations, TPZSolver<TVar> &preconditioner,
 						const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-						TPZFMatrix<TVar> *residual, TVar &tol,
+						TPZFMatrix<TVar> *residual, REAL &tol,
 						const int FromCurrent)  {
 	IR(*this,result,F,preconditioner,residual,numiterations,tol,FromCurrent);
 }
@@ -865,7 +865,7 @@ void TPZMatrix<TVar>::SolveIR(int &numiterations, TPZSolver<TVar> &preconditione
 template <>
 void TPZMatrix< std::complex<float> >::SolveIR(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
-						TPZFMatrix< std::complex<float> > *residual,  std::complex<float>  &tol,
+						TPZFMatrix< std::complex<float> > *residual,  REAL  &tol,
 						const int FromCurrent)  {
 	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
@@ -873,7 +873,7 @@ void TPZMatrix< std::complex<float> >::SolveIR(int &numiterations, TPZSolver< st
 template <>
 void TPZMatrix< std::complex<double> >::SolveIR(int &numiterations, TPZSolver< std::complex<double> > &preconditioner,
 						const TPZFMatrix< std::complex<double> > &F, TPZFMatrix< std::complex<double> > &result,
-						TPZFMatrix< std::complex<double> > *residual,  std::complex<double>  &tol,
+						TPZFMatrix< std::complex<double> > *residual,  REAL  &tol,
 						const int FromCurrent)  {
 	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }
@@ -881,7 +881,7 @@ void TPZMatrix< std::complex<double> >::SolveIR(int &numiterations, TPZSolver< s
 template <>
 void TPZMatrix< std::complex<long double> >::SolveIR(int &numiterations, TPZSolver< std::complex<long double> > &preconditioner,
 						const TPZFMatrix< std::complex<long double> > &F, TPZFMatrix< std::complex<long double> > &result,
-						TPZFMatrix< std::complex<long double> > *residual,  std::complex<long double>  &tol,
+						TPZFMatrix< std::complex<long double> > *residual,  REAL  &tol,
 						const int FromCurrent)  {
 	  DebugStop(); // Does not work with complex numbers. To be implemented in the future.
 }

@@ -132,7 +132,8 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 	fReferenceMatrix = dynamic_cast<TPZMatrix<TVar> *>(TPZSaveable::Restore(buf, context));
 }
 
-template class TPZMatrixSolver<REAL>;
+template class TPZMatrixSolver<double>;
+template class TPZMatrixSolver<std::complex<double> >;
 //template class TPZRestoreClass< TPZMatrixSolver, TPZMATRIXSOLVER_ID>;
 
 

@@ -12,14 +12,14 @@ TPZStructMatrix * TPZSBandStructMatrix::Clone(){
     return new TPZSBandStructMatrix(*this);
 }
 
-TPZMatrix<REAL> * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix<REAL> *mat = Create();
+TPZMatrix<STATE> * TPZSBandStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix<STATE> *mat = Create();
 	rhs.Redim(mat->Rows(),1);
 	Assemble(*mat,rhs,guiInterface);
     return mat;
 }
 
-TPZMatrix<REAL> * TPZSBandStructMatrix::Create(){
+TPZMatrix<STATE> * TPZSBandStructMatrix::Create(){
 	int neq = fMesh->NEquations();
 	if(HasRange())
 	{
@@ -32,7 +32,7 @@ TPZMatrix<REAL> * TPZSBandStructMatrix::Create(){
 	}
 	
 	int band = fMesh->BandWidth();
-	return new TPZSBMatrix<REAL>(neq,band);
+	return new TPZSBMatrix<STATE>(neq,band);
 }
 
 TPZSBandStructMatrix::TPZSBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)

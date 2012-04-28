@@ -286,7 +286,7 @@ public:
 	 * Deprecated shape function method. It is kept because of TPZAgglomerateElement. \n
 	 * It does not include singular shape functions if they exist.
 	 */
-	void SolutionX(TPZVec<REAL> &x,TPZVec<REAL> &uh);
+	void SolutionX(TPZVec<REAL> &x,TPZVec<STATE> &uh);
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.

@@ -296,7 +296,7 @@ void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
 	}
 	
 	if( this->fValFunction ){
-		TPZManVector<REAL> result(this->fBCVal2.Rows(),0.);
+		TPZManVector<STATE> result(this->fBCVal2.Rows(),0.);
 		this->fValFunction( data.x, this->fBCVal1, result, this->fType );
 		int i;
 		for(i = 0; i < this->fBCVal2.Rows(); i++) {

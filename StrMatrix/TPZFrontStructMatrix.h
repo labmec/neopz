@@ -71,8 +71,8 @@ public:
     /** @brief Class destructor */ 
 	~TPZFrontStructMatrix();
 	
-	/** @brief Returns a pointer to TPZMatrix<REAL> */
-	TPZMatrix<REAL> * Create();
+	/** @brief Returns a pointer to TPZMatrix<STATE> */
+	TPZMatrix<STATE> * Create();
 	
 	/** @brief Clones a TPZFrontStructMatrix */
 	TPZStructMatrix * Clone();
@@ -83,8 +83,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void AssembleNew(TPZMatrix<REAL> & stiffness
-					 , TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void AssembleNew(TPZMatrix<STATE> & stiffness
+					 , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Assemble a stiffness matrix.
@@ -92,8 +92,8 @@ public:
 	 * @param rhs Vector containing loads
 	 * @param guiInterface pointer to user interface
 	 */ 	
-	void Assemble(TPZMatrix<REAL> & stiffness
-				  , TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	void Assemble(TPZMatrix<STATE> & stiffness
+				  , TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/**
 	 * @brief Computes element matrices.
@@ -107,7 +107,7 @@ public:
 	 * Each computed element matrices would then be added to Stiffness matrix
 	 */
 	void AssembleElement(TPZCompEl *el, TPZElementMatrix & ek
-						 , TPZElementMatrix & ef, TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs); 
+						 , TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs); 
 	
 	/**
 	 * @brief Returns a pointer to TPZMatrix.
@@ -118,7 +118,7 @@ public:
 	 * This is a mandatory function, it is neded by all StructMatrix. \n
 	 * Except in frontal matrices, the returned matrix is not in its decomposed form.
 	 */
-	TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     void SetQuiet(int quiet);
 	

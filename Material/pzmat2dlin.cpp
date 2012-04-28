@@ -16,7 +16,7 @@
 using namespace std;
 
 void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
-							 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef )
+							 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef )
 {
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
@@ -88,7 +88,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 }
 
 void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
-							   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+							   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
 	// TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
@@ -191,7 +191,7 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 
 int TPZMat2dLin::NFluxes() {return 1;}
 
-void TPZMat2dLin::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix<REAL> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<REAL> &/*fl*/) {
+void TPZMat2dLin::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
 	PZError << "TPZMat2dLin::Flux is called\n";
 }
 
@@ -220,7 +220,7 @@ int TPZMat2dLin::NSolutionVariables(int index) {
 }
 
 
-void TPZMat2dLin::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout) {
+void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout) {
 	
 	if(var == 0) {
 		Solout = Sol;
@@ -231,17 +231,17 @@ void TPZMat2dLin::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<R
 	else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &axes,TPZVec<REAL> &/*flux*/,
-						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &axes,TPZVec<STATE> &/*flux*/,
+						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
-	REAL dx = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
-	REAL dy = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
+	STATE dx = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
+	STATE dy = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
 	//Norma Energia
-	REAL parc1 = dx-du_exact(0,0) ;
-	REAL parc2 = dy-du_exact(1,0) ;
-	values[0] = parc1*parc1 + parc2*parc2;/*pow(parc1,2.)+pow(parc2,2.);*/
+	STATE parc1 = dx-du_exact(0,0) ;
+	STATE parc2 = dy-du_exact(1,0) ;
+	values[0] = abs(parc1*parc1 + parc2*parc2);/*pow(parc1,2.)+pow(parc2,2.);*/
 	//Norma L2
-	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
+	values[1] = pow(fabs(u[0] - u_exact[0]),(STATE)2.0);
 	values[2] = 0.;
 }
 
@@ -273,7 +273,7 @@ void TPZMat2dLin::ConvectionDiffusion(REAL angle,REAL diff){
 TPZBndCond *TPZMat2dLin::OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc){
 	
 	int nstate = fKxx.Rows();
-	TPZFMatrix<REAL> val1(nstate,nstate),val2(nstate,1);
+	TPZFMatrix<STATE> val1(nstate,nstate),val2(nstate,1);
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 

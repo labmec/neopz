@@ -30,9 +30,9 @@ class TPZMatrix;
 template<class TVar>
 class TPZFMatrix;
 class TPZCompMesh;
+template<class TVar>
 class TPZFileEqnStorage;
 
-template<class front>
 
 /**
  * @brief Is a structural matrix with parallel techniques included. \ref structural "Structural Matrix" \ref frontal "Frontal"
@@ -42,6 +42,7 @@ template<class front>
  * TPZParFrontStructMatrix is derived fron TPZFrontStructMatrix.
  * It uses TPZParFrontMatrix as its FrontalMatrix
  */
+template<class front>
 class TPZParFrontStructMatrix : public TPZFrontStructMatrix<front> {
 	
 private:
@@ -71,10 +72,10 @@ public:
 	 * @param rhs Load matrix
 	 * @param guiInterface pointer to user interface
 	 */
-	virtual TPZMatrix<REAL> * CreateAssemble( TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<STATE> * CreateAssemble( TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
-	virtual void Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/** Used only for testing */
 	static int main();
@@ -111,9 +112,9 @@ private:
 	/** Whenever this value is reached a execution of element computing is suspended */
 	int fMaxStackSize;
 	/** @brief Local pointer to stiffness matrix*/
-	TPZMatrix<REAL> * fStiffness;
+	TPZMatrix<STATE> * fStiffness;
 	/** @brief Local pointer to load matrix*/
-	TPZFMatrix<REAL> * fRhs;
+	TPZFMatrix<STATE> * fRhs;
 	
 	/** @brief Stack containing elements to be assembled on Stiffness matrix. */
 	/** 

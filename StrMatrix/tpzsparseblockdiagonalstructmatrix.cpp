@@ -29,7 +29,7 @@ TPZStructMatrix* TPZSparseBlockDiagonalStructMatrix::Clone()
     return TPZStructMatrix::Clone();
 }
 
-TPZMatrix<REAL> * TPZSparseBlockDiagonalStructMatrix::Create()
+TPZMatrix<STATE> * TPZSparseBlockDiagonalStructMatrix::Create()
 {
 	//extract the structure of the matrix from the mesh
 	//create an object of type SparseBlockDiagonal

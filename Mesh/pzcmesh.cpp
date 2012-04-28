@@ -365,7 +365,7 @@ void TPZCompMesh::ExpandSolution() {
 	fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(const TPZFMatrix<REAL> &mat){
+void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 	
 	int nrow = mat.Rows();
 	int ncol = mat.Cols();
@@ -1880,7 +1880,7 @@ void TPZCompMesh::ComputeFillIn(int resolution, TPZFMatrix<REAL> &fillin){
 		}
 	}
 }
-void TPZCompMesh::ProjectSolution(TPZFMatrix<REAL> &projectsol) {
+void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 	
 	//  * * A MALHA ATUAL DEVE SER AGLOMERADA * * *
 	
@@ -2071,7 +2071,7 @@ void TPZCompMesh::Read(TPZStream &buf, void *context)
 #include "pzshapepoint.h"
 
 
-void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps){
+void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps){
 	const int nelements = this->NElements();
 	celJumps.Resize(nelements);
     int numbersol = Solution().Cols();
@@ -2102,10 +2102,10 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		}
 #endif
 		
-		double jumpNorm = 0.;
+		STATE jumpNorm = 0.;
         for (int is=0; is<numbersol; is++) {
             for(int ij = 0; ij < facejump.NElements(); ij++){
-                jumpNorm += (REAL)facejump[is][ij]*(REAL)facejump[is][ij];
+                jumpNorm += facejump[is][ij]*facejump[is][ij];
             }
         }
 		jumpNorm = sqrt(jumpNorm);
@@ -2119,9 +2119,9 @@ void TPZCompMesh::ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TP
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(AllCels[i]);
 		if (!disc) continue;
 		if(disc->Reference()->Dimension() != dim) continue;
-		const REAL celJumpError = celJumps[i];
+		const STATE celJumpError = celJumps[i];
 		//const STATE celJumpError = celJumps[i];
-		if (celJumpError < eps){
+		if (abs(celJumpError) < eps){
 			int index;
 			this->Discontinuous2Continuous(i, index);
 		}//if

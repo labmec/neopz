@@ -342,7 +342,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		if(parfront->fCurrentAssembled == parfront->fNElements)
 		{
 			//		  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZFileEqnStorage, front>* > (parfront->fStiffness);
-			TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
+            TPZParFrontMatrix<STATE,TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast< TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
 			mat->FinishWriting();
 #ifdef LOG4CXX
 			{
@@ -357,7 +357,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		delete efaux;
 		
 		if(parfront->fGuiInterface) if(parfront->fGuiInterface->AmIKilled()){
-			TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front>* > (parfront->fStiffness);
+			TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>* > (parfront->fStiffness);
 			mat->FinishWriting();
 			break;
 		}
@@ -378,11 +378,11 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 }
 
 template<class front>
-void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<REAL> & matref, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	this->fGuiInterface = guiInterface;
 	
-	TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = dynamic_cast<TPZParFrontMatrix<TPZStackEqnStorage, front> *>(&matref);
+	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = dynamic_cast<TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *>(&matref);
 	if(!mat)
 	{
 		cout << __PRETTY_FUNCTION__ << " we are in serious trouble : wrong type of matrix"<< endl;
@@ -520,12 +520,12 @@ int TPZParFrontStructMatrix<front>::main() {
 	
 	
 	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
-	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	mat2d->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumat = mat2d;
 	cmesh.InsertMaterialObject(meumat);
 	
-	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
@@ -578,7 +578,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
 	
-	TPZParFrontStructMatrix<TPZFrontSym> mat(&cmesh);
+	TPZParFrontStructMatrix<TPZFrontSym<STATE> > mat(&cmesh);
 	
 	//   TPZFStructMatrix mat2(&cmesh);
 	//  mat->SetNumElConnected(numelconnected);
@@ -594,7 +594,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
- 	TPZStepSolver<REAL> sol;
+ 	TPZStepSolver<STATE> sol;
 	//	sol.SetDirect(ELU);
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
@@ -635,7 +635,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<STATE> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);
@@ -650,7 +650,7 @@ int TPZParFrontStructMatrix<front>::main() {
 }
 
 template<class front>
-TPZMatrix<REAL> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
 	
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(fMesh->NEquations());
@@ -668,7 +668,7 @@ TPZMatrix<REAL> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL
 	}
 	
 	//  TPZParFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZParFrontMatrix<TPZFileEqnStorage, front>(neq);
-	TPZParFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZParFrontMatrix<TPZStackEqnStorage, front>(neq);
+	TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front> *mat = new TPZParFrontMatrix<STATE, TPZStackEqnStorage<STATE>, front>(neq);
 	rhs.Redim(neq,1);
 	
 	Assemble(*mat,rhs,guiInterface);
@@ -677,9 +677,11 @@ TPZMatrix<REAL> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL
 }
 
 
-
+template<class TVar>
 class TPZFrontSym;
+template<class TVar>
 class TPZFrontNonSym;
 
-template class TPZParFrontStructMatrix<TPZFrontSym>;
-template class TPZParFrontStructMatrix<TPZFrontNonSym>;
+template class TPZParFrontStructMatrix<TPZFrontSym<STATE> >;
+template class TPZParFrontStructMatrix<TPZFrontNonSym<STATE> >;
+

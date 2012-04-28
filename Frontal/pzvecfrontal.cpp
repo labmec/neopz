@@ -7,5 +7,5 @@
 
 
 #include "tpzeqnarray.h"
-template class TPZVec<TPZEqnArray>;
-template class TPZVec<TPZEqnArray *>;
+template class TPZVec<TPZEqnArray<double> >;
+template class TPZVec<TPZEqnArray<double> *>;

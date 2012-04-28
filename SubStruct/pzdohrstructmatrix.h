@@ -11,6 +11,8 @@
 #include "tpzdohrassembly.h"
 #include "pzsubcmesh.h"
 
+template<class TVar>
+struct ThreadDohrmanAssembly;
 /**
  * @ingroup substructure structural
  * @brief Implements structural matrix divided in sub structures. \ref structural "Structural Matrix" \ref substructure "Sub structure"
@@ -35,32 +37,32 @@ public:
 	void SubStructure(int nsub);
 	
 	/** @brief This will create a DohrMatrix */
-	virtual TPZMatrix<REAL> * Create();
+	virtual TPZMatrix<STATE> * Create();
 	
 	/**
 	 * @brief This will return the pointer to the preconditioner AND abandon the pointer
 	 * @warning This method can only be called once
 	 */
-	TPZAutoPointer<TPZMatrix<REAL> > Preconditioner()
+	TPZAutoPointer<TPZMatrix<STATE> > Preconditioner()
 	{
-		TPZAutoPointer<TPZMatrix<REAL> > result = fDohrPrecond;
+		TPZAutoPointer<TPZMatrix<STATE> > result = fDohrPrecond;
 		fDohrPrecond = 0;
 		return result;
 	}
 	
 	/** @brief This will create a DohrMatrix and compute its matrices */
-	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     /**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-	virtual void Assemble(TPZMatrix<REAL> & mat, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 
 	/**
 	 * @brief Assemble the global right hand side
 	 */
-	virtual void Assemble(TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	/** @brief Creates a copy of itself */
 	virtual TPZStructMatrix * Clone()
@@ -86,9 +88,9 @@ public:
 	
 protected:
 	
-	TPZAutoPointer<TPZDohrAssembly> fDohrAssembly;
+	TPZAutoPointer<TPZDohrAssembly<STATE> > fDohrAssembly;
 	
-	TPZAutoPointer<TPZMatrix<REAL> > fDohrPrecond;
+	TPZAutoPointer<TPZMatrix<STATE> > fDohrPrecond;
 	
 	/* @brief Get the global equation numbers of a substructure (and their inverse) */
 	void IdentifyEqNumbers(TPZSubCompMesh *sub, std::map<int,int> &global, std::map<int,int> &globinv);
@@ -122,7 +124,7 @@ private:
 	/** @brief Mutexes (to choose which submesh is next) */
 	pthread_mutex_t fAccessElement;
 	
-	friend struct ThreadDohrmanAssembly;
+	friend struct ThreadDohrmanAssembly<STATE>;
 	
 };
 
@@ -132,6 +134,7 @@ private:
  * @ingroup substructure
  * @brief Implements assembling by Dohrman algorithm.
  */
+template<class TVar>
 struct ThreadDohrmanAssembly {
 	
 	enum MTask {ENone, EComputeMatrix, EDecomposeInternal, EDecomposeBig};
@@ -139,11 +142,11 @@ struct ThreadDohrmanAssembly {
 	MTask fTask;
 	TPZAutoPointer<TPZCompMesh> fMesh;
 	int fSubMeshIndex;
-	TPZAutoPointer<TPZDohrSubstructCondense> fSubstruct;
-	TPZAutoPointer<TPZDohrAssembly> fAssembly;
+	TPZAutoPointer<TPZDohrSubstructCondense<TVar> > fSubstruct;
+	TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
 	
-	ThreadDohrmanAssembly(TPZAutoPointer<TPZCompMesh> mesh, int submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct,
-						  TPZAutoPointer<TPZDohrAssembly> assembly) : 
+	ThreadDohrmanAssembly(TPZAutoPointer<TPZCompMesh> mesh, int submesh, TPZAutoPointer<TPZDohrSubstructCondense<TVar> > substruct,
+						  TPZAutoPointer<TPZDohrAssembly<TVar> > assembly) : 
 	fTask(ENone), fMesh(mesh), fSubMeshIndex(submesh), fSubstruct(substruct), fAssembly(assembly)
 	{
 		
@@ -176,18 +179,19 @@ struct ThreadDohrmanAssembly {
  * @ingroup substructure
  * @brief Implements a list of Dohrman assembling and control thread and semaphores.
  */
+template<class TVar>
 struct ThreadDohrmanAssemblyList {
 	
 	ThreadDohrmanAssemblyList();
 	
 	~ThreadDohrmanAssemblyList();
 	
-	std::list<TPZAutoPointer<ThreadDohrmanAssembly> > fList;
+	std::list<TPZAutoPointer<ThreadDohrmanAssembly<TVar> > > fList;
 	
-	void Append(TPZAutoPointer<ThreadDohrmanAssembly> object);
+	void Append(TPZAutoPointer<ThreadDohrmanAssembly<TVar> > object);
 	
 	/** @brief Returns an object and removes it from the list in a thread safe way */
-	TPZAutoPointer<ThreadDohrmanAssembly> NextObject();
+	TPZAutoPointer<ThreadDohrmanAssembly<TVar> > NextObject();
 	
 	static void *ThreadWork(void *voidptr);
 	

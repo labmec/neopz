@@ -885,7 +885,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	ef.fConnect.Resize(ncon);
 	
 #ifdef DEBUG
-	TPZStack<REAL> solutionvec;
+	TPZStack<STATE> solutionvec;
 #endif
 	
 	int ic = 0;
@@ -1324,7 +1324,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
             }
             if(opt == 1){
                 for(int ier = 0; ier < njump; ier++){
-                    if( fabs(localjump[is][ier]) > jump[is][ier] ){
+                    if( fabs(localjump[is][ier]) > fabs(jump[is][ier]) ){
                         jump[is][ier] = fabs( localjump[is][ier] );
                     }//if
                 }//for

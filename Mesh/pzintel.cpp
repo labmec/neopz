@@ -1668,12 +1668,12 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	int ncon = NConnects();
 	int dim = Dimension();
 	int nshape = NShapeF();
-	TPZBlock<REAL> &block = Mesh()->Block();
+	TPZBlock<STATE> &block = Mesh()->Block();
 	
 	int numeq = nshape*numdof;
 	ef.fMat.Redim(numeq,1);
 	ef.fBlock.SetNBlocks(ncon);
-	TPZVec<REAL> sol(numdof,0.);
+	TPZVec<STATE> sol(numdof,0.);
 	for(i=0;i<ncon;i++)
     {
         int nshape = NConnectShapeF(i);
@@ -1713,7 +1713,7 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 		Shape(intpoint,phi,dphi);
 		
 		int l, iv=0;
-		REAL coef;
+		STATE coef;
 		for(in=0;in<numdof;in++) sol[in] = 0.;
 		for(in=0; in<ncon; in++) {
 			df = &Connect(in);
@@ -1986,7 +1986,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
     const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
-    TPZFMatrix<REAL> &MeshSol = Mesh()->Solution();
+    TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     sol.Resize(numbersol);
     dsol.Resize(numbersol);
@@ -1999,7 +1999,7 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
         
     }
 	
-    TPZBlock<REAL> &block = Mesh()->Block();
+    TPZBlock<STATE> &block = Mesh()->Block();
     int iv = 0, d;
     for(int in=0; in<ncon; in++) {
 		TPZConnect *df = &this->Connect(in);

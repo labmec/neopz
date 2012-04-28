@@ -17,7 +17,8 @@
 
 using namespace std;
 
-TPZFront::TPZFront(){
+template<class TVar>
+TPZFront<TVar>::TPZFront(){
 	fExpandRatio = 200;
 	fFront = 0;
 	fMaxFront=0;
@@ -25,7 +26,8 @@ TPZFront::TPZFront(){
 	fNextRigidBodyMode = 0;
 }
 
-TPZFront::TPZFront(int GlobalSize)
+template<class TVar>
+TPZFront<TVar>::TPZFront(int GlobalSize)
 {
 	fExpandRatio = 200;
 	fFront = 0;
@@ -37,7 +39,8 @@ TPZFront::TPZFront(int GlobalSize)
 	fNextRigidBodyMode = GlobalSize;
 }
 
-TPZFront::TPZFront(const TPZFront &cp) : fMaxFront(cp.fMaxFront),
+template<class TVar>
+TPZFront<TVar>::TPZFront(const TPZFront<TVar> &cp) : fMaxFront(cp.fMaxFront),
 fGlobal(cp.fGlobal), fLocal(cp.fLocal),fFront(cp.fFront),fFree(cp.fFree),
 fData(cp.fData)
 {
@@ -45,10 +48,12 @@ fData(cp.fData)
 	fExpandRatio = cp.fExpandRatio;
 }
 
-TPZFront::~TPZFront(){
+template<class TVar>
+TPZFront<TVar>::~TPZFront(){
 }
 
-void TPZFront::PrintGlobal(const char *name, std::ostream& out){
+template<class TVar>
+void TPZFront<TVar>::PrintGlobal(const char *name, std::ostream& out){
 	out << name << endl;
 	/*
 	 int i, j;
@@ -71,7 +76,8 @@ void TPZFront::PrintGlobal(const char *name, std::ostream& out){
 }
 
 
-void TPZFront::Print(const char *name, std::ostream& out) const
+template<class TVar>
+void TPZFront<TVar>::Print(const char *name, std::ostream& out) const
 {
 	if(name) out << name << endl;
 	/*int i,j,loop_limit;
@@ -114,7 +120,8 @@ void TPZFront::Print(const char *name, std::ostream& out) const
 	out << "Try one of the subclasses" << endl;
 }
 
-void TPZFront::FreeGlobal(int global)
+template<class TVar>
+void TPZFront<TVar>::FreeGlobal(int global)
 {
 	if(fLocal[global]==-1){
 		cout << "TPZFront FreeGlobal was called with wrong parameters !" << endl;
@@ -126,7 +133,9 @@ void TPZFront::FreeGlobal(int global)
 	fLocal[global]=-1;
 	fFree.Push(index);
 }
-int TPZFront::Local(int global){
+
+template<class TVar>
+int TPZFront<TVar>::Local(int global){
 	/*	int index;
 	 if(fLocal[global]!=-1) return fLocal[global];
 	 if(fFree.NElements()){
@@ -150,7 +159,8 @@ int TPZFront::Local(int global){
 }
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
-void TPZFront::SymbolicAddKel(TPZVec < int > & destinationindex)
+template<class TVar>
+void TPZFront<TVar>::SymbolicAddKel(TPZVec < int > & destinationindex)
 {
 	int i, loop_limit, aux;
 	loop_limit=destinationindex.NElements();
@@ -162,7 +172,9 @@ void TPZFront::SymbolicAddKel(TPZVec < int > & destinationindex)
 	fMaxFront=(fFront<fMaxFront)?fMaxFront:fFront;
 	
 }
-void TPZFront::SymbolicDecomposeEquations(int mineq, int maxeq)
+
+template<class TVar>
+void TPZFront<TVar>::SymbolicDecomposeEquations(int mineq, int maxeq)
 {
 	int i;
 	for(i=mineq;i<=maxeq;i++) FreeGlobal(i);
@@ -171,14 +183,15 @@ void TPZFront::SymbolicDecomposeEquations(int mineq, int maxeq)
 
 
 /** Implements tests for TPZFront */
-void TPZFront::main()
+template<class TVar>
+void TPZFront<TVar>::main()
 {
 	int i, j;
 	/**
 	 Populates data structure
 	 */
 	int matsize=6;
-	TPZFMatrix<REAL> TestMatrix(matsize,matsize);
+	TPZFMatrix<TVar> TestMatrix(matsize,matsize);
 	for(i=0;i<matsize;i++) {
 		for(j=i;j<matsize;j++) {
 			int random = rand();
@@ -189,7 +202,7 @@ void TPZFront::main()
 		}
 	}
 	
-	TPZFMatrix<REAL> Prova;
+	TPZFMatrix<TVar> Prova;
 	Prova=TestMatrix;
 	
 	//	Prova.Decompose_Cholesky();
@@ -214,7 +227,7 @@ void TPZFront::main()
 	//	TestFront.AllocData();
 	
 	//	TestFront.AddKel(TestMatrix, DestIndex);
-	TPZEqnArray Result;
+	TPZEqnArray<TVar> Result;
 	
 	/*TestFront.DecomposeEquations(0,0,Result);
 	 
@@ -233,7 +246,7 @@ void TPZFront::main()
 	Result.Print("TestEQNArray.txt",outeqn);
 	
 	
-	TPZFMatrix<REAL> Load(matsize);
+	TPZFMatrix<TVar> Load(matsize);
 	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
@@ -241,7 +254,7 @@ void TPZFront::main()
 		Load(i,0)=rnd;
 	}
 	
-	TPZFMatrix<REAL> Load_2(matsize);
+	TPZFMatrix<TVar> Load_2(matsize);
 	Load_2=Load;
 	
 	//	Prova.Subst_Forward(&Load);
@@ -262,7 +275,9 @@ void TPZFront::main()
 	
 	
 }
-void TPZFront::Reset(int GlobalSize)
+
+template<class TVar>
+void TPZFront<TVar>::Reset(int GlobalSize)
 {
 	fData.Resize(0);
 	fFree.Resize(0);
@@ -276,10 +291,14 @@ void TPZFront::Reset(int GlobalSize)
 	fNextRigidBodyMode = GlobalSize;
 }
 
-int TPZFront::NElements(){
+template<class TVar>
+int TPZFront<TVar>::NElements(){
 	return fLocal.NElements();
 }
-int TPZFront::NFree()
+
+
+template<class TVar>
+int TPZFront<TVar>::NFree()
 {
 	int i;
 	int free_eq=0;
@@ -291,3 +310,7 @@ int TPZFront::NFree()
 	}
 	return free_eq;
 }
+
+template class TPZFront<double>;
+template class TPZFront<std::complex<double> >;
+

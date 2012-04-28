@@ -106,8 +106,8 @@ private:
 	/**
 	 * @brief Auxiliary functions only reading and writing a map as the third paremeter
 	 */
-	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, REAL> & TheMap);
-	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, REAL> & TheMap);
+	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, TVar> & TheMap);
+	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, TVar> & TheMap);
 	
 	
 	
@@ -116,7 +116,7 @@ protected:
 	/**
 	 @brief Save elements different from zero, of Sparse matrix
 	 */
-	std::map<std::pair<int, int>, REAL> fExtraSparseData;
+	std::map<std::pair<int, int>, TVar> fExtraSparseData;
 	
 };
 

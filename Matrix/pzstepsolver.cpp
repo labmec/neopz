@@ -82,7 +82,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 		this->fScratch.Redim(result.Rows(),result.Cols());
 	}
 	
-	TVar tol = fTol;
+	REAL tol = fTol;
 	int numiterations = fNumIterations;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
@@ -173,7 +173,7 @@ void TPZStepSolver<TVar>::SetDirect (const DecomposeType decomp){
 	fDecompose = decomp;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent){
+void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent){
 	ResetSolver();
 	fSolver = this->ECG;
 	fNumIterations = numiterations;
@@ -184,7 +184,7 @@ void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<T
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent){
+void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent){
 	ResetSolver();
 	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
@@ -196,7 +196,7 @@ void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar>&pre,const TVar tol,const int FromCurrent){
+void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const int FromCurrent){
 	ResetSolver();
 	fSolver = this->EBICGSTAB;
 	fNumIterations = numiterations;
@@ -207,14 +207,14 @@ void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSo
 	fFromCurrent = FromCurrent;
 }
 template<class TVar>
-void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const TVar tol, const int FromCurrent) {
+void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const REAL tol, const int FromCurrent) {
 	ResetSolver();
 	fSolver = this->EJacobi;
 	fNumIterations = numiterations;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
-template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,const TVar overrelax,const TVar tol,const int FromCurrent) {
+template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent) {
 	ResetSolver();
 	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
@@ -223,7 +223,7 @@ template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,c
 	fFromCurrent = FromCurrent;
 }
 template <class TVar>
-void TPZStepSolver<TVar>::SetSOR(const int numiterations,const TVar overrelax,const TVar tol,const int FromCurrent){
+void TPZStepSolver<TVar>::SetSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent){
 	ResetSolver();
 	fSolver = this->ESOR;
 	fNumIterations = numiterations;
@@ -310,10 +310,18 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 template <>
 int TPZStepSolver<double>::ClassId() const
 {
-    return TPZSTEPSOLVER_ID;
+    return TPZSTEPSOLVERDOUBLE_ID;
+}
+
+template <>
+int TPZStepSolver<std::complex<double> >::ClassId() const
+{
+    return TPZSTEPSOLVERCOMPLEXDOUBLE_ID;
 }
 
 
 template class TPZStepSolver<double>;
+template class TPZStepSolver<std::complex<double> >;
 
-template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVER_ID>;
+template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERDOUBLE_ID>;
+template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERCOMPLEXDOUBLE_ID>;

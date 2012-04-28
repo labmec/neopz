@@ -217,7 +217,7 @@ public:
 	
 	void Print(TPZStack<int> &listindex);
 	
-	void ProjectSolution(TPZFMatrix<REAL> &projectsol);
+	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
 	
 	
 	static TPZAgglomerateMesh *CreateAgglomerateMesh(TPZCompMesh *finemesh,TPZVec<int> &accumlist,int numaggl);

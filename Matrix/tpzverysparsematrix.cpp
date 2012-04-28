@@ -27,16 +27,16 @@ int TPZVerySparseMatrix<TVar>::PutVal(int row, int col, const TVar &val)
 	}
 	
     pair <int,int> position(row,col);
-	std::map <std::pair<int, int>, REAL>::iterator it = fExtraSparseData.find(position);
+	typename std::map <std::pair<int, int>, TVar>::iterator it = this->fExtraSparseData.find(position);
 	if(val == 0. && it != fExtraSparseData.end()) 
 	{
 		fExtraSparseData.erase(it);
 	}
-	else if(val && it != fExtraSparseData.end())
+	else if(!IsZero(val) && it != fExtraSparseData.end())
 	{
 		it->second = val;
 	}
-	else if (val)
+	else if (!IsZero(val))
 	{
 		fExtraSparseData[position] = val;
 	}
@@ -51,7 +51,7 @@ TPZVerySparseMatrix<TVar>::TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp) : TPZ
 		for(int j=0; j<this->fCol; j++)
 		{
 			TVar a = cp.GetVal(i,j);
-			if(a) PutVal(i,j,a);
+			if(!IsZero(a)) PutVal(i,j,a);
 		}
 	}
 }
@@ -67,7 +67,7 @@ const TVar & TPZVerySparseMatrix<TVar>::GetVal(int row, int col) const
     }
 	
     pair <int,int> position(row,col);
-    map<pair<int,int>, REAL>::const_iterator it;
+    typename map<pair<int,int>, TVar>::const_iterator it;
     it = fExtraSparseData.find(position);
 	
     if (it == fExtraSparseData.end() )
@@ -112,7 +112,7 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
     {
         if(!opt) 
         {
-			map< pair<int,int>, REAL>::const_iterator it;
+			typename map< pair<int,int>, TVar>::const_iterator it;
 			
 			for(it = fExtraSparseData.begin(); it!= fExtraSparseData.end(); it++)
 			{
@@ -126,14 +126,14 @@ void TPZVerySparseMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> & x, const TPZFMa
 			}
         } else 
 		{
-			map<pair<int,int>, REAL>::const_iterator it;
+			typename map<pair<int,int>, TVar>::const_iterator it;
 			
 			for(it = fExtraSparseData.begin(); it != fExtraSparseData.end(); it++)
 			{
 				pair <int, int> posicao(it->first);
 				r = posicao.second;
 				c = posicao.first;
-				double matrixval = it->second;
+				TVar matrixval = it->second;
 				z(r*stride,ic) += (alpha*matrixval)*x.GetVal(c*stride,ic);
 			}
 		}
@@ -152,11 +152,11 @@ void TPZVerySparseMatrix<TVar>::Write(TPZStream &buf, int withclassid)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, REAL> & TheMap)
+void TPZVerySparseMatrix<TVar>::WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, TVar> & TheMap)
 {
 	int mapsz = TheMap.size();
 	buf.Write(&mapsz, 1);
-	std::map<std::pair<int, int>, REAL>::iterator it;
+	typename std::map<std::pair<int, int>, TVar>::iterator it;
 	for(it = TheMap.begin(); it != TheMap.end(); it++)
 	{
 		int ii = 0, jj = 0;
@@ -181,7 +181,7 @@ void TPZVerySparseMatrix<TVar>::Read(TPZStream &buf, void *context)
 	
 }
 template<class TVar>
-void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, REAL> & TheMap)
+void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, TVar> & TheMap)
 {
 	TheMap.clear();
 	int size = 0;
@@ -195,11 +195,12 @@ void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<
 		buf.Read(&jj, 1);
 		std::pair<int, int> item(ii, jj);
 		buf.Read(&value, 1);
-		std::pair<std::pair<int, int>, REAL > fullitem(item, value);
+		std::pair<std::pair<int, int>, TVar > fullitem(item, value);
 		TheMap.insert(fullitem);
 	}
 }
 
-template class TPZVerySparseMatrix<REAL>;
+template class TPZVerySparseMatrix<double>;
+template class TPZVerySparseMatrix<std::complex<double> >;
 
 

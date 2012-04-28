@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
         
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
         
-		TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr = dynamic_cast<TPZDohrMatrix<TPZDohrSubstructCondense> *> (dohr.operator->());
+		TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
 		if (!dohrptr) {
 			DebugStop();
 		}
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 		
 		dohrptr->AddInternalSolution(diag);
 		
-		typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense> > subtype;
+		typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
 		const subtype &sublist = dohrptr->SubStructures(); 
 		subtype::const_iterator it = sublist.begin();
 		int subcount=0;
@@ -490,8 +490,8 @@ int main2(int argc, char *argv[])
 	 
 	 */
 	
-	TPZAutoPointer<TPZDohrAssembly> dohrassembly2 = new TPZDohrAssembly;
-	TPZDohrMatrix<TPZDohrSubstructCondense> *dohrptr2 = new TPZDohrMatrix<TPZDohrSubstructCondense>(dohrassembly2);
+	TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly2 = new TPZDohrAssembly<STATE>;
+	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr2 = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(dohrassembly2);
 	dohrptr2->SetNumThreads(4);
 	TPZAutoPointer<TPZMatrix<REAL> > dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
@@ -517,7 +517,7 @@ int main2(int argc, char *argv[])
 #endif
 	
 	
-	TPZDohrPrecond<TPZDohrSubstructCondense> *precondptr2 = new TPZDohrPrecond<TPZDohrSubstructCondense>(*dohrptr2,dohrassembly2);
+	TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precondptr2 = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> >(*dohrptr2,dohrassembly2);
 	precondptr2->Initialize();
 	
 	

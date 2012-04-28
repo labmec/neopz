@@ -15,26 +15,32 @@
 
 using namespace std;
 
-void TPZEqnArray::SetNonSymmetric(){
+template<class TVar>
+void TPZEqnArray<TVar>::SetNonSymmetric(){
     fSymmetric=EIsNonSymmetric;
 }
-int TPZEqnArray::IsSymmetric(){
+template<class TVar>
+int TPZEqnArray<TVar>::IsSymmetric(){
     return fSymmetric;
 }
-void TPZEqnArray::SetSymmetric(){
+template<class TVar>
+void TPZEqnArray<TVar>::SetSymmetric(){
     fSymmetric = EIsSymmetric;
 }
-TPZEqnArray::~TPZEqnArray(){
+template<class TVar>
+TPZEqnArray<TVar>::~TPZEqnArray(){
 	
 }
-TPZEqnArray::TPZEqnArray() : fEqStart(), fEqNumber(), fEqValues(), fIndex() {
+template<class TVar>
+TPZEqnArray<TVar>::TPZEqnArray() : fEqStart(), fEqNumber(), fEqValues(), fIndex() {
 	fEqStart.Push(0);
 	fNumEq=0;
 	fLastTerm=0;
 	fSymmetric=EIsUndefined;
 	
 }
-void TPZEqnArray::Print(const char *name, std::ostream& out)
+template<class TVar>
+void TPZEqnArray<TVar>::Print(const char *name, std::ostream& out)
 {
 	if(name) out << name << endl;
 	int i,j;
@@ -57,9 +63,12 @@ void TPZEqnArray::Print(const char *name, std::ostream& out)
 }
 
 
-void TPZEqnArray::Write(char * outputfile){}
-void TPZEqnArray::Read(char * inputfile){}
-void TPZEqnArray::EndEquation(){
+template<class TVar>
+void TPZEqnArray<TVar>::Write(char * outputfile){}
+template<class TVar>
+void TPZEqnArray<TVar>::Read(char * inputfile){}
+template<class TVar>
+void TPZEqnArray<TVar>::EndEquation(){
 	fEqStart.Push(fLastTerm);
 }
 /*void TPZEqnArray::AddTerm(int col, REAL val){
@@ -68,11 +77,13 @@ void TPZEqnArray::EndEquation(){
  fLastTerm++;
  } 
  */
-void TPZEqnArray::BeginEquation(int eq){
+template<class TVar>
+void TPZEqnArray<TVar>::BeginEquation(int eq){
 	fEqNumber.Push(eq);
 	fNumEq++;
 }
-void TPZEqnArray::Reset(){
+template<class TVar>
+void TPZEqnArray<TVar>::Reset(){
 	fEqStart.Resize(0);
 	fEqStart.Push(0);
 	fEqValues.Resize(0);
@@ -82,7 +93,8 @@ void TPZEqnArray::Reset(){
 	fSymmetric=EIsUndefined;
 	
 }
-void TPZEqnArray::EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec){
+template<class TVar>
+void TPZEqnArray<TVar>::EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec){
 	int n;
 	if(IsSymmetric()==EIsSymmetric){
     	for(n=fNumEq-1; n>=0; n--) {
@@ -92,7 +104,7 @@ void TPZEqnArray::EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec){
 			//			fEqStart.Expand(n+2);
 			//		}
     		int last_term = fEqStart[n + 1];
-    		REAL acum = 0.;
+    		TVar acum = 0.;
     		int i;
     		for(i = index + 1; i < last_term; i++) acum -= U(fIndex[i],0) * fEqValues[i];
 			
@@ -112,7 +124,7 @@ void TPZEqnArray::EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec){
 			//			fEqStart.Expand(n+2);
 			//		}
             int last_term = fEqStart[n + 1];
-            REAL acum = 0.;
+            TVar acum = 0.;
             int i;
             for(i = index + 1; i < last_term; i++) acum -= U(fIndex[i],0) * fEqValues[i];
 			
@@ -127,7 +139,8 @@ void TPZEqnArray::EqnBackward(TPZFMatrix<REAL> & U, DecomposeType dec){
     }
 }
 
-void TPZEqnArray::EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec){
+template<class TVar>
+void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec){
 	int j;
 	if(IsSymmetric()==EIsSymmetric){
 		
@@ -149,7 +162,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec){
 				F(fIndex[index],0) /= fEqValues[index];
 			}
 			/** ldlt cholesky lu */
-			REAL udiag = F(fIndex[index],0);
+			TVar udiag = F(fIndex[index],0);
 			
 			
 			int i;
@@ -179,7 +192,7 @@ void TPZEqnArray::EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec){
 				F(fIndex[index],0) /= fEqValues[index];
 			}
 			/** ldlt cholesky lu */
-			REAL udiag = F(fIndex[index],0);
+			TVar udiag = F(fIndex[index],0);
 			
 			
 			int i;
@@ -190,7 +203,8 @@ void TPZEqnArray::EqnForward(TPZFMatrix<REAL> & F, DecomposeType dec){
 	}
 }
 
-void TPZEqnArray::Write(FILE * outputfile){
+template<class TVar>
+void TPZEqnArray<TVar>::Write(FILE * outputfile){
 	/** Number of equations */
 	fwrite(&fNumEq,sizeof(int),1,outputfile);
 	//cout << ftell(outputfile) << endl;
@@ -225,7 +239,8 @@ void TPZEqnArray::Write(FILE * outputfile){
 	fwrite(&aux,sizeof(int),1,outputfile);
 	fwrite(&fEqValues[0],sizeof(REAL), aux ,outputfile);
 }
-void TPZEqnArray::Read(FILE * inputfile){
+template<class TVar>
+void TPZEqnArray<TVar>::Read(FILE * inputfile){
 	/** Number of equations */
 	fread(&fNumEq,sizeof(int),1,inputfile);
 	//cout << ftell(inputfile) << endl; 
@@ -258,7 +273,8 @@ void TPZEqnArray::Read(FILE * inputfile){
 }
 
 
-void TPZEqnArray::main()
+template<class TVar>
+void TPZEqnArray<TVar>::main()
 {
 	char  filename[20];
 	
@@ -266,7 +282,7 @@ void TPZEqnArray::main()
 	cin >> filename;
 	ofstream output(filename,ios::app);
 	
-	TPZFMatrix<REAL> MatrixA(10,10);
+	TPZFMatrix<TVar> MatrixA(10,10);
 	int i, j; 
 	for(i=0;i<10;i++) {
 		for(j=i;j<10;j++) {
@@ -283,7 +299,7 @@ void TPZEqnArray::main()
 	MatrixA.Decompose_Cholesky();
 	MatrixA.Print("Decomposta");
 	
-	TPZEqnArray Test;
+	TPZEqnArray<TVar> Test;
 	Test.Reset();
 	for(i=0;i<10;i++) {
 		Test.BeginEquation(i);
@@ -293,7 +309,7 @@ void TPZEqnArray::main()
 		Test.EndEquation(); 
 	}
 	
-	TPZFMatrix<REAL> rhs(10,1), rhs2(10,1);
+	TPZFMatrix<TVar> rhs(10,1), rhs2(10,1);
 	//Inicializar rhs:
 	rhs.Zero();
 	rhs(0,0) = 1.;
@@ -309,3 +325,6 @@ void TPZEqnArray::main()
 	rhs2.Print("FrontalMatrix Decomposition"); 
 	
 }
+
+template class TPZEqnArray<double>;
+template class TPZEqnArray<std::complex<double> >;

@@ -479,7 +479,7 @@ public:
 	 * @brief To discontinuous elements
 	 */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
-	void ProjectSolution(TPZFMatrix<REAL> &projectsol);
+	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
 	
 private:
 	
@@ -578,7 +578,7 @@ public:
 	 * @brief Given the solution of the global system of equations, computes and stores the solution for the restricted nodes
 	 * @param sol given solution matrix
 	 */
-	void LoadSolution(const TPZFMatrix<REAL> &sol);
+	void LoadSolution(const TPZFMatrix<STATE> &sol);
 	
 	/**
 	 * @brief Divide the element corresponding to index
@@ -641,7 +641,7 @@ public:
 	 * @param dim Dimension of the working discontinuous elements
 	 * @param celJumps Vector to store the diference between the values from right and left elements connected on the interface
 	 */
-	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<REAL> &celJumps);
+	void ConvertDiscontinuous2Continuous(REAL eps, int opt, int dim, TPZVec<STATE> &celJumps);
 	
 	/**
 	 * @brief This method convert a discontinuous element with index disc_index in continuous element

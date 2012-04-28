@@ -30,23 +30,23 @@ public:
 	
 	virtual ~TPZStepSolver();
 	
-	void SetSOR(const int numiterations, const TVar overrelax, const TVar tol,
+	void SetSOR(const int numiterations, const REAL overrelax, const REAL tol,
 				const int FromCurrent);
 	
-	void SetSSOR(const int numiterations, const TVar overrelax, const TVar tol,
+	void SetSSOR(const int numiterations, const REAL overrelax, const REAL tol,
 				 const int FromCurrent);
 	
 	void
-	SetJacobi(const int numiterations, const TVar tol, const int FromCurrent);
+	SetJacobi(const int numiterations, const REAL tol, const int FromCurrent);
 	
 	void SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre,
-			   const TVar tol, const int FromCurrent);
+			   const REAL tol, const int FromCurrent);
 	
 	void SetGMRES(const int numiterations, const int numvectors,
-				  const TPZMatrixSolver<TVar> &pre, const TVar tol, const int FromCurrent);
+				  const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent);
 	
 	void SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar> &pre,
-					 const TVar tol, const int FromCurrent);
+					 const REAL tol, const int FromCurrent);
 	
 	void SetDirect(const DecomposeType decomp);
 	
@@ -57,7 +57,7 @@ public:
 		return new TPZStepSolver<TVar>(*this);
 	}
 	
-	void SetTolerance(TVar tol)
+	void SetTolerance(REAL tol)
 	{
 		fTol = tol;
 	}
@@ -120,8 +120,8 @@ private:
 	DecomposeType fDecompose;
 	int fNumIterations;
 	int fNumVectors;
-	TVar fTol;
-	TVar fOverRelax;
+	REAL fTol;
+	REAL fOverRelax;
 	
 	/** @brief Solver using preconditioner matrix */
 	TPZSolver<TVar> *fPrecond;

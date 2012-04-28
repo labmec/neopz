@@ -69,7 +69,7 @@ TPZFrontStructMatrix<front>::~TPZFrontStructMatrix(){}
 
 
 template<class front>
-TPZMatrix<REAL> * TPZFrontStructMatrix<front>::Create(){
+TPZMatrix<STATE> * TPZFrontStructMatrix<front>::Create(){
 	
     /* TPZVec <int> numelconnected(fMesh->NEquations(),0);
 	 // TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(fMesh->NEquations());
@@ -206,7 +206,7 @@ void TPZFrontStructMatrix<front>::OrderElement()//TPZVec<int> &elorder)
 }
 
 template<class front>
-TPZMatrix<REAL> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+TPZMatrix<STATE> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int neq = fMesh->NEquations();
 	if(HasRange())
@@ -221,7 +221,7 @@ TPZMatrix<REAL> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &
 	TPZManVector <int> numelconnected(neq,0);
 	//TPZFrontMatrix<TPZStackEqnStorage, front> *mat = new TPZFrontMatrix<TPZStackEqnStorage, front>(neq);//(fMesh->NEquations());
 	
-	TPZFrontMatrix<TPZFileEqnStorage, front> *mat = new TPZFrontMatrix<TPZFileEqnStorage, front>(neq);
+	TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front> *mat = new TPZFrontMatrix<STATE,TPZFileEqnStorage<STATE>, front>(neq);
 	
 	// if the frontal matrix is applied to a submesh, we assume there may be rigid body modes
 	TPZSubCompMesh *subcmesh = dynamic_cast<TPZSubCompMesh *> (fMesh);	
@@ -256,7 +256,7 @@ TPZMatrix<REAL> * TPZFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<REAL> &
 }
 
 template<class front>
-void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int iel;
 	int numel = 0, nelem = fMesh->NElements();
@@ -327,7 +327,7 @@ void TPZFrontStructMatrix<front>::AssembleNew(TPZMatrix<REAL> & stiffness, TPZFM
 
 
 template<class front>
-void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
+void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	
 	int iel;
 	int numel = 0, nelem = fMesh->NElements();
@@ -406,7 +406,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<REAL> & stiffness, TPZFMatr
 
 //Verificar declaracao dos parametros !!!!!
 template<class front>
-void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs){
+void TPZFrontStructMatrix<front>::AssembleElement(TPZCompEl * el, TPZElementMatrix & ek, TPZElementMatrix & ef, TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs){
 	
 	
 	if(!el->HasDependency()) {
@@ -503,12 +503,12 @@ int TPZFrontStructMatrix<front>::main() {
 	
 	
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
-	TPZFMatrix<REAL> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
+	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
 	TPZAutoPointer<TPZMaterial> meumatptr(meumat);
 	cmesh.InsertMaterialObject(meumatptr);
 	
-	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
 	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
@@ -533,7 +533,7 @@ int TPZFrontStructMatrix<front>::main() {
 	
 	TPZVec<int> numelconnected(cmesh.NEquations(),0);
 	int ic;
-	cout << "N�mero de Equa��es -> " << cmesh.NEquations() << endl;
+	cout << "Numero de Equacoes -> " << cmesh.NEquations() << endl;
 	cout.flush();
 	
 	ofstream out("cmeshBlock_out.txt");
@@ -561,7 +561,7 @@ int TPZFrontStructMatrix<front>::main() {
 	//TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym> *mat = new TPZFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>(cmesh.NEquations());
 	//TPZFrontMatrix<TPZStackEqnStorage> *mat = new TPZFrontMatrix<TPZStackEqnStorage>(cmesh.NEquations());
 	
-	TPZFrontStructMatrix<TPZFrontSym> mat(&cmesh);
+	TPZFrontStructMatrix<TPZFrontSym<STATE> > mat(&cmesh);
 	
 	//   TPZFStructMatrix mat2(&cmesh);
 	//  mat->SetNumElConnected(numelconnected);
@@ -571,7 +571,7 @@ int TPZFrontStructMatrix<front>::main() {
 	an.SetStructuralMatrix(mat);
 	//	an2.SetStructuralMatrix(mat2);
 	
-	TPZStepSolver<REAL> sol;
+	TPZStepSolver<STATE> sol;
 	sol.SetDirect(ECholesky);
 	//	TPZStepSolver sol2;
 	//	sol2.SetDirect(ECholesky);
@@ -611,7 +611,7 @@ int TPZFrontStructMatrix<front>::main() {
 	 graph.DrawSolution(0,0);
 	 
 	 TPZAnalysis an2(&cmesh,output);
-	 TPZFMatrix<REAL> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
+	 TPZFMatrix<STATE> *full = new TPZFMatrix(cmesh.NEquations(),cmesh.NEquations(),0.);
 	 an2.SetMatrix(full);
 	 an2.Solver().SetDirect(ELU);
 	 an2.Run(output);
@@ -680,8 +680,11 @@ void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 	fMesh->Permute(permute);
 }
 
+template<class TVar>
 class TPZFrontSym;
+template<class TVar>
 class TPZFrontNonSym;
 
-template class TPZFrontStructMatrix<TPZFrontSym>;
-template class TPZFrontStructMatrix<TPZFrontNonSym>;
+template class TPZFrontStructMatrix<TPZFrontSym<STATE> >;
+template class TPZFrontStructMatrix<TPZFrontNonSym<STATE> >;
+

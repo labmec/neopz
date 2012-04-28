@@ -112,7 +112,7 @@ TPZFYsmpMatrix<TVar> &TPZFYsmpMatrix<TVar>::operator=(const TPZVerySparseMatrix<
 	fIA = new int[nrows+1];
 	fIA[0] = 0;
 	
-	map< pair<int,int>, REAL>::const_iterator it;
+	typename map< pair<int,int>, TVar>::const_iterator it;
 	c = 0;
 	r = 0;
 	for(it=cp.fExtraSparseData.begin(); it!= cp.fExtraSparseData.end(); it++)

@@ -32,7 +32,8 @@ const int TSKYLMATRIX_ID = 504;
 const int TPZDOHRPRECOND = 505;
 const int TPZDOHRPRECONDCONDENSE = 506;
 /** @ingroup solvers */
-const int TPZSTEPSOLVER_ID = 507;
+const int TPZSTEPSOLVERDOUBLE_ID = 507;
+const int TPZSTEPSOLVERCOMPLEXDOUBLE_ID = 508;
 
 
 #endif

@@ -38,8 +38,8 @@ pthread_cond_t conda_write = PTHREAD_COND_INITIALIZER;
 // this thread will be active while ParFrontMatrix is active
 // It will check if a stack contains some equations to be writen to the disk
 
-template<class store, class front>
-TPZParFrontMatrix<store, front>::TPZParFrontMatrix():
+template<class TVar, class store, class front>
+TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix():
 fFinish(0)
 {
 	fEqnStack.Resize(0);
@@ -55,9 +55,9 @@ fFinish(0)
 	 */
 }
 
-template<class store, class front>
-TPZParFrontMatrix<store, front>::TPZParFrontMatrix(int globalsize) :
-TPZFrontMatrix<store, front>(globalsize),
+template<class TVar, class store, class front>
+TPZParFrontMatrix<TVar, store, front>::TPZParFrontMatrix(int globalsize) :
+TPZFrontMatrix<TVar, store, front>(globalsize),
 fFinish(0)
 {
 	fEqnStack.Resize(0);
@@ -71,12 +71,12 @@ fFinish(0)
 	 fLastDecomposed = -1;
 	 fNumEq=globalsize;*/
 }
-template<class store, class front>
-TPZParFrontMatrix<store, front>::~TPZParFrontMatrix(){
+template<class TVar, class store, class front>
+TPZParFrontMatrix<TVar, store, front>::~TPZParFrontMatrix(){
 }
 
-template<class store, class front>
-void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & destinationindex)
+template<class TVar, class store, class front>
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & destinationindex)
 {
 	
 	// message #1.3 to fFront:TPZFront
@@ -97,7 +97,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < 
 	 */
 	int mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray *AuxEqn = new TPZEqnArray;
+	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
 		//               if(!(maxeq%10)){
 		//	               cout << (100*maxeq/fNumEq) << " % Decomposed" << endl;
@@ -119,8 +119,8 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < 
 	}
 	this->fDecomposed = this->fFront.GetDecomposeType();
 } 
-template<class store, class front>
-void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
+template<class TVar, class store, class front>
+void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec < int > & sourceindex, TPZVec < int > & destinationindex)
 {
 	this->fFront.AddKel(elmat, sourceindex, destinationindex);
 #ifdef LOG4CXX
@@ -138,7 +138,7 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < 
 	//          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
-	TPZEqnArray *AuxEqn = new TPZEqnArray;
+	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
 		//	     if(!(maxeq%10)){
 		//	          cout << (100*maxeq/fNumEq) << " % Decomposed" << endl;
@@ -167,8 +167,8 @@ void TPZParFrontMatrix<store, front>::AddKel(TPZFMatrix<REAL> & elmat, TPZVec < 
 	this->fDecomposed = this->fFront.GetDecomposeType();
 }
 
-template<class store, class front>
-void TPZParFrontMatrix<store, front>::FinishWriting(){
+template<class TVar, class store, class front>
+void TPZParFrontMatrix<TVar, store, front>::FinishWriting(){
 	// FinishWriting already has a lock
 	//pthread_mutex_lock(&fwritelock);
 	cout << endl << "FinishWriting" << endl;
@@ -179,9 +179,9 @@ void TPZParFrontMatrix<store, front>::FinishWriting(){
 	pthread_cond_signal(&fwritecond);
 } 
 
-template<class store, class front>
-void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
-	TPZParFrontMatrix<store, front> *parfront = (TPZParFrontMatrix<store, front>*) t;    
+template<class TVar, class store, class front>
+void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
+	TPZParFrontMatrix<TVar, store, front> *parfront = (TPZParFrontMatrix<TVar, store, front>*) t;    
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -192,7 +192,7 @@ void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
 	cout << endl << "Entering Decomposition" << endl;
 	cout.flush();
 	while(1){
-		TPZStack<TPZEqnArray *> local;
+		TPZStack<TPZEqnArray<TVar> *> local;
 		pthread_mutex_lock(&parfront->fwritelock);
 #ifdef LOG4CXX
 		{
@@ -274,15 +274,24 @@ void * TPZParFrontMatrix<store, front>::WriteFile(void *t){
 	return (0);
 } 
 
+template<class TVar>
 class TPZStackEqnStorage;
+template<class TVar>
 class TPZFileEqnStorage;
+template<class TVar>
 class TPZFrontSym;
+template<class TVar>
 class TPZFrontNonSym;
 
-template class TPZParFrontMatrix<TPZStackEqnStorage, TPZFrontSym>;
-template class TPZParFrontMatrix<TPZFileEqnStorage, TPZFrontSym>;
-template class TPZParFrontMatrix<TPZStackEqnStorage, TPZFrontNonSym>;
-template class TPZParFrontMatrix<TPZFileEqnStorage, TPZFrontNonSym>;
+template class TPZParFrontMatrix<double, TPZStackEqnStorage<double>, TPZFrontSym<double> >;
+template class TPZParFrontMatrix<double, TPZFileEqnStorage<double>, TPZFrontSym<double> >;
+template class TPZParFrontMatrix<double, TPZStackEqnStorage<double>, TPZFrontNonSym<double> >;
+template class TPZParFrontMatrix<double, TPZFileEqnStorage<double>, TPZFrontNonSym<double> >;
+
+template class TPZParFrontMatrix<std::complex<double>, TPZStackEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
+template class TPZParFrontMatrix<std::complex<double>, TPZFileEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
+template class TPZParFrontMatrix<std::complex<double>, TPZStackEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
+template class TPZParFrontMatrix<std::complex<double>, TPZFileEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
 
 
 

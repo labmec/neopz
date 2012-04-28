@@ -365,7 +365,7 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s)
 		return;
 	}
 	//TPZManVector<REAL> sol(numvar);
-	TPZManVector<STATE> sol(numvar);
+	TPZManVector<REAL> sol(numvar);
 	sol.Fill(0.);
 	Solution(point,varindex,sol);
 	for(int i=0; i<sol.NElements(); i++) {
@@ -435,7 +435,7 @@ void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<REA
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
+void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
 	if(var >= 100) {
 		int ind = Index();
 		if(fMesh->ElementSolution().Cols() > var-100) {

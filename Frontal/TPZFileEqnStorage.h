@@ -19,6 +19,7 @@
  * It has methods for operating over a set of equations. \n
  * The arrays of equations are in the form of a binary files of EqnArrays.
  */
+template<class TVar>
 class TPZFileEqnStorage {
 public:
 	/** @brief Reopens an binary file with its current fFileName*/
@@ -61,7 +62,7 @@ public:
 	 * @brief Adds an EqnArray 
 	 * @param EqnArray added to the binary file
 	 */
-    void AddEqnArray(TPZEqnArray *EqnArray);
+    void AddEqnArray(TPZEqnArray<TVar> *EqnArray);
 	
     /**
      * @brief It prints TPZEqnStorage data.
@@ -77,14 +78,14 @@ public:
 	 * @param f Full matrix already decomposed
 	 * @param dec Decomposition type of f
 	 */
-    void Backward(TPZFMatrix<REAL> &f, DecomposeType dec) const;
+    void Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const;
 	
     /**
 	 * @brief Executes a Forward substitution 
 	 * @param f Full matrix already decomposed
 	 * @param dec Decomposition type of f
 	 */
-    void Forward(TPZFMatrix<REAL> &f, DecomposeType dec) const;
+    void Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const;
 
     /**
 	 * @brief Stores from ieq to jeq equations on a binary file 

@@ -29,9 +29,9 @@ public:
 	
     TPZSpStructMatrix(TPZCompMesh *);
 	
-    virtual TPZMatrix<REAL> * Create();
+    virtual TPZMatrix<STATE> * Create();
 	
-	virtual TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
     virtual TPZStructMatrix * Clone(); 	
 	

@@ -13,19 +13,19 @@ TPZStructMatrix * TPZBandStructMatrix::Clone(){
     return new TPZBandStructMatrix(*this);
 }
 
-TPZMatrix<REAL> * TPZBandStructMatrix::CreateAssemble(TPZFMatrix<REAL> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
-	TPZMatrix<REAL> *stiff = Create();
+TPZMatrix<STATE> * TPZBandStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
+	TPZMatrix<STATE> *stiff = Create();
 	int neq = stiff->Rows();
 	rhs.Redim(neq,1);
 	Assemble(*stiff,rhs,guiInterface);
 	return stiff;
 }
 
-TPZMatrix<REAL> * TPZBandStructMatrix::Create(){
+TPZMatrix<STATE> * TPZBandStructMatrix::Create(){
     int neq = fMesh->NEquations();
     if(HasRange()) neq = fMaxEq-fMinEq;
     int band = fMesh->BandWidth();
-    return new TPZFBMatrix<REAL>(neq,band);
+    return new TPZFBMatrix<STATE>(neq,band);
 }
 
 TPZBandStructMatrix::TPZBandStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)

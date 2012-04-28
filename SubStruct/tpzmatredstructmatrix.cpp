@@ -41,16 +41,16 @@ TPZStructMatrix *TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Clone()
 }
 
 template< class TStructMatrix, class TSparseMatrix>
-TPZMatrix<REAL> *TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Create()
+TPZMatrix<STATE> *TPZMatRedStructMatrix<TStructMatrix,TSparseMatrix>::Create()
 {
 	int neq = fMesh->NEquations();
 	TStructMatrix strmat(fMesh);
 	strmat.SetEquationRange(0,fInternalEqs);
-	TPZMatrix<REAL> *InternalStiff = strmat.Create();
-	TPZMatRed<REAL, TSparseMatrix> *matred = new TPZMatRed<REAL, TSparseMatrix>(neq,fInternalEqs);
+	TPZMatrix<STATE> *InternalStiff = strmat.Create();
+	TPZMatRed<STATE, TSparseMatrix> *matred = new TPZMatRed<STATE, TSparseMatrix>(neq,fInternalEqs);
 	matred->SetK00(InternalStiff);
 	return matred;
 }
 
-template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<REAL> >;
-template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZFMatrix<REAL> >;
+template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> >;
+template class TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZFMatrix<STATE> >;
