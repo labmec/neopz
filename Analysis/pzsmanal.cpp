@@ -1,12 +1,11 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZSubMeshAnalysis methods: implementation of the TPZSubMeshAnalysis class.
  */
 
 #include "pzsmanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-//#include "pztempmat.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
 
@@ -16,7 +15,6 @@ using namespace std;
 
 TPZSubMeshAnalysis::TPZSubMeshAnalysis(TPZSubCompMesh *mesh) : TPZAnalysis(mesh), fReducableStiff(0){
 	fMesh = mesh;
-//	fReducableStiff = new TPZMatRed<> ();
     fReferenceSolution.Redim(fCompMesh->NEquations(),1);
 }
 
@@ -69,17 +67,6 @@ void TPZSubMeshAnalysis::Run(std::ostream &out){
     }
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
 	matred->SetF(fRhs);
-	//fReducableStiff.Print("Reducable stiff assembled");
-	//fBlock->Print("Block structure",out);
-	//fStiffness->Print("Stiffness matrix ",out);
-	//out.flush();
-	//fRhs->Print("Residual",out);
-	//out.flush();
-	
-    //fStiffness->Print("Stiffness matrix ",out);
-	//out.flush();
-    //fRhs->Print("Residual",out);
-    //out.flush();
 }
 void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	time_t tempo = time(NULL);
@@ -89,8 +76,7 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
 	ek = matred->K11Red();
 	ef = matred->F1Red();
-	//ek.Print("ek condensed");
-	//	cout.flush();
+	
 	time_t tempodepois = time(NULL);
 	double elapsedtime = difftime(tempodepois, tempo);
 	
@@ -105,9 +91,6 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
 	int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
 	TPZFMatrix<STATE> soltemp(numeq-numinter,1,0.);
-	//	fSolution->Print("Solucao a analise\n");
-	//	fReferenceSolution.Print("Solucao de referencia\n");
-	//	cout.flush();
 	int i;
 	for(i=0; i<numeq-numinter; i++) {
 		soltemp(i,0) = sol.GetVal(numinter+i,0)-fReferenceSolution(numinter+i,0);
@@ -117,10 +100,7 @@ void TPZSubMeshAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     {
         TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
         matred->UGlobal(soltemp,uglobal);        
-//        fReferenceSolution.Print("Solucao de referencia\n");
-//        uglobal.Print("uglobal");
         fSolution = fReferenceSolution + uglobal;
     }
 	TPZAnalysis::LoadSolution();
-	//	cout.flush();
 }

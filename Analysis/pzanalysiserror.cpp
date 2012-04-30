@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZAnalysisError methods.
  */
-//$Id: pzanalysiserror.cpp,v 1.13 2008-10-08 02:06:24 phil Exp $
 
 #include "pzanalysiserror.h"
 #include "pzcmesh.h"
@@ -141,8 +140,7 @@ void TPZAnalysisError::GetSingularElements(TPZStack<TPZCompElSide> &elist) {
 }
 //SingularElements(..)
 void TPZAnalysisError::ZoomInSingularity(REAL csi, TPZCompElSide elside, REAL singularity_strength) {
-	
-	
+
 	REAL hn = 1./pow(csi,1./singularity_strength);
 	REAL Q=2.;
 	REAL NcReal = log( 1.+(1./hn - 1.)*(Q - 1.) )/log(Q);
@@ -390,21 +388,6 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 	return h;
 }
 
-/*
- REAL TPZAnalysisError::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv)) {
- 
- REAL H1_error,L2_error,estimate;
- TPZBlock *flux=0;
- int nel = fElErrors.NElements();
- REAL maxerror=0.;
- for(int iel=0;iel<nel;iel++) {
- estimate = fElErrors[iel];
- //if(maxerror < H1_error) maxerror = H1_error;
- if(maxerror < estimate) maxerror = estimate;
- }
- return maxerror;
- }
- */
 /** @brief Function to zeroes data */
 void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
 
@@ -419,7 +402,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	
 	TPZGeoMesh *gmesh = fCompMesh->Reference();
 	TPZAdmChunkVector<TPZGeoNode> &listnodes = gmesh->NodeVec();
-	int nnodes = gmesh->NNodes();//listnodes.NElements();
+	int nnodes = gmesh->NNodes();
 	TPZAdmChunkVector<TPZGeoNode> nodes(listnodes);
 	TPZVec<int> nodeindex(0);
 	int keepindex;
@@ -495,8 +478,8 @@ void TPZAnalysisError::MathematicaPlot() {
 	for(i=0;i<nnodes;i++) {
 		mesh << sol[i] << endl;
 	}
-	//solucao expandida
-	int numsols = 5*(nnodes-1)+1;//5 valores por elemento: 3 interpoladas (interiores) + 2 de canto
+	// expanding solution
+	int numsols = 5*(nnodes-1)+1;   // 5 values by element: 3 interpolated (interior) + 2 over corners
 	TPZVec<REAL> expand_sol(numsols);
 	TPZVec<REAL> expand_nodes(numsols);
  	TPZVec<REAL> qsi(1);
@@ -518,7 +501,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	}
 	expand_nodes[numsols-1] = nodes[nnodes-1].Coord(0);
 	expand_sol[numsols-1] = sol[nnodes-1];
-	//saida pelo Mathematica
+	// Mathematica output format
 	graph << "list = {" << endl;
 	for(int isol=0;isol<numsols;isol++) {
 		if(isol > 0) graph << ",";
@@ -545,7 +528,7 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 	fElErrors.Resize(numel);
 	fElIndexes.Resize(numel);
 	Mesh()->ElementSolution().Redim(numel,1);
-	//soma de erros sobre os elementos
+	// Sum of the errors over all computational elements
 	int el;
 	for(el=0;el< numel;el++) {
 		TPZCompEl *elptr = Mesh()->ElementVec()[el];
@@ -567,10 +550,6 @@ void TPZAnalysisError::EvaluateError(REAL CurrentEtaAdmissible, std::ostream &ou
 	fElIndexes.Resize(elcounter);
 	fTotalError = sqrt(errorSum[0]);
 	Mesh()->EvaluateError(NullFunction,elerror);
-	//   fAdmissibleError = CurrentEtaAdmissible*sqrt(true_error*true_error + fTotalError*fTotalError) / sqrt(1.*elcounter);
-	//<!>pra compilar
-	//Code isn�t place to chat
-	//#warning Phil, ver isso urgente. Tiago
 	fAdmissibleError = CurrentEtaAdmissible*sqrt(elerror[0]*elerror[0] + fTotalError*fTotalError) / sqrt(1.*elcounter);
 }
 

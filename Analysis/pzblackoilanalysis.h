@@ -2,7 +2,6 @@
  * @file
  * @brief Contains TPZBlackOilAnalysis class derived from TPZNonLinearAnalysis class.
  */
-//$Id: pzblackoilanalysis.h,v 1.6 2011-04-05 19:32:55 calle Exp $
 
 #ifndef BLACKOILANALH
 #define BLACKOILANALH
@@ -29,28 +28,22 @@ class TPZFStructMatrix;
 class TPZBlackOilAnalysis : public TPZNonLinearAnalysis {
 	
 private:
-	
+	/** @brief To store last load vector */
 	TPZFMatrix<REAL> fLastState;
 	
 public:
-	
+	/** @brief Constructor for given time step */
 	TPZBlackOilAnalysis(TPZCompMesh *mesh, double TimeStep, std::ostream &out = std::cout);
-	
+	/** @brief Simple destructor */
 	~TPZBlackOilAnalysis();
 	
-	/**
-	 * @brief Assemble residual vector and tangent matrix
-	 */
+	/** @brief Assemble residual vector and tangent matrix */
 	virtual void Assemble();
 	
-	/**
-	 * @brief Assemble only the residual vector
-	 **/
+	/** @brief Assemble only the residual vector */
 	virtual void AssembleResidual();
 	
-	/**
-	 * @brief Invert the algebraic system
-	 **/
+	/** @brief Invert the algebraic system */
 	virtual void Solve();
 	
 	virtual void Run(std::ostream &out = std::cout, bool linesearch = true);
@@ -61,22 +54,20 @@ public:
 	
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 	
-	/**
-	 * @brief Defines max number of steps and steady state convergence tolerance.
-	 */
+	/** @brief Defines max number of steps and steady state convergence tolerance. */
 	void SetConvergence(int niter, REAL eps, bool ForceAllSteps = true);
 	
 	/** @brief Defines properties of DX file */
 	void SetSaveFrequency(int SaveFrequency, int resolution);
 	
-	/**
-	 * @brief Defines max number of steps and error convergence tolerance for Newton's method.
-	 */
+	/** @brief Defines max number of steps and error convergence tolerance for Newton's method. */
 	void SetNewtonConvergence(int niter, REAL eps);
-	
+	/** @brief Gets time step */
 	REAL &TimeStep();
 	
+	/** @brief Sets a vector InitialSol as initial solution to start iterative process */ 
 	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
+	/** @brief Zeroes solution to start iterative process */
 	void SetInitialSolutionAsZero();
 	
 protected:
@@ -84,7 +75,7 @@ protected:
 	/** @brief Simulation time step */
 	REAL fTimeStep;
 	
-	/** */
+	/** @brief Stores the current time of the simulation, to compare with \f$ TotalTime = fTimeSet * fNIter\f$ */
 	REAL fSimulationTime;
 	
 	/** @brief Number of iterations counting from fCurrentIter to fCurrentIter+fNIter */
@@ -120,7 +111,9 @@ protected:
 	/** @brief Sets all materials the time step */
 	void SetAllMaterialsDeltaT();
 	
+	/** @brief Computes the average pressure */
 	static double PressaoMedia(TPZBlackOilAnalysis &an, int matid);
+	/** @brief Computes the oil flow */
 	static void Vazao(TPZBlackOilAnalysis &an, int matid, double & VazaoAguaSC, double  & VazaoOleoSC, double & VazaoAguaFundo, double  & VazaoOleoFundo);
 };
 

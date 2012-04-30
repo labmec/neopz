@@ -18,23 +18,25 @@ class TPZCompElSide;
 /**
  * @brief Implements analysis procedures with hp adaptivity. \ref analysis "Analysis"
  * @ingroup analysis
- * @note This class implements : "A Fast hp Adaptive Finite Element Mesh Design"
- * for : A. A. Novotny et al.
+ * @note This class implements : "A Fast hp Adaptive Finite Element Mesh Design" for : A. A. Novotny et al.
  */
 class TPZAnalysisError : public TPZAnalysis {
 	
+	/** @brief Indexes of the elements vector */
 	TPZManVector<int> fElIndexes;
+	/** @brief Vector with error values by elements */
 	TPZManVector<REAL> fElErrors;
 	TPZStack<TPZCompElSide> fSingular;
+	/** Total error computed */
 	REAL fTotalError;
 	REAL fAdmissibleError;
 	
 	REAL fEtaAdmissible;
+	/** @brief Number of iterations */
 	int fNIterations;
 	
 	public :
 	/** @brief Object constructors*/
-	//TPZAnalysisError(TPZAnalysis &an);
 	TPZAnalysisError(TPZCompMesh *mesh,std::ostream &out);
 	/** @brief Delete objects*/
 	~TPZAnalysisError() {};
@@ -68,19 +70,15 @@ class TPZAnalysisError : public TPZAnalysis {
 	/** @brief Plot to the aproximated solution of the FEM with Mathematica package*/
 	void MathematicaPlot();
 	
-	/** @brief Compute the list of errors of all elements and also the admissible error
-	 for any element in the grid
-	 
-	 Is called from HPAdapt()
-	 */
+	/** @brief Compute the list of errors of all elements and also the admissible error for any element in the grid */
+	/** Is called from HPAdapt() */
 	void EvaluateError(REAL CurrentEtaAdmissible, std::ostream &out);
 	
-	/** @brief Postprocess the intermediate solutions*/
 private:
+	/** @brief Postprocess the intermediate solutions*/
 	void PlotLocal(int iter, REAL CurrentEtaAdmissible, std::ostream &out);
 	
-	void ExpandConnected(TPZStack<TPZCompElSide> &singel);
-	
+	void ExpandConnected(TPZStack<TPZCompElSide> &singel);	
 };
 
 #endif

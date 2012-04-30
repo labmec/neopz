@@ -21,7 +21,6 @@ class TPZAvlMap;
 class TPZOneDRef;
 class TPZGeoEl;
 
-
 /**
  * @brief Implements multigrid analysis. TPZMGAnalysis is derived from TPZAnalysis. \ref analysis "Analysis"
  * @ingroup Analysis
@@ -29,37 +28,22 @@ class TPZGeoEl;
 class TPZMGAnalysis : public TPZAnalysis {
 public:
 	
-	/**
-	 * @brief Destructor
-	 */
+	/** @brief Destructor */
 	virtual ~TPZMGAnalysis();
 	
-	/**
-	 * @brief Creates an object multigrid analysis
-	 * giving a computational mesh
-	 */
+	/** @brief Creates an object multigrid analysis giving a computational mesh */
 	TPZMGAnalysis (TPZCompMesh *);
 	
-	/**
-	 * @brief Append a mesh to the meshes vector
-	 */
+	/** @brief Append a mesh to the meshes vector */
 	void AppendMesh (TPZCompMesh * mesh);
 	
-	/**
-	 * @brief Pop the last mesh of the meshes vector
-	 */
+	/** @brief Pop the last mesh of the meshes vector */
 	TPZCompMesh *PopMesh ();
 	
-	/**
-	 * @brief Uses fSolver object to apply a solution
-	 * algorithm
-	 */
+	/** @brief Uses fSolver object to apply a solution algorithm */
 	virtual void Solve ();
 	
-	/**
-	 * @brief Loads the last two solutions and
-	 * call the error between these two aproximations
-	 */
+	/** @brief Loads the last two solutions and call the error between these two aproximations */
 	void ComputeError (TPZVec<REAL> &error);
 	
 	/**
@@ -110,7 +94,6 @@ private:
 							   TPZTransform &tr,
 							   void (*f) (const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
 							   REAL &truerror);
-	
 };
 
 #endif //TPZMGANALYSIS_H

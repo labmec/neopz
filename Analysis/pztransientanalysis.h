@@ -2,7 +2,6 @@
  * @file
  * @brief Contains TPZTransientAnalysis class which implements a simple manner to perform transient simulations.
  */
-//$Id: pztransientanalysis.h,v 1.7 2011-04-05 19:32:55 calle Exp $
 
 #ifndef TRANSIENTANALH
 #define TRANSIENTANALH
@@ -34,12 +33,10 @@ class TPZTransientAnalysis : public TPZNonLinearAnalysis {
 	
 public:
 	
-	/** @brief Static attribute storing the current time of simulation
-	 */
+	/** @brief Static attribute storing the current time of simulation */
 	static double gTime;
 	
-	/** @brief Method for gTime attribute access
-	 */
+	/** @brief Method for gTime attribute access */
 	double GetgTime(){ return gTime; }
 	
 	/** @brief Constructor
@@ -49,83 +46,59 @@ public:
 	 */
 	TPZTransientAnalysis(TPZCompMesh *mesh, bool IsLinear = false, std::ostream &out = std::cout);
 	
-	/** @brief Default destructor
-	 */
+	/** @brief Default destructor */
 	~TPZTransientAnalysis();
 	
-	/**
-	 * @brief Assemble flux vector and jacobian matrix
-	 */
+	/** @brief Assemble flux vector and jacobian matrix */
 	virtual void Assemble();
 	
-	/** 
-	 * @brief Executes a Newton's method for the solution of the implicit in time equation 
-	 */
+	/** @brief Executes a Newton's method for the solution of the implicit in time equation */
 	virtual void RunTransient(std::ostream &out = std::cout, bool FromBegining = true, bool linesearch = true);
 	
-	/** 
-	 * @brief Solves a explicit Euler's scheme in time
-	 */
+	/** @brief Solves a explicit Euler's scheme in time */
 	virtual void RunExplicit(std::ostream &out = std::cout, bool FromBegining = true);
 	
-	/** @brief See base class for comments
-	 */  
+	/** @brief See base class for comments */  
 	virtual void PostProcess(int resolution){ TPZAnalysis::PostProcess(resolution);}
 	
-	/** @brief See base class for comments
-	 */
+	/** @brief See base class for comments */
 	virtual void PostProcess(int resolution, int dimension);
 	
-	/** @brief See base class for comments
-	 */
+	/** @brief See base class for comments */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 	
-	/** 
-	 * @brief Defines max number of steps and steady state convergence tolerance.
-	 */
+	/** @brief Defines max number of steps and steady state convergence tolerance. */
 	void SetConvergence(int niter, REAL eps, bool ForceAllSteps = true);
 	
 	/** @brief Defines properties of DX file */
 	void SetSaveFrequency(int SaveFrequency, int resolution);
 	
-	/** @brief Defines to save solution vector with SaveFrequency frequency.
-	 *
-	 * If not set, no solution is kept in the process.
-	 */
+	/** @brief Defines to save solution vector with SaveFrequency frequency. */
+	/** If not set, no solution is kept in the process. */
 	void SetSaveSolution(int SaveFrequency);
 	
-	/** @brief Access to saved solution. Pair of (solution vec, simulation time)
-	 */
+	/** @brief Access to saved solution. Pair of (solution vec, simulation time) */
 	std::list< std::pair<TPZFMatrix<REAL>, REAL> > & GetSavedSolutions();
 	
-	/** 
-	 * @brief Defines max number of steps and error convergence tolerance for Newton's method.
-	 */  
+	/** @brief Defines max number of steps and error convergence tolerance for Newton's method. */  
 	void SetNewtonConvergence(int niter, REAL eps);
 	
-	/** @brief Access to time step attribute
-	 */
+	/** @brief Access to time step attribute */
 	REAL & TimeStep();
 	
-	/** @brief Sets problem initial solution
-	 */
+	/** @brief Sets problem initial solution */
 	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
 	
-	/** @brief Sets problem initial solution as zero
-	 */
+	/** @brief Sets problem initial solution as zero */
 	void SetInitialSolutionAsZero();
 	
-	/** @brief Returns current iteration
-	 */
+	/** @brief Returns current iteration */
 	int GetCurrentIter();
     
 protected:
 	
-	/** @brief Flag indicating whether the problem is linear or not. 
-	 * 
-	 * Linear problems require the computation and decompostition of tangent
-	 * matrix only once.
-	 */
+	/** @brief Flag indicating whether the problem is linear or not. */
+	/** Linear problems require the computation and decompostition of tangent matrix only once. */
 	bool fIsLinearProblem;
 	
 	/** @brief Simulation time step */
@@ -148,16 +121,12 @@ protected:
 	/** @brief Resolution of DX mesh */
 	int fDXResolution;
 	
-	/** @brief Frequency which solution vector must be saved.
-	 * 
-	 *  Zero (default value) means no solution vector but the current one is saved.
-	 */
+	/** @brief Frequency which solution vector must be saved. */
+	/**  Zero (default value) means no solution vector but the current one is saved. */
 	int fSaveSolutionVecFrequency;
 	
-	/** @brief Attribute to store solution vectors during process. Pair of (solution vec, simulation time)
-	 *
-	 * This attribute is cleaned every time Run method is called
-	 */
+	/** @brief Attribute to store solution vectors during process. Pair of (solution vec, simulation time) */
+	/** This attribute is cleaned every time Run method is called */
 	std::list< std::pair< TPZFMatrix<REAL>, REAL> > fSavedSolutionVec;
 	
 	/** @brief If fSaveSolutionVecFrequency != 0, save current solution vector in fSavedSolutionVec attribute. */

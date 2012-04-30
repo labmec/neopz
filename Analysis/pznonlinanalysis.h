@@ -2,6 +2,7 @@
  * @file
  * @brief Contains TPZNonLinearAnalysis class which implements the non linear analysis.
  */
+
 #ifndef NONLINANALYSISH
 #define NONLINANALYSISH
 
@@ -22,11 +23,11 @@ class TPZFMatrix;
 class TPZNonLinearAnalysis : public TPZAnalysis {
 	
 public:
-	
+	/** @brief Constructor with computational mesh */
 	TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out);
-	
+	/** @brief Default constructor */
 	TPZNonLinearAnalysis();
-	
+	/** @brief Default destructor */
 	virtual ~TPZNonLinearAnalysis();
 	
 	/** @brief It process a Newton's method to solve the non-linear problem. */
@@ -45,11 +46,12 @@ public:
 	 * is called before AssembleResidual.
 	 */
 	REAL LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter);
-	
+	/** @brief Computes the L2 norm of the solution */
 	REAL SolutionNorm();
 	
+	/** @note Incomplete */
 	virtual void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase);
-	
+	/** @brief Actually return 1 */
 	int NumCases();
 	
 	virtual void Residual(TPZFMatrix<REAL> &residual, int icase);
@@ -58,6 +60,7 @@ public:
 	
 	virtual void LoadSolution(const TPZFMatrix<REAL> &state);
 	
+	/** @brief Load solution with state as solution. But fSolution is not modified */
 	void LoadState(TPZFMatrix<REAL> &state);
 	
 };

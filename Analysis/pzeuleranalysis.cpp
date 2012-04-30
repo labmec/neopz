@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZEulerAnalysis methods.
  */
-//$Id: pzeuleranalysis.cpp,v 1.50 2011-05-11 01:14:38 phil Exp $
 
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
@@ -26,7 +25,6 @@ using namespace std;
 TPZEulerAnalysis::TPZEulerAnalysis():
 TPZAnalysis(), fFlowCompMesh(NULL),
 fRhsLast(),
-fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
 fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
@@ -37,7 +35,6 @@ fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
 TPZEulerAnalysis::TPZEulerAnalysis(TPZFlowCompMesh *mesh, std::ostream &out):
 TPZAnalysis(mesh, out), fFlowCompMesh(mesh),
 fRhsLast(),
-fLinSysEps(1e-10), fLinSysMaxIter(20),
 fNewtonEps(1e-9),  fNewtonMaxIter(10),
 fTimeIntEps(1e-8), fTimeIntMaxIter(100),
 fEvolCFL(0), fpBlockDiag(NULL),fHasFrontalPreconditioner(0)
@@ -110,7 +107,6 @@ void TPZEulerAnalysis::UpdateHistory()
 {
 	
 #ifdef RESTART_ZEROED
-	//Zeroeing the newest iterative solution
 	fSolution.Zero();
 #else
 	// The last state should be copied to the advanced
@@ -210,19 +206,7 @@ void TPZEulerAnalysis::Assemble()
 		//fpBlockDiag->SetIsDecomposed(0); // Zero already makes it
 		fpBlockDiag->BuildFromMatrix(pTangentMatrix);
 	}
-	
-	/*
-	 ofstream Mout("Matriz.out");
-	 ofstream Vout("Vetor.out");
-	 
-	 pTangentMatrix->Print("Matrix", Mout);//EMathematicaInput);
-	 
-	 fRhs.Print("Rhs", Vout);
-	 
-	 Mout.close();
-	 Vout.close();*/
 }
-
 
 void TPZEulerAnalysis::AssembleRhs()
 {
@@ -251,24 +235,8 @@ int TPZEulerAnalysis::Solve(REAL & res, TPZFMatrix<REAL> * residual, TPZFMatrix<
 	if(residual)
 	{   // verifying the inversion of the linear system
 		residual->Redim(numeq,1);
-		/*
-		 fSolver->Matrix()->Residual(delSol, fRhs, *residual);
-		 res = Norm(*residual);
-		 
-		 if(res > fLinSysEps)
-		 {
-		 cout << "Linear system invertion did not achieve expected tolerance:" << res << endl;
-		 cout.flush();
-		 }
-		 */
 	}
 	
-	/*
-	 fSolver->Matrix()->Print("Matrix", eulerout, EMathematicaInput);
-	 delu.Print("delu", eulerout, EMathematicaInput);
-	 fRhs.Print("Rhs", eulerout, EMathematicaInput);
-	 eulerout.flush();
-	 */
     return 1;
 }
 
@@ -304,16 +272,6 @@ int TPZEulerAnalysis::RunNewton(REAL & epsilon, int & numIter)
 			epsilon = Norm(fRhs);
 			cout << "\tEntry NonLinEpsilon:" << epsilon << endl;
 		}
-		
-		// Testing whether the rhs computed by assemble is the same as the rhs computed by AssembleRhs
-		// Both are different, because expression templates change the order of the computations
-		/*
-		 res1 = Norm(fRhs);
-		 if(res2 != 0. && res1 != res2)
-		 {
-		 this->CompareRhs();
-		 }
-		 */
 		
 		//Solves the linearized system
 		fTotalNewton++;
@@ -515,12 +473,6 @@ void TPZEulerAnalysis::CFLControl(REAL & lastEpsilon, REAL & epsilon, REAL & eps
 REAL TPZEulerAnalysis::ComputeTimeStep()
 {
 	return fFlowCompMesh->ComputeTimeStep();
-}
-
-void TPZEulerAnalysis::SetLinSysCriteria(REAL epsilon, int maxIter)
-{
-	fLinSysEps     = epsilon;
-	fLinSysMaxIter = maxIter;
 }
 
 void TPZEulerAnalysis::SetNewtonCriteria(REAL epsilon, int maxIter)

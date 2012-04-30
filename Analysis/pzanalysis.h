@@ -2,6 +2,7 @@
  * @file
  * @brief Contains TPZAnalysis class which implements the sequence of actions to perform a finite element analysis.
  */
+
 #ifndef ANALYSISH
 #define ANALYSISH
 
@@ -47,55 +48,31 @@ public:
 	
 	
 protected:
-	/**
-	 * @brief Geometric Mesh
-	 */
+	/** @brief Geometric Mesh */
 	TPZGeoMesh *fGeoMesh;
-	/**
-	 * @brief Computational mesh
-	 */
+	/** @brief Computational mesh */
 	TPZCompMesh *fCompMesh;
-	/**
-	 * @brief Graphical mesh
-	 */
+	/** @brief Graphical mesh */
 	TPZGraphMesh *fGraphMesh[3];
-	/**
-	 * @brief Load vector ???
-	 */
+	/** @brief Load vector */
 	TPZFMatrix<STATE> fRhs;
-	/**
-	 * @brief Solution vector
-	 */
+	/** @brief Solution vector */
 	TPZFMatrix<STATE> fSolution;
-	/**
-	 * @brief Type of solver to be applied
-	 */
+	/** @brief Type of solver to be applied */
 	TPZMatrixSolver<STATE> *fSolver;
-	/**
-	 * @brief Scalar variables names - to post process
-	 */
+	/** @brief Scalar variables names - to post process */
 	TPZVec<std::string> fScalarNames[3];
-	/**
-	 * @brief Vector variables names - to post process
-	 */
+	/** @brief Vector variables names - to post process */
 	TPZVec<std::string> fVectorNames[3];
-	/**
-	 * @brief Step ???
-	 */
+	/** @brief Time step */
 	int fStep;
-	/**
-	 * @brief Time variable which is used in dx output
-	 */
+	/** @brief Time variable which is used in dx output */
 	REAL fTime;
 	
-	/**
-	 * @brief Structural matrix
-	 */
+	/** @brief Structural matrix */
 	TPZAutoPointer<TPZStructMatrix>  fStructMatrix;
 	
-	/**
-	 * @brief Renumbering scheme
-	 */
+	/** @brief Renumbering scheme */
 	TPZAutoPointer<TPZRenumbering> fRenumber;
 	
 	/** @brief Pointer for gui interface object */
@@ -115,19 +92,13 @@ protected:
 	
 	public :
 	
-    /**
-     * @brief Exact solution ??? not implemented???
-     */
+    /** @brief Pointer to Exact solution function, it is necessary to calculating errors */
     void (*fExact)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv);
 	
-	/**
-	 * @brief Create an TPZAnalysis object from one mesh pointer
-	 */
+	/** @brief Create an TPZAnalysis object from one mesh pointer */
 	TPZAnalysis(TPZCompMesh *mesh,std::ostream &out = std::cout);
 	
-	/**
-	 * @brief Create an TPZAnalysis object from one mesh pointer
-	 */
+	/** @brief Create an TPZAnalysis object from one mesh auto pointer object */
 	TPZAnalysis(TPZAutoPointer<TPZCompMesh> mesh,std::ostream &out = std::cout);
 	
 	/** @brief Defines gui interface object */
@@ -135,10 +106,12 @@ protected:
 		fGuiInterface = gui;
 	}
 	
+	/** @brief Gets gui interface object */
 	TPZAutoPointer<TPZGuiInterface> GetGuiInterface() const{
 		return fGuiInterface;
 	}
 	
+	/** @brief Returns if the process was canceled through gui interface */
 	bool AmIKilled(){
 		if(fGuiInterface){
 			return fGuiInterface->AmIKilled();
@@ -146,150 +119,125 @@ protected:
 		else return false;
 	}
 	
-	/**
-	 * @brief Set the computational mesh of the analysis.
-	 **/
+	/** @brief Set the computational mesh of the analysis. */
 	void SetCompMesh(TPZCompMesh * mesh);
 	
-	/**
-	 * @brief Create an empty TPZAnalysis object
-	 **/
+	/** @brief Create an empty TPZAnalysis object */
 	TPZAnalysis();
 	
-	/**
-	 * @brief Destructor: deletes all protected dynamic allocated
-	 *objects
-	 **/
+	/** @brief Destructor: deletes all protected dynamic allocated objects */
 	virtual ~TPZAnalysis(void);
-	/**
-	 * @brief Sets the computer connection block number from the graphical
-	 *connections block number otimization
-	 **/
+	/** @brief Sets the computer connection block number from the graphical connections block number otimization */
 	void SetBlockNumber();
 	
-	/**
-	 * @brief Returns the dimension of the material which has
-	 *the highest dimension
-	 **/
+	/** @brief Returns the dimension of the material which has the highest dimension */
 	int HighestDimension();
 	
-	/**
-	 * @brief Recompute the node sequence
-	 **/
+	/** @brief Recompute the node sequence */
 	void Resequence(int firstel = -1);
 	
-	/**
-	 * @brief Assemble the stiffness matrix
-	 **/
+	/** @brief Assemble the stiffness matrix and load vector */
 	virtual  void Assemble();
 	
+	/** @brief Assemble the load vector */
 	virtual void AssembleResidual();
 	
-	/**
-	 * @brief Invert the stiffness matrix
-	 **/
+	/** @brief Invert the stiffness matrix */
 	virtual void Solve();
 	
-	/**
-	 * @brief Returns the load vector
-	 **/
+	/** @brief Returns the load vector */
 	TPZFMatrix<STATE> &Rhs() { return fRhs;}
-	
-	
-	/**
-	 * @brief Returns the solution matrix
-	 **/
+
+	/** @brief Returns the solution matrix */
 	TPZFMatrix<STATE> &Solution() { return fSolution;}
 	
-	/**
-	 * @brief Returns the pointer to the computational mesh
-	 **/
+	/** @brief Returns the pointer to the computational mesh */
 	TPZCompMesh *Mesh()const { return fCompMesh;}
-	/**
-	 * @brief Returns a reference to the structural matrix
-	 */
+	/** @brief Returns a reference to the structural matrix */
 	TPZAutoPointer<TPZStructMatrix> StructMatrix() { return fStructMatrix;}
 	
-	/**
-	 * @brief Define the type of preconditioner used
-	 *
-	 * This method will create the stiffness matrix but without assembling
-	 */
+	/** @brief Define the type of preconditioner used */
+	/** This method will create the stiffness matrix but without assembling */
 	TPZMatrixSolver<STATE> *BuildPreconditioner(EPrecond preconditioner, bool overlap);
 	
+	/** @brief Sets time will be used in dx files */
 	void SetTime(REAL time);
+	/** @brief Gets time used in dx files */
 	REAL GetTime();
 	
 private:
 	
-	/**
-	 * @brief Build a sequence solver based on the block graph and its colors
-	 */
+	/** @brief Build a sequence solver based on the block graph and its colors */
 	TPZMatrixSolver<STATE> *BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors);
-	
-	
+
 public:
+	/** @brief Graphic of the solution as V3DGrap visualization */
 	void ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames,//1o : TPZConnect* nod,
 				   char *plotfile, std::ostream &out=std::cout);
-	
+	/** @brief Make assembling and clean the load and solution vectors */
 	void LoadShape(double dx,double dy, int numelem,TPZConnect* nod);
 	
-	/** @brief Calls the appropriate sequence of methods to build a
-	 * solution or a time stepping sequence
-	 */
+	/** @brief Calls the appropriate sequence of methods to build a solution or a time stepping sequence */
 	virtual void Run(std::ostream &out = std::cout);
-	
+	/** @brief Define GrapMesh as V3D, DX, MV or VTK depending on extension of the file */
 	virtual void DefineGraphMesh(int dimension, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile);
-	
+	/** @brief Clean the GrapMesh vector */
 	virtual void CloseGraphMesh();
 	
-	/**
-	 * @brief Defines the postprocessing parameters for the graphical grid
-	 **/
+	/** @brief Defines the postprocessing parameters for the graphical grid */
 	TPZGraphMesh *GraphMesh(int dimension) {
 		return fGraphMesh[dimension-1];
 	}
-	
+	/** @brief Draw solution over mesh for all dimensions */
 	virtual void PostProcess(int resolution);
-	
+	/** @brief Draw solution over mesh by dimension  */	
 	virtual void PostProcess(int resolution, int dimension);
 	
-	virtual void DefineElementTable(int dimension, TPZVec<int> &GeoElIds, TPZVec<REAL> &points);
-	
-	virtual void SetTablePostProcessFile(char *filename);
-	
-	virtual void SetTableVariableNames(int numvar, char **varnames);
-	
-	virtual void PrePostProcessTable();
-	
-	virtual void PostProcessTable();
 	/**
-	 * @brief Load the solution into the computable grid
+	 * @name Related over data structure to post processing
+	 * @{
 	 */
-	virtual void LoadSolution();
 	
+	/** @brief Fill the computational element vector to post processing depending over geometric mesh defined */
+	virtual void DefineElementTable(int dimension, TPZVec<int> &GeoElIds, TPZVec<REAL> &points);
+	/** @brief Sets the name of the output file into the data structure for post processing */
+	virtual void SetTablePostProcessFile(char *filename);
+	/** @brief Sets the names of the variables into the data structure for post processing */	
+	virtual void SetTableVariableNames(int numvar, char **varnames);
+	/** @brief Prepare data to print post processing and print coordinates */
+	virtual void PrePostProcessTable();
+	/** @brief Print the solution related with the computational element vector in post process */
+	virtual void PostProcessTable();
+	/** @brief Compute and print the local error over all elements in data structure of post process, also compute global errors in several norms */
+	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
+
+	/** @} */
+
+	/** @brief Load the solution into the computable grid */
+	virtual void LoadSolution();
+	/** @brief Load the solution into the computable mesh considering sol as Solution vector of the analysis */
 	virtual void LoadSolution(const TPZFMatrix<STATE> &sol){
 		this->Solution() = sol;
 		this->LoadSolution();
 	}
-	
+
+	/** @brief Sets the pointer of the exact solution function */
 	void SetExact(void (*f)(const TPZVec<REAL> &loc, TPZVec<STATE> &result, TPZFMatrix<STATE> &deriv));
-	
+	/** @brief Compute the local error over all elements and global errors in several norms and print out */
 	virtual void PostProcess(TPZVec<REAL> &loc, std::ostream &out = std::cout);
 	
-	void PostProcessTable(  TPZFMatrix<REAL> &pos,std::ostream &out= std::cout );
-	
+	/** @brief Print connect and solution information */
 	void Print( const std::string &name , std::ostream &out );
-	
+	/** @brief Get the solver matrix */
 	TPZMatrixSolver<STATE> & Solver();
-	
+	/** @brief Run and print the solution step by step */
 	void AnimateRun(int num_iter, int steps,
 					TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile);
-	
+	/** @brief Set solver matrix */
 	void SetSolver(TPZMatrixSolver<STATE> &solver);
-	
+	/** @brief Set structural matrix as auto pointer for analysis */
 	void SetStructuralMatrix(TPZAutoPointer<TPZStructMatrix> strmatrix);
-	
+	/** @brief Set structural matrix for analysis */	
 	void SetStructuralMatrix(TPZStructMatrix &strmatrix);
 	
 };

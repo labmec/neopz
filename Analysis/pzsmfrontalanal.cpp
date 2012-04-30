@@ -1,12 +1,11 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZSubMeshFrontalAnalysis methods.
  */
 
 #include "pzsmfrontalanal.h"
 #include "pzsubcmesh.h"
 #include "pzfmatrix.h"
-//#include "pztempmat.h"
 #include "TPZFrontStructMatrix.h"
 #include "pzstrmatrix.h"
 #include "pzsolve.h"
@@ -25,7 +24,6 @@ TPZSubMeshFrontalAnalysis::~TPZSubMeshFrontalAnalysis()
 	
 }
 
-
 void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
 	
 	//fReducableStiff.Print("Reducable stiff before assembled");
@@ -42,8 +40,7 @@ void TPZSubMeshFrontalAnalysis::Run(std::ostream &out){
     {
         std::cout << "Dont know what to do...\n";
         DebugStop();
-    }
-    
+    }    
 }
 void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	//	ek = fReducableStiff.K11Red();
@@ -63,22 +60,14 @@ void TPZSubMeshFrontalAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMat
 
 void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
 {
-	
-	//	sol.Print("sol");
-	//	cout.flush();
 	int numinter = fMesh->NumInternalEquations();
 	int numeq = fMesh->TPZCompMesh::NEquations();
 	TPZFMatrix<STATE> soltemp(numeq,1,0.);
-	//	fSolution.Print("Solucao a analise\n");
-	//	fReferenceSolution.Print("Solucao de referencia\n");
-	//	cout.flush();
 	int i;
 	for(i=0;i<numinter;i++) soltemp(i,0) = fRhs(i,0);
 	for(; i<numeq; i++) {
 		soltemp(i,0) = sol.GetVal(i,0)-fReferenceSolution(i,0);
 	}
-	//	soltemp.Print("Solucao temporaria");
-	//	cout.flush();
     if(fSolver->Matrix()->IsDecomposed() == ELU)
     {
         fSolver->Matrix()->Subst_Backward(&soltemp);
@@ -92,7 +81,5 @@ void TPZSubMeshFrontalAnalysis::LoadSolution(const TPZFMatrix<STATE> &sol)
     }
 	
 	fSolution = fReferenceSolution + soltemp;
-	//	fSolution.Print("Final Solution");
-	//	cout.flush();
 	TPZAnalysis::LoadSolution();
 }

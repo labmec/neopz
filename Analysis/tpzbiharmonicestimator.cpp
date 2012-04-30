@@ -1,26 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZBiharmonicEstimator methods.
  */
-/***************************************************************************
- *   Copyright (C) 2008 by joao,,,   *
- *   joao@joao-laptop   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #include "tpzbiharmonicestimator.h"
 #include "pzbiharmonic.h"
 #include "pzbndcond.h"
@@ -101,18 +83,10 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 														   REAL weight,
 														   TPZVec<REAL> &nkL, 
 														   TPZVec<REAL> &nkR ){
-	// TPZFMatrix<REAL> dphi = data.dphix;
-	// TPZFMatrix<REAL> dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> phi = data.phi;
-	// TPZFMatrix<REAL> phiL = dataleft.phi;
-	// TPZFMatrix<REAL> phiR = dataright.phi;
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
-	// //int POrder=data.p;
 	int LeftPOrder = dataleft.p;
 	int RightPOrder = dataright.p;
-	// TPZVec<REAL> sol=data.sol;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -120,15 +94,12 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 
 	TPZVec<REAL> solL=dataleft.sol[0];
 	TPZVec<REAL> solR=dataright.sol[0];
-	// TPZFMatrix<REAL> dsol=data.dsol;
 	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
 	TPZFMatrix<REAL> dsolR=dataright.dsol[0];
 	REAL faceSize=data.HSize;
 	
 	REAL alpha=gSigmaA*(pow((REAL)LeftPOrder,gL_alpha)+pow((REAL)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
 	REAL betta=gSigmaB*(pow((REAL)LeftPOrder,gL_betta)+pow((REAL)RightPOrder,gL_betta)) /(2.*pow(faceSize,gM_betta) );
-	
-	// std::cout<<"alpha: "<< alpha<<" | betta  "<< betta<<std::endl;
 	
 	// solucoes exatas
 	TPZVec<REAL> u_exactp(1);
@@ -192,14 +163,7 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	REAL  GRADLaplacianodualhpPlusR[2];
 	GRADLaplacianodualhpPlusR[0] = dsolR(3,3);
 	GRADLaplacianodualhpPlusR[1] = dsolR(4,3);
-	//debug
-	
-	// std::cout<<"x: "<<data.x[0]<<" , "<<data.x[1] << std::endl;
-	// std::cout<<"uL-uR: "<<uL-uR << std::endl;
-	// std::cout<<"dualhpPlusL-dualhpL: "<<dualhpPlusL-dualhpL << std::endl;
-	// std::cout<<"dualhpPlusR-dualhpR: "<<dualhpPlusR-dualhpR << std::endl;
-	
-	
+
 	// sao seis termos com left e right
 	
 	// primeiro termo (s/ penalizacao)
@@ -256,26 +220,18 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 															 TPZBndCond &bc){
 	TPZFMatrix<REAL> dphi = data.dphix;
 	TPZFMatrix<REAL> dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> dphiR = dataright.dphix;
 	TPZFMatrix<REAL> phi = data.phi;
 	TPZFMatrix<REAL> phiL = dataleft.phi;
-	// TPZFMatrix<REAL> phiR = dataright.phi;
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
-	// int POrder=data.p;
 	int LeftPOrder=dataleft.p;
-	//int RightPOrder=data.rightp;
-	// TPZVec<REAL> sol=data.sol;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
 	TPZVec<REAL> solL=dataleft.sol[0];
-	// TPZVec<REAL> solR=dataright.sol;
-	// TPZFMatrix<REAL> dsol=data.dsol;
 	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
-	// TPZFMatrix<REAL> dsolR=dataright.dsol;
 	REAL faceSize=data.HSize;
 	
 	TPZVec<REAL> u_exactp(1);
@@ -284,7 +240,6 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 	TPZFMatrix<REAL> du_exactd(9,1);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
-	// std::cout<<"x: "<<data.x[0]<<","<<data.x[1]<< std::endl;
 	
 	REAL alpha = gSigmaA*pow((REAL)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
 	REAL betta = gSigmaB*pow((REAL)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);

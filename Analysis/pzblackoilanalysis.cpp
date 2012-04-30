@@ -2,7 +2,6 @@
  * \file
  * @brief Contains implementations of the TPZBlackOilAnalysis methods.
  */
-//$Id: pzblackoilanalysis.cpp,v 1.7 2011-04-01 16:23:11 phil Exp $
 
 #include "pzblackoilanalysis.h"
 #include "pzblackoil2p3d.h"
@@ -51,8 +50,6 @@ void TPZBlackOilAnalysis::AssembleResidual(){
 	this->SetCurrentState();
 	int sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,1);
-// #warning FIX ME!!
-	//  TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 	this->fRhs += fLastState;
 }//void
 
@@ -251,13 +248,6 @@ void TPZBlackOilAnalysis::Assemble(){
 	if(fSolver->Matrix()) if (fSolver->Matrix()->Rows()==sz) exist = true;
 	if (exist){
 		fSolver->Matrix()->Zero();
-// #warning FIX ME
-		//    fStructMatrix->Assemble(fSolver->Matrix(),fRhs);
-	}
-	else{
-// #warning FIX ME
-		//    TPZMatrix<REAL> *mat = fStructMatrix->CreateAssemble(fRhs);
-		//    fSolver->SetMatrix(mat);
 	}
 	fSolver->UpdateFrom(fSolver->Matrix());
 }
@@ -314,8 +304,6 @@ void TPZBlackOilAnalysis::Solve(){
 			if(S > maxS) maxS = S;
 			if(S < minS) minS = S;
 		}//for i
-//		double ScaleP = fabs(minP+maxP)/2.;
-//		double ScaleS = fabs(minS+maxS)/2.;
 	}
 	
 	TPZNonLinearAnalysis::Solve();

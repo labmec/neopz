@@ -29,63 +29,40 @@ class TPZGeoEl;
  */
 class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 	
-	/**
-	 * @brief Contains the computational meshes of one cycle: V, W, F, etc
-	 */
+	/** @brief Contains the computational meshes of one cycle: V, W, F, etc */
 	TPZStack < TPZCompMesh * > fMeshes;
 	
-	/**
-	 * @brief Contains the meshes solutions
-	 */	
+	/** @brief Contains the meshes solutions */	
 	TPZStack <TPZFMatrix<REAL> *> fSolutions;
 	
-	/**
-	 * @brief Contains the solution method applied to the mesh
-	 */
+	/** @brief Contains the solution method applied to the mesh */
 	TPZStack <TPZMatrixSolver<REAL> *> fSolvers;
 	
-	/**
-	 * @brief Contains the preconditioner of the solution method
-	 * 
-	 * If the solution method is a krylov method, the preconditioner
-	 * can be used as a coarse grid iteration
-	 */
+	/** @brief Contains the preconditioner of the solution method */ 
+	/** If the solution method is a krylov method, the preconditioner can be used as a coarse grid iteration */
 	TPZStack <TPZMatrixSolver<REAL> *> fPrecondition;
 	
+	/** @brief Times by iteration and accumulated time */
 	clock_t fBegin,fInit;
 	
 public:
 	
-	/**
-	 * @brief Destructor
-	 */
+	/** @brief Destructor */
 	~TPZNonLinMultGridAnalysis();
 	
-	/**
-	 * @brief Creates an object multigrid analysis
-	 * giving a computational mesh
-	 */
+	/** @brief Creates an object multigrid analysis giving a computational mesh */
 	TPZNonLinMultGridAnalysis(TPZCompMesh *cmesh);
 	
-	/**
-	 * @brief Append a mesh to the meshes vector
-	 */
+	/** @brief Append a mesh to the meshes vector */
 	void AppendMesh (TPZCompMesh * mesh);
 	
-	/**
-	 * @brief Pop the last mesh of the meshes vector
-	 */
+	/** @brief Pop the last mesh of the meshes vector */
 	TPZCompMesh *PopMesh ();
 	
+	/** @brief Number of meshes */
 	int NMeshes() {return fMeshes.NElements();}
 	
 	TPZCompMesh *IMesh(int index);
-	
-	/**
-	 * Uses fSolver object to apply a solution
-	 * algorithm
-	 */
-	//virtual void Solve ();
 	
 	/**
 	 * @brief It creates a new established computational mesh in the refinement uniform 
@@ -97,9 +74,7 @@ public:
 	 */
 	static TPZCompMesh *UniformlyRefineMesh (TPZCompMesh *coarcmesh,int levelnumbertorefine,int setdegree);
 	
-	/**
-	 * @brief It generates a new mesh based on the agglomeration of elements of the fine mesh
-	 */
+	/** @brief It generates a new mesh based on the agglomeration of elements of the fine mesh */
 	static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 	
 	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha = 0 ,
@@ -125,10 +100,6 @@ public:
 	void CalcResidual(TPZMatrix<REAL> &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix<REAL> &res);
 	
 	void CalcResidual(TPZMatrix<REAL> &sol,TPZFMatrix<REAL> &anres,TPZFMatrix<REAL> &res,TPZAnalysis &an,const std::string &decompose);
-	
-	/*   void IterativeProcess(TPZAnalysis &an,REAL tol,int numiter, */
-	/* 			TPZMaterial *mat,int marcha,int resolution); */
-	
 	
 protected:
 	

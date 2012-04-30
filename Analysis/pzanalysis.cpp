@@ -2,10 +2,7 @@
  * \file
  * @brief Contains implementations of the TPZAnalysis methods.
  */
-//$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
-//$Id: pzanalysis.cpp,v 1.59 2011-05-11 01:12:37 phil Exp $
 
-// -*- c++ -*-
 #include "pzanalysis.h"
 #include "pzcmesh.h"
 #include "pzconnect.h"
@@ -161,18 +158,9 @@ void TPZAnalysis::SetBlockNumber(){
 		maxelcon = maxelcon < locnindep ? locnindep : maxelcon;
 	}
 	fRenumber->SetElementsNodes(nel,nindep);
-	//	TPZSloan sloan(nel,nindep,maxelcon);
 	fRenumber->SetElementGraph(elgraph,elgraphindex);
 	fRenumber->Resequence(perm,iperm);
 	fCompMesh->Permute(perm);
-	/*
-	 fCompMesh->ComputeElGraph(elgraph,elgraphindex);
-	 
-	 TPZMetis metis(nel,nindep);
-	 metis.SetElementGraph(elgraph,elgraphindex);
-	 metis.Resequence(perm,iperm);
-	 fCompMesh->Permute(iperm);
-	 */
 	
 #endif
 	
@@ -182,7 +170,6 @@ void TPZAnalysis::AssembleResidual(){
 	int sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,1);
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
-	//TPZStructMatrix::Assemble(this->Rhs(), *this->Mesh());
 }//void
 
 void TPZAnalysis::Assemble()
@@ -218,15 +205,8 @@ void TPZAnalysis::Assemble()
 		fSolver->SetMatrix(mat);
 		//aqui TPZFMatrix<STATE> n� �nula
 	}
-	
-	//   ofstream fileout("rigidez.txt");
-	//   fSolver->Matrix()->Print("Rigidez", fileout, EMathematicaInput);  
-	
-	
+		
 	fSolver->UpdateFrom(fSolver->Matrix());
-	
-	//fRhs.Print("Rhs");
-	//cout.flush();
 }
 
 void TPZAnalysis::Solve() {
@@ -284,16 +264,13 @@ void TPZAnalysis::Solve() {
 	fCompMesh->LoadSolution(fSolution);
 }
 
-void TPZAnalysis::LoadSolution(){
-	
+void TPZAnalysis::LoadSolution() {	
 	if(fCompMesh) {
 		fCompMesh->LoadSolution(fSolution);
 	}
 }
 
-void TPZAnalysis::Print( const std::string &name , std::ostream &out )
-{
-	
+void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
 	out<<endl<<name<<endl;
 	int i,nelements = fCompMesh->ConnectVec().NElements();
 	for(i=0;i<nelements;i++) {
@@ -306,19 +283,16 @@ void TPZAnalysis::Print( const std::string &name , std::ostream &out )
 	
 	fSolution.Print("fSolution",out);
 	fCompMesh->ConnectSolution(out);
-	
 }
 
 
-void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
-	
+void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 	int i, neq = fCompMesh->NEquations();
 	//TPZVec<REAL> ux((int) neq);
 	//TPZVec<REAL> sigx((int) neq);
 	TPZManVector<REAL,10> values(10,0.);
 	TPZManVector<REAL,10> values2(10,0.);
 	fCompMesh->LoadSolution(fSolution);
-	//	SetExact(&Exact);
 	TPZAdmChunkVector<TPZCompEl *> elvec = fCompMesh->ElementVec();
 	TPZManVector<REAL,10> errors(10);
 	errors.Fill(0.0);
@@ -339,7 +313,7 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out ){
 				for(int ier = 0; ier < errors.NElements(); ier++) 	values[ier] += errors[ier] * errors[ier];
 				lastEl=false;
 			}
-			else{
+			else {
 				for(int ier = 0; ier < errors.NElements(); ier++)	values2[ier] += errors[ier] * errors[ier];
 				lastEl=true;
 			}
@@ -436,6 +410,7 @@ void TPZAnalysis::LoadShape(double ,double , int ,TPZConnect* start){
 	fSolution.Zero();
 	
 }
+
 #ifdef USING_BOOST
 #include "boost/date_time/posix_time/posix_time.hpp"
 #endif
@@ -481,8 +456,6 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
 	if(fGraphMesh[dim1]) delete fGraphMesh[dim1];
 	fScalarNames[dim1] = scalnames;
 	fVectorNames[dim1] = vecnames;
-	//misael
-	//  if(! ( strcmp( strrchr(plotfile,'.')+1,"plt") ) )	{
 	int posplot = plotfile.rfind(".plt");
 	int posdx = plotfile.rfind(".dx");
 	int pospos = plotfile.rfind(".pos");
@@ -525,7 +498,6 @@ void TPZAnalysis::PostProcess(int resolution) {
 void TPZAnalysis::PostProcess(int resolution, int dimension){
 	int dim1 = dimension-1;
 	if(!fGraphMesh[dim1]) return;
-	//  TPZMaterial *mat;
 	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
@@ -538,14 +510,11 @@ void TPZAnalysis::PostProcess(int resolution, int dimension){
 	fGraphMesh[dim1]->SetResolution(resolution);
 	fGraphMesh[dim1]->DrawMesh(1);
 	fGraphMesh[dim1]->DrawSolution(fStep,fTime);
-	//   delete fGraphMesh[dim1];
-	//   fGraphMesh[dim1] = 0;
 	fStep++;
 }
 
-void TPZAnalysis::AnimateRun(int num_iter, int steps,
-							 TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, const std::string &plotfile)
-{
+void TPZAnalysis::AnimateRun(int num_iter, int steps, TPZVec<std::string> &scalnames,
+							 TPZVec<std::string> &vecnames, const std::string &plotfile) {
 	Assemble();
 	
 	int numeq = fCompMesh->NEquations();
@@ -572,7 +541,6 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 		return;
 	}
 	TPZDXGraphMesh gg(fCompMesh,dim,mat,scalnames,vecnames) ;
-	// 		TPZV3DGrafGrid gg(fCompMesh) ;
 	gg.SetFileName(plotfile);
 	gg.SetResolution(0);
 	gg.DrawMesh(num_iter);
@@ -585,7 +553,6 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps,
 		sol.ShareMatrix(Solver());
 		sol.SetJacobi(i,0.,0);
 		SetSolver(sol);
-		//    Solver().SetNumIterations(i);
 		fSolver->Solve(fRhs, fSolution);
 		
 		fCompMesh->LoadSolution(fSolution);
@@ -654,7 +621,6 @@ void TPZAnalysis::SetTableVariableNames(int numvar, char **varnames) {
 		fTable.fVariableNames[iv] = name;
 	}
 }
-
 
 void TPZAnalysis::PrePostProcessTable(){
 	TPZCompEl *cel;
@@ -725,18 +691,14 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 	{
 		TPZNodesetCompute nodeset;
 		TPZStack<int> elementgraph,elementgraphindex;
-		//    fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 		int nindep = fCompMesh->NIndependentConnects();
 		int neq = fCompMesh->NEquations();
 		fCompMesh->ComputeElGraph(elementgraph,elementgraphindex);
 		int nel = elementgraphindex.NElements()-1;
 		TPZMetis renum(nel,nindep);
-		//nodeset.Print(file,elementgraphindex,elementgraph);
 		renum.ConvertGraph(elementgraph,elementgraphindex,nodeset.Nodegraph(),nodeset.Nodegraphindex());
-		//   cout << "nodegraphindex " << nodeset.Nodegraphindex() << endl;
-		//   cout << "nodegraph " << nodeset.Nodegraph() << endl;
 		nodeset.AnalyseGraph();
-		//nodeset.Print(file);
+
 		TPZStack<int> blockgraph,blockgraphindex;
 		switch(preconditioner)
 		{
@@ -792,21 +754,6 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 			TPZBlockDiagonalStructMatrix blstr(fCompMesh);
 			TPZBlockDiagonal<STATE> *sp = new TPZBlockDiagonal<STATE>();
 			blstr.AssembleBlockDiagonal(*sp);
-			//      std::ofstream out("Direct assembly");
-			//      sp->Print("Directly assembled",out);
-			/*      int numbl = sp->NumberofBlocks();
-			 int ib,i,j;
-			 for(ib=numbl-1; ib>=0; ib--)
-			 {
-			 for(i=0; i<3; i++)
-			 {
-			 for(j=0; j<3; j++)
-			 {
-			 if(i!=j) (*sp)(3*ib+i,3*ib+j) = 0.;
-			 }
-			 }
-			 }
-			 */
 			TPZStepSolver<STATE> *step = new TPZStepSolver<STATE>(sp);
 			step->SetDirect(ELU);
 			return step;
@@ -821,19 +768,15 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
 	return 0;
 }
 
-/**
- * Build a sequence solver based on the block graph and its colors
- */
+/** @brief Build a sequence solver based on the block graph and its colors */
 TPZMatrixSolver<STATE> *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZVec<int> &graphindex, int neq, int numcolors, TPZVec<int> &colors)
 {
-	//  std::ofstream out("sequence.txt");
 	TPZVec<TPZMatrix<STATE> *> blmat(numcolors);
 	TPZVec<TPZStepSolver<STATE> *> steps(numcolors);
 	int c;
 	for(c=0; c<numcolors; c++)
 	{
 		blmat[c] = new TPZSparseBlockDiagonal<STATE>(graph,graphindex, neq, c, colors);
-		//    blmat[c]->Print("Sparseblock matrix");
 		steps[c] = new TPZStepSolver<STATE>(blmat[c]);
 		steps[c]->SetDirect(ELU);
 		steps[c]->SetReferenceMatrix(fSolver->Matrix());
@@ -856,4 +799,3 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildSequenceSolver(TPZVec<int> &graph, TPZ
 	}
 	return result;
 }
-
