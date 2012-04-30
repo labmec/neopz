@@ -1,5 +1,5 @@
- /* Subroutine */ int 
-diamtr_ (int *n, int *e2, int *adj, int *
+/** @brief Purpose: Find nodes which define a pseudo-diameter of a graph and store distances from end node */
+int diamtr_ (int *n, int *e2, int *adj, int *
          xadj, int *mask, int *ls, int *xls, int *hlevel,
          int *snode, int *nc)
 {
@@ -7,21 +7,11 @@ diamtr_ (int *n, int *e2, int *adj, int *
     int     i__1, i__2;
  /* Local variables */
     static int node, i, j, enode, depth, width, hsize, istop, jstop, istrt, jstrt, degree, mindeg, ewidth, sdepth;
-    extern /* Subroutine */ int isorti_ (int *, int *, int *,
-                             int *), rootls_ (int *, int *, int *, int *,
-                                int *, int *, int *, int *, int *, int *,
-                                                      int *);
-
-
-/*     PURPOSE: */
-/*     -------- */
-
-/*     Find nodes which define a pseudo-diameter of a graph and store */
-/*     distances from end node */
+    extern int isorti_ (int *, int *, int *, int *);   // subrotine
+	extern int rootls_ (int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);   // subrotine
 
 /*     INPUT: */
 /*     ------ */
-
 /*     N       - The total number of nodes in the graph */
 /*     E2      - Twice the number of edges in the graph = XADJ(N+1)-1 */
 /*     ADJ     - Adjacency list for all nodes in the graph */
@@ -41,7 +31,6 @@ diamtr_ (int *n, int *e2, int *adj, int *
 
 /*     OUTPUT: */
 /*     ------- */
-
 /*     N       - Unchanged */
 /*     E2      - Unchanged */
 /*     ADJ     - Unchanged */
@@ -55,21 +44,18 @@ diamtr_ (int *n, int *e2, int *adj, int *
 
 /*     SUBROUTINES CALLED:  ROOTLS, ISORTI */
 /*     ------------------- */
-
 /*     NOTE:       SNODE and ENODE define a pseudo-diameter */
 
 /*     PROGRAMMER: Scott Sloan */
 /*     ----------- */
 
 /*     LAST MODIFIED:  10 March 1989     Scott Sloan */
-/*     -------------- */
-
 /* ***********************************************************************
  */
 
 
-/*     Choose first guess for starting node by min degree */
-/*     Ignore nodes that are invisible (MASK NE 0) */
+/*  Choose first guess for starting node by min degree */
+/*  Ignore nodes that are invisible (MASK NE 0) */
 
  /* Parameter adjustments */
     --hlevel;
@@ -96,23 +82,22 @@ diamtr_ (int *n, int *e2, int *adj, int *
 /* L10: */
     }
 
-/*     Generate level structure for node with min degree */
+/*  Generate level structure for node with min degree */
 
     i__1 = *n + 1;
     rootls_ (n, snode, &i__1, e2, &adj[1], &xadj[1], &mask[1], &ls[1], &xls[1],
              &sdepth, &width);
 
-/*     Store number of nodes in this component */
+/*  Store number of nodes in this component */
 
     *nc = xls[sdepth + 1] - 1;
 
-/*     Iterate to find start and end nodes */
+/*  Iterate to find start and end nodes */
 
 L15:
 
-/*     Store list of nodes that are at max distance from starting node */
-/*     Store their degrees in XLS */
-
+/*  Store list of nodes that are at max distance from starting node */
+/*  Store their degrees in XLS */
     hsize = 0;
     istrt = xls[sdepth];
     istop = xls[sdepth + 1] - 1;
@@ -126,15 +111,14 @@ L15:
 /* L20: */
     }
 
-/*     Sort list of nodes in ascending sequence of their degree */
-/*     Use insertion sort algorithm */
-
-
+/*  Sort list of nodes in ascending sequence of their degree */
+/*  Use insertion sort algorithm */
     if (hsize > 1)
     {
         isorti_ (&hsize, &hlevel[1], n, &xls[1]);
     }
-/*     Remove nodes with duplicate degrees */
+
+/*  Remove nodes with duplicate degrees */
 
     istop = hsize;
     hsize = 1;
@@ -152,7 +136,7 @@ L15:
 /* L25: */
     }
 
-/*     Loop over nodes in skrunken level */
+/*  Loop over nodes in skrunken level */
 
     ewidth = *nc + 1;
     i__1 = hsize;
@@ -160,8 +144,7 @@ L15:
     {
         node = hlevel[i];
 
-/*        Form rooted level structures for each node in skrunken level
- */
+/*     Form rooted level structures for each node in skrunken level */
 
         rootls_ (n, &node, &ewidth, e2, &adj[1], &xadj[1], &mask[1], &ls[1], &
                  xls[1], &depth, &width);
@@ -174,16 +157,14 @@ L15:
             {
 
 /*          Level structure of greater depth found */
-/*          Store new starting node, new max depth, and begin
-*/
+/*          Store new starting node, new max depth, and begin */
 /*          a new iteration */
 
                 *snode = node;
                 sdepth = depth;
                 goto L15;
             }
-/*         Level struture width for this end node is smallest so f
-ar */
+/*         Level struture width for this end node is smallest so far */
 /*         store end node and new min width */
 
             enode = node;
@@ -192,7 +173,7 @@ ar */
 /* L30: */
     }
 
-/*     Generate level structure rooted at end node if necessary */
+/* Generate level structure rooted at end node if necessary */
 
     if (node != enode)
     {
@@ -200,7 +181,7 @@ ar */
         rootls_ (n, &enode, &i__1, e2, &adj[1], &xadj[1], &mask[1], &ls[1], &
                  xls[1], &depth, &width);
     }
-/*     Store distances of each node from end node */
+/* Store distances of each node from end node */
 
     i__1 = depth;
     for (i = 1; i <= i__1; ++i)
@@ -216,4 +197,4 @@ ar */
 /* L50: */
     }
     return 0;
-}                               /* diamtr_ */
+}

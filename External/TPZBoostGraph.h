@@ -18,30 +18,28 @@
 #include <boost/graph/profile.hpp>
 #include <boost/graph/wavefront.hpp>
 
-  //using namespace boost;
+/**
+ * @brief Defining the graph type \n
+ * From Boost Sloan_Ordering example
+ */
+typedef boost::adjacency_list<
+boost::setS, 
+boost::vecS, 
+boost::undirectedS,
+boost::property<
+boost::vertex_color_t, 
+boost::default_color_type,
+boost::property<
+boost::vertex_degree_t,
+int,
+boost::property<
+boost::vertex_priority_t,
+double > > > > Graph;
 
-  /**
-   * @brief Defining the graph type \n
-   * From Boost Sloan_Ordering example
-   */
-  typedef boost::adjacency_list<
-    boost::setS, 
-    boost::vecS, 
-    boost::undirectedS,
-    boost::property<
-    boost::vertex_color_t, 
-    boost::default_color_type,
-    boost::property<
-    boost::vertex_degree_t,
-    int,
-    boost::property<
-    boost::vertex_priority_t,
-    double > > > > Graph;
-  
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef boost::graph_traits<Graph>::vertices_size_type size_type;
+typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
+typedef boost::graph_traits<Graph>::vertices_size_type size_type;
 
-  typedef std::pair<std::size_t, std::size_t> Pair;
+typedef std::pair<std::size_t, std::size_t> Pair;
 
 
 /**
@@ -57,63 +55,53 @@
  */
 class TPZBoostGraph : public TPZRenumbering {
 public:
-
-  enum GraphType { KMC, KMCExpensive, Sloan };
-  
-  GraphType fGType;
-  
-  TPZBoostGraph(GraphType tp) : TPZRenumbering(), fGType(tp)
-  {
-  }
-  /** @brief Simple constructor */
-  TPZBoostGraph(int NElements, int NNodes);
-  
-
-  virtual ~TPZBoostGraph();
-
-  /**
-   * @brief Perform the renumbering of elements. The aim of this operation is to minimize the
-   * band of the resulting stiffeness matrix.
-   */
-  void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-  void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-
-  /**
-   * @brief This will reset all datastructures the object may contain. \n
-   * Node resequencing algorithms may require a possibly large amount of temporary data
-   */
-  virtual void ClearDataStructures();
+	
+	enum GraphType { KMC, KMCExpensive, Sloan };
+	
+	GraphType fGType;
+	
+	TPZBoostGraph(GraphType tp) : TPZRenumbering(), fGType(tp)
+	{
+	}
+	/** @brief Simple constructor */
+	TPZBoostGraph(int NElements, int NNodes);
+	
+	
+	virtual ~TPZBoostGraph();
+	
+	/**
+	 * @brief Perform the renumbering of elements. The aim of this operation is to minimize the
+	 * band of the resulting stiffeness matrix.
+	 */
+	void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
+	void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
+	
+	/**
+	 * @brief This will reset all datastructures the object may contain. \n
+	 * Node resequencing algorithms may require a possibly large amount of temporary data
+	 */
+	virtual void ClearDataStructures();
 private:
-  /** @brief Defines the list of Edges for the current Graph */
-  TPZVec<Pair> m_Edges;
-  /** @brief Defines the Graph itself. This structure will be submitted to the Boost kernel */
-  Graph m_Graph;
-  //Creating two iterators over the vertices
-  //graph_traits<Graph>::vertex_iterator ui, ui_end;
-
-  /** @brief Creating a property_map with the degrees of the degrees of each vertex */
-  boost::property_map<Graph,boost::vertex_degree_t>::type m_Degrees;
-//    = get(vertex_degree, G);
-//   for (boost::tie(ui, ui_end) = vertices(G); ui != ui_end; ++ui)
-//     deg[*ui] = degree(*ui, G);
-
-  /** @brief Creating a property_map for the indices of a vertex */
-  boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
-  // = get(vertex_index, G);  
-  TPZVec<int> m_Connects;
-
+	/** @brief Defines the list of Edges for the current Graph */
+	TPZVec<Pair> m_Edges;
+	/** @brief Defines the Graph itself. This structure will be submitted to the Boost kernel */
+	Graph m_Graph;
+	//Creating two iterators over the vertices
+	//graph_traits<Graph>::vertex_iterator ui, ui_end;
+	
+	/** @brief Creating a property_map with the degrees of the degrees of each vertex */
+	boost::property_map<Graph,boost::vertex_degree_t>::type m_Degrees;
+	//    = get(vertex_degree, G);
+	//   for (boost::tie(ui, ui_end) = vertices(G); ui != ui_end; ++ui)
+	//     deg[*ui] = degree(*ui, G);
+	
+	/** @brief Creating a property_map for the indices of a vertex */
+	boost::property_map<Graph, boost::vertex_index_t>::type m_Index_map;
+	// = get(vertex_index, G);  
+	TPZVec<int> m_Connects;
+	
 };
 
 #endif // USING_BOOST
 
 #endif //TPZBOOSTGRAPH_H
-/*    Graph m_Graph;
-template <class Graph, class OutputIterator,
-                  class ColorMap, class DegreeMap, 
-                  class PriorityMap>
-  OutputIterator sloan_ordering(Graph& g,
-                 OutputIterator permutation, 
-                 ColorMap color, 
-                 DegreeMap degree, 
-                 PriorityMap priority );
-*/

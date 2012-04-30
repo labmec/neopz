@@ -1,28 +1,19 @@
 // I DON'T NEED THIS ROUTINE-ARIEL!
 #include "sloan.h"
 
- /* Subroutine */ int 
-profi1_ (int *n, int *nnn, int *, int *
-         adj, int *xadj, int *oldpro, int *newpro)
+ /* @brief Purpose: Compute the profiles using both original and new numbers */
+int profi1_ (int *n, int *nnn, int *, int *adj, int *xadj, int *oldpro, int *newpro)
 //n, nnn, e2, adj, xadj, oldpro, newpro
 {
  /* System generated locals */
     int     i__1, i__2, i__3, i__4;
- /* Builtin functions  */
-//	int i_dim(int * value_1, int * value_2);
 
  /* Local variables */
     static int i, j, jstop, jstrt, oldmin, newmin;
 
 
-/*     PURPOSE: */
-/*     -------- */
-
-/*     Compute the profiles using both original and new numbers */
-
 /*     INPUT: */
 /*     ------ */
-
 /*     N      - Number of nodes in graph */
 /*     NNN    - List of new node numbers for graph */
 /*            - New node number for node I is given by NNN(I) */
@@ -38,7 +29,6 @@ profi1_ (int *n, int *nnn, int *, int *
 
 /*     OUTPUT: */
 /*     ------- */
-
 /*     N      - Unchanged */
 /*     NNN    - Unchanged */
 /*     E2     - Unchanged */
@@ -55,9 +45,7 @@ profi1_ (int *n, int *nnn, int *, int *
 
 /*     LAST MODIFIED:   10 March 1989        Scott Sloan */
 /*     -------------- */
-
-/* ***********************************************************************
- */
+/* *********************************************************************** */
 
 
 /*     Set profiles and loop over each node in graph */
@@ -93,14 +81,11 @@ profi1_ (int *n, int *nnn, int *, int *
 /* Computing MIN */
             i__3 = newmin, i__4 = nnn[adj[j]];
             newmin = (i__3 < i__4) ? i__3 : i__4;
-//            newmin = min(i__3,i__4);
 /* L10: */
         }
 
 /*        Update profiles */
 
-//      *oldpro += i_dim(&i, &oldmin);
-//      *newpro += i_dim(&nnn[i], &newmin);
       *oldpro += i_dim(i, oldmin);
       *newpro += i_dim(nnn[i], newmin);
 

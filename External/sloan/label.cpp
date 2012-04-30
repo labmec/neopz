@@ -1,6 +1,6 @@
 #include "sloan.h" 
- /* Subroutine */ int 
-label_ (int *n, int *e2, int *adj, int *
+ /* @brief Purpose: Label a graph for small profile and rms wavefront */ 
+int label_ (int *n, int *e2, int *adj, int *
         xadj, int *nnn, int *iw, int *oldpro, int *newpro)
 {
  /* System generated locals */
@@ -10,15 +10,8 @@ label_ (int *n, int *e2, int *adj, int *
     static int nc;
     static int lstnum;
 
-
-/*     PURPOSE: */
-/*     -------- */
-
-/*     Label a graph for small profile and rms wavefront */
-
 /*     INPUT: */
 /*     ------ */
-
 /*     N      - Total number of nodes in graph */
 /*     E2     - Twice the number of edges in the graph = XADJ(N+1)-1 */
 /*     ADJ    - Adjacency list for all nodes in graph */
@@ -35,7 +28,6 @@ label_ (int *n, int *e2, int *adj, int *
 
 /*     OUTPUT: */
 /*     ------- */
-
 /*     N      - Unchanged */
 /*     E2     - Unchanged */
 /*     ADJ    - Unchanged */
@@ -58,7 +50,6 @@ label_ (int *n, int *e2, int *adj, int *
 
 /*      LAST MODIFIED:  10 March 1989     Scott Sloan */
 /*      -------------- */
-
 /* ***********************************************************************
  */
 
@@ -111,17 +102,6 @@ L20:
 
 /*     Use original numbering if it gives a smaller profile */
 
-/*    if (*oldpro < *newpro)
-    {
-        i__1 = *n;
-        for (i = 1; i <= i__1; ++i)
-        {
-            nnn[i] = i;
-//  L30: 
-        }
-        *newpro = *oldpro;
-    }
-*/
 	++adj;
 	++xadj;
 

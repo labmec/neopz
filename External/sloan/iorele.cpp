@@ -1,6 +1,5 @@
- /* Subroutine */ int 
-iorele_ (int *ior, int *nnn, int *npn,
-         int *xnpn, int *key, int *, int *nel, int *)
+ /* Subroutine */ 
+int iorele_ (int *ior, int *nnn, int *npn, int *xnpn, int *key, int *, int *nel, int *)
  // ior,nnn,npn,xnpn,key,numno,nel,nop
 {
  /* System generated locals */
@@ -8,8 +7,6 @@ iorele_ (int *ior, int *nnn, int *npn,
  /* Local variables */
     static int mini, i, j, noeud;
     extern /* Subroutine */ int vsrtp1_ (int *, int *, int *);
-
-
 
  /* Parameter adjustments */
     --npn;
@@ -28,7 +25,6 @@ iorele_ (int *ior, int *nnn, int *npn,
         {
             noeud = nnn[npn[j]];
             mini = (mini < noeud) ? mini : noeud;
-//          mini = min(mini,noeud);
 /* L2: */
         }
         key[i] = mini;

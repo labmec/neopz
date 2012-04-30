@@ -1,6 +1,5 @@
- /* Subroutine */ int 
-isorti_ (int *nl, int *list, int *, int
-         *key)
+ /* Subroutine */ 
+int isorti_ (int *nl, int *list, int *, int *key)
 //nl, list, nk, key
 {
     static int i, j, k, l, m;
@@ -9,24 +8,20 @@ isorti_ (int *nl, int *list, int *, int
     static double tt;
     static int itt;
 
-
 /*                                  SPECIFICATIONS FOR ARGUMENTS */
 /*                                  SPECIFICATIONS FOR LOCAL VARIABLES */
 /*                                  FIRST EXECUTABLE STATEMENT */
 /*                                  FIND ABSOLUTE VALUES OF ARRAY A */
- /* Parameter adjustments */
+ 
+/* Parameter adjustments */
     --list;
     --key;
 
- /* Function Body */
+/* Function Body */
     if (*nl <= 0)
     {
         return 0;
     }
-/*      DO 5 I=1,LA */
-/*         IF (A(I) .LT. 0.0) A(I)=-A(I) */
-/*      IR(I)=I */
-/*    5 CONTINUE */
     m = 1;
     i = 1;
     j = *nl;
@@ -50,9 +45,8 @@ L25:
 /*                                  ARRAY AND SAVE IT IN LOCATION T */
     ij = i + (j - i) * r;
     t = (double) key[list[ij]];
-/*      IT=IR(IJ) */
-/*                                  IF FIRST ELEMENT OF ARRAY IS GREATER
-*/
+
+/*                                  IF FIRST ELEMENT OF ARRAY IS GREATER */
 /*                                  THAN T, INTERCHANGE WITH T */
     if ((double) key[list[i]] > t)
     {
@@ -65,8 +59,7 @@ L25:
 /*          IT=IR(IJ) */
     }
     l = j;
-/*                                  IF LAST ELEMENT OF ARRAY IS LESS THAN
-*/
+/*                                  IF LAST ELEMENT OF ARRAY IS LESS THAN */
 /*                                  T, INTERCHANGE WITH T */
     if ((double) key[list[j]] < t)
     {
@@ -74,11 +67,7 @@ L25:
         list[ij] = list[j];
         list[j] = tt;
         t = (double) key[list[ij]];
-/*          IR(IJ)=IR(J) */
-/*          IR(J)=IT */
-/*          IT=IR(IJ) */
-/*                                  IF FIRST ELEMENT OF ARRAY IS GREAT
-ER */
+/*                                  IF FIRST ELEMENT OF ARRAY IS GREATER */
 /*                                  THAN T, INTERCHANGE WITH T */
         if ((double) key[list[i]] > t)
         {
@@ -86,14 +75,9 @@ ER */
             list[ij] = list[i];
             list[i] = tt;
             t = (double) key[list[ij]];
-/*              IR(IJ)=IR(I) */
-/*              IR(I)=IT */
-/*              IT=IR(IJ) */
         }
     }
-/*      GO TO 40 */
-/*                                  FIND AN ELEMENT IN THE SECOND HALF OF
-*/
+/*                                  FIND AN ELEMENT IN THE SECOND HALF OF */
 /*                                  THE ARRAY WHICH IS SMALLER THAN T */
 L40:
     --l;
@@ -101,8 +85,7 @@ L40:
     {
         goto L40;
     }
-/*                                  FIND AN ELEMENT IN THE FIRST HALF OF
-*/
+/*                                  FIND AN ELEMENT IN THE FIRST HALF OF */
 /*                                  THE ARRAY WHICH IS GREATER THAN T */
 L45:
     ++k;
@@ -118,9 +101,6 @@ L45:
             tt = (double) list[l];
             list[l] = list[k];
             list[k] = tt;
-/*          ITT=IR(L) */
-/*          IR(L)=IR(K) */
-/*          IR(K)=ITT */
         }
         goto L40;
     }
@@ -168,7 +148,6 @@ L65:
     }
     t = (double) key[list[i + 1]];
     itt = list[i + 1];
-/*      IT=IR(I+1) */
     if ((double) key[list[i]] <= t)
     {
         goto L65;
@@ -176,13 +155,11 @@ L65:
     k = i;
 L70:
     list[k + 1] = list[k];
-/*      IR(K+1)=IR(K) */
     --k;
     if (t < (double) key[list[k]])
     {
         goto L70;
     }
     list[k + 1] = itt;
-/*      IR(K+1)=IT */
     goto L65;
 }                               /* isorti_ */

@@ -1,7 +1,6 @@
- /* Subroutine */ int 
-number_ (int *, int *nc, int *snode, int
-         *lstnum, int *, int *adj, int *xadj, int *s,
-         int *q, int *p)
+ /* @brief Purpose: Number nodes in component of graph for small profile and rms wavefront */
+int number_ (int *, int *nc, int *snode, int *lstnum, int *, int *adj, int *xadj,
+			 int *s, int *q, int *p)
 //n, nc, snode, lstnum,e2, adj, xadj, s, q, p
 {
  /* System generated locals */
@@ -9,16 +8,8 @@ number_ (int *, int *nc, int *snode, int
  /* Local variables */
     static int node, next, prty, i, j, nabor, istop, jstop, istrt, jstrt, nn, addres, maxprt, nbr;
 
-
-/*     PURPOSE: */
-/*     -------- */
-
-/*     Number nodes in component of graph for small profile and rms */
-/*     wawefront */
-
 /*     INPUT: */
 /*     ------ */
-
 /*     N      - Number of nodes in graph */
 /*     NC     - Number of nodes in component of graph */
 /*     SNODE  - Node of which numbering starts */
@@ -38,7 +29,6 @@ number_ (int *, int *nc, int *snode, int
 
 /*     OUTPUT: */
 /*     ------- */
-
 /*     N      - Unchanged */
 /*     NC     - Unchanged */
 /*     SNODE  - Unchanged */
@@ -53,7 +43,6 @@ number_ (int *, int *nc, int *snode, int
 
 /*     NOTES: */
 /*     ------ */
-
 /*     S also serves as a list giving the status of the nodes */
 /*     during the numbering process: */
 /*     S(I) gt 0 indicates node i is postactive */
@@ -67,10 +56,7 @@ number_ (int *, int *nc, int *snode, int
 
 /*     LAST MODIFIED: 10 March 1989    Scott Sloan */
 /*     -------------- */
-
-/* ***********************************************************************
- */
-
+/* *********************************************************************** */
 
 
 /*     Initialise priorities and status for each node in this component */
@@ -177,8 +163,7 @@ L30:
             if (s[nbr] == -1)
             {
 
-/*          Decrease current degree of preactive neighbour by
--1 */
+/*          Decrease current degree of preactive neighbour by -1 */
 /*          assign neighbour an active status */
 
                 p[nbr] += 2;
@@ -193,15 +178,13 @@ L30:
                 {
                     nabor = adj[j];
 
-/*             Decrease current degree of adjacent node by
- -1 */
+/*             Decrease current degree of adjacent node by -1 */
 
                     p[nabor] += 2;
                     if (s[nabor] == -2)
                     {
 
-/*              Insert inactive node in queue with a p
-reactive status */
+/*              Insert inactive node in queue with a p reactive status */
 
                         ++nn;
                         q[nn] = nabor;
@@ -215,5 +198,4 @@ reactive status */
         goto L30;
     }
     return 0;
-}                               
-/* number_ */
+}                               /* number_ */

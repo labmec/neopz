@@ -3,12 +3,10 @@ using namespace std;
 #include <stdlib.h> 
 #include "sloan.h"
 
-
- /* Subroutine */ int 
-gegra_ (int *n, int *ne, int *, int *
+/** @brief Purpose: Form adjacency list for a graph corresponding to a finite element mesh */
+int gegra_ (int *n, int *ne, int *, int *
         npn, int *xnpn, int *iadj, int *adj, int *xadj,
         int *nop)
-//n, ne, inpn, npn, xnpn, iadj, adj, xadj, nop
 {
  /* Format strings */
     const char   *fmt_10900 = "(\0020%%%E01-GEGRA \002,//,1x,\002CANNOT ASSE\
@@ -19,16 +17,8 @@ MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
     int i, j, k, l, m, nodej, nodek, jstop, lstop, mstop, jstrt, jrtst, lstrt, mstrt, nen1;
 
 
-/*     PURPOSE: */
-/*     -------- */
-
-/*     Form adjacency list for a graph corresponding to a finite element
-*/
-/*     mesh */
-
 /*     INPUT: */
 /*     ------ */
-
 /*     N    - Number of nodes in graph (finite element mesh) */
 /*     NE   - Number of elements in finte element mesh */
 /*     INPN - Length of NPN = XNPN(NE+1)-1 */
@@ -46,7 +36,6 @@ MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
 
 /*     OUTPUT : */
 /*     -------- */
-
 /*     N    - Unchanged */
 /*     NE   - Unchanged */
 /*     INPN - Unchanged */
@@ -63,7 +52,6 @@ MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
 
 /*     NOTES: */
 /*     ------ */
-
 /*     This routine typically requires about 25 percent elbow room for */
 /*     assembling the ADJ list (i.e. IADJ/2E is typically around 1.25). */
 /*     In some cases, the elbow room may be larger (IADJ/2E is slightly */
@@ -76,17 +64,13 @@ MBLE NODE ADJACENCY LIST\002,//,1x,\002CHECK NPN AND XNPN ARRAYS\002)";
 /*     ----------- */
 
 /*     LAST MODIFIED:       10 March 1989         Scott Sloan */
-
-
 /* ***********************************************************************
  */
 
+/*  Initialise the adjacency list and its index vector */
 
-/*     Initialise the adjacency list and its index vector */
+/* Parameter adjustments */
 
- /* Parameter adjustments */
-    
-	
 	--xadj;
     --xnpn;
     --npn;

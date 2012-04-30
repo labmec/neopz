@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZSloan class.
  */
+
 #ifndef TPZSLOAN_H
 #define TPZSLOAN_H
 
@@ -19,19 +20,14 @@
  */
 class TPZSloan : public TPZRenumbering {
  public:
-//  void Resequence(int * jj, int * jk, int n_nodes, int n_elements, int * nnn, int old_profile, int new_profile);
-//  void Resequence(int n_nodes, int n_elements, int *nnn,int *npn, int *xnpn, int old_profile, int new_profile);
-  virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
+
+	virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm);
   
  private:
 
   int fMaxNodesElement;
-/*
-  int fNNodes;
 
-  int fNElements;
-	*/
- public:
+public:
    
    TPZSloan(): TPZRenumbering(),
             fMaxNodesElement(27)
