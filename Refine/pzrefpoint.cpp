@@ -2,12 +2,12 @@
  * @file
  * @brief Contains the implementation of the TPZRefPoint methods. 
  */
+
 #include "pzrefpoint.h"
 #include "pzgeopoint.h"
 #include "pzshapelinear.h"
 #include "TPZGeoElement.h"
 #include "pzgeoel.h"
-//#include "pzgeoelside.h"
 #include "pzgmesh.h"
 
 using namespace std;
@@ -123,23 +123,6 @@ namespace pzrefine {
 	
 	TPZTransform TPZRefPoint::GetTransform(int side,int whichsubel) {
 		return TPZTransform (0,0);
-		/*if(side<0 || side>1){
-		 PZError << "TPZRefPoint::GetTransform bad side\n";
-		 return TPZTransform(0,0);
-		 }
-		 int smalldim = 0;//TPZShapeLinear::SideDimension(side);
-		 int fatherside = FatherSide(side,whichsubel);
-		 int largedim = 0;//TPZShapeLinear::SideDimension(fatherside);
-		 TPZTransform trans(largedim,smalldim);
-		 int i,j;
-		 for(i=0; i<largedim; i++) {
-		 for(j=0; j<smalldim; j++) {
-		 trans.Mult()(i,j) = buildt[whichsubel][side][j][i];
-		 }
-		 trans.Sum() (i,0) = buildt[whichsubel][side][3][i];
-		 }
-		 return trans;
-		 */
 	}
 	
 	int TPZRefPoint::FatherSide(int side,int whichsubel) {

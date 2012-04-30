@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZRefTriangle class which implements the uniform refinement of a geometric triangular element.
  */
-/* class that defines the default refinement of the hexaedral element */
 
 #ifndef TPZREFTRIANGH
 #define TPZREFTRIANGH
@@ -31,7 +30,6 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
-		//static int NSubElements();
 	};
 	
 };

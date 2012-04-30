@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZRefPrism methods. 
  */
+
 #include "pzrefprism.h"
 #include "pzgeoprism.h"
 #include "pzshapeprism.h"
@@ -60,11 +61,6 @@ namespace pzrefine {
 			{0,19},{4,17},{1,18},{1,19},{5,18},{2,16},{2,19},{6,16},{3,15}}
 	};
 	
-	//static int MidSideNodes[12][2]  = { 
-	//	{0,1},{1,2},{0,2},{0,3},
-	//	{1,4},{2,5},{4,4},{5,5}, //original
-	//	{4,5},{0,4},{1,5},{2,3} 
-	//};
 	//Esta estrutura define os novos nós introduzidos  pela divisão
 	//nos  medios dos lados do pai. Os nós locais são dados pela or-
 	//denação  crescente dos lados do pai.  O par {a,b}  na K-ésima 
@@ -124,16 +120,6 @@ namespace pzrefine {
 		{14,13,12,18,17,16}
 	};
 	
-	/* static int CornerSons[8][6] = {  */
-	/* 	{0,6,8,9,15,17}, */
-	/* 	{6,1,7,15,10,16}, */
-	/* 	{8,7,2,17,16,11}, //CORRIGIR */
-	/* 	{17,16,15,8,7,6}, */
-	/* 	{9,15,17,3,12,14}, */
-	/* 	{15,10,16,12,4,13}, */
-	/* 	{17,16,11,14,13,5}, */
-	/* 	{14,13,12,17,16,15} */
-	/* }; */
 	
 	static REAL buildt[8][21][4][3] = {//por colunas
 		/*S0*/{
@@ -445,19 +431,7 @@ namespace pzrefine {
 		return nsubeldata[side];
 	}
 	
-	//int TPZRefPrism::NSideSubElements(int side) {
-	//  if(side < 0 || side > 26) {
-	//    PZError << "TPZRefPrism::NSideSubElements called for side " << side << endl;
-	//    return 0;
-	//  }
-	//  if(side==26) return 8;//centro
-	//  if(side>19 && side<26) return 4;//faces
-	//  if(side>7) return 2;//lados
-	//  return 1;//cantos
-	//}
-	
-	
-	TPZTransform TPZRefPrism::GetTransform(int side,int whichsubel){
+	TPZTransform TPZRefPrism::GetTransform(int side,int whichsubel) {
 		
 		if(side<0 || side>TPZShapePrism::NSides-1){
 			PZError << "TPZRefPrism::GetTransform side out of range or father null\n";

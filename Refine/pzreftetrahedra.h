@@ -2,8 +2,6 @@
  * @file
  * @brief Contains the TPZRefTetrahedra class which implements the uniform refinement of a geometric tetrahedral element.
  */
-/* class that defines the default refinement of the tetrahedra element */
-
 
 #ifndef TPZREFTETRAHEDRAH
 #define TPZREFTETRAHEDRAH
@@ -36,7 +34,6 @@ namespace pzrefine {
 		static int NSideSubElements(int side);
 		static TPZTransform GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
-		//static int NSubElements();
 	};
 	
 };

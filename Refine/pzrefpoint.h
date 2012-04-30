@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZRefPoint class which implements the uniform refinement of a geometric point element.
  */
-/* class that defines the default refinement of the hexaedral element */
 
 #ifndef TPZREFPOINTH
 #define TPZREFPOINTH

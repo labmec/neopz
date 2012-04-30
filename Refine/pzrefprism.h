@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZRefPrism class which implements the uniform refinement of a geometric prism element.
  */
-/* class that defines the default refinement of the prism element */
 
 #ifndef TPZREFPRISMH
 #define TPZREFPRISMH
@@ -29,10 +28,9 @@ namespace pzrefine {
 		static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
 		static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 		static int NSideSubElements(int side);
-		//static int NSideSubElements(int side);
+
 		static TPZTransform GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
-		//static int NSubElements();
 	};
 	
 };

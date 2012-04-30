@@ -262,7 +262,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 1://EOned
 		{
-			std::cout << "\n\ninserting uniform refpattern: line\n";
+			std::cout << "\n\tinserting uniform refpattern: line\n";
 			char buf[] =
 			"3		3	"
 			"-50	UnifLin	"
@@ -289,7 +289,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 2://ETriangle
 		{
-			std::cout << "\n\ninserting uniform refpattern: triangle\n";
+			std::cout << "\n\tinserting uniform refpattern: triangle\n";
 			char buf[] =
 			"6			5	"
 			"-50		UnifTri	"
@@ -321,7 +321,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 3://EQuadrilateral
 		{
-			std::cout << "\n\ninserting uniform refpattern: quadrilateral\n";
+			std::cout << "\n\tinserting uniform refpattern: quadrilateral\n";
 			char buf[] =
 			"9			5	"
 			"-50		UnifQua	"
@@ -356,7 +356,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 4://ETetraedro
 		{
-			std::cout << "\n\ninserting uniform refpattern: tetrahedre\n";
+			std::cout << "\n\tinserting uniform refpattern: tetrahedre\n";
 			char buf[] =
 			"10  7"
 			"-50	UnifTet	"
@@ -394,7 +394,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 5://EPiramide
 		{
-			std::cout << "\n\ninserting uniform refpattern: pyramid\n";
+			std::cout << "\n\tinserting uniform refpattern: pyramid\n";
 			char buf[] =
 			"14		11	"
 			"-50		UnifPyr	"
@@ -440,7 +440,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 6://EPrisma
 		{
-			std::cout << "\n\ninserting uniform refpattern: prism\n";
+			std::cout << "\n\tinserting uniform refpattern: prism\n";
 			char buf[] =
 			"18		9	"
 			"-50		UnifPri 	"
@@ -488,7 +488,7 @@ void TPZRefPatternDataBase::InitializeUniformRefPattern(MElementType elType)
 		}
 		case 7://ECube
 		{
-			std::cout << "\n\ninserting uniform refpattern: hexahedre\n";
+			std::cout << "\n\tinserting uniform refpattern: hexahedre\n";
 			char buf[] =
 			"27		9	"
 			"-50		UnifHex		"

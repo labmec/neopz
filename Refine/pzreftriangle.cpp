@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZRefTriangle methods. 
  */
+
 #include "pzreftriangle.h"
 #include "pzgeotriangle.h"
 #include "pzshapetriang.h"
@@ -107,7 +108,6 @@ namespace pzrefine {
 		/*2*/ {5,4,2,6,4,5,6},
 		/*3*/ {4,5,3,6,6,6,6}
 	};
-	
 	
 	//Into Divides is necesary to consider the connectivity with the all neighboards
 	void TPZRefTriangle::Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec) {

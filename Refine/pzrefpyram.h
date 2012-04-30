@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZRefPyramid class which implements the uniform refinement of a geometric hexahedral element.
  */
-/* class that defines the default refinement of the tetrahedra element */
 
 #ifndef TPZREFPYRAMIDH
 #define TPZREFPYRAMIDH
@@ -33,7 +32,6 @@ namespace pzrefine {
 		static TPZTransform GetTransform(int side,int son);
 		static int FatherSide(int side,int son);
 		static void MidCoordSide(int side,TPZVec<REAL> &coord);
-		//static int NSubElements();
 	};
 	
 };

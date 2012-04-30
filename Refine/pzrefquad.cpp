@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZRefQuad methods. 
  */
+
 #include "pzrefquad.h"
 #include "pzgeoquad.h"
 #include "pzshapequad.h"
@@ -13,7 +14,6 @@ using namespace pzshape;
 using namespace std;
 
 namespace pzrefine {
-	
 	
 	static int nsubeldata[9] = {1,1,1,1,3,3,3,3,9};
 	

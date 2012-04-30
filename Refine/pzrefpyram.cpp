@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZRefPyramid methods. 
  */
+
 #include "pzrefpyram.h"
 #include "pzgeopyramid.h"
 #include "pzshapepiram.h"
@@ -417,18 +418,6 @@ namespace pzrefine {
 		return nsubeldata[side];
 	}
 	
-	//int TPZRefPyramid::NSideSubElements(int side) {
-	//  if(side < 0 || side > 26) {
-	//    PZError << "TPZRefPyramid::NSideSubElements called for side " << side << endl;
-	//    return 0;
-	//  }
-	//  if(side==26) return 8;//centro
-	//  if(side>19 && side<26) return 4;//faces
-	//  if(side>7) return 2;//lados
-	//  return 1;//cantos
-	//}
-	
-	
 	TPZTransform TPZRefPyramid::GetTransform(int side,int whichsubel){
 		if(side<0 || side>TPZShapePiram::NSides-1){
 			PZError << "TPZRefPyramid::GetTransform side out of range or father null\n";
@@ -462,10 +451,6 @@ namespace pzrefine {
 		/*08*/{12,13,7,11,18,13,16,16,18,16,18,18,18,16,18,-1,-1,-1,-1},
 		/*09*/{13,9,12,8,18,17,18,13,17,17,18,18,17,18,18,-1,-1,-1,-1},
 	};
-	
-	// static int fatherside2[2][19] = {//pirâmide filho de tetraedro
-	// /*04*/{4,8,9,6,7,11,12,13,10,11,11,13,13,14,11,14,13,14,14},
-	// /*05*/{8,4,6,9,5,11,10,13,12,12,10,10,12,14,14,10,14,12,14} };
 	
 	int TPZRefPyramid::FatherSide(int side,int whichsubel){
 		
