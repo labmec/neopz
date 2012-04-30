@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZTransfer methods. 
  */
+
 #include "pztransfer.h"
 #include "pzfmatrix.h"
 #include <stdlib.h>
@@ -307,11 +308,5 @@ void TPZTransfer::Multiply(const TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B,const 
 	else if (opt && (B.Rows() != Cols()*stride || B.Cols() != A.Cols())) {
 		B.Redim(Cols()*stride,A.Cols());
 	}
-	//   if(opt == 0) {
-	//     B.Redim(Rows()*stride, A.Cols() );
-	//   } else {
-	//     B.Redim(Cols()*stride, A.Cols() );
-	//   }
-	
 	MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }

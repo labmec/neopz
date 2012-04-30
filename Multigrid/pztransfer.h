@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZTransfer class which implements a rectangular sparse block matrix.
  */
+
 #ifndef TRANSFERH
 #define TRANSFERH
 
@@ -21,12 +22,13 @@
 class TPZTransfer : public TPZMatrix<REAL> {
 	
 	public :
-	
+	/** @brief Default constructor */
     TPZTransfer();
 	
 	/** @brief The sparse matrix blocks are defined by row, col */
-	//TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
 	TPZTransfer(TPZBlock<STATE> &row, TPZBlock<STATE> &col,int nvar, int nrowblocks, int ncolblocks);
+	
+	/** @brief Copy constructor */
 	TPZTransfer(const TPZTransfer &cp) : TPZMatrix<REAL>(cp),
 	fNStateVar(cp.fNStateVar), fRowBlock(cp.fRowBlock),
 	fColBlock(cp.fColBlock),fColPosition(cp.fColPosition),
@@ -38,7 +40,7 @@ class TPZTransfer : public TPZMatrix<REAL> {
 	{
 	}
 	
-		virtual TPZMatrix<REAL> *Clone() const { return new TPZTransfer(*this); }
+	virtual TPZMatrix<REAL> *Clone() const { return new TPZTransfer(*this); }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
 	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;

@@ -9,17 +9,16 @@ using namespace std;
 
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol, int nvar, 
-                         TPZAutoPointer<TPZMatrix<TVar> > refmat) : 
-                         TPZMatrixSolver<TVar>(refmat), fStep(trf) 
+							   TPZAutoPointer<TPZMatrix<TVar> > refmat) : 
+TPZMatrixSolver<TVar>(refmat), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
-	//  fTransfer = new TPZMatrixSolver::TPZContainer(trf);
 	this->fNVar = nvar;
 }
 
 template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol, int nvar) : 
-                        TPZMatrixSolver<TVar>(), fStep(trf) 
+TPZMatrixSolver<TVar>(), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
 	//  fTransfer = new TPZMatrixSolver::TPZContainer(trf);
@@ -49,8 +48,6 @@ template <class TVar>
 TPZMGSolver<TVar>::TPZMGSolver(const TPZMGSolver<TVar> & copy): TPZMatrixSolver<TVar>(copy), fStep(copy.fStep) {
     fCoarse = (TPZMatrixSolver<TVar> *) copy.fCoarse->Clone();
     fNVar = copy.fNVar;
-    //fTransfer = copy.fTransfer;
-    //    fTransfer->IncreaseRefCount();
 }
 
 template <class TVar>
@@ -61,13 +58,10 @@ TPZSolver<TVar> * TPZMGSolver<TVar>::Clone() const {
 template <class TVar>
 TPZMGSolver<TVar>::~TPZMGSolver(){
     delete fCoarse;
-    //    fTransfer->DecreaseRefCount();
-	
 }
 
 template <class TVar>
 void TPZMGSolver<TVar>::ResetTransferMatrix(){
-	//  fTransfer->SetMatrix(0);
 	TPZAutoPointer<TPZTransfer> reset;
 	fStep = reset;
 }
@@ -75,12 +69,6 @@ void TPZMGSolver<TVar>::ResetTransferMatrix(){
 template <class TVar>
 void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat){
 	fStep = Refmat;
-	//    if(fTransfer->Matrix() == Refmat || !fTransfer->Matrix()) {
-	//        fTransfer->SetMatrix(Refmat);
-	//    } else {
-	//        fTransfer->DecreaseRefCount();
-	//        fTransfer = new TPZContainer(Refmat);
-	//    }
 }
 
 template <class TVar>
@@ -110,5 +98,3 @@ void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 }
 
 template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;
-
-

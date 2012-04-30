@@ -23,20 +23,26 @@ template <class TVar>
 class TPZMGSolver: public TPZMatrixSolver<TVar>
 {
 public:
+	/** @brief Default constructor */
 	TPZMGSolver() : TPZMatrixSolver<TVar>() {}
+	/** @brief Constructor of the three steps solver with transfer matrix */
 	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar, TPZAutoPointer<TPZMatrix<TVar> > refmat);
+	/** @brief Constructor of the three steps solver */
 	TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol,
 				int nvar);
 	
+	/** @brief Copy constructor */
 	TPZMGSolver(const TPZMGSolver<TVar> & copy);
-	
+	/** @brief Default destructor */
 	~TPZMGSolver();
 	
+	/** @brief Sets the transfer matrix */
 	void SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat);
-	
+	/** @brief Clean the transfer matrix */
 	void ResetTransferMatrix();
 	
+	/** @brief Gets the transfer matrix */
 	TPZAutoPointer<TPZTransfer> TransferMatrix()
 	{
 		return this->fStep;
@@ -57,8 +63,8 @@ public:
 private:
 	TPZMatrixSolver<TVar> * fCoarse;
 	int fNVar;
+	/** @brief Transfer matrix */
 	TPZAutoPointer<TPZTransfer> fStep;
-	//    TPZMatrixSolver::TPZContainer *fTransfer;
 };
 
 #endif //TPZMGSOLVER_H
