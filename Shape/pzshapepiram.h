@@ -2,7 +2,7 @@
  * @file
  * @brief Contains TPZShapePiram class which implements the shape functions of a pyramid element.
  */
-// $ Id: $
+
 #ifndef SHAPEPIRAMHPP
 #define SHAPEPIRAMHPP
 

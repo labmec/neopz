@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZShapePrism methods.
  */
-// $Id: pzshapeprism.cpp,v 1.11 2009-09-01 22:09:15 phil Exp $
+
 #include "pzshapeprism.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -381,7 +381,6 @@ namespace pzshape {
 	
 	int TPZShapePrism::NConnectShapeF(int side, int order) {
 		if(side<6) return 1;//0 a 4
-		//   int s = side-6;//s = 0 a 14 ou side = 6 a 20
 		if(side<15) return (order-1);//6 a 14
 		if(side==15 || side==19) {
 			return ((order-2)*(order-1)/2);

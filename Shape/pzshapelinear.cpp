@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZShapeLinear methods.
  */
-//$Id: pzshapelinear.cpp,v 1.16 2009-10-09 15:09:40 fortiago Exp $
+
 #include "pzshapelinear.h"
 #include "pzshapepoint.h"
 #include "pzerror.h"
@@ -11,8 +11,6 @@ using namespace std;
 
 namespace pzshape {
 	
-	// REAL TPZShapeLinear::fJacobiAlfa = 1.;
-	// REAL TPZShapeLinear::fJacobiBeta = 1.;
 	
 	void TPZShapeLinear::Chebyshev(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 		// Quadratic or higher shape functions
@@ -56,8 +54,6 @@ namespace pzshape {
 			value    = (2.0 * (ord_real - 1.0) + 1.0) * phi(ord - 1, 0) + dphi(0, ord - 2);
 			dphi.Put(0, ord, value);
 		}
-		
-		
 		
 #ifdef DEBUG
 		int printing = 0;
@@ -117,7 +113,6 @@ namespace pzshape {
 			
 		}
 		
-		
 #ifdef DEBUG
 		int printing = 0;
 		if (printing){
@@ -134,65 +129,8 @@ namespace pzshape {
 		
 	} //end of method
 	
-	
-	// void TPZShapeLinear::Jacobi(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-	// 
-	// 
-	//   // Quadratic or higher shape functions
-	//   if (num <= 0) return;
-	//   phi.Put(0, 0, 1.0);
-	//   dphi.Put(0, 0, 0.0);
-	//   if (num == 1) return;
-	// 
-	//   REAL value;
-	// 
-	//   value = 0.5 * (fJacobiAlfa - fJacobiBeta + (fJacobiAlfa + fJacobiBeta + 2.) * x);
-	//   phi.Put(1, 0, value);
-	//   value = 0.5 * (fJacobiAlfa + fJacobiBeta + 2.);
-	//   dphi.Put(0, 1, value);
-	//   int ord;
-	// //Aqui fica diferente do Chebyshev
-	//   REAL ord_real, An[4], Bn[3];
-	// 
-	//   for (ord = 2; ord < num; ord++)
-	//     {
-	//       //casting int ord to REAL ord_real
-	//       ord_real = (REAL)ord;
-	//       An[0] = 2. * (ord_real) * (ord_real + fJacobiAlfa + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta);
-	//       An[1] = (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 1.0) * (fJacobiAlfa * fJacobiAlfa - fJacobiBeta * fJacobiBeta);
-	//       An[2] = (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 1.0) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 2.0) ;
-	//       An[3] = 2. * ( ord_real - 1. + fJacobiAlfa ) * (ord_real -1.0 + fJacobiBeta) * (2. * (ord_real - 1.) + fJacobiAlfa + fJacobiBeta + 2.0);
-	// 
-	//       Bn[0] = (2. * ord_real + fJacobiAlfa + fJacobiBeta ) * (1. - x * x);
-	//       Bn[1] = (ord_real) * (fJacobiAlfa - fJacobiBeta - (2. * (ord_real) + fJacobiAlfa + fJacobiBeta ) * x);
-	//       Bn[2] = 2. * (ord_real + fJacobiAlfa) * (ord_real + fJacobiBeta);
-	// 
-	//       //computing the ord_th function
-	//       value    = (An[1] * An[1] + An[2] * x) * (phi(ord - 1, 0) ) - An[3] * phi(ord - 2, 0);
-	//       value    = value / An[0];
-	//       phi.Put(ord, 0, value);
-	// 
-	//       //computing the ord_th function's derivative
-	//       value    = Bn[1] * phi(ord, 0) + Bn[2] * phi(ord - 1, 0);
-	//       value    = value / Bn[0];
-	//       dphi.Put(0, ord, value);
-	//     }
-	//     int printing = 0;
-	//     if (printing){
-	//    cout << "Jacobi" << endl;
-	//    for(ord = 0; ord < num; ord++)
-	//    {
-	// 	cout << "x = " << x << endl;
-	// 	cout << "phi(" << ord << ", 0) = " << phi(ord, 0) << endl;
-	// 	cout << "dphi(0, " << ord << " = " << dphi(0, ord) << endl;
-	// 	cout << endl;
-	//    }
-	//    }
-	// }
-	
 	void (*TPZShapeLinear::fOrthogonal)(REAL, int, TPZFMatrix<REAL> &, TPZFMatrix<REAL> &) = TPZShapeLinear::Chebyshev;
 	
-	//  REAL TPZCompEl::gTrans1d[2] = {1.,-1.};
 	/**
 	 * Computes the generating shape functions for a quadrilateral element
 	 * @param pt (input) point where the shape function is computed
@@ -204,10 +142,10 @@ namespace pzshape {
 		
 		phi(2,0) = phi(0,0)*phi(1,0);
 		dphi(0,2) = dphi(0,0)*phi(1,0)+phi(0,0)*dphi(0,1);
-
+		
 		phi(2,0) *= 4.;
 		dphi(0,2) *= 4.;
-
+		
 	}
 	
 	void TPZShapeLinear::Shape(TPZVec<REAL> &x,TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
@@ -355,14 +293,7 @@ namespace pzshape {
 	}
 	
 	void (*TPZShapeLinear::FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &) =  TPZShapeLinear::Chebyshev/*(FADREAL&, int, TPZVec<FADREAL>&)*/;//Chebyshev;
-	/*
-	 void TPZShapeLinear::TransformDerivative1d(int transid,int num,TPZVec<FADREAL> &in) {
-	 
-	 if(transid == 0) return;
-	 int i;
-	 for(i=0;i<num;i++) in[i].fastAccessDx(0) = -in[i].d(0);//(0,i) = -in(0,i);
-	 }
-	 */
+
 #endif
 	
 };

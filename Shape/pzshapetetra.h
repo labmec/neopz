@@ -2,7 +2,7 @@
  * @file
  * @brief Contains TPZShapeTetra class which implements the shape functions of a tetrahedral element.
  */
-// $Id: pzshapetetra.h,v 1.6 2008-03-26 20:17:34 phil Exp $
+
 #ifndef SHAPETETRAHPP
 #define SHAPETETRAHPP
 

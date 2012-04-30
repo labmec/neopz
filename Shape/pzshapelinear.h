@@ -2,7 +2,7 @@
  * @file
  * @brief Contains TPZShapeLinear class which implements the shape functions of a linear one-dimensional element.
  */
- // $ Id: $
+
 #ifndef SHAPELINEARHPP
 #define SHAPELINEARHPP
 
@@ -53,6 +53,7 @@ namespace pzshape {
 		 */
 		static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
 #endif
+
 		/**
 		 * @brief Chebyshev orthogonal function, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point
@@ -61,6 +62,16 @@ namespace pzshape {
 		 * @param dphi values of the derivatives of the shape functions
 		 */
 		static void Chebyshev(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
+#ifdef _AUTODIFF
+		/**
+		 * @brief Chebyshev orthogonal function, computes num orthogonal functions at the point x
+		 * @param x coordinate of the point (with derivative already setup)
+		 * @param num number of shape functions to be computed
+		 * @param phi shapefunction values and derivatives
+		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
+		 */
+		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
+#endif
 		
 		/**
 		 * @brief Legendre orthogonal function, computes num orthogonal functions at the point x
@@ -77,17 +88,7 @@ namespace pzshape {
 		 */
 		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int nderiv);
 		
-#ifdef _AUTODIFF
-		/**
-		 * @brief Chebyshev orthogonal function, computes num orthogonal functions at the point x
-		 * @param x coordinate of the point (with derivative already setup)
-		 * @param num number of shape functions to be computed
-		 * @param phi shapefunction values and derivatives
-		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
-#endif
-	public:
+public:
 		
 		/**
 		 * @brief Functions which computes the shapefunctions of a one-d element
@@ -147,8 +148,8 @@ namespace pzshape {
 		 * The shape1dInternal function is extensively used by the shapefunction computation of the other elements
 		 */
 		static void ShapeInternal(FADREAL & x,int num,TPZVec<FADREAL> & phi,int transformation_index);
-		
 #endif
+		
 		/**
 		 * @brief Computes the transformation applied to the variational parameter of the one-d element
 		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
@@ -183,17 +184,7 @@ namespace pzshape {
 		 * the values of the derivatives contained in this matrix are modified upon return
 		 */
 		static void TransformDerivative1d(int transid,int num,TPZFMatrix<REAL> &in);
-#ifdef _AUTODIFF
-		/**
-		 * Applies the transformation on the values of the derivatives of the shape functions of the
-		 * internal shape functions
-		 * @param transid identifier of the transformation of the one-d element as obtained by the GetTransformId1d method
-		 * @param num number of shapefunctions needed to transform
-		 * @param in TPZVec of a differentiable type containing the values of the derivatives of the shapefunctions.
-		 * @note REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		//static void TransformDerivative1d(int transid,int num,TPZVec<FADREAL> &in);
-#endif
+
 		/**
 		 * @brief Computes the id of the transformation which will be applied on the parameter of the element\n
 		 * @param id contains two distinct integer numbers which determine the orientation of the element
@@ -203,8 +194,7 @@ namespace pzshape {
 		 * The return value is used in several methods of this class
 		 */
 		static int GetTransformId1d(TPZVec<int> &id);
-		
-		
+
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element

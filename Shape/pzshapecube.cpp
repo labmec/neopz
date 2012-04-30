@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZShapeCube methods.
  */
+
 #include "pzshapecube.h"
 #include "pzshapequad.h"
 #include "pzshapepoint.h"
@@ -28,11 +29,7 @@ namespace pzshape {
 		{ { 0.,1.,0.},{0.,0.,1.} },
 		{ { 1.,0.,0.},{0.,1.,0.} }
 	};
-	
-//	static int FaceSides[6][4] = { {8,9,10,11},{8,13,16,12},{9,14,17,13},
-//		{10,14,18,15},{11,15,19,12},{16,17,18,19} };
-
-	
+		
 	void TPZShapeCube::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
@@ -84,7 +81,7 @@ namespace pzshape {
 	}
 	
 	/**
-	 * Computes the generating shape functions for a quadrilateral element
+	 * @brief Computes the generating shape functions for a quadrilateral element
 	 * @param pt (input) point where the shape function is computed
 	 * @param phi (input) value of the (8) shape functions
 	 * @param dphi (input) value of the derivatives of the (8) shape functions holding the derivatives in a column
@@ -348,34 +345,6 @@ namespace pzshape {
 		return res;
 	}
 	
-	/*
-	 void TPZShapeCube::LowerDimensionSides(int side,TPZStack<int> &smallsides) {
-	 
-	 cout << "TPZShapeCube::LowerDimensionSides Nao deve ser usado";
-	 DebugStop();
-	 
-	 if (side < 8) return;
-	 int i;
-	 if(side < 20) {//side = 8 a 19 : entram os cantos dos lados
-	 int s = side-8;
-	 smallsides.Push(SideNodes[s][0]);
-	 smallsides.Push(SideNodes[s][1]);
-	 } else if(side < 26) {//side = 20 a 25
-	 int s = side-20;   //entram cantos e lados da face
-	 smallsides.Push(FaceNodes[s][0]);
-	 smallsides.Push(FaceNodes[s][1]);
-	 smallsides.Push(FaceNodes[s][2]);
-	 smallsides.Push(FaceNodes[s][3]);
-	 smallsides.Push(FaceSides[s][0]);
-	 smallsides.Push(FaceSides[s][1]);
-	 smallsides.Push(FaceSides[s][2]);
-	 smallsides.Push(FaceSides[s][3]);
-	 //    smallsides.Push(TPZGeoElSide(geo,side));
-	 } else if(side==26) {//entram todos os cantos, arestas e faces
-	 for (i=0;i<25;i++) smallsides.Push(i);
-	 }
-	 }
-	 */
 #ifdef _AUTODIFF
 	
 	void TPZShapeCube::ShapeCube(TPZVec<REAL> &point, TPZVec<int> &id, TPZVec<int> &order, TPZVec<FADREAL> &phi)
@@ -476,12 +445,6 @@ namespace pzshape {
 		for(int i=0;i<ord;i++)	{
 			//phi(shape,0) = phi(0,0)*phi(6,0)*phin(i,0);
 			phi[shape] = phi[0] * phi[6] * phin[i];
-			/*
-			 for(int xj=0;xj<3;xj++) {
-			 dphi(xj,shape) = dphi(xj,0)* phi(6 ,0)* phin(i ,0) +
-			 phi(0, 0)*dphi(xj,6)* phin(i ,0) +
-			 phi(0, 0)* phi(6 ,0)*dphin(xj,i);
-			 }*/
 			shape++;
 		}
 	}
@@ -511,53 +474,15 @@ namespace pzshape {
 	void TPZShapeCube::ProjectPoint3dCubeToRib(int side, TPZVec<FADREAL> &in, FADREAL &outval)
 	{
 		outval = gRibTrans3dCube1d[side][0]*in[0]+gRibTrans3dCube1d[side][1]*in[1]+gRibTrans3dCube1d[side][2]*in[2];
-		/* outval =  gRibTrans3dCube1d[side][0]*in[0];
-		 outval += gRibTrans3dCube1d[side][1]*in[1];
-		 outval += gRibTrans3dCube1d[side][2]*in[2];*/
 	}
-	/*
-	 void TPZShapeCube::TransformDerivativeFromRibToCube(int rib,int num,TPZVec<FADREAL> &phi) {
-	 for (int j = 0;j<num;j++) {
-	 //dphi(2,j) = gRibTrans3dCube1d[rib][2]*dphi(0,j);
-	 //dphi(1,j) = gRibTrans3dCube1d[rib][1]*dphi(0,j);
-	 //dphi(0,j) = gRibTrans3dCube1d[rib][0]*dphi(0,j);
-	 phi[j].fastAccessDx(2) = gRibTrans3dCube1d[rib][2]*phi[j].d(0);
-	 phi[j].fastAccessDx(1) = gRibTrans3dCube1d[rib][1]*phi[j].d(0);
-	 phi[j].fastAccessDx(0) = gRibTrans3dCube1d[rib][0]*phi[j].d(0);
-	 }
-	 }
-	 */
+
 	void TPZShapeCube::ProjectPoint3dCubeToFace(int face, TPZVec<FADREAL> &in, TPZVec<FADREAL> &outval) {
 		outval[0] = gFaceTrans3dCube2d[face][0][0]*in[0]+gFaceTrans3dCube2d[face][0][1]*in[1]+gFaceTrans3dCube2d[face][0][2]*in[2];
 		outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0]+gFaceTrans3dCube2d[face][1][1]*in[1]+gFaceTrans3dCube2d[face][1][2]*in[2];
-		/*  outval[0] = gFaceTrans3dCube2d[face][0][0]*in[0];
-		 outval[0] += gFaceTrans3dCube2d[face][0][1]*in[1];
-		 outval[0] += gFaceTrans3dCube2d[face][0][2]*in[2];
-		 outval[1] = gFaceTrans3dCube2d[face][1][0]*in[0];
-		 outval[1] += gFaceTrans3dCube2d[face][1][1]*in[1];
-		 outval[1] += gFaceTrans3dCube2d[face][1][2]*in[2];*/
 	}
 	
-	/*
-	 void TPZShapeCube::TransformDerivativeFromFaceToCube(int rib,int num,TPZVec<FADREAL> &phi) {
-	 
-	 for (int j = 0;j<num;j++) {
-	 
-	 //dphi(2,j) = gFaceTrans3dCube2d[rib][0][2]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][2]*dphi(1,j);
-	 //REAL dphi1j = dphi(1,j);
-	 //dphi(1,j) = gFaceTrans3dCube2d[rib][0][1]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][1]*dphi(1,j);
-	 //dphi(0,j) = gFaceTrans3dCube2d[rib][0][0]*dphi(0,j)+gFaceTrans3dCube2d[rib][1][0]*dphi1j;//dphi(1,j);
-	 
-	 REAL dphijd1 = phi[j].d(1);
-	 phi[j].fastAccessDx(2) =  gFaceTrans3dCube2d[rib][0][2]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][2]*dphijd1;
-	 phi[j].fastAccessDx(1) =  gFaceTrans3dCube2d[rib][0][1]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][1]*dphijd1;
-	 phi[j].fastAccessDx(0) =  gFaceTrans3dCube2d[rib][0][0]*phi[j].d(0)+gFaceTrans3dCube2d[rib][1][0]*dphijd1;
-	 }
-	 }
-	 */
-	
 	void TPZShapeCube::Shape3dCubeInternal(TPZVec<FADREAL> &x, int order,TPZVec<FADREAL> &phi)
-	{//,int cube_transformation_index
+	{
 		const int ndim = 3;
 		
 		if(order < 1) return;
@@ -567,11 +492,6 @@ namespace pzshape {
 		TPZVec<FADREAL> phi0(20, FADREAL(ndim, 0.0)),
 		phi1(20, FADREAL(ndim, 0.0)),
 		phi2(20, FADREAL(ndim, 0.0));
-		//phi.Resize(order, 1);
-		//dphi.Resize(3,order);
-		//REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
-		//TPZFMatrix<REAL> phi0(ord,1,store1,20),phi1(ord,1,store2,20),phi2(ord,1,store3,20),
-		//  dphi0(1,ord,store4,20),dphi1(1,ord,store5,20),dphi2(1,ord,store6,20);
 		TPZShapeLinear::FADfOrthogonal(x[0],ord,phi0);
 		TPZShapeLinear::FADfOrthogonal(x[1],ord,phi1);
 		TPZShapeLinear::FADfOrthogonal(x[2],ord,phi2);

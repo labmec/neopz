@@ -1,6 +1,8 @@
-// -*- c++ -*-
+/** 
+ * @file
+ * @brief Contains the declaration of the shape function discontinuous
+ */
 
-// $Id: TPZShapeDisc.h,v 1.14 2009-07-17 02:27:54 erick Exp $
 #ifndef SHAPEDISCHPP
 #define SHAPEDISCHPP
 
@@ -25,6 +27,7 @@ namespace pzshape {
     public:
         
         /**
+		 * @brief Polynomial shape function
          * @param C:      normalizing constant, it provided by the discontinous element
          * @param x0:     interior point of the deformed element, it can be, for example, the center of mass of the element
          * @param x:      coordinate of the point
@@ -46,7 +49,8 @@ namespace pzshape {
         static void LegendreWithoutScale(REAL C,REAL x0,REAL x,int degree,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int n = 1);
         
         /**
-         * UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
+		 * @brief Pointer to orthogonal function to use as shape function
+         * @note UseOrthoShape = 1 means it will be used Legendre polynomial as shape function. 
          * @since Mar 31, 2004
          */
         static void (*fOrthogonal)(REAL C, REAL x0, REAL x,int degree, TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi, int n);
@@ -62,53 +66,39 @@ namespace pzshape {
         ~TPZShapeDisc();
         
         static void Shape(int dimension, REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
-				
-				
-				/**
-				 * @brief Computes the shape function set at the point qsi for dual space.
-				 * @param dimension dimension of element
-				 * @param degree degree of polynomial
-				 * @param qsi point in master element coordinates
-				 * @param phi vector of values of shapefunctions, dimension (numshape,1)
-				 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
-				 * @param type type of polinomial space
-				 */
-				
-				static void Shape(int &dimension,int &degree,TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,MShapeType type);	
-				
-				
+		
+		/**
+		 * @brief Computes the shape function set at the point qsi for dual space.
+		 * @param dimension dimension of element
+		 * @param degree degree of polynomial
+		 * @param qsi point in master element coordinates
+		 * @param phi vector of values of shapefunctions, dimension (numshape,1)
+		 * @param dphi matrix of derivatives of shapefunctions, dimension (dim,numshape)
+		 * @param type type of polinomial space
+		 */
+		
+		static void Shape(int &dimension,int &degree,TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,MShapeType type);	
+		
+		
         
-        /**
-		 * @brief Number of shapefunctions dependent on the dimension and order of interpolation
-         */
+        /** @brief Number of shapefunctions dependent on the dimension and order of interpolation */
         static int NShapeF(int degree, int dimension, MShapeType type);
         
-        
-        /**
-		 * @brief Discontinous polynomials of the line element
-         */
+        /** @brief Discontinous polynomials of the line element */
         static void Shape0D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
-        /**
-		 * @brief Discontinous polynomials of the line element
-         */
+        /** @brief Discontinous polynomials of the line element */
         static void Shape1D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
         
-        /**
-		 * @brief Discontinous bases of the two-dimensional elements 
-         */
+        /** @brief Discontinous bases of the two-dimensional elements */
         static void Shape2D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
-        /**
-		 * @brief Discontinous bases of the two-dimensional elements with many derivatives!
-         */
+        /** @brief Discontinous bases of the two-dimensional elements with many derivatives! */
         static void Shape2DFull(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
         
-        /**
-		 * @brief Discontinous bases of the three-dimensional elements 
-         */
+        /** @brief Discontinous bases of the three-dimensional elements */
         static void Shape3D(REAL C,TPZVec<REAL> &X0,TPZVec<REAL> &X,int degree,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi, MShapeType type);
-        
+		
     };
     
 };

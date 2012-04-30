@@ -2,15 +2,13 @@
  * @file
  * @brief Contains SPr class which implements the shape functions of a hexahedral three-dimensional element.
  */
-// $Id: pzshapeextend.h,v 1.1 2008-10-08 02:44:18 phil Exp $
+
 #ifndef SHAPEEXTENDHPP
 #define SHAPEEXTENDHPP
 
 #include "pzfmatrix.h"
 #include "pzstack.h"
 #include "pztrnsform.h"
-//#include "pzgeoelside.h"
-
 
 /** @brief Groups all classes dedicated to the computation of shape functions */
 namespace pzshape {
@@ -30,7 +28,7 @@ namespace pzshape {
 		typedef typename TFather::Top FatTop;
 		
 		typedef  pztopology::Pr<FatTop> Top;
-
+		
 		/** @brief Temporary storage to accelerate the computation of shape functions. */
 		class TMem
 		{
@@ -58,7 +56,7 @@ namespace pzshape {
 			TPZManVector<REAL> fShape;
 			
 		};
-
+		
 		/**
 		 * @brief Computes the values of the shape functions and their derivatives for a hexahedral element
 		 * @param pt (input) point where the shape functions are computed
@@ -94,14 +92,6 @@ namespace pzshape {
 		static int NSideShapeF(int side, int order);
 		
 		/**
-		 * Total number of shapefunctions, considering the order
-		 * of interpolation of the element
-		 * @ param order vector of integers indicating the interpolation order of the element
-		 * @ return number of shape functions
-		 */
-		//static int NShapeF(TPZVec<int> &order);
-		
-		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order
 		 * of interpolation of the element
 		 * @param side associated side
@@ -132,7 +122,7 @@ namespace pzshape {
 		 */
 		static void ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
 								  TPZFMatrix<REAL> &dphi);//,int quad_transformation_index
-
+		
 	};
 	
 	template<class TFather>
@@ -218,9 +208,7 @@ namespace pzshape {
 		// multiply both
 	}
 	
-	/**
-	 * Computes the corner shape functions for a hexahedral element
-	 */
+	// Computes the corner shape functions for a hexahedral element
 	template<class TFather>
     inline void SPr<TFather>::ShapeCorner(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 	{

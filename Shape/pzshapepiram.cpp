@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZShapePiram methods.
  */
-// $Id: pzshapepiram.cpp,v 1.12 2011-05-11 01:47:45 phil Exp $
+
 #include "pzshapepiram.h"
 #include "pzshapequad.h"
 #include "pzshapetriang.h"
@@ -31,8 +31,6 @@ namespace pzshape {
 		{ { 1., 0., 0.},{ 0., 1.,0.}  },//0 1 2 3  : percorre os eixos segundo
 		{ { 1.,-.5,-.5},{ 0., 1.,1.}  },//0 1 4    : FaceNodes[5][4]
 		{ { .5, 1.,-.5},{-1., 0.,1.}  },//1 2 4
-		//{ {-1., .5,-.5},{ 0.,-1.,1.}  },//ORIGINAL
-		//{ {-.5,-1.,-.5},{ 1., 0.,1.}  }//ORIGINAL
 		{ { 1., .5,-.5},{ 0.,-1.,1.}  },//3 2 4 ; original-> 2 3 4 : {-1., .5,-.5},{ 0.,-1.,1.}
 		{ {-.5, 1.,-.5},{1.,0.,1.}  } //0 3 4 ; original-> 3 0 4 : {-.5,-1.,-.5},{ 1., 0.,1.}
 	};
@@ -41,21 +39,6 @@ namespace pzshape {
 	
 	void TPZShapePiram::CornerShape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 		
-		/*if(abs(pt[0])<1.e-10 && abs(pt[1])<1.e-10 && pt[2]==1.) {
-		 //para testes com transforma��es geometricas
-		 //(0,0,1) nunca � um ponto de integra��o
-		 phi(0,0)  = 0.;
-		 phi(1,0)  = 0.;
-		 phi(2,0)  = 0.;
-		 phi(3,0)  = 0.;
-		 phi(4,0)  = 1.;
-		 for(int i=0;i<5;i++) {
-		 dphi(0,i) = 0.;
-		 dphi(1,i) = 0.;
-		 dphi(2,i) = 0.;
-		 }
-		 return;
-		 }*/
 		REAL T0xz,T0yz,T1xz,T1yz;
 		if (fabs(1.-pt[2]) < 1.e-8) 
 		{
@@ -163,7 +146,6 @@ namespace pzshape {
 			dphi(2,is) = dphi(2,is1)*phi(is2,0)*phi(is3,0)+phi(is1,0)*dphi(2,is2)*phi(is3,0)+phi(is1,0)*phi(is2,0)*dphi(2,is3);
 		}
 		
-
 		// Make the generating shape functions linear and unitary
 		// contribute the ribs
 		for(is=NCornerNodes; is<NCornerNodes+4; is++)
@@ -185,48 +167,9 @@ namespace pzshape {
 				dphi(2,is) *= sidescale[is];
 			}
 		}
-
+		
 		
 	}
-	
-	/*REAL TPZCompEl::T(REAL &pt0,REAL &pt1) {
-	 return ( ( ( 1 - pt1 ) - pt0 ) / 2 / (1 - pt1) );
-	 }
-	 
-	 void TPZCompEl::ShapeCornerPira(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
-	 
-	 
-	 double c = pt[0] , e = pt[1], z = 1 - pt[2];
-	 phi(0,0) = T(c,pt[2]) * T( e,pt[2]) * z;
-	 c *= -1;
-	 phi(1,0) = T(c,pt[2]) * T( e,pt[2]) * z;
-	 e *= -1;
-	 phi(2,0) = T(c,pt[2]) * T(e,pt[2]) * z;
-	 c *= -1;
-	 phi(3,0) = T(c,pt[2]) * T(e,pt[2]) * z;
-	 phi(4,0) = pt[2];
-	 e *= -1;
-	 
-	 dphi(0,0) = -.25 * (z - e)/z;
-	 dphi(1,0) = -.25 * (z - c)/z;
-	 dphi(2,0) = -.25 * (z - c)/z - .25 * (z - e)/z + .25 * (z - c) * (z - e) / z / z ;
-	 
-	 dphi(0,1) =  .25 * (z - e)/z;
-	 dphi(1,1) = -.25 * (z + c)/z;
-	 dphi(2,1) = -.25 * (z + c)/z - .25 * (z - e)/z + .25 * (z + c) * (z - e) / z / z ;
-	 
-	 dphi(0,2) =  .25 * (z + e)/z;
-	 dphi(1,2) =  .25 * (z + c)/z;
-	 dphi(2,2) = -.25 * (z + c)/z - .25 * (z + e)/z + .25 * (z + c) * (z + e) / z / z ;
-	 
-	 dphi(0,3) = -.25 * (z + e)/z;
-	 dphi(1,3) =  .25 * (z - c)/z;
-	 dphi(2,3) = -.25 * (z - c)/z - .25 * (z + e)/z + .25 * (z - c) * (z + e) / z / z ;
-	 
-	 dphi(0,4) = 0.0;
-	 dphi(1,4) = 0.0;
-	 dphi(2,4) = 1.0;
-	 }*/
 	
 	void TPZShapePiram::Shape(TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
@@ -276,8 +219,7 @@ namespace pzshape {
 				shape++;
 			}
 		}
-		//if(order[13]<2) return;//ordem do elemento
-		//face shapes
+
 		for (int face = 0; face < 5; face++) {
 			if (order[face+8] < 2) continue;
 			if(face>0 && order[face+8]<=2) continue;//s� a face 13 tem shape associada com ordem p=2
@@ -366,7 +308,7 @@ namespace pzshape {
 	
 	void TPZShapePiram::ShapeInternal(TPZVec<REAL> &x, int order,TPZFMatrix<REAL> &phi,
 									  TPZFMatrix<REAL> &dphi) {
-		//valor da fun��o e derivada do produto das fun��es ortogonais
+		// calculate the values of the function and derivatives of the product of the orthogonal functions
 		if(order < 3) return;
 		int ord = order-2;
 		REAL store1[20],store2[20],store3[20],store4[20],store5[20],store6[20];
@@ -375,7 +317,7 @@ namespace pzshape {
 		TPZShapeLinear::fOrthogonal(x[0],ord,phi0,dphi0);//f e df            -1<=x0<=1
 		TPZShapeLinear::fOrthogonal(x[1],ord,phi1,dphi1);//g e dg            -1<=x1<=1
 		TPZShapeLinear::fOrthogonal(2.*x[2]-1.,ord,phi2,dphi2);//h e dh       0<=x3<=1 -> -1<=2*x2-1<=1
-		int index = 0;//x � ponto de integra��o dentro da pir�mide
+		int index = 0;   // integration point internal to pyramid
 		for (int i=0;i<ord;i++) {
 			for (int j=0;j<ord;j++) {
 				for (int k=0;k<ord;k++) {
@@ -458,6 +400,5 @@ namespace pzshape {
 		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
 		return res;
 	}
-	
 	
 };

@@ -2,7 +2,7 @@
  * @file
  * @brief Contains TPZShapeTriang class which implements the shape functions of a triangular element.
  */
-// $ Id: $
+
 #ifndef SHAPETRIANGHPP
 #define SHAPETRIANGHPP
 

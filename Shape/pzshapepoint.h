@@ -2,6 +2,7 @@
  * @file
  * @brief Contains TPZShapePoint class which implements the shape function associated with a point.
  */
+
 #ifndef PZSHAPEPOINT
 #define PZSHAPEPOINT
 
@@ -14,8 +15,8 @@
 namespace pzshape{
 	
 	/**
-	 @brief Compute the single shape function associated with a point. \ref shape "Shape"
-	 @ingroup shape
+	 * @brief Compute the single shape function associated with a point. \ref shape "Shape"
+	 * @ingroup shape
 	 */
 	class TPZShapePoint  : public pztopology::TPZPoint  {
 	public:
@@ -46,7 +47,6 @@ namespace pzshape{
 		static void SideShape(int side, TPZVec<REAL> &pt, TPZVec<int> &id, TPZVec<int> &order,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 			if(side == 0) Shape(pt,id,order,phi,dphi);
 		}
-		
 		
 		/**
 		 * @brief Number of shapefunctions of the connect associated with the side, considering the order

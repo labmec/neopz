@@ -2,7 +2,6 @@
  * @file
  * @brief Contains TPZShapeQuad class which implements the shape functions of a quadrilateral element.
  */
-// $Id: pzshapequad.h,v 1.9 2008-03-26 20:17:34 phil Exp $
 
 #ifndef SHAPEQUADHPP
 #define SHAPEQUADHPP
@@ -112,16 +111,6 @@ namespace pzshape{
 		 */
 		static void TransformDerivative2dQ(int transid, int num, TPZFMatrix<REAL> &in);
 		
-#ifdef _AUTODIFF
-		/**
-		 * Transform the derivatives of num shapefunctions in place for a quadrilateral
-		 * @param transid identifier of the transformation of the quad element as obtained by the GetTransformId2dQ method
-		 * @param num number of shapefunctions needed to transform
-		 * @param in matrix containing the values of the shapefunctions and derivatives.n return
-		 */
-		//  static void TransformDerivative2dQ(int transid, int num, TPZVec<FADREAL> &in);
-#endif
-		
 		/**
 		 * @brief Transform the coordinates of the point in the space of the quadrilateral
 		 * master element based on the transformation id
@@ -167,18 +156,6 @@ namespace pzshape{
 		 * @param dphi values of the derivatives of the shapefunctions
 		 */
 		static void TransformDerivativeFromRibToQuad(int rib,int num,TPZFMatrix<REAL> &dphi);
-
-#ifdef _AUTODIFF
-
-		/**
-		 * Transforms the derivative of a shapefunction computed on the rib into the two dimensional derivative
-		 * of the function with respect to the element. The parameter dphi should be dimensioned (2,num), at least
-		 * @param rib rib index along which the shapefunction is defined
-		 * @num number of shapefunction derivatives which need to be transformed
-		 * @phi values of the shapefunctions (with derivatives)
-		 */
-		//  static void TransformDerivativeFromRibToQuad(int rib,int num,TPZVec<FADREAL> &phi);
-#endif
 
 		/** @brief Data structure which defines the quadrilateral transformations */
 		static REAL gTrans2dQ[8][2][2];

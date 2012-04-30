@@ -2,7 +2,7 @@
  * @file
  * @brief Contains TPZShapePrism class which implements the shape functions of a prism element.
  */
-// $ Id: $
+
 #ifndef SHAPEPRISMHPP
 #define SHAPEPRISMHPP
 
