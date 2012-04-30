@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphEl1dd class which implements the graphical one dimensional discontinuous element.
  */
+
 #ifndef GRAFEL1DDH
 #define GRAFEL1DDH
 
@@ -21,6 +22,7 @@ class TPZBlock;
 class TPZGraphEl1dd : public TPZGraphEl
 {
 public:
+	/** @brief Constructor for graphical element to computational one dimensional discontinuous element */
 	TPZGraphEl1dd(TPZCompEl *ce, TPZGraphMesh *gg);
 	
 	virtual int NPoints(TPZGraphNode *n);
@@ -44,6 +46,7 @@ protected:
 	
 	virtual void NextIJ(int no, TPZVec<int> &co, int incr);
 	
+	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
 	
 	virtual void SetNode(int i,TPZGraphNode *gno) {

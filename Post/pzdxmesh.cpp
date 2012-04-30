@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZDXGraphMesh methods. 
  */
-//$Id: pzdxmesh.cpp,v 1.16 2010-01-12 12:13:18 caju Exp $
 
 #include "pzdxmesh.h"
 #include "pzcmesh.h"
@@ -104,7 +103,6 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 	int object = fNextDataField;
 	fNodePosObject[dim1] = object;
 	long nn = NPoints();
-	//      int imax = (1<<fResolution);
 	
 	//field nodes / positions
 	(fOutFile) <<  "object " << object << " class array type float rank 1 shape 3 items "
@@ -114,18 +112,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 	(fOutFile) << "#" << endl;
 	object++;
 	
-	//   if(dim==1) {
-	// 	//normal vectors
-	// 	fNormalObject = object;
-	// 	(fOutFile) <<  "object " << object << " class array type float rank 1 shape 3 items "
-	// 	      << nn << " data follows"<< endl;
-	// 	DrawNormals(nn);
-	// 	(fOutFile) << "attribute \"dep\" string \"positions\"" << endl;
-	// 	(fOutFile) << "#" << endl;
-	//   object++;
-	//   } else {
 	fNormalObject = -1;
-	//  }
 	
 	//  field connectivity
 	int it;
@@ -133,7 +120,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 		MElementType type = eltypes[it];
 		int nel = NElements(type);
 		if(nel) {
-			//      fNumConnectObjects[dim1]++;
+			
 			fElConnectivityObject[type] = object;
 			(fOutFile) << "object " << object << " class array type int rank 1 shape "
 			<< numnod[it];
@@ -151,16 +138,10 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 		}
 	}
 	fNumCases = numcases;
-	//  long zero = 0;
 	fNextDataField = object;
-	//fFirstFieldValues[0] = new TPZVec<int>(numcases,zero);
-	//fFirstFieldValues[1] = new TPZVec<int>(numcases,zero);
-	//fFirstFieldValues[2] = new TPZVec<int>(numcases,zero);
-	//fTimes = new TPZVec<REAL>(numcases,0.);
 }
 
-void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
-	//								  TPZVec<char *> &scalarnames, TPZVec<char *> &vectornames) {
+void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	
 	TPZAutoPointer<TPZMaterial> matp = Material();
 	int i,nel;
@@ -299,7 +280,7 @@ void TPZDXGraphMesh::DrawSolution(int step, REAL time){//0,
 }
 
 
-void TPZDXGraphMesh::Close(){
+void TPZDXGraphMesh::Close() {
 	
 	int n;
 	int dim = fDimension;
@@ -308,10 +289,8 @@ void TPZDXGraphMesh::Close(){
 	int numscal = fScalarNames.NElements();
 	int numvec = fVecNames.NElements();
 	int ist;
-	//  TPZStack<int> *FV = &fFirstFieldValues[dim1];
 	TPZStack<int> &FVR = fFirstFieldValues[dim1];
 	cout << "DxMesh finalizing\n";
-	//cout << " fTimes = " << (*fTimes)[0] << ' ' << (*fTimes)[1] << endl;
 	for(n=0; n<numscal; n++) {
 		(fOutFile) << "object \"" <<  fScalarNames[n] << "\" class series" << endl;
 		for(ist =0; ist<fNumCases; ist++) {
@@ -362,9 +341,7 @@ void TPZDXGraphMesh::Close(){
 
 void TPZDXGraphMesh::DrawSolution(char * var)
 {
-	
-    //int nmat = fCompMesh->MaterialVec().NElements();
-    TPZAutoPointer<TPZMaterial> matp = Material();
+	TPZAutoPointer<TPZMaterial> matp = Material();
     int i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);
@@ -380,8 +357,6 @@ void TPZDXGraphMesh::DrawSolution(char * var)
     (fOutFile) << "#" << endl;
     (fOutFile) << "object " << (fNextDataField+1) << " class field" << endl;
     (fOutFile) << "component \"data\" value " << fNextDataField << endl;
-	//    (fOutFile) << "component \"positions\" value " << fNodeCoField << endl;
-	//    (fOutFile) << "component \"connections\" value " << fConnectField << endl;
     (fOutFile) << "attribute \"name\" string \"" << var << fNextDataField <<
 	"\"" << endl;
     (fOutFile) << "#" << endl;

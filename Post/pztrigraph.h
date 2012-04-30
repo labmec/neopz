@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphElT class which implements the graphical triangular element.
  */
+
 #ifndef TRIGRAPH
 #define TRIGRAPH
 
@@ -17,6 +18,7 @@ class TPZGraphElT : public TPZGraphEl {
 	public :
 	
 	
+	/** @brief Constructor for graphical element to computational triangular element */
 	TPZGraphElT(TPZCompEl *c, TPZGraphMesh *g);
 	
 	virtual int NConnects();
@@ -49,8 +51,9 @@ class TPZGraphElT : public TPZGraphEl {
 		fConnects[i] = gno;
 	}
 	
+	/** @brief Graphical nodes vector (by connect of the computational element) */
 	TPZGraphNode *fConnects[7];
-
+	
 };
 
 #endif

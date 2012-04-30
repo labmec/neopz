@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphNode class which implements the graphical node.
  */
+
 #ifndef GRAFNODEH
 #define GRAFNODEH
 
@@ -23,9 +24,11 @@ class TPZBlock;
 class TPZGraphNode {
 	
 public:
-	
+	/** @brief Default constructor */
 	TPZGraphNode();
+	/** @brief Constructor for graphical node */
 	TPZGraphNode(TPZConnect *cn, TPZGraphMesh *gm);
+	/** @brief Simple destructor */
 	~TPZGraphNode(void);
 	
 	//int ElIndex();
@@ -36,7 +39,9 @@ public:
 	void SetGraphMesh(TPZGraphMesh *mesh);
 	int NPoints();
 	void SetPointNumber(long num);
+	/** @brief Draw coordinates of the graphical node */
 	void DrawCo(TPZDrawStyle st = EDXStyle);
+	/** @brief Draw solution on the current connect for solutionid variable */
 	void DrawSolution(int solutionid, TPZDrawStyle st = EDXStyle);
 	void DrawSolution(TPZVec<int> &solutionid, TPZDrawStyle st= EDXStyle);
 	void DrawSolution(TPZBlock<REAL> &sol, TPZDrawStyle st = EDXStyle);
@@ -46,11 +51,13 @@ public:
 	void Print(std::ostream &out);
 	
 protected:
+	/** @brief Connect associated with current graphical node */
 	TPZConnect *fConnect;
+	/** @brief Graphical mesh related */
 	TPZGraphMesh *fGraphMesh;
+	/** @brief Graphical element related */
 	TPZGraphEl *fGraphEl;
 	long fPointNum;
-	//int fElIndex
 	
 private:
 	int fSequenceNumber;

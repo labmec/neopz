@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElQ2d methods. 
  */
+
 #include "pzgraphelq2d.h"
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
@@ -226,160 +227,6 @@ void TPZGraphElQ2d::NextIJ(int connect, TPZVec<int> &co, int incr) {
 			break;
 	}
 }
-/*
- void TPZGraphElQ2d::ComputeSequence(TPZGraphNode *n, int *ibound, int *incr)
- {
- int res = fGraphMesh->Res();
- int imax, jmax;
- imax = jmax = 1 << res;
- int in = ConnectNum(n);
- incr[0] = incr[1] = 1;
- switch(in)
- {
- case 0:
- {
- ibound[0] = 0;//ifirst
- ibound[1] = 0;//ilast
- ibound[2] = 0;//jfirst
- ibound[3] = 0;//jlast
- }
- break;
- case 1:
- {
- ibound[0] = imax;//ifirst
- ibound[1] = imax;//ilast
- ibound[2] = 0;//jfirst
- ibound[3] = 0;//jlast
- }
- break;
- case 2:
- {
- ibound[0] = imax;//ifirst
- ibound[1] = imax;//ilast
- ibound[2] = jmax;//jfirst
- ibound[3] = jmax;//jlast
- }
- break;
- case 3:
- {
- ibound[0] = 0;//ifirst
- ibound[1] = 0;//ilast
- ibound[2] = jmax;//jfirst
- ibound[3] = jmax;//jlast
- }
- break;
- case 4:
- {
- if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
- {
- incr[0] = -1;
- ibound[0] = imax-1;//ifirst
- ibound[1] = 1;//ilast
- }
- else
- {
- incr[0] = 1;
- ibound[0] = 1;//ifirst
- ibound[1] = imax-1;//ilast
- }
- ibound[2] = 0;//jfirst
- ibound[3] = 0;//jlast
- }
- break;
- case 5:
- {
- if(fConnects[1]->SequenceNumber() > fConnects[2]->SequenceNumber())
- {
- incr[1] = -1;
- ibound[2] = jmax-1;//jfirst
- ibound[3] = 1;//jlast
- }
- else
- {
- incr[1] = 1;
- ibound[2] = 1;//jfirst
- ibound[3] = jmax-1;//jlast
- }
- ibound[0] = imax;//ifirst
- ibound[1] = imax;//ilast
- }
- break;
- case 6:
- {
- if(fConnects[3]->SequenceNumber() > fConnects[2]->SequenceNumber())
- {
- incr[0] = -1;
- ibound[0] = imax-1;//ifirst
- ibound[1] = 1;//ilast
- }
- else
- {
- incr[0] = 1;
- ibound[0] = 1;//ifirst
- ibound[1] = imax-1;//ilast
- }
- ibound[2] = jmax;//jfirst
- ibound[3] = jmax;//jlast
- }
- break;
- case 7:
- {
- if(fConnects[0]->SequenceNumber() > fConnects[3]->SequenceNumber())
- {
- incr[1] = -1;
- ibound[2] = jmax-1;//jfirst
- ibound[3] = 1;//jlast
- }
- else
- {
- incr[1] = 1;
- ibound[2] = 1;//jfirst
- ibound[3] = jmax-1;//jlast
- }
- ibound[0] = 0;//ifirst
- ibound[1] = 0;//ilast
- }
- break;
- case 8:
- {
- incr[0] = 1;
- ibound[0] =1;
- ibound[1] =imax-1;
- incr[1] = 1;
- ibound[2] = 1;
- ibound[3] = imax-1;
- //
- if(fConnects[0]->SequenceNumber() > fConnects[1]->SequenceNumber())
- {
- incr[0] = -1;
- ibound[0] = imax-1;//ifirst
- ibound[1] = 1;//ilast
- }
- else
- {
- incr[0] = 1;
- ibound[0] = 1;//ifirst
- ibound[1] = imax-1;//ilast
- }
- 
- if(fConnects[1]->SequenceNumber() > fConnects[2]->SequenceNumber())
- {
- incr[1] = -1;
- ibound[2] = jmax-1;//jfirst
- ibound[3] = 1;//jlast
- }
- else
- {
- incr[1] = 1;
- ibound[2] = 1;//jfirst
- ibound[3] = jmax-1;//jlast
- }
- //
- }
- };
- return;
- }
- */
 
 void TPZGraphElQ2d::Connectivity(TPZDrawStyle st){
 	int res = fGraphMesh->Res();
@@ -419,12 +266,10 @@ int TPZGraphElQ2d::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
 		case(EVTKStyle):
-			return 9;//vtk quad
-			//		break;
+			return 9;
 		default:
 			return -1;
 	}
-	//	return -1;
 }
 
 int TPZGraphElQ2d::NNodes()

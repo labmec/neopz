@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElPyramidMapped methods. 
  */
-//
-// C++ Implementation: tpzgraphelpyramidmapped
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #include "tpzgraphelpyramidmapped.h"
 #include "pzshapecube.h"

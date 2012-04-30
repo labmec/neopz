@@ -36,25 +36,38 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
  */
 class TPZGraphMesh {
 public:
+	/** @brief Constructor for graphical mesh */
 	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat);
+	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
 	
+	/** @brief Find graphical node (connect) */
 	TPZGraphNode &FindNode(int side);
 	TPZGraphEl *FindElement(int sid);
-	TPZAdmChunkVector<TPZGraphEl *> &ElementList();//MElementType type
+	/** @brief Vector of the graphical elements */
+	TPZAdmChunkVector<TPZGraphEl *> &ElementList();
+	/** @brief Vector of the graphical nodes */
 	TPZAdmChunkVector<TPZGraphNode> &NodeMap();
+	/** @brief Number of points to drawing, depending on the resolution */
 	long NPoints();
 	long NElements(MElementType type);
+	/** @brief Get the resolution of the draw */
 	int Res() {return fResolution;}
+	/** @brief Sets the material information */
 	void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
+	/** @brief Sets the computational mesh to associate */
 	virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat);
+	/** @brief Draw the graphical nodes information */
 	virtual void DrawNodes();
+	/** @brief Draw the graphical mesh */
 	virtual void DrawMesh(int numcases);
+	/** @brief Draw the connectivity information */
 	virtual void DrawConnectivity(MElementType type);
-	//  virtual void DrawSolution(TPZBlock &Sol);
-	//  virtual void DrawSolution(char * var = 0);
+	/** @brief Draw solution depending on the resolution */
 	virtual void DrawSolution(int step, REAL time);
+	/** @brief Gets the style of the graphical mesh */
 	TPZDrawStyle Style();
+	/** @brief Sets the filename to output of graph */
 	virtual void SetFileName(const std::string &filename);
 	
 	std::ostream &Out()
@@ -62,30 +75,42 @@ public:
 		return fOutFile;
 	}
 	
+	/** @brief Sets resolution */
 	void SetResolution(int res){ fResolution = res; SequenceNodes();}
 	
 	void Print(std::ostream &out);
 	void SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<std::string>&vecnames);
 	
 protected:
+	/** @brief Computational mesh associated */
 	TPZCompMesh *fCompMesh;
+	/** @brief Geometric mesh related */
 	TPZGeoMesh *fGeoMesh;
 	
+	/** @brief Vector of material associated */
 	TPZAutoPointer<TPZMaterial> fMaterial;
+	/** @brief Dimension of the graphical mesh */
 	int fDimension;
+	/** @brief Vector of graphical elements */
 	TPZAdmChunkVector<TPZGraphEl *> fElementList;
+	/** @brief Vector of graphical nodes (connects) */
 	TPZAdmChunkVector<TPZGraphNode> fNodeMap;
+	/** @brief Resolution of the graphical object */
 	int fResolution;
+	/** @brief Style of the graphical file */
 	TPZDrawStyle fStyle;
 	std::ofstream fOutFile;
 	std::string fFileName;
+	/** @brief Vectors of the variables names (scalar and vectorial) */
 	TPZVec<std::string> fScalarNames, fVecNames;
 	virtual void SequenceNodes();
 	
 	TPZCompEl *FindFirstInterpolatedElement(TPZCompMesh *mesh,int dimension);
 	
 public:
+	/** @brief Return of the material for graphical mesh */
 	virtual TPZAutoPointer<TPZMaterial> Material();
+	/** @brief Return a pointer of the computational mesh */
 	virtual TPZCompMesh *Mesh() { return fCompMesh;}
 };
 

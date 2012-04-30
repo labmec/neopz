@@ -1,4 +1,3 @@
-// TPZGraphElQ3dd.h: interface for the TPZGraphElQ3dd class.
 /**
  * @file
  * @brief Contains the TPZGraphElQ3dd class which implements the graphical three dimensional discontinuous element.
@@ -21,6 +20,7 @@
 class TPZGraphElQ3dd : public TPZGraphEl{
 public:
 	
+	/** @brief Constructor for graphical element to computational hexahedra discontinuous element */
 	TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh);
 	
 	virtual ~TPZGraphElQ3dd(void);
@@ -54,8 +54,9 @@ protected:
 	
 	protected :   
 	
+	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
-
+	
 };
 
 #endif // !defined(AFX_TPZGRAPHELQ3DD_H__4DDADE46_92E7_11D4_B7FB_00500464279E__INCLUDED_)

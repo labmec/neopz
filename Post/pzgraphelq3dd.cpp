@@ -7,8 +7,6 @@
 using namespace std;
 
 
-// Construction/Destruction
-
 TPZGraphElQ3dd::TPZGraphElQ3dd(TPZCompEl *cel, TPZGraphMesh *gmesh) : TPZGraphEl(cel,gmesh,fConnect){
 }
 

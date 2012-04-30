@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGraphEl1dd methods. 
  */
+
 #include "pzgraphel1dd.h"
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
@@ -26,7 +27,6 @@ int TPZGraphEl1dd::NElements(){
 }
 
 long TPZGraphEl1dd::EqNum(TPZVec<int> &co) {
-	//int res = fGraphMesh->Res();
 	return fConnect->FirstPoint() + co[0];
 }
 
@@ -73,11 +73,9 @@ int TPZGraphEl1dd::ExportType(TPZDrawStyle st){
 	{
 		case(EVTKStyle):
 			return 1;
-			//		break;
 		default:
 			return -1;
 	}
-	//	return -1;
 }
 
 int TPZGraphEl1dd::NNodes()

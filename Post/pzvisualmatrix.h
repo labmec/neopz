@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the declaration of the VisualMatrix functions to VTK and DX packages.
  */
+
 #ifndef VISUAL_MATRIX
 #define VISUAL_MATRIX
 

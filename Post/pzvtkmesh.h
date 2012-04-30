@@ -2,13 +2,6 @@
  * @file
  * @brief Contains the TPZVTKGraphMesh class which implements the graphical mesh to VTK environment.
  */
-/*
- *  pzvtkmesh.h
- *  NeoPZ
- *
- *  Created by Philippe Devloo on 04/12/08.
- *  Copyright 2008 UNICAMP. All rights reserved.
- */
 
 #ifndef PZVTKMESH
 #define PZVTKMESH
@@ -27,7 +20,9 @@ class TPZVTKGraphMesh : public TPZGraphMesh {
 	
 public:
 	
+	/** @brief Constructor for graphical mesh using VTK format */
 	TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames);
+	/** @brief Copy constructor for graphical mesh using VTK format */
 	TPZVTKGraphMesh(TPZCompMesh *cmesh,int dim,TPZVTKGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
 	
 	virtual void DrawMesh(int numcases);

@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphElQ2dd class which implements the graphical two-dimensional discontinuous element.
  */
+
 #ifndef PZGRAPHELQ2D
 #define PZGRAPHELQ2D
 
@@ -14,7 +15,7 @@
  */
 class TPZGraphElQ2dd : public TPZGraphEl {
 public:
-	
+	/** @brief Constructor for graphical element to computational quadrilateral discontinuous element */
 	TPZGraphElQ2dd(TPZCompEl *cel, TPZGraphMesh *gmesh);
 	
 	virtual ~TPZGraphElQ2dd(void);
@@ -48,6 +49,7 @@ protected:
 	
 	protected :   
 	
+	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
 	
 };

@@ -14,7 +14,7 @@
  */
 class TPZGraphElQ2d : public TPZGraphEl {
 public:
-	
+	/** @brief Constructor for graphical element to computational quadrilateral element */
 	TPZGraphElQ2d(TPZCompEl *cel, TPZGraphMesh *gmesh);
 	
 	virtual ~TPZGraphElQ2d(void);
@@ -48,6 +48,7 @@ protected:
 	
 	protected :   
 	
+	/** @brief Graphical nodes vector (by connect of the computational element) */
 	TPZGraphNode *fConnects[9];	
 	
 };

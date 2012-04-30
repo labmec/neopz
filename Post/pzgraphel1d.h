@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphEl1d class which implements the graphical one dimensional element.
  */
+
 #ifndef GRAFEL1DH
 #define GRAFEL1DH
 
@@ -20,6 +21,7 @@ class TPZBlock;
 class TPZGraphEl1d : public TPZGraphEl
 {
 public:
+	/** @brief Constructor for graphical element to computational one dimensional element */
 	TPZGraphEl1d(TPZCompEl *ce, TPZGraphMesh *gg);
 	
 	virtual int NConnects() { return 3;}
@@ -49,6 +51,7 @@ protected:
 	
 	virtual void NextIJ(int no,  TPZVec<int> &co, int incr);
 	
+	/** @brief Graphical nodes vector (by connect of the computational element) */
 	TPZGraphNode *fConnects[3];
 	
 	virtual void SetNode(int i,TPZGraphNode *gno) {

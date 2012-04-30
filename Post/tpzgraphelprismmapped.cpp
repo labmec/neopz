@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElPrismMapped methods. 
  */
-//
-// C++ Implementation: tpzgraphelprismmapped
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 #include "tpzgraphelprismmapped.h"
 #include "pzshapecube.h"
@@ -56,5 +45,4 @@ void TPZGraphElPrismMapped::QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsiet
 	qsieta[2] = temp[2];
 	
 }
-
 

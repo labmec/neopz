@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZGraphElTd class which implements the graphical discontinuous triangular element.
  */
+
 #ifndef TRIGRAPHD
 #define TRIGRAPHD
 
@@ -15,7 +16,8 @@
 class TPZGraphElTd : public TPZGraphEl {
 	
 	public :
-
+	
+	/** @brief Constructor for graphical element to computational triangular discontinuous element */
 	TPZGraphElTd(TPZCompEl *c, TPZGraphMesh *g);
 	
 	virtual int NConnects();
@@ -48,8 +50,9 @@ class TPZGraphElTd : public TPZGraphEl {
 		fConnect = gno;
 	}
 	
+	/** @brief Graphical node (connect) to discontinuous graphical element */
 	TPZGraphNode *fConnect;
-
+	
 };
 
 #endif

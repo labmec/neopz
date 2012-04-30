@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the TPZGraphElPyramidMapped class which implements the graphical element for a pyramid using a map to the cube element.
  */
-//
-// C++ Interface: tpzgraphelpyramidmapped
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef TPZGRAPHELPYRAMIDMAPPED_H
 #define TPZGRAPHELPYRAMIDMAPPED_H
@@ -26,14 +16,12 @@
 class TPZGraphElPyramidMapped : public TPZGraphElQ3dd
 {
 public:
+	/** @brief Constructor for graphical pyramid element */
     TPZGraphElPyramidMapped(TPZCompEl* cel, TPZGraphMesh* gmesh);
-	
+	/** @brief Simple destructor */
     ~TPZGraphElPyramidMapped();
 	
-	/**
-	 * @brief This method maps the index of a point to parameter space as a function
-	 * of the number of divisions
-	 */
+	/** @brief This method maps the index of a point to parameter space as a function of the number of divisions */
 	virtual void QsiEta(TPZVec<int> &i, int imax, TPZVec<REAL> &qsieta);
 	
 };

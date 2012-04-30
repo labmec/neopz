@@ -2,13 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZVTKGeoMesh methods. 
  */
-/*
- *  TPZVTKGeoMesh.cpp
- *  Crack
- *
- *  Created by Cesar Lucci on 16/08/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- */
 
 #include "TPZVTKGeoMesh.h"
 #include "pzgeoel.h"
@@ -339,7 +332,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 			actualNode = gmesh->ElementVec()[el]->NodeIndex(t);
 			if(actualNode < 0) 
 				DebugStop();
-
+			
 			connectivity << " " << actualNode;
 		}
 		connectivity << std::endl;
@@ -351,7 +344,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 		
 		nVALIDelements++;
 	}
-
+	
 	// Printing all nodes of the mesh
 	file << counternodes << " float" << std::endl;
 	for(t=0;t<counternodes;t++) {
@@ -415,14 +408,14 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, int var)
 	{
 		gel = gmesh->ElementVec()[el];
 		// Print only to elements not refines (computational elements actives?)
-//		if(!gel || gel->HasSubElement())
-//			continue;
+		//		if(!gel || gel->HasSubElement())
+		//			continue;
         if(!gel) continue;
 		cel = gel->Reference();
 		if(!cel) continue;
 		if(gel->Type() == EOned && !gel->IsLinearMapping())//Exclude Arc3D and Ellipse3D
 			continue;
-
+		
 		int elNnodes = gel->NCornerNodes();
 		size += (1+elNnodes);
 		connectivity << elNnodes;
@@ -620,7 +613,7 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std
             
             neighSide = neighSide.Neighbour();
         }
-
+		
     }
     PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, true);
 }

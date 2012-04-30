@@ -2,8 +2,10 @@
  * @file
  * @brief Contains the implementation of the VisualMatrix for DataExplorer and VTK packages. 
  */
+
 #include "pzvisualmatrix.h"
 #include "pzfmatrix.h"
+
 using namespace std;
 
 /** This function creates adequated file that allow to visualization of the value of a matrix passed as parameter. \n
@@ -35,20 +37,20 @@ void VisualMatrixDX(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 	out << "# Positions as the indexes of the matrix, beginning by column." << endl;
 	out << "# The number of elements in x direction correspond to the number of the columns of the matrix." << endl;
 	out << "# The number of elements in y direction correspond to the number of the rows of the matrix." << endl;
-
+	
 	out  << "object 1 class gridpositions counts " << nelx+1 << " " << nely +1 << endl;
 	out << "origin 0. 0." << endl;
 	out << "delta 1. 0." << endl;
 	out << "delta 0. 1." << endl;
 	out << "attribute \"dep\" string \"positions\"" << endl;
 	out << endl;
-
-
+	
+	
 	out << "object 2 class gridconnections counts " << nelx+1 << " " << nely +1 << endl;
-
+	
  	out << "attribute \"element type\" string \"quads\"" << endl;
 	out << "attribute \"ref\" string \"positions\"" << endl;
-
+	
 	out.precision(5);
 	out  << "object 3 class array type float rank 0 items " << neltotal << " data follows" << endl;
 	for (i = 0; i < nelx; i++) {
@@ -56,18 +58,18 @@ void VisualMatrixDX(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 	}
 	out << "attribute \"dep\" string \"connections\" " << endl;
 	out << endl;
-
+	
 	out << "object 4 class field" << endl;
 	out << "component \"data\" value 3" << endl;
 	out << "component \"positions\" value 1" << endl;
 	out << "component \"connections\" value 2" << endl;
 	out << "attribute \"name\" string \"Matrix\"" << endl;
-
+	
 	out << endl;
 	out << "end" << endl;
-
+	
 	out.close();
-
+	
 	cout << "Data Explorer file " << outfilename << " was created with success!\n";
 }
 
@@ -102,25 +104,4 @@ void VisualMatrixVTK(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 	for (i=0; i<neltotal; i++) {
 		out << *(elem+i) << std::endl;
 	}
-	/*
-	 # vtk DataFile Version 3.0
-	 Cube example
-	 ASCII
-	 DATASET RECTILINEAR_GRID
-	 DIMENSIONS 3 3 1
-	 X_COORDINATES 3 float
-	 0. 1. 2.
-	 Y_COORDINATES 3 float
-	 0. 1. 2.
-	 Z_COORDINATES 1 float
-	 0. 
-	 
-	 CELL_DATA 4
-	 SCALARS toto float 1
-	 LOOKUP_TABLE default
-	 1
-	 2
-	 3
-	 4
-	 */
 }

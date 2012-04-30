@@ -2,14 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZVTKGraphMesh methods. 
  */
-/*
- *  pzvtkmesh.cpp
- *  NeoPZ
- *
- *  Created by Philippe Devloo on 04/12/08.
- *  Copyright 2008 UNICAMP. All rights reserved.
- *
- */
 
 #include <sstream>
 #include "pzvtkmesh.h"

@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElT methods. 
  */
+
 #include "pztrigraph.h"
 
 using namespace std;
@@ -231,11 +232,9 @@ int TPZGraphElT::ExportType(TPZDrawStyle st){
 	{
 		case(EVTKStyle):
 			return 5;//vtk_triangle
-			//		break;
 		default:
 			return -1;
 	}
-	//	return -1;
 }
 
 int TPZGraphElT::NNodes()

@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElT3d methods. 
  */
-//
-// C++ Implementation: tpzgraphelt3d
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2006
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #include "tpzgraphelt3d.h"
 

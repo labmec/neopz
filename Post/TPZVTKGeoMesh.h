@@ -2,13 +2,6 @@
  * @file
  * @brief Contains the TPZVTKGeoMesh class which implements the graphical mesh to VTK environment to geometric mesh.
  */
-/*
- *  TPZVTKGeoMesh.h
- *  Crack
- *
- *  Created by Cesar Lucci on 16/08/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- */
 
 #ifndef TPZVTKGEOMESHH
 #define TPZVTKGEOMESHH 
@@ -16,7 +9,9 @@
 #include <set>
 #include "pzgeoel.h"
 #include "pzcompel.h"
+
 class TPZCompMesh;
+
 /**
  * @ingroup post
  * @author Cesar Lucci
@@ -27,8 +22,9 @@ class TPZVTKGeoMesh
 {
 	
 public:
-	
+	/** @brief Default constructor for graphical mesh with VTK format */
 	TPZVTKGeoMesh();
+	/** @brief Default destructor */
 	~TPZVTKGeoMesh();
 	
 	/** @brief Generate an output of all geomesh to VTK */
@@ -44,22 +40,17 @@ public:
 	/** @brief Generate an output of all geomesh to VTK, associating to each one the given data. Print the values of the variable var */
 	static void PrintGMeshVTK(TPZGeoMesh *gmesh, char *filename,int var);
 	
-	/**
-	 * @brief Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file
-	 */
+	/** @brief Based on a given geomesh, just the elements that have an neighbour with a given material id will be exported to an VTK file */
 	static void PrintGMeshVTKneighbour_material(TPZGeoMesh *gmesh, std::ofstream &file, int neighMaterial, bool matColor = false);
     
-    /**
-     * @brief Print the elements that surround a givel geoel
-     */
+    /** @brief Print the elements that surround a givel geoel */
     static void PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std::ofstream &file);
     static void SetMaterial(TPZGeoEl * gel, int mat);
 	
-	/**
-	 * @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file
-	 */
+	/** @brief Based on a given geomesh, just the elements that have the given material id will be exported to an VTK file */
 	static void PrintGMeshVTKmy_material(TPZGeoMesh *gmesh, std::ofstream &file, std::set<int> myMaterial, bool matColor = false);
 	
+	/** @brief Get type of the geometric element */
 	static int GetVTK_ElType(TPZGeoEl *gel);
     
     /** Print a pointmesh whose values are the polynomial orders */

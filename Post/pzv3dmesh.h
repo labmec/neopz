@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZV3DGraphMesh class which implements the graphical three dimensional mesh to use at V3D package.
  */
+
 #ifndef V3DGRAFGH
 #define V3DGRAFGH
 
@@ -20,9 +21,11 @@ class TPZV3DGraphMesh : public TPZGraphMesh {
 	
 public:
 	
+	/** @brief Constructor for graphical mesh using 3D Image Visualization format */
 	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat);
+	/** @brief Copy constructor for graphical mesh using 3D Image Visualization format */
 	TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
-	
+	/** @brief Default destructor */
 	virtual ~TPZV3DGraphMesh()
 	{
 	}

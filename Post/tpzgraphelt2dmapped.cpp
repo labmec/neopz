@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElT2dMapped methods. 
  */
-//
-// C++ Implementation: tpzgraphelt2dmapped
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #include "tpzgraphelt2dmapped.h"
 #include "pzshapequad.h"

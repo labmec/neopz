@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGraphElQ2dd methods. 
  */
+
 #include "pzgraphelq2dd.h"
 #include "pzgraphmesh.h"
 #include "pzcompel.h"
@@ -98,11 +99,9 @@ int TPZGraphElQ2dd::ExportType(TPZDrawStyle st){
 	{
 		case(EVTKStyle):
 			return 9;//vtk_quad
-			//		break;
 		default:
 			return -1;
 	}
-	//	return -1;
 }
 
 int TPZGraphElQ2dd::NNodes()

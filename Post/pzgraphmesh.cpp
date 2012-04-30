@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGraphMesh methods. 
  */
+
 #include "pzgraphmesh.h"
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
@@ -28,15 +29,6 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMat
 	fMaterial = mat;
 	fCompMesh = cm;
 	fDimension = dimension;
-	//   TPZGeoMesh *geomesh = fCompMesh->Reference();
-	//   TPZAdmChunkVector<TPZGeoEl *> &gelvec = geomesh->ElementVec();
-	//   TPZGeoEl *ge;
-	//   nel = gelvec.NElements();
-	//   for(i=0;i<nel;i++) {
-	//     ge = gelvec[i];
-	//     if(!ge || !ge->Reference() || ge->Reference()->Type() == EInterface ) continue;
-	//       ge->Reference()->CreateGraphicalElement(*this, dimension);
-	//   }
 	
 	TPZAdmChunkVector<TPZCompEl *> &celvec = fCompMesh->ElementVec();
 	TPZCompEl *ce;
@@ -44,7 +36,6 @@ TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMat
 	for(i=0;i<nel;i++) {
 		ce = (TPZCompEl *) celvec[i];
 		if(!ce) continue;
-		//    if (ce->Dimension() != dimension) continue;
 		ce->CreateGraphicalElement(*this, dimension);
 	}
 	
@@ -133,20 +124,7 @@ void TPZGraphMesh::SetFileName(const std::string &filename)
 	{
 		fOutFile.close();
 	}
-	//	fOutFile.open(filename.c_str());
 }
-
-/*
- void TPZGraphMesh::SetOutFile(ostream &out)
- {
- fOutFile = &out;
- }
- 
- ostream *TPZGraphMesh::Out()
- {
- return fOutFile;
- }
- */
 
 void TPZGraphMesh::DrawNodes()
 {
@@ -160,20 +138,9 @@ void TPZGraphMesh::DrawNodes()
 void TPZGraphMesh::DrawMesh(int /*numcases*/){
 }
 
-
-//void TPZGraphMesh::DrawSolution(char * /*var*/)
-//{
-//}
-
-//void TPZGraphMesh::DrawSolution(TPZBlock &/*bl*/)
-//{
-//}
-
 void TPZGraphMesh::DrawSolution(int /*step*/, REAL /*time*/){
 	cout << "TPZGraphMesh::DrawSolution called\n";
 }
-
-
 
 void TPZGraphMesh::DrawConnectivity(MElementType type)
 {
@@ -230,7 +197,6 @@ void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<
 	fVecNames = vecnames;
 }
 
-
 TPZAutoPointer<TPZMaterial> TPZGraphMesh::Material() {
 	return fMaterial;
 }
@@ -255,12 +221,10 @@ void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &m
 	for(i=0;i<nel;i++) {
 		ce = (TPZCompEl *) celvec[i];
 		if(ce)  ce->CreateGraphicalElement(*this, fDimension);
-	}
-	
+	}	
 }
 
-TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim){
-	
+TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim) {
 	int nel = mesh->NElements();
 	TPZCompEl *cel;
 	int iel;
