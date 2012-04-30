@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the QMR function which solves the unsymmetric linear system using the Quasi-Minimal Residual method. 
  */
+
 #include <math.h>
 
 /**

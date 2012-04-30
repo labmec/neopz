@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the IR function which solves the unsymmetric linear system using the Iterative Refinement method. 
  */
+
 /**
  * @ingroup solvers
  * @brief IR solves the unsymmetric linear system Ax = b using Iterative Refinement (preconditioned Richardson iteration).
@@ -20,8 +21,7 @@
  * Iterative template routine -- Preconditioned Richardson
  */
 template < class Matrix, class Vector, class Preconditioner, class Real >
-int 
-IR( Matrix &A, Vector &x,const Vector &b,
+int IR( Matrix &A, Vector &x,const Vector &b,
    Preconditioner &M, Vector *residual, int &max_iter, Real &tol,const int FromCurrent)
 {
 	Real resid;
@@ -32,13 +32,12 @@ IR( Matrix &A, Vector &x,const Vector &b,
 	Vector *res = residual;
 	if(!res) res = &resbackup;
 	Vector &r = *res;
-	//  Vector r = b - A*x;
+
 	if(FromCurrent) A.MultAdd(x,b,r,-1.,1.);
 	else {
 		x.Zero();
 		r = b;
 	}
-	//  Vector r = b - A*x;
 	
 	if (normb == 0.0)
 		normb = 1;
@@ -50,11 +49,9 @@ IR( Matrix &A, Vector &x,const Vector &b,
 	}
 	
 	for (int i = 1; i <= max_iter; i++) {
-		//	 z = M.solve(r);
 		M.Solve(r,z);
 		x += z;
 		A.MultAdd(x,b,r,-1.,1.);
-		//	 r = b - A * x;
 		
 		if ((resid = Norm(r) / normb) <= tol) {
 			tol = resid;

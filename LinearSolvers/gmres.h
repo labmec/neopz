@@ -32,7 +32,6 @@ Update(Vector &x, int k, Matrix &h, Vector &s, Vector v[])
 	
 	for (int j = 0; j <= k; j++)
 		x.ZAXPY(y(j),v[j]);
-	//    x += v[j] * y(j);
 }
 
 /**
@@ -87,15 +86,12 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	if(FromCurrent) 
     {
         A.MultAdd(x,b,r,-1.,1.);
-//        r.Print("Residual");
     } 
     else 
     {
 		x.Zero();
 		r = b;
-        //DebugStop();
 	}
-	//	Vector r = M.solve(b - A * x);
 	M.Solve(r,w);
 	r=w;
 	Real beta = Norm(r);
@@ -118,18 +114,15 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 		s(0) = beta;
 		
 		for (i = 0; i < m && j <= max_iter; i++, j++) {
-			//		w = M.solve(A * v[i]);
 			A.Multiply(v[i],w1);
 			M.Solve(w1,w);
 			for (k = 0; k <= i; k++) {
 				H(k, i) = Dot(w, v[k]);
-				//		  w -= H(k, i) * v[k];
 				w.ZAXPY(-H(k, i), v[k]);
 			}
 			H(i+1, i) = Norm(w);
 			v[i+1] = w;
 			v[i+1] *= REAL(1.0)/H(i+1,i);
-			//		v[i+1] = w * (1.0 / H(i+1, i)); // ??? w / H(i+1, i)
 			
 			for (k = 0; k < i; k++)
 				ApplyPlaneRotation(H(k,i), H(k+1,i), cs(k), sn(k));
@@ -138,24 +131,19 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 			ApplyPlaneRotation(H(i,i), H(i+1,i), cs(i), sn(i));
 			ApplyPlaneRotation(s(i), s(i+1), cs(i), sn(i));
 			resid = abs(s(i+1))/normb;
-            //std::cout << "iter " << j << " - " << resid << std::endl;
 			if (resid < tol) {
-                //std::cout << "iter " << j << " - " << resid << std::endl;
 				Update(x, i, H, s, v);
 				tol = resid;
 				max_iter = j;
 				delete [] v;
 				return 0;
 			}
-			//                std::cout << "iter " << j << " - " << resid << std::endl;
 		}
 		Update(x, m - 1, H, s, v);
 		A.MultAdd(x,b,r,-1.,1.);
 		M.Solve(r,r);
-		//	 r = M.solve(b - A * x);
 		beta = Norm(r);
         resid = beta/normb;
-        //std::cout << "iter " << j << " - " << resid << std::endl;
 		if (resid < tol) {
             std::cout << "iter " << j << " - " << resid << std::endl;
 			tol = resid;
@@ -166,7 +154,6 @@ GMRES( Operator &A, Vector &x, const Vector &b,
 	}
 	
 	tol = resid;
-	//std::cout << "iter " << j << " - " << resid << std::endl;
 	delete [] v;
 	return 1;
 }

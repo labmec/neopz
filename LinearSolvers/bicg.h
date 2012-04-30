@@ -1,8 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the BiCG function which solves the unsymmetric linear system \n
+ * @brief Contains the implementation of the BiCG function which solves the unsymmetric linear system 
  * using Preconditioned BiConjugate Gradient method.
  */
+
 /******************************************************************
  * @ingroup solver
  * @brief BiCG solves the unsymmetric linear system \f$ Ax = b \f$
@@ -45,8 +46,6 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 	
 	for (int i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
-		//    ztilde = M.trans_solve(rtilde);
-		//    ztilde = M.Solve(rtilde);
 		M.Solve(rtilde,ztilde);
 		rho_1(0) = Dot(z, rtilde);
 		if (rho_1(0) == 0) { 
@@ -59,14 +58,11 @@ BiCG( Matrix &A, Vector &x, const Vector &b,
 			ptilde = ztilde;
 		} else {
 			beta(0) = rho_1(0) / rho_2(0);
-			//      p = z + beta(0) * p;
 			p.TimesBetaPlusZ(beta(0),z);
-			//      ptilde = ztilde + beta(0) * ptilde;
 			ptilde.TimesBetaPlusZ(beta(0),ztilde);
 		}
 		q = A * p;
 		A.Multiply(ptilde,qtilde,1);
-		//    qtilde = A.trans_mult(ptilde);
 		alpha(0) = rho_1(0) / Dot(ptilde, q);
 		x += alpha(0) * p;
 		r -= alpha(0) * q;

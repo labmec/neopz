@@ -1,8 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the CHEBY function which solves the symmetric positive definite linear system using the \n
+ * @brief Contains the implementation of the CHEBY function which solves the symmetric positive definite linear system using the 
  * Preconditioned Chebyshec method. 
  */
+
 /**
  * @ingroup solver
  * @brief CHEBY solves the symmetric positive definite linear system \f$ Ax = b \f$ using the Preconditioned Chebyshev Method

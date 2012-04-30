@@ -1,8 +1,9 @@
 /**
  * @file
- * @brief Contains the implementation of the CG function which solves the symmetric positive definite linear system \n
+ * @brief Contains the implementation of the CG function which solves the symmetric positive definite linear system
  * using the Conjugate Gradient method.
  */
+
 /**
  * @ingroup solver
  * @brief CG solves the symmetric positive definite linear system \f$ A x = b \f$ using the Conjugate Gradient method.
@@ -66,21 +67,18 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	for (i = 1; i <= max_iter; i++) {
 		M.Solve(r,z);
 		rho = Dot(r, z);
-		//cout << "rho = " << rho << endl;
 		
 		if (i == 1)
 			p = z;
 		else {
 			beta = rho / rho_1;
 			p.TimesBetaPlusZ(beta,z);
-			//		p = z + beta * p;
 		}
 #ifdef TEST
 		
 		plist.push_back(p);
 #endif	 
 		
-		//	 q = A*p;
 		A.Multiply(p,q);
 		alpha = rho / Dot(p, q);
 		
@@ -88,8 +86,6 @@ CG( Matrix &A, Vector &x, const Vector &b,
 		qlist.push_back(q);
 #endif
 		
-		//	 x += alpha * p;
-		//	 r -= alpha * q;
 		x.ZAXPY(alpha,p);
 		r.ZAXPY(-alpha,q);
 		
@@ -127,4 +123,3 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	std::cout << "cg iter = " << i <<  " res = " << resid << std::endl;
 	return 1;
 }
-
