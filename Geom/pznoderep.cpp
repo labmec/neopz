@@ -2,16 +2,6 @@
  * @file
  * @brief Creates TPZNodeRep classes for several master elements. 
  */
-// C++ Implementation: pznoderep
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 #ifndef BORLAND
 #include "pznoderep.h.h"

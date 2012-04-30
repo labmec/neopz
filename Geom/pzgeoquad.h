@@ -27,9 +27,9 @@ namespace pzgeom {
 	class TPZGeoQuad  : public TPZNodeRep<4, pztopology::TPZQuadrilateral>
 	{
 	public:
-		
+		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
-		enum {NVectors = 18};
+
 		/** @brief Constructor with list of nodes */
 		TPZGeoQuad(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{

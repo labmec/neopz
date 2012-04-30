@@ -9,12 +9,6 @@
 #include "pzquad.h"
 #include "tpzgeoelrefpattern.h"
 
-//#include "pzelgpoint.h"
-//#include "pzelg1d.h"
-//#include "pzelgq2d.h"
-//#include "pzshapequad.h"
-
-//using namespace pzshape;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -255,20 +249,6 @@ namespace pzgeom {
 	
 	void TPZGeoQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
-		
-#ifdef DEBUG
-		//  const int nnodes = NNodes;
-		//  if (nnodes != 4) {
-		//    PZError << "TPZGeoQuad.jacobian only implemented for"
-		//      " 4 nodes, NumberOfNodes = " << nnodes << "\n";
-		//  }
-//		if( param[0] < -1.001 || param[0] > 1.001 || param[1] < -1.001 || param[1] > 1.001) {
-//			PZError << "TPZGeoQuad.jacobian. param out of range : "
-//			" param.NElements() = " << param.NElements() <<
-//			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
-//			//return;
-//		}
-#endif
 		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
 		TPZFNMatrix<4> phi(4,1);
 		TPZFNMatrix<8> dphi(2,4);
@@ -406,9 +386,7 @@ namespace pzgeom {
 		return 0;
 	}
 	
-	/**
-	 * Creates a geometric element according to the type of the father element
-	 */
+	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoQuad::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										   TPZVec<int>& nodeindexes,
 										   int matid,
@@ -416,5 +394,4 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
-	
 };

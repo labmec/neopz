@@ -1,4 +1,3 @@
-// $Id: pzgeoprism.h,v 1.15 2011-05-11 01:38:41 phil Exp $
 /**
  * @file
  * @brief Contains the TPZGeoPrism class which implements the geometry of a prism element.
@@ -29,7 +28,7 @@ namespace pzgeom {
 	class TPZGeoPrism : public TPZNodeRep<6, pztopology::TPZPrism>  
 	{
 	public:
-		
+		/** @brief Number of corner nodes */
 		enum {NNodes = 6};
 		/** @brief Constructor with list of nodes */
 		TPZGeoPrism(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes, pztopology::TPZPrism>(nodeindexes)

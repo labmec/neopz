@@ -7,12 +7,6 @@
 #include "pzfmatrix.h"
 #include "pzgeoel.h"
 #include "pzquad.h"
-//#include "pzelgpoint.h"
-//#include "pzelg1d.h"
-//#include "pzelgt2d.h"
-//#include "pzelgq2d.h"
-//#include "pzelgpi3d.h"
-//#include "pzelgt3d.h"
 #include "pzshapetetra.h"
 #include "tpzgeoelrefpattern.h"
 
@@ -478,9 +472,7 @@ namespace pzgeom {
 		}
 	}
 	
-	/**
-	 * Creates a geometric element according to the type of the father element
-	 */
+	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoTetrahedra::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 												 TPZVec<int>& nodeindexes,
 												 int matid,

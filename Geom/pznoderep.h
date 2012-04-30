@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the TPZNodeRep class which implements ...
  */
-// C++ Interface: pznoderep
-//
-// Description:
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 #ifndef PZNODEREPH
 #define PZNODEREPH
@@ -133,6 +123,7 @@ namespace pzgeom {
 		{
 		}
         
+		/** @brief Gets the corner node coordinates in coord */
         void CornerCoordinates(const TPZGeoEl &gel, TPZFMatrix<REAL> &coord) const
         {
             TPZGeoNode *np;
@@ -144,35 +135,6 @@ namespace pzgeom {
                 }
             }
         }
-		/**
-		 * Create an element along the side with material id bc
-		 */
-		/*
-		 TPZGeoEl *CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
-		 {
-		 int ns = orig->NSideNodes(side);
-		 TPZManVector<int> nodeindices(ns);
-		 int in;
-		 for(in=0; in<ns; in++)
-		 {
-		 nodeindices[in] = orig->SideNodeIndex(side,in);
-		 }
-		 int index;
-		 TPZGeoEl *newel = CreateGeoElementPattern(*(orig->Mesh()),Topology::Type(side),nodeindices,bc,index);
-		 TPZGeoElSide me(orig,side);
-		 TPZGeoElSide newelside(newel,newel->NSides()-1);
-		 newelside.InsertConnectivity(me);
-		 return newel;
-		 }
-		 */
-		/** Verifies if the parametric point pt is in the element parametric domain
-		 */
-		/*
-		 bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6){
-		 const bool result = Topology::IsInParametricDomain(pt, tol);
-		 return result;
-		 }//method
-		 */
 		
 		/** 
 		 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
@@ -245,9 +207,7 @@ namespace pzgeom {
 			ChangedPoint.Resize(OriginalPoint.NElements(),0.);
 			ChangedPoint = OriginalPoint;
 		}
-		
 	};
-	
 };
 
 #include "pznoderep.h.h"

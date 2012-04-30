@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZGeoPyramid class which implements the geometry of pyramid element.
  */
-// $Id: pzgeopyramid.h,v 1.13 2011-05-11 01:38:41 phil Exp $
 
 #ifndef TPZGEOTETRAPIRAMIDH
 #define TPZGEOTETRAPIRAMIDH
@@ -26,7 +25,7 @@ namespace pzgeom {
 	class TPZGeoPyramid  : public TPZNodeRep<5, pztopology::TPZPyramid>
 	{
 	public:
-		
+		/** @brief Number of corner nodes */
 		enum {NNodes = 5};
 		
 		/** @brief Constructor with list of nodes */

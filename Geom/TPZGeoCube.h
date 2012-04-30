@@ -29,6 +29,7 @@ namespace pzgeom {
 	class TPZGeoCube : public TPZNodeRep<8, pztopology::TPZCube> {
 		
 	public:
+		/** @brief Number of corner nodes */
 		enum {NNodes = 8};
 		
 		/** @brief Constructor with list of nodes */
@@ -60,7 +61,7 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Hexa";} 
 		
-		/* brief compute the coordinate of a point given in parameter space */
+		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
@@ -68,14 +69,14 @@ namespace pzgeom {
             X(coord,loc,result);
         }
 		
-        /* @brief compute the jacobian of the map between the master element and deformed element */
+        /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
             CornerCoordinates(gel, coord);
             Jacobian(coord, param, jacobian, axes, detjac, jacinv);
         }
-        
+
 		static void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
 		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */

@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZNodeRep methods.
  */
-// C++ Interface: pznoderep
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 #ifndef PZNODEREPHH
 #define PZNODEREPHH

@@ -10,7 +10,6 @@
 #include "pzgmesh.h"
 #include "tpzgeoelrefpattern.h"
 
-//#include "pzgeoelrefless.h.h"
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -413,9 +412,7 @@ namespace pzgeom {
 		}
 	}
 	
-	/**
-	 * Creates a geometric element according to the type of the father element
-	 */
+	/** Creates a geometric element according to the type of the father element */
 	TPZGeoEl *TPZGeoTriangle::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 											   TPZVec<int>& nodeindexes,
 											   int matid,

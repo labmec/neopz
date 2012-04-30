@@ -11,6 +11,7 @@
 #include "pzgeoprism.h"
 #include "pzgeoel.h"
 #include "pznoderep.h"
+#include "pzgeoelside.h"
 
 #include <iostream>
 
@@ -35,18 +36,20 @@ namespace pzgeom
 			return true; 
 		}
 		
+		/** @brief Constructor with list of nodes */
 		TPZGeoBlend(TPZVec<int> &nodeindexes) : TGeo(nodeindexes) {
 		}
-		
+		/** @brief Empty constructor */
 		TPZGeoBlend() : TGeo() {
 		}
 		
+		/** @brief Constructor with node map */
 		TPZGeoBlend(const TPZGeoBlend &cp,std::map<int,int> & gl2lcNdMap) : TGeo(cp,gl2lcNdMap) {
 		}
-		
+		/** @brief Copy constructor */
 		TPZGeoBlend(const TPZGeoBlend &cp) : TGeo(cp) {
 		}
-		
+		/** @brief Copy constructor */
 		TPZGeoBlend(const TPZGeoBlend &cp, TPZGeoMesh &) : TGeo(cp) {
 		}
         
@@ -85,13 +88,11 @@ namespace pzgeom
 			return fTrans[side - TGeo::NNodes];
 		}
 		
-		/**
-		 * @brief Returns the type name of the element
-		 */
+		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return TGeo::TypeName();} 
-		
+		/** @brief Get the coordinates of the point at geometric elements from coordinates of the parametric point at the master element */
 		void X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result);
-		
+		/** @brief Computes the Jacobian for parametric point at master element */
 		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		/** @brief Print all relevant data of the element to cout*/
@@ -135,6 +136,7 @@ namespace pzgeom
 		
 		/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
 		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide);
+		/** @brief Vector of indexes of the neighbours */
 		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];
 	};

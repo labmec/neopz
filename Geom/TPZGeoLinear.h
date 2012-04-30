@@ -28,6 +28,7 @@ namespace pzgeom {
 	class TPZGeoLinear : public TPZNodeRep<2, pztopology::TPZLine> {
 		
 	public:
+		/** @brief Number of corner nodes */
 		enum {NNodes = 2};
 		
 		/** @brief Constructor with list of nodes */
@@ -60,7 +61,7 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Linear";} 
 		
-		/* brief compute the coordinate of a point given in parameter space */
+		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);
@@ -68,7 +69,7 @@ namespace pzgeom {
             X(coord,loc,result);
         }
 		
-        /* @brief compute the jacobian of the map between the master element and deformed element */
+        /* @brief Computes the jacobian of the map between the master element and deformed element */
 		void Jacobian(const TPZGeoEl &gel,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
         {
             TPZFNMatrix<3*NNodes> coord(3,NNodes);

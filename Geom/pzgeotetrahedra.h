@@ -27,8 +27,9 @@ namespace pzgeom {
 	class TPZGeoTetrahedra  : public TPZNodeRep<4,pztopology::TPZTetrahedron>
 	{
 	public:
-		
+		/** @brief Number of corner nodes */
 		enum {NNodes = 4};
+
 		/** @brief Constructor with list of nodes */
 		TPZGeoTetrahedra(TPZVec<int> &nodeindexes) : TPZNodeRep<NNodes,pztopology::TPZTetrahedron>(nodeindexes)
 		{

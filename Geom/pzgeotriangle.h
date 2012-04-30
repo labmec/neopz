@@ -30,6 +30,7 @@ namespace pzgeom {
 	{
 	public:
 
+		/** @brief Number of corner nodes */
 		enum {NNodes = 3};
 		
 		/** @brief Constructor with list of nodes */
