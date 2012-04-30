@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the TPZCounter methods and the DebugStop() function.
  */
-//
-// C++ Implementation: pzreal
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #include "pzreal.h"
 #include <string>

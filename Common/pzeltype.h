@@ -2,6 +2,7 @@
  * @file
  * @brief Defines enum MElementType and contains the implementation of MElementType_NNodes(...) functions
  */
+ 
 #ifndef PZELTYPEH
 #define PZELTYPEH
 
@@ -25,10 +26,9 @@
  * @brief Define the element types.
  */
 
-// $Id: pzeltype.h,v 1.9 2011-04-05 19:32:54 calle Exp $
 /**
-   @enum MElementType
- * Defines the element types
+ * @enum MElementType
+ * @brief Defines the element types
  * @param EPoint            element 0D - type point        -  associated index 0
  * @param EOned             element 1D - type oned         -  associated index 1
  * @param ETriangle         element 2D - type triangle     -  associated index 2
@@ -49,7 +49,6 @@
  * @param EAgglomerate      element nD - type agglomerate  -  associated index 17
  * @param ENoType           element 0D - type none         -  associated index 18
  */
-
 enum MElementType
 {
 	/*0*/	EPoint,
@@ -73,9 +72,7 @@ enum MElementType
 	/*18*/	EInterfaceDisc = EInterface
 };
 
-/**
- * @brief Returns the number of nodes according to the type of the element
- */
+/** @brief Returns the number of nodes according to the type of the element */
 inline int MElementType_NNodes(MElementType elType)
 {
 	switch(elType)
@@ -122,9 +119,7 @@ inline int MElementType_NNodes(MElementType elType)
 	return -1;
 }
 
-/**
- * @brief Returns the name of the element type.
- */
+/** @brief Returns the name of the element type. */
 inline std::string MElementType_Name(MElementType elType)
 {
 	int elTypeId = elType;
@@ -215,8 +210,6 @@ inline std::string MElementType_Name(MElementType elType)
 	return "";
 }
 
-/**
- * @}
- */
+/** @} */
 
 #endif
