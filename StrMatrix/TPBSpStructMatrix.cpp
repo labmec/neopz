@@ -7,6 +7,7 @@
 #include "TPZSpStructMatrix.h"
 #include "pzstrmatrix.h"
 
+#include "pzgeoelbc.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzmat2dlin.h"

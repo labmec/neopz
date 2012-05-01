@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZBlockDiagonalStructMatrix methods. 
  */
-//$Id: pzbdstrmatrix.cpp,v 1.10 2010-04-06 17:22:04 fortiago Exp $
 
 #include "pzbdstrmatrix.h"
 #include "pzblockdiag.h"
@@ -73,7 +72,6 @@ void TPZBlockDiagonalStructMatrix::BlockSizes(TPZVec < int > & blocksizes){
     for(c=0; c<nc; c++) {
         TPZConnect &con = connectvec[c];
         if(con.HasDependency() || con.IsCondensed() || con.SequenceNumber() < 0) continue;
-		//        int bl = con.SequenceNumber();
         nblocks++;
     }
     blocksizes.Resize(nblocks);
@@ -100,13 +98,10 @@ TPZStructMatrix * TPZBlockDiagonalStructMatrix::Clone(){
 }
 TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface){
 	int neq = fMesh->NEquations();
-	//cout << "TPZBlockDiagonalStructMatrix::CreateAssemble will not assemble the right hand side\n";
 	TPZBlockDiagonal<STATE> *block = new TPZBlockDiagonal<STATE>();
 	rhs.Redim(neq,1);
-	//  TPZStructMatrix::Assemble(rhs, *fMesh,fMinEq,fMaxEq);
 	Assemble(rhs,guiInterface);
 	AssembleBlockDiagonal(*block);
-	//  block->Print("Block Diagonal matrix");
 	return block;
 }
 TPZMatrix<STATE> * TPZBlockDiagonalStructMatrix::Create(){

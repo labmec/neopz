@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the TPZStructMatrix class which responsible for a interface among Matrix and Finite Element classes.
  */
-//$Id: pzstrmatrix.h,v 1.16 2011-05-23 19:00:50 fortiago Exp $
 
 #ifndef TPZSTRUCTMATRIX_H
 #define TPZSTRUCTMATRIX_H
@@ -47,8 +46,7 @@ public:
 	
 	virtual ~TPZStructMatrix();
 	
-	/** @brief Sets number of threads in Assemble process
-	 */
+	/** @brief Sets number of threads in Assemble process */
 	void SetNumThreads(int n){
 		this->fNumThreads = n;
 	}
@@ -57,19 +55,14 @@ public:
 		return this->fNumThreads;
 	}
 	
-	/** @brief Calling this method indicates that only internal equations whould be assembled
-	 *
-	 * This is the default behaviour for objects of type TPZSubCompMesh
-	 */
+	/** @brief Calling this method indicates that only internal equations whould be assembled */
+	/** This is the default behaviour for objects of type TPZSubCompMesh */
 	void AssembleOnlyInternalEquations()
 	{
 		fOnlyInternal = true;
 	}
 	
-	/** @brief Calling this method indicates all equations should be assembled
-	 *
-	 * this behaviour is default for objects of type TPZCompMesh
-	 */
+	/** @brief Calling this method indicates all equations should be assembled this behaviour is default for objects of type TPZCompMesh */
 	void AssembleAllEquations()
 	{
 		fOnlyInternal = false;
@@ -81,37 +74,25 @@ public:
 	
 	virtual TPZStructMatrix * Clone();
 	
-	/**
-	 * @brief Assemble the global system of equations into the matrix which has already been created
-	 */
+	/** @brief Assemble the global system of equations into the matrix which has already been created */
 	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
-	/**
-	 * @brief Assemble the global right hand side
-	 */
+	/** @brief Assemble the global right hand side */
 	virtual void Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 protected:
 	
-	/**
-	 * @brief Assemble the global system of equations into the matrix which has already been created
-	 */
+	/** @brief Assemble the global system of equations into the matrix which has already been created */
 	virtual void Serial_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
-	/**
-	 * @brief Assemble the global right hand side
-	 */
+	/** @brief Assemble the global right hand side */
 	virtual void Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 	
-	/**
-	 * @brief Assemble the global right hand side
-	 */
+	/** @brief Assemble the global right hand side */
 	virtual void MultiThread_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
-	/**
-	 * @brief Assemble the global system of equations into the matrix which has already been created
-	 */
+	/** @brief Assemble the global system of equations into the matrix which has already been created */
 	virtual void MultiThread_Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
 	
 public:
@@ -200,32 +181,25 @@ protected:
 	friend struct ThreadData;
 protected:
 	
-	/**
-	 * @brief Pointer to the computational mesh from which the matrix will be generated
-	 */
+	/** @brief Pointer to the computational mesh from which the matrix will be generated */
 	TPZCompMesh * fMesh;
     
-    /**
-     * @brief Autopointer control of the computational mesh
-     */
+    /** @brief Autopointer control of the computational mesh */
     TPZAutoPointer<TPZCompMesh> fCompMesh;
 	
-	/** @brief Equation range for assembly of the global matrix
-	 */
+	/** @brief Equation range for assembly of the global matrix */
 	int fMinEq, fMaxEq;
 	
 	bool fOnlyInternal;
 	
 protected:
 	
-	/** @brief Set of material ids to be considered. It is a private attribute.
-	 *
-	 * Use ShouldCompute method to know if element must be assembled or not
-	 */
+	/** @brief Set of material ids to be considered. It is a private attribute. */
+	/** Use ShouldCompute method to know if element must be assembled or not */
 	std::set<int> fMaterialIds;
 	
-	/** @brief Number of threads in Assemble process
-	 */
+	/** @brief Number of threads in Assemble process */
 	int fNumThreads;
 };
-#endif //TPZSTRUCTMATRIX_H
+
+#endif

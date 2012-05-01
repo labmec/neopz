@@ -16,7 +16,7 @@ class TPZMatrix;
 
 /**
  * @brief Implements SkyLine Structural Matrices. \ref structural "Structural Matrix"
- * ingroup structural
+ * @ingroup structural
  */
 class TPZSkylineStructMatrix : public TPZStructMatrix {
 public:    

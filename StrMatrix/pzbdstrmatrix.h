@@ -36,7 +36,7 @@ public:
 	{
 	}
 	
-	// @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed
+	/** @brief Creates a sparse blockdiagonal matrix, overlapping should be assumed */
 	virtual TPZMatrix<STATE> * Create();
     
 	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface);

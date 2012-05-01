@@ -17,8 +17,8 @@ template<class TVar>
 class TPZMatrix;
 
 /**
- @brief Defines parallel structural matrix for skyline matrices. \ref structural "Structural Matrix"
- @ingroup structural
+ * @brief Defines parallel structural matrix for skyline matrices. \ref structural "Structural Matrix"
+ * @ingroup structural
  */
 class TPZParSkylineStructMatrix : public TPZSkylineStructMatrix {
 	
