@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include "pzgengrid.h"
 #include "pzgmesh.h"
+#include "pzgeoelbc.h"
 #include "pzcmesh.h"
 #include "tpzcompmeshreferred.h"
 #include "pzcompel.h"
