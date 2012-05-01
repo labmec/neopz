@@ -1,11 +1,9 @@
-/*
- *  Cubo_do_Nathan.cpp
- *  PZ
- *
- *  Created by Nathan Shauer on 6/14/11.
- *  Copyright 2011 Unicamp. All rights reserved.
- *
+/**
+ * @file Cubo_do_Nathan.cpp
+ * @author Nathan Shauer 
+ * @since 6/14/11.
  */
+
 #include <iostream>
 #include "pzelast3d.h"
 #include "tpzcube.h"
@@ -16,6 +14,7 @@
 #include "pzseqsolver.h"
 #include "tpzautopointer.h"
 #include "pzgmesh.h"
+#include "pzgeoelbc.h"
 #include "tpzarc3d.h"
 #include "TPZVTKGeoMesh.h"
 #include "pzcmesh.h"
@@ -24,13 +23,10 @@
 #include "pzskylstrmatrix.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
-//#include "pzgeopoint.h"
-//#include "pzvec.h"
+
 #include "pzgeotetrahedra.h"
 #include "pzpostprocanalysis.h"
 #include "pzinterpolationspace.h"
-
-
 
 #include <iostream>
 #include <cstdlib>
@@ -40,7 +36,6 @@ static LoggerPtr logger(Logger::getLogger("main"));
 #endif
 
 #define MAIN3
-
 
 
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
@@ -154,7 +149,7 @@ int main()
 		ef.Zero();
 		ef(0,0) = 1.*4.+1.*4.;
 		viscomat.Contribute(cubodata, weight, ek, ef);
-
+		
 		matrix = new TPZFMatrix(ek);
 		//ek.Print("ek");
 		//matrix->Print("matrix");
@@ -167,7 +162,7 @@ int main()
 		solver.Solve(ef, result);
 		// system solved
 		//result.Print("result");
-
+		
 		int i,j,k;	
 		TPZFMatrix<REAL> dsol(3,3,0.);
 		for (k = 0 ; k < 3 ; k++)
@@ -194,7 +189,7 @@ int main()
 	cout << Strainxx << endl;
 	cout << "Stress" << endl;
 	cout << Stressxx << endl;
-
+	
 	ofstream out("strain.txt");
 	for (int is = 0 ; is < Strainxx.NElements() ; is++)
 	{
@@ -253,13 +248,13 @@ int main()
 	viscomat.ComputeStressTensor(Stress,cubodata);	
 	TPZVec <REAL> Stressxx(numsteps+1);
 	Stressxx[0] = Stress(0,0);
-
+	
 	viscomat.Contribute(cubodata, weight, ek, ef);
 	TPZAutoPointer <TPZMatrix> matrix = new TPZFMatrix(ek);	
 	
 	viscomat.SetUpdateMem();
 	viscomat.UpdateQsi(cubodata);
-		
+	
 	int iv;
 	for(iv = 0 ; iv < numsteps ; iv++)
 	{
@@ -297,12 +292,12 @@ int main()
 	TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
 	
 	InsertViscoElasticity(cmesh);
-
+	
 	cmesh->SetDefaultOrder(porder);
 	cmesh->SetAllCreateFunctionsContinuousWithMem();
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
-
+	
 	TPZSkylineStructMatrix skylstruct(cmesh);
 	TPZStepSolver<REAL> step;
 	step.SetDirect(ECholesky);
@@ -312,7 +307,7 @@ int main()
 	an.Run();	
 	
 	//an.Solution().Print("Solution");
-
+	
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
@@ -321,7 +316,7 @@ int main()
 		LOGPZ_DEBUG(logger,str.str());
 	}
 #endif
-
+	
 	
 	std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(cmesh->MaterialVec());
 	std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator it;
@@ -336,32 +331,32 @@ int main()
 	}
 	
 	/*
-	TPZAdmChunkVector<TPZCompEl *> ElementVec = cmesh->ElementVec();
-	int nel = ElementVec.NElements();
-	int iel;
-	for (iel = 0; iel < nel; iel++) 
-	{
-		TPZCompEl *el = ElementVec[iel];
-		TPZInterpolationSpace *insp = dynamic_cast<TPZInterpolationSpace *> (el);
-		insp->PRefine(2);
-	}
-	cmesh->ExpandSolution();
+	 TPZAdmChunkVector<TPZCompEl *> ElementVec = cmesh->ElementVec();
+	 int nel = ElementVec.NElements();
+	 int iel;
+	 for (iel = 0; iel < nel; iel++) 
+	 {
+	 TPZCompEl *el = ElementVec[iel];
+	 TPZInterpolationSpace *insp = dynamic_cast<TPZInterpolationSpace *> (el);
+	 insp->PRefine(2);
+	 }
+	 cmesh->ExpandSolution();
 	 */
-
-  int dimension = 3;
+	
+	int dimension = 3;
 	int resolution = 2;
-  TPZVec <std::string> vecnames(2), scalnames(0);
+	TPZVec <std::string> vecnames(2), scalnames(0);
 	/*
-	
-//  scalnames[0] = "StressX";
-	vecnames[0] = "Displacement";
-	vecnames[1] = "PrincipalStrain";
-	//scalnames[0] = "ViscoStressX";
-	std::string plotfile("cubinho.vtk");
-	
-	an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
-	an.PostProcess(resolution);
-	*/
+	 
+	 //  scalnames[0] = "StressX";
+	 vecnames[0] = "Displacement";
+	 vecnames[1] = "PrincipalStrain";
+	 //scalnames[0] = "ViscoStressX";
+	 std::string plotfile("cubinho.vtk");
+	 
+	 an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
+	 an.PostProcess(resolution);
+	 */
 	
 	TPZPostProcAnalysis postan(&an);
 	TPZVec <int> matids(3);
@@ -380,34 +375,34 @@ int main()
 	vecnames[1] = "PrincipalStrain";
 	scalnames.resize(1); 
 	scalnames[0] = "ViscoStressX";
-
+	
 	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
 	postan.PostProcess(resolution);
-
+	
     for (int istep = 0 ; istep < 5 ; istep++)
     {
-      an.AssembleResidual();
-      an.Solve();
-			postan.TransferSolution();
-		  postan.PostProcess(resolution);
+		an.AssembleResidual();
+		an.Solve();
+		postan.TransferSolution();
+		postan.PostProcess(resolution);
     }
-        
+	
 	//an.Solution().Print("Solution",std::cout);
     //an.AssembleResidual();
     //an.Solve();
 	//an.Solution().Print("Solution",std::cout);
 	
 	//void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames, const std::string &plotfile) 
-//0.00207065
-		
+	//0.00207065
+	
 	//postan.Run();
-
+	
 	//postan.Solution().Print("Deus do ceu:", std::cout);
-		
+	
 	//TPZAutoPointer <TPZGuiInterface> toto;
 	//TPZFMatrix<REAL> rhs;
 	//skylstruct.Assemble(rhs,toto);
-
+	
 	return 0;
 }
 
@@ -418,7 +413,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
 	int nummat = 1, neumann = 1, mixed = 2;
-//	int dirichlet = 0;
+	//	int dirichlet = 0;
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<REAL> force(3,0.);
 	//force[1] = 0.;
@@ -431,7 +426,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
     
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
 	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
-
+	
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
 	int index = viscoelast->PushMemItem(); //elast
@@ -551,7 +546,7 @@ TPZGeoMesh *MalhaCubo()
 	{
 		read.close();
 		read.open(FileName.c_str());
-				
+		
 		int l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
@@ -578,7 +573,7 @@ TPZGeoMesh *MalhaCubo()
 			TopolTetra[3]--;
 			
 			int index = el;
-
+			
 			//TPZGeoEl * tetra = gMesh->CreateGeoElement(ETetraedro, TopolTetra, matElId, index);
 			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
@@ -588,8 +583,8 @@ TPZGeoMesh *MalhaCubo()
 		// Colocando as condicoes de contorno
 		for(el=0; el<numelements; el++)
 		{
-
- 
+			
+			
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
@@ -622,7 +617,7 @@ TPZGeoMesh *MalhaCubo()
 			{
 				int pos = tetra->NodeIndex(i);
 				Nodefinder[i] = gMesh->NodeVec()[pos];
-
+				
 				Nodefinder[i].GetCoordinates(nodecoord);
 				if (nodecoord[0] == -1.)
 				{
@@ -637,7 +632,7 @@ TPZGeoMesh *MalhaCubo()
 				TPZGeoElSide tetraSide(tetra, lado);
 				TPZGeoElBC(tetraSide,neumann2);		
 			}
-
+			
 		}
 		
 		TPZVec <REAL> xyz(3,-1.), yz(3,-1.), z(3,1.);
@@ -671,7 +666,7 @@ TPZGeoMesh *MalhaCubo()
 	return gMesh;
 	
 }
- 
+
 //TESTE Step Solver
 /*
  TPZAutoPointer <TPZMatrix> matrixteste = new TPZFMatrix(2,2,0.);
@@ -838,9 +833,9 @@ void Teste()
 #endif
 	
 	
-  int dimension = 3;
+	int dimension = 3;
 	int resolution = 2;
-  TPZVec <std::string> vecnames(2), scalnames(0);
+	TPZVec <std::string> vecnames(2), scalnames(0);
 	cmesh->Solution() = sub;
 	
 	//  scalnames[0] = "StressX";
@@ -856,6 +851,4 @@ void Teste()
 	an2.Solve();
 	an2.DefineGraphMesh(dimension, scalnames, vecnames, plotfile2);
 	an2.PostProcess(resolution);
-	
-	
 }
