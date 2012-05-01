@@ -2,13 +2,12 @@
  * @file
  * @brief Contains the TPZQuadraticQuad class which defines a quadrilateral geometric element with quadratic map.
  */
+ 
 #ifndef TPZQUADRATICQUAD_H
 #define TPZQUADRATICQUAD_H
 
 #include "pzgeoquad.h"
-// #include "pzgmesh.h"
 #include "pzgeoel.h"
-// #include "tpzquadrilateral.h"
 #include "pznoderep.h"
 
 #include <iostream>
@@ -24,29 +23,29 @@ namespace pzgeom {
 	class TPZQuadraticQuad : public pzgeom::TPZNodeRep<8,pztopology::TPZQuadrilateral> {
 		
 	public:
-		
+		/** @brief Number of nodes */
 		enum {NNodes = 8};
-		
+		/** @brief It is quadratic mapping */
 		bool IsLinearMapping() const {
 			return false;
 		}
-		
+		/** @brief Constructor from node indexes */
 		TPZQuadraticQuad(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(nodeindexes)
 		{
 		}
-		
+		/** @brief Default constructor */
 		TPZQuadraticQuad() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>()
 		{
 		}
-		
+		/** @brief Constructor over node map */
 		TPZQuadraticQuad(const TPZQuadraticQuad &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp,gl2lcNdMap)
 		{
 		}
-		
+		/** @brief Copy constructor */
 		TPZQuadraticQuad(const TPZQuadraticQuad &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}
-		
+		/** @brief Copy constructor */
 		TPZQuadraticQuad(const TPZQuadraticQuad &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZQuadrilateral>(cp)
 		{
 		}

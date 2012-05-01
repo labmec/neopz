@@ -2,11 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZEllipse3D methods. 
  */
-/*
- *  Created by caju on 8/3/09.
- *  Copyright 2009 LabMeC. All rights reserved.
- *
- */
 
 #include "tpzellipse3d.h"
 
@@ -422,10 +417,7 @@ TPZFMatrix<REAL> TPZEllipse3D::DEllipseR2equationDang(double ang) const
 
 #include "tpzgeoelmapped.h"
 
-/*
- * Creates a geometric element according to the type of the father element
- */
-
+/** Creates a geometric element according to the type of the father element */
 TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										 TPZVec<int>& nodeindexes,
 										 int matid,
@@ -436,6 +428,7 @@ TPZGeoEl *TPZEllipse3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 
 /// Id for three dimensional ellipse element
 #define TPZGEOELEMENTELLIPSE3DID 301
+
 template<>
 int TPZGeoElRefPattern<TPZEllipse3D>::ClassId() const
 {

@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZChangeEl class. It is a special map.
  */
+
 #ifndef TPZCHANGEEL_H
 #define TPZCHANGEEL_H
 
@@ -16,8 +17,9 @@
  * @author Paulo Cesar de Alvarenga Lucci (Caju)
  * @ingroup geometry
  * @since 2007
- * @brief Special map .... \ref geometry "Geometry"
+ * @brief Special map. It is util to convert a linear element for quadratic element, but the same topology. \ref geometry "Geometry"
  */
+/** Also turns slide middle nodes of an quadratic element to the quarterpoint with respect to a indicated side. */
 class TPZChangeEl {
 public:
 
@@ -32,7 +34,7 @@ public:
 
     /** @brief Slide middle nodes of an quadratic geoelement to the quarterpoint with respect to a given side */
     static TPZGeoEl * ChangeToQuarterPoint(TPZGeoMesh *Mesh, int ElemIndex, int targetSide);
-    
+
     /**
 	 * @brief Return if a given point x is near to some node of a given geo element
 	 * @param gel [in] given geo element
@@ -41,6 +43,12 @@ public:
 	 * @param tol [in] x range radius
 	 */
 	static bool NearestNode(TPZGeoEl * gel, TPZVec<REAL> &x, int &meshNode, double tol);
+    /**
+	 * @brief Return the id of the node into the geometric mesh nearest a given point x
+	 * @param gmesh [in] given geometric mesh
+	 * @param x [in] given point
+	 * @param tol [in] x range radius
+	 */
     static int NearestNode(TPZGeoMesh * gmesh, TPZVec<REAL> &x, double tol);
     static bool CreateMiddleNodeAtEdge(TPZGeoMesh *Mesh, int ElemIndex, int edge, int &middleNodeId);
 };

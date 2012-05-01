@@ -2,45 +2,43 @@
  * @file
  * @brief Contains the TPZQuadraticTrig class which defines a triangular geometric element with quadratic map.
  */
+ 
 #ifndef TPZQUADRATICTRIG_H
 #define TPZQUADRATICTRIG_H
 
 #include "pznoderep.h"
 #include "tpztriangle.h"
 
-//class TPZGeoEl;
-
-	
+namespace pzgeom {
+    
 	/**
 	 * @author Paulo Cesar de Alvarenga Lucci (Caju)
 	 * @since 2007
 	 * @ingroup geometry
 	 * @brief Defines a triangular geometric element with quadratic map. \ref geometry "Geometry"
 	 */
-namespace pzgeom {
-    
     class TPZQuadraticTrig : public pzgeom::TPZNodeRep<6,pztopology::TPZTriangle> {
 		
 	public:
-		
+		/** @brief Number of nodes */
 		enum {NNodes = 6};
-		
+		/** @brief It is a quadratic mapping */
 		bool IsLinearMapping() const {
 			return false;
 		}
-		
+		/** @brief Constructor for node indexes given */
 		TPZQuadraticTrig(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(nodeindexes) {
 		}
-		
+		/** @brief Default constructor */
 		TPZQuadraticTrig() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>() {
 		}
-		
+		/** @brief Copy constructor for node map given */
 		TPZQuadraticTrig(const TPZQuadraticTrig &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp,gl2lcNdMap) {
 		}
-		
+		/** @brief Copy constructor */
 		TPZQuadraticTrig(const TPZQuadraticTrig &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
-		
+		/** @brief Copy constructor */
 		TPZQuadraticTrig(const TPZQuadraticTrig &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZTriangle>(cp) {
 		}
 		/** @brief Returns the type name of the element */

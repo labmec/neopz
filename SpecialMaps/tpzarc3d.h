@@ -2,12 +2,12 @@
  * @file
  * @brief Contains the TPZArc3D class which implements three dimensional arc.
  */
+
 #ifndef TPZARC3D_H
 #define TPZARC3D_H
 
 #include "pzgeoel.h"
 #include "pznoderep.h"
-// #include "pzgnode.h"
 #include "tpzline.h"
 #include "tpzgeoelrefpattern.h"
 
@@ -25,28 +25,28 @@ namespace pzgeom
 	class TPZArc3D : public pzgeom::TPZNodeRep<3,pztopology::TPZLine> {
 		
 	public:
-		
+		/** @brief Number of nodes (connects) */
 		enum {NNodes = 3};
-		
+		/** @brief It is not linear mapping */
 		bool IsLinearMapping() const { return false; }
-		
+		/** @brief Copy constructor with map of nodes */
 		TPZArc3D(const TPZArc3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;		
 		}
-		
+		/** @brief Default constructor */
 		TPZArc3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(),fICnBase(3,3),fIBaseCn(3,3) {
 		}
-		
+		/** @brief Copy constructor */
 		TPZArc3D(const TPZArc3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
 			this->fICnBase = cp.fICnBase;
 			this->fIBaseCn = cp.fIBaseCn;
 			this->fCenter3D = cp.fCenter3D;
 			this->fRadius = cp.fRadius;
 		}
-		
+		/** @brief Another copy constructor */
 		TPZArc3D(const TPZArc3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 			this->fICnBase  = cp.fICnBase;
 			this->fIBaseCn  = cp.fIBaseCn;
@@ -81,10 +81,8 @@ namespace pzgeom
 				}
 			}
 			ComputeAtributes(coord);
-			
 		}
-		
-		
+
 		void X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result) const;
 		void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
@@ -107,9 +105,7 @@ namespace pzgeom
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
 	public:
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,
@@ -148,17 +144,18 @@ namespace pzgeom
             buf.Write(&fXcenter,1);
             buf.Write(&fYcenter,1);
 		}
-        
 
-		
 	protected:
 		
 		void ComputeAtributes(TPZFMatrix<REAL> &coord);
 		void ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb);
 		double ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double xb, double yb) const;
 		
-		/** @name Atributes */
-		// @{
+		/**
+		 * @name Atributes
+		 * @{
+		 */
+		 
 		TPZFNMatrix<9> fICnBase, fIBaseCn;
 		TPZManVector< REAL,3 > fCenter3D, finitialVector;
 #ifdef contar
@@ -166,13 +163,18 @@ namespace pzgeom
 #else
 		REAL fAngle, fRadius, fXcenter, fYcenter;
 #endif
-		// @}
+		/** @} */
+		
 	};
 	
 };
 
-/// Id for three dimensional arc element
+/**
+ * @ingroup geometry
+ * @brief Id for three dimensional arc element
+ */
 #define TPZGEOELEMENTARC3DID 350
+
 template<>
 inline int TPZGeoElRefPattern<pzgeom::TPZArc3D>::ClassId() const {
 	return TPZGEOELEMENTARC3DID;

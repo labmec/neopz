@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZQuadraticCube class which defines a cube geometric element with quadratic map.
  */
+ 
 #ifndef TPZQUADRATICCUBE_H
 #define TPZQUADRATICCUBE_H
 
@@ -22,29 +23,29 @@
 class TPZQuadraticCube : public pzgeom::TPZNodeRep<20,pztopology::TPZCube> {
 	
 public:
-	
+	/** @brief Number of nodes (3 by edge) */
 	enum {NNodes = 20};
-	
+	/** @brief It is not linear mapping, is quadratic */
 	bool IsLinearMapping() const {
 		return false;
 	}
-	
+	/** @brief Constructor from node indexes */
 	TPZQuadraticCube(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(nodeindexes)
 	{
 	}
-	
+	/** @brief Default constructor */
 	TPZQuadraticCube() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>()
 	{
 	}
-	
+	/** @brief Copy constructor from node map */
 	TPZQuadraticCube(const TPZQuadraticCube &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp,gl2lcNdMap)
 	{
 	}
-	
+	/** @brief Copy constructor */
 	TPZQuadraticCube(const TPZQuadraticCube &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
 	{
 	}
-	
+	/** @brief Copy constructor */
 	TPZQuadraticCube(const TPZQuadraticCube &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZCube>(cp)
 	{
 	}

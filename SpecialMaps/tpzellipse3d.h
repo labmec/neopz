@@ -2,11 +2,6 @@
  * @file
  * @brief Contains the TPZEllipse3D class which defines a linear geometric element which maps a line segment to an ellipse.
  */
-/*
- *  Created by caju on 03/aug/09.
- *  Copyright 2009 LabMeC. All rights reserved.
- *
- */
 
 #ifndef TPZELLIPSE3D_H
 #define TPZELLIPSE3D_H
@@ -29,31 +24,30 @@ namespace pzgeom
 	class TPZEllipse3D : public pzgeom::TPZNodeRep<2,pztopology::TPZLine> {
 		
 	public:
-		
+		/** @brief Number of nodes (connects) */
 		enum {NNodes = 2};
-		
+		/** @brief It is not linear mapping */
 		bool IsLinearMapping() const
 		{
 			return false;
 		}
-		
+		/** @brief Constructor */
 		TPZEllipse3D(const TPZEllipse3D &cp,std::map<int,int> & gl2lcNdMap) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp,gl2lcNdMap){
 		}
-		
+		/** @brief Default constructor */
 		TPZEllipse3D() : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(){
 		}
-		
+		/** @brief Destructor */
 		virtual ~TPZEllipse3D()
 		{
-			
 		}
-		
+		/** @brief Copy constructor */
 		TPZEllipse3D(const TPZEllipse3D &cp) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(cp){
 		}
-		
+		/** @brief Copy constructor */		
 		TPZEllipse3D(const TPZEllipse3D &cp, TPZGeoMesh &) : pzgeom::TPZNodeRep<NNodes, pztopology::TPZLine>(cp){
 		}
-		
+		/** @brief Constructor with node indexes given */
 		TPZEllipse3D(TPZVec<int> &nodeindexes) : pzgeom::TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
 		}
 		
@@ -94,18 +88,13 @@ namespace pzgeom
 		 */
 		void X(TPZFMatrix<REAL> &nodeCoord,TPZVec<REAL> &qsi,TPZVec<REAL> &x) const;
 		
-		/**
-		 * Este metodo estabelece a matriz jacobiana do mapeamento X (acima declarado)
-		 * @brief Computes the jacobian matrix to X mapping
-		 */
+		/** @brief Computes the jacobian matrix to X mapping */
 		void Jacobian(TPZFMatrix<REAL> &nodeCoord, TPZVec<REAL> &qsi, TPZFMatrix<REAL> &jac, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv) const;
 		
 		static std::string TypeName() { return "Linear";}
 		static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 		
-		/**
-		 * @brief Creates a geometric element according to the type of the father element
-		 */
+		/** @brief Creates a geometric element according to the type of the father element */
 		static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 										  TPZVec<int>& nodeindexes,
 										  int matid,
@@ -135,7 +124,7 @@ namespace pzgeom
 			return this->fOrigin;
 		}
 		
-	private://metodos utilizados apenas pelos metodos publicos desta classe!
+	private:
 		
 		/**
 		 * Este metodo retorna o angulo[ang(vini),ang(vfin)] que corresponde a um qsi[-1,1]
@@ -143,24 +132,16 @@ namespace pzgeom
 		 */
 		double Angle(double qsi, TPZFMatrix<REAL> &vini, TPZFMatrix<REAL> &vfin) const;
 		
-		/**
-		 * Este metodo retorna a derivada do angulo[ang(vini),ang(vfin)] com respeito a qsi[-1,1]
-		 * @brief Returns the derivate of the angle with respect to qsi
-		 */
+		/** @brief Returns the derivate of the angle with respect to qsi */
 		double DAngleDqsi(TPZFMatrix<REAL> &vini, TPZFMatrix<REAL> &vfin) const;
 		
-		/**
-		 * Equacao em R2 da elipse em funcao do angulo[ 0 , 2pi]
-		 * @brief Compute de equation of the elipse as function of the angle
-		 */
+		/** @brief Compute de equation of the elipse as function of the angle */
 		TPZFMatrix<REAL> EllipseR2equation(double ang) const;
 		
 		/**
 		 * Derivada da equacao em R2 da elipse em funcao com respeito ao angulo
 		 */
 		TPZFMatrix<REAL> DEllipseR2equationDang(double ang) const;
-		
-	private:
 		
 		/**
 		 * fSemiAxeX @param - Half of Ellipse Axe in X direction

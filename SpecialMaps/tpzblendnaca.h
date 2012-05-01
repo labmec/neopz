@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the TPZBlendNACA class. It is a special map.
  */
+
 #ifndef TPZBLENDNACA_H
 #define TPZBLENDNACA_H
 
@@ -12,6 +13,7 @@
 
 class TPZGeoEl;
 class TPZGeoMesh;
+
 /**
  * @author caju2008 < caju\@skol >
  * @ingroup geometry
@@ -20,10 +22,12 @@ class TPZGeoMesh;
 class TPZBlendNACA
 {
 public:
-	
+	/** @brief Default constructor */
     TPZBlendNACA();
+    /** @brief Constructor */
     TPZBlendNACA(REAL cord, int FourDigits, REAL angle, TPZVec<REAL> &x0);
-	~TPZBlendNACA();
+	/** @brief Default destructor */
+    ~TPZBlendNACA();
 	
     /// with attack angle
     /// superior profile
@@ -37,7 +41,7 @@ public:
     void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
 	
 public:
-	/* * @brief Creates a geometric element according to the type of the father element */
+	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<int>& nodeindexes,
 									  int matid,
