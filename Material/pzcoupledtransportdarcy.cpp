@@ -3,8 +3,6 @@
  * @brief Contains implementations of the TPZCoupledTransportDarcy methods.
  */
 
-//$Id: pzcoupledtransportdarcy.cpp,v 1.8 2009-09-01 19:44:46 phil Exp $
-
 #include "pzcoupledtransportdarcy.h"
 #include "pzcoupledtransportdarcyBC.h"
 #include "pzelmat.h"

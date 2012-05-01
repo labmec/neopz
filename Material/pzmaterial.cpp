@@ -1,5 +1,5 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMaterial methods.
  */
 
@@ -208,15 +208,12 @@ void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
 	matvec[matid] = newmat;
 }
 
-/* 
- * Get the order of the integration rule necessary to integrate an
- * element with polinomial order p
- */
+/** Get the order of the integration rule necessary to integrate an
+ * element with polinomial order p */
 int TPZMaterial::IntegrationRuleOrder(int elPMaxOrder) const
 {
     return 2*elPMaxOrder;
 }
-
 
 int TPZMaterial::IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
 {
@@ -229,45 +226,12 @@ int TPZMaterial::IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const
 	return  2*pmax;
 }
 
-/*
- void TPZMaterial::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
- int elPMaxOrder,
- int elDimension){
- TPZManVector<int,3> p2(elDimension,2*elPMaxOrder);
- rule->SetOrder(p2);
- if(this->HasForcingFunction()) {
- TPZManVector<int,3> order(elDimension,rule->GetMaxOrder());
- rule->SetOrder(order);
- }
- }
- */
-
-//#ifdef _AUTODIFF
-
-//void TPZMaterial::ContributeEnergy(TPZVec<REAL> &x,
-//	TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
-//	FADFADREAL &U, REAL weight)
-//{
-//	PZError << "\nEnergy Contribution not implemented\n";
-//}
-
-//void TPZMaterial::ContributeBCEnergy(TPZVec<REAL> & x,
-//	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
-//	REAL weight, TPZBndCond &bc)
-//{
-//	PZError << "\nBC Energy Contribution not implemented\n";
-//}
-
-//#endif
-
 int TPZMaterial::ClassId() const
 {
 	return TPZMATERIALID;
 }
 
-/*
- Saves the element data to a stream
- */
+/* Saves the element data to a stream */
 void TPZMaterial::Write(TPZStream &buf, int withclassid)
 {
     if(ClassId() == TPZMATERIALID)
@@ -306,9 +270,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
      */
 }
 
-/*
- Reads the element data from a stream
- */
+/* Reads the element data from a stream */
 void TPZMaterial::Read(TPZStream &buf, void *context)
 {
 	TPZSaveable::Read(buf,context);

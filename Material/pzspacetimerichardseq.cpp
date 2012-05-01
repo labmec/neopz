@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZSpaceTimeRichardsEq methods.
  */
-//$Id: pzspacetimerichardseq.cpp,v 1.6 2011-05-11 02:24:19 phil Exp $
 
 #include "pzspacetimerichardseq.h"
 #include "pzbndcond.h"
@@ -23,17 +22,14 @@ TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(): TPZMaterial()
 {
 }
 
-
 TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int id): TPZMaterial(id)
 {
 }
-
 
 TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int matid, REAL Alpha, REAL N, REAL ThetaS, REAL ThetaR, REAL Ks) 
 : TPZMaterial(matid){
 	this->Set(Alpha, N, ThetaS, ThetaR, Ks);
 }
-
 
 TPZSpaceTimeRichardsEq::~TPZSpaceTimeRichardsEq()
 {
@@ -62,7 +58,7 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	const REAL sol = data.sol[0][0];
 	
 	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
@@ -80,9 +76,6 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 			ek(i,j) += weight * ( -1.*phi(j,0)*dphi(1,i)+dphi(1,j)*BetaBarGradV + dphi(0,i)*dphi(0,j) );
 		}
 	}//for i
-	
-	// ek.Identity();ek*=LCoeff;
-	
 }//Contribute
 
 void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
@@ -95,7 +88,7 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	
 	switch (bc.Type()){
 			
@@ -120,8 +113,6 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 		case 3 : { 
 			
 			const REAL sol = data.sol[0][0];
-			//       const REAL C = this->C_Coef(sol);
-			//       REAL ConvDir[2] = {0., C};
 			REAL ConvDir[2] = {0., 1.}; 
 			REAL normal[2];
 			normal[0] = data.axes(0,1);
@@ -152,28 +143,14 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
 	
 	sol = sol/LCoeff;
-	
-	//filter
-	//   if(sol > -0.3){
-	//     sol = -0.3;
-	//   }
-	//   if(sol < -12.){
-	//     sol = -12.;
-	//   }
-	
 	REAL n = this->fN;
 	REAL m = 1.-(1./n);
 	REAL TR = this->fThetaR;
 	REAL TS = this->fThetaS;
 	REAL a = this->fAlpha;
 	REAL result = (m*n*pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)*pow(1./(1. + pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)),1. + m)*(TR - TS))/sol;
-	
-	//filter
-	//   if(sol > -0.3 || sol < -12.) return sol*sol;
-	
 	return result/LCoeff;
 }
-
 
 REAL TPZSpaceTimeRichardsEq::Se(REAL sol){
 	REAL n = this->fN;
@@ -226,23 +203,12 @@ void TPZSpaceTimeRichardsEq::AnalysisOfParameters(REAL sol0, REAL solL, char* fi
 	dCdSol.Print("dCdSol=",file,EMathematicaInput);
 	dKdsol.Print("dKdsol=",file,EMathematicaInput);
 	
-	K.Print("K=",file);
-	
+	K.Print("K=",file);	
 }
 
-
-REAL TPZSpaceTimeRichardsEq::K_Coef(REAL sol){
+REAL TPZSpaceTimeRichardsEq::K_Coef(REAL sol) {
 	
-	//   return -sol * 1e-12;
 	sol = sol / LCoeff;
-	
-	//filter
-	//   if(sol > -0.3){
-	//     sol = -0.3;
-	//   }
-	//   if(sol < -12.){
-	//     sol = -12.;
-	//   }
 	
 	REAL n = this->fN;
 	REAL m = 1.-(1./n);
@@ -270,176 +236,5 @@ REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
 	REAL DkDSe = 0.5 * this->fKs * (1.-pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))*(4.*pow(Se,((REAL)-0.5)+(((REAL)1.)/m))*pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m-((REAL)1.))-(-1.+pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))/sqrt(Se));
 	REAL DSeDsol = -(1./sol)*m*n*pow(fabs(this->fAlpha*sol),n)*pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m+1.);
 	REAL dkdsol = DkDSe * DSeDsol;
-	
-	/*  if(fabs(dkdsol - resposta) > 1e-3){
-	 std::cout << "peguei erro 1 no DKDsol\n";
-	 }
-	 if(Sign(dkdsol,1e-8) != Sign(resposta,1e-8)){
-	 std::cout << "peguei erro 2 no DKDsol\n";
-	 }*/
-	
-	//   if(fabs(dkdsol) < 1.){
-	//     dkdsol = 1.;
-	//   }
-	
 	return dkdsol*LCoeff/(TCoeff*LCoeff);
 }
-
-/*
- #include <iostream>
- #include "pzcmesh.h"
- #include "pzgmesh.h"
- #include "tpzautopointer.h"
- #include "pzanalysis.h"
- #include "pzfstrmatrix.h"
- #include "TPZParFrontStructMatrix.h"
- #include "TPZFrontNonSym.h"
- #include "pzskylstrmatrix.h"
- #include "pzbstrmatrix.h"
- #include "pzstepsolver.h"
- #include "pzcompel.h"
- #include "pzinterpolationspace.h"
- #include "pznonlinanalysis.h"
- 
- using namespace std;
- 
- const int ndiv = 6-2;
- const double LTotal = 1.*LCoeff;
- const double TTotal = 86400.*TCoeff;
- 
- void TPZSpaceTimeRichardsEq::DirichletT0(TPZVec<REAL> &x, TPZVec<REAL> &f) {
- const double DeltaX = LTotal/pow(2.,ndiv);
- f[0] = -10.*LCoeff;
- if(x[0] > (LTotal-DeltaX)){
- const double xr = x[0] - (LTotal-DeltaX);
- double result = -10.*LCoeff + ((-0.75*LCoeff +10.*LCoeff)/DeltaX)*xr;
- f[0] = result;
- }
- }
- 
- int TPZSpaceTimeRichardsEq::main(){
- TPZCompMesh * cmesh = TPZSpaceTimeRichardsEq::CreateMesh(LTotal, TTotal, 1, ndiv);
- 
- TPZNonLinearAnalysis an(cmesh,cout);
- TPZBandStructMatrix matrix(cmesh);
- an.SetStructuralMatrix(matrix);
- TPZStepSolver step;
- step.SetDirect(ELDLt);
- an.SetSolver(step);
- const int neq = an.Mesh()->NEquations();
- std::cout << "Numero de equacoes = " << neq << std::endl;
- cout << "Banda = " << cmesh->BandWidth() << "\n";
- cout.flush();
- 
- TPZMaterial::gBigNumber = 1.e12;
- for(int i = 0; i < an.Solution().Rows(); i++) an.Solution()(i,0) = -10.*(1.+1e-6*i)*LCoeff;
- an.LoadSolution(an.Solution());
- an.IterativeProcess(cout, 1e-10, 50, true, true);
- 
- //  int nnodes = cmesh->Reference()->NodeVec().NElements();
- //  for(int i = 0; i < nnodes; i++){
- //    cmesh->Reference()->NodeVec()[i].SetCoord(0, cmesh->Reference()->NodeVec()[i].Coord(0) * 86400.);
- //  }
- 
- TPZVec<std::string> scalnames(1);
- scalnames[0] = "state";
- TPZVec<std::string> vecnames(0);
- std::string plotfile = "richards.dx";
- an.DefineGraphMesh(2, scalnames, vecnames, plotfile);
- an.PostProcess(1);  
- 
- TPZGeoMesh *gmesh = cmesh->Reference();
- delete cmesh;
- delete gmesh;
- 
- return EXIT_SUCCESS;  
- 
- }//main
- 
- TPZCompMesh * TPZSpaceTimeRichardsEq::CreateMesh(REAL L, REAL Time, int p, int ndiv){
- 
- const REAL Alpha = 3.35;
- const REAL N = 2.;
- const REAL ThetaS = 0.368;
- const REAL ThetaR = 0.102;
- const REAL Ks = 9.22e-5;
- 
- const int nnodes = 4;
- REAL co[nnodes][2] = {{0.,0.},{L,0.},{L,Time},{0.,Time}};
- const int nelem = 1; 
- int indices[nelem][4] = {{0,1,2,3}};
- const int nelbc = 4;
- int contorno[nelbc][3] = {{0,1,-1},{1,2,-2},{2,3,-3},{3,0,-4}};
- 
- TPZGeoMesh *gmesh = new TPZGeoMesh();
- for(int nod=0; nod<nnodes; nod++) {
- int nodind = gmesh->NodeVec().AllocateNewElement();
- TPZManVector<REAL,2> coord(2);
- coord[0] = co[nod][0];
- coord[1] = co[nod][1];
- gmesh->NodeVec()[nodind].Initialize(nod,coord,*gmesh);
- }
- 
- const int matid = 1;
- for(int el=0; el<nelem; el++) {
- TPZManVector<int,4> nodind(4);
- for(int nod=0; nod<4; nod++) nodind[nod]=indices[el][nod];
- int index;
- gmesh->CreateGeoElement(EQuadrilateral,nodind,matid,index);
- }
- 
- for(int el=0; el<nelbc; el++) {
- TPZManVector<int,2> nodind(2);
- for(int nod=0; nod<2; nod++) nodind[nod]=contorno[el][nod];
- int bcmatid = contorno[el][2];
- int index;
- gmesh->CreateGeoElement(EOned,nodind,bcmatid,index);
- }
- 
- gmesh->BuildConnectivity();
- 
- for(int idiv = 0; idiv < ndiv; idiv++){
- TPZVec<TPZGeoEl*> filhos;
- int n = gmesh->NElements();
- for(int i = 0; i < n; i++){
- TPZGeoEl * gel = gmesh->ElementVec()[i];
- if (!gel) continue;
- if(gel->HasSubElement()) continue;
- gel->Divide(filhos);
- }
- }
- 
- //  TPZCompEl::SetgOrder(p); 
- TPZCompMesh * cmesh = new TPZCompMesh(gmesh);  
- cmesh->SetDefaultOrder(p);
- cmesh->SetDimModel(2);
- 
- TPZAutoPointer<TPZMaterial> mat = new TPZSpaceTimeRichardsEq(matid,Alpha,N,ThetaS,ThetaR,Ks);
- 
- int nstate = 1;
- TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
- 
- val2(0,0) = -10.*LCoeff;
- TPZAutoPointer<TPZMaterial> bcT0 ( mat->CreateBC(mat,-1, 0,val1,val2) );
- bcT0->SetForcingFunction(DirichletT0);
- val2(0,0) = -0.75*LCoeff;
- TPZAutoPointer<TPZMaterial> bcXL = mat->CreateBC(mat,-2, 0,val1,val2);
- //no value needed for outflow bc
- TPZAutoPointer<TPZMaterial> bcOutFlow = mat->CreateBC(mat,-3, 3,val1,val2);
- val2(0,0) = -10.*LCoeff;
- TPZAutoPointer<TPZMaterial> bcX0 = mat->CreateBC(mat,-4, 0,val1,val2);
- 
- cmesh->InsertMaterialObject(mat);
- cmesh->InsertMaterialObject(bcT0);
- cmesh->InsertMaterialObject(bcXL);
- cmesh->InsertMaterialObject(bcOutFlow);
- cmesh->InsertMaterialObject(bcX0);
- 
- //  TPZCompEl::SetgOrder(p);
- cmesh->SetDefaultOrder(p);
- cmesh->AutoBuild();
- 
- return cmesh;
- 
- }
- */

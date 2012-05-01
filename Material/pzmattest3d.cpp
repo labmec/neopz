@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMaterialTest3D methods.
  */
+
 #include "pzmattest3d.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -50,25 +51,8 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef )
 {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
@@ -77,13 +61,6 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 		fXf(0,0) = res[0];
 	}
 	if(geq3==0) {
-		//proje�o L2 da carga fXf : fForcingFunction
-		/*for( int jn = 0; jn < phr; jn++ ) {
-		 ef(jn, 0) += weight * fXf(0,0) * phi(jn, 0);
-		 for( int in = 0; in < phr; in++ ) {
-		 ek(in,jn) += weight * phi(in,0) * phi(jn,0);
-		 }
-		 }*/
 		for( int in = 0; in < phr; in++ )
 		{
 			ef(in, 0) += weight * fXf(0,0) * phi(in, 0);
@@ -100,53 +77,18 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 			ef(in, 0) += weight * fXf(0,0) * phi(in, 0);
 			for( int jn = 0; jn < phr; jn++ )
 			{
-				/*REAL dphix = axes(0,0)*dphi(0,in)+axes(1,0)*dphi(1,in)+axes(2,0)*dphi(2,in);
-				 REAL dphiy = axes(0,1)*dphi(0,in)+axes(1,1)*dphi(1,in)+axes(2,1)*dphi(2,in);
-				 REAL dphiz = axes(0,2)*dphi(0,in)+axes(1,2)*dphi(1,in)+axes(2,2)*dphi(2,in);
-				 REAL dphjx = axes(0,0)*dphi(0,jn)+axes(1,0)*dphi(1,jn)+axes(2,0)*dphi(2,jn);
-				 REAL dphjy = axes(0,1)*dphi(0,jn)+axes(1,1)*dphi(1,jn)+axes(2,1)*dphi(2,jn);
-				 REAL dphjz = axes(0,2)*dphi(0,jn)+axes(1,2)*dphi(1,jn)+axes(2,2)*dphi(2,jn);
-				 ek(in,jn) += weight*(dphix*dphjx+dphiy*dphjy+dphiz*dphjz);*/
 				ek(in,jn) += weight * ( dphi(0,in) * dphi(0,jn) + dphi(1,in) * dphi(1,jn) );//
 				if(dphi.Rows() == 3) ek(in,jn) += weight *  dphi(2,in) * dphi(2,jn);// );
 			}
 		}
 	}
 }
-/*  //2D
- for(int jn=0 ; jn<phi.Rows() ; ++jn){
- for(ic=0; ic<r; ic++) for(jc=0; jc<r; jc++) {
- REAL dphix = dphi(0,in)*axes(0,0)+axes(1,0)*dphi(1,in);
- REAL dphiy = dphi(0,in)*axes(0,1)+axes(1,1)*dphi(1,in);
- REAL dphjx = dphi(0,jn)*axes(0,0)+axes(1,0)*dphi(1,jn);
- REAL dphjy = dphi(0,jn)*axes(0,1)+axes(1,1)*dphi(1,jn);
- ek(in*r+ic,jn*r+jc) += weight*(dphix*dphjx+dphiy*dphjy);
- }
- }
- */
+
 void TPZMaterialTest3D::ContributeBC( TPZMaterialData &data,REAL weight,
 									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
+	
 	int phr = phi.Rows();
 	short in,jn;
 	REAL v2[1];
@@ -189,7 +131,6 @@ void TPZMaterialTest3D::ContributeBC( TPZMaterialData &data,REAL weight,
 	}
 }
 
-
 /** returns the variable index associated with the name*/
 int TPZMaterialTest3D::VariableIndex(const std::string &name)
 {
@@ -198,7 +139,6 @@ int TPZMaterialTest3D::VariableIndex(const std::string &name)
 	if(!strcmp("Derivate",name.c_str()))     return  2;
 	return TPZMaterial::VariableIndex(name);
 }
-
 
 int TPZMaterialTest3D::NSolutionVariables(int var)
 {
@@ -233,7 +173,6 @@ void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<R
 							   TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,TPZVec<REAL> & u_exact,
 							   TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
 {
-	//TPZVec<REAL> sol(1),dsol(3);
 	TPZManVector<REAL> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
@@ -261,31 +200,6 @@ void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<R
 	values[0]  = values[1]+values[2];
 }
 
-/*
- REAL dphix = axes(0,0)*dsol[0]+axes(1,0)*dsol[1]+axes(2,0)*dsol[2];
- REAL dphiy = axes(0,1)*dsol[0]+axes(1,1)*dsol[1]+axes(2,1)*dsol[2];
- REAL dphiz = axes(0,2)*dsol[0]+axes(1,2)*dsol[1]+axes(2,2)*dsol[2];
- 
- //values[2]  = pow(dphix - du_exact(0,0),2.0);
- //values[2] += pow(dphiy - du_exact(1,0),2.0);
- //values[2] += pow(dphiz - du_exact(2,0),2.0);
- if(dudx.Rows()<3) {
- REAL dx = du_exact(0,0)*axes(0,0);//+du_exact(1,0)*axes(0,1);
- REAL dy;
- if(dudx.Rows()>1)
- dx += du_exact(1,0)*axes(0,1);
- dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
- //values[1] : eror em norma L2
- values[1]  = pow(sol[0] - u_exact[0],2.0);
- //values[2] : erro em semi norma H1
- values[2]  = pow(dx - dudx(0,0),2.0);
- if(dudx.Rows()>1) values[2] += pow(dy - dudx(1,0),2.0);
- //values[0] : erro em norma H1 <=> norma Energia
- values[0]  = values[1]+values[2];
- return;
- }
- */
-
 TPZAutoPointer<TPZMaterial>  TPZMaterialTest3D::NewMaterial()
 {
 	int matid = Id();
@@ -294,18 +208,15 @@ TPZAutoPointer<TPZMaterial>  TPZMaterialTest3D::NewMaterial()
 	return mat;
 }
 
-
 void TPZMaterialTest3D::SetMaterial(TPZFMatrix<REAL> &xfin)
 {
 	fXf = xfin;
 }
 
-
 int TPZMaterialTest3D::Dimension()
 {
 	return 3;
 }
-
 
 void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 {
@@ -326,7 +237,6 @@ void TPZMaterialTest3D::Read(TPZStream &buf, void *context)
 #endif
 }
 
-
 void TPZMaterialTest3D::Write(TPZStream &buf, int withclassid)
 {
 	TPZMaterial::Write(buf,withclassid);
@@ -345,4 +255,3 @@ int TPZMaterialTest3D::ClassId() const
 
 template class
 TPZRestoreClass < TPZMaterialTest3D,TPZMATTEST3DID > ;
-

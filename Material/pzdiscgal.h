@@ -1,8 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZDiscontinuousGalerkin class which implements the interface for discontinuous Galerkin formulation.
  */
-// $Id: pzdiscgal.h,v 1.20 2009-11-04 14:04:43 fortiago Exp $
+
 #ifndef TPZDISCGALHPP
 #define TPZDISCGALHPP
 

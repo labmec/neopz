@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMultPlaca class.
  */
+
 #ifndef MULTPLACAHPP
 #define MULTPLACAHPP
 

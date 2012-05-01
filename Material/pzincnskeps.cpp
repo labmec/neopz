@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZIncNavierStokesKEps methods.
  */
+
 #include "pzincnskeps.h"    
 
 TPZIncNavierStokesKEps::TPZIncNavierStokesKEps(int id, int dimension):TPZMaterial(id){
@@ -90,27 +91,11 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
 	TPZVec<REAL> &sol=data.sol[0];
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
 	TPZFMatrix<REAL> &dsol=data.dsol[0];
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	REAL valor;
 	
@@ -228,7 +213,6 @@ void TPZIncNavierStokesKEps::ContributeBC(TPZMaterialData &data,
 	
 }
 
-
 REAL TPZIncNavierStokesKEps::Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B){
 	REAL sum = 0.;
 	int i, j, rows, cols;
@@ -261,5 +245,3 @@ REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZFMatrix<REAL> &B, int BRow)
 	}
 	return sum;
 }
-
-

@@ -3,7 +3,6 @@
  * @brief Contains the TPZPlacaOrthotropic class.
  */
 
-// $Id: TPZPlacaOrthotropic.h,v 1.8 2005-04-25 02:52:51 phil Exp $
 #ifndef PLACAORTHOTROPIC
 #define PLACAORTHOTROPIC
 #include "pzvec.h"
@@ -36,7 +35,6 @@ private:
 	REAL fZMin, fZMax;
 
 	int fTensorVar;
-	//double dx, dy;
 	
 public:
 	/** @brief Default constructor */
@@ -53,9 +51,7 @@ public:
 	 */
 	void Tensor(TPZVec<REAL> &ksi, TPZFMatrix<REAL> &T);
 
-	/**Dados dois vetores n1 e n2 retorna o momento*/
 	REAL Moment(REAL zref, TPZVec<REAL> &normal, TPZVec<REAL> &direction);
-	/**Dados dois vetores n1 e n2 retorna a forca*/
 	REAL Force(TPZVec<REAL> &normal, TPZVec<REAL> &direction);
 	
 	/**

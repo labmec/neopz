@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMat2dLin class which implements a bi-dimensional linear problem.
  */
+
 #ifndef MAT2DLINHPP
 #define MAT2DLINHPP
 
@@ -108,9 +109,7 @@ public:
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-
+	
 };
 
 #endif
-
-

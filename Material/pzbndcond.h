@@ -3,8 +3,6 @@
  * @brief Contains the TPZBndCond class which implements a boundary condition for TPZMaterial objects.
  */
 
-//$Id: pzbndcond.h,v 1.30 2011-05-26 03:28:57 phil Exp $
-
 #ifndef BNDCONDHPP
 #define BNDCONDHPP
 
@@ -17,10 +15,6 @@
 #include "pzfmatrix.h"
 #include "pzmaterialid.h"
 #include "tpzautopointer.h"
-
-//#ifdef _AUTODIFF
-//#include "fadType.h"
-//#endif
 
 template <class T, int N>
 class TPZManVector;

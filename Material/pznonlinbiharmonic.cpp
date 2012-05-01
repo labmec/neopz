@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZNonLinBiharmonic methods.
  */
-//$Id: pznonlinbiharmonic.cpp,v 1.6 2008-10-08 02:09:28 phil Exp $
 
 #include "pznonlinbiharmonic.h"
 #include "pzelmat.h"
@@ -42,7 +41,6 @@ void TPZNonLinBiharmonic::Print(std::ostream &out) {
 	
 }
 
-
 // Fazer outro metodo igual a esse sem os ... ek ... e com os parametros adequados
 
 void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
@@ -50,26 +48,14 @@ void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
                                      TPZFMatrix<REAL> &ek,
                                      TPZFMatrix<REAL> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> &dphiR = dataright.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = dataleft.phi;
-	// TPZFMatrix<REAL> &phiR = dataright.phi;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=dataleft.sol;
-	// TPZVec<REAL> &solR=dataright.sol;
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZFMatrix<REAL> &dsol=data.dsol[0];
-	// TPZFMatrix<REAL> &dsolL=dataleft.dsol;
-	// TPZFMatrix<REAL> &dsolR=dataright.dsol;
-	// REAL &faceSize=data.HSize;
 	
 	int phr = phi.Rows();
 	REAL Re_1 = 1./Re;
@@ -122,8 +108,6 @@ int TPZNonLinBiharmonic::NSolutionVariables(int var){
 	if(var == 2) return 2;
 	if(var == 10) return 1;
 	return TPZMaterial::NSolutionVariables(var);
-	//  cout << "TPZNonLinBiharmonic::NSolutionVariables Error\n";
-	//  return 0;
 }
 
 void TPZNonLinBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &/*axes*/,
@@ -176,34 +160,25 @@ void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix
 	
 }
 
-
-
-
-
 void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                               REAL weight,
                                               TPZFMatrix<REAL> &ek,
                                               TPZFMatrix<REAL> &ef){
-	// TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
+	
 	int LeftPOrder=dataleft.p;
 	int RightPOrder=dataright.p;
-	// TPZVec<REAL> &sol=data.sol;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZVec<REAL> &solL=dataleft.sol[0];
 	TPZVec<REAL> &solR=dataright.sol[0];
-	// TPZFMatrix<REAL> &dsol=data.dsol;
 	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
 	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
 	REAL faceSize=data.HSize;
@@ -215,18 +190,13 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	
 	REAL alpha=gSigmaA*(pow(((REAL)LeftPOrder),gL_alpha)+pow(((REAL)RightPOrder), gL_alpha) ) /
     (2. * pow(faceSize, gM_alpha) );
-	// cout <<  "faceSize em ContributeInterface = " <<faceSize << endl;
-	//  cout <<  "LeftPOrder em ContributeInterface = " <<LeftPOrder << endl;
-	//  cout <<  "alpha em ContributeInterface = " <<alpha << endl;
 	
 	
 	REAL betta=gSigmaB*(pow(((REAL)LeftPOrder),gL_betta)+pow(((REAL)RightPOrder), gL_betta) ) /
     (2. * pow(faceSize, gM_betta) );
-	// cout <<  "betta em ContributeInterface = " <<betta << endl;
 	
 	// 
 	// advectivo
-	//
 	// 'Unica Integral 
 	REAL norFnorF = normal[0]*normal[0];
 	REAL norSnorS = normal[1]*normal[1];
@@ -264,7 +234,6 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 											  dsolL(2,0)*phiL(il,0)*norSnorS );
 		}
 	}
-	
 	
 	for(ir=0; ir<nrowr; ir++) {
 		//
@@ -323,7 +292,6 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		}
 	}
 	
-	
 	for(ir=0; ir<nrowr; ir++) {
 		ef(ir+nrowl,0) += weight*0.5*(
 									  - dsolL(2,0)*phiR(ir,0)*(uLnorF + vLnorS)) 
@@ -352,11 +320,9 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		}
 	}
 	
-	
 	/*
 	 * biharmonic 
 	 */
-	
 	/* Primeira Integral */
 	for(il=0; il<nrowl; il++) {
 		REAL dphiLinormal = 0.;
@@ -528,7 +494,6 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		
 	}
 	
-	
 	/* Terceira Integral */
 	for(il=0; il<nrowl; il++) {
 		REAL dphiLinormal = 0.;
@@ -629,36 +594,21 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
                                                 TPZFMatrix<REAL> &ek,
                                                 TPZFMatrix<REAL> &ef,
                                                 TPZBndCond &bc) {
-	// TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> &dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
-	// TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
 	int POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZVec<REAL> &solL=dataleft.sol[0];
-	// TPZVec<REAL> &solR=dataright.sol;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
 	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
-	// TPZFMatrix<REAL> &dsolR=dataright.dsol;
 	REAL faceSize=data.HSize;
 	
 	REAL alpha = gSigmaA*pow(((REAL)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
 	REAL betta = gSigmaB*pow(((REAL)POrder), gL_betta) /  pow(faceSize, gM_betta);
-	//   cout <<  "faceSize em ContributeBCInterface = " <<faceSize << endl;
-	//   cout <<  "POrder em ContributeBCInterface = " <<POrder << endl;
-	//   cout <<  "alpha em ContributeBCInterface = " <<alpha << endl;
-	//   cout <<  "betta em ContributeBCInterface = " <<betta << endl;
 	
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
@@ -671,7 +621,6 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(3+id,il)*normal[id];
 		}
-		
 		
 		// Termos de Dirichlet     -     em Val2()(0,0)
 		ef(il,0) += + Re_1*gLambda1*weight*dphiLinormal*bc.Val2()(0,0)
@@ -719,7 +668,6 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 		
 	}
 	
-	
 	for(il=0; il<nrowl; il++) {
 		REAL dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
@@ -748,13 +696,6 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 	 *  Termo advectivo
 	 */
 	
-	/* REAL ULnormal = dsolL(1,0)*normal[0] - dsolL(0,0)*normal[1];
-	 for(il=0; il<nrowl; il++) 
-	 for(jl=0; jl<nrowl; jl++) 
-	 ek(il,jl) -= weight*dphiL(2,jl)*phiL(il,0)*ULnormal;
-	 
-	 */
-	
 	REAL ULnormal = dsolL(1,0)*normal[0] - dsolL(0,0)*normal[1];
 	for(il=0; il<nrowl; il++){ 
 		for(jl=0; jl<nrowl; jl++){ 
@@ -767,5 +708,5 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 		ef(il,0) += weight*dsolL(2,0)*phiL(il,0)*ULnormal;
 		
 	}
-
+	
 }

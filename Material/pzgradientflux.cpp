@@ -2,7 +2,6 @@
  * \file
  * @brief Contains implementations of the TPZGradientFlux methods.
  */
-//$Id: pzgradientflux.cpp,v 1.2 2011-05-11 02:24:19 phil Exp $
 
 #include "pzgradientflux.h"
 

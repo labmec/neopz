@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMaterialData class which implements an interface between TPZCompEl::CalcStiff and TPZMaterial::Contribute methods.
  */
-//$Id: pzmaterialdata.h,v 1.15 2011-05-30 20:19:12 denise Exp $
 
 #ifndef PZMATERIALDATA_H
 #define PZMATERIALDATA_H

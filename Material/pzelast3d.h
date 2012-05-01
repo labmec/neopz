@@ -3,8 +3,6 @@
  * @brief Contains the TPZElasticity3D class which implements a 3D isotropic elasticity material.
  */
 
-//$Id: pzelast3d.h,v 1.13 2010-09-06 14:50:47 phil Exp $
-
 #ifndef PZELAST3D
 #define PZELAST3D
 
@@ -13,8 +11,6 @@
 #include "pzfmatrix.h"
 #include "pzvec.h"
 #include <vector>
-
-//#define CODE1
 
 /**
  * @ingroup material
@@ -37,17 +33,20 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param force - external forces
 	 */
 	TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force);
-
+	/** 
+	 * @brief Constructor
+	 * @param nummat - material ID.
+	 */
 	TPZElasticity3D(int nummat);
-	
+	/** @brief Default constructor */
 	TPZElasticity3D();
-	
-	/** @brief Default destructor */
-	virtual ~TPZElasticity3D();
 	/** @brief Copy constructor */
 	TPZElasticity3D(const TPZElasticity3D &cp);
 	
-	/** @brief Returns material dimension */
+	/** @brief Default destructor */
+	virtual ~TPZElasticity3D();
+	
+	/** @brief Returns model dimension */
 	int Dimension() { return 3;}
 	
 	/** @brief Number of state variables */
@@ -122,7 +121,6 @@ public:
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-	
 	
 	/** 
 	 * @brief Return the number of components which form the flux function

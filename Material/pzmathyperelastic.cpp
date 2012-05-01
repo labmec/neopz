@@ -1,13 +1,13 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMatHyperElastic methods.
  */
+
 #include "pzmathyperelastic.h"
 #include "pzelmat.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-//#include "pztempmat.h"
 #include "pzerror.h"
 #include <math.h>
 
@@ -54,29 +54,13 @@ void TPZMatHyperElastic::Print(std::ostream &out) {
 
 void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	TPZFMatrix<REAL> &dsol=data.dsol[0];
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(fForcingFunction) {
 		TPZManVector<REAL> res(3);
@@ -88,9 +72,6 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 #ifdef _AUTODIFF
 	TFad<9, TFad<9,REAL> > U;
 	ComputeEnergy(fLambda,fNu,dsol,U);
-	//   U2 = U*TFad<9,REAL>(weight);
-	//   cout <<  "Before multiplication\n" << U << endl;
-	//   cout <<  "weight  " << weight <<  "\nAfter multiplication\n" << U2 << endl;
 	int nshape = phi.Rows();
 	int ish,jsh, i,j;
 	for(ish=0; ish<nshape; ish++) {
@@ -358,11 +339,6 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	
 #endif
 }
-/*for(idf=0; idf<3; idf++) {
- for(jdf=0; jdf<3; jdf++)
- ek(i*3+idf,j*3+jdf) += KIJ(idf,jdf);
- }*/
-
 
 /** returns the variable index associated with the name*/
 int TPZMatHyperElastic::VariableIndex(const std::string &name){
@@ -479,30 +455,12 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 
 void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 	
-	//   TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
     int numbersol = data.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	TPZVec<REAL> &sol=data.sol[0];
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	//TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
@@ -560,84 +518,19 @@ void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
 	}//fim switch
 }
 
-
 #ifdef _AUTODIFF
 
-
-/* The function below makes the correspondence between the dsol vector
- and a matrix ordered F operator
- */
+/** The function below makes the correspondence between the dsol vector and a matrix ordered F operator */
 inline int ith(const int i, const int j)
 {
 	return i*3+j;
 }
 
-
 void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 										  TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
 										  FADFADREAL &U, REAL weight)
 {
-	//     const int dim = 3;
-	//  cout <<  "Solution gradient\n ";
-	//  int i;
-	//  for(i=0; i<9; i++) cout  << dsol[i].val().val() <<  " ";
-	//  cout << endl;
 	FADFADREAL J, TrC; // J = det(F); TrC = Trace(C)
-	/*     int numder = dsol[0].size();
-     FADFADREAL F[3][3], J, J2, TrC; // J = det(F); TrC = Trace(C)
-     FADREAL defaultFAD(numder, 0., 0.);
-	 
-	 
-     FADFADREAL ADOne(numder, FADREAL(numder, 1., 0.), defaultFAD);
-     FADFADREAL ADTwo(numder, FADREAL(numder, 2., 0.), defaultFAD);
-     FADFADREAL ADThree(numder, FADREAL(numder, 3., 0.), defaultFAD);
-     FADFADREAL ADFour(numder, FADREAL(numder, 4., 0.), defaultFAD);
-     FADFADREAL ADLambda(numder, FADREAL(numder, fLambda, 0.), defaultFAD);
-     FADFADREAL ADNu(numder, FADREAL(numder, fNu, 0.), defaultFAD);
-     TrC = FADFADREAL(numder, defaultFAD, defaultFAD);
-	 
-     int i,j,k;
-     for(i = 0; i < dim; i++)
-     {
-	 for(j = 0; j < dim; j++)
-	 F[i][j] = dsol[i * dim + j]; // Fij = dUi/dXj // GradU
-	 F[i][i] += ADOne; // F = GradU + I
-     }
-	 
-	 // C = Transpose[F] * F
-	 // evaluating the diagonal of the Cauchy tensor
-	 
-	 
-     for(i = 0; i < dim; i++)
-     {
-	 for(k = 0; k < dim; k++)
-	 TrC += F[k][i] * F[k][i]; // matrix multiplication
-     }
-	 
-     J = F[0][0] * F[1][1] * F[2][2] +
-	 F[0][1] * F[1][2] * F[2][0] +
-	 F[0][2] * F[1][0] * F[2][1] -
-	 F[0][2] * F[1][1] * F[2][0] -
-	 F[0][1] * F[1][0] * F[2][2] -
-	 F[0][0] * F[1][2] * F[2][1]; //  J = det(F)
-	 
-     TPZVecFADFADREAL> DiagF(3);
-     DiagF[0] = dsol[    0] + FADREAL(1.);// element [0][0]
-     DiagF[1] = dsol[  3+1] + FADREAL(1.);// element [1][1]
-     DiagF[2] = dsol[2*3+2] + FADREAL(1.);// element [2][2]
-	 
-     TrC = DiagF[0]*DiagF[0]+
-	 dsol[ith(1,0)] * dsol[ith(1,0)] +
-	 dsol[ith(2,0)] * dsol[ith(2,0)] +
-	 
-	 dsol[ith(0,1)] * dsol[ith(0,1)] +
-	 DiagF[1]*DiagF[1]+
-	 dsol[ith(2,1)] * dsol[ith(2,1)] +
-	 
-	 dsol[ith(0,2)] * dsol[ith(0,2)] +
-	 dsol[ith(1,2)] * dsol[ith(1,2)] +
-	 DiagF[2]*DiagF[2];
-	 */
 	FADFADREAL DiagF0(dsol[    0]);
 	DiagF0.val().val() += 1.;// element [0][0]
 	
@@ -646,31 +539,6 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 	
 	FADFADREAL DiagF2(dsol[2*3+2]);
 	DiagF2.val().val() += 1.;// element [0][0]
-	/*
-     TrC = DiagF0*DiagF0 +
-	 dsol[ith(1,0)] * dsol[ith(1,0)] +
-	 dsol[ith(2,0)] * dsol[ith(2,0)] +
-	 
-	 dsol[ith(0,1)] * dsol[ith(0,1)] +
-	 DiagF1*DiagF1 +
-	 dsol[ith(2,1)] * dsol[ith(2,1)] +
-	 
-	 dsol[ith(0,2)] * dsol[ith(0,2)] +
-	 dsol[ith(1,2)] * dsol[ith(1,2)] +
-	 DiagF2*DiagF2;
-	 
-     J = DiagF0          * DiagF1         * DiagF2 +
-	 dsol[ith(0,1)] * dsol[ith(1,2)] * dsol[ith(2,0)] +
-	 dsol[ith(0,2)] * dsol[ith(1,0)] * dsol[ith(2,1)] -
-	 dsol[ith(0,2)] * DiagF1         * dsol[ith(2,0)] -
-	 dsol[ith(0,1)] * dsol[ith(1,0)] * DiagF2 -
-	 DiagF0         * dsol[ith(1,2)] * dsol[ith(2,1)]; //  J = det(F)
-	 
-     U += (J*J - FADREAL(1.)) * FADREAL(fLambda/4.) -
-	 log( J ) * FADREAL(fLambda/2.+fNu) +
-	 (TrC - FADREAL(3.)) * FADREAL(fNu/2.);
-	 
-	 */
 	TrC =  DiagF0*DiagF0;
 	TrC += dsol[ith(1,0)] * dsol[ith(1,0)];
 	TrC += dsol[ith(2,0)] * dsol[ith(2,0)];
@@ -695,8 +563,6 @@ void TPZMatHyperElastic::ContributeEnergy(TPZVec<REAL> &x,
 	U += (J*J - FADREAL(1.)) * FADREAL(weight*fLambda/4.);
 	U -= log( J ) * FADREAL(weight*(fLambda/2.+fNu));
 	U += (TrC - FADREAL(3.)) * FADREAL(weight*fNu/2.);
-	
-	//     cout << U << endl;
 }
 
 void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
@@ -750,10 +616,9 @@ void TPZMatHyperElastic::ContributeBCEnergy(TPZVec<REAL> & x,
 	}
 }
 
-void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &dsol, TFad<9,TFad<9,REAL> > &energy){
+void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &dsol, TFad<9,TFad<9,REAL> > &energy) {
 	TFad<9,TFad<9,REAL> > tensor[3][3],J,TrC;
 	int i,j;
-	//  dsol.Print( "Solution gradient ");
 	for(i=0; i<3; i++) {
 		for(j=0; j<3; j++) {
 			tensor[i][j].val().val() = dsol(j,i);
@@ -765,19 +630,17 @@ void TPZMatHyperElastic::ComputeEnergy(REAL lambda, REAL mu,  TPZFMatrix<REAL> &
 	TrC = tensor[0][0]*tensor[0][0]+tensor[0][1]*tensor[0][1]+tensor[0][2]*tensor[0][2]+tensor[1][0]*tensor[1][0]+tensor[1][1]*tensor[1][1]+tensor[1][2]*tensor[1][2]+
     tensor[2][0]*tensor[2][0]+tensor[2][1]*tensor[2][1]+tensor[2][2]*tensor[2][2];
 	
-	//  cout <<  "TrC\n " << TrC << endl;
 	J = tensor[0][0] * tensor[1][1] * tensor[2][2] + 
     tensor[0][1] * tensor[1][2] * tensor[2][0] +
     tensor[0][2] * tensor[1][0] * tensor[2][1] -
     tensor[0][2] * tensor[1][1] * tensor[2][0] -
     tensor[0][1] * tensor[1][0] * tensor[2][2] -
     tensor[0][0] * tensor[1][2] * tensor[2][1]; //  J = det(F)
-	//  cout <<  "J\n " << J << endl;
+	
 	energy = (J*J - TFad<9,REAL>(1.)) * TFad<9,REAL>(lambda/4.) -
     log( J ) * TFad<9,REAL>((lambda/2.+mu)) +
     (TrC - TFad<9,REAL>(3.)) * TFad<9,REAL>(mu/2.);
 	
 }
-
 
 #endif

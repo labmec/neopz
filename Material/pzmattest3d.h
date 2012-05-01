@@ -1,14 +1,13 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMaterialTest3D class. Three-dimensional test.
  */
+
 #ifndef MATTEST3DHPP
 #define MATTEST3DHPP
 
-
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
-
 
 /**
  * @ingroup material
@@ -21,8 +20,7 @@ private:
 	/** @brief Source */
 	TPZFMatrix<REAL> fXf;
 	
-	public :
-	
+	public :	
 	/** @brief Default empty constructor */
 	TPZMaterialTest3D();
 	
@@ -32,7 +30,6 @@ private:
 	/** @brief Destructor */
 	virtual ~TPZMaterialTest3D();
 	
-public:
 	/** @brief Cedric : para testes no programa main 3dmaterial.c */
 	static int geq3;
 	

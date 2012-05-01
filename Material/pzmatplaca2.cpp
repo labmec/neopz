@@ -1,5 +1,5 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMatPlaca2 methods.
  */
 
@@ -9,7 +9,9 @@
 #include "pzbndcond.h"
 #include <math.h>
 #include <fstream>
+
 using namespace std;
+
 #include "pzvec.h"
 #include "pzerror.h"
 
@@ -126,12 +128,6 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix<REAL> &n) {
 	
 	fRmat.Transpose(&fRmatT);
 	
-	
-	
-	
-	
-	
-	
 	TPZFMatrix<REAL> tmp;
 	fKxx.Multiply(fRmat,tmp);
 	fRmatT.Multiply(tmp,fKxxR);
@@ -143,8 +139,6 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix<REAL> &n) {
 	fBx0R = fRmatT * (fBx0 * fRmat);
 	fBy0R = fRmatT * (fBy0 * fRmat);
 	fB00R = fRmatT * (fB00 * fRmat);
-	
-	
 }
 
 /** @brief Output file to write data of the test over shell (placa)*/
@@ -159,24 +153,8 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	// check on the validity of the arguments
 	//rows x cols
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols()){
@@ -284,26 +262,7 @@ void TPZMatPlaca2::ContributeBC(TPZMaterialData &data,
                                 TPZFMatrix<REAL> &ek,
                                 TPZFMatrix<REAL> &ef,
                                 TPZBndCond &bc) {
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatPlaca2.ContributeBC warning : this material didn't create the boundary condition!\n";
@@ -376,11 +335,6 @@ void TPZMatPlaca2::Print(std::ostream & out) {
 	//out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-/*TPZBndCond *TPZMatPlaca2::CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2) {
- PZError << "TPZMatPlaca2::CreateBC is called\n";
- return 0;
- }        */
-
 /**returns the variable index associated with the name*/
 int TPZMatPlaca2::VariableIndex(const std::string &name){
 	if(!strcmp(name.c_str(),"Deslocamentos nodais")) return 0;
@@ -389,8 +343,6 @@ int TPZMatPlaca2::VariableIndex(const std::string &name){
 	if(!strcmp(name.c_str(),"Deslocz")) return 4;// Desloc. eixo z global
 	if(!strcmp(name.c_str(),"Mn1 Mn2 e Mn1n2"))     return 5;// Momentos nas direcoes dos eixos n1 e n2
 	if(!strcmp(name.c_str(),"Ma1 Ma2 e Ma1a2"))     return 50;// Momentos nas direcoes dos eixos a1 e a2
-	//if(!strcmp(name,"Mn2"))     return 6;// Mom. fletor eixo n2 da fibra
-	//if(!strcmp(name,"Mn1n2"))   return 7;// Mom. volvente eixos n1 e n2 da fibra
 	if(!strcmp(name.c_str(),"Vn1"))     return 8;// forca cortante Vn1 (positiva se antihorario)
 	if(!strcmp(name.c_str(),"Vn2"))     return 9;// forca cortante Vn2 (positiva se antihorario)
 	if(!strcmp(name.c_str(),"Sign1"))   return 10;// tens� normal na dire�o n1
@@ -414,8 +366,6 @@ int TPZMatPlaca2::NSolutionVariables(int var){
 	if(var == 4) return 1;  // Desloc. na superficie de referencia na eixo z global
 	if(var == 5) return 3;  // Momentos na superficie de referencia nas direcoes dos eixos n1 e n2
 	if(var== 50) return 3;  // Momentos na superficie de referencia nas direcoes dos eixos a1 e a2
-	//if(var == 6) return 1;
-	//if(var == 7) return 1;
 	if(var == 8) return 1;
 	if(var == 9) return 1;
 	if(var == 10) return 1;
@@ -476,14 +426,6 @@ void TPZMatPlaca2::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 			DSolnax(1,idf) += fRmat(idf,jdf)*DSol(1,jdf);
 		}
 	}
-	
-	
-	//     REAL Dax1n1, Dax1n2, Dax2n1, Dax2n2;
-	
-    //         Dax1n1 = axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
-    //         Dax1n2 = axes(0,0)* fnaxes(1,0) + axes(0,1)* fnaxes(1,1) + axes(0,2)* fnaxes(1,2);
-    //         Dax2n1 = axes(1,0)* fnaxes(0,0) + axes(1,1)* fnaxes(0,1) + axes(1,2)* fnaxes(0,2);
-    //         Dax2n2 = axes(1,0)* fnaxes(1,0) + axes(1,1)* fnaxes(1,1) + axes(1,2)* fnaxes(1,2);
 	
 	TPZFMatrix<REAL> Rmatan(2,2);
 	Rmatan(0,0)= axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
@@ -630,5 +572,3 @@ void TPZMatPlaca2::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 	
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
-
-

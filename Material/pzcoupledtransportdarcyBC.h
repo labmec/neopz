@@ -3,8 +3,6 @@
  * @brief Contains the TPZCoupledTransportDarcyBC class.
  */
 
-//$Id: pzcoupledtransportdarcyBC.h,v 1.6 2009-09-01 19:44:47 phil Exp $
-
 #ifndef MATCOUPLEDTRANSPDARCYBC
 #define MATCOUPLEDTRANSPDARCYBC
 
@@ -24,7 +22,7 @@
  */
 class TPZCoupledTransportDarcyBC : public TPZBndCond{
 	
-#warning THIS CLASS IS NOT THREADSAFE!!!
+// #warning THIS CLASS IS NOT THREADSAFE!!!
 protected:
 	
 	TPZBndCond * fMaterials[2];

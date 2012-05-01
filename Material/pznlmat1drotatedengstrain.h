@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZNLMat1dRotatedEngStrain class which implements a non linear 1d material.
  */
-//$Id: pznlmat1drotatedengstrain.h,v 1.7 2009-11-16 18:41:59 diogo Exp $
-// -*- c++ -*-
 
 #ifndef TPZNLMAT1DROTATEDENGSTRAIN_H
 #define TPZNLMAT1DROTATEDENGSTRAIN_H
@@ -61,7 +59,10 @@ public:
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
     }
 	
-	
+	/**
+	 * @name Contribute methods from weak formulation
+	 * @{
+	 */
     virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<REAL> &ek,
@@ -83,6 +84,8 @@ public:
 	{
 		TPZNLMat1d::ContributeBC(data,weight,ef,bc);
 	}
+
+	/** @} */
 	
 	/** @brief To create another material of the same type */
 	virtual TPZAutoPointer<TPZMaterial> NewMaterial();

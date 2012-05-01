@@ -1,16 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZViscoelastic methods.
  */
-/*
- *  pzviscoelastic.cpp
- *  pos_processamento
- *
- *  Created by Nathan Shauer on 07/16/11.
- *  Copyright 2011 LabMec. All rights reserved.
- *
- */
-
 
 #include "pzviscoelastic.h"
 
@@ -97,7 +88,6 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 
 	DSolXYZ = data.dsol[0];
 	qsi = MemItem(index);
-	//data.axes.Multiply(data.dsol,DSolXYZ,1/*transpose*/);
 	
 	Strain.Redim(6,1);
 	Strain(_XX_,0) = DSolXYZ(0,0);
@@ -109,9 +99,6 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	
 	REAL tr;
 	tr = Strain(_XX_,0)+Strain(_YY_,0)+Strain(_ZZ_,0);
-	//Strain.Print("Strain: ");
-	
-	//REAL lambdaE,REAL muE, REAL lambdaV, REAL muV, REAL alphaT
 	
 	qsin1(_XX_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_XX_,0)*fmuV) + qsi(_XX_,0))/(1 + falphaT);
 	qsin1(_YY_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_YY_,0)*fmuV) + qsi(_YY_,0))/(1 + falphaT);
@@ -120,7 +107,6 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	qsin1(_XZ_,0) = (-2*falphaT*Strain(_XZ_,0)*fmuV + qsi(_XZ_,0))/(1 + falphaT);
 	qsin1(_YZ_,0) = (-2*falphaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + falphaT);
 	
-	//qsin1.Print("qsin1",std::cout);
 	MemItem(index) = qsin1;		
 }
 

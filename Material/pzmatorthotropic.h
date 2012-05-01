@@ -1,14 +1,14 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMatOrthotropic class.
  */
+
 #ifndef ORTHOTROPICHPP
 #define ORTHOTROPICHPP
 
 #include <iostream>
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
-//#include "checkconv.h"
 #include "pzvec.h"
 
 /**
@@ -22,7 +22,7 @@ class TPZMatOrthotropic : public TPZMaterial {
  	TPZFMatrix<REAL> fLocAxs;
 	REAL fEppx,fEppy,fEppz,fVxy,fVyx,fVyz,fVzy,fVzx,fVxz;
 	REAL fNumNom,fGxy,fGzx,fGyz;
-	TPZFMatrix<REAL> fXf;//fonte
+	TPZFMatrix<REAL> fXf;
 	
 	public :
 	

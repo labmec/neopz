@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZNonLinearPoisson3d methods.
  */
-
-//$Id: pznonlinearpoisson3d.cpp,v 1.9 2007-12-05 14:15:30 tiago Exp $
 
 #include "pznonlinearpoisson3d.h"
 #include "pzbndcond.h"

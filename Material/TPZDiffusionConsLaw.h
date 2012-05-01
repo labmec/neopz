@@ -2,19 +2,6 @@
  * \file
  * @brief Contains the TPZDiffusionConsLaw class which implements a Euler equation where is introduced a diffusive term to stabilize.
  */
-/**
- DIFUSÃO <-> DIFFUSION
- 
- do Lat. diffusione
- 
- s. f., acto ou efeito de difundir ou difundir-se;
- derramamento de fluido; \n
- disseminação;
- propagação;
- prolixidade;
- falta de concisão; \n
- Quím., mistura de gases de diferentes densidades.
- */
 
 #ifndef DIFFUSIONFORCONSLAWHH
 #define DIFFUSIONFORCONSLAWHH
@@ -55,11 +42,11 @@ private:
 	int fDimension;
 	
 public:
-	
+	/** @brief Default constructor */	
 	TPZDiffusionConsLaw();
-	
+	/** @brief Constructor for model dimension dim */
 	TPZDiffusionConsLaw(TPZVec<REAL> U,REAL gamma,int dim,const std::string &diff);
-	
+	/** @brief Destructor */
 	~TPZDiffusionConsLaw();
 	
 	//static void SetDelta(REAL delta){TPZDiffusionConsLaw::fDelta = delta;}
@@ -71,12 +58,6 @@ public:
 	REAL Delta();
 	
 	REAL CFL(int degree);
-	
-	//static void SetGamma(REAL gamma){TPZDiffusionConsLaw::fGamma = gamma;}
-	
-	//static void SetArtificialDiffusion(char *type){TPZDiffusionConsLaw::fArtificialDiffusion = type;}
-	
-	//void DiffusionTerm(TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &diff_term);
 	
 	/** @brief Jacobiano of the tensor flux of Euler */
 	static void JacobFlux(TPZVec<REAL> U,TPZFMatrix<REAL> &A,TPZFMatrix<REAL> &B,TPZFMatrix<REAL> &C);

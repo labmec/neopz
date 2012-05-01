@@ -1,14 +1,12 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZBCTension methods.
  */
-// $Id: pzbctension.cpp,v 1.8 2007-05-11 19:15:17 joao Exp $ 
 
 #include "pzbctension.h"
 #include "pzadmchunk.h"
 #include "pzintel.h"
 #include "TPZMulticamadaOrtho.h"
-//#include "TPZPlacaOrthotropic.h"
 
 TPZBCTension::TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,
 						   TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :

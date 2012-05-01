@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZThermicElast3D methods.
  */
-//$Id: pzthermicelast3d.cpp,v 1.2 2007-05-11 19:15:18 joao Exp $
 
 #include "pzthermicelast3d.h"
 

@@ -2,7 +2,6 @@
  * \file
  * @brief Contains the TPZBlackOil2P3D class which implements a 3D two-phase (oil-water) black-oil flow.
  */
-//$Id: pzblackoil2p3d.h,v 1.4 2011-02-04 08:53:02 fortiago Exp $
 
 #ifndef PZBLACKOIL2P3D_H
 #define PZBLACKOIL2P3D_H
@@ -52,9 +51,7 @@ public:
 	/** 
 	 * @brief Class constructor 
 	 * @param id material id
-	 * @param dim problem dimension
-	 * @param nstate number of state variables
-	 * @param sol constant solution vector
+	 * @param deltaT time step
 	 */
 	TPZBlackOil2P3D(int id, double deltaT);
 	
@@ -83,11 +80,11 @@ public:
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-	 * @param data[in] stores all input data
-	 * @param weight[in] is the weight of the integration rule
-	 * @param ek[out] is the stiffness matrix
-	 * @param ef[out] is the load vector
-	 * @param bc[in] is the boundary condition material
+	 * @param data [in] stores all input data
+	 * @param weight [in] is the weight of the integration rule
+	 * @param ek [out] is the stiffness matrix
+	 * @param ef [out] is the load vector
+	 * @param bc [in] is the boundary condition material
 	 */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 	

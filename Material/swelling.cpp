@@ -1,13 +1,13 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZSwelling methods.
  */
+
 #include "swelling.h"
 #include "pzelmat.h"
 #include "pzbndcond.h" 
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
-//#include "pztempmat.h"
 #include "pzerror.h"
 #include "checkconv.h"
 #include <math.h>
@@ -121,32 +121,13 @@ void TPZSwelling::ContributeBC(TPZMaterialData &data,
                                TPZFMatrix<REAL> &ef,
                                TPZBndCond &bc) {
 	
-	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
     int numbersol = data.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZVec<REAL> &sol=data.sol[0];
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
@@ -204,9 +185,7 @@ void TPZSwelling::ContributeBC(TPZMaterialData &data,
 	}//fim switch
 }
 
-
 #ifdef _AUTODIFF
-
 
 /* The function below makes the correspondence between the dsol vector
  and a matrix ordered F operator
@@ -336,18 +315,6 @@ void TPZSwelling::ContributeResidual(TPZVec<REAL> & x,
 	TPZVec<FADREAL> N(3);
 	ComputeN(sol,N);
 	
-	// uncomment to observe that the numerical procedure gives the same result as the analytic procedure
-	/*
-	 TPZVec<REAL> N2(3);
-	 NResidual(sol,N2);
-	 
-	 for(ieq=0; ieq<3; ieq++) {
-	 N2[ieq] -= N[ieq];
-	 }
-	 
-	 cout << "the difference between both approaches\n" << N2;
-	 */
-	
 	int ishape,nshape = phi.Rows();
 	for(ishape=0; ishape<nshape; ishape++) {
 		// compute the gradient of the weighting function in the deformed configuration
@@ -409,9 +376,6 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 	
 	int jeq;
 	
-	//return;
-	//  cout << "dsol " << dsol;
-	
 	// compute the gradient of the map induced by the displacement of the element
 	// include the derivative of the map with respect to the solution
 	REAL GradMap[3][3];
@@ -434,36 +398,9 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
     GradMap[0][1] * GradMap[1][0] * GradMap[2][2] -
     GradMap[0][0] * GradMap[1][2] * GradMap[2][1]; //  J = det(F)
 	
-	// compute the inverse of the map, including its derivatives
-	/*
-	 REAL GradMapInv[3][3];
-	 for(ieq=0; ieq<3; ieq++) {
-	 int ieqp = (ieq+1)%3;
-	 int ieqpp = (ieq+2)%3;
-	 for(jeq=0; jeq<3; jeq++) {
-	 int jeqp = (jeq+1)%3;
-	 int jeqpp = (jeq+2)%3;
-	 GradMapInv[ieq][jeq] = (GradMap[ieqp][jeqp]*GradMap[ieqpp][jeqpp]-GradMap[ieqpp][jeqp]*GradMap[ieqp][jeqpp])/J;
-	 //      cout << ieq << ' ' << jeq << endl << ieqp << ' ' << jeqp << '+' << ieqpp << ' ' <<  jeqpp << endl
-	 //	   << ieqpp << ' ' << jeqp << '-' << ieqp << ' ' << jeqpp <<  endl << GradMapInv[ieq][jeq];
-	 }
-	 }
-	 */
 	// compute the Lagrangian volume fractions in function of mu, pres and ksi
 	TPZVec<REAL> N(3);
 	ComputeN(sol,N);
-	
-	// uncomment to observe that the numerical procedure gives the same result as the analytic procedure
-	/*
-	 TPZVec<REAL> N2(3);
-	 NResidual(sol,N2);
-	 
-	 for(ieq=0; ieq<3; ieq++) {
-	 N2[ieq] -= N[ieq];
-	 }
-	 
-	 cout << "the difference between both approaches\n" << N2;
-	 */
 	
 	int ishape,nshape = phi.Rows();
 	for(ishape=0; ishape<nshape; ishape++) {
@@ -485,8 +422,6 @@ void TPZSwelling::ContributePrevResidual(TPZVec<REAL> & x,
 		}
 	}
 }
-
-
 
 void TPZSwelling::ComputeW(FADFADREAL &W, TPZVec<REAL> &N) {
 	FADREAL defaultFAD(3,REAL(0.),REAL(0.));
@@ -538,12 +473,6 @@ void TPZSwelling::NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<RE
 	// the gradient contributes to the residual
 	// the second derivatives contribute to the tangent matrix
 	ComputeW(W,N);
-	
-	//alternative direct formula
-	//  REAL gradw[3];
-	//  gradw[0] = gRGas*gTemp*fGamma*(N[1]/gVPlus + N[2]/gVMinus)/N[0];
-	//  gradw[1] = (gRGas*gTemp/gVPlus)*log(N[1]/(pow(N[0],fGamma)*gVPlus));
-	//  gradw[2] = (gRGas*gTemp/gVMinus)*log(N[2]/(pow(N[0],fGamma)*gVMinus));
 	
 	res.Redim(3,1);
 	tangent.Redim(3,3);
@@ -695,7 +624,6 @@ int TPZSwelling::main() {
 	TPZVec<REAL> coefs(1,1.);
 	CheckConvergence(test,state,range,coefs);
 	
-	
 	// sample computation of a contribution to a stiffness matrix
 	// this procedure was built to check whether the stiffness matrix is symetric
 	
@@ -720,10 +648,7 @@ void ToMatrix(TPZVec<FADREAL> &vec, TPZFMatrix<REAL> &ek) {
 	}
 }
 
-/*
- Methods to implement automatic conformity checks
- 
- */
+/* Methods to implement automatic conformity checks */
 int TPZSwelling::NumCases() {
 	return 1;
 }
@@ -831,21 +756,9 @@ void TPZSwelling::ComputeInitialGuess(TPZVec<REAL> &mu, REAL J, REAL &pres, REAL
 }
 
 void TPZSwelling::ExactSolution(TPZVec<REAL> &mu, REAL ksi, REAL pres, TPZVec<REAL> &N) {
-	
-	// computes the analytic solution of N in function of mu, ksi and pressure
-	/*
-	 REAL test[3];
-	 test[0] = pres-mu[0]-gRGas*gTemp*fGamma*(N[1]/(N[0]*gVPlus)+N[2]/(N[0]*gVMinus));
-	 test[1] = pres-mu[1]+gFaraday*ksi/gVPlus+gRGas*gTemp*log(N[1]/(pow(N[0],fGamma)*gVPlus))/gVPlus;
-	 test[2] = pres-mu[2]-gFaraday*ksi/gVMinus+gRGas*gTemp*log(N[2]/(pow(N[0],fGamma)*gVMinus))/gVMinus;
-	 */
-	
 	REAL c1,c2;
 	c1 = (mu[1]-gFaraday*ksi/gVPlus - pres)*gVPlus/(gRGas*gTemp);
 	c2 = (mu[2]+gFaraday*ksi/gVMinus - pres)*gVMinus/(gRGas*gTemp);
-	
-	//  REAL test1 = pow(N[0],fGamma)*exp(c1)*gVPlus - N[1];
-	//  REAL test2 = pow(N[0],fGamma)*exp(c2)*gVMinus - N[2];
 	
 	REAL fac = exp(c1)+exp(c2);
 	REAL fac2 = (-mu[0]+pres)/(gRGas*gTemp*fGamma);
@@ -860,28 +773,17 @@ void TPZSwelling::ExactSolution(TPZVec<REAL> &mu, REAL ksi, REAL pres, TPZVec<RE
 
 void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<FADREAL> &N) {
 	
-	// computes the analytic solution of N carrying the derivatives
-	
+	// computes the analytic solution of N carrying the derivatives	
 	FADREAL &pres = sol[3];
 	FADREAL &mu0 = sol[4];
 	FADREAL &mu1 = sol[5];
 	FADREAL &mu2 = sol[6];
 	FADREAL &ksi = sol[7];
-	/*
-	 REAL test[3];
-	 test[0] = pres-mu[0]-gRGas*gTemp*fGamma*(N[1]/(N[0]*gVPlus)+N[2]/(N[0]*gVMinus));
-	 test[1] = pres-mu[1]+gFaraday*ksi/gVPlus+gRGas*gTemp*log(N[1]/(pow(N[0],fGamma)*gVPlus))/gVPlus;
-	 test[2] = pres-mu[2]-gFaraday*ksi/gVMinus+gRGas*gTemp*log(N[2]/(pow(N[0],fGamma)*gVMinus))/gVMinus;
-	 */
 	
 	FADREAL expc1,expc2;
 	expc1 = exp((mu1-gFaraday*ksi/gVPlus - pres)*gVPlus/(gRGas*gTemp));
 	
 	expc2 = exp((mu2+gFaraday*ksi/gVMinus - pres)*gVMinus/(gRGas*gTemp));
-	
-	//  REAL test1 = pow(N[0],fGamma)*exp(c1)*gVPlus - N[1];
-	//  REAL test2 = pow(N[0],fGamma)*exp(c2)*gVMinus - N[2];
-	
 	
 	FADREAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
 	N[0] = pow(fac2/(expc1+expc2),1./(fGamma-1));
@@ -900,21 +802,11 @@ void TPZSwelling::ComputeN(TPZVec<FADREAL> &sol, TPZVec<REAL> &N) {
 	REAL &mu1 = sol[5].val();
 	REAL &mu2 = sol[6].val();
 	REAL &ksi = sol[7].val();
-	/*
-	 REAL test[3];
-	 test[0] = pres-mu[0]-gRGas*gTemp*fGamma*(N[1]/(N[0]*gVPlus)+N[2]/(N[0]*gVMinus));
-	 test[1] = pres-mu[1]+gFaraday*ksi/gVPlus+gRGas*gTemp*log(N[1]/(pow(N[0],fGamma)*gVPlus))/gVPlus;
-	 test[2] = pres-mu[2]-gFaraday*ksi/gVMinus+gRGas*gTemp*log(N[2]/(pow(N[0],fGamma)*gVMinus))/gVMinus;
-	 */
 	
 	REAL expc1,expc2;
 	expc1 = exp((mu1-gFaraday*ksi/gVPlus - pres)*gVPlus/(gRGas*gTemp));
 	
 	expc2 = exp((mu2+gFaraday*ksi/gVMinus - pres)*gVMinus/(gRGas*gTemp));
-	
-	//  REAL test1 = pow(N[0],fGamma)*exp(c1)*gVPlus - N[1];
-	//  REAL test2 = pow(N[0],fGamma)*exp(c2)*gVMinus - N[2];
-	
 	
 	REAL fac2 = (-mu0+pres)/(gRGas*gTemp*fGamma);
 	N[0] = pow(fac2/(expc1+expc2),(float)1./(fGamma-1));

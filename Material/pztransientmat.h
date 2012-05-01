@@ -1,17 +1,12 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZTransientMaterial class which implements an implicit Euler time integrator.
  */
-
-//$Id: pztransientmat.h,v 1.7 2009-05-06 20:13:37 fortiago Exp $
-
 
 #ifndef TRANSIENTMATH
 #define TRANSIENTMATH
 
 #include "pzmaterial.h"
-// #include "pzvec.h"
-// #include "pzfmatrix.h"
 
 /**
  * @ingroup material

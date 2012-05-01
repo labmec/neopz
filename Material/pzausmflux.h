@@ -2,7 +2,6 @@
  * \file
  * @brief Contains the TPZAUSMFlux class.
  */
-//$Id: pzausmflux.h,v 1.2 2009-08-28 19:43:43 fortiago Exp $
 
 #ifndef TPZAUSMFLUX_H
 #define TPZAUSMFLUX_H
@@ -19,10 +18,7 @@ class TPZAUSMFlux{
 	
 private:
 	
-	/**
-	 * @brief Ratio between specific heat is constant and the specific heat the constant
-	 * volume of a polytropic gas
-	 */
+	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
 	REAL fGamma;
 	
 	/** @brief Method constants */

@@ -2,9 +2,6 @@
  * \file
  * @brief Contains the TPZBurger class which implements a linear convection equation using a burger flux.
  */
-// -*- c++ -*-
-
-//$Id: pzburger.h,v 1.7 2009-10-09 14:53:27 fortiago Exp $
 
 #ifndef BURGERH
 #define BURGERH
@@ -14,8 +11,7 @@
 
 /**
  * @ingroup material
- * @brief This class implements a linear convection equation using
- * a burger flux instead of the linear flux.
+ * @brief This class implements a linear convection equation using a burger flux instead of the linear flux.
  * @author Tiago Forti
  */
 /** 
@@ -36,10 +32,6 @@ public:
 	TPZBurger(const TPZBurger &cp);
 	/** @brief Destructor */
 	virtual ~TPZBurger();
-	
-	//   virtual int HasForcingFunction() {
-	//     return true;
-	//   }
 	
 	bool IsReferred(){ return this->fIsReferred;}
 	

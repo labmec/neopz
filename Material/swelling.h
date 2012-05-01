@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZSwelling class which implements a numerical model of swelling material coupling flow.
  */
+
 #ifndef SWELLINGHPP
 #define SWELLINGHPP
 
@@ -123,7 +124,12 @@ class TPZSwelling : public TPZMaterial {
 				std::cout << "ComputationMode illegal mode = " << mode << std::endl;
 		}
 	}
-	
+
+	/**
+	 * @name Contribute methods (weak formulation)
+	 * @{
+	 */
+	 
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<REAL> &ek,
@@ -184,6 +190,8 @@ class TPZSwelling : public TPZMaterial {
 	}
 	
 #endif
+
+	/** @} */
 	
 private:
 	

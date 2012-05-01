@@ -2,8 +2,6 @@
  * \file
  * @brief Contains the TPZBiharmonic class which implements a discontinuous Galerkin formulation for the bi-harmonic equation.
  */
-// -*- c++ -*-
-//$Id: pzbiharmonic.h,v 1.12 2009-11-16 18:41:59 diogo Exp $
 
 #ifndef  TPZBIHARMONICHPP
 #define TPZBIHARMONICHPP
@@ -29,7 +27,7 @@ protected:
 	
 	/** @brief Inicialisation of biharmonic material */
 	TPZBiharmonic(int nummat, REAL f);
-	
+	/** @brief Destructor */
 	virtual ~TPZBiharmonic();
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2. */
@@ -38,7 +36,7 @@ protected:
 	void SetMaterial(REAL &xfin) {
 		fXf = xfin;
 	}
-	
+	/** @brief Model dimension */
 	int Dimension() { return 2;}
 	
 	/** @brief Returns one because of scalar problem */
@@ -86,28 +84,24 @@ protected:
 	
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+
 public:
-	/**
-	 * @brief Returns the solution associated with the var index based on 
-	 * the finite element approximation
-	 */
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
-	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
     /**
-	 * @brief Compute the error due to the difference between the interpolated flux \n
+	 * @brief Compute the error due to the difference between the interpolated flux 
 	 * and the flux computed based on the derivative of the solution
 	 */	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
-	
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
@@ -127,7 +121,6 @@ public:
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
-	
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,

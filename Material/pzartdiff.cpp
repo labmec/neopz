@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZArtDiff methods.
  */
+
 #include "pzartdiff.h" 
 #include "TPZDiffusionConsLaw.h"
 #include "pzfmatrix.h"
@@ -67,12 +68,10 @@ TPZString TPZArtDiff::DiffusionName()
 			PZError << "Unknown artificial diffusion term (" << fArtDiffType << ")";
 			return rtstr;
 	}
-	//  return rtstr;
 }
 
 REAL TPZArtDiff::OptimalDelta()
 {
-	//int degree = TPZCompElDisc::gDegree;
 	REAL cfl = OptimalCFL(/*degree*/);
 	REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
 	return delta;
@@ -100,12 +99,10 @@ REAL TPZArtDiff::Delta(REAL deltax, TPZVec<REAL> & sol)
 			TPZEulerConsLaw::cSpeed(sol, fGamma, c);
 			lambdaMax = us+c;
 			return dX /2. / lambdaMax;
-			//    break;
 		default:
 			PZError << "Unknown artificial diffusion term (" << fArtDiffType << ")";
 			return 0.;
 	}
-	//  return 0.;
 }
 
 void TPZArtDiff::SetDelta(REAL delta)
@@ -200,9 +197,6 @@ void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
 				dDiv->operator()(i,j+l*nstate)=buff;
 			}
 	
-	// dDiv/dUj += (dA/dU.dU/dx).dU/dUj +
-	//             (dB/dU.dU/dy).dU/dUj +
-	//             (dC/dU.dU/dz).dU/dUj
 	TPZVec<T> ADiv(nstate);
 	T temp;
 	for( k = 0; k < dim; k++)
@@ -252,7 +246,6 @@ void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
 	// computing an approximation to the divergent derivative:
 	
 	// dDiv/dUj ~= A.d2U/dUidx + B.d2U/dUidy + C.d2U/dUidz
-	
 	dDiv->Redim(nstate, nstate * nshape);
 	int l;
 	REAL buff;
@@ -292,8 +285,6 @@ void TPZArtDiff::Divergent(TPZVec<FADREAL> &dsol,
 			for(k=0;k<dim;k++)
 				Div[i]+=Ai[k](i,j)*dsol[j*dim+k];
 	}
-	
-	//   cout << Div[0].val() << endl;
 }
 
 #endif
@@ -400,7 +391,6 @@ void TPZArtDiff::LST(int dim, TPZVec<T> & sol, TPZVec<TPZDiffMatrix<T> > & Ai, T
 	for(i = 0; i < dim; i++)
 	{
 		Tau[i] = Ai[i];
-		//Ai[i].Transpose(Tau[i]);
 	}
 }
 
@@ -437,9 +427,6 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> & sol, TP
 	RTM. Multiply(BornhausTau, Temp);
 	Temp.Multiply(RMi, BornhausTau);
 	
-// #warning "This doesnt exist anymore"
-	//   BornhausTau.Inverse();
-	//cout << BornhausTau;
 	for( i = 0; i < dim;i++)
 	{
 		Ai[i].Multiply(BornhausTau, Tau[i]);
@@ -485,7 +472,6 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> & sol, TP
 	Temp.   Multiply(Rot, BornhausTau);
 	
 	BornhausTau.Inverse();
-	//cout << BornhausTau;
 	for( i = 0; i < dim;i++)
 	{
 		Ai[i].Multiply(BornhausTau, Tau[i]);
@@ -494,10 +480,7 @@ void TPZArtDiff::Bornhaus(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> & sol, TP
 	
 }
 
-
-
 //------------------ Diff setup
-
 template <class T>
 void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> &U,
 							 TPZVec<TPZDiffMatrix<T> > & Ai, TPZVec<TPZDiffMatrix<T> > & Tau)
@@ -524,11 +507,6 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL>
 	
 	//Computing the divergent
 	Divergent(dsol, dphi, Ai, Div, pdDiv);
-	/*
-	 cout << "\n\ndiv\n" << Div;
-	 
-	 cout << "\n\nddiv\n" << dDiv;
-	 */
 	TauDiv.Resize(dim);
 	if(pTaudDiv)pTaudDiv->Resize(dim);
 	
@@ -576,11 +554,6 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADRE
 	
 	//Computing the divergent
 	Divergent(dsol, Ai, Div);
-	/*
-	 cout << "\n\nFADDiv \n" << Div;
-	 
-	 cout << "\n\nA0\n" << Ai[0];
-	 */
 	TauDiv.Resize(dim);
 	
 	// computing Tau.Div = {Tx.Div, Ty.Div, Tz.Div}
@@ -816,13 +789,7 @@ void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix<REAL> &jacinv, TPZVec<
 				for(j=0;j<neq;j++)
 					ek(i+l*nstate,j) -= buff * dTauDiv[k](i,j);
 			}
-	/*
-	 for(l=0;l<nshape;l++)
-	 for(i=0;i<nstate;i++)
-	 for(k=0;k<dim;k++)
-	 ef(i+l*nstate,0) += dphix(k,l) * TauDiv[k][i] * constant;*/
 }
-
 
 void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, REAL weight, REAL timeStep, REAL deltaX)
 {
@@ -849,14 +816,11 @@ void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TP
 	}
 }
 
-
 template< class T >
 void TPZArtDiff::Pressure(REAL gamma, int dim, T& press, TPZVec<T> &U)
 {
 	TPZEulerConsLaw::Pressure(gamma, dim, press, U);
 }
-
-
 
 #endif
 
@@ -886,4 +850,3 @@ int TPZArtDiff::ClassId() const {
 }
 
 template class TPZRestoreClass<TPZArtDiff,TPZARTDIFFID>;
-

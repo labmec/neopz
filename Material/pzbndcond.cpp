@@ -33,31 +33,6 @@ void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
 	}
 }
 
-//#ifdef _AUTODIFF
-
-/*
- void TPZBndCond::ContributeEnergy(TPZVec<REAL> &x,
- TPZVec<FADFADREAL> &sol, TPZVec<FADFADREAL> &dsol,
- FADFADREAL &U, REAL weight)
- {
- 
- int typetmp = fType;
- if (fType == 50){
- int i;
- for (i=0;i<sol.NElements();i++){
- fBCVal2(i,0) = gBigNumber*sol[i].val().val();
- fBCVal1(i,i) = gBigNumber;
- }
- fType = 2;
- }
- fMaterial->ContributeBCEnergy(x,sol,U,weight,*this);
- fType = typetmp;
- 
- 
- }
- */
-//#endif
-
 void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
 	
@@ -150,13 +125,6 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 	this->UpdataBCValues(data);
 	
 	//clone meshes required analysis
-	/*  
-     if (logger->isDebugEnabled())
-     {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << "bc type " <<  fType << " x " << data.x;
-	 LOGPZ_DEBUG(logger,sout.str().c_str());
-	 }*/
     int numbersol = data.sol.size();
 	int typetmp = fType;
 	if (fType == 50){
@@ -184,8 +152,6 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	
-	//this->UpdataBCValues(datavec);
 	
 	int typetmp = fType;
 	if (fType == 50) {

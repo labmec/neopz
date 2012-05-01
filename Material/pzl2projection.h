@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZL2Projection class which implements an L2 projection to constant solution values.
  */
-//$Id: pzl2projection.h,v 1.14 2011-05-26 03:28:57 phil Exp $
 
 #ifndef PZL2PROJECTION_H
 #define PZL2PROJECTION_H
@@ -64,7 +63,7 @@ public:
      * element with polinomial order p
      */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
-
+	
     /**
      * @brief Set a scale factor for the stiffness matrix and right hand side
      * the default value of the scale factor is 1
@@ -142,14 +141,13 @@ public:
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-
 	
     /** @brief Returns the solution associated with the var index based on the finite element approximation*/
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-
+	
 };
 
 #endif

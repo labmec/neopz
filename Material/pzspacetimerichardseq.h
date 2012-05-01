@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZSpaceTimeRichardsEq class which implements a 1D space-time Richards' equation.
  */
-//$Id: pzspacetimerichardseq.h,v 1.2 2008-10-20 11:56:22 longhin Exp $
 
 #ifndef PZSPACETIMERICHARDSEQ_H
 #define PZSPACETIMERICHARDSEQ_H
@@ -51,8 +50,6 @@ public:
 	
 	/** @brief It returns the number of state variables associated with the material */
 	virtual int NStateVariables();
-	
-	//   virtual int HasForcingFunction();
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.

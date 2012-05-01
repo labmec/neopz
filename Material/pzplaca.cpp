@@ -1,10 +1,10 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZPlaca methods.
  */
+
 #include "pzplaca.h"
 #include "pzmaterial.h"
-//#include "pztempmat.h" 
 
 #include "pzbndcond.h"
 #include <math.h>
@@ -111,24 +111,8 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
                           TPZFMatrix<REAL> &ef) {
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
@@ -144,7 +128,6 @@ void TPZPlaca::Contribute(TPZMaterialData &data,
 	if(fForcingFunction) {
 		fForcingFunction->Execute(x,fXF);//fXf = xfloat
 	}
-	
 	
 	REAL Dax1n1, Dax1n2, Dax2n1, Dax2n2;
 	
@@ -227,26 +210,7 @@ void TPZPlaca::ContributeBC(TPZMaterialData &data,
                             TPZFMatrix<REAL> &ef,
                             TPZBndCond &bc) {
 	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
@@ -313,11 +277,6 @@ void TPZPlaca::Print(std::ostream & out) {
 	//out << "Matrix xC ->  "; fCk.Print("fCf",out);
 	//out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
-
-/*TPZBndCond *TPZPlaca::CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2) {
- PZError << "TPZPlaca::CreateBC is called\n";
- return 0;
- }        */
 
 /**returns the variable index associated with the name*/
 int TPZPlaca::VariableIndex(const std::string &name){
@@ -483,7 +442,6 @@ void TPZPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 	
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
-
 
 void TPZPlaca::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &axes,TPZVec<REAL> &flux,
 					  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {

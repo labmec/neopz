@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZElasticityMaterial class which implements a two dimensional elastic material in plane stress or strain.
  */
+
 #ifndef ELASMATHPP
 #define ELASMATHPP
 
@@ -17,7 +18,8 @@
 class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	
 	public :
-	
+
+	/** @brief Default constructor */
 	TPZElasticityMaterial();
 	/** 
 	 * @brief Creates an elastic material with:
@@ -39,7 +41,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Default destructor */
 	virtual ~TPZElasticityMaterial();
 	
-	/** @brief Returns the dimension */
+	/** @brief Returns the model dimension */
 	int Dimension() { return 2;}
 	
 	/** @brief Returns the number of state variables associated with the material */
@@ -56,10 +58,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Returns the number of components which form the flux function */
 	virtual int NFluxes(){ return 3;}
-	
-	/* * Cria as condicoes de contorno */
-	//virtual TPZBndCond *CreateBc(long num, int typ, TPZFMatrix<REAL> &val1, TPZFMatrix<REAL> &val2);
-	
+		
 	/** @name Contribute methods */
 	/** @{ */
 	
@@ -129,9 +128,6 @@ public:
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
 				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
-	
-	//virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-	//		      TPZVec<REAL> &uexact,TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val){}
 	
 	/** @brief Returns the elasticity modulus E */
 	REAL E() {return fE;}

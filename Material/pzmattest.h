@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMaterialTest class. Test.
  */
+
 #ifndef MATTESTHPP
 #define MATTESTHPP
 

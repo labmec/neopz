@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMatWithMem class which implements the memory features.
  */
-//$Id: pzmatwithmem.h,v 1.6 2009-04-19 01:47:51 erick Exp $
 
 #ifndef PZMATWITHMEM_H
 #define PZMATWITHMEM_H
@@ -10,7 +9,6 @@
 #include "pzmaterial.h"
 #include "pzadmchunk.h"
 #include "pzviscoelastic.h"
-//#include "poroelastoplasticid.h"
 
 /**
  * @ingroup material

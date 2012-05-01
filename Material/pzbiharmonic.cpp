@@ -2,7 +2,6 @@
  * \file
  * @brief Contains implementations of the TPZBiharmonic methods.
  */
-//$Id: pzbiharmonic.cpp,v 1.10 2008-10-08 02:09:27 phil Exp $ 
 
 #include "pzbiharmonic.h"
 #include "pzelmat.h"
@@ -44,25 +43,8 @@ void TPZBiharmonic::Contribute(TPZMaterialData &data,
                                TPZFMatrix<REAL> &ek,
 							   TPZFMatrix<REAL> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	//TPZFMatrix<REAL> &dphiL = data.dphixl;
-	//TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	//TPZFMatrix<REAL> &phiL = data.phil;
-	//TPZFMatrix<REAL> &phiR = data.phir;
-	//TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	//int POrder=data.p;
-	//int LeftPOrder=data.leftp;
-	//int RightPOrder=data.rightp;
-	/*TPZVec<REAL> &sol=data.sol;
-	 TPZVec<REAL> &solL=data.soll;
-	 TPZVec<REAL> &solR=data.solr;
-	 TPZFMatrix<REAL> &dsol=data.dsol;
-	 TPZFMatrix<REAL> &dsolL=data.dsoll;
-	 TPZFMatrix<REAL> &dsolR=data.dsolr;*/
-	//REAL faceSize=data.HSize;
-	//TPZFMatrix<REAL> &jacinv = data.jacinv;
-	//TPZFMatrix<REAL> &axes = data.axes;
 	
 	int phr = phi.Rows();
 	
@@ -160,49 +142,18 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix<REAL>
 	values[4]  = values[5]+values[6]+values[7]+values[0];
 }
 
-
-
-// void TPZBiharmonic::ContributeInterface(TPZMaterialData &data,
-//                                         REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
-// 
-//    PZError << "TPZBiharmonic::ContributeInterface - this material requires left and right p order and interface size." << endl
-// 	   << "Assuming pL = pR = 3 and faceSize = 1." << endl;
-// 
-//    this->ContributeInterface(x, solL, solR, dsolL, dsolR, weight, normal, phiL, phiR, dphiL, dphiR, ek, ef, 3, 3, 1.);
-// 
-// }
-
-
 void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                         REAL weight,
                                         TPZFMatrix<REAL> &ek,
                                         TPZFMatrix<REAL> &ef){
-	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	//int POrder=data.p;
-	//int LeftPOrder=data.leftp;
-	//int RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	//REAL faceSize=data.HSize;
-	// TPZFMatrix<REAL> &jacinv = data.jacinv;
-	// TPZFMatrix<REAL> &axes = data.axes;
 	int LeftPOrder=dataleft.p;
 	int RightPOrder=dataright.p;
-	REAL faceSize=data.HSize;
-	
-	
+	REAL faceSize=data.HSize;	
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
@@ -210,15 +161,9 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 	
 	REAL alpha=gSigmaA*(pow(((REAL)LeftPOrder),gL_alpha)+pow(((REAL)RightPOrder), gL_alpha) ) /
     (2. * pow(faceSize, gM_alpha) );
-	// cout <<  "faceSize em ContributeInterface = " <<faceSize << endl;
-	//  cout <<  "LeftPOrder em ContributeInterface = " <<LeftPOrder << endl;
-	//  cout <<  "alpha em ContributeInterface = " <<alpha << endl;
-	
 	
 	REAL betta=gSigmaB*(pow(((REAL)LeftPOrder),gL_betta)+pow(((REAL)RightPOrder), gL_betta) ) /
     (2. * pow(faceSize, gM_betta) );
-	// cout <<  "betta em ContributeInterface = " <<betta << endl;
-	
 	
 	/* Primeira Integral */
 	for(il=0; il<nrowl; il++) {
@@ -344,7 +289,6 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 		}
 	}
 	
-	
 	/* Terceira Integral */
 	for(il=0; il<nrowl; il++) {
 		REAL dphiLinormal = 0.;
@@ -413,56 +357,20 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 	}
 }
 
-// void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data,
-//                                           REAL weight,  
-//                                           TPZFMatrix<REAL> &ek,
-//                                           TPZFMatrix<REAL> &ef,
-//                                           TPZBndCond &bc){
-// 
-//   PZError << "TPZBiharmonic::ContributeBCInterface - this material requires p order and interface size." << endl
-// 	   << "Assuming p = 3 and faceSize = 1." << endl;
-// 
-//    this->ContributeBCInterface(x, solL,  dsolL, weight, normal, phiL, dphiL, ek, ef, bc, 3, 1.);
-// 
-// }
-
 void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                           REAL weight,
                                           TPZFMatrix<REAL> &ek,
                                           TPZFMatrix<REAL> &ef,
                                           TPZBndCond &bc) {
 	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> &dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
-	// TPZFMatrix<REAL> &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	//int POrder=data.p;
-	//int LeftPOrder=data.leftp;
-	//int RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	//REAL faceSize=data.HSize;
-	// TPZFMatrix<REAL> &jacinv = data.jacinv;
-	// TPZFMatrix<REAL> &axes = data.axes;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
 	int POrder=data.p;                            // I need some explains, why you use reference & - Jorge
 	REAL faceSize=data.HSize;
 	
 	REAL alpha = gSigmaA*pow(((REAL)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
 	REAL betta = gSigmaB*pow(((REAL)POrder), gL_betta) /  pow(faceSize, gM_betta);
-	//   cout <<  "faceSize em ContributeBCInterface = " <<faceSize << endl;
-	//   cout <<  "POrder em ContributeBCInterface = " <<POrder << endl;
-	//   cout <<  "alpha em ContributeBCInterface = " <<alpha << endl;
-	//   cout <<  "betta em ContributeBCInterface = " <<betta << endl;
 	
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();

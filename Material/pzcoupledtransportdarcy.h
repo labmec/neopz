@@ -3,8 +3,6 @@
  * @brief Contains the TPZCoupledTransportDarcy class which implements two equations to transport problem.(Jorge?)
  */
 
-//$Id: pzcoupledtransportdarcy.h,v 1.9 2009-09-01 19:44:47 phil Exp $
-
 #ifndef MATCOUPLEDTRANSPDARCY
 #define MATCOUPLEDTRANSPDARCY
 

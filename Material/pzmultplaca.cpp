@@ -1,9 +1,9 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMultPlaca methods.
  */
+
 #include "pzmaterial.h"
-//#include "pztempmat.h"
 #include "pzfmatrix.h"
 #include "pzbndcond.h"
 #include <math.h>
@@ -35,12 +35,8 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 	fIdfMax = (3*(esp.NElements()+1));
 	int icR(camadaref), icA(camadaatual), icC;
 	
-	
-	
 	// Preparacao da matriz T de ordem 6x(3(NCamadas+1))
 	// que transforma as matrizes fKxx em KxxMC
-	
-	
 	
 	fT.Resize(6, fIdfMax);
 	
@@ -84,12 +80,8 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 		fT(3+i,imax+i)=1.0;
     };
 	
-	
-	
-	
 	TPZFMatrix<REAL> TTransp;
 	fT.Transpose(&TTransp);
-	
 	
 	// Obtencao das matrizes do elemento no plano xy, com efeito multicamada
 	
@@ -106,8 +98,6 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 	Bx0MC.Transpose(&B0xMC);
 	By0MC.Transpose(&B0yMC);
 	
-	
-	
 	// Geracao da Matriz de Rotacao para passar do plano para o espaco
 	
 	fRmat.Redim(fIdfMax,fIdfMax);
@@ -122,7 +112,6 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 	}
 	
 	fRmat.Transpose(&fRmatT);
-	
 	
 	// Obtencao da matriz auxiliar que ira entrar no calculo das matrizes Knn (do espaco)
 	
@@ -145,17 +134,6 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 	// testes
 	
 	ofstream out("saida.dat");
-	//  T.Print("Matriz T",out);
-	//  KxxMC.Print("Matriz KxxMC",out);
-	//  KyyMC.Print("Matriz KyyMC",out);
-	//  KxyMC.Print("Matriz KxyMC",out);
-	//  Bx0MC.Print("Matriz Bx0MC",out);
-	//  By0MC.Print("Matriz By0MC",out);
-	//  B00MC.Print("Matriz B00MC",out);
-	
-	//  KyxMC.Print("Matriz KyxMC",out);
-	//  B0xMC.Print("Matriz B0xMC",out);
-	//  B0yMC.Print("Matriz B0yMC",out);
 	
 	TPZFMatrix<REAL> Temp(fIdfMax,fIdfMax),Transp(fIdfMax,fIdfMax);
 	
@@ -200,8 +178,6 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 void TPZMultPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 							TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
-	//        REAL k = 5./6.;
-	
 	if(var == 2 || var ==3 || var == 4) {
 		TPZMatPlaca2::Solution(Sol,DSol,axes,var,Solout);
 		return;
@@ -224,14 +200,6 @@ void TPZMultPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 				DSolnax(1,idf) += fRmat(idf,jdf)*DSol(1,jdf);
 			}
 		}
-		
-		
-		//     REAL Dax1n1, Dax1n2, Dax2n1, Dax2n2;
-		
-		//         Dax1n1 = axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
-		//         Dax1n2 = axes(0,0)* fnaxes(1,0) + axes(0,1)* fnaxes(1,1) + axes(0,2)* fnaxes(1,2);
-		//         Dax2n1 = axes(1,0)* fnaxes(0,0) + axes(1,1)* fnaxes(0,1) + axes(1,2)* fnaxes(0,2);
-		//         Dax2n2 = axes(1,0)* fnaxes(1,0) + axes(1,1)* fnaxes(1,1) + axes(1,2)* fnaxes(1,2);
 		
 		TPZFMatrix<REAL> Rmatan(2,2);
 		Rmatan(0,0)= axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
@@ -273,7 +241,6 @@ void TPZMultPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 				DSol6(1,idf) += fRmat(jdf,idf)*DSoln6a(1,jdf);
 			}
 		}
-		
 		
 		TPZMatPlaca2::Solution(Sol6,DSol6,axes,var,Solout);
     }

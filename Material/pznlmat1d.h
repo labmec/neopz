@@ -1,15 +1,12 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZNLMat1d class which implements the structure to evaluate non linear elements.
  */
-//$Id: pznlmat1d.h,v 1.7 2009-09-01 19:44:47 phil Exp $
-// -*- c++ -*-
 
 #ifndef TPZNLMAT1D_H
 #define TPZNLMAT1D_H
 
 #include "pzmaterial.h"
-//#include <pzelasmat.h>
 
 /**
  * @ingroup material
@@ -20,7 +17,7 @@
  * The theory can be found at section 3.1 of the M. A. Crisfield book: \n
  * Non-Linear Finite Element Analysis of Solids and Structures: Volume 1 Essentials
  */
-class TPZNLMat1d : public TPZMaterial//TPZElasticityMaterial
+class TPZNLMat1d : public TPZMaterial
 {
 public:
 	/** @brief Simple constructor */
@@ -58,20 +55,15 @@ public:
 	}
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
-	virtual void Contribute(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight,
+                            TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
-	virtual void ContributeBC(TPZMaterialData &data,
-							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
+							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc);
-
-	virtual void ContributeBC(TPZMaterialData &data,
-							  REAL weight,
+	
+	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
 							  TPZFMatrix<REAL> &ef,
 							  TPZBndCond &bc)
 	{
@@ -84,10 +76,9 @@ public:
 	virtual void SetData(std::istream &data);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
-	virtual void Contribute(TPZMaterialData &data,
-                            REAL weight,
+	virtual void Contribute(TPZMaterialData &data, REAL weight,
                             TPZFMatrix<REAL> &ef);
-
+	
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	virtual void Read(TPZStream &buf, void *context);

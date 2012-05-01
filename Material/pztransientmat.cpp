@@ -3,8 +3,6 @@
  * @brief Contains implementations of the TPZTransientMaterial methods.
  */
 
-//$Id: pztransientmat.cpp,v 1.8 2009-05-06 20:22:18 fortiago Exp $
-
 #include "pztransientmat.h"
 
 template<class TBASEMAT>

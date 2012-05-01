@@ -2,7 +2,6 @@
  * \file
  * @brief Contains implementations of the TPZL2Projection methods.
  */
-//$Id: pzl2projection.cpp,v 1.13 2011-05-26 03:28:57 phil Exp $
 
 #include "pzl2projection.h"
 #include "pzbndcond.h"
@@ -48,7 +47,7 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	const int nvars = this->fNStateVars;
 	if (this->fIsReferred){
 		this->fSol.Resize(nvars);
@@ -156,18 +155,3 @@ int TPZL2Projection::IntegrationRuleOrder(int elPMaxOrder) const
         return order;
     }
 }
-
-/*
- void TPZL2Projection::SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
- int elPMaxOrder,
- int elDimension){
- if(this->fIntegrationOrder == -1){
- TPZDiscontinuousGalerkin::SetIntegrationRule(rule,elPMaxOrder,elDimension);
- }
- else{
- const int order = (fIntegrationOrder > (2*elPMaxOrder) ) ? fIntegrationOrder : 2*elPMaxOrder;
- TPZManVector<int,3> p2(elDimension,order);
- rule->SetOrder(p2);
- }
- }
- */

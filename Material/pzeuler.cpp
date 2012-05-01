@@ -2,7 +2,6 @@
  * \file
  * @brief Contains implementations of the TPZEulerEquation methods.
  */
-//$Id: pzeuler.cpp,v 1.8 2011-02-11 17:27:11 phil Exp $
 
 #include "pzeuler.h"
 

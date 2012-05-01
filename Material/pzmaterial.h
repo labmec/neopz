@@ -1,5 +1,5 @@
-/** @file pzmaterial.h
- *
+/**
+ * @file pzmaterial.h
  * @brief Header file for abstract class TPZMaterial.\n
  * It implements the weak statement of the differential equation within the PZ environment.
  */
@@ -19,10 +19,6 @@
 
 #include <iostream>
 #include <string>
-//#ifdef _AUTODIFF
-//#include "fadType.h"
-//#endif
-
 
 class TPZBndCond;
 class TPZMaterial;
@@ -46,6 +42,7 @@ private:
     
 protected:
     
+	/** @brief Pointer to forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction> fForcingFunction;
     //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
 	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
@@ -64,18 +61,14 @@ public:
     static REAL gBigNumber;
     
     /** @brief Creates a material object and inserts it in the vector of material pointers of the mesh. */
-	/** 
-	 * Upon return vectorindex contains the index of the material object within the vector
-     */
+	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(int id);
     
     /** @brief Default constructor */
     TPZMaterial();
     
-    /** @brief Creates a material object based on the referred object and
-     *  inserts it in the vector of material pointers of the mesh.
-	 */
-	/**  Upon return vectorindex contains the index of the material object within the vector */
+    /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
+	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(const TPZMaterial &mat);
     
     virtual ~TPZMaterial();
@@ -97,9 +90,7 @@ public:
      */
 	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
     
-    /**
-     * This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition
-     */
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
     virtual void FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
     {
         // default is no specific data requirements
@@ -167,6 +158,7 @@ public:
     /** @name Contribute methods
 	 * @{
 	 */
+	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data [in] stores all input data
@@ -231,25 +223,6 @@ public:
 	
     /** @} */
 	
-    /* *Compute contribution to the energy at an integration point*/
-    //      virtual void ContributeEnergy(TPZVec<REAL> &x,
-    //			      TPZVec<FADFADREAL> &sol,
-    //			      TPZVec<FADFADREAL> &dsol,
-    //			      FADFADREAL &U,
-    //			      REAL weight);
-    
-    //#endif
-    
-    
-    //#ifdef _AUTODIFF
-    
-    /* * Compute contribution of BC to the Energy*/
-    //      virtual void ContributeBCEnergy(TPZVec<REAL> & x,
-    //	TPZVec<FADFADREAL> & sol, FADFADREAL &U,
-    //	REAL weight, TPZBndCond &bc);
-    
-    //#endif
-	
     /** 
 	 * @brief Sets a procedure as source function for the material.
 	 * @param fp pointer of the forces function
@@ -273,27 +246,11 @@ public:
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
 	virtual int HasfForcingFunctionExact() {return (fForcingFunctionExact != 0);}
     
-    /** 
-     * @brief Gets the order of the integration rule necessary to integrate an
-     * element with polinomial order p
-     */
+    /** @brief Gets the order of the integration rule necessary to integrate an element with polinomial order p */
     virtual int IntegrationRuleOrder(int elPMaxOrder) const;
 	
-	/** 
-     * @brief Gets the order of the integration rule necessary to integrate an
-     * element multiphysic
-     */
+	/** @brief Gets the order of the integration rule necessary to integrate an element multiphysic */
     virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
-	
-	
-    /* * Set the integration rule order based on the element
-     *  @ param p order of interpolation, its dimension and the characteristics
-     *   of the material
-     *
-	 virtual void SetIntegrationRule(TPZAutoPointer<TPZIntPoints> rule,
-	 int elPMaxOrder,
-	 int elDimension);
-	 */
 	
     /**
 	 * @brief Computes the error due to the difference between the interpolated flux \n
@@ -325,10 +282,7 @@ public:
     
     /** @brief To return a numerical flux type to apply over the interfaces of the elements */
     virtual int FluxType() { return 2; }
-    
-    /* * Factor to diffussive term*/
-    //      virtual int IdBC(REAL *x) { return 5; }
-    
+	
     virtual void ContributeErrors(TPZMaterialData &data,
                                   REAL weight,
                                   TPZVec<REAL> &nk,

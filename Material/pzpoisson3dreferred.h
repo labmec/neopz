@@ -1,10 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMatPoisson3dReferred class which implements a version of TPZMatPoisson3d \n
  * (convection term is given at each integration point)
  */
-
-//$Id: pzpoisson3dreferred.h,v 1.6 2009-09-01 19:44:48 phil Exp $
 
 #ifndef MATPOISSON3DREFERREDH
 #define MATPOISSON3DREFERREDH
@@ -39,8 +37,6 @@ public:
 	TPZMatPoisson3dReferred(int nummat, int dim);
 	
 	virtual ~TPZMatPoisson3dReferred();
-	
-	//  virtual int HasForcingFunction() {return true;}
 	
 	TPZMatPoisson3dReferred(const TPZMatPoisson3dReferred &copy) : TPZMatPoisson3d(copy){
 		this->falpha = copy.falpha;

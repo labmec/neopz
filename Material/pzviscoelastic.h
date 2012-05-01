@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZViscoelastic class which implements an isotropic viscoelasticity material.
  */
+
 #ifndef TPZVISCOELASTIC_H
 #define TPZVISCOELASTIC_H
 
@@ -68,8 +69,7 @@ public:
 	
 protected:
 	
-	REAL flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE;  
-	//int fMemory;
-	
+	REAL flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE; 
 };
+
 #endif

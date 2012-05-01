@@ -1,8 +1,8 @@
-//$Id: pzelasAXImat.cpp,v 1.10 2011-03-29 10:56:17 phil Exp $
 /**
  * \file
  * @brief Contains implementations of the TPZElasticityAxiMaterial methods.
  */
+
 #include "pzelasAXImat.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -80,25 +80,6 @@ fTemperatureFunction(0)
 	fPenalty = coefAlpha;
 }
 
-/*
- REAL fIntegral;
- REAL f_phi;
- REAL f_c;
- REAL fE;
- REAL fnu;
- REAL fAlpha;
- REAL ff[3];
- REAL fDelTemperature;
- REAL fEover21PlusNu;
- REAL fEover1MinNu2;
- TPZManVector<REAL> f_AxisR;
- TPZManVector<REAL> f_AxisZ;
- TPZManVector<REAL> f_Origin;
- REAL fSymmetric;
- REAL fPenalty;
- */
-
-
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
 TPZDiscontinuousGalerkin(copy), fIntegral(copy.fIntegral),f_phi(copy.f_phi),f_c(copy.f_c), fE(copy.fE),
 fnu(copy.fnu), fAlpha(copy.fAlpha), fDelTemperature(copy.fDelTemperature), fEover21PlusNu(copy.fEover21PlusNu),
@@ -110,7 +91,6 @@ f_Origin(copy.f_Origin),fSymmetric(copy.fSymmetric),fPenalty(copy.fPenalty),fTem
 	ff[2] = copy.ff[2];
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------------
 
 void TPZElasticityAxiMaterial::SetOrigin(TPZManVector<REAL> &Orig, TPZManVector<REAL> &AxisZ, TPZManVector<REAL> &AxisR)
 {

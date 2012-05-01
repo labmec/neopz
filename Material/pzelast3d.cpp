@@ -1,15 +1,13 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZElasticity3D methods.
  */
-//$Id: pzelast3d.cpp,v 1.17 2011-05-11 02:24:19 phil Exp $
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
-//#include "pztempmat.h"
 #include "pzmanvector.h"
 #include <math.h>
 #include <fstream>
@@ -69,33 +67,13 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
                                  TPZFMatrix<REAL> &ek,
                                  TPZFMatrix<REAL> &ef){
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &jacinv = data.jacinv;
-	
-	
-	
+
 	const int phr = phi.Rows();
 	if(this->fForcingFunction){
 		this->fForcingFunction->Execute(x,this->fForce);
 	}
-	
-	//this matrix will store {{dvdx*dudx, dvdx*dudy, dvdx*dudz},
-	//{dvdy*dudx, dvdy*dudy, dvdy*dudz},
-	//{dvdz*dudx, dvdz*dudy, dvdz*dudz}}
 	
 #ifdef CODE1
 	TPZFNMatrix<9> Deriv(3,3);
@@ -208,24 +186,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
                                    TPZFMatrix<REAL> &ek,
                                    TPZFMatrix<REAL> &ef,
                                    TPZBndCond &bc){
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &jacinv = data.jacinv;
-	
 	
 	const REAL BIGNUMBER  = 1.e12;
 	
@@ -644,9 +605,7 @@ void TPZElasticity3D::PrincipalDirection(TPZFMatrix<REAL> &DSol, TPZVec< REAL > 
 	
 }
 
-/**
- Save the element data to a stream
- */
+/** Save the element data to a stream */
 void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
 {
 	TPZMaterial::Write(buf,withclassid);
@@ -658,9 +617,7 @@ void TPZElasticity3D::Write(TPZStream &buf, int withclassid)
 	
 }
 
-/**
- Read the element data from a stream
- */
+/** Read the element data from a stream */
 void TPZElasticity3D::Read(TPZStream &buf, void *context)
 {
 	TPZMaterial::Read(buf,context);

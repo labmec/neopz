@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZEulerConsLaw class which implements the weak statement of the compressible euler equations.
  */
-//$Id: pzeulerconslaw.h,v 1.41 2009-09-01 22:07:16 phil Exp $
 
 #ifndef EULERCONSLAW_H
 #define EULERCONSLAW_H
@@ -24,10 +23,7 @@ extern LoggerPtr fluxappr;
 
 #ifdef _AUTODIFF
 #include "fadType.h"
-
 #define _TFAD
-//#define _FAD
-//#define _TINYFAD // Doesn't work well -> apparently, derivatives do not accumulate well.
 #endif
 
 /**
@@ -39,8 +35,8 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	public :
 	
 	TPZEulerConsLaw(int nummat,REAL timeStep,
-					 REAL gamma,int dim,
-					 TPZArtDiffType artdiff);
+					REAL gamma,int dim,
+					TPZArtDiffType artdiff);
 	
 	~TPZEulerConsLaw();
 	
@@ -55,7 +51,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	{
 		return new TPZEulerConsLaw(*this);
 	}
-
+	
 	/**
 	 * @brief Configures the time discretization of some contributions
 	 * @param[in] Diff Refers to the diffusion term
@@ -67,9 +63,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	/** @brief Returns a reference to the artificial diffusion term */
 	TPZArtDiff & ArtDiff(){ return fArtDiff; };
 	
-	/**
-	 * @brief returns the best value for the CFL number based on the interpolation degree.
-	 */
+	/** @brief returns the best value for the CFL number based on the interpolation degree. */
 	REAL OptimalCFL(int degree);
 	
 	/** @brief See declaration in base class */
@@ -132,7 +126,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	/** @brief Computes the ghost state variables bsed on the BC type */
 	template <class T>
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
-
+	
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
@@ -143,7 +137,7 @@ public:
 		TPZConservationLaw::Solution(data,var,Solout);
 	}
 	/** @} */
-
+	
 	/** @name Fluxes methods */
 	/** @{ */
 	
@@ -162,11 +156,11 @@ public:
 	 */
 	template <class T>
 	static void JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai);
-
+	
 	/** @brief Test flux -> returns the averaged state variables across an interface */
 	template <class T>
 	void Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux);
-
+	
 	/**
 	 * @brief This flux encapsulates the two and three dimensional fluxes
 	 * acquired from the Mouse program
@@ -181,7 +175,7 @@ public:
 	static void Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR,
 						 TPZVec<REAL> & normal, REAL gamma,
 						 TPZVec<T> & flux, int entropyFix = 1);
-
+	
 	/**
 	 * @brief This flux encapsulates the two and three dimensional fluxes acquired from the Mouse program
 	 * @note This function is called Approx because it evaluates the derivative of the Roe Flux without using automatic differentiation
@@ -279,11 +273,11 @@ public:
 							   T &flux_rhov,
 							   T &flux_rhoE, int entropyFix = 1);
 	/** @} */
-		
+	
 #ifdef _AUTODIFF
 	/** @name Differentiable variables setup */
 	/** @{ */
-
+	
 	/**
 	 * @brief Converts the REAL values into FAD differentiable objects
 	 * @param[in] sol Values of flattened solution (Sum(ui*phi))
@@ -341,7 +335,7 @@ public:
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
-
+	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
@@ -384,7 +378,7 @@ public:
 										  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &dphiL,
 										  TPZFMatrix<REAL> &axesleft,
 										  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
-
+	
 	virtual void ContributeLast(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 								TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
 								REAL weight,
@@ -461,14 +455,14 @@ public:
 								REAL weight,TPZVec<REAL> &normal,
 								TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 								TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
-
+	
 	void ContributeFastestImplConvFace(int dim,
 									   TPZVec<REAL> &x,
 									   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
 									   REAL weight,TPZVec<REAL> &normal,
 									   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
-
+	
 	template <int dim>
 	void ContributeFastestImplConvFace_dim(
 										   TPZVec<REAL> &x,
@@ -476,14 +470,14 @@ public:
 										   REAL weight,TPZVec<REAL> &normal,
 										   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 										   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix = 1);
-
+	
 	template <class T>
 	void ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 										 TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 										 REAL weight,TPZVec<REAL> &normal,
 										 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 										 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,int entropyFix = 1);
-
+	
 #endif
 	
 	void ContributeImplConvVol(TPZVec<REAL> &x,
@@ -534,9 +528,10 @@ public:
 	
 	/** @brief Class identificator */
 	int ClassId() const;
-
-	/** @name Attributes */
-	/** @{ */
+	
+	/** @name Attributes 
+	 * @{
+	 */
 protected:
 	
 	/** @brief diffusive term */
@@ -611,7 +606,6 @@ inline void TPZEulerConsLaw::Flux(TPZVec<T> &U,TPZVec<T> &Fx,TPZVec<T> &Fy,TPZVe
 		Fx[2] = (U[2]+press)*(U[1]/U[0]);//(ro e + p) u
 	}
 }
-
 
 template <class T>
 inline void TPZEulerConsLaw::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec<TPZDiffMatrix<T> > &Ai)
@@ -807,7 +801,6 @@ inline void TPZEulerConsLaw::JacobFlux(REAL gamma, int dim, TPZVec<T> & U,TPZVec
 }
 
 
-
 #ifdef _AUTODIFF
 template <class T>
 inline REAL val(T & number)
@@ -824,7 +817,6 @@ inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> 
 		<< U[0] << std::endl;
 		TPZOutofRange obj;
 		throw(obj);
-		//    exit(-1);
 	}
 	// Press� = (gam-1)*(E - ro*||(u,v,w)||/2)
 	// onde aqui ro_e = E (nota�)
@@ -860,7 +852,6 @@ inline void TPZEulerConsLaw::Pressure(REAL gamma, int dim, T & press, TPZVec<T> 
 }
 
 //----------------Test Flux
-
 template <class T>
 void TPZEulerConsLaw::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux)
 {
@@ -873,7 +864,6 @@ void TPZEulerConsLaw::Test_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &
 
 
 //----------------Roe Flux
-
 template <class T>
 void TPZEulerConsLaw::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & normal, REAL gamma, TPZVec<T> & flux, int entropyFix)
 {
@@ -919,11 +909,11 @@ void TPZEulerConsLaw::Roe_Flux(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> & 
 //left = **_f    right = **_t
 template <class T>
 inline void TPZEulerConsLaw::Roe_Flux(
-									   const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhow_f,
-									   const T & rhoE_f, const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhow_t,
-									   const T & rhoE_t, const REAL nx, const REAL ny, const REAL nz, const REAL gam,
-									   T & flux_rho, T &flux_rhou, T &flux_rhov,
-									   T & flux_rhow, T &flux_rhoE, int entropyFix){
+									  const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhow_f,
+									  const T & rhoE_f, const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhow_t,
+									  const T & rhoE_t, const REAL nx, const REAL ny, const REAL nz, const REAL gam,
+									  T & flux_rho, T &flux_rhou, T &flux_rhov,
+									  T & flux_rhow, T &flux_rhoE, int entropyFix){
 	
 	T    alpha1,alpha2,alpha3,alpha4,alpha5,alpha;
 	T    a1,a2,a3,a4,a5,b1,b2,b3,b4,b5;
@@ -1130,9 +1120,9 @@ inline void TPZEulerConsLaw::Roe_Flux(
 //left = **_f    right = **_t
 template <class T>
 inline void TPZEulerConsLaw::Roe_Flux(const T & rho_f, const T & rhou_f, const T & rhov_f, const T & rhoE_f,
-									   const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhoE_t,
-									   const REAL nx, const REAL ny, const REAL gam,
-									   T & flux_rho, T & flux_rhou,T & flux_rhov, T & flux_rhoE, int entropyFix){
+									  const T & rho_t, const T & rhou_t, const T & rhov_t, const T & rhoE_t,
+									  const REAL nx, const REAL ny, const REAL gam,
+									  T & flux_rho, T & flux_rhou,T & flux_rhov, T & flux_rhoE, int entropyFix){
 	
 	T    alpha1,alpha2,alpha3,alpha4,a1,a2,a3,a4,b1,b2,b3,b4,alpha;
 	T    ep_t, ep_f, p_t, p_f;
@@ -1350,7 +1340,6 @@ inline void TPZEulerConsLaw::uRes(TPZVec<T> & sol, T & us)
 		PZError << "TPZEulerConsLaw::cSpeed Too low or negative density\n";
 		TPZOutofRange obj;
 		throw(obj);
-		//      exit(-1);
 	}
 	
 	T temp;

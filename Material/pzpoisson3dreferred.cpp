@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMatPoisson3dReferred methods.
  */
-
-//$Id: pzpoisson3dreferred.cpp,v 1.5 2007-05-11 19:15:18 joao Exp $
 
 #include "pzpoisson3dreferred.h"
 
@@ -65,7 +63,7 @@ void TPZMatPoisson3dReferred::Contribute(TPZMaterialData &data,
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	this->SetConvectionTerm(data.dsol[0], data.axes);
 	TPZMatPoisson3d::Contribute(data, weight, ek, ef);
 }
@@ -86,7 +84,7 @@ void TPZMatPoisson3dReferred::ContributeInterface(TPZMaterialData &data, TPZMate
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
 	TPZFMatrix<REAL> dsolR=dataright.dsol[0];
 	this->SetConvectionTerm(dsolL, dsolR);
@@ -102,7 +100,7 @@ void TPZMatPoisson3dReferred::ContributeBCInterface(TPZMaterialData &data, TPZMa
     if (numbersol != 1) {
         DebugStop();
     }
-
+	
 	this->SetConvectionTerm(dataleft.dsol[0], dataleft.dsol[0]);
 	TPZMatPoisson3d::ContributeBCInterface(data, dataleft, weight,  ek, ef, bc);
 }

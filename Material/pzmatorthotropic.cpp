@@ -1,5 +1,5 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMatOrthotropic methods.
  */
 
@@ -9,11 +9,11 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
-//#include "pztempmat.h"
 #include "pzmanvector.h"
 #include <math.h>
 #include <cmath>
 #include <fstream>
+
 using namespace std;
 
 TPZMatOrthotropic::TPZMatOrthotropic(int nummat,TPZFMatrix<REAL> naxes,REAL eppx,REAL eppy,
@@ -122,24 +122,8 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
                                    TPZFMatrix<REAL> &ef) {
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
@@ -224,27 +208,7 @@ void TPZMatOrthotropic::ContributeBC(TPZMaterialData &data,
                                      TPZFMatrix<REAL> &ek,
                                      TPZFMatrix<REAL> &ef,
                                      TPZBndCond &bc) {
-	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	const REAL BIGNUMBER  = 1.e12;
 	
@@ -421,15 +385,6 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 		Tensor(1,2) = Tensor(2,1) = TauYZ;
 		Tensor(2,0) = Tensor(0,2) = TauZX;
 		
-		//trecho adicionado apenas para conferencia
-		//     cout << "Tensor(0,0) = SigX" << "  =  " << SigX << endl;
-		//     cout << "Tensor(1,1) = SigY" << "  =  " << SigY << endl;
-		//     cout << "Tensor(2,2) = SigZ" << "  =  " << SigZ << endl;
-		//     cout << "Tensor(0,1) = Tensor(1,0) = TauXY" << "  =  " << TauXY << endl;
-		//     cout << "Tensor(1,2) = Tensor(2,1) = TauYZ" << "  =  " << TauYZ << endl;
-		//     cout << "Tensor(2,0) = Tensor(0,2) = TauZX" << "  =  " << TauZX << endl;
-		//final do trecho
-		
 		TPZFMatrix<REAL> locaxsT(3,3,0.);
 		fLocAxs.Transpose(&locaxsT);
 		TPZFMatrix<REAL> SigGlob = locaxsT*(Tensor*fLocAxs);
@@ -526,8 +481,7 @@ void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	values[0]  = values[1]+values[2];
 }
 
-void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes){
-	
+void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes) {
 	/** 
 	 * os eixos devem vir por linhas e 
 	 * orientados pela regra da m� direita
@@ -566,52 +520,3 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes){
 	naxes(1,0) =  naxes(2,1)*naxes(0,2) - naxes(2,2)*naxes(0,1);//I
 	naxes.Print(" * * * Eixos das fibras * * *");
 }
-
-//REAL norm = pow(norm2,0.5);
-//REAL norm = sqrt(double(norm2));
-//cout << "\n\nnorm = " << norm << endl;
-
-
-
-
-
-
-/*
- REAL dphix = axes(0,0)*dsol[0]+axes(1,0)*dsol[1]+axes(2,0)*dsol[2];
- REAL dphiy = axes(0,1)*dsol[0]+axes(1,1)*dsol[1]+axes(2,1)*dsol[2];
- REAL dphiz = axes(0,2)*dsol[0]+axes(1,2)*dsol[1]+axes(2,2)*dsol[2];
- 
- //values[2]  = pow(dphix - du_exact(0,0),2.0);
- //values[2] += pow(dphiy - du_exact(1,0),2.0);
- //values[2] += pow(dphiz - du_exact(2,0),2.0);
- if(dudx.Rows()<3) {
- REAL dx = du_exact(0,0)*axes(0,0);//+du_exact(1,0)*axes(0,1);
- REAL dy;
- if(dudx.Rows()>1)
- dx += du_exact(1,0)*axes(0,1);
- dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
- //values[1] : eror em norma L2
- values[1]  = pow(sol[0] - u_exact[0],2.0);
- //values[2] : erro em semi norma H1
- values[2]  = pow(dx - dudx(0,0),2.0);
- if(dudx.Rows()>1) values[2] += pow(dy - dudx(1,0),2.0);
- //values[0] : erro em norma H1 <=> norma Energia
- values[0]  = values[1]+values[2];
- return;
- }
- */
-
-/*
- // dudx - dudy
- DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(0,1)+DSol(2,0)*axes(0,2);
- DSolxy[1][0] = DSol(0,0)*axes(1,0)+DSol(1,0)*axes(1,1)+DSol(2,0)*axes(1,2);
- DSolxy[2][0] = DSol(0,0)*axes(2,0)+DSol(1,0)*axes(2,1)+DSol(2,0)*axes(2,2);
- // dvdx - dvdy
- DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(0,1)+DSol(2,1)*axes(0,2);
- DSolxy[1][1] = DSol(0,1)*axes(1,0)+DSol(1,1)*axes(1,1)+DSol(2,1)*axes(1,2);
- DSolxy[2][1] = DSol(0,1)*axes(2,0)+DSol(1,1)*axes(2,1)+DSol(2,1)*axes(2,2);
- //
- DSolxy[0][2] = DSol(0,2)*axes(0,0)+DSol(1,2)*axes(0,1)+DSol(2,2)*axes(0,2);
- DSolxy[1][2] = DSol(0,2)*axes(1,0)+DSol(1,2)*axes(1,1)+DSol(2,2)*axes(1,2);
- DSolxy[2][2] = DSol(0,2)*axes(2,0)+DSol(1,2)*axes(2,1)+DSol(2,2)*axes(2,2);
- */

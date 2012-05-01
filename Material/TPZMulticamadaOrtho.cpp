@@ -6,11 +6,13 @@
 #include "TPZPlacaOrthotropic.h"
 #include "TPZMulticamadaOrtho.h"
 #include "pzmatorthotropic.h"
+
 #include "pzgmesh.h"
-#include "pzintel.h"
 #include "pzgeoel.h"
+#include "pzgeoelbc.h"
+#include "pzintel.h"
+
 #include "pzbctension.h"
-//#include "pztempmat.h"
 #include "pzanalysis.h"
 #include "pzstepsolver.h"
 #include "pzskylstrmatrix.h"

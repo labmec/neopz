@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMatHyperElastic class which implements a hyper elasticity material.
  */
+
 #ifndef MATHYPERELASTICHPP
 #define MATHYPERELASTICHPP
 
@@ -89,7 +90,6 @@ public:
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
-	
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);

@@ -2,9 +2,7 @@
  * \file
  * @brief Contains the TPZMulticamadaOrthotropic class.
  */
-// -*- c++ -*-
 
-// $Id: TPZMulticamadaOrtho.h,v 1.15 2007-01-03 00:08:26 phil Exp $
 #ifndef MULTICAMADAORTH
 #define MULTICAMADAORTH
 
@@ -35,16 +33,13 @@ class TPZMulticamadaOrthotropic {
 	TPZCompMesh            *fCompMesh;
 	/** @brief Shells vector */
 	TPZStack<TPZPlacaOrthotropic> fPlacaOrth;
-	/**
-	 * fDx,fDy: dimensões das placas (constantes para todas as placas)   
-	 */
+
+	/** @brief Dimension of the shells (must to be constant for all shells) */
 	REAL fDx,fDy;
-	/**
-	 * fNelx, fNely : Numero de elementos na direcao x e y
-	 */
+	/** @brief Number of elementos at x and y axes : fNelx, fNely */
 	int fNelx, fNely;
 	REAL fZMin, fZMax;
-	//  double fQuantPlacas;
+
 	REAL fMX[3],fMY[3],fMXY[3],fQX[3],fQY[3],fNX[3],fNY[3],fNXY[3];
 	REAL fdMXdX[3],fdMXdY[3],fdMYdX[3],fdMYdY[3],fdMXYdX[3],fdMXYdY[3],
 	fdQXdX[3],fdQXdY[3],fdQYdX[3],fdQYdY[3],fdNXdX[3],fdNXdY[3],fdNYdX[3],fdNYdY[3],fdNXYdX[3],fdNXYdY[3];
@@ -56,8 +51,6 @@ class TPZMulticamadaOrthotropic {
 	 * @since Feb 10, 2004
 	 */
 	REAL fCorrect;
-	
-	
 	
 public:
 	/** @brief Construtor */
@@ -91,7 +84,12 @@ public:
 	void ComputeSolution(std::ostream &out = std::cout,int print = 0);
 	
 	void ComputeSolution(TPZMaterial *mat,std::ofstream &out,int numiter);
-	
+
+	/**
+	 * @name Set data methods
+	 * @{
+	 */
+	 
 	void SetMX(REAL MX) { 
 		fMX[0] = MX;
 		fMX[2] = MX;
@@ -140,6 +138,8 @@ public:
 		else fLinearY = 0;
 		
 	}
+
+	/** @} */
 	
 	TPZGeoMesh *GeoMesh(){return fGeoMesh;}
 	

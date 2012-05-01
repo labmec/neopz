@@ -2,6 +2,7 @@
  * \file
  * @brief Contains implementations of the TPZMaterialTest methods.
  */
+
 #include "pzmattest.h"
 
 #include "pzbndcond.h"
@@ -13,7 +14,7 @@ using namespace std;
 
 TPZMaterialTest::TPZMaterialTest(int nummat, REAL alfa, REAL x0) : TPZMaterial(nummat), fXf(1,1,0.) {
 	
-	fNumMat = nummat;//material id
+	fNumMat = nummat;
 }
 
 TPZMaterialTest::~TPZMaterialTest() {
@@ -34,25 +35,8 @@ void TPZMaterialTest::Contribute(TPZMaterialData &data,
                                  TPZFMatrix<REAL> &ek,
                                  TPZFMatrix<REAL> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
 	
@@ -61,8 +45,6 @@ void TPZMaterialTest::Contribute(TPZMaterialData &data,
 		fForcingFunction->Execute(x,res);       // dphi(i,j) :  derivada c/r a xi da fun�o de forma j
 		fXf(0,0) = res[0];
 	}
-	//cout << x[0] << ' ' << x[1] << ' ' << fXf(0,0) << endl;
-	//cout.flush();
 	for( int in = 0; in < phr; in++ ) {
 		ef(in, 0) += weight * fXf(0,0) * phi(in, 0) ;
 		for( int jn = 0; jn < phr; jn++ ) {
@@ -76,29 +58,9 @@ void TPZMaterialTest::ContributeBC(TPZMaterialData &data,
                                    TPZFMatrix<REAL> &ek,
                                    TPZFMatrix<REAL> &ef,
                                    TPZBndCond &bc) {
-	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
-	if(bc.Material().operator ->() != this){
+	if(bc.Material().operator ->() != this) {
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	
@@ -113,7 +75,7 @@ void TPZMaterialTest::ContributeBC(TPZMaterialData &data,
 	int r = numdof;
 	
 	int idf,jdf,in,jn;
-	switch(bc.Type()){
+	switch(bc.Type()) {
 			
 		case 0:
 			for(in=0 ; in<numnod ; ++in){
@@ -188,7 +150,7 @@ void TPZMaterialTest::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> 
 		axes.Print("axes");
 	}
 }
-//ofstream arq1("Simetria.dat");
+
 void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 							 TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &,
 							 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {

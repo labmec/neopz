@@ -1,19 +1,18 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZPlaca class.
  */
+
 #ifndef PLACAHPP
 #define PLACAHPP
 
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-//#include "pzreal.h"
+
 class TPZBndCond;
 template<class T>
 class TPZVec;
-
-//const Float BIGNUMBER = 1.e9;
 
 /**
  * @ingroup material
@@ -35,15 +34,11 @@ class TPZPlaca : public TPZMaterial{
 	
 	virtual int NStateVariables() { return 6; }
 	
-	//  int NFluxes() { return NStateVariables(); }
-	
 	int Dimension() { return 2; }
 	
 	void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZPlaca"; }
-	
-	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2);
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,

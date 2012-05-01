@@ -1,15 +1,14 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZMat1dLin methods.
  */
+
 #include "pzmat1dlin.h"
 #include "pzmaterial.h"
-//#include "pztempmat.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include "pzerror.h"
 #include "pzvec.h"
-//#include "pzmatrix.h"
 
 #include <math.h>
 using namespace std;
@@ -17,27 +16,10 @@ using namespace std;
 void TPZMat1dLin::Contribute(TPZMaterialData &data,
                              REAL weight,
                              TPZFMatrix<STATE> &ek, 
-                             TPZFMatrix<STATE> &ef){
+                             TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
@@ -82,28 +64,7 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
                                TPZFMatrix<STATE> &ek,
                                TPZFMatrix<STATE> &ef,
                                TPZBndCond &bc){
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
-	
-	//void TPZMat1dLin::ContributeBc(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*sol*/, TElementMatrix &ek, TElementMatrix &ef, TPZBndCond &bc, int nod) {
 	
 	// this method applies the boundary condition itype to ek and ef
 	
@@ -118,7 +79,6 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 	int bcv1r,bcv1c,bcv2r,bcv2c;
 	int r = fXk.Rows();
 	int numnod = ek.Rows()/r;
-	//	ekrsub = ek.mat->rowsub(0,0);
 	bcv1r = bc.Val1().Rows();
 	bcv1c = bc.Val1().Cols();
 	bcv2r = bc.Val2().Rows();
@@ -132,7 +92,6 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		" val1.Rows =" << bc.Val1().Rows() << " xk.Rows = " << fXk.Rows() << "\n"
 		" val2.Cols() = " << bc.Val2().Cols() << " val2.Rows() = " << bc.Val2().Rows() << "\n"
 		" val1.Cols() = " << bc.Val1().Cols() << "\n";
-		//		pzerror.show();
 	}
 	
 	int idf,jdf,in,jn;
@@ -175,10 +134,9 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 			break;
 			
 	}
-	//	pzerror.show();
 }
 
-void TPZMat1dLin::Print(std::ostream & out){
+void TPZMat1dLin::Print(std::ostream & out) {
 	
 	out << "Material type TPZMat1dLin -- number = " << Id() << "\n";
 	out << "Matrix xk ->  "; fXk.Print("fXk",out);
@@ -213,7 +171,7 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 		dudif(0,idf) -= du_exact(0,idf);
 	}
 	
-	values.Fill(0.);  //misael
+	values.Fill(0.);
 	
 	for (idf=0; idf<r; idf++) {
 		values[1] += udif[idf]*udif[idf];
@@ -226,7 +184,7 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 	for (idf=0; idf<r; idf++) {
 		STATE dif = flux[idf]-flux_el[idf];
 		if(std::abs(fXk(idf,idf)) >= 1.e-10)
-		{ //Erico cout<<endl<<fXk(idf,idf)<<endl;
+		{
 			values[2] += dif*dif/sqrt(std::abs( fXk(idf,idf) ));
 		}	
 	}

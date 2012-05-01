@@ -2,9 +2,9 @@
  * \file
  * @brief Contains implementations of the TPZMat2dLin methods.
  */
+
 #include "pzmat2dlin.h"
 #include "pzmaterial.h"
-//#include "pztempmat.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include <math.h>
@@ -24,24 +24,8 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 	// check on the validity of the arguments
 	//rows x cols
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
 	TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols())
@@ -58,7 +42,6 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
 	}
 	int r = fKxx.Rows();
-	//int c = fXk.Cols();
 	int ic,jc;
 	for(int in=0 ; in < phi.Rows() ; ++in)
 	{
@@ -81,7 +64,6 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 				 dphiy*phi(jn,0)*fKy0(ic,jc) +
 				 phi(in,0)*dphjx*fK0x(ic,jc) +
 				 phi(in,0)*dphjy*fK0y(ic,jc) ) * weight;
-				//(phi(in,0)*phi(jn,0))*weight;
 			}
 		}
 	}
@@ -89,26 +71,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 
 void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 							   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
-	
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(bc.Material().operator ->() != this){
@@ -122,22 +85,6 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 	
 	int r = fKxx.Rows();
 	int numnod = ek.Rows()/r;
-	//	ekrsub = ek.mat->rowsub(0,0);
-	/*  bcv1r = bc.Val1().Rows();
-	 bcv1c = bc.Val1().Cols();
-	 bcv2r = bc.Val2().Rows();
-	 bcv2c = bc.Val1().Cols();
-	 if( bcv1r != r ||
-	 bcv1c != r ||
-	 bcv2r != r ||
-	 bcv2c != 1 ) {
-	 PZError << "TPZMat1dLin.aplybc, incompatible number of degrees of " <<
-	 "freedom, \n"
-	 " val1.Rows =" << bc.Val1().Rows() << " xk.Rows = " << fXk.Rows() << "\n"
-	 " val2.Cols() = " << bc.Val2().Cols() << " val2.Rows() = " << bc.Val2().Rows() << "\n"
-	 " val1.Cols() = " << bc.Val1().Cols() << "\n";
-	 //		pzerror.show();
-	 }        */
 	
 	int idf,jdf,in,jn;
 	switch(bc.Type()){
@@ -211,11 +158,14 @@ void TPZMat2dLin::Print(std::ostream & out) {
 
 int TPZMat2dLin::VariableIndex(const std::string &name) {
 	if(!strcmp(name.c_str(),"displacement")) return 1;
+	if(!strcmp(name.c_str(),"Solution")) return 1;
+	if(!strcmp("Derivate",name.c_str())) return 2;
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZMat2dLin::NSolutionVariables(int index) {
 	if(index == 1) return 3;
+	if(index == 2) return 2;
 	return TPZMaterial::NSolutionVariables(index);
 }
 
@@ -227,6 +177,10 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
 	} else if(var == 1) {
 		Solout.Resize(3,0.);
 		Solout[0] = Sol[0];
+	} else if(var == 2) {
+      	Solout[0] = DSol(0,0);//derivate
+		Solout[1] = DSol(1,0);//derivate
+		return;
 	}
 	else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
@@ -277,9 +231,7 @@ TPZBndCond *TPZMat2dLin::OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int
 	return TPZMaterial::CreateBC(reference,bc,3,val1,val2);
 }
 
-/**
- * returns the unique identifier for reading/writing objects to streams
- */
+/** returns the unique identifier for reading/writing objects to streams */
 int TPZMat2dLin::ClassId() const
 {
 	return TPZMAT2DLINID;
@@ -287,9 +239,7 @@ int TPZMat2dLin::ClassId() const
 
 template class TPZRestoreClass<TPZMat2dLin,TPZMAT2DLINID>;
 
-/**
- Save the element data to a stream
- */
+/** Save the element data to a stream */
 void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 {
 #ifdef DEBUG2
@@ -322,9 +272,7 @@ void TPZMat2dLin::Write(TPZStream &buf, int withclassid)
 	fXf.Write(buf,0);
 }
 
-/**
- Read the element data from a stream
- */
+/** Read the element data from a stream */
 void TPZMat2dLin::Read(TPZStream &buf, void *context)
 {
 	TPZMaterial::Read(buf,context);
@@ -339,4 +287,3 @@ void TPZMat2dLin::Read(TPZStream &buf, void *context)
 	fK00.Read(buf,0);
 	fXf.Read(buf,0);
 }
-

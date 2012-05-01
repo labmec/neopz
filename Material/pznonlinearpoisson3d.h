@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZNonLinearPoisson3d class.
  */
-
-//$Id: pznonlinearpoisson3d.h,v 1.7 2009-09-01 19:44:48 phil Exp $
 
 #ifndef MATNLPOISSON3DH
 #define MATNLPOISSON3DH
@@ -45,7 +43,12 @@ public:
 	
 	/** @brief Define no stabilization term. */
 	void SetNoStabilizationTerm();
-	
+
+	/**
+	 * @name Contribute methods (weak formulation)
+	 * @{
+	 */
+	 
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
                             TPZFMatrix<REAL> &ek,
@@ -96,6 +99,8 @@ public:
 	{
 		TPZMatPoisson3dReferred::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
+
+	/** @} */
 	
 protected:
     bool fIsReferred;

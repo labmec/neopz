@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMat1dLin class which implements a one-dimensional linear problem.
  */
+
 #ifndef MAT1DLINHPP
 #define MAT1DLINHPP
 

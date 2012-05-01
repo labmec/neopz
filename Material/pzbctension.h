@@ -3,8 +3,6 @@
  * @brief Contains the TPZBCTension class which implements a tension boundary condition.
  */
 
-// $Id: pzbctension.h,v 1.13 2009-09-01 19:44:46 phil Exp $
-
 #ifndef BCTENSIONHPP
 #define BCTENSIONHPP
 
@@ -31,8 +29,6 @@ class TPZBCTension : public TPZBndCond {
 	
 private:
 	
-	//  TPZInterpolatedElement *fReference;
-	
 	public :
     
     ~TPZBCTension(){}
@@ -46,28 +42,13 @@ private:
 	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
 
 		TPZFMatrix<REAL> &dphi = data.dphix;
-		// TPZFMatrix<REAL> &dphiL = data.dphixl;
-		// TPZFMatrix<REAL> &dphiR = data.dphixr;
 		TPZFMatrix<REAL> &phi = data.phi;
-		// TPZFMatrix<REAL> &phiL = data.phil;
-		// TPZFMatrix<REAL> &phiR = data.phir;
-		// TPZManVector<REAL,3> &normal = data.normal;
 		TPZManVector<REAL,3> &x = data.x;
-		//int POrder=data.p;
-		//int LeftPOrder=data.leftp;
-		//int RightPOrder=data.rightp;
 		TPZVec<REAL> &sol=data.sol[0];
-		// TPZVec<REAL> &solL=data.soll;
-		// TPZVec<REAL> &solR=data.solr;
 		TPZFMatrix<REAL> &dsol=data.dsol[0];
-		// TPZFMatrix<REAL> &dsolL=data.dsoll;
-		// TPZFMatrix<REAL> &dsolR=data.dsolr;
-		//REAL faceSize=data.HSize;
 		TPZFMatrix<REAL> &jacinv = data.jacinv;
 		TPZFMatrix<REAL> &axes = data.axes;
-		
-		
-		
+
 		int typekeep = fType;
 		if(fType == 4) {
 			TPZManVector<REAL,3> normal(3);
@@ -107,5 +88,3 @@ private:
 };
 
 #endif
-
-

@@ -2,6 +2,7 @@
  * \file
  * @brief Contains the TEulerDiffusivity class which implements a numerical diffusivity coefficient for SUPG.
  */
+ 
 #ifndef EULERDIFFUSIONHH
 #define EULERDIFFUSIONHH
 

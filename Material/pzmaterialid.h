@@ -1,24 +1,15 @@
 /**
- * \file
+ * @file
  * @brief Contains IDs for materials.
  */
-//
-// C++ Interface: pzmaterialid
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@corona>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #ifndef PZMATERIALIDH
 #define PZMATERIALIDH
 
 /** \addtogroup material
  * @{
  */
+
 /** @brief Id of material class */
 const int TPZMATERIALID = 300;
 /** @brief Id of Discontinuous Galerkin material */
@@ -63,6 +54,7 @@ const int TPBRADJUSTEDPERMEABILITYFUNCTIONID = 321;
 const int TPBRPERMFUNCTIONID = 322;
 
 const int TPBRRESERVOIRPERMEABILITYFUNCTIONID = 323;
+
 /** @} */
 
 #endif //PZMATERIALIDH

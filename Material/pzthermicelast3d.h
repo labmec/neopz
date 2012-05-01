@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZThermicElast3D class which implements a 3D isotropic elasticity material with thermal stress.
  */
-
-//$Id: pzthermicelast3d.h,v 1.3 2009-09-01 19:44:48 phil Exp $
 
 #ifndef PZTHERMICELAST3D
 #define PZTHERMICELAST3D

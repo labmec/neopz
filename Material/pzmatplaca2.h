@@ -1,17 +1,17 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZMatPlaca2 class.
  */
+
 #ifndef TPZMATPLACA2HPP
 #define TPZMATPLACA2HPP
 
 #include "pzmaterial.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
-//#include "pzreal.h"
+
 class TPZBndCond;
 
-//const Float BIGNUMBER = 1.e9;
 
 /**
  * @ingroup material
@@ -39,15 +39,11 @@ protected:
 	
 	virtual int NStateVariables() { return fIdfMax; }
 	
-	//  int NFluxes() { return NStateVariables(); }
-	
 	int Dimension() { return 2; }
 	
 	void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZMatPlaca2"; }
-	
-	//  virtual TPZBndCond *CreateBC(int num,int typ,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2);
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
@@ -102,8 +98,6 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	
 };
 
 #endif
-

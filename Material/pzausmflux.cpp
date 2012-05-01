@@ -2,23 +2,22 @@
  * \file
  * @brief Contains implementations of the TPZAUSMFlux methods.
  */
-//$Id: pzausmflux.cpp,v 1.3 2009-08-12 21:05:31 fortiago Exp $
 
 #include "pzausmflux.h"
 
-TPZAUSMFlux::TPZAUSMFlux(REAL gamma){
+TPZAUSMFlux::TPZAUSMFlux(REAL gamma) {
 	this->fGamma = gamma;
 	this->fAlpha = 3./16.; 
 	this->fBeta = 1./8.;
-}//method
+}
 
-TPZAUSMFlux::TPZAUSMFlux(const TPZAUSMFlux &cp){
+TPZAUSMFlux::TPZAUSMFlux(const TPZAUSMFlux &cp) {
 	this->fGamma = cp.fGamma;
 	this->fAlpha = cp.fAlpha;
 	this->fBeta = cp.fBeta;
 }
 
-void TPZAUSMFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REAL> &normal, TPZVec<REAL> & F){
+void TPZAUSMFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REAL> &normal, TPZVec<REAL> & F) {
 	REAL LeftSoundSpeed,RightSoundSpeed,
 	LeftSpeed,RightSpeed,
 	LeftNormalSpeed, RightNormalSpeed,
@@ -36,7 +35,6 @@ void TPZAUSMFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REA
 	const REAL FaceMach = this->FaceMachNumber(LeftNumMach,RightNumMach);
 	const REAL MassFlux = this->MassFlux(NumericalSoundSpeed,solL[0], solR[0], FaceMach);
 	
-	//sol={rho,rhou,rhov,rhow,rhoe}
 	const REAL uL = solL[1]/solL[0];
 	const REAL vL = solL[2]/solL[0];
 	const REAL wL = solL[3]/solL[0];
@@ -68,14 +66,9 @@ REAL TPZAUSMFlux::SoundSpeed(TPZVec<REAL> &sol,REAL press){
 		DebugStop();
 	}
 	
-//	const REAL temp = this->fGamma * press;	
-//	if(temp < 1e-10){ // too low or negative
-//		PZError << "TPZEulerEquation::cSpeed Too low or negative numerator\n";
-//	}
-	
 	const REAL c = sqrt(this->fGamma * press/ sol[0]);
 	return c;
-}//method
+}
 
 REAL TPZAUSMFlux::Pressure(TPZVec<REAL> &sol){
 	if(fabs(sol[0]) < 1.e-6){
@@ -86,7 +79,6 @@ REAL TPZAUSMFlux::Pressure(TPZVec<REAL> &sol){
 	
 	REAL press = 0.0;
 	
-	//sol = (rho , rho u , rho v , rho w , rho e)
 	const REAL rho_velocity2 = ( sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3] )/sol[0];
 	press = ((this->fGamma-1.)*( sol[4] - 0.5 * rho_velocity2 ));
 	
@@ -168,22 +160,3 @@ REAL TPZAUSMFlux::MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL 
 	const REAL m = NumericalSoundSpeed*(rhoL*max+rhoR*min);
 	return m;
 }//method
-
-/*  {
- const REAL rho = sol[0];
- const REAL rhoU = sol[1];
- const REAL rhoV = sol[2];
- const REAL rhoW = sol[3];
- const REAL rhoE = sol[4];
- const REAL u = rhoU/rho;
- const REAL v = rhoV/rho;
- const REAL w = rhoW/rho;
- const REAL p = this->Pressure(sol);
- F.Resize(5,3);
- F(0,0) = rhoU;        F(0,1) = rhoV;        F(0,2) = rhoW;
- F(1,0) = rhoU*u+p;    F(1,1) = rhoU*v;      F(1,2) = rhoU*w;
- F(2,0) = rhoV*u;      F(2,1) = rhoV*v+p;    F(2,2) = rhoV*w;
- F(3,0) = rhoW*u;      F(3,1) = rhoW*v;      F(3,2) = rhoW*w+p;
- F(4,0) = (rhoE+p)*u;  F(4,1) = (rhoE+p)*v;  F(4,2) = (rhoE+p)*w;
- }//void
- */

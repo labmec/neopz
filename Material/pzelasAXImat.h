@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZElasticityAxiMaterial class which implements a two dimensional elastic material in plane stress or strain.
  */
+
 #ifndef ELASAXIMATHPP
 #define ELASAXIMATHPP
 
@@ -13,8 +14,6 @@
 #include <vector>
 #include <math.h>
 
-//const REAL Pi = 4.*atan(1);
-
 /**
  * @ingroup material
  * @brief Implements a two dimensional elastic material in plane stress or strain
@@ -22,7 +21,8 @@
 class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	
 	public :
-	
+
+	/** @brief Default constructor */
 	TPZElasticityAxiMaterial();
 	/** 
 	 * @brief Creates an elastic material with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx and fy).
@@ -35,7 +35,6 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
 	 */
 	TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy);
 	
-	//------------------- FEITO POR AGNALDO : 05/02/10 . Só para teste ----------
 	/**
 	 * @brief Creates an elastic material test with elasticity modulus (E), poisson coefficient (nu) and forcing functions (fx, fy) and penalty term (coefAlpha).
 	 * @param num material id
@@ -56,11 +55,9 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
     
     /** @brief Destructor */
     virtual ~TPZElasticityAxiMaterial();
-    
 	
-	//-----------------------------------------------------------------------------------
-	
-	/** @brief Set the origin of Revolution Axis (\f$Z\f$), the direction of Revolution Axis (\f$Z\f$), \n
+	/**
+	 * @brief Set the origin of Revolution Axis (\f$Z\f$), the direction of Revolution Axis (\f$Z\f$), \n
      * and the Radius vector (orthogonal with respect of \f$Z\f$ axis).
 	 * @param Orig Origin of revolution axis
 	 * @param AxisZ Direction vector of revolutin axis
@@ -86,7 +83,7 @@ class TPZElasticityAxiMaterial : public TPZDiscontinuousGalerkin {
         fDelTemperature = delt;
     }
 	
-	/** @brief Returns the dimension */
+	/** @brief Returns the model dimension */
 	int Dimension() { return 2;}
 	
 	/** @brief Returns the number of state variables associated with the material */

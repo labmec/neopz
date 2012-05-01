@@ -1,9 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains the TPZNonLinBiharmonic class which implements a discontinuous Galerkin formulation for the non-linear bi-harmonic equation.
  */
-// -*- c++ -*-
-//$Id: pznonlinbiharmonic.h,v 1.8 2009-09-01 19:44:47 phil Exp $
 
 #ifndef TPZNONLINBIHARMONICHPP
 #define TPZNONLINBIHARMONICHPP
@@ -51,7 +49,12 @@ private:
 	virtual void Print(std::ostream & out);
 	
 	virtual std::string Name() { return "TPZBiharmonic"; }
-	
+
+	/**
+	 * @name Contribute methods from weak formulation
+	 * @{
+	 */
+	 
 	/** @brief Implements integral over  element's volume */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
@@ -79,6 +82,8 @@ private:
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
+
+	/** @} */
 	
 	virtual int VariableIndex(const std::string &name);
 	
@@ -89,20 +94,23 @@ private:
 protected:
 	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
-
+	
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
-
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
 	
 	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
-	
-	
+				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+
+	/**
+	 * @name Contribute interface methods
+	 * @{
+	 */
+	 
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
 									 TPZFMatrix<REAL> &ek,
@@ -122,7 +130,6 @@ public:
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
-	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
 									   TPZFMatrix<REAL> &ef,
@@ -130,6 +137,8 @@ public:
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);
 	}
+
+	/** @} */
 	
 };
 

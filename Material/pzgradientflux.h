@@ -2,7 +2,6 @@
  * \file
  * @brief Contains the TPZGradientFlux class.
  */
-//$Id: pzgradientflux.h,v 1.1 2009-08-28 19:43:44 fortiago Exp $
 
 #ifndef TPZGRADIENTFLUX_H
 #define TPZGRADIENTFLUX_H
@@ -19,11 +18,11 @@
 class TPZGradientFlux{
 	
 public:
-	
+	/** @brief Default constructor */
 	TPZGradientFlux();
-	
+	/** @brief Copy constructor */
 	TPZGradientFlux(const TPZGradientFlux &cp);
-	
+	/** @brief Destructor */
 	~TPZGradientFlux();
 	
 	/** @brief Computes numerical flux */
@@ -44,8 +43,9 @@ private:
 							const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR, 
 							const TPZVec<REAL> &normal, 
 							const TPZVec<REAL> &dL, const TPZVec<REAL> & dR);
-	
-	REAL Dot(const TPZVec<REAL> &A, const TPZVec<REAL> &B){
+
+	/** @brief Computes the dot product (scalar) */
+	REAL Dot(const TPZVec<REAL> &A, const TPZVec<REAL> &B) {
 		double result = 0.;
 		int n = A.NElements();
 		for(int i = 0; i < n; i++) result += A[i]*B[i];

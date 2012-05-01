@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZDiscontinuousGalerkin methods.
  */
-// $Id: pzdiscgal.cpp,v 1.12 2010-10-08 19:18:15 fortiago Exp $
 
 #include "pzdiscgal.h"
 #include "pzmaterialdata.h"

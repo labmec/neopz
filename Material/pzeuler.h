@@ -2,7 +2,6 @@
  * \file
  * @brief Contains the TPZEulerEquation class which implements the weak statement of the compressible euler equations.
  */
-//$Id: pzeuler.h,v 1.7 2009-12-15 17:28:28 phil Exp $
 
 #ifndef PZEULER_H
 #define PZEULER_H
@@ -48,16 +47,16 @@ class TPZCompMesh;
  * \f$ p = (\gamma - 1) \star (E - \frac{1}{2} \rho \| v \| ) \f$ \n
  * \f$ \gamma = \frac{c_p}{c_V} \f$ \n
  *
- * For tests we used \f$ \gamma = 1.4 \f$ .
+ * @note For tests we used \f$ \gamma = 1.4 \f$ .
  */
 class TPZEulerEquation : public TPZDiscontinuousGalerkin{
 	
 public:
-	
+	/** @brief Type of boundary condition */
 	enum BCType{EFreeSlip = 1};
-	
+	/** @brief Type of flux computing */ 
 	enum CALCType{EFlux = 1, EGradient = 2};
-	
+	/** @brief Set type of flux computing */
 	static void SetComputeFlux(){
 		gType = EFlux;
 	}

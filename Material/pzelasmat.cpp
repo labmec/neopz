@@ -1,7 +1,8 @@
 /**
- * \file
+ * @file
  * @brief Contains implementations of the TPZElasticityMaterial methods.
  */
+
 #include "pzelasmat.h" 
 #include "pzelmat.h"
 #include "pzbndcond.h"
@@ -79,24 +80,7 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
 
 void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
@@ -144,10 +128,6 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		ef(2*in, 0) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // dire�o x
 		ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// dire�o y <<<----
 		
-		//    cout << "ef(" << 2*in << "," << 0 << ")=" << ef(2*in,0) << endl;
-		//    cout << "ef(" << 2*in+1 << "," << 0 << ")=" << ef(2*in+1,0) << endl;
-		
-		
 		for( int jn = 0; jn < phr; jn++ ) {
 			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
 			du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
@@ -191,7 +171,6 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 			}
 		}
 	}
-	//     for (int w=0; w<phr; w++) { cout << ef(w,0)<< endl;}
 	
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
@@ -207,28 +186,8 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 										 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// int &LeftPOrder=data.leftp;
-	// int &RightPOrder=data.rightp;
-	// TPZVec<REAL> &sol=data.sol;
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
-	// TPZFMatrix<REAL> &axes=data.axes;
-	
-	//	const REAL LITTLENUMB = 1.e-6;
+
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
 	
 	int phr = phi.Rows();
@@ -326,14 +285,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 	//  return 0;
 }
 
-void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
-	
-	//  ofstream nada("soluco.txt");
-	
-	//DSol.Print("DSol",nada,EFormatted);
-	//nada << endl << "Sol" << endl;
-	//Sol.Print(nada);
-	//nada << endl << Sol[0] << "\t" << Sol[1] << endl << endl << endl;
+void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
 	
 	REAL epsx;
 	REAL epsy;

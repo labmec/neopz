@@ -3,8 +3,6 @@
  * @brief Contains implementations of the TPZBurger methods.
  */
 
-//$Id: pzburger.cpp,v 1.6 2007-11-22 15:48:06 tiago Exp $
-
 #include "pzburger.h"
 #include "pzbndcond.h"
 
@@ -78,15 +76,6 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZV
 	for( int in = 0; in < phr; in++ ) {
 		int kd;
 		REAL dphiic = 0;
-		//     REAL DerivDPHIIC = 0.;
-		//     for(kd = 0; kd<fDim; kd++){
-		//       dphiic += dsol(kd,0)*dphi(kd,in);
-		//       DerivDPHIIC += dphi(kd,0)*dphi(kd,in);
-		//     }
-		//     REAL normdsol = 0.;
-		//     for(kd = 0; kd < fDim; kd++) normdsol += dsol(kd,0)*dsol(kd,0);
-		//     normdsol = sqrt(normdsol);
-		//     if (normdsol) dphiic = dphiic/normdsol;
 		
 		ef(in, 0) += - weight * ( fXf*phi(in,0) + 0.5*fSD*delx*fC*dphiic*fXf * fabs(sol[0])/fSolRef );
 		for(kd = 0; kd < fDim; kd++){
@@ -164,7 +153,6 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<R
 		REAL norm = 0.;
 		for(kd = 0; kd<fDim; kd++) norm += (ConvDirAx[kd]*fC) * (ConvDirAx[kd]*fC);
 		norm = sqrt(norm);
-		//     if (norm) dphiic = dphiic / norm;
 		
 		ef(in, 0) += - weight * ( fXf*phi(in,0) + 0.5*fSD*delx*fC*dphiic*fXf * fabs(sol[0])/fSolRef );
 		for(kd = 0; kd < fDim; kd++){
@@ -195,27 +183,13 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
                              TPZFMatrix<REAL> &ek,
                              TPZFMatrix<REAL> &ef,
                              TPZBndCond &bc){
-	// TPZFMatrix<REAL> &dphi = data.dphix;
-	// TPZFMatrix<REAL> &dphiL = data.dphixl;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
     int numbersol = data.sol.size();
     if(numbersol != 1)
     {
         DebugStop();
     }
 	TPZFMatrix<REAL> &phi = data.phi;
-	// TPZFMatrix<REAL> &phiL = data.phil;
-	// TPZFMatrix<REAL> &phiR = data.phir;
-	// TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
 	TPZVec<REAL> &sol=data.sol[0];
-	// TPZVec<REAL> &solL=data.soll;
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
-	// TPZFMatrix<REAL> &dsolL=data.dsoll;
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// // REAL &faceSize=data.HSize;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
@@ -247,11 +221,6 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
 			break;
 			
 		case 3 : { // outflow condition
-			
-			if (this->IsReferred()){
-				//       PZError << "Error at " << __PRETTY_FUNCTION__
-				//               << " - the outflow boundary condition can not be implemented for referred elements derived from TPZInterpolatedElement\n";
-			} 
 			
 			int id, il, jl;
 			REAL normal[3];
@@ -296,27 +265,19 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
                                     REAL weight,
                                     TPZFMatrix<REAL> &ek,
                                     TPZFMatrix<REAL> &ef){
-	// TPZFMatrix<REAL> &dphi = data.dphix;
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// TPZVec<REAL> &sol=data.sol;
 	TPZVec<REAL> &solL=dataleft.sol[0];
 	TPZVec<REAL> &solR=dataright.sol[0];
-	// TPZFMatrix<REAL> &dsol=data.dsol;
 	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
 	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolR);
@@ -378,7 +339,6 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		
-		//ef = F - K u
 		ef(il,0) += -1. * (weight * leftK * (this->fSymmetry * 0.5 * dphiLinormal*solL[0]-0.5*DSolLNormal*phiL(il,0)));
 		
 		for(jl=0; jl<nrowl; jl++) {
@@ -469,29 +429,16 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
     if (numbersol != 1) {
         DebugStop();
     }
-	// TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
-	// TPZFMatrix<REAL> &dphiR = data.dphixr;
-	// TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
-	// TPZFMatrix<REAL> &phiR = data.phir;
 	TPZManVector<REAL,3> &normal = data.normal;
-	// TPZManVector<REAL,3> &x = data.x;
-	// int &POrder=data.p;
-	// TPZVec<REAL> &sol=data.sol;
 	TPZVec<REAL> &solL=dataleft.sol[0];
-	// TPZVec<REAL> &solR=data.solr;
-	// TPZFMatrix<REAL> &dsol=data.dsol;
 	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
-	// TPZFMatrix<REAL> &dsolR=data.dsolr;
-	// REAL &faceSize=data.HSize;
-	// TPZFMatrix<REAL> &axes=data.axes;
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolL);
 	}
 	
-	//  cout << "Material Id " << bc.Id() << " normal " << normal << "\n";
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
 	REAL ConvNormal = 0.;
@@ -559,15 +506,6 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
 			else {
 				if (ConvNormal < 0.){
 					std::cout << "Boundary condition error: inflow detected in outflow boundary condition: ConvNormal = " << ConvNormal << "\n";
-					//         #warning ISSO NAO DEVE IR PRO CVS
-					//       ConvNormal *= -1.;
-					//       for(il=0; il<nrowl; il++) {
-					//         for(jl=0; jl<nrowl; jl++) {
-					//           ek(il,jl) += weight * ConvNormal * phiL(il)*phiL(jl) * 2.*solL[0]/fSolRef;
-					//         }
-					//         ef(il,0) += -1. * weight * ConvNormal * phiL(il) * solL[0]*solL[0]/fSolRef;
-					//       }        
-					//       #warning ISSO NAO DEVE IR PRO CVS - ATE AQUI
 				}
 			}
 			break;    
