@@ -31,11 +31,16 @@
 
 using namespace std;
 
+#ifndef USING_BOOST
+#define USING_BOOST
+#endif
+
 //
-//	This program solve  a system of linear PDE - 1D I hope! 
-//	- k.[(ddu/dxdx) + (ddu/dydy)] = f(x),   0<= x <=1    --->  Now k=1 and b=1 and  f(x)=x
-//	using uDirichlet = u(x) = 0  on x = 0  and  x = 1.
-//
+//	This program solve  a system of linear PDE - 1D 
+//	\f$ - k.[(ddu/dxdx) + (ddu/dydy)] = f(x)\f$,   \f$ 0<= x <=1\f$    --->  Now \f$k=1\f$ and \f$b=1\f$ and  \f$f(x)=x\f$
+//	using uDirichlet \f$= u(x) = 0\f$  on \f$x = 0\f$  and  \f$x = 1\f$.
+// WEAK FORMULATION
+// 
 
 /* RELATED TO MODEL */
 
@@ -52,12 +57,14 @@ void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exac
 {
 }
 
-int main_2D()
-//int main()
+//int main_2D()
+int main()
 {
+#ifdef LOG4CXX
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
+#endif
 	
 	// Files for information (geometric mesh and computational mesh)
 	std::ofstream infoGeoMesh("gmesh.txt");
@@ -70,9 +77,9 @@ int main_2D()
 	std::ofstream outMath("Mathematica.txt");
 
 	// p -> interpolation order
-	int p = 21;
+	int pp = 17, p;
 	// h -> level of uniform refinement of the initial mesh
-	int h = 3;
+	int h = 2;
 	
 	// Creating main extremes and material for current project
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the mesh.
@@ -95,12 +102,13 @@ int main_2D()
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
-	TPZGeoMesh *gmesh = GeomMesh2D(h,matId,bc,x0,x1,1);   // 1 -> triangular   0 -> quadrilateral
+	TPZGeoMesh *gmesh = GeomMesh2D(h,matId,bc,x0,x1,0);   // 1 -> triangular   0 -> quadrilateral
 	gmesh->Print(infoGeoMesh);	
 
+for(p = 10;p < pp;p++) {
 	// Creating a computational mesh and printing computational information.
 	TPZCompMesh * cmesh = CompMesh(gmesh,p,material,bc,bcType);
-	cmesh->Print(infoCompMesh);
+	if(!p) cmesh->Print(infoCompMesh);
 	
 	// Assembling and Solving linear system
 	TPZAnalysis an(cmesh);
@@ -108,11 +116,8 @@ int main_2D()
 	
 	// Print Solution as multiplier coefficients
 	TPZFMatrix<REAL> toprint = an.Solution();
-	toprint.Print("Solution", FileSolution);
+	if(!p) toprint.Print("Solution", FileSolution);
 	
-	// Solution output for Mathematica
-	OutputMathematica(outMath,1,8,cmesh);
-
 	// Plot erro (norms) 
 	//an.SetExact(SolExata);
 	//TPZVec<REAL> posproc;
@@ -120,25 +125,36 @@ int main_2D()
 	//an.PostProcess(posproc,FileError); // Compute the errors
 	//FileError<<endl;
 	
+	// Solution output for Mathematica
+	OutputMathematica(outMath,1,8,cmesh);
+		
+	// Solution output for Paraview (VTK)
+	std::string vtkString("SolVTK.vtk");
+	OutputVTK(vtkString,cmesh,an);
+}	
 	// Close output files
 	infoGeoMesh.close();
 	infoCompMesh.close();
 	FileSolution.close();
 	FileError.close();
 	outMath.close();
-	
+
 	return EXIT_SUCCESS;
 }
+
+// Testing for 3D problem 
 
 #include "TPZExtendGridDimension.h"
 #include "pzmattest3d.h"
 
-//int main3D()
-int main()
+int main3D()
+//int main()
 {
+#ifdef LOG4CXX
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
 	InitializePZLOG();
+#endif
 	
 	// Files for information (geometric mesh and computational mesh)
 	std::ofstream infoGeoMesh("gmesh.txt");
@@ -151,7 +167,7 @@ int main()
 	std::ofstream outMath("Mathematica.txt");
 	
 	// p -> interpolation order
-	int p = 2;
+	int p = 14;
 	// h -> level of uniform refinement of the initial mesh
 	int h = 3;
 	
@@ -164,6 +180,9 @@ int main()
 	bc[1] = -2;
 	// type of boundary conditions
 	TPZVec<int> bcType(2,0);   // 0 - dirichlet
+	
+	// Testing
+	
 	
 	// Coefficients of the differential equation (Linear 2D). They will be required by material constructor
 	TPZMaterialTest3D *material = new TPZMaterialTest3D(matId[0]);
@@ -194,3 +213,165 @@ int main()
 	
 	return 0;
 }
+
+/**
+RESULTADOS
+
+Using triangles with h = 1 and p = 1, 2, 3, ... 20
+we have 
+Solution (right accuracy) to p = 2, 3, ..., 14, 16 and 17
+Poor solution to p = 1
+Solution with big oscillation (but between limits) p = 15
+Solution out of range to p = 18, 19 and 20.
+
+Using quadrilaterals with h = 2 and p = 1, 2, 3, ..., 20
+IT IS IMPORTANT STORE THE FOLLOWING INFORMATION TO PROJECT RUN TIME OF THE ANY TEST:
+It runs p = 1, 2, ..., 16
+ break in p = 17
+The time of runs were:
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:00.037513 Time for solving 00:00:00.000219
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:00.118877 Time for solving 00:00:00.003716
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:00.348824 Time for solving 00:00:00.049339
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:01.576123 Time for solving 00:00:00.174542
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:01.515140 Time for solving 00:00:00.619218
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:03.549315 Time for solving 00:00:01.994280
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:07.624906 Time for solving 00:00:05.370113
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:14.996559 Time for solving 00:00:12.268905
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:26.960360 Time for solving 00:00:25.649507
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:00:47.112816 Time for solving 00:00:50.689021
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:01:21.001119 Time for solving 00:01:28.554897
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:02:06.799302 Time for solving 00:02:30.355490
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:03:15.008663 Time for solving 00:04:06.016281
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:04:55.586688 Time for solving 00:06:26.601016
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ ****
+ Time for assembly 00:07:23.095688 Time for solving 00:10:04.850374
+ TPZBoostGraph::Resequence started 
+ NNodes 289
+ NElements 96
+ Original Bandwidth: 173
+ Original profile: 11067
+ Reverse Expensive Cuthill-McKee ordering:
+ TPZBoostGraph::Resequence finished 
+ Warning: the current language does not match this frame.
+ ****
+ Time for assembly 00:10:25.432045 Time for solving 00:14:32.188744
+*/

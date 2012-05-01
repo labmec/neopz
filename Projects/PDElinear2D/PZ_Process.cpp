@@ -1,9 +1,9 @@
 /*
  * @file
- * @brief Contains the implementation of the functions grouping the processes to: \n
- * - Generate one-dimensional geometric mesh (gmesh)
- * - Generate a computational mesh (cmesh) associated with gmesh,
- * - Assembling and solving linear system for 1D linear diff. eq. on \f$[0.0, 1.0]\f$
+ * @brief Contains the implementation of the functions grouping the processes to:
+ * \li Generate one-dimensional geometric mesh (gmesh)
+ * \li Generate a computational mesh (cmesh) associated with gmesh,
+ * \li Assembling and solving linear system for 1D linear diff. eq. on \f$[0.0, 1.0]\f$
  */
 
 #include "PZ_Process.h"
@@ -272,6 +272,8 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 	
 	// Printing the points and values into the Mathematica file
 	outMath << "Saida = { ";
+	// Formatting output
+	outMath << fixed << setprecision(10);
 	if(dim<2) {
 		map<REAL,TPZVec<REAL> >::iterator it;
 		for(it=Graph.begin();it!=Graph.end();it++) {
@@ -281,7 +283,7 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 				outMath << (*it).second[j] << ",";
 			outMath << (*it).second[3] << "}";
 		}
-		outMath << "}" << std::endl;
+		outMath << "};" << std::endl;
 		// Choose Mathematica command depending on model dimension
 		outMath << "ListPlot[Saida,Joined->True]"<< endl;
 	}
@@ -294,7 +296,7 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 				outMath << (*it).first[j] << ",";
 			outMath << (*it).second << "}";
 		}
-		outMath << "}" << std::endl;
+		outMath << "};" << std::endl;
 		outMath << "ListPlot3D[Saida]"<< endl;
 	}
 }
