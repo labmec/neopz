@@ -72,7 +72,6 @@ void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 	int i,j;
 	TPZVec<int> mark (nelem,0);
 	TPZStack<TPZGeoEl *> bcStack;
-	//int nmark = 0;
 	
 	//Get the selected bcs
 	for (i=0;i<nelem;i++){
@@ -134,10 +133,8 @@ void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 		int pos = cmesh->Block().Position(seqnum);
 		int size = cmesh->Block().Size(seqnum);
 		
-		//for (int sz = 0; sz < size; sz++)
 		for(j = 0; j < nstate; j++)
 		{
-			//arq << "\t" << cmesh->Solution()(pos + size - nstate + j);
 			arq << "\t" << cmesh->Solution()(pos + size - nstate + j , 0);
 		}
 		arq << "\n";
@@ -147,9 +144,6 @@ void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 // saveable test
 int main1()
 {
-	//   RegisterMeshClasses();
-	//   RegisterMatrixClasses();
-	//   RegisterMaterialClasses();
 	
 	TPZEulerConsLaw euler(3, 10, 1.5, 3, SUPG_AD), * peuler2;
 	euler.SetTimeDiscr(Implicit_TD, ApproxImplicit_TD, None_TD);
@@ -485,15 +479,6 @@ int run(std::istream & input, std::ostream & output)
 			finesol.Transpose();
 			finesol.Remodel(finesol.Rows()*finesol.Cols(),1);
 			cmesh->LoadSolution(finesol);
-			// #ifdef LOG4CXX
-			//           {
-			//             std::stringstream sout;
-			//             transfer.Print("Transfer matrix for p refinement",sout);
-			//             LOGPZ_DEBUG(logtr,sout.str())
-			//           }
-			// #endif
-			
-			
 		}
 			break;
 		case 9:
@@ -551,7 +536,6 @@ int run(std::istream & input, std::ostream & output)
 	 
 	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
-	 An.SetLinSysCriteria(1e-10, 10);
 	 An.SetNewtonCriteria(1e-10, 10);
 	 An.SetTimeIntCriteria(1e-10, MaxIter);
 	 
@@ -570,7 +554,6 @@ int run(std::istream & input, std::ostream & output)
 	 
 	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
-	 An.SetLinSysCriteria(1e-8, 100);
 	 An.SetNewtonCriteria(1e-8, 8);
 	 An.SetTimeIntCriteria(1e-8,MaxIter);
 	 
@@ -622,7 +605,6 @@ int run(std::istream & input, std::ostream & output)
 	 }
 	 
 	 #endif   
-	 An.SetLinSysCriteria(1e-8, 100);
 	 An.SetNewtonCriteria(NewtonTol, numnewton);
 	 An.SetTimeIntCriteria(1e-8,MaxIter);
 	 An.ComputeTimeStep();
@@ -667,7 +649,6 @@ int run(std::istream & input, std::ostream & output)
 	 
 	 TPZMatrix<REAL> * mat = StrMatrix.Create();
 	 
-	 An.SetLinSysCriteria(1e-10, 1000);
 	 An.SetNewtonCriteria(1e-9, 10);
 	 An.SetTimeIntCriteria(1e-8,100);
 	 
@@ -708,7 +689,6 @@ int run(std::istream & input, std::ostream & output)
 	 }
 	 
 	 #endif   
-	 An.SetLinSysCriteria(1e-8, 100);
 	 An.SetNewtonCriteria(NewtonTol, numnewton);
 	 An.SetTimeIntCriteria(1e-8,MaxIter);
 	 
@@ -735,8 +715,7 @@ int run(std::istream & input, std::ostream & output)
 		LOGPZ_DEBUG(logger,sout.str().c_str());
 	}
 	
-#endif   
-	An.SetLinSysCriteria(1e-8, 100);
+#endif
 	An.SetNewtonCriteria(NewtonTol, numnewton);
 	An.SetTimeIntCriteria(1e-8,MaxIter);
 	

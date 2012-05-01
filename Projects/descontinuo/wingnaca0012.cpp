@@ -27,6 +27,7 @@
 #include "pzskylmat.h"
 #include "pzstepsolver.h"
 #include "pzgeoel.h"
+#include "pzgeoelbc.h"
 #include "pzgnode.h"
 #include "pzstack.h"
 #include "pzvec.h"
@@ -89,7 +90,6 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc);
 TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc);
 void ContagemDeElementos(TPZMaterial *mat);
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
-//void PostProcess(TPZGeoMesh &gmesh,ostream &out);
 void NivelDivide(TPZCompMesh *cmesh);
 void Divisao(TPZCompMesh *cmesh);
 void TestShapesDescontinous();
@@ -99,16 +99,12 @@ static TPZGeoMesh *gmesh = new TPZGeoMesh;
 static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
 static TPZVec<REAL> x0(3,0.);
 static int grau = 0;
-//static int nivel = 0,tipo;
-//static int problem=0;
-//static REAL pi = 2.0*asin(1.0);
 static REAL CFL=-1.0;
 static REAL gama = 1.4;
 
 /**
  *  Velocidade do som no ar a 15,9 graus centigrados = 340,9 mt/seg
  */
-
 int main() {
 	
 	std::string name = "mesh.out";
@@ -116,8 +112,6 @@ int main() {
 	
 	cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
 	cin >> grau;
-	//  TPZCompElDisc::gDegree = grau;
-	//  TPZCompEl::gOrder = grau;
 	cmesh->SetDefaultOrder(grau);
 	TPZAutoPointer<TPZMaterial> mat;
 	TPZStack<TPZGeoEl *> elem;
@@ -152,8 +146,6 @@ int main() {
 	accumlist[8] = 3;
 	accumlist[9] = 0;
 	
-	//  TPZCompMesh *cmesh2 = cmesh->ComputeMesh(accumlist,2);
-	// cmesh2->Print(outgm);
 	return 0;
 	
 	if(1) {
@@ -162,7 +154,6 @@ int main() {
 			cout << "->\t\t\tOK!";
 		} else {
 			cout << "->\tPROBLEMAS COM INTERFACES\n\n";
-			//return ContagemDeElementos();
 		}
 	}
 	
@@ -176,14 +167,11 @@ int main() {
 	int numiter,marcha;
 	cout << "\nNumero de iteracoes requerida ? : ";
 	cin >> numiter;
-	//numiter = 1000;
 	cout << "main:: Parametro marcha : \n";
 	cin >> marcha;
-	//marcha = 99;
 	if(1){
 		cout << "main::SetDeltaTime entre CFL (si nulo sera calculado) -> ";
 		cin >> CFL;
-		//CFL = 0.2;
 		TPZDiffusionConsLaw::fCFL = CFL;
 	}
 	
@@ -218,9 +206,7 @@ int main() {
 		TPZIterativeAnalysis an(cmesh,outgm);
 		if(1){//Analysis
 			cout << "\nmain::Resolve o sistema\n";
-			//TPZStructMatrix *stiff;
 			TPZSkylineStructMatrix stiff(cmesh);
-			//TPZSpStructMatrix stiff(cmesh);
 			an.SetStructuralMatrix(stiff);
 			an.Solution().Zero();
 			TPZStepSolver<REAL> solver;
@@ -230,14 +216,10 @@ int main() {
 				REAL tol;
 				tol = 1.0e15;// = norma da solu��o inicial + epsilon
 				cout << "\nTolerancia ? : " << tol << "\n";
-				//cin >> tol;
-				//an.SetExact(Solution);
 				int resolution=0;
 				cout << "main:: Parametro resolution : \n";
-				//cin >> resolution;
 				resolution = 0; cout << resolution << "\n";
 				an.IterativeProcess(name,tol,numiter,mat,marcha,resolution);
-				//if(0) PostProcess(*gmesh,outgm);
 			}
 		}
 		ContagemDeElementos(mat.operator->());
@@ -352,8 +334,7 @@ void LeituraDaMalha2(char *meshfile,TPZStack<TPZGeoEl *> &elem,TPZStack<TPZGeoEl
 	mesh.close();
 }
 
-void SetDeltaTime(TPZMaterial *mat,int nstate){
-	
+void SetDeltaTime(TPZMaterial *mat,int nstate) {	
 	TPZVec<REAL> x(3,0.0),sol;
 	int i;
 	x[0] = 0.5;
@@ -369,16 +350,14 @@ void SetDeltaTime(TPZMaterial *mat,int nstate){
 	if(press < 0) cout << "main::SetDeltaTime pressao negativa, toma valor absoluto para calculo do som\n";
 	REAL sound = sqrt(law->Gamma()*press/sol[0]);
 	maxveloc += sound;
-	//REAL deltax = cmesh->DeltaX();
 	REAL deltax = cmesh->LesserEdgeOfMesh();
-	//REAL deltax = cmesh->MaximumRadiusOfMesh();
 	REAL deltaT = CFL*deltax/maxveloc;
 	cout << "main::SetDeltaTime : " << deltaT << endl;
 	law->SetDelta(deltaT);
 	
 }
 
-void Divisao (TPZCompMesh *cmesh,int key){
+void Divisao (TPZCompMesh *cmesh,int key) {
 	
 	if(key < 0) return;
 	TPZVec<int> csub(0);
@@ -415,8 +394,7 @@ void Divisao (TPZCompMesh *cmesh,int key){
 	}
 }
 
-void ContagemDeElementos(TPZMaterial *mat){
-	
+void ContagemDeElementos(TPZMaterial *mat) {
 	int poin=0,line=0,tria=0,quad=0,tetr=0,pira=0,pris=0,hexa=0,disc=0,inte=0;
 	int nelem = cmesh->ElementVec().NElements();
 	int k,totel=0,bcel=0,niv = 0,nivmax=0;
@@ -487,7 +465,6 @@ void NivelDivide(TPZCompMesh *cmesh){
 	cout << "\nmain::Divisao todos os elementos da malha serao divididos!\n";
 	cout << "\nmain::Divisao Nivel da malha final ? : ";
 	cin >> nivel;
-	//cout << "\nNivel da malha a ser atingido = " << nivel << endl;
 	int nelc = cmesh->ElementVec().NElements();
 	int el,actual;
 	TPZCompEl *cpel;
@@ -509,7 +486,7 @@ void NivelDivide(TPZCompMesh *cmesh){
 	}
 }
 
-int Nivel(TPZGeoEl *gel){
+int Nivel(TPZGeoEl *gel) {
 	//retorna o n�vel do elemento gel
 	if(!gel) return -1;
 	TPZGeoEl *fat = gel->Father();
@@ -522,9 +499,7 @@ int Nivel(TPZGeoEl *gel){
 	return niv;
 }
 
-void Divisao(TPZCompMesh *cmesh){
-	
-	//int k=0;
+void Divisao(TPZCompMesh *cmesh) {
 	TPZVec<int> csub(0);
 	int n1=1;
 	while(n1) {
@@ -556,16 +531,9 @@ void CoutTime(clock_t &start){
     cout << segundos/60.0 << " minutos" << endl << endl;
 }
 
-//----------------------------------------------------------------------------------------------
 TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
-	//elemento de volume
-	// TPZGeoElement</*TPZShapeTriang,*/TPZGeoTriangle,TPZRefTriangle>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-	//TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-	// TPZGeoElement</*TPZShapeLinear,*/TPZGeoLinear,TPZRefLinear>::SetCreateFunction(TPZCompElDisc::CreateDisc);
-	//int interfdim = 1;
 	int i;
-	// TPZCompElDisc::gInterfaceDimension = interfdim;
 	gmesh->BuildConnectivity();
 	int nummat = 1;
 	int nivel;
@@ -646,7 +614,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	return mat;
 }
-////////////////////////////////////
+
 void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 	
     result.Resize(4);
@@ -664,7 +632,6 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result){
 	
 }
 
-//----------------------------------------------------------------------------------------------
 TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	
 	//elemento de volume
@@ -756,6 +723,3 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	cout << "main::Wing3D elementos computacionais gerados\n";
 	return mat;
 }
-
-
-
