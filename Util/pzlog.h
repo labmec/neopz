@@ -3,17 +3,7 @@
  * @brief Contains definitions to LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL, \n
  * and the implementation of the inline InitializePZLOG(string ) function.
  */
-//
-// C++ Interface: pzlog
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2005
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #ifndef PZLOGH
 #define PZLOGH
 

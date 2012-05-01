@@ -2,17 +2,7 @@
  * @file
  * @brief Contains declaration of the TPZAutoPointer class which has Increment and Decrement actions are mutexed by this mutex.
  */
-//
-// C++ Interface: tpzautopointer
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2006
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #ifndef TPZAUTOPOINTER_H
 #define TPZAUTOPOINTER_H
 
@@ -23,24 +13,23 @@
  * @{
  */
 
-
 /**
  * @brief Increment and Decrement actions are mutexed by this mutex
  */
 extern pthread_mutex_t gAutoPointerMutex;
 
 /**
- @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
- @author Philippe R. B. Devloo
+ * @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
+ * @author Philippe R. B. Devloo
  */
 template<class T>
-class TPZAutoPointer{
+class TPZAutoPointer {
 	
 	/** @brief Counter struct */
 	template<class T2>
 	struct TPZReference
 	{
-		
+		/** @brief Pointer to T2 object */
 		T2 *fPointer;
 		int fCounter;
 		
@@ -122,36 +111,37 @@ public:
 		fRef = copy.fRef;
 		return *this;
 	}
-	
-	operator bool() const{
-		return (this->fRef->fPointer != 0);
-	}
-	
+
+	/** @brief Returns the referenced object */
 	operator T&() 
 	{
 		return *(fRef->fPointer);
 	}
-	
+
+	/** @brief Returns the pointer for referenced object */
+	T *operator->() const
+	{
+		return fRef->fPointer;
+	}
 	T *operator->()
 	{
 		return fRef->fPointer;
 	}
 	
-	T *operator->() const
-	{
-		return fRef->fPointer;
+	/** @brief Returns if pointer was attributed */
+	operator bool() const{
+		return (this->fRef->fPointer != 0);
 	}
-	
 	operator bool() {
 		return fRef->fPointer != 0;
 	}
+	
 	/** @brief Returns the counter value */
-	int Count()
+	int Count() const
 	{
 		return fRef->fCounter;
 	}
-	
-	int Count() const
+	int Count()
 	{
 		return fRef->fCounter;
 	}

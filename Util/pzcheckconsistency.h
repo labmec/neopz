@@ -18,7 +18,9 @@ class TPZCheckConsistency
 {
 	/** @brief A counter which will be used to compose the file name */
 	int fCounter;
-	/** @brief Path where the file will be stored. If CHECKPATH is defined then this will be used as the file path, else the current directory will be the path
+	/** 
+	 * @brief Path where the file will be stored. If CHECKPATH is defined then this will be used as the file path, 
+	 * else the current directory will be the path
 	 */
 	std::string fPath;
 	/** @brief base file name. This name has to be unique to avoid overwrites */

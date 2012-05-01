@@ -2,10 +2,13 @@
  * @file
  * @brief Contains declaration of the TPZPolynomial class which implements a polynomial.
  */
+
 #ifndef TPZPOLYNOMIAL_H
 #define TPZPOLYNOMIAL_H
+
 #include <iostream>
 #include <cmath>
+
 #include "pzvec.h"
 #include "pznumeric.h"
 

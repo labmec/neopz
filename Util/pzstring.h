@@ -2,7 +2,6 @@
  * @file
  * @brief String implementation.
  */
-// $Id: pzstring.h,v 1.6 2009-07-07 18:21:47 longhin Exp $
 
 #ifndef PZSTRING_H
 #define PZSTRING_H
@@ -53,7 +52,7 @@ public:
 	/** @brief Appends a character at the end. Resizes if necessary */
 	void operator += (const char increment);
 	
-	/** @brief operator attribution. Resizes if necessary */
+	/** @brief Operator equal. Resizes if necessary */
 	bool operator == (const TPZString cmp)
 	{
 		if(!strcmp(fStore, cmp.fStore)) return true;
@@ -61,7 +60,7 @@ public:
 		
 	}
 	
-	/** @brief operator =. Resizes if necessary */
+	/** @brief Operator attribution. Resizes if necessary */
 	void operator = (const char * source)
 	{
 		int len = strlen(source);
@@ -80,17 +79,13 @@ public:
 	/** @brief Appends a string at the tail. Resizes the TPZString if necessary */
 	void Append(const char * TailIncrement);
 	
-	/**
-	 * @brief Explicitly convertes a TPZString into a const null ended char string.
-	 */
+	/** @brief Explicitly convertes a TPZString into a const null ended char string. */
 	const char * Str() const;
 	
 	/** @brief Implicit conversion */
 	operator const char * () const;
 	
-	/**
-	 * @brief Similar to strlen(string). Also returns the number of non-null characters.
-	 */
+	/** @brief Similar to strlen(string). Also returns the number of non-null characters. */
 	int Length() const;
 	
 	/**
@@ -124,9 +119,11 @@ public:
 	int Find(const char * find_str);
 };
 
-/// Typedef to vector of strings
+/**
+ * @ingroup util
+ * @brief Typedef to vector of strings
+ */
 typedef TPZVec < TPZString > TPZText;
 
 #endif
 
-//--| PZ |----------------------------------------------------------------------

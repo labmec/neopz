@@ -4,23 +4,20 @@
  */
 
 #include <stdio.h>
-
 #include <stdlib.h>
 
 #include <fstream>
 
-
 template <class TConv>
 
 /**
- * @brief Implements a general procedure to check whether the class TConv implements a consistente tangent matrix for the 
- * object obj.\n
+ * @brief Implements a general procedure to check whether the class TConv implements a consistente tangent matrix for the object obj.
  */
 /**
- * The following methods need to be implemented for TConv \n
- * -# LoadState : to load the state variables in local storage \n
- * -# ComputeTangent : which will compute a tangent matrix \n
- * -# Residual : which will compute a residual vector
+ * The following methods need to be implemented for TConv 
+ * \li LoadState : to load the state variables in local storage \n
+ * \li ComputeTangent : which will compute a tangent matrix \n
+ * \li Residual : which will compute a residual vector
  */
 void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &range, TPZVec<REAL> &coefs) {
 
@@ -60,8 +57,6 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
 		int interval;
 		
 		REAL difnorm[10] = {0.};
-		
-		// REAL resnorm[10] ={0.};
 		
 		for(interval = 1; interval < 10; interval++) {
 			
@@ -104,10 +99,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
 		}
 		
 	}
-
 #endif
 	
 	log.flush();
-
 }
-

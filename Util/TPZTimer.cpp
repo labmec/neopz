@@ -3,11 +3,8 @@
  * @brief Contains the implementation of the methods to TPZTimer class.
  */
 
-// $Id: TPZTimer.cpp,v 1.6 2011-05-13 20:19:54 phil Exp $
-
 #include <sstream>
 #include <algorithm>
-
 
 #include "TPZTimer.h"
 
@@ -29,8 +26,7 @@ STREAM << TIME;				\
 
 // Starts the timer.
 void TPZTimer::start()
-{
-	
+{	
 	clock_t value = clock( );
 	resources.start = value;
 	
@@ -42,8 +38,7 @@ void TPZTimer::stop()
 	clock_t value;
 	
 	value = clock( );
-	
-	
+
 	resources.elapsed = value - resources.start;
 	
 	AccumSec = ((double) resources.elapsed)/CLOCKS_PER_SEC;
@@ -103,5 +98,3 @@ std::ostream& operator<<( std::ostream& Out, const TPZMultiTimer& t )
 	
 	return Out;
 }
-
-//--| MB |----------------------------------------------------------------------

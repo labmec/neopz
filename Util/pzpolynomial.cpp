@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the methods to TPZPolynomial class.
  */
+
 #include "pzpolynomial.h"
 #include "pznumeric.h"
 #include <iostream>
@@ -38,22 +39,9 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
             raiz[2] = (-1 * b - sqrt(Delta)) / (2 * a);
             //Colocação das tensões em ordem crescente
             sort(&raiz[0], &raiz[3], greater<REAL>());
-			/*
-			 for (int i = 0; i < 3; i++) {
-			 teste = a * raiz[i] * raiz[i] * raiz[i] + b * raiz[i] * raiz[i] + c * raiz[i] + d;
-			 cout << "A- Resultado da raiz " << i << " na equação " << teste << "\n";
-			 }
-			 */
-			
             return 1;
         }
-        else if (Delta < 0) {
-			/*
-			 cerr << "TPZPolynomial::Tartaglia - warning: ROTA A - raízes não reais!!\n";
-			 teste = a * raiz[0] * raiz[i] * raiz[0] + b * raiz[0] * raiz[0] + c * raiz[0] + d;
-			 cout << "B- Resultado da raiz " << i << " na equação " << teste << "\n";
-			 */
-			
+        else if (Delta < 0) {			
             raiz[1] = (-1 * b) / (2 * a);
             raiz[2] = raiz[1];
             imagem = fabs(Delta) / (2 * a);
@@ -64,12 +52,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
             raiz[1] = (-1 * b) / (2 * a);
             raiz[2] = raiz[1];
             return 2;
-			/*
-			 for (int i = 0; i < 3; i++) {
-			 teste = a*raiz[i]*raiz[i]*raiz[i] + b*raiz[i]*raiz[i] + c*raiz[i] + d;
-			 cout << "C- Resultado da raiz " << i << " na equação " << teste << "\n";
-			 }
-			 */
         }
     }
     REAL A = b / a;
@@ -92,13 +74,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         raiz[2] = 2.* pow( r, (REAL) (1. / 3.)) * cos((t + 4. * pi) / 3.) - A / 3.;
         //Colocação das tensões em ordem crescente
 		sort(&raiz[0], &raiz[3], greater<REAL>());
-		/*
-		 for (int i = 0; i < 3; i++) {
-		 teste = a * raiz[i] * raiz[i] * raiz[i] + b * raiz[i] * raiz[i] + c * raiz[i] + d;
-		 cout << "D- Resultado da raiz " << i << " na equação " << teste << "\n";
-		 }
-		 */
-		
         return 1;
     }
     else {
@@ -124,11 +99,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
         REAL Imag = sqrt(K) / 2.0L;
 		
         if (Delta < 0) {
-			/*
-			 cerr << "TPZPolynomial::Tartaglia - warning: ROTA B - raízes não reais!!\n";
-			 teste = a * raiz[0] * raiz[0] * raiz[0] + b * raiz[0] * raiz[0] + c * raiz[0] + d;
-			 cout << "E- Resultado da raiz " << i << " na equação " << teste << "\n";
-			 */
             raiz[1] = Real;
             raiz[2] = Real;
             imagem = Imag;
@@ -139,12 +109,6 @@ int TPZPolynomial::Tartaglia(const TPZVec<REAL> &coef, TPZVec<REAL> &raiz, REAL 
             raiz[2] = Real - Imag;
             //Colocação das tensões em ordem crescente
 			sort(&raiz[0], &raiz[3], greater<REAL>());
-			/*
-			 for (int i = 0; i < 3; i++) {
-			 teste = a * raiz[i] * raiz[i] * raiz[i] + b * raiz[i] * raiz[i] + c * raiz[i] + d;
-			 cout << "F- Resultado da raiz " << i << " na equação " << teste << "\n";
-			 }
-			 */
             return 2;
         }
     }
@@ -164,7 +128,6 @@ void TPZPolynomial::SetCoef(const REAL &c0, const REAL &c1, const REAL &c2, cons
     max = fabs(max * 1e-6L);
     SetTolerance(max);
     Tartaglia(fCo, fReal, fImagem);
-    //SetRoots();
 }
 
 /** Store the given coefficients into fCo. \f$ fCo[3]x ³ + fCo[2]x ² + fCo[1]x + fCo[0] = 0.0 \f$ */
@@ -177,9 +140,7 @@ void TPZPolynomial::SetCoef(const TPZVec<REAL> &coef) {
     }
     max = max * 1e-6L;
     SetTolerance(max);
-    Tartaglia(fCo, fReal, fImagem);
-    //SetRoots();
-	
+    Tartaglia(fCo, fReal, fImagem);	
 }
 
 /** Computes the roots of the polynomial in r, being \f$ r[0] >> r[1] >> r[2] \f$ */
@@ -204,7 +165,6 @@ int TPZPolynomial::GetRoots(const TPZVec<REAL> &coef, TPZVec<REAL> &r) {
 /** Sets the roots of the polynomial in r, being \f$ fReal[0] >> fReal[1] >> fReal[2]. \f$ */ 
 int TPZPolynomial::SetRoots() {
     REAL X[3], x;
-    //    int ordem[3];
     REAL tol = -99.999;
     REAL der;
     int i, j;

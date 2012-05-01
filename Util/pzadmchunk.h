@@ -2,7 +2,6 @@
  * @file pzadmchunk.h
  * @brief Free store vector implementation.
  */
-// $Id: pzadmchunk.h,v 1.6 2005-04-25 02:55:51 phil Exp $
 
 #ifndef PZADMCHUNK_H
 #define PZADMCHUNK_H
@@ -88,18 +87,15 @@ class TPZAdmChunkVector : public TPZChunkVector<T,EXP>
 	 */
 	/**
 	 * parameter type:
-	 * <ul>
-	 * <li> when = 0 : never compact the data structure;
-	 * <li> when = 1 : compact the data structure now;
-	 * <li> when = 2 : compact the data structure always (default).
-	 * </ul>
+	 * \li \f$ when = 0 \f$ : never compact the data structure;
+	 * \li \f$ when = 1 \f$ : compact the data structure now;
+	 * \li \f$ when = 2 \f$ : compact the data structure always (default).
 	 */
 	void CompactDataStructure(int type=2);
 	
-	/** Print index i into the fFree vector. */
+	/** @brief Print index i into the fFree vector. */
 	inline int PrintFree(int i)
 	{
-		// Jorge 12/01/2000
 		return fFree[i];
 	}
 	

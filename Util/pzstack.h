@@ -2,7 +2,6 @@
  * @file
  * @brief A simple stack.
  */
-// $Id: pzstack.h,v 1.5 2010-06-17 12:41:22 phil Exp $
 
 #ifndef PZSTACK_H
 #define PZSTACK_H
@@ -11,7 +10,6 @@
 #include <cstdlib>
 #include "pzerror.h"
 #include "pzmanvector.h"
-
 
 /**
  * @ingroup util
@@ -59,9 +57,6 @@ public:
 	 * @return The fStore pointer.
 	 */
 	operator T*() const { return this->fStore; }
-	
-	/**@shapeType DependencyLink*/
-	/*#  TPZManVector<T> lnkUnnamed*/
 };
 
 //--| IMPLEMENTATION |----------------------------------------------------------
@@ -104,4 +99,3 @@ T & TPZStack<T, NumExtAlloc>::Peek() const {
 
 #endif // PZSTACK_H
 
-//--| PZ |----------------------------------------------------------------------

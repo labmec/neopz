@@ -2,17 +2,6 @@
  * @file
  * @brief Contains declaration of the TPZPermutation class which generates all permutations of n values.
  */
-//
-// C++ Interface: tpzpermutation
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2005
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 #ifndef TPZPERMUTATION_H
 #define TPZPERMUTATION_H
 
@@ -20,23 +9,26 @@
 class TPZStream;
 
 /**
- @ingroup util
- @brief This class generates all permutations of n values. \ref util "Utility"
- @author Philippe R. B. Devloo
+ * @ingroup util
+ * @brief This class generates all permutations of n values. \ref util "Utility"
+ * @author Philippe R. B. Devloo
  */
-class TPZPermutation{
+class TPZPermutation {
 public:
+	/** @brief Constructor with number of permutations */
     TPZPermutation(int n);
-    
+    /** @brief Copy constructor */
     TPZPermutation(const TPZPermutation &copy);
-	
+	/** @brief Default destructor */
     ~TPZPermutation();
-    
+
+    /** @brief Operator attribution */
     TPZPermutation &operator=(const TPZPermutation &copy);
     
     /** @brief Applies the current permutation on the vector in and produces the vector out */
     void Permute(const TPZVec<int> &in, TPZVec<int> &out) const;
-    
+
+    /** @brief Operator increment */
     void operator++();
     
     void operator++(int) { operator++();}
@@ -46,7 +38,8 @@ public:
     void Read(TPZStream &buf);
     
     void Write(TPZStream &buf);
-	
+
+	/** @brief Returns the counter of the permutations */
 	TPZManVector<int> Counter()
 	{
 		return fCounter;
@@ -66,7 +59,7 @@ protected:
     TPZManVector<int> fOrder;
 };
 
-/// Overloading operator << to print permutation object at ostream out
+/** @brief Overloading operator << to print permutation object at ostream out */
 inline std::ostream &operator<<(std::ostream &out, TPZPermutation &obj)
 {
 	out << "imprimindo TPZPermutation::fCounter\n";

@@ -2,22 +2,6 @@
  * @file
  * @brief Contains the implementation of the methods to TPZNumeric class.
  */
-/***************************************************************************
- pznumeric.cpp  -  description
- -------------------
- begin                : Wed Mar 27 2002
- copyright            : (C) 2002 by Renato Gomes Damas
- email                : rgdamas@fec.unicamp.br
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #include "pznumeric.h"
 #include <iostream>
@@ -41,6 +25,7 @@ TPZNumeric::TPZNumeric(){
 }
 TPZNumeric::~TPZNumeric(){
 }
+
 /** Dada a array[3]armazena sua ordem decrescente, em valor absoluto, em ordem[3]. */
 void TPZNumeric::SortArray3(const TPZVec<REAL> &array,int ordem[3]){
     int i;

@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of the TPZAxesTools class which implements verifications over axes.
  */
-//$Id: pzaxestools.h,v 1.1 2008-02-12 10:35:31 tiago Exp $
 
 #ifndef AXESTOOLS
 #define AXESTOOLS
@@ -12,7 +11,7 @@
 
 /**
  * @ingroup util
- * @brief Implements method to verify whether axes is an orthogonal normalizes matrix and to transformation from given axes \n
+ * @brief Implements method to verify whether axes is an orthogonal normalizes matrix and to transformation from given axes 
  * to euclidian basis and viceverse. \ref util "Utility"
  */
 template<class TVar>

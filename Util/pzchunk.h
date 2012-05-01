@@ -2,7 +2,6 @@
  * @file
  * @brief Free store vector implementation in chunks.
  */
-// $Id: pzchunk.h,v 1.10 2007-05-01 20:25:59 phil Exp $
 
 #ifndef PZCHUNK_H
 #define PZCHUNK_H

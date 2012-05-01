@@ -3,9 +3,6 @@
  * @brief Contains the implementation of the TPZCheckConsistency methods. 
  * @author Created by Philippe Devloo on 27/12/09.
  */
-/**
- * Copyright 2009 UNICAMP. All rights reserved.
- */
 
 #include "pzcheckconsistency.h"
 #include "pzbfilestream.h"
@@ -62,5 +59,4 @@ bool TPZCheckConsistency::CheckObject(TPZSaveable &obj)
 		obj.Write(file,true);
 		return true;
 	}
-	//	std::ofstream file(name.str(),std::ios_base::binary);
 }

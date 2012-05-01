@@ -1,10 +1,8 @@
 /**
  * @file TPZTimer.h
- *
  * @brief Timing class. Absolutely copied from GNU time. Take a look at <br>
+ * @see http://www.gnu.org/software/time/time.html 
  */
-/** http://www.gnu.org/software/time/time.html */
-// $Id: TPZTimer.h,v 1.11 2011-05-13 19:41:30 phil Exp $
 
 #ifndef TPZTIMER_H
 #define TPZTIMER_H
@@ -12,7 +10,6 @@
 #include <string>
 #include <vector>
 #include <iostream>
-//--| resuse.{h,c} from GNU time |----------------------------------------------
 
 #include <time.h>
 
@@ -49,18 +46,17 @@ struct PZResourceUsage
 class TPZTimer
 {
 public:
-	/// Empty constructor.
+	/* @brief Empty constructor */
 	TPZTimer();
 	
-	/** @brief Default constructor.
-	 *
-	 *  @param pn The user can give a "process name" to the
-	 *  timer. This name will be printed when the extraction
-	 *  operator is called.
+	/**
+	 * @brief Default constructor.
+	 * @param pn The user can give a "process name" to the timer. \n
+	 * This name will be printed when the extraction operator is called.
 	 */
 	TPZTimer( std::string pn );
 	
-	/// Destructor.
+	/** @brief Default Destructor */
 	~TPZTimer();
 	
 	/// Gets the process name (for reporting purposes).
@@ -85,6 +81,7 @@ public:
 	friend std::ostream& operator<<( std::ostream& Out, const TPZTimer& t );
 	
 private:
+	/** @brief Information on the resources used */
 	PZResourceUsage resources;
 	
 	/// Total accumulated time in seconds.
@@ -98,14 +95,14 @@ private:
 
 /** 
  * @brief Controls several timers at once. \ref util "Utility"
- *  @warning Check its behavior on non-GNU systems.
+ * @warning Check its behavior on non-GNU systems.
  */
 class TPZMultiTimer
 {
 public:
-	/** @brief Default constructor.
-	 *
-	 *  @param nT Number of different timers we want to use.
+	/**
+	 * @brief Default constructor.
+	 * @param nT Number of different timers we want to use.
 	 */
 	TPZMultiTimer( int nT );
 	
@@ -289,5 +286,3 @@ inline double TPZMultiTimer::seconds( int i ) const
 /** @} */
 
 #endif // TPZTIMER_H
-
-//--| PZ |----------------------------------------------------------------------

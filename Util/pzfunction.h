@@ -1,4 +1,4 @@
-//$Id: pzfunction.h,v 1.3 2008-02-05 22:23:27 tiago Exp $
+/** @file */
 
 #ifndef PZFUNCTION_H
 #define PZFUNCTION_H
@@ -33,15 +33,13 @@ public:
 	 * @param df function derivatives
 	 */
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df) = 0;
-
-    /** Versao do Execute recebendo axes. Utilizado em shape functions.
-     */
+	
+    /** @brief Execute method receiving axes. It is used in shape functions */
     virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
         DebugStop();
     }
     
-    /** Simpler version of Execute method which does not compute function derivatives
-     */
+    /** @brief Simpler version of Execute method which does not compute function derivatives */
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f){
         DebugStop();
     }
@@ -49,9 +47,8 @@ public:
 	/** @brief Returns number of functions. */ 
 	virtual int NFunctions() = 0;
 	
-	/** @brief Polynomial order of this function. \n 
-	 * In case of non-polynomial function it can be a reasonable approximation order.
-	 */
+	/** @brief Polynomial order of this function. */
+	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() = 0;
 	
 	/** @brief Unique identifier for serialization purposes */
@@ -62,12 +59,11 @@ public:
 	
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
 };
 
 class TPZDummyFunction : public TPZFunction
 {
-
+	
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<REAL> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &gradf);
 public:
@@ -122,14 +118,12 @@ public:
         fFunc2(x, f, df);
     }
     
-    /** Versao do Execute recebendo axes. Utilizado em shape functions.
-     */
-    virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
+	/** @brief Execute method receiving axes. It is used in shape functions */
+	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
         DebugStop();
     }
     
-    /** Simpler version of Execute method which does not compute function derivatives
-     */
+    /** Simpler version of Execute method which does not compute function derivatives */
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f){
       if (!fFunc) {
 	DebugStop();
@@ -143,9 +137,8 @@ public:
         return 1;
     }
 	
-	/** @brief Polynomial order of this function. \n 
-	 * In case of non-polynomial function it can be a reasonable approximation order.
-	 */
+	/** @brief Polynomial order of this function. */
+	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() 
     {
         return -1;
@@ -168,8 +161,6 @@ public:
     {
         DebugStop();
     }
-
-    
 };
 
 #endif

@@ -9,7 +9,8 @@
 #include "pzvec.h"
 #include "pzerror.h"
 
-/// To allocate vector by default
+/** @brief To allocate vector by default */
+/** @ingroup util */
 const int DEFAULTVEC_ALLOC = 200;
 
 /**
@@ -449,7 +450,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const int newsize, const T& object)
 	}
 }
 
-//
+
 template< class T, int NumExtAlloc >
 void TPZManVector< T, NumExtAlloc >::Resize(const int newsize)
 {
@@ -512,5 +513,3 @@ int TPZManVector < T, NumExtAlloc >::ExpandSize (const int proposed) const
 }
 
 #endif
-
-//--| PZ |----------------------------------------------------------------------

@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the methods to TPZString class.
  */
-// $Id: pzstring.cpp,v 1.6 2005-04-25 02:55:52 phil Exp $
 
 #include "pzstring.h"
 
@@ -62,15 +61,6 @@ void TPZString::operator += (const char * increment)
 {
 	this->Append(increment);
 }
-
-/*
- void TPZString::operator=(const char * source)
- {
- int len=strlen(source);
- if(NElements()<(len+1))Resize(len+1);
- strcpy(fStore, source);
- }
- */
 
 TPZString::operator const char * () const
 {
@@ -206,4 +196,3 @@ int TPZString::Find(const char * find_str){
 	string fchr(fStore);
 	return fchr.find(find_str, 0);
 }
-//--| PZ |----------------------------------------------------------------------

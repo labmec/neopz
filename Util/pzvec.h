@@ -2,7 +2,6 @@
  * @file pzvec.h
  * @brief Templated vector implementation.
  */
-// $Id: pzvec.h,v 1.18 2011-03-24 19:58:12 phil Exp $
 
 #ifndef TVEC_H
 #define TVEC_H
@@ -73,14 +72,14 @@ public:
 	TPZVec<T> &operator=(const TPZVec<T> &copy);
 	
 	/**
-	 * @brief Fills the vector with a value of type T.
+	 * @brief Operator attribution. Fills the vector with a value of type T.
 	 * @param a Element to fill the vector with.
 	 * @return Reference to the current object.
 	 */
 	TPZVec<T>& operator=(const T& a);
 	
 	/**
-	 * @brief access operator, will perform bounds checking unless the variable NODEBUG is defined
+	 * @brief Access operator, will perform bounds checking unless the variable NODEBUG is defined
 	 * @param index element in the vector which will be acessed
 	 * @return a reference to the element specified by index\
 	 */
@@ -120,14 +119,10 @@ public:
 		return Out;
 	}
 	
-	/** @brief Casting operator.
-	 *  @return The fStore pointer.
-	 */
+	/** @brief Casting operator. Returns The fStore pointer. */
 	operator T*() const { return fStore; }
     
-    /**
-     * @brief Returns a pointer to the first element
-     */
+    /** @brief Returns a pointer to the first element */
     T *begin();
 	
 	/**
@@ -187,19 +182,6 @@ protected:
 	/** @brief Number of elements of the vector object */
 	int fNElements;
 };
-
-//--| IMPLEMENTATION |----------------------------------------------------------
-
-/* template <class T> */
-/* T &TPZVec<T>::operator[](const int index) const{ */
-/* #ifndef NODEBUG */
-/*        if(index <0 || index >= fNElements) { */
-/*          cout << "TPZVec acessing element out of range\n"; */
-/*          exit(-1); */
-/*        } */
-/* #endif */
-/*              return fStore[index]; */
-/* } */
 
 template< class T >
 inline TPZVec<T>::TPZVec() : fStore( 0 ), fNElements( 0 )
@@ -407,12 +389,6 @@ template< class T >
 inline void TPZVec<T>::Print(std::ostream &out)
 {
 	out << std::endl << "Number of elements = " << fNElements;
-	
-	//   for(int i=0;i<fNElements;i++)
-	//   out << setw( 14 ) << setprecision( 6 ) << fStore[i];
 }
 
-
 #endif
-
-//--| PZ |----------------------------------------------------------------------

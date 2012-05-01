@@ -2,22 +2,6 @@
  * @file
  * @brief Contains the implementation of the methods to TPZPlane class.
  */
-/***************************************************************************
-                          pzplane.cpp  -  description
-                             -------------------
-    begin                : Wed Mar 27 2002
-    copyright            : (C) 2002 by Renato Gomes Damas
-    email                : rgdamas@fec.unicamp.br
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #include "pzplane.h"
 #include <numeric>
@@ -29,6 +13,7 @@ TPZPlane::TPZPlane(){
 }
 TPZPlane::~TPZPlane(){
 }
+
 /** Dado três pontos calcula a equação do plano que os contém. */
 int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZVec<REAL> &p3){
 	REAL matrix[3][3];
@@ -94,14 +79,10 @@ int TPZPlane::SetPlane(const TPZVec<REAL> &p1, const TPZVec<REAL> &p2,const TPZV
 		fCoef[(ordem[0]+2)%3]= 1.0;
 		fCoef[3]=sol[2];
 	}
-	/*
-	 for (i=0; i<4; i++){
-	 cout << fCoef[i] <<"\t";
-	 }
-	 */
 	cout <<endl;
 	return 1;	
 }
+
 /** Verifica se o ponto[3] pertence ao plano. Se pertencer retorna 1, caso contrário 0.*/
 bool TPZPlane::Belongs(const TPZVec<REAL> &ponto){
 	REAL aux=0.0;
@@ -111,13 +92,12 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto){
 		aux = aux + ponto[i]*fCoef[i];
 	}
 	aux = aux + fCoef[3];
-	//cout << "aux= "<< aux <<endl;
-	if(fabs(aux)<0.000009){
-		//cout << "aux= "<< aux <<endl;
+	if(fabs(aux)<0.000009) {
 		return true;
 	}
 	else return false;
 }
+
 /** Verifica se o plano coincide com plano formado pelos três pontos passados. Se pertencer retorna 1, caso contrário 0. */
 bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, const TPZVec<REAL> &ponto3){
 	int aux=0;
@@ -147,11 +127,11 @@ bool TPZPlane::Belongs(const TPZVec<REAL> &ponto1, const TPZVec<REAL> &ponto2, c
 	else return false;
 }
 
-
 /** Calcula o determinante da matriz[3][3]. */
 void MatrixDet(REAL matrix[3][3], REAL &det){
 	det = MatrixDet(matrix);	
 }
+
 /** Calcula o determinante da matriz[3][3]. */
 REAL MatrixDet(REAL matrix[3][3]){
 	int i;
