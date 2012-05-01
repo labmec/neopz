@@ -2,8 +2,6 @@
  * @file
  * @brief Contains declaration of TPZCompMesh class which is a repository for computational elements, nodes and material objects.
  */
-//$Id: pzcmesh.h,v 1.52 2011-05-11 02:39:30 phil Exp $
-//HEADER FILE FOR CLASS MESH
 
 #ifndef PZCMESHHPP
 #define PZCMESHHPP
@@ -19,8 +17,6 @@
 #include "pzgmesh.h"
 #include "pzcreateapproxspace.h"
 
-//#include "pzanalysis.h"
-//#include <iostream>
 #include <map>
 #include <iostream>
 #include <set>
@@ -58,69 +54,44 @@ template<class T> class TPZIntelGen;
 class TPZCompMesh : public virtual TPZSaveable {
 	
 protected:
-	/**
-	 * @brief Geometric grid to which this grid refers
-	 */
+	/** @brief Geometric grid to which this grid refers */
 	TPZGeoMesh	*fReference;
     
-    /**
-     * @brief Autopointer to the geometric mesh used in case the user has passed an autopointer
-     */
+    /** @brief Autopointer to the geometric mesh used in case the user has passed an autopointer */
     TPZAutoPointer<TPZGeoMesh> fGMesh;
 	
-	/**
-	 * @brief Grid name for model identification
-	 */
+	/** @brief Grid name for model identification */
 	std::string fName;
 	
-	/**
-	 * @brief List of pointers to elements
-	 */
-	TPZAdmChunkVector<TPZCompEl *>		fElementVec;
-	
-	/**
-	 * @brief List of pointers to nodes
-	 */
+	/** @brief List of pointers to elements */
+	TPZAdmChunkVector<TPZCompEl *>		fElementVec;	
+	/** @brief List of pointers to nodes */
 	TPZAdmChunkVector<TPZConnect>			fConnectVec;
 	
-	/**
-	 * @brief Map of pointers to materials
-	 */
+	/** @brief Map of pointers to materials */
 	std::map<int, TPZAutoPointer<TPZMaterial> >	fMaterialVec;
-		
-	/**
-	 * @brief Block structure of the solution vector ????
-	 */
+	/** @brief Block structure of the solution vector ???? */
 	//TPZBlock<REAL>		fSolutionBlock;
 	TPZBlock<STATE>		fSolutionBlock;
 	
-	/** @brief Solution vector*/
+	/** @brief Solution vector */
 	//TPZFMatrix<REAL>	fSolution;
 	TPZFMatrix<STATE>	fSolution;
 	
-	/**
-	 * @brief Block structure to right construction of the
-	 * stiffness matrix and load vector
-	 */
+	/** @brief Block structure to right construction of the stiffness matrix and load vector */
 	//TPZBlock<REAL>		fBlock;
 	TPZBlock<STATE>		fBlock;
 	
-	/**
-	 * @brief Solution vectors organized by element
-	 */
+	/** @brief Solution vectors organized by element */
 	TPZFMatrix<REAL> fElementSolution;
 	
 	/* @brief set the dimension of the simulation or the model */
 	int fDimModel;
 	
-	/**
-	 * @brief Default order for all elements of this mesh
-	 */
+	/** @brief Default order for all elements of this mesh */
 	int fDefaultOrder;
     
-    /**
-     * @brief The object which defines the type of space being created
-     */
+    /** @brief The object which defines the type of space being created */
     TPZCreateApproximationSpace fCreate;
 	
 public:
@@ -130,20 +101,12 @@ public:
 	 * @param gr pointer to geometrical reference mesh
 	 */
 	TPZCompMesh(TPZGeoMesh* gr=0);
-    
-    /**
-     * @brief Constructor based on an autopointer to a geometric mesh
-     */
+    /** @brief Constructor based on an autopointer to a geometric mesh */
     TPZCompMesh(TPZAutoPointer<TPZGeoMesh> &gmesh);
-	
-	/**
-	 * @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZCompMesh(const TPZCompMesh &copy);
 	
-	/**
-	 * @brief Simple Destructor
-	 */
+	/** @brief Simple Destructor */
 	virtual ~TPZCompMesh();
 	
 	/**
@@ -158,14 +121,10 @@ public:
 	 * @param grpatch - stack where will be inserted the geometric elements
 	 */
 	void GetRefPatches(std::set<TPZGeoEl *> &grpatch);
-	/**
-	 * @brief Gives the conects graphs
-	 */
+	/** @brief Gives the conects graphs */
 	void GetNodeToElGraph(TPZVec<int> &nodtoelgraph, TPZVec<int> &nodtoelgraphinde,TPZStack<int> &elgraph, TPZVec<int> &elgraphindexx);
 	
-    /**
-     * @brief Gives the element patch
-     */
+    /** @brief Gives the element patch */
 	void GetElementPatch(TPZVec<int> nodtoelgraph, TPZVec<int> nodtoelgraphindex, TPZStack<int> &elgraph, TPZVec<int> &elgraphindex,int elind ,TPZStack<int> &patch);
 	
 	/** @brief Set the mesh name */
@@ -174,45 +133,37 @@ public:
 	/** @brief Set de dimension of the domain of the problem*/
 	void SetDimModel(int dim){fDimModel = dim;}
 	
-	/// Sets the geometric reference mesh 
+	/** @brief Sets the geometric reference mesh */
 	void SetReference(TPZGeoMesh * gmesh);
 	
-    /// Sets the geometric reference mesh 
+    /** @brief Sets the geometric reference mesh */
     void SetReference(TPZAutoPointer<TPZGeoMesh> &gmesh);
     
 	/** @brief Returns the dimension of the simulation*/
 	int Dimension() const {return fDimModel;}
-	
-	
-	/// Returns the mesh name
+
+	/** @brief Returns the mesh name */
 	std::string &Name() {return fName;}
 	
-	/// Delete all the dynamically allocated data structures
+	/** @brief Delete all the dynamically allocated data structures */
 	void CleanUp();
 	
 	/**
 	 * @name Access_Private_Data
 	 * @brief Routines for access to private data
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Number of connects allocated including free nodes
-	 */
+	
+	/** @brief Number of connects allocated including free nodes */
 	int NConnects() const {return fConnectVec.NElements();}
 	
-	/**
-	 * @brief Number of independent connect objects
-	 */
+	/** @brief Number of independent connect objects */
 	int NIndependentConnects();
 	
-	/**
-	 * @brief Number of computational elements allocated
-	 */
+	/** @brief Number of computational elements allocated */
 	int NElements() const {return fElementVec.NElements();}
 	
-	/**
-	 * @brief Number of materials
-	 */
+	/** @brief Number of materials */
 	int NMaterials() const {return fMaterialVec.size();}
 	
 	//@}
@@ -220,58 +171,45 @@ public:
 	/**
 	 * @name Access_Internal_Data_Structures
 	 * @brief Methods for accessing the internal data structures
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Returns a reference to the element pointers vector
-	 */
+	
+	/** @brief Returns a reference to the element pointers vector */
 	TPZAdmChunkVector<TPZCompEl *>   &ElementVec() { return fElementVec; }
 	
-	/**
-	 * @brief Return a reference to the connect pointers vector
-	 */
+	/** @brief Return a reference to the connect pointers vector */
 	TPZAdmChunkVector<TPZConnect>    &ConnectVec() { return fConnectVec; }
 	const TPZAdmChunkVector<TPZConnect> &ConnectVec() const { return fConnectVec; }
 	
-	/**
-	 * @brief Returns a reference to the material pointers vector
-	 */
+	/** @brief Returns a reference to the material pointers vector */
 	std::map<int ,TPZAutoPointer<TPZMaterial> >	&MaterialVec() { return fMaterialVec; }
 
-	/**
-	 * @brief Returns a pointer to the geometrical mesh associated
-	 */
+	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
 	
-	/**
-	 * @brief Access the block structure of the solution vector
-	 */
+	/** @brief Access the block structure of the solution vector */
 	//const TPZBlock<REAL> &Block() const { return fBlock;}
 	const TPZBlock<STATE> &Block() const { return fBlock;}
 	
-	/**
-	 * @brief Access the block structure of the solution vector
-	 */
+	/** @brief Access the block structure of the solution vector */
 	//TPZBlock<REAL> &Block() { return fBlock;}
 	TPZBlock<STATE> &Block() { return fBlock;}
 	
-	/**
-	 * @brief Access the solution vector
-	 */
+	/** @brief Access the solution vector */
 	//TPZFMatrix<REAL> &Solution(){ return fSolution;}
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
-	/**
-	 * @brief Access method for the element solution vectors
-	 */
+	/** @brief Access method for the element solution vectors */
 	TPZFMatrix<REAL> &ElementSolution() { return fElementSolution;}
-	//@}
+	
+	/** @} */
 	
 	/**
 	 * @name Modify_Mesh_Structure
 	 * @brief Methods for modify mesh structure, materials, elements, node etc
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Returns an index to a new connect
 	 * @param nshape Number of function shapes
@@ -286,35 +224,31 @@ public:
 	 */
 	int InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat);
 	
-	/**
-	 * @brief Resequence the block object, remove unconnected connect objects
-	 * and reset the dimension of the solution vector
-	 */
+	/** @brief Resequence the block object, remove unconnected connect objects and reset the dimension of the solution vector */
 	void InitializeBlock();
 	
-	/**
-	 * @brief Adapt the solution vector to new block dimensions
-	 */
+	/** @brief Adapt the solution vector to new block dimensions */
 	virtual void ExpandSolution();
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Access_Solution
 	 * @brief Methods for access and manipulates solution
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Set a ith element solution, expanding the element-solution matrix if necessary
-	 */
+	
+	/** @brief Set a ith element solution, expanding the element-solution matrix if necessary */
 	void SetElementSolution(int i, TPZVec<REAL> &sol);
-	//@}
+	
+	/** @} */
 	
 	/**
 	 * @name Print
 	 * @brief Print methods
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Prints mesh data
 	 * @param out indicates the device where the data will be printed
@@ -326,7 +260,8 @@ public:
 	 * @param out indicates the device where the data will be printed
 	 */
 	void ConnectSolution(std::ostream & out);
-	//@}
+
+	/** @} */
 	
 	/**
 	 * @brief Find the material with identity id
@@ -334,30 +269,20 @@ public:
 	 */
 	TPZAutoPointer<TPZMaterial> FindMaterial(int id);
 	
-	/**
-	 * @brief Map this grid in the geometric grid
-	 */
+	/** @brief Map this grid in the geometric grid */
 	void LoadReferences();
 	
-	/**
-	 * @brief Compute the number of elements connected to each connect object
-	 */
+	/** @brief Compute the number of elements connected to each connect object */
 	virtual void ComputeNodElCon();
 	
-	/**
-	 * @brief Compute the number of elements connected to each connect object
-	 */
+	/** @brief Compute the number of elements connected to each connect object */
 	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
 	
-	/**
-	 * @brief Delete the nodes which have no elements connected to them
-	 */
+	/** @brief Delete the nodes which have no elements connected to them */
 	virtual void CleanUpUnconnectedNodes();
-	
-	
+
 	/**
-	 * @brief Computes the connectivity graph of the elements, as appropriate for the
-	 * TPZRenumbering class
+	 * @brief Computes the connectivity graph of the elements, as appropriate for the TPZRenumbering class
 	 * @param elgraph stack of elements to create the grapho????
 	 * @param elgraphindex graphos indexes vector
 	 */
@@ -366,11 +291,10 @@ public:
 	/**
 	 * @name Submesh_methods
 	 * @brief Methods required by submeshes
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Get the father meshes stack
-	 */
+	
+	/** @brief Get the father meshes stack */
 	virtual TPZCompMesh *FatherMesh() const {return NULL;}
 	
 	/**
@@ -379,15 +303,10 @@ public:
 	 */
 	virtual void MakeInternal(int local) {;}
 	
-	/**
-	 * @brief Make all mesh connections internal mesh connections.
-	 * connects to an internal connection
-	 */
+	/** @brief Make all mesh connections internal mesh connections. Connects to an internal connection */
 	virtual void MakeAllInternal(){;}
 	
-	/**
-	 * @brief Returns the rootmesh who have the specified connection.
-	 */
+	/** @brief Returns the rootmesh who have the specified connection. */
 	virtual TPZCompMesh* RootMesh (int local) {return this;}
 	
 	/**
@@ -426,9 +345,9 @@ public:
 	 * @param super pointer to the destination mesh
 	 */
 	virtual int GetFromSuperMesh (int superind, TPZCompMesh *super);
-	//@}
-	
-	
+
+	/** @} */
+
 	int GetDefaultOrder()
 	{
 		return fDefaultOrder;
@@ -438,21 +357,17 @@ public:
 	{
 		fDefaultOrder = order;
 	}
-	
-	
+
 	/**
 	 * @name SCIENTIFIC_ROUTINES
 	 * @brief Scientific manipulating routines
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief This computes the number of equations associated with non-restrained nodes
-	 */
+	
+	/** @brief This computes the number of equations associated with non-restrained nodes */
 	int NEquations();
 	
-	/**
-	 * @brief This method computes the bandwidth of the system of equations
-	 */
+	/** @brief This method computes the bandwidth of the system of equations */
 	int BandWidth();
 	
 	/**
@@ -475,34 +390,25 @@ public:
 	 */
 	void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
 	
-	/**
-	 * @brief To discontinuous elements
-	 */
+	/** @brief To discontinuous elements */
 	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
 	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
 	
 private:
 	
-	/**
-	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 */ 
-	/** If MaterialIDs is passed, only element of material id in the set<int> will be created
-	 */
+	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
+	/** If MaterialIDs is passed, only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> *MaterialIDs);
 	
 public:
 	
-    /**
-     * @brief Create a computational element based on the geometric element
-     */
+    /** @brief Create a computational element based on the geometric element */
     TPZCompEl *CreateCompEl(TPZGeoEl *gel, int &index)
     {
         return fCreate.CreateCompEl(gel, *this, index);
     }
     
-	/**
-	 * @brief Creates the computational elements, and the degree of freedom nodes
-	 */ 
+	/** @brief Creates the computational elements, and the degree of freedom nodes */ 
 	/** Only element of material id in the set<int> will be created */
 	virtual void AutoBuild(const std::set<int> &MaterialIDs){
 		this->AutoBuild(&MaterialIDs);
@@ -612,9 +518,7 @@ public:
 	 */
 	void Permute(TPZVec<int> &permute);
     
-    /**
-     * @brief Put the sequence number of the pressure connects after the seq number of the flux connects
-     */
+    /** @brief Put the sequence number of the pressure connects after the seq number of the flux connects */
     void SaddlePermute();
 
 	
@@ -629,9 +533,8 @@ public:
 	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
 					   TPZVec<REAL> &errorSum);
 	
+	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */
 	/**
-	 * @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. 
-	 *
 	 * It may be compared the following values to eps: \n
 	 * If \f$ opt = 0 \f$ then  \f$ eps \approx \sqrt{ \int { (leftsol - rightsol)^2 } } \f$ \n
 	 * If \f$ opt = 1 \f$ then \f$ eps \approx Max{ \| leftsol - rightsol } \| \f$
@@ -650,17 +553,13 @@ public:
 	 */
 	void Discontinuous2Continuous(int disc_index, int &new_index);
 	
-	//@}
+	/** @} */
 	
 	
-	/**
-	 * @brief Clone this mesh
-	 */
+	/** @brief Clone this mesh */
 	TPZCompMesh * Clone() const;
 	
-	/**
-	 * @brief Copies the materials of this mesh to the given mesh
-	 */
+	/** @brief Copies the materials of this mesh to the given mesh */
 	void CopyMaterials(TPZCompMesh &mesh) const ;
 	
 	REAL DeltaX();
@@ -699,7 +598,6 @@ inline int TPZCompMesh::AllocateNewConnect(int nshape, int nstate, int order) {
 	int blocknum = fBlock.NBlocks();
 	fBlock.SetNBlocks(blocknum+1);
 	fBlock.Set(blocknum,nshape*nstate);
-//    DebugStop();
 	c.SetSequenceNumber(blocknum);
     c.SetOrder(order);
 	return connectindex;
@@ -716,4 +614,3 @@ inline void TPZCompMesh::SetReference(TPZAutoPointer<TPZGeoMesh> & gmesh){
 }
 
 #endif
-

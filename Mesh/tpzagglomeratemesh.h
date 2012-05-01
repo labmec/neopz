@@ -2,11 +2,11 @@
  * @file
  * @brief Contains declaration of TPZAgglomerateMesh which implements a mesh that contains agglomerated elements.
  */
+
 #ifndef TPZAGGLOMERATEMESH_H
 #define TPZAGGLOMERATEMESH_H
 
 #include "pzflowcmesh.h"
-
 
 /**
  * This class contains both discontinuous, continuous and agglomerated elements. \n
@@ -26,10 +26,7 @@ public:
 		fFineMesh = 0;
     }
     
-    /**
-	 @brief An agglomeratemesh needs a fine mesh to relate to, because its elements may
-	 point to elements of the finemesh
-	 */
+    /** @brief An agglomeratemesh needs a fine mesh to relate to, because its elements may point to elements of the finemesh */
     TPZAgglomerateMesh(TPZCompMesh *finemesh) : TPZFlowCompMesh(finemesh->Reference()),
 	fFineMesh(finemesh)
     {
@@ -39,23 +36,16 @@ public:
 	{
 	}
     
-	/**
-	 @brief Returns a pointer to the associated fine mesh
-	 */
+	/** @brief Returns a pointer to the associated fine mesh */
 	TPZCompMesh *FineMesh()
 	{
 		return fFineMesh;
 	}
 	
-	
-	
 private:
 	
-	/**
-	 @brief Reference Mesh for agglomerated elements
-	 */
+	/** @brief Reference Mesh for agglomerated elements */
     TPZCompMesh *fFineMesh;
-	
 };
 
 #endif

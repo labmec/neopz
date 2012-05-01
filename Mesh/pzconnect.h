@@ -2,8 +2,6 @@
  * @file
  * @brief Contains declaration of TPZConnect class which represents a set of shape functions associated with a computational element
  */
-//$Id: pzconnect.h,v 1.19 2010-08-25 03:05:06 phil Exp $
-//HEADER FILE FOR CLASS NODE
 
 #ifndef  PZCONNECTH
 #define  PZCONNECTH
@@ -19,8 +17,6 @@ class TPZCompMesh;
 template<class TVar>
 class TPZBlock;
 class TPZStream;
-
-
 
 /** 
  * @brief Represents a set of shape functions associated with a computational element/side. \ref CompElement "Computational Element"
@@ -176,7 +172,7 @@ public:
     /** @brief Set the number of shape functions associated with the connect */
     void SetNShape(int nshape)
     {
-        if(nshape < 0 || nshape > 255)
+        if(nshape < 0 || nshape > 500)   /// Jorge to work with p = 20 for quadrilaterals
         {
             DebugStop();
         }

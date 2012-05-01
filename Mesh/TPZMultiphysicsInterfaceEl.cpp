@@ -1,10 +1,8 @@
-/*
- *  TPZMultiphysicsInterfaceEl.cpp
- *  PZ
- *
- *  Created by Agnaldo on 10/26/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
+ * @brief Contains the implementation of the Multiphysic interface methods
+ * @author Agnaldo
+ * @since 10/26/11.
  */
 
 #include "TPZMultiphysicsInterfaceEl.h"

@@ -2,15 +2,12 @@
  * @file
  * @brief Contains the implementation of the TPZCheckMesh methods.
  */
-//$Id: pzcheckmesh.cpp,v 1.7 2007-06-27 18:18:04 cesar Exp $
 
 #include "pzcheckmesh.h"
 #include "pzgeoelside.h"
 #include "pzstack.h"
 #include "pzintel.h"
 #include "pzmaterial.h"
-//#include "pzcmesh.h"
-//#include "pzcompel.h"
 
 using namespace std;
 
@@ -226,35 +223,3 @@ int TPZCheckMesh::CheckConnectOrderConsistency() {
 	return -1;
 }
 
-/*
- int TPZCheckMesh::CheckConnectOrderConsistency() {
- 
- int nel = fMesh->ElementVec().NElements();
- int iel;
- for(iel = 0; iel<nel; iel++) {
- TPZCompEl *cel = fMesh->ElementVec()[iel];
- if(!cel) continue;
- TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *>(cel);
- if(!intel->CheckElementConsistency()) {
- intel->Print();
- return iel;
- }
- int nc = intel->NConnects();
- int ic;
- for(ic = 0; ic<nc; ic++) {
- TPZConnect &c = intel->Connect(ic);
- int nshape = intel->NConnectShapeF(ic);
- if(c.HasDependency()) {
- TPZConnect::TPZDepend *first = c.FirstDepend();
- int nr = first->fDepMatrix.Rows();
- if(nr != nshape) {
- cout << "TPZCheckMesh inconsistent dependency nshape = " << nshape << " nrows " << nr << endl;
- intel->Print();
- return iel;
- }
- }
- }
- }
- return -1;
- }
- */

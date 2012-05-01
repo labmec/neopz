@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZGeoEl class which defines the behaviour of geometric element.
  */
-//$Id: pzgeoel.h,v 1.51 2011-05-13 15:56:25 phil Exp $
 
 #ifndef GEOELEMHPP
 #define GEOELEMHPP
@@ -17,6 +16,8 @@
 #include "pztrnsform.h"
 #include "doxmesh.h"
 
+#include "pzgeoelside.h"
+
 class TPZGeoNode;
 class TPZCompMesh;
 class TPZCompEl;
@@ -24,7 +25,6 @@ template<class TVar>
 class TPZFMatrix;
 class TPZGeoMesh;
 class TPZCompElSide;
-class TPZGeoElSide;
 class TPZIntPoints;
 class TPZRefPattern;
 class TPZStream;
@@ -200,7 +200,7 @@ public:
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) const {return &(fMesh->NodeVec()[NodeIndex(i)]); }
 
-	/** @brief Returns a pointer to the ith node of the element*/
+	/** @brief Returns the ith node of the element*/
 	TPZGeoNode& Node(int i) const {return (fMesh->NodeVec()[NodeIndex(i)]); }
     
 	/**
@@ -310,10 +310,7 @@ public:
 	void SetNeighbourForBlending(int side);
 	
 	//@}
-	
-	/** @brief Method which creates a computational element based on the current geometric element*/
-	//virtual TPZCompEl *CreateCompEl(TPZCompMesh &cmesh,int &index) = 0;
-	
+
 	/**
 	 * @brief Method which creates a computational boundary condition element based on the current geometric element, \n
 	 * a side and a boundary condition number
@@ -354,13 +351,17 @@ public:
 	/** @brief Print all relevant data of the element to cout*/
 	virtual  void Print(std::ostream & out = std::cout);
     
-    virtual void PrintNodesCoordinates(std::ostream & out = std::cout);
+	/**
+	 * @brief Prints the coordinates of all nodes (geometric)
+	 * @param out Indicates the device where the coordinates will be printed
+	 */
+	 virtual void PrintNodesCoordinates(std::ostream & out = std::cout);
 	
 	/** @brief Make the current element reference to the computational element*/
 	void SetReference(TPZCompEl *elp);
 	
-	/** @brief Sets the subelement of index i*/
-	virtual void SetSubElement(int id, TPZGeoEl* gel) = 0;
+	/** @brief Sets the subelement of index i */
+	virtual void SetSubElement(int i, TPZGeoEl* gel) = 0;
 	
 	/** @brief Initializes the external connectivities of the subelements */
 	virtual void SetSubElementConnectivities();
@@ -379,13 +380,13 @@ public:
 	virtual int HasSubElement() = 0;
 	
 	/**
-	 * @brief Computes the transformation for a point on the master element to a point \n
+	 * @brief Computes the transformation for a point on the master element to a point
 	 * in the master element of the neighbour 
 	 */
 	void SideTransform(int side,TPZGeoElSide neighbour,TPZTransform &t);
 	
 	/**
-	 * @brief Compute the transformation between the master element space of one side of an element \n
+	 * @brief Compute the transformation between the master element space of one side of an element 
 	 * to the master element space of a higher dimension side
 	 */
 	virtual TPZTransform SideToSideTransform(int sidefrom,int sideto)= 0;
@@ -434,7 +435,6 @@ public:
 	virtual int Dimension() =0;
 	
 	/** */
-	virtual TPZGeoElSide HigherDimensionSides(int side,int targetdimension);//S�PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
 	
@@ -446,14 +446,14 @@ public:
 	
 	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
-	//para testar continuidade
+	/** @brief To test continuity */
 	int ElementExists(TPZGeoEl *elem,int id);
 	
 	/**
 	 * @name reftopology
 	 * @brief Methods which will implement the declaration of a refinemnt topology
+	 * @{
 	 */
-	//@{
 	
 	/** @brief Returns the father/side of the father which contains the side of the sub element */
 	virtual TPZGeoElSide Father2(int side);
@@ -493,12 +493,12 @@ public:
 	/** @brief Returns the son number of the sub element gel*/
 	int WhichSubel();
 	
-	/// Checks the structure of the Father() and GetSubelement2()
+	/** @brief Checks the structure of the Father() and GetSubelement2() */
 	void CheckSubelDataStructure();
 	
-	/// Computes the XInverse and returns true if ksi belongs to master element domain
-    /**
-     * ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
+	/**
+	 * @brief Computes the XInverse and returns true if ksi belongs to master element domain
+     * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
      */
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol = 1.e-12);
 	
@@ -527,7 +527,7 @@ public:
 	/** @brief Returns the area from the triangular face*/
 	static REAL TriangleArea(TPZVec<TPZGeoNode *> &nodes);
 	
-	virtual REAL ElementRadius();//TPZGeoEl
+	virtual REAL ElementRadius();
 	
 	static REAL Distance(TPZVec<REAL> &centel,TPZVec<REAL> &centface);
 	
@@ -535,7 +535,7 @@ public:
 	 * @brief Computes the set of normals for defining HDiv approximation spaces
 	 * @param normals normal associated with each side
 	 * @param vectorsides side associated with each normal vector
-	 * @note The normal vectors are initially ordered according to the return of LowerDimensionSides \n
+	 * @note The normal vectors are initially ordered according to the return of LowerDimensionSides 
 	 * and then permuted according to the node id's
 	 */
 	/** This method will accumulate the normals for all the sides */
@@ -564,7 +564,7 @@ public:
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
 	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
 	
-	/// Returns the refinement pattern associated with the element
+	/** @brief Returns the refinement pattern associated with the element */
 	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
 	
 	/**
@@ -573,7 +573,7 @@ public:
 	 * @return true if everything OK else false
 	 */
 	bool VerifyNodeCoordinates(REAL tol = 1e-6);
-	
+
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6) = 0;
 	
@@ -597,13 +597,9 @@ private:
 };
 
 
-
 inline void TPZGeoEl::Divide(TPZVec<TPZGeoEl *> &) {
 	PZError << "TPZGeoEl::Divide is called.\n";
 }
-//inline void TPZGeoEl::NodeFaceIds(TPZVec<int> &ids,int face) {
-//	cout << "TPZGeoEl::NodeFaceIds is called." << std::endl;
-//}
 
 inline void TPZGeoEl::SetReference(TPZCompEl * elp){
 	this->fReference = elp;
@@ -613,11 +609,4 @@ inline TPZCompEl *TPZGeoEl::Reference() const {
 	return this->fReference;
 }
 
-#include "pzgeoelside.h"
-#include "pzgeoelbc.h"
-
-inline TPZGeoElSide TPZGeoEl::HigherDimensionSides(int side,int targetdimension){//S�PARA TESTAR CONTINUIDADE - APAGAR DEPOIS
-	std::cout << "TPZGeoEl::HigherDimensionSides is called." << std::endl;
-	return TPZGeoElSide();
-}
 #endif

@@ -2,7 +2,7 @@
  * @file
  * @brief Contains declaration of TPZCheckRestraint class which verify the consistency of the restraints of shape functions along a side.
  */
-//$Id: pzcheckrestraint.h,v 1.4 2005-04-25 02:31:46 phil Exp $
+
 #ifndef PZCHECKRESTRAINTH
 #define PZCHECKRESTRAINTH
 

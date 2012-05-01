@@ -2,12 +2,6 @@
  * @file
  * @brief Contains the implementation of the functions to creates computational elements.
  */
-/*
- *  pzcreatecontinuous.cpp
- *  NeoPZ
- *  Created by Philippe Devloo on 20/11/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- */
 
 #include "pzcreateapproxspace.h"
 #include "pzgeoel.h"

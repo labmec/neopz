@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Contains the implementation of the TPZGeoElSide methods.
+ * @brief Contains the implementation of the TPZGeoElSide and TPZGeoElSideIndex methods.
  */
 
 #include "pzgeoelside.h"
@@ -24,6 +24,32 @@ using namespace std;
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoelside"));
 #endif
+
+// Implementation of the TPZGeoElSideIndex methods
+
+TPZGeoElSideIndex::TPZGeoElSideIndex(TPZGeoEl *gel,int side){  
+    if (gel) this->fGeoElIndex = gel->Index();
+    else this->fGeoElIndex = -1;
+    this->fSide = side;
+}
+
+TPZGeoElSideIndex::TPZGeoElSideIndex(const TPZGeoElSide &side) {
+    TPZGeoEl * gel = side.Element();
+    if (gel) this->fGeoElIndex = gel->Index();
+    else this->fGeoElIndex = -1;
+    this->fSide = side.Side();
+}
+
+inline void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
+    if (geoel) this->fGeoElIndex = geoel->Index();
+    else this->fGeoElIndex = -1;
+}
+
+// Implementation of the TPZGeoElSide methods
+
+inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
+	return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
+}
 
 TPZGeoElSide::TPZGeoElSide(TPZGeoEl *gel, std::set<int> &sideCornerNodes)
 {
@@ -318,27 +344,6 @@ void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center)
 	fGeoEl->CenterPoint(fSide,center);
 }
 
-/*
- TPZGeoElSide TPZGeoElSide::Neighbour() const {
- if (!fGeoEl) return TPZGeoElSide();
- TPZGeoElSide neighbour = fGeoEl->Neighbour(fSide);
- return neighbour;
- }
- 
- void TPZGeoElSide::AllNeighbours(TPZStack<TPZGeoElSide> &allneigh) {
- if(! Exists() || ! this->Neighbour().Exists())
- {
- return;
- }
- TPZGeoElSide neigh = Neighbour();
- while(neigh != *this)
- {
- allneigh.Push(neigh);
- neigh = neigh.Neighbour();
- }
- }
- */
-
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
 	if(fSide < fGeoEl->NCornerNodes())
     {
@@ -454,21 +459,9 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 				tside.Mult()(0,0) = 0;
 				tside.Mult()(1,1) = 0;
 				for(i=0;i<4;i++) idto[i]=neighbour.Element()->SideNodeIndex(neighbour.Side(),i);
-				//if(neighbour.Element()->NSides() > 9) {//NCornerNodes() == 8 , cubo
-				//   neighbour.Element()->NodeFaceIds(idto,neighbour.Side());
-				//}
 				for(i=0;i<4;i++) idfrom[i]=Element()->SideNodeIndex(Side(),i);
-				//	   if(Element()->NSides() > 9) {//NCornerNodes() == 8 , cubo
-				//   Element()->NodeFaceIds(idfrom,Side());
-				//}
-				//if(neighbour.Element()->NCornerNodes() == 4) {//quadrilatero
-				//	      for(i=0;i<4;i++) idto[i] = neighbour.Element()->NodeIndex(i);
-				//}
-				//if(Element()->NCornerNodes() == 4) {//quadrilatero
-				//	      for(i=0;i<4;i++) idfrom[i] = Element()->NodeIndex(i);
-				//}
+				
 				int transid = Element()->GetTransformId2dQ(idfrom,idto);
-				//TPZCompEl *cel = Element()->Reference();
 				tside.Mult()(0,0) = TPZShapeQuad::gTrans2dQ[transid][0][0];//cel->gTrans2dQ[transid][0][0];
 				tside.Mult()(0,1) = TPZShapeQuad::gTrans2dQ[transid][0][1];
 				tside.Mult()(1,0) = TPZShapeQuad::gTrans2dQ[transid][1][0];
@@ -479,19 +472,8 @@ TPZTransform TPZGeoElSide::NeighbourSideTransform(TPZGeoElSide &neighbour) {
 				tside.Mult()(0,0) = 0.;
 				tside.Mult()(1,1) = 0.;
 				for(i=0;i<3;i++) idfrom[i] = Element()->SideNodeIndex(Side(),i);
-				//	   if(Element()->NSides() > 9) {//elementos 3D
-				//         Element()->NodeFaceIds(idfrom,Side());
-				//      } else {//tri�gulos
-				//         for(i=0;i<3;i++) idfrom[i] = Element()->SideNodeIndex(Side(),i);
-				//      }
 				for(i=0;i<3;i++) idto[i] = neighbour.Element()->SideNodeIndex(neighbour.Side(),i);
-				//      if(neighbour.Element()->NSides() > 9) {//elementos 3D
-				//         neighbour.Element()->NodeFaceIds(idto,neighbour.Side());
-				//      } else {//tri�gulos
-				//         for(i=0;i<3;i++) idto[i] = neighbour.Element()->NodeIndex(i);
-				//      }
 				int transid = Element()->GetTransformId2dT(idfrom,idto);
-				//TPZCompEl *cel = Element()->Reference();
 				tside.Mult()(0,0) = TPZShapeTriang::gTrans2dT[transid][0][0];
 				tside.Mult()(0,1) = TPZShapeTriang::gTrans2dT[transid][0][1];
 				tside.Mult()(1,0) = TPZShapeTriang::gTrans2dT[transid][1][0];
@@ -563,7 +545,6 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 	} while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
 	int secondcase = 0;
 	
-	//  TPZGeoElSide nextfather = father.Father2();
 	if(neighfather.Exists()) {
 		if(neighbourwithfather != start) 
 		{
@@ -572,23 +553,6 @@ void TPZGeoElSide::SideTransform3(TPZGeoElSide neighbour,TPZTransform &t)	{
 		}
 		neighbourwithfather.SideTransform3(neighbour,t);
 		return;
-		
-		//     //father.Element()->BuildTransform(Side(),nextfather.Element(),t);
-		//     t = neighbourwithfather.Element()->BuildTransform2(neighbourwithfather.Side(),neighfather.Element(),t);//Cedric 01/10/99 e  e 30/04/00
-		//     start = neighfather;
-		//     if(start.NeighbourExists(neighbour)) {
-		//       t = start.NeighbourSideTransform(neighbour).Multiply(t);
-		//       //      if(secondcase) {
-		//       //	cout << "TPZGeoElSide:SideTranform3 secondcase = " << secondcase << "\n";
-		//       //      }
-		//       return;
-		//     }
-		//     neighbourwithfather = start;
-		//     do {
-		//       neighfather = neighbourwithfather.Father2();
-		//       if(!neighfather.Exists()) neighbourwithfather = neighbourwithfather.Neighbour();
-		//     } while(!neighfather.Exists() && neighbourwithfather.Exists() && neighbourwithfather != start);
-		//     //    nextfather = father.Father2();
 	}
 	
 	PZError << "TPZGeoElSide:SideTranform3 did not find the neighbour\n";
@@ -606,11 +570,6 @@ void TPZGeoElSide::ConnectedCompElementList(TPZStack<TPZCompElSide> &ellist,
 
 void TPZGeoElSide::EqualLevelCompElementList(TPZStack<TPZCompElSide> &elsidevec,
 											 int onlyinterpolated, int removeduplicates) {
-	
-	//  if(!fGeoEl->Dimension())
-	// Philippe 26/4/2000
-	//  if(!Dimension())
-	//    Dim0EqualLevelCompElementList(elsidevec,onlyinterpolated,removeduplicates);
 	
 	TPZGeoElSide neighbour;
 	TPZCompElSide ref;
@@ -667,9 +626,6 @@ TPZTransform TPZGeoElSide::SideToSideTransform(TPZGeoElSide &higherdimensionside
     return fGeoEl->SideToSideTransform(fSide,higherdimensionside.fSide);
 }
 
-//int TPZGeoElSide::Level() {
-//		return (fGeoEl->Level());
-//}
 /*return 1 if the element has subelements along side*/
 int TPZGeoElSide::HasSubElement() {
     if(!fGeoEl) return 0;
@@ -724,7 +680,7 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 	TPZStack<TPZCompElSide> equal;
 	//2003-12-03
 	if (father.Reference().Exists())  equal.Push(father.Reference());
-
+	
 	father.EqualLevelCompElementList(equal,onlyinterpolated,1);
 	
 	
@@ -742,9 +698,6 @@ TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 		if (father.Reference().Exists())  equal.Push(father.Reference());
 		
 	}
-	//  if(equal.NElements() && secondcase) {
-	//    cout << "TPZGeoElSide::LowerLevelCompElementList second case " << secondcase << "\n";
-	//  }
 	if(equal.NElements()) return equal[0];
 	return TPZCompElSide();
 }

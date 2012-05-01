@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZElementMatrix methods.
  */
-//$Id: pzelmat.cpp,v 1.13 2011-05-30 20:27:35 denise Exp $
 
 #include "pzelmat.h"
 #include "pzfmatrix.h"
@@ -340,8 +339,7 @@ bool TPZElementMatrix::HasDependency(){
 	return false;
 }
 
-/** @brief permute the order of the connects
- */
+/** @brief permute the order of the connects */
 void TPZElementMatrix::PermuteGather(TPZVec<int> &permute)
 {
     if (permute.size() != fConnect.size()) {
@@ -381,39 +379,3 @@ void TPZElementMatrix::PermuteGather(TPZVec<int> &permute)
         }
     }
 }
-
-/*
- bandmat & bandmat::operator+=(elmat & ek) {
- 
- for (int i = 0; i<ek.numnod(); i++) {
- for (int j = 0; j<ek.numnod(); j++) {
- addsub( (ek.node(i))->eq_number(), 
- (ek.node(j))->eq_number(), ek.mat->extract(i,j) );
- }
- }
- return *this;
- }
- 
- void matrix::operator+=(elmat & ek) {
- 
- if(ek.mat->colblocks() == ek.mat->rowblocks() ) {
- for (int i = 0; i<ek.numnod(); i++) {
- for (int j = 0; j<ek.numnod(); j++) {
- addsub( (ek.node(i))->eq_number(), 
- (ek.node(j))->eq_number(), ek.mat->extract(i,j) );
- }
- }
- } else if (ek.mat->colblocks() == 1) {
- for (int i = 0; i<ek.numnod(); i++) {
- addsub( (ek.node(i))->eq_number(), 
- 0, ek.mat->extract(i,0) );
- }
- } else {
- pzerror << "matrix.+= doesn t know how to handle the\n"
- "assembly process\n";
- pzerror.show();
- }
- return;
- }
- */
-

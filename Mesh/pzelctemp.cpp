@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZIntelGen methods.
  */
-// $Id: pzelctemp.cpp,v 1.50 2011-05-13 20:19:55 phil Exp $
 
 #include "pzelctemp.h"
 #include "pzquad.h"
@@ -75,14 +74,6 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 std::map<int,int> & gl2lcElMap) :
 TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
 {
-	//   if (gl2lcElMap.find(copy.fIndex)!= gl2lcElMap.end())
-	//   {
-	//     std::stringstream sout;
-	//     sout << "ERROR in : " << __PRETTY_FUNCTION__
-	//         << " trying to clone an already cloned element index: " << copy.fIndex;
-	//     LOGPZ_ERROR(logger, sout.str().c_str());
-	//     DebugStop();
-	//   }
 	
 	fPreferredOrder = copy.fPreferredOrder;
 	int i;
@@ -103,7 +94,6 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
 		}
 		fConnectIndexes[i] = lcIdx;
 	}
-	//   gl2lcElMap[copy.fIndex] = this->Index();
 }
 
 
@@ -132,12 +122,6 @@ MElementType TPZIntelGen<TSHAPE>::Type() {
 	return TSHAPE::Type();
 }
 
-
-//template<class TSHAPE>
-//int TPZIntelGen<TSHAPE>::NConnects() {
-//  return TSHAPE::NSides;
-//}
-
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SetConnectIndex(int i, int connectindex){
 #ifndef NODEBUG
@@ -163,17 +147,6 @@ void TPZIntelGen<TSHAPE>::SetIntegrationRule(int ord) {
 	TPZManVector<int,3> order(TSHAPE::Dimension,ord);
 	fIntRule.SetOrder(order);
 }
-
-//template<class TSHAPE>
-//int TPZIntelGen<TSHAPE>::Dimension() {
-//    return TSHAPE::Dimension;
-//}
-
-
-//template<class TSHAPE>
-//int TPZIntelGen<TSHAPE>::NCornerConnects() {
-//  return TSHAPE::NCornerNodes;
-//}
 
 template<class TSHAPE>
 int TPZIntelGen<TSHAPE>::NSideConnects(int side) const {
@@ -297,21 +270,7 @@ int TPZIntelGen<TSHAPE>::ConnectOrder(int connect) const {
 	return SideOrder(connect);
 }
 
-
-/**transform a point in the parameter space of the side into a point in the space
- of the master element*/
-//template<class TSHAPE>
-//void TPZIntelGen<TSHAPE>::SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point) {
-
-//}
-
-/**transform a point in the parameter space of the master element into a point in the
- space of the side*/
-//virtual void ElementToSideParameter(int side, TPZVec<REAL> &point, TPZVec<REAL> &par);
-
-
 /**compute the values of the shape function of the side*/
-
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 	
@@ -346,34 +305,13 @@ void TPZIntelGen<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMat
 	TSHAPE::Shape(pt,id,ord,phi,dphi);
 }
 
-
-// template<class TSHAPE>
-// void TPZIntelGen<TSHAPE>::Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol) {
-
-// }
-
-/** Jorge 09/06/2001
- * Returns the transformation which transform a point from the side to the interior of the element
- */
+/** Returns the transformation which transform a point from the side to the interior of the element */
 template<class TSHAPE>
 TPZTransform TPZIntelGen<TSHAPE>::TransformSideToElement(int side){
 	return TSHAPE::TransformSideToElement(side);
 }
 
-/**
- * returns the unique identifier for reading/writing objects to streams
- */
-/*
- template<class TSHAPE>
- int TPZIntelGen<TSHAPE>::ClassId() const
- {
- std::cout << "TPZIntelGen<TSHAPE>::ClassId() type not specified at " << __FILE__ << ':' << __LINE__ << std::endl;
- return -1;
- }
- */
-/**
- Save the element data to a stream
- */
+/** Save the element data to a stream */
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
 {
@@ -387,9 +325,7 @@ void TPZIntelGen<TSHAPE>::Write(TPZStream &buf, int withclassid)
 	buf.Write ( &classid, 1 );
 }
 
-/**
- Read the element data from a stream
- */
+/** Read the element data from a stream */
 template<class TSHAPE>
 void TPZIntelGen<TSHAPE>::Read(TPZStream &buf, void *context)
 {

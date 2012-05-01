@@ -1,10 +1,7 @@
-//
-//  pzcondensedcompel.cpp
-//  PZ
-//
-//  Created by Philippe Devloo on 12/9/11.
-//  Copyright 2011 UNICAMP. All rights reserved.
-//
+/**
+ * @file pzcondensedcompel.cpp
+ * @brief Contains the implementations of the TPZCondensedCompEl methods.
+ */
 
 #include "pzcondensedcompel.h"
 #include "pzlog.h"
@@ -42,9 +39,7 @@ TPZCondensedCompEl::~TPZCondensedCompEl()
     }
 }
 
-/**
- * @brief create a copy of the condensed computational element in the other mesh
- */
+/** @brief create a copy of the condensed computational element in the other mesh */
 TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh)
 {
     TPZCompEl *ref = fReferenceCompEl->Clone(mesh);
@@ -65,9 +60,7 @@ TPZCondensedCompEl::TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMe
 }
 
 
-/**
- * @brief unwrap the condensed element from the computational element and delete the condensed element
- */
+/** @brief unwrap the condensed element from the computational element and delete the condensed element */
 void TPZCondensedCompEl::Unwrap()
 {
     fMesh->ElementVec()[fIndex] = fReferenceCompEl;
@@ -219,7 +212,7 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
             fCondensed(i,j) = ek.fMat(i,j);
         }
     }
-//    fCondensed = ek.fMat;
+
     fCondensed.SetF(ef.fMat);
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
 	const TPZFMatrix<STATE> &k11 = fCondensed.K11Red();
@@ -267,10 +260,9 @@ void TPZCondensedCompEl::Print(std::ostream &out) const
 }
 
 
+/** @brief Loads the solution within the internal data structure of the element */
 /**
- * @brief Loads the solution within the internal data structure of the element
- */ 
-/** Is used to initialize the solution of connect objects with dependency
+ * Is used to initialize the solution of connect objects with dependency \n
  * Is also used to load the solution within SuperElements
  */
 void TPZCondensedCompEl::LoadSolution()

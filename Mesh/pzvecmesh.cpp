@@ -2,7 +2,6 @@
  * @file
  * @brief Creates the TPZVec classes for computational and geometric structures.
  */
-//$Id: pzvecmesh.cpp,v 1.2 2003-11-05 16:02:21 tiago Exp $
 
 #include "pzvec.h"
 
@@ -72,6 +71,5 @@ template class TPZVec<TPZEqnArray *>;
 #include "pzelmat.h"
 struct TPZElementMatrix;
 template class TPZVec<TPZElementMatrix *>;
-
 
 #endif

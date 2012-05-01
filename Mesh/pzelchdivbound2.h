@@ -11,9 +11,9 @@
 /** \addtogroup CompElement */
 /** @{ */
 /**
- @brief Implements a generic computational element to HDiv scope. \ref CompElement "Computational Element"
- @author Philippe Devloo
- @since Sep 29, 2009.
+ * @brief Implements a generic computational element to HDiv scope. \ref CompElement "Computational Element"
+ * @author Philippe Devloo
+ * @since Sep 29, 2009.
  */
 /**
  * By varying the classes passed as template arguments, the complete family of computational elements are implemented
@@ -59,8 +59,7 @@ public:
 		return new TPZCompElHDivBound2<TSHAPE> (mesh, *this, gl2lcConMap, gl2lcElMap);
 	}
 	
-	/** @brief Set create function in TPZCompMesh to create elements of this type
-	 */
+	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
 		mesh->SetAllCreateFunctionsHDiv();
 	}
@@ -99,30 +98,17 @@ public:
 	virtual int SideOrder(int side) const;
 	
 	virtual int ConnectOrder(int connect) const;
-	
-	/* *transform a point in the parameter space of the side into a point in the space
-     of the master element*/
-	//  virtual void SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point);
-	
-	/* *transform a point in the parameter space of the master element into a point in the
-     space of the side*/
-	//  virtual void ElementToSideParameter(int side, TPZVec<REAL> &point, TPZVec<REAL> &par);
-	
+
 	/** @brief Initialize a material data and its attributes based on element dimension, number
-	 * of state variables and material definitions
-	 */
+	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data);
 	
-	/**
-	 * @brief Compute the correspondence between the normal vectors and the shape functions
-	 */
+	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex);
 	
 	/** @brief Returns the vector index  of the first index shape associate to element */
 	/** Special implementation to Hdiv */
 	void FirstShapeIndex(TPZVec<int> &Index);
-	/* * return a matrix index of the shape and vector  associate to element*/
-	//	void IndexShapeToVec(TPZVec<int> &fVectorSide,TPZVec<std::pair<int,int> > & IndexShapeToVec);
 	
 	/** @brief Compute the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
@@ -142,12 +128,6 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 
 };
-
-
-//TPZCompEl *CreateHDivBoundPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-//TPZCompEl *CreateHDivBoundLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-//TPZCompEl *CreateHDivBoundQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-//TPZCompEl *CreateHDivBoundTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 /** @} */
 

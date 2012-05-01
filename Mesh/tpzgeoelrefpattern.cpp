@@ -2,13 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGeoElRefPattern methods.
  */
-/***************************************************************************
- tpzgeoelrefpattern.cc  -  description
- -------------------
- begin                : Tue Dec 23 2003
- copyright            : (C) 2003 by LabMeC - DES - FEC - UNICAMP (Edimar Cesar Rylo) & EMBRAER
- email                : cesar@labmec.fec.unicamp.br
- ***************************************************************************/
 
 #include "tpzgeoelrefpattern.h"
 #include "tpzgeoelrefpattern.h.h"
@@ -184,16 +177,3 @@ int TPZGeoElRefPattern<TPZGeoPoint>::ClassId() const{
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZGeoPoint>, TPZGEOELREFPATPOINTID>;
 
-//class TPZGeoElRefPattern<TPZGeoCube>;
-//class TPZGeoElRefPattern<TPZGeoLinear>;
-//class TPZGeoElRefPattern<TPZGeoQuad>;
-//class TPZGeoElRefPattern<TPZGeoTriangle>;
-//class TPZGeoElRefPattern<TPZGeoPrism>;
-//class TPZGeoElRefPattern<TPZGeoTetrahedra>;
-//class TPZGeoElRefPattern<TPZGeoPyramid>;
-//class TPZGeoElRefPattern<TPZGeoPoint>;
-
-//static TPZGeoEl *teste()
-//{ 
-//	return new TPZGeoElRefPattern<TPZGeoTriangle>;
-//}

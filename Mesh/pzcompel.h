@@ -2,13 +2,11 @@
  * @file
  * @brief Contains declaration of TPZCompEl class which defines the interface of a computational element.
  */
-// $Id: pzcompel.h,v 1.47 2011-05-11 02:27:20 phil Exp $
 
 #ifndef COMPELEMHPP
 #define COMPELEMHPP
 
 #include "pzreal.h"
-//#include "pzshapelinear.h"
 #include <iostream>
 #include <fstream>
 #include "pzcmesh.h"
@@ -17,7 +15,6 @@
 #include "pzsave.h"
 #include "pzcreateapproxspace.h"
 #include "pzmaterialdata.h"
-//#include "pzmaterial.h"
 
 
 template <class TVar>
@@ -170,19 +167,7 @@ public:
 	void SetReference(int referenceindex)
 	{
 		fReferenceIndex = referenceindex;
-		//    fReference = (referenceindex == -1) ? 0 : fMesh->Reference()->ElementVec()[fReferenceIndex];
 	}
-	
-	//   void SetReference(TPZGeoEl *ref)
-	//   {
-	//     fReference = ref;
-	//     if(ref)
-	//     {
-	//      fReferenceIndex = ref->Index();
-	//     } else {
-	//       fReferenceIndex = -1;
-	//     }
-	//   }
 	
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const =0;
@@ -213,23 +198,15 @@ public:
 	
 	/** @brief Identify the material object associated with the element */
 	virtual TPZAutoPointer<TPZMaterial> Material() const;
-	
-	/**
-	 * Sets the material associated with the object
-	 * param mat new element material
-	 */
-	//  virtual void SetMaterial(TPZAutoPointer<TPZMaterial> mat) = 0;
-	
-	/** @brief Returns the reference geometric element patch 
+
+	/** 
+	 * @brief Returns the reference geometric element patch. \n
      * Look for a geometric element which refers to a computational element and
-     * Is neighbour of the current element AND is larger than the current element
+     * is neighbour of the current element AND is larger than the current element
      */
 	TPZGeoEl * GetRefElPatch();
 	
-	//void SetIntegrationRule(int order);
-	/**
-	* @}
-	 */
+	/** @} */
 	
 	/**
 	 * @name MODIFICATION_OF_PRIVATE_DATA
@@ -245,10 +222,9 @@ public:
 	 */
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 	
-	/**
-	 * @brief Loads the solution within the internal data structure of the element
-	 */ 
-	/** Is used to initialize the solution of connect objects with dependency
+	/** @brief Loads the solution within the internal data structure of the element */ 
+	/** 
+	 * Is used to initialize the solution of connect objects with dependency. \n
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
@@ -267,11 +243,11 @@ public:
 	 */
 	
 	/**
-	 * @name Print
+	 * @name Print methods
 	 * @brief Methods for print data structure
 	 * @{
 	 */
-	
+
 	/**
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
@@ -309,9 +285,7 @@ public:
 	 */
 	virtual void PrintTitle(char *VarName,std::ostream &out);
 
-	/**
-	 * @}
-	 */
+	/** @} */
 	
 	/**
 	 * @brief Sets the orthogonal function which will be used throughout the program
@@ -320,12 +294,6 @@ public:
 	 */
 	static void SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,
 														 TPZFMatrix<REAL> & dphi));
-	
-	//  /**
-	//   * Coarsen the group of elements in elements
-	//   */
-	//   virtual void Coarsen(TPZVec<int> &elementindexes);
-	
 	/**
 	 * @brief Computes the element stifness matrix and right hand side
 	 * @param ek element stiffness matrix
@@ -468,8 +436,9 @@ public:
 	/** @brief Returns 1 if the element has at least one dependent node. Returns 0 otherwise */
 	virtual int HasDependency();
 	
-    /** @brief returns the index of the pressure connect
-     * returns -1 if their is no pressure connect
+    /** 
+	 * @brief Returns the index of the pressure connect
+     * @note Returns -1 if their is no pressure connect
      */
     virtual int PressureConnectIndex() const
     {
@@ -537,9 +506,7 @@ class TPZCompElSide {
 	
 	
 public:
-	
-	//    /*PARA TESTES*/ TPZGeoEl *georeftest;
-	
+
 	/** @brief Simple Constructor */
 	TPZCompElSide();
 	
@@ -557,7 +524,7 @@ public:
 	 */
 	TPZCompElSide(TPZCompEl *cel,int side);
     
-    /// constructor which allows us to create a vector of objects
+    /** @brief Constructor which allows us to create a vector of objects */
     TPZCompElSide(int zero) : fEl(0), fSide(-1)
     {
     }
@@ -565,9 +532,7 @@ public:
 	/** @brief Gives a pointer to the reference computational element */
 	TPZCompEl *Element() const {return fEl;}
     
-    /**
-     * @brief The conversion to bool indicates whether the object has an associated element
-     */
+    /** @brief The conversion to bool indicates whether the object has an associated element */
     operator bool() const
     {
         return fEl != 0;
@@ -664,24 +629,21 @@ public:
 	 * @param onlyinterpolated if == 1, only elements derived from TPZInterpolatedElement will be checked
 	 */
 	TPZCompElSide LowerIdElementList(TPZCompElSide &expandvec,int onlyinterpolated);
-	
-	//inline//
-	
+
 	/** @brief Returns the index of the middle side connect alon fSide */
     int ConnectIndex() const;
 	
+	/** @brief Overlapping operator not equal */
 	bool operator != (const TPZCompElSide &other);
+	/** @brief Overlapping operator equal */
 	bool operator == (const TPZCompElSide &other);
-	
-	
+
 };
-//  std::ostream & operator << (std::ostream &out,const TPZCompElSide &celside);
 
 inline void TPZCompEl::CreateGraphicalElement(TPZGraphMesh &, int) {
 	std::cout << "TPZCompEl::CreateGrafEl called\n";
 	this->Print(std::cout);
 }
-
 
 inline void TPZCompEl::CalcStiff(TPZElementMatrix &,TPZElementMatrix &){
 	std::cout << "TPZCompEl::CalcStiff(*,*) is called." << std::endl;

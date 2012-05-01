@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZReferredCompEl class which generates computational elements.
  */
-//$Id: pzreferredcompel.h,v 1.11 2011-05-11 02:50:03 phil Exp $
 
 #ifndef PZSPECIAL
 #define PZSPECIAL

@@ -2,22 +2,6 @@
  * @file
  * @brief Creates TPZGeoElRefLess classes for all topological master elements.
  */
-/***************************************************************************
-                          pzgeoelrefless.cc  -  description
-                             -------------------
-    begin                : Fri Dec 12 2003
-    copyright            : (C) 2003 by phil
-    email                : phil@localhost
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #include "pzgeoelrefless.h"
 #include "pzintel.h"
@@ -49,10 +33,8 @@
 #include "tpzarc3d.h"
 #include "pzgmesh.h"
 #include "pzgeoel.h"
-//#include "TPZRefPattern.h"
 #include "pzvec.h"
 #include "pzmanvector.h"
-//#include "pzstack.h"
 
 #include "pzelctemp.h"
 
@@ -78,12 +60,11 @@ template class TPZGeoElRefLess<TPZGeoTetrahedra>;
 template class TPZGeoElRefLess<TPZGeoPyramid>;
 template class TPZGeoElRefLess<TPZGeoPoint>;
 
-static int main_refless()
-{
+//static int main_refless()
+//{
 	
-	TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
-	if(teste)
-		return 0;
-	return 1;
-}
-
+//	TPZGeoEl * teste = new TPZGeoElRefLess<TPZGeoTriangle>;
+//	if(teste)
+//		return 0;
+//	return 1;
+//}

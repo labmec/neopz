@@ -2,10 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGeoMesh methods.
  */
-//$Id: pzgmesh.cpp,v 1.61 2011-04-04 23:37:34 phil Exp $
-/**File : pzgmesh.c
- 
- Method definition for class TPZGeoMesh.*/
 
 #include "pzgmesh.h"
 
@@ -47,7 +43,6 @@ using namespace std;
 
 TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
 {
-	//fName[0] = '\0';
 	fReference = 0;
 	fNodeMaxId = -1;
 	fElementMaxId = -1;
@@ -886,30 +881,6 @@ void TPZGeoMesh::Read(TPZStream &buf, void *context)
 			buf.Read(vals,3);
 			fInterfaceMaterials[pair<int,int>(vals[0],vals[1])]=vals[2];
 		}
-		
-		/*
-		 //Reading TPZRefPattern's
-		 this->RefPatternDBase().RefPatterns().clear();
-		 int bigmapsize, iRef;
-		 buf.Read(&bigmapsize, 1);
-		 LOGPZ_DEBUG(logger,"rg9");
-		 for(iRef = 0; iRef < bigmapsize; iRef++)
-		 {
-		 int intElementType;
-		 buf.Read(&intElementType, 1);
-		 MElementType MElType = static_cast<MElementType>(intElementType);
-		 int smallmapsize, iMap;
-		 buf.Read(&smallmapsize, 1);
-		 for(iMap = 0; iMap < smallmapsize; iMap++)
-		 {
-		 TPZRefPattern * refp = new TPZRefPattern(this);
-		 refp->Read(buf);
-		 this->RefPatternDBase().RefPatterns()[MElType][refp->Id()] = refp;
-		 }//for
-		 }//for
-		 LOGPZ_DEBUG(logger,"end of read mesh");
-		 //Reading TPZRefPattern's
-		 */
 	}
 	catch(const exception& e)
 	{
@@ -943,31 +914,6 @@ void TPZGeoMesh::Write(TPZStream &buf, int withclassid)
 			vals[2] = it->second;
 			buf.Write(vals,3);
 		}
-		
-		/*
-		 //Writing TPZRefPattern's
-		 std::map< MElementType, std::map<int, TPZAutoPointer<TPZRefPattern> > >::iterator eRef,itRef;
-		 int bigmapsize = RefPatternDBase().RefPatterns().size();
-		 buf.Write(&bigmapsize, 1);
-		 LOGPZ_DEBUG(logger,"g7");
-		 eRef = this->RefPatternDBase().RefPatterns().end();
-		 for(itRef = this->RefPatternDBase().RefPatterns().begin(); itRef != eRef; itRef++)
-		 {
-		 int intElementType = static_cast<int>(itRef->first);
-		 buf.Write(&intElementType, 1);
-		 std::map<int, TPZAutoPointer<TPZRefPattern> >::iterator eMap, itMap;
-		 std::map<int, TPZAutoPointer<TPZRefPattern> > &SmallMap = itRef->second;
-		 int smallmapsize = SmallMap.size();
-		 buf.Write(&smallmapsize, 1);
-		 eMap = SmallMap.end();
-		 for(itMap = SmallMap.begin(); itMap != eMap; itMap++)
-		 {
-		 TPZAutoPointer<TPZRefPattern> refp = itMap->second;
-		 refp->Write(buf);
-		 }//for
-		 }//for
-		 //Finishing writing TPZRefPattern's
-		 */
 		
 	}
 	catch(const exception& e)
@@ -1038,5 +984,3 @@ void TPZGeoMesh::ResetConnectivities()
 	}
 	this->SetName("reset");
 }
-
-

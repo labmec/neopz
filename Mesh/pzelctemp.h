@@ -2,7 +2,7 @@
  * @file
  * @brief Contains declaration of TPZIntelGen class which implements a generic computational element.
  */
-//$Id: pzelctemp.h,v 1.18 2011-05-11 02:45:38 phil Exp $
+
 #ifndef PZELCTEMPH
 #define PZELCTEMPH
 
@@ -10,8 +10,8 @@
 #include "pzquad.h"
 
 /**
- @brief Implements a generic computational element. \ref CompElement "Computational Element"
- @ingroup CompElement
+ * @brief Implements a generic computational element. \ref CompElement "Computational Element"
+ * @ingroup CompElement
  */
 /**
  * By varying the classes passed as template arguments, the complete family of computational elements are implemented
@@ -33,10 +33,7 @@ public:
 	
 	TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy);
 	
-	/**
-	 * @brief Constructor used to generate patch mesh... generates a map of connect index from
-	 * global mesh to clone mesh
-	 */
+	/** @brief Constructor used to generate patch mesh... generates a map of connect index from global mesh to clone mesh */
 	TPZIntelGen(TPZCompMesh &mesh,
 				const TPZIntelGen<TSHAPE> &copy,
 				std::map<int,int> & gl2lcConMap,
@@ -98,11 +95,9 @@ public:
 	/** @brief Returns the preferred order of the polynomial along side iside*/
 	virtual int PreferredSideOrder(int iside);
 	
-	/** @brief Sets the preferred interpolation order along a side
-	 
-	 This method only updates the datastructure of the element
-	 In order to change the interpolation order of an element, use the method PRefine
-	 */
+	/** @brief Sets the preferred interpolation order along a side */
+	/** This method only updates the datastructure of the element \n
+	 * In order to change the interpolation order of an element, use the method PRefine */
 	virtual void SetPreferredOrder(int order);
 	
 	/** @brief Sets the interpolation order of side to order*/
@@ -112,16 +107,7 @@ public:
     virtual int SideOrder(int side) const;
 	/** @brief Returns the actual interpolation order of the polynomial for a connect*/
 	virtual int ConnectOrder(int connect) const;
-	
-	/** Transform a point in the parameter space of the side into a point in the space
-     of the master element*/
-	//  virtual void SideParameterToElement(int side,TPZVec<REAL> &par,TPZVec<REAL> &point);
-	
-	/**transform a point in the parameter space of the master element into a point in the
-     space of the side*/
-	//  virtual void ElementToSideParameter(int side, TPZVec<REAL> &point, TPZVec<REAL> &par);
-	
-	
+
 	/** @brief Compute the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
@@ -129,31 +115,20 @@ public:
 	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 	
-	//virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
-	
-	/** Jorge 09/06/2001
-	 * @brief Returns the transformation which transform a point from the side to the interior of the element
-	 */
+	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
 	TPZTransform TransformSideToElement(int side);
 	
 	virtual const TPZIntPoints &GetIntegrationRule() const {
 		return fIntRule;
 	}
 	
-	/**
-	 * @brief returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Saves the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
-	
 };
 
 #endif

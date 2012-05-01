@@ -1,10 +1,8 @@
-/*
- *  TPZMultiphysicsInterfaceEl.h
- *  PZ
- *
- *  Created by Agnaldo on 10/26/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
+ * @brief Contains the declaration of multiphysic interface class
+ * @author Agnaldo
+ * @since 10/26/11.
  */
 
 #ifndef TPZMULTIPHYSICSINTERFACEELH
@@ -16,31 +14,31 @@
 
 
 /**
- @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
-  */
+ * @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
+ */
 class TPZMultiphysicsInterfaceElement : public TPZCompEl {
 
 protected:
 
-	/**Element vector the left of the normal a interface*/
+	/** @brief Element vector the left of the normal a interface */
 	TPZManVector<TPZCompElSide*, 10> 	fLeftElSideVec;
 		
-	/**Element vector the right of the normal a interface*/
+	/** @brief Element vector the right of the normal a interface */
 	TPZManVector<TPZCompElSide*, 10> 	fRightElSideVec;
 	
 public:
+	/** @brief Default constructor */
 	TPZMultiphysicsInterfaceElement();	
-		
+	/** @brief Constructor */
 	TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int &index);
-		
+	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsInterfaceElement();
-	
 	
 	/**
 	 * @brief Compute the transform of a paramenter point in the multiphysic interface element to a parameter point in the neighbor super element
-	 ** @param Neighbor [in] may be this->LeftElementSide() or this->RightElementSide()
-	 * @param transf: vector of Transforms 
-	 **/
+	 * @param Neighbor [in] may be this->LeftElementSide() or this->RightElementSide()
+	 * @param transf [out] vector of Transforms 
+	 */
 	void ComputeSideTransform(TPZManVector<TPZCompElSide> &Neighbor, TPZManVector<TPZTransform> &transf);
 	
 	/**

@@ -2,15 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZCompMeshReferred methods.
  */
-//
-// C++ Implementation: tpzcompmeshreferred
-//
-// Description: 
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2006
-//
-// Copyright: See COPYING file that comes with this distribution
-//
+
 #include "tpzcompmeshreferred.h"
 #include "pzgmesh.h"
 #include "pzcompel.h"

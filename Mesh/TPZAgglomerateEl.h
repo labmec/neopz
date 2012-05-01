@@ -2,7 +2,7 @@
  * @file
  * @brief Contains declaration of
  */
-//$Id: TPZAgglomerateEl.h,v 1.29 2011-05-11 02:48:49 phil Exp $
+
 #ifndef AGGLOMERATEELEMHPP
 #define AGGLOMERATEELEMHPP
 

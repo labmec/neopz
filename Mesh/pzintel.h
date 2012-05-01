@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZInterpolatedElement class which implements computational element of the interpolation space.
  */
-//$Id: pzintel.h,v 1.39 2011-05-11 02:41:36 phil Exp $
 
 #ifndef PZINTEL_H
 #define PZINTEL_H
@@ -71,35 +70,27 @@ public:
 							std::map<int,int> & gl2lcElMap);
 	
 	TPZInterpolatedElement();
-	/**
-	 * @brief Destructor, does nothing
-	 */
+	/** @brief Destructor, does nothing */
 	virtual ~TPZInterpolatedElement();
 	
-	/** @brief Set create function in TPZCompMesh to create elements of this type
-	 */
+	/** @brief Set create function in TPZCompMesh to create elements of this type */
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
 		mesh->SetAllCreateFunctionsContinuous();
 	}
 	
-	/**
-	 @brief Saves the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
-	/** @name data access methods
-	 * @brief Methods which allow to access the internal data structure of the element
-	 */
-	//@{
-	
 	/**
-	 * @brief Prints the relevant data of the element to the output stream
+	 * @name data access methods
+	 * @brief Methods which allow to access the internal data structure of the element
+	 * @{
 	 */
+	
+	/** @brief Prints the relevant data of the element to the output stream */
 	virtual void Print(std::ostream &out = std::cout) const;
 	
 	/** @brief Returns the total number of shapefunctions*/
@@ -134,14 +125,10 @@ public:
 	/** @brief Returns the index of the c th connect object along side is*/
 	int SideConnectIndex(int icon,int is) const;
 	
-	/**
-	 * @brief Returns a pointer to the icon th connect object along side is
-	 */
+	/** @brief Returns a pointer to the icon th connect object along side is */
 	TPZConnect *SideConnect(int icon,int is);
 	
-	/**
-	 * @brief Returns the dimension of the element
-	 */
+	/** @brief Returns the dimension of the element */
 	virtual int Dimension() const = 0;
 	
 	/** @brief Returns the number of corner connects of the element*/
@@ -150,21 +137,18 @@ public:
 	/** @brief Returns the number of connect objects of the element*/
 	virtual int NConnects() const = 0;
 	
-	/**
-	 * @brief Identifies the interpolation order of all connects of the element different from the corner connects
-	 * 
-	 * Note there is a diference between the actual side order returned by this method
+	/** @brief Identifies the interpolation order of all connects of the element different from the corner connects */
+	/** Note there is a diference between the actual side order returned by this method
 	 * and the side order which the element naturally would have, which is returned by
 	 * PreferredSideOrder
-	 * @param ord vector which will be filled with the side orders of the element
-	 */
+	 * @param ord vector which will be filled with the side orders of the element */
 	virtual void GetInterpolationOrder(TPZVec<int> &ord) = 0;
 	
-	/** @brief Returns the preferred order of the polynomial along
-     side iside*/
+	/** @brief Returns the preferred order of the polynomial along side iside */
 	virtual int PreferredSideOrder(int iside) = 0;
 	
-	/** @brief Adjusts the preferredSideOrder for faces
+	/** 
+	 * @brief Adjusts the preferredSideOrder for faces
 	 * @param side : side for which the order needs adjustment
 	 * @param order : original order which has to be compared with the sides
 	 */
@@ -173,25 +157,20 @@ public:
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
 	virtual int SideOrder(int side) const = 0;
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Data modification methods
 	 * @brief These methods which will modify the local datastructure of the element
+	 * @{
 	 */
-	//@{
 	
-	/**
-	 * @brief Sets the node pointer of node i to nod
-	 */
+	/** @brief Sets the node pointer of node i to nod */
 	virtual void SetConnectIndex(int i, int connectindex)=0;
 	
 	virtual void SetIntegrationRule(int order) {
 		std::cout << "TPZInterpolatedElement::SetIntegrationRule called\n";
 	}
-	
-	/** Sets the interpolation order for the interior of the element*/
-	//  virtual void SetInterpolationOrder(TPZVec<int> &ord) = 0;
 	
 	/** @brief Sets the preferred interpolation order along a side */
 	/** 
@@ -211,69 +190,31 @@ public:
 	
 	/** @brief Impose an interpolation order on a given side (without using computesideorder) */
 	virtual void ForceSideOrder(int side, int order);
+	
+	/** @} */
+	
 public:
 	
-	//@}
 	
 	/**
 	 * @name Computational methods
 	 * @brief Methods used to perform computations on the interpolated element
+	 * @{
 	 */
-	//@{
-	
-#ifdef _AUTODIFF
-	
-	/**
-	 * @name Computational methods
-	 * @brief Methods used to perform computations on the interpolated element
-	 */
-	//@{
-	
-	/**
-	 * CalcEnergy computes the element stiffness matrix and right hand side
-	 * by the energy.
-	 * @ param ek element matrix
-	 * @ param ef element right hand side
-	 */
-	//  virtual void CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef);
-	
-#endif
-	
-	/**
-	 * This method computes only the block diagonal entries of the element stiffness matrix
-	 * and puts the result in the block matrix which is passed as argument. The blocks in the block
-	 * matrix object correspond to the connect indices of connectlist
-	 * @ param connectlist (output) the connects to which the element will contribute
-	 * @ param block (output) block diagonal matrix which contains the contributions of the element
-	 */
-	//  virtual void CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & block);
-	
-	/**returns a reference to an integration rule suitable for integrating
-     the interior of the element*/
-	//   virtual TPZIntPoints &GetIntegrationRule() = 0;
-	
-	/**
-	 * Allocates dynamically an integration rule adequate for the side
-	 * the caller to the method needs to call the delete method!
-	 * this method is being migrated to the geometric element
-	 * @ param side side along which an integration rule is created
-	 * @ return dynamically allocated integration rule
-	 */
-	//  virtual TPZIntPoints *CreateSideIntegrationRule(int side) = 0;
 	
 	/** @brief Compute the values of the shape function along the side*/
 	virtual void SideShapeFunction(int side, TPZVec<REAL> &point, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) = 0;
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Post processing methods
-	 * @brief The TPZInterpolatedElement class provides the user with a variety of methods for post-processing :\n
-	 * 
+	 * @brief The TPZInterpolatedElement class provides the user with a variety of methods for post-processing*/
+	/**
 	 * Methods for error evaluation\n
 	 * Methods for computing derived post processed values (depending on the variational statement)\n
+	 * @{
 	 */
-	//@{
 	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
@@ -310,8 +251,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-                    TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Compare the L2 norm of the difference between the ¨var¨ solution of the current element with
@@ -326,13 +267,13 @@ public:
 	 */
 	virtual REAL CompareElement(int var, char *matname);
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Adaptivity methods
 	 * @brief Methods which help to implement the adaptive process
+	 * @{
 	 */
-	//@{
 	
 	/**
 	 * @brief Implement the refinement of an interpolated element
@@ -346,9 +287,9 @@ public:
 	/**
 	 * Divides the current element into subelements. Inserts the subelements in the mesh of the element
 	 * and returns their indices
-	*/
+	 */
 	void Divide(int index,TPZVec<int> &sub,int interpolatesolution = 0);
-
+	
 	/**
 	 * @brief Changes the interpolation order of a side. Updates all constraints and block sizes\n
 	 * @param order interpolation order which the user requests
@@ -427,14 +368,13 @@ public:
 	/** Calls IdentifySideOrder on higher level (i.e. smaller) connected elements recursively */
 	virtual void IdentifySideOrder(int side);
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Data consistency methods
 	 * @brief These methods are used during the debugging phase and check the consistency of the data structures
+	 * @{
 	 */
-	
-	//@{
 	
 	/** @brief Check the consistency of the constrained connects along a side*/
 	void CheckConstraintConsistency(int side);
@@ -442,9 +382,7 @@ public:
 	/** @brief Check the consistency of the constrained connects for all sides*/
 	void CheckConstraintConsistency();
 	
-	/**
-	 * @brief Checks element data structure consistancy
-	 */
+	/** @brief Checks element data structure consistancy */
 	virtual  int CheckElementConsistency();
 	
 	/**
@@ -467,7 +405,7 @@ public:
 	 */
 	virtual TPZTransform TransformSideToElement(int side) = 0;
 	
-	//@}
+	/** @} */
 	
 public:
 	

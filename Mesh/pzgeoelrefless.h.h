@@ -2,16 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGeoElRefLess methods.
  */
-//
-// C++ Interface: pzgeoelrefless
-//
-// Description:
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
 
 #ifndef PZGEOELREFLESS_H_H
 #define PZGEOELREFLESS_H_H
@@ -29,7 +19,6 @@ template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess():TPZGeoEl(){
 	int i;
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
-	//  fSubElement = -1;
 }
 
 template<class TGeo>
@@ -48,22 +37,6 @@ template<class TGeo>
 TPZGeoElRefLess<TGeo>::~TPZGeoElRefLess(){
 	//RemoveConnectivities();
 }
-/** divides the element and puts the resulting elements in the vector */
-//template<class TGeo>
-//void TPZGeoElRefLess<TGeo>::Divide(TPZVec < TPZGeoEl * > & pv){
-//  pv.Resize (1);
-//  TPZGeoEl *subel;
-//  subel = new TPZGeoElRefLess(*this);
-//  fSubElement = subel->Index();
-//  subel->SetFather(this);
-//  subel->SetFather(fIndex);
-//}
-
-/** return 1 if the element has subelements along side */
-//template<class TGeo>
-//int TPZGeoElRefLess<TGeo>::HasSubElement(){
-//  return 0;
-//}
 
 template<class TGeo>
 TPZGeoElRefLess<TGeo>::TPZGeoElRefLess(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh) :
@@ -98,15 +71,6 @@ TPZGeoEl(id,matind,mesh) , fGeo(nodeindexes) {
 	for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
     fGeo.Initialize(this);
 }
-
-/*
- template< class TGeo>
- void TPZGeoElRefLess<TGeo>::Initialize(TPZVec<int> &nodeindices) {
- fGeo.Initialize(nodeindices);
- int i;
- for(i=0;i<TGeo::NSides;i++)fNeighbours[i] = TPZGeoElSide();
- }
- */
 
 template<class TGeo>
 int
@@ -273,19 +237,6 @@ TPZGeoElRefLess<TGeo>::SubElement(int is){
 	//  return fSubEl[is];
 	return 0;
 }
-/*
- template<class TGeo>
- TPZGeoElSide
- TPZGeoElRefLess<TGeo>::SideSubElement(int side,int position){
- TPZStack<TPZGeoElSide> subs;
- TRef::GetSubElements(this,side,subs);
- return subs[position];
- if (side < 0 || side > NSides()){
- PZError << "TPZGeoElRefLess<TGeo>::SideSubElement - bad side: " << side << std::endl;
- return TPZGeoElSide();
- }
- return (fNeighbours[side].Side() == -1);
- }  */
 
 template<class TGeo>
 int
@@ -368,11 +319,6 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,T
 		detjac = ZeroTolerance();
 	}
 #endif
-	//   if(TGeo::NNodes == 2) {
-	//     detjac = 1.;
-	//     jacinv(0,0) = 1.;
-	//     jac(0,0) = 1.;
-	//   }
 }
 
 template<class TGeo>
@@ -398,7 +344,6 @@ TPZTransform
 TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform &t)
 {
 	if(this == father) return t;
-	//Augusto:09/01/01
 	TPZGeoEl *myfather = Father();
 	if(side<0 || side>(TGeo::NSides-1) || !myfather){
 		PZError << "TPZGeoElRefLess::BuildTransform2 side out of range or father null\n";
@@ -413,28 +358,11 @@ TPZGeoElRefLess<TGeo>::BuildTransform2(int side, TPZGeoEl * father, TPZTransform
 	return trans;
 }
 
-
 template<class TGeo>
 TPZTransform
 TPZGeoElRefLess<TGeo>::GetTransform(int /*side*/,int /*son*/){
-	//  return TRef::GetTransform(side,son);
-	//  if(side<0 || side>NSides()-1){
     PZError << "TPZGeoElRefLess<TGeo>::GetTransform::Never should be called\n";
     return TPZTransform(0,0);
-	//  }
-	/*  int smalldim = TGeo::SideDimension(side);
-	 int fatherside = FatherSide(side,son);
-	 int largedim = TGeo::SideDimension(fatherside);
-	 TPZTransform trans(largedim,smalldim);
-	 int i,j;
-	 for(i=0; i<largedim; i++) {
-	 for(j=0; j<smalldim; j++) {
-	 trans.Mult()(i,j) = buildt[whichsubel][side][j][i];
-	 }
-	 trans.Sum() (i,0) = buildt[whichsubel][side][2][i];
-	 }
-	 return trans;
-	 */
 }
 
 template<class TGeo>
@@ -459,7 +387,6 @@ TPZGeoElRefLess<TGeo>::Father2(int side)
 template<class TGeo>
 void
 TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
-	//  TRef::GetSubElements(this,side,subel);
 	return;
 }
 
@@ -502,42 +429,26 @@ TPZGeoEl(DestMesh, cp, gl2lcElMap), fGeo(cp.fGeo, gl2lcNdMap)
 {
 	int i;
 	const int n = TGeo::NSides;
-	// #ifdef DEBUG2
-	//   std::stringstream sout;
-	//   sout << __PRETTY_FUNCTION__ << " for element " << Index() << std::endl;
-	// #endif
 	
 	for(i = 0; i < n; i++)
 	{
 		TPZGeoElSide neigh (cp.fNeighbours[i],cp.Mesh());
 		int neighIdx = neigh.Element()->Index();
 		int side = neigh.Side();
-		/*#ifdef DEBUG2
-		 sout << "neighbour data = " << neighIdx << " / " << side << std::endl;
-		 #endif*/
+		
 		while (gl2lcElMap.find(neighIdx)==gl2lcElMap.end())
 		{
 			neigh = neigh.Neighbour();
 			neighIdx = neigh.Element()->Index();
 			side = neigh.Side();
-			/*#ifdef DEBUG2
-			 sout << "\t\tnot neighbour = " << neighIdx << " / " << side << std::endl;
-			 #endif*/
 		}
 		this->fNeighbours[i] = TPZGeoElSideIndex ( gl2lcElMap [ neighIdx ] , side );
-		/*#ifdef DEBUG2
-		 sout << "defining neighbour = " << i << " = " << gl2lcElMap [ neighIdx ] << " / " << side << std::endl;
-		 #endif*/
 	}
-	/*#ifdef DEBUG2
-	 LOGPZ_DEBUG( logger, sout.str().c_str() );
-	 #endif*/
 }
 
 #include "pzgeoquad.h"
-/**
- * Compute the permutation for an HDiv side
- */
+
+/** Compute the permutation for an HDiv side */
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -568,9 +479,8 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoQuad>::HDivPermutation(int side, TPZVe
 }
 
 #include "pzgeotriangle.h"
-/**
- * Compute the permutation for an HDiv side
- */
+
+/** Compute the permutation for an HDiv side */
 template<>
 inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -600,9 +510,7 @@ inline void TPZGeoElRefLess<pzgeom::TPZGeoTriangle>::HDivPermutation(int side, T
 	}
 }
 
-/**
- * Compute the permutation for an HDiv side
- */
+/** Compute the permutation for an HDiv side */
 template<class TGeo>
 inline void TPZGeoElRefLess<TGeo>::HDivPermutation(int side, TPZVec<int> &permutegather)
 {
@@ -641,6 +549,5 @@ inline void TPZGeoElRefLess<TGeo>::VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<in
 {
     PZError << __PRETTY_FUNCTION__ << " nao esta implementado\n";
 }
-
 
 #endif

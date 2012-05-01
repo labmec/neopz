@@ -2,16 +2,13 @@
  * @file
  * @brief Contains declaration of TPZCheckMesh class which verifies the consistency of the datastructure of a TPZCompMesh.
  */
-//$Id: pzcheckmesh.h,v 1.5 2005-04-25 02:31:46 phil Exp $
 
 #ifndef PZGHECKMESHH
 #define PZCHECKMESHH
 
-
 #include "pzcompel.h"
 #include "pzcmesh.h"
 #include  <fstream>
-
 
 template <class T, int N>
 class TPZStack;

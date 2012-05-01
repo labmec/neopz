@@ -2,7 +2,6 @@
  * @file
  * @brief Contains declaration of TPZGeoNode class which defines a geometrical node.
  */
-//$Id: pzgnode.h,v 1.15 2011-03-11 13:27:49 fortiago Exp $
 
 #ifndef  TPZGEONODEH
 #define  TPZGEONODEH
@@ -50,22 +49,16 @@ public:
 	/** @brief Destructor*/
 	virtual  ~TPZGeoNode() { }
 	
-	/**
-	 @brief Returns the id of the class (used for writing reading the object)
-	 */
+	/** @brief Returns the id of the class (used for writing reading the object) */
 	virtual int ClassId() const;
-	/**
-	 @brief Reads the object from disk
-	 */
+	/** @brief Reads the object from disk */
 	virtual void Read(TPZStream &buf, void *context) {
 		TPZSaveable::Read(buf,context);
 		buf.Read(&fId,1);
 		buf.Read(fCoord,3);
 	}
 	
-	/**
-	 @brief Writes the object to disk
-	 */
+	/** @brief Writes the object to disk */
 	virtual void Write(TPZStream &buf, int withclassid) {
 		TPZSaveable::Write(buf,withclassid);
 		buf.Write(&fId,1);
@@ -98,16 +91,11 @@ public:
 	/** @brief Set the i-th coordinate for current node*/
 	void SetCoord(int i,REAL coord);
 	
-	/**
-	 * @brief Fill the coordinates of the node
-	 */
+	/** @brief Fill the coordinates of the node */
 	void GetCoordinates(TPZVec<REAL> &co);
-	/**
-	 * @brief Print the node data into out.
-	 */	
+	/** @brief Print the node data into out. */	
 	void Print(std::ostream & out = std::cout);
 };
-
 
 inline REAL TPZGeoNode::Coord(int i) const {
 #ifndef NODEBUG
@@ -120,4 +108,3 @@ inline REAL TPZGeoNode::Coord(int i) const {
 }
 
 #endif
-

@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZInterpolatedElement methods.
  */
-// $Id: pzintel.cpp,v 1.75 2011-05-11 02:41:36 phil Exp $
 
 #include "pzintel.h"
 #include "pzcmesh.h"
@@ -16,7 +15,6 @@
 #include "pzquad.h"
 #include "pzelmat.h"
 #include "pzmat1dlin.h"
-//#include "pztempmat.h"
 #include "time.h"
 #include "pzmanvector.h"
 #include "pzblockdiag.h"
@@ -38,26 +36,15 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzinterpolatedelement"));
 #include "fadType.h"
 #endif
 
-#ifdef _AUTODIFF
-/**
- * This method fills the matrix ek and load vector ef
- * with the data in the FADFADREAL U second and first derivatives.
- *
- */
-// static void FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, TPZFMatrix<REAL> & ef);
-#endif
-
 #include <sstream>
 using namespace std;
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, TPZGeoEl *reference, int &index) :
 TPZInterpolationSpace(mesh,reference,index) {
-	//  fReference = reference;
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh, const TPZInterpolatedElement &copy) :
 TPZInterpolationSpace(mesh,copy) {
-	//  fReference = copy.fReference;
 }
 
 TPZInterpolatedElement::TPZInterpolatedElement(TPZCompMesh &mesh,
@@ -108,7 +95,6 @@ TPZConnect &TPZInterpolatedElement::MidSideConnect(int is)
     }
 	return Connect(MidSideConnectLocId(is));
 }
-
 
 int TPZInterpolatedElement::SideConnectIndex(int connect, int side) const {
 	return ConnectIndex(SideConnectLocId(connect,side));
@@ -1173,20 +1159,11 @@ void TPZInterpolatedElement::CheckConstraintConsistency(int side) {
 void TPZInterpolatedElement::RemoveSideRestraintWithRespectTo(int side,
                                                               const TPZCompElSide & neighbour) {
 	TPZCompElSide thisside(this,side);
-	//  TPZGeoElSide thisgeoside = thisside.Reference();
-	//  TPZGeoElSide largegeoside = neighbour.Reference();
 	TPZCompElSide largeset = thisside.LowerLevelElementList(1);
 	if(!largeset.Exists()) {
 		LOGPZ_WARN(logger,"Exiting RemoveSideRestraintWithRespectTo inconsistent 1");
 		return;
 	}
-	//  int smallfatherlevel = largeset.Element()->Reference()->Level();
-	// look for the first larger element connected to cel
-	//  if(smallfatherlevel > neighbour.Reference().Level() ) {
-	//    return;
-	//  } else if(smallfatherlevel < neighbour.Reference().Level() ) {
-	//    PZError << "TPZInterpolatedElement::RemoveSideRestraintWithRespectTo inconsistent 2\n";
-	//  }
 	TPZInterpolatedElement *smallfather = dynamic_cast<TPZInterpolatedElement *> (largeset.Element());
 	int smallfatherside = largeset.Side();
 	if(!neighbour.Reference().NeighbourExists(largeset.Reference())) {
@@ -1275,26 +1252,6 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 				if(cel) {
 					cel->IdentifySideOrder(elemset[0].Side());
 				}
-				//        Reference()->SetReference(this);
-				/* 	  for(iel=0; iel<nelem; iel++) { */
-				/* 	    TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elemset[iel].Element(); */
-				/* 	    cel->SetSideOrder(elemset[iel].Side(),order); */
-				/* 	  } */
-				/* 	  SetSideOrder(side,order); */
-				/* 	  if(nsmall) {//existem pequenos : 12c */
-				/* 	    thisside.ExpandConnected(smallset,1); */
-				/* 	    nsmall = smallset.NElements(); */
-				/* 	    int dim; */
-				/* 	    for(dim=0; dim<4; dim++) { */
-				/* 	      for(iel=0; iel<nsmall; iel++) { */
-				/* 		if(smallset[iel].Reference().Dimension() == dim) { */
-				/* 		  TPZInterpolatedElement *cel = (TPZInterpolatedElement *) smallset[iel].Element(); */
-				/* 		  cel->IdentifySideOrder(smallset[iel].Side()); */
-				/* 		} */
-				/* 	      } */
-				/* 	    } */
-				/*  	  } */
-				//	}//12c e 1bc
 			}
 			else if(!nelem) {//nao existem iguais
 				if(large.Exists() && nsmall) {
@@ -1309,7 +1266,6 @@ void TPZInterpolatedElement::RemoveSideRestraintsII(MInsertMode mode) {
 							}
 						}
 					}
-					//          Reference()->SetReference(this);
 				}
 			}//fim nelem e large
 		}//fim mode EDelete
@@ -1406,12 +1362,6 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 	for (i=0;i<nsubelements;i++) {
 		cref = pv[i];//ponteiro para subelemento i
 		fMesh->CreateCompEl(cref,sub[i]);
-		//    cel = (TPZInterpolatedElement *) fMesh->ElementVec()[sub[i]];
-		//    cel->CheckConstraintConsistency();
-		//    if(chk.CheckConnectOrderConsistency() != -1) {
-		//      cout << "TPZInterpolatedElement::Divide deu erro\n";
-		//    }
-		
 		// e' assumido que CreateCompEl inseri o elemento comp no vetor de elementos da malha
 	}
 	if(interpolatesolution) {
@@ -1522,97 +1472,7 @@ void TPZInterpolatedElement::PRefine(int order) {
 	for(side=0; side<NConnects(); side++) {
 		IdentifySideOrder(side);
 	}
-	//   if (side == NConnects()-1){
-	//     int trueorder = SideOrder(side);
-	//     SetIntegrationRule(2*trueorder+2);
-	//   }
 }
-/*
- void TPZInterpolatedElement::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal & blockdiag) {
- int i;
- TPZAutoPointer<TPZMaterial> material = Material();
- if(!material)
- {
- cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
- LOGPZ_ERROR(logger,"CalcBlockDiagonal no material");
- return;
- }
- 
- int ncon = NConnects();
- TPZCompMesh &mesh = *Mesh();
- int numdof = material->NStateVariables();
- TPZVec<int> dependencyorder;
- connectlist.Resize(0);
- for(i=0; i<ncon; i++) connectlist.Push(ConnectIndex(i));
- BuildConnectList(connectlist);
- TPZConnect::BuildDependencyOrder(connectlist,dependencyorder,*this->Mesh());
- int dim = Dimension();
- 
- int numblocks = connectlist.NElements();
- TPZVec<int> blocksizes(numblocks,0);
- int b,c, nexpandedshape = 0,blsize;
- for(b=0; b<numblocks; b++) {
- c = connectlist[b];
- blsize = mesh.ConnectVec()[c].NDof(mesh)/numdof;
- nexpandedshape += blsize;
- blocksizes[b] = blsize*numdof;
- }
- blockdiag.Initialize(blocksizes);
- for(b=0; b<numblocks; b++) {
- blocksizes[b] /= numdof;
- }
- 
- TPZVec<REAL> intpoint(dim,0.);
- REAL weight = 0.;
- TPZMaterialData data, localData;
- this->InitMaterialData(data);
- 
- TPZIntPoints &intrule = GetIntegrationRule();
- 
- for(int int_ind = 0; int_ind < intrule.NPoints(); ++int_ind){
- 
- intrule.Point(int_ind,intpoint,weight);
- this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
- weight *= fabs(data.detjac);
- //    this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
- data.intPtIndex = int_ind;
- this->ComputeRequiredData(data, intpoint);
- localData = data;
- 
- // Expand the values of the shape functions and their derivatives
- ExpandShapeFunctions(connectlist,dependencyorder,blocksizes,data.phi,data.dphix);
- // Make the contribution in small blocks
- localData = data;
- 
- int eq = 0;
- for(b=0; b<numblocks; b++) {
- int cind = connectlist[b];
- int i,j;
- TPZConnect &con = mesh.ConnectVec()[cind];
- blsize = blocksizes[b];
- if(!blsize || con.HasDependency()) {
- eq+= blsize;
- continue;
- }
- TPZFNMatrix<220> phil(blsize,1);
- TPZFNMatrix<660> dphil(dim,blsize);
- for(i=0; i<blsize; i++) {
- phil(i,0) = data.phi(eq+i,0);
- for(j=0; j<dim; j++) {
- dphil(j,i) = data.dphix(j,eq+i);
- }
- }
- eq += blsize;
- TPZFNMatrix<1000> ekl(blsize*numdof,blsize*numdof,0.), efl(blsize*numdof,1,0.);
- localData.phi = phil;
- localData.dphix = dphil;
- material->Contribute(localData,weight,ekl,efl);
- blockdiag.AddBlock(b,ekl);
- }
- }
- }
- */
-
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
 	int dim = Dimension(), nvars;
@@ -1917,26 +1777,19 @@ void TPZInterpolatedElement::FADToMatrix(FADFADREAL &U, TPZFMatrix<REAL> & ek, T
 }
 #endif
 
-/**
- Save the element data to a stream
- */
+/** Save the element data to a stream */
 void TPZInterpolatedElement::Write(TPZStream &buf, int withclassid)
 {
 	TPZInterpolationSpace::Write(buf,withclassid);
 }
 
-
-/**
- Read the element data from a stream
- */
+/** Read the element data from a stream */
 void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 {
 	TPZInterpolationSpace::Read(buf,context);
 }
 
-
-void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
-	
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) {	
 	const int nshape = this->NShapeF();
 	TPZGeoEl * ref = this->Reference();
 	const int dim = ref->Dimension();
@@ -2023,7 +1876,6 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
 											 TPZVec<REAL> &normal,
 											 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
 											 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes){
-	//TPZInterpolatedElement has no left/right elements. Only interface elements have it.
 	leftsol.Resize(0);
 	dleftsol.Resize(0);
 	leftaxes.Zero();

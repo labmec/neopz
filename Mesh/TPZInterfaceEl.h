@@ -24,8 +24,8 @@
 
 
 /**
- @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
- @ingroup CompElement
+ * @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
+ * @ingroup CompElement
  */
 class TPZInterfaceElement : public TPZCompEl {
 	
@@ -48,8 +48,7 @@ class TPZInterfaceElement : public TPZCompEl {
 	
 protected:
 	
-	/** @brief Initialize a material data and its attributes based on element dimension, number of state variables and material definitions
-	 */
+	/** @brief Initialize a material data and its attributes based on element dimension, number of state variables and material definitions */
 	void InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *left);
     
     /** @brief Initialize the material data with the geometric data of the interface element */
@@ -65,12 +64,11 @@ protected:
 	
 public:
 	
-	/**
-	 * @brief Extract connects from element el.
-	 */
+	/** @brief Extract connects from element el */
 	void GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*> &connects, TPZVec<int> &connectindex);
 	
-	/** @brief Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
+	/** 
+	 * @brief Compute solution at neighbour element in a given master coordinate qsi. It returns the axes
 	 * at which respect derivatives are computed.
 	 * @param [in] Neighbor
 	 * @param [in] qsi
@@ -82,11 +80,11 @@ public:
 	
 protected:
 	
-	/** @brief Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
+	/**
+	 * @brief Check consistency of mapped qsi performed by method TPZInterfaceElement::MapQsi by
 	 * comparing the X coordinate of qsi and the correspondent NeighIntPoint.
-	 * 
-	 * It return true if everything is ok or false otherwise.
 	 */
+	/** It return true if everything is ok or false otherwise */
 public:
 	bool CheckConsistencyOfMappedQsi(TPZCompElSide &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL>&NeighIntPoint);
 	

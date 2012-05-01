@@ -2,12 +2,10 @@
  * @file
  * @brief Contains declaration of TPZGeoElement class which implements a generic geometric element with a uniform refinement pattern.
  */
-// $Id: TPZGeoElement.h,v 1.21 2011-05-11 01:43:23 phil Exp $
 
 #ifndef TPZGEOELEMENTH
 #define TPZGEOELEMENTH
 
-//#include "pzgeoel.h"
 #include "pzgeoelrefless.h"
 
 class TPZGeoElSide;
@@ -24,19 +22,19 @@ template <class TGeo, class TRef>
 class TPZGeoElement : public TPZGeoElRefLess<TGeo> {
 	
 	int fSubEl[TRef::NSubEl];
-	//int fNodeIndexes[TGeo::NNodes];
-	//TPZGeoElSide fNeighbours[TShape::NSides];
 public:
-	//static TPZCompEl *(*fp)(TPZGeoEl *el,TPZCompMesh &mesh,int &index);
-	//  static int fTest;
 	typedef TGeo TGeoLoc;
 	
 public:
-	
+	/** @brief Default constructor */
 	TPZGeoElement();
+	/** @brief Constructor from node indexes and id given */
 	TPZGeoElement(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	/** @brief Constructor from node indexes */
 	TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+	/** @brief Constructor with topology given */
 	TPZGeoElement(TGeo &geo, int matind, TPZGeoMesh &mesh);
+	/** @brief Constructor from node indexes and return the index of the new geometric element */
 	TPZGeoElement(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 	
 	/** @brief Copy constructor */
@@ -53,11 +51,7 @@ public:
 				   const TPZGeoElement &cp,
 				   std::map<int,int> &gl2lcNdIdx,
 				   std::map<int,int> &gl2lcElIdx );
-	
-	//  void Initialize(TPZVec<int> &nodeindices);
-	//  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh );
-	//  TPZGeoElement( int* nodeindices, int matind, TPZGeoMesh& mesh, int& index );
-	
+	/** @brief Default destructor */
 	virtual ~TPZGeoElement(){};
 	
 	virtual int ClassId() const;
@@ -78,30 +72,20 @@ public:
 	/** @brief Returns 1 if the element has subelements along side*/
 	int HasSubElement() {return fSubEl[0]!=-1;}
 	
-	
 	void SetSubElement(int id, TPZGeoEl *el);
 	
 	
 	/** @brief Volume of the master element*/
 	REAL RefElVolume();
 	
-	
 	/** @brief Returns the midside node index along a side of the element*/
 	void MidSideNodeIndex(int side,int &index);
 	
-	
-	/**
-	 * @brief Returns the number of subelements of the element independent of the
-	 * fact hether the element has already been refined or not
-	 */
+	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
 	int NSubElements();
 	
-	
-	/**
-	 * @brief Returns the number of subelements as returned by GetSubElements2(side)
-	 */
+	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
 	int NSideSubElements2(int side);
-	
 	
 	/** @brief Returns a pointer to the subelement is*/
 	TPZGeoEl *SubElement(int is);
@@ -110,9 +94,7 @@ public:
      and the indicated position. position = 0 indicate first subelement, ...*/
 	TPZGeoElSide SideSubElement(int side,int position);
 	
-	
 	TPZTransform GetTransform(int side,int son);
-	
 	
 	virtual int FatherSide(int side, int son) {
 		return TRef::FatherSide(side,son);
@@ -127,6 +109,4 @@ public:
 	
 };
 
-
 #endif
-

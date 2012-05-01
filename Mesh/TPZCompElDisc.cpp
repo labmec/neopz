@@ -2,8 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZCompElDisc methods.
  */
-//$Id: TPZCompElDisc.cpp,v 1.125 2011-05-26 03:28:57 phil Exp $
-//$Id: TPZCompElDisc.cpp,v 1.125 2011-05-26 03:28:57 phil Exp $
 
 #include "pztransfer.h"
 #include "pzelmat.h"
@@ -16,12 +14,10 @@
 #include "pzconnect.h"
 #include "pzmaterial.h"
 #include "pzbndcond.h"
-//#include "pztempmat.h"
 #include "pzmanvector.h"
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
-//#include "TPZConservationLaw.h"
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
 #include "pzgraphelq3dd.h"
@@ -231,13 +227,6 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	//axes is identity in discontinuous elements
 	axes.Resize(dphix.Rows(), dphix.Rows());
 	axes.Identity();
-	/*  for(int i = 0; i < axes.Rows(); i++){
-	 for(int j = 0; j < axes.Cols(); j++){
-	 if(i == j) axes(i,j) = 1.;
-	 else axes(i,j) = 0.;
-	 }//j
-	 }//i*/
-	
 }
 
 void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
@@ -267,8 +256,6 @@ void TPZCompElDisc::ShapeX(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<RE
 	
 	//now appending external shape functions
 	this->AppendExternalShapeFunctions(X,phi,dphi);
-	
-	
 }//method
 
 void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi){
@@ -283,7 +270,6 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 	this->fExternalShape->Execute(X, extPhi, extDPhi);
 	
 	//now appending all shape functions
-	
 	{
 		
 		const int ndiscphi = TPZShapeDisc::NShapeF(this->Degree(),this->Dimension(),fShapefunctionType);
@@ -332,7 +318,6 @@ void TPZCompElDisc::AppendExternalShapeFunctions(TPZVec<REAL> &X, TPZFMatrix<REA
 				dphi(i,j+ndiscdphi) = extDPhi(i,j);
 			}
 		}
-		
 	}
 }
 
@@ -1108,7 +1093,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	
 	return SquareResidual;
 	
-}//method
+}
 
 void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &error, bool verbose){
 	
@@ -1135,5 +1120,5 @@ void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &e
 		std::cout.flush();
 	}
 	
-}//method
+}
 

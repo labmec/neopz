@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGeoElRefPattern methods.
  */
-//
-// C++ Interface: tpzgeoelrefpattern
-//
-// Description:
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 #ifndef TPZGEOELREFPATTERN_H_H
 #define TPZGEOELREFPATTERN_H_H
@@ -26,7 +15,6 @@ template <class TGeo>
 void TPZGeoElRefPattern<TGeo>::Read(TPZStream &str, void *context)
 {
 	TPZGeoElRefLess<TGeo>::Read(str, context);
-	//TPZGeoMesh *gmesh = (TPZGeoMesh *) context;
 	int refpatternindex;
 	str.Read(&refpatternindex, 1);
 	if(refpatternindex != -1)
@@ -55,12 +43,6 @@ void TPZGeoElRefPattern<TGeo>::Write(TPZStream &str, int withclassid){
 	str.Write(&refpatternindex, 1);
 	TPZSaveable::WriteObjects(str, this->fSubEl);
 }
-
-// template<class TGeo>
-// TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh, int &index) :
-// TPZGeoElRefLess<TGeo>(nodeindices,matind,mesh,index)
-// {
-// }
 
 template <class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(TPZGeoMesh &DestMesh, const TPZGeoElRefPattern<TGeo> &cp):TPZGeoElRefLess<TGeo>(DestMesh,cp),
@@ -101,7 +83,6 @@ fRefPattern ( cp.fRefPattern )
 		this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];
 	}
 }
-
 
 template <class TGeo>
 TPZGeoEl * TPZGeoElRefPattern<TGeo>::ClonePatchEl(TPZGeoMesh &DestMesh,

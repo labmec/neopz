@@ -2,8 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZReferredCompEl methods.
  */
-// $Id: pzreferredcompel.cpp,v 1.24 2011-05-11 02:50:03 phil Exp $
-
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"

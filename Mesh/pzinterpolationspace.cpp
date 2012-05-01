@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZInterpolationSpace methods.
  */
-//$Id: pzinterpolationspace.cpp,v 1.46 2011-05-26 03:28:57 phil Exp $
 
 #include "pzinterpolationspace.h"
 #include "pzmaterialdata.h"
@@ -139,8 +138,8 @@ void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
 void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
                                                 TPZVec<REAL> &qsi){
 	//if (data.fNeedsNeighborSol){
-        //DebugStop();
-//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
+	//DebugStop();
+	//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
 	//}//fNeedsNeighborSol
 	
 	if (data.fNeedsSol){
@@ -258,11 +257,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
-	  {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
-	 LOGPZ_DEBUG(logger,sout.str());
-	 }
+	{
+		std::stringstream sout;
+		sout << __PRETTY_FUNCTION__ << " material id " << material->Id();
+		LOGPZ_DEBUG(logger,sout.str());
+	}
 #endif
 	this->InitializeElementMatrix(ek,ef);
 	
@@ -1021,9 +1020,6 @@ void TPZInterpolationSpace::ComputeError(int errorid,
 	TPZMaterialData data;
 	this->InitMaterialData(data);
 	
-	//   data.fPrimalExactSol = fp;
-	//   data.fDualExactSol = fd;
-	
 	REAL weight;
 	int dim = Dimension();
 	TPZVec<REAL> intpoint(dim,0.);
@@ -1178,9 +1174,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 	}//for int_ind
 }//method
 
-/**
- * Save the element data to a stream
- */
+/** Save the element data to a stream */
 void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
 {
 	TPZCompEl::Write(buf,withclassid);
@@ -1446,12 +1440,9 @@ void TPZInterpolationSpace::ExpandShapeFunctions(TPZVec<int> &connectlist, TPZVe
 	}
 }
 
-/**
- * Read the element data from a stream
- */
+/** Read the element data from a stream */
 void TPZInterpolationSpace::Read(TPZStream &buf, void *context)
 {
 	TPZCompEl::Read(buf,context);
 	buf.Read(&fPreferredOrder,1);
 }
-

@@ -2,23 +2,14 @@
  * @file
  * @brief Contains the Ids for several geometric structures.
  */
+
 #ifndef PZMESHIDH
 #define PZMESHIDH
-//
-// C++ Interface: pzmeshid
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@corona>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 
 /** \addtogroup geometry
  * @{
  */
+
 /** @brief Id of geometric point element */
 const int TPZFGEOELEMENTPOINTID = 200;
 /** @brief Id of geometric linear element */
@@ -153,25 +144,6 @@ const int TPZHDIVBOUND2TRIANGLEID = 258;
 /** @brief Id of HDiv two-dimensional boundary quadrilateral element (?) */
 const int TPZHDIVBOUND2QUADID = 259;
 
-//-----
-// /** @brief Id of multiphysics point element */
-//const int TPZMULTIPHYSICSPOINTID = 260;
-// /** @brief Id of multiphysics linear element */
-//const int TPZMULTIPHYSICSLINEARID = 261;
-// /** @brief Id of multiphysics triangular element */
-//const int TPZMULTIPHYSICSTRIANGLEID = 262;
-// /** @brief Id of multiphysics quadrilateral element */
-//const int TPZMULTIPHYSICSQUADID = 263;
-// /** @brief Id of multiphysics cube element */
-//const int TPZMULTIPHYSICSCUBEID = 264;
-// /** @brief Id of multiphysics prismal element */
-//const int TPZMULTIPHYSICSPRISMID = 265;
-// /** @brief Id of multiphysics tetrahedral element */
-//const int TPZMULTIPHYSICSTETRAID = 266;
-// /** @brief Id of multiphysics pyramidal element */
-//const int TPZMULTIPHYSICSPYRAMID = 267;
-//-------
-
 /** @brief Id of geometric blended point element (?) */
 const int TPZGEOBLENDPOINTID = 403;
 /** @brief Id of geometric blended linear element (?) */
@@ -188,18 +160,7 @@ const int TPZGEOBLENDPRISMID = 408;
 const int TPZGEOBLENDPYRAMIDID = 409;
 /** @brief Id of geometric blended tetrahedral element (?) */
 const int TPZGEOBLENDTETRAHEDRAID = 410;
+
 /** @} */
-
-/** @brief Function to register mesh classes */
-void RegisterMeshClasses();
-//template class TPZGeoElement<TPZShapePoint,TPZGeoPoint,TPZRefPoint>;
-//template class TPZGeoElement<TPZShapeLinear,TPZGeoLinear,TPZRefLinear>;
-//template class TPZGeoElement<TPZShapeTriang,TPZGeoTriangle,TPZRefTriangle>;
-//template class TPZGeoElement<TPZShapeQuad,TPZGeoQuad,TPZRefQuad>;
-//template class TPZGeoElement<TPZShapeCube,TPZGeoCube,TPZRefCube>;
-//template class TPZGeoElement<TPZShapePrism,TPZGeoPrism,TPZRefPrism>;
-//template class TPZGeoElement<TPZShapeTetra,TPZGeoTetrahedra,TPZRefTetrahedra>;
-//template class TPZGeoElement<TPZShapePiram,TPZGeoPyramid,TPZRefPyramid>;
-
 
 #endif

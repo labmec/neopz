@@ -2,13 +2,10 @@
  * @file
  * @brief Contains the implementation of the TPZFlowCompMesh methods.
  */
-//$Id: pzflowcmesh.cpp,v 1.21 2011-05-13 20:46:50 phil Exp $
 
 #include "pzflowcmesh.h"
 #include "TPZCompElDisc.h"
-//#include "TPZConservationLaw.h"
 #include "pzintel.h"
-//#include "TPZInterfaceEl.h"
 
 using namespace std;
 
@@ -29,17 +26,13 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	TPZVec<REAL> param(3,0.);
 	
 	// loop over all elements, computing the velocity for
-	// the non-interface elements.
-	
+	// the non-interface elements.	
 	i = 0;
 	for(i=0;i<nel;i++){
 		
 		TPZCompEl *pElComp = ElementVec()[i];
 		if(!pElComp)
-		{
-			//       cout << "TPZFlowCompMesh::MaxVelocityOfMesh: No associated computation element.\n";
 			continue;
-		}
 		
 		TPZAutoPointer<TPZMaterial> mat = pElComp->Material();
 		if(!mat)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material.\n";
@@ -49,8 +42,6 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		
 		dim = mat->Dimension();
 		elDim = pElGeo->Dimension();
-		
-		//    TPZCompElDisc *pElDisc = dynamic_cast<TPZCompElDisc *>(pElComp);
 		
 		if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
 			// dimension of the element and if the element is discontinuous.
@@ -108,7 +99,6 @@ void TPZFlowCompMesh::CollectFluidMaterials()
 	}
 }
 
-
 REAL TPZFlowCompMesh::ComputeTimeStep()
 {
     REAL maxVel = MaxVelocityOfMesh();
@@ -143,10 +133,16 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
     return meanTimeStep / (double)numcontr;
 }
 
-/** @brief Function for dynamic cast of the material based on map A (second data) */
+/**
+ * @ingroup material
+ * @brief Function for dynamic cast of the material based on map A (second data)
+ */
 #define FL(A) dynamic_cast<TPZConservationLaw *>(A->second.operator->())
 
-/** @brief Maxime value to CFL coefficient */
+/**
+ * @ingroup material
+ * @brief Maxime value to CFL coefficient
+ */
 #define MAXCFL 1.e6
 
 void TPZFlowCompMesh::SetCFL(REAL CFL)
@@ -202,10 +198,7 @@ int TPZFlowCompMesh::NFlowMaterials()
 	return fFluidMaterial.size();
 }
 
-/**
- * Returns the first flow material in the mesh
- *
- */
+/** Returns the first flow material in the mesh */
 TPZAutoPointer<TPZMaterial> TPZFlowCompMesh::GetFlowMaterial()
 {
 	TPZAutoPointer<TPZMaterial> result;
@@ -247,7 +240,6 @@ void TPZFlowCompMesh::Read(TPZStream &buf, void *context)
 	TPZCompMesh::Read(buf, context);
 	CollectFluidMaterials();
 }
-
 
 void TPZFlowCompMesh::ExpandSolution2()
 {

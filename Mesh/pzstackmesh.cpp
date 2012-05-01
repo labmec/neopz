@@ -1,8 +1,7 @@
 /**
- * \file
+ * @file
  * @brief Creating TPZStack classe from template to geometric and computational elements.
  */
-// $Id: pzstackmesh.cpp,v 1.1.1.1 2003-02-04 16:45:27 cantao Exp $
 
 #include "pzstack.h"
 
@@ -50,16 +49,8 @@ template class TPZStack<TPZElementMatrix *>;
 template class TPZStack<TElMeasurement *>;
 #endif // ELLIPS
 
-/*
- #ifdef ARXDBX
- #include "dbid.h"
- template class TPZStack<AcDbObjectId>;
- #endif
- */
-
 #ifdef ELLIPSARX
 #include "TElRxPointerConv.h"
 template class TPZStack<TElRxPointerConv::TG>;
 #endif // ELLIPSARX
 
-//--| PZ |----------------------------------------------------------------------

@@ -1,19 +1,21 @@
+/**
+ * @file
+ * @brief Contains the declaration of the TPZCondensedCompEl class, which implements an computational element which condenses the internal connects.
+ */
+
 #ifndef TPZCONDENSEDCOMPELH
 #define TPZCONDENSEDCOMPELH
-//
-//  pzcondensedcompel.h
-//  PZ
-//
-//  Created by Philippe Devloo on 12/9/11.
-//  Copyright 2011 UNICAMP. All rights reserved.
-//
 
 #include "pzcompel.h"
 #include "pzmatred.h"
 #include "pzmanvector.h"
 #include "pzelmat.h"
 
-/// class which implements an element which condenses the internal connects
+/**
+ * @brief Class which implements an element which condenses the internal connects
+ * @author Philippe Devloo
+ * @ingroup CompElement
+ */
 class TPZCondensedCompEl : public TPZCompEl
 {
 
@@ -23,15 +25,12 @@ class TPZCondensedCompEl : public TPZCompEl
     TPZManVector<int,27> fIndexes; 
     
     void Resequence();
-    
-    
+
 public:
     
     TPZCondensedCompEl(TPZCompEl *ref);
     
-    /**
-     * @brief create a copy of the condensed computational element in the other mesh
-     */
+    /** @brief create a copy of the condensed computational element in the other mesh */
     TPZCondensedCompEl(const TPZCondensedCompEl &copy, TPZCompMesh &mesh);
     
     virtual ~TPZCondensedCompEl();
@@ -41,11 +40,8 @@ public:
 	 * @param out Indicates the device where the data will be printed
 	 */
 	virtual void Print(std::ostream &out = std::cout) const;
-	
 
-    /**
-     * @brief unwrap the condensed element from the computational element and delete the condensed element
-     */
+    /** @brief unwrap the condensed element from the computational element and delete the condensed element */
     void Unwrap();
     
     /**
@@ -81,10 +77,9 @@ public:
         return new TPZCondensedCompEl(*this,mesh);
     }
 
-    /**
-	 * @brief Loads the solution within the internal data structure of the element
-	 */ 
-	/** Is used to initialize the solution of connect objects with dependency
+    /** @brief Loads the solution within the internal data structure of the element */ 
+	/** 
+	 * Is used to initialize the solution of connect objects with dependency \n
 	 * Is also used to load the solution within SuperElements
 	 */
 	virtual void LoadSolution();
@@ -156,8 +151,6 @@ public:
 	 * @param ef element load vector(s)
 	 */
 	virtual void CalcResidual(TPZElementMatrix &ef);
-	
-
 
 };
 

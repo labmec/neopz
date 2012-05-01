@@ -2,8 +2,6 @@
  * @file
  * @brief Contains declaration of TPZCompelDisc class which implements a computational element for discontinuous interpolation space.
  */
-//$Id: TPZCompElDisc.h,v 1.79 2011-05-11 02:48:14 phil Exp $
-
 
 /** Discontinous Elements */
 
@@ -19,7 +17,6 @@
 #include "pzreal.h"
 #include "TPZShapeDisc.h"
 #include "tpzautopointer.h"
-//#include "pzmaterial.h"
 #include "pzquad.h"
 #include "pzfunction.h"
 
@@ -105,6 +102,7 @@ public:
 	
 	int GetMaterial( const TPZGeoElSide& gside );
 	
+	/** @brief Creates discontinuous computational element */
 	static TPZCompEl *CreateDisc(TPZGeoEl *geo, TPZCompMesh &mesh, int &index);
 	
 	/**
@@ -126,14 +124,15 @@ public:
 	/** @brief Returns the number of interfaces. */
 	virtual int NInterfaces();
 	
+	/** @brief Default constructor */
 	TPZCompElDisc();
-	
+	/** @brief Constructor of the discontinuous element associated with geometric element */
 	TPZCompElDisc(TPZCompMesh &mesh,TPZGeoEl *ref,int &index);//original
+	/** @brief Constructor */
 	TPZCompElDisc(TPZCompMesh &mesh,int &index);//construtor do aglomerado
-	
+	/** @brief Copy constructor */
 	TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy);
-	
-	
+
 	/**
 	 * @brief Creates a clone of the given element in a pathc mesh
 	 * @param mesh patch mesh
@@ -169,7 +168,7 @@ public:
 									std::map<int,int> & gl2lcElMap) const {
 		return new TPZCompElDisc(mesh,*this,gl2lcConMap,gl2lcElMap);
 	}
-	
+	/** @brief Default destructor */
 	~TPZCompElDisc();
 	
 	/** @brief Divide the computational element */
@@ -213,8 +212,7 @@ public:
 	
 	void SetConstC(REAL c){fConstC = c;}
 	
-	/**
-	 */
+	/** @brief Returns the center point */
 	void InternalPoint(TPZVec<REAL> &point);
 	
 	/** @brief Prints the features of the element */
@@ -232,7 +230,7 @@ public:
 	
 	/** @brief Assigns the degree of the element */
 	virtual void SetDegree(int degree);
-	
+	/** @brief Returns the number of connects */
 	virtual int NConnects() const;
 	
 	/** @brief Amount of vertices of the element */

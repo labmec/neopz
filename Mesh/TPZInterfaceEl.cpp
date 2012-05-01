@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZInterfaceElement methods.
  */
-//$Id: TPZInterfaceEl.cpp,v 1.105 2011-05-26 03:28:57 phil Exp $
 
 #include "pzelmat.h"
 #include "TPZInterfaceEl.h"
@@ -10,7 +9,6 @@
 #include "pzgeoelside.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-//#include "TPZConservationLaw.h"
 #include "pzconslaw.h"
 #include "pzbndcond.h"
 #include "pzintel.h"
@@ -162,7 +160,6 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	}
 }
 
-
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
                                          std::map<int,int> &gl2lcConIdx,
@@ -210,8 +207,6 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 		DebugStop();
 	}
 }
-
-
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index)
 : TPZCompEl(mesh,copy,index) {
@@ -957,98 +952,6 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	ef.fBlock.Resequence();
 }
 
-
-/*void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
-#ifdef DEBUG
-	if(!mat || mat->Name() == "no_name"){
-		PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
-		ek.Reset();
-		ef.Reset();
-		DebugStop();
-		return;
-	}
-#endif
-	
-	TPZInterpolationSpace * left = dynamic_cast<TPZInterpolationSpace*>(this->LeftElement());
-	TPZInterpolationSpace * right = dynamic_cast<TPZInterpolationSpace*>(this->RightElement());
-	
-#ifdef DEBUG
-	if (!left || !right){
-		PZError << "\nError at TPZInterfaceElement::CalcStiff null neighbour\n";
-		ek.Reset();
-		ef.Reset();
-		DebugStop();
-		return;
-	}
-	if(!left->Material() || !right->Material()){
-		PZError << "\n Error at TPZInterfaceElement::CalcStiff null material\n";
-		ek.Reset();
-		ef.Reset();
-		DebugStop();
-		return;
-	}
-#endif
-	
-	TPZMaterialData data;
-	const int dim = this->Dimension();
-	const int diml = left->Dimension();
-	const int dimr = right->Dimension();
-	this->InitMaterialData(data,left,right);
-	this->InitializeElementMatrix(ek,ef);
-	
-	//LOOKING FOR MAX INTERPOLATION ORDER
-	data.leftp = left->MaxOrder();
-	data.rightp = right->MaxOrder();
-	//Max interpolation order
-	const int p = (data.leftp > data.rightp) ? data.leftp : data.rightp;
-	
-	TPZGeoEl *ref = Reference();
-    int intorder = mat->IntegrationRuleOrder(p);
-	TPZAutoPointer<TPZIntPoints> intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, intorder );
-    if(mat->HasForcingFunction())
-    {
-        intorder = intrule->GetMaxOrder();
-        TPZManVector<int,3> order(ref->Dimension(),intorder);
-        intrule->SetOrder(order);
-    }
-	//   mat->SetIntegrationRule(intrule, p, dim);
-	const int npoints = intrule->NPoints();
-	
-	//integration points in left and right elements: making transformations to neighbour elements
-	TPZTransform TransfLeft, TransfRight;
-	this->ComputeSideTransform(this->LeftElementSide(), TransfLeft);
-	this->ComputeSideTransform(this->RightElementSide(), TransfRight);
-	
-	TPZManVector<REAL,3> intpoint(dim), LeftIntPoint(diml), RightIntPoint(dimr);
-	REAL weight;
-	//LOOP OVER INTEGRATION POINTS
-	for(int ip = 0; ip < npoints; ip++){
-		
-		intrule->Point(ip,intpoint,weight);
-		ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
-		weight *= fabs(data.detjac);
-		
-		this->Normal(data.axes,data.normal);
-		
-		TransfLeft.Apply( intpoint, LeftIntPoint );
-		TransfRight.Apply( intpoint, RightIntPoint );
-		
-#ifdef DEBUG
-		this->CheckConsistencyOfMappedQsi(this->LeftElementSide(), intpoint, LeftIntPoint);
-		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
-#endif
-		
-		left->ComputeShape(LeftIntPoint, data.x, data.leftjac, data.axesleft, data.leftdetjac, data.leftjacinv, data.phil, data.dphixl);
-		right->ComputeShape(RightIntPoint, data.x, data.rightjac, data.axesright, data.rightdetjac, data.rightjacinv, data.phir, data.dphixr);
-		
-		this->ComputeRequiredData(data, left, right, intpoint, LeftIntPoint, RightIntPoint);
-		mat->ContributeInterface(data, weight, ek.fMat, ef.fMat);
-		
-	}//loop over integration points
-	
-}*/
 void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 #ifdef LOG4CXX
@@ -1084,9 +987,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		return;
 	}
 	
-	
-	
-	
 	//TPZMaterialData data;
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
@@ -1097,8 +997,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int nstater = right->Material()->NStateVariables();
 	//	this->InitMaterialData(data,left,right);
 	
-	
-	
 	TPZMaterialData dataright;
 	TPZMaterialData dataleft;
     TPZMaterialData data;
@@ -1108,18 +1006,14 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     InitMaterialData(data);
 	
 	dataleft.fNeedsNormal=true;
-	
-	
-	
+
 	if( !dataleft.x||!dataright.x){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
 		ef.Reset();
 		return;
 	}
-	
-	
-	
+
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<int> ConnectIndexL, ConnectIndexR;
 	
@@ -1180,17 +1074,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	TPZGeoEl *ref = Reference();
 	TPZIntPoints *intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, 2*(p) );
-/*	if(mat->HasForcingFunction()){
-		TPZManVector<int,10> order(3);
-		intrule->GetOrder(order);
-		int maxorder = intrule->GetMaxOrder();
-		order.Fill(maxorder);
-		intrule->SetOrder(order);
-	}
- */
+
 	const int npoints = intrule->NPoints();
-	
-	
 	
 	//		integration points in left and right elements: making transformations to neighbour elements
 	TPZTransform TransfLeft, TransfRight;
@@ -1205,8 +1090,6 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		intrule->Point(ip,intpoint,weight);
 		ref->Jacobian( intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
-		
-//		this->Normal(data.axes,data.normal);
 		
 		TransfLeft.Apply( intpoint, LeftIntPoint );
 		TransfRight.Apply( intpoint, RightIntPoint );
@@ -1376,11 +1259,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 	this->InitMaterialData(datal,left);
 	this->InitMaterialData(datar,right);
 	this->InitMaterialData(data);
-    
-	//   data.fPrimalExactSol = fp;
-	//   data.fDualExactSol = fd;
-	
-	
+   
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
 	const int dimr = right->Dimension();
@@ -1661,20 +1540,14 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 	if (data.fNeedsSol){
         // the interface elements have no approximation space!!
         DebugStop();
-		//this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		//this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);//chamando acima porque senao nao chega
-		//a TPZReferredCompEl<TPZInterfaceElement>
 	}
 	
 	if (data.fNeedsHSize){
 		const int dim = this->Dimension();
 		REAL faceSize;
 		if (dim == 0){//it means I am a point
-			//2*(a+b)/2
-            // the formulation cannot depend on the face size in this case
             DebugStop();
             faceSize = 1.;
-//			faceSize = left->InnerRadius() + right->InnerRadius();
 		}
 		else{
 			faceSize = 2.*this->Reference()->ElementRadius();//Igor Mozolevski's suggestion. It works well for elements with small aspect ratio
@@ -1687,4 +1560,3 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 	}
 	
 }//void
-

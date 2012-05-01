@@ -8,11 +8,12 @@
 
 #if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
+#endif
+
 #include <stdlib.h>
+
 #include "pzcompel.h"
 #include "pzcmesh.h"
-//#include "pzsmanal.h"
 #include "pzvec.h"
 #include "pzreal.h"
 #include "pzanalysis.h"
@@ -27,7 +28,7 @@ class TPZGuiInterface;
  * @ingroup CompMesh
  * @ingroup CompElement
  */
-/** Class TPZSubCompMesh derived from Computacional mesh and
+/** Class TPZSubCompMesh is derived from Computacional mesh and
  * computacional element classes.
  */
 class TPZSubCompMesh :
@@ -35,32 +36,21 @@ public TPZCompMesh,
 public TPZCompEl
 {
 protected:
-	/**
-	 * @brief Pointer to submesh analysis object. Defines the resolution type.
-	 */
+	/** @brief Pointer to submesh analysis object. Defines the resolution type. */
 	TPZAutoPointer<TPZAnalysis> fAnalysis;
 	
-	/**
-	 * @brief Pointer to external location index of the connection.
-	 * 
-	 * If the connection hasn't external location return the local id.
-	 */
+	/** @brief Pointer to external location index of the connection. */ 
+	/** If the connection hasn't external location return the local id. */
 	TPZManVector<int> fConnectIndex;
 	
-	/**
-	 * @brief Indexes of the external connections.
-	 * 
-	 * If the connection isn't external id is -1!
-	 */
+	/** @brief Indexes of the external connections. */ 
+	/** If the connection isn't external id is -1! */
 	TPZManVector<int> fExternalLocIndex;
-	/**
-	 * @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id
-	 */
+	/** @brief Maps indicating the correspondence between the connect index of the father mesh and de local connect id */
 	std::map<int,int> fFatherToLocal;
     
     /// Number of rigid body modes expected by the internal matrix inversion
     int fSingularConnect;
-	
 	
 private:
 	/** @brief Transfers one element from a submesh to another mesh. */
@@ -74,9 +64,8 @@ private:
 	/**
 	 * @brief Transfer the dependency list of a connect. This will
 	 * make the dependency disappear for the corresponding father mesh
-	 * 
-	 * It is necessary that the number of elements connected to the connect be equal one
 	 */
+	/** It is necessary that the number of elements connected to the connect be equal one */
 	void TransferDependencies(int local);
 	
 public:
@@ -86,12 +75,11 @@ public:
 	 * @param index reference mesh element index to transfer to submesh
 	 */
 	TPZSubCompMesh(TPZCompMesh &mesh, int &index);
+	/** @brief Default constructor */
 	TPZSubCompMesh();
-	
-	/**
-	 * @brief Destructor.
-	 */
+	/** @brief Destructor. */
 	virtual ~TPZSubCompMesh();
+	
 	virtual int NConnectShapeF(int inod){
 		PZError << "\nPLEASE IMPLEMENT ME: " << __PRETTY_FUNCTION__ << "\n";
 		return 0;
@@ -110,14 +98,7 @@ public:
 		return 0;
 	}
 	
-	/**
-	 * @brief Static function for validation tests.
-	 */
-	static int main();
-	
-	/**
-	 * @brief Sets the analysis type.
-	 */
+	/** @brief Sets the analysis type. */
 	void SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInterface> guiInterface);
     
     /**
@@ -132,10 +113,7 @@ public:
 		return fAnalysis;
 	}
 	
-	/**
-	 * @brief This method will load the elements of the grid in their corresponding geometric
-	 * elements
-	 **/
+	/** @brief This method will load the elements of the grid in their corresponding geometric elements */
 	virtual void LoadElementReference();
 	
 	/**
@@ -143,7 +121,7 @@ public:
 	 * mesh and the mesh which is referenced by the geometric mesh
 	 * @param var state variable number
 	 * @param matname pointer to material name
-	 **/
+	 */
 	virtual REAL CompareElement(int var, char *matname);
 	
 	/**
@@ -154,9 +132,7 @@ public:
 	 */
 	int IsAllowedElement(TPZCompMesh *mesh, int elindex);
 	
-	/**
-	 * @brief Computes the number of internal equations
-	 */
+	/** @brief Computes the number of internal equations */
 	int NumInternalEquations();
 	
 	/**
@@ -180,9 +156,7 @@ public:
 	 * @{
 	 */
 
-	/**
-	 * @brief Transfer one element form a submesh to another mesh.
-	 */
+	/** @brief Transfer one element form a submesh to another mesh. */
 	virtual int TransferElement(TPZCompMesh *mesh, int elindex);
 	
 	/**
@@ -225,69 +199,49 @@ public:
 	 */
 	virtual TPZCompMesh * CommonMesh (TPZCompMesh *mesh);
 	
-	/**
-	 * @brief Returns the current submesh father mesh .
-	 */
+	/** @brief Returns the current submesh father mesh. */
 	virtual TPZCompMesh * FatherMesh() const;
 
 	/** @} */
 	
-	/**
-	 * @brief Optimizes the connections positions on block.
-	 * void TPZSubCompMesh::PermuteExternalConnects(){
-	 */
+	/** @brief Optimizes the connections positions on block. */
 	void PermuteExternalConnects();
 	
 	/**
-	 * @brief Computes the permutation vector which puts the internal connects to the first on the list
+	 * @brief Computes the permutation vector which puts the internal connects to the first on the list \n
 	 * Respect the previous order of the connects
 	 */
 	void ComputePermutationInternalFirst(TPZVec<int> &permute) const;
 	
 	/**
-	 * @brief Permutes the potentially internal connects to the first on the list
+	 * @brief Permutes the potentially internal connects to the first on the list \n
 	 * Respect the previous order of the connects
 	 */
 	void PermuteInternalFirst(TPZVec<int> &permute);
 	
 	/**
-	 * @brief Prints the submesh information on the specified device/file out.
-	 * 
-	 * This method use the virtual method from Computacional Mesh class.
+	 * @brief Prints the submesh information on the specified device/file out. 
 	 * @param out indicates the device where the data will be printed
-	 */
+	 */ 
+	/** This method use the virtual method from Computacional Mesh class. */
 	virtual void Print(std::ostream &out = std::cout) const;
 	
-	/**
-	 * @brief Verifies if any element needs to be computed corresponding to the material ids
-	 */
+	/** @brief Verifies if any element needs to be computed corresponding to the material ids */
 	bool NeedsComputing(const std::set<int> &matids);
-	/**
-	 * @brief Virtual Method to allocate new connect
-	 */
+	/** @brief Virtual Method to allocate new connect */
 	virtual int AllocateNewConnect(int nshape, int nstate, int order);
 	
-	/**
-	 * @brief Gives the id node  of one local node in containing mesh.
-	 */
+	/** @brief Gives the id node  of one local node in containing mesh. */
 	int NodeIndex(int nolocal, TPZCompMesh *super);
 	
-	
-	/**
-	 * @brief Virtual Method! See declaration in TPZCompEl class.
-	 * 
-	 * The use of this method in submesh class return -1 == Error!
-	 */
+	/** @brief Virtual Method! See declaration in TPZCompEl class. */ 
+	/** The use of this method in submesh class return -1 == Error! */
 	virtual int Dimension() const;
 	
-	/**
-	 * @brief Computes the number of elements connected to each connect object
-	 */
+	/** @brief Computes the number of elements connected to each connect object */
 	virtual void ComputeNodElCon();
 	
-	/**
-	 * @brief Computes the number of elements connected to each connect object
-	 */
+	/** @brief Computes the number of elements connected to each connect object */
 	virtual void ComputeNodElCon(TPZVec<int> &nelconnected) const;
 
 	/**
@@ -303,9 +257,7 @@ public:
 	 */
 	virtual void SetConnectIndex(int inode, int index);
 	
-  	/**
-	 * @brief Calculates the submesh stiffness matrix
-	 */
+  	/** @brief Calculates the submesh stiffness matrix */
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef);
 		
 	/**
@@ -316,14 +268,10 @@ public:
 	 */
 	virtual void CreateGraphicalElement(TPZGraphMesh & graphmesh, int dimension);
 
-	/**
-	 * @brief Returns the connection index i.
-	 */
+	/** @brief Returns the connection index i. */
 	virtual int ConnectIndex(int i) const;
 	
-	/**
-	 * @brief Returns the number of connections.
-	 */
+	/** @brief Returns the number of connections. */
 	virtual int NConnects() const;
 	
     /**
@@ -364,7 +312,7 @@ public:
 	 * @param qsi master element coordinate
 	 * @param phi matrix containing shape functions compute in qsi point
 	 * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-	 * @param [in] axes indicating the direction of the derivatives
+	 * @param axes [in] indicating the direction of the derivatives
 	 * @param sol finite element solution
 	 * @param dsol solution derivatives
 	 */
@@ -373,28 +321,24 @@ public:
 	
 	/** @} */
 	
-	/**
-	 * @brief Returns the unique identifier for reading/writing objects to streams
-	 */
+	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;
-	/**
-	 @brief Saves the element data to a stream
-	 */
+	/** @brief Saves the element data to a stream */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
-	/**
-	 @brief Reads the element data from a stream
-	 */
+	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
 	bool VerifyDatastructureConsistency();
     
-    /// Set the number of rigid body modes associated with the internal degrees of freedom
+    /** @brief Set the number of rigid body modes associated with the internal degrees of freedom */
     void SetNumberRigidBodyModes(int nrigid);
     
-    /// Return the number of rigid body modes associated with the internal degrees of freedom
+    /** @brief Return the number of rigid body modes associated with the internal degrees of freedom */
     int NumberRigidBodyModes();
-	
+
+	/** @brief Static function for validation tests. */
+	static int main();
 };
 
 #endif

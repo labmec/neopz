@@ -2,12 +2,9 @@
  * @file
  * @brief Contains the implementation of the TPZAgglomerateElement methods.
  */
-//$Id: TPZAgglomerateEl.cpp,v 1.53 2011-05-13 20:46:50 phil Exp $
 
 #include "TPZAgglomerateEl.h"
 #include "TPZInterfaceEl.h"
-//#include "TPZEulerConsLaw.h"
-//#include "TPZConservationLaw.h"
 #include "pzdiscgal.h"
 #include "pzcompel.h"
 #include "pzgeoel.h"

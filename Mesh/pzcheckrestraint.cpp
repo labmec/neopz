@@ -290,10 +290,6 @@ void TPZCheckRestraint::Print(ostream &out){
 	out <<  "Large geometric element printout \n";
 	largegeo.Element()->Print();
 	
-	
-	//fSmallSize;
-	//fSmallPos;
-	//	TPZVec<int> fLargeSize,fLargePos;
 	int nsmal = fSmallConnect.NElements();
 	int nlarge = fLargeConnect.NElements();
 	int is, il;

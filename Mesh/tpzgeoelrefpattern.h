@@ -2,22 +2,6 @@
  * @file
  * @brief Contains declaration of TPZGeoElRefPattern class which implements a generic geometric element which is refined according to a generic refinement pattern
  */
-/***************************************************************************
- tpzgeoelrefpattern.h  -  description
- -------------------
- begin                : Tue Dec 23 2003
- copyright            : (C) 2003 by cesar
- email                : cesar@labmec.fec.unicamp.br
- ***************************************************************************/
-
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #ifndef TPZGEOELREFPATTERN_H
 #define TPZGEOELREFPATTERN_H
@@ -57,11 +41,16 @@ class TPZGeoElRefPattern : public TPZGeoElRefLess<TGeo>  {
 	
 public:
 	typedef TGeo Geo;
+	/** @brief Default constructor */
 	TPZGeoElRefPattern();
+	/** @brief Default destructor */
 	~TPZGeoElRefPattern();
 	
+	/** @brief Constructor from node indexes and id given */
 	TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh);
+	/** @brief Constructor from node indexes given */
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh);
+	/** @brief Constructor from node indexes given and return the index of the new object */
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 	
 	/** @brief Returns 1 if the element has subelements along side */
@@ -104,7 +93,6 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector*/
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
@@ -120,13 +108,17 @@ public:
 	
 	virtual void ResetSubElements();
 	
-	/** @name Saveable methods */
-	// @{ 
+	/**
+	 * @name Saveable methods
+	 * @{
+	 */
+
 	virtual int ClassId() const;
 	virtual void Read(TPZStream &str, void *context);
 	virtual void Write(TPZStream &str, int withclassid);
 	virtual TPZGeoEl * Clone(TPZGeoMesh &DestMesh) const;
-	//@}
+
+	/** @} */
 	
 	virtual TPZGeoEl * ClonePatchEl(TPZGeoMesh &DestMesh,
 									std::map<int,int> &gl2lcNdIdx,
@@ -184,19 +176,6 @@ template<class TGeo>
 TPZGeoElRefPattern<TGeo>::TPZGeoElRefPattern(int id,TPZVec<int> &nodeindexes,int matind,TPZGeoMesh &mesh) :
 TPZGeoElRefLess<TGeo>(id,nodeindexes,matind,mesh) {
 }
-
-/*
- template<class TGeo>
- void TPZGeoElRefPattern<TGeo>::Initialize(TPZVec<int> &nodeindices, TPZAutoPointer<TPZRefPattern> refpat) {
- TPZGeoElRefLess<TGeo>::Initialize(nodeindices);
- fRefPattern = refpat;
- if(fRefPattern)
- {
- fSubEl.Resize(fRefPattern->NSubElements());
- fSubEl.Fill(-1);
- }
- }
- */
 
 template<class TGeo>
 void TPZGeoElRefPattern<TGeo>::SetSubElement(int id, TPZGeoEl *el){
@@ -290,8 +269,7 @@ int TPZGeoElRefPattern<TGeo>::NSubElements(){
 }
 
 template<class TGeo>
-void
-TPZGeoElRefPattern<TGeo>::ResetSubElements()
+void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 {
 	int is;
 	for (is=0;is<NSubElements();is++)
@@ -318,10 +296,6 @@ TPZGeoEl * TPZGeoElRefPattern<TGeo>::SubElement(int is){
 
 template<class TGeo>
 TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
-	//  TPZStack<TPZGeoElSide> subs;
-	//
-	//  TRef::GetSubElements(this,side,subs);
-	//  return subs[position];
 	TPZGeoElSide tmp;
 	if(!fRefPattern) return tmp;
 	int sub, sideout;
@@ -336,15 +310,13 @@ TPZGeoElSide TPZGeoElRefPattern<TGeo>::SideSubElement(int side,int position){
 
 template<class TGeo>
 TPZTransform TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
-	//  return TRef::GetTransform(side,son);
 	TPZTransform trf;
 	if(!fRefPattern) return trf;
 	return this->GetRefPattern()->Transform(side,son);
 }
 
 template<class TGeo>
-void
-TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
+void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
 	
 	if(!fRefPattern) return;
 	
@@ -370,18 +342,6 @@ TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &sube
 		return;
 	}
 	
-	/*
-	 this->GetRefPattern()->SidePartition(subel,side);
-	 int size = subel.NElements();
-	 for(int el=0; el<size; el++)
-	 {
-	 TPZGeoEl *gelref = subel[el].Element();
-	 int subelindex = gelref->Id()-1;
-	 TPZGeoEl *mysub = SubElement(subelindex);
-	 subel[el] = TPZGeoElSide(mysub,subel[el].Side());
-	 }
-	 */
-	
 	TPZVec<TPZGeoElSideIndex> sideIndexes;
 	this->GetRefPattern()->InternalSidesIndexes(side, sideIndexes);
 	int size = sideIndexes.NElements();
@@ -396,8 +356,7 @@ TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &sube
 }
 
 template<class TGeo>
-void
-TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
+void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	if (!fRefPattern) {
 		if(!gRefDBase.GetUniformRefPattern(this->Type()))
 		{
@@ -470,12 +429,7 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 		SubElVec[sub]->SetFather(this->fIndex);
 		
 	}
-	
-	//  this->Mesh()->Print(std::cout);
-	
-	//  fRefPattern->Mesh()->Print(std::cout);
-	
-	//std::cout << "conectividades entre os filhos : viz interna  " << std::endl;
+
 	for(i=0;i<NSubEl;i++) {
 		//std::cout << "SubElement " << i << std::endl;
 		TPZGeoEl *refsubel = this->GetRefPattern()->Element(i+1);
@@ -510,14 +464,6 @@ TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 		}
 	}
 	
-	//  this->Print(std::cout);
-	/*for (i=0;i<NSubEl;i++){
-	 TPZGeoEl *subel = SubElement(i);
-	 if (subel) std::cout << "Subel " << i << " OK " << std::endl ; //subel->Print(std::cout);
-	 else  std::cout << "Erro no subelement0 " << i << std::endl;
-	 }*/
-	
-	//std::cout << "Chegou aqui ..." << std::endl;
 	this->SetSubElementConnectivities();
 #ifdef LOG4CXX
     {

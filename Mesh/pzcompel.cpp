@@ -2,12 +2,10 @@
  * @file
  * @brief Contains the implementation of the TPZCompEl methods.
  */
-//$Id: pzcompel.cpp,v 1.52 2011-05-11 02:27:20 phil Exp $
-
-//METHODS DEFINITION FOR CLASS ELBAS
 
 #include "pzcompel.h"
 #include "pzgeoel.h"
+#include "pzgeoelside.h"
 #include "pzmaterial.h"
 #include "pzcmesh.h"
 #include "pzbndcond.h"
@@ -16,12 +14,6 @@
 #include "pzblockdiag.h"
 
 #include "pzshapelinear.h"
-//#include "pzshapequad.h"
-//#include "pzshapetriang.h"
-//#include "pzshapetetra.h"
-//#include "pzshapepiram.h"
-//#include "pzshapeprism.h"
-//#include "pzshapecube.h"
 
 #include "pzerror.h"
 #include "pzmatrix.h"
@@ -46,11 +38,6 @@
 #include <sstream>
 using namespace std;
 
-// LOGPZ
-//#include <LOGPZ/logger.h>
-// #include <LOGPZ/basicconfigurator.h>
-// #include <LOGPZ/propertyconfigurator.h>
-// #include <LOGPZ/helpers/exception.h>
 #include "pzlog.h"
 
 #ifdef LOG4CXX
@@ -124,17 +111,6 @@ void TPZCompEl::CalcBlockDiagonal(TPZStack<int> &connectlist, TPZBlockDiagonal<S
 
 int TPZCompEl::gOrder = 2;
 
-/*
- void (*TPZCompEl::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::Chebyshev;
- void (*TPZShapeLinear::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeQuad::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeTriang::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeTetra::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapePiram::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapePrism::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- void (*TPZShapeCube::fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi) = TPZCompEl::fOrthogonal;
- */
-
 TPZCompEl::TPZCompEl() {
 #ifdef LOG4CXX
 	LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
@@ -144,49 +120,31 @@ TPZCompEl::TPZCompEl() {
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, TPZGeoEl *ref, int &index) {
-	/*#ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 sout << __PRETTY_FUNCTION__ << " Mesh add" << (void*) &mesh << " this address " << (void*) this;          LOGPZ_DEBUG(logger,sout.str());
-	 }
-	 #endif*/
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	mesh.ElementVec()[index] = this;
 	fIndex = index;
-	//  fReference = ref;
 	fReferenceIndex = (ref == 0) ? -1 : ref->Index();
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy) {
-	/*#ifdef LOG4CXX
-	 LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-	 #endif*/
 	fMesh = &mesh;
 	int index = copy.fIndex;
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
-	//  fReference = copy.Reference();
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, int &index) {
-	/*#ifdef LOG4CXX
-	 LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-	 #endif*/
 	fMesh = &mesh;
 	index = mesh.ElementVec().AllocateNewElement();
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
-	//  fReference = copy.fReference;
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
 TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int> &gl2lcElMap)
 {
-	/*#ifdef LOG4CXX
-	 LOGPZ_DEBUG(logger,__PRETTY_FUNCTION__);
-	 #endif*/
 	fMesh = &mesh;
 	if (gl2lcElMap.find(copy.fIndex) == gl2lcElMap.end())
 	{
@@ -202,7 +160,6 @@ TPZCompEl::TPZCompEl(TPZCompMesh &mesh, const TPZCompEl &copy, std::map<int,int>
 	int index = gl2lcElMap[copy.fIndex];
 	if(index >= 0) mesh.ElementVec()[index] = this;
 	fIndex = index;
-	//  fReference = copy.Reference();
 	fReferenceIndex = copy.fReferenceIndex;
 }
 
@@ -403,28 +360,6 @@ void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
 	for(int i=0; i<numvar; i++) s << varname << '_' << i << '\t';
 }
 
-// void TPZCompEl::Chebyshev(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
-//   // Quadratic or higher shape functions
-//   if(num <= 0) {
-//     LOGPZ_INFO(logger, "Exiting Chebyshev - num <= 0");
-//     return;
-//   }
-//   phi.Put(0,0,1.0);
-//   dphi.Put(0,0, 0.0);
-//   if(num == 1) {
-//     LOGPZ_INFO(logger, "Exiting Chebyshev num == 1");
-//     return;
-//   }
-//   phi.Put(1,0, x);
-//   dphi.Put(0,1, 1.0);
-//   int ord;
-//   for(ord = 2;ord<num;ord++) {
-//     phi.Put(ord,0, 2.0*x*phi(ord-1,0) - phi(ord-2,0));
-//     dphi.Put(0,ord, 2.0*x*dphi(0,ord-1) + 2.0*phi(ord-1,0) - dphi(0,ord-2));
-//   }
-//   LOGPZ_INFO(logger, "Exiting Chebyshev");
-// }
-
 inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate) {
 	subindex.Resize(0);
 	LOGPZ_WARN(logger,"TPZCompEl::Divide called");
@@ -492,14 +427,6 @@ int TPZCompEl::HasDependency() {
 }
 
 void TPZCompEl::SetIndex(int index) {
-	/*   int i=0; */
-	/*   int numel = fMesh->NElements(); */
-	/*   TPZAdmChunkVector<TPZCompEl *> &vec = fMesh->ElementVec(); */
-	/*   while ( i < numel ) { */
-	/*     if (vec[i] == this) break; */
-	/*     i++; */
-	/*   } */
-	/*   return i; */
 	fIndex = index;
 	return;
 }
@@ -521,7 +448,6 @@ REAL TPZCompEl::CompareElement(int var, char *matname){
 	LOGPZ_WARN(logger, "CompareElement called!");
 	return 0.;
 }
-
 
 // TPZCompElSide //
 
@@ -673,20 +599,16 @@ void TPZCompEl::SetOrthogonalFunction(void (*orthogonal)(REAL x,int num,
 TPZCompElSide::TPZCompElSide() {
 	fEl = 0;
 	fSide = -1;
-	//  georeftest = 0;
 }
 
 TPZCompElSide::TPZCompElSide(const TPZCompElSide &celside) {
 	fEl = celside.fEl;
 	fSide   = celside.fSide;
-	//  georeftest = celside.georeftest;
 }
 
 TPZCompElSide::TPZCompElSide(TPZCompEl *cel,int side) {
 	fEl = cel;
 	fSide   = side;
-	//  if(cel) georeftest = cel->Reference();
-	//  else georeftest = 0;
 }
 
 TPZGeoElSide TPZCompElSide::Reference() const {
@@ -822,10 +744,7 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 	TPZStack<TPZGeoElSide> neighbourset;
 	gelside.AllNeighbours(neighbourset);
 	neighbourset.Push(gelside);
-	//int lowidindex = neighbourset.NElements()-1;
-	//  TPZGeoElSide neighbour = gelside.Neighbour(),
 	TPZGeoElSide lowidneigh(gelside);
-	//if(!neighbour.Element()) return expandvec;
 	int lowid = gelside.Id();
 	int in = 0, nneigh = neighbourset.NElements()-1;
 	while(in < nneigh) {
@@ -833,18 +752,9 @@ TPZCompElSide TPZCompElSide::LowerIdElementList(TPZCompElSide &expandvec,int onl
 		if(neighbourset[in].Id() < lowid && ref && (!onlyinterpolated || dynamic_cast<TPZInterpolatedElement*>(ref)    )) {
 			lowidneigh = neighbourset[in];
 			lowid = lowidneigh.Id();
-			//lowidindex = in;
 		}
 		in++;
 	}
-	//   while(neighbour!=gelside) {     //pode ser um viz. inativo
-	//     TPZCompEl *ref = neighbour.Reference().Element();
-	//     if(neighbour.Id() < lowid && ref && (!onlyinterpolated || ref->IsInterpolated())) {
-	//       lowidneigh = neighbour;
-	//       lowid = lowidneigh.Id();
-	//     }
-	//     neighbour = neighbour.Neighbour();
-	//   }//for
 	return lowidneigh.Reference();
 }
 
@@ -853,9 +763,6 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
 	int nelems = expandvec.NElements();
 	TPZStack<TPZCompElSide> locexpand;
 	for(i=0;i<nelems;i++) locexpand.Push(expandvec[i]);
-	//TPZCompElSide store[100];
-	//TPZStack<TPZCompElSide> locexpand(store,nelems);
-	//for(i=0;i<nelems;i++) locexpand[i] = expandvec[i];
 	expandvec.Resize(0);
 	for(k=0;k<nelems;k++){
 		TPZCompEl *kel = locexpand[k].Element();
@@ -873,7 +780,6 @@ void TPZCompElSide::RemoveConnectDuplicates(TPZStack<TPZCompElSide> &expandvec){
 	for(i=0;i<nelems;i++)
 		if(locexpand[i].Element()) expandvec.Push(locexpand[i]);
 }
-
 
 /// Return the index of the middle side connect alon fSide
 int TPZCompElSide::ConnectIndex() const
@@ -903,9 +809,7 @@ int TPZCompElSide::ConnectIndex() const
 }
 
 
-/**
- * Identify the material object associated with the element
- */
+/** Identify the material object associated with the element */
 TPZAutoPointer<TPZMaterial> TPZCompEl::Material() const
 {
     TPZAutoPointer<TPZMaterial> result;
@@ -913,9 +817,7 @@ TPZAutoPointer<TPZMaterial> TPZCompEl::Material() const
     return result;
 }
 
-/**
- * Verify if the material associated with the element is contained in the set
- */
+/** Verify if the material associated with the element is contained in the set */
 bool TPZCompEl::HasMaterial(const std::set<int> &materialids)
 {
 	TPZAutoPointer<TPZMaterial> mat = Material();

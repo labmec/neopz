@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZConnect methods.
  */
-//$Id: pzconnect.cpp,v 1.25 2011-05-11 02:45:38 phil Exp $
 
 #include "pzconnect.h"
 #include "pzerror.h"
@@ -49,7 +48,7 @@ void TPZConnect::operator=(const TPZConnect &copy) {
 	if(fDependList) delete fDependList;
 	fSequenceNumber = copy.fSequenceNumber;
 	fNElConnected = copy.fNElConnected;
-//	fOrder = copy.fOrder;
+	//	fOrder = copy.fOrder;
     fFlags = copy.fFlags;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
 }
@@ -410,14 +409,11 @@ void TPZConnect::TPZDepend::Read(TPZStream &buf)
 	}
 }
 
-/**
- Save the element data to a stream
- */
+/** Save the element data to a stream */
 void TPZConnect::Write(TPZStream &buf, int withclassid)
 {
 	buf.Write(&fSequenceNumber,1);
 	buf.Write(&fNElConnected,1);
-//	buf.Write(&fOrder,1);
     buf.Write(&fFlags,1);
 	if(fDependList)
 	{
@@ -429,14 +425,12 @@ void TPZConnect::Write(TPZStream &buf, int withclassid)
 	}
 }
 
-/**
- Read the element data from a stream
- */
+/** Read the element data from a stream */
 void TPZConnect::Read(TPZStream &buf, void *context)
 {
 	buf.Read(&fSequenceNumber,1);
 	buf.Read(&fNElConnected,1);
-//	buf.Read(&fOrder,1);
+	//	buf.Read(&fOrder,1);
     buf.Read(&fFlags,1);
 	int seq;
 	buf.Read(&seq,1);
@@ -450,13 +444,8 @@ void TPZConnect::Read(TPZStream &buf, void *context)
 	}
 }
 
-
-/*!
- \fn TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
- */
 void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
 {
-//	fOrder = orig.fOrder;
 	fSequenceNumber = orig.fSequenceNumber;
 	fNElConnected = orig.fNElConnected;
     fFlags = orig.fFlags;
@@ -481,10 +470,6 @@ void TPZConnect::CopyFrom(TPZConnect &orig,std::map<int,int> & gl2lcIdx)
 	}
 }
 
-
-/*!
- \fn TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx)
- */
 void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx)
 {
 	int loccondepIdx = -1;
@@ -500,7 +485,7 @@ void TPZConnect::TPZDepend::CopyFrom(TPZDepend *orig,std::map<int,int>& gl2lcIdx
 		return;
 	}
 	fDepConnectIndex = loccondepIdx;
-
+	
 	fDepMatrix = orig->fDepMatrix;
 	
 	TPZDepend *depend = orig->fNext;

@@ -2,14 +2,6 @@
  * @file
  * @brief Contains declaration of TPZGeoElRefLess class which implements the mapping between the master element and deformed element.
  */
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
 
 #ifndef PZGEOELREFLESS_H
 #define PZGEOELREFLESS_H
@@ -91,8 +83,6 @@ public:
 	
 	virtual void Write(TPZStream &str, int withclassid);
 	
-	//  virtual void Initialize(TPZVec<int> &nodeindices);
-	
 	virtual void Initialize()
 	{
 		fGeo.Initialize(this);
@@ -106,18 +96,10 @@ public:
 		DebugStop();
 	}
 	
-	/** return 1 if the element has subelements along side */
-	//virtual int HasSubElement();
-	//virtual  TPZCompEl *CreateCompEl(TPZCompMesh &mesh,int &index);
-	
-	
 	/** @brief Returns 1 if the element has subelements along side*/
 	virtual  int HasSubElement() {return 0;}//fSubEl[0]!=0;}
 	
-	/**
-	 * @brief Returns a pointer to the neighbour and the neighbourside
-	 * along side of the current element
-	 */
+	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
 	virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
 	
 	virtual  int NodeIndex(int node) const;
@@ -125,9 +107,7 @@ public:
 	//HDiv
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec ,TPZVec<int> &sidevector);
 	
-	/**
-	 * @brief Compute the permutation for an HDiv side
-	 */
+	/** @brief Compute the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
 	
 	
@@ -147,8 +127,7 @@ public:
 	
 	virtual  int SideNodeLocIndex(int side,int node);
 	
-	/** @brief Flags the side as defined, this means no neighbouring element
-	 * was found*/
+	/** @brief Flags the side as defined, this means no neighbouring element was found */
 	virtual  void SetSideDefined(int side) { fNeighbours[side] = TPZGeoElSide(this,side); }
 	
 	virtual  void SetSubElement(int id, TPZGeoEl *el);
@@ -159,23 +138,17 @@ public:
 	 */
 	virtual  TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 	
-	/**
-	 * @brief Returns the type of the element acording to the definition in pzeltype.h
-	 */
+	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
 	virtual  MElementType Type() {
 		return TGeo::Type();
 	}
 	
-	/**
-	 * @brief Returns the type of the element acording to the definition in pzeltype.h
-	 */
+	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
 	virtual  MElementType Type(int side) {
 		return TGeo::Type(side);
 	}
 	
-	/**
-	 * @brief Returns the type of the element as a string
-	 */
+	/** @brief Returns the type of the element as a string */
     virtual std::string TypeName()
     {
 		return fGeo.TypeName();
@@ -190,9 +163,7 @@ public:
 	/** @brief Returns the number of connectivities of the element*/
 	virtual  int NSides();
 	
-	/**
-	 * @brief Returns the local node number of the node "node" along side "side"
-	 */
+	/** @brief Returns the local node number of the node "node" along side "side" */
 	virtual  int SideNodeLocId(int side, int node);
 	
 	/** @brief Volume of the master element*/
@@ -204,26 +175,18 @@ public:
 	/** @brief Returns the midside node index along a side of the element*/
 	virtual  void MidSideNodeIndex(int side,int &index);
 	
-	/** @brief Returns 1 if the side has not been defined by buildconnectivity
-     
-	 After construction the side is undefined. The buildconnectivity method
-     loops over all elements and tries to identify neighbours along their
-     uninitialized sides
-	 */
+	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
+	/** After construction the side is undefined. The buildconnectivity method
+	 * loops over all elements and tries to identify neighbours along their uninitialized sides */
 	virtual  int SideIsUndefined(int side);
 	
-	/**
-	 * @brief Returns the number of subelements of the element independent of the
-	 * fact hether the element has already been refined or not
-	 */
+	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
 	virtual  int NSubElements();
 	
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
 	virtual  int NSideSubElements(int side);
 	
-	/**
-	 * @brief Returns the number of subelements as returned by GetSubElements2(side)
-	 */
+	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
 	virtual  int NSideSubElements2(int side);
 	
 	/**
@@ -232,9 +195,7 @@ public:
 	 */
 	virtual  TPZGeoEl *CreateBCGeoEl(int side, int bc);
 	
-	/**
-	 * @brief Creates a geometric element according to the type of the father element
-	 */
+	/** @brief Creates a geometric element according to the type of the father element */
 	virtual TPZGeoEl *CreateGeoElement(MElementType type,
 									   TPZVec<int>& nodeindexes,
 									   int matid,
@@ -251,10 +212,6 @@ public:
 	
 	/** @brief Returns a pointer to the subelement is*/
 	virtual  TPZGeoEl *SubElement(int is);
-	
-	/**return a pointer and a side of the subelement of the element at the side
-     and the indicated position. position = 0 indicate first subelement, ...*/
-	//  virtual  TPZGeoElSide SideSubElement(int side,int position);
 	
 	/** @brief Return the dimension of side*/
 	virtual  int SideDimension(int side);
@@ -286,15 +243,13 @@ public:
 	
 	virtual  TPZTransform GetTransform(int side,int son);
 	
-	/**
-	 * @brief It returns the coordinates from the center of the side of the element
-	 */
+	/** @brief It returns the coordinates from the center of the side of the element */
 	virtual void CenterPoint(int side, TPZVec<REAL> &masscent);
 	
 	virtual TPZGeoElSide Father2(int side);
 	
 	virtual int FatherSide(int side, int son) {
-		return side;//TRef::FatherSide(side,son);
+		return side;
 	}
 	
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
@@ -308,23 +263,17 @@ public:
 		Geom().SetNeighbourInfo(side,neigh,trans);
 	}
 	
-	/** @brief Verifies if the parametric point pt is in the element parametric domain
-	 */
+	/** @brief Verifies if the parametric point pt is in the element parametric domain */
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
 	
-	/** @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
+	/**
+	 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
 	 * @return Returns the side where the point was projected.
-	 * 
-	 * Observe that if the point is already in the parametric domain, the method will return
-	 * NSides() - 1
+	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1\f$
 	 */
 	virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain);
 	
 };
-
-//#ifdef BORLAND
-//#endif
-
 
 template<class TGeo>
 inline
@@ -339,14 +288,6 @@ int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<RE
 	const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
 	return side;
 }
-
-/*
-template<class TGeo>
-inline
-TPZCompEl *TPZGeoElRefLess<TGeo>::CreateCompEl(TPZCompMesh &mesh,int &index){
-	return TGeo::fp(this,mesh,index);
-}
-*/
 
 #include "pzgeoelrefless.h.h"
 

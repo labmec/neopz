@@ -1,11 +1,8 @@
-/*
- *  pzmultiphysiccompel.h
- *  PZ
- *
- *  Created by Agnaldo on 9/12/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
+ * @brief It has the declaration of the TPZMultiphysicsCompEl class.
  */
+
 #ifndef PZMULTIPHYSICCOMPELH
 #define PZMULTIPHYSICCOMPELH 
 
@@ -29,7 +26,7 @@ protected:
 	
 	/** @brief Indexes of the connects of the element */
 	TPZVec<int> fConnectIndexes;
-
+	
 public:
 	/**
 	 * @brief Creates a multiphysic computational element within mesh. 
@@ -38,33 +35,27 @@ public:
 	 * @param index new elemen index
 	 */
 	TPZMultiphysicsCompEl(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
-	
+	/** @brief Default constructor */
 	TPZMultiphysicsCompEl();
-	
+	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsCompEl();
 	
-	/**
-	 * @brief Returns a reference to the element pointers vector
-	 */
+	/** @brief Returns a reference to the element pointers vector */
 	TPZManVector<TPZCompEl *,5>   &ElementVec() {return fElementVec;}
-	
-	//void SetElementVec(TPZManVector<TPZCompEl *> elemVec);
 	
 	/**
 	 * @brief Compute the map of a paramenter point in the multiphysic element to a parameter point in the super element
 	 * @param trVec Transform 
-	**/
+	 **/
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const;
-	
-	
+
 	/**
 	 * @brief Method to obtain an reference index set of multiphysics computational elements.
 	 * @param cmeshVec Vector of computational meshes
 	 * @param refIndexVec
 	 **/
 	void GetReferenceIndexVec(TPZManVector<TPZCompMesh *> cmeshVec, std::set<int> &refIndexVec);
-	
-	
+
 	/** @brief Method for creating a copy of the element */
 	virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
 	
@@ -106,7 +97,7 @@ public:
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
-
+	
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate
@@ -131,8 +122,8 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZVec<REAL> &normal,
-                    TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
-					TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
+								 TPZSolVec &leftsol, TPZGradSolVec &dleftsol,TPZFMatrix<REAL> &leftaxes,
+								 TPZSolVec &rightsol, TPZGradSolVec &drightsol,TPZFMatrix<REAL> &rightaxes);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
@@ -162,7 +153,7 @@ public:
     /** @brief add an element to the datastructure */
     virtual void AddElement(TPZCompEl *cel, int meshindex)
     {
-            if (fElementVec.size() <= meshindex) 
+		if (fElementVec.size() <= meshindex) 
 		{
 			fElementVec.resize(meshindex+1);
 		}
@@ -172,7 +163,7 @@ public:
 	/**@brief Returns referred element of this*/
 	virtual TPZCompEl *ReferredElement(int mesh)
 	{
-	
+		
 #ifdef DEBUG
 		if (fElementVec.size() <= mesh) {
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " index does not exist!\n";
@@ -181,8 +172,8 @@ public:
 #endif
 		return fElementVec[mesh];
 	}
-
-
+	
+	
 	/**
 	 * @brief Sets indexes of the connects of the element
 	 * @param indexes List of the connects of the element
@@ -191,7 +182,7 @@ public:
 	{
 		fConnectIndexes = indexes;
 	}
-		
+	
 	/**
 	 * @brief Prints element data
 	 * @param out Indicates the device where the data will be printed
@@ -199,12 +190,12 @@ public:
 	virtual void Print(std::ostream &out = std::cout) const;
 	
 	/**
-	* @brief Computes the element stiffness matrix and right hand side
-	* @param ek element matrix
-	* @param ef element right hand side
-	*/
+	 * @brief Computes the element stiffness matrix and right hand side
+	 * @param ek element matrix
+	 * @param ef element right hand side
+	 */
 	virtual void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
-
+	
 	/** @brief Initialize element matrix in which is computed CalcStiff */
 	void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
 	
@@ -215,15 +206,9 @@ public:
 	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
-
+	
 };
 
-//template <class TGeometry>
-//inline void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &, int) 
-//{
-//	std::cout << "TPZMultiphysicsCompEl::CreateGrafEl called\n";
-//	this->Print(std::cout);
-//}
 
 /** @brief Creates computational point element for Multiphysics approximate space */
 TPZCompEl *CreateMultiphysicsPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);

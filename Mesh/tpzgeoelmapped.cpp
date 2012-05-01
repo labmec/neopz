@@ -2,15 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZGeoElMapped methods. 
  */
-//
-// C++ Implementation: tpzgeoelmapped
-//
-// Description: 
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2007
-//
-// Copyright: See COPYING file that comes with this distribution
-//
+
 #include "tpzgeoelmapped.h"
 
 #include "tpzgeoelrefpattern.h"
@@ -44,9 +36,7 @@ using namespace pzrefine;
 using namespace pzshape;
 
 
-/**
- * Creates a geometric element according to the type of the father element
- */
+/** Creates a geometric element according to the type of the father element */
 template<class TBase>
 TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 												  TPZVec<int>& nodeindexes,
@@ -56,7 +46,6 @@ TPZGeoEl *TPZGeoElMapped<TBase>::CreateGeoElement(MElementType type,
 	TPZGeoMesh &mesh = *(this->Mesh());
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
-
 
 
 #include "TPZGeoCube.h"
@@ -171,11 +160,3 @@ INSERTCLASS(TPZGeoCube,TPZGEOELREFPATMAPPEDCUBEID)
 INSERTCLASS(TPZGeoPrism,TPZGEOELREFPATMAPPEDPRISMID)
 INSERTCLASS(TPZGeoTetrahedra,TPZGEOELREFPATMAPPEDTETRAHEDRAID)
 INSERTCLASS(TPZGeoPyramid,TPZGEOELREFPATMAPPEDPYRAMIDID)
-
-//template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoCube> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPoint> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoQuad> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTriangle> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPrism> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoTetrahedra> >;
-// template class TPZGeoElMapped< TPZGeoElRefPattern<TPZGeoPyramid> >;

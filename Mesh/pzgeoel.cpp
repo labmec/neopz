@@ -2,9 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZGeoEl methods.
  */
-/**
- * File : pzgeoel.c Contains the methods definition for (abstract) base class TPZGeoEl.
- */
 
 #include "pzgeoel.h"
 #include "pzcompel.h"
@@ -554,7 +551,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
-	 
+	
 	// First verify if the entry ksi yields the right point
 	if(ksi.NElements()!= dim)
 	{
@@ -625,7 +622,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 			} else {
 				axest.Multiply(J,JX,0,1);
 			}
-
+			
 			JX.Transpose(&JXt);
 			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
 			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
@@ -652,29 +649,6 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 #endif
 	}//if
 	
-//	if(this->IsInParametricDomain(ksi) == false)
-//	{
-//		std::stringstream sout;
-//		this->IsInParametricDomain(ksi);//for debug purposes only
-//		sout << "Error at " << __PRETTY_FUNCTION__ << " - Ksi parameter found is outside parametric element domain. Element type = " << this->TypeName();
-//		sout << " - ksi = ";
-//		for(int i = 0; i < ksi.NElements(); i++)
-//		{
-//			sout << ksi[i] << "\t";
-//		}
-//		sout << "iter = " << iter << ", nMaxIter = " << nMaxIter << "\t";
-//		sout << "X = ";
-//		for(int i = 0; i < XD.NElements(); i++)
-//		{
-//			sout << XD[i] << "\t";
-//		}
-//		sout << "\n";this->Print(sout);
-//		PZError << "\n" << sout.str() << "\n";
-//		
-//#ifdef LOG4CXX
-//		LOGPZ_ERROR(logger,sout.str().c_str());
-//#endif
-//	}//if
 #endif
 	
 	return ( this->IsInParametricDomain(ksi) );
@@ -688,7 +662,7 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TP
 		PZError << "\nTPZGeoEl::TransformSonToFather vector dimension error\n";
 		ksiAncestor.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
 	}
-		
+	
 	TPZVec<REAL> xson;
 	X(ksiSon,xson);
 	

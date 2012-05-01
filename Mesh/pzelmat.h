@@ -2,7 +2,7 @@
  * @file
  * @brief Contains declaration of TPZElementMatrix struct which associates an element matrix with the coeficients of its contribution in the global stiffness matrix
  */
-//$Id: pzelmat.h,v 1.9 2007-06-08 00:02:28 cesar Exp $
+
 #ifndef ELMATHPP
 #define ELMATHPP
 
@@ -91,8 +91,7 @@ struct TPZElementMatrix {
 	
 	void ComputeDestinationIndices();
     
-    /** @brief permute the order of the connects
-     */
+    /** @brief permute the order of the connects */
     void PermuteGather(TPZVec<int> &permute);
 	
 	
