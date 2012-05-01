@@ -1,23 +1,9 @@
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-
+/**
+ * @file
+ * @brief Tests for sub structuration
+ * @author Philippe Devloo
+ * @since 2006
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -32,6 +18,7 @@
 #include "pzdohrstructmatrix.h"
 #include "pzstepsolver.h"
 #include "pzcompel.h"
+#include "pzgeoelbc.h"
 
 #include "pzelast3d.h"
 #include "pzbndcond.h"
@@ -48,7 +35,7 @@
 #include "pzskylstrmatrix.h"
 
 #include "tpzarc3d.h"
-//
+#include "tpzdohrmatrix.h"
 
 #include "pzvtkmesh.h"
 
@@ -61,7 +48,6 @@
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
 #endif
-#include "tpzdohrmatrix.h"
 
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
@@ -77,10 +63,9 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	// Quando se está usando o tal log4cxx 
-	//	InitializePZLOG("log4cxx.cfg");
-    
+#ifdef LOG4CXX
 	InitializePZLOG();
+#endif
 	
 	TPZTimer total;
 	total.start();
@@ -128,11 +113,7 @@ int main(int argc, char *argv[])
 				//cmesh->SetAllCreateFunctionsContinuous();
 				InsertViscoElasticityCubo(cmesh);
 				cmesh->AutoBuild();
-				
-
 			}
-			
-			
 		}
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
@@ -203,9 +184,7 @@ int main(int argc, char *argv[])
             
         }
         dohrstruct.Assemble(*matptr,rhs, gui);
-        
-        
-        
+
 		TPZAutoPointer<TPZMatrix<REAL> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
 		
@@ -257,58 +236,12 @@ int main(int argc, char *argv[])
         }
         result.SolveDirect(diag, ECholesky, sing);
         
-        
-        
-        
 		std::cout << "Numero de equacoes " << dohr->Rows() << std::endl;
         
 		TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
 		if (!dohrptr) {
 			DebugStop();
 		}
-        
-        /*
-        
-		//	tempo.fNumEqCoarse = dohr->Rows();	// alimenta timeTemp com o numero de equacoes coarse
-		dohr->Multiply(diag,produto);
-		
-		dohrptr->AdjustResidual(produto);
-		
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			produto.Print("O valor do produto", sout );
-			diag.Print("O valor da diagonal",sout);
-			LOGPZ_DEBUG(loggerconverge,sout.str())
-		}
-#endif
-		diag.Zero();
-		TPZStepSolver<REAL> pre(precond);
-		pre.SetMultiply();
-		TPZStepSolver<REAL> cg(dohr); 
-		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
-		
-		cg.SetCG(500,pre,1.e-8,0);
-		
-		
-		//	TPZfTime timetosolve; // init of timer
-		cg.Solve(rhs,diag);
-		//	tempo.ft6iter = timetosolve.ReturnTimeDouble(); // end of timer
-		//	cout << "Total: " << tempo.ft6iter << std::endl;
-		
-		//	cout << "Tempos para multiplicacao: " << tempo.fMultiply << std::endl;
-		//	cout << "Tempos para precondicionamento: " << tempo.fPreCond << std::endl;
-		
-		string FileName;
-		FileName = "Times_in_Line.txt";
-		ofstream OutputFile;
-		
-		//	bool shouldprint = tempo.NeedsHeader(FileName);	// verify the need of a header
-		//	OutputFile.open(FileName.c_str(), ios::app);	// creates the file
-		//	if (shouldprint == true) tempo.PrintHeader(OutputFile);	// prints the header if It is the first time the program is executed
-		
-		//	tempo.PrintLine(OutputFile);	// print all the information in one line
-		*/
          
 #ifdef LOG4CXX
 		{
@@ -388,19 +321,6 @@ int main(int argc, char *argv[])
 		int istep = 0, nsteps = 2;
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
-		
-		//ViscoElastico
-		
-//		std::cout << "To seguindo!!!" << std::endl;
-//		for (istep = 1 ; istep < nsteps ; istep++)
-//		{
-//			TPZAutoPointer<TPZGuiInterface> guifake;
-//			dohrstruct.Assemble( rhs, guifake);
-//			cg.Solve(rhs,diag);	
-//			vtkmesh.DrawMesh(numcases);
-//			vtkmesh.DrawSolution(istep, 1.);	
-//		}
-		 
 	}
 	
 	total.stop();
@@ -414,8 +334,9 @@ int main(int argc, char *argv[])
 
 int main2(int argc, char *argv[])
 {
-	/* Quando se está usando o tal log4cxx */
-	InitializePZLOG("log4cxx.cfg");
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
 	
 	/*
 	 TPZFMatrix<REAL> teste(2,2);
@@ -504,9 +425,6 @@ int main2(int argc, char *argv[])
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	
-	
-	
 	
 #ifdef LOG4CXX
 	std::stringstream sout;
@@ -808,23 +726,17 @@ TPZGeoMesh *MalhaPredio()
 		Node[nodeId-1].SetCoord(1,nodecoordY);
 		Node[nodeId-1].SetCoord(2,nodecoordZ);
 		gMesh->NodeVec()[nodeId-1] = Node[nodeId-1];
-		
-		
 	}
 	
 	{
-		
 		read.close();
 		read.open(FileName.c_str());
-		
-		
-		
+
 		int l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
 			read.getline(buf, 1024);
 		}
-		
 		
 		int el;
 		int matBCid = -1;
@@ -879,33 +791,16 @@ TPZGeoMesh *MalhaPredio()
 		}
 	}
 	
-	
-	
-	// identificando as superficies que terao cond de contorno. Coord z dos 3 nos = 0
-	//	for (int el = 0; el < numnodes-1; el++) 
-	//	{
-	//	Nodefind[el] = gMesh->NodeVec()[el];
-	//
-	//	}
-	//	Nodefind.Print(std::cout);
-	//	std::cout.flush();
-	
-	//TPZGeoElBC(TPZGeoEl *el,int side,int matid, TPZGeoMesh &mesh);
-	//TPZGeoElBC(TPZGeoElSide &elside,int matid, TPZGeoMesh &mesh);
-	
 	ofstream arg("malhaPZ.txt");
 	gMesh->Print(arg);
 	ofstream predio("GeoPredio.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true); 
 	
 	return gMesh;
-	
 }
-
 
 TPZGeoMesh *MalhaCubo()
 {
-	//int nBCs = 1;
 	int numnodes=-1;
 	int numelements=-1;
 	
@@ -966,9 +861,6 @@ TPZGeoMesh *MalhaCubo()
 		Node[nodeId-1].SetCoord(1,nodecoordY);
 		Node[nodeId-1].SetCoord(2,nodecoordZ);
 		gMesh->NodeVec()[nodeId-1] = Node[nodeId-1];
-		
-		//(Node, idbcnode, *gMesh);	
-		
 	}
 	
 	{
@@ -1002,9 +894,6 @@ TPZGeoMesh *MalhaCubo()
 			
 			int index = el;
 			
-			//TPZGeoEl * tetra = gMesh->CreateGeoElement(ETetraedro, TopolTetra, matElId, index);
-			//TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
-			
 			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
 		
@@ -1013,8 +902,6 @@ TPZGeoMesh *MalhaCubo()
 		// Colocando as condicoes de contorno
 		for(el=0; el<numelements; el++)
 		{
-			
-			
 			TPZManVector <TPZGeoNode,4> Nodefinder(4);
 			TPZManVector <REAL,3> nodecoord(3);
 			TPZGeoEl *tetra = gMesh->ElementVec()[el];
@@ -1123,7 +1010,6 @@ REAL Height(TPZGeoMesh *gmesh)
 	return maxz;
 }
 
-
 int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 {
 	int nelem = cmesh->NElements();
@@ -1207,5 +1093,4 @@ int SubStructure(TPZAutoPointer<TPZCompMesh> cmesh, REAL height)
 	cmesh->ComputeNodElCon();
 	cmesh->CleanUpUnconnectedNodes();
 	return nsub;
-	
 }
