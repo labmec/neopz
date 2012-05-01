@@ -100,7 +100,7 @@ void TPZPoroElastoPlasticAnalysis::SetDeltaT(const REAL deltaT)
 	}
 }
 		
-int::TPZPoroElastoPlasticAnalysis::FindPorousMaterials()
+int TPZPoroElastoPlasticAnalysis::FindPorousMaterials()
 {
 	fPorousMaterialIds.Resize(0);
 	int i, n = fCompMesh->NMaterials();

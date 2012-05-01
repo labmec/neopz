@@ -1,21 +1,18 @@
+/**
+ * @file
+ * @brief Contains the declaration of TPZArc3D class
+ * @author Paulo Cesar de Alvarenga Lucci
+ * @since 2007
+ */
+
 #ifndef TPZARC3D_H
 #define TPZARC3D_H
 
-// #include "pzfmatrix.h"
-// #include "pzvec.h"
-// #include "pzgmesh.h"
 #include "pzgeoel.h"
 #include "pznoderep.h"
-// #include "pzgnode.h"
 #include "tpzline.h"
 
 #include <iostream>
-
-  /**
-  / Class made by Paulo Cesar de Alvarenga Lucci (Caju)
-  / LabMeC - FEC - UNICAMP
-  / 2007
- */
 
 class TPZArc3D : public TPZNodeRep<3,TPZLine> {
 
@@ -48,22 +45,22 @@ public:
     TPZArc3D(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh) : TPZNodeRep<NNodes,pztopology::TPZLine>(nodeindexes){
     }
 
-    void X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
-    void Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv);
+    void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+    void Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv);
 
     static std::string TypeName() { return "Linear";}
     static TPZGeoEl * CreateBCGeoEl(TPZGeoEl *orig, int side,int bc);
 
 protected:
 
-    void ComputeAtributes(TPZFMatrix &coord);
-    void ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle);
-    double ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb);
+    void ComputeAtributes(TPZFMatrix<REAL> &coord);
+    void ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb, double &angle);
+    double ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double xb, double yb);
 
 
     /** Atributes */
-    TPZFMatrix fICnBase;
-    TPZFMatrix fIBaseCn;
+    TPZFMatrix<REAL> fICnBase;
+    TPZFMatrix<REAL> fIBaseCn;
     TPZVec< REAL > fCenter3D;
     double fRadius;
 };

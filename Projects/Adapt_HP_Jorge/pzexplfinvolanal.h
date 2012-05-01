@@ -1,4 +1,7 @@
-//$Id: pzexplfinvolanal.h,v 1.8 2009-11-04 14:13:24 fortiago Exp $
+/**
+ * @file
+ * @brief Contains the declaration of TPZExplFinVolAnal class. (Explicit Finite volume method)
+ */
 
 #ifndef EXPLFINVOLANALH
 #define EXPLFINVOLANALH
@@ -20,7 +23,8 @@ class TPZFMatrix;
 class TPZFStructMatrix;
 class TMTFaceData;
 
-/** This class implements an explicit finite volume analysis.
+/**
+ * @brief This class implements an explicit finite volume analysis.
  */
 class TPZExplFinVolAnal : public TPZAnalysis{
 
@@ -30,23 +34,21 @@ public:
 
   ~TPZExplFinVolAnal();
 
-  /**
-   * Assemble fluxes
-  **/
-  void AssembleFluxes(const TPZFMatrix<REAL> & Solution, std::set<int> *MaterialIds = NULL){
+  /** @brief Assemble fluxes */
+  void AssembleFluxes(const TPZFMatrix<REAL> & Solution, std::set<int> *MaterialIds = NULL) {
     this->AssembleFluxes2ndOrder(Solution);
   }
-
-  int NStateVariables(){
+	/** @brief Number of the variables */
+  int NStateVariables() {
     return 5;
   }
 
-  int Dimension(){
+	/** @brief Model dimension */
+  int Dimension() {
     return 3;
   }
 
-  /** Computes next solution based on the last
-   */
+  /** @brief Computes next solution based on the last */
   void TimeEvolution(TPZFMatrix<REAL> &LastSol, TPZFMatrix<REAL> &NextSol);
 
   virtual void Run(std::ostream &out = std::cout);
@@ -59,13 +61,10 @@ public:
 
   virtual void PostProcess(int resolution, int dimension);
 
-  /**
-   * Defines max number of steps and steady state convergence tolerance.
-   */
+  /** @brief Defines max number of steps and steady state convergence tolerance. */
   void Set(REAL timestep, int niter, REAL eps, bool ForceAllSteps = true);
 
-  /** Defines properties of DX file
-   */
+  /** @brief Defines properties of DX file */
   void SetSaveFrequency(int SaveFrequency, int resolution);
 
   REAL TimeStep();
@@ -74,11 +73,11 @@ public:
 
   void SetInitialSolutionAsZero();
 
- /** Computes solution gradients 
-  * Input is SolutionConsVars: conservative vars
-  * Result is given in fSolution which is a vector of solution and its derivatives
-  * in primitive vars
-  * <!> fRhs is modified
+ /**
+  * @brief Computes solution gradients 
+  * @param SolutionConsVars [in] conservative variables
+  * @return Result is given in fSolution which is a vector of solution and its derivatives in primitive vars
+  * @note fRhs is modified
   */
   void ComputeGradient(const TPZFMatrix<REAL> & SolutionConsVars);
 	
@@ -89,10 +88,10 @@ protected:
 
   void DX(int iter, std::string filename);
 
-  /** divide vec elements by cell volume and multiply by alpha */
+  /** @brief Divide vec elements by cell volume and multiply by alpha */
   void DivideByVolume(TPZFMatrix<REAL> &vec, double alpha);
 
-  /** Make loop over interfaces requesting flux computation */
+  /** @brief Make loop over interfaces requesting flux computation */
   void ComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   void ParallelComputeFlux(std::list< TPZInterfaceElement* > &FacePtrList);
   static void * ExecuteParallelComputeFlux(void * ExtData);
@@ -103,13 +102,11 @@ protected:
   void GetNeighbourSolution(TPZInterfaceElement *face, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol);
   void GetSol(TPZCompElDisc * disc, TPZVec<REAL> &sol);
 
-  /** Compute the element residual.
-   * This special method for finite volume method only
-   * does not use shape functions.
-   * It assumes the solution vector stores the cell solution and its derivatives
-   * For instance: {rho, u, p, drhodx, drhody, dudx, dudy, dpdx,dpdy }
+  /**
+   * @brief Compute the element residual. This special method for finite volume method only does not use shape functions.
+   * @note It assumes the solution vector stores the cell solution and its derivatives. For instance: {rho, u, p, drhodx, drhody, dudx, dudy, dpdx,dpdy } \n
    * Neighbour elements must be TPZCompElDisc, p = 0
-   * Implemented for Olivier Roussel
+   * @author Olivier Roussel
    * @author Tiago Forti
    * @since 2009 Aug 18
    */
@@ -117,44 +114,40 @@ protected:
 
   void FromConservativeToPrimitiveAndLoad(const TPZFMatrix<REAL> & Solution);
 
-  /** Simulation time step */
+  /** @brief Simulation time step */
   REAL fTimeStep;
 
-  /** Number of iterations counting from fCurrentIter to fCurrentIter+fNIter */
+  /** @brief Number of iterations counting from fCurrentIter to fCurrentIter+fNIter */
   int fNMaxIter;
 
-  /** Auxiliar variable only for DX post-processing
-   */
+  /** @brief Auxiliar variable only for DX post-processing */
   REAL fSimulationTime;
 
-  /** Tolerance to consider the problem solution as steady state */
+  /** @brief Tolerance to consider the problem solution as steady state */
   REAL fSteadyTol;
 
-  /** Flag indicating whether all steps must be performed even if tolerance is achieved. */
+  /** @brief Flag indicating whether all steps must be performed even if tolerance is achieved. */
   bool fForceAllSteps;
 
-  /** Frequency which solution must be saved in DX file. */
+  /** @brief Frequency which solution must be saved in DX file. */
   int fSaveFrequency;
 
-  /** Resolution of DX mesh */
+  /** @brief Resolution of DX mesh */
   int fDXResolution;
 
-  /** Initialize fFacePtrList, fVolumeData, and fVecFaces class attributes */
+  /** @brief Initialize fFacePtrList, fVolumeData, and fVecFaces class attributes */
   void InitializeAuxiliarVariables();
 
-  /** Clean fFacePtrList and fVolumeData class attributes */
+  /** @brief Clean fFacePtrList and fVolumeData class attributes */
   void CleanAuxiliarVariables();
 
-  /** Stores the list of interface elements to avoid dynamic cast all the time
-   */
+  /** @brief Stores the list of interface elements to avoid dynamic cast all the time */
   std::list< TPZInterfaceElement * > fFacePtrList;
 
-  /** Stores volume data:
-   * From its pointer to the pair < cell volume, destination indices >
-   */
+  /** @brief Stores volume data: From its pointer to the pair < cell volume, destination indices > */
   std::map< TPZInterpolationSpace*, std::pair< REAL, TPZVec<int> > > fVolumeData;
 
-  /** For parallel computing */
+  /** @brief For parallel computing */
   TPZVec< TMTFaceData * > fVecFaces;
 
 };

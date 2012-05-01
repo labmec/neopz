@@ -44,20 +44,18 @@ protected:
     
 	/** @brief Pointer to forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction> fForcingFunction;
-    //void (*fForcingFunction)(TPZVec<REAL> &loc,TPZVec<REAL> &result);
-	// void (*fForcingFunctionExact)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux);
-//	void (*fForcingFunctionExact) (TPZVec<REAL> &loc,
-//								   TPZVec<STATE> &pressure,TPZFMatrix<STATE> &flux);
+	/** @brief Pointer to exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction> fForcingFunctionExact;
-    /** @brief Defines whether the equation context is linear solver or non linear */
+
     /**
-     * True means linear (default)
+	 * @brief Defines whether the equation context is linear solver or non linear
+     * @return True means linear (default)
      * @since 08 oct 2010
      */
     bool fLinearContext;
     
 public:
-    
+    /** @brief Big number to penalization method, used for Dirichlet conditions */
     static REAL gBigNumber;
     
     /** @brief Creates a material object and inserts it in the vector of material pointers of the mesh. */
@@ -70,7 +68,7 @@ public:
     /** @brief Creates a material object based on the referred object and inserts it in the vector of material pointers of the mesh. */
 	/** Upon return vectorindex contains the index of the material object within the vector */
     TPZMaterial(const TPZMaterial &mat);
-    
+    /** @brief Default destructor */
     virtual ~TPZMaterial();
     
     /** 
@@ -234,11 +232,11 @@ public:
         fForcingFunction = fp;
     }
 	
-	//	 void fForcingFunctionExact(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &pressure,TPZVec<REAL> &flux))
-	//	{
-	//		fForcingFunctionExact = fp;
-	//	}
-	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction> fp)
+    /** 
+	 * @brief Sets a procedure as exact solution for the problem
+	 * @param fp pointer of exact solution function
+	 */
+	 void SetForcingFunctionExact(TPZAutoPointer<TPZFunction> fp)
 	{
 		fForcingFunctionExact = fp;
 	}

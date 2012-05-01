@@ -222,8 +222,8 @@ public:
 
     /**
     return the value of the yield functions for the given deformation
-     * @param [in] deform deformation tensor (total deformation
-     * @param [out] phi vector of yield functions
+     * @param epsTotal [in] deformation tensor (total deformation
+     * @param phi [out] vector of yield functions
     */
     virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
     {

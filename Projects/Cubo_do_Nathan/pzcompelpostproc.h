@@ -125,9 +125,7 @@ public:
   * Computes solution and its derivatives in the local coordinate qsi.
   * This method will function for both volumetric and interface elements
   * @param qsi master element coordinate of the interface element
-  * @param sol finite element solution
-  * @param dsol solution derivatives
-  * @param axes axes associated with the derivative of the solution
+  * @param normal unitary normal vector
   * @param leftsol finite element solution
   * @param dleftsol solution derivatives
   * @param leftaxes axes associated with the left solution

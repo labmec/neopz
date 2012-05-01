@@ -463,6 +463,11 @@ void TPZCompEl::CalcResidual(TPZElementMatrix &ef){
 }
 
 TPZGeoEl * TPZCompEl::GetRefElPatch(){
+	TPZGeoEl *ref = Reference();
+	if (!ref) {
+		LOGPZ_ERROR(logger, "reached a null reference");
+		return (0);
+	}
 #ifdef LOG4CXX
 	std::stringstream sout;
     if (logger->isDebugEnabled())
@@ -472,11 +477,6 @@ TPZGeoEl * TPZCompEl::GetRefElPatch(){
         Print(sout);
     }
     
-	TPZGeoEl *ref = Reference();
-	if (!ref) {
-		LOGPZ_ERROR(logger, "reached a null reference");
-		return (0);
-	}
     if (logger->isDebugEnabled())
     {
         ref->Print(sout);

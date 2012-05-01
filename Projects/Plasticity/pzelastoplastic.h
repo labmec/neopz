@@ -1,4 +1,6 @@
-//$Id: pzelastoplastic.h,v 1.18 2010-11-23 18:56:57 diogo Exp $
+/**
+ * @file
+ */
 
 #ifndef PZELASTOPLASTIC_H
 #define PZELASTOPLASTIC_H
@@ -138,79 +140,78 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
-       * @param bc[in] is the boundary condition material
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
+       * @param bc [in] is the boundary condition material
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**
        * It computes a contribution to the residual vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ef[out] is the residual vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ef [out] is the residual vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
-       * @param bc[in] is the boundary condition material
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ef [out] is the load vector
+       * @param bc [in] is the boundary condition material
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
 	  /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
-	   * @param data[in] 
-	   * @param Strain[out]
+	   * @param data [in] 
+	   * @param Strain [out]
 	   */
 	  void ComputeStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &Strain);
 	
 	  /** Evaluates the Strain vector based on an available DSol (solution derivatives set) vector.
-	   * @param Strain[out] 
-	   * @param DSol[in]
+	   * @param DeltaStrain [out] 
+	   * @param data [in]
 	   */
 	  void ComputeDeltaStrainVector(TPZMaterialData & data, TPZFMatrix<REAL> &DeltaStrain);
 	
 	  /** Evaluates the Stress vector based on an available DSol (solution derivatives set) vector.
-	   * @param data[in]
-	   * @param Stress[out] 
+	   * @param data [in]
+	   * @param Stress [out] 
 	   */
 	  void ComputeStressVector(TPZMaterialData & data, TPZFMatrix<REAL> &Stress);
 	
 	  /** Calls the plasticity template aggregate applyStrainComputeDep method
-	   *  @param data[in]
-	   *  @param DeltaStrain[in]
-	   *  @param Stress[out]
-	   *  @param Dep[out]
+	   *  @param data [in]
+	   *  @param DeltaStrain [in]
+	   *  @param Stress [out]
+	   *  @param Dep [out]
 	   */
 	 void ApplyDeltaStrainComputeDep(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
 												TPZFMatrix<REAL> & Stress, TPZFMatrix<REAL> & Dep);
 	
 	  /** Calls the plasticity template aggregate applyStrain method
-	   *  @param data[in]
-	   *  @param DeltaStrain[in]
-	   *  @param Stress[out]
+	   *  @param data [in]
+	   *  @param DeltaStrain [in]
+	   *  @param Stress [out]
 	   */
 	  void ApplyDeltaStrain(TPZMaterialData & data, TPZFMatrix<REAL> & DeltaStrain, 
 												TPZFMatrix<REAL> & Stress);
 
 	  /** Applies the tensor in vectorial form to an internally stored direction
-	   * @param vectorTensor[in]
-	   * @param Out[out]
+	   * @param vectorTensor [in]
+	   * @param Out [out]
 	   */
       void ApplyDirection(TPZFMatrix<REAL> &vectorTensor, TPZVec<REAL> &Out);
 	
@@ -222,23 +223,20 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 	
 	  /** Evaluates the eigenvalues of the tensor vectorTensor (in compact vectorial form)
 	   * @param vectorTensor [in] compact vectorial form of a symmetrical tensor
-	   * @param ev[out] evaluated eigenvalues
+	   * @param ev [out] evaluated eigenvalues
 	   */
 	  void EigenValues(TPZFMatrix<REAL> & vectorTensor, TPZVec<REAL> & ev);
 
 	  /** Evaluates the eigenvectors of the tensor vectorTensor (in compact vectorial form)
 	   * @param vectorTensor [in] compact vectorial form of a symmetrical tensor
-	   * @param Solout[out] evaluated eigenvector
-	   * @param direction[in] selected direction (0 to 2)
+	   * @param Solout [out] evaluated eigenvector
+	   * @param direction [in] selected direction (0 to 2)
 	   */
       void EigenVectors(TPZFMatrix<REAL> &vectorTensor, TPZVec< REAL > &Solout, int direction);
 	
       /**To create another material of the same type*/
       virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
-      /**Read data of the material from a istream (file data)*/
- //     virtual void SetData(std::istream &data);
- 
       /**
        * Unique identifier for serialization purposes
        */
@@ -277,11 +275,8 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 
 
 protected:
-		
-		
-//	  REAL fDeltaT;
-	
-      /**
+
+	/**
        * gravity acceleration
        */
       TPZManVector<REAL, 3> fForce;

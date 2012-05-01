@@ -80,16 +80,7 @@ class TPZOneDRef {
    */
   int fNState;
 
-  //   /**
-  //    * pointers of the master elements in both one-d elements
-  //    */
-  //   TPZVec<int> fdest1, fdest2;
-  //   /**
-  //    * equation number of both elements
-  //    */
-  //   TPZVec<int> fNodes1, fNodes2;
-
- public:
+public:
 
   /**
    * Constructor
@@ -101,10 +92,14 @@ class TPZOneDRef {
    * Computes the refinement pattern which best will approximate the given solution
    * @param U computed one dimensional solution
    * @param id ids which determine the orientation of the shape functions
-   * @param p1 on input : interpolation order of the first element, on output, best approximation to U
-   * @param p2 on input : interpolation order of the second element, on output, best approximation to U
+   * @param p1 [in] interpolation order of the first element, on output, best approximation to U
+   * @param p2 [in] interpolation order of the second element, on output, best approximation to U
+   * @param hp1
+   * @param hp2
+   * @param hperror
+   * @param delx
    */
-  REAL BestPattern(TPZFMatrix<REAL>&U, TPZVec<int> &id, int &p1, int &p2, int &hp1, int &hp2, REAL &hperror, REAL delx);
+  REAL BestPattern(TPZFMatrix<REAL> &U, TPZVec<int> &id, int &p1, int &p2, int &hp1, int &hp2, REAL &hperror, REAL delx);
 
   /**
    * Print oject data
@@ -136,6 +131,7 @@ class TPZOneDRef {
    * @param U - coarse solution matrix
    * @param p1 - small element one refinement order
    * @param p2 - small element two refinement order
+   * @param delx 
    */
   void LoadU(TPZFMatrix<REAL>&U, int p1, int p2, REAL delx);
 

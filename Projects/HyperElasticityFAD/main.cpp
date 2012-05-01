@@ -19,9 +19,7 @@
 #include "pzcompel.h"
 #include "pzgnode.h"
 #include "pzmaterial.h"
-//#include "pzerror.h"
 #include "pzgeoel.h"
-//#include "pzcosys.h"
 #include "pzmatrix.h"
 #include "pzanalysis.h"
 #include "pzfstrmatrix.h"
@@ -49,22 +47,12 @@ void Assemble(TPZMatrix<REAL> & stiffness, TPZFMatrix<REAL> & rhs, int method, T
 TPZCompMesh *CreateMesh();
 TPZMatrix<REAL> * CreateAssemble(TPZFMatrix<REAL> &rhs, int method, TPZCompMesh & Mesh);
 
-/*
-void error(char * err)
-{
-  PZError << "FADERROR: " << err << endl;
-};
-*/
-
 int main()
 {
 
  const int numShape  = 1, ndof = 3;
  const int dim = 3;
 
-
-//void TPZMatHyperElastic::Contribute(TPZVec<REAL> &x,TPZFMatrix<REAL> &,TPZVec<REAL> &/*sol*/,TPZFMatrix<REAL> &dsol,REAL weight,
-//			  TPZFMatrix<REAL> &/*axes*/,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
  TPZFMatrix<REAL> phi(numShape,1), dphi(dim,numShape), dsol(dim, ndof, 0.);
  TPZFMatrix<REAL> ek(numShape * ndof, numShape * ndof, 0.), ef(numShape * ndof, 1, 0.),ekFAD(numShape * ndof, numShape * ndof, 0.), efFAD(numShape * ndof, 1, 0.);
  TPZVec<REAL> x(3,0.), sol(3,0.);

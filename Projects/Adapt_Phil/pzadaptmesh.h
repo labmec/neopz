@@ -39,14 +39,16 @@ class TPZAdaptMesh {
   void SetMaxP(int maxp);
   
   /**
-   * Public interface to get the optmally refined mesh 
-   * @param error: returns the estimated error
-   * @param truerror: returns the true error if analitical solution is provided
-   * @param ervec: estimated element error for original mesh element vector
-   * @param f: analitical solution
-   * @param truervec: real element error at each orginal mesh element
-   * @param effect: error estimator effectivity
-   * @param use_trueerror: evaluates the error throgh the analitical solution provided by f
+   * @brief Public interface to get the optmally refined mesh 
+   * @param gelstack vector of geometric elements
+   * @param porders vector of orders to approximate
+   * @param error returns the estimated error
+   * @param truerror returns the true error if analitical solution is provided
+   * @param ervec estimated element error for original mesh element vector
+   * @param f analitical solution
+   * @param truervec real element error at each orginal mesh element
+   * @param effect error estimator effectivity
+   * @param use_trueerror evaluates the error throgh the analitical solution provided by f
    */
   void GetAdaptedMesh(TPZStack<TPZGeoEl *> &gelstack,TPZStack<int> &porders,
 		      REAL &error,
@@ -58,13 +60,10 @@ class TPZAdaptMesh {
 		      int use_trueerror = 0);
 
 
-  /**
-   * returns the error based on a function pointer which returns the analytic solution
-   */
+  /** @brief Returns the error based on a function pointer which returns the analytic solution */
 static REAL ComputeTrueError(TPZInterpolatedElement *coarse, void (*f)(TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix &deriv));
 
-
-  //multi-threading control variables...
+  /** @brief multi-threading control variables... */
   static int fThreads_in_use;
 
  private:
@@ -72,45 +71,33 @@ static REAL ComputeTrueError(TPZInterpolatedElement *coarse, void (*f)(TPZVec<RE
 
  protected:
   
-  
-  /**
-   * Retrieves the geometric reference elements to create the patches 
-   */
+  /** @brief Retrieves the geometric reference elements to create the patches */
   void BuildReferenceElements();
   
-  /**
-   * Builds the patch of all reference elements. 
-   * The patches are stored into patch vectors
-   */   
+  /** @brief Builds the patch of all reference elements. The patches are stored into patch vectors */
   void BuildReferencePatch();
   
-  /**
-   * return the number of patches
-   */
+  /** @brief Return the number of patches */
   int NPatches();
-  /**
-   * Fill the vector of clone meshes
-   */
+  /** @brief Fill the vector of clone meshes */
   void CreatePatch(int cloneindex);
   
-  /**
-   * Sorts the elements by the error vector vec, returning permutation vector
-   */
+  /** @brief Sorts the elements by the error vector vec, returning permutation vector */
 static  void Sort(TPZVec<REAL> &vec, TPZVec<int> &perm);
   
-  /**
-   * Sort
-   */
+  /** @brief Sort */
 static  void HeapSort(TPZVec<REAL> &sol, TPZVec<int> &perm);
   
   /**
-   * Sorts the errvec returning the ordering indexes in perm param.
-   * errpercent is the percentual of the error that must be considered in returning minimum error
+   * @brief Sorts the errvec returning the ordering indexes in perm param.
+   * @param errvec vector of errors to sort
+   * @param perm [out] ordering indexes after sort 
+   * @param errpercent is the percentual of the error that must be considered in returning minimum error
    */
 static  REAL TPZAdaptMesh::SortMinError (TPZVec<REAL> &errvec, TPZVec<int> &perm, REAL errpercent);
 
   /**
-   * Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
+   * @brief Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
    * @param mesh: original mesh
    * @param gelstack: h refinement pattern given by a list of an adapted geometric elements
    * @param porders: p refinement pattern for each element of gelstack
@@ -119,8 +106,8 @@ public:
 static TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 protected:
   /**
-   * Verifies if one clone, specified by its index, must be analysed \
-   * This method only be called when the true solution is available and the \
+   * @brief Verifies if one clone, specified by its index, must be analysed \n
+   * This method only be called when the true solution is available and the 
    * option usetrueerror in void  GetAdaptedMesh is set to 1.
    * @param clindex index of the clone to be verified
    * @param minerror minimum error to the clone be analysed
@@ -130,137 +117,93 @@ protected:
 
 
  private:
-  /**
-   * Delete all elements which have Material Id == -1000
-   */
+  /** @brief Delete all elements which have Material Id == -1000 */
   static void RemoveCloneBC(TPZCompMesh *mesh);
-  /**
-   * Delete the elements in an orderly fashion
-   */
+  /** @brief Delete the elements in an orderly fashion */
   static void DeleteElements(TPZCompMesh *mesh);
   /**
-   * returns a pointer to the element by which the parameter is restrained
+   * @brief returns a pointer to the element by which the parameter is restrained
    * @param cint element which has restrained connectivities
    * @return the element which contains the unconstrained connectivity
    */
   static TPZInterpolatedElement * LargeElement(TPZInterpolatedElement *cint);
-  /**
-   * Computational reference mesh
-   */
+  /** @brief Computational reference mesh */
   TPZCompMesh *fReference;
   
-  /**
-   * Geometric reference elements vector
-   */
+  /** @brief Geometric reference elements vector */
   TPZStack < TPZGeoEl * > fGeoRef;
   
-  /**
-   * Patches vector
-   */
+  /** @brief Patches vector */
   TPZStack < TPZGeoEl * > fPatch;
   
-  /**
-   * Maps the start position of each patch into patches vector
-   */
+  /** @brief Maps the start position of each patch into patches vector */
   TPZStack < int > fPatchIndex;
   
-  /**
-   * Element error vector
-   */
+  /** @brief Element error vector */
   TPZStack < REAL > fElementError;
 
-  /**
-   * True Element error vector
-   */
+  /** @brief True Element error vector */
   TPZVec < REAL > fTrueErrorVec;
   
-  /**
-   * this struct groups all information pertinent to a patch of elements
-   */
+  /** @brief This struct groups all information pertinent to a patch of elements */
   struct TPZCloneInfo {  
 
-    /**
-     * Clone meshes vector
-     */
+    /** @brief Clone meshes vector */
     TPZCompCloneMesh * fCloneMesh;
 
-    /**
-     * Refined clone meshes
-     */
+    /** @brief Refined clone meshes */
     TPZCompMesh * fFineCloneMesh;
 
-    /**
-     * contains the element pointers if the element should be refined either in h or p
-     */
+    /** @brief Contains the element pointers if the element should be refined either in h or p */
     TPZStack<TPZGeoEl *> fRefinedElements;
-    /**
-     * contains the order of the refined elements
-     */
+    /** @brief Contains the order of the refined elements */
     TPZStack<int> fRefinedOrders;
 
-    /**
-     * contains pointers to the original element if it shouldn t be refined
-     */
+    /** @brief Contains pointers to the original element if it shouldn t be refined */
     TPZStack<TPZGeoEl *> fOriginalElements;
-    /**
-     * contains the order of the original element
-     */
+    /** @brief Contains the order of the original element */
     TPZStack<int> fOriginalOrders;
 
-    /**
-     * Initializes the data structure
-     */ 
+    /** @brief Initializes the data structure */
     TPZCloneInfo();
 
-    /**
-     * deletes the cloned meshes as these are no longer needed
-     */
+    /** @brief Deletes the cloned meshes as these are no longer needed */
     void Cleanup();
 
-    /**
-     * will add the refined or original elements depending on the value of minerror to gelstack and orders
-     */
+    /** @brief Will add the refined or original elements depending on the value of minerror to gelstack and orders */
     void AddSelectedElements(TPZVec<REAL> &errvec, REAL minerror,TPZStack<TPZGeoEl *> &gelstack, TPZStack<int> &orders);
 
     void PrintElementIds(ostream &out);
-    /**
-     * Deletes all dynamically allocated datastructure
-     */
+    /** @brief Deletes all dynamically allocated datastructure */
     ~TPZCloneInfo();
+	  
   };
 
   TPZManVector<TPZCloneInfo> fCloneStructs;
 
-  /**
-   * Indexes of the clones that must be analysed
-   */
+  /** @brief Indexes of the clones that must be analysed */
 
   TPZStack <int> fClonestoAnalyse;
-  /** 
-   * Delete temporary clone meshes from memory
-   */
+  /** @brief Delete temporary clone meshes from memory */
   void CleanUp();
 
   /**
-   * Will create a clone mesh and analyse the error of its elements
+   * @brief Will create a clone mesh and analyse the error of its elements \n
    * Will also delete the temporary data structures created for the analysis
    */
   void ProcessPatch(int clone);
 
-  /**
-   * Mesh Error void -- to be used in multi-threading
-   */
+  /** @brief Mesh Error void -- to be used in multi-threading */
   static void  * MeshError (void *t);
 
   void (*fExact)(TPZVec<REAL> &loc, TPZVec<REAL> &result, TPZFMatrix &deriv);
 
-  /*
-   * Maximum p order of an element
-   */
+  /** @brief Maximum p order of an element */
   int fMaxP;
 
   static  pthread_mutex_t fLock_clindex;
   static  pthread_cond_t fSignal_free;
   
 };
-#endif //TPZADAPTMESH_H
+
+#endif

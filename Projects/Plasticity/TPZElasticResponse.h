@@ -7,8 +7,8 @@
 #include "pzreal.h"
 
 /**
-Calcula a tensao em funcao de deformacao (elastica)
-*/
+ * @brief Calcula a tensao em funcao de deformacao (elastica)
+ */
 class TPZElasticResponse {
 public:
 
@@ -30,10 +30,10 @@ public:
    }
 	
    /**
-   Construtor da classe em funcao das variaveis de lame
-   @param [in] lambda primeira variavel de lame
-   @param [in] mu segunda variavel de lame
-   */
+	* @brief Construtor da classe em funcao das variaveis de lame
+	* @param elast primeira variavel de lame
+	* @param poisson segunda variavel de lame
+	*/
    void SetUp(REAL elast, REAL poisson)
    {
    	
@@ -54,10 +54,10 @@ public:
    }
 	
    /**
-   Calcula o tensor de tensao em funcao do tensor de deformacao
-   @param [in] epsilon tensor de deformacao
-   @param [out] sigma tensor de tensao
-   */
+	* @brief Calcula o tensor de tensao em funcao do tensor de deformacao
+	* @param[in] epsilon tensor de deformacao
+	* @param[out] sigma tensor de tensao
+	*/
     template <class T>
     void Compute(TPZTensor<T> & epsilon, TPZTensor<T> & sigma) const
     {
@@ -68,8 +68,8 @@ public:
     }
 	
 	/**
-	 Computes the elastic matrix, writing it to the matrix Kep 
-	 @param Kef[out] matrix to write to
+	 * @brief Computes the elastic matrix, writing it to the matrix Kep 
+	 * @param Kef [out] matrix to write to
 	*/
     void ElasticMat(TPZFMatrix<REAL> & Kef)
 	{
@@ -95,6 +95,4 @@ public:
     REAL fMu;
 };
 
-
 #endif //TPZELASTICRESPONSE_H
-

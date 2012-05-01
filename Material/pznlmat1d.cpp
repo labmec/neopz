@@ -1,23 +1,20 @@
 /**
  * @file
- * @brief Contains implementations of the TPZMat1dLin methods.
+ * @brief Contains implementations of the TPZNLMat1d methods. (non linear one dimensional equation)
  */
-#include "pzmat1dlin.h"
+
+#include "pznlmat1d.h"
 #include "pzmaterial.h"
-//#include "pztempmat.h"
 #include "pzconnect.h"
 #include "pzbndcond.h"
 #include "pzerror.h"
 #include "pzvec.h"
-//#include "pzmatrix.h"
 
 #include <math.h>
 using namespace std;
 
-void TPZMat1dLin::Contribute(TPZMaterialData &data,
-                             REAL weight,
-                             TPZFMatrix<REAL> &ek, 
-                             TPZFMatrix<REAL> &ef) {
+void TPZNLMat1d::Contribute(TPZMaterialData &data, REAL weight,
+                             TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -34,7 +31,9 @@ void TPZMat1dLin::Contribute(TPZMaterialData &data,
 		dphi.Rows() << "\n";
 	}
 	
-	if(fForcingFunction) {
+	// IT IS NOT IMPLEMENTED 
+	
+/*	if(fForcingFunction) {
 		TPZManVector<REAL> xfloat(fXf.Rows());
 		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
 		int i;
@@ -52,12 +51,11 @@ void TPZMat1dLin::Contribute(TPZMaterialData &data,
 			ek.AddSub(in*r,jn*c,submat);
 		}
 	}
+ */
 }
 
-void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
-                               REAL weight,
-                               TPZFMatrix<REAL> &ek,
-                               TPZFMatrix<REAL> &ef,
+void TPZNLMat1d::ContributeBC(TPZMaterialData &data, REAL weight,
+                               TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
                                TPZBndCond &bc) {
 	
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -73,7 +71,10 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		bc.Type() << " boundary condition ignored\n";
 	}
 	int bcv1r,bcv1c,bcv2r,bcv2c;
-	int r = fXk.Rows();
+
+	// IT IS NOT IMPLEMENTED YET
+	
+/*	int r = fXk.Rows();
 	int numnod = ek.Rows()/r;
 	bcv1r = bc.Val1().Rows();
 	bcv1c = bc.Val1().Cols();
@@ -88,7 +89,6 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		" val1.Rows =" << bc.Val1().Rows() << " xk.Rows = " << fXk.Rows() << "\n"
 		" val2.Cols() = " << bc.Val2().Cols() << " val2.Rows() = " << bc.Val2().Rows() << "\n"
 		" val1.Cols() = " << bc.Val1().Cols() << "\n";
-		//		pzerror.show();
 	}
 	
 	int idf,jdf,in,jn;
@@ -131,60 +131,15 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 			break;
 			
 	}
-	//	pzerror.show();
+ */
 }
 
-void TPZMat1dLin::Print(std::ostream & out){
+void TPZNLMat1d::Print(std::ostream & out){
 	
-	out << "Material type TPZMat1dLin -- number = " << Id() << "\n";
-	out << "Matrix xk ->  "; fXk.Print("fXk",out);
-	out << "Matrix xc ->  "; fXc.Print("fXc",out);
-	out << "Matrix xb ->  "; fXb.Print("fXb",out);
-	out << "Matrix xf ->  "; fXf.Print("fXf",out);
-}
-
-void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*u*/, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &fl) {
-	
-	int row = NStateVariables();
-	for(int i=0; i<row; i++){
-		fl[i]  = 0.;
-		for(int j=0; j<row; j++) {
-			fl[i] += -fXk(i,j)*dudx(0,j);
-		}
-	}
-}
-
-void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &flux,
-						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
-	
-	TPZVec<REAL> udif(u);
-	int nelem= udif.NElements(),i;
-	for(i=0; i<nelem; i++) udif[i] -= u_exact[i];
-	TPZFMatrix<REAL> dudif(dudx);
-	
-	int r = NStateVariables();
-	TPZVec<REAL> flux_el( r );
-	short idf;
-	for(idf=0; idf<r; idf++) {
-		dudif(0,idf) -= du_exact(0,idf);
-	}
-	
-	values.Fill(0.);  //misael
-	
-	for (idf=0; idf<r; idf++) {
-		values[1] += udif[idf]*udif[idf];
-		for (short jdf=0; jdf<r; jdf++) {
-			values[0] += dudif(0,idf)*fXk(idf,jdf)*dudif(0,jdf) + udif[idf]*fXb(idf,jdf)*udif[jdf];
-			flux_el[idf] -= fXk(idf,jdf)*dudx(0,jdf);
-		}
-	}
-	
-	for (idf=0; idf<r; idf++) {
-		REAL dif = flux[idf]-flux_el[idf];
-		if(fabs(fXk(idf,idf)) >= 1.e-10)
-		{ //Erico cout<<endl<<fXk(idf,idf)<<endl;
-			values[2] += dif*dif/sqrt(fabs( fXk(idf,idf) ));
-		}
-	}
+	out << "Material type TPZNLMat1D -- number = " << Id() << "\n";
+//	out << "Matrix xk ->  "; fXk.Print("fXk",out);
+//	out << "Matrix xc ->  "; fXc.Print("fXc",out);
+//	out << "Matrix xb ->  "; fXb.Print("fXb",out);
+//	out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 

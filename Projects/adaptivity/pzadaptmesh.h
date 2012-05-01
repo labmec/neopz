@@ -77,15 +77,17 @@ static void DeleteElements(TPZCompMesh *mesh);
   
   /**
    * @brief Sorts the errvec returning the ordering indexes in perm param.
+   * @param errvec vector of errors to sort
+   * @param perm ordering indexes after sorting
    * @param errpercent is the percentual of the error that must be considered in returning minimum error
    */
   REAL SortMinError (TPZVec<REAL> errvec, TPZVec<int> perm, REAL errpercent);
 
   /**
    * @brief Creates an adpted computational mesh based on original mesh and in a hp refinement pattern also
-   * @param mesh: original mesh
-   * @param gelstack: h refinement pattern given by a list of an adapted geometric elements
-   * @param porders: p refinement pattern for each element of gelstack
+   * @param mesh original mesh
+   * @param gelstack h refinement pattern given by a list of an adapted geometric elements
+   * @param porders p refinement pattern for each element of gelstack
    */
   TPZCompMesh* CreateCompMesh (TPZCompMesh *mesh,TPZVec<TPZGeoEl *> &gelstack,TPZVec<int> &porders);
 

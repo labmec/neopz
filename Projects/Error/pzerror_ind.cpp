@@ -92,10 +92,6 @@ void TPZErrorIndicator::Sort(TPZFMatrix &error, TPZFMatrix &perm) {
   }
 }
 
-
-/** Returns the side to refine.
-@param cel element to analyse
-@param sidedim dimension of the sides which will be analysed */
 int TPZErrorIndicator::GetRefSide(TPZCompEl *cel, int sidedim, int sidestate, TPZMatrix *errormat){
   int e,s,nsides = cel->Reference()->NSides();
   REAL sum = 0.;

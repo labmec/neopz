@@ -68,7 +68,8 @@ public:
 
 	/**
 	 * Defines the mesh elements
-	 * @param patch: elements to be cloned
+	 * @param patch elements to be cloned
+	 * @param ref pointer of the geometric element
 	 */
 	void SetElements(TPZStack<TPZGeoEl *> &patch, TPZGeoEl *ref);
 
@@ -113,31 +114,32 @@ protected:
 	/**
 	 * Creates a clone of a given node pointer
 	 * return the id of the cloned node
-	 * @param nod: node to be cloned
+	 * @param nodindex node to be cloned
 	 **/
 	int CloneNode(int nodindex);
 
 	/** 
 	 * Creates an element clone and insert it into the mesh
 	 * return the value of the cloned element
-	 * @param org: geometric element to be cloned
+	 * @param orggel geometric element to be cloned
 	 **/
 	int CloneElement(TPZGeoEl *orggel);
 
 	/**
 	 * Verifies if the specified node was created
-	 * @param nodeindex: Node index to be verified
+	 * @param nodeindex Node index to be verified
 	 */
 	int HasNode(int nodeindex);
 	/**
 	 * Verifies if a given element was created
-	 * @param el: element to be verified
+	 * @param el element to be verified
 	 */
 	int HasElement(TPZGeoEl *el);
 
 private:
 	/**
-	 * Create a copy of the type of elementorgel
+	 * @brief Create a copy of the type of element orgel
+	 * @param orgel geometric element to be cloned
 	 */
 	TPZGeoEl * InitializeClone(TPZGeoEl* orgel);	
 	

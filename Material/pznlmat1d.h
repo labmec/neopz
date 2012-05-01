@@ -56,29 +56,29 @@ public:
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,
-                            TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
-	
+                            TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	/** @brief Computes contribution to the right hand side at an integration point */
+	virtual void Contribute(TPZMaterialData &data, REAL weight,
+                            TPZFMatrix<STATE> &ef);
+
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
-	
+	/** @brief Computes contribution to load vector (right hand side) at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
+	
 	/** @brief To create another material of the same type */
 	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 	
 	/** @brief Reads data of the material from a istream (file data) */
 	virtual void SetData(std::istream &data);
-	
-	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
-	virtual void Contribute(TPZMaterialData &data, REAL weight,
-                            TPZFMatrix<REAL> &ef);
-	
+		
 	virtual void Write(TPZStream &buf, int withclassid);
 	
 	virtual void Read(TPZStream &buf, void *context);

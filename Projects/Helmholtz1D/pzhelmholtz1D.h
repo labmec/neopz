@@ -65,17 +65,6 @@ public:
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-    /**
-     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data [in] stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
-     * @param ef [out] is the load vector
-     * @param bc [in] is the boundary condition material
-     * @since October 07, 2011
-     */
-//    virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
-	
 	/** @brief Sets the variable coefficient alpha */
 	void SetAlphaFunction(TPZAutoPointer<TPZFunction> falpha) {
 		fAlpha = falpha;

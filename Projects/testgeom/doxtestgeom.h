@@ -4,7 +4,6 @@
  */
 
 /*! \page TutorialGeometry Example of the Creation of a Geometric Mesh
- * \dontinclude geom.cpp
  * This example can be found in the Project directory TestGeom and file geom.cpp
  * <b>MAIN Program</b>
  * \skipline main

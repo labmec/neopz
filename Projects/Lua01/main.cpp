@@ -2,21 +2,23 @@
  * @file
  * @brief Implements the build of a computational mesh as tutorial example of the interpolation NeoPZ module
  */
-#include <pzvec.h>
-#include <pzgmesh.h>
-#include <pzcompel.h>
-#include <pzgeoel.h>
-#include <pzquad.h>
-#include <pzmat2dlin.h>
-#include <TPZGeoElement.h>
-#include <pzskylstrmatrix.h>
-#include <pzcmesh.h>
+
+#include "pzvec.h"
+#include "pzgmesh.h"
+#include "pzcompel.h"
+#include "pzgeoel.h"
+#include "pzgeoelbc.h"
+#include "pzquad.h"
+#include "pzmat2dlin.h"
+#include "TPZGeoElement.h"
+#include "pzskylstrmatrix.h"
+#include "pzcmesh.h"
 #include "pzfilebuffer.h"
 #include "pzmaterialid.h"
 #include "pzmeshid.h"
 #include "pzbfilestream.h"
 #include "pzcmesh.h"
-#include <TPZVTKGeoMesh.h>
+#include "TPZVTKGeoMesh.h"
 #include "pzelast3d.h"
 #include "pzstepsolver.h"
 #include "pzanalysis.h"
@@ -26,6 +28,7 @@
 
 #include <iostream>
 #include <fstream>
+
 using namespace std;
 
 // nx = number of nodes in x direction
@@ -33,7 +36,6 @@ using namespace std;
 TPZGeoMesh * GetMesh(int nx,int ny);
 void SimpleMesh(TPZGeoMesh *malha);
 void InsertElasticity(TPZCompMesh *cmesh);
-
 
 int main()
 {

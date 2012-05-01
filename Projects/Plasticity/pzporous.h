@@ -1,4 +1,6 @@
-//$Id: pzporous.h,v 1.8 2009-10-06 01:00:06 erick Exp $
+/**
+ * @file
+ */
 
 #ifndef PZPORO_H
 #define PZPORO_H
@@ -112,38 +114,38 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
-       * @param bc[in] is the boundary condition material
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
+       * @param bc [in] is the boundary condition material
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**
        * It computes a contribution to the residual vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ef[out] is the residual vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ef [out] is the residual vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
-       * @param bc[in] is the boundary condition material
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
+       * @param bc [in] is the boundary condition material
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
@@ -172,12 +174,6 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 	  virtual void FillDataRequirements(TPZMaterialData &data);
 	
 	  /**
-	   * Sets the delta time for the current material contributions
-	   *
-	   */
-	  //void SetDeltaT(const REAL & deltaT);
-
-	  /**
 	   * Returns the porepressure and its divergent at the current integration point
 	   */
 	  void ComputePorePressure(TPZMaterialData & data, REAL & Pp, TPZVec<REAL> & dPp);
@@ -193,11 +189,6 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 	  void SetPorePressure(const REAL Pp);
 	
 protected:
-		
-	  /**
-	   * time interval
-	   */
-	  //REAL fDeltaT;
 	
 	  /**
 	   * porous medium intrinsic permeability

@@ -117,7 +117,7 @@ void TPZExplFinVolAnal::MultiResolution(double Epsl, std::ostream &out){
 
 }///void
 
-void TPZExplFinVolAnal::DX(int iter, string filename){
+void TPZExplFinVolAnal::DX(int iter, std::string filename){
   TPZVec<string> scal(3-2),vec(0);
   scal[0] = "density";
   //  scal[1] = "energy";

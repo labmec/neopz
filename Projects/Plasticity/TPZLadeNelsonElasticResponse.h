@@ -1,4 +1,6 @@
-// $Id: TPZLadeNelsonElasticResponse.h,v 1.17 2010-06-11 22:12:14 diogo Exp $
+/**
+ * @file
+ */
 
 #ifndef TPZLADENELSONELASTICRESPONSE_H
 #define TPZLADENELSONELASTICRESPONSE_H
@@ -95,8 +97,8 @@ public:
     /**
      * Computes the stress tensor based on the strain tensor.
 	 * REAL type specialization
-     * @param epsilon_T [in] strain tensor
-     * @param sigma_T [in/out] stress tensor. It is used as the initial guess and also as output parameter
+     * @param epsilon [in] strain tensor
+     * @param sigma [in/out] stress tensor. It is used as the initial guess and also as output parameter
      */
     void Compute(const TPZTensor<REAL> & epsilon, TPZTensor<REAL> & sigma) const;
 

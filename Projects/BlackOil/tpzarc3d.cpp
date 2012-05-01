@@ -1,3 +1,8 @@
+/**
+ * @file
+ * @brief Contains the implementation of the TPZArc3D methods
+ */
+
 #include "tpzarc3d.h"
 #include "pzshapelinear.h"
 
@@ -14,8 +19,8 @@ using namespace pzgeom;
 using namespace pzshape;
 using namespace pztopology;
 
-//////////////////
-void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
+
+void TPZArc3D::ComputeAtributes(TPZFMatrix<REAL> &coord)
 {
      /** fIBaseCn -> Basis Change Matrix: from Base(R2) to Canonic(R3) | fIBaseCn 1st column = BaseX | fIBaseCn 2nd column = BaseY */
      TPZFMatrix IBaseCnCP(3,3,0.), NotUsedHere(3,3,0.);
@@ -59,9 +64,9 @@ void TPZArc3D::ComputeAtributes(TPZFMatrix &coord)
      fRadius = sqrt( Xcenter*Xcenter + Ycenter*Ycenter );
 }
 
-/////////////
+
 /** This method compute the 3 given points with respect to R2 Basis */
-void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double &xb, double &yb, double &angle)
+void TPZArc3D::ComputeR2Points(TPZFMatrix<REAL> &coord, double &xa, double &ya, double &xb, double &yb, double &angle)
 {
      /** vector (ini - middle) written in new R2 base */
      TPZVec<REAL> Axe(3,0.), Temp(3,0.);
@@ -84,10 +89,9 @@ void TPZArc3D::ComputeR2Points(TPZFMatrix &coord, double &xa, double &ya, double
      angle = ArcAngle(coord,xa, ya, xb, yb);
 }
 
-///////////////
 /** This method return the absolute angle with respect of the arc formed between (ini - center) and (fin - center), passing by midnode
     Note: (xm,ym) don't appear because this coordinates are always (0,0) - it's the origin of R2 basis */
-double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, double yb)
+double TPZArc3D::ArcAngle(TPZFMatrix<REAL> &coord, double xa, double ya, double xb, double yb)
 {
      double cos, Angle1, Angle2, Angle3, Xcenter, Ycenter;
 
@@ -117,9 +121,8 @@ double TPZArc3D::ArcAngle(TPZFMatrix &coord, double xa, double ya, double xb, do
      else return (2.*acos(-1) - Angle3); /** Bigger Arc Angle = 2Pi - Angle3 */
 }
 
-///////////////
 /** Mapping -> result = f(NodesCoord,qsi) */
-void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
+void TPZArc3D::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
 {
 
      /** Cross[(mid-ini),(fin-ini)] */
@@ -198,8 +201,7 @@ void TPZArc3D::X(TPZFMatrix &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result)
      }
 }
 
-///////////////
-void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobian, TPZFMatrix &axes, REAL &detjac, TPZFMatrix &jacinv)
+void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv)
 {
      jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
      /** Cross[(mid-ini),(fin-ini)] */
@@ -273,7 +275,6 @@ void TPZArc3D::Jacobian(TPZFMatrix &coord, TPZVec<REAL> &par, TPZFMatrix &jacobi
      for(int j = 0; j < 3; j++) axes(0,j) = Vt[j]/sqrt(Vtnorm);
 }
 
-///////////////
 TPZGeoEl *TPZArc3D::CreateBCGeoEl(TPZGeoEl *orig, int side,int bc)
 {
      if(side==2)
