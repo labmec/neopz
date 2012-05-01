@@ -2,17 +2,6 @@
  * @file
  * @brief Contains TPZFBMatrix class which defines a non symmetric banded matrix.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tbndmat.hh
-//
-// Class:  TPZFBMatrix
-//
-// Obs.:   Implementa matrizes cheias (normais).
-//
-// Versao: 12 / 1994.
-//
 
 #ifndef _TBNDMATHH_
 #define _TBNDMATHH_
@@ -29,6 +18,8 @@
 /**
  * @brief Defines a non symmetric banded matrix. \ref matrix "Matrix"
  * @ingroup matrix
+ * @author MISAEL LUIS SANTANA MANDUJANO.
+ * @since 12/1994
  */
 template<class TVar>
 class TPZFBMatrix : public TPZMatrix<TVar>
@@ -36,34 +27,27 @@ class TPZFBMatrix : public TPZMatrix<TVar>
 	
 public:
 	virtual int Substitution(TPZFMatrix<TVar> *B) const;
-	/**
-	 * @brief Simple constructor
-	 */
+	/** @brief Simple constructor */
 	TPZFBMatrix ();
 	/**
-     @brief Constructor
-     @param dim Initial dimension of banded matrix
-     @param band_width Initial band width of banded matrix
+     * @brief Constructor
+     * @param dim Initial dimension of banded matrix
+     * @param band_width Initial band width of banded matrix
 	 */
 	TPZFBMatrix (const int dim,const int band_width = 0 );
-	/**
-     @brief Copy constructor
-	 */
+	/** @brief Copy constructor */
 	TPZFBMatrix (const TPZFBMatrix<TVar> & );
 	
 	CLONEDEF(TPZFBMatrix)
-	/**
-     @brief Simple destructor
-	 */
+	/** @brief Simple destructor */
 	~TPZFBMatrix();
-	
+
 	int    Put(const int row,const int col,const TVar& value );
 	const TVar &Get(const int row,const int col ) const;
 	
 	TVar &operator()(const int row, const int col);
 	virtual TVar &s(const int row, const int col);
-	//estos metodos nao verificam a existencia do elemento
-	//sao mas rapidos que Put e Get
+
 	inline int    PutVal(const int row,const int col,const TVar& value );
 	inline const TVar &GetVal(const int row,const int col ) const;
 	
@@ -87,27 +71,21 @@ public:
 	TPZFBMatrix operator-() const;
 	
 	int Dim() const     { return this->Rows(); }
-	/**
-     @brief Returns band size
-	 */
+	/** @brief Returns band size */
 	int GetBand() const { return fBand; }
 	/**
-     @brief Sets band size
-     @param newBand New band size
+     * @brief Sets band size
+     * @param newBand New band size
 	 */
 	int SetBand(const int newBand );
 	
-	// Redimensiona a matriz, mas mantem seus elementos.
-	// Nao muda o tamanho da banda!
 	/// Redimension the matrix preserving its elements
 	int Resize(const int newRows,const int newCols );
 	
-	// Redimensiona a matriz e ZERA seus elementos.
-	// Nao muda o tamanho da banda!
 	/// Redimension the matrix and make zero its elements
 	int Redim(const int newRows,const int newCols );
 	
-	// Zera os elementos da matriz
+	// Zeroes the elements of the matrix
 	int Zero();
 	
 	void Transpose(TPZMatrix<TVar> *const T) const;
@@ -128,8 +106,6 @@ public:
 	
 private:
 	
-	
-	//static  int Error(const char *msg1,const char *msg2="" );
 	int Clear();
 	
 	TVar *fElem;

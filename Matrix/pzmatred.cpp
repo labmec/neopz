@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZMatRed methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tmatred.c
-//
-// Class:  TPZMatRed
-//
-// Obs.: SubestruturaÔøΩo simples de um sistema de equacoes.
-//       So'para matrizes quadradas
-// Versao: 04 / 1996.
-//
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,10 +18,6 @@ using namespace std;
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 #endif
-
-//REAL TPZMatrix::gZero = 0.;
-
-//ofstream out("saida");
 
 /*************************** Public ***************************/
 
@@ -199,8 +184,6 @@ TPZMatRed<TVar, TSideMatrix>::F1Red()
 	return (fF1);
 }
 
-//static int counter = 0;
-
 template<class TVar, class TSideMatrix>
 const TPZFMatrix<TVar>&
 TPZMatRed<TVar,TSideMatrix>::K11Red()
@@ -212,15 +195,6 @@ TPZMatRed<TVar,TSideMatrix>::K11Red()
 	
 	if(!fK01IsComputed)
 	{
-/*
-        {
-            std::stringstream sout;
-            sout << "K00_" << counter++ << ".nb";
-            std::ofstream output(sout.str().c_str());
-            fK00->Print("K00= ",output,EMathematicaInput);
-            
-        }
-*/
         DecomposeK00();
 		Simetrize();
 		fSolver->Solve(fK01,fK01);
@@ -229,7 +203,6 @@ TPZMatRed<TVar,TSideMatrix>::K11Red()
 		fK01IsComputed = 1;
 	}
 	
-	//make [K11]=[k11]-[k10][k01]
 	fK10.MultAdd(fK01,(fK11),(fK11),-1,1);
 	fK11IsReduced=1;
 	return (fK11);
@@ -505,12 +478,11 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
-									 const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-									 const TVar alpha,const TVar beta,
-									 const int opt,const int stride) const
+										   const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+										   const TVar alpha,const TVar beta,
+										   const int opt,const int stride) const
 {
-// #warning Not functional yet. Still need to Identify all the variables
-	
+	// #warning Not functional yet. Still need to Identify all the variables	
 	if(!fIsReduced)
 	{
 		LOGPZ_WARN(logger,"TPZMatRed not reduced, expect trouble")
@@ -529,7 +501,6 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 		
 		TPZFMatrix<TVar> l_Res(fK01.Rows(), x.Cols(), 0);
 		fK01.Multiply(x,l_Res,0,1);
-//        DecomposeK00();
 		fSolver->Solve(l_Res,l_Res);
 #ifdef LOG4CXX
 		if(logger->isDebugEnabled())
@@ -748,23 +719,6 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 		//    }
 	}
 }
-
-/*************************** Private ***************************/
-
-/*************/
-/*** Error ***/
-
-/*int
- TPZMatRed<TSideMatrix>::Error(const char *msg ,const char *msg2)
- {
- ostringstream out;
- out << "TPZMatRed<TSideMatrix>::" << msg << msg2 << ".\n";
- LOGPZ_ERROR (logger, out.str().c_str());
- DebugStop();
- return 0;
- }*/
-
-
 
 #include "tpzverysparsematrix.h"
 

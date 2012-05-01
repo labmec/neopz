@@ -2,19 +2,6 @@
  * @file
  * @brief Contains TPZSkyline class which implements a skyline storage format.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tskylmat.cc
-//
-// Class:  TPZSkylMatrix
-//
-// Obs.:   Esta classe gerencia matrizes do tipo SkyLine. Todas
-//         matrizes SkyLine sao simetricas (e portanto quadradas).
-//
-// Versao: 04 / 1996.
-//
-
 
 #ifndef TSKYLMATH
 #define TSKYLMATH

@@ -2,18 +2,6 @@
  * @file
  * @brief Contains the TPZFYsmpMatrix class which implements a non symmetric sparse matrix.
  */
-/******************************************************************************
- *
- * Class definition:    TPZFYsmpMatrix
- *
- * Class type:          Derived from TPZMatrix
- *
- * Purpose:             Define operations on general sparse matrices stored
- *                      in the (old) Yale Sparse Matrix Package format.
- *
- * Solvers:             SOR
- *
- *****************************************************************************/
 
 #ifndef YSMPMATH
 #define YSMPMATH
@@ -63,21 +51,6 @@ private:
 public: 
     TPZFYsmpMatrix(const int rows,const int cols );
 	
-    //TPZFYsmpMatrix(const TPZFYsmpMatrix &cp) : TPZMatrix(cp), fSymmetric(cp.fSymmetric)
-	//    {
-	//      int fjasize = fIA[Rows()];
-	//      fIA = new int[Rows()+1];
-	//      fDiag = new REAL[Rows()];
-	//      fJA = new int[fjasize];
-	//			fA = new REAL[fjasize];
-	//			memcpy(fIA,cp.fIA,(Rows()+1)*sizeof(int));
-	//			memcpy(fJA,cp.fJA,fjasize*sizeof(int));
-	//			memcpy(fDiag,cp.fDiag,Rows()*sizeof(REAL));
-	//			memcpy(fA,cp.fA,fjasize*sizeof(REAL));
-	//		}
-	
-	// Replace the above destructor
-	
 	TPZFYsmpMatrix(const TPZVerySparseMatrix<TVar> &cp);
 	
 	TPZFYsmpMatrix &operator=(const TPZFYsmpMatrix<TVar> &copy);
@@ -86,8 +59,7 @@ public:
     
 	CLONEDEF(TPZFYsmpMatrix)
 	
-	virtual ~TPZFYsmpMatrix();
-	
+	virtual ~TPZFYsmpMatrix();	
 	
 	/** @brief Get the matrix entry at (row,col) without bound checking */
 	virtual const TVar &GetVal(const int row,const int col ) const;

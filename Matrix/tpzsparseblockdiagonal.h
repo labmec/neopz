@@ -2,27 +2,16 @@
  * @file
  * @brief Contains TPZSparseBlockDiagonal class which implements a block diagonal matrix where the blocks are not contiguous.
  */
-//
-// C++ Interface: tpzsparseblockdiagonal
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
 #ifndef TPZSPARSEBLOCKDIAGONAL_H
 #define TPZSPARSEBLOCKDIAGONAL_H
 
 #include "pzblockdiag.h"
 
 /**
- @brief Implements a block diagonal matrix where the blocks are not contiguous. \ref matrix "Matrix"
- @ingroup matrix
- @author Philippe R. B. Devloo
- @since 2004
+ * @brief Implements a block diagonal matrix where the blocks are not contiguous. \ref matrix "Matrix"
+ * @ingroup matrix
+ * @author Philippe R. B. Devloo
+ * @since 2004
  */
 template<class TVar>
 class TPZSparseBlockDiagonal : public TPZBlockDiagonal<TVar>
@@ -49,20 +38,14 @@ public:
     void MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt, const int stride) const;
     void FindBlockIndex(int glob, int &block, int &blockind) const;
 	
-	/**
-	 * @brief Updates the values of the matrix based on the values of the matrix
-	 */
+	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
 	
     
 protected:
-	/**
-	 @brief Equation numbers for each block
-	 */
+	/** @brief Equation numbers for each block */
     TPZVec<int> fBlock;
-	/**
-	 @brief Index to first element of each block
-	 */
+	/** @brief Index to first element of each block */
     TPZVec<int> fBlockIndex;
 	
     void Scatter(const TPZFMatrix<TVar> &in, TPZFMatrix<TVar> &out, int stride) const;

@@ -2,26 +2,16 @@
  * @file
  * @brief Contains TPZSpBlockDiagPivot class which does derivation using decompose LU with pivot.
  */
-//
-// C++ Interface: %{MODULE}
-//
-// Description: 
-//
-//
-// Author: %{AUTHOR} <%{EMAIL}>, (C) %{YEAR}
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #ifndef PZSPBLOCKDIAGPIVOT_H
 #define PZSPBLOCKDIAGPIVOT_H
 
 #include "tpzsparseblockdiagonal.h"
 
 /**
- @brief Derivation using decompose LU with pivot. \ref matrix "Matrix"
- @ingroup matrix
- @author Philippe R. B. Devloo
+ * @brief Derivation using decompose LU with pivot. \ref matrix "Matrix"
+ * @ingroup matrix
+ * @author Philippe R. B. Devloo
  */
 template<class TVar>
 class TPZSpBlockDiagPivot : public TPZSparseBlockDiagonal<TVar>
@@ -41,8 +31,7 @@ public:
 	virtual int Substitution( TPZFMatrix<TVar> * B ) const;
 	
 private:
-	/** @brief Attribute to store equation changes in LU decomposition.
-	 */
+	/** @brief Attribute to store equation changes in LU decomposition. */
 	TPZVec<int> fPivotIndices;
 	
 	int Substitution2( TPZFMatrix<TVar> * B ) const;

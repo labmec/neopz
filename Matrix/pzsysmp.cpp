@@ -2,22 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSYsmpMatrix methods.
  */
-/******************************************************************************
- *
- * Class realization:   TPZSYsmpMatrix
- *
- * Class type:          Derived from TPZMatrix
- *
- * Purpose:             Define operations on symmetric sparse matrices stored
- *                      in the (old) Yale Sparse Matrix Package format.
- *
- * Operations:          Mult
- *                      MultAdd
- *                      Print
- *
- * Solvers:             SOR
- *
- *****************************************************************************/
 
 #include <memory.h>
 
@@ -32,13 +16,6 @@
 
 template<class TVar>
 TPZSYsmpMatrix<TVar>::TPZSYsmpMatrix(const int rows,const int cols ) : TPZMatrix<TVar>(rows,cols) {
-	// Constructs an empty TPZSYsmpMatrix
-	//    fRows = rows;
-	//    fCols = cols;
-	//    fSolver = -1;
-	//    fSymmetric = 0;
-	//    fMaxIterations = 4;
-	//    fSORRelaxation = 1.;
 	fDiag = 0;
 	fIA = 0;
 	fJA = 0;

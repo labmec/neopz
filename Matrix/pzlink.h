@@ -2,18 +2,6 @@
  * @file
  * @brief Contains TPZLink class which implements a linked list of ElemType elements.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tlink.hh
-//
-// Class:  TPZLink<class>
-//
-// Obs.:   Implementa uma lista ligada com elementos indefinidos.
-//
-// Versao: 12 / 1994.
-//
-
 
 #ifndef _TLINKHH_
 #define _TLINKHH_
@@ -36,10 +24,10 @@ template< class ElemType >
 class TPZLink
 {
 	/**
-     @brief Node structure
-     @brief Defines a Node structure that contains an element type index and a node index.
-     @param elem Describes element type.
-     @param next Describes next element.
+     * @brief Node structure
+     * @brief Defines a Node structure that contains an element type index and a node index.
+     * @param elem Describes element type.
+     * @param next Describes next element.
 	 */
 	struct Node
 	{
@@ -64,8 +52,9 @@ public:
 	/**
 	 * @name Manipulators
 	 * @brief Those methods implement manipulations routine with the linked list
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Inserts a element on the list
 	 * @param &elem Element being inserted
@@ -76,38 +65,29 @@ public:
 	 * @param &elem Element being appended
 	 */
 	int Append( ElemType &elem );
-	/**
-	 * @brief Removes an element from the list
-	 */
+	/** @brief Removes an element from the list */
 	int Remove();
 	/**
 	 * @brief Updates the current list
 	 * @param &elem Updated element on the list
 	 */
 	int Update( ElemType &elem );
-	/**
-	 * @brief Clears the entire list
-	 */
+	/** @brief Clears the entire list */
 	int Clear();
-	//@}
+	
+	/** @} */
 	
 	TPZLink<ElemType> &operator=( TPZLink<ElemType> & );
-	/**
-	 * @brief Returns to the head of the list
-	 */
+	/** @brief Returns to the head of the list */
 	int Head();
-	/**
-	 * @brief Moves to the next element on list
-	 */
+	/** @brief Moves to the next element on list */
 	int Next();
 	/**
 	 * @brief Returns an element from the list
 	 * @param *pElem contains the returned element
 	 */
 	int Get( ElemType *pElem );
-	/**
-	 * @brief Returns the node's element type
-	 */
+	/** @brief Returns the node's element type */
 	ElemType *GetNode();
 	/**
 	 * @brief Returns the last element on the list
@@ -116,26 +96,16 @@ public:
 	int GetLast( ElemType *pElem );
 	
 private:
-	/**
-	 * @brief Pointer to head of the list
-	 */
+	/** @brief Pointer to head of the list */
 	Node *fHead;
-	/**
-	 * @brief Pointer to last element on list
-	 */
+	/** @brief Pointer to last element on list */
 	Node *fLast;
-	/**
-	 * @brief Pointer to current element
-	 */
+	/** @brief Pointer to current element */
 	Node *fThis;
-	/**
-	 * What the hell
-	 */
+	/** What the hell */
 	Node **fpBefore;
 #ifdef WORKPOOL
-	/**
-	 * @brief Pointer to workpool
-	 */
+	/** @brief Pointer to workpool */
 	TPZWorkPool *fWp;
 #endif
 	
@@ -196,8 +166,6 @@ TPZLink<ElemType>::GetLast( ElemType *pElem )
 	*pElem = fLast->elem;
 	return( 1 );
 }
-
-//#include "tlink.h2"
 
 #ifdef WORKPOOL
 template< class ElemType >

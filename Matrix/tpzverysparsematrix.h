@@ -17,9 +17,9 @@ class TPZFYsmpMatrix;
 #define TPZVERYSPARSEMATRIX_ID 28291001;
 
 /**
- @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
- @brief Implements a matrix whose nonzero elements are stored in binary tree. \ref matrix "Matrix"
- @ingroup matrix
+ * @author Agnaldo Monteiro Farias <agnaldo@labmec.fec.unicamp.br>
+ * @brief Implements a matrix whose nonzero elements are stored in binary tree. \ref matrix "Matrix"
+ * @ingroup matrix
  */
 template<class TVar>
 class TPZVerySparseMatrix: public TPZMatrix<TVar>
@@ -48,20 +48,16 @@ public:
 	
 	TPZVerySparseMatrix(const TPZFMatrix<TVar> &cp);
 	
-	/**
-	 * @brief Put values checking bounds\n
-	 */
+	/** @brief Put values checking bounds */
 	virtual int PutVal(const int row, const int col, const TVar &val);
 	
-	/**
-	 * @brief Get values checking bounds\n
-	 */
+	/** @brief Get values checking bounds */
 	virtual const TVar &GetVal(const int row, const int col) const;
 	
 	/**
-	 @brief The operators check on the bounds if the DEBUG variable is defined
-	 @param row Row number.
-	 @param col Column number.
+	 * @brief The operators check on the bounds if the DEBUG variable is defined
+	 * @param row Row number.
+	 * @param col Column number.
 	 */
 	virtual TVar &s(const int row, const int col)
 	{
@@ -93,19 +89,16 @@ public:
 						 TPZFMatrix<TVar> & z, const TVar alpha = 1, const TVar beta = 0,
 						 const int opt = 0, const int stride = 1) const;
 	
-	/**
-	 * @brief Saveable methods
-	 */
+	/** @brief Saveable methods */
 	int ClassId() const
 	{
 		return TPZVERYSPARSEMATRIX_ID;
 	}
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
+	
 private:
-	/**
-	 * @brief Auxiliary functions only reading and writing a map as the third paremeter
-	 */
+	/** @brief Auxiliary functions only reading and writing a map as the third paremeter */
 	void WriteMap(TPZStream &buf, int withclassid, std::map<std::pair<int, int>, TVar> & TheMap);
 	void ReadMap(TPZStream &buf, void *context, std::map<std::pair<int, int>, TVar> & TheMap);
 	
@@ -113,11 +106,8 @@ private:
 	
 protected:
 	
-	/**
-	 @brief Save elements different from zero, of Sparse matrix
-	 */
+	/** @brief Save elements different from zero, of Sparse matrix */
 	std::map<std::pair<int, int>, TVar> fExtraSparseData;
-	
 };
 
 #endif

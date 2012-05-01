@@ -2,18 +2,6 @@
  * @file
  * @brief Contains TPZMatrix<TVar>class, root matrix class.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tmatrix.hh
-//
-// Class:  TPZMatrix
-//
-// Obs.:   Implements abstract matrix class.
-//
-// Versao: 04 / 1996.
-//
-
 
 #ifndef _TMATRIXIDHH_
 #define _TMATRIXIDHH_
@@ -37,5 +25,4 @@ const int TPZSTEPSOLVERCOMPLEXDOUBLE_ID = 508;
 
 
 #endif
-// _TMATRIXIDHH_
 

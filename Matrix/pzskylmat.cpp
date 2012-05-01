@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSkylMatrix methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tskylmat.cc
-//
-// Class:  TPZSkylMatrix
-//
-// Obs.:   ESTA CLASSE GERENCIA MATRIZES DO TIPO SKYLINE.
-//
-// Versao: 4 / 1996.
-//
 
 #include <math.h>
 #include <stdlib.h>

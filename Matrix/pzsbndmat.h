@@ -2,20 +2,9 @@
  * @file
  * @brief Contains TPZSBMatrix class which implements symmetric band matrices.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsbndmat.hh
-//
-// Class:  TPZSBMatrix
-//
-// Obs.:   Esta classe gerencia matrizes do tipo Band simetrica.
-//
-// Versao: 04 / 1996.
+
 #ifndef TSBNDMATH
 #define TSBNDMATH
-
-
 
 #include "pzmatrix.h"
 

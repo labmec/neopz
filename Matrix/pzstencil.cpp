@@ -2,24 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZStencilMatrix methods.
  */
-/******************************************************************************
- *
- * Class realization:   TPZStencilMatrix
- *
- * Class type:          Derived from TPZMatrix
- *
- * Purpose:             Define operations on sparse matrices stored by
- *                      stencils
- *
- * Operations:          Mult
- *                      MultAdd
- *                      Print
- *
- * Solvers:             SOR
- *                      SSOR
- *
- *****************************************************************************/
-
 
 #include "pzstencil.h"
 #include "pzfmatrix.h"
@@ -128,8 +110,8 @@ const TVar & TPZStencilMatrix<TVar>::GetVal(const int row,const int col ) const 
 
 template<class TVar>
 void TPZStencilMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
-							   TPZFMatrix<TVar> &z,
-							   const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+									 TPZFMatrix<TVar> &z,
+									 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	int ix=0;
@@ -291,9 +273,9 @@ void TPZStencilMatrix<TVar>::ComputeDiagonal() {
 
 template<class TVar>
 void TPZStencilMatrix<TVar>::SolveSOR( int &numiterations,const TPZFMatrix<TVar> &rhs, TPZFMatrix<TVar> &x,
-								TPZFMatrix<TVar> *residual, TPZFMatrix<TVar>&/*scratch*/,
-								const TVar overrelax, TVar &tol,
-								const int FromCurrent, const int direction ) {
+									  TPZFMatrix<TVar> *residual, TPZFMatrix<TVar>&/*scratch*/,
+									  const TVar overrelax, TVar &tol,
+									  const int FromCurrent, const int direction ) {
 	
 	if(!fDiag) ComputeDiagonal();
 	int irStart = 0,irLast = fRows,irInc = 1;
@@ -348,7 +330,7 @@ void TPZStencilMatrix<TVar>::SolveSOR( int &numiterations,const TPZFMatrix<TVar>
 
 template<class TVar>
 void TPZStencilMatrix<TVar>::SetStencil( int stencilnumber, int inc,
-								  int *IA, TVar *A ) {
+										int *IA, TVar *A ) {
 	// initiates Stencil number "stencilnumber" with the data
 	
 	if(stencilnumber < 0) return;

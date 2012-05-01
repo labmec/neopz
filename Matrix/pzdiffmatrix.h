@@ -2,7 +2,6 @@
  * @file
  * @brief Contains TPZDiffMatrix class which to hold the flux derivatives A B C and diffusive matrix coefficients.
  */
-//$Id: pzdiffmatrix.h,v 1.8 2011-04-05 19:32:54 calle Exp $
 
 #ifndef PZDIFFMATRIX_H
 #define PZDIFFMATRIX_H

@@ -2,17 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSFMatrix methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsfulmat.cc
-//
-// Class:  TPZSFMatrix
-//
-// Obs.:   Implementa matrizes cheias (normais).
-//
-// Versao: 04 / 1996.
-//
 
 #include <math.h>
 #include <stdlib.h>

@@ -13,11 +13,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzmatred"));
 #include <stdlib.h>
 using namespace std;
 
-/**
- 
- 
- Destructor
- */
+/** Destructor */
 template <class TVar>
 TPZSolver<TVar>::~TPZSolver()
 {
@@ -36,7 +32,6 @@ fScratch()
 {
 }
 
-//misael
 template <class TVar>
 TPZMatrixSolver<TVar>::TPZMatrixSolver(const TPZMatrixSolver<TVar> &Source) :
 fScratch()
@@ -45,7 +40,6 @@ fScratch()
 	fContainer = Source.fContainer;
 }
 
-// philippe 6/2/97
 template <class TVar>
 TPZMatrixSolver<TVar>::~TPZMatrixSolver()
 {
@@ -134,6 +128,5 @@ void TPZMatrixSolver<TVar>::Read(TPZStream &buf, void *context)
 
 template class TPZMatrixSolver<double>;
 template class TPZMatrixSolver<std::complex<double> >;
-//template class TPZRestoreClass< TPZMatrixSolver, TPZMATRIXSOLVER_ID>;
 
 

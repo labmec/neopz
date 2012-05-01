@@ -2,19 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSSpMatrix methods.
  */
-//
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsespmat.cc
-//
-// Class:  TPZSSpMatrix
-//
-// Obs.:   Implementa matrizes esparsas simetricas. A implementacao
-//         e' feita atraves de listas ligadas.
-//
-// Versao: 04 / 1996.
-//
 
 #include <math.h>
 #include <stdlib.h>

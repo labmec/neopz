@@ -2,25 +2,12 @@
  * @file
  * @brief Contains TPZSFMatrix class which implements a symmetric full matrix.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsfulmat.hh
-//
-// Class:  TPZSFMatrix
-//
-// Obs.:   Implementa matrizes cheias simetricas.
-//
-// Versao: 04 / 1996.
-//
-
 
 #ifndef _TSFULMATHH_
 #define _TSFULMATHH_
 
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
-//#include "pztempmat.h"
 
 #ifdef OOPARLIB
 
@@ -32,12 +19,11 @@ template<class TVar>
 class TPZFMatrix;
 
 /**
- @brief Implements a symmetric full matrix. \ref matrix "Matrix"
- @ingroup matrix
+ * @brief Implements a symmetric full matrix. \ref matrix "Matrix"
+ * @ingroup matrix
  */
 template<class TVar>
 class TPZSFMatrix : public TPZMatrix<TVar> {
-	//  friend class TSimMatrix;
 	
 public:
 	TPZSFMatrix () : TPZMatrix<TVar>( 0,0 )  { fElem = NULL; }
@@ -54,33 +40,32 @@ public:
 	int PutVal(const int row,const int col,const TVar &value );
 	const TVar &GetVal(const int row,const int col ) const;
 	
-	// Peforms the product (*this)T x D x (*this).
-	//TPZSFMatrix  InnerProd(TPZSFMatrix & D);
-	
-	/// Operators with Full simmetric matrices.
-	// @{
+	/**
+	 * @name Operators with Full simmetric matrices.
+	 * @{
+	 */
 	TPZSFMatrix &operator= (const TPZSFMatrix<TVar> &A );
 	TPZSFMatrix operator+  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix operator-  (const TPZSFMatrix<TVar> &A ) const;
 	TPZSFMatrix &operator+=(const TPZSFMatrix<TVar> &A );
 	TPZSFMatrix &operator-=(const TPZSFMatrix<TVar> &A );
-	// @}
+	/** @} */
 	
-	/// Operators with generic matrices.
-	// @{
+	/**
+	 * @name Operators with generic matrices.
+	 * @{
+	 */
 	TPZSFMatrix &operator= (const TPZMatrix<TVar> &A );
 	TPZSFMatrix operator+  (const TPZMatrix<TVar> &A ) const;
 	TPZSFMatrix operator-  (const TPZMatrix<TVar> &A ) const;
 	TPZSFMatrix &operator+=(const TPZMatrix<TVar> &A );
 	TPZSFMatrix &operator-=(const TPZMatrix<TVar> &A );
-	// @}
-	
-	//TTempMat<TPZFMatrix> operator+(const TPZMatrix<>&A ) const {return TPZMatrix::operator+(A);}
-	//TTempMat<TPZFMatrix> operator-(const TPZMatrix<>&A ) const {return TPZMatrix::operator-(A);}
-	//TTempMat<TPZFMatrix> operator*( TPZFMatrix<>&A ) const {return TPZMatrix::operator*(A);}
-	
-	/// Operators with numeric values.
-	// @{
+	/** @} */
+
+	/**
+	 * @name Operators with numeric values.
+	 * @{
+	 */
 	TPZSFMatrix &operator= (const TVar val );
 	TPZSFMatrix operator+  (const TVar val ) const;
 	TPZSFMatrix operator-  (const TVar val ) const { return operator+( -val ); }
@@ -88,24 +73,26 @@ public:
 	TPZSFMatrix &operator+=(const TVar val );
 	TPZSFMatrix &operator-=(const TVar val )  { return operator+=( -val ); }
 	TPZSFMatrix &operator*=(const TVar val );
-	// @}
+	/** @} */
 	
 	TPZSFMatrix operator-() const  { return operator*( -1.0 ); }
 	
-	/// Resize the array but keeps its entirety.
+	/** @brief Resize the array but keeps its entirety. */
 	int Resize(const int newDim, const int );
 	
-	// Resize the array and resets ist entirety.
+	/** @brief Resize the array and resets ist entirety. */
 	int Redim(const int newRows ,const int);
 	
 	int Redim(const int newDim) {return Redim(newDim,newDim);}
 	
-	// Resets all elements.
+	/** @brief Resets all elements. */
 	int Zero();
 	
 	
-	/*** To solve linear systems ***/
-	// @{
+	/***
+	 * @name To solve linear systems
+	 * @{
+	 */
 	virtual int Decompose_Cholesky();
 	virtual int Decompose_LDLt();
 	virtual int Decompose_Cholesky(std::list<int> &singular);
@@ -116,7 +103,7 @@ public:
 	virtual int Subst_LForward ( TPZFMatrix<TVar>  *B ) const;
 	virtual int Subst_LBackward( TPZFMatrix<TVar>  *B ) const;
 	virtual int Subst_Diag     ( TPZFMatrix<TVar>  *B ) const;
-	// @}
+	/** @} */
 	
 #ifdef OOPARLIB
 	
@@ -134,7 +121,6 @@ private:
 	
 	int Size() const { return (this->Dim() * (this->Dim()+1)) >> 1; }
 	
-	//static  int Error(const char *msg1,const char *msg2="" );
 	int Clear();
 	
 	TVar   *fElem;
@@ -169,7 +155,8 @@ TPZSFMatrix<TVar> ::GetVal(const int row,const int col ) const
 }
 
 /**************************/
-/*** Operadores Globais ***/
+/*** @name Operadores Globais ***/
+/** @{ */
 
 /** @brief Increments value for all entries of the A matrix */
 template<class TVar>
@@ -195,5 +182,6 @@ operator*( const TVar value, const TPZSFMatrix<TVar>  &A )
 	return( A * value );
 }
 
-#endif
+/** @} */
 
+#endif

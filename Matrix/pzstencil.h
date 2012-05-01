@@ -1,20 +1,8 @@
 /**
  * @file
- * @brief Contains TPZStencilMatrix class which implements a sparse matrix defined by a stencil.
+ * @brief Contains TPZStencilMatrix class which implements a sparse matrix defined by a stencil. \n
+ * Purpose: Defines operations on sparse matrices stored by stencils.\n Solvers: SOR and SSOR. 
  */
-/******************************************************************************
- *
- * Class definition:    TPZStencilMatrix
- *
- * Class type:          Derived from TPZMatrix
- *
- * Purpose:             Define operations on sparse matrices stored by
- *                      stencils
- *
- * Solvers:             SOR
- *                      SSOR
- *
- *****************************************************************************/
 
 #ifndef STENMATH
 #define STENMATH
@@ -25,12 +13,9 @@ template<class TVar>
 class TPZFMatrix;
 
 /**
- @brief Implements a sparse matrix defined by a stencil. \ref matrix "Matrix"
- @ingroup matrix
+ * @brief Implements a sparse matrix defined by a stencil. \ref matrix "Matrix"
+ * @ingroup matrix
  */
- /**
-  * Purpose:  Define operations on sparse matrices stored by stencils
-  */
 template<class TVar>
 class TPZStencilMatrix : public TPZMatrix<TVar> {
 	

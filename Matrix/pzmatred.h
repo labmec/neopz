@@ -2,20 +2,6 @@
  * @file
  * @brief Contains TPZMatRed class which implements a simple substructuring of a linear system of equations, composed of 4 submatrices.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tmatred.h
-//
-// Class:  TPZMatRed
-//
-// Obs.:   Subestruturacao simples de um sistema de equacoes.
-//
-//				[K00][U0] + [K01][U1] = [F0]
-//				[K10][U0] + [K11][U1] = [F1]
-//
-// Versao: 04 / 1996.
-//
 
 #ifndef _TMATREDHH_
 #define _TMATREDHH_
@@ -176,18 +162,14 @@ public:
 	 * @param result contains the result of the operation
 	 */
 	void UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result);
-	void UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result);
-	//  TPZFMatrix<>U0(TPZMatrix<>*u1 = NULL);
-	
+	void UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result);	
 	
 	/** @brief Prints the object data structure */
 	void Print(const char *name = NULL, std::ostream &out = std::cout,
 			   const MatrixOutputFormat = EFormatted) const;
 	
-	
 	/** @brief Redim: Set the dimension of the complete matrix and reduced matrix */
 	int Redim(int dim, int dim00); //Cesar 19/12/00
-	
 	
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
@@ -207,22 +189,13 @@ public:
 	/** Simetrizes copies the data of the matrix to make its data simetric */
 	void Simetrize();
 	
-	/**
-	 * template class TPZMatRed<TPZVerySparseMatrix>;
-	 template class TPZMatRed<TPZFMatrix>;
-	 *
-	 */
-	
 	/** @brief Saveable methods */
 	int ClassId() const;
 	
-	//TPZMATRED_FMATRIX_ID
 	virtual void Write(TPZStream &buf, int withclassid);
 	virtual void Read(TPZStream &buf, void *context);
 	
 private:
-	
-	//static int Error(const char *msg ,const char *msg2 = "");
 	
 	/**
 	 * @brief Swaps the row and column index
@@ -284,6 +257,5 @@ inline void TPZMatRed<TVar, TSideMatrix>::Swap(int *a, int *b)
 	*a = *b;
 	*b = aux;
 }
-
 
 #endif

@@ -2,24 +2,12 @@
  * @file
  * @brief Contains the implementation of the TPZSBMatrix methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsbndmat.h
-//
-// Class:  TPZSBMatrix
-//
-// Obs.:   Esta classe gerencia matrizes do tipo Band simetrica.
-//
-// Versao: 10 / 1996.
-//
 
 #include <math.h>
 #include <stdlib.h>
 
 #include "pzfmatrix.h"
 #include "pzsbndmat.h"
-//#include "pzerror.h" 
 
 #include <sstream>
 #include "pzlog.h"
@@ -76,8 +64,6 @@ TPZSBMatrix<TVar>::PutVal(const int r,const int c,const TVar& value )
 	return( 1 );
 }
 
-
-
 /**************/
 /*** GetVal ***/
 template<class TVar>
@@ -97,7 +83,6 @@ const TVar
 	
 	return( fDiag[ col * (fBand+1) + index ] );
 }
-
 
 /*************/
 /*** Print ***/
@@ -125,7 +110,6 @@ TPZSBMatrix<TVar> ::Print(const char *name, std::ostream& out,const MatrixOutput
 	 */
 }
 
-
 /** @brief Overload << operator to output entries of TPZSBMatrix matrix ***/
 template<class TVar>
 std::ostream&
@@ -148,8 +132,6 @@ operator<<(std::ostream& out,TPZSBMatrix<TVar>  &A)
 	return  out << "\n";
 }
 
-
-
 /******** Operacoes com matrizes BANDA SIMETRICA  ********/
 
 /******************/
@@ -163,8 +145,6 @@ TPZSBMatrix<TVar>::operator=(const TPZSBMatrix<TVar> &A )
 	Copy( A );
 	return( *this );
 }
-
-
 
 /******************/
 /*** Operator + ***/
@@ -213,8 +193,6 @@ TPZSBMatrix<TVar>::operator+(const TPZSBMatrix<TVar> &A ) const
 	return( res );
 }
 
-
-
 /******************/
 /*** Operator - ***/
 
@@ -250,8 +228,6 @@ TPZSBMatrix<TVar>::operator-(const TPZSBMatrix<TVar> &A ) const
 	
 	return( res );
 }
-
-
 
 /*******************/
 /*** Operator += ***/
@@ -290,8 +266,6 @@ TPZSBMatrix<TVar>::operator+=(const TPZSBMatrix<TVar> &A )
 	this->fDecomposed = 0;
 	return( *this );
 }
-
-
 
 /*******************/
 /*** Operator -= ***/
@@ -333,7 +307,7 @@ TPZSBMatrix<TVar>::operator-=(const TPZSBMatrix<TVar> &A )
 
 template<class TVar>
 void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-						  const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
+								const REAL alpha,const REAL beta ,const int opt,const int stride ) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
 	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
@@ -360,9 +334,7 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	}
 }
 
-
 /******** Operacoes com MATRIZES GENERICAS ********/
-
 
 // Estas operacoes com matrizes genericas, usam a parte triangular
 // inferior da maior matriz quadrada de A. Ex.:
@@ -372,15 +344,12 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 //         09 10 11 12                          09 10 11
 //
 
-
 /******** Operacoes com valores NUMERICOS ********/
 //
 // As operacoes com valores numericos sao efetuadas apenas nos
 // elementos alocados. Em especial, as operacoes A = 0.0 e A *= 0.0
 // desalocam todos os elementos da matriz.
 //
-
-
 
 /*****************************/
 /*** Operator * ( REAL ) ***/
@@ -399,11 +368,8 @@ TPZSBMatrix<TVar>::operator*(const TVar value ) const
 	return( res );
 }
 
-
-
 /******************************/
 /*** Operator += ( REAL ) ***/
-
 
 /******************************/
 /*** Operator *= ( REAL ) ***/
@@ -420,8 +386,6 @@ TPZSBMatrix<TVar>::operator*=(const TVar value )
 	this->fDecomposed = 0;
 	return( *this );
 }
-
-
 
 /**************/
 /*** Resize ***/
@@ -461,8 +425,6 @@ TPZSBMatrix<TVar>::Resize(const int newDim ,const int)
 	this->fDecomposed = 0;
 	return( 1 );
 }
-
-
 
 /*************/
 /*** Redim ***/
@@ -559,8 +521,6 @@ TPZSBMatrix<TVar>::SetBand(const int newBand )
 	return( 1 );
 }
 
-
-
 /********************* Resolucao de sistemas *********************/
 
 /**************************/
@@ -635,8 +595,6 @@ TPZSBMatrix<TVar>::Decompose_Cholesky()
 	return( 1 );
 }
 
-
-
 /**********************/
 /*** Decompose LDLt ***/
 template<class TVar>
@@ -704,8 +662,6 @@ TPZSBMatrix<TVar>::Decompose_LDLt()
 	
 }
 
-
-
 /*********************/
 /*** Subst Forward ***/
 //
@@ -738,27 +694,12 @@ TPZSBMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar>*B ) const
 	
 	return( 1 );
 }
+
 template<class TVar>
-int
-TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
+int TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_Forward-> uncompatible matrices") ;
-	/*  int i,j,k;
-	 
-	 for(k=0; k<B->Cols() ; k++){
-	 for(i=Rows()-1; i>=0; i--){
-	 short jmax;
-	 jmax=( i+fBand>Rows()-1 )? Rows()-1 : i+fBand;
-	 for(j=jmax ; j>i ; j--) B->operator()(i,k)-=B->GetVal(j,k)*GetVal(i,j);
-	 if (  IsZero(GetVal(i,i)) ) TPZMatrix::Error(__PRETTY_FUNCTION__,"Suubst_Backward->diagonal element = zero");
-	 B->operator()(i,k)/=GetVal(i,i);
-	 
-	 }
-	 }
-	 
-	 return 1;
-	 */
 	int k,j,i,jmax,stepcol=fBand+2;
 	for(k=0; k<B->Cols() ; k++)
     {
@@ -781,13 +722,6 @@ TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 	
 }
 
-
-
-
-
-
-
-
 /***********************/
 /*** Subst L Forward ***/
 //
@@ -795,8 +729,7 @@ TPZSBMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 //   da diagonal sao todos iguais a 1.
 //
 template<class TVar>
-int
-TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
+int TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 {
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LForward-> uncompatible matrices") ;
@@ -825,16 +758,13 @@ TPZSBMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const
 	return( 1 );
 }
 
-
-
 /******************/
 /*** Subst Diag ***/
 //
 //  Faz Ax = b, sendo que A e' assumida ser uma matriz diagonal.
 //
 template<class TVar>
-int
-TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
+int TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 {
 	
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
@@ -851,8 +781,7 @@ TPZSBMatrix<TVar>::Subst_Diag( TPZFMatrix<TVar> *B ) const
 }
 
 template<class TVar>
-int //misael 19/10/96
-TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
+int TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 {
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Subst_LBackward-> uncompatible matrices") ;
@@ -880,22 +809,6 @@ TPZSBMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 
 /**************************** PRIVATE ****************************/
 
-
-/*************/
-/*** Error ***/
-/*int
- TPZSBMatrix::Error(const char *msg1,const char* msg2 ) 
- {
- ostringstream out;
- out << "TPZSBMatrix::" << msg1 << msg2 << ".\n";
- //pzerror.show();
- LOGPZ_ERROR (logger, out.str().c_str());
- DebugStop();
- return 1;
- }*/
-
-
-
 /*************/
 /*** CLear ***/
 template<class TVar>
@@ -909,8 +822,6 @@ TPZSBMatrix<TVar>::Clear()
 	this->fDecomposed = 0;
 	return( 1 );
 }
-
-
 
 /************/
 /*** Copy ***/

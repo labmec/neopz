@@ -2,6 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZFYsmpMatrix methods.
  */
+
 #include "pzysmp.h"
 #include "pzfmatrix.h"
 #include "pzvec.h"
@@ -333,23 +334,6 @@ void TPZFYsmpMatrix<TVar>::AddKelOld(TPZFMatrix<TVar> & elmat, TPZVec < int > & 
 	
 }
 
-/*
- void TPZFYsmpMatrix::AddKelOld(TPZFMatrix<>& elmat, TPZVec < int > & destinationindex){
- int i=0;
- int j=0;
- int ilocal=0;
- int jlocal=0;
- int nel = destinationindex.NElements();
- for(i=0;i<nel;i++){
- ilocal = destinationindex[i];
- for(j=0;j<nel;j++){
- jlocal = destinationindex[j];
- Element(ilocal,jlocal)+=elmat(i,j);
- }
- }
- 
- }
- */
 template<class TVar>
 TPZFYsmpMatrix<TVar>::TPZFYsmpMatrix(const int rows,const int cols ) : TPZMatrix<TVar>(rows,cols) {
 	// Constructs an empty TPZFYsmpMatrix
@@ -414,8 +398,8 @@ const TVar & TPZFYsmpMatrix<TVar>::GetVal(const int row,const int col ) const {
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
-							   TPZFMatrix<TVar> &z,
-							   const TVar alpha,const TVar beta,const int opt,const int stride )  {
+									 TPZFMatrix<TVar> &z,
+									 const TVar alpha,const TVar beta,const int opt,const int stride )  {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || y.Rows() != z.Rows() )
@@ -518,8 +502,8 @@ void TPZFYsmpMatrix<TVar>::MultAddMT(const TPZFMatrix<TVar> &x,const TPZFMatrix<
 
 template<class TVar>
 void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y,
-							 TPZFMatrix<TVar> &z,
-							 const TVar alpha,const TVar beta,const int opt,const int stride ) const {
+								   TPZFMatrix<TVar> &z,
+								   const TVar alpha,const TVar beta,const int opt,const int stride ) const {
 	// computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot share storage
 	
@@ -816,7 +800,7 @@ static int  FindCol(int *colf, int *coll, int col)
 
 template<class TVar>
 int TPZFYsmpMatrix<TVar>::GetSub(const int sRow,const int sCol,const int rowSize,
-						   const int colSize, TPZFMatrix<TVar> & A ) const {
+								 const int colSize, TPZFMatrix<TVar> & A ) const {
 	int ir;
 	for(ir=0; ir<rowSize; ir++)
 	{

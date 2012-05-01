@@ -1,21 +1,13 @@
 /**
  * @file
+ * @author Gustavo Longhin
+ * @since 14/12/2000
  * @brief Contains TPZSkylParMatrix class which implements a skyline storage format to parallelized process.
+ * @note The Variable PZNTPAR must be defined on a VC++ project, it is referenced on "omnithread.h"
+ * @note In order for a PZProject work properly the variable wraps up the following variables: \n
+ * __WIN32__,_MBCS,__NT__,OMNITHREAD,_WINSTATIC,_MT,__VC__ \n
+ * Also the library LIBCD.lib must be excluded.
  */
-/**
-	Variable settings for PZProject
-	by Longhin 14/12/2000
-
-	The Variable PZNTPAR must be defined on a VC++ project,
-	In order for a PZProject work properly
-	the variable wraps up the following variables :
-	__WIN32__,_MBCS,__NT__,OMNITHREAD,_WINSTATIC,_MT,__VC__
-	Also the library LIBCD.lib must be excluded.
-	It is done putting it on the ignore libraries field under
-	Project Settings window.
-
-	PZNTPAR is referenced on "omnithread.h"
-*/
 
 #ifndef TSKYLPARMATH
 #define TSKYLPARMATH
@@ -43,21 +35,31 @@ template<class TVar>
 class TPZSkylParMatrix : public TPZSkylMatrix<TVar>
 {
 public:
+	/** @brief Static main for testing */
 	static int main();
 	static int main_nada();
+	
+	/** @brief Default constructor */
 	TPZSkylParMatrix();
+	/** @brief Constructor for given dimension */
 	TPZSkylParMatrix(const int dim);
+	/** @brief Constructor with number of threads */
 	TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads);
-	//TPZSkylParMatrix (const int dim,int NumThreads);
+	/** @brief Copy constructor */
 	TPZSkylParMatrix(const TPZSkylParMatrix<TVar> &A);
 	
 	CLONEDEF(TPZSkylParMatrix)
     //    : TPZMatrix(A.Dim(), A.Dim()), fElem(0), fStorage(0) {Copy(A); }
 	
+	/** @brief Default destructor */
 	virtual ~TPZSkylParMatrix();
-	///Parallel procedure using pthreads
-	///Implement all data structure used in procedure.
-	// @{
+	
+	/**
+	 * @name Parallel procedure using pthreads
+	 * @brief Implement all data structure used in procedure.
+	 * @{
+	 */
+	
 	int Decompose_Cholesky(std::list<int> &singular);
 	int Decompose_Cholesky();
 	
@@ -65,7 +67,8 @@ public:
 	int Decompose_LDLt();
 	
 	void SetSkyline(const TPZVec<int> &skyline);
-	// @}
+
+	/** @} */
 	
 private:
 	
@@ -73,18 +76,19 @@ private:
 	static void *ParallelLDLt2(void *t);
 	static void *ParallelCholesky(void *t);
 	
-	/** @brief Determine which column can be decomposed with respect to which column
-	 */
+	/** @brief Determine which column can be decomposed with respect to which column */
 	void ColumnToWork(int &lcol, int &lprevcol);
-	/// Determine which column has some equations to decompose
+	/** @brief Determine which column has some equations to decompose */
 	void ColumnToWork(int &lcol);
 	void DecomposeColumnCholesky(int lcol, int lprevcol);
 	void DecomposeColumnLDLt(int lcol, int lprevcol);
 	void DecomposeColumnLDLt2(int lcol);
 	void PrintState();
+	
 public:
 	TPZVec<int> fDec;  
 	TPZVec<int> fSkyline;
+	
 private:
 	int fEqDec, fNthreads;
 	int * fThreadUsed;
@@ -95,7 +99,6 @@ private:
 	
 #ifdef OOPARLIB
 	
-	//virtual long GetClassID() const    { return TSKYMATRIX_ID; }
 	virtual int Unpack( TReceiveStorage *buf );
 	static TSaveable *Restore(TReceiveStorage *buf);
 	virtual int Pack( TSendStorage *buf ) const;

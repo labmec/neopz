@@ -2,18 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZLink methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tlink.cc
-//
-// Class:  TPZLink<class>
-//
-// Obs.:   Implementa uma lista ligada com elementos indefinidos.
-//
-// Versao: 12 / 1994.
-//
-
 
 #include "pzlink.h"
 #include "pzespmat.h"
@@ -47,8 +35,6 @@ TPZLink<ElemType>::~TPZLink()
 			fThis = fHead;
 		}
 #ifdef WORKPOOL
-		//  } else {
-		//	Clear();
 	}
 #endif
 }

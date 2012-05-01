@@ -2,19 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZSpMatrix methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tespmat.cc
-//
-// Class:  TPZSpMatrix
-//
-// Obs.:   Implementa matrizes esparsas nao simetricas. A implementacao
-//         e' feita atraves de listas ligadas.
-//
-// Versao: 04 / 1996.
-//
-
 
 #include <math.h>
 #include "pzespmat.h"
@@ -221,34 +208,6 @@ TPZSpMatrix<TVar>::operator-(const TPZSpMatrix<TVar> &A ) const
 	return( res );
 }
 
-
-
-/******************/
-/*** Operator * ***/
-
-/*
- TPZSpMatrix
- TPZSpMatrix::operator*( TPZSpMatrix &A )
- {
- if ( Cols() != A.Rows() )
- TPZMatrix::Error(__PRETTY_FUNCTION__, "operator*( TPZSpMatrix ) <incompatible dimensions>" );
- 
- TPZSpMatrix res( Rows(), A.Cols() );
- for ( int row = 0; row < Rows(); row++ )
- for ( int col = 0; col < A.Cols(); col++ )
- {
- REAL elem = 0.0;
- for ( int i = 0; i < Cols(); i++ )
- elem += GetVal( row, i ) * A.GetVal( i, col );
- if ( ! IsZero( elem ) )
- res.PutVal( row, col, elem );
- }
- 
- return( res );
- }
- */
-
-
 /*******************/
 /*** Operator += ***/
 
@@ -275,30 +234,7 @@ TPZSpMatrix<TVar>::operator-=(const TPZSpMatrix<TVar> &A )
 	return( *this );
 }
 
-
-
-/******** Operacoes com MATRIZES GENERICAS ********/
-
-/******************/
-/*** Operator = ***/
-
-/*
- TPZSpMatrix &
- TPZSpMatrix::operator=( TMatrix &A )
- {
- REAL value;
- Redim( A.Rows(), A.Cols() );
- for ( int r = 0; r < Rows(); r++ )
- for ( int c = 0; c < Cols(); c++ )
- if ( !IsZero(value = A.GetVal( r, c )) )
- PutVal( r, c, value );
- return( *this );
- }
- */
-
-
 /******** Operacoes com valores NUMERICOS ********/
-
 /*****************************/
 /*** Operator * ( REAL ) ***/
 template<class TVar>
@@ -309,21 +245,6 @@ TPZSpMatrix<TVar>::operator*(const TVar value ) const
 	res.fMult( value );
 	return( res );
 }
-
-
-
-/******************************/
-/*** Operator += ( REAL ) ***/
-
-/*
- TPZSpMatrix &
- TPZSpMatrix::operator+=( REAL value )
- {
- fAdd( value );
- return( *this );
- }
- */
-
 
 /******************************/
 /*** Operator *= ( REAL ) ***/
@@ -354,8 +275,6 @@ TPZSpMatrix<TVar>::Reset()
 	return( *this );
 }
 
-
-
 /**************/
 /*** Resize ***/
 //
@@ -366,9 +285,6 @@ template<class TVar>
 int
 TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
 {
-	//  if ( newRows != newCols )
-	//	 TPZMatrix::Error(__PRETTY_FUNCTION__, "Resize <rows and cols must be equals>" );
-	
 	if ( newRows == this->Rows() )
 		return( 1 );
 	
@@ -387,8 +303,6 @@ TPZSpMatrix<TVar>::Resize(const int newRows,const int newCols )
 	this->fRow=newRows;this->fCol=newCols;
 	return( 1 );
 }
-
-
 
 /*************/
 /*** Redim ***/
@@ -421,39 +335,6 @@ TPZSpMatrix<TVar>::Zero()
 }
 
 /************************** PROTECTED **************************/
-
-/*******************/
-/*** fAdd (value) ***/
-
-/*
- int
- TPZSpMatrix::fAdd( REAL value )
- {
- if ( IsZero( value ) )
- return( 1 );
- 
- TPZNode        node;
- TPZLink<TPZNode> *pm = &fElem[0];
- 
- for ( int row = 0; row < Rows(); row++, pm++ )
- {
- pm->Head();
- while ( pm->Get( &node ) )
- {
- if ( IsZero( node.elem += value ) )
- pm->Remove();
- else
- {
- pm->Update( node );
- pm->Next();
- }
- }
- }
- 
- return( 1 );
- }
- */
-
 
 /*****************/
 /*** fAdd (mat) ***/
@@ -527,8 +408,6 @@ TPZSpMatrix<TVar>::fAdd(const TPZSpMatrix<TVar> *const A )
 	
 	return( 1 );
 }
-
-
 
 /*****************/
 /*** fSub (mat) ***/
@@ -605,31 +484,6 @@ TPZSpMatrix<TVar>::fSub(const TPZSpMatrix<TVar> *const A )
 	return( 1 );
 }
 
-
-
-/*********************/
-/*** fCopy (value) ***/
-
-/*
- int
- TPZSpMatrix::fCopy( REAL value )
- {
- TPZNode node;
- TPZLink<TPZNode> *pm;
- TPZLink<TPZNode> *end = &fElem[ Rows() ];
- 
- for ( pm = fElem; pm < end; pm++ )
- for ( pm->Head(); pm->Get( &node ); pm->Next() )
- {
- node.elem = value;
- pm->Update( node );
- }
- 
- return( 1 );
- }
- */
-
-
 /*******************/
 /*** fCopy (mat) ***/
 //
@@ -653,8 +507,6 @@ TPZSpMatrix<TVar>::fCopy(const TPZSpMatrix<TVar> *const A )
 	
 	return( 1 );
 }
-
-
 
 /*********************/
 /*** fMult (value) ***/
@@ -680,23 +532,7 @@ TPZSpMatrix<TVar>::fMult(const TVar value )
 }
 
 
-
-
 /*************************** PRIVATE ***************************/
-
-/*************/
-/*** Error ***/
-/*int
- TPZSpMatrix::Error(const char *msg1,const char *msg2 ) 
- {
- ostringstream out;
- out << "TPZSpMatrix::" << msg1 << msg2 << ".\n";
- LOGPZ_ERROR (logger, out.str().c_str());
- //pzerror.Show();
- DebugStop();
- return 0;
- }*/
-
 
 
 /****************/

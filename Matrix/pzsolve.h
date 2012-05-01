@@ -2,6 +2,7 @@
  * @file
  * @brief Contains TPZSolver class which defines a abstract class of solvers  which will be used by matrix classes.
  */
+
 #ifndef TPREH
 #define TPREH
 
@@ -11,8 +12,8 @@ template<class TVar>
 class TPZMatrixSolver;
 
 /**
- @ingroup solver
- @brief Defines a abstract class of solvers  which will be used by matrix classes. \ref solver "Solver"
+ * @ingroup solver
+ * @brief Defines a abstract class of solvers  which will be used by matrix classes. \ref solver "Solver"
  */
 template<class TVar>
 class TPZSolver: public TPZSaveable
@@ -28,9 +29,7 @@ public:
 	virtual void Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
 					   TPZFMatrix<TVar>  *residual = 0) = 0;
     
-    /**
-     * @brief Decompose the system of equations if a direct solver is used
-     */
+    /** @brief Decompose the system of equations if a direct solver is used */
     virtual void Decompose()
     {
     }
@@ -45,13 +44,7 @@ public:
 	virtual void ResetMatrix()
 	{
 	}
-	/**
-	 This method gives a preconditioner to share a matrix with the referring solver object
-	 */
-	//  virtual void SetMatrix(TPZMatrixSolver *solver);
-	/**
-	 * @brief Updates the values of the current matrix based on the values of the matrix
-	 */
+	/** @brief Updates the values of the current matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > matrix)
 	{
 		std::cout << __PRETTY_FUNCTION__ << " called\n";
@@ -64,8 +57,8 @@ public:
 
 
 /**
- @ingroup solver
- @brief  Defines a class of matrix solvers. \ref solver "Solver"
+ * @ingroup solver
+ * @brief  Defines a class of matrix solvers. \ref solver "Solver"
  */
 template<class TVar>
 class TPZMatrixSolver: public TPZSolver<TVar>
@@ -88,8 +81,8 @@ public:
 	};
 
 	/**
-	 @brief Constructor with initialization parameter
-	 @param Refmat Sets reference matrix to 0
+	 * @brief Constructor with initialization parameter
+	 * @param Refmat Sets reference matrix to 0
 	 */
 	
 	TPZMatrixSolver(TPZAutoPointer<TPZMatrix<TVar> >  Refmat);
@@ -97,8 +90,8 @@ public:
 	TPZMatrixSolver();
 	
 	/**
-	 @brief Copy constructor
-	 @param Source Model object to be copied from
+	 * @brief Copy constructor
+	 * @param Source Model object to be copied from
 	 */
 	TPZMatrixSolver(const TPZMatrixSolver<TVar> &Source);
 	
@@ -106,8 +99,8 @@ public:
 	virtual ~TPZMatrixSolver();
 	
 	/**
-	 @brief Sets a matrix to the current object
-	 @param Refmat Sets reference matrix to RefMat
+	 * @brief Sets a matrix to the current object
+	 * @param Refmat Sets reference matrix to RefMat
 	 */
 	virtual void SetMatrix(TPZAutoPointer<TPZMatrix<TVar> > Refmat);
 	
@@ -153,7 +146,6 @@ private:
 protected:
 	/** @brief Reference matrix used to update the current matrix */
 	TPZAutoPointer<TPZMatrix<TVar> > fReferenceMatrix;
-	//	TPZSolver *fPrecond;
 
 protected:
 	/** @brief Manipulation matrix */

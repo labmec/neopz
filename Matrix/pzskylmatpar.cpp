@@ -6,7 +6,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 #include <stdio.h>  
 #include <fstream> 
 using namespace std;
@@ -17,9 +16,7 @@ extern "C"{
 #include <g2c.h>
 #include "fblaswr.h"
 };
-/*extern "C" {
- #include <cblas.h>
- };*/
+
 #endif
 
 #include "pzfmatrix.h"
@@ -41,12 +38,6 @@ pthread_cond_t condition = PTHREAD_COND_INITIALIZER;
 const int templatedepth = 10;
 
 //Constructors
-
-/*TPZSkylParMatrix::TPZSkylParMatrix (const int dim,int NumThreads)  : TPZSkylMatrix(dim, dim),fDec(dim)
- {
- fNthreads = NumThreads;
- }
- */
 template<class TVar>
 TPZSkylParMatrix<TVar>::TPZSkylParMatrix(const int dim, const TPZVec<int> &skyline,int NumThreads)
 

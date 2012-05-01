@@ -2,17 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZSpBlockDiagPivot methods.
  */
-//
-// C++ Implementation: %{MODULE}
-//
-// Description:
-//
-//
-// Author: %{AUTHOR} <%{EMAIL}>, (C) %{YEAR}
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "pzspblockdiagpivot.h"
 #include "pzfmatrix.h" 
 using namespace std;
@@ -93,24 +83,17 @@ int TPZSpBlockDiagPivot<TVar>::Substitution2( TPZFMatrix<TVar> *B) const
 		eq = 0;
 		int pivotindex = 0;
 		for(b=0;b<nb; b++) {
-			//      const int pos = fBlockPos[b];
 			const int bsize = this->fBlockSize[b];
 			if(!bsize) continue;
-			//      TPZFMatrix<>temp(bsize,bsize,&fStorage[pos],bsize*bsize);
-			//      temp.SetIsDecomposed(ELUPivot);
 			TPZFMatrix<TVar> BTemp(bsize,1,&(B->operator()(eq,c)),bsize);
 			pivot.Resize(bsize);
-			//      memcpy(&pivot[0],&fPivotIndices[pivotindex],bsize*sizeof(int));
 			for(int id = 0; id < bsize; id++){
 				pivot[id] = this->fPivotIndices[pivotindex+id];
 			}
 			pivotindex += bsize;
 			TPZFMatrix<TVar>::Substitution(this->fStorage,bsize,&BTemp);
-			//      temp.Substitution(&BTemp, pivot);
 			eq+= bsize;
 		}
 	}
 	return 1;
 }
-
-

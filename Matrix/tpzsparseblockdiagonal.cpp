@@ -3,16 +3,7 @@
  * @file
  * @brief Contains the implementation of the TPZSparseBlockDiagonal methods.
  */
-//
-//
-// Description: 
-//
-//
-// Author: Philippe R. B. Devloo <phil@fec.unicamp.br>, (C) 2004
-//
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 #include "tpzsparseblockdiagonal.h"
 #include "pzfmatrix.h"
 
@@ -89,7 +80,6 @@ TPZSparseBlockDiagonal<TVar>::~TPZSparseBlockDiagonal()
 {
 }
 
-//static REAL gZero = 0.;
 template<class TVar>
 const TVar& TPZSparseBlockDiagonal<TVar>::Get(const int row, const int col) const
 {
@@ -236,19 +226,11 @@ void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZF
 	z.Zero();
 	if(beta != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
-	//  int fRowKeep = fRow;
-	//  int fColKeep = fCol;
-	//  fRow = fBlock.NElements();
-	//  fCol = fBlock.NElements();
 	Gather(x,xsc,stride);
 	if(beta != 0.) Scatter(y,ysc,stride);
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt,1);
 	Scatter(zsc,z,stride);
-	//  fRow = fRowKeep;
-	//  fCol = fColKeep;
 }
-
-
 
 /*!
  \fn TPZSparseBlockDiagonal::FindBlockIndex(int glob, int &block, int &blockind)
@@ -274,7 +256,6 @@ void TPZSparseBlockDiagonal<TVar>::FindBlockIndex(int glob, int &block, int &blo
     blockind = -1;
 }
 
-
 /*!
  \fn TPZSparseBlockDiagonal::Scatter(TPZFMatrix<>&in, TPZFMatrix<>&out) const
  */
@@ -289,7 +270,6 @@ void TPZSparseBlockDiagonal<TVar>::Scatter(const TPZFMatrix<TVar> &in, TPZFMatri
 		for(ieq=0; ieq<neq; ieq++) out(fBlock[ieq]*stride,ic) += in.GetVal(ieq,ic);
     }
 }
-
 
 /*!
  \fn TPZSparseBlockDiagonal::Gather(TPZFMatrix<>&in, TPZFMatrix<>&out, int stride) const

@@ -40,14 +40,11 @@ public:
 		result = F;
 	}
 	
-	/**
-	 * @brief Clones the current object returning a pointer of type TPZSolver
-	 */
+	/** @brief Clones the current object returning a pointer of type TPZSolver */
 	TPZSolver<TVar> *Clone() const
 	{
 		return new TPZCopySolve(*this);
 	}
-	
 };
 
 #endif //TPZCOPYSOLVE_H

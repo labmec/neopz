@@ -2,18 +2,6 @@
  * @file
  * @brief Contains TPZMatrix<TVar>class, root matrix class.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tmatrix.hh
-//
-// Class:  TPZMatrix
-//
-// Obs.:   Implements abstract matrix class.
-//
-// Versao: 04 / 1996.
-//
-
 
 #ifndef _TMATRIXHH_
 #define _TMATRIXHH_
@@ -98,10 +86,10 @@ public:
 	virtual int VerifySymmetry(REAL tol = 1.e-13) const;
 	
 	/**
-     @brief Put values with bounds checking if DEBUG variable is defined.
-     @param row Row number.
-     @param col Column number.
-     @param value Value being put.
+     * @brief Put values with bounds checking if DEBUG variable is defined.
+     * @param row Row number.
+     * @param col Column number.
+     * @param value Value being put.
 	 */
 	virtual int Put(const int row,const int col,const TVar & value );
 	/**
@@ -147,8 +135,8 @@ public:
 	
 	/** @name Algebraic
 	 *  @brief Implements algebraic operations with matrices
+	 * @{
 	 */
-	//@{
 	
 	/**
 	 * @brief It mutiplies itself by TPZMatrix<TVar>A putting the result in res
@@ -177,21 +165,14 @@ public:
 	virtual void MultAdd(const TPZFMatrix<TVar> & x,const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z,
 						 const TVar alpha=1., const TVar beta = 0., const int opt = 0, const int stride = 1 ) const;
 	
-	/**
-	 * @brief Computes res = rhs - this * x
-	 */
+	/** @brief Computes res = rhs - this * x */
 	virtual void Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res ) ;
-	/**
-	 * @brief It substracts A from storing the result in result
-	 */
+	/** @brief It substracts A from storing the result in result */
 	virtual void Substract(const TPZMatrix<TVar>& A,TPZMatrix<TVar>& result) const;
-	
 	
 	/** @brief Converts the matrix in an identity matrix*/
 	virtual void Identity();
-	/**
-	 * @brief It makes *T the transpose of current matrix.
-	 */
+	/** @brief It makes *T the transpose of current matrix. */
 	virtual void Transpose(TPZMatrix<TVar>*const T) const;
 	
 	/**
@@ -213,13 +194,11 @@ public:
 	 * These operations are defined on the website of the Mathematica software: \n
 	 * http://mathworld.wolfram.com/MatrixNorm.html \n
 	 * Be careful when choosing 2-norm. It has a high computational cost.
-	 
 	 */
 	TVar MatrixNorm(int p, int numiter = 2000000, REAL tol = 1.e-10) const; // -<
 	
+	/** @brief Computes the matrix condition number of this */
 	/**
-	 * @brief Computes the matrix condition number of this
-	 *
 	 * It is available p-norm = 1, 2 and infinity.
 	 * p=1 is the maximum absolute column sum norm
 	 * p=2 is the spectral norm wich is the square root of the maximum eigenvalue of Tranpose[this].this
@@ -231,14 +210,14 @@ public:
 	 */
 	TVar ConditionNumber(int p, int numiter = 2000000, REAL tol = 1.e-10);
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Generic
 	 * @brief Performs generic operations on matrices
+	 * @{
 	 */
 	
-	//@{
 	/** @brief Input operation*/
 	virtual void Input(std::istream & in = std::cin );
 	
@@ -255,10 +234,8 @@ public:
 	/** @brief Returns number of cols */
 	int Cols() const;
 	
-	/**
-	 * @brief Returns the dimension of the matrix if the matrix is square. \n
-	 * If the matrix is not square, returns an error
-	 */
+	/** @brief Returns the dimension of the matrix if the matrix is square.*/
+	/** If the matrix is not square, returns an error */
 	inline virtual int Dim() const;
 	
 	
@@ -289,13 +266,14 @@ public:
 		std::cout << "WARNING! TPZMatrix<TVar>::Zero is called\n";
 		return 0; }
 	
-	//@}
+	/** @} */
+	
 	/**
 	 * @name SubMatrices
 	 * Operations with SUB MATRICES.
+	 * @{
 	 */
 	
-	//@{
 	/**
 	 * @brief It puts submatrix Source on actual matrix structure.
 	 * @param sRow Specifies starting row on current object
@@ -323,7 +301,6 @@ public:
 	 */
 	virtual int AddSub(const int sRow, const int sCol, const TPZFMatrix<TVar>& Source );
 	
-	//insere uma submatriz do objeto corrente para *Target sem redimencionar-la
 	/**
 	 * @brief Inserts a submatrix from current object on matrix *Target with no \n
 	 * redimentioning
@@ -338,8 +315,6 @@ public:
 	virtual int InsertSub(const int sRow,const int sCol,const int rowSize,const int colSize,
 						  const int pRow,const int pCol, TPZMatrix<TVar>* Target ) const;
 	
-	//adiciona uma submatriz do objeto corrente para *target
-	//10-10-95
 	/**
 	 * @brief Adds a submatrix from current object in *Target
 	 * @param sRow Specifies starting row on current object
@@ -353,8 +328,7 @@ public:
 	virtual int AddSub(const int sRow,const int sCol,const int rowSize,
 					   const int colSize,const int pRow,const int pCol, TPZMatrix<TVar>* pA ) const;
 	
-	
-	//@}
+	/** @} */
 	
 	/**
 	 * @brief Add a contribution of a stiffness matrix
@@ -374,51 +348,41 @@ public:
 	/**
 	 * @name Inquire
 	 * @brief Returns information of the current object
+	 * @{
 	 */
 	
-	/**
-	 * @brief Updates the values of the matrix based on the values of the matrix
-	 */
+	/** @brief Updates the values of the matrix based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > /* mat*/)    
 	{
 		std::cout << "TPZMatrix<TVar>::UdateFrom is not implemented\n";
         DebugStop();
 	}
-	//@{
 	
-	/**
-	 * @brief Checks if the current matrix is symmetric
-	 */
-	
+	/** @brief Checks if the current matrix is symmetric */
 	virtual int IsSimetric() const    { return 0; }
-	/**
-	 * @brief Checks if current matrix is square
-	 */
+	/** @brief Checks if current matrix is square */
 	inline int IsSquare() const { return fRow == fCol;}
 	
-	/**
-	 * @brief Checks if current matrix is definite positive
-	 */
+	/** @brief Checks if current matrix is definite positive */
 	virtual int IsDefPositive() const{ return 0; }
-	/**
-	 * @brief Checks if current matrix is already decomposed
-	 */
+	/** @brief Checks if current matrix is already decomposed */
 	int IsDecomposed() const         { return fDecomposed; }
-	//@}
-	/**
-	 * @brief Sets current matrix to decomposed state
-	 */
-	void SetIsDecomposed(int val) {fDecomposed = (char) val; }
 	
+	/** @} */
+	
+	/** @brief Sets current matrix to decomposed state */
+	void SetIsDecomposed(int val) {fDecomposed = (char) val; }
 	
 	/**
 	 * @name Solvers
 	 * @brief Linear system solvers. \n
-	 * 
+	 * @{
+	 */
+	/** 
 	 * For symmetric decompositions lower triangular matrix is used. \n
 	 * Solves a system A*X = B returning X in B
 	 */
-	//@{
+	
 	/**
 	 * @brief Solves the linear system using Jacobi method. \n
 	 * @param numiterations The number of interations for the process.
@@ -587,9 +551,7 @@ public:
         }
         return -1;
     }
-	/**
-	 * @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec
-	 */
+	/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
 	static TVar ReturnNearestValue(TVar val, TPZVec<REAL> &Vec, TVar tol);
 	
 	/**
@@ -604,8 +566,6 @@ public:
 	 */
 	int Solve_LU ( TPZFMatrix<TVar>* B );
 	
-	//para usar estos solves e' responsabilidade do usuario
-	//que a matriz corrente seja simetrica
 	/**
 	 * @brief Solves the linear system using Cholesky method\n
 	 * @param B The right hand side of the system and where the solution is stored.
@@ -629,24 +589,19 @@ public:
 	 */
 	int Solve_LDLt    ( TPZFMatrix<TVar>* B);
 	
-	//@}
+	/** @} */
+	
 	/**
 	 * @name Factorization
 	 * @brief Those member functions are related to matrices factorization
+	 * @{
 	 */
-	//@{
-	/**
-	 * @brief Decomposes the current matrix using LU decomposition.
-	 */
+	
+	/** @brief Decomposes the current matrix using LU decomposition. */
 	virtual int Decompose_LU(std::list<int> &singular);
 	virtual int Decompose_LU();
 	
-	// Decompoe a matriz em GGt (onde G e' triangular inferior).
-	//a matriz corrente tem que ser simetrica.
-	/**
-	 * @brief Decomposes the current matrix using Cholesky method. \n
-	 * The current matrix has to be symmetric.
-	 */
+	/** @brief Decomposes the current matrix using Cholesky method. The current matrix has to be symmetric. */
 	virtual int Decompose_Cholesky() ;
 	/**
 	 * @brief Decomposes the current matrix using Cholesky method.
@@ -654,9 +609,6 @@ public:
 	 */
 	virtual int Decompose_Cholesky(std::list<int> &singular) ;
 	
-	// Decompoe a matriz em LDLt (onde L e' triangular inferior com
-	//  1.0 na diagonal, e D e' uma matriz diagonal).
-	//a matriz a ser decomposta tem que ser simetrica
 	/**
 	 * @brief Decomposes the current matrix using LDLt. \n
 	 * The current matrix has to be symmetric.
@@ -666,13 +618,14 @@ public:
 	/** @brief Decomposes the current matrix using LDLt. */
 	virtual int Decompose_LDLt();
 	
-	//@}
+	/** @} */
 	
 	/**
 	 * @name Substitutions
 	 * @brief Substitutions forward and backward
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Computes Forward and Backward substitution for a "LU" decomposed matrix.
 	 * @param B right hand side and result after all
@@ -708,12 +661,15 @@ public:
 	 * @param b right hand side and result after all
 	 */
 	virtual int Subst_Diag( TPZFMatrix<TVar>* b ) const;
-	//@}
+	
+	/** @} */
+	
 	/**
 	 * @name TPZSaveable
-	 * Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @brief Methods which would make TPZMatrix<TVar>compliant with TPZSaveable
+	 * @{
 	 */
-	//@{
+	
 	/**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form
@@ -726,6 +682,8 @@ public:
 	 * @param withclassid
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
+	
+	/** @} */
 	
 	/// Compare the object for identity with the object pointed to, eventually copy the object
 	/**
@@ -740,14 +698,10 @@ public:
 	 */
 	virtual bool Compare(TPZSaveable *copy, bool override = false) const;
 	
-	/**
-	 * @brief Extract the block indicated by the indices from the matrix
-	 */
+	/** @brief Extract the block indicated by the indices from the matrix */
 	virtual void GetSub(const TPZVec<int> &indices,TPZFMatrix<TVar>&block) const;
 	
-	/**
-	 * @brief Compare values of this to B, with a precision tolerance tol.
-	 */
+	/** @brief Compare values of this to B, with a precision tolerance tol. */
     bool CompareValues(TPZMatrix<TVar>&M, TVar tol);
 	
 protected:
@@ -775,23 +729,11 @@ public:
 	static int Error(const char *msg ,const char *msg2 = 0);
 	
 protected:
-	/**
-	 * @brief It clears data structure.
-	 */
+	/** @brief It clears data structure. */
 	virtual int Clear() { return 0; }
 	
-	/**
-	 * @brief Swaps contents of a in b and b in a
-	 */
+	/** @brief Swaps contents of a in b and b in a */
 	static void Swap(int *a, int *b);
-	/* inline void
-	 TPZMatrix<TVar>::Swap( int *a, int *b ) const
-	 {
-	 int aux = *a;
-	 *a = *b;
-	 *b = aux;
-	 }
-	 */
 	/** @brief Number of rows in matrix */
 	int fRow;
 	/** @brief Number of cols in matrix */
@@ -928,8 +870,6 @@ inline int TPZMatrix<TVar>::Solve_Cholesky( TPZFMatrix<TVar>* B, std::list<int> 
 		   );
 }
 
-
-
 /******************/
 /*** Solve LDLt ***/
 
@@ -961,10 +901,5 @@ TPZMatrix<TVar>::Swap( int *a, int *b )
 	*a = *b;
 	*b = aux;
 }
-/******************/
-/***  Multiply ***/
-
 
 #endif
-// _TMATRIXH_
-

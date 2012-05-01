@@ -2,8 +2,6 @@
  * @file
  * @brief Contains TPZGenMatrix class which implements generic class which holds a matrix of objects.
  */
-//HEADER FILE FOR CLASS MATRIX
-
 
 #ifndef SHTMATRIXHPP
 #define SHTMATRIXHPP

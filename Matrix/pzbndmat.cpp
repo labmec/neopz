@@ -2,23 +2,11 @@
  * @file
  * @brief Contains the implementation of the TPZFBMatrix methods.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tbndmat.cc
-//
-// Class:  TPZFBMatrix
-//
-// Obs.:   Implementa matrizes Banda.
-//
-// Versao: 04 / 1996.
-//
 
 #include <math.h>
 #include "pzfmatrix.h"
 #include "pzbndmat.h"
 
-//#include "pzerror.h"
 #include <stdlib.h>
 
 #include "pzlog.h"
@@ -718,12 +706,6 @@ TPZFBMatrix<TVar>::Decompose_LU()
 			TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
 		}
 		
-		//       if(IsZero(pivot)){
-		//         if(pivot < 0.) *iPtr = -1.e-10;
-		//         else *iPtr = +1.e-10;
-		//         pivot = *iPtr;
-		//       }
-		
 		TVar *jFirstPtr = fElem+fBand*(2*k+3)+k+1;
 		imax = k+fBand+1;
 		if(imax > rows) imax = rows;
@@ -738,8 +720,6 @@ TPZFBMatrix<TVar>::Decompose_LU()
 			jPtr = jFirstPtr;
 			while(kPtr < kLastPtr) *jPtr++ -= nn * *kPtr++;
 			jFirstPtr += 2*fBand;
-			//			for ( int j = k+1; j < Cols(); j++ )
-			//				PutVal( i, j, GetVal( i, j ) - nn * GetVal( k, j ) );
 		}
 		kFirstPtr += 2*fBand+1;
     }
@@ -767,9 +747,6 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
 			while(jptr < iiptr) {
 				*Biptr -= *jptr++ * *Bjptr++;
 			}
-			//            for ( int j = 0; j < i; j++ ) {
-			//                B->PutVal( i, col, B->GetVal(i, col)-GetVal(i, j) * B->GetVal(j, col) );
-			//            }
         }
     }
     for (int col=0; col<colb; col++) {
@@ -784,13 +761,6 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
 			while(jptr < jlastptr) {
 				*Biptr -= *jptr++ * *(Bjptr++);
 			}
-			//            for ( int j = i+1; j < rowb ; j++ ) {
-			//                B->PutVal( i, col, B->GetVal(i, col) -
-			//                    GetVal(i, j) * B->GetVal(j, col) );
-			//            }
-            if ( IsZero( GetVal(i, i) ) ) {
-				//                     TPZMatrix::Error(__PRETTY_FUNCTION__, "BackSub( SubstitutionLU ) <Matrix is singular" );
-            }
             B->PutVal( i, col, B->GetVal( i, col) / GetVal(i, i) );
 		}
     }
@@ -799,22 +769,6 @@ int TPZFBMatrix<TVar>::Substitution( TPZFMatrix<TVar> *B ) const{
 
 
 /************************** Private **************************/
-
-/*************/
-/*** Error ***/
-/*
- int
- TPZFBMatrix::Error(const char *msg1,const char *msg2 ) 
- {
- ostringstream out;
- out << "TPZFBMatrix::" << msg1 << msg2 << ".\n";
- LOGPZ_ERROR (logger, out.str().c_str());
- // pzerror.Show();
- DebugStop();
- return 0;
- }
- */
-
 
 /*************/
 /*** Clear ***/

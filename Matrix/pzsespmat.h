@@ -2,21 +2,6 @@
  * @file
  * @brief Contains TPZSSpMatrix class which implements sparce symmetric matrix using a linked list of elements.
  */
-//
-// Author: MISAEL LUIS SANTANA MANDUJANO.
-//
-// File:   tsespmat.hh
-//
-// Class:  TPZSSpMatrix
-//
-// Deriva: TSimMatrix
-//
-// Obs.:   Implementa matrizes esparsas simetricas. A implementacao
-//         e' feita atraves de listas ligadas.
-//
-// Versao: 04 / 1996.
-//
-
 
 #ifndef TSESPMATH
 #define TSESPMATH
