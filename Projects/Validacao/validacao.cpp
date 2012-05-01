@@ -1,12 +1,8 @@
 /*
- *  untitled.cpp
- *  PZ
- *
- *  Created by Denise de Siqueira on 6/9/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+ * @file
+ * @author Denise de Siqueira
+ * @since 6/9/11.
  */
-
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -16,6 +12,7 @@
 #include <cstdlib>
 #include "pzgengrid.h"
 #include "pzgmesh.h"
+#include "pzgeoelbc.h"
 #include "pzcmesh.h"
 #include "tpzcompmeshreferred.h"
 #include "pzcompel.h"
