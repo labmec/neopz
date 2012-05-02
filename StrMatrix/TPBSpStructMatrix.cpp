@@ -10,7 +10,6 @@
 #include "pzgeoelbc.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzmat2dlin.h"
 
 #include "pzanalysis.h"
 #include "pzsolve.h"
@@ -24,7 +23,11 @@
 #include "pzbndcond.h"
 #include "pzmetis.h"
 
+
 using namespace std;
+
+#ifndef STATE_COMPLEX
+#include "pzmat2dlin.h"
 
 int TPBSpStructMatrix::main() {
 	
@@ -207,6 +210,9 @@ int TPBSpStructMatrix::main() {
 	return 0;
 	
 }
+
+#endif
+
 TPZStructMatrix * TPBSpStructMatrix::Clone(){
     return new TPBSpStructMatrix(*this);
 }

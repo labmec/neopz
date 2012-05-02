@@ -9,7 +9,6 @@
 #include "pzgeoelbc.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzmat2dlin.h"
 
 #include "pzanalysis.h"
 #include "pzsolve.h"
@@ -190,6 +189,9 @@ TPZMatrix<STATE> * TPZSpStructMatrix::Create(){
 TPZSpStructMatrix::TPZSpStructMatrix(TPZCompMesh *mesh) : TPZStructMatrix(mesh)
 {}
 
+#ifndef STATE_COMPLEX
+#include "pzmat2dlin.h"
+
 int TPZSpStructMatrix::main() {
 	
 	int refine=5;
@@ -275,3 +277,4 @@ int TPZSpStructMatrix::main() {
 	return 0;
 	
 }
+#endif

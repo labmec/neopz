@@ -15,7 +15,6 @@
 
 #include "pzsmfrontalanal.h"
 
-#include "pzmat2dlin.h"
 
 #include "pzanalysis.h"
 #include "pzsolve.h"
@@ -455,6 +454,9 @@ void TPZFrontStructMatrix<front>::SetQuiet(int quiet)
 	this->f_quiet = quiet;
 }
 
+#ifndef STATE_COMPLEX
+#include "pzmat2dlin.h"
+
 template<class front>
 int TPZFrontStructMatrix<front>::main() {
 	int refine = 5;
@@ -624,7 +626,7 @@ int TPZFrontStructMatrix<front>::main() {
 	return 0;
 	
 }
-
+#endif
 /**
  * Resequence the connects according to the element order
  **/

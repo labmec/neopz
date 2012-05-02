@@ -33,14 +33,14 @@ class TPZNonLinMultGridAnalysis : public TPZAnalysis {
 	TPZStack < TPZCompMesh * > fMeshes;
 	
 	/** @brief Contains the meshes solutions */	
-	TPZStack <TPZFMatrix<REAL> *> fSolutions;
+	TPZStack <TPZFMatrix<STATE> *> fSolutions;
 	
 	/** @brief Contains the solution method applied to the mesh */
-	TPZStack <TPZMatrixSolver<REAL> *> fSolvers;
+	TPZStack <TPZMatrixSolver<STATE> *> fSolvers;
 	
 	/** @brief Contains the preconditioner of the solution method */ 
 	/** If the solution method is a krylov method, the preconditioner can be used as a coarse grid iteration */
-	TPZStack <TPZMatrixSolver<REAL> *> fPrecondition;
+	TPZStack <TPZMatrixSolver<STATE> *> fPrecondition;
 	
 	/** @brief Times by iteration and accumulated time */
 	clock_t fBegin,fInit;
@@ -80,7 +80,7 @@ public:
 	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha = 0 ,
 						   const std::string &dxout = "plotfile.dx");
 	
-	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<REAL> &rhs);
+	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs);
 	
 	void SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha,
 							const std::string &dxout);
@@ -97,9 +97,9 @@ public:
 	
 	void TwoGridAlgorithm(std::ostream &out,int nummat);
 	
-	void CalcResidual(TPZMatrix<REAL> &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix<REAL> &res);
+	void CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &an,const std::string  &decompose,TPZFMatrix<STATE> &res);
 	
-	void CalcResidual(TPZMatrix<REAL> &sol,TPZFMatrix<REAL> &anres,TPZFMatrix<REAL> &res,TPZAnalysis &an,const std::string &decompose);
+	void CalcResidual(TPZMatrix<STATE> &sol,TPZFMatrix<STATE> &anres,TPZFMatrix<STATE> &res,TPZAnalysis &an,const std::string &decompose);
 	
 protected:
 	

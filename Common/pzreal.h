@@ -97,15 +97,12 @@ typedef long double STATE;
 #endif
 #ifdef STATEcomplexf
 typedef std::complex<float> STATE;
-#define STATE_COMPLEX
 #endif
 #ifdef STATEcomplexd
 typedef std::complex<double> STATE;
-#define STATE_COMPLEX
 #endif
 #ifdef STATEcomplexld
 typedef std::complex<long double> STATE;
-#define STATE_COMPLEX
 #endif
 
 // fabs function adapted to complex numbers.

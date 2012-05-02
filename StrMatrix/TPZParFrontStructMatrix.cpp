@@ -16,7 +16,6 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
-#include "pzmat2dlin.h"
 #include "pzbndcond.h"
 
 #include "pzanalysis.h"
@@ -470,7 +469,8 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 }
 
 
-
+#ifndef STATE_COMPLEX
+#include "pzmat2dlin.h"
 
 template<class front>
 int TPZParFrontStructMatrix<front>::main() {
@@ -648,6 +648,7 @@ int TPZParFrontStructMatrix<front>::main() {
 	return 0;
 	
 }
+#endif
 
 template<class front>
 TPZMatrix<STATE> * TPZParFrontStructMatrix<front>::CreateAssemble(TPZFMatrix<STATE> &rhs,TPZAutoPointer<TPZGuiInterface> guiInterface)

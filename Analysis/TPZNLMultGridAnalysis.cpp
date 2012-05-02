@@ -25,7 +25,7 @@
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-#include "TPZDiffusionConsLaw.h"
+//#include "TPZDiffusionConsLaw.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
 #include "tpzagglomeratemesh.h"
@@ -47,12 +47,12 @@ TPZNonLinMultGridAnalysis::TPZNonLinMultGridAnalysis(TPZCompMesh *cmesh) :
 TPZAnalysis(cmesh), fBegin(0), fInit(0) {
 	cmesh->SetName("* * * MALHA INICIAL * * *");
 	fMeshes.Push(cmesh);
-	TPZStepSolver<REAL> solver;
+	TPZStepSolver<STATE> solver;
 	solver.SetDirect(ELDLt);
-	TPZMatrixSolver<REAL> *clone = dynamic_cast<TPZMatrixSolver<REAL> *>(solver.Clone());
+	TPZMatrixSolver<STATE> *clone = dynamic_cast<TPZMatrixSolver<STATE> *>(solver.Clone());
 	SetSolver(*clone);
 	fSolvers.Push(clone);
-	fSolutions.Push(new TPZFMatrix<REAL>(fSolution));
+	fSolutions.Push(new TPZFMatrix<STATE>(fSolution));
 	fPrecondition.Push(0);
 }
 
@@ -285,7 +285,7 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointe
 	law->SetTimeStep(maxveloc,deltax,degree);   //JorgeC
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<REAL> &rhs){
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
 	
 	//pelo menos duas iteracoes para calcular o residuo
 	if(numiter <= 1) numiter = 2;
@@ -299,7 +299,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 	an.LoadSolution();
 	mat->SetForcingFunction(0);
 	REAL normsol = Norm(Solution());
-	TPZFMatrix<REAL> rhsim1 = an.Rhs();
+	TPZFMatrix<STATE> rhsim1 = an.Rhs();
 	
 	while(iter < numiter && normsol < tol) {
 		
@@ -421,21 +421,21 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoP
 	out.close();
 }
 
-void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<REAL> &sol,TPZAnalysis &an,
-											 const std::string &decompose,TPZFMatrix<REAL> &res){
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZAnalysis &an,
+											 const std::string &decompose,TPZFMatrix<STATE> &res){
 	
-	TPZAutoPointer<TPZMatrix<REAL> > stiff = an.Solver().Matrix();
+	TPZAutoPointer<TPZMatrix<STATE> > stiff = an.Solver().Matrix();
 	ofstream out("CalcResidual_STIFF.out");
 	stiff->Print("\n\n\t\t\t* * * MATRIZ DE RIGIDEZ * * *\n\n",out);
 	int dim = stiff->Dim(),i,j;
 	res.Redim(dim,1);
 	//c�culo de stiff * solution
-	TPZFMatrix<REAL> tsup(dim,1),diag(dim,1),tinf(dim,1);
+	TPZFMatrix<STATE> tsup(dim,1),diag(dim,1),tinf(dim,1);
 	
 	if( !strcmp(decompose.c_str() , "LDLt") ){
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			REAL sum = 0.;
+			STATE sum = 0.;
 			for(j=i+1;j<dim;j++){
 				sum += stiff->GetVal(i,j) * sol(j,0);
 			}
@@ -445,7 +445,7 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<REAL> &sol,TPZAnalysis &a
 		for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
 		//tri�gulo inferior
 		for(i=0;i<dim;i++){
-			REAL sum = 0.;
+			STATE sum = 0.;
 			for(j=0;j<i;j++){
 				sum += stiff->GetVal(i,j) * diag(j,0);
 			}
@@ -472,20 +472,20 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<REAL> &sol,TPZAnalysis &a
 }
 
 
-void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<REAL> &sol,TPZFMatrix<REAL> &anres,
-											 TPZFMatrix<REAL> &res,TPZAnalysis &an,const std::string &decompose){
+void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<STATE> &sol,TPZFMatrix<STATE> &anres,
+											 TPZFMatrix<STATE> &res,TPZAnalysis &an,const std::string &decompose){
 	
-	TPZAutoPointer<TPZMatrix<REAL> > stiff = an.Solver().Matrix();
+	TPZAutoPointer<TPZMatrix<STATE> > stiff = an.Solver().Matrix();
 	ofstream out("CalcResidual_STIFF.out");
 	stiff->Print("\n\n\t\t\t* * * MATRIZ DE RIGIDEZ * * *\n\n",out);
 	int dim = stiff->Dim(),i,j;
 	//c�culo de stiff * solution
-	TPZFMatrix<REAL> tsup(dim,1),diag(dim,1),tinf(dim,1);
+	TPZFMatrix<STATE> tsup(dim,1),diag(dim,1),tinf(dim,1);
 	
 	if( !strcmp(decompose.c_str() , "LDLt") ){
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			REAL sum = 0.;
+			STATE sum = 0.;
 			for(j=i+1;j<dim;j++){
 				sum += stiff->GetVal(i,j);
 			}
@@ -495,14 +495,14 @@ void TPZNonLinMultGridAnalysis::CalcResidual(TPZMatrix<REAL> &sol,TPZFMatrix<REA
 		for(i=0;i<dim;i++) diag(i,0) = stiff->GetVal(i,i) * tsup(i,0);
 		//tri�gulo superior
 		for(i=0;i<dim;i++){
-			REAL sum = 0.;
+			STATE sum = 0.;
 			for(j=0;j<i;j++){
 				sum += stiff->GetVal(i,j) * diag(i,0);
 			}
 			tinf(i,0) = sum + diag(i,0);
 		}
 		//diferenca (f - stiff * x)
-		//TPZFMatrix<REAL> rhs = an.Rhs();
+		//TPZFMatrix<STATE> rhs = an.Rhs();
 		for(i=0;i<dim;i++) res(i,0) = anres.GetVal(i,0) - tinf(i,0);
 		sol.Print("\n* * * sol * * *\n",cout);
 		anres.Print("\n* * * anres * * *\n",cout);
@@ -542,7 +542,7 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	TPZAnalysis finean(finemesh);
 	TPZSkylineStructMatrix finestiff(finemesh);
 	finean.SetStructuralMatrix(finestiff);
-	TPZStepSolver<REAL> finesolver;
+	TPZStepSolver<STATE> finesolver;
 	finesolver.SetDirect(ELDLt);
 	finean.SetSolver(finesolver);
 	finean.Solution().Zero();
@@ -599,26 +599,26 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	TPZAnalysis coarsean(fMeshes[1]);
 	TPZSkylineStructMatrix coarsestiff(fMeshes[1]);
 	coarsean.SetStructuralMatrix(coarsestiff);
-	TPZStepSolver<REAL> coarsesolver;
+	TPZStepSolver<STATE> coarsesolver;
 	coarsesolver.SetDirect(ELDLt);
-	TPZMatrixSolver<REAL> *clone = dynamic_cast<TPZMatrixSolver<REAL> *>(coarsesolver.Clone());
+	TPZMatrixSolver<STATE> *clone = dynamic_cast<TPZMatrixSolver<STATE> *>(coarsesolver.Clone());
 	coarsean.SetSolver(*clone);
 	fSolvers.Push(clone);
 	coarsean.Solution().Zero();
-	fSolutions.Push(new TPZFMatrix<REAL>(coarsean.Solution()));
+	fSolutions.Push(new TPZFMatrix<STATE>(coarsean.Solution()));
 	fPrecondition.Push(0);
 	//analysis na malha fina
 	AppendMesh(finemesh);
 	TPZAnalysis finean(fMeshes[2]);
 	TPZSkylineStructMatrix finestiff(fMeshes[2]);
 	finean.SetStructuralMatrix(finestiff);
-	TPZStepSolver<REAL> finesolver;
+	TPZStepSolver<STATE> finesolver;
 	finesolver.SetDirect(ELDLt);
-	clone = dynamic_cast<TPZMatrixSolver<REAL> *>(finesolver.Clone());
+	clone = dynamic_cast<TPZMatrixSolver<STATE> *>(finesolver.Clone());
 	finean.SetSolver(*clone);
 	fSolvers.Push(clone);
 	finean.Solution().Zero();
-	fSolutions.Push(new TPZFMatrix<REAL>(finean.Solution()));
+	fSolutions.Push(new TPZFMatrix<STATE>(finean.Solution()));
 	fPrecondition.Push(0);
 	//preparac� para aplicar m�odo multigrid a duas malhas
 	int preiter,positer,premarcha,posmarcha;
@@ -644,15 +644,15 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	// TRANSFER�CIA DE SOLU�ES
 	TPZTransfer<STATE> transfer;
 	fMeshes[2]->BuildTransferMatrixDesc(*fMeshes[1],transfer);
-	TPZFMatrix<REAL> projectsol;
+	TPZFMatrix<STATE> projectsol;
 	REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;
 	REAL errsol = fabs(normsolcoar - normsolfine);
 	REAL gridtol = 0.01;
 	int coarneq = fMeshes[1]->NEquations();
 	int fineneq = fMeshes[2]->NEquations();
-	TPZFMatrix<REAL> finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
-	TPZFMatrix<REAL> coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
-	TPZFMatrix<REAL> finesolkeep,coarsesolkeep;
+	TPZFMatrix<STATE> finesol(fineneq,1,0.),fineres(fineneq,1),finesol0,projfinesol;
+	TPZFMatrix<STATE> coarsesol(coarneq,1,0.),projfineres(coarneq,1),rhs(coarneq,1),frhsk;
+	TPZFMatrix<STATE> finesolkeep,coarsesolkeep;
 	int mgmaxiter = 100,mgiter = 0;
 	TPZVec<std::string> scalar(1),vector(0);
 	scalar[0] = "pressure";
@@ -727,7 +727,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 			fSolvers[1]->SetMatrix(0);
 			//argumento 1 espera? adicionar o res�uo anterior ao atual calculado
 			fSolvers[1]->SetMatrix(coarsean.StructMatrix()->CreateAssemble(coarsean.Rhs(),NULL));
-			TPZFMatrix<REAL> coarres = coarsean.Rhs() + projfineres;
+			TPZFMatrix<STATE> coarres = coarsean.Rhs() + projfineres;
 			coarsean.Rhs() = coarres;//res�uo
 			coarsean.Solve();
 		}

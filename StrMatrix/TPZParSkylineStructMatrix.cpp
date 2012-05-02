@@ -12,7 +12,6 @@
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "pzsubcmesh.h"
-#include "pzmat2dlin.h"
 #include "pzbndcond.h"
 
 #include "pzanalysis.h"
@@ -72,6 +71,10 @@ TPZMatrix<STATE> * TPZParSkylineStructMatrix::CreateAssemble(TPZFMatrix<STATE> &
 	Assemble(*mat,rhs,guiInterface);
 	return mat;
 }
+
+#ifndef STATE_COMPLEX
+#include "pzmat2dlin.h"
+
 int TPZParSkylineStructMatrix::main() {
 	
 	int refine=5;
@@ -250,3 +253,4 @@ int TPZParSkylineStructMatrix::main() {
 	
 }
 
+#endif

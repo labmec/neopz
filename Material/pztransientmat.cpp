@@ -197,6 +197,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<REAL> &sol, TPZF
 	}//i
 }//method
 
+#ifndef STATE_COMPLEX
 #include "pzpoisson3d.h"
 template class TPZTransientMaterial< TPZMatPoisson3d >;
 
@@ -213,4 +214,4 @@ void TestInstantiations(){
 	TPZTransientMaterial< TPZBurger > C(1,1,1.);
 }
 
-
+#endif
