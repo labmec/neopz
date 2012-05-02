@@ -82,7 +82,7 @@ TPZStackEqnStorage<TVar>::TPZStackEqnStorage(char option, const char *name)
 {
 	
 }
-//void TPZStackEqnStorage<TVar>::SetFileName(const char *name){}
+
 template<class TVar>
 void TPZStackEqnStorage<TVar>::OpenGeneric(char option, const char * name){}
 template<class TVar>
@@ -92,7 +92,11 @@ void TPZStackEqnStorage<TVar>::FinishWriting(){}
 template<class TVar>
 std::string TPZStackEqnStorage<TVar>::GetStorage() {return "Stack Storage";}
 
+
+template class TPZStackEqnStorage<float>;
 template class TPZStackEqnStorage<double>;
+template class TPZStackEqnStorage<long double>;
+
+template class TPZStackEqnStorage<std::complex<float> >;
 template class TPZStackEqnStorage<std::complex<double> >;
-
-
+template class TPZStackEqnStorage<std::complex<long double> >;

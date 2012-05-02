@@ -316,5 +316,8 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 
 template class TPZSparseBlockDiagonal<float>;
 template class TPZSparseBlockDiagonal<double>;
+template class TPZSparseBlockDiagonal<long double>;
+
 template class TPZSparseBlockDiagonal<std::complex<float> >;
 template class TPZSparseBlockDiagonal<std::complex<double> >;
+template class TPZSparseBlockDiagonal<std::complex<long double> >;

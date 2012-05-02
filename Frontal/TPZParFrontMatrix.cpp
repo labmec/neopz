@@ -65,12 +65,8 @@ fFinish(0)
 	fwritelock = mlocal;
 	pthread_cond_t clocal = PTHREAD_COND_INITIALIZER;
 	fwritecond = clocal;
-	/*	fFront.Reset(globalsize);
-	 fStorage.Reset();
-	 fNumElConnected.Resize(0);
-	 fLastDecomposed = -1;
-	 fNumEq=globalsize;*/
 }
+
 template<class TVar, class store, class front>
 TPZParFrontMatrix<TVar, store, front>::~TPZParFrontMatrix(){
 }
@@ -88,22 +84,11 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-    /*      cout << "destination index" << endl;
-	 int i;
-	 for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
-	 cout << endl;
-	 cout.flush();
-	 elmat.Print("Element Matrix");
-	 */
 	int mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
-		//               if(!(maxeq%10)){
-		//	               cout << (100*maxeq/fNumEq) << " % Decomposed" << endl;
-		//	               cout.flush();
-		//              }
-		
+
 		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
 		this->CheckCompress();
 		pthread_mutex_lock(&fwritelock);
@@ -130,27 +115,12 @@ void TPZParFrontMatrix<TVar, store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZ
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-	//	EquationsToDecompose(destinationindex);
-	//         cout << "AddKel::destination index 2" << endl;
-	//          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
-	//         cout << endl;
-	//         cout.flush();
-	//          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
 	this->EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> *AuxEqn = new TPZEqnArray<TVar>;
 	if(maxeq >= mineq) {
-		//	     if(!(maxeq%10)){
-		//	          cout << (100*maxeq/fNumEq) << " % Decomposed" << endl;
-		//	          cout.flush();
-		//          }
-		
 		this->fFront.DecomposeEquations(mineq,maxeq,*AuxEqn);
 		this->CheckCompress();
-		//fStorage.AddEqnArray(&AuxEqn);
-		//adds an equation to a stack!!!
-		//some sort of lock here
-		//          fEqnStack->Push(&AuxEqn);
 		pthread_mutex_lock(&fwritelock);
 		fEqnStack.Push(AuxEqn);
 		if(maxeq == this->Rows()-1){
@@ -236,20 +206,12 @@ void * TPZParFrontMatrix<TVar, store, front>::WriteFile(void *t){
 		
 		pthread_mutex_unlock(&parfront->fwritelock);
 		int neqn = local.NElements();
-		
-		/*          nlocal++;
-		 if(!(nlocal%200)) cout << endl << "         Decomposing  " << neqn << " " << nlocal << " on thread " << pthread_self() << endl;
-		 if(!(nlocal%20)) cout << nlocal << endl;
-		 cout << '#';
-		 cout.flush();
-		 */          
+
 		int eq;
 		for(eq=0; eq<neqn; eq++) {
 			parfront->fStorage.AddEqnArray(local[eq]);
 			delete local[eq];
 		}
-		
-		
 	}
 	parfront->fStorage.FinishWriting();
 	parfront->fStorage.ReOpen();
@@ -283,15 +245,34 @@ class TPZFrontSym;
 template<class TVar>
 class TPZFrontNonSym;
 
+
+template class TPZParFrontMatrix<float, TPZStackEqnStorage<float>, TPZFrontSym<float> >;
+template class TPZParFrontMatrix<float, TPZFileEqnStorage<float>, TPZFrontSym<float> >;
+template class TPZParFrontMatrix<float, TPZStackEqnStorage<float>, TPZFrontNonSym<float> >;
+template class TPZParFrontMatrix<float, TPZFileEqnStorage<float>, TPZFrontNonSym<float> >;
+
 template class TPZParFrontMatrix<double, TPZStackEqnStorage<double>, TPZFrontSym<double> >;
 template class TPZParFrontMatrix<double, TPZFileEqnStorage<double>, TPZFrontSym<double> >;
 template class TPZParFrontMatrix<double, TPZStackEqnStorage<double>, TPZFrontNonSym<double> >;
 template class TPZParFrontMatrix<double, TPZFileEqnStorage<double>, TPZFrontNonSym<double> >;
+
+template class TPZParFrontMatrix<long double, TPZStackEqnStorage<long double>, TPZFrontSym<long double> >;
+template class TPZParFrontMatrix<long double, TPZFileEqnStorage<long double>, TPZFrontSym<long double> >;
+template class TPZParFrontMatrix<long double, TPZStackEqnStorage<long double>, TPZFrontNonSym<long double> >;
+template class TPZParFrontMatrix<long double, TPZFileEqnStorage<long double>, TPZFrontNonSym<long double> >;
+
+template class TPZParFrontMatrix<std::complex<float>, TPZStackEqnStorage<std::complex<float> >, TPZFrontSym<std::complex<float> > >;
+template class TPZParFrontMatrix<std::complex<float>, TPZFileEqnStorage<std::complex<float> >, TPZFrontSym<std::complex<float> > >;
+template class TPZParFrontMatrix<std::complex<float>, TPZStackEqnStorage<std::complex<float> >, TPZFrontNonSym<std::complex<float> > >;
+template class TPZParFrontMatrix<std::complex<float>, TPZFileEqnStorage<std::complex<float> >, TPZFrontNonSym<std::complex<float> > >;
 
 template class TPZParFrontMatrix<std::complex<double>, TPZStackEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
 template class TPZParFrontMatrix<std::complex<double>, TPZFileEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
 template class TPZParFrontMatrix<std::complex<double>, TPZStackEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
 template class TPZParFrontMatrix<std::complex<double>, TPZFileEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
 
-
+template class TPZParFrontMatrix<std::complex<long double>, TPZStackEqnStorage<std::complex<long double> >, TPZFrontSym<std::complex<long double> > >;
+template class TPZParFrontMatrix<std::complex<long double>, TPZFileEqnStorage<std::complex<long double> >, TPZFrontSym<std::complex<long double> > >;
+template class TPZParFrontMatrix<std::complex<long double>, TPZStackEqnStorage<std::complex<long double> >, TPZFrontNonSym<std::complex<long double> > >;
+template class TPZParFrontMatrix<std::complex<long double>, TPZFileEqnStorage<std::complex<long double> >, TPZFrontNonSym<std::complex<long double> > >;
 

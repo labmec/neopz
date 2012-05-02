@@ -1,14 +1,8 @@
 /**
  * @file
  * @brief Contains the implementation of the TPZDohrAssembly methods. 
- */
-/*
- *  tpzdohrassembly.cpp
- *  SubStruct
- *
- *  Created by Philippe Devloo on 04/03/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
+ * @author Philippe Devloo
+ * @since 04/03/2009
  */
 
 #include "tpzdohrassembly.h"
@@ -117,17 +111,6 @@ void TPZDohrAssembly<TVar>::ExtractCoarse(int isub, const TPZFMatrix<TVar> &glob
     }
 }
 
-/**
- * @brief For each substructure the equation numbering of the substructures
- * 
- * The order of the equations follows the ordering of the connects
- */
-//TPZVec< TPZVec< int > > fFineEqs;
-
-/** @brief For each substructure the equation numbering of the coarse equations */
-//TPZVec< TPZVec< int > > fCoarseEqs;
-
-
 /** @brief method for streaming the object to a stream */
 template<class TVar>
 void TPZDohrAssembly<TVar>::Write(TPZStream &out)
@@ -162,5 +145,10 @@ void TPZDohrAssembly<TVar>::Read(TPZStream &input)
     }    
 }
 
+template class TPZDohrAssembly<float>;
 template class TPZDohrAssembly<double>;
+template class TPZDohrAssembly<long double>;
+
+template class TPZDohrAssembly<std::complex<float> >;
 template class TPZDohrAssembly<std::complex<double> >;
+template class TPZDohrAssembly<std::complex<long double> >;

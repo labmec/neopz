@@ -15,10 +15,9 @@ fNTVarVar(0),fRowBlock(),fColBlock(),fColPosition(0),fNumberofColumnBlocks(0),fC
 fColumnBlockNumber(0),fColumnBlockLastUsed(0),fDoubleValues(0),fDoubleValLastUsed(0) {
 }
 
-//TPZTransfer<TVar>::TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks) :
+// the sparse matrix blocks are defined by row, col
 template<class TVar>
 TPZTransfer<TVar>::TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks) :
-// the sparse matrix blocks are defined by row, col
 TPZMatrix<TVar>(), fNTVarVar(nvar), fRowBlock(), fColBlock(),
 fColPosition(), fNumberofColumnBlocks(),
 fColumnBlockPosition(0),fColumnBlockNumber(0),
@@ -286,7 +285,6 @@ void TPZTransfer<TVar>::TransferSolution(const TPZFMatrix<TVar> &coarsesol, TPZF
  * Will transfer the residual, taking into acount there may be more than
  * one TVar variable
  */
-
 template<class TVar>
 void TPZTransfer<TVar>::TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatrix<TVar> &coarse){
 	int iv;
@@ -324,5 +322,9 @@ void TPZTransfer<TVar>::Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B,
 	MultAdd( A, B, B, 1.0, 0.0, opt,stride);
 }
 
+template class TPZTransfer<float>;
+
 template class TPZTransfer<double>;
 template class TPZTransfer<std::complex<double> >;
+
+template class TPZTransfer<long double>;

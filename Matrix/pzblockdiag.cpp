@@ -19,9 +19,6 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 
 using namespace std;
 
-/** @brief Initializing variable zero as real */
-//static REAL zero = 0.;
-
 template<class TVar>
 void TPZBlockDiagonal<TVar>::AddBlock(int i, TPZFMatrix<TVar> &block){
 
@@ -608,7 +605,10 @@ void TPZBlockDiagonal<TVar>::AutoFill() {
 	}
 }
 
-template class TPZBlockDiagonal<double>;
-template class TPZBlockDiagonal<std::complex<double> >;
 template class TPZBlockDiagonal<float>;
+template class TPZBlockDiagonal<double>;
+template class TPZBlockDiagonal<long double>;
+
 template class TPZBlockDiagonal<std::complex<float> >;
+template class TPZBlockDiagonal<std::complex<double> >;
+template class TPZBlockDiagonal<std::complex<long double> >;

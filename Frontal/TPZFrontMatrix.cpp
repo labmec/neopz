@@ -2,7 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZFrontMatrix methods.
  */
-//$Id: TPZFrontMatrix.cpp,v 1.15 2011-05-11 02:10:40 phil Exp $
+
 #include "TPZFrontMatrix.h"
 #include "pzsfulmat.h"
 #include "TPZFront.h"
@@ -65,19 +65,6 @@ void TPZFrontMatrix<TVar,store, front>::SetNumElConnected(TPZVec < int > &numelc
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	//	cout << "Storage Schema -> " << fStorage.GetStorage() << endl; 
-	//	cout << "Front Matrix Type -> " << fFront.GetMatrixType() << endl;
-#ifdef BLAS
-	//     	cout << "Using BLAS" << endl;
-#endif
-#ifdef USING_ATLAS
-	//          cout << "Using ATLAS" << endl;     
-#endif
-#ifndef USING_BLAS
-#ifndef USING_ATLAS
-	//     	cout << "Not Using BLAS" << endl;
-#endif
-#endif
 }
 
 /** Add a contribution of a stiffness matrix */
@@ -93,13 +80,6 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 		LOGPZ_INFO(loggerfw,sout.str())
 	}
 #endif
-    /*      cout << "destination index" << endl;
-	 int i;
-	 for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
-	 cout << endl;
-	 cout.flush();
-	 elmat.Print("Element Matrix");
-	 */
 	int mineq, maxeq;
 	
 	EquationsToDecompose(destinationindex, mineq, maxeq);
@@ -130,13 +110,6 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 	}
 #endif
 	
-	//	EquationsToDecompose(destinationindex);
-	//         cout << "AddKel::destination index 2" << endl;
-	//     int i;
-	//          for(i=0;i<destinationindex.NElements();i++) cout << destinationindex[i] << " ";
-	//         cout << endl;
-	//         cout.flush();
-	//          elmat.Print("AddKel: Element Matrix 2");
 	int mineq, maxeq;
 	EquationsToDecompose(destinationindex, mineq, maxeq);
 	TPZEqnArray<TVar> AuxEqn;
@@ -149,11 +122,9 @@ void TPZFrontMatrix<TVar,store, front>::AddKel(TPZFMatrix<TVar> & elmat, TPZVec 
 			fStorage.FinishWriting();
 			fStorage.ReOpen();
 		}
-		
 	}
 	this->fDecomposed = fFront.GetDecomposeType();
 }
-
 
 /** Add a contribution of a stiffness matrix using the indexes to compute the frontwidth */
 template<class TVar, class store, class front>
@@ -251,9 +222,7 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	DestInd2[1]=1;
 	DestInd2[2]=2;
 	DestInd2[3]=3;
-	
-	
-	
+
 	TPZFMatrix<TVar> KEl3(2,2);
 	KEl3(0,0)=3.;
 	KEl3(0,1)=3.;
@@ -263,14 +232,11 @@ void TPZFrontMatrix<TVar,store, front>::main()
 	TPZVec<int> DestInd3(2);
 	DestInd3[0]=2;
 	DestInd3[1]=3;
-	
-	
-	
+
 	TPZFrontMatrix TestFront(4);
 	
 	TPZVec<int> NumConnected(4);
 	for(i=0;i<4;i++) NumConnected[i]=2;
-	
 	
 	TestFront.SetNumElConnected(NumConnected);
 	
@@ -343,20 +309,11 @@ int TPZFrontMatrix<TVar,store, front>::Subst_Backward(TPZFMatrix<TVar> *b) const
 	fStorage.Backward(*b, dec);
 	return 1;
 }
-/*
- template<class TVar, class store, class front>
- void TPZFrontMatrix<TVar,store, front>::SetFileName(const char *name) {
- //     char * bin_template[8]; 
- //     bin_template = "bfXXXXXX"
- //     const char *name = mktemp(template);
- //	fStorage.('w', name);
- }*/
 
 template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::SetFileName(char option, const char *name) {
 	fStorage.OpenGeneric(option, name);
 }
-
 
 template<class TVar, class store, class front>
 void TPZFrontMatrix<TVar,store, front>::FinishWriting() {
@@ -385,12 +342,33 @@ class TPZFrontSym;
 template<class TVar>
 class TPZFrontNonSym;
 
+
+template class TPZFrontMatrix<float,TPZStackEqnStorage<float>, TPZFrontSym<float> >;
+template class TPZFrontMatrix<float,TPZFileEqnStorage<float>, TPZFrontSym<float> >;
+template class TPZFrontMatrix<float,TPZStackEqnStorage<float>, TPZFrontNonSym<float> >;
+template class TPZFrontMatrix<float,TPZFileEqnStorage<float>, TPZFrontNonSym<float> >;
+
 template class TPZFrontMatrix<double,TPZStackEqnStorage<double>, TPZFrontSym<double> >;
 template class TPZFrontMatrix<double,TPZFileEqnStorage<double>, TPZFrontSym<double> >;
 template class TPZFrontMatrix<double,TPZStackEqnStorage<double>, TPZFrontNonSym<double> >;
 template class TPZFrontMatrix<double,TPZFileEqnStorage<double>, TPZFrontNonSym<double> >;
 
+template class TPZFrontMatrix<long double,TPZStackEqnStorage<long double>, TPZFrontSym<long double> >;
+template class TPZFrontMatrix<long double,TPZFileEqnStorage<long double>, TPZFrontSym<long double> >;
+template class TPZFrontMatrix<long double,TPZStackEqnStorage<long double>, TPZFrontNonSym<long double> >;
+template class TPZFrontMatrix<long double,TPZFileEqnStorage<long double>, TPZFrontNonSym<long double> >;
+
+template class TPZFrontMatrix<std::complex<float> ,TPZStackEqnStorage<std::complex<float> >, TPZFrontSym<std::complex<float> > >;
+template class TPZFrontMatrix<std::complex<float> ,TPZFileEqnStorage<std::complex<float> >, TPZFrontSym<std::complex<float> > >;
+template class TPZFrontMatrix<std::complex<float> ,TPZStackEqnStorage<std::complex<float> >, TPZFrontNonSym<std::complex<float> > >;
+template class TPZFrontMatrix<std::complex<float> ,TPZFileEqnStorage<std::complex<float> >, TPZFrontNonSym<std::complex<float> > >;
+
 template class TPZFrontMatrix<std::complex<double> ,TPZStackEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
 template class TPZFrontMatrix<std::complex<double> ,TPZFileEqnStorage<std::complex<double> >, TPZFrontSym<std::complex<double> > >;
 template class TPZFrontMatrix<std::complex<double> ,TPZStackEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
 template class TPZFrontMatrix<std::complex<double> ,TPZFileEqnStorage<std::complex<double> >, TPZFrontNonSym<std::complex<double> > >;
+
+template class TPZFrontMatrix<std::complex<long double> ,TPZStackEqnStorage<std::complex<long double> >, TPZFrontSym<std::complex<long double> > >;
+template class TPZFrontMatrix<std::complex<long double> ,TPZFileEqnStorage<std::complex<long double> >, TPZFrontSym<std::complex<long double> > >;
+template class TPZFrontMatrix<std::complex<long double> ,TPZStackEqnStorage<std::complex<long double> >, TPZFrontNonSym<std::complex<long double> > >;
+template class TPZFrontMatrix<std::complex<long double> ,TPZFileEqnStorage<std::complex<long double> >, TPZFrontNonSym<std::complex<long double> > >;

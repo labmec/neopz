@@ -118,7 +118,11 @@ void TPZSequenceSolver<TVar>::Read(TPZStream &buf, void *context)
 	}
 }
 
+template class TPZSequenceSolver<float>;
+template class TPZSequenceSolver<std::complex<float> >;
 template class TPZSequenceSolver<double>;
 template class TPZSequenceSolver<std::complex<double> >;
+template class TPZSequenceSolver<long double>;
+template class TPZSequenceSolver<std::complex<long double> >;
 
 template class TPZRestoreClass< TPZSequenceSolver<REAL>, TPZSQUENCESOLVER_ID>;

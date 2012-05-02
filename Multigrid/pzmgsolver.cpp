@@ -97,6 +97,8 @@ void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::Restore(buf, context));
 }
 
+template class TPZMGSolver<float>;
 template class TPZMGSolver<double>;
+template class TPZMGSolver<long double>;
 
 template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;

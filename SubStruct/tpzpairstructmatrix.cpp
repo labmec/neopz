@@ -2,14 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZPairStructMatrix methods. 
  */
-/*
- *  tpzpairstructmatrix.cpp
- *  SubStruct
- *
- *  Created by Philippe Devloo on 20/04/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
- */
 
 #include "tpzpairstructmatrix.h"
 #include "TPZTimer.h"

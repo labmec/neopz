@@ -2,14 +2,7 @@
  * @file
  * @brief Contains the TPZPairStructMatrix class.
  */
-/*
- *  tpzpairstructmatrix.h
- *  SubStruct
- *
- *  Created by Philippe Devloo on 20/04/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
- */
+
 #ifndef PAIRSTRUCTMATRIX
 #define PAIRSTRUCTMATRIX
 

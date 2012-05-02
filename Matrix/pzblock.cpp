@@ -515,6 +515,10 @@ void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 	ReadObjects<TNode>(buf,fBlock,context);
 }
 
-template class TPZBlock<REAL>;
+template class TPZBlock<float>;
+template class TPZBlock<double>;
+template class TPZBlock<long double>;
 
+template class TPZBlock<std::complex<float> >;
 template class TPZBlock<std::complex<double> >;
+template class TPZBlock<std::complex<long double> >;

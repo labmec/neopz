@@ -1,15 +1,9 @@
 /**
  * @file
  * @brief Contains the TPZDohrAssembleItem and TPZDohrAssembleList structs to assembling using Dohrman algorithm.
+ * @since 20/07/10.
  */
-/*
- *  tpzdohrassemblelist.h
- *  SubStruct
- *
- *  Created by Philippe Devloo on 20/07/10.
- *  Copyright 2010 UNICAMP. All rights reserved.
- *
- */
+
 #ifndef TPZDOHRASSEMBLELIST
 #define TPZDOHRASSEMBLELIST
 

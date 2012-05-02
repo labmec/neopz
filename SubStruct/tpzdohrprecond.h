@@ -3,66 +3,38 @@
  * @brief Contains the TPZDohrPrecond class which implements a matrix which computes the preconditioner developed by Dohrmann. \n
  * Also contains TPZDohrPrecondThreadV1Data, TPZDohrPrecondV2SubData and TPZDohrPrecondV2SubDataList structure.
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #ifndef TPZDOHRPRECOND_H
 #define TPZDOHRPRECOND_H
 
 #include "pzmatrix.h"
-#include <list>
-#include <semaphore.h>
 #include "tpzautopointer.h"
 #include "tpzdohrsubstruct.h"
 #include "tpzdohrmatrix.h"
 #include "tpzdohrassembly.h"
 #include "tpzdohrassemblelist.h"
+
+#include <list>
+#include <semaphore.h>
+
 /**
  * \addtogroup substructure
  * @{
  */
 /**
- @brief Implements a matrix which computes the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
- @author Philippe Devloo
+ * @brief Implements a matrix which computes the preconditioner developed by Dohrmann. \ref substructure "Sub Structure"
+ * @author Philippe Devloo
+ * @since 2006
  */
 template <class TVar, class TSubStruct> 
 class TPZDohrPrecond : public TPZMatrix<TVar>
 {
-	/**
-	 * @brief The matrix class is a placeholder for a list of substructures
-	 */
+	/** @brief The matrix class is a placeholder for a list of substructures */
 	std::list<TPZAutoPointer<TSubStruct> > fGlobal;
-	/**
-	 * @brief The global matrix associated with the coarse degrees of freedom
-	 */
+	/** @brief The global matrix associated with the coarse degrees of freedom */
 	TPZStepSolver<TVar> * fCoarse; //K(c)
-	/**
-	 * The global residual vector associated with the coarse degrees of freedom
-	 */
-	//  TPZFMatrix<TVar> fCoarseResidual; //r(c)
-	/**
-	 * The product K(c)_inv*r(c)
-	 */
-	//  TPZFMatrix<TVar> fInvKcrc; //r(c)
-	/**
-	 * @brief Size of the coarse system
-	 */
+
+	/** @brief Size of the coarse system */
 	int fNumCoarse; //n(c)
 	
 	/** @brief Number of threads used during preconditioning */
@@ -80,12 +52,10 @@ public:
 	
     ~TPZDohrPrecond();
     
-   // CLONEDEF(TPZDohrPrecond)
-		virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrPrecond(*this); }
+	// CLONEDEF(TPZDohrPrecond)
+	virtual TPZMatrix<TVar>*Clone() const { return new TPZDohrPrecond(*this); }
     
-    /**
-	 * @brief The matrix class is a placeholder for a list of substructures
-	 */
+    /** @brief The matrix class is a placeholder for a list of substructures */
 	std::list<TPZAutoPointer<TSubStruct> > &Global()
     {
         return fGlobal;
@@ -95,15 +65,8 @@ public:
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();
     
-	//void AddSubstruct(TPZAutoPointer<TPZDohrSubstruct> substruct);
-    
 	/**
 	 * @brief The only method any matrix class needs to implement
-	 *
-	 * In this case the variable x represents the rhs and z the result of the preconditioning \n
-	 * When used as a preconditioner y will be zero
-	 * In fact, it will compute v1+v2+v3 \n
-	 * It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
 	 * @param x Is x on the above operation. It must be a vector!
 	 * @param y Is y on the above operation
 	 * @param z Is z on the above operation
@@ -111,6 +74,12 @@ public:
 	 * @param beta Is beta on the above operation
 	 * @param opt Indicates if is Transpose or not
 	 * @param stride Indicates n/N where n is dimension of the right hand side vector and N is matrix dimension
+	 */
+	/**
+	 * In this case the variable x represents the rhs and z the result of the preconditioning \n
+	 * When used as a preconditioner y will be zero
+	 * In fact, it will compute \f$v1+v2+v3\f$ \n
+	 * It computes \f$ z = beta * y + alpha * opt(this)*x\f$ but z and x can not overlap in memory.
 	 */
 	virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
 						 const TVar alpha,const TVar beta,const int opt,const int stride) const;
@@ -137,7 +106,6 @@ public:
 	 * @param withclassid
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
-	
 
 };
 

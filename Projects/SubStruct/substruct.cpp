@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 		
 		std::cout << "Substructuring the mesh\n";
 		//	TPZfTime timetosub; // init of timer
-		REAL height = Height(gmesh);
+		//REAL height = Height(gmesh);
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		
 		dohrstruct.SubStructure(4);
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 		
 		
 		// Iteracoes de tempo
-		int istep = 0, nsteps = 2;
+		int istep = 0;
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
 	}
@@ -875,8 +875,7 @@ TPZGeoMesh *MalhaCubo()
 		
 		
 		int el;
-		int neumann1 = -4, neumann2 = -5, dirp2 = -6;
-		int index = 0;
+		int neumann1 = -4, neumann2 = -5;
 		//std::set<int> ncoordz; //jeitoCaju
 		for(el=0; el<numelements; el++)
 		{

@@ -2,25 +2,7 @@
  * @file
  * @brief Contains the TPZDohrSubstructCondense class which condenses matrix divided in sub structures.
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #ifndef TPZDOHRSUBSTRUCTCONDENSE_H
 #define TPZDOHRSUBSTRUCTCONDENSE_H
 
@@ -56,21 +38,13 @@ public:
 		return fNumExternalEquations;
 	}
 	
-	/**
-	 * @brief Adjust the residual to reflect a static condensation
-	 *
-	 * The residual corresponding to the internal nodes will be zeroed
-	 */
+	/** @brief Adjust the residual to reflect a static condensation */
+	/** The residual corresponding to the internal nodes will be zeroed */
 	void AdjustResidual(TPZFMatrix<TVar> &r_global);
-	/**
-	 * @brief It computes the local contribution to r(c).
-	 *
-	 * The method LoadWeightedResidual must be called before this one.
-	 */
+	/** @brief It computes the local contribution to r(c). */
+	/** The method LoadWeightedResidual must be called before this one. */
 	void Contribute_rc_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &rc_local);
-	/**
-	 * @brief It computes the local contribution to K(c)
-	 */
+	/** @brief It computes the local contribution to K(c) */
 	void Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<int> &coarseindex);
 	/**
 	 * @brief It computes the local contribution to v1.
@@ -79,9 +53,7 @@ public:
 	 * Of course r(c) must be computed, using Contribute_rc(), before calling this method
 	 */
 	void Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc);
-	/**
-	 * @brief It computes the local contribution to v2.
-	 */
+	/** @brief It computes the local contribution to v2. */
 	void Contribute_v2_local(TPZFMatrix<TVar> &residual_local, TPZFMatrix<TVar> &v2_local
 							 );
 	/**
@@ -112,24 +84,15 @@ public:
 	 * @param rhs the right hand side ordered external first
 	 */
 	void ContributeRhs(TPZFMatrix<TVar> &rhs);
-	/**
-	 * @brief Computes the global solution based on the interface solution
-	 */
+	/** @brief Computes the global solution based on the interface solution */
 	void UGlobal(TPZFMatrix<TVar> &Uext, TPZFMatrix<TVar> &UGlobal);
-	/**
-	 * @brief Initializes the substructure.
-	 */
+	/** @brief Initializes the substructure. */
 	void Initialize();
 	
-	//Daqui pra baixo são funcões cujos nomes foram dados pelo Phil
-	/**
-	 * @brief Assemble the contribution to the coarse residual
-	 */
+	/** @brief Assemble the contribution to the coarse residual */
 	void GetCoarseResidual(TPZFMatrix<TVar> &rc, TPZVec<int> &indices);
 	
-	/**
-	 * @brief Assemble the coarse dof stiffness matrix
-	 */
+	/** @brief Assemble the coarse dof stiffness matrix */
 	void GetCoarseStiffness(TPZMatrix<TVar> &stiff, TPZVec<int> &indices);
 	
 	/**
@@ -152,26 +115,15 @@ public:
     void Read(TPZStream &input);
 
 public:
-	/**
-	 * @brief It prepares the datas for solving systems for phi and zi
-	 */
+	/** @brief It prepares the datas for solving systems for phi and zi */
 	void PrepareSystems();
 	/**
 	 * @brief Solves the system for Phi and for v2 \n
 	 * It stores the results in fPhiC and fzi
 	 */
 	void SolveSystemPhi();
-	/**
-	 * @brief Add the internal solution to the final result
-	 */
+	/** @brief Add the internal solution to the final result */
 	void AddInternalSolution(TPZFMatrix<TVar> &sol);
-	/**
-	 * Variables needed to solve the systems for phi and zi
-	 */
-	//	TPZFMatrix<TVar> fC_star;
-	//    TPZFMatrix<TVar> fKeC_star; //K_star_inv*C_star_trans
-	//    TPZStepSolver finv;
-	//    TPZFMatrix<TVar> fNullPivots;
 	
 	/** @brief Matrix problem which solves the phi and zi problems */
 	TPZAutoPointer<TPZMatRed<TVar, TPZFMatrix<TVar> > > fMatRedComplete;
@@ -187,25 +139,13 @@ public:
 	 * @brief 
 	 */
 	TPZVec<int> fCoarseNodes;
-	/**
-	 * Constraint definition associated with this substructure
-	 *
-	 * Input data
-	 */
-	//    TPZFMatrix<TVar> fC; //C(i)
-	/**
-	 * @brief Vectors associated with each constraint
-	 *
-	 * Computed
-	 */
+
+	/** @brief Vectors associated with each constraint */
+	/** Computed */
 	TPZFMatrix<TVar> fPhiC; //Phí(i)
 	/** @brief Phi * W matrix and condensed to the equations which are part of the global system */
 	TPZFMatrix<TVar> fPhiC_Weighted_Condensed;
-	/**
-	 * Global index associated with each coarse degree of freedom
-	 * Input data
-	 */
-	//    TPZVec<int> fCoarseIndex; //R(ci)
+
 	/**
 	 * @brief Weights associated with each variable/equation
 	 * 
@@ -213,21 +153,11 @@ public:
 	 */
 	TPZManVector<TVar> fWeights; //W(i) = diagonal(fWeights)
 	/**
-	 * Stiffness matrix associated with the substructure
-	 * Input data
-	 */
-	//    TPZAutoPointer<TPZMatrix> fStiffness; //K(i)
-	/**
 	 * @brief Stiffness matrix associated with the constraints
 	 *
 	 * Computed
 	 */
 	TPZFMatrix<TVar> fKCi; //K(ci)
-	/**
-	 * Global vector indices of the equations/degrees of freedom
-	 * Input data
-	 */
-	//TPZVec<int> fGlobalIndex; //R(i)
 	
 	/** @brief Permutation vectors
 	 *
@@ -256,24 +186,14 @@ public:
 	 * Calculado
 	 */
 	mutable TPZAutoPointer<TPZMatRed<TVar, TPZFMatrix<TVar> > > fMatRed; //R(Ii)*K(i)*R(Ii)invertida
-	/**
-	 * @brief Local load vector
-	 * 
-	 * Data
-	 */
+	/** @brief Local load vector */
 	TPZFMatrix<TVar> fLocalLoad; //F(i) - Actually it's a vector
-	/**
-	 * @brief Local weighted residual - W(i)*R(i)*r
-	 */
+	/** @brief Local weighted residual - \f$ W(i)*R(i)*r \f$ */
 	TPZFMatrix<TVar> fLocalWeightedResidual; //W(i)*R(i)*r - Actually it's a vector
 	
-	/**
-	 * @brief Solution vector which needs to be added to the converged system solution
-	 * 
-	 * This variable is initialized and set in the AdjustResidual method
-	 */
+	/** @brief Solution vector which needs to be added to the converged system solution */ 
+	/** This variable is initialized and set in the AdjustResidual method */
 	TPZFMatrix<TVar> fAdjustSolution;
-	
 };
 
 #endif

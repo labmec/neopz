@@ -2,25 +2,7 @@
  * @file
  * @brief Contains the TPZDohrSubstruct class which implements sub structure matrices using Dohrman algorithm.
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #ifndef TPZDOHRSUBSTRUCT_H
 #define TPZDOHRSUBSTRUCT_H
 
@@ -31,10 +13,8 @@
 /**
  * @ingroup substructure
  * @author Philippe Devloo
+ * @warning Hardcoded definition of MAKEINTERNAL  ! 
  */
-
-// #warning Hardcoded definition of MAKEINTERNAL !!!!
-/** @warning Hardcoded definition of MAKEINTERNAL  ! */
 #define MAKEINTERNAL
 
 /**
@@ -192,89 +172,57 @@ public:
 	 * @brief 
 	 */
     TPZVec<int> fCoarseNodes;
-    /**
-     * @brief Constraint definition associated with this substructure
-     */
+	
+    /** @brief Constraint definition associated with this substructure */
 	/** Input data */
     TPZFMatrix<TVar> fC; //C(i)
     /** @brief Vectors associated with each constraint */
     TPZFMatrix<TVar> fPhiC; //Phí(i)
 	/** @brief Phi * W matrix and condensed to the equations which are part of the global system */
 	TPZFMatrix<TVar> fPhiC_Weighted_Condensed;
-    /**
-     * @brief Global index associated with each coarse degree of freedom
-	 */
+
+    /** @brief Global index associated with each coarse degree of freedom */
 	/** Input data */
     TPZVec<int> fCoarseIndex; //R(ci)
-    /**
-     * @brief Weights associated with each variable/equation
-     */ 
+    /** @brief Weights associated with each variable/equation */ 
 	/** Computed */
     TPZManVector<TVar> fWeights; //W(i) = diagonal(fWeights)
-    /**
-     * @brief Stiffness matrix associated with the substructure.
-	 */
+    /** @brief Stiffness matrix associated with the substructure. */
 	/** Input data */
     TPZAutoPointer<TPZMatrix<TVar> > fStiffness; //K(i)
-    /**
-     * @brief Stiffness matrix associated with the constraints
-	 */
+    /** @brief Stiffness matrix associated with the constraints */
 	/** Computed */
     TPZFMatrix<TVar> fKCi; //K(ci)
-    /**
-     * @brief Global vector indices of the equations/degrees of freedom
-	 */
+    /** @brief Global vector indices of the equations/degrees of freedom */
 	/** Input data */
     TPZVec<int> fGlobalIndex; //R(i)
 	
 	
 	/** @brief Indices of the equations in the global system corresponding to the local equations */
 	TPZVec<std::pair<int,int> > fGlobalEqs;
-    /**
-     * @brief Inverted (LU or Cholesky) stiffness matrix
-	 */
+    /** @brief Inverted (LU or Cholesky) stiffness matrix */
 	/** Computed */
     TPZStepSolver<TVar> fInvertedStiffness; //Ke, or K_star
-    /**
-     * @brief Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom
-     */
+    /** @brief Inverted (LU or Cholesky or LDLt) stiffness matrix for the internal degrees of freedom */
 	/** Computed */
     mutable TPZStepSolver<TVar> fInvertedInternalStiffness; //R(Ii)*K(i)*R(Ii)invertida
-    /**
-     * @brief Inverted restraint matrix
-     */
+    /** @brief Inverted restraint matrix */
 	/** Computed */
     TPZStepSolver<TVar> fKCInvert; //K(c) invertida
-    /**
-     * @brief Internal nodes
-	 */
+    /** @brief Internal nodes */
 	/** Data */
     TPZVec<int> fInternalEqs; //R(Ii)
-	/**
-	 * @brief Equations corresponding to boundary of the substructure
-	 */
+	/** @brief Equations corresponding to boundary of the substructure */
 	TPZVec<int> fBoundaryEqs;
-    /**
-     * @brief Local load vector
-     */
+    /** @brief Local load vector */
 	/** Data */
     TPZFMatrix<TVar> fLocalLoad; //F(i) - Actually it's a vector
-    /**
-	 * @brief Local weighted residual - W(i)*R(i)*r
-	 */
+    /** @brief Local weighted residual - \f$ W(i)*R(i)*r \f$ */
     TPZFMatrix<TVar> fLocalWeightedResidual; //W(i)*R(i)*r - Actually it's a vector
-    /**
-	 * The columns of fEigenVectors are the eigenvectors of fStiffness, or K(i), associated with the null eigenvalue
-	 */
-	//    TPZFMatrix<TVar> fEigenVectors;
-    /**
-	 * @brief Needed to compute v2. Is the solution of a system
-	 */
+    /** @brief Needed to compute v2. Is the solution of a system */
     TPZFMatrix<TVar> fzi; //z(i)
 	
-	/**
-	 * @brief Solution vector which needs to be added to the converged system solution
-	 */
+	/** @brief Solution vector which needs to be added to the converged system solution */
 	/** This variable is initialized and set in the AdjustResidual method */
 	TPZFMatrix<TVar> fAdjustSolution;
 	

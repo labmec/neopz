@@ -48,10 +48,6 @@ public:
 	
 	/** @brief Updates the values of the preconditioner based on the values of the matrix */
 	virtual void UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > mat);
-	// /**
-	// This method gives a preconditioner to share a matrix with the referring solver object
-	// */
-	//  virtual void SetMatrix(TPZMatrixSolver *solver);
 	
 	void AppendSolver(TPZMatrixSolver<TVar>& solve);
 	

@@ -10,14 +10,13 @@
 #include "pzmattemporal.h" 
 #include "pzporoelastoplasticmem.h"
 #include "pzelastoplastic.h"
-  /**
-   * Implements an porous media material to be used together with elastic 
-   * elastoplastic mechanical counterparts.
-   */
 
 #define TBASEPOROUS(T, TMEM) TPZMatElastoPlastic< T, TMEM >
 
-
+/**
+ * @brief Implements an porous media material to be used together with elastic 
+ * elastoplastic mechanical counterparts.
+ */
 template <class T, class TMEM = TPZPoroElastoPlasticMem >
 class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM >
 {
@@ -25,12 +24,9 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 
       enum SOLUTIONVARS{ENone = -1,
 		  				EPorePressure = 90};
-		
-		
-      /**
-       * Default constructor
-       */
-      TPZMatPorous();		
+
+      /** Default constructor */
+      TPZMatPorous();
 		
       /** Creates a material object and inserts it in the vector of
        *  material pointers of the mesh. Upon return vectorindex
@@ -45,18 +41,19 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        *  object within the vector
        */
       TPZMatPorous(const TPZMatPorous<T, TMEM > &mat);
-
+	/** @brief Default destructor */
       virtual ~TPZMatPorous();
 	
       /** returns the name of the material*/
       virtual std::string Name();
 	
 	  /**
-	   * Initializes the poroelastic material coefficients
-	   * @param [in] Mu Fluid viscosity
-	   * @param [in] StorageEps poroelastic Storage Coeff at constant strain
-	   * @param [in] Alpha Biot-Willis ceofficient
-	   * @param [in] Rhof Fluid density
+	   * @brief Initializes the poroelastic material coefficients
+	   * @param[in] k permeability of porous medium
+	   * @param[in] Mu Fluid viscosity
+	   * @param[in] StorageEps poroelastic Storage Coeff at constant strain
+	   * @param[in] Alpha Biot-Willis ceofficient
+	   * @param[in] Rhof Fluid density
 	   */
 	  void SetUp(const REAL &k, const REAL &Mu, 
 								const REAL &StorageEps,
@@ -143,7 +140,6 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
        * @param data [in] stores all input data
        * @param weight [in] is the weight of the integration rule
-       * @param ek [out] is the stiffness matrix
        * @param ef [out] is the load vector
        * @param bc [in] is the boundary condition material
        */
@@ -152,19 +148,13 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       /**To create another material of the same type*/
       virtual TPZAutoPointer<TPZMaterial> NewMaterial();
 
-      /**
-       * Unique identifier for serialization purposes
-       */
+      /** Unique identifier for serialization purposes */
       virtual int ClassId() const;
 
-      /**
-       * Save the element data to a stream
-       */
+      /** Save the element data to a stream */
       virtual void Write(TPZStream &buf, int withclassid);
 
-      /**
-       * Read the element data from a stream
-       */
+      /** Read the element data from a stream */
       virtual void Read(TPZStream &buf, void *context);
 	
 	  /**
@@ -173,46 +163,30 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
 	   */
 	  virtual void FillDataRequirements(TPZMaterialData &data);
 	
-	  /**
-	   * Returns the porepressure and its divergent at the current integration point
-	   */
+	  /** Returns the porepressure and its divergent at the current integration point */
 	  void ComputePorePressure(TPZMaterialData & data, REAL & Pp, TPZVec<REAL> & dPp);
 	
-	  /**
-	   * Updates the porepressure and its divergent history
-	   */
+	  /** Updates the porepressure and its divergent history */
 	  void UpdatePorePressure(TPZMaterialData & data);
 	
-	  /**
-	   * Initializes the default memory pore pressure.
-	   */
+	  /** Initializes the default memory pore pressure. */
 	  void SetPorePressure(const REAL Pp);
 	
 protected:
 	
-	  /**
-	   * porous medium intrinsic permeability
-	   */
+	  /** porous medium intrinsic permeability */
 	  REAL fk;
 	
-	  /**
-	   * Fluid viscosity
-	   */
+	  /** Fluid viscosity */
 	  REAL fMu;
 	
-	  /**
-	   * Storage coefficient at constant strain
-	   */
+	  /** Storage coefficient at constant strain */
 	  REAL fStorageEps;
 	
-	  /**
-	   * Biot-Willis poroelastic coefficient
-	   */
+	  /** Biot-Willis poroelastic coefficient */
 	  REAL fAlpha;
 	
-	  /**
-	   * fluid density
-	   */
+	  /** fluid density */
 	  REAL fRhof;
 	
 };

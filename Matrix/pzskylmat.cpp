@@ -12,16 +12,8 @@ extern "C" {
 }
 #endif
 
-/**
- * Commented out by Longhin
- * Compilation problem under MaCOSX OS.
- * Used by method TestSpeed which was also commented out.
- */
-//#include <sys/timeb.h>
-
 #include "pzfmatrix.h"
 #include "pzskylmat.h"
-//#include "pzerror.h"
 
 #include <sstream>
 #include "pzlog.h"
@@ -78,7 +70,7 @@ void TPZSkylMatrix<TVar>::AddSameStruct(TPZSkylMatrix<TVar> &B, double k){
 #endif
 	
 	const int n = this->fStorage.NElements();
-	for(int i = 0; i < n; i++) this->fStorage[i] += k*B.fStorage[i];
+	for(int i = 0; i < n; i++) this->fStorage[i] += TVar(k)*B.fStorage[i];
 	
 }
 
@@ -180,8 +172,6 @@ TPZSkylMatrix<TVar>::operator()(const int r) {
 	return operator()(r,r);
 }
 
-
-
 /**************/
 /*** PutVal ***/
 template<class TVar>
@@ -249,14 +239,14 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F,
-							 TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,const REAL overrelax,
+							 TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,const TVar overrelax,
 							 REAL &tol,const int FromCurrent,const int direction)  {
 	
 	if(residual == &F) {
 		cout << "TPZMatrix::SolveSOR called with residual and F equal, no solution\n";
 		return;
 	}
-	REAL res = 2*tol+1.;
+	REAL res = 2.*tol+1.;
 	if(residual) res = Norm(*residual);
 	if(!FromCurrent) {
 		result.Zero();
@@ -306,7 +296,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 					TVar *diaglast = fElem[i];
 					while( diag > diaglast ) val -= *diag-- * *p++;
 					res += abs(val*val);
-					result(i,ic) += val*overrelax/ *diag;
+					result(i,ic) += val*overrelax/ (*diag);
 				}
 			} else {
 				//
@@ -380,15 +370,13 @@ TPZSkylMatrix<TVar>::GetVal(const int r,const int c ) const
 	if ( index < Size(col) )
 		return( fElem[col][index] );
 	else {
-		if(this->gZero != 0.) {
+		if(this->gZero != TVar(0.)) {
 			cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
 			DebugStop();
 		}
 		return(this->gZero );
 	}
 }
-
-
 
 /******** Operacoes com matrizes SKY LINE  ********/
 
@@ -403,8 +391,6 @@ TPZSkylMatrix<TVar>::operator=(const TPZSkylMatrix<TVar> &A )
 	Copy( A );
 	return( *this );
 }
-
-
 
 /******************/
 /*** Operator + ***/
@@ -458,8 +444,6 @@ TPZSkylMatrix<TVar>::operator+(const TPZSkylMatrix<TVar> &A) const
 	return( res );
 }
 
-
-
 /******************/
 /*** Operator - ***/
 
@@ -495,9 +479,6 @@ TPZSkylMatrix<TVar>::operator-(const TPZSkylMatrix<TVar> &A ) const
 	return( res );
 }
 
-
-
-
 /*******************/
 /*** Operator += ***/
 
@@ -512,8 +493,6 @@ TPZSkylMatrix<TVar>::operator+=(const TPZSkylMatrix<TVar> &A )
 	*this = res;
 	return *this;
 }
-
-
 
 /*******************/
 /*** Operator -= ***/
@@ -532,16 +511,12 @@ TPZSkylMatrix<TVar>::operator-=(const TPZSkylMatrix<TVar> &A )
 
 
 
-
-
-
 /******** Operacoes com valores NUMERICOS ********/
 //
 // As operacoes com valores numericos sao efetuadas apenas nos
 // elementos alocados. Em especial, as operacoes A = 0.0 e A *= 0.0
 // desalocam todos os elementos da matriz.
 //
-
 
 
 /*****************************/
@@ -653,7 +628,21 @@ TPZSkylMatrix<TVar>::Redim( int newDim , int)
 
 template<>
 int
+TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky(std::list<int> &singular)
+{
+    DebugStop();
+    return -1;
+}
+template<>
+int
 TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky(std::list<int> &singular)
+{
+    DebugStop();
+    return -1;
+}
+template<>
+int
+TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky(std::list<int> &singular)
 {
     DebugStop();
     return -1;
@@ -736,7 +725,19 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 }
 
 template<>
+int TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky()
+{
+    DebugStop();
+    return -1;
+}
+template<>
 int TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky()
+{
+    DebugStop();
+    return -1;
+}
+template<>
+int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky()
 {
     DebugStop();
     return -1;
@@ -812,8 +813,6 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	return( 1 );
 }
 
-
-
 /**********************/
 /*** Decompose LDLt ***/
 template<class TVar>
@@ -833,11 +832,6 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
 	TVar sum;
 	j = 1;
 	while(j < dimension) {
-		/*    if(!(j%100) && Dim() > 100) {
-		 cout <<  j << ' ';
-		 cout.flush();
-		 }
-		 if(!(j%1000)) cout << endl;*/
 		minj = j-Size(j)+1;
 		l = minj;
 		while(l <= j) {
@@ -942,8 +936,6 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	return( 1 );
 }
 
-
-
 /*********************/
 /*** Subst Forward ***/
 //
@@ -998,12 +990,8 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 {
-	//	return TSimMatrix::Subst_Backward(B);
-	
 	if ( (B->Rows() != this->Dim()) || this->fDecomposed != ECholesky)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_Backward not decomposed with cholesky");
-	
-	//	std::cout << "SubstBackward this " << (void *) this << " neq " << Dim() << " ncols " << B->Cols() << std::endl;
 	
 	int Dimension = this->Dim();
 	if(!Dimension) return 1;	// nothing to do
@@ -1011,7 +999,7 @@ TPZSkylMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
     for ( j = 0; j < B->Cols(); j++ )
 	{
 		int k = Dimension-1;
-		while (k>0 && (*B)(k,j) == 0.) {
+		while (k>0 && (*B)(k,j) == TVar(0.)) {
 			k--;
 		}
 		//		std::cout << "kstart " << k << std::endl;
@@ -1034,8 +1022,6 @@ TPZSkylMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 	for( j = 0; j< B->Cols(); j++) (*B)(0,j) /= fElem[0][0];
 	return( 1 );
 }
-
-
 
 /***********************/
 /*** Subst L Forward ***/
@@ -1070,9 +1056,6 @@ TPZSkylMatrix<TVar>::Subst_LForward( TPZFMatrix<TVar> *B ) const {
 	return( 1 );
 }
 
-
-
-
 /******************/
 /*** Subst Diag ***/
 //
@@ -1100,8 +1083,6 @@ template<class TVar>
 int
 TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 {
-	//	return TSimMatrix::Subst_Backward(B);
-	
 	if ( (B->Rows() != this->Dim()) || !this->fDecomposed || this->fDecomposed == ECholesky)
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSkylMatrix::Subst_LBackward not decomposed properly");
 	
@@ -1124,9 +1105,6 @@ TPZSkylMatrix<TVar>::Subst_LBackward( TPZFMatrix<TVar> *B ) const
 }
 
 
-
-
-
 /**************************** PRIVATE ****************************/
 
 
@@ -1144,23 +1122,6 @@ TPZSkylMatrix<TVar>::Zero()
 	return( 1 );
 }
 
-
-
-/*************/
-/*** Error ***/
-/*int
- TPZSkylMatrix::Error(const char *msg1,const char* msg2 )
- {
- ostringstream out;
- out << "TPZSkylMatrix::" << msg1 << msg2 << ".\n";
- //pzerror.Show();
- LOGPZ_ERROR (logger, out.str().c_str());
- DebugStop();
- return 0;
- }
- */
-
-
 /*************/
 /*** CLear ***/
 
@@ -1175,8 +1136,6 @@ TPZSkylMatrix<TVar>::Clear()
 	this->fDecomposed = 0;
 	return( 1 );
 }
-
-
 
 /************/
 /*** Copy ***/
@@ -1202,7 +1161,6 @@ TPZSkylMatrix<TVar>::Copy(const TPZSkylMatrix<TVar> &A )
 template<class TVar>
 TPZSkylMatrix<TVar>
 TPZSkylMatrix<TVar>::operator-() const { return operator*(-1.0); }
-
 
 template <class TVar>
 void TPZSkylMatrix<TVar>::Read(TPZStream &buf, void *context )
@@ -1265,13 +1223,6 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(int col, int prevcol){
 	TVar *run1 = ptrprev + (prevcol-minline);
 	TVar *run2 = ptrcol + (col-minline);
 	TVar sum = 0;
-	/*
-	 while(run1-ptrprev > templatedepth) {
-	 run1-=templatedepth-1;
-	 run2-=templatedepth-1;
-	 sum += TemplateSum<templatedepth>(run1--,run2--);
-	 }
-	 */
 	
 	while(run1 != ptrprev) sum += (*run1--)*(*run2--);
 	*run2-=sum;
@@ -1283,7 +1234,17 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(int col, int prevcol){
 	
 }
 template<>
+void TPZSkylMatrix<std::complex<float> >::DecomposeColumn(int col, int prevcol,std::list<int> &singular)
+{
+    DebugStop();
+}
+template<>
 void TPZSkylMatrix<std::complex<double> >::DecomposeColumn(int col, int prevcol,std::list<int> &singular)
+{
+    DebugStop();
+}
+template<>
+void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn(int col, int prevcol,std::list<int> &singular)
 {
     DebugStop();
 }
@@ -1315,13 +1276,6 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(int col, int prevcol,std::list<int> &s
 	TVar *run1 = ptrprev + (prevcol-minline);
 	TVar *run2 = ptrcol + (col-minline);
 	TVar sum = 0;
-	/*
-	 while(run1-ptrprev > templatedepth) {
-	 run1-=templatedepth-1;
-	 run2-=templatedepth-1;
-	 sum += TemplateSum<templatedepth>(run1--,run2--);
-	 }
-	 */
 	
 	while(run1 != ptrprev) sum += (*run1--)*(*run2--);
 	*run2-=sum;
@@ -1345,16 +1299,26 @@ void TPZSkylMatrix<TVar>::DecomposeColumn(int col, int prevcol,std::list<int> &s
 }
 
 template<>
+void TPZSkylMatrix<std::complex<float> >::DecomposeColumn2(int col, int prevcol)
+{
+    DebugStop();
+}
+template<>
 void TPZSkylMatrix<std::complex<double> >::DecomposeColumn2(int col, int prevcol)
 {
     DebugStop();
 }
 
+template<>
+void TPZSkylMatrix<std::complex<long double> >::DecomposeColumn2(int col, int prevcol)
+{
+    DebugStop();
+}
+
+
 template<class TVar>
 void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
 	
-	//cout << "lcol " << lcol << " with " << lprevcol << endl;
-	//cout.flush();
 	//Cholesky Decomposition
 	TVar *ptrprev;     //Pointer to prev column
 	TVar *ptrcol;      //Pointer to col column
@@ -1384,17 +1348,8 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
 	TVar sum = 0;
 	TVar *modify = ptrcol+(col-prevcol);
 #ifndef BLAS
-	/*
-	 while(lastptr-run1 > templatedepth) {
-	 sum += TemplateSum<templatedepth>(run1,run2);
-	 run1+=templatedepth;
-	 run2+=templatedepth;
-	 }
-	 */
-	
 	while(run1 != lastptr) sum += (*run1++)*(*run2++);
 	
-	//cout << "col " << col << " prevcol " << prevcol << " sum " << sum << " modify " << *modify << " ptrprev " << *ptrprev;
 #else
 	int n=lastptr-run1;
 	sum = cblas_ddot(n,run1,1,run2,1);
@@ -1406,78 +1361,18 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
 		if ( *modify < 1.e-25 ) {
 			cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << *modify << endl;
 			*modify = 1.e-10;
-			//      return;
 		}
-		
 		*modify=sqrt(*modify);
 	}
-	//cout << " modified " << *modify << endl;
-	//cout.flush();
-	
 }
 
-/*
- template<class TVar>
- void TPZSkylMatrix<TVar>::TestSpeed(int col, int prevcol){
- 
- TVar *ptrprev;     //Pointer to prev column
- TVar *ptrcol;      //Pointer to col column
- int skprev, skcol; //prev and col Skyline height respectively
- int minline;
- 
- skprev = SkyHeight(prevcol);
- skcol = SkyHeight(col);
- 
- ptrprev = Diag(prevcol);
- ptrcol = Diag(col);
- 
- if((prevcol-skprev) > (col-skcol)){
- minline = prevcol - skprev;
- }else
- {
- minline = col - skcol;
- }
- if(minline > prevcol) {
- cout << "error condition\n";
- cout.flush();
- return;
- }
- int i, j;
- struct timeb meas1,meas2;
- ftime(&meas1);
- for(i=0;i<1000;i++) {
- for(j=0;j<1000;j++) {
- TVar *run1 = ptrprev + (prevcol-minline);
- TVar *run2 = ptrcol + (col-minline);
- TVar
- sum = 0;
- 
- 
- while(run1-ptrprev > templatedepth) {
- run1-=templatedepth-1;
- run2-=templatedepth-1;
- sum += TemplateSum<templatedepth>(run1--,run2--);
- }
- 
- 
- 
- while(run1 != ptrprev) sum += (*run1--)*(*run2--);
- *run2-=sum;
- if(*run1 != *run2){
- *run2 /= *run1;
- }else{
- *run2=sqrt(*run2);
- }
- }
- }
- ftime(&meas2);
- int dif = (meas2.time-meas1.time)*1000 + meas2.millitm-meas1.millitm;
- cout << "Time elapsed in milliseconds " << dif << endl;
- 
- }
- */
+template class TPZSkylMatrix<float>;
+template class TPZSkylMatrix<std::complex<float> >;
 
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
 template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_ID>;
+
+template class TPZSkylMatrix<long double>;
+template class TPZSkylMatrix<std::complex<long double> >;

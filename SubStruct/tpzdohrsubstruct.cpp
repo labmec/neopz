@@ -2,25 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZDohrSubstruct methods. 
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #include "tpzdohrsubstruct.h"
 #include <iostream>
 #include "pzlog.h"
@@ -40,7 +22,6 @@ TPZDohrSubstruct<TVar>::TPZDohrSubstruct()
 {
 	//Inicializacao
 }
-
 
 template<class TVar>
 TPZDohrSubstruct<TVar>::~TPZDohrSubstruct()
@@ -934,6 +915,10 @@ void TPZDohrSubstruct<TVar>::AddInternalSolution(TPZFMatrix<TVar> &sol)
 	
 }
 
+template class TPZDohrSubstruct<float>;
 template class TPZDohrSubstruct<double>;
-template class TPZDohrSubstruct<std::complex<double> >;
+template class TPZDohrSubstruct<long double>;
 
+template class TPZDohrSubstruct<std::complex<float> >;
+template class TPZDohrSubstruct<std::complex<double> >;
+template class TPZDohrSubstruct<std::complex<long double> >;

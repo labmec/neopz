@@ -564,10 +564,10 @@ void TPZSkylParMatrix<TVar>::DecomposeColumnCholesky(int col, int prevcol){
 	if(run1 != run2){
 		*run2 /= *run1;
 	}else{
-		if (this->fCorrectSingular && *run2 < 1.e-10 ) {
+		if (this->fCorrectSingular && IsZero(*run2)) {
 			this->fSingular.push_back(col);
 			*run2 = 1.;
-		} else if (*run2 < 1.e-25) {
+		} else if (IsZero(*run2)) {
 			std::cout << __PRETTY_FUNCTION__ << " Singular pivot at column " << col;
 			DebugStop();
 		}
@@ -799,5 +799,10 @@ int TPZSkylParMatrix<TVar>::main_nada()
 	return 1;
 }
 
+template class TPZSkylParMatrix<float>;
 template class TPZSkylParMatrix<double>;
+template class TPZSkylParMatrix<long double>;
+
+template class TPZSkylParMatrix<std::complex<float> >;
 template class TPZSkylParMatrix<std::complex<double> >;
+template class TPZSkylParMatrix<std::complex<long double> >;

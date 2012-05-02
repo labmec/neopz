@@ -6,8 +6,12 @@
 #include "pzvec.h"
 #include "pzstring.h" 
 
-template class TPZVec<REAL>;
-template class TPZVec<REAL*>;
+template class TPZVec<float>;
+template class TPZVec<float * >;
+template class TPZVec<double>;
+template class TPZVec<double * >;
+template class TPZVec<long double>;
+template class TPZVec<long double * >;
 template class TPZVec<int>;
 template class TPZVec<long>;
 template class TPZVec<int *>;

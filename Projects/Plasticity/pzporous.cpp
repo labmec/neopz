@@ -1,4 +1,6 @@
-//$Id: pzporous.cpp,v 1.13 2010-06-11 22:13:02 diogo Exp $
+/**
+ * @file
+ */
 
 #include "pzporous.h"
 #include "pzmaterialid.h"

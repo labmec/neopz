@@ -311,6 +311,11 @@ int TPZFront<TVar>::NFree()
 	return free_eq;
 }
 
+template class TPZFront<float>;
+template class TPZFront<std::complex<float> >;
+
 template class TPZFront<double>;
 template class TPZFront<std::complex<double> >;
 
+template class TPZFront<long double>;
+template class TPZFront<std::complex<long double> >;

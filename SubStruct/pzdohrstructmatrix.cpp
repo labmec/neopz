@@ -25,8 +25,6 @@
 #include "pzvisualmatrix.h"
 #include "TPZRefPatternTools.h"
 
-//#include "TPZfTime.h"
-
 #include <sstream>
 #include <map>
 #include "pzlog.h"
@@ -41,16 +39,12 @@ static LoggerPtr logger(Logger::getLogger("structmatrix.dohrstructmatrix"));
 static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"));
 #endif
 
-// return the number of submeshes
+/** @brief Return the number of submeshes */
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
-// return a pointer to the isub submesh
+/** @brief return a pointer to the isub submesh */
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
-// This is a lengthy process which should run on the remote processor
-/*
- static void ComputeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense> substruct, TPZAutoPointer<TPZDohrAssembly> dohrassembly, pthread_mutex_t &testthread);
- */
 static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
 static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
 
@@ -240,8 +234,6 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	}
 	return dohr;
 }
-
-
 
 // this will create a DohrMatrix and compute its matrices
 TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)

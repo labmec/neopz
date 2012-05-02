@@ -2,30 +2,11 @@
  * @file
  * @brief Contains the implementation of the TPZGenSubStruct methods. 
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #include "tpzgensubstruct.h"
 #include "pzgengrid.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-//#include "pzpoisson3d.h"
 #include "pzbndcond.h"
 #include "TPZGeoElement.h"
 #include "pzgeopoint.h"
@@ -49,23 +30,22 @@
 #include "tpzpairstructmatrix.h"
 #include "tpzmatredstructmatrix.h"
 
-#include <sstream>
 #include "pzlog.h"
 
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 
+#include <sstream>
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.gensubstruct"));
 #endif
-
 
 TPZGenSubStruct::TPZGenSubStruct(int dimension, int numlevels, int substructlevel) : fMatDist(DistMaterial),fK(8,1.),
 fDimension(dimension),
 fNumLevels(numlevels),fSubstructLevel(substructlevel)
 {
 }
-
 
 TPZGenSubStruct::~TPZGenSubStruct()
 {
@@ -83,6 +63,7 @@ REAL co[8][3] = {
 	{1.,1.,1.},
 	{0.,1.,1.}
 };
+
 #include "pzpoisson3d.h"
 // method which will generate the computational mesh
 TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
@@ -531,23 +512,13 @@ void TPZGenSubStruct::InitializeDohrCondense(TPZAutoPointer<TPZMatrix<STATE> > d
 		// creating the substructure HERE
 		std::cout.flush();
 		TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct = new TPZDohrSubstructCondense<STATE>();
-		// for each subcompmesh, reorder the nodes
-		//TPZAnalysis an(submesh);
-		
-		//keep the original sequence numbers of the connects
-		
-		//    int nc = submesh->ConnectVec().NElements();
-		//    TPZManVector<int> origseqnum(nc);
-		//    int ic;
-		//    for(ic=0; ic<nc; ic++) origseqnum[ic] = submesh->ConnectVec()[ic].SequenceNumber();
-		
+
 		// compute the stiffness matrix
 		int neq = ((TPZCompMesh *)submesh)->NEquations();
 		//    int neq = substruct->fStiffness->Rows();
 		
 		substruct->fNEquations = neq;
-		
-		
+
 		// identify the equation numbers of the submesh
 		std::map<int,int> globinv;
 		// initialize the fGlobalIndex data structure
@@ -893,24 +864,6 @@ void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZ
 	}
 #endif
 	
-	/*
-	 cornereqs.Resize(fCornerEqs.size());
-	 coarseindex.Resize(fCornerEqs.size());
-	 std::set<int>::iterator it;
-	 int count = 0;
-	 int localcount = 0;
-	 for(it = fCornerEqs.begin(); it!= fCornerEqs.end(); it++,count++)
-	 {
-	 if(globaltolocal.find(*it) != globaltolocal.end())
-	 {
-	 cornereqs[localcount] = globaltolocal[*it];
-	 coarseindex[localcount] = count;
-	 localcount++;
-	 }
-	 }
-	 cornereqs.Resize(localcount);
-	 coarseindex.Resize(localcount);
-	 */
 	// REESCREVER ESTA PARTE
 	std::set<int>::iterator it;
 	std::list<int> subcorn,coarseindexlist;
@@ -939,7 +892,6 @@ void TPZGenSubStruct::IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZ
 		coarseindex[count++] = *lit;
 	}
 }
-
 
 /*!
  \fn TPZGenSubStruct::NInternalEq(TPZSubCompMesh *sub)

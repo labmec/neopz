@@ -13,6 +13,7 @@
 
 template<class TVar>
 struct ThreadDohrmanAssembly;
+
 /**
  * @ingroup substructure structural
  * @brief Implements structural matrix divided in sub structures. \ref structural "Structural Matrix" \ref substructure "Sub structure"

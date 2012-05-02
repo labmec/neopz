@@ -39,4 +39,6 @@ int  TDiscoFunction<TVar>::PolynomialOrder(){
   return 100;
 }
 
+template class TDiscoFunction<float>;
 template class TDiscoFunction<double>;
+template class TDiscoFunction<long double>;

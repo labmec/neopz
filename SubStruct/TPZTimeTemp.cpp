@@ -2,14 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZTimeTemp methods. 
  */
-/*
- *  TPZTimeTemp.cpp
- *  SubStruct
- *
- *  Created by Bandit on 7/27/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
- */
 
 #include "TPZTimeTemp.h"
 #include "pzlog.h"
@@ -45,35 +37,6 @@ void TPZTimeTemp::PrintHeader(std::ostream &out)
 	out << "Time_to_SubMesh\tTime_to_ComputeSystemofEq\tTime_to_ConvertGraph\tTime_to_AnalyseGraph\tTotal_time_to_IdentConerNodes\tTime_threadDohrmanAssembly" <<
 	"\tTime_to_Decompose_InnerNodesMatrix\tTime_for_Iterations\tNumEq\tNum_Eq_Coarse\tNumber_of_Elements\tNum_threads\tPoly_Order\tNumSub\tNum_of_Iterations\tElemnts_fnMultiply\tElements_fnPreCond\n";
 }
-
-
-/*
- void TPZTimeTemp::Print(std::ostream &out)		
- {
- 
- if (!out)
- {
- std::cout << __PRETTY_FUNCTION__ << "Arquivo nao valido" << std::endl;
- return;
- }
- out.precision(5);
- out << "Time for Substructuring Mesh: " << ft0sub
- << "\nTime for Computing the system of equations for each substructure: " << ft1comput
- << "\nInside Identifying Corner Nodes:\n" 
- << "Time for Convert Graph: " << ft2congraph
- << "\nTime for AnalyseGraph: " << ft3analysegraph
- << "\nTotal Time for Identifying Corner Nodes: " << ft4identcorner
- << "\nTime for ThreadDohrmanAssembly: " << ft5dohrassembly
- << "\nTotal Time for Iterations: " << ft6iter
- << "\nTime to Multiply for each iteration: " << fMultiply
- << "\nTime to PreCond for each iteration: " << fPreCond
- << "\nNumber of Equations: " << fNumEq
- << "\nNumber of Coarse Equations: " << fNumEqCoarse
- << "\nNumber of Threads: " << fNumthreads
- << "\nNumber of Substructures: " << fNumSub << "\n" << std::endl;
- }
- */
-
 
 void TPZTimeTemp::PrintLine(std::ostream &out)									
 {

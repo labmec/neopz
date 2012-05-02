@@ -1,18 +1,11 @@
 /**
  * @file
  * @brief Contains the TPZTimeTemp class which takes times.
+ * @since 7/27/2010.
  */
+
 #ifndef TPZTIMETEMP_H
 #define TPZTIMETEMP_H
-
-/*
- *  TPZTimeTemp.h
- *  SubStruct
- *
- *  Created by Bandit on 7/27/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
- */
 
 #include <string>
 #include <iostream>
@@ -81,16 +74,12 @@ public:
 	
 	/** @brief If the file does not exists, returns "true" */
 	static bool NeedsHeader(std::string &FileName);
-	
-private:
-	
 };
 
 /**
  * @ingroup util
+ * @brief External variable to TPZTimeTemp (to take time)
  */
-/// External variable to TPZTimeTemp (to take time)
 extern TPZTimeTemp tempo;
-
 
 #endif

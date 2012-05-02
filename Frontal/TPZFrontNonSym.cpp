@@ -165,6 +165,21 @@ void TPZFrontNonSym<TVar>::FreeGlobal(int global)
 	this->fFree.Push(index);
 }
 
+template<>
+void TPZFrontNonSym<std::complex<float> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<float> > &eqnarray)
+{
+    DebugStop();
+}
+template<>
+void TPZFrontNonSym<std::complex<double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<double> > &eqnarray)
+{
+    DebugStop();
+}
+template<>
+void TPZFrontNonSym<std::complex<long double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
+{
+    DebugStop();
+}
 template<class TVar>
 void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqnarray)
 {
@@ -204,10 +219,6 @@ void TPZFrontNonSym<TVar>::DecomposeOneEquation(int ieq, TPZEqnArray<TVar> &eqna
 		AuxVecRow[i]=Element(ilocal,i);
 	}
 #endif
-	//memcpy(&AuxVecCol[0], &Element(0,ilocal), this->fFront);
-	//for(i=0;i<this->fFront;i++) AuxVecRow[i]=Element(ilocal,i);
-	//memcpy(&AuxVecRow[0], &Element(ilocal, 0), this->fFront);
-	
 	
 	TVar diag = AuxVecRow[ilocal];
 	
@@ -336,13 +347,6 @@ void TPZFrontNonSym<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinat
             this->Element(ilocal, jlocal)+=elmat(i,j);
         }
     }
-	/*
-	 output << "Dest Index " ;
-	 for(i=0;i<nel;i++) output << destinationindex[i] << " ";
-	 output << endl;
-	 elmat.Print("Element matrix ",output);
-	 PrintGlobal("After Assemb..." , output);
-	 */
 }
 
 template<class TVar>
@@ -357,8 +361,6 @@ void TPZFrontNonSym<TVar>::Expand(int larger) {
 		}
 	}
 	this->fMaxFront = larger;
-	//	PrintGlobal("Depois do Expande");
-	
 }
 
 template<class TVar>
@@ -396,12 +398,7 @@ void TPZFrontNonSym<TVar>::Compress(){
 			Element(i,j) = Element(from[i], from[j]);
 			if(from[i]!=i || from[j]!=j) Element(from[i],from[j])=0.;
 		}
-		//		this->fGlobal[i] = this->fGlobal[from[i]];
-		//		this->fLocal[this->fGlobal[i]] = i;
 	}
-	
-	//	Print("After Compress", cout);
-	//	PrintGlobal("After Compress",output);
 }
 
 template<class TVar>
@@ -507,18 +504,7 @@ void TPZFrontNonSym<TVar>::main()
 	
 	TestFront.AddKel(TestMatrix, DestIndex);
 	TPZEqnArray<TVar> Result;
-	
-	/*TestFront.DecomposeEquations(0,0,Result);
-	 
-	 TestFront.Print(OutFile, output);
-	 
-	 ofstream outeqn("TestEQNArray.txt",ios::app);
-	 Result.Print("TestEQNArray.txt",outeqn);
-	 
-	 TestFront.Compress();
-	 
-	 TestFront.Print(OutFile, output);
-	 */
+
 	TestFront.DecomposeEquations(0,matsize-1,Result);
 	ofstream outeqn("TestEQNArray.txt",ios::app);
 	
@@ -536,10 +522,6 @@ void TPZFrontNonSym<TVar>::main()
 	TPZFMatrix<TVar> Load_2(matsize);
 	Load_2=Load;
 	
-	//	Prova.Subst_Forward(&Load);
-	//	Prova.Subst_Backward(&Load);
-	
-	
 	DecomposeType decType = ECholesky;
 	Prova.SolveDirect(Load, decType);
 	
@@ -550,9 +532,6 @@ void TPZFrontNonSym<TVar>::main()
 	Result.EqnBackward(Load_2, decType);
 	
 	Load_2.Print("Eqn");
-	
-	
-	
 }
 
 template<class TVar>
@@ -588,5 +567,10 @@ void TPZFrontNonSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 	
 }
 
+template class TPZFrontNonSym<float>;
 template class TPZFrontNonSym<double>;
+template class TPZFrontNonSym<long double>;
+
+template class TPZFrontNonSym<std::complex<float> >;
 template class TPZFrontNonSym<std::complex<double> >;
+template class TPZFrontNonSym<std::complex<long double> >;

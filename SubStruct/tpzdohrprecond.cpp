@@ -1,35 +1,15 @@
 /**
  * @file
  * @brief Contains the implementation of the TPZDohrPrecond methods. 
+ * @author Philippe Devloo
+ * @since 2006
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
-#include "tpzdohrprecond.h"
-//#include <iostream>
-//#include <cstdlib>
-#include "tpzdohrsubstructCondense.h"
 
+#include "tpzdohrprecond.h"
+#include "tpzdohrsubstructCondense.h"
 #include "pzskylmat.h"
 
 #include "pzvisualmatrix.h"
-
 #include "tpzdohrassemblelist.h"
 
 #include <sstream>
@@ -50,7 +30,6 @@ TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond(TPZDohrMatrix<TVar, TSubStruct>
 : TPZMatrix<TVar>(origin), fGlobal(origin.SubStructures()), fCoarse(0), fNumCoarse(origin.NumCoarse()), fNumThreads(0), fAssemble(assemble)
 {
 	fNumThreads = origin.NumThreads();
-	//  Initialize();
 }
 
 template<class TVar, class TSubStruct>
@@ -66,7 +45,6 @@ fNumCoarse(cp.fNumCoarse), fNumThreads(cp.fNumThreads), fAssemble(cp.fAssemble)
 template<class TVar, class TSubStruct>
 TPZDohrPrecond<TVar, TSubStruct>::TPZDohrPrecond() : fCoarse(0), fNumCoarse(-1), fNumThreads(-1)
 {
-    
 }
 
 template<class TVar, class TSubStruct>
@@ -112,10 +90,8 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		TPZDohrPrecondThreadV1Data<TVar,TSubStruct> v1threaddata(this,x,v1);
 		
 		pthread_create(&AllThreads[0], 0, TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1, &v1threaddata);
-		//		TPZDohrPrecondThreadV1Data<TSubStruct>::ComputeV1(&v1threaddata);
 		
 		TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),v2,this->fAssemble);
-		
 		
 		TPZDohrPrecondV2SubDataList<TVar,TSubStruct> v2work(assemblelist);
 		typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator it;
@@ -318,7 +294,7 @@ void TPZDohrPrecond<TVar, TSubStruct>::ComputeV2(const TPZFMatrix<TVar> &x, TPZF
 	for(it= fGlobal.begin(); it != fGlobal.end(); it++,isub++)
 	{
 		// contribute v2 deve ser uma tarefa inicializada mais cedo
-		TPZFNMatrix<100> Residual_local,v2_local;
+		TPZFNMatrix<100,TVar> Residual_local,v2_local;
 		fAssemble->Extract(isub,x,Residual_local);
 		(*it)->Contribute_v2_local(Residual_local,v2_local);
 #ifdef LOG4CXX
@@ -358,15 +334,36 @@ void *TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork(void *voidptr)
 /** @brief Routines to send and receive messages */
 
 template<>
+int TPZDohrPrecond<float,TPZDohrSubstruct<float> >::ClassId() const
+{
+    return TPZDOHRPRECONDFLOAT;
+}
+template<>
 int TPZDohrPrecond<double,TPZDohrSubstruct<double> >::ClassId() const
 {
-    return TPZDOHRPRECOND;
+    return TPZDOHRPRECONDDOUBLE;
+}
+template<>
+int TPZDohrPrecond< long double,TPZDohrSubstruct<long double > >::ClassId() const
+{
+    return TPZDOHRPRECONDLONGDOUBLE;
+}
+template<>
+int TPZDohrPrecond<float,TPZDohrSubstructCondense<float> >::ClassId() const
+{
+    return TPZDOHRPRECONDCONDENSEFLOAT;
 }
 template<>
 int TPZDohrPrecond<double,TPZDohrSubstructCondense<double> >::ClassId() const
 {
-    return TPZDOHRPRECONDCONDENSE;
+    return TPZDOHRPRECONDCONDENSEDOUBLE;
 }
+template<>
+int TPZDohrPrecond<long double,TPZDohrSubstructCondense<long double> >::ClassId() const
+{
+    return TPZDOHRPRECONDCONDENSELONGDOUBLE;
+}
+
 /**
  * @brief Unpacks the object structure from a stream of bytes
  * @param buf The buffer containing the object in a packed form
@@ -397,10 +394,14 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     fCoarse->Write(buf,1);
 }
 
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE>;
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSEDOUBLE>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECONDDOUBLE>;
 
 
-
+template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;
 template class TPZDohrPrecond<double,TPZDohrSubstruct<double> >;
+template class TPZDohrPrecond<long double,TPZDohrSubstruct<long double> >;
+
+template class TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >;
 template class TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >;
+template class TPZDohrPrecond<long double, TPZDohrSubstructCondense<long double> >;

@@ -212,6 +212,7 @@ private:
 	
 	/** @brief Solution method for inverting \f$ fK00 \f$ */
 	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
+	
 	/** @brief Full Stiffnes matrix */
 	TSideMatrix fK11;
 	TSideMatrix fK01, fK10;

@@ -1,14 +1,7 @@
 /**
  * @file
  * @brief Contains the implementation of the TPZfTime methods. 
- */
-/*
- *  ftime.cpp
- *  SubStruct
- *
- *  Created by Bandit on 7/20/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
+ * @since 7/20/10.
  */
 
 #include "TPZfTime.h"

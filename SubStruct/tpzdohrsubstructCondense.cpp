@@ -2,25 +2,7 @@
  * @file
  * @brief Contains the implementation of the TPZDohrSubstructCondense methods. 
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #include "tpzdohrsubstructCondense.h"
 #include <iostream>
 #include "pzlog.h"
@@ -42,13 +24,11 @@ TPZDohrSubstructCondense<TVar>::TPZDohrSubstructCondense()
 	//Inicializacao
 }
 
-
 template<class TVar>
 TPZDohrSubstructCondense<TVar>::~TPZDohrSubstructCondense()
 {
 	//Limpesa
 }
-
 
 /**
  * It computes the local contribution to r(c).
@@ -59,7 +39,6 @@ void TPZDohrSubstructCondense<TVar>::Contribute_rc_local(TPZFMatrix<TVar> &resid
 {
 	fPhiC_Weighted_Condensed.Multiply(residual_local, rc_local, 1, 1);
 }
-
 
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<int> &coarseindex) {
@@ -74,14 +53,12 @@ void TPZDohrSubstructCondense<TVar>::Contribute_Kc(TPZMatrix<TVar> &Kc, TPZVec<i
 	}
 }
 
-
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Contribute_v1_local(TPZFMatrix<TVar> &v1_local, TPZFMatrix<TVar> &invKc_rc_local) {
 	int neqs = fNumExternalEquations;
 	v1_local.Resize(neqs, 1);
 	fPhiC_Weighted_Condensed.Multiply(invKc_rc_local,v1_local);
 }
-
 
 /**
  * It computes the local contribution to v2.
@@ -167,7 +144,6 @@ void TPZDohrSubstructCondense<TVar>::Print(std::ostream &out) const
 	fLocalLoad.Print("fLocalLoad ", out);
 	fLocalWeightedResidual.Print("fLocalWeightedResidual ", out);
 	fAdjustSolution.Print("fAdjustSolution", out);
-	
 }
 
 template<class TVar>
@@ -202,10 +178,7 @@ void TPZDohrSubstructCondense<TVar>::SolveSystemPhi() {
 			fPhiC(i,j) = rhs(i,j);
 		}
 	}
-	//	fPhiC *= -1.;
 }
-
-
 
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::ContributeDiagonalLocal(TPZFMatrix<TVar> &StiffnessDiagLocal) {
@@ -258,6 +231,7 @@ void TPZDohrSubstructCondense<TVar>::ComputeWeightsLocal(TPZFMatrix<TVar> &Stiff
 		}
 	}
 }
+
 /**
  * Computes the condensed right hand side for the substructure
  * @param rhs the right hand side ordered external first
@@ -341,7 +315,6 @@ void TPZDohrSubstructCondense<TVar>::UGlobal(TPZFMatrix<TVar> &UGlob, TPZFMatrix
 	}
 #endif
 }
-
 
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::ContributeKULocal(const TVar alpha, const TPZFMatrix<TVar> &u, TPZFMatrix<TVar> &z) const
@@ -449,6 +422,7 @@ void TPZDohrSubstructCondense<TVar>::PermuteScatter(const TPZVec<int> &permute, 
 		output(permute[i],j) = input.GetVal(i-first,j);
 	}
 }
+
 /**
  * Apply a gather permutation to the input vector using a scatter permutation
  * output[i-first] = input[permute[i]], first <= i < last
@@ -606,6 +580,11 @@ void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input)
     
 }
 
+template class TPZDohrSubstructCondense<float>;
 template class TPZDohrSubstructCondense<double>;
-//template class TPZDohrSubstructCondense<std::complex<double> >;
+template class TPZDohrSubstructCondense<long double>;
+
+template class TPZDohrSubstructCondense<std::complex<float> >;
+template class TPZDohrSubstructCondense<std::complex<double> >;
+template class TPZDohrSubstructCondense<std::complex<long double> >;
 

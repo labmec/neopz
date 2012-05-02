@@ -8,10 +8,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
+
 #include "tpzeqnarray.h"
 #include "pzreal.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 using namespace std;
 
@@ -62,26 +61,22 @@ void TPZEqnArray<TVar>::Print(const char *name, std::ostream& out)
 	}
 }
 
+template<class TVar>
+void TPZEqnArray<TVar>::Write(char * outputfile) { }
+template<class TVar>
+void TPZEqnArray<TVar>::Read(char * inputfile) { }
 
 template<class TVar>
-void TPZEqnArray<TVar>::Write(char * outputfile){}
-template<class TVar>
-void TPZEqnArray<TVar>::Read(char * inputfile){}
-template<class TVar>
-void TPZEqnArray<TVar>::EndEquation(){
+void TPZEqnArray<TVar>::EndEquation() {
 	fEqStart.Push(fLastTerm);
 }
-/*void TPZEqnArray::AddTerm(int col, REAL val){
- fIndex.Push(col);
- fEqValues.Push(val);
- fLastTerm++;
- } 
- */
+
 template<class TVar>
-void TPZEqnArray<TVar>::BeginEquation(int eq){
+void TPZEqnArray<TVar>::BeginEquation(int eq) {
 	fEqNumber.Push(eq);
 	fNumEq++;
 }
+
 template<class TVar>
 void TPZEqnArray<TVar>::Reset(){
 	fEqStart.Resize(0);
@@ -93,16 +88,13 @@ void TPZEqnArray<TVar>::Reset(){
 	fSymmetric=EIsUndefined;
 	
 }
+
 template<class TVar>
-void TPZEqnArray<TVar>::EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec){
+void TPZEqnArray<TVar>::EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec) {
 	int n;
 	if(IsSymmetric()==EIsSymmetric){
     	for(n=fNumEq-1; n>=0; n--) {
     		int index = fEqStart[n]; 
-    		
-			//		if(fEqStart.NElements()==n+1){
-			//			fEqStart.Expand(n+2);
-			//		}
     		int last_term = fEqStart[n + 1];
     		TVar acum = 0.;
     		int i;
@@ -118,11 +110,7 @@ void TPZEqnArray<TVar>::EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec){
     	}
 	}else if(IsSymmetric()==EIsNonSymmetric){
         for(n=fNumEq-2; n>=0; n-=2) {
-            int index = fEqStart[n]; 
-            
-			//		if(fEqStart.NElements()==n+1){
-			//			fEqStart.Expand(n+2);
-			//		}
+            int index = fEqStart[n];
             int last_term = fEqStart[n + 1];
             TVar acum = 0.;
             int i;
@@ -140,13 +128,13 @@ void TPZEqnArray<TVar>::EqnBackward(TPZFMatrix<TVar> & U, DecomposeType dec){
 }
 
 template<class TVar>
-void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec){
+void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec) {
 	int j;
 	if(IsSymmetric()==EIsSymmetric){
 		
 		for(j=0; j<fNumEq; j++) {
 			int index = fEqStart[j];
-			if(fEqValues[index] == 0.){
+			if(fEqValues[index] == (TVar)0.) {
 				cout << "Diagonal Value = 0 >> Aborting on Index = " << index << " Equation = " << j << endl;
 				DebugStop();
 			}          
@@ -154,8 +142,6 @@ void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec){
 			if(j==fNumEq-1){
 				last_term=fEqValues.NElements();
 			}else last_term = fEqStart[j+1];
-			//if(fEqStart.NElements()
-			
 			
 			/** cholesky e lu */
 			if(dec==ECholesky || dec==ELU) {
@@ -164,18 +150,17 @@ void TPZEqnArray<TVar>::EqnForward(TPZFMatrix<TVar> & F, DecomposeType dec){
 			/** ldlt cholesky lu */
 			TVar udiag = F(fIndex[index],0);
 			
-			
 			int i;
 			//+1 ou +2
 			for(i = index + 1; i < last_term; i++) F(fIndex[i],0) -= udiag * fEqValues[i];
 			/** finalizacao para ldlt */
 			if(dec == ELDLt) F(fIndex[index],0) /= fEqValues[index];
 		}
-	}else if(IsSymmetric()==EIsNonSymmetric){
+	} else if(IsSymmetric()==EIsNonSymmetric) {
 		for(j=1; j<fNumEq; j+=2) {
 			int index = fEqStart[j];
 			
-			if(fEqValues[index] == 0.){
+			if(fEqValues[index] == (TVar)0.){
 				cout << "Diagonal Value = 0 >> Aborting on Index = " << index << " Equation = " << j << endl;
 				DebugStop();
 			}          
@@ -239,14 +224,14 @@ void TPZEqnArray<TVar>::Write(FILE * outputfile){
 	fwrite(&aux,sizeof(int),1,outputfile);
 	fwrite(&fEqValues[0],sizeof(REAL), aux ,outputfile);
 }
+
 template<class TVar>
-void TPZEqnArray<TVar>::Read(FILE * inputfile){
+void TPZEqnArray<TVar>::Read(FILE * inputfile) {
 	/** Number of equations */
 	fread(&fNumEq,sizeof(int),1,inputfile);
-	//cout << ftell(inputfile) << endl; 
 	/** Last term added*/
 	fread(&fLastTerm,sizeof(int),1,inputfile);
-	//cout << ftell(inputfile) << endl;
+
 	int aux=0;
 	/** TPZStack fEqStart data */
 	fread(&aux,sizeof(int),1,inputfile);
@@ -272,7 +257,6 @@ void TPZEqnArray<TVar>::Read(FILE * inputfile){
 	if(fNumEq && fNumEq%2==0 && fEqNumber[0]==fEqNumber[1]) fSymmetric = EIsNonSymmetric;
 }
 
-
 template<class TVar>
 void TPZEqnArray<TVar>::main()
 {
@@ -293,8 +277,7 @@ void TPZEqnArray<TVar>::main()
 			if(i==j) MatrixA(i,j)=6000.;
 		}
 	}
-	
-	
+
 	MatrixA.Print("Teste 1");
 	MatrixA.Decompose_Cholesky();
 	MatrixA.Print("Decomposta");
@@ -326,5 +309,11 @@ void TPZEqnArray<TVar>::main()
 	
 }
 
+
+template class TPZEqnArray<float>;
 template class TPZEqnArray<double>;
+template class TPZEqnArray<long double>;
+
+template class TPZEqnArray<std::complex<float> >;
 template class TPZEqnArray<std::complex<double> >;
+template class TPZEqnArray<std::complex<long double> >;

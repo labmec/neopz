@@ -1,14 +1,7 @@
 /**
  * @file
  * @brief Contains the implementation of the TPZMatRedStructMatrix methods. 
- */
-/*
- *  tpzmatredstructmatrix.cpp
- *  SubStruct
- *
- *  Created by Philippe Devloo on 22/04/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
+ * @since 22/04/2009
  */
 
 #include "tpzmatredstructmatrix.h"

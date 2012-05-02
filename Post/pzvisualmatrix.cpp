@@ -11,7 +11,8 @@ using namespace std;
 /** This function creates adequated file that allow to visualization of the value of a matrix passed as parameter. \n
  *  Depends on disponible visualization package 
  */
-void VisualMatrix(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
+template<class TVar>
+void VisualMatrix(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 {
 	int posdx = outfilename.rfind(".dx");
 	int posvtk = outfilename.rfind(".vtk");
@@ -26,7 +27,8 @@ void VisualMatrix(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 }	
 
 /** This function creates a Data Explorer file that allow to visualization of the value of a matrix passed as parameter */
-void VisualMatrixDX(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
+template<class TVar>
+void VisualMatrixDX(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();
 	const int nely = matrix.Rows();
@@ -74,7 +76,8 @@ void VisualMatrixDX(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 }
 
 /** This function creates a Visualization Tool Kit (VTK) file that allow to visualization of the value of a matrix passed as parameter */
-void VisualMatrixVTK(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
+template<class TVar>
+void VisualMatrixVTK(TPZFMatrix<TVar> & matrix, const std::string &outfilename)
 {
 	const int nelx = matrix.Cols();
 	const int nely = matrix.Rows();
@@ -100,8 +103,12 @@ void VisualMatrixVTK(TPZFMatrix<REAL> & matrix, const std::string &outfilename)
 	out << "CELL_DATA " << nelx*nely << std::endl;
 	out << "SCALARS mat_value float 1\n";
 	out << "LOOKUP_TABLE default\n";
-	const REAL *elem = &matrix(0,0);
+	const TVar *elem = &matrix(0,0);
 	for (i=0; i<neltotal; i++) {
 		out << *(elem+i) << std::endl;
 	}
 }
+
+template void VisualMatrix<float>(TPZFMatrix<float> & matrix, const std::string &outfilename);
+template void VisualMatrix<double>(TPZFMatrix<double> & matrix, const std::string &outfilename);
+template void VisualMatrix<long double>(TPZFMatrix<long double> & matrix, const std::string &outfilename);

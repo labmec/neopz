@@ -2,14 +2,6 @@
  * @file
  * @brief Contains the TPZMatRedStructMatrix class. 
  */
-/*
- *  tpzmatredstructmatrix.h
- *  SubStruct
- *
- *  Created by Philippe Devloo on 22/04/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
- */
 
 #ifndef TPZMATREDSTRUCTMATRIX
 #define TPZMATREDSTRUCTMATRIX
@@ -27,11 +19,11 @@ template<class TStructMatrix, class TSparseMatrix>
 class TPZMatRedStructMatrix : TPZStructMatrix
 {
 public:
-	
+	/** @brief Constructor */
 	TPZMatRedStructMatrix(TPZSubCompMesh *mesh);
-	
+	/** @brief Destructor */
 	virtual ~TPZMatRedStructMatrix();
-	
+	/** @brief Copy constructor */
 	TPZMatRedStructMatrix(const TPZMatRedStructMatrix &copy);
 	
 	virtual TPZStructMatrix *Clone();

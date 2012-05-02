@@ -1,14 +1,16 @@
-//$Id: TExtFunction.cpp,v 1.1 2008-02-06 18:18:44 tiago Exp $
+/**
+ * @file
+ */
 
 #include "TExtFunction.h"
 
 template<class TVar>
-TExtFunction<TVar>::TExtFunction(){
+TExtFunction<TVar>::TExtFunction() {
 
 }
 
 template<class TVar>
-TExtFunction<TVar>::~TExtFunction(){
+TExtFunction<TVar>::~TExtFunction() {
 
 }
     
@@ -33,4 +35,6 @@ int TExtFunction<TVar>::PolynomialOrder(){
   return 1;
 }
 
+template class TExtFunction<float>;
 template class TExtFunction<double>;
+template class TExtFunction<long double>;

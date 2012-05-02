@@ -2,27 +2,8 @@
  * @file
  * @brief Contains the implementation of the TPZDohrMatrix methods. 
  */
-/***************************************************************************
- *   Copyright (C) 2006 by Philippe Devloo   *
- *   phil@fec.unicamp.br   *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+
 #include "tpzdohrmatrix.h"
-//#include "tpzdohrsubstruct.h"
 
 #include "tpzdohrassembly.h"
 #include "pzlog.h"
@@ -41,16 +22,14 @@ TPZDohrMatrix<TVar,TSubStruct>::TPZDohrMatrix(TPZAutoPointer<TPZDohrAssembly<TVa
 {
 }
 
-
 template<class TVar, class TSubStruct>
 TPZDohrMatrix<TVar,TSubStruct>::~TPZDohrMatrix()
 {
 }
 
-
 template<class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-										const TVar alpha,const TVar beta,const int opt,const int stride) const
+											 const TVar alpha,const TVar beta,const int opt,const int stride) const
 {
 	TPZfTime mult;
 	if ((!opt && this->Cols() != x.Rows()*stride) || this->Rows() != x.Rows()*stride)
@@ -181,13 +160,29 @@ void *TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork(void *ptr)
 }
 
 template <>
+int TPZDohrMatrix<float, TPZDohrSubstructCondense<float> >::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT;
+}
+template <>
 int TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCTCONDENSE;
+    return TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE;
+}
+template <>
+int TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> >::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCTCONDENSELONGDOUBLE;
 }
 
 template <>
+int TPZDohrMatrix<float, TPZDohrSubstruct<float> >::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCTFLOAT;
+}
+template <>
 int TPZDohrMatrix<double, TPZDohrSubstruct<double> >::ClassId() const {
-    return TPZDOHRMATRIXSUBSTRUCT;
+    return TPZDOHRMATRIXSUBSTRUCTDOUBLE;
+}
+template <>
+int TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::ClassId() const {
+    return TPZDOHRMATRIXSUBSTRUCTLONGDOUBLE;
 }
 
 /**
@@ -240,21 +235,64 @@ void TPZDohrMatrix<double,TPZDohrSubstructCondense<double> >::Write( TPZStream &
 }
 
 template <>
+void TPZDohrMatrix<float, TPZDohrSubstructCondense<float> >::Read(TPZStream &buf, void *context )
+{
+    DebugStop();
+}
+template <>
+void TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> >::Read(TPZStream &buf, void *context )
+{
+	DebugStop();
+}
+template <>
+void TPZDohrMatrix<float, TPZDohrSubstruct<float> >::Read(TPZStream &buf, void *context )
+{
+    DebugStop();
+}
+template <>
 void TPZDohrMatrix<double, TPZDohrSubstruct<double> >::Read(TPZStream &buf, void *context )
+{
+    DebugStop();
+}
+template <>
+void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Read(TPZStream &buf, void *context )
 {
     DebugStop();
 }
 
 template <>
+void TPZDohrMatrix<float,TPZDohrSubstructCondense<float> >::Write( TPZStream &buf, int withclassid )
+{
+    DebugStop();
+}
+template <>
+void TPZDohrMatrix<long double,TPZDohrSubstructCondense<long double> >::Write( TPZStream &buf, int withclassid )
+{
+    DebugStop();
+}
+template <>
+void TPZDohrMatrix<float, TPZDohrSubstruct<float> >::Write( TPZStream &buf, int withclassid )
+{
+    DebugStop();
+}
+template <>
 void TPZDohrMatrix<double, TPZDohrSubstruct<double> >::Write( TPZStream &buf, int withclassid )
 {
     DebugStop();
 }
+template <>
+void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Write( TPZStream &buf, int withclassid )
+{
+    DebugStop();
+}
 
+template class TPZDohrMatrix<float, TPZDohrSubstruct<float> >;
 template class TPZDohrMatrix<double, TPZDohrSubstruct<double> >;
+template class TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >;
+
+template class TPZDohrMatrix<float, TPZDohrSubstructCondense<float> >;
 template class TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >;
+template class TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> >;
 
-template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > , TPZDOHRMATRIXSUBSTRUCTCONDENSE>;
-template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > , TPZDOHRMATRIXSUBSTRUCT>;
-
-
+template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE>;
+template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;

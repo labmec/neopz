@@ -35,15 +35,12 @@ TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0)
 	fK01IsComputed = 0;
 	fF1IsReduced=0;
 	fIsReduced = 0;
-	
 }
-
 
 template<class TVar, class TSideMatrix>
 TPZMatRed<TVar, TSideMatrix>::TPZMatRed( int dim, int dim00 ):TPZMatrix<TVar>( dim,dim ), fK11(dim-dim00,dim-dim00,0.), fK01(dim00,dim-dim00,0.), 
 fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyModes(0), fNumberRigidBodyModes(0)
 {
-	
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	fDim0=dim00;
 	fDim1=dim-dim00;
@@ -53,21 +50,17 @@ fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyMode
 	fK01IsComputed = 0;
 	fF1IsReduced=0;
 	fIsReduced = 0;
-	
 }
-
 
 template<class TVar, class TSideMatrix>
 TPZMatRed<TVar, TSideMatrix >::~TPZMatRed(){
 }
-
 
 template<class TVar, class TSideMatrix>
 int TPZMatRed<TVar, TSideMatrix>::IsSimetric() const {
 	if(fK00) return this->fK00->IsSimetric();
 	return 0;
 }
-
 
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::Simetrize() {
@@ -90,14 +83,12 @@ TPZMatRed<TVar, TSideMatrix>::PutVal(const int r,const int c,const TVar& value )
 	int row(r),col(c);
 	if (IsSimetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  fK00->PutVal(row,col,value);
-	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,value);
-	if (row>=fDim0 &&  col<fDim0)  fK10.PutVal(row-fDim0,col,value);
-	if (row>=fDim0 &&  col>=fDim0)  fK11.PutVal(row-fDim0,col-fDim0,value);
-	
-	
+	if (row<fDim0 &&  col>=fDim0)  fK01.PutVal(row,col-fDim0,(TVar)value);
+	if (row>=fDim0 &&  col<fDim0)  fK10.PutVal(row-fDim0,col,(TVar)value);
+	if (row>=fDim0 &&  col>=fDim0)  fK11.PutVal(row-fDim0,col-fDim0,(TVar)value);
+
 	return( 1 );
 }
-
 
 template<class TVar, class TSideMatrix>
 const TVar&
@@ -113,22 +104,19 @@ TPZMatRed<TVar,TSideMatrix>::GetVal(const int r,const int c ) const {
 }
 
 template<class TVar, class TSideMatrix>
-TVar&
-TPZMatRed<TVar,TSideMatrix>::s(const int r,const int c ) {
+TVar& TPZMatRed<TVar,TSideMatrix>::s(const int r,const int c ) {
 	int row(r),col(c);
 	
 	if (r < fDim0 && IsSimetric() && row > col ) Swap( &row, &col );
 	if (row<fDim0 &&  col<fDim0)  return ( fK00->s(row,col) );
-	if (row<fDim0 &&  col>=fDim0)  return ( fK01.s(row,col-fDim0) );
-	if (row>=fDim0 &&  col<fDim0)  return ( fK10.s(row-fDim0,col) );
-	return (fK11.s(row-fDim0,col-fDim0) );
+	if (row<fDim0 &&  col>=fDim0)  return ( (TVar &)fK01.s(row,col-fDim0) );
+	if (row>=fDim0 &&  col<fDim0)  return ( (TVar &)(fK10.s(row-fDim0,col)) );
+	return ((TVar &)(fK11.s(row-fDim0,col-fDim0)) );
 	
 }
 
-
 template<class TVar, class TSideMatrix>
-void
-TPZMatRed<TVar,TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver)
+void TPZMatRed<TVar,TSideMatrix>::SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver)
 {
 	fK00=solver->Matrix();
 	fSolver = solver;
@@ -143,8 +131,7 @@ TPZMatRed<TVar, TSideMatrix>::SetK00(TPZAutoPointer<TPZMatrix<TVar> > K00)
 }
 
 template<class TVar, class TSideMatrix>
-void
-TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
+void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 {
 	
 	int FCols=F.Cols(),c,r,r1;
@@ -167,8 +154,7 @@ TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 }
 
 template<class TVar, class TSideMatrix>
-const TPZFMatrix<TVar>&
-TPZMatRed<TVar, TSideMatrix>::F1Red()
+const TPZFMatrix<TVar>& TPZMatRed<TVar, TSideMatrix>::F1Red()
 {
 	if (!fDim0 || fF1IsReduced)  return (fF1);
 	if(! fF0IsComputed)
@@ -185,8 +171,7 @@ TPZMatRed<TVar, TSideMatrix>::F1Red()
 }
 
 template<class TVar, class TSideMatrix>
-const TPZFMatrix<TVar>&
-TPZMatRed<TVar,TSideMatrix>::K11Red()
+const TPZFMatrix<TVar>& TPZMatRed<TVar,TSideMatrix>::K11Red()
 {
 	if (!fDim0 || fK11IsReduced)  {
 		//Simetrize();
@@ -206,15 +191,12 @@ TPZMatRed<TVar,TSideMatrix>::K11Red()
 	fK10.MultAdd(fK01,(fK11),(fK11),-1,1);
 	fK11IsReduced=1;
 	return (fK11);
-	
-	
 }
 
 #include "tpzverysparsematrix.h"
 
 template<>
-const TPZFMatrix<double>&
-TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Red()
+const TPZFMatrix<double>& TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Red()
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<double> temp;
@@ -222,8 +204,23 @@ TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Red()
 }
 
 template<>
-const TPZFMatrix<std::complex<double> >&
-TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K11Red()
+const TPZFMatrix<float>& TPZMatRed<float, TPZVerySparseMatrix<float> >::K11Red()
+{
+	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
+	static TPZFMatrix<float> temp;
+	return temp;
+}
+
+template<>
+const TPZFMatrix<long double>& TPZMatRed<long double, TPZVerySparseMatrix<long double> >::K11Red()
+{
+	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
+	static TPZFMatrix<long double> temp;
+	return temp;
+}
+
+template<>
+const TPZFMatrix<std::complex<double> >& TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K11Red()
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<std::complex<double> > temp;
@@ -232,8 +229,7 @@ TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K1
 
 
 template<class TVar ,class TSideMatrix>
-void
-TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
+void TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
 {
 	
 	K11Red();
@@ -245,8 +241,7 @@ TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
 }
 
 template<>
-void
-TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL> & U1, TPZFMatrix<REAL> & result)
+void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL> & U1, TPZFMatrix<REAL> & result)
 {
 	//[u0]=[A00^-1][F0]-[A00^-1][A01]
     if( !fF0IsComputed ){
@@ -288,8 +283,7 @@ TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL> & U1
 }
 
 template<class TVar, class TSideMatrix>
-void
-TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
+void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
 	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
 	
@@ -351,8 +345,7 @@ TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<T
 }
 
 template<class TVar, class TSideMatrix>
-void
-TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
+void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
 	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
 	
@@ -417,11 +410,8 @@ TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> &
 
 
 template<class TVar,class TSideMatrix>
-void
-TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,const MatrixOutputFormat form ) const
-{
-	
-	
+void TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,const MatrixOutputFormat form ) const
+{	
 	if(form != EInputFormat) {
 		out << "Writing matrix 'TPZMatRed<TSideMatrix>::" << name;
 		out << "' (" << this->Dim() << " x " << this->Dim() << "):\n";
@@ -438,10 +428,8 @@ TPZMatRed<TVar, TSideMatrix>::Print(const char *name , std::ostream &out ,const 
 		out << "\n\n";
 	} else {
 		TPZMatrix<TVar>::Print(name,out,form);
-	}
-	
+	}	
 }
-
 
 template<class TVar, class TSideMatrix>
 int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
@@ -599,7 +587,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
                 fK11(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = 1.;
                 if(stepsolve != directsolve)
                 {
-                    TVar diag = stepsolve->Matrix()->GetVal(*it, *it)+1.;
+                    TVar diag = stepsolve->Matrix()->GetVal(*it, *it)+ (TVar)1.;
                     stepsolve->Matrix()->PutVal(*it, *it, diag);
                 }
             }
@@ -612,8 +600,6 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
         DebugStop();
     }
 }
-
-
 
 template<class TVar,class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
@@ -671,6 +657,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
 	}
 	
 }
+
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 {
@@ -719,13 +706,6 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
         {
             fSolver = matsolv;
         }
-        
-		//    if(!fSolver)
-		//    {
-		//      TPZMatrixSolver * solver = new TPZMatrixSolver;
-		//      solver->Read(buf, 0);
-		//      fSolver = solver;
-		//    }
 	}
 }
 
@@ -749,11 +729,20 @@ int TPZMatRed<TVar,TSideMatrix>::ClassId() const
     return -1;
 }
 
+template class TPZMatRed<float, TPZVerySparseMatrix<float> >;
+template class TPZMatRed<float, TPZFMatrix<float> >;
+
 template class TPZMatRed<double, TPZVerySparseMatrix<double> >;
 template class TPZMatRed<double, TPZFMatrix<double> >;
 
+template class TPZMatRed<long double, TPZVerySparseMatrix<long double> >;
+template class TPZMatRed<long double, TPZFMatrix<long double> >;
+
 template class TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >;
+
+template class TPZMatRed<std::complex<float>, TPZFMatrix<std::complex<float> > >;
 template class TPZMatRed<std::complex<double>, TPZFMatrix<std::complex<double> > >;
+template class TPZMatRed<std::complex<long double>, TPZFMatrix<std::complex<long double> > >;
 
 template class TPZRestoreClass<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> >, TPZMATRED_VERYSPARSE_ID>;
 template class TPZRestoreClass<TPZMatRed<REAL, TPZFMatrix<REAL> >, TPZMATRED_FMATRIX_ID>;

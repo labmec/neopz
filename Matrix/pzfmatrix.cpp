@@ -1446,12 +1446,14 @@ int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
 }
 
 #include <complex>
+
 template class TPZFMatrix< std::complex<float> >;
 template class TPZFMatrix< std::complex<double> >;
 template class TPZFMatrix< std::complex<long double> >;
 
-template class TPZFMatrix<long double>;
-template class TPZFMatrix<double>;
-template class TPZFMatrix<int>;
 template class TPZFMatrix<float>;
+template class TPZFMatrix<double>;
+template class TPZFMatrix<long double>;
+
+template class TPZFMatrix<int>;
 template class TPZRestoreClass< TPZFMatrix<REAL> , TPZFMATRIXID>;

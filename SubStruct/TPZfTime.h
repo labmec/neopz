@@ -1,18 +1,11 @@
 /**
  * @file
  * @brief Contains the TPZfTime class which calculates times.
+ * @since 7/20/10.
  */
+
 #ifndef TPZFTIME_H
 #define TPZFTIME_H
-
-/*
- *  ftime.h
- *  SubStruct
- *
- *  Created by Bandit on 7/20/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
- */
 
 #include <iostream>
 #include <sys/timeb.h>

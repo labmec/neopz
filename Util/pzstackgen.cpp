@@ -6,8 +6,12 @@
 #include "pzstack.h"
 
 template class TPZStack<int>;
-template class TPZStack<REAL>;
+template class TPZStack<float>;
+template class TPZStack<double>;
+template class TPZStack<long double>;
 template class TPZStack<char *>;
 template class TPZStack<long int>;
 template class TPZStack<char>;
 
+template class TPZStack<std::complex<float> >;
+template class TPZStack<std::complex<double> >;

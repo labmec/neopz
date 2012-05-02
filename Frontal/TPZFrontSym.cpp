@@ -147,7 +147,17 @@ void TPZFrontSym<TVar>::FreeGlobal(int global)
 }
 
 template<>
+void TPZFrontSym<std::complex<float> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<float> > &eqnarray)
+{
+    DebugStop();
+}
+template<>
 void TPZFrontSym<std::complex<double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<double> > &eqnarray)
+{
+    DebugStop();
+}
+template<>
+void TPZFrontSym<std::complex<long double> >::DecomposeOneEquation(int ieq, TPZEqnArray<std::complex<long double> > &eqnarray)
 {
     DebugStop();
 }
@@ -479,5 +489,11 @@ void TPZFrontSym<TVar>::ExtractFrontMatrix(TPZFMatrix<TVar> &front)
 	
 }
 
+template class TPZFrontSym<float>;
+template class TPZFrontSym<std::complex<float> >;
+
 template class TPZFrontSym<double>;
 template class TPZFrontSym<std::complex<double> >;
+
+template class TPZFrontSym<long double>;
+template class TPZFrontSym<std::complex<long double> >;

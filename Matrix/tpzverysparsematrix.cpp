@@ -28,7 +28,7 @@ int TPZVerySparseMatrix<TVar>::PutVal(int row, int col, const TVar &val)
 	
     pair <int,int> position(row,col);
 	typename std::map <std::pair<int, int>, TVar>::iterator it = this->fExtraSparseData.find(position);
-	if(val == 0. && it != fExtraSparseData.end()) 
+	if(val == (TVar)0. && it != fExtraSparseData.end()) 
 	{
 		fExtraSparseData.erase(it);
 	}
@@ -200,7 +200,12 @@ void TPZVerySparseMatrix<TVar>::ReadMap(TPZStream &buf, void *context, std::map<
 	}
 }
 
+template class TPZVerySparseMatrix<float>;
 template class TPZVerySparseMatrix<double>;
+template class TPZVerySparseMatrix<long double>;
+
+template class TPZVerySparseMatrix<std::complex<float> >;
 template class TPZVerySparseMatrix<std::complex<double> >;
+template class TPZVerySparseMatrix<std::complex<long double> >;
 
 

@@ -5,7 +5,6 @@
 
 #ifndef TPZSTACKEQNSTORAGE_H
 #define TPZSTACKEQNSTORAGE_H
-//#include "TPZFrontMatrix.h"
 
 #include "tpzeqnarray.h"
 #include "pzstack.h"
@@ -71,13 +70,6 @@ public:
 	 * @param dec Decomposition type of f. Depends on what decomposition method was used to decompose f
 	 */
     void Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const;
-	
-	//Only to make it compatible with FIleEqnStorage
-
-    /**
-     * Only to make both possible templates similar in terms of methods and constructors 
-     */
-	//void SetFileName(const char *name);
 	
     /** @brief Only to make both possible templates similar in terms of methods and constructors */
 	void OpenGeneric(char option, const char * name);

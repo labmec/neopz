@@ -82,7 +82,7 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 	bcv1r = bc.Val1().Rows();
 	bcv1c = bc.Val1().Cols();
 	bcv2r = bc.Val2().Rows();
-	bcv2c = bc.Val1().Cols();
+	bcv2c = bc.Val2().Cols();
 	if( bcv1r != r ||
 	   bcv1c != r ||
 	   bcv2r != r ||
@@ -132,7 +132,6 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 				}
 			}
 			break;
-			
 	}
 }
 

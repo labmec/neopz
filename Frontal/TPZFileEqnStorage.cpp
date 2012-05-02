@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZFileEqnStorage methods.
  */
-//$Id: TPZFileEqnStorage.cpp,v 1.15 2011-05-11 02:13:57 phil Exp $
 
 #include "TPZFileEqnStorage.h"
 #include <stdlib.h>
@@ -19,7 +18,7 @@ static LoggerPtr logger(Logger::getLogger("pz.frontal.tpzfileeqnstorage"));
 using namespace std;
 
 template<class TVar>
-void TPZFileEqnStorage<TVar>::WriteHeaders(){
+void TPZFileEqnStorage<TVar>::WriteHeaders() {
 	/**
 	 *Updates fNumBlocks information each time 
 	 *WriteHeaders is called
@@ -30,7 +29,7 @@ void TPZFileEqnStorage<TVar>::WriteHeaders(){
 	 *If fCurrentBlock = 0 then a fBlockPos.Push must be called to 
 	 *store the first address
 	 */
-	if(fCurrentBlock==0){
+	if(fCurrentBlock==0) {
 		long int basepos = ftell(fIOStream);
 		fBlockPos.Push(basepos);
 #ifdef LOG4CXX
@@ -56,19 +55,13 @@ void TPZFileEqnStorage<TVar>::WriteHeaders(){
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	/**
-	 *Writes fNumHeaders positions for the headers
-	 */
+	/** Writes fNumHeaders positions for the headers */
 	fwrite(Position,sizeof(long  int),fNumHeaders,fIOStream);
 
-	/**
-	 *Get starting position of first header
-	 */
+	/** Get starting position of first header */
 	long int firstaddress = ftell(fIOStream);
 	
-	/**
-	 *Writes first position the address of block one
-	 */
+	/** Writes first position the address of block one */
 	fseek(fIOStream,firstpos,SEEK_SET);
 	fwrite(&firstaddress,sizeof(long int),1,fIOStream);
 #ifdef LOG4CXX
@@ -78,14 +71,10 @@ void TPZFileEqnStorage<TVar>::WriteHeaders(){
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	/**
-	 *Sets fCurBlockPosition to actual address
-	 */
+	/** Sets fCurBlockPosition to actual address */
 	fCurBlockPosition = firstaddress;
 	
-	/**
-	 *Return the pointer to the actual position
-	 */
+	/** Return the pointer to the actual position */
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -96,39 +85,13 @@ void TPZFileEqnStorage<TVar>::WriteHeaders(){
 	fseek(fIOStream,firstaddress,SEEK_SET);
 	
 }
-/*void TPZFileEqnStorage::SetBlockSize(int bs){
- fBlockSize = bs;
- }*/
+
 template<class TVar>
 void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 	//Initial tests with C input output files !
 	int loop_limit=100;// = jeq-ieq;
 	int i;
 	FILE *out_file = fopen(name,"wb");
-	//cout << "Loop Limit "; 
-	//cin >> loop_limit ;
-	//cout << "Block Size";
-	//cin >> block_size;
-	
-	
-	
-	//	struct _iobuf *temp_i;
-	//From MSDN
-	/*	
-	 
-	 char list[30];
-	 int  i, numread, numwritten;
-	 
-	 Open file in text mode: 
-	 if( (stream = fopen( "fread.out", "w+t" )) != NULL )
-	 {
-	 for ( i = 0; i < 25; i++ )
-	 list[i] = (char)('z' - i);
-	 Write 25 characters to stream 
-	 numwritten = fwrite( list, sizeof( char ), 25, stream );
-	 fprintf( "Wrote %d items\n", numwritten );
-	 fclose( stream );
-	 */
 	double number=2.1;
 	double val = 0;
 	long int fPos[5] = {0};
@@ -158,17 +121,10 @@ void TPZFileEqnStorage<TVar>::Store(int ieq, int jeq, const char *name){
 template<class TVar>
 void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	//  cout << "Inside TPZFileEqnStorage::Forward" << endl;
-	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
-	
-	//if(!fIOStream) SetFileName(fFileName);
 	TPZEqnArray<TVar> REqnArray;
 	int i;
 	for(i=0;i<fBlockPos.NElements();i++) {
 		if (fBlockPos[i]) {
-			//     if(!(i%10)) cout << "*";
-			//     if(!(i%100)) cout << i << endl;
-			
 			if(fseek(fIOStream,fBlockPos[i],SEEK_SET)){
 				cout << "fseek fail on Element " << i << " Position " << fBlockPos[i] << endl;
 				cout.flush();
@@ -190,18 +146,14 @@ void TPZFileEqnStorage<TVar>::Forward(TPZFMatrix<TVar> &f, DecomposeType dec) co
 		}
 	} 
 }
+
 template<class TVar>
 void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) const
 {
-	//  cout << "Inside TPZFileEqnStorage::Backward" << endl;
-	//  cout << "fBlockPos.NElements() = " << fBlockPos.NElements() << endl;
-	
 	TPZEqnArray<TVar> REqnArray;
 	int i;
 	for(i=fBlockPos.NElements()-1;i>=0;i--){
 		if (fBlockPos[i]) {
-			//		     if(!(i%10)) cout << "*";
-			//		     if(!(i%100)) cout << i << endl;
 			fseek(fIOStream,fBlockPos[i],SEEK_SET);
 			long int position;
 			fread(&position,sizeof(long int),1,fIOStream);
@@ -210,7 +162,6 @@ void TPZFileEqnStorage<TVar>::Backward(TPZFMatrix<TVar> &f, DecomposeType dec) c
 			REqnArray.EqnBackward(f,dec); 
 		}
 	}
-	
 }
 
 template<class TVar>
@@ -234,7 +185,6 @@ void TPZFileEqnStorage<TVar>::Print(const char *name, std::ostream& out) const {
 }
 
 // Redefine TPZFileEqnStorage so it can handle parallel writeing!!!
-
 template<class TVar>
 void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 {
@@ -268,8 +218,7 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 	
 	/**Gets actual position on fIOStream */
 	long int nextaddress=ftell(fIOStream);
-	
-	
+
 	/** 
 	 *Writes this address on next available header block
 	 *and sets pointer to its previous position
@@ -287,13 +236,8 @@ void TPZFileEqnStorage<TVar>::AddEqnArray(TPZEqnArray<TVar> *EqnArray)
 #endif
 	
 	fseek(fIOStream,nextaddress,SEEK_SET);
-	//	fBlockPos.Push(fCurBlockPosition);
 	
 	fCurrentBlock++;
-	//	fSubBlockIndex++;
-	
-	//	cout << "NumBlocks " << fNumBlocks << endl;
-	//	cout << "NumHeaders " << fNumHeaders << endl;
 }
 
 template<class TVar>
@@ -324,7 +268,6 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(char option, const std::string & name
 		fwrite(&zero,sizeof(int),1,fIOStream);
 		//fCurBlockPosition = ftell(fIOStream);
 	}
-	
 }
 
 template<class TVar>
@@ -355,9 +298,7 @@ void TPZFileEqnStorage<TVar>::main()
 			DecMat(i,j)=aux;
 		}
 	}
-	
-	//DecMat.Print("MatrizInv");
-	
+
 	for(i=0;i<Loop_Limit;i++){
 		EqnArray.BeginEquation(i);
 		for(j=i;j<Loop_Limit;j++){
@@ -400,16 +341,11 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 #else
 	mkstemp(filenamestorage);
 #endif
-	//     cout << "Temporary file name " << filenamestorage << endl;
-	//     cout.flush();
 	
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
 	fCurrentBlock=0;
 	fNumHeaders=20;
-	//	SetBlockSize(10); 
-	//fBlockPos.Resize(fNumHeaders);
-	
 	
 	fFileName = filenamestorage;
 	
@@ -422,10 +358,6 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage()
 	fwrite(&fNumHeaders,sizeof(int),1,fIOStream);
 	//cout << ftell(fIOStream) << endl;
 	fwrite(&zero,sizeof(int),1,fIOStream);
-	//cout << ftell(fIOStream) << endl;
-	//fCurBlockPosition = ftell(fIOStream);
-	
-	
 }
 
 template<class TVar>
@@ -437,16 +369,11 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 #else
 	mkstemp(filenamestorage);
 #endif
-	//     cout << "Temporary file name " << filenamestorage << endl;
-	//     cout.flush();
 	
 	fCurBlockPosition = -1;
 	fNumBlocks=0;
 	fCurrentBlock=0;
 	fNumHeaders=20;
-	//	SetBlockSize(10); 
-	//fBlockPos.Resize(fNumHeaders);
-	
 	
 	fFileName = filenamestorage;
 	
@@ -459,10 +386,6 @@ TPZFileEqnStorage<TVar>::TPZFileEqnStorage(const TPZFileEqnStorage &)
 	fwrite(&fNumHeaders,sizeof(int),1,fIOStream);
 	//cout << ftell(fIOStream) << endl;
 	fwrite(&zero,sizeof(int),1,fIOStream);
-	//cout << ftell(fIOStream) << endl;
-	//fCurBlockPosition = ftell(fIOStream);
-	
-	
 }
 
 template<class TVar>
@@ -485,9 +408,6 @@ void TPZFileEqnStorage<TVar>::Zero()
 	fNumBlocks=0;
 	fCurrentBlock=0;
 	fNumHeaders=20;
-	//	SetBlockSize(10);
-	//fBlockPos.Resize(fNumHeaders);
-	
 	
 	fFileName = filenamestorage;
 	
@@ -498,12 +418,7 @@ void TPZFileEqnStorage<TVar>::Zero()
 	 */
 	int zero = 0;
 	fwrite(&fNumHeaders,sizeof(int),1,fIOStream);
-	//cout << ftell(fIOStream) << endl;
 	fwrite(&zero,sizeof(int),1,fIOStream);
-	//cout << ftell(fIOStream) << endl;
-	//fCurBlockPosition = ftell(fIOStream);
-	
-	
 }
 
 template<class TVar>
@@ -518,9 +433,7 @@ void TPZFileEqnStorage<TVar>::ReOpen()
 	 *use this information for storage requirements
 	 */
 	fread(&fNumHeaders,sizeof(int),1,fIOStream);
-	fread(&fNumBlocks,sizeof(int),1,fIOStream);
-	//	ReadBlockPositions();
-	
+	fread(&fNumBlocks,sizeof(int),1,fIOStream);	
 }
 
 template<class TVar>
@@ -530,10 +443,7 @@ void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 	fNumBlocks=0;
 	fCurrentBlock=0;
 	fNumHeaders=11;
-	//	SetBlockSize(10); 
-	//fBlockPos.Resize(fNumHeaders);
-	
-	
+
 	fFileName = name;
 	
 	if(option=='r'){
@@ -553,32 +463,9 @@ void TPZFileEqnStorage<TVar>::OpenGeneric(char option, const char * name)
 		 */
 		int zero = 0;
 		fwrite(&fNumHeaders,sizeof(int),1,fIOStream);
-		//cout << ftell(fIOStream) << endl;
 		fwrite(&zero,sizeof(int),1,fIOStream);
-		//cout << ftell(fIOStream) << endl;
-		//fCurBlockPosition = ftell(fIOStream);
 	}
 }
-/*
- //double readvec[4][100];
- int iblock =0;
- for(iblock=0; iblock<4; iblock++) {
- long int currentpos = ftell(fIOStream);
- fseek(fIOStream,firstpos+iblock*sizeof(long int),SEEK_SET);
- fwrite(&currentpos,sizeof(long int),1,fIOStream);
- fseek(fIOStream,currentpos,SEEK_SET);
- for(i=0;i<loop_limit;i++){
- val=number*i*(iblock+1);
- fwrite(&val, sizeof(double), 1, fIOStream);
- }
- }
- fclose(fIOStream);
- fIOStream = fopen(name,"rb");
- fread(fPosition,sizeof(long int),5,fIOStream);
- for(iblock = 0; iblock<4; iblock++) {
- fseek(fIOStream,fPosition[iblock],SEEK_SET);
- fread(readvec[iblock],sizeof(double),loop_limit,fIOStream);
- }*/
 
 template<class TVar>
 void TPZFileEqnStorage<TVar>::FinishWriting()
@@ -618,8 +505,6 @@ void TPZFileEqnStorage<TVar>::ReadBlockPositions()
 		fread(&nextpos,sizeof(long int),fNumHeaders-1,fIOStream);
 		fseek(fIOStream,nextpos,SEEK_SET);
 	}
-	
-	
 }
 
 template<class TVar>
@@ -627,5 +512,11 @@ std::string TPZFileEqnStorage<TVar>::GetStorage() {
     return "File Storage";
 }
 
+template class TPZFileEqnStorage<float>;
+template class TPZFileEqnStorage<std::complex<float> >;
+
 template class TPZFileEqnStorage<double>;
 template class TPZFileEqnStorage<std::complex<double> >;
+
+template class TPZFileEqnStorage<long double>;
+template class TPZFileEqnStorage<std::complex<long double> >;

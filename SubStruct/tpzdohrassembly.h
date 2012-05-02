@@ -2,14 +2,6 @@
  * @file
  * @brief Contains the TPZDohrAssembly class which implements assembling using Dohrmann algorithm.
  */
-/*
- *  tpzdohrassembly.h
- *  SubStruct
- *
- *  Created by Philippe Devloo on 04/03/09.
- *  Copyright 2009 UNICAMP. All rights reserved.
- *
- */
 
 #ifndef TPZDOHRASSEMBLYH
 #define TPZDOHRASSEMBLYH
@@ -23,17 +15,16 @@ class TPZFMatrix;
 /**
  * @ingroup substructure
  * @brief Assembling using Dohrmann algorithm. \ref substructure "Sub structure"
+ * @author Philippe Devloo
+ * @since 04/03/2009
  */
 template<class TVar>
 class TPZDohrAssembly
 // @TODO Implement the methods to make the class actually saveable
 {
 public:
-	/**
-	 * @brief For each substructure the equation numbering of the substructures
-	 * 
-	 * The order of the equations follows the ordering of the connects
-	 */
+	/** @brief For each substructure the equation numbering of the substructures */
+	/** The order of the equations follows the ordering of the connects */
 	TPZVec< TPZVec< int > > fFineEqs;
 	
 	/** @brief For each substructure the equation numbering of the coarse equations */

@@ -10,7 +10,11 @@ template class TPZManVector< int >;
 template class TPZManVector< long int >;
 template class TPZManVector< int *>;
 template class TPZManVector< char *>;
-template class TPZManVector< REAL >;
-template class TPZManVector< REAL * >;
+template class TPZManVector< float >;
+template class TPZManVector< float * >;
+template class TPZManVector< double >;
+template class TPZManVector< double * >;
+template class TPZManVector< long double >;
+template class TPZManVector< long double * >;
 template class TPZManVector<TPZString>;
 
