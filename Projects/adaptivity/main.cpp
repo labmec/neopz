@@ -12,6 +12,7 @@
 #include "pzgeoel.h"
 #include "pzgnode.h"
 #include "pzgeoelside.h"
+#include "pzgeoelbc.h"
 
 #include "pzintel.h"
 #include "pzcompel.h"
@@ -648,10 +649,10 @@ TPZCompMesh *CreateMesh() {
         for(i=1; i<6; i++) {
             bc[i] = mat->CreateBC(mat,-i-1,1,val1,val2);
         }
-        bc[1]->SetForcingFunction(new TPZDummyFunction(Neumann2));
-        bc[2]->SetForcingFunction(new TPZDummyFunction(Neumann3));
-        bc[3]->SetForcingFunction(new TPZDummyFunction(Neumann4));
-        bc[4]->SetForcingFunction(new TPZDummyFunction(Neumann5));
+        bc[1]->SetForcingFunction(new TPZDummyFunction<STATE>(Neumann2));
+        bc[2]->SetForcingFunction(new TPZDummyFunction<STATE>(Neumann3));
+        bc[3]->SetForcingFunction(new TPZDummyFunction<STATE>(Neumann4));
+        bc[4]->SetForcingFunction(new TPZDummyFunction<STATE>(Neumann5));
     } else {
         for(i=1; i<6; i++) {
             bc[i] = mat->CreateBC(mat,-i-1,0,val1,val2);
@@ -2271,7 +2272,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
     TPZGeoElBC(elg2,3,-1);
     TPZGeoElBC(elg3,3,-1);
     TPZAutoPointer<TPZMaterial> bc = placa->CreateBC(placa,-1,0,val1,val2);
-    bc->SetForcingFunction(new TPZDummyFunction(BCSolution));
+    bc->SetForcingFunction(new TPZDummyFunction<STATE>(BCSolution));
     cmesh->InsertMaterialObject(bc);
 }
 
@@ -2463,7 +2464,7 @@ TPZCompMesh *Create3DExpMesh() {
     
     val2(0,0)=1.;
     bc[1] = mat->CreateBC(mat,-2,0,val1,val2);
-    bc[1]->SetForcingFunction(new TPZDummyFunction(NeumannExp));
+    bc[1]->SetForcingFunction(new TPZDummyFunction<STATE>(NeumannExp));
     
     cmesh->InsertMaterialObject(mat);
     for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);

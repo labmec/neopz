@@ -40,14 +40,14 @@ TPZGeoElSideIndex::TPZGeoElSideIndex(const TPZGeoElSide &side) {
     this->fSide = side.Side();
 }
 
-inline void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
+void TPZGeoElSideIndex::SetElement(TPZGeoEl* geoel){
     if (geoel) this->fGeoElIndex = geoel->Index();
     else this->fGeoElIndex = -1;
 }
 
 // Implementation of the TPZGeoElSide methods
 
-inline TPZGeoElSide TPZGeoElSide::Neighbour() const {
+TPZGeoElSide TPZGeoElSide::Neighbour() const {
 	return fGeoEl ? fGeoEl->Neighbour(fSide) : TPZGeoElSide();
 }
 

@@ -8,6 +8,7 @@
 #include "pzvec.h"
 
 class TPZInterpolatedElement;
+template<class TVar>
 class TPZTransfer;
 class TPZTransform;
 template<class T, class V>
