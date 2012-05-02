@@ -8,7 +8,7 @@
 using namespace std;
 
 template <class TVar>
-TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol, int nvar, 
+TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar, 
 							   TPZAutoPointer<TPZMatrix<TVar> > refmat) : 
 TPZMatrixSolver<TVar>(refmat), fStep(trf) 
 {
@@ -17,7 +17,7 @@ TPZMatrixSolver<TVar>(refmat), fStep(trf)
 }
 
 template <class TVar>
-TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer> trf, const TPZMatrixSolver<TVar> &sol, int nvar) : 
+TPZMGSolver<TVar>::TPZMGSolver(TPZAutoPointer<TPZTransfer<TVar> > trf, const TPZMatrixSolver<TVar> &sol, int nvar) : 
 TPZMatrixSolver<TVar>(), fStep(trf) 
 {
 	this->fCoarse = (TPZMatrixSolver<TVar> *) sol.Clone();
@@ -37,7 +37,7 @@ void TPZMGSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &resul
 	}
 	
 	TPZFMatrix<TVar> FCoarse,UCoarse;
-	TPZAutoPointer<TPZTransfer> tr = TransferMatrix();
+	TPZAutoPointer<TPZTransfer<TVar> > tr = TransferMatrix();
 	tr->TransferResidual(F,FCoarse);
 	fCoarse->Solve(FCoarse,UCoarse);
 	tr->TransferSolution(UCoarse,result);
@@ -62,12 +62,12 @@ TPZMGSolver<TVar>::~TPZMGSolver(){
 
 template <class TVar>
 void TPZMGSolver<TVar>::ResetTransferMatrix(){
-	TPZAutoPointer<TPZTransfer> reset;
+	TPZAutoPointer<TPZTransfer<TVar> > reset;
 	fStep = reset;
 }
 
 template <class TVar>
-void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer> Refmat){
+void TPZMGSolver<TVar>::SetTransferMatrix(TPZAutoPointer<TPZTransfer<TVar> > Refmat){
 	fStep = Refmat;
 }
 
@@ -94,7 +94,9 @@ void TPZMGSolver<TVar>::Read(TPZStream &buf, void *context)
 	TPZMatrixSolver<TVar>::Read(buf, context);
 	fCoarse = dynamic_cast<TPZMatrixSolver<TVar> *>(TPZSaveable::Restore(buf, context));
 	buf.Read(&fNVar, 1);
-	fStep = dynamic_cast<TPZTransfer *>(TPZSaveable::Restore(buf, context));
+	fStep = dynamic_cast<TPZTransfer<TVar> *>(TPZSaveable::Restore(buf, context));
 }
+
+template class TPZMGSolver<double>;
 
 template class TPZRestoreClass<TPZMGSolver<REAL>, TPZMGSOLVER_ID>;

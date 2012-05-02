@@ -61,7 +61,7 @@ int main() {
   cmesh->AutoBuild();
   cout << "\ncmesh->NElements() = " << cmesh->NElements() << "\n";
   TPZCompElDisc * cel = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[0]);
-  TPZAutoPointer<TPZFunction> extShapes = new TExtFunction();
+  TPZAutoPointer<TPZFunction<STATE> > extShapes = new TExtFunction<STATE>();
   cel->SetExternalShapeFunction(extShapes);  
   TPZVec<int> ord(3,10);
 	TPZAutoPointer<TPZIntPoints> points = cel->GetIntegrationRule().Clone();
@@ -281,7 +281,7 @@ int main1(){
   cmesh->SetDimModel(2);
   
   TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
-  mat->SetForcingFunction( new TPZDummyFunction(LoadFunction) );
+  mat->SetForcingFunction( new TPZDummyFunction<STATE>(LoadFunction) );
   TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
   matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
@@ -293,13 +293,13 @@ int main1(){
   REAL diff = 1.;
   matcast->SetParameters(diff, 0., convdir);
   int nstate = 1;
-  TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,10.);
+  TPZFMatrix<STATE> val1(nstate,nstate,0.),val2(nstate,1,10.);
   TPZAutoPointer<TPZMaterial> bcFora ( mat->CreateBC(mat,-2, 0,val1,val2) );
   val2(0,0) = 2.;
   TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
   
-  bcFora->SetForcingFunction(new TPZDummyFunction(Dirichlet));
-  bcDentro->SetForcingFunction(new TPZDummyFunction(Dirichlet));
+  bcFora->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));
+  bcDentro->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));
   
   cmesh->InsertMaterialObject(mat);
   cmesh->InsertMaterialObject(bcFora);
@@ -327,7 +327,7 @@ int main1(){
   TPZCompElDisc::SetTensorialShape(cmesh);
 
   if(!ApenasPolinomial){
-    TPZAutoPointer<TPZFunction> ExternalShapes = new TDiscoFunction();
+    TPZAutoPointer<TPZFunction<STATE> > ExternalShapes = new TDiscoFunction<STATE>();
     for(int iel = 0; iel < cmesh->NElements(); iel++){
       TPZCompEl * cel = cmesh->ElementVec()[iel];
       if(!cel) continue;

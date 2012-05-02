@@ -22,7 +22,10 @@
 #include "pzsmanal.h"
 #include "pzbndcond.h"
 #include "pzvisualmatrix.h"
+
+#ifndef STATE_COMPLEX
 #include "pzmathyperelastic.h"
+#endif
 
 #include <stdio.h>
 
@@ -105,7 +108,7 @@ int TPZSubCompMesh::main() {
 	mesh.InsertMaterialObject(bnd);
 	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
     
-	bnd->SetForcingFunction(new TPZDummyFunction(Forcing));
+	bnd->SetForcingFunction(new TPZDummyFunction<STATE>(Forcing));
 	mesh.InsertMaterialObject(bnd);
 	
 	mesh.AutoBuild();

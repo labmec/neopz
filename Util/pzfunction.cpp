@@ -5,23 +5,16 @@
 
 #include "pzfunction.h"
 
-TPZFunction::TPZFunction()
+template<class TVar>
+TPZFunction<TVar>::TPZFunction()
 {
 }
 
-TPZFunction::~TPZFunction()
+template<class TVar>
+TPZFunction<TVar>::~TPZFunction()
 {
 }
 
-int TPZFunction::ClassId() const{
-	return TPZFUNCTIONID;
-}
+template class TPZFunction<double>;
 
-void TPZFunction::Write(TPZStream &buf, int withclassid){
-	TPZSaveable::Write(buf, withclassid);
-}
-
-void TPZFunction::Read(TPZStream &buf, void *context){
-	TPZSaveable::Read(buf, context);
-}
-
+template class TPZFunction<std::complex<double> >;

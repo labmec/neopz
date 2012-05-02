@@ -516,3 +516,5 @@ void TPZBlock<TVar>::Read(TPZStream &buf, void *context)
 }
 
 template class TPZBlock<REAL>;
+
+template class TPZBlock<std::complex<double> >;

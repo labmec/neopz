@@ -14,13 +14,13 @@ TPZHelmholtz1D::TPZHelmholtz1D(const TPZHelmholtz1D &helm) : TPZMat1dLin(helm) {
 TPZHelmholtz1D::~TPZHelmholtz1D() {
 }
 
-void TPZHelmholtz1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
+void TPZHelmholtz1D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 
-    TPZManVector<REAL,2> alphaval(2), betaval(2), phiaval(2);
+    TPZManVector<STATE,2> alphaval(2), betaval(2), phiaval(2);
     fAlpha->Execute(data.x, alphaval);
     fBeta->Execute(data.x, betaval);
     fPhi->Execute(data.x, phiaval);
-    TPZFNMatrix<4,REAL> xk(2,2),xb(2,2),xc(2,2,0.),xf(2,1);
+    TPZFNMatrix<4,STATE> xk(2,2),xb(2,2),xc(2,2,0.),xf(2,1);
     xk(0,0) = alphaval[0];
     xk(0,1) = -alphaval[1];
     xk(1,0) = alphaval[1];

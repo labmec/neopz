@@ -8,11 +8,12 @@
 
 #include "pzanalysis.h"
 
+template<class TVar>
 class TPZTransfer;
 class TPZInterpolatedElement;
 class TPZTransform;
 
-template <class REAL>
+template <class TVar>
 class TPZStepSolver;
 
 template<class T, class V>
@@ -63,7 +64,7 @@ public:
 	 */
 	static  void MeshError (  TPZCompMesh *fine,TPZCompMesh *coarse,	
 							TPZVec<REAL> &ervec,
-							void (*f) (const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+							void (*f) (const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
 							TPZVec<REAL> &truervec);
 	
 private:    
@@ -71,14 +72,14 @@ private:
 	TPZStack < TPZCompMesh * > fMeshes;
 	
 	/** @brief Contains the meshes solutions */	
-	TPZStack <TPZFMatrix<REAL> *> fSolutions;
+	TPZStack <TPZFMatrix<STATE> *> fSolutions;
 	
 	/** @brief Contains the solution method applied to the mesh */
-	TPZStack <TPZMatrixSolver<REAL> *> fSolvers;
+	TPZStack <TPZMatrixSolver<STATE> *> fSolvers;
 	
 	/** @brief Contains the preconditioner of the solution method if the solution method is a krylov method. */
 	/** The preconditioner can be used as a coarse grid iteration */
-	TPZStack <TPZMatrixSolver<REAL> *> fPrecondition;
+	TPZStack <TPZMatrixSolver<STATE> *> fPrecondition;
 	
 	
 	/**
@@ -92,7 +93,7 @@ private:
 	static  REAL ElementError (TPZInterpolatedElement *fine,
 							   TPZInterpolatedElement *coarse,
 							   TPZTransform &tr,
-							   void (*f) (const TPZVec<REAL> &loc, TPZVec<REAL> &val, TPZFMatrix<REAL> &deriv),
+							   void (*f) (const TPZVec<REAL> &loc, TPZVec<STATE> &val, TPZFMatrix<STATE> &deriv),
 							   REAL &truerror);
 };
 

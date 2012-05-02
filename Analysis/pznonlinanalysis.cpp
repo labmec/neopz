@@ -40,13 +40,15 @@ TPZNonLinearAnalysis::TPZNonLinearAnalysis(TPZCompMesh *mesh,std::ostream &out) 
 TPZNonLinearAnalysis::~TPZNonLinearAnalysis() {
 }
 
+
+//#define DEBUGLINESEARCH
 #ifdef DEBUGLINESEARCH
 ofstream alphafile("c:\\Temp\\tmp\\alpha.txt");
 #endif
-REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter){
+REAL TPZNonLinearAnalysis::LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<STATE> DeltaW, TPZFMatrix<STATE> &NextW, REAL tol, int niter){
 	REAL error = 2.*tol+1.;
 	REAL A, B, L, M;
-	TPZFMatrix<REAL> ak, bk, lambdak, muk, Interval;
+	TPZFMatrix<STATE> ak, bk, lambdak, muk, Interval;
 	REAL NormResLambda, NormResMu;
 	//ak = Wn + 0.1 * DeltaW
 	ak = DeltaW;
@@ -156,12 +158,12 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 	REAL error = 1.e10;
 	int numeq = fCompMesh->NEquations();
 	
-	TPZFMatrix<REAL> prevsol(fSolution);
+	TPZFMatrix<STATE> prevsol(fSolution);
 	if(prevsol.Rows() != numeq) prevsol.Redim(numeq,1);
 	
 	if(checkconv){
 		TPZVec<REAL> coefs(1,1.);
-		TPZFMatrix<REAL> range(numeq,1,1.);
+		TPZFMatrix<STATE> range(numeq,1,1.);
 		CheckConvergence(*this,fSolution,range,coefs);
 	}
 	
@@ -171,7 +173,7 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 		Assemble();
 		Solve();
 		if (linesearch){
-			TPZFMatrix<REAL> nextSol;
+			TPZFMatrix<STATE> nextSol;
 			REAL LineSearchTol = 1e-3 * Norm(fSolution);
 			const int niter = 10;
 			this->LineSearch(prevsol, fSolution, nextSol, LineSearchTol, niter);
@@ -205,7 +207,7 @@ void TPZNonLinearAnalysis::IterativeProcess(std::ostream &out,REAL tol,int numit
 }
 
 /** @brief Zeroes entries of val vector and deriv matrix. */
-void NullForce(TPZVec<REAL> &/*point*/,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
+void NullForce(TPZVec<REAL> &/*point*/,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv) {
     int i,cap = val.NElements() ;
     deriv.Zero();
     for(i=0;i<cap;i++) val[i] = 0.;
@@ -214,10 +216,11 @@ REAL TPZNonLinearAnalysis::SolutionNorm(){
 	return Norm(fSolution);
 }
 
-void TPZNonLinearAnalysis::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase) {	
+void TPZNonLinearAnalysis::ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase){
+	
 	int neq = fCompMesh->NEquations();
 	tangent.Redim(neq,neq);
-	TPZFMatrix<REAL> rhs(neq,1);
+	TPZFMatrix<STATE> rhs(neq,1);
 	fStructMatrix->Assemble(tangent,rhs,NULL);
 }
 
@@ -225,15 +228,15 @@ int TPZNonLinearAnalysis::NumCases() {
 	return 1;
 }
 
-void TPZNonLinearAnalysis::Residual(TPZFMatrix<REAL> &residual, int icase) {
+void TPZNonLinearAnalysis::Residual(TPZFMatrix<STATE> &residual, int icase){
 	int neq = fCompMesh->NEquations();
-	TPZFMatrix<REAL> tangent(neq,neq);
+	TPZFMatrix<STATE> tangent(neq,neq);
 	residual.Redim(neq,1);
 	fStructMatrix->Assemble(tangent,residual,NULL);
 	residual *= -1.;
 }
 
-void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix<REAL> &state){
+void TPZNonLinearAnalysis::LoadSolution(const TPZFMatrix<STATE> &state){
 	fSolution = state;
 	TPZAnalysis::LoadSolution();
 }
@@ -242,6 +245,6 @@ void TPZNonLinearAnalysis::LoadSolution(){
 	this->LoadSolution(fSolution);
 }
 
-void TPZNonLinearAnalysis::LoadState(TPZFMatrix<REAL> &state){
+void TPZNonLinearAnalysis::LoadState(TPZFMatrix<STATE> &state){
 	this->LoadSolution(state);
 }

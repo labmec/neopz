@@ -525,7 +525,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	mymaterial->SetfPlaneProblem(planestress);
 	mymaterial->SetBiotParameters(alpha,Se);
 	
-	TPZAutoPointer<TPZFunction> exata = new TPZDummyFunction(SolucaoExata);
+	TPZAutoPointer<TPZFunction<STATE> > exata = new TPZDummyFunction<STATE>(SolucaoExata);
 	mymaterial->SetForcingFunctionExact(exata);
 	
 	ofstream argm("mymaterial.txt");

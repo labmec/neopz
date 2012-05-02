@@ -38,7 +38,7 @@ void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &righ
 	
 	if(!mat) return;
 	if(fForcingFunction) {
-		TPZManVector<REAL> result(fBCVal2.Rows());
+		TPZManVector<STATE> result(fBCVal2.Rows());
 		fForcingFunction->Execute(x,result);
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {
@@ -257,7 +257,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 
 void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
 	if(fForcingFunction){
-		TPZManVector<REAL> result(fBCVal2.Rows(),0.);
+		TPZManVector<STATE> result(fBCVal2.Rows(),0.);
 		fForcingFunction->Execute(data.x,result);
 		int i;
 		for(i=0; i<fBCVal2.Rows(); i++) {

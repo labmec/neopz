@@ -250,7 +250,7 @@ public:
 		if(nc) buf.Read(&vec[0],nc);
 	}
 	
-	static void ReadObjects(TPZStream &buf, std::vector<REAL> &vec)
+	static void ReadObjects(TPZStream &buf, std::vector<float> &vec)
 	{
 		int nc;
 		buf.Read(&nc,1);
@@ -258,7 +258,39 @@ public:
 		if(nc) buf.Read(&vec[0],nc);
 	}
 	
-	static void ReadObjects(TPZStream &buf, TPZVec<REAL> &vec)
+	static void ReadObjects(TPZStream &buf, TPZVec<float> &vec)
+	{
+		int nc;
+		buf.Read(&nc,1);
+		vec.Resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
+	
+	static void ReadObjects(TPZStream &buf, std::vector<double> &vec)
+	{
+		int nc;
+		buf.Read(&nc,1);
+		vec.resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
+	
+	static void ReadObjects(TPZStream &buf, TPZVec<double> &vec)
+	{
+		int nc;
+		buf.Read(&nc,1);
+		vec.Resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
+	
+	static void ReadObjects(TPZStream &buf, std::vector<std::complex<double> > &vec)
+	{
+		int nc;
+		buf.Read(&nc,1);
+		vec.resize(nc);
+		if(nc) buf.Read(&vec[0],nc);
+	}
+	
+	static void ReadObjects(TPZStream &buf, TPZVec<std::complex<double> > &vec)
 	{
 		int nc;
 		buf.Read(&nc,1);
@@ -361,14 +393,42 @@ public:
 		ReadObjects(buf,vec.fNFree);
 	}
 	
-	static void WriteObjects(TPZStream &buf, TPZVec<REAL> &vec)
+	static void WriteObjects(TPZStream &buf, TPZVec<float> &vec)
 	{
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
 	}
 	
-	static void WriteObjects(TPZStream &buf, std::vector<REAL> &vec)
+	static void WriteObjects(TPZStream &buf, std::vector<float> &vec)
+	{
+		int nel = vec.size();
+		buf.Write(&nel,1);
+		if(nel) buf.Write(&vec[0],vec.size());
+	}
+	
+	static void WriteObjects(TPZStream &buf, TPZVec<double> &vec)
+	{
+		int nel = vec.NElements();
+		buf.Write(&nel,1);
+		if(nel) buf.Write(&vec[0],vec.NElements());
+	}
+	
+	static void WriteObjects(TPZStream &buf, std::vector<double> &vec)
+	{
+		int nel = vec.size();
+		buf.Write(&nel,1);
+		if(nel) buf.Write(&vec[0],vec.size());
+	}
+	
+	static void WriteObjects(TPZStream &buf, TPZVec<std::complex<double> > &vec)
+	{
+		int nel = vec.NElements();
+		buf.Write(&nel,1);
+		if(nel) buf.Write(&vec[0],vec.NElements());
+	}
+	
+	static void WriteObjects(TPZStream &buf, std::vector<std::complex<double> > &vec)
 	{
 		int nel = vec.size();
 		buf.Write(&nel,1);

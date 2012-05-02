@@ -45,23 +45,23 @@ public:
 	 * as DeltaW. \n But fSolution changes in the linesearch procedure when LoadSolution
 	 * is called before AssembleResidual.
 	 */
-	REAL LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix<REAL> DeltaW, TPZFMatrix<REAL> &NextW, REAL tol, int niter);
+	REAL LineSearch(const TPZFMatrix<STATE> &Wn, TPZFMatrix<STATE> DeltaW, TPZFMatrix<STATE> &NextW, REAL tol, int niter);
 	/** @brief Computes the L2 norm of the solution */
 	REAL SolutionNorm();
 	
 	/** @note Incomplete */
-	virtual void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase);
+	virtual void ComputeTangent(TPZFMatrix<STATE> &tangent, TPZVec<REAL> &coefs, int icase);
 	/** @brief Actually return 1 */
 	int NumCases();
 	
-	virtual void Residual(TPZFMatrix<REAL> &residual, int icase);
+	virtual void Residual(TPZFMatrix<STATE> &residual, int icase);
 	
 	virtual void LoadSolution();
 	
-	virtual void LoadSolution(const TPZFMatrix<REAL> &state);
+	virtual void LoadSolution(const TPZFMatrix<STATE> &state);
 	
 	/** @brief Load solution with state as solution. But fSolution is not modified */
-	void LoadState(TPZFMatrix<REAL> &state);
+	void LoadState(TPZFMatrix<STATE> &state);
 	
 };
 

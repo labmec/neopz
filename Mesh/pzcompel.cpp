@@ -365,7 +365,7 @@ inline void TPZCompEl::Divide(int index, TPZVec<int> &subindex, int interpolate)
 	LOGPZ_WARN(logger,"TPZCompEl::Divide called");
 }
 
-void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
                               TPZVec<REAL> &/*errors*/,TPZBlock<REAL> * /*flux*/) {
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }

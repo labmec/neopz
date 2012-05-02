@@ -409,7 +409,7 @@ void TPZInterpolatedElement::UpdateNeighbourSideOrder(int side, TPZVec<TPZCompEl
 	}
 }
 
-void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer){
+void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZGeoEl *ref = Reference();
@@ -481,8 +481,8 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 	// loclocmat is the inner product of the shape functions of the local element
 	// loccormat is the inner product of the shape functions with the shape functions
 	//    of the coarse element, both dependent and independent
-	TPZFNMatrix<500> loclocmat(locmatsize,locmatsize);
-	TPZFNMatrix<500> loccormat(locmatsize,cormatsize);
+	TPZFNMatrix<500,STATE> loclocmat(locmatsize,locmatsize);
+	TPZFNMatrix<500,STATE> loccormat(locmatsize,cormatsize);
 	loclocmat.Zero();
 	loccormat.Zero();
 	
@@ -588,7 +588,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
 							 locblocksize,corblocksize,small);
 			REAL tol = Norm(small);
@@ -606,7 +606,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
 			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
 		}

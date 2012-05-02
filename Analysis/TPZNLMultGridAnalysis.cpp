@@ -642,7 +642,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	//ofstream *dxout = new ofstream("PreSmoothingEuler.dx");//par�etro de SmootSolution
 	//ofstream *dxout2 = new ofstream("PostSmoothingEuler.dx");
 	// TRANSFER�CIA DE SOLU�ES
-	TPZTransfer transfer;
+	TPZTransfer<STATE> transfer;
 	fMeshes[2]->BuildTransferMatrixDesc(*fMeshes[1],transfer);
 	TPZFMatrix<REAL> projectsol;
 	REAL normsolfine = 0.0,normsolcoar = 1.e10,erro;

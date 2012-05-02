@@ -221,13 +221,13 @@ template<class TVar>
 void TPZSparseBlockDiagonal<TVar>::MultAdd(const TPZFMatrix<TVar>& x, const TPZFMatrix<TVar>& y, TPZFMatrix<TVar>& z, const TVar alpha, const TVar beta, const int opt, const int stride) const
 {
 	LOGPZ_DEBUG(logger, "TPZSparseBlockDiagonal::MultAdd");
-	TPZFNMatrix<1000000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
+	TPZFNMatrix<1000,TVar> xsc(0,0),ysc(0,0,0.),zsc(0,0);
 	xsc.Resize(this->fBlock.NElements(),x.Cols());
 	z.Zero();
-	if(beta != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
+	if(abs(beta) != 0.) ysc.Resize(fBlock.NElements(),y.Cols());
 	zsc.Resize(fBlock.NElements(),z.Cols());
 	Gather(x,xsc,stride);
-	if(beta != 0.) Scatter(y,ysc,stride);
+	if(abs(beta) != 0.) Scatter(y,ysc,stride);
 	TPZBlockDiagonal<TVar>::MultAdd(xsc, ysc, zsc, alpha, beta, opt,1);
 	Scatter(zsc,z,stride);
 }
@@ -314,4 +314,7 @@ void TPZSparseBlockDiagonal<TVar>::UpdateFrom(TPZAutoPointer<TPZMatrix<TVar> > m
 	
 }
 
-template class TPZSparseBlockDiagonal<REAL>;
+template class TPZSparseBlockDiagonal<float>;
+template class TPZSparseBlockDiagonal<double>;
+template class TPZSparseBlockDiagonal<std::complex<float> >;
+template class TPZSparseBlockDiagonal<std::complex<double> >;

@@ -86,7 +86,7 @@ public:
 	/** 
 	 * Also updates the CompMesh soution.
 	 */
-	void UpdateSolAndRhs(TPZFMatrix<REAL> & deltaSol, REAL & epsilon);
+	void UpdateSolAndRhs(TPZFMatrix<STATE> & deltaSol, REAL & epsilon);
 	
 	/**
 	 * @brief After a call to UpdateSolution, this method
@@ -124,7 +124,7 @@ public:
 	 * @param delSol [out] returns the delta Solution vector.
 	 * @return 1 if everything fine, 0 otherwise (no better solution found)
 	 */
-	int Solve(REAL & res, TPZFMatrix<REAL> * residual, TPZFMatrix<REAL> & delSol);
+	int Solve(REAL & res, TPZFMatrix<STATE> * residual, TPZFMatrix<STATE> & delSol);
 	
 	virtual void Solve()
 	{
@@ -153,7 +153,7 @@ public:
 	TPZDXGraphMesh * PrepareDXMesh(const std::string &dxout, int dxRes);
 	
 	/** @brief Informs a block diagonal to be used as preconditioning */
-	void SetBlockDiagonalPrecond(TPZBlockDiagonal<REAL> * blockDiag);
+	void SetBlockDiagonalPrecond(TPZBlockDiagonal<STATE> * blockDiag);
 	
 	/**
 	 * @brief This method will search for the \f$ sol0 + \alpha dir\f$ solution which minimizes the residual
@@ -162,7 +162,7 @@ public:
 	 * @param dir [in] search direction
 	 * @return 1 if a direction was found, 0 otherwise
 	 */
-	int LineSearch(REAL &residual, TPZFMatrix<REAL> &sol0, TPZFMatrix<REAL> &dir);
+	int LineSearch(REAL &residual, TPZFMatrix<STATE> &sol0, TPZFMatrix<STATE> &dir);
 	/** @brief Trying difference between two times. */
 	/** @note Actually it do nothing */
     void CompareRhs();
@@ -195,7 +195,7 @@ protected:
 	TPZFlowCompMesh * fFlowCompMesh;
 	
 	/** @brief Vector to hold the contribution of last state to the rhs. */
-	TPZFMatrix<REAL> fRhsLast;
+	TPZFMatrix<STATE> fRhsLast;
 	
 	/** @brief Stop criteria for the Newton loops. */
 	REAL fNewtonEps;
@@ -211,7 +211,7 @@ protected:
 	int fEvolCFL;
 	
 	/** @brief Preconditioner */
-	TPZBlockDiagonal<REAL> * fpBlockDiag;
+	TPZBlockDiagonal<STATE> * fpBlockDiag;
 	
 	/** @brief Total number of newton iterations during this run */
 	int fTotalNewton;

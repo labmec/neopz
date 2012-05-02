@@ -31,6 +31,7 @@ class TPZBndCond;
 class TPZMaterial;
 class TPZGeoMesh;
 
+template<class TVar>
 class TPZTransfer;
 class TPZCoSys;
 class TPZGeoEl;
@@ -388,10 +389,10 @@ public:
 	 * @param coarsemesh grid for where the matrix will be transfered
 	 * @param transfer transfer matrix between the current mesh and the coarse mesh
 	 */
-	void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer);
+	void BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE> &transfer);
 	
 	/** @brief To discontinuous elements */
-	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer &transfer);
+	void BuildTransferMatrixDesc(TPZCompMesh &transfermesh,TPZTransfer<STATE> &transfer);
 	void ProjectSolution(TPZFMatrix<STATE> &projectsol);
 	
 private:
@@ -530,7 +531,7 @@ public:
 	 * @note Parameter deriv - ????
 	 * @param errorSum - return the L1 error
 	 */
-	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+	void EvaluateError(void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
 					   TPZVec<REAL> &errorSum);
 	
 	/** @brief This method compute the jump solution of interface and convert discontinuous elements with jump less than eps in continuous elements. */

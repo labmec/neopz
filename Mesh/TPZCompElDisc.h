@@ -79,7 +79,7 @@ protected:
 	REAL fConstC;
 	
 	/** @brief A pz function to allow the inclusion of extra shape functions which are defined externally. */
-	TPZAutoPointer<TPZFunction> fExternalShape;
+	TPZAutoPointer<TPZFunction<REAL> > fExternalShape;
 	
 protected:
 	
@@ -95,7 +95,7 @@ protected:
 public:
 	
 	/** @brief Define external shape functions which are stored in class attribute fExternalShape */
-	void SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes);
+	void SetExternalShapeFunction(TPZAutoPointer<TPZFunction<REAL> > externalShapes);
 	
 	/** @brief Return whether element has external shape functions set to */
 	bool HasExternalShapeFunction();
@@ -331,7 +331,7 @@ public:
 	
 	int NSides();
 	
-	void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer);
+	void BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STATE> &transfer);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

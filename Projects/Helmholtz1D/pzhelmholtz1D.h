@@ -28,11 +28,11 @@
 class TPZHelmholtz1D  : public TPZMat1dLin
 {
 	/** @brief Pointer to alpha function, coefficient of the first derivative of u */
-    TPZAutoPointer<TPZFunction> fAlpha;
+    TPZAutoPointer<TPZFunction<STATE> > fAlpha;
 	/** @brief Pointer to beta function, variable coefficient of the u */
-    TPZAutoPointer<TPZFunction> fBeta;
+    TPZAutoPointer<TPZFunction<STATE> > fBeta;
         /** @brief Pointer to phi function */
-    TPZAutoPointer<TPZFunction> fPhi;
+    TPZAutoPointer<TPZFunction<STATE> > fPhi;
     
 public:
 	/** @brief Simple constructor with material id and dimension of the spatial domain */
@@ -63,18 +63,18 @@ public:
      * @param ef [out] is the load vector
      * @since April 16, 2007
      */
-    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+    virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	/** @brief Sets the variable coefficient alpha */
-	void SetAlphaFunction(TPZAutoPointer<TPZFunction> falpha) {
+	void SetAlphaFunction(TPZAutoPointer<TPZFunction<STATE> > falpha) {
 		fAlpha = falpha;
 	}
 	/** @brief Sets the variable coefficient beta */
-	void SetBetaFunction(TPZAutoPointer<TPZFunction> fbeta) {
+	void SetBetaFunction(TPZAutoPointer<TPZFunction<STATE> > fbeta) {
 		fBeta = fbeta;
 	}
         
-        void SetPhiFunction(TPZAutoPointer<TPZFunction> fphi){
+        void SetPhiFunction(TPZAutoPointer<TPZFunction<STATE> > fphi){
                 fPhi = fphi;
         }
 };

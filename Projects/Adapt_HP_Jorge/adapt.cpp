@@ -565,7 +565,7 @@ TPZCompMesh * CoarsenOneLevel ( TPZCompMesh & OriginalMesh )
 	
 	CoarseMesh->Reference()->RestoreReference(CoarseMesh);
 	
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();
 #ifdef HUGE_DEBUG
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
@@ -910,7 +910,7 @@ void AdaptMesh ( TPZCompMesh & CMesh,
 	}
 #endif
 	
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();	
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();	
 	//Let's divide the elements
 	for (el=0;el<nel;el++)
 	{
@@ -1233,7 +1233,7 @@ void RefineElements ( TPZCompMesh & CMesh,
 					 TPZAutoPointer < TPZRefPattern > & RefPattern )
 {
 	int siz = RefineList.size();
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();
 	while ( RefineList.size() )
 	{
 		// take a pointer to element

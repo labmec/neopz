@@ -78,7 +78,7 @@ public:
 	void SetSaveSolution(int SaveFrequency);
 	
 	/** @brief Access to saved solution. Pair of (solution vec, simulation time) */
-	std::list< std::pair<TPZFMatrix<REAL>, REAL> > & GetSavedSolutions();
+	std::list< std::pair<TPZFMatrix<STATE>, STATE> > & GetSavedSolutions();
 	
 	/** @brief Defines max number of steps and error convergence tolerance for Newton's method. */  
 	void SetNewtonConvergence(int niter, REAL eps);
@@ -87,7 +87,7 @@ public:
 	REAL & TimeStep();
 	
 	/** @brief Sets problem initial solution */
-	void SetInitialSolution(TPZFMatrix<REAL> & InitialSol);
+	void SetInitialSolution(TPZFMatrix<STATE> & InitialSol);
 	
 	/** @brief Sets problem initial solution as zero */
 	void SetInitialSolutionAsZero();
@@ -127,7 +127,7 @@ protected:
 	
 	/** @brief Attribute to store solution vectors during process. Pair of (solution vec, simulation time) */
 	/** This attribute is cleaned every time Run method is called */
-	std::list< std::pair< TPZFMatrix<REAL>, REAL> > fSavedSolutionVec;
+	std::list< std::pair< TPZFMatrix<STATE>, STATE> > fSavedSolutionVec;
 	
 	/** @brief If fSaveSolutionVecFrequency != 0, save current solution vector in fSavedSolutionVec attribute. */
 	void SaveCurrentSolutionVec();

@@ -469,7 +469,7 @@ int run(std::istream & input, std::ostream & output)
 				GetSolutionGraph (-1, arq, cmesh);
 				return 0;
 			}
-			TPZTransfer transfer;
+			TPZTransfer<STATE> transfer;
 			cmesh->BuildTransferMatrix(tempmesh,transfer);
 			TPZFMatrix<REAL> coarsesol = tempmesh.Solution();
 			coarsesol.Remodel(4,coarsesol.Rows()/4);

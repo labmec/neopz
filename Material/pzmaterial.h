@@ -43,9 +43,9 @@ private:
 protected:
     
 	/** @brief Pointer to forcing function, it is the right member at differential equation */
-    TPZAutoPointer<TPZFunction> fForcingFunction;
+    TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
-    TPZAutoPointer<TPZFunction> fForcingFunctionExact;
+    TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -227,7 +227,7 @@ public:
 	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
 	 * @note Parameter result contains the forces resulting
 	 */
-    void SetForcingFunction(TPZAutoPointer<TPZFunction> fp)
+    void SetForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
         fForcingFunction = fp;
     }
@@ -236,7 +236,7 @@ public:
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function
 	 */
-	 void SetForcingFunctionExact(TPZAutoPointer<TPZFunction> fp)
+	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fForcingFunctionExact = fp;
 	}
@@ -256,12 +256,12 @@ public:
 	 */
     virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
                         TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-                        TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,
+                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
                         TPZVec<REAL> &val) {
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
     }
-	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values){
+	virtual	void ErrorsHdiv(TPZMaterialData &data, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values){
 		PZError << __PRETTY_FUNCTION__ << std::endl;
 		PZError << "Nao sei o q fazer." << std::endl;
 		

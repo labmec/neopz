@@ -36,7 +36,7 @@ void TPZMat2dLin::Contribute( TPZMaterialData &data,REAL weight,
 	}
 	if(fForcingFunction)
 	{
-		TPZManVector<REAL> xfloat(fXf.Rows());
+		TPZManVector<STATE> xfloat(fXf.Rows());
 		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
 		int i;
 		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];
@@ -173,10 +173,20 @@ int TPZMat2dLin::NSolutionVariables(int index) {
 void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout) {
 	
 	if(var == 0) {
+#ifndef USING_COMPLEX
 		Solout = Sol;
+#else
+        for (int i=0; i<Sol.size(); i++) {
+            Solout[i] = Sol[i].real();
+        }
+#endif
 	} else if(var == 1) {
 		Solout.Resize(3,0.);
+#ifndef USING_COMPLEX
 		Solout[0] = Sol[0];
+#else
+        Solout[0] = Sol[0].real();
+#endif
 	} else if(var == 2) {
       	Solout[0] = DSol(0,0);//derivate
 		Solout[1] = DSol(1,0);//derivate
@@ -195,7 +205,7 @@ void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 	STATE parc2 = dy-du_exact(1,0) ;
 	values[0] = abs(parc1*parc1 + parc2*parc2);/*pow(parc1,2.)+pow(parc2,2.);*/
 	//Norma L2
-	values[1] = pow(fabs(u[0] - u_exact[0]),(STATE)2.0);
+	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
 	values[2] = 0.;
 }
 

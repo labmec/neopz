@@ -19,9 +19,9 @@ template <class TConv>
  * \li ComputeTangent : which will compute a tangent matrix \n
  * \li Residual : which will compute a residual vector
  */
-void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &range, TPZVec<REAL> &coefs) {
+void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &range, TPZVec<REAL> &coefs) {
 
-	TPZFMatrix<REAL> incval(range);
+	TPZFMatrix<STATE> incval(range);
 	int i,numrows;
 	
 	numrows = state.Rows();
@@ -43,7 +43,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
 	for(icase = 0; icase < numcases; icase++) {
 		
 		obj.LoadState(state);
-		TPZFMatrix<REAL> ReferenceResidual, Tangent, EstimateRes;
+		TPZFMatrix<STATE> ReferenceResidual, Tangent, EstimateRes;
 		
 		obj.ComputeTangent(Tangent,coefs,icase);
 		
@@ -60,8 +60,8 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
 		
 		for(interval = 1; interval < 10; interval++) {
 			
-			TPZFMatrix<REAL> actualstate(state);
-			TPZFMatrix<REAL> residual;
+			TPZFMatrix<STATE> actualstate(state);
+			TPZFMatrix<STATE> residual;
 			
 			for(i=0; i<numrows; i++) {
 				for(j=0; j<ncoefs; j++) {
@@ -74,7 +74,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<REAL> &state, TPZFMatrix<REAL> &ran
 			// residual.Print("residual");
 			residual -= ReferenceResidual;
 			// resnorm[interval] = Norm(residual);
-			residual = residual - EstimateRes*(REAL(interval/10.));
+			residual = residual - EstimateRes*(STATE(interval/10.));
 			// residual.Print("residual adaptado");
 			difnorm[interval] = Norm(residual);
 			// cout << "difnorm = " << difnorm[interval];

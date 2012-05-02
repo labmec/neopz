@@ -492,6 +492,12 @@ int TPZSkylParMatrix<TVar>::Decompose_LDLt()
 	return 1;
 }
 
+template<>
+void TPZSkylParMatrix<std::complex<double> >::DecomposeColumnCholesky(int col, int prevcol)
+{
+    DebugStop();
+}
+
 template<class TVar>
 void TPZSkylParMatrix<TVar>::DecomposeColumnCholesky(int col, int prevcol){
 	
@@ -793,4 +799,5 @@ int TPZSkylParMatrix<TVar>::main_nada()
 	return 1;
 }
 
-template class TPZSkylParMatrix<REAL>;
+template class TPZSkylParMatrix<double>;
+template class TPZSkylParMatrix<std::complex<double> >;

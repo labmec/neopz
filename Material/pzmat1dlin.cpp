@@ -34,7 +34,7 @@ void TPZMat1dLin::Contribute(TPZMaterialData &data,
 	}
 	
 	if(fForcingFunction) {
-		TPZManVector<REAL> xfloat(fXf.Rows());
+		TPZManVector<STATE> xfloat(fXf.Rows());
 		fForcingFunction->Execute(x,xfloat);//fXf = xfloat
 		int i;
 		for(i=0; i<fXf.Rows(); i++) fXf(i,0) = xfloat[i];

@@ -514,16 +514,16 @@ inline long double Norm(const TPZFMatrix<long double> &A) {
 	return sqrt(Dot(A,A));
 }
 
-inline std::complex <float> Norm(const TPZFMatrix< std::complex <float> > &A) {
-	return sqrt(Dot(A,A));
+inline float Norm(const TPZFMatrix< std::complex <float> > &A) {
+	return sqrt(Dot(A,A).real());
 }
 
-inline std::complex <double> Norm(const TPZFMatrix< std::complex <double> > &A) {
-	return sqrt(Dot(A,A));
+inline double Norm(const TPZFMatrix< std::complex <double> > &A) {
+	return sqrt(Dot(A,A).real());
 }
 
-inline std::complex <long double> Norm(const TPZFMatrix< std::complex <long double> > &A) {
-	return sqrt(Dot(A,A));
+inline long double Norm(const TPZFMatrix< std::complex <long double> > &A) {
+	return sqrt(Dot(A,A).real());
 }
 
 #endif

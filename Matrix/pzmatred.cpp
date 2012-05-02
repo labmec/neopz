@@ -213,11 +213,20 @@ TPZMatRed<TVar,TSideMatrix>::K11Red()
 #include "tpzverysparsematrix.h"
 
 template<>
-const TPZFMatrix<REAL>&
-TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::K11Red()
+const TPZFMatrix<double>&
+TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Red()
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
-	static TPZFMatrix<REAL> temp;
+	static TPZFMatrix<double> temp;
+	return temp;
+}
+
+template<>
+const TPZFMatrix<std::complex<double> >&
+TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K11Red()
+{
+	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
+	static TPZFMatrix<std::complex<double> > temp;
 	return temp;
 }
 
@@ -452,8 +461,8 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 	fK10.Redim(fDim1,fDim0);
 	fK11.Redim(fDim1,fDim1);
 	
-	fF0=NULL;
-	fF1=NULL;
+	fF0=(TVar)NULL;
+	fF1=(TVar)NULL;
 	this->fRow = dim;
 	this->fCol = dim;
 	return 0;
@@ -590,7 +599,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
                 fK11(fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes,fDim1-fMaxRigidBodyModes+fNumberRigidBodyModes) = 1.;
                 if(stepsolve != directsolve)
                 {
-                    REAL diag = stepsolve->Matrix()->GetVal(*it, *it)+1.;
+                    TVar diag = stepsolve->Matrix()->GetVal(*it, *it)+1.;
                     stepsolve->Matrix()->PutVal(*it, *it, diag);
                 }
             }
@@ -733,9 +742,18 @@ int TPZMatRed<REAL, TPZFMatrix<REAL> >::ClassId() const
     return TPZMATRED_FMATRIX_ID;
 }
 
+template<class TVar, class TSideMatrix>
+int TPZMatRed<TVar,TSideMatrix>::ClassId() const
+{
+    DebugStop();
+    return -1;
+}
 
-template class TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >;
-template class TPZMatRed<REAL, TPZFMatrix<REAL> >;
+template class TPZMatRed<double, TPZVerySparseMatrix<double> >;
+template class TPZMatRed<double, TPZFMatrix<double> >;
+
+template class TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >;
+template class TPZMatRed<std::complex<double>, TPZFMatrix<std::complex<double> > >;
 
 template class TPZRestoreClass<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> >, TPZMATRED_VERYSPARSE_ID>;
 template class TPZRestoreClass<TPZMatRed<REAL, TPZFMatrix<REAL> >, TPZMATRED_FMATRIX_ID>;

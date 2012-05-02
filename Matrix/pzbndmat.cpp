@@ -443,6 +443,38 @@ TPZFBMatrix<TVar>::operator*(const TVar value ) const
 /***************************/
 /*** Operator*=( value ) ***/
 
+template<>
+TPZFBMatrix<std::complex<float> > &
+TPZFBMatrix<std::complex<float> >::operator*=(const std::complex<float> value )
+{
+	if ( value.real() != 1.0 || value.imag() != 0. )
+    {
+		int size = Dim() * (2*fBand + 1);
+        std::complex<float> *dst = fElem;
+		for ( int i = 0; i < size; i++ )
+			*dst++ *= value;
+    }
+	
+	return( *this );
+}
+
+template<>
+TPZFBMatrix<std::complex<double> > &
+TPZFBMatrix<std::complex<double> >::operator*=(const std::complex<double> value )
+{
+	if ( value.real() != 1.0 || value.imag() != 0. )
+    {
+		int size = Dim() * (2*fBand + 1);
+        std::complex<double> *dst = fElem;
+		for ( int i = 0; i < size; i++ )
+			*dst++ *= value;
+    }
+	
+	return( *this );
+}
+
+
+
 template<class TVar>
 TPZFBMatrix<TVar> &
 TPZFBMatrix<TVar>::operator*=(const TVar value )
@@ -636,8 +668,8 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
         TVar pivot = *iPtr;
         if ( IsZero(pivot))
         {
-            (*iPtr)++;
-            pivot++;
+            (*iPtr) = (*iPtr)+(TVar)1.;
+            pivot = pivot+(TVar)1.;
             std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
 			//            TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
         }
@@ -671,8 +703,8 @@ TPZFBMatrix<TVar>::Decompose_LU(std::list<int> &singular)
     TVar pivot = *iPtr;
     if ( IsZero(pivot))
     {
-        (*iPtr)++;
-        pivot++;
+        (*iPtr) = (*iPtr)+(TVar)1.;
+        pivot = pivot+(TVar)1.;
         std::cout << __PRETTY_FUNCTION__ << " at row " << k << " is singular\n";
         //            TPZMatrix::Error(__PRETTY_FUNCTION__, "Decompose_LU <matrix is singular>" );
     }
@@ -830,3 +862,5 @@ template class TPZFBMatrix<long double>;
 template class TPZFBMatrix<double>;
 template class TPZFBMatrix<int>;
 template class TPZFBMatrix<float>;
+template class TPZFBMatrix<std::complex<double> >;
+template class TPZFBMatrix<std::complex<float> >;

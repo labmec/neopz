@@ -133,7 +133,7 @@ public:
 	
 protected:
 	/** @brief Stores matrix data */
-	TPZVec<REAL> fStorage;
+	TPZVec<TVar> fStorage;
 	/** @brief Stores blocks data */
 	TPZVec<int> fBlockPos;
 	/** @brief Stores block sizes data */

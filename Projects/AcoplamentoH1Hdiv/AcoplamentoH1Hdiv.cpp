@@ -560,10 +560,10 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		
 		//setando forcing function para os dois materiais- Omega1 e 2
-        TPZAutoPointer<TPZFunction> force = new TPZDummyFunction(Forcing1);
+        TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(Forcing1);
 	  mat1->SetForcingFunction(force);
 		mat2->SetForcingFunction(force);
-		TPZAutoPointer<TPZFunction> exata = new TPZDummyFunction(SolExata);
+		TPZAutoPointer<TPZFunction<STATE> > exata = new TPZDummyFunction<STATE>(SolExata);
 		mat1->SetForcingFunctionExact(exata);
 		mat2->SetForcingFunctionExact(exata);
 		

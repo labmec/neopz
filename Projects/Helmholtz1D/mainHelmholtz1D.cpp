@@ -12,7 +12,7 @@
 #include "pzlog.h"
 
 // Right handside term of our Linear PDE
-void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) {
+void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &xfloat) {
 	
 	if(!xfloat.NElements() || !pto.NElements())
 		DebugStop();
@@ -21,12 +21,12 @@ void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) {
 }
 
 // Exact Solution u(x)
-void ExactSolution(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact) {
+void ExactSolution(const TPZVec<REAL> &pto, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact) {
 
 }
 
 // Variable coefficient of first derivative
-void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &alpha) {
+void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
 #ifdef DEBUG
         if(alpha.NElements() != 2) {            
             DebugStop();
@@ -43,7 +43,7 @@ void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &alpha) {
 }
 
 // Variable coefficient of the u
-void BetaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &beta) {
+void BetaFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &beta) {
 #ifdef DEBUG
         if(beta.NElements() != 2) {            
             DebugStop();
@@ -61,7 +61,7 @@ void BetaFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &beta) {
         beta[1] = bet.imag();
 }
 
-void PhiFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &phi){
+void PhiFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &phi){
 #ifdef DEBUG
         if(phi.NElements() != 2) {
             
@@ -107,16 +107,16 @@ int main() {
 	TPZHelmholtz1D *material;
 	material = new TPZHelmholtz1D(matId[0],1);
         
-        material->SetAlphaFunction(new TPZDummyFunction(AlphaFunction));
-	material->SetBetaFunction(new TPZDummyFunction(BetaFunction));
-        material->SetPhiFunction(new TPZDummyFunction(PhiFunction));
+        material->SetAlphaFunction(new TPZDummyFunction<STATE>(AlphaFunction));
+	material->SetBetaFunction(new TPZDummyFunction<STATE>(BetaFunction));
+        material->SetPhiFunction(new TPZDummyFunction<STATE>(PhiFunction));
         
-        TPZFMatrix<REAL> xkin(2, 2, 0.), xcin(2, 2, 0.), xbin(2, 2, 0.), xfin(2, 1, 0.); 
+        TPZFMatrix<STATE> xkin(2, 2, 0.), xcin(2, 2, 0.), xbin(2, 2, 0.), xfin(2, 1, 0.); 
 
         material->SetMaterial(xkin,xcin,xbin,xfin);
 	
 	// inserting function force
-	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
+	material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D

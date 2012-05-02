@@ -351,7 +351,7 @@ public:
 	 * @param transfer transfer matrix mapping the solution of the coarse mesh into the fine mesh
 	 */
 	/** This method forms the basis for the multigrid method */
-	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer &transfer);
+	virtual void BuildTransferMatrix(TPZInterpolatedElement &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer);
 	
 	/**
 	 * @brief Verify the neighbours of the element and create a node along this side

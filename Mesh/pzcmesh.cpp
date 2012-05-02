@@ -682,7 +682,7 @@ void TPZCompMesh::Skyline(TPZVec<int> &skyline) {
 	}
 }
 
-void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &transfer) {
+void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE> &transfer) {
 	
 	//TPZBlock<REAL> &localblock = Block();
 	TPZBlock<STATE> &localblock = Block();
@@ -740,7 +740,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer &tran
 }
 
 void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
-										  TPZTransfer &transfer) {
+										  TPZTransfer<STATE> &transfer) {
 	
 	//TPZBlock<REAL> &localblock = Block();
 	TPZBlock<STATE> &localblock = Block();
@@ -1164,7 +1164,7 @@ void TPZCompMesh::ConnectSolution(std::ostream & out) {
 }
 
 void TPZCompMesh::EvaluateError(
-								void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+								void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
 								TPZVec<REAL> &errorSum) {
 	
 	errorSum.Resize(3);

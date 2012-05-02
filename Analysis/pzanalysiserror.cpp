@@ -69,7 +69,7 @@ void TPZAnalysisError::hp_Adaptive_Mesh_Design(std::ostream &out,REAL &CurrentEt
 		SetBlockNumber();
 		TPZSkylineStructMatrix skystr(fCompMesh);
 		SetStructuralMatrix(skystr);
-		TPZStepSolver<REAL> sol;
+		TPZStepSolver<STATE> sol;
 		sol.ShareMatrix(Solver());
 		
 		sol.SetDirect(ECholesky);//ECholesky
@@ -389,9 +389,9 @@ REAL TPZAnalysisError::h_Parameter(TPZCompEl *cel) {
 }
 
 /** @brief Function to zeroes data */
-void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
+void NullFunction(TPZVec<REAL> &point,TPZVec<STATE>&val,TPZFMatrix<STATE> &deriv);
 
-void NullFunction(const TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
+void NullFunction(const TPZVec<REAL> &point,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv) {
 	
     val[0] = 0.*point[0];
     deriv(0,0) = 0.;
@@ -462,7 +462,7 @@ void TPZAnalysisError::MathematicaPlot() {
 		//if(!gelptr[iel] || !(gelptr[iel]->Reference())) continue;
 		connects[iel] = gelptr[iel]->Reference()->ConnectIndex(locnodid[iel]);
 	}
-	TPZVec<REAL> sol(nnodes);
+	TPZVec<STATE> sol(nnodes);
 	for(i=0; i<nnodes; i++) {
         TPZConnect *df = &fCompMesh->ConnectVec()[connects[i]];
         if(!df) {
@@ -480,7 +480,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	}
 	// expanding solution
 	int numsols = 5*(nnodes-1)+1;   // 5 values by element: 3 interpolated (interior) + 2 over corners
-	TPZVec<REAL> expand_sol(numsols);
+	TPZVec<STATE> expand_sol(numsols);
 	TPZVec<REAL> expand_nodes(numsols);
  	TPZVec<REAL> qsi(1);
 	int exp_iel = -1;;
@@ -505,7 +505,7 @@ void TPZAnalysisError::MathematicaPlot() {
 	graph << "list = {" << endl;
 	for(int isol=0;isol<numsols;isol++) {
 		if(isol > 0) graph << ",";
-		REAL expandsol = expand_sol[isol];
+		STATE expandsol = expand_sol[isol];
 		if(fabs(expandsol) < 1.e-10) expandsol = 0.;
 		graph << "{" << expand_nodes[isol] << "," << expandsol << "}";
 		if( !((isol+1)%5) ) graph << endl;

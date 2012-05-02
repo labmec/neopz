@@ -687,7 +687,7 @@ void TPZCompElDisc::CenterPoint(TPZVec<REAL> &center){
 	}
 }
 
-void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &transfer){
+void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	
@@ -701,8 +701,8 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 		SetDegree(coarsedeg);
 	}
 	
-	TPZFNMatrix<500> loclocmat(locnshape,locnshape);
-	TPZFMatrix<REAL> loccormat(locnshape,cornshape);
+	TPZFNMatrix<500,STATE> loclocmat(locnshape,locnshape);
+	TPZFNMatrix<200,STATE> loccormat(locnshape,cornshape);
 	loclocmat.Zero();
 	loccormat.Zero();
 	
@@ -770,7 +770,7 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer &tra
 	int corblockseq = con.SequenceNumber();
 	if(locnshape == 0 || cornshape == 0)
 		PZError << "TPZCompElDisc::BuilTransferMatrix error I\n";
-	TPZFMatrix<REAL> small(locnshape,cornshape,0.);
+	TPZFMatrix<STATE> small(locnshape,cornshape,0.);
 	loccormat.GetSub(0,0,locnshape,cornshape,small);
 	REAL tol = Norm(small);
 	if(tol >= 1.e-10) {
@@ -820,7 +820,7 @@ void TPZCompElDisc::SetDegree(int degree) {
 	Mesh()->Block().Set(seqnum,nshapef*nvar);
 }
 
-void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction> externalShapes){
+void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction<REAL> > externalShapes){
 	this->fExternalShape = externalShapes;
 	//in order of ajust block size because NShapeF may have changed
 	if (fConnectIndex < 0) return;

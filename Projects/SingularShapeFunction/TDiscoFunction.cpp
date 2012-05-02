@@ -2,15 +2,18 @@
 
 #include "TDiscoFunction.h"
 
- TDiscoFunction:: TDiscoFunction(){
+template<class TVar>
+TDiscoFunction<TVar>::TDiscoFunction(){
 
 }
 
- TDiscoFunction::~ TDiscoFunction(){
+template<class TVar>
+TDiscoFunction<TVar>::~TDiscoFunction(){
 
 }
     
-void  TDiscoFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
+template<class TVar>
+void  TDiscoFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
   f.Resize(1);
   df.Resize(8,1);
   df.Zero();
@@ -26,11 +29,14 @@ void  TDiscoFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix
   ///as outras derivadas nao serao usadas
 }  
 
-int  TDiscoFunction::NFunctions(){
+template<class TVar>
+int  TDiscoFunction<TVar>::NFunctions(){
   return 1;
 }
   
-int  TDiscoFunction::PolynomialOrder(){
+template<class TVar>
+int  TDiscoFunction<TVar>::PolynomialOrder(){
   return 100;
 }
 
+template class TDiscoFunction<double>;

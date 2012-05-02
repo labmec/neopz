@@ -12,7 +12,8 @@
   * Implements a function. Its purpose is to replace void* fp() instances which are difficult to be transmitted in parallel executions.
   * @since August 01, 2007
   */
-class TExtFunction : public TPZFunction{
+template<class TVar>
+class TExtFunction : public TPZFunction<TVar>{
 public:
 
   /**
@@ -31,7 +32,7 @@ public:
    * @param f function values
    * @param df function derivatives
    */
-  virtual void Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df);
+  virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df);
   
  /** Returns number of functions.
   */ 

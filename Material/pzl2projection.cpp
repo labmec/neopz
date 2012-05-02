@@ -7,7 +7,7 @@
 #include "pzbndcond.h"
 #include "tpzintpoints.h"
 
-TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<REAL> &sol,
+TPZL2Projection::TPZL2Projection(int id, int dim, int nstate, TPZVec<STATE> &sol,
                                  int IntegrationOrder) :TPZDiscontinuousGalerkin(id) , fScale(1.)
 {
     this->fDim = dim;
@@ -38,7 +38,7 @@ TPZAutoPointer<TPZMaterial> TPZL2Projection::NewMaterial(){
 	return new TPZL2Projection(*this);
 }
 
-void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
 	if (this->HasForcingFunction()){
 		this->fForcingFunction->Execute(data.x, this->fSol);
@@ -79,7 +79,7 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	}//for i
 }
 
-void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 	
 	const int nvars = this->fNStateVars;
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -130,10 +130,14 @@ int TPZL2Projection::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZL2Projection::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
                                TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	if (var == ESolution){
+#ifndef USING_COMPLEX
 		Solout = Sol;
+#else
+        
+#endif
 		return;
 	}
 	

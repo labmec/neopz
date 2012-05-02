@@ -25,7 +25,7 @@
 #include "pzgengrid.h"
 #include "pzgmesh.h"
 #include "pzcmesh.h"
-#include "pzpoisson3d.h"
+//#include "pzpoisson3d.h"
 #include "pzbndcond.h"
 #include "TPZGeoElement.h"
 #include "pzgeopoint.h"
@@ -71,6 +71,7 @@ TPZGenSubStruct::~TPZGenSubStruct()
 {
 }
 
+#ifndef USING_COMPLEX
 /// Coordinates of the eight nodes
 REAL co[8][3] = {
 	{0.,0.,0.},
@@ -82,6 +83,7 @@ REAL co[8][3] = {
 	{1.,1.,1.},
 	{0.,1.,1.}
 };
+#include "pzpoisson3d.h"
 // method which will generate the computational mesh
 TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 {
@@ -153,7 +155,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	//  IdentifyCornerNodes();
 	return fCMesh;
 }
-
+#endif
 // divide the geometric elements till num levels is achieved
 void TPZGenSubStruct::UniformRefine()
 {
@@ -758,8 +760,8 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
-	TPZBlock<REAL> destblock = sub->Block();
-	TPZBlock<REAL> &origblock = sub->Block();
+	TPZBlock<STATE> destblock = sub->Block();
+	TPZBlock<STATE> &origblock = sub->Block();
 	int nblocks = origblock.NBlocks();
 	if(scatterpermuteblock.NElements() != origblock.NBlocks())
 	{
@@ -821,7 +823,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
  */
 void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<int> &blockinvpermute)
 {
-	TPZBlock<REAL> prevblock = sub->Block();
+	TPZBlock<STATE> prevblock = sub->Block();
 	// This permutation vector is with respect to the blocks of the mesh
 	TPZVec<int> permute;
 	sub->PermuteInternalFirst(permute);
@@ -966,7 +968,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	int neq = dynamic_cast<TPZCompMesh *>(submesh)->NEquations();
 	skylstr.SetEquationRange(0,neq);
 	skylstr.AssembleAllEquations();
-    substruct->fStiffness = TPZAutoPointer<TPZMatrix<REAL> > (skylstr.CreateAssemble(substruct->fLocalLoad,toto));
+    substruct->fStiffness = TPZAutoPointer<TPZMatrix<STATE> > (skylstr.CreateAssemble(substruct->fLocalLoad,toto));
 	
 	// This should happen in the remote processor
     substruct->fInvertedStiffness.SetMatrix(substruct->fStiffness->Clone());
@@ -980,7 +982,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
     int ninternal = substruct->fInternalEqs.NElements();
 	// THIS SHOULD HAPPEN IN THE REMOTE PROCESSOR
     skylstr.SetEquationRange(0,ninternal);
-    TPZFMatrix<REAL> rhs;
+    TPZFMatrix<STATE> rhs;
     substruct->fInvertedInternalStiffness.SetMatrix(skylstr.CreateAssemble(rhs,toto));
     substruct->fInvertedInternalStiffness.SetDirect(ECholesky);
 	
@@ -1003,8 +1005,8 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	TPZSkylineStructMatrix skylstr(submesh);
 	skylstr.AssembleAllEquations();
 	
-	TPZAutoPointer<TPZMatrix<REAL> > Stiffness = skylstr.Create();
-	TPZMatRed<REAL,TPZFMatrix<REAL> > *matredbig = new TPZMatRed<REAL, TPZFMatrix<REAL> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
+	TPZAutoPointer<TPZMatrix<STATE> > Stiffness = skylstr.Create();
+	TPZMatRed<STATE,TPZFMatrix<STATE> > *matredbig = new TPZMatRed<STATE, TPZFMatrix<STATE> >(Stiffness->Rows()+substruct->fCoarseNodes.NElements(),Stiffness->Rows());
 	matredbig->SetK00(Stiffness);
 	substruct->fMatRedComplete = matredbig;
 	
@@ -1016,9 +1018,9 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	submesh->PermuteInternalFirst(permuteconnectscatter);
 	
 	// create a "substructure matrix" based on the submesh using a skyline matrix structure as the internal matrix
-	TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<REAL> > redstruct(submesh);
-	TPZMatRed<REAL,TPZVerySparseMatrix<REAL> > *matredptr = dynamic_cast<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> > *>(redstruct.Create());
-	TPZAutoPointer<TPZMatRed<REAL,TPZVerySparseMatrix<REAL> > > matred = matredptr;
+	TPZMatRedStructMatrix<TPZSkylineStructMatrix,TPZVerySparseMatrix<STATE> > redstruct(submesh);
+	TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *matredptr = dynamic_cast<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > *>(redstruct.Create());
+	TPZAutoPointer<TPZMatRed<STATE,TPZVerySparseMatrix<STATE> > > matred = matredptr;
 	
 	// create a structural matrix which will assemble both stiffnesses simultaneously
 	TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
@@ -1029,7 +1031,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;
 	}
-	TPZAutoPointer<TPZMatrix<REAL> > InternalStiffness = matredptr->K00();
+	TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matredptr->K00();
 	
 	
 	submesh->Permute(invpermuteconnectscatter);
@@ -1057,18 +1059,18 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 		matredbig->operator()(coarse,neq+ic) = 1.;
 	}
 	//substruct->fStiffness = Stiffness;
-	TPZStepSolver<REAL> *InvertedStiffness = new TPZStepSolver<REAL>(Stiffness);
+	TPZStepSolver<STATE> *InvertedStiffness = new TPZStepSolver<STATE>(Stiffness);
     InvertedStiffness->SetMatrix(Stiffness);
     InvertedStiffness->SetDirect(ECholesky);
 	matredbig->SetSolver(InvertedStiffness);
 	
 	
-	TPZStepSolver<REAL> *InvertedInternalStiffness = new TPZStepSolver<REAL>(InternalStiffness);
+	TPZStepSolver<STATE> *InvertedInternalStiffness = new TPZStepSolver<STATE>(InternalStiffness);
     InvertedInternalStiffness->SetMatrix(InternalStiffness);
     InvertedInternalStiffness->SetDirect(ECholesky);
 	matredptr->SetSolver(InvertedInternalStiffness);
 	matredptr->SetReduced();
-	TPZMatRed<REAL,TPZFMatrix<REAL> > *matred2 = new TPZMatRed<REAL,TPZFMatrix<REAL> > (*matredptr);
+	TPZMatRed<STATE,TPZFMatrix<STATE> > *matred2 = new TPZMatRed<STATE,TPZFMatrix<STATE> > (*matredptr);
 	
 	substruct->fMatRed = matred2;
 }

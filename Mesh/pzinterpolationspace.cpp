@@ -923,7 +923,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	delete cel;
 }
 
-void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
+void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
 										  TPZVec<REAL> &errors,TPZBlock<REAL> * /*flux */){
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);
@@ -957,8 +957,8 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	
 	int ndof = material->NStateVariables();
 	int nflux = material->NFluxes();
-	TPZManVector<REAL,10> u_exact(ndof);
-	TPZFNMatrix<90> du_exact(dim,ndof);
+	TPZManVector<STATE,10> u_exact(ndof);
+	TPZFNMatrix<90,STATE> du_exact(dim,ndof);
 	TPZManVector<REAL,10> intpoint(3), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
@@ -1223,7 +1223,7 @@ void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL>
 }//void
 
 
-void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer &transfer){
+void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, TPZTransform &t, TPZTransfer<STATE> &transfer){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
 	TPZGeoEl *ref = Reference();
@@ -1283,8 +1283,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	// loclocmat is the inner product of the shape functions of the local element
 	// loccormat is the inner product of the shape functions with the shape functions
 	//    of the coarse element, both dependent and independent
-	TPZFNMatrix<500> loclocmat(locmatsize,locmatsize);
-	TPZFNMatrix<500> loccormat(locmatsize,cormatsize);
+	TPZFNMatrix<500,STATE> loclocmat(locmatsize,locmatsize);
+	TPZFNMatrix<500,STATE> loccormat(locmatsize,cormatsize);
 	loclocmat.Zero();
 	loccormat.Zero();
 	
@@ -1392,7 +1392,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
 							 locblocksize,corblocksize,small);
 			REAL tol = Norm(small);
@@ -1410,7 +1410,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix<REAL> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
 			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
 		}

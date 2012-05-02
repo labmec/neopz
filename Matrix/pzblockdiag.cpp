@@ -20,10 +20,9 @@ static LoggerPtr logger(Logger::getLogger("pz.StrMatrix"));
 using namespace std;
 
 /** @brief Initializing variable zero as real */
-static REAL zero = 0.;
+//static REAL zero = 0.;
 
 template<class TVar>
-
 void TPZBlockDiagonal<TVar>::AddBlock(int i, TPZFMatrix<TVar> &block){
 
 	int firstpos = fBlockPos[i];
@@ -231,7 +230,7 @@ TPZBlockDiagonal<TVar>::PutVal(const int row,const int col,const TVar& value )
 		return -1;
 	}
 	if(col < eq || col >= eq+bsize) {
-		if(value != 0.) {
+		if(value != TVar(0.)) {
     		cout << "TPZBlockDiagonal::PutVal, indices row col out of range\n";
 			return -1;
 		} else {
@@ -265,7 +264,7 @@ TPZBlockDiagonal<TVar>::operator()(const int row, const int col) {
 	int nb = fBlockSize.NElements();
 	if(nb==0) {
 		cout << "TPZBlockDiagonal::operator() called with parameters out of range\n";
-		zero = 0.;
+		static TVar zero = 0.;
 		return zero;
 	}
 	int eq=0;
@@ -277,12 +276,12 @@ TPZBlockDiagonal<TVar>::operator()(const int row, const int col) {
 	}
 	if(b==nb) {
 		cout << "TPZBlockDiagonal::operator() wrong data structure\n";
-		zero = 0.;
+		static TVar zero = 0.;
 		return zero;
 	}
 	if(col < eq || col >= eq+bsize) {
 		cout << "TPZBlockDiagonal::operator(), indices row col out of range\n";
-		zero = 0.;
+		static TVar zero = 0.;
 		return zero;
 	}
 	return fStorage[fBlockPos[b]+row-eq+bsize*(col-eq)];
@@ -310,7 +309,7 @@ const TVar &TPZBlockDiagonal<TVar>::GetVal(const int row,const int col ) const
 	}
 	if(col < eq || col >= eq+bsize) {
 		//cout << "TPZBlockDiagonal::GetVal, indices row col out of range\n";
-		zero = 0.;
+		static TVar zero = 0.;
 		return zero;
 	}
 	return fStorage[fBlockPos[b]+row-eq+bsize*(col-eq)];
@@ -609,4 +608,7 @@ void TPZBlockDiagonal<TVar>::AutoFill() {
 	}
 }
 
-template class TPZBlockDiagonal<REAL>;
+template class TPZBlockDiagonal<double>;
+template class TPZBlockDiagonal<std::complex<double> >;
+template class TPZBlockDiagonal<float>;
+template class TPZBlockDiagonal<std::complex<float> >;

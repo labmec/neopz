@@ -279,7 +279,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
     TPZSaveable *sav = TPZSaveable::Restore(buf, context);
     if(sav)
     {
-        TPZFunction *func = dynamic_cast<TPZFunction *>(sav);
+        TPZFunction<STATE> *func = dynamic_cast<TPZFunction<STATE> *>(sav);
         if(!func) 
         {
             DebugStop();

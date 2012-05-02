@@ -19,18 +19,18 @@
  * Implements a rectangular sparse block matrix it is assumed that the data is entered one row at a time \n
  * the matrix structure cannot be modified after being defined
  */
-class TPZTransfer : public TPZMatrix<REAL> {
+template<class TVar>
+class TPZTransfer : public TPZMatrix<TVar> {
 	
 	public :
 	/** @brief Default constructor */
     TPZTransfer();
 	
 	/** @brief The sparse matrix blocks are defined by row, col */
-	TPZTransfer(TPZBlock<STATE> &row, TPZBlock<STATE> &col,int nvar, int nrowblocks, int ncolblocks);
-	
-	/** @brief Copy constructor */
-	TPZTransfer(const TPZTransfer &cp) : TPZMatrix<REAL>(cp),
-	fNStateVar(cp.fNStateVar), fRowBlock(cp.fRowBlock),
+	//TPZTransfer(TPZBlock<REAL> &row, TPZBlock<REAL> &col,int nvar, int nrowblocks, int ncolblocks);
+	TPZTransfer(TPZBlock<TVar> &row, TPZBlock<TVar> &col,int nvar, int nrowblocks, int ncolblocks);
+	TPZTransfer(const TPZTransfer &cp) : TPZMatrix<TVar>(cp),
+	fNTVarVar(cp.fNTVarVar), fRowBlock(cp.fRowBlock),
 	fColBlock(cp.fColBlock),fColPosition(cp.fColPosition),
 	fNumberofColumnBlocks(cp.fNumberofColumnBlocks),
 	fColumnBlockNumber(cp.fColumnBlockNumber),
@@ -40,25 +40,25 @@ class TPZTransfer : public TPZMatrix<REAL> {
 	{
 	}
 	
-	virtual TPZMatrix<REAL> *Clone() const { return new TPZTransfer(*this); }
+		virtual TPZMatrix<TVar> *Clone() const { return new TPZTransfer(*this); }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
 	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
 	
 	/** @brief Identifies the number of equations per shapefunction*/
-	void SetNStateVariables(int statevar) { fNStateVar = statevar; }
+	void SetNTVarVariables(int TVarvar) { fNTVarVar = TVarvar; }
 	
 	/** 
 	 * @brief This operation will reset the matrix to zero with no rows defined
 	 * @param row starting row of the block
 	 * @param col starting column of the block
-	 * @param nvar indicates the number of state variables of the problem
+	 * @param nvar indicates the number of TVar variables of the problem
 	 * @param nrowblocks number of rows of the block
 	 * @param ncolblocks number of columns of the block
      * @note the stride of the matrix will be initialized by nvar
 	 */
 	//void SetBlocks(TPZBlock<REAL> &row, TPZBlock<REAL> &col, int nvar, int nrowblocks, int ncolblocks);
-	void SetBlocks(TPZBlock<STATE> &row, TPZBlock<STATE> &col, int nvar, int nrowblocks, int ncolblocks);
+	void SetBlocks(TPZBlock<TVar> &row, TPZBlock<TVar> &col, int nvar, int nrowblocks, int ncolblocks);
 	
 	/** @brief Returns 1 if the row is defined (i.e. has column entries)*/
 	int HasRowDefinition(int row);
@@ -70,25 +70,25 @@ class TPZTransfer : public TPZMatrix<REAL> {
 	 * if row col was not specified by AddBlockNumbers, \n
 	 * an error will be issued and exit
 	 */
-	void SetBlockMatrix(int row, int col, TPZFMatrix<REAL> &mat);
+	void SetBlockMatrix(int row, int col, TPZFMatrix<TVar> &mat);
 	
 	/** @brief Multiplies the transfer matrix and puts the result in z*/
-	void MultAdd(const TPZFMatrix<REAL> &x,const TPZFMatrix<REAL> &y, TPZFMatrix<REAL> &z,
-				 const REAL alpha, REAL beta, int opt = 0, int stride = 1) const ;
+	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
+				 const TVar alpha, TVar beta, int opt = 0, int stride = 1) const ;
 	
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than
-	 * one state variable
+	 * one TVar variable
 	 */
-	void TransferSolution(const TPZFMatrix<REAL> &coarsesol, TPZFMatrix<REAL> &finesol);
+	void TransferSolution(const TPZFMatrix<TVar> &coarsesol, TPZFMatrix<TVar> &finesol);
 	
 	/**
 	 * @brief Will transfer the residual, taking into acount there may be more than
-	 * one state variable
+	 * one TVar variable
 	 */
-	void TransferResidual(const TPZFMatrix<REAL> &fine, TPZFMatrix<REAL> &coarse);
+	void TransferResidual(const TPZFMatrix<TVar> &fine, TPZFMatrix<TVar> &coarse);
 	
-	void Multiply(const TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B, int opt,
+	void Multiply(const TPZFMatrix<TVar> &A, TPZFMatrix<TVar> &B, int opt,
 				  int stride) const;
 	
 private:
@@ -102,13 +102,13 @@ private:
 	void ExpandDoubleValueEntries(int numval);
 	
 	/** @brief Number of variables associated with each shape function*/
-	int fNStateVar;
+	int fNTVarVar;
 	/** @brief Block sizes of the rows*/
 	//TPZBlock<REAL> fRowBlock;
-	TPZBlock<STATE> fRowBlock;
+	TPZBlock<TVar> fRowBlock;
 	/** @brief Block sizes of the columns*/
 	//TPZBlock<REAL> fColBlock;
-	TPZBlock<STATE> fColBlock;
+	TPZBlock<TVar> fColBlock;
 	/** @brief Vector indicating the starting column block for each row*/
 	TPZVec<int> fColPosition;
 	/** @brief Vector indicating the number of column blocks associated with each row*/
@@ -120,7 +120,7 @@ private:
 	/** @brief Indicates the next free position*/
 	int fColumnBlockLastUsed;
 	/** @brief Storage space for the matrix blocks*/
-	TPZManVector<REAL> fDoubleValues;
+	TPZManVector<TVar> fDoubleValues;
 	/** @brief Indicates the next free position of fDoubleValues*/
 	int fDoubleValLastUsed;
 	

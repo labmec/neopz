@@ -226,7 +226,7 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
 	
 	cmesh->AutoBuild();
 	TPZCompElDisc::SetTotalOrderShape(cmesh);
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
+	TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();
 	for(int i = 0; i < cmesh->NElements(); i++){
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[i]);
 		if(disc){
@@ -390,34 +390,34 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
 		gmesh->Print(malhas);
 	}
 #endif
-	
-	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-	cmesh->SetDimModel(3);
-	
-	TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
-	cmesh->InsertMaterialObject(mat);
-	TPZFMatrix<REAL> val1,val2;
-	cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
-	
-	cmesh->SetAllCreateFunctionsDiscontinuous();
-	cmesh->SetDefaultOrder(0);
-	TPZCompElDisc::SetgOrder(0);
-	
-	cmesh->AutoBuild();
-	TPZCompElDisc::SetTotalOrderShape(cmesh);
-	TPZAutoPointer<TPZFunction> fakefunc = new TPZFakeFunction();
-	for(int i = 0; i < cmesh->NElements(); i++){
-		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[i]);
-		if(disc){
-			disc->SetExternalShapeFunction(fakefunc);
-		}
-	}
-	cmesh->AdjustBoundaryElements();
-	cmesh->CleanUpUnconnectedNodes();
-	cmesh->ExpandSolution();
-	
-	return cmesh;
-	
+
+  TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+  cmesh->SetDimModel(3);
+
+  TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+  cmesh->InsertMaterialObject(mat);
+  TPZFMatrix<REAL> val1,val2;
+  cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
+
+  cmesh->SetAllCreateFunctionsDiscontinuous();
+  cmesh->SetDefaultOrder(0);
+  TPZCompElDisc::SetgOrder(0);
+
+  cmesh->AutoBuild();
+  TPZCompElDisc::SetTotalOrderShape(cmesh);
+  TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();
+  for(int i = 0; i < cmesh->NElements(); i++){
+    TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[i]);
+    if(disc){
+      disc->SetExternalShapeFunction(fakefunc);
+    }
+  }
+  cmesh->AdjustBoundaryElements();
+  cmesh->CleanUpUnconnectedNodes();
+  cmesh->ExpandSolution();
+
+  return cmesh;
+
 }
 
 void InitialSolutionLax2D(TPZFMatrix<REAL> &InitialSol, TPZCompMesh * cmesh){

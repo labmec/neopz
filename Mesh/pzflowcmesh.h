@@ -62,7 +62,7 @@ public:
 	void SetResidualType(TPZResidualType type);
 	
 	/** @brief Sets the forcing funtion for all fluid materials in the mesh. */
-	void SetFlowforcingFunction(TPZAutoPointer<TPZFunction> fp);
+	void SetFlowforcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp);
 	
 	/** @brief Creates the computational elements, and the degree of freedom nodes. */
 	/** In this reimplementation, also calls CollectFluidMaterials; */

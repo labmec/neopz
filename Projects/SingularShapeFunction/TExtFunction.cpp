@@ -2,15 +2,18 @@
 
 #include "TExtFunction.h"
 
-TExtFunction::TExtFunction(){
+template<class TVar>
+TExtFunction<TVar>::TExtFunction(){
 
 }
 
-TExtFunction::~TExtFunction(){
+template<class TVar>
+TExtFunction<TVar>::~TExtFunction(){
 
 }
     
-void TExtFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<REAL> &df){
+template<class TVar>
+void TExtFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
   f.Resize(1);
   df.Resize(2,1);
   double r = 2.-x[0];
@@ -20,11 +23,14 @@ void TExtFunction::Execute(const TPZVec<REAL> &x, TPZVec<REAL> &f, TPZFMatrix<RE
   df(1,0) = 0.;
 }  
 
-int TExtFunction::NFunctions(){
+template<class TVar>
+int TExtFunction<TVar>::NFunctions(){
   return 1;
 }
   
-int TExtFunction::PolynomialOrder(){
+template<class TVar>
+int TExtFunction<TVar>::PolynomialOrder(){
   return 1;
 }
 
+template class TExtFunction<double>;

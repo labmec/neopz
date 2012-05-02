@@ -63,8 +63,10 @@ public:
 	
     ~TPZGenSubStruct();
     
+#ifndef USING_COMPLEX
     /** @brief Method which will generate the computational mesh */
     TPZAutoPointer<TPZCompMesh> GenerateMesh();
+#endif
     
     /** @brief Initialize the TPZDohrMatrix structure */
     void InitializeDohr(TPZAutoPointer<TPZMatrix<STATE> > dohr, TPZAutoPointer<TPZDohrAssembly<STATE> > assembly);
