@@ -656,14 +656,14 @@ void TPZMatElastoPlastic<T,TMEM>::Contribute(TPZMaterialData &data, REAL weight,
 		//sout << " Resultant rhs vector:\n" << ef;
 		LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
-#ifdef DEBUG
-   if ( !ek.VerifySymmetry( 1.e-8 ) )
-	{
-		std::stringstream sout;
-    	sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
-    	LOGPZ_WARN(elastoplasticLogger,sout.str().c_str());
-	}
-#endif
+//#ifdef DEBUG
+//   if ( !ek.VerifySymmetry( 1.e-8 ) )
+//	{
+//		std::stringstream sout;
+//    	sout << "<<< TPZMatElastoPlastic<T,TMEM>::Contribute *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
+//    	LOGPZ_WARN(elastoplasticLogger,sout.str().c_str());
+//	}
+//#endif
 #endif
 }
 
@@ -909,14 +909,14 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 	sout << "\n Dep = \n" << Dep;
 	LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
 	}
-#ifdef DEBUG 
-   if ( !Dep.VerifySymmetry( 1.e-8 ) )
-	{
-		std::stringstream sout2;
-    	sout2 << "<<< TPZMatElastoPlastic<T,TMEM>::ApplyStrainComputeDep *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
-    	LOGPZ_WARN(elastoplasticLogger,sout2.str().c_str());
-	}
-#endif
+//#ifdef DEBUG 
+//   if ( !Dep.VerifySymmetry( 1.e-8 ) )
+//	{
+//		std::stringstream sout2;
+//    	sout2 << "<<< TPZMatElastoPlastic<T,TMEM>::ApplyStrainComputeDep *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
+//    	LOGPZ_WARN(elastoplasticLogger,sout2.str().c_str());
+//	}
+//#endif
 #endif
 	
 	Sigma.CopyTo(Stress);

@@ -235,7 +235,7 @@ void WellboreLoadTestWithoutPostProcess(stringstream & fileName, T & mat,
     
     cout << "\nMesh data: ncirc?(int) ";
     //ncirc = 10;
-    ncirc=8;//cin >> ncirc;
+    ncirc=10;//cin >> ncirc;
     
     cout << "Mesh data: ioratio?(sugg. 10.) ";
     //ioRatio =  10.;
@@ -243,7 +243,7 @@ void WellboreLoadTestWithoutPostProcess(stringstream & fileName, T & mat,
     
     cout << "Mesh data: pOrder? ";
     //pOrder =2;
-    pOrder=2;//cin >> pOrder;
+    pOrder=3;//cin >> pOrder;
     
     fileName << "_ncirc" << ncirc << "_IO" << ioRatio << "_p" << pOrder;
     
@@ -1084,6 +1084,25 @@ void MaterialPointTests()
 
 //#include "BrazilianTestGeoMesh.h"
 
+#include "fad.h"
+
+Fad<double> func(const Fad<double>& x, const Fad<double>& y)
+{
+//	double z=sqrt(x);
+    /*
+     //Mathematica
+    f = {y Sqrt[x] + Sqrt[x]}
+    f /. {x -> 1, y -> 2}
+    dfx = D[f, x];
+    dfy = D[f, y];
+    dfx /. {x -> 1., y -> 2}
+    dfy /. {x -> 1., y -> 2}
+     */
+	return y*sqrt(x)+sqrt(x);
+}
+
+
+
 int main()
 {
     
@@ -1092,16 +1111,48 @@ int main()
     TPZLadeKim LK;
     LK.PlainConcrete(LK);
     TPZDruckerPrager DP;
-    DP.PlainConcreteMPa(DP);
-    REAL dirMult = 10.;
-    MultiDirectionsMaterialPointTest(DP,dirMult);
+   DP.PlainConcreteMPa(DP);
+//    REAL dirMult = 60.;
+//    MultiDirectionsMaterialPointTest(LK,dirMult);
+  
+    
+//    double x,y,f;     // Declare variables x,y,f
+//    x=1;                 // Initialize variable x
+//    x.diff(0,2);         // Differentiate with respect to x (index 0 of 2)
+//    y=2;                 // Initialize variable y
+//    y.diff(1,2);         // Differentiate with respect to y (index 1 of 2)
+//    f=func(x,y);         // Evaluate function and derivatives
+//    double fval=f.x();   // Value of function
+//    double dfdx=f.d(0);  // Value of df/dx (index 0 of 2)
+//    double dfdy=f.d(1);  // Value of df/dy (index 1 of 2)
+    
+//    cout << "f(x,y)=" << fval << endl;
+//    cout << "df/dx(x,y)=" << dfdx << endl;
+//    cout << "df/dy(x,y)=" << dfdy << endl;
+
+    
+    Fad<REAL> x,y,f;
+    x=1.;
+    x.diff(0,2);
+    y=2.;
+    y.diff(1,2);
+    f = func(x,y);
+    double fval=f.val();   // Value of function
+    double dfdx=f.d(0);  // Value of df/dx (index 0 of 2)
+    double dfdy=f.d(1);  // Value of df/dy (index 1 of 2)
+    
+    cout << "f(x,y)=" << fval << endl;
+    cout << "df/dx(x,y)=" << dfdx << endl;
+    cout << "df/dy(x,y)=" << dfdy << endl;
+    
+
     
     
-//    TPZPlasticTest::DruckerTest();
-//    LadeKimTriaxialLooseSand();
- //   LKIsotropicCompression();
-   // LKBiaxialTest();
-    //SandlerDimaggioIsotropicCompression();
+//  TPZPlasticTest::DruckerTest();
+ //   LadeKimTriaxialLooseSand();
+  // LKIsotropicCompression();
+  //  LKBiaxialTest();
+  //  SandlerDimaggioIsotropicCompression();
    // TPZTensor<REAL> sigma,eps;
    //sigma.XX()= 435.286;
    // sigma.YY()=170.146;
@@ -1120,33 +1171,32 @@ int main()
 /*    
 
     MultiDirectionsMaterialPointTest(DP,dirMult);
-   // TPZPlasticTest::PlasticIntegratorCheck(20, DP);
     cout << "\nRuning finished " << endl;
  */
-/*  
-    TPZPlasticTest::LoadTest("testeFineSilicaIsotropic.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.0001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.00001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.000001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR1_0.0001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR1_0.00001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR1.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR10_0.0001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR10_0.00001.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaOCR10.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaPEP.loadpath");
-    TPZPlasticTest::LoadTest("testeFineSilicaPEP2.loadpath");
-    TPZPlasticTest::LoadTest("testeLooseSacrRiverSandHidrostatico0.001.loadpath");
-    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_HID.loadpath");
-    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_HIDstrain.loadpath");
-    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_PLT_0.6_0.0001.loadpath");
-    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_PLT_0.6_0.00001.loadpath");
- */
+  
+  //  TPZPlasticTest::LoadTest("testeFineSilicaIsotropic.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.0001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.00001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaIsotropic0.000001.loadpath");
+ //   TPZPlasticTest::LoadTest("testeFineSilicaOCR1_0.0001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaOCR1_0.00001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaOCR1.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaOCR10_0.0001.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaOCR10_0.00001.loadpath");
+   // TPZPlasticTest::LoadTest("testeFineSilicaOCR10.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaPEP.loadpath");
+  //  TPZPlasticTest::LoadTest("testeFineSilicaPEP2.loadpath");
+ //   TPZPlasticTest::LoadTest("testeLooseSacrRiverSandHidrostatico0.001.loadpath");
+//    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_HID.loadpath");
+//    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_HIDstrain.loadpath");
+//    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_PLT_0.6_0.0001.loadpath");
+   // TPZPlasticTest::LoadTest("testeMcCormicRanchSand_PLT_0.6_0.00001.loadpath");
+ 
     
-    
+    TPZPlasticTest::PlasticIntegratorCheck(LK);
   //  TPZPlasticTest::LoadTest("testeLooseSacrRiverSandHidrostatico0.001.loadpath");
-    //   cout << "\nRuning finished " << endl;
+       cout << "\nRuning finished " << endl;
 //    TPZPlasticTest::LoadTest("testeMcCormicRanchSand_PLT_0.6_0.00001.loadpath");
 //    TPZPlasticTest::LoadTest("testePlainStrain9b_0.00001.loadpath");
  //   TPZPlasticTest::LoadTest("DPPlainConcreteXX.loadpath");
@@ -1158,7 +1208,7 @@ int main()
   //   DruckerIsotropicCompression();
    // LKBiaxialTest();
    
- /*   
+/* 
     cout << "\nPlease enter test type:";
     cout << "\n0 Material Point test ";
     cout << "\n1 Finite Elements test ";
@@ -1207,7 +1257,7 @@ int main()
             cout << "\n";
             
             
-            matNumber=6;//cin >> matNumber;
+            matNumber=8;//cin >> matNumber;
             
             switch(matNumber)
             {
@@ -1341,7 +1391,8 @@ int main()
             break;
         }
     }
-    */
+    
+*/
     
     return EXIT_SUCCESS;
     

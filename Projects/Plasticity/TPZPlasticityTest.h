@@ -51,151 +51,151 @@ static LoggerPtr MaterialPoint(Logger::getLogger("MaterialPointTest"));
 
 
 class TPZPlasticTest
-	{
-	public:
-		
-		static void InitializeLOG();
-		
-		template <class T>
-		static void ReciprocityTest(T & plasticModel, TPZTensor<REAL> strain1);
-		
-		template <class T>
-		static void StressTest(T & plasticModel, const char * filename, REAL  stressMultiplier=1);
-		
-		template <class T>
-		static void StrainTest(T & plasticModel, const char * filename, REAL  strainMultiplier=1);
-		
-		static void LoadTest(const char * filename);
-		
-		template <class T>
-		static int CreatePlasticModel(T * ( & plasticModel), const char * line);
-		
-		template <class T>
-		static void GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & strain, REAL maxDeltaStrain = 0.01);
-        
-        static void LadeKimTriaxialLooseSand();
-        
-        
-        template <class T>
-        static void MultiDirectionsMaterialPointTest(T & plasticModel);
-		
-		static void DruckerPragerTest();
-		
-		static void MohrCoulombTest();
-		
-		static void ModifiedMohrCoulombTest();
-		
-		static void WillamWarnkeTest();
-		
-		static void VonMisesTest();
-		
-		static void UndocumentedTest2();
-		
-		static void UndocumentedTest3();
-		
-		static void UndocumentedTest4();
-        
-        static void SandlerDimaggioIsotropicCompression();
-        
-        static void LKFineSilicaLoadTest();
-		
-        static void LKIsotropicCompression();
-        
-        static void LKKoCompressionLoadTest();
-        
-        static void LKLoadingTest();
-        
-        static void DruckerIsotropicCompression();
-        
-        static void DruckerTest();
-        
-        static void LKBiaxialTest();
-        
-        //static void MaterialPointTests();
-		//////////////////CheckConv related methods/////////////////////
-		
-		/**
-		 number of types of residuals
-		 */
-		int NumCases() 
-		{
-			return 9;
-		}
-		
-		TPZTensor<REAL> gRefTension;
-		
+{
+public:
+    
+    static void InitializeLOG();
+    
+    template <class T>
+    static void ReciprocityTest(T & plasticModel, TPZTensor<REAL> strain1);
+    
+    template <class T>
+    static void StressTest(T & plasticModel, const char * filename, REAL  stressMultiplier=1);
+    
+    template <class T>
+    static void StrainTest(T & plasticModel, const char * filename, REAL  strainMultiplier=1);
+    
+    static void LoadTest(const char * filename);
+    
+    template <class T>
+    static int CreatePlasticModel(T * ( & plasticModel), const char * line);
+    
+    template <class T>
+    static void GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & strain, REAL maxDeltaStrain = 0.01);
+    
+    static void LadeKimTriaxialLooseSand();
+    
+    
+    template <class T>
+    static void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult);
+    
+    static void DruckerPragerTest();
+    
+    static void MohrCoulombTest();
+    
+    static void ModifiedMohrCoulombTest();
+    
+    static void WillamWarnkeTest();
+    
+    static void VonMisesTest();
+    
+    static void UndocumentedTest2();
+    
+    static void UndocumentedTest3();
+    
+    static void UndocumentedTest4();
+    
+    static void SandlerDimaggioIsotropicCompression();
+    
+    static void LKFineSilicaLoadTest();
+    
+    static void LKIsotropicCompression();
+    
+    static void LKKoCompressionLoadTest();
+    
+    static void LKLoadingTest();
+    
+    static void DruckerIsotropicCompression();
+    
+    static void DruckerTest();
+    
+    static void LKBiaxialTest();
+    
+    //static void MaterialPointTests();
+    //////////////////CheckConv related methods/////////////////////
+    
+    /**
+     number of types of residuals
+     */
+    int NumCases() 
+    {
+        return 9;
+    }
+    
+    TPZTensor<REAL> gRefTension;
+    
 	//	TPZMatElastoPlastic<TPZMaterial> mate;
-		TPZVonMises gPlasticModel;
-		
-		/**
-			LoadState will keep a given state as static variable of the class
-		*/
-		
-		void LoadState(TPZFMatrix<REAL> &state)
-		{
-			int i;
-			for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
-		}
-		
-		void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
-		{
-			switch(icase)
-			{
-				case 0:
-				{
-					TPZTensor<REAL> grad,EpsT,DiagonalStress;
-					TPZFNMatrix<6*6> Dep(6,6,0.);
-					gPlasticModel.ApplyStrainComputeDep(gRefTension,DiagonalStress,Dep);
-					tangent.Redim(1,1);
-					REAL norm = Norm(Dep);
-					tangent(0,0) = norm;
-
-					break;
-				}
-					
-			}
-		}
-		
-		void Residual(TPZFMatrix<REAL> &res,int icase)
-		{
-			
-			res.Redim(1,1);
-			TPZTensor<REAL> grad,DiagonalStress;
-			TPZFNMatrix<36> Dep(6,6,0.);
-			gPlasticModel.ApplyStrainComputeDep(gRefTension,DiagonalStress,Dep);
-			res.Redim(1,1);
-			REAL norm = DiagonalStress.Norm();
-			switch(icase)
-			{
-				case 0:
-				{
-					res(0,0) = norm;
-					break;
-				}
-
-			}
-			
-		}
-		
-		
-		
-		
-		static void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes);
-		
-		//static void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis);
-		
-		template <class T>
-		static void PlasticIntegratorCheck(int thetaintervals,T mat);
-		
-		static void VerifyIntegrationAtPoint(TPZVec< TPZTensor<REAL> > vectensor);
+    TPZVonMises gPlasticModel;
+    
+    /**
+     LoadState will keep a given state as static variable of the class
+     */
+    
+    void LoadState(TPZFMatrix<REAL> &state)
+    {
+        int i;
+        for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+    }
+    
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
+    {
+        switch(icase)
+        {
+            case 0:
+            {
+                TPZTensor<REAL> grad,EpsT,DiagonalStress;
+                TPZFNMatrix<6*6> Dep(6,6,0.);
+                gPlasticModel.ApplyStrainComputeDep(gRefTension,DiagonalStress,Dep);
+                tangent.Redim(1,1);
+                REAL norm = Norm(Dep);
+                tangent(0,0) = norm;
+                
+                break;
+            }
+                
+        }
+    }
+    
+    void Residual(TPZFMatrix<REAL> &res,int icase)
+    {
+        
+        res.Redim(1,1);
+        TPZTensor<REAL> grad,DiagonalStress;
+        TPZFNMatrix<36> Dep(6,6,0.);
+        gPlasticModel.ApplyStrainComputeDep(gRefTension,DiagonalStress,Dep);
+        res.Redim(1,1);
+        REAL norm = DiagonalStress.Norm();
+        switch(icase)
+        {
+            case 0:
+            {
+                res(0,0) = norm;
+                break;
+            }
+                
+        }
+        
+    }
+    
+    
+    
+    
+    static void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes);
+    
+    //static void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis);
+    
+    template <class T>
+    static void PlasticIntegratorCheck(T mat);
+    
+    static void VerifyIntegrationAtPoint(TPZVec< TPZTensor<REAL> > vectensor);
 	//	static void DruckerTest();
-        
-        
-	};
+    
+    
+};
 
 inline void LadeKimTriaxialLooseSand()
 {
-
+    
     ofstream outfiletxt("LadeKimTriaxialLooseSand.txt");
     TPZTensor<REAL> stress, strain, deltastress, deltastrain;
     TPZFNMatrix<6*6> Dep(6,6,0.);
@@ -211,7 +211,7 @@ inline void LadeKimTriaxialLooseSand()
     deltastress.YZ() = 0.;
     deltastress.ZZ() = -0.0003;//Confining stress = 17.07 Psi
     stress=deltastress;    
-        
+    
     LK.ApplyLoad(stress,strain);
     
     
@@ -226,7 +226,7 @@ inline void LadeKimTriaxialLooseSand()
     
     
     
-
+    
 }
 //inline void MaterialPointTests()
 //{
@@ -389,17 +389,17 @@ inline void SandlerDimaggioIsotropicCompression()//
         case(5):
         {
             
-//            REAL E = 9000, 
-//            poisson = 0.25;
-//            
-//            material.fER.SetUp(E, poisson);
-//            
-//            REAL A = 18, 
-//            B = 0.0245, 
-//            C = 17.7, 
-//            D = 0.00735, 
-//            R = 1.5,
-//            W = 0.0908;
+            //            REAL E = 9000, 
+            //            poisson = 0.25;
+            //            
+            //            material.fER.SetUp(E, poisson);
+            //            
+            //            REAL A = 18, 
+            //            B = 0.0245, 
+            //            C = 17.7, 
+            //            D = 0.00735, 
+            //            R = 1.5,
+            //            W = 0.0908;
             cout<< "\n Young Modulus 9000.";
             REAL E; 
             cin >> E;
@@ -500,7 +500,7 @@ inline void LKIsotropicCompression()
     
     TPZTensor<REAL> stress, strain, deltastress, deltastrain;
     TPZFNMatrix<6*6> Dep(6,6,0.);
-
+    
     deltastress.XX() = -147.;
     deltastress.XY() = 0.;
     deltastress.XZ() = 0.;
@@ -509,23 +509,23 @@ inline void LKIsotropicCompression()
     deltastress.ZZ() = -147.;
     stress=deltastress;
     
- 
+    
     TPZLadeKim LK2;
-   // TPZLadeKim::FineSilicaSandPaperIII(LK2);
-  //  std::ofstream outfiletxt("TPZLadeKim_IsotropicCompression_FineSilicaSand.txt");
+    // TPZLadeKim::FineSilicaSandPaperIII(LK2);
+    //  std::ofstream outfiletxt("TPZLadeKim_IsotropicCompression_FineSilicaSand.txt");
     TPZLadeKim::PlainConcrete(LK2);
     std::ofstream outfiletxt("TPZLadeKim_IsotropicCompression_PlaneConcrete.txt");
-            
+    
     int length =120;
     for(int i=0;i<length;i++)
     {
-       // if(i==9)deltastress*=-1;
+        // if(i==9)deltastress*=-1;
         cout << "\nstep = "<< i << endl;
         LK2.ApplyLoad(stress,strain);
         outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX())/14.7 << "\n";
-         stress+=deltastress;
+        stress+=deltastress;
     }
-        
+    
 }
 
 
@@ -918,11 +918,11 @@ inline void DruckerIsotropicCompression()
     cout << "\n choose 0 for Iner Morh-Coulomb fit or 1 for outer Morh-Coulomb Fit (sugg. 0) ";
     cin >> mcfit;
     
-//    if(mcfit!= 0 || mcfit!= 1)
-//    {
-//        cout << "\n wrong choice in Morh-Coulomb fit tipe 0 or 1";
-//        return;
-//    }
+    //    if(mcfit!= 0 || mcfit!= 1)
+    //    {
+    //        cout << "\n wrong choice in Morh-Coulomb fit tipe 0 or 1";
+    //        return;
+    //    }
     
     REAL phi;
     cout << "\n Type the internal frictional angle in degrees(sugg. 20.)";
@@ -1544,14 +1544,14 @@ inline void TPZPlasticTest::StrainTest(T & plasticModel, const char * filename, 
         REAL alpha=state.Alpha();
         
         
-//		TPZTensor<REAL> tempStrain(strainPath[i]);
-//		for(j=0;j<6;j++)tempStrain.fData[j]*=strainMultiplier;
-//		if(i > 1)stressPath[i] = stressPath[i-1];
-//		plasticModel.ApplyStrain(tempStrain);
-//		plasticModel.Sigma(tempStrain, stressPath[i], tangent);
-//		TPZTensor<REAL> epsp;
-//		plasticModel.GetPlasticStrain(epsp);
-//		REAL alpha = plasticModel.GetAlpha();
+        //		TPZTensor<REAL> tempStrain(strainPath[i]);
+        //		for(j=0;j<6;j++)tempStrain.fData[j]*=strainMultiplier;
+        //		if(i > 1)stressPath[i] = stressPath[i-1];
+        //		plasticModel.ApplyStrain(tempStrain);
+        //		plasticModel.Sigma(tempStrain, stressPath[i], tangent);
+        //		TPZTensor<REAL> epsp;
+        //		plasticModel.GetPlasticStrain(epsp);
+        //		REAL alpha = plasticModel.GetAlpha();
         
         
         
@@ -1682,12 +1682,12 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			std::stringstream outputLine;
 			
-//			outputLine << "stress step " << j 
-//			<< ", strain: " << strain.XX() 
-//			<< ", stress: " << stress.XX()
-//			<< ", epsP = " << strainP
-//			<< ", alpha = " << pPlasticModel->GetState().fAlpha
-//			<< ", integrationSteps = " << pPlasticModel->IntegrationSteps() << endl; 
+            //			outputLine << "stress step " << j 
+            //			<< ", strain: " << strain.XX() 
+            //			<< ", stress: " << stress.XX()
+            //			<< ", epsP = " << strainP
+            //			<< ", alpha = " << pPlasticModel->GetState().fAlpha
+            //			<< ", integrationSteps = " << pPlasticModel->IntegrationSteps() << endl; 
             cout
 			<< " " << strain.XX() 
 			<< " " << stress.XX() << endl; 
@@ -1729,17 +1729,17 @@ inline void TPZPlasticTest::LoadTest(const char * filename)
 			
 			tempStress.CopyTo(stress);
 			for(i = 0; i < 6; i++)stress.fData[i]/=stressMultiplier;		 
-
+            
             
             std::stringstream outputLine;
             
-		
-//			outputLine << "stress step " << j 
-//			<< ", strain: " << strain.XX() 
-//			<< ", stress: " << stress.XX()
-//			<< ", epsP = " << strainP
-//			<< ", alpha = " << pPlasticModel->GetState().fAlpha
-//			<< ", integrationSteps = " << intSteps << endl; 
+            
+            //			outputLine << "stress step " << j 
+            //			<< ", strain: " << strain.XX() 
+            //			<< ", stress: " << stress.XX()
+            //			<< ", epsP = " << strainP
+            //			<< ", alpha = " << pPlasticModel->GetState().fAlpha
+            //			<< ", integrationSteps = " << intSteps << endl; 
             
             cout
 			<< " " << strain.XX() 
@@ -1921,14 +1921,14 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 	
 	//TPZPlasticTest::InitializeLOG();
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef LOG4CXX
 	{
 		std::stringstream sout;
 		sout << __PRETTY_FUNCTION__
 		<< "\nGlobalCheckConv Test with " << nRetries << " samplings\n";
 		sout << "\n Stress = " << stress
 		<< "\n Dep=\n" << Dep;
-		LOGPZ_INFO(testLogger,sout.str().c_str());
+		LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
 	}
 #endif
 	
@@ -1968,14 +1968,14 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 			 }
 			 */
 			
-#ifdef LOG4CXX_PLASTICITY
+#ifdef LOG4CXX
 			{
 				std::stringstream sout;
 				sout << "\nCase " << k
 				<< "\nStrain= " << tempStrain
 				<< "\nStress= " << tempStress
 				<< "\ntempMatrix= " << tempMatrix;
-				LOGPZ_INFO(testLogger,sout.str().c_str());
+				LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
 			}
 #endif
 		}
@@ -2029,10 +2029,10 @@ inline void TPZPlasticTest::GlobalCheckConv(T & plasticModel, TPZTensor<REAL> & 
 		output << "\n" ;
 	}
 	
-#ifdef LOG4CXX_PLASTICITY
+#ifdef LOG4CXX
 	{
-//		LOGPZ_INFO(testLogger,output.str().c_str());
-      LOGPZ_INFO(MaterialPoint,output.str().c_str());
+        //		LOGPZ_INFO(testLogger,output.str().c_str());
+        LOGPZ_INFO(plasticIntegrLogger,output.str().c_str());
 	}
 #endif
 	
@@ -2135,22 +2135,22 @@ inline void TPZPlasticTest::MohrCoulombTest()
 	
 	TPZTensor<REAL> stress, strain, deltastress, deltastrain;
 	
-		deltastress.XX() = -13.5;
-		deltastress.XY() = -0.01;
-		deltastress.XZ() = 0.;
-		deltastress.YY() = 0.;
-		deltastress.YZ() = 0.;
-		deltastress.ZZ() =  -0.01;
-		stress = deltastress;
+    deltastress.XX() = -13.5;
+    deltastress.XY() = -0.01;
+    deltastress.XZ() = 0.;
+    deltastress.YY() = 0.;
+    deltastress.YZ() = 0.;
+    deltastress.ZZ() =  -0.01;
+    stress = deltastress;
 	
-//	TPZFNMatrix<6*6> Dep(6,6,0.);
-//    deltastrain.XX() = -0.0002;
-//	deltastrain.XY() = 0.;
-//	deltastrain.XZ() = 0.;
-//	deltastrain.YY() = -0.00000001;
-//	deltastrain.YZ() = 0.;
-//	deltastrain.ZZ() = -0.00000001;
-//	strain=deltastrain;
+    //	TPZFNMatrix<6*6> Dep(6,6,0.);
+    //    deltastrain.XX() = -0.0002;
+    //	deltastrain.XY() = 0.;
+    //	deltastrain.XZ() = 0.;
+    //	deltastrain.YY() = -0.00000001;
+    //	deltastrain.YZ() = 0.;
+    //	deltastrain.ZZ() = -0.00000001;
+    //	strain=deltastrain;
 	
 	typedef TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse> TPZMohrCoulomb;
 	TPZMohrCoulomb Pstep;
@@ -2164,17 +2164,17 @@ inline void TPZPlasticTest::MohrCoulombTest()
 	{
 		cout << "\nstep "<< step;
 		
-//		
-//		if(step == 30 || step== 30 || step == 60)
-//		{
-//			deltastrain *= -1.;
-//			deltastress *= -1.;
-//		}
+        //		
+        //		if(step == 30 || step== 30 || step == 60)
+        //		{
+        //			deltastrain *= -1.;
+        //			deltastress *= -1.;
+        //		}
 		
 		stress += deltastress;
-	//	strain+=deltastrain;
+        //	strain+=deltastrain;
 		Pstep.ApplyLoad(stress,strain);
-	//	Pstep.ApplyStrainComputeDep(strain,stress, Dep);
+        //	Pstep.ApplyStrainComputeDep(strain,stress, Dep);
 		//TPZTensor<REAL> eigenval,dSigma1,dSigma2,dSigma3;
 		//stress.Eigenvalue(eigenval,dSigma1,dSigma2,dSigma3);
 		cout<<  "\nstress " << stress << endl;
@@ -2184,7 +2184,7 @@ inline void TPZPlasticTest::MohrCoulombTest()
 		Pstep.Phi(strain, phis);
 		cout << "\nphis " << phis << endl;
  		//cout<<  "\nEigen " << eigenval << endl;
-
+        
 		outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n"; 
 		
 	}
@@ -2278,7 +2278,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 	
 	TPZTensor<REAL> stress, strain, deltastress, deltastrain;
 	TPZFNMatrix<6*6> Dep(6,6,0.);
-
+    
 	deltastress.XX() = -1.;
 	deltastress.YY()= 0.;
 	deltastress.ZZ()= 0.;
@@ -2287,14 +2287,14 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 	deltastress.YZ()=  0.;
 	stress = deltastress;
 	
-//	 deltastrain.XX() = -0.0001;
-//	 deltastrain.XY() = 0.0000001;
-//	 deltastrain.XZ() = -0.0000001;
-//	 deltastrain.YY() = -0.0000001;
-//	 deltastrain.YZ() = -0.0000001;
-//	 deltastrain.ZZ() = 0.0000002;
-//	 strain=deltastrain;
-	 
+    //	 deltastrain.XX() = -0.0001;
+    //	 deltastrain.XY() = 0.0000001;
+    //	 deltastrain.XZ() = -0.0000001;
+    //	 deltastrain.YY() = -0.0000001;
+    //	 deltastrain.YZ() = -0.0000001;
+    //	 deltastrain.ZZ() = 0.0000002;
+    //	 strain=deltastrain;
+    
 	typedef TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse> TPZWillamWarnke;
 	TPZWillamWarnke WW;
 	WW.fYC.SetUp(1.,1.,20.); 
@@ -2316,7 +2316,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 		//		}
 		
 		stress += deltastress;
-//		strain+=deltastrain;
+        //		strain+=deltastrain;
 		WW.ApplyLoad(stress,strain);
 #ifdef LOG4CXX
 		{
@@ -2325,7 +2325,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 			LOGPZ_INFO(plasticIntegrLogger,sout.str());
 		}
 #endif
-//		WW.ApplyStrainComputeDep(strain,stress,Dep);
+        //		WW.ApplyStrainComputeDep(strain,stress,Dep);
 		TPZTensor<REAL> eigenval,dSigma1,dSigma2,dSigma3;
 		stress.Eigenvalue(eigenval,dSigma1,dSigma2,dSigma3);
 		cout<<  "\nstress " << stress << endl;
@@ -2334,9 +2334,9 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 		outfiletxt << strain.XX() << " " << stress.XX() << "\n"; 
 		
 	}
-
+    
 	
-
+    
 	
 	
 	
@@ -2396,7 +2396,7 @@ inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
 
 
 template <class T>
-inline void MultiDirectionsMaterialPointTest(T & plasticModel)
+inline void MultiDirectionsMaterialPointTest(T & plasticModel, REAL dirMult)
 {
     
     std::ifstream input("../SnubDodecahedron.txt");
@@ -2413,20 +2413,29 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
     REAL coordxx,coordyy,coordzz;
 	for(int i=0;i<sizedirs;i++)
 	{
-
+        
         input >> coordxx >> coordyy >> coordzz;
         DiagonalStress.XX()=coordxx;
         DiagonalStress.YY()=coordyy;
         DiagonalStress.ZZ()=coordzz;
-        DiagonalStress*=1.;
+        DiagonalStress*=dirMult;
         
+        cout << "\n DiagonalStress" << DiagonalStress << endl;
         plasticModel.ApplyLoad(DiagonalStress,epst);
-//        TPZPlasticState<REAL> stateN =  plasticModel.GetState();
-//        TPZPlasticState<REAL> stateN1;
-//        plasticModel.FindPointAtYield(epst,stateN1);
-
- //       cout << "\n stateN " << stateN << endl;
-  //      cout << "\n stateN1 " << stateN1 << endl;
+        
+        /*  
+         
+         TPZPlasticState<REAL> stateN =  plasticModel.GetState();
+         TPZPlasticState<REAL> stateN1;
+         plasticModel.FindPointAtYield(epst,stateN1);
+         
+         cout << "\n stateN " << stateN << endl;
+         cout << "\n stateN1 " << stateN1 << endl;
+         TPZTensor<REAL> epsTatYield = stateN1.EpsT();
+         
+         plasticModel.ApplyStrainComputeDep(epsTatYield,DiagonalStress,Dep);
+         cout << "\n DiagonalStressAtYield " << DiagonalStress << endl;
+         */
         
         bool Plastifica = false;
         
@@ -2434,7 +2443,7 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
         {
             
             std::stringstream sout;
-            sout << " \n Dep = " << Dep << endl;
+            //sout << " \n Dep = " << Dep << endl;
             sout << " \n DIRECTION Number = " << i << "\n " <<endl;
             sout << " \n DiagonalStress = " << DiagonalStress << "\n " <<endl;
             LOGPZ_INFO(plasticIntegrLogger,sout.str());
@@ -2443,8 +2452,7 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
         int count =0;
         
 		do{
-        
-			
+            
             //epst*=1.1;
             DiagonalStress*=1.1;
             cout << " \ncount "<< count << endl;
@@ -2454,40 +2462,42 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
             plasticModel.Phi(epst, funcs);
             //plasticModel.ApplyStrainComputeDep(epst,DiagonalStress,Dep);
             plasticModel.ApplyLoad(DiagonalStress,epst);
-
-         //   Dep.VerifySymmetry();
+            
+            //   Dep.VerifySymmetry();
 #ifdef LOG4CXX
 			{
 				
 				std::stringstream sout;
                 
-            
+                
                 sout << " \n\n While loop number  = " << count << endl;
-				sout << " \n\n Dep = " << Dep << endl;
 				sout << " \n\n funcs = " << funcs <<"\n"<< endl;
 				sout << " \n\n DiagonalStressInsideWhile = " << DiagonalStress <<endl;
                 sout<< "\nvector"<<count<<" = {" << DiagonalStress.XX()<<","<<DiagonalStress.YY()<<","<<DiagonalStress.ZZ()<< "};" << endl;
-				sout << " \n fTFA = " << plasticModel.fTFA.Compute( plasticModel.GetState().Alpha() ) <<endl;
+				//sout << " \n fTFA = " << plasticModel.fTFA.Compute( plasticModel.GetState().Alpha() ) <<endl;
 				sout << " \n Alpha() = " << plasticModel.GetState().Alpha() << endl;
 				sout << " \n epst = " << plasticModel.GetState().EpsT() <<endl;
 				sout << " \n epsP = " << plasticModel.GetState().EpsP() <<endl;
-                sout << "\n Dep  = " << Dep << endl;
-             
+                //sout << "\n Dep  = " << Dep << endl;
+                
 				LOGPZ_INFO(plasticIntegrLogger,sout.str());
 			}
 #endif
             if(funcs[0] < -1000.)break;
-             
+            
             for(int j = 0;j<nyield;j++)
             {
                 if(funcs[j]>=0.)
                 {
                     Plastifica = true;
                 }
-               
+                
             }
+            
             count++;
+            
         }while(Plastifica==false);
+        
 #ifdef LOG4CXX
         {
             
@@ -2496,8 +2506,9 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
             LOGPZ_INFO(plasticIntegrLogger,sout.str());
         }
 #endif
-	}
         
+	}
+    
 }
 
 
@@ -2508,228 +2519,86 @@ inline void MultiDirectionsMaterialPointTest(T & plasticModel)
 //que verificase a matriz de rigidez elastoplastica e realmente a jacobiana dSigma/dEpsT. Neste metodo tambem o modelo plastico importado e submetido a deformacao imposta. A tensao 
 //e a matriz jacobiana calculadas sao mantidas na memoria. Sucessivas copias deste modelo de plastico sao submetidos a mais deformacao e a verificação de convergencia do método é avaliada.
 template <class T>
-inline void TPZPlasticTest::PlasticIntegratorCheck(int thetaintervals, T mat)
+inline void TPZPlasticTest::PlasticIntegratorCheck(T mat)
 {
 	
 	std::ifstream input("../SnubDodecahedron.txt");
 	int sizedirs;
 	input >>sizedirs; 
 	TPZFMatrix<REAL> directions(sizedirs,3,0.);
-	
-	TPZTensor<REAL> DiagonalStress,epst,epsp;
-	
-	epst.fData[_XX_] =  0.0000001;
-	epst.fData[_XY_] =  0.0000001;
-	epst.fData[_XZ_] =  0.0000001;
-	epst.fData[_YY_] =  0.0000001;
-	epst.fData[_YZ_] =  0.0000001;
-	epst.fData[_ZZ_] =  0.0000001;
-	
-	epsp.fData[_XX_] =  0.;
-	epsp.fData[_XY_] =  0.;
-	epsp.fData[_XZ_] =  0.;
-	epsp.fData[_YY_] =  0.;
-	epsp.fData[_YZ_] =  0.;
-	epsp.fData[_ZZ_] =  0.;
-	
+	TPZTensor<REAL> DiagonalStress,epst,epsp,stress;
+    TPZFNMatrix<6*6> Dep(6,6,0.);
 	int nyield = mat.NYield;
-	
 	TPZVec<REAL>  funcs(nyield);
-	int checkForcedYield;
-	
-	
-	REAL pa = 14.7;
-	
+	REAL pa = 1.;
+	bool Plastifica = false;
+    bool MustStop = false;
 	for(int i=0;i<sizedirs;i++)
 	{
-/*
-			REAL coordxx,coordyy,coordzz;
-			input >> coordxx >> coordyy >> coordzz;
-			DiagonalStress.XX()=coordxx;
-			DiagonalStress.YY()=coordyy;
-			DiagonalStress.ZZ()=coordzz;
-			mat.ApplyLoad(DiagonalStress,epst);
-			TPZPlasticState<REAL> stateone = mat.GetState();
-		  //  stateone.EpsT() = epst;
- */
-			REAL coordxx,coordyy,coordzz;
-			input >> coordxx >> coordyy >> coordzz;
+
+        REAL coordxx,coordyy,coordzz;
+        input >> coordxx >> coordyy >> coordzz;
 		
-			DiagonalStress.XX()=pa*coordxx;
-			DiagonalStress.YY()=pa*coordyy;
-			DiagonalStress.ZZ()=pa*coordzz;
-			//DiagonalStress*=0.5;
-			cout << " i "<< i <<endl;
-			T plasticModelCopy(mat);
+        DiagonalStress.XX()=pa*coordxx;
+        DiagonalStress.YY()=pa*coordyy;
+        DiagonalStress.ZZ()=pa*coordzz;
+        T plasticModelCopy(mat);
+        plasticModelCopy.ApplyLoad(DiagonalStress,epst);
+        
+        
+        int count =0;
+		while(/* Plastifica == false && */ MustStop == false && count < 30 ){
+			
+
+            plasticModelCopy.ApplyStrainComputeDep(epst,stress,Dep);
             
-          //  plasticModelCopy.ApplyLoad(DiagonalStress,epst);
+            
+            cout << "\n count " <<count <<endl;
+            cout << "\n EPST = "<< epst << endl;
+            cout << "\n EPSP = "<< plasticModelCopy.GetState().EpsP() << endl;
+            cout << "\n STRESS = "<< stress << endl; 
+            
+            epst*=1.1;
+
+            
+            
+            for(int j = 0;j<nyield;j++)
+            {
+                if(funcs[j]>=0.)
+                {
+                    Plastifica = true;
+                    
+                }
+                if(funcs[j] < -1000.)
+                {
+                    MustStop=true;
+                }
+                
+            }
+            count++;
+            
+            
+        }
+        
 #ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << " \n\n i = " << i << endl;
-			//LOGPZ_INFO(MaterialPoint,sout.str());
-			
-		}
+        {
+            
+            std::stringstream sout;
+            sout << " \n count = "<< count << endl;
+            sout << " \n PlasticIntegratorCheck = "<< endl;
+            sout << " \n funcs = " << funcs << endl;
+            sout << " \n DiagonalStress = " << stress <<endl;
+            sout << " \n Alpha() = " << plasticModelCopy.GetState().Alpha() << endl;
+            sout << " \n epst = " << plasticModelCopy.GetState().EpsT() <<endl;
+            sout << " \n epsP = " << plasticModelCopy.GetState().EpsP() <<endl;
+            sout << "\n Dep  = " << Dep << endl;
+            LOGPZ_INFO(plasticIntegrLogger,sout.str());
+            
+        }
 #endif
-		REAL func;
-		do{
-			
-			//CONTINUA CONSTANTE COM 1.1 Comentado;
-			//PHIS MAIORES DO QUE ZERO SEMPRE com 1.1 nao comentado
-			plasticModelCopy.fYC.Compute(DiagonalStress,plasticModelCopy.fTFA.Compute( plasticModelCopy.GetState().Alpha() ),funcs,checkForcedYield);
-			plasticModelCopy.ApplyLoad(DiagonalStress,epst);
-		//	TPZFNMatrix<6*6> Dep(6,6,0.);
-		//	plasticModelCopy.ApplyStrainComputeDep(plasticModelCopy.GetState().EpsT(),DiagonalStress,Dep);
-			DiagonalStress*=1.1;
-
-			
-		
-#ifdef LOG4CXX
-			{
-				
-				std::stringstream sout;
-	//			sout << " \n Dep = " << Dep << endl;
-				sout << " \n funcs[0] = " << funcs[0] << endl;
-				sout << " \n DiagonalStress = " << DiagonalStress <<endl;
-				sout << " \n fTFA = " << plasticModelCopy.fTFA.Compute( plasticModelCopy.GetState().Alpha() ) <<endl;
-				sout << " \n Alpha() = " << plasticModelCopy.GetState().Alpha() << endl;
-				sout << " \n epst = " << plasticModelCopy.GetState().EpsT() <<endl;
-				sout << " \n epsP = " << plasticModelCopy.GetState().EpsP() <<endl;
-			//	sout << "\n Dep  = " << Dep << endl;
-				//LOGPZ_INFO(MaterialPoint,sout.str());
-				
-			}
-#endif
-			
-			
-		/*	
-			//CONTINUA CONSTANTE COM 1.1 Comentado;
-			mat.ApplyLoad(DiagonalStress,epst);
-			cout << "DiagonalStress = " << DiagonalStress <<endl;
-			mat.fYC.Compute(DiagonalStress,mat.fTFA.Compute( mat.GetState().Alpha() ),funcs,checkForcedYield);
-		    DiagonalStress*=1.1;
-		    cout << "\nPHI = "<< funcs[0] <<endl;
-		 
-		 
-		 
-		 */	
-			if(funcs[0] < -100.)break;
-
-		   }while( 0.> funcs[0]);
-
-		TPZFNMatrix<6> input(6,1), Range(6,1);
-		input(_XX_) = epst.XX();
-		input(_YY_) = epst.XY();
-		input(_ZZ_) = epst.XZ();
-		input(_XY_) = epst.YY();
-		input(_XZ_) = epst.YZ();
-		input(_YZ_) = epst.ZZ();
-		Range = input * (1./19.);
-		TPZVec< REAL > Coefs(1,1.);
-		TPZPlasticTest test;
-	//	CheckConvergence(test, input, Range, Coefs);
-		
-		epst = plasticModelCopy.GetState().EpsT();
-	
-		GlobalCheckConv(plasticModelCopy, epst, 0.0001);
-		
-		
-		/*
-			mat.fYC.Compute(DiagonalStress,mat.fTFA.Compute( mat.GetState().Alpha() ),funcs,checkForcedYield);
-		    cout << funcs << endl; 
-			REAL deltaeps = 0.0001;
-			GlobalCheckConv(mat,epst, deltaeps);
-			cout << DiagonalStress << endl; 
-		 */
-		
+        GlobalCheckConv(plasticModelCopy, epst, 0.0000001);
+        
 	}
-	
-/*	
-	
-	
-	TPZTensor<REAL> stress, strain, deltastress, deltastrain,straincompress;
-	
-	TPZTensor<REAL> sigma;
-	REAL yieldfunc;
-	
-	mat.SetUp();
-	mat.SetIntegrTol(0.0001);
-	mat.Print(cout);
-		
-	int nyield = mat.NYield;
-	
-	TPZVec<REAL>  funcs(nyield);
-	int checkForcedYield;
-	TPZFMatrix<REAL> sigma1(3,1,0.);//Cria um vetor no espaco das tensoes principais que quase ultrapassa a superficie de plastificacao
-	
-	REAL thetatotal = 2.* M_PI;
-	REAL theta = 0.;
-	int rotateaboutaxes = 3;//Rotacao em torno do eixo deviatorico {1,1,1}
-	TPZTensor<REAL> Tensor,epst,epsp,Tensor2;
-	
-	TPZPlasticState<REAL> state,state2;
-	
-	epst.fData[_XX_] =  0.0000001;
-	epst.fData[_XY_] =  0.0000001;
-	epst.fData[_XZ_] =  0.0000001;
-	epst.fData[_YY_] =  0.0000001;
-	epst.fData[_YZ_] =  0.0000001;
-	epst.fData[_ZZ_] =  0.0000001;
-	
-	epsp.fData[_XX_] =  0.;
-	epsp.fData[_XY_] =  0.;
-	epsp.fData[_XZ_] =  0.;
-	epsp.fData[_YY_] =  0.;
-	epsp.fData[_YZ_] =  0.;
-	epsp.fData[_ZZ_] =  0.;
-
-	
-	
-	
-	state.fEpsT = epst;
-	state.fEpsP = epsp;
-	state = mat.GetState();
-	REAL yieldradius = mat.YieldRadius(state);
-	sigma1(0,0) = yieldradius*1.2;
-
-		for(int i=0;i<thetaintervals;i++)
-		{
-			
-			TPZFMatrix<REAL> R,resp;
-			TPZFNMatrix<6> Dep(6,6,0.);
-			RotationMatrix(R, theta,rotateaboutaxes);
-			R.Multiply(sigma1,resp);
-			Tensor.XX() = resp(0,0);
-			Tensor.YY() = resp(1,0);
-			Tensor.ZZ() = resp(2,0);
-			theta += thetatotal/thetaintervals;
-			mat.ApplyLoad(Tensor,epst);
-			mat.ApplyStrainComputeDep(epst,Tensor2,Dep);
-			state2 = mat.GetState();
-			mat.fYC.Compute(Tensor,mat.fTFA.Compute( state2.Alpha() ),funcs,checkForcedYield);
-			REAL deltaeps = 0.0001;
-			GlobalCheckConv(mat,epst, deltaeps);
-			
-#ifdef LOG4CXX
-			{
-				
-				std::stringstream sout;
-				sout << " \n looptheta = " << i << endl;
-				sout << " \n theta = " << theta <<endl;
-				sout << " \n Tensor = " << Tensor <<endl;
-				sout << "\n Tensor2 = " << Tensor2 << endl;
-				sout << " \n epsT = " << state2.fEpsT <<endl;
-				sout << " \n epsP = " << state2.fEpsP <<endl;
-				sout << " \n phi = " << funcs <<endl;
-				sout << " \n Alpha = " << state2.Alpha() <<endl;
-				sout << "\n Dep  = " << Dep << endl;
-				LOGPZ_INFO(MaterialPoint,sout.str());
-				
-			}
-#endif
-			
-		}
-*/
 	
 }
 
@@ -2743,13 +2612,13 @@ inline void TPZPlasticTest::DruckerTest()
 	ofstream outfiletxt3("e3dp052NewThermoAModulusCorrected.txt"); 
     ofstream outfiletxt4("Voldp052NewThermoAModulusCorrected.txt"); 	
 	TPZTensor<REAL> stress, strain, deltastress, deltastrain;
-//
-//	deltastress.XX() = -0.5;
-//	deltastress.XY() = -0.001;
-//	deltastress.XZ() = -0.001;
-//	deltastress.YY() = -0.001;
-//	deltastress.YZ() = -0.001;
-//	deltastress.ZZ() = -0.001;
+    //
+    //	deltastress.XX() = -0.5;
+    //	deltastress.XY() = -0.001;
+    //	deltastress.XZ() = -0.001;
+    //	deltastress.YY() = -0.001;
+    //	deltastress.YZ() = -0.001;
+    //	deltastress.ZZ() = -0.001;
 	
 	deltastress.XX() = -60.;
 	deltastress.XY() = -0.;
@@ -2760,16 +2629,16 @@ inline void TPZPlasticTest::DruckerTest()
 	
 	
 	
-//	deltastrain.XX() = -0.00001;
-//	deltastrain.XY() = -0.0000001;
-//	deltastrain.XZ() = -0.0000003;
-//	deltastrain.YY() = -0.0000015;
-//	deltastrain.YZ() = -0.00000015;
-//	deltastrain.ZZ() = -0.0000017;
-//	strain=deltastrain;
+    //	deltastrain.XX() = -0.00001;
+    //	deltastrain.XY() = -0.0000001;
+    //	deltastrain.XZ() = -0.0000003;
+    //	deltastrain.YY() = -0.0000015;
+    //	deltastrain.YZ() = -0.00000015;
+    //	deltastrain.ZZ() = -0.0000017;
+    //	strain=deltastrain;
 	
-//	TPZSandlerDimaggio SD;
-//	TPZSandlerDimaggio::McCormicRanchSand(SD);
+    //	TPZSandlerDimaggio SD;
+    //	TPZSandlerDimaggio::McCormicRanchSand(SD);
 	
 	TPZLadeKim LK;
 	//TPZLadeKim::FineSilicaSand(LK);
@@ -2786,31 +2655,31 @@ inline void TPZPlasticTest::DruckerTest()
 	DP.fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ coesao, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1.);
 	DP.fER.SetUp(/*young*/5318389., /*poisson*/ 0.18);
 	
-//	LK.Print(cout);
+    //	LK.Print(cout);
 	DP.ApplyLoad(stress, strain);
 	
-//	deltastress.XX() = -0.8;
-//	deltastress.XY() = -0.001;
-//	deltastress.XZ() = -0.001;
-//	deltastress.YY() = -0.001;
-//	deltastress.YZ() = -0.001;
-//	deltastress.ZZ() = -0.001;
-//	deltastress.XX() = -1000.;
-//	deltastress.XY() = -0.001;
-//	deltastress.XZ() = -0.003;
-//	deltastress.YY() = -0.15;
-//	deltastress.YZ() = -0.0015;
-//	deltastress.ZZ() = -0.17;
+    //	deltastress.XX() = -0.8;
+    //	deltastress.XY() = -0.001;
+    //	deltastress.XZ() = -0.001;
+    //	deltastress.YY() = -0.001;
+    //	deltastress.YZ() = -0.001;
+    //	deltastress.ZZ() = -0.001;
+    //	deltastress.XX() = -1000.;
+    //	deltastress.XY() = -0.001;
+    //	deltastress.XZ() = -0.003;
+    //	deltastress.YY() = -0.15;
+    //	deltastress.YZ() = -0.0015;
+    //	deltastress.ZZ() = -0.17;
 	stress = deltastress;
 	
 	int length =100;
 	for(int step=0;step<length;step++)
 	{
         /*if(step == 40 || step == 80){
-        
-            deltastress*=-1.;
-        
-        }*/
+         
+         deltastress*=-1.;
+         
+         }*/
 		cout << "\nstep "<< step;	
 		DP.ApplyLoad(stress,strain);
 		REAL pa = stress.I1()/3.;
@@ -2821,9 +2690,9 @@ inline void TPZPlasticTest::DruckerTest()
 		stress += deltastress;
 		cout << "strain = "<<strain <<"\n";
 		cout << "sigma = "<< stress <<"\t "<< "I1 = "<< stress.I1() <<"\n";
- 
+        
 	}
-
+    
 	
 }
 
@@ -2835,15 +2704,15 @@ inline void TPZPlasticTest::VonMisesTest()
 	ofstream outfiletxt2("Mises50.txt");
 	TPZTensor<REAL> stress, strain, deltastress, deltastrain,stress2,strain2;
 	
-		deltastress.XX() = 250.;
-		deltastress.XY() = 0.0001;
-		deltastress.XY() = 0.0001;
-		deltastress.YY() =  0.0001;
-		deltastress.YZ() =  0.0001;
-		deltastress.ZZ() =  0.0001;
-		stress = deltastress;
-	    stress2= deltastress;
-
+    deltastress.XX() = 250.;
+    deltastress.XY() = 0.0001;
+    deltastress.XY() = 0.0001;
+    deltastress.YY() =  0.0001;
+    deltastress.YZ() =  0.0001;
+    deltastress.ZZ() =  0.0001;
+    stress = deltastress;
+    stress2= deltastress;
+    
 	
 	TPZVonMises VM1;/*CA25*/
 	VM1.fTFA.SetUp(250.,2500./*(300/0.12)*/);
@@ -2857,7 +2726,7 @@ inline void TPZPlasticTest::VonMisesTest()
 	for(int step=0;step<length;step++)
 	{
 		cout << "\nstep "<< step;
-	
+        
 		if(step==350|| step ==700)
 		{
 			deltastrain *= -1.;
@@ -2866,30 +2735,30 @@ inline void TPZPlasticTest::VonMisesTest()
 		
 		stress += deltastress;
 		VM1.ApplyLoad(stress,strain);
-
+        
 		outfiletxt1 << strain.XX() << " " << stress.XX() << "\n"; 
-
+        
 		
 	}
-/*	
-	int length2 = 2000;
-	for(int step=0;step<length2;step++)
-	{
-		cout << "\nstep "<< step;
-		
-		if(step==600|| step ==1200)
-		{
-			deltastrain *= -1.;
-			deltastress *= -1.;	
-		}
-		
-		stress2 += deltastress;
-		VM2.ApplyLoad(stress2,strain2);
-		outfiletxt2 << strain2.XX() << " " << stress2.XX() << "\n";
-		
-		
-	}
-	*/
+    /*	
+     int length2 = 2000;
+     for(int step=0;step<length2;step++)
+     {
+     cout << "\nstep "<< step;
+     
+     if(step==600|| step ==1200)
+     {
+     deltastrain *= -1.;
+     deltastress *= -1.;	
+     }
+     
+     stress2 += deltastress;
+     VM2.ApplyLoad(stress2,strain2);
+     outfiletxt2 << strain2.XX() << " " << stress2.XX() << "\n";
+     
+     
+     }
+     */
 }
 
 

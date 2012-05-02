@@ -385,6 +385,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
     
     TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
 	deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
+    TPZFMatrix<REAL> residual_mat(6,1);
+
          REAL resnorm = 0.;
     do {
         
@@ -393,7 +395,6 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         Np1.fEpsT.Add(deltaEpsTotal,1.);
         succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
         
-        TPZFMatrix<REAL> residual_mat(6,1);
         TPZTensor<REAL> res(Np1.fEpsT),epstyield(stateAtYield.fEpsT);
         int k;
         for(k = 0; k < 6; k++)residual_mat(k,0) = res.fData[k] - epstyield.fData[k];
@@ -2211,6 +2212,205 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual(
 //#endif
 	
 }
+
+
+template <class YC_t, class TF_t, class ER_t>
+template <class T1, class T2>
+void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
+                                                       const TPZPlasticState<T1> &N_T1,
+                                                       TPZPlasticState<T2> &Np1_T2,
+                                                       const TPZVec<T2> &delGamma_T2,
+                                                       TPZVec<T2> &res_T2,
+                                                       REAL &normEpsPErr,
+                                                       int silent)const
+{
+    
+    const REAL a = 0.5;
+	
+    // This function will be either called with template parameter T being REAL or FAD type
+    // nyield indicates the number of yield functions
+    const int nyield = YC_t::NYield;
+    
+    // variable to hold the value of the stress, elastic strain and residual corresponding to the plastic strain
+    TPZTensor<T2> sigmaNp1_T2, epsResMidPt_T2;
+    TPZTensor<T1> sigmaN_T1;
+    // variable containing the error or deviation between solutions from Modified and
+    // explicit Euler schemes
+    TPZTensor<REAL> epsPErr;
+	
+    // vector holding the tensors of the N directions (usually derivative of the yield functions)
+    TPZManVector<TPZTensor<T2>,nyield> NdirNp1_T2(nyield), NdirMidPt_T2(nyield);
+    TPZManVector<TPZTensor<T1>, nyield> NdirN_T1(nyield);
+    
+    // vector holding the residual of the yield function equations
+    TPZManVector<T2, nyield> phiRes_T2(nyield),HNp1_T2(nyield), HMidPt_T2(nyield);
+    TPZManVector<T1, nyield> HN_T1(nyield);
+    
+    // residual of the equation corresponding to the damage variable
+    T2 alphaRes_T2, ANp1_T2;
+    T1 AN_T1;
+	
+    ComputePlasticVars<T1>(N_T1  , sigmaN_T1  , AN_T1);
+    ComputePlasticVars<T2>(Np1_T2, sigmaNp1_T2, ANp1_T2);	
+    
+    // Compute the values of the N directions (which will update the plastic strain)
+    fYC.N(sigmaN_T1  , AN_T1  , NdirN_T1  , 0);
+    fYC.N(sigmaNp1_T2, ANp1_T2, NdirNp1_T2, 1);
+    
+    int i, j;
+    for(i=0; i< nyield; i++)for(j = 0; j < 6; j++)NdirMidPt_T2[i].fData[j] = ( ( NdirNp1_T2[i].fData[j] ) * T2(1.-a) 
+                                                                              + ( NdirN_T1[i].fData[j]   ) * T1(a) );
+	
+    // Compute the value of H
+    fYC.H(sigmaN_T1  , AN_T1  , HN_T1  , 0);
+    fYC.H(sigmaNp1_T2, ANp1_T2, HNp1_T2, 1);
+	
+    for(i=0; i< nyield; i++)HMidPt_T2[i] = (HNp1_T2[i] * T2(1.-a) + T2( HN_T1[i] * T1(a) ) );
+	
+    //EpsRes = EpsilonPNp1 - fEpsP - deltagamma * Ndir; // 6 eqs
+    //for
+    for(i=0; i< nyield; i++)
+    {
+        NdirMidPt_T2[i].Multiply(delGamma_T2[i], T2(1.) );
+        epsResMidPt_T2.Add(NdirMidPt_T2[i], T2(-1.) );
+        
+        NdirN_T1[i].Multiply(T1(shapeFAD::val(delGamma_T2[i])), T1(1.) );
+        for(j = 0; j < 6; j++)epsPErr.fData[j] +=   shapeFAD::val( NdirN_T1[i].    fData[j] )
+            - shapeFAD::val( NdirMidPt_T2[i].fData[j] );
+    }
+    epsResMidPt_T2.Add(  N_T1.EpsP(), T1(-1.) );
+    epsResMidPt_T2.Add(Np1_T2.EpsP(), T1( 1.) );
+    
+    // Explicit scheme relative error: estimated by the difference between the
+    // first and second order schemes results.
+    normEpsPErr = epsPErr.Norm();
+    // The second order scheme error is estimated based on the explicit Euler
+    // scheme. Its relative error measure coincides with the Explicit Scheme
+    // error estimation.
+    
+    // alphaRes = alpha(n+1)-alpha(n)-Sum delGamma * H
+    alphaRes_T2 = Np1_T2.Alpha() - N_T1.Alpha();
+    for(i=0; i<nyield; i++)
+    {
+        alphaRes_T2 -= delGamma_T2[i] * HMidPt_T2[i]; // 1 eq
+    }
+    
+    // compute the values of the yield functions
+    fYC.Compute(sigmaNp1_T2, ANp1_T2,phiRes_T2, 1); // nyield eq
+    
+    // transfer the values of the residuals to the residual vector
+    // depending on the type T, the residual and its partial derivatives will have been computed
+    for(i=0; i<6; i++)
+        res_T2[i] = epsResMidPt_T2.fData[i];
+    res_T2[i++] = alphaRes_T2;
+    for(j=0; j<nyield; j++)
+        res_T2[i++] = phiRes_T2[j];
+    
+    //#ifdef LOG4CXX_PLASTICITY
+    //    if(!silent)
+    //	{
+    //        int i, j;
+    //        std::stringstream sout1, sout2;
+    //        sout1 << ">>> PlasticResidual *** normEpsPErr = " << normEpsPErr;
+    //        
+    //        sout2 << "\n\tN_T1 <<\n";
+    //        N_T1.Print(sout2, 0 /*no Fad Derivatives*/);
+    //		
+    //        sout2 << "\n\tNp1_T2 <<\n";
+    //        Np1_T2.Print(sout2, 0 /*no Fad Derivatives*/);
+    //		
+    //        sout2 << "\n\tdelGamma_T2 <<";
+    //        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(delGamma_T2[i]) << " ";
+    //		
+    //        sout2 << "\tepsPErr <<" << epsPErr;
+    //		
+    //        sout2 << "\n\tHMidPt_T2 << ";
+    //        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HMidPt_T2[i]) << " ";
+    //		
+    //        sout2 << "\tHN_T1 << ";		
+    //        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HN_T1[i]) << " ";
+    //        
+    //        sout2 << "\tHNp1_T2 << ";	
+    //        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HNp1_T2[i]) << " ";
+    //		
+    //        sout2 << "\n\tNdirMidPt_T2 <<";		
+    //        for(i = 0; i < YC_t::NYield; i++)
+    //            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirMidPt_T2[i].fData[j]) << " ";
+    //        
+    //        sout2 << "\n\tNdirN_T1 <<";
+    //        for(i = 0; i < YC_t::NYield; i++)
+    //            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirN_T1[i].fData[j]) << " ";
+    //		
+    //        sout2 << "\n\tNdirNp1_T2 <<";		
+    //        for(i = 0; i < YC_t::NYield; i++)
+    //            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirNp1_T2[i].fData[j]) << " ";
+    //        
+    //        sout2 << "\n\tres_T2 <<";		
+    //        for(i = 0; i < YC_t::NYield + 7; i++)
+    //			sout2 << /*shapeFAD::val*/(res_T2[i]) << " ";
+    //        
+    //        sout2 << "\n\tsigmaN_T1 <<\n";
+    //        sout2 << sigmaN_T1;
+    //		
+    //        sout2 << "\n\tsigmaNp1_T2 <<\n";
+    //        sout2 << sigmaNp1_T2;
+    //		
+    //        ////////////////////////////////MYLOG/////////////////////////
+    //		
+    //		std::stringstream sout;
+    //		sout << ">>> PlasticResidual *** normEpsPErr = " << normEpsPErr;
+    //		
+    //		sout << "\n\tN_T1 <<\n";
+    //		N_T1.Print(sout, 0 /*no Fad Derivatives*/);
+    //		
+    //		sout << "\n\tNp1_T2 <<\n";
+    //		Np1_T2.Print(sout, 0 /*no Fad Derivatives*/);
+    //		
+    //		sout << "\n\tdelGamma_T2 <<";
+    //		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(delGamma_T2[i]) << " ";
+    //		
+    //		sout << "\tepsPErr <<" << epsPErr;
+    //		
+    //		sout << "\n\tHMidPt_T2 << ";
+    //		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HMidPt_T2[i]) << " ";
+    //		
+    //		sout << "\tHN_T1 << ";		
+    //		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HN_T1[i]) << " ";
+    //		
+    //		sout << "\tHNp1_T2 << ";	
+    //		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HNp1_T2[i]) << " ";
+    //		
+    //		sout << "\n\tNdirMidPt_T2 <<";		
+    //		for(i = 0; i < YC_t::NYield; i++)
+    //			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirMidPt_T2[i].fData[j]) << " ";
+    //		
+    //		sout << "\n\tNdirN_T1 <<";
+    //		for(i = 0; i < YC_t::NYield; i++)
+    //			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirN_T1[i].fData[j]) << " ";
+    //		
+    //		sout << "\n\tNdirNp1_T2 <<";		
+    //		for(i = 0; i < YC_t::NYield; i++)
+    //			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirNp1_T2[i].fData[j]) << " ";
+    //		
+    //		sout << "\n\tres_T2 <<";		
+    //		for(i = 0; i < YC_t::NYield + 7; i++)
+    //			sout << /*shapeFAD::val*/(res_T2[i]) << " ";
+    //		
+    //		sout << "\n\tsigmaN_T1 <<\n";
+    //		sout << sigmaN_T1;
+    //		
+    //		sout << "\n\tsigmaNp1_T2 <<\n";
+    //		sout << sigmaNp1_T2;
+    //		
+    
+    //  LOGPZ_INFO(loggerPlasticResidual,sout.str().c_str());	
+    // LOGPZ_INFO(logger,sout1.str().c_str());
+    //  LOGPZ_DEBUG(logger,sout2.str().c_str());
+    //  }
+    //#endif
+	
+}
+
 
 template <class YC_t, class TF_t, class ER_t>
 template<class T1, class T2, class TVECTOR>

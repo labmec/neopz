@@ -406,7 +406,27 @@ protected:
 						 const TPZVec<T2> &delGamma_T2,
 						       TPZVec<T2> &res_T2,
                                REAL &normEpsPErr,
-                               int silent = 0)const;   
+                               int silent = 0)const; 
+    
+
+    /**
+     Evaluates the residual vector for the plasticity problem RK
+     @param [in] N_T1 Plastic state variables at the time N
+     @param [in] Np1_T2 Plastic state variables at the time N+1
+     @param [in] delgamma_T plastic multipliers, one for each yield function
+     @param [out] res_T computed residual
+     @param [out] normEpsPErr norm of the estimation of the relative plastic strain error
+     @param [in] silent indicates whether or not to generate Log4cxx logs
+     * The template parameter will be either REAL or a FAD parameter
+     */
+    template <class T1, class T2>
+    void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
+                                                             const TPZPlasticState<T1> &N_T1,
+                                                             TPZPlasticState<T2> &Np1_T2,
+                                                             const TPZVec<T2> &delGamma_T2,
+                                                             TPZVec<T2> &res_T2,
+                                                             REAL &normEpsPErr,
+                                                             int silent)const;
 		
 	/**
     Updates the N+1 plastic state variables based on the solution of
