@@ -428,7 +428,7 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SaveCurrentSolutionVec(){
 }
 
 //instantiations
-#ifndef USING_COMPLEX
+#ifndef STATE_COMPLEX
 #include "pzpoisson3d.h"
 template class TPZTransientAnalysis< TPZMatPoisson3d >;
 

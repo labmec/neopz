@@ -173,7 +173,7 @@ int TPZMat2dLin::NSolutionVariables(int index) {
 void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout) {
 	
 	if(var == 0) {
-#ifndef USING_COMPLEX
+#ifndef STATE_COMPLEX
 		Solout = Sol;
 #else
         for (int i=0; i<Sol.size(); i++) {
@@ -182,7 +182,7 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
 #endif
 	} else if(var == 1) {
 		Solout.Resize(3,0.);
-#ifndef USING_COMPLEX
+#ifndef STATE_COMPLEX
 		Solout[0] = Sol[0];
 #else
         Solout[0] = Sol[0].real();

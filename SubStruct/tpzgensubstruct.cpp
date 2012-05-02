@@ -71,7 +71,7 @@ TPZGenSubStruct::~TPZGenSubStruct()
 {
 }
 
-#ifndef USING_COMPLEX
+#ifndef STATE_COMPLEX
 /// Coordinates of the eight nodes
 REAL co[8][3] = {
 	{0.,0.,0.},

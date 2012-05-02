@@ -63,7 +63,7 @@ public:
 	
     ~TPZGenSubStruct();
     
-#ifndef USING_COMPLEX
+#ifndef STATE_COMPLEX
     /** @brief Method which will generate the computational mesh */
     TPZAutoPointer<TPZCompMesh> GenerateMesh();
 #endif
