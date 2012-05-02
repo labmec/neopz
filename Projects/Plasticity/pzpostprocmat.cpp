@@ -1,4 +1,6 @@
-//$Id: pzpostprocmat.cpp,v 1.7 2010-11-23 18:57:31 diogo Exp $
+/**
+ * @file
+ */
 
 #include "pzpostprocmat.h"
 #include "poroelastoplasticid.h"
@@ -115,14 +117,6 @@ void TPZPostProcMat::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solo
 
 void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-
-//#ifdef LOG4CXX
-//  {
-//    std::stringstream sout;
-//    sout << ">>> TPZPostProcMat::Contribute ***";
-//    LOGPZ_DEBUG(postprocLogger,sout.str().c_str());
-//  }
-//#endif
 	
   TPZFMatrix<REAL> &phi = data.phi;
   TPZVec<REAL> &sol = data.sol[0];

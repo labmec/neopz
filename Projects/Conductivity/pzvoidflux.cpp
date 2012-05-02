@@ -1,10 +1,8 @@
-//
-//  pzvoidflux.cpp
-//  PZ
-//
-//  Created by Philippe Devloo on 5/3/11.
-//  Copyright 2011 UNICAMP. All rights reserved.
-//
+/**
+ * @file
+ * @author Philippe Devloo
+ * @since 5/3/11.
+ */
 
 #include "pzvoidflux.h"
 #include "pzbndcond.h"
@@ -58,11 +56,6 @@ int TPZVoidFlux::NStateVariables()
 
 /**
  * It computes a contribution to the stiffness matrix and load vector at one integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @since April 16, 2007
  */
 void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
@@ -71,12 +64,6 @@ void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL
 
 /**
  * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @param bc[in] is the boundary condition material
- * @since April 16, 2007
  */
 void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 {
@@ -86,10 +73,6 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<RE
 
 /**
  * It computes a contribution to the residual vector at one integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ef[out] is the residual vector
- * @since April 16, 2007
  */
 void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
 {
@@ -97,12 +80,6 @@ void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL
 
 /**
  * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
- * @param data[in] stores all input data
- * @param weight[in] is the weight of the integration rule
- * @param ek[out] is the stiffness matrix
- * @param ef[out] is the load vector
- * @param bc[in] is the boundary condition material
- * @since April 16, 2007
  */
 void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
 {
@@ -110,17 +87,7 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<RE
     DebugStop();    
 }
 
-
-
-
 /// computes a contribution to stiffness matrix and load vector at one integration point
-/**
- * @param data [in] all data needed to compute the stiffness matrix
- * @param weight [in] weight of the integration point
- * @param ek [out] is the stiffness matrix
- * @param ef [out] is the load vector
- * @since April 16, 2007
- */
 void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
     int nleft = dataleft.phi.Rows();
@@ -167,10 +134,6 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
 
 /**
  * It computes a contribution to residual vector at one integration point
- * @param data [in]
- * @param weight [in]
- * @param ef [out] is the load vector
- * @since April 16, 2007
  */
 void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef)
 {
@@ -180,12 +143,6 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
 
 /**
  * It computes a contribution to stiffness matrix and load vector at one BC integration point
- * @param data [in]
- * @param weight [in]
- * @param ek [out] is the stiffness matrix
- * @param ef [out] is the load vector
- * @param bc [in] is the boundary condition object
- * @since April 16, 2007
  */
 void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {
@@ -234,11 +191,6 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
 
 /**
  * It computes a contribution to residual vector at one BC integration point
- * @param data [in]
- * @param weight [in]
- * @param ef [out] is the load vector
- * @param bc [in] is the boundary condition object
- * @since April 16, 2007
  */
 void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc)
 {

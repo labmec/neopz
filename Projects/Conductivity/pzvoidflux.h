@@ -1,10 +1,9 @@
-//
-//  pzvoidflux.h
-//  PZ
-//
-//  Created by Philippe Devloo on 5/3/11.
-//  Copyright 2011 UNICAMP. All rights reserved.
-//
+/**
+ * @file
+ * @author Philippe Devloo
+ * @since 5/3/2011.
+ */
+
 #ifndef PZVOIDFLUX
 #define PZVOIDFLUX
 
@@ -17,7 +16,9 @@ class TPZVoidFlux : public TPZDiscontinuousGalerkin
 public:
     /// Constructor
     /**
+	 * @param materialid id of the material
      * @param conductivity conductivity of the porous material
+	 * @param bridgesize size
      */
     TPZVoidFlux(int materialid, REAL conductivity, REAL bridgesize) : TPZDiscontinuousGalerkin(materialid), fConductivity(conductivity),
         fBridgeSize(bridgesize)
@@ -73,41 +74,41 @@ public:
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
      * @since April 16, 2007
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     /**
      * It computes a contribution to the residual vector at one integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ef[out] is the residual vector
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ef [out] is the residual vector
      * @since April 16, 2007
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
      * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-     * @param data[in] stores all input data
-     * @param weight[in] is the weight of the integration rule
-     * @param ek[out] is the stiffness matrix
-     * @param ef[out] is the load vector
-     * @param bc[in] is the boundary condition material
+     * @param data [in] stores all input data
+     * @param weight [in] is the weight of the integration rule
+     * @param ek [out] is the stiffness matrix
+     * @param ef [out] is the load vector
+     * @param bc [in] is the boundary condition material
      * @since April 16, 2007
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
@@ -116,6 +117,8 @@ public:
     /// computes a contribution to stiffness matrix and load vector at one integration point
     /**
      * @param data [in] all data needed to compute the stiffness matrix
+     * @param dataleft [in] data needed to compute the stiffness matrix from left element
+     * @param dataright [in] data needed to compute the stiffness matrix from right element
      * @param weight [in] weight of the integration point
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
@@ -127,6 +130,8 @@ public:
     /**
      * It computes a contribution to residual vector at one integration point
      * @param data [in]
+     * @param dataleft [in]
+     * @param dataright [in]
      * @param weight [in]
      * @param ef [out] is the load vector
      * @since April 16, 2007
@@ -137,6 +142,7 @@ public:
     /**
      * It computes a contribution to stiffness matrix and load vector at one BC integration point
      * @param data [in]
+     * @param dataleft [in]
      * @param weight [in]
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
@@ -149,6 +155,7 @@ public:
     /**
      * It computes a contribution to residual vector at one BC integration point
      * @param data [in]
+     * @param dataleft [in]
      * @param weight [in]
      * @param ef [out] is the load vector
      * @param bc [in] is the boundary condition object

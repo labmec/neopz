@@ -1,4 +1,6 @@
-// $Id: TPZSandlerDimaggio.h,v 1.19 2009-12-10 23:05:00 erick Exp $
+/**
+ * @file
+ */
 
 #ifndef TPZSANDLERDIMAGGIO_H
 #define TPZSANDLERDIMAGGIO_H
@@ -140,8 +142,8 @@ public:
     /**
     Computes the strain tensor as a function of the stress state.
     This function returns the inverse of function void Sigma(...) using a Newton's scheme.
-    @param [in] sigma stress tensor
-    @param [out] epsTotal deformation tensor
+    @param[in] sigma stress tensor
+    @param[out] epsTotal deformation tensor
     */
     virtual void ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
     {
@@ -174,8 +176,8 @@ public:
 
     /**
     return the value of the yield functions for the given deformation
-     * @param [in] deform deformation tensor (total deformation
-     * @param [out] phi vector of yield functions
+     * @param[in] epsTotal deformation tensor (total deformation
+     * @param[out] phi vector of yield functions
     */
     virtual void Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
     {

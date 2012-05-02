@@ -167,23 +167,20 @@ public:
 	 */
 	void SetTensionSign(int s);
 	
-	/**
-	 * Indicates whether or not to correct Stress/Strain sign
-	 */
+	/** @brief Indicates whether or not to correct Stress/Strain sign */
 	int SignCorrection()const;
 	
 protected:
 	
 	/**
-	 * Imposes the specified strain tensor, evaluating the plastic integration if necessary.
+	 * @brief Imposes the specified strain tensor, evaluating the plastic integration if necessary. \n
 	 * Internal Method
-	 *
 	 * @param[in] epsTotal Imposed total strain tensor
 	 */
     void ApplyStrain_Internal(const TPZTensor<REAL> &epsTotal);
 	
 	/**
-	 * Imposes the specified strain tensor and returns the corresp. stress state and tangent
+	 * @brief Imposes the specified strain tensor and returns the corresp. stress state and tangent
 	 * stiffness matrix.
 	 * Internal Method
 	 *
@@ -194,10 +191,10 @@ protected:
     void ApplyStrainComputeDep_Internal(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
-	 * Imposes the specified strain tensor and returns the correspondent stress state.
+	 * @brief Imposes the specified strain tensor and returns the correspondent stress state.
 	 * Internal Method
 	 *
-	 *		The method 	ApplyStrainComputeSigma calls Apply Strain followed by an evaluation
+	 *	@note The method 	ApplyStrainComputeSigma calls Apply Strain followed by an evaluation
 	 *	of the Elastic Response. This method is of very low efficiency because it evaluates the
 	 *	whole ApplyStrain, evaluating sigma internally and discarding it. It evaluates
 	 *	ComputePlasticVars in order to retrieve the value of sigma. This method should be used
@@ -221,7 +218,7 @@ protected:
 	}
 	
 	/**
-	 * Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
+	 * @brief Attempts to compute an epsTotal value in order to reach an imposed stress state sigma.
 	 * This methid should be used only for test purposes because it isn't fully robust. Some
 	 * materials, specially those perfectly plastic and with softening, may fail when applying
 	 * the Newton Method on ProcessLoad.
@@ -235,7 +232,7 @@ protected:
 	
 public:
     /**
-     * Return the value of the yield functions for the given strain
+     * @brief Return the value of the yield functions for the given strain
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
 	 */
@@ -245,56 +242,44 @@ public:
 public:
 	
     /**
-     * Return the value of the yield functions for the given strain
+     * @brief Return the value of the yield functions for the given strain
 	 * Internal Method
-	 *
      * @param[in] epsTotal strain tensor (total strain)
      * @param[out] phi vector of yield functions
      */
     virtual void Phi_Internal(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const;
 	
 	/**
-	 * Verifies if the proposed epsTotalNp1 is still in the elastic range
-	 *
+	 * @brief Verifies if the proposed epsTotalNp1 is still in the elastic range
 	 * @param[in] state Plastic state proposed
 	 */
     int IsStrainElastic(const TPZPlasticState<REAL> &state)const;
 	
     /**
-	 Update the damage values
-	 @param[in] Total Strain
-	 @param[in] Plastic strain
-	 @param[in] alpha updated damage variable
+	 * @brief Update the damage values
+	 * @param[in] state Plastic state proposed
 	 */
     virtual void SetState(const TPZPlasticState<REAL> &state);
     
     /**
-	 Overwrite the current total strain only
-	 @param[in] Total Strain
+	 * @brief Overwrite the current total strain only
+	 * @param[in] epsTotal Strain
 	 */
     virtual void SetUp(const TPZTensor<REAL> & epsTotal);
 	
-    /**
-	 Retrieve the plastic state variables
-	 */	
+    /** @brief Retrieve the plastic state variables */	
     virtual const TPZPlasticState<REAL> GetState()const;
 	
-	/**
-	 * Return the number of plastic steps in the last load step. Zero indicates elastic loading.
-	 */
+	/** @brief Return the number of plastic steps in the last load step. Zero indicates elastic loading. */
 	virtual int IntegrationSteps()const;
 	
-	/**
-	 * Sets the tolerance allowed in the pde integration
-	 */
+	/** @brief Sets the tolerance allowed in the pde integration */
 	virtual void SetIntegrTol(REAL integrTol)
 	{
 		fIntegrTol = integrTol;
 	}
 	
-	/**
-	 * Sets the minimum loading substep size in the plastic integration
-	 */
+	/** @brief Sets the minimum loading substep size in the plastic integration */
 	virtual void SetMinStepSize(REAL minStepSize)
 	{
 		fMinStepSize = minStepSize;
@@ -318,51 +303,49 @@ protected:
 	
     /**
 	 * @brief Updates the damage values - makes no interface sign checks
-	 * @param[in] state
+	 * @param[in] state Plastic state proposed
 	 */
     virtual void SetState_Internal(const TPZPlasticState<REAL> &state);
 	
-    /**
-	 Retrieves the plastic state variables - makes no interface sign checks
-	 */	
+    /** @brief Retrieves the plastic state variables - makes no interface sign checks */	
     virtual const TPZPlasticState<REAL> GetState_Internal()const;
 	
     /**
-	 * Imposes the specified strain tensor and performs plastic integration when necessary.
+	 * @brief Imposes the specified strain tensor and performs plastic integration when necessary.
 	 * This function creates a new plastic integration history epserimenting the proposed
 	 * epsTotal. It does not update the current plastic state.
-	 *
-	 * @param[in] epsTotal Imposed total strain tensor
+	 * @param ep Type indicating if it is elastic or plastic 
+	 * @param epsTotal Imposed total strain tensor
 	 */
     virtual void ProcessStrain(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
 
     /**
-     * Imposes the specified strain tensor and performs plastic integration when necessary.
+     * @brief Imposes the specified strain tensor and performs plastic integration when necessary.
      * This function DO NOT calls PlasticIntegrate
-     * @param[in] epsTotal Imposed total strain tensor
+     * @param epsTotal Imposed total strain tensor
+	 * @param ep Type indicating if it is elastic or plastic 
      */
     virtual void ProcessStrainNoSubIncrement(const TPZTensor<REAL> &epsTotal, const EElastoPlastic ep = EAuto);
 	
     /**
-	 * Imposes the specified stress tensor and performs plastic integration when necessary.
+	 * @brief Imposes the specified stress tensor and performs plastic integration when necessary.
 	 * This function evaluates a newton's method on ProcessStrain until the stress state matches.
 	 * It does not update the current plastic state.
-	 *
-	 * @param[in] sigma Imposed total strain tensor
+	 * @param sigma Imposed total strain tensor
+	 * @param ep Type indicating if it is elastic or plastic 
 	 */
     virtual void ProcessLoad(const TPZTensor<REAL> &sigma, const EElastoPlastic ep = EAuto);
 
 	/**
-	 * Evaluates the constitutive matrix (DSigma/DEpsT) based on the data from the plastic
+	 * @brief Evaluates the constitutive matrix (DSigma/DEpsT) based on the data from the plastic
 	 * integration history without modifying it.
-	 *
 	 * @param[out] sigma resultant stress tensor
 	 * @param[out] Dep Incremental constitutive relation
 	 */
     virtual void ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep);
 	
 	/**
-	 *  Evaluates the sigma stress tensor and the thermoForceA for use in several
+	 *  @brief Evaluates the sigma stress tensor and the thermoForceA for use in several
 	 *  pieces of this code.
 	 *  The output stress is elastic, admitting that no plastification occurs.
 	 * @param[in] state_T Plastic variables state
@@ -375,7 +358,7 @@ protected:
 							T& A_T)const;
 	
 	/**
-	 * Finds the strain point in the linear path from epsTotalN and
+	 * @brief Finds the strain point in the linear path from epsTotalN and
 	 * towards epsTotalNp1 that matches the yield criterium at at least one
 	 * plastic surface.
 	 * Returns as its value the deltaEpsT multiplier
@@ -389,8 +372,8 @@ protected:
 	 Evaluates the residual vector for the plasticity problem
 	 @param[in] N_T1 Plastic state variables at the time N
 	 @param[in] Np1_T2 Plastic state variables at the time N+1
-	 @param[in] delgamma_T plastic multipliers, one for each yield function
-	 @param[out] res_T computed residual
+	 @param[in] delGamma_T2 plastic multipliers, one for each yield function
+	 @param[out] res_T2 computed residual
 	 @param[out] normEpsPErr norm of the estimation of the relative plastic strain error
 	 @param[in] silent indicates whether or not to generate Log4cxx logs
      * The template parameter will be either REAL or a FAD parameter
@@ -406,13 +389,13 @@ protected:
     
 
     /**
-     Evaluates the residual vector for the plasticity problem RK
-     @param [in] N_T1 Plastic state variables at the time N
-     @param [in] Np1_T2 Plastic state variables at the time N+1
-     @param [in] delgamma_T plastic multipliers, one for each yield function
-     @param [out] res_T computed residual
-     @param [out] normEpsPErr norm of the estimation of the relative plastic strain error
-     @param [in] silent indicates whether or not to generate Log4cxx logs
+	 * @brief Evaluates the residual vector for the plasticity problem RK
+     * @param [in] N_T1 Plastic state variables at the time N
+     * @param [in] Np1_T2 Plastic state variables at the time N+1
+     * @param [in] delGamma_T2 plastic multipliers, one for each yield function
+     * @param [out] res_T2 computed residual
+     * @param [out] normEpsPErr norm of the estimation of the relative plastic strain error
+     * @param [in] silent indicates whether or not to generate Log4cxx logs
      * The template parameter will be either REAL or a FAD parameter
      */
     template <class T1, class T2>
@@ -425,17 +408,15 @@ protected:
                                                              int silent)const;
 		
 	/**
-	 Updates the N+1 plastic state variables based on the solution of
-	 a Newton's scheme.
-	 A very simple line search is performed in order to attempt to
-	 guarantee residual drop.
-	 @param[in] N_T1 Plastic state variables at time N
-	 @param[out] Np1_T2 Proposed plastic state variables at time Np1
-	 @param[in] delgamma_T2 plastic multipliers, one for each yield function
-	 @param[in] res_T2 computed residual
-	 @param[in] Sol_TVECTOR Opposite (in sign) direction of residual drop - results from Newton's scheme
-	 @param[in] validEqs Indicates the equations not to use in residual norm computations
-	 @param[in] updateVars when 1, the Np1_T2 variables return updated, otherwise untouched. It is important to set it to 0 when the sol vector contains derivatives
+	 * @brief Updates the N+1 plastic state variables based on the solution of a Newton's scheme.
+	 * A very simple line search is performed in order to attempt to guarantee residual drop.
+	 * @param[in] N_T1 Plastic state variables at time N
+	 * @param[out] Np1_T2 Proposed plastic state variables at time Np1
+	 * @param[in] delGamma_T2 plastic multipliers, one for each yield function
+	 * @param[in] res_T2 computed residual
+	 * @param[in] Sol_TVECTOR Opposite (in sign) direction of residual drop - results from Newton's scheme
+	 * @param[in] validEqs Indicates the equations not to use in residual norm computations
+	 * @param[in] updateVars when 1, the Np1_T2 variables return updated, otherwise untouched. It is important to set it to 0 when the sol vector contains derivatives
 	 */
 	
     template<class T1, class T2, class TVECTOR>
@@ -448,19 +429,16 @@ protected:
 						   int updateVars = 1)const;   
 	
 	/**
-	 * This method copies the REAL variables into FAD variables and
+	 * @brief This method copies the REAL variables into FAD variables and
 	 * intializes the derivatives
 	 * The nVars variable is usually the number of plastic independent 
 	 * variables. When more independent variables become necessary,
 	 * set this value accordingly.
-	 *
-	 * @param state [in] Plastic state variables
-	 * @param delGamma [in] Plastic multiplier
-	 * @param state_T [out] Plastic state variables
-	 * @param delGamma_T [out] Plastic multiplier
-	 * @param nVars [in] number of independent variables
-	 *
-	 *
+	 * @param[in] state Plastic state variables
+	 * @param[in] delGamma Plastic multiplier
+	 * @param[out] state_T Plastic state variables
+	 * @param[out] delGamma_T Plastic multiplier
+	 * @param[in] nVars number of independent variables
 	 */
 	template<class T>
 	void InitializePlasticFAD(const TPZPlasticState<REAL> & state, const TPZVec<REAL> &delGamma,
@@ -468,33 +446,33 @@ protected:
 							  const int nVars = 7 + YC_t::NYield)const;
 	
 	/**
-	 * Initializes the fValidEqs booleans indication whether to consider the plastic
-	 * surfaces
-	 * @param res_T [in] Valid equations are only those leading to negative phi's
-	 * @param validEqs [out] Validated equations
+	 * @brief Initializes the fValidEqs booleans indication whether to consider the plastic surfaces
+	 * @param[in] res_T Valid equations are only those leading to negative phi's
+	 * @param[out] validEqs Validated equations
 	 */
 	template <class T>
 	int InitializeValidEqs(TPZVec<T> &res_T, TPZVec<int> & validEqs);
 	
 	/**
-	 * After a complete plasticLoop, plsatic surface equations related to negative plastic
-	 * multipliers are discarded.
-	 * @param delGamma_T [in] plastic multiplier
+	 * @brief After a complete plasticLoop, plsatic surface equations related to negative plastic multipliers are discarded.
+	 * @param delGamma_T plastic multiplier
+	 * @param res_T Valid equations are only those leading to negative phi's
+	 * @param validEqs Validated equations
 	 */
     template <class T>
     int RemoveInvalidEqs(TPZVec<T> & delGamma_T, TPZVec<T> & res_T, TPZVec<int> &validEqs);
 	
     /**
-     * Proposes an update to the plastic variables and estimates the relative error
+     * @brief Proposes an update to the plastic variables and estimates the relative error
 	 * comitted in this update. Neither internal variable are used nor changed.
 	 * In the Np1 variables, EpsT is imposed [in] and the Alpha and EpsP are evaluated.
 	 * It returns 1 if suceeded of 0 if tolerance not achieved.
-     * @param[in] N Plastic state variables at time N
-	 * @param[in/out] Np1 Plastic state variables at time N+1
-     * @param[in/out] delGamma plastic multipliers
-	 * @param[out] normEpsPErr estimated norm of the relative error deltaEpsP/deltaEpsTotal
-     * @param[out] lambda Line search multiplier
-	 * @param[out] validEqs Valid set of plastic flow eqs
+     * @param N [in] Plastic state variables at time N
+	 * @param Np1 [in/out] Plastic state variables at time N+1
+     * @param delGamma [in/out] plastic multipliers
+	 * @param normEpsPErr [out] estimated norm of the relative error deltaEpsP/deltaEpsTotal
+     * @param lambda [out] Line search multiplier
+	 * @param validEqs [out] Valid set of plastic flow eqs
 	 */
     int PlasticLoop(const TPZPlasticState<REAL> &N,
 					TPZPlasticState<REAL> &Np1,
@@ -504,7 +482,7 @@ protected:
 					TPZVec<int> & validEqs);
 	
 	/**
-     * Proposes an update to the plastic variables respecting an integration
+     * @brief Proposes an update to the plastic variables respecting an integration
 	 * with error control.
 	 * Neither internal variable are used nor changed.
 	 * In the Np1 variables, EpsT is imposed \[input\] and the Alpha and EpsP are evaluated.
@@ -518,7 +496,7 @@ protected:
 						 const REAL &TolEpsPErr);
 	
 	/**
-	 * Extracts the tangent matrix and residual vector from the FAD variables 
+	 * @brief Extracts the tangent matrix and residual vector from the FAD variables 
 	 * and according to the preconditioning and fValidEqs booleans.
 	 * @param[in] epsRes_FAD Residual of plastic eqs in FAD fashion
 	 * @param[out] ResVal Residual of plastic eqs in vector fashion, preconditioned if requested
@@ -539,7 +517,7 @@ protected:
 						const int resetInvalidEqs = 1);
 	
 	/**
-	 * Stores the whole content of a plastic integration step in order to allow its 
+	 * @brief Stores the whole content of a plastic integration step in order to allow its 
 	 * further reevaluation.
 	 * @param state [in] plastic state variables
 	 * @param k [in] deltaEpsTotal multiplier
@@ -581,18 +559,17 @@ public:
 	int fMaxNewton;	
 	
 	/**
-	 Minimum multiplicaton in the Plastic Loop line search.
-	 1.0 avoids line searching;
-	 Very Small values do not allow the code to skip out of local minima.
+	 * @brief Minimum multiplicaton in the Plastic Loop line search. 1.0 avoids line searching;
+	 * Very Small values do not allow the code to skip out of local minima.
 	 */
 	REAL fMinLambda;
 	
 	/**
-	 Minimum fraction of the full load substep proposed accepted in the
-	 plastic integration. Too low values may lead to extremely slow integration
-	 in some cases while values as high as 1.0 may prevent the plastic integrator
-	 error control from adjusting the advisable plastic substeps. Values between
-	 1.e-3 and 1.e-2 are advisable.
+	 * @brief Minimum fraction of the full load substep proposed accepted in the
+	 * plastic integration. Too low values may lead to extremely slow integration
+	 * in some cases while values as high as 1.0 may prevent the plastic integrator
+	 * error control from adjusting the advisable plastic substeps. Values between
+	 * 1.e-3 and 1.e-2 are advisable.
 	 */
 	REAL fMinStepSize;
 	
@@ -602,7 +579,7 @@ protected:
     TPZPlasticState<REAL> fN;
 	
 	/**
-	 * Stores the plastic evolution in the last evaluated PlasticIntegration call,
+	 * @brief Stores the plastic evolution in the last evaluated PlasticIntegration call,
 	 * It includes the N-1 data, the elastic step until yield when it exists,
 	 * the plastic substeppings and the N step.
 	 */
@@ -690,7 +667,9 @@ public:
 				break;
 		}
     }
+	
 	//////////////////CheckConv related methods/////////////////////
+
 };
 
 #endif //TPZPLASTICSTEP_H

@@ -1,12 +1,3 @@
-/*
- *  pzporoelasticMF2d.h
- *  PZ
- *
- *  Created by Agnaldo on 03/15/12.
- *  Copyright 2012 __MyCompanyName__. All rights reserved.
- *
- */
-
 /**
  * @file
  * @brief Contains the TPZPoroElasticMF2d class which implements the poroelastic 2d problem for simulation multi-phyisics,
@@ -108,7 +99,6 @@ public:
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
-	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
 	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy)
 	{
@@ -118,7 +108,8 @@ public:
 		ff[1] = fy;
 	}
 	
-	/** @brief Set falpha parameter
+	/**
+	 * @brief Set falpha parameter
 	 * @param alpha : constant poroelastic Biot [dimensionless]
 	 * @param Se : Coeficiente poroelastico de armazenamento a volume constante [adimensional]
 	 */
@@ -128,7 +119,8 @@ public:
 		fSe = Se; 
 	}
 	
-	/** @brief Set plane problem  
+	/**
+	 * @brief Set plane problem  
 	 * planestress = 1 => Plain stress state 
 	 * planestress != 1 => Plain Strain state 
 	 */
@@ -165,6 +157,8 @@ public:
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @param data [in]
+	 * @param dataleft [in]
+	 * @param dataright [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -175,6 +169,7 @@ public:
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
+	 * @param dataleft [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -187,6 +182,7 @@ public:
 	/** @name Contribute methods
 	 * @{
 	 */
+	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data [in] stores all input data
@@ -199,7 +195,6 @@ public:
 		DebugStop();
 	}
     
-	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
@@ -212,6 +207,8 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
 		DebugStop();
 	}
+	
 	/* @} */
 };
+
 #endif

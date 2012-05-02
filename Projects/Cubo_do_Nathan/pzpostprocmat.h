@@ -1,4 +1,6 @@
-//$Id: pzpostprocmat.h,v 1.5 2010-11-23 18:58:59 diogo Exp $
+/**
+ * @file
+ */
 
 #ifndef PZPOSTPROCMAT_H
 #define PZPOSTPROCMAT_H
@@ -11,10 +13,9 @@
 #include <string>
 
   /**
-   * Implements an elastoplastic material and uses the memory feature to store the damage variables
+   * @brief Implements an elastoplastic material and uses the memory feature to store the damage variables
    * This material works only together with the Plasticity Library.
    */
-
 class TPZPostProcVar
 {
 public:
@@ -94,29 +95,29 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
 	
       /**
        * It computes a contribution to the stiffness matrix and load vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 
       /**
        * It computes a contribution to the residual vector at one integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ef[out] is the residual vector
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ef [out] is the residual vector
        */
       virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
 
 
       /**
        * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
-       * @param data[in] stores all input data
-       * @param weight[in] is the weight of the integration rule
-       * @param ek[out] is the stiffness matrix
-       * @param ef[out] is the load vector
-       * @param bc[in] is the boundary condition material
+       * @param data [in] stores all input data
+       * @param weight [in] is the weight of the integration rule
+       * @param ek [out] is the stiffness matrix
+       * @param ef [out] is the load vector
+       * @param bc [in] is the boundary condition material
        * @since April 16, 2007
        */
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
@@ -124,6 +125,8 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
       /**
        * It computes a contribution to stiffness matrix and load vector at one integration point
        * @param data [in]
+       * @param dataleft [in]
+       * @param dataright [in]
        * @param weight [in]
        * @param ek [out] is the stiffness matrix
        * @param ef [out] is the load vector
@@ -134,6 +137,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
       /**
        * It computes a contribution to stiffness matrix and load vector at one BC integration point
        * @param data [in]
+       * @param dataleft [in]
        * @param weight [in]
        * @param ek [out] is the stiffness matrix
        * @param ef [out] is the load vector

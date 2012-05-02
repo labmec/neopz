@@ -1,4 +1,6 @@
-// $Id: TPZPlasticStep.cpp,v 1.60 2010-11-03 18:21:36 diogo Exp $
+/**
+ * @file
+ */
 
 #include "TPZPlasticStep.h"
 #include "TPZElasticResponse.h"
@@ -366,31 +368,31 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
 	
 	
     //PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
-        int succeeded;
-        
-        TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-        TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
-        
-        REAL normEpsPErr = 0.;
-        int counter = 0;
-        REAL lambda = 0.;
-        
-        succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
-        
-        if(normEpsPErr < fIntegrTol && succeeded)
-        {
-            PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-            return; 
-        }
+	int succeeded;
+	
+	TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
+	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+	
+	REAL normEpsPErr = 0.;
+	int counter = 0;
+	REAL lambda = 0.;
+	
+	succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+	
+	if(normEpsPErr < fIntegrTol && succeeded)
+	{
+		PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+		return; 
+	}
     
     TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
 	deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
     TPZFMatrix<REAL> residual_mat(6,1);
-
-         REAL resnorm = 0.;
+	
+	REAL resnorm = 0.;
     do {
         
-
+		
         
         Np1.fEpsT.Add(deltaEpsTotal,1.);
         succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
@@ -400,19 +402,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         for(k = 0; k < 6; k++)residual_mat(k,0) = res.fData[k] - epstyield.fData[k];
         for(k = 0; k < 6; k++)resnorm += pow(residual_mat(k,0),2.);
         resnorm = sqrt(resnorm);
-
+		
         
     } while ( resnorm > 1.e-3 && succeeded);
     
-//    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
-        PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+	//    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+	PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
     
-        cout << "\n ProcessStrainNoSubIncrement  ";
-        cout << "\n fIntegrTol = " << fIntegrTol;
-        cout << "\n lambda = " << lambda;
-        cout << "\n delGamma = " << delGamma;
-        cout << "\n fIntegrTol = " << fIntegrTol;
-
+	cout << "\n ProcessStrainNoSubIncrement  ";
+	cout << "\n fIntegrTol = " << fIntegrTol;
+	cout << "\n lambda = " << lambda;
+	cout << "\n delGamma = " << delGamma;
+	cout << "\n fIntegrTol = " << fIntegrTol;
+	
 }
 
 
@@ -496,22 +498,22 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
 	DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
 	Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
 	
-  //  stateAtYield.Print(cout);
-   //     Np1.Print(cout);
+	//  stateAtYield.Print(cout);
+	//     Np1.Print(cout);
 	
     PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
     
-//    REAL normEpsPErr = 0.;
-//    int counter = 0;
-//    REAL lambda = 0.;
-//    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-//	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
-//    int succeeded; 
-//    
-//    	succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
-//    cout << "succeeded = "<< succeeded << endl;
-// //   succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
-////    PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+	//    REAL normEpsPErr = 0.;
+	//    int counter = 0;
+	//    REAL lambda = 0.;
+	//    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
+	//	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+	//    int succeeded; 
+	//    
+	//    	succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+	//    cout << "succeeded = "<< succeeded << endl;
+	// //   succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
+	////    PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
     
     
     
@@ -1082,7 +1084,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     Sol(nVars,1,0.);    // Sol will contain the values of the unknown values
     TPZFNMatrix<nVars*nVars> tangent(nVars,nVars,0.); // Jacobian matrix
     REAL                     resnorm = 0.;
-
+	
     
     int countReset = 0;	
     int countNewton = 0;
@@ -1113,7 +1115,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #endif	  
         
         
-//      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
+		//      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
         
         ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1/*precond*/, 1/*ResetUnvalidEqs*/); 
         
@@ -1134,10 +1136,10 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             
             //	ofstream fileout("rigidez.nb");
             //	tangent.Print("Rigidez = ", fileout, EMathematicaInput);
-     //       ofstream fileout2("ResVal.nb");
-    // ResVal.Print("ResVal = ", fileout2, EMathematicaInput);
-          //  cout << tangent << endl;
-         //   cout << ResVal << endl;
+			//       ofstream fileout2("ResVal.nb");
+			// ResVal.Print("ResVal = ", fileout2, EMathematicaInput);
+			//  cout << tangent << endl;
+			//   cout << ResVal << endl;
             
             
             // invert the tangent matrix and put the correction in the Sol variable
@@ -1807,7 +1809,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
             sout << "\n normEpsPErr \n "<<normEpsPErr << endl;
             sout << "\n delGamma \n "<<delGamma << endl;
             sout << "\n lambda \n "<<lambda << endl;
-          //  LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
+			//  LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
         }
 #endif
 		
@@ -2108,121 +2110,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual(
     for(j=0; j<nyield; j++)
         res_T2[i++] = phiRes_T2[j];
     
-//#ifdef LOG4CXX_PLASTICITY
-//    if(!silent)
-//	{
-//        int i, j;
-//        std::stringstream sout1, sout2;
-//        sout1 << ">>> PlasticResidual *** normEpsPErr = " << normEpsPErr;
-//        
-//        sout2 << "\n\tN_T1 <<\n";
-//        N_T1.Print(sout2, 0 /*no Fad Derivatives*/);
-//		
-//        sout2 << "\n\tNp1_T2 <<\n";
-//        Np1_T2.Print(sout2, 0 /*no Fad Derivatives*/);
-//		
-//        sout2 << "\n\tdelGamma_T2 <<";
-//        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(delGamma_T2[i]) << " ";
-//		
-//        sout2 << "\tepsPErr <<" << epsPErr;
-//		
-//        sout2 << "\n\tHMidPt_T2 << ";
-//        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HMidPt_T2[i]) << " ";
-//		
-//        sout2 << "\tHN_T1 << ";		
-//        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HN_T1[i]) << " ";
-//        
-//        sout2 << "\tHNp1_T2 << ";	
-//        for(i = 0; i < YC_t::NYield; i++)sout2 << shapeFAD::val(HNp1_T2[i]) << " ";
-//		
-//        sout2 << "\n\tNdirMidPt_T2 <<";		
-//        for(i = 0; i < YC_t::NYield; i++)
-//            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirMidPt_T2[i].fData[j]) << " ";
-//        
-//        sout2 << "\n\tNdirN_T1 <<";
-//        for(i = 0; i < YC_t::NYield; i++)
-//            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirN_T1[i].fData[j]) << " ";
-//		
-//        sout2 << "\n\tNdirNp1_T2 <<";		
-//        for(i = 0; i < YC_t::NYield; i++)
-//            for(j = 0; j < 6; j++)sout2 << shapeFAD::val(NdirNp1_T2[i].fData[j]) << " ";
-//        
-//        sout2 << "\n\tres_T2 <<";		
-//        for(i = 0; i < YC_t::NYield + 7; i++)
-//			sout2 << /*shapeFAD::val*/(res_T2[i]) << " ";
-//        
-//        sout2 << "\n\tsigmaN_T1 <<\n";
-//        sout2 << sigmaN_T1;
-//		
-//        sout2 << "\n\tsigmaNp1_T2 <<\n";
-//        sout2 << sigmaNp1_T2;
-//		
-//        ////////////////////////////////MYLOG/////////////////////////
-//		
-//		std::stringstream sout;
-//		sout << ">>> PlasticResidual *** normEpsPErr = " << normEpsPErr;
-//		
-//		sout << "\n\tN_T1 <<\n";
-//		N_T1.Print(sout, 0 /*no Fad Derivatives*/);
-//		
-//		sout << "\n\tNp1_T2 <<\n";
-//		Np1_T2.Print(sout, 0 /*no Fad Derivatives*/);
-//		
-//		sout << "\n\tdelGamma_T2 <<";
-//		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(delGamma_T2[i]) << " ";
-//		
-//		sout << "\tepsPErr <<" << epsPErr;
-//		
-//		sout << "\n\tHMidPt_T2 << ";
-//		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HMidPt_T2[i]) << " ";
-//		
-//		sout << "\tHN_T1 << ";		
-//		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HN_T1[i]) << " ";
-//		
-//		sout << "\tHNp1_T2 << ";	
-//		for(i = 0; i < YC_t::NYield; i++)sout << shapeFAD::val(HNp1_T2[i]) << " ";
-//		
-//		sout << "\n\tNdirMidPt_T2 <<";		
-//		for(i = 0; i < YC_t::NYield; i++)
-//			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirMidPt_T2[i].fData[j]) << " ";
-//		
-//		sout << "\n\tNdirN_T1 <<";
-//		for(i = 0; i < YC_t::NYield; i++)
-//			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirN_T1[i].fData[j]) << " ";
-//		
-//		sout << "\n\tNdirNp1_T2 <<";		
-//		for(i = 0; i < YC_t::NYield; i++)
-//			for(j = 0; j < 6; j++)sout << shapeFAD::val(NdirNp1_T2[i].fData[j]) << " ";
-//		
-//		sout << "\n\tres_T2 <<";		
-//		for(i = 0; i < YC_t::NYield + 7; i++)
-//			sout << /*shapeFAD::val*/(res_T2[i]) << " ";
-//		
-//		sout << "\n\tsigmaN_T1 <<\n";
-//		sout << sigmaN_T1;
-//		
-//		sout << "\n\tsigmaNp1_T2 <<\n";
-//		sout << sigmaNp1_T2;
-//		
-		
-      //  LOGPZ_INFO(loggerPlasticResidual,sout.str().c_str());	
-       // LOGPZ_INFO(logger,sout1.str().c_str());
-      //  LOGPZ_DEBUG(logger,sout2.str().c_str());
-  //  }
-//#endif
-	
 }
-
 
 template <class YC_t, class TF_t, class ER_t>
 template <class T1, class T2>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
-                                                       const TPZPlasticState<T1> &N_T1,
-                                                       TPZPlasticState<T2> &Np1_T2,
-                                                       const TPZVec<T2> &delGamma_T2,
-                                                       TPZVec<T2> &res_T2,
-                                                       REAL &normEpsPErr,
-                                                       int silent)const
+														 const TPZPlasticState<T1> &N_T1,
+														 TPZPlasticState<T2> &Np1_T2,
+														 const TPZVec<T2> &delGamma_T2,
+														 TPZVec<T2> &res_T2,
+														 REAL &normEpsPErr,
+														 int silent)const
 {
     
     const REAL a = 0.5;
@@ -2589,8 +2487,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
 		//cout.flush();
 		
         // evaluating the plastic integration, stress tensor and jacobian
-     //   ProcessStrainNoSubIncrement(epsTotal,ep);
-       ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
+		//   ProcessStrainNoSubIncrement(epsTotal,ep);
+		ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
         ComputeDep(EEpsilon, Dep_mat);
         
 		//cout << "\nended ProcessStrain/ComputeDep";
