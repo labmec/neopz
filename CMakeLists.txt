@@ -16,6 +16,8 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Refine"
 	"${PROJECT_SOURCE_DIR}/Shape"
 	"${PROJECT_SOURCE_DIR}/Material"
+	"${PROJECT_SOURCE_DIR}/Material/REAL"
+	"${PROJECT_SOURCE_DIR}/Material/Complex"
 	"${PROJECT_SOURCE_DIR}/Multigrid"
 	"${PROJECT_SOURCE_DIR}/Mesh"
 	"${PROJECT_SOURCE_DIR}/StrMatrix"
@@ -220,14 +222,17 @@ elseif (STATE_TYPE STREQUAL "long double")
   set(STATE_TYPE_DEF "STATElongdouble")
 elseif (STATE_TYPE STREQUAL "complex<float>")
   add_definitions(-DSTATEcomplexf)
+  add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexf")
   set (BUILD_COMPLEX_PROJECTS ON)
 elseif (STATE_TYPE STREQUAL "complex<double>")
   add_definitions(-DSTATEcomplexd)
+  add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexd")
   set (BUILD_COMPLEX_PROJECTS ON)
 elseif (STATE_TYPE STREQUAL "complex<long double>")
   add_definitions(-DSTATEcomplexld)
+  add_definitions(-DSTATE_COMPLEX)
   set(STATE_TYPE_DEF "STATEcomplexld")
   set (BUILD_COMPLEX_PROJECTS ON)
 else()
@@ -273,7 +278,6 @@ add_subdirectory(PlaneFracture)
 add_subdirectory(lib)
 add_subdirectory(Projects)
 add_subdirectory(UnitTest_PZ)
-
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"

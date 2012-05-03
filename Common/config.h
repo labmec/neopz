@@ -5,10 +5,3 @@
 //DO NOT COMMIT THIS FILE, LOCAL USE ONLY
 
 //DO NOT COMMIT THIS FILE, LOCAL USE ONLY
-
-#ifndef REALdouble
-#define REALdouble
-#endif
-#ifndef STATEdouble
-#define STATEdouble
-#endif
