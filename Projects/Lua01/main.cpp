@@ -21,6 +21,7 @@
 #include <pzskylstrmatrix.h>
 #include <pzcmesh.h>
 
+#include "pzgeoelbc.h"
 
 #include "pzfilebuffer.h"
 #include "pzmaterialid.h"
