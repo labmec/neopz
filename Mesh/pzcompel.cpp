@@ -223,7 +223,7 @@ void TPZCompEl::LoadSolution() {
 				for(iv=0; iv<nvar; iv+=numstate) {
 					for(jv=0; jv<numdepvar; jv+=numstate) {
 						coef = dep->fDepMatrix(iv/numstate,jv/numstate);
-						for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += coef*MeshSol(depseqpos+jv+idf,0);
+						for(idf=0; idf<numstate; idf++) MeshSol(blpos+iv+idf,0) += (STATE)coef*MeshSol(depseqpos+jv+idf,0);
 					}
 				}
 				dep = dep->fNext;

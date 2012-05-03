@@ -100,7 +100,7 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		case 0:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)gBigNumber*(STATE)phi(in,0)*bc.Val2()(idf,0)*(STATE)weight;
 				}
 				for(jn=0 ; jn<numnod ; ++jn) {
 					for(idf = 0;idf<r;idf++) {
@@ -113,7 +113,7 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		case 1:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)phi(in,0)*bc.Val2()(idf,0)*(STATE)weight;
 				}
 			}
 			break;
@@ -121,12 +121,12 @@ void TPZMat1dLin::ContributeBC(TPZMaterialData &data,
 		case 2:
 			for(in=0 ; in<numnod ; ++in){
 				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += phi(in,0)*bc.Val2()(idf,0)*weight;
+					(ef)(in*r+idf,0) += (STATE)phi(in,0)*bc.Val2()(idf,0)*(STATE)weight;
 				}
 				for(jn=0 ; jn<numnod ; ++jn) {
 					for(idf = 0;idf<r;idf++) {
 						for(jdf = 0;jdf<r;jdf++) {
-							ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+							ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*(STATE)phi(in,0)*(STATE)phi(jn,0)*(STATE)weight;
 						}
 					}
 				}

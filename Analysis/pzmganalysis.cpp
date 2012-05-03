@@ -320,9 +320,9 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 			int pos = locblock.Position(dfseq);
 			
 			for(int jn=0; jn<dfvar; jn++) {
-				locsol[iv%numdof] += locphi(iv/numdof,0)*locsolmesh(pos+jn,0);
+				locsol[iv%numdof] += (STATE)locphi(iv/numdof,0)*locsolmesh(pos+jn,0);
 				for(d=0; d<dim; d++)
-					locdsol(d,iv%numdof) += locdphix(d,iv/numdof)*locsolmesh(pos+jn,0);
+					locdsol(d,iv%numdof) += (STATE)locdphix(d,iv/numdof)*locsolmesh(pos+jn,0);
 				iv++;
 			}
 		}
@@ -335,9 +335,9 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 			int dfvar = corblock.Size(dfseq);
 			int pos = corblock.Position(dfseq);
 			for(int jn=0; jn<dfvar; jn++) {
-				corsol[iv%numdof] += corphi(iv/numdof,0)*corsolmesh(pos+jn,0);
+				corsol[iv%numdof] += (STATE)corphi(iv/numdof,0)*corsolmesh(pos+jn,0);
 				for(d=0; d<dim; d++)
-					cordsol(d,iv%numdof) += cordphix(d,iv/numdof)*corsolmesh(pos+jn,0);
+					cordsol(d,iv%numdof) += (STATE)cordphix(d,iv/numdof)*corsolmesh(pos+jn,0);
 				iv++;
 			}
 		}
@@ -346,8 +346,8 @@ REAL TPZMGAnalysis::ElementError(TPZInterpolatedElement *fine, TPZInterpolatedEl
 			//       error += (locsol[jn]-corsol[jn])*(locsol[jn]-corsol[jn])*weight;
 			//       if(f) truerror += (corsol[jn]-truesol[jn])*(corsol[jn]-truesol[jn])*weight;
 			for(d=0; d<dim; d++) {
-				error += fabs((locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*weight);
-				if(f) truerror += fabs((cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*weight);
+				error += fabs((locdsol(d,jn)-cordsol(d,jn))*(locdsol(d,jn)-cordsol(d,jn))*(STATE)weight);
+				if(f) truerror += fabs((cordsol(d,jn)-truedsol(d,jn))*(cordsol(d,jn)-truedsol(d,jn))*(STATE)weight);
 			}
 		}
 	}

@@ -673,8 +673,8 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
 			for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
 				cols=iv%numdof;
 				for (int is=0; is<numbersol; is++) {
-                    data.sol[is][ilinha] += data.fNormalVec(ilinha,ivec)* data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    data.sol[is][nsol-1] +=  axesvec(ilinha,0)*data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
+                    data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
+                    data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
                     
                 }
 				
@@ -697,7 +697,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
     for (int idesc=0; idesc<numberdualfunc; idesc++) {
 		int iphi= data.phi.Rows()-data.numberdualfunctions +idesc;
         for (int is=0; is<numbersol; is++) {
-            data.sol[is][nsol-2]+= data.phi(iphi,0)*MeshSol(pos2+idesc,is);            
+            data.sol[is][nsol-2]+= (STATE)data.phi(iphi,0)*MeshSol(pos2+idesc,is);            
         }
     }
 }

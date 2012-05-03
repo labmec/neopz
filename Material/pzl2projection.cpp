@@ -74,7 +74,7 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 		}//for j
 		for(int ivi = 0; ivi < nvars; ivi++){
 			const int posI = nvars*i+ivi;
-			ef(posI,0) += weight*fScale*data.phi(i,0)*this->fSol[ivi];
+			ef(posI,0) += (STATE)weight*(STATE)fScale*(STATE)data.phi(i,0)*this->fSol[ivi];
 		}//ivi
 	}//for i
 }
@@ -92,7 +92,7 @@ void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 		case 0 : {      
 			for(iv = 0; iv < nvars; iv++){
 				for(in = 0 ; in < phr; in++) {
-					ef(nvars*in+iv,0) += TPZMaterial::gBigNumber * bc.Val2()(iv,0) * phi(in,0) * weight;      
+					ef(nvars*in+iv,0) += (STATE)TPZMaterial::gBigNumber * bc.Val2()(iv,0) * (STATE)phi(in,0) * (STATE)weight;      
 					for (jn = 0 ; jn < phr; jn++) {
 						ek(nvars*in+iv,nvars*jn+iv) += TPZMaterial::gBigNumber * phi(in,0) * phi(jn,0) * weight;
 					}//jn
@@ -105,7 +105,7 @@ void TPZL2Projection::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatri
 		case 1 : {
 			for(iv = 0; iv < nvars; iv++){
 				for(in = 0 ; in < phr; in++) {
-					ef(nvars*in+iv,0) += bc.Val2()(iv,0) * fScale * phi(in,0) * weight;
+					ef(nvars*in+iv,0) += bc.Val2()(iv,0) * (STATE)fScale * (STATE)phi(in,0) * (STATE)weight;
 				}//in
 			}//iv
 			break;

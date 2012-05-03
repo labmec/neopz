@@ -27,7 +27,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &r
 	numrows = state.Rows();
 	for(i=0; i<numrows; i++) {
 		REAL randnum = (rand()&1000)/999.;
-		incval(i,0) = range(i,0)*randnum;
+		incval(i,0) = range(i,0)*(STATE)randnum;
 	}
 	
 	std::ofstream log("conv.log");
@@ -65,7 +65,7 @@ void CheckConvergence(TConv &obj, TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &r
 			
 			for(i=0; i<numrows; i++) {
 				for(j=0; j<ncoefs; j++) {
-					actualstate(i,j) += (interval/10.)*incval(i,0)*coefs[j];
+					actualstate(i,j) += (STATE)(interval/10.)*(STATE)incval(i,0)*(STATE)coefs[j];
 				}
 			}
 			

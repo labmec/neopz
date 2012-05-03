@@ -260,7 +260,7 @@ void AdjustSolutionDerivatives(TPZFMatrix<STATE> &dsolfrom, TPZFMatrix<REAL> &ax
 		{
 			for(jd=0; jd<nderiv; jd++)
 			{
-				dval[id] += dsolfrom(jd,is)*axesinner(id,jd);
+				dval[id] += dsolfrom(jd,is)*(STATE)axesinner(id,jd);
 			}
 		}
 		for(id=0; id<nderiv; id++)

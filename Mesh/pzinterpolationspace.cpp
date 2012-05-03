@@ -529,7 +529,7 @@ void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 				loclocmat(lin,ljn) += weight*locphi(lin,0)*locphi(ljn,0);
 			}
 			for(cjn=0; cjn<nvar; cjn++) {
-				projectmat(lin,cjn) += weight*locphi(lin,0)*u[0][cjn];
+				projectmat(lin,cjn) += (STATE)weight*(STATE)locphi(lin,0)*u[0][cjn];
 			}
 		}
 		jacobian.Zero();
@@ -1113,7 +1113,7 @@ void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
 		for(iv = 0; iv < varsize; iv++){
-			value[iv] += data.sol[0][iv]*weight;
+			value[iv] += data.sol[0][iv]*(STATE)weight;
 		}//for iv
 	}//for ip
 }//method
@@ -1165,7 +1165,7 @@ void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &
 		material->Flux(data.x,data.sol[0],data.dsol[0],data.axes,flux);
 		for(int in=0; in<nshape; in++){
 			for(int ifl=0; ifl<num_flux; ifl++){
-				(ef.fMat)(in,ifl) += flux[ifl]*data.phi(in,0)*weight;
+				(ef.fMat)(in,ifl) += flux[ifl]*(STATE)data.phi(in,0)*(STATE)weight;
 			}//for ifl
 			for(int jn = 0; jn<nshape; jn++){
 				(ek.fMat)(in,jn) += data.phi(in,0)*data.phi(jn,0)*weight;

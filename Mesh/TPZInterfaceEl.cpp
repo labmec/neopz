@@ -906,7 +906,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		int pos = Mesh()->Block().Position(seqnum);
 		for (int ip=0; ip<blsize; ip++) 
 		{
-			solutionvec.Push(Mesh()->Solution()(pos+ip)*1.e15);
+			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
 		}
 #endif
 		ic++;
@@ -932,7 +932,7 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 		int pos = Mesh()->Block().Position(seqnum);
 		for (int ip=0; ip<blsize; ip++) 
 		{
-			solutionvec.Push(Mesh()->Solution()(pos+ip)*1.e15);
+			solutionvec.Push(Mesh()->Solution()(pos+ip)*(STATE)1.e15);
 		}
 #endif
 		ic++;
@@ -1202,7 +1202,7 @@ void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
         for (int is=0; is<numbersol; is++) {
             if(opt == 0){
                 for(int ier = 0; ier < njump; ier++){
-                    jump[is][ier] += localjump[is][ier]*localjump[is][ier]*weight;
+                    jump[is][ier] += localjump[is][ier]*localjump[is][ier]*(STATE)weight;
                 }
             }
             if(opt == 1){

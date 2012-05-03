@@ -139,7 +139,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 #endif
 		for (i = 0; i <data.sol.NElements(); i++){
             for (int is=0; is<numbersol; is++) {
-                fBCVal2(i,0) = gBigNumber*data.sol[is][i];
+                fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
                 fBCVal1(i,i) = gBigNumber;
             }
 		}
@@ -194,7 +194,7 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 #endif
 		for (i = 0; i <data.sol.NElements(); i++){
             for (int is=0; is<numbersol; is++) {
-                fBCVal2(i,0) = gBigNumber*data.sol[is][i];
+                fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
             }
 			fBCVal1(i,i) = gBigNumber;
 		}

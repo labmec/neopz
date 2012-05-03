@@ -1582,13 +1582,13 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 			int dfvar = block.Size(dfseq);
 			for(jn=0;jn<dfvar;jn++) {
 				coef = block(dfseq,0,jn,0);
-				sol[iv%numdof] += phi(iv/numdof,0)*coef;
+				sol[iv%numdof] += (STATE)phi(iv/numdof,0)*coef;
 				iv++;
 			}
 		}
 		for(in=0;in<nshape;in++)
 			for(l=0;l<numdof;l++)
-				(ef.fMat)(in*numdof+l,0) += weight*phi(in,0)*sol[l];
+				(ef.fMat)(in*numdof+l,0) += (STATE)weight*(STATE)phi(in,0)*sol[l];
 	}
 }
 
@@ -1862,9 +1862,9 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL>
 		int pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
             for (int is=0; is<numbersol; is++) {
-                sol[is][iv%numdof] += phi(iv/numdof,0)*MeshSol(pos+jn,is);                
+                sol[is][iv%numdof] += (STATE)phi(iv/numdof,0)*MeshSol(pos+jn,is);                
                 for(d=0; d<dim; d++){
-                    dsol[is](d,iv%numdof) += dphix(d,iv/numdof)*MeshSol(pos+jn,is);
+                    dsol[is](d,iv%numdof) += (STATE)dphix(d,iv/numdof)*MeshSol(pos+jn,is);
                 }
             }
 			iv++;

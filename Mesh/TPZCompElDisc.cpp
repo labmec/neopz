@@ -552,7 +552,7 @@ void TPZCompElDisc::SolutionX(TPZVec<REAL> &x, TPZVec<STATE> &uh){
 	int iv = 0,d;
 	uh.Fill(0.);
 	for(d=0; d<dfvar; d++) {
-		uh[iv%nstate] += phix(iv/nstate,0)*FineMeshSol(pos+d,0);
+		uh[iv%nstate] += (STATE)phix(iv/nstate,0)*FineMeshSol(pos+d,0);
 		iv++;
 	}
 }
@@ -971,9 +971,9 @@ void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TP
 		int pos = block.Position(dfseq);
 		for(int jn=0; jn<dfvar; jn++) {
             for (int is=0; is<numbersol; is++) {
-                sol[is][iv%nstate] += phi(iv/nstate,0)*MeshSol(pos+jn,is);
+                sol[is][iv%nstate] += (STATE)phi(iv/nstate,0)*MeshSol(pos+jn,is);
                 for(d=0; d<dphix.Rows(); d++){
-                    dsol[is](d,iv%nstate) += dphix(d,iv/nstate)*MeshSol(pos+jn,is);
+                    dsol[is](d,iv%nstate) += (STATE)dphix(d,iv/nstate)*MeshSol(pos+jn,is);
                 }
             }
 			iv++;

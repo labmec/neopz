@@ -238,8 +238,8 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 			int iv = 0,d;
 			for(int jn=0; jn<dfvar; jn++) {
                 for (int is=0; is<numbersol; is++) {
-                    data.sol[is][iv%nstate] += data.phi(iv/nstate,0)*MeshSol(pos+jn,is);
-                    for(d=0; d<dim; d++) data.dsol[is](d,iv%nstate) += data.dphix(d,iv/nstate)*MeshSol(pos+jn,is);
+                    data.sol[is][iv%nstate] += (STATE)data.phi(iv/nstate,0)*MeshSol(pos+jn,is);
+                    for(d=0; d<dim; d++) data.dsol[is](d,iv%nstate) += (STATE)data.dphix(d,iv/nstate)*MeshSol(pos+jn,is);
                 }
 				iv++;
 			}
@@ -702,7 +702,7 @@ void TPZAgglomerateElement::ProjectSolution(TPZFMatrix<STATE> &projectsol){
 				}
 				//a soma das regras dos pequenos cobre a geometria do grande
 				for(kn=0; kn<nvar; kn++) {
-					loadvec(in,kn) += weight*aggphix(in,0)*uh[kn];
+					loadvec(in,kn) += (STATE)weight*(STATE)aggphix(in,0)*uh[kn];
 				}
 			}
 		}//fim for ip
