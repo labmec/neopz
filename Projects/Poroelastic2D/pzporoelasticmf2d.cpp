@@ -17,7 +17,7 @@
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic2d.data"));
 #endif
 
 TPZPoroElasticMF2d::EState TPZPoroElasticMF2d::gState = ECurrentState;
@@ -61,8 +61,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 		DebugStop();
 	}
 	
-	//--------- Matrix size is for each element is  phiu.Rows() plus  phip.Rows() ---------------
-	//Setting the size of first block of first problem. Elastic problem
+	///Setting the size of block of Elastic problem
 	TPZFMatrix<>  &phiu =  datavec[0].phi;
 	TPZFMatrix<> &dphiu = datavec[0].dphix;
 	TPZFMatrix<> &axes=datavec[0].axes;
@@ -71,7 +70,6 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	phcu = phiu.Cols();
 	dphcu = dphiu.Cols();
 	dphru = dphiu.Rows();
-	
 	if(phcu != 1 || dphru != 2 || phru != dphcu) 
 	{
 		PZError << "\n inconsistent input Elasticity data : \n" <<
@@ -80,26 +78,39 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 		return;
 	}
 	
-	// Setting the size of second block of second problem. transport problem 
-	TPZFMatrix<>  &phip =  datavec[1].phi;
-	TPZFMatrix<> &dphip = datavec[1].dphix;
-	int phrp = phip.Rows();
-	
-	TPZFMatrix<> du(2,2);
-	
+	///Setting the size of blocks of transport problem: flux and pressure 
+	TPZFMatrix<>  &phiQ =  datavec[1].phi;
+	TPZFMatrix<> &dphiQ = datavec[1].dphix;
+    TPZFMatrix<>  &phip =  datavec[2].phi;
+	TPZFMatrix<> &dphip = datavec[2].dphix;
+    int phrp = phip.Rows();
+	int phcQ, phrQ, dphcQ, dphrQ;
+    phrQ = phiQ.Rows();
+	phcQ = phiQ.Cols();
+	dphcQ = dphiQ.Cols();
+	dphrQ = dphiQ.Rows();
+    if(phcQ != 1 || dphrQ != 2 || phrQ != dphcQ) 
+	{
+		PZError << "\n inconsistent input Flux data : \n" <<
+		"phi.Cols() = " << phiQ.Cols() << " dphi.Cols() = " << dphiQ.Cols() <<
+		" phi.Rows = " << phiQ.Rows() << " dphi.Rows = " << dphiQ.Rows() <<"\n";
+		return;
+	}
+    
+	///check size of the matrix ek and vector ef
 	int efr, efc, ekr, ekc;  
 	efr = ef.Rows();
 	efc = ef.Cols();
 	ekr = ek.Rows();
 	ekc = ek.Cols();
-	
-	if(ekr != (2*phru + phrp) || ekc != (2*phru + phrp) || efr != (2*phru + phrp) || efc != 1)
+	if(ekr != (2*phru + 2*phrQ+ phrp) || ekc != (2*phru + 2*phrQ + phrp) || efr != (2*phru + phrp) || efc != 1)
 	{
 		PZError << "\n inconsistent input data : \n" << "\nek.Rows() = " << ek.Rows() <<
 		" ek.Cols() = " << ek.Cols() << "\nef.Rows() = " << ef.Rows() << " ef.Cols() = " << ef.Cols() << "\n";
 		return;
 	}
 	
+    TPZFMatrix<> du(2,2);
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{	   
@@ -229,6 +240,49 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	}
 #endif
 	
+}
+
+void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    int phru = phiu.Rows();
+    for(int in = 0 ; in < phru; in++){
+        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight;  /// x displacement  forced v2 displacement      
+        ef(2*in+1,0) += gBigNumber*bc.Val2()(1,0)*phiu(in,0)*weight;   /// y displacement  forced v2 displacement 
+        
+        for(int jn = 0 ; jn < phru; jn++){
+            ek(2*in,2*jn) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
+            ek(2*in+1,2*jn+1) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
+        }
+    }
+}
+
+void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    int phru = phiu.Rows();
+    for(int in = 0 ; in <phru; in++){  
+        ef(2*in,0) += bc.Val2()(0,0)*phiu(in,0)*weight;   // traction in x 
+        ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // traction in y
+    }     
+}
+
+void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    int phru = phiu.Rows();
+    for(int in = 0; in < phru; in++){
+        ef(2*in,0) += bc.Val2()(0,0)*phiu(in,0)*weight;   // Neumann , Sigmaij
+        ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // Neumann
+        
+        for(int jn = 0 ; jn < phru; jn++){
+            ek(2*in,2*jn) += bc.Val1()(0,0)*phiu(in,0)*phiu(jn,0)*weight;
+            ek(2*in+1,2*jn) += bc.Val1()(1,0)*phiu(in,0)*phiu(jn,0)*weight;
+            ek(2*in+1,2*jn+1) += bc.Val1()(1,1)*phiu(in,0)*phiu(jn,0)*weight;
+            ek(2*in,2*jn+1) += bc.Val1()(0,1)*phiu(in,0)*phiu(jn,0)*weight;
+        }
+    } 
+    
 }
 
 void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,

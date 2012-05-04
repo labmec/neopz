@@ -160,6 +160,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	}
 }
 
+
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
                                          const TPZInterfaceElement &copy,
                                          std::map<int,int> &gl2lcConIdx,
@@ -207,6 +208,8 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 		DebugStop();
 	}
 }
+
+
 
 TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,const TPZInterfaceElement &copy,int &index)
 : TPZCompEl(mesh,copy,index) {
@@ -987,6 +990,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		return;
 	}
 	
+	
 	//TPZMaterialData data;
 	const int dim = this->Dimension();
 	const int diml = left->Dimension();
@@ -1006,14 +1010,16 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
     InitMaterialData(data);
 	
 	dataleft.fNeedsNormal=true;
-
+    data.fNeedsHSize=true;
+	
 	if( !dataleft.x||!dataright.x){
 		PZError << "\n Error at TPZInterfaceElement::CalcStiff null interface\n";
 		ek.Reset();
 		ef.Reset();
 		return;
 	}
-
+	
+	
 	TPZManVector<TPZConnect*> ConnectL, ConnectR;
 	TPZManVector<int> ConnectIndexL, ConnectIndexR;
 	
@@ -1311,6 +1317,8 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		
 		this->ComputeRequiredData(datal, left, LeftIntPoint);
 		this->ComputeRequiredData(datar, right, RightIntPoint);
+        //data.SetAllRequirements(true);
+        data.fNeedsHSize=true;
 		this->ComputeRequiredData(data);
 		
 		mat->ContributeInterfaceErrors(data, datal, datar, weight,errorL,errorR,errorid);

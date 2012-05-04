@@ -71,6 +71,11 @@ public:
 	
 	virtual void SetConnectIndex(int i, int connectindex);
 	
+    /**
+     * @brief Number of shapefunctions of the connect associated
+     * @param connect connect number
+     * @return number of shape functions
+     */
 	virtual int NConnectShapeF(int connect) const;
 	
 	virtual int Dimension() const {
@@ -82,26 +87,21 @@ public:
 	}
 	
 	virtual int NSideConnects(int side) const;
-	
+    
+	/** 
+     * @brief return the local index for connect
+    **/
 	virtual int SideConnectLocId(int node, int side) const;
-	
-	virtual int ConnectIndex(int node) const;
     
     /** 
-	 * @brief returns the index of the pressure connect
-     * @note returns -1 if their is no pressure connect
-     */
-    virtual int PressureConnectIndex() const
-    {
-        return NConnects()-1;
-    }
-
+     * @brief return the local index for side
+     **/
+	virtual int ConnectSideLocId(int connect) const;
+	
+	virtual int ConnectIndex(int con) const;
+    
 	
 	virtual void SetIntegrationRule(int ord);
-	/** @brief Identifies the interpolation order for pressure variable*/
-	virtual void SetPressureOrder(int ord);
-	/** @brief Returns the interpolation order to dual variable */
-	int DualOrder();
 	
 	/** @brief Identifies the interpolation order on the interior of the element*/
 	virtual void GetInterpolationOrder(TPZVec<int> &ord);
@@ -109,11 +109,11 @@ public:
 	/** @brief Returns the preferred order of the polynomial along side iside*/
 	virtual int PreferredSideOrder(int iside);
 	
-	/** @brief Sets the preferred interpolation order along a side */
-	/**
-	 * This method only updates the datastructure of the element \n
-	 * In order to change the interpolation order of an element, use the method PRefine
-	 */
+	/*
+     *@brief Sets the preferred interpolation order along a side
+	 *This method only updates the datastructure of the element
+	 *In order to change the interpolation order of an element, use the method PRefine
+    */
 	virtual void SetPreferredOrder(int order);
 	
 	/** @brief Sets the interpolation order of side to order*/
@@ -122,8 +122,12 @@ public:
 	/** @brief Returns the actual interpolation order of the polynomial along the side*/
 	virtual int SideOrder(int side) const;
 	
+    /**
+     * @brief return the interpolation order of the polynomial for connect
+     **/
 	virtual int ConnectOrder(int connect) const;
-			
+	
+	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
 	 * of state variables and material definitions */
 	virtual void InitMaterialData(TPZMaterialData &data);
@@ -131,22 +135,25 @@ public:
 	/** @brief Compute the correspondence between the normal vectors and the shape functions */
 	void ComputeShapeIndex(TPZVec<int> &sides, TPZVec<int> &shapeindex);
 	
-	/** @brief Returns the vector index  of the first index shape associate to element */
-	/** Special implementation to Hdiv */
-	void FirstShapeIndex(TPZVec<int> &Index);
-	
 	/** 
-	 * @brief Returns a matrix index of the shape and vector  associate to element
+	 * @brief Returns the vector index  of the first index shape associate to to each side 
+	 * Special implementation to Hdiv
+	 */
+	void FirstShapeIndex(TPZVec<int> &Index);
+    
+	/**
+     * @brief Returns a matrix index of the shape and vector  associate to element
      * @param VectorSide input : indicates the side associated with each vector
      * @param IndexVecShape output : indicates for the vector/shape function for the approximation space
-     */
+    */
 	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
 	
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
+	/** 
 	/** @brief Compute the shape functions corresponding to the dual space */
-	virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
+	//virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
 	
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
     
@@ -163,7 +170,10 @@ public:
 
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 	
-	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
+	
+	/** Jorge 09/06/2001
+	 * @brief Returns the transformation which transform a point from the side to the interior of the element
+	 */
 	TPZTransform TransformSideToElement(int side);
 	
 	/** @brief Returns the unique identifier for reading/writing objects to streams */

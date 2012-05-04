@@ -39,6 +39,7 @@
 #include "pzgengrid.h"
 #include "pzbndcond.h"
 #include "pzmaterial.h"
+#include "tpzquadrilateral.h"
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -225,10 +226,85 @@ void SolGraf(TPZCompMesh *malha, std::ofstream &GraficoSol);
  * du/dn = lambda u em todo contorno
  */
 
+void PrintMesh(TPZCompMesh *cmesh)
+{
+    int nel = cmesh->NElements();
+    int iel;
+    for(iel=0; iel<nel; iel++){
+        
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout<<"\n Elemento computacional " << iel <<std::endl;
+            LOGPZ_DEBUG(logger,sout.str())
+        }
+#endif
+
+        //TPZInterpolationSpace *intel;
+        TPZInterpolatedElement *intel;
+        TPZCompEl *cel = cmesh->ElementVec()[iel];
+        TPZGeoEl *geo = cel->Reference();
+        intel = dynamic_cast<TPZInterpolatedElement *>(cel);
+        if(intel)
+        {
+//            TPZMaterialData data;
+//            intel->InitMaterialData(data);
+//            TPZElementMatrix ek(cmesh,TPZElementMatrix::EK),ef(cmesh,TPZElementMatrix::EF);
+//            intel->InitializeElementMatrix(ek, ef);
+//            intel->CalcStiff(ek,ef);
+            
+            int nshapel = intel->NShapeF();
+            int dim = intel->Reference()->Dimension();
+            
+            int ncon = intel->NConnects();
+            for (int i=0; i<ncon; i++)
+            {
+                int indexcon = intel->ConnectIndex(i);
+                int nshape = intel->NConnectShapeF(i);
+                int mlado = i + /*pzgeom::TPZGeoQuad::NSides*/ geo->NSides()- ncon;
+                int ordinterp = intel->SideOrder(mlado);
+                int preforder = intel->PreferredSideOrder(mlado);
+                int nsidescon = intel->NSideConnects(mlado);
+                
+                intel->SetSideOrder(mlado, ordinterp+i);
+                int newsideorde = intel->SideOrder(mlado);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout<<"\n Connect " << indexcon << " Connect index = " << indexcon << " numero shapes = " <<nshape<<std::endl;
+                    sout<< "\n lado associado ao connect "<< indexcon << " = "<< mlado << " ordem do polinomio associado ao lado = " << preforder<<" ordem de interpolacao do lado = " << ordinterp <<" new ordem de interpolacao do lado = " << newsideorde << " numero lados conectados = " <<nsidescon<<std::endl;
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
+#endif
+
+            }
+            
+            TPZVec<int> ord;
+            intel->GetInterpolationOrder(ord);
+         
+            
+//            TPZManVector<REAL> xi(dim,0.);
+//            TPZFNMatrix<100> phi(nshape,1,0.),dphi(2,nshape,0.);
+//            intel->Shape(xi,phi,dphi);
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout<<"\n num elementos  " << ord.size();
+                sout<<"\n ordem de interpolacao  "<<ord<<std::endl;
+                sout<<"\n =======================================\n"<<std::endl;
+               // ord.Print(sout);
+//                phi.Print("Shape functions ",sout);
+//                dphi.Print("Derivative shape functions ",sout);
+//                ek.Print(sout);
+//                ef.Print(sout);
+                LOGPZ_DEBUG(logger,sout.str())
+            }
+#endif
+        }
+    }
+}
+
 using namespace std;
-
-
-
 int main()
 {
 	
@@ -244,15 +320,15 @@ int main()
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=2; porder<4; porder++) {
+	for (int porder=2; porder<3; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 		//	erro<< " Flux exato " << "\t "<<" Flux aprox "<<std::endl;//"P exata " << " \t " <<"P aprox " << "\t " << " Flux exato " << "\t "<<" Flux aprox "<<std::endl;
-		for(int h=5;h<6;h++){
+		for(int h=0;h<1;h++){
 			erro<<std::endl;
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
-			TPZGeoMesh *gmesh2 = MalhaGeoT(h);
+			TPZGeoMesh *gmesh2 = MalhaGeo(h);
 			std::ofstream file("MalhaDomioTodo.vtk");
 			PrintGMeshVTK( gmesh2, file);
 #ifdef LOG4CXX
@@ -269,11 +345,12 @@ int main()
 			
 			TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
 			
-			
+			PrintMesh(cmesh);
+            
 			//2. Resolve o problema
-			TPZAnalysis analysis(cmesh);
-			SaddlePermute(cmesh);
-			SolveLU ( analysis );
+			//TPZAnalysis analysis(cmesh);
+			//SaddlePermute(cmesh);
+			//SolveLU ( analysis );
 			
 			/*Resolver o sistema linear
 			 TPZFStructMatrix str(cmesh);
@@ -284,10 +361,10 @@ int main()
 			 analysis.Run();
 			 */
 			//Pos processamento
-			std::ofstream SolPoissonHdiv("Solucao.txt");
-			analysis.Solution().Print("Solucao",SolPoissonHdiv);
-			std::ofstream SolP("teste.txt");
-			analysis.Print( "SolTeste" ,  SolP);
+//			std::ofstream SolPoissonHdiv("Solucao.txt");
+//			analysis.Solution().Print("Solucao",SolPoissonHdiv);
+//			std::ofstream SolP("teste.txt");
+//			analysis.Print( "SolTeste" ,  SolP);
 			/*----
 			 TPZVec< REAL > p(1),pto(3);
 			 TPZVec<REAL> fluxo(3);
@@ -350,9 +427,9 @@ int main()
 			
 			
 			//-----
-			TPZVec<REAL> calcErro;
-			analysis.SetExact(*SolExata);
-			analysis.PostProcess(calcErro,erro);
+			//TPZVec<REAL> calcErro;
+			//analysis.SetExact(*SolExata);
+			//analysis.PostProcess(calcErro,erro);
 			/*
 			//4. visualizacao grafica usando vtk
 			 TPZVec<std::string> scalnames(2), vecnames(2);
@@ -419,8 +496,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->InsertMaterialObject(bnd3);
 	comp->InsertMaterialObject(bnd4);	
 	//espaco de aproximacao
-	//comp->SetAllCreateFunctionsHDiv();
-	comp->SetAllCreateFunctionsContinuous();
+	comp->SetAllCreateFunctionsHDiv();
+	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional
 	comp->AutoBuild();

@@ -23,7 +23,7 @@ ofstream outfile("Resultados.txt");
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	InitializePZLOG();
+	InitializePZLOG("../log4cxx.girkmann");
 #endif
 	
 	gRefDBase.InitializeAllUniformRefPatterns();
@@ -42,23 +42,23 @@ int main(int argc, char *argv[])
 	REAL pesoEspecifico = 32.69*1000.; //N/m3
 	REAL E = 20.59*10.e9;//N/m^2
 	REAL poisson = 0.;
-	bool anelleve = true;
+	bool anelleve =false;
 	
 	tools * Shell = new tools(rc, h, alpha, a, b, pesoEspecifico,E,poisson,anelleve);
 	
-	int ndiv = 240;
-	int nDiv_DirectRefCasca = 1;
-	int nDiv_DirectRefAnel = 4;
+	int ndiv = 80;
+	int nDiv_DirectRefCasca = 4;
+	int nDiv_DirectRefAnel = 5;
 	int nDiv_DirectRefPonto = 0;
 	REAL sim = 1.;/*-1.;*/
-	REAL pen = 10.;/*10.e10;*/
+	REAL pen = 0;/*10.e10;*/
 		
-	for(int nh = 1; nh<= 1; nh++) 
+	for(int nh = 0; nh<= 0; nh++) 
 	{
 		for (int p = 2; p < 9; p++)
 		{
-			REAL Mreal =-37.45 /*-41.12*/;
-			REAL Qreal =942.5 /*943.8*/;
+			REAL Mreal =/*-36.79203075692789*/-40.87558070391361;
+			REAL Qreal =/*943.6507129421782*/949.2660050261283;
 
 			//------------- RESOLUCAO MALHA CONTINUA ---------------------------------------------------------------------------------------
 			/*TPZGeoMesh * gmesh = Shell->MalhaGeoGen(ndiv, nDiv_DirectRefCasca, nDiv_DirectRefAnel,nDiv_DirectRefPonto, false, 4);
@@ -118,10 +118,17 @@ int main(int argc, char *argv[])
 		
 			int nEq = cmesh_changed->NEquations();
 			cout << "\n Numero de Equacoes = " << nEq<<endl;
+            
+            TPZAdmChunkVector<TPZConnect > vecpcon =cmesh_changed->ConnectVec();
+            int np = vecpcon.NElements();
+            int ndof=0;
+            for (int i = 0; i<np; i++) {
+                TPZConnect &df = vecpcon[i];
+                ndof += df.NDof();
+            }
 		
 			TPZAnalysis an_ch(cmesh_changed);
 			Shell->SolveSist(an_ch, cmesh_changed,sim);
-			
 			
 			//cmesh_changed->Print();
 		
@@ -129,6 +136,7 @@ int main(int argc, char *argv[])
 			
 			TPZVec<REAL> QeM2(9,0.);
 			QeM2 = Shell->CalcCortMomento(cmesh_changed);
+            
 					
 			delete cmesh_changed;
 			cmesh_changed = 0;
@@ -136,12 +144,13 @@ int main(int argc, char *argv[])
 			gmesh2 = 0;
 		
 			outfile<<"RESULTADOS COM INTERFACE"<<endl;
+            outfile <<" Numero de graus de liberdade = " << ndof<< "  Numero de Equacoes = "<<nEq<<endl;
 			outfile <<" MomentoR = "<<QeM2[0]<<"  Erro Relativo ==> " << fabs((Mreal - QeM2[0])/Mreal)*100.<<" %"<<endl;
-			outfile <<" MomentoL = "<<QeM2[2]<<"  Erro Relativo ==> " << fabs((Mreal - QeM2[2])/Mreal)*100.<<" %"<<endl;
+			outfile <<" MomentoL = "<<QeM2[2]<<"  Erro Relativo ==> " << fabs((Mreal - (-QeM2[2]))/Mreal)*100.<<" %"<<endl;
 			outfile <<" MomentoMedia = "<<QeM2[4]<<"  Erro Relativo ==> " << fabs((Mreal - QeM2[4])/Mreal)*100.<<" %"<<endl;
 			outfile <<endl;
 			outfile <<" CortanteR = "<<QeM2[1]<<"  Erro Relativo ==> " << fabs((Qreal - QeM2[1])/Qreal)*100.<<" %"<<endl;
-			outfile <<" CortanteL = "<<QeM2[3]<<"  Erro Relativo ==> " << fabs((Qreal - QeM2[3])/Qreal)*100.<<" %"<<endl;
+			outfile <<" CortanteL = "<<QeM2[3]<<"  Erro Relativo ==> " << fabs((Qreal - (-QeM2[3]))/Qreal)*100.<<" %"<<endl;
 			outfile <<" CortanteMedia= "<<QeM2[5]<<"  Erro Relativo ==> " << fabs((Qreal - QeM2[5])/Qreal)*100.<<" %"<<endl;
 			outfile <<endl;
 			outfile <<" T1zR = "<<QeM2[6]<<endl;
