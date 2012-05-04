@@ -2020,7 +2020,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
 
 template <class YC_t, class TF_t, class ER_t>
 template <class T1, class T2>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual(
+void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
                                                        const TPZPlasticState<T1> &N_T1,
                                                        TPZPlasticState<T2> &Np1_T2,
                                                        const TPZVec<T2> &delGamma_T2,

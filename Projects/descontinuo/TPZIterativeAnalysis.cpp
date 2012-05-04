@@ -28,7 +28,7 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
   //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
   int dim = mat->Dimension();
   ResetReference(Mesh());//retira refer�ncias para criar graph consistente
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
+  TPZDXGraphMesh graph(Mesh(),dim,mat.operator->(),scalar,vector);
   SetReference(Mesh());//recupera as refer�ncias retiradas
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
@@ -97,7 +97,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int n
   scalar[0] = "Solution";
   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
   int dim = mat->Dimension();
-  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
+  TPZDXGraphMesh graph(Mesh(),dim,mat.operator->(),scalar,vector);
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
   graph.SetFileName(name);
@@ -206,7 +206,7 @@ void TPZIterativeAnalysis::ResetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material().operator->();
+    TPZMaterial *mat = cel->Material();
     if(!mat) PZError << "TPZIterativeAnalysis::ResetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZGeoEl *gel = cel->Reference();
@@ -248,7 +248,7 @@ void TPZIterativeAnalysis::SetReference(TPZCompMesh *aggcmesh){
     if(!cel) continue;
     if(cel->Type() == EInterface) continue;
     if(cel->Type() == EDiscontinuous) continue;
-    TPZMaterial *mat = cel->Material().operator->();
+    TPZMaterial *mat = cel->Material();
     if(!mat) PZError << "TPZIterativeAnalysis::SetReference null material\n";
     if(mat->Id() < 0) continue;
     TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);

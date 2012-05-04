@@ -399,13 +399,11 @@ protected:
      * The template parameter will be either REAL or a FAD parameter
      */
     template <class T1, class T2>
-    void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
-                                                             const TPZPlasticState<T1> &N_T1,
-                                                             TPZPlasticState<T2> &Np1_T2,
-                                                             const TPZVec<T2> &delGamma_T2,
-                                                             TPZVec<T2> &res_T2,
-                                                             REAL &normEpsPErr,
-                                                             int silent)const;
+    void PlasticResidualRK(const TPZPlasticState<T1> &N_T1,
+                           TPZPlasticState<T2> &Np1_T2,
+                           const TPZVec<T2> &delGamma_T2,
+                           TPZVec<T2> &res_T2, REAL &normEpsPErr,
+                           int silent) const;
 		
 	/**
 	 * @brief Updates the N+1 plastic state variables based on the solution of a Newton's scheme.

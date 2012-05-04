@@ -321,7 +321,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
  * Derivada da funcao de plastificacao
  * @param [in] sigma tensao atual
  * @param [in] A forca termodinamica atual
- * @param [out] Derivida com respeito a tensao
+ * @param [out] Ndir Derivada com respeito a tensao
  */
 template <class T> 
 void TPZYCModifiedMohrCoulomb::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
@@ -340,27 +340,6 @@ void TPZYCModifiedMohrCoulomb::N(const TPZTensor<T> & sigma,const T & A,  TPZVec
 	di1.XX()=1.;
 	di1.YY()=1.;
 	di1.ZZ()=1.;
-//	REAL Phi = 0.349066;
-//	I.Identity();
-//	
-//	T temp1 = sqj2 * ( ( -sin( theta ) ) - ( ( T( 1. ) / T( sqrt ( 3. ) ) ) *  cos( theta ) * sin( T( fPhi ) )  ) );
-//	TPZTensor<T> resultdtheta(gradtheta);
-//	
-//	resultdtheta.Multiply(temp1,T(1.));
-//	
-//	T temp2 = (T(1.)/(T(2.) * sqj2)) * ( cos(theta) - (T(1.)/T(sqrt(3.)))* sin(theta) * sin(fPhi) );
-//	TPZTensor<T> resultdj2(dj2);
-//	resultdj2.Multiply(temp2,T(1.));
-//	
-//	resultdtheta.Add(resultdj2,1.);
-//	
-//	T temp3 = T(1./3.) * sin( T( fPhi ) );
-//	TPZTensor<T> result(I);
-//	result.Multiply(temp3,T(1.));
-//	
-//	resultdtheta.Add(result,T(1.));
-//	
-//	Ndir[0]=resultdtheta;
 	
 	//(2*di1*Sqrt(j2)*Sin(phi) - 2*j2*gradtheta*(Sqrt(3)*Cos(theta)*Sin(phi) + 3*Sin(theta)) + dj2*(3*Cos(theta) - Sqrt(3)*Sin(phi)*Sin(theta)))/(6.*Sqrt(j2))
 	T temp1 = T(2.)*sqrt(J2)*sin(fPhi);//dI1

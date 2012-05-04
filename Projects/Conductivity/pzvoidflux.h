@@ -51,7 +51,8 @@ public:
     
 
     
-    /** Fill material data parameter with necessary requirements for the
+    /** 
+	 * @brief Fill material data parameter with necessary requirements for the
      * Contribute method. Here, in base class, all requirements are considered
      * as necessary. Each derived class may optimize performance by selecting
      * only the necessary data.
@@ -59,7 +60,8 @@ public:
      */
     virtual void FillDataRequirements(TPZMaterialData &data);
     
-    /** Fill material data parameter with necessary requirements for the
+    /**
+	 * @brief Fill material data parameter with necessary requirements for the
      * ContributeInterface method. Here, in base class, all requirements are considered
      * as necessary. Each derived class may optimize performance by selecting
      * only the necessary data.
@@ -67,13 +69,16 @@ public:
      */
     virtual void FillDataRequirementsInterface(TPZMaterialData &data);
     
-    /// returns the number of state variables associated with the material
+    /** @brief returns the number of state variables associated with the material */
     virtual int NStateVariables();
     
-    ///Metodos Contribute
+    /**
+	 * @name Contribute Methods
+	 * @{
+	 */
     
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data [in] stores all input data
      * @param weight [in] is the weight of the integration rule
      * @param ek [out] is the stiffness matrix
@@ -83,7 +88,7 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
      * @param weight [in] is the weight of the integration rule
      * @param ek [out] is the stiffness matrix
@@ -94,7 +99,7 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     /**
-     * It computes a contribution to the residual vector at one integration point.
+     * @brief It computes a contribution to the residual vector at one integration point.
      * @param data [in] stores all input data
      * @param weight [in] is the weight of the integration rule
      * @param ef [out] is the residual vector
@@ -103,10 +108,9 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
-     * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
+     * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
      * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      * @param bc [in] is the boundary condition material
      * @since April 16, 2007
@@ -114,8 +118,8 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
     
     
-    /// computes a contribution to stiffness matrix and load vector at one integration point
     /**
+	 * @brief computes a contribution to stiffness matrix and load vector at one integration point
      * @param data [in] all data needed to compute the stiffness matrix
      * @param dataleft [in] data needed to compute the stiffness matrix from left element
      * @param dataright [in] data needed to compute the stiffness matrix from right element
@@ -128,7 +132,7 @@ public:
                                      REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
     
     /**
-     * It computes a contribution to residual vector at one integration point
+     * @brief It computes a contribution to residual vector at one integration point
      * @param data [in]
      * @param dataleft [in]
      * @param dataright [in]
@@ -140,7 +144,7 @@ public:
                                      REAL weight, TPZFMatrix<REAL> &ef);
     
     /**
-     * It computes a contribution to stiffness matrix and load vector at one BC integration point
+     * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
      * @param data [in]
      * @param dataleft [in]
      * @param weight [in]
@@ -153,7 +157,7 @@ public:
                                        REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
     
     /**
-     * It computes a contribution to residual vector at one BC integration point
+     * @brief It computes a contribution to residual vector at one BC integration point
      * @param data [in]
      * @param dataleft [in]
      * @param weight [in]
@@ -162,9 +166,11 @@ public:
      * @since April 16, 2007
      */
     virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc);
-    
+
+    /** @} */
+	
     /**
-     * Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.
+     * @brief Dicontinuous galerkin materials implement contribution of discontinuous elements and interfaces.
      * Interfaces may be conservative or not conservative. It is important to agglomeration techniques
      * when using multigrid pre-conditioner. Conservative interfaces into agglomerate elements do not
      * need to be computed. However non-conservative interfaces must be computed in all multigrid levels.
@@ -174,47 +180,42 @@ public:
      */
     virtual int IsInterfaceConservative();
         
-    /** print out the data associated with the material*/
+    /** @brief print out the data associated with the material*/
     virtual void Print(std::ostream &out = std::cout);
     
     /**returns the variable index associated with the name*/
     virtual int VariableIndex(const std::string &name);
     
-    /** returns the number of variables associated with the variable
+    /** @brief returns the number of variables associated with the variable
      indexed by var.  var is obtained by calling VariableIndex*/
     virtual int NSolutionVariables(int var);
     
-    /**returns the solution associated with the var index based on
+    /**
+	 * @brief returns the solution associated with the var index based on
      * the finite element approximation*/
     virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout);
 
-    /**
-     * Unique identifier for serialization purposes
-     */
+    /** @brief Unique identifier for serialization purposes */
     virtual int ClassId() const;
     
-    /**
-     * Save the element data to a stream
-     */
+    /** @brief Save the element data to a stream */
     virtual void Write(TPZStream &buf, int withclassid);
     
-    /**
-     * Read the element data from a stream
-     */
+    /** @brief Read the element data from a stream */
     virtual void Read(TPZStream &buf, void *context);
 
-    /// create another material of the same type
+    /** @brief create another material of the same type */
     virtual TPZMaterial * NewMaterial();
     
-    /// Read data of the material from a istream (file data)
+    /** @brief Read data of the material from a istream (file data) */
     virtual void SetData(std::istream &data);
     
 protected:
     
-    /// Conductivity of the porous material
+    /** @brief Conductivity of the porous material */
     REAL fConductivity;
     
-    /// Thickness of the bridges between the voids
+    /** @brief Thickness of the bridges between the voids */
     REAL fBridgeSize;
 };
 

@@ -36,7 +36,7 @@ REAL TPZFlowCompMesh1::MaxVelocityOfMesh(int nstate,REAL gamma) {
     if(!com) continue;
     int type = com->Type();
     if(type == EInterface) continue;
-    TPZMaterial* mat = com->Material().operator->();
+    TPZMaterial* mat = com->Material();
     if(!mat){
       cout << "TPZFlowCompMesh1::MaxVelocityOfMesh ERROR: null material\n";
       continue;

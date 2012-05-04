@@ -1,15 +1,5 @@
-//$Id: TSWXMaxSigmaTheta.h,v 1.5 2009-07-03 19:43:07 caju Exp $
-
-/*
- *  TSWXMaxSigmaTheta.h
- *  TSWXMaxSigmaTheta
- *
- *  Created by CAJU on 6/18/09.
- *  Copyright 2009 __MyCompanyName__. All rights reserved.
- *
- *  Esta classe calcula o SigmaTheta m·ximo em um poÁo vertical, reservatÛrio circular.
- *  Neste c·lculo È utilizada uma malha bidimensional axi-simÈtrica para modelar o reservatÛrio
- *  e o SigmaTheta m·ximo È localizado no ponto (rw,0), ou seja, na interface entre poÁo-reservatÛrio no fundo do poÁo.
+/**
+ * @file
  */
 
 #ifndef MaxSigmaThetaH
@@ -60,6 +50,12 @@ const int mista = 2;
 const int hidrostatica = 3;
 //------------------------------------------------------------------------------- TO HERE
 
+/**
+ * @since 6/18/2009
+ * @brief Esta classe calcula o SigmaTheta m·ximo em um poÁo vertical, reservatÛrio circular.
+ * @note Neste c·lculo È utilizada uma malha bidimensional axi-simÈtrica para modelar o reservatÛrio
+ *  e o SigmaTheta m·ximo È localizado no ponto (rw,0), ou seja, na interface entre poÁo-reservatÛrio no fundo do poÁo.
+ */
 class TSWXMaxSigmaTheta
 {
 public:
@@ -67,11 +63,11 @@ public:
 	TSWXMaxSigmaTheta();
 
 	/**
-	 * @param distr : value of distributed load (might be injection pressure? - ask Phil, Im using unit pressure)
- 	 * @param rw: well radius
-	 * @param h : heigh of distributed load = heigh of reservoir (just porous matrix)
-	 * @param E - Young Modulus
-	 * @param nu - Poison ratio
+	 * @brief Constructor
+ 	 * @param rw well radius
+	 * @param h heigh of distributed load = heigh of reservoir (just porous matrix)
+	 * @param E Young Modulus
+	 * @param nu Poison ratio
 	 */
 	TSWXMaxSigmaTheta(double rw, double h, double E, double nu);
 	~TSWXMaxSigmaTheta();
@@ -143,4 +139,5 @@ private:
 	//Solution, i.e., desired output (b vs Maximum SigmaTheta)
 	map<double,double> fb_sol;
 };
+
 #endif

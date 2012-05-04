@@ -11,7 +11,6 @@
 #include "pzlog.h"
 #include "pzsave.h"
 
-
 #ifdef LOG4CXX // LOG4CXX may be defined alone or with LOG4CXX_PLASTICITY. The latter shall not be used alone.
 #include <log4cxx/logger.h>
 #include <log4cxx/basicconfigurator.h>
@@ -22,18 +21,13 @@
 static LoggerPtr loggerDP(Logger::getLogger("plasticity.DruckerPrager"));
 #endif
 
-
-
-
 /**
- Implementa  a plastificacao do criterio de Von Mises
+ * @brief Implementa  a plastificacao do criterio de Von Mises
  */
-class TPZYCDruckerPrager: public TPZSaveable {
-    
+class TPZYCDruckerPrager: public TPZSaveable {    
 	
 public:
-	
-	
+
     TPZYCDruckerPrager():fKsi(0.),fEta(0.){}
 	
     TPZYCDruckerPrager(const TPZYCDruckerPrager & source)
@@ -55,7 +49,7 @@ public:
     }
 	
 	/**
-	 * Setup of material parameters
+	 * @brief Setup of material parameters
 	 * @param [in] phi Mohr Coulomb's internal friction angle
 	 * @param [in] innerMCFit If one, Drucker Prager model is inscribed in a referred Mohr Coulomb envelope. If zero, circumscribed.
 	 * VERY IMPORTANT!! The ThermoForceA parameters should be set as:
@@ -85,7 +79,7 @@ public:
 	}
 	
 	/**
-	 * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
+	 * @brief Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
 	 * is forced to behave in post-peak in order to avoid equation switching during Newton's method
 	 * in the PlasticLoop routines.
 	 * @param[in] sigma stress state
@@ -97,7 +91,7 @@ public:
 	}
 	
     /**
-	 Calculo do criterio de plastificacao 
+	 @brief Calculo do criterio de plastificacao 
 	 @param[in] sigma tensao atual
 	 @param[in] A forca thermodinamica atual
 	 @param res
@@ -107,7 +101,7 @@ public:
     void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield = 0)const;
     
     /**
-	 Derivada da funcao de plastificacao
+	 @brief Derivada da funcao de plastificacao
 	 @param[in] sigma tensao atual
 	 @param[in] A forca termodinamica atual
 	 @param[out] Ndir Derivada com respeito a tensao
@@ -117,10 +111,10 @@ public:
     void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
     /**
-	 Derivada da funcao de plastificacao com respeito a forca termodinamica
+	 @brief Derivada da funcao de plastificacao com respeito a forca termodinamica
 	 @param[in] sigma tensao atual
 	 @param[in] A forca termodinamica atual
-	 @param[out] Derivida com respeito a forca termodinamica
+	 @param[out] h Derivada com respeito a forca termodinamica
 	 @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
     template <class T> 

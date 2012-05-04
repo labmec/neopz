@@ -1,4 +1,6 @@
-// $Id: TPZYCVonMises.h,v 1.12 2009-06-29 22:54:01 erick Exp $
+/**
+ * @file
+ */
 
 #ifndef TPZYCVONMISES_H
 #define TPZYCVONMISES_H
@@ -9,8 +11,8 @@
 #include "pzlog.h"
 
 /**
-Implementa  a plastificacao do criterio de Von Mises
-*/
+ * @brief Implementa  a plastificacao do criterio de Von Mises
+ */
 class TPZYCVonMises {
     
 
@@ -42,8 +44,8 @@ public:
 	 * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
 	 * is forced to behave in post-peak in order to avoid equation switching during Newton's method
 	 * in the PlasticLoop routines.
-	 * @param [in] sigma stress state
-	 * @param [in] A Thermo Force
+	 * @param[in] sigma stress state
+	 * @param[in] A Thermo Force
 	 */
 	void SetYieldStatusMode(const TPZTensor<REAL> & sigma, const REAL & A)
 	{
@@ -52,29 +54,30 @@ public:
 	
     /**
     Calculo do criterio de plastificacao 
-    @param [in] sigma tensao atual
-    @param [in] A forca thermodinamica atual
-	@param [in] checkForcedYield indicates wether to force post-peak failure behavior
+    @param[in] sigma tensao atual
+    @param[in] A forca thermodinamica atual
+	 @param[out] res Derivative
+	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
     */  
     template < class T>
     void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield = 0) const;
     
     /**
     Derivada da funcao de plastificacao
-    @param [in] sigma tensao atual
-    @param [in] A forca termodinamica atual
-    @param [out] Derivida com respeito a tensao
-	@param [in] checkForcedYield indicates wether to force post-peak failure behavior
+    @param[in] sigma tensao atual
+    @param[in] A forca termodinamica atual
+    @param[out] Ndir Derivada com respeito a tensao
+	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
     */
     template <class T> 
     void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 
     /**
     Derivada da funcao de plastificacao com respeito a forca termodinamica
-    @param [in] sigma tensao atual
-    @param [in] A forca termodinamica atual
-    @param [out] Derivida com respeito a forca termodinamica
-    @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+    @param[in] sigma tensao atual
+    @param[in] A forca termodinamica atual
+    @param[out] h Derivada com respeito a forca termodinamica
+    @param[in] checkForcedYield indicates wether to force post-peak failure behavior
     */
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;

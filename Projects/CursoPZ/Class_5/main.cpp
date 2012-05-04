@@ -53,7 +53,7 @@ int main(){
 	TPZFMatrix<REAL> xfin (1,1,1e3);
 	mat2d->SetMaterial(xkin,xcin,xfin);
 	TPZAutoPointer<TPZMaterial> mat(mat2d);
-	cmesh->InsertMaterialObject (mat);
+	cmesh->InsertMaterialObject (mat.operator->());
 	cmesh->AutoBuild();
 	TPZVec<int> subelindex(4,0);
 	cmesh->ElementVec()[0]->Divide(0,subelindex,0);

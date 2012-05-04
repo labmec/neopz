@@ -190,11 +190,11 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZMatPoisson3d *matpois = new TPZMatPoisson3d(1, 2);
     TPZAutoPointer<TPZMaterial> pois(matpois);
-    cmesh->InsertMaterialObject(pois);
+    cmesh->InsertMaterialObject(pois.operator->());
     TPZFNMatrix<4> val1(1,1,0.),val2(1,1,0.);
-    TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
+    TPZBndCond *bnd = matpois->CreateBC(pois.operator->(), -1, 0, val1, val2);
     TPZAutoPointer<TPZMaterial> matbnd(bnd);
-    cmesh->InsertMaterialObject(matbnd);
+    cmesh->InsertMaterialObject(matbnd.operator->());
     cmesh->SetAllCreateFunctionsHDiv();
     cmesh->SetDefaultOrder(3);
     cmesh->SetDimModel(2);

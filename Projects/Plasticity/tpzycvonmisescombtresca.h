@@ -1,23 +1,7 @@
-// $Id: tpzycvonmisescombtresca.h,v 1.7 2010-06-11 22:12:14 diogo Exp $
-/***************************************************************************
- *   Copyright (C) 2004 by N� os �dios                                   *
- *   labmec@labmec.fec.unicamp.br                                          *
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
- *   GNU General Public License for more details.                          *
- *                                                                         *
- *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
- ***************************************************************************/
+/**
+ * @file
+ */
+
 #ifndef TPZYCVONMISESCOMBTRESCA_H
 #define TPZYCVONMISESCOMBTRESCA_H
 
@@ -27,8 +11,8 @@
 #include "tpzyctrescaregularized.h"
 
 /**
-@author LabMeC
-*/
+ * @author LabMeC
+ */
 class TPZYCVonMisesCombTresca{
 	
 public:
@@ -61,8 +45,8 @@ public:
 	 * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
 	 * is forced to behave in post-peak in order to avoid equation switching during Newton's method
 	 * in the PlasticLoop routines.
-	 * @param [in] sigma stress state
-	 * @param [in] A Thermo Force
+	 * @param[in] sigma stress state
+	 * @param[in] A Thermo Force
 	 */
 	void SetYieldStatusMode(const TPZTensor<REAL> & sigma, const REAL & A)
 	{
@@ -70,50 +54,45 @@ public:
 	}
 		
 protected:
-  /**
-   * Pointer to Von Mises's yield criteria object
-   */
+  /** @brief Pointer to Von Mises's yield criteria object */
   TPZYCVonMises fVonMises;
 
-  /**
-   * Pointer to Tresca's yield criteria object
-   */
+  /** @brief Pointer to Tresca's yield criteria object */
   TPZYCTrescaRegularized   fTresca;
 
 public:
 
   enum { NYield = TPZYCVonMises::NYield + TPZYCTrescaRegularized::NYield };
 
-  /**
-   * Constructor
-   */
+  /** @brief Constructor */
   TPZYCVonMisesCombTresca();
 
   /**
    *Calculo do criterio de plastificacao
-   *@param [in] sigma tensao atual
-   *@param [in] A forca thermodinamica atual
-   *@param [in] checkForcedYield indicates wether to force post-peak failure behavior
+   * @param[in] sigma tensao atual
+   * @param[in] A forca thermodinamica atual
+   * @param[out] res Derivative
+   * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
    */  
   template < class T>
   void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield = 0) const;
 
   /**
    *Derivada da funcao de plastificacao
-   *@param [in] sigma tensao atual
-   *@param [in] A forca termodinamica atual
-   *@param [out] Derivida com respeito a tensao
-   *@param [in] checkForcedYield indicates wether to force post-peak failure behavior
+   * @param[in] sigma tensao atual
+   * @param[in] A forca termodinamica atual
+   * @param[out] NDir Derivada com respeito a tensao
+   * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
    */
   template <class T>
   void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & NDir, int checkForcedYield = 0) const;
 
   /**
    *Derivada da funcao de plastificacao com respeito a forca termodinamica
-   *@param [in] sigma tensao atual
-   *@param [in] A forca termodinamica atual
-   *@param [out] Derivida com respeito a forca termodinamica
-   *@param [in] checkForcedYield indicates wether to force post-peak failure behavior
+   *@param[in] sigma tensao atual
+   *@param[in] A forca termodinamica atual
+   *@param[out] h Derivada com respeito a forca termodinamica
+   *@param[in] checkForcedYield indicates wether to force post-peak failure behavior
    */
   template <class T>
   void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;

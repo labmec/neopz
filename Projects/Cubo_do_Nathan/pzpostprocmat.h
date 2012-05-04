@@ -67,7 +67,7 @@ class  TPZPostProcMat : public TPZDiscontinuousGalerkin//TPZMaterial
        *  inserts it in the vector of material pointers of the mesh.
        */
       TPZPostProcMat(const TPZPostProcMat &mat);
-
+	/** @brief Default destructor */
       virtual ~TPZPostProcMat();
 	
       /** returns the name of the material*/

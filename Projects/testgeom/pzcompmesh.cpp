@@ -107,7 +107,7 @@ int main() {
 	REAL deltat = 0.01;
 	REAL gamma = 1.4;
 	TPZAutoPointer<TPZMaterial> mat = new TPZEulerConsLaw(1,deltat,gamma,2,SUPG_AD);
-	cmesh->InsertMaterialObject(mat);
+	cmesh->InsertMaterialObject(mat.operator->());
 	// creating boundary condition object
 //	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2)));
 //	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-2,TPZEulerEquation::EFreeSlip,val1,val2)));
@@ -115,11 +115,11 @@ int main() {
 	// Inserts Dirichlet boundary condition - wall then zero values for all variables
 	int nstates = mat->NStateVariables();
 	TPZFMatrix<REAL> val1(nstates,nstates,0.),val2(nstates,1,0.);
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-1,0,val1,val2)));   // Dirichlet condition -  (wall)
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat.operator->(),-1,0,val1,val2)));   // Dirichlet condition -  (wall)
 	// Inserts Neumann boundary condition - input flux
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-2,1,val1,val2)));   // Neumann condition - fluxo livre
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat.operator->(),-2,1,val1,val2)));   // Neumann condition - fluxo livre
 	// Inserts Neumann boundary condition - output free flux
-	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat,-3,1,val1,val2)));   // Neumann condition - fluxo livre
+	cmesh->InsertMaterialObject((TPZMaterial *)(mat->CreateBC(mat.operator->(),-3,1,val1,val2)));   // Neumann condition - fluxo livre
 	
 	// Making all the computational elements as discontinuous
 //	TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous();
@@ -143,15 +143,15 @@ int main() {
 	TPZCompMesh *cmesh3 = new TPZCompMesh(gmesh3);
 	cmesh3->SetDimModel(3);
 	TPZAutoPointer<TPZMaterial> mat3 = new TPZEulerEquation(1,gamma);
-	cmesh3->InsertMaterialObject(mat3);
+	cmesh3->InsertMaterialObject(mat3.operator->());
 	// Inserts Dirichlet boundary condition - wall then zero values for all variables
 	int nstates3 = mat3->NStateVariables();
 	TPZFMatrix<REAL> val_1(nstates3,nstates3,0.),val_2(nstates3,1,0.);
-	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-1,0,val_1,val_2)));   // Dirichlet condition -  (wall)
+	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3.operator->(),-1,0,val_1,val_2)));   // Dirichlet condition -  (wall)
 	// Inserts Neumann boundary condition - input flux
-	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-2,1,val_1,val_2)));   // Neumann condition - fluxo livre
+	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3.operator->(),-2,1,val_1,val_2)));   // Neumann condition - fluxo livre
 	// Inserts Neumann boundary condition - output free flux
-	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3,-3,1,val_1,val_2)));   // Neumann condition - fluxo livre
+	cmesh3->InsertMaterialObject((TPZMaterial *)(mat3->CreateBC(mat3.operator->(),-3,1,val_1,val_2)));   // Neumann condition - fluxo livre
 	
 	// Making all the computational elements as discontinuous
 	//	TPZCreateApproximationSpace::SetAllCreateFunctionsDiscontinuous();

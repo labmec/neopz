@@ -20,12 +20,11 @@ static LoggerPtr loggerYCLadeKim(Logger::getLogger("plasticity.LadeKim"));
 #endif
 
 /**
-Implementa as funções de potencial plástico e yield criterium do 
-modelo constitutivo de Lade Kim para solo e rochas brandas
-*/
+ * @brief Implementa as funções de potencial plástico e yield criterium do 
+ * modelo constitutivo de Lade Kim para solo e rochas brandas
+ */
 class TPZYCLadeKim {
     
-
 public:
 
   enum {NYield = 1};
@@ -89,41 +88,42 @@ public:
 	}
 	
     /**
-    Calculo do criterio de plastificacao 
-    @param[in] sigma tensao atual
-	 @param res vector
-    @param[in] A forca thermodinamica atual
-	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
-    */  
+	 * @brief Calculo do criterio de plastificacao 
+	 * @param[in] sigma tensao atual
+	 * @param res vector
+	 * @param[in] A forca thermodinamica atual
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
+	 */  
     template < class T>
     void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield) const;
 
     /**
-    Calculo da função de potencial plástico
-    @param[in] sigma tensao atual
-    @param[in] A forca thermodinamica atual
-	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
-    */  
+	 * @brief Calculo da função de potencial plástico
+	 * @param[in] sigma tensao atual
+	 * @param[in] A forca thermodinamica atual
+	 * @param[out] PlasticPot Derivada com respeito a tensao
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
+	 */  
     template < class T>
     void ComputePlasticPotential(const TPZTensor<T> & sigma, const T & A, T & PlasticPot, int checkForcedYield) const;
 
     /**
-    Derivada da derivada da funcao de potencial plastico (direção de plastificação)
-    @param[in] sigma tensao atual
-    @param[in] A forca termodinamica atual
-    @param[out] Derivida com respeito a tensao
-	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
-    */
+	 * @brief Derivada da derivada da funcao de potencial plastico (direção de plastificação)
+	 * @param[in] sigma tensao atual
+	 * @param[in] A forca termodinamica atual
+	 * @param[out] Ndir Derivada com respeito a tensao
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
+	 */
     template <class T> 
     void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const;
 
     /**
-    Derivada da funcao de plastificacao com respeito a forca termodinamica
-    @param[in] sigma tensao atual
-    @param[in] A forca termodinamica atual
-    @param[out] Derivida com respeito a forca termodinamica
-	@param[in] checkForcedYield indicates wether to force post-peak failure behavior
-    */
+	 * @brief Derivada da funcao de plastificacao com respeito a forca termodinamica
+	 * @param[in] sigma tensao atual
+	 * @param[in] A forca termodinamica atual
+	 * @param[out] h Derivada com respeito a forca termodinamica
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
+	 */
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield) const;
 
@@ -141,7 +141,7 @@ public:
     }
 
 	/**
-	 * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
+	 * @brief Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
 	 * is forced to behave in post-peak in order to avoid equation switching during Newton's method
 	 * in the PlasticLoop routines.
 	 * @param[in] sigma stress state
@@ -152,25 +152,23 @@ public:
 public:
 
    /**
-     Parameter related to the YC and Plastic Potential
-     Ksi1 models the shape of the yield funcition at the deviatoric planes by defining the
-     relative influence of invariants I3 and I2.
-     The I3 term leads to a triangular shaped YC at the deviatoric planes while
-     the I2 term leads to a circular shaped YC.
-     OBS: Ksi1 may be related to the m parameter (curvature of meridians for failure surface)
-     through the expression: ksi1 = 0.00155 * m ^ -1.27
-   */
-   REAL fKsi1;
+	* @brief Parameter related to the YC and Plastic Potential
+	* Ksi1 models the shape of the yield funcition at the deviatoric planes by defining the relative influence of invariants I3 and I2.
+	* The I3 term leads to a triangular shaped YC at the deviatoric planes while the I2 term leads to a circular shaped YC.
+	* OBS: Ksi1 may be related to the m parameter (curvature of meridians for failure surface)
+	* through the expression: ksi1 = 0.00155 * m ^ -1.27
+	*/
+	REAL fKsi1;
 
    /**
-     Parameter related to the YC
-     The h constant models the curvature of the YC meridians, i.e., how the meridians
-     vary along with the level of hydrostatic stress (I1/3).
-   */
-   REAL fh;
+	* @brief Parameter related to the YC \n
+	* The h constant models the curvature of the YC meridians, i.e., how the meridians
+	* vary along with the level of hydrostatic stress (I1/3).
+	*/
+	REAL fh;
 
    /**
-     Parameter related to the YC
+     @brief Parameter related to the YC \n
      Alpha models how the exponent q varies according to the proximity of the stress state
      to the failure surface (surface at which the material starts to soften).
      In the bibliography, q is defined as a function of the stress level only.
@@ -186,51 +184,43 @@ public:
    REAL fAlpha;
 
    /**
-     Parameter related to the Plastic Potential
+     @brief Parameter related to the Plastic Potential \n
      Ksi2 controls the intersection of the Plastic Potential with the Hydrostatic axis.
    */
    REAL fKsi2;
 
    /**
-     Parameter related to the Plastic Potential
+     @brief Parameter related to the Plastic Potential \n
      Mu defines the curvature of the meridians.
    */
    REAL fMu;
 
    /**
-     Parameter related to the Failure Surface
+     @brief Parameter related to the Failure Surface \n
      Neta1 is the value of the failure Surface for the material when it fails.
    */
    REAL fNeta1;
 
    /**
-     Parameter related to the Failure Surface
+     @brief Parameter related to the Failure Surface \n
      m models the curvature of the meridians of the Failure Surface.
    */
    REAL fm;
 
-   /** 
-     Atmospheric pressure to input/remove dimensional effects
-   */
+   /** @brief Atmospheric pressure to input/remove dimensional effects */
    REAL fPa;
 	
-   /**
-	* Post Peak material behavior
-	*/
+   /** @brief Post Peak material behavior */
    int fForceYield;
 
 public:
 //////////////////CheckConv related methods/////////////////////
 
-    /**
-    number of types of residuals
-    */
+    /** @brief number of types of residuals */
     inline int NumCases();
 
     static TPZTensor<REAL> gRefTension;
-    /**
-    LoadState will keep a given state as static variable of the class
-    */
+    /** @brief LoadState will keep a given state as static variable of the class */
     inline void LoadState(TPZFMatrix<REAL> &state);
 
     inline void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase);
@@ -241,7 +231,7 @@ public:
 {
    const int nVars = 6;
 
-   // Creating the LadeNelsonElasticResponse obejct
+   /** @brief Creating the LadeNelsonElasticResponse obejct */
    TPZYCLadeKim YCLadeKim;
    // setup with data from Sacramento River Sand
    // Lade, Poul V., Kim, Moon K. Single Hardening Constitutive Model

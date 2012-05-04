@@ -145,7 +145,7 @@ TPZCompMesh *InitialMesh(int order,int nsubdiv,int dim,int type) {
 	TPZCompMesh *c = new TPZCompMesh(g_extended);
 	TPZVec<REAL> sol(1,0.);
 	TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
-	c->InsertMaterialObject(material);
+	c->InsertMaterialObject(material.operator->());
 	c->SetDefaultOrder(order);
 	c->AutoBuild();
 	return c;
@@ -437,7 +437,7 @@ TPZAutoPointer<TPZCompMesh> CompMesh()
   for(el=0; el<7; el++)
   {
     TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(el+1,gm->ElementVec()[el]->Dimension());
-    cmesh->InsertMaterialObject(mat);
+    cmesh->InsertMaterialObject(mat.operator->());
   }
   TPZCompEl::SetgOrder(4);
   cmesh->AutoBuild();

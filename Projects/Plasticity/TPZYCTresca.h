@@ -1,4 +1,6 @@
-// $Id: TPZYCTresca.h,v 1.13 2010-06-11 22:12:14 diogo Exp $
+/**
+ * @file
+ */
 
 #ifndef TPZYCTRESCA_H
 #define TPZYCTRESCA_H
@@ -80,26 +82,19 @@ public:
 
 protected:
   /**
-   * Compute the inverse angle of the tresca yield criterium formula and
-   * the related data
+   * @brief Compute the inverse angle of the tresca yield criterium formula and the related data
    * @param sigma [in] stress tensor
-   * @param invangle [out] inverse angle
    * @param theta [out] one third of the asin of the inverse angle
-   * @param grainvangle [out] gradient of the inverse angle
-   * @param derivasin [out] derivative of the inverse angle
+   * @param gradtheta [out] gradient of the inverse angle
    */
   template <class T>
   void GradTheta(const TPZTensor<T> & sigma,T & theta,TPZTensor<T> & gradtheta) const;
 
-  /**
-   * Computes the inverse angle of the tresca yield criterium formula
-   */
+  /** @brief Computes the inverse angle of the tresca yield criterium formula */
   template <class T>
   T InverseAngle(const TPZTensor<T> &deviatoric) const;
 
-  /**
-   * Computes the derivative of the inverse angle of the tresca yield criterium formula
-   */
+  /** @brief Computes the derivative of the inverse angle of the tresca yield criterium formula */
   template <class T>
   void GradInverseAngle(const TPZTensor<T> &sigma, TPZTensor<T> &grad) const;
  
@@ -107,18 +102,14 @@ protected:
 
 //////////////////CheckConv related methods/////////////////////
 
-    /**
-    number of types of residuals
-    */
+    /** @brief number of types of residuals */
     int NumCases() 
     {
       return 5;
     }
     static TPZTensor<REAL> gRefTension;
 
-    /**
-    LoadState will keep a given state as static variable of the class
-    */
+    /** @brief LoadState will keep a given state as static variable of the class */
     void LoadState(TPZFMatrix<REAL> &state)
     {
       int i;
@@ -226,11 +217,6 @@ protected:
 
 };
 
-/**
- * Calculo do criterio de plastificacao
- * @param [in] sigma tensao atual
- * @param [in] A forca thermodinamica atual
- */
 template < class T>
 void TPZYCTresca::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &result, int checkForcedYield) const
 {
@@ -239,13 +225,6 @@ void TPZYCTresca::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res
   result[0] = sqrt(sigma.J2())*cos(theta)*2.-A;
 }
 
-
-/**
- * Derivada da funcao de plastificacao
- * @param [in] sigma tensao atual
- * @param [in] A forca termodinamica atual
- * @param [out] Derivida com respeito a tensao
- */
 template <class T> 
 void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
@@ -312,10 +291,6 @@ void TPZYCTresca::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T>
   Ndir[0] = result;
 }
 
-/**
- * Computes the angle of the tresca yield criterium formula
- */
-
 template <class T>
 T TPZYCTresca::InverseAngle(const TPZTensor<T> &deviatoric) const
 {
@@ -325,9 +300,6 @@ T TPZYCTresca::InverseAngle(const TPZTensor<T> &deviatoric) const
   return j3/j2/sqrt(j2)*(-3.*sqrt(3.)/2.); 
 }
 
-/**
- * Computes the angle of the tresca yield criterium formula
- */
 template <class T>
 void TPZYCTresca::GradInverseAngle(const TPZTensor<T> &sigma, TPZTensor<T> &grad) const
 {
@@ -345,15 +317,6 @@ void TPZYCTresca::GradInverseAngle(const TPZTensor<T> &sigma, TPZTensor<T> &grad
   return;
 }
 
-/**
- * Computes the inverse angle of the tresca yield criterium formula and
- * the related data
- * @param sigma [in] stress tensor
- * @param invangle [out] inverse angle
- * @param theta [out] one third of the asin of the inverse angle
- * @param grainvangle [out] gradient of the inverse angle
- * @param derivasin [out] derivative of the inverse angle
- */
 template <class T>
 void TPZYCTresca::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZTensor<T> & gradtheta) const
 {

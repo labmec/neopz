@@ -1,13 +1,7 @@
-/*
- *  TPZYCWillamWarnke.h
- *  ElastoPlasticModels
- *
- *  Created by Diogo Cecilio on 12/13/10.
- *  Copyright 2010 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
  */
 
-//$Id: TPZYCDruckerPrager.h,v 1.5 2009-12-14 21:59:52 erick Exp $
 #ifndef TPZYCWILLAMWARNKE_H
 #define TPZYCWILLAMWARNKE_H
 
@@ -16,18 +10,14 @@
 
 #include "pzsave.h"
 
-
-
-
-
 /**
- Implementa  a plastificacao do criterio de Von Mises
+ * @brief Implementa  a plastificacao do criterio de Von Mises
+ * @author Diogo Cecilio
+ * @since 12/13/2010.
  */
 class TPZYCWillamWarnke: public TPZSaveable {
-    
-	
+    	
 public:
-	
 	
     TPZYCWillamWarnke():fa(1.),fb(1.),fcConcrete(20.),fcoesion(9.2376),fa0(0.1025),fa1(-0.8403),fa2(-0.0910),fb0(0.1025),fb1(-0.4507),fb2(-0.1018){}
 	
@@ -58,11 +48,6 @@ public:
 	
 	/**
 	 * Setup of material parameters
-	 * @param [in] phi Mohr Coulomb's internal friction angle
-	 * @param [in] innerMCFit If one, Drucker Prager model is inscribed in a referred Mohr Coulomb envelope. If zero, circumscribed.
-	 * VERY IMPORTANT!! The ThermoForceA parameters should be set as:
-	 *      fk: Herdening slope for the cohesion
-	 *      fYield0 : equivalent Mohr Coulomb cohesion C
 	 */
 	void SetUp(const REAL a, const REAL b,const REAL fConcrete) 
 	{
@@ -86,8 +71,8 @@ public:
 	 * Checks if the proposed yield state leads to post-peak material behaviour. If so, the material
 	 * is forced to behave in post-peak in order to avoid equation switching during Newton's method
 	 * in the PlasticLoop routines.
-	 * @param [in] sigma stress state
-	 * @param [in] A Thermo Force
+	 * @param[in] sigma stress state
+	 * @param[in] A Thermo Force
 	 */
 	void SetYieldStatusMode(const TPZTensor<REAL> & sigma, const REAL & A)
 	{
@@ -96,29 +81,30 @@ public:
 	
     /**
 	 Calculo do criterio de plastificacao 
-	 @param [in] sigma tensao atual
-	 @param [in] A forca thermodinamica atual
-	 @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 @param[in] sigma tensao atual
+	 @param[in] A forca thermodinamica atual
+	 @param[out] res Derivative
+	 @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */  
     template < class T>
     void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &res, int checkForcedYield = 0) const;
     
     /**
 	 Derivada da funcao de plastificacao
-	 @param [in] sigma tensao atual
-	 @param [in] A forca termodinamica atual
-	 @param [out] Derivida com respeito a tensao
-	 @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 @param[in] sigma tensao atual
+	 @param[in] A forca termodinamica atual
+	 @param[out] Ndir Derivada com respeito a tensao
+	 @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
     template <class T> 
     void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
     /**
 	 Derivada da funcao de plastificacao com respeito a forca termodinamica
-	 @param [in] sigma tensao atual
-	 @param [in] A forca termodinamica atual
-	 @param [out] Derivida com respeito a forca termodinamica
-	 @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 @param[in] sigma tensao atual
+	 @param[in] A forca termodinamica atual
+	 @param[out] h Derivada com respeito a forca termodinamica
+	 @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
     template <class T> 
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;

@@ -52,8 +52,7 @@ public:
 	
 	/**
 	 * Setup of material parameters
-	 * @param [in] phi Mohr Coulomb's internal friction angle
-	 * @param [in] innerMCFit If one, Drucker Prager model is inscribed in a referred Mohr Coulomb envelope. If zero, circumscribed.
+	 * @param[in] phi Mohr Coulomb's internal friction angle
 	 * VERY IMPORTANT!! The ThermoForceA parameters should be set as:
 	 *      fk: Herdening slope for the cohesion
 	 *      fYield0 : equivalent Mohr Coulomb cohesion C
@@ -68,30 +67,30 @@ public:
 	
 	/**
 	 * Evaluate the yield criteria
-	 * @param [in] sigma current stress tensor
-	 * @param [in] A current thermodynamical force
-	 * @param [out] result
-	 * @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 * @param[in] sigma current stress tensor
+	 * @param[in] A current thermodynamical force
+	 * @param[out] result Derivative
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
 	template < class T>
 	void Compute(const TPZTensor<T> & sigma, const T & A, TPZVec<T> &result, int checkForcedYield = 0) const;
 	
 	/**
 	 * Derivative of the yield function
-	 * @param [in] sigma current stress tensor
-	 * @param [in] A current thermodynamical force
-	 * @param [out] Ndir Stress derivative
-	 * @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 * @param[in] sigma current stress tensor
+	 * @param[in] A current thermodynamical force
+	 * @param[out] Ndir Stress derivative
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
 	template <class T>
 	void N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield = 0) const;
 	
 	/**
 	 * Derivative of the yield function with respect to the thermodynamical force
-	 * @param [in] sigma current stress tensor
-	 * @param [in] A current thermodynamical force
-	 * @param [out] h Derivative with respect to thermodynamical force
-	 * @param [in] checkForcedYield indicates wether to force post-peak failure behavior
+	 * @param[in] sigma current stress tensor
+	 * @param[in] A current thermodynamical force
+	 * @param[out] h Derivative with respect to thermodynamical force
+	 * @param[in] checkForcedYield indicates wether to force post-peak failure behavior
 	 */
 	template <class T>
 	void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
@@ -100,18 +99,14 @@ public:
 	
 	//////////////////CheckConv related methods/////////////////////
 	
-    /**
-	 number of types of residuals
-	 */
+    /** @brief Number of types of residuals */
     int NumCases() 
     {
 		return 9;
     }
 	TPZTensor<REAL> gRefTension;
 	
-    /**
-	 LoadState will keep a given state as static variable of the class
-	 */
+    /** @brief LoadState will keep a given state as static variable of the class */
     void LoadState(TPZFMatrix<REAL> &state)
     {
 		int i;
@@ -322,11 +317,6 @@ protected:
 	
 };
 
-/**
- * Calculo do criterio de plastificacao
- * @param [in] sigma tensao atual
- * @param [in] A forca thermodinamica atual
- */
 template < class T>
 void TPZYCMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res, int checkForcedYield) const
 {
@@ -361,29 +351,12 @@ void TPZYCMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T>
 	res[0]=res0;
 	res[1]=res1;
 	res[2]=res2;
-	
-	//res[1]= (-fCoesion+ (-(cos(T(fPhi)) * eigenval.XX()) + cos(T(fPhi)) * eigenval.YY() )/2. + ((eigenval.XX() + eigenval.YY())/2. + (eigenval.XX()*sin(T(fPhi)) - eigenval.YY()*sin(T(fPhi)))/2.)*tan(T(fPhi)));
-	//res[2]= (-fCoesion+ (-(cos(T(fPhi)) * eigenval.YY()) + cos(T(fPhi)) * eigenval.ZZ() )/2. + ((eigenval.YY() + eigenval.ZZ())/2. + (eigenval.YY()*sin(T(fPhi)) - eigenval.ZZ()*sin(T(fPhi)))/2.)*tan(T(fPhi)));
-
-//	feclearexcept(FE_ALL_EXCEPT);
-//	int Bool = fetestexcept(FE_ALL_EXCEPT);
-//	Bool = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
-//	if(Bool)
-//	{
-//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-//		DebugStop();
-//	}
-	
-	
+		
 #ifdef LOG4CXX_PLASTICITY
 	{
 		std::stringstream sout;
 		sout << "\n  MOHR-COULOMB YIELD FUNCTIONS \n"<<endl;
 		sout << "\n  sigma = \n"<< sigma <<endl;
-		//sout << "\n  temp1 = "<<temp1<<endl;
-		//sout << "\n  temp2 = "<<temp2<<endl;
-		//sout << "\n  temp3 = "<<temp3<<endl;
-		//sout << "\n  RESS = "<<ress<<endl;
 		sout << "\n  PHI[0] = "<<res[0]<<endl;
 		sout << "\n  PHI[1] = "<<res[1]<<endl; 
 		sout << "\n  PHI[2] = "<< res[2] << endl;
@@ -403,13 +376,6 @@ void TPZYCMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T>
 	
 }
 
-
-/**
- * Derivada da funcao de plastificacao
- * @param [in] sigma tensao atual
- * @param [in] A forca termodinamica atual
- * @param [out] Derivida com respeito a tensao
- */
 template <class T> 
 void TPZYCMohrCoulomb::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {

@@ -104,7 +104,7 @@ inline void TPZYCRankine<T_YCBASE>::Compute(const TPZTensor<T> & sigma, const T 
  * Derivada da funcao de plastificacao
  * @param [in] sigma tensao atual
  * @param [in] A forca termodinamica atual
- * @param [out] Derivida com respeito a tensao
+ * @param [out] Ndir Derivada com respeito a tensao
  */
 template < class T_YCBASE>
 template <class T> 
