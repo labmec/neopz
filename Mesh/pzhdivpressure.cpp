@@ -2,7 +2,6 @@
  * @file
  * @brief Contains the implementation of the TPZCompElHDivPressure methods.
  */
-// $Id: pzelctemp.cpp,v 1.42 2008-11-20 23:30:41 phil Exp $
 
 #include "pzcmesh.h"
 #include "pzhdivpressure.h"
@@ -21,8 +20,6 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivPressure"));
 
 using namespace std;
 
-//template<class TSHAPE>
-//class TPZCompElHDivPressure : public TPZInterpolatedElement {
 
 // TESTADO
 template<class TSHAPE>
@@ -366,6 +363,7 @@ int TPZCompElHDivPressure<TSHAPE>::ConnectOrder(int connect) const
 //	
 //}
 //return a matrix with index shape and vector associate to element
+
 //template<class TSHAPE>
 //void TPZCompElHDivPressure<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec){
 //	
