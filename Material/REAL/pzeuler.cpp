@@ -95,7 +95,7 @@ TPZDiscontinuousGalerkin(cp),fAUSMFlux(cp.fAUSMFlux),fGradientFlux(cp.fGradientF
 	
 }
 
-TPZAutoPointer<TPZMaterial> TPZEulerEquation::NewMaterial(){
+TPZMaterial *TPZEulerEquation::NewMaterial(){
 	return new TPZEulerEquation(*this);
 }
 

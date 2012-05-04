@@ -90,7 +90,7 @@ int main(){
 	an.Solution().Print("Solucao");
 	
 //	TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
-//	TPZAutoPointer<TPZMaterial> mat = cmeshauto->FindMaterial(1);
+//	TPZMaterial * mat = cmeshauto->FindMaterial(1);
 //	int nstate = mat->NStateVariables();
 	int dimension = 2, resolution = 1;
 	std::string plotfile("placaaf.vtk");
@@ -103,7 +103,7 @@ int main(){
 	an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
 	an.PostProcess(resolution);
 
-//	TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(1);
+//	TPZMaterial * mat = cmesh->FindMaterial(1);
 //	int nstate = mat->NStateVariables();
 //	int nscal = 0, nvec = 0, dim = 3;
 //	if(nstate ==1) 
@@ -307,18 +307,18 @@ void InsertElasticity(TPZCompMesh *mesh)
 	
 	TPZPlaca *placa = new TPZPlaca(nummat, h, f, E, E, ni1, ni2, G, G, G, naxes, xf);
 	
-	TPZAutoPointer<TPZMaterial> elastauto(placa);
+	TPZMaterial * elastauto(placa);
 	mesh->InsertMaterialObject(elastauto);
 	
 	TPZFMatrix<REAL> val1bott(6,6,0.),val2bott(6,1,0.);
 	TPZBndCond *bcbott = placa->CreateBC(elastauto, dirbott, dirichlet, val1bott, val2bott);
-	TPZAutoPointer<TPZMaterial> bcbottauto(bcbott);
+	TPZMaterial * bcbottauto(bcbott);
 	mesh->InsertMaterialObject(bcbottauto);
 
 	TPZFMatrix<REAL> val1top(6,6,0.),val2top(6,1,0.);
 	val2top(3.,0.) = 2;
 	TPZBndCond *bctop = placa->CreateBC(elastauto, dirtop, neumann, val1top, val2top);
-	TPZAutoPointer<TPZMaterial> bctopauto(bctop);
+	TPZMaterial * bctopauto(bctop);
 	mesh->InsertMaterialObject(bctopauto);
 	
 	
@@ -328,7 +328,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 	 val1(1,1) = 1.;
 	 val1(2,2) = 1.;
 	 TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
-	 TPZAutoPointer<TPZMaterial> bcauto2(bc2);
+	 TPZMaterial * bcauto2(bc2);
 	 mesh->InsertMaterialObject(bcauto2);
 	 
 	 // Dirichlet em 1 1 -1 z;
@@ -336,7 +336,7 @@ void InsertElasticity(TPZCompMesh *mesh)
 	 val1(1,1) = 0.;
 	 val1(2,2) = 1.;
 	 TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
-	 TPZAutoPointer<TPZMaterial> bcauto3(bc3);
+	 TPZMaterial * bcauto3(bc3);
 	 mesh->InsertMaterialObject(bcauto3);
 	 */
 }
