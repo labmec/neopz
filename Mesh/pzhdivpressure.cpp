@@ -340,7 +340,6 @@ int TPZCompElHDivPressure<TSHAPE>::ConnectOrder(int connect) const
 //	
 //}
 
-/**return the first shape associate to each side*/
 //template<class TSHAPE>
 //void TPZCompElHDivPressure<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 //	

@@ -150,7 +150,7 @@ public:
                       TPZVec<STATE> &flux) {}
     
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
-    virtual TPZBndCond *CreateBC(TPZMaterial * &reference, int id, int typ, TPZFMatrix<STATE> &val1,
+    virtual TPZBndCond *CreateBC(TPZMaterial *reference, int id, int typ, TPZFMatrix<STATE> &val1,
                                  TPZFMatrix<STATE> &val2);
     
     /** @name Contribute methods

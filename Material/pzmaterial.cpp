@@ -159,7 +159,7 @@ void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMa
 	//	} else Solout.Resize(0);
 }
 
-TPZBndCond *TPZMaterial::CreateBC(TPZMaterial * &reference, int id, int typ, TPZFMatrix<STATE> &val1, TPZFMatrix<STATE> &val2) {
+TPZBndCond *TPZMaterial::CreateBC(TPZMaterial *reference, int id, int typ, TPZFMatrix<STATE> &val1, TPZFMatrix<STATE> &val2) {
 	return new TPZBndCond(reference,id,typ,val1,val2);
 }
 

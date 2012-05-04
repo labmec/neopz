@@ -183,7 +183,7 @@ void TPZBlackOilAnalysis::SetLastState(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second.operator->());
+		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second);
 		if (blackoilmat){
 			blackoilmat->SetLastState();
 		}
@@ -197,7 +197,7 @@ void TPZBlackOilAnalysis::SetCurrentState(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second.operator->());
+		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second);
 		if (blackoilmat){
 			blackoilmat->SetCurrentState();
 		}
@@ -210,7 +210,7 @@ void TPZBlackOilAnalysis::SetAllMaterialsDeltaT(){
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second.operator->());
+		TPZBlackOil2P3D * blackoilmat = dynamic_cast< TPZBlackOil2P3D *>(matit->second);
 		if (blackoilmat){
 			blackoilmat->SetTimeStep(this->TimeStep());
 		}
@@ -368,8 +368,8 @@ void TPZBlackOilAnalysis::Vazao(TPZBlackOilAnalysis &an, int matid, double & Vaz
 		TPZBlackOil2P3D::BFadREAL po(sol[0],0);
 		TPZBlackOil2P3D::BFadREAL Bo;
 		
-		TPZBndCond * bc = dynamic_cast<TPZBndCond*> (face->Material().operator->());
-		TPZBlackOil2P3D * bo = dynamic_cast<TPZBlackOil2P3D *> (bc->Material().operator->());
+		TPZBndCond * bc = dynamic_cast<TPZBndCond*> (face->Material());
+		TPZBlackOil2P3D * bo = dynamic_cast<TPZBlackOil2P3D *> (bc->Material());
 		bo->Bo(po, Bo);
 		
 		VazaoOleoSC += ef.fMat(0,0)*86400.;

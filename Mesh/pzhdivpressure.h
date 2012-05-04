@@ -35,9 +35,9 @@ public:
 	 * global mesh to clone mesh
 	 */
 	TPZCompElHDivPressure(TPZCompMesh &mesh,
-				  const TPZCompElHDivPressure<TSHAPE> &copy,
-				  std::map<int,int> & gl2lcConMap,
-				  std::map<int,int> & gl2lcElMap);
+						  const TPZCompElHDivPressure<TSHAPE> &copy,
+						  std::map<int,int> & gl2lcConMap,
+						  std::map<int,int> & gl2lcElMap);
 	
 	TPZCompElHDivPressure();
 	
@@ -64,7 +64,7 @@ public:
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
 		mesh->SetAllCreateFunctionsHDiv();
 	}
-
+	
 	
 	virtual MElementType Type();
 	
@@ -95,7 +95,7 @@ public:
     {
         return NConnects()-1;
     }
-
+	
 	
 	//virtual void SetIntegrationRule(int ord);
     
@@ -150,8 +150,8 @@ public:
 	 */
 	//void FirstShapeIndex(TPZVec<int> &Index);
 	/** @brief Returns a matrix index of the shape and vector  associate to element
-     * @param VectorSide input : indicates the side associated with each vector
-     * @param IndexVecShape output : indicates for the vector/shape function for the approximation space
+     * @ param VectorSide input : indicates the side associated with each vector
+     * @ param IndexVecShape output : indicates for the vector/shape function for the approximation space
      */
 	//void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
 	
@@ -174,9 +174,8 @@ public:
     void ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                  const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
-    /**   
-	 * @brief Compute the solution using Hdiv structure
-	 */
+
+    /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionPressureHDiv(TPZMaterialData &data);
 	
 	
@@ -184,9 +183,7 @@ public:
 	
 	//virtual void Solution(TPZVec<REAL> &qsi,int var,TPZManVector<REAL> &sol);
 	
-	/** Jorge 09/06/2001
-	 * @brief Returns the transformation which transform a point from the side to the interior of the element
-	 */
+	/** @brief Returns the transformation which transform a point from the side to the interior of the element */
 	TPZTransform TransformSideToElement(int side);
 	
 	/**

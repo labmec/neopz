@@ -1,10 +1,5 @@
-/*
- *  LaplacianosDesacoplados.h
- *  PZ
- *
- *  Created by Agnaldo on 10/18/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
- *
+/**
+ * @file
  */
 
 #ifndef POISSONDESACOPLADOSH
@@ -18,6 +13,8 @@
 
 /**
  * @ingroup material
+ * @author Agnaldo de Farias
+ * @since 10/18/2011
  * @brief DESCRIBE PLEASE
  */
 /**
@@ -72,10 +69,6 @@ public:
 		fXf2 = flux2;
 	}
 
-	//virtual TPZMaterial * NewMaterial(){
-//		return new TwoUncoupledPoisson(*this);
-//	}
-	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -93,26 +86,19 @@ public:
 	
 	virtual int NSolutionVariables(int var);
 	
-//protected:
-//	
-//	/**
-//     * @brief It return a solution to multiphysics simulation.
-//     * @param Sol [in] is the solution 
-//     * @param DSol [in] is the Gradient
-//     * @param axes  [in] is the points of the coordinate axes
-//     * @param var [in] number of solution variables. See  NSolutionVariables() method
-//     * @param Solout [out] is the solution vector
-//     */	
-//	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes, int var,TPZVec<REAL> &Solout);
-
-//public:
+	/**
+     * @brief It return a solution to multiphysics simulation.
+	 * @param datavec [in] Data material vector
+     * @param var [in] number of solution variables. See  NSolutionVariables() method
+     * @param Solout [out] is the solution vector
+     */	
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
-	
-	//virtual int IntegrationRuleOrder(TPZVec<int> elPMaxOrder) const;
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @param data [in]
+	 * @param dataleft [in]
+	 * @param dataright [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -123,6 +109,7 @@ public:
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
+	 * @param dataleft [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -130,13 +117,11 @@ public:
 	 * @since April 16, 2007
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
-	
-	
-	
-	
+
 	/** @name Contribute methods
 	 * @{
 	 */
+
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data [in] stores all input data
@@ -149,7 +134,6 @@ public:
 		DebugStop();
 	}
     
-
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
      * @param data [in] stores all input data
