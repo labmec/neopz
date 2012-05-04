@@ -77,19 +77,19 @@ public:
 	/** @brief It generates a new mesh based on the agglomeration of elements of the fine mesh */
 	static TPZCompMesh *AgglomerateMesh(TPZCompMesh *finemesh,int levelnumbertogroup);
 	
-	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha = 0 ,
+	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZAnalysis &an,int marcha = 0 ,
 						   const std::string &dxout = "plotfile.dx");
 	
-	void SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs);
+	void SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs);
 	
-	void SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,int marcha,
+	void SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,TPZAnalysis &an,int marcha,
 							const std::string &dxout);
 	
 	void ResetReference(TPZCompMesh *aggcmesh);
 	
 	void SetReference(TPZCompMesh *aggcmesh);
 	
-	void SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointer<TPZMaterial> mat);
+	void SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial * mat);
 	
 	void CoutTime(clock_t &start,const char *title);
 	

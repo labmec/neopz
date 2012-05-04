@@ -197,7 +197,7 @@ public:
 	virtual int Dimension() const = 0;
 	
 	/** @brief Identify the material object associated with the element */
-	virtual TPZAutoPointer<TPZMaterial> Material() const;
+	virtual TPZMaterial * Material() const;
 
 	/** 
 	 * @brief Returns the reference geometric element patch. \n

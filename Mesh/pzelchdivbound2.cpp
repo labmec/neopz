@@ -274,7 +274,7 @@ void TPZCompElHDivBound2<TSHAPE>::SetSideOrder(int side, int order) {
     c.SetOrder(order);
     int seqnum = c.SequenceNumber();
     int nvar = 1;
-    TPZAutoPointer<TPZMaterial> mat =this-> Material();
+    TPZMaterial * mat =this-> Material();
     if(mat) nvar = mat->NStateVariables();
     int nshape = NConnectShapeF(connectaux);
     c.SetNShape(nshape);

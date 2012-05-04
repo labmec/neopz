@@ -60,7 +60,7 @@ void TPZMaterialTest::ContributeBC(TPZMaterialData &data,
                                    TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
-	if(bc.Material().operator ->() != this) {
+	if(bc.Material() != this) {
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	

@@ -8,7 +8,7 @@
 #include "pzintel.h"
 #include "TPZMulticamadaOrtho.h"
 
-TPZBCTension::TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,
+TPZBCTension::TPZBCTension(TPZMaterial * &material,int id,int type,
 						   TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :
 TPZBndCond(material,id,type,val1,val2) {
 	fCamada = camada;

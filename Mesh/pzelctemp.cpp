@@ -232,7 +232,7 @@ void TPZIntelGen<TSHAPE>::SetSideOrder(int side, int order) {
 		c.SetOrder(order);
 		int seqnum = c.SequenceNumber();
 		int nvar = 1;
-		TPZAutoPointer<TPZMaterial> mat = Material();
+		TPZMaterial * mat = Material();
 		if(mat) nvar = mat->NStateVariables();
         int nshape = NConnectShapeF(side);
         c.SetNShape(nshape);

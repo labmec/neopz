@@ -202,7 +202,7 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	}
 	int dim = this->Dimension();
 	
-	TPZAutoPointer<TPZMaterial> material = this->Material();
+	TPZMaterial * material = this->Material();
 	if(!material){
 		sol.Resize(0);
 		return;
@@ -365,7 +365,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
@@ -450,7 +450,7 @@ template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
 	TPZGeoEl *ref = Reference();
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	int mat = material->Id();
 	int nsides = ref->NSides();
 	

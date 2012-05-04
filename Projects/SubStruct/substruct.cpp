@@ -267,12 +267,12 @@ int main(int argc, char *argv[])
 			
 			//ViscoElastico
 			//Atualizando memoria do material
-			std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(submesh->MaterialVec());
-			std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator itmat;
+			std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
+			std::map<int ,TPZMaterial * >::iterator itmat;
 			for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
 			{
-				TPZAutoPointer<TPZMaterial> mat = itmat->second;
-				TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat.operator->());
+				TPZMaterial * mat = itmat->second;
+				TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
 				if(vmat)
 				{
 					vmat->SetUpdateMem();
@@ -290,7 +290,7 @@ int main(int argc, char *argv[])
 		}
 #endif	
 		
-		TPZAutoPointer<TPZMaterial> mat = cmeshauto->FindMaterial(1);
+		TPZMaterial * mat = cmeshauto->FindMaterial(1);
 		int nstate = mat->NStateVariables();
 		int nscal = 0, nvec = 0;
 		if(nstate ==1) 
@@ -570,10 +570,10 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZManVector<REAL> force(3,0.);
 	force[1] = 20.;
 	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
-	TPZAutoPointer<TPZMaterial> elastauto(elast);
+	TPZMaterial * elastauto(elast);
 	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto(bc);
+	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(elastauto);
 	mesh->InsertMaterialObject(bcauto);
 }
@@ -591,10 +591,10 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	muV = 455.4545;
 	alphaT = 0.1;	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
-	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
+	TPZMaterial * viscoelastauto(viscoelast);
 	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto(bc);
+	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);
 	mesh->InsertMaterialObject(bcauto);	
 }
@@ -620,20 +620,20 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZFNMatrix<6> qsi(6,1,0.);
 	//viscoelast->SetDefaultMem(qsi); //elast
 	//int index = viscoelast->PushMemItem(); //elast
-	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
+	TPZMaterial * viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
 	
 	// Neumann em x = 1;
 	TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
 	val2(0,0) = 1.;
 	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto4(bc4);
+	TPZMaterial * bcauto4(bc4);
 	mesh->InsertMaterialObject(bcauto4);
 	
 	// Neumann em x = -1;
 	val2(0,0) = -1.;
 	TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto5(bc5);
+	TPZMaterial * bcauto5(bc5);
 	mesh->InsertMaterialObject(bcauto5);
 	
 	val2.Zero();
@@ -642,7 +642,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 1e4;
 	val1(2,2) = 1e4;
 	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto1(bc1);
+	TPZMaterial * bcauto1(bc1);
 	mesh->InsertMaterialObject(bcauto1);
 	
 	// Dirichlet em 1 -1 -1 yz;
@@ -650,7 +650,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 1e4;
 	val1(2,2) = 1e4;
 	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto2(bc2);
+	TPZMaterial * bcauto2(bc2);
 	mesh->InsertMaterialObject(bcauto2);
 	
 	// Dirichlet em 1 1 -1 z;
@@ -658,7 +658,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 0.;
 	val1(2,2) = 1e4;
 	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto3(bc3);
+	TPZMaterial * bcauto3(bc3);
 	mesh->InsertMaterialObject(bcauto3);
 	
 }

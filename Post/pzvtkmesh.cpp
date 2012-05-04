@@ -12,7 +12,7 @@
 
 using namespace std;
 
-TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat,
+TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat,
 								 const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames) : TPZGraphMesh(cmesh, dimension, mat) {
 	fNumCases = 0;
 	fNumSteps = 0;
@@ -21,7 +21,7 @@ TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPoint
 	fScalarNames = scalnames;
 }
 
-TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
+TPZVTKGraphMesh::TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZVTKGraphMesh *graph,TPZMaterial * mat) :
 TPZGraphMesh(cmesh, dimension,mat) {
 	if(!mat) fMaterial = graph->fMaterial;
 	fNumCases = graph->fNumCases;
@@ -37,7 +37,7 @@ void TPZVTKGraphMesh::DrawMesh(int numcases) {
 
 void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	
-	TPZAutoPointer<TPZMaterial> matp = Material();
+	TPZMaterial * matp = Material();
 	if(!matp) {
 		cout << "TPZMVGraphMesh no material found\n";
 		return;

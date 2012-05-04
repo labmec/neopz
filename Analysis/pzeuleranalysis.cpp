@@ -309,7 +309,7 @@ TPZDXGraphMesh * TPZEulerAnalysis::PrepareDXMesh(const std::string &dxout, int d
 	scalar[3] = "Mach";
 	
 	
-	TPZAutoPointer<TPZMaterial>  mat = fFlowCompMesh->GetFlowMaterial();
+	TPZMaterial *  mat = fFlowCompMesh->GetFlowMaterial();
 	int dim = mat->Dimension();
 	//ResetReference(Mesh());//retira refer�ncias para criar graph consistente
 	TPZDXGraphMesh * graph = new TPZDXGraphMesh (Mesh(),dim,mat,scalar,vector);

@@ -271,7 +271,7 @@ void TPZVoidFlux::Read(TPZStream &buf, void *context)
 }
 
 /// create another material of the same type
-TPZAutoPointer<TPZMaterial> TPZVoidFlux::NewMaterial()
+TPZMaterial * TPZVoidFlux::NewMaterial()
 {
     return new TPZVoidFlux(*this);
 }

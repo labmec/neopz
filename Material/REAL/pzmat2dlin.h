@@ -98,9 +98,9 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	/** @brief Creates a copy of the material object */
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
-	TPZBndCond *OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc);
+	TPZBndCond *OutflowFlux(TPZMaterial * &reference, int bc);
 	
 	/** @brief returns the unique identifier for reading/writing objects to streams */
 	virtual int ClassId() const;

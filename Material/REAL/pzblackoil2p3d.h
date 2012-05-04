@@ -67,7 +67,7 @@ public:
 	}
 	
 	/** @brief Creates another material of the same type  */
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief Returns problem dimension */
 	virtual int Dimension(){ return 3; }

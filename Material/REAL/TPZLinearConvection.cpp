@@ -22,7 +22,7 @@ void TPZLinearConvection::SetData(istream &data) {
 	PZError << "TPZMaterial::SetData is called.\n";
 	data >> fConvect[0] >> fConvect[1];
 }
-TPZAutoPointer<TPZMaterial> TPZLinearConvection::NewMaterial() {
+TPZMaterial * TPZLinearConvection::NewMaterial() {
 	TPZLinearConvection *result = new TPZLinearConvection(*this);
 	
 	return result;
@@ -89,7 +89,7 @@ void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
 									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
-	if(bc.Material().operator ->() != this){
+	if(bc.Material() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	

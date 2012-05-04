@@ -106,7 +106,7 @@ void TPZMatHybrid::ContributeBC(TPZMaterialData &data,
 	// TPZFMatrix<REAL> &daxesdksi=data.daxesdksi;
 	// TPZFMatrix<REAL> &axes=data.axes;
 	
-	if(bc.Material().operator ->() != this){
+	if(bc.Material() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	

@@ -185,7 +185,7 @@ void TPZCompEl::LoadSolution() {
 	totalconnects = connectlist.NElements();
 	TPZManVector<int> dependenceorder(totalconnects);
 	TPZConnect::BuildDependencyOrder(connectlist,dependenceorder,*this->Mesh());
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	if(!mat) {
 		LOGPZ_WARN(logger, "Exiting LoadSolution because a null material was reached.");
 		return;
@@ -309,7 +309,7 @@ std::ostream& operator<<(std::ostream &s,TPZCompEl & el){
 
 void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s) {
 	TPZGeoEl *georef = Reference();
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	if(!georef || !mat) {
 		LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which doesnt have a geometric reference or material");
 		Print();
@@ -343,7 +343,7 @@ void TPZCompEl::PrintCoordinate(TPZVec<REAL> &point,int CoordinateIndex,std::ost
 }
 
 void TPZCompEl::PrintTitle(char *varname,std::ostream &s) {
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	TPZGeoEl *georef = Reference();
 	if(!georef || !mat) {
 		LOGPZ_WARN(logger,"Exiting PrintTitle should not be called for an element which doesnt have a material");
@@ -810,9 +810,9 @@ int TPZCompElSide::ConnectIndex() const
 
 
 /** Identify the material object associated with the element */
-TPZAutoPointer<TPZMaterial> TPZCompEl::Material() const
+TPZMaterial * TPZCompEl::Material() const
 {
-    TPZAutoPointer<TPZMaterial> result;
+    TPZMaterial * result = 0;
     if(fMesh && Reference()) result = fMesh->FindMaterial(Reference()->MaterialId());
     return result;
 }
@@ -820,7 +820,7 @@ TPZAutoPointer<TPZMaterial> TPZCompEl::Material() const
 /** Verify if the material associated with the element is contained in the set */
 bool TPZCompEl::HasMaterial(const std::set<int> &materialids)
 {
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	if(!mat) return false;
 	return materialids.find(mat->Id()) != materialids.end();
 }

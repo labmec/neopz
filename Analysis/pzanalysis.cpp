@@ -392,7 +392,7 @@ void TPZAnalysis::PostProcessTable( TPZFMatrix<REAL> &,std::ostream & )//pos,out
 
 void TPZAnalysis::ShowShape( TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames, char *plotfile, std::ostream &) {//1o :TPZConnect  *nod,
 	
-    TPZAutoPointer<TPZMaterial> mat = fCompMesh->MaterialVec().rbegin()->second;
+    TPZMaterial * mat = fCompMesh->MaterialVec().rbegin()->second;
 	TPZV3DGraphMesh gg(fCompMesh,2,mat);
 	
 	gg.SetFileName(plotfile);
@@ -441,10 +441,10 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
 		cout << "TPZAnalysis::DefineGraphMesh fCompMesh is zero\n";
 		return;
 	}
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
-		TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second.operator->());
+		TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second);
 		if(matit->second && !bc && matit->second->Dimension() == dim) break;
 	}
 	if(matit == fCompMesh->MaterialVec().end())
@@ -498,10 +498,10 @@ void TPZAnalysis::PostProcess(int resolution) {
 void TPZAnalysis::PostProcess(int resolution, int dimension){
 	int dim1 = dimension-1;
 	if(!fGraphMesh[dim1]) return;
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
-		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second.operator->());
+		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second);
 		if(matit->second && !bc && matit->second->Dimension() == dimension) break;
 	}
 	if(matit == fCompMesh->MaterialVec().end()) return;
@@ -522,11 +522,11 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps, TPZVec<std::string> &scaln
 	
 	TPZFMatrix<STATE> residual(fRhs);
 	int dim = HighestDimension();
-	TPZAutoPointer<TPZMaterial> mat = 0;
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	TPZMaterial * mat = 0;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
-		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second.operator->());
+		TPZBndCond *bc = dynamic_cast<TPZBndCond *>(matit->second);
 		if(bc) continue;
 		if( matit->second->Dimension() == dim)
 		{
@@ -562,7 +562,7 @@ void TPZAnalysis::AnimateRun(int num_iter, int steps, TPZVec<std::string> &scaln
 
 int TPZAnalysis::HighestDimension(){
 	int dim = 0;
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;

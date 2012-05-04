@@ -53,7 +53,7 @@ int main() {
   gmesh->BuildConnectivity();
   TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
   TPZVec<REAL> sol(1,0.);
-  TPZAutoPointer<TPZMaterial> material = new TPZL2Projection(1,2,1,sol);
+  TPZMaterial * material = new TPZL2Projection(1,2,1,sol);
   cmesh->InsertMaterialObject(material);
   cmesh->SetAllCreateFunctionsDiscontinuous();
   TPZCompEl::SetgOrder(1);
@@ -280,9 +280,9 @@ int main1(){
   
   cmesh->SetDimModel(2);
   
-  TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(matid, 2);
+  TPZMaterial * mat = new TPZMatPoisson3d(matid, 2);
   mat->SetForcingFunction( new TPZDummyFunction<STATE>(LoadFunction) );
-  TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat.operator->());
+  TPZMatPoisson3d * matcast = dynamic_cast<TPZMatPoisson3d*>(mat);
   matcast->fPenaltyConstant = 1.;
   matcast->SetSolutionPenalty(); 
 //    matcast->SetFluxPenalty();
@@ -294,9 +294,9 @@ int main1(){
   matcast->SetParameters(diff, 0., convdir);
   int nstate = 1;
   TPZFMatrix<STATE> val1(nstate,nstate,0.),val2(nstate,1,10.);
-  TPZAutoPointer<TPZMaterial> bcFora ( mat->CreateBC(mat,-2, 0,val1,val2) );
+  TPZMaterial * bcFora ( mat->CreateBC(mat,-2, 0,val1,val2) );
   val2(0,0) = 2.;
-  TPZAutoPointer<TPZMaterial> bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
+  TPZMaterial * bcDentro = mat->CreateBC(mat,-3, 0,val1,val2);
   
   bcFora->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));
   bcDentro->SetForcingFunction(new TPZDummyFunction<STATE>(Dirichlet));

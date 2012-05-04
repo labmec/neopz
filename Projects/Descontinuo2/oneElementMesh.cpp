@@ -174,13 +174,13 @@ TPZFlowCompMesh *
    REAL lambdaMax = us + cspeed;
 */
    matp->SetDelta(delta);
-   TPZAutoPointer<TPZMaterial> mat(matp);
+   TPZMaterial * mat(matp);
 
    cmesh -> InsertMaterialObject(mat);
 
 // Boundary conditions
 
-   TPZAutoPointer<TPZMaterial>  bc;
+   TPZMaterial *  bc;
    TPZFMatrix<REAL> val1(4,4), val2(4,1);
    REAL ro = 1.7,
 	//u = 5.5,

@@ -380,7 +380,7 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 		TPZCompEl *el = elementvec[iel];
 		if(!el) continue;
 		if(fMaterialIds.size() == 0) break;
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 		if(!mat)
 		{

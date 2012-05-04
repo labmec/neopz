@@ -23,7 +23,7 @@ REAL TPZEulerEquation::gGamma = 1.4;
 
 #ifdef LinearConvection
 void TPZEulerEquation::SetLinearConvection(TPZCompMesh * cmesh, TPZVec<REAL> &Celerity){
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator w;
+	std::map<int, TPZMaterial * >::iterator w;
 	for(w = cmesh->MaterialVec().begin(); w != cmesh->MaterialVec().end(); w++){
 		TPZMaterial * mat = w->second.operator->();
 		TPZEulerEquation * matcast = dynamic_cast< TPZEulerEquation * >(mat);

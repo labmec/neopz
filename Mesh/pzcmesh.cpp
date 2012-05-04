@@ -133,6 +133,10 @@ void TPZCompMesh::CleanUp() {
 	fConnectVec.Resize(0);
 	fConnectVec.CompactDataStructure(1);
 	nelem = NMaterials();
+    std::map<int, TPZMaterial *>::iterator it;
+    for (it = fMaterialVec.begin(); it != fMaterialVec.end(); it++) {
+        delete it->second;
+    }
 	fMaterialVec.clear();
 	
 	fBlock.SetNBlocks(0);
@@ -180,7 +184,7 @@ void TPZCompMesh::Print (std::ostream & out) const {
 		out << "\tReference Index = " << el->Reference()->Index() << std::endl << std::endl;
 	}
 	out << "\n\tMaterial Information:\n\n";
-	std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
+	std::map<int, TPZMaterial * >::const_iterator mit;
 	nelem = NMaterials();
 	for(mit=fMaterialVec.begin(); mit!= fMaterialVec.end(); mit++) {
 		mit->second->Print(out);
@@ -188,16 +192,16 @@ void TPZCompMesh::Print (std::ostream & out) const {
 }
 
 /**Insert a material object in the datastructure*/
-int TPZCompMesh::InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat) {
+int TPZCompMesh::InsertMaterialObject(TPZMaterial * mat) {
 	if(!mat) return -1;
 	int matid = mat->Id();
 	fMaterialVec[matid] = mat;
 	return fMaterialVec.size();
 }
 
-TPZAutoPointer<TPZMaterial> TPZCompMesh::FindMaterial(int matid){	// find the material object with id matid
-	TPZAutoPointer<TPZMaterial> result;
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit;
+TPZMaterial * TPZCompMesh::FindMaterial(int matid){	// find the material object with id matid
+	TPZMaterial * result = 0;
+	std::map<int, TPZMaterial * >::iterator mit;
 	mit = fMaterialVec.find(matid);
 	if(mit != fMaterialVec.end())
 	{
@@ -227,7 +231,7 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = this->FindMaterial(matid);
+			TPZMaterial * mat = this->FindMaterial(matid);
 			if(!mat)
 			{
 				matnotfound.insert(matid);
@@ -695,7 +699,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 		PZError << "TPZCompMesh::BuildTransferMatrix, no material object found\n";
 		return;
 	}
-	TPZAutoPointer<TPZMaterial> mat;
+	TPZMaterial * mat;
 	mat = fMaterialVec.begin()->second;
 	int nvar = mat->NStateVariables();
 	int dim = mat->Dimension();
@@ -753,7 +757,7 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 		PZError << "TPZCompMesh::BuildTransferMatrixDesc no material object found\n";
 		return;
 	}
-	TPZAutoPointer<TPZMaterial> mat;
+	TPZMaterial * mat;
 	mat = fMaterialVec.begin()->second;
 	int nvar = mat->NStateVariables();
 	int dim = mat->Dimension();
@@ -1206,9 +1210,9 @@ void TPZCompMesh::AdjustBoundaryElements() {
 			
 			if(!elp || !dynamic_cast<TPZInterpolatedElement*>(elp) ) continue;
 			
-			TPZAutoPointer<TPZMaterial> mat = elp->Material();
+			TPZMaterial * mat = elp->Material();
 			// this statement determines thata the element is associated with a boundary condition
-			TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat.operator ->());
+			TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(mat);
 			if(!bnd) continue;
 			//      if(mat && mat->Id() >= 0) continue;
 			int nsides = elp->Reference()->NSides();
@@ -1755,13 +1759,13 @@ TPZCompMesh* TPZCompMesh::Clone() const {
 
 void TPZCompMesh::CopyMaterials(TPZCompMesh &mesh) const {
 	//  int nmat = fMaterialVec.size();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator mit;
+	std::map<int, TPZMaterial * >::const_iterator mit;
 	//  int m;
 	for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-		if(!dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh.fMaterialVec);
+		if(!dynamic_cast<TPZBndCond *> (mit->second)) mit->second->Clone(mesh.fMaterialVec);
 	}
 	for(mit=fMaterialVec.begin(); mit!=fMaterialVec.end(); mit++) {
-		if(dynamic_cast<TPZBndCond *> (mit->second.operator->())) mit->second->Clone(mesh.fMaterialVec);
+		if(dynamic_cast<TPZBndCond *> (mit->second)) mit->second->Clone(mesh.fMaterialVec);
 	}
 	
 }
@@ -1895,7 +1899,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 		PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
 		return;
 	}
-	TPZAutoPointer<TPZMaterial> mat = fMaterialVec.begin()->second;
+	TPZMaterial * mat = fMaterialVec.begin()->second;
 	//int nvar = mat->NStateVariables();
 	int dim = mat->Dimension();
 	Reference()->ResetReference();//geom�ricos apontam para nulo
@@ -1936,11 +1940,11 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fName,1);
 	buf.Write(&fDimModel,1);
 	TPZSaveable::WriteObjects<TPZConnect>(buf,fConnectVec);
-	std::map<int,TPZAutoPointer<TPZMaterial> >::iterator it;
-	std::map<int,TPZAutoPointer<TPZMaterial> > temp1,temp2;
+	std::map<int,TPZMaterial * >::iterator it;
+	std::map<int,TPZMaterial * > temp1,temp2;
 	for(it=fMaterialVec.begin(); it!=fMaterialVec.end(); it++)
 	{
-		if(dynamic_cast<TPZBndCond *>(it->second.operator->()))
+		if(dynamic_cast<TPZBndCond *>(it->second))
 		{
 			temp1[it->first]=it->second;
 		}

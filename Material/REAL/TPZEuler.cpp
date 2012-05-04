@@ -14,7 +14,7 @@ void TPZEuler::SetData(istream &data) {
 	TPZMaterial::SetData(data);
 	data >> fDeltaT;
 }
-TPZAutoPointer<TPZMaterial> TPZEuler::NewMaterial() {
+TPZMaterial * TPZEuler::NewMaterial() {
 	TPZEuler *result = new TPZEuler(*this);
 	
 	return result;
@@ -78,7 +78,7 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	if(fState == 0) return;
-	if(bc.Material().operator ->() != this){
+	if(bc.Material() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	

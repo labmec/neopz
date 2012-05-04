@@ -11,13 +11,13 @@
 
 using namespace std;
 
-TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat) : TPZGraphMesh(cmesh, dimension, mat) {
+TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat) : TPZGraphMesh(cmesh, dimension, mat) {
 	fNumCases = 0;
 	fNumSteps = 0;
 	fStyle = EMVStyle;
 }
 
-TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMVGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
+TPZMVGraphMesh::TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMVGraphMesh *graph,TPZMaterial * mat) :
 TPZGraphMesh(cmesh, dimension,mat) {
 	if(!mat) fMaterial = graph->fMaterial;
 	fNumCases = graph->fNumCases;
@@ -53,7 +53,7 @@ void TPZMVGraphMesh::DrawSolution(int step, REAL time){
 	vecind.Resize(numvec);
 	scalind.Fill(-1,0,numscal);
 	vecind.Fill(-1,0,numvec);
-	TPZAutoPointer<TPZMaterial> matp = Material();
+	TPZMaterial * matp = Material();
 	if(!matp) {
 		cout << "TPZMVGraphMesh no material found\n";
 		return;

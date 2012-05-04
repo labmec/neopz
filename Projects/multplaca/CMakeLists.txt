@@ -1,14 +1,12 @@
+file(GLOB header *.h)
 
-include_directories(${KDE4_INCLUDES} ${KDE4_INCLUDE_DIR} ${QT_INCLUDES} )
+file(GLOB sources *.cpp)
 
+add_executable(multplaca ${sources} ${header})
 
-########### next target ###############
+target_link_libraries(multplaca pz pthread)
 
-set(jornadas_SRCS jornadas.cpp)
-
-add_executable(multplaca ${jornadas_SRCS})
-
-target_link_libraries(multplaca ${KDE4_KDECORE_LIBS})
-
-install(TARGETS multplaca ${INSTALL_TARGETS_DEFAULT_ARGS})
-
+configure_file(multplaca.dat multplaca.dat COPYONLY)
+configure_file(multplaca2.dat multplaca2.dat COPYONLY)
+configure_file(multplaca3.dat multplaca3.dat COPYONLY)
+configure_file(onelayer.dat onelayer.dat COPYONLY)

@@ -16,7 +16,7 @@
 
 using namespace std;
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames, const TPZVec<std::string> &vecnames) :
 TPZGraphMesh(cmesh,dimension,mat) {
 	SetNames(scalarnames,vecnames);
 	fNextDataField = 1;
@@ -49,7 +49,7 @@ TPZGraphMesh(cmesh,dimension,mat) {
 	
 }
 
-TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat) :
+TPZDXGraphMesh::TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial * mat) :
 TPZGraphMesh(cmesh,dim,mat) {
 	if(!mat) fMaterial = graph->fMaterial;
 	fNextDataField = graph->fNextDataField;
@@ -143,7 +143,7 @@ void TPZDXGraphMesh::DrawMesh(int numcases) {
 
 void TPZDXGraphMesh::DrawSolution(int step, REAL time) {
 	
-	TPZAutoPointer<TPZMaterial> matp = Material();
+	TPZMaterial * matp = Material();
 	int i,nel;
 	if(!matp) return;
 	int dim = matp->Dimension();
@@ -341,7 +341,7 @@ void TPZDXGraphMesh::Close() {
 
 void TPZDXGraphMesh::DrawSolution(char * var)
 {
-	TPZAutoPointer<TPZMaterial> matp = Material();
+	TPZMaterial * matp = Material();
     int i,varind;
     varind = matp->VariableIndex(var);
     TPZVec<int> vec(1);

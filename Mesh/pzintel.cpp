@@ -616,7 +616,7 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 
 int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 	TPZCompMesh *cmesh = Mesh();
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	int nvar = 1;
 	if(mat) nvar = mat->NStateVariables();
 	int newnodeindex;
@@ -1384,7 +1384,7 @@ void TPZInterpolatedElement::Divide(int index,TPZVec<int> &sub,int interpolateso
 
 REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 {
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "\nError at " << __PRETTY_FUNCTION__ << " - no material " << std::endl;
 		LOGPZ_ERROR(logger,"InterpolateSolution no material");
@@ -1442,7 +1442,7 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 	out << "Side orders = ";
 	for (nod=0; nod< NConnects(); nod++) out << SideOrder(nod) << ' ';
 	out << endl;
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material)
 	{
 		out << " no material " << std::endl;
@@ -1476,7 +1476,7 @@ void TPZInterpolatedElement::PRefine(int order) {
 
 REAL TPZInterpolatedElement::MeanSolution(int var) {
 	int dim = Dimension(), nvars;
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material)
 	{
 		cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
@@ -1516,7 +1516,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 /**Compute the contribution to stiffness matrix and load vector on the element*/
 void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	int i;
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material)
 	{
 		cout << __PRETTY_FUNCTION__ << " no material " << std::endl;
@@ -1633,7 +1633,7 @@ int TPZInterpolatedElement::AdjustPreferredSideOrder(int side, int order) {
 void TPZInterpolatedElement::CalcEnergy(TPZElementMatrix &ek, TPZElementMatrix &ef) {
 	int i;
 	
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material)
 	{
 		cout << __PRETTY_FUNCTION__ << " no material " << std::endl;

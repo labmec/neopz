@@ -181,26 +181,26 @@ int main(int argc, char *argv[])
 	mymaterial->SetInternalFlux(8.,0.);
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
-	TPZAutoPointer<TPZMaterial> mat(mymaterial);
+	TPZMaterial * mat(mymaterial);
 	mphysics->InsertMaterialObject(mat);
 	
 	///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	val2(0,0)=0.;
 	val2(1,0)=0.;
-	TPZAutoPointer<TPZMaterial> BCondN = mymaterial->CreateBC(mat, bcN,neumann, val1, val2);
+	TPZMaterial * BCondN = mymaterial->CreateBC(mat, bcN,neumann, val1, val2);
 	mphysics->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	val22(0,0)=0.;
 	val22(1,0)=2.;
-	TPZAutoPointer<TPZMaterial> BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = mymaterial->CreateBC(mat, bcDL,dirichlet, val12, val22);
 	mphysics->InsertMaterialObject(BCondDL);
 	
 	TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
 	val23(0,0)=0.;
 	val23(1,0)=1.;
-	TPZAutoPointer<TPZMaterial> BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
+	TPZMaterial * BCondDR = mymaterial->CreateBC(mat, bcDR,dirichlet, val13, val23);
 	mphysics->InsertMaterialObject(BCondDR);
 	
 	
@@ -426,7 +426,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	int dim = 2;
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim); 
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial * mat(material);
 	
 	REAL diff = -1.;
 	REAL conv = 0.;
@@ -449,17 +449,17 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
-	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
+	TPZMaterial * BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
 	val22(0,0)=uD;
 	//val22(1,0)=uD;
-	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDL);
 	
-	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
+	TPZMaterial * BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -474,7 +474,7 @@ TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
 	int dim = 2;
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim); 
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial * mat(material);
 	
 	REAL diff = -0.1;
 	REAL conv = 0.;
@@ -497,19 +497,19 @@ TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder)
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
-	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
+	TPZMaterial * BCondN = material->CreateBC(mat, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uDL=2.;
 	val22(0,0)=uDL;
 	//val22(1,0)=uD;
-	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = material->CreateBC(mat, bcDL,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDL);
 	
 	REAL uDR=1.;
 	val22(0,0)=uDR;
-	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
+	TPZMaterial * BCondDR = material->CreateBC(mat, bcDR,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -527,9 +527,9 @@ TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
 	TPZMatPoisson3d *matlagrange = new TPZMatPoisson3d(lagrangemat,1); 
 	TPZMatPoisson3d *matinterface = new TPZMatPoisson3d(interfacemat,1); 
 	
-	TPZAutoPointer<TPZMaterial> mat1(material);
-	TPZAutoPointer<TPZMaterial> mat2(matlagrange);
-	TPZAutoPointer<TPZMaterial> mat3(matinterface);
+	TPZMaterial * mat1(material);
+	TPZMaterial * mat2(matlagrange);
+	TPZMaterial * mat3(matinterface);
 	
 	REAL diff = -1.;
 	REAL conv = 0.;
@@ -556,17 +556,17 @@ TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
 	REAL uN=0.;
 	val2(0,0)=uN;
 	//val2(1,0)=uN;
-	TPZAutoPointer<TPZMaterial> BCondN = material->CreateBC(mat1, bcN,neumann, val1, val2);
+	TPZMaterial * BCondN = material->CreateBC(mat1, bcN,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondN);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uD=0.;
 	val22(0,0)=uD;
 	//val22(1,0)=uD;
-	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat1, bcDL,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = material->CreateBC(mat1, bcDL,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDL);
 	
-	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat1, bcDR,dirichlet, val12, val22);
+	TPZMaterial * BCondDR = material->CreateBC(mat1, bcDR,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -1067,7 +1067,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			TPZMaterial * mat = cmesh->FindMaterial(matid);
 			if(!mat)
 			{
 				matnotfound.insert(matid);
@@ -1142,7 +1142,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			TPZMaterial * mat = cmesh->FindMaterial(matid);
 			
 			if(!mat)
 			{

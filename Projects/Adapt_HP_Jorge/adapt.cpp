@@ -126,7 +126,7 @@ int mainAdapt ( int argc, char *argv[] )
 	// --- Material / Equation data:
 	// first parameter is the material identifier ( identifier is defined in element sectio of file LaraMesh.txt )
 	// second parameter is the parameter gamma ( I think that is some parameter of the equation - please confirm it!)
-	TPZAutoPointer < TPZMaterial > eulerMaterial = new TPZEulerEquation ( 1, 1.4 );
+	TPZMaterial * eulerMaterial = new TPZEulerEquation ( 1, 1.4 );
 	
 	// Insert the created material into the material data base of the computational mesh
 	cDummyMesh->InsertMaterialObject ( eulerMaterial );

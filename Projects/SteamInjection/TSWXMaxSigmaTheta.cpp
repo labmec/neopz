@@ -12,6 +12,7 @@
 #include "TSWXMaxSigmaTheta.h"
 #include "TPZRefPatternTools.h"
 #include "tpzgeoelrefpattern.h"
+#include "pzelasAXImat.h"
 
 
 //public methods:
@@ -334,12 +335,12 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 	REAL   fx = fDistrSurface, fy = 0.; // fy = Gravity
 	double mi = fE/(2.*(1.+fnu));
 	
-	TPZAutoPointer<TPZMaterial> mat = new TPZElasticityAxiMaterial(matElId, fE, fnu, fx, fy);
+	TPZMaterial * mat = new TPZElasticityAxiMaterial(matElId, fE, fnu, fx, fy);
 	
 	TPZManVector<REAL> Orig(3);		Orig[0] = 0.;	Orig[1] = 0.;	Orig[2] = 0.;
 	TPZManVector<REAL> AxisZ(3);		AxisZ[0] = 0.;	AxisZ[1] = 1.;	AxisZ[2] = 0.;
 	TPZManVector<REAL> AxisR(3);		AxisR[0] = 1.;	AxisR[1] = 0.;	AxisR[2] = 0.;
-	TPZElasticityAxiMaterial * aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat.operator->());
+	TPZElasticityAxiMaterial * aximat = dynamic_cast<TPZElasticityAxiMaterial*>(mat);
 	aximat->SetOrigin(Orig, AxisZ, AxisR);
 
 	///Computational Mesh
@@ -350,34 +351,34 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 		///Boundary Conditions
 		TPZFMatrix<REAL> DistrLEFTDown1(2,2,0.), DistrLEFTDown2(2,1,0.);
 		DistrLEFTDown2(0,0) = fDistrLeftDown;
-		TPZAutoPointer<TPZMaterial> DistrDownLEFTBC = mat->CreateBC(mat, matLeftDOWNid, newmann, DistrLEFTDown1, DistrLEFTDown2);
+		TPZMaterial * DistrDownLEFTBC = mat->CreateBC(mat, matLeftDOWNid, newmann, DistrLEFTDown1, DistrLEFTDown2);
 		fCmesh->InsertMaterialObject(DistrDownLEFTBC);
 		
 		TPZFMatrix<REAL> DistrLEFTUp1(2,2,0.), DistrLEFTUp2(2,1,0.);
 		DistrLEFTUp2(0,0) = fDistrLeftUp;
-		TPZAutoPointer<TPZMaterial> DistrUpLEFTBC = mat->CreateBC(mat, matLeftUPid, newmann, DistrLEFTUp1, DistrLEFTUp2);
+		TPZMaterial * DistrUpLEFTBC = mat->CreateBC(mat, matLeftUPid, newmann, DistrLEFTUp1, DistrLEFTUp2);
 		fCmesh->InsertMaterialObject(DistrUpLEFTBC);
 		
 		TPZFMatrix<REAL> DistrRIGHTDown1(2,2,0.), DistrRIGHTDown2(2,1,0.);
 		DistrRIGHTDown1(0,0) = 2.*mi/(frw+fB);
 		DistrRIGHTDown2(0,0) = DistrRightDown;
-		TPZAutoPointer<TPZMaterial> DistrDownRIGHTBC = mat->CreateBC(mat, matRightDOWNid, mista, DistrRIGHTDown1, DistrRIGHTDown2);
+		TPZMaterial * DistrDownRIGHTBC = mat->CreateBC(mat, matRightDOWNid, mista, DistrRIGHTDown1, DistrRIGHTDown2);
 		fCmesh->InsertMaterialObject(DistrDownRIGHTBC);
 		
 		TPZFMatrix<REAL> DistrRIGHTUp1(2,2,0.), DistrRIGHTUp2(2,1,0.);
 		DistrRIGHTUp1(0,0) = 2.*mi/(frw+fB);
 		DistrRIGHTUp2(0,0) = fDistrRightUp;
-		TPZAutoPointer<TPZMaterial> DistrUpRIGHTBC = mat->CreateBC(mat, matRightUPid, mista, DistrRIGHTUp1, DistrRIGHTUp2);
+		TPZMaterial * DistrUpRIGHTBC = mat->CreateBC(mat, matRightUPid, mista, DistrRIGHTUp1, DistrRIGHTUp2);
 		fCmesh->InsertMaterialObject(DistrUpRIGHTBC);
 		
 		TPZFMatrix<REAL> DistrMIDDLEDown1(2,2,0.), DistrMIDDLEDown2(2,1,0.);
 		DistrMIDDLEDown2(0,0) = fDistrMiddleDown;
-		TPZAutoPointer<TPZMaterial> DistrDownMIDDLEBC = mat->CreateBC(mat, matMiddleDOWNid, mista, DistrMIDDLEDown1, DistrMIDDLEDown2);
+		TPZMaterial * DistrDownMIDDLEBC = mat->CreateBC(mat, matMiddleDOWNid, mista, DistrMIDDLEDown1, DistrMIDDLEDown2);
 		fCmesh->InsertMaterialObject(DistrDownMIDDLEBC);
 		
 		TPZFMatrix<REAL> DistrMIDDLEUp1(2,2,0.), DistrMIDDLEUp2(2,1,0.);
 		DistrMIDDLEUp2(0,0) = fDistrMiddleUp;
-		TPZAutoPointer<TPZMaterial> DistrUpMIDDLEBC = mat->CreateBC(mat, matMiddleUPid, mista, DistrMIDDLEUp1, DistrMIDDLEUp2);
+		TPZMaterial * DistrUpMIDDLEBC = mat->CreateBC(mat, matMiddleUPid, mista, DistrMIDDLEUp1, DistrMIDDLEUp2);
 		fCmesh->InsertMaterialObject(DistrUpMIDDLEBC);
 		
 		//CC TOP (Mista) - impedindo desloc em y 
@@ -385,13 +386,13 @@ void TSWXMaxSigmaTheta::CreateCompMesh(double DistrRightDown)
 		
 		//		TPZFMatrix<REAL> DistrTOP1(2,2,0.), DistrTOP2(2,1,0.);
 		//		DistrTOP1(1,1) = BigNum;
-		//		TPZAutoPointer<TPZMaterial> DistrTOPBC = mat->CreateBC(mat, matTOPid, mista, DistrTOP1, DistrTOP2);
+		//		TPZMaterial * DistrTOPBC = mat->CreateBC(mat, matTOPid, mista, DistrTOP1, DistrTOP2);
 		//		fCmesh->InsertMaterialObject(DistrTOPBC);
 		
 		//CC BOTTOM (Mista) - impedindo desloc em y 
 		TPZFMatrix<REAL> DistrBOTTOM1(2,2,0.), DistrBOTTOM2(2,1,0.);
 		DistrBOTTOM1(1,1) = BigNum;
-		TPZAutoPointer<TPZMaterial> DistrBOTTOMBC = mat->CreateBC(mat, matBOTTOMid, mista, DistrBOTTOM1, DistrBOTTOM2);
+		TPZMaterial * DistrBOTTOMBC = mat->CreateBC(mat, matBOTTOMid, mista, DistrBOTTOM1, DistrBOTTOM2);
 		fCmesh->InsertMaterialObject(DistrBOTTOMBC);
 	}
 	

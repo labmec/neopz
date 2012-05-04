@@ -264,7 +264,7 @@ void *TPZParFrontStructMatrix<front>::GlobalAssemble(void *t){
 		if(parfront->fElementOrder[local_element] < 0) continue;
 		TPZCompEl *el = elementvec[parfront->fElementOrder[local_element]];
 		if(!el) continue;
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		if(mat)
 		{
 			int matid = mat->Id();
@@ -522,11 +522,11 @@ int TPZParFrontStructMatrix<front>::main() {
 	TPZMat2dLin *mat2d = new TPZMat2dLin(1);
 	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	mat2d->SetMaterial (xk,xc,xf);
-	TPZAutoPointer<TPZMaterial> meumat = mat2d;
+	TPZMaterial * meumat = mat2d;
 	cmesh.InsertMaterialObject(meumat);
 	
 	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
+	TPZMaterial * bnd = meumat->CreateBC (meumat,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
 	

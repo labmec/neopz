@@ -298,7 +298,7 @@ TPZBlackOil2P3D::TPZBlackOil2P3D(const TPZBlackOil2P3D &cp):TPZDiscontinuousGale
 	
 }
 
-TPZAutoPointer<TPZMaterial> TPZBlackOil2P3D::NewMaterial(){
+TPZMaterial * TPZBlackOil2P3D::NewMaterial(){
 	return new TPZBlackOil2P3D(*this);
 }
 

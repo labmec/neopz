@@ -22,9 +22,9 @@ class TPZV3DGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for graphical mesh using 3D Image Visualization format */
-	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat);
+	TPZV3DGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat);
 	/** @brief Copy constructor for graphical mesh using 3D Image Visualization format */
-	TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
+	TPZV3DGraphMesh(TPZCompMesh *cmesh,int dim,TPZV3DGraphMesh *graph,TPZMaterial * mat);
 	/** @brief Default destructor */
 	virtual ~TPZV3DGraphMesh()
 	{

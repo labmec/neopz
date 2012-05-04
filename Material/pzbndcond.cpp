@@ -13,28 +13,28 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.bndcond"));
 #endif
 
-void TPZBndCond::Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec) {
+void TPZBndCond::Clone(std::map<int, TPZMaterial * > &matvec) {
 	int matid = Id();
 	
-	TPZAutoPointer<TPZMaterial> refmaterial = Material();
-	TPZAutoPointer<TPZMaterial> newrefmaterial;
+	TPZMaterial * refmaterial = Material();
+	TPZMaterial * newrefmaterial;
 	int refmatid = 0;
 	if(refmaterial) {
 		refmaterial->Clone(matvec);
 		refmatid = refmaterial->Id();
 		newrefmaterial = matvec[refmatid];
 	}
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	matit = matvec.find(matid);
 	if(matit == matvec.end())
 	{
-		TPZAutoPointer<TPZMaterial> newmat = TPZAutoPointer<TPZMaterial>(new TPZBndCond(*this, newrefmaterial));
+		TPZMaterial * newmat = (new TPZBndCond(*this, newrefmaterial));
 		matvec[matid] = newmat;
 	}
 }
 
 void TPZBndCond::InterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZSolVec &rightu,TPZSolVec &jump){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 	
 	if(!mat) return;
 	if(fForcingFunction) {
@@ -104,7 +104,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 										   TPZVec<REAL> &nkR,
 										   int &errorid){
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial.operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 	if(!mat) return;
 	
     this->UpdataBCValues( data );
@@ -214,7 +214,7 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 }
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();// return;
 	this->UpdataBCValues(data);
 	
@@ -231,7 +231,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
 }//void
 
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial.operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();//return;
 	this->UpdataBCValues(data);
 	

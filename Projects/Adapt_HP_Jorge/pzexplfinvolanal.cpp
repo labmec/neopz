@@ -473,7 +473,7 @@ void TPZExplFinVolAnal::CleanAuxiliarVariables(){
 }//void
 
 void TPZExplFinVolAnal::CalcResidualFiniteVolumeMethod(TPZInterfaceElement *face, TPZElementMatrix &ef, TPZVec<REAL> &LeftSol, TPZVec<REAL> &RightSol){
-  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(face->Material().operator ->());
+  TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(face->Material());
   if(!mat || mat->Name() == "no_name"){
       PZError << "TPZInterfaceElement::CalcResidual interface material null, do nothing\n";
       ef.Reset();

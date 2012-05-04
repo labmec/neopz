@@ -159,7 +159,7 @@ void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMa
 	//	} else Solout.Resize(0);
 }
 
-TPZBndCond *TPZMaterial::CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<STATE> &val1, TPZFMatrix<STATE> &val2) {
+TPZBndCond *TPZMaterial::CreateBC(TPZMaterial * &reference, int id, int typ, TPZFMatrix<STATE> &val1, TPZFMatrix<STATE> &val2) {
 	return new TPZBndCond(reference,id,typ,val1,val2);
 }
 
@@ -168,7 +168,7 @@ void TPZMaterial::SetData(std::istream &data) {
 	data >> fId;
 }
 
-TPZAutoPointer<TPZMaterial> TPZMaterial::NewMaterial() {
+TPZMaterial * TPZMaterial::NewMaterial() {
 	PZError << "TPZMaterial::NewMaterial is called.\n";
 	return 0;
 }
@@ -198,12 +198,12 @@ void TPZMaterial::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TP
 	}
 }
 
-void TPZMaterial::Clone(std::map<int, TPZAutoPointer<TPZMaterial> >&matvec) {
+void TPZMaterial::Clone(std::map<int, TPZMaterial * >&matvec) {
 	int matid = Id();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	matit = matvec.find(matid);
 	if(matit != matvec.end()) return;
-	TPZAutoPointer<TPZMaterial> newmat = NewMaterial();
+	TPZMaterial * newmat = NewMaterial();
 	newmat->SetForcingFunction(TPZMaterial::fForcingFunction);
 	matvec[matid] = newmat;
 }

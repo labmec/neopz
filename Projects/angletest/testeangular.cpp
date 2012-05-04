@@ -237,7 +237,7 @@ void LerMalha(const char *malha,TPZGeoMesh *geomesh,TPZCompMesh *&compmesh) {
 
    ifstream grid(malha);
    TPZFMatrix<REAL> xk(1,1,0.),xb(1,1,0.),xc(1,1,0.),xf(1,1,0.);
-   TPZAutoPointer<TPZMaterial> mat1d;
+   TPZMaterial * mat1d;
    int matindex = 1;
    TPZMaterialTest3D *mattest = new TPZMaterialTest3D(1);
    mattest->SetMaterial(xk);

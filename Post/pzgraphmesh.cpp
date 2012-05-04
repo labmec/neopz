@@ -19,7 +19,7 @@
 
 using namespace std;
 
-TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat)
+TPZGraphMesh::TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat)
 {
 	int nel,i;
 	fElementList.Resize(0);
@@ -197,11 +197,11 @@ void TPZGraphMesh::SetNames(const TPZVec<std::string>&scalarnames, const TPZVec<
 	fVecNames = vecnames;
 }
 
-TPZAutoPointer<TPZMaterial> TPZGraphMesh::Material() {
+TPZMaterial * TPZGraphMesh::Material() {
 	return fMaterial;
 }
 
-void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat){
+void TPZGraphMesh::SetCompMesh(TPZCompMesh *mesh, TPZMaterial * &mat){
 	if(fCompMesh == mesh && mat == fMaterial) return;
 	int i;
 	fCompMesh = mesh;

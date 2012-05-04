@@ -388,7 +388,7 @@ TPZCompMesh*MalhaCompPressao(TPZGeoMesh * gmesh, int pOrder)
 	int dim = 2;
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim); 
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial * mat(material);
 	
 	REAL diff = 0.1;
 	REAL conv = 0.;
@@ -410,21 +410,21 @@ TPZCompMesh*MalhaCompPressao(TPZGeoMesh * gmesh, int pOrder)
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
 	REAL pN=0.;
 	val2(0,0)=pN;
-	TPZAutoPointer<TPZMaterial> BCondNL = material->CreateBC(mat, bcBottom,neumann, val1, val2);
+	TPZMaterial * BCondNL = material->CreateBC(mat, bcBottom,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondNL);
 	
-	TPZAutoPointer<TPZMaterial> BCondNU = material->CreateBC(mat, bcTop,neumann, val1, val2);
+	TPZMaterial * BCondNU = material->CreateBC(mat, bcTop,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondNU);
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uDL=4000.;
 	val22(0,0)=uDL;
-	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcLeft,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = material->CreateBC(mat, bcLeft,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDL);
 	
 	REAL uDR=3000.;
 	val22(0,0)=uDR;
-	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
+	TPZMaterial * BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -451,7 +451,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	material = new TPZElasticityMaterial(matId, E, poisson, force[0], force[1], planestress); 
 	
 	
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial * mat(material);
 	
 	TPZCompEl::SetgOrder(pOrder);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
@@ -466,25 +466,25 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	REAL uNUy=rockrho*gravity*overburdendepth;
 	val2(1,0)=uNUy;
 	
-	TPZAutoPointer<TPZMaterial> BCondNU = material->CreateBC(mat, bcTop,neumann, val1, val2);
+	TPZMaterial * BCondNU = material->CreateBC(mat, bcTop,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondNU);
 	
 	REAL uNLy=rockrho*gravity*(overburdendepth+layerthickness);
 	val2(1,0)=uNLy;	
 	
-	TPZAutoPointer<TPZMaterial> BCondNL = material->CreateBC(mat, bcBottom,neumann, val1, val2);
+	TPZMaterial * BCondNL = material->CreateBC(mat, bcBottom,neumann, val1, val2);
 	cmesh->InsertMaterialObject(BCondNL);
 	
 	
 	TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
 	REAL uDL=0.0;
 	val22(0,0)=uDL;
-	TPZAutoPointer<TPZMaterial> BCondDL = material->CreateBC(mat, bcLeft,dirichlet, val12, val22);
+	TPZMaterial * BCondDL = material->CreateBC(mat, bcLeft,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDL);
 	
 	REAL uDR=0.0;
 	val22(0,0)=uDR;
-	TPZAutoPointer<TPZMaterial> BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
+	TPZMaterial * BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	//Ajuste da estrutura de dados computacional
@@ -530,7 +530,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
-	TPZAutoPointer<TPZMaterial> mat(mymaterial);
+	TPZMaterial * mat(mymaterial);
 	mphysics->InsertMaterialObject(mat);
 
 	///--- --- Inserir condicoes de contorno
@@ -549,7 +549,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	val2(0,0)=uNtopx;
 	val2(1,0)=uNtopy;
 	val2(2,0)=pDtop;
-	TPZAutoPointer<TPZMaterial> BCondT = mymaterial->CreateBC(mat, bcTop,neumdirich, val1, val2);
+	TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop,neumdirich, val1, val2);
 	mphysics->InsertMaterialObject(BCondT);
 	
 	///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
@@ -561,7 +561,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	val22(0,0)=uDbotx;
 	val22(1,0)=uDboty;
 	val22(2,0)=pNbot;
-	TPZAutoPointer<TPZMaterial> BCondBt = mymaterial->CreateBC(mat, bcBottom,dirichneuman, val12, val22);
+	TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom,dirichneuman, val12, val22);
 	mphysics->InsertMaterialObject(BCondBt);
 	
 	///Inserir condicao de Dirichlet de fronteira livre em y para a elasticidade e Neumann para pressao
@@ -571,7 +571,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL pNLeft=0.;
 	val23(0,0)=ufreeLx;
 	val23(2,0)=pNLeft;
-	TPZAutoPointer<TPZMaterial> BCondL = mymaterial->CreateBC(mat, bcLeft, freeby, val13, val23);
+	TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, freeby, val13, val23);
 	mphysics->InsertMaterialObject(BCondL);
 	
 	TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
@@ -579,7 +579,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL pNRight=0.;
 	val24(0,0)=ufreeRx;
 	val24(2,0)=pNRight;
-	TPZAutoPointer<TPZMaterial> BCondR = mymaterial->CreateBC(mat, bcRight, freeby, val14, val24);
+	TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, freeby, val14, val24);
 	mphysics->InsertMaterialObject(BCondR);
 	//-----------
 }

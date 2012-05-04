@@ -215,7 +215,7 @@ TPZCompMesh *CreateMeshLaxAndSod(const int L,REAL &timeStep){
 	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(3);
 	
-	TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+	TPZMaterial * mat = new TPZEulerEquation(1,1.4);
 	cmesh->InsertMaterialObject(mat);
 	TPZFMatrix<REAL> val1,val2;
 	cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));
@@ -394,7 +394,7 @@ TPZCompMesh *CreateMeshLax2D(int L, REAL &timeStep){
   TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   cmesh->SetDimModel(3);
 
-  TPZAutoPointer<TPZMaterial> mat = new TPZEulerEquation(1,1.4);
+  TPZMaterial * mat = new TPZEulerEquation(1,1.4);
   cmesh->InsertMaterialObject(mat);
   TPZFMatrix<REAL> val1,val2;
   cmesh->InsertMaterialObject(mat->CreateBC(mat,-1,TPZEulerEquation::EFreeSlip,val1,val2));

@@ -40,7 +40,7 @@ void * TPZMTAssemble::ExecuteAssembleResidualMT(void * ExtData){
 	if(!el) return NULL;
 	
 	if(data->MaterialIds){
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		if (!mat) return NULL;
 		int matid = mat->Id();
 		if (data->MaterialIds->find(matid) == data->MaterialIds->end()) return NULL;
@@ -83,7 +83,7 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix<STATE> & rhs, TPZCompMesh &mesh, int m
 			}
 			
 			if(MaterialIds){
-				TPZAutoPointer<TPZMaterial> mat = el->Material();
+				TPZMaterial * mat = el->Material();
 				if (!mat){
 					ithread--;
 					continue;

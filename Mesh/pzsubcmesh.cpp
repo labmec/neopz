@@ -96,7 +96,7 @@ int TPZSubCompMesh::main() {
 	TPZCompMesh mesh(&geo);
 	
 	// Insert the materials
-	TPZAutoPointer<TPZMaterial> meumat = new TPZMatHyperElastic(1,1.e5,0.25);
+	TPZMaterial * meumat = new TPZMatHyperElastic(1,1.e5,0.25);
 	mesh.InsertMaterialObject(meumat);
 	
 	//int numeq;
@@ -104,9 +104,9 @@ int TPZSubCompMesh::main() {
 	
 	// Insert the boundary conditions
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
-	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+	TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
 	mesh.InsertMaterialObject(bnd);
-	bnd = TPZAutoPointer<TPZMaterial>(meumat->CreateBC (meumat,-2,0,val1,val2));
+	bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
     
 	bnd->SetForcingFunction(new TPZDummyFunction<STATE>(Forcing));
 	mesh.InsertMaterialObject(bnd);
@@ -182,6 +182,7 @@ TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(
 }
 
 TPZSubCompMesh::~TPZSubCompMesh(){
+    MaterialVec().clear();
 }
 
 
@@ -280,7 +281,7 @@ int TPZSubCompMesh::Dimension() const {
 }
 
 
-//void TPZSubCompMesh::SetMaterial(TPZAutoPointer<TPZMaterial> mat){
+//void TPZSubCompMesh::SetMaterial(TPZMaterial * mat){
 //}
 
 int TPZSubCompMesh::NodeIndex(int nolocal, TPZCompMesh *super)
@@ -717,14 +718,14 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
 	}
     if(cel->Reference())
     {
-        TPZAutoPointer<TPZMaterial> matfather;
+        TPZMaterial * matfather;
         matfather = cel->Material();
         if(!matfather)
         {
             // I don't know what to do...
             DebugStop();
         }
-        TPZAutoPointer<TPZMaterial> matthis = FindMaterial(matfather->Id());
+        TPZMaterial * matthis = FindMaterial(matfather->Id());
         
         // perform a "shallow copy" of the material
         if (!matthis) {
@@ -735,7 +736,7 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
     /*
 	if(cel->Reference())
 	{
-		TPZAutoPointer<TPZMaterial> mat = cel->Material();
+		TPZMaterial * mat = cel->Material();
 		if(!mat)
 		{
             father->CopyMaterials(*this);
@@ -956,7 +957,7 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 #endif
 	//??
 	
-	TPZAutoPointer<TPZMaterial> mat = MaterialVec().begin()->second;
+	TPZMaterial * mat = MaterialVec().begin()->second;
 	int nstate = mat->NStateVariables();
 	ek.fNumStateVars = nstate;
 	ef.fNumStateVars = nstate;
@@ -1512,7 +1513,7 @@ bool TPZSubCompMesh::NeedsComputing(const std::set<int> &matids)
 	{
 		TPZCompEl *cel = ElementVec()[iel];
 		if(!cel) continue;
-		TPZAutoPointer<TPZMaterial> mat = cel->Material();
+		TPZMaterial * mat = cel->Material();
 		if(!mat)
 		{
 			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (cel);

@@ -225,7 +225,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			TPZMaterial * mat = cmesh->FindMaterial(matid);
 			if(!mat)
 			{
 				matnotfound.insert(matid);
@@ -300,7 +300,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = cmesh->FindMaterial(matid);
+			TPZMaterial * mat = cmesh->FindMaterial(matid);
 			
 			if(!mat)
 			{

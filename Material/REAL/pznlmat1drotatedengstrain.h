@@ -88,7 +88,7 @@ public:
 	/** @} */
 	
 	/** @brief To create another material of the same type */
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief Reads data of the material from a istream (file data) */
 	virtual void SetData(std::istream &data);

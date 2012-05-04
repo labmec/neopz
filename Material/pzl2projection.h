@@ -124,7 +124,7 @@ public:
 	void SetIsReferred(bool val);
 	
 	/** @brief To create another material of the same type */
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief It returns the variable index associated with the name */
 	virtual int VariableIndex(const std::string &name);

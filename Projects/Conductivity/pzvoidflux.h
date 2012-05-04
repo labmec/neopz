@@ -204,7 +204,7 @@ public:
     virtual void Read(TPZStream &buf, void *context);
 
     /// create another material of the same type
-    virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+    virtual TPZMaterial * NewMaterial();
     
     /// Read data of the material from a istream (file data)
     virtual void SetData(std::istream &data);

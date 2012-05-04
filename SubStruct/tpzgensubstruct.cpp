@@ -108,15 +108,15 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 		matp->SetInternalFlux(1.);
 		matp->SetParameters(fK[imat],0.,convdir);
 		{
-			TPZAutoPointer<TPZMaterial> mat (matp);
+			TPZMaterial * mat (matp);
 			fCMesh->InsertMaterialObject(mat);
 		}
 	}
 	
-	TPZAutoPointer<TPZMaterial> mat (fCMesh->FindMaterial(1));
+	TPZMaterial * mat (fCMesh->FindMaterial(1));
 	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
 	TPZBndCond *bc = new TPZBndCond(mat,-1,0,val1,val2);
-	TPZAutoPointer<TPZMaterial> matbc(bc);
+	TPZMaterial * matbc(bc);
 	fCMesh->InsertMaterialObject(matbc);
 	gmesh->BuildConnectivity();
 	std::cout << "Uniform refine "; std::cout.flush();

@@ -105,7 +105,7 @@ void GetSolutionGraph (int bc_id, std::ostream &arq, TPZFlowCompMesh *cmesh){
 		}
 	}
 	
-    TPZAutoPointer<TPZMaterial> mat = cmesh->MaterialVec().rbegin()->second;
+    TPZMaterial * mat = cmesh->MaterialVec().rbegin()->second;
 	int nstate = mat->NStateVariables();
 	
 	arq << "State Variables\n";
@@ -412,7 +412,7 @@ int run(std::istream & input, std::ostream & output)
 			options << inputChar << std::endl;
 			startFileName = inputChar;
 			
-			TPZAutoPointer<TPZMaterial> pmat;
+			TPZMaterial * pmat;
 			TPZEulerConsLaw * pEuler;
 			
 			startFileName += ".pzf";
@@ -426,7 +426,7 @@ int run(std::istream & input, std::ostream & output)
 			cmesh = dynamic_cast<TPZFlowCompMesh *>(sv);
 			cmesh->SetCFL(CFL);
 			pmat = cmesh->GetFlowMaterial();
-			pEuler = dynamic_cast<TPZEulerConsLaw *>(pmat.operator->());
+			pEuler = dynamic_cast<TPZEulerConsLaw *>(pmat);
 			pEuler->SetTimeDiscr
 			(Diff_TD,
 			 ConvVol_TD,

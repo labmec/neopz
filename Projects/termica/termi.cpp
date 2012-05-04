@@ -82,11 +82,11 @@ int main()
     grid.SetBC(&gmesh,3,-1);
     TPZCompMesh cmesh(&gmesh);
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
-    TPZAutoPointer<TPZMaterial> autopoiss(poiss);
+    TPZMaterial * autopoiss(poiss);
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     cmesh.InsertMaterialObject(autopoiss);
     TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
-    TPZAutoPointer<TPZMaterial> bcauto(bc);
+    TPZMaterial * bcauto(bc);
     cmesh.InsertMaterialObject(bcauto);
     cmesh.SetDefaultOrder(2);
     cmesh.AutoBuild();
@@ -508,16 +508,16 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
 
   //Ap� a cria�o do material este dever ser inserido na estrutura
   //de dados da malha computacional
-  TPZAutoPointer<TPZMaterial> meumat(meumatp);
-  TPZAutoPointer<TPZMaterial> poismat(poismatp);
-  TPZAutoPointer<TPZMaterial> elasmat(elasmatp);
+  TPZMaterial * meumat(meumatp);
+  TPZMaterial * poismat(poismatp);
+  TPZMaterial * elasmat(elasmatp);
   cmesh.InsertMaterialObject(meumat);
   cmesh.InsertMaterialObject(poismat);
   cmesh.InsertMaterialObject(elasmat);
 
 //  TPZMaterial *atual = meumat;
 //  TPZMaterial *atual = poismat;
-  TPZAutoPointer<TPZMaterial> atual = elasmat;
+  TPZMaterial * atual = elasmat;
 
   // inserir as condi�es de contorno
   // Uma condi�o de contorno pode ser dada por duas matrizes
@@ -540,7 +540,7 @@ void InicializarMaterial(TPZCompMesh &cmesh) {
   {
     val2(1,0) = -1.;
   }
-  TPZAutoPointer<TPZMaterial> bnd = atual->CreateBC (atual,-4,1,val1,val2);
+  TPZMaterial * bnd = atual->CreateBC (atual,-4,1,val1,val2);
   cmesh.InsertMaterialObject(bnd);
   if(nstate == 3)
   {

@@ -174,12 +174,12 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	Dax1n2 = axes(0,0)* fnaxes(1,0) + axes(0,1)* fnaxes(1,1) + axes(0,2)* fnaxes(1,2);
 	Dax2n1 = axes(1,0)* fnaxes(0,0) + axes(1,1)* fnaxes(0,1) + axes(1,2)* fnaxes(0,2);
 	Dax2n2 = axes(1,0)* fnaxes(1,0) + axes(1,1)* fnaxes(1,1) + axes(1,2)* fnaxes(1,2);
-	intern33 = axes(2,0)* fnaxes(2,0) + axes(2,1)* fnaxes(2,1) + axes(2,2)* fnaxes(2,2);
-	if(fabs(fabs(intern33)-1.) > 1.e-6) {
-		PZError << "third axes of the material not parallel to element axis " << intern33 << endl;
-		PZError << axes(2,0) << ' ' << axes(2,1) << ' ' << axes(2,2) << endl;
-		PZError << fnaxes(2,0) << ' ' << fnaxes(2,1) << ' ' << fnaxes(2,2) << endl;
-	}
+//	intern33 = axes(2,0)* fnaxes(2,0) + axes(2,1)* fnaxes(2,1) + axes(2,2)* fnaxes(2,2);
+//	if(fabs(fabs(intern33)-1.) > 1.e-6) {
+//		PZError << "third axes of the material not parallel to element axis " << intern33 << endl;
+//		PZError << axes(2,0) << ' ' << axes(2,1) << ' ' << axes(2,2) << endl;
+//		PZError << fnaxes(2,0) << ' ' << fnaxes(2,1) << ' ' << fnaxes(2,2) << endl;
+//	}
 	
 	TPZFMatrix<REAL> Kn1n1(fIdfMax,fIdfMax,0.),Kn2n2(fIdfMax,fIdfMax,0.),
     Kn1n2(fIdfMax,fIdfMax,0.),Kn2n1(fIdfMax,fIdfMax,0.),
@@ -264,9 +264,9 @@ void TPZMatPlaca2::ContributeBC(TPZMaterialData &data,
                                 TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
-	if(bc.Material().operator ->() != this){
-		PZError << "TPZMatPlaca2.ContributeBC warning : this material didn't create the boundary condition!\n";
-	}
+//	if(bc.Material().operator ->() != this){
+//		PZError << "TPZMatPlaca2.ContributeBC warning : this material didn't create the boundary condition!\n";
+//	}
 	
 	if(bc.Type() < 0 && bc.Type() > 2){
 		PZError << "TPZMatPlaca2.aplybc, unknown boundary condition type :"  <<
@@ -337,21 +337,21 @@ void TPZMatPlaca2::Print(std::ostream & out) {
 
 /**returns the variable index associated with the name*/
 int TPZMatPlaca2::VariableIndex(const std::string &name){
-	if(!strcmp(name.c_str(),"Deslocamentos nodais")) return 0;
+	if(!strcmp(name.c_str(),"State")) return 0;
 	if(!strcmp(name.c_str(),"Deslocx")) return 2;// Desloc. eixo x global
 	if(!strcmp(name.c_str(),"Deslocy")) return 3;// Desloc. eixo y global
 	if(!strcmp(name.c_str(),"Deslocz")) return 4;// Desloc. eixo z global
-	if(!strcmp(name.c_str(),"Mn1 Mn2 e Mn1n2"))     return 5;// Momentos nas direcoes dos eixos n1 e n2
-	if(!strcmp(name.c_str(),"Ma1 Ma2 e Ma1a2"))     return 50;// Momentos nas direcoes dos eixos a1 e a2
+	if(!strcmp(name.c_str(),"MnVec"))     return 5;// Momentos nas direcoes dos eixos n1 e n2
+	if(!strcmp(name.c_str(),"MaVec"))     return 50;// Momentos nas direcoes dos eixos a1 e a2
 	if(!strcmp(name.c_str(),"Vn1"))     return 8;// forca cortante Vn1 (positiva se antihorario)
 	if(!strcmp(name.c_str(),"Vn2"))     return 9;// forca cortante Vn2 (positiva se antihorario)
 	if(!strcmp(name.c_str(),"Sign1"))   return 10;// tens� normal na dire�o n1
 	if(!strcmp(name.c_str(),"Sign2"))   return 11;// tens� normal na dire�o n2
 	if(!strcmp(name.c_str(),"Taun1n2")) return 12;// tens� cisalhamento eixos n1 e n2
-	if(!strcmp(name.c_str(),"Na1, Na2 e Na1a2")) return 54;//Tensoes normais nas direcoes dos eixos a1,a2
+	if(!strcmp(name.c_str(),"NaVec")) return 54;//Tensoes normais nas direcoes dos eixos a1,a2
 	if(!strcmp(name.c_str(),"Taun1n3")) return 13;// tens� cisalhamento eixos n1 e n3
 	if(!strcmp(name.c_str(),"Taun2n3")) return 14;// tens� cisalhamento eixos n2 e n3
-	if(!strcmp(name.c_str(),"Translacoes na superficie de referencia (u,v,w)")) return 15;// translacoes u,v,w
+	if(!strcmp(name.c_str(),"Displacement")) return 15;// translacoes u,v,w
 	
 	
 	

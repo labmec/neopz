@@ -55,6 +55,9 @@ else()
 
 	if(BUILD_PROJECTS)
 		
+		# the auto adaptive process is working again!!!
+		add_subdirectory(adaptivity)
+		
 		#Inserting project to hp adaptive development
 		add_subdirectory(Adapt_HP_Jorge)
 
@@ -91,6 +94,8 @@ else()
 		add_subdirectory(SubStruct)
 		add_subdirectory(MultiphysicsSimulation)
 		add_subdirectory(ProblemGirkmann)
+		
+		add_subdirectory(multplaca)
 
 		#projeto Diogo 08-FEB-2012
 		#add_subdirectory(Plasticity)

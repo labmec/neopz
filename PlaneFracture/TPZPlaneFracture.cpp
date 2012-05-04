@@ -312,10 +312,10 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     REAL poisson = 0.2;
     TPZVec<REAL> force(3,0.);
 
-    TPZAutoPointer<TPZMaterial> materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
+    TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
     cmesh->InsertMaterialObject(materialLin); 
     
-    TPZAutoPointer<TPZMaterial> materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
+    TPZMaterial * materialQpoint = new TPZElasticity3D(__3DrockMat_quarterPoint, young, poisson, force);
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs    
@@ -326,14 +326,14 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     
 //    //teste 1: compressao uniforme
 //    {
-//        TPZAutoPointer<TPZMaterial> materialMixedBottom = new TPZElasticity3D(-300, young, poisson, force);
+//        TPZMaterial * materialMixedBottom = new TPZElasticity3D(-300, young, poisson, force);
 //        k(0,0) = 0.;
 //        k(1,1) = 0.;
 //        k(2,2) = 1.E12;
 //        TPZBndCond * baseDeApoio = new TPZBndCond(materialMixedBottom,__2DbottomMat, mista, k, f);
 //        cmesh->InsertMaterialObject(baseDeApoio);
 //        
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
+//        TPZMaterial * materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
 //        k(0,0) = 1.E12;
 //        k(1,1) = 1.E12;
 //        k(2,2) = 0.;
@@ -343,19 +343,19 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
 //        k(0,0) = 0.;
 //        k(1,1) = 1.E12;
 //        k(2,2) = 0.;
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
+//        TPZMaterial * materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
 //        TPZBndCond * pontoDeApoio2 = new TPZBndCond(materialMixedPoint2,__aux0DEl_Mat2, mista, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio2);
 //
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint3 = new TPZElasticity3D(-303, young, poisson, force);
+//        TPZMaterial * materialMixedPoint3 = new TPZElasticity3D(-303, young, poisson, force);
 //        TPZBndCond * pontoDeApoio3 = new TPZBndCond(materialMixedPoint3,__aux0DEl_Mat3, mista, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio3);
 //
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint4 = new TPZElasticity3D(-304, young, poisson, force);
+//        TPZMaterial * materialMixedPoint4 = new TPZElasticity3D(-304, young, poisson, force);
 //        TPZBndCond * pontoDeApoio4 = new TPZBndCond(materialMixedPoint4,__aux0DEl_Mat4, mista, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio4);
 //        
-//        TPZAutoPointer<TPZMaterial> materialNewman = new TPZElasticity3D(-400, young, poisson, force);
+//        TPZMaterial * materialNewman = new TPZElasticity3D(-400, young, poisson, force);
 //        f(0,0) = 0.;
 //        f(1,0) = 0.;//Pressao constante e unitaria na direcao Y>0
 //        f(2,0) = -pressureY;
@@ -368,28 +368,28 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
 //        f(0,0) = 0.;
 //        f(1,0) = 0.;
 //        f(2,0) = 0.;
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
+//        TPZMaterial * materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
 //        TPZBndCond * pontoDeApoio1 = new TPZBndCond(materialMixedPoint1,__aux0DEl_Mat1, dirichlet, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio1);
 //
 //        f(0,0) = -329.8672286269283;
 //        f(1,0) = 0.;
 //        f(2,0) = 0.;
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
+//        TPZMaterial * materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
 //        TPZBndCond * pontoDeApoio2 = new TPZBndCond(materialMixedPoint2,__aux0DEl_Mat2, dirichlet, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio2);
 //
 //        f(0,0) = 0.;
 //        f(1,0) = 0.;
 //        f(2,0) = -329.8672286269283;
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint3 = new TPZElasticity3D(-303, young, poisson, force);
+//        TPZMaterial * materialMixedPoint3 = new TPZElasticity3D(-303, young, poisson, force);
 //        TPZBndCond * pontoDeApoio3 = new TPZBndCond(materialMixedPoint3,__aux0DEl_Mat3, dirichlet, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio3);
 //
 //        f(0,0) = -329.8672286269283;
 //        f(1,0) = 0.;
 //        f(2,0) = -329.86722862692837;
-//        TPZAutoPointer<TPZMaterial> materialMixedPoint4 = new TPZElasticity3D(-304, young, poisson, force);
+//        TPZMaterial * materialMixedPoint4 = new TPZElasticity3D(-304, young, poisson, force);
 //        TPZBndCond * pontoDeApoio4 = new TPZBndCond(materialMixedPoint4,__aux0DEl_Mat4, dirichlet, k, f);
 //        cmesh->InsertMaterialObject(pontoDeApoio4);
 //    }
@@ -400,26 +400,26 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
         f(1,0) = 0.;
         f(2,0) = 0.;
 
-        TPZAutoPointer<TPZMaterial> materialDirichOut = new TPZElasticity3D(-300, young, poisson, force);
+        TPZMaterial * materialDirichOut = new TPZElasticity3D(-300, young, poisson, force);
         TPZBndCond * dirichetOutside = new TPZBndCond(materialDirichOut,__2DfractureMat_outside, dirichlet, k, f);
         cmesh->InsertMaterialObject(dirichetOutside);
         //
-        TPZAutoPointer<TPZMaterial> materialDirichTop = new TPZElasticity3D(-301, young, poisson, force);
+        TPZMaterial * materialDirichTop = new TPZElasticity3D(-301, young, poisson, force);
         TPZBndCond * dirichetTop = new TPZBndCond(materialDirichTop,__2DtopMat, dirichlet, k, f);
         cmesh->InsertMaterialObject(dirichetTop);
 
-        TPZAutoPointer<TPZMaterial> materialDirichBottom = new TPZElasticity3D(-302, young, poisson, force);
+        TPZMaterial * materialDirichBottom = new TPZElasticity3D(-302, young, poisson, force);
         TPZBndCond * dirichetBottom = new TPZBndCond(materialDirichBottom,__2DbottomMat, dirichlet, k, f);
         cmesh->InsertMaterialObject(dirichetBottom);
 
-        TPZAutoPointer<TPZMaterial> materialDirichFarField = new TPZElasticity3D(-303, young, poisson, force);
+        TPZMaterial * materialDirichFarField = new TPZElasticity3D(-303, young, poisson, force);
         TPZBndCond * dirichetFarfield = new TPZBndCond(materialDirichFarField,__2DfarfieldMat, dirichlet, k, f);
         cmesh->InsertMaterialObject(dirichetFarfield);    
         //
         //
         //
         //
-        TPZAutoPointer<TPZMaterial> materialNewman = new TPZElasticity3D(-400, young, poisson, force);
+        TPZMaterial * materialNewman = new TPZElasticity3D(-400, young, poisson, force);
         f(0,0) = 0.;
         f(1,0) = pressureY;//Pressao constante e unitaria na direcao Y>0
         f(2,0) = 0.;

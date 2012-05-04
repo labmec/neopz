@@ -160,12 +160,33 @@ public:
 			}
 		}
 	}
+    
 	template<class T>
 	static void WriteObjectPointers(TPZStream &buf, std::map<int, TPZAutoPointer<T> > &vec)
 	{
 		int nc = vec.size(),one = -1;
 		buf.Write(&nc,1);
 		typedef typename std::map<int, TPZAutoPointer<T> >::iterator vecit_type;
+		vecit_type vecit;
+		for(vecit=vec.begin(); vecit!= vec.end(); vecit++)
+		{
+			int id = vecit->first;
+			buf.Write(&id,1);
+			if(vecit->second)
+			{
+				vecit->second->Write(buf,1);
+			} else {
+				buf.Write(&one,1);
+			}
+		}
+	}
+	
+	template<class T>
+	static void WriteObjectPointers(TPZStream &buf, std::map<int, T* > &vec)
+	{
+		int nc = vec.size(),one = -1;
+		buf.Write(&nc,1);
+		typedef typename std::map<int, T* >::iterator vecit_type;
 		vecit_type vecit;
 		for(vecit=vec.begin(); vecit!= vec.end(); vecit++)
 		{
@@ -413,6 +434,19 @@ public:
 			int id;
 			buf.Read(&id,1);
 			vec[id] = TPZAutoPointer<T>(dynamic_cast<T *>(Restore(buf,context)));
+		}
+	}
+	
+	template<class T>
+    static void ReadObjectPointers(TPZStream &buf, std::map<int, T* > &vec, void *context)
+	{
+		int c,nc;
+		buf.Read(&nc,1);
+		for(c=0; c<nc; c++)
+		{
+			int id;
+			buf.Read(&id,1);
+			vec[id] = (dynamic_cast<T *>(Restore(buf,context)));
 		}
 	}
 	

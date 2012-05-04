@@ -37,7 +37,7 @@ protected:
 	/** @brief second value of boundary condition */
 	TPZFMatrix<STATE> fBCVal2;
 	/** @brief pointer to material which created bc */
-	TPZAutoPointer<TPZMaterial> fMaterial;
+	TPZMaterial * fMaterial;
 	
 	/** @brief Function to allow fBCVal1 to be variable */
 	void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType);
@@ -56,7 +56,7 @@ protected:
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
-	TPZBndCond(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
+	TPZBndCond(TPZMaterial * &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
     TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
@@ -68,7 +68,7 @@ protected:
 		
 	}
 	
-	TPZBndCond(TPZBndCond &copy, TPZAutoPointer<TPZMaterial> ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
+	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
 	
@@ -76,7 +76,7 @@ protected:
 		fValFunction = fp;
 	}
 	
-	void SetMaterial(TPZAutoPointer<TPZMaterial> mat) { fMaterial = mat;}
+	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
 	
 	/** @brief Returns the integrable dimension of the material*/
 	int Dimension() { return fMaterial->Dimension(); }
@@ -96,7 +96,7 @@ protected:
 	
 	TPZFMatrix<STATE> &Val2() { return fBCVal2; }
 	
-	TPZAutoPointer<TPZMaterial> Material() { return fMaterial; }
+	TPZMaterial * Material() { return fMaterial; }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
@@ -199,7 +199,7 @@ protected:
 		val.Fill(0.);
 	}
 	
-	virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
+	virtual void Clone(std::map<int, TPZMaterial * > &matvec);
 	
 	/** 
 	 * @brief Compute interface jumps

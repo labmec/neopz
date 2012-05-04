@@ -155,7 +155,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
 #endif
 	}
 	
-	TPZAutoPointer<TPZMaterial> material = TBASE::Material();
+	TPZMaterial * material = TBASE::Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		return;
@@ -179,7 +179,7 @@ inline void TPZCompElWithMem<TBASE>::PrepareIntPtIndices() {
 template <class TBASE>
 inline void TPZCompElWithMem<TBASE>::SetFreeIntPtIndices() {
 	
-	TPZAutoPointer<TPZMaterial> material = TBASE::Material();
+	TPZMaterial * material = TBASE::Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		return;
@@ -199,7 +199,7 @@ template <class TBASE>
 void TPZCompElWithMem<TBASE>::CopyIntPtIndicesFrom(const TPZCompElWithMem<TBASE> & copy)
 {
 	
-	TPZAutoPointer<TPZMaterial> material = TBASE::Material();
+	TPZMaterial * material = TBASE::Material();
   	if(!material){
     	PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
     	return;

@@ -277,7 +277,7 @@ int mainTestes(int argc, char * const argv[])
     REAL poisson = 0.;
     TPZVec<REAL> force(3,0.);
     
-    TPZAutoPointer<TPZMaterial> materialQpoint = new TPZElasticity3D(1, young, poisson, force);
+    TPZMaterial * materialQpoint = new TPZElasticity3D(1, young, poisson, force);
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs    
@@ -289,14 +289,14 @@ int mainTestes(int argc, char * const argv[])
         f(0,0) = 0.;
         f(1,0) = 0.;
         f(2,0) = 0.;
-        TPZAutoPointer<TPZMaterial> materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
+        TPZMaterial * materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
         TPZBndCond * pontoDeApoio1 = new TPZBndCond(materialMixedPoint1,-1, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio1);
         
         f(0,0) = 0.;
         f(1,0) = 0.;
         f(2,0) = 1.;
-        TPZAutoPointer<TPZMaterial> materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
+        TPZMaterial * materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
         TPZBndCond * pontoDeApoio2 = new TPZBndCond(materialMixedPoint2,-2, dirichlet, k, f);
         cmesh->InsertMaterialObject(pontoDeApoio2);
     }

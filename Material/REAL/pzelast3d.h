@@ -216,7 +216,7 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 	virtual int ClassId() const;
 	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticity3D(*this);}
+	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
 	
 	static REAL gTolerance;
 	

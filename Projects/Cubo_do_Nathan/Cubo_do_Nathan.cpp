@@ -318,12 +318,12 @@ int main()
 #endif
 	
 	
-	std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(cmesh->MaterialVec());
-	std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator it;
+	std::map<int ,TPZMaterial * > materialmap(cmesh->MaterialVec());
+	std::map<int ,TPZMaterial * >::iterator it;
 	for (it = materialmap.begin(); it != materialmap.end() ; it++) 
 	{
-		TPZAutoPointer<TPZMaterial> mat = it->second;
-		TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat.operator->());
+		TPZMaterial * mat = it->second;
+		TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
 		if(vmat)
 		{
 			vmat->SetUpdateMem();
@@ -430,20 +430,20 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
 	int index = viscoelast->PushMemItem(); //elast
-	TPZAutoPointer<TPZMaterial> viscoelastauto(viscoelast);
+	TPZMaterial * viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
 	
 	// Neumann em x = 1;
 	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
 	val2(0,0) = 1.;
 	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto4(bc4);
+	TPZMaterial * bcauto4(bc4);
 	mesh->InsertMaterialObject(bcauto4);
 	
 	// Neumann em x = -1;
 	val2(0,0) = -1.;
 	TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto5(bc5);
+	TPZMaterial * bcauto5(bc5);
 	mesh->InsertMaterialObject(bcauto5);
 	
 	val2.Zero();
@@ -452,7 +452,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 1e-12;
 	val1(2,2) = 1e-12;
 	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto1(bc1);
+	TPZMaterial * bcauto1(bc1);
 	mesh->InsertMaterialObject(bcauto1);
 	
 	// Dirichlet em 1 -1 -1 yz;
@@ -460,7 +460,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 1e-12;
 	val1(2,2) = 1e-12;
 	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto2(bc2);
+	TPZMaterial * bcauto2(bc2);
 	mesh->InsertMaterialObject(bcauto2);
 	
 	// Dirichlet em 1 1 -1 z;
@@ -468,7 +468,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	val1(1,1) = 0.;
 	val1(2,2) = 1e-12;
 	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
-	TPZAutoPointer<TPZMaterial> bcauto3(bc3);
+	TPZMaterial * bcauto3(bc3);
 	mesh->InsertMaterialObject(bcauto3);
 	
 }
@@ -779,11 +779,11 @@ void Teste()
 #endif
 	
 	/*
-	 std::map<int ,TPZAutoPointer<TPZMaterial> > materialmap(cmesh->MaterialVec());
-	 std::map<int ,TPZAutoPointer<TPZMaterial> >::iterator it;
+	 std::map<int ,TPZMaterial * > materialmap(cmesh->MaterialVec());
+	 std::map<int ,TPZMaterial * >::iterator it;
 	 for (it = materialmap.begin(); it != materialmap.end() ; it++) 
 	 {
-	 TPZAutoPointer<TPZMaterial> mat = it->second;
+	 TPZMaterial * mat = it->second;
 	 TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat.operator->());
 	 if(vmat)
 	 {

@@ -281,7 +281,7 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	
 	// Criar e inserir os materiais na malha
 	TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
-	TPZAutoPointer<TPZMaterial> automat(mat);
+	TPZMaterial * automat(mat);
 	comp->InsertMaterialObject(automat);
 	
 	
@@ -350,7 +350,7 @@ int SubStructure(TPZCompMesh *cmesh, int materialid)
 	{
 		TPZCompEl *cel = cmesh->ElementVec()[iel];
 		if(!cel || cel == submesh) continue;
-		TPZAutoPointer<TPZMaterial> celmat = cel->Material();
+		TPZMaterial * celmat = cel->Material();
 		if(!celmat) continue;
 		int matid = celmat->Id();
 		if(matid == materialid)

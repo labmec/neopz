@@ -34,7 +34,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		if(!pElComp)
 			continue;
 		
-		TPZAutoPointer<TPZMaterial> mat = pElComp->Material();
+		TPZMaterial * mat = pElComp->Material();
 		if(!mat)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh ERROR: null material.\n";
 		
 		TPZGeoEl *pElGeo = pElComp->Reference();
@@ -46,7 +46,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 		if(elDim == dim /*&& pElDisc*/){ // if the dimension of the material fits the
 			// dimension of the element and if the element is discontinuous.
 			
-			TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator ->());
+			TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
 			if(!law)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh2 ERROR: non-fluid material.\n";
 			// number of state variables for this material.
 			nstate = law->NStateVariables();
@@ -84,13 +84,13 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 
 void TPZFlowCompMesh::CollectFluidMaterials()
 {
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	
 	// buffering the fluid materials
 	for(matit = fMaterialVec.begin(); matit != fMaterialVec.end(); matit++)
 	{
 		TPZConservationLaw * pConsLaw;
-		pConsLaw = dynamic_cast<TPZConservationLaw *>(matit->second.operator->());
+		pConsLaw = dynamic_cast<TPZConservationLaw *>(matit->second);
 		if(pConsLaw)
 		{
 			int index =  pConsLaw->Id();
@@ -124,7 +124,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
 		{
 			porder = intel->PreferredSideOrder(intel->Reference()->NSides()-1);
 		}
-		TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>( cel->Material().operator ->());
+		TPZConservationLaw *mat = dynamic_cast<TPZConservationLaw *>( cel->Material());
 		if(!mat) continue;
 		meanTimeStep += mat->SetTimeStep(maxVel, deltax, porder);
 		numcontr++;
@@ -137,7 +137,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
  * @ingroup material
  * @brief Function for dynamic cast of the material based on map A (second data)
  */
-#define FL(A) dynamic_cast<TPZConservationLaw *>(A->second.operator->())
+#define FL(A) dynamic_cast<TPZConservationLaw *>(A->second)
 
 /**
  * @ingroup material
@@ -148,7 +148,7 @@ REAL TPZFlowCompMesh::ComputeTimeStep()
 void TPZFlowCompMesh::SetCFL(REAL CFL)
 {
     if(CFL > MAXCFL) CFL = MAXCFL;
-    std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+    std::map<int, TPZMaterial * >::iterator matit;
     for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
     {
 		FL(matit)->SetCFL(CFL);
@@ -157,7 +157,7 @@ void TPZFlowCompMesh::SetCFL(REAL CFL)
 
 void TPZFlowCompMesh::ScaleCFL(REAL scale)
 {
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
 	{
 		REAL newCFL = FL(matit)->CFL()*scale;
@@ -170,7 +170,7 @@ void TPZFlowCompMesh::ScaleCFL(REAL scale)
 
 void TPZFlowCompMesh::SetContributionTime(TPZContributeTime time)
 {
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
 	{
 		FL(matit)->SetContributionTime(time);
@@ -179,7 +179,7 @@ void TPZFlowCompMesh::SetContributionTime(TPZContributeTime time)
 
 void TPZFlowCompMesh::SetFlowforcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
 {
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
 	{
 		FL(matit)->SetForcingFunction(fp);
@@ -199,9 +199,9 @@ int TPZFlowCompMesh::NFlowMaterials()
 }
 
 /** Returns the first flow material in the mesh */
-TPZAutoPointer<TPZMaterial> TPZFlowCompMesh::GetFlowMaterial()
+TPZMaterial * TPZFlowCompMesh::GetFlowMaterial()
 {
-	TPZAutoPointer<TPZMaterial> result;
+	TPZMaterial * result;
 	if(fFluidMaterial.size())
 	{
 		return fFluidMaterial.begin()->second;
@@ -213,7 +213,7 @@ TPZAutoPointer<TPZMaterial> TPZFlowCompMesh::GetFlowMaterial()
 
 void TPZFlowCompMesh::SetResidualType(TPZResidualType type)
 {
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit=fFluidMaterial.begin(); matit!=fFluidMaterial.end(); matit++)
 	{
 		FL(matit)->SetResidualType(type);

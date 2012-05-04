@@ -59,7 +59,7 @@ public:
 	~TPZMulticamadaOrthotropic(){}
 	
 	/** @brief Adds shells */
-	void AddPlacaOrtho(TPZAutoPointer<TPZMaterial> material, REAL height);
+	void AddPlacaOrtho(TPZMaterial * material, REAL height);
 	/** @brief Creates a computational mesh to all the shells */
 	void GenerateMesh();
 

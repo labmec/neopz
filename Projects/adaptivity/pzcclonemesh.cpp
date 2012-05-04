@@ -46,7 +46,7 @@ static int zero = 0;
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects(){
     fCloneReference = cmesh;
     //Cria um clone do vetor de materiais da malha mesh
-    std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator it;
+    std::map<int, TPZMaterial * >::const_iterator it;
     for(it=cmesh->MaterialVec().begin(); it != cmesh->MaterialVec().end() ; it++) {
         //    mat->Print();
         it->second->Clone(MaterialVec());
@@ -355,7 +355,7 @@ void TPZCompCloneMesh::AutoBuild() {
 
 void TPZCompCloneMesh::CreateCloneBC(){
     int i,j;//elementos e lados de elementos
-    TPZAutoPointer<TPZMaterial> mat = MaterialVec().rbegin()->second;
+    TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
     int dim = mat->Dimension();
     TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
@@ -706,7 +706,7 @@ void TPZCompCloneMesh::MeshError(TPZCompMesh *fine,
     
     Reference()->ResetReference();
     LoadReferences();
-    TPZAutoPointer<TPZMaterial> mat = fine->MaterialVec().rbegin()->second;
+    TPZMaterial * mat = fine->MaterialVec().rbegin()->second;
     int dim = mat->Dimension();
     TPZCompEl *cel;
     TPZAdmChunkVector<TPZCompEl *> &elementvec = fine->ElementVec();
@@ -1038,7 +1038,7 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
     //  LoadReferences();
     fine->LoadReferences();
     
-    TPZAutoPointer<TPZMaterial> mat = MaterialVec().rbegin()->second;
+    TPZMaterial * mat = MaterialVec().rbegin()->second;
     int nstate = mat->NStateVariables();
     TPZOneDRef fn (nstate);
     
@@ -1527,7 +1527,7 @@ void TPZCompCloneMesh::Print (ostream & out) {
         out << "\tReference Id = " << el->Reference()->Id() << endl;
     }
     out << "\n\tMaterial Information:\n\n";
-    std::map<int, TPZAutoPointer<TPZMaterial> >::const_iterator it;
+    std::map<int, TPZMaterial * >::const_iterator it;
     for (it=MaterialVec().begin(); it!=MaterialVec().end(); it++) {
         it->second->Print(out);
     }

@@ -47,7 +47,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	{
 	}
 	
-	TPZAutoPointer<TPZMaterial> NewMaterial()
+	TPZMaterial * NewMaterial()
 	{
 		return new TPZEulerConsLaw(*this);
 	}

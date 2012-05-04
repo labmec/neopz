@@ -72,7 +72,7 @@ public:
 		fXf2 = flux2;
 	}
 
-	//virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
+	//virtual TPZMaterial * NewMaterial(){
 //		return new TwoUncoupledPoisson(*this);
 //	}
 	

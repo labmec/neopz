@@ -33,7 +33,7 @@ private:
     
     ~TPZBCTension(){}
 	
-	TPZBCTension(TPZAutoPointer<TPZMaterial> &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
+	TPZBCTension(TPZMaterial * &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 	
 	virtual int NFluxes(){ return Material()->NFluxes(); }
 	

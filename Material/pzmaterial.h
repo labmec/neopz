@@ -150,7 +150,7 @@ public:
                       TPZVec<STATE> &flux) {}
     
     /** @brief Creates an object TPZBndCond derived of TPZMaterial*/
-    virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &reference, int id, int typ, TPZFMatrix<STATE> &val1,
+    virtual TPZBndCond *CreateBC(TPZMaterial * &reference, int id, int typ, TPZFMatrix<STATE> &val1,
                                  TPZFMatrix<STATE> &val2);
     
     /** @name Contribute methods
@@ -270,13 +270,13 @@ public:
     virtual int NEvalErrors() {return 3;}
     
     /** @brief To create another material of the same type*/
-    virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+    virtual TPZMaterial * NewMaterial();
     
     /** @brief Reads data of the material from a istream (file data)*/
     virtual void SetData(std::istream &data);
     
     /** @brief Creates a copy of the material object and put it in the vector which is passed on */
-    virtual void Clone(std::map<int, TPZAutoPointer<TPZMaterial> > &matvec);
+    virtual void Clone(std::map<int, TPZMaterial * > &matvec);
     
     /** @brief To return a numerical flux type to apply over the interfaces of the elements */
     virtual int FluxType() { return 2; }

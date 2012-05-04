@@ -441,17 +441,17 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 	if (temp==true) fz_anel=0.;
 	//REAL fz = 0.; //so no caso de cond contorno hidrostatica
 	
-	TPZAutoPointer<TPZMaterial> matCasca = new TPZElasticityAxiMaterial(mat1Id, fyoung, fpoisson, fr, fz_casca);
-	TPZAutoPointer<TPZMaterial> matAnel = new TPZElasticityAxiMaterial(mat2Id, fyoung, fpoisson, fr, fz_anel);
-	TPZAutoPointer<TPZMaterial> matInterface = new TPZElasticityAxiMaterial(mat3Id, fyoung, fpoisson, fr, fz_casca);
+	TPZMaterial * matCasca = new TPZElasticityAxiMaterial(mat1Id, fyoung, fpoisson, fr, fz_casca);
+	TPZMaterial * matAnel = new TPZElasticityAxiMaterial(mat2Id, fyoung, fpoisson, fr, fz_anel);
+	TPZMaterial * matInterface = new TPZElasticityAxiMaterial(mat3Id, fyoung, fpoisson, fr, fz_casca);
 	
 	TPZManVector<REAL> Orig(3);		Orig[0]  = 0.;		Orig[1]  = 0.;		Orig[2]  = 0.;
 	TPZManVector<REAL> AxisR(3);		AxisR[0] = 1.;	AxisR[1] = 0.;	AxisR[2] = 0.;
 	TPZManVector<REAL> AxisZ(3);		AxisZ[0] = 0.;	AxisZ[1] = 1.;	AxisZ[2] = 0.;
 	
-	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(matCasca.operator->());
-	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(matAnel.operator->());
-	TPZElasticityAxiMaterial * aximat3 = dynamic_cast<TPZElasticityAxiMaterial*>(matInterface.operator->());
+	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(matCasca);
+	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(matAnel);
+	TPZElasticityAxiMaterial * aximat3 = dynamic_cast<TPZElasticityAxiMaterial*>(matInterface);
 	
 	aximat1->SetOrigin(Orig, AxisZ, AxisR);
 	aximat2->SetOrigin(Orig, AxisZ, AxisR);
@@ -473,22 +473,22 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//Inserir Mola em um ponto da base do anel 
 		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		k1(1,1) = 1.e-3;
-		TPZAutoPointer<TPZMaterial> ContBC = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
+		TPZMaterial * ContBC = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
 		cmesh->InsertMaterialObject(ContBC);
 		
 		k2(0,0) = 1.;
-		TPZAutoPointer<TPZMaterial> ContBC2 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
+		TPZMaterial * ContBC2 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
 		//cmesh->InsertMaterialObject(ContBC2);
 		
 		//Reacao de apoio no anel
 		TPZFMatrix<REAL> Reac1(2,2,0.), Reac2(2,1,0.);
 		Reac2(1,0) = FDistribuidaBase; 
-		TPZAutoPointer<TPZMaterial> Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
+		TPZMaterial * Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
 		cmesh->InsertMaterialObject(Cont);
 		
 		//Calcular momento e cortante
 		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
-		TPZAutoPointer<TPZMaterial> ContBC1 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
+		TPZMaterial * ContBC1 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		cmesh->InsertMaterialObject(ContBC1);
 		
 		
@@ -498,33 +498,33 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		//		REAL peso = 100.;
 		//				
 		//		val2(0,0) = -peso;
-		//		TPZAutoPointer<TPZMaterial> CondBc1 = matCasca->CreateBC(matCasca, mat1ArcGeoDois, hidrost, val1,val2);
+		//		TPZMaterial * CondBc1 = matCasca->CreateBC(matCasca, mat1ArcGeoDois, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc1);
 		//		
-		//		TPZAutoPointer<TPZMaterial> CondBc2 = matCasca->CreateBC(matCasca, mat1EngBC, hidrost, val1,val2);
+		//		TPZMaterial * CondBc2 = matCasca->CreateBC(matCasca, mat1EngBC, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc2);
 		//		
 		//		val2(0,0) = peso; 
-		//		TPZAutoPointer<TPZMaterial> CondBc3 = matCasca->CreateBC(matCasca, mat1ArcGeoUm, hidrost, val1,val2);
+		//		TPZMaterial * CondBc3 = matCasca->CreateBC(matCasca, mat1ArcGeoUm, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc3);
 		//		
-		//		TPZAutoPointer<TPZMaterial> CondBc4 = matAnel->CreateBC(matAnel, mat2BaseBC, hidrost, val1,val2);
+		//		TPZMaterial * CondBc4 = matAnel->CreateBC(matAnel, mat2BaseBC, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc4);
 		//		
-		//		TPZAutoPointer<TPZMaterial> CondBc5 = matAnel->CreateBC(matAnel, mat2BaseBCDois, hidrost, val1,val2);
+		//		TPZMaterial * CondBc5 = matAnel->CreateBC(matAnel, mat2BaseBCDois, hidrost, val1,val2);
 		//		cmesh->InsertMaterialObject(CondBc5);
 		//		
 		//		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		//		k1(1,1) = 1.;
-		//		TPZAutoPointer<TPZMaterial> ContBC6 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
+		//		TPZMaterial * ContBC6 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
 		//		cmesh->InsertMaterialObject(ContBC6);
 		//		
 		//		k2(0,0) = 1.;
-		//		TPZAutoPointer<TPZMaterial> ContBC7 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
+		//		TPZMaterial * ContBC7 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
 		//		cmesh->InsertMaterialObject(ContBC7);
 		//		
 		//		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
-		//		TPZAutoPointer<TPZMaterial> ContBC = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
+		//		TPZMaterial * ContBC = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		//		cmesh->InsertMaterialObject(ContBC);
 		//-------------------------------------------------------------------------------
 	}
@@ -555,17 +555,17 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 	bool temp = fAnelComPesoLeve;
 	if (temp==true) fz_anel=0.;
 	
-	TPZAutoPointer<TPZMaterial> matCasca = new TPZElasticityAxiMaterial(mat1Id, fyoung, fpoisson, fr, fz_casca, simetric, penalidade);
-	TPZAutoPointer<TPZMaterial> matInterface = new TPZElasticityAxiMaterial(mat3Id, fyoung, fpoisson, fr,  fz_casca, simetric, penalidade);
-	TPZAutoPointer<TPZMaterial> matAnel = new TPZElasticityAxiMaterial(mat2Id, fyoung, fpoisson, fr, fz_anel, simetric, penalidade);
+	TPZMaterial * matCasca = new TPZElasticityAxiMaterial(mat1Id, fyoung, fpoisson, fr, fz_casca, simetric, penalidade);
+	TPZMaterial * matInterface = new TPZElasticityAxiMaterial(mat3Id, fyoung, fpoisson, fr,  fz_casca, simetric, penalidade);
+	TPZMaterial * matAnel = new TPZElasticityAxiMaterial(mat2Id, fyoung, fpoisson, fr, fz_anel, simetric, penalidade);
 	
 	TPZManVector<REAL> Orig(3);		Orig[0]  = 0.;		Orig[1]  = 0.;		Orig[2]  = 0.;
 	TPZManVector<REAL> AxisR(3);		AxisR[0] = 1.;	AxisR[1] = 0.;	AxisR[2] = 0.;
 	TPZManVector<REAL> AxisZ(3);		AxisZ[0] = 0.;	AxisZ[1] = 1.;	AxisZ[2] = 0.;
 	
-	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(matCasca.operator->());
-	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(matAnel.operator->());
-	TPZElasticityAxiMaterial * aximat3 = dynamic_cast<TPZElasticityAxiMaterial*>(matInterface.operator->());
+	TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(matCasca);
+	TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(matAnel);
+	TPZElasticityAxiMaterial * aximat3 = dynamic_cast<TPZElasticityAxiMaterial*>(matInterface);
 	
 	aximat1->SetOrigin(Orig, AxisZ, AxisR);
 	aximat2->SetOrigin(Orig, AxisZ, AxisR);
@@ -585,22 +585,22 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		TPZFMatrix<REAL> k1(2,2,0.), k2(2,2,0.), f(2,1,0.);
 		k1(1,1) = 1.e-3;
 		
-		TPZAutoPointer<TPZMaterial> BCPoint7 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
+		TPZMaterial * BCPoint7 = matAnel->CreateBC(matAnel, mat2BaseBCPoint, mista, k1, f);
 		cmesh->InsertMaterialObject(BCPoint7);
 		
 		k2(0,0) = 1.;
-		TPZAutoPointer<TPZMaterial> ContBC3 = matCasca->CreateBC(matCasca, mat1EngPoint1, mista, k2, f);
+		TPZMaterial * ContBC3 = matCasca->CreateBC(matCasca, mat1EngPoint1, mista, k2, f);
 		//cmesh->InsertMaterialObject(ContBC3);
 		
 		//Reacao de apoio no anel
 		TPZFMatrix<REAL> Reac1(2,2,0.), Reac2(2,1,0.);
 		Reac2(1,0) = FDistribuidaBase; 
-		TPZAutoPointer<TPZMaterial> Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
+		TPZMaterial * Cont = matAnel->CreateBC(matAnel, mat2BaseBC, neumann, Reac1, Reac2);
 		cmesh->InsertMaterialObject(Cont);
 		
 		//Calcular momento e cortante
 		TPZFMatrix<REAL> Reac12(2,2,0.), Reac22(2,1,0.);
-		TPZAutoPointer<TPZMaterial> ContBC2 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
+		TPZMaterial * ContBC2 = matAnel->CreateBC(matAnel, matRefDir1, neumann, Reac12, Reac22);
 		cmesh->InsertMaterialObject(ContBC2);
 		
 	}
@@ -717,8 +717,8 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	 REAL resnorm = Norm(residual);
 	 std::cout << "residual norm " << resnorm << std::endl;
 	 */	
-	TPZAutoPointer<TPZMaterial> mat1 = fCmesh->FindMaterial(mat1Id);
-	TPZAutoPointer<TPZMaterial> mat2 = fCmesh->FindMaterial(mat2Id);
+	TPZMaterial * mat1 = fCmesh->FindMaterial(mat1Id);
+	TPZMaterial * mat2 = fCmesh->FindMaterial(mat2Id);
 	//TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
 	//TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
 	

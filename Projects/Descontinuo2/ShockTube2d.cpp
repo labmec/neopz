@@ -174,7 +174,7 @@ TPZFlowCompMesh * STCompMesh(TPZFlowCompMesh *cmesh, REAL CFL, REAL delta,
    matp->SetCFL(CFL);
    matp->SetDelta(delta);
 
-   TPZAutoPointer<TPZMaterial> mat(matp);
+   TPZMaterial * mat(matp);
 
    cmesh -> InsertMaterialObject(mat);
 

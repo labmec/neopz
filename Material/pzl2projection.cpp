@@ -34,7 +34,7 @@ void TPZL2Projection::SetIsReferred(bool val){
 	this->fIsReferred = val;
 }
 
-TPZAutoPointer<TPZMaterial> TPZL2Projection::NewMaterial(){
+TPZMaterial * TPZL2Projection::NewMaterial(){
 	return new TPZL2Projection(*this);
 }
 

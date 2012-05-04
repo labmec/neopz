@@ -69,7 +69,7 @@ public:
 	virtual void AutoBuild();
 	
 	/** @brief Returns the first flow material in the mesh */
-	TPZAutoPointer<TPZMaterial> GetFlowMaterial();
+	TPZMaterial * GetFlowMaterial();
 	
 	/** @brief Returns the number of Flow materials. */
 	int NFlowMaterials();
@@ -89,7 +89,7 @@ protected:
 	
 	/** @brief This vector of pointers represent the collection of all fluid materials in the mesh. */
 	/** These are the materials that deserve special attention during the contribution processes. */
-	std::map<int, TPZAutoPointer< TPZMaterial> > fFluidMaterial;
+	std::map<int, TPZMaterial* > fFluidMaterial;
 };
 
 #endif

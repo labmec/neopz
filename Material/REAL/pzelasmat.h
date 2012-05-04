@@ -36,7 +36,7 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	TPZElasticityMaterial(const TPZElasticityMaterial &copy);
 	
 	/** @brief Creates a new material from the current object   ??*/
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial() { return new TPZElasticityMaterial(*this);}
+	virtual TPZMaterial * NewMaterial() { return new TPZElasticityMaterial(*this);}
 	
 	/** @brief Default destructor */
 	virtual ~TPZElasticityMaterial();

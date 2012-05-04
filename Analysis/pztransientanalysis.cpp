@@ -159,11 +159,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::RunTransient(std::ostream &out, bool 
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetImplicit(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetImplicit();
 		}
@@ -173,11 +173,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetImplicit(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetExplicit(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetExplicit();
 		}
@@ -187,11 +187,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetExplicit(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetLastState(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetLastState();
 		}
@@ -201,11 +201,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetLastState(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetCurrentState(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetCurrentState();
 		}
@@ -215,11 +215,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetCurrentState(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetMassMatrix(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetMassMatrix();
 		}
@@ -229,11 +229,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetMassMatrix(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetFluxOnly(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetFluxOnly();
 		}
@@ -243,11 +243,11 @@ void TPZTransientAnalysis<TRANSIENTCLASS>::SetFluxOnly(){
 template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::SetAllMaterialsDeltaT(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
-		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second.operator->());
+		TPZTransientMaterial< TRANSIENTCLASS > * trans = dynamic_cast<TPZTransientMaterial< TRANSIENTCLASS > *>(matit->second);
 		if (trans){
 			trans->SetTimeStep(this->TimeStep());
 		}

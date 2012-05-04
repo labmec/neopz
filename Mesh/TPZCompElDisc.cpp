@@ -120,7 +120,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
-	TPZAutoPointer<TPZMaterial> mat = copy.Material();
+	TPZMaterial * mat = copy.Material();
 	if (copy.fIntRule){
 		this->fIntRule = copy.GetIntegrationRule().Clone();
 	}
@@ -137,7 +137,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
 {
 	fShapefunctionType = copy.fShapefunctionType;
-	TPZAutoPointer<TPZMaterial> mat = copy.Material();
+	TPZMaterial * mat = copy.Material();
 	gl2lcElMap[copy.fIndex] = this->fIndex;
 	
 	if (copy.fIntRule){
@@ -155,7 +155,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 	fShapefunctionType = copy.fShapefunctionType;
 	//criando nova malha computacional
 	Reference()->SetReference(this);
-	TPZAutoPointer<TPZMaterial> mat = copy.Material();
+	TPZMaterial * mat = copy.Material();
 	fConstC = copy.fConstC;
 	CreateMidSideConnect();
 	this->SetDegree( copy.Degree() );
@@ -352,7 +352,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
 	// caso o elemento ELV �dividido, ent� o elemento BC associado deveria ser dividido
 	// tambem para manter a CC consistente com a malha
 	// caso ELV �dividido e BC n� �ent� ELV �LowerLevelElement do elemento BC
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
 		return -1;
@@ -468,7 +468,7 @@ void TPZCompElDisc::Divide(int index,TPZVec<int> &subindex,int interpolatesoluti
 		subindex.Resize(0);
 		return;
 	}
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material)
 	{
 		PZError << __PRETTY_FUNCTION__ << " no material\n";
@@ -812,7 +812,7 @@ void TPZCompElDisc::SetDegree(int degree) {
 	c.SetOrder(degree);
 	int seqnum = c.SequenceNumber();
 	int nvar = 1;
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	if(mat) nvar = mat->NStateVariables();
 	int nshapef = this->NShapeF();
     c.SetNShape(nshapef);
@@ -827,7 +827,7 @@ void TPZCompElDisc::SetExternalShapeFunction(TPZAutoPointer<TPZFunction<REAL> > 
 	TPZConnect &c = Mesh()->ConnectVec()[fConnectIndex];
 	int seqnum = c.SequenceNumber();
 	int nvar = 1;
-	TPZAutoPointer<TPZMaterial> mat = Material();
+	TPZMaterial * mat = Material();
 	if(mat) nvar = mat->NStateVariables();
 	int nshapef = this->NShapeF();
     c.SetNShape(nshapef);
@@ -1052,7 +1052,7 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	disc->InterpolateSolution(*cel);
 	
 	//integrating residual
-	TPZAutoPointer<TPZMaterial> material = disc->Material();
+	TPZMaterial * material = disc->Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		DebugStop();

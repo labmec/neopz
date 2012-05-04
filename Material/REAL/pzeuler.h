@@ -112,7 +112,7 @@ public:
 	TPZEulerEquation(const TPZEulerEquation &cp);
 	
 	/** @brief Creates a copy of this */
-	TPZAutoPointer<TPZMaterial> NewMaterial();
+	TPZMaterial * NewMaterial();
 	
 	/** @brief Object-based overload */
 	int NStateVariables();

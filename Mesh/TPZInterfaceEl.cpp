@@ -147,7 +147,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	
 	fCenterNormal = copy.fCenterNormal;
 	
-	TPZAutoPointer<TPZMaterial> mat = copy.Material();
+	TPZMaterial * mat = copy.Material();
 	
 	this->IncrementElConnected();
 	
@@ -196,7 +196,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 #endif
 	
 	fCenterNormal = copy.fCenterNormal;
-	TPZAutoPointer<TPZMaterial> mat = copy.Material();
+	TPZMaterial * mat = copy.Material();
 	this->IncrementElConnected();
 	
 	if (this->Reference()){
@@ -255,7 +255,7 @@ TPZCompEl * TPZInterfaceElement::CloneInterface(TPZCompMesh &aggmesh,int &index,
 }
 
 void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	
 #ifdef DEBUG
 	if(!mat || mat->Name() == "no_name"){
@@ -963,7 +963,7 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 #endif
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::CalcStiff interface material null, do nothing\n";
 		ek.Reset();
@@ -1141,7 +1141,7 @@ void TPZInterfaceElement::GetConnects(TPZCompElSide &elside, TPZVec<TPZConnect*>
 
 void TPZInterfaceElement::EvaluateInterfaceJump(TPZSolVec &jump, int opt){
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	if(!mat || mat->Name() == "no_name"){
 		PZError << "TPZInterfaceElement::EvaluateInterfaceJump interface material null, do nothing\n";
 		DebugStop();
@@ -1230,7 +1230,7 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 										   TPZVec<REAL> &errorL,
 										   TPZVec<REAL> &errorR){
 	
-	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material().operator ->());
+	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(Material());
 	if(!mat){
 		PZError << "TPZInterfaceElement::ComputeErrorFace interface material null, do nothing\n";
 		DebugStop();
@@ -1326,7 +1326,7 @@ void TPZInterfaceElement::Integrate(int variable, TPZVec<REAL> & value){
 }
 
 void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value){
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
 		DebugStop();
@@ -1350,7 +1350,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 		DebugStop();
 		return;
 	}
-    TPZDiscontinuousGalerkin *discgal = dynamic_cast<TPZDiscontinuousGalerkin *>(material.operator->());
+    TPZDiscontinuousGalerkin *discgal = dynamic_cast<TPZDiscontinuousGalerkin *>(material);
 	
 	//local variables
 	REAL weight;
@@ -1478,7 +1478,7 @@ void TPZInterfaceElement::ComputeSolution(TPZVec<REAL> &qsi,
 }//method
 
 void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolationSpace *elem){
-	TPZMaterial *matorig = Material().operator->();
+	TPZMaterial *matorig = Material();
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(matorig);
 	if (!mat){
 		PZError << "FATAL ERROR AT "  << __PRETTY_FUNCTION__ << "\n";

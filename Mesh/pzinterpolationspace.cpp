@@ -247,7 +247,7 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 
 void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
@@ -309,7 +309,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 
 void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ef.Reset();
@@ -424,7 +424,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 		return;
 	}
 	
-	TPZAutoPointer<TPZMaterial> material = this->Material();
+	TPZMaterial * material = this->Material();
 	if(!material) {
 		sol.Resize(0);
 		return;
@@ -448,7 +448,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 void TPZInterpolationSpace::InterpolateSolution(TPZInterpolationSpace &coarsel){
 	// accumulates the transfer coefficients between the current element and the
 	// coarse element into the transfer matrix, using the transformation t
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material) {
 		PZError << __PRETTY_FUNCTION__ << " this->Material() == NULL " << std::endl;
 		return;
@@ -928,14 +928,14 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	int NErrors = this->Material()->NEvalErrors();
 	errors.Resize(NErrors);
 	errors.Fill(0.);
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	//TPZMaterial * matptr = material.operator->();
 	if(!material){
 		PZError << "TPZInterpolatedElement::EvaluateError : no material for this element\n";
 		Print(PZError);
 		return;
 	}
-	if(dynamic_cast<TPZBndCond *>(material.operator ->())) {
+	if(dynamic_cast<TPZBndCond *>(material)) {
 		LOGPZ_INFO(logger,"Exiting EvaluateError - null error - boundary condition material.");
 		return;
 	}
@@ -1011,7 +1011,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 void TPZInterpolationSpace::ComputeError(int errorid,
                                          TPZVec<REAL> &error){
 	
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		std::cout << "TPZCompElDisc::ComputeError : no material for this element\n";
 		return;
@@ -1045,7 +1045,7 @@ void TPZInterpolationSpace::ComputeError(int errorid,
 }
 
 void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
 		return;
@@ -1082,7 +1082,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 }//method
 
 void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
 		return;
@@ -1120,7 +1120,7 @@ void TPZInterpolationSpace::IntegrateSolution(TPZVec<STATE> & value){
 
 void TPZInterpolationSpace::ProjectFlux(TPZElementMatrix &ek, TPZElementMatrix &ef) {
 	
-	TPZAutoPointer<TPZMaterial> material = Material();
+	TPZMaterial * material = Material();
 	if(!material){
 		std::stringstream sout;
 		sout << "Exiting ProjectFlux: no material for this element\n";

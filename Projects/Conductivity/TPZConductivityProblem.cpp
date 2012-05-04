@@ -133,13 +133,13 @@ TPZAutoPointer<TPZCompMesh> TPZConductivityProblem::GenerateCompMesh()
     REAL bridgesize = area*solidvoidratio/perimeter; 
 //    std::cout << "Bridge size " << bridgesize << std::endl;
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
-    TPZAutoPointer<TPZMaterial> vflux = new TPZVoidFlux(1,conductivity,bridgesize);
+    TPZMaterial * vflux = new TPZVoidFlux(1,conductivity,bridgesize);
     cmesh->InsertMaterialObject(vflux);
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,fDelPressure);
-    TPZAutoPointer<TPZMaterial> bc1 = vflux->CreateBC(vflux, -1, 0, val1, val2);
+    TPZMaterial * bc1 = vflux->CreateBC(vflux, -1, 0, val1, val2);
     cmesh->InsertMaterialObject(bc1);
     val2(0,0) = 0.;
-    TPZAutoPointer<TPZMaterial> bc2 = vflux->CreateBC(vflux, -2, 0, val1, val2);
+    TPZMaterial * bc2 = vflux->CreateBC(vflux, -2, 0, val1, val2);
     cmesh->InsertMaterialObject(bc2);
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(0);

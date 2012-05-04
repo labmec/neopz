@@ -505,15 +505,15 @@ TPZCompMesh *CreateSillyMesh(){
     TPZCompMesh *comp = new TPZCompMesh(geomesh);
     
     // Criar e inserir os materiais na malha
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
     comp->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZMaterial> meumat = mat;
+    TPZMaterial * meumat = mat;
     
     // Condições de contorno
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+    TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
     bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
     
@@ -625,7 +625,7 @@ TPZCompMesh *CreateMesh() {
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDefaultOrder(2);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 2) {
         mat = new TPZElasticityMaterial(1,2.,0.3,1.,1.);
     } else {
@@ -642,7 +642,7 @@ TPZCompMesh *CreateMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(nstate,nstate,0.),val2(nstate,1,0.);
-    TPZManVector<TPZAutoPointer<TPZMaterial>,6> bc(6);
+    TPZManVector<TPZMaterial *,6> bc(6);
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     if(nstate == 1) {
@@ -727,15 +727,15 @@ TPZCompMesh *CreateTriangularMesh(){
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
     // inserir os materiais
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZMaterial> meumat = mat;
+    TPZMaterial * meumat = mat;
     
     // inserir a condicao de contorno
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     
-    TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+    TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
     
     val2(0,0)=1.;
@@ -816,15 +816,15 @@ TPZCompMesh *CreatePlanMesh() {
     cmesh->SetName ("Original Computational Mesh");
     
     // Criar e inserir os materiais na malha
-    TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
     cmesh->InsertMaterialObject(mat);
     
-    TPZAutoPointer<TPZMaterial> meumat = mat;
+    TPZMaterial * meumat = mat;
     
     // Condições de contorno
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+    TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
     cmesh->InsertMaterialObject(bnd);
     
     bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
@@ -904,12 +904,12 @@ TPZCompMesh *CreateSimple3DMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (3,1,0.);
-        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
@@ -926,7 +926,7 @@ TPZCompMesh *CreateSimple3DMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     
@@ -1023,7 +1023,7 @@ TPZCompMesh *Create3DMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 2) {
         mat = new TPZMatHyperElastic(1,2.,400);
     } else {
@@ -1040,7 +1040,7 @@ TPZCompMesh *Create3DMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[4];
+    TPZMaterial * bc[4];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     val2(2,0)=-1.;
@@ -1118,13 +1118,13 @@ TPZCompMesh *Create3DTetraMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (3,1,1.);
         
-        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
@@ -1141,7 +1141,7 @@ TPZCompMesh *Create3DTetraMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     
@@ -1221,13 +1221,13 @@ TPZCompMesh *Create3DPrismMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (1,1,0.);
         
-        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
@@ -1244,7 +1244,7 @@ TPZCompMesh *Create3DPrismMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[3];
+    TPZMaterial * bc[3];
     bc[0] = mat->CreateBC(mat,-3,0,val1,val2);
     int i;
     val2(0,0)=-1.;
@@ -1390,11 +1390,11 @@ TPZCompMesh * CreateTestMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 3) {
         mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (3,1,0.);
-        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
@@ -1412,7 +1412,7 @@ TPZCompMesh * CreateTestMesh() {
     }
     
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     val2(0,0) = 1.;
@@ -1694,11 +1694,11 @@ TPZCompMesh *ReadKumar(char *filename) {
   	nu = e1122/e1111;
   	E = e1212*(1+nu);
     
-  	TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(3,E,nu,0.,0.);
+  	TPZMaterial * mat = new TPZElasticityMaterial(3,E,nu,0.,0.);
   	TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
-  	TPZAutoPointer<TPZMaterial> bc1 = mat->CreateBC(mat,-1,0,val1,val2);
+  	TPZMaterial * bc1 = mat->CreateBC(mat,-1,0,val1,val2);
   	val2(1,0) = -1.;
-  	TPZAutoPointer<TPZMaterial> bc2 = mat->CreateBC(mat,-2,1,val1,val2);
+  	TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,val1,val2);
   	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
   	cmesh->InsertMaterialObject(mat);
   	cmesh->InsertMaterialObject(bc1);
@@ -1770,13 +1770,13 @@ TPZCompMesh *CreateAleatorioMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
         mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (3,1,0.);
         
-        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+        TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
         mataux->SetMaterial(mp);
     } else {
@@ -1793,7 +1793,7 @@ TPZCompMesh *CreateAleatorioMesh() {
         mat = mat2d;
     }
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     val2(0,0)=-1.;
@@ -1912,13 +1912,13 @@ TPZCompMesh *CreatePyramTetraMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix<REAL> mp (3,1,0.);
     
-    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
     TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     //   } else {
@@ -1935,7 +1935,7 @@ TPZCompMesh *CreatePyramTetraMesh() {
     //     mat = mat2d;
     //   }
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     val2(0,0)=-1.;
@@ -2251,7 +2251,7 @@ TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {
 
 void CriaCondContTeste4(TPZGeoMesh &gmesh){
     int indicematerial = 1;
-    TPZAutoPointer<TPZMaterial> placa = gmesh.Reference()->FindMaterial(indicematerial);
+    TPZMaterial * placa = gmesh.Reference()->FindMaterial(indicematerial);
     if(!placa){
         std::cout << "main::CriaCond material nao existe, CC nao criadas\n";
         std::cout << "\t\tindice material pedido : " << indicematerial << std::endl;
@@ -2271,7 +2271,7 @@ void CriaCondContTeste4(TPZGeoMesh &gmesh){
     TPZGeoElBC(elg1,3,-1);
     TPZGeoElBC(elg2,3,-1);
     TPZGeoElBC(elg3,3,-1);
-    TPZAutoPointer<TPZMaterial> bc = placa->CreateBC(placa,-1,0,val1,val2);
+    TPZMaterial * bc = placa->CreateBC(placa,-1,0,val1,val2);
     bc->SetForcingFunction(new TPZDummyFunction<STATE>(BCSolution));
     cmesh->InsertMaterialObject(bc);
 }
@@ -2435,12 +2435,12 @@ TPZCompMesh *Create3DExpMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZAutoPointer<TPZMaterial> mat;
+    TPZMaterial * mat;
     //  if(nstate == 3) {
     //		mat = new TPZMatHyperElastic(1,2.,400);
     mat = new TPZMaterialTest3D(1);
     TPZFMatrix<REAL> mp (3,1,0.);
-    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat.operator->());
+    TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
     TPZMaterialTest3D::geq3=1;
     mataux->SetMaterial(mp);
     //    mat->SetForcingFunction(NeumannExp);
@@ -2458,7 +2458,7 @@ TPZCompMesh *Create3DExpMesh() {
     //     mat = mat2d;
     //   }
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
-    TPZAutoPointer<TPZMaterial> bc[2];
+    TPZMaterial * bc[2];
     bc[0] = mat->CreateBC(mat,-1,0,val1,val2);
     int i;
     

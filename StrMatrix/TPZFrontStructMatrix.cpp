@@ -345,7 +345,7 @@ void TPZFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & stiffness, TPZFMat
 		if(fElementOrder[iel] < 0) continue;
 		TPZCompEl *el = elementvec[fElementOrder[iel]];
 		if(!el) continue;
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		if(mat)
 		{
 			int matid = mat->Id();
@@ -507,11 +507,11 @@ int TPZFrontStructMatrix<front>::main() {
 	TPZMat2dLin *meumat = new TPZMat2dLin(1);
 	TPZFMatrix<STATE> xk(1,1,1.),xc(1,2,0.),xf(1,1,1.);
 	meumat->SetMaterial (xk,xc,xf);
-	TPZAutoPointer<TPZMaterial> meumatptr(meumat);
+	TPZMaterial * meumatptr(meumat);
 	cmesh.InsertMaterialObject(meumatptr);
 	
 	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
-	TPZAutoPointer<TPZMaterial> bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
+	TPZMaterial * bnd = meumat->CreateBC (meumatptr,-4,0,val1,val2);
 	cmesh.InsertMaterialObject(bnd);
 	
 	

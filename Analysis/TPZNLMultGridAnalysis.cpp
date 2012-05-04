@@ -25,7 +25,7 @@
 #include "pzstepsolver.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
-//#include "TPZDiffusionConsLaw.h"
+#include "TPZDiffusionConsLaw.h"
 #include "pzdxmesh.h"
 #include "pzsolve.h"
 #include "tpzagglomeratemesh.h"
@@ -115,9 +115,9 @@ TPZCompMesh  *TPZNonLinMultGridAnalysis::UniformlyRefineMesh(TPZCompMesh *coarcm
 	
 	finemesh = new TPZFlowCompMesh(gmesh);
 	
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator m;
+	std::map<int, TPZMaterial * >::iterator m;
 	for(m=coarcmesh->MaterialVec().begin(); m != coarcmesh->MaterialVec().end(); m++) {
-		TPZAutoPointer<TPZMaterial> mat = m->second;
+		TPZMaterial * mat = m->second;
 		if(!mat) continue;
 		mat->Clone(finemesh->MaterialVec());
 	}
@@ -186,7 +186,7 @@ void TPZNonLinMultGridAnalysis::ResetReference(TPZCompMesh *aggcmesh){
 		if(!cel) continue;
 		if(cel->Type() == EInterface) continue;
 		if(cel->Type() == EDiscontinuous) continue;
-		TPZAutoPointer<TPZMaterial> mat = cel->Material();
+		TPZMaterial * mat = cel->Material();
 		if(!mat) PZError << "TPZNonLinMultGridAnalysis::ResetReference null material\n";
 		if(mat->Id() < 0) continue;
 		TPZGeoEl *gel = cel->Reference();
@@ -230,7 +230,7 @@ void TPZNonLinMultGridAnalysis::SetReference(TPZCompMesh *aggcmesh){
 		if(!cel) continue;
 		if(cel->Type() == EInterface) continue;
 		if(cel->Type() == EDiscontinuous) continue;
-		TPZAutoPointer<TPZMaterial> mat = cel->Material();
+		TPZMaterial * mat = cel->Material();
 		if(!mat) PZError << "TPZNonLinMultGridAnalysis::SetReference null material\n";
 		if(mat->Id() < 0) continue;
 		TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
@@ -264,13 +264,13 @@ void TPZNonLinMultGridAnalysis::CoutTime(clock_t &start,const char *title){
     cout << segundos/60.0 << " minutos" << endl << endl;
 }
 
-void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointer<TPZMaterial> mat){
+void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZMaterial * mat){
 	
 	TPZFlowCompMesh *fm  = dynamic_cast<TPZFlowCompMesh *>(CompMesh);
-	TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator->());
+	TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
 	REAL timestep = law->TimeStep();
 	if(timestep <= 0.0){
-		fFunction(mat.operator->(),CompMesh);
+		fFunction(mat,CompMesh);
 		return;
 	}
 	//int nstate = mat->NStateVariables();
@@ -285,7 +285,7 @@ void TPZNonLinMultGridAnalysis::SetDeltaTime(TPZCompMesh *CompMesh,TPZAutoPointe
 	law->SetTimeStep(maxveloc,deltax,degree);   //JorgeC
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,TPZAnalysis &an,TPZFMatrix<STATE> &rhs){
 	
 	//pelo menos duas iteracoes para calcular o residuo
 	if(numiter <= 1) numiter = 2;
@@ -320,7 +320,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 }
 
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,
+void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZMaterial * mat,
 												  TPZAnalysis &an,int marcha,const std::string &dxout) {
 	if(numiter <= 0){
 		cout << "PZAnalysis::SmoothingSolution NENHUMA RESOLU�O EFETUADA\n";
@@ -359,7 +359,7 @@ void TPZNonLinMultGridAnalysis::SmoothingSolution(REAL tol,int numiter,TPZAutoPo
 	an.LoadSolution();
 }
 
-void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,
+void TPZNonLinMultGridAnalysis::SmoothingSolution2(REAL tol,int numiter,TPZMaterial * mat,
 												   TPZAnalysis &an,int marcha,const std::string &dxout) {
 	
 	TPZVec<std::string> scalar(1),vector(0);
@@ -533,7 +533,7 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
 	int setdegree = -1;//preserva o grau da malha inicial
 	TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
-	TPZAutoPointer<TPZMaterial> finemat = finemesh->FindMaterial(nummat);
+	TPZMaterial * finemat = finemesh->FindMaterial(nummat);
 	int meshdim = coarcmesh->Dimension();
 	finemesh->SetDimModel(meshdim);
 	finemesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL FINA * * *\n\n");
@@ -546,8 +546,8 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 	finesolver.SetDirect(ELDLt);
 	finean.SetSolver(finesolver);
 	finean.Solution().Zero();
-	SetDeltaTime(finemesh,finemat.operator->());//para calcular o passo e estimar o nmero de iterac�s
-	TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(finemat.operator->());
+	SetDeltaTime(finemesh,finemat);//para calcular o passo e estimar o nmero de iterac�s
+	TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(finemat);
 	law->SetTimeStep(-1);//para obter o c�culo antes da primeira soluc�
 	cout << "\nTPZNonLinMultGridAnalysis::OneGridAlgorithm Numero de iteracoes ? :\n";
 	cin >> iter;
@@ -622,9 +622,9 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	fPrecondition.Push(0);
 	//preparac� para aplicar m�odo multigrid a duas malhas
 	int preiter,positer,premarcha,posmarcha;
-	TPZAutoPointer<TPZMaterial> finemat = finemesh->FindMaterial(nummat);
+	TPZMaterial * finemat = finemesh->FindMaterial(nummat);
 	int finedim = finemat->Dimension();
-	TPZAutoPointer<TPZMaterial> coarsemat = fMeshes[1]->FindMaterial(nummat);
+	TPZMaterial * coarsemat = fMeshes[1]->FindMaterial(nummat);
 	int coarsedim = coarsemat->Dimension();
 	cout << "\nNumero de iteracoes pre-suavisamento? :\n";
 	IN >> preiter;

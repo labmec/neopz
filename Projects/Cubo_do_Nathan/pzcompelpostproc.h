@@ -264,13 +264,13 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
       return;
   }
 	
-  TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material().operator->());
+  TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material());
   if(!pPostProcMat){
       return;
       //skipping unhandled element
   }
   
-  TPZMaterial * pMaterialRef = pIntSpRef->Material().operator->();
+  TPZMaterial * pMaterialRef = pIntSpRef->Material();
   if(!pMaterialRef){
       PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl->Material() == NULL\n";
       return;

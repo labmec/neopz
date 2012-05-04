@@ -129,7 +129,7 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 	nMat = matIds.NElements();
 	for(i = 0; i < nMat; i++)
 	{
-		TPZAutoPointer<TPZMaterial> pmat = pcMainMesh->FindMaterial(matIds[i]);
+		TPZMaterial * pmat = pcMainMesh->FindMaterial(matIds[i]);
 		if(!pmat)
 		{
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::SetPostProcessVariables() material Id " << matIds[i] << " not found in original mesh!\n";
@@ -138,9 +138,9 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 		
 		TPZPostProcMat * pPostProcMat = new TPZPostProcMat(matIds[i]);
 		
-		pPostProcMat->SetPostProcessVarIndexList(varNames,pmat.operator->());
+		pPostProcMat->SetPostProcessVarIndexList(varNames,pmat);
 		
-		matNumber = pcPostProcMesh->InsertMaterialObject(TPZAutoPointer<TPZMaterial>(pPostProcMat));
+		matNumber = pcPostProcMesh->InsertMaterialObject((pPostProcMat));
 	}
 	
 //	pcPostProcMesh->AutoBuild();
@@ -172,7 +172,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 		if(!gel) continue;
 		if(!gel->HasSubElement()) {
 			int matid = gel->MaterialId();
-			TPZAutoPointer<TPZMaterial> mat = Mesh()->FindMaterial(matid);
+			TPZMaterial * mat = Mesh()->FindMaterial(matid);
 			if(!mat)
 			{
 				matnotfound.insert(matid);

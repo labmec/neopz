@@ -21,9 +21,9 @@ class TPZVTKGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for graphical mesh using VTK format */
-	TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames);
+	TPZVTKGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalnames, const TPZVec<std::string> &vecnames);
 	/** @brief Copy constructor for graphical mesh using VTK format */
-	TPZVTKGraphMesh(TPZCompMesh *cmesh,int dim,TPZVTKGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
+	TPZVTKGraphMesh(TPZCompMesh *cmesh,int dim,TPZVTKGraphMesh *graph,TPZMaterial * mat);
 	
 	virtual void DrawMesh(int numcases);
 	virtual void DrawNodes();

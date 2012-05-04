@@ -54,7 +54,7 @@ TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
 	int nmat = fMesh->MaterialVec().size();  
 	int nstate = 1;
 	if(nmat) {
-		std::map<int, TPZAutoPointer<TPZMaterial> >::iterator mit = fMesh->MaterialVec().begin();
+		std::map<int, TPZMaterial * >::iterator mit = fMesh->MaterialVec().begin();
 		nstate = mit->second->NStateVariables();
 	}
 

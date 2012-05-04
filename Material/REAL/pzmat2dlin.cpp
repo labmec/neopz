@@ -74,7 +74,7 @@ void TPZMat2dLin::ContributeBC(TPZMaterialData &data,REAL weight,
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
-	if(bc.Material().operator ->() != this){
+	if(bc.Material() != this){
 		PZError << "TPZMat1dLin.apply_bc warning : this material didn't create the boundary condition!\n";
 	}
 	
@@ -209,7 +209,7 @@ void TPZMat2dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 	values[2] = 0.;
 }
 
-TPZAutoPointer<TPZMaterial> TPZMat2dLin::NewMaterial() {
+TPZMaterial * TPZMat2dLin::NewMaterial() {
 	return new TPZMat2dLin(*this);
 }
 
@@ -234,7 +234,7 @@ void TPZMat2dLin::ConvectionDiffusion(REAL angle,REAL diff){
 	fKy0(0,0) = -sina;
 }
 
-TPZBndCond *TPZMat2dLin::OutflowFlux(TPZAutoPointer<TPZMaterial> &reference, int bc){
+TPZBndCond *TPZMat2dLin::OutflowFlux(TPZMaterial * &reference, int bc){
 	
 	int nstate = fKxx.Rows();
 	TPZFMatrix<STATE> val1(nstate,nstate),val2(nstate,1);

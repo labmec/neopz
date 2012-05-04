@@ -111,7 +111,7 @@ public:
 		return false;
 	}
 	
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
+	virtual TPZMaterial * NewMaterial(){
 		return new TPZMatPoisson3d(*this);
 	}
 	

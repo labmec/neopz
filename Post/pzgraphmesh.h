@@ -37,7 +37,7 @@ enum TPZDrawStyle {EDXStyle,EMVStyle,EV3DStyle,EVTKStyle};
 class TPZGraphMesh {
 public:
 	/** @brief Constructor for graphical mesh */
-	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZAutoPointer<TPZMaterial> mat);
+	TPZGraphMesh(TPZCompMesh *cm, int dimension, TPZMaterial * mat);
 	/** @brief Default destructor */
 	virtual ~TPZGraphMesh(void);
 	
@@ -54,9 +54,9 @@ public:
 	/** @brief Get the resolution of the draw */
 	int Res() {return fResolution;}
 	/** @brief Sets the material information */
-	void SetMaterial(TPZAutoPointer<TPZMaterial> mat) {fMaterial = mat;}
+	void SetMaterial(TPZMaterial * mat) {fMaterial = mat;}
 	/** @brief Sets the computational mesh to associate */
-	virtual void SetCompMesh(TPZCompMesh *mesh, TPZAutoPointer<TPZMaterial> &mat);
+	virtual void SetCompMesh(TPZCompMesh *mesh, TPZMaterial * &mat);
 	/** @brief Draw the graphical nodes information */
 	virtual void DrawNodes();
 	/** @brief Draw the graphical mesh */
@@ -88,7 +88,7 @@ protected:
 	TPZGeoMesh *fGeoMesh;
 	
 	/** @brief Vector of material associated */
-	TPZAutoPointer<TPZMaterial> fMaterial;
+	TPZMaterial * fMaterial;
 	/** @brief Dimension of the graphical mesh */
 	int fDimension;
 	/** @brief Vector of graphical elements */
@@ -109,7 +109,7 @@ protected:
 	
 public:
 	/** @brief Return of the material for graphical mesh */
-	virtual TPZAutoPointer<TPZMaterial> Material();
+	virtual TPZMaterial * Material();
 	/** @brief Return a pointer of the computational mesh */
 	virtual TPZCompMesh *Mesh() { return fCompMesh;}
 };

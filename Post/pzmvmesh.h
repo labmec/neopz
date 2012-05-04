@@ -25,9 +25,9 @@ class TPZMVGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for graphical mesh using MVGraph format */
-	TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZAutoPointer<TPZMaterial> mat);
+	TPZMVGraphMesh(TPZCompMesh *cmesh, int dimension, TPZMaterial * mat);
 	/** @brief Copy constructor for graphical mesh using MVGraph format */
-	TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
+	TPZMVGraphMesh(TPZCompMesh *cmesh,int dim,TPZMVGraphMesh *graph,TPZMaterial * mat);
 	
 	/** @brief Draw graphical mesh */
 	virtual void DrawMesh(int numcases);

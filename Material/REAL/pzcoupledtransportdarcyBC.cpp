@@ -89,7 +89,7 @@ ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMateria
 }
 
 void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix<REAL> &dsol){
-	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material().operator ->());
+	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material());
 	if (!mat){
 		PZError << __PRETTY_FUNCTION__ << " FATAL ERROR" << std::endl;
 		exit(-1);
@@ -99,7 +99,7 @@ void TPZCoupledTransportDarcyBC::UpdateConvectionDir(TPZFMatrix<REAL> &dsol){
 
 void TPZCoupledTransportDarcyBC::UpdateConvectionDirInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR,
                                                               TPZFMatrix<REAL> &phiL, TPZFMatrix<REAL> &phiR){
-	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material().operator ->());
+	TPZCoupledTransportDarcy * mat = dynamic_cast<TPZCoupledTransportDarcy*>(this->Material());
 	if (!mat){
 		PZError << __PRETTY_FUNCTION__ << " FATAL ERROR" << std::endl;
 		exit(-1);

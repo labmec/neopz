@@ -70,7 +70,7 @@ protected:
 	TPZAdmChunkVector<TPZConnect>			fConnectVec;
 	
 	/** @brief Map of pointers to materials */
-	std::map<int, TPZAutoPointer<TPZMaterial> >	fMaterialVec;
+	std::map<int, TPZMaterial * >	fMaterialVec;
 	/** @brief Block structure of the solution vector ???? */
 	//TPZBlock<REAL>		fSolutionBlock;
 	TPZBlock<STATE>		fSolutionBlock;
@@ -183,7 +183,7 @@ public:
 	const TPZAdmChunkVector<TPZConnect> &ConnectVec() const { return fConnectVec; }
 	
 	/** @brief Returns a reference to the material pointers vector */
-	std::map<int ,TPZAutoPointer<TPZMaterial> >	&MaterialVec() { return fMaterialVec; }
+	std::map<int ,TPZMaterial * >	&MaterialVec() { return fMaterialVec; }
 
 	/** @brief Returns a pointer to the geometrical mesh associated */
 	TPZGeoMesh *Reference() const { return fReference; }
@@ -223,7 +223,7 @@ public:
 	 * @brief Insert a material object in the datastructure
 	 * @param mat pointer to the material
 	 */
-	int InsertMaterialObject(TPZAutoPointer<TPZMaterial> mat);
+	int InsertMaterialObject(TPZMaterial * mat);
 	
 	/** @brief Resequence the block object, remove unconnected connect objects and reset the dimension of the solution vector */
 	void InitializeBlock();
@@ -268,7 +268,7 @@ public:
 	 * @brief Find the material with identity id
 	 * @param id material id to be found
 	 */
-	TPZAutoPointer<TPZMaterial> FindMaterial(int id);
+	TPZMaterial * FindMaterial(int id);
 	
 	/** @brief Map this grid in the geometric grid */
 	void LoadReferences();

@@ -35,7 +35,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 	/** @name Two instances of TPZMatPoisson3d */
 	// @{
-	TPZAutoPointer<TPZMaterial> fMaterialRefs[2];
+	TPZMaterial * fMaterialRefs[2];
 	TPZMatPoisson3d * fMaterials[2];
 	// @}
 	
@@ -43,7 +43,7 @@ class TPZCoupledTransportDarcy : public TPZDiscontinuousGalerkin {
 	
 public:
 	
-	virtual TPZBndCond *CreateBC(TPZAutoPointer<TPZMaterial> &mat, int id, int typ, TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2){
+	virtual TPZBndCond *CreateBC(TPZMaterial * &mat, int id, int typ, TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2){
 		PZError << "Error! - This method should not be called - " << __PRETTY_FUNCTION__ << std::endl;
 		return 0;
 	}
@@ -105,7 +105,7 @@ public:
 		fMaterials[1] = copy.fMaterials[1];
 	}
 	
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
+	virtual TPZMaterial * NewMaterial(){
 		return new TPZCoupledTransportDarcy(*this);
 	}
 	

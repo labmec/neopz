@@ -29,9 +29,9 @@ class TPZDXGraphMesh : public TPZGraphMesh {
 public:
 	
 	/** @brief Constructor for output in DX format */
-	TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZAutoPointer<TPZMaterial> mat, const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
+	TPZDXGraphMesh(TPZCompMesh *mesh, int dimension, TPZMaterial * mat, const TPZVec<std::string> &scalarnames,const TPZVec<std::string> &vecnames);
 	/** @brief Copy constructor */
-	TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZAutoPointer<TPZMaterial> mat);
+	TPZDXGraphMesh(TPZCompMesh *cmesh,int dim,TPZDXGraphMesh *graph,TPZMaterial * mat);
 	/** @brief Default destructor */
 	virtual ~TPZDXGraphMesh();
 	

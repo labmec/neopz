@@ -179,7 +179,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 
 void TPZBlackOilAnalysis::SetLastState(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
@@ -193,7 +193,7 @@ void TPZBlackOilAnalysis::SetLastState(){
 
 void TPZBlackOilAnalysis::SetCurrentState(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;
@@ -206,7 +206,7 @@ void TPZBlackOilAnalysis::SetCurrentState(){
 
 void TPZBlackOilAnalysis::SetAllMaterialsDeltaT(){
 	TPZCompMesh * mesh = this->Mesh();
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit;
+	std::map<int, TPZMaterial * >::iterator matit;
 	for(matit = mesh->MaterialVec().begin(); matit != mesh->MaterialVec().end(); matit++)
 	{
 		if(!matit->second) continue;

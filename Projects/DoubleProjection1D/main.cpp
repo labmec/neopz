@@ -261,7 +261,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 	int dim = 2;
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim); 
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial * mat(material);
 	
 	REAL diff = 1.;
 	REAL conv = 0.;
@@ -280,7 +280,7 @@ TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 
 	///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
-	TPZAutoPointer<TPZMaterial> BCond = material->CreateBC(mat, bc0,0, val1, val2);
+	TPZMaterial * BCond = material->CreateBC(mat, bc0,0, val1, val2);
 	cmesh->InsertMaterialObject(BCond);
 	
 	//Ajuste da estrutura de dados computacional

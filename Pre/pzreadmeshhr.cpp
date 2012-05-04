@@ -153,7 +153,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 			{
 				double e, nu, px, py;
 				fInputFile >> e >> nu >> px >> py;
-				TPZAutoPointer<TPZMaterial> mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
+				TPZMaterial * mat = new TPZElasticityMaterial(id,e,nu,px,py,0);
 				CMesh.InsertMaterialObject(mat);
 				break;
 			}
@@ -187,7 +187,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 					}
 				}
 				mat2d->SetMaterial(xk,xc,xf);
-				TPZAutoPointer<TPZMaterial> mat = mat2d;
+				TPZMaterial * mat = mat2d;
 				CMesh.InsertMaterialObject(mat);
 				break;
 			}
@@ -205,7 +205,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 					fInputFile >> dir[ist];
 				}
 				mat3d->SetParameters(diff,conv,dir);
-				TPZAutoPointer<TPZMaterial> mat = mat3d;
+				TPZMaterial * mat = mat3d;
 				CMesh.InsertMaterialObject(mat);
 				break;
 			}
@@ -241,8 +241,8 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 #endif
 		return;
 	}
-	std::map<int, TPZAutoPointer<TPZMaterial> >::iterator matit = CMesh.MaterialVec().begin();
-	TPZAutoPointer<TPZMaterial> mat = matit->second;
+	std::map<int, TPZMaterial * >::iterator matit = CMesh.MaterialVec().begin();
+	TPZMaterial * mat = matit->second;
 	if(!mat)
 	{
 		std::cout << " empty material " << std::endl;
@@ -258,7 +258,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
         >> val1 (1,0) >> val1(1,1) >> val1(1,2)
         >> val1 (2,0) >> val1(2,1) >> val1(2,2);
 		fInputFile >> val2(0,0) >> val2(1,0) >> val2(2,0);
-		TPZAutoPointer<TPZMaterial> bnd;
+		TPZMaterial * bnd;
 		bnd = mat->CreateBC (mat,id,type,val1,val2);
 		CMesh.InsertMaterialObject(bnd);
 	}

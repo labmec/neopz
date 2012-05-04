@@ -170,7 +170,7 @@ void TPZElementMatrix::ApplyConstraints(){
 	// the number of state variables is the number of unknowns associated with
 	// each shapefunction
 	// numstate is best initialized during computation of the stiffness matrix
-	//   TPZAutoPointer<TPZMaterial> mat = Material();
+	//   TPZMaterial * mat = Material();
 	//   int numstate = mat->NStateVariables();
 	
 	// initialize the block structure

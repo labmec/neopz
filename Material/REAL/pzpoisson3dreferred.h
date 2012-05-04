@@ -42,7 +42,7 @@ public:
 		this->falpha = copy.falpha;
 	}
 	
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial(){
+	virtual TPZMaterial * NewMaterial(){
 		return new TPZMatPoisson3dReferred(*this);
 	}
 	

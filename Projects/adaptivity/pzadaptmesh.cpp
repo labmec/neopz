@@ -192,7 +192,7 @@ TPZCompMesh * TPZAdaptMesh::GetAdaptedMesh(REAL &error, REAL & truerror, TPZVec<
             }
         }
     }
-    // TPZAutoPointer<TPZMaterial> mat = fCloneMeshes [0]->MaterialVec().rbegin()->second;
+    // TPZMaterial * mat = fCloneMeshes [0]->MaterialVec().rbegin()->second;
     //  int nstate = mat->NStateVariables();
     
     TPZStack <TPZGeoEl*> gelstack;
@@ -389,7 +389,7 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
     //Cria um clone do vetor de materiais da malha mesh
     mesh->CopyMaterials(*cmesh);
     /*  for(m=0; m<nmat; m++) {
-     TPZAutoPointer<TPZMaterial> mat = mesh->MaterialVec()[m];
+     TPZMaterial * mat = mesh->MaterialVec()[m];
      if(!mat) continue;
      mat->Clone(cmesh->MaterialVec());
      }

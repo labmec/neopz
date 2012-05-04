@@ -149,22 +149,22 @@ TPZAutoPointer<TPZCompMesh> CriarMalha(REAL L, REAL delta, REAL height)
 #endif
     TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
     TPZMatPoisson3d *poiss = new TPZMatPoisson3d(1,2);
-    TPZAutoPointer<TPZMaterial> autopoiss(poiss);
+    TPZMaterial * autopoiss(poiss);
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     cmesh->InsertMaterialObject(autopoiss);
     TPZBndCond *bc = new TPZBndCond(autopoiss, -1, 0, val1, val2);
-    TPZAutoPointer<TPZMaterial> bcauto(bc);
+    TPZMaterial * bcauto(bc);
     cmesh->InsertMaterialObject(bcauto);
     TPZBndCond *bc2 = new TPZBndCond(autopoiss, -2, 0, val1, val2);
     g_Length = L;
     TPZAutoPointer<TPZFunction<STATE> > force = new TPZDummyFunction<STATE>(forcingfunction);
     bc2->SetForcingFunction(force);
-    TPZAutoPointer<TPZMaterial> bcauto2(bc2);
+    TPZMaterial * bcauto2(bc2);
     bcauto2->SetForcingFunction(force);
     cmesh->InsertMaterialObject(bcauto2);
 
     TPZBndCond *bc4 = new TPZBndCond(autopoiss, -4, 0, val1, val2);
-    TPZAutoPointer<TPZMaterial> bcauto4(bc4);
+    TPZMaterial * bcauto4(bc4);
     cmesh->InsertMaterialObject(bcauto4);
     
     cmesh->SetDefaultOrder(defaultporder);

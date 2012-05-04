@@ -82,7 +82,7 @@ public:
 		TPZMaterial::Solution(data,var,Solout);
 	}
 	
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	virtual void Flux( TPZVec<REAL> &x, TPZVec<REAL> &Sol,

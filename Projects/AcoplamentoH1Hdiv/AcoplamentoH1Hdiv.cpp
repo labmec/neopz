@@ -535,10 +535,10 @@ TPZCompMesh *MalhaCompGen(TPZGeoMesh * gMesh, int porder)
 		
 		
 		
-		TPZAutoPointer<TPZMaterial> automat(mat1);
-		TPZAutoPointer<TPZMaterial> automat2(mat2);
+		TPZMaterial * automat(mat1);
+		TPZMaterial * automat2(mat2);
 		
-		TPZAutoPointer<TPZMaterial> automat3(matCouple);
+		TPZMaterial * automat3(matCouple);
 		
 		//relacao entre malha computacional e geometrica
 		

@@ -134,7 +134,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 		if(!el) continue;
 		int matidsize = fMaterialIds.size();
 		if(matidsize){
-			TPZAutoPointer<TPZMaterial> mat = el->Material();
+			TPZMaterial * mat = el->Material();
 			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 			if (!mat)
 			{
@@ -290,7 +290,7 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 		TPZCompEl *el = elementvec[iel];
 		if(!el) continue;
 		
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		if (!mat) continue;
 		int matid = mat->Id();
 		if (this->ShouldCompute(matid) == false) continue;
@@ -665,7 +665,7 @@ int TPZStructMatrix::ThreadData::NextElement()
 		TPZCompEl *el = elementvec[iel];
 		if(!el) continue;
 		if(fMaterialIds.size() == 0) break;
-		TPZAutoPointer<TPZMaterial> mat = el->Material();
+		TPZMaterial * mat = el->Material();
 		TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 		if(!mat)
 		{

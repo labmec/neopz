@@ -200,7 +200,7 @@ void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<R
 	values[0]  = values[1]+values[2];
 }
 
-TPZAutoPointer<TPZMaterial>  TPZMaterialTest3D::NewMaterial()
+TPZMaterial *  TPZMaterialTest3D::NewMaterial()
 {
 	int matid = Id();
 	TPZMaterialTest3D *mat = new TPZMaterialTest3D(matid);
