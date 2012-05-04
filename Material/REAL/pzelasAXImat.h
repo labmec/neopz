@@ -205,7 +205,7 @@ private:
 	REAL fSymmetric;
 	
 	/** @brief Penalty term */
-	REAL fPenalty;
+	REAL fPenaltyConstant;
     
     /** @brief Function which defines the temperature */
     void (*fTemperatureFunction)(const TPZVec<REAL> &rz, REAL &temperature);

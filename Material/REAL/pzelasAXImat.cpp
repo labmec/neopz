@@ -37,7 +37,7 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial() : TPZDiscontinuousGalerkin(
 	f_c = 0.;
 	f_phi = 0.;
     fSymmetric = 1.;
-    fPenalty = 1.;
+    fPenaltyConstant = 1.;
 }
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy) : TPZDiscontinuousGalerkin(num), fIntegral(0.), fAlpha(1.e-5), fDelTemperature(0.), f_AxisR(3,0.), f_AxisZ(3,0.),f_Origin(3,0.), fTemperatureFunction(0)
@@ -56,7 +56,7 @@ TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(int num, REAL E, REAL nu, REA
 	f_c = 0.;
 	f_phi = 0.;
     fSymmetric = 1.;
-    fPenalty = 1.;
+    fPenaltyConstant = 1.;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -77,14 +77,14 @@ fTemperatureFunction(0)
 	f_c = 0.;
 	f_phi = 0.;
 	fSymmetric = coefTheta;
-	fPenalty = coefAlpha;
+	fPenaltyConstant = coefAlpha;
 }
 
 TPZElasticityAxiMaterial::TPZElasticityAxiMaterial(const TPZElasticityAxiMaterial &copy) : 
 TPZDiscontinuousGalerkin(copy), fIntegral(copy.fIntegral),f_phi(copy.f_phi),f_c(copy.f_c), fE(copy.fE),
 fnu(copy.fnu), fAlpha(copy.fAlpha), fDelTemperature(copy.fDelTemperature), fEover21PlusNu(copy.fEover21PlusNu),
 fEover1MinNu2(copy.fEover1MinNu2),f_AxisR(copy.f_AxisR),f_AxisZ(copy.f_AxisZ),
-f_Origin(copy.f_Origin),fSymmetric(copy.fSymmetric),fPenalty(copy.fPenalty),fTemperatureFunction(copy.fTemperatureFunction)
+f_Origin(copy.f_Origin),fSymmetric(copy.fSymmetric),fPenaltyConstant(copy.fPenaltyConstant),fTemperatureFunction(copy.fTemperatureFunction)
 {
 	ff[0] = copy.ff[0];
 	ff[1] = copy.ff[1];
@@ -475,8 +475,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	REAL R2PI = 2.0 * M_PI * R;
 	
 	REAL symmetry = fSymmetric; //thermo of symmetry ( -1: method symmetric; 1: method not symmetric)
-	REAL penalty = fPenalty; //thermo of penalty
-	penalty *= (0.5 * (LeftPOrder*LeftPOrder + RightPOrder*RightPOrder)) / faceSize;
+	REAL penalty = fPenaltyConstant*(0.5 * (LeftPOrder*LeftPOrder + RightPOrder*RightPOrder))/faceSize; ///Constant of thermo of penalty
 	
 	REAL beta;
 	if (symmetry==1.0) {
@@ -498,7 +497,7 @@ void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMat
 	{
 		std::stringstream sout;
 		sout.precision(16);
-		sout << "Penalty = " << fPenalty << ";" << std::endl;
+		sout << "Penalty = " << fPenaltyConstant << ";" << std::endl;
 		sout << "R = " << R << ";" << std::endl;
 		sout << "fE = " << fE << ";" << std::endl;
 		sout << "fnu = " << fnu << ";" << std::endl;

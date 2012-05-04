@@ -181,12 +181,12 @@ void TPZCompElHDivBound2<TSHAPE>::SetConnectIndex(int i, int connectindex)
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 {
-	//if(connect == 0)
-	//{
+	if(connect == 0)
+	{
 		TPZManVector<int,1> order(1,ConnectOrder(connect));
 		//se a ordem eh maior depedenra do tipo de TSHAPE
 		
-		//if (order[0]==1) {
+		if (order[0]==1) {
 			return TSHAPE::NShapeF(order);
 		}
 		else{
@@ -211,7 +211,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 		}
 		
 	}
-    DebugStop();
+    //DebugStop();
     return -1;
 }
 
