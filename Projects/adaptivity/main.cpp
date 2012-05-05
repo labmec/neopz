@@ -1492,18 +1492,19 @@ void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
 void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2);
+	REAL one = (REAL)1.;
 
-    sol[0] = pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1]*x2[2];
+    sol[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1]*x2[2];
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
-    grad(0,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(1 - x2[1])*x2[1]*x2[2] -
-    pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*x2[0]*(1 - x2[1])*x2[1]*x2[2] -
-    (2*pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(-0.5 + x2[0])*x2[0]*
+    grad(0,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(1 - x2[1])*x2[1]*x2[2] -
+    pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*x2[0]*(1 - x2[1])*x2[1]*x2[2] -
+    (2*pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(-0.5 + x2[0])*x2[0]*
      (1 - x2[1])*x2[1]*x2[2])/pow(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2),2);
-    grad(1,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[2] -
-    pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*x2[1]*x2[2] -
-    (2*pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*
+    grad(1,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[2] -
+    pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*x2[1]*x2[2] -
+    (2*pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*
      (-0.5 + x2[1])*x2[1]*x2[2])/pow(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2),2);
-    grad(2,0) = pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
+    grad(2,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
     Rot.Multiply(grad, grad2);
     dsol(0,0) = grad2(0,0);
     dsol(1,0) = grad2(1,0);
@@ -1513,31 +1514,14 @@ void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
 void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2);
-    /*
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        sout << "Point " << x2;
-        LOGPZ_DEBUG(loggerpoint, sout.str())
-    }
-#endif
-     */
-    f[0] = pow(exp(1.),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
+	REAL one = (REAL) 1.0;
+    f[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
 }
 
 
 void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2);
-    /*
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        sout << "Point " << x2;
-        LOGPZ_DEBUG(loggerpoint, sout.str())
-    }
-#endif
-     */
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
   	REAL rexp = pow(r,onethird);
@@ -1547,15 +1531,6 @@ void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2);
-    /*
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        sout << "Point " << x2;
-        LOGPZ_DEBUG(loggerpoint, sout.str())
-    }
-#endif
-     */
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
   	REAL rexp = pow(r,onethird);

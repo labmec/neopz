@@ -2,6 +2,7 @@
  * @file
  * @brief Implements a test to reduce dynamic memory allocation
  */
+
 #ifndef PZGBMESHH
 #define PZGBMESHH
 
@@ -18,6 +19,7 @@ class TPZShapePrism;
 class TPZShapeTetra;
 class TPZShapePiram;
 }
+
 namespace pzgeom {
 class TPZGeoPoint;
 class TPZGeoLinear;
@@ -28,6 +30,7 @@ class TPZGeoPrism;
 class TPZGeoTetrahedra;
 class TPZGeoPyramid;
 }
+
 namespace pzrefine {
 class TPZRefPoint;
 class TPZRefLinear;
@@ -40,10 +43,8 @@ class TPZRefPyramid;
 }
 
 class TPZGeoEl;
-//template<class TShape, class TGeo, class TRef>
-//class TPZGeoElement<TShape,TGeo,TRef>;
 
-/// Collection of typedefs for creation of geometric elements in groups
+/** @brief Collection of typedefs for creation of geometric elements in groups */
 class GeoElTypes {
 
  public:
@@ -59,10 +60,10 @@ class GeoElTypes {
 
 };
 
-/// A geometric mesh which generates elements in blocks
 /**
-The idea behind this development is to reduce the number of dynamic memory allocations
-*/
+ * @brief A geometric mesh which generates elements in blocks
+ * @note The idea behind this development is to reduce the number of dynamic memory allocations
+ */
 template<class Types>
 class TPZGeoBMesh : public TPZGeoMesh {
 
@@ -89,7 +90,5 @@ class TPZGeoBMesh : public TPZGeoMesh {
   static int main();
 
 };
-
-
 
 #endif

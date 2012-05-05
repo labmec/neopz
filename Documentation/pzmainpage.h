@@ -304,32 +304,30 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  
  \section analysis Analysis: Solving process
  
+ \page pg_app_projects DESCRIPTION OF THE APPLICATION PROJECTS
+ 
+ The applications using neoPZ environment are divided in three groups:
+ \ref app_hiperbolic
+ \ref app_elliptic
+ \ref app_parabolic
+ 
+ \section app_hiperbolic The hiperbolic projects
+ \subsection steam_injection Steam Injection in Reservoir
+ 
+ \subsection cons_law Conservation Laws
+ 
+ \section app_elliptic The elliptic projects
+ \section app_parabolic The parabolic projects
 
- \page app_pz TUTORIAL AND APPLICATION PROJECTS
+ \section app_highperform High performance
  
- The description of the examples, application projects and unit test projects are in the following pages:
- \ref tutorial
- \ref projects
- \ref unit_test
- 
- \page tutorial - Tutorial examples
+ \section app_adaptive hp-Adaptivity
 
- The examples as tutorials are related by module of the PZ.
-  
- \section tut_matrix Creating, Filling and Operating matrizes and Solving Linear Systems
+ \page pg_tut_projects DESCRIPTION OF THE TUTORIAL PROJECTS
  
- \section use_matrix Using matrices classes
-See <a href="group__matrix.html">Matrix</a> module
+ The tutorial projects describe creation, filling data and description of the process of the methods for classes grouped in modules:
  
-\section use_integral Using numerical integration classes
-See <a href="group__integral.html">Numerical integration</a> module
- 
-\section use_util Using util classes: vector, chunk vector ...
-See <a href="group__util.html">Utility</a> module
-
- \section use_geometric Creating geometric objects
- 
- See <a href="group_geom.html">Geometry</a> module.
+ \section tut_testgeom To create geometric mesh
  
  The tutorial discShape implements a bi-dimensional problem using as mesh a disc with a central hole.
  
@@ -339,27 +337,28 @@ See <a href="group__util.html">Utility</a> module
  
  After creating the geometrical mesh with nodes and elements, it is necessary to construct the connectivity between them calling BuildConnectivity().
  
-\section use_material Creating material from differential equation
+ \section tut_compmesh Computational mesh construction
  
-\section tut_compmesh Computational mesh construction
+ \section tut_material Creating material from differential equation
+ 
+ \section tut_testonedim To solve one-dimensional differential equation
+ \section tut_testtwodim To solve two-dimensional differential equation
+ \section tut_analysis Solving differential equation
+ 
+ \page pg_unit_projects DESCRIPTION OF THE UNIT TEST PROJECTS FOR VALIDATION
 
-\section use_analysis Solving differential equation
- 
-
- 
-\page projects - Projects with NeoPZ
- 
- \section steam_injection Steam Injection in Reservoir
- 
- \section cons_law Conservation Laws
- 
- \section highperform High performance
- 
- \section adaptive hp-Adaptivity
-  
-\page unit_test - Unit Test Projects for PZ Modules 
- 
  In this projects we are using Boost framework for unit test boost_unit_test_framework. See information in \ref boost Boost .
+
+ \section unit_integral To test numerical integration module
+ See <a href="group__integral.html">Numerical integration</a> module
+ \section unit_matrix To test matrix module
+ See <a href="group__matrix.html">Matrix</a> module
+ \section unit_solvers To test linear solvers for systems module
+ \section unit_topology To test topology module
+ See <a href="group_geom.html">Geometry</a> module.
+ \section unit_linmaterial To test linear material
+ \section unit_util Using util classes: vector, chunk vector ...
+ See <a href="group__util.html">Utility</a> module
  
  \page special_pages SPECIAL PAGES
  
@@ -373,7 +372,6 @@ See <a href="group__util.html">Utility</a> module
  
  \page deprecated OBSOLETE
  
- */
-/*! \li \ref TutorialGeometry
+ \li \ref TutorialGeometry
 
 */
