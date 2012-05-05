@@ -45,8 +45,8 @@ class TPZMatHyperElastic : public TPZMaterial {
 	
 	std::string Name() { return "TPZMatHyperElastic"; }
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}

@@ -193,11 +193,9 @@ public:
 	const TPZBlock<STATE> &Block() const { return fBlock;}
 	
 	/** @brief Access the block structure of the solution vector */
-	//TPZBlock<REAL> &Block() { return fBlock;}
 	TPZBlock<STATE> &Block() { return fBlock;}
 	
 	/** @brief Access the solution vector */
-	//TPZFMatrix<REAL> &Solution(){ return fSolution;}
 	TPZFMatrix<STATE> &Solution(){ return fSolution;}
 	
 	/** @brief Access method for the element solution vectors */

@@ -1182,7 +1182,7 @@ void TPZInterpolationSpace::Write(TPZStream &buf, int withclassid)
 }
 
 
-void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max){
+void TPZInterpolationSpace::MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STATE> &max){
 #ifndef STATE_COMPLEX
 	
 	const int dim = Dimension();

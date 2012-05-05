@@ -108,7 +108,7 @@ public:
 	 * all integration points ( with intrule.MaxOrder() )
 	 */
 	
-	void MinMaxSolutionValues(TPZVec<REAL> &min, TPZVec<REAL> &max);
+	void MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STATE> &max);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */
 	virtual const TPZIntPoints &GetIntegrationRule() const = 0;
