@@ -496,8 +496,8 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 	
 	
     
-	TPZBlock<REAL> &block =this->Mesh()->Block();
-    TPZFMatrix<REAL> &MeshSol = this->Mesh()->Solution();
+	TPZBlock<STATE> &block =this->Mesh()->Block();
+    TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     
 	int nsol= this->Dimension()+2;
@@ -913,7 +913,7 @@ int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAMID>;
 
-
+/*
 template class TPZCompElHDivPressure<TPZShapeTriang>;
 template class TPZCompElHDivPressure<TPZShapePoint>;
 template class TPZCompElHDivPressure<TPZShapeLinear>;
@@ -957,3 +957,4 @@ TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,index);
 }
 
+*/

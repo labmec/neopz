@@ -65,7 +65,6 @@ public:
 		mesh->SetAllCreateFunctionsHDiv();
 	}
 	
-	
 	virtual MElementType Type();
 	
 	virtual int NConnects() const;
@@ -201,22 +200,5 @@ public:
 	virtual void Read(TPZStream &buf, void *context);
 	
 };
-
-/** @brief Creates computational point element for HDiv approximate space */
-TPZCompEl *CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational linear element for HDiv approximate space */
-TPZCompEl *CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational quadrilateral element for HDiv approximate space */
-TPZCompEl *CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational triangular element for HDiv approximate space */
-TPZCompEl *CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational cube element for HDiv approximate space */
-TPZCompEl *CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational prismal element for HDiv approximate space */
-TPZCompEl *CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational pyramidal element for HDiv approximate space */
-TPZCompEl *CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
-/** @brief Creates computational tetrahedral element for HDiv approximate space */
-TPZCompEl *CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
 
 #endif

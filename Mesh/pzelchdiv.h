@@ -151,10 +151,6 @@ public:
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
-	/** 
-	/** @brief Compute the shape functions corresponding to the dual space */
-	//virtual void ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
-	
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
     
     /** @brief Compute the solution for a given variable */
