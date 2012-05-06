@@ -40,8 +40,8 @@ void TPZBiharmonic::Print(std::ostream &out) {
 
 void TPZBiharmonic::Contribute(TPZMaterialData &data,
                                REAL weight,
-                               TPZFMatrix<REAL> &ek,
-							   TPZFMatrix<REAL> &ef) {
+                               TPZFMatrix<STATE> &ek,
+							   TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -49,8 +49,8 @@ void TPZBiharmonic::Contribute(TPZMaterialData &data,
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);
-        TPZFMatrix<REAL> grad;
+		TPZManVector<STATE> res(1);
+        TPZFMatrix<STATE> grad;
 		fForcingFunction->Execute(x,res,grad);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
@@ -66,8 +66,8 @@ void TPZBiharmonic::Contribute(TPZMaterialData &data,
 
 void TPZBiharmonic::ContributeBC(TPZMaterialData &data,
                                  REAL weight,
-                                 TPZFMatrix<REAL> &ek,
-                                 TPZFMatrix<REAL> &ef,
+                                 TPZFMatrix<STATE> &ek,
+                                 TPZFMatrix<STATE> &ef,
                                  TPZBndCond &bc) {
 	
 	//NOT TO BE DONE HERE
@@ -94,8 +94,8 @@ int TPZBiharmonic::NSolutionVariables(int var){
 	//  return 0;
 }
 
-void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &/*axes*/,
-							 int var,TPZVec<REAL> &Solout){
+void TPZBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,
+							 int var,TPZVec<STATE> &Solout){
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
 		Solout.Resize(DSol.Rows());
@@ -106,17 +106,17 @@ void TPZBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix
 	}
 }
 
-void TPZBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/,
-						 TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
-						 TPZVec<REAL> &/*flux*/) {
+void TPZBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/,
+						 TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
+						 TPZVec<STATE> &/*flux*/) {
 	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
-void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-						   TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
-						   TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+						   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+						   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 						   TPZVec<REAL> &values) {
-	TPZVec<REAL> sol(1), dsol(8,0.);
+	TPZVec<STATE> sol(1), dsol(8,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
     //values[1] : error em norma L2
@@ -144,8 +144,8 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix<REAL>
 
 void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                         REAL weight,
-                                        TPZFMatrix<REAL> &ek,
-                                        TPZFMatrix<REAL> &ef){
+                                        TPZFMatrix<STATE> &ek,
+                                        TPZFMatrix<STATE> &ef){
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
@@ -359,8 +359,8 @@ void TPZBiharmonic::ContributeInterface(TPZMaterialData &data , TPZMaterialData 
 
 void TPZBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                           REAL weight,
-                                          TPZFMatrix<REAL> &ek,
-                                          TPZFMatrix<REAL> &ef,
+                                          TPZFMatrix<STATE> &ek,
+                                          TPZFMatrix<STATE> &ef,
                                           TPZBndCond &bc) {
 	
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;

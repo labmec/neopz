@@ -90,7 +90,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+    void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
     {
         std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     }
@@ -131,7 +131,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 										   REAL weight,
 										   TPZVec<REAL> &nkL,
 										   TPZVec<REAL> &nkR,
-										   int &errorid){
+										   int &errorid) {
 		PZError << "Method not implemented\n";
 	}
 	
@@ -139,7 +139,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 											 REAL weight,
 											 TPZVec<REAL> &nk,
 											 TPZBndCond &bc,
-											 int &errorid){
+											 int &errorid) {
 		PZError << "Method not implemented\n";
 	}
 	

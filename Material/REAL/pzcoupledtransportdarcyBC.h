@@ -36,8 +36,8 @@ protected:
 		return 0;
 	}
 	
-	void UpdateConvectionDir(TPZFMatrix<REAL> &dsol);
-	void UpdateConvectionDirInterface(TPZFMatrix<REAL> &dsolL, TPZFMatrix<REAL> &dsolR, TPZFMatrix<REAL> &phiL, TPZFMatrix<REAL> &phiR);
+	void UpdateConvectionDir(TPZFMatrix<STATE> &dsol);
+	void UpdateConvectionDirInterface(TPZFMatrix<STATE> &dsolL, TPZFMatrix<STATE> &dsolR, TPZFMatrix<REAL> &phiL, TPZFMatrix<REAL> &phiR);
 	
 	public :
 	
@@ -93,57 +93,57 @@ protected:
 	
 	void Contribute(TPZMaterialData &data,
 					REAL weight,
-					TPZFMatrix<REAL> &ek,
-					TPZFMatrix<REAL> &ef);
+					TPZFMatrix<STATE> &ek,
+					TPZFMatrix<STATE> &ef);
 	
 	void Contribute(TPZMaterialData &data,
 					REAL weight,
-					TPZFMatrix<REAL> &ef)
+					TPZFMatrix<STATE> &ef)
 	{
 		TPZBndCond::Contribute(data,weight,ef);
 	}
 	
 	void ContributeBC(TPZMaterialData &data,
 					  REAL weight,
-					  TPZFMatrix<REAL> &ek,
-					  TPZFMatrix<REAL> &ef,
+					  TPZFMatrix<STATE> &ek,
+					  TPZFMatrix<STATE> &ef,
 					  TPZBndCond &bc) {  }
 	
     void ContributeBC(TPZMaterialData &data,
 					  REAL weight,
-					  TPZFMatrix<REAL> &ef,
+					  TPZFMatrix<STATE> &ef,
 					  TPZBndCond &bc)
 	{
 		TPZBndCond::ContributeBC(data,weight,ef,bc);
 	}
 	
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &uexact,TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val){
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val){
 		val.Fill(0.);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ek,
-                                     TPZFMatrix<REAL> &ef);
+                                     TPZFMatrix<STATE> &ek,
+                                     TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ef);
+                                     TPZFMatrix<STATE> &ef);
 	
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ek,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ek,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc) {
 		//NOTHING TO BE DONE HERE
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc)
 	{
 		TPZBndCond::ContributeBCInterface(data,dataleft,weight,ef,bc);

@@ -78,7 +78,7 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
 	fPreStressXY = Sigxy;
 }
 
-void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &axes=data.axes;
@@ -106,14 +106,14 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		//		PZError.show();
 	}
 	if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
-		TPZManVector<REAL> res(3);
+		TPZManVector<STATE> res(3);
 		fForcingFunction->Execute(data.x,res);
 		ff[0] = res[0];
 		ff[1] = res[1];
 		ff[2] = res[2];
 	}
 	
-	TPZFMatrix<REAL> du(2,2);
+	TPZFMatrix<STATE> du(2,2);
 	/*
 	 * Plain strain materials values
 	 */
@@ -185,7 +185,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 }
 
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
-										 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
@@ -285,7 +285,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 	//  return 0;
 }
 
-void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
+void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
 	
 	REAL epsx;
 	REAL epsy;
@@ -407,20 +407,20 @@ void TPZElasticityMaterial::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TP
 	}
 }
 
-void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) {
+void TPZElasticityMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
 		cout << "TPZElasticityMaterial::Flux only serves for xy configuration\n";
 		axes.Print("axes");
 	}
 }
 
-void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-								   TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-								   TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+								   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+								   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	values[0] = 0.;
 	TPZVec<REAL> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy,gamma;
-	TPZFMatrix<REAL> du(dudx.Rows(),dudx.Cols());
+	TPZFMatrix<STATE> du(dudx.Rows(),dudx.Cols());
 	du(0,0) = dudx(0,0)*axes(0,0)+dudx(1,0)*axes(1,0);
 	du(1,0) = dudx(0,0)*axes(0,1)+dudx(1,0)*axes(1,1);
 	du(0,1) = dudx(0,1)*axes(0,0)+dudx(1,1)*axes(1,0);
@@ -433,7 +433,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	sigma[2] = fE*0.5/(1.+fnu)*gamma;
 	
 	//tens�s aproximadas : outra forma
-	TPZVec<REAL> sol(1);
+	TPZVec<STATE> sol(1);
 	Solution(u,du,axes,5,sol);
 	sigma[0] = sol[0];
 	Solution(u,du,axes,6,sol);
@@ -457,7 +457,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
 	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 	
 	//values[1] : erro em norma L2 em deslocamentos
-	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0)+pow(fabs(u[1] - u_exact[1]),(REAL)2.0);
+	values[1] = pow((REAL)fabs(u[0] - u_exact[0]),(REAL)2.0)+pow((REAL)fabs(u[1] - u_exact[1]),(REAL)2.0);
 	
 	//values[2] : erro estimado
 	values[2] = 0.;

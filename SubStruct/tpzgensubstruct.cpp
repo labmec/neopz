@@ -114,7 +114,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	}
 	
 	TPZMaterial * mat (fCMesh->FindMaterial(1));
-	TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
+	TPZFMatrix<STATE> val1(1,1,0.),val2(1,1,0.);
 	TPZBndCond *bc = new TPZBndCond(mat,-1,0,val1,val2);
 	TPZMaterial * matbc(bc);
 	fCMesh->InsertMaterialObject(matbc);

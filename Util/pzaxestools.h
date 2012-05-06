@@ -15,23 +15,23 @@
  * to euclidian basis and viceverse. \ref util "Utility"
  */
 template<class TVar>
-class TPZAxesTools{ 
+class TPZAxesTools { 
 public:
 	/// simple constructor
-	TPZAxesTools(){}
+	TPZAxesTools() {}
 	/// destructor
-	~TPZAxesTools(){}
+	~TPZAxesTools() {}
 	
 	/**
 	 * @brief Verify whether parameter axes is an orthogonal normalized matrix.
 	 * @param axes Object to check if it is a orthogonal and normalized matrix
 	 */
-	static void VerifyAxes(const TPZFMatrix<TVar> &axes){
+	static void VerifyAxes(const TPZFMatrix<TVar> &axes) {
 #ifdef DEBUG
 		const double tol = 1.e-8;
 		bool check = true;
 		for(int i = 0; i < axes.Rows(); i++){
-			for(int j = 0; j < axes.Rows(); j++){
+			for(int j = 0; j < axes.Rows(); j++) {
 				if(i == j) continue;
 				TVar sum = 0.;
 				for(int k = 0; k < axes.Cols(); k++){

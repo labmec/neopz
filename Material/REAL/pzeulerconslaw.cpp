@@ -90,9 +90,9 @@ int TPZEulerConsLaw::NStateVariables() {
 	return NStateVariables(Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-REAL TPZEulerConsLaw::Pressure(TPZVec<REAL> &U)
+REAL TPZEulerConsLaw::Pressure(TPZVec<STATE> &U)
 {
-	REAL press;
+	STATE press;
 	TPZEulerConsLaw::Pressure(fGamma, fDim, press, U);
 	return press;
 }
@@ -213,7 +213,7 @@ int TPZEulerConsLaw::NFluxes()
 
 //-----------------Solutions
 
-void TPZEulerConsLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZEulerConsLaw::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 	if(fabs(Sol[0]) < 1.e-10) {
 		PZError << "\nTPZEulerConsLaw::Solution: Density almost null\n"
@@ -254,8 +254,8 @@ void TPZEulerConsLaw::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatr
 	} else if(var == 7) {
 		//    int nstate = NStateVariables();
 		Solout.Resize(1);
-		REAL cspeed;
-		REAL us;
+		STATE cspeed;
+		STATE us;
 		TPZEulerConsLaw::cSpeed(Sol, fGamma, cspeed);
 		TPZEulerConsLaw::uRes(Sol, us);
 		Solout[0] = us / cspeed;
@@ -277,7 +277,7 @@ void TPZEulerConsLaw::SetDelta(REAL delta)
 #ifdef _AUTODIFF
 
 void TPZEulerConsLaw::PrepareFAD(
-								 TPZVec<REAL> & sol, TPZFMatrix<REAL> & dsol,
+								 TPZVec<STATE> & sol, TPZFMatrix<STATE> & dsol,
 								 TPZFMatrix<REAL> & phi, TPZFMatrix<REAL> & dphi,
 								 TPZVec<FADREAL> & FADsol,
 								 TPZVec<FADREAL> & FADdsol)
@@ -316,7 +316,7 @@ void TPZEulerConsLaw::PrepareFAD(
 }
 
 void TPZEulerConsLaw::PrepareInterfaceFAD(
-										  TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+										  TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 										  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
 										  TPZVec<FADREAL> & FADsolL,
 										  TPZVec<FADREAL> & FADsolR)
@@ -363,7 +363,7 @@ void TPZEulerConsLaw::PrepareInterfaceFAD(
 
 template <class T>
 void TPZEulerConsLaw::PrepareFastestInterfaceFAD(
-												 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+												 TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 												 TPZVec<T> & FADsolL,
 												 TPZVec<T> & FADsolR)
 {
@@ -387,7 +387,7 @@ void TPZEulerConsLaw::PrepareFastestInterfaceFAD(
 
 //----------------Contributions
 
-void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -398,7 +398,7 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	// fForcingFunction is null at iterations > 0
 	if(fForcingFunction)
 	{
-		TPZVec<REAL> res;
+		TPZVec<STATE> res;
 		int i, nState = NStateVariables();
 		fForcingFunction->Execute(data.x, res);
 		for(i = 0; i < nState; i++)
@@ -428,7 +428,7 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	PZError << "TPZEulerConsLaw::Contribute> Unhandled Contribution Time";
 }
 
-void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
+void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 {
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -439,7 +439,7 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	// fForcingFunction is null at iterations > 0
 	if(fForcingFunction)
 	{
-		TPZVec<REAL> res;
+		TPZVec<STATE> res;
 		int i, nState = NStateVariables();
 		fForcingFunction->Execute(data.x, res);
 		for(i = 0; i < nState; i++)
@@ -470,10 +470,10 @@ void TPZEulerConsLaw::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 }
 
 void TPZEulerConsLaw::ContributeLast(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
-									 TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+									 TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 									 REAL weight,
 									 TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-									 TPZFMatrix<REAL> &ef)
+									 TPZFMatrix<STATE> &ef)
 {
 	// contributing the explicit parcell of the residual to the
 	// rhs.
@@ -498,10 +498,10 @@ void TPZEulerConsLaw::ContributeLast(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 
 
 void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
-									TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+									TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 									REAL weight,
 									TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-									TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+									TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	// contributing the implicit parcell of the residual to the
 	// rhs.
@@ -552,10 +552,10 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 }
 
 void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
-									TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+									TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 									REAL weight,
 									TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-									TPZFMatrix<REAL> &ef)
+									TPZFMatrix<STATE> &ef)
 {
 	// contributing the implicit parcell of the residual to the
 	// rhs.
@@ -573,7 +573,7 @@ void TPZEulerConsLaw::ContributeAdv(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,
 }
 
 void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                          REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+                                          REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 #ifdef LOG4CXX
     if(fluxroe->isDebugEnabled()){
@@ -642,7 +642,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 
 
 void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                          REAL weight, TPZFMatrix<REAL> &ef)
+                                          REAL weight, TPZFMatrix<STATE> &ef)
 {
 	
 	// contributing face-based quantities
@@ -659,7 +659,7 @@ void TPZEulerConsLaw::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 
 void TPZEulerConsLaw::ContributeBC(TPZMaterialData &data,
 								   REAL weight,
-								   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+								   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 								   TPZBndCond &bc)
 {
 	int phr = data.phi.Rows();
@@ -699,17 +699,17 @@ void TPZEulerConsLaw::ContributeBC(TPZMaterialData &data,
 
 void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											REAL weight,
-											TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+											TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 											TPZBndCond &bc)
 {
 	int nstate = NStateVariables();
-	TPZVec<REAL> solR(nstate,0.);
+	TPZVec<STATE> solR(nstate,0.);
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 	
-	TPZFMatrix<REAL> dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
+	TPZFMatrix<STATE> dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
 	TPZFMatrix<REAL> phiR(0,0), dphiR(0,0);
 	int entropyFix;
 	
@@ -788,7 +788,7 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 
 void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											REAL weight,
-											TPZFMatrix<REAL> &ef,
+											TPZFMatrix<STATE> &ef,
 											TPZBndCond &bc)
 {
     int numbersol = dataleft.sol.size();
@@ -797,8 +797,8 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
     }
 	
 	int nstate = NStateVariables();
-	TPZVec<REAL> solR(nstate,0.);
-	TPZFMatrix<REAL> dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
+	TPZVec<STATE> solR(nstate,0.);
+	TPZFMatrix<STATE> dsolR(dataleft.dsol[0].Rows(), dataleft.dsol[0].Cols(),0.);
 	TPZFMatrix<REAL> phiR(0,0), dphiR(0,0);
 	int entropyFix;
 	
@@ -813,13 +813,13 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		if(fDim == 2)
 		{// flux tests
             TPZManVector<REAL,3> normal2(2,0.);
-            TPZManVector<REAL,5> flux2(nstate,0.);
+            TPZManVector<STATE,5> flux2(nstate,0.);
             normal2[0] = -data.normal[0];
             normal2[1] = -data.normal[1];
-            TPZManVector<REAL,5 > flux(nstate,0.);
-            Roe_Flux<REAL>(dataleft.sol[0], solR, data.normal, fGamma, flux);
-            Roe_Flux<REAL>(solR, dataleft.sol[0], normal2, fGamma, flux2);
-            REAL fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
+            TPZManVector<STATE,5 > flux(nstate,0.);
+            Roe_Flux<STATE>(dataleft.sol[0], solR, data.normal, fGamma, flux);
+            Roe_Flux<STATE>(solR, dataleft.sol[0], normal2, fGamma, flux2);
+            STATE fluxs = fabs(flux[0]+flux2[0])+fabs(flux[1]+flux2[1])+fabs(flux[2]+flux2[2])+fabs(flux[3]+flux2[3]);
             if(fluxs > 1.e-10)
             {
 				std::cout << "Fluxo nao simetrico fluxs = " << fluxs << std::endl;
@@ -832,10 +832,10 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 				if(err > 1.e-5)
 				{
 					std::cout << "fluxo de parede errado 2 err " << err << std::endl;
-					Roe_Flux<REAL>(dataleft.sol[0],solR,data.normal,fGamma,flux);
+					Roe_Flux<STATE>(dataleft.sol[0],solR,data.normal,fGamma,flux);
 				} else
 				{
-					Roe_Flux<REAL>(dataleft.sol[0],solR,data.normal,fGamma,flux);
+					Roe_Flux<STATE>(dataleft.sol[0],solR,data.normal,fGamma,flux);
 				}
             }
 		} // end of tests
@@ -849,10 +849,10 @@ void TPZEulerConsLaw::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 
 void TPZEulerConsLaw::ContributeFastestBCInterface(int dim,
 												   TPZVec<REAL> &x,
-												   TPZVec<REAL> &solL, TPZFMatrix<REAL> &dsolL,
+												   TPZVec<STATE> &solL, TPZFMatrix<STATE> &dsolL,
 												   REAL weight, TPZVec<REAL> &normal,
 												   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &dphiL, TPZFMatrix<REAL> &axesleft,
-												   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+												   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 	
 	switch(dim)
@@ -884,10 +884,10 @@ void TPZEulerConsLaw::ContributeFastestBCInterface(int dim,
 
 template <int dim>
 void TPZEulerConsLaw::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
-													   TPZVec<REAL> &solL, TPZFMatrix<REAL> &dsolL,
+													   TPZVec<STATE> &solL, TPZFMatrix<STATE> &dsolL,
 													   REAL weight, TPZVec<REAL> &normal,
 													   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &dphiL,TPZFMatrix<REAL> &axesleft,
-													   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+													   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 #ifdef _TFAD
 	typedef TFad<2*(dim+2), REAL> TFADREALInterface;
@@ -902,14 +902,14 @@ void TPZEulerConsLaw::ContributeFastestBCInterface_dim(TPZVec<REAL> &x,
 	int entropyFix;
 	
 	int nstate = NStateVariables();
-	TPZVec<REAL> solR(nstate,0.);
+	TPZVec<STATE> solR(nstate,0.);
 	TPZFMatrix<REAL> phiR(0,0);
 	
 	// initial guesses for left and right sol
 	// fForcingFunction is null at iterations > 0
 	if(fForcingFunction)
 	{
-		TPZVec<REAL> res;
+		TPZVec<STATE> res;
 		fForcingFunction->Execute(x, res);
 		for(int i = 0; i < nstate; i++)
 			solL[i] = solR[i] = res[i];
@@ -1034,12 +1034,12 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					solR[0] = bc.Val2()(0,0);
 					// rho vel = rho * Mach * c * u_directioni / us
 					for(i = 1; i < nstate-1; i++)
-						solR[i] = bc.Val2()(0,0) *
+						solR[i] = (T)bc.Val2()(0,0) *
 						usinf *
 						solL[i]/solL[0] / us; // versor (direction)
 					// rhoe = p / (gamma - 1) + rho * vel*vel/2
-					solR[nstate-1] = bc.Val2()(nstate-1,0) / T(fGamma - 1.) +
-					bc.Val2()(0,0) * usinf * usinf / T(2.);
+					solR[nstate-1] = T(bc.Val2()(nstate-1,0)) / T(fGamma - 1.) +
+					T(bc.Val2()(0,0)) * usinf * usinf / T(2.);
 				}
 				else
 				{//subsonic
@@ -1103,9 +1103,9 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					// is imposed. As a rule, the imposition of pressure is applied
 					// instead.
 					
-					solR[0] = solL[0] * pow(bc.Val2()(nstate-1,0)/p, (1./fGamma));
+					solR[0] = solL[0] * (T)pow(T(bc.Val2()(nstate-1,0))/p, T(1./fGamma));
 					
-					cghost = sqrt(fGamma * bc.Val2()(nstate-1,0)/ solR[0]);
+					cghost = sqrt(fGamma * T(bc.Val2()(nstate-1,0))/ T(solR[0]));
 					
 					unghost = (c - cghost) * T(2./(fGamma - 1.));
 					usghost = 0.;
@@ -1166,12 +1166,12 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 					solR[0] = bc.Val2()(0,0);
 					// rho vel = rho * Mach * c * u_directioni / us
 					for(i = 1; i < nstate-1; i++)
-						solR[i] = bc.Val2()(0,0) *
+						solR[i] = T(bc.Val2()(0,0)) *
 						usinf *
 						solL[i]/solL[0] / us; // versor (direction)
 					// rhoe = p / (gamma - 1) + rho * vel*vel/2
-					solR[nstate-1] = bc.Val2()(nstate-1,0) / T(fGamma - 1.) +
-					bc.Val2()(0,0) * usinf * usinf / T(2.);
+					solR[nstate-1] = T(bc.Val2()(nstate-1,0)) / T(fGamma - 1.) +
+					T(bc.Val2()(0,0)) * usinf * usinf / T(2.);
 				}
 				else
 				{//subsonic
@@ -1228,7 +1228,7 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 			cghost = c + T((fGamma - 1.)/2.)*un;
 			// ghost density
 			// rhoghost = (cghost^2*rho^gamma/(gamma * p))^(1/gamma -1)
-			solR[0] = pow(cghost * cghost * pow(solL[0],fGamma)/ (p * fGamma), (1./(fGamma - 1.)));
+			solR[0] = pow(cghost * cghost * pow(T(solL[0]),T(fGamma))/ (p * fGamma), (1./(fGamma - 1.)));
 			
 			// computing velocity vector
 			usghost = 0.;
@@ -1261,10 +1261,10 @@ void TPZEulerConsLaw:: ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVe
 
 void TPZEulerConsLaw::ContributeApproxImplDiff(TPZVec<REAL> &x,
 											   TPZFMatrix<REAL> &jacinv,
-											   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+											   TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 											   REAL weight,
 											   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-											   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+											   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
 	// computing the determinant of the jacobian
 	REAL deltaX = DeltaX(1./Det(jacinv));
@@ -1282,10 +1282,10 @@ void TPZEulerConsLaw::ContributeApproxImplDiff(TPZVec<REAL> &x,
 
 void TPZEulerConsLaw::ContributeExplDiff(TPZVec<REAL> &x,
 										 TPZFMatrix<REAL> &jacinv,
-										 TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+										 TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 										 REAL weight,
 										 TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-										 TPZFMatrix<REAL> &ef)
+										 TPZFMatrix<STATE> &ef)
 {
 	// computing the determinant of the jacobian
 	REAL deltaX = DeltaX(1./Det(jacinv));
@@ -1307,7 +1307,7 @@ void TPZEulerConsLaw::ContributeImplDiff(TPZVec<REAL> &x,
 										 TPZFMatrix<REAL> &jacinv,
 										 TPZVec<FADREAL> &sol,TPZVec<FADREAL> &dsol,
 										 REAL weight,
-										 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
 	// computing the determinant of the jacobian
 	REAL deltaX = DeltaX(1./Det(jacinv));
@@ -1324,7 +1324,8 @@ void TPZEulerConsLaw::ContributeImplDiff(TPZVec<REAL> &x,
 }
 
 
-void TPZEulerConsLaw::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZEulerConsLaw::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &phi, 
+												TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
 	// computing the determinant of the jacobian
 	REAL deltaX = DeltaX(1./Det(jacinv));
@@ -1343,14 +1344,14 @@ void TPZEulerConsLaw::ContributeFastestImplDiff(int dim, TPZVec<REAL> &x, TPZFMa
 #endif
 
 void TPZEulerConsLaw::ContributeExplConvFace(TPZVec<REAL> &x,
-											 TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+											 TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 											 REAL weight,TPZVec<REAL> &normal,
 											 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-											 TPZFMatrix<REAL> &ef, int entropyFix)
+											 TPZFMatrix<STATE> &ef, int entropyFix)
 {
 	int nState = NStateVariables();
-	TPZVec<REAL > flux(nState,0.);
-	Roe_Flux<REAL>(solL, solR, normal, fGamma, flux, entropyFix);
+	TPZVec<STATE> flux(nState,0.);
+	Roe_Flux<STATE>(solL, solR, normal, fGamma, flux, entropyFix);
 	int nShapeL = phiL.Rows(),
 	nShapeR = phiR.Rows(),
 	i_shape, i_state;
@@ -1383,7 +1384,7 @@ void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSiz
 												   TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 												   REAL weight,TPZVec<REAL> &normal,
 												   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-												   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix)
+												   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef, int entropyFix)
 {
 	int nState = NStateVariables();
 	TPZVec<FADREAL > flux(nState,REAL(0.));
@@ -1447,22 +1448,22 @@ void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSiz
 #endif
 
 void TPZEulerConsLaw::ContributeApproxImplConvFace(TPZVec<REAL> &x, REAL faceSize,
-												   TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+												   TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 												   REAL weight,TPZVec<REAL> &normal,
 												   TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-												   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef, int entropyFix
+												   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef, int entropyFix
 												   )
 {
 	int nState = NStateVariables();
-	TPZManVector< TPZManVector<REAL,5> ,3> FL(3),FR(3);
-	TPZManVector< REAL,5> FN(nState,0.);
+	TPZManVector< TPZManVector<STATE,5> ,3> FL(3),FR(3);
+	TPZManVector< STATE,5> FN(nState,0.);
 	Flux(solL, FL[0], FL[1], FL[2]);
 	Flux(solR, FR[0], FR[1], FR[2]);
 	TPZFNMatrix<36> DFNL(nState,nState,0.),DFNR(nState,nState,0.);
 	
-	TPZManVector<REAL,7 > fluxroe(nState,0.);
+	TPZManVector<STATE,7 > fluxroe(nState,0.);
 	Roe_Flux(solL, solR, normal, fGamma, fluxroe,entropyFix);
-	TPZManVector< TPZDiffMatrix<REAL> ,3> AL(3),AR(3);
+	TPZManVector< TPZDiffMatrix<STATE> ,3> AL(3),AR(3);
 	JacobFlux(fGamma, fDim, solL, AL);
 	JacobFlux(fGamma, fDim, solR, AR);
 	
@@ -1560,7 +1561,7 @@ void TPZEulerConsLaw::ContributeImplConvFace(TPZVec<REAL> &x,
 											 TPZVec<FADREAL> &solL,TPZVec<FADREAL> &solR,
 											 REAL weight,TPZVec<REAL> &normal,
 											 TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-											 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+											 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 											 int entropyFix)
 {
 	int nState = NStateVariables();
@@ -1623,10 +1624,10 @@ void TPZEulerConsLaw::ContributeImplConvFace(TPZVec<REAL> &x,
 
 void TPZEulerConsLaw::ContributeFastestImplConvFace(int dim,
 													TPZVec<REAL> &x,
-													TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+													TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 													REAL weight,TPZVec<REAL> &normal,
 													TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-													TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+													TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 													int entropyFix)
 {
 	switch(dim)
@@ -1652,10 +1653,10 @@ void TPZEulerConsLaw::ContributeFastestImplConvFace(int dim,
 template <int dim>
 void TPZEulerConsLaw::ContributeFastestImplConvFace_dim(
 														TPZVec<REAL> &x,
-														TPZVec<REAL> &solL,TPZVec<REAL> &solR,
+														TPZVec<STATE> &solL,TPZVec<STATE> &solR,
 														REAL weight,TPZVec<REAL> &normal,
 														TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-														TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+														TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 														int entropyFix)
 {
 #ifdef _TFAD
@@ -1682,7 +1683,7 @@ void TPZEulerConsLaw::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 													  TPZVec<T> &FADsolL,TPZVec<T> &FADsolR,
 													  REAL weight,TPZVec<REAL> &normal,
 													  TPZFMatrix<REAL> &phiL,TPZFMatrix<REAL> &phiR,
-													  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+													  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 													  int entropyFix)
 {
 	const int nState = NStateVariables();
@@ -1759,12 +1760,12 @@ void TPZEulerConsLaw::ContributeFastestImplConvFace_T(TPZVec<REAL> &x,
 #endif
 
 void TPZEulerConsLaw::ContributeExplConvVol(TPZVec<REAL> &x,
-											TPZVec<REAL> &sol,
+											TPZVec<STATE> &sol,
 											REAL weight,
 											TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-											TPZFMatrix<REAL> &ef)
+											TPZFMatrix<STATE> &ef)
 {
-	TPZVec< TPZVec<REAL> > F(3);
+	TPZVec< TPZVec<STATE> > F(3);
 	Flux(sol, F[0], F[1], F[2]);
 	
 	
@@ -1790,12 +1791,12 @@ void TPZEulerConsLaw::ContributeExplConvVol(TPZVec<REAL> &x,
 
 
 void TPZEulerConsLaw::ContributeImplConvVol(TPZVec<REAL> &x,
-											TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+											TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 											REAL weight,
 											TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-											TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+											TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
-	TPZVec< TPZVec<REAL> > F(3);
+	TPZVec< TPZVec<STATE> > F(3);
 	Flux(sol, F[0], F[1], F[2]);
 	
 #ifdef DIVTIMESTEP
@@ -1804,7 +1805,7 @@ void TPZEulerConsLaw::ContributeImplConvVol(TPZVec<REAL> &x,
 	REAL constant = -TimeStep() * weight; // -deltaT * weight
 #endif
 	
-	TPZVec< TPZDiffMatrix<REAL> > Ai(3);
+	TPZVec< TPZDiffMatrix<STATE> > Ai(3);
 	JacobFlux(fGamma, fDim, sol, Ai);
 	int j_shape, j_state;
 	int i_state, i_shape, nShape = phi.Rows(), k;
@@ -1836,10 +1837,10 @@ void TPZEulerConsLaw::ContributeImplConvVol(TPZVec<REAL> &x,
 
 
 void TPZEulerConsLaw::ContributeExplT1(TPZVec<REAL> &x,
-									   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+									   TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 									   REAL weight,
 									   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-									   TPZFMatrix<REAL> &ef)
+									   TPZFMatrix<STATE> &ef)
 {
 	if(TimeStep()==0.)
 	{
@@ -1869,10 +1870,10 @@ void TPZEulerConsLaw::ContributeExplT1(TPZVec<REAL> &x,
 }
 
 void TPZEulerConsLaw::ContributeImplT1(TPZVec<REAL> &x,
-									   TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,
+									   TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,
 									   REAL weight,
 									   TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
 	if(TimeStep()==0.)
 	{
@@ -1908,10 +1909,10 @@ void TPZEulerConsLaw::ContributeImplT1(TPZVec<REAL> &x,
 }
 
 void TPZEulerConsLaw::ContributeExplT2(TPZVec<REAL> &x,
-									   TPZVec<REAL> &sol,
+									   TPZVec<STATE> &sol,
 									   REAL weight,
 									   TPZFMatrix<REAL> &phi,
-									   TPZFMatrix<REAL> &ef)
+									   TPZFMatrix<STATE> &ef)
 {
 	if(TimeStep()==0.)
 	{

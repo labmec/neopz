@@ -6,36 +6,36 @@
 #include "pztransientmat.h"
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::SetExplicit(){
+void TPZTransientMaterial< TBASEMAT >::SetExplicit() {
 	this->fTemporalIntegrator = EExplicit;
 }
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::SetImplicit(){
+void TPZTransientMaterial< TBASEMAT >::SetImplicit() {
 	this->fTemporalIntegrator = EImplicit;
 }
 
 template<class TBASEMAT>
-TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL TimeStep):TBASEMAT(nummat, dim){
+TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(int nummat, int dim, REAL TimeStep):TBASEMAT(nummat, dim) {
 	this->SetTimeStep(TimeStep);
 }
 
 template<class TBASEMAT>
-TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMaterial &cp):TBASEMAT(cp){
+TPZTransientMaterial< TBASEMAT >::TPZTransientMaterial(const TPZTransientMaterial &cp):TBASEMAT(cp) {
 	this->fTemporalIntegrator = cp.fTemporalIntegrator;
 	this->fStep = cp.fStep;
 	this->fTimeStep = cp.fTimeStep;
 }
 
 template<class TBASEMAT>
-TPZTransientMaterial< TBASEMAT >::~TPZTransientMaterial(){
+TPZTransientMaterial< TBASEMAT >::~TPZTransientMaterial() {
 	//NOTHING TO BE DONE
 }
 
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
                                                   REAL weight,
-                                                  TPZFMatrix<REAL> &ek,
-                                                  TPZFMatrix<REAL> &ef){
+                                                  TPZFMatrix<STATE> &ek,
+                                                  TPZFMatrix<STATE> &ef) {
 	
 	// Mostly for implicit
     int numbersol = data.sol.size();
@@ -45,8 +45,8 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
 
 	if (this->fStep == ECurrent){
 		TBASEMAT::Contribute(data,weight,ek,ef);
-		this->ContributeSolutionRhs(data.sol[0], data.phi, weight, ef);
-		this->ContributeTangent(data.sol[0], data.phi, weight, ek);
+		ContributeSolutionRhs(data.sol[0], data.phi, weight, ef);
+		ContributeTangent(data.sol[0], data.phi, weight, ek);
 		return;
 	}
 	
@@ -74,9 +74,9 @@ void TPZTransientMaterial< TBASEMAT >::Contribute(TPZMaterialData &data,
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
                                                     REAL weight,
-                                                    TPZFMatrix<REAL> &ek,
-                                                    TPZFMatrix<REAL> &ef,
-                                                    TPZBndCond &bc){
+                                                    TPZFMatrix<STATE> &ek,
+                                                    TPZFMatrix<STATE> &ef,
+                                                    TPZBndCond &bc) {
 	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::ContributeBC(data,weight,ek,ef,bc);
@@ -90,7 +90,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
 	
 	// Mostly for explicit
 	if (this->fStep == EMassMatrix){
-		TPZFNMatrix<1000> fakeef(ek.Rows(),1,0.);
+		TPZFNMatrix<1000,STATE> fakeef(ek.Rows(),1,0.);
 		TBASEMAT::ContributeBC(data,weight,ek,fakeef,bc);
 		return;
 	}
@@ -107,8 +107,8 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBC(TPZMaterialData &data,
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                            REAL weight,
-                                                           TPZFMatrix<REAL> &ek,
-                                                           TPZFMatrix<REAL> &ef){
+                                                           TPZFMatrix<STATE> &ek,
+                                                           TPZFMatrix<STATE> &ef) {
 	
 	// Mostly for implicit
 	if (this->fStep == ECurrent){
@@ -137,9 +137,9 @@ void TPZTransientMaterial< TBASEMAT >::ContributeInterface(TPZMaterialData &data
 template<class TBASEMAT>
 void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                                              REAL weight, 
-                                                             TPZFMatrix<REAL> &ek,
-                                                             TPZFMatrix<REAL> &ef,
-                                                             TPZBndCond &bc){
+                                                             TPZFMatrix<STATE> &ek,
+                                                             TPZFMatrix<STATE> &ef,
+                                                             TPZBndCond &bc) {
 	// Mostly for implicit
 	if (this->fStep == ECurrent){
 		TBASEMAT::ContributeBCInterface(data,dataleft, weight,ek, ef, bc);
@@ -166,7 +166,7 @@ void TPZTransientMaterial< TBASEMAT >::ContributeBCInterface(TPZMaterialData &da
 }
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ef){
+void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<STATE> &ef) {
 	REAL Mult = +1.; 
 	//Last solution is added to residual
 	if (this->fStep == ECurrent) Mult = -1.; 
@@ -177,13 +177,13 @@ void TPZTransientMaterial< TBASEMAT >::ContributeSolutionRhs(TPZVec<REAL> &sol, 
 	int i, k;
 	for(i = 0; i < phr; i++) {
 		for(k = 0; k < nstate; k++){
-			ef(i*nstate+k, 0) += Mult * weight * sol[k] * phi(i,0) / DeltaT;
+			ef(i*nstate+k, 0) += (STATE)(Mult * weight) * sol[k] * (STATE)(phi(i,0) / DeltaT);
 		}//k
 	}//i
 }//method
 
 template<class TBASEMAT>
-void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ek){
+void TPZTransientMaterial< TBASEMAT >::ContributeTangent(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<STATE> &ek) {
 	const int phr = phi.Rows();
 	const int nstate = this->NStateVariables();
 	const REAL DeltaT = this->TimeStep();
@@ -208,7 +208,7 @@ template class TPZTransientMaterial< TPZNonLinearPoisson3d >;
 template class TPZTransientMaterial< TPZBurger >;
 
 /** @brief Instantiations to TPZMatPoisson3d, TPZNonLinearPoisson3d and TPZBurger. */
-void TestInstantiations(){
+void TestInstantiations() {
 	TPZTransientMaterial< TPZMatPoisson3d > A(1,1,1.);
 	TPZTransientMaterial< TPZNonLinearPoisson3d > B(1,1,1.);
 	TPZTransientMaterial< TPZBurger > C(1,1,1.);

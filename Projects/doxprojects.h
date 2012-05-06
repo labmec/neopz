@@ -9,10 +9,25 @@
  */
 /**
  \page pg_app_projects DESCRIPTION OF THE APPLICATION PROJECTS
+
+ The applications using neoPZ environment are divided in three groups:
+ 
  \section app_hiperbolic The hiperbolic projects
+ \subsection steam_injection - Steam Injection in Reservoir
+ 
+ \subsection cons_law - Conservation Laws
+ 
  \section app_elliptic The elliptic projects
+ 
  \section app_parabolic The parabolic projects
-*/
+ 
+ Also considerer a group for high performance (parallelism) and for hp-adaptive versions.
+ 
+ \section app_highperform High performance
+ 
+ \section app_adaptive hp-Adaptivity
+
+ */
 
 /**
  * @defgroup tut_projects Tutorial Projects.
@@ -20,10 +35,6 @@
  */
 /**
  \page pg_tut_projects DESCRIPTION OF THE TUTORIAL PROJECTS
- \section tut_testgeom To create geometric mesh
- \section tut_testcomp To create computational mesh
- \section tut_testonedim To solve one-dimensional differential equation
- \section tut_testtwodim To solve two-dimensional differential equation
  */
 
 /**
@@ -32,9 +43,4 @@
  */
 /**
  \page pg_unit_projects DESCRIPTION OF THE UNIT TEST PROJECTS FOR VALIDATION
- \section unit_integral To test numerical integration module
- \section unit_matrix To test matrix module
- \section unit_solvers To test linear solvers for systems module
- \section unit_topology To test topology module
- \section unit_linmaterial To test linear material
  */

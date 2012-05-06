@@ -306,23 +306,6 @@ multigrid iterations, continuous and discontinuous approximation spaces, among o
  
  \page pg_app_projects DESCRIPTION OF THE APPLICATION PROJECTS
  
- The applications using neoPZ environment are divided in three groups:
- \ref app_hiperbolic
- \ref app_elliptic
- \ref app_parabolic
- 
- \section app_hiperbolic The hiperbolic projects
- \subsection steam_injection Steam Injection in Reservoir
- 
- \subsection cons_law Conservation Laws
- 
- \section app_elliptic The elliptic projects
- \section app_parabolic The parabolic projects
-
- \section app_highperform High performance
- 
- \section app_adaptive hp-Adaptivity
-
  \page pg_tut_projects DESCRIPTION OF THE TUTORIAL PROJECTS
  
  The tutorial projects describe creation, filling data and description of the process of the methods for classes grouped in modules:

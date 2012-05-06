@@ -25,9 +25,9 @@ TPZBurger::~TPZBurger(){
 	
 }
 
-void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
+void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,REAL weight,
 								   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,
-								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
+								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 	if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
@@ -37,7 +37,7 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZV
 	
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
@@ -101,8 +101,8 @@ void TPZBurger::ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZV
 	}                          
 }
 
-void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
-							   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef){
+void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,REAL weight,
+							   TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef){
 	if (this->IsReferred()){
 		this->SetConvectionTerm(dsol, axes);
 	}
@@ -110,7 +110,7 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<R
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
@@ -180,8 +180,8 @@ void TPZBurger::ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<R
 
 void TPZBurger::ContributeBC(TPZMaterialData &data,
                              REAL weight,
-                             TPZFMatrix<REAL> &ek,
-                             TPZFMatrix<REAL> &ef,
+                             TPZFMatrix<STATE> &ek,
+                             TPZFMatrix<STATE> &ef,
                              TPZBndCond &bc){
     int numbersol = data.sol.size();
     if(numbersol != 1)
@@ -189,7 +189,7 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
         DebugStop();
     }
 	TPZFMatrix<REAL> &phi = data.phi;
-	TPZVec<REAL> &sol=data.sol[0];
+	TPZVec<STATE> &sol=data.sol[0];
 	TPZFMatrix<REAL> &axes=data.axes;
 	
 	int phr = phi.Rows();
@@ -263,8 +263,8 @@ void TPZBurger::ContributeBC(TPZMaterialData &data,
 
 void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                     REAL weight,
-                                    TPZFMatrix<REAL> &ek,
-                                    TPZFMatrix<REAL> &ef){
+                                    TPZFMatrix<STATE> &ek,
+                                    TPZFMatrix<STATE> &ef){
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -274,10 +274,10 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZFMatrix<REAL> &phiR = dataright.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	TPZVec<REAL> &solL=dataleft.sol[0];
-	TPZVec<REAL> &solR=dataright.sol[0];
-	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
-	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
+	TPZVec<STATE> &solL=dataleft.sol[0];
+	TPZVec<STATE> &solR=dataright.sol[0];
+	TPZFMatrix<STATE> &dsolL=dataleft.dsol[0];
+	TPZFMatrix<STATE> &dsolR=dataright.dsol[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolR);
@@ -422,8 +422,8 @@ void TPZBurger::ContributeInterface(TPZMaterialData &data, TPZMaterialData &data
 
 void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                       REAL weight,
-                                      TPZFMatrix<REAL> &ek,
-                                      TPZFMatrix<REAL> &ef,
+                                      TPZFMatrix<STATE> &ek,
+                                      TPZFMatrix<STATE> &ef,
                                       TPZBndCond &bc) {
     int numbersol = dataleft.sol.size();
     if (numbersol != 1) {
@@ -432,8 +432,8 @@ void TPZBurger::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &da
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
 	TPZManVector<REAL,3> &normal = data.normal;
-	TPZVec<REAL> &solL=dataleft.sol[0];
-	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
+	TPZVec<STATE> &solL=dataleft.sol[0];
+	TPZFMatrix<STATE> &dsolL=dataleft.dsol[0];
 	
 	if (this->IsReferred()){
 		this->SetConvectionTermInterface(dsolL, dsolL);

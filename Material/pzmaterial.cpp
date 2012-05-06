@@ -132,7 +132,7 @@ int TPZMaterial::NSolutionVariables(int index) {
 	return 0;
 }
 
-void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout){
+void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout){
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
@@ -140,7 +140,7 @@ void TPZMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);
 }
 
-void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
+void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout){
 	if (datavec.size()==1) {
 		this->Solution(datavec[0], var, Solout);
 	}
@@ -150,7 +150,7 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REA
 }
 
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
-						   TPZVec<REAL> &Solout){
+						   TPZVec<STATE> &Solout){
 	DebugStop();
 	//	if(var == 0) Solout = Sol;
 	//	else if(var == 99 || var == 100 || var == 101 || var == 102) {

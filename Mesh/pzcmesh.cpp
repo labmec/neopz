@@ -23,14 +23,12 @@
 #include "pzsubcmesh.h"
 #include "TPZCompElDisc.h"
 #include "TPZInterfaceEl.h"
-#include "TPZAgglomerateEl.h"
 #include "pztrnsform.h"
 #include "pztransfer.h"
 #include "pzmultiphysicscompel.h"
 
 #include "pzvec.h"
 #include "pzadmchunk.h"
-
 #include "pzsubcmesh.h"
 
 #include "pzmetis.h"
@@ -40,6 +38,10 @@
 #include <set>
 
 #include "pzlog.h"
+
+#ifndef STATE_COMPLEX
+	#include "TPZAgglomerateEl.h"
+#endif
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzcompmesh"));
@@ -745,7 +747,9 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 
 void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 										  TPZTransfer<STATE> &transfer) {
-	
+#ifdef STATE_COMPLEX
+	DebugStop();
+#else
 	//TPZBlock<REAL> &localblock = Block();
 	TPZBlock<STATE> &localblock = Block();
 	//TPZBlock<REAL> &transferblock = transfermesh.Block();
@@ -803,6 +807,7 @@ void TPZCompMesh::BuildTransferMatrixDesc(TPZCompMesh &transfermesh,
 			disc->BuildTransferMatrix(*aggel,transfer);
 		}
 	}
+#endif
 }
 
 /*
@@ -1293,259 +1298,6 @@ int TPZCompMesh::GetFromSuperMesh (int superind, TPZCompMesh *super){
 	else return superind;
 }
 
-
-
-/*void TPZCompMesh::AdjustBoundaryElements() {
- int changed = 1;
- while(changed) {
- changed = 0;
- int nel = fElementVec.NElements();
- int el;
- TPZVec<int> subelindex;
- for(el=0; el<nel; el++) {
- TPZStack<TPZCompElSide> elvec(10);
- TPZCompEl *elp = fElementVec[el];
- if(!elp) continue;
- TPZMaterial *mat = elp->Material();
- if(mat && mat->Id() >= 0) continue;
- if(!elp->IsInterpolated()) continue;
- //TPZInterpolatedElement *cel = (TPZInterpolatedElement *) elp;
- //         cel->PRefine(99);
- // coucou!!!
- int nsides = elp->Reference()->NSides();
- int is;
- int nc = elp->Reference()->NCornerNodes();//Cedric 21/05/99
- //for(is=0; is<nsides; is++) {
- for(is=nc; is<nsides; is++) {//Cedric 02/04/00
- TPZCompElSide elpside(elp,is);
- elvec.Resize(0);
- elpside.HigherLevelElementList(elvec,0,0);
- if(elvec.NElements()) {
- Divide(el,subelindex,0);
- changed = 1;
- break;
- }
- }
- }
- }
- }*/
-/*
- void TPZCompMesh::hp_Adaptive_Mesh_Design(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
- REAL nadmerror,int niter,TPZVec<REAL> &singularpoint,TPZAnalysis &an,ostream &out) {
- int index;
- int Q = 2;//valor dado > 1 na procura de hn para elementos proximos ao ponto singular
- int Nc = 4;//number of layers
- int iter = 0;//itera�o atual
- REAL tol = .05;//tolerancia na aproxima�o do nova ordem do elemento
- int maxiter = 20;//maximo numero de itera�es do algoritmo do ponto fixo
- REAL w = 0.3;//fator de relaxa�o
- cout << "\n\nStep  0\n";
- an.Run(out);//solu�o malha inicial
- Print(out);
- Reference()->Print(out);
- an.Print("FEM SOLUTION ",out);
- 
- while(++iter < niter || MaximLocalError(fExact) > AdmLocalError(fExact,nadmerror) ) {
- 
- TPZCompEl *singel = SingularElement(singularpoint,ElementVec());//elemento que contem o ponto singular
- TPZStack<int> indexlist(0);
- Step3(singel,singularpoint,Q,Nc,indexlist);//distribui a ordem dos els. proximos ao ponto singular
- Step4(fExact,w,nadmerror,tol,maxiter,indexlist);//processa os restantes elementos
- InitializeBlock();
- TPZAnalysis step_an(this,out);
- int numeq = NEquations();
- TPZFMatrix<REAL> *stiff = new TPZFMatrix(numeq,numeq);
- step_an.SetMatrix(stiff);
- step_an.Solver().SetDirect(ELU);
- cout << "\n\nStep " << (iter+1) << endl;
- step_an.Run(out);
- Print(out);
- Reference()->Print(out);
- an.Print("FEM SOLUTION ",out);
- }
- }
- 
- TPZCompEl *TPZCompMesh::SingularElement(TPZVec<REAL> &point,TPZAdmChunkVector<TPZCompEl *> &listel) {
- //point deve ser interior a algum elemento da malha
- int nel = listel.NElements();
- TPZInterpolatedElement *intel,*intelkeep=0;
- for(int index=0;index<nel;index++) {
- intel = (TPZInterpolatedElement *) listel[index];
- TPZVec<REAL> coord(3,0.),result(3);
- REAL dist = 0.,mindist = 100.0;
- if(intel) {
- for(int con=0;con<intel->NCornerConnects();con++) {
- intel->Reference()->X(coord,result);
- for(int i=0;i<3;i++)
- dist += pow( result[i] - intel->Reference()->NodePtr(con)->Coord(i) , 2.0);
- if(dist < mindist) {
- mindist = dist;//dist = sqrt(dist);
- intelkeep = intel;
- }//if
- }//for con
- }
- }//for index
- return intelkeep;
- }
- 
- REAL TPZCompMesh::h_Parameter(TPZCompEl *cel) {
- 
- REAL h = 0.,cicjdist;
- TPZGeoEl *gel = cel->Reference();
- int nconn = gel->NCornerNodes();
- for(int conni=0;conni<nconn;conni++) {
- for(int connj=conni;connj<nconn;connj++) {
- cicjdist = 0.;
- for(int coordi=0;coordi<3;coordi++) {
- REAL coor1 = gel->NodePtr(conni)->Coord(coordi);
- REAL coor2 = gel->NodePtr(connj)->Coord(coordi);
- cicjdist += pow( coor1 - coor2, 2.0);
- }
- cicjdist = sqrt(cicjdist);
- if(h < cicjdist) h = cicjdist;
- }
- }
- return h;
- }
- 
- void TPZCompMesh::Step3(TPZCompEl *cel,TPZVec<REAL> &point,int Q,int Nc,TPZStack<int> &indexlist) {
- 
- int sum = (1+Q);
- int nc = 2;
- while(nc < Nc+1) {
- sum += pow(Q,nc);
- nc++;
- }
- REAL h = h_Parameter(cel);
- REAL hn = h/sum;
- if(hn > 1.3*h) hn = 2.0*h*hn / (h + hn);
- REAL hsub = 100.0;
- TPZCompEl *locel = cel;
- //obter um subelemento que contem o ponto singular e tem tamanho <= hn
- while(hsub > hn) {
- TPZVec<int> indexsubs;
- int index = locel->Index();
- locel->Divide(index,indexsubs,1);
- int nsub = indexsubs.NElements();
- TPZAdmChunkVector<TPZCompEl *> listsub(nsub);
- for(int k=0;k<nsub;k++) {
- index = listsub.AllocateNewElement();
- listsub[index] = fElementVec[indexsubs[k]];
- }
- locel = SingularElement(point,listsub);
- hsub = h_Parameter(locel);
- }
- TPZInterpolatedElement *intel = (TPZInterpolatedElement *) locel;
- intel->SetSideOrder(2,Nc+1);
- indexlist.Push(intel->Index());
- //os elemento viz devem ter ordens menores a cel quanto mais longe de point
- TPZInterpolatedElement *neighkeep,*neigh;
- //feito s�para o caso 1d , extender para o caso geral
- int dim = intel->Dimension();
- if(dim != 1) {
- cout << "TPZCompMesh::Step3 not dimension implemented , dimension = " << cel->Dimension() << endl;
- DebugStop();
- }
- for(int side=0;side<2;side++) {
- int ly = Nc;
- TPZGeoElSide neighside = intel->Reference()->Neighbour(side);
- TPZGeoElSide neighsidekeep = neighside;
- while(ly > 0 && neighsidekeep.Exists() && neighsidekeep.Element()->Id() > 0) {
- neigh = (TPZInterpolatedElement *) neighsidekeep.Element()->Reference();
- neigh->SetSideOrder(2,ly);
- int otherside = (neighsidekeep.Side()+1)%2;
- neighsidekeep.SetSide(otherside);
- indexlist.Push(neighsidekeep.Reference().Element()->Index());
- neighside = neighsidekeep.Neighbour();
- while(!neighside.Exists()) {
- TPZStack<TPZCompElSide> elvec(0);
- TPZCompElSide neighsidecomp = neighsidekeep.Reference();
- neighsidecomp.HigherLevelElementList(elvec,1,1);
- if(elvec.NElements()) {
- neighside = elvec[0].Reference();
- break;
- }
- neighside = neighsidecomp.LowerLevelElementList(1).Reference();
- }
- if(!neighside.Exists()) break;
- neighsidekeep = neighside;
- ly--;
- }
- }
- }
- 
- void TPZCompMesh::Step4(
- void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
- REAL w,REAL nadmerror,REAL tol,int maxiter,TPZStack<int> &indexlist) {
- 
- REAL H1_error,L2_error,estimate;
- TPZVec<REAL> flux;
- int nlist = indexlist.NElements();
- 
- for(int iel=0;iel<NElements();iel++) {
- int count = 0;
- //descartando os elemento pr�imos ao ponto singular processados com Step3(..)
- while(count < nlist) if(iel == indexlist[count++]) break;
- if(count == nlist) continue;
- fElementVec[iel]->EvaluateError(fExact,H1_error,L2_error,flux,estimate);
- REAL csi = H1_error / AdmLocalError(fExact,nadmerror);
- //calculo da ordem pn do elemento atual
- TPZInterpolatedElement *elem = (TPZInterpolatedElement *) fElementVec[iel];
- int p = elem->SideOrder(2);
- REAL pnj = p;
- REAL p_ln_csi = p + log(csi);
- REAL hdivp = h_Parameter(elem) / p;
- int iter=0;
- //algoritmo do ponto fixo
- REAL pnjmais1 = 0;
- while(iter < maxiter) {
- REAL fipn_j = p_ln_csi - p*log(pnj * hdivp);
- pnjmais1 = (1.-w)*pnj + w*fipn_j;
- if(fabs(pnjmais1 - pnj) < tol) break;
- pnj = pnjmais1;
- iter++;
- }
- //escolha do inteiro mais proximo a pnjmais1
- int k=0;
- while(pnjmais1 - k > 1) k++;
- REAL pn;
- if(fabs(pnjmais1 - k) > .5) pn = k+1;
- else pn = k;
- elem->SetSideOrder(2,pn);
- }
- }
- 
- REAL TPZCompMesh::MaximLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv)) {
- 
- REAL H1_error,L2_error,estimate;
- TPZVec<REAL> flux(0);
- int nel = NElements();
- REAL maxerror;
- for(int iel=0;iel<nel;iel++) {
- fElementVec[iel]->EvaluateError(fExact,H1_error,L2_error,flux,estimate);
- if(maxerror < H1_error) maxerror = H1_error;
- }
- return maxerror;
- }
- 
- void NullFunction(TPZVec<REAL> &point,TPZVec<REAL>&val,TPZFMatrix<REAL> &deriv);
- REAL TPZCompMesh::AdmLocalError(void (*fExact)(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),REAL nadmerror) {
- 
- REAL H1_e,H1_uhp,L2_error,estimate;
- int m = NElements();
- EvaluateError(fExact,H1_e,L2_error,estimate);
- EvaluateError(NullFunction,H1_uhp,L2_error,estimate);
- REAL admerror = nadmerror*sqrt(H1_uhp*H1_uhp + H1_e*H1_e) / sqrt(m);
- return admerror;
- }
- 
- void NullFunction(TPZVec<REAL> &point,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv) {
- 
- val = 0*point[0];
- deriv(0,0) = 0.;
- }
- */
-
 REAL TPZCompMesh::CompareMesh(int var, char *matname){
 	
 	REAL error = 0.;
@@ -1904,6 +1656,10 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 	int dim = mat->Dimension();
 	Reference()->ResetReference();//geom�ricos apontam para nulo
 	LoadReferences();
+	
+#ifdef STATE_COMPLEX
+	DebugStop();
+#else
 	//geom�ricos apontam para computacionais da malha atual
 	TPZAgglomerateElement *aggel = 0;
 	TPZAdmChunkVector<TPZCompEl *> &elvec = ElementVec();
@@ -1922,6 +1678,7 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 		aggel = dynamic_cast<TPZAgglomerateElement *>(comp);
 		aggel->ProjectSolution(projectsol);
 	}
+#endif
 }
 /**
  * returns the unique identifier for reading/writing objects to streams

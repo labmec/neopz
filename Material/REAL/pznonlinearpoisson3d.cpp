@@ -39,8 +39,8 @@ void TPZNonLinearPoisson3d::SetNoStabilizationTerm(){
 
 void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
                                        REAL weight,
-                                       TPZFMatrix<REAL> &ek,
-                                       TPZFMatrix<REAL> &ef){
+                                       TPZFMatrix<STATE> &ek,
+                                       TPZFMatrix<STATE> &ef){
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -182,7 +182,7 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data,
 	
 }
 
-void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){
+void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -297,8 +297,8 @@ void TPZNonLinearPoisson3d::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 
 void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
                                          REAL weight,
-                                         TPZFMatrix<REAL> &ek,
-                                         TPZFMatrix<REAL> &ef,
+                                         TPZFMatrix<STATE> &ek,
+                                         TPZFMatrix<STATE> &ef,
                                          TPZBndCond &bc){
 	TPZFMatrix<REAL> &phi = data.phi;
     int numbersol = data.sol.size();
@@ -385,8 +385,8 @@ void TPZNonLinearPoisson3d::ContributeBC(TPZMaterialData &data,
 
 void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                 REAL weight,
-                                                TPZFMatrix<REAL> &ek,
-                                                TPZFMatrix<REAL> &ef){
+                                                TPZFMatrix<STATE> &ek,
+                                                TPZFMatrix<STATE> &ef){
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
@@ -545,8 +545,8 @@ void TPZNonLinearPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMateri
 
 void TPZNonLinearPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                                   REAL weight, 
-                                                  TPZFMatrix<REAL> &ek,
-                                                  TPZFMatrix<REAL> &ef,
+                                                  TPZFMatrix<STATE> &ek,
+                                                  TPZFMatrix<STATE> &ef,
                                                   TPZBndCond &bc) {
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;

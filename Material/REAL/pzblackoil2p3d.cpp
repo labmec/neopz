@@ -302,7 +302,7 @@ TPZMaterial * TPZBlackOil2P3D::NewMaterial(){
 	return new TPZBlackOil2P3D(*this);
 }
 
-void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
 	//un ou un+1
 	double stateVal = 0.;
@@ -345,11 +345,11 @@ void TPZBlackOil2P3D::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	
 }//method
 
-void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+void TPZBlackOil2P3D::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc) {
 	cout << "Error: This method shoud not be called. " << __PRETTY_FUNCTION__ << "\n";
 }//method
 
-void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	
 	if(gState == ELastState) return;
 	
@@ -476,7 +476,7 @@ void TPZBlackOil2P3D::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 }//method
 
-void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	
 	if(gState == ELastState) return;
 	
@@ -494,7 +494,7 @@ void TPZBlackOil2P3D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 		dataright.sol[0][0] = bc.Val2()(0,0);
 		dataright.sol[0][1] = bc.Val2()(1,0);
 
-		TPZFNMatrix<16> auxek(4,4,0.), auxef(4,1,0.);
+		TPZFNMatrix<16,STATE> auxek(4,4,0.), auxef(4,1,0.);
 		this->ContributeInterface(data,dataleft,dataright,weight,auxek,auxef);
 		
 		for(int i = 0; i < 2; i++){
@@ -529,8 +529,8 @@ int TPZBlackOil2P3D::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
-							   TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
+void TPZBlackOil2P3D::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
+							   TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout){
 	const double po = Sol[0];
 	const double So = Sol[1];
 	
@@ -562,7 +562,7 @@ void TPZBlackOil2P3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
 		return;
 	}//Velocity
 	
-	return TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
+	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 	
 }//method
 

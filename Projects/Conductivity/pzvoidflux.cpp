@@ -57,7 +57,7 @@ int TPZVoidFlux::NStateVariables()
 /**
  * It computes a contribution to the stiffness matrix and load vector at one integration point.
  */
-void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     
 }
@@ -65,7 +65,7 @@ void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL
 /**
  * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
  */
-void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
+void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     DebugStop();
@@ -74,21 +74,21 @@ void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<RE
 /**
  * It computes a contribution to the residual vector at one integration point.
  */
-void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef)
+void TPZVoidFlux::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef)
 {
 }
 
 /**
  * It computes a contribution to the stiffness matrix and load vector at one BC integration point.
  */
-void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc)
+void TPZVoidFlux::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef, TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " should never be called\n";
     DebugStop();    
 }
 
 /// computes a contribution to stiffness matrix and load vector at one integration point
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
 {
     int nleft = dataleft.phi.Rows();
     int nright = dataright.phi.Rows();
@@ -135,7 +135,7 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
 /**
  * It computes a contribution to residual vector at one integration point
  */
-void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef)
+void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();
@@ -144,7 +144,7 @@ void TPZVoidFlux::ContributeInterface(TPZMaterialData &data, TPZMaterialData &da
 /**
  * It computes a contribution to stiffness matrix and load vector at one BC integration point
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     int nleft = dataleft.phi.Rows();
     if (nleft != 1) {
@@ -192,7 +192,7 @@ void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &
 /**
  * It computes a contribution to residual vector at one BC integration point
  */
-void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+void TPZVoidFlux::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
     std::cout << __PRETTY_FUNCTION__ << " not implemented yet\n";
     DebugStop();
@@ -235,7 +235,7 @@ int TPZVoidFlux::NSolutionVariables(int var)
 
 /**returns the solution associated with the var index based on
  * the finite element approximation*/
-void TPZVoidFlux::SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
+void TPZVoidFlux::SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<STATE> &Solout)
 {
     return TPZDiscontinuousGalerkin::SolutionDisc(data, dataleft, dataright, var , Solout);
 }

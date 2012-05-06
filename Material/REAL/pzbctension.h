@@ -33,19 +33,19 @@ private:
     
     ~TPZBCTension(){}
 	
-	TPZBCTension(TPZMaterial * &material,int id,int type,TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
+	TPZBCTension(TPZMaterial * &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada);
 	
 	virtual int NFluxes(){ return Material()->NFluxes(); }
 	
 	int NStateVariables() { return Material()->NStateVariables(); }
 	
-	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 
 		TPZFMatrix<REAL> &dphi = data.dphix;
 		TPZFMatrix<REAL> &phi = data.phi;
 		TPZManVector<REAL,3> &x = data.x;
-		TPZVec<REAL> &sol=data.sol[0];
-		TPZFMatrix<REAL> &dsol=data.dsol[0];
+		TPZVec<STATE> &sol=data.sol[0];
+		TPZFMatrix<STATE> &dsol=data.dsol[0];
 		TPZFMatrix<REAL> &jacinv = data.jacinv;
 		TPZFMatrix<REAL> &axes = data.axes;
 
@@ -80,7 +80,7 @@ private:
 		}
 		
 	}
-	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ef)
+	void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef)
 	{
 		TPZBndCond::Contribute(data,weight,ef);
 	}

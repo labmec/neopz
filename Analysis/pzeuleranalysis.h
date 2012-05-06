@@ -6,6 +6,8 @@
 #ifndef PZEULERANALYSIS_H
 #define PZEULERANALYSIS_H
 
+#ifndef STATE_COMPLEX
+
 #include "pzanalysis.h"
 #include "pzcmesh.h"
 #include "pzflowcmesh.h"
@@ -220,5 +222,7 @@ protected:
 	int fHasFrontalPreconditioner;
 	
 };
+
+#endif
 
 #endif

@@ -43,7 +43,7 @@ const int numel=1;
 static REAL angle = 0.2;
 
 /// Defining function force (external to material) \f$ F(x,y) = (0.5-y)seno(angle) + (x-0.5)[coseno(angle) - 1] \f$ \f$ (F = disp) \f$
-static void Forcing(const TPZVec<REAL> &x, TPZVec<REAL> &disp){
+static void Forcing(const TPZVec<REAL> &x, TPZVec<STATE> &disp) {
 	disp[0] = -(x[1]-0.5)*sin(angle)+(x[0]-0.5)*cos(angle)-(x[0]-0.5);
 	disp[1] = (x[1]-0.5)*cos(angle)+(x[0]-0.5)*sin(angle)-(x[1]-0.5);
 	disp[2] = 0.;
@@ -147,7 +147,7 @@ int TPZSubCompMesh::main() {
 	TPZSkylineStructMatrix strskyl(&mesh);
 	an.SetStructuralMatrix(strskyl);
 	an.Solution().Zero();
-	TPZStepSolver<REAL> sol;
+	TPZStepSolver<STATE> sol;
 	//	sol.ShareMatrix(an.Solver());
 	sol.SetDirect(ELDLt);
 	an.SetSolver(sol);

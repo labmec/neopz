@@ -506,7 +506,7 @@ public:
 	 * @param Sort diagonal values from big to small
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL &tol, TPZVec<REAL> * Sort = 0);
+	virtual bool SolveEigenvaluesJacobi(int &numiterations, REAL &tol, TPZVec<TVar> * Sort = 0);
 	
 	/** @brief Compute Eigenvalues and Eigenvectors of this matrix. \n
 	 * This method is efficient only for small matrices.
@@ -516,7 +516,7 @@ public:
 	 * @param Eigenvectors: each row represent one eigenvector. It is in same order of eigenvalues.
 	 * @return Returns true if tolerance is achieved or false otherwise.
 	 */
-	virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix<TVar>& Eigenvectors) const;
+	virtual bool SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<TVar> & Eigenvalues, TPZFMatrix<TVar>& Eigenvectors) const;
 	
 	/**
 	 * @brief Solves the linear system using Direct methods
@@ -552,7 +552,7 @@ public:
         return -1;
     }
 	/** @brief Retorna o valor mais proximo a "val" (exceto valores no intervalo -tol <= val <= +tol) contido no vetor Vec */
-	static TVar ReturnNearestValue(TVar val, TPZVec<REAL> &Vec, TVar tol);
+	static TVar ReturnNearestValue(TVar val, TPZVec<TVar> &Vec, TVar tol);
 	
 	/**
 	 * @brief Solves the linear system using LU method\n

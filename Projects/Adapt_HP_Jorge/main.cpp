@@ -1,3 +1,7 @@
+/**
+ * @file
+ */
+
 #include "pzgengrid.h"
 #include "TPZExtendGridDimension.h"
 #include "TPZVTKGeoMesh.h"
@@ -12,6 +16,11 @@
 #include "adapt.h"
 
 using namespace std;
+
+/**
+ * @addtogroup app_projects
+ * @{
+ */
 
 // Global variable
 int gLMax;
@@ -30,6 +39,9 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
  */
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=0);
 
+/**
+ * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
+ */
 int main(int argc, char *argv[]) {
 #ifdef LOG4CXX
 	if (argc > 1) {
@@ -286,3 +298,5 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 }
+
+/** @} */

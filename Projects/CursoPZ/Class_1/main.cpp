@@ -18,7 +18,7 @@ REAL Funcao (TPZVec<REAL> &pt, int i, int j, int k, int p);
 REAL Alfa (int i, int j, int k, int p);
 
 int main() {
-
+	
 	int i = 2;
 	int j = 2;
 	int k = 2;

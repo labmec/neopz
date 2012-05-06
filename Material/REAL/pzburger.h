@@ -44,8 +44,8 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef) {
+                            TPZFMatrix<STATE> &ek,
+                            TPZFMatrix<STATE> &ef) {
         int numbersol = data.sol.size();
         if(numbersol != 1) 
         {
@@ -61,36 +61,36 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMatPoisson3dReferred::Contribute(data,weight,ef);
 	}
 	
-	void ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
-							TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
-	void ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<REAL> &sol,TPZFMatrix<REAL> &dsol,REAL weight,
-						TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
+	void ContributeGradStab(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,REAL weight,
+							TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+	void ContributeSUPG(TPZVec<REAL> &x,TPZFMatrix<REAL> &jacinv,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol,REAL weight,
+						TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<REAL> &ek,
-									 TPZFMatrix<REAL> &ef);
+									 TPZFMatrix<STATE> &ek,
+									 TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ek,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ek,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMatPoisson3dReferred::ContributeBC(data,weight,ef,bc);
@@ -98,14 +98,14 @@ public:
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<REAL> &ef)
+									 TPZFMatrix<STATE> &ef)
 	{
 		TPZMatPoisson3dReferred::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc)
 	{
     	TPZMatPoisson3dReferred::ContributeBCInterface(data,dataleft,weight,ef,bc);

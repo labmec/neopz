@@ -1202,7 +1202,7 @@ bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 	return true;
 }
 template <class TVar>
-TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<REAL>& Vec, TVar tol)
+TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<TVar>& Vec, TVar tol)
 {
     TVar diff0 = fabs(val - (TVar)Vec[0]) >= fabs(tol) ?  (val - (TVar)Vec[0]) : (TVar)1.E10;
     TVar diff1, res = (TVar)Vec[0];
@@ -1215,7 +1215,7 @@ TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<REAL>& Vec, TVar tol)
 }
 
 template <class TVar>
-bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<REAL> & Eigenvalues, TPZFMatrix<TVar> & Eigenvectors) const{
+bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<TVar> & Eigenvalues, TPZFMatrix<TVar> & Eigenvectors) const{
 	
 	int NumIt = numiterations;
 	REAL tolerance = tol;
@@ -1260,11 +1260,11 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
         TVar answ = ReturnNearestValue(Eigenvalues[eigen], Eigenvalues,1.E-5);
         if(fabs(fabs(answ) - Eigenvalues[eigen]) > 1.E-5)
         {
-            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - 0.01 * fabs(answ-(TVar)Eigenvalues[eigen])) );
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - (TVar)(0.01 * fabs(answ-Eigenvalues[eigen]))) );
         }
         else
         {
-            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (TVar)(Eigenvalues[eigen] - 0.01) );
+            for(int i = 0; i < size; i++) Matrix.PutVal(i,i, this->GetVal(i,i) - (Eigenvalues[eigen] - TVar(0.01)) );
         }
 		
         /** Normalizing Initial Eigenvec */
@@ -1331,25 +1331,25 @@ bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZ
 }//method
 
 template <>
-bool TPZMatrix< std::complex< float > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+bool TPZMatrix< std::complex< float > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec< std::complex< float > > * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
     return false;
 }
 
 template <>
-bool TPZMatrix< std::complex< double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+bool TPZMatrix< std::complex< double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec< std::complex< double > > * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
     return false;
 }
 
 template <>
-bool TPZMatrix< std::complex< long double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+bool TPZMatrix< std::complex< long double > >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec< std::complex< long double > > * Sort){
   DebugStop(); // Does not work with complex numbers. To be implemented in the future.
     return false;
 }
 
 template <class TVar>
-bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<REAL> * Sort){
+bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<TVar> * Sort){
 	
 #ifdef DEBUG2
 	if (this->Rows() != this->Cols()){
@@ -1499,7 +1499,7 @@ TVar TPZMatrix<TVar>::MatrixNorm(int p, int numiter, REAL tol) const{
 				}//for j
 			}//for i
 			
-			TPZVec<REAL> EigenVal;
+			TPZVec<TVar> EigenVal;
 			bool result = transp.SolveEigenvaluesJacobi(numiter, tol, &EigenVal);
 			if (result == false) PZError << __PRETTY_FUNCTION__
 				<< " - it was not possible to find Eigenvalues. Iterations = "

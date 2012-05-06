@@ -15,7 +15,10 @@
 #include "pzgraphnode.h"
 #include "pzmaterial.h"
 #include "TPZCompElDisc.h"
-#include "TPZAgglomerateEl.h"
+
+#ifndef STATE_COMPLEX
+	#include "TPZAgglomerateEl.h"
+#endif
 
 using namespace std;
 
@@ -233,9 +236,13 @@ TPZCompEl *TPZGraphMesh::FindFirstInterpolatedElement(TPZCompMesh *mesh, int dim
 		if(!cel) continue;
 		int type = cel->Type();
 		if(type == EAgglomerate){
+#ifndef STATE_COMPLEX
 			if(!cel->Reference()) continue;
 			TPZAgglomerateElement *agg = dynamic_cast<TPZAgglomerateElement *>(cel);
 			if(agg && agg->Dimension() == dim) return agg;
+#else
+			DebugStop();
+#endif
 		}
 		if(type == EDiscontinuous){
 			TPZCompElDisc *disc = dynamic_cast<TPZCompElDisc *>(cel);

@@ -1391,14 +1391,14 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 		return 0.;
 	}
 	if (matname!=material->Name()) return(0.);
-	REAL error=0.;
+	STATE error=0.;
 	int dim = Dimension();
 	int numdof = material->NSolutionVariables(var);
 	
 	TPZFNMatrix<9> axes(3,3,0.);
 	TPZFNMatrix<9> jacobian(dim,dim), jacinv(dim,dim);
 	
-	TPZManVector<REAL> sol(numdof, 0.), othersol(numdof,0.);
+	TPZManVector<STATE> sol(numdof, 0.), othersol(numdof,0.);
 	TPZVec<REAL> intpoint(dim,0.);
 	REAL weight = 0.;
 	REAL detjac;
@@ -1417,11 +1417,11 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 		ref->Jacobian( intpoint, jacobian, axes, detjac, jacinv);
 		weight *= fabs(detjac);
 		
-		for (int i = 0; i < sol.NElements(); i++){
-			error += (sol[i]-othersol[i])*(sol[i]-othersol[i])*weight;
+		for (int i = 0; i < sol.NElements(); i++) {
+			error += (sol[i]-othersol[i])*(sol[i]-othersol[i])*(STATE)weight;
 		}
 	}
-	return error;
+	return fabs(error);
 }
 
 void TPZInterpolatedElement::Print(std::ostream &out) const {
@@ -1489,7 +1489,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 		LOGPZ_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
 		return 0.;
 	}
-	TPZManVector<REAL> sol(nvars,0.);
+	TPZManVector<STATE> sol(nvars,0.);
 	
 	int i;
 	TPZFMatrix<REAL> axes(3,3,0.);
@@ -1497,7 +1497,8 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 	TPZFMatrix<REAL> jacinv(dim,dim);
 	REAL detjac;
 	TPZVec<REAL> intpoint(dim,0.);
-	REAL weight = 0., meanvalue = 0.;
+	REAL weight = 0.;
+	STATE meanvalue = 0.;
 	REAL area = 0.;
 	TPZGeoEl *ref = Reference();
 	
@@ -1508,9 +1509,9 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 		/** Compute the solution value at point integration*/
 		Solution(intpoint,var,sol);
 		area += weight*fabs(detjac);
-		meanvalue += (weight*fabs(detjac)*sol[0]);   //  meanvalue += (weight*fabs(detjac)*sol[j]);
+		meanvalue += ((STATE)(weight*fabs(detjac))*sol[0]);   //  meanvalue += (weight*fabs(detjac)*sol[j]);
 	}
-	return (meanvalue/area);
+	return fabs(meanvalue*(STATE)(1./area));
 }
 
 /**Compute the contribution to stiffness matrix and load vector on the element*/

@@ -77,7 +77,7 @@ REAL TPZArtDiff::OptimalDelta()
 	return delta;
 }
 
-REAL TPZArtDiff::Delta(REAL deltax, TPZVec<REAL> & sol)
+REAL TPZArtDiff::Delta(REAL deltax, TPZVec<STATE> & sol)
 {
 	REAL dX;
 	
@@ -489,8 +489,8 @@ void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> &U,
 	ComputeTau(dim, jacinv, U, Ai, Tau);
 }
 
-void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol,
-								 TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> & dphi,
+void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol,
+								 TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> & dphi,
 								 TPZVec<TPZVec<REAL> > & TauDiv, TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv)
 {
 	TPZVec<TPZDiffMatrix<REAL> > Ai;
@@ -564,8 +564,8 @@ void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADRE
 
 template <int dim>
 void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
-									TPZVec<REAL> &sol,
-									TPZFMatrix<REAL> &dsol,
+									TPZVec<STATE> &sol,
+									TPZFMatrix<STATE> &dsol,
 									TPZFMatrix<REAL> &phi,
 									TPZFMatrix<REAL> &dphi,
 									TPZVec<TPZVec<REAL> > & TauDiv,
@@ -670,7 +670,7 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 
 //-----------------Contribute
 
-void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,  TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, REAL weight, REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,  TPZFMatrix<REAL> &dphix, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, REAL weight, REAL timeStep, REAL deltaX)
 {
     REAL delta = Delta(deltaX, sol);
     REAL constant = /*-*/ weight * delta * timeStep;
@@ -702,7 +702,7 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZ
 			}
 }
 
-void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,  TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &ef, REAL weight, REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,  TPZFMatrix<REAL> &dphix, TPZFMatrix<STATE> &ef, REAL weight, REAL timeStep, REAL deltaX)
 {
     REAL delta = Delta(deltaX, sol);
     REAL constant = /*-*/ weight * delta * timeStep;
@@ -725,7 +725,7 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<RE
 
 #ifdef _AUTODIFF
 
-void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, REAL weight,  REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix<REAL> &ek, TPZFMatrix<STATE> &ef, REAL weight,  REAL timeStep, REAL deltaX)
 {
     TPZVec<REAL> solReal(sol.NElements());
     int i;
@@ -762,7 +762,7 @@ void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FA
 }
 
 template <int dim>
-void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, REAL weight, REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, REAL weight, REAL timeStep, REAL deltaX)
 {
     REAL delta = Delta(deltaX, sol);
     REAL constant = /*-*/ weight * delta * timeStep;
@@ -791,7 +791,7 @@ void TPZArtDiff::ContributeFastestImplDiff_dim(TPZFMatrix<REAL> &jacinv, TPZVec<
 			}
 }
 
-void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, REAL weight, REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, REAL weight, REAL timeStep, REAL deltaX)
 {
 	switch(dim)
 	{

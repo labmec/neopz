@@ -20,6 +20,7 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/Material/Complex"
 	"${PROJECT_SOURCE_DIR}/Multigrid"
 	"${PROJECT_SOURCE_DIR}/Mesh"
+	"${PROJECT_SOURCE_DIR}/Mesh/REAL"
 	"${PROJECT_SOURCE_DIR}/StrMatrix"
 	"${PROJECT_SOURCE_DIR}/Integral"
 	"${PROJECT_SOURCE_DIR}/Frontal"
@@ -277,7 +278,11 @@ add_subdirectory(PlaneFracture)
 
 add_subdirectory(lib)
 add_subdirectory(Projects)
-add_subdirectory(UnitTest_PZ)
+
+if(BUILD_COMPLEX_PROJECTS)
+else()
+	add_subdirectory(UnitTest_PZ)
+endif(BUILD_COMPLEX_PROJECTS)
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"

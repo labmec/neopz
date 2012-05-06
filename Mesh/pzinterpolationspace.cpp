@@ -413,7 +413,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 }//void
 
-void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
+void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
@@ -1066,7 +1066,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
 	int npoints = intrule.NPoints(), ip, iv;
-	TPZManVector<REAL> sol(varsize);
+	TPZManVector<STATE> sol(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule.Point(ip,intpoint,weight);
 		sol.Fill(0.);
@@ -1075,8 +1075,12 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 		//       It means that the next call would not be necessary if I wrote the whole code here.
 		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
 		weight *= fabs(data.detjac);
-		for(iv = 0; iv < varsize; iv++){
+		for(iv = 0; iv < varsize; iv++) {
+#if !BUILD_COMPLEX_PROJECTS	
+			DebugStop();
+#else
 			value[iv] += sol[iv]*weight;
+#endif
 		}//for iv
 	}//for ip
 }//method

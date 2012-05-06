@@ -104,7 +104,7 @@ public:
 	 * the reflected shock problem. \n
 	 * Prefer to use fDelta = 1.
 	 */
-	REAL Delta(REAL deltaX, TPZVec<REAL> & sol);
+	REAL Delta(REAL deltaX, TPZVec<STATE> & sol);
 	
 	/** @brief Sets the value for delta */
 	void SetDelta(REAL delta);
@@ -288,8 +288,8 @@ public:
 	 * derivative is evaluated.
 	 */
 	void PrepareFastDiff(int dim,
-						 TPZFMatrix<REAL> &jacinv, TPZVec<REAL> &sol,
-						 TPZFMatrix<REAL> &dsol, TPZFMatrix<REAL> & dphi,
+						 TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol,
+						 TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> & dphi,
 						 TPZVec<TPZVec<REAL> > & TauDiv,
 						 TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL);
 	
@@ -308,8 +308,8 @@ public:
 	
 	template <int dim>
 	void PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
-							TPZVec<REAL> &sol,
-							TPZFMatrix<REAL> &dsol,
+							TPZVec<STATE> &sol,
+							TPZFMatrix<STATE> &dsol,
 							TPZFMatrix<REAL> &phi,
 							TPZFMatrix<REAL> &dphi,
 							TPZVec<TPZVec<REAL> > & TauDiv,
@@ -337,9 +337,9 @@ public:
 	 */
 	void ContributeApproxImplDiff(int dim,
 								  TPZFMatrix<REAL> &jacinv,
-								  TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+								  TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 								  TPZFMatrix<REAL> &dphix,
-								  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+								  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 								  REAL weight, REAL timeStep,
 								  REAL deltaX);
 	
@@ -357,9 +357,9 @@ public:
 	 */
 	void ContributeExplDiff(int dim,
 							TPZFMatrix<REAL> &jacinv,
-							TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+							TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 							TPZFMatrix<REAL> &dphix,
-							TPZFMatrix<REAL> &ef,
+							TPZFMatrix<STATE> &ef,
 							REAL weight, REAL timeStep,
 							REAL deltaX);
 	
@@ -380,7 +380,7 @@ public:
 	void ContributeImplDiff(int dim,
 							TPZFMatrix<REAL> &jacinv,
 							TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol,
-							TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+							TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 							REAL weight, REAL timeStep,
 							REAL deltaX);
 	
@@ -399,18 +399,18 @@ public:
 	 * @param[in] deltaX Diameter of element (used only if \f$fDelta > 0\f$);
 	 */
 	void ContributeFastestImplDiff(int dim, TPZFMatrix<REAL> &jacinv,
-								   TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+								   TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 								   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-								   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+								   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 								   REAL weight, REAL timeStep,
 								   REAL deltaX);
 
 	template <int dim>
 	void ContributeFastestImplDiff_dim(
 									   TPZFMatrix<REAL> &jacinv,
-									   TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
+									   TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
 									   TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi,
-									   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 									   REAL weight, REAL timeStep,
 									   REAL deltaX);
 

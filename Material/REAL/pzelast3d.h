@@ -83,11 +83,11 @@ class TPZElasticity3D : public TPZMaterial {
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
@@ -95,13 +95,13 @@ class TPZElasticity3D : public TPZMaterial {
 	/** @brief Implements Dirichlet and Neumann boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	/** @brief Implements Dirichlet and Neumann boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -114,10 +114,10 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual int NSolutionVariables(int var);
 protected:
 	/** @brief Post-processing method. Based on solution Sol and its derivatives DSol, it computes the post-processed variable var */
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -135,14 +135,14 @@ public:
 	 * @brief Compute the value of the flux function to be used by ZZ error estimator.
 	 * @note Method not implemented.
 	 */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux){
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
 		PZError << "\nTPZElasticity3D::Flux - Method not implemented\n";
 	}
 	
 	/** @brief Evaluate error between approximate (FEM) and exact solutions */
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-						TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-						TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 	/** @brief Returns the number of norm errors: 3 (Semi H1, L2 and H1) */
 	virtual int NEvalErrors() {return 3;}
 	
@@ -191,7 +191,7 @@ public:
 	REAL C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
 #endif
 	/** @brief External forces */
-	TPZManVector<REAL,3> fForce;
+	TPZManVector<STATE,3> fForce;
 	
 	/** @brief Direction to compute stress and strain */
 	TPZManVector<REAL,3> fPostProcessDirection;
@@ -200,13 +200,13 @@ public:
 	REAL fFy;
 	
 public:
-	virtual void ComputeStressVector(TPZFMatrix<REAL> &Stress, TPZFMatrix<REAL> &DSol) const;
-	void ComputeStrainVector(TPZFMatrix<REAL> &Strain, TPZFMatrix<REAL> &DSol) const;
-	virtual void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const;
-    void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZFMatrix<REAL> &DSol) const;
-	void ComputeStrainTensor(TPZFMatrix<REAL> &Strain, TPZFMatrix<REAL> &DSol) const;
-	void ApplyDirection(TPZFMatrix<REAL> &StrVec, TPZVec<REAL> &Out) const;
-	void PrincipalDirection(TPZFMatrix<REAL> &DSol, TPZVec< REAL > &Solout, int direction) const;
+	virtual void ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<STATE> &DSol) const;
+	void ComputeStrainVector(TPZFMatrix<STATE> &Strain, TPZFMatrix<STATE> &DSol) const;
+	virtual void ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterialData &data) const;
+    void ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZFMatrix<STATE> &DSol) const;
+	void ComputeStrainTensor(TPZFMatrix<STATE> &Strain, TPZFMatrix<STATE> &DSol) const;
+	void ApplyDirection(TPZFMatrix<STATE> &StrVec, TPZVec<STATE> &Out) const;
+	void PrincipalDirection(TPZFMatrix<STATE> &DSol, TPZVec< STATE > &Solout, int direction) const;
 	
 public:
 	/** @brief Saves the element data to a stream */

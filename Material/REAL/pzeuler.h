@@ -87,17 +87,17 @@ private:
 	TPZGradientFlux fGradientFlux;
 	
 	/** @brief Compute Euler Flux */
-	void ComputeEulerFlux(TPZVec<REAL> &sol, TPZFMatrix<REAL> & F);
+	void ComputeEulerFlux(TPZVec<STATE> &sol, TPZFMatrix<STATE> & F);
 	
 public:
 	
 	static REAL Gamma(){ return gGamma; }
 	
 	/** @brief Convert from primitive to conservative variables */
-	static void FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma);
+	static void FromPrimitiveToConservative(TPZVec<STATE> &sol,REAL gamma);
 	
 	/** @brief Convert from conservative to primitive variables */
-	static void FromConservativeToPrimitive(TPZVec<REAL> &sol,REAL gamma);
+	static void FromConservativeToPrimitive(TPZVec<STATE> &sol,REAL gamma);
 	
 	/** @brief Constructor with Gamma value */
 	TPZEulerEquation(int nummat, REAL gamma);
@@ -121,13 +121,13 @@ public:
 	virtual int Dimension();
 	
 	/** @brief Returns the pressure value */
-	static REAL Pressure(TPZVec<REAL> &U, double gamma);
+	static REAL Pressure(TPZVec<STATE> &U, double gamma);
 	
 	/** @brief Computes sound speed */
-	REAL cSpeed(TPZVec<REAL> & sol);
+	REAL cSpeed(TPZVec<STATE> & sol);
 	
 	/** @brief Returns \f$ u = Sqrt(u2 + v2 + w2) \f$ */
-	REAL uRes(TPZVec<REAL> & sol);
+	REAL uRes(TPZVec<STATE> & sol);
 	
 	virtual void Print(std::ostream & out);
 	
@@ -137,7 +137,7 @@ public:
 	
 	virtual int NSolutionVariables(int var);
 	
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
 
 	/** 
 	 * @name Contribute methods 
@@ -145,27 +145,27 @@ public:
 	 */
 	/** @{ */
 	
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 
-	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
 	/** @} */
 	

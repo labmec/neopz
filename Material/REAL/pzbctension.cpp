@@ -9,7 +9,7 @@
 #include "TPZMulticamadaOrtho.h"
 
 TPZBCTension::TPZBCTension(TPZMaterial * &material,int id,int type,
-						   TPZFMatrix<REAL> &val1,TPZFMatrix<REAL> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :
+						   TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2, REAL sign, TPZMulticamadaOrthotropic *mult, int camada) :
 TPZBndCond(material,id,type,val1,val2) {
 	fCamada = camada;
 	fMultCam = mult;

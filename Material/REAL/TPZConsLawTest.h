@@ -54,25 +54,25 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	virtual std::string Name() { return "TPZConsLawTest"; }
 	
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-                            TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
+                            TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	virtual void Contribute(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<REAL> &ef) {
+							TPZFMatrix<STATE> &ef) {
 		TPZConservationLaw::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ek,
-                                     TPZFMatrix<REAL> &ef);
+                                     TPZFMatrix<STATE> &ek,
+                                     TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZConservationLaw::ContributeBC(data,weight,ef,bc);
@@ -85,9 +85,9 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	virtual int NFluxes(){ return 1;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<STATE> &axes,int var,TPZVec<REAL> &Solout);
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {

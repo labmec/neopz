@@ -38,24 +38,24 @@ public:
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef);
+                            TPZFMatrix<STATE> &ek,
+                            TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ek,
-                                     TPZFMatrix<REAL> &ef);
+                                     TPZFMatrix<STATE> &ek,
+                                     TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                        REAL weight,
-                                       TPZFMatrix<REAL> &ek,
-                                       TPZFMatrix<REAL> &ef,
+                                       TPZFMatrix<STATE> &ek,
+                                       TPZFMatrix<STATE> &ef,
                                        TPZBndCond &bc);
 	
 	/** @brief Set material to compute only Integral[- un/deltaT * v, Omega] */
@@ -106,9 +106,9 @@ protected:
 	
 	REAL fTimeStep;
 	
-	virtual void ContributeSolutionRhs(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ef);
+	virtual void ContributeSolutionRhs(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<STATE> &ef);
 	
-	virtual void ContributeTangent(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<REAL> &ek);
+	virtual void ContributeTangent(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, REAL weight, TPZFMatrix<STATE> &ek);
 };
 
 template<class TBASEMAT>

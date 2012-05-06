@@ -131,7 +131,7 @@ int TPZL2Projection::NSolutionVariables(int var){
 }
 
 void TPZL2Projection::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-                               TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
+                               TPZFMatrix<REAL> &axes, int var, TPZVec<STATE> &Solout){
 	if (var == ESolution){
 #ifndef STATE_COMPLEX
 		Solout = Sol;

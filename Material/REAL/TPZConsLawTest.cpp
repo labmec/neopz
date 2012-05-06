@@ -49,8 +49,8 @@ void TPZConsLawTest::Print(std::ostream &out) {
 
 void TPZConsLawTest::Contribute(TPZMaterialData &data,
                                 REAL weight,
-                                TPZFMatrix<REAL> &ek,
-                                TPZFMatrix<REAL> &ef) {
+                                TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef) {
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
@@ -179,8 +179,8 @@ REAL TPZConsLawTest::T(int jn,TPZVec<REAL> &x){
 
 void TPZConsLawTest::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                          REAL weight,
-                                         TPZFMatrix<REAL> &ek,
-                                         TPZFMatrix<REAL> &ef){
+                                         TPZFMatrix<STATE> &ek,
+                                         TPZFMatrix<STATE> &ef){
 	
 	// TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
@@ -250,8 +250,8 @@ void TPZConsLawTest::ContributeInterface(TPZMaterialData &data, TPZMaterialData 
 
 void TPZConsLawTest::ContributeBC(TPZMaterialData &data,
                                   REAL weight,
-                                  TPZFMatrix<REAL> &ek,
-                                  TPZFMatrix<REAL> &ef,
+                                  TPZFMatrix<STATE> &ek,
+                                  TPZFMatrix<STATE> &ef,
                                   TPZBndCond &bc) {
 	
 	// TPZFMatrix<REAL> &dphi = data.dphix;

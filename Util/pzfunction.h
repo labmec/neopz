@@ -51,7 +51,7 @@ public:
 	/** @brief Polynomial order of this function. */
 	/** In case of non-polynomial function it can be a reasonable approximation order. */
 	virtual int PolynomialOrder() = 0;
-		
+	
 };
 
 template<class TVar>
@@ -66,7 +66,7 @@ public:
 	TPZDummyFunction()
     {
         fFunc = 0;
-	fFunc2 = 0;
+		fFunc2 = 0;
     }
 	
 	/** @brief Class destructor */
@@ -78,13 +78,13 @@ public:
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val))
     {
         fFunc = FuncPtr;
-	fFunc2 = 0;
+		fFunc2 = 0;
     }
     
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
         fFunc2 = FuncPtr;
-	fFunc = 0;
+		fFunc = 0;
     }
     
     TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2)
@@ -95,7 +95,7 @@ public:
     TPZDummyFunction &operator=(const TPZDummyFunction &cp)
     {
         fFunc = cp.fFunc;
-	fFunc2 = cp.fFunc2;
+		fFunc2 = cp.fFunc2;
         return *this;
     }
 	/**
@@ -107,8 +107,8 @@ public:
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df)
     {
         if (!fFunc2) {
-	  DebugStop();
-	}
+			DebugStop();
+		}
         fFunc2(x, f, df);
     }
     
@@ -119,9 +119,9 @@ public:
     
     /** Simpler version of Execute method which does not compute function derivatives */
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f){
-      if (!fFunc) {
-	DebugStop();
-      }
+		if (!fFunc) {
+			DebugStop();
+		}
         fFunc(x,f);
     }
     

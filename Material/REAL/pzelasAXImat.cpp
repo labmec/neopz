@@ -156,7 +156,7 @@ void TPZElasticityAxiMaterial::Print(std::ostream &out) {
 	out << "\tF   = " << ff[0] << ' ' << ff[1]   << endl;
 }
 
-void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi  = data.phi;
@@ -184,7 +184,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	}
 	if(fForcingFunction)
 	{
-		TPZManVector<REAL> res(3);
+		TPZManVector<STATE> res(3);
 		fForcingFunction->Execute(data.x,res);
 		ff[0] = res[0];
 		ff[1] = res[1];
@@ -291,7 +291,7 @@ void TPZElasticityAxiMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZF
 	
 }
 
-void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
@@ -408,7 +408,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 //---------------------------- --------------------------------------
 void TPZElasticityAxiMaterial::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                                    REAL weight,
-												   TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+												   TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
@@ -878,7 +878,7 @@ int TPZElasticityAxiMaterial::NSolutionVariables(int var)
 
 /** returns the solution associated with the var index based
  on the finite element approximation*/
-void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
 {
 	if(var == 0) 
 	{
@@ -891,8 +891,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
     }
 
 	TPZFMatrix<REAL> &axes = data.axes;
-	TPZVec<REAL> &SolAxes = data.sol[0];
-	TPZFMatrix<REAL> &DSolAxes = data.dsol[0];
+	TPZVec<STATE> &SolAxes = data.sol[0];
+	TPZFMatrix<STATE> &DSolAxes = data.dsol[0];
 	
     // R = Dot[{data.x - origin},{AxisR}]   ***because AxisR is already normalized!
     REAL R = (data.x[0] - f_Origin[0])*f_AxisR[0] + (data.x[1] - f_Origin[1])*f_AxisR[1] + (data.x[2] - f_Origin[2])*f_AxisR[2];
@@ -1002,8 +1002,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<REAL> EigValues(3,0.);
-			TPZFNMatrix<9> EigVectors(3,3,0.);
+			TPZVec<STATE> EigValues(3,0.);
+			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1028,8 +1028,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<REAL> EigValues(3,0.);
-			TPZFNMatrix<9> EigVectors(3,3,0.);
+			TPZVec<STATE> EigValues(3,0.);
+			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1054,8 +1054,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<REAL> EigValues(3,0.);
-			TPZFNMatrix<9> EigVectors(3,3,0.);
+			TPZVec<STATE> EigValues(3,0.);
+			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1190,7 +1190,7 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<R
 	}
 }
 
-void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux)
 {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6)
 	{
@@ -1199,15 +1199,16 @@ void TPZElasticityAxiMaterial::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatr
 	}
 }
 
-void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-									  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
+void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudaxes, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+									  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
 	values[0] = 0.;
 	TPZManVector<REAL> sigma(3,0.),sigma_exact(3,0.);
 	REAL sigx,sigy,sigxy,gamma;
 	
-	TPZFNMatrix<9> du;//du = dudx
-	TPZAxesTools<REAL>::Axes2XYZ(dudaxes, du, axes);
+	TPZFNMatrix<9> du;
+	TPZFMatrix<REAL> dudaxesReal = (TPZFMatrix<REAL> &)dudaxes;
+	TPZAxesTools<REAL>::Axes2XYZ(dudaxesReal, du, axes);
 	
 	//tensoes aproximadas : uma forma
 	gamma = du(1,0)+du(0,1);
@@ -1217,12 +1218,12 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 
 	TPZMaterialData mydata;
 	mydata.sol[0]  = u;
-	mydata.dsol[0] = du;
+	mydata.dsol[0] = (TPZFNMatrix<9,STATE> &)du;
 	mydata.axes = axes;
 	mydata.x = x;
 	
 	//tensoes aproximadas : outra forma
-	TPZVec<REAL> sol(1);
+	TPZVec<STATE> sol(1);
 	Solution(mydata,5,sol);
 	sigma[0] = sol[0];
 	Solution(mydata,6,sol);
@@ -1246,7 +1247,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatri
 	//values[1] = sigx*sigx + sigy*sigy + sigxy*sigxy;
 	
 	//values[1] : erro em norma L2 em deslocamentos
-	values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0)+pow(fabs(u[1] - u_exact[1]),(REAL)2.0);  // It is important when REAL is long double, because fabs(...) returns long double then pow() must to return long double - Jorge
+	values[1] = pow((REAL)fabs(u[0] - u_exact[0]),(REAL)2.0)+pow((REAL)fabs(u[1] - u_exact[1]),(REAL)2.0);  // It is important when REAL is long double, because fabs(...) returns long double then pow() must to return long double - Jorge
 	
 	//values[2] : erro estimado
 	values[2] = 0.;

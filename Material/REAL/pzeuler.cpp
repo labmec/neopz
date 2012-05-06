@@ -134,7 +134,7 @@ int TPZEulerEquation::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZEulerEquation::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
 	
 #ifndef LinearConvection
 	if(IsZero(Sol[0])){
@@ -187,23 +187,23 @@ void TPZEulerEquation::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMat
 	}
 }
 
-void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	//nothing to be done here
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
-void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef){
+void TPZEulerEquation::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
 	//nothing to be done here
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
-void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	this->ContributeInterface(data,dataleft,dataright,weight,ef);
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
 }
 
 
-void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ef){
+void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
 #ifdef LinearConvection
 	if(gType == EFlux){
 		fGradientFlux.ApplyLimiter(data);
@@ -256,7 +256,7 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialDat
 
 void TPZEulerEquation::ContributeBC(TPZMaterialData &data,
                                     REAL weight,
-                                    TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef,
+                                    TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
                                     TPZBndCond &bc){
 	std::cout << __PRETTY_FUNCTION__ << " - this method should not be called for Finite Volume Method\n";
 	DebugStop();
@@ -264,7 +264,7 @@ void TPZEulerEquation::ContributeBC(TPZMaterialData &data,
 
 void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
-											 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,
+											 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,
 											 TPZBndCond &bc){
 	this->ContributeBCInterface(data,dataleft,weight,ef,bc);
 	std::cout << "\nWarning at " << __PRETTY_FUNCTION__ << " - this method should not be called";
@@ -272,7 +272,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialD
 
 void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
-											 TPZFMatrix<REAL> &ef,
+											 TPZFMatrix<STATE> &ef,
 											 TPZBndCond &bc){
     
     int numbersol = dataleft.sol.size();
@@ -316,7 +316,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialD
 	}
 }
 
-REAL TPZEulerEquation::Pressure(TPZVec<REAL> &U, double gamma){
+REAL TPZEulerEquation::Pressure(TPZVec<STATE> &U, double gamma){
 	
 	if(U[0] < REAL(1e-10)){
 		PZError << "TPZEulerEquation::Pressure - Negative or too small density "
@@ -340,7 +340,7 @@ REAL TPZEulerEquation::Pressure(TPZVec<REAL> &U, double gamma){
 }//method
 
 
-REAL TPZEulerEquation::cSpeed(TPZVec<REAL> & sol){
+REAL TPZEulerEquation::cSpeed(TPZVec<STATE> & sol){
 	
 	if(sol[0] < REAL(1e-10)){
 		PZError << "TPZEulerEquation(::cSpeed Too small or negative density " << sol[0] << std::endl;
@@ -359,7 +359,7 @@ REAL TPZEulerEquation::cSpeed(TPZVec<REAL> & sol){
 	
 }//method
 
-REAL TPZEulerEquation::uRes(TPZVec<REAL> & sol){
+REAL TPZEulerEquation::uRes(TPZVec<STATE> & sol){
 	const REAL temp = sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3];
 	if(temp < REAL(1e-40)){
 		PZError << "TPZEulerEquation::uRes Zero Velocity\n";
@@ -369,7 +369,7 @@ REAL TPZEulerEquation::uRes(TPZVec<REAL> & sol){
 	return us;
 }
 
-void TPZEulerEquation::ComputeEulerFlux(TPZVec<REAL> &sol, TPZFMatrix<REAL> & F){
+void TPZEulerEquation::ComputeEulerFlux(TPZVec<STATE> &sol, TPZFMatrix<STATE> & F){
 	const double rho = sol[0];
 	const double rhoU = sol[1];
 	const double rhoV = sol[2];
