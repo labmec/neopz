@@ -1,5 +1,18 @@
+/// -----------
 
-#define REFTHREADTESTS
+#define REFTHREADTESTS			//enabling the tests
+//#define REFTHREAD				//main refthread
+//#define REFTHREADSERIAL			//serial implementation
+
+/// On REFTHREADTESTS:
+
+#define OPERATOREQUAL			//for testing operator=() on the vector
+//#define ALLOCATENEWEL			//for testing AllocateNewElement() on the vector
+//#define RESIZEVEC				//for testing Resize() on the vector
+//#define STFREE				//for testing SetFree() on the vector
+//#define OPERATOROPENCLOSE		//for testing operator[]() on the vector
+
+/// -----------
 
 #ifdef REFTHREADTESTS
 
@@ -8,47 +21,155 @@
 #include <iostream>
 #include <pthread.h>
 #include <sys/time.h>
-#include <cmath>
-
-using namespace std;
 
 #define NTHREADS 1000
+
+using namespace std;
 
 pthread_t threads [NTHREADS];
 
 const int azero = 0;
 
-void *tests (void *arg)
+TPZAdmChunkVectorThreadSafe <int> cpyvect;
+
+struct threaddt {
+	TPZAdmChunkVectorThreadSafe <int> *vectin;
+	int initid;
+	int endid;
+};
+
+void *operatorequal (void *arg)
 {
-	TPZAdmChunkVectorThreadSafe <int> *vect = (TPZAdmChunkVectorThreadSafe <int> *) arg;
+	threaddt *internaldata = (threaddt *) arg;
+	int initid = internaldata->initid;
+	int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
 	
-	//for (int i=0; i<100; i++) vect->AllocateNewElement();
-	
-	for (int i=0; i<1000; i++) vect->Resize(vect->NElements()+1);
-	
-	//vect->SetFree(vect->NElements()-1); //problema
-	
-	int nelements = vect->NElements();
-	
-	int nfree = vect->NFreeElements();
-	
-	int a = vect->operator[](nelements-1);
-	
-	int b = vect->FindObject(&a);
+	for (int i=0; i<1000; i++)
+	{
+		cpyvect = *internalvect;
+	}
 	
 	pthread_exit(0);
 }
 
+void *allocatenewel (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	int initid = internaldata->initid;
+	int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	
+	for (int i=0; i<1000; i++)
+	{
+		int ind = internalvect->AllocateNewElement();
+		internalvect->operator[](ind) = ind;
+	}
+	
+	pthread_exit(0);
+}
 
+void *resizevec (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	int initid = internaldata->initid;
+	int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	
+	for (int i=0; i<1000; i++)
+	{
+		internalvect->Resize(internalvect->NElements()+1);
+	}
+	
+	pthread_exit(0);
+}
+
+void *stfree (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	int initid = internaldata->initid;
+	int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	
+	for (int i=initid; i<endid; i++)
+	{
+		internalvect->SetFree(i);
+	}
+	
+	pthread_exit(0);
+}
+
+void *operatoropenclose (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	int initid = internaldata->initid;
+	int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	
+	for (int i=initid; i<endid; i++)
+	{
+		internalvect->operator[](i) = i;
+	}
+	
+	pthread_exit(0);
+}
+
+#define SIZEBLOCK 100
 int main()
 {	
 	int threadnumber;
 	double err = 0.;
 	TPZAdmChunkVectorThreadSafe <int> *vect = new TPZAdmChunkVectorThreadSafe <int> (0);
 	
+	threaddt thread_data[NTHREADS];
+	
+	for (int i=0; i<NTHREADS; i++)
+	{
+		thread_data[i].initid = i*SIZEBLOCK;
+		thread_data[i].endid = i*SIZEBLOCK + (SIZEBLOCK-1);
+		thread_data[i].vectin = vect;
+		
+		#ifdef OPERATOREQUAL
+		for (int j=0; j<SIZEBLOCK; j++) {
+			vect->AllocateNewElement();
+		}
+		#endif
+		
+		#ifdef STFREE
+		for (int j=0; j<SIZEBLOCK; j++) {
+			vect->AllocateNewElement();
+		}
+		#endif
+		
+		#ifdef OPERATOROPENCLOSE
+		for (int j=0; j<SIZEBLOCK; j++) {
+			vect->AllocateNewElement();
+		}
+		#endif
+	}
+	
 	for (threadnumber=0; threadnumber<NTHREADS;)
 	{
-		err = pthread_create (&threads[threadnumber], NULL, tests, (void *) vect);
+		#ifdef OPERATOREQUAL
+		err = pthread_create (&threads[threadnumber], NULL, operatorequal, (void *) &thread_data[threadnumber]);
+		#endif
+		
+		#ifdef ALLOCATENEWEL
+		err = pthread_create (&threads[threadnumber], NULL, allocatenewel, (void *) &thread_data[threadnumber]);
+		#endif
+		
+		#ifdef RESIZEVEC
+		err = pthread_create (&threads[threadnumber], NULL, resizevec, (void *) &thread_data[threadnumber]);
+		#endif
+		
+		#ifdef STFREE
+		err = pthread_create (&threads[threadnumber], NULL, stfree, (void *) &thread_data[threadnumber]);
+		#endif
+		
+		#ifdef OPERATOROPENCLOSE
+		err = pthread_create (&threads[threadnumber], NULL, operatoropenclose, (void *) &thread_data[threadnumber]);
+		#endif
+		
 		if (err)
 		{
 			cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;

@@ -7,8 +7,6 @@
 #define PZADMCHUNKTHREADSAFE_H
 
 #include "pzadmchunk.h"
-#include "pzstack.h"
-#include "pzerror.h"
 #include <pthread.h>
 
 class TPZSaveable;
@@ -17,7 +15,7 @@ template <class T,int EXP=10>
 class TPZAdmChunkVectorThreadSafe : public TPZAdmChunkVector<T,EXP>
 {
 	public :
-	TPZAdmChunkVectorThreadSafe<T,EXP> & operator=(const TPZAdmChunkVectorThreadSafe<T,EXP> &TPZAdmCh);
+	TPZAdmChunkVectorThreadSafe<T,EXP> &operator=(const TPZAdmChunkVectorThreadSafe<T,EXP> &TPZAdmCh);
 	
 	TPZAdmChunkVectorThreadSafe(const TPZAdmChunkVectorThreadSafe<T,EXP> &AdmCh);
 	
@@ -102,7 +100,7 @@ template < class T , int EXP>
 TPZAdmChunkVectorThreadSafe<T,EXP> & TPZAdmChunkVectorThreadSafe<T,EXP>::operator=(const TPZAdmChunkVectorThreadSafe<T,EXP> &AdmCh)
 {
 	pthread_mutex_lock(&fAdmChunkVectorLock);
-	TPZAdmChunkVector<T,EXP> &resul = TPZAdmChunkVector<T,EXP>::operator[](AdmCh);
+	TPZAdmChunkVectorThreadSafe<T,EXP> &resul = (TPZAdmChunkVectorThreadSafe<T,EXP> &) TPZAdmChunkVector<T,EXP>::operator=(AdmCh);
 	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	return resul;
 }
