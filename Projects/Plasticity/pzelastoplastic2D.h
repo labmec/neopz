@@ -100,7 +100,7 @@ public:
 	
 	
 	/**To create another material of the same type*/
-	virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+	virtual TPZMaterial * NewMaterial();
 	
 	
 	/**

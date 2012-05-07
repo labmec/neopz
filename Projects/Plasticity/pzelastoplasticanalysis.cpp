@@ -455,17 +455,17 @@ void TPZElastoPlasticAnalysis::SetUpdateMem(int update)
 {
 	if(!fCompMesh)return;
 	
-	std::map<int, TPZAutoPointer<TPZMaterial > > & refMatVec = fCompMesh->MaterialVec();
+	std::map<int, TPZMaterial *> & refMatVec = fCompMesh->MaterialVec();
 
-    std::map<int, TPZAutoPointer<TPZMaterial > >::iterator mit;
+    std::map<int, TPZMaterial * >::iterator mit;
 	
 	TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem; // defined in file pzelastoplastic.h
 	TPZMatWithMem<TPZPoroElastoPlasticMem> * pMatWithMem2; // define in file pzporous.h
 
     for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++){
-        pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *>( mit->second.operator->() );
+        pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *>( mit->second );
 		if(pMatWithMem != NULL) pMatWithMem->SetUpdateMem(update);
-        pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZPoroElastoPlasticMem> *>( mit->second.operator->() );
+        pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZPoroElastoPlasticMem> *>( mit->second);
 		if(pMatWithMem2 != NULL) pMatWithMem2->SetUpdateMem(update);
     }
 	
@@ -753,8 +753,8 @@ void TPZElastoPlasticAnalysis::ManageIterativeProcess(std::ostream &out,REAL tol
 	
 	// ZAXPY operation: *this += alpha * p			
 
-	TPZAutoPointer<TPZMaterial> mat = fCompMesh->FindMaterial(BCId);
-	TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat.operator->());
+	TPZMaterial * mat = fCompMesh->FindMaterial(BCId);
+	TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
 	if(!pBC)return;
  
     int i;

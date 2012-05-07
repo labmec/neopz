@@ -146,7 +146,7 @@ class TPZMatPorous : public TPZMatTemporal, public TPZMatElastoPlastic< T, TMEM 
       virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ef, TPZBndCond &bc);
 
       /**To create another material of the same type*/
-      virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+      virtual TPZMaterial * NewMaterial();
 
       /** Unique identifier for serialization purposes */
       virtual int ClassId() const;

@@ -377,7 +377,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & d
 
 
 template <class T, class TMEM>
-TPZAutoPointer<TPZMaterial> TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
+TPZMaterial * TPZMatElastoPlastic2D<T,TMEM>::NewMaterial()
 {
 	return new TPZMatElastoPlastic2D<T,TMEM>(*this);
 }

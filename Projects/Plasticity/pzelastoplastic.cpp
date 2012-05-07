@@ -1031,7 +1031,7 @@ void TPZMatElastoPlastic<T,TMEM>::EigenVectors(TPZFMatrix<REAL> &vectorTensor, T
 }
 	
 template <class T, class TMEM>
-TPZAutoPointer<TPZMaterial> TPZMatElastoPlastic<T,TMEM>::NewMaterial()
+TPZMaterial * TPZMatElastoPlastic<T,TMEM>::NewMaterial()
 {
 	return new TPZMatElastoPlastic<T,TMEM>(*this);
 }

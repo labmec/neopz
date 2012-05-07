@@ -352,7 +352,7 @@ void TPZMatPorous<T, TMEM >::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<
 
 	
 template <class T, class TMEM>
-TPZAutoPointer<TPZMaterial> TPZMatPorous<T, TMEM >::NewMaterial()
+TPZMaterial * TPZMatPorous<T, TMEM >::NewMaterial()
 {
 	return new TPZMatPorous<T, TMEM>(*this);
 }

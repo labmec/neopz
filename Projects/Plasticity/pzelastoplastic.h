@@ -235,7 +235,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
       void EigenVectors(TPZFMatrix<REAL> &vectorTensor, TPZVec< REAL > &Solout, int direction);
 	
       /**To create another material of the same type*/
-      virtual TPZAutoPointer<TPZMaterial> NewMaterial();
+      virtual TPZMaterial * NewMaterial();
 
       /**
        * Unique identifier for serialization purposes

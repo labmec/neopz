@@ -82,8 +82,8 @@ void TPZPoroElastoPlasticAnalysis::SetContributionTime(TPZContributeTime time)
 	
 	for(i = 0; i < n; i++)
 	{
-		TPZAutoPointer<TPZMaterial> pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
-		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat.operator->());
+		TPZMaterial * pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
+		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat);
 		if(pMatTemp)pMatTemp->SetContributionTime(time);
 	}
 }
@@ -94,8 +94,8 @@ void TPZPoroElastoPlasticAnalysis::SetDeltaT(const REAL deltaT)
 	
 	for(i = 0; i < n; i++)
 	{
-		TPZAutoPointer<TPZMaterial> pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
-		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat.operator->());
+		TPZMaterial * pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
+		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat);
 		if(pMatTemp)pMatTemp->SetDeltaT(deltaT);
 	}
 }
@@ -107,8 +107,8 @@ int TPZPoroElastoPlasticAnalysis::FindPorousMaterials()
 	
 	for(i = 0; i < n; i++)
 	{
-		TPZAutoPointer<TPZMaterial> pMat = fCompMesh->MaterialVec()[i];
-		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat.operator->());
+		TPZMaterial * pMat = fCompMesh->MaterialVec()[i];
+		TPZMatTemporal * pMatTemp = dynamic_cast<TPZMatTemporal *>(pMat);
 		if(pMatTemp)fPorousMaterialIds.Push(pMat->Id() );
 	}
 	
@@ -169,7 +169,7 @@ REAL TPZPoroElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacem
 	
 	for(i = 0; i < n; i++)
 	{
-		TPZAutoPointer<TPZMaterial> pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
+		TPZMaterial * pMat = fCompMesh->FindMaterial(fPorousMaterialIds[i]);
 		if(pMat->NStateVariables() > nstate)
 			nstate = pMat->NStateVariables();
 	}	
