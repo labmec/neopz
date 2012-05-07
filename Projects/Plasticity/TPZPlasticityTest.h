@@ -2547,7 +2547,7 @@ inline void TPZPlasticTest::PlasticIntegratorCheck(T mat)
         
         
         int count =0;
-		while(/* Plastifica == false && */ MustStop == false && count < 30 ){
+		while(( Plastifica == false &&  MustStop == false) || count < 30 ){
 			
 
             plasticModelCopy.ApplyStrainComputeDep(epst,stress,Dep);

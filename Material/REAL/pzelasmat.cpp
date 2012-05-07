@@ -240,6 +240,45 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 
 /** Returns the variable index associated with the name. */
 int TPZElasticityMaterial::VariableIndex(const std::string &name){
+    
+    
+    /*
+    if(!strcmp("Displacement",             name.c_str()))  return TPZElasticityMaterial::EDisplacement;
+    if(!strcmp("DisplacementX",            name.c_str()))  return TPZElasticityMaterial::EDisplacementX;
+    if(!strcmp("DisplacementY",            name.c_str()))  return TPZElasticityMaterial::EDisplacementY;
+    if(!strcmp("DisplacementZ",            name.c_str()))  return TPZElasticityMaterial::EDisplacementZ;
+    if(!strcmp("NormalStress",             name.c_str()))  return TPZElasticityMaterial::ENormalStress;
+    if(!strcmp("ShearStress",              name.c_str()))  return TPZElasticityMaterial::EShearStress;
+    if(!strcmp("NormalStrain",             name.c_str()))  return TPZElasticityMaterial::ENormalStrain;
+    if(!strcmp("ShearStrain",              name.c_str()))  return TPZElasticityMaterial::EShearStrain;
+    if(!strcmp("PrincipalStress",          name.c_str()))  return TPZElasticityMaterial::EPrincipalStress;
+    if(!strcmp("Stress1",                  name.c_str()))  return TPZElasticityMaterial::EStress1;
+    if(!strcmp("PrincipalStrain",          name.c_str()))  return TPZElasticityMaterial::EPrincipalStrain;
+    if(!strcmp("Strain1",                  name.c_str()))  return TPZElasticityMaterial::EStrain1;  
+    if(!strcmp("PrincipalStressDirection1",name.c_str()))  return TPZElasticityMaterial::EPrincipalStressDirection1;
+    if(!strcmp("PrincipalStressDirection2",name.c_str()))  return TPZElasticityMaterial::EPrincipalStressDirection2;
+    if(!strcmp("PrincipalStressDirection3",name.c_str()))  return TPZElasticityMaterial::EPrincipalStressDirection3;
+    if(!strcmp("I1Stress",                 name.c_str()))  return TPZElasticityMaterial::EI1Stress;
+    if(!strcmp("J2Stress",                 name.c_str()))  return TPZElasticityMaterial::EJ2Stress;
+    if(!strcmp("I1J2Stress",               name.c_str()))  return TPZElasticityMaterial::EI1J2Stress;
+    if(!strcmp("DirStress",                name.c_str()))  return TPZElasticityMaterial::EDirStress;
+    if(!strcmp("DirStrain",                name.c_str()))  return TPZElasticityMaterial::EDirStrain;
+    if(!strcmp("VolElasticStrain",         name.c_str()))  return TPZElasticityMaterial::EVolElasticStrain;
+    if(!strcmp("VolPlasticStrain",         name.c_str()))  return TPZElasticityMaterial::EVolPlasticStrain;
+    if(!strcmp("VolTotalStrain",           name.c_str()))  return TPZElasticityMaterial::EVolTotalStrain;
+    if(!strcmp("VolTEPStrain",             name.c_str()))  return TPZElasticityMaterial::EVolTEPStrain;
+    if(!strcmp("Alpha",                    name.c_str()))  return TPZElasticityMaterial::EAlpha;
+    if(!strcmp("PlasticSteps",             name.c_str()))  return TPZElasticityMaterial::EPlasticSteps;
+    if(!strcmp("YieldSurface",             name.c_str()))  return TPZElasticityMaterial::EYield;
+	if(!strcmp("TotalPlasticStrain",     name.c_str()))  return TPZElasticityMaterial::ENormalPlasticStrain;
+	if(!strcmp("EMisesStress",     name.c_str()))  return TPZElasticityMaterial::EMisesStress;
+    PZError << "TPZMatElastoPlastic::VariableIndex Error\n";
+    return -1;
+    */
+    
+    
+   
+    
 	if(!strcmp("displacement",name.c_str()))     return 9;
 	if(!strcmp("Pressure",name.c_str()))         return 1;
 	if(!strcmp("MaxStress",name.c_str()))        return 2;
@@ -253,6 +292,8 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
 	if(!strcmp("Displacement6",name.c_str()))    return 7;
 	if(!strcmp("Stress",name.c_str()))           return 10;
+    
+    
 	
 	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
 	return TPZMaterial::VariableIndex(name);
@@ -260,6 +301,41 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 
 /** Returns the number of variables associated with the variable indexed by var. */
 int TPZElasticityMaterial::NSolutionVariables(int var){
+ /*   
+    if(var == TPZElasticityMaterial::EDisplacement)              return 3;
+    if(var == TPZElasticityMaterial::EDisplacementX)             return 1;
+    if(var == TPZElasticityMaterial::EDisplacementY)             return 1;
+    if(var == TPZElasticityMaterial::EDisplacementZ)             return 1;
+    if(var == TPZElasticityMaterial::EPrincipalStress)           return 3;
+    if(var == TPZElasticityMaterial::ENormalStress)              return 3;
+    if(var == TPZElasticityMaterial::EShearStress)               return 3;
+    if(var == TPZElasticityMaterial::ENormalStrain)              return 3;
+    if(var == TPZElasticityMaterial::EShearStrain)               return 3;
+    if(var == TPZElasticityMaterial::ENormalStrain)              return 3;
+    if(var == TPZElasticityMaterial::EStress1)                   return 1; 
+    if(var == TPZElasticityMaterial::EPrincipalStrain)           return 3;
+    if(var == TPZElasticityMaterial::EStrain1)                   return 1;  
+    if(var == TPZElasticityMaterial::EPrincipalStressDirection1) return 3;
+    if(var == TPZElasticityMaterial::EPrincipalStressDirection2) return 3;
+    if(var == TPZElasticityMaterial::EPrincipalStressDirection3) return 3;
+    if(var == TPZElasticityMaterial::EI1Stress)                  return 1;
+    if(var == TPZElasticityMaterial::EJ2Stress)                  return 1;
+    if(var == TPZElasticityMaterial::EI1J2Stress)                return 2;
+    if(var == TPZElasticityMaterial::EDirStress)                 return 3;  
+    if(var == TPZElasticityMaterial::EDirStrain)                 return 3;  
+    if(var == TPZElasticityMaterial::EVolElasticStrain)          return 1;
+    if(var == TPZElasticityMaterial::EVolPlasticStrain)          return 1; 
+    if(var == TPZElasticityMaterial::EVolTotalStrain)            return 1;
+    if(var == TPZElasticityMaterial::EVolTEPStrain)              return 3;
+    if(var == TPZElasticityMaterial::EAlpha)                     return 1;  
+    if(var == TPZElasticityMaterial::EPlasticSteps)              return 1;
+    if(var == TPZElasticityMaterial::EYield)                     return 1;//Numero de funcoes falha 
+    if(var == TPZElasticityMaterial::EMisesStress)              return 1; 
+    if(var == TPZElasticityMaterial::ENormalPlasticStrain)              return 1;
+    PZError << "TPZElasticity3D::NSolutionVariables Error\n";
+    return -1;
+ */   
+    
 	switch(var) {
 		case 0:
 			return 2;
@@ -282,7 +358,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 		default:
 			return TPZMaterial::NSolutionVariables(var);
 	}
-	//  return 0;
+  
 }
 
 void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {

@@ -551,7 +551,7 @@ void TPZFYsmpMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TV
 	 int fOpt;
 	 int fStride;
 	 */
-	const int numthreads = 2;
+    const int numthreads = 2;
 	pthread_t allthreads[numthreads];
 	TPZMThread alldata[numthreads];
 	int res[numthreads];
@@ -729,6 +729,7 @@ void TPZFYsmpMatrix<TVar>::SolveJacobi(int & numiterations, const TPZFMatrix<TVa
 template<class TVar>
 void *TPZFYsmpMatrix<TVar>::ExecuteMT(void *entrydata)
 {
+    //DebugStop();
 	TPZMThread *data = (TPZMThread *) entrydata;
 	const TPZFYsmpMatrix *mat = data->target;
 	TVar sum;

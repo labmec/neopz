@@ -29,6 +29,7 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
+//#define IsZero( a )  ( fabs(a) < 1.e-20)
 
 #ifdef USING_ATLAS
 extern "C"{
@@ -48,6 +49,7 @@ double cblas_ddot(const int N, const double *X, const int incX,
 void cblas_daxpy(const int N, const void *alpha, const void *X,
                  const int incX, void *Y, const int incY);
 #endif
+
 
 using namespace std;
 

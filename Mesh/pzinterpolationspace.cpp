@@ -240,7 +240,7 @@ void TPZInterpolationSpace::VectorialProd(TPZVec<REAL> & ivec, TPZVec<REAL> & jv
 		int i;
 		for(i = 0; i < 3; i++)size += kvec[i] * kvec[i];
 		size = sqrt(size);
-		if(size <= 1.e-9)PZError << "TPZInterpolationSpace::VectorialProd - null result";
+		//if(size <= 1.e-9)PZError << "\nTPZInterpolationSpace::VectorialProd - null result\n";
 		for(i = 0; i < 3; i++)kvec[i] /= size;
 	}
 }
