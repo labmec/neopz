@@ -101,6 +101,9 @@ else()
 		#add_subdirectory(Plasticity)
 		#add_subdirectory(prodindex)
 
+		#Projeto Teo Refinamento Paralelo
+		add_subdirectory(RefThread)
+
 		#Projeto Lua 2012
 		add_subdirectory(Lua01)
 		
