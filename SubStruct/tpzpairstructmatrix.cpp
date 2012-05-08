@@ -36,6 +36,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 	TPZCompMesh &mesh = *fMesh;
 	int nelem = mesh.NElements();
 	TPZElementMatrix ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
+    
 	
 	TPZTimer calcstiff("Computing the stiffness matrices");
 	TPZTimer assemble("Assembling the stiffness matrices");

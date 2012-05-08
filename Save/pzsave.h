@@ -8,6 +8,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 
 #include "pzvec.h"
@@ -241,7 +242,20 @@ public:
 			vec[c].Read(buf,context);
 		}
 	}
+    
+    static void ReadObjects(TPZStream &buf, std::set<int> &vec)
+	{
+		int nel = vec.size();
+		buf.Write(&nel,1);
+        for (int i=0; i<nel; i++)
+        {
+            int val;
+            buf.Read(&val);
+            vec.insert(val);
+        }
+	}
 	
+
 	static void ReadObjects(TPZStream &buf, TPZVec<int> &vec)
 	{
 		int nc;
@@ -479,6 +493,18 @@ public:
 		int nel = vec.NElements();
 		buf.Write(&nel,1);
 		if(nel) buf.Write(&vec[0],vec.NElements());
+	}
+	
+	static void WriteObjects(TPZStream &buf, std::set<int> &vec)
+	{
+		int nel = vec.size();
+		buf.Write(&nel,1);
+        std::set<int>::iterator it = vec.begin();
+        while (it != vec.end()) {
+            int val = *it;
+            buf.Write(&val);
+            it++;
+        }
 	}
 	
 	static void WriteObjects(TPZStream &buf, std::vector<float> &vec)

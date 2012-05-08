@@ -69,10 +69,11 @@ TPZDohrStructMatrix::~TPZDohrStructMatrix()
 	pthread_mutex_destroy(&fAccessElement);
 }
 
+
 // this will create a DohrMatrix
 TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 {
-	
+    
 	TPZfTime timeforcopute; // init of timer for compute
 	fMesh->ComputeNodElCon();
 	TPZAutoPointer<TPZDohrAssembly<STATE> > assembly = new TPZDohrAssembly<STATE>;
@@ -144,6 +145,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	
 	
 	IdentifyCornerNodes();
+    
 	
 	tempo.ft4identcorner = timefornodes.ReturnTimeDouble();
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
@@ -187,6 +189,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		{
 			assembly->fFineEqs[isub][count++] = it->second; 
 		}
+        
 		
 		// initialize the permutations from the mesh enumeration to the external enumeration
 		typedef TPZDohrSubstructCondense<STATE>::ENumbering ENumbering;
@@ -223,6 +226,8 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		// initialize the fC matrix
 		// associate each column of the fC matrix with a coarse index
 		IdentifySubCornerEqs(globinv,substruct->fCoarseNodes,assembly->fCoarseEqs[isub]);
+        
+        
 		//		int ncoarse = substruct->fCoarseNodes.NElements();
 		
 		// reorder by internal nodes
@@ -248,6 +253,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, T
      */
 void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
 {
+    
     
     TPZMatrix<STATE> *dohrgeneric = &mat;    
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
@@ -424,6 +430,7 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	expelementgraphindex.Push(0);
 	int nelprev = nel;
 	
+    
 	int count = 0;
 	for (iel=0; iel<nel; iel++) {
 		int nc = elementgraphindex[iel+1]-elementgraphindex[iel];
@@ -440,7 +447,10 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 		}
 		expelementgraphindex.Push(count);
 	}
+    
+    
 	int next = fExternalConnectIndexes.NElements();
+    
 	
 	if(next)
 		//	if(0)
@@ -480,7 +490,11 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 			}
 		}
 	}
-	// Put a global external element on top of everything
+
+	
+    
+    
+    // Put a global external element on top of everything
 	//	if (next) {
 	if (0) {
 		count = expelementgraph.NElements();
@@ -923,7 +937,6 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	fMesh->CleanUpUnconnectedNodes();
 }
 
-
 // This is a lengthy process which should run on the remote processor assembling all
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
 					  pthread_mutex_t &TestThread)
@@ -956,7 +969,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		matredbig->SetK00(Stiffness);
 		substruct->fMatRedComplete = matredbig;
 		
-		
+        
+        
 		TPZVec<int> permuteconnectscatter;
 		
 		substruct->fNumInternalEquations = submesh->NumInternalEquations();
@@ -1039,6 +1053,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		// compute both stiffness matrices simultaneously
 		substruct->fLocalLoad.Redim(Stiffness->Rows(),1);
 		pairstructmatrix.Assemble(-1, -1, Stiffness.operator->(), matredptr, substruct->fLocalLoad);
+        
+        
 		// fLocalLoad is in the original ordering of the submesh
 		matredbig->Simetrize();
 		matredptr->Simetrize();
@@ -1073,6 +1089,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		matredptr->SetReduced();
 		TPZMatRed<STATE,TPZFMatrix<STATE> > *matredfull = new TPZMatRed<STATE,TPZFMatrix<STATE> >(*matredptr);
 		substruct->fMatRed = matredfull;
+        
 		
 	}
 }
@@ -1512,3 +1529,36 @@ int TPZDohrStructMatrix::ClusterIslands(TPZVec<int> &domain_index,int nsub,int c
 	
 	return count;
 }
+
+void TPZDohrStructMatrix::Write(TPZStream &str)
+{
+    int hasdohrassembly = 0;
+    if (fDohrAssembly) {
+        hasdohrassembly = 1;
+    }
+    str.Write(&hasdohrassembly);
+    if (hasdohrassembly) {
+        fDohrAssembly->Write(str);
+    }
+    str.Write(&fNumThreadsDecompose);
+    TPZSaveable::WriteObjects(str, fExternalConnectIndexes);
+    TPZSaveable::WriteObjects(str,fCornerEqs);
+    
+    
+    
+}
+
+void TPZDohrStructMatrix::Read(TPZStream &str)
+{
+    int hasdohrassembly;
+    str.Read(&hasdohrassembly);
+    if (hasdohrassembly) {
+        fDohrAssembly = new TPZDohrAssembly<STATE>;
+        fDohrAssembly->Read(str);
+    }
+    str.Read(&fNumThreadsDecompose);
+    TPZSaveable::ReadObjects(str, fExternalConnectIndexes);
+    TPZSaveable::ReadObjects(str, fCornerEqs);
+    
+}
+

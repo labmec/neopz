@@ -629,7 +629,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
 		}
 		else
 		{
-			int flag = -1;
+			int flag = 0;
 			buf.Write(&flag, 1);
 		}
 		this->fK01.Write(buf, 0);
@@ -680,24 +680,17 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 	{//Aggregates
 		this->fF0.Read(buf, 0);
 		this->fF1.Read(buf, 0);
-		if(!fK00)
-		{
-            TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
-            if(!sav)
-            {
-                DebugStop();
-            }
-            TPZMatrix<TVar> *mat = dynamic_cast<TPZMatrix<TVar> *>(sav);
-            if(!mat)
-            {
-                DebugStop();
-            }
-            fK00 = mat;
-		}
+        TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
+        TPZMatrix<TVar> *mat = dynamic_cast<TPZMatrix<TVar> *>(sav);
+        if(sav && !mat)
+        {
+            DebugStop();
+        }
+        fK00 = mat;
 		this->fK01.Read(buf, 0);
 		this->fK10.Read(buf, 0);
 		this->fK11.Read(buf, 0);
-        TPZSaveable *sav = TPZSaveable::Restore(buf, 0);
+        sav = TPZSaveable::Restore(buf, 0);
         TPZMatrixSolver<TVar> *matsolv = dynamic_cast<TPZMatrixSolver<TVar> *>(sav);
         if (sav && !matsolv) {
             DebugStop();

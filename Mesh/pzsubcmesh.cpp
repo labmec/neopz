@@ -725,11 +725,24 @@ int TPZSubCompMesh::TransferElementFrom(TPZCompMesh *mesh, int elindex){
             // I don't know what to do...
             DebugStop();
         }
-        TPZMaterial * matthis = FindMaterial(matfather->Id());
+        int matid = matfather->Id();
+        TPZMaterial * matthis = FindMaterial(matid);
         
         // perform a "shallow copy" of the material
         if (!matthis) {
             MaterialVec()[matfather->Id()] = matfather;
+        }
+        
+        // for boundary conditions we need to copy the referred material too
+        TPZBndCond *bnd = dynamic_cast<TPZBndCond *>(matfather);
+        if (bnd) {
+            TPZMaterial *ref = bnd->Material();
+            int refid = ref->Id();
+            TPZMaterial *matthis = FindMaterial(refid);
+            if(!matthis)
+            {
+                MaterialVec()[refid] = ref;
+            }
         }
     }
 	cel->SetMesh(this);

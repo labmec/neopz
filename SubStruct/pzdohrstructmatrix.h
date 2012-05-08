@@ -85,6 +85,10 @@ public:
 	 * @return returns the number of subdomains
 	 */
 	int ClusterIslands(TPZVec<int> &domain_index,int nsub,int connectdimension);
+    
+    void Write(TPZStream &str);
+    
+    void Read(TPZStream &str);
 	
 	
 protected:

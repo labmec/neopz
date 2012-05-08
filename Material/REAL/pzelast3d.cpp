@@ -14,7 +14,7 @@
 
 REAL TPZElasticity3D::gTolerance = 1.e-11;
 
-TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force) : TPZMaterial(nummat){
+TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force) : TPZMaterial(nummat),C1(-999.),C2(-999.),C3(-999.){
 	this->fE = E;
 	this->fPoisson = poisson;
 #ifdef DEBUG
@@ -28,6 +28,7 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
 	this->fPostProcessDirection.Fill(0.);
 	this->fPostProcessDirection[0] = 1.;
 	this->SetYieldingStress(1.);
+    SetC();
 #ifndef CODE1
 	C1 = E / (2.+ 2.*poisson);
 	C2 = E * poisson / (-1. + poisson + 2.*poisson*poisson);
@@ -36,17 +37,17 @@ TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> 
 	
 }//method
 
-TPZElasticity3D::TPZElasticity3D(int nummat): TPZMaterial(nummat),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), fFy(0.)
+TPZElasticity3D::TPZElasticity3D(int nummat): TPZMaterial(nummat),fE(0.), fPoisson(0.),C1(-999.),C2(-999.),C3(-999.),fForce(3,0.),fPostProcessDirection(3,0.), fFy(0.)
 {
     SetC();
 }
 
-TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.),fForce(3,0.),fPostProcessDirection(3,0.), 
+TPZElasticity3D::TPZElasticity3D() : TPZMaterial(),fE(0.), fPoisson(0.),C1(-999.),C2(-999.),C3(-999.),fForce(3,0.),fPostProcessDirection(3,0.), 
 fFy(0.){}
 
 TPZElasticity3D::~TPZElasticity3D(){}
 
-TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
+TPZElasticity3D::TPZElasticity3D(const TPZElasticity3D &cp) : TPZMaterial(cp), fE(cp.fE), fPoisson(cp.fPoisson),C1(-999.),C2(-999.),C3(-999.),fForce(cp.fForce),fPostProcessDirection(cp.fPostProcessDirection), 
 fFy(cp.fFy)
 {
     SetC();
@@ -627,6 +628,7 @@ void TPZElasticity3D::Read(TPZStream &buf, void *context)
 	buf.Read(&fPoisson,1);
 	fPostProcessDirection.Resize(3);
 	buf.Read(&fPostProcessDirection[0],3);
+    SetC();
 }
 
 int TPZElasticity3D::ClassId() const

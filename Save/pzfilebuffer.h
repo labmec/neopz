@@ -100,6 +100,7 @@ public:
 	
 	void OpenWrite(const std::string &filename) {
 		fo.open(filename.c_str());
+        fo.precision(15);
 	}
 	
 	void OpenRead(const std::string &filename) {

@@ -502,6 +502,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out)
     out.Write(&three);
     TPZSaveable::WriteObjects(out, fWeights);
     fKCi.Write(out, 0);
+    out.Write(&four);
     typename std::map<std::pair<ENumbering, ENumbering> , TPZVec<int> >::iterator it;
     int sc = fPermutationsScatter.size();
     out.Write(&sc);
