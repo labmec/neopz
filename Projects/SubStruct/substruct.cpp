@@ -74,7 +74,7 @@ int main5(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
-    return main5(argc, argv);
+    return main1(argc, argv);
 }
 
 int main1(int argc, char *argv[])
