@@ -499,7 +499,7 @@ inline int TPZFMatrix<TVar>::Zero() {
 /*** Operations Global ***/
 
 inline int Norm(const TPZFMatrix<int> &A) {
-	return sqrt(Dot(A,A));
+	return sqrt((REAL)Dot(A,A));
 }
 
 inline float Norm(const TPZFMatrix<float> &A) {

@@ -300,7 +300,7 @@ inline TPZFlopCounter sqrt(const TPZFlopCounter &orig)
 inline TPZFlopCounter fabs(const TPZFlopCounter &orig)
 {
 	TPZFlopCounter result;
-	result.fVal = ::fabs(orig.fVal);
+	result.fVal = fabs(orig.fVal);
 	return result;
 }
 
@@ -488,7 +488,7 @@ inline bool IsZero( std::complex<float> a ){
 }
 //template<>
 inline bool IsZero( int a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( (REAL)a ) < ZeroTolerance() );
 }
 /// Returns the maximum value between a and b
 template <class T>

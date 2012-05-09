@@ -49,7 +49,7 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
 #endif
 
 #ifdef WIN32
-#include <Dialogs.hpp>
+//#include <Dialogs.hpp>
 #endif
 
 void DebugStop()
