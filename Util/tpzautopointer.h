@@ -29,6 +29,41 @@
  */
 extern pthread_mutex_t gAutoPointerMutex;
 
+#define AP_MUTEX_ARRAY_SZ 512
+
+#define PROFILE_AP_MUTEXES
+
+#ifdef PROFILE_AP_MUTEXES
+  extern unsigned long long ap_mutex_accesses[];
+#endif
+
+#define AP_MUTEX_HASH_1         \
+  addr = (addr >> 32) ^ addr;   \
+  addr = (addr >> 16) ^ addr;   \
+  addr = (addr >> 8)  ^ addr;   \
+  addr = (addr >> 4)  ^ addr;   \
+  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+
+#define AP_MUTEX_HASH_2         \
+  addr = (addr >> 8)  ^ addr;   \
+  addr = (addr >> 4)  ^ addr;   \
+  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+
+extern pthread_mutex_t gAutoPointerMutexArray[];
+inline pthread_mutex_t* get_ap_mutex(void* obj)
+{
+  //return &gAutoPointerMutex; // Single mutex Approach.
+  unsigned i;
+  unsigned long long addr = (unsigned long long) obj;
+  //  AP_MUTEX_HASH_1;
+  AP_MUTEX_HASH_2;
+#ifdef PROFILE_AP_MUTEXES
+  ap_mutex_accesses[i]++;
+#endif
+  return &(gAutoPointerMutexArray[i]);
+}
+
+
 /**
  @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
  @author Philippe R. B. Devloo
@@ -65,18 +100,18 @@ class TPZAutoPointer{
 		/** @brief Increment the counter */
 		void Increment()
 		{
-		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
-			fCounter++;
-			PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
+		  PZP_THREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+		  fCounter++;
+		  PZP_THREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 		}
 		/** @brief Decrease the counter. If the counter is zero, delete myself */
 		void Decrease()
 		{
 			int should_delete = 0;
-		        PZP_THREAD_MUTEX_LOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
+		        PZP_THREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 			fCounter--;
 			if(fCounter <= 0) should_delete = 1;
-		        PZP_THREAD_MUTEX_UNLOCK(&gAutoPointerMutex, __PRETTY_FUNCTION__);
+		        PZP_THREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 			if(should_delete) 
 			{
 				delete this;

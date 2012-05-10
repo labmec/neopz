@@ -345,17 +345,21 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly and Decompose (seq. version)");
 	}
 	
-	
-	for(itr=0; itr<numthreads_assemble; itr++)
-	{
-	  PZP_THREAD_CREATE(&allthreads_assemble[itr], NULL, 
-			    ThreadDohrmanAssemblyList::ThreadWork, 
-			    &worklistAssemble, __FUNCTION__);
-		
-	}
-	for(itr=0; itr<numthreads_assemble; itr++)
-	{
-	  PZP_THREAD_JOIN(allthreads_assemble[itr], NULL, __FUNCTION__);
+	if (numthreads_assemble > 0) {
+	  for(itr=1; itr<numthreads_assemble; itr++)
+	  {
+	    PZP_THREAD_CREATE(&allthreads_assemble[itr], NULL, 
+			      ThreadDohrmanAssemblyList::ThreadWork, 
+			      &worklistAssemble, __FUNCTION__);
+	    
+	  }
+	  /* Put the main thread to work. */
+	  ThreadDohrmanAssemblyList::ThreadWork(&worklistAssemble);
+
+	  for(itr=1; itr<numthreads_assemble; itr++)
+	  {
+	    PZP_THREAD_JOIN(allthreads_assemble[itr], NULL, __FUNCTION__);
+	  }
 	}
 
 	if (fNumThreads > 0) {
@@ -386,24 +390,33 @@ TPZMatrix * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix &rhs, TPZAutoPointer<
 	}
 
 	TPZfTime timerfordecompose; // init of timer
-	
-	for(itr=0; itr<numthreads_decompose; itr++)
-	{
-	  PZP_THREAD_CREATE(&allthreads_decompose[itr], NULL,
-			    ThreadDohrmanAssemblyList::ThreadWork, 
-			    &worklistDecompose, __FUNCTION__);
+
+	if ((fNumThreads > 0) && (numthreads_decompose == 0)) {
+	  ThreadDohrmanAssemblyList::ThreadWork(&worklistDecompose);
 	}
-	for(itr=0; itr<numthreads_decompose; itr++)
-	{
-	  PZP_THREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
+	else {
+	  for(itr=1; itr<numthreads_decompose; itr++)
+	  {
+	    PZP_THREAD_CREATE(&allthreads_decompose[itr], NULL,
+			      ThreadDohrmanAssemblyList::ThreadWork, 
+			      &worklistDecompose, __FUNCTION__);
+	  }
+	  /* Put the main thread to work */
+	  if (numthreads_decompose > 0) {
+	    ThreadDohrmanAssemblyList::ThreadWork(&worklistDecompose);
+	  }
+	  for(itr=1; itr<numthreads_decompose; itr++)
+	  {
+	    PZP_THREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
+	  }
 	}
-	
+
 	if (fNumThreads > 0) {
 	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
 	}
 
 	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing added after Nathan");
-
+	
 	tempo.ft5dohrassembly = timerfordecompose.ReturnTimeDouble(); // end of timer
 	std::cout << "Time to ThreadDohrmanAssembly" << tempo.ft5dohrassembly << std::endl;
 

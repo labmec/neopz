@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 		gmesh = cmesh->Reference();
 		
 		
-		dohrstruct.SetNumThreads(numthreads_assemble);
+		//dohrstruct.SetNumThreads(numthreads_assemble);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
 		TPZFMatrix rhs(cmesh->NEquations(),1,0.); // New SubStruct;
