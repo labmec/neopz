@@ -77,7 +77,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	int dim = 1;
 	
 	
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial *mat(material);
 	
 	// related to interpolation space
 	TPZCompEl::SetgOrder(p);
@@ -92,7 +92,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	
         if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.0);
-	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
+	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
         REAL k0 = 2 * M_PI / lambda;
@@ -108,7 +108,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
         val2(0) = -q.real();
         val2(1) = -q.imag();
                 
-        TPZAutoPointer<TPZMaterial> BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
+        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 	
 	//Adjusting data
@@ -182,7 +182,7 @@ TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	if(!material || bc.NElements()<2 || bcType.NElements() != bc.NElements()) return NULL;
 	int dim = 2;
 	
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial *mat(material);
 	
 	// related to interpolation space
 	TPZCompEl::SetgOrder(p);
@@ -196,12 +196,12 @@ TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	TPZFMatrix<STATE> val1(1,1,0.), val2(1,1,0.);
 	if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.);
-	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
+	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
 	if(!bcType[1])  // dirichlet
 		val2.PutVal(0,0,0.25);
-	TPZAutoPointer<TPZMaterial> BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
+	TPZMaterial *BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 	
 	//Adjusting data
