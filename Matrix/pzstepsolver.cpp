@@ -349,5 +349,6 @@ template class TPZStepSolver<std::complex<float> >;
 template class TPZStepSolver<std::complex<double> >;
 template class TPZStepSolver<std::complex<long double> >;
 
+template class TPZRestoreClass< TPZStepSolver<float>, TPZSTEPSOLVERFLOAT_ID>;
 template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERDOUBLE_ID>;
 template class TPZRestoreClass< TPZStepSolver<double>, TPZSTEPSOLVERCOMPLEXDOUBLE_ID>;

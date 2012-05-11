@@ -132,10 +132,7 @@ public:
 	//void TestSpeed(int col, int prevcol);
 	
 	
-	virtual int ClassId() const    
-    { 
-        return TSKYLMATRIX_ID; 
-    }
+	virtual int ClassId() const;
     /**
 	 * @brief Unpacks the object structure from a stream of bytes
 	 * @param buf The buffer containing the object in a packed form

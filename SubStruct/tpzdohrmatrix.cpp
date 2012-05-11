@@ -190,18 +190,18 @@ int TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::ClassId() const 
  * @param buf The buffer containing the object in a packed form
  * @param context 
  */
-template <>
-void TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >::Read(TPZStream &buf, void *context )
+template <class TVar, class TSubStruct>
+void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 {
-    TPZMatrix<double>::Read(buf, context);
-    fAssembly = new TPZDohrAssembly<double>;
+    TPZMatrix<TVar>::Read(buf, context);
+    fAssembly = new TPZDohrAssembly<TVar>;
     fAssembly->Read(buf);
     buf.Read(&fNumCoarse);
     buf.Read(&fNumThreads);
     int sz;
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {
-        TPZAutoPointer<TPZDohrSubstructCondense<double> > sub = new TPZDohrSubstructCondense<double>;
+        TPZAutoPointer<TSubStruct > sub = new TSubStruct;
         sub->Read(buf);
         fGlobal.push_back(sub);
     }
@@ -216,14 +216,14 @@ void TPZDohrMatrix<double, TPZDohrSubstructCondense<double> >::Read(TPZStream &b
  * @param buf Buffer which will receive the bytes
  * @param withclassid
  */
-template <>
-void TPZDohrMatrix<double,TPZDohrSubstructCondense<double> >::Write( TPZStream &buf, int withclassid )
+template <class TVar, class TSubStruct>
+void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
 {
-    TPZMatrix<double>::Write(buf, withclassid);
+    TPZMatrix<TVar>::Write(buf, withclassid);
     fAssembly->Write(buf);
     buf.Write(&fNumCoarse);
     buf.Write(&fNumThreads);
-    SubsList::iterator it;
+    typename SubsList::iterator it;
     int size = fGlobal.size();
     buf.Write(&size);
     for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
@@ -234,11 +234,6 @@ void TPZDohrMatrix<double,TPZDohrSubstructCondense<double> >::Write( TPZStream &
     buf.Write(&classid );
 }
 
-template <>
-void TPZDohrMatrix<float, TPZDohrSubstructCondense<float> >::Read(TPZStream &buf, void *context )
-{
-    DebugStop();
-}
 template <>
 void TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> >::Read(TPZStream &buf, void *context )
 {
@@ -260,11 +255,6 @@ void TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::Read(TPZStream 
     DebugStop();
 }
 
-template <>
-void TPZDohrMatrix<float,TPZDohrSubstructCondense<float> >::Write( TPZStream &buf, int withclassid )
-{
-    DebugStop();
-}
 template <>
 void TPZDohrMatrix<long double,TPZDohrSubstructCondense<long double> >::Write( TPZStream &buf, int withclassid )
 {
@@ -296,3 +286,5 @@ template class TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> 
 
 template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE>;
 template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;
+template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstructCondense<float> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT>;
+template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstruct<float> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;

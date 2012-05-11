@@ -1366,13 +1366,34 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
 	}
 }
 
+template<class TVar>
+int TPZSkylMatrix<TVar>::ClassId() const
+{
+    DebugStop();
+    return -1;
+}
+
+
+template<>
+int TPZSkylMatrix<double>::ClassId() const
+{
+    return TSKYLMATRIX_DOUBLE_ID;
+}
+
+template<>
+int TPZSkylMatrix<float>::ClassId() const
+{
+    return TSKYLMATRIX_FLOAT_ID;
+}
+
 template class TPZSkylMatrix<float>;
 template class TPZSkylMatrix<std::complex<float> >;
 
 template class TPZSkylMatrix<double>;
 template class TPZSkylMatrix<std::complex<double> >;
 
-template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_ID>;
+template class TPZRestoreClass<TPZSkylMatrix<double>, TSKYLMATRIX_DOUBLE_ID>;
+template class TPZRestoreClass<TPZSkylMatrix<float>, TSKYLMATRIX_FLOAT_ID>;
 
 template class TPZSkylMatrix<long double>;
 template class TPZSkylMatrix<std::complex<long double> >;

@@ -336,32 +336,32 @@ void *TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork(void *voidptr)
 template<>
 int TPZDohrPrecond<float,TPZDohrSubstruct<float> >::ClassId() const
 {
-    return TPZDOHRPRECONDFLOAT;
+    return TPZDOHRPRECOND_FLOAT_ID;
 }
 template<>
 int TPZDohrPrecond<double,TPZDohrSubstruct<double> >::ClassId() const
 {
-    return TPZDOHRPRECONDDOUBLE;
+    return TPZDOHRPRECOND_DOUBLE_ID;
 }
 template<>
 int TPZDohrPrecond< long double,TPZDohrSubstruct<long double > >::ClassId() const
 {
-    return TPZDOHRPRECONDLONGDOUBLE;
+    return TPZDOHRPRECOND_LONGDOUBLE_ID;
 }
 template<>
 int TPZDohrPrecond<float,TPZDohrSubstructCondense<float> >::ClassId() const
 {
-    return TPZDOHRPRECONDCONDENSEFLOAT;
+    return TPZDOHRPRECONDCONDENSE_FLOAT_ID;
 }
 template<>
 int TPZDohrPrecond<double,TPZDohrSubstructCondense<double> >::ClassId() const
 {
-    return TPZDOHRPRECONDCONDENSEDOUBLE;
+    return TPZDOHRPRECONDCONDENSE_DOUBLE_ID;
 }
 template<>
 int TPZDohrPrecond<long double,TPZDohrSubstructCondense<long double> >::ClassId() const
 {
-    return TPZDOHRPRECONDCONDENSELONGDOUBLE;
+    return TPZDOHRPRECONDCONDENSE_LONGDOUBLE_ID;
 }
 
 /**
@@ -394,8 +394,11 @@ void TPZDohrPrecond<TVar, TSubStruct>::Write( TPZStream &buf, int withclassid )
     fCoarse->Write(buf,1);
 }
 
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSEDOUBLE>;
-template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECONDDOUBLE>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstructCondense<double> >, TPZDOHRPRECONDCONDENSE_DOUBLE_ID>;
+template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >, TPZDOHRPRECOND_DOUBLE_ID>;
+
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >, TPZDOHRPRECONDCONDENSE_FLOAT_ID>;
+template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >, TPZDOHRPRECOND_FLOAT_ID>;
 
 
 template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;

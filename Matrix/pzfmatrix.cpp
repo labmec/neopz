@@ -1276,16 +1276,6 @@ void TPZFMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
 	buf.Write(fElem,this->fRow*this->fCol);
 }
 
-template <>
-void TPZFMatrix<float>::Read( TPZStream &buf, void *context ){
-    DebugStop();
-}
-
-template <>
-void TPZFMatrix<float>::Write( TPZStream &buf, int withclassid ) {
-    DebugStop();
-}
-
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**
  * compare both objects bitwise for identity. Put an entry in the log file if different
@@ -1416,11 +1406,29 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
 	
 }
 
-
 template<class TVar>
-int TPZFMatrix<TVar>::ClassId() const   
+int TPZFMatrix<TVar>::ClassId() const
+{
+    DebugStop();
+    return -1;
+}
+
+template<>
+int TPZFMatrix<double>::ClassId() const   
 { 
-	return TPZFMATRIXID; 
+	return TPZFMATRIX_DOUBLE_ID; 
+}
+
+template<>
+int TPZFMatrix<float>::ClassId() const   
+{ 
+	return TPZFMATRIX_FLOAT_ID; 
+}
+
+template<>
+int TPZFMatrix<long double>::ClassId() const   
+{ 
+	return TPZFMATRIX_LONG_DOUBLE_ID; 
 }
 
 
@@ -1458,4 +1466,6 @@ template class TPZFMatrix<double>;
 template class TPZFMatrix<long double>;
 
 template class TPZFMatrix<int>;
-template class TPZRestoreClass< TPZFMatrix<REAL> , TPZFMATRIXID>;
+template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;
+template class TPZRestoreClass< TPZFMatrix<float> , TPZFMATRIX_FLOAT_ID>;
+template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE_ID>;
