@@ -57,9 +57,15 @@ public:
 	 * @param dudaxes Input matrix
 	 * @param axes Must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
-	static void Axes2XYZ(const TPZFMatrix<> &dudaxes, TPZFMatrix<> &dudx, const TPZFMatrix<> &axes){
+	static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv){
+        TPZFNMatrix<9,TVar> axes(axesv.Rows(),axesv.Cols());
+        for (int r=0; r<axes.Rows(); r++) {
+            for (int c=0; c<axes.Cols(); c++) {
+                axes(r,c) = axesv.GetVal(r,c);
+            }
+        }
 		TPZAxesTools::VerifyAxes(axes);
-		TPZFNMatrix<9> axesT;
+		TPZFNMatrix<9,TVar> axesT;
 		axes.Transpose(&axesT);
 		dudx.Resize(axesT.Rows(), dudaxes.Cols());
 		dudx.Zero();

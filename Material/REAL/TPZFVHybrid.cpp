@@ -32,8 +32,8 @@ void TPZMatHybrid::Print(std::ostream &out) {
 
 void TPZMatHybrid::Contribute(TPZMaterialData &data,
                               REAL weight,
-                              TPZFMatrix<REAL> &ek,
-                              TPZFMatrix<REAL> &ef) {
+                              TPZFMatrix<STATE> &ek,
+                              TPZFMatrix<STATE> &ef) {
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
@@ -61,7 +61,7 @@ void TPZMatHybrid::Contribute(TPZMaterialData &data,
 	int dim = phi.Cols();
 	int k;
 	if(fForcingFunction) {            // phi(in, 0) :  fun�o de forma associada ao n�in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) :  derivada c/r a xi da fun�o de forma j
 		fXf(0,0) = res[0];
 	}
@@ -81,8 +81,8 @@ void TPZMatHybrid::Contribute(TPZMaterialData &data,
 
 void TPZMatHybrid::ContributeBC(TPZMaterialData &data,
                                 REAL weight,
-                                TPZFMatrix<REAL> &ek,
-                                TPZFMatrix<REAL> &ef,
+                                TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef,
                                 TPZBndCond &bc) {
 	
 	// TPZFMatrix<REAL> &dphi = data.dphix;
@@ -174,7 +174,7 @@ int TPZMatHybrid::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatHybrid::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZMatHybrid::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 1) {
 		cout << "TPZMatHybrid::Solution implementar Pressao\n";
@@ -188,15 +188,15 @@ void TPZMatHybrid::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMatHybrid::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) {
+void TPZMatHybrid::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
 		cout << "TPZMatHybrid::Flux only serves for xy configuration\n";
 		axes.Print("axes");
 	}
 }
 //ofstream arq1("Simetria.dat");
-void TPZMatHybrid::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &,
-						  TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZMatHybrid::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
+						  TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<REAL> sol(1),dsol(2);
 	Solution(u,dudx,axes,1,sol);

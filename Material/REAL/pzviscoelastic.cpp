@@ -5,12 +5,12 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic(int id,REAL ElaE,REAL poissonE, REAL lambdaV, REAL muV, REAL alphaT, TPZVec <REAL> &force): TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D>(id),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
+TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
 {
 	flambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
 	fmuE = ElaE/(2*(1+poissonE));
-	REAL lambda = flambdaE-(falphaT*flambdaV)/(1+falphaT);
-	REAL mu = fmuE -(falphaT*fmuV)/(1+falphaT); 
+	STATE lambda = flambdaE-(falphaT*flambdaV)/(1+falphaT);
+	STATE mu = fmuE -(falphaT*fmuV)/(1+falphaT); 
 	fElaVE = mu*(3*lambda+2*mu)/(lambda+mu);
 	fPoissonVE = lambda/(2*(lambda+mu));
 	SetMaterialDataHook(fElaVE, fPoissonVE);
@@ -18,11 +18,11 @@ TPZViscoelastic::TPZViscoelastic(int id,REAL ElaE,REAL poissonE, REAL lambdaV, R
 	SetC();
 }
 
-void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef)
+void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {	
 	int nstate = this->NStateVariables();
 	int in;
-	REAL val;
+	STATE val;
     if(fUpdateMem != 0)
     {
         UpdateQsi(data);
@@ -32,7 +32,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
     const int phr = phi.Rows();
     int index = data.intPtIndex;
 
-    TPZFNMatrix<6,REAL>  qsi(6,1);
+    TPZFNMatrix<6,STATE>  qsi(6,1);
 		int rows = this->MemItem(index).Rows();
     if (rows != 6) 
     {
@@ -69,17 +69,17 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<RE
         val *= 1./(1+falphaT);
         ef(in*nstate+2,0) += weight * val;
     }
-    TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::Contribute(data,weight,ek,ef);
+    TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Contribute(data,weight,ek,ef);
 
 
 }
 
 void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 {
-	TPZFNMatrix<6> qsi;
-	TPZFNMatrix<6> qsin1(6,1,0.);
-	TPZFNMatrix<9> DSolXYZ(3,3,0.);
-	TPZFNMatrix<6> Strain(6,1);
+	TPZFNMatrix<6,STATE> qsi;
+	TPZFNMatrix<6,STATE> qsin1(6,1,0.);
+	TPZFNMatrix<9,STATE> DSolXYZ(3,3,0.);
+	TPZFNMatrix<6,STATE> Strain(6,1);
 	int index = data.intPtIndex;
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
@@ -97,7 +97,7 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	Strain(_XZ_,0) = 0.5 * ( DSolXYZ(2,0) + DSolXYZ(0,2) );
 	Strain(_YZ_,0) = 0.5 * ( DSolXYZ(2,1) + DSolXYZ(1,2) );
 	
-	REAL tr;
+	STATE tr;
 	tr = Strain(_XX_,0)+Strain(_YY_,0)+Strain(_ZZ_,0);
 	
 	qsin1(_XX_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_XX_,0)*fmuV) + qsi(_XX_,0))/(1 + falphaT);
@@ -139,16 +139,16 @@ int TPZViscoelastic::NSolutionVariables(int var)
 	return -1;
 }
 
-void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const
+void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterialData &data) const
 {
     int numbersol = data.dsol.size();
     if (numbersol != 1) {
         DebugStop();
     }
 
-	TPZFNMatrix<9> Dsol = data.dsol[0];
-	TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::ComputeStressTensor(Stress,Dsol);
-	TPZFNMatrix<6> qsi;
+	TPZFNMatrix<9,STATE> Dsol = data.dsol[0];
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::ComputeStressTensor(Stress,Dsol);
+	TPZFNMatrix<6,STATE> qsi;
 	const int index = data.intPtIndex;
 	qsi = MemItem(index);
 	qsi(_XX_,0)*= 1/(1+falphaT);
@@ -179,7 +179,7 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	if(var == TPZElasticity3D::EDisplacement){
 		int i;
 		for(i = 0; i < 3; i++){
-			TPZVec<REAL> Sol(data.sol[0]); 
+			TPZVec<STATE> Sol(data.sol[0]); 
 			Solout[i] = Sol[i];
 		}//for
 		return;
@@ -187,33 +187,37 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	if(var == TPZElasticity3D::EDisplacementX){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol[0]); 
+		TPZVec<STATE> Sol(data.sol[0]); 
 		Solout[0] = Sol[0];
 		return;
 	}//TPZElasticity3D::EDisplacementX
 	
 	if(var == TPZElasticity3D::EDisplacementY){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol[0]); 
+		TPZVec<STATE> Sol(data.sol[0]); 
 		Solout[0] = Sol[1];
 		return;
 	}//TPZElasticity3D::EDisplacementY  
 	
 	if(var == TPZElasticity3D::EDisplacementZ){
 		//    int i;
-		TPZVec<REAL> Sol(data.sol[0]); 
+		TPZVec<STATE> Sol(data.sol[0]); 
 		Solout[0] = Sol[2];
 		return;
 	}//TPZElasticity3D::EDisplacementZ  
 
 	
 	if(var == TPZElasticity3D::EPrincipalStrain){
-		TPZFNMatrix<9> StrainTensor(3,3);
-		TPZFMatrix<REAL> DSol(data.dsol[0]);
-		TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
+		TPZFNMatrix<9,STATE> StrainTensor(3,3);
+		TPZFMatrix<STATE> DSol(data.dsol[0]);
+		TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::ComputeStrainTensor(StrainTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+        TPZManVector<STATE,3> eigv(3,0.);
+		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+        for (int i=0; i<3; i++) {
+            Solout[i] = eigv[i];
+        }
 #ifdef DEBUG    
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
@@ -223,19 +227,19 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	
 	
 	if(var == TPZViscoelastic::EViscoStressX){
-		TPZFNMatrix<9> Stress(3,3);
+		TPZFNMatrix<9,STATE> Stress(3,3);
 		this->ComputeStressTensor(Stress, data);
 		Solout[0] = Stress(0,0);
 		return;
 	}
 	if(var == TPZViscoelastic::EViscoStressY){
-		TPZFMatrix<REAL> Stress(3,3);
+		TPZFMatrix<STATE> Stress(3,3);
 		this->ComputeStressTensor(Stress, data);
 		Solout[0] = Stress(1,1);
 		return;
 	}
 	if(var == TPZViscoelastic::EViscoStressZ){
-		TPZFMatrix<REAL> Stress(3,3);
+		TPZFMatrix<STATE> Stress(3,3);
 		this->ComputeStressTensor(Stress, data);
 		Solout[0] = Stress(2,2);
 		return;

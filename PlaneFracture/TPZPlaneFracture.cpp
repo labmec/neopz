@@ -132,7 +132,7 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
 	TPZAnalysis an(fractureCMesh);
     
 	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ECholesky);
     
     an.SetStructuralMatrix(skylin);
@@ -308,9 +308,9 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     cmesh->SetDimModel(3);
     cmesh->SetAllCreateFunctionsContinuous();
 
-    REAL young = 1000.;
-    REAL poisson = 0.2;
-    TPZVec<REAL> force(3,0.);
+    STATE young = 1000.;
+    STATE poisson = 0.2;
+    TPZVec<STATE> force(3,0.);
 
     TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
     cmesh->InsertMaterialObject(materialLin); 
@@ -319,10 +319,10 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     cmesh->InsertMaterialObject(materialQpoint);
     
     ////BCs    
-    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
+    TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     int dirichlet = 0, newmann = 1, mista = 2;
     
-    REAL pressureY = 1.;
+    STATE pressureY = 1.;
     
 //    //teste 1: compressao uniforme
 //    {

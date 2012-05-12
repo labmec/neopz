@@ -40,27 +40,27 @@
 class TEulerDiffusivity {
 	/** @brief Polytropic gas constant */
 	/** Ratio of the specific heat at constant pressure and the specific heat at constant volume. It is used at equation of state. */
-	static  REAL  fGamma;
+	static  STATE  fGamma;
 	
 public:
 	/**
 	 * @brief Calculates the pressure from equation of state.\n
 	 * It is expected: \f$ U = (density, density * velocityX, density * velocityY, energy) \f$
 	 */
-	static  REAL Pressure(TPZVec<REAL> &U);
+	static  STATE Pressure(TPZVec<STATE> &U);
 	/** @brief Calculates the fluxes \f$ F_x \f$ and \f$ F_y \f$ */
-	static  void Flux(TPZVec<REAL> &u,TPZVec<REAL> &flux);
-	static  void JacobFlux(TPZVec<REAL> &u,TPZFMatrix<REAL> &Ajacob,TPZFMatrix<REAL> &Bjacob);
-	static	void JacobFlux(TPZVec<REAL> &U,TPZFMatrix<REAL> &jacob,TPZVec<REAL> &normal);
+	static  void Flux(TPZVec<STATE> &u,TPZVec<STATE> &flux);
+	static  void JacobFlux(TPZVec<STATE> &u,TPZFMatrix<STATE> &Ajacob,TPZFMatrix<STATE> &Bjacob);
+	static	void JacobFlux(TPZVec<STATE> &U,TPZFMatrix<STATE> &jacob,TPZVec<REAL> &normal);
 	
-	static  void ValJacobFlux(TPZVec<REAL> &u,TPZFMatrix<REAL> &valjacob,TPZVec<REAL> &normal);
+	static  void ValJacobFlux(TPZVec<STATE> &u,TPZFMatrix<STATE> &valjacob,TPZVec<REAL> &normal);
 	
-	static  void MatrixDiff(TPZVec<REAL> &sol, TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &jacinv,TPZFMatrix<REAL>
-							&ATauA,TPZFMatrix<REAL> &ATauB,TPZFMatrix<REAL> &BTauA,TPZFMatrix<REAL> &BTauB);
+	static  void MatrixDiff(TPZVec<STATE> &sol, TPZFMatrix<REAL> &axes, TPZFMatrix<REAL> &jacinv,TPZFMatrix<STATE>
+							&ATauA,TPZFMatrix<STATE> &ATauB,TPZFMatrix<STATE> &BTauA,TPZFMatrix<STATE> &BTauB);
 	
 	static  void InvJacob2d(TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &jacinv);
 	
-	static  void InverseJacob(TPZFMatrix<REAL> &jac);
+	static  void InverseJacob(TPZFMatrix<STATE> &jac);
 	/// Static main for test
 	static int main();
 	

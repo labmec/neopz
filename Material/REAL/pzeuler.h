@@ -72,13 +72,13 @@ public:
 private:
 	
 #ifdef LinearConvection
-	TPZVec<REAL> fCelerity;
+	TPZVec<STATE> fCelerity;
 #endif
 	
 	static CALCType gType;
 	
 	/** @brief Ratio between specific heat at constant pressure and the specific heat at constant volume of a polytropic gas */
-	static REAL gGamma;
+	static STATE gGamma;
 	
 	/** @brief Convective flux object */
 	TPZAUSMFlux fAUSMFlux;
@@ -94,13 +94,13 @@ public:
 	static REAL Gamma(){ return gGamma; }
 	
 	/** @brief Convert from primitive to conservative variables */
-	static void FromPrimitiveToConservative(TPZVec<STATE> &sol,REAL gamma);
+	static void FromPrimitiveToConservative(TPZVec<STATE> &sol,STATE gamma);
 	
 	/** @brief Convert from conservative to primitive variables */
-	static void FromConservativeToPrimitive(TPZVec<STATE> &sol,REAL gamma);
+	static void FromConservativeToPrimitive(TPZVec<STATE> &sol,STATE gamma);
 	
 	/** @brief Constructor with Gamma value */
-	TPZEulerEquation(int nummat, REAL gamma);
+	TPZEulerEquation(int nummat, STATE gamma);
 	
 	/** @brief Default destructor */
 	~TPZEulerEquation();
@@ -124,10 +124,10 @@ public:
 	static REAL Pressure(TPZVec<STATE> &U, double gamma);
 	
 	/** @brief Computes sound speed */
-	REAL cSpeed(TPZVec<STATE> & sol);
+	STATE cSpeed(TPZVec<STATE> & sol);
 	
 	/** @brief Returns \f$ u = Sqrt(u2 + v2 + w2) \f$ */
-	REAL uRes(TPZVec<STATE> & sol);
+	STATE uRes(TPZVec<STATE> & sol);
 	
 	virtual void Print(std::ostream & out);
 	
@@ -137,7 +137,7 @@ public:
 	
 	virtual int NSolutionVariables(int var);
 	
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 
 	/** 
 	 * @name Contribute methods 

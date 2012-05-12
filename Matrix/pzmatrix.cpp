@@ -274,12 +274,6 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 	
 }
 
-/** @brief Overload << operator to output entries of the matrix ***/
-template<class TVar>
-std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
-    A.Print("operator << ",out);
-    return  out;
-}
 
 
 template<class TVar>
@@ -1596,8 +1590,17 @@ template class TPZMatrix<double>;
 template class TPZMatrix<int>;
 template class TPZMatrix<float>;
 
-template<> std::ostream &operator<< <REAL>(std::ostream& out,const TPZMatrix<REAL> &A)
-{
+/** @brief Overload << operator to output entries of the matrix ***/
+template<class TVar>
+std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
     A.Print("operator << ",out);
-    return out;
+    return  out;
 }
+
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<int> &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<float> &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<double> &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<std::complex<float> > &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<long double> &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<std::complex<double> > &A);
+

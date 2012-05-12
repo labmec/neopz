@@ -878,7 +878,7 @@ int TPZElasticityAxiMaterial::NSolutionVariables(int var)
 
 /** returns the solution associated with the var index based
  on the finite element approximation*/
-void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
 	if(var == 0) 
 	{
@@ -1002,8 +1002,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<STATE> EigValues(3,0.);
-			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
+			TPZVec<REAL> EigValues(3,0.);
+			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1028,8 +1028,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<STATE> EigValues(3,0.);
-			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
+			TPZVec<REAL> EigValues(3,0.);
+			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1054,8 +1054,8 @@ void TPZElasticityAxiMaterial::Solution(TPZMaterialData &data, int var, TPZVec<S
 		{
 			int NumIt = 1000;
 			REAL tol = 1.E-5;
-			TPZVec<STATE> EigValues(3,0.);
-			TPZFNMatrix<9,STATE> EigVectors(3,3,0.);
+			TPZVec<REAL> EigValues(3,0.);
+			TPZFNMatrix<9,REAL> EigVectors(3,3,0.);
 			bool EigenWorks;
 			EigenWorks = T.SolveEigensystemJacobi(NumIt, tol, EigValues, EigVectors);
 			if(EigenWorks)
@@ -1223,7 +1223,7 @@ void TPZElasticityAxiMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatr
 	mydata.x = x;
 	
 	//tensoes aproximadas : outra forma
-	TPZVec<STATE> sol(1);
+	TPZVec<REAL> sol(1);
 	Solution(mydata,5,sol);
 	sigma[0] = sol[0];
 	Solution(mydata,6,sol);

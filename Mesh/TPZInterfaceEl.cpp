@@ -1390,7 +1390,7 @@ void TPZInterfaceElement::IntegrateInterface(int variable, TPZVec<REAL> & value)
 	int ip, iv;
 	value.Resize(varsize);
 	value.Fill(0.);
-	TPZManVector<STATE> locval(varsize);
+	TPZManVector<REAL> locval(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule->Point(ip,intpoint,weight);
 		ref->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);

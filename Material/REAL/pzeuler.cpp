@@ -19,7 +19,7 @@
 
 TPZEulerEquation::CALCType TPZEulerEquation::gType = EFlux;
 
-REAL TPZEulerEquation::gGamma = 1.4;
+STATE TPZEulerEquation::gGamma = 1.4;
 
 #ifdef LinearConvection
 void TPZEulerEquation::SetLinearConvection(TPZCompMesh * cmesh, TPZVec<REAL> &Celerity){
@@ -40,7 +40,7 @@ void TPZEulerEquation::SetLinearConvection(TPZCompMesh * cmesh, TPZVec<REAL> &Ce
 }
 #endif
 
-void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma){
+void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<STATE> &sol,STATE gamma){
 	
 #ifdef LinearConvection
 	return;
@@ -59,7 +59,7 @@ void TPZEulerEquation::FromPrimitiveToConservative(TPZVec<REAL> &sol,REAL gamma)
 	}
 }//void
 
-void TPZEulerEquation::FromConservativeToPrimitive(TPZVec<REAL> &sol,REAL gamma){
+void TPZEulerEquation::FromConservativeToPrimitive(TPZVec<STATE> &sol,STATE gamma){
 	
 #ifdef LinearConvection
 	return;
@@ -81,7 +81,7 @@ TPZEulerEquation::~TPZEulerEquation(){
 	
 }
 
-TPZEulerEquation::TPZEulerEquation(int nummat, REAL gamma) : 
+TPZEulerEquation::TPZEulerEquation(int nummat, STATE gamma) : 
 TPZDiscontinuousGalerkin(nummat),fAUSMFlux(gamma),fGradientFlux(){
 	gGamma = gamma;
 }
@@ -134,7 +134,7 @@ int TPZEulerEquation::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZEulerEquation::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+void TPZEulerEquation::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 #ifndef LinearConvection
 	if(IsZero(Sol[0])){
@@ -207,7 +207,7 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialDat
 #ifdef LinearConvection
 	if(gType == EFlux){
 		fGradientFlux.ApplyLimiter(data);
-		TPZManVector<REAL,15> Flux(5,0.);
+		TPZManVector<STATE,15> Flux(5,0.);
 		double dot = 0.;
 		for(int i = 0; i < 3; i++) dot += data.normal[i]*fCelerity[i];
 		if(dot > 0.){
@@ -221,7 +221,7 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialDat
 		for(int i = 0; i < 5; i++) ef(i+20,0) += -1. * weight*Flux[i];
 	}
 	if(gType == EGradient){
-		TPZManVector<REAL,15> Flux(15);
+		TPZManVector<STATE,15> Flux(15);
 		fGradientFlux.ComputeFlux(dataleft.sol,dataright.sol,data.normal,Flux);
 		
 		for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
@@ -238,14 +238,14 @@ void TPZEulerEquation::ContributeInterface(TPZMaterialData &data, TPZMaterialDat
 		fGradientFlux.ApplyLimiter(data,dataleft,dataright);
 		TPZEulerEquation::FromPrimitiveToConservative(dataleft.sol[0],gGamma);
 		TPZEulerEquation::FromPrimitiveToConservative(dataright.sol[0],gGamma);
-		TPZManVector<REAL,15> Flux(5);
+		TPZManVector<STATE,15> Flux(5);
 		fAUSMFlux.ComputeFlux(dataleft.sol[0],dataright.sol[0],data.normal,Flux);
 		
 		for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
 		for(int i = 0; i < 5; i++) ef(i+20,0) += -1. * weight*Flux[i];
 	}
 	if(gType == EGradient){
-		TPZManVector<REAL,15> Flux(15);
+		TPZManVector<STATE,15> Flux(15);
 		fGradientFlux.ComputeFlux(dataleft.sol[0],dataright.sol[0],data.normal,Flux);
 		
 		for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
@@ -301,7 +301,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialD
 	if(gType == EFlux){
 		TPZEulerEquation::FromPrimitiveToConservative(dataleft.sol[0],gGamma);
 		if (bc.Type() == EFreeSlip){
-			TPZManVector<REAL,15> Flux(5);
+			TPZManVector<STATE,15> Flux(5);
 // #warning One needs to invert the velocity component
 			fAUSMFlux.ComputeFlux(dataleft.sol[0],dataleft.sol[0],data.normal,Flux);
 			for(int i = 0; i < 5; i++) ef(i,0)   += +1. * weight*Flux[i];
@@ -309,7 +309,7 @@ void TPZEulerEquation::ContributeBCInterface(TPZMaterialData &data, TPZMaterialD
 	}
 	if(gType == EGradient){
 		if (bc.Type() == EFreeSlip){
-			TPZManVector<REAL,15> Flux(5);
+			TPZManVector<STATE,15> Flux(5);
 			fGradientFlux.ComputeFlux(dataleft.sol[0],dataleft.sol[0],data.normal,Flux);
 			for(int i = 0; i < 15; i++) ef(i+5,0)    += +1. * weight*Flux[i];
 		}//if FreeSlip
@@ -340,7 +340,7 @@ REAL TPZEulerEquation::Pressure(TPZVec<STATE> &U, double gamma){
 }//method
 
 
-REAL TPZEulerEquation::cSpeed(TPZVec<STATE> & sol){
+STATE TPZEulerEquation::cSpeed(TPZVec<STATE> & sol){
 	
 	if(sol[0] < REAL(1e-10)){
 		PZError << "TPZEulerEquation(::cSpeed Too small or negative density " << sol[0] << std::endl;
@@ -359,7 +359,7 @@ REAL TPZEulerEquation::cSpeed(TPZVec<STATE> & sol){
 	
 }//method
 
-REAL TPZEulerEquation::uRes(TPZVec<STATE> & sol){
+STATE TPZEulerEquation::uRes(TPZVec<STATE> & sol){
 	const REAL temp = sol[1]*sol[1] + sol[2]*sol[2] + sol[3]*sol[3];
 	if(temp < REAL(1e-40)){
 		PZError << "TPZEulerEquation::uRes Zero Velocity\n";

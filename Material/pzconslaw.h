@@ -138,7 +138,7 @@ public:
 	 * @brief Thermodynamic pressure determined by the law of an ideal gas
 	 * @param[in] U vector of state variables (sol)
 	 */
-	virtual REAL Pressure(TPZVec<STATE> &U)=0;
+	virtual STATE Pressure(TPZVec<STATE> &U)=0;
 	
 	/**
 	 * @brief Prints the state of internal variables
@@ -168,7 +168,7 @@ public:
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes,int var,
-						  TPZVec<STATE> &Solout)=0;
+						  TPZVec<REAL> &Solout)=0;
 public:
 	/** 
 	 * @brief Returns the solution associated with the var index based on
@@ -177,7 +177,7 @@ public:
 	 * @param[in] var Number of the variable wished
 	 * @param[out] Solout Vector with the computed solution values
 	 */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}

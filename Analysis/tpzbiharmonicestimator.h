@@ -19,18 +19,18 @@ class TPZBiharmonicEstimator: public  TPZBiharmonic
 private:
 	
 	/** @brief Attributes required for goal oriented error estimation validation */
-	void (*fPrimalExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv);
-	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv);
+	void (*fPrimalExactSol)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv);
+	void (*fDualExactSol)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv);
 	
 public:
 	/** @brief Constructor */
-    TPZBiharmonicEstimator(int nummat, REAL f);
+    TPZBiharmonicEstimator(int nummat, STATE f);
 	/** @brief Destructor */
     ~TPZBiharmonicEstimator();
 	
 	/** @brief Set the pointer of the solution function */
-    void SetExactSolutions(void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
-                           void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix<REAL> &derivdual));
+    void SetExactSolutions(void (*fp)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+                           void (*fd)(TPZVec<REAL> &locdual,TPZVec<STATE> &valdual,TPZFMatrix<STATE> &derivdual));
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2 and H1. */
 	virtual int NEvalErrors() {return 4;}
@@ -40,11 +40,11 @@ public:
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeErrorsDual(TPZMaterialData &data,
 									  REAL weight,
-									  TPZVec<REAL> &nk);
+									  TPZVec<STATE> &nk);
 	
 	virtual void ContributeErrors(TPZMaterialData &data,
 								  REAL weight,
-								  TPZVec<REAL> &nk,
+								  TPZVec<STATE> &nk,
 								  int &errorid)
 	{
 		if (errorid == 0) this->ContributeErrorsDual(data,weight,nk);
@@ -55,7 +55,7 @@ public:
 	/** It performs \f$ nk[0] += weight * ( residuo(u )*(Z1-Z) ) \f$ ; \n
 	 * where u is the current solution and Z and Z1 are the dual solution. */
 	virtual void ContributeInterfaceErrors(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight,
-										   TPZVec<REAL> &nkL, TPZVec<REAL> &nkR,
+										   TPZVec<STATE> &nkL, TPZVec<STATE> &nkR,
 										   int &errorid)
 	{
 		if (errorid == 0) this->ContributeInterfaceErrorsDual(data,dataleft,dataright,weight,nkL,nkR);
@@ -64,8 +64,8 @@ public:
 	
 	virtual void ContributeInterfaceErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 											   REAL weight,
-											   TPZVec<REAL> &nkL, 
-											   TPZVec<REAL> &nkR);
+											   TPZVec<STATE> &nkL, 
+											   TPZVec<STATE> &nkR);
 	
 	/** @brief Implements integration of the boundary interface part of an error estimator. */
 	/** 
@@ -74,12 +74,12 @@ public:
 	 */
 	virtual void ContributeInterfaceBCErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft,
 												 REAL weight,
-												 TPZVec<REAL> &nk, 
+												 TPZVec<STATE> &nk, 
 												 TPZBndCond &bc);
 	
 	virtual void ContributeInterfaceBCErrors(TPZMaterialData &data, TPZMaterialData &dataleft,
 											 REAL weight,
-											 TPZVec<REAL> &nk,
+											 TPZVec<STATE> &nk,
 											 TPZBndCond &bc,
 											 int &errorid)
 	{
@@ -89,31 +89,31 @@ public:
 	
 	virtual void ContributeErrorsSimple(TPZMaterialData &data,
 										REAL weight,
-										TPZVec<REAL> &nk);
+										TPZVec<STATE> &nk);
 	
 	
 	virtual void ContributeInterfaceErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 												 REAL weight,
-												 TPZVec<REAL> &nkL, 
-												 TPZVec<REAL> &nkR);
+												 TPZVec<STATE> &nkL, 
+												 TPZVec<STATE> &nkR);
 	
 	
 	virtual void ContributeInterfaceBCErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft,
 												   REAL weight,
-												   TPZVec<REAL> &nk,
+												   TPZVec<STATE> &nk,
 												   TPZBndCond &bc);
 
     /**
 	 * @brief Compute the error due to the difference between the interpolated flux \n
 	 * and the flux computed based on the derivative of the solution
 	 */
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-				TPZFMatrix<REAL> &axes, TPZVec<REAL> & /*flux*/ ,
-				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+				TPZFMatrix<REAL> &axes, TPZVec<STATE> & /*flux*/ ,
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 				TPZVec<REAL> &values);
 	
 	/** @brief Kernel of the functional */
-	void Psi(TPZVec<REAL> &x, TPZVec<REAL> &pisci);
+	void Psi(TPZVec<REAL> &x, TPZVec<STATE> &pisci);
 	
 	/** @brief Computes the primal and dual exact error */
 	void OrderSolution(TPZMaterialData &data);

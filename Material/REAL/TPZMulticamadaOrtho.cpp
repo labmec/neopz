@@ -96,7 +96,7 @@ void TPZMulticamadaOrthotropic::AddPlacaOrtho(TPZMaterial * material, REAL heigh
 	
 	TPZMaterial * bcptr;
 	fCompMesh->InsertMaterialObject(material);
-	TPZFNMatrix<9> val1(3,3,0.),val2(3,1,0.);
+	TPZFNMatrix<9,STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBCTension *bc = new TPZBCTension(material,-material->Id()*4,4,val1,val2, 1., this,fPlacaOrth.NElements());
 	bcptr = (bc);
 	fCompMesh->InsertMaterialObject(bcptr);
@@ -397,7 +397,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(std::ostream &out,int print){
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
-	TPZStepSolver<REAL> solve;
+	TPZStepSolver<STATE> solve;
 	solve.SetDirect(ELDLt);
 	an.SetSolver(solve);
 	
@@ -412,7 +412,7 @@ void TPZMulticamadaOrthotropic::ComputeSolution(TPZMaterial *mat,std::ofstream &
 	TPZAnalysis an(fCompMesh);
 	TPZSkylineStructMatrix skyl(fCompMesh);
 	an.SetStructuralMatrix(skyl);
-	TPZStepSolver<REAL> solve;
+	TPZStepSolver<STATE> solve;
 	solve.SetDirect(ELDLt);
 	an.SetSolver(solve);
 	an.Solution().Zero();

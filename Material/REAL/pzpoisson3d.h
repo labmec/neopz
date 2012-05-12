@@ -82,7 +82,7 @@ public:
 	void SetBothPenalty(){ this->fPenaltyType = EBoth; }
 	
 	/** @brief Using in InterfaceErrors */
-	static REAL gAlfa;
+	static STATE gAlfa;
 	
 	TPZMatPoisson3d(int nummat, int dim);
 	
@@ -119,16 +119,16 @@ public:
 	
 	int NStateVariables();
 	
-	void SetParameters(REAL diff, REAL conv, TPZVec<REAL> &convdir);
+	void SetParameters(STATE diff, STATE conv, TPZVec<STATE> &convdir);
 	
-	void GetParameters(REAL &diff, REAL &conv, TPZVec<REAL> &convdir);
+	void GetParameters(STATE &diff, STATE &conv, TPZVec<STATE> &convdir);
 	
-	void SetInternalFlux(REAL flux)
+	void SetInternalFlux(STATE flux)
 	{
 		fXf = flux;
 	}
 	
-	void SetSD(REAL sd)
+	void SetSD(STATE sd)
 	{
 		fSD = sd;
 	}
@@ -140,10 +140,10 @@ public:
 	 * Attention that method SetParameters override the modifications of this method. \n
 	 * Then call it after SetParameters and never before or it will have no effect.
 	 */
-	void SetRightK(REAL rightK) {
+	void SetRightK(STATE rightK) {
 		this->fRightK = rightK;
 	}
-	REAL GetRightK(){
+	STATE GetRightK(){
 		return this->fRightK;
 	}
 	
@@ -218,10 +218,10 @@ public:
 	virtual int NFluxes(){ return 3;}
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
 	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
@@ -239,15 +239,15 @@ public:
 	 * @param sol is the solution vector
 	 * @param dsol is the solution derivative with respect to x,y,z as computed in TPZShapeDisc::Shape2DFull
 	 */   
-	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+	virtual REAL ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol);
 	
 	
 	void InterfaceErrors(TPZVec<REAL> &/*x*/,
-						 TPZVec<REAL> &leftu, TPZFMatrix<REAL> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/
-						 TPZVec<REAL> &rightu, TPZFMatrix<REAL> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/
-						 TPZVec<REAL> &/*flux*/,
-						 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values,
-						 TPZVec<REAL> normal, REAL elsize);
+						 TPZVec<STATE> &leftu, TPZFMatrix<STATE> &leftdudx, /* TPZFMatrix<REAL> &leftaxes,*/
+						 TPZVec<STATE> &rightu, TPZFMatrix<STATE> &rightdudx, /* TPZFMatrix<REAL> &rightaxes,*/
+						 TPZVec<STATE> &/*flux*/,
+						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values,
+						 TPZVec<STATE> normal, STATE elsize);
 	
 	/** 
 	 * @brief Computes interface jump from element to Dirichlet boundary condition

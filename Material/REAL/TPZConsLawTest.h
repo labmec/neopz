@@ -18,34 +18,34 @@
  */
 class TPZConsLawTest  : public TPZConservationLaw {
 	
-	TPZFMatrix<REAL> fXf;//fonte
-	TPZVec<REAL> fB;
+	TPZFMatrix<STATE> fXf;//fonte
+	TPZVec<STATE> fB;
 	int fArtificialDiffusion;
 
 	/// Integer for integration degree of the initial solution
 	int fTest;
 	
-	REAL fDelta;
+	STATE fDelta;
 
 	public :
 	
-	TPZConsLawTest(int nummat, TPZVec<REAL> B,int artdiff,REAL delta_t,int dim,REAL delta,int test=0);
+	TPZConsLawTest(int nummat, TPZVec<STATE> B,int artdiff,STATE delta_t,int dim,STATE delta,int test=0);
 	
 	virtual ~TPZConsLawTest();
 	
-	void SetMaterial(TPZFMatrix<REAL> &xfin) {
+	void SetMaterial(TPZFMatrix<STATE> &xfin) {
 		fXf = xfin;
 	}
 	
-	REAL DeltaOtimo();
+	STATE DeltaOtimo();
 	
-	REAL CFL(int degree);
+	STATE CFL(int degree);
 	
-	REAL B(int i,TPZVec<REAL> &x);
+	STATE B(int i,TPZVec<REAL> &x);
 		
 	REAL Delta();
 	
-	REAL T(int jn,TPZVec<REAL> &x);
+	STATE T(int jn,TPZVec<REAL> &x);
 	
 	int NStateVariables();
 	
@@ -85,9 +85,9 @@ class TPZConsLawTest  : public TPZConservationLaw {
 	virtual int NFluxes(){ return 1;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<STATE> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
-	virtual void Solution(TPZMaterialData &data,int var,TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
         int numbersol = data.sol.size();
         if (numbersol != 1) {
@@ -98,14 +98,14 @@ public:
 	}
 	
 	/** @brief Compute the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 	
-	void ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
-	void ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
+	void ComputeSolRight(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright);
+	void ComputeSolLeft(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft);
 
 };
 

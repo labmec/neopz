@@ -33,15 +33,15 @@ private:
 	 * is the final temperature of the body. Thermal stress is given by the difference of fFinalTemperature and fRefTemperature. \n
 	 * When fReferred = true fFinalTemperature does not make sense and is not used
 	 */
-	REAL fFinalTemperature;
+	STATE fFinalTemperature;
 	
 public:
 	
 	/** @brief Thermal expansion coefficient of the material */
-	REAL fThermalCoeff;
+	STATE fThermalCoeff;
 	
 	/** @brief Temperature of reference. The thermal stress is given by the difference of the temperature field to this reference value */
-	REAL fRefTemperature;
+	STATE fRefTemperature;
 	
 	/**
 	 * @brief Class constructor.
@@ -52,12 +52,12 @@ public:
 	 * @param poisson - poisson's ratio 
 	 * @param force - external forces
 	 */ 
-	TPZThermicElast3D(int nummat, REAL ThermalCoeff, REAL RefTemp, REAL E, REAL poisson, TPZVec<REAL> &force);
+	TPZThermicElast3D(int nummat, STATE ThermalCoeff, STATE RefTemp, STATE E, STATE poisson, TPZVec<STATE> &force);
 	
 	/** @brief Default destructor */
 	virtual ~TPZThermicElast3D();
 	
-	void SetConstantTemperatureField(REAL FinalTemp){
+	void SetConstantTemperatureField(STATE FinalTemp){
 		this->fFinalTemperature = FinalTemp;
 		this->fReferred = false;
 	}
@@ -71,23 +71,23 @@ public:
 		return this->fReferred;
 	}
 	
-	void ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<REAL> &ef);
+	void ContributeThermalStress(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<STATE> &ef);
 	
 	/** @brief Contribute to stiff matrix and load vector */
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZElasticity3D::Contribute(data,weight,ef);
 	}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)

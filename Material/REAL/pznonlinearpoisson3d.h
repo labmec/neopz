@@ -36,10 +36,10 @@ public:
 	void SetReferred(bool Is){ this->fIsReferred = Is; }
 	
 	/** @brief Define SUPG stabilization term. */
-	void SetSUPGStab(REAL sd = 1.0);
+	void SetSUPGStab(STATE sd = 1.0);
 	
 	/** @brief Define gradient stabilization term. */
-	void SetGradientStab(REAL sd = 1.0);
+	void SetGradientStab(STATE sd = 1.0);
 	
 	/** @brief Define no stabilization term. */
 	void SetNoStabilizationTerm();

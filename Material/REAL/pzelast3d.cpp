@@ -12,9 +12,9 @@
 #include <math.h>
 #include <fstream>
 
-REAL TPZElasticity3D::gTolerance = 1.e-11;
+STATE TPZElasticity3D::gTolerance = 1.e-11;
 
-TPZElasticity3D::TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force) : TPZMaterial(nummat),C1(-999.),C2(-999.),C3(-999.){
+TPZElasticity3D::TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force) : TPZMaterial(nummat),C1(-999.),C2(-999.),C3(-999.){
 	this->fE = E;
 	this->fPoisson = poisson;
 #ifdef DEBUG
@@ -78,11 +78,11 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 	
 #ifdef CODE1
 	TPZFNMatrix<9> Deriv(3,3);
-	const REAL E  = this->fE;
-	const REAL nu = this->fPoisson;
-	const REAL C1 = E / (2.+ 2.*nu);
-	const REAL C2 = E * nu / (-1. + nu + 2.*nu*nu);
-	const REAL C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
+	const STATE E  = this->fE;
+	const STATE nu = this->fPoisson;
+	const STATE C1 = E / (2.+ 2.*nu);
+	const STATE C2 = E * nu / (-1. + nu + 2.*nu*nu);
+	const STATE C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu);
 	
 	int in;
 	for(in = 0; in < phr; in++) {
@@ -90,7 +90,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 		for(kd = 0; kd < 3; kd++){
 			ef(in*3+kd, 0) += weight* fForce[kd] * phi(in,0);
 		}//kd
-		REAL val;
+		STATE val;
 		for( int jn = 0; jn < phr; jn++ ) {
 			
 			//Compute Deriv matrix
@@ -133,7 +133,7 @@ void TPZElasticity3D::Contribute(TPZMaterialData &data,
 		}//jn
 	}//in
 #else
-	REAL Deriv[3][3];
+	STATE Deriv[3][3];
 	int in;
 	for(in = 0; in < phr; in++) {
 		int kd;
@@ -189,7 +189,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
                                    TPZBndCond &bc){
 	TPZFMatrix<REAL> &phi = data.phi;
 	
-	const REAL BIGNUMBER  = 1.e12;
+	const STATE BIGNUMBER  = 1.e12;
 	
 	const int phr = phi.Rows();
 	int in,jn,idf,jdf;
@@ -320,7 +320,7 @@ int TPZElasticity3D::NSolutionVariables(int var){
 	return -1;
 }
 
-void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == TPZElasticity3D::EDisplacement){
 		int i;
@@ -353,7 +353,11 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		this->ComputeStressTensor(StressTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+        TPZManVector<STATE,3> eigv;
+		bool result = StressTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+        for (int i=0; i<eigv.size(); i++) {
+            Solout[i] = eigv[i];
+        }
 #ifdef DEBUG        
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
@@ -382,7 +386,11 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		this->ComputeStrainTensor(StrainTensor, DSol);
 		int numiterations = 1000;
 		REAL tol = TPZElasticity3D::gTolerance;
-		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &Solout);
+        TPZManVector<STATE,3> eigv;
+		bool result = StrainTensor.SolveEigenvaluesJacobi(numiterations, tol, &eigv);
+        for (int i=0; i<eigv.size(); i++) {
+            Solout[i] = eigv[i];
+        }
 #ifdef DEBUG    
 		if (result == false){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR! - result = false - numiterations = " << numiterations << " - tol = " << tol << std::endl;
@@ -405,18 +413,29 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 #endif
 	}//TPZElasticity3D::EPrincipalStrain  
 	
+    TPZManVector<STATE,3> eigvec;
 	if(var == TPZElasticity3D::EPrincipalDirection1){
-		this->PrincipalDirection(DSol, Solout, 0);    
+		this->PrincipalDirection(DSol, eigvec, 0);    
+        for (int i=0; i<eigvec.size(); i++) {
+            Solout[i] = eigvec[i];
+        }
 	}//TPZElasticity3D::EPrincipalDirection1
 	
 	if(var == TPZElasticity3D::EPrincipalDirection2){
-		this->PrincipalDirection(DSol, Solout, 1);    
+		this->PrincipalDirection(DSol, eigvec, 1);    
+        for (int i=0; i<eigvec.size(); i++) {
+            Solout[i] = eigvec[i];
+        }
 	}//TPZElasticity3D::EPrincipalDirection2
 	
 	if(var == TPZElasticity3D::EPrincipalDirection3){
-		this->PrincipalDirection(DSol, Solout, 2);    
+		this->PrincipalDirection(DSol, eigvec, 2);    
+        for (int i=0; i<eigvec.size(); i++) {
+            Solout[i] = eigvec[i];
+        }
 	}//TPZElasticity3D::EPrincipalDirection3    
 	
+    
 	if(var == TPZElasticity3D::EVonMisesStress){
 		TPZManVector<STATE,3> PrincipalStress(3);
 		TPZFNMatrix<9,STATE> StressTensor(3,3);
@@ -440,14 +459,22 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 	if(var == TPZElasticity3D::EStress){
 		TPZFNMatrix<6,STATE> Stress(6,1);
 		this->ComputeStressVector(Stress, DSol);
-		this->ApplyDirection(Stress, Solout);
+        TPZManVector<STATE,3> eigvec;
+		this->ApplyDirection(Stress, eigvec);
+        for (int i=0; i<eigvec.size(); i++) {
+            Solout[i] = eigvec[i];
+        }
 		return;
 	}//TPZElasticity3D::EStress
 	
 	if(var == TPZElasticity3D::EStrain){
 		TPZFNMatrix<6,STATE> Strain(6,1);
 		this->ComputeStrainVector(Strain, DSol);
-		this->ApplyDirection(Strain, Solout);
+        TPZManVector<STATE,3> eigvec;
+		this->ApplyDirection(Strain, eigvec);
+        for (int i=0; i<eigvec.size(); i++) {
+            Solout[i] = eigvec[i];
+        }
 		return;
 	}//TPZElasticity3D::EStrain
 	
@@ -498,7 +525,7 @@ void TPZElasticity3D::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE>
 	int i, j;
 	
 	/** L2 norm */
-	REAL L2 = 0.;
+	STATE L2 = 0.;
 	for(i = 0; i < 3; i++) L2 += (u[i] - u_exact[i]) * (u[i] - u_exact[i]);
 	
 	/** H1 semi-norm */
@@ -580,7 +607,7 @@ void TPZElasticity3D::ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<
 
 void TPZElasticity3D::ApplyDirection(TPZFMatrix<STATE> &StrVec, TPZVec<STATE> &Out) const{
 	Out.Resize(3);
-	const TPZVec<REAL> &Dir = this->fPostProcessDirection;
+	const TPZVec<STATE> &Dir = this->fPostProcessDirection;
 	Out[0] = Dir[0] * StrVec(0,0) + Dir[1] * StrVec(3,0) + Dir[2] * StrVec(4,0);
 	Out[1] = Dir[1] * StrVec(1,0) + Dir[0] * StrVec(3,0) + Dir[2] * StrVec(5,0);
 	Out[2] = Dir[2] * StrVec(2,0) + Dir[0] * StrVec(4,0) + Dir[1] * StrVec(5,0);

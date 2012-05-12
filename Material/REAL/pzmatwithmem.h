@@ -101,7 +101,7 @@ template <class TMEM, class TFather>
 TPZMatWithMem<TMEM,TFather>::~TPZMatWithMem(){ }
 
 template <>
-inline void TPZMatWithMem<TPZFMatrix<REAL>,TPZElasticity3D>::PrintMem(std::ostream &out, const int memory)
+inline void TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::PrintMem(std::ostream &out, const int memory)
 {
 	
     out << "\nTPZMatWithMem<TPZFMatrix,TPZElasticity3D> Material\n";

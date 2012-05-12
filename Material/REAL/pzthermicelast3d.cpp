@@ -5,7 +5,7 @@
 
 #include "pzthermicelast3d.h"
 
-TPZThermicElast3D::TPZThermicElast3D(int nummat, REAL ThermalCoeff, REAL RefTemp, REAL E, REAL poisson, TPZVec<REAL> &force)
+TPZThermicElast3D::TPZThermicElast3D(int nummat, STATE ThermalCoeff, STATE RefTemp, STATE E, STATE poisson, TPZVec<STATE> &force)
 :TPZElasticity3D(nummat,E,poisson,force){  
 	this->SetReferredTemperatureField();  
 	this->fThermalCoeff = ThermalCoeff;
@@ -16,8 +16,8 @@ TPZThermicElast3D::~TPZThermicElast3D(){}
 
 void TPZThermicElast3D::Contribute(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix<REAL> &ek,
-								   TPZFMatrix<REAL> &ef){
+                                   TPZFMatrix<STATE> &ek,
+								   TPZFMatrix<STATE> &ef){
 	
 	TPZElasticity3D::Contribute(data, weight, ek, ef);
     
@@ -29,21 +29,21 @@ void TPZThermicElast3D::Contribute(TPZMaterialData &data,
 	this->ContributeThermalStress(data.sol[0], data.phi, data.dphix, weight, ef);
 }
 
-void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<REAL> &ef){
+void TPZThermicElast3D::ContributeThermalStress(TPZVec<STATE> &sol, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi, REAL weight, TPZFMatrix<STATE> &ef){
 	
 	const int nshape = phi.Rows();  
-	const REAL E  = this->fE;
-	const REAL nu = this->fPoisson;
-	const REAL RefTemp = this->fRefTemperature;
+	const STATE E  = this->fE;
+	const STATE nu = this->fPoisson;
+	const STATE RefTemp = this->fRefTemperature;
 	
-	REAL FinalTemp;
+	STATE FinalTemp;
 	if (this->IsReferredTemperatureField()) FinalTemp = sol[0];
 	else FinalTemp = this->fFinalTemperature;
 	
-	const REAL DeltaT = FinalTemp - RefTemp; 
-	const REAL Gamma = this->fThermalCoeff;
+	const STATE DeltaT = FinalTemp - RefTemp; 
+	const STATE Gamma = this->fThermalCoeff;
 	
-	const REAL ThermalStress = DeltaT * E * Gamma / (1.-2.*nu);
+	const STATE ThermalStress = DeltaT * E * Gamma / (1.-2.*nu);
 	
 	int i, k;
 	for(i = 0; i < nshape; i++) {
@@ -54,24 +54,24 @@ void TPZThermicElast3D::ContributeThermalStress(TPZVec<REAL> &sol, TPZFMatrix<RE
 	
 }//method
 
-void TPZThermicElast3D::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+void TPZThermicElast3D::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
                                  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	
 	if (var == EPrincipalStress || var == EVonMisesStress || var == EStress || var == EStress1){
 		//When computing a stress solution, the thermal stress must be subtracted from the elastic stress
 		//For that purpose the thermal strain will be subtracted before stress computations
 		
-		const REAL RefTemp = this->fRefTemperature;  
-		REAL FinalTemp;
+		const STATE RefTemp = this->fRefTemperature;  
+		STATE FinalTemp;
 		if (this->IsReferredTemperatureField()){
 			FinalTemp = Sol[3];
 		}
 		else FinalTemp = this->fFinalTemperature;  
 		
-		const REAL DeltaT = FinalTemp - RefTemp; 
-		const REAL Gamma = this->fThermalCoeff;
+		const STATE DeltaT = FinalTemp - RefTemp; 
+		const STATE Gamma = this->fThermalCoeff;
 		
-		const REAL ThermalStrain = DeltaT * Gamma;
+		const STATE ThermalStrain = DeltaT * Gamma;
 		for(int it = 0; it < 3; it++) DSol(it,it) += -1. * ThermalStrain;
 	}//if var
     

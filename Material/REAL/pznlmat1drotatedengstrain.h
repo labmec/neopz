@@ -46,7 +46,7 @@ public:
     virtual int NSolutionVariables(int var);
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -65,21 +65,21 @@ public:
 	 */
     virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+                            TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZNLMat1d::ContributeBC(data,weight,ef,bc);
@@ -97,7 +97,7 @@ public:
 	
     virtual void Read(TPZStream &buf, void *context);
 	
-    virtual REAL Eps(TPZVec<REAL> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
+    virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 };
 
 #endif

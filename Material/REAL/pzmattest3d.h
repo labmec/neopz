@@ -18,7 +18,7 @@ class TPZMaterialTest3D : public TPZMaterial
 private:
 	
 	/** @brief Source */
-	TPZFMatrix<REAL> fXf;
+	TPZFMatrix<STATE> fXf;
 	
 	public :	
 	/** @brief Default empty constructor */
@@ -34,7 +34,7 @@ private:
 	static int geq3;
 	
 	/** @brief Set the flow */
-	void SetMaterial(TPZFMatrix<REAL> &xfin);
+	void SetMaterial(TPZFMatrix<STATE> &xfin);
 	
 	virtual int Dimension();
 	
@@ -46,19 +46,19 @@ private:
 	virtual std::string Name() { return "TPZMaterialTest3D"; }
 	
 	virtual void Contribute( TPZMaterialData &data,REAL weight,
-							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef );
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef );
 	
 	virtual void ContributeBC( TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc );
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc );
 	
 	virtual void Contribute( TPZMaterialData &data,REAL weight,
-							TPZFMatrix<REAL> &ef )
+							TPZFMatrix<STATE> &ef )
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC( TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<REAL> &ef,TPZBndCond &bc )
+							  TPZFMatrix<STATE> &ef,TPZBndCond &bc )
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
@@ -70,7 +70,7 @@ private:
 	virtual int NFluxes(){ return 3;}
 	
 protected:
-	virtual void Solution( TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,
+	virtual void Solution( TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,
 						  int var,TPZVec<REAL> &Solout );
 public:
 	/**
@@ -85,12 +85,12 @@ public:
 	virtual TPZMaterial * NewMaterial();
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux( TPZVec<REAL> &x, TPZVec<REAL> &Sol,
-					  TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux );
+	virtual void Flux( TPZVec<REAL> &x, TPZVec<STATE> &Sol,
+					  TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux );
 	
-	virtual void Errors( TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,
-						TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,TPZVec<REAL> &u_exact,
-						TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values );
+	virtual void Errors( TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
+						TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,TPZVec<STATE> &u_exact,
+						TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values );
 	
 	virtual int ClassId() const;
 	

@@ -12,7 +12,7 @@
 #include <math.h>
 using namespace std;
 
-TPZMaterialTest::TPZMaterialTest(int nummat, REAL alfa, REAL x0) : TPZMaterial(nummat), fXf(1,1,0.) {
+TPZMaterialTest::TPZMaterialTest(int nummat, STATE alfa, STATE x0) : TPZMaterial(nummat), fXf(1,1,0.) {
 	
 	fNumMat = nummat;
 }
@@ -32,8 +32,8 @@ void TPZMaterialTest::Print(std::ostream &out) {
 
 void TPZMaterialTest::Contribute(TPZMaterialData &data,
                                  REAL weight,
-                                 TPZFMatrix<REAL> &ek,
-                                 TPZFMatrix<REAL> &ef) {
+                                 TPZFMatrix<STATE> &ek,
+                                 TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -41,7 +41,7 @@ void TPZMaterialTest::Contribute(TPZMaterialData &data,
 	int phr = phi.Rows();
 	
 	if(fForcingFunction) {            // phi(in, 0) :  fun�o de forma associada ao n�in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) :  derivada c/r a xi da fun�o de forma j
 		fXf(0,0) = res[0];
 	}
@@ -55,8 +55,8 @@ void TPZMaterialTest::Contribute(TPZMaterialData &data,
 
 void TPZMaterialTest::ContributeBC(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix<REAL> &ek,
-                                   TPZFMatrix<REAL> &ef,
+                                   TPZFMatrix<STATE> &ek,
+                                   TPZFMatrix<STATE> &ef,
                                    TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
@@ -130,7 +130,7 @@ int TPZMaterialTest::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMaterialTest::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZMaterialTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 0 || var == 1) {
       	Solout[0] = Sol[0];//function
@@ -144,16 +144,16 @@ void TPZMaterialTest::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatr
 	TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
 }
 
-void TPZMaterialTest::Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) {
+void TPZMaterialTest::Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {
 	if(fabs(axes(2,0)) >= 1.e-6 || fabs(axes(2,1)) >= 1.e-6) {
 		cout << "TPZMaterialTest::Flux only serves for xy configuration\n";
 		axes.Print("axes");
 	}
 }
 
-void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-							 TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &,
-							 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZMaterialTest::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+							 TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &,
+							 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<REAL> sol(1),dsol(2);
 	Solution(u,dudx,axes,1,sol);

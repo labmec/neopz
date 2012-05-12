@@ -17,7 +17,7 @@ TPZGradientFlux::~TPZGradientFlux(){
 	
 }
 
-void TPZGradientFlux::ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, const TPZVec<REAL> &normal, TPZVec<REAL> & F){
+void TPZGradientFlux::ComputeFlux(TPZVec<STATE> &solL, TPZVec<STATE> &solR, const TPZVec<REAL> &normal, TPZVec<STATE> & F){
 	const int nstate = 5;
 	const int dim = 3;
 	F.Resize(nstate*dim);
@@ -37,33 +37,37 @@ void TPZGradientFlux::ApplyLimiter(TPZMaterialData &data, TPZMaterialData &datal
 
 	const int nstate = 5;
 	const int dim = 3;
-	TPZManVector<REAL,dim> dL(dim), dR(dim);
+	TPZManVector<STATE,dim> dL(dim), dR(dim);
 	for(int id = 0; id < dim; id++){
 		dL[id] = data.x[id] - dataleft.XCenter[id];
 		dR[id] = data.x[id] - dataright.XCenter[id];
 	}//for id
 	
-	TPZManVector<REAL,dim> gradL(3), gradR(3);
+	TPZManVector<STATE,dim> gradL(3), gradR(3);
 	for(int is = 0; is < nstate; is++){
 		for(int id = 0; id < dim; id++){
 			gradL[id] = dataleft.sol[0][ nstate + is*dim +id ];
 			gradR[id] = dataright.sol[0][ nstate + is*dim +id ];
 		}//for id
-		this->ApplyVanAlbadaLimiter(dataleft.sol[0][is], dataright.sol[0][is], gradL, gradR, data.normal, dL, dR);
+        TPZManVector<STATE,3> stnormal(3);
+        for (int i=0; i<3; i++) {
+            stnormal[i] = data.normal[i];
+        }
+		this->ApplyVanAlbadaLimiter(dataleft.sol[0][is], dataright.sol[0][is], gradL, gradR, stnormal, dL, dR);
 		//     this->ApplyMinModLimiter(data.soll[is], data.solr[is], gradL, gradR, data.normal, dL, dR);
 	}//for is
 }//void
 
-void TPZGradientFlux::ApplyMinModLimiter(REAL &soll, REAL &solr,
-                                         const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR,
-                                         const TPZVec<REAL> &normal, 
-                                         const TPZVec<REAL> &dL, const TPZVec<REAL> & dR){
-	const double sL = this->Dot(gradL,normal);
-	const double sR = this->Dot(gradR,normal);
+void TPZGradientFlux::ApplyMinModLimiter(STATE &soll, STATE &solr,
+                                         const TPZVec<STATE>& gradL, const TPZVec<STATE> &gradR,
+                                         const TPZVec<STATE> &normal, 
+                                         const TPZVec<STATE> &dL, const TPZVec<STATE> & dR){
+	const STATE sL = this->Dot(gradL,normal);
+	const STATE sR = this->Dot(gradR,normal);
 	if((sL*sR) < 0.){
 		return;
 	}
-	const double k = 0.5;
+	const STATE k = 0.5;
 	if(fabs(sL) < fabs(sR)){
 		soll = soll + k*this->Dot(gradL,dL);
 		solr = solr + k*this->Dot(gradL,dR);
@@ -79,10 +83,10 @@ void TPZGradientFlux::ApplyMinModLimiter(REAL &soll, REAL &solr,
 	solr = solr + k*this->Dot(gradR,dR);
 }//void
 
-void TPZGradientFlux::ApplyVanAlbadaLimiter(REAL &soll, REAL &solr,
-                                            const TPZVec<REAL>& gradL, const TPZVec<REAL> &gradR,
-                                            const TPZVec<REAL> &normal, 
-                                            const TPZVec<REAL> &dL, const TPZVec<REAL> & dR){
+void TPZGradientFlux::ApplyVanAlbadaLimiter(STATE &soll, STATE &solr,
+                                            const TPZVec<STATE>& gradL, const TPZVec<STATE> &gradR,
+                                            const TPZVec<STATE> &normal, 
+                                            const TPZVec<STATE> &dL, const TPZVec<STATE> & dR){
 	const double sL = this->Dot(gradL,normal);
 	const double sR = this->Dot(gradR,normal);
 	if(fabs(sL) < 1e-12){

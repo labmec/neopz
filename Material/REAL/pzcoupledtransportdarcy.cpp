@@ -102,7 +102,7 @@ int TPZCoupledTransportDarcy::NSolutionVariables(int var){
 }
 
 void TPZCoupledTransportDarcy::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,
-										int var,TPZVec<STATE> &Solout){
+										int var,TPZVec<REAL> &Solout){
 	TPZMaterialData data;
     data.sol.Resize(1);
     data.dsol.Resize(1);
@@ -130,9 +130,9 @@ TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC(int id){
 void TPZCoupledTransportDarcy::UpdateConvectionDir(TPZFMatrix<STATE> &dsol){
 	if (TPZCoupledTransportDarcy::CurrentEquation() == 1){
 		//It is necessary to set Beta1 = alpha * (-K0 Grad[p] )
-		REAL K, C;
+		STATE K, C;
 		const int dim = this->Dimension();
-		TPZManVector<REAL, 3> dir(dim);
+		TPZManVector<STATE, 3> dir(dim);
 		this->GetMaterial(0)->GetParameters(K, C, dir);
 		const REAL K0 = K;
 		this->GetMaterial(1)->GetParameters(K, C, dir);    

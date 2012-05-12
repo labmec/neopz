@@ -14,7 +14,7 @@
 using namespace std;
 
 
-TPZConsLawTest::TPZConsLawTest(int nummat, TPZVec<REAL> B,int artdiff,REAL delta_t,int dim,REAL delta,int test) : TPZConservationLaw(nummat,delta_t,dim), fXf(1,1,0.), fB(dim)  {
+TPZConsLawTest::TPZConsLawTest(int nummat, TPZVec<STATE> B,int artdiff,STATE delta_t,int dim,STATE delta,int test) : TPZConservationLaw(nummat,delta_t,dim), fXf(1,1,0.), fB(dim)  {
 	
 	if(artdiff<0 || artdiff>3){
 		PZError << "TPZConsLawTest::TPZConsLawTest artificial diffusion parameter, default 1\n";
@@ -68,7 +68,7 @@ void TPZConsLawTest::Contribute(TPZMaterialData &data,
         DebugStop();
     }
 
-	TPZVec<REAL> &sol=data.sol[0];
+	TPZVec<STATE> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix<REAL> &dsol=data.dsol;
@@ -81,7 +81,7 @@ void TPZConsLawTest::Contribute(TPZMaterialData &data,
 	int phr = phi.Rows();// phi(in, 0) = phi_in  ,  dphi(i,jn) = dphi_jn/dxi
 	
 	if(fForcingFunction) {
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);//fXf(0,0) = res[0];//if(!sol[0]) 
 		sol[0] = res[0];//solu�o inicial, na itera�o 0 sol = 0 e res != 0 
 	}                  //nas itera�es > 0 sol != 0 e res = 0
@@ -89,9 +89,9 @@ void TPZConsLawTest::Contribute(TPZMaterialData &data,
 	if(Dimension() != dim)
 		PZError << "TPZConsLawTest::Contribute dimension error, dimension = " << dim;
 	
-	REAL sum1 = 0.,sum2=0.;
+	STATE sum1 = 0.,sum2=0.;
 	int i;
-	REAL time = TimeStep();
+	STATE time = TimeStep();
 	for( int in = 0; in < phr; in++ ) {
 		//primeira parcela
 		sum1 = phi(in, 0) * sol[0];
@@ -121,19 +121,19 @@ REAL TPZConsLawTest::Delta(){
 	return fDelta;
 }
 
-REAL TPZConsLawTest::DeltaOtimo(){
+STATE TPZConsLawTest::DeltaOtimo(){
 	
 	//REAL cfl = CFL(1);
 	//REAL delta = ( (10./3.)*cfl*cfl - (2./3.)*cfl + 1./10. );
 	return 0.0;//delta;
 }
 
-REAL TPZConsLawTest::CFL(int degree){
+STATE TPZConsLawTest::CFL(int degree){
 	
 	return (1.0/(2.0*degree+1.0));
 } 
 
-REAL TPZConsLawTest::B(int i,TPZVec<REAL> &x){
+STATE TPZConsLawTest::B(int i,TPZVec<REAL> &x){
 	
 	if(fTest==0) return fB[i];
 	
@@ -150,12 +150,12 @@ REAL TPZConsLawTest::B(int i,TPZVec<REAL> &x){
 	return 0.;
 }
 
-REAL TPZConsLawTest::T(int jn,TPZVec<REAL> &x){
+STATE TPZConsLawTest::T(int jn,TPZVec<REAL> &x){
 	
 	//SUPG
 	if(fArtificialDiffusion == 1){
 		int i;
-		REAL norm = 0;
+		STATE norm = 0;
 		int dim = Dimension();
 		for(i=0;i<dim;i++) norm += B(i,x)*B(i,x);
 		norm = sqrt(norm);
@@ -199,8 +199,8 @@ void TPZConsLawTest::ContributeInterface(TPZMaterialData &data, TPZMaterialData 
         DebugStop();
     }
 
-	TPZVec<REAL> &solL=dataleft.sol[0];
-	TPZVec<REAL> &solR=dataright.sol[0];
+	TPZVec<STATE> &solL=dataleft.sol[0];
+	TPZVec<STATE> &solR=dataright.sol[0];
 	// TPZFMatrix<REAL> &dsol=data.dsol;
 	// TPZFMatrix<REAL> &dsolL=data.dsoll;
 	// TPZFMatrix<REAL> &dsolR=data.dsolr;
@@ -213,13 +213,13 @@ void TPZConsLawTest::ContributeInterface(TPZMaterialData &data, TPZMaterialData 
 	int phrr = phiR.Rows();
 	
 	if(fForcingFunction) {      // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);// dphi(i,j) = dphi_j/dxi
+		TPZManVector<STATE> res(1);// dphi(i,j) = dphi_j/dxi
 		fForcingFunction->Execute(x,res);
 		if(phrl) solL[0] = res[0];//solu�o inicial interior (t=0), na itera�o 0 sol = 0 e res != 0
 		if(phrr) solR[0] = res[0];//nas itera�es > 0 sol != 0 e res = 0
 	}
 	
-	REAL Bn=0.0;
+	STATE Bn=0.0;
 	//a normal est�imersa no mesmo espao da malha: R, R, R
 	int dim = Dimension(),i;
 	for(i=0;i<dim;i++) Bn += B(i,x)*normal[i];
@@ -277,7 +277,7 @@ void TPZConsLawTest::ContributeBC(TPZMaterialData &data,
 	
 	int phr = phi.Rows();
 	short in,jn;
-	REAL v2[1];
+	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
 	
 	switch (bc.Type()) {
@@ -321,7 +321,7 @@ int TPZConsLawTest::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZConsLawTest::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &/*axes*/,int var,TPZVec<REAL> &Solout){
+void TPZConsLawTest::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
@@ -331,13 +331,13 @@ void TPZConsLawTest::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatri
 	}
 }
 
-void TPZConsLawTest::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
+void TPZConsLawTest::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/) {
 	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
 }
 
-void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-							TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
-							TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
+							TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<REAL> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
@@ -355,7 +355,7 @@ void TPZConsLawTest::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	values[0]  = values[1]+values[2];
 }
 
-void TPZConsLawTest::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
+void TPZConsLawTest::ComputeSolLeft(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcleft){
 	
 	if(!bcleft){
 		PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";
@@ -380,7 +380,7 @@ void TPZConsLawTest::ComputeSolLeft(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec
 }
 
 
-void TPZConsLawTest::ComputeSolRight(TPZVec<REAL> &solr,TPZVec<REAL> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright){
+void TPZConsLawTest::ComputeSolRight(TPZVec<STATE> &solr,TPZVec<STATE> &soll,TPZVec<REAL> &normal,TPZBndCond *bcright){
 	
 	if(!bcright){
 		PZError << "TPZConsLawTest::ComputeSolLeft null bundary condition return\n";

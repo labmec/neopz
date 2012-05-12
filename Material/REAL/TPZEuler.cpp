@@ -19,7 +19,7 @@ TPZMaterial * TPZEuler::NewMaterial() {
 	
 	return result;
 }
-void TPZEuler::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,
+void TPZEuler::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
 						TPZVec<REAL> &Solout){
 	if(var == 1) {
 		Solout.Resize(1);
@@ -49,8 +49,8 @@ void TPZEuler::Print(std::ostream & out) {
     TPZMaterial::Print(out);
 }
 void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	// TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
 	// TPZFMatrix<REAL> &dphiR = data.dphixr;
@@ -67,7 +67,7 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
         DebugStop();
     }
 
-	TPZVec<REAL> &sol=data.sol[0];
+	TPZVec<STATE> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix<REAL> &dsol=data.dsol;
@@ -93,7 +93,7 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 	int numnod = ek.Rows()/numdof;
 	int r = numdof;
 	
-	TPZVec<REAL> flux(8);
+	TPZVec<STATE> flux(8);
 	gEul.Flux(sol,flux);
 	REAL normal[2] = {axes(0,1),-axes(0,0)};
 	/*
@@ -139,7 +139,7 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 					}
 				}
 			case 3: {
-				TPZFMatrix<REAL> A(4,4),B(4,4);
+				TPZFMatrix<STATE> A(4,4),B(4,4);
 				gEul.JacobFlux(sol,A,B);
 				for(in=0; in<numnod; in++) {
 					for(idf=0; idf<4; idf++) {
@@ -163,8 +163,8 @@ void TPZEuler::ContributeBC(TPZMaterialData &data,REAL weight,
 			}//fim switch
 	}
 }
-void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &ek,
-						  TPZFMatrix<REAL> &ef) {
+void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,
+						  TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	// TPZFMatrix<REAL> &dphiL = data.dphixl;
 	// TPZFMatrix<REAL> &dphiR = data.dphixr;
@@ -181,7 +181,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &e
         DebugStop();
     }
 
-	TPZVec<REAL> &sol=data.sol[0];
+	TPZVec<STATE> &sol=data.sol[0];
 	// TPZVec<REAL> &solL=data.soll;
 	// TPZVec<REAL> &solR=data.solr;
 	// TPZFMatrix<REAL> &dsol=data.dsol;
@@ -206,7 +206,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &e
 		return;
     }
     if(fState == 0) {
-		TPZVec<REAL> force(4);
+		TPZVec<STATE> force(4);
 		fForcingFunction->Execute(x,force);
 		for(in=0; in<nshape; in++) {
 			for(idf=0; idf<4; idf++) {
@@ -218,7 +218,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &e
 		}
 		return;
     }
-    TPZVec<REAL> flux(8);
+    TPZVec<STATE> flux(8);
     gEul.Flux(sol,flux);
     /*
 	 int i;
@@ -228,7 +228,7 @@ void TPZEuler::Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<REAL> &e
 	 for(i=0; i<4; i++) cout << dsol(1,i) << ' ';
 	 cout << endl;
 	 */
-    TPZFMatrix<REAL> KXX(4,4),KXY(4,4),KYX(4,4),KYY(4,4),A(4,4),B(4,4);
+    TPZFMatrix<STATE> KXX(4,4),KXY(4,4),KYX(4,4),KYY(4,4),A(4,4),B(4,4);
     TPZFMatrix<REAL> jacinv(2,2);
     REAL jacdet = daxesdksi(0,0)*daxesdksi(1,1)-daxesdksi(0,1)*daxesdksi(1,0);
     jacinv(0,0) = daxesdksi(1,1)/jacdet;
@@ -281,7 +281,7 @@ TPZEuler::TPZEuler(TPZEuler & copy) : TPZMaterial(copy){
 	fDeltaT = copy.fDeltaT;
 	fState = copy.fState;
 }
-TPZEuler::TPZEuler(int id, REAL deltat) : TPZMaterial(id){
+TPZEuler::TPZEuler(int id, STATE deltat) : TPZMaterial(id){
 	fDeltaT = deltat;
 	fState = 0;
 }

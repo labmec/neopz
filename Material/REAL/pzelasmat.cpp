@@ -361,7 +361,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
   
 }
 
-void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout) {
+void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
 	
 	REAL epsx;
 	REAL epsy;
@@ -509,7 +509,7 @@ void TPZElasticityMaterial::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	sigma[2] = fE*0.5/(1.+fnu)*gamma;
 	
 	//tens�s aproximadas : outra forma
-	TPZVec<STATE> sol(1);
+	TPZVec<REAL> sol(1);
 	Solution(u,du,axes,5,sol);
 	sigma[0] = sol[0];
 	Solution(u,du,axes,6,sol);

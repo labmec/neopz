@@ -133,14 +133,14 @@ public:
     virtual int NSolutionVariables(int var);
     
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout);
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<STATE> &Solout);
+    virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */
-    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+    virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
     
 public:
     

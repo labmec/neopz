@@ -19,23 +19,23 @@
 class TPZNonLinBiharmonic : public TPZDiscontinuousGalerkin {
 	
 private:
-	REAL  fXf;
+	STATE  fXf;
 	
 	public :
 	
-	static REAL gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta,
+	static STATE gLambda1, gLambda2, gSigmaA,gSigmaB, gL_alpha, gM_alpha, gL_betta,
 	gM_betta, g_teta, Re;
 	static int NorP;
 	
 	/** @brief Inicialisation of biharmonic material */
-	TPZNonLinBiharmonic(int nummat, REAL f);
+	TPZNonLinBiharmonic(int nummat, STATE f);
 	
 	virtual ~TPZNonLinBiharmonic();
 	
 	/** @brief Returns the number of norm errors. Default is 3: energy, L2,  H1, semi-norm H2 and H2. */
 	virtual int NEvalErrors() {return 8;}
 	
-	void SetMaterial(REAL &xfin){
+	void SetMaterial(STATE &xfin){
 		fXf = xfin;
 	}
 	
@@ -58,26 +58,26 @@ private:
 	/** @brief Implements integral over  element's volume */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef);
+                            TPZFMatrix<STATE> &ek,
+                            TPZFMatrix<STATE> &ef);
 	/** @brief Implements integral over  element's volume */
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZDiscontinuousGalerkin::Contribute(data,weight,ef);
 	}
 	/** @brief Implements boundary conditions for continuous Galerkin */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	/** @brief Implements boundary conditions for continuous Galerkin */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
@@ -92,7 +92,7 @@ private:
 	virtual int NFluxes(){ return 0;}
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
@@ -100,11 +100,11 @@ public:
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
 	}
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-				TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+				TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 
 	/**
 	 * @name Contribute interface methods
@@ -113,26 +113,26 @@ public:
 	 
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<REAL> &ek,
-									 TPZFMatrix<REAL> &ef);
+									 TPZFMatrix<STATE> &ek,
+									 TPZFMatrix<STATE> &ef);
 	
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ek,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ek,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc);
 	
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 									 REAL weight,
-									 TPZFMatrix<REAL> &ef)
+									 TPZFMatrix<STATE> &ef)
 	{
 		TPZDiscontinuousGalerkin::ContributeInterface(data,dataleft,dataright,weight,ef);
 	}
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
 									   REAL weight,
-									   TPZFMatrix<REAL> &ef,
+									   TPZFMatrix<STATE> &ef,
 									   TPZBndCond &bc)
 	{
 		TPZDiscontinuousGalerkin::ContributeBCInterface(data,dataleft,weight,ef,bc);

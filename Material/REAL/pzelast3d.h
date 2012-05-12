@@ -32,7 +32,7 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @param poisson - poisson's ratio
 	 * @param force - external forces
 	 */
-	TPZElasticity3D(int nummat, REAL E, REAL poisson, TPZVec<REAL> &force);
+	TPZElasticity3D(int nummat, STATE E, STATE poisson, TPZVec<STATE> &force);
 	/** 
 	 * @brief Constructor
 	 * @param nummat - material ID.
@@ -68,7 +68,7 @@ class TPZElasticity3D : public TPZMaterial {
 	 * @brief Direction to post process stress and strain. \n
 	 * Result of post processing is (Stress.Direction) or (Strain.Direction)
 	 */
-	void SetPostProcessingDirection(TPZVec<REAL> &Direction){
+	void SetPostProcessingDirection(TPZVec<STATE> &Direction){
 		if (Direction.NElements() != 3){
 			PZError << __PRETTY_FUNCTION__ << " - ERROR!\n";
 		}
@@ -76,7 +76,7 @@ class TPZElasticity3D : public TPZMaterial {
 		for(int i = 0; i < 3; i++) this->fPostProcessDirection[i] = Direction[i];
 	}
 	
-	void SetYieldingStress(REAL fy){ this->fFy = fy; }
+	void SetYieldingStress(STATE fy){ this->fFy = fy; }
 	
 	/** @brief Material name */
 	virtual std::string Name() { return "TPZElasticity3D"; }
@@ -114,10 +114,10 @@ class TPZElasticity3D : public TPZMaterial {
 	virtual int NSolutionVariables(int var);
 protected:
 	/** @brief Post-processing method. Based on solution Sol and its derivatives DSol, it computes the post-processed variable var */
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZMaterial::Solution(data,var,Solout);
 	}
@@ -149,14 +149,14 @@ public:
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	void FillDataRequirements(TPZMaterialData &data);
 	
-	void SetMaterialDataHook(REAL Ela, REAL poisson)
+	void SetMaterialDataHook(STATE Ela, STATE poisson)
 	{
 		fE = Ela;
 		fPoisson = poisson;
         SetC();
 	}
 	
-	void SetMaterialDataLame(REAL lambda, REAL mu)
+	void SetMaterialDataLame(STATE lambda, STATE mu)
 	{
 		fE = mu*(3*lambda+2*mu)/(lambda + mu);
 		fPoisson = lambda/(2*(lambda + mu));
@@ -172,7 +172,7 @@ public:
 #endif
 	}
 	
-	void SetForce(TPZVec <REAL> force)
+	void SetForce(TPZVec <STATE> force)
 	{
 		for(int i = 0; i < 3; i++) this->fForce[i] = force[i];
 	}
@@ -180,24 +180,24 @@ public:
 	protected :
 	
 	/** @brief Young's modulus */
-	REAL fE;
+	STATE fE;
 	
 	/** @brief Poisson's ratio */
-	REAL fPoisson;
+	STATE fPoisson;
 	
 #ifndef CODE1
-	REAL C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
-	REAL C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
-	REAL C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
+	STATE C1; /**< \f$ C1 = E / (2.+ 2.*nu) \f$ */
+	STATE C2; /**< \f$ C2 = E * nu / (-1. + nu + 2.*nu*nu) \f$ */
+	STATE C3; /**< \f$ C3 = E * (nu - 1.) / (-1. + nu +2. * nu * nu) \f$ */
 #endif
 	/** @brief External forces */
 	TPZManVector<STATE,3> fForce;
 	
 	/** @brief Direction to compute stress and strain */
-	TPZManVector<REAL,3> fPostProcessDirection;
+	TPZManVector<STATE,3> fPostProcessDirection;
 	
 	/** @brief Yeilding stress */
-	REAL fFy;
+	STATE fFy;
 	
 public:
 	virtual void ComputeStressVector(TPZFMatrix<STATE> &Stress, TPZFMatrix<STATE> &DSol) const;
@@ -218,7 +218,7 @@ public:
 	/** @brief Creates a new material from the current object   ??*/
 	virtual TPZMaterial * NewMaterial() { return new TPZElasticity3D(*this);}
 	
-	static REAL gTolerance;
+	static STATE gTolerance;
 	
 };
 

@@ -20,17 +20,17 @@ class TPZVec;
  */
 class TPZPlaca : public TPZMaterial{
 	
-	TPZFMatrix<REAL> fnaxes;
-	REAL fE1,fE2,fG12,fG13,fG23,fh,ff,fmi,fni1,fni2;
-	TPZFMatrix<REAL> fRmat, fRmatT;
-	TPZFMatrix<REAL> fKxxR,fKyyR, fKxyR, fKyxR, fBx0R, fB0xR,
+	TPZFMatrix<STATE> fnaxes;
+	STATE fE1,fE2,fG12,fG13,fG23,fh,ff,fmi,fni1,fni2;
+	TPZFMatrix<STATE> fRmat, fRmatT;
+	TPZFMatrix<STATE> fKxxR,fKyyR, fKxyR, fKyxR, fBx0R, fB0xR,
 	fBy0R,fB0yR, fB00R;
-	TPZVec<REAL> fXF;
+	TPZVec<STATE> fXF;
 	public :
 	
-	TPZPlaca(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
-			 REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-			 REAL G23 , TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf);
+	TPZPlaca(int num, STATE h, STATE f, STATE E1 , STATE E2 ,
+			 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
+			 STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf);
 	
 	virtual int NStateVariables() { return 6; }
 	
@@ -42,24 +42,24 @@ class TPZPlaca : public TPZMaterial{
 	
 	virtual void Contribute(TPZMaterialData &data,
                             REAL weight,
-                            TPZFMatrix<REAL> &ek,
-                            TPZFMatrix<REAL> &ef);
+                            TPZFMatrix<STATE> &ek,
+                            TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
                               REAL weight,
-                              TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+                              TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -67,17 +67,17 @@ class TPZPlaca : public TPZMaterial{
 	
 	virtual int NFluxes();
 	
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &fl);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &fl);
 	
-	virtual void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-						TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);
+	virtual void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+						TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);
 	
 	virtual int VariableIndex(const std::string &name);
 	
 	virtual int NSolutionVariables(int var);
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
@@ -89,14 +89,14 @@ public:
 	}
 	
 	/** @brief Exact solution for tests */
-	void SetExactFunction( void (*fp)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<REAL> &uexact,TPZFMatrix<REAL> &duexact) )
+	void SetExactFunction( void (*fp)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<STATE> &uexact,TPZFMatrix<STATE> &duexact) )
     {
 		fExactFunction = fp;
     }
 	
 protected:
 	
-	void (*fExactFunction)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<REAL> &uexact,TPZFMatrix<REAL> &duexact);
+	void (*fExactFunction)(TPZFMatrix<REAL> &axes,TPZVec<REAL> &x,TPZFMatrix<STATE> &uexact,TPZFMatrix<STATE> &duexact);
 	
 };
 

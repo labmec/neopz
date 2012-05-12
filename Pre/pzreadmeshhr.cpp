@@ -164,7 +164,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 				fInputFile >> nstate;
 				
 				int ist,jst;
-				TPZFMatrix<REAL> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
+				TPZFMatrix<STATE> xk(nstate,nstate,1.),xc(nstate,nstate,0.),xf(nstate,1,0.);
 				//xk
 				for(ist=0; ist<nstate; ist++)
 				{
@@ -198,7 +198,7 @@ void TPZReadMeshHR::ReadMaterials (int NMat, TPZCompMesh & CMesh)
 				fInputFile >> nstate;
 				int ist;
 				REAL diff, conv;
-				TPZVec<REAL> dir(3,0.);
+				TPZVec<STATE> dir(3,0.);
 				fInputFile >> diff >> conv;
 				for(ist=0; ist<3; ist++)
 				{
@@ -253,7 +253,7 @@ void TPZReadMeshHR::ReadBCs (int NMat, TPZCompMesh & CMesh)
 	for (i=0;i<NMat;i++)
 	{
 		fInputFile >> id >> type;
-		TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+		TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 		fInputFile >> val1 (0,0) >> val1(0,1) >> val1(0,2)
         >> val1 (1,0) >> val1(1,1) >> val1(1,2)
         >> val1 (2,0) >> val1(2,1) >> val1(2,2);

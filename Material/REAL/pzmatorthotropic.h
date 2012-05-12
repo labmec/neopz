@@ -18,21 +18,21 @@
 class TPZMatOrthotropic : public TPZMaterial {
 	
 	
-	TPZFMatrix<REAL> fKXX,fKYY,fKZZ,fKXY,fKYX,fKXZ,fKZX,fKYZ,fKZY;
- 	TPZFMatrix<REAL> fLocAxs;
-	REAL fEppx,fEppy,fEppz,fVxy,fVyx,fVyz,fVzy,fVzx,fVxz;
-	REAL fNumNom,fGxy,fGzx,fGyz;
-	TPZFMatrix<REAL> fXf;
+	TPZFMatrix<STATE> fKXX,fKYY,fKZZ,fKXY,fKYX,fKXZ,fKZX,fKYZ,fKZY;
+ 	TPZFMatrix<STATE> fLocAxs;
+	STATE fEppx,fEppy,fEppz,fVxy,fVyx,fVyz,fVzy,fVzx,fVxz;
+	STATE fNumNom,fGxy,fGzx,fGyz;
+	TPZFMatrix<STATE> fXf;
 	
 	public :
 	
-	TPZMatOrthotropic(int nummat,TPZFMatrix<REAL> naxes,REAL eppx,REAL eppy,
-					  REAL eppz,REAL vxy,REAL vyz,REAL vzx,
-		              REAL gxy,REAL gyz,REAL gzx);
+	TPZMatOrthotropic(int nummat,TPZFMatrix<STATE> naxes,STATE eppx,STATE eppy,
+					  STATE eppz,STATE vxy,STATE vyz,STATE vzx,
+		              STATE gxy,STATE gyz,STATE gzx);
 	
 	virtual ~TPZMatOrthotropic();
 	
-	void SetMaterial(TPZFMatrix<REAL> &xkin){
+	void SetMaterial(TPZFMatrix<STATE> &xkin){
 		fXf = xkin;
 	}
 	
@@ -46,24 +46,24 @@ class TPZMatOrthotropic : public TPZMaterial {
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -75,7 +75,7 @@ class TPZMatOrthotropic : public TPZMaterial {
 	
 	virtual int NFluxes(){ return 3;}
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
@@ -87,15 +87,15 @@ public:
 	}
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
-	virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux);
+	virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<REAL> &u,
-				TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-		        TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values);//Cedric
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
+				TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+		        TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values);//Cedric
 	
 	/** @brief Verifies the consistency of the axles */
 	/** In case that they are not normal or they are not linearly independent calculates new axles based on the input data */
-	void Normalize(TPZFMatrix<REAL> &naxes);
+	void Normalize(TPZFMatrix<STATE> &naxes);
 };
 
 #endif

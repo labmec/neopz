@@ -20,7 +20,7 @@ public:
 	/** @brief Copy constructor */
     TPZLinearConvection(TPZLinearConvection & copy);
 	/** @brief Constructor for given convection */
-    TPZLinearConvection(int id,TPZVec<REAL> &conv) ;
+    TPZLinearConvection(int id,TPZVec<STATE> &conv) ;
 
     /** @brief Returns the integrable dimension of the material */
     virtual int Dimension() ;
@@ -37,21 +37,21 @@ public:
 	 */
 	 
     virtual void Contribute(TPZMaterialData &data, REAL weight,
-							TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 	
     virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
     virtual void Contribute(TPZMaterialData &data, REAL weight,
-							TPZFMatrix<REAL> &ef)
+							TPZFMatrix<STATE> &ef)
 	{
 		TPZMaterial::Contribute(data,weight,ef);
 	}
 	
 	
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
-							  TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+							  TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
     }
@@ -67,7 +67,7 @@ public:
     virtual int NSolutionVariables(int var);
 	
 protected:
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
@@ -79,7 +79,7 @@ public:
         Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
     }
 	
-    virtual void Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux) {}
+    virtual void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux) {}
 	
     /** @brief To create another material of the same type */
     virtual TPZMaterial * NewMaterial();
@@ -88,7 +88,7 @@ public:
     virtual void SetData(std::istream &data);
 	
 private:    
-    REAL fConvect[2];
+    STATE fConvect[2];
 
 };
 

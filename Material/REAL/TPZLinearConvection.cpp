@@ -13,7 +13,7 @@ TPZLinearConvection::TPZLinearConvection(TPZLinearConvection & copy) : TPZMateri
     fConvect[0] = copy.fConvect[0];
     fConvect[1] = copy.fConvect[1];
 }
-TPZLinearConvection::TPZLinearConvection(int id, TPZVec<REAL>& conv) : TPZMaterial(id){
+TPZLinearConvection::TPZLinearConvection(int id, TPZVec<STATE>& conv) : TPZMaterial(id){
     fConvect[0] = conv[0];
     fConvect[1] = conv[1];
 }
@@ -27,7 +27,7 @@ TPZMaterial * TPZLinearConvection::NewMaterial() {
 	
 	return result;
 }
-void TPZLinearConvection::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,
+void TPZLinearConvection::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,
 								   TPZVec<REAL> &Solout){
 	if(var == 1) {
 		Solout.Resize(2);
@@ -54,20 +54,20 @@ int TPZLinearConvection::Dimension() {
     return 2;
 }
 void TPZLinearConvection::Contribute(TPZMaterialData &data, REAL weight,
-									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &daxesdksi=data.jacinv;
 	TPZFMatrix<REAL> &axes=data.axes;
 	
-    REAL convectax[2];
+    STATE convectax[2];
     convectax[0] = fConvect[0]*axes(0,0)+fConvect[1]*axes(0,1);
     convectax[1] = fConvect[0]*axes(1,0)+fConvect[1]*axes(1,1);
-    REAL sconvect[2] = {1.,1.};
+    STATE sconvect[2] = {1.,1.};
     if(convectax[0] < 0.) sconvect[0] = -1.;
     if(convectax[1] < 0.) sconvect[1] = -1.;
 	//    REAL convectnorm = sqrt(convectax[0]*convectax[0]+convectax[1]*convectax[1]);
-    REAL delax[2];
+    STATE delax[2];
     delax[0] = sqrt(daxesdksi(0,0)*daxesdksi(0,0)+daxesdksi(1,0)*daxesdksi(1,0));
     delax[1] = sqrt(daxesdksi(0,1)*daxesdksi(0,1)+daxesdksi(1,1)*daxesdksi(1,1));
     int nshape = phi.Rows();
@@ -86,7 +86,7 @@ void TPZLinearConvection::Contribute(TPZMaterialData &data, REAL weight,
 }
 
 void TPZLinearConvection::ContributeBC(TPZMaterialData &data,REAL weight,
-									   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) {
+									   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
 	if(bc.Material() != this){

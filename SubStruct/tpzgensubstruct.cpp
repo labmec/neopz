@@ -99,7 +99,7 @@ TPZAutoPointer<TPZCompMesh> TPZGenSubStruct::GenerateMesh()
 	this->fCMesh = new TPZCompMesh(gmesh);
 	TPZVec<int> nodeindices(1,0);
 	new TPZGeoElement<pzgeom::TPZGeoPoint,pzrefine::TPZRefPoint> (nodeindices,-1,*gmesh);
-	TPZVec<REAL> convdir(fDimension,1.);
+	TPZVec<STATE> convdir(fDimension,1.);
 	TPZMatPoisson3d *matp;
 	int imat;
 	for(imat=0; imat<fK.NElements(); imat++)

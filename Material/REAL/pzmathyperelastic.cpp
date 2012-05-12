@@ -14,8 +14,8 @@
 #include <cmath>
 using namespace std;
 
-TPZMatHyperElastic::TPZMatHyperElastic(int nummat,REAL e,REAL mu,REAL nu,
-									   REAL lambda,REAL coef1,REAL coef2,REAL coef3) : TPZMaterial(nummat)
+TPZMatHyperElastic::TPZMatHyperElastic(int nummat,STATE e,STATE mu,STATE nu,
+									   STATE lambda,STATE coef1,STATE coef2,STATE coef3) : TPZMaterial(nummat)
 {
 	
 	fE = e;
@@ -52,7 +52,7 @@ void TPZMatHyperElastic::Print(std::ostream &out) {
 	TPZMaterial::Print(out);
 }
 
-void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef) {
+void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -60,17 +60,17 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZFMatrix<REAL> &dsol=data.dsol[0];
+	TPZFMatrix<STATE> &dsol=data.dsol[0];
 	
 	if(fForcingFunction) {
-		TPZManVector<REAL> res(3);
+		TPZManVector<STATE> res(3);
 		fForcingFunction->Execute(x,res);
 		fXf[0] = res[0];
 		fXf[1] = res[1];
 		fXf[2] = res[2];
 	}
 #ifdef _AUTODIFF
-	TFad<9, TFad<9,REAL> > U;
+	TFad<9, TFad<9,STATE> > U;
 	ComputeEnergy(fLambda,fNu,dsol,U);
 	int nshape = phi.Rows();
 	int ish,jsh, i,j;
@@ -91,8 +91,8 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	
 #else
 	int i;
-	REAL global[3][3][9];
-	REAL ux,uy,uz,vx,vy,vz,wx,wy,wz;
+	STATE global[3][3][9];
+	STATE ux,uy,uz,vx,vy,vz,wx,wy,wz;
 	ux = dsol(0,0);
 	uy = dsol(1,0);
 	uz = dsol(2,0);
@@ -268,15 +268,15 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	fL9[2][2] = fGradDetF[2][2]*fGradDetF[2][2];//dwz*dwz
 	
 	
-	REAL detF = (ux+1.)*(vy+1.)*(wz+1.) + vx*wy*uz + wx*uy*vz - wx*(vy+1.)*uz - (ux+1.)*wy*vz - vx*uy*(wz+1.);
+	STATE detF = (ux+1.)*(vy+1.)*(wz+1.) + vx*wy*uz + wx*uy*vz - wx*(vy+1.)*uz - (ux+1.)*wy*vz - vx*uy*(wz+1.);
 	
 	if(detF < 0) {
 		cout << "\nDeterminante negativo!\n";
 	}
 	
-	REAL fac1 = 2.*fCoef1 - fCoef2/detF/detF;//A
-	REAL fac2 = 2.*fCoef1*detF + fCoef2/detF;//B
-	REAL c = fCoef3;//C
+	STATE fac1 = 2.*fCoef1 - fCoef2/detF/detF;//A
+	STATE fac2 = 2.*fCoef1*detF + fCoef2/detF;//B
+	STATE c = fCoef3;//C
 	
 	int j;
 	for(i=0; i<3; i++) {
@@ -297,8 +297,8 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 	}
 	
 	//AT�AQUI AS TRES MATRIZES A INTEGRAR S� fK , fL E fE , SENDO fE CONSTANTE
-	REAL gradJx[3],gradJy[3],gradJz[3];
-	REAL gradtrCx[3],gradtrCy[3],gradtrCz[3];
+	STATE gradJx[3],gradJy[3],gradJz[3];
+	STATE gradtrCx[3],gradtrCy[3],gradtrCz[3];
 	int k,l;
 	int nshape = phi.Rows();
 	for(i=0; i<3; i++) {
@@ -310,12 +310,12 @@ void TPZMatHyperElastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix
 		gradtrCz[i] = fGradtrC[2][i];//duz , dvz , dwz
 	}
 	
-	REAL *efptr = &ef(0,0);
+	STATE *efptr = &ef(0,0);
 	REAL *dphiptr = &dphi(0,0);
 	int nrowek = ek.Rows();
-	REAL *ekptr = &ek(0,0);
+	STATE *ekptr = &ek(0,0);
 	for(k=0; k<3; k++) {
-		REAL kval[3] = {(fac2*gradJx[k]+c*gradtrCx[k]),(fac2*gradJy[k]+c*gradtrCy[k]),(fac2*gradJz[k]+c*gradtrCz[k])};
+		STATE kval[3] = {(fac2*gradJx[k]+c*gradtrCx[k]),(fac2*gradJy[k]+c*gradtrCy[k]),(fac2*gradJz[k]+c*gradtrCz[k])};
 		for(i=0; i<nshape; i++) {
 			efptr[i*3+k] += -weight*(dphiptr[3*i]*kval[0]+
 									 dphiptr[3*i+1]*kval[1]+
@@ -361,7 +361,7 @@ int TPZMatHyperElastic::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZMatHyperElastic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+void TPZMatHyperElastic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 1) Solout.Resize(6,0.);
 	if(var == 2) Solout.Resize(3,0.);
@@ -385,14 +385,14 @@ void TPZMatHyperElastic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZ
 		}
 		else if(var == 4) {
 			
-			TPZFMatrix<REAL> F(DSol),Ft(3,3,0.0),I(3,3,0.),S(3,3,0.);
+			TPZFMatrix<STATE> F(DSol),Ft(3,3,0.0),I(3,3,0.),S(3,3,0.);
 			F(0,0)+=1;
 			F(1,1)+=1;
 			F(2,2)+=1;//a diagonal e' sempre a mesma
 			F.Transpose(&Ft);
-			TPZFMatrix<REAL> B = F*Ft;
+			TPZFMatrix<STATE> B = F*Ft;
 			
-			REAL ux,uy,uz,vx,vy,vz,wx,wy,wz;
+			STATE ux,uy,uz,vx,vy,vz,wx,wy,wz;
 			ux = DSol(0,0);
 			uy = DSol(1,0);
 			uz = DSol(2,0);
@@ -405,16 +405,16 @@ void TPZMatHyperElastic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZ
 			wy = DSol(1,2);
 			wz = DSol(2,2);
 			
-			REAL J = (ux+1.)*(vy+1.)*(wz+1.) + vx*wy*uz + wx*uy*vz - wx*(vy+1.)*uz - (ux+1.)*wy*vz - vx*uy*(wz+1.);
+			STATE J = (ux+1.)*(vy+1.)*(wz+1.) + vx*wy*uz + wx*uy*vz - wx*(vy+1.)*uz - (ux+1.)*wy*vz - vx*uy*(wz+1.);
 			
 			I(0,0)=1.0;
 			I(1,1)=1.0;
 			I(2,2)=1.0;
-			TPZFMatrix<REAL> sigmaF = (REAL(fNu/J)*B+REAL((fLambda*REAL(0.5)*(J*J-1.0)-fNu)/J)*I);
-			REAL trsigma = sigmaF(0,0)+ sigmaF(1,1)+ sigmaF(2,2);
-			S = sigmaF - REAL(trsigma/3.0)*I;
+			TPZFMatrix<STATE> sigmaF = (STATE(fNu/J)*B+STATE((fLambda*STATE(0.5)*(J*J-1.0)-fNu)/J)*I);
+			STATE trsigma = sigmaF(0,0)+ sigmaF(1,1)+ sigmaF(2,2);
+			S = sigmaF - STATE(trsigma/3.0)*I;
 			int i,j;
-			REAL J2=0.0;
+			STATE J2=0.0;
 			for(i=0;i<3;i++)  for(j=0;j<3;j++) J2 += S(i,j)* S(i,j);
 			Solout[0] = sqrt(3.0*J2);
 			
@@ -460,7 +460,7 @@ void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMa
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZVec<REAL> &sol=data.sol[0];
+	TPZVec<STATE> &sol=data.sol[0];
 	
 	if(bc.Material() != this){
 		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";

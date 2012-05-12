@@ -19,49 +19,49 @@ class TPZAUSMFlux{
 private:
 	
 	/** @brief Ratio between specific heat is constant and the specific heat the constant volume of a polytropic gas */
-	REAL fGamma;
+	STATE fGamma;
 	
 	/** @brief Method constants */
-	REAL fAlpha, fBeta;
+	STATE fAlpha, fBeta;
 	
 public:
 	/** @brief Constructor with Gamma value */
-	TPZAUSMFlux(REAL gamma);
+	TPZAUSMFlux(STATE gamma);
 	/** @brief Copy constructor */
 	TPZAUSMFlux(const TPZAUSMFlux &cp);
 	
 	/** @brief Computes numerical flux */
-	void ComputeFlux(TPZVec<REAL> &solL, TPZVec<REAL> &solR, TPZVec<REAL> &normal, TPZVec<REAL> & F);
+	void ComputeFlux(TPZVec<STATE> &solL, TPZVec<STATE> &solR, TPZVec<REAL> &normal, TPZVec<STATE> & F);
 	
 private:
 	
 	/** @brief Returns sound speed */
-	REAL SoundSpeed(TPZVec<REAL> &sol, REAL press);
+	STATE SoundSpeed(TPZVec<STATE> &sol, STATE press);
 	
 	/** @brief Returns pressure values */
-	REAL Pressure(TPZVec<REAL> &sol);
+	STATE Pressure(TPZVec<STATE> &sol);
 	
 	/** @brief Returns speed */
-	REAL Speed(TPZVec<REAL> &sol, TPZVec<REAL> &normal, REAL &NormalSpeed);
+	STATE Speed(TPZVec<STATE> &sol, TPZVec<REAL> &normal, STATE &NormalSpeed);
 	
 	/** @brief Returns enthalpy */
-	REAL Enthalpy(REAL soundSpeed, REAL speed);
+	STATE Enthalpy(STATE soundSpeed, STATE speed);
 	
 	/** @brief Auxiliar method only */
-	void ComputeInitialData(TPZVec<REAL>&sol,TPZVec<REAL> &normal, REAL&soundSpeed, 
-							REAL &Speed, REAL &NormalSpeed, REAL &Enthalpy, REAL &press);
+	void ComputeInitialData(TPZVec<STATE>&sol,TPZVec<REAL> &normal, STATE&soundSpeed, 
+							STATE &Speed, STATE &NormalSpeed, STATE &Enthalpy, STATE &press);
 	
 	/** @brief Returns pressure in the face */
-	REAL FacePressure(REAL pL, REAL pR, REAL Ml, REAL Mr);
+	STATE FacePressure(STATE pL, STATE pR, STATE Ml, STATE Mr);
 	
 	/** @brief Returns mach number in the face */
-	REAL FaceMachNumber(REAL Ml, REAL Mr);
+	STATE FaceMachNumber(STATE Ml, STATE Mr);
 	
 	/** @brief Computes the numerical sound speed at the face */
-	REAL NumSoundSpeed(REAL LeftSoundSpeed,REAL RightSoundSpeed);
+	STATE NumSoundSpeed(STATE LeftSoundSpeed,STATE RightSoundSpeed);
 	
 	/** @brief Returns the mass flux */
-	REAL MassFlux(REAL NumericalSoundSpeed, REAL rhoL, REAL rhoR, REAL FaceMach);
+	STATE MassFlux(STATE NumericalSoundSpeed, STATE rhoL, STATE rhoR, STATE FaceMach);
 	
 };
 

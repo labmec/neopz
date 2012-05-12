@@ -181,9 +181,9 @@ int main1(int argc, char *argv[])
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
-		TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
+		TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZMatrix<REAL> *matptr = dohrstruct.Create();
+        TPZMatrix<STATE> *matptr = dohrstruct.Create();
         {
             TPZFileStream CheckPoint2;
             CheckPoint2.OpenWrite("CheckPoint2.txt");
@@ -200,8 +200,8 @@ int main1(int argc, char *argv[])
             TPZCompMesh *cmesh = new TPZCompMesh;
             cmesh->Read(CheckPoint2, &gmesh);
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
-            TPZMatrix<REAL> *mat;
-            mat = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            TPZMatrix<STATE> *mat;
+            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
             delete mat;
             TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
             locdohrstruct.Read(CheckPoint2);
@@ -209,8 +209,8 @@ int main1(int argc, char *argv[])
         }
         dohrstruct.Assemble(*matptr,rhs, gui);
 
-		TPZAutoPointer<TPZMatrix<REAL> > dohr = matptr;
-		TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
+		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
+		TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
 		
         {
             TPZFileStream CheckPoint3;
@@ -228,10 +228,10 @@ int main1(int argc, char *argv[])
             gmesh.Read(CheckPoint3, 0);
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<REAL> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
-            TPZMatrix<REAL> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            TPZMatrix<STATE> *matdohr;
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZMatrix<STATE> *matprecond;
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
             delete matprecond;
             delete matdohr;
             TPZFMatrix<STATE> rhsloc;
@@ -242,14 +242,14 @@ int main1(int argc, char *argv[])
         
         
 		
-		TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+		TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
 		std::cout << "Numero de equacoes " << neq << std::endl;
         
-        TPZStepSolver<REAL> pre(precond);
+        TPZStepSolver<STATE> pre(precond);
         pre.SetMultiply();
-        TPZStepSolver<REAL> cg(dohr);
-        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+        TPZStepSolver<STATE> cg(dohr);
+        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
         
         cg.SetCG(500,pre,1.e-8,0);
         cg.Solve(rhs,diag);
@@ -269,7 +269,7 @@ int main1(int argc, char *argv[])
 		int subcount=0;
 		while (it != sublist.end()) 
 		{
-			TPZFMatrix<REAL> subext,subu;
+			TPZFMatrix<STATE> subext,subu;
 			dohrptr->fAssembly->Extract(subcount,diag,subext);
 			(*it)->UGlobal(subext,subu);
 			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
@@ -378,9 +378,9 @@ int main3(int argc, char *argv[])
         dohrstruct.SetNumThreads(numthreads);
         
         TPZAutoPointer<TPZGuiInterface> gui;
-        TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
+        TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZMatrix<REAL> *matptr = dohrstruct.Create();
+        TPZMatrix<STATE> *matptr = dohrstruct.Create();
         {
             TPZFileStream CheckPoint2;
             CheckPoint2.OpenWrite("CheckPoint4.txt");
@@ -397,8 +397,8 @@ int main3(int argc, char *argv[])
             TPZCompMesh *cmesh = new TPZCompMesh;
             TPZAutoPointer<TPZCompMesh> loccmeshauto(cmesh);
             cmesh->Read(CheckPoint2, &gmesh);
-            TPZMatrix<REAL> *mat;
-            mat = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            TPZMatrix<STATE> *mat;
+            mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
             delete mat;
             TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
             locdohrstruct.Read(CheckPoint2);
@@ -406,8 +406,8 @@ int main3(int argc, char *argv[])
         }
         dohrstruct.Assemble(*matptr,rhs, gui);
         
-        TPZAutoPointer<TPZMatrix<REAL> > dohr = matptr;
-        TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
+        TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
+        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
         
         {
             TPZFileStream CheckPoint3;
@@ -425,10 +425,10 @@ int main3(int argc, char *argv[])
             gmesh.Read(CheckPoint3, 0);
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<REAL> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
-            TPZMatrix<REAL> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            TPZMatrix<STATE> *matdohr;
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZMatrix<STATE> *matprecond;
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
             delete matprecond;
@@ -438,12 +438,12 @@ int main3(int argc, char *argv[])
         int neq = dohr->Rows();
         
         
-        TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+        TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
-        TPZStepSolver<REAL> pre(precond);
+        TPZStepSolver<STATE> pre(precond);
         pre.SetMultiply();
-        TPZStepSolver<REAL> cg(dohr);
-        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+        TPZStepSolver<STATE> cg(dohr);
+        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
         
         cg.SetCG(500,pre,1.e-8,0);
         cg.Solve(rhs,diag);
@@ -472,7 +472,7 @@ int main3(int argc, char *argv[])
         int subcount=0;
         while (it != sublist.end()) 
         {
-            TPZFMatrix<REAL> subext,subu;
+            TPZFMatrix<STATE> subext,subu;
             dohrptr->fAssembly->Extract(subcount,diag,subext);
             (*it)->UGlobal(subext,subu);
             TPZCompMesh *submesh = SubMesh(cmesh, subcount);
@@ -561,23 +561,23 @@ int main4(int argc, char *argv[])
         
         TPZAutoPointer<TPZGuiInterface> gui;
         
-        TPZMatrix<REAL> *matptr;
+        TPZMatrix<STATE> *matptr;
         {
             
             TPZFileStream CheckPoint2;
             CheckPoint2.OpenRead("CheckPoint2.txt");
             gmesh->Read(CheckPoint2,0);
             cmesh->Read(CheckPoint2, gmesh);
-            matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+            matptr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
             dohrstruct.Read(CheckPoint2);
 
             
         }
-        TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
+        TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         dohrstruct.Assemble(*matptr,rhs, gui);
         
-        TPZAutoPointer<TPZMatrix<REAL> > dohr = matptr;
-        TPZAutoPointer<TPZMatrix<REAL> > precond = dohrstruct.Preconditioner();
+        TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
+        TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
 //        {
 //            TPZFileStream CheckPoint3;
 //            CheckPoint3.OpenWrite("CheckPoint5.txt");
@@ -604,10 +604,10 @@ int main4(int argc, char *argv[])
             gmesh.Read(CheckPoint3, 0);
             TPZCompMesh cmesh;
             cmesh.Read(CheckPoint3, &gmesh);
-            TPZMatrix<REAL> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
-            TPZMatrix<REAL> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            TPZMatrix<STATE> *matdohr;
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZMatrix<STATE> *matprecond;
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
             delete matprecond;
@@ -618,12 +618,12 @@ int main4(int argc, char *argv[])
         
         
         
-        TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+        TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
-        TPZStepSolver<REAL> pre(precond);
+        TPZStepSolver<STATE> pre(precond);
         pre.SetMultiply();
-        TPZStepSolver<REAL> cg(dohr);
-        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+        TPZStepSolver<STATE> cg(dohr);
+        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
         
         cg.SetCG(500,pre,1.e-8,0);
         cg.Solve(rhs,diag);
@@ -651,7 +651,7 @@ int main4(int argc, char *argv[])
         int subcount=0;
         while (it != sublist.end()) 
         {
-            TPZFMatrix<REAL> subext,subu;
+            TPZFMatrix<STATE> subext,subu;
             dohrptr->fAssembly->Extract(subcount,diag,subext);
             (*it)->UGlobal(subext,subu);
             TPZCompMesh *submesh = SubMesh(cmesh, subcount);
@@ -739,21 +739,21 @@ int main5(int argc, char *argv[])
         dohrstruct.SetNumThreads(numthreads);
         
         TPZAutoPointer<TPZGuiInterface> gui;
-        TPZFMatrix<REAL> rhs(cmesh->NEquations(),1,0.);
+        TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZAutoPointer<TPZMatrix<REAL> > dohr;
-        TPZAutoPointer<TPZMatrix<REAL> > precond;
+        TPZAutoPointer<TPZMatrix<STATE> > dohr;
+        TPZAutoPointer<TPZMatrix<STATE> > precond;
         
         {
             TPZFileStream CheckPoint3;
             CheckPoint3.OpenRead("CheckPoint3.txt");
             gmesh->Read(CheckPoint3, 0);
             cmesh->Read(CheckPoint3, gmesh);
-            TPZMatrix<REAL> *matdohr;
-            matdohr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
+            TPZMatrix<STATE> *matdohr;
+            matdohr = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, 0));
             dohr = matdohr;
-            TPZMatrix<REAL> *matprecond;
-            matprecond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
+            TPZMatrix<STATE> *matprecond;
+            matprecond = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint3, matdohr));
             precond = matprecond;
             rhs.Read(CheckPoint3, 0);
         }
@@ -771,12 +771,12 @@ int main5(int argc, char *argv[])
         
         
         
-        TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+        TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
-        TPZStepSolver<REAL> pre(precond);
+        TPZStepSolver<STATE> pre(precond);
         pre.SetMultiply();
-        TPZStepSolver<REAL> cg(dohr);
-        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+        TPZStepSolver<STATE> cg(dohr);
+        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
         
         cg.SetCG(500,pre,1.e-8,0);
         cg.Solve(rhs,diag);
@@ -805,7 +805,7 @@ int main5(int argc, char *argv[])
         int subcount=0;
         while (it != sublist.end()) 
         {
-            TPZFMatrix<REAL> subext,subu;
+            TPZFMatrix<STATE> subext,subu;
             dohrptr->fAssembly->Extract(subcount,diag,subext);
             (*it)->UGlobal(subext,subu);
             TPZCompMesh *submesh = SubMesh(cmesh, subcount);
@@ -882,8 +882,8 @@ int main2(int argc, char *argv[])
 #endif
 	
 	/*
-	 TPZFMatrix<REAL> teste(2,2);
-	 TPZFMatrix<REAL> parte;
+	 TPZFMatrix<STATE> teste(2,2);
+	 TPZFMatrix<STATE> parte;
 	 teste(0,0)=1;
 	 teste(0,1)=2;
 	 teste(1,0)=3;
@@ -902,7 +902,7 @@ int main2(int argc, char *argv[])
 	 dohrprecond.SetMultiply();
 	 TPZStepSolver cg(matriz);
 	 cg.SetCG(10,dohrprecond,1.e-7,1);
-	 TPZFMatrix<REAL> rhs,result;
+	 TPZFMatrix<STATE> rhs,result;
 	 cg.Solve(rhs,result);*/
 	//meuobjeto.
 	/*  int dim = 2;
@@ -957,7 +957,7 @@ int main2(int argc, char *argv[])
 	TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly2 = new TPZDohrAssembly<STATE>;
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr2 = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(dohrassembly2);
 	dohrptr2->SetNumThreads(4);
-	TPZAutoPointer<TPZMatrix<REAL> > dohr2(dohrptr2);
+	TPZAutoPointer<TPZMatrix<STATE> > dohr2(dohrptr2);
 	sub.InitializeDohrCondense(dohr2,dohrassembly2);
 	dohrptr2->Initialize();
 #ifdef LOG4CXX
@@ -993,10 +993,10 @@ int main2(int argc, char *argv[])
 	
 	
 	
-	TPZAutoPointer<TPZMatrix<REAL> > precond2(precondptr2);
+	TPZAutoPointer<TPZMatrix<STATE> > precond2(precondptr2);
 	
 	
-	TPZFMatrix<REAL> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
+	TPZFMatrix<STATE> diag(dohr2->Rows(),1,5.), produto(dohr2->Rows(),1), produto2(dohr2->Rows(),1);
 	precondptr2->Multiply(diag,produto);
 #ifdef LOG4CXX
 	{
@@ -1019,14 +1019,14 @@ int main2(int argc, char *argv[])
 	{
 		int dim=dohr->Rows();
 		
-		TPZFMatrix<REAL> teste1(dim,dim);
+		TPZFMatrix<STATE> teste1(dim,dim);
 		teste1.Zero();
-		TPZFMatrix<REAL> teste2(dim,dim);
+		TPZFMatrix<STATE> teste2(dim,dim);
 		teste2.Zero();
 		
 		int i,j;
-		TPZFMatrix<REAL> col(dim,1); //column of the identity matrix
-		TPZFMatrix<REAL> resul(dohr->Rows(),1);
+		TPZFMatrix<STATE> col(dim,1); //column of the identity matrix
+		TPZFMatrix<STATE> resul(dohr->Rows(),1);
 		for (i=0;i<dim;i++) {
 			col.Zero();
 			col(i,0)=1;
@@ -1058,10 +1058,10 @@ int main2(int argc, char *argv[])
 	}
 #endif
 	diag.Zero();
-	TPZStepSolver<REAL> pre(precond2);
+	TPZStepSolver<STATE> pre(precond2);
 	pre.SetMultiply();
-	TPZStepSolver<REAL> cg(dohr2);
-	//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const REAL tol,const int FromCurrent);
+	TPZStepSolver<STATE> cg(dohr2);
+	//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
 	
 	cg.SetCG(500,pre,1.e-8,0);
 	cg.Solve(produto,diag);
@@ -1083,7 +1083,7 @@ int main2(int argc, char *argv[])
 #endif
 	//diag.Print("Resultado do solve");
 	/* Solve
-	 TPZFMatrix<REAL> *teste = new TPZFMatrix(2,2);
+	 TPZFMatrix<STATE> *teste = new TPZFMatrix(2,2);
 	 (*teste)(0,0)=1;
 	 (*teste)(0,1)=2;
 	 (*teste)(1,0)=3;
@@ -1091,12 +1091,12 @@ int main2(int argc, char *argv[])
 	 TPZStepSolver coef;
 	 coef.SetMatrix(teste);
 	 coef.SetDirect(ELU);
-	 TPZFMatrix<REAL> resul(2,2);
+	 TPZFMatrix<STATE> resul(2,2);
 	 resul(0,0)=2;
 	 resul(0,1)=3;
 	 resul(1,0)=4;
 	 resul(1,1)=5;
-	 TPZFMatrix<REAL> res(2,2);
+	 TPZFMatrix<STATE> res(2,2);
 	 coef.Solve(resul,res);
 	 cout << res << endl;*/
 	
@@ -1108,13 +1108,13 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
 	int nummat = 1;
-	REAL E = 1.e6;
-	REAL poisson = 0.3;
-	TPZManVector<REAL> force(3,0.);
+	STATE E = 1.e6;
+	STATE poisson = 0.3;
+	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
 	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
 	TPZMaterial * elastauto(elast);
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(elastauto);
@@ -1125,17 +1125,17 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
 	int nummat = 1;
-	REAL Ela = 1.e6;
-	REAL poisson = 0.2;
-	TPZManVector<REAL> force(3,0.);
+	STATE Ela = 1.e6;
+	STATE poisson = 0.2;
+	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
-	REAL lambdaV = 0, muV = 0, alphaT = 0;
+	STATE lambdaV = 0, muV = 0, alphaT = 0;
 	lambdaV = 111.3636;
 	muV = 455.4545;
 	alphaT = 0.1;	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
 	TPZMaterial * viscoelastauto(viscoelast);
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);
@@ -1148,10 +1148,10 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	int nummat = 1, neumann = 1, mixed = 2;
 	//	int dirichlet = 0;
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
-	TPZManVector<REAL> force(3,0.);
+	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
-	REAL Ela = 1000, poisson = 0.; 
-	REAL lambdaV = 0, muV = 0, alphaT = 0;
+	STATE Ela = 1000, poisson = 0.; 
+	STATE lambdaV = 0, muV = 0, alphaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
 	alphaT = 0.01;	
@@ -1167,7 +1167,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	mesh->InsertMaterialObject(viscoelastauto);
 	
 	// Neumann em x = 1;
-	TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	val2(0,0) = 1.;
 	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
 	TPZMaterial * bcauto4(bc4);

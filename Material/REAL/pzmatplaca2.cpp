@@ -16,9 +16,9 @@ using namespace std;
 #include "pzerror.h"
 
 
-TPZMatPlaca2::TPZMatPlaca2(int num, REAL h, REAL f, REAL E1 , REAL E2 ,
-						   REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-						   REAL G23 , TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf) :
+TPZMatPlaca2::TPZMatPlaca2(int num, STATE h, STATE f, STATE E1 , STATE E2 ,
+						   STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
+						   STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf) :
 TPZMaterial(num),
 fIdfMax(6),fE1(E1), fE2(E2), fG12(G12), fG13(G13), fG23(G23),
 fh(h),ff(f),fmi(1./(-1.+ni1*ni2)),fni1(ni1),fni2(ni2),
@@ -35,8 +35,8 @@ fBx0(6,6,0.),fB0x(6,6,0.),
 fBy0(6,6,0.),fB0y(6,6,0.),
 fB00(6,6,0.), fXF(xf)
 {
-	REAL Small , k, mi;
-	Small = E1*REAL(1.E-5);
+	STATE Small , k, mi;
+	Small = E1*STATE(1.E-5);
 	k = 5./6.; // coeficiente de cisalhamento
 	mi = 1.0/(-1.0 + ni1 * ni2);
 	
@@ -109,7 +109,7 @@ fB00(6,6,0.), fXF(xf)
 	
 }
 
-void TPZMatPlaca2::SetNAxes(TPZFMatrix<REAL> &n) {
+void TPZMatPlaca2::SetNAxes(TPZFMatrix<STATE> &n) {
 	
 	fnaxes = n;
 	int numl = fIdfMax/3;
@@ -128,7 +128,7 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix<REAL> &n) {
 	
 	fRmat.Transpose(&fRmatT);
 	
-	TPZFMatrix<REAL> tmp;
+	TPZFMatrix<STATE> tmp;
 	fKxx.Multiply(fRmat,tmp);
 	fRmatT.Multiply(tmp,fKxxR);
 	fKyxR = fRmatT * (fKyx * fRmat);
@@ -145,8 +145,8 @@ void TPZMatPlaca2::SetNAxes(TPZFMatrix<REAL> &n) {
 ofstream placatest("placatest.dat");
 void TPZMatPlaca2::Contribute(TPZMaterialData &data,
                               REAL weight,
-                              TPZFMatrix<REAL> &ek,
-                              TPZFMatrix<REAL> &ef) {
+                              TPZFMatrix<STATE> &ek,
+                              TPZFMatrix<STATE> &ef) {
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
 	
@@ -155,7 +155,12 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
-	TPZFMatrix<REAL> &axes=data.axes;
+	TPZFMatrix<STATE> axes(data.axes.Rows(),data.axes.Cols());
+    for (int r=0; r<axes.Rows(); r++) {
+        for (int c=0; c<axes.Cols(); c++) {
+            axes(r,c) = data.axes(r,c);
+        }
+    }
 	
 	if(phi.Cols() != 1 || dphi.Rows() != 2 || phi.Rows() != dphi.Cols()){
 		PZError << "TPZMatPlaca2.contr, inconsistent input data : phi.Cols() = "
@@ -168,7 +173,7 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	}
 	
 	
-	REAL Dax1n1, Dax1n2, Dax2n1, Dax2n2,intern33;
+	STATE Dax1n1, Dax1n2, Dax2n1, Dax2n2,intern33;
 	
 	Dax1n1 = axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
 	Dax1n2 = axes(0,0)* fnaxes(1,0) + axes(0,1)* fnaxes(1,1) + axes(0,2)* fnaxes(1,2);
@@ -181,7 +186,7 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 //		PZError << fnaxes(2,0) << ' ' << fnaxes(2,1) << ' ' << fnaxes(2,2) << endl;
 //	}
 	
-	TPZFMatrix<REAL> Kn1n1(fIdfMax,fIdfMax,0.),Kn2n2(fIdfMax,fIdfMax,0.),
+	TPZFMatrix<STATE> Kn1n1(fIdfMax,fIdfMax,0.),Kn2n2(fIdfMax,fIdfMax,0.),
     Kn1n2(fIdfMax,fIdfMax,0.),Kn2n1(fIdfMax,fIdfMax,0.),
     Bn10(fIdfMax,fIdfMax,0.) ,B0n1(fIdfMax,fIdfMax,0.),
     Bn20(fIdfMax,fIdfMax,0.),B0n2(fIdfMax,fIdfMax,0.),
@@ -224,12 +229,12 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	 placatest.flush();
 	 */
 	int nshape = phi.Rows();
-	TPZFMatrix<REAL> KIJ(fIdfMax,fIdfMax);
+	TPZFMatrix<STATE> KIJ(fIdfMax,fIdfMax);
 	
 	
 	
 	int idf,jdf,i,j;
-	REAL contrib[3];
+	STATE contrib[3];
 	for(i=0;i<3;i++) {
 		contrib[i]=0.;
 		for(j=0;j<3;j++) {
@@ -242,15 +247,17 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 		}
 		for(idf=3; idf<fIdfMax; idf++) ef(fIdfMax*i+idf) += weight*fXF[idf]*phi(i,0);
 		for(j=0; j<nshape; j++) {
-			KIJ = weight*(dphi(0,i)*dphi(0,j)*Kn1n1+
-						  dphi(0,i)*dphi(1,j)*Kn1n2+
-						  dphi(1,i)*dphi(0,j)*Kn2n1+
-						  dphi(1,i)*dphi(1,j)*Kn2n2+
-						  dphi(0,i)*phi(j)   *Bn10 +
-						  dphi(1,i)*phi(j)   *Bn20 +
-						  phi(i)   *dphi(0,j)*B0n1 +
-						  phi(i)   *dphi(1,j)*B0n2 +
-						  phi(i)   *phi(j)   *B000 );
+            STATE dphi_0i(dphi(0,i)),dphi_1i(dphi(1,i)),dphi_0j(dphi(0,j)),dphi_1j(dphi(1,j));
+            STATE phi_i(phi(i,0)),phi_j(phi(j,0));
+			KIJ = ((STATE)weight)*(dphi_0i*dphi_0j*Kn1n1+
+						  dphi_0i*dphi_1j*Kn1n2+
+						  dphi_1i*dphi_0j*Kn2n1+
+						  dphi_1i*dphi_1j*Kn2n2+
+						  dphi_0i*phi_j   *Bn10 +
+						  dphi_1i*phi_j   *Bn20 +
+						  phi_i   *dphi_0j*B0n1 +
+						  phi_i   *dphi_1j*B0n2 +
+						  phi_i   *phi_j   *B000 );
 			for(idf=0; idf<fIdfMax; idf++) for(jdf=0; jdf<fIdfMax; jdf++)
 				ek(i*fIdfMax+idf,j*fIdfMax+jdf) += KIJ(idf,jdf);
 		}
@@ -259,8 +266,8 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 
 void TPZMatPlaca2::ContributeBC(TPZMaterialData &data,
                                 REAL weight,
-                                TPZFMatrix<REAL> &ek,
-                                TPZFMatrix<REAL> &ef,
+                                TPZFMatrix<STATE> &ek,
+                                TPZFMatrix<STATE> &ef,
                                 TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
@@ -319,12 +326,12 @@ void TPZMatPlaca2::ContributeBC(TPZMaterialData &data,
 
 int TPZMatPlaca2::NFluxes() {return 1;}
 
-void TPZMatPlaca2::Flux(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix<REAL> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<REAL> &/*fl*/) {
+void TPZMatPlaca2::Flux(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*fl*/) {
 	PZError << "TPZMatPlaca2::Flux is called\n";
 }
 
-void TPZMatPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &/*u*/,TPZFMatrix<REAL> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<REAL> &/*flux*/,
-						  TPZVec<REAL> &/*u_exact*/,TPZFMatrix<REAL> &/*du_exact*/,TPZVec<REAL> &/*values*/) {
+void TPZMatPlaca2::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &/*u*/,TPZFMatrix<STATE> &/*dudx*/,TPZFMatrix<REAL> &/*axes*/,TPZVec<STATE> &/*flux*/,
+						  TPZVec<STATE> &/*u_exact*/,TPZFMatrix<STATE> &/*du_exact*/,TPZVec<REAL> &/*values*/) {
 	PZError << "TPZMatPlaca2::Errors is called\n";
 }
 
@@ -381,7 +388,7 @@ int TPZMatPlaca2::NSolutionVariables(int var){
 }
 
 /**returns the solution associated with the var index based on the finite element approximation*/
-void TPZMatPlaca2::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
+void TPZMatPlaca2::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 							TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	REAL k = 5./6.;

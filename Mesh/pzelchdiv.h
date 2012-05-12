@@ -154,7 +154,7 @@ public:
 	void Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi);
     
     /** @brief Compute the solution for a given variable */
-	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol);
+	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
     virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
 	

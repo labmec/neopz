@@ -85,7 +85,7 @@ REAL TPZArtDiff::Delta(REAL deltax, TPZVec<STATE> & sol)
 	if(fDelta < 0.)dX =-fDelta;
 	if(fDelta == 0.)dX = OptimalDelta();
 	
-	REAL us, c, lambdaMax;
+	STATE us, c, lambdaMax;
 	
 	switch(fArtDiffType)
 	{
@@ -219,11 +219,11 @@ void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
 
 #endif // _AUTODIFF
 
-void TPZArtDiff::Divergent(TPZFMatrix<REAL> &dsol,
+void TPZArtDiff::Divergent(TPZFMatrix<STATE> &dsol,
 						   TPZFMatrix<REAL> & dphi,
-						   TPZVec<TPZDiffMatrix<REAL> > & Ai,
-						   TPZVec<REAL> & Div,
-						   TPZDiffMatrix<REAL> * dDiv)
+						   TPZVec<TPZDiffMatrix<STATE> > & Ai,
+						   TPZVec<STATE> & Div,
+						   TPZDiffMatrix<STATE> * dDiv)
 {
 	int nstate = Ai[0].Cols();
 	int dim = nstate - 2;
@@ -491,18 +491,18 @@ void TPZArtDiff::PrepareDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<T> &U,
 
 void TPZArtDiff::PrepareFastDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol,
 								 TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> & dphi,
-								 TPZVec<TPZVec<REAL> > & TauDiv, TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv)
+								 TPZVec<TPZVec<STATE> > & TauDiv, TPZVec<TPZDiffMatrix<STATE> > * pTaudDiv)
 {
-	TPZVec<TPZDiffMatrix<REAL> > Ai;
-	TPZVec<TPZDiffMatrix<REAL> > Tau;
+	TPZVec<TPZDiffMatrix<STATE> > Ai;
+	TPZVec<TPZDiffMatrix<STATE> > Tau;
 	
 	TPZEulerConsLaw::JacobFlux(fGamma, dim, sol, Ai);
 	ComputeTau(dim, jacinv, sol, Ai, Tau);
 	
-	TPZVec<REAL> Div;
+	TPZVec<STATE> Div;
 	
-	TPZDiffMatrix<REAL> * pdDiv = NULL;
-	TPZDiffMatrix<REAL> dDiv;
+	TPZDiffMatrix<STATE> * pdDiv = NULL;
+	TPZDiffMatrix<STATE> dDiv;
 	if(pTaudDiv) pdDiv = & dDiv;
 	
 	//Computing the divergent
@@ -675,9 +675,9 @@ void TPZArtDiff::ContributeApproxImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZ
     REAL delta = Delta(deltaX, sol);
     REAL constant = /*-*/ weight * delta * timeStep;
 	
-    TPZVec<TPZVec<REAL> > TauDiv;
-    TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL;
-    TPZVec<TPZDiffMatrix<REAL> > TaudDiv;
+    TPZVec<TPZVec<STATE> > TauDiv;
+    TPZVec<TPZDiffMatrix<STATE> > * pTaudDiv = NULL;
+    TPZVec<TPZDiffMatrix<STATE> > TaudDiv;
 	
     pTaudDiv = & TaudDiv;
 	
@@ -707,7 +707,7 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<ST
     REAL delta = Delta(deltaX, sol);
     REAL constant = /*-*/ weight * delta * timeStep;
 	
-    TPZVec<TPZVec<REAL> > TauDiv;
+    TPZVec<TPZVec<STATE> > TauDiv;
 	
     PrepareFastDiff(dim, jacinv, sol, dsol, dphix, TauDiv, NULL);
 	

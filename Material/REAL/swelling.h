@@ -27,52 +27,52 @@ class TPZSwelling : public TPZMaterial {
 	 */
 	int fComputationMode;
 	/** @brief Hydraulic permeability \f$ [mm^4 / (Ns)] \f$ */
-	TPZFMatrix<REAL> fKperm;
+	TPZFMatrix<STATE> fKperm;
 	/** @brief Compression modulus [N/mm^2] */
-	REAL fLambda;
+	STATE fLambda;
 	/** @brief Shear modulus [N/mm^2] */
-	REAL fShear;
+	STATE fShear;
 	/** @brief Biot coupling coeficient (no dimension) */
-	REAL fAlfa;
+	STATE fAlfa;
 	/** @brief Storage modulus [N/mm^2] */
-	REAL fM;
+	STATE fM;
 	/** @brief Osmotic coeficient (no dimension) */
-	REAL fGamma;
+	STATE fGamma;
 	/** @brief Diffusion coeficient for cations [mm^2/s] */
-	REAL fDPlus;
+	STATE fDPlus;
 	/** @brief Diffusion coeficient for anions [mm^2/s] */
-	REAL fDMinus;
+	STATE fDMinus;
 	/** @brief Hindrance factor (no dimension) */
-	REAL frHinder;
+	STATE frHinder;
 	/** @brief Initial deformation (assuming everything occurs isotropically, a constant is suficient (no dimension) */
-	REAL fInitDeform;
+	STATE fInitDeform;
 	/** @brief Fixed charge density [mmoleq/mm^3] */
-	REAL fCfc;
+	STATE fCfc;
 	/** @brief Initial fluid volume fraction (do dimension) */
-	REAL fNf0;
+	STATE fNf0;
 	/** @brief Initial cation volume fraction (no dimension) */
-	REAL fNPlus0;
+	STATE fNPlus0;
 	/** @brief Initial anion volume fraction (no dimension) */
-	REAL fNMinus0;
+	STATE fNMinus0;
 	
 	/** @brief Timestepping parameter theta (no dimension) */
-	REAL fTheta;
+	STATE fTheta;
 	/** @brief Timestep [s] */
-	REAL fDelt;
+	STATE fDelt;
 	/** @brief External concentration (used as reference value for pressure) [mmol/mm^3] */
-	static REAL gExtConc;
+	static STATE gExtConc;
 	/** @brief Faraday constant [C/mmol] */
-	static REAL gFaraday;
+	static STATE gFaraday;
 	/** @brief Molar volume cation [mm^3/mmol] */
-	static REAL gVPlus;
+	static STATE gVPlus;
 	/** @brief Molar volume anions [mm^3/mmol] */
-	static REAL gVMinus;
+	static STATE gVMinus;
 	/** @brief gas constant [Nmm/(mmol K)] */
-	static REAL gRGas;
+	static STATE gRGas;
 	/** @brief Absolute temperature [K] */
-	static REAL gTemp;
+	static STATE gTemp;
 	/** @brief Reference chemical potentials (order f,plus,minus) [mV] */
-	static REAL gMuRef[3];
+	static STATE gMuRef[3];
 	
 	public :
 	
@@ -94,8 +94,8 @@ class TPZSwelling : public TPZMaterial {
 	 * @param NPlus0 Initial cation volume fraction
 	 * @param NMinus0 Initial anion volume fraction
 	 */
-	TPZSwelling(int matindex, REAL lambda, REAL shear, REAL alfa, REAL M, REAL Gamma, REAL Kperm, REAL DPlus, REAL DMinus,
-				REAL rHinder, REAL Cfc, REAL Nf0, REAL NPlus0, REAL NMinus0);
+	TPZSwelling(int matindex, STATE lambda, STATE shear, STATE alfa, STATE M, STATE Gamma, STATE Kperm, STATE DPlus, STATE DMinus,
+				STATE rHinder, STATE Cfc, STATE Nf0, STATE NPlus0, STATE NMinus0);
 	
 	virtual ~TPZSwelling();
 	
@@ -132,24 +132,24 @@ class TPZSwelling : public TPZMaterial {
 	 
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef){
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef){
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef){
+							TPZFMatrix<STATE> &ef){
 		std::cout << "TPZSwelling::Contribute not implemented\n";
 	}
 	
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -195,15 +195,15 @@ class TPZSwelling : public TPZMaterial {
 	
 private:
 	
-	void ExactSolution(TPZVec<REAL> &mu, REAL ksi, REAL pres, TPZVec<REAL> &N);
+	void ExactSolution(TPZVec<STATE> &mu, STATE ksi, STATE pres, TPZVec<STATE> &N);
 	
 	/** @brief Computes the value of the N coeficients in function of ksi and mus, iterative method, inverting the Hessian of W */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void ComputeN(TPZVec<REAL> &N, TPZVec<REAL> &mu, REAL ksi);
+	void ComputeN(TPZVec<STATE> &N, TPZVec<STATE> &mu, STATE ksi);
 	
 	/** @brief Computes the aproximate values of the pressure, ksi and N based on mu and J by direct inversion of the formulas */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void ComputeInitialGuess(TPZVec<REAL> &mu, REAL J, REAL &pres, REAL &ksi, TPZVec<REAL> &N);
+	void ComputeInitialGuess(TPZVec<STATE> &mu, STATE J, STATE &pres, STATE &ksi, TPZVec<STATE> &N);
 	
 #ifdef _AUTODIFF
 	/** @brief Computes the mixing energy W and its first and second derivatives */
@@ -214,7 +214,7 @@ private:
 	
 	/** @brief Computes the value of the N coeficients in function of ksi and mus, iterative method, inverting the Hessian of W */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void ComputeN(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N);
+	void ComputeN(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec<STATE> &N);
 	
 #ifdef _AUTODIFF
 	/** @brief Computes N and its partial derivatives by directly inverting the analytic expressions */
@@ -228,7 +228,7 @@ private:
 #endif
 	/** @brief Computes the residual and tangent vector of the system of equations which determines N */
 	/** This method has been superseded by the direct computation ExactSolution */
-	void NResidual(TPZVec<REAL> &mu, REAL ksi, REAL pressure, TPZVec<REAL> &N, TPZFMatrix<REAL> &res, TPZFMatrix<REAL> &tangent);
+	void NResidual(TPZVec<STATE> &mu, STATE ksi, STATE pressure, TPZVec<STATE> &N, TPZFMatrix<STATE> &res, TPZFMatrix<STATE> &tangent);
 	
 #ifdef _AUTODIFF
 	/** 
@@ -252,13 +252,13 @@ public:
 	/** Number of cases which are considered for convergence checks */
 	int NumCases();
 	/** @brief Loads the state within the current object, to be used when computing the tangent matrix */
-	void LoadState(TPZFMatrix<REAL> &state);
+	void LoadState(TPZFMatrix<STATE> &state);
 	/** @brief Computes the tangent matrix for a given loadcase */
-	void ComputeTangent(TPZFMatrix<REAL> &tangent,TPZVec<REAL> &coefs, int cases);
+	void ComputeTangent(TPZFMatrix<STATE> &tangent,TPZVec<STATE> &coefs, int cases);
 	/** @brief Computes the residual for the given state variable */
-	void Residual(TPZFMatrix<REAL> &res, int cases);
+	void Residual(TPZFMatrix<STATE> &res, int cases);
 	/** @brief Variables which holds the state variables used in the check convergence procedure */
-	static TPZFMatrix<REAL> gState;
+	static TPZFMatrix<STATE> gState;
 	/** @brief Variables which holds the state variables used in the check convergence procedure */
 	static TPZFMatrix<REAL> gphi,gdphi;
 	
@@ -271,7 +271,7 @@ public:
 	
 protected:
 	/** @brief Computes a post-processed solution variable corresponding to the variable index */
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{

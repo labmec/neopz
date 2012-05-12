@@ -1398,7 +1398,7 @@ REAL TPZInterpolatedElement::CompareElement(int var, char *matname)
 	TPZFNMatrix<9> axes(3,3,0.);
 	TPZFNMatrix<9> jacobian(dim,dim), jacinv(dim,dim);
 	
-	TPZManVector<STATE> sol(numdof, 0.), othersol(numdof,0.);
+	TPZManVector<REAL> sol(numdof, 0.), othersol(numdof,0.);
 	TPZVec<REAL> intpoint(dim,0.);
 	REAL weight = 0.;
 	REAL detjac;
@@ -1489,7 +1489,7 @@ REAL TPZInterpolatedElement::MeanSolution(int var) {
 		LOGPZ_ERROR(logger,"Exiting MeanSolution: is not implemented to nvars != 1.");
 		return 0.;
 	}
-	TPZManVector<STATE> sol(nvars,0.);
+	TPZManVector<REAL> sol(nvars,0.);
 	
 	int i;
 	TPZFMatrix<REAL> axes(3,3,0.);

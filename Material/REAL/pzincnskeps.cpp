@@ -11,7 +11,7 @@ TPZIncNavierStokesKEps::TPZIncNavierStokesKEps(int id, int dimension):TPZMateria
 
 TPZIncNavierStokesKEps::~TPZIncNavierStokesKEps(){}
 
-void TPZIncNavierStokesKEps::SetParameters(REAL MU, REAL RHO, REAL Cmu, REAL SigmaK, REAL SigmaEps, REAL Cepsilon1, REAL Cepsilon2, TPZVec<REAL> &BodyForce ){
+void TPZIncNavierStokesKEps::SetParameters(STATE MU, STATE RHO, STATE Cmu, STATE SigmaK, STATE SigmaEps, STATE Cepsilon1, STATE Cepsilon2, TPZVec<STATE> &BodyForce ){
 	fMU = MU;
 	fRHO = RHO;
 	fCmu = Cmu;
@@ -22,7 +22,7 @@ void TPZIncNavierStokesKEps::SetParameters(REAL MU, REAL RHO, REAL Cmu, REAL Sig
 	fBodyForce = BodyForce;
 }
 
-void TPZIncNavierStokesKEps::GetParameters(REAL &MU, REAL &RHO, REAL &Cmu, REAL &SigmaK, REAL &SigmaEps, REAL &Cepsilon1, REAL &Cepsilon2, TPZVec<REAL> &BodyForce ){
+void TPZIncNavierStokesKEps::GetParameters(STATE &MU, STATE &RHO, STATE &Cmu, STATE &SigmaK, STATE &SigmaEps, STATE &Cepsilon1, STATE &Cepsilon2, TPZVec<STATE> &BodyForce ){
 	MU = fMU;
 	RHO = fRHO;
 	Cmu = fCmu;
@@ -52,7 +52,7 @@ int TPZIncNavierStokesKEps::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+void TPZIncNavierStokesKEps::Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 									  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout){
 	
 	if (var == EK){
@@ -84,8 +84,8 @@ void TPZIncNavierStokesKEps::Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
 
 void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
                                         REAL weight,
-                                        TPZFMatrix<REAL> &ek,
-                                        TPZFMatrix<REAL> &ef){
+                                        TPZFMatrix<STATE> &ek,
+                                        TPZFMatrix<STATE> &ef){
 	
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -94,29 +94,29 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
-	TPZVec<REAL> &sol=data.sol[0];
-	TPZFMatrix<REAL> &dsol=data.dsol[0];
+	TPZVec<STATE> &sol=data.sol[0];
+	TPZFMatrix<STATE> &dsol=data.dsol[0];
 	
-	REAL valor;
+	STATE valor;
 	
 	const int dim = this->Dimension();
 	const int nstate = this->NStateVariables();
 	//Getting state variables
-	REAL K = sol[EK];
-	REAL Eps = sol[EEpsilon];
-	REAL Pressure = sol[EPressure];  
-	TPZManVector<REAL,3> V(dim);
+	STATE K = sol[EK];
+	STATE Eps = sol[EEpsilon];
+	STATE Pressure = sol[EPressure];  
+	TPZManVector<STATE,3> V(dim);
 	int i,j;
 	for(i = 0; i < dim; i++) V[i] = sol[EVx+i];
 	
 	//Getting Grad[state variables]
-	TPZManVector<REAL,3> GradK(dim,1);
+	TPZManVector<STATE,3> GradK(dim,1);
 	for(i = 0; i < dim; i++) GradK[i] = dsol(i, EK);
-	TPZManVector<REAL,3> GradEps(dim,1);
+	TPZManVector<STATE,3> GradEps(dim,1);
 	for(i = 0; i < dim; i++) GradEps[i] = dsol(i, EEpsilon);
-	TPZManVector<REAL,3> GradPressure(dim,1);
+	TPZManVector<STATE,3> GradPressure(dim,1);
 	for(i = 0; i < dim; i++) GradPressure[i] = dsol(i, EPressure);
-	TPZFNMatrix<9> GradV(dim,dim);
+	TPZFNMatrix<9,STATE> GradV(dim,dim);
 	for(i = 0; i < dim; i++){
 		for(j = 0; j < dim; j++){
 			GradV(i,j) = dsol(j,EVx+i);
@@ -124,21 +124,21 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	}
 	
 	//Constants:
-	REAL Rt = K*K /(Eps*fMU/fRHO);
-	REAL muT = fRHO * fCmu * (K*K/Eps) * exp(-2.5/(1.+Rt/50.));
+	STATE Rt = K*K /(Eps*fMU/fRHO);
+	STATE muT = fRHO * fCmu * (K*K/Eps) * exp(-2.5/(1.+Rt/50.));
 	
 	//TURBULENCE RESIDUALS
 	//CONSERVATION OF K                              
 	const int nShape = phi.Rows(); 
-	TPZFNMatrix<9> S(dim,dim);
+	TPZFNMatrix<9,STATE> S(dim,dim);
 	for(i = 0; i < dim; i++){
 		for(j = 0; j < dim; j++){
 			S(i,j) = 0.5 * (GradV(i,j) + GradV(j,i) );
 		}
 	}
-	REAL Diss = 2. * fMU * (1. / (4. * K) ) * this->Dot(GradK, GradK);
+	STATE Diss = 2. * fMU * (1. / (4. * K) ) * this->Dot(GradK, GradK);
 	
-	TPZManVector<REAL,3> GradPhi(dim);
+	TPZManVector<STATE,3> GradPhi(dim);
 	for(i = 0; i < nShape; i++){
 		int k;
 		for(k = 0; k < dim; k++) GradPhi[k] = dphi(k,i);
@@ -171,7 +171,7 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	//INCOMPRESSIBLE NAVIERS-STOKES RESIDUALS  
 	//CONTINUITY EQUATION
 	for(i = 0; i < nShape; i++){
-		REAL trGradV = 0.;
+		STATE trGradV = 0.;
 		int k;
 		for(k = 0; k < dim; k++) trGradV += GradV(k,k);
 		ef(i*nstate+EPressure) += trGradV * phi[i];
@@ -179,7 +179,7 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 	}  
 	
 	//CONSERVATION OF LINEAR MOMENTUM
-	TPZFNMatrix<9> T(dim,dim);
+	TPZFNMatrix<9,STATE> T(dim,dim);
 	//T = -p I + (mu + muT) * 2 * S
 	T = S;
 	T *= (fMU + muT ) *2.;
@@ -200,21 +200,21 @@ void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
 
 void TPZIncNavierStokesKEps::Contribute(TPZMaterialData &data,
                                         REAL weight,
-                                        TPZFMatrix<REAL> &ef){
+                                        TPZFMatrix<STATE> &ef){
 	
 }
 
 
 void TPZIncNavierStokesKEps::ContributeBC(TPZMaterialData &data,
                                           REAL weight,
-                                          TPZFMatrix<REAL> &ek,
-                                          TPZFMatrix<REAL> &ef,
+                                          TPZFMatrix<STATE> &ek,
+                                          TPZFMatrix<STATE> &ef,
                                           TPZBndCond &bc){
 	
 }
 
-REAL TPZIncNavierStokesKEps::Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B){
-	REAL sum = 0.;
+STATE TPZIncNavierStokesKEps::Dot(TPZFMatrix<STATE> &A, TPZFMatrix<STATE> &B){
+	STATE sum = 0.;
 	int i, j, rows, cols;
 	rows = A.Rows();
 	cols = A.Cols();
@@ -226,8 +226,8 @@ REAL TPZIncNavierStokesKEps::Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B){
 	return sum;
 }
 
-REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZVec<REAL> &B){
-	REAL sum = 0.;
+STATE TPZIncNavierStokesKEps::Dot(TPZVec<STATE> &A, TPZVec<STATE> &B){
+	STATE sum = 0.;
 	int i, dim;
 	dim = A.NElements();
 	for(i = 0; i < dim; i++){
@@ -236,8 +236,8 @@ REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZVec<REAL> &B){
 	return sum;
 }
 
-REAL TPZIncNavierStokesKEps::Dot(TPZVec<REAL> &A, TPZFMatrix<REAL> &B, int BRow){
-	REAL sum = 0.;
+STATE TPZIncNavierStokesKEps::Dot(TPZVec<STATE> &A, TPZFMatrix<STATE> &B, int BRow){
+	STATE sum = 0.;
 	int i, dim;
 	dim = A.NElements();
 	for(i = 0; i < dim; i++){

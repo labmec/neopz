@@ -12,11 +12,11 @@
 using namespace std;
 
 /** @brief Inicializing local variable TCoeff */
-double TCoeff = 1./60.;
+STATE TCoeff = 1./60.;
 /** @brief Inicializing local variable LCoeff */
-double LCoeff = 1000.;
+STATE LCoeff = 1000.;
 /** @brief Inicializing loval variable deltaDerivada */
-double deltaDerivada = 1.e-3;
+STATE deltaDerivada = 1.e-3;
 
 TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(): TPZMaterial()
 {
@@ -26,7 +26,7 @@ TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int id): TPZMaterial(id)
 {
 }
 
-TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int matid, REAL Alpha, REAL N, REAL ThetaS, REAL ThetaR, REAL Ks) 
+TPZSpaceTimeRichardsEq::TPZSpaceTimeRichardsEq(int matid, STATE Alpha, STATE N, STATE ThetaS, STATE ThetaR, STATE Ks) 
 : TPZMaterial(matid){
 	this->Set(Alpha, N, ThetaS, ThetaR, Ks);
 }
@@ -35,7 +35,7 @@ TPZSpaceTimeRichardsEq::~TPZSpaceTimeRichardsEq()
 {
 }
 
-void TPZSpaceTimeRichardsEq::Set(REAL Alpha, REAL N, REAL ThetaS, REAL ThetaR, REAL Ks){
+void TPZSpaceTimeRichardsEq::Set(STATE Alpha, STATE N, STATE ThetaS, STATE ThetaR, STATE Ks){
 	this->fAlpha = Alpha;
 	this->fN = N;
 	this->fThetaS = ThetaS;
@@ -51,7 +51,7 @@ int TPZSpaceTimeRichardsEq::NStateVariables(){
 	return 1;
 }
 
-void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &dphi = data.dphix;
     int numbersol = data.sol.size();
@@ -59,18 +59,26 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
         DebugStop();
     }
 	
-	const REAL sol = data.sol[0][0];
+	const STATE sol = data.sol[0][0];
 	
-	const REAL BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
+	const STATE BetaBarT = 0*LCoeff*data.detjac/2.; //beta=(0,1)
 	
-	TPZFNMatrix<2> dsol(2,1,0.);
-	TPZAxesTools<REAL>::Axes2XYZ(data.dsol[0], dsol, data.axes);
+	TPZFNMatrix<2,STATE> dsol(2,1,0.);
+    /*
+    TPZFNMatrix<9,STATE> axes(data.axes.Rows(),data.axes.Cols());
+    for (int r=0; r<axes.Rows(); r++) {
+        for (int c=0; c<axes.Cols(); c++) {
+            axes(r,c) = data.axes(r,c);
+        }
+    }
+     */
+	TPZAxesTools<STATE>::Axes2XYZ(data.dsol[0], dsol, data.axes);
 	
 	const int phr = phi.Rows();
 	int i, j;
 	
 	for(i = 0; i < phr; i++){
-		const REAL BetaBarGradV = BetaBarT*dphi(1,i);
+		const STATE BetaBarGradV = BetaBarT*dphi(1,i);
 		ef(i,0) += -1.*weight *( -1.*sol*dphi(1,i) +1.*dsol(1,0)*BetaBarGradV + /*(K/C)*/(dsol(0,0))*dphi(0,i));
 		for(j = 0; j < phr; j++){
 			ek(i,j) += weight * ( -1.*phi(j,0)*dphi(1,i)+dphi(1,j)*BetaBarGradV + dphi(0,i)*dphi(0,j) );
@@ -78,9 +86,9 @@ void TPZSpaceTimeRichardsEq::Contribute(TPZMaterialData &data, REAL weight, TPZF
 	}//for i
 }//Contribute
 
-void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
+void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
 	
-	const REAL v2 = bc.Val2()(0,0);
+	const STATE v2 = bc.Val2()(0,0);
 	TPZFMatrix<REAL> &phi = data.phi;
 	const int phr = phi.Rows();
 	int in, jn;
@@ -112,13 +120,13 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 			// outflow condition
 		case 3 : { 
 			
-			const REAL sol = data.sol[0][0];
-			REAL ConvDir[2] = {0., 1.}; 
-			REAL normal[2];
+			const STATE sol = data.sol[0][0];
+			STATE ConvDir[2] = {0., 1.}; 
+			STATE normal[2];
 			normal[0] = data.axes(0,1);
 			normal[1] = -1.*data.axes(0,0);
 			
-			REAL ConvNormal = ConvDir[0]*normal[0] + ConvDir[1]*normal[1];
+			STATE ConvNormal = ConvDir[0]*normal[0] + ConvDir[1]*normal[1];
 			if(ConvNormal > 0.) {
 				for(int il = 0; il < phr; il++) {
 					for(int jl = 0; jl < phr; jl++) {
@@ -140,49 +148,49 @@ void TPZSpaceTimeRichardsEq::ContributeBC(TPZMaterialData &data, REAL weight, TP
 	
 }//ContributeBC
 
-REAL TPZSpaceTimeRichardsEq::C_Coef(REAL sol){
+STATE TPZSpaceTimeRichardsEq::C_Coef(STATE sol){
 	
 	sol = sol/LCoeff;
-	REAL n = this->fN;
-	REAL m = 1.-(1./n);
-	REAL TR = this->fThetaR;
-	REAL TS = this->fThetaS;
-	REAL a = this->fAlpha;
-	REAL result = (m*n*pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)*pow(1./(1. + pow(pow(a,(REAL)2.)*pow(sol,(REAL)2.),n/2.)),1. + m)*(TR - TS))/sol;
+	STATE n = this->fN;
+	STATE m = 1.-(1./n);
+	STATE TR = this->fThetaR;
+	STATE TS = this->fThetaS;
+	STATE a = this->fAlpha;
+	STATE result = (m*n*pow(pow(a,(STATE)2.)*pow(sol,(STATE)2.),n/2.)*pow(1./(1. + pow(pow(a,(STATE)2.)*pow(sol,(STATE)2.),n/2.)),1. + m)*(TR - TS))/sol;
 	return result/LCoeff;
 }
 
-REAL TPZSpaceTimeRichardsEq::Se(REAL sol){
-	REAL n = this->fN;
-	REAL m = 1.-(1./n);
-	REAL result = pow((REAL)(1./(1.+pow(fabs(this->fAlpha*sol),n))),m);
+STATE TPZSpaceTimeRichardsEq::Se(STATE sol){
+	STATE n = this->fN;
+	STATE m = 1.-(1./n);
+	STATE result = pow((STATE)(1./(1.+pow(fabs(this->fAlpha*sol),n))),m);
 	return result;
 }
 
-REAL TPZSpaceTimeRichardsEq::Theta(REAL Se){
-	REAL result = Se*(fThetaS-fThetaR)+fThetaR;
+STATE TPZSpaceTimeRichardsEq::Theta(STATE Se){
+	STATE result = Se*(fThetaS-fThetaR)+fThetaR;
 	return result;
 }
 
-/** @brief Return sign of the real A. If A is closed to zero up to tolerance tol returns zero (in absolute value) */
+/** @brief Return sign of the STATE A. If A is closed to zero up to tolerance tol returns zero (in absolute value) */
 int Sign(double A, double tol){
 	if(fabs(A) < tol) return 0;
 	if(A > 0.) return +1;
 	return -1;
 }
 
-REAL TPZSpaceTimeRichardsEq::DCDsol(REAL sol){
-	REAL sol1 = sol*(1.-deltaDerivada);
-	REAL antes =   this->C_Coef(sol1);
-	REAL sol2 = sol * (1.+deltaDerivada);
-	REAL depois = this->C_Coef(sol2);
-	REAL result = (depois-antes)/(sol2-sol1);
+STATE TPZSpaceTimeRichardsEq::DCDsol(STATE sol){
+	STATE sol1 = sol*(1.-deltaDerivada);
+	STATE antes =   this->C_Coef(sol1);
+	STATE sol2 = sol * (1.+deltaDerivada);
+	STATE depois = this->C_Coef(sol2);
+	STATE result = (depois-antes)/(sol2-sol1);
 	return result;
 }
 
-void TPZSpaceTimeRichardsEq::AnalysisOfParameters(REAL sol0, REAL solL, char* filename){
+void TPZSpaceTimeRichardsEq::AnalysisOfParameters(STATE sol0, STATE solL, char* filename){
 	int np = 100;
-	TPZFMatrix<REAL> C(np,2), K(np,2), dCdSol(np,2), dKdsol(np,2);
+	TPZFMatrix<STATE> C(np,2), K(np,2), dCdSol(np,2), dKdsol(np,2);
 	double delta = (solL - sol0)/(np-1);
 	double sol;
 	for(int i = 0; i < np; i++){
@@ -206,35 +214,35 @@ void TPZSpaceTimeRichardsEq::AnalysisOfParameters(REAL sol0, REAL solL, char* fi
 	K.Print("K=",file);	
 }
 
-REAL TPZSpaceTimeRichardsEq::K_Coef(REAL sol) {
+STATE TPZSpaceTimeRichardsEq::K_Coef(STATE sol) {
 	
 	sol = sol / LCoeff;
 	
-	REAL n = this->fN;
-	REAL m = 1.-(1./n);
-	REAL Se = this->Se(sol);
-	REAL Ks = this->fKs;
-	REAL result = Ks*sqrt(Se)*pow(((REAL)1.)-pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m),(REAL)2.);
+	STATE n = this->fN;
+	STATE m = 1.-(1./n);
+	STATE Se = this->Se(sol);
+	STATE Ks = this->fKs;
+	STATE result = Ks*sqrt(Se)*pow(((STATE)1.)-pow(((STATE)1.)-pow(Se,((STATE)1.)/m),m),(STATE)2.);
 	
 	return result*LCoeff/TCoeff;
 }
 
 
-REAL TPZSpaceTimeRichardsEq::DKDsol(REAL sol){
+STATE TPZSpaceTimeRichardsEq::DKDsol(STATE sol){
 	
-    REAL sol1 = sol*(1.-deltaDerivada);
-    REAL antes = this->K_Coef(sol1);
-    REAL sol2 = sol * (1.+deltaDerivada);
-    REAL depois = this->K_Coef(sol2);
-    REAL resposta = (depois-antes)/(sol2-sol1);
+    STATE sol1 = sol*(1.-deltaDerivada);
+    STATE antes = this->K_Coef(sol1);
+    STATE sol2 = sol * (1.+deltaDerivada);
+    STATE depois = this->K_Coef(sol2);
+    STATE resposta = (depois-antes)/(sol2-sol1);
     return resposta;
 	
 	sol = sol / LCoeff;
-	REAL n = this->fN;
-	REAL m = 1.-(1./n);  
-	REAL Se = this->Se(sol);
-	REAL DkDSe = 0.5 * this->fKs * (1.-pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))*(4.*pow(Se,((REAL)-0.5)+(((REAL)1.)/m))*pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m-((REAL)1.))-(-1.+pow(((REAL)1.)-pow(Se,((REAL)1.)/m),m))/sqrt(Se));
-	REAL DSeDsol = -(1./sol)*m*n*pow(fabs(this->fAlpha*sol),n)*pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m+1.);
-	REAL dkdsol = DkDSe * DSeDsol;
+	STATE n = this->fN;
+	STATE m = 1.-(1./n);  
+	STATE Se = this->Se(sol);
+	STATE DkDSe = 0.5 * this->fKs * (1.-pow(((STATE)1.)-pow(Se,((STATE)1.)/m),m))*(4.*pow(Se,((STATE)-0.5)+(((STATE)1.)/m))*pow(((STATE)1.)-pow(Se,((STATE)1.)/m),m-((STATE)1.))-(-1.+pow(((STATE)1.)-pow(Se,((STATE)1.)/m),m))/sqrt(Se));
+	STATE DSeDsol = -(1./sol)*m*n*pow(fabs(this->fAlpha*sol),n)*pow(1./(1.+pow(fabs(this->fAlpha*sol),n)),m+1.);
+	STATE dkdsol = DkDSe * DSeDsol;
 	return dkdsol*LCoeff/(TCoeff*LCoeff);
 }

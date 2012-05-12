@@ -95,7 +95,7 @@ int TPZBiharmonic::NSolutionVariables(int var){
 }
 
 void TPZBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,
-							 int var,TPZVec<STATE> &Solout){
+							 int var,TPZVec<REAL> &Solout){
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
 		Solout.Resize(DSol.Rows());
@@ -116,7 +116,7 @@ void TPZBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatrix<STAT
 						   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
 						   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 						   TPZVec<REAL> &values) {
-	TPZVec<STATE> sol(1), dsol(8,0.);
+	TPZVec<REAL> sol(1), dsol(8,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
     //values[1] : error em norma L2

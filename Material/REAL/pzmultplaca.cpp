@@ -15,9 +15,9 @@ using namespace std;
 
 #include "pzmultplaca.h"
 
-TPZMultPlaca::TPZMultPlaca(int num, REAL h, TPZVec<REAL> &esp, REAL f, REAL E1 ,
-						   REAL E2 , REAL ni1 , REAL ni2 , REAL G12 , REAL G13 ,
-						   REAL G23 , TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf,
+TPZMultPlaca::TPZMultPlaca(int num, STATE h, TPZVec<STATE> &esp, STATE f, STATE E1 ,
+						   STATE E2 , STATE ni1 , STATE ni2 , STATE G12 , STATE G13 ,
+						   STATE G23 , TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf,
 						   int camadaref, int camadaatual) :
 TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 			 G23 , naxes, xf), fT(6,6,0.) {
@@ -80,12 +80,12 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 		fT(3+i,imax+i)=1.0;
     };
 	
-	TPZFMatrix<REAL> TTransp;
+	TPZFMatrix<STATE> TTransp;
 	fT.Transpose(&TTransp);
 	
 	// Obtencao das matrizes do elemento no plano xy, com efeito multicamada
 	
-	TPZFMatrix<REAL> KxxMC,KyyMC,KxyMC,KyxMC,Bx0MC,B0xMC,By0MC,B0yMC,B00MC;
+	TPZFMatrix<STATE> KxxMC,KyyMC,KxyMC,KyxMC,Bx0MC,B0xMC,By0MC,B0yMC,B00MC;
 	
 	KxxMC=TTransp*(fKxx*fT);
 	KyyMC=TTransp*(fKyy*fT);
@@ -135,7 +135,7 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 	
 	ofstream out("saida.dat");
 	
-	TPZFMatrix<REAL> Temp(fIdfMax,fIdfMax),Transp(fIdfMax,fIdfMax);
+	TPZFMatrix<STATE> Temp(fIdfMax,fIdfMax),Transp(fIdfMax,fIdfMax);
 	
 	fKxxR.Transpose(&Transp);
 	Temp= fKxxR - Transp;
@@ -175,7 +175,7 @@ TPZMatPlaca2(num, h, f, E1 , E2 , ni1 , ni2 , G12 , G13 ,
 };
 
 /**returns the solution associated with the var index based on the finite element approximation*/
-void TPZMultPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
+void TPZMultPlaca::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 							TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(var == 2 || var ==3 || var == 4) {
@@ -225,8 +225,8 @@ void TPZMultPlaca::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 				DSolStarnn(1,idf) += fT(idf,jdf)*DSolnn(1,jdf);
 			}
 		}
-		TPZVec<REAL> Sol6(6,0.);
-		TPZFMatrix<REAL> DSol6(2,6,0.),DSoln6a(2,6,0.);
+		TPZVec<STATE> Sol6(6,0.);
+		TPZFMatrix<STATE> DSol6(2,6,0.),DSoln6a(2,6,0.);
 		for(idf=0;idf<6;idf++) {
 			DSoln6a(0,idf) = Rmatan(0,0)*DSolStarnn(0,idf)+Rmatan(1,0)*DSolStarnn(1,idf);
 			DSoln6a(1,idf) = Rmatan(0,1)*DSolStarnn(0,idf)+Rmatan(1,1)*DSolStarnn(1,idf);

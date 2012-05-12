@@ -38,18 +38,18 @@ private:
 	
     int fDimension;
     
-    REAL fMU, fRHO, fCmu, fSigmaK, fSigmaEps, fCepsilon1, fCepsilon2;
+    STATE fMU, fRHO, fCmu, fSigmaK, fSigmaEps, fCepsilon1, fCepsilon2;
     
-    TPZVec<REAL> fBodyForce; //fc = {0,0,-fc}
+    TPZVec<STATE> fBodyForce; //fc = {0,0,-fc}
     
     /** @brief Dot for matrices with same dimensions. \f$ Tr[A B]. \f$ No consistence test is made. */
-    REAL Dot(TPZFMatrix<REAL> &A, TPZFMatrix<REAL> &B);
+    STATE Dot(TPZFMatrix<STATE> &A, TPZFMatrix<STATE> &B);
     
     /** @brief Dot of vector A with row BRow of matrix B. */
-    REAL Dot(TPZVec<REAL> &A, TPZFMatrix<REAL> &B, int BRow);
+    STATE Dot(TPZVec<STATE> &A, TPZFMatrix<STATE> &B, int BRow);
 	
     /** @brief Dot for vectors with same dimensions. No consistence test is made. */        
-    REAL Dot(TPZVec<REAL> &A, TPZVec<REAL> &B);
+    STATE Dot(TPZVec<STATE> &A, TPZVec<STATE> &B);
 	
 public:
 	
@@ -57,9 +57,9 @@ public:
 	
     TPZIncNavierStokesKEps(int id, int dimension);
     
-    void SetParameters(REAL MU, REAL RHO, REAL Cmu, REAL SigmaK, REAL SigmaEps, REAL Cepsilon1, REAL Cepsilon2, TPZVec<REAL> &BodyForce );
+    void SetParameters(STATE MU, STATE RHO, STATE Cmu, STATE SigmaK, STATE SigmaEps, STATE Cepsilon1, STATE Cepsilon2, TPZVec<STATE> &BodyForce );
     
-    void GetParameters(REAL &MU, REAL &RHO, REAL &Cmu, REAL &SigmaK, REAL &SigmaEps, REAL &Cepsilon1, REAL &Cepsilon2, TPZVec<REAL> &BodyForce );    
+    void GetParameters(STATE &MU, STATE &RHO, STATE &Cmu, STATE &SigmaK, STATE &SigmaEps, STATE &Cepsilon1, STATE &Cepsilon2, TPZVec<STATE> &BodyForce );    
 	
     virtual ~TPZIncNavierStokesKEps();
 	
@@ -77,7 +77,7 @@ public:
 	
 protected:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
 						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
@@ -90,26 +90,26 @@ public:
     /** @brief Computes contribution to the tangent matrix and residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	
     /** @brief Computes contribution to the residual at an integration point */
     virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ef);
 	
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ek,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ek,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
 	
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
-							  TPZFMatrix<REAL> &ef,
+							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
 	{
         TPZMaterial::ContributeBC(data,weight,ef,bc);
@@ -120,9 +120,9 @@ public:
 	 * @brief Computes the error due to the difference between the interpolated flux and the flux computed \n
 	 * based on the derivative of the solution
      */
-    virtual void Errors(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,
-                        TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
-                        TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,
+    virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
+                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
+                        TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
                         TPZVec<REAL> &val){
         PZError << __PRETTY_FUNCTION__ << std::endl;
         PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;

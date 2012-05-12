@@ -21,7 +21,7 @@
 
 
 /** @brief Returns value of the variable */ 
-inline REAL val(REAL & number)
+inline REAL val(STATE & number)
 {
 	return number;
 }
@@ -160,11 +160,11 @@ public:
 	 * @param[out] dDiv an apposimation to the matrix tangent to the divergent
 	 */
 	
-	void Divergent(TPZFMatrix<REAL> &dsol,
+	void Divergent(TPZFMatrix<STATE> &dsol,
 				   TPZFMatrix<REAL> & dphi,
-				   TPZVec<TPZDiffMatrix<REAL> > & Ai,
-				   TPZVec<REAL> & Div,
-				   TPZDiffMatrix<REAL> * dDiv);
+				   TPZVec<TPZDiffMatrix<STATE> > & Ai,
+				   TPZVec<STATE> & Div,
+				   TPZDiffMatrix<STATE> * dDiv);
 	
 #ifdef _AUTODIFF
 	
@@ -290,8 +290,8 @@ public:
 	void PrepareFastDiff(int dim,
 						 TPZFMatrix<REAL> &jacinv, TPZVec<STATE> &sol,
 						 TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> & dphi,
-						 TPZVec<TPZVec<REAL> > & TauDiv,
-						 TPZVec<TPZDiffMatrix<REAL> > * pTaudDiv = NULL);
+						 TPZVec<TPZVec<STATE> > & TauDiv,
+						 TPZVec<TPZDiffMatrix<STATE> > * pTaudDiv = NULL);
 	
 #ifdef _AUTODIFF
 	/**

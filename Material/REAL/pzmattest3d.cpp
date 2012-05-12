@@ -48,7 +48,7 @@ void TPZMaterialTest3D::Print(std::ostream &out)
 }
 
 void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
-								   TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef )
+								   TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef )
 {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -56,7 +56,7 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 	
 	int phr = phi.Rows();
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf(0,0) = res[0];
 	}
@@ -85,13 +85,13 @@ void TPZMaterialTest3D::Contribute( TPZMaterialData &data,REAL weight,
 }
 
 void TPZMaterialTest3D::ContributeBC( TPZMaterialData &data,REAL weight,
-									 TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc)
+									 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc)
 {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
 	int phr = phi.Rows();
 	short in,jn;
-	REAL v2[1];
+	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
 	
 	switch (bc.Type())
@@ -147,7 +147,7 @@ int TPZMaterialTest3D::NSolutionVariables(int var)
 }
 
 
-void TPZMaterialTest3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
+void TPZMaterialTest3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
                                  TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout)
 {
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
@@ -161,27 +161,27 @@ void TPZMaterialTest3D::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,
 }
 
 
-void TPZMaterialTest3D::Flux( TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/,
-							 TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/)
+void TPZMaterialTest3D::Flux( TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/,
+							 TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/)
 {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+	//Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux)
 	LOGPZ_WARN( logger,"ERROR - Not Implemented yet!");
 }
 
 
-void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,TPZFMatrix<REAL> &dudx,
-							   TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,TPZVec<REAL> & u_exact,
-							   TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values)
+void TPZMaterialTest3D::Errors( TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,
+							   TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,TPZVec<STATE> & u_exact,
+							   TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values)
 {
 	TPZManVector<REAL> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	if(dudx.Rows()<3)
 	{
-		REAL dx = du_exact(0,0)*axes(0,0)+du_exact(1,0)*axes(0,1);
-		REAL dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
-		REAL parc1 = fabs(dx-dudx(0,0));
-		REAL parc2 = fabs(dy-dudx(1,0));
+		STATE dx = du_exact(0,0)*axes(0,0)+du_exact(1,0)*axes(0,1);
+		STATE dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
+		STATE parc1 = fabs(dx-dudx(0,0));
+		STATE parc2 = fabs(dy-dudx(1,0));
 		//Norma L2
 		values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
 		//seminorma
@@ -208,7 +208,7 @@ TPZMaterial *  TPZMaterialTest3D::NewMaterial()
 	return mat;
 }
 
-void TPZMaterialTest3D::SetMaterial(TPZFMatrix<REAL> &xfin)
+void TPZMaterialTest3D::SetMaterial(TPZFMatrix<STATE> &xfin)
 {
 	fXf = xfin;
 }

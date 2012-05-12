@@ -321,7 +321,7 @@ void TPZCompEl::PrintSolution(TPZVec<REAL> &point,char *varname,std::ostream &s)
 		LOGPZ_WARN(logger, "Exiting PrintSolution should not be called for an element which has unknown variable index");
 		return;
 	}
-	TPZManVector<STATE> sol(numvar);
+	TPZManVector<REAL> sol(numvar);
 	sol.Fill(0.);
 	Solution(point,varindex,sol);
 	for(int i=0; i<sol.NElements(); i++) {
@@ -369,7 +369,7 @@ void TPZCompEl::EvaluateError(void (* /*fp*/)(const TPZVec<REAL> &loc,TPZVec<STA
 	LOGPZ_WARN(logger, "EvaluateError is called.");
 }
 
-void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<STATE> &sol){
+void TPZCompEl::Solution(TPZVec<REAL> &/*qsi*/,int var,TPZVec<REAL> &sol){
 	if(var >= 100) {
 		int ind = Index();
 		if(fMesh->ElementSolution().Cols() > var-100) {

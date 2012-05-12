@@ -107,7 +107,7 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	template <class T>
 	static void uRes(TPZVec<T> & sol, T & us);
 	
-	virtual REAL Pressure(TPZVec<STATE> &U);
+	virtual STATE Pressure(TPZVec<STATE> &U);
 	
 	virtual void Print(std::ostream & out);
 	
@@ -128,11 +128,11 @@ class TPZEulerConsLaw  : public TPZConservationLaw
 	void ComputeGhostState(TPZVec<T> &solL, TPZVec<T> &solR, TPZVec<REAL> &normal, TPZBndCond &bc, int & entropyFix);
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 public:
 	
 	/** @brief returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZMaterialData &data, int var, TPZVec<STATE> &Solout)
+	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
 		TPZConservationLaw::Solution(data,var,Solout);
 	}

@@ -413,7 +413,7 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 }//void
 
-void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<STATE> &sol) {
+void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol) {
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
@@ -1066,7 +1066,7 @@ void TPZInterpolationSpace::Integrate(int variable, TPZVec<REAL> & value){
 	
 	const TPZIntPoints &intrule = this->GetIntegrationRule();
 	int npoints = intrule.NPoints(), ip, iv;
-	TPZManVector<STATE> sol(varsize);
+	TPZManVector<REAL> sol(varsize);
 	for(ip=0;ip<npoints;ip++){
 		intrule.Point(ip,intpoint,weight);
 		sol.Fill(0.);

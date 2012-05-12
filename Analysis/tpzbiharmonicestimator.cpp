@@ -10,7 +10,7 @@
 #include <cmath>
 using namespace std;
 
-TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, REAL f):
+TPZBiharmonicEstimator::TPZBiharmonicEstimator(int nummat, STATE f):
 TPZBiharmonic( nummat,  f)
 {
 	this->SetExactSolutions(NULL, NULL);
@@ -21,23 +21,23 @@ TPZBiharmonicEstimator::~TPZBiharmonicEstimator()
 }
 
 void TPZBiharmonicEstimator::SetExactSolutions(
-											   void (*fp)(TPZVec<REAL> &loc,TPZVec<REAL> &val,TPZFMatrix<REAL> &deriv),
-											   void (*fd)(TPZVec<REAL> &locdual,TPZVec<REAL> &valdual,TPZFMatrix<REAL> &derivdual)){
+											   void (*fp)(TPZVec<REAL> &loc,TPZVec<STATE> &val,TPZFMatrix<STATE> &deriv),
+											   void (*fd)(TPZVec<REAL> &locdual,TPZVec<STATE> &valdual,TPZFMatrix<STATE> &derivdual)){
 	this->fPrimalExactSol = fp;
 	this->fDualExactSol = fd;
 }
 
-//static REAL Pi = 4.*atan(1.);
+//static STATE Pi = 4.*atan(1.);
 /** @brief Output file to contribute erros. */
 std::ofstream CE ( "debugContributeErros.txt" );
 // std::ofstream CoutPontual ( "solPontual.txt" );
 void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 												  REAL weight,
-												  TPZVec<REAL> &nk){
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(9,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(9,1);
+												  TPZVec<STATE> &nk){
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(9,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(9,1);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	
@@ -47,16 +47,16 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
     }
 
 	TPZManVector<REAL,3> x = data.x;
-	TPZVec<REAL> sol  = data.sol[0];
-	TPZFMatrix<REAL>   dsol = data.dsol[0];
+	TPZVec<STATE> sol  = data.sol[0];
+	TPZFMatrix<STATE>   dsol = data.dsol[0];
 	//   REAL Laplac = dsol(2,0);
-	REAL LaplacLaplac = dsol(8,0);
+	STATE LaplacLaplac = dsol(8,0);
 	//   REAL DuDx = dsol(0,0);
 	//   REAL DuDy = dsol(1,0);
 	
     if (this->fForcingFunction)
 	{
-		TPZManVector<REAL, 1> result(1);
+		TPZManVector<STATE, 1> result(1);
 		this->fForcingFunction->Execute(x, result);
 		this->fXf = result[0];
 	}
@@ -70,19 +70,19 @@ void TPZBiharmonicEstimator::ContributeErrorsDual(TPZMaterialData &data,
 	// CoutPontual << "x: "<< x[0]<<","<<x[1]<<std::endl; 
 	// CoutPontual << "sol: "<< sol[0]<<std::endl;
 	// }
-	REAL f = this->fXf;
+	STATE f = this->fXf;
 	CE << "f: "<<f <<std::endl;
 	CE << " "<<std::endl; 
-	REAL Z  = sol[2];
-	REAL Z1 = sol[3];
+	STATE Z  = sol[2];
+	STATE Z1 = sol[3];
 	nk[0] += weight *( f -  LaplacLaplac )*(Z1-Z);
 	nk[1] += weight *( f -  LaplacLaplac )*(u_exactd[0]-Z);//segundo a teoria deve dar o erro exato do funcional(a menos do erro na integracao numerica)!
 }
 
 void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 														   REAL weight,
-														   TPZVec<REAL> &nkL, 
-														   TPZVec<REAL> &nkR ){
+														   TPZVec<STATE> &nkL, 
+														   TPZVec<STATE> &nkR ){
 	TPZManVector<REAL,3> normal = data.normal;
 	TPZManVector<REAL,3> x = data.x;
 	int LeftPOrder = dataleft.p;
@@ -92,75 +92,75 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
         DebugStop();
     }
 
-	TPZVec<REAL> solL=dataleft.sol[0];
-	TPZVec<REAL> solR=dataright.sol[0];
-	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
-	TPZFMatrix<REAL> dsolR=dataright.dsol[0];
-	REAL faceSize=data.HSize;
+	TPZVec<STATE> solL=dataleft.sol[0];
+	TPZVec<STATE> solR=dataright.sol[0];
+	TPZFMatrix<STATE> dsolL=dataleft.dsol[0];
+	TPZFMatrix<STATE> dsolR=dataright.dsol[0];
+	STATE faceSize=data.HSize;
 	
-	REAL alpha=gSigmaA*(pow((REAL)LeftPOrder,gL_alpha)+pow((REAL)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
-	REAL betta=gSigmaB*(pow((REAL)LeftPOrder,gL_betta)+pow((REAL)RightPOrder,gL_betta)) /(2.*pow(faceSize,gM_betta) );
+	STATE alpha=gSigmaA*(pow((STATE)LeftPOrder,gL_alpha)+pow((STATE)RightPOrder,gL_alpha)) /(2.*pow(faceSize,gM_alpha) );
+	STATE betta=gSigmaB*(pow((STATE)LeftPOrder,gL_betta)+pow((STATE)RightPOrder,gL_betta)) /(2.*pow(faceSize,gM_betta) );
 	
 	// solucoes exatas
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(9,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(9,1);
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(9,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(9,1);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	
 	
 	// u -> left e right
-	REAL uL = solL[0];
-	REAL uR = solR[0];
-	REAL graduL[2];
+	STATE uL = solL[0];
+	STATE uR = solR[0];
+	STATE graduL[2];
 	graduL[0] = dsolL(0,0);
 	graduL[1] = dsolL(1,0);
-	REAL graduR[2];
+	STATE graduR[2];
 	graduR[0] = dsolR(0,0);
 	graduR[1] = dsolR(1,0);
-	REAL LaplacianoUL =dsolL(2,0);
-	REAL LaplacianoUR =dsolR(2,0);
-	REAL  GRADLaplacianoUL[2];
+	STATE LaplacianoUL =dsolL(2,0);
+	STATE LaplacianoUR =dsolR(2,0);
+	STATE  GRADLaplacianoUL[2];
 	GRADLaplacianoUL[0] =dsolL(3,0);
 	GRADLaplacianoUL[1] =dsolL(4,0);
-	REAL  GRADLaplacianoUR[2];
+	STATE  GRADLaplacianoUR[2];
 	GRADLaplacianoUR[0] =dsolR(3,0);
 	GRADLaplacianoUR[1] =dsolR(4,0);
 	
 	// dualhp -> left e right
-	REAL dualhpL = solL[2];
-	REAL dualhpR = solR[2];
-	REAL graddualhpL[2];
+	STATE dualhpL = solL[2];
+	STATE dualhpR = solR[2];
+	STATE graddualhpL[2];
 	graddualhpL[0] = dsolL(0,2);
 	graddualhpL[1] = dsolL(1,2);
-	REAL graddualhpR[2];
+	STATE graddualhpR[2];
 	graddualhpR[0] = dsolR(0,2);
 	graddualhpR[1] = dsolR(1,2);
-	REAL LaplacianodualhpL = dsolL(2,2);
-	REAL LaplacianodualhpR = dsolR(2,2);
-	REAL  GRADLaplacianodualhpL[2];
+	STATE LaplacianodualhpL = dsolL(2,2);
+	STATE LaplacianodualhpR = dsolR(2,2);
+	STATE  GRADLaplacianodualhpL[2];
 	GRADLaplacianodualhpL[0] = dsolL(3,2);
 	GRADLaplacianodualhpL[1] = dsolL(4,2);
-	REAL  GRADLaplacianodualhpR[2];
+	STATE  GRADLaplacianodualhpR[2];
 	GRADLaplacianodualhpR[0] = dsolR(3,2);
 	GRADLaplacianodualhpR[1] = dsolR(4,2);
 	
 	// dualhpPlus -> left e right
-	REAL dualhpPlusL = solL[3];
-	REAL dualhpPlusR = solR[3];
-	REAL graddualhpPlusL[2];
+	STATE dualhpPlusL = solL[3];
+	STATE dualhpPlusR = solR[3];
+	STATE graddualhpPlusL[2];
 	graddualhpPlusL[0] = dsolL(0,3);
 	graddualhpPlusL[1] = dsolL(1,3);
-	REAL graddualhpPlusR[2];
+	STATE graddualhpPlusR[2];
 	graddualhpPlusR[0] = dsolR(0,3);
 	graddualhpPlusR[1] = dsolR(1,3);
-	REAL LaplacianodualhpPlusL = dsolL(2,3);
-	REAL LaplacianodualhpPlusR = dsolR(2,3);
-	REAL  GRADLaplacianodualhpPlusL[2];
+	STATE LaplacianodualhpPlusL = dsolL(2,3);
+	STATE LaplacianodualhpPlusR = dsolR(2,3);
+	STATE  GRADLaplacianodualhpPlusL[2];
 	GRADLaplacianodualhpPlusL[0] = dsolL(3,3);
 	GRADLaplacianodualhpPlusL[1] = dsolL(4,3);
-	REAL  GRADLaplacianodualhpPlusR[2];
+	STATE  GRADLaplacianodualhpPlusR[2];
 	GRADLaplacianodualhpPlusR[0] = dsolR(3,3);
 	GRADLaplacianodualhpPlusR[1] = dsolR(4,3);
 
@@ -216,7 +216,7 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 
 void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &data, TPZMaterialData &dataleft,
 															 REAL weight,
-															 TPZVec<REAL> &nk,
+															 TPZVec<STATE> &nk,
 															 TPZBndCond &bc){
 	TPZFMatrix<REAL> dphi = data.dphix;
 	TPZFMatrix<REAL> dphiL = dataleft.dphix;
@@ -230,56 +230,56 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
         DebugStop();
     }
 
-	TPZVec<REAL> solL=dataleft.sol[0];
-	TPZFMatrix<REAL> dsolL=dataleft.dsol[0];
-	REAL faceSize=data.HSize;
+	TPZVec<STATE> solL=dataleft.sol[0];
+	TPZFMatrix<STATE> dsolL=dataleft.dsol[0];
+	STATE faceSize=data.HSize;
 	
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(9,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(9,1);
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(9,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(9,1);
 	this->fDualExactSol(data.x,u_exactd,du_exactd);
 	this->fPrimalExactSol(data.x,u_exactp,du_exactp);
 	
-	REAL alpha = gSigmaA*pow((REAL)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
-	REAL betta = gSigmaB*pow((REAL)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
+	STATE alpha = gSigmaA*pow((STATE)LeftPOrder, gL_alpha) /  pow(faceSize, gM_alpha);
+	STATE betta = gSigmaB*pow((STATE)LeftPOrder, gL_betta) /  pow(faceSize, gM_betta);
 	
-	REAL u = dataleft.sol[0][0];
-	REAL gradu[2];
+	STATE u = dataleft.sol[0][0];
+	STATE gradu[2];
 	gradu[0] = dataleft.dsol[0](0,0);
 	gradu[1] = dataleft.dsol[0](1,0);
 	
-	REAL dualhp = dataleft.sol[0][2];//pq a dual hp está na terceira coluna
-	REAL GRADdualhp[2];//
-	REAL GRADLaplacdualhp[2];
+	STATE dualhp = dataleft.sol[0][2];//pq a dual hp está na terceira coluna
+	STATE GRADdualhp[2];//
+	STATE GRADLaplacdualhp[2];
 	GRADdualhp[0] = dataleft.dsol[0](0,2);
 	GRADdualhp[1] = dataleft.dsol[0](1,2);
-	REAL Laplacdualhp = dataleft.dsol[0](2,2);
+	STATE Laplacdualhp = dataleft.dsol[0](2,2);
 	GRADLaplacdualhp[0] = dataleft.dsol[0](3,2);
 	GRADLaplacdualhp[1] = dataleft.dsol[0](4,2);
 	
-	REAL dualhpPlus = dataleft.sol[0][3];// 
-	REAL GRADdualhpPlus[2];//
-	REAL GRADLaplacdualhpPlus[2];//
+	STATE dualhpPlus = dataleft.sol[0][3];// 
+	STATE GRADdualhpPlus[2];//
+	STATE GRADLaplacdualhpPlus[2];//
 	GRADdualhpPlus[0]= dataleft.dsol[0](0,3);//
 	GRADdualhpPlus[1]= dataleft.dsol[0](1,3);//
-	REAL LaplacdualhpPlus = dataleft.dsol[0](2,3);
+	STATE LaplacdualhpPlus = dataleft.dsol[0](2,3);
 	GRADLaplacdualhpPlus[0] = dataleft.dsol[0](3,3);
 	GRADLaplacdualhpPlus[1] = dataleft.dsol[0](4,3);
 	
 	
-	REAL gradZ[2];
+	STATE gradZ[2];
 	gradZ[0] = GRADdualhp[0]; gradZ[1] = GRADdualhp[1];
-	REAL gradZPlus[2];
+	STATE gradZPlus[2];
 	gradZPlus[0] = GRADdualhpPlus[0]; gradZPlus[1] = GRADdualhpPlus[1];
 	
-	REAL ValBC_D;
-	REAL ValBC_N;
+	STATE ValBC_D;
+	STATE ValBC_N;
 	ValBC_D = bc.Val2()(0,0);// Dirichlet  
 	ValBC_N = bc.Val2()(1,0);// Neumann
 	
-	REAL ResD = ValBC_D - u;
-	REAL ResN = ValBC_N - (gradu[0]*normal[0]+gradu[1]*normal[1]);
+	STATE ResD = ValBC_D - u;
+	STATE ResN = ValBC_N - (gradu[0]*normal[0]+gradu[1]*normal[1]);
 	
 	nk[0] += weight * ResD * ( (GRADLaplacdualhpPlus[0]*normal[0]+GRADLaplacdualhpPlus[1]*normal[1]) - (GRADLaplacdualhp[0]*normal[0]+GRADLaplacdualhp[1]*normal[1]) );
 	nk[0] -= weight*ResN*(LaplacdualhpPlus-Laplacdualhp);
@@ -294,17 +294,18 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsDual(TPZMaterialData &da
 }
 
 /** @brief Initializing variable for computing L2 error */
-REAL L2ErrorPrimal = 0.;
+STATE L2ErrorPrimal = 0.;
 /** @brief Initializing variable for computing L2 error to dual form. */
-REAL L2ErrorDual = 0.;
+STATE L2ErrorDual = 0.;
 
 void TPZBiharmonicEstimator::ContributeErrorsSimple(TPZMaterialData &data,
 													REAL weight,
-													TPZVec<REAL> &nk){
+													TPZVec<STATE> &nk){
 	int phis = data.phi.Rows();
 	int dphir = data.dphix.Rows();
 	OrderSolution(data);
-	TPZFNMatrix<100> axes(3,3,0.),jacinv(2,2,0.),ek(data.phi.Rows(),data.phi.Rows(),0.),ef(data.phi.Rows(),1,0.);
+	TPZFNMatrix<100,REAL> axes(3,3,0.),jacinv(2,2,0.);
+    TPZFNMatrix<200,STATE> ek(data.phi.Rows(),data.phi.Rows(),0.),ef(data.phi.Rows(),1,0.);
 	this->Contribute(data,weight,ek,ef);
 	data.phi.Resize(phis,1);
 	data.dphix.Resize(dphir,phis);
@@ -333,14 +334,15 @@ void TPZBiharmonicEstimator::ContributeErrorsSimple(TPZMaterialData &data,
 
 void TPZBiharmonicEstimator::ContributeInterfaceErrorsSimple(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
 															 REAL weight,
-															 TPZVec<REAL> &nkL, 
-															 TPZVec<REAL> &nkR){
+															 TPZVec<STATE> &nkL, 
+															 TPZVec<STATE> &nkR){
 	//   return;
 	OrderSolutionLeft(data,dataleft);
 	OrderSolutionRight(data,dataright);
 	int sz = dataleft.phi.Rows()+dataright.phi.Rows();
 	int ss = dataleft.phi.Rows(); //inclui isso pq a matriz eh szXsz mas os blocos são sz/2 X sz/2
-	TPZFNMatrix<100> axesleft(3,3,0.),axesright,ek(sz,sz,0.),ef(sz,1,0.);
+	TPZFNMatrix<100,REAL> axesleft(3,3,0.),axesright;
+    TPZFNMatrix<100,STATE> ef(sz,1,0.),ek(sz,sz,0.);
 	this->ContributeInterface(data,dataleft,dataright,weight,ek,ef);
 	
 	//       std:: cout<< "x=("<< data.x[0]<<","<< data.x[1]<<")"; //"  "<< "xsim=(" << 1.-data.x[0]<<","<< 1.-data.x[1]<< ")";
@@ -378,12 +380,12 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsSimple(TPZMaterialData &da
 
 void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsSimple( TPZMaterialData &data, TPZMaterialData &dataleft,
 															   REAL weight,
-															   TPZVec<REAL> &nk,
+															   TPZVec<STATE> &nk,
 															   TPZBndCond &bc){
 	// return;
 	OrderSolutionLeft(data,dataleft);
 //	OrderSolutionRight(data,dataright);
-	TPZFNMatrix<100> ek(dataleft.phi.Rows(),dataleft.phi.Rows(),0.),ef(dataleft.phi.Rows(),1,0.);
+	TPZFNMatrix<100,STATE> ek(dataleft.phi.Rows(),dataleft.phi.Rows(),0.),ef(dataleft.phi.Rows(),1,0.);
 	
 	this->ContributeBCInterface(data,dataleft,weight,ek,ef,bc);
 	//      std:: cout<< "x=("<< data.x[0]<<","<< data.x[1]<<")";
@@ -405,15 +407,15 @@ void TPZBiharmonicEstimator::ContributeInterfaceBCErrorsSimple( TPZMaterialData 
 
 
 
-void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-									TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
-									TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+									TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+									TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 									TPZVec<REAL> &values) {
 	TPZVec<REAL> sol(1), dsol(9,0.);
 	
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
-	TPZVec<REAL> tmp_1(1,0.);
+	TPZVec<STATE> tmp_1(1,0.);
 	Psi(x, tmp_1);
 	values[0]  = sol[0]*tmp_1[0];// parte da implentação do funcional, funcional com núcleo
 	values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]); // error em norma L2 
@@ -425,7 +427,7 @@ void TPZBiharmonicEstimator::Errors(TPZVec<REAL> &x,TPZVec<REAL> &u, TPZFMatrix<
 }
 
 
-void TPZBiharmonicEstimator::Psi(TPZVec<REAL> &x, TPZVec<REAL> &pisci) {
+void TPZBiharmonicEstimator::Psi(TPZVec<REAL> &x, TPZVec<STATE> &pisci) {
 	pisci[0]/*=8*exp(10*(2 - 2*x[0] + pow(x[0],2) - 2*x[1] + pow(x[1],2)))*
 			 (1 - 46*x[1] + 1129*pow(x[1],2) - 120000*pow(x[0],7)*pow(-1 + x[1],2)*pow(x[1],2) + 20000*pow(x[0],8)*pow(-1 + x[1],2)*pow(x[1],2) - 
 			 2526*pow(x[1],3) + 2043*pow(x[1],4) - 800*pow(x[1],5) + 200*pow(x[1],6) + 
@@ -476,10 +478,10 @@ void TPZBiharmonicEstimator::OrderSolution(TPZMaterialData &data)
 		data.dphix(id,4) = 0. ;// derivada do erro exato dual enriquecido
 		data.dphix(id,5) = 0. ;// derivada do erro exato primal enriquecido
 	}
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(nd,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(nd,1);
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(nd,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(nd,1);
 	// erro exato primal 
 	if (this->fPrimalExactSol )
 	{ this->fPrimalExactSol(data.x,u_exactp,du_exactp);
@@ -532,10 +534,10 @@ void TPZBiharmonicEstimator::OrderSolutionLeft(TPZMaterialData &data, TPZMateria
 		dataleft.dphix(id,5) = 0. ;// derivada do erro exato primal enriquecido 
 	}
 	
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(nd,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(nd,1);
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(nd,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(nd,1);
 	
 	// erro exato primal 
 	if (this->fPrimalExactSol )
@@ -591,10 +593,10 @@ void TPZBiharmonicEstimator::OrderSolutionRight(TPZMaterialData &data, TPZMateri
 		
 	}
 	
-	TPZVec<REAL> u_exactp(1);
-	TPZFMatrix<REAL> du_exactp(8,1);
-	TPZVec<REAL> u_exactd(1);
-	TPZFMatrix<REAL> du_exactd(8,1);
+	TPZVec<STATE> u_exactp(1);
+	TPZFMatrix<STATE> du_exactp(8,1);
+	TPZVec<STATE> u_exactd(1);
+	TPZFMatrix<STATE> du_exactd(8,1);
 	
 	// erro exato primal 
 	if (this->fPrimalExactSol )

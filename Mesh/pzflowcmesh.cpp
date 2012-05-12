@@ -20,11 +20,13 @@ TPZFlowCompMesh::TPZFlowCompMesh() : TPZCompMesh() {
 REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	
 	int nel = ElementVec().NElements(), i, nstate, dim, elDim;
-	TPZManVector<REAL> density(1), sol, velocity(1);// sol(nstate);
+	TPZManVector<REAL> density(1), velocity(1);// sol(nstate);
 	//TPZManVector<STATE> density(1), sol, velocity(1);// sol(nstate);
 	REAL maxvel = 0.0, veloc, sound, press, gamma;
 	TPZVec<REAL> param(3,0.);
-	
+	TPZSolVec sol;
+    TPZGradSolVec dsol;
+    TPZFNMatrix<9,REAL> axes;
 	// loop over all elements, computing the velocity for
 	// the non-interface elements.	
 	i = 0;
@@ -61,9 +63,9 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 			pElComp->Solution(param,6,velocity);
 			// getting the whole vector of solutions
 			sol.Resize(nstate);
-			pElComp->Solution(param,5,sol);
+            pElComp->ComputeSolution(param, sol, dsol, axes);
 			
-			press = law->Pressure(sol);
+			press = law->Pressure(sol[0]);
 			if(press < 0.0)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh Negative pressure\n";
 			
 			// retrieving the constant of gas.

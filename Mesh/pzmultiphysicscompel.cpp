@@ -194,7 +194,7 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
 
 
 template<class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<STATE> &sol) {
+void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol) {
 	
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);

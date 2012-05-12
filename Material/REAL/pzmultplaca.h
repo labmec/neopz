@@ -17,7 +17,7 @@ class TPZMultPlaca :public TPZMatPlaca2 {
 public:
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
+	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 	virtual void Solution(TPZMaterialData &data,int var,TPZVec<REAL> &Solout)
 	{
         int numbersol = data.sol.size();
@@ -27,13 +27,13 @@ public:
 		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
 	}
 	
-	TPZMultPlaca(int num, REAL h, TPZVec<REAL> &esp, REAL f, REAL E1 , REAL E2 ,
-				 REAL ni1 , REAL ni2 , REAL G12 , REAL G13 , REAL G23 ,
-				 TPZFMatrix<REAL> &naxes, TPZVec<REAL> &xf,
+	TPZMultPlaca(int num, STATE h, TPZVec<STATE> &esp, STATE f, STATE E1 , STATE E2 ,
+				 STATE ni1 , STATE ni2 , STATE G12 , STATE G13 , STATE G23 ,
+				 TPZFMatrix<STATE> &naxes, TPZVec<STATE> &xf,
 				 int camadaref, int camadaatual);
 	
 private:
-	TPZFMatrix<REAL> fT;
+	TPZFMatrix<STATE> fT;
 };
 
 

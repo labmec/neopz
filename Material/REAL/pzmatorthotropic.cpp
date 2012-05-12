@@ -16,9 +16,9 @@
 
 using namespace std;
 
-TPZMatOrthotropic::TPZMatOrthotropic(int nummat,TPZFMatrix<REAL> naxes,REAL eppx,REAL eppy,
-                                     REAL eppz,REAL vxy,REAL vyz,REAL vzx,
-									 REAL gxy,REAL gyz,REAL gzx) :
+TPZMatOrthotropic::TPZMatOrthotropic(int nummat,TPZFMatrix<STATE> naxes,STATE eppx,STATE eppy,
+                                     STATE eppz,STATE vxy,STATE vyz,STATE vzx,
+									 STATE gxy,STATE gyz,STATE gzx) :
 TPZMaterial(nummat),
 fKXX(3,3,0.),fKYY(3,3,0.),fKZZ(3,3,0.),
 fKXY(3,3,0.),fKYX(3,3,0.),fKXZ(3,3,0.),
@@ -118,26 +118,31 @@ void TPZMatOrthotropic::Print(std::ostream &out) {
 ofstream MatrizesK("MatrizesK.out");
 void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
                                    REAL weight,
-                                   TPZFMatrix<REAL> &ek,
-                                   TPZFMatrix<REAL> &ef) {
+                                   TPZFMatrix<STATE> &ek,
+                                   TPZFMatrix<STATE> &ef) {
 	
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
-	TPZFMatrix<REAL> &axes=data.axes;
+	TPZFMatrix<STATE> axes(data.axes.Rows(),data.axes.Cols());
+    for (int r=0; r<axes.Rows(); r++) {
+        for (int c=0; c<axes.Cols(); c++) {
+            axes(r,c) = data.axes(r,c);
+        }
+    }
 	
 	int phr = phi.Rows();
 	if(fForcingFunction) {            
-		TPZManVector<REAL> res(3);//,&fXf(0,0),3);// phi(in, 0) = phi_in
+		TPZManVector<STATE> res(3);//,&fXf(0,0),3);// phi(in, 0) = phi_in
 		fForcingFunction->Execute(x,res);    // dphi(i,j) = dphi_j/dxi
 		int i;
 		for(i=0; i<3; i++) fXf(i,0) = res[i];
 	}
 	
-	TPZFMatrix<REAL> Rt(fLocAxs),R(3,3,0.),newaxes(3,3,0.);
-	TPZFMatrix<REAL> kxx(3,3,0.),kxy(3,3,0.),kxz(3,3,0.);
-	TPZFMatrix<REAL> kyx(3,3,0.),kyy(3,3,0.),kyz(3,3,0.);
-	TPZFMatrix<REAL> kzx(3,3,0.),kzy(3,3,0.),kzz(3,3,0.);
+	TPZFMatrix<STATE> Rt(fLocAxs),R(3,3,0.),newaxes(3,3,0.);
+	TPZFMatrix<STATE> kxx(3,3,0.),kxy(3,3,0.),kxz(3,3,0.);
+	TPZFMatrix<STATE> kyx(3,3,0.),kyy(3,3,0.),kyz(3,3,0.);
+	TPZFMatrix<STATE> kzx(3,3,0.),kzy(3,3,0.),kzz(3,3,0.);
 	
 	Rt.Transpose(&R);
 	/** as linhas de axes s� as derivadas nas direc�s do jacobiano,
@@ -205,16 +210,16 @@ void TPZMatOrthotropic::Contribute(TPZMaterialData &data,
 
 void TPZMatOrthotropic::ContributeBC(TPZMaterialData &data,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ek,
-                                     TPZFMatrix<REAL> &ef,
+                                     TPZFMatrix<STATE> &ek,
+                                     TPZFMatrix<STATE> &ef,
                                      TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
 	
-	const REAL BIGNUMBER  = 1.e12;
+	const STATE BIGNUMBER  = 1.e12;
 	
 	int phr = phi.Rows();
 	short in,jn,k,l;
-	REAL v2[3];
+	STATE v2[3];
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
 	v2[2] = bc.Val2()(2,0);
@@ -294,8 +299,14 @@ int TPZMatOrthotropic::NSolutionVariables(int var){
 	return 0;
 }
 
-void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){ //OBS.:acrescentado ostream
-	
+void TPZMatOrthotropic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axespar,int var,TPZVec<REAL> &Solout){ //OBS.:acrescentado ostream
+    TPZFMatrix<STATE> axes(axespar.Rows(),axespar.Cols());
+    for (int r=0; r<axes.Rows(); r++) {
+        for (int c=0; c<axes.Cols(); c++) {
+            axes(r,c) = axespar(r,c);
+        }
+    }
+
 	if(var == 0){
 		Solout.Resize(1);
 		Solout[0] = Sol[0];//eixo global X
@@ -321,7 +332,7 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 	if(var==3 || var==4 || var==5 || var==7){  
 		cout << "TPZMatOrthotropic::Solution not implemented\n";
 		return;
-		TPZFMatrix<REAL> SolN(3,1,0.),sol(3,1,0.);
+		TPZFMatrix<STATE> SolN(3,1,0.),sol(3,1,0.);
 		sol(0,0) = Sol[0];
 		sol(1,0) = Sol[1];
 		sol(2,0) = Sol[2];
@@ -351,33 +362,33 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 	}
 	if(var > 7 && var < 16) {    
 		Solout.Resize(6);
-		TPZFMatrix<REAL> axest(3,3,0.),floc_axt(3,3,0.),grdUGdn(3,3,0.),grdUlocdn(3,3,0.);
+		TPZFMatrix<STATE> axest(3,3,0.),floc_axt(3,3,0.),grdUGdn(3,3,0.),grdUlocdn(3,3,0.);
 		axes.Transpose(&axest);
 		floc_axt = fLocAxs*axest;
 		grdUGdn = floc_axt*DSol;
-		TPZFMatrix<REAL> grdUGdnT(3,3,0.),grdULdn(3,3,0.),grdULdnT(3,3,0.);
+		TPZFMatrix<STATE> grdUGdnT(3,3,0.),grdULdn(3,3,0.),grdULdnT(3,3,0.);
 		grdUGdn.Transpose(&grdUGdnT);
 		grdULdn = fLocAxs*grdUGdnT;
 		grdULdn.Transpose(&grdULdnT);
-		TPZFMatrix<REAL> FibStrain(3,3,0.);
-		FibStrain = ((REAL)0.5)*(grdULdnT + grdULdn);
+		TPZFMatrix<STATE> FibStrain(3,3,0.);
+		FibStrain = ((STATE)0.5)*(grdULdnT + grdULdn);
 		
-		REAL epsx  = FibStrain(0,0);// du/dx
-		REAL epsy  = FibStrain(1,1);// dv/dy
-		REAL epsz  = FibStrain(2,2);// dw/dz
-		REAL epsxy = FibStrain(0,1);
-		REAL epsyz = FibStrain(1,2);
-		REAL epszx = FibStrain(2,0);
+		STATE epsx  = FibStrain(0,0);// du/dx
+		STATE epsy  = FibStrain(1,1);// dv/dy
+		STATE epsz  = FibStrain(2,2);// dw/dz
+		STATE epsxy = FibStrain(0,1);
+		STATE epsyz = FibStrain(1,2);
+		STATE epszx = FibStrain(2,0);
 		
-		REAL SigX = -fEppx*(epsx*(1.-fVyz*fVzy)+epsy*(fVyx+fVyz*fVzx)+epsz*(fVzx+fVyx*fVzy))/fNumNom;
-		REAL SigY = -fEppy*(epsy*(1.-fVxz*fVzx)+epsx*(fVxy+fVxz*fVzy)+epsz*(fVzy+fVxy*fVzx))/fNumNom;
-		REAL SigZ = -fEppz*(epsz*(1.-fVxy*fVyx)+epsx*(fVxz+fVxy*fVyz)+epsy*(fVyz+fVxz*fVyx))/fNumNom;
+		STATE SigX = -fEppx*(epsx*(1.-fVyz*fVzy)+epsy*(fVyx+fVyz*fVzx)+epsz*(fVzx+fVyx*fVzy))/fNumNom;
+		STATE SigY = -fEppy*(epsy*(1.-fVxz*fVzx)+epsx*(fVxy+fVxz*fVzy)+epsz*(fVzy+fVxy*fVzx))/fNumNom;
+		STATE SigZ = -fEppz*(epsz*(1.-fVxy*fVyx)+epsx*(fVxz+fVxy*fVyz)+epsy*(fVyz+fVxz*fVyx))/fNumNom;
 		
-		REAL TauXY = 2.*fGxy*epsxy;
-		REAL TauYZ = 2.*fGyz*epsyz;
-		REAL TauZX = 2.*fGzx*epszx;
+		STATE TauXY = 2.*fGxy*epsxy;
+		STATE TauYZ = 2.*fGyz*epsyz;
+		STATE TauZX = 2.*fGzx*epszx;
 		
-		TPZFMatrix<REAL> Tensor(3,3,0.);
+		TPZFMatrix<STATE> Tensor(3,3,0.);
 		Tensor(0,0) = SigX;
 		Tensor(1,1) = SigY;
 		Tensor(2,2) = SigZ;
@@ -385,9 +396,9 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 		Tensor(1,2) = Tensor(2,1) = TauYZ;
 		Tensor(2,0) = Tensor(0,2) = TauZX;
 		
-		TPZFMatrix<REAL> locaxsT(3,3,0.);
+		TPZFMatrix<STATE> locaxsT(3,3,0.);
 		fLocAxs.Transpose(&locaxsT);
-		TPZFMatrix<REAL> SigGlob = locaxsT*(Tensor*fLocAxs);
+		TPZFMatrix<STATE> SigGlob = locaxsT*(Tensor*fLocAxs);
 		
 		if(var == 10){
 			Solout.Resize(1);
@@ -446,27 +457,27 @@ void TPZMatOrthotropic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMa
 	}
 }
 
-void TPZMatOrthotropic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/, TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+void TPZMatOrthotropic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/, TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux)
 }
 
-void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
-							   TPZFMatrix<REAL> &dudx, TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
-							   TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,TPZVec<REAL> &values) {
+void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
+							   TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+							   TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	//TPZVec<REAL> sol(1),dsol(3);
 	TPZManVector<REAL> sol(1),dsol(3);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	if(dudx.Rows()<3) {
-		REAL dx = du_exact(0,0)*axes(0,0)+du_exact(1,0)*axes(0,1);
-		REAL dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
-		REAL parc1 = fabs(dx-dudx(0,0));
-		REAL parc2 = fabs(dy-dudx(1,0));
+		STATE dx = du_exact(0,0)*axes(0,0)+du_exact(1,0)*axes(0,1);
+		STATE dy = du_exact(0,0)*axes(1,0)+du_exact(1,0)*axes(1,1);
+		STATE parc1 = fabs(dx-dudx(0,0));
+		STATE parc2 = fabs(dy-dudx(1,0));
 		//Norma L2
-		values[1] = pow(fabs(u[0] - u_exact[0]),(REAL)2.0);
+		values[1] = pow(fabs(u[0] - u_exact[0]),(STATE)2.0);
 		//seminorma
-		values[2] = pow(parc1,(REAL)2.)+pow(parc2,(REAL)2.);
+		values[2] = pow(parc1,(STATE)2.)+pow(parc2,(REAL)2.);
 		//Norma Energia
 		values[0] = values[1]+values[2];
 		return;
@@ -481,7 +492,7 @@ void TPZMatOrthotropic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u,
 	values[0]  = values[1]+values[2];
 }
 
-void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes) {
+void TPZMatOrthotropic::Normalize(TPZFMatrix<STATE> &naxes) {
 	/** 
 	 * os eixos devem vir por linhas e 
 	 * orientados pela regra da m� direita
@@ -489,7 +500,7 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes) {
 	
 	int i;
 	/**normalizando os eixos*/
-	REAL norm2 = naxes(0,0)*naxes(0,0)+naxes(0,1)*naxes(0,1)+naxes(0,2)*naxes(0,2);
+	STATE norm2 = naxes(0,0)*naxes(0,0)+naxes(0,1)*naxes(0,1)+naxes(0,2)*naxes(0,2);
 	if(norm2 == 0.){PZError << "TPZMatOrthotropic::Normalize: Eixo nulo nao e valido (eixo 1)\n"; exit(-1);}
 	for(i=0;i<3;i++) naxes(0,i) /= sqrt(norm2);
 	norm2 = naxes(1,0)*naxes(1,0)+naxes(1,1)*naxes(1,1)+naxes(1,2)*naxes(1,2);
@@ -498,9 +509,9 @@ void TPZMatOrthotropic::Normalize(TPZFMatrix<REAL> &naxes) {
 	norm2 = naxes(2,0)*naxes(2,0)+naxes(2,1)*naxes(2,1)+naxes(2,2)*naxes(2,2);
 	if(norm2 != 0.) for(i=0;i<3;i++) naxes(2,i) /= sqrt(norm2);
 	/**verificando a ortogonalidade dos dois primeiros eixos pelo produto vetorial*/
-	REAL componente_K =  naxes(0,0)*naxes(1,1) - naxes(0,1)*naxes(1,0);
-	REAL componente_J = -naxes(0,0)*naxes(1,2) + naxes(0,2)*naxes(1,0);
-	REAL componente_I =  naxes(0,1)*naxes(1,2) - naxes(0,2)*naxes(1,1);
+	STATE componente_K =  naxes(0,0)*naxes(1,1) - naxes(0,1)*naxes(1,0);
+	STATE componente_J = -naxes(0,0)*naxes(1,2) + naxes(0,2)*naxes(1,0);
+	STATE componente_I =  naxes(0,1)*naxes(1,2) - naxes(0,2)*naxes(1,1);
 	/**primeiro teste*/
 	if(componente_I == 0. && componente_J == 0. && componente_K == 0.){
 		PZError << "TPZMatOrthotropic::Normalize: Os dois primeiros eixos nao devem ser paralelos\n";

@@ -13,22 +13,22 @@
 #include <cmath>
 
 //	NIPG	SIPG	SSIPG1	SSIPG2
-REAL TPZNonLinBiharmonic::gLambda1 = 1.0; //	-1	1	-1	1
-REAL TPZNonLinBiharmonic::gLambda2 = 1.0; //	-1	1	1	-1
-REAL TPZNonLinBiharmonic::gSigmaA  = 10.0;//	 10	10	10	10
-REAL TPZNonLinBiharmonic::gSigmaB  = 10.0;//	 10	10	10	10
-REAL TPZNonLinBiharmonic::gL_alpha = 6.0; //		  [0, 6
-REAL TPZNonLinBiharmonic::gM_alpha = 3.0; //            IGUAL
-REAL TPZNonLinBiharmonic::gL_betta = 4.0; //            [-2, 4
-REAL TPZNonLinBiharmonic::gM_betta = 1.0; //            IGUAL
-REAL TPZNonLinBiharmonic::g_teta = 0.5; // Parametro da parte advectiva.
-REAL TPZNonLinBiharmonic::Re = 50.0; // 
+STATE TPZNonLinBiharmonic::gLambda1 = 1.0; //	-1	1	-1	1
+STATE TPZNonLinBiharmonic::gLambda2 = 1.0; //	-1	1	1	-1
+STATE TPZNonLinBiharmonic::gSigmaA  = 10.0;//	 10	10	10	10
+STATE TPZNonLinBiharmonic::gSigmaB  = 10.0;//	 10	10	10	10
+STATE TPZNonLinBiharmonic::gL_alpha = 6.0; //		  [0, 6
+STATE TPZNonLinBiharmonic::gM_alpha = 3.0; //            IGUAL
+STATE TPZNonLinBiharmonic::gL_betta = 4.0; //            [-2, 4
+STATE TPZNonLinBiharmonic::gM_betta = 1.0; //            IGUAL
+STATE TPZNonLinBiharmonic::g_teta = 0.5; // Parametro da parte advectiva.
+STATE TPZNonLinBiharmonic::Re = 50.0; // 
 int TPZNonLinBiharmonic::NorP = 1; // Constante. Se for 1, entao Metodo de Newton
 //            Se for 0, entao Metodo de Picard
 
 using namespace std;
 
-TPZNonLinBiharmonic::TPZNonLinBiharmonic(int nummat, REAL f) : TPZDiscontinuousGalerkin(nummat),
+TPZNonLinBiharmonic::TPZNonLinBiharmonic(int nummat, STATE f) : TPZDiscontinuousGalerkin(nummat),
 fXf(f){}
 
 TPZNonLinBiharmonic::~TPZNonLinBiharmonic() {
@@ -45,8 +45,8 @@ void TPZNonLinBiharmonic::Print(std::ostream &out) {
 
 void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
                                      REAL weight,
-                                     TPZFMatrix<REAL> &ek,
-                                     TPZFMatrix<REAL> &ef) {
+                                     TPZFMatrix<STATE> &ek,
+                                     TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZManVector<REAL,3> &x = data.x;
@@ -55,13 +55,13 @@ void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
         DebugStop();
     }
 	
-	TPZFMatrix<REAL> &dsol=data.dsol[0];
+	TPZFMatrix<STATE> &dsol=data.dsol[0];
 	
 	int phr = phi.Rows();
-	REAL Re_1 = 1./Re;
+	STATE Re_1 = 1./Re;
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
-		TPZManVector<REAL> res(1);
+		TPZManVector<STATE> res(1);
 		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
@@ -84,8 +84,8 @@ void TPZNonLinBiharmonic::Contribute(TPZMaterialData &data,
 
 void TPZNonLinBiharmonic::ContributeBC(TPZMaterialData &data,
                                        REAL weight,
-                                       TPZFMatrix<REAL> &ek,
-                                       TPZFMatrix<REAL> &ef,
+                                       TPZFMatrix<STATE> &ek,
+                                       TPZFMatrix<STATE> &ef,
                                        TPZBndCond &bc) {
 	
 	//NOT TO BE DONE HERE
@@ -110,7 +110,7 @@ int TPZNonLinBiharmonic::NSolutionVariables(int var){
 	return TPZMaterial::NSolutionVariables(var);
 }
 
-void TPZNonLinBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZFMatrix<REAL> &/*axes*/,
+void TPZNonLinBiharmonic::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &/*axes*/,
 								   int var,TPZVec<REAL> &Solout){
 	if(var == 0 || var == 1) Solout[0] = Sol[0];//function
 	if(var == 2) {
@@ -122,15 +122,15 @@ void TPZNonLinBiharmonic::Solution(TPZVec<REAL> &Sol,TPZFMatrix<REAL> &DSol,TPZF
 	}
 }
 
-void TPZNonLinBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*Sol*/,
-							   TPZFMatrix<REAL> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
-							   TPZVec<REAL> &/*flux*/) {
-	//Flux(TPZVec<REAL> &x, TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux)
+void TPZNonLinBiharmonic::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*Sol*/,
+							   TPZFMatrix<STATE> &/*DSol*/, TPZFMatrix<REAL> &/*axes*/,
+							   TPZVec<STATE> &/*flux*/) {
+	//Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux)
 }
 
-void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix<REAL> &dudx,
-								 TPZFMatrix<REAL> &axes, TPZVec<REAL> &/*flux*/,
-								 TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact,
+void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u, TPZFMatrix<STATE> &dudx,
+								 TPZFMatrix<REAL> &axes, TPZVec<STATE> &/*flux*/,
+								 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,
 								 TPZVec<REAL> &values) {
 	
 	TPZVec<REAL> sol(1), dsol(8,0.);
@@ -162,8 +162,8 @@ void TPZNonLinBiharmonic::Errors(TPZVec<REAL> &/*x*/,TPZVec<REAL> &u, TPZFMatrix
 
 void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright,
                                               REAL weight,
-                                              TPZFMatrix<REAL> &ek,
-                                              TPZFMatrix<REAL> &ef){
+                                              TPZFMatrix<STATE> &ek,
+                                              TPZFMatrix<STATE> &ef){
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &dphiR = dataright.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
@@ -177,38 +177,38 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
         DebugStop();
     }
 	
-	TPZVec<REAL> &solL=dataleft.sol[0];
-	TPZVec<REAL> &solR=dataright.sol[0];
-	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
-	TPZFMatrix<REAL> &dsolR=dataright.dsol[0];
-	REAL faceSize=data.HSize;
+	TPZVec<STATE> &solL=dataleft.sol[0];
+	TPZVec<STATE> &solR=dataright.sol[0];
+	TPZFMatrix<STATE> &dsolL=dataleft.dsol[0];
+	TPZFMatrix<STATE> &dsolR=dataright.dsol[0];
+	STATE faceSize=data.HSize;
 	
 	int nrowl = phiL.Rows();
 	int nrowr = phiR.Rows();
 	int il,jl,ir,jr,id;
-	REAL Re_1 = 1./Re;
+	STATE Re_1 = 1./Re;
 	
-	REAL alpha=gSigmaA*(pow(((REAL)LeftPOrder),gL_alpha)+pow(((REAL)RightPOrder), gL_alpha) ) /
+	STATE alpha=gSigmaA*(pow(((STATE)LeftPOrder),gL_alpha)+pow(((STATE)RightPOrder), gL_alpha) ) /
     (2. * pow(faceSize, gM_alpha) );
 	
 	
-	REAL betta=gSigmaB*(pow(((REAL)LeftPOrder),gL_betta)+pow(((REAL)RightPOrder), gL_betta) ) /
+	STATE betta=gSigmaB*(pow(((STATE)LeftPOrder),gL_betta)+pow(((STATE)RightPOrder), gL_betta) ) /
     (2. * pow(faceSize, gM_betta) );
 	
 	// 
 	// advectivo
 	// 'Unica Integral 
-	REAL norFnorF = normal[0]*normal[0];
-	REAL norSnorS = normal[1]*normal[1];
+	STATE norFnorF = normal[0]*normal[0];
+	STATE norSnorS = normal[1]*normal[1];
     
-	REAL uLnorF=  dsolL(1,0)*normal[0];
-	REAL vLnorS= -dsolL(0,0)*normal[1];
+	STATE uLnorF=  dsolL(1,0)*normal[0];
+	STATE vLnorS= -dsolL(0,0)*normal[1];
 	
-	REAL uRnorF=  dsolR(1,0)*normal[0];  //
-	REAL vRnorS= -dsolR(0,0)*normal[1];
+	STATE uRnorF=  dsolR(1,0)*normal[0];  //
+	STATE vRnorS= -dsolR(0,0)*normal[1];
     
-	REAL absUnorL = fabs(uLnorF + vLnorS);
-	REAL absUnorR = fabs(uRnorF + vRnorS);
+	STATE absUnorL = fabs(uLnorF + vLnorS);
+	STATE absUnorR = fabs(uRnorF + vRnorS);
 	
 	
 	for(il=0; il<nrowl; il++) {
@@ -217,10 +217,10 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 								 dsolL(2,0)*phiL(il,0)*norSnorS);
 		
 		for(jl=0; jl<nrowl; jl++) {
-			REAL deriv_uLnorF =  dphiL(1,jl)*normal[0];
-			REAL deriv_vLnorS = -dphiL(0,jl)*normal[1];
+			STATE deriv_uLnorF =  dphiL(1,jl)*normal[0];
+			STATE deriv_vLnorS = -dphiL(0,jl)*normal[1];
 			
-			REAL deriv_absUnorL = 0.;
+			STATE deriv_absUnorL = 0.;
 			if(uLnorF+vLnorS > 0.) deriv_absUnorL += (deriv_uLnorF+deriv_vLnorS);
 			else deriv_absUnorL -= (deriv_uLnorF+deriv_vLnorS);
 			
@@ -243,10 +243,10 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 								 dsolR(2,0)*phiR(ir,0)*norSnorS);
 		
 		for(jr=0; jr<nrowr; jr++) {
-			REAL deriv_uRnorF =  dphiR(1,jr)*normal[0];
-			REAL deriv_vRnorS = -dphiR(0,jr)*normal[1];
+			STATE deriv_uRnorF =  dphiR(1,jr)*normal[0];
+			STATE deriv_vRnorS = -dphiR(0,jr)*normal[1];
 			
-			REAL deriv_absUnorR = 0.;
+			STATE deriv_absUnorR = 0.;
 			if(uRnorF + vRnorS > 0.) deriv_absUnorR += (deriv_uRnorF+deriv_vRnorS);
 			else deriv_absUnorR -= (deriv_uRnorF+deriv_vRnorS);
 			
@@ -272,10 +272,10 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		
 		
 		for(jr=0; jr<nrowr; jr++) {
-			REAL deriv_uRnorF =  dphiR(1,jr)*normal[0];
-			REAL deriv_vRnorS = -dphiR(0,jr)*normal[1];
+			STATE deriv_uRnorF =  dphiR(1,jr)*normal[0];
+			STATE deriv_vRnorS = -dphiR(0,jr)*normal[1];
 			
-			REAL deriv_absUnorR = 0.;
+			STATE deriv_absUnorR = 0.;
 			if(uRnorF + vRnorS > 0.) deriv_absUnorR += (deriv_uRnorF+deriv_vRnorS);
 			else deriv_absUnorR -= (deriv_uRnorF+deriv_vRnorS);
 			
@@ -299,10 +299,10 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 								 dsolL(2,0)*phiR(ir,0)*norSnorS);
 		
 		for(jl=0; jl<nrowl; jl++) {
-			REAL deriv_uLnorF =  dphiL(1,jl)*normal[0];
-			REAL deriv_vLnorS = -dphiL(0,jl)*normal[1];
+			STATE deriv_uLnorF =  dphiL(1,jl)*normal[0];
+			STATE deriv_vLnorS = -dphiL(0,jl)*normal[1];
 			
-			REAL deriv_absUnorL = 0.;
+			STATE deriv_absUnorL = 0.;
 			if(uLnorF+vLnorS > 0.) deriv_absUnorL += (deriv_uLnorF+deriv_vLnorS);
 			else deriv_absUnorL -= (deriv_uLnorF+deriv_vLnorS);
 			
@@ -325,19 +325,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	 */
 	/* Primeira Integral */
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(3+id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(3+id,jl)*normal[id];
 			}
 			
 			ek(il,jl) += Re_1*weight*0.5*(+gLambda1*dphiLinormal*phiL(jl,0) + dphiLjnormal*phiL(il,0));
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(3+id,0)*normal[id];
 		}
@@ -345,19 +345,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(3+id,ir)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(3+id,jr)*normal[id];
 			}
 			ek(ir+nrowl,jr+nrowl) += Re_1*weight*0.5*(
 													  -gLambda1*dphiRinormal*phiR(jr,0) - dphiRjnormal*phiR(ir,0));
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(3+id,0)*normal[id];
 		}
@@ -367,19 +367,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(3+id,il)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(3+id,jr)*normal[id];
 			}
 			ek(il,jr+nrowl) += Re_1*weight*0.5*(
 												- gLambda1*dphiLinormal*phiR(jr,0) + dphiRjnormal*phiL(il,0));
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(3+id,0)*normal[id];
 		}
@@ -388,19 +388,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		
 	}
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(3+id,ir)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(3+id,jl)*normal[id];
 			}
 			ek(ir+nrowl,jl) += Re_1*weight*0.5*(
 												+ gLambda1*dphiRinormal*phiL(jl,0) - dphiLjnormal*phiR(ir,0));
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(3+id,0)*normal[id];
 		}
@@ -410,12 +410,12 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	
 	/* Segunda Integral */
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
@@ -423,7 +423,7 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 			ek(il,jl) += Re_1*weight*0.5*(
 										  - dphiLinormal*dphiL(2,jl) - gLambda2*dphiLjnormal*dphiL(2,il));
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -432,19 +432,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 		
 	}
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(id,ir)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
 			ek(ir+nrowl,jr+nrowl) += Re_1*weight*0.5*(
 													  + dphiRinormal*dphiR(2,jr) + gLambda2*dphiRjnormal*dphiR(2,ir));
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(id,0)*normal[id];
 		}
@@ -452,19 +452,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 										   + dphiRinormal*dsolR(2,0) + gLambda2*dsolRnormal*dphiR(2,ir));
 	}
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
 			ek(il,jr+nrowl) += Re_1*weight*0.5*(
 												- dphiLinormal*dphiR(2,jr) + gLambda2*dphiRjnormal*dphiL(2,il));
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(id,0)*normal[id];
 		}
@@ -473,19 +473,19 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(id,ir)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
 			ek(ir+nrowl,jl) += Re_1*weight*0.5*(
 												+ dphiRinormal*dphiL(2,jl) - gLambda2*dphiLjnormal*dphiR(2,ir));
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -496,12 +496,12 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	
 	/* Terceira Integral */
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
@@ -510,7 +510,7 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 									  alpha * phiL(jl,0)*phiL(il,0) +
 									  betta * dphiLinormal*dphiLjnormal);
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -520,12 +520,12 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(id,ir)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
@@ -533,7 +533,7 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 												  alpha * phiR(jr,0)*phiR(ir,0) +
 												  betta * dphiRinormal*dphiRjnormal );
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(id,0)*normal[id];
 		}
@@ -543,12 +543,12 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		for(jr=0; jr<nrowr; jr++) {
-			REAL dphiRjnormal = 0.;
+			STATE dphiRjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiRjnormal += dphiR(id,jr)*normal[id];
 			}
@@ -556,7 +556,7 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 											-  alpha * phiR(jr,0)*phiL(il,0)
 											-  betta * dphiLinormal*dphiRjnormal);
 		}
-		REAL dsolRnormal = 0.;
+		STATE dsolRnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolRnormal += dsolR(id,0)*normal[id];
 		}    
@@ -566,12 +566,12 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 	}
 	
 	for(ir=0; ir<nrowr; ir++) {
-		REAL dphiRinormal = 0.;
+		STATE dphiRinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiRinormal += dphiR(id,ir)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
@@ -579,7 +579,7 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 											- alpha * phiL(jl,0)*phiR(ir,0)
 											- betta * dphiRinormal*dphiLjnormal);
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -591,8 +591,8 @@ void TPZNonLinBiharmonic::ContributeInterface(TPZMaterialData &data, TPZMaterial
 
 void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,
                                                 REAL weight, 
-                                                TPZFMatrix<REAL> &ek,
-                                                TPZFMatrix<REAL> &ef,
+                                                TPZFMatrix<STATE> &ek,
+                                                TPZFMatrix<STATE> &ef,
                                                 TPZBndCond &bc) {
 	TPZFMatrix<REAL> &dphiL = dataleft.dphix;
 	TPZFMatrix<REAL> &phiL = dataleft.phi;
@@ -603,21 +603,21 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
         DebugStop();
     }
 	
-	TPZVec<REAL> &solL=dataleft.sol[0];
-	TPZFMatrix<REAL> &dsolL=dataleft.dsol[0];
-	REAL faceSize=data.HSize;
+	TPZVec<STATE> &solL=dataleft.sol[0];
+	TPZFMatrix<STATE> &dsolL=dataleft.dsol[0];
+	STATE faceSize=data.HSize;
 	
-	REAL alpha = gSigmaA*pow(((REAL)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
-	REAL betta = gSigmaB*pow(((REAL)POrder), gL_betta) /  pow(faceSize, gM_betta);
+	STATE alpha = gSigmaA*pow(((STATE)POrder), gL_alpha) /  pow(faceSize, gM_alpha);
+	STATE betta = gSigmaB*pow(((STATE)POrder), gL_betta) /  pow(faceSize, gM_betta);
 	
 	int il,jl,nrowl,id;
 	nrowl = phiL.Rows();
-	REAL Re_1 = 1./Re;
+	STATE Re_1 = 1./Re;
 	
 	/* Primeira Integral */
 	for(il=0; il<nrowl; il++) {
 		
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(3+id,il)*normal[id];
 		}
@@ -627,13 +627,13 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 		+ Re_1*alpha * weight*bc.Val2()(0,0)*phiL(il) ;
 		
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(3+id,jl)*normal[id];
 			}
 			ek(il,jl) += Re_1*weight*(+ gLambda1*dphiLinormal*phiL(jl,0)+ dphiLjnormal*phiL(il,0)); //2 1
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(3+id,0)*normal[id];
 		}
@@ -643,7 +643,7 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 	
 	/* Segunda Integral */
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
@@ -653,14 +653,14 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 		+ Re_1*betta * weight*bc.Val2()(1,0)*dphiLinormal ;
 		
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
 			ek(il,jl) += Re_1*weight*(- dphiLinormal*dphiL(2,jl) - gLambda2*dphiLjnormal*dphiL(2,il) );
 		}
 		
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -669,12 +669,12 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 	}
 	
 	for(il=0; il<nrowl; il++) {
-		REAL dphiLinormal = 0.;
+		STATE dphiLinormal = 0.;
 		for(id=0; id<2; id++) {
 			dphiLinormal += dphiL(id,il)*normal[id];
 		}
 		for(jl=0; jl<nrowl; jl++) {
-			REAL dphiLjnormal = 0.;
+			STATE dphiLjnormal = 0.;
 			for(id=0; id<2; id++) {
 				dphiLjnormal += dphiL(id,jl)*normal[id];
 			}
@@ -682,7 +682,7 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 									  alpha * phiL(jl,0)*phiL(il,0) +
 									  betta * dphiLinormal*dphiLjnormal);
 		}
-		REAL dsolLnormal = 0.;
+		STATE dsolLnormal = 0.;
 		for(id=0; id<2; id++) {
 			dsolLnormal += dsolL(id,0)*normal[id];
 		}
@@ -696,7 +696,7 @@ void TPZNonLinBiharmonic::ContributeBCInterface(TPZMaterialData &data, TPZMateri
 	 *  Termo advectivo
 	 */
 	
-	REAL ULnormal = dsolL(1,0)*normal[0] - dsolL(0,0)*normal[1];
+	STATE ULnormal = dsolL(1,0)*normal[0] - dsolL(0,0)*normal[1];
 	for(il=0; il<nrowl; il++){ 
 		for(jl=0; jl<nrowl; jl++){ 
 			ek(il,jl) -= weight*dphiL(2,jl)*phiL(il,0)*ULnormal;

@@ -90,7 +90,7 @@ int TPZEulerConsLaw::NStateVariables() {
 	return NStateVariables(Dimension());//U = (rho, rhou, rhov, rhow, rhoe)
 }
 
-REAL TPZEulerConsLaw::Pressure(TPZVec<STATE> &U)
+STATE TPZEulerConsLaw::Pressure(TPZVec<STATE> &U)
 {
 	STATE press;
 	TPZEulerConsLaw::Pressure(fGamma, fDim, press, U);
@@ -213,7 +213,7 @@ int TPZEulerConsLaw::NFluxes()
 
 //-----------------Solutions
 
-void TPZEulerConsLaw::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<STATE> &Solout){
+void TPZEulerConsLaw::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
 	if(fabs(Sol[0]) < 1.e-10) {
 		PZError << "\nTPZEulerConsLaw::Solution: Density almost null\n"

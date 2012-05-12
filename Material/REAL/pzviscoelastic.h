@@ -34,19 +34,19 @@ const int _ZZ_ = 5;
  * @author Nathan Shauer
  * @since 7/16/2010.
  */
-class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<REAL>, TPZElasticity3D>
+class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>
 {
 		
 public:
 	enum SOLUTIONVARS{ENone = -1, EViscoStressX = 30, EViscoStressY = 31, EViscoStressZ = 32};
 	
-	TPZViscoelastic(int id,REAL ElaE, REAL poissonE, REAL lambdaV, REAL muV, REAL alphaT, TPZVec <REAL> &force);
+	TPZViscoelastic(int id,STATE ElaE, STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force);
 	
 	
 	virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
-							TPZFMatrix<REAL> &ek,
-							TPZFMatrix<REAL> &ef);
+							TPZFMatrix<STATE> &ek,
+							TPZFMatrix<STATE> &ef);
 	
 	void UpdateQsi(TPZMaterialData &data);
 	
@@ -60,7 +60,7 @@ public:
 	 Computes the stress. 
 	 Remember you cant update qsi if you want to calculate stress 
 	 */
-	virtual void ComputeStressTensor(TPZFMatrix<REAL> &Stress, TPZMaterialData &data) const;
+	virtual void ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterialData &data) const;
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
@@ -69,7 +69,7 @@ public:
 	
 protected:
 	
-	REAL flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE; 
+	STATE flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE; 
 };
 
 #endif
