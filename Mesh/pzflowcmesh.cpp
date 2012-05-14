@@ -22,7 +22,8 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 	int nel = ElementVec().NElements(), i, nstate, dim, elDim;
 	TPZManVector<REAL> density(1), velocity(1);// sol(nstate);
 	//TPZManVector<STATE> density(1), sol, velocity(1);// sol(nstate);
-	REAL maxvel = 0.0, veloc, sound, press, gamma;
+	REAL maxvel = 0.0, veloc, sound, gamma;
+	STATE press;
 	TPZVec<REAL> param(3,0.);
 	TPZSolVec sol;
     TPZGradSolVec dsol;
@@ -66,12 +67,15 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
             pElComp->ComputeSolution(param, sol, dsol, axes);
 			
 			press = law->Pressure(sol[0]);
-			if(press < 0.0)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh Negative pressure\n";
 			
+#ifndef STATE_COMPLEX
+			if(press < 0.0)PZError << "TPZFlowCompMesh::MaxVelocityOfMesh Negative pressure\n";
+#endif			
 			// retrieving the constant of gas.
 			gamma = law->Gamma();
 			
-			sound = sqrt(gamma*press/density[0]);
+			sound = 0;//sqrt(gamma*press/density[0]);
+			#warning Adriano comentou a linha acima e zerou a variavel sound!//<!>		
 			
 			// maximal eigenvalue velocity
 			veloc = velocity[0] + sound;
