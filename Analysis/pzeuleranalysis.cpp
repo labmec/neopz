@@ -3,6 +3,8 @@
  * @brief Contains implementations of the TPZEulerAnalysis methods.
  */
 
+#ifndef STATE_COMPLEX
+
 #include "pzeuleranalysis.h"
 #include "pzerror.h"
 #include "TPZCompElDisc.h"
@@ -666,3 +668,4 @@ void TPZEulerAnalysis::SetGMResBlock(REAL tol, int numiter, int numvec)
 	fHasFrontalPreconditioner = 0;
 	
 }
+#endif
