@@ -173,6 +173,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
    }while(normRhs > tol && iter < numiter);
 
     
+   //   cout << "\n Displacement = "<< fSolution << endl; 
+    
     int length = normu.size();
     for(int i = 0; i<length; i++)
     {
@@ -437,6 +439,9 @@ REAL TPZElastoPlasticAnalysis::LocalSolve()
 
     TPZAnalysis::Solve();
 
+//    cout << "\n DisplacementSIZE = "<< fSolution << endl; 
+  //  cout << "\n Displacement = "<< fSolution << endl; 
+    
     REAL norm = Norm(fSolution);
 	#ifdef LOG4CXX
 	{

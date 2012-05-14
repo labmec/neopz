@@ -447,10 +447,10 @@ T TPZTensor<T>::Norm() const
 {
 	int i;
 	T norm = T(0.);
-	 norm	= sqrt(fData[_XX_]*fData[_XX_]+fData[_YY_]*fData[_YY_]+fData[_ZZ_]*fData[_ZZ_]+T(2.)*(fData[_XY_]*fData[_XY_])+T(2.)*(fData[_XZ_]*fData[_XZ_])+T(2.)*(fData[_YZ_]*fData[_YZ_]));
-	//for(i=0; i<6; i++) norm += fData[i]*fData[i];
-	//return sqrt(norm);
-	return norm;
+	// norm	= sqrt(fData[_XX_]*fData[_XX_]+fData[_YY_]*fData[_YY_]+fData[_ZZ_]*fData[_ZZ_]+T(2.)*(fData[_XY_]*fData[_XY_])+T(2.)*(fData[_XZ_]*fData[_XZ_])+T(2.)*(fData[_YZ_]*fData[_YZ_]));
+	for(i=0; i<6; i++) norm += fData[i]*fData[i];
+	return sqrt(norm);
+	//return norm;
 }
 
 template <class T>

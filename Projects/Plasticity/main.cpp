@@ -148,14 +148,27 @@ void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
 
     TPZFMatrix<REAL> k1(3,3,0.);
     TPZFMatrix<REAL> f1(3,1,0.);
-    TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
+//    REAL big = 1.e12;
+//    k1(0,0)=big;
+//    k1(1,1)=big;
+//    k1(2,2)=big;
+//    TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
+//    CMesh->InsertMaterialObject(bc1);
+    
+    f1(0,0)=1.;
+    f1(1,0)=1.;
+    f1(2,0)=1.;
+    TPZMaterial *bc1 = mat->CreateBC(mat,-1,3,k1,f1);
     CMesh->InsertMaterialObject(bc1);
 
     TPZFMatrix<REAL> k2(3,3,0.);
     TPZFMatrix<REAL> f2(3,1,0.);
-    f2(0,0)=260.;
+    f2(0,0)=1.;
     TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
     CMesh->InsertMaterialObject(bc2);
+    
+    
+    
     
     CMesh->AutoBuild();
 
@@ -169,38 +182,38 @@ TPZGeoMesh * barmesh(int h)
     gMesh->NodeVec().Resize(8);
     
     nodes[0].SetNodeId(0);
-    nodes[0].SetCoord(0,0);
-    nodes[0].SetCoord(1,0);
-    nodes[0].SetCoord(2,0);
+    nodes[0].SetCoord(0,0.);
+    nodes[0].SetCoord(1,0.);
+    nodes[0].SetCoord(2,0.);
     gMesh->NodeVec()[0] = nodes[0];
     
     nodes[1].SetNodeId(1);
-    nodes[1].SetCoord(0,1000.);
-    nodes[1].SetCoord(1,0);
-    nodes[1].SetCoord(2,0);
+    nodes[1].SetCoord(0,0.);
+    nodes[1].SetCoord(1,0.);
+    nodes[1].SetCoord(2,-100.);
     gMesh->NodeVec()[1] = nodes[1];
     
     nodes[2].SetNodeId(2);
-    nodes[2].SetCoord(0,1000.);
+    nodes[2].SetCoord(0,0.);
     nodes[2].SetCoord(1,100.);
-    nodes[2].SetCoord(2,0);
+    nodes[2].SetCoord(2,-100.);
     gMesh->NodeVec()[2] = nodes[2];
     
     nodes[3].SetNodeId(3);
-    nodes[3].SetCoord(0,0);
+    nodes[3].SetCoord(0,0.);
     nodes[3].SetCoord(1,100.);
-    nodes[3].SetCoord(2,0);
+    nodes[3].SetCoord(2,0.);
     gMesh->NodeVec()[3] = nodes[3];
     
     nodes[4].SetNodeId(4);
-    nodes[4].SetCoord(0,0);
-    nodes[4].SetCoord(1,0);
-    nodes[4].SetCoord(2,-100.);
+    nodes[4].SetCoord(0,1000.);
+    nodes[4].SetCoord(1,0.);
+    nodes[4].SetCoord(2,0.);
     gMesh->NodeVec()[4] = nodes[4];
     
     nodes[5].SetNodeId(5);
     nodes[5].SetCoord(0,1000.);
-    nodes[5].SetCoord(1,0);
+    nodes[5].SetCoord(1,0.);
     nodes[5].SetCoord(2,-100.);
     gMesh->NodeVec()[5] = nodes[5];
     
@@ -211,9 +224,9 @@ TPZGeoMesh * barmesh(int h)
     gMesh->NodeVec()[6] = nodes[6];
     
     nodes[7].SetNodeId(7);
-    nodes[7].SetCoord(0,0);
+    nodes[7].SetCoord(0,1000.);
     nodes[7].SetCoord(1,100.);
-    nodes[7].SetCoord(2,-100.);
+    nodes[7].SetCoord(2,0.);
     gMesh->NodeVec()[7] = nodes[7];
     
     
@@ -229,14 +242,14 @@ TPZGeoMesh * barmesh(int h)
     barra[7]=7;
     
     quad1[0]=0;
-    quad1[1]=4;
-    quad1[2]=7;
+    quad1[1]=1;
+    quad1[2]=2;
     quad1[3]=3;
     
-    quad2[0]=1;
+    quad2[0]=4;
     quad2[1]=5;
     quad2[2]=6;
-    quad2[3]=2;
+    quad2[3]=7;
 
     new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (1,barra,1,*gMesh);
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (2,quad1,-1,*gMesh);
@@ -1204,10 +1217,84 @@ void MaterialPointTests()
 
 //#include "BrazilianTestGeoMesh.h"
 
+void ManageNoPostProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
+                              int BCId,int BCId2, int nsteps, REAL PGRatio,
+                              TPZFMatrix<REAL> & val1Begin, TPZFMatrix<REAL> & val1End,
+                              TPZFMatrix<REAL> & val2Begin, TPZFMatrix<REAL> & val2End,int res)
+{
+	if(!analysis.Mesh())return;
+
+	
+	// computing the initial value for the PG progression such that its sum equals one;
+	REAL a0;
+	
+	if(fabs(PGRatio - 1.) < 1.e-3)
+	{
+	    a0 = 1. / REAL(nsteps);
+	}
+	
+	else
+	{
+		a0 = (PGRatio - 1) / (pow(PGRatio,nsteps) - 1.);
+	}
+	TPZFNMatrix<36> val1(6,6,0.), deltaVal1(6,6,0.);
+	TPZFNMatrix< 6> val2(6,1,0.), deltaVal2(6,1,0.);
+	
+	deltaVal1 = val1End;
+	deltaVal1.ZAXPY(-1., val1Begin);
+	deltaVal2 = val2End;
+	deltaVal2.ZAXPY(-1., val2Begin);	
+	
+	
+	//-19
+	TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
+	TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+	if(!pBC)return;
+	
+	bool linesearch= true;
+    int i;
+	for(i = 0; i < nsteps; i++)
+	{
+		REAL stepLen;
+		if(fabs(PGRatio - 1.) < 1.e-3)
+		{
+			stepLen = REAL(i+1) / REAL(nsteps);
+		}
+		else
+		{
+		    stepLen = a0 * (pow(PGRatio,i+1) - 1) / (PGRatio - 1.);
+		}
+		
+		val1 = val1Begin;
+		val1.ZAXPY(stepLen, deltaVal1);
+		val2 = val2Begin;
+		val2.ZAXPY(stepLen, deltaVal2);
+		
+		pBC->Val1() =1.* val1;
+		pBC->Val2() =1.* val2;	
+		
+		analysis.IterativeProcess(out, tol, numiter);
+        cout << "Sol =  "<<  analysis.Rhs() << endl;
+        //        virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
+        
+        
+        if(i==0/*(nsteps/2)*/){
+            //  linesearch = false;
+        }
+        
+        // analysis.IterativeProcess(out, tol,numiter,linesearch,false);
+        
+		analysis.AcceptSolution();
+		
+	}
+}
+
+
+
 void calcVonMisesBar()
 {
     TPZGeoMesh *barmesh1;
-    barmesh1 = barmesh(2);
+    barmesh1 = barmesh(0);
     ofstream arg("barmesh.txt");
     barmesh1->Print(arg);
     
@@ -1244,6 +1331,7 @@ void calcVonMisesBar()
     TPZVec<int> PostProcMatIds(1,1);
 	TPZVec<std::string> PostProcVars, scalNames, vecNames;
 	SetUPPostProcessVariablesII(PostProcVars,scalNames,vecNames);
+    
 	PPAnalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
 	
 	EPAnalysis.TransferSolution(PPAnalysis);
@@ -1253,7 +1341,7 @@ void calcVonMisesBar()
     
     
 	
-	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"bar.vtk");
+	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraP2DirctDir.vtk");
 	
 	cout << "\nExporting First Solution without any refinement - initial solution might be smooth enough and a real mesh size output is of interest\n";
 	
@@ -1273,14 +1361,14 @@ void calcVonMisesBar()
     
     // BC1 = -2;//EM CIMA -
     //	BC2 = -1;//EM BAIXO +
-	nsteps = 1;
-	taxa = 1;
-	BeginForce(0,0) =219.;
+	nsteps = 40;
+	taxa = 1.;
+	BeginForce(0,0) = 200.;
 	EndForce(0,0) = 220.;
     
 	ManageIterativeProcessII(EPAnalysis,cout,tol,nnewton,BC1,BC2,nsteps,taxa,BeginStress,EndStress,BeginForce,EndForce,&PPAnalysis,0);
 
-	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"bar.vtk");
+	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraP2DirctDir.vtk");
 	PPAnalysis.PostProcess(0);
 	PPAnalysis.CloseGraphMesh();
 	
@@ -2594,7 +2682,7 @@ void SetUPPostProcessVariablesII(TPZVec<std::string> &postprocvars, TPZVec<std::
 	vecnames[2] = "ShearStress";
 	vecnames[3] = "NormalStrain";
 	vecnames[4] = "ShearStrain";
-	//vecnames[5] = "NormalPlasticStrain";
+    //vecnames[5] = "NormalPlasticStrain";
     
 	
     
@@ -2724,6 +2812,7 @@ void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream 
    //     pBC2->Val2() = -1.*val2;		
 		
 		analysis.IterativeProcess(out, tol, numiter);
+        cout << "Sol =  "<<  analysis.Rhs() << endl;
 //        virtual void IterativeProcess(std::ostream &out,REAL tol,int numiter, bool linesearch = false, bool checkconv = false);
  
 
@@ -2823,7 +2912,7 @@ void SolveSistII(TPZAnalysis &an, TPZCompMesh *fCmesh)
     step.SetDirect(ELDLt);
   //  step.SetJacobi(5000, 1.e-12,0);
   //  step.SetDirect(ECholesky);
-    
+   // step.SetDirect(ELU);
 	an.SetSolver(step);
 	
 }
