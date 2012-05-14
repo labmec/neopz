@@ -2,15 +2,16 @@
 
 #define REFTHREADTESTS			//enabling the tests
 //#define REFTHREAD				//main refthread
-//#define REFTHREADSERIAL			//serial implementation
+//#define REFTHREADSERIAL		//serial implementation
 
 /// On REFTHREADTESTS:
 
-#define OPERATOREQUAL			//for testing operator=() on the vector
+//#define OPERATOREQUAL			//for testing operator=() on the vector
 //#define ALLOCATENEWEL			//for testing AllocateNewElement() on the vector
 //#define RESIZEVEC				//for testing Resize() on the vector
 //#define STFREE				//for testing SetFree() on the vector
 //#define OPERATOROPENCLOSE		//for testing operator[]() on the vector
+#define FINDOBJ				//for testing FindObject() on the vector
 
 /// -----------
 
@@ -23,31 +24,34 @@
 #include <sys/time.h>
 
 #define NTHREADS 1000
+#define SIZEBLOCK 10
+#define NITERATIONS NTHREADS*SIZEBLOCK
 
 using namespace std;
 
 pthread_t threads [NTHREADS];
 
-const int azero = 0;
-
-TPZAdmChunkVectorThreadSafe <int> cpyvect;
+TPZAdmChunkVectorThreadSafe <int> cpyvect[NITERATIONS];
+int objids[NITERATIONS];
 
 struct threaddt {
 	TPZAdmChunkVectorThreadSafe <int> *vectin;
 	int initid;
 	int endid;
+	int *obj[SIZEBLOCK];
+	int threadid;
 };
 
 void *operatorequal (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
-	int initid = internaldata->initid;
-	int endid = internaldata->endid;
+	// int initid = internaldata->initid;
+	// int endid = internaldata->endid;
 	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
 	
-	for (int i=0; i<1000; i++)
+	for (int i=0; i<NITERATIONS; i++)
 	{
-		cpyvect = *internalvect;
+		cpyvect[i] = *internalvect;		// copying data
 	}
 	
 	pthread_exit(0);
@@ -56,11 +60,11 @@ void *operatorequal (void *arg)
 void *allocatenewel (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
-	int initid = internaldata->initid;
-	int endid = internaldata->endid;
+	// int initid = internaldata->initid;
+	// int endid = internaldata->endid;
 	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
 	
-	for (int i=0; i<1000; i++)
+	for (int i=0; i<NITERATIONS; i++)
 	{
 		int ind = internalvect->AllocateNewElement();
 		internalvect->operator[](ind) = ind;
@@ -72,11 +76,11 @@ void *allocatenewel (void *arg)
 void *resizevec (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
-	int initid = internaldata->initid;
-	int endid = internaldata->endid;
+	// int initid = internaldata->initid;
+	// int endid = internaldata->endid;
 	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
 	
-	for (int i=0; i<1000; i++)
+	for (int i=0; i<NITERATIONS; i++)
 	{
 		internalvect->Resize(internalvect->NElements()+1);
 	}
@@ -114,7 +118,24 @@ void *operatoropenclose (void *arg)
 	pthread_exit(0);
 }
 
-#define SIZEBLOCK 100
+void *findobj (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	// int initid = internaldata->initid;
+	// int endid = internaldata->endid;
+		int threadid = internaldata->threadid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	int *obj[SIZEBLOCK];
+	
+	for(int i=0; i<SIZEBLOCK; i++) {
+		obj[i] = internaldata->obj[i];
+		
+		objids[(threadid*SIZEBLOCK)+i] = internalvect->FindObject(obj[i]);
+	}
+	
+	pthread_exit(0);
+}
+
 int main()
 {	
 	int threadnumber;
@@ -125,25 +146,50 @@ int main()
 	
 	for (int i=0; i<NTHREADS; i++)
 	{
-		thread_data[i].initid = i*SIZEBLOCK;
-		thread_data[i].endid = i*SIZEBLOCK + (SIZEBLOCK-1);
 		thread_data[i].vectin = vect;
 		
 		#ifdef OPERATOREQUAL
+		thread_data[i].initid = (i*SIZEBLOCK);
+		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
+		
 		for (int j=0; j<SIZEBLOCK; j++) {
 			vect->AllocateNewElement();
 		}
 		#endif
 		
 		#ifdef STFREE
+		thread_data[i].initid = (i*SIZEBLOCK);
+		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
+		
+		for (int j=thread_data[i].initid; j<thread_data[i].endid; j++) {
+			vect->AllocateNewElement();
+			vect->operator[](j) = j;
+		}
+		#endif
+			
+		#ifdef OPERATOROPENCLOSE
+		thread_data[i].initid = (i*SIZEBLOCK);
+		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
+		
 		for (int j=0; j<SIZEBLOCK; j++) {
 			vect->AllocateNewElement();
+			vect->operator[](j) = j;
 		}
 		#endif
 		
-		#ifdef OPERATOROPENCLOSE
-		for (int j=0; j<SIZEBLOCK; j++) {
+		#ifdef FINDOBJ
+		thread_data[i].initid = (i*SIZEBLOCK);
+		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
+		
+		for (int j=thread_data[i].initid; j<=thread_data[i].endid; j++) {
 			vect->AllocateNewElement();
+			vect->operator[](j) = j;
+		}
+		
+		thread_data[i].threadid = i;
+		
+		for (int j=0; j<SIZEBLOCK; j++) {
+			thread_data[i].obj[j] = &(thread_data[i].vectin->operator[]((i*SIZEBLOCK)+j));
 		}
 		#endif
 	}
@@ -168,6 +214,10 @@ int main()
 		
 		#ifdef OPERATOROPENCLOSE
 		err = pthread_create (&threads[threadnumber], NULL, operatoropenclose, (void *) &thread_data[threadnumber]);
+		#endif
+		
+		#ifdef FINDOBJ
+		err = pthread_create (&threads[threadnumber], NULL, findobj, (void *) &thread_data[threadnumber]);
 		#endif
 		
 		if (err)
