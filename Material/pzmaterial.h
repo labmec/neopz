@@ -41,11 +41,16 @@ private:
     int fId;
     
 protected:
-    
+   
 	/** @brief Pointer to forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
+	
+	/** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
+    TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
+	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
+    TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;	
 
     /**
 	 * @brief Defines whether the equation context is linear solver or non linear
@@ -229,9 +234,9 @@ public:
 	 */
     void SetForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
     {
-        fForcingFunction = fp;
+			fForcingFunction = fp;
     }
-	
+
     /** 
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function
@@ -239,6 +244,26 @@ public:
 	void SetForcingFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fForcingFunctionExact = fp;
+	}
+	
+    /** 
+	 * @brief Sets a procedure as source function for the material.
+	 * @param fp pointer of the forces function
+	 * @note Parameter loc corresponds to the coordinate of the point where the source function is applied
+	 * @note Parameter result contains the forces resulting
+	 */
+    void SetTimeDependentForcingFunction(TPZAutoPointer<TPZFunction<STATE> > fp)
+    {
+		fTimeDependentForcingFunction = fp;
+    }
+	
+    /** 
+	 * @brief Sets a procedure as exact solution for the problem
+	 * @param fp pointer of exact solution function
+	 */
+	void SetTimedependentFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+	{
+		fTimedependentFunctionExact = fp;
 	}
     
     virtual int HasForcingFunction() {return (fForcingFunction != 0);}
