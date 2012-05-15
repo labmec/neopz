@@ -6,12 +6,14 @@
 
 /// On REFTHREADTESTS:
 
-//#define OPERATOREQUAL			//for testing operator=() on the vector
-//#define ALLOCATENEWEL			//for testing AllocateNewElement() on the vector
-//#define RESIZEVEC				//for testing Resize() on the vector
-//#define STFREE				//for testing SetFree() on the vector
-//#define OPERATOROPENCLOSE		//for testing operator[]() on the vector
-#define FINDOBJ				//for testing FindObject() on the vector
+#define TEST 6
+
+// if TEST = 1				//for testing operator=() on the vector
+// if TEST = 2				//for testing AllocateNewElement() on the vector
+// if TEST = 3				//for testing Resize() on the vector
+// if TEST = 4				//for testing SetFree() on the vector
+// if TEST = 5				//for testing operator[]() on the vector
+// if TEST = 6				//for testing FindObject() on the vector
 
 /// -----------
 
@@ -23,7 +25,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#define NTHREADS 1000
+#define NTHREADS 100
 #define SIZEBLOCK 10
 #define NITERATIONS NTHREADS*SIZEBLOCK
 
@@ -148,7 +150,7 @@ int main()
 	{
 		thread_data[i].vectin = vect;
 		
-		#ifdef OPERATOREQUAL
+		#if TEST==1
 		thread_data[i].initid = (i*SIZEBLOCK);
 		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
 		
@@ -157,17 +159,17 @@ int main()
 		}
 		#endif
 		
-		#ifdef STFREE
+		#if TEST==4
 		thread_data[i].initid = (i*SIZEBLOCK);
 		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
 		
-		for (int j=thread_data[i].initid; j<thread_data[i].endid; j++) {
+		for (int j=thread_data[i].initid; j<=thread_data[i].endid; j++) {
 			vect->AllocateNewElement();
 			vect->operator[](j) = j;
 		}
 		#endif
 			
-		#ifdef OPERATOROPENCLOSE
+		#if TEST==5
 		thread_data[i].initid = (i*SIZEBLOCK);
 		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
 		
@@ -177,7 +179,7 @@ int main()
 		}
 		#endif
 		
-		#ifdef FINDOBJ
+		#if TEST==6
 		thread_data[i].initid = (i*SIZEBLOCK);
 		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
 		
@@ -196,27 +198,27 @@ int main()
 	
 	for (threadnumber=0; threadnumber<NTHREADS;)
 	{
-		#ifdef OPERATOREQUAL
+		#if TEST==1
 		err = pthread_create (&threads[threadnumber], NULL, operatorequal, (void *) &thread_data[threadnumber]);
 		#endif
-		
-		#ifdef ALLOCATENEWEL
+	
+		#if TEST==2
 		err = pthread_create (&threads[threadnumber], NULL, allocatenewel, (void *) &thread_data[threadnumber]);
 		#endif
 		
-		#ifdef RESIZEVEC
+		#if TEST==3
 		err = pthread_create (&threads[threadnumber], NULL, resizevec, (void *) &thread_data[threadnumber]);
 		#endif
 		
-		#ifdef STFREE
+		#if TEST==4
 		err = pthread_create (&threads[threadnumber], NULL, stfree, (void *) &thread_data[threadnumber]);
 		#endif
 		
-		#ifdef OPERATOROPENCLOSE
+		#if TEST==5
 		err = pthread_create (&threads[threadnumber], NULL, operatoropenclose, (void *) &thread_data[threadnumber]);
 		#endif
 		
-		#ifdef FINDOBJ
+		#if TEST==6
 		err = pthread_create (&threads[threadnumber], NULL, findobj, (void *) &thread_data[threadnumber]);
 		#endif
 		
@@ -231,6 +233,7 @@ int main()
 		}
 	}
 	
+	#ifdef TEST
 	for  (threadnumber=0; threadnumber<NTHREADS;)
 	{
 		err = pthread_join (threads[threadnumber], NULL);
@@ -244,11 +247,14 @@ int main()
 			threadnumber++;
 		}
 	}
+	#endif
 	
 	return 0;
 }
 
 #endif
+
+
 
 #ifdef REFTHREAD
 
