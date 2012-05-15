@@ -51,6 +51,7 @@ void TPZGraphEl1dd::Connectivity(TPZDrawStyle st){
 	if(st == EV3DStyle) ip++;
 	for(int i=0;i<imax;i++) {
 		if(st == EV3DStyle) out << ip << " 1 ";
+		if(st == EVTKStyle) out << "2 ";		
 		if(st == EMVStyle) out << ip << " 1 1 1 ";
 		ip++;
 		co0[0]= i;
@@ -72,7 +73,7 @@ int TPZGraphEl1dd::ExportType(TPZDrawStyle st){
 	switch(st)
 	{
 		case(EVTKStyle):
-			return 1;
+			return 3;
 		default:
 			return -1;
 	}
