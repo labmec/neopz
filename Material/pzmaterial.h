@@ -261,7 +261,7 @@ public:
 	 * @brief Sets a procedure as exact solution for the problem
 	 * @param fp pointer of exact solution function
 	 */
-	void SetTimedependentFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
+	void SetTimeDependentFunctionExact(TPZAutoPointer<TPZFunction<STATE> > fp)
 	{
 		fTimedependentFunctionExact = fp;
 	}

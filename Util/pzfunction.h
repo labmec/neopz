@@ -35,6 +35,17 @@ public:
 	 */
 	virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &df) = 0;
 	
+	/**
+	 * @brief Performs time dependent function computation
+	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+	 * @param ftime  time to evaluate	 
+	 * @param f function values
+	 * @param df function derivatives
+	 */	
+	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf){
+        DebugStop();
+    }
+
     /** @brief Execute method receiving axes. It is used in shape functions */
     virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
         DebugStop();
@@ -60,6 +71,7 @@ class TPZDummyFunction : public TPZFunction<TVar>
 	
     void (*fFunc)(const TPZVec<REAL> &x, TPZVec<TVar> &f);
     void (*fFunc2)(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);
+    void (*fFunc3)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf);	
 public:
 	
 	/** @brief Class constructor */
@@ -67,6 +79,7 @@ public:
     {
         fFunc = 0;
 		fFunc2 = 0;
+		fFunc3 = 0;		
     }
 	
 	/** @brief Class destructor */
@@ -79,15 +92,24 @@ public:
     {
         fFunc = FuncPtr;
 		fFunc2 = 0;
+		fFunc3 = 0;		
     }
     
     TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
     {
-        fFunc2 = FuncPtr;
 		fFunc = 0;
+        fFunc2 = FuncPtr;		
+		fFunc3 = 0;		
     }
+	
+    TPZDummyFunction(void (*FuncPtr)(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &val, TPZFMatrix<TVar> &gradf))
+    {
+		fFunc = 0;
+        fFunc2 = 0;		
+		fFunc3 = FuncPtr;		
+    }	
     
-    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2)
+    TPZDummyFunction(const TPZDummyFunction &cp) : fFunc(cp.fFunc), fFunc2(cp.fFunc2), fFunc3(cp.fFunc3)
     {
         
     }
@@ -96,6 +118,7 @@ public:
     {
         fFunc = cp.fFunc;
 		fFunc2 = cp.fFunc2;
+		fFunc3 = cp.fFunc3;		
         return *this;
     }
 	/**
@@ -111,6 +134,21 @@ public:
 		}
         fFunc2(x, f, df);
     }
+	
+	/**
+	 * @brief Performs time dependent function computation
+	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+	 * @param ftime  time to evaluate	 
+	 * @param f function values
+	 * @param df function derivatives
+	 */	
+	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
+    {
+        if (!fFunc3) {
+			DebugStop();
+		}
+        fFunc3(x, ftime, f, gradf);
+    }	
     
 	/** @brief Execute method receiving axes. It is used in shape functions */
 	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
