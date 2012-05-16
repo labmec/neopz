@@ -265,6 +265,82 @@ TPZGeoMesh * barmesh(int h)
 
 }
 
+
+void SetUPPostProcessVariablesHyper(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames )
+{
+    
+    //  if(!strcmp("Displacement6",name.c_str()))   return  1;
+    //	if(!strcmp("displacement",name.c_str()))     return  2;
+    //	if(!strcmp("Solution",name.c_str()))     return  2;
+    //	if(!strcmp("Derivate",name.c_str()))     return  3;
+    //	if(!strcmp("VonMises",name.c_str())) return 4;
+    //	if(!strcmp("POrder",name.c_str()))       return 10;
+	
+//	scalnames.Resize(9);
+//	scalnames[0] = "Alpha";
+//	scalnames[1] = "PlasticSteps";
+//	scalnames[2] = "VolElasticStrain";
+//	scalnames[3] = "VolPlasticStrain";
+//	scalnames[4] = "VolTotalStrain";
+//	scalnames[5] = "I1Stress";
+//	scalnames[6] = "J2Stress";
+//	scalnames[7] = "YieldSurface";
+//	scalnames[8] = "EMisesStress";
+//	//scalnames[9] = "TotalPlasticStrain";
+    
+    /*  
+     scalnames.Resize(9);
+     scalnames[0] = "Alpha";
+     scalnames[1] = "PlasticSteps";
+     scalnames[2] = "VolElasticStrain";
+     scalnames[3] = "VolPlasticStrain";
+     scalnames[4] = "VolTotalStrain";
+     scalnames[5] = "I1Stress";
+     scalnames[6] = "J2Stress";
+     scalnames[7] = "EMisesStress";
+     scalnames[8] = "TotalPlasticStrain";
+     */
+    
+	vecnames.Resize(1);
+	vecnames[0] = "Solution";
+	/*scalnames[1] = "VonMises";
+	scalnames[2] = "displacement";
+	scalnames[3] = "POrder";
+	scalnames[4] = "Displacement6";*/
+    //vecnames[5] = "ENormalPlasticStrain";
+    
+	
+    
+    //    if(!strcmp("displacement",name.c_str()))     return 9;
+    //	if(!strcmp("Pressure",name.c_str()))         return 1;
+    //	if(!strcmp("MaxStress",name.c_str()))        return 2;
+    //	if(!strcmp("PrincipalStress1",name.c_str())) return 3;
+    //	if(!strcmp("PrincipalStress2",name.c_str())) return 4;
+    //	if(!strcmp("SigmaX",name.c_str()))           return 5;
+    //	if(!strcmp("SigmaY",name.c_str()))           return 6;
+    //	if(!strcmp("TauXY",name.c_str()))            return 8;//Cedric
+    //	if(!strcmp("sig_x",name.c_str()))            return 5;
+    //	if(!strcmp("sig_y",name.c_str()))            return 6;
+    //	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
+    //	if(!strcmp("Displacement6",name.c_str()))    return 7;
+    //	if(!strcmp("Stress",name.c_str()))           return 10;
+    
+	
+	postprocvars.Resize(scalnames.NElements()+vecnames.NElements());
+	int i, k=0;
+	for(i = 0; i < scalnames.NElements(); i++)
+	{
+		postprocvars[k] = scalnames[i];
+		k++;
+	}
+	for(i = 0; i < vecnames.NElements(); i++)
+	{
+		postprocvars[k] = vecnames[i];
+		k++;
+	}
+}
+
+
 void hyperlastic()
 {
 
@@ -304,8 +380,60 @@ void hyperlastic()
     TPZStepSolver<STATE> sol;
     sol.SetDirect(ELDLt);
     an.SetSolver(sol);
+    
+    
+    TPZPostProcAnalysis posthyper(&an);
+    
+    TPZFStructMatrix structmatrix(an.Mesh());
+    posthyper.SetStructuralMatrix(structmatrix); 
+
+
+    //TPZVec<int> PostProcMatIds(1,1);
+    TPZVec<int> PostProcMatIds(1,1);
+	TPZVec<std::string> PostProcVars, scalNames, vecNames;
+	SetUPPostProcessVariablesHyper(PostProcVars,scalNames,vecNames);
+  
+   
+    posthyper.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+    posthyper.TransferSolution();
+
+
+
+	posthyper.DefineGraphMesh(3,scalNames,vecNames,"hyper.vtk");
+
+	posthyper.PostProcess(0/*pOrder*/);
+
     an.IterativeProcess(cout,1e-5,30);
     
+//    TPZPostProcAnalysis postan(&an);
+//	TPZVec <int> matids(3);
+//	matids[0] = 1; 
+//	TPZVec <std::string> varName(3);
+//	varName[0] = "Displacement";
+//	varName[1] = "PrincipalStrain";
+//	varName[2] = "ViscoStressX";
+//	postan.SetPostProcessVariables(matids, varName);
+//	TPZFStructMatrix bobo(postan.Mesh());
+//	postan.SetStructuralMatrix(bobo);
+// 	postan.TransferSolution();
+//	std::string postplot("discont.vtk");
+//	vecnames.resize(2);
+//	vecnames[0] = "Displacement";
+//	vecnames[1] = "PrincipalStrain";
+//	scalnames.resize(1); 
+//	scalnames[0] = "ViscoStressX";
+//	
+//	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
+//	postan.PostProcess(resolution);
+//	
+//    for (int istep = 0 ; istep < 5 ; istep++)
+//    {
+//		an.AssembleResidual();
+//		an.Solve();
+//		postan.TransferSolution();
+//		postan.PostProcess(resolution);
+//    }
+//    
     
    // solve(an,compmesh1);
     
@@ -2781,6 +2909,7 @@ void SetUPPostProcessVariablesII(TPZVec<std::string> &postprocvars, TPZVec<std::
 		k++;
 	}
 }
+
 
 
 void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,

@@ -44,17 +44,17 @@ TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) :
 
 
 void TPZElementMatrix::Print(std::ostream &out){
-	fMat.Print("Unconstrained matrix",out,EMathematicaInput);
+	//fMat.Print("Unconstrained matrix",out,EMathematicaInput);
 	int ncon = fConnect.NElements();
 	int ic;
 	for(ic=0; ic<ncon; ic++) {
-		out << "Connect index " << fConnect[ic] << endl;
+	//	out << "Connect index " << fConnect[ic] << endl;
 		this->fMesh->ConnectVec()[fConnect[ic]].Print(*fMesh,out);
 	}
-	fConstrMat.Print("Constrained matrix",out);
+	//fConstrMat.Print("Constrained matrix",out);
 	ncon = fConstrConnect.NElements();
 	for(ic=0; ic<ncon; ic++) {
-		out << "Connect index " << fConstrConnect[ic] << endl;
+	//	out << "Connect index " << fConstrConnect[ic] << endl;
 		this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
 	}
 	if(fType == EK)
@@ -79,8 +79,8 @@ void TPZElementMatrix::Print(std::ostream &out){
 			}
 		}
 		std::stringstream sout;
-		out << "Matrix size " << constrmatrix.Rows() << "\n";
-		sout << "ConstrainedMatrix = ";
+		//out << "Matrix size " << constrmatrix.Rows() << "\n";
+		//sout << "ConstrainedMatrix = ";
 		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
 	}
 }

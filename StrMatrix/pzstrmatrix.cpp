@@ -233,7 +233,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 //				ek.fMat.Print("Element Stiffness Matrix", sout);
 				ek.Print(sout);
 				ef.Print(sout);
-				LOGPZ_DEBUG(loggerel,sout.str())
+			//	LOGPZ_DEBUG(loggerel,sout.str())
 			}
 #endif
 		} else {

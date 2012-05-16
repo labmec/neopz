@@ -451,72 +451,163 @@ void TPZMatHyperElastic::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,
 	values[0]  = values[1]+values[2];
 }
 
-
-
-void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
-	
+void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data,
+                                   REAL weight,
+                                   TPZFMatrix<STATE> &ek,
+                                   TPZFMatrix<STATE> &ef,
+                                   TPZBndCond &bc){
 	TPZFMatrix<REAL> &phi = data.phi;
+	
+	const STATE BIGNUMBER  = 1.e12;
+	
+	const int phr = phi.Rows();
+	int in,jn,idf,jdf;
+	STATE v2[3];
+	v2[0] = bc.Val2()(0,0);
+	v2[1] = bc.Val2()(1,0);
+	v2[2] = bc.Val2()(2,0);
+	TPZFMatrix<STATE> &v1 = bc.Val1();
+    
     int numbersol = data.sol.size();
     if (numbersol != 1) {
         DebugStop();
     }
-	TPZVec<STATE> &sol=data.sol[0];
 	
-	if(bc.Material() != this){
-		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
-	}
-	
-	if(bc.Type() < 0 && bc.Type() > 2){
-		PZError << "ContributeBC.aplybc, unknown boundary condition type : "<<bc.Type() << endl;
-	}
-	
-	int ndof = NStateVariables();
-	int nnod = ek.Rows()/ndof;
-	int r = ndof;
-	
-	int idf,jdf,in,jn;
-	switch(bc.Type()){
-		case 0:
-			for(in=0 ; in<nnod ; ++in){
-				for(idf = 0;idf<r;idf++) {
-					(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*(bc.Val2()(idf,0)-sol[idf])*weight;
-				}
-				for(jn=0 ; jn<nnod ; ++jn) {
-					for(idf = 0;idf<r;idf++) {
-						ek(in*r+idf,jn*r+idf) += gBigNumber*phi(in,0)*phi(jn,0)*weight;
-					}
-				}
-			}
-			break;
-			
-		case 1:
-			for(in=0 ; in<nnod ; ++in){
-				for(idf = 0;idf<r;idf++) {
-					//(ef)(in*r+idf,0) += weight*phi(in,0)*(bc.Val2()(idf,0)-sol[idf]);
-					(ef)(in*r+idf,0) += weight*phi(in,0)*(bc.Val2()(idf,0));
-				}
-			}
-			break;
-			
-		case 2:
-			for(in=0 ; in<nnod ; ++in){
-				for(idf = 0;idf<r;idf++) {
-					for (jdf=0; jdf<r; jdf++){
-						(ef)(in*r+idf,0) += phi(in,0)*bc.Val1()(idf,jdf)*(bc.Val2()(jdf,0)-sol[jdf])*weight;
-					}
-					for(jn=0 ; jn<nnod ; ++jn) {
-						for(idf = 0;idf<r;idf++) {
-							for(jdf = 0;jdf<r;jdf++) {
-								ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
-							}
-						}
-					}
-				}
+	switch (bc.Type()) {
+		case 0: // Dirichlet condition
+			for(in = 0 ; in < phr; in++) {
+				ef(3*in+0,0) += BIGNUMBER * v2[0] * phi(in,0) * weight;
+				ef(3*in+1,0) += BIGNUMBER * v2[1] * phi(in,0) * weight;        
+				ef(3*in+2,0) += BIGNUMBER * v2[2] * phi(in,0) * weight;        
 				
-            }
+				for (jn = 0 ; jn < phr; jn++) {
+					ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+					ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+					ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight;
+				}//jn
+			}//in
+			break;
 			
-	}//fim switch
-}
+		case 1: // Neumann condition
+			for(in = 0 ; in < phi.Rows(); in++) {
+				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
+				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
+				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+			}//in
+			break;
+		case 2: // Mixed condition
+			for(in = 0 ; in < phi.Rows(); in++) {
+				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
+				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
+				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+				for(jn=0; jn<phi.Rows(); jn++)
+				{
+					for(idf=0; idf<3; idf++) for(jdf=0; jdf<3; jdf++)
+					{
+						ek(3*in+idf,3*jn+jdf) += bc.Val1()(idf,jdf);
+					}
+				}
+			}//in
+			break;
+		case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
+			for(in = 0 ; in < phr; in++) {
+				ef(3*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
+				ef(3*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;        
+				ef(3*in+2,0) += BIGNUMBER * (0. - data.sol[0][2]) * v2[2] * phi(in,0) * weight;        
+				for (jn = 0 ; jn < phr; jn++) {
+					ek(3*in+0,3*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
+					ek(3*in+1,3*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
+					ek(3*in+2,3*jn+2) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[2];
+				}//jn
+			}//in
+			break;
+			
+		case 4: // stressField Neumann condition
+			for(in = 0; in < 3; in ++)
+				v2[in] = - ( v1(in,0) * data.normal[0] +
+							v1(in,1) * data.normal[1] +
+							v1(in,2) * data.normal[2] );
+			// The normal vector points towards the neighbour. The negative sign is there to 
+			// reflect the outward normal vector.
+			for(in = 0 ; in < phi.Rows(); in++) {
+				ef(3*in+0,0) += v2[0] * phi(in,0) * weight;
+				ef(3*in+1,0) += v2[1] * phi(in,0) * weight;
+				ef(3*in+2,0) += v2[2] * phi(in,0) * weight;
+				//cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
+				//cout << "val2:  " << v2[0]          << ' ' << v2[1]          << ' ' << v2[2]          << endl;
+			}
+			break;
+		default:
+			PZError << "TPZElastitity3D::ContributeBC error - Wrong boundary condition type" << std::endl;
+	}//switch
+	
+}//method
+
+//
+//void TPZMatHyperElastic::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
+//	
+//	TPZFMatrix<REAL> &phi = data.phi;
+//    int numbersol = data.sol.size();
+//    if (numbersol != 1) {
+//        DebugStop();
+//    }
+//	TPZVec<STATE> &sol=data.sol[0];
+//	
+//	if(bc.Material() != this){
+//		PZError << "TPZMatHyperElastic.ContributeBC : this material don't exists \n";
+//	}
+//	
+//	if(bc.Type() < 0 && bc.Type() > 2){
+//		PZError << "ContributeBC.aplybc, unknown boundary condition type : "<<bc.Type() << endl;
+//	}
+//	
+//	int ndof = NStateVariables();
+//	int nnod = ek.Rows()/ndof;
+//	int r = ndof;
+//	
+//	int idf,jdf,in,jn;
+//	switch(bc.Type()){
+//		case 0:
+//			for(in=0 ; in<nnod ; ++in){
+//				for(idf = 0;idf<r;idf++) {
+//					(ef)(in*r+idf,0) += gBigNumber*phi(in,0)*(bc.Val2()(idf,0)-sol[idf])*weight;
+//				}
+//				for(jn=0 ; jn<nnod ; ++jn) {
+//					for(idf = 0;idf<r;idf++) {
+//						ek(in*r+idf,jn*r+idf) += gBigNumber*phi(in,0)*phi(jn,0)*weight;
+//					}
+//				}
+//			}
+//			break;
+//			
+//		case 1:
+//			for(in=0 ; in<nnod ; ++in){
+//				for(idf = 0;idf<r;idf++) {
+//					//(ef)(in*r+idf,0) += weight*phi(in,0)*(bc.Val2()(idf,0)-sol[idf]);
+//					(ef)(in*r+idf,0) += weight*phi(in,0)*(bc.Val2()(idf,0));
+//				}
+//			}
+//			break;
+//			
+//		case 2:
+//			for(in=0 ; in<nnod ; ++in){
+//				for(idf = 0;idf<r;idf++) {
+//					for (jdf=0; jdf<r; jdf++){
+//						(ef)(in*r+idf,0) += phi(in,0)*bc.Val1()(idf,jdf)*(bc.Val2()(jdf,0)-sol[jdf])*weight;
+//					}
+//					for(jn=0 ; jn<nnod ; ++jn) {
+//						for(idf = 0;idf<r;idf++) {
+//							for(jdf = 0;jdf<r;jdf++) {
+//								ek(in*r+idf,jn*r+jdf) += bc.Val1()(idf,jdf)*phi(in,0)*phi(jn,0)*weight;
+//							}
+//						}
+//					}
+//				}
+//				
+//            }
+//			
+//	}//fim switch
+//}
 
 #ifdef _AUTODIFF
 
