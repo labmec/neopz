@@ -156,7 +156,7 @@ void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
 
     TPZFMatrix<REAL> k2(3,3,0.);
     TPZFMatrix<REAL> f2(3,1,0.);
-    f2(0,0)=1.;
+    f2(0,0)=4.;
     TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
     CMesh->InsertMaterialObject(bc2);
     
@@ -301,11 +301,11 @@ void SetUPPostProcessVariablesHyper(TPZVec<std::string> &postprocvars, TPZVec<st
      scalnames[8] = "TotalPlasticStrain";
      */
     
-	vecnames.Resize(1);
+	vecnames.Resize(2);
 	vecnames[0] = "Solution";
-	/*scalnames[1] = "VonMises";
-	scalnames[2] = "displacement";
-	scalnames[3] = "POrder";
+	vecnames[1] = "VonMises";
+	//vecnames[2] = "displacement";
+	/*scalnames[3] = "POrder";
 	scalnames[4] = "Displacement6";*/
     //vecnames[5] = "ENormalPlasticStrain";
     
@@ -353,16 +353,21 @@ void hyperlastic()
 	TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
 	
     
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+	//TPZAnalysis::SetAllCreateFunctionsContinuous(compmesh1);
+  
     
     int nummat=1;
     REAL e = 5088.;
     REAL mu = 2290.;
     REAL nu = 0.11;
     REAL lambda = 646;
-    REAL coef1 =1.202;
-    REAL coef2 = -0.057;
-    REAL coef3 = 0.004;
+    
+    REAL coef1;// =1.202;
+    coef1=mu*((1-3*nu)/(1-2*nu));
+    REAL coef2;// = -0.057;
+    coef2 = mu*((1-nu)/(1-2*nu));
+    REAL coef3;// = 0.004;
+    coef3 = mu*((2*nu)/(1-2*nu));
     
     TPZMatHyperElastic * mathyper = new TPZMatHyperElastic(nummat,e,mu,nu,lambda, coef1,coef2,coef3);
     TPZMaterial *hyper(mathyper);
@@ -370,7 +375,6 @@ void hyperlastic()
     cmesh(compmesh1, hyper);
     ofstream arg2("hyper.txt");
     compmesh1->Print(arg2);
-    
     
     TPZNonLinearAnalysis an(compmesh1,cout);
     
@@ -380,70 +384,15 @@ void hyperlastic()
     TPZStepSolver<STATE> sol;
     sol.SetDirect(ELDLt);
     an.SetSolver(sol);
-    
-    
-    TPZPostProcAnalysis posthyper(&an);
-    
-    TPZFStructMatrix structmatrix(an.Mesh());
-    posthyper.SetStructuralMatrix(structmatrix); 
-
-
-    //TPZVec<int> PostProcMatIds(1,1);
-    TPZVec<int> PostProcMatIds(1,1);
-	TPZVec<std::string> PostProcVars, scalNames, vecNames;
-	SetUPPostProcessVariablesHyper(PostProcVars,scalNames,vecNames);
-  
-   
-    posthyper.SetPostProcessVariables(PostProcMatIds, PostProcVars);
-    posthyper.TransferSolution();
-
-
-
-	posthyper.DefineGraphMesh(3,scalNames,vecNames,"hyper.vtk");
-
-	posthyper.PostProcess(0/*pOrder*/);
-
     an.IterativeProcess(cout,1e-5,30);
-    
-//    TPZPostProcAnalysis postan(&an);
-//	TPZVec <int> matids(3);
-//	matids[0] = 1; 
-//	TPZVec <std::string> varName(3);
-//	varName[0] = "Displacement";
-//	varName[1] = "PrincipalStrain";
-//	varName[2] = "ViscoStressX";
-//	postan.SetPostProcessVariables(matids, varName);
-//	TPZFStructMatrix bobo(postan.Mesh());
-//	postan.SetStructuralMatrix(bobo);
-// 	postan.TransferSolution();
-//	std::string postplot("discont.vtk");
-//	vecnames.resize(2);
-//	vecnames[0] = "Displacement";
-//	vecnames[1] = "PrincipalStrain";
-//	scalnames.resize(1); 
-//	scalnames[0] = "ViscoStressX";
-//	
-//	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
-//	postan.PostProcess(resolution);
-//	
-//    for (int istep = 0 ; istep < 5 ; istep++)
-//    {
-//		an.AssembleResidual();
-//		an.Solve();
-//		postan.TransferSolution();
-//		postan.PostProcess(resolution);
-//    }
-//    
-    
-   // solve(an,compmesh1);
+    TPZStack<std::string> scalnames,vecnames;
+    vecnames.Push("Solution");
+    vecnames.Push("VonMises");
+    an.DefineGraphMesh(3, scalnames, vecnames, "hyper.vtk");
+    int postprocessresolution = 0;
+    an.PostProcess(postprocessresolution);
     
     cout << "\n sol = "<< an.Solution() << endl; 
-    
-
-//	
-    
-    
-
     
 }
 
