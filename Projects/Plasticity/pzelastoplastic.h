@@ -53,6 +53,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 						EYield,
 						ENormalPlasticStrain,
 						EMisesStress
+          
 				//		ERadialDisplacement,
 				//		ERadialStressR,
 				//		ERadialStressTheta};

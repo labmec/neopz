@@ -77,6 +77,7 @@
 #include "pzbdstrmatrix.h"
 #include "pzstepsolver.h"
 #include <sstream>
+#include "pzmathyperelastic.h"
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
@@ -142,23 +143,15 @@ void ManageIterativeProcessIII(std::ostream &out,REAL tol,int numiter,
 
 void BrazilianPlasticAnalysis2D();
 void SetUPPostProcessElasticVariables2D(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames );
+void solve(TPZAnalysis & an, TPZCompMesh *cmesh);
 //TPZGeoMesh * barmesh();
+
 void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
 {
 
     TPZFMatrix<REAL> k1(3,3,0.);
     TPZFMatrix<REAL> f1(3,1,0.);
-//    REAL big = 1.e12;
-//    k1(0,0)=big;
-//    k1(1,1)=big;
-//    k1(2,2)=big;
-//    TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
-//    CMesh->InsertMaterialObject(bc1);
-    
-    f1(0,0)=1.;
-    f1(1,0)=1.;
-    f1(2,0)=1.;
-    TPZMaterial *bc1 = mat->CreateBC(mat,-1,3,k1,f1);
+    TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
     CMesh->InsertMaterialObject(bc1);
 
     TPZFMatrix<REAL> k2(3,3,0.);
@@ -166,9 +159,6 @@ void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
     f2(0,0)=1.;
     TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
     CMesh->InsertMaterialObject(bc2);
-    
-    
-    
     
     CMesh->AutoBuild();
 
@@ -275,6 +265,83 @@ TPZGeoMesh * barmesh(int h)
 
 }
 
+void hyperlastic()
+{
+
+    TPZGeoMesh *barmesh1;
+    barmesh1 = barmesh(0);
+    ofstream arg("barmesh.txt");
+    barmesh1->Print(arg);
+    
+    TPZCompEl::SetgOrder(1);
+	TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
+	
+    
+	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+    
+    int nummat=1;
+    REAL e = 5088.;
+    REAL mu = 2290.;
+    REAL nu = 0.11;
+    REAL lambda = 646;
+    REAL coef1 =1.202;
+    REAL coef2 = -0.057;
+    REAL coef3 = 0.004;
+    
+    TPZMatHyperElastic * mathyper = new TPZMatHyperElastic(nummat,e,mu,nu,lambda, coef1,coef2,coef3);
+    TPZMaterial *hyper(mathyper);
+    compmesh1->InsertMaterialObject(hyper);
+    cmesh(compmesh1, hyper);
+    ofstream arg2("hyper.txt");
+    compmesh1->Print(arg2);
+    
+    
+    TPZNonLinearAnalysis an(compmesh1,cout);
+    
+    TPZSkylineStructMatrix full(compmesh1);
+	an.SetStructuralMatrix(full);
+    an.Solution().Zero();
+    TPZStepSolver<STATE> sol;
+    sol.SetDirect(ELDLt);
+    an.SetSolver(sol);
+    an.IterativeProcess(cout,1e-5,30);
+    
+    
+   // solve(an,compmesh1);
+    
+    cout << "\n sol = "<< an.Solution() << endl; 
+    
+
+//	
+    
+    
+
+    
+}
+
+void solve(TPZNonLinearAnalysis & an, TPZCompMesh *cmesh)
+{
+
+    //TPZFStructMatrix full(fCmesh)
+	TPZSkylineStructMatrix full(cmesh);
+	an.SetStructuralMatrix(full);
+    an.Solution().Zero();
+    TPZStepSolver<STATE> sol;
+    sol.SetDirect(ELDLt);
+    an.SetSolver(sol);
+    an.IterativeProcess(cout,0.00001,5);
+    
+    
+//	TPZStepSolver<REAL> step;
+//    //  step.SetDirect(ELDLt);
+//    //  step.SetJacobi(5000, 1.e-12,0);
+//    step.SetDirect(ECholesky);
+//    // step.SetDirect(ELU);
+//	an.SetSolver(step);
+//    an.Solve();
+
+    
+}
 
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,REAL tol,int numiter,
                             int BCId,int BCId2, int nsteps, REAL PGRatio,
@@ -1341,7 +1408,7 @@ void calcVonMisesBar()
     
     
 	
-	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraP2DirctDir.vtk");
+	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"p2.vtk");
 	
 	cout << "\nExporting First Solution without any refinement - initial solution might be smooth enough and a real mesh size output is of interest\n";
 	
@@ -1361,14 +1428,14 @@ void calcVonMisesBar()
     
     // BC1 = -2;//EM CIMA -
     //	BC2 = -1;//EM BAIXO +
-	nsteps = 40;
+	nsteps =10;
 	taxa = 1.;
-	BeginForce(0,0) = 200.;
+	BeginForce(0,0) = 210.;
 	EndForce(0,0) = 220.;
     
 	ManageIterativeProcessII(EPAnalysis,cout,tol,nnewton,BC1,BC2,nsteps,taxa,BeginStress,EndStress,BeginForce,EndForce,&PPAnalysis,0);
 
-	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraP2DirctDir.vtk");
+	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"p2.vtk");
 	PPAnalysis.PostProcess(0);
 	PPAnalysis.CloseGraphMesh();
 	
@@ -1401,8 +1468,8 @@ int main()
     
     
     InitializeLOG();
-    
-    calcVonMisesBar();
+    hyperlastic();
+//    calcVonMisesBar();
     
 //    
     
@@ -2682,7 +2749,7 @@ void SetUPPostProcessVariablesII(TPZVec<std::string> &postprocvars, TPZVec<std::
 	vecnames[2] = "ShearStress";
 	vecnames[3] = "NormalStrain";
 	vecnames[4] = "ShearStrain";
-    //vecnames[5] = "NormalPlasticStrain";
+    //vecnames[5] = "ENormalPlasticStrain";
     
 	
     
@@ -2909,9 +2976,9 @@ void SolveSistII(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
     
 	TPZStepSolver<REAL> step;
-    step.SetDirect(ELDLt);
+  //  step.SetDirect(ELDLt);
   //  step.SetJacobi(5000, 1.e-12,0);
-  //  step.SetDirect(ECholesky);
+    step.SetDirect(ECholesky);
    // step.SetDirect(ELU);
 	an.SetSolver(step);
 	

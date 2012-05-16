@@ -204,7 +204,7 @@ int TPZMatElastoPlastic<T,TMEM>::NSolutionVariables(int var)
    if(var == TPZMatElastoPlastic<T,TMEM>::EPlasticSteps)              return 1;
    if(var == TPZMatElastoPlastic<T,TMEM>::EYield)                     return T::fNYields::NYield;//Numero de funcoes falha 
 	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress)              return 1; 
-	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 1;
+	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain)              return 3;
    PZError << "TPZElasticity3D::NSolutionVariables Error\n";
    return -1;
 }
@@ -398,29 +398,9 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
 		TPZTensor<REAL> & plasticStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsP;
-	/*	TPZFMatrix<REAL> a(3,3,0.);
-		a.PutVal(0,0,plasticStrain.XX());
-		a.PutVal(0,1,plasticStrain.XY());
-		a.PutVal(0,2,plasticStrain.XZ());
-		a.PutVal(1,0,plasticStrain.XY());
-		a.PutVal(1,1,plasticStrain.YY());
-		a.PutVal(1,2,plasticStrain.YZ());
-		a.PutVal(2,0,plasticStrain.XY());
-		a.PutVal(2,1,plasticStrain.YZ());
-		a.PutVal(2,2,plasticStrain.ZZ());
-		REAL norm = Dot(a,a);
-	 
-		//Solout[0]=norm;
-		*/
-		//REAL xx = 
-		//REAL NORM	= sqrt(plasticStrain.XX()*plasticStrain.XX()+plasticStrain.YY()*plasticStrain.YY()+plasticStrain.ZZ()*plasticStrain.ZZ()+T(2.)*(plasticStrain.XY()*plasticStrain.XY())+T(2.)*(plasticStrain.XZ()*plasticStrain.XZ())+T(2.)*(plasticStrain.YZ()*plasticStrain.YZ()));
-		REAL NORM =  plasticStrain.Norm();
-		Solout[0] = NORM;
-	//	Solout[1] = plasticStrain.YY();
-	//	Solout[2] = plasticStrain.ZZ();
-		//Solout[3] = plasticStrain.XY();
-		//Solout[4] = plasticStrain.XZ();
-		//Solout[5] = plasticStrain.YZ();
+        Solout[0] = plasticStrain.XX();
+        Solout[1] = plasticStrain.YY();
+        Solout[2] = plasticStrain.ZZ();
 	}
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::EMisesStress){
@@ -431,16 +411,6 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 
 	}//VonMisesStress
 
-	/*
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 sout << "<<< TPZMatElastoPlastic<T,TMEM>::Solution() *** Sol = " << Solout;
-	 
-	 LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	 }
-	 #endif
-	 */
 	
 }
 

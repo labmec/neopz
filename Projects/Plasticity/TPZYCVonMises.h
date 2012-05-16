@@ -202,12 +202,12 @@ void TPZYCVonMises::N(const TPZTensor<T> & sigma,const T & A, TPZVec<TPZTensor<T
 	TPZTensor<T> s;
 	sigma.S(s);
 	//T NORM	= sqrt(s.XX()*s.XX()+s.YY()*s.YY()+s.ZZ()*s.ZZ()+T(2.)*(s.XY()*s.XY())+T(2.)*(s.XZ()*s.XZ())+T(2.)*(s.YZ()*s.YZ()));
-    T NORM = s.Norm();
-	s.Multiply(T(1.)/NORM,T(1.));
-	s.Multiply(temp1, T(1.));
-	Ndir[0]=s;
-	//sigma.dJ2(Ndir[0]);
-	//Ndir[0].Multiply(T(0.5)/sqrt(sigma.J2()),sqrt(3.));
+   // T NORM = s.Norm();
+	//s.Multiply(T(1.)/NORM,T(1.));
+	//s.Multiply(temp1, T(1.));
+	//Ndir[0]=s;
+	sigma.dJ2(Ndir[0]);
+	Ndir[0].Multiply(T(0.5)/sqrt(sigma.J2()),sqrt(3.));
 	
 }
 
