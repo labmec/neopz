@@ -246,3 +246,9 @@ void TPZViscoelastic::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 	}
 }
 
+void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
+	
+	TPZMaterial::FillDataRequirements(data);
+	data.fNeedsSol = true;
+}
+

@@ -65,6 +65,8 @@ public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
 
+	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
+	virtual void FillDataRequirements(TPZMaterialData &data);
 
 	
 protected:
