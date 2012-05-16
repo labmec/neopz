@@ -14,6 +14,10 @@
 #include "pzgeoelside.h"
 #include "TPZGeoLinear.h"
 #include "pzgeopoint.h"
+#include "tpzgeoblend.h"
+
+#include <pzgengrid.h>
+#include "MeshGeneration.h"
 
 #include "TPZRefPattern.h"
 #include "tpzgeoelrefpattern.h"
@@ -21,6 +25,7 @@
 #include "tpzautopointer.h"
 #include "pzbndcond.h"
 #include "pzanalysis.h"
+#include <tpzarc3d.h>
 
 #include "TPZParSkylineStructMatrix.h"
 #include "pzstepsolver.h"
@@ -43,12 +48,39 @@
 #include "pzlog.h"
 #include <iostream>
 #include <string>
+#include "TPZVTKGeoMesh.h"
+#include "pzfunction.h"
 
-#include <math.h>
+
+#include <cmath>
 #include <set>
 
 
+//	Use this tools for Exponential Integral Fuction (Implementation defined at end of this main file) 
+#include <math.h>		// required for fabsl(), expl() and logl()        
+#include <float.h>		// required for LDBL_EPSILON, DBL_MAX
+//	Internally Defined Routines
+double      Exponential_Integral_Ei( double x );
+long double xExponential_Integral_Ei( long double x );
+static long double Continued_Fraction_Ei( long double x );
+static long double Power_Series_Ei( long double x );
+static long double Argument_Addition_Series_Ei( long double x);
+//	Internally Defined Constants
+static const long double epsilon = 10.0 * LDBL_EPSILON;
+//	End Use this tools for Exponential Integral Fuction (Implementation defined at end of this main file)
 
+// Task to do
+// Document all the code
+// Include all BC combinations
+// Include Finite elasticity
+// Conservation mass mini benchmark (tiago's suggestion)
+// How I can divide the code in cases for the realistic analysis?
+// Write Dimensionless Poroelastic Formulation
+
+
+
+// Using Log4cXX as logging tool
+//
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
 #endif
@@ -56,27 +88,84 @@ static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
+//
+// End Using Log4cXX as logging tool
 
-
+// Defintions of names space
 using namespace std;
+using namespace pzgeom;	
 
-const int matId = 1;
-const int dirichlet = 0;
-const int neumann = 1;
+// Defitions of Material index
+// Internal Materials
+const int matId = 1;// 1 Rock Formation
+const int matIdl2 = 2;// 2 Rock Formation
+const int matIdl3 = 3;// 3 Rock Formation
+const int matIdl4 = 4;// 4 Rock Formation
+// const int matIdl5 = n;// N Rock formation	
 
+// Boundary Conditions Materials
+// 2D Rectangular Domain
 const int bcBottom = -1;
 const int bcRight = -2;
 const int bcTop = -3;
 const int bcLeft = -4;
+const int pointsource = -5;
+
+// 2D Cylindrical Domain
+const int arc1 = -1;
+const int arc2 = -2;
+const int arc3 = -3;
+const int arc4 = -4;
+const int WellPoint = -5;
+
+// Case 1 2D Geological Fault Reactivation stess state = gravity field
+// Case 2 2D Geological Fault Reactivation, initialization with fault consistent stress state Geological Graven Structure
+
+// Rock Blocks bondaries
+// Right Block 
+const int RBright = -12;
+const int RBleft = -22;
+const int RBBot = -32;
+const int RBTop = -42;
+
+// Left Block 
+const int LBright = -12;
+const int LBleft = -22;
+const int LBBot = -32;
+const int LBTop = -42;
+
+// Graven Block 
+const int GBright = -12;
+const int GBleft = -22;
+const int GBBot = -32;
+const int GBTop = -42;
+
+const int WellLine = -5;
+
+// 2D SPE comparative Study
+// not implemented
+
+// Boundary Conditions Definitions
+// This Definitions are related with the Boudary conditions convention for multphysics simulation (in Poroelastic U/P formulation problems 3 boundary conditions are included) 
+// not defined
+const int dirichlet = 0;
+const int neumann = 1;
 
 
-TPZGeoMesh *MalhaGeom(REAL h,REAL L);
+// Defintions of Implemented Methods
+
+//	This Create Geometric and Computational Meshes
+TPZGeoMesh	*MalhaGeom(REAL h,REAL L);
+TPZGeoMesh	*MalhaGeoGraven(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> wichProductionlayer, int MaxNumEl, bool InterfaceEl, int RefDirId);
 TPZCompMesh *MalhaCompPressao(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElastic2d  *&mymaterial);
-void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
-void SolveSistTransient(TPZFMatrix<REAL> matK1, TPZAutoPointer <TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 
+//	This Solve Different analysis
+void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
+void SolveSistTransient(REAL delt,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZPoroElastic2d  * &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+
+//	This are tools for spatial and polinomyal refinement and Postprocess of solutions 
 void PosProcess(TPZAnalysis &an, std::string plotfile);
 void PosProcess2(TPZAnalysis &an, std::string plotfile);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
@@ -87,42 +176,425 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file);
 
-void SolucaoExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// This Methods are Related whit Analytic Solutions of direferent Validations Problems (in this Main are created 5 problems for validation)
+// Analytical solution for paper -> X
+void SolucaoExata1D(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for paper -> X
 void DeslocamentoYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for paper -> X
 void SigmaYExata(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for paper -> Y
+void SolucaoExata2D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for paper -> Z
+void SolucaoExata2DLinesource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for book -> Rosa seila
+void SolucaoExataRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for book -> Rosa seila
+void SolucaoExataRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+// Analytical solution for flamant problem Elasticity Theory: Applications and Numerics 
+void ExactSolutionFlamantProblem(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+
+
+//	Forcing transient function definition
+void ForcingTimeDependFunction(TPZVec<REAL> &loc, REAL TimeValue,int WhichStateVariable,double &StateVariable);
+
+
 
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	InitializePZLOG("../mylog4cxx.cfg");
-#endif	
+#endif		
 	
-	int p=1;
 	
-	//primeira malha
+// GEOMETRICAL MESH CREATION	
 	
-	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = MalhaGeom(1.,1);
+//	polynomial base degree approach
+	int p=2;
+
+//  Used this for Directional Refinement	
+	gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeAllUniformRefPatterns();
+	ofstream RefinElPatterns("RefElPatterns.txt");
+	gRefDBase.WriteRefPatternDBase(RefinElPatterns); 	
+	gRefDBase.ReadRefPatternDBase("RefElPatterns.txt");
+	
+//	Rectangular geometric mesh for graven analysis
+	
+//	int nLayers			= 1; 
+//	int MaxNumEl		= 100;	
+//	int RefDirId		= 1;
+//	bool InterfaceEl	= true; 
+//	REAL LlengthFootFault	= 1000.0;
+//	REAL DipFaultAngleleft		= 45.0;
+//	REAL DipFaultAngleright		= 30.0;
+//	REAL WellFaultlength		= 700.0;
+//	TPZVec <bool> wichProductionlayer(nLayers+1,false);
+////	wichProductionlayer[0] = true; // Horizons -> Top
+////	wichProductionlayer[1] = true; // Horizons -> Top	
+////	wichProductionlayer[2] = true; // Horizons -> Top
+////	wichProductionlayer[2] = true; // Horizons -> Top
+////	wichProductionlayer[3] = true; // Horizons -> Top	
+//	TPZGeoMesh * gmesh = MalhaGeoGraven(nLayers,LlengthFootFault,DipFaultAngleleft,DipFaultAngleright,WellFaultlength,wichProductionlayer,MaxNumEl,InterfaceEl,RefDirId);
+
+// End Rectangular geometric mesh for graven analysis
+	
+// Rectangular geometric mesh using TPZGenGrid 
+	
+//	TPZVec < int > nx(2);
+//	TPZVec < REAL > corx0(2);
+//	TPZVec < REAL > corx1(2);
+//	int  	numlayer = 1; // Layers Numbers
+//	REAL  	rotation = 0.5; // For testing purpose 
+//	
+//	// refinement level
+//	nx[0] = 2;
+//	nx[1] = 2;
+//	//	x0	lower left coordinate
+//	corx0[0] = 0.0;
+//	corx0[1] = 0.0;	
+//	//	x1	upper right coordinate 
+//	corx1[0] = 50000.0;
+//	corx1[1] = 50000.0;	
+//	
+//	TPZGenGrid geomesh(nx,corx0,corx1,numlayer);
+//	TPZGeoMesh * gmesh = new TPZGeoMesh;
+//	geomesh.Read(*gmesh);
+//	
+//	// Setting BC conditions
+//	geomesh.SetBC(gmesh,0,bcBottom);
+//	geomesh.SetBC(gmesh,1,bcRight);
+//	geomesh.SetBC(gmesh,2,bcTop);
+//	geomesh.SetBC(gmesh,3,bcLeft);	
+//	
+//	TPZVec < REAL > PointSourceCor(3);
+//	// Injection point in the center of the model
+//	PointSourceCor[0]=25000.0;
+//	PointSourceCor[1]=25000.0;
+//	PointSourceCor[2]=0.0;	
+//	geomesh.SetPointBC(gmesh,PointSourceCor, pointsource);	
+//	
+//	gmesh->BuildConnectivity();	
+
+// End Rectangular geometric mesh using TPZGenGrid
+
+
+	
+// Begin Circular geometric mesh using tpzarc3d
+ 	
+	int nodenumber = 9;
+	REAL ModelRadius = 100000.0;
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->NodeVec().Resize(nodenumber);
+	
+	// Setting node coordantes for Arc3D 1
+	int id = 0;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y	
+	id++;	
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
+	gmesh->NodeVec()[id].SetCoord(1,sqrt(2)*ModelRadius/2.);//coord Y	
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,-sqrt(2)*ModelRadius/2.);//coord X
+	gmesh->NodeVec()[id].SetCoord(1,sqrt(2)*ModelRadius/2.);//coord Y	
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,-sqrt(2)*ModelRadius/2.);//coord X
+	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
+	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
+	id++;
+	
+	int elementid = 0;
+	// Create Geometrical Arc #1
+	// Definition of Arc coordenates
+	TPZVec < int > nodeindex(3,0.0);
+	nodeindex[0] = 1;	
+	nodeindex[1] = 2;
+	nodeindex[2] = 5;
+	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc1 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1,*gmesh);
+	elementid++;
+	
+	// Create Geometrical Arc #2
+	nodeindex[0] = 2;	
+	nodeindex[1] = 3;
+	nodeindex[2] = 6;			
+	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc2 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2,*gmesh);
+	elementid++;
+	
+	// Create Geometrical Arc #3
+	nodeindex[0] = 3;	
+	nodeindex[1] = 4;
+	nodeindex[2] = 7;			
+	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc3 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3,*gmesh);
+	elementid++;
+	
+	// Create Geometrical Arc #4
+	nodeindex[0] = 4;	
+	nodeindex[1] = 1;
+	nodeindex[2] = 8;			
+	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc4 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4,*gmesh); 
+	elementid++;
+	
+	// Create Geometrical Point for fluid injection or Production #1	
+	nodeindex.resize(1);
+	nodeindex[0] = 0;	
+	TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, WellPoint,*gmesh); 
+	elementid++;
+	
+	// Create Geometrical triangle #1	
+	nodeindex.resize(3);
+	nodeindex[0] = 0;
+	nodeindex[1] = 1;
+	nodeindex[2] = 2;	
+	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle1 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+	elementid++;
+	
+	// Create Geometrical triangle #2		
+	nodeindex[0] = 0;
+	nodeindex[1] = 2;
+	nodeindex[2] = 3;		
+	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle2 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+	elementid++;
+	
+	// Create Geometrical triangle #3		
+	nodeindex[0] = 0;
+	nodeindex[1] = 3;
+	nodeindex[2] = 4;		
+	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle3 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+	elementid++;
+	
+	// Create Geometrical triangle #4		
+	nodeindex[0] = 0;
+	nodeindex[1] = 4;
+	nodeindex[2] = 1;		
+	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle4 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+	elementid++;
+	
+	gmesh->BuildConnectivity();
+	
+//	
+// End Circular mesh
+	
+
+	
+// Begin Half Sapce for Flamant Problem Semi-Circular geometric mesh using tpzarc3d
+ 	
+	
+//	int nodenumber = 6;
+//	REAL ModelRadius = 30000.0;
+//	TPZGeoMesh * gmesh = new TPZGeoMesh;
+//	gmesh->NodeVec().Resize(nodenumber);
+//	
+//	// Setting node coordantes for Arc3D 1
+//	int id = 0;
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+//	id++;
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+//	id++;
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y	
+//	id++;	
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+//	id++;	
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,-sqrt(2)*ModelRadius/2.);//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
+//	id++;
+//	gmesh->NodeVec()[id].SetNodeId(id);
+//	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
+//	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
+//	id++;
+//	
+//	int elementid = 0;
+//	// Create Geometrical Arc #1
+//	// Definition of Arc coordenates
+//	TPZVec < int > nodeindex(3,0.0);
+//	nodeindex[0] = 1;	
+//	nodeindex[1] = 4;
+//	nodeindex[2] = 2;
+//	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc1 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1,*gmesh);
+//	elementid++;
+//	
+//	// Create Geometrical Arc #2
+//	nodeindex[0] = 2;	
+//	nodeindex[1] = 5;
+//	nodeindex[2] = 3;			
+//	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc2 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2,*gmesh);
+//	elementid++;
+//
+//	// Create Geometrical triangle #1	
+//	nodeindex.resize(3);
+//	nodeindex[0] = 0;
+//	nodeindex[1] = 1;
+//	nodeindex[2] = 2;	
+//	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle1 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+//	elementid++;
+//	
+//	// Create Geometrical triangle #2		
+//	nodeindex[0] = 0;
+//	nodeindex[1] = 2;
+//	nodeindex[2] = 3;		
+//	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle2 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
+//	elementid++;
+//	
+//	// Create Geometrical Line #1	
+//	nodeindex.resize(2);
+//	nodeindex[0] = 3;
+//	nodeindex[0] = 0;	
+//	TPZGeoElRefPattern < pzgeom::TPZGeoLinear > * elline1 = new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, arc3,*gmesh); 
+//	elementid++;
+//	
+//	// Create Geometrical Line #2	
+//	nodeindex.resize(2);
+//	nodeindex[0] = 0;
+//	nodeindex[0] = 1;	
+//	TPZGeoElRefPattern < pzgeom::TPZGeoLinear > * elline2 = new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, arc4,*gmesh); 
+//	elementid++;	
+//	
+//	// Create Geometrical Point for fluid injection or Production #1	
+//	nodeindex.resize(1);
+//	nodeindex[0] = 0;	
+//	TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, WellPoint,*gmesh); 
+//	elementid++;
+	
+//	gmesh->BuildConnectivity();
+
+//	TPZVec < int > nx(2);
+//	TPZVec < REAL > corx0(2);
+//	TPZVec < REAL > corx1(2);
+//	int  	numlayer = 1; // Layers Numbers
+//	REAL  	rotation = 0.5; // For testing purpose 
+//	
+//	// refinement level
+//	nx[0] = 2;
+//	nx[1] = 2;
+//	//	x0	lower left coordinate
+//	corx0[0] = 0.0;
+//	corx0[1] = 0.0;	
+//	//	x1	upper right coordinate 
+//	corx1[0] = 100000.0;
+//	corx1[1] = 50000.0;	
+//	
+//	TPZGenGrid geomesh(nx,corx0,corx1,numlayer);
+//	TPZGeoMesh * gmesh = new TPZGeoMesh;
+//	geomesh.Read(*gmesh);
+//	
+//	// Setting BC conditions
+//	geomesh.SetBC(gmesh,0,bcBottom);
+//	geomesh.SetBC(gmesh,1,bcRight);
+//	geomesh.SetBC(gmesh,2,bcTop);
+//	geomesh.SetBC(gmesh,3,bcLeft);	
+//	
+//	TPZVec < REAL > PointSourceCor(3);
+//	// Injection point in the center of the model
+//	PointSourceCor[0]=50000.0;
+//	PointSourceCor[1]=50000.0;
+//	PointSourceCor[2]=0.0;	
+//	geomesh.SetPointBC(gmesh,PointSourceCor, pointsource);	
+//
+//	gmesh->BuildConnectivity();		
+	
+//	
+// End Half Sapce for Flamant Problem Semi-Circular geometric mesh using tpzarc3d	
+	
+// Use this for irregular mesh created with GID format
+// Not implemented	
+// End Use this for irregular mesh created with GID format	
+
+// END GEOMETRICAL MESH CREATION	
+
+
+//	Print Geometrical Base Mesh
 	ofstream arg1("gmesh1.txt");
 	gmesh->Print(arg1);
-	ofstream file1("malhageoInicial.vtk");
-	PrintGMeshVTK(gmesh, file1);
+	ofstream file1("malhageoInicial.vtk");	
+	//	In this option true -> let you use shrink paraview filter
+	//	shrink filter in paraview just use for "amazing" visualization
+//	PrintGMeshVTK(gmesh,file1);	
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
 	
-	// First computational mesh
-	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+2);
+	
+// Directional Point source Refinement 
+	int ndirectdivp = 10;
+	set<int> SETmatPointRefDir2;
+	SETmatPointRefDir2.insert(WellPoint);	
+	for(int j = 0; j < ndirectdivp; j++)
+	{
+		int nel = gmesh->NElements();
+		for (int iref = 0; iref < nel; iref++)
+		{
+			TPZVec<TPZGeoEl*> filhos;
+			TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
+			if(!gelP2 || gelP2->HasSubElement()) continue;
+			TPZRefPatternTools::RefineDirectional(gelP2, SETmatPointRefDir2);
+		}		
+	}
+
+//	Need test this
+//	int ndirectdivL = 2;	
+//	set<int> SETmatRefDir12;
+//	for(int j = 0; j < ndirectdivL; j++)
+//	{
+//		int nel = gmesh->NElements();
+//		for (int iref = 0; iref < nel; iref++)
+//		{
+//			TPZVec<TPZGeoEl*> filhos;
+//			TPZGeoEl * gelP2 = gmesh->ElementVec()[iref];
+//			if(!gelP2 || gelP2->HasSubElement()) continue;
+//			SETmatRefDir12.insert(bcLeft);
+//			TPZRefPatternTools::RefineDirectional(gelP2, SETmatRefDir12);
+//		}		
+//	}
+
+
+	
+//	First computational mesh
+	TPZCompMesh * cmesh1 = MalhaCompElast(gmesh, p+1);
+//	Print First computational mesh
 	ofstream arg2("cmesh1.txt");
 	cmesh1->Print(arg2);
 	
-	// Second computational mesh
+//	Second computational mesh
 	TPZCompMesh * cmesh2= MalhaCompPressao(gmesh, p);
+//	Print Second computational mesh
 	ofstream arg3("cmesh2.txt");
-	cmesh2->Print(arg3);
+	cmesh2->Print(arg3);	
 	
-	// Cleaning reference of the geometric mesh to cmesh1
+//	Clear reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-	RefinUniformElemComp(cmesh1,5);
-	//RefinElemComp(cmesh1,3);
+	
+//	Using Uniform Refinement
+	RefinUniformElemComp(cmesh1,1);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
 	
@@ -133,14 +605,12 @@ int main(int argc, char *argv[])
 	ofstream file3("malhageo1.vtk");
 	PrintGMeshVTK(gmesh, file3);
 	
-	// Cleaning reference to cmesh1
+	// Clear reference of the geometric mesh to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
 	
-	//refinamento uniform
-	RefinUniformElemComp(cmesh2,5);
-	//RefinElemComp(cmesh2,4);
-	//RefinElemComp(cmesh2,7);
+//	Using Uniform Refinement
+	RefinUniformElemComp(cmesh2,1);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
 	cmesh2->ExpandSolution();
@@ -153,47 +623,55 @@ int main(int argc, char *argv[])
 	PrintGMeshVTK(gmesh, file5);
 	
 	
-	//--- Resolver usando a primeira malha computacional ---
-	/*TPZAnalysis an1(cmesh1);
-	SolveSist(an1, cmesh1);
-	std::string plotfile("saidaSolution_cmesh1.vtk");
-	PosProcess2(an1, plotfile);*/
-		
-	//--- Resolver usando a segunda malha computacional ---
+//	Solving First Computational problem
+//	TPZAnalysis an1(cmesh1);
+//	SolveSist(an1, cmesh1);
+//	std::string plotfile("saidaSolution_cmesh1.vtk");
+//	PosProcess2(an1, plotfile);
+	
+//	Solving Second Computational problem
 	TPZAnalysis an2(cmesh2);
 	SolveSist(an2, cmesh2);
-	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	PosProcess(an2, plotfile2);
-	//--- Resolver usando a malha computacional multifisica ---
-	/*TPZVec<TPZCompMesh *> meshvec(2);
-	meshvec[0] = cmesh1;
-	meshvec[1] = cmesh2;
-	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,1);
-	 
-	ofstream file6("mphysics.vtk");
-	PrintGMeshVTK(gmesh, file6);
+//	std::string plotfile2("saidaSolution_cmesh2.vtk");
+//	PosProcess(an2, plotfile2);
 	
-	TPZAnalysis an(mphysics);
-	SolveSist(an, mphysics);
-	std::string plotfile3("saidaMultphysics.vtk");
-	PosProcessMultphysics(meshvec,mphysics, an, plotfile3);
-	 */
 	
-	///set initial pressure 
+//	Solving Multiphysic Computational problem
+//	TPZVec<TPZCompMesh *> meshvec(2);
+//	meshvec[0] = cmesh1;
+//	meshvec[1] = cmesh2;
+//	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,1);
+//	 
+//	ofstream file6("mphysics.vtk");
+//	PrintGMeshVTK(gmesh, file6);
+//	 
+//	TPZAnalysis an(mphysics);
+//	SolveSist(an, mphysics);
+//	std::string plotfile3("saidaMultphysics.vtk");
+//	PosProcessMultphysics(meshvec,mphysics, an, plotfile3);
+//
+	
+//	Set initial conditions for pressure 
 	int nrs = an2.Solution().Rows();
-	TPZFMatrix<REAL> solucao1(nrs,1,1000./*296.296*/);
-	cmesh2->LoadSolution(solucao1);
-		
+	TPZFMatrix<REAL> solucao1(nrs,1,0.0);
+	cmesh2->Solution() = solucao1;
+	
 	TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
 	meshvec[1] = cmesh2;
 	TPZPoroElastic2d  *mymaterial ;
 	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-		
-
-	REAL delta = 1.;
-	REAL MaxTime = 10.;
-	mymaterial->SetTimeStep(delta);
+	
+	
+	// time control
+	REAL hour = 3600;
+	REAL day = 86400;
+	REAL month = 30*day;
+	REAL year = 365*day;
+	REAL delta = 81.999999999*day;
+	REAL MaxTime = 164*day;
+	mymaterial->SetTimeStep(delta);		
+	mymaterial->SetTimeValue(0.0);
 	
 	//Criando matriz K2
 	mymaterial->SetLastState();
@@ -206,8 +684,9 @@ int main(int argc, char *argv[])
 	std::stringstream outputfiletemp;
 	outputfiletemp << output << ".vtk";
 	std::string plotfile = outputfiletemp.str();
+	//Print Initial conditions
 	PosProcessMultphysics(meshvec,mphysics,an,plotfile);	
-			
+	
 	TPZSpStructMatrix matsp(mphysics);
 	//TPZSkylineStructMatrix matsp(mphysics);	
 	std::set< int > materialid;
@@ -221,9 +700,9 @@ int main(int argc, char *argv[])
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
 	{
-		std::stringstream sout;
-		matK2->Print("K2 = ", sout,EMathematicaInput);
-		LOGPZ_DEBUG(logdata,sout.str())
+//		std::stringstream sout;
+//		matK2->Print("K2 = ", sout,EMathematicaInput);
+//		LOGPZ_DEBUG(logdata,sout.str())
 	}
 #endif
 	
@@ -233,51 +712,73 @@ int main(int argc, char *argv[])
 	TPZFMatrix<REAL> matK1;	
 	TPZFMatrix<REAL> fvec; //vetor de carga
 	an.SetStructuralMatrix(matsk);//	Set the structtural sky line matrix to our analysis
-		
+	
 	
 	TPZStepSolver<REAL> step; //Create Solver object
 	step.SetDirect(ELDLt); //	Symmetric case
 	//step.SetDirect(ELU);
 	an.SetSolver(step); //	Set solver
 	an.Run(); //	Excecute an analysis to obtain the Rhs vector (In this case we start with zero initial values)
-		
+	
 	matK1 = an.StructMatrix(); //Storage the global matrix and load vector
 	fvec = an.Rhs();
 	
+	// This code identify singular blocks
+	TPZStepSolver<REAL> & temp = dynamic_cast<TPZStepSolver<REAL> &> (an.Solver());
+	std::list <int> & zeropivot = temp.Singular(); 
+	if (zeropivot.size()) 
+	{
+		int eq = * zeropivot.begin();
+		an.Rhs().Zero();
+		an.Rhs()(eq,0) = -10000.0;
+		an.Solve();
+		TPZFMatrix<REAL> TempSolution = an.Solution();
+		
+#ifdef LOG4CXX
+		// Print the temporal solution
+		if(logdata->isDebugEnabled())
+		{
+			std::stringstream sout;
+			TempSolution.Print("Singularnodes = ", sout,EMathematicaInput);
+			LOGPZ_DEBUG(logdata,sout.str())
+		}
+#endif	
+		std::string output;
+		output = "Singularnodes";
+		std::stringstream outputfiletemp;
+		outputfiletemp << output << ".vtk";
+		std::string plotfile = outputfiletemp.str();
+		PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+		
+	}
+	
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
 	{
+		// base system to invert
 		// just one for checking purpose
-		std::stringstream sout;
-		matK1.Print("K1 = ", sout,EMathematicaInput);
-		fvec.Print("fvec = ", sout,EMathematicaInput);		
-		LOGPZ_DEBUG(logdata,sout.str())
+//		std::stringstream sout;
+//		an.Solver().Matrix()->Print("K1 = ", sout,EMathematicaInput);
+//		fvec.Print("fvec = ", sout,EMathematicaInput);		
+//		//Print the temporal solution
+//		Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+//		TPZFMatrix<REAL> Temp;
+//		TPZFMatrix<REAL> Temp2;
+//		matK2->Multiply(Initialsolution,Temp);
+//		Temp.Print("Temp K2 = ", sout,EMathematicaInput);	
+//		LOGPZ_DEBUG(logdata,sout.str())
 	}
-#endif	
-	
-	
-#ifdef LOG4CXX
-	//Print the temporal solution
-	if(logdata->isDebugEnabled())
-	{
-		std::stringstream sout;
-		Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-		TPZFMatrix<REAL> Temp;
-		TPZFMatrix<REAL> Temp2;
-		matK2->Multiply(Initialsolution,Temp);
-		Temp.Print("Temp K2 = ", sout,EMathematicaInput);	
-		LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif	
+#endif
 	
 	///start transient problem
-	SolveSistTransient(matK1, matK2, fvec, Initialsolution, an, meshvec,  mphysics);
-			
+	SolveSistTransient(delta,MaxTime,matK1, matK2, fvec, Initialsolution, mymaterial, an, meshvec,  mphysics);
+
+	
 	return EXIT_SUCCESS;
 }
 
 
-void SolucaoExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+void SolucaoExata1D(TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 	//REAL x = ptx[0];
 	REAL x = ptx[1];
 	
@@ -312,19 +813,798 @@ void SolucaoExata(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 }
 
 
+void SolucaoExata2D(TPZVec<REAL> &ptx,REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	//REAL x = ptx[0];
+	REAL x = ptx[0];//-25000;
+	REAL y = ptx[1];//-25000;
+	REAL z = 0.0;
+	REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	if ( r == 0.0) {
+		x=0.0001;
+		y=0.0001;
+		r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	}
+	
+	
+	//	Parameters
+	REAL lamb = 8.3e9;					//	[Pa]
+	REAL lambu = 13.4e9;						//	[Pa]
+	REAL alphaMod=0.7;						//	[-]
+	REAL G= 5.5e9;							//	[Pa]
+	REAL rhof = 1000.0;						//	[kg/m3]
+	REAL Pressure = 0.0;					//	[Pa]
+	REAL segtime = 0.0;					//	[s]
+	REAL qMod = 20.0;						//	[kg/s]
+	REAL cMod = 0.082;						//	[m2/s]
+	REAL PI = atan(1.)*4.;
+	
+	segtime = timestep;
+	
+	if (segtime == 0.0) {
+		segtime = 1.0e-12;
+	}
+	
+	sol[0]=0.;
+	sol[1]=0.;
+	sol[2]=0.;
+	
+	REAL ERFCC = erfc((0.5)*(r/sqrt(cMod*segtime)));
+	
+	Pressure = (qMod/(4.0*PI*rhof*cMod*r))*(((lambu-lamb)*(lamb+2.0*G))/(pow(alphaMod,2.0)*(lambu+2.0*G)))*ERFCC;
+	
+	sol[0] = Pressure;
+//	sol[1] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
+//	sol[2] = (-1.+ sigD)*pini;
+}
+
+
+void SolucaoExata2DLinesource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	
+	// Defition of varibles
+	REAL x = ptx[0];
+	REAL y = ptx[1];
+	REAL z = 0.0;
+	REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	if ( r == 0.0) {
+		x=1.0e-20;
+		y=1.0e-20;
+		r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	}
+	
+	
+	// Definitions of Parameters
+	REAL lamb = 8.3e9;						//	[Pa]
+	REAL lambu = 13.4e9;						//	[Pa]
+	REAL alpha = 0.7;						//	[-]
+	REAL G= 5.5e9;							//	[Pa]
+	REAL rhof = 1000.0;						//	[kg/m3]	
+	REAL Ssig = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
+	REAL segtime = 0.0;						//	[s]
+	REAL qMod = -0.001;						//	[kg/s]
+	REAL cMod = 0.083;						//	[m2/s]
+	REAL kdif = cMod*Ssig;
+	REAL PI = atan(1.)*4.;
+	segtime = timestep;
+	
+	if (segtime == 0.0) {
+		segtime = 1.0e-20;
+	}
+	
+	
+	sol[0]=0.; // Pressure
+	sol[1]=0.; // Ux
+	sol[2]=0.; // Uy
+	flux(0,0)=0.0; // SigX
+	flux(1,0)=0.0; // SigY
+	flux(2,0)=0.0; // TauXY
+	
+	
+	REAL Pressure = 0.0;					//	[Pa]
+	REAL Ux = 0.0;							//	[m]
+	REAL Uy = 0.0;							//	[m]
+	REAL Sigx = 0.0;						//	[Pa]
+	REAL Sigy = 0.0;						//	[Pa]
+	REAL Tauxy = 0.0;						//	[Pa]
+	
+	REAL Zz = (pow(r, 2)/(4.0*cMod*segtime));
+	REAL Ei = Exponential_Integral_Ei(-Zz);
+	REAL Den = (8*PI*rhof*kdif*(lamb+2.0*G));
+	REAL Nem = qMod*alpha*x;
+
+	Pressure = (qMod/(4*PI*rhof*kdif))*Exponential_Integral_Ei(-Zz);
+	Ux = ((-qMod*alpha*x)/(8*PI*rhof*kdif*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+	Uy = ((-qMod*alpha*y)/(8*PI*rhof*kdif*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+	Sigx = (qMod*alpha*G/(4*PI*rhof*kdif*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+	Sigy = (qMod*alpha*G/(4*PI*rhof*kdif*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+	Tauxy = (2.0*qMod*alpha*G*x*y/(4*PI*rhof*kdif*(2.0*G+lamb)*pow(r,2)))*((1/Zz)*(1-exp(-Zz)));
+	
+	sol[0] = Pressure;
+	sol[1] = Ux;
+	sol[2] = Uy;
+	
+	flux(0,0)=Sigx; // SigX
+	flux(1,0)=Sigy; // SigY
+	flux(2,0)=Exponential_Integral_Ei(-Zz); // TauXY
+}
+
+
+// Right handside term of our Linear PDE
+void ForcingTimeDependFunction(TPZVec<REAL> &ptx, REAL TimeValue,int WhichStateVariable,double &StateVariable) 
+{
+	
+	// Define the relations for each variable in the right hand side of the StateVariable at the current PDE.
+	
+	REAL x = ptx[0];
+	REAL y = ptx[1];
+	REAL z = 0.0;
+	
+	REAL hour = 3600;
+	REAL day = 86400;
+	REAL month = 30*day;
+	REAL year = 365*day;
+	REAL delta = 99.9999*hour;
+	REAL MaxTime = 100.0*hour;
+	
+	
+	switch (WhichStateVariable) 
+	{
+		case 0:
+		{
+			//	Ux
+			StateVariable = 0.0;
+			break;
+		}
+		case 1:
+		{
+			//	Uy
+			StateVariable = 0.0;
+			break;			
+		}
+		case 2:
+		{
+			//	Pressure
+//			if ((abs(x-347.15922101486848) < 1.0e-4) && (abs(y-347.15922101486848) < 1.0e-4)) 
+//			{
+//			StateVariable = -0.25*5.0e-5;
+//			}
+//			else 
+//			{
+				StateVariable = 0.0;
+//			}
+			break;
+		}
+		default:
+			break;
+	}
+}
+
+void SolucaoExataRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	//REAL x = ptx[0];
+	REAL x = ptx[0];//-12500;
+	
+	
+	//	Parameters
+	REAL Eyoung = 1.43e10;					//	[Pa]
+	REAL poisson = 0.3;						//	[-]
+	REAL alpha=0.0;///((1.19667e10)*3);//1.70667e10		1.19667e10					//	[-]
+	
+	REAL Phi= 1.0;//9.60784e-11;//1.35695e-10				//	[-]
+	REAL Ct = 1.0;					//	[kg/m3]
+	REAL Se = Ct*Phi;							//	[m2/s]	
+	REAL Visc = 1.0;						//	[Pa.s]
+	REAL Kmed = 1.0;//7.8784288e-15;//1.109542e-14						//	[m2]
+	REAL Qo = 2.0;
+	REAL Bo = 1.0;
+	REAL PI = atan(1.)*4.;
+	REAL segtime = 0.0;					//	[s]	
+
+	
+//	REAL Phi= 0.18;//9.60784e-11;//1.35695e-10				//	[-]
+//	REAL Ct = (150.0e-6)*(1/(98066.50));					//	[kg/m3]
+//	REAL Se = Ct*Phi;							//	[m2/s]	
+//	REAL Visc = 0.8*(1.e-3);						//	[Pa.s]
+//	REAL Kmed = 20*(9.86923e-16);//7.8784288e-15;//1.109542e-14						//	[m2]
+//	REAL Qo = 400.0/(86400);
+//	REAL Bo = 1.2;
+//	REAL PI = atan(1.)*4.;
+//	REAL segtime = 0.0;					//	[s]		
+	
+	segtime = timestep;
+	
+	if (segtime == 0.0) {
+		segtime = 1.0e-12;
+	}
+	
+	x = abs(x);
+	sol[0]=0.;
+	sol[1]=0.;
+	sol[2]=0.;
+	
+	REAL Eta = (Kmed)/(Phi*Visc*Ct);
+	REAL Pressure = ((0.5*Qo*Bo*Visc)/(Kmed*1.0))*(sqrt((4*Eta*segtime)/PI)*(exp(-(pow(x,2)/(4*Eta*segtime))))-(x*erfc(x/sqrt(4*Eta*segtime))));
+	
+	sol[0] = Pressure;
+	//	sol[1] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
+	//	sol[2] = (-1.+ sigD)*pini;
+}
+
+// Analytical solution for flamant problem Elasticity Theory: Applications and Numerics 
+void ExactSolutionFlamantProblem(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+{
+	
+	// Defition of variables
+	REAL x = ptx[0]-50000.0;
+	REAL y = ptx[1]-50000.0;
+	REAL z = 0.0;
+	REAL Yforce = 1000.0;
+	REAL PI = atan(1.)*4.;	
+	REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	if ( r == 0.0) {
+		x=1.0e-10;
+		y=1.0e-10;
+		r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+	}
+	
+	
+	// Definitions of Parameters
+//	REAL lamb = 1.0e9;						//	[Pa]
+//	REAL G= 1.0e9;							//	[Pa]
+//	REAL rhof = 1.0;						//	[kg/m3]	
+//	REAL qMod = -1.0;						//	[kg/s]
+//	REAL cMod = 1.0;						//	[m2/s]
+//	REAL kdif = cMod*Se;
+//	REAL PI = atan(1.)*4.;
+	REAL sigXX = -2.0*((Yforce*pow(x,2)*y)/(PI*(pow(r,2))));
+	REAL sigYY = -2.0*((Yforce*pow(y,3))/(PI*(pow(r,2))));
+	REAL tauXY = -2.0*((Yforce*pow(y,2)*x)/(PI*(pow(r,2))));
+
+	sol[0] = sigXX;
+	sol[1] = sigYY;
+	sol[2] = tauXY;
+}
+
+
+void SolucaoExataRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	//REAL x = ptx[0];
+	REAL x = ptx[0];//-12500;
+	REAL L = 20000.0;
+//	x = abs(x);
+	sol[0]=0.;
+	sol[1]=0.;
+	sol[2]=0.;
+
+	REAL Pressure = 1000 + L*((x/L)-0.5*(pow((x/L),2)));
+	
+	sol[0] = Pressure;
+	//	sol[1] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
+	//	sol[2] = (-1.+ sigD)*pini;
+}
+
+TPZGeoMesh * MalhaGeoGraven(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> wichProductionlayer, int MaxNumEl, bool InterfaceEl, int RefDirId)
+{
+// This method created a graven geometry
+
+	// Creating Geometrical Mesh Objects
+	
+	int nProdLayesr = 0.0;
+	REAL ndivideleft = 3.0;
+	REAL ndivideright = 3.0;
+	
+	for(int ilayer = 0; ilayer < nLayers; ilayer++)
+	{	
+		if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
+			nProdLayesr++;
+		}
+		
+	}
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	int TotalNodes = 8+4*(nLayers-1)+nProdLayesr*(2*((ndivideleft+ndivideright-1))+3);
+	gmesh->SetMaxNodeId(TotalNodes-1);
+	gmesh->NodeVec().Resize(TotalNodes);
+	
+	
+	
+	TPZVec <int> TopolQuad(4);
+	TPZVec <int> TopolTria(3);	
+	TPZVec <int> TopolLine(2);
+	TPZVec <int> TopolPoint(1);
+	TPZVec<TPZGeoNode> Node(TotalNodes);
+
+//	Constan h for all layers
+	REAL hlayerj = 100.0;
+	TPZVec<REAL> hlayers(nLayers+1,hlayerj);
+//	Horizon at level zero
+	hlayers[0] = 0.0;
+//	Constant Material ID for all layers
+	TPZVec<int> layersIdRB(nLayers,1);
+	TPZVec<int> layersIdLB(nLayers,1);
+	TPZVec<int> layersIdGB(nLayers,1);
+	
+//	for(int i = 0; i < nLayers; i++)
+//	{
+//		layersIdLB[i]=i+10;
+//		layersIdRB[i]=i+20;
+//		layersIdGB[i]=i+30;
+//	}
+	
+	REAL X = 0.0;
+	REAL Y = 0.0;
+	REAL PI = atan(1.)*4.;	
+	
+//	Distance between foot faults
+	REAL GravenBaseLength = 1.0*LlengthFootFault;
+
+	
+	// Node index
+	int idN = 0;
+	int contlayers = 0;
+
+	for(int cont = 0; cont < (4 + 2*(nLayers-1)); cont++)
+	{
+	
+		idN = cont;
+		if (cont%2==0) 
+		{
+			Y = 0.0;
+			// Calculate the sum of all thickness
+			for(int l = 0; l <= contlayers; l++)
+			{
+				Y += hlayers[l];
+			}
+			X = 0.0;
+			contlayers++;
+		}
+			else 
+			{ 
+				X = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));
+			}
+		
+		Node[idN].SetNodeId(idN);
+		Node[idN].SetCoord(0,X);//coord X
+		Node[idN].SetCoord(1,Y);//coord Y
+		gmesh->NodeVec()[idN] = Node[idN];
+		
+	}
+	idN++;
+	
+
+//	Left Rock block Element Index
+	int idE = 0;
+	
+	for(int ilayer = 0; ilayer < nLayers; ilayer++)
+	{
+	TopolQuad[0] = 0+2*ilayer;
+	TopolQuad[1] = 1+2*ilayer;
+	TopolQuad[2] = 3+2*ilayer;
+	TopolQuad[3] = 2+2*ilayer;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdRB[ilayer],*gmesh);
+	idE++;
+	}
+	
+	
+//	Bottom bondary
+	TopolLine[0] = 0;
+	TopolLine[1] = 1;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
+	idE++;
+	
+	
+	for(int inode = 0; inode < (idN - 2); inode++)
+	{
+		//	Left bondary
+		if (inode%2==0) 
+		{
+			TopolLine[0] = inode;
+			TopolLine[1] = inode+2;
+			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBleft,*gmesh);
+			idE++;		
+		}
+		//	Right bondary
+		else 	
+		{
+//			TopolLine[0] = inode;
+//			TopolLine[1] = inode+2;
+//			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBright,*gmesh);
+//			idE++;
+		}
+
+				
+	}
+	
+//	Top bondary	
+	TopolLine[0] = 0+2*nLayers;
+	TopolLine[1] = 1+2*nLayers;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
+	idE++;
+	
+	
+	//	Second block with the same Dip Fault Angle
+	
+	// Node index
+	contlayers = 0;
+	
+	for(int cont = idN; cont < (8 + 4*(nLayers-1)); cont++)
+	{
+		
+		idN = cont;
+		if (cont%2==0) 
+		{
+			Y = 0.0;
+			// Calculate the sum of all thickness
+			for(int l = 0; l <= contlayers; l++)
+			{
+				Y += hlayers[l];
+			}
+			X = GravenBaseLength+2*LlengthFootFault;
+			contlayers++;
+		}
+		else 
+		{ 
+			X = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
+		}
+		
+		Node[idN].SetNodeId(idN);
+		Node[idN].SetCoord(0,X);//coord X
+		Node[idN].SetCoord(1,Y);//coord Y
+		gmesh->NodeVec()[idN] = Node[idN];
+		
+	}
+	idN++;
+	int lasSequencenodId = idN;	
+	
+	for(int ilayer = 0; ilayer < nLayers; ilayer++)
+	{
+		TopolQuad[0] = 0+2*nLayers+2+2*ilayer;
+		TopolQuad[1] = 1+2*nLayers+2+2*ilayer;
+		TopolQuad[2] = 3+2*nLayers+2+2*ilayer;
+		TopolQuad[3] = 2+2*nLayers+2+2*ilayer;
+		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdLB[ilayer],*gmesh);
+		idE++;
+	}
+	
+	
+	//	Bottom bondary
+	TopolLine[0] = 0+2*nLayers+2;
+	TopolLine[1] = 1+2*nLayers+2;	
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
+	idE++;
+	
+	
+	for(int inode = 0+2*nLayers+2; inode < (idN - 2); inode++)
+	{
+		//	Left bondary
+		if (inode%2!=0) 
+		{
+//			TopolLine[0] = inode;
+//			TopolLine[1] = inode+2;
+//			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBleft,*gmesh);
+//			idE++;		
+		}
+		//	Right bondary
+		else 	
+		{
+			TopolLine[0] = inode;
+			TopolLine[1] = inode+2;
+			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBright,*gmesh);
+			idE++;
+		}
+		
+		
+	}
+	
+	//	Top bondary	
+	TopolLine[0] = 0+4*nLayers+2;
+	TopolLine[1] = 1+4*nLayers+2;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
+	idE++;
+	
+	// inserting injections points
+	REAL Xleft = 0.0;
+	REAL Xright = 0.0;
+	REAL deltaxleft = 0.0;
+	REAL deltaxright = 0.0;	
+	
+		
+		for(int ilayer = 0; ilayer < nLayers; ilayer++)
+		{		
+			
+			if (wichProductionlayer[ilayer]==true) 
+			{
+				
+				Y = 0.0;
+				// Calculate the sum of all thickness
+				for(int l = 0; l <= ilayer; l++)
+				{
+					Y += hlayers[l];
+				}
+				Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
+				Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
+				deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
+				deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
+				
+				for(int cont = 0; cont < ((ndivideleft+ndivideright)-1); cont++)
+				{
+
+				if (cont < ndivideleft) 
+				{	
+					Xleft += deltaxleft;
+					Node[idN].SetNodeId(idN);
+					Node[idN].SetCoord(0,Xleft);//coord X
+					Node[idN].SetCoord(1,Y);//coord Y
+					gmesh->NodeVec()[idN] = Node[idN];
+					idN++;					
+				}
+				else 
+				{
+					Xleft += deltaxright;
+					Node[idN].SetNodeId(idN);
+					Node[idN].SetCoord(0,Xleft);//coord X
+					Node[idN].SetCoord(1,Y);//coord Y
+					gmesh->NodeVec()[idN] = Node[idN];
+					idN++;					
+				}
+
+	
+				
+				}
+			
+				if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
+					Y = 0.0;
+					// Calculate the sum of all thickness in the middle of the layer
+					for(int l = 0; l <= ilayer; l++)
+					{
+						Y += hlayers[l];
+					}
+					Y += hlayers[ilayer+1]/2;
+					Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
+					Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
+					deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
+					deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
+					
+					Xleft = LlengthFootFault+WellFaultlength-deltaxleft;
+					Node[idN].SetNodeId(idN);
+					Node[idN].SetCoord(0,Xleft);//coord X
+					Node[idN].SetCoord(1,Y);//coord Y
+					gmesh->NodeVec()[idN] = Node[idN];					
+					idN++;					
+					
+					Xleft = LlengthFootFault+WellFaultlength+deltaxright;
+					Node[idN].SetNodeId(idN);
+					Node[idN].SetCoord(0,Xleft);//coord X
+					Node[idN].SetCoord(1,Y);//coord Y
+					gmesh->NodeVec()[idN] = Node[idN];
+					idN++;					
+					
+					Xleft = LlengthFootFault+WellFaultlength;
+					Node[idN].SetNodeId(idN);
+					Node[idN].SetCoord(0,Xleft);//coord X
+					Node[idN].SetCoord(1,Y);//coord Y
+					gmesh->NodeVec()[idN] = Node[idN];
+					TopolPoint[0] = idN;
+					new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (idE,TopolPoint,WellPoint,*gmesh);
+					idE++;					
+					idN++;						
+				}				
+					
+					
+			}
+			
+			if (ilayer+1 == nLayers && wichProductionlayer[nLayers]==true ) 
+			{
+				
+				Y = 0.0;
+				// Calculate the sum of all thickness
+				for(int l = 0; l <= nLayers; l++)
+				{
+					Y += hlayers[l];
+				}
+				Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
+				Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
+				deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
+				deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
+				
+				for(int cont = 0; cont < ((ndivideleft+ndivideright)-1); cont++)
+				{
+					
+					if (cont < ndivideleft) 
+					{	
+						Xleft += deltaxleft;
+						Node[idN].SetNodeId(idN);
+						Node[idN].SetCoord(0,Xleft);//coord X
+						Node[idN].SetCoord(1,Y);//coord Y
+						gmesh->NodeVec()[idN] = Node[idN];
+						idN++;					
+					}
+					else 
+					{
+						Xleft += deltaxright;
+						Node[idN].SetNodeId(idN);
+						Node[idN].SetCoord(0,Xleft);//coord X
+						Node[idN].SetCoord(1,Y);//coord Y
+						gmesh->NodeVec()[idN] = Node[idN];
+						idN++;					
+					}
+				}
+			}
+
+		}
+		
+		
+	
+	
+	
+	//	Bottom bondary Graven Block
+	TopolLine[0] = 1;
+	TopolLine[1] = 1+2*nLayers+2;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
+	idE++;		
+	
+//	Graven Block
+//	
+//	for(int ilayer = 0; ilayer < nLayers; ilayer++)
+//	{
+//		TopolQuad[0] = 11+2*ilayer;
+//		TopolQuad[1] = 1+2*ilayer;
+//		TopolQuad[2] = 3+2*ilayer;
+//		TopolQuad[3] = 13+2*ilayer;
+//		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);
+//		idE++;
+//	}
+//	
+//	//	Top bondary Graven Block	
+//	TopolLine[0] = 9;
+//	TopolLine[1] = 19;
+//	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
+//	idE++;		
+//	
+//	if (InterfaceEl==true) 
+//	{
+//		for(int i = 0; i < nLayers; i++)
+//		{
+//			gmesh->AddInterfaceMaterial(layersIdLB[i],layersIdGB[i], i+6);
+//			gmesh->AddInterfaceMaterial(layersIdRB[i],layersIdGB[i], i+7);			
+//		}
+//	
+//	}
+//	
+
+	
+//	Graven Block with inyection point
+	
+//	Insertion of additional nodes
+ 
+
+	for(int ilayer = 0; ilayer < nLayers; ilayer++)
+	{	
+//	Next sequence of nodes ids
+	idN = lasSequencenodId;	
+		
+	if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
+		
+// First lef Quad in the i-layer
+		TopolQuad[0] = idN;
+		TopolQuad[1] = 1+2*ilayer;
+		TopolQuad[2] = 3+2*ilayer;
+		TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;
+		idN++;
+		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+		idE++;		
+
+// intern left Quads in the i-layer
+		while (idN < (ndivideleft+lasSequencenodId-1)) 
+		{
+			TopolQuad[0] = idN;
+			TopolQuad[1] = idN-1;
+			TopolQuad[2] = idN-1+(ndivideleft+ndivideright-1)+3;
+			TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;
+			idN++;			
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;				
+		}
+
+// intern four well neighborhood Quads in the i-layer
+		if (idN == (ndivideleft+lasSequencenodId-1)) {
+			TopolQuad[0] = idN;
+			TopolQuad[1] = idN-1;
+			TopolQuad[2] = ndivideleft+ndivideright+lasSequencenodId-1;
+			TopolQuad[3] = ndivideleft+ndivideright+lasSequencenodId+1;		
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;
+			
+			TopolQuad[0] = ndivideleft+ndivideright+lasSequencenodId+1;
+			TopolQuad[1] = ndivideleft+ndivideright+lasSequencenodId-1;
+			TopolQuad[2] = idN-1+(ndivideleft+ndivideright-1)+3;
+			TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;		
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;
+			
+			TopolQuad[0] = idN+1;
+			TopolQuad[1] = idN;
+			TopolQuad[2] = ndivideleft+ndivideright+lasSequencenodId+1;
+			TopolQuad[3] = ndivideleft+ndivideright+lasSequencenodId;		
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;
+			
+			TopolQuad[0] = ndivideleft+ndivideright+lasSequencenodId;
+			TopolQuad[1] = ndivideleft+ndivideright+lasSequencenodId+1;
+			TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
+			TopolQuad[3] = idN+1+(ndivideleft+ndivideright-1)+3;	
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;		
+		}
+		idN++;
+		
+// intern right Quads in the i-layer
+		while (idN > (ndivideleft+lasSequencenodId-1) && idN < (ndivideleft+ndivideright+lasSequencenodId-2)) 
+		{
+			TopolQuad[0] = idN+1;
+			TopolQuad[1] = idN;
+			TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
+			TopolQuad[3] = idN+1+(ndivideleft+ndivideright-1)+3;
+			idN++;			
+			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+			idE++;				
+		}			
+
+
+// Last right Quad in the i-layer
+		TopolQuad[0] = 1+2*nLayers+2+2*ilayer;
+		TopolQuad[1] = idN;
+		TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
+		TopolQuad[3] = 3+2*nLayers+2+2*ilayer;	
+		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
+		idE++;
+		
+//	updating the next i-layer node sequence
+	lasSequencenodId += (ndivideleft+ndivideright-1)+3;
+	}
+	else {
+		
+		TopolQuad[0] = 1+2*nLayers+2+2*ilayer;
+		TopolQuad[1] = 1+2*ilayer;
+		TopolQuad[2] = 3+2*ilayer;
+		TopolQuad[3] = 3+2*nLayers+2+2*ilayer;
+		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);
+		idE++;
+		
+	}
+
+	
+	}
+	
+	//	Top bondary Graven Block	
+	TopolLine[0] = 1+2*nLayers;
+	TopolLine[1] = 1+4*nLayers+2;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
+	idE++;		
+	
+
+	
+	gmesh->BuildConnectivity();
+	
+	ofstream arg("GeologicalGravegmesh.txt");
+	gmesh->Print(arg);	
+
+	return gmesh;
+}
+
+
+
+
 TPZGeoMesh *MalhaGeom(REAL h, REAL L)
 {
 	
 	int Qnodes = 4;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	gmesh->SetMaxNodeId(Qnodes-1);
-	gmesh->NodeVec().Resize(Qnodes);
-	TPZVec<TPZGeoNode> Node(Qnodes);
+	gmesh->SetMaxNodeId(Qnodes);
+	gmesh->NodeVec().Resize(Qnodes+1);
+	TPZVec<TPZGeoNode> Node(Qnodes+1);
 	
 	TPZVec <int> TopolQuad(4);
 	TPZVec <int> TopolLine(2);
-	
+	TPZVec <int> TopolPoint(1);
 	//indice dos nos
 	int id = 0;
 	for(int xi = 0; xi < Qnodes/2; xi++)
@@ -345,7 +1625,14 @@ TPZGeoMesh *MalhaGeom(REAL h, REAL L)
 		id++;
 	}
 	
+//	Production or injection point
+	Node[id].SetNodeId(id);
+	Node[id].SetCoord(0,0.5*L);//coord X
+	Node[id].SetCoord(1,0.5*h);//coord Y	
+	
 	//indice dos elementos
+	
+	
 	id = 0;
 	TopolLine[0] = 0;
 	TopolLine[1] = 1;
@@ -366,13 +1653,18 @@ TPZGeoMesh *MalhaGeom(REAL h, REAL L)
 	TopolLine[1] = 0;
 	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcLeft,*gmesh);
 	id++;
-		
+	
 	TopolQuad[0] = 0;
 	TopolQuad[1] = 1;
 	TopolQuad[2] = 2;
 	TopolQuad[3] = 3;
 	new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
-		
+	id++;
+
+	TopolPoint[0] = 4;
+	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolLine,WellPoint,*gmesh);
+	
+	
 	gmesh->BuildConnectivity();
 	
 	//ofstream arg("gmesh.txt");
@@ -426,6 +1718,12 @@ TPZCompMesh*MalhaCompPressao(TPZGeoMesh * gmesh, int pOrder)
 	val22(0,0)=uDR;
 	TPZMaterial * BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
+	
+	// Point source
+	REAL PNR=3000.;
+	val22(0,0)=PNR;
+	TPZMaterial * BCondNpoint = material->CreateBC(mat, pointsource,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCondNpoint);
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -487,6 +1785,13 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	TPZMaterial * BCondDR = material->CreateBC(mat, bcRight,dirichlet, val12, val22);
 	cmesh->InsertMaterialObject(BCondDR);
 	
+	
+	// Point source
+	REAL PNR=3000.;
+	val22(0,0)=PNR;
+	TPZMaterial * BCondNpoint = material->CreateBC(mat, pointsource,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCondNpoint);	
+	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
 	
@@ -501,89 +1806,390 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
 	mphysics->SetAllCreateFunctionsMultiphysicElem();
 	
+	
+	
 	int MatId = 1;
 	int dim = 2;
-	REAL Eyoung =/*1.1152*1.e10;*/ 3.e4;
-	REAL poisson = /*0.18;*/0.2;
-	REAL alpha=/*0.74;*/1.0;
-	REAL Se=/*1.13846*1e-10;*/0.0;
-	REAL rockrho = 2330.0; // SI system
-	REAL gravity = 0.0;//-9.8; // SI system
+//	Parameters
+//	
+//	// Definitions
+//	REAL lamb = 8.3e9;					//	[Pa]
+//	REAL lambu = 13.4e9;						//	[Pa]
+//	REAL alpha = 0.7;						//	[-]
+//	REAL G= 5.5e9;							//	[Pa]
+//	REAL rhof = 1000.0;						//	[kg/m3]
+//	REAL poisson = 0.3;						//	[-]
+//	REAL Eyoung = 2*G*(1+poisson);					//	[Pa]	
+//	REAL Se = ((pow(alpha,2))/(lambu-lamb));//1.35695e-10				//	[-]
+//	REAL rockrho = 0.0;					//	[kg/m3]
+//	REAL gravity = 0.0;					//	[m/s2]
+//	REAL c = 0.082;							//	[m2/s]	
+//	REAL visc = 1.0;						//	[Pa.s]
+//	REAL perm = c*Se;//7.8784288e-15;//1.109542e-14						//	[m2]
+//	REAL qo = -20.0;
+//	REAL Bo = 1.0;
+//	REAL PI = atan(1.)*4.;	
+
+	// Definitions
+	REAL lamb = 8.3e9;					//	[Pa]
+	REAL lambu = 13.4e9;						//	[Pa]
+	REAL alpha = 0.7;						//	[-]
+	REAL G= 5.5e9;							//	[Pa]
+	REAL rhof = 1000.0;						//	[kg/m3]
+	REAL poisson = (lamb)/(2*(lamb+G));						//	[-]
+	REAL Eyoung = (G*(3.0*lamb+2.0*G))/(lamb+G);					//	[Pa]			
+	REAL Ssig = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
+	REAL Se =  ((pow(alpha,2))/((lambu-lamb)));
+	REAL rockrho = 0.0;					//	[kg/m3]
+	REAL gravity = 0.0;					//	[m/s2]
+	REAL c = 0.083;							//	[m2/s]	
+	REAL visc = 0.001;						//	[Pa.s]
+	REAL perm = c*Ssig*visc;//7.8784288e-15;//1.109542e-14						//	[m2]
+	REAL qo = -0.001;
+	REAL Bo = 1.0;
+	REAL PI = atan(1.)*4.;
+	
+	
+//	// Definitions Flamant problem
+//	REAL lamb = 1.0e9;					//	[Pa]
+//	REAL alpha = 0.0;						//	[-]
+//	REAL G= 1.0e9;							//	[Pa]
+//	REAL rhof = 1.0;						//	[kg/m3]
+//	REAL poisson3D = 0.3;						//	[-]
+//	REAL Eyoung3D = (G*(3.0*lamb+2.0*G))/(lamb+G);					//	[Pa]	
+//	REAL poisson = (poisson3D)/(1-poisson3D);						//	[-]
+//	REAL Eyoung = (Eyoung3D)/(1-pow(poisson3D,2.0));					//	[Pa]		
+//	REAL Se = 1.0;//((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
+//	REAL rockrho = 0.0;					//	[kg/m3]
+//	REAL gravity = 0.0;					//	[m/s2]
+//	REAL c = 1.0;							//	[m2/s]	
+//	REAL visc = 1.0;						//	[Pa.s]
+//	REAL perm = c*Se;//7.8784288e-15;//1.109542e-14						//	[m2]
+//	REAL qo = 1.0;
+	REAL Yforce = -1000.0;
+//	REAL Bo = 1.0;
+//	REAL PI = atan(1.)*4.;		
+	
 	REAL fx=0.0;
-	REAL fy=gravity*rockrho;
-	REAL overburdendepth = 2000.0; // SI system
-	REAL layerthickness = 10.0;  // SI system
+	REAL fy=0.0;	
 	
-	REAL perm =/* 5.544*1e-15;*/1.e-10;
-	REAL visc = /*0.00994176;*/1.e-3;
-	int planestress = 1;
-		
+	
+	int planestress = 0; // This is a Plain strain problem
 	mymaterial = new TPZPoroElastic2d (MatId, dim);
-	
 	mymaterial->SetParameters(Eyoung, poisson, fx, fy);
 	mymaterial->SetParameters(perm,visc);
 	mymaterial->SetfPlaneProblem(planestress);
 	mymaterial->SetBiotParameters(alpha,Se);
 	
-	TPZAutoPointer<TPZFunction<STATE> > exata = new TPZDummyFunction<STATE>(SolucaoExata);
-	mymaterial->SetForcingFunctionExact(exata);
+	TPZAutoPointer<TPZFunction<STATE> > TimeDepForcingF;
+	TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact;
+	
+//	TimeDepForcingF = new TPZDummyFunction<STATE>(ForcingTimeDependFunction);
+	TimeDepFExact = new TPZDummyFunction<STATE>(SolucaoExata2DLinesource);
+	mymaterial->SetTimeDependentForcingFunction(TimeDepForcingF);
+	mymaterial->SetTimeDependentFunctionExact(TimeDepFExact);
+
 	
 	ofstream argm("mymaterial.txt");
 	mymaterial->Print(argm);
 	TPZMaterial * mat(mymaterial);
 	mphysics->InsertMaterialObject(mat);
-
+	
 	///--- --- Inserir condicoes de contorno
-{
+	// Radial  Model (1)
+	// Squared Model (2) for consistency
+	// Squared Model (3) for validation
+	// SemiCircular HalfSpace Model (4) for validation	
+	// Graven test (5)		
 	
+	int model = 1;
 	
-	///Inserir CC Neumann com fronteira livre em x para elasticidade e Dirichlet para Pressao
-	TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-	int neumdirich = 200;
-	REAL pDtop=0.;
-	REAL uNtopx=0.;
-	REAL sigma0 = -1000.;
-	REAL uNtopy=sigma0 - alpha*pDtop; //rockrho*gravity*overburdendepth;
-	
-	
-	val2(0,0)=uNtopx;
-	val2(1,0)=uNtopy;
-	val2(2,0)=pDtop;
-	TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop,neumdirich, val1, val2);
-	mphysics->InsertMaterialObject(BCondT);
-	
-	///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-	TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
-	int dirichneuman =1;
-	REAL uDbotx=0.; 
-	REAL uDboty=/*2.80396*1e-9;*/0.;
-	REAL pNbot=0.;
-	val22(0,0)=uDbotx;
-	val22(1,0)=uDboty;
-	val22(2,0)=pNbot;
-	TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom,dirichneuman, val12, val22);
-	mphysics->InsertMaterialObject(BCondBt);
-	
-	///Inserir condicao de Dirichlet de fronteira livre em y para a elasticidade e Neumann para pressao
-	int freeby = 300;
-	TPZFMatrix<REAL> val13(3,2,0.), val23(3,1,0.);
-	REAL ufreeLx = 0.;
-	REAL pNLeft=0.;
-	val23(0,0)=ufreeLx;
-	val23(2,0)=pNLeft;
-	TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, freeby, val13, val23);
-	mphysics->InsertMaterialObject(BCondL);
-	
-	TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
-	REAL ufreeRx = 0.;
-	REAL pNRight=0.;
-	val24(0,0)=ufreeRx;
-	val24(2,0)=pNRight;
-	TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, freeby, val14, val24);
-	mphysics->InsertMaterialObject(BCondR);
-	//-----------
-}
-				
+	switch (model) {
+		case 1:
+		{
+			
+//	Parameters
+//	REAL Eyoung = 3.e4;
+//	REAL poisson = 0.2;
+//	REAL alpha=0.0;
+//	REAL Se=1.0;
+//	REAL rockrho = 2330.0; // SI system
+//	REAL gravity = 0.0;//-9.8; // SI system
+//	REAL fx=0.0;
+//	REAL fy=gravity*rockrho;
+//	REAL overburdendepth = 2000.0; // SI system
+//	REAL layerthickness = 10.0;  // SI system
+//	REAL perm = 1.e-10;
+//	REAL visc = 1.e-3;
+			
+			// elastic problem -> 1 ,  Poisson problem -> 2
+			// Boundary condition D1N2 means: Elastic -> Dirichlet, Pressure -> Neumman
+			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+			int D1D2 = 1;
+			REAL uDx=0.0;
+			REAL uDy=0.0;
+			REAL Pressure=0.0;
+			val2(0,0)=uDx;
+			val2(1,0)=uDy;
+			val2(2,0)=Pressure;
+			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, arc1,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc1);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, arc2,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc2);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, arc3,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc3);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, arc4,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc4);			
+			
+//		Production/Injection Well Just Neumman for Pressure
+		int WellQ = 400;
+		TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
+			REAL MassQ = qo/rhof;
+		valP23(2,0)=MassQ;
+		TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
+		mphysics->InsertMaterialObject(BCPoint);	
+//		-----------
+			
+		}
+		
+			break;
+		case 2:
+		{
+			
+			// elastic problem -> 1 ,  Poisson problem -> 2
+			// Boundary condition D1D2 means: Elastic -> Dirichlet, Pressure -> Dirichlet
+			TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
+			int D1D2 = 100;
+			REAL uDx=0.0;
+			REAL uDy=0.0;
+			REAL Pressure=1000.0;
+			val22(0,0)=uDx;
+			val22(1,0)=uDy;
+			val22(2,0)=Pressure;
+			
+			TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop,D1D2, val12, val22);
+			mphysics->InsertMaterialObject(BCondT);	
+
+			TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom,D1D2, val12, val22);
+			mphysics->InsertMaterialObject(BCondBt);
+			
+			TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, D1D2, val12, val22);
+			mphysics->InsertMaterialObject(BCondL);
+
+			TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, D1D2, val12, val22);
+			mphysics->InsertMaterialObject(BCondR);
+			
+//		Production/Injection Well Just Neumman for Pressure
+		int WellQ = 400;
+		TPZFMatrix<REAL> valPP12(3,2,0.), valPP22(3,1,0.);
+		REAL MassQ=10.0;
+		valPP22(2,0)=MassQ;
+		TPZMaterial * BCPoint = mymaterial->CreateBC(mat, pointsource, WellQ, valPP12, valPP22);
+		mphysics->InsertMaterialObject(BCPoint);	
+//		-----------
+			
+		}
+			
+			break;
+		case 3:
+		{
+			
+//	Poroelastic contribution to the reservoir stress path
+//	Parameters
+//	REAL Eyoung = 1.43e10;					//	[Pa]
+//	REAL poisson = 0.3;						//	[-]
+//	REAL alpha=0.7;							//	[-]
+//	REAL Se=0.0;//9.60784e-11;				//	[-]
+//	REAL rockrho = 2330.0;					//	[kg/m3]
+//	REAL gravity = 0.0;//-9.8;				//	[m/s2]
+//	REAL perm = 8.2e-8;						//	[m2]
+//	REAL visc = 1.e-3;						//	[Pa.s]
+//	REAL c = 0.082;							//	[m2/s]
+
+			//	REAL fx=0.0;
+			//	REAL fy=gravity*rockrho;			
+			
+			/// Setting drained free surface  Boundary condition N1D2 means: Elastic -> Neumman, Pressure -> Dirichlet
+			TPZFMatrix<REAL> val11(3,2,0.), val21(3,1,0.);
+			int N1D2 = 200;
+			REAL sigmax = 0.0;
+			REAL sigmay = 0.0;
+			REAL ptop=0.0;
+			val21(0,0)=sigmax;
+			val21(1,0)=sigmay;
+			val21(2,0)=ptop;
+			TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop, N1D2, val11, val21);
+			mphysics->InsertMaterialObject(BCondT);	
+			
+			/// Setting free displacement non permeable surface  Boundary condition DYFX1N2 means: Elastic -> Dirichlet y component, Pressure -> Neumman
+			TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
+			int DYFX1N2 = 200; 			
+			REAL uDbotx=0.0;
+			REAL uDboty=0.0;
+			REAL pNbot=0.0;
+			val22(0,0)=uDbotx;
+			val22(1,0)=uDboty;
+			val22(2,0)=pNbot;
+			TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom, DYFX1N2, val12, val22);
+			mphysics->InsertMaterialObject(BCondBt);
+			
+			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman
+			int DXFY1N2 = 100;
+			TPZFMatrix<REAL> val13(3,2,0.), val23(3,1,0.);
+			REAL uDleftx = 0.0;
+			REAL uDlefty = 0.0;			
+			REAL pNleft  = 0.0;
+			val23(0,0)=uDleftx;
+			val23(1,0)=uDlefty;			
+			val23(2,0)=pNleft;
+			TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, DXFY1N2, val13, val23);
+			mphysics->InsertMaterialObject(BCondL);
+			
+			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman			
+			TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
+			int D1D2 = 1;
+			REAL uDrightx = 0.0;
+			REAL uDrighty = 0.0;			
+			REAL pNright  = 0.0;
+			val24(0,0)=uDrightx;
+			val24(1,0)=uDrighty;			
+			val24(2,0)=pNright;
+			TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, DXFY1N2, val14, val24);
+			mphysics->InsertMaterialObject(BCondR);
+			
+			//	Production or injection Well point (Q is the injected/produced volume per time [kg/s])
+			int Well = 400;
+			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
+			REAL pQmass=-(qo);// fluid density 1000
+			valP23(2,0)=pQmass;
+			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, Well, valP13, valP23);
+			mphysics->InsertMaterialObject(BCPoint);	
+			//-----------
+			
+		}
+		case 4:
+		{
+			
+//			// Definitions Flamant problem
+//			REAL lamb = 1.0e9;					//	[Pa]
+//			REAL alpha = 0.0;						//	[-]
+//			REAL G= 1.0e9;							//	[Pa]
+//			REAL rhof = 1.0;						//	[kg/m3]
+//			REAL poisson3D = 0.3;						//	[-]
+//			REAL Eyoung3D = (G*(3.0*lamb+2.0*G))/(lamb+G);					//	[Pa]	
+//			REAL poisson = (poisson3D)/(1-poisson3D);						//	[-]
+//			REAL Eyoung = (Eyoung3D)/(1-pow(poisson3D,2.0));					//	[Pa]		
+//			REAL Se = 0.0;//((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
+//			REAL rockrho = 0.0;					//	[kg/m3]
+//			REAL gravity = 0.0;					//	[m/s2]
+//			REAL c = 1.0;							//	[m2/s]	
+//			REAL visc = 1.0;						//	[Pa.s]
+//			REAL perm = c*Se;//7.8784288e-15;//1.109542e-14						//	[m2]
+//			REAL qo = 1.0;			
+//			REAL Yforce = 1.0;
+//			REAL Bo = 1.0;
+//			REAL PI = atan(1.)*4.;		
+//			
+//			REAL fx=0.0;
+//			REAL fy=0.0;			
+			
+			// elastic problem -> 1 ,  Poisson problem -> 2
+			// Boundary condition D1N2 means: Elastic -> Dirichlet, Pressure -> Neumman
+			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+			int D1D2 = 0;
+			int N1D2 = 10;			
+			REAL uDx=0.0;
+			REAL uDy=0.0;
+			REAL Pressure=0.0;
+			val2(0,0)=uDx;
+			val2(1,0)=uDy;
+			val2(2,0)=Pressure;
+			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, bcLeft,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc1);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, bcRight,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc2);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, bcBottom,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc3);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, bcTop,N1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc4);			
+			
+			//		loaded vertical point force Y
+			int N1N2 = 11;
+			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
+			// 170 Elasticity Theory
+			valP23(1,0)=Yforce;
+			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, N1N2, valP13, valP23);
+			mphysics->InsertMaterialObject(BCPoint);	
+			//		-----------
+			
+		}			
+			break;
+		case 5:
+		{
+			
+			// elastic problem -> 1 ,  Poisson problem -> 2
+			// Boundary condition D1N2 means: Elastic -> Dirichlet, Pressure -> Neumman
+			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+			int D1D2 = 10;
+			int N1N2 = 11;
+			int D1FN2 = 300;			
+			REAL uDx=0.0;
+			REAL uDy=0.0;
+			REAL Pressure=0.0;
+			val2(0,0)=uDx;
+			val2(1,0)=uDy;
+			val2(2,0)=Pressure;
+			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, GBTop,N1N2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc1);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, GBBot,D1D2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc2);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, GBleft,D1FN2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc3);
+			
+			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, GBright,D1FN2, val1, val2);
+			mphysics->InsertMaterialObject(BonArc4);			
+			
+			//		Production/Injection Well Just Neumman for Pressure
+			int WellQ = 400;
+			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
+			REAL MassQ = qo/rhof;
+			valP23(2,0)=MassQ;
+			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
+			mphysics->InsertMaterialObject(BCPoint);	
+			//		-----------
+			
+		}			
+			break;			
+		default:
+		{
+#ifdef LOG4CXX
+			{
+				LOGPZ_DEBUG(logger, "Nothing to say, nothig to do")
+			}
+#endif			
+			
+		}
+			 
+			break;
+	}
+		
 	mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();
 	mphysics->CleanUpUnconnectedNodes();
@@ -594,11 +2200,10 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
 	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
     {
-        std::stringstream sout;
-        mphysics->Print(sout);
-        LOGPZ_DEBUG(logger, sout.str())
+//        std::stringstream sout;
+//        mphysics->Print(sout);
+//        LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
 	ofstream arg("mphysic.txt");
@@ -619,11 +2224,11 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	an.SetSolver(step);
 	an.Run();
 	
-	ofstream file("Solution.out");
-	an.Solution().Print("solution", file); 
+//	ofstream file("Solution.out");
+//	an.Solution().Print("solution", file); 
 }
 
-void SolveSistTransient(TPZFMatrix<REAL> matK1, TPZAutoPointer <TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
+void SolveSistTransient(REAL deltime,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZPoroElastic2d  * &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
 	
 	int nrows;
 	nrows = matK2->Rows();
@@ -634,23 +2239,27 @@ void SolveSistTransient(TPZFMatrix<REAL> matK1, TPZAutoPointer <TPZMatrix<REAL> 
 	std::string outputfile;
 	outputfile = "TransientSolution";
 	
-	REAL delt = 1.;
-	REAL Maxtime = 10.;
-	int cent = 0;
-	while (cent*delt < Maxtime)
+	REAL delt = deltime;
+	REAL Maxtime = maxtime;
+	REAL TimeValue = 0.0;
+	int cent = 1;
+	TimeValue = cent*delt; 
+	while (TimeValue < Maxtime)
 	{	
+		// This time solution i for Transient Analytic Solution
+		mymaterial->SetTimeValue(TimeValue);
 		matK2->Multiply(Lastsolution,TotalRhstemp);
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;
+
 		
 #ifdef LOG4CXX
 		if(logdata->isDebugEnabled())
 		{
 			//	Print the temporal solution
-			std::stringstream sout;
-			TotalRhs.Print("Temporal TotalRhs used = ", sout,EMathematicaInput);
-			TotalRhstemp.Print("Temporal TotalRhstemp used = ", sout,EMathematicaInput);
-			LOGPZ_DEBUG(logdata,sout.str())
+//			std::stringstream sout;
+//			matK1.Print("Temporal Solution = ", sout,EMathematicaInput);
+//			TotalRhstemp.Print("Temporal Solution = ", sout,EMathematicaInput);
 		}
 #endif	
 		
@@ -660,11 +2269,11 @@ void SolveSistTransient(TPZFMatrix<REAL> matK1, TPZAutoPointer <TPZMatrix<REAL> 
 		
 #ifdef LOG4CXX
 		//Print the temporal solution
-		if(logdata->isDebugEnabled()){
-			std::stringstream sout;
-			Lastsolution.Print("Temporal Solution = ", sout,EMathematicaInput);
-			LOGPZ_DEBUG(logdata,sout.str())
-		}
+//		if(logdata->isDebugEnabled()){
+//			std::stringstream sout;
+//			Lastsolution.Print("Temporal Solution = ", sout,EMathematicaInput);
+//			LOGPZ_DEBUG(logdata,sout.str())
+//		}
 #endif
 		
 		//General post-processing
@@ -675,19 +2284,50 @@ void SolveSistTransient(TPZFMatrix<REAL> matK1, TPZAutoPointer <TPZMatrix<REAL> 
 		std::string plotfile = outputfiletemp.str();
 		PosProcessMultphysics(meshvec,mphysics,an,plotfile);		
 		
+		// Total mass calculation
+		//
+	
+		int totalel=mphysics->NElements();
+		int vartointegrate = 13;
+		REAL TotalMass=0;
+		
+		
+		
+		for ( int el = 0; el < totalel; el++ )
+		{
+		
+			TPZVec <REAL> result(1,0);
+			TPZCompEl * celvar = mphysics->ElementVec()[el];
+			if (celvar->Reference()->MaterialId() > 0 )// avoid bc conditions
+			{
+				celvar->Integrate(vartointegrate, result);
+				TotalMass += result[0];
+				
+			}
+			
+		}
+		
+		cout << "Numerical total mass  " << TotalMass << "  at time " << TimeValue << endl;
+		cout << "Theorical total mass  " << 0.000001*TimeValue << "  at time " << TimeValue << endl;		
+		
+		//
+		// End TotalMass Calculation
+		
 		// Next Calculation
 		cent++;
+		TimeValue = cent*delt;
 	}
-
+	
+	
 }
 
 void PosProcess(TPZAnalysis &an, std::string plotfile){
 	TPZManVector<std::string,10> scalnames(1), vecnames(1);
 	scalnames[0] = "Solution";
 	vecnames[0]= "MinusKGradU";
-		
+	
 	const int dim = 2;
-	int div = 0;
+	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -703,7 +2343,7 @@ void PosProcess2(TPZAnalysis &an, std::string plotfile){
 	
 	
 	const int dim = 2;
-	int div = 0;
+	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -714,21 +2354,28 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
 {
 	TPZBuildMultiphysicsMesh * Objectdumy;
 	Objectdumy->TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(9), vecnames(2);
+	TPZManVector<std::string,10> scalnames(13), vecnames(3);
 	scalnames[0] = "SigmaX";
 	scalnames[1] = "SigmaY";
-	scalnames[2] = "DisplacementX";
-	scalnames[3] = "DisplacementY";
-	scalnames[4] = "Pressure";
-	scalnames[5] = "SolutionP";
-	scalnames[6] = "PressaoExata";
-	scalnames[7] = "DeslocamentoYExata";
-	scalnames[8] = "SigmaYExata";
-	vecnames[0]= "Displacement";
-	vecnames[1]= "MinusKGradP";
-			
+	scalnames[2] = "TauXY";	
+	scalnames[3] = "DisplacementX";
+	scalnames[4] = "DisplacementY";
+	scalnames[5] = "SolidPressure";
+	scalnames[6] = "FluidPressure";
+	scalnames[7] = "EDisplacementX";
+	scalnames[8] = "EDisplacementY";
+	scalnames[9] = "EPressure";
+	scalnames[10] = "ESIGX";
+	scalnames[11] = "ESIGY";
+	scalnames[12] = "ETAUXY";	
+	vecnames[0]  = "Displacement";
+	vecnames[1]  = "FluxVector";
+	vecnames[2]  = "EDisplacement";	
+	
+	
+	
 	const int dim = 2;
-	int div = 2;
+	int div =0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -909,3 +2556,253 @@ void PrintRefPatternVTK(TPZAutoPointer<TPZRefPattern> refp, std::ofstream &file)
 	PrintGMeshVTK(gmesh, file);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// File: exponential_integral_Ei.c                                            //
+// Routine(s):                                                                //
+//    Exponential_Integral_Ei                                                 //
+//    xExponential_Integral_Ei                                                //
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// double Exponential_Integral_Ei( double x )                                 //
+//                                                                            //
+//  Description:                                                              //
+//     The exponential integral Ei(x) is the integral with integrand          //
+//                             exp(t) / t                                     //
+//     where the integral extends from -inf to x.                             //
+//     Note that there is a singularity at t = 0.  Therefore for x > 0, the   //
+//     integral is defined to be the Cauchy principal value:                  //
+//          lim { I[-inf, -eta] exp(-t) dt / t + I[eta, x] exp(-t) dt / t }   //
+//     in which the limit is taken as eta > 0 approaches 0 and I[a,b]         //
+//     denotes the integral from a to b.                                      //
+//                                                                            //
+//  Arguments:                                                                //
+//     double  x  The argument of the exponential integral Ei().              //
+//                                                                            //
+//  Return Value:                                                             //
+//     The value of the exponential integral Ei evaluated at x.               //
+//     If x = 0.0, then Ei is -inf and -DBL_MAX is returned.                  //
+//                                                                            //
+//  Example:                                                                  //
+//     double y, x;                                                           //
+//                                                                            //
+//     ( code to initialize x )                                               //
+//                                                                            //
+//     y = Exponential_Integral_Ei( x );                                      //
+////////////////////////////////////////////////////////////////////////////////
+double Exponential_Integral_Ei( double x )
+{
+	return (double) xExponential_Integral_Ei( (long double) x);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// long double xExponential_Integral_Ei( long double x )                      //
+//                                                                            //
+//  Description:                                                              //
+//     The exponential integral Ei(x) is the integral with integrand          //
+//                             exp(t) / t                                     //
+//     where the integral extends from -inf to x.                             //
+//     Note that there is a singularity at t = 0.  Therefore for x > 0, the   //
+//     integral is defined to be the Cauchy principal value:                  //
+//          lim { I[-inf, -eta] exp(-t) dt / t + I[eta, x] exp(-t) dt / t }   //
+//     in which the limit is taken as eta > 0 approaches 0 and I[a,b]         //
+//     denotes the integral from a to b.                                      //
+//                                                                            //
+//  Arguments:                                                                //
+//     long double  x  The argument of the exponential integral Ei().         //
+//                                                                            //
+//  Return Value:                                                             //
+//     The value of the exponential integral Ei evaluated at x.               //
+//     If x = 0.0, then Ei is -inf and -DBL_MAX is returned.                  //
+//                                                                            //
+//  Example:                                                                  //
+//     long double y, x;                                                      //
+//                                                                            //
+//     ( code to initialize x )                                               //
+//                                                                            //
+//     y = xExponential_Integral_Ei( x );                                     //
+////////////////////////////////////////////////////////////////////////////////
+
+long double xExponential_Integral_Ei( long double x )
+{
+	if ( x < -5.0L ) return Continued_Fraction_Ei(x);
+	if ( x == 0.0L ) return -DBL_MAX;
+	if ( x < 6.8L )  return Power_Series_Ei(x);
+	if ( x < 50.0L ) return Argument_Addition_Series_Ei(x);
+	return Continued_Fraction_Ei(x);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// static long double Continued_Fraction_Ei( long double x )                  //
+//                                                                            //
+//  Description:                                                              //
+//     For x < -5 or x > 50, the continued fraction representation of Ei      //
+//     converges fairly rapidly.                                              //
+//                                                                            //
+//     The continued fraction expansion of Ei(x) is:                          //
+//        Ei(x) = -exp(x) { 1/(-x+1-) 1/(-x+3-) 4/(-x+5-) 9/(-x+7-) ... }.    //
+//                                                                            //
+//                                                                            //
+//  Arguments:                                                                //
+//     long double  x                                                         //
+//                The argument of the exponential integral Ei().              //
+//                                                                            //
+//  Return Value:                                                             //
+//     The value of the exponential integral Ei evaluated at x.               //
+////////////////////////////////////////////////////////////////////////////////
+
+static long double Continued_Fraction_Ei( long double x )
+{
+	long double Am1 = 1.0L;
+	long double A0 = 0.0L;
+	long double Bm1 = 0.0L;
+	long double B0 = 1.0L;
+	long double a = expl(x);
+	long double b = -x + 1.0L;
+	long double Ap1 = b * A0 + a * Am1;
+	long double Bp1 = b * B0 + a * Bm1;
+	int j = 1;
+	
+	a = 1.0L;
+	while ( fabsl(Ap1 * B0 - A0 * Bp1) > epsilon * fabsl(A0 * Bp1) ) {
+		if ( fabsl(Bp1) > 1.0L) {
+			Am1 = A0 / Bp1;
+			A0 = Ap1 / Bp1;
+			Bm1 = B0 / Bp1;
+			B0 = 1.0L;
+		} else {
+			Am1 = A0;
+			A0 = Ap1;
+			Bm1 = B0;
+			B0 = Bp1;
+		}
+		a = -j * j;
+		b += 2.0L;
+		Ap1 = b * A0 + a * Am1;
+		Bp1 = b * B0 + a * Bm1;
+		j += 1;
+	}
+	return (-Ap1 / Bp1);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// static long double Power_Series_Ei( long double x )                        //
+//                                                                            //
+//  Description:                                                              //
+//     For -5 < x < 6.8, the power series representation for                  //
+//     (Ei(x) - gamma - ln|x|)/exp(x) is used, where gamma is Euler's gamma   //
+//     constant.                                                              //
+//     Note that for x = 0.0, Ei is -inf.  In which case -DBL_MAX is          //
+//     returned.                                                              //
+//                                                                            //
+//     The power series expansion of (Ei(x) - gamma - ln|x|) / exp(x) is      //
+//        - Sum(1 + 1/2 + ... + 1/j) (-x)^j / j!, where the Sum extends       //
+//        from j = 1 to inf.                                                  //
+//                                                                            //
+//  Arguments:                                                                //
+//     long double  x                                                         //
+//                The argument of the exponential integral Ei().              //
+//                                                                            //
+//  Return Value:                                                             //
+//     The value of the exponential integral Ei evaluated at x.               //
+////////////////////////////////////////////////////////////////////////////////
+
+static long double Power_Series_Ei( long double x )
+{ 
+	long double xn = -x;
+	long double Sn = -x;
+	long double Sm1 = 0.0L;
+	long double hsum = 1.0L;
+	long double g = 0.5772156649015328606065121L;
+	long double y = 1.0L;
+	long double factorial = 1.0L;
+	
+	if ( x == 0.0L ) return (long double) -DBL_MAX;
+	
+	while ( fabsl(Sn - Sm1) > epsilon * fabsl(Sm1) ) {
+		Sm1 = Sn;
+		y += 1.0L;
+		xn *= (-x);
+		factorial *= y;
+		hsum += (1.0 / y);
+		Sn += hsum * xn / factorial;
+	}
+	return (g + logl(fabsl(x)) - expl(x) * Sn);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// static long double Argument_Addition_Series_Ei(long double x)              //
+//                                                                            //
+//  Description:                                                              //
+//     For 6.8 < x < 50.0, the argument addition series is used to calculate  //
+//     Ei.                                                                    //
+//                                                                            //
+//     The argument addition series for Ei(x) is:                             //
+//     Ei(x+dx) = Ei(x) + exp(x) Sum j! [exp(j) expj(-dx) - 1] / x^(j+1),     //
+//     where the Sum extends from j = 0 to inf, |x| > |dx| and expj(y) is     //
+//     the exponential polynomial expj(y) = Sum y^k / k!, the Sum extending   //
+//     from k = 0 to k = j.                                                   //
+//                                                                            //
+//  Arguments:                                                                //
+//     long double  x                                                         //
+//                The argument of the exponential integral Ei().              //
+//                                                                            //
+//  Return Value:                                                             //
+//     The value of the exponential integral Ei evaluated at x.               //
+////////////////////////////////////////////////////////////////////////////////
+static long double Argument_Addition_Series_Ei(long double x)
+{
+	static long double ei[] = {
+		1.915047433355013959531e2L,  4.403798995348382689974e2L,
+		1.037878290717089587658e3L,  2.492228976241877759138e3L,
+		6.071406374098611507965e3L,  1.495953266639752885229e4L,
+		3.719768849068903560439e4L,  9.319251363396537129882e4L,
+		2.349558524907683035782e5L,  5.955609986708370018502e5L,
+		1.516637894042516884433e6L,  3.877904330597443502996e6L,
+		9.950907251046844760026e6L,  2.561565266405658882048e7L,
+		6.612718635548492136250e7L,  1.711446713003636684975e8L,
+		4.439663698302712208698e8L,  1.154115391849182948287e9L,
+		3.005950906525548689841e9L,  7.842940991898186370453e9L,
+		2.049649711988081236484e10L, 5.364511859231469415605e10L,
+		1.405991957584069047340e11L, 3.689732094072741970640e11L,
+		9.694555759683939661662e11L, 2.550043566357786926147e12L,
+		6.714640184076497558707e12L, 1.769803724411626854310e13L,
+		4.669055014466159544500e13L, 1.232852079912097685431e14L,
+		3.257988998672263996790e14L, 8.616388199965786544948e14L,
+		2.280446200301902595341e15L, 6.039718263611241578359e15L,
+		1.600664914324504111070e16L, 4.244796092136850759368e16L,
+		1.126348290166966760275e17L, 2.990444718632336675058e17L,
+		7.943916035704453771510e17L, 2.111342388647824195000e18L,
+		5.614329680810343111535e18L, 1.493630213112993142255e19L,
+		3.975442747903744836007e19L, 1.058563689713169096306e20L
+	};
+	int  k = (int) (x + 0.5);
+	int  j = 0;
+	long double xx = (long double) k;
+	long double dx = x - xx;
+	long double xxj = xx;
+	long double edx = expl(dx);
+	long double Sm = 1.0L;
+	long double Sn = (edx - 1.0L) / xxj;
+	long double term = DBL_MAX;
+	long double factorial = 1.0L;
+	long double dxj = 1.0L;
+	
+	while (fabsl(term) > epsilon * fabsl(Sn) ) {
+		j++;
+		factorial *= (long double) j;
+		xxj *= xx;
+		dxj *= (-dx);
+		Sm += (dxj / factorial);
+		term = ( factorial * (edx * Sm - 1.0L) ) / xxj;
+		Sn += term;
+	}
+	
+	return ei[k-7] + Sn * expl(xx); 
+}

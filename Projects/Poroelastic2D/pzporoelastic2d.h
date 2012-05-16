@@ -1,9 +1,14 @@
-/**
- * @file
+/*
+ *  pzporoelastic2d.h
+ *  PZ
+ *
+ *  Created by Agnaldo on 11/28/11.
+ *  Copyright 2011 __MyCompanyName__. All rights reserved.
+ *
  */
 
-#ifndef PZPOROELASTIC2DH 
-#define PZPOROELASTIC2DH
+#ifndef POISSONDESACOPLADOSH
+#define POISSONDESACOPLADOSH
 
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
@@ -59,7 +64,11 @@ protected:
 	
 	/// timestep [s]
 	REAL fTimeStep;
-			
+	
+	REAL fTimeValue;
+	
+	REAL fCoupledfactor;
+	
 	REAL fmatId;
 	
 	/** @brief State: one ou one+1 */
@@ -97,6 +106,7 @@ public:
 	 * @param nu poisson coefficient
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
+	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
 	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy)
 	{
@@ -106,8 +116,7 @@ public:
 		ff[1] = fy;
 	}
 	
-	/**
-	 * @brief Set falpha parameter
+	/** @brief Set falpha parameter
 	 * @param alpha : constant poroelastic Biot [dimensionless]
 	 * @param Se : Coeficiente poroelastico de armazenamento a volume constante [adimensional]
 	 */
@@ -132,6 +141,25 @@ public:
 		fTimeStep = delt;
 	}
 	
+	/// Set the timestep
+	void SetTimeValue(REAL TimeValue)
+	{
+		fTimeValue = TimeValue;
+	}	
+	
+	/// Set the kind of coupling: coupled -> true, uncoupled -> false
+	void SetCoupled(bool coupled)
+	{
+		if (coupled) {
+			fCoupledfactor = -1.0;
+		}
+		else {
+			fCoupledfactor = 1.0;
+		}
+
+	}
+	
+	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data
@@ -147,13 +175,12 @@ public:
 	
 	virtual int NSolutionVariables(int var);
 
+	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @param data [in]
-	 * @param dataleft [in]
-	 * @param dataright [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -164,7 +191,6 @@ public:
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point
 	 * @param data [in]
-	 * @param dataleft [in]
 	 * @param weight [in]
 	 * @param ek [out] is the stiffness matrix
 	 * @param ef [out] is the load vector
@@ -177,7 +203,6 @@ public:
 	/** @name Contribute methods
 	 * @{
 	 */
-	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
      * @param data [in] stores all input data
@@ -189,6 +214,7 @@ public:
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef) {
 		DebugStop();
 	}
+    
 	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one BC integration point.
@@ -202,8 +228,12 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 		DebugStop();
 	}
+	/**
+	 * @brief Computes the error due to the difference between the interpolated flux \n
+	 * and the flux computed based on the derivative of the solution
+	 */
+//    virtual void ErrorMassCal(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val);
 	
-	/* @} */
+	
 };
-
 #endif
