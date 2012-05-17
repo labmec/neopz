@@ -43,7 +43,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 	int isub = 0;
 	if (fNumThreads == 0) {
 		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
-            
+            if(0)
             {
                 TPZFileStream out;
                 out.OpenWrite("dohr.txt");
