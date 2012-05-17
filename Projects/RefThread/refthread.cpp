@@ -1,12 +1,12 @@
 /// -----------
 
-#define REFTHREADTESTS			//enabling the tests
-//#define REFTHREAD				//main refthread
+//#define REFTHREADTESTS			//enabling the tests
+#define REFTHREAD				//main refthread
 //#define REFTHREADSERIAL		//serial implementation
 
 /// On REFTHREADTESTS:
 
-#define TEST 6
+#define TEST 7
 
 // if TEST = 1				//for testing operator=() on the vector
 // if TEST = 2				//for testing AllocateNewElement() on the vector
@@ -14,6 +14,7 @@
 // if TEST = 4				//for testing SetFree() on the vector
 // if TEST = 5				//for testing operator[]() on the vector
 // if TEST = 6				//for testing FindObject() on the vector
+// if TEST = 7				//for testing CompactDataStructure() on the vector
 
 /// -----------
 
@@ -33,8 +34,13 @@ using namespace std;
 
 pthread_t threads [NTHREADS];
 
+#if TEST==1
 TPZAdmChunkVectorThreadSafe <int> cpyvect[NITERATIONS];
+#endif
+
+#if TEST==6
 int objids[NITERATIONS];
+#endif
 
 struct threaddt {
 	TPZAdmChunkVectorThreadSafe <int> *vectin;
@@ -44,7 +50,8 @@ struct threaddt {
 	int threadid;
 };
 
-void *operatorequal (void *arg)
+#if TEST==1
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	// int initid = internaldata->initid;
@@ -58,8 +65,10 @@ void *operatorequal (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
 
-void *allocatenewel (void *arg)
+#if TEST==2
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	// int initid = internaldata->initid;
@@ -74,8 +83,10 @@ void *allocatenewel (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
 
-void *resizevec (void *arg)
+#if TEST==3
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	// int initid = internaldata->initid;
@@ -89,8 +100,10 @@ void *resizevec (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
 
-void *stfree (void *arg)
+#if TEST==4
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	int initid = internaldata->initid;
@@ -104,8 +117,10 @@ void *stfree (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
 
-void *operatoropenclose (void *arg)
+#if TEST==5
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	int initid = internaldata->initid;
@@ -119,8 +134,10 @@ void *operatoropenclose (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
 
-void *findobj (void *arg)
+#if TEST==6
+void *function (void *arg)
 {
 	threaddt *internaldata = (threaddt *) arg;
 	// int initid = internaldata->initid;
@@ -137,6 +154,24 @@ void *findobj (void *arg)
 	
 	pthread_exit(0);
 }
+#endif
+
+#if TEST==7
+void *function (void *arg)
+{
+	threaddt *internaldata = (threaddt *) arg;
+	// int initid = internaldata->initid;
+	// int endid = internaldata->endid;
+	TPZAdmChunkVectorThreadSafe <int> *internalvect = internaldata->vectin;
+	
+	for (int i=0; i<NITERATIONS; i++)
+	{
+		internalvect->CompactDataStructure(2);
+	}
+	
+	pthread_exit(0);
+}
+#endif
 
 int main()
 {	
@@ -194,33 +229,20 @@ int main()
 			thread_data[i].obj[j] = &(thread_data[i].vectin->operator[]((i*SIZEBLOCK)+j));
 		}
 		#endif
+		
+		#if TEST==7
+		thread_data[i].initid = (i*SIZEBLOCK);
+		thread_data[i].endid = (i*SIZEBLOCK + (SIZEBLOCK-1));
+		
+		for (int j=0; j<SIZEBLOCK; j++) {
+			vect->AllocateNewElement();
+		}
+		#endif
 	}
 	
 	for (threadnumber=0; threadnumber<NTHREADS;)
 	{
-		#if TEST==1
-		err = pthread_create (&threads[threadnumber], NULL, operatorequal, (void *) &thread_data[threadnumber]);
-		#endif
-	
-		#if TEST==2
-		err = pthread_create (&threads[threadnumber], NULL, allocatenewel, (void *) &thread_data[threadnumber]);
-		#endif
-		
-		#if TEST==3
-		err = pthread_create (&threads[threadnumber], NULL, resizevec, (void *) &thread_data[threadnumber]);
-		#endif
-		
-		#if TEST==4
-		err = pthread_create (&threads[threadnumber], NULL, stfree, (void *) &thread_data[threadnumber]);
-		#endif
-		
-		#if TEST==5
-		err = pthread_create (&threads[threadnumber], NULL, operatoropenclose, (void *) &thread_data[threadnumber]);
-		#endif
-		
-		#if TEST==6
-		err = pthread_create (&threads[threadnumber], NULL, findobj, (void *) &thread_data[threadnumber]);
-		#endif
+		err = pthread_create (&threads[threadnumber], NULL, function, (void *) &thread_data[threadnumber]);
 		
 		if (err)
 		{
@@ -254,7 +276,7 @@ int main()
 
 #endif
 
-
+//------------------------------------------------------------//
 
 #ifdef REFTHREAD
 
@@ -531,6 +553,8 @@ int main ()
 }
 
 #endif
+
+//------------------------------------------------------------//
 
 #ifdef REFTHREADSERIAL
 

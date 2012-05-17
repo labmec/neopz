@@ -27,28 +27,50 @@ class TPZAdmChunkVectorThreadSafe : public TPZAdmChunkVector<T,EXP>
 	
 	void SetFree(int index);
 	
-	inline int NFreeElements();
+	int NFreeElements();
+	
+	int NElements() const;
 	
 	void CompactDataStructure(int type=2);
 	
-	inline void Resize(const int newsize);
+	int PrintFree(int i);
 	
-	T &operator[](const int nelem);
+	void Resize(const int newsize);
+	
+	T &operator[](const int nelem) const;
 	
 	int FindObject(T *obj);
 	
 private:
 
-	pthread_mutex_t fAdmChunkVectorLock;
+	mutable pthread_mutex_t fAdmChunkVectorLock;
 	
 };
 
 //--| IMPLEMENTATION |----------------------------------------------------------
 
 template< class T , int EXP>
-inline int TPZAdmChunkVectorThreadSafe<T,EXP>::NFreeElements() {
+int TPZAdmChunkVectorThreadSafe<T,EXP>::NFreeElements() {
 	pthread_mutex_lock(&fAdmChunkVectorLock);
 	int resul = TPZAdmChunkVector<T,EXP>::NFreeElements();
+	pthread_mutex_unlock(&fAdmChunkVectorLock);
+	
+	return resul;
+}
+
+template< class T , int EXP>
+int TPZAdmChunkVectorThreadSafe<T,EXP>::PrintFree(int i) {
+	pthread_mutex_lock(&fAdmChunkVectorLock);
+	int resul = TPZAdmChunkVector<T,EXP>::PrintFree(i);
+	pthread_mutex_unlock(&fAdmChunkVectorLock);
+	
+	return resul;
+}
+
+template< class T , int EXP>
+int TPZAdmChunkVectorThreadSafe<T,EXP>::NElements() const{
+	pthread_mutex_lock(&fAdmChunkVectorLock);
+	int resul = TPZChunkVector<T,EXP>::NElements();
 	pthread_mutex_unlock(&fAdmChunkVectorLock);
 	
 	return resul;
@@ -113,7 +135,7 @@ void TPZAdmChunkVectorThreadSafe<T,EXP>::Resize(const int newsize) {
 }
 
 template< class T, int EXP >
-inline T &TPZAdmChunkVectorThreadSafe<T,EXP>::operator[](const int nelem) {
+inline T &TPZAdmChunkVectorThreadSafe<T,EXP>::operator[](const int nelem) const {
 	pthread_mutex_lock(&fAdmChunkVectorLock);
 	T &resul = TPZChunkVector<T,EXP>::operator[](nelem);
 	pthread_mutex_unlock(&fAdmChunkVectorLock);
