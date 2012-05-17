@@ -27,6 +27,7 @@
 #include "TPZVTKGeoMesh.h"
 #include <pzgengrid.h>
 
+using namespace std;
 
 
 /**
@@ -71,8 +72,8 @@ void MeshGeneration::GeometricMesh2DValidation()
 	gRefDBase.InitializeRefPatterns();
 	gRefDBase.InitializeAllUniformRefPatterns();
 	ofstream RefinElPatterns("RefElPatterns.txt");
-	gRefDBase.WriteRefPatternDBase(RefinElPatterns); 	
-	gRefDBase.ReadRefPatternDBase("RefElPatterns.txt");	
+	gRefDBase.WriteRefPatternDBase(RefinElPatterns);
+	gRefDBase.ReadRefPatternDBase("RefElPatterns.txt");
 	
 	int nodenumber = 9;
 	REAL ModelRadius = this->frLength;
