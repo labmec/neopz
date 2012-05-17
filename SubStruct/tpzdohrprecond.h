@@ -17,6 +17,8 @@
 #include <list>
 #include <semaphore.h>
 
+#include "pz_pthread.h"
+
 /**
  * \addtogroup substructure
  * @{
@@ -65,6 +67,14 @@ public:
 	/** It will compute the coarse matrix, coarse residual and any other necessary data structures */
 	void Initialize();
     
+        /**
+         * Specify the number of threads for preconditioning
+         */
+        void SetNumThreads(int numthreads)
+        {
+	  fNumThreads = numthreads;
+        }
+
 	/**
 	 * @brief The only method any matrix class needs to implement
 	 * @param x Is x on the above operation. It must be a vector!
@@ -194,11 +204,11 @@ template <class TVar, class TSubStruct>
 struct TPZDohrPrecondV2SubDataList {
 	TPZDohrPrecondV2SubDataList(TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemble) : fAssemblyStructure(assemble)
 	{
-		pthread_mutex_init(&fAccessLock, 0);
+	  PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrPrecondV2SubDataList::TPZDohrPrecondV2SubDataList()");
 	}
 	~TPZDohrPrecondV2SubDataList()
 	{
-		pthread_mutex_destroy(&fAccessLock);
+	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrPrecondV2SubDataList::~TPZDohrPrecondV2SubDataList()");
 	}
 	/** @brief Mutex which will enable the access protection of the list */
 	pthread_mutex_t fAccessLock;
@@ -207,20 +217,20 @@ struct TPZDohrPrecondV2SubDataList {
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrPrecondV2SubData<TVar, TSubStruct> &data)
 	{
-		pthread_mutex_lock(&fAccessLock);
-		fWork.push_back(data);
-		pthread_mutex_unlock(&fAccessLock);
+	  PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
+	  fWork.push_back(data);
+	  PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrPrecondV2SubData<TVar, TSubStruct> PopItem()
 	{
 		TPZDohrPrecondV2SubData<TVar, TSubStruct> result;
-		pthread_mutex_lock(&fAccessLock);
+		PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-		pthread_mutex_unlock(&fAccessLock);
+		PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrPrecondV2SubDataList::PopItem()");
 		return result;
 	}
 	

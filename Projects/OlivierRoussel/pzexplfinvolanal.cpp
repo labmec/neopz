@@ -10,7 +10,7 @@
 #include "pzinterpolationspace.h"
 #include "pzeuler.h"
 #include "adapt.h"
-
+#include "pz_pthread.h"
 using namespace std;
 
 
@@ -344,12 +344,12 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
   pthread_t allthreads[nthreads];
   for(int ithread = 0; ithread < nthreads; ithread++){
     allthreads[ithread] = NULL;
-    pthread_create(&allthreads[ithread],NULL,ExecuteParallelComputeFlux, fVecFaces[ithread]);
+    PZ_PTHREAD_CREATE(&allthreads[ithread],NULL,ExecuteParallelComputeFlux, fVecFaces[ithread], "TPZExplFinVolAnal::ParallelComputeFlux()");
   }///threads
 
   for(int i=0;i<nthreads;i++){
     if(!allthreads[i]) continue;
-    pthread_join(allthreads[i], NULL);
+    PZ_PTHREAD_JOIN(allthreads[i], NULL, "TPZExplFinVolAnal::ParallelComputeFlux()");
   }
 
 //   for(int i = 0; i < nthreads; i++){

@@ -6,7 +6,7 @@
 #ifndef TPZAUTOPOINTER_H
 #define TPZAUTOPOINTER_H
 
-#include <pthread.h>
+#include "pz_pthread.h"
 
 /**
  * \addtogroup util
@@ -16,7 +16,39 @@
 /**
  * @brief Increment and Decrement actions are mutexed by this mutex
  */
-extern pthread_mutex_t gAutoPointerMutex;
+#define AP_MUTEX_ARRAY_SZ 512
+
+/* Define PROFILE_AP_MUTEXES if you want to profile the autopointer mutexes use. */
+//#define PROFILE_AP_MUTEXES
+
+#ifdef PROFILE_AP_MUTEXES
+  extern unsigned long long ap_mutex_accesses[];
+#endif
+
+#define AP_MUTEX_HASH_1         \
+  addr = (addr >> 32) ^ addr;   \
+  addr = (addr >> 16) ^ addr;   \
+  addr = (addr >> 8)  ^ addr;   \
+  addr = (addr >> 4)  ^ addr;   \
+  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+
+#define AP_MUTEX_HASH_2         \
+  addr = (addr >> 8)  ^ addr;   \
+  addr = (addr >> 4)  ^ addr;   \
+  i = (unsigned) (addr % AP_MUTEX_ARRAY_SZ)
+
+extern pthread_mutex_t gAutoPointerMutexArray[];
+inline pthread_mutex_t* get_ap_mutex(void* obj)
+{
+  unsigned i;
+  unsigned long long addr = (unsigned long long) obj;
+  //  AP_MUTEX_HASH_1;
+  AP_MUTEX_HASH_2;
+#ifdef PROFILE_AP_MUTEXES
+  ap_mutex_accesses[i]++;
+#endif
+  return &(gAutoPointerMutexArray[i]);
+}
 
 /**
  * @brief This class implements a reference counter mechanism to administer a dynamically allocated object. \ref util "Utility"
@@ -54,18 +86,18 @@ class TPZAutoPointer {
 		/** @brief Increment the counter */
 		void Increment()
 		{
-			pthread_mutex_lock(&gAutoPointerMutex);
-			fCounter++;
-			pthread_mutex_unlock(&gAutoPointerMutex);
+		  PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
+		  fCounter++;
+		  PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 		}
 		/** @brief Decrease the counter. If the counter is zero, delete myself */
 		void Decrease()
 		{
 			int should_delete = 0;
-			pthread_mutex_lock(&gAutoPointerMutex);
+		        PZ_PTHREAD_MUTEX_LOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 			fCounter--;
 			if(fCounter <= 0) should_delete = 1;
-			pthread_mutex_unlock(&gAutoPointerMutex);
+		        PZ_PTHREAD_MUTEX_UNLOCK(get_ap_mutex((void*) this), __PRETTY_FUNCTION__);
 			if(should_delete) 
 			{
 				delete this;

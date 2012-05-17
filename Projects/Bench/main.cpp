@@ -1,5 +1,5 @@
 #include <vector>
-#include <pthread.h>
+#include <pz_pthread.h>
 #include "pzvec.h"
 #include "pzfmatrix.h"
 #ifdef USING_ATLAS
@@ -84,7 +84,7 @@ void * MultiplySubmat(void * data){
 	//cout << "Using ATLAS" << endl;
 	#endif
 
-	pthread_mutex_lock(submat->mutex);
+	PZ_PTHREAD_MUTEX_LOCK(submat->mutex,"MultiplySubmat()");
 
 	for(i=0;i<submat->vector.NElements();i++){
 		//cout << vetorb[i] << " " << endl;
@@ -93,7 +93,7 @@ void * MultiplySubmat(void * data){
 	}
 	cout.flush();
 	//contribuir no global
-	pthread_mutex_unlock(submat->mutex);
+	PZ_PTHREAD_MUTEX_UNLOCK(submat->mutex,"MultiplySubmat()");
 };
         
 int TestZAXPY();
@@ -137,7 +137,7 @@ int main(){
 //	TestZAXPY();
 
  	pthread_mutex_t VectorMutex;
-	pthread_mutex_init(&VectorMutex, NULL);
+	PZ_PTHREAD_MUTEX_INIT(&VectorMutex, NULL,"main()");
 	int i, j, size;
 	cin >> size; //Must be a multiple of ndivisions
 
@@ -230,7 +230,7 @@ int main(){
 		data->vr = &vetorResult;
 		data->starting_row = sr;//counter * division_size;
 		data->mutex = &VectorMutex;
-		pthread_create(&mthreads[i], NULL, MultiplySubmat, data);
+		PZ_PTHREAD_CREATE(&mthreads[i], NULL, MultiplySubmat, data, "main()");
 		counter++;
 		if(counter==ndivisions) {
 			sr+=division_size;
@@ -240,11 +240,11 @@ int main(){
 	}
 
 	for(i=0;i<ndivisions*ndivisions;i++){
-		pthread_join(mthreads[i], NULL);
+	  PZ_PTHREAD_JOIN(mthreads[i], NULL, "main()");
 	}
 
 	cout << "Resultado final\n";
-	pthread_mutex_lock(&VectorMutex);
+	PZ_PTHREAD_MUTEX_LOCK(&VectorMutex,"main()");
 	time (& endtime);
 	cout << "End Time " << endtime << endl;
 	cout.flush();
@@ -253,9 +253,7 @@ int main(){
 	/*for(i=0;i<size;i++){
 		cout << vetorResult[i] << endl;
 	}*/
-	pthread_mutex_unlock(&VectorMutex);
-	
-
+	PZ_PTHREAD_MUTEX_UNLOCK(&VectorMutex,"main()");
 }
 
 

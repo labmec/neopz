@@ -16,26 +16,26 @@ static LoggerPtr logger(Logger::getLogger("pz.util.semaphore"));
 TPZSemaphore::TPZSemaphore(void)
 {
 	fCounter = 0;
-	pthread_mutex_init(&fMutex, NULL);
-	pthread_cond_init(&fCond, NULL);
+        PZ_PTHREAD_MUTEX_INIT(&fMutex, NULL, "TPZSemaphore::TPZSemaphore()");
+        PZ_PTHREAD_COND_INIT(&fCond, NULL, "TPZSemaphore::TPZSemaphore()");
 }
 
 TPZSemaphore::~TPZSemaphore(void)
 {
-	pthread_mutex_destroy(&fMutex);
-	pthread_cond_destroy(&fCond);
+        PZ_PTHREAD_MUTEX_DESTROY(&fMutex, "TPZSemaphore::~TPZSemaphore()");
+        PZ_PTHREAD_COND_DESTROY(&fCond, "TPZSemaphore::~TPZSemaphore()");
 }
 
 TPZSemaphore::TPZSemaphore(int initCount)
 {
 	fCounter = initCount;
-	pthread_mutex_init(&fMutex, NULL);
-	pthread_cond_init(&fCond, NULL);
+        PZ_PTHREAD_MUTEX_INIT(&fMutex, NULL, "TPZSemaphore::TPZSemaphore(int)");
+        PZ_PTHREAD_COND_INIT(&fCond, NULL, "TPZSemaphore::TPZSemaphore(int)");
 }
 
 void TPZSemaphore::Wait()
 {
-	pthread_mutex_lock(&fMutex);
+        PZ_PTHREAD_MUTEX_LOCK(&fMutex, "TPZSemaphore::Wait()");
 	if (fCounter > 0)
 	{
 		fCounter--;
@@ -48,11 +48,11 @@ void TPZSemaphore::Wait()
 			LOGPZ_DEBUG(logger,sout.str())
 		}
 #endif
-		pthread_mutex_unlock(&fMutex);
+		PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Wait()");
 		return;
 	}
 	while (fCounter == 0) {
-		pthread_cond_wait(&fCond, &fMutex);
+                PZ_PTHREAD_COND_WAIT(&fCond, &fMutex, "TPZSemaphore::Wait()");
 		if (fCounter > 0) {
 			fCounter--;
 #ifdef LOG4CXX
@@ -64,7 +64,7 @@ void TPZSemaphore::Wait()
 				LOGPZ_DEBUG(logger,sout.str())
 			}
 #endif
-			pthread_mutex_unlock(&fMutex);
+			PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Wait()");
 			return;
 		}
 	}
@@ -73,7 +73,7 @@ void TPZSemaphore::Wait()
 
 void TPZSemaphore::Post()
 {
-	pthread_mutex_lock(&fMutex);
+	PZ_PTHREAD_MUTEX_LOCK(&fMutex, "TPZSemaphore::Post()");
 	fCounter++;
 #ifdef LOG4CXX
 	if(logger->isDebugEnabled())
@@ -84,7 +84,7 @@ void TPZSemaphore::Post()
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
-	pthread_cond_signal(&fCond);
-	pthread_mutex_unlock(&fMutex);
+	PZ_PTHREAD_COND_SIGNAL(&fCond, "TPZSemaphore::Post()");
+	PZ_PTHREAD_MUTEX_UNLOCK(&fMutex, "TPZSemaphore::Post()");
 	return;
 }

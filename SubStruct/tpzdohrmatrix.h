@@ -19,6 +19,8 @@
 
 #include "tpzdohrassemblelist.h"
 
+#include "pz_pthread.h"
+
 /**
  * @brief Implements a matrix divided into substructures. \ref matrix "Matrix" \ref substructure "Sub structure"
  * @ingroup substructure matrix
@@ -205,11 +207,13 @@ struct TPZDohrThreadMultList
 	TPZDohrThreadMultList(const TPZFMatrix<TVar> &x, TVar alpha, TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, TPZAutoPointer<TPZDohrAssembleList<TVar> > &assemblestruct) : fInput(&x), fAlpha(alpha), 
 	fAssembly(assembly), fAssemblyStructure(assemblestruct)
 	{
-		pthread_mutex_init(&fAccessLock, 0);
+	  PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrThreadMultList::TPZDohrThreadMultList(...)");
 	}
+  //FIXME: Edson -- Este nao deveria ser um destrutor?
+  #warning "Edson: este nao deveria ser um destrutor?"
 	TPZDohrThreadMultList()
 	{
-		pthread_mutex_destroy(&fAccessLock);
+	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrThreadMultList::TPZDohrThreadMultList()");
 	}
 	
 	/** @brief The procedure which executes the lengthy process */
@@ -217,20 +221,20 @@ struct TPZDohrThreadMultList
 	/** @brief Interface to add items in a thread safe way */
 	void AddItem(TPZDohrThreadMultData<TSubStruct> &data)
 	{
-		pthread_mutex_lock(&fAccessLock);
+	        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 		fWork.push_back(data);
-		pthread_mutex_unlock(&fAccessLock);
+	        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::AddItem()");
 	}
 	/** @brief Interface to pop an item in a thread safe way */
 	TPZDohrThreadMultData<TSubStruct> PopItem()
 	{
 		TPZDohrThreadMultData<TSubStruct> result;
-		pthread_mutex_lock(&fAccessLock);
+	        PZ_PTHREAD_MUTEX_LOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		if (fWork.size()) {
 			result = *fWork.begin();
 			fWork.pop_front();
 		}
-		pthread_mutex_unlock(&fAccessLock);
+	        PZ_PTHREAD_MUTEX_UNLOCK(&fAccessLock, "TPZDohrThreadMultList::PopItem()");
 		return result;
 	}
 };

@@ -25,6 +25,8 @@ extern "C"{
 
 #include "pzlog.h"
 
+#include "pz_pthread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylparmatrix"));
 #endif
@@ -182,14 +184,14 @@ void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 	int aux_col;//, k;
 	int col, prevcol;
 	prevcol=0;
-	pthread_mutex_lock(&skymutex);
+	PZ_PTHREAD_MUTEX_LOCK(&skymutex, "TPZSkylParMatrix::ParallelCholesky()");
 	int neq = loc->Dim();
 	while (loc->fEqDec < neq-1) {
 		loc->ColumnToWork(col, prevcol);
 		if(col==-1) {
 			cout.flush();
 			if(neq-loc->fEqDec > loc->fNthreads){
-				pthread_cond_wait(&condition, &skymutex);
+				PZ_PTHREAD_COND_WAIT(&condition, &skymutex, "TPZSkylParMatrix::ParallelCholesky()");
 			}else
 			{
 				//loc->fNthreads--;
@@ -208,8 +210,8 @@ void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 					break;
 				}
 			}
-			pthread_cond_signal(&condition);
-			pthread_mutex_unlock(&skymutex);
+			PZ_PTHREAD_COND_SIGNAL(&condition, "TPZSkylParMatrix::ParallelCholesky()");
+			PZ_PTHREAD_MUTEX_UNLOCK(&skymutex, "TPZSkylParMatrix::ParallelCholesky()");
 			if(loc->fCorrectSingular)
 			{
 				loc->DecomposeColumn(col, prevcol,loc->fSingular);//loc->DecomposeColumn2(col, prevcol);
@@ -218,7 +220,7 @@ void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 				loc->DecomposeColumn(col, prevcol);
 			}
 			
-			pthread_mutex_lock(&skymutex);
+			PZ_PTHREAD_MUTEX_LOCK(&skymutex, "TPZSkylParMatrix::ParallelCholesky()");
 			loc->fDec[col]=prevcol;
 			loc->fThreadUsed[aux_col]=-1;
 			if (col==prevcol) {
@@ -236,8 +238,8 @@ void * TPZSkylParMatrix<TVar>::ParallelCholesky(void *t) {
 			
 		}
 	}
-	pthread_mutex_unlock(&skymutex);
-	pthread_cond_broadcast(&condition);
+	PZ_PTHREAD_MUTEX_UNLOCK(&skymutex, "TPZSkylParMatrix::ParallelCholesky()");
+	PZ_PTHREAD_COND_BROADCAST(&condition, "TPZSkylParMatrix::ParallelCholesky()");
 	cout << endl;
 	cout.flush();
 	return 0;
@@ -251,14 +253,14 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt(void *t) {
 	int aux_col;//, k;
 	int col, prevcol;
 	prevcol=0;
-	pthread_mutex_lock(&skymutex);
+	PZ_PTHREAD_MUTEX_LOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt()");
 	int neq = loc->Dim();
 	while (loc->fEqDec < neq-1) {
 		loc->ColumnToWork(col, prevcol);
 		if(col==-1) {
 			cout.flush();
 			if(neq-loc->fEqDec > loc->fNthreads){
-				pthread_cond_wait(&condition, &skymutex);
+				PZ_PTHREAD_COND_WAIT(&condition, &skymutex,"TPZSkylParMatrix::ParallelLDLt()");
 			}else
 			{
 				//loc->fNthreads--;
@@ -277,10 +279,10 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt(void *t) {
 					break;
 				}
 			}
-			pthread_cond_signal(&condition);
-			pthread_mutex_unlock(&skymutex);
+			PZ_PTHREAD_COND_SIGNAL(&condition,"TPZSkylParMatrix::ParallelLDLt()");
+			PZ_PTHREAD_MUTEX_UNLOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt()");
 			loc->DecomposeColumnLDLt(col, prevcol);//loc->DecomposeColumn2(col, prevcol);
-			pthread_mutex_lock(&skymutex);
+			PZ_PTHREAD_MUTEX_LOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt()");
 			loc->fDec[col]=prevcol;
 			loc->fThreadUsed[aux_col]=-1;
 			if (col==prevcol) {
@@ -298,8 +300,8 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt(void *t) {
 			
 		}
 	}
-	pthread_mutex_unlock(&skymutex);
-	pthread_cond_broadcast(&condition);
+	PZ_PTHREAD_MUTEX_UNLOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt()");
+	PZ_PTHREAD_COND_BROADCAST(&condition,"TPZSkylParMatrix::ParallelLDLt()");
 	cout << endl;
 	cout.flush();
 	return 0;
@@ -312,14 +314,14 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 	TPZSkylParMatrix<TVar> *loc = (TPZSkylParMatrix<TVar> *) t;
 	int col = 0, prevcol;
 	prevcol=0;
-	pthread_mutex_lock(&skymutex);
+	PZ_PTHREAD_MUTEX_LOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 	int neq = loc->Dim();
 	while (loc->fNumDecomposed < neq) {
 		loc->ColumnToWork(col);
 		if(col==-1) {
 			cout.flush();
 			if(neq-loc->fNumDecomposed > loc->fNthreads){
-				pthread_cond_wait(&condition, &skymutex);
+				PZ_PTHREAD_COND_WAIT(&condition, &skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 				col = 0;
 			}else
 			{
@@ -331,11 +333,11 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 			
 			//Registers the working column number
 			loc->fColUsed.insert(col);
-			pthread_cond_signal(&condition);
-			pthread_mutex_unlock(&skymutex);
+			PZ_PTHREAD_COND_SIGNAL(&condition,"TPZSkylParMatrix::ParallelLDLt2()");
+			PZ_PTHREAD_MUTEX_UNLOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 			loc->DecomposeColumnLDLt2(col);//loc->DecomposeColumn2(col, prevcol);
 			
-			pthread_mutex_lock(&skymutex);
+			PZ_PTHREAD_MUTEX_LOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 			if(loc->fDec[col] == col)
 			{
 				loc->fNumDecomposed++;
@@ -344,9 +346,9 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 		}
 	}
 	loc->fNthreads--;
-	pthread_cond_broadcast(&condition);
+	PZ_PTHREAD_COND_BROADCAST(&condition,"TPZSkylParMatrix::ParallelLDLt2()");
 	cout << "Terminating thread " << pthread_self() << " numthreads = " << loc->fNthreads << " numdecomposed " << loc->fNumDecomposed <<  endl;
-	pthread_mutex_unlock(&skymutex);
+	PZ_PTHREAD_MUTEX_UNLOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 	cout << endl;
 	cout.flush();
 	return 0;
@@ -392,9 +394,15 @@ int TPZSkylParMatrix<TVar>::Decompose_Cholesky()
 	
 	fEqDec=-1;
 	
-	for(i=0;i<fNthreads-1;i++) res[i] = pthread_create(&allthreads[i],NULL,this->ParallelCholesky, this);
+	for(i=0;i<fNthreads-1;i++) {
+	  res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, 
+				     this->ParallelCholesky, this, __FUNCTION__);
+	}
+
 	ParallelCholesky(this);
-	for(i=0;i<fNthreads-1;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<fNthreads-1;i++) {
+	  PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 	delete []allthreads;// fThreadUsed, fDec;
 #ifdef LOG4CXX
@@ -471,9 +479,14 @@ int TPZSkylParMatrix<TVar>::Decompose_LDLt()
 	}
 	fEqDec=-1;
 	
-	for(i=0;i<nthreads-1;i++) res[i] = pthread_create(&allthreads[i],NULL,this->ParallelLDLt2, this);
+	for(i=0;i<nthreads-1;i++) {
+	  res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, this->ParallelLDLt2, 
+				     this, __FUNCTION__);
+	}
 	ParallelLDLt2(this);
-	for(i=0;i<nthreads-1;i++) pthread_join(allthreads[i], NULL);
+	for(i=0;i<nthreads-1;i++) {
+	  PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
+	}
 	
 	fNthreads = nthreads;
 	delete []allthreads;// fThreadUsed, fDec;

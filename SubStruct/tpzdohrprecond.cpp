@@ -18,6 +18,8 @@
 #include "TPZfTime.h"
 #include "TPZTimeTemp.h"
 
+#include "pz_pthread.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("substruct.dohrprecond"));
 static LoggerPtr loggerv1v2(Logger::getLogger("substruct.v1v2"));
@@ -89,7 +91,9 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		TPZVec<pthread_t> AllThreads(fNumThreads+2);
 		TPZDohrPrecondThreadV1Data<TVar,TSubStruct> v1threaddata(this,x,v1);
 		
-		pthread_create(&AllThreads[0], 0, TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1, &v1threaddata);
+		PZ_PTHREAD_CREATE(&AllThreads[0], 0, 
+				  (TPZDohrPrecondThreadV1Data<TVar,TSubStruct>::ComputeV1), 
+				  &v1threaddata, __FUNCTION__);
 		
 		TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),v2,this->fAssemble);
 		
@@ -108,16 +112,19 @@ void TPZDohrPrecond<TVar, TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const T
 		
 		int i;
 		for (i=0; i<fNumThreads; i++) {
-			pthread_create(&AllThreads[i+2], 0, TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork, &v2work);
+		  PZ_PTHREAD_CREATE(&AllThreads[i+2], 0, 
+				    (TPZDohrPrecondV2SubDataList<TVar,TSubStruct>::ThreadWork), 
+				    &v2work, __FUNCTION__);
 		}
 		//		v2work.ThreadWork(&v2work);
 		
-		pthread_create(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble, assemblelist.operator->());
+		PZ_PTHREAD_CREATE(&AllThreads[1], 0, TPZDohrAssembleList<TVar>::Assemble, 
+				  assemblelist.operator->(), __FUNCTION__);
 		//		assemblelist->Assemble(assemblelist.operator->());
 		
 		for (i=0; i<fNumThreads+2; i++) {
-			void *result;
-			pthread_join(AllThreads[i], &result);
+		  void *result;
+		  PZ_PTHREAD_JOIN(AllThreads[i], &result, __FUNCTION__);
 		}
 		//		ComputeV2(x,v2);
 	}
@@ -399,7 +406,6 @@ template class TPZRestoreClass<TPZDohrPrecond<double, TPZDohrSubstruct<double> >
 
 template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstructCondense<float> >, TPZDOHRPRECONDCONDENSE_FLOAT_ID>;
 template class TPZRestoreClass<TPZDohrPrecond<float, TPZDohrSubstruct<float> >, TPZDOHRPRECOND_FLOAT_ID>;
-
 
 template class TPZDohrPrecond<float,TPZDohrSubstruct<float> >;
 template class TPZDohrPrecond<double,TPZDohrSubstruct<double> >;

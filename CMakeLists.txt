@@ -7,6 +7,7 @@ project (PZ)
 #Specify where the headers files must be finded
 include_directories(
 	"${PROJECT_SOURCE_DIR}/Util"
+	"${PROJECT_SOURCE_DIR}/PerfUtil"
 	"${PROJECT_SOURCE_DIR}/Common"
 	"${PROJECT_SOURCE_DIR}/Save"
 	"${PROJECT_SOURCE_DIR}/Matrix"
@@ -89,6 +90,10 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 	if(${val} LESS 0)
 		set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNODEBUG" CACHE STRING "c++ release flags go here" FORCE)
 	endif()
+	# Edson: adding -DNDEBUG -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL.
+	# Philippe, why do we need ZERO_INTERNAL_RESIDU and MAKEINTERNAL?
+ 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -DNODEBUG -DZERO_INTERNAL_RESIDU -DMAKEINTERNAL" CACHE STRING "c++ release flags go here" FORCE)
+
 #To search files or libraries
 	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib)
 
@@ -254,6 +259,7 @@ FILE(WRITE ${FILE_DEFINITIONS}
 
 #increment all the directories where the sources files is
 add_subdirectory(Util)
+add_subdirectory(PerfUtil)
 add_subdirectory(Common)
 add_subdirectory(Save)
 add_subdirectory(Integral)
