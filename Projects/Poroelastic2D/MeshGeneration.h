@@ -11,6 +11,7 @@
 
 #include "pzfmatrix.h"
 #include "pzmatrix.h"
+#include "pzgmesh.h"
 
 #ifndef MeshGenerationH
 #define MeshGenerationH
@@ -33,6 +34,8 @@ public:
 	~MeshGeneration();
 	
 	//	Set kind of problem
+	void Setdimensions();	
+	
 	void Setdimensions(REAL xdimension, REAL ydimension, REAL zThickness);
 
 	void Setdimensions(REAL rdimension, REAL zThickness);
@@ -45,12 +48,17 @@ public:
 	//	Set kind of Geometry for 1D Validation
 	/** @brief Cretaes Rectangular Grid for 1D Validation Problem
 	 * 1D Validation Problem is given on: */	
-	void GeometricMesh1DValidation(double Dimension, double kingflag);	
+	TPZGeoMesh * GeometricMesh1DValidation(double Dimension, double kingflag);	
+	
+	TPZGeoMesh	* MalhaGeom(TPZVec < int > matIdlist);	
 	
 	//	Set kind of Geometry for 2D Validation
 	/** @brief Cretaes Circular Grid for 2D Validation Problem
 	 * 2D Validation Problem is given on: Rudnicki 1986 */
-	void GeometricMesh2DValidation();
+	TPZGeoMesh * GeometricMesh2DValidation(TPZVec <int> matIdlist);
+	
+	
+	TPZGeoMesh * MalhaGeoGravenobj(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> Productionlayer, bool InterfaceElement);
 	
 //	//  Set Data for elasticity tensor relation from Young and Poisson modulus 
 //	void GeometricMesh1DValidation(double Eyoung, double Pnu);

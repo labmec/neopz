@@ -109,6 +109,8 @@ const int bcBottom = -1;
 const int bcRight = -2;
 const int bcTop = -3;
 const int bcLeft = -4;
+const int yfixedPoints = -6;
+const int xfixedPoints = -7;
 const int pointsource = -5;
 
 // 2D Cylindrical Domain
@@ -123,22 +125,41 @@ const int WellPoint = -5;
 
 // Rock Blocks bondaries
 // Right Block 
-const int RBright = -12;
-const int RBleft = -22;
-const int RBBot = -32;
-const int RBTop = -42;
+//const int RBright = -12;
+//const int RBleft = -22;
+//const int RBBot = -32;
+//const int RBTop = -42;
+//
+// Left Block 
+//const int LBright = -12;
+//const int LBleft = -22;
+//const int LBBot = -32;
+//const int LBTop = -42;
+//
+// Graven Block 
+//const int GBright = -12;
+//const int GBleft = -22;
+//const int GBBot = -32;
+//const int GBTop = -42;
+
+// Rock Blocks bondaries
+// Right Block 
+const int RBright = -2;
+const int RBleft = -4;
+const int RBBot = -1;
+const int RBTop = -3;
 
 // Left Block 
-const int LBright = -12;
-const int LBleft = -22;
-const int LBBot = -32;
-const int LBTop = -42;
+const int LBright = -2;
+const int LBleft = -4;
+const int LBBot = -1;
+const int LBTop = -3;
 
 // Graven Block 
-const int GBright = -12;
-const int GBleft = -22;
-const int GBBot = -32;
-const int GBTop = -42;
+const int GBright = -2;
+const int GBleft = -4;
+const int GBBot = -1;
+const int GBTop = -3;
 
 const int WellLine = -5;
 
@@ -154,16 +175,14 @@ const int neumann = 1;
 
 // Defintions of Implemented Methods
 
-//	This Create Geometric and Computational Meshes
-TPZGeoMesh	*MalhaGeom(REAL h,REAL L);
-TPZGeoMesh	*MalhaGeoGraven(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> wichProductionlayer, int MaxNumEl, bool InterfaceEl, int RefDirId);
+//	This Create Computational Meshes
 TPZCompMesh *MalhaCompPressao(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder);
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElastic2d  *&mymaterial);
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZVec <TPZPoroElastic2d  * > &mymaterial);
 
 //	This Solve Different analysis
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh);
-void SolveSistTransient(REAL delt,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZPoroElastic2d  * &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+void SolveSistTransient(REAL delt,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
 
 //	This are tools for spatial and polinomyal refinement and Postprocess of solutions 
 void PosProcess(TPZAnalysis &an, std::string plotfile);
@@ -213,31 +232,74 @@ int main(int argc, char *argv[])
 	int p=2;
 
 //  Used this for Directional Refinement	
-	gRefDBase.InitializeRefPatterns();
-	gRefDBase.InitializeAllUniformRefPatterns();
-	ofstream RefinElPatterns("RefElPatterns.txt");
-	gRefDBase.WriteRefPatternDBase(RefinElPatterns); 	
-	gRefDBase.ReadRefPatternDBase("RefElPatterns.txt");
+	
+//	gRefDBase.InitializeRefPatterns();
+//	gRefDBase.InitializeAllUniformRefPatterns();
+//	ofstream RefinElPatterns("RefElPatterns.txt");
+//	gRefDBase.WriteRefPatternDBase(RefinElPatterns); 	
+//	gRefDBase.ReadRefPatternDBase("RefElPatterns.txt");
+
+
+//	Rectangular geometric mesh
+	
+	
+	MeshGeneration mygenerator;
+	TPZVec <int> matIdlist(8,0);
+	matIdlist[0]= matId;
+	matIdlist[1]= bcBottom;
+	matIdlist[2]= bcRight;
+	matIdlist[3]= bcTop;
+	matIdlist[4]= bcLeft;
+	matIdlist[5]= WellLine;
+	matIdlist[6]= xfixedPoints;
+	matIdlist[7]= yfixedPoints;	
+	REAL ModelLenght = 100000.0;
+	REAL ModelHight = 100000.0;
+	REAL Modelthickness = 1.0;
+	mygenerator.Setdimensions(ModelLenght, ModelHight, Modelthickness);		
+	TPZGeoMesh * gmesh = mygenerator.MalhaGeom(matIdlist);
+	
+
+//	End Rectangular geometric mesh	
+	
+// Begin Circular geometric mesh using tpzarc3d
+
+//	MeshGeneration mygenerator;
+//	TPZVec <int> matIdlist(6,0);
+//	matIdlist[0]= matId;
+//	matIdlist[1]= arc1;
+//	matIdlist[2]= arc1;
+//	matIdlist[3]= arc1;
+//	matIdlist[4]= arc1;
+//	matIdlist[5]= WellLine;	
+//	REAL ModelRadius = 100000.0;
+//	REAL Modelthickness = 1.0;
+//	mygenerator.Setdimensions(ModelRadius, Modelthickness);
+//	TPZGeoMesh * gmesh = mygenerator.GeometricMesh2DValidation(matIdlist);	
+
+// End Circular mesh	
 	
 //	Rectangular geometric mesh for graven analysis
 	
-//	int nLayers			= 1; 
-//	int MaxNumEl		= 100;	
-//	int RefDirId		= 1;
-//	bool InterfaceEl	= true; 
+//	int nLayers			= 5; 
+//	bool InterfaceEl	= false; 
 //	REAL LlengthFootFault	= 1000.0;
 //	REAL DipFaultAngleleft		= 45.0;
-//	REAL DipFaultAngleright		= 30.0;
-//	REAL WellFaultlength		= 700.0;
+//	REAL DipFaultAngleright		= 45.0;
+//	REAL WellFaultlength		= 500.0;
 //	TPZVec <bool> wichProductionlayer(nLayers+1,false);
 ////	wichProductionlayer[0] = true; // Horizons -> Top
 ////	wichProductionlayer[1] = true; // Horizons -> Top	
 ////	wichProductionlayer[2] = true; // Horizons -> Top
 ////	wichProductionlayer[2] = true; // Horizons -> Top
-////	wichProductionlayer[3] = true; // Horizons -> Top	
-//	TPZGeoMesh * gmesh = MalhaGeoGraven(nLayers,LlengthFootFault,DipFaultAngleleft,DipFaultAngleright,WellFaultlength,wichProductionlayer,MaxNumEl,InterfaceEl,RefDirId);
+////	wichProductionlayer[3] = true; // Horizons -> Top
+//
+//	MeshGeneration mygenerator;
+//	TPZGeoMesh * gmesh = mygenerator.MalhaGeoGravenobj(nLayers,LlengthFootFault,DipFaultAngleleft,DipFaultAngleright,WellFaultlength,wichProductionlayer,InterfaceEl);		
 
 // End Rectangular geometric mesh for graven analysis
+
+	
 	
 // Rectangular geometric mesh using TPZGenGrid 
 	
@@ -277,130 +339,10 @@ int main(int argc, char *argv[])
 //	gmesh->BuildConnectivity();	
 
 // End Rectangular geometric mesh using TPZGenGrid
-
-
-	
-// Begin Circular geometric mesh using tpzarc3d
- 	
-	int nodenumber = 9;
-	REAL ModelRadius = 100000.0;
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	gmesh->NodeVec().Resize(nodenumber);
-	
-	// Setting node coordantes for Arc3D 1
-	int id = 0;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
-	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
-	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
-	gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,-ModelRadius );//coord X
-	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
-	gmesh->NodeVec()[id].SetCoord(1,-ModelRadius);//coord Y	
-	id++;	
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
-	gmesh->NodeVec()[id].SetCoord(1,sqrt(2)*ModelRadius/2.);//coord Y	
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,-sqrt(2)*ModelRadius/2.);//coord X
-	gmesh->NodeVec()[id].SetCoord(1,sqrt(2)*ModelRadius/2.);//coord Y	
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,-sqrt(2)*ModelRadius/2.);//coord X
-	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
-	id++;
-	gmesh->NodeVec()[id].SetNodeId(id);
-	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
-	gmesh->NodeVec()[id].SetCoord(1,-sqrt(2)*ModelRadius/2.);//coord Y	
-	id++;
-	
-	int elementid = 0;
-	// Create Geometrical Arc #1
-	// Definition of Arc coordenates
-	TPZVec < int > nodeindex(3,0.0);
-	nodeindex[0] = 1;	
-	nodeindex[1] = 2;
-	nodeindex[2] = 5;
-	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc1 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1,*gmesh);
-	elementid++;
-	
-	// Create Geometrical Arc #2
-	nodeindex[0] = 2;	
-	nodeindex[1] = 3;
-	nodeindex[2] = 6;			
-	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc2 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc2,*gmesh);
-	elementid++;
-	
-	// Create Geometrical Arc #3
-	nodeindex[0] = 3;	
-	nodeindex[1] = 4;
-	nodeindex[2] = 7;			
-	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc3 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc3,*gmesh);
-	elementid++;
-	
-	// Create Geometrical Arc #4
-	nodeindex[0] = 4;	
-	nodeindex[1] = 1;
-	nodeindex[2] = 8;			
-	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc4 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc4,*gmesh); 
-	elementid++;
-	
-	// Create Geometrical Point for fluid injection or Production #1	
-	nodeindex.resize(1);
-	nodeindex[0] = 0;	
-	TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, WellPoint,*gmesh); 
-	elementid++;
-	
-	// Create Geometrical triangle #1	
-	nodeindex.resize(3);
-	nodeindex[0] = 0;
-	nodeindex[1] = 1;
-	nodeindex[2] = 2;	
-	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle1 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
-	elementid++;
-	
-	// Create Geometrical triangle #2		
-	nodeindex[0] = 0;
-	nodeindex[1] = 2;
-	nodeindex[2] = 3;		
-	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle2 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
-	elementid++;
-	
-	// Create Geometrical triangle #3		
-	nodeindex[0] = 0;
-	nodeindex[1] = 3;
-	nodeindex[2] = 4;		
-	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle3 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
-	elementid++;
-	
-	// Create Geometrical triangle #4		
-	nodeindex[0] = 0;
-	nodeindex[1] = 4;
-	nodeindex[2] = 1;		
-	TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > *triangle4 = new TPZGeoElRefPattern<TPZGeoBlend< pzgeom::TPZGeoTriangle> > (elementid,nodeindex, matId,*gmesh);
-	elementid++;
-	
-	gmesh->BuildConnectivity();
-	
-//	
-// End Circular mesh
 	
 
 	
 // Begin Half Sapce for Flamant Problem Semi-Circular geometric mesh using tpzarc3d
- 	
 	
 //	int nodenumber = 6;
 //	REAL ModelRadius = 30000.0;
@@ -544,7 +486,7 @@ int main(int argc, char *argv[])
 	
 	
 // Directional Point source Refinement 
-	int ndirectdivp = 10;
+	int ndirectdivp = 17;
 	set<int> SETmatPointRefDir2;
 	SETmatPointRefDir2.insert(WellPoint);	
 	for(int j = 0; j < ndirectdivp; j++)
@@ -659,8 +601,8 @@ int main(int argc, char *argv[])
 	TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
 	meshvec[1] = cmesh2;
-	TPZPoroElastic2d  *mymaterial ;
-	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
+	TPZVec <TPZPoroElastic2d *>  materialist(1,0) ;
+	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,materialist);
 	
 	
 	// time control
@@ -670,11 +612,12 @@ int main(int argc, char *argv[])
 	REAL year = 365*day;
 	REAL delta = 81.999999999*day;
 	REAL MaxTime = 164*day;
-	mymaterial->SetTimeStep(delta);		
-	mymaterial->SetTimeValue(0.0);
 	
+	// Improve this
+	materialist[0]->SetTimeStep(delta);		
+	materialist[0]->SetTimeValue(0.0);
 	//Criando matriz K2
-	mymaterial->SetLastState();
+	materialist[0]->SetLastState();
 	TPZAnalysis an(mphysics);
 	
 	//Setting initial coditions 
@@ -707,7 +650,7 @@ int main(int argc, char *argv[])
 #endif
 	
 	//Criando matriz K1
-	mymaterial->SetCurrentState();
+	materialist[0]->SetCurrentState();
 	TPZSkylineStructMatrix matsk(mphysics);
 	TPZFMatrix<REAL> matK1;	
 	TPZFMatrix<REAL> fvec; //vetor de carga
@@ -771,7 +714,7 @@ int main(int argc, char *argv[])
 #endif
 	
 	///start transient problem
-	SolveSistTransient(delta,MaxTime,matK1, matK2, fvec, Initialsolution, mymaterial, an, meshvec,  mphysics);
+	SolveSistTransient(delta,MaxTime,matK1, matK2, fvec, Initialsolution, materialist, an, meshvec,  mphysics);
 
 	
 	return EXIT_SUCCESS;
@@ -861,8 +804,8 @@ void SolucaoExata2D(TPZVec<REAL> &ptx,REAL timestep, TPZVec<REAL> &sol, TPZFMatr
 void SolucaoExata2DLinesource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 	
 	// Defition of varibles
-	REAL x = ptx[0];
-	REAL y = ptx[1];
+	REAL x = ptx[0];//-50000.0;
+	REAL y = ptx[1];//-50000.0;
 	REAL z = 0.0;
 	REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
 	if ( r == 0.0) {
@@ -1080,599 +1023,6 @@ void SolucaoExataRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &so
 	//	sol[2] = (-1.+ sigD)*pini;
 }
 
-TPZGeoMesh * MalhaGeoGraven(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> wichProductionlayer, int MaxNumEl, bool InterfaceEl, int RefDirId)
-{
-// This method created a graven geometry
-
-	// Creating Geometrical Mesh Objects
-	
-	int nProdLayesr = 0.0;
-	REAL ndivideleft = 3.0;
-	REAL ndivideright = 3.0;
-	
-	for(int ilayer = 0; ilayer < nLayers; ilayer++)
-	{	
-		if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
-			nProdLayesr++;
-		}
-		
-	}
-	
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	int TotalNodes = 8+4*(nLayers-1)+nProdLayesr*(2*((ndivideleft+ndivideright-1))+3);
-	gmesh->SetMaxNodeId(TotalNodes-1);
-	gmesh->NodeVec().Resize(TotalNodes);
-	
-	
-	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolTria(3);	
-	TPZVec <int> TopolLine(2);
-	TPZVec <int> TopolPoint(1);
-	TPZVec<TPZGeoNode> Node(TotalNodes);
-
-//	Constan h for all layers
-	REAL hlayerj = 100.0;
-	TPZVec<REAL> hlayers(nLayers+1,hlayerj);
-//	Horizon at level zero
-	hlayers[0] = 0.0;
-//	Constant Material ID for all layers
-	TPZVec<int> layersIdRB(nLayers,1);
-	TPZVec<int> layersIdLB(nLayers,1);
-	TPZVec<int> layersIdGB(nLayers,1);
-	
-//	for(int i = 0; i < nLayers; i++)
-//	{
-//		layersIdLB[i]=i+10;
-//		layersIdRB[i]=i+20;
-//		layersIdGB[i]=i+30;
-//	}
-	
-	REAL X = 0.0;
-	REAL Y = 0.0;
-	REAL PI = atan(1.)*4.;	
-	
-//	Distance between foot faults
-	REAL GravenBaseLength = 1.0*LlengthFootFault;
-
-	
-	// Node index
-	int idN = 0;
-	int contlayers = 0;
-
-	for(int cont = 0; cont < (4 + 2*(nLayers-1)); cont++)
-	{
-	
-		idN = cont;
-		if (cont%2==0) 
-		{
-			Y = 0.0;
-			// Calculate the sum of all thickness
-			for(int l = 0; l <= contlayers; l++)
-			{
-				Y += hlayers[l];
-			}
-			X = 0.0;
-			contlayers++;
-		}
-			else 
-			{ 
-				X = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));
-			}
-		
-		Node[idN].SetNodeId(idN);
-		Node[idN].SetCoord(0,X);//coord X
-		Node[idN].SetCoord(1,Y);//coord Y
-		gmesh->NodeVec()[idN] = Node[idN];
-		
-	}
-	idN++;
-	
-
-//	Left Rock block Element Index
-	int idE = 0;
-	
-	for(int ilayer = 0; ilayer < nLayers; ilayer++)
-	{
-	TopolQuad[0] = 0+2*ilayer;
-	TopolQuad[1] = 1+2*ilayer;
-	TopolQuad[2] = 3+2*ilayer;
-	TopolQuad[3] = 2+2*ilayer;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdRB[ilayer],*gmesh);
-	idE++;
-	}
-	
-	
-//	Bottom bondary
-	TopolLine[0] = 0;
-	TopolLine[1] = 1;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
-	idE++;
-	
-	
-	for(int inode = 0; inode < (idN - 2); inode++)
-	{
-		//	Left bondary
-		if (inode%2==0) 
-		{
-			TopolLine[0] = inode;
-			TopolLine[1] = inode+2;
-			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBleft,*gmesh);
-			idE++;		
-		}
-		//	Right bondary
-		else 	
-		{
-//			TopolLine[0] = inode;
-//			TopolLine[1] = inode+2;
-//			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBright,*gmesh);
-//			idE++;
-		}
-
-				
-	}
-	
-//	Top bondary	
-	TopolLine[0] = 0+2*nLayers;
-	TopolLine[1] = 1+2*nLayers;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
-	idE++;
-	
-	
-	//	Second block with the same Dip Fault Angle
-	
-	// Node index
-	contlayers = 0;
-	
-	for(int cont = idN; cont < (8 + 4*(nLayers-1)); cont++)
-	{
-		
-		idN = cont;
-		if (cont%2==0) 
-		{
-			Y = 0.0;
-			// Calculate the sum of all thickness
-			for(int l = 0; l <= contlayers; l++)
-			{
-				Y += hlayers[l];
-			}
-			X = GravenBaseLength+2*LlengthFootFault;
-			contlayers++;
-		}
-		else 
-		{ 
-			X = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
-		}
-		
-		Node[idN].SetNodeId(idN);
-		Node[idN].SetCoord(0,X);//coord X
-		Node[idN].SetCoord(1,Y);//coord Y
-		gmesh->NodeVec()[idN] = Node[idN];
-		
-	}
-	idN++;
-	int lasSequencenodId = idN;	
-	
-	for(int ilayer = 0; ilayer < nLayers; ilayer++)
-	{
-		TopolQuad[0] = 0+2*nLayers+2+2*ilayer;
-		TopolQuad[1] = 1+2*nLayers+2+2*ilayer;
-		TopolQuad[2] = 3+2*nLayers+2+2*ilayer;
-		TopolQuad[3] = 2+2*nLayers+2+2*ilayer;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdLB[ilayer],*gmesh);
-		idE++;
-	}
-	
-	
-	//	Bottom bondary
-	TopolLine[0] = 0+2*nLayers+2;
-	TopolLine[1] = 1+2*nLayers+2;	
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
-	idE++;
-	
-	
-	for(int inode = 0+2*nLayers+2; inode < (idN - 2); inode++)
-	{
-		//	Left bondary
-		if (inode%2!=0) 
-		{
-//			TopolLine[0] = inode;
-//			TopolLine[1] = inode+2;
-//			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBleft,*gmesh);
-//			idE++;		
-		}
-		//	Right bondary
-		else 	
-		{
-			TopolLine[0] = inode;
-			TopolLine[1] = inode+2;
-			new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBright,*gmesh);
-			idE++;
-		}
-		
-		
-	}
-	
-	//	Top bondary	
-	TopolLine[0] = 0+4*nLayers+2;
-	TopolLine[1] = 1+4*nLayers+2;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
-	idE++;
-	
-	// inserting injections points
-	REAL Xleft = 0.0;
-	REAL Xright = 0.0;
-	REAL deltaxleft = 0.0;
-	REAL deltaxright = 0.0;	
-	
-		
-		for(int ilayer = 0; ilayer < nLayers; ilayer++)
-		{		
-			
-			if (wichProductionlayer[ilayer]==true) 
-			{
-				
-				Y = 0.0;
-				// Calculate the sum of all thickness
-				for(int l = 0; l <= ilayer; l++)
-				{
-					Y += hlayers[l];
-				}
-				Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
-				Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
-				deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
-				deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
-				
-				for(int cont = 0; cont < ((ndivideleft+ndivideright)-1); cont++)
-				{
-
-				if (cont < ndivideleft) 
-				{	
-					Xleft += deltaxleft;
-					Node[idN].SetNodeId(idN);
-					Node[idN].SetCoord(0,Xleft);//coord X
-					Node[idN].SetCoord(1,Y);//coord Y
-					gmesh->NodeVec()[idN] = Node[idN];
-					idN++;					
-				}
-				else 
-				{
-					Xleft += deltaxright;
-					Node[idN].SetNodeId(idN);
-					Node[idN].SetCoord(0,Xleft);//coord X
-					Node[idN].SetCoord(1,Y);//coord Y
-					gmesh->NodeVec()[idN] = Node[idN];
-					idN++;					
-				}
-
-	
-				
-				}
-			
-				if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
-					Y = 0.0;
-					// Calculate the sum of all thickness in the middle of the layer
-					for(int l = 0; l <= ilayer; l++)
-					{
-						Y += hlayers[l];
-					}
-					Y += hlayers[ilayer+1]/2;
-					Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
-					Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
-					deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
-					deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
-					
-					Xleft = LlengthFootFault+WellFaultlength-deltaxleft;
-					Node[idN].SetNodeId(idN);
-					Node[idN].SetCoord(0,Xleft);//coord X
-					Node[idN].SetCoord(1,Y);//coord Y
-					gmesh->NodeVec()[idN] = Node[idN];					
-					idN++;					
-					
-					Xleft = LlengthFootFault+WellFaultlength+deltaxright;
-					Node[idN].SetNodeId(idN);
-					Node[idN].SetCoord(0,Xleft);//coord X
-					Node[idN].SetCoord(1,Y);//coord Y
-					gmesh->NodeVec()[idN] = Node[idN];
-					idN++;					
-					
-					Xleft = LlengthFootFault+WellFaultlength;
-					Node[idN].SetNodeId(idN);
-					Node[idN].SetCoord(0,Xleft);//coord X
-					Node[idN].SetCoord(1,Y);//coord Y
-					gmesh->NodeVec()[idN] = Node[idN];
-					TopolPoint[0] = idN;
-					new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (idE,TopolPoint,WellPoint,*gmesh);
-					idE++;					
-					idN++;						
-				}				
-					
-					
-			}
-			
-			if (ilayer+1 == nLayers && wichProductionlayer[nLayers]==true ) 
-			{
-				
-				Y = 0.0;
-				// Calculate the sum of all thickness
-				for(int l = 0; l <= nLayers; l++)
-				{
-					Y += hlayers[l];
-				}
-				Xleft = LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleleft))/(sin((PI/180.0)*DipFaultAngleleft)));	
-				Xright = GravenBaseLength+2*LlengthFootFault - (LlengthFootFault - Y*((cos((PI/180.0)*DipFaultAngleright))/(sin((PI/180.0)*DipFaultAngleright))));
-				deltaxleft = abs(LlengthFootFault+WellFaultlength-Xleft)/ndivideleft;				
-				deltaxright = abs(Xright-LlengthFootFault-WellFaultlength)/ndivideright;
-				
-				for(int cont = 0; cont < ((ndivideleft+ndivideright)-1); cont++)
-				{
-					
-					if (cont < ndivideleft) 
-					{	
-						Xleft += deltaxleft;
-						Node[idN].SetNodeId(idN);
-						Node[idN].SetCoord(0,Xleft);//coord X
-						Node[idN].SetCoord(1,Y);//coord Y
-						gmesh->NodeVec()[idN] = Node[idN];
-						idN++;					
-					}
-					else 
-					{
-						Xleft += deltaxright;
-						Node[idN].SetNodeId(idN);
-						Node[idN].SetCoord(0,Xleft);//coord X
-						Node[idN].SetCoord(1,Y);//coord Y
-						gmesh->NodeVec()[idN] = Node[idN];
-						idN++;					
-					}
-				}
-			}
-
-		}
-		
-		
-	
-	
-	
-	//	Bottom bondary Graven Block
-	TopolLine[0] = 1;
-	TopolLine[1] = 1+2*nLayers+2;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBBot,*gmesh);
-	idE++;		
-	
-//	Graven Block
-//	
-//	for(int ilayer = 0; ilayer < nLayers; ilayer++)
-//	{
-//		TopolQuad[0] = 11+2*ilayer;
-//		TopolQuad[1] = 1+2*ilayer;
-//		TopolQuad[2] = 3+2*ilayer;
-//		TopolQuad[3] = 13+2*ilayer;
-//		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);
-//		idE++;
-//	}
-//	
-//	//	Top bondary Graven Block	
-//	TopolLine[0] = 9;
-//	TopolLine[1] = 19;
-//	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
-//	idE++;		
-//	
-//	if (InterfaceEl==true) 
-//	{
-//		for(int i = 0; i < nLayers; i++)
-//		{
-//			gmesh->AddInterfaceMaterial(layersIdLB[i],layersIdGB[i], i+6);
-//			gmesh->AddInterfaceMaterial(layersIdRB[i],layersIdGB[i], i+7);			
-//		}
-//	
-//	}
-//	
-
-	
-//	Graven Block with inyection point
-	
-//	Insertion of additional nodes
- 
-
-	for(int ilayer = 0; ilayer < nLayers; ilayer++)
-	{	
-//	Next sequence of nodes ids
-	idN = lasSequencenodId;	
-		
-	if (wichProductionlayer[ilayer] && wichProductionlayer[ilayer+1]) {
-		
-// First lef Quad in the i-layer
-		TopolQuad[0] = idN;
-		TopolQuad[1] = 1+2*ilayer;
-		TopolQuad[2] = 3+2*ilayer;
-		TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;
-		idN++;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-		idE++;		
-
-// intern left Quads in the i-layer
-		while (idN < (ndivideleft+lasSequencenodId-1)) 
-		{
-			TopolQuad[0] = idN;
-			TopolQuad[1] = idN-1;
-			TopolQuad[2] = idN-1+(ndivideleft+ndivideright-1)+3;
-			TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;
-			idN++;			
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;				
-		}
-
-// intern four well neighborhood Quads in the i-layer
-		if (idN == (ndivideleft+lasSequencenodId-1)) {
-			TopolQuad[0] = idN;
-			TopolQuad[1] = idN-1;
-			TopolQuad[2] = ndivideleft+ndivideright+lasSequencenodId-1;
-			TopolQuad[3] = ndivideleft+ndivideright+lasSequencenodId+1;		
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;
-			
-			TopolQuad[0] = ndivideleft+ndivideright+lasSequencenodId+1;
-			TopolQuad[1] = ndivideleft+ndivideright+lasSequencenodId-1;
-			TopolQuad[2] = idN-1+(ndivideleft+ndivideright-1)+3;
-			TopolQuad[3] = idN+(ndivideleft+ndivideright-1)+3;		
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;
-			
-			TopolQuad[0] = idN+1;
-			TopolQuad[1] = idN;
-			TopolQuad[2] = ndivideleft+ndivideright+lasSequencenodId+1;
-			TopolQuad[3] = ndivideleft+ndivideright+lasSequencenodId;		
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;
-			
-			TopolQuad[0] = ndivideleft+ndivideright+lasSequencenodId;
-			TopolQuad[1] = ndivideleft+ndivideright+lasSequencenodId+1;
-			TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
-			TopolQuad[3] = idN+1+(ndivideleft+ndivideright-1)+3;	
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;		
-		}
-		idN++;
-		
-// intern right Quads in the i-layer
-		while (idN > (ndivideleft+lasSequencenodId-1) && idN < (ndivideleft+ndivideright+lasSequencenodId-2)) 
-		{
-			TopolQuad[0] = idN+1;
-			TopolQuad[1] = idN;
-			TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
-			TopolQuad[3] = idN+1+(ndivideleft+ndivideright-1)+3;
-			idN++;			
-			new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-			idE++;				
-		}			
-
-
-// Last right Quad in the i-layer
-		TopolQuad[0] = 1+2*nLayers+2+2*ilayer;
-		TopolQuad[1] = idN;
-		TopolQuad[2] = idN+(ndivideleft+ndivideright-1)+3;
-		TopolQuad[3] = 3+2*nLayers+2+2*ilayer;	
-		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);		
-		idE++;
-		
-//	updating the next i-layer node sequence
-	lasSequencenodId += (ndivideleft+ndivideright-1)+3;
-	}
-	else {
-		
-		TopolQuad[0] = 1+2*nLayers+2+2*ilayer;
-		TopolQuad[1] = 1+2*ilayer;
-		TopolQuad[2] = 3+2*ilayer;
-		TopolQuad[3] = 3+2*nLayers+2+2*ilayer;
-		new TPZGeoElRefPattern< pzgeom::TPZGeoBlend< pzgeom::TPZGeoQuad> > (idE,TopolQuad,layersIdGB[ilayer],*gmesh);
-		idE++;
-		
-	}
-
-	
-	}
-	
-	//	Top bondary Graven Block	
-	TopolLine[0] = 1+2*nLayers;
-	TopolLine[1] = 1+4*nLayers+2;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (idE,TopolLine,RBTop,*gmesh);
-	idE++;		
-	
-
-	
-	gmesh->BuildConnectivity();
-	
-	ofstream arg("GeologicalGravegmesh.txt");
-	gmesh->Print(arg);	
-
-	return gmesh;
-}
-
-
-
-
-TPZGeoMesh *MalhaGeom(REAL h, REAL L)
-{
-	
-	int Qnodes = 4;
-	
-	TPZGeoMesh * gmesh = new TPZGeoMesh;
-	gmesh->SetMaxNodeId(Qnodes);
-	gmesh->NodeVec().Resize(Qnodes+1);
-	TPZVec<TPZGeoNode> Node(Qnodes+1);
-	
-	TPZVec <int> TopolQuad(4);
-	TPZVec <int> TopolLine(2);
-	TPZVec <int> TopolPoint(1);
-	//indice dos nos
-	int id = 0;
-	for(int xi = 0; xi < Qnodes/2; xi++)
-	{
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,xi*L);//coord X
-		Node[id].SetCoord(1 ,0. );//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-	}
-	
-	for(int yi = 0; yi < Qnodes/2; yi++)
-	{
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,(1-yi)*L );//coord X
-		Node[id].SetCoord(1 ,h );//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-	}
-	
-//	Production or injection point
-	Node[id].SetNodeId(id);
-	Node[id].SetCoord(0,0.5*L);//coord X
-	Node[id].SetCoord(1,0.5*h);//coord Y	
-	
-	//indice dos elementos
-	
-	
-	id = 0;
-	TopolLine[0] = 0;
-	TopolLine[1] = 1;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcBottom,*gmesh);
-	id++;
-	
-	TopolLine[0] = 1;
-	TopolLine[1] = 2;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcRight,*gmesh);
-	id++;
-	
-	TopolLine[0] = 2;
-	TopolLine[1] = 3;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcTop,*gmesh);
-	id++;
-	
-	TopolLine[0] = 3;
-	TopolLine[1] = 0;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcLeft,*gmesh);
-	id++;
-	
-	TopolQuad[0] = 0;
-	TopolQuad[1] = 1;
-	TopolQuad[2] = 2;
-	TopolQuad[3] = 3;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
-	id++;
-
-	TopolPoint[0] = 4;
-	new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolLine,WellPoint,*gmesh);
-	
-	
-	gmesh->BuildConnectivity();
-	
-	//ofstream arg("gmesh.txt");
-	//	gmesh->Print(arg);
-	
-	return gmesh;
-	
-}
 
 TPZCompMesh*MalhaCompPressao(TPZGeoMesh * gmesh, int pOrder)
 {
@@ -1720,10 +1070,15 @@ TPZCompMesh*MalhaCompPressao(TPZGeoMesh * gmesh, int pOrder)
 	cmesh->InsertMaterialObject(BCondDR);
 	
 	// Point source
-	REAL PNR=3000.;
-	val22(0,0)=PNR;
 	TPZMaterial * BCondNpoint = material->CreateBC(mat, pointsource,neumann, val12, val22);
 	cmesh->InsertMaterialObject(BCondNpoint);
+	
+	TPZMaterial * BCyfixedPoints = material->CreateBC(mat, yfixedPoints,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCyfixedPoints);	
+	
+	TPZMaterial * BCxfixedPoints = material->CreateBC(mat, xfixedPoints,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCxfixedPoints);	
+
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -1787,19 +1142,32 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder)
 	
 	
 	// Point source
-	REAL PNR=3000.;
-	val22(0,0)=PNR;
 	TPZMaterial * BCondNpoint = material->CreateBC(mat, pointsource,neumann, val12, val22);
-	cmesh->InsertMaterialObject(BCondNpoint);	
+	cmesh->InsertMaterialObject(BCondNpoint);
+	
+	TPZMaterial * BCyfixedPoints = material->CreateBC(mat, yfixedPoints,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCyfixedPoints);
+	
+	TPZMaterial * BCxfixedPoints = material->CreateBC(mat, xfixedPoints,neumann, val12, val22);
+	cmesh->InsertMaterialObject(BCxfixedPoints);	
+	
+//	//Ajuste da estrutura de dados computacional
+//	std::set<int> set1;
+//	set1.insert(1);
+//	cmesh->AutoBuild(set1);
+//	set1.clear();
+//	set1.insert(2);
+//	cmesh->Reference()->ResetReference();
+//	cmesh->AutoBuild(set1);
 	
 	//Ajuste da estrutura de dados computacional
-	cmesh->AutoBuild();
+	cmesh->AutoBuild();	
 	
 	return cmesh;
 	
 }
 
-TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZPoroElastic2d  * &mymaterial)
+TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZVec <TPZPoroElastic2d  * > &mymaterial)
 {
 	//Creating computational mesh for multiphysic elements
 	gmesh->ResetReference();
@@ -1840,8 +1208,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	REAL Eyoung = (G*(3.0*lamb+2.0*G))/(lamb+G);					//	[Pa]			
 	REAL Ssig = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
 	REAL Se =  ((pow(alpha,2))/((lambu-lamb)));
-	REAL rockrho = 0.0;					//	[kg/m3]
-	REAL gravity = 0.0;					//	[m/s2]
+	REAL rockrho = 2500.0;					//	[kg/m3]
+	REAL gravity = 9.81;					//	[m/s2]
 	REAL c = 0.083;							//	[m2/s]	
 	REAL visc = 0.001;						//	[Pa.s]
 	REAL perm = c*Ssig*visc;//7.8784288e-15;//1.109542e-14						//	[m2]
@@ -1860,8 +1228,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 //	REAL poisson = (poisson3D)/(1-poisson3D);						//	[-]
 //	REAL Eyoung = (Eyoung3D)/(1-pow(poisson3D,2.0));					//	[Pa]		
 //	REAL Se = 1.0;//((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
-//	REAL rockrho = 0.0;					//	[kg/m3]
-//	REAL gravity = 0.0;					//	[m/s2]
+//	REAL rockrho = 2500.0;					//	[kg/m3]
+//	REAL gravity = -9.81;					//	[m/s2]
 //	REAL c = 1.0;							//	[m2/s]	
 //	REAL visc = 1.0;						//	[Pa.s]
 //	REAL perm = c*Se;//7.8784288e-15;//1.109542e-14						//	[m2]
@@ -1871,28 +1239,28 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 //	REAL PI = atan(1.)*4.;		
 	
 	REAL fx=0.0;
-	REAL fy=0.0;	
+	REAL fy=0.0;//-rockrho*gravity;	
 	
 	
 	int planestress = 0; // This is a Plain strain problem
-	mymaterial = new TPZPoroElastic2d (MatId, dim);
-	mymaterial->SetParameters(Eyoung, poisson, fx, fy);
-	mymaterial->SetParameters(perm,visc);
-	mymaterial->SetfPlaneProblem(planestress);
-	mymaterial->SetBiotParameters(alpha,Se);
+	mymaterial[0] = new TPZPoroElastic2d (MatId, dim);
+	mymaterial[0]->SetParameters(Eyoung, poisson, fx, fy);
+	mymaterial[0]->SetParameters(perm,visc);
+	mymaterial[0]->SetfPlaneProblem(planestress);
+	mymaterial[0]->SetBiotParameters(alpha,Se);
 	
 	TPZAutoPointer<TPZFunction<STATE> > TimeDepForcingF;
 	TPZAutoPointer<TPZFunction<STATE> > TimeDepFExact;
 	
 //	TimeDepForcingF = new TPZDummyFunction<STATE>(ForcingTimeDependFunction);
 	TimeDepFExact = new TPZDummyFunction<STATE>(SolucaoExata2DLinesource);
-	mymaterial->SetTimeDependentForcingFunction(TimeDepForcingF);
-	mymaterial->SetTimeDependentFunctionExact(TimeDepFExact);
+//	mymaterial->SetTimeDependentForcingFunction(TimeDepForcingF);
+	mymaterial[0]->SetTimeDependentFunctionExact(TimeDepFExact);
 
 	
-	ofstream argm("mymaterial.txt");
-	mymaterial->Print(argm);
-	TPZMaterial * mat(mymaterial);
+	ofstream argm("mymaterial1.txt");
+	mymaterial[0]->Print(argm);
+	TPZMaterial * mat(mymaterial[0]);
 	mphysics->InsertMaterialObject(mat);
 	
 	///--- --- Inserir condicoes de contorno
@@ -1924,35 +1292,36 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			
 			// elastic problem -> 1 ,  Poisson problem -> 2
 			// Boundary condition D1N2 means: Elastic -> Dirichlet, Pressure -> Neumman
-			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
-			int D1D2 = 1;
-			REAL uDx=0.0;
-			REAL uDy=0.0;
-			REAL Pressure=0.0;
-			val2(0,0)=uDx;
-			val2(1,0)=uDy;
-			val2(2,0)=Pressure;
-			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, arc1,D1D2, val1, val2);
-			mphysics->InsertMaterialObject(BonArc1);
-			
-			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, arc2,D1D2, val1, val2);
-			mphysics->InsertMaterialObject(BonArc2);
-			
-			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, arc3,D1D2, val1, val2);
-			mphysics->InsertMaterialObject(BonArc3);
-			
-			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, arc4,D1D2, val1, val2);
-			mphysics->InsertMaterialObject(BonArc4);			
+//			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+//			int D1D2 = 1;
+//			REAL uDx=0.0;
+//			REAL uDy=0.0;
+//			REAL Pressure=0.0;
+//			val2(0,0)=uDx;
+//			val2(1,0)=uDy;
+//			val2(2,0)=Pressure;
+//			TPZMaterial * BonArc1 = mymaterial[0]->CreateBC(mat, arc1,D1D2, val1, val2);
+//			mphysics->InsertMaterialObject(BonArc1);
+//			
+//			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+//			TPZMaterial * BonArc2 = mymaterial[0]->CreateBC(mat, arc2,D1D2, val1, val2);
+//			mphysics->InsertMaterialObject(BonArc2);
+//			
+//			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+//			TPZMaterial * BonArc3 = mymaterial[0]->CreateBC(mat, arc3,D1D2, val1, val2);
+//			mphysics->InsertMaterialObject(BonArc3);
+//			
+//			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
+//			TPZMaterial * BonArc4 = mymaterial[0]->CreateBC(mat, arc4,D1D2, val1, val2);
+//			mphysics->InsertMaterialObject(BonArc4);
+						
 			
 //		Production/Injection Well Just Neumman for Pressure
 		int WellQ = 400;
 		TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
 			REAL MassQ = qo/rhof;
 		valP23(2,0)=MassQ;
-		TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
+		TPZMaterial * BCPoint = mymaterial[0]->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
 		mphysics->InsertMaterialObject(BCPoint);	
 //		-----------
 			
@@ -1973,16 +1342,16 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			val22(1,0)=uDy;
 			val22(2,0)=Pressure;
 			
-			TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop,D1D2, val12, val22);
+			TPZMaterial * BCondT = mymaterial[0]->CreateBC(mat, bcTop,D1D2, val12, val22);
 			mphysics->InsertMaterialObject(BCondT);	
 
-			TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom,D1D2, val12, val22);
+			TPZMaterial * BCondBt = mymaterial[0]->CreateBC(mat, bcBottom,D1D2, val12, val22);
 			mphysics->InsertMaterialObject(BCondBt);
 			
-			TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, D1D2, val12, val22);
+			TPZMaterial * BCondL = mymaterial[0]->CreateBC(mat, bcLeft, D1D2, val12, val22);
 			mphysics->InsertMaterialObject(BCondL);
 
-			TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, D1D2, val12, val22);
+			TPZMaterial * BCondR = mymaterial[0]->CreateBC(mat, bcRight, D1D2, val12, val22);
 			mphysics->InsertMaterialObject(BCondR);
 			
 //		Production/Injection Well Just Neumman for Pressure
@@ -1990,7 +1359,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 		TPZFMatrix<REAL> valPP12(3,2,0.), valPP22(3,1,0.);
 		REAL MassQ=10.0;
 		valPP22(2,0)=MassQ;
-		TPZMaterial * BCPoint = mymaterial->CreateBC(mat, pointsource, WellQ, valPP12, valPP22);
+		TPZMaterial * BCPoint = mymaterial[0]->CreateBC(mat, pointsource, WellQ, valPP12, valPP22);
 		mphysics->InsertMaterialObject(BCPoint);	
 //		-----------
 			
@@ -2000,7 +1369,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 		case 3:
 		{
 			
-//	Poroelastic contribution to the reservoir stress path
+//	a poroelastic contribution to the reservoir stress path
 //	Parameters
 //	REAL Eyoung = 1.43e10;					//	[Pa]
 //	REAL poisson = 0.3;						//	[-]
@@ -2014,33 +1383,41 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 
 			//	REAL fx=0.0;
 			//	REAL fy=gravity*rockrho;			
+				
+			// elastic problem -> 1 ,  Poisson problem -> 2
+			// Boundary condition D1D2 means: Elastic -> N, Pressure -> N
+			TPZFMatrix<REAL> valall12(3,2,0.), valall22(3,1,0.);
+			int N1N2 = 11;
+			REAL uDx=0.0;
+			REAL uDy=0.0;
+			REAL Pressure=0.0;
+			valall22(0,0)=uDx;
+			valall22(1,0)=uDy;
+			valall22(2,0)=Pressure;
+			
+			TPZMaterial * BCondT = mymaterial[0]->CreateBC(mat, bcTop,N1N2, valall12, valall22);
+			mphysics->InsertMaterialObject(BCondT);
+			TPZMaterial * BCondB = mymaterial[0]->CreateBC(mat, bcBottom,N1N2, valall12, valall22);
+			mphysics->InsertMaterialObject(BCondB);
+			TPZMaterial * BCondL = mymaterial[0]->CreateBC(mat, bcLeft,N1N2, valall12, valall22);
+			mphysics->InsertMaterialObject(BCondL);
+			TPZMaterial * BCondR = mymaterial[0]->CreateBC(mat, bcRight,N1N2, valall12, valall22);
+			mphysics->InsertMaterialObject(BCondR);
 			
 			/// Setting drained free surface  Boundary condition N1D2 means: Elastic -> Neumman, Pressure -> Dirichlet
 			TPZFMatrix<REAL> val11(3,2,0.), val21(3,1,0.);
-			int N1D2 = 200;
+			int DYFX1N2 = 200;
 			REAL sigmax = 0.0;
 			REAL sigmay = 0.0;
 			REAL ptop=0.0;
 			val21(0,0)=sigmax;
 			val21(1,0)=sigmay;
 			val21(2,0)=ptop;
-			TPZMaterial * BCondT = mymaterial->CreateBC(mat, bcTop, N1D2, val11, val21);
-			mphysics->InsertMaterialObject(BCondT);	
-			
-			/// Setting free displacement non permeable surface  Boundary condition DYFX1N2 means: Elastic -> Dirichlet y component, Pressure -> Neumman
-			TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
-			int DYFX1N2 = 200; 			
-			REAL uDbotx=0.0;
-			REAL uDboty=0.0;
-			REAL pNbot=0.0;
-			val22(0,0)=uDbotx;
-			val22(1,0)=uDboty;
-			val22(2,0)=pNbot;
-			TPZMaterial * BCondBt = mymaterial->CreateBC(mat, bcBottom, DYFX1N2, val12, val22);
-			mphysics->InsertMaterialObject(BCondBt);
+			TPZMaterial * BCyfixedPoints = mymaterial[0]->CreateBC(mat, yfixedPoints, DYFX1N2, val11, val21);
+			mphysics->InsertMaterialObject(BCyfixedPoints);
 			
 			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman
-			int DXFY1N2 = 100;
+			int DXFY1N2 = 300;
 			TPZFMatrix<REAL> val13(3,2,0.), val23(3,1,0.);
 			REAL uDleftx = 0.0;
 			REAL uDlefty = 0.0;			
@@ -2048,31 +1425,55 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			val23(0,0)=uDleftx;
 			val23(1,0)=uDlefty;			
 			val23(2,0)=pNleft;
-			TPZMaterial * BCondL = mymaterial->CreateBC(mat, bcLeft, DXFY1N2, val13, val23);
-			mphysics->InsertMaterialObject(BCondL);
+			TPZMaterial * BCxfixedPoints = mymaterial[0]->CreateBC(mat, xfixedPoints, DXFY1N2, val13, val23);
+			mphysics->InsertMaterialObject(BCxfixedPoints);			
+//			
+//			/// Setting free displacement non permeable surface  Boundary condition DYFX1N2 means: Elastic -> Dirichlet y component, Pressure -> Neumman
+//			TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
+//			int DYFX1N2 = 200; 			
+//			REAL uDbotx=0.0;
+//			REAL uDboty=0.0;
+//			REAL pNbot=0.0;
+//			val22(0,0)=uDbotx;
+//			val22(1,0)=uDboty;
+//			val22(2,0)=pNbot;
+//			TPZMaterial * BCondBt = mymaterial[0]->CreateBC(mat, bcBottom, DYFX1N2, val12, val22);
+//			mphysics->InsertMaterialObject(BCondBt);
 			
-			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman			
-			TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
-			int D1D2 = 1;
-			REAL uDrightx = 0.0;
-			REAL uDrighty = 0.0;			
-			REAL pNright  = 0.0;
-			val24(0,0)=uDrightx;
-			val24(1,0)=uDrighty;			
-			val24(2,0)=pNright;
-			TPZMaterial * BCondR = mymaterial->CreateBC(mat, bcRight, DXFY1N2, val14, val24);
-			mphysics->InsertMaterialObject(BCondR);
+//			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman
+//			int DXFY1N2 = 300;
+//			TPZFMatrix<REAL> val13(3,2,0.), val23(3,1,0.);
+//			REAL uDleftx = 0.0;
+//			REAL uDlefty = 0.0;			
+//			REAL pNleft  = 0.0;
+//			val23(0,0)=uDleftx;
+//			val23(1,0)=uDlefty;			
+//			val23(2,0)=pNleft;
+//			TPZMaterial * BCondL = mymaterial[0]->CreateBC(mat, bcLeft, DXFY1N2, val13, val23);
+//			mphysics->InsertMaterialObject(BCondL);
+			
+//			/// Setting free displacement non permeable surface  Boundary condition DXFY1N2 means: Elastic -> Dirichlet x component, Pressure -> Neumman			
+//			TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
+//			int D1D2 = 1;
+//			REAL uDrightx = 0.0;
+//			REAL uDrighty = 0.0;			
+//			REAL pNright  = 0.0;
+//			val24(0,0)=uDrightx;
+//			val24(1,0)=uDrighty;			
+//			val24(2,0)=pNright;
+//			TPZMaterial * BCondR = mymaterial[0]->CreateBC(mat, bcRight, DXFY1N2, val14, val24);
+//			mphysics->InsertMaterialObject(BCondR);
 			
 			//	Production or injection Well point (Q is the injected/produced volume per time [kg/s])
 			int Well = 400;
 			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
-			REAL pQmass=-(qo);// fluid density 1000
-			valP23(2,0)=pQmass;
-			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, Well, valP13, valP23);
+			valP23(2,0)=qo/rhof;
+			TPZMaterial * BCPoint = mymaterial[0]->CreateBC(mat, WellPoint, Well, valP13, valP23);
 			mphysics->InsertMaterialObject(BCPoint);	
 			//-----------
 			
 		}
+			break;
 		case 4:
 		{
 			
@@ -2110,19 +1511,19 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			val2(0,0)=uDx;
 			val2(1,0)=uDy;
 			val2(2,0)=Pressure;
-			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, bcLeft,D1D2, val1, val2);
+			TPZMaterial * BonArc1 = mymaterial[0]->CreateBC(mat, bcLeft,D1D2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc1);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, bcRight,D1D2, val1, val2);
+			TPZMaterial * BonArc2 = mymaterial[0]->CreateBC(mat, bcRight,D1D2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc2);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, bcBottom,D1D2, val1, val2);
+			TPZMaterial * BonArc3 = mymaterial[0]->CreateBC(mat, bcBottom,D1D2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc3);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, bcTop,N1D2, val1, val2);
+			TPZMaterial * BonArc4 = mymaterial[0]->CreateBC(mat, bcTop,N1D2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc4);			
 			
 			//		loaded vertical point force Y
@@ -2130,7 +1531,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
 			// 170 Elasticity Theory
 			valP23(1,0)=Yforce;
-			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, N1N2, valP13, valP23);
+			TPZMaterial * BCPoint = mymaterial[0]->CreateBC(mat, WellPoint, N1N2, valP13, valP23);
 			mphysics->InsertMaterialObject(BCPoint);	
 			//		-----------
 			
@@ -2143,36 +1544,36 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 			// Boundary condition D1N2 means: Elastic -> Dirichlet, Pressure -> Neumman
 			TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
 			int D1D2 = 10;
-			int N1N2 = 11;
-			int D1FN2 = 300;			
+			int N1N2 = 200;
+			int D1FN2 = 300;		
 			REAL uDx=0.0;
 			REAL uDy=0.0;
 			REAL Pressure=0.0;
 			val2(0,0)=uDx;
 			val2(1,0)=uDy;
 			val2(2,0)=Pressure;
-			TPZMaterial * BonArc1 = mymaterial->CreateBC(mat, GBTop,N1N2, val1, val2);
+			TPZMaterial * BonArc1 = mymaterial[0]->CreateBC(mat, GBTop,D1D2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc1);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc2 = mymaterial->CreateBC(mat, GBBot,D1D2, val1, val2);
+			TPZMaterial * BonArc2 = mymaterial[0]->CreateBC(mat, GBBot,N1N2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc2);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc3 = mymaterial->CreateBC(mat, GBleft,D1FN2, val1, val2);
+			TPZMaterial * BonArc3 = mymaterial[0]->CreateBC(mat, GBleft,D1FN2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc3);
 			
 			///Inserir cc de Dirichlet para elasticidade e Neumann para pressao
-			TPZMaterial * BonArc4 = mymaterial->CreateBC(mat, GBright,D1FN2, val1, val2);
+			TPZMaterial * BonArc4 = mymaterial[0]->CreateBC(mat, GBright,D1FN2, val1, val2);
 			mphysics->InsertMaterialObject(BonArc4);			
 			
-			//		Production/Injection Well Just Neumman for Pressure
-			int WellQ = 400;
-			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
-			REAL MassQ = qo/rhof;
-			valP23(2,0)=MassQ;
-			TPZMaterial * BCPoint = mymaterial->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
-			mphysics->InsertMaterialObject(BCPoint);	
+//			//		Production/Injection Well Just Neumman for Pressure
+//			int WellQ = 400;
+//			TPZFMatrix<REAL> valP13(3,2,0.), valP23(3,1,0.);
+//			REAL MassQ = qo/rhof;
+//			valP23(2,0)=MassQ;
+//			TPZMaterial * BCPoint = mymaterial[0]->CreateBC(mat, WellPoint, WellQ, valP13, valP23);
+//			mphysics->InsertMaterialObject(BCPoint);
 			//		-----------
 			
 		}			
@@ -2228,7 +1629,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 //	an.Solution().Print("solution", file); 
 }
 
-void SolveSistTransient(REAL deltime,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZPoroElastic2d  * &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
+void SolveSistTransient(REAL deltime,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAutoPointer < TPZMatrix<REAL> > matK2, TPZFMatrix<REAL> fvec, TPZFMatrix<REAL> &Initialsolution, TPZVec <TPZPoroElastic2d  * > &mymaterial, TPZAnalysis &an,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
 	
 	int nrows;
 	nrows = matK2->Rows();
@@ -2247,7 +1648,7 @@ void SolveSistTransient(REAL deltime,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAut
 	while (TimeValue < Maxtime)
 	{	
 		// This time solution i for Transient Analytic Solution
-		mymaterial->SetTimeValue(TimeValue);
+		mymaterial[0]->SetTimeValue(TimeValue);
 		matK2->Multiply(Lastsolution,TotalRhstemp);
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;
@@ -2287,28 +1688,28 @@ void SolveSistTransient(REAL deltime,REAL maxtime,TPZFMatrix<REAL> matK1, TPZAut
 		// Total mass calculation
 		//
 	
-		int totalel=mphysics->NElements();
-		int vartointegrate = 13;
-		REAL TotalMass=0;
-		
-		
-		
-		for ( int el = 0; el < totalel; el++ )
-		{
-		
-			TPZVec <REAL> result(1,0);
-			TPZCompEl * celvar = mphysics->ElementVec()[el];
-			if (celvar->Reference()->MaterialId() > 0 )// avoid bc conditions
-			{
-				celvar->Integrate(vartointegrate, result);
-				TotalMass += result[0];
-				
-			}
-			
-		}
-		
-		cout << "Numerical total mass  " << TotalMass << "  at time " << TimeValue << endl;
-		cout << "Theorical total mass  " << 0.000001*TimeValue << "  at time " << TimeValue << endl;		
+//		int totalel=mphysics->NElements();
+//		int vartointegrate = 13;
+//		REAL TotalMass=0;
+//		
+//		
+//		
+//		for ( int el = 0; el < totalel; el++ )
+//		{
+//		
+//			TPZVec <REAL> result(1,0);
+//			TPZCompEl * celvar = mphysics->ElementVec()[el];
+//			if (celvar->Reference()->MaterialId() > 0 )// avoid bc conditions
+//			{
+//				celvar->Integrate(vartointegrate, result);
+//				TotalMass += result[0];
+//				
+//			}
+//			
+//		}
+//		
+//		cout << "Numerical total mass  " << TotalMass << "  at time " << TimeValue << endl;
+//		cout << "Theorical total mass  " << 0.000001*TimeValue << "  at time " << TimeValue << endl;		
 		
 		//
 		// End TotalMass Calculation

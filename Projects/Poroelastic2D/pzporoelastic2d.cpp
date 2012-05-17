@@ -419,7 +419,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 		{			
 			///Dirichlet para Equacao da elasticidade
 			for(in = 0 ; in < phru; in++) {
-				ef(2*in+1,0) += BIGNUMBER*v2[0] *phiu(in,0)*weight;     /// x displacement forced v2 displacement
+				ef(2*in+1,0) += BIGNUMBER*v2[0] *phiu(in,0)*weight;     /// y displacement forced v2 displacement
 				
 				for (jn = 0 ; jn < phru; jn++) {
 					ek(2*in+1,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight; /// x displacement
@@ -637,7 +637,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	//-----------------
 	if(var == 6) {
-		Solout[0] = SolP[0];///5.70441e6;///(1.12988e+12);
+		Solout[0] = SolP[0];
 		return;
 	}//var6
 	
@@ -719,7 +719,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	// This variables are related with 
 	if(var == 13) {
-		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
+		TMass = falpha*divu + fSe*SolP[0];
 		Solout[0] = TMass;
 		return;
 	}//var13
