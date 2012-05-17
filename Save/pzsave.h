@@ -67,6 +67,9 @@ public:
 	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
 	virtual void Write(TPZStream &buf, int withclassid);
 	
+	/** @brief Writes this object to the TPZStream buffer. Include the classid if withclassid = true */
+	virtual void Write(TPZStream &buf, int withclassid) const;
+	
 	/** @brief read objects from the stream */
 	virtual void Read(TPZStream &buf, void *context);
 	

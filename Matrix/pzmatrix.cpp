@@ -1088,6 +1088,15 @@ void TPZMatrix<TVar>::Read( TPZStream &buf, void *context ){
 	fDecomposed = (char) tmp;
 }
 template <class TVar>
+void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) const {
+	TPZSaveable::Write(buf,withclassid);
+	buf.Write(&fRow,1);
+	buf.Write(&fCol,1);
+	int tmp = fDecomposed;
+	buf.Write(&tmp,1);
+}
+
+template <class TVar>
 void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
 	TPZSaveable::Write(buf,withclassid);
 	buf.Write(&fRow,1);
@@ -1095,6 +1104,7 @@ void TPZMatrix<TVar>::Write( TPZStream &buf, int withclassid ) {
 	int tmp = fDecomposed;
 	buf.Write(&tmp,1);
 }
+
 
 /// Compare the object for identity with the object pointed to, eventually copy the object
 /**

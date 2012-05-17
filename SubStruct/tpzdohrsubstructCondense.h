@@ -109,10 +109,10 @@ public:
 	static void PermuteGather(const TPZVec<int> &permute, const TPZFMatrix<TVar> &input, TPZFMatrix<TVar> &output, int first, int last);
 	
     /** @brief method for streaming the object to a stream */
-    void Write(TPZStream &out);
+    void Write(TPZStream &out, int withclassid);
     
     /** @brief method for reading the object for a stream */
-    void Read(TPZStream &input);
+    void Read(TPZStream &input, void *context);
 
 public:
 	/** @brief It prepares the datas for solving systems for phi and zi */

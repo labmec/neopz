@@ -43,6 +43,16 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 	int isub = 0;
 	if (fNumThreads == 0) {
 		for (iter=fGlobal.begin();iter!=fGlobal.end();iter++,isub++) {
+            
+            {
+                TPZFileStream out;
+                out.OpenWrite("dohr.txt");
+                fAssembly->Write(out);
+                x.Write(out,1);
+                TPZAutoPointer<TSubStruct> point(*iter);
+                point->Write(out,1);
+                
+            }
 			TPZFMatrix<TVar> xlocal,zlocal;
 			fAssembly->Extract(isub,x,xlocal);
 			zlocal.Redim(xlocal.Rows(),xlocal.Cols());
@@ -202,7 +212,7 @@ void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {
         TPZAutoPointer<TSubStruct > sub = new TSubStruct;
-        sub->Read(buf);
+        sub->Read(buf,0);
         fGlobal.push_back(sub);
     }
     int classid;
@@ -227,7 +237,7 @@ void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
     int size = fGlobal.size();
     buf.Write(&size);
     for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
-        (*it)->Write(buf);
+        (*it)->Write(buf,0);
     }
     size = 0;
     int classid = ClassId();

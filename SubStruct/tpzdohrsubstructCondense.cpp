@@ -475,8 +475,9 @@ const TPZVec<int> &TPZDohrSubstructCondense<TVar>::ScatterVec(ENumbering origin,
 
 /** @brief method for streaming the object to a stream */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out)
+void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
 {
+    
     if(fMatRedComplete)
     {
         int one = 1;
@@ -531,7 +532,7 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out)
 
 /** @brief method for reading the object for a stream */
 template<class TVar>
-void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input)
+void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
 {
     int a;
     input.Read(&a);

@@ -683,6 +683,13 @@ public:
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
 	
+	/**
+	 * @brief Packs the object structure in a stream of bytes
+	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
+	 */
+	virtual void Write( TPZStream &buf, int withclassid ) const;
+	
 	/** @} */
 	
 	/// Compare the object for identity with the object pointed to, eventually copy the object

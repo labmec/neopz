@@ -26,23 +26,23 @@ public:
 	
 	virtual ~TPZStream() {}
 	
-	virtual void Write(int *p, int size=1)=0;
+	virtual void Write(const int *p, int size=1)=0;
 
-	virtual void Write(float  *p, int size=1)=0;
+	virtual void Write(const float  *p, int size=1)=0;
 	
-	virtual void Write(double  *p, int size=1)=0;
+	virtual void Write(const double  *p, int size=1)=0;
 	
-	virtual void Write(long double  *p, int size=1)=0;
+	virtual void Write(const long double  *p, int size=1)=0;
 	
 	virtual void Write(const char *p, int size=1)=0;
 	
-	virtual void Write(std::string *p, int size=1) = 0;
+	virtual void Write(const std::string *p, int size=1) = 0;
 	
-	virtual void Write(std::complex< float > *p, int size=1)=0;
+	virtual void Write(const std::complex< float > *p, int size=1)=0;
 	
-	virtual void Write(std::complex< double > *p, int size=1)=0;
+	virtual void Write(const std::complex< double > *p, int size=1)=0;
 	
-	virtual void Write(std::complex< long double > *p, int size=1)=0;
+	virtual void Write(const std::complex< long double > *p, int size=1)=0;
 	
 #ifndef ELLIPS
 	void Write(TPZFlopCounter *p, int size=1) 
@@ -107,19 +107,19 @@ public:
 		fi.open(filename.c_str());
 	}
 	
-	virtual void Write(int *p, int size) {
+	virtual void Write(const int *p, int size) {
 		Writes<int>(p,size);
 	}
 	
-	virtual void Write(float *p, int size) {
+	virtual void Write(const float *p, int size) {
 		Writes<float>(p,size);
 	}
 	
-	virtual void Write(double *p, int size) {
+	virtual void Write(const double *p, int size) {
 		Writes<double>(p,size);
 	}
 	
-	virtual void Write(long double *p, int size) {
+	virtual void Write(const long double *p, int size) {
 		Writes<long double>(p,size);
 	}
 	
@@ -127,19 +127,19 @@ public:
 		Writes<char>(p,size);
 	}
 	
-	virtual void Write(std::string *p, int size) {
+	virtual void Write(const std::string *p, int size) {
 		Writes<std::string>(p,size);
 	}
 
-	virtual void Write(std::complex <float> *p, int size) {
+	virtual void Write(const std::complex <float> *p, int size) {
 		Writes< std::complex <float> >(p,size);
 	}
 
-	virtual void Write(std::complex <double> *p, int size) {
+	virtual void Write(const std::complex <double> *p, int size) {
 		Writes< std::complex <double> >(p,size);
 	}
 
-	virtual void Write(std::complex <long double> *p, int size) {
+	virtual void Write(const std::complex <long double> *p, int size) {
 		Writes< std::complex <long double> >(p,size);
 	}
 

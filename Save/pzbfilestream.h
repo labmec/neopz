@@ -46,19 +46,19 @@ public:
 		}
 	}
 	/** @brief Writes size integers at pointer location p */
-	virtual void Write(int *p, int size) {
+	virtual void Write(const int *p, int size) {
 		Writes<int>(p,size);
 	}
 	/** @brief Writes size floating points at pointer location p */
-	virtual void Write(float *p, int size) {
+	virtual void Write(const float *p, int size) {
 		Writes<float>(p,size);
 	}
 	/** @brief Writes size floating points at pointer location p */
-	virtual void Write(double *p, int size) {
+	virtual void Write(const double *p, int size) {
 		Writes<double>(p,size);
 	}
 	/** @brief Writes size floating points at pointer location p */
-	virtual void Write(long double *p, int size) {
+	virtual void Write(const long double *p, int size) {
 		Writes<long double>(p,size);
 	}
 	/** @brief Writes size chars at pointer location p */
@@ -66,7 +66,7 @@ public:
 		Writes<char>(p,size);
 	}
 	/** @brief Writes size strings at pointer location p */
-	virtual void Write(std::string *p, int size) {
+	virtual void Write(const std::string *p, int size) {
 		int c;
 		for(c=0; c<size; c++) 
 		{
@@ -76,15 +76,15 @@ public:
 		}
 	}
 	/** @brief Writes size complex-float at pointer location p */
-	virtual void Write(std::complex <float> *p, int size) {
+	virtual void Write(const std::complex <float> *p, int size) {
 		Writes< std::complex <float> >(p,size);
 	}
 	/** @brief Writes size complex-double at pointer location p */
-	virtual void Write(std::complex <double> *p, int size) {
+	virtual void Write(const std::complex <double> *p, int size) {
 		Writes< std::complex <double> >(p,size);
 	}
 	/** @brief Writes size complex-long double at pointer location p */
-	virtual void Write(std::complex <long double> *p, int size) {
+	virtual void Write(const std::complex <long double> *p, int size) {
 		Writes< std::complex <long double> >(p,size);
 	}
 	/** @brief Writes size objects of the class T at pointer location p */
