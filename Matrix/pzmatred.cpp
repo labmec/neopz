@@ -145,10 +145,11 @@ void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 			fF0.PutVal( r,c,F.GetVal(r,c) ) ;
 		}
 		//aqui r=fDim0
-		for( ;r<this->Rows(); r++){
+		for( ;r<this->fDim0+fDim1; r++){
 			fF1.PutVal( r1++,c,F.GetVal(r,c) );
 		}
 	}
+
 	fF1IsReduced = 0;
 	fF0IsComputed = 0;
 }
@@ -157,9 +158,10 @@ template<class TVar, class TSideMatrix>
 const TPZFMatrix<TVar>& TPZMatRed<TVar, TSideMatrix>::F1Red()
 {
 	if (!fDim0 || fF1IsReduced)  return (fF1);
+	
 	if(! fF0IsComputed)
 	{
-        DecomposeK00();
+		DecomposeK00();
 		fSolver->Solve(fF0,fF0);
 		fF0IsComputed = 1;
 	}
@@ -167,6 +169,7 @@ const TPZFMatrix<TVar>& TPZMatRed<TVar, TSideMatrix>::F1Red()
 	//make [F1]=[F1]-[K10][K0]
 	fK10.MultAdd((fF0),(fF1),(fF1),-1,1);
 	fF1IsReduced=1;
+	
 	return (fF1);
 }
 
