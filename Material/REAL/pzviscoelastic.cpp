@@ -252,3 +252,34 @@ void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
 	data.fNeedsSol = true;
 }
 
+/** Save the element data to a stream */
+void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
+{
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Write(buf,withclassid);
+	buf.Write(&flambdaE, 1);
+	buf.Write(&fmuE, 1);
+	buf.Write(&flambdaV, 1);
+	buf.Write(&fmuV, 1);
+	buf.Write(&falphaT, 1);
+	buf.Write(&fElaVE, 1);
+	buf.Write(&fPoissonVE, 1);
+	
+}
+
+/** Read the element data from a stream */
+void TPZViscoelastic::Read(TPZStream &buf, void *context)
+{
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Read(buf,context);
+	buf.Read(&flambdaE, 1);
+	buf.Read(&fmuE, 1);
+	buf.Read(&flambdaV, 1);
+	buf.Read(&fmuV, 1);
+	buf.Read(&falphaT, 1);
+	buf.Read(&fElaVE, 1);
+	buf.Read(&fPoissonVE, 1);
+}
+
+int TPZViscoelastic::ClassId() const
+{
+	return TPZVISCOELASTICITYMATERIALID;
+}

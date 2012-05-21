@@ -67,7 +67,14 @@ public:
 
 	/** @brief Fill material data parameter with necessary requirements for the Contribute method. */
 	virtual void FillDataRequirements(TPZMaterialData &data);
+	
+	/** @brief Saves the element data to a stream */
+	virtual void Write(TPZStream &buf, int withclassid);
+	
+	/** @brief Reads the element data from a stream */
+	virtual void Read(TPZStream &buf, void *context);
 
+	int ClassId() const;
 	
 protected:
 	
