@@ -47,7 +47,7 @@ public:
 	TPZAutoPointer<TPZMatrix<STATE> > Preconditioner()
 	{
 		TPZAutoPointer<TPZMatrix<STATE> > result = fDohrPrecond;
-		fDohrPrecond = 0;
+		//fDohrPrecond = 0; Essa linha me ferra pois nao posso pegar as subestruturas depois
 		return result;
 	}
 	
