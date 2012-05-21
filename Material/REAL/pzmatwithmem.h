@@ -8,7 +8,7 @@
 
 #include "pzmaterial.h"
 #include "pzadmchunk.h"
-#include "pzviscoelastic.h"
+//#include "pzviscoelastic.h"
 
 /**
  * @ingroup material
@@ -159,7 +159,7 @@ int TPZMatWithMem<TMEM,TFather>::ClassId() const
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)
 {	
-	TPZMaterial::Write(buf, withclassid);
+	TFather::Write(buf, withclassid);
 	
 	int size = fMemory.NElements();
     buf.Write(&size,1);
@@ -171,7 +171,7 @@ void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)
 template <class TMEM, class TFather>
 void TPZMatWithMem<TMEM,TFather>::Read(TPZStream &buf, void *context)
 {
-	TPZMaterial::Read(buf, context);
+	TFather::Read(buf, context);
 	
 	int i,size;
 	buf.Read(&size,1);
