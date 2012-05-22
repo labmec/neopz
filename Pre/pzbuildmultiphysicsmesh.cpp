@@ -200,12 +200,12 @@ void TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(TPZVec<TPZCompMesh *> &c
 	}
 }
 
-void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat)
+void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat)
 {
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh->Reference()->ElementVec();
 	int meshdim = cmesh->Dimension();
 	
-	///cria todos os elementos sem conectar-se aos vizinhos
+	// It creates all the elements without connecting to neighboring elements
 	int i, nelem = elvec.NElements();
 	int neltocreate = 0;
 	int index;
@@ -236,7 +236,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 				gel->Print(std::cout);
 			}
 			
-			///checking material in MaterialIDs
+			// checking material in MaterialIDs
 			std::set<int>::const_iterator found = MaterialIDs.find(matid);
 			if (found == MaterialIDs.end()) continue;
 			
@@ -250,7 +250,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
     
 	cmesh->LoadReferences();
     
-	///Gera elementos geometricos para os elementos menores
+	// Generate geometric elements to smaller elements
 	for (i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
 		if (!gel || gel->Dimension() != meshdim || !gel->Reference()) {
@@ -261,7 +261,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		{
 			continue;
 		}
-		///over the dimension-1 sides
+		// over the dimension-1 sides
 		int nsides = gel->NSides();
 		int is;
 		for (is=0; is<nsides; ++is) {
@@ -269,7 +269,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			if (sidedim != meshdim-1) {
 				continue;
 			}
-			///check if there is a smaller element connected to this element
+			// check if there is a smaller element connected to this element
 			TPZStack<TPZCompElSide> celsides;
 			celsides.Resize(0);
 			TPZGeoElSide gelside(gel,is);
@@ -277,7 +277,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			//int ncelsid =  celsides.NElements();
 			if(celsides.NElements()) continue;
 			
-			///check the neighboring
+			// check the neighboring
 			TPZCompElSide celside;
 			celside = gelside.LowerLevelCompElementList2(0);
 			if (celside && celside.Element()->Reference()->Dimension() != meshdim) continue;
@@ -292,7 +292,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		}
 	}
 	
-	/// now create the lagrange elements
+	// now create the lagrange elements
 	cmesh->Reference()->ResetReference();
 	nelem = elvec.NElements();
 	for(i=0; i<nelem; i++) {
@@ -308,7 +308,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 				continue;
 			}
 			
-			///checking material in MaterialIDs
+			// checking material in MaterialIDs
 			if (matid != LagrangeMat) {
 				continue;
 			}
@@ -327,7 +327,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 	
 	cmesh->LoadReferences();
 	
-	/// now create the interface elements between the lagrange elements and other elements
+	// now create the interface elements between the lagrange elements and other elements
 	nelem = elvec.NElements();
 	for (i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
@@ -338,7 +338,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 		if(matid != LagrangeMat){
 			continue;
 		}
-		///over the dimension-1 sides
+		// over the dimension-1 sides
 		int nsides = gel->NSides();
 		int is;
 		for (is=0; is<nsides; ++is) {
@@ -346,7 +346,7 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			if (sidedim != meshdim-1) {
 				continue;
 			}
-			/// check if there is a smaller element connected to this element
+			// check if there is a smaller element connected to this element
 			TPZStack<TPZCompElSide> celsides;
 			TPZGeoElSide gelside(gel,is);
 			gelside.EqualLevelCompElementList(celsides, 0, 0);
