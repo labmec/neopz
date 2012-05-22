@@ -56,8 +56,8 @@ public:
 	 * @brief Creating computational mesh with interface elements
 	 * @param cmesh [in]: computational mesh
 	 * @param MaterialIDs [in]: set of index materials
-	 * @param LagrangeMat [in]: iindex Lagrange material
-	 * @param InterfaceMat [in]: iindex interface material
+	 * @param LagrangeMat [in]: index Lagrange material
+	 * @param InterfaceMat [in]: index interface material
 	 */	
 	static void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
 	
