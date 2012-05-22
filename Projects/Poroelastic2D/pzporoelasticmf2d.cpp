@@ -61,56 +61,28 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 		DebugStop();
 	}
 	
-	///Setting the size of block of Elastic problem
+	// Setting the phis
 	TPZFMatrix<>  &phiu =  datavec[0].phi;
-	TPZFMatrix<> &dphiu = datavec[0].dphix;
-	TPZFMatrix<> &axes=datavec[0].axes;
-	int phcu, phru, dphcu, dphru;
-	phru = phiu.Rows();
-	phcu = phiu.Cols();
-	dphcu = dphiu.Cols();
-	dphru = dphiu.Rows();
-	if(phcu != 1 || dphru != 2 || phru != dphcu) 
-	{
-		PZError << "\n inconsistent input Elasticity data : \n" <<
-		"phi.Cols() = " << phiu.Cols() << " dphi.Cols() = " << dphiu.Cols() <<
-		" phi.Rows = " << phiu.Rows() << " dphi.Rows = " << dphiu.Rows() <<"\n";
-		return;
-	}
-	
-	///Setting the size of blocks of transport problem: flux and pressure 
-	TPZFMatrix<>  &phiQ =  datavec[1].phi;
-	TPZFMatrix<> &dphiQ = datavec[1].dphix;
+    TPZFMatrix<>  &phiQ =  datavec[1].phi;
     TPZFMatrix<>  &phip =  datavec[2].phi;
-	TPZFMatrix<> &dphip = datavec[2].dphix;
-    int phrp = phip.Rows();
-	int phcQ, phrQ, dphcQ, dphrQ;
-    phrQ = phiQ.Rows();
-	phcQ = phiQ.Cols();
-	dphcQ = dphiQ.Cols();
-	dphrQ = dphiQ.Rows();
-    if(phcQ != 1 || dphrQ != 2 || phrQ != dphcQ) 
-	{
-		PZError << "\n inconsistent input Flux data : \n" <<
-		"phi.Cols() = " << phiQ.Cols() << " dphi.Cols() = " << dphiQ.Cols() <<
-		" phi.Rows = " << phiQ.Rows() << " dphi.Rows = " << dphiQ.Rows() <<"\n";
-		return;
-	}
     
-	///check size of the matrix ek and vector ef
-	int efr, efc, ekr, ekc;  
-	efr = ef.Rows();
-	efc = ef.Cols();
-	ekr = ek.Rows();
-	ekc = ek.Cols();
-	if(ekr != (2*phru + 2*phrQ+ phrp) || ekc != (2*phru + 2*phrQ + phrp) || efr != (2*phru + phrp) || efc != 1)
-	{
-		PZError << "\n inconsistent input data : \n" << "\nek.Rows() = " << ek.Rows() <<
-		" ek.Cols() = " << ek.Cols() << "\nef.Rows() = " << ef.Rows() << " ef.Cols() = " << ef.Cols() << "\n";
+    TPZFMatrix<> &dphiu = datavec[0].dphix;
+	TPZFMatrix<> &dphiQ = datavec[1].dphix;
+	TPZFMatrix<> &dphip = datavec[2].dphix;
+
+    int phru, phrq, phrp;
+    phru = phiu.Rows();
+    phrq = phiQ.Rows();
+    phrp = phip.Rows();
+    
+    if(phrq!=datavec[1].fVecShapeIndex.NElements()){
+        PZError << "\n inconsistent input Flux data : \n";
 		return;
-	}
+    }
+    
 	
     TPZFMatrix<> du(2,2);
+    TPZFMatrix<> &axes = datavec[0].axes;
 	//current state (n+1)
 	if(gState == ECurrentState)
 	{	   
@@ -125,7 +97,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 		REAL nu2 = (1-2*fnu);//(1-2*fnu)/2;
 		REAL F = fE/((1+fnu)*(1-2*fnu));
 		
-		//Elastic equation: Calculate the matrix contribution for elastic problem 
+		//Calculate the matrix contribution for elastic problem. Matrix A 
 		for(int in = 0; in < phru; in++ )
 		{
 			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
@@ -161,74 +133,104 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 				}
 			}
 		}
-		
-		
-		// Coupling terms right upper side of global matrix 
-		for(int in = 0; in < phru; in++ )
-		{
-			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
-			du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
-			
-			for(int jn = 0; jn < phrp; jn++)
-			{
-				ek(2*in,2*phru+jn) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
-				ek(2*in+1,2*phru+jn) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
-			}
-		}
-		
-		
-		// Coupling terms left lower side of global matrix 
-		for(int in = 0; in < phru; in++ )
-		{
-			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
-			du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
-			
-			for(int jn = 0; jn < phrp; jn++)
-			{
-				ek(2*phru+jn,2*in) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
-				ek(2*phru+jn,2*in+1) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
-			}
-		}
-		
-		
-		//Equacao de Poisson: pressao 
-		// Calculate the matrix contribution for transport problem from
-		const REAL DeltaT = fTimeStep;
+        
+        // Calculate the matrix contribution for flux. Marix C 
+        REAL ratiomuk =fvisc/fk;
+        
+        for(int iq=0; iq<phrq; iq++)
+        {
+            ef(2*phru+iq, 0) += 0.;
+            
+            int ivecind = datavec[1].fVecShapeIndex[iq].first;
+            int ishapeind = datavec[1].fVecShapeIndex[iq].second;
+            for (int jq=0; jq<phrq; jq++) 
+            {
+                int jvecind = datavec[1].fVecShapeIndex[jq].first;
+                int jshapeind = datavec[1].fVecShapeIndex[jq].second;
+                REAL prod = datavec[1].fNormalVec(0,ivecind)*datavec[1].fNormalVec(0,jvecind)+
+                datavec[1].fNormalVec(1,ivecind)*datavec[1].fNormalVec(1,jvecind)+
+                datavec[1].fNormalVec(2,ivecind)*datavec[1].fNormalVec(2,jvecind);//dot product between u and v 
+                ek(2*phru+iq,2*phru+jq) += fTimeStep*ratiomuk*weight*phiQ(ishapeind,0)*phiQ(jshapeind,0)*prod;
+            }
+        }
+        
+        // Calculate the matrix contribution for pressure. Matrix -D
 		for(int in = 0; in < phrp; in++)
 		{
-			ef(in+2*phru, 0) += 0.; 
+			ef(2*phru+phrq+in,0) += 0.; 
 			for(int jn = 0; jn < phrp; jn++)
 			{
-				ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
-				for(int kd=0; kd<fDim; kd++) 
-				{
-					ek(in+2*phru, jn+2*phru) += (-1.)*weight *(fk/fvisc)*DeltaT*dphip(kd,in)*dphip(kd,jn);
-				}
+				ek(in+2*phru+phrq, jn+2*phru+phrq) += (-1.)*fSe*weight*phip(in,0)*phip(jn,0); 
 			}
 		}
+        
+		// Coupling terms between displacement and pressure. Matrix B 
+		for(int in = 0; in < phru; in++ )
+		{
+			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
+			du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
+			
+			for(int jn = 0; jn < phrp; jn++)
+			{
+                //Matrix B
+				ek(2*in,2*phru+phrq+jn) += (-1.)*falpha*weight*phip(jn,0)*du(0,0);		
+				ek(2*in+1,2*phru+phrq+jn) += (-1.)*falpha*weight*phip(jn,0)*du(1,0);
+                
+                //matrix BˆT
+                ek(2*phru+phrq+jn,2*in) += (-1.)*falpha*weight*phip(jn,0)*du(0,0);		
+				ek(2*phru+phrq+jn,2*in+1) += (-1.)*falpha*weight*phip(jn,0)*du(1,0);
+			}
+		}
+        
+        // Coupling terms between flux and pressure. Matrix E
+        for(int i=0; i<phrq; i++)
+        {
+            int ivecind = datavec[1].fVecShapeIndex[i].first;
+            int ishapeind = datavec[1].fVecShapeIndex[i].second;
+           
+            TPZFNMatrix<3> ivec(3,1);
+            ivec(0,0) = datavec[1].fNormalVec(0,ivecind);
+            ivec(1,0) = datavec[1].fNormalVec(1,ivecind);
+            ivec(2,0) = datavec[1].fNormalVec(2,ivecind);
+            TPZFNMatrix<3> axesvec(3,1);
+            datavec[1].axes.Multiply(ivec,axesvec);
+
+            REAL divwq = 0.;
+            for(int iloc=0; iloc<fDim; iloc++)
+            {
+                divwq += axesvec(iloc,0)*dphiQ(iloc,ishapeind);
+            }
+            for (int j=0; j<phrp; j++) {
+                REAL fact = (-1.)*fTimeStep*weight*phip(j,0)*divwq;
+                
+                // Matrix E
+                ek(2*phru+i,2*phru+phrq+j) += fact;
+                
+                // Matrix E^T
+                ek(2*phru+phrq+j,2*phru+i) += fact;
+            }
+        }
+		
 	}//end if
 	
 	//Last state (n)
 	if(gState == ELastState)
-	{				
-		for(int in = 0; in < phru; in++ )
-		{
-			du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
+	{
+        for(int in = 0; in < phru; in++ ){
+            du(0,0) = dphiu(0,in)*axes(0,0)+dphiu(1,in)*axes(1,0);
 			du(1,0) = dphiu(0,in)*axes(0,1)+dphiu(1,in)*axes(1,1);
-			
-			for(int jn = 0; jn < phrp; jn++)
-			{
-				ek(2*phru+jn,2*in) += (-1.)*falpha*weight*(phip(jn,0)*du(0,0));		
-				ek(2*phru+jn,2*in+1) += (-1.)*falpha*weight*(phip(jn,0)*du(1,0));							
-			}
-		}
-		
-		for(int in = 0; in < phrp; in++){
-			for(int jn = 0; jn < phrp; jn++) {
-				ek(in+2*phru, jn+2*phru) += (-1.)*weight*fSe*phip(in,0)*phip(jn,0); 
-			}
-		}
-	}
+            
+            for(int jn = 0; jn < phrp; jn++){
+                ek(2*phru+phrq+jn,2*in) += (-1.)*falpha*weight*phip(jn,0)*du(0,0);		
+				ek(2*phru+phrq+jn,2*in+1) += (-1.)*falpha*weight*phip(jn,0)*du(1,0);
+            }
+        }
+        for(int in = 0; in < phrp; in++){
+            for(int jn = 0; jn < phrp; jn++) {
+				ek(in+2*phru+phrq, jn+2*phru+phrq) += (-1.)*fSe*weight*phip(in,0)*phip(jn,0); 
+            }
+        }
+    }
 	
 #ifdef LOG4CXX
 	if(logdata->isDebugEnabled())
@@ -245,15 +247,25 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
-    int phru = phiu.Rows();
-    for(int in = 0 ; in < phru; in++){
-        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight;  /// x displacement  forced v2 displacement      
-        ef(2*in+1,0) += gBigNumber*bc.Val2()(1,0)*phiu(in,0)*weight;   /// y displacement  forced v2 displacement 
+    for(int in = 0 ; in < phiu.Rows(); in++){
+        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight; // x displacement forced v2 displacement      
+        ef(2*in+1,0) += gBigNumber*bc.Val2()(1,0)*phiu(in,0)*weight; // y displacement forced v2 displacement 
         
-        for(int jn = 0 ; jn < phru; jn++){
+        for(int jn = 0 ; jn < phiu.Rows(); jn++){
             ek(2*in,2*jn) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
             ek(2*in+1,2*jn+1) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
         }
+    }
+}
+
+void TPZPoroElasticMF2d::ApplyDirichlet_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    int phru = datavec[0].phi.Rows();
+    TPZFMatrix<> &phiQ = datavec[1].phi;
+    for(int iq=0; iq<phiQ.Rows(); iq++)
+    {
+        //the contribution of the Dirichlet boundary condition appears in the flow equation
+        ef(2*phru+iq,0) += -fTimeStep*bc.Val2()(2,0)*phiQ(iq,0)*weight;
     }
 }
 
@@ -265,6 +277,20 @@ void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL w
         ef(2*in,0) += bc.Val2()(0,0)*phiu(in,0)*weight;   // traction in x 
         ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // traction in y
     }     
+}
+
+void TPZPoroElasticMF2d::ApplyNeumann_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    int phru = datavec[0].phi.Rows();
+    TPZFMatrix<> &phiQ = datavec[1].phi;
+    for(int iq=0; iq<phiQ.Rows(); iq++)
+    {
+        ef(2*phru+iq,0)+= gBigNumber*bc.Val2()(2,0)*phiQ(iq,0)*weight;
+        for (int jq=0; jq<phiQ.Rows(); jq++) {
+            
+            ek(2*phru+iq,2*phru+jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight; 
+        }
+    }   
 }
 
 void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
@@ -285,216 +311,107 @@ void TPZPoroElasticMF2d::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     
 }
 
+void TPZPoroElasticMF2d::ApplyMixed_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    int phru = datavec[0].phi.Rows();
+    TPZFMatrix<> &phiQ = datavec[1].phi;
+    for(int iq = 0; iq < phiQ.Rows(); iq++) {
+        
+        ef(2*phru+iq,0) += bc.Val2()(2,0)*phiQ(iq,0)*weight;
+        for (int jq = 0; jq < phiQ.Rows(); jq++) {
+           
+            ek(2*phru+iq,2*phru+jq) += weight*bc.Val1()(2,0)*phiQ(iq,0)*phiQ(jq,0);
+        }
+    }
+}
+
+void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    for(int in = 0 ; in < phiu.Rows(); in++){
+        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight; // x displacement forced v2 displacement      
+        for(int jn = 0 ; jn < phiu.Rows(); jn++){
+            ek(2*in,2*jn) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
+        }
+    }
+}
+
+void TPZPoroElasticMF2d::ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc)
+{
+    TPZFMatrix<>  &phiu = datavec[0].phi;
+    int phru = phiu.Rows();
+    for(int in = 0 ; in <phru; in++){  
+        ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // traction in y
+    }     
+}
+
 void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<> &ek,
-									   TPZFMatrix<> &ef,TPZBndCond &bc) 
+                                      TPZFMatrix<> &ef,TPZBndCond &bc) 
 {
 	//The Last state (n) not include boundary conditions
 	if(gState == ELastState){
 		return;
 	}
-			
+    
 	int nref =  datavec.size();
-	if (nref != 2) {
-		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+	if (nref != 3) {
+		std::cout << " Error.! datavec has to be of size 3 \n";
 		DebugStop();
 	}
 	if (bc.Val2().Rows() != 3) {
-		std::cout << " Erro.!! Neste material precisa-se do valor da condicao de contorno para ux, uy e p.\n";
-		std::cout << "portanto precisa-se passar uma matrix Val2(3,1).\n";
+		std::cout << " Error.! This material must be the value of the boundary condition for ux, uy, and p\n";
+		std::cout << " Therefore, we need to pass an matrix Val2(3,1)\n";
 		DebugStop();
 	}
 	
 	if (bc.Val1().Rows() != 3) {
-		std::cout << " Erro.!! Neste material precisa-se do valor da condicao de contorno para ux, uy e p.\n";
+		std::cout << " Error.! This material must be the value of the boundary condition for ux, uy, and p\n";
 		DebugStop();
 	}
 	
-	TPZFMatrix<>  &phiu = datavec[0].phi;
-	TPZFMatrix<>  &phip = datavec[1].phi;
-	
-	int phru = phiu.Rows();
-	int phrp = phip.Rows();
-	short in,jn;
-	REAL v2[3];
-	v2[0] = bc.Val2()(0,0);//referente a elasticidade em x
-	v2[1] = bc.Val2()(1,0);//referente a elasticidade em y
-	v2[2] = bc.Val2()(2,0);//referente a pressao
-	
-	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
-	switch (bc.Type()) {
-		case 0 :			// Dirichlet condition for two equations
-			//Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;  /// x displacement  forced v2 displacement      
-				ef(2*in+1,0) += BIGNUMBER*v2[1]*	phiu(in,0)*weight;   /// y displacement  forced v2 displacement 
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-				}
-			}
-						
-			//segunda equacao
-			//Equacao de Poisson: pressao 
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-				}
-			}
-			break;
-			
-		case 11 :/// Neumann condition for two equations
-		{
-			//Equacao da elasticidade
-			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
-				ef(2*in,0) += v2[0]*phiu(in,0)*weight;   // tracao em x  (ou pressao)
-				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
-			}      // ou deslocamento nulo  v2 = 0
-			
-			
-			//Equacao de Poisson: pressao 
-			const REAL DeltT = fTimeStep;
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
-			}
-			break;
-		}	
-		case 22 : /// Mixed condition for two equations
-		{
-			//Equacao da elasticidade			
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in, 0) += v2[0] * phiu(in, 0) * weight;   // Neumann , Sigmaij
-				ef(2*in+1, 0) += v2[1] * phiu(in, 0) * weight; // Neumann
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += bc.Val1()(0,0)*phiu(in,0)*
-					phiu(jn,0)*weight;         // peso de contorno => integral de contorno
-					ek(2*in+1,2*jn) += bc.Val1()(1,0)*phiu(in,0)*
-					phiu(jn,0)*weight;
-					ek(2*in+1,2*jn+1) += bc.Val1()(1,1)*phiu(in,0)*
-					phiu(jn,0)*weight;
-					ek(2*in,2*jn+1) += bc.Val1()(0,1)*phiu(in,0)*
-					phiu(jn,0)*weight;
-				}
-			} 
-			
-			///Equacao de Poisson: pressao 
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru, 0) += v2[2] * phip(in, 0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += bc.Val1()(2,0)*phip(in,0)*
-					phip(jn,0)*weight;     // peso de contorno => integral de contorno
-				}
-			}
-			
-			break;
-		}
-			
-		case 10: //Neumann condition for elastic and Dirichlet condition for pressure
-		{			
-		
-			//Neumann para Equacao da elasticidade
-			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
-				ef(2*in,0) += v2[0]*phiu(in,0)*weight;   // tracao em x  (ou pressao)
-				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
-			}      // ou deslocamento nulo  v2 = 0
-			
-			//Dirichlet para Equacao de Poisson: pressao 
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-				}
-			}
-			
-			break;
-		}
-			
-		case 1: //Dirichlet condition for elastic (0) and  Neumann condition (1) for pressure
-		{			
-			
-			//Dirichlet para Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;    /// x displacement forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER*v2[1]*phiu(in,0)*weight;   /// y displacement  forced v2 displacement      
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-				}
-			}
-			
-			//Neumann para Equacao de Poisson: pressao 
-			const REAL DeltT = fTimeStep;
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
-			}
-						
-			break;
-		}	
-		
-		///Condicoes de fronteiras livres
-		case 100:///Dirichlet para as duas equacoes mas com fronteira livre em y na equacao da elasticiade
-			
-			//Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0] *   // x displacement
-				phiu(in,0)*weight;        // forced v2 displacement
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*
-					phiu(jn,0)*weight;
-				}
-			}
-			
-			//Equacao de Poisson: pressao 
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-				}
-			}
-			break;
-					
-		case 200: //Neumann condition free in x for elastic and Dirichlet condition for pressure
-		{			
-			//Neumann para Equacao da elasticidade
-			for(in = 0 ; in <phru; in++) {           // componentes da tracao normal ao contorno
-				ef(2*in+1,0) += v2[1]*phiu(in,0)*weight; // tracao em y (ou pressao) , nula se nao h
-			}      // ou deslocamento nulo  v2 = 0
-			
-			//Dirichlet para Equacao da pressao 
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-				}
-			}
-			
-			break;
-		}
-		case 300: //Dirichlet condition free in y for elastic and Neumann condition for pressure
-		{			
-			///Dirichlet para Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0] *phiu(in,0)*weight;     /// x displacement forced v2 displacement
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight; /// x displacement
-				}
-			}
-			
-			///Neumann para Equacao da pressao 
-			const REAL DeltT = fTimeStep;
-			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0) * weight;
-			}
-				
-			break;
-		}
-
-	}
+    switch (bc.Type())
+    {
+        case 0: // Dirichlet condition for two equations (elastic and mixed)
+            ApplyDirichlet_U(datavec, weight, ek, ef, bc);
+            ApplyDirichlet_PQ(datavec, weight, ef, bc);
+            break;
+            
+        case 11: // Neumann condition for two equations (elastic and mixed)
+            ApplyNeumann_U(datavec, weight, ef, bc);
+            ApplyNeumann_PQ(datavec, weight, ek, ef, bc);
+            break;
+            
+        case 22:
+            ApplyMixed_U(datavec, weight, ek, ef, bc);
+            ApplyMixed_PQ(datavec, weight, ek, ef, bc);
+            break;
+        
+        case 1: //Dirichlet condition for elastic (0) and  Neumann condition (1) for mixed problem
+            ApplyDirichlet_U(datavec, weight, ek, ef, bc);
+            ApplyNeumann_PQ(datavec, weight, ek, ef, bc);
+            break;
+            
+        case 10: // Neumann condition for elastic and Dirichlet condition for mixed problem
+            ApplyNeumann_U(datavec, weight, ef, bc);
+            ApplyDirichlet_PQ(datavec, weight, ef, bc);
+            break;
+            
+        case 100: // Dirichlet for two equations, but with free boundary in y for elastic equation
+            ApplyDirichletFreeY_U(datavec, weight, ek, ef, bc);
+            ApplyDirichlet_PQ(datavec, weight, ef, bc);
+            break;
+            
+        case 200: //Neumann condition free in x for elastic and Dirichlet condition for mixed problem
+            ApplyNeumannFreeX_U(datavec, weight, ef, bc);
+            ApplyDirichlet_PQ(datavec, weight, ef, bc);
+            break;
+            
+        case 300: //Dirichlet condition free in y for elastic and Neumann condition for mixed problem
+            ApplyDirichletFreeY_U(datavec, weight, ek, ef, bc);
+            ApplyNeumann_PQ(datavec, weight, ek, ef, bc);
+            break;
+            
+    }
 	
 }
 

@@ -147,12 +147,47 @@ public:
 	
 	virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
     
+    /**
+     * @brief Applies to Dirichlet boundary condition for the elasticity equation (mechanical problem)
+     */
     void ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /*
+     * @brief Applies to Neumann boundary condition for elasticity equation (mechanical problem)
+     */
     void ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /*
+     * @brief Applies to Mixed boundary condition for elasticity equation (mechanical problem)
+     */
     void ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
-    void ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
-    void ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
-    void ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /**
+     *@brief Dirichlet with free boundary in the y-direction in the equation of elasticity.  
+     */
+    void ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /**
+     *@brief Neumann with free boundary in the y-direction in the equation of elasticity.  
+     */
+    void ApplyNeumannFreeX_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    
+    /*
+     * @brief Applies to Dirichlet boundary condition for mixed problem (pressure and flux)
+     * In the mixed formulation, the contribution of the Dirichlet boundary condition for the pressure appears in the flow equation and not in the equation of pressure
+     */
+    void ApplyDirichlet_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /*
+     * @brief Applies to Neumann boundary condition for mixed problem (pressure and flux)
+     */
+    void ApplyNeumann_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
+    
+    /*
+     * @brief Applies to Mixed boundary condition for mixed problem (pressure and flux)
+     */
+    void ApplyMixed_PQ(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc);
 	
 	virtual int VariableIndex(const std::string &name);
 	
