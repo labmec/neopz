@@ -390,7 +390,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     
 	int count=0;
 	int tamanho= this->NShapeF();
-	ShapeAndVec.Resize(tamanho);
+	//ShapeAndVec.Resize(tamanho);
     TPZManVector<int,27> FirstIndex; /// VectorSide indicates the side associated with each vector entry
     FirstShapeIndex(FirstIndex); /// the first index of the shape functions
         
