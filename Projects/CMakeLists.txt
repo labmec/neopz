@@ -92,7 +92,7 @@ else()
 		add_subdirectory(DoubleProjection1D)
 		add_subdirectory(Poroelastic2D)
 		add_subdirectory(SubStruct)
-		add_subdirectory(SubStruct_Viscoelastic)
+		add_subdirectory(Substruct_Viscoelastic)
 		add_subdirectory(MultiphysicsSimulation)
 		add_subdirectory(ProblemGirkmann)
 		
