@@ -243,7 +243,11 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 			out << "\n{ ";
 			for ( int col = 0; col < Cols(); col++ ) {
 				TVar val = Get (row, col);
-				sprintf(number, "%16.16lf",(REAL)fabs(val));
+				#ifdef STATE_COMPLEX
+				  sprintf(number, "%16.16lf",(REAL)fabs(val));
+				#else
+				  sprintf(number, "%16.16lf",val);
+				#endif
 				out << number;
 				if(col < Cols()-1)
 					out << ", ";
@@ -1180,8 +1184,13 @@ int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
 	for( int i = 0; i < nrows; i++){
 		for(int j = 0; j <= i; j++){
 			if ( fabs( this->Get(i,j) - this->Get(j,i) ) > tol ) {
+			  	#ifdef STATE_COMPLEX
 				cout << "Elemento: " << i << ", " << j << "  -> " << fabs(this->Get(i,j) - this->Get(j,i) ) << "/" <<
 				this->Get(i,j) << endl;
+				#else
+				cout << "Elemento: " << i << ", " << j << "  -> " << this->Get(i,j) - this->Get(j,i) << "/" <<
+				this->Get(i,j) << endl;
+				#endif
 				return 0;
 			}
 		}
