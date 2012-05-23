@@ -373,6 +373,8 @@ void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
 	
 	int nrow = mat.Rows();
 	int ncol = mat.Cols();
+    int solrow = fSolution.Rows();
+    fSolution.Resize(solrow, ncol);
 	int i,j;
 	for(j=0;j<ncol;j++) for(i=0;i<nrow;i++) fSolution(i,j) = mat.GetVal(i,j);
 	int nelem = NElements();
@@ -1713,18 +1715,6 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
 	WriteObjectPointers<TPZMaterial>(buf,temp2);
 	WriteObjectPointers<TPZMaterial>(buf,temp1);
     
-    {
-        static int count = 0;
-        count++;
-        if(count ==2)
-        {
-            TPZFileStream writeCrude;
-            writeCrude.OpenWrite("../Vertical.txt");
-            Write(writeCrude,0);
-            std::ofstream out2("../Check.txt");
-            Print(out2);            
-        }
-    }
 	WriteObjectPointers<TPZCompEl>(buf,fElementVec);
 	fSolution.Write(buf,0);
 	fSolutionBlock.Write(buf,0);
@@ -1737,65 +1727,23 @@ void TPZCompMesh::Write(TPZStream &buf, int withclassid)
  */
 void TPZCompMesh::Read(TPZStream &buf, void *context)
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " entering";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	TPZSaveable::Read(buf,context);
 	TPZGeoMesh *gmesh;
     //	TPZSaveable *obj = TPZSaveable::Restore(buf,0);
 	gmesh = (TPZGeoMesh *)(context);
     //	context = gmesh;
-    {
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " calling load references";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-    }
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading saveable";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	
 	this->fReference = (TPZGeoMesh *) context;
 	LoadReferences();
 	Reference()->RestoreReference(this);
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading context";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	
 	buf.Read(&fName,1);
 	
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading the name";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	buf.Read(&fDimModel,1);
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading the dimension " << fDimModel;
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	ReadObjects<TPZConnect>(buf,fConnectVec,0);
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading the connects";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	// first the material objects, then the boundary conditions
 	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
 	ReadObjectPointers<TPZMaterial>(buf,fMaterialVec,this);
-	
-	{
-		std::stringstream sout;
-		sout << __PRETTY_FUNCTION__ << " after reading the material vector";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
-	}
 	
 	ReadObjectPointers<TPZCompEl>(buf,fElementVec,this);
 	fSolution.Read(buf,0);

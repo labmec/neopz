@@ -288,15 +288,19 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	int nref = this->fElementVec.size();
 	int nstate;
 	//nstate=1;
+    int numloadcases = 1;
 	for (int iref=0; iref<nref; iref++) {
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		nstate += msp->Material()->NStateVariables();
+        TPZMaterial *mat = msp->Material();
+		nstate += mat->NStateVariables();
+        numloadcases = mat->NumLoadCases();
+        
 	}
 	
 	const int numstate = nstate;
 	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,1);
+	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fNumStateVars = numstate;

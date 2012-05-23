@@ -5,6 +5,7 @@
 
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzmultiphysicselement.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 #include "pzmaterial.h"
 
 #include "TPZInterfaceEl.h"
@@ -29,45 +30,52 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 		int iel;
 		for(iel=0; iel<nMFEl; iel++)
 		{
-			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
-			if(!mfcel)
+            TPZCompEl *cel = MFMesh->ElementVec()[iel];
+			TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *> (cel);
+            TPZMultiphysicsInterfaceElement *mfint = dynamic_cast<TPZMultiphysicsInterfaceElement *>(cel);
+			if(mfcel)
 			{
-				DebugStop();
-			}
-			int found = 0;
-			TPZGeoEl *gel = mfcel->Reference();
-			TPZStack<TPZCompElSide> celstack;
-			TPZGeoElSide gelside(gel,gel->NSides()-1);
-			if (gel->Reference()) {
-				celstack.Push(gelside.Reference());
-			}
-			gelside.ConnectedCompElementList(celstack, 0, 0);
-			while (celstack.size())
-			{
-				int ncel = celstack.size();
-				TPZGeoElSide gelside = celstack[ncel-1].Reference();
-				TPZStack<TPZCompElSide> celstack2;
-				celstack2.Push(celstack[ncel-1]);
-				gelside.EqualLevelCompElementList(celstack2, 0, 0);
-				
-				while (celstack2.size()) 
-				{
-					int ncel2 = celstack2.size();
-					TPZGeoElSide gelside2 = celstack2[ncel2-1].Reference();
-					if(gelside2.Element()->Dimension()==gel->Dimension()) {
-						mfcel->AddElement(gelside2.Element()->Reference(), imesh);
-						found = 1;
-						celstack2.Resize(0);
-						celstack.Resize(0);  
-						break;
-					}
-					celstack2.Pop();
-				}
-				
-			}
-			if (!found) {
-				DebugStop();
-			}
+                int found = 0;
+                TPZGeoEl *gel = mfcel->Reference();
+                TPZStack<TPZCompElSide> celstack;
+                TPZGeoElSide gelside(gel,gel->NSides()-1);
+                if (gel->Reference()) {
+                    celstack.Push(gelside.Reference());
+                }
+                gelside.ConnectedCompElementList(celstack, 0, 0);
+                while (celstack.size())
+                {
+                    int ncel = celstack.size();
+                    TPZGeoElSide gelside = celstack[ncel-1].Reference();
+                    TPZStack<TPZCompElSide> celstack2;
+                    celstack2.Push(celstack[ncel-1]);
+                    gelside.EqualLevelCompElementList(celstack2, 0, 0);
+                    
+                    while (celstack2.size()) 
+                    {
+                        int ncel2 = celstack2.size();
+                        TPZGeoElSide gelside2 = celstack2[ncel2-1].Reference();
+                        if(gelside2.Element()->Dimension()==gel->Dimension()) {
+                            mfcel->AddElement(gelside2.Element()->Reference(), imesh);
+                            found = 1;
+                            celstack2.Resize(0);
+                            celstack.Resize(0);  
+                            break;
+                        }
+                        celstack2.Pop();
+                    }
+                    
+                }
+                if (!found) {
+                    DebugStop();
+                }
+            }
+            else if (mfint) {
+                //set up interface
+            }
+            else {
+                DebugStop();
+            }
 		}
 		gmesh->ResetReference();
 	}

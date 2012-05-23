@@ -165,7 +165,7 @@ void TPZMatWithMem<TMEM,TFather>::Write(TPZStream &buf, int withclassid)
     buf.Write(&size,1);
 	int i;
 	for(i = 0; i < size; i++)
-		fMemory[i].Write(buf, withclassid);
+		fMemory[i].Write(buf, 0);
 }
 
 template <class TMEM, class TFather>
@@ -175,6 +175,7 @@ void TPZMatWithMem<TMEM,TFather>::Read(TPZStream &buf, void *context)
 	
 	int i,size;
 	buf.Read(&size,1);
+    fMemory.Resize(size);
 	for(i = 0; i < size; i++)
 		fMemory[i].Read(buf, context);
 	

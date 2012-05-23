@@ -21,10 +21,13 @@ class TPZMultiphysicsInterfaceElement : public TPZCompEl {
 protected:
 
 	/** @brief Element vector the left of the normal a interface */
-	TPZManVector<TPZCompElSide*, 10> 	fLeftElSideVec;
+	TPZManVector<TPZCompElSide, 10> 	fLeftElSideVec;
 		
 	/** @brief Element vector the right of the normal a interface */
-	TPZManVector<TPZCompElSide*, 10> 	fRightElSideVec;
+	TPZManVector<TPZCompElSide, 10> 	fRightElSideVec;
+    
+    /** @brief indexes of the connects */
+    TPZManVector<int,100> fConnectIndexes;
 	
 public:
 	/** @brief Default constructor */
@@ -48,7 +51,20 @@ public:
 	 * @param NeighIntPoint [out] is the point at neighbor element master. X[qsi] is equal to X[NeighIntPoint]
 	 */
 	void MapQsi(TPZManVector<TPZCompElSide> &Neighbor, TPZVec<REAL> &qsi, TPZVec<REAL> &NeighIntPoint);
+    
+    /**
+     * Add elements to the list of left and right elements
+     */
+    void AddLeftRightEement(TPZCompElSide &leftel, TPZCompElSide &rightel, int index);
 			
+    /**
+     * Compute the stiffness matrix of the interface element
+     */
+    void CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    
+    /** @brief Initialize the structure of the stiffness matrix */
+    void InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef);
+    
 };
 
 #endif

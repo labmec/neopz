@@ -187,17 +187,19 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	}
 	int ncon = NConnects();
 	int dim = Dimension();
-	int nstate = Material()->NStateVariables();
+    TPZMaterial *mat = Material();
+	int nstate = mat->NStateVariables();
 	int nshape = NShapeF();
 	TPZBlock<STATE> &block = Mesh()->Block();
 	TPZFMatrix<STATE> &MeshSol = Mesh()->Solution();
     int numbersol = MeshSol.Cols();
 	int numeq = nshape * nstate;
+    int numloadcases = mat->NumLoadCases();
 	
 	
 	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,1);
-	if(ncon){//pode ser no m�imo ncon = 1
+	ef.fMat.Redim(numeq,numloadcases);
+	if(ncon){//pode ser no minimo ncon = 1
 		ek.fBlock.SetNBlocks(ncon);
 		ef.fBlock.SetNBlocks(ncon);
 		ek.fBlock.Set(0,NShapeF()*nstate);
@@ -213,7 +215,7 @@ void TPZAgglomerateElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	REAL weight;
 	int integ = 2*Degree();
 	TPZStack<REAL> points,weights;
-	//acumula as regras dos obtidos por aglomera�o
+	//acumula as regras dos obtidos por aglomeracao
 	AccumulateIntegrationRule(integ,points,weights);//integra fi*fj
 	int ip,npoints = weights.NElements();
 	

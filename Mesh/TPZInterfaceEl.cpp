@@ -779,7 +779,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	}
 #endif
 	
-	const int numdof = this->Material()->NStateVariables();
+    TPZMaterial *mat = Material();
+	const int numdof = mat->NStateVariables();
 	ef.fNumStateVars = numdof;
 	
 	int nshapel = left ->NShapeF();
@@ -796,7 +797,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ef){
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
-	ef.fMat.Redim(neq,1);
+    const int numloadcases = mat->NumLoadCases();
+	ef.fMat.Redim(neq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fConnect.Resize(ncon);
 	
@@ -857,7 +859,8 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	}
 #endif
 	
-	const int numdof = this->Material()->NStateVariables();
+    TPZMaterial *mat = Material();
+	const int numdof = mat->NStateVariables();
 	ek.fNumStateVars = numdof;
 	ef.fNumStateVars = numdof;
 	
@@ -875,8 +878,9 @@ void TPZInterfaceElement::InitializeElementMatrix(TPZElementMatrix &ek, TPZEleme
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
+    const int numloadcases = mat->NumLoadCases();
 	ek.fMat.Redim(neq,neq);
-	ef.fMat.Redim(neq,1);
+	ef.fMat.Redim(neq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fConnect.Resize(ncon);
@@ -1029,8 +1033,9 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	const int neql = nshapel * nstatel;
 	const int neqr = nshaper * nstater;
 	const int neq = neql + neqr;
+    const int numloadcases = mat->NumLoadCases();
 	ek.fMat.Redim(neq,neq);
-	ef.fMat.Redim(neq,1);
+	ef.fMat.Redim(neq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fConnect.Resize(ncon);

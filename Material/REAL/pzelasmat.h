@@ -113,6 +113,10 @@ protected:
 public:
 
     /** @brief Returns the solution associated with the var index based on the finite element approximation */
+    virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout);
+	
+    
+    /** @brief Returns the solution associated with the var index based on the finite element approximation */
 	virtual void SolutionDisc(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, int var, TPZVec<REAL> &Solout)
 	{
 		TPZDiscontinuousGalerkin::SolutionDisc(data,dataleft,dataright,var,Solout);
@@ -137,6 +141,18 @@ public:
 	
 	/** @brief Set PresStress Tensor */
 	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
+    
+    /** @brief indicates which variable should be post processed */
+    void SetPostProcessIndex(int index)
+    {
+#ifdef DEBUG
+        if (index < 0) 
+        {
+            DebugStop();
+        }
+#endif
+        fPostProcIndex = index;
+    }
 	
 	virtual int ClassId() const;
 	
@@ -173,6 +189,9 @@ private:
 	
 	/** @brief Uses plain stress */
 	int fPlaneStress;
+    
+    /** @brief indicates which solution should be used for post processing */
+    int fPostProcIndex;
 };
 
 #endif

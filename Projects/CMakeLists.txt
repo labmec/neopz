@@ -55,6 +55,7 @@ else()
 
 	if(BUILD_PROJECTS)
 		
+		add_subdirectory(MultipleLoad)
 		# the auto adaptive process is working again!!!
 		add_subdirectory(adaptivity)
 		

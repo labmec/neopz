@@ -30,7 +30,7 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs
 	int neq = fMesh->NEquations();
 	if(HasRange()) neq = fMaxEq-fMinEq;
 	TPZMatrix<STATE> *stiff = Create();
-	rhs.Redim(neq,1);
+	//rhs.Redim(neq,1);
 	Assemble(*stiff,rhs, guiInterface);
     return stiff;
 }

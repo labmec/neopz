@@ -107,7 +107,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(this->fMaterial);
 	if(!mat) return;
 	
-    this->UpdataBCValues( data );
+    this->UpdateBCValues( data );
 	
 	if(dataleft.sol.NElements() < dataright.sol.NElements()){
 		//		data.InvertLeftRightData();
@@ -122,7 +122,7 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	this->UpdataBCValues(data);
+	this->UpdateBCValues(data);
 	
 	//clone meshes required analysis
     int numbersol = data.sol.size();
@@ -179,7 +179,7 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 //----
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-	this->UpdataBCValues(data);
+	this->UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
 	int typetmp = fType;
@@ -216,7 +216,7 @@ void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STA
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();// return;
-	this->UpdataBCValues(data);
+	this->UpdateBCValues(data);
 	
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
@@ -233,7 +233,7 @@ void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dat
 void TPZBndCond::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ef){
 	TPZDiscontinuousGalerkin *mat = dynamic_cast<TPZDiscontinuousGalerkin *>(fMaterial);
 	if(!mat) DebugStop();//return;
-	this->UpdataBCValues(data);
+	this->UpdateBCValues(data);
 	
 	if(dataleft.phi.Rows() == 0){//it meanst right data has been filled
 		//left data should be filled instead of right data
@@ -255,7 +255,7 @@ void TPZBndCond::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &d
 }
 
 
-void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
+void TPZBndCond::UpdateBCValues(TPZMaterialData &data){
 	if(fForcingFunction){
 		TPZManVector<STATE> result(fBCVal2.Rows(),0.);
 		fForcingFunction->Execute(data.x,result);
@@ -273,9 +273,22 @@ void TPZBndCond::UpdataBCValues(TPZMaterialData &data){
 			this->fBCVal2(i,0) = result[i];
 		}
 	}//if
+    
+    int nbc = fBCs.size();
+    for (int ibc=0; ibc<nbc; ibc++) {
+        if (fBCs[ibc].fForcingFunction) {
+            TPZManVector<STATE> result(fBCVal2.Rows(),0.);
+            fBCs[ibc].fForcingFunction->Execute(data.x,result);
+            int i;
+            for(i=0; i<fBCVal2.Rows(); i++) {
+                fBCs[ibc].fBCVal2(i,0) = result[i];
+            }
+
+        }
+    }
 }
 
-void TPZBndCond::UpdataBCValues(TPZVec<TPZMaterialData> &datavec){
+void TPZBndCond::UpdateBCValues(TPZVec<TPZMaterialData> &datavec){
 	
 	PZError << "Error at " << __PRETTY_FUNCTION__ << " method is not implementedl!\n";
 	DebugStop();

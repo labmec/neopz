@@ -972,10 +972,11 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	
 	TPZMaterial * mat = MaterialVec().begin()->second;
 	int nstate = mat->NStateVariables();
+    int numloadcases = mat->NumLoadCases();
 	ek.fNumStateVars = nstate;
 	ef.fNumStateVars = nstate;
 	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,1);
+	ef.fMat.Redim(numeq,numloadcases);
 	
 	int nelemnodes = NConnects();
 	
@@ -1452,8 +1453,17 @@ TPZRestoreClass< TPZSubCompMesh, TPZSUBCOMPMESHID>;
  */
 void TPZSubCompMesh::Write(TPZStream &buf, int withclassid)
 {
+    std::map<int, TPZMaterial *> matmap = MaterialVec();
+    MaterialVec().clear();
 	TPZCompEl::Write(buf,withclassid);
 	TPZCompMesh::Write(buf,0);
+    MaterialVec() = matmap;
+    TPZManVector<int> matindex(matmap.size(),-1);
+    int count=0;
+    for (std::map<int,TPZMaterial *>::iterator it = matmap.begin(); it != matmap.end(); it++) {
+        matindex[count++] = it->first;
+    }
+    WriteObjects(buf, matindex);
 	WriteObjects(buf,fConnectIndex);
 	WriteObjects(buf,fExternalLocIndex);
 	WriteObjects(buf, fFatherToLocal);
@@ -1467,6 +1477,13 @@ void TPZSubCompMesh::Read(TPZStream &buf, void *context)
 {
 	TPZCompEl::Read(buf,context);
 	TPZCompMesh::Read(buf,Mesh()->Reference());
+    TPZCompMesh *mesh = (TPZCompMesh *) context;
+    TPZManVector<int> matindex;
+    ReadObjects(buf, matindex);
+    int sz = matindex.size();
+    for (int im=0; im<sz; im++) {
+        MaterialVec()[matindex[im]] = mesh->MaterialVec()[matindex[im]];
+    }
 	ReadObjects(buf,fConnectIndex);
 	ReadObjects(buf,fExternalLocIndex);
 	ReadObjects(buf, fFatherToLocal);

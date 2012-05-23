@@ -28,13 +28,13 @@ using namespace std;
 REAL TPZMaterial::gBigNumber = 1.e12;
 
 
-TPZMaterial::TPZMaterial(){
+TPZMaterial::TPZMaterial() : fNumLoadCases(1) {
 	this->fId = -666;
 	this->fForcingFunction = NULL;
 	this->fLinearContext = true;
 }
 
-TPZMaterial::TPZMaterial(int id) {
+TPZMaterial::TPZMaterial(int id) : fId(id), fNumLoadCases(1) {
 	this->SetId(id);
 	fForcingFunction = 0;
 	this->fLinearContext = true;
@@ -47,6 +47,7 @@ TPZMaterial::~TPZMaterial()
 
 TPZMaterial::TPZMaterial(const TPZMaterial &material) {
 	fId = material.fId;
+    fNumLoadCases = material.fNumLoadCases;
 	fForcingFunction = material.fForcingFunction;
 	fLinearContext = material.fLinearContext;
 }
@@ -249,6 +250,7 @@ void TPZMaterial::Write(TPZStream &buf, int withclassid)
         int minone = -1;
         buf.Write(&minone);
     }
+    buf.Write(&fNumLoadCases);
     /*
 	 int forcingIdx = -1;
 	 if (fForcingFunction)
@@ -286,6 +288,7 @@ void TPZMaterial::Read(TPZStream &buf, void *context)
         }
         fForcingFunction = func;
     }
+    buf.Read(&fNumLoadCases);
     /*
 	 int forcingIdx = -1;
 	 buf.Read( &forcingIdx,1 );

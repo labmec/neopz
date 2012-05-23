@@ -7,6 +7,7 @@
 #define BNDCONDHPP
 
 #include <iostream>
+#include <map>
 
 #include "pzreal.h"
 #include "pzdiscgal.h"
@@ -30,6 +31,41 @@ class TPZBndCond : public TPZDiscontinuousGalerkin {
 	
 	friend class TPZMaterial;
 protected:
+    
+    struct TPZ_BCDefine
+    {
+        /** @brief second value of boundary condition */
+        TPZFNMatrix<6,STATE> fBCVal2;
+        /** @brief Function to allow fBCVal1 to be variable */
+        TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
+//        void (*fValFunction)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType);
+        TPZ_BCDefine() : fBCVal2(), fForcingFunction(NULL)
+        {
+            
+        }
+        TPZ_BCDefine(TPZFMatrix<STATE> Val2) : fBCVal2(Val2), fForcingFunction(NULL)
+        {
+            
+        }
+        TPZ_BCDefine(const TPZ_BCDefine &cp) : fBCVal2(cp.fBCVal2), fForcingFunction(cp.fForcingFunction)
+        {
+            
+        }
+        TPZ_BCDefine &operator=(const TPZ_BCDefine &cp)
+        {
+            fBCVal2 = cp.fBCVal2;
+            fForcingFunction = cp.fForcingFunction;
+            return *this;
+        }
+        ~TPZ_BCDefine()
+        {
+            
+        }
+        
+    };
+    
+    TPZVec<TPZ_BCDefine> fBCs;
+    
 	/** @brief boundary condition type */
 	int 		fType;
 	/** @brief first value of boundary condition */
@@ -44,20 +80,20 @@ protected:
 	
 	public :
 	/** @brief Copy constructor */
-	TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCVal1(bc.fBCVal1),
+	TPZBndCond(TPZBndCond & bc) : TPZDiscontinuousGalerkin(bc), fBCs(bc.fBCs), fBCVal1(bc.fBCVal1),
     fBCVal2(bc.fBCVal2), fValFunction(NULL){
 		fMaterial = bc.fMaterial;
 		fType = bc.fType;
 	}
 	/** @brief Default constructor */
-	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCVal1(),
+	TPZBndCond() : TPZDiscontinuousGalerkin(), fBCs(1), fBCVal1(),
     fBCVal2(), fValFunction(NULL){
 	}
 	/** @brief Default destructor */
     ~TPZBndCond(){}
 	
-	TPZBndCond(TPZMaterial * &material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
-    TPZDiscontinuousGalerkin(id), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
+	TPZBndCond(TPZMaterial * material,int id,int type,TPZFMatrix<STATE> &val1,TPZFMatrix<STATE> &val2) :
+    TPZDiscontinuousGalerkin(id), fBCs(), fBCVal1(val1), fBCVal2(val2), fValFunction(NULL) {
 		//creates a new material
 		if(!material)
 		{
@@ -68,12 +104,22 @@ protected:
 		
 	}
 	
-	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fType(copy.fType),
+	TPZBndCond(TPZBndCond &copy, TPZMaterial * ref) : TPZDiscontinuousGalerkin(copy), fBCs(copy.fBCs), fType(copy.fType),
 	fBCVal1(copy.fBCVal1), fBCVal2(copy.fBCVal2), fMaterial(ref), fValFunction(copy.fValFunction) {}
 	
 	
 	void SetValFunction(void (*fp)(TPZVec<REAL> &loc, TPZFMatrix<STATE> &Val1, TPZVec<STATE> &Val2, int &BCType)){
 		fValFunction = fp;
+	}
+	
+	void SetForcingFunction(int loadcase, TPZAutoPointer<TPZFunction<STATE> > func)
+    {
+        if (loadcase == 0) {
+            TPZMaterial::SetForcingFunction(func);
+        }
+        else {
+            fBCs[loadcase].fForcingFunction = func;
+        }
 	}
 	
 	void SetMaterial(TPZMaterial * mat) { fMaterial = mat;}
@@ -94,9 +140,29 @@ protected:
 	
 	TPZFMatrix<STATE> &Val1() { return fBCVal1; }
 	
-	TPZFMatrix<STATE> &Val2() { return fBCVal2; }
+	TPZFMatrix<STATE> &Val2(int loadcase = 0) 
+    {
+        if (loadcase == 0 || loadcase > fBCs.size() ) {
+            return fBCVal2;
+        }
+        return fBCs[loadcase-1].fBCVal2;
+    }
 	
 	TPZMaterial * Material() { return fMaterial; }
+    
+    void SetLoadCases(TPZVec<TPZFMatrix<STATE> > &val2vec)
+    {
+        fBCs.Resize(val2vec.size()-1);
+        fBCVal2 = val2vec[0];
+        for (int i=0; i<val2vec.size()-1; i++) {
+            fBCs[i] = val2vec[i+1];
+        }
+    }
+    
+    virtual int MinimumNumberofLoadCases()
+    {
+        return 1+fBCs.size();
+    }
 	
 	/** @brief Computes the value of the flux function to be used by ZZ error estimator */
 	void Flux(TPZVec<REAL> &x, TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux){
@@ -112,12 +178,12 @@ protected:
 		else out << "has no forcing function\n";
 	}
 	
-	void UpdataBCValues(TPZMaterialData &data);
+	void UpdateBCValues(TPZMaterialData &data);
 	
 	/*
 	 @brief this method will be used only in case of multiphysics simulation
 	 */
-	void UpdataBCValues(TPZVec<TPZMaterialData> &datavec);
+	void UpdateBCValues(TPZVec<TPZMaterialData> &datavec);
 	
 	/**
 	 * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
@@ -194,8 +260,8 @@ protected:
 	 */
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
-	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
-				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<STATE> &val){
+	void Errors(TPZVec<REAL> &x,TPZVec<STATE> &sol,TPZFMatrix<STATE> &dsol, TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+				TPZVec<STATE> &uexact,TPZFMatrix<STATE> &duexact,TPZVec<REAL> &val){
 		val.Fill(0.);
 	}
 	

@@ -27,12 +27,16 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
 	ff[2] = 0.; // Z component of the body force - not used for this class
 	fEover1MinNu2 = -1.;  //G = E/2(1-nu);
 	fEover21PlusNu = -1.;//E/(1-nu)
+    
 	
 	//Added by Cesar 2001/03/16
 	fPreStressXX = 0.;  //Prestress in the x direction
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
 	fPlaneStress = -1;
+    
+    // Added by Philippe 2012
+    fPostProcIndex = 0;
 }
 
 TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZDiscontinuousGalerkin(num) {
@@ -50,6 +54,8 @@ TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, 
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
 	fPlaneStress = plainstress;
+    // Added by Philippe 2012
+    fPostProcIndex = 0;
 }
 
 TPZElasticityMaterial::~TPZElasticityMaterial() {
@@ -94,7 +100,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	ekc = ek.Cols();
 	if(phc != 1 || dphr != 2 || phr != dphc ||
 	   ekr != phr*2 || ekc != phr*2 ||
-	   efr != phr*2 || efc != 1){
+	   efr != phr*2 ){
 		PZError << "\nTPZElasticityMaterial.contr, inconsistent input data : \n" <<
 		"phi.Cols() = " << phi.Cols() << " dphi.Cols() = " << dphi.Cols() <<
 		" phi.Rows = " << phi.Rows() << " dphi.Rows = " <<
@@ -125,9 +131,11 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		du(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
 		du(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
 		
-		ef(2*in, 0) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // dire�o x
-		ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// dire�o y <<<----
-		
+        for (int col = 0; col < efc; col++) 
+        {
+            ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // dire�o x
+            ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// dire�o y <<<----
+        }		
 		for( int jn = 0; jn < phr; jn++ ) {
 			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
 			du(1,1) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
@@ -184,6 +192,17 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	
 }
 
+void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
+{
+    int numbersol = data.dsol.size();
+    int ipos = 0;
+    if (fPostProcIndex < numbersol) {
+        ipos = fPostProcIndex;
+    }
+	this->Solution(data.sol[ipos], data.dsol[ipos], data.axes, var, Solout);
+}
+
+
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
 	TPZFMatrix<REAL> &phi = data.phi;
@@ -192,17 +211,16 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 	
 	int phr = phi.Rows();
 	short in,jn;
-	REAL v2[2];
-	v2[0] = bc.Val2()(0,0);
-	v2[1] = bc.Val2()(1,0);
 	
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
 			for(in = 0 ; in < phr; in++) {
-				ef(2*in,0) += BIGNUMBER * v2[0] *   // x displacement
-				phi(in,0) * weight;        // forced v2 displacement
-				ef(2*in+1,0) += BIGNUMBER * v2[1] * // x displacement
-				phi(in,0) * weight;        // forced v2 displacement
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                    ef(2*in,il) += BIGNUMBER * v2(0,0) * phi(in,0) * weight;        // forced v2 displacement
+                    ef(2*in+1,il) += BIGNUMBER * v2(1,0) * phi(in,0) * weight;      // forced v2 displacement
+                }
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
 					ek(2*in,2*jn) += BIGNUMBER * phi(in,0) *
 					phi(jn,0) * weight;
@@ -213,16 +231,26 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 			break;
 			
 		case 1 :			// Neumann condition
-			for(in = 0 ; in < phi.Rows(); in++) {           // componentes da tra�o normal ao contorno
-				ef(2*in,0) += v2[0] * phi(in,0) * weight;   // tra�o em x  (ou press�)
-				ef(2*in+1,0) += v2[1] * phi(in,0) * weight; // tra�o em y (ou press�) , nula se n� h
-			}      // ou deslocamento nulo  v2 = 0
+            for (in = 0; in < phr; in++) 
+            {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                    ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
+                    ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
+                }
+            }
 			break;
 			
 		case 2 :		// condi�o mista
-			for(in = 0 ; in < phi.Rows(); in++) {
-				ef(2*in, 0) += v2[0] * phi(in, 0) * weight;   // Neumann , Sigmaij
-				ef(2*in+1, 0) += v2[1] * phi(in, 0) * weight; // Neumann
+			for(in = 0 ; in < phi.Rows(); in++) 
+            {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                    ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
+                    ef(2*in+1,il) += v2(1,0) * phi(in,0) * weight;      // forced in y direction
+                }
 				
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
 					ek(2*in,2*jn) += bc.Val1()(0,0) * phi(in,0) *
@@ -554,6 +582,9 @@ fPreStressXY(copy.fPreStressXY)
 	ff[1]=copy.ff[1];
 	ff[2]=copy.ff[2];
 	fPlaneStress = copy.fPlaneStress;
+    // Added by Philippe 2012
+    fPostProcIndex = copy.fPostProcIndex;
+
 }
 
 
@@ -579,6 +610,7 @@ void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
 	
 	buf.Read(ff,3);
 	buf.Read(&fPlaneStress,1);
+    buf.Read(&fPostProcIndex);
 	
 }
 
@@ -595,6 +627,7 @@ void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
 	
 	buf.Write(ff,3);
 	buf.Write(&fPlaneStress,1);
+    buf.Write(&fPostProcIndex);
 	
 }
 

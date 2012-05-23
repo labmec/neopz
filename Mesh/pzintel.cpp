@@ -1531,9 +1531,11 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 	int dim = Dimension();
 	int nshape = NShapeF();
 	TPZBlock<STATE> &block = Mesh()->Block();
+    TPZFMatrix<STATE> &solution = Mesh()->Solution();
+    int numloadcases = solution.Cols();
 	
 	int numeq = nshape*numdof;
-	ef.fMat.Redim(numeq,1);
+	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	TPZVec<STATE> sol(numdof,0.);
 	for(i=0;i<ncon;i++)
@@ -1576,20 +1578,24 @@ void TPZInterpolatedElement::CalcIntegral(TPZElementMatrix &ef) {
 		
 		int l, iv=0;
 		STATE coef;
-		for(in=0;in<numdof;in++) sol[in] = 0.;
-		for(in=0; in<ncon; in++) {
-			df = &Connect(in);
-			int dfseq = df->SequenceNumber();
-			int dfvar = block.Size(dfseq);
-			for(jn=0;jn<dfvar;jn++) {
-				coef = block(dfseq,0,jn,0);
-				sol[iv%numdof] += (STATE)phi(iv/numdof,0)*coef;
-				iv++;
-			}
-		}
-		for(in=0;in<nshape;in++)
-			for(l=0;l<numdof;l++)
-				(ef.fMat)(in*numdof+l,0) += (STATE)weight*(STATE)phi(in,0)*sol[l];
+        for (int ist=0; ist<numloadcases; ist++) 
+        {
+            for(in=0;in<numdof;in++) sol[in] = 0.;
+            for(in=0; in<ncon; in++) {
+                df = &Connect(in);
+                int dfseq = df->SequenceNumber();
+                int dfvar = block.Size(dfseq);
+                for(jn=0;jn<dfvar;jn++) {
+                    int pos = block.Position(dfseq);
+                    coef = solution(pos+jn,ist);
+                    sol[iv%numdof] += (STATE)phi(iv/numdof,0)*coef;
+                    iv++;
+                }
+            }
+            for(in=0;in<nshape;in++)
+                for(l=0;l<numdof;l++)
+                    (ef.fMat)(in*numdof+l,0) += (STATE)weight*(STATE)phi(in,0)*sol[l];
+        }
 	}
 }
 

@@ -135,6 +135,14 @@ protected:
 	
 	/** @brief Recompute the node sequence */
 	void Resequence(int firstel = -1);
+    
+    /** @brief Determine the number of load cases from the material objects and return its value */
+    /**
+     * this method will modify the material objects so that they have all the same number of load cases
+     * the number of load cases is the maximum value of load cases of all material objects
+     */
+    int ComputeNumberofLoadCases();
+    
 	
 	/** @brief Assemble the stiffness matrix and load vector */
 	virtual  void Assemble();

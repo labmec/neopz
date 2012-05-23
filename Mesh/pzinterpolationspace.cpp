@@ -357,12 +357,14 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 }//CalcResidual
 
 void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZElementMatrix &ef){
-	const int numdof = this->Material()->NStateVariables();
+    TPZMaterial *mat = this->Material();
+	const int numdof = mat->NStateVariables();
 	const int ncon = this->NConnects();
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
+    const int numloadcases = mat->NumLoadCases();
 	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,1);
+	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fNumStateVars = numdof;
@@ -389,11 +391,13 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 }//void
 
 void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
-	const int numdof = this->Material()->NStateVariables();
+    TPZMaterial *mat = this->Material();
+	const int numdof = mat->NStateVariables();
 	const int ncon = this->NConnects();
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
-	ef.fMat.Redim(numeq,1);
+    const int numloadcases = mat->NumLoadCases();
+	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;
 	int i;

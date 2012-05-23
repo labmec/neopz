@@ -39,6 +39,8 @@ class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>
 		
 public:
 	enum SOLUTIONVARS{ENone = -1, EViscoStressX = 30, EViscoStressY = 31, EViscoStressZ = 32};
+    
+    TPZViscoelastic();
 	
 	TPZViscoelastic(int id,STATE ElaE, STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force);
 	

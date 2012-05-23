@@ -166,9 +166,41 @@ void TPZAnalysis::SetBlockNumber(){
 	
 }
 
+/** @brief Determine the number of load cases from the material objects and return its value */
+/**
+ * this method will modify the material objects so that they have all the same number of load cases
+ * the number of load cases is the maximum value of load cases of all material objects
+ */
+int TPZAnalysis::ComputeNumberofLoadCases()
+{
+    int res = 1;
+    if(!fCompMesh) 
+    {
+        return res;
+    }
+    std::map<int, TPZMaterial *>::iterator it;
+    // compute the maximum number of load cases for all material objects
+    for( it = fCompMesh->MaterialVec().begin(); it != fCompMesh->MaterialVec().end(); it++)
+    {
+        TPZMaterial *mat = it->second;
+        int matnumstate = mat->MinimumNumberofLoadCases();
+        res = res < matnumstate ? matnumstate : res;
+    }
+    // set the number of load cases for all material objects
+    for( it = fCompMesh->MaterialVec().begin(); it != fCompMesh->MaterialVec().end(); it++)
+    {
+        TPZMaterial *mat = it->second;
+        int matnumstate = mat->MinimumNumberofLoadCases();
+        mat->SetNumLoadCases(res);
+    }
+    return res;
+}
+
+
 void TPZAnalysis::AssembleResidual(){
+    int numloadcases = ComputeNumberofLoadCases();
 	int sz = this->Mesh()->NEquations();
-	this->Rhs().Redim(sz,1);
+	this->Rhs().Redim(sz,numloadcases);
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);
 }//void
 
@@ -192,8 +224,9 @@ void TPZAnalysis::Assemble()
 #endif
 		return;
 	}
+    int numloadcases = ComputeNumberofLoadCases();
 	int sz = fCompMesh->NEquations();
-	fRhs.Redim(sz,1);
+	fRhs.Redim(sz,numloadcases);
 	if(fSolver->Matrix() && fSolver->Matrix()->Rows()==sz)
 	{
 		fSolver->Matrix()->Zero();
@@ -211,7 +244,10 @@ void TPZAnalysis::Assemble()
 
 void TPZAnalysis::Solve() {
 	int numeq = fCompMesh->NEquations();
-	if(fRhs.Rows() != numeq ) return;
+	if(fRhs.Rows() != numeq ) 
+    {
+        DebugStop();
+    }
 	
 	TPZFMatrix<STATE> residual(fRhs);
 	TPZFMatrix<STATE> delu(numeq,1,0.);

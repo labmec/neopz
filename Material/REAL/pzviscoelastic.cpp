@@ -5,6 +5,11 @@
 
 #include "pzviscoelastic.h"
 
+TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), flambdaE(-1), fmuE(-1), fElaVE(-1.), fPoissonVE(-1.)
+{
+    
+}
+
 TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
 {
 	flambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
@@ -283,3 +288,5 @@ int TPZViscoelastic::ClassId() const
 {
 	return TPZVISCOELASTICITYMATERIALID;
 }
+
+template class TPZRestoreClass<TPZViscoelastic,TPZVISCOELASTICITYMATERIALID>;

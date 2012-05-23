@@ -49,7 +49,7 @@ void TPZVTKGraphMesh::DrawSolution(int step, REAL time){
 	int n;
 	{
 		std::stringstream sout;
-		sout << fFileName.substr(0,fFileName.size()-4) << ".scal_vec" << step << ".vtk";
+		sout << fFileName.substr(0,fFileName.size()-4) << ".scal_vec." << step << ".vtk";
 		fOutFile.open(sout.str().c_str());
 	}
 	(fOutFile) << "# vtk DataFile Version 3.0" << endl;
