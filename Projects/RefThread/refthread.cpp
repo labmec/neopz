@@ -294,7 +294,7 @@ int main()
 using namespace std;
 
 #define MAXLVL 10
-#define NTHREADS 6
+#define NTHREADS 8
 #define INTTHREAD 0
 
 pthread_t threads[NTHREADS];
