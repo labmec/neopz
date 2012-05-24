@@ -13,8 +13,11 @@ class TPZMaterialData;
 #include "pzcmesh.h"
 #include "pzquad.h"
 #include "pzmaterial.h"
+//#include "tpzpoint.h"
 
 #include "pzlog.h"
+
+
 
 #ifdef LOG4CXX
 static LoggerPtr CompElWMemlogger(Logger::getLogger("mesh.TPZCompElWithMem"));
@@ -81,6 +84,11 @@ public:
 	/** @brief Reads the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
 	
+	/** @brief ClassId of the class. Is implemented for each type of compel in this .h */
+	virtual int ClassId() const
+	{
+		return -1;
+	}
 	/**
 	 * @name Print
 	 * @brief Methods for print data structure
@@ -236,5 +244,73 @@ inline void TPZCompElWithMem<TBASE>::Read(TPZStream &buf, void *context)
 	TBASE::Read(buf,context);
 	TPZSaveable::ReadObjects(buf, fIntPtIndices);
 }
+
+/** @brief Routines to send and receive messages */
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMPOINTID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePoint> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMLINEARID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMTRIANGID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMQUADID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMCUBEID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMTETRAID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMPRISMID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPOINTID>;
+
+template<>
+inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >::ClassId() const
+{
+	return TPZCOMPELWITHMEMPIRAMID;
+}
+
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPOINTID>;
+
+
+
 
 #endif

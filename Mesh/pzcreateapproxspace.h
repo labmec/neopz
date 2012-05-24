@@ -47,8 +47,10 @@ public:
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
     /** @brief Create an approximation space based on multiphysics elements */
 	void SetAllCreateFunctionsMultiphysicElem();
-    /** @brief Create an approximation space with continous elements with memory */
-    void SetAllCreateFunctionsContinuousWithMem();
+    /** @brief Create an approximation space with continous elements with memory. Only dimension 3 elements quem have memory in viscoelastic materials
+		 @ param dimension dimension of the mesh
+		 */	
+    void SetAllCreateFunctionsContinuousWithMem(int dimension);
     
     /** @brief Set custom function pointers */
     void SetCreateFunctions(TPZVec<TCreateFunction> &createfuncs);

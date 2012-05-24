@@ -465,9 +465,9 @@ public:
         fCreate.SetAllCreateFunctionsMultiphysicElem();
     }
 
-    void SetAllCreateFunctionsContinuousWithMem()
+    void SetAllCreateFunctionsContinuousWithMem(int dimension)
     {
-        fCreate.SetAllCreateFunctionsContinuousWithMem();
+        fCreate.SetAllCreateFunctionsContinuousWithMem(dimension);
     }
 		
 	/** @brief Will build the list of element boundary conditions build the list of connect boundary conditions. */

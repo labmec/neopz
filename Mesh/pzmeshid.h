@@ -161,6 +161,23 @@ const int TPZGEOBLENDPYRAMIDID = 409;
 /** @brief Id of geometric blended tetrahedral element (?) */
 const int TPZGEOBLENDTETRAHEDRAID = 410;
 
+/** @brief Id of computational memory point element (?) */
+const int TPZCOMPELWITHMEMPOINTID = 411;
+/** @brief Id of computational memory linear element (?) */
+const int TPZCOMPELWITHMEMLINEARID = 412;
+/** @brief Id of computational memory triangle element (?) */
+const int TPZCOMPELWITHMEMTRIANGID = 413;
+/** @brief Id of computational memory quadrilateral element (?) */
+const int TPZCOMPELWITHMEMQUADID = 414;
+/** @brief Id of computational memory cube element (?) */
+const int TPZCOMPELWITHMEMCUBEID = 415;
+/** @brief Id of computational memory tetrahedral element (?) */
+const int TPZCOMPELWITHMEMTETRAID = 416;
+/** @brief Id of computational memory prismal element (?) */
+const int TPZCOMPELWITHMEMPRISMID = 417;
+/** @brief Id of computational memory pyramidal element (?) */
+const int TPZCOMPELWITHMEMPIRAMID = 418;
+
 /** @} */
 
 #endif

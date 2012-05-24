@@ -184,17 +184,28 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuous(){
 	
 }
 
-void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem()
+void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem(int dimension)
 {
-    fp[EPoint] = CreatePointElWithMem;
-    fp[EOned] = CreateLinearElWithMem;
-    fp[ETriangle] = CreateTriangleElWithMem;
-    fp[EQuadrilateral] = CreateQuadElWithMem;
-    fp[ETetraedro] = CreateTetraElWithMem;
+	// These ones will be always continuous for viscoelasticity
+	fp[EPoint] = CreatePointEl;
+	fp[EOned] = CreateLinearEl;
+	fp[ETriangle] = CreateTriangleEl;
+	fp[EQuadrilateral] = CreateQuadEl;
+	
+	if (dimension < 3 && dimension > 0) 	// If the mesh is dimension < 3, it doesnt matter which 3d elements create for viscoelasticity
+	{
+    fp[ETetraedro] = CreateTetraEl;
+    fp[EPiramide] = CreatePyramEl;
+    fp[EPrisma] = CreatePrismEl;
+    fp[ECube] = CreateCubeEl;
+	}
+	else if (dimension == 3) // Otherwise it creates 3d elements with memory
+	{
+		fp[ETetraedro] = CreateTetraElWithMem;
     fp[EPiramide] = CreatePyramElWithMem;
     fp[EPrisma] = CreatePrismElWithMem;
     fp[ECube] = CreateCubeElWithMem;
-    
+	}
 
     /*
 	pzgeom::TPZGeoPoint::fp =  CreatePointElWithMem;
