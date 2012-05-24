@@ -100,7 +100,7 @@ else()
 		add_subdirectory(multplaca)
 
 		#projeto Diogo 08-FEB-2012
-		add_subdirectory(Plasticity)
+		#add_subdirectory(Plasticity)
 		#add_subdirectory(prodindex)
 
 		#Projeto Teo Refinamento Paralelo
