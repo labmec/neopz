@@ -9,7 +9,6 @@
 #include "tpzautopointer.h"
 #include "tpzcompmeshreferred.h"
 #include "pzstring.h"
-
 #include <map>
 #include <set>
 #include <stdio.h>
@@ -53,6 +52,8 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 	
 
 	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+	int porder = pcPostProcMesh->GetDefaultOrder();
+	pcPostProcMesh->SetDefaultOrder(porder); // ORDEM POLINOMIAL
 	SetAllCreateFunctionsPostProc(pcPostProcMesh);
 	
 	
@@ -178,7 +179,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 				matnotfound.insert(matid);
 				continue;
 			}
-			int printing = 1;
+			int printing = 0;
 			if (printing) {
 				gel->Print(cout);
 			}

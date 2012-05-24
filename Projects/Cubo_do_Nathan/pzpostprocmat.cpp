@@ -51,9 +51,12 @@ int TPZPostProcMat::VariableIndex(const std::string &name)
 	int i, nVars = fVars.NElements();
 	
 	i = 0;
-
-	while(i < nVars && strcmp(fVars[i].fName.c_str(), name.c_str()))i++;
 	
+	while(i < nVars && strcmp(fVars[i].fName.c_str(), name.c_str()))
+	{
+		i++;
+	}
+		
 	if(i >= nVars)
 	{
 		PZError << "TPZPostProcMat::Variable " << name << " not found\n";
@@ -135,7 +138,9 @@ void TPZPostProcMat::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<R
 
   for(i = 0; i < nshape; i++)
 	 for(j = 0; j < nshape; j++)
-		ek(i,j) += phi(i,0) * phi(j,0);
+	 {
+		 ek(i,j) += phi(i,0) * phi(j,0);		 
+	 }
 	
   for(i = 0; i < nstate; i++)
 	{

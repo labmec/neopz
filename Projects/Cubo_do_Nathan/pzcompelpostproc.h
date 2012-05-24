@@ -24,6 +24,8 @@ class TPZMaterialData;
 
 #include "TPZShapeDisc.h" 
 
+#include "tpzcompmeshreferred.h"
+
 #include <cmath>
 
 #ifdef LOG4CXX
@@ -244,14 +246,23 @@ inline void TPZCompElPostProc<TCOMPEL>::Read(TPZStream &buf, void *context)
 template <class TCOMPEL>
 inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   ef.Reset();
-
-
 	
   this->InitializeElementMatrix(ef);// the inintialization of the ef matrix
 	//preceeds the verifications below because it is advisable to esit
 	// with proper ef size, no matter the return reason
 	
+	
   TPZCompEl * pCompElRef = TPZReferredCompEl<TCOMPEL>::ReferredElement();
+	
+	TPZCompMesh *mesh1 = this->Mesh();
+	ofstream arg1("malha1.txt");
+	mesh1->Print(arg1);
+
+	TPZCompMesh *mesh2 = pCompElRef->Mesh();
+	//TPZCompMeshReferred * mesh2ref = dynamic_cast<TPZCompMeshReferred*>(mesh2);
+	ofstream arg2("malha2.txt");
+	mesh2->Print(arg2);
+
 	
   TPZInterpolationSpace * pIntSpRef = dynamic_cast<TPZInterpolationSpace *>(pCompElRef);
   if(!pCompElRef){
@@ -291,8 +302,8 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
   TPZManVector<REAL,3> intpointRef(dim,0);
   REAL weight = 0.;
   REAL weightRef = 0;
-  const TPZIntPoints &intrule    = this      ->GetIntegrationRule();
   const TPZIntPoints &intruleRef = pIntSpRef ->GetIntegrationRule();
+  const TPZIntPoints &intrule    = this->GetIntegrationRule();
 /*
   TPZManVector<int,3> p2(dim,data.p*2);
   TPZManVector<int,3> p2Ref(dim,dataRef.p*2);
@@ -357,22 +368,22 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 	 
 //cout << "\tEvaluated data.sol=" << data.sol << "\n";
 	  
-      if(!dataequal(data,dataRef)){
-	      PZError << "Error at " << __PRETTY_FUNCTION__ << " this and Referred CompEl TPZMaterialData(s) do not match\n";
-	      ef.Reset();
-	      return;
-      }
-      data.sol.Resize(stackedVarSize,0.);
-      int index = 0;
-      // stacking the solutions to post process.
-      for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
-      {
+		if(!dataequal(data,dataRef)){
+			PZError << "Error at " << __PRETTY_FUNCTION__ << " this and Referred CompEl TPZMaterialData(s) do not match\n";
+			ef.Reset();
+			return;
+		}
+		data.sol[0].Resize(stackedVarSize,0.);
+		int index = 0;
+		// stacking the solutions to post process.
+		for(int var_ind = 0; var_ind < varIndex.NElements(); var_ind++)
+		{
 		  int nsolvars = pMaterialRef->NSolutionVariables(varIndex[var_ind]);
 		  Sol.Resize(nsolvars);
-          pMaterialRef->Solution(dataRef, varIndex[var_ind], Sol);
-          for(int i = 0; i <nsolvars; i++)data.sol[index+i] = Sol[i];
+			pMaterialRef->Solution(dataRef, varIndex[var_ind], Sol);
+			for(int i = 0; i <nsolvars; i++)data.sol[0][index+i] = Sol[i];
 		  index += nsolvars;		
-      }
+		}
       
 //cout << "\timposed data.sol=" << data.sol << "\n";
 	  
