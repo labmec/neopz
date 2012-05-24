@@ -260,7 +260,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >::ClassId() co
 	return TPZCOMPELWITHMEMLINEARID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeLinear> >, TPZCOMPELWITHMEMLINEARID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >::ClassId() const
@@ -268,7 +268,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >::ClassId() co
 	return TPZCOMPELWITHMEMTRIANGID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTriang> >, TPZCOMPELWITHMEMTRIANGID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >::ClassId() const
@@ -276,7 +276,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >::ClassId() cons
 	return TPZCOMPELWITHMEMQUADID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeQuad> >, TPZCOMPELWITHMEMQUADID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >::ClassId() const
@@ -284,7 +284,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >::ClassId() cons
 	return TPZCOMPELWITHMEMCUBEID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeCube> >, TPZCOMPELWITHMEMCUBEID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >::ClassId() const
@@ -292,7 +292,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >::ClassId() con
 	return TPZCOMPELWITHMEMTETRAID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapeTetra> >, TPZCOMPELWITHMEMTETRAID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >::ClassId() const
@@ -300,7 +300,7 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >::ClassId() con
 	return TPZCOMPELWITHMEMPRISMID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPOINTID>;
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePrism> >, TPZCOMPELWITHMEMPRISMID>;
 
 template<>
 inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >::ClassId() const
@@ -308,9 +308,6 @@ inline int TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >::ClassId() con
 	return TPZCOMPELWITHMEMPIRAMID;
 }
 
-template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPOINTID>;
-
-
-
+template class TPZRestoreClass<TPZCompElWithMem<TPZIntelGen<pzshape::TPZShapePiram> >, TPZCOMPELWITHMEMPIRAMID>;
 
 #endif
