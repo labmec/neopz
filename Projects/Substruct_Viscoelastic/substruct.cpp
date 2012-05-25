@@ -88,6 +88,7 @@ int main1(int argc, char *argv[])
 	total.start();
 	std::cout << "COMECA O TEMPO"<< std::endl;
 	
+	int dimension = 3;
 	int dim = 2;
 	int maxlevel = 5;
 	int sublevel = 3;
@@ -126,7 +127,7 @@ int main1(int argc, char *argv[])
 				cmesh = new TPZCompMesh(gmesh);
 				cmesh->SetDimModel(3);
 				cmesh->SetDefaultOrder(plevel);
-				cmesh->SetAllCreateFunctionsContinuousWithMem();
+				cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
 				//cmesh->SetAllCreateFunctionsContinuous();
 				InsertViscoElasticityCubo(cmesh);
 				cmesh->AutoBuild();

@@ -286,6 +286,7 @@ int main()
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;
+	int dimension = 3;
 	TPZCompEl::SetgOrder(porder);
 	
 	// Rodando com p=1
@@ -294,7 +295,7 @@ int main()
 	InsertViscoElasticity(cmesh);
 	
 	cmesh->SetDefaultOrder(porder);
-	cmesh->SetAllCreateFunctionsContinuousWithMem();
+	cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
@@ -343,7 +344,6 @@ int main()
 	 cmesh->ExpandSolution();
 	 */
 	
-	int dimension = 3;
 	int resolution = 2;
 	TPZVec <std::string> vecnames(2), scalnames(0);
 	/*
@@ -720,6 +720,7 @@ void Teste()
 	TPZGeoMesh *gmesh = 0;
 	gmesh = MalhaCubo();
 	int porder = 1;
+	int dimension = 3;
 	TPZCompEl::SetgOrder(porder);
 	
 	// Rodando com p=1
@@ -728,7 +729,7 @@ void Teste()
 	InsertViscoElasticity(cmesh);
 	
 	cmesh->SetDefaultOrder(porder);
-	cmesh->SetAllCreateFunctionsContinuousWithMem();
+	cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
 	//cmesh->SetAllCreateFunctionsContinuous(); //elastic
 	cmesh->AutoBuild();
 	
@@ -746,7 +747,7 @@ void Teste()
 	InsertViscoElasticity(cmesh2);
 	
 	cmesh2->SetDefaultOrder(2);
-	cmesh2->SetAllCreateFunctionsContinuousWithMem();
+	cmesh2->SetAllCreateFunctionsContinuousWithMem(dimension);
 	cmesh2->AutoBuild();
 	
 	TPZSkylineStructMatrix skylstruct2(cmesh2);
@@ -833,7 +834,6 @@ void Teste()
 #endif
 	
 	
-	int dimension = 3;
 	int resolution = 2;
 	TPZVec <std::string> vecnames(2), scalnames(0);
 	cmesh->Solution() = sub;
