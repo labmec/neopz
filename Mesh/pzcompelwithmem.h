@@ -115,7 +115,7 @@ private:
 
 template<class TBASE>
 TPZCompElWithMem<TBASE>::TPZCompElWithMem() : TBASE() {
-	PrepareIntPtIndices();
+	//PrepareIntPtIndices();
 }
 
 template<class TBASE>
