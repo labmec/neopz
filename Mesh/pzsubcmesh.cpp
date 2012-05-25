@@ -182,7 +182,16 @@ TPZSubCompMesh::TPZSubCompMesh() : TPZCompMesh(), TPZCompEl(), fSingularConnect(
 }
 
 TPZSubCompMesh::~TPZSubCompMesh(){
-    MaterialVec().clear();
+	int sz = ElementVec().NElements();
+	for (int iel = 0 ; iel < sz ; iel++)
+	{
+		TPZCompEl *cel = ElementVec()[iel];
+		if (cel) 
+		{
+			delete cel;
+		}
+	}
+	MaterialVec().clear();
 }
 
 
