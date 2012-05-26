@@ -4,6 +4,7 @@
 source_group(Common FILES ${pzcommon_STAT_SRCS})
 source_group(Save FILES ${pzsave_STAT_SRCS})
 source_group(Util FILES ${pzutil_STAT_SRCS})
+source_group(PerfUtil FILES ${pzperfutil_STAT_SRCS})
 source_group(Matrix FILES ${pzmatrix_STAT_SRCS})
 source_group("Linear Solvers" FILES ${pzlinearsolvers_STAT_SRCS})
 source_group(Topology FILES ${pztopology_STAT_SRCS})
@@ -27,8 +28,9 @@ source_group(PlaneFracture FILES ${pzplanefracture_STAT_SRCS})
 
 #creating pz lib and groups of the sources files
 set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS} 
-	${pzmatrix_STAT_SRCS} ${pzlinearsolvers_STAT_SRCS} ${pzfrontal_STAT_SRCS} 
-	${pztopology_STAT_SRCS} ${pzgeom_STAT_SRCS} ${pzmesh_STAT_SRCS} 
+	${pzperfutil_STAT_SRCS} ${pzmatrix_STAT_SRCS} 
+        ${pzlinearsolvers_STAT_SRCS} ${pzfrontal_STAT_SRCS} 
+        ${pztopology_STAT_SRCS} ${pzgeom_STAT_SRCS} ${pzmesh_STAT_SRCS} 
 	${pzspecialmaps_STAT_SRCS} ${pzshape_STAT_SRCS} ${pzrefine_STAT_SRCS} 
 	${pzmultigrid_STAT_SRCS} ${pzstrmatrix_STAT_SRCS} ${pzsubstruct_STAT_SRCS} 
 	${pzmaterial_STAT_SRCS} ${pzpre_STAT_SRCS} 
@@ -42,7 +44,7 @@ install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 
-#	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzsave_STAT_SRCS} 
+#	${pzcommon_STAT_SRCS} ${pzutil_STAT_SRCS} ${pzperfutil_STAT_SRCS} ${pzsave_STAT_SRCS} 
 #	${pzmatrix_STAT_SRCS} ${pzlinearsolvers_STAT_SRCS}
 #	)
 

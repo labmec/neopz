@@ -486,7 +486,7 @@ int main ()
 	REAL alevel;
 	
 	for (alevel=1; alevel<=MAXLVL; alevel++) {
-		totalElements+=pow(4., alevel);
+	  totalElements+= (int) pow((REAL) 4., alevel);
 	}
 	
 	totalElements*=gmesh->NElements();
