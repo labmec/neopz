@@ -198,22 +198,6 @@ option(BUILD_PROJECTS "To build specific projects." OFF)
 #To building all the performance projects developed with PZ environment
 option(BUILD_PERF_TESTS "To build the performance test." OFF)
 
-if(BUILD_PERF_TESTS)
-
-	if(NOT UNIX)  
-	   # UNIX is TRUE on all UNIX-like OS's, including Apple OS X and CygWin
-	   message (FATAL_ERROR "ERROR: PERFTESTS may only be used on UNIX-like OS's")
-   	endif()
-
-	find_path(PERFTEST_DATA_DIR libpz_datadir.readme PATHS ${SEARCH_DIRS})
-	find_path(PERFTEST_DATA_DIR libpz_datadir.readme PATHS ../neopz_perf_data)
-
-	if(NOT PERFTEST_DATA_DIR)
-		message (FATAL_ERROR "ERROR: Please specify a valid directory for PERFTEST_DATA_DIR")
-	endif()
-
-endif()
-
 #To select type of REAL
 set(REALTypesAre "Types are: double, float, long double")
 set(REAL_TYPE "double" CACHE STRING "${REALTypesAre}")
@@ -277,8 +261,11 @@ FILE(WRITE ${FILE_DEFINITIONS}
 )
 
 #increment all the directories where the sources files is
+
+if(BUILD_PERF_TESTS)
+	add_subdirectory(PerfUtil)
+endif()
 add_subdirectory(Util)
-add_subdirectory(PerfUtil)
 add_subdirectory(Common)
 add_subdirectory(Save)
 add_subdirectory(Integral)
