@@ -65,26 +65,26 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 
   virtual ~TPZSkylNSymMatrix() { Clear(); }
 
-  int PutVal(const int row,const int col,const REAL &element );
+  int PutVal(const int row,const int col,const TVar &element );
 
-  const REAL &GetVal(const int row,const int col ) const;
+  const TVar &GetVal(const int row,const int col ) const;
 
 
   /// Pega o valor na diagonal ou parte de cima da diagonal
-  const REAL &GetValSup(const int row,const int col ) const;
+  const TVar &GetValSup(const int row,const int col ) const;
 
   /// Pega o valor abaixo da diagonal (below)
-  const REAL &GetValB(const int row,const int col ) const;
+  const TVar &GetValB(const int row,const int col ) const;
 
 
-  REAL &operator()(const int row, const int col);
-  virtual REAL &s(const int row, const int col);
+  TVar &operator()(const int row, const int col);
+  virtual TVar &s(const int row, const int col);
 
 
-  REAL &operator()(const int row);
+  TVar &operator()(const int row);
 
   virtual void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-		       const REAL alpha,const REAL beta ,const int opt = 0,const int stride = 1 ) const ;
+		       const TVar	alpha,const TVar beta ,const int opt = 0,const int stride = 1 ) const ;
   // Operadores com matrizes SKY LINE.
   //TPZSkylNSymMatrix &operator= (const TPZSkylNSymMatrix &A );
   //TPZSkylMatrix &operator= (TTempMat<TPZSkylMatrix> A);
@@ -130,6 +130,23 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   //int Subst_Diag     ( TPZFMatrix *b ) const;
 
   //void TestSpeed(int col, int prevcol);
+	
+	/**
+	 *@brief Return the id of the matrix defined pzmatrixid.h
+	 */
+	virtual int ClassId() const;
+	/**
+	 * @brief Unpacks the object structure from a stream of bytes
+	 * @param buf The buffer containing the object in a packed form
+	 * @param context 
+	 */
+	virtual void  Read(TPZStream &buf, void *context );
+	/**
+	 * @brief Packs the object structure in a stream of bytes
+	 * @param buf Buffer which will receive the bytes
+	 * @param withclassid
+	 */
+	virtual void Write( TPZStream &buf, int withclassid );
 
 #ifdef OOPARLIB
    /*
@@ -148,7 +165,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   /**
      This method returns a pointer to the diagonal element of the matrix of the col column
   */
-  REAL *Diag(int col) { return fElem[col];}
+  TVar *Diag(int col) { return fElem[col];}
 
   //void DecomposeColumn(int col, int prevcol);
 	//void DecomposeColumn(int col, int prevcol, std::list<int> &singular);
@@ -163,11 +180,13 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   void Copy (const TPZSkylNSymMatrix & );
   int Size(const int column) const {return fElem[column+1]-fElem[column];}
   static int NumElements(const TPZVec<int> &skyline);
-  static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<REAL> &storage, TPZVec<REAL *> &elem);
+  static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**
      Computes the highest skyline of both objects
   */
   static void ComputeMaxSkyline(const TPZSkylNSymMatrix &first, const TPZSkylNSymMatrix &second, TPZVec<int> &res);
+	
+
 
 protected:
   /**
@@ -175,7 +194,7 @@ protected:
      fElem[i] is the first element of the skyline of equation i
      fElem[Rows()] is one element beyond the last equation
   */
-  TPZVec<REAL *> fElem;
+  TPZVec<TVar *> fElem;
 
   /**
      fElemb storages skyline Below diagonal
@@ -183,18 +202,18 @@ protected:
      fElemb[i] is the first element of the skyline of equation i
      fElemb[Rows()] is one element beyond the last equation
   */
-  TPZVec<REAL *> fElemb;
+  TPZVec<TVar *> fElemb;
 
 private:
   /**
      fStorage is a unique vector which contains all the data of the skyline matrix
   */
-  TPZManVector<REAL> fStorage;
+  TPZManVector<TVar> fStorage;
 
   /**
      fStorage is a unique vector which contains all the data of the skyline matrix below diagonal
   */
-  TPZManVector<REAL> fStorageb;
+  TPZManVector<TVar> fStorageb;
 };
 
 /*

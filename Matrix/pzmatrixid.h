@@ -52,6 +52,11 @@ const int TPZSTEPSOLVERCOMPLEXLONGDOUBLE_ID = 536;
 const int TSKYLMATRIX_DOUBLE_ID = 540;
 const int TSKYLMATRIX_FLOAT_ID = 541;
 
+/** @brief Id of the Non Symmetric Skyline Matrix */
+const int TSKYLNSYMMATRIX_DOUBLE_ID = 542;
+const int TSKYLNSYMMATRIX_FLOAT_ID = 543;
+
+
 /** @} */
 
 #endif

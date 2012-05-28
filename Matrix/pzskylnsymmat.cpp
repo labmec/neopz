@@ -1,12 +1,8 @@
 // ---------------------------------------------------------------------------
 
-#pragma hdrstop
-
 #include "pzskylnsymmat.h"
 
 // ---------------------------------------------------------------------------
-
-#pragma package(smart_init)
 
 //
 // Author: Nathan Shauer.
@@ -45,6 +41,7 @@ const int templatedepth = 10;
 
 #include <sstream>
 #include "pzlog.h"
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzskylmatrix"));
 #endif
@@ -136,7 +133,7 @@ int TPZSkylNSymMatrix<TVar>::NumElements(const TPZVec<int> &skyline)
 
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline,
-	TPZManVector<REAL> &storage, TPZVec<REAL *> &point)
+	TPZManVector<TVar> &storage, TPZVec<TVar *> &point)
 {
 	int dim = skyline.NElements();
 	int nel = NumElements(skyline);
@@ -182,7 +179,7 @@ void TPZSkylNSymMatrix<TVar>::ComputeMaxSkyline(const TPZSkylNSymMatrix &first,
 }
 
 template <class TVar>
-REAL & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
+TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
 {
   int row(r), col(c);
   if (col >= row)
@@ -212,13 +209,13 @@ REAL & TPZSkylNSymMatrix<TVar>::operator()(const int r, const int c)
 }
 
 template <class TVar>
-REAL &TPZSkylNSymMatrix<TVar>::s(const int row, const int col)
+TVar &TPZSkylNSymMatrix<TVar>::s(const int row, const int col)
 {
   return operator()(row, col);
 }
 
 template <class TVar>
-REAL & TPZSkylNSymMatrix<TVar>::operator()(const int r)
+TVar & TPZSkylNSymMatrix<TVar>::operator()(const int r)
 {
   return operator()(r, r);
 }
@@ -226,7 +223,7 @@ REAL & TPZSkylNSymMatrix<TVar>::operator()(const int r)
 /** *********** */
 /** * PutVal ** */
 template <class TVar>
-int TPZSkylNSymMatrix<TVar>::PutVal(const int r, const int c, const REAL & value)
+int TPZSkylNSymMatrix<TVar>::PutVal(const int r, const int c, const TVar & value)
 {
   // inicializando row e col para trabalhar com a triangular superior
   int row(r), col(c);
@@ -270,7 +267,7 @@ int TPZSkylNSymMatrix<TVar>::PutVal(const int r, const int c, const REAL & value
 
 template <class TVar>
 void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatrix<TVar> &y,
-  TPZFMatrix<TVar> &z, const REAL alpha, const REAL beta, const int opt,
+  TPZFMatrix<TVar> &z, const TVar alpha, const TVar beta, const int opt,
   const int stride)const
 {
   // Computes z = beta * y + alpha * opt(this)*x
@@ -297,10 +294,10 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
     for (r = 0; r < rows; r++)
     {
       int offset = Size(r);
-      REAL val = 0.;
-      const REAL *p = &x.g((r - offset + 1) * stride, ic);
-      REAL *diag = fElemb[r] + offset - 1;
-      REAL *diaglast = fElemb[r];
+      TVar val = 0.;
+      const TVar *p = &x.g((r - offset + 1) * stride, ic);
+      TVar *diag = fElemb[r] + offset - 1;
+      TVar *diaglast = fElemb[r];
       while (diag > diaglast)
       {
         val += *diag--**p;
@@ -312,7 +309,7 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
         val += *diag * *p;
       }
       z(r * stride, ic) += val * alpha;
-      REAL *zp = &z((r - offset + 1) * stride, ic);
+      TVar *zp = &z((r - offset + 1) * stride, ic);
       val = x.g(r * stride, ic);
       diag = fElem[r] + offset - 1;
       diaglast = fElem[r];
@@ -463,7 +460,7 @@ tol = res;
 /** * GetVal ** */
 
 template <class TVar>
-const REAL & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
 {
   // inicializando row e col para trabalhar com a triangular superior
   int row(r), col(c);
@@ -483,7 +480,7 @@ const REAL & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
       return(fElem[col][index]);
     else
     {
-      if (this->gZero != 0.)
+      if (this->gZero != TVar(0.))
       {
         cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
         DebugStop();
@@ -508,7 +505,7 @@ const REAL & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
       return(fElemb[row][index]);
     else
     {
-      if (this->gZero != 0.)
+      if (this->gZero != TVar(0.))
       {
         cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
         DebugStop();
@@ -521,7 +518,7 @@ const REAL & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
 ///
 
 template <class TVar>
-const REAL & TPZSkylNSymMatrix<TVar>::GetValSup(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetValSup(const int r, const int c)const
 {
 
   int row(r), col(c);
@@ -542,7 +539,7 @@ const REAL & TPZSkylNSymMatrix<TVar>::GetValSup(const int r, const int c)const
 }
 
 template <class TVar>
-const REAL & TPZSkylNSymMatrix<TVar>::GetValB(const int r, const int c)const
+const TVar & TPZSkylNSymMatrix<TVar>::GetValB(const int r, const int c)const
 {
 
   int row(r), col(c);
@@ -838,7 +835,7 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,
     "Decompose_LU <Matrix already Decomposed>");
 
-  REAL pivot;
+  TVar pivot;
   int dimension = this->Dim();
   /* if(Dim() > 100) {
   cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
@@ -859,10 +856,10 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
 
     // Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
     //
-    REAL sum = 0.0;
-    REAL *elem_k = fElem[k] + 1;
-    REAL *elem_kb = fElemb[k] + 1;
-    REAL *end_k = fElem[k] + Size(k);
+    TVar sum = 0.0;
+    TVar *elem_k = fElem[k] + 1;
+    TVar *elem_kb = fElemb[k] + 1;
+    TVar *end_k = fElem[k] + Size(k);
     for (; elem_k < end_k; elem_k++, elem_kb++)
     {
       sum += (*elem_k) * (*elem_kb);
@@ -870,11 +867,12 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
 
     // Faz A(k,k) = sqrt( A(k,k) - sum ).
     //
+		
     pivot = fElem[k][0] - sum;
-    if (pivot < 1.e-25)
+    if (fabs(pivot) < 1.e-25)
     {
       cout <<
-          "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida"
+          "TPZSkyNSymlMatrix::DecomposeCholesky a matrix nao e positiva definida"
           << pivot << endl;
       return(0);
     }
@@ -894,8 +892,8 @@ int TPZSkylNSymMatrix<TVar>::Decompose_LU()
         // linha
         // Faz sum = SOMA( A(i,p) * A(k,p) ), p = 1,..,k-1.
         sum = 0.0;
-        REAL *elem_i = &fElem[i][j];
-        REAL *end_i = fElem[i + 1];
+        TVar *elem_i = &fElem[i][j];
+        TVar *end_i = fElem[i + 1];
         elem_k = &(fElemb[k][1]);
         end_k = fElemb[k] + Size(k);
         while ((elem_i < end_i) && (elem_k < end_k))
@@ -1005,7 +1003,7 @@ int TPZSkylNSymMatrix<TVar>::Subst_Backward(TPZFMatrix<TVar> *B)const
   for (j = 0; j < B->Cols(); j++)
   {
     int k = Dimension - 1;
-    while (k > 0 && (*B)(k, j) == 0.)
+    while (k > 0 && (*B)(k, j) == TVar(0.))
     {
       k--;
     }
@@ -1015,10 +1013,10 @@ int TPZSkylNSymMatrix<TVar>::Subst_Backward(TPZFMatrix<TVar> *B)const
     {
       // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
       //
-      REAL val;
-      REAL *elem_ki = fElem[k];
-      REAL *end_ki = fElem[k + 1];
-      REAL *BPtr = &(*B)(k, j);
+      TVar val;
+      TVar *elem_ki = fElem[k];
+      TVar *end_ki = fElem[k + 1];
+      TVar *BPtr = &(*B)(k, j);
       *BPtr /= *elem_ki++;
       val = *BPtr;
       // BPtr;
@@ -1051,10 +1049,10 @@ int TPZSkylNSymMatrix<TVar>::Subst_LForward(TPZFMatrix<TVar> *B)const
     {
       // Faz sum = SOMA( A[k,i] * B[i,j] ), para i = 1, ..., k-1.
       //
-      REAL sum = 0.0;
-      REAL *elem_ki = fElemb[k] + 1;
-      REAL *end_ki = fElemb[k + 1];
-      REAL *BPtr = &(*B)(k, j);
+      TVar sum = 0.0;
+      TVar *elem_ki = fElemb[k] + 1;
+      TVar *end_ki = fElemb[k + 1];
+      TVar *BPtr = &(*B)(k, j);
       while (elem_ki < end_ki)
         sum += (*elem_ki++) * (*--BPtr);
 
@@ -1191,7 +1189,7 @@ void TPZSkylNSymMatrix<TVar>::Copy(const TPZSkylNSymMatrix &A)
   fStorage = A.fStorage;
   fStorageb = A.fStorageb;
   int i;
-  REAL *firstp = 0;
+  TVar *firstp = 0;
 
   if (fStorage.NElements())
     firstp = &fStorage[0];
@@ -1482,5 +1480,76 @@ cout <<
 // cout.flush();
 
 }
+*/
 
- */
+
+template <class TVar>
+void TPZSkylNSymMatrix<TVar>::Read(TPZStream &buf, void *context )
+{
+	TPZMatrix<TVar>::Read(buf, context);
+	TPZSaveable::ReadObjects(buf, fStorage);
+	TPZSaveable::ReadObjects(buf, fStorage);
+	TPZVec<int> skyl(this->Rows()+1,0), skyl2(this->Rows()+1,0);
+	TPZSaveable::ReadObjects(buf, skyl);
+	TPZSaveable::ReadObjects(buf, skyl2);
+	TVar *ptr = 0, *ptr2;
+	if (this->Rows()) {
+		ptr = &fStorage[0];
+		ptr2 = &fStorageb[0];
+	}
+	fElem.Resize(this->Rows()+1);
+	fElemb.Resize(this->Rows()+1);
+	for (int i=0; i<this->Rows()+1; i++) {
+		fElem[i] = skyl[i] + ptr;
+		fElemb[i] = skyl2[i] + ptr2;
+	}
+}
+
+template <class TVar>
+void TPZSkylNSymMatrix<TVar>::Write( TPZStream &buf, int withclassid )
+{
+	TPZMatrix<TVar>::Write(buf,withclassid);
+	TPZSaveable::WriteObjects(buf, fStorage);
+	TPZSaveable::WriteObjects(buf, fStorageb);
+	TPZVec<int> skyl(this->Rows()+1,0), skyl2(this->Rows()+1,0);
+	TVar *ptr = 0, *ptr2 = 0;
+	if (this->Rows()) {
+		ptr = &fStorage[0];
+		ptr2 = &fStorageb[0];
+	}
+	for (int i=0; i<this->Rows()+1; i++) {
+		skyl[i] = fElem[i] - ptr;
+		skyl2[i] = fElemb[i] - ptr2;
+	}
+	TPZSaveable::WriteObjects(buf, skyl);
+	TPZSaveable::WriteObjects(buf, skyl2);
+}
+
+template<class TVar>
+int TPZSkylNSymMatrix<TVar>::ClassId() const
+{
+	DebugStop();
+	return -1;
+}
+
+template<>
+int TPZSkylNSymMatrix<double>::ClassId() const
+{
+	return TSKYLNSYMMATRIX_DOUBLE_ID;
+}
+
+template<>
+int TPZSkylNSymMatrix<float>::ClassId() const
+{
+	return TSKYLNSYMMATRIX_FLOAT_ID;
+}
+ 
+template class TPZSkylNSymMatrix<float>;
+template class TPZSkylNSymMatrix<std::complex<float> >;
+
+template class TPZSkylNSymMatrix<double>;
+template class TPZSkylNSymMatrix<std::complex<double> >;
+
+template class TPZRestoreClass<TPZSkylNSymMatrix<double>, TSKYLNSYMMATRIX_DOUBLE_ID>;
+template class TPZRestoreClass<TPZSkylNSymMatrix<float>, TSKYLNSYMMATRIX_FLOAT_ID>;
+
