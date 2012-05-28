@@ -65,6 +65,13 @@ public:
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	static void AutoBuild(TPZCompMesh &cmesh);
     
+    /** @brief Creates the interface elements */ 
+	/** Only element of material id in the set<int> will be created */
+	static void CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs);
+	
+	/** @brief Creates the interface elements */
+	static void CreateInterfaces(TPZCompMesh &cmesh);
+
 	/** @brief Creates the computational elements, and the degree of freedom nodes */
 	/**
 	 * Elements created may be TPZInterpolatedElement or TPZCompElDisc. \n

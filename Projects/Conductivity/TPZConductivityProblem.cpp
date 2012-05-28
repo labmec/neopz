@@ -144,6 +144,7 @@ TPZAutoPointer<TPZCompMesh> TPZConductivityProblem::GenerateCompMesh()
     cmesh->SetAllCreateFunctionsDiscontinuous();
     cmesh->SetDefaultOrder(0);
     cmesh->AutoBuild();
+    TPZCreateApproximationSpace::CreateInterfaces(cmesh);
     return cmesh;
 }
 

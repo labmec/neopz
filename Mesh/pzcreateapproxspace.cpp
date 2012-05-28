@@ -8,6 +8,7 @@
 #include "pzcmesh.h"
 #include "pzelctemp.h"
 #include "pzcondensedcompel.h"
+#include "pzinterpolationspace.h" 
 
 #include "pzshapecube.h"
 #include "pzshapelinear.h"
@@ -129,6 +130,39 @@ void TPZCreateApproximationSpace::BuildMesh(TPZCompMesh &cmesh, const std::set<i
 /** @brief Creates the computational elements, and the degree of freedom nodes */
 void TPZCreateApproximationSpace::AutoBuild(TPZCompMesh &cmesh){
     cmesh.AutoBuild();
+}
+
+void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh, const std::set<int> &MaterialIDs){
+    for(int el = 0; el < cmesh.ElementVec().NElements(); el++)
+	{
+		TPZCompEl * compEl = cmesh.ElementVec()[el];
+		if(!compEl) continue;
+        int matid = compEl->Reference()->MaterialId();
+        
+        //checking if matid is in MaterialIDs
+        std::set<int>::iterator it;
+        it = MaterialIDs.find(matid);
+        if(it!=MaterialIDs.end())
+        {
+            TPZInterpolationSpace * interpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+            if(!interpEl) continue;
+            interpEl->CreateInterfaces();
+        }
+    }
+    
+}
+
+void TPZCreateApproximationSpace::CreateInterfaces(TPZCompMesh &cmesh){
+    for(int el = 0; el < cmesh.ElementVec().NElements(); el++)
+	{
+		TPZCompEl * compEl = cmesh.ElementVec()[el];
+		if(!compEl) continue;
+					
+        TPZInterpolationSpace * interpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
+        if(!interpEl) continue;
+        interpEl->CreateInterfaces();
+    }
+    
 }
 
 void TPZCreateApproximationSpace::SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh){

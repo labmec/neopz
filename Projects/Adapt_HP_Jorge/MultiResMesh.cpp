@@ -146,6 +146,7 @@ TPZCompMesh *CreateMeshMultires(TPZGeoMesh * gmesh){
   TPZCompElDisc::SetgOrder(0);
 
   cmesh->AutoBuild();
+  TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
   TPZCompElDisc::SetTotalOrderShape(cmesh);
   TPZAutoPointer<TPZFunction<STATE> > fakefunc = new TPZFakeFunction<STATE>();
   for(int i = 0; i < cmesh->NElements(); i++){

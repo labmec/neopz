@@ -59,6 +59,7 @@ int main() {
   TPZCompEl::SetgOrder(1);
   cmesh->SetDefaultOrder(1);
   cmesh->AutoBuild();
+  TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
   cout << "\ncmesh->NElements() = " << cmesh->NElements() << "\n";
   TPZCompElDisc * cel = dynamic_cast<TPZCompElDisc*>(cmesh->ElementVec()[0]);
   TPZAutoPointer<TPZFunction<STATE> > extShapes = new TExtFunction<STATE>();
@@ -310,6 +311,7 @@ int main1(){
   TPZCompEl::SetgOrder(p);
   cmesh->SetDefaultOrder(p);
   cmesh->AutoBuild();
+  TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
   cmesh->ComputeNodElCon();
 //   cmesh->AdjustBoundaryElements();
 

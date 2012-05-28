@@ -180,8 +180,10 @@ TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCen
 	TPZVec<REAL> csi(fCenterPoint);
 	ref->X(csi,fCenterPoint);
 	fConstC = NormalizeConst();
-	//criando os elementos interface
-	CreateInterfaces();
+	
+    //criando os elementos interface
+    //Now, the interface is created by calling the CreateIntefaces method in class TPZApproxSpace.
+	//CreateInterfaces();
 	
 	this->fIntRule = this->CreateIntegrationRule();
 	
@@ -190,17 +192,17 @@ TPZInterpolationSpace(mesh,ref,index), fConnectIndex(-1), fExternalShape(), fCen
 REAL TPZCompElDisc::NormalizeConst()
 {
 	TPZGeoEl *ref = Reference();
-	//maior distancia entre o ponto interior e os v�tices do elemento
+	//greater distance between the point and the vertices of the inner element
 	int nnodes = ref->NNodes(),i;
-	if(nnodes == 1) return 1.0;//elemento ponto
+	if(nnodes == 1) return 1.0;//point element
 	REAL maxdist,dist;
-	int inode = ref->NodeIndex(0);//primeiro n�do elemento
+	int inode = ref->NodeIndex(0);//first node of the element
 	TPZGeoNode node = ref->Mesh()->NodeVec()[inode];
 	maxdist = pow(node.Coord(0)-fCenterPoint[0],(REAL)2.)+pow(node.Coord(1)-fCenterPoint[1],(REAL)2.);   // I do casting because the developer use double exponent (2.) - I think better using int (2) - Jorge
 	maxdist += pow(node.Coord(2)-fCenterPoint[2],(REAL)2.);
 	maxdist = sqrt(maxdist);
 	for(i=1;i<nnodes;i++){
-		inode = ref->NodeIndex(i);//n� sub-seguintes
+		inode = ref->NodeIndex(i);//subsequent node
 		node = ref->Mesh()->NodeVec()[inode];
 		dist = pow(node.Coord(0)-fCenterPoint[0],(REAL)2.)+pow(node.Coord(1)-fCenterPoint[1],(REAL)2.);
 		dist += pow(node.Coord(2)-fCenterPoint[2],(REAL)2.);
@@ -345,13 +347,13 @@ int TPZCompElDisc::NConnects() const{
 }
 
 int TPZCompElDisc::CreateMidSideConnect(){
-	// primeiro s� criados os elementos de volume depois os elementos BC associados aos seus lados
-	// num est�io inicial o elemento BC �acoplado ao elemento ELV de volume de tal forma
-	// que ambos s� vizinhos
-	// o elemento BC n� pode ser dividido se o elemento ELV associado n� for dividido primeiro
-	// caso o elemento ELV �dividido, ent� o elemento BC associado deveria ser dividido
+	// primeiro sao criados os elementos de volume depois os elementos BC associados aos seus lados
+	// num estagio inicial o elemento BC eh acoplado ao elemento ELV de volume de tal forma
+	// que ambos sao vizinhos
+	// o elemento BC nao pode ser dividido se o elemento ELV associado nao for dividido primeiro
+	// caso o elemento ELV for dividido, entao o elemento BC associado deveria ser dividido
 	// tambem para manter a CC consistente com a malha
-	// caso ELV �dividido e BC n� �ent� ELV �LowerLevelElement do elemento BC
+	// caso ELV for dividido e BC nao eh entao ELV sera LowerLevelElement do elemento BC
 	TPZMaterial * material = Material();
 	if(!material){
 		PZError << "\nTPZCompElDisc::CreateMidSideConnect Material nulo\n";
@@ -366,7 +368,7 @@ int TPZCompElDisc::CreateMidSideConnect(){
 	int existsconnect = 0;
 	
 	if(dimgrid == dim){
-		//este �um elemento de volume
+		//este eh um elemento de volume
 		//procura-se elemento superposto
 		TPZCompElSide(this,nsides-1).EqualLevelElementList(list,0,0);
 		int size = list.NElements(),i;
@@ -382,14 +384,14 @@ int TPZCompElDisc::CreateMidSideConnect(){
 	}
 	
 	if(dim != dimgrid/* - 1*/){ //dimgrid - 1 = interface dimension
-		// o atual �um elemento BC
+		// o atual eh um elemento BC
 		fConnectIndex = -1;//=> return NshapeF() = 0
 		return fConnectIndex;
 	}
 	
 	if(!existsconnect){
-		//o atual �um elemento de volume e
-		//n� achou-se um elemento superposto
+		//o atual eh um elemento de volume e
+		//nao achou-se um elemento superposto
 		int nvar = Material()->NStateVariables();
 		const int nshape = this->NShapeF();
 		int newnodeindex = Mesh()->AllocateNewConnect(nshape,nvar,0);

@@ -237,6 +237,7 @@ int run(std::istream & input, std::ostream & output)
 			{
 				case 0:
 					cmesh->SetAllCreateFunctionsDiscontinuous();
+                    TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
 					filename += "_disc";
 					break;
 				case 1:
@@ -246,6 +247,7 @@ int run(std::istream & input, std::ostream & output)
 				default:
 					output << "Wrong parameter, setting discontinuous\n";
 					cmesh->SetAllCreateFunctionsDiscontinuous();
+                    TPZCreateApproximationSpace::CreateInterfaces(*cmesh);
 					filename += "_disc";
 					break;
 			}

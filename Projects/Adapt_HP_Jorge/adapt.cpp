@@ -140,6 +140,7 @@ int mainAdapt ( int argc, char *argv[] )
 	
 	// Method to create the interpolation spaces
 	cDummyMesh->AutoBuild();
+    TPZCreateApproximationSpace::CreateInterfaces(*cDummyMesh);
 	
 	int ref = 0;
 	int nref = 5;
