@@ -123,7 +123,7 @@ void TPZCoupledTransportDarcy::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 }
 
 
-TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC(int id){
+TPZCoupledTransportDarcyBC * TPZCoupledTransportDarcy::CreateBC2(int id){
 	return new TPZCoupledTransportDarcyBC(this, id);
 }
 
