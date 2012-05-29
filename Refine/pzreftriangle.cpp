@@ -177,7 +177,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefTriangle::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefTriangle::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeTriang::NSides-1) {
 			PZError << "TPZRefTriangle::MidSideNodeIndex. Bad parameter side = " << side << endl;
@@ -197,7 +197,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefTriangle::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
+	void TPZRefTriangle::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		subel.Resize(0);
 		if(side<0 || side>TPZShapeTriang::NSides || !father->HasSubElement()){
 			PZError << "TPZRefTriangle::GetSubelements2 called with error arguments\n";

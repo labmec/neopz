@@ -373,7 +373,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPyramid::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefPyramid::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
 		index = -1;
 		if(side<0 || side>TPZShapePiram::NSides-1) {
 			PZError << "TPZRefPyramid::MidSideNodeIndex. Bad parameter side = " << side << endl;
@@ -397,7 +397,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPyramid::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
+	void TPZRefPyramid::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
 		subel.Resize(0);
 		if(side<0 || side>TPZShapePiram::NSides || !father->HasSubElement()){

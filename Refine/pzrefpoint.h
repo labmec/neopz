@@ -30,9 +30,9 @@ namespace pzrefine {
 		enum{NSubEl = 1};
 		
 		static void Divide(TPZGeoEl *geo,TPZVec<TPZGeoEl *> &SubElVec);
-		static void MidSideNodeIndex(TPZGeoEl *gel,int side,int &index);
+		static void MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index);
 		static void NewMidSideNode(TPZGeoEl *gel,int side,int &index);
-		static void GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
+		static void GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel);
 		static int NSideSubElements(int side);
 		static TPZTransform GetTransform(int side,int son);
 		static int FatherSide(int side,int son);

@@ -190,7 +190,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefQuad::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefQuad::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeQuad::NSides-1) {
 			PZError << "TPZRefQuad::MidSideNodeIndex. Bad parameter side = " << side << endl;
@@ -210,7 +210,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefQuad::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
+	void TPZRefQuad::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
 		subel.Resize(0);
 		if(side<0 || side>TPZShapeQuad::NSides || !father->HasSubElement()){

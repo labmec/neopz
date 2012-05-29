@@ -95,7 +95,7 @@ namespace pzrefine {
 		geo->SetSubElementConnectivities();
 		
 	}
-	void TPZRefLinear::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index){
+	void TPZRefLinear::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index){
 		index = -1;
 		if(side<0 || side>TPZShapeLinear::NSides-1) {
 			PZError << "TPZRefCube::MidSideNodeIndex. Bad parameter side = " << side << endl;
@@ -142,7 +142,7 @@ namespace pzrefine {
 		
 	}
 	
-	void TPZRefLinear::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
+	void TPZRefLinear::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel) {
 		subel.Resize(0);
 		if(side<0 || side>TPZShapeLinear::NSides || !father->HasSubElement()){
 			PZError << "TPZRefCube::GetSubelements2 called with error arguments\n";

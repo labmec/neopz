@@ -282,7 +282,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefTetrahedra::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefTetrahedra::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
 		index = -1;
 		if(side<0 || side>TPZShapeTetra::NSides-1) {
 			PZError << "TPZRefTetrahedra::MidSideNodeIndex. Bad parameter side = " << side << endl;
@@ -302,7 +302,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefTetrahedra::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
+	void TPZRefTetrahedra::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
 		subel.Resize(0);
 		if(side<0 || side>TPZShapeTetra::NSides || !father->HasSubElement()){

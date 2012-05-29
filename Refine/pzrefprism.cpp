@@ -389,7 +389,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPrism::MidSideNodeIndex(TPZGeoEl *gel,int side,int &index) {
+	void TPZRefPrism::MidSideNodeIndex(const TPZGeoEl *gel,int side,int &index) {
 		index = -1;
 		if(side == 15 || side > 18) return;
 		if(side<0 || side>TPZShapePrism::NSides-1) {
@@ -410,7 +410,7 @@ namespace pzrefine {
 		}
 	}
 	
-	void TPZRefPrism::GetSubElements(TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
+	void TPZRefPrism::GetSubElements(const TPZGeoEl *father,int side, TPZStack<TPZGeoElSide> &subel){
 		
 		subel.Resize(0);
 		if(side<0 || side>TPZShapePrism::NSides || !father->HasSubElement()){
