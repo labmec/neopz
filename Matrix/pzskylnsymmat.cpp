@@ -285,7 +285,7 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
         << " y.Rows() " << y.Rows() << " z.Rows() " << z.Rows() << endl;
     TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, " incompatible dimensions\n");
   }
-  PrepareZ(y, z, beta, opt, stride);
+  this->PrepareZ(y, z, beta, opt, stride);
   int rows = this->Rows();
   int xcols = x.Cols();
   int ic, r;

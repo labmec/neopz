@@ -293,9 +293,9 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //		std::stringstream sout;
 //		sout<< "---Ptos e Pesos ---"<<std::endl;
 		
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+//		LOGPZ_DEBUG(logger,sout.str())
+//	}
+//#endif
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
 		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
