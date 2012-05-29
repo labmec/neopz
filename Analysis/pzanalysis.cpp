@@ -190,7 +190,6 @@ int TPZAnalysis::ComputeNumberofLoadCases()
     for( it = fCompMesh->MaterialVec().begin(); it != fCompMesh->MaterialVec().end(); it++)
     {
         TPZMaterial *mat = it->second;
-        int matnumstate = mat->MinimumNumberofLoadCases();
         mat->SetNumLoadCases(res);
     }
     return res;
@@ -323,7 +322,7 @@ void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
 
 
 void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
-	int i, neq = fCompMesh->NEquations();
+	int i;
 	//TPZVec<REAL> ux((int) neq);
 	//TPZVec<REAL> sigx((int) neq);
 	TPZManVector<REAL,10> values(10,0.);
