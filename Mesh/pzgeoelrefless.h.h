@@ -81,7 +81,7 @@ TPZGeoElRefLess<TGeo>::NodeIndex(int node) const {
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::SideNodeIndex(int side,int node) {
+TPZGeoElRefLess<TGeo>::SideNodeIndex(int side,int node) const {
 	if(side<0 || side>(TGeo::NSides - 1) || node<0) {
 		PZError << "TPZGeoElRefLess::SideNodeIndex. Bad parameter side.\n";
 		return -1;
@@ -91,7 +91,7 @@ TPZGeoElRefLess<TGeo>::SideNodeIndex(int side,int node) {
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::SideNodeLocIndex(int side,int node) {
+TPZGeoElRefLess<TGeo>::SideNodeLocIndex(int side,int node) const{
 	
 	if(side<0 || side>(TGeo::NSides - 1) || node<0) {
 		PZError << "TPZGeoElRefLess::SideNodeIndex. Bad parameter side.\n";
@@ -116,25 +116,25 @@ TPZIntPoints *TPZGeoElRefLess<TGeo>::CreateSideIntegrationRule(int side, int ord
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NNodes() {
+TPZGeoElRefLess<TGeo>::NNodes() const {
 	return TGeo::NNodes;
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NCornerNodes(){
+TPZGeoElRefLess<TGeo>::NCornerNodes() const{
 	return TGeo::NCornerNodes;
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NSides(){
+TPZGeoElRefLess<TGeo>::NSides() const{
 	return TGeo::NSides;
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::SideNodeLocId(int side, int node){
+TPZGeoElRefLess<TGeo>::SideNodeLocId(int side, int node) const {
 	return TGeo::SideNodeLocId(side,node);
 }
 
@@ -146,13 +146,13 @@ TPZGeoElRefLess<TGeo>::RefElVolume(){
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NSideNodes(int side){
+TPZGeoElRefLess<TGeo>::NSideNodes(int side) const{
 	return TGeo::NSideNodes(side);
 }
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::MidSideNodeIndex(int side,int &index){
+TPZGeoElRefLess<TGeo>::MidSideNodeIndex(int side,int &index) const{
 	//TRef::MidSideNodeIndex(this,side,index);
 	index = -1;
 	if(side<0 || side>NSides()-1) {
@@ -176,21 +176,21 @@ TPZGeoElRefLess<TGeo>::SideIsUndefined(int side){
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NSubElements(){
+TPZGeoElRefLess<TGeo>::NSubElements() const {
 	//return TRef::NSubEl;
 	return 0;
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NSideSubElements(int side){
+TPZGeoElRefLess<TGeo>::NSideSubElements(int side) const {
 	//return TRef::NSideSubElements(side);
 	return 0;
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::NSideSubElements2(int side){
+TPZGeoElRefLess<TGeo>::NSideSubElements2(int side) const {
 	// return TRef::NSideSubElements(side);
 	return 0;
 }
@@ -230,7 +230,7 @@ TPZGeoElRefLess<TGeo>::SideToSideTransform(int sidefrom,int sideto){
 
 template<class TGeo>
 TPZGeoEl *
-TPZGeoElRefLess<TGeo>::SubElement(int is){
+TPZGeoElRefLess<TGeo>::SubElement(int is) const {
 	if(is<0 || is>1){//(TRef::NSubEl - 1)){
 		std::cout << "TPZGeoElRefLess::SubElement index error is= " << is << std::endl;;
 	}
@@ -240,13 +240,13 @@ TPZGeoElRefLess<TGeo>::SubElement(int is){
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::SideDimension(int side){
+TPZGeoElRefLess<TGeo>::SideDimension(int side) const {
 	return TGeo::SideDimension(side);
 }
 
 template<class TGeo>
 int
-TPZGeoElRefLess<TGeo>::Dimension(){
+TPZGeoElRefLess<TGeo>::Dimension() const {
 	return TGeo::Dimension;
 }
 
@@ -284,7 +284,7 @@ TPZGeoElRefLess<TGeo>::BuildTransform(int side, TPZGeoEl *father,TPZTransform &t
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
 	fGeo.Jacobian(*this,coordinate,jac,axes,detjac,jacinv);
 	
     
@@ -323,7 +323,7 @@ TPZGeoElRefLess<TGeo>::Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,T
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result){
+TPZGeoElRefLess<TGeo>::X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const {
 	fGeo.X(*this,coordinate,result);
 }
 
@@ -367,7 +367,7 @@ TPZGeoElRefLess<TGeo>::GetTransform(int /*side*/,int /*son*/){
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::CenterPoint(int side, TPZVec<REAL> &cent){
+TPZGeoElRefLess<TGeo>::CenterPoint(int side, TPZVec<REAL> &cent) const {
 	TGeo::CenterPoint(side,cent);
 }
 
@@ -386,7 +386,7 @@ TPZGeoElRefLess<TGeo>::Father2(int side)
 
 template<class TGeo>
 void
-TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
+TPZGeoElRefLess<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const{
 	return;
 }
 

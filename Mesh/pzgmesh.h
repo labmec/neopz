@@ -213,13 +213,14 @@ public:
 	 * @since Feb 05, 2004
 	 */
 	/**
-	 * If std::pair<left, right> already exist, nothing is made and method returns 0.
+	 * If std::pair<left, right> already exist, nothing is done and method returns 0.
 	 * If material is inserted in geomesh method returns 1.
 	 */
 	int AddInterfaceMaterial(int leftmaterial, int rightmaterial, int interfacematerial);
 	
 	/**
 	 * @brief Returns the interface material associated to left and right element materials.
+     * If no interface material is found GMESHNOMATERIAL is returned
 	 * @since Feb 05, 2004
 	 */
 	int InterfaceMaterial(int leftmaterial, int rightmaterial);

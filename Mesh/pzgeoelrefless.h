@@ -97,7 +97,7 @@ public:
 	}
 	
 	/** @brief Returns 1 if the element has subelements along side*/
-	virtual  int HasSubElement() {return 0;}//fSubEl[0]!=0;}
+	virtual  int HasSubElement() const {return 0;}//fSubEl[0]!=0;}
 	
 	/** @brief Returns a pointer to the neighbour and the neighbourside along side of the current element */
 	virtual  TPZGeoElSide Neighbour(int side) { return TPZGeoElSide(fNeighbours[side],this->Mesh()); }
@@ -123,9 +123,9 @@ public:
 		fGeo.Print(out);
 	}
 	
-	virtual  int SideNodeIndex(int side,int node);
+	virtual  int SideNodeIndex(int side,int node) const;
 	
-	virtual  int SideNodeLocIndex(int side,int node);
+	virtual  int SideNodeLocIndex(int side,int node) const;
 	
 	/** @brief Flags the side as defined, this means no neighbouring element was found */
 	virtual  void SetSideDefined(int side) { fNeighbours[side] = TPZGeoElSide(this,side); }
@@ -139,41 +139,41 @@ public:
 	virtual  TPZIntPoints * CreateSideIntegrationRule(int side, int order);
 	
 	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
-	virtual  MElementType Type() {
+	virtual  MElementType Type() const {
 		return TGeo::Type();
 	}
 	
 	/** @brief Returns the type of the element acording to the definition in pzeltype.h */
-	virtual  MElementType Type(int side) {
+	virtual  MElementType Type(int side) const {
 		return TGeo::Type(side);
 	}
 	
 	/** @brief Returns the type of the element as a string */
-    virtual std::string TypeName()
+    virtual std::string TypeName() const
     {
 		return fGeo.TypeName();
     }
 	
 	/** @brief Returns the number of nodes of the element*/
-	virtual  int NNodes();
+	virtual  int NNodes() const;
 	
 	/** @brief Returns the number of corner nodes of the element*/
-	virtual  int NCornerNodes();
+	virtual  int NCornerNodes() const;
 	
 	/** @brief Returns the number of connectivities of the element*/
-	virtual  int NSides();
+	virtual  int NSides() const;
 	
 	/** @brief Returns the local node number of the node "node" along side "side" */
-	virtual  int SideNodeLocId(int side, int node);
+	virtual  int SideNodeLocId(int side, int node) const;
 	
 	/** @brief Volume of the master element*/
 	virtual  REAL RefElVolume();
 	
 	/** @brief Returns the number of nodes for a particular side*/
-	virtual  int NSideNodes(int side);
+	virtual  int NSideNodes(int side) const;
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual  void MidSideNodeIndex(int side,int &index);
+	virtual  void MidSideNodeIndex(int side,int &index) const;
 	
 	/** @brief Returns 1 if the side has not been defined by buildconnectivity */
 	/** After construction the side is undefined. The buildconnectivity method
@@ -181,13 +181,13 @@ public:
 	virtual  int SideIsUndefined(int side);
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
-	virtual  int NSubElements();
+	virtual  int NSubElements() const;
 	
 	/** @brief Returns the number of subelements of the same dimension of the element at the side*/
-	virtual  int NSideSubElements(int side);
+	virtual  int NSideSubElements(int side) const;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	virtual  int NSideSubElements2(int side);
+	virtual  int NSideSubElements2(int side) const;
 	
 	/**
 	 * @brief Method which creates a computational boundary condition element based
@@ -211,13 +211,13 @@ public:
 	virtual  TPZTransform SideToSideTransform(int sidefrom,int sideto);
 	
 	/** @brief Returns a pointer to the subelement is*/
-	virtual  TPZGeoEl *SubElement(int is);
+	virtual  TPZGeoEl *SubElement(int is) const;
 	
 	/** @brief Return the dimension of side*/
-	virtual  int SideDimension(int side);
+	virtual  int SideDimension(int side) const;
 	
 	/** @brief Returns the dimension of the element*/
-	virtual int Dimension();
+	virtual int Dimension() const;
 	
 	virtual  TPZGeoElSide HigherDimensionSides(int side,int targetdimension);
 	
@@ -232,10 +232,10 @@ public:
 	virtual  TPZTransform BuildTransform2(int side, TPZGeoEl *father,TPZTransform &t);
 	
 	/** @brief Returns the Jacobian matrix at the point*/
-	virtual  void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+	virtual  void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result);
+	virtual  void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const;
 	
 	virtual bool IsLinearMapping() const;
 	virtual bool IsGeoBlendEl() const;
@@ -243,8 +243,8 @@ public:
 	
 	virtual  TPZTransform GetTransform(int side,int son);
 	
-	/** @brief It returns the coordinates from the center of the side of the element */
-	virtual void CenterPoint(int side, TPZVec<REAL> &masscent);
+	/** @brief It returns the coordinates of the center of the side of the element */
+	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const;
 	
 	virtual TPZGeoElSide Father2(int side);
 	
@@ -252,7 +252,7 @@ public:
 		return side;
 	}
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
 	
 	virtual void ResetSubElements(){
 		DebugStop();

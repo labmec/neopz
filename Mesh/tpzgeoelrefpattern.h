@@ -54,7 +54,7 @@ public:
 	TPZGeoElRefPattern(TPZVec<int> &nodeindices,int matind,TPZGeoMesh &mesh,int &index);
 	
 	/** @brief Returns 1 if the element has subelements along side */
-	int HasSubElement()
+	int HasSubElement() const
 	{
 		return fSubEl.NElements() && fSubEl[0]!=-1;
 	}
@@ -65,22 +65,22 @@ public:
 	REAL RefElVolume();
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,int &index);
+	void MidSideNodeIndex(int side,int &index) const;
 	
 	/** @brief Returns the midside node indices along a side of the element*/
-	void MidSideNodeIndices(int side,TPZVec<int> &indices);
+	void MidSideNodeIndices(int side,TPZVec<int> &indices) const;
 	
 	/**
 	 * @brief Returns the number of subelements of the element independent of the fact \n
 	 * whether the element has already been refined or not
 	 */
-	int NSubElements();
+	int NSubElements() const;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements(side) */
-	int NSideSubElements2(int side);
+	int NSideSubElements2(int side) const;
 	
 	/** @brief Returns a pointer to the subelement is*/
-	TPZGeoEl *SubElement(int is);
+	TPZGeoEl *SubElement(int is) const;
 	
 	/** @brief Returns a pointer and a side of the subelement of the element at the side
      and the indicated position. position = 0 indicate first subelement, ...*/
@@ -93,13 +93,13 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector*/
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
 	
 	/** @brief Defines the refinement pattern. It's used only in TPZGeoElRefPattern objects. */
 	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> refpat );
 	
 	/// Returns the refinement pattern associated with the element
-	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern()
+	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern() const
 	{
 		return fRefPattern;
 	}
@@ -198,7 +198,7 @@ REAL TPZGeoElRefPattern<TGeo>::RefElVolume(){
 }
 
 template<class TGeo>
-void TPZGeoElRefPattern<TGeo>::MidSideNodeIndex(int side,int &index){
+void TPZGeoElRefPattern<TGeo>::MidSideNodeIndex(int side,int &index) const {
 	index = -1;
 	int i,j;
 	if(side<0 || side>this->NSides()-1) {
@@ -263,7 +263,7 @@ void TPZGeoElRefPattern<TGeo>::MidSideNodeIndex(int side,int &index){
 }
 
 template<class TGeo>
-int TPZGeoElRefPattern<TGeo>::NSubElements(){
+int TPZGeoElRefPattern<TGeo>::NSubElements() const {
 	if (!fRefPattern) return 0;
 	return this->GetRefPattern()->NSubElements();
 }
@@ -279,13 +279,13 @@ void TPZGeoElRefPattern<TGeo>::ResetSubElements()
 }
 
 template<class TGeo>
-int TPZGeoElRefPattern<TGeo>::NSideSubElements2(int side){
+int TPZGeoElRefPattern<TGeo>::NSideSubElements2(int side) const{
 	if (!fRefPattern) return 0;
 	return this->GetRefPattern()->NSideSubElements(side);
 }
 
 template<class TGeo>
-TPZGeoEl * TPZGeoElRefPattern<TGeo>::SubElement(int is){
+TPZGeoEl * TPZGeoElRefPattern<TGeo>::SubElement(int is) const {
 	if (!fRefPattern) return 0;
 	int nsubel = this->GetRefPattern()->NSubElements();
 	if(is<0 || is>nsubel){
@@ -316,7 +316,7 @@ TPZTransform TPZGeoElRefPattern<TGeo>::GetTransform(int side,int son){
 }
 
 template<class TGeo>
-void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
+void TPZGeoElRefPattern<TGeo>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const{
 	
 	if(!fRefPattern) return;
 	
@@ -484,7 +484,7 @@ template<class TGeo> int TPZGeoElRefPattern<TGeo>::FatherSide(int side, int son)
 }
 
 template<class TGeo>
-void TPZGeoElRefPattern<TGeo>::MidSideNodeIndices(int side,TPZVec<int> &indices){
+void TPZGeoElRefPattern<TGeo>::MidSideNodeIndices(int side,TPZVec<int> &indices) const{
 	if(!fRefPattern || !HasSubElement() || side < this->NCornerNodes()) {
 		indices.Resize(0);
 		return;

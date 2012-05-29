@@ -345,11 +345,13 @@ TPZTransform TPZGeoEl::BuildTransform2(int /*side*/, TPZGeoEl * /*father*/, TPZT
 }
 
 
-void TPZGeoEl::GetSubElements2(int /*side*/, TPZStack<TPZGeoElSide> &/*subel*/){//Augusto:09/01/01
+void TPZGeoEl::GetSubElements2(int /*side*/, TPZStack<TPZGeoElSide> &/*subel*/) const
+{//Augusto:09/01/01
 	PZError << "TPZGeoEl::GetSubElements2 should never be called\n";
 }
 
-void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension){
+void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension) const
+{
 	TPZStack<TPZGeoElSide> subel2;
 	GetSubElements2(side,subel2);
 	int cap = subel2.NElements();
@@ -961,7 +963,7 @@ void TPZGeoEl::InitializeNeighbours(){
 	}
 }
 
-void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) {
+void TPZGeoEl::MidSideNodeIndices(int side,TPZVec<int> &indices) const {
 	indices.Resize(1);
 	MidSideNodeIndex(side,indices[0]);
 	if(indices[0] == -1) indices.Resize(0);
@@ -1031,7 +1033,7 @@ TPZGeoEl::TPZGeoEl(TPZGeoMesh & DestMesh, const TPZGeoEl &cp, std::map<int,int> 
 }
 
 // return the refinement pattern associated with the element
-TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern()
+TPZAutoPointer<TPZRefPattern> TPZGeoEl::GetRefPattern() const
 {
 	TPZAutoPointer<TPZRefPattern> result;
 	return result;
@@ -1224,14 +1226,14 @@ TPZTransform TPZGeoEl::Projection(int side)
 
 void NormalVector(TPZGeoElSide &LC, TPZGeoElSide &LS, TPZVec<REAL> &normal)
 {
-	TPZGeoEl *gel = LC.Element();
+	//TPZGeoEl *gel = LC.Element();
 	// take the centerpoint of LC and the centerpoint of LS
 	TPZManVector<REAL,3> LCCenter(3,0.), LSCenter(3,0.);
 	TPZManVector<REAL,3> XLC(3,0.),XLS(3,0.);
 	LC.CenterPoint(LCCenter);
-	gel->X(LCCenter,XLC);
+	LC.X(LCCenter,XLC);
 	LS.CenterPoint(LSCenter);
-	gel->X(LSCenter,XLS);
+	LS.X(LSCenter,XLS);
 	TPZManVector<REAL,3> dir(3,0.);
 	// The normal vector needs to be in the plane of LC and perpendicular to LS
 	// A starting vector is the direction of one center to the next

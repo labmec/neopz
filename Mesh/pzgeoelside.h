@@ -47,6 +47,12 @@ public:
 	/** @brief Redefines operator = attribuition to TPZGeoElSideIndex object. */
 	TPZGeoElSideIndex &operator= (const TPZGeoElSideIndex &A );
 	
+    /** @brief cast to bool to indicate whether it is an initialized side */
+    operator bool() const
+    {
+        return fGeoElIndex == -1 || fSide == -1;
+    }
+    
 	int Side() const;
 	
 	void SetSide(int side);
@@ -85,10 +91,11 @@ public:
 	/** @brief Checks whether other is an ancestor of this */
 	bool IsAncestor(TPZGeoElSide other);
 	
-	void X(TPZVec< REAL > &loc, TPZVec< REAL > &result);
+    /** @brief X coordinate of a point loc of the side */
+	void X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const;
 	
 	/** @brief Jacobian associated with the side of the element */
-	void Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+	void Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
     
     /** @brief Area associated with the side */
     REAL Area();
@@ -122,6 +129,9 @@ public:
 	TPZGeoEl *Element()const{return fGeoEl;}
 	
 	void SetElement(TPZGeoEl* geoel){ fGeoEl = geoel; }
+    
+    /** @brief print geometric characteristics of the element/side */
+    void Print(std::ostream &out) const;
 	
 	int Side() const {return fSide;}
 	
@@ -131,10 +141,14 @@ public:
 	
 	int Exists() const {return (fGeoEl != 0 && fSide > -1);}
 	
-	void CenterPoint(TPZVec<REAL> &center);
+    /** @brief return the coordinates of the center in master element space (associated with the side) */
+	void CenterPoint(TPZVec<REAL> &center) const;
+    
+    /** @brief compute the normal to the point from left to right neighbour */
+    void Normal(TPZVec<REAL> &point, TPZGeoEl *left, TPZGeoEl *right, TPZVec<REAL> &normal) const;
     
     /** @brief Returns the number of sides in which the current side can be decomposed */
-    int NSides();
+    int NSides() const;
 	
 	TPZGeoElSide Neighbour() const;//return neighbour of the side fSide
 	
@@ -203,10 +217,10 @@ public:
 	
 	/** @brief Returns the index of the nodenum node of side*/
 	int SideNodeIndex(int nodenum) const;
-	std::set<int> SideNodeIndexes();
 	
 	/** @brief Returns the index of the local nodenum node of side*/
 	int SideNodeLocIndex(int nodenum) const;
+    
 	
 	/** @brief Returns 1 if neighbour is a neighbour of the element along side*/
 	int NeighbourExists(const TPZGeoElSide &neighbour) const;

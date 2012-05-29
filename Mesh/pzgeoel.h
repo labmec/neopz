@@ -189,13 +189,13 @@ public:
 	TPZGeoMesh *Mesh() const { return fMesh;}
 	
 	/** @brief Returns the Id of the element*/
-	int Id() { return fId; }
+	int Id() const { return fId; }
 	
 	/** @brief Returns the number of nodes of the element*/
-	virtual int NNodes() = 0;
+	virtual int NNodes() const = 0;
 	
 	/** @brief Returns the number of corner nodes of the element*/
-	virtual int NCornerNodes() = 0;
+	virtual int NCornerNodes() const = 0;
 	
 	/** @brief Returns a pointer to the ith node of the element*/
 	TPZGeoNode* NodePtr(int i) const {return &(fMesh->NodeVec()[NodeIndex(i)]); }
@@ -216,11 +216,11 @@ public:
 	TPZCompEl *Reference() const;
 
 	/** @brief Returns the element type acording to pzeltype.h */
-	virtual MElementType Type() = 0;
+	virtual MElementType Type() const = 0;
 	/** @brief Returns the element type of a side acording to pzeltype.h */
-	virtual MElementType Type(int side) = 0;
+	virtual MElementType Type(int side) const = 0;
 	/** @brief Returns the type of the element as a string */
-    virtual std::string TypeName()
+    virtual std::string TypeName() const
 	{
 		std::cout << "ElementType should never be called\n";
 		return "Notype";
@@ -243,31 +243,31 @@ public:
 	}
 	
 	/** @brief Returns the number of connectivities of the element*/
-	virtual int NSides() = 0;
+	virtual int NSides() const = 0;
 	
 	/** @brief Returns the number of nodes for a particular side*/
-	virtual int NSideNodes(int side) = 0;
+	virtual int NSideNodes(int side) const = 0;
 	
 	/** @brief Returns the pointer to the nodenum node of side*/
-	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) {
+	virtual TPZGeoNode *SideNodePtr(int side,int nodenum) const {
 		return &(fMesh->NodeVec()[SideNodeIndex(side,nodenum)]);
 	}
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	virtual void MidSideNodeIndex(int side,int &index) = 0;
+	virtual void MidSideNodeIndex(int side,int &index) const = 0;
 	
 	/** @brief Returns the midside node indices along a side of the element */
 	/**
 	 * THIS METHOD SHOULD SUBSTITUTE MidSideNodeIndex in the future as it is ready for Refinement patterns \n
 	 * whereas the former is not
 	 */
-	virtual void MidSideNodeIndices(int side,TPZVec<int> &indices);
+	virtual void MidSideNodeIndices(int side,TPZVec<int> &indices) const;
 	
 	/** @brief Returns the index of the nodenum node of side*/
-	virtual int SideNodeIndex(int side,int nodenum) = 0;
+	virtual int SideNodeIndex(int side,int nodenum) const = 0;
 	
 	/** @brief Returns the local index of a node on a side*/
-	virtual int SideNodeLocIndex(int side, int nodenum) = 0;
+	virtual int SideNodeLocIndex(int side, int nodenum) const = 0;
 	
 	/** @brief Computes the permutation for an HDiv side */
 	virtual void HDivPermutation(int side, TPZVec<int> &permutegather);
@@ -283,16 +283,16 @@ public:
 	 * @brief Returns the number of subelements of the element independent of the fact \n
 	 * whether the element has already been refined or not 
 	 */
-	virtual int NSubElements() = 0;
+	virtual int NSubElements() const = 0;
 
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	virtual int NSideSubElements2(int side) = 0;
+	virtual int NSideSubElements2(int side) const = 0;
 	
 	/// Computes the normal vectors needed for forming HDiv vector valued shape functions
 	virtual void VecHdiv(TPZFMatrix<REAL> &normalvec,TPZVec<int> &sidevector )=0;
 	
 	/** @brief Returns a pointer to the father*/
-	TPZGeoEl *Father()
+	TPZGeoEl *Father() const
 	{
 		return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex];
 	}
@@ -377,13 +377,17 @@ public:
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
 	/** @brief Return 1 if the element has subelements along side */
-	virtual int HasSubElement() = 0;
+	virtual int HasSubElement() const = 0;
 	
 	/**
 	 * @brief Computes the transformation for a point on the master element to a point
 	 * in the master element of the neighbour 
 	 */
-	void SideTransform(int side,TPZGeoElSide neighbour,TPZTransform &t);
+//	void SideTransform(int side,TPZGeoElSide neighbour,TPZTransform &t)
+//    {
+//        TPZGeoElSide gelside(this,side);
+//        gelside.SideTransform3(neighbour, t);
+//    }
 	
 	/**
 	 * @brief Compute the transformation between the master element space of one side of an element 
@@ -420,7 +424,7 @@ public:
 	}
 	
 	/** @brief Returns a pointer to the subelement is*/
-	virtual TPZGeoEl *SubElement(int is) = 0;
+	virtual TPZGeoEl *SubElement(int is) const = 0;
 	
 	/** @brief Reset all subelements to NULL*/
 	virtual void ResetSubElements()=0;
@@ -429,20 +433,20 @@ public:
 	int Level();
 	
 	/** @brief Return the dimension of side*/
-	virtual int SideDimension(int side) = 0;
+	virtual int SideDimension(int side) const = 0;
 	
 	/** @brief Returns the dimension of the element*/
-	virtual int Dimension() =0;
+	virtual int Dimension() const =0;
 	
 	/** */
 	virtual void AllHigherDimensionSides(int side,int targetdimension,TPZStack<TPZGeoElSide> &elsides) = 0;
 	virtual void LowerDimensionSides(int side,TPZStack<int> &smallsides) = 0;
 	
 	/** @brief Return the Jacobian matrix at the point*/
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)=0;
+	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const = 0;
 	
 	/** @brief Return the coordinate in real space of the point coordinate in the master element space*/
-	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result)=0;
+	virtual void X(TPZVec<REAL> &coordinate,TPZVec<REAL> &result) const = 0;
 	
 	void ComputeNormals(TPZMatrix<REAL> &normal);
 	
@@ -474,21 +478,21 @@ public:
 	 */
 	int WhichSide(TPZVec<REAL> &pt);
 	
-	/** @brief It returns the coordinates from the center of the side of the element */
-	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) = 0;
+	/** @brief It returns the coordinates from the center of the side of the element in the element coordinate space */
+	virtual void CenterPoint(int side, TPZVec<REAL> &masscent) const = 0;
 	
 	/**
 	 * @brief This method will return a partition of the side of the current element \n
 	 * as the union of sub elements/side which are put in the stack
 	 **/
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
 	
 	/**
 	 * @brief This method will return a partition of the side of the current element \n
 	 * as the union of sub elements/side which are put in the stack
 	 */
 	/** Only element/sides of the given dimension are put on the stack */
-	void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension);
+	void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dimension) const;
 	
 	/** @brief Returns the son number of the sub element gel*/
 	int WhichSubel();
@@ -565,7 +569,7 @@ public:
 	virtual void SetRefPattern(TPZAutoPointer<TPZRefPattern> );
 	
 	/** @brief Returns the refinement pattern associated with the element */
-	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern();
+	virtual TPZAutoPointer<TPZRefPattern> GetRefPattern() const;
 	
 	/**
 	 * @brief Verify coordinate of element nodes checking if they are coincident to the X mapping 

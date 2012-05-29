@@ -10,6 +10,10 @@
  * @{
  */
 
+
+/** @brief Identifier indicating the no material is associated */
+const int GMESHNOMATERIAL = -9999;
+
 /** @brief Id of geometric point element */
 const int TPZFGEOELEMENTPOINTID = 200;
 /** @brief Id of geometric linear element */

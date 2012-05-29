@@ -13,6 +13,7 @@
 #include "pzshapetriang.h"
 #include "pzcompel.h"
 #include "pzintel.h"
+#include "pznumeric.h"
 
 using namespace pzshape;
 using namespace std;
@@ -100,7 +101,7 @@ bool TPZGeoElSide::IsRelative(TPZGeoElSide other){
 	return false;
 }
 
-void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {
+void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) const {
 	
 	TPZVec< REAL > locElement(fGeoEl->Dimension(), 0.);
 	
@@ -111,7 +112,7 @@ void TPZGeoElSide::X(TPZVec< REAL > &loc, TPZVec< REAL > &result) {
 	fGeoEl->X(locElement, result);
 }
 
-void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
+void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const {
 	
 	if(!fGeoEl) return;
 	int DIM = fGeoEl->Dimension();
@@ -172,7 +173,7 @@ void TPZGeoElSide::Jacobian(TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFM
 }
 
 /// Returns the number of sides in which the current side can be decomposed
-int TPZGeoElSide::NSides()
+int TPZGeoElSide::NSides() const
 {
     TPZStack<int> lower;
     fGeoEl->LowerDimensionSides(fSide,lower);
@@ -338,10 +339,14 @@ void TPZGeoElSide::SetConnectivity(const TPZGeoElSide &neighbour) const{
 	}
 }
 
-void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center)
+void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center) const
 {
 	if(!fGeoEl) return;
-	fGeoEl->CenterPoint(fSide,center);
+    TPZManVector<REAL,3> gelcenter(fGeoEl->Dimension());
+	fGeoEl->CenterPoint(fSide,gelcenter);
+    TPZTransform tr(Dimension(),fGeoEl->Dimension());
+    fGeoEl->SideToSideTransform(fGeoEl->NSides(), fSide);
+    tr.Apply(gelcenter, center);
 }
 
 void TPZGeoElSide::ComputeNeighbours(TPZStack<TPZGeoElSide> &compneigh) {
@@ -649,16 +654,6 @@ int TPZGeoElSide::SideNodeLocIndex(int nodenum) const {
     return ( fGeoEl->SideNodeLocIndex(fSide,nodenum) );
 }
 
-std::set<int> TPZGeoElSide::SideNodeIndexes()
-{
-	std::set<int> nodes;
-	for(int n = 0; n < this->NSideNodes(); n++)
-	{
-		nodes.insert(this->SideNodeIndex(n));
-	}
-	
-	return nodes;
-}
 
 TPZCompElSide TPZGeoElSide::LowerLevelCompElementList2(int onlyinterpolated)
 {
@@ -878,3 +873,117 @@ bool TPZGeoElSide::IsLinearMapping() const
 	if(!fGeoEl) return false;
 	return fGeoEl->IsLinearMapping();
 }
+
+
+/** @brief compute the normal to the point from left to right neighbour */
+void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *RightEl, TPZVec<REAL> &normal) const
+{
+    normal.Resize(3);
+	
+	
+	//  int dim = Reference()->Dimension();
+	// TPZGeoEl *ref = Reference();
+	//  int face = ref->NSides()-1;
+	//face: lado do elemento bidimensional ou aresta
+	//do unidimensional ou canto do ponto
+	normal.Resize(3,0.);
+	normal.Fill(0.);
+	int faceleft,faceright;
+	
+	TPZManVector<REAL, 3> centleft(3),centright(3),result(3,0.),xint(3),xvolleft(3),xvolright(3),vec(3),rib(3);
+	REAL normalize;
+	int i;
+	
+	int InterfaceDimension = Dimension();
+    TPZFNMatrix<9,REAL> axes(InterfaceDimension,3), jacobian(InterfaceDimension,InterfaceDimension),invjacobian(InterfaceDimension,InterfaceDimension);
+    REAL detjac;
+    this->Jacobian(point,jacobian,axes,detjac,invjacobian);
+	faceleft = LeftEl->NSides()-1;//lado interior do elemento esquerdo
+	faceright = RightEl->NSides()-1; // lado interior do element direito
+	LeftEl->CenterPoint(faceleft,centleft);//ponto centro do elemento de volume
+	RightEl->CenterPoint(faceright,centright);
+	LeftEl->X(centleft,xvolleft);
+	RightEl->X(centright,xvolright);
+	for(i=0;i<3;i++) vec[i] = xvolright[i]-xvolleft[i];//nao deve ser nulo
+	
+	
+	REAL vecnorm = sdot(vec, vec);
+	if(vecnorm < 1.e-10)
+	{
+		LOGPZ_ERROR(logger,"Left and Right element centers coincide")
+        vec[0]=1.;
+	}
+	
+	
+	switch(InterfaceDimension){
+		case 0:
+			normal[0] = vec[0];// a normal sempre aponta direcao positiva do eixo
+			normal[1] = vec[1];
+			normal[2] = vec[2];
+			break;
+		case 1:
+			for(i=0;i<3;i++) rib[i] = axes(0,i);//direcao da aresta
+            TPZNumeric::ProdVetorial(rib, vec, result);
+            TPZNumeric::ProdVetorial(result, rib, normal);
+			//normalizando a normal
+			normalize = 0.;
+			for(i=0;i<3;i++) normalize += normal[i]*normal[i];
+			if(normalize == 0.0)
+			{
+				PZError << __PRETTY_FUNCTION__ << " null normal vetor\n";
+#ifdef LOG4CXX
+				{
+					std::stringstream sout;
+					Print(sout);
+					LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif
+				
+				DebugStop();
+			}
+			normalize = sqrt(normalize);
+			for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
+			break;
+		case 2:{
+			TPZManVector<REAL,3> axes1(3), axes2(3);
+			for(int iax = 0; iax < 3; iax++){
+				axes1[iax] = axes(0,iax);
+				axes2[iax] = axes(1,iax);
+			}
+            TPZNumeric::ProdVetorial(axes1,axes2,normal);
+		}
+			break;
+		default:
+			PZError << "TPZInterfaceElement::NormalToFace in case that not treated\n";
+			normal.Resize(0);
+			DebugStop();
+			return;
+	}
+	
+	//to guarantee the normal points from left to right neighbours:
+	REAL dot = 0.;
+	for(i=0; i<3; i++) dot += normal[i]*vec[i];
+	if(dot < 0.) {
+		for(i=0; i<3; i++) normal[i] = -normal[i];
+	}
+
+}
+
+/** @brief print geometric characteristics of the element/side */
+void TPZGeoElSide::Print(std::ostream &out) const
+{
+    if(! fGeoEl)
+    {
+        out << "Null TPZGeoElSide\n";
+        return;
+    }
+    out << "Element index " << fGeoEl->Index() << " Side " << fSide << " SideNode indexes " ;
+    TPZManVector<REAL,3> center(Dimension(),0.), centerX(3,0.);
+    CenterPoint(center);
+    X(center, centerX);
+    for (int i=0; i<NSideNodes(); i++) {
+        out << SideNodeIndex(i) << " ";
+    }
+    out << "Center coordinate " << centerX << std::endl;
+}
+

@@ -62,23 +62,27 @@ REAL TPZGeoElement<TGeo,TRef>::RefElVolume(){
 }
 
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::MidSideNodeIndex(int side,int &index){
+void TPZGeoElement<TGeo,TRef>::MidSideNodeIndex(int side,int &index) const
+{
 	TRef::MidSideNodeIndex(this,side,index);
 }
 
 
 template<class TGeo, class TRef>
-int TPZGeoElement<TGeo,TRef>::NSubElements() {
+int TPZGeoElement<TGeo,TRef>::NSubElements() const 
+{
 	return TRef::NSubEl;
 }
 
 template<class TGeo, class TRef>
-int TPZGeoElement<TGeo,TRef>::NSideSubElements2(int side) {
+int TPZGeoElement<TGeo,TRef>::NSideSubElements2(int side) const
+{
 	return TRef::NSideSubElements(side);
 }
 
 template<class TGeo, class TRef>
-TPZGeoEl *TPZGeoElement<TGeo,TRef>::SubElement(int is) {
+TPZGeoEl *TPZGeoElement<TGeo,TRef>::SubElement(int is) const
+{
 	if(is<0 || is>(TRef::NSubEl - 1)){
 		std::cout << "TPZGeoElement::SubElement index error is= " << is << std::endl;;
 	}
@@ -118,7 +122,8 @@ void TPZGeoElement<TGeo,TRef>::Divide(TPZVec<TPZGeoEl *> &pv){
 }
 
 template<class TGeo, class TRef>
-void TPZGeoElement<TGeo,TRef>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel){
+void TPZGeoElement<TGeo,TRef>::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const
+{
 	
 	TRef::GetSubElements(this,side,subel);
 }

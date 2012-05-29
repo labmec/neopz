@@ -9,6 +9,9 @@
 #include <iostream>
 
 #include "pzcompel.h"
+#include "pzgeoelbc.h"
+
+class TPZMultiphysicsInterfaceElement;
 
 class TPZMultiphysicsElement : public TPZCompEl {
 	
@@ -34,6 +37,8 @@ public:
 	virtual void AddElement(TPZCompEl *cel, int mesh) = 0;
 	
 	virtual TPZCompEl *ReferredElement(int mesh) = 0;
+    
+    virtual int nmeshes() = 0;
 	
 	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
 	
@@ -42,6 +47,18 @@ public:
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;
+    
+    void CreateInterfaces();
+    
+    bool ExistsInterface(int side);
+    
+    TPZMultiphysicsInterfaceElement * CreateInterface(int side);
+    
+    void RemoveInterfaces();
+    
+    void RemoveInterface(int side);
+
+    virtual int IntegrationOrder() = 0;
 	
 };
 

@@ -70,7 +70,7 @@ public:
 									std::map<int,int> &gl2lcElIdx) const;
 	
 	/** @brief Returns 1 if the element has subelements along side*/
-	int HasSubElement() {return fSubEl[0]!=-1;}
+	int HasSubElement() const {return fSubEl[0]!=-1;}
 	
 	void SetSubElement(int id, TPZGeoEl *el);
 	
@@ -79,16 +79,16 @@ public:
 	REAL RefElVolume();
 	
 	/** @brief Returns the midside node index along a side of the element*/
-	void MidSideNodeIndex(int side,int &index);
+	void MidSideNodeIndex(int side,int &index) const;
 	
 	/** @brief Returns the number of subelements of the element independent of the fact hether the element has already been refined or not */
-	int NSubElements();
+	int NSubElements() const;
 	
 	/** @brief Returns the number of subelements as returned by GetSubElements2(side) */
-	int NSideSubElements2(int side);
+	int NSideSubElements2(int side) const;
 	
 	/** @brief Returns a pointer to the subelement is*/
-	TPZGeoEl *SubElement(int is);
+	TPZGeoEl *SubElement(int is) const;
 	
 	/** @brief Return a pointer and a side of the subelement of the element at the side
      and the indicated position. position = 0 indicate first subelement, ...*/
@@ -103,7 +103,7 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector*/
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel);
+	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
 	
 	virtual void ResetSubElements();
 	

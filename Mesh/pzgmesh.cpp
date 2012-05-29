@@ -955,7 +955,7 @@ int TPZGeoMesh::InterfaceMaterial(int leftmaterial, int rightmaterial)
 	std::stringstream mess;
 	mess << "\nTPZGeoMesh::InterfaceMaterial - Interface material not found ";
 	PZError << mess.str()  << std::endl;
-	return -9999;
+	return GMESHNOMATERIAL;
 }
 
 void TPZGeoMesh::ClearInterfaceMaterialsMap()

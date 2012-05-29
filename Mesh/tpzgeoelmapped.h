@@ -228,7 +228,7 @@ public:
 	
 	
 	/** @brief Returns the Jacobian matrix at the point (from son to father)*/
-	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
+	virtual void Jacobian(TPZVec<REAL> &coordinate,TPZFMatrix<REAL> &jac,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 	{
 		/// Creating Variables
 		TPZGeoEl *father = TBase::Father();
@@ -276,7 +276,7 @@ public:
 	}
 	
 	/** @brief Returns the coordinate in real space of the point coordinate in the master element space*/
-	virtual void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result)
+	virtual void X(TPZVec<REAL> &ksi,TPZVec<REAL> &result) const
 	{
 		TPZGeoEl *father = TBase::Father();
 		
@@ -384,7 +384,7 @@ private:
 #endif
 	
     /** @brief Compute the map of the point ksi to the ancestor ksibar and the gradient of the ancestor ksibar with respect to ksi */
-    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix<REAL> &jac)
+    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar, TPZFMatrix<REAL> &jac) const
     {
 		const int dim = Geo::Dimension;
 		TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);
@@ -397,17 +397,17 @@ private:
 		{
 			for(id=0; id<dim; id++)
 			{
-				ksibar[id] += phi(in,0)*fCornerCo(id,in);
+				ksibar[id] += phi(in,0)*fCornerCo.GetVal(id,in);
 				for(jd=0; jd<dim; jd++)
 				{
-					jac(id,jd) += dphi(jd,in)*fCornerCo(id,in);
+					jac(id,jd) += dphi(jd,in)*fCornerCo.GetVal(id,in);
 				}
 			}
 		}
     }
 	
     /** @brief Compute the map of the point ksi to the ancestor ksibar */
-    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar)
+    void KsiBar(TPZVec<REAL> &ksi, TPZVec<REAL> &ksibar) const
     {
 		const int dim = Geo::Dimension;
 		TPZFNMatrix<Geo::NNodes> phi(Geo::NNodes,1,0.);
@@ -420,7 +420,7 @@ private:
 		{
 			for(id=0; id<dim; id++)
 			{
-				ksibar[id] += phi(in,0)*fCornerCo(id,in);
+				ksibar[id] += phi(in,0)*fCornerCo.GetVal(id,in);
 			}
 		}
     }
