@@ -207,7 +207,7 @@ int TPZFlowCompMesh::NFlowMaterials()
 /** Returns the first flow material in the mesh */
 TPZMaterial * TPZFlowCompMesh::GetFlowMaterial()
 {
-	TPZMaterial * result;
+	TPZMaterial * result = NULL;
 	if(fFluidMaterial.size())
 	{
 		return fFluidMaterial.begin()->second;

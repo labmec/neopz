@@ -147,7 +147,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh, const TPZInterfaceEl
 	
 	fCenterNormal = copy.fCenterNormal;
 	
-	TPZMaterial * mat = copy.Material();
+	//TPZMaterial * mat = copy.Material();
 	
 	this->IncrementElConnected();
 	
@@ -197,7 +197,7 @@ TPZInterfaceElement::TPZInterfaceElement(TPZCompMesh &mesh,
 #endif
 	
 	fCenterNormal = copy.fCenterNormal;
-	TPZMaterial * mat = copy.Material();
+	//TPZMaterial * mat = copy.Material();
 	this->IncrementElConnected();
 	
 	if (this->Reference()){

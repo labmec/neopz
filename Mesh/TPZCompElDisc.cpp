@@ -120,7 +120,7 @@ TPZInterpolationSpace(mesh,0,index), fConnectIndex(-1), fExternalShape(), fCente
 TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh, const TPZCompElDisc &copy) :
 TPZInterpolationSpace(mesh,copy), fConnectIndex(copy.fConnectIndex), fConstC(copy.fConstC), fCenterPoint(copy.fCenterPoint) {
 	fShapefunctionType = copy.fShapefunctionType;
-	TPZMaterial * mat = copy.Material();
+	//TPZMaterial * mat = copy.Material();
 	if (copy.fIntRule){
 		this->fIntRule = copy.GetIntegrationRule().Clone();
 	}
@@ -137,7 +137,7 @@ TPZCompElDisc::TPZCompElDisc(TPZCompMesh &mesh,
                              std::map<int,int> &gl2lcElMap) : TPZInterpolationSpace(mesh,copy), fConnectIndex(-1), fCenterPoint(copy.fCenterPoint)
 {
 	fShapefunctionType = copy.fShapefunctionType;
-	TPZMaterial * mat = copy.Material();
+	//TPZMaterial * mat = copy.Material();
 	gl2lcElMap[copy.fIndex] = this->fIndex;
 	
 	if (copy.fIntRule){
@@ -155,7 +155,7 @@ TPZInterpolationSpace(mesh,copy,index), fConnectIndex(-1), fCenterPoint(copy.fCe
 	fShapefunctionType = copy.fShapefunctionType;
 	//criando nova malha computacional
 	Reference()->SetReference(this);
-	TPZMaterial * mat = copy.Material();
+	//TPZMaterial * mat = copy.Material();
 	fConstC = copy.fConstC;
 	CreateMidSideConnect();
 	this->SetDegree( copy.Degree() );

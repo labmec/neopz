@@ -78,7 +78,7 @@ bool TPZGenGrid::ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> gridinitial,TPZA
 	
 	int i,j,k,nnodestomerge = gridtomerge->NNodes();
 	int nnodesinitial = gridinitial->NNodes();
-    int nneltomerge = gridtomerge->NElements();
+//    int nneltomerge = gridtomerge->NElements();
 	TPZVec<REAL> coordinitial(3,0.);
 	TPZVec<REAL> coordtomerge(3,0.);
 	TPZGeoNode *nodetomerge;

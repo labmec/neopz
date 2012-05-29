@@ -320,7 +320,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     
     ////BCs    
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int dirichlet = 0, newmann = 1, mista = 2;
+    int dirichlet = 0, newmann = 1;
     
     STATE pressureY = 1.;
     
