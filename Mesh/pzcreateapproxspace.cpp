@@ -279,6 +279,21 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
      */
 }
 
+#include "pzhdivpressure.h"
+
+void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
+		
+    fp[EPoint] = CreateHDivPressurePointEl;
+    fp[EOned] = CreateHDivPressureLinearEl;
+    fp[ETriangle] = CreateHDivPressureTriangleEl;
+    fp[EQuadrilateral] = CreateHDivPressureQuadEl;
+    fp[ETetraedro] = CreateHDivPressureTetraEl;
+    fp[EPiramide] = CreateHDivPressurePyramEl;
+    fp[EPrisma] = CreateHDivPressurePrismEl;
+    fp[ECube] = CreateHDivPressureCubeEl;
+    
+ }
+
 
 #include "pzreferredcompel.h"
 #include "pzelctemp.h"
@@ -446,7 +461,7 @@ void TPZCreateApproximationSpace::UndoCondenseLocalEquations(TPZCompMesh &cmesh)
 /**
  * @brief transform in low order Raviar Tomas
  */
-void TPZCreateApproximationSpace::MakeRaviartTomas(TPZCompMesh &cmesh)
+void TPZCreateApproximationSpace::MakeRaviartThomas(TPZCompMesh &cmesh)
 {
     int numcell = cmesh.NElements();
     int el;
@@ -498,7 +513,7 @@ void TPZCreateApproximationSpace::MakeRaviartTomas(TPZCompMesh &cmesh)
 /**
  * @brief transform in low order Raviar Tomas
  */
-void TPZCreateApproximationSpace::UndoMakeRaviartTomas(TPZCompMesh &cmesh)
+void TPZCreateApproximationSpace::UndoMakeRaviartThomas(TPZCompMesh &cmesh)
 {
     int numcell = cmesh.NElements();
     int el;

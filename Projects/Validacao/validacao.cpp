@@ -253,8 +253,8 @@ void PrintMesh(TPZCompMesh *cmesh)
 //            intel->InitializeElementMatrix(ek, ef);
 //            intel->CalcStiff(ek,ef);
             
-            int nshapel = intel->NShapeF();
-            int dim = intel->Reference()->Dimension();
+            //int nshapel = intel->NShapeF();
+            //int dim = intel->Reference()->Dimension();
             
             int ncon = intel->NConnects();
             for (int i=0; i<ncon; i++)
@@ -320,7 +320,7 @@ int main()
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=2; porder<3; porder++) {
+	for (int porder=3; porder<4; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 		//	erro<< " Flux exato " << "\t "<<" Flux aprox "<<std::endl;//"P exata " << " \t " <<"P aprox " << "\t " << " Flux exato " << "\t "<<" Flux aprox "<<std::endl;
@@ -328,7 +328,7 @@ int main()
 			erro<<std::endl;
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
-			TPZGeoMesh *gmesh2 = MalhaGeo(h);
+			TPZGeoMesh *gmesh2 = MalhaGeoT(h);
 			std::ofstream file("MalhaDomioTodo.vtk");
 			PrintGMeshVTK( gmesh2, file);
 #ifdef LOG4CXX

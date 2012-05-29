@@ -25,37 +25,62 @@ using namespace std;
 template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
+	
+			
 
 	
-    fPressureOrder = mesh.GetDefaultOrder()-1;
+   fPressureOrder = mesh.GetDefaultOrder()-1;
+		
+		
 	//criando o connect da variavel dual
 	int nshape;
+	//	int ordep=this->fPressureOrder;
+	//	int dim=this->Dimension();
 	if (TSHAPE::Type()==EQuadrilateral) {
-		nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
+		nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial)-1;
 	}
 	if (TSHAPE::Type()==ETriangle) {
 		nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
 	}
     int nstate = 1;
-	int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,fPressureOrder);
+		this->fConnectIndexes.Resize(NConnects());
+	int newnodeindex = mesh.AllocateNewConnect(nshape,nstate,this->fPressureOrder);
 	TPZConnect &newnod = mesh.ConnectVec()[newnodeindex];
     newnod.SetPressure(true);
-	this->fConnectIndexes[this->NConnects()]=newnodeindex;
+	this->fConnectIndexes[this->NConnects()-1]=newnodeindex;
 	int seqnum = newnod.SequenceNumber();
     newnod.SetPressure(true);
     mesh.Block().Set(seqnum,nshape);
-    mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()]].IncrementElConnected();
-	/*
+    mesh.ConnectVec()[this->fConnectIndexes[this->NConnects()-1]].IncrementElConnected();
+
+//		for (int i=0; i<this->NConnects(); i++) {
+//#ifdef LOG4CXX
+//				{
+//						std::stringstream sout;
+//						sout << "verificando  fConnectIndexes " <<  std::endl;
+//						sout<< " i "<<i<<"fConnectIndexes[i] "<<this->fConnectIndexes[i]<<std::endl;
+//						LOGPZ_DEBUG(logger,sout.str())
+//				}
+//#endif
+//		}
+
+		
+		
+		
 	 
 	 #ifdef LOG4CXX
 	 {
 	 std::stringstream sout;
-	 sout << "After creating last connect " << i << std::endl;
+	 sout << "After creating last pressure connect " << newnodeindex << std::endl;
 	 this->Print(sout);
 	 LOGPZ_DEBUG(logger,sout.str())
 	 }
 	 #endif
-    */	
+		
+//		for (int i=0; i<NConnects(); i++) {
+//				std::cout<< "fConnectIndexes[i] "<<this->fConnectIndexes[i]<<std::endl;
+//		}
+    	
 }
 
 
@@ -145,31 +170,58 @@ void TPZCompElHDivPressure<TSHAPE>::SetConnectIndex(int i, int connectindex){
 template<class TSHAPE>
 int TPZCompElHDivPressure<TSHAPE>::NConnectShapeF(int connect)const
 {
+		int dualorder=this->fPressureOrder;
     if(connect< NConnects()-1){//tirando o connect da pressao
-        return TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect);   
+				int numshape=TPZCompElHDiv<TSHAPE>::NConnectShapeF(connect);
+				return numshape;   
     }
-    else{
-        int dualorder=this->fPressureOrder;
-        if (TSHAPE::Type()==EQuadrilateral){
-            int numshape=pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: ETensorial);
-            return(numshape-1);//estou tirando apenas a funcao de maior ordem em xi e eta
-        }
-        if (TSHAPE::Type()==ETriangle){
-            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: EOrdemTotal);
-        }
-        else{
-            std::cout<< "unhandled case "<<std::endl;
-            DebugStop();
-        }
-    }
-#ifdef LOG4CXX
-    {
-        std::stringstream sout;
-        sout <<__PRETTY_FUNCTION__<< "unhandled case ";
-        LOGPZ_ERROR(logger,sout.str());
-    }
-#endif
-    return -1;
+		
+		
+		else {
+				if(TSHAPE::Type()==EQuadrilateral){
+		
+				int numshape=pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: ETensorial);
+				return(numshape-1);///ajustar aqui para o QUAD..
+		
+				}
+		
+		else// (TSHAPE::Type()==ETriangle)
+		{
+				return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: EOrdemTotal);
+		}
+		}
+		//else{
+//				std::cout<< "unhandled case "<<std::endl;
+//				return -1;
+//		}
+		
+		
+		
+		
+		
+   // else {
+//        int dualorder=this->fPressureOrder;
+//				
+//				if(TSHAPE::Type()==EQuadrilateral){
+//            int numshape=pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: ETensorial);
+//            return(numshape-1);//estou tirando apenas a funcao de maior ordem em xi e eta
+//        }
+//        if (TSHAPE::Type()==ETriangle){
+//            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: EOrdemTotal);
+//        }
+//        else{
+//            std::cout<< "unhandled case "<<std::endl;
+//            return -1;
+//        }
+//    }
+//#ifdef LOG4CXX
+//    {
+//        std::stringstream sout;
+//        sout <<__PRETTY_FUNCTION__<< "unhandled case ";
+//        LOGPZ_ERROR(logger,sout.str());
+//    }
+//#endif
+   // return -1;
 }
 
 
@@ -635,22 +687,31 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     int nshapedisc;
     if (TSHAPE::Type()==EQuadrilateral) 
     {
-        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);//ETensorial);ETensorial);
+        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial)-1;//coloquei -1
     }
     else if(TSHAPE::Type() == ETriangle)
     {
-        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: EOrdemTotal);//ETensorial);ETensorial);
+        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: EOrdemTotal);
     }
     else
     {
         DebugStop();
     }
 	TPZFNMatrix<660> phiDisc(nshapedisc,1);
+	TPZFNMatrix<660> phiDiscAux(nshapedisc,1);
 	
 	TPZFNMatrix<660> dphiDisc(dimension,nshapedisc);
+	TPZFNMatrix<660> dphiDiscAux(dimension,nshapedisc);
     
     if (TSHAPE::Type()==EQuadrilateral) {
-        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);// EOrdemTotal);//ETensorial);
+        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDiscAux,dphiDiscAux, pzshape::TPZShapeDisc::ETensorial);
+				for (int i=0; i<phiDisc.Rows(); i++) {
+						phiDisc(i,0)=phiDiscAux(i,0);
+						dphiDisc(0,i)=dphiDiscAux(0,i);
+						dphiDisc(1,1)=dphiDiscAux(1,i);
+				}
+				
+				
     } 
     else if (TSHAPE::Type()==ETriangle) 
     {
@@ -662,15 +723,13 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     }
 	this->Append(phiCont,phiDisc,phi);
 	this->Append(dphiCont,dphiDisc,dphi);
-	/*
-	 #ifdef LOG4CXX
-	 std::stringstream sout;
-	 sout << " Tamanho do vetor de Shape continuas " << phiCont.Rows()<<" Tamanho do vetor de Shape descontinuas " << phiDisc.Rows()<<" Tamanho do vetor de Shape Total " << phi.Rows()<<endl;
-	 sout << " Tamanho do vetor de DPHI continuas (linhas)" << dphiCont.Rows()<<" Tamanho do vetor de Shape descontinuas " << dphiDisc.Rows()<<" Tamanho do vetor de DPHI Total " << dphi.Rows()<<endl;
-	 sout << " Tamanho do vetor de DPHI continuas (colunas)" << dphiCont.Cols()<<" Tamanho do vetor de DPHI descontinuas " << dphiDisc.Cols()<<" Tamanho do vetor de DPHI Total " << dphi.Cols()<<endl;
-	 LOGPZ_DEBUG(logger,sout.str())
-	 #endif
-	 */
+	
+//	 #ifdef LOG4CXX
+//	 std::stringstream sout;
+//	 sout<< "vetor phi "<<phi<<endl;	
+//   LOGPZ_DEBUG(logger,sout.str())
+//	 #endif
+	 
 }
 
 
@@ -913,7 +972,7 @@ int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
 template class
 TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAMID>;
 
-/*
+
 template class TPZCompElHDivPressure<TPZShapeTriang>;
 template class TPZCompElHDivPressure<TPZShapePoint>;
 template class TPZCompElHDivPressure<TPZShapeLinear>;
@@ -924,37 +983,37 @@ template class TPZCompElHDivPressure<TPZShapePiram>;
 template class TPZCompElHDivPressure<TPZShapeCube>;
 
 
-TPZCompEl * CreateHDivPointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure<TPZShapePoint>(mesh,gel,index);
 }
 
 
-TPZCompEl * CreateHDivLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivBound2< TPZShapeLinear>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapeQuad>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapeTriang >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapeCube >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapePrism>(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivPyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapePiram >(mesh,gel,index);
 }
 
-TPZCompEl * CreateHDivTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
+TPZCompEl * CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index) {
 	return new TPZCompElHDivPressure< TPZShapeTetra >(mesh,gel,index);
 }
 
-*/
+

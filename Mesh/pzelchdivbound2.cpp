@@ -11,6 +11,8 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
+#include "pzelchdiv.h"
+
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
@@ -74,7 +76,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	TPZManVector<int,3> order(3,sideorder);
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
-	/*
+	
 	 #ifdef LOG4CXX
 	 {
 	 std::stringstream sout;
@@ -83,7 +85,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	 LOGPZ_DEBUG(logger,sout.str())
 	 }
 	 #endif
-	 */
+	 
 }
 
 template<class TSHAPE>
@@ -164,7 +166,7 @@ MElementType TPZCompElHDivBound2<TSHAPE>::Type() {
 template<class TSHAPE>
 int TPZCompElHDivBound2<TSHAPE>::NConnects() const {
 	
-	return 1;//acrescentando um connect mais pra variavel dual antes era apenas NumSides(dimension) + 1
+	return 1;
 }
 
 template<class TSHAPE>
@@ -195,7 +197,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 			while(gelside != neighbour)
 			{	switch (neighbour.Element()->Type()) {
 				case EQuadrilateral:
-					return TSHAPE::NShapeF(order);//coloco -1 se quero reduzir espaco de fluxo
+					return TSHAPE::NShapeF(order)-1;//mudei aq coloquei -2 era -1//
 					break;
 				case ETriangle:
 					return TSHAPE::NShapeF(order);
@@ -211,7 +213,7 @@ int TPZCompElHDivBound2<TSHAPE>::NConnectShapeF(int connect) const
 		}
 		
 	}
-    //DebugStop();
+    
     return -1;
 }
 
@@ -353,13 +355,13 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	TPZGeoEl *neighel = neighbour.Element();
 	TPZManVector<int> normalsides;
 	neighel->ComputeNormals(neighbour.Side(),data.fNormalVec, normalsides);
-#ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		sout << "normal side depois do ComputeNormals " << normalsides << std::endl;
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	{
+//		std::stringstream sout;
+//		sout << "normal side depois do ComputeNormals " << normalsides << std::endl;
+//		LOGPZ_DEBUG(logger,sout.str())
+//	}
+//#endif
 	
 	// relate the sides indicated in vecindex to the sides of the current element
 	int nvec = normalsides.NElements();
@@ -367,13 +369,13 @@ void TPZCompElHDivBound2<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	for(ivec=0; ivec<nvec; ivec++)
 	{
 		TPZGeoElSide neigh(neighel,normalsides[ivec]);
-#ifdef LOG4CXX
-		{
-			std::stringstream sout;
-			sout << "normal side depois do TPZGeoElSide " << normalsides << std::endl;
-			LOGPZ_DEBUG(logger,sout.str())
-		}
-#endif
+//#ifdef LOG4CXX
+//		{
+//			std::stringstream sout;
+//			sout << "normal side depois do TPZGeoElSide " << normalsides << std::endl;
+//			LOGPZ_DEBUG(logger,sout.str())
+//		}
+//#endif
 		while(neigh.Element() != this->Reference())
 		{
 			
@@ -434,7 +436,14 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
-	
+		
+		for(int iside=0;iside<TSHAPE::NSides;iside++)
+		{
+				int order= SideOrder(iside)-1;
+				Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+				
+		}
+	/*
 	for(int iside=0;iside<TSHAPE::NSides;iside++)
 	{
 		if(TSHAPE::Type()==EQuadrilateral){
@@ -449,7 +458,7 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 		
 		
 	}
-	
+	*/
 #ifdef LOG4CXX
     std::stringstream sout;
     sout << " FirsShapeIndex result " << Index;
@@ -492,6 +501,16 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
 	tr.Apply(pt, pt2);
 	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
+//#ifdef LOG4CXX
+//		if (logger->isDebugEnabled())
+//		{
+//				std::stringstream sout;
+//				sout.precision(20);
+//				sout<< "---Phi Novo---"<<phi<<std::endl;
+//				sout<< "---Dphi Novo---"<<dphi<<std::endl;
+//				LOGPZ_DEBUG(logger,sout.str())
+//		}
+//#endif
 }
 
 /** Read the element data from a stream */
@@ -529,11 +548,19 @@ void TPZCompElHDivBound2<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec
 	TPZVec<int> FirstIndex;
 	// the first index of the shape functions
 	FirstShapeIndex(FirstIndex);
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				sout << "FirstIndex of shape functions " << FirstIndex;
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 	
 	int tamanho= this->NShapeF();
 	
 	ShapeAndVec.Resize(tamanho);
 	int count=0;
+		//for(int jvec=0;jvec< VectorSide.NElements();jvec++)
 	for(int jvec=0;jvec< VectorSide.NElements();jvec++)//coloca-se -1 caso queira reduzir o espaco de fluxo
 	{
 		int lside=VectorSide[jvec];

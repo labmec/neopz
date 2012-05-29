@@ -79,7 +79,7 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	this->Shape(intpoint,phi,dphi);
     
-    int nshape = phi.Rows();
+		int nshape = phi.Rows();
 	int ieq;
 	switch(dim){
 		case 0:
@@ -287,11 +287,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 	//    material->SetIntegrationRule(intrule, data.p, dim);
 	
 	int intrulepoints = intrule->NPoints();
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		sout<< "---Ptos e Pesos ---"<<std::endl;
+//#ifdef LOG4CXX
+//    if (logger->isDebugEnabled())
+//	{
+//		std::stringstream sout;
+//		sout<< "---Ptos e Pesos ---"<<std::endl;
 		
 		LOGPZ_DEBUG(logger,sout.str())
 	}

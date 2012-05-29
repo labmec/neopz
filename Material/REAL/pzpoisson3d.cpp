@@ -234,7 +234,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 			divwq += axesvec(iloc,0)*data.dphix(iloc,ishapeind);
 		}
 		for (j=0; j<numdual; j++) {
-			REAL fact = (-1.)*weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
+			REAL fact = (1.)*weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
 			ek(i,numvec+j) += fact;
 			ek(numvec+j,i) += fact;//-div
 		}

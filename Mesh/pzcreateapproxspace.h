@@ -43,6 +43,8 @@ public:
 	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv();
+		/** @brief Create an approximation space with HDivxL2 elements */
+		void SetAllCreateFunctionsHDivPressure();
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
     /** @brief Create an approximation space based on multiphysics elements */
@@ -86,10 +88,10 @@ public:
     static void UndoCondenseLocalEquations(TPZCompMesh &cmesh);
     
     /** @brief transform in low order Raviar Tomas */
-    static void MakeRaviartTomas(TPZCompMesh &cmesh);
+    static void MakeRaviartThomas(TPZCompMesh &cmesh);
     
     /** @brief transform in low order Raviar Tomas */
-    static void UndoMakeRaviartTomas(TPZCompMesh &cmesh);
+    static void UndoMakeRaviartThomas(TPZCompMesh &cmesh);
     
     /** @brief Create interface elements between the computational elements */
     static void CreateInterfaceElements(TPZCompMesh *mesh, bool onlydiscontinuous = true, bool multiphysics = false);

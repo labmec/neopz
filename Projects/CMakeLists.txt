@@ -109,6 +109,11 @@ else()
 		#Projeto Lua 2012
 		add_subdirectory(Lua01)
 
+		#Projeto Denise
+		add_subdirectory(HdivPressureTeste)
+
+
+
 		
 		
 	endif(BUILD_PROJECTS)

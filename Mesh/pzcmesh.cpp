@@ -226,8 +226,12 @@ void TPZCompMesh::AutoBuild(const std::set<int> *MaterialIDs) {
 	}
 	std::set<int> matnotfound;
 	int nbl = fBlock.NBlocks();
-	if(neltocreate > nbl) fBlock.SetNBlocks(neltocreate);
-	fBlock.SetNBlocks(nbl);
+		if(neltocreate > nbl) 
+		{
+				fBlock.SetNBlocks(neltocreate);
+		}
+				fBlock.SetNBlocks(nbl);
+	
 	for(i=0; i<nelem; i++) {
 		TPZGeoEl *gel = elvec[i];
 		if(!gel) continue;

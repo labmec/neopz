@@ -46,13 +46,13 @@ TPZInterpolatedElement(mesh,gel,index) {
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index, int nocreate) :
-TPZInterpolatedElement(mesh,gel,index)
+TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 {
-	int ic;
-	for(ic=0; ic<TSHAPE::NSides; ic++)
-	{
-		fConnectIndexes[ic] = -1;
-	}
+	//int ic;
+	//for(ic=0; ic<TSHAPE::NSides; ic++)
+//	{
+//		fConnectIndexes[ic] = -1;
+//	}
 	fPreferredOrder = -1;
 }
 

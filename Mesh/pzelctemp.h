@@ -21,7 +21,7 @@ class TPZIntelGen : public TPZInterpolatedElement {
 	
 protected:
 	
-	int fConnectIndexes[TSHAPE::NSides];
+		TPZManVector<int,TSHAPE::NSides> fConnectIndexes;//fazer resize qdo usar
 	
 	typename TSHAPE::IntruleType fIntRule;
 	

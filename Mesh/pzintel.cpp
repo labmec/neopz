@@ -1434,9 +1434,10 @@ void TPZInterpolatedElement::Print(std::ostream &out) const {
 		out << "[" <<  i << "]" << center << " " ;
 	}
 	out << std::endl;
-	out << "Number of connects = " << NConnects() << " Node indexes : ";
+		int nconects=this->NConnects();
+	out << "Number of connects = " << this->NConnects() << " Node indexes : ";
 	int nod;
-	for(nod=0; nod< NConnects(); nod++)
+	for(nod=0; nod< nconects/*NConnects()*/; nod++)
 		out << ConnectIndex(nod) <<  '/' << NConnectShapeF(nod) << ' ' ;
 	out << endl;
 	out << "Side orders = ";

@@ -85,6 +85,10 @@ public:
 	virtual int NCornerConnects() const {
 		return 0;
 	}
+		/** 
+     * @brief return the number of shape for flux(just for flux)
+		 **/
+		virtual int NFluxShapeF() const;
 	
 	virtual int NSideConnects(int side) const;
     

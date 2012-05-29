@@ -201,4 +201,24 @@ public:
 	
 };
 
+/** @brief Creates computational point element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressurePointEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational linear element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressureLinearEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational quadrilateral element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressureQuadEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational triangular element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressureTriangleEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational cube element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressureCubeEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational prismal element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressurePrismEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational pyramidal element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressurePyramEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+/** @brief Creates computational tetrahedral element for HDivPressure approximate space */
+TPZCompEl *CreateHDivPressureTetraEl(TPZGeoEl *gel,TPZCompMesh &mesh,int &index);
+
+/** @} */
+
+
 #endif

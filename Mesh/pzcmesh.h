@@ -454,6 +454,12 @@ public:
     {
         fCreate.SetAllCreateFunctionsHDiv();
     }
+		
+		void SetAllCreateFunctionsHDivPressure()
+    {
+        fCreate.SetAllCreateFunctionsHDivPressure();
+    }
+		
     
     void SetAllCreateFunctions(TPZCompEl &cel)
     {
