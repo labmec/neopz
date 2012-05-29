@@ -95,7 +95,7 @@ public:
 	virtual int Unpack( TReceiveStorage *buf );
 	static TSaveable *Restore(TReceiveStorage *buf);
 	virtual int Pack( TSendStorage *buf ) const;
-	virtual char *ClassName() const   { return( "TPZSSpMatrix"); }
+	virtual std::string ClassName() const   { return( "TPZSSpMatrix"); }
 	virtual int DerivedFrom(const long Classid) const;
 	virtual int DerivedFrom(const char *classname) const; // a class with name classname
 	

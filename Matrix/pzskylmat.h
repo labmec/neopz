@@ -113,7 +113,7 @@ public:
 	/*** @brief To Solve Linear Equations ***/
 	// @{
 	virtual void SolveSOR(int &numiterations,const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &result,
-						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const TVar overrelax, REAL &tol,
+						  TPZFMatrix<TVar> *residual,TPZFMatrix<TVar> &scratch,const REAL overrelax, REAL &tol,
 						  const int FromCurrent = 0,const int direction = 1) ;
 	
 	
@@ -147,7 +147,7 @@ public:
 	virtual void Write( TPZStream &buf, int withclassid );
 	
 
-	virtual char *ClassName() const   { return( "TPZSkylMatrix"); }
+	virtual std::string ClassName() const   { return( "TPZSkylMatrix"); }
 	
 	
 protected:

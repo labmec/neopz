@@ -239,7 +239,7 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F,
-							 TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,const TVar overrelax,
+							 TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &scratch,const REAL overrelax,
 							 REAL &tol,const int FromCurrent,const int direction)  {
 	
 	if(residual == &F) {
@@ -251,6 +251,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 	if(!FromCurrent) {
 		result.Zero();
 	}
+    TVar over = overrelax;
 	int r = this->Dim();
 	int c = F.Cols();
 	int i,ifirst = 0, ilast = r, iinc = 1;
@@ -296,7 +297,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 					TVar *diaglast = fElem[i];
 					while( diag > diaglast ) val -= *diag-- * *p++;
 					res += abs(val*val);
-					result(i,ic) += val*overrelax/ (*diag);
+					result(i,ic) += val*over/ (*diag);
 				}
 			} else {
 				//
@@ -329,7 +330,7 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 					TVar val = scratch(i,ic);
 					val -= *diaglast * result(i,ic);
 					res += abs(val*val);
-					val = overrelax * val / *diaglast;
+					val = over * val / *diaglast;
 					result(i,ic) += val;
 					val = result(i,ic);
 					diag = fElem[i] + offset-1;

@@ -278,7 +278,23 @@ void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutp
 	
 }
 
+template<>
+void TPZMatrix<std::complex<float> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
+    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
+    DebugStop();
+}
 
+template<>
+void TPZMatrix<std::complex<double> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
+    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
+    DebugStop();
+}
+
+template<>
+void TPZMatrix<std::complex<long double> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
+    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
+    DebugStop();
+}
 
 template<class TVar>
 void TPZMatrix<TVar>::AddKel(TPZFMatrix<TVar> &elmat, TPZVec<int> &destinationindex) {
@@ -1619,7 +1635,6 @@ std::ostream &operator<<(std::ostream& out,const TPZMatrix<TVar> &A) {
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<int> &A);
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<float> &A);
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<double> &A);
-template std::ostream &operator<<(std::ostream &out, const TPZMatrix<std::complex<float> > &A);
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<long double> &A);
+template std::ostream &operator<<(std::ostream &out, const TPZMatrix<std::complex<float> > &A);
 template std::ostream &operator<<(std::ostream &out, const TPZMatrix<std::complex<double> > &A);
-
