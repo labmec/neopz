@@ -240,6 +240,11 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem(int dim
     fp[EPrisma] = CreatePrismElWithMem;
     fp[ECube] = CreateCubeElWithMem;
 	}
+	else
+	{
+		PZError << "Invalid dimension value in TPZCreateApproximationSpace::SetAllCreateFunctionsContinuousWithMem(int dimension) \n";
+		DebugStop();
+	}
 
     /*
 	pzgeom::TPZGeoPoint::fp =  CreatePointElWithMem;
