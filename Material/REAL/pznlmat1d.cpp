@@ -17,7 +17,7 @@ void TPZNLMat1d::Contribute(TPZMaterialData &data, REAL weight,
                              TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
-	TPZManVector<REAL,3> &x = data.x;
+//	TPZManVector<REAL,3> &x = data.x;
 	
 	// this method adds the contribution of the material to the stiffness
 	// matrix and right hand side
@@ -58,7 +58,7 @@ void TPZNLMat1d::ContributeBC(TPZMaterialData &data, REAL weight,
                                TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,
                                TPZBndCond &bc) {
 	
-	TPZFMatrix<REAL> &phi = data.phi;
+//	TPZFMatrix<REAL> &phi = data.phi;
 	
 	// this method applies the boundary condition itype to ek and ef
 	
@@ -70,7 +70,7 @@ void TPZNLMat1d::ContributeBC(TPZMaterialData &data, REAL weight,
 		PZError << "TPZMat1dLin.aplybc, unknown boundary condition type :"  <<
 		bc.Type() << " boundary condition ignored\n";
 	}
-	int bcv1r,bcv1c,bcv2r,bcv2c;
+//	int bcv1r,bcv1c,bcv2r,bcv2c;
 
 	// IT IS NOT IMPLEMENTED YET
 	

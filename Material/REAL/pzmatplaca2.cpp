@@ -173,7 +173,7 @@ void TPZMatPlaca2::Contribute(TPZMaterialData &data,
 	}
 	
 	
-	STATE Dax1n1, Dax1n2, Dax2n1, Dax2n2,intern33;
+	STATE Dax1n1, Dax1n2, Dax2n1, Dax2n2;
 	
 	Dax1n1 = axes(0,0)* fnaxes(0,0) + axes(0,1)* fnaxes(0,1) + axes(0,2)* fnaxes(0,2);
 	Dax1n2 = axes(0,0)* fnaxes(1,0) + axes(0,1)* fnaxes(1,1) + axes(0,2)* fnaxes(1,2);
