@@ -91,6 +91,9 @@ public:
     /** @brief transform in low order Raviar Tomas */
     static void UndoMakeRaviartTomas(TPZCompMesh &cmesh);
     
+    /** @brief Create interface elements between the computational elements */
+    static void CreateInterfaceElements(TPZCompMesh *mesh, bool onlydiscontinuous = true, bool multiphysics = false);
+    
     
 };
 

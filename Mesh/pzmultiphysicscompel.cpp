@@ -435,6 +435,25 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 }//CalcStiff
 
+/** Returns the maximum interpolation order of all connected elements */
+template <class TGeometry>
+int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
+{
+	const int nref = fElementVec.size(); 
+    TPZVec<int> ordervec;
+	ordervec.resize(nref);
+	for (int iref=0;  iref<nref; iref++) 
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+		 msp->MaxOrder();
+		ordervec[iref] =  msp->MaxOrder();
+	}
+	TPZMaterial * material = Material();
+	int order = material->IntegrationRuleOrder(ordervec);
+    return order;
+}
+
+
 
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"

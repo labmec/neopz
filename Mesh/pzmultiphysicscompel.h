@@ -77,6 +77,12 @@ public:
 	/** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const;
 	
+    /** @brief Return the number of meshes associated with the element */
+    virtual int nmeshes()
+    {
+        return fElementVec.size();
+    }
+    
 	/**
 	 * @brief Returns the index of the ith connectivity of the element
 	 * @param i connectivity index who want knows
@@ -85,7 +91,10 @@ public:
 	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const;
-	
+
+    /** Returns the maximum interpolation order of all connected elements */
+    virtual int IntegrationOrder();
+
 	/**
 	 * @brief Post processing method which computes the solution for the var post processed variable.
 	 * @param qsi coordinate of the point in master element space where the solution will be evaluated

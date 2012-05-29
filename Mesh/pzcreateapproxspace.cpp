@@ -531,3 +531,31 @@ void TPZCreateApproximationSpace::UndoMakeRaviartTomas(TPZCompMesh &cmesh)
     cmesh.ExpandSolution();
     cmesh.CleanUpUnconnectedNodes();
 }
+
+/** @brief Create interface elements between the computational elements */
+void TPZCreateApproximationSpace::CreateInterfaceElements(TPZCompMesh *mesh, bool betweencontinuous, bool multiphysics)
+{
+    TPZChunkVector<TPZCompEl *> compelvec = mesh->ElementVec();
+    int nel = compelvec.NElements();
+    for (int el=0; el<nel; el++) {
+        TPZCompEl *cel = compelvec[el];
+        if (!cel) {
+            continue;
+        }
+        if(!multiphysics)
+        {
+            TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+            if (intel) {
+                intel->CreateInterfaces(betweencontinuous);
+            }
+        }
+        else {
+            TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(cel);
+            if (!mfcel) {
+                continue;
+            }
+            mfcel->CreateInterfaces();
+        }
+        
+    }
+}
