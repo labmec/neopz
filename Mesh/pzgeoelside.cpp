@@ -345,7 +345,7 @@ void TPZGeoElSide::CenterPoint(TPZVec<REAL> &center) const
     TPZManVector<REAL,3> gelcenter(fGeoEl->Dimension());
 	fGeoEl->CenterPoint(fSide,gelcenter);
     TPZTransform tr(Dimension(),fGeoEl->Dimension());
-    fGeoEl->SideToSideTransform(fGeoEl->NSides(), fSide);
+    fGeoEl->SideToSideTransform(fGeoEl->NSides()-1,fSide);
     tr.Apply(gelcenter, center);
 }
 
