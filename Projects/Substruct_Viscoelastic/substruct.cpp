@@ -112,23 +112,26 @@ int main1(int argc, char *argv[])
 		else 
 		{
 			dim = 3;
-			if (0) // Predio Elastisco
+			if (1) // Predio Viscoso
 			{
+				int dimension = 3;
 				gmesh = MalhaPredio();
 				cmesh = new TPZCompMesh(gmesh);
 				cmesh->SetDimModel(3);
-				InsertElasticity(cmesh);
+				cmesh->SetDefaultOrder(plevel);
+				cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
+				InsertViscoElasticity(cmesh);
 				cmesh->AutoBuild();
 				
 			}
 			else // Cubo Viscoso
 			{
+				int dimension = 3;
 				gmesh = MalhaCubo();
 				cmesh = new TPZCompMesh(gmesh);
 				cmesh->SetDimModel(3);
 				cmesh->SetDefaultOrder(plevel);
 				cmesh->SetAllCreateFunctionsContinuousWithMem(dimension);
-				//cmesh->SetAllCreateFunctionsContinuous();
 				InsertViscoElasticityCubo(cmesh);
 				cmesh->AutoBuild();
 			}
@@ -179,7 +182,7 @@ int main1(int argc, char *argv[])
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
-		// Persistencia que nao funfa
+		/*
         {
             TPZFileStream CheckPoint1;
             CheckPoint1.OpenWrite("CheckPoint1.txt");
@@ -198,16 +201,16 @@ int main1(int argc, char *argv[])
             TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
             locdohrstruct.Read(CheckPoint1);
         } 
-		 
+		 */
 		
 		dohrstruct.SetNumThreads(numthreads);
 		
 		TPZAutoPointer<TPZGuiInterface> gui;
 		TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
         
-        TPZMatrix<STATE> *matptr = dohrstruct.Create();
+		TPZMatrix<STATE> *matptr = dohrstruct.Create();
 		
-		
+		/*
         {
             TPZFileStream CheckPoint2;
             CheckPoint2.OpenWrite("CheckPoint2.txt");
@@ -231,8 +234,9 @@ int main1(int argc, char *argv[])
             locdohrstruct.Read(CheckPoint2);
             
         }
+		 */
 		 
-        dohrstruct.Assemble(*matptr,rhs, gui);
+		dohrstruct.Assemble(*matptr,rhs, gui);
 
 	
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
@@ -267,7 +271,7 @@ int main1(int argc, char *argv[])
 #endif
 		 */
 		
-		
+		/*
 		
         {
             TPZFileStream CheckPoint3;
@@ -294,23 +298,21 @@ int main1(int argc, char *argv[])
             TPZFMatrix<STATE> rhsloc;
             rhsloc.Read(CheckPoint3, 0);
         }
-		 
+		 */
         
-        int neq = dohr->Rows();
+		int neq = dohr->Rows();
         
-        
-		
 		TPZFMatrix<STATE> diag(neq,1,0.), produto(neq,1);
         
 		std::cout << "Numero de equacoes " << neq << std::endl;
         
-        TPZStepSolver<STATE> pre(precond);
-        pre.SetMultiply();
-        TPZStepSolver<STATE> cg(dohr);
-        //  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
-        
-        cg.SetCG(500,pre,1.e-8,0);
-        cg.Solve(rhs,diag);
+		TPZStepSolver<STATE> pre(precond);
+		pre.SetMultiply();
+		TPZStepSolver<STATE> cg(dohr);
+		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
+		
+		cg.SetCG(500,pre,1.e-8,0);
+		cg.Solve(rhs,diag);
 
         
 		TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
