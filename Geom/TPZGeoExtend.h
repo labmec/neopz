@@ -117,7 +117,7 @@ namespace pzgeom {
 	};
 	
 	template<class TFather, class Topology>
-	inline void GPr<TFather, Topology>::Jacobian(TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) 
+	inline void GPr<TFather, Topology>::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian) 
 	{
 		
 		int spacedim = coord.Rows();
@@ -132,8 +132,8 @@ namespace pzgeom {
 		int i,j;
 		for(i=0; i<spacedim; i++) for(j=0; j<TFather::NNodes; j++)
 		{
-			coordlower(i,j) = coord(i,j);
-			coordupper(i,j) = coord(i,j+TFather::NNodes);
+			coordlower(i,j) = coord.GetVal(i,j);
+			coordupper(i,j) = coord.GetVal(i,j+TFather::NNodes);
 		}
 		TFather::X(coordlower,param,xlower);
 		TFather::X(coordupper,param,xupper);
@@ -168,8 +168,8 @@ namespace pzgeom {
 		int i,j;
 		for(i=0; i<spacedim; i++) for(j=0; j<TFather::NNodes; j++)
 		{
-			lower(i,j) = coord(i,j);
-			upper(i,j) = coord(i,j+TFather::NNodes);
+			lower(i,j) = coord.GetVal(i,j);
+			upper(i,j) = coord.GetVal(i,j+TFather::NNodes);
 		}
 		TFather::X(lower,loc,resultlower);
 		TFather::X(upper,loc,resultupper);
