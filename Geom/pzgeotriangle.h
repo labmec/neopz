@@ -89,10 +89,10 @@ namespace pzgeom {
         }
         
 		/** @brief Computes the jacobian*/
-		static  void Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+		static  void Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		/** @brief Computes the geometric location*/
-		static  void X(TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
+		static  void X(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
 		/** @brief Implementation of Hdiv space*/
 		static	void ComputeNormal(TPZVec<REAL> &p1, TPZVec<REAL> &p2,TPZVec<REAL> &p3,TPZVec<REAL> &result);
 		

@@ -91,7 +91,7 @@ namespace pzgeom {
 		dphi(2,4) =  1.0;
 	}
 	
-	void TPZGeoPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+	void TPZGeoPyramid::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 		
 #ifdef DEBUG
@@ -119,9 +119,9 @@ namespace pzgeom {
 		int i,j;
 		for(i=0;i<5;i++) {
 			for(j=0;j<3;j++) {
-				jacobian(j,0) += coord(j,i)*dphi(0,i);
-				jacobian(j,1) += coord(j,i)*dphi(1,i);
-				jacobian(j,2) += coord(j,i)*dphi(2,i);
+				jacobian(j,0) += coord.GetVal(j,i)*dphi(0,i);
+				jacobian(j,1) += coord.GetVal(j,i)*dphi(1,i);
+				jacobian(j,2) += coord.GetVal(j,i)*dphi(2,i);
 			}
 		}
 		
@@ -159,7 +159,7 @@ namespace pzgeom {
 		axes(2,2) = 1.;
 	}
 	
-	void TPZGeoPyramid::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoPyramid::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		REAL spacephi[10],spacedphi[20];
 		int i,j;
 		TPZFMatrix<REAL> phi(5,1,spacephi,10);
@@ -167,7 +167,7 @@ namespace pzgeom {
 		Shape(loc,phi,dphi);
 		for(j=0;j<3;j++) {
 			result[j] = 0.0;
-			for(i=0;i<5;i++) result[j] += coord(j,i)*phi(i,0);
+			for(i=0;i<5;i++) result[j] += coord.GetVal(j,i)*phi(i,0);
 		}
 	}
 	

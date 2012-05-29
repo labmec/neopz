@@ -14,10 +14,10 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoPoint::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	void TPZGeoPoint::X(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		int i;
 		for (i=0;i<coord.Rows();i++){
-			result[i] = coord(i,0);
+			result[i] = coord.GetVal(i,0);
 		}
 	}
 	
@@ -30,7 +30,7 @@ namespace pzgeom {
 		phi(0,0) = 1.;
 	}
 	
-	void TPZGeoPoint::Jacobian(TPZFMatrix<REAL> coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+	void TPZGeoPoint::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
 							   TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
 		jacobian.Redim(0,0);
 		jacinv.Redim(0,0);

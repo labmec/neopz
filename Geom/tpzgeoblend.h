@@ -77,26 +77,26 @@ namespace pzgeom
 
 		void SetNeighbourInfo(int side, TPZGeoElSide &neigh, TPZTransform &trans);
 		
-		TPZGeoElSide Neighbour(int side,TPZGeoMesh *gmesh) {
+		TPZGeoElSide Neighbour(int side,TPZGeoMesh *gmesh) const {
             if (side < TGeo::NNodes) {
                 DebugStop();
             }
 			return TPZGeoElSide(fNeighbours[side-TGeo::NNodes],gmesh);
 		}
 		
-		TPZTransform TransfBetweenNeigh(int side) {
+		TPZTransform TransfBetweenNeigh(int side) const {
 			return fTrans[side - TGeo::NNodes];
 		}
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return TGeo::TypeName();} 
 		/** @brief Get the coordinates of the point at geometric elements from coordinates of the parametric point at the master element */
-		void X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result);
+		void X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result) const;
 		/** @brief Computes the Jacobian for parametric point at master element */
-		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
+		void Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const;
 		
 		/** @brief Print all relevant data of the element to cout*/
-		void Print(std::ostream & out = std::cout);
+		void Print(std::ostream & out = std::cout) const;
 		
 		/**
 		 * @brief Initialize the element checking connectivity on all sides.
@@ -135,7 +135,7 @@ namespace pzgeom
 	protected:
 		
 		/// Project the InternalPar parameter to the parameter of the neighbour along side. Return true if the map is nonsingular
-		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide);
+		bool MapToNeighSide(int side, int sidedim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide) const;
 		/** @brief Vector of indexes of the neighbours */
 		TPZGeoElSideIndex fNeighbours[1+TGeo::NSides - TGeo::NNodes];
 		TPZTransform fTrans[1+TGeo::NSides - TGeo::NNodes];

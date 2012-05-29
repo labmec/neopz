@@ -67,7 +67,7 @@ namespace pzgeom {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
 	
-    void TPZGeoLinear::Jacobian(TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+    void TPZGeoLinear::Jacobian(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
 								TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
         
         //VERSAO FUNCIONAL
@@ -77,7 +77,7 @@ namespace pzgeom {
         int nrow = coord.Rows();
         REAL mod1 = 0.;
         for(ic=0; ic<nrow; ic++) {
-            v1[ic] = (coord(ic,1)-coord(ic,0))*0.5;
+            v1[ic] = (coord.GetVal(ic,1)-coord.GetVal(ic,0))*0.5;
             mod1 += v1[ic]*v1[ic];
         }
         mod1 = sqrt(mod1);

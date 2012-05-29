@@ -45,7 +45,7 @@ namespace pzgeom {
 		dphi(2,3) =  1.0;
 	}
 	
-	void TPZGeoTetrahedra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+	void TPZGeoTetrahedra::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 #ifdef DEBUG
 		int nnodes = NNodes;
@@ -74,9 +74,9 @@ namespace pzgeom {
 		int i,j;
 		for(i=0;i<4;i++) {
 			for(j=0;j<3;j++) {
-				jacobian(j,0) += coord(j,i)*dphi(0,i);
-				jacobian(j,1) += coord(j,i)*dphi(1,i);
-				jacobian(j,2) += coord(j,i)*dphi(2,i);
+				jacobian(j,0) += coord.GetVal(j,i)*dphi(0,i);
+				jacobian(j,1) += coord.GetVal(j,i)*dphi(1,i);
+				jacobian(j,2) += coord.GetVal(j,i)*dphi(2,i);
 			}
 		}
 		
@@ -111,7 +111,7 @@ namespace pzgeom {
 		axes(2,2) = 1.;
 	}
 	
-	void TPZGeoTetrahedra::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoTetrahedra::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		REAL spacephi[10],spacedphi[20];
 		int i,j;
 		TPZFMatrix<REAL> phi(4,1,spacephi,10);
@@ -120,7 +120,7 @@ namespace pzgeom {
 		for(j=0;j<3;j++) {
 			result[j] = 0.0;
 			for(i=0;i<4;i++) 
-				result[j] += coord(j,i)*phi(i,0);
+				result[j] += coord.GetVal(j,i)*phi(i,0);
 		}
 	}
 	

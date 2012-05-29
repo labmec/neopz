@@ -99,14 +99,14 @@ namespace pzgeom {
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Pr:"+TFather::TypeName();} 
 		
-		static void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
 							 TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
-		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian);
+		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian);
 		
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
@@ -148,7 +148,7 @@ namespace pzgeom {
 	}
 	
 	template<class TFather, class Topology>
-	void GPr<TFather, Topology>::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
+	void GPr<TFather, Topology>::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
 	{
 		TPZFNMatrix<16> axest,VecMatrix;
 		Jacobian(coord,param,VecMatrix);
@@ -159,7 +159,7 @@ namespace pzgeom {
 	}
 	
 	template<class TFather, class Topology>
-	inline void GPr<TFather, Topology>::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	inline void GPr<TFather, Topology>::X(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		
 		
 		int spacedim = coord.Rows();

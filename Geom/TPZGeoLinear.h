@@ -77,14 +77,14 @@ namespace pzgeom {
             Jacobian(coord, param, jacobian, axes, detjac, jacinv);
         }
         
-		static void X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
+		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
 		
 		/** @brief Returns the projection of a given point from "NSide - 1" side to "side". */
 		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		
-		static void Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
+		static void Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,
 							 TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv);
 		
 		static TPZGeoEl *CreateBCGeoEl(TPZGeoEl *gel, int side,int bc);
@@ -129,12 +129,12 @@ namespace pzgeom {
 	//     axes(0,ic) = v1[ic]/mod1;
 	//   }
 	
-	inline void TPZGeoLinear::X(TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
+	inline void TPZGeoLinear::X(const TPZFMatrix<REAL> &coord,TPZVec<REAL> &loc,TPZVec<REAL> &result){
 		
 		int ic;
 		REAL xi = loc[0];
 		int nrow = coord.Rows();
-		for(ic=0; ic<nrow; ic++) result[ic] = coord(ic,0)*(1.-xi)*0.5+coord(ic,1)*(1.+xi)*0.5;
+		for(ic=0; ic<nrow; ic++) result[ic] = coord.GetVal(ic,0)*(1.-xi)*0.5+coord.GetVal(ic,1)*(1.+xi)*0.5;
 		
 		//   TPZFNMatrix<9> phi(NNodes, pztopology::TPZLine,1);
 		//   TPZFNMatrix<18> dphi(1,NNodes, pztopology::TPZLine);

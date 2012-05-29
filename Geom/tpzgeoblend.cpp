@@ -40,7 +40,7 @@ void pzgeom::TPZGeoBlend<TGeo>::SetNeighbourInfo(int side, TPZGeoElSide &neigh, 
 }
 
 template <class TGeo>
-bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide)
+bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<REAL> &InternalPar, TPZVec<REAL> &NeighPar, TPZFMatrix<REAL> &JacNeighSide) const
 {
 	TPZFNMatrix<9> JacSide;
 	
@@ -95,7 +95,7 @@ bool pzgeom::TPZGeoBlend<TGeo>::MapToNeighSide(int side, int SideDim, TPZVec<REA
 }
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result)
+void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec<REAL> &result) const
 {
     TPZFNMatrix<45> coord(3,TGeo::NNodes);
     this->CornerCoordinates(gel,coord);
@@ -205,7 +205,7 @@ void pzgeom::TPZGeoBlend<TGeo>::X(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZVec
 
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv)
+void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) const
 {
     TPZFNMatrix<45> coord(3,TGeo::NNodes);
     this->CornerCoordinates(gel,coord);
@@ -410,7 +410,7 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
 }
 
 template <class TGeo>
-void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out)
+void pzgeom::TPZGeoBlend<TGeo>::Print(std::ostream &out) const
 {
 	TGeo::Print(out);
 	out << "Neighbours/transformations used for mapping the sides :\n";

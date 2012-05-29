@@ -53,10 +53,10 @@ namespace pzgeom {
 		TPZVec<REAL> p1(3), p2(3), p3(3), p4(3),result(3);
 		for(int j=0;j<3;j++)
 		{
-			p1[j]=coord(j,0);
-			p2[j]=coord(j,1);
-			p3[j]=coord(j,2);
-			p4[j]=coord(j,3);
+			p1[j]=coord.GetVal(j,0);
+			p2[j]=coord.GetVal(j,1);
+			p3[j]=coord.GetVal(j,2);
+			p4[j]=coord.GetVal(j,3);
 		}
 		fNormalVec.Resize(18, 3);
 		fVectorSide.Resize(18);
@@ -64,14 +64,14 @@ namespace pzgeom {
 		//primeira face
 		for(int j=0;j<3;j++)//v0
 		{
-			fNormalVec(0,j) = coord(j,0)- coord(j,3);
+			fNormalVec(0,j) = coord.GetVal(j,0)- coord.GetVal(j,3);
 			
 		}
 		fVectorSide[count]=0;
 		count++;
 		for(int j=0;j<3;j++)//v1
 		{
-			fNormalVec(1,j) = coord(j,1)- coord(j,2);
+			fNormalVec(1,j) = coord.GetVal(j,1)- coord.GetVal(j,2);
 		}
 		fVectorSide[count]=1;
 		count++;
@@ -85,13 +85,13 @@ namespace pzgeom {
 		//segunda face
 		for(int j=0;j<3;j++)//v3
 		{
-			fNormalVec(3,j) = coord(j,1)- coord(j,0);
+			fNormalVec(3,j) = coord.GetVal(j,1)- coord.GetVal(j,0);
 		}
 		fVectorSide[count]=1;
 		count++;
 		for(int j=0;j<3;j++)//v4
 		{
-			fNormalVec(4,j) = coord(j,2)- coord(j,3);
+			fNormalVec(4,j) = coord.GetVal(j,2)- coord.GetVal(j,3);
 		}
 		fVectorSide[count]=2;
 		count++;
@@ -105,13 +105,13 @@ namespace pzgeom {
 		//terceira face
 		for(int j=0;j<3;j++)//v6
 		{
-			fNormalVec(6,j) = coord(j,2)- coord(j,1);
+			fNormalVec(6,j) = coord.GetVal(j,2)- coord.GetVal(j,1);
 		}
 		fVectorSide[count]=2;
 		count++;
 		for(int j=0;j<3;j++)//v7
 		{
-			fNormalVec(7,j) = coord(j,3)- coord(j,0);
+			fNormalVec(7,j) = coord.GetVal(j,3)- coord.GetVal(j,0);
 		}
 		fVectorSide[count]=3;
 		count++;
@@ -125,13 +125,13 @@ namespace pzgeom {
 		//quarta face
 		for(int j=0;j<3;j++)//v9
 		{
-			fNormalVec(9,j) = coord(j,3)- coord(j,2);
+			fNormalVec(9,j) = coord.GetVal(j,3)- coord.GetVal(j,2);
 		}
 		fVectorSide[count]=3;
 		count++;
 		for(int j=0;j<3;j++)//v10
 		{
-			fNormalVec(10,j) = coord(j,0)- coord(j,1);
+			fNormalVec(10,j) = coord.GetVal(j,0)- coord.GetVal(j,1);
 		}
 		fVectorSide[count]=0;
 		count++;
@@ -146,33 +146,33 @@ namespace pzgeom {
 		// internos tangentes
 		for(int j=0;j<3;j++)//v12
 		{
-			fNormalVec(12,j) = coord(j,1)- coord(j,0);
+			fNormalVec(12,j) = coord.GetVal(j,1)- coord.GetVal(j,0);
 		}  
 		fVectorSide[count]=4;
 		count++;
 		for(int j=0;j<3;j++)//v13
 		{
-			fNormalVec(13,j) = coord(j,2)- coord(j,1);
+			fNormalVec(13,j) = coord.GetVal(j,2)- coord.GetVal(j,1);
 		}	
 		fVectorSide[count]=5;
 		count++;
 		for(int j=0;j<3;j++)//v14
 		{
-			fNormalVec(14,j) = coord(j,3)- coord(j,2);
+			fNormalVec(14,j) = coord.GetVal(j,3)- coord.GetVal(j,2);
 		}	
 		fVectorSide[count]=6;
 		count++;
 		for(int j=0;j<3;j++)//v15
 		{
-			fNormalVec(15,j) = coord(j,0)- coord(j,3);
+			fNormalVec(15,j) = coord.GetVal(j,0)- coord.GetVal(j,3);
 		}	
 		fVectorSide[count]=7;
 		count++;
 		//internos meio
 		TPZVec<REAL> midle(3,0.);
-		midle[0]=0.25*(coord(0,2)+coord(0,3)+coord(0,0)+coord(0,1));
-		midle[1]=0.25*(coord(1,2)+coord(1,3)+coord(1,0)+coord(1,1));		
-		midle[2]=0.25*(coord(2,2)+coord(2,3)+coord(2,0)+coord(2,1));
+		midle[0]=0.25*(coord.GetVal(0,2)+coord.GetVal(0,3)+coord.GetVal(0,0)+coord.GetVal(0,1));
+		midle[1]=0.25*(coord.GetVal(1,2)+coord.GetVal(1,3)+coord.GetVal(1,0)+coord.GetVal(1,1));		
+		midle[2]=0.25*(coord.GetVal(2,2)+coord.GetVal(2,3)+coord.GetVal(2,0)+coord.GetVal(2,1));
 		TPZFMatrix<REAL> jacobian;
 		TPZFMatrix<REAL> axes;
 		REAL detjac;
@@ -247,7 +247,7 @@ namespace pzgeom {
 	}
 	
 	
-	void TPZGeoQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+	void TPZGeoQuad::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 		jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
 		TPZFNMatrix<4> phi(4,1);
@@ -260,16 +260,16 @@ namespace pzgeom {
 		int spacedim = coord.Rows();
         
         for (int j=0; j<spacedim; j++) {
-            minx[j] = coord(j,0);
-            maxx[j] = coord(j,0);
+            minx[j] = coord.GetVal(j,0);
+            maxx[j] = coord.GetVal(j,0);
         }
 		TPZFMatrix<REAL> VecMatrix(3,2,0.);
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < spacedim; j++) {
-                minx[j] = minx[j] < coord(j,i) ? minx[j]:coord(j,i);
-                maxx[j] = maxx[j] > coord(j,i) ? maxx[j]:coord(j,i);
-				VecMatrix(j,0) += coord(j,i)*dphi(0,i);
-				VecMatrix(j,1) += coord(j,i)*dphi(1,i);
+                minx[j] = minx[j] < coord.GetVal(j,i) ? minx[j]:coord.GetVal(j,i);
+                maxx[j] = maxx[j] > coord.GetVal(j,i) ? maxx[j]:coord.GetVal(j,i);
+				VecMatrix(j,0) += coord.GetVal(j,i)*dphi(0,i);
+				VecMatrix(j,1) += coord.GetVal(j,i)*dphi(1,i);
 			}
 		}
         REAL delx = 0.;
@@ -304,7 +304,7 @@ namespace pzgeom {
         
 	}
 	
-	void TPZGeoQuad::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoQuad::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		REAL spacephi[4],spacedphi[8];
 		int i,j;
 		TPZFMatrix<REAL> phi(4,1,spacephi,4);
@@ -314,8 +314,8 @@ namespace pzgeom {
 		result.Fill(0.);
 		for(i=0;i<space;i++) {
 			for(j=0;j<4;j++)
-				//result[i] += phi(j,0)*NodePtr(j)->Coord(i);
-				result[i] += phi(j,0)*coord(i,j);
+				//result[i] += phi(j,0)*NodePtr(j)->coord.GetVal(i);
+				result[i] += phi(j,0)*coord.GetVal(i,j);
 		}
 	}
 	

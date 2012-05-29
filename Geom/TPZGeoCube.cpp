@@ -20,7 +20,7 @@ using namespace std;
 
 namespace pzgeom {
 	
-	void TPZGeoCube::X(TPZFMatrix<REAL> &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
+	void TPZGeoCube::X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> & loc,TPZVec<REAL> &result){
 		
 		int nrow = nodes.Rows();
 		int ncol = nodes.Cols();
@@ -33,7 +33,7 @@ namespace pzgeom {
 		Shape(loc,phi,dphi);
 		for(j=0;j<3;j++) {
 			result[j] = 0.0;
-			for(i=0;i<8;i++) result[j] += nodes(j,i)*phi(i,0);
+			for(i=0;i<8;i++) result[j] += nodes.GetVal(j,i)*phi(i,0);
 		}
 	}
 	
@@ -103,7 +103,7 @@ namespace pzgeom {
 		dphi(2,7) = x[0]*y[1]*dz[1];
 	}
 	
-	void TPZGeoCube::Jacobian(TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
+	void TPZGeoCube::Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
 #ifdef DEBUG
 		//  if (NNodes != 8) {
@@ -133,7 +133,7 @@ namespace pzgeom {
 		int i,j;
 		for(i=0;i<8;i++) {
 			for(j=0;j<3;j++) {
-				coor = nodes(j,i); // ??
+				coor = nodes.GetVal(j,i); // ??
 				jacobian(j,0) += coor*dphi(0,i);
 				jacobian(j,1) += coor*dphi(1,i);
 				jacobian(j,2) += coor*dphi(2,i);
