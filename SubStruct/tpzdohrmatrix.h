@@ -209,9 +209,7 @@ struct TPZDohrThreadMultList
 	{
 	  PZ_PTHREAD_MUTEX_INIT(&fAccessLock, 0, "TPZDohrThreadMultList::TPZDohrThreadMultList(...)");
 	}
-  //FIXME: Edson -- Este nao deveria ser um destrutor?
-  #warning "Edson: este nao deveria ser um destrutor?"
-	TPZDohrThreadMultList()
+	~TPZDohrThreadMultList()
 	{
 	  PZ_PTHREAD_MUTEX_DESTROY(&fAccessLock, "TPZDohrThreadMultList::TPZDohrThreadMultList()");
 	}
