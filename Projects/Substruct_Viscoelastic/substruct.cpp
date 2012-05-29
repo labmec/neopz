@@ -93,8 +93,8 @@ int main1(int argc, char *argv[])
 	int maxlevel = 5;
 	int sublevel = 3;
 	int plevel = 1;
-	TPZPairStructMatrix::gNumThreads = 0;
-	int numthreads = 0;
+	TPZPairStructMatrix::gNumThreads = 64;
+	int numthreads = 64;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
@@ -139,8 +139,8 @@ int main1(int argc, char *argv[])
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
-		int numthread_assemble = 0;
-		int numthread_decompose = 0;
+		int numthread_assemble = 64;
+		int numthread_decompose = 64;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
@@ -151,7 +151,7 @@ int main1(int argc, char *argv[])
 		//REAL height = Height(gmesh);
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		
-		dohrstruct.SubStructure(2);
+		dohrstruct.SubStructure(64);
 		//	tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 		//	std::cout << tempo.ft0sub << std::endl;
 		
