@@ -195,7 +195,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZBndCond *bnd = matpois->CreateBC(pois, -1, 0, val1, val2);
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);
-    cmesh->SetAllCreateFunctionsHDiv();
+    cmesh->SetAllCreateFunctionsHDivPressure();
     cmesh->SetDefaultOrder(3);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
