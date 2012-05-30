@@ -15,7 +15,7 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzintelgen"));
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
-TPZInterpolatedElement(mesh,gel,index) {
+TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	int i;
 	fPreferredOrder = mesh.GetDefaultOrder();
 	for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
@@ -58,7 +58,7 @@ TPZInterpolatedElement(mesh,gel,index),fConnectIndexes(TSHAPE::NSides,-1)
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, const TPZIntelGen<TSHAPE> &copy) :
-TPZInterpolatedElement(mesh,copy), fIntRule(copy.fIntRule) {
+TPZInterpolatedElement(mesh,copy), fConnectIndexes(TSHAPE::NSides,-1),fIntRule(copy.fIntRule) {
 	fPreferredOrder = copy.fPreferredOrder;
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++) {
@@ -72,7 +72,7 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh,
 								 const TPZIntelGen<TSHAPE> &copy,
 								 std::map<int,int> & gl2lcConMap,
 								 std::map<int,int> & gl2lcElMap) :
-TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
+TPZInterpolatedElement(mesh,copy,gl2lcElMap), fConnectIndexes(TSHAPE::NSides,-1), fIntRule(copy.fIntRule)
 {
 	
 	fPreferredOrder = copy.fPreferredOrder;
@@ -99,7 +99,7 @@ TPZInterpolatedElement(mesh,copy,gl2lcElMap), fIntRule(copy.fIntRule)
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::TPZIntelGen() :
-TPZInterpolatedElement(), fIntRule() {
+TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 	fPreferredOrder = -1;
 	int i;
 	for(i=0;i<TSHAPE::NSides;i++) {
