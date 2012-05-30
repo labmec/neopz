@@ -1,3 +1,8 @@
+/// ---- GLOBALS ----
+
+#define MAXLVL 5
+#define NTHREADS 2
+
 /// -----------
 
 //#define REFTHREADTESTS			//enabling the tests
@@ -295,10 +300,6 @@ int main()
 
 using namespace std;
 
-#define MAXLVL 4
-#define NTHREADS 10
-#define INTTHREAD 0
-
 pthread_t threads[NTHREADS];
 pthread_mutex_t idslock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t todolock = PTHREAD_MUTEX_INITIALIZER;
@@ -351,12 +352,10 @@ TPZStack <int> getneighbours (TPZGeoMesh* mesh, int iel)
 	return nbs;
 }
 
-int checkneighbours (TPZGeoMesh* mesh, int iel) 
+bool checkneighbours (TPZGeoMesh* mesh, int iel) 
 {
-	pthread_mutex_lock(&idslock);
-	
-	if (mesh->ElementVec()[iel]) {
-		return 1;
+	if (ids->operator[](iel)) {
+		return true;
 	}
 	
 	else {
@@ -366,36 +365,49 @@ int checkneighbours (TPZGeoMesh* mesh, int iel)
 		TPZStack <int> neighbours = getneighbours(mesh, iel);
 		
 		nneighbours = neighbours.size();
-		countneighbours = nneighbours;
 		
 		while (neighbours.size()) {
 			int neigh = neighbours.Pop();
-			if(mesh->ElementVec()[neigh]) countneighbours--;
+			if(!ids->operator[](neigh)) countneighbours++;
 		}
 		
-		pthread_mutex_unlock(&idslock);
-		if (countneighbours==nneighbours) return 0;
-		else return 1;
+		if (countneighbours==nneighbours) {
+			return false;
+		}
+		
+		else {
+			return true;
+		}
 	}
-	
 }
 
 int lockneighbours (TPZGeoMesh *mesh, int iel)
 {
 	pthread_mutex_lock(&idslock);
 	
-	TPZStack <int> neighbours = getneighbours(mesh, iel);
+	if (checkneighbours(mesh, iel)) {
+		pthread_mutex_lock(&todolock);
+		todo->Push(iel);
+		pthread_mutex_unlock(&todolock);
 	
-	while (neighbours.size()) {
-		int pos = neighbours.Pop();
-		ids->Fill((int) 1, pos, 1);
+		pthread_mutex_unlock(&idslock);
+		
+		pthread_exit(0);
 	}
 	
-	ids->Fill((int) 1, iel, 1);
-	
-	pthread_mutex_unlock(&idslock);
-	
-	return 0;
+	else {
+		TPZStack <int> neighbours = getneighbours(mesh, iel);
+		
+		while (neighbours.size()) {
+			int pos = neighbours.Pop();
+			ids->Fill((int) 1, pos, 1);
+		}
+		
+		ids->Fill((int) 1, iel, 1);
+		
+		pthread_mutex_unlock(&idslock);
+		return 0;
+	}
 }
 
 int unlockneighbours (TPZGeoMesh *mesh, int iel, TPZVec <TPZGeoEl*> sons)
@@ -404,12 +416,14 @@ int unlockneighbours (TPZGeoMesh *mesh, int iel, TPZVec <TPZGeoEl*> sons)
 
 	TPZStack <int> neighbours = getneighbours(mesh, iel);
 	
+	ids->Fill(0, iel, 1);
+	
 	while (neighbours.size()) {
 		int pos = neighbours.Pop();
-		ids->Fill((int) 0, pos, 1);
+		ids->Fill(0, pos, 1);
 	}
 	
-	ids->Fill((int) 0, iel, 1);
+	pthread_mutex_unlock(&idslock);
 	
 	pthread_mutex_lock(&todolock);
 	for (int i=0; i<sons.NElements(); i++) {
@@ -418,8 +432,6 @@ int unlockneighbours (TPZGeoMesh *mesh, int iel, TPZVec <TPZGeoEl*> sons)
 		}
 	}
 	pthread_mutex_unlock(&todolock);
-	
-	pthread_mutex_unlock(&idslock);
 	
 	return 0;
 }
@@ -442,15 +454,11 @@ void *divide(void *arg)
 	}
 #endif
 	
-	err = lockneighbours(imesh, iel);
+	lockneighbours(imesh, iel);
 	
 	gel->Divide(sons);
 	
-	err = unlockneighbours(imesh, iel, sons);
-	
-	if(err) {
-		DebugStop();
-	}
+	unlockneighbours(imesh, iel, sons);
 	
 	pthread_exit(0);
 }
@@ -462,8 +470,14 @@ int main ()
 	
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	
-	REAL coordinates [16][3] = {{0.,0.,0.},{1.,0.,0.},{2.,0.,0.},{3.,0.,0.},{0.,1.,0.},{1.,1.,0.},{2.,1.,0.},{3.,1.,0.},{0.,2.,0.},{1.,2.,0.},{2.,2.,0.},{3.,2.,0.},{0.,3.,0.},{1.,3.,0.},{2.,3.,0.},{3.,3.,0.}};	// Instancing the coordinates
-	int nodeids [16] = {100,1100,200,300,220,111,223,111,333,444,555,666,111,222,333,44};	// Identifying the nodes
+	REAL coordinates [16][3] = {{0.,0.,0.},{1.,0.,0.},{2.,0.,0.},{3.,0.,0.},
+								{0.,1.,0.},{1.,1.,0.},{2.,1.,0.},{3.,1.,0.},
+								{0.,2.,0.},{1.,2.,0.},{2.,2.,0.},{3.,2.,0.},
+								{0.,3.,0.},{1.,3.,0.},{2.,3.,0.},{3.,3.,0.}};	// Instancing the coordinates
+	int nodeids [16] = {100,1100,200,300,
+						220,111,223,111,
+						333,444,555,666,
+						111,222,333,44};	// Identifying the nodes
 	int elconnect[9][4] = {{0,1,5,4},{1,2,6,5},{2,3,7,6},{4,5,9,8},{5,6,10,9},{6,7,11,10},{8,9,13,12},{9,10,14,13},{10,11,15,14}};
 	int elid [9] = {10,11,12,13,14,15};
 	
@@ -500,7 +514,7 @@ int main ()
 	double time_start = get_time();
 	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS***\n";
 	
-	int threadnumber = INTTHREAD;
+	int threadnumber = 0;
 	int totalElements = 1;
 	REAL alevel;
 	
@@ -518,38 +532,45 @@ int main ()
 		todo->Push(gmesh->ElementVec()[i]->Id());
 	}
 	
-	while (todo->size())
+	while (todo->size()||threadnumber)
 	{
-		pthread_mutex_lock(&todolock);
-		int iel = todo->Pop();
-		pthread_mutex_unlock(&todolock);
+		int iel = -1;
 		
-		if (!checkneighbours(gmesh, iel)) {
-			if (threadnumber==NTHREADS)
+		if (todo->size()) {
+			pthread_mutex_lock(&todolock);
+			iel = todo->Pop();
+			pthread_mutex_unlock(&todolock);
+		}
+		
+		divide_data *sdata;
+		sdata = new divide_data;
+		sdata->el = iel;
+		sdata->mesh = gmesh;
+		
+		if (threadnumber==NTHREADS||!todo->size())
+		{
+			int limit=threadnumber;
+			
+			int i = 0;
+			for (;i<limit;)
 			{
-				threadnumber = INTTHREAD;
-				for (;threadnumber<NTHREADS;)
+				err = pthread_join (threads[i], NULL);
+				if (err)
 				{
-					err = pthread_join (threads[threadnumber], NULL);
-					if (err)
-					{
-						cout << "Could not join the threads! Return code from pthread_join is " << err;
-						DebugStop();
-					}
-					else
-					{
-						threadnumber++;
-					}
+					cout << "Could not join the threads! Return code from pthread_join is " << err;
+					DebugStop();
 				}
-				threadnumber = INTTHREAD;
+				else
+				{
+					i++;
+				}
 			}
 			
-			divide_data *sdata;
-			sdata = new divide_data;
-			sdata->el = iel;
-			sdata->mesh = gmesh;
-			
+			threadnumber = 0;
+		}
+		if (iel!=-1) { 
 			err = pthread_create (&threads[threadnumber], NULL, divide, (void *) sdata);
+		
 			if (err)
 			{
 				cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
@@ -557,12 +578,11 @@ int main ()
 			}
 			else
 			{
-				threadnumber++;
+			threadnumber++;
 			}
 		}
-
 	}
-
+	
 	cout << "\n****END****\n";
 	double time_end = get_time();
 	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
@@ -594,10 +614,6 @@ int main ()
 #include "TPZRefPatternDataBase.h"
 
 using namespace std;
-
-#define MAXLVL 5
-#define NTHREADS 4
-#define INTTHREAD 0
 
 pthread_t threads[NTHREADS];
 
@@ -649,8 +665,14 @@ int main ()
 { 
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	
-	REAL coordinates [16][3] = {{0.,0.,0.},{1.,0.,0.},{2.,0.,0.},{3.,0.,0.},{0.,1.,0.},{1.,1.,0.},{2.,1.,0.},{3.,1.,0.},{0.,2.,0.},{1.,2.,0.},{2.,2.,0.},{3.,2.,0.},{0.,3.,0.},{1.,3.,0.},{2.,3.,0.},{3.,3.,0.}};	// Instancing the coordinates
-	int nodeids [16] = {100,1100,200,300,220,111,223,111,333,444,555,666,111,222,333,44};	// Identifying the nodes
+	REAL coordinates [16][3] = {{0.,0.,0.},{1.,0.,0.},{2.,0.,0.},{3.,0.,0.},
+		{0.,1.,0.},{1.,1.,0.},{2.,1.,0.},{3.,1.,0.},
+		{0.,2.,0.},{1.,2.,0.},{2.,2.,0.},{3.,2.,0.},
+		{0.,3.,0.},{1.,3.,0.},{2.,3.,0.},{3.,3.,0.}};	// Instancing the coordinates
+	int nodeids [16] = {100,1100,200,300,
+		220,111,223,111,
+		333,444,555,666,
+		111,222,333,44};	// Identifying the nodes
 	int elconnect[9][4] = {{0,1,5,4},{1,2,6,5},{2,3,7,6},{4,5,9,8},{5,6,10,9},{6,7,11,10},{8,9,13,12},{9,10,14,13},{10,11,15,14}};
 	int elid [9] = {10,11,12,13,14,15};
 	
@@ -784,8 +806,6 @@ using namespace std;
 TPZVec <TPZGeoEl *> sons;
 double err;
 
-#define MAXLVL 3
-
 double get_time()
 {
 	struct timeval t;
@@ -798,20 +818,23 @@ int main ()
 { 	
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
 	
-	REAL coordinates [6][3] = {{0.,0.,0.},{1.,0.,1.},{2.,0.,0.},{0.,1.,0.},{1.,1.,1.},{2.,1.,0.}};	// Instancing the coordinates
-	
-	int nodeids [6] = {100,1100,200,300,1200,400};	// Identifying the nodes
-	
-	int elconnect[2][4] = {{0,1,4,3},{4,1,2,5}};
-	
-	int elid [2] = {10,20};
+	REAL coordinates [16][3] = {{0.,0.,0.},{1.,0.,0.},{2.,0.,0.},{3.,0.,0.},
+		{0.,1.,0.},{1.,1.,0.},{2.,1.,0.},{3.,1.,0.},
+		{0.,2.,0.},{1.,2.,0.},{2.,2.,0.},{3.,2.,0.},
+		{0.,3.,0.},{1.,3.,0.},{2.,3.,0.},{3.,3.,0.}};	// Instancing the coordinates
+	int nodeids [16] = {100,1100,200,300,
+		220,111,223,111,
+		333,444,555,666,
+		111,222,333,44};	// Identifying the nodes
+	int elconnect[9][4] = {{0,1,5,4},{1,2,6,5},{2,3,7,6},{4,5,9,8},{5,6,10,9},{6,7,11,10},{8,9,13,12},{9,10,14,13},{10,11,15,14}};
+	int elid [9] = {10,11,12,13,14,15};
 	
 	int index = 0;
 	int i, j;	// Auxiliary
-
+	
 	TPZVec<REAL> coord(3,0.);	// Creating a vector of REAL (based on template) with size 3, initialized with zeros (0.)
 	
-	for (i=0; i<6; i++)
+	for (i=0; i<16; i++)
 	{
 		for (j=0; j<3; j++) coord[j] = coordinates[i][j];		// Going through the coordinates
 		
@@ -819,20 +842,19 @@ int main ()
 		gmesh->NodeVec()[index] = TPZGeoNode(nodeids[i],coord,*gmesh);		// Constructing the nodes, with the id got from the vector nodeids, with the TPZVec coord, on the mesh gmesh;
 	}
 	
-	TPZGeoEl *elvec[2];		// Creating a vector of TPZGeoEl using the default constructor;
+	TPZGeoEl *elvec[9];		// Creating a vector of TPZGeoEl using the default constructor;
 	
 	TPZVec<int> connect(4,0);	// Auxiliary TPZVec that will be used on CreateGeoElement;
 	
-	for (i=0; i<2; i++)
+	for (i=0; i<9; i++)
 	{
 		for (j=0; j<4; j++) connect[j] = elconnect[i][j];
 		elvec[i] = gmesh->CreateGeoElement(EQuadrilateral, connect, 1, elid[i]);		// Creating the elements with type EQuadrilateral, node indexes from connect, with the material with id=1, indexes from vector elid
 		// Returns on the vector of TPZGeoEl elvec
 	}
-
-	gmesh->BuildConnectivity();		// Building connectivity on the mesh
-
 	
+	gmesh->BuildConnectivity();		// Building connectivity on the mesh
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);	
 	//gmesh->Print();					// Printing the initial mesh
 	ofstream bef("before_SERIAL.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bef);			// Printing the initial mesh on the file
@@ -868,7 +890,6 @@ int main ()
 	double time_end = get_time();
 	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
 	
-	//gmesh->Print();					// Printing the initial mesh
 	ofstream af("after_SERIAL.vtk");
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, af);
 	
