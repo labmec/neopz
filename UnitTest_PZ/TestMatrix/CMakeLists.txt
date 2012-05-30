@@ -6,6 +6,8 @@ file(GLOB sources *.cpp)
 
 if(BUILD_UNITTESTING)
 
+	include (CTestTestFile.cmake)
+
 	set(pztestmatrix ${headers} ${sources} PARENT_SCOPE )
 
 	add_executable(TestMatrix ${headers} ${sources})

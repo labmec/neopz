@@ -7,6 +7,8 @@ file(GLOB sources2 TestCondensedElement.cpp)
 
 if(BUILD_UNITTESTING)
 
+	include (CTestTestFile.cmake)
+
 	set(pztestmesh1 ${headers} ${sources1} PARENT_SCOPE)
 	set(pztestmesh2 ${headers} ${sources2} PARENT_SCOPE)
 

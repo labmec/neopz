@@ -6,6 +6,8 @@ file(GLOB sources *.cpp)
 
 if(BUILD_UNITTESTING)
 
+	include (CTestTestFile.cmake)
+
 	set(pztestintegnum ${headers} ${sources} PARENT_SCOPE )
 
 	add_executable(TestIntNum ${headers} ${sources})
