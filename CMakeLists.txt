@@ -301,3 +301,6 @@ endif(BUILD_COMPLEX_PROJECTS)
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"
 #	CACHE STRING "Log file to control CMake process"
 #	) 
+
+#Enabling tests
+ENABLE_TESTING()
