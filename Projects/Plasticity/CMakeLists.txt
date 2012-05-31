@@ -1,13 +1,19 @@
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
-set(main_SRCS ${sources} ${headers})
+file (GLOB to_remove_from_sources main.cpp mainGUI.cpp)
+list (REMOVE_ITEM sources ${to_remove_from_sources})
+
+set(main1_SRCS main.cpp ${sources} ${headers})
+set(main2_SRCS mainGUI.cpp ${sources} ${headers})
 
 if(USING_FAD)
 
-	add_executable(Plasticity ${main_SRCS})
-
+	add_executable(Plasticity ${main1_SRCS})
 	target_link_libraries(Plasticity pz pthread)
+
+	add_executable(PlasticityGUI ${main2_SRCS})
+	target_link_libraries(PlasticityGUI pz pthread)
 	
 	file(COPY SnubDodecahedron.txt DESTINATION .)
 
