@@ -705,6 +705,10 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     
     if (TSHAPE::Type()==EQuadrilateral) {
         pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDiscAux,dphiDiscAux, pzshape::TPZShapeDisc::ETensorial);
+        int nphidisc = phiDiscAux.Rows();
+        phiDiscAux(0,0) = phiDiscAux(nphidisc-1,0);
+        dphiDiscAux(0,0) = dphiDiscAux(0,nphidisc-1);
+        dphiDiscAux(1,0) = dphiDiscAux(1,nphidisc-1);
 				for (int i=0; i<phiDisc.Rows(); i++) {
 						phiDisc(i,0)=phiDiscAux(i,0);
 						dphiDisc(0,i)=dphiDiscAux(0,i);
