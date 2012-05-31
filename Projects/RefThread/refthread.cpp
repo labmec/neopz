@@ -1,6 +1,6 @@
 /// ---- GLOBALS ----
 
-#define MAXLVL 5
+#define MAXLVL 6
 #define NTHREADS 2
 
 /// -----------
@@ -32,7 +32,6 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-#define NTHREADS 100
 #define SIZEBLOCK 10
 #define NITERATIONS NTHREADS*SIZEBLOCK
 
@@ -515,7 +514,7 @@ int main ()
 	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS***\n";
 	
 	int threadnumber = 0;
-	int totalElements = 1;
+	REAL totalElements = 1;
 	REAL alevel;
 	
 	for (alevel=1; alevel<=MAXLVL; alevel++) {
