@@ -8,3 +8,5 @@ set(visualmatrix ${visualmatrix} ${source} ${header} PARENT_SCOPE)
 add_executable(VisualMatrix ${source} ${header})
 
 target_link_libraries(VisualMatrix pz pthread)
+
+include (CTestTestFile.cmake)

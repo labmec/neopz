@@ -1,5 +1,6 @@
 # @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory 
 
+ENABLE_TESTING()
 #
 # COMPLEX NUMBER PROJECTS
 #
