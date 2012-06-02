@@ -196,7 +196,7 @@ static TPZAutoPointer<TPZCompMesh> GenerateMesh(int type)
     TPZMaterial *matbnd(bnd);
     cmesh->InsertMaterialObject(matbnd);
     cmesh->SetAllCreateFunctionsHDivPressure();
-    cmesh->SetDefaultOrder(3);
+    cmesh->SetDefaultOrder(4);
     cmesh->SetDimModel(2);
     cmesh->AutoBuild();
 #ifdef LOG4CXX
