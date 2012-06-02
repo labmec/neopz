@@ -227,7 +227,7 @@ namespace pztopology {
 	TPZTransform TPZQuadrilateral::SideToSideTransform(int sidefrom, int sideto)
 	{
 		if(sidefrom <0 || sidefrom >= NSides || sideto <0 || sideto >= NSides) {
-			PZError << "TPZShapeQuad::HigherDimensionSides sidefrom "<< sidefrom << 
+			PZError << "TPZShapeQuad::SideToSideTransform sidefrom "<< sidefrom << 
 			' ' << sideto << endl;
 			return TPZTransform(0);
 		}

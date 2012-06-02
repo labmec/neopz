@@ -920,10 +920,10 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 	}
 	int numextconnects = fConnectIndex.NElements();
 	int nconnects = fConnectVec.NElements();
-	int numintconnects = nconnects-numextconnects-nconstrconnects;
 	
 	// check whether the connects are properly enumerated
 #ifdef DEBUG 
+	int numintconnects = nconnects-numextconnects-nconstrconnects;
 	{
 		int globeq = TPZCompMesh::NEquations();
 		if (globeq2 != globeq) {

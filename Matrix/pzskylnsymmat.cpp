@@ -513,6 +513,7 @@ const TVar & TPZSkylNSymMatrix<TVar>::GetVal(const int r, const int c)const
       return(this->gZero);
     }
   }
+    return this->gZero;
 }
 
 ///
