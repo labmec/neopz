@@ -472,7 +472,7 @@ inline bool IsZero( double a ){
 }
 //template<>
 inline bool IsZero( float a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-6 );
 }
 //template<>
 inline bool IsZero( std::complex<long double> a ){
