@@ -139,6 +139,23 @@ const int TPZHDIVBOUNDTRIANGLEID = 254;
 /** @brief Id of HDiv boundary quadrilateral element */
 const int TPZHDIVBOUNDQUADID = 255;
 
+/** @brief Id of HDiv point element */
+const int TPZHDIVPOINT_PRESSURE_ID = 260;
+/** @brief Id of HDiv linear element */
+const int TPZHDIVLINEAR_PRESSURE_ID = 261;
+/** @brief Id of HDiv triangular element */
+const int TPZHDIVTRIANGLE_PRESSURE_ID = 262;
+/** @brief Id of HDiv quadrilateral element */
+const int TPZHDIVQUAD_PRESSURE_ID = 263;
+/** @brief Id of HDiv cube element */
+const int TPZHDIVCUBE_PRESSURE_ID = 264;
+/** @brief Id of HDiv prismal element */
+const int TPZHDIVPRISM_PRESSURE_ID = 265;
+/** @brief Id of HDiv tetrahedral element */
+const int TPZHDIVTETRA_PRESSURE_ID = 266;
+/** @brief Id of HDiv pyramidal element */
+const int TPZHDIVPYRAM_PRESSURE_ID = 267;
+
 /** @brief Id of HDiv two-dimensional boundary point element (?) */
 const int TPZHDIVBOUND2POINTID = 256;
 /** @brief Id of HDiv two-dimensional boundary linear element (?) */

@@ -301,4 +301,4 @@ template class TPZDohrMatrix<long double, TPZDohrSubstructCondense<long double> 
 template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstructCondense<double> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE>;
 template class TPZRestoreClass< TPZDohrMatrix<double, TPZDohrSubstruct<double> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;
 template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstructCondense<float> > , TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT>;
-template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstruct<float> > , TPZDOHRMATRIXSUBSTRUCTDOUBLE>;
+template class TPZRestoreClass< TPZDohrMatrix<float, TPZDohrSubstruct<float> > , TPZDOHRMATRIXSUBSTRUCTFLOAT>;

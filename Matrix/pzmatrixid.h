@@ -21,6 +21,17 @@ const int TPZFMATRIX_FLOAT_ID = 101;
 const int TPZFMATRIX_COMPLEX_ID = 102;
 const int TPZFMATRIX_LONG_DOUBLE_ID = 103;
 
+/** @brief Id of the diagonal block matrix */
+/** @ingroup matrixutility */
+const int TPZBLOCK_FLOAT_ID = 104;
+const int TPZBLOCK_DOUBLE_ID = 108;
+const int TPZBLOCK_LONG_DOUBLE_ID = 109;
+const int TPZBLOCK_COMPLEX_FLOAT_ID = 105;
+const int TPZBLOCK_COMPLEX_DOUBLE_ID = 106;
+const int TPZBLOCK_COMPLEX_LONG_DOUBLE_ID = 107;
+
+
+
 /** @brief Id of the DohrMatrix condense */
 const int TPZDOHRMATRIXSUBSTRUCTCONDENSEFLOAT = 505;
 const int TPZDOHRMATRIXSUBSTRUCTCONDENSEDOUBLE = 506;

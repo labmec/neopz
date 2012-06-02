@@ -906,75 +906,75 @@ void TPZCompElHDivPressure<TSHAPE>::CreateGraphicalElement(TPZGraphMesh &grafgri
 template<>
 int TPZCompElHDivPressure<TPZShapePoint>::ClassId() const
 {
-	return TPZHDIVPOINTID;
+	return TPZHDIVPOINT_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINTID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapePoint>, TPZHDIVPOINT_PRESSURE_ID>;
 
 
 template<>
 int TPZCompElHDivPressure<TPZShapeLinear>::ClassId() const
 {
-	return TPZHDIVLINEARID;
+	return TPZHDIVLINEAR_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeLinear>, TPZHDIVLINEARID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapeLinear>, TPZHDIVLINEAR_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapeTriang>::ClassId() const
 {
-	return TPZHDIVTRIANGLEID;
+	return TPZHDIVTRIANGLE_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTriang>, TPZHDIVTRIANGLEID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTriang>, TPZHDIVTRIANGLE_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapeQuad>::ClassId() const
 {
-	return TPZHDIVQUADID;
+	return TPZHDIVQUAD_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>, TPZHDIVQUADID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapeQuad>, TPZHDIVQUAD_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapeCube>::ClassId() const
 {
-	return TPZHDIVCUBEID;
+	return TPZHDIVCUBE_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>, TPZHDIVCUBEID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapeCube>, TPZHDIVCUBE_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapeTetra>::ClassId() const
 {
-	return TPZHDIVTETRAID;
+	return TPZHDIVTETRA_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>, TPZHDIVTETRAID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapeTetra>, TPZHDIVTETRA_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapePrism>::ClassId() const
 {
-	return TPZHDIVPRISMID;
+	return TPZHDIVPRISM_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>, TPZHDIVPRISMID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapePrism>, TPZHDIVPRISM_PRESSURE_ID>;
 
 template<>
 int TPZCompElHDivPressure<TPZShapePiram>::ClassId() const
 {
-	return TPZHDIVPYRAMID;
+	return TPZHDIVPYRAM_PRESSURE_ID;
 }
 
 template class
-TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAMID>;
+TPZRestoreClass< TPZCompElHDivPressure<TPZShapePiram>, TPZHDIVPYRAM_PRESSURE_ID>;
 
 
 template class TPZCompElHDivPressure<TPZShapeTriang>;

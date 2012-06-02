@@ -11,9 +11,6 @@
 #include "pzreal.h"
 #include "pzsave.h"
 
-/** @brief Id of the diagonal block matrix */
-/** @ingroup matrixutility */
-const int TPZBLOCKID = 101;
 
 /**
  * @brief Implements block matrices. \ref matrixutility "Matrix utility"

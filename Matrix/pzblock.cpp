@@ -8,6 +8,7 @@
 #include "pzerror.h"
 #include "pzblock.h"
 #include "pzstream.h"
+#include "pzmatrixid.h"
 
 #include <sstream>
 #include "pzlog.h"
@@ -488,14 +489,54 @@ void TPZBlock<TVar>::TNode::Write(TPZStream &buf, void *context)
 }
 
 /** Returns the unique identifier for reading/writing objects to streams */
-template<class TVar>
-int TPZBlock<TVar>::ClassId() const
+template<>
+int TPZBlock<float>::ClassId() const
 {
-	return TPZBLOCKID;
+	return TPZBLOCK_FLOAT_ID;
+}
+
+/** Returns the unique identifier for reading/writing objects to streams */
+template<>
+int TPZBlock<double>::ClassId() const
+{
+	return TPZBLOCK_DOUBLE_ID;
+}
+
+/** Returns the unique identifier for reading/writing objects to streams */
+template<>
+int TPZBlock<long double>::ClassId() const
+{
+	return TPZBLOCK_LONG_DOUBLE_ID;
+}
+
+/** Returns the unique identifier for reading/writing objects to streams */
+template<>
+int TPZBlock<std::complex<float> >::ClassId() const
+{
+	return TPZBLOCK_COMPLEX_FLOAT_ID;
+}
+
+/** Returns the unique identifier for reading/writing objects to streams */
+template<>
+int TPZBlock<std::complex<double> >::ClassId() const
+{
+	return TPZBLOCK_COMPLEX_DOUBLE_ID;
+}
+
+/** Returns the unique identifier for reading/writing objects to streams */
+template<>
+int TPZBlock<std::complex<long double> >::ClassId() const
+{
+	return TPZBLOCK_COMPLEX_LONG_DOUBLE_ID;
 }
 
 
-template class TPZRestoreClass< TPZBlock<REAL> , TPZBLOCKID>;
+template class TPZRestoreClass< TPZBlock<float> , TPZBLOCK_FLOAT_ID>;
+template class TPZRestoreClass< TPZBlock<double> , TPZBLOCK_DOUBLE_ID>;
+template class TPZRestoreClass< TPZBlock<long double> , TPZBLOCK_LONG_DOUBLE_ID>;
+template class TPZRestoreClass< TPZBlock<std::complex<float> > , TPZBLOCK_COMPLEX_FLOAT_ID>;
+template class TPZRestoreClass< TPZBlock<std::complex<double> > , TPZBLOCK_COMPLEX_DOUBLE_ID>;
+template class TPZRestoreClass< TPZBlock<std::complex<long double> > , TPZBLOCK_COMPLEX_LONG_DOUBLE_ID>;
 
 /** Saves the element data to a stream */
 template<class TVar>
