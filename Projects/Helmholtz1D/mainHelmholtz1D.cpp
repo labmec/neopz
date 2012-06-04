@@ -83,12 +83,12 @@ int main() {
 	// File for computing error
 	std::ofstream FileError("erros.txt");
 	// File for Mathematica output format
-	std::ofstream outMath("Mathematica.txt");
+	std::ofstream outMath("Mathematica.nb");
 	
 	// p -> interpolation order
-	int p = 1;
+	int p = 5;
 	// h -> level of uniform refinement of the initial mesh
-	int h = 4;
+	int h = 6;
 	// Last point of the one-dimensional domain
 	//double L = 1.;
 	
@@ -113,10 +113,10 @@ int main() {
         
         TPZFMatrix<STATE> xkin(2, 2, 0.), xcin(2, 2, 0.), xbin(2, 2, 0.), xfin(2, 1, 0.); 
 
-        material->SetMaterial(xkin,xcin,xbin,xfin);
+        material->SetMaterial(xkin, xcin, xbin, xfin);
 	
 	// inserting function force
-	material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
+	// material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
@@ -128,15 +128,16 @@ int main() {
 	// Assembling and Solving linear system
 	TPZAnalysis an(cmesh);
 
-	SolveSist(an,cmesh);
+	SolveSist(an, cmesh);
+        
 	// Solution output for Mathematica
-	OutputMathematica(outMath,1,10, cmesh);
-        OutputMathematica(outMath,2,10, cmesh);
+	OutputMathematica(outMath, 1, 10, cmesh);
+        OutputMathematica(outMath, 2, 10, cmesh);
 	
 	// Computing error
 	an.SetExact(ExactSolution);
 	TPZVec<REAL> posproc;
-	an.PostProcess(posproc,FileError); // Compute the errors
+	an.PostProcess(posproc, FileError); // Compute the errors
 	
 	return 0;
 }

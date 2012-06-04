@@ -74,8 +74,7 @@ void UniformRefinement(int h,TPZGeoMesh *gmesh) {
 
 TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int> &bc,TPZVec<int> &bcType) {
 	if(!material || bc.NElements()<2 || bcType.NElements() != bc.NElements()) return NULL;
-	int dim = 1;
-	
+	int dim = 1;	
 	
 	TPZMaterial *mat(material);
 	
@@ -88,11 +87,11 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	
 	// Related to boundary conditions
 	// REAL uN=1-cosh(1.)/sinh(1.);
-	TPZFMatrix<STATE> val1(2,2,0.), val2(2,1,0.);
+	TPZFMatrix<STATE> val1(2, 2, 0.), val2(2, 1, 0.);
 	
         if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.0);
-	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
+	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0], bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
         REAL k0 = 2 * M_PI / lambda;
@@ -102,13 +101,13 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
         
         val1(0, 0) = 0;
         val1(0, 1) = gama.imag();
-        val1(1, 0) = -gama.imag();
+        val1(1, 0) = gama.imag();
         val1(1, 1) = 0;
         
         val2(0) = -q.real();
-        val2(1) = -q.imag();
+        val2(1) = q.imag();
                 
-        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
+        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 	
 	//Adjusting data
@@ -122,21 +121,21 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {
 	// Symmetric case	
-//	TPZSkylineStructMatrix full(fCmesh);
-//	an.SetStructuralMatrix(full);
-//	an.Solution().Zero();
-//	TPZStepSolver<REAL> step;
-//	step.SetDirect(ELDLt);
-//	an.SetSolver(step);
-//	an.Run();
+	TPZSkylineStructMatrix full(fCmesh);
+	an.SetStructuralMatrix(full);
+	an.Solution().Zero();
+	TPZStepSolver<REAL> step;
+	step.SetDirect(ELDLt);
+	an.SetSolver(step);
+	an.Run();
 	
 	//	Nonsymmetric case
-		TPZBandStructMatrix full(fCmesh);
-		an.SetStructuralMatrix(full);
-		TPZStepSolver<STATE> step;
-		step.SetDirect(ELU);
-		an.SetSolver(step);
-		an.Run();
+//		TPZBandStructMatrix full(fCmesh);
+//		an.SetStructuralMatrix(full);
+//		TPZStepSolver<STATE> step;
+//		step.SetDirect(ELU);
+//		an.SetSolver(step);
+//		an.Run();
 }
 
 
