@@ -62,13 +62,13 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	}
 	
 	// Setting the phis
-	TPZFMatrix<>  &phiu =  datavec[0].phi;
-    TPZFMatrix<>  &phiQ =  datavec[1].phi;
-    TPZFMatrix<>  &phip =  datavec[2].phi;
+	TPZFMatrix<REAL>  &phiu =  datavec[0].phi;
+    TPZFMatrix<REAL>  &phiQ =  datavec[1].phi;
+    TPZFMatrix<REAL>  &phip =  datavec[2].phi;
     
-    TPZFMatrix<> &dphiu = datavec[0].dphix;
-	TPZFMatrix<> &dphiQ = datavec[1].dphix;
-	TPZFMatrix<> &dphip = datavec[2].dphix;
+    TPZFMatrix<REAL> &dphiu = datavec[0].dphix;
+	TPZFMatrix<REAL> &dphiQ = datavec[1].dphix;
+	TPZFMatrix<REAL> &dphip = datavec[2].dphix;
 
     int phru, phrq, phrp;
     phru = phiu.Rows();
@@ -81,7 +81,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
     }
     
 	
-    TPZFMatrix<> du(2,2);
+    TPZFMatrix<REAL> du(2,2);
     TPZFMatrix<> &axes = datavec[0].axes;
 	//current state (n+1)
 	if(gState == ECurrentState)
