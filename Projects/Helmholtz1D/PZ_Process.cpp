@@ -124,7 +124,7 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
 	an.Solution().Zero();
-	TPZStepSolver<REAL> step;
+	TPZStepSolver<STATE> step;
 	step.SetDirect(ELDLt);
 	an.SetSolver(step);
 	an.Run();
