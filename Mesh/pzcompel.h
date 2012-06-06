@@ -365,7 +365,7 @@ public:
 	 */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
-	virtual void ComputeSolution(TPZManVector<REAL,10> &qsi, TPZMaterialData &data)	{
+	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)	{
 		std::cout <<"Imposed for Hdiv solution ";
 		DebugStop();
 	};
