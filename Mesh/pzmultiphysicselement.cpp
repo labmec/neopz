@@ -12,6 +12,7 @@
 #include "pzmaterial.h"
 #include "pzbndcond.h"
 #include "pzlog.h"
+#include "pzinterpolationspace.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZMultiPhysicsElement"));
@@ -365,5 +366,21 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	}
 #endif
 	delete cel;
+}
+
+void TPZMultiphysicsElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec)
+{
+    int nmeshes = NMeshes();
+    for (int iel = 0; iel<nmeshes; iel++) {
+        TPZCompEl *cel = Element(iel);
+        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
+        if (!intel) {
+            continue;
+        }
+        TPZGeoEl *gel = intel->Reference();
+        TPZManVector<REAL> locpt(gel->Dimension());
+        trvec[iel].Apply(point, locpt);
+        intel->ComputeRequiredData(datavec[iel], locpt);
+    }
 }
 

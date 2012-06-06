@@ -35,14 +35,18 @@ public:
 	}
 	
 	virtual void AddElement(TPZCompEl *cel, int mesh) = 0;
+    
+    virtual TPZCompEl *Element(int elindex) = 0;
 	
 	virtual TPZCompEl *ReferredElement(int mesh) = 0;
     
-    virtual int nmeshes() = 0;
+    virtual int NMeshes() = 0;
 	
 	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
 	
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const = 0;
+    
+    virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
 	
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	

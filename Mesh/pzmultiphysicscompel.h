@@ -78,7 +78,7 @@ public:
 	virtual int NConnects() const;
 	
     /** @brief Return the number of meshes associated with the element */
-    virtual int nmeshes()
+    virtual int NMeshes()
     {
         return fElementVec.size();
     }
@@ -167,6 +167,11 @@ public:
 			fElementVec.resize(meshindex+1);
 		}
 		fElementVec[meshindex] = cel;
+    }
+    
+    virtual TPZCompEl *Element(int elindex)
+    {
+        return fElementVec[elindex];
     }
 	
 	/**@brief Returns referred element of this*/

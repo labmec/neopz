@@ -11,6 +11,7 @@
 #include "pzmaterial.h"
 #include "pzmultiphysicselement.h"
 #include "tpzintpoints.h"
+#include "pzdiscgal.h"
 
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0)
@@ -134,7 +135,7 @@ int TPZMultiphysicsInterfaceElement::ConnectIndex(int i) const
 
 void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef)
 {
-	TPZMaterial * material = Material();
+	TPZDiscontinuousGalerkin  * material = dynamic_cast<TPZDiscontinuousGalerkin *> (Material());
 	if(!material){
 		PZError << "Error at " << __PRETTY_FUNCTION__ << " this->Material() == NULL\n";
 		ek.Reset();
@@ -147,6 +148,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+    TPZGeoEl *leftgel = leftel->Reference();
+    TPZGeoEl *rightgel = rightel->Reference();
 #ifdef DEBUG
     if (!leftel || !rightel) {
         DebugStop();
@@ -156,6 +159,9 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     TPZMaterialData data;
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
+    TPZManVector<TPZTransform> leftcomptr, rightcomptr;
+    leftel->AffineTransform(leftcomptr);
+    rightel->AffineTransform(rightcomptr);
     InitMaterialData(data);
     int intleftorder = leftel->IntegrationOrder();
     int intrightorder = rightel->IntegrationOrder();
@@ -170,15 +176,27 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
     TPZGeoElSide neighleft(fLeftElSide.Reference()), neighright(fRightElSide.Reference());
     TPZTransform trleft(dimension),trright(dimension);
     TPZGeoElSide gelside(this->Reference(),thisside);
+    // compute the transformation between neighbours
     gelside.SideTransform3(neighleft, trleft);
     gelside.SideTransform3(neighright, trright);
+    TPZTransform leftloctr = leftgel->SideToSideTransform(neighleft.Side(), leftgel->NSides()-1);
+    TPZTransform rightloctr = rightgel->SideToSideTransform(neighright.Side(), rightgel->NSides()-1);
+    // transform from the element to the interior of the neighbours
+    trleft = leftloctr.Multiply(trleft);
+    trright = rightloctr.Multiply(trright);
+    
     
     int nintpoints = intrule->NPoints();
     for (int ip =0; ip<nintpoints; ip++) {
         REAL weight;
         intrule->Point(ip, Point, weight);
-        REAL detjac;
-        gel->Jacobian(Point, jac, axes, detjac, jacInv);
+        ComputeRequiredData(Point, data);
+        weight *= fabs(data.detjac);
+        trleft.Apply(Point, leftPoint);
+        leftel->ComputeRequiredData(leftPoint, leftcomptr, datavecleft);
+        trright.Apply(Point, rightPoint);
+        rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
+        material->ContributeInterface(data , datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }
 	/*
 	TPZVec<TPZMaterialData> datavec;
@@ -295,13 +313,43 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
 /** @brief Initialize the material data for the neighbouring element */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel)
 {
-    
+
 }
 
 /** @brief initialize the material data for the geometric data */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZMaterialData &data)
 {
+    TPZGeoEl *gel = Reference();
+    int dim = gel->Dimension();
+    int nsides = gel->NSides();
+    TPZManVector<REAL> center(dim);
+    gel->CenterPoint(nsides-1 , center);
+    TPZGeoElSide gelside(gel,nsides-1);
+    gelside.Normal(center, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+    data.axes.Redim(dim,3);
+    data.jacobian.Redim(dim,dim);
+	data.jacinv.Redim(dim,dim);
+	data.x.Resize(3);
     
 }
+
+/** @brief Compute the data needed to compute the stiffness matrix at the integration point */
+void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZMaterialData &data)
+{
+    TPZGeoEl *gel = Reference();
+    TPZGeoElSide gelside(gel,gel->NSides()-1);
+    gel->Jacobian(point, data.jacobian, data.axes, data.detjac, data.jacinv);
+    //ComputeRequiredData(Point,data);
+    gelside.Normal(point, fLeftElSide.Element()->Reference(), fRightElSide.Element()->Reference(), data.normal);
+
+}
+
+/** @brief Compute the required data from the neighbouring elements */
+void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data)
+{
+    //Neighbour->ComputeR
+}
+
+
 
 

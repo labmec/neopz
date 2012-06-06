@@ -137,6 +137,12 @@ public:
     /** @brief initialize the material data for the geometric data */
     void InitMaterialData(TPZMaterialData &data);
     
+    /** @brief Compute the data needed to compute the stiffness matrix at the integration point */
+    void ComputeRequiredData(TPZVec<REAL> &point, TPZMaterialData &data);
+    
+    /** @brief Compute the required data from the neighbouring elements */
+    void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
+    
     /** @brief Access function to the right element */
     TPZCompElSide Right() const
     {
@@ -149,13 +155,13 @@ public:
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(fLeftElSide.Element());
             if(mfcel)
             {
-                return mfcel->nmeshes();
+                return mfcel->NMeshes();
             }
         }
         if (fRightElSide) {
             TPZMultiphysicsElement *mfcel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element()); 
             if (mfcel) {
-                return mfcel->nmeshes();
+                return mfcel->NMeshes();
             }
         }
         return 1;
