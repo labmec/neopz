@@ -221,26 +221,36 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	
 	for (int iref = 0; iref<nref; iref++)
 	{		
+        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		datavec[iref].p = msp->MaxOrder();
-        datavec[iref].sol.resize(1);
-		datavec[iref].sol[0].Resize(numdof);
-		datavec[iref].sol.Fill(0.);
-        datavec[iref].dsol.resize(1);
-		datavec[iref].dsol[0].Redim(dim,numdof);
-		datavec[iref].dsol[0].Zero();
-		datavec[iref].axes.Redim(dim,3);
-		datavec[iref].axes.Zero();
+        trvec[iref].Apply(qsi, myqsi);
+        msp->ComputeSolution(myqsi, datavec[iref]);
+//		datavec[iref].p = msp->MaxOrder();
+//        datavec[iref].sol.resize(1);
+//		datavec[iref].sol[0].Resize(numdof);
+//		datavec[iref].sol.Fill(0.);
+//        datavec[iref].dsol.resize(1);
+//		datavec[iref].dsol[0].Redim(dim,numdof);
+//		datavec[iref].dsol[0].Zero();
+//		datavec[iref].axes.Redim(dim,3);
+//		datavec[iref].axes.Zero();
 		
-		trvec[iref].Apply(qsi, myqsi);
-		msp->ComputeSolution(myqsi, datavec[iref].sol, datavec[iref].dsol, datavec[iref].axes);
+		//trvec[iref].Apply(qsi, myqsi);
+		//msp->ComputeSolution(myqsi, datavec[iref].sol, datavec[iref].dsol, datavec[iref].axes);
+        
 		
 		datavec[iref].x.Resize(3);
 		msp->Reference()->X(myqsi, datavec[iref].x);
-	}	
+       
+	}
+	
+    
 	int solSize = material->NSolutionVariables(var);
 	sol.Resize(solSize);
 	sol.Fill(0.);
+    int nsq=datavec[0].sol[0].size();
+    int nsp=datavec[1].sol[0].size();
+
 	material->Solution(datavec, var, sol);
 }
 
@@ -345,23 +355,25 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	for (int iref = 0; iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		const int nstate = msp->Material()->NStateVariables();
-		nshape[iref] =  msp->NShapeF();
-		dataVec[iref].phi.Redim(nshape[iref],1);
-		dataVec[iref].dphix.Redim(dim,nshape[iref]);
-		dataVec[iref].axes.Redim(dim,3);
-		dataVec[iref].jacobian.Redim(dim,dim);
-		dataVec[iref].jacinv.Redim(dim,dim);
-		dataVec[iref].x.Resize(3);
-		
-		
-		if (dataVec[iref].fNeedsSol)
-		{
-            dataVec[iref].sol.resize(1);
-            dataVec[iref].dsol.resize(1);
-			dataVec[iref].sol[0].Resize(nstate);
-			dataVec[iref].dsol[0].Redim(dim,nstate);
-		}
+        msp->InitMaterialData(dataVec[iref]);
+        
+		//const int nstate = msp->Material()->NStateVariables();
+		//nshape[iref] =  msp->NShapeF();
+//		dataVec[iref].phi.Redim(nshape[iref],1);
+//		dataVec[iref].dphix.Redim(dim,nshape[iref]);
+//		dataVec[iref].axes.Redim(dim,3);
+//		dataVec[iref].jacobian.Redim(dim,dim);
+//		dataVec[iref].jacinv.Redim(dim,dim);
+//		dataVec[iref].x.Resize(3);
+//		
+//		
+//		if (dataVec[iref].fNeedsSol)
+//		{
+//            dataVec[iref].sol.resize(1);
+//            dataVec[iref].dsol.resize(1);
+//			dataVec[iref].sol[0].Resize(nstate);
+//			dataVec[iref].dsol[0].Redim(dim,nstate);
+//		}
 	}
 	
 }
