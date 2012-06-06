@@ -9,7 +9,10 @@
 #ifndef PZ_mixedpoisson_h
 #define PZ_mixedpoisson_h
 
+#include "pzmaterial.h"
 #include "pzdiscgal.h"
+#include "pzpoisson3d.h"
+#include "pzmaterial.h"
 
 /**
  * @ingroup material
@@ -26,7 +29,7 @@
  */
 
 
-class TPZMixedPoisson : public TPZDiscontinuousGalerkin {
+class TPZMixedPoisson : public TPZMatPoisson3d{
     
 protected:
 	/** @brief Forcing function value */
@@ -41,9 +44,9 @@ protected:
 public:
     TPZMixedPoisson();
     
-    TPZMixedPoisson(int matid);
+    TPZMixedPoisson(int matid, int dim);
     
-    ~ TPZMixedPoisson();
+    virtual ~TPZMixedPoisson();
     
     virtual void Print(std::ostream & out);
 	
@@ -70,10 +73,25 @@ public:
      * @param ek [out] is the stiffness matrix
      * @param ef [out] is the load vector
      */
-	virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	  virtual void Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
-	//virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+	 virtual void ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc);
+    
+
 	
+	virtual int VariableIndex(const std::string &name);
+	
+	virtual int NSolutionVariables(int var);
+	
+	/**
+     * @brief It return a solution to multiphysics simulation.
+	 * @param datavec [in] Data material vector
+     * @param var [in] number of solution variables. See  NSolutionVariables() method
+     * @param Solout [out] is the solution vector
+     */	
+     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+	
+    	
 };
 
 #endif
