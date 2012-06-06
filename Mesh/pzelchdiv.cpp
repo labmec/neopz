@@ -1085,8 +1085,24 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
 	}
 	
     int nconflux=TPZCompElHDiv::NConnects();
-	for(i=0; i< nconflux-1; i++) {
-		ord[i] = ConnectOrder(i);
+    if(TSHAPE::Type()==EQuadrilateral)
+    {
+        for(i=0; i< nconflux-1; i++) {
+            ord[i] = ConnectOrder(i);
+		
+            //		 #ifdef LOG4CXX
+            //		 std::stringstream sout;
+            //		 sout << " ordem do connect " << i << " " << ord[i]<<endl;
+            //		 LOGPZ_DEBUG(logger,sout.str())
+            //		 #endif
+        
+        }
+        ord[i] = ConnectOrder(i)-1;
+    }
+    else{
+        for(i=0; i< nconflux; i++)
+        {
+            ord[i] = ConnectOrder(i);
 		
         //		 #ifdef LOG4CXX
         //		 std::stringstream sout;
@@ -1094,9 +1110,8 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
         //		 LOGPZ_DEBUG(logger,sout.str())
         //		 #endif
         
-	}
-    ord[i] = ConnectOrder(i)-1;
-	
+        }
+    }
 	int dimension= TSHAPE::Dimension;
 	
 	
