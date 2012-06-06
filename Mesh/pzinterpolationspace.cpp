@@ -142,6 +142,8 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	//		this->ComputeSolution(qsi, data.normal, data.soll, data.dsoll, data.axesleft, data.solr, data.dsolr, data.axesright);
 	//}//fNeedsNeighborSol
 	
+    this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    
 	if (data.fNeedsSol){
 		if (data.phi.Rows()){//if shape functions are available
 			this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -298,10 +300,11 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 //#endif
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
-		weight *= fabs(data.detjac);
+		//this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+		//weight *= fabs(data.detjac);
 		data.intPtIndex = int_ind;
 		this->ComputeRequiredData(data, intpoint);
+        weight *= fabs(data.detjac);
 		material->Contribute(data, weight, ek.fMat, ef.fMat);
 	}//loop over integratin points
 	
@@ -342,13 +345,14 @@ void TPZInterpolationSpace::CalcResidual(TPZElementMatrix &ef){
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
 		
-		this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+		//this->ComputeShape(intpoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
 		
-		weight *= fabs(data.detjac);
+		//weight *= fabs(data.detjac);
 		
 		data.intPtIndex = int_ind;
 		
 		this->ComputeRequiredData(data, intpoint);
+        weight *= fabs(data.detjac);
 		
 		material->Contribute(data,weight,ef.fMat);
 		

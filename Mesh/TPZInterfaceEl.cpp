@@ -342,8 +342,8 @@ void TPZInterfaceElement::CalcResidual(TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 		
-		left->ComputeShape(LeftIntPoint, data.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
-		right->ComputeShape(RightIntPoint, data.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
+		//left->ComputeShape(LeftIntPoint, data.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
+		//right->ComputeShape(RightIntPoint, data.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
 		
 		this->ComputeRequiredData(datal, left, LeftIntPoint);
 		this->ComputeRequiredData(datar, right, RightIntPoint);
@@ -1110,8 +1110,8 @@ void TPZInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 
-        left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
-		right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
+        //left->ComputeShape(LeftIntPoint, dataleft.x, dataleft.jacobian, dataleft.axes, dataleft.detjac, dataleft.jacinv, dataleft.phi, dataleft.dphix);
+		//right->ComputeShape(RightIntPoint, dataright.x, dataright.jacobian, dataright.axes, dataright.detjac, dataright.jacinv, dataright.phi, dataright.dphix);
         data.x = dataleft.x;
 		this->ComputeRequiredData(dataleft, left, LeftIntPoint);
 		this->ComputeRequiredData(dataright, right, RightIntPoint);
@@ -1317,8 +1317,8 @@ void TPZInterfaceElement::ComputeErrorFace(int errorid,
 		this->CheckConsistencyOfMappedQsi(this->RightElementSide(), intpoint, RightIntPoint);
 #endif
 		
-		left->ComputeShape(LeftIntPoint, datal.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
-		right->ComputeShape(RightIntPoint, datar.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
+		//left->ComputeShape(LeftIntPoint, datal.x, datal.jacobian, datal.axes, datal.detjac, datal.jacinv, datal.phi, datal.dphix);
+		//right->ComputeShape(RightIntPoint, datar.x, datar.jacobian, datar.axes, datar.detjac, datar.jacinv, datar.phi, datar.dphix);
 		
 		this->ComputeRequiredData(datal, left, LeftIntPoint);
 		this->ComputeRequiredData(datar, right, RightIntPoint);
@@ -1546,6 +1546,9 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data){
 void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
                                               TPZInterpolationSpace *elem,
                                               TPZVec<REAL> &IntPoint){
+    
+    elem->ComputeShape(IntPoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    
 	if (data.fNeedsNeighborSol){
 		elem->ComputeSolution(  IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
 	}
