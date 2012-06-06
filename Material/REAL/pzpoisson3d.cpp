@@ -196,9 +196,11 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	 |B 0		|		 |f |
 	 
 	 **/
+    
+    TPZVec<REAL>  &x = data.x;
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
-		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	int numvec = data.fVecShapeIndex.NElements();
@@ -206,6 +208,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	int numprimalshape = data.phi.Rows()-numdual;
 	
 	int i,j;
+    REAL ratiok =1./fK; 
 	for(i=0; i<numvec; i++)
 	{
 		int ivecind = data.fVecShapeIndex[i].first;
@@ -216,7 +219,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 			REAL prod = data.fNormalVec(0,ivecind)*data.fNormalVec(0,jvecind)+
 			data.fNormalVec(1,ivecind)*data.fNormalVec(1,jvecind)+
 			data.fNormalVec(2,ivecind)*data.fNormalVec(2,jvecind);//faz o produto escalar entre u e v--> Matriz A
-			ek(i,j) += weight*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
+			ek(i,j) += weight*ratiok*data.phi(ishapeind,0)*data.phi(jshapeind,0)*prod;
 			
 			
 			
@@ -234,15 +237,26 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 			divwq += axesvec(iloc,0)*data.dphix(iloc,ishapeind);
 		}
 		for (j=0; j<numdual; j++) {
-			REAL fact = (1.)*weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
+			REAL fact = (-1.)*weight*data.phi(numprimalshape+j,0)*divwq;//calcula o termo da matriz B^T  e B
 			ek(i,numvec+j) += fact;
 			ek(numvec+j,i) += fact;//-div
 		}
 	}
 	for(i=0; i<numdual; i++)
 	{
-		ef(numvec+i,0) += weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
+		ef(numvec+i,0) += (-1.)*weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
 	}
+    
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+	{
+        std::stringstream sout;
+        sout<<"\n\n Matriz ek e vetor fk \n ";
+        ek.Print("ekHdiv = ",sout,EMathematicaInput);
+        ef.Print("efHDiv = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger,sout.str());
+	}
+#endif
 }
 
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
