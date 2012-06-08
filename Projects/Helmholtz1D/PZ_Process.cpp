@@ -11,8 +11,7 @@
 
 using namespace std;
 
-TPZGeoMesh *GeomMesh1D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL,TPZVec<REAL> &xR)
-{	
+TPZGeoMesh *GeomMesh1D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &xL,TPZVec<REAL> &xR) {	
 	if(!matId.NElements() || bc.NElements() < 2)
 		return NULL;
 	TPZGeoMesh *gmesh = new TPZGeoMesh;
@@ -118,8 +117,48 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	return cmesh;
 }
 
-void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
-{
+TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, TPZVec<int> &bc, TPZVec<int> &bcType) {
+	if(!material || bc.NElements()< 2 || bcType.NElements() != bc.NElements()) return NULL;
+	int dim = 1;	
+	
+	TPZMaterial *mat(material);
+	
+	// related to interpolation space
+	TPZCompEl::SetgOrder(p);
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDimModel(dim);
+	cmesh->SetAllCreateFunctionsContinuous();
+	cmesh->InsertMaterialObject(mat);
+	
+	// Related to boundary conditions
+	// REAL uN=1-cosh(1.)/sinh(1.);
+	TPZFMatrix<STATE> val1(1, 1, 0.), val2(1, 1, 0.);
+	
+        if(!bcType[0])  // dirichlet
+		val2.PutVal(0, 0, 0.0);
+	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0], bcType[0], val1, val2);
+	cmesh->InsertMaterialObject(BCond1);
+	
+        REAL k0 = 2 * M_PI / lambda;
+        std::complex<REAL> imaginary(0, 1);  
+        std::complex<REAL> q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+        std::complex<REAL> gama = imaginary * k0 * std::cos(theta);
+        
+        val1(0, 0) = gama;        
+        val2(0) = q;
+                
+        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
+	cmesh->InsertMaterialObject(BCond2);
+	
+	//Adjusting data
+	cmesh->AutoBuild();
+	cmesh->AdjustBoundaryElements(); 
+	cmesh->CleanUpUnconnectedNodes();
+	
+	return cmesh;
+}
+
+void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh) {
 	// Symmetric case	
 	TPZSkylineStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
@@ -138,13 +177,11 @@ void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 //		an.Run();
 }
 
-
 // CASE 2D
 
 #include "pzgengrid.h"
 
-TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0,TPZVec<REAL> &x1)
-{
+TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0,TPZVec<REAL> &x1) {
 	if(!matId.NElements() || bc.NElements() < 2)
 		return NULL;
     TPZGeoMesh *gmesh = new TPZGeoMesh;
