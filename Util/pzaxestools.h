@@ -37,7 +37,7 @@ public:
 				for(int k = 0; k < axes.Cols(); k++){
 					sum += axes.GetVal(i,k)*axes.GetVal(j,k);
 				}//k
-				if(fabs(sum) > tol){
+				if(!IsZero(sum)){
 					check = false;
 				}//if
 			}//for j
