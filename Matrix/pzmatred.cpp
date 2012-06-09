@@ -187,7 +187,14 @@ const TPZFMatrix<TVar>& TPZMatRed<TVar,TSideMatrix>::K11Red()
 		Simetrize();
 		fSolver->Solve(fK01,fK01);
         TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *>(fSolver.operator->());
-        std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
+		if (step) {
+			std::cout << " Number of singular modes " << step->Singular().size() << std::endl;
+			std::cout.flush();
+		}
+		else {
+			DebugStop();
+		}
+
 		fK01IsComputed = 1;
 	}
 	
