@@ -5,22 +5,57 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), flambdaE(-1), fmuE(-1), fElaVE(-1.), fPoissonVE(-1.)
+TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), falphaT(-1.), flambdaV(-1.), fmuV(-1.)
 {
     
 }
 
-TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id),flambdaV(lambdaV),fmuV(muV),falphaT(alphaT)
+TPZViscoelastic::TPZViscoelastic(int id) : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), falphaT(-1.), flambdaV(-1.), fmuV(-1.)
 {
-	flambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
-	fmuE = ElaE/(2*(1+poissonE));
-	STATE lambda = flambdaE-(falphaT*flambdaV)/(1+falphaT);
-	STATE mu = fmuE -(falphaT*fmuV)/(1+falphaT); 
-	fElaVE = mu*(3*lambda+2*mu)/(lambda+mu);
-	fPoissonVE = lambda/(2*(lambda+mu));
-	SetMaterialDataHook(fElaVE, fPoissonVE);
+	
+}
+
+TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), falphaT(alphaT), flambdaV(lambdaV), fmuV(muV)
+																																																																																																																	 
+{
+	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
+	STATE muE = ElaE/(2*(1+poissonE));
+	STATE lambdaVE = lambdaE-(falphaT*lambdaV)/(1+falphaT);
+	STATE muVE = muE -(falphaT*muV)/(1+falphaT); 
+	STATE ElaVE = muVE*(3*lambdaVE+2*muVE)/(lambdaVE+muVE);
+	STATE PoissonVE = lambdaVE/(2*(lambdaVE+muVE));	
+	if (lambdaVE < 0 || muVE < 0)
+	{
+		PZError << "lambdaVE and muVE must be positive. Check your constants values\n";
+		DebugStop();
+	}
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::
+	SetMaterialDataHook(ElaVE, PoissonVE); // Creating an elastic material with the viscoelastic properties
 	SetForce(force);
-	SetC();
+	//SetC(); already set in SetMaterialDataHook from elastic material
+}
+
+void TPZViscoelastic::SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alphaT, TPZVec <STATE> &force)
+{
+	falphaT = alphaT;
+	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
+	STATE muE = ElaE/(2*(1+poissonE));
+	STATE lambdaV = (poissonV * ElaV)/((1+poissonV)*(1-2*poissonV));
+	STATE muV = ElaV/(2*(1+poissonV));
+	flambdaV = lambdaV; 
+	fmuV = muV;
+	STATE lambdaVE = lambdaE-(falphaT*lambdaV)/(1+falphaT);
+	STATE muVE = muE -(falphaT*muV)/(1+falphaT); 
+	STATE ElaVE = muVE*(3*lambdaVE+2*muVE)/(lambdaVE+muVE);
+	STATE PoissonVE = lambdaVE/(2*(lambdaVE+muVE));
+	if (lambdaVE < 0 || muVE < 0)
+	{
+		PZError << "lambdaVE and muVE must be positive. Check your constants values\n";
+		DebugStop();
+	}
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::SetMaterialDataHook(ElaVE, PoissonVE); // Creating an elastic material with the viscoelastic properties
+	SetForce(force);
+	//SetC(); already set in SetMaterialDataHook from elastic material
 }
 
 void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
@@ -75,8 +110,6 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         ef(in*nstate+2,0) += weight * val;
     }
     TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Contribute(data,weight,ek,ef);
-
-
 }
 
 void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
@@ -261,27 +294,19 @@ void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
 void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Write(buf,withclassid);
-	buf.Write(&flambdaE, 1);
-	buf.Write(&fmuE, 1);
-	buf.Write(&flambdaV, 1);
-	buf.Write(&fmuV, 1);
-	buf.Write(&falphaT, 1);
-	buf.Write(&fElaVE, 1);
-	buf.Write(&fPoissonVE, 1);
-	
+	buf.Write(&falphaT, 1);	
+	buf.Write(&flambdaV, 1);	
+	buf.Write(&fmuV, 1);	
 }
 
 /** Read the element data from a stream */
 void TPZViscoelastic::Read(TPZStream &buf, void *context)
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Read(buf,context);
-	buf.Read(&flambdaE, 1);
-	buf.Read(&fmuE, 1);
+	buf.Read(&falphaT, 1);
 	buf.Read(&flambdaV, 1);
 	buf.Read(&fmuV, 1);
-	buf.Read(&falphaT, 1);
-	buf.Read(&fElaVE, 1);
-	buf.Read(&fPoissonVE, 1);
+
 }
 
 int TPZViscoelastic::ClassId() const

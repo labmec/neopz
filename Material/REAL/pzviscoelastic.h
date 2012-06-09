@@ -1,6 +1,7 @@
 /**
  * @file
  * @brief Contains the TPZViscoelastic class which implements an isotropic viscoelasticity material.
+ * @author Nathan Shauer
  */
 
 #ifndef TPZVISCOELASTIC_H
@@ -39,10 +40,28 @@ class TPZViscoelastic : public TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>
 		
 public:
 	enum SOLUTIONVARS{ENone = -1, EViscoStressX = 30, EViscoStressY = 31, EViscoStressZ = 32};
-    
-    TPZViscoelastic();
+  
+  /**
+	 * @brief Empty constructor
+	 */
+	TPZViscoelastic();
+	
+	/**
+	 * @brief id constructor
+	 */
+	TPZViscoelastic(int id);
+
+  /**
+	 * @brief Not a good variables initialization constructor. Uses Hooke for elastic part and lame for viscous part
+	 */
 	
 	TPZViscoelastic(int id,STATE ElaE, STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force);
+
+  /**
+	 * @brief Set material Data with hooke constants
+	 */
+	
+	void SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alphaT, TPZVec <STATE> &force);
 	
 	
 	virtual void Contribute(TPZMaterialData &data,
@@ -80,7 +99,15 @@ public:
 	
 protected:
 	
-	STATE flambdaE,fmuE,flambdaV,fmuV,falphaT,fElaVE,fPoissonVE; 
+	/**
+	 * @brief the multiplication of alpha by the time step 
+	 */
+	STATE falphaT;
+	
+	/**
+	 * @brief viscoelasticity coeficients
+	 */
+	STATE flambdaV, fmuV;
 };
 
 #endif

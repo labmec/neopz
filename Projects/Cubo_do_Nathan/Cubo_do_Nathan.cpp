@@ -344,20 +344,20 @@ int main()
 	 cmesh->ExpandSolution();
 	 */
 	
-	int resolution = 2;
+	int resolution = 1;
 	TPZVec <std::string> vecnames(2), scalnames(0);
-	/*
+	
 	 
 	 //  scalnames[0] = "StressX";
 	 vecnames[0] = "Displacement";
 	 vecnames[1] = "PrincipalStrain";
 	 //scalnames[0] = "ViscoStressX";
-	 std::string plotfile("cubinho.vtk");
+	 std::string plotfile("cuboPostProc.vtk");
 	 
 	 an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
 	 an.PostProcess(resolution);
-	 */
-	
+	 
+	/*
 	TPZPostProcAnalysis postan(&an);
 	TPZVec <int> matids(3);
 	matids[0] = 1; 
@@ -378,13 +378,14 @@ int main()
 	
 	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
 	postan.PostProcess(resolution);
+	 */
 	
     for (int istep = 0 ; istep < 5 ; istep++)
     {
 		an.AssembleResidual();
 		an.Solve();
-		postan.TransferSolution();
-		postan.PostProcess(resolution);
+		//postan.TransferSolution();
+		an.PostProcess(resolution);
     }
 	
 	//an.Solution().Print("Solution",std::cout);
@@ -417,14 +418,16 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<REAL> force(3,0.);
 	//force[1] = 0.;
-	REAL Ela = 1000, poisson = 0.; 
+	REAL ElaE = 1000, poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
 	REAL lambdaV = 0, muV = 0, alphaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
 	alphaT = 0.01;	
     
     
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alphaT, force);
 	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
 	
 	TPZFNMatrix<6> qsi(6,1,0.);

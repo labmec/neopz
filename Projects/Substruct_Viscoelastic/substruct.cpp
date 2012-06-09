@@ -93,8 +93,8 @@ int main1(int argc, char *argv[])
 	int maxlevel = 5;
 	int sublevel = 3;
 	int plevel = 1;
-	TPZPairStructMatrix::gNumThreads = 64;
-	int numthreads = 64;
+	TPZPairStructMatrix::gNumThreads = 0;
+	int numthreads = 0;
 	//	tempo.fNumthreads = numthreads;	// alimenta timeTemp com o numero de threads
 	TPZGeoMesh *gmesh = 0;
 	{
@@ -112,7 +112,7 @@ int main1(int argc, char *argv[])
 		else 
 		{
 			dim = 3;
-			if (1) // Predio Viscoso
+			if (0) // Predio Viscoso
 			{
 				int dimension = 3;
 				gmesh = MalhaPredio();
@@ -139,8 +139,8 @@ int main1(int argc, char *argv[])
 		
 		std::cout << "Numero de equacoes " << cmesh->NEquations() << std::endl;
 		
-		int numthread_assemble = 64;
-		int numthread_decompose = 64;
+		int numthread_assemble = 0;
+		int numthread_decompose = 0;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
 		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
 		
@@ -151,7 +151,7 @@ int main1(int argc, char *argv[])
 		//REAL height = Height(gmesh);
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		
-		dohrstruct.SubStructure(64);
+		dohrstruct.SubStructure(3);
 		//	tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 		//	std::cout << tempo.ft0sub << std::endl;
 		
@@ -1227,6 +1227,9 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZMaterial * viscoelastauto(viscoelast);
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
+	TPZFNMatrix<6> qsi(6,1,0.);
+	viscoelast->SetDefaultMem(qsi); //elast
+	int index = viscoelast->PushMemItem(); //elast
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);
 	mesh->InsertMaterialObject(bcauto);	
@@ -1240,14 +1243,16 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
-	STATE Ela = 1000, poisson = 0.; 
+	
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
 	STATE lambdaV = 0, muV = 0, alphaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
 	alphaT = 0.01;	
 	
-	
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alphaT, force);
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, ElaE, poissonE, lambdaV, muV, alphaT, force);
 	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
 	
 	TPZFNMatrix<6> qsi(6,1,0.);
