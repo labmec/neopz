@@ -360,6 +360,16 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 
 	if (numthreads_assemble > 0) {
 	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assemble threads");
+#ifdef LOG4CXX2
+        int isub = 0;
+        for (it=sublist.begin(); it!=sublist.end(); it++) {
+            std::stringstream sout;
+            sout << "Substructure number " << isub <<std::endl;
+            isub++;
+            (*it)->Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose setup");
 	}
 	
@@ -575,6 +585,13 @@ void TPZDohrStructMatrix::IdentifyCornerNodes()
 	//	nel = elementgraphindex.NElements()-1;
 	TPZRenumbering renum(nel,nindep);
 	renum.SetElementGraph(expelementgraph, expelementgraphindex);
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        renum.Print(expelementgraph, expelementgraphindex,"Expanded graph",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	//	renum.SetElementGraph(elementgraph, elementgraphindex);
 	std::set<int> othercornereqs;
 	renum.CornerEqs(3,nelprev,othercornereqs);
@@ -920,6 +937,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	metis.SetElementGraph(elgraph, elgraphindex);
 	TPZManVector<int> domain_index(nel,-1);
 	metis.Subdivide(nsub, domain_index);
+    CorrectNeighbourDomainIndex(fMesh->Reference(), domain_index);
 #ifdef DEBUG 
 	{
 		TPZGeoMesh *gmesh = fMesh->Reference();
@@ -949,6 +967,22 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 		}
 		nsub = ClusterIslands(domain_index,nsub,meshdim-1);
 	}	
+    CorrectNeighbourDomainIndex(fMesh->Reference(), domain_index);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Geometric mesh and domain indices\n";
+        fMesh->Reference()->Print(sout);
+        sout << "Domain indices : \n";
+        int nel = fMesh->Reference()->NElements();
+        for (int el=0; el<nel; el++) {
+            sout << "el " << el << " domain " << domain_index[el] << std::endl;
+        }
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+
 #ifdef DEBUG 
 	{
 		TPZGeoMesh *gmesh = fMesh->Reference();
@@ -989,10 +1023,20 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 			submeshes[domindex]->TransferElement(fMesh.operator->(),iel);
 		}
 	}
+    for (isub = 0; isub<nsub; isub++) {
+        int nel = submeshes[isub]->NElements();
+        if (nel == 0) {
+            delete submeshes[isub];
+            submeshes[isub] = 0;
+        }
+    }
 	fMesh->ComputeNodElCon();
 	for (isub=0; isub<nsub; isub++) {
-		submeshes[isub]->MakeAllInternal();
-		std::cout << '*'; std::cout.flush();
+        if (submeshes[isub]) 
+        {
+            submeshes[isub]->MakeAllInternal();
+            std::cout << '*'; std::cout.flush();
+        }
 	}
 	
 	fMesh->ComputeNodElCon();
@@ -1134,6 +1178,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		{
 			int coarse = substruct->fCoarseNodes[ic];
 			Stiffness->operator()(coarse,coarse) += 10.;
+            //Philippe 7/6/2012
+            //matredbig->operator()(coarse,coarse) += 10.;
 			matredbig->operator()(neq+ic,coarse) = 1.;
 			matredbig->operator()(coarse,neq+ic) = 1.;
 		}
@@ -1619,5 +1665,32 @@ void TPZDohrStructMatrix::Read(TPZStream &str)
     str.Read(&fNumThreadsDecompose);
     TPZSaveable::ReadObjects(str, fExternalConnectIndexes);
     TPZSaveable::ReadObjects(str, fCornerEqs);    
+}
+
+/** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */
+void TPZDohrStructMatrix::CorrectNeighbourDomainIndex(TPZGeoMesh *gmesh, TPZVec<int> &domainindex)
+{
+    int nel = gmesh->NElements();
+    TPZAdmChunkVector<TPZGeoEl *> &elvec = gmesh->ElementVec();
+    bool changed = true;
+    while(changed)
+    {
+        changed = false;
+        for (int el=0; el<nel; el++) {
+            TPZGeoEl *gel = elvec[el];
+            if (! gel) {
+                continue;
+            }
+            int nsides = gel->NSides();
+            TPZGeoElSide neighbour = gel->Neighbour(nsides-1);
+            if (neighbour.Element() != gel) {
+                int neighindex = neighbour.Element()->Index();
+                if (domainindex[el] != domainindex[neighindex]) {
+                    domainindex[el] = domainindex[neighindex];
+                    changed = true;                    
+                }
+            }
+        }
+    }
 }
 

@@ -302,7 +302,10 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 			continue;
 		}
 		TPZStack<int> corners;
+        std::set<int> elcornernodes;
 		// a vector of sets of element connections for each node
+        // first key : number elements connected to the node
+        // second key : pair of node and set of element indices
 		std::multimap<int,std::pair<int,std::set<int> > > connectivities;
 		typedef std::multimap<int,std::pair<int,std::set<int> > > map_type;
 		int ind;
@@ -326,8 +329,15 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 		{
 			corners.Push(ithead->second.first);
 			cornernodes.insert(ithead->second.first);
+            elcornernodes.insert(ithead->second.first);
 		}
-		
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Element " << element << " First stage corner nodes " << corners;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		// look the included sets
 		map_type::iterator itf = connectivities.begin();		
 		for (itf=connectivities.begin(); itf != connectivities.end(); itf++)
@@ -351,9 +361,17 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 			if (it->first == itf->first && it->first != maxconnect) {
 				corners.Push(itf->second.first);
 				cornernodes.insert(itf->second.first);
+                elcornernodes.insert(itf->second.first);
 			}
 		}
-		if (corners.NElements() < mincorners) {
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Element " << element << " cornernodes.size " << elcornernodes.size() << " Second stage corner nodes " << corners;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+		if (elcornernodes.size() < mincorners) {
 			it = connectivities.rbegin();
 			int numelconnected = it->first-1;
 			int ncorners = corners.NElements();
@@ -364,7 +382,8 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 				{
 					corners.Push(ithead->second.first);
 					cornernodes.insert(ithead->second.first);
-					ncorners++;
+                    elcornernodes.insert(ithead->second.first);
+					ncorners = elcornernodes.size();
 				}
 				numelconnected--;
 			}
@@ -375,6 +394,13 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 				DebugStop();
 			}
 		}
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Element " << element << " sub " << sub << " Final stage corner nodes " << corners;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		
 		sub++;
 	}

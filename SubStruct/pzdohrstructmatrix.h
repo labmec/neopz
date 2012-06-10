@@ -108,6 +108,9 @@ protected:
 	/** @brief Identify the corner equations associated with a substructure */
 	void IdentifySubCornerEqs(std::map<int,int> &globaltolocal, TPZVec<int> &cornereqs,
 							  TPZVec<int> &coarseindex);
+    
+    /** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */
+    void CorrectNeighbourDomainIndex(TPZGeoMesh *gmesh, TPZVec<int> &domainindex);
 	
 public:
 	/** @brief Identify the external connects */

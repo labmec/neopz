@@ -135,8 +135,8 @@ void TPZDohrSubstructCondense<TVar>::Print(std::ostream &out) const
 	const TPZVec<int> &exteq = GatherVec(Submesh, ExternalFirst);
 	out << "External equations-first-Gather " << exteq << std::endl;
 	out << "Numbering of the Coarse nodes in the global mesh fCoarseNodes " << fCoarseNodes << std::endl;
-	fMatRedComplete->Print("The matrix which computes phi and fKCi ",out);
-	fMatRed->Print("The matrix with the internal nodes condensed ", out);
+	fMatRedComplete->Print("The matrix which computes phi and fKCi ",out,EMathematicaInput);
+	fMatRed->Print("The matrix with the internal nodes condensed ", out,EMathematicaInput);
 	fKCi.Print("Coarse Matrix fKCi",out);
 	fPhiC.Print("fPhiC : ",out,EMathematicaInput);
 	out << "fWeights = " << fWeights  << endl;
