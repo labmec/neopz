@@ -144,7 +144,7 @@ void TPZMat1dLin::Print(std::ostream & out) {
 	out << "Matrix xf ->  "; fXf.Print("fXf",out);
 }
 
-void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*u*/, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &fl) {
+void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<STATE> &/*u*/, TPZFMatrix<STATE> &dudx, TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &fl) {
 	
 	int row = NStateVariables();
 	for(int i=0; i<row; i++){
@@ -156,7 +156,7 @@ void TPZMat1dLin::Flux(TPZVec<REAL> &/*x*/, TPZVec<REAL> &/*u*/, TPZFMatrix<STAT
 }
 
 void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> &dudx,TPZFMatrix<REAL> &/*axes*/, TPZVec<STATE> &flux,
-						 TPZVec<REAL> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<STATE> &values) {
+						 TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact,TPZVec<REAL> &values) {
 	
 	TPZVec<STATE> udif(u);
 	int nelem= udif.NElements(),i;
@@ -173,9 +173,9 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 	values.Fill(0.);
 	
 	for (idf=0; idf<r; idf++) {
-		values[1] += udif[idf]*udif[idf];
+		values[1] += fabs(udif[idf]*udif[idf]);
 		for (short jdf=0; jdf<r; jdf++) {
-			values[0] += dudif(0,idf)*fXk(idf,jdf)*dudif(0,jdf) + udif[idf]*fXb(idf,jdf)*udif[jdf];
+			values[0] += fabs(dudif(0,idf)*fXk(idf,jdf)*dudif(0,jdf) + udif[idf]*fXb(idf,jdf)*udif[jdf]);
 			flux_el[idf] -= fXk(idf,jdf)*dudx(0,jdf);
 		}
 	}
@@ -184,7 +184,7 @@ void TPZMat1dLin::Errors(TPZVec<REAL> &/*x*/,TPZVec<STATE> &u,TPZFMatrix<STATE> 
 		STATE dif = flux[idf]-flux_el[idf];
 		if(std::abs(fXk(idf,idf)) >= 1.e-10)
 		{
-			values[2] += dif*dif/sqrt(std::abs( fXk(idf,idf) ));
+			values[2] += fabs(dif*dif/sqrt(std::abs( fXk(idf,idf) )));
 		}	
 	}
 }

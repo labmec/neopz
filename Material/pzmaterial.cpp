@@ -114,7 +114,11 @@ int TPZMaterial::VariableIndex(const std::string &name) {
 }
 
 int TPZMaterial::NSolutionVariables(int index) {
+#ifdef STATE_COMPLEX
+	if(index == 0) return NStateVariables()*2;    
+#else
 	if(index == 0) return NStateVariables();
+#endif
 	if(index == 99) return 1;
 	if(index == 100) return 1;
 	if(index == 101) return 1;
@@ -152,12 +156,26 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REA
 
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
 						   TPZVec<REAL> &Solout){
-	DebugStop();
-	//	if(var == 0) Solout = Sol;
-	//	else if(var == 99 || var == 100 || var == 101 || var == 102) {
-	//  	PZError << "TPZMaterial var = "<< var << " the element should treat this case\n";
-	//		Solout[0] = Sol[0]; // = 0.;
-	//	} else Solout.Resize(0);
+#ifdef STATE_COMPLEX
+    if(var == 0) 
+    {
+        Solout[0] = Sol[0].real();
+        Solout[1] = Sol[0].imag();
+    }
+    else if(var == 99 || var == 100 || var == 101 || var == 102) {
+        PZError << "TPZMaterial var = "<< var << " the element should treat this case\n";
+        Solout[0] = Sol[0].real(); // = 0.;
+    } else 
+    {
+        Solout.Resize(0);
+    }
+#else
+    if(var == 0) Solout = Sol;
+    else if(var == 99 || var == 100 || var == 101 || var == 102) {
+    PZError << "TPZMaterial var = "<< var << " the element should treat this case\n";
+        Solout[0] = Sol[0]; // = 0.;
+    } else Solout.Resize(0);
+#endif
 }
 
 TPZBndCond *TPZMaterial::CreateBC(TPZMaterial * reference, int id, int typ, TPZFMatrix<STATE> &val1, TPZFMatrix<STATE> &val2) {

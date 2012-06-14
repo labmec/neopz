@@ -45,7 +45,8 @@ void TPZHelmholtzComplex1D::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 
 /** @brief Returns the variable index associated with the name */
     int TPZHelmholtzComplex1D::VariableIndex(const std::string &name) {
-        if(!strcmp(name.c_str(), "state")) return 0;    
+        if(!strcmp(name.c_str(), "state")) return 0;  
+        return TPZMat1dLin::VariableIndex(name);
     }
     
     /** 

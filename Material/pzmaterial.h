@@ -309,7 +309,7 @@ public:
 	 * and the flux computed based on the derivative of the solution
 	 */
     virtual void Errors(TPZVec<REAL> &x, TPZVec<STATE> &sol, TPZFMatrix<STATE> &dsol,
-                        TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,
+                        TPZFMatrix<REAL> &axes, TPZVec<STATE> &flux,
                         TPZVec<STATE> &uexact, TPZFMatrix<STATE> &duexact,
                         TPZVec<REAL> &val) {
         PZError << __PRETTY_FUNCTION__ << std::endl;

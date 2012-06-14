@@ -140,9 +140,9 @@ TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, 
 	cmesh->InsertMaterialObject(BCond1);
 	
         REAL k0 = 2 * M_PI / lambda;
-        std::complex<REAL> imaginary(0, 1);  
-        std::complex<REAL> q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
-        std::complex<REAL> gama = imaginary * k0 * std::cos(theta);
+        STATE imaginary(0, 1);  
+        STATE q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+        STATE gama = imaginary * k0 * std::cos(theta);
         
         val1(0, 0) = gama;        
         val2(0) = q;

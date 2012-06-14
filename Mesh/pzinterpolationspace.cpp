@@ -970,7 +970,7 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 	TPZManVector<REAL,10> intpoint(3), values(NErrors);
 	values.Fill(0.0);
 	REAL weight;
-	TPZManVector<REAL,9> flux_el(nflux,0.);
+	TPZManVector<STATE,9> flux_el(nflux,0.);
 	
 	TPZMaterialData data;
 	this->InitMaterialData(data);
