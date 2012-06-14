@@ -7,4 +7,4 @@ add_executable(checkconv ${sources} ${headers})
 
 target_link_libraries(checkconv pz pthread)
 
-
+include (CTestTestFile.cmake)

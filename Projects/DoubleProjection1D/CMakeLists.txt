@@ -7,3 +7,4 @@ add_executable(DoubleProjection1D ${main_SRCS} ${headers})
 
 target_link_libraries(DoubleProjection1D pz pthread)
 
+include (CTestTestFile.cmake)

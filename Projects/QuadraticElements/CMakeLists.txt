@@ -7,3 +7,4 @@ add_executable(QuadraticElements ${main_SRCS} ${header})
 
 target_link_libraries(QuadraticElements pz pthread)
 
+include (CTestTestFile.cmake)

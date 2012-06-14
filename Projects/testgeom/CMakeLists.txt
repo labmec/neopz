@@ -17,3 +17,5 @@ target_link_libraries(testgeom_TutorialGeo pz pthread)
 add_executable(testgeom_TutorialComp pzcompmesh.cpp ${header})
 
 target_link_libraries(testgeom_TutorialComp pz pthread)
+
+include (CTestTestFile.cmake)

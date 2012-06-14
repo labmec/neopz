@@ -13,3 +13,4 @@ add_executable(termica ${main_SRCS} ${header})
 
 target_link_libraries(termica pz pthread)
 
+include (CTestTestFile.cmake)

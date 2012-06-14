@@ -9,3 +9,4 @@ add_executable(SteamInjection ${main_SRCS} ${headers})
 
 target_link_libraries(SteamInjection pz pthread)
 
+include (CTestTestFile.cmake)

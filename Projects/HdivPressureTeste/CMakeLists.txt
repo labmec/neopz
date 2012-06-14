@@ -9,3 +9,4 @@ target_link_libraries(HdivPressureTeste pz pthread)
 
 configure_file(../../Util/log4cxx.cfg log4cxx.cfg COPYONLY)
 
+include (CTestTestFile.cmake)

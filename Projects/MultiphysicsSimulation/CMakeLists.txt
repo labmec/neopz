@@ -7,3 +7,4 @@ add_executable(MultiphysicsSimulation ${main_SRCS} ${headers})
 
 target_link_libraries(MultiphysicsSimulation pz pthread)
 
+include (CTestTestFile.cmake)

@@ -8,3 +8,4 @@ add_executable(ThermalStress ${sources} ${header})
 
 target_link_libraries(ThermalStress pz pthread)
 
+include (CTestTestFile.cmake)

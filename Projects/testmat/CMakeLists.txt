@@ -8,3 +8,4 @@ add_executable(testmat_Tutorial ${source} ${header})
 
 target_link_libraries(testmat_Tutorial pz pthread)
 
+include (CTestTestFile.cmake)

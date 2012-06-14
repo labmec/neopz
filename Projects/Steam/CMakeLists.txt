@@ -26,3 +26,5 @@ add_executable(Steam ${steam_SRCS} ${locheader})
 
 target_link_libraries(Steam pz pthread)
 
+include (CTestTestFile.cmake)
+

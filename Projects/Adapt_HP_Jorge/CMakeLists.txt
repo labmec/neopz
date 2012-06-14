@@ -7,3 +7,4 @@ add_executable(Adapt_HP_Jorge ${HPAdaptive_SRCS})
 
 target_link_libraries(Adapt_HP_Jorge pz)
 
+include (CTestTestFile.cmake)

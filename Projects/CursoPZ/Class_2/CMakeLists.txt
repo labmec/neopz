@@ -10,3 +10,5 @@ add_executable(CursoPZ_Class2 ${source} ${header})
 
 target_link_libraries(CursoPZ_Class2 pz pthread)
 
+include (CTestTestFile.cmake)
+

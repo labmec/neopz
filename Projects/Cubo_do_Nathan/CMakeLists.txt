@@ -6,3 +6,4 @@ target_link_libraries(Cubo_do_Nathan pz pthread)
 
 file(COPY cube1.txt DESTINATION .)
 
+include (CTestTestFile.cmake)

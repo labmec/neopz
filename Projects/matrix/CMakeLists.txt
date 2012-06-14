@@ -8,3 +8,4 @@ add_executable(matrix ${main_SRCS} ${header})
 
 target_link_libraries(matrix pz pthread)
 
+include (CTestTestFile.cmake)

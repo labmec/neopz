@@ -7,3 +7,5 @@ add_executable(PDElinear1D ${main_SRCS})
 
 target_link_libraries(PDElinear1D pz pthread)
 
+include (CTestTestFile.cmake)
+
