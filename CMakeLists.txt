@@ -292,10 +292,8 @@ add_subdirectory(lib)
 add_subdirectory(Projects)
 add_subdirectory(PerfTests)
 
-if(BUILD_COMPLEX_PROJECTS)
-else()
-	add_subdirectory(UnitTest_PZ)
-endif(BUILD_COMPLEX_PROJECTS)
+add_subdirectory(UnitTest_PZ)
+
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"

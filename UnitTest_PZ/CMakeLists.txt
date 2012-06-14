@@ -5,6 +5,9 @@ if(BUILD_UNITTESTING)
 
 	set(RUNTIME_OUTPUT_DIRECTORY pz PARENT_SCOPE)
 
+if(BUILD_COMPLEX_PROJECTS)
+add_subdirectory(TestMatrixComplex)
+else()
 	if(USING_BOOST)
 		add_subdirectory(TestTopology)
 		add_subdirectory(TestMatrix)
@@ -19,7 +22,7 @@ if(BUILD_UNITTESTING)
 
 	else()
 		set(pztest ${pztest} ${pztesttopology} ${pztestmatrix} ${pztestmesh} ${pztestintegnum})
-
+endif()
 	endif()
 endif()
 
