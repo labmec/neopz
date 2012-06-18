@@ -39,6 +39,7 @@
 #include <time.h>
 #include "pzlog.h"
 #include <cmath>
+#include "pzhdivpressure.h"
 
 #include "TPZRefPattern.h"
 
@@ -85,15 +86,15 @@ int main()
 	}
 #endif
 	
-	for (int porder= 2; porder<3; porder++) {
+	for (int porder= 3; porder<4; porder++) {
 		
-		for(int h=1;h<2;h++){
+		for(int h=2;h<3;h++){
 			
 			
 			TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
 			
 			
-			TPZCompMeshReferred *cmesh = CreateMesh2d(*gmesh2,porder);//malha computacional
+			TPZCompMeshReferred *cmesh = CreateMesh2d(*gmesh2,porder+1);//malha computacional
 			
             /*
             TPZCompEl *cel = cmesh->ElementVec()[0];
@@ -122,7 +123,7 @@ int main()
 			TPZSubCompMesh *submesh = 0;
 			// Aq faz a condensacao estatica			
 			if(h >=0)
-				if(-1)
+				if(0)
 				{
 					submeshindex = SubStructure(cmesh,1);//monto a submalha com os elementos q serao condesados (externos) e retorna o numero de elementos computacionais da malha
 					submesh = dynamic_cast<TPZSubCompMesh *> (cmesh->ElementVec()[submeshindex]);//converte os elementos computacionais para um objeto do tipo TPZSubCompMesh
@@ -149,7 +150,8 @@ int main()
 			
 			TPZAnalysis analysis(cmesh);
 			//SaddlePermute(cmesh);
-		
+				
+		cmesh->SetName("Malha depois de Analysis-----");
 #ifdef LOG4CXX
             if (logger->isDebugEnabled())
 			{
@@ -212,7 +214,7 @@ int main()
 				
 				
 				
-				std::string fileNameEigen = "IntRuleGmresP";
+				std::string fileNameEigen = "Eigenvalues";
 				
 				fileNameEigen += pstr.str();
 				
@@ -311,7 +313,8 @@ TPZCompMeshReferred *CreateMesh2d(TPZGeoMesh &gmesh,int porder){
 	bnd = automat->CreateBC (automat,-4,2,val1,val2);
 	comp->InsertMaterialObject(bnd);
 	
-    comp->SetAllCreateFunctionsHDiv();
+   // comp->SetAllCreateFunctionsHDiv();
+		comp->SetAllCreateFunctionsHDivPressure();
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional
