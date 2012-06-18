@@ -136,8 +136,8 @@ int main(int argc, char *argv[])
 	}
 #endif
     
-//    TPZAnalysis an(mphysics);
-//	SolveSyst(an, mphysics);
+    TPZAnalysis an(mphysics);
+	SolveSyst(an, mphysics);
     
   //  std::string plotfile("saidaSolution_mphysics.vtk");
    // PosProcessMultphysics(meshvec,  mphysics, an, plotfile);

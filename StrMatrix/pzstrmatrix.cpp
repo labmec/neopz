@@ -223,21 +223,10 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 #ifdef LOG4CXX
 			if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
 			{
-				std::stringstream sout;
-				sout << "Element index " << iel << std::endl;
-//                TPZGeoEl *gel = el->Reference();
-//
-//                int nsides = gel->NSides();
-//                TPZManVector<REAL> ksi(gel->Dimension()), co(3);
-//                gel->CenterPoint(nsides-1, ksi);
-//                gel->X(ksi, co);
-               // sout << "center point " << co << std::endl;
-				sout << "Element stiffness matrix\n";
-				ek.fMat.Print("Element Stiffness Matrix", sout);
+                std::stringstream sout;
 				ek.Print(sout);
-				sout << "Element right hand side\n";
 				ef.Print(sout);
-			//	LOGPZ_DEBUG(loggerel,sout.str())
+				LOGPZ_DEBUG(loggerel,sout.str())
 			}
 #endif
 		} else {
