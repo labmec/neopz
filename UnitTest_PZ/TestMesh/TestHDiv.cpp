@@ -99,7 +99,9 @@ BOOST_AUTO_TEST_CASE(sideshape_continuity)
 
 /// Check that the Div of the vector functions can be represented
 BOOST_AUTO_TEST_CASE(drham_check)
+
 {
+		InitializePZLOG();
     // generate a mesh
     TPZAutoPointer<TPZCompMesh> cmesh = GenerateMesh(0);
     // for each computational element (not boundary) verify if the Div(vecspace) is included in the pressure space
@@ -436,6 +438,7 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
 {
     TPZMaterialData dataA;
     intel->InitMaterialData(dataA);
+	
     int dim = intel->Reference()->Dimension();
     const TPZIntPoints &intrule = intel->GetIntegrationRule();
     int np = intrule.NPoints();
@@ -453,6 +456,14 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
         pointpos(0,ip) = pos[0];
         pointpos(1,ip) = pos[1];
         intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+#ifdef LOG4CXX
+				{
+						std::stringstream sout;
+						sout << "Phi's " << dataA.phi<< " dphix's "<< dataA.dphix<<std::endl;
+						
+						LOGPZ_DEBUG(logger,sout.str())
+				}
+#endif	
         int firstpressure = dataA.phi.Rows()-npressure;
         int lastpressure = dataA.phi.Rows();
         int ish,jsh;
@@ -473,13 +484,31 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
             for (d=0; d<dim; d++) {
                 divphi += dataA.dphix(d,phiindex)*vecinner[d];                
             }
+//#ifdef LOG4CXX
+//						{
+//								std::stringstream sout;
+//								sout << "Div " << divphi<< std::endl;
+//								
+//								LOGPZ_DEBUG(logger,sout.str())
+//						}
+//#endif
             divergence(ip,jsh) = divphi;
             REAL phival = 0;
+
             for (ish=firstpressure; ish<lastpressure; ish++) {
+
                 phival += multiplier(ish-firstpressure,jsh)*dataA.phi(ish);
             }
             // the divergence of the vector function should be equal to the value of projected pressure space
             REAL diff = phival-divphi;
+#ifdef LOG4CXX
+						{
+						std::stringstream sout;
+						sout << "phi: " << phival<<" dphi: "<< divphi <<"\n";
+						sout << "flux number " << jsh << " diff: "<<diff<< "\n";
+								LOGPZ_DEBUG(logger,sout.str())
+						}
+#endif
             if(fabs(diff) > 1.e-6) 
             {
                 nwrong++;
@@ -487,9 +516,9 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
             }
         }
     }
-    /*
+    
     int ifl;
-    ofstream fluxes("fluxes.nb");
+		std::ofstream fluxes("fluxes.nb");
     for (ifl=0; ifl<nflux; ifl++) {
         fluxes << "flux" << ifl << " = {\n";
         for (ip=0; ip<np; ip++) {
@@ -498,7 +527,7 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
         }
         fluxes << " };\n";
     }
-     */
+     
     return nwrong;
 }
 
