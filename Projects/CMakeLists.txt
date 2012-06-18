@@ -1,20 +1,7 @@
 # @file neopz/Projects/CMakeList.txt  -- First CMake file for Projects directory 
 
 ENABLE_TESTING()
-#
-# COMPLEX NUMBER PROJECTS
-#
-# If your project use Complex numbers (STATE type = complex any type), please add it on the list below
-if(BUILD_COMPLEX_PROJECTS)
 
-	#Example to work with scalar as complex
-	add_subdirectory(Helmholtz1D)
-
-	#Examples used as tutorial for FEEC group (Prof Hugo)
-	add_subdirectory(PDElinear1D)
-	add_subdirectory(PDElinear2D)
-
-else()
 
 	if(BUILD_TUTORIAL)
 
@@ -56,68 +43,87 @@ else()
 
 	if(BUILD_PROJECTS)
 		
-		add_subdirectory(MultipleLoad)
-		# the auto adaptive process is working again!!!
-		add_subdirectory(adaptivity)
-		
-		#Inserting project to hp adaptive development
-		add_subdirectory(Adapt_HP_Jorge)
+		#
+		# COMPLEX NUMBER PROJECTS
+		#
+		# If your project use Complex numbers (STATE type = complex any type), please add it on the list below
+		if(BUILD_COMPLEX_PROJECTS)
 
-		add_subdirectory(Cubo_do_Nathan)
-		
-		add_subdirectory(HyperElasticityFAD)
+			#Example to work with scalar as complex
+			add_subdirectory(Helmholtz1D)
 
-		#Increment singular shape function: SingularShapeFunction
-		add_subdirectory(SingularShapeFunction)
-		add_subdirectory(angletest)
-		add_subdirectory(checkconv)
+			#Examples used as tutorial for FEEC group (Prof Hugo)
+			add_subdirectory(PDElinear1D)
+			add_subdirectory(PDElinear2D)
 
-		#Orthogonalization process of Gram-Schmidt
-		add_subdirectory(matrix)
+		else(BUILD_COMPLEX_PROJECTS)
+		#
+		# REGULAR PROJECTS
+		#
+		# If your project DOES NOT use Complex numbers, please add it on the list below
+		#
+			add_subdirectory(MultipleLoad)
+			# the auto adaptive process is working again!!!
+			add_subdirectory(adaptivity)
+			
+			#Inserting project to hp adaptive development
+			add_subdirectory(Adapt_HP_Jorge)
 
-		#Inserting material and boundary conditions by function
-		add_subdirectory(termica)
-		add_subdirectory(Steam)
-		add_subdirectory(QuadraticElements)
-		add_subdirectory(ThermalStress)
-		add_subdirectory(HDiv)
-		add_subdirectory(AcoplamentoH1Hdiv)
-		add_subdirectory(Validacao)
-		add_subdirectory(Conductivity)
-		add_subdirectory(ConsLaw)
-		add_subdirectory(Descontinuo2)
-		add_subdirectory(HydraulicFracturePropagation)
+			add_subdirectory(Cubo_do_Nathan)
+			
+			add_subdirectory(HyperElasticityFAD)
 
-		add_subdirectory(SteamInjection)
-		
-		#projeto agnaldo 09-09-2011
-		add_subdirectory(DoubleProjection1D)
-		add_subdirectory(Poroelastic2D)
-		add_subdirectory(SubStruct)
-		add_subdirectory(Substruct_Viscoelastic)
-		add_subdirectory(MultiphysicsSimulation)
-		add_subdirectory(ProblemGirkmann)
-		
-		add_subdirectory(multplaca)
+			#Increment singular shape function: SingularShapeFunction
+			add_subdirectory(SingularShapeFunction)
+			add_subdirectory(angletest)
+			add_subdirectory(checkconv)
 
-		#projeto Diogo 08-FEB-2012
-		add_subdirectory(Plasticity)
-		#add_subdirectory(prodindex)
+			#Orthogonalization process of Gram-Schmidt
+			add_subdirectory(matrix)
 
-		#Projeto Teo Refinamento Paralelo
-		add_subdirectory(RefThread)
+			#Inserting material and boundary conditions by function
+			add_subdirectory(termica)
+			add_subdirectory(Steam)
+			add_subdirectory(QuadraticElements)
+			add_subdirectory(ThermalStress)
+			add_subdirectory(HDiv)
+			add_subdirectory(AcoplamentoH1Hdiv)
+			add_subdirectory(Validacao)
+			add_subdirectory(Conductivity)
+			add_subdirectory(ConsLaw)
+			add_subdirectory(Descontinuo2)
+			add_subdirectory(HydraulicFracturePropagation)
 
-		#Projeto Lua 2012
-		add_subdirectory(Lua01)
+			add_subdirectory(SteamInjection)
+			
+			#projeto agnaldo 09-09-2011
+			add_subdirectory(DoubleProjection1D)
+			add_subdirectory(Poroelastic2D)
+			add_subdirectory(SubStruct)
+			add_subdirectory(Substruct_Viscoelastic)
+			add_subdirectory(MultiphysicsSimulation)
+			add_subdirectory(ProblemGirkmann)
+			
+			add_subdirectory(multplaca)
 
-		#Projeto Denise
-		add_subdirectory(HdivPressureTeste)
+			#projeto Diogo 08-FEB-2012
+			add_subdirectory(Plasticity)
+			#add_subdirectory(prodindex)
+
+			#Projeto Teo Refinamento Paralelo
+			add_subdirectory(RefThread)
+
+			#Projeto Lua 2012
+			add_subdirectory(Lua01)
+
+			#Projeto Denise
+			add_subdirectory(HdivPressureTeste)
 
 
-
+		endif(BUILD_COMPLEX_PROJECTS)
 		
 		
 	endif(BUILD_PROJECTS)
 
 
-endif(BUILD_COMPLEX_PROJECTS)
+
