@@ -320,7 +320,7 @@ int main()
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=3; porder<4; porder++) {
+	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 		//	erro<< " Flux exato " << "\t "<<" Flux aprox "<<std::endl;//"P exata " << " \t " <<"P aprox " << "\t " << " Flux exato " << "\t "<<" Flux aprox "<<std::endl;
@@ -329,15 +329,15 @@ int main()
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
 			TPZGeoMesh *gmesh2 = MalhaGeoT(h);
-			std::ofstream file("MalhaDomioTodo.vtk");
-			PrintGMeshVTK( gmesh2, file);
-#ifdef LOG4CXX
-			{
-				std::stringstream sout;
-				gmesh2->Print(sout);
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
+			//std::ofstream file("MalhaDomioTodo.vtk");
+			//PrintGMeshVTK( gmesh2, file);
+//#ifdef LOG4CXX
+//			{
+//				std::stringstream sout;
+//				gmesh2->Print(sout);
+//				LOGPZ_DEBUG(logger,sout.str())
+//			}
+//#endif
 			
 			TPZCompMeshReferred *cmesh = CreateCompMesh2d(*gmesh2,porder);
 			
@@ -345,21 +345,21 @@ int main()
 			
 			TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
 			
-			PrintMesh(cmesh);
+		//	PrintMesh(cmesh);
             
 			//2. Resolve o problema
-			//TPZAnalysis analysis(cmesh);
+			TPZAnalysis analysis(cmesh);
 			//SaddlePermute(cmesh);
-			//SolveLU ( analysis );
+			SolveLU ( analysis );
 			
-			/*Resolver o sistema linear
-			 TPZFStructMatrix str(cmesh);
-			 analysis.SetStructuralMatrix(str);
-			 TPZStepSolver step;
-			 step.SetDirect(ELU);
-			 analysis.SetSolver(step);
-			 analysis.Run();
-			 */
+			//Resolver o sistema linear
+			 //TPZFStructMatrix str(cmesh);
+			// analysis.SetStructuralMatrix(str);
+			// TPZStepSolver step;
+			// step.SetDirect(ELU);
+			// analysis.SetSolver(step);
+			// analysis.Run();
+			 
 			//Pos processamento
 //			std::ofstream SolPoissonHdiv("Solucao.txt");
 //			analysis.Solution().Print("Solucao",SolPoissonHdiv);
@@ -430,7 +430,7 @@ int main()
 			//TPZVec<REAL> calcErro;
 			//analysis.SetExact(*SolExata);
 			//analysis.PostProcess(calcErro,erro);
-			/*
+			
 			//4. visualizacao grafica usando vtk
 			 TPZVec<std::string> scalnames(2), vecnames(2);
 			 
@@ -453,7 +453,7 @@ int main()
 			 int div = 3;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
-			 */
+			 
 			
 		}}
 	
@@ -496,7 +496,8 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	comp->InsertMaterialObject(bnd3);
 	comp->InsertMaterialObject(bnd4);	
 	//espaco de aproximacao
-	comp->SetAllCreateFunctionsHDiv();
+	//comp->SetAllCreateFunctionsHDiv();
+		comp->SetAllCreateFunctionsHDivPressure();
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional
