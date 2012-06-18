@@ -180,8 +180,9 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
                 }
                 //se a ordem for maior q um tiraremos a ultima função interna
                 if (order>1) {
-                    int aux=TSHAPE::NConnectShapeF(iside,order)-1;
+                    int aux=TSHAPE::NConnectShapeF(iside,order)-1;//-1;
                     //int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-2*(order-2);
+										//int nshape=NShapeFace+ TSHAPE::Dimension*(aux);
                     int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-4*(order-2);
 #ifdef LOG4CXX
                     {
@@ -233,7 +234,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
         else
         {
             int dualorder=this->fPressureOrder;
-            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc::ETensorial);//EOrdemTotal);
+            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc::ETensorial);
             
         }
         
@@ -673,7 +674,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
             {
                 int lside = VectorSide[jvec];
                 int order = SideOrder(lside);
-                int nshape = TSHAPE::NConnectShapeF(lside,order-1);
+                int nshape = TSHAPE::NConnectShapeF(lside,order-1);//order-1);
                 TPZFNMatrix<25> sideorders(2,nshape);
                 int ksi,eta;
                 int loccount = 0;
@@ -713,7 +714,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 int fshape1 = FirstIndex[lside];
 #ifdef LOG4CXX
                 std::stringstream sout;
-                sideorders.Print("SideOrders= ", sout ,EMathematicaInput);
+                sideorders.Print("SideOrders= ", sout ,EFormatted);
                 LOGPZ_DEBUG(logger,sout.str())
 #endif
                 for (ish=0; ish<nshape; ish++) {//coloquei -2
