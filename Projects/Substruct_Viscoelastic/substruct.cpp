@@ -1307,8 +1307,9 @@ TPZGeoMesh *MalhaPredio()
 	int numnodes=-1;
 	int numelements=-1;
 	
-	string FileName;
-	FileName = "../8andares02.txt";
+	string FileName, dirname = PZSOURCEDIR;
+	FileName = dirname + "/Projects/Substruct_Viscoelastic/";
+	FileName += "8andares02.txt";
 	
 	{
 		bool countnodes = false;
@@ -1442,8 +1443,9 @@ TPZGeoMesh *MalhaCubo()
 	int numnodes=-1;
 	int numelements=-1;
 	
-	string FileName;
-	FileName = "../cube1.txt";
+	string FileName, dirname = PZSOURCEDIR;
+	FileName = dirname + "/Projects/Substruct_Viscoelastic/";
+	FileName += "cube1.txt";
 	
 	{
 		bool countnodes = false;
