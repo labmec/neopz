@@ -1893,3 +1893,11 @@ void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi,
 	normal.Resize(0);
 }//method
 
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZInterpolatedElement::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    int ncorner = NCornerConnects();
+    for (int ic=0; ic<ncorner; ic++) {
+        connectindexes.insert(ConnectIndex(ic));
+    }
+}

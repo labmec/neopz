@@ -587,7 +587,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
                 std::cout << " " << *it;
             }
             std::cout << std::endl;
-            //DebugStop();
+            DebugStop();
         }
         for (it=singular.begin(); it != singular.end(); it++) {
             if(fNumberRigidBodyModes < fMaxRigidBodyModes)

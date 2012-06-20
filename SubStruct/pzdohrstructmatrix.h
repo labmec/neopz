@@ -110,7 +110,7 @@ protected:
 							  TPZVec<int> &coarseindex);
     
     /** @brief Set the domain index of the lower dimension elements equal to the domain index of their neighbour */
-    void CorrectNeighbourDomainIndex(TPZGeoMesh *gmesh, TPZVec<int> &domainindex);
+    void CorrectNeighbourDomainIndex(TPZCompMesh *cmesh, TPZVec<int> &domainindex);
 	
 public:
 	/** @brief Identify the external connects */

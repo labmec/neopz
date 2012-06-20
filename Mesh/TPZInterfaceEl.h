@@ -213,6 +213,9 @@ public:
 	
 	/** @brief This function should not be called */
 	void SetConnectIndex(int node, int index);
+
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
 	
 	/** @brief Returns the dimension from the element interface */
 	int Dimension() const {

@@ -64,14 +64,16 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 		}		
 	}
 	else {
-		TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(fGlobal.size(),z,this->fAssembly);
+        unsigned int nglob = fGlobal.size();
+		TPZAutoPointer<TPZDohrAssembleList<TVar> > assemblelist = new TPZDohrAssembleList<TVar>(nglob,z,this->fAssembly);
 		
 		TPZDohrThreadMultList<TVar,TSubStruct> multwork(x,alpha,fAssembly,assemblelist);
 		typename std::list<TPZAutoPointer<TSubStruct> >::const_iterator iter;
 		int isub=0;
 		for (iter=fGlobal.begin(); iter!=fGlobal.end(); iter++,isub++) {
 			TPZDohrThreadMultData<TSubStruct> data(isub,*iter);
-			multwork.AddItem(data);
+            
+            multwork.AddItem(data);
 		}
 		TPZVec<pthread_t> AllThreads(fNumThreads+1);
 		int i;
@@ -79,6 +81,7 @@ void TPZDohrMatrix<TVar,TSubStruct>::MultAdd(const TPZFMatrix<TVar> &x,const TPZ
 		  PZ_PTHREAD_CREATE(&AllThreads[i+1], 0, (TPZDohrThreadMultList<TVar,TSubStruct>::ThreadWork), 
 				    &multwork, __FUNCTION__);
 		}
+        //sleep(1);
 		PZ_PTHREAD_CREATE(&AllThreads[0], 0, TPZDohrAssembleList<TVar>::Assemble, 
 				  assemblelist.operator->(), __FUNCTION__);
 		

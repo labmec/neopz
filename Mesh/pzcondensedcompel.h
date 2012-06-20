@@ -66,6 +66,9 @@ public:
         return fReferenceCompEl->ConnectIndex(fIndexes[i]);
     }
 
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+	
 	/** @brief Dimension of the element */
 	virtual int Dimension() const 
     {

@@ -317,3 +317,22 @@ void TPZCondensedCompEl::LoadSolution()
         }
     }
 }
+
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZCondensedCompEl::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    int nc = NConnects();
+    std::set<int> refconn;
+    fReferenceCompEl->BuildCornerConnectList(refconn);
+    for (int ic=0; ic<nc ; ic++) {
+        TPZConnect &c = Connect(ic);
+        if (!c.IsCondensed() || !c.HasDependency()) {
+            int index = ConnectIndex(ic);
+            int seqnum = c.SequenceNumber();
+            if (refconn.find(index) != refconn.end()) {
+                connectindexes.insert(index);
+            }
+        }
+    }
+}
+

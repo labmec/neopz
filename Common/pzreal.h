@@ -464,11 +464,11 @@ inline bool IsZero( T a ){
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
 //template<>
 inline bool IsZero( long double a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-16 );
 }
 //template<>
 inline bool IsZero( double a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-14 );
 }
 //template<>
 inline bool IsZero( float a ){
@@ -476,19 +476,19 @@ inline bool IsZero( float a ){
 }
 //template<>
 inline bool IsZero( std::complex<long double> a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-16 );
 }
 //template<>
 inline bool IsZero( std::complex<double> a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-16 );
 }
 //template<>
 inline bool IsZero( std::complex<float> a ){
-	return ( fabs( a ) < ZeroTolerance() );
+	return ( fabs( a ) < 1.e-7 );
 }
 //template<>
 inline bool IsZero( int a ){
-	return ( fabs( (REAL)a ) < ZeroTolerance() );
+	return ( a==0 );
 }
 /// Returns the maximum value between a and b
 template <class T>

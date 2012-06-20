@@ -63,6 +63,15 @@ public:
     void RemoveInterface(int side);
 
     virtual int IntegrationOrder() = 0;
+    
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const
+    {
+        std::cout << "To Be Implemented\n";
+        DebugStop();
+    }
+    
+
 	
 };
 

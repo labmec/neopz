@@ -178,8 +178,12 @@ public:
 	/** @brief Returns a reference to the element pointers vector */
 	TPZAdmChunkVector<TPZCompEl *>   &ElementVec() { return fElementVec; }
 	
+	/** @brief Returns a reference to the element pointers vector */
+	const TPZAdmChunkVector<TPZCompEl *>   &ElementVec() const { return fElementVec; }
+	
 	/** @brief Return a reference to the connect pointers vector */
 	TPZAdmChunkVector<TPZConnect>    &ConnectVec() { return fConnectVec; }
+    
 	const TPZAdmChunkVector<TPZConnect> &ConnectVec() const { return fConnectVec; }
 	
 	/** @brief Returns a reference to the material pointers vector */
@@ -286,7 +290,11 @@ public:
 	 * @param elgraphindex graphos indexes vector
 	 */
 	void ComputeElGraph(TPZStack<int> &elgraph, TPZVec<int> &elgraphindex);
-	
+
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+    
+
 	/**
 	 * @name Submesh_methods
 	 * @brief Methods required by submeshes

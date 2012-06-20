@@ -280,7 +280,7 @@ void TPZRenumbering::ClearDataStructures(){
 /**
  * Analyse the graph, find the corner nodes
  */
-void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &cornernodes)
+void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &eligible, std::set<int> &cornernodes)
 {
 	
 	TPZVec<int> nodtoelgraphindex;
@@ -327,9 +327,12 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 		map_type::const_iterator ithead;
 		for (ithead = p.first; ithead != p.second; ithead++) 
 		{
-			corners.Push(ithead->second.first);
-			cornernodes.insert(ithead->second.first);
-            elcornernodes.insert(ithead->second.first);
+            int seqnum = ithead->second.first;
+            if (eligible.find(seqnum) != eligible.end()) {
+                corners.Push(seqnum);
+                cornernodes.insert(seqnum);
+                elcornernodes.insert(seqnum);
+            }
 		}
 #ifdef LOG4CXX
         {
@@ -359,9 +362,13 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 			// the set is not included in any
 			// we allready put the maxconnect nodes on the stack
 			if (it->first == itf->first && it->first != maxconnect) {
-				corners.Push(itf->second.first);
-				cornernodes.insert(itf->second.first);
-                elcornernodes.insert(itf->second.first);
+                int seqnum = itf->second.first;
+                if (eligible.find(seqnum) != eligible.end()) 
+                {
+                    corners.Push(seqnum);
+                    cornernodes.insert(seqnum);
+                    elcornernodes.insert(seqnum);
+                }
 			}
 		}
 #ifdef LOG4CXX
@@ -380,9 +387,13 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &c
 				map_type::const_iterator ithead;
 				for (ithead = p.first; ithead != p.second; ithead++) 
 				{
-					corners.Push(ithead->second.first);
-					cornernodes.insert(ithead->second.first);
-                    elcornernodes.insert(ithead->second.first);
+                    int seqnum = ithead->second.first;
+                    if (eligible.find(seqnum) != eligible.end()) 
+                    {
+                        corners.Push(seqnum);
+                        cornernodes.insert(seqnum);
+                        elcornernodes.insert(seqnum);
+                    }
 					ncorners = elcornernodes.size();
 				}
 				numelconnected--;

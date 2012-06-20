@@ -136,6 +136,10 @@ public:
 	
 	/** @brief Returns the number of connect objects of the element*/
 	virtual int NConnects() const = 0;
+    
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+
 	
 	/** @brief Identifies the interpolation order of all connects of the element different from the corner connects */
 	/** Note there is a diference between the actual side order returned by this method

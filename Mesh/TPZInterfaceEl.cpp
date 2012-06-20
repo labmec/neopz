@@ -1580,3 +1580,18 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data)
 	}
 	
 }//void
+
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZInterfaceElement::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    TPZCompEl *left = LeftElement();
+    TPZCompEl *right = RightElement();
+#ifdef DEBUG
+    if (!left || !right ) {
+        DebugStop();
+    }
+#endif
+    left->BuildCornerConnectList(connectindexes);
+    right->BuildCornerConnectList(connectindexes);
+}
+

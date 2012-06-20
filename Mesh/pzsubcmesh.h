@@ -274,6 +274,9 @@ public:
 	/** @brief Returns the number of connections. */
 	virtual int NConnects() const;
 	
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
+
     /**
 	 * @brief Load the father mesh solution to all submesh connects -
   	 * (internal and external).

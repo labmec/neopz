@@ -91,7 +91,7 @@ public:
 	 * @brief Analyse the graph, find the corner nodes \n
 	 * Number of elements which should be considered for determining corner nodes
 	 */
-	void CornerEqs(int mincorners, int nelconsider, std::set<int> &cornernodes);
+	void CornerEqs(int mincorners, int nelconsider, std::set<int> &eligible, std::set<int> &cornernodes);
 	
 protected:
 	/** @brief Number of elements in the graph */

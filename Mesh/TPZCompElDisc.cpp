@@ -1124,3 +1124,8 @@ void TPZCompElDisc::EvaluateSquareResidual2D(TPZCompMesh &cmesh, TPZVec<REAL> &e
 	
 }
 
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZCompElDisc::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    connectindexes.insert(ConnectIndex(0));
+}

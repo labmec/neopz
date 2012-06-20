@@ -1124,6 +1124,9 @@ void TPZCompMesh::Permute(TPZVec<int> &permute) {
 			sout << "Index = " << submesh->Index() << " ";
 		}
 		sout << "Permutation " << permute;
+        std::set<int> permset;
+        permset.insert(&permute[0],(&permute[permute.size()-1]+1));
+        sout << " permute size " << permute.size() << " no dist elements " << permset.size();
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -1652,14 +1655,13 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 	int neq = NEquations();
 	projectsol.Redim(neq,1);
 	projectsol.Zero();
-	int i, nmat = NMaterials();
+	int nmat = NMaterials();
 	if(!nmat) {
 		PZError << "TPZCompMesh::BuildTransferMatrixDesc2 no material object found\n";
 		return;
 	}
 	TPZMaterial * mat = fMaterialVec.begin()->second;
 	//int nvar = mat->NStateVariables();
-	int dim = mat->Dimension();
 	Reference()->ResetReference();//geom�ricos apontam para nulo
 	LoadReferences();
 	
@@ -1667,12 +1669,13 @@ void TPZCompMesh::ProjectSolution(TPZFMatrix<STATE> &projectsol) {
 	DebugStop();
 #else
 	//geom�ricos apontam para computacionais da malha atual
+    int dim = mat->Dimension();
 	TPZAgglomerateElement *aggel = 0;
 	TPZAdmChunkVector<TPZCompEl *> &elvec = ElementVec();
 	int nelem = elvec.NElements();
 	
 	
-	for(i=0; i<nelem; i++) {
+	for(int i=0; i<nelem; i++) {
 		TPZCompEl *comp = elvec[i];
 		if(!comp) continue;
 		if(comp->Dimension() != dim) continue;
@@ -1969,3 +1972,17 @@ void TPZCompMesh::SaddlePermute()
         
     }		
 }
+
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZCompMesh::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    int nel = NElements();
+    for (int el=0; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        cel->BuildCornerConnectList(connectindexes);
+    }
+}
+

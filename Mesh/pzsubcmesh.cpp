@@ -1057,13 +1057,13 @@ void TPZSubCompMesh::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef){
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+    
 	//ek.fMat->Print();
 }
 
 void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZAutoPointer<TPZGuiInterface> guiInterface){
 	fAnalysis = new TPZSubMeshAnalysis(this);
 	fAnalysis->SetGuiInterface(guiInterface);
-	
 	TPZAutoPointer<TPZStructMatrix> str = NULL;
 	
 	if(numThreads > 0){
@@ -1101,6 +1101,14 @@ void TPZSubCompMesh::SetAnalysisSkyline(int numThreads, int preconditioned, TPZA
         fAnalysis->SetSolver(autostep);
     }
 	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    
 #ifdef DEBUG 
 	{
 		TPZFMatrix<REAL> fillin;
@@ -1265,6 +1273,8 @@ void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
 void TPZSubCompMesh::PermuteExternalConnects(){
 	//compute number of internal nodes -> numinternal
 	//	TPZCompMesh::Print();
+    
+    ComputeNodElCon();
 	
 	int i=0, numinternal=0, numconstraints = 0, numexternal=0;
 	//int countinternal=0
@@ -1349,7 +1359,10 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		sout << "Index = " << " Permutations " << permute;
+		sout << "Index = " << " Permutations " << permute << std::endl;
+        std::set<int> permval;
+        permval.insert(&permute[0], (&permute[permute.size()-1]+1));
+        sout << " Number of distinct values in permute " << permval.size();
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
@@ -1699,3 +1712,27 @@ void TPZSubCompMesh::SetNumberRigidBodyModes(int nrigid)
 		DebugStop();
 	}	
 }
+
+/** @brief adds the connect indexes associated with base shape functions to the set */
+void TPZSubCompMesh::BuildCornerConnectList(std::set<int> &connectindexes) const
+{
+    int nel = NElements();
+    for (int el=0; el<nel ; el++) {
+        TPZCompEl *cel = ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        std::set<int> locconind;
+        cel->BuildCornerConnectList(locconind);
+        std::set<int>::iterator it;
+        for (it=locconind.begin(); it != locconind.end(); it++) {
+            int index = *it;
+            int extlocindex = fExternalLocIndex[index];
+            if (extlocindex != -1) {
+                int cornerind = fConnectIndex[extlocindex];
+                connectindexes.insert(cornerind);
+            }
+        }
+    }
+}
+

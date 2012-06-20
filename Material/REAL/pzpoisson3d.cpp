@@ -175,16 +175,6 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 		if ( !ek.VerifySymmetry() ) cout << __PRETTY_FUNCTION__ << "\nMATRIZ NAO SIMETRICA" << endl;
     }
 	
-#ifdef LOG4CXX
-	if(logger->isDebugEnabled())
-	{
-		std::stringstream sout;
-		ek.Print("ek_poisson3d = ",sout,EMathematicaInput);
-		ef.Print("ef_poisson3d = ",sout,EMathematicaInput);
-		LOGPZ_DEBUG(logger,sout.str())
-	}
-#endif
-	
     
 }
 
@@ -247,16 +237,6 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 		ef(numvec+i,0) += (-1.)*weight*fXf*data.phi(numprimalshape+i,0);//calcula o termo da matriz f
 	}
     
-#ifdef LOG4CXX
-    if(logger->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Matriz ek e vetor fk \n ";
-        ek.Print("ekHdiv = ",sout,EMathematicaInput);
-        ef.Print("efHDiv = ",sout,EMathematicaInput);
-        LOGPZ_DEBUG(logger,sout.str());
-	}
-#endif
 }
 
 void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,

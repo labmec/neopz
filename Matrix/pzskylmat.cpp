@@ -753,6 +753,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
 	TVar pivot;
+    TVar minpivot = 10000.;
 	int dimension = this->Dim();
 	/*  if(Dim() > 100) {
 	 cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
@@ -777,7 +778,8 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		// Faz A(k,k) = sqrt( A(k,k) - sum ).
 		//
 		pivot = fElem[k][0] - sum;
-		if ( pivot < 1.e-25 ) {
+        minpivot = minpivot < pivot ? minpivot : pivot;
+		if ( pivot < 0. || IsZero(pivot) ) {
 			cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << pivot << endl;
 			return( 0 );
 		}
@@ -811,6 +813,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	
 	this->fDecomposed  = ECholesky;
 	this->fDefPositive = 1;
+    std::cout << __PRETTY_FUNCTION__ << " minpivot " << minpivot << std::endl;
 	return( 1 );
 }
 

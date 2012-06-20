@@ -28,7 +28,7 @@ public:
 	 */
 	static void VerifyAxes(const TPZFMatrix<TVar> &axes) {
 #ifdef DEBUG
-		const double tol = 1.e-8;
+//		const double tol = 1.e-8;
 		bool check = true;
 		for(int i = 0; i < axes.Rows(); i++){
 			for(int j = 0; j < axes.Rows(); j++) {

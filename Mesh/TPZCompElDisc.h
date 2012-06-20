@@ -235,6 +235,9 @@ public:
 	
 	/** @brief Amount of vertices of the element */
 	int NCornerConnects() const { return Reference()->NNodes();}
+    
+    /** @brief adds the connect indexes associated with base shape functions to the set */
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const;
 	
 	/** @brief Returns dimension from the element */
 	int Dimension() const { return Reference()->Dimension();}
