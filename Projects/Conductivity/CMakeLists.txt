@@ -24,4 +24,6 @@ else()
 	target_link_libraries(conductivity_VoidFluxTest pz pthread)
 endif()
 
+include (CTestTestFile.cmake)
+
 
