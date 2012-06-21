@@ -468,7 +468,7 @@ inline bool IsZero( long double a ){
 }
 //template<>
 inline bool IsZero( double a ){
-	return ( fabs( a ) < 1.e-14 );
+	return ( fabs( a ) < 1.e-12 );
 }
 //template<>
 inline bool IsZero( float a ){
