@@ -214,7 +214,9 @@ private:
 	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
 	
 	/** @brief Full Stiffnes matrix */
-	TSideMatrix fK11;
+	TPZFMatrix<TVar> fK11;
+    
+    /* @brief Side matrices */
 	TSideMatrix fK01, fK10;
 	
 	/** @brief Right hand side or force matrix */
