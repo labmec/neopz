@@ -101,23 +101,8 @@ public:
 	}
 	
 	/** @brief Extraction operator. */
-	friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
-	{
-		std::streamsize width = Out.width();
-		
-		const char* sep = ( width == 0 ? ", " : "" );
-		
-		int size = v.NElements();
-		
-		if(size) Out << std::setw(width) << v.fStore[0];
-		
-		for( int ii = 1; ii < size; ii++ )
-		{
-            Out << std::setw( width ) << sep << v.fStore[ ii ];
-		}
-		
-		return Out;
-	}
+	template <class T2>
+	friend std::ostream& operator<<( std::ostream& Out, const TPZVec< T2 >& v );
 	
 	/** @brief Casting operator. Returns The fStore pointer. */
 	operator T*() const { return fStore; }
@@ -389,6 +374,25 @@ template< class T >
 inline void TPZVec<T>::Print(std::ostream &out)
 {
 	out << std::endl << "Number of elements = " << fNElements;
+}
+
+template <class T>
+std::ostream& operator<<( std::ostream& Out, const TPZVec< T >& v )
+{
+	std::streamsize width = Out.width();
+	
+	const char* sep = ( width == 0 ? ", " : "" );
+	
+	int size = v.NElements();
+	
+	if(size) Out << std::setw(width) << v.fStore[0];
+	
+	for( int ii = 1; ii < size; ii++ )
+	{
+	    Out << std::setw( width ) << sep << v.fStore[ ii ];
+	}
+	
+	return Out;
 }
 
 #endif
