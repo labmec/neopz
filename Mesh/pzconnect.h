@@ -92,10 +92,13 @@ private:
 public:
 	/** @brief Default constructor */
 	TPZConnect();
+    
+    /** @brief copy constructor */
+    TPZConnect(const TPZConnect &copy);
 	/** @brief Default destructor */
 	~TPZConnect();
 	
-	void operator=(const TPZConnect &con);
+	TPZConnect &operator=(const TPZConnect &con);
 	
     /** @brief Reset the data of the connect */
     void Reset()

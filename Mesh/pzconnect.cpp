@@ -19,12 +19,8 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzconnect"));
 
 using namespace std;
 
-TPZConnect::TPZConnect() {
-	fSequenceNumber = -1;
-	fDependList = 0;
-	fNElConnected = 0;
-	//fOrder = -1;
-    fFlags = 0;
+TPZConnect::TPZConnect() : fDependList(0){
+    Reset();
 }
 
 TPZConnect::~TPZConnect() {
@@ -43,14 +39,25 @@ TPZConnect::~TPZConnect() {
     }
 }
 
-void TPZConnect::operator=(const TPZConnect &copy) {
-	if(this == &copy) return;
+TPZConnect::TPZConnect(const TPZConnect &copy) {
+	fSequenceNumber = copy.fSequenceNumber;
+	fNElConnected = copy.fNElConnected;
+	//	fOrder = copy.fOrder;
+    fFlags = copy.fFlags;
+	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
+}
+
+
+
+TPZConnect &TPZConnect::operator=(const TPZConnect &copy) {
+	if(this == &copy) return *this;
 	if(fDependList) delete fDependList;
 	fSequenceNumber = copy.fSequenceNumber;
 	fNElConnected = copy.fNElConnected;
 	//	fOrder = copy.fOrder;
     fFlags = copy.fFlags;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
+    return *this;
 }
 
 void TPZConnect::Print(const TPZCompMesh &mesh, std::ostream & out) {
