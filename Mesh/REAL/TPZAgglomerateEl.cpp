@@ -950,12 +950,12 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 		
 		TPZCompEl *cel = aggmesh->ElementVec()[i];
 		
-		TPZInterfaceElement * interface = dynamic_cast<TPZInterfaceElement * > (cel);
+		TPZInterfaceElement * interfaceEl = dynamic_cast<TPZInterfaceElement * > (cel);
 		
-		if (interface) {
+		if (interfaceEl) {
 			
-			TPZCompElDisc * LeftEl   = dynamic_cast<TPZCompElDisc*>( interface -> LeftElement()  );
-			TPZCompElDisc * RightEl  = dynamic_cast<TPZCompElDisc*>( interface -> RightElement() );
+			TPZCompElDisc * LeftEl   = dynamic_cast<TPZCompElDisc*>( interfaceEl -> LeftElement()  );
+			TPZCompElDisc * RightEl  = dynamic_cast<TPZCompElDisc*>( interfaceEl -> RightElement() );
 			
 			TPZManVector<REAL, 3> InterfaceCenter(3), RefInterfaceCenter(3), LeftCenter(3), RightCenter(3);
 			
@@ -964,14 +964,14 @@ TPZAgglomerateMesh *TPZAgglomerateElement::CreateAgglomerateMesh(TPZCompMesh *fi
 			
 			
 			REAL LeftDistance = -1., RightDistance = -1.;
-			int nsides = interface->Reference()->NSides();
+			int nsides = interfaceEl->Reference()->NSides();
 			
 			
 			for (int irib = 0; irib < nsides; irib++){
 				REAL left = 0., right = 0.;
 				//Getting the node coordinate
-				interface->Reference()->CenterPoint(irib, RefInterfaceCenter);
-				interface->Reference()->X(RefInterfaceCenter, InterfaceCenter);
+				interfaceEl->Reference()->CenterPoint(irib, RefInterfaceCenter);
+				interfaceEl->Reference()->X(RefInterfaceCenter, InterfaceCenter);
 				
 				for (int isum = 0; isum < dim; isum++)
 				{

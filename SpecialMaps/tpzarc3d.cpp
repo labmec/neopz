@@ -13,6 +13,10 @@
 #include "pzgnode.h"
 #include "pzreal.h"
 #include "tpzgeoelmapped.h"
+#ifdef VC
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 
 using namespace std;
 using namespace pzgeom;
@@ -209,21 +213,21 @@ void TPZArc3D::Jacobian(TPZFMatrix<REAL> &coord, TPZVec<REAL> &par, TPZFMatrix<R
 	jacobian(0,0) = fAngle * fRadius/2.; jacinv(0,0) = 1./jacobian(0,0); detjac = jacobian(0,0);
 	
 	/** Computing Axes */
-	TPZManVector< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUT(3);
+	TPZManVector< REAL > Vpc(3), Vpa(3), Vpb(3), Vt(3), OUTv(3);
 	
 	TPZManVector< REAL > middle(1, 0.);
-	X(coord,middle,OUT);
+	X(coord,middle,OUTv);
 	
 	/** Vector From MappedPoint to Ini */
-	Vpa[0] = coord(0,0) - OUT[0]; Vpa[1] = coord(1,0) - OUT[1]; Vpa[2] = coord(2,0) - OUT[2];
+	Vpa[0] = coord(0,0) - OUTv[0]; Vpa[1] = coord(1,0) - OUTv[1]; Vpa[2] = coord(2,0) - OUTv[2];
 	
 	/** Vector From MappedPoint to Fin */
-	Vpb[0] = coord(0,1) - OUT[0]; Vpb[1] = coord(1,1) - OUT[1]; Vpb[2] = coord(2,1) - OUT[2];
+	Vpb[0] = coord(0,1) - OUTv[0]; Vpb[1] = coord(1,1) - OUTv[1]; Vpb[2] = coord(2,1) - OUTv[2];
 	
-	X(coord,par,OUT);
+	X(coord,par,OUTv);
 	
 	/** Vector From MappedPoint to Center */
-	Vpc[0] = fCenter3D[0] - OUT[0]; Vpc[1] = fCenter3D[1] - OUT[1]; Vpc[2] = fCenter3D[2] - OUT[2];
+	Vpc[0] = fCenter3D[0] - OUTv[0]; Vpc[1] = fCenter3D[1] - OUTv[1]; Vpc[2] = fCenter3D[2] - OUTv[2];
 	
 	/** Tangent Vector From Point in the Arc */
 	Vt[0] =  Vpa[1]*Vpb[0]*Vpc[1] - Vpa[0]*Vpb[1]*Vpc[1] + Vpa[2]*Vpb[0]*Vpc[2] - Vpa[0]*Vpb[2]*Vpc[2];

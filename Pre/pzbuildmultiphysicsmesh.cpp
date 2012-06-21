@@ -372,11 +372,11 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 				DebugStop();
 			} 
 			for (int lp=0; lp<nelsides; ++lp) {
-				TPZGeoEl *interface = gel->CreateBCGeoEl(is, InterfaceMat);
+				TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, InterfaceMat);
 				TPZCompElSide right = celsides[lp];
 				TPZCompElSide left(gel->Reference(),is);
 				int index;
-				new TPZInterfaceElement(*cmesh,interface,index,left,right);
+				new TPZInterfaceElement(*cmesh,interfaceEl,index,left,right);
 			}
 		}
 	}

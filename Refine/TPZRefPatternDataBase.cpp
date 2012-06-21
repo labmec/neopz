@@ -133,10 +133,14 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 	std::cout << "Generated command: " << Command.c_str() << std::endl;
 	FILE   *fp;
 	
-#ifndef BORLAND
-	fp = popen(Command.c_str(), "r");
+#ifdef VC
+	fp = _popen(Command.c_str(), "r");
 #else
-	fp = (FILE *)open(Command.c_str(), O_RDONLY );
+	#ifndef BORLAND
+		fp = popen(Command.c_str(), "r");
+	#else
+		fp = (FILE *)open(Command.c_str(), O_RDONLY );
+	#endif
 #endif
 	
 	if (!fp)
@@ -171,7 +175,11 @@ int TPZRefPatternDataBase::ImportRefPatterns(std::string &Path)
 	}
 
 #ifndef BORLAND
+#ifdef VC
+	_pclose(fp);
+#else
 	pclose(fp);
+#endif
 #else
 	close((int)fp);
 #endif

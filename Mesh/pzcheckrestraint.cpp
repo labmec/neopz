@@ -15,11 +15,11 @@
 
 using namespace std;
 
-TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
+TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide smalll, TPZCompElSide large) {
 	// Stores the small computational element with commom side
-	fSmall = small;
+	fSmall = smalll;
 	// Gets one element in lower level than small
-	fLarge = small.LowerLevelElementList(1);
+	fLarge = smalll.LowerLevelElementList(1);
 	// Checking whether element in lower level is neighbour than large element with commom side
 	if (!large.Reference().NeighbourExists(fLarge.Reference())) {
 		cout << "TPZCheckRestraint created for a wrong large  element\n";
@@ -28,7 +28,7 @@ TPZCheckRestraint::TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large) {
 	fLarge = large;
     
 	// The small element as interpolate element
-	TPZInterpolatedElement *smallel = dynamic_cast<TPZInterpolatedElement *> (small.Element());
+	TPZInterpolatedElement *smallel = dynamic_cast<TPZInterpolatedElement *> (smalll.Element());
 	// Gets the number of shape functions for small element over the commom side
 	int smallsize = smallel->NSideShapeF(fSmall.Side());
 	// Gets the number of connects over the commom side for small element
@@ -108,16 +108,16 @@ int TPZCheckRestraint::LargeConnect(int connectid) {
 }
 
 void TPZCheckRestraint::AddConnect(int connectindex) {
-	int small = SmallConnect(connectindex);
+	int smalll = SmallConnect(connectindex);
 	TPZConnect &smallc = fMesh->ConnectVec()[connectindex];
 	int large = LargeConnect(connectindex);
 	
 	if(large != -1) {
-		if(small == -1) {
+		if(smalll == -1) {
 			cout << "TPZCheckRestraint::AddConnect data structure error 0\n";
 			return;
 		}
-		int firstl = fSmallPos[small];
+		int firstl = fSmallPos[smalll];
 		//    int lastl = firstl+fSmallSize[small];
 		int firstc = fLargePos[large];
 		int lastc = firstc+fLargeSize[large];
@@ -139,12 +139,12 @@ void TPZCheckRestraint::AddConnect(int connectindex) {
 
 void TPZCheckRestraint::AddDependency(int smallconnectindex, int largeconnectindex, TPZFMatrix<REAL> &dependmatrix) {
 	
-	int small = SmallConnect(smallconnectindex);
+	int smalll = SmallConnect(smallconnectindex);
 	//  TPZConnect &smallc = fMesh->ConnectVec()[smallconnectindex];
 	int large = LargeConnect(largeconnectindex);
 	if(large != -1) {
-		int firstl = fSmallPos[small];
-		int lastl = firstl+fSmallSize[small];
+		int firstl = fSmallPos[smalll];
+		int lastl = firstl+fSmallSize[smalll];
 		int firstc = fLargePos[large];
 		int lastc = firstc+fLargeSize[large];
 		int ic,il;
@@ -320,10 +320,10 @@ void TPZCheckRestraint::Diagnose() {
 	int cap = smalldim.NElements();
 	int s;
 	for(s=0; s<cap; s++) {
-		TPZCompElSide small(fSmall.Element(),smalldim[s]);
-		TPZCompElSide largedim = small.LowerLevelElementList(1);
+		TPZCompElSide smalll(fSmall.Element(),smalldim[s]);
+		TPZCompElSide largedim = smalll.LowerLevelElementList(1);
 		if(!largedim.Exists()) continue;
-		TPZCheckRestraint diag(small,largedim);
+		TPZCheckRestraint diag(smalll,largedim);
 		if(diag.CheckRestraint()) {
 			(cout) << "CheckRestraint failed for :" << endl;
 		} else {

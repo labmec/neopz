@@ -39,7 +39,7 @@ class TPZCheckRestraint {
 	
 public:
 	/** @brief Constructor with small and large element with commom side */
-	TPZCheckRestraint(TPZCompElSide small, TPZCompElSide large);
+	TPZCheckRestraint(TPZCompElSide smalll, TPZCompElSide large);
 	/** @brief Returns the restraint matrix */
 	TPZFMatrix<REAL> &RestraintMatrix();
 	
