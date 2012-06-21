@@ -32,11 +32,11 @@ int TPZVerySparseMatrix<TVar>::PutVal(int row, int col, const TVar &val)
 	{
 		fExtraSparseData.erase(it);
 	}
-	else if(!IsZero(val) && it != fExtraSparseData.end())
+	else if( it != fExtraSparseData.end())
 	{
 		it->second = val;
 	}
-	else if (!IsZero(val))
+	else
 	{
 		fExtraSparseData[position] = val;
 	}
