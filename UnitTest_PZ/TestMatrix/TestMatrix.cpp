@@ -93,7 +93,13 @@ void TestingInverseWithAutoFill(int rows,int bnd) {
 	/// Checking whether the res matrix is identical to m1 matrix
 	for(i=0;i<rows;i++)
 		for(j=0;j<rows;j++)
-			BOOST_CHECK(IsZero(ma.GetVal(i,j) - res.GetVal(i,j)));
+        {
+            REAL a = ma.GetVal(i,j);
+            REAL b = res.GetVal(i,j);
+            REAL diff = a-b;
+            bool result = IsZero(diff);
+			BOOST_CHECK(result);
+        }
 }
 
 /**
