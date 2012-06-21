@@ -57,8 +57,8 @@ int TPZCheckMesh::VerifyConnect(int connect) {
 	int ndep = deplist.NElements();
 	int id;
 	for(id=0; id<ndep; id++) {
-		TPZCompElSide small = FindElement(deplist[id]);
-		TPZCompElSide large = small.LowerLevelElementList(1);
+		TPZCompElSide smalll = FindElement(deplist[id]);
+		TPZCompElSide large = smalll.LowerLevelElementList(1);
 		if(!large.Exists()) {
 			check = 0;
 			(*fOut) << "VerifyConnect of " << connect << " inconsistent\n";
@@ -87,12 +87,12 @@ void TPZCheckMesh::DependencyReport(int connect) {
 
 void TPZCheckMesh::DependencyReport(int connect, TPZCompElSide & large) {
 	
-	TPZStack<TPZCompElSide> small;
-	large.HigherLevelElementList(small,1,1);
-	int nsmall = small.NElements();
+	TPZStack<TPZCompElSide> smalll;
+	large.HigherLevelElementList(smalll,1,1);
+	int nsmall = smalll.NElements();
 	int is;
 	for(is=0; is<nsmall; is++) {
-		int conind = small[is].Element()->ConnectIndex(small[is].Side());
+		int conind = smalll[is].Element()->ConnectIndex(smalll[is].Side());
 		(*fOut) << "Connect " << conind << " may depend on " << connect << endl;
 	}
 	if(large.Reference().Dimension() == 1) {

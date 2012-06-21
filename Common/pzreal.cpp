@@ -55,7 +55,7 @@ std::ostream &operator<<(std::ostream &out,const TPZCounter &count)
 void DebugStop()
 {
 #ifdef WIN32
-	ShowMessage("Erro encontrado! Entre em contato com o suporte do programa!");
+	//ShowMessage("Erro encontrado! Entre em contato com o suporte do programa!");
 #endif
 	std::cout << "Your chance to put a breakpoint at " << __FILE__ <<  "\n";
 	std::bad_exception myex;

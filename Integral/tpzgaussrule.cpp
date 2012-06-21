@@ -2,7 +2,11 @@
  * @file
  * @brief Contains the implementation of the TPZGaussRule methods. 
  */
-
+#include "config.h"
+#ifdef VC
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 #include <cmath>
 
 #include "tpzline.h"
@@ -306,6 +310,7 @@ long double TPZGaussRule::JacobiPolinomial(long double x,int alpha,int beta,unsi
 	return p[n];
 }
 
+using namespace std;
 /** Computes the points and weights for Gauss Lobatto quadrature */
 void TPZGaussRule::ComputingGaussLobattoQuadrature(int order) {
 	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we need increment one point more
@@ -335,7 +340,7 @@ void TPZGaussRule::ComputingGaussLobattoQuadrature(int order) {
 	
 	// check whether long double is more accurate than double, and
 	// set tolerances accordingly
-	const long double tol = ((1.L + eps) != 1.L ? std::max(deps/(100.0L), eps*5.0L) : deps*5.0L);
+	const long double tol = ((1.L + eps) != 1.L ? max(deps/(100.0L), eps*5.0L) : deps*5.0L);
 	
 	// it take the zeros of the Chebyshev polynomial (alpha=beta=-0.5) as initial values:
 	unsigned int i, k;

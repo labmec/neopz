@@ -566,14 +566,14 @@ void TPZNonLinMultGridAnalysis::OneGridAlgorithm(std::ostream &out,int nummat){
 
 void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	
-	ifstream IN("DADOS.in");
+	ifstream INd("DADOS.in");
 	TPZCompMesh *coarcmesh = fMeshes[0];//malha grosseira inicial
 	TPZGeoMesh *geomesh = fMeshes[0]->Reference();//nica malha geom�rica
 	int meshdim = coarcmesh->Dimension();
 	//criando a malha fina
 	int levelnumbertorefine = 1;
 	cout << "TPZNonLinMultGridAnalysis:: nmero de n�eis a dividir: ";
-	IN >> levelnumbertorefine;
+	INd >> levelnumbertorefine;
 	int setdegree = -1;//preserva o grau da malha inicial
 	//newmesh = 0: coarcmesh se tornou a malha fina
 	TPZCompMesh *finemesh = UniformlyRefineMesh(coarcmesh,levelnumbertorefine,setdegree);
@@ -582,7 +582,7 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	//obtendo-se a malha menos fina por agrupamento
 	int levelnumbertogroup = levelnumbertorefine - 1;//sera obtido por agrupamento o n�el 0
 	cout << "TPZNonLinMultGridAnalysis:: nmero do n�el a ser agrupado: ";
-	IN >> levelnumbertogroup;
+	INd >> levelnumbertogroup;
 	TPZCompMesh *aggmesh = AgglomerateMesh(finemesh,levelnumbertogroup);
 	aggmesh->SetName("\n\t\t\t* * * MALHA COMPUTACIONAL AGLOMERADA * * *\n\n");
 	aggmesh->SetDimModel(meshdim);
@@ -627,15 +627,15 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	TPZMaterial * coarsemat = fMeshes[1]->FindMaterial(nummat);
 	int coarsedim = coarsemat->Dimension();
 	cout << "\nNumero de iteracoes pre-suavisamento? :\n";
-	IN >> preiter;
+	INd >> preiter;
 	//preiter = 10;
 	cout << "main:: Parametro marcha : \n";
-	IN >> premarcha;
+	INd >> premarcha;
 	//premarcha = 0;
 	cout << "\nNumero de iteracoes p�-suavisamento? :\n";
-	IN >> positer;
+	INd >> positer;
 	//cout << "main:: Parametro marcha no p�-suavisamento :\n";
-	//IN >> posmarcha;
+	//INd >> posmarcha;
 	posmarcha = premarcha;
 	fMeshes[2]->Reference()->ResetReference();
 	fMeshes[2]->LoadReferences();
@@ -673,13 +673,13 @@ void TPZNonLinMultGridAnalysis::TwoGridAlgorithm(std::ostream &out,int nummat){
 	REAL sol_tol = 1.e15;//valor m�imo da ||solu�o||
 	REAL time,skm1 = 1.0;
 	cout << "TwoGridAlgorithm entre sk-1 : ";
-	IN >> skm1;
+	INd >> skm1;
 	REAL skm1inv = 1.0/skm1;
 	int draw = 0,residuo;
 	cout << "TwoGridAlgorithm nmero m�imo de itera�es : ";
-	IN >> mgmaxiter;
+	INd >> mgmaxiter;
 	cout << "TwoGridAlgorithm res�uo [1:Lk-1(u0k-1)] ou res�uo [2:fk-1] ? : ";
-	IN >> residuo;
+	INd >> residuo;
 	fInit = clock();
 	cout << "PZAnalysis::SmoothingSolutionTest beginning of the iterative process, time = 0\n";
 	

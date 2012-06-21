@@ -9,8 +9,11 @@
 #include "pzmatrix.h"
 #include "pzfmatrix.h"
 #include "pzerror.h"
-#include <math.h>
 #include <cmath>
+#ifdef VC
+#define _USE_MATH_DEFINES
+#endif
+#include <math.h>
 #include "pzaxestools.h"
 #include "pzlog.h"
 

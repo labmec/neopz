@@ -772,9 +772,9 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STAT
 	int corblockseq = con.SequenceNumber();
 	if(locnshape == 0 || cornshape == 0)
 		PZError << "TPZCompElDisc::BuilTransferMatrix error I\n";
-	TPZFMatrix<STATE> small(locnshape,cornshape,0.);
-	loccormat.GetSub(0,0,locnshape,cornshape,small);
-	REAL tol = Norm(small);
+	TPZFMatrix<STATE> smalll(locnshape,cornshape,0.);
+	loccormat.GetSub(0,0,locnshape,cornshape,smalll);
+	REAL tol = Norm(smalll);
 	if(tol >= 1.e-10) {
 		globblockvec.Push(corblockseq);
 		numnonzero++;
@@ -786,8 +786,8 @@ void TPZCompElDisc::BuildTransferMatrix(TPZCompElDisc &coarsel, TPZTransfer<STAT
 	transfer.AddBlockNumbers(locblockseq,globblockvec);
 	if(cornshape == 0 || locnshape == 0)
 		PZError << "TPZCompElDisc::BuilTransferMatrix error IV\n";
-	loccormat.GetSub(0,0,locnshape,cornshape,small);
-	transfer.SetBlockMatrix(locblockseq,globblockvec[0],small);
+	loccormat.GetSub(0,0,locnshape,cornshape,smalll);
+	transfer.SetBlockMatrix(locblockseq,globblockvec[0],smalll);
 	
 	SetDegree(locdeg);
 	delete intrule;

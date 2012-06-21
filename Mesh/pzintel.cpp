@@ -160,18 +160,18 @@ void TPZInterpolatedElement::ForceSideOrder(int side, int order){
 		
 		// analyse their side order because they are restrained by me
 		cap = elvec.NElements();
-		TPZInterpolatedElement *small;
+		TPZInterpolatedElement *smalll;
 		int smallside;
 		int dimension;
 		for(dimension = 0; dimension < 4; dimension++) {
 			for(il=0; il<cap; il++) {
 				if(elvec[il].Reference().Dimension() != dimension) continue;
-				small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
-				if (!small) continue;
+				smalll = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+				if (!smalll) continue;
 				smallside = elvec[il].Side();
 				// Identify Side Order is used because it will call itself recursively
 				// for its smaller elements too.
-				small->IdentifySideOrder(smallside);
+				smalll->IdentifySideOrder(smallside);
 			}
 		}
 		
@@ -314,18 +314,18 @@ void TPZInterpolatedElement::IdentifySideOrder(int side)
 		
 		// analyse their side order because they are restrained by me
 		cap = elvec.NElements();
-		TPZInterpolatedElement *small;
+		TPZInterpolatedElement *smalll;
 		int smallside;
 		int dimension;
 		for(dimension = 0; dimension < 4; dimension++) {
 			for(il=0; il<cap; il++) {
 				if(elvec[il].Reference().Dimension() != dimension) continue;
-				small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
-				if (!small) continue;
+				smalll = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+				if (!smalll) continue;
 				smallside = elvec[il].Side();
 				// Identify Side Order is used because it will call itself recursively
 				// for its smaller elements too.
-				small->IdentifySideOrder(smallside);
+				smalll->IdentifySideOrder(smallside);
 			}
 		}
 		
@@ -377,19 +377,19 @@ void TPZInterpolatedElement::RecomputeRestraints(int side) {
 	//thisside.ExpandConnected(elvec,1);
 	int cap,il;
 	cap = elvec.NElements();
-	TPZInterpolatedElement *small;
+	TPZInterpolatedElement *smalll;
 	int smallside;
 	int dimension;
 	for(dimension =0; dimension <4; dimension++) {
 		for(il=0; il<cap; il++) {
 			if(elvec[il].Reference().Dimension() != dimension) continue;
-			small = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
-			if (!small) continue;
+			smalll = dynamic_cast<TPZInterpolatedElement *> (elvec[il].Element());
+			if (!smalll) continue;
 			smallside = elvec[il].Side();
 			// Identify Side Order is used because it will call itself recursively
 			// for its smaller elements too.
-			small->RemoveSideRestraintWithRespectTo(smallside,thisside);
-			small->RestrainSide(smallside,this,side);
+			smalll->RemoveSideRestraintWithRespectTo(smallside,thisside);
+			smalll->RestrainSide(smallside,this,side);
 		}
 	}
 }
@@ -588,10 +588,10 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
-							 locblocksize,corblocksize,small);
-			REAL tol = Norm(small);
+							 locblocksize,corblocksize,smalll);
+			REAL tol = Norm(smalll);
 			if(tol >= 1.e-10) {
 				locblockvec.Push(jn);
 				globblockvec.Push(corblocknumber);
@@ -606,9 +606,9 @@ void TPZInterpolatedElement::BuildTransferMatrix(TPZInterpolatedElement &coarsel
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
-			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
-			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
+			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
+			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,smalll);
+			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],smalll);
 		}
 	}
 	intrule->SetOrder(prevorder);

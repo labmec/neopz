@@ -19,8 +19,8 @@ using namespace std;
 /** TPZIntPoints method that returns a coherent maxime order to work */
 /** It is necessary because now can to be computed rule with integration points up to one thousand. */
 int TPZIntPoints::GetMaxOrder() const {
-	return fminl(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
-			   fminl(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
+	return min(TPZIntRuleT::NRULESTRIANGLE_ORDER, \
+			   min(TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER,TPZIntRuleP3D::NRULESPYRAMID_ORDER));
 }
 
 void TPZIntPoints::Print(std::ostream &out) {

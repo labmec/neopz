@@ -1404,10 +1404,10 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			if(con.HasDependency()) continue;
 			int corblocknumber = con.SequenceNumber();
 			if(locblocksize == 0 || corblocksize == 0) continue;
-			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
+			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
 			loccormat.GetSub(locblockpos,corblockpos,
-							 locblocksize,corblocksize,small);
-			REAL tol = Norm(small);
+							 locblocksize,corblocksize,smalll);
+			REAL tol = Norm(smalll);
 			if(tol >= 1.e-10) {
 				locblockvec.Push(jn);
 				globblockvec.Push(corblocknumber);
@@ -1422,9 +1422,9 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 			int corblocksize = corblock.Size(jn);
 			int corblockpos = corblock.Position(jn);
 			if(corblocksize == 0 || locblocksize == 0) continue;
-			TPZFMatrix<STATE> small(locblocksize,corblocksize,0.);
-			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,small);
-			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],small);
+			TPZFMatrix<STATE> smalll(locblocksize,corblocksize,0.);
+			loccormat.GetSub(locblockpos,corblockpos,locblocksize,corblocksize,smalll);
+			transfer.SetBlockMatrix(locblocknumber,globblockvec[jnn],smalll);
 		}
 	}
 	intrule->SetOrder(prevorder);
