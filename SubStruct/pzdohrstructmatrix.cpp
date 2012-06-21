@@ -190,6 +190,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		IdentifyEqNumbers(submesh, globaleqs ,globinv);
 		int next = globaleqs.size();
 		substruct->fNumExternalEquations = next;
+        substruct->fNumInternalEquations = submesh->NumInternalEquations();
 		assembly->fFineEqs[isub].Resize(next);
 		std::map<int,int>::iterator it;
 		int count = 0;

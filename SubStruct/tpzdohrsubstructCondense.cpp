@@ -19,7 +19,7 @@ typename TPZDohrSubstructCondense<TVar>::EWeightType TPZDohrSubstructCondense<TV
 
 
 template<class TVar>
-TPZDohrSubstructCondense<TVar>::TPZDohrSubstructCondense() 
+TPZDohrSubstructCondense<TVar>::TPZDohrSubstructCondense() : fNEquations(-1), fNumInternalEquations(-1), fNumExternalEquations(-1)
 {
 	//Inicializacao
 }
@@ -476,8 +476,8 @@ const TPZVec<int> &TPZDohrSubstructCondense<TVar>::ScatterVec(ENumbering origin,
 /** @brief method for streaming the object to a stream */
 template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
-{
-    
+{    
+    SAVEABLE_STR_NOTE(out,"fMatRedComplete");
     if(fMatRedComplete)
     {
         int one = 1;
@@ -488,8 +488,11 @@ void TPZDohrSubstructCondense<TVar>::Write(TPZStream &out, int withclassid)
         int zero = 0;
         out.Write(&zero);
     }
+    SAVEABLE_STR_NOTE(out,"fNEquations");
     out.Write(&fNEquations);
+    SAVEABLE_STR_NOTE(out,"fNumInternalEquations");
     out.Write(&fNumInternalEquations);
+    SAVEABLE_STR_NOTE(out,"fNumExternalEquations");
     out.Write(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
     TPZSaveable::WriteObjects(out, fCoarseNodes);
@@ -535,14 +538,18 @@ template<class TVar>
 void TPZDohrSubstructCondense<TVar>::Read(TPZStream &input, void *context)
 {
     int a;
+    SAVEABLE_SKIP_NOTE(input);
     input.Read(&a);
     if (a) {
         fMatRedComplete = new TPZMatRed<TVar, TPZFMatrix<TVar> >;
         fMatRedComplete->Read(input,0);
     }
     
+    SAVEABLE_SKIP_NOTE(input);
     input.Read(&fNEquations);
+    SAVEABLE_SKIP_NOTE(input);
     input.Read(&fNumInternalEquations);
+    SAVEABLE_SKIP_NOTE(input);
     input.Read(&fNumExternalEquations);
     std::cout << fNEquations << " " << fNumInternalEquations << " " << fNumExternalEquations << std::endl;
     TPZSaveable::ReadObjects(input, fCoarseNodes);

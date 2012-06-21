@@ -210,19 +210,26 @@ int TPZDohrMatrix<long double, TPZDohrSubstruct<long double> >::ClassId() const 
 template <class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 {
+  SAVEABLE_SKIP_NOTE(buf);
     TPZMatrix<TVar>::Read(buf, context);
     fAssembly = new TPZDohrAssembly<TVar>;
+  SAVEABLE_SKIP_NOTE(buf);
     fAssembly->Read(buf);
+  SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&fNumCoarse);
+  SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&fNumThreads);
     int sz;
+  SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&sz);
     for (int i=0; i<sz; i++) {
         TPZAutoPointer<TSubStruct > sub = new TSubStruct;
+	SAVEABLE_SKIP_NOTE(buf);
         sub->Read(buf,0);
         fGlobal.push_back(sub);
     }
     int classid;
+  SAVEABLE_SKIP_NOTE(buf);
     buf.Read(&classid );
     if (classid != ClassId()) {
         DebugStop();
@@ -236,18 +243,25 @@ void TPZDohrMatrix<TVar, TSubStruct >::Read(TPZStream &buf, void *context )
 template <class TVar, class TSubStruct>
 void TPZDohrMatrix<TVar,TSubStruct >::Write( TPZStream &buf, int withclassid )
 {
+  SAVEABLE_STR_NOTE(buf,"TPZMatrix<TVar>::Write ()");
     TPZMatrix<TVar>::Write(buf, withclassid);
+  SAVEABLE_STR_NOTE(buf,"fAssembly->Write");
     fAssembly->Write(buf);
+   SAVEABLE_STR_NOTE(buf,"fNumCoarse");
     buf.Write(&fNumCoarse);
+   SAVEABLE_STR_NOTE(buf,"fNumThreads");
     buf.Write(&fNumThreads);
     typename SubsList::iterator it;
     int size = fGlobal.size();
+   SAVEABLE_STR_NOTE(buf,"fGlobal.size()");
     buf.Write(&size);
     for (it=fGlobal.begin(); it != fGlobal.end(); it++) {
+      SAVEABLE_STR_NOTE(buf,"fGlobal[...]");
         (*it)->Write(buf,0);
     }
     size = 0;
     int classid = ClassId();
+   SAVEABLE_STR_NOTE(buf,"ClassId");
     buf.Write(&classid );
 }
 

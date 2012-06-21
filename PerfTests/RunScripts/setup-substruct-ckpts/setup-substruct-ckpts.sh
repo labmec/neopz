@@ -37,22 +37,22 @@ for plevel in 1; do
     echo "Generating cube chekpoints for plevel = $plevel and nsubs = $ns"
 
     CMD="$APP -mc \"$DATADIR/Substruct/inputs/cube1.txt\" \
-        -dc1 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt1\" \
-        -dc2 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt2\" \
-        -dc3 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt3\" "
+        -dc1 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1\" \
+        -dc2 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2\" \
+        -dc3 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt3\" "
 
     echo "CMD=$CMD"
 
     $APP -mc "$DATADIR/Substruct/inputs/cube1.txt" \
-        -dc1 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt1" \
-        -dc2 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt2" \
-        -dc3 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt3"
+        -dc1 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1" \
+        -dc2 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2" \
+        -dc3 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt3"
 
-    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt1" \
-        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.ckpt1"
+    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1" \
+        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1"
 
-    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.ckpt2" \
-        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.ckpt2"
+    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2" \
+        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2"
 
   done   
 done

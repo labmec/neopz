@@ -32,6 +32,21 @@ const int TPZSAVEABLEID = -1;
 typedef TPZSaveable *(*TPZRestore_t)(TPZStream &,void *);
 
 
+/** 
+ * The SAVEABLE NOTES are used to debug read and write operations on
+ * TPZSaveable objects. Do not use it for other purposes.
+ * To enable it, define the DEBUG_SAVEABLE macro.
+ */
+#define DEBUG_SAVEABLE
+
+#ifdef DEBUG_SAVEABLE
+#define SAVEABLE_STR_NOTE(buf,str) { std::string msg(str); buf.Write(&msg,1); }
+#define SAVEABLE_SKIP_NOTE(buf) { std::string str; buf.Read(&str,1); }
+#else
+#define SAVEABLE_STR_NOTE(buf,str)
+#define SAVEABLE_SKIP_NOTE(buf)
+#endif
+
 /**
  * @brief This class defines the interface to save and restore objects from TPZStream objects. \ref save "Persistency"
  */

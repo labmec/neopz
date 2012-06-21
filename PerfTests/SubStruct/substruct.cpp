@@ -53,6 +53,7 @@ static LoggerPtr logger(Logger::getLogger("main"));
 #include "clock_timer.h"
 #include "timing_analysis.h"
 #include "arglib.h"
+#include "stats_recorder.h"
 
 #ifdef HAS_GETRUSAGE
 #include <sys/resource.h> // getrusage
@@ -71,16 +72,16 @@ using namespace std;
 
 void help(const char* prg)
 {
-  cout << "Compute ...." << endl;
-  cout << "The application is divided in three main steps: s1, s2 and s3" << endl;
-  cout << endl;
-  cout << "  Step 1 description: ... " << endl;
-  cout << "  Step 2 description: ... " << endl;
-  cout << "  Step 3 description: ... " << endl << endl;
-  cout << "Usage: " << prg << "starting_point file [-of output_file]" << endl << endl;
-  cout << " starting_point = {-cf1|-cf2|-cf3|-mc|-mp} input_file" << endl;
-
-  clarg::arguments_descriptions(cout, "  ", "\n");
+    cout << "Compute ...." << endl;
+    cout << "The application is divided in three main steps: s1, s2 and s3" << endl;
+    cout << endl;
+    cout << "  Step 1 description: ... " << endl;
+    cout << "  Step 2 description: ... " << endl;
+    cout << "  Step 3 description: ... " << endl << endl;
+    cout << "Usage: " << prg << "starting_point file [-of output_file]" << endl << endl;
+    cout << " starting_point = {-cf1|-cf2|-cf3|-mc|-mp} input_file" << endl;
+    
+    clarg::arguments_descriptions(cout, "  ", "\n");
 } 
 
 
@@ -91,9 +92,9 @@ clarg::argString dc1("-dc1", "dump checkpoint 1 to file", "ckpt1.ckpt");
 clarg::argString dc2("-dc2", "dump checkpoint 2 to file", "ckpt2.ckpt");
 clarg::argString dc3("-dc3", "dump checkpoint 3 to file", "ckpt3.ckpt");
 clarg::argString mc("-mc", "starts execution from beginning - read a \"malha_cubo\" input file",
-		    "../cube1.txt");
+                    "../cube1.txt");
 clarg::argString mp("-mp", "starts execution from beginning - read a \"malha_predio\" input file",
-		    "../8andares02.txt");
+                    "../8andares02.txt");
 
 clarg::argInt plevel     ("-p", "plevel", 1);
 clarg::argInt nt_submeshs("-nt_sm", "number of threads to process the submeshes", 0);
@@ -113,315 +114,333 @@ clarg::argBool h("-h", "help message", false);
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-  InitializePZLOG("log4cxx.cfg");
+    InitializePZLOG("log4cxx.cfg");
 #endif
-  
-  /* Parse the arguments */
-  if (clarg::parse_arguments(argc, argv)) {
-    cerr << "Error when parsing the arguments!" << endl;
-    return 1;
-  }
-
-  if (h.get_value() == true) {
-    help(argv[0]);
-    return 1;
-  }
-
-  /* Verbose macro. */
-  unsigned verbose = verb_level.get_value();
-#define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
-
-  if (verbose >= 1) {
-    std::cout << "- Arguments -----------------------" << std::endl;
-    clarg::values(std::cout, false);
-    std::cout << "-----------------------------------" << std::endl;
-  }
-
-  if (!mp.was_set() && !mc.was_set() && !cf1.was_set() && 
-      !cf2.was_set() && !cf3.was_set()) 
-  {
-    cerr << "A \"starting_point\" must be provided!" << endl;
-    help(argv[0]);
-    return 1;
-  }
-
-  /* Measure time. */
-  ClockTimer timer;
-  ClockTimer total_timer;
-  //TimingAnalysis ta;	
-  total_timer.start();
-
-  TPZPairStructMatrix::gNumThreads = nt_assemble.get_value();
-
-  TPZGeoMesh  *gmesh = 0;
-  TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
-  TPZDohrStructMatrix* dohrstruct = 0;
-  TPZFMatrix<REAL> *rhs = NULL;
-  TPZMatrix<REAL> *matptr = 0;
-  int dim = dim_arg.get_value();
-  TPZCompEl::SetgOrder(plevel.get_value());    
-
-  bool running = false;
-
-  /* Start from malha_cubo or malha_predio? */
-  if (mp.was_set() || mc.was_set())
-    {
-      if (mp.was_set()) // Predio Elastisco
-	{
-	  if (running) {
-	    cerr << "ERROR: you must select only one of the start modes: "
-		 << "mp, mc, cf1, cf2 or cf3" << endl;
-	    exit(1);
-	  }
-	  else  
-	    running = true;
-	  
-	  gmesh = MalhaPredio();
-	  cmeshauto = new TPZCompMesh(gmesh);
-	  cmeshauto->SetDimModel(dim);
-	  InsertElasticity(cmeshauto);
-	  cmeshauto->AutoBuild();
-	}
-      if (mc.was_set()) // Cubo Viscoso
-	{
-	  if (running) {
-	    cerr << "ERROR: you must select only one of the start modes: "
-		 << "mp, mc, cf1, cf2 or cf3" << endl;
-	    exit(1);
-	  }
-	  else  running = true;
-	  
-	  VERBOSE(1, "Reading MalhaCubo from file: " << mc.get_value() << endl);
-	  gmesh = MalhaCubo();
-	  cmeshauto = new TPZCompMesh(gmesh);
-	  cmeshauto->SetDimModel(dim);
-	  cmeshauto->SetDefaultOrder(plevel.get_value());
-	  //cmeshauto->SetAllCreateFunctionsContinuousWithMem();
-	  //cmeshauto->SetAllCreateFunctionsContinuous();
-	  InsertViscoElasticityCubo(cmeshauto);
-	  cmeshauto->AutoBuild();
-	}
-      
-      VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
-      
-      dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),
-					   nt_decompose.get_value());
-      dohrstruct->IdentifyExternalConnectIndexes();
-      
-      VERBOSE(1, "Substructuring the mesh" << endl);
-      
-      dohrstruct->SubStructure(nsub.get_value());
-
-#ifdef LOG4CXX
-      {
-	std::stringstream str;
-	cmeshauto->Print(str);
-	LOGPZ_DEBUG(logger,str.str());
-      }
-#endif
-
-      /* Dump checkpoint 1? */
-      if (dc1.was_set() && running)
-      {
-	VERBOSE(1, "Dumping checkpoint 1 into: " << dc1.get_value() << endl);
-	TPZFileStream CheckPoint1;
-	CheckPoint1.OpenWrite(dc1.get_value());
-	cmeshauto->Reference()->Write(CheckPoint1, 0);
-	cmeshauto->Write(CheckPoint1, 0);
-	dohrstruct->Write(CheckPoint1);
-      }
-
-      matptr = dohrstruct->Create();
+    
+    /* Parse the arguments */
+    if (clarg::parse_arguments(argc, argv)) {
+        cerr << "Error when parsing the arguments!" << endl;
+        return 1;
     }
-
+    
+    if (h.get_value() == true) {
+        help(argv[0]);
+        return 1;
+    }
+    
+    /* Verbose macro. */
+    unsigned verbose = verb_level.get_value();
+#define VERBOSE(level,...) if (level <= verbose) cout << __VA_ARGS__
+    
+    if (verbose >= 1) {
+        std::cout << "- Arguments -----------------------" << std::endl;
+        clarg::values(std::cout, false);
+        std::cout << "-----------------------------------" << std::endl;
+    }
+    
+    if (!mp.was_set() && !mc.was_set() && !cf1.was_set() && 
+        !cf2.was_set() && !cf3.was_set()) 
+    {
+        cerr << "A \"starting_point\" must be provided!" << endl;
+        help(argv[0]);
+        return 1;
+    }
+    
+    /* Measure time. */
+    ClockTimer timer;
+    ClockTimer total_timer;
+    //TimingAnalysis ta;	
+    total_timer.start();
+    
+    TPZPairStructMatrix::gNumThreads = nt_assemble.get_value();
+    
+    TPZGeoMesh  *gmesh = 0;
+    TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
+    TPZDohrStructMatrix* dohrstruct = 0;
+    TPZFMatrix<REAL> *rhs = NULL;
+    TPZMatrix<REAL> *matptr = 0;
+    int dim = dim_arg.get_value();
+    TPZCompEl::SetgOrder(plevel.get_value());    
+    
+    bool running = false;
+    
+    /* Start from malha_cubo or malha_predio? */
+    if (mp.was_set() || mc.was_set())
+    {
+        if (mp.was_set()) // Predio Elastisco
+        {
+            if (running) {
+                cerr << "ERROR: you must select only one of the start modes: "
+                << "mp, mc, cf1, cf2 or cf3" << endl;
+                exit(1);
+            }
+            else  
+                running = true;
+            
+            gmesh = MalhaPredio();
+            cmeshauto = new TPZCompMesh(gmesh);
+            cmeshauto->SetDimModel(dim);
+            InsertElasticity(cmeshauto);
+            cmeshauto->AutoBuild();
+        }
+        if (mc.was_set()) // Cubo Viscoso
+        {
+            if (running) {
+                cerr << "ERROR: you must select only one of the start modes: "
+                << "mp, mc, cf1, cf2 or cf3" << endl;
+                exit(1);
+            }
+            else  running = true;
+            
+            VERBOSE(1, "Reading MalhaCubo from file: " << mc.get_value() << endl);
+            gmesh = MalhaCubo();
+            cmeshauto = new TPZCompMesh(gmesh);
+            cmeshauto->SetDimModel(dim);
+            cmeshauto->SetDefaultOrder(plevel.get_value());
+            //cmeshauto->SetAllCreateFunctionsContinuousWithMem();
+            //cmeshauto->SetAllCreateFunctionsContinuous();
+            InsertViscoElasticityCubo(cmeshauto);
+            cmeshauto->AutoBuild();
+        }
+        
+        VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
+        
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),
+                                             nt_decompose.get_value());
+        dohrstruct->IdentifyExternalConnectIndexes();
+        
+        VERBOSE(1, "Substructuring the mesh" << endl);
+        
+        dohrstruct->SubStructure(nsub.get_value());
+        
+#ifdef LOG4CXX
+        {
+            std::stringstream str;
+            cmeshauto->Print(str);
+            LOGPZ_DEBUG(logger,str.str());
+        }
+#endif
+        
+        /* Dump checkpoint 1? */
+        if (dc1.was_set() && running)
+        {
+            VERBOSE(1, "Dumping checkpoint 1 into: " << dc1.get_value() << endl);
+            TPZFileStream CheckPoint1;
+            CheckPoint1.OpenWrite(dc1.get_value());
+            cmeshauto->Reference()->Write(CheckPoint1, 0);
+            cmeshauto->Write(CheckPoint1, 0);
+            dohrstruct->Write(CheckPoint1);
+        }
+        
+    }
+    
     // Start from Checkpoint 1
     if (cf1.was_set())
     {
-      if (running) {
-	cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
-	exit(1);
-      }
-      else  
-	running = true;
-
-      gmesh = new TPZGeoMesh;
-      cmeshauto = new TPZCompMesh(gmesh);
-      dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
-      /* Read the checkpoint. */
-      {
-	TPZFileStream CheckPoint1;
-	CheckPoint1.OpenRead(cf1.get_value());
-	gmesh->Read(CheckPoint1, 0);
-	cmeshauto->Read(CheckPoint1, gmesh);
-	dohrstruct->Read(CheckPoint1);
-      }
-
-      dim = cmeshauto->Dimension();
-      VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);
-
-      matptr = dohrstruct->Create();
+        if (running) {
+            cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
+            exit(1);
+        }
+        else  
+            running = true;
+        
+        gmesh = new TPZGeoMesh;
+        cmeshauto = new TPZCompMesh(gmesh);
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+        /* Read the checkpoint. */
+        {
+            TPZFileStream CheckPoint1;
+            CheckPoint1.OpenRead(cf1.get_value());
+            gmesh->Read(CheckPoint1, 0);
+            cmeshauto->Read(CheckPoint1, gmesh);
+            dohrstruct->Read(CheckPoint1);
+        }
+        
+        dim = cmeshauto->Dimension();
+        VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);
+        
     }
-
+    
+    /* Work between checkpoint 1 and checkpoint 2 */
+    if (running) {
+        RunStatsRecorder create_stats;
+        create_stats.start();
+        matptr = dohrstruct->Create();
+        create_stats.stop();
+	cout << "Stats for dohrstruct->Create()" << endl;
+        create_stats.print(cout);
+    }
+    
     if (dc2.was_set() && running)
     {
-      VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
-      TPZFileStream CheckPoint2;
-      CheckPoint2.OpenWrite(dc2.get_value());
-      cmeshauto->Reference()->Write(CheckPoint2, 0);
-      cmeshauto->Write(CheckPoint2, 0);
-      matptr->Write(CheckPoint2, 1);
-      dohrstruct->Write(CheckPoint2);
+        VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
+        TPZFileStream CheckPoint2;
+        CheckPoint2.OpenWrite(dc2.get_value());
+        SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Reference()->Write()");
+        cmeshauto->Reference()->Write(CheckPoint2, 0);
+        SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Write()");
+        cmeshauto->Write(CheckPoint2, 0);
+        SAVEABLE_STR_NOTE(CheckPoint2,"matptr->Write()");
+        matptr->Write(CheckPoint2, 1);
+        SAVEABLE_STR_NOTE(CheckPoint2,"dohrstruct->Write()");
+        dohrstruct->Write(CheckPoint2);
     }
-
+    
     // Start from Checkpoint 2
     if (cf2.was_set())
     {
-      if (running) {
-	cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
-	exit(1);
-      }
-      else  
-	running = true;
-
-      TPZFileStream CheckPoint2;
-      CheckPoint2.OpenRead(cf2.get_value());
-      gmesh = new TPZGeoMesh;
-      gmesh->Read(CheckPoint2,0);
-      cmeshauto = new TPZCompMesh(gmesh);
-      cmeshauto->Read(CheckPoint2, &gmesh);
-      matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
-      dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
-      dohrstruct->Read(CheckPoint2);
+        if (running) {
+            cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
+            exit(1);
+        }
+        else  
+            running = true;
+        
+        TPZFileStream CheckPoint2;
+        CheckPoint2.OpenRead(cf2.get_value());
+        gmesh = new TPZGeoMesh;
+	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        gmesh->Read(CheckPoint2,0);
+        cmeshauto = new TPZCompMesh(gmesh);
+	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        cmeshauto->Read(CheckPoint2, &gmesh);
+	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+	SAVEABLE_SKIP_NOTE(CheckPoint2);
+        dohrstruct->Read(CheckPoint2);
     }
-
+    
     TPZAutoPointer<TPZMatrix<REAL> > precond = NULL;
+    /* Work between checkpoint 2 and checkpoint 3 */
     if (running) {
-
-      TPZAutoPointer<TPZGuiInterface> gui;
-      rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
-      VERBOSE(1,"dohrstruct->Assemble()" << endl);
-      dohrstruct->Assemble(*matptr,*rhs, gui);
-      precond = dohrstruct->Preconditioner();
+        
+        TPZAutoPointer<TPZGuiInterface> gui;
+        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+        VERBOSE(1,"dohrstruct->Assemble()" << endl);
+        dohrstruct->Assemble(*matptr,*rhs, gui);
+        precond = dohrstruct->Preconditioner();
     }
-      
+    
     if (dc3.was_set() && running)
     {
-      VERBOSE(1, "Dumping checkpoint 3 into: " << dc2.get_value() << endl);
-      TPZFileStream CheckPoint3;
-      CheckPoint3.OpenWrite(dc3.get_value());
-      cmeshauto->Reference()->Write(CheckPoint3, 0);
-      cmeshauto->Write(CheckPoint3, 0);
-      matptr->Write(CheckPoint3, 1);
-      precond->Write(CheckPoint3, 1);
-      rhs->Write(CheckPoint3, 0);
+        VERBOSE(1, "Dumping checkpoint 3 into: " << dc2.get_value() << endl);
+        TPZFileStream CheckPoint3;
+        CheckPoint3.OpenWrite(dc3.get_value());
+        cmeshauto->Reference()->Write(CheckPoint3, 0);
+        cmeshauto->Write(CheckPoint3, 0);
+        matptr->Write(CheckPoint3, 1);
+        precond->Write(CheckPoint3, 1);
+        rhs->Write(CheckPoint3, 0);
     }
-
+    
     // Start from Checkpoint 3
     if (cf3.was_set())
     {
-      if (running) {
-	cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
-	exit(1);
-      }
-      else  
-	running = true;
-      gmesh = new TPZGeoMesh;
-      cmeshauto = new TPZCompMesh(gmesh);
-      dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+        if (running) {
+            cerr << "ERROR: you must select only one of the start modes: mp, mc, cf1, cf2 or cf3" << endl;
+            exit(1);
+        }
+        else  
+            running = true;
+        gmesh = new TPZGeoMesh;
+        cmeshauto = new TPZCompMesh(gmesh);
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
         
-      dim = cmeshauto->Dimension();
-      VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);
-
-      TPZFileStream CheckPoint3;
-      CheckPoint3.OpenRead(cf3.get_value());
-      gmesh->Read(CheckPoint3, 0);
-      cmeshauto->Read(CheckPoint3, gmesh);
-      matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
-      precond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matptr));
-      rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
-      rhs->Read(CheckPoint3, 0);
+        dim = cmeshauto->Dimension();
+        VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);
+        
+        TPZFileStream CheckPoint3;
+        CheckPoint3.OpenRead(cf3.get_value());
+        gmesh->Read(CheckPoint3, 0);
+        cmeshauto->Read(CheckPoint3, gmesh);
+        matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, 0));
+        precond = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint3, matptr));
+        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+        rhs->Read(CheckPoint3, 0);
     }
-
+    
+    /* Work after checkpoint 3 */
     TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-
+    
     int neq = dohr->Rows();
     TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
-        
+    
     VERBOSE(1, "Number of equations " << neq << endl);
-        
+    
     TPZStepSolver<REAL> pre(precond);
     pre.SetMultiply();
     TPZStepSolver<REAL> cg(dohr);
-        
+    
     cg.SetCG(500,pre,1.e-8,0);
     cg.Solve(*rhs,diag);
-
+    
     TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
-      dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
-
+    dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
+    
     if (!dohrptr) {
-      DebugStop();
+        DebugStop();
     }
-         
+    
     dohrptr->AddInternalSolution(diag);
-		
+    
     typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
     const subtype &sublist = dohrptr->SubStructures(); 
     subtype::const_iterator it = sublist.begin();
     int subcount=0;
     while (it != sublist.end()) {
-
-      TPZFMatrix<REAL> subext,subu;
-      dohrptr->fAssembly->Extract(subcount,diag,subext);
-      (*it)->UGlobal(subext,subu);
-      TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
-      submesh->LoadSolution(subu);
-      
-      //ViscoElastico
-      //Atualizando memoria do material
-      std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
-      std::map<int ,TPZMaterial * >::iterator itmat;
-      for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
-	{
-	  TPZMaterial * mat = itmat->second;
-	  TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
-	  if(vmat)
-	    {
-	      vmat->SetUpdateMem();
-	    }
-	}	
-      subcount++;
-      it++;
+        
+        TPZFMatrix<REAL> subext,subu;
+        dohrptr->fAssembly->Extract(subcount,diag,subext);
+        (*it)->UGlobal(subext,subu);
+        TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
+        submesh->LoadSolution(subu);
+        
+        //ViscoElastico
+        //Atualizando memoria do material
+        std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
+        std::map<int ,TPZMaterial * >::iterator itmat;
+        for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
+        {
+            TPZMaterial * mat = itmat->second;
+            TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
+            if(vmat)
+            {
+                vmat->SetUpdateMem();
+            }
+        }	
+        subcount++;
+        it++;
     }
     
 #ifdef LOG4CXX
     {
-      std::stringstream sout;
-      diag.Print("Resultado do processo iterativo",sout);
-      LOGPZ_INFO(loggerconverge,sout.str())
+        std::stringstream sout;
+        diag.Print("Resultado do processo iterativo",sout);
+        LOGPZ_INFO(loggerconverge,sout.str())
     }
 #endif	
-		
+    
     TPZMaterial * mat = cmeshauto->FindMaterial(1);
     int nstate = mat->NStateVariables();
     int nscal = 0, nvec = 0;
     if(nstate ==1) 
-      {
-	nscal = 1;
-      }
+    {
+        nscal = 1;
+    }
     else
-      {
-	nvec = 1;
-      }
+    {
+        nvec = 1;
+    }
     TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
     if(nscal == 1)
-      {
-	scalnames[0]="state";            
-      }
+    {
+        scalnames[0]="state";            
+    }
     else
-      {
-	vecnames[0] = "state";
-      }
+    {
+        vecnames[0] = "state";
+    }
     std::string postprocessname("dohrmann_visco.vtk");
     TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
     vtkmesh.SetFileName(postprocessname);
@@ -433,9 +452,9 @@ int main(int argc, char *argv[])
     int istep = 0;
     vtkmesh.DrawMesh(numcases);
     vtkmesh.DrawSolution(istep, 1.);
-
+    
     delete gmesh;
-
+    
     return EXIT_SUCCESS;
 }
 
@@ -554,10 +573,10 @@ TPZGeoMesh *MalhaPredio()
 		
 		ifstream read (FileName.c_str());
 		if (!read.is_open()) {
-		  cerr << "Could not open file: " << FileName << endl;
-		  exit(1);
+            cerr << "Could not open file: " << FileName << endl;
+            exit(1);
 		}
-
+        
 		while(read)
 		{
 			char buf[1024];
@@ -611,7 +630,7 @@ TPZGeoMesh *MalhaPredio()
 	{
 		read.close();
 		read.open(FileName.c_str());
-
+        
 		int l , m = numnodes+5;
 		for(l=0; l<m; l++)
 		{
@@ -691,8 +710,8 @@ TPZGeoMesh *MalhaCubo()
 		
 		ifstream read (FileName.c_str());
 		if (!read.is_open()) {
-		  cerr << "Could not open file: " << FileName << endl;
-		  exit(1);
+            cerr << "Could not open file: " << FileName << endl;
+            exit(1);
 		}
 		
 		while(read)
