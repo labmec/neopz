@@ -5,6 +5,7 @@
 
 #include "pzpolynomial.h"
 #include "pznumeric.h"
+#include "pzmanvector.h"
 #include <iostream>
 #include <algorithm>
 #include <functional>
@@ -164,7 +165,8 @@ int TPZPolynomial::GetRoots(const TPZVec<REAL> &coef, TPZVec<REAL> &r) {
 
 /** Sets the roots of the polynomial in r, being \f$ fReal[0] >> fReal[1] >> fReal[2]. \f$ */ 
 int TPZPolynomial::SetRoots() {
-    REAL X[3], x;
+    TPZManVector<REAL,3> X(3);
+	REAL x;
     REAL tol = -99.999;
     REAL der;
     int i, j;
@@ -182,7 +184,8 @@ int TPZPolynomial::SetRoots() {
             X[2] = 0.0;
             //Colocação das tensões em ordem crescente
 			sort(&X[0], &X[3], greater<REAL>());
-			copy(&X[0], &X[3], &fReal[0]);
+			fReal = X;
+//			copy(&X[0], &X[3], &fReal[0]);
         }
         else {
             // Primeira aproximacao
@@ -240,14 +243,16 @@ int TPZPolynomial::SetRoots() {
                 X[1] = 0.0;
                 X[2] = 0.0;
                 sort(&X[0], &X[3], greater<REAL>());
-				copy(&X[0], &X[3], &fReal[0]);
+				fReal = X;
+//				copy(&X[0], &X[3], &fReal[0]);
             }
             else {
                 X[1] = (-b2 - sqrt(delta)) / (2.0 * b3);
                 X[2] = (-b2 + sqrt(delta)) / (2.0 * b3);
                 //Colocação das tensões em ordem crescente
                 sort(&X[0], &X[3], greater<REAL>());
-				copy(&X[0], &X[3], &fReal[0]);
+				fReal = X;
+//				copy(&X[0], &X[3], &fReal[0]);
             }
         }
     }
