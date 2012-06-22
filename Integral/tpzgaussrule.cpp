@@ -160,6 +160,7 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 	
 	long double tol = 1.e-19L;
 	long double z1, z, pp, p3, p2, p1, dif, den;
+	long double weight;
 	int i, j;
 	long iteration;
 	
@@ -207,8 +208,8 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 		
 		fLocation[i] = -z;
 		fLocation[fNumInt-1-i] = z;
-		fWeight[i] = 2.0L/((1.0L-z*z)*pp*pp);
-		fWeight[fNumInt-1-i] = fWeight[i];
+		weight = (2.0L)/((1.0L-z*z)*pp*pp);
+		fWeight[fNumInt-1-i] = fWeight[i] = weight;
 	}
 }
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric

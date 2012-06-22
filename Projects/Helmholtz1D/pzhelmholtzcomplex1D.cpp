@@ -44,31 +44,31 @@ void TPZHelmholtzComplex1D::Contribute(TPZMaterialData &data, REAL weight, TPZFM
 }
 
 /** @brief Returns the variable index associated with the name */
-    int TPZHelmholtzComplex1D::VariableIndex(const std::string &name) {
-        if(!strcmp(name.c_str(), "state")) return 0;  
-        return TPZMat1dLin::VariableIndex(name);
-    }
+int TPZHelmholtzComplex1D::VariableIndex(const std::string &name) {
+	if(!strcmp(name.c_str(), "state")) return 0; 
+	return TPZMat1dLin::VariableIndex(name);
+}
     
-    /** 
-     * @brief Returns the number of variables associated with the variable indexed by var. 
-     * @param var Index variable into the solution, is obtained by calling VariableIndex
-    */
-    int TPZHelmholtzComplex1D::NSolutionVariables(int var) {
-        if(var == 0) return 2 * NStateVariables();
-        return TPZMat1dLin::NSolutionVariables(var);
-    }
+/**
+ * @brief Returns the number of variables associated with the variable indexed by var.
+ * @param var Index variable into the solution, is obtained by calling VariableIndex
+ */
+int TPZHelmholtzComplex1D::NSolutionVariables(int var) {
+	if(var == 0) return 2 * NStateVariables();
+	return TPZMat1dLin::NSolutionVariables(var);
+}
     
-    /** @brief Returns the solution associated with the var index based on the finite element approximation */
-    void TPZHelmholtzComplex1D::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
-        if(var == 0) {
-            Solout[0] = data.sol[0][0].real();
-            Solout[1] = data.sol[0][0].imag();
-            
-            return;
-        }
-        
-        TPZMaterial::Solution(data, var, Solout);
-    }
+/** @brief Returns the solution associated with the var index based on the finite element approximation */
+void TPZHelmholtzComplex1D::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout) {
+#ifdef STATE_COMPLEX
+	if(var == 0) {
+		Solout[0] = data.sol[0][0].real();
+		Solout[1] = data.sol[0][0].imag();
+		return;
+	}
+#endif
+	TPZMaterial::Solution(data, var, Solout);
+}
 
 
 /*

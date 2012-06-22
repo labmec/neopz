@@ -26,7 +26,7 @@ struct PZResourceUsage
 
 	/** @brief Wallclock time of process (start) */
 	clock_t start;
-	 /** @brief Wallclock time of process (elapsed) */
+	/** @brief Wallclock time of process (elapsed) */
 	clock_t elapsed;
 };   // Change from the original "RESUSE".
 

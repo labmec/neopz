@@ -3,6 +3,9 @@
 ENABLE_TESTING()
 
 
+	#Example to work with scalar as complex
+	add_subdirectory(Helmholtz1D)
+	
 	if(BUILD_TUTORIAL)
 
 		#Example to reading and using geometric mesh

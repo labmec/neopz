@@ -111,8 +111,7 @@ namespace pztopology {
 		 * @{ */
 
 		/**
-		 * @brief returns the transformation which takes a point from the side sidefrom ot
-		 * the side sideto
+		 * @brief returns the transformation which takes a point from the side sidefrom to the side sideto
 		 * @param sidefrom side where the point resides
 		 * @param sideto side whose closure contains sidefrom
 		 * @see the class TPZTransform

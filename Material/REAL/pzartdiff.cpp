@@ -614,8 +614,8 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 			}
 	}
 	
-	TPZVec<REAL> Div;
-	TPZDiffMatrix<REAL> dDiv;
+	TPZVec<STATE> Div;
+	TPZDiffMatrix<STATE> dDiv;
 	
 	//Computing the divergent with derivatives
 	Divergent(dsol, phi, dphi, FADAi, Div, &dDiv);
@@ -653,7 +653,7 @@ void TPZArtDiff::PrepareFastestDiff(TPZFMatrix<REAL> &jacinv,
 		
 	}
 	
-	TPZDiffMatrix<REAL>  TaudDiv_k; // temporary storage
+	TPZDiffMatrix<STATE>  TaudDiv_k; // temporary storage
 	
 	for(k = 0; k < dim; k++)
 	{
@@ -725,9 +725,9 @@ void TPZArtDiff::ContributeExplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<ST
 
 #ifdef _AUTODIFF
 
-void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix<REAL> &ek, TPZFMatrix<STATE> &ef, REAL weight,  REAL timeStep, REAL deltaX)
+void TPZArtDiff::ContributeImplDiff(int dim, TPZFMatrix<REAL> &jacinv, TPZVec<FADREAL> &sol, TPZVec<FADREAL> &dsol, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, REAL weight,  REAL timeStep, REAL deltaX)
 {
-    TPZVec<REAL> solReal(sol.NElements());
+    TPZVec<STATE> solReal(sol.NElements());
     int i;
     for(i = 0; i < sol.NElements(); i++)
 		solReal[i] = sol[i].val();

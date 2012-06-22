@@ -26,6 +26,8 @@ void ExactSolution(const TPZVec<REAL> &pto, TPZVec<STATE> &u_exact,TPZFMatrix<ST
 
 }
 
+#ifndef STATE_COMPLEX
+
 // Variable coefficient of first derivative
 void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
 #ifdef DEBUG
@@ -33,10 +35,10 @@ void AlphaFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
             DebugStop();
         }            
 #endif
-        std::complex<REAL> m(2,-0.1);
-        //std::complex<REAL> m(1.,0.);
-        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
-        //std::complex<REAL> eps(1., 0.);
+        //std::complex<REAL> m(2,-0.1);
+        std::complex<REAL> m(1.,0.);
+        //std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+        std::complex<REAL> eps(1., 0.);
         std::complex<REAL> alph = 1. / eps;   
         
         alpha[0] = alph.real();
@@ -51,10 +53,10 @@ void BetaFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &beta) {
         }            
 #endif
         REAL k0 = 2. * M_PI / lambda;
-        std::complex<REAL> m(2,-0.1);
-        //std::complex<REAL> m(1.,0.);
-        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
-        //std::complex<REAL> eps(1., 0.);
+        //std::complex<REAL> m(2,-0.1);
+        std::complex<REAL> m(1.,0.);
+        //std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+        std::complex<REAL> eps(1., 0.);
         std::complex<REAL> alph = 1. / eps;
         std::complex<REAL> bet = -(k0 * k0) * (m - alph * (std::sin(theta) * std::sin(theta)));
         
@@ -73,54 +75,8 @@ void PhiFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &phi){
         phi[1] = 0;
 }
 
-void AlphaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
-#ifdef DEBUG
-        if(alpha.NElements() != 1) {            
-            DebugStop();
-        }            
-#endif
-        std::complex<REAL> m(2,-0.1);
-        //std::complex<REAL> m(1.,0.);
-        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
-        //std::complex<REAL> eps(1., 0.);
-        std::complex<REAL> alph = 1. / eps;   
-        
-        alpha[0] = alph;
-}
-
-// Variable coefficient of the u
-void BetaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &beta) {
-#ifdef DEBUG
-        if(beta.NElements() != 1) {            
-            DebugStop();
-        }            
-#endif
-        REAL k0 = 2. * M_PI / lambda;
-        std::complex<REAL> m(2,-0.1);
-        //std::complex<REAL> m(1.,0.);
-        std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
-        //std::complex<REAL> eps(1., 0.);
-        std::complex<REAL> alph = 1. / eps;
-        std::complex<REAL> bet = -(k0 * k0) * (m - alph * (std::sin(theta) * std::sin(theta)));
-        
-        beta[0] = bet;
-}
-
-void PhiComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &phi){
-#ifdef DEBUG
-        if(phi.NElements() != 1) {
-            
-            DebugStop();
-        }            
-#endif   
-        phi[0] = 0;
-        //phi[1] = 0;
-}
-
-
-
-int mainReal() {
-	
+int main() {
+    	
 #ifdef LOG4CXX
 	// Initializing generation log comments as log4cxx done
 	std::string logs("log4cxx.doubleprojection1d");
@@ -132,7 +88,7 @@ int mainReal() {
 	std::ofstream outMath("Mathematica.nb");
 	
 	// p -> interpolation order
-	int p = 5;
+	int p = 2;
 	// h -> level of uniform refinement of the initial mesh
 	int h = 6;
 	// Last point of the one-dimensional domain
@@ -151,15 +107,14 @@ int mainReal() {
 	
 	// Material data
 	TPZHelmholtz1D *material;
-	material = new TPZHelmholtz1D(matId[0],1);
+	material = new TPZHelmholtz1D(matId[0], 1);
         
-        material->SetAlphaFunction(new TPZDummyFunction<STATE>(AlphaFunction));
+	material->SetAlphaFunction(new TPZDummyFunction<STATE>(AlphaFunction));
 	material->SetBetaFunction(new TPZDummyFunction<STATE>(BetaFunction));
-        material->SetPhiFunction(new TPZDummyFunction<STATE>(PhiFunction));
-        
-        TPZFMatrix<STATE> xkin(2, 2, 0.), xcin(2, 2, 0.), xbin(2, 2, 0.), xfin(2, 1, 0.); 
-
-        material->SetMaterial(xkin, xcin, xbin, xfin);
+	material->SetPhiFunction(new TPZDummyFunction<STATE>(PhiFunction));
+	
+	TPZFMatrix<STATE> xkin(2, 2, 0.), xcin(2, 2, 0.), xbin(2, 2, 0.), xfin(2, 1, 0.); 
+	material->SetMaterial(xkin, xcin, xbin, xfin);
 	
 	// inserting function force
 	// material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
@@ -177,8 +132,9 @@ int mainReal() {
 	SolveSist(an, cmesh);
         
 	// Solution output for Mathematica
+	OutputMathematica(outMath, 0, 10, cmesh);
 	OutputMathematica(outMath, 1, 10, cmesh);
-        OutputMathematica(outMath, 2, 10, cmesh);
+	OutputMathematica(outMath, 2, 10, cmesh);
 	
 	// Computing error
 	an.SetExact(ExactSolution);
@@ -186,6 +142,51 @@ int mainReal() {
 	an.PostProcess(posproc, FileError); // Compute the errors
 	
 	return 0;
+}
+
+#else
+
+void AlphaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &alpha) {
+#ifdef DEBUG
+	if(alpha.NElements() != 1) {            
+		DebugStop();
+	}            
+#endif
+	//std::complex<REAL> m(2,-0.1);
+	std::complex<REAL> m(1.,0.);
+	//std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+	std::complex<REAL> eps(1., 0.);
+	std::complex<REAL> alph = 1. / eps;   
+	
+	alpha[0] = alph;
+}
+
+// Variable coefficient of the u
+void BetaComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &beta) {
+#ifdef DEBUG
+	if(beta.NElements() != 1) {            
+		DebugStop();
+	}            
+#endif
+	REAL k0 = 2. * M_PI / lambda;
+	//std::complex<REAL> m(2,-0.1);
+	std::complex<REAL> m(1.,0.);
+	//std::complex<REAL> eps = 4. + m * (1. - pto[0] / L) * (1. - pto[0] / L);
+	std::complex<REAL> eps(1., 0.);
+	std::complex<REAL> alph = 1. / eps;
+	std::complex<REAL> bet = -(k0 * k0) * (m - alph * (std::sin(theta) * std::sin(theta)));
+	
+	beta[0] = bet;
+}
+
+void PhiComplexFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &phi){
+#ifdef DEBUG
+	if(phi.NElements() != 1) {
+		
+		DebugStop();
+	}            
+#endif   
+	phi[0] = 0;
 }
 
 int main() {
@@ -202,9 +203,9 @@ int main() {
 	std::ofstream outMath("Mathematica.nb");
 	
 	// p -> interpolation order
-	int p = 5;
+	int p = 9;
 	// h -> level of uniform refinement of the initial mesh
-	int h = 6;
+	int h = 8;
 	// Last point of the one-dimensional domain
 	//double L = 1.;
 	
@@ -223,20 +224,20 @@ int main() {
 	TPZHelmholtzComplex1D *material;
 	material = new TPZHelmholtzComplex1D(matId[0], 1);
         
-        material->SetAlphaFunction(new TPZDummyFunction<STATE>(AlphaComplexFunction));
+    material->SetAlphaFunction(new TPZDummyFunction<STATE>(AlphaComplexFunction));
 	material->SetBetaFunction(new TPZDummyFunction<STATE>(BetaComplexFunction));
-        material->SetPhiFunction(new TPZDummyFunction<STATE>(PhiComplexFunction));
+    material->SetPhiFunction(new TPZDummyFunction<STATE>(PhiComplexFunction));
         
-        TPZFMatrix<STATE> xkin(1, 1, 0.), xcin(1, 1, 0.), xbin(1, 1, 0.), xfin(1, 1, 0.); 
+    TPZFMatrix<STATE> xkin(1, 1, 0.), xcin(1, 1, 0.), xbin(1, 1, 0.), xfin(1, 1, 0.); 
 
-        material->SetMaterial(xkin, xcin, xbin, xfin);
+    material->SetMaterial(xkin, xcin, xbin, xfin);
 	
 	// inserting function force
 	// material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
-	TPZGeoMesh *gmesh = GeomMesh1D(h, matId, bc, x0, x1);
+	TPZGeoMesh *gmesh = GeomMesh1D(h,matId,bc,x0,x1);
 	
 	// Creating a computational mesh and printing computational information.
 	TPZCompMesh * cmesh = CompMeshComplex1D(gmesh, p, material, bc, bcType);
@@ -247,8 +248,7 @@ int main() {
 	SolveSist(an, cmesh);
         
 	// Solution output for Mathematica
-	OutputMathematica(outMath, 1, 10, cmesh);
-        OutputMathematica(outMath, 2, 10, cmesh);
+	OutputMathematica(outMath, 1, 20, cmesh);
 	
 	// Computing error
 	an.SetExact(ExactSolution);
@@ -256,5 +256,6 @@ int main() {
 	an.PostProcess(posproc, FileError); // Compute the errors
 	
 	return 0;
-
 }
+
+#endif

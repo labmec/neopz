@@ -73,15 +73,15 @@ public:
 	
     /** @brief Sets the variable coefficient alpha */
     void SetAlphaFunction(TPZAutoPointer<TPZFunction<STATE> > falpha) {
-            fAlpha = falpha;
+		fAlpha = falpha;
     }
     /** @brief Sets the variable coefficient beta */
     void SetBetaFunction(TPZAutoPointer<TPZFunction<STATE> > fbeta) {
-            fBeta = fbeta;
+		fBeta = fbeta;
     }
 
-    void SetPhiFunction(TPZAutoPointer<TPZFunction<STATE> > fphi){
-            fPhi = fphi;
+    void SetPhiFunction(TPZAutoPointer<TPZFunction<STATE> > fphi) {
+		fPhi = fphi;
     }
 };
 

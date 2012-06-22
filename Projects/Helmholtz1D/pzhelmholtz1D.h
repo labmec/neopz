@@ -74,9 +74,9 @@ public:
 		fBeta = fbeta;
 	}
         
-        void SetPhiFunction(TPZAutoPointer<TPZFunction<STATE> > fphi){
-                fPhi = fphi;
-        }
+	void SetPhiFunction(TPZAutoPointer<TPZFunction<STATE> > fphi) {
+		fPhi = fphi;
+	}
 };
 
 #endif

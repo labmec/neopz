@@ -88,25 +88,25 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	// REAL uN=1-cosh(1.)/sinh(1.);
 	TPZFMatrix<STATE> val1(2, 2, 0.), val2(2, 1, 0.);
 	
-        if(!bcType[0])  // dirichlet
+	if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.0);
 	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0], bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
-        REAL k0 = 2 * M_PI / lambda;
-        std::complex<REAL> imaginary(0, 1);  
-        std::complex<REAL> q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
-        std::complex<REAL> gama = imaginary * k0 * std::cos(theta);
-        
-        val1(0, 0) = 0;
-        val1(0, 1) = gama.imag();
-        val1(1, 0) = gama.imag();
-        val1(1, 1) = 0;
-        
-        val2(0) = -q.real();
-        val2(1) = q.imag();
-                
-        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
+	REAL k0 = 2 * M_PI / lambda;
+	std::complex<REAL> imaginary(0, 1);  
+	std::complex<REAL> q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+	std::complex<REAL> gama = imaginary * k0 * std::cos(theta);
+	
+	val1(0, 0) = 0;
+	val1(0, 1) = gama.imag();
+	val1(1, 0) = gama.imag();
+	val1(1, 1) = 0;
+	
+	val2(0) = -q.real();
+	val2(1) = q.imag();
+	
+	TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 	
 	//Adjusting data
@@ -117,6 +117,7 @@ TPZCompMesh *CompMesh1D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 	return cmesh;
 }
 
+#ifdef STATE_COMPLEX
 TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, TPZVec<int> &bc, TPZVec<int> &bcType) {
 	if(!material || bc.NElements()< 2 || bcType.NElements() != bc.NElements()) return NULL;
 	int dim = 1;	
@@ -134,20 +135,20 @@ TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, 
 	// REAL uN=1-cosh(1.)/sinh(1.);
 	TPZFMatrix<STATE> val1(1, 1, 0.), val2(1, 1, 0.);
 	
-        if(!bcType[0])  // dirichlet
+	if(!bcType[0])  // dirichlet
 		val2.PutVal(0, 0, 0.0);
 	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0], bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
-        REAL k0 = 2 * M_PI / lambda;
-        STATE imaginary(0, 1);  
-        STATE q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
-        STATE gama = imaginary * k0 * std::cos(theta);
-        
-        val1(0, 0) = gama;        
-        val2(0) = q;
-                
-        TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
+	REAL k0 = 2 * M_PI / lambda;
+	STATE imaginary(0, 1);  
+	STATE q = imaginary * 2. * k0 * std::cos(theta) * std::exp(-imaginary * k0 * L * std::cos(theta));
+	STATE gama = imaginary * k0 * std::cos(theta);
+	
+	val1(0, 0) = gama;        
+	val2(0) = q;
+	
+	TPZMaterial *BCond2 = material->CreateBC(mat, bc[1], bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 	
 	//Adjusting data
@@ -157,24 +158,26 @@ TPZCompMesh *CompMeshComplex1D(TPZGeoMesh *gmesh, int p, TPZMaterial *material, 
 	
 	return cmesh;
 }
+#endif
 
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh) {
 	// Symmetric case	
-	TPZSkylineStructMatrix full(fCmesh);
+	//	TPZSkylineStructMatrix full(fCmesh);
+	//	an.SetStructuralMatrix(full);
+	//	an.Solution().Zero();
+	//	TPZStepSolver<STATE> step;
+	//	step.SetDirect(ELDLt);
+	//	an.SetSolver(step);
+	//	an.Run();
+	
+	//	Nonsymmetric case
+	TPZBandStructMatrix full(fCmesh);
 	an.SetStructuralMatrix(full);
 	an.Solution().Zero();
 	TPZStepSolver<STATE> step;
-	step.SetDirect(ELDLt);
+	step.SetDirect(ELU);
 	an.SetSolver(step);
 	an.Run();
-	
-	//	Nonsymmetric case
-//		TPZBandStructMatrix full(fCmesh);
-//		an.SetStructuralMatrix(full);
-//		TPZStepSolver<STATE> step;
-//		step.SetDirect(ELU);
-//		an.SetSolver(step);
-//		an.Run();
 }
 
 // CASE 2D
@@ -190,7 +193,7 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.5 and hy = 0.5  
 	gen.SetElementType(0);       // type = 0 means rectangular elements  --> type = 1 means triangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
-
+	
 	// setting bc condition -2 (u = 0) from (0.0, 0.0) until (1.0, 0.0)
 	x1[1] = 0.0;
 	gen.SetBC(gmesh,x0,x1,-2);
@@ -203,7 +206,7 @@ TPZGeoMesh *GeomMesh2D(int h,TPZVec<int> &matId,TPZVec<int> &bc,TPZVec<REAL> &x0
 	// setting bc condition -1 from (0.0, 1.0) until (0.0, 0.0)
 	x0[0] = x0[1] = 0.;
 	gen.SetBC(gmesh, x1, x0, -1);
-
+	
 	// Building the connectivity between elements as (element, side)
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
@@ -250,6 +253,21 @@ TPZCompMesh *CompMesh2D(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<in
 
 
 // OUTPUT FORMAT
+
+// To write real number in format NNN*10^+ee
+void DecimalExponentialForm(REAL value,char *svalue) {
+	char *p = 0;
+	char temp[256];
+	sprintf(temp,"%E",value);
+	p = strrchr(temp,'E');
+	if(p) {
+		*p = '\0';
+		sprintf(svalue,"%s*10^%s",temp,p+1);
+	}
+	else {
+		sprintf(svalue,"%s",temp);
+	}
+}
 
 // Output as Mathematica format
 void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCompMesh *cmesh) {
@@ -317,15 +335,19 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 	}
 	
 	// Printing the points and values into the Mathematica file
+	char value[128];
 	outMath << "Saida = { ";
 	if(dim<2) {
 		map<REAL,TPZVec<REAL> >::iterator it;
 		for(it=Graph.begin();it!=Graph.end();it++) {
 			if(it!=Graph.begin()) outMath << ",";
 			outMath << "{";
-			for(j=0;j<dim;j++)
-				outMath << (*it).second[j] << ",";
-			outMath << (*it).second[3] << "}";
+			// formating x value
+			DecimalExponentialForm((*it).second[0],value);
+			outMath << value << ",";
+			// formating x value
+			DecimalExponentialForm((*it).second[3],value);
+			outMath << value << "}";
 		}
 		outMath << "}" << std::endl;
 		// Choose Mathematica command depending on model dimension
@@ -336,9 +358,14 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 		for(it=Graphics.begin();it!=Graphics.end();it++) {
 			if(it!=Graphics.begin()) outMath << ",";
 			outMath << "{";
-			for(j=0;j<dim;j++)
-				outMath << (*it).first[j] << ",";
-			outMath << (*it).second << "}";
+			for(j=0;j<dim;j++) {
+				// formating x value
+				DecimalExponentialForm((*it).first[j],value);
+				outMath << value << ",";
+			}
+			// formating x value
+			DecimalExponentialForm((*it).second,value);
+			outMath << value << "}";
 		}
 		outMath << "}" << std::endl;
 		outMath << "ListPlot3D[Saida]"<< endl;

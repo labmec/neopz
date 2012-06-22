@@ -588,11 +588,7 @@ TPZCompMesh *CreateMesh() {
     gmesh->BuildConnectivity();
     
     TPZVec<TPZGeoEl *> sub;
-    // elvec[0]->Divide(sub);
-    //  elvec[1]->Divide(sub);
-    //  elvec[2]->Divide(sub);
-    
-    
+
     // bc -1 -> Dirichlet
     TPZGeoElBC gbc1(elvec[0],4,-1);
     // bc -2 -> Neumann at the bottom y==-1

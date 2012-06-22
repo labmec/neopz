@@ -34,14 +34,14 @@ using namespace std;
 /* RELATED TO MODEL */
 
 // Right handside term of our Linear PDE
-void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<REAL> &xfloat) 
+void ForcingFunction(const TPZVec<REAL> &pto, TPZVec<STATE> &xfloat) 
 {
 	double x=pto[0];
 	xfloat[0] = x;
 }
 
 // Exact Solution u(x)
-void SolExata(TPZVec<REAL> &pto, TPZVec<REAL> &u_exact,TPZFMatrix<REAL> &du_exact)
+void SolExata(const TPZVec<REAL> &pto, TPZVec<STATE> &u_exact,TPZFMatrix<STATE> &du_exact)
 {
 	double x=pto[0];
 	//	double y=pto[1];
@@ -88,16 +88,16 @@ int main()
 	TPZVec<int> bcType(2,0);   // 0 - dirichlet
 	
 	// Coefficients of the differential equation (Linear 1D). They will be required by material constructor
-	TPZFMatrix<REAL> xkin(1,1,1.0);   //  k = 1
-	TPZFMatrix<REAL> xbin(1,1,1.0);   //  b = 1
-	TPZFMatrix<REAL> xcin(1,1,0.0);   //  c = 0
-	TPZFMatrix<REAL> xfin(1,1,0.0);
+	TPZFMatrix<STATE> xkin(1,1,1.0);   //  k = 1
+	TPZFMatrix<STATE> xbin(1,1,1.0);   //  b = 1
+	TPZFMatrix<STATE> xcin(1,1,0.0);   //  c = 0
+	TPZFMatrix<STATE> xfin(1,1,0.0);
 	// Material data
 	TPZMat1dLin *material;
 	material = new TPZMat1dLin(matId[0]); 
 	material->SetMaterial(xkin,xcin,xbin,xfin);
 	// inserting function force
-	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
+	material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
 	
 	// FEM PROCESS
 	// Creating a geometric mesh and printing geometric information. Note: The coordinates of the nodes are 3D
@@ -113,7 +113,7 @@ int main()
 	SolveSist(an,cmesh);
 	
 	// Print Solution as multiplier coefficients
-	TPZFMatrix<REAL> toprint = an.Solution();
+	TPZFMatrix<STATE> toprint = an.Solution();
 	toprint.Print("Solution", FileSolution);
 
 	// Solution output for Mathematica
@@ -166,16 +166,16 @@ int main_refinement(int argc, char *argv[])
 	TPZVec<int> bcType(2,0);   // 0 - dirichlet
 
 	// Coefficients of the differential equation (Linear 1D). They will be required by material constructor
-	TPZFMatrix<REAL> xkin(1,1,1.0);   //  k = 1
-	TPZFMatrix<REAL> xbin(1,1,1.0);   //  b = 1
-	TPZFMatrix<REAL> xcin(1,1,0.0);   //  c = 0
-	TPZFMatrix<REAL> xfin(1,1,0.0);
+	TPZFMatrix<STATE> xkin(1,1,1.0);   //  k = 1
+	TPZFMatrix<STATE> xbin(1,1,1.0);   //  b = 1
+	TPZFMatrix<STATE> xcin(1,1,0.0);   //  c = 0
+	TPZFMatrix<STATE> xfin(1,1,0.0);
 	// Material data
 	TPZMat1dLin *material;
 	material = new TPZMat1dLin(matId[0]); 
 	material->SetMaterial(xkin,xcin,xbin,xfin);
 	// inserting function force
-	material->SetForcingFunction(new TPZDummyFunction(ForcingFunction));
+	material->SetForcingFunction(new TPZDummyFunction<STATE>(ForcingFunction));
 	
 	// Loop over p -> interpolation order
 	for(int p = 1; p < 7; p++)
@@ -196,7 +196,7 @@ int main_refinement(int argc, char *argv[])
 			SolveSist(an,cmesh);
 
 			// Print Solution
-			TPZFMatrix<REAL> toprint = an.Solution();
+			TPZFMatrix<STATE> toprint = an.Solution();
 			toprint.Print("Solution", FileSolution);
 
 			// Solution output for Mathematica

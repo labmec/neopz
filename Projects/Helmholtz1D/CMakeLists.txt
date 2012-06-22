@@ -3,6 +3,16 @@ file(GLOB sources *.cpp)
 
 set(main_SRCS ${sources} ${headers})
 
-add_executable(Helmholtz1D ${main_SRCS})
+if(STATE_COMPLEX)
 
-target_link_libraries(Helmholtz1D pz pthread)
+	add_executable(Helmholtz1D ${main_SRCS})
+
+	target_link_libraries(Helmholtz1D pz pthread)
+
+else()
+
+	add_executable(HelmholtzComplex1D ${main_SRCS})
+
+	target_link_libraries(HelmholtzComplex1D pz pthread)
+
+endif()
