@@ -435,20 +435,36 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	res[nthreads-1] = PZ_PTHREAD_CREATE(&allthreads[nthreads-1], NULL,
 					    this->GlobalAssemble, this, __FUNCTION__);
 	if(!res[nthreads-1]){
+#ifdef VC
+		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1].x << endl;
+#else
 		cout << "GlobalAssemble Thread created Successfuly "<< allthreads[nthreads-1] << endl;
+#endif
 		cout.flush();
 	}else{
+#ifdef VC
+		cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1].x << endl;
+#else
 		cout << "GlobalAssemble Thread Fail "<< allthreads[nthreads-1] << endl;
+#endif
 		cout.flush();
 		//          DebugStop();
 	}
 	res[nthreads-2] = PZ_PTHREAD_CREATE(&allthreads[nthreads-2], NULL, 
 					    mat->WriteFile, mat, __FUNCTION__);
 	if(!res[nthreads-2]){
+#ifdef VC
+		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2].x << endl;
+#else
 		cout << "WriteFile Thread created Successfuly "<< allthreads[nthreads-2] << endl;
+#endif
 		cout.flush();
 	}else{
+#ifdef VC
+		cout << "WriteFile Thread Fail "<< allthreads[nthreads-2].x << endl;
+#else
 		cout << "WriteFile Thread Fail "<< allthreads[nthreads-2] << endl;
+#endif
 		cout.flush();
 		//          DebugStop();
 	}
@@ -457,11 +473,19 @@ void TPZParFrontStructMatrix<front>::Assemble(TPZMatrix<STATE> & matref, TPZFMat
 	  res[i] = PZ_PTHREAD_CREATE(&allthreads[i], NULL, 
 				     this->ElementAssemble, this, __FUNCTION__);
 		if(!res[i]){
+#ifdef VC
+			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i].x << endl;
+#else
 			cout << "ElementAssemble Thread "<< i+1 <<  " created Successfuly "<< allthreads[i] << endl;
+#endif
 			cout.flush();
 		}else{
 			cout << "Error " << res[i] << "\t";
+#ifdef VC
+			cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i].x << endl;
+#else
 			cout << "ElementAssemble Thread "<< i+1 << " Fail " << allthreads[i] << endl;
+#endif
 			cout.flush();
 		}
 	}

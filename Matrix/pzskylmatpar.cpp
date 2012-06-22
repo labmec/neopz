@@ -347,7 +347,11 @@ void * TPZSkylParMatrix<TVar>::ParallelLDLt2(void *t) {
 	}
 	loc->fNthreads--;
 	PZ_PTHREAD_COND_BROADCAST(&condition,"TPZSkylParMatrix::ParallelLDLt2()");
+#ifdef VC
+	cout << "Terminating thread " << pthread_self().x << " numthreads = " << loc->fNthreads << " numdecomposed " << loc->fNumDecomposed <<  endl;
+#else
 	cout << "Terminating thread " << pthread_self() << " numthreads = " << loc->fNthreads << " numdecomposed " << loc->fNumDecomposed <<  endl;
+#endif
 	PZ_PTHREAD_MUTEX_UNLOCK(&skymutex,"TPZSkylParMatrix::ParallelLDLt2()");
 	cout << endl;
 	cout.flush();

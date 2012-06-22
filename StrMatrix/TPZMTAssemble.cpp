@@ -71,8 +71,13 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix<STATE> & rhs, TPZCompMesh &mesh, int m
 	for(iel=0; iel < nelem;) {
 		
 		for(int ithread = 0; ithread < nthreads; ithread++){
+		#ifdef VC
+			allthreads[ithread].p = NULL;
+			std::pair< TPZElementMatrix *, SMTAssembleResidual * > nullPair((TPZElementMatrix *)NULL,(SMTAssembleResidual *)NULL);
+		#else
 			allthreads[ithread] = NULL;
 			std::pair< TPZElementMatrix *, SMTAssembleResidual * > nullPair(NULL,NULL);
+		#endif
 			TPZMTAssemble::gComputedEF[ithread] = nullPair;
 		}
 		
@@ -104,7 +109,11 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix<STATE> & rhs, TPZCompMesh &mesh, int m
 		}//threads
 		
 		for(int i=0;i<nthreads;i++){
-		  if(!allthreads[i]) continue;
+		#ifdef VC
+			if(!allthreads[i].p) continue;
+		#else
+			if(!allthreads[i]) continue;
+		#endif
 		  PZ_PTHREAD_JOIN(allthreads[i], NULL, __FUNCTION__);
 		}
 		

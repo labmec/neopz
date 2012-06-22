@@ -774,7 +774,7 @@ inline int TPZMatrix<TVar>::Cols() const {
 
 template<class TVar>
 inline void TPZMatrix<TVar>::Residual(const TPZFMatrix<TVar>& x,const TPZFMatrix<TVar>& rhs, TPZFMatrix<TVar>& res )  {
-	MultAdd( x, rhs, res, -1.0, 1.0 );
+	MultAdd( x, rhs, res, (TVar)-1.0, (TVar)1.0 );
 }
 
 /***********/

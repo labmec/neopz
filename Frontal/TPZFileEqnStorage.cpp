@@ -7,7 +7,8 @@
 #include <stdlib.h>
 
 #ifdef WIN32
-#include <dir.h>
+//#include <dir.h>
+#include <io.h>
 #endif
 #include "pzlog.h"
 

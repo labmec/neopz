@@ -390,7 +390,7 @@ inline int TPZFMatrix<TVar>::PutVal(const int row, const int col,const TVar & va
 /******************/
 /*** Destructor ***/
 template<class TVar>
-inline TPZFMatrix<TVar>::~TPZFMatrix<TVar>() {
+inline TPZFMatrix<TVar>::~TPZFMatrix() {
 	if(fElem && fElem != fGiven) delete[]( fElem );
 	fElem = 0;
 	fSize = 0;
@@ -500,7 +500,7 @@ inline int TPZFMatrix<TVar>::Zero() {
 /*** Operations Global ***/
 
 inline int Norm(const TPZFMatrix<int> &A) {
-	return sqrt((REAL)Dot(A,A));
+	return (int)sqrt((REAL)Dot(A,A));
 }
 
 inline float Norm(const TPZFMatrix<float> &A) {

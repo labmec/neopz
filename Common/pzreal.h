@@ -105,6 +105,38 @@ typedef std::complex<double> STATE;
 typedef std::complex<long double> STATE;
 #endif
 
+#ifdef VC
+#include <io.h>
+#include <Windows.h>
+// sqrt function adapted to int numbers. required for VC
+inline double
+sqrt(int __x)
+{
+  return sqrt ((double)__x);
+}
+// fabs function adapted to int numbers. required for VC
+inline int
+fabs(int __x)
+{
+  return (int)fabs((double) __x);
+}
+inline double
+sin(int __x)
+{
+  return sin((double) __x);
+}
+inline double
+cos(int __x)
+{
+  return cos((double) __x);
+}
+inline double
+atan(int __x)
+{
+  return atan((double) __x);
+}
+#endif
+
 // fabs function adapted to complex numbers.
 inline float
 fabs(std::complex <float> __x)
