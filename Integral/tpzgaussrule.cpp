@@ -157,63 +157,7 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 	if(fNumInt > TPZGaussRule::NRULESLEGENDRE_ORDER) 
 		fNumInt = TPZGaussRule::NRULESLEGENDRE_ORDER-1;
 
-	
-	long double tol = 1.e-19L;
-	long double z1, z, pp, p3, p2, p1, dif, den;
-	long double weight;
-	int i, j;
-	long iteration;
-	
-	// Cleaning vector to storage
-	fLocation.Resize(0);
-	fWeight.Resize(0);
-	fLocation.Resize(fNumInt,0.0L);
-	fWeight.Resize(fNumInt,0.0L);
-	
-	int m = (fNumInt+1)*0.5;
-
-	for(i=0;i<m;i++) {
-		p1 = (long double)(i + 0.75L);
-		p2 = (long double)(fNumInt+0.5L);
-		z = cosl((M_PI*p1)/p2);   // p2 never is zero
-		iteration = 0L;
-		do {
-			iteration++;
-			p1 = 1.0L;
-			p2 = 0.0L;
-			for(j=0;j<fNumInt;j++) {
-				p3 = p2;
-				p2 = p1;
-				p1 = (((2.0L)*((long double)j)+(1.0L))*z*p2-(((long double)(j))*p3))/(((long double)(j))+(1.0L));   // denominator never will be zero
-			}
-			den = z*z - (1.0L);
-			if(fabs(den)<1.e-16L)
-				z = 0.5L;
-			pp = ((long double)fNumInt)*(z*p1-p2)/den;
-			z1 = z;
-			if(fabs(pp)<1.e-16L)
-				z = 0.5L;
-			else z = z1-p1/pp;
-			dif = fabs(z - z1);
-		}while(fabs(dif) > tol && iteration < PZINTEGRAL_MAXITERATIONS_ALLOWED);
-
-		// If the maxime number of iterations is reached then the computing is stopped
-		if(iteration == PZINTEGRAL_MAXITERATIONS_ALLOWED) {
-			std::cout << "Reached maxime number of iterations for NPOINTS = " << fNumInt << ".\n";
-			fNumInt = 0;
-			fLocation.Resize(0);
-			fWeight.Resize(0);
-			break;
-		}
-		// Philippe told insert in different sequence
-		weight = (2.0L)/((1.0L-z*z)*pp*pp);
-		fLocation[2*i] = -z;
-		fWeight[2*i] = weight;
-		if((2*i+1)<fNumInt) {
-			fLocation[2*i+1] = z;
-			fWeight[2*i+1] = weight;
-		}
-	}
+	ComputingGaussLegendreQuadrature(fNumInt,fLocation,fWeight);	
 }
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
 void TPZGaussRule::ComputingGaussLegendreQuadrature(int npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
@@ -266,11 +210,11 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int npoints,TPZVec<long doub
 		}
 		// Philippe Order
 		weight = 2.0L/((1.0L-z*z)*pp*pp);
-		fLocation[2*i] = -z;
-		fWeight[2*i] = weight;
-		if((2*i+1)<fNumInt) {
-			fLocation[2*i+1] = z;
-			fWeight[2*i+1] = weight;
+		Location[2*i] = -z;
+		Weight[2*i] = weight;
+		if((2*i+1)<npoints) {
+			Location[2*i+1] = z;
+			Weight[2*i+1] = weight;
 		}
 	}
 }
@@ -414,140 +358,10 @@ void TPZGaussRule::ComputingGaussJacobiQuadrature(int order,long double alpha, l
 	fNumInt = (int)(0.51*(order+2));
 	if(fNumInt < 0)
 		fNumInt = 1;
-	long double an;
-	TPZVec<long double> b;
-	long double bn;
-	TPZVec<long double> c;
-	long double cc, delta, dp2;
-	int i;
-	long double p1, prod, r1, r2, r3, temp, x0;
 	
-	fLocation.Resize(fNumInt,0.0L);
-	fWeight.Resize(fNumInt,0.0L);
-	
-	b.Resize(fNumInt,0.0L);
-	c.Resize(fNumInt,0.0L);
-
-	//  This method permit only alpha > -1.0 and beta > -1.0
-	if(alpha <= -1.0L) {
-		std::cerr << "\nJACOBI_COMPUTE - Fatal error!\n  -1.0 < ALPHA is required.\n";
-		std::exit ( 1 );
-	}
-	if(beta <= -1.0L) {
-		std::cerr << "\nJACOBI_COMPUTE - Fatal error!\n  -1.0 < BETA is required.\n";
-		std::exit ( 1 );
-	}
-
-	//  Set the recursion coefficients.
-	for(i=1;i<=fNumInt;i++) {
-		if(alpha + beta == 0.0L || beta - alpha == 0.0L) {
-			b[i-1] = 0.0L;
-		}
-		else {
-			b[i-1] = ( alpha + beta ) * ( beta - alpha ) / 
-			( ( alpha + beta + ( 2.0L * i ) ) 
-             * ( alpha + beta + ( 2.0L * i - 2.0L ) ) );
-		}
-		if(i==1) {
-			c[i-1] = 0.0L;
-		}
-		else {
-			c[i-1] = 4.0L * ( i - 1.0L ) * ( alpha + ( i - 1.0L ) ) * ( beta + ( i - 1.0L ) ) 
-            * ( alpha + beta + ( i - 1.0L ) ) / 
-            ( ( alpha + beta + ( 2.0L * i - 1.0L ) ) * (std::pow(alpha + beta + (2.0L*i - 2.0L),2.0L)) 
-			 * ( alpha + beta + ( 2.0L * i - 3.0L ) ) );
-		}
-	}
-	
-	delta = (gamma(alpha + 1.0L) * gamma(beta + 1.0L)) / gamma(alpha + beta + 2.0L);
-	
-	prod = 1.0L;
-	for(i=2;i <= fNumInt;i++)
-		prod = prod * c[i-1];
-	cc = delta * std::pow( 2.0L, alpha + beta + 1.0L ) * prod;
-	
-	for(i=1;i<=fNumInt;i++) {
-		if(i==1) {
-			an = alpha / (long double)(fNumInt);
-			bn = beta / (long double)(fNumInt);
-			
-			r1 = ( 1.0L + alpha ) * ( 2.78L / ( 4.0L + (long double)(fNumInt*fNumInt)) + 0.768L * an / (long double)(fNumInt));
-			r2 = 1.0L + 1.48L * an + 0.96L * bn + 0.452L * an * an + 0.83L * an * bn;
-			
-			x0 = ( r2 - r1 ) / r2;
-		}
-		else if(i==2) {
-			r1 = ( 4.1L + alpha ) / ( ( 1.0L + alpha ) * ( 1.0L + 0.156L * alpha ) );
-			
-			r2 = 1.0L + 0.06L * ((long double)(fNumInt) - 8.0L) * (1.0L + 0.12L * alpha) / (long double)(fNumInt);
-			r3 = 1.0L + 0.012L * beta * (1.0L + 0.25L * fabsl(alpha)) / (long double)(fNumInt);
-
-			x0 = x0 - r1*r2*r3*(1.0L - x0);
-		}
-		else if(i==3) {
-			r1 = ( 1.67L + 0.28L * alpha ) / ( 1.0L + 0.37L * alpha );
-			r2 = 1.0L + 0.22L * ( (long double)(fNumInt) - 8.0L) / (long double)(fNumInt);
-			r3 = 1.0L + 8.0L * beta / ( ( 6.28L + beta ) * (long double)(fNumInt*fNumInt));
-			
-			x0 = x0 - r1 * r2 * r3 * ( fLocation[0] - x0 );
-		}
-		else if(i<fNumInt-1) {
-			x0 = 3.0L * fLocation[i-2] - 3.0L * fLocation[i-3] + fLocation[i-4];
-		}
-		else if(i==fNumInt-1) {
-			r1 = ( 1.0L + 0.235L * beta ) / (0.766L + 0.119L * beta);
-			r2 = 1.0L / ( 1.0L + 0.639L * ((long double)(fNumInt) - 4.0L) 
-						 / ( 1.0L + 0.71L * ((long double)(fNumInt) - 4.0L)));
-			
-			r3 = 1.0L / ( 1.0L + 20.0L * alpha / ( ( 7.5L + alpha ) * 
-												  (long double)(fNumInt*fNumInt)));
-			
-			x0 = x0 + r1 * r2 * r3 * ( x0 - fLocation[i-3] );
-		}
-		else if(i==fNumInt) {
-			r1 = ( 1.0L + 0.37L * beta ) / ( 1.67L + 0.28L * beta );
-			
-			r2 = 1.0L / ( 1.0L + 0.22L * ( (long double)(fNumInt) - 8.0L ) 
-			 / (long double)(fNumInt));
-			
-			r3 = 1.0L / ( 1.0L + 8.0L * alpha / 
-						 ( ( 6.28L + alpha ) * (long double)(fNumInt*fNumInt)));
-			
-			x0 = x0 + r1 * r2 * r3 * ( x0 - fLocation[i-3] );
-		}
-		// Improving the root of the Jacobi polinomial
-		{
-			long double d;
-			long double precision;
-			int itera, itera_max = 10;
-			
-			precision = machinePrecision();
-			
-			for(itera=1;itera<=itera_max;itera++) {
-				d = JacobiPolinomial(x0,fNumInt,alpha,beta,b,c,&dp2,&p1);
-				d /= dp2;
-				x0 = x0 - d;
-				if(fabsl(d) <= precision*(fabsl(x0) + 1.0L)) {
-					break;
-				}
-			}
-		}
-		fLocation[i-1] = x0;
-		fWeight[i-1] = cc/(dp2*p1);
-	}
-	// inverting the position of the points
-	for(i=1;i<=fNumInt/2;i++) {
-		temp = fLocation[i-1];
-		fLocation[i-1] = fLocation[fNumInt-i];
-		fLocation[fNumInt-i] = temp;
-	}
-	// inverting the position of the weights
-	for(i=1;i<=fNumInt/2;i++) {
-		temp = fWeight[i-1];
-		fWeight[i-1] = fWeight[fNumInt-i];
-		fWeight[fNumInt-i] = temp;
-	}
+	ComputingGaussJacobiQuadrature(fNumInt,alpha,beta,fLocation,fWeight);
 }
+
 /** Gauss Jacobi quadrature */
 void TPZGaussRule::ComputingGaussJacobiQuadrature(int npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
 	// Computing number of points appropriated to the wished order = 2*npoints - 1. Note: If odd we need increment one point more
@@ -670,6 +484,7 @@ void TPZGaussRule::ComputingGaussJacobiQuadrature(int npoints,long double alpha,
 		Location[i-1] = x0;
 		Weight[i-1] = cc/(dp2*p1);
 	}
+
 	// inverting the position of the points
 	for(i=1;i<=npoints/2;i++) {
 		temp = Location[i-1];
