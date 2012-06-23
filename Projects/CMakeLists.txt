@@ -2,10 +2,6 @@
 
 ENABLE_TESTING()
 
-
-	#Example to work with scalar as complex
-	add_subdirectory(Helmholtz1D)
-	
 	if(BUILD_TUTORIAL)
 
 		#Example to reading and using geometric mesh
@@ -56,8 +52,8 @@ ENABLE_TESTING()
 			add_subdirectory(Helmholtz1D)
 
 			#Examples used as tutorial for FEEC group (Prof Hugo)
-			add_subdirectory(PDElinear1D)
-			add_subdirectory(PDElinear2D)
+			#add_subdirectory(PDElinear1D)
+			#add_subdirectory(PDElinear2D)
 
 		else(BUILD_COMPLEX_PROJECTS)
 		#

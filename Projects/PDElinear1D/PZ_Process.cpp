@@ -79,7 +79,7 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int>
 	int dim = 1;
 	
 	
-	TPZAutoPointer<TPZMaterial> mat(material);
+	TPZMaterial *mat(material);
 	
 	// related to interpolation space
 	TPZCompEl::SetgOrder(p);
@@ -93,12 +93,12 @@ TPZCompMesh *CompMesh(TPZGeoMesh *gmesh,int p, TPZMaterial *material,TPZVec<int>
 	TPZFMatrix<REAL> val1(1,1,0.), val2(1,1,0.);
 	if(!bcType[0])  // dirichlet
 		val2.PutVal(0,0,0.0);
-	TPZAutoPointer<TPZMaterial> BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
+	TPZMaterial *BCond1 = material->CreateBC(mat, bc[0],bcType[0], val1, val2);
 	cmesh->InsertMaterialObject(BCond1);
 	
 	if(!bcType[1])  // dirichlet
 		val2.PutVal(0,0,0.0);
-	TPZAutoPointer<TPZMaterial> BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
+	TPZMaterial *BCond2 = material->CreateBC(mat, bc[1],bcType[1], val1, val2);
 	cmesh->InsertMaterialObject(BCond2);
 
 	//Adjusting data

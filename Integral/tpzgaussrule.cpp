@@ -205,11 +205,14 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 			fWeight.Resize(0);
 			break;
 		}
-		
-		fLocation[i] = -z;
-		fLocation[fNumInt-1-i] = z;
+		// Philippe told insert in different sequence
 		weight = (2.0L)/((1.0L-z*z)*pp*pp);
-		fWeight[fNumInt-1-i] = fWeight[i] = weight;
+		fLocation[2*i] = -z;
+		fWeight[2*i] = weight;
+		if((2*i+1)<fNumInt) {
+			fLocation[2*i+1] = z;
+			fWeight[2*i+1] = weight;
+		}
 	}
 }
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
@@ -226,6 +229,7 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int npoints,TPZVec<long doub
 	Weight.Resize(npoints,0.0L);
 	
 	int m = (npoints+1)*0.5;
+	long double weight;
 	
 	for(i=0;i<m;i++) {
 		p1 = ((long double)(i))+(0.75L);
@@ -260,11 +264,14 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int npoints,TPZVec<long doub
 			Weight.Resize(0);
 			break;
 		}
-		
-		Location[i] = -z;
-		Location[npoints-1-i] = z;
-		Weight[i] = 2.0L/((1.0L-z*z)*pp*pp);
-		Weight[npoints-1-i] = Weight[i];
+		// Philippe Order
+		weight = 2.0L/((1.0L-z*z)*pp*pp);
+		fLocation[2*i] = -z;
+		fWeight[2*i] = weight;
+		if((2*i+1)<fNumInt) {
+			fLocation[2*i+1] = z;
+			fWeight[2*i+1] = weight;
+		}
 	}
 }
 

@@ -88,7 +88,7 @@ int main() {
 	std::ofstream outMath("Mathematica.nb");
 	
 	// p -> interpolation order
-	int p = 2;
+	int p = 10;
 	// h -> level of uniform refinement of the initial mesh
 	int h = 6;
 	// Last point of the one-dimensional domain
