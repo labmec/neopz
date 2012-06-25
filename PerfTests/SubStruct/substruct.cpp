@@ -50,10 +50,9 @@ static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
 static LoggerPtr logger(Logger::getLogger("main"));
 #endif
 
-#include "clock_timer.h"
-#include "timing_analysis.h"
+//#include "timing_analysis.h"
 #include "arglib.h"
-#include "stats_recorder.h"
+#include "run_stats_table.h"
 
 #ifdef HAS_GETRUSAGE
 #include <sys/resource.h> // getrusage
@@ -111,6 +110,13 @@ clarg::argInt verb_level("-v", "verbosity level", 0);
 
 clarg::argBool h("-h", "help message", false);
 
+/* Run statistics. */
+RunStatsTable total_rst   ("-tot_rdt", "Whole program (total) statistics raw data table");
+RunStatsTable create_rst  ("-cre_rdt", "Create statistics raw data table");
+RunStatsTable assemble_rst("-ass_rdt", "Assemble statistics raw data table");
+RunStatsTable precond_rst ("-pre_rdt", "Precond statistics raw data table");
+RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table");
+
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -145,13 +151,9 @@ int main(int argc, char *argv[])
         help(argv[0]);
         return 1;
     }
-    
-    /* Measure time. */
-    ClockTimer timer;
-    ClockTimer total_timer;
-    //TimingAnalysis ta;	
-    total_timer.start();
-    
+
+    total_rst.start();
+
     TPZPairStructMatrix::gNumThreads = nt_assemble.get_value();
     
     TPZGeoMesh  *gmesh = 0;
@@ -263,12 +265,9 @@ int main(int argc, char *argv[])
     
     /* Work between checkpoint 1 and checkpoint 2 */
     if (running) {
-        RunStatsRecorder create_stats;
-        create_stats.start();
+	create_rst.start();
         matptr = dohrstruct->Create();
-        create_stats.stop();
-	cout << "Stats for dohrstruct->Create()" << endl;
-        create_stats.print(cout);
+	create_rst.stop();
     }
     
     if (dc2.was_set() && running)
@@ -314,12 +313,17 @@ int main(int argc, char *argv[])
     TPZAutoPointer<TPZMatrix<REAL> > precond = NULL;
     /* Work between checkpoint 2 and checkpoint 3 */
     if (running) {
-        
+
+	assemble_rst.start();
         TPZAutoPointer<TPZGuiInterface> gui;
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
         dohrstruct->Assemble(*matptr,*rhs, gui);
+	assemble_rst.stop();
+
+	precond_rst.start();
         precond = dohrstruct->Preconditioner();
+	precond_rst.stop();
     }
     
     if (dc3.was_set() && running)
@@ -373,7 +377,10 @@ int main(int argc, char *argv[])
     TPZStepSolver<REAL> cg(dohr);
     
     cg.SetCG(500,pre,1.e-8,0);
+
+    solve_rst.start();
     cg.Solve(*rhs,diag);
+    solve_rst.stop();
     
     TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
     dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
@@ -454,7 +461,9 @@ int main(int argc, char *argv[])
     vtkmesh.DrawSolution(istep, 1.);
     
     delete gmesh;
-    
+
+    total_rst.stop();
+
     return EXIT_SUCCESS;
 }
 
