@@ -948,7 +948,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 	metis.SetElementGraph(elgraph, elgraphindex);
 	TPZManVector<int> domain_index(nel,-1);
 	metis.Subdivide(nsub, domain_index);
-    CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
+	CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
 #ifdef DEBUG 
 	{
 		TPZGeoMesh *gmesh = fMesh->Reference();
@@ -978,7 +978,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 		}
 		nsub = ClusterIslands(domain_index,nsub,meshdim-1);
 	}	
-    CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
+	CorrectNeighbourDomainIndex(fMesh.operator->(), domain_index);
 #ifdef LOG4CXX
     if (logger->isDebugEnabled())
     {
@@ -993,6 +993,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
+	
 
 #ifdef DEBUG 
 	{
@@ -1400,7 +1401,6 @@ void TPZDohrStructMatrix::IdentifyExternalConnectIndexes()
 // returns the new number of subdomains
 int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub, int connectdimension)
 {
-	
 	std::map<int,int> domain_index_count;
 	int iel;
 	int nel = fMesh->NElements();
@@ -1428,6 +1428,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 		if (!gel) {
 			continue;
 		}
+		
 		TPZStack<TPZGeoEl *> gelstack;
 		gelstack.Push(gel);
 		std::set<TPZCompEl *> gelcluster;
@@ -1468,6 +1469,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 				}
 			}
 		}
+		
 		if (gelcluster.size() != (std::set<TPZCompEl *>::size_type)domain_index_count[mydomainindex]) {
 			if (gelcluster.size() > (std::set<TPZCompEl *>::size_type)domain_index_count[mydomainindex]) {
 				DebugStop();
@@ -1475,14 +1477,17 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 			domain_index_count[mydomainindex] -= gelcluster.size();
 			domain_index_count[nsub] = gelcluster.size();
 			std::set<TPZCompEl *>::iterator it;
+			domain_check.erase(mydomainindex);
+			domain_check.insert(nsub);
 			for (it=gelcluster.begin(); it!=gelcluster.end(); it++) {
 				domain_index[(*it)->Index()]=nsub;
 			}
 			nsub++;
 		}
 	}
+	
 #ifdef LOG4CXX
-    if (logger->isDebugEnabled())
+	if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		sout << "Number of elements per domain ";
@@ -1492,7 +1497,7 @@ int TPZDohrStructMatrix::SeparateUnconnected(TPZVec<int> &domain_index, int nsub
 			if (! (count++ %40)) {
 				sout << std::endl;
 			}
-			sout << it->first << " " << it->second << " ";
+			sout << it->first << " " << it->second << " " << std::endl;
 		}
 		LOGPZ_DEBUG(logger,sout.str())
 	}
