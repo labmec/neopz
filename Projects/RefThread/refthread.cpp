@@ -1,17 +1,17 @@
 /// ---- GLOBALS ----
 
-#define MAXLVL 3
+#define MAXLVL 5
 #define NTHREADS 2
-#define NX 10
-#define NY 10
+#define NX 5
+#define NY 5
 
 /// -----------
 
-#define REFTHREADV2				//main refthread second version
-//#define REFTHREADV1				//main refthread first working version
+//#define REFTHREADV2					//main refthread second version
+#define REFTHREADV1						//main refthread first working version
 //#define REFTHREADSERIAL				//serial implementation
-//#define REFTHREADTESTS			//main refthreadtests
-//#define ADMCHUNKTESTS				//enabling the tests on admchunkvectorthreadsafe
+//#define REFTHREADTESTS				//main refthreadtests
+//#define ADMCHUNKTESTS					//enabling the tests on admchunkvectorthreadsafe
 
 /// -----------
 
