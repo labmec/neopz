@@ -46,6 +46,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 		DebugStop();
 	}
 	TPZCompElSide compneigh(neigh.Reference());
+    fneighbour = compneigh;
 	int sideoffset = neigh.Element()->NSides()-neigh.Side();
 	int neighnconnects = compneigh.Element()->NConnects();
 	int connectnumber = neighnconnects-sideoffset;
@@ -97,6 +98,12 @@ TPZIntelGen<TSHAPE>(mesh,copy)
 	{
 		this-> fConnectIndexes[i] = copy.fConnectIndexes[i];
 	}
+    int index = copy.fneighbour.Element()->Index();
+    TPZCompEl *cel = this->Mesh()->ElementVec()[index];
+    if (!cel) {
+        DebugStop();
+    }
+    fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
 }
 
 // NAO TESTADO
@@ -137,11 +144,22 @@ TPZIntelGen<TSHAPE>(mesh,copy,gl2lcConMap,gl2lcElMap)
 		this-> fConnectIndexes[i] = lcIdx;
 	}
 	//   gl2lcElMap[copy.fIndex] = this->Index();
+    
+    int neiIdx = copy.fneighbour.Element()->Index();
+    if(gl2lcElMap.find(neiIdx)==gl2lcElMap.end())
+    {
+        DebugStop();
+    }
+    TPZCompEl *cel = mesh.ElementVec()[gl2lcElMap[neiIdx]];
+    if (!cel) {
+        DebugStop();
+    }
+    fneighbour = TPZCompElSide(cel,copy.fneighbour.Side());
 }
 
 // TESTADO
 template<class TSHAPE>
-TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>()
+TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2() : TPZIntelGen<TSHAPE>(),fneighbour()
 {
 	this->fPreferredOrder = -1;
 	int i;
@@ -486,11 +504,12 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	TPZCompElSide thisside(this,TSHAPE::NSides-1);
 	TPZGeoElSide thisgeoside(thisside.Reference());
 	TPZGeoElSide neighgeo(thisgeoside.Neighbour());
-	TPZCompElSide neigh(neighgeo.Reference());
+	TPZCompElSide neigh(fneighbour);
 	TPZInterpolatedElement *neighel = dynamic_cast<TPZInterpolatedElement *> (neigh.Element());
 	if(!neighel)
 	{
-		LOGPZ_ERROR(logger,"Inconsistent neighbour")
+        LOGPZ_ERROR(logger,"Inconsistent neighbour")
+        DebugStop();
 		return;
 	}
 	int nshapeneigh = neighel->NSideShapeF(neighgeo.Side())+1;
@@ -501,6 +520,7 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
 	tr.Apply(pt, pt2);
 	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
+    
 //#ifdef LOG4CXX
 //		if (logger->isDebugEnabled())
 //		{

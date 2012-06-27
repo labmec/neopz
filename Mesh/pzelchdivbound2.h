@@ -23,6 +23,8 @@ class TPZCompElHDivBound2 : public TPZIntelGen<TSHAPE> {
 	
 	/** @brief Method to append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
+    
+    TPZCompElSide fneighbour;
 public:
 	
 	TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
