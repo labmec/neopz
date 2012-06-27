@@ -1129,14 +1129,23 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	STATE poisson = 0.2;
 	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
-	STATE lambdaV = 0, muV = 0, alphaT = 0;
-	lambdaV = 111.3636;
-	muV = 455.4545;
-	alphaT = 0.1;	
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+	
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
+	lambdaV = 11.3636;
+	muV = 45.4545;
+	alpha = 1.;	
+	deltaT = 0.01;
+	
+	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+	
 	TPZMaterial * viscoelastauto(viscoelast);
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
+	TPZFNMatrix<6> qsi(6,1,0.);
+	viscoelast->SetDefaultMem(qsi); //elast
+	int index = viscoelast->PushMemItem(); //elast
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);
 	mesh->InsertMaterialObject(bcauto);	
@@ -1150,19 +1159,23 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
-	STATE Ela = 1000, poisson = 0.; 
-	STATE lambdaV = 0, muV = 0, alphaT = 0;
+    
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+    
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
-	alphaT = 0.01;	
+	alpha = 1.;	
+	deltaT = 0.01;
 	
-	
-	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
-	TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, ElaE, poissonE, lambdaV, muV, alphaT, force);
+	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, ElaE, poissonE, force);
 	
 	TPZFNMatrix<6> qsi(6,1,0.);
-	//viscoelast->SetDefaultMem(qsi); //elast
-	//int index = viscoelast->PushMemItem(); //elast
+	viscoelast->SetDefaultMem(qsi); //elast
+	int index = viscoelast->PushMemItem(); //elast
 	TPZMaterial * viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
 	
