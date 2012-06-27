@@ -12,7 +12,8 @@
 #include "pzbndcond.h"
 #include "TPZInterfaceEl.h"
 #include "pzbuildmultiphysicsmesh.h"
-
+#include "pzinterpolationspace.h"
+#include "TPZCompElDisc.h"
 #include "pzpoisson3d.h"
 #include "mixedpoisson.h"
 
@@ -52,6 +53,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
 TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder);
+void PosProcessHDiv(TPZAnalysis &an, std::string plotfile);
 
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
@@ -65,57 +67,59 @@ int main(int argc, char *argv[])
 	InitializePZLOG("../logmixedproblem.cfg");
 #endif
     
-    int p =1;
+    int p = 3;
 	//primeira malha
 	
 	// geometric mesh (initial)
 	TPZGeoMesh * gmesh = GMesh(true);
-    
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Geometrica Inicial\n ";
-        gmesh->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+    ofstream arg1("gmesh_inicial.txt");
+    gmesh->Print(arg1);
     
     // First computational mesh
-	TPZCompMesh * cmesh1= CMeshFlux(gmesh,  p);
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
-        cmesh1->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+	TPZCompMesh * cmesh1= CMeshFlux(gmesh, p);
+    ofstream arg2("cmesh1_inicial.txt");
+    cmesh1->Print(arg2);
+
     
 	// Second computational mesh
-	TPZCompMesh * cmesh2 = CMeshPressure(gmesh, 0);
+	TPZCompMesh * cmesh2 = CMeshPressure(gmesh, p-1);
+    ofstream arg3("cmesh2_inicial.txt");
+    cmesh2->Print(arg3);
+
+
+    // Cleaning reference of the geometric mesh to cmesh1
+	gmesh->ResetReference();
+	cmesh1->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
+	cmesh1->AdjustBoundaryElements();
+	cmesh1->CleanUpUnconnectedNodes();
+    ofstream arg9("cmesh1_final.txt");
+    cmesh1->Print(arg9);
 	
-#ifdef DEBUG   
-    int ncel = cmesh2->NElements();
-    for(int i =0; i<ncel; i++){
-        TPZCompEl * compEl = cmesh2->ElementVec()[i];
-        if(!compEl) continue;
-        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
-        if(facel)DebugStop();
-        
-    }
-#endif
+	
+	// Cleaning reference to cmesh2
+	gmesh->ResetReference();
+	cmesh2->LoadReferences();
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
+	cmesh2->AdjustBoundaryElements();
+	cmesh2->CleanUpUnconnectedNodes();
+    ofstream arg10("cmesh2_final.txt");
+    cmesh2->Print(arg10);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional_2 pressure\n ";
-        cmesh2->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str());
-	}
-#endif
+    TPZAnalysis an3(cmesh2);
+    SolveSyst(an3, cmesh2);
+    
+
+    
+    //solucao HDiv
+    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
+    ofstream arg6("cmesh_Hdiv.txt");
+	cmesh3->Print(arg6);
+    TPZAnalysis an2(cmesh3);
+    SolveSyst(an2, cmesh3);
+    string plotile2("Solution_HDiv.vtk");
+    PosProcessHDiv(an2, plotile2);
+    
     
     //malha multifisica
     TPZVec<TPZCompMesh *> meshvec(2);
@@ -123,33 +127,18 @@ int main(int argc, char *argv[])
 	meshvec[1] = cmesh2;
     TPZMixedPoisson * mymaterial;
     TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,mymaterial);
-    //ofstream arg("mphysic.txt");
-	//mphysics->Print(arg);
-    
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional Multiphysic\n ";
-        mphysics->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str());
-	}
-#endif
+    ofstream arg4("mphysic.txt");
+	mphysics->Print(arg4);
+
+    ofstream arg7("gmesh_Final.txt");
+	gmesh->Print(arg7);
     
     TPZAnalysis an(mphysics);
 	SolveSyst(an, mphysics);
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    string plotfile("saidaSolution_mphysics.vtk");
+    PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
     
-  //  std::string plotfile("saidaSolution_mphysics.vtk");
-   // PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
-    
-    
-    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh,  p);
-    TPZAnalysis an2(cmesh3);
-	SolveSyst(an2, cmesh3);
-    
-    
-    
-  
     return 0;
 }
 
@@ -255,9 +244,16 @@ TPZGeoMesh *GMesh(bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-	//ofstream arg("gmesh.txt");
-    //	gmesh->Print(arg);
-    
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+        std::stringstream sout;
+        sout<<"\n\n Malha Geometrica Inicial\n ";
+        gmesh->Print(sout);
+        LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+   
 	return gmesh;
 }
 
@@ -269,6 +265,9 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	material = new TPZMatPoisson3d(matId,dim); 
 	TPZMaterial * mat(material);
 	material->NStateVariables();
+    
+//    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+//	material->SetForcingFunction(force1);
 	
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	
@@ -292,6 +291,16 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
+    
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+        std::stringstream sout;
+        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
 	
 	return cmesh;
 }
@@ -303,8 +312,12 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim); 
 	material->NStateVariables();
+    
+//    TPZAutoPointer<TPZFunction<STATE> > force1 = new TPZDummyFunction<STATE>(Forcing1);
+//	material->SetForcingFunction(force1);
 	
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     cmesh->InsertMaterialObject(mat);
     
@@ -317,6 +330,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     
     
 	cmesh->SetAllCreateFunctionsDiscontinuous();
+    
+    
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
     cmesh->InsertMaterialObject(BCond2);
@@ -327,6 +342,47 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
+    
+    int ncon = cmesh->NConnects();
+    for(int i=0; i<ncon; i++)
+    {
+        TPZConnect &newnod = cmesh->ConnectVec()[i];
+        newnod.SetPressure(true);
+    }
+    
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            celdisc->SetTotalOrderShape();   
+        }
+            
+    }
+    
+    
+    
+#ifdef DEBUG   
+    int ncel = cmesh->NElements();
+    for(int i =0; i<ncel; i++){
+        TPZCompEl * compEl = cmesh->ElementVec()[i];
+        if(!compEl) continue;
+        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
+        if(facel)DebugStop();
+        
+    }
+#endif
+    
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+        std::stringstream sout;
+        sout<<"\n\n Malha Computacional_2 pressure\n ";
+        cmesh->Print(sout);
+        LOGPZ_DEBUG(logdata,sout.str());
+	}
+#endif
 	
 	return cmesh;
 }
@@ -376,6 +432,16 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+        std::stringstream sout;
+        sout<<"\n\n Malha Computacional Multiphysic\n ";
+        mphysics->Print(sout);
+        LOGPZ_DEBUG(logdata,sout.str());
+	}
+#endif
+    
     return mphysics;
 }
 
@@ -396,8 +462,8 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	an.SetSolver(step);
 	an.Run();
 	
-	//Saida de Dados: solucao e  grafico no VTK 
-	ofstream file("Solution.out");
+	//Saida de Dados: solucao e  grafico no VT
+	ofstream file("Solutout.txt");
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 
@@ -418,39 +484,23 @@ void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics,
     
 }
 
+void PosProcessHDiv(TPZAnalysis &an, std::string plotfile){
+	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	scalnames[0] = "Pressure";
+	vecnames[0]= "Flux";
+	
+	const int dim = 2;
+	int div = 0;
+	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+	an.PostProcess(div,dim);
+	std::ofstream out("malha.txt");
+	an.Print("nothing",out);
+}
+
+
+
 TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
 {
-    /// criar materiais
-//	int dim = 2;
-//	TPZMatPoisson3d *material;
-//	material = new TPZMatPoisson3d(matId,dim); 
-//	material->NStateVariables();
-//	
-//    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-//    TPZMaterial * mat(material);
-//    cmesh->InsertMaterialObject(mat);
-//    
-//    ///Inserir condicao de contorno
-//	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-//	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
-//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
-//    TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-//    
-//    
-//	cmesh->SetAllCreateFunctionsHDivPressure();
-//    cmesh->InsertMaterialObject(BCond0);
-//    cmesh->InsertMaterialObject(BCond1);
-//    cmesh->InsertMaterialObject(BCond2);
-//    cmesh->InsertMaterialObject(BCond3);
-//    
-//	cmesh->SetDefaultOrder(pOrder);
-//    cmesh->SetDimModel(dim);
-//	
-//	//Ajuste da estrutura de dados computacional
-//	cmesh->AutoBuild();
-    
-    
     /// criar materiais
     int MatId=1;
     int dim =2;
@@ -470,6 +520,7 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
    
     TPZAutoPointer<TPZFunction<REAL> > force1 = new TPZDummyFunction<REAL>(Forcing1);
 	material->SetForcingFunction(force1);
+    
 //    REAL fxy=1.;
 //    material->SetInternalFlux(fxy);
 //    
@@ -490,8 +541,8 @@ TPZCompMesh *CMeshHDivPressure(TPZGeoMesh *gmesh, int pOrder)
     cmesh->SetDimModel(dim);
     
     cmesh->AutoBuild();
-	//cmesh->AdjustBoundaryElements();
-	//cmesh->CleanUpUnconnectedNodes();	
+	cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();	
 
 	return cmesh;
 }

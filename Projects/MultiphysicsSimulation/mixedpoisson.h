@@ -90,6 +90,8 @@ public:
      * @param Solout [out] is the solution vector
      */	
      virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
     	
 };

@@ -124,16 +124,16 @@ void TPZMixedPoisson::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, 
          ef(phrq+ip,0) += (-1.)*weight*ff*phip(ip,0);
     }
 
-#ifdef LOG4CXX
-    if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Matriz ek e vetor fk \n ";
-        ek.Print("ekmph = ",sout,EMathematicaInput);
-        ef.Print("efmph = ",sout,EMathematicaInput);
-        LOGPZ_DEBUG(logdata,sout.str());
-	}
-#endif
+//#ifdef LOG4CXX
+//    if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Matriz ek e vetor fk \n ";
+//        ek.Print("ekmph = ",sout,EMathematicaInput);
+//        ef.Print("efmph = ",sout,EMathematicaInput);
+//        LOGPZ_DEBUG(logdata,sout.str());
+//	}
+//#endif
     
 }
 
@@ -213,25 +213,39 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 	
 	TPZVec<REAL> SolP, SolQ;
     
-    SolQ = datavec[0].sol[0];
+   // SolQ = datavec[0].sol[0];
     SolP = datavec[1].sol[0];
-    
-    if(var == 2){
-		Solout[0] = SolP[0];//function (state variable p)
-		return;
-	}
     
     if(var == 1){ //function (state variable Q)
 		Solout[0] = datavec[0].sol[0][0];
         Solout[1] = datavec[0].sol[0][1];
 		return;
 	}
+    
+    if(var == 2){
+		Solout[0] = SolP[0];//function (state variable p)
+		return;
+	}
+    
+    
 	
 	
 	
 }
 
 
+void TPZMixedPoisson::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+{
+	int nref = datavec.size();
+	for(int i = 0; i<nref; i++ )
+	{
+		datavec[i].SetAllRequirements(false);
+		datavec[i].fNeedsNeighborSol = false;
+		datavec[i].fNeedsNeighborCenter = false;
+		datavec[i].fNeedsNormal = false;
+	}
+	
+}
 
 
 
