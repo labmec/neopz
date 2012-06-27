@@ -231,6 +231,12 @@ void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X,
 	axes.Identity();
 }
 
+void TPZCompElDisc::ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data){
+    
+    this->ComputeShape(intpoint, data.x, data.jacobian, data.axes,data.detjac, data.jacinv, data.phi, data.dphix);
+}
+                                                               
+
 void TPZCompElDisc::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 	TPZManVector<REAL,4> x(3);
 	this->Reference()->X(qsi,x);
@@ -930,19 +936,32 @@ void TPZCompElDisc::Read(TPZStream &buf, void *context)
 	
 }
 
+
+void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
+    
+//    this->InitMaterialData(data);
+//    this->ComputeShape(qsi, data);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+}
+
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes){
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-	TPZFMatrix<REAL> phix(nshape,1),dphix(dim,nshape);
-	
-	TPZFNMatrix<9> jacobian(dim,dim);
-	TPZFNMatrix<9> jacinv(dim,dim);
-	REAL detjac;
-	
-	TPZManVector<REAL,3> x(3,0.);
-	this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
-	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+    
+    TPZMaterialData data;
+    data.phi.Resize(nshape, 1);
+    data.dphix.Resize(dim, nshape);
+    data.jacobian.Resize(dim, dim);
+    data.jacinv.Resize(dim, dim);
+    data.x.Resize(3, 0.);
+    
+	//this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
+	//this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+    
+    this->ComputeShape(qsi, data);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    
 }//method
 
 void TPZCompElDisc::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
@@ -1083,7 +1102,8 @@ REAL TPZCompElDisc::EvaluateSquareResidual2D(TPZInterpolationSpace *cel){
 	int intrulepoints = intrule->NPoints();
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind){
 		intrule->Point(int_ind,intpoint,weight);
-		disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
+		//disc->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
+        disc->ComputeShape(intpoint, data);
 		disc->ComputeSolution(intpoint,data.phi,data.dphix,data.axes,data.sol,data.dsol);    
 		weight *= fabs(data.detjac);
 		SquareResidual += material->ComputeSquareResidual(data.x,data.sol[0],data.dsol[0]) * weight;

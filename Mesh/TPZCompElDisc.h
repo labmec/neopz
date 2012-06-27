@@ -192,7 +192,17 @@ public:
 	 */
 	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
+    private:
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
+    
+    public:
+    
+    /** 
+	 * @brief Compute shape functions based on master element in the classical FEM manne. 
+	 * @param intpoint [in] point in master element coordinates 
+	 * @param data [in] stores all input data
+	 */
+    virtual void ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data);
 	
 	/**
 	 */
@@ -289,6 +299,7 @@ public:
 	 */
 	void SolutionX(TPZVec<REAL> &x,TPZVec<STATE> &uh);
 	
+    private:
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate
@@ -297,6 +308,15 @@ public:
 	 * @param axes axes associated with the derivative of the solution
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> & axes);
+    
+public:
+    
+    /** 
+	 * @brief Compute shape functions based on master element in the classical FEM manne. 
+	 * @param intpoin [in] point in master element coordinates 
+	 * @param data [in] stores all input data
+	 */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	
 	/**
 	 * @brief Computes solution and its derivatives in local coordinate qsi
