@@ -1547,10 +1547,11 @@ void TPZInterfaceElement::ComputeRequiredData(TPZMaterialData &data,
                                               TPZInterpolationSpace *elem,
                                               TPZVec<REAL> &IntPoint){
     
-    elem->ComputeShape(IntPoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    //elem->ComputeShape(IntPoint, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
+    elem->ComputeShape(IntPoint,data);
     
 	if (data.fNeedsNeighborSol){
-		elem->ComputeSolution(  IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
+		elem->ComputeSolution(IntPoint, data.phi, data.dphix, data.axes, data.sol, data.dsol );
 	}
 
 }
