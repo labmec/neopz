@@ -152,15 +152,16 @@ int main1(int argc, char *argv[])
 		//int nsubstruct = SubStructure(cmesh, height/2);
 		
 		dohrstruct.SubStructure(3);
+
 		//	tempo.ft0sub = timetosub.ReturnTimeDouble();  // end of timer
 		//	std::cout << tempo.ft0sub << std::endl;
 		
 		//	sub.SubStructure();
 		
 		
-		/* Teste Skyline
+		 //Teste Skyline
 		TPZSkylineStructMatrix skyl(cmesh);
-		TPZFMatrix<REAL> rhsfake;
+		TPZFMatrix<REAL> rhsfake(cmesh->NEquations(),1,0);
 		int numsubmesh = cmesh->NElements();
 		TPZAutoPointer<TPZGuiInterface> fakegui = new TPZGuiInterface;
 		int nel = cmesh->NElements();
@@ -173,7 +174,7 @@ int main1(int argc, char *argv[])
 			}
 		}
 		TPZMatrix<REAL> *stiff2 = skyl.CreateAssemble(rhsfake, fakegui);
-		*/
+		
 		
 #ifdef LOG4CXX
 		{
@@ -242,19 +243,31 @@ int main1(int argc, char *argv[])
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
 		
-
-		/*
-#ifdef LOG4CXX
-		{  
+		{
+			std::ofstream out("DohrCerta2.txt");
 			TPZFMatrix<REAL> Subtract(dohr->Rows(),dohr->Rows()), unitary(dohr->Rows(),dohr->Rows());
 			unitary.Identity();
 			TPZFMatrix<REAL> result;
 			dohr->Multiply(unitary, result);
+			result.Print("DohrCerta2", out);
+			
+		}
+
+	
+#ifdef LOG4CXX
+		{  
+			std::ofstream out("DohrErrada.txt"), outRhsCerto("RhsSkyl.txt"), outRhsErrado("RhsDohrmann.txt");
+			TPZFMatrix<REAL> Subtract(dohr->Rows(),dohr->Rows()), unitary(dohr->Rows(),dohr->Rows());
+			unitary.Identity();
+			TPZFMatrix<REAL> result;
+			dohr->Multiply(unitary, result);
+			std::ofstream out2("Dohr_Certa.txt");
+			result.Print("DohrCerta",out2);
 			for (int i = 0 ; i < dohr->Rows(); i++) 
 			{
 				for (int j = 0 ; j < dohr->Rows(); j++) 
 				{
-					double temp = result(i,j) - stiff2->operator()(i,j); 
+					double temp = result(i,j) - stiff2->Get(i,j); 
 					if (temp < 1e-10) 
 					{
 							temp = 0;
@@ -263,13 +276,15 @@ int main1(int argc, char *argv[])
 				}
 			}
 			std::stringstream str;
-			result.Print("Dohrmann", str);
-			stiff2->Print("Skyl",str);
-			Subtract.Print("Subtract", str);
+			result.Print("DohrmannErrada", out);
+			stiff2->Print("Skyl",out);
+			Subtract.Print("Subtract", out);
+			rhsfake.Print("RhsSkyl", outRhsCerto);
+			rhs.Print("RhsDohrmann", outRhsErrado);
 			LOGPZ_DEBUG(logger,str.str());
 		}
 #endif
-		 */
+		
 		
 		/*
 		
@@ -314,6 +329,8 @@ int main1(int argc, char *argv[])
 		cg.SetCG(500,pre,1.e-8,0);
 		cg.Solve(rhs,diag);
 
+		diag.Print("diag");
+
         
 		TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
 		if (!dohrptr) {
@@ -334,6 +351,7 @@ int main1(int argc, char *argv[])
 			(*it)->UGlobal(subext,subu);
 			TPZCompMesh *submesh = SubMesh(cmeshauto, subcount);
 			submesh->LoadSolution(subu);
+			subu.Print();
 			
 		
 			std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
@@ -380,6 +398,9 @@ int main1(int argc, char *argv[])
 		{
 			vecnames[0] = "state";
 		}
+		
+		cmeshauto->Solution().Print();
+		
 		std::string postprocessname("dohrmann_visco.vtk");
 		TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
 		vtkmesh.SetFileName(postprocessname);
@@ -387,7 +408,7 @@ int main1(int argc, char *argv[])
 		int numcases = 1;
 		
 		// Iteracoes de tempo
-		int istep = 0, nsteps = 5;
+		int istep = 0, nsteps = 6;
 		vtkmesh.DrawMesh(numcases);
 		vtkmesh.DrawSolution(istep, 1.);
 		
@@ -1219,11 +1240,17 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	STATE poisson = 0.2;
 	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
-	STATE lambdaV = 0, muV = 0, alphaT = 0;
-	lambdaV = 111.3636;
-	muV = 455.4545;
-	alphaT = 0.1;	
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+	
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
+	lambdaV = 11.3636;
+	muV = 45.4545;
+	alpha = 1.;	
+	deltaT = 0.01;
+	
+	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+	
 	TPZMaterial * viscoelastauto(viscoelast);
 	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
@@ -1243,17 +1270,19 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
-	
+
 	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
-	STATE lambdaV = 0, muV = 0, alphaT = 0;
+
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
-	alphaT = 0.01;	
+	alpha = 1.;	
+	deltaT = 0.01;
 	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
-	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alphaT, force);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
 	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, ElaE, poissonE, lambdaV, muV, alphaT, force);
-	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, ElaE, poissonE, force);
 	
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast

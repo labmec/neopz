@@ -55,13 +55,13 @@ public:
 	 * @brief Not a good variables initialization constructor. Uses Hooke for elastic part and lame for viscous part
 	 */
 	
-	TPZViscoelastic(int id,STATE ElaE, STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force);
+	TPZViscoelastic(int id,STATE ElaE, STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force);
 
   /**
 	 * @brief Set material Data with hooke constants
 	 */
 	
-	void SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alphaT, TPZVec <STATE> &force);
+	void SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alpha, STATE deltaT, TPZVec <STATE> &force);
 	
 	
 	virtual void Contribute(TPZMaterialData &data,
@@ -100,10 +100,15 @@ public:
 protected:
 	
 	/**
-	 * @brief the multiplication of alpha by the time step 
+	 * @brief the stability coeficient alpha
 	 */
-	STATE falphaT;
+	STATE falpha;
 	
+	/**
+	 * @brief the stability coeficient alpha
+	 */
+	STATE fdeltaT;
+
 	/**
 	 * @brief viscoelasticity coeficients
 	 */

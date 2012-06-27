@@ -5,23 +5,23 @@
 
 #include "pzviscoelastic.h"
 
-TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), falphaT(-1.), flambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic() : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(), flambdaV(-1.), fmuV(-1.), falpha(-1), fdeltaT(-1)
 {
     
 }
 
-TPZViscoelastic::TPZViscoelastic(int id) : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), falphaT(-1.), flambdaV(-1.), fmuV(-1.)
+TPZViscoelastic::TPZViscoelastic(int id) : TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), flambdaV(-1.), fmuV(-1.), falpha(-1), fdeltaT(-1)
 {
 	
 }
 
-TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alphaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), falphaT(alphaT), flambdaV(lambdaV), fmuV(muV)
+TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV, STATE muV, STATE alpha, STATE deltaT, TPZVec <STATE> &force): TPZMatWithMem<TPZFMatrix<STATE>, TPZElasticity3D>(id), falpha(alpha), fdeltaT(deltaT), flambdaV(lambdaV), fmuV(muV)
 																																																																																																																	 
 {
 	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
 	STATE muE = ElaE/(2*(1+poissonE));
-	STATE lambdaVE = lambdaE-(falphaT*lambdaV)/(1+falphaT);
-	STATE muVE = muE -(falphaT*muV)/(1+falphaT); 
+	STATE lambdaVE = lambdaE-(fdeltaT*lambdaV)/(1+falpha*fdeltaT);
+	STATE muVE = muE -(fdeltaT*muV)/(1+falpha*fdeltaT); 
 	STATE ElaVE = muVE*(3*lambdaVE+2*muVE)/(lambdaVE+muVE);
 	STATE PoissonVE = lambdaVE/(2*(lambdaVE+muVE));	
 	if (lambdaVE < 0 || muVE < 0)
@@ -29,23 +29,23 @@ TPZViscoelastic::TPZViscoelastic(int id,STATE ElaE,STATE poissonE, STATE lambdaV
 		PZError << "lambdaVE and muVE must be positive. Check your constants values\n";
 		DebugStop();
 	}
-	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::
-	SetMaterialDataHook(ElaVE, PoissonVE); // Creating an elastic material with the viscoelastic properties
+	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::SetMaterialDataHook(ElaVE, PoissonVE); // Creating an elastic material with the viscoelastic properties
 	SetForce(force);
 	//SetC(); already set in SetMaterialDataHook from elastic material
 }
 
-void TPZViscoelastic::SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alphaT, TPZVec <STATE> &force)
+void TPZViscoelastic::SetMaterialDataHooke(STATE ElaE, STATE poissonE, STATE ElaV, STATE poissonV, STATE alpha, STATE deltaT, TPZVec <STATE> &force)
 {
-	falphaT = alphaT;
+	falpha = alpha;
+	fdeltaT = deltaT;
 	STATE lambdaE = (poissonE * ElaE)/((1+poissonE)*(1-2*poissonE));
 	STATE muE = ElaE/(2*(1+poissonE));
 	STATE lambdaV = (poissonV * ElaV)/((1+poissonV)*(1-2*poissonV));
 	STATE muV = ElaV/(2*(1+poissonV));
 	flambdaV = lambdaV; 
 	fmuV = muV;
-	STATE lambdaVE = lambdaE-(falphaT*lambdaV)/(1+falphaT);
-	STATE muVE = muE -(falphaT*muV)/(1+falphaT); 
+	STATE lambdaVE = lambdaE-(fdeltaT*lambdaV)/(1+falpha*fdeltaT);
+	STATE muVE = muE -(fdeltaT*muV)/(1+falpha*fdeltaT); 
 	STATE ElaVE = muVE*(3*lambdaVE+2*muVE)/(lambdaVE+muVE);
 	STATE PoissonVE = lambdaVE/(2*(lambdaVE+muVE));
 	if (lambdaVE < 0 || muVE < 0)
@@ -90,7 +90,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         val -= qsi(_XX_,0) * dphi(0,in); // |
         val -= qsi(_XY_,0) * dphi(1,in); // fk
         val -= qsi(_XZ_,0) * dphi(2,in); // |
-        val *= 1./(1+falphaT);
+        val *= 1./(1+falpha*fdeltaT);
         ef(in*nstate+0,0) += weight * val;
         
         //Second equation: fb and fk
@@ -98,7 +98,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         val -= qsi(_XY_,0) * dphi(0,in); // |
         val -= qsi(_YY_,0) * dphi(1,in); // fk
         val -= qsi(_YZ_,0) * dphi(2,in); // |
-        val *= 1./(1+falphaT);
+        val *= 1./(1+falpha*fdeltaT);
         ef(in*nstate+1,0) += weight * val;
         
         //third equation: fb and fk
@@ -106,7 +106,7 @@ void TPZViscoelastic::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
         val -= qsi(_XZ_,0) * dphi(0,in); // |
         val -= qsi(_YZ_,0) * dphi(1,in); // fk
         val -= qsi(_ZZ_,0) * dphi(2,in); // |
-        val *= 1./(1+falphaT);
+        val *= 1./(1+falpha*fdeltaT);
         ef(in*nstate+2,0) += weight * val;
     }
     TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Contribute(data,weight,ek,ef);
@@ -138,12 +138,12 @@ void TPZViscoelastic::UpdateQsi(TPZMaterialData &data)
 	STATE tr;
 	tr = Strain(_XX_,0)+Strain(_YY_,0)+Strain(_ZZ_,0);
 	
-	qsin1(_XX_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_XX_,0)*fmuV) + qsi(_XX_,0))/(1 + falphaT);
-	qsin1(_YY_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_YY_,0)*fmuV) + qsi(_YY_,0))/(1 + falphaT);
-	qsin1(_ZZ_,0) = (falphaT*(-(tr)*flambdaV - 2*Strain(_ZZ_,0)*fmuV) + qsi(_ZZ_,0))/(1 + falphaT);
-	qsin1(_XY_,0) = (-2*falphaT*Strain(_XY_,0)*fmuV + qsi(_XY_,0))/(1 + falphaT);
-	qsin1(_XZ_,0) = (-2*falphaT*Strain(_XZ_,0)*fmuV + qsi(_XZ_,0))/(1 + falphaT);
-	qsin1(_YZ_,0) = (-2*falphaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + falphaT);
+	qsin1(_XX_,0) = (fdeltaT*(-(tr)*flambdaV - 2*Strain(_XX_,0)*fmuV) + qsi(_XX_,0))/(1 + falpha*fdeltaT);
+	qsin1(_YY_,0) = (fdeltaT*(-(tr)*flambdaV - 2*Strain(_YY_,0)*fmuV) + qsi(_YY_,0))/(1 + falpha*fdeltaT);
+	qsin1(_ZZ_,0) = (fdeltaT*(-(tr)*flambdaV - 2*Strain(_ZZ_,0)*fmuV) + qsi(_ZZ_,0))/(1 + falpha*fdeltaT);
+	qsin1(_XY_,0) = (-2*fdeltaT*Strain(_XY_,0)*fmuV + qsi(_XY_,0))/(1 + falpha*fdeltaT);
+	qsin1(_XZ_,0) = (-2*fdeltaT*Strain(_XZ_,0)*fmuV + qsi(_XZ_,0))/(1 + falpha*fdeltaT);
+	qsin1(_YZ_,0) = (-2*fdeltaT*Strain(_YZ_,0)*fmuV + qsi(_YZ_,0))/(1 + falpha*fdeltaT);
 	
 	MemItem(index) = qsin1;		
 }
@@ -189,12 +189,13 @@ void TPZViscoelastic::ComputeStressTensor(TPZFMatrix<STATE> &Stress, TPZMaterial
 	TPZFNMatrix<6,STATE> qsi;
 	const int index = data.intPtIndex;
 	qsi = MemItem(index);
-	qsi(_XX_,0)*= 1/(1+falphaT);
-	qsi(_XY_,0)*= 1/(1+falphaT);
-	qsi(_XZ_,0)*= 1/(1+falphaT);
-	qsi(_YY_,0)*= 1/(1+falphaT);
-	qsi(_YZ_,0)*= 1/(1+falphaT);
-	qsi(_ZZ_,0)*= 1/(1+falphaT);
+	const REAL denominador = 1 + falpha*fdeltaT;
+	qsi(_XX_,0)*= 1/(1+denominador);
+	qsi(_XY_,0)*= 1/(1+denominador);
+	qsi(_XZ_,0)*= 1/(1+denominador);
+	qsi(_YY_,0)*= 1/(1+denominador);
+	qsi(_YZ_,0)*= 1/(1+denominador);
+	qsi(_ZZ_,0)*= 1/(1+denominador);
 	
 	Stress(0,0) += qsi(_XX_,0);
 	Stress(1,1) += qsi(_YY_,0);
@@ -294,7 +295,8 @@ void TPZViscoelastic::FillDataRequirements(TPZMaterialData &data){
 void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Write(buf,withclassid);
-	buf.Write(&falphaT, 1);	
+	buf.Write(&falpha, 1);	
+	buf.Write(&fdeltaT, 1);		
 	buf.Write(&flambdaV, 1);	
 	buf.Write(&fmuV, 1);	
 }
@@ -303,7 +305,8 @@ void TPZViscoelastic::Write(TPZStream &buf, int withclassid)
 void TPZViscoelastic::Read(TPZStream &buf, void *context)
 {
 	TPZMatWithMem<TPZFMatrix<STATE>,TPZElasticity3D>::Read(buf,context);
-	buf.Read(&falphaT, 1);
+	buf.Read(&falpha, 1);
+	buf.Read(&fdeltaT, 1);
 	buf.Read(&flambdaV, 1);
 	buf.Read(&fmuV, 1);
 

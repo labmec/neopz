@@ -346,7 +346,6 @@ int main()
 	
 	int resolution = 1;
 	TPZVec <std::string> vecnames(2), scalnames(0);
-	
 	 
 	 //  scalnames[0] = "StressX";
 	 vecnames[0] = "Displacement";
@@ -356,8 +355,9 @@ int main()
 	 
 	 an.DefineGraphMesh(dimension, scalnames, vecnames, plotfile);
 	 an.PostProcess(resolution);
-	 
+
 	/*
+
 	TPZPostProcAnalysis postan(&an);
 	TPZVec <int> matids(3);
 	matids[0] = 1; 
@@ -375,17 +375,18 @@ int main()
 	vecnames[1] = "PrincipalStrain";
 	scalnames.resize(1); 
 	scalnames[0] = "ViscoStressX";
+ 
 	
 	postan.DefineGraphMesh(dimension, scalnames, vecnames, postplot);
 	postan.PostProcess(resolution);
-	 */
-	
-    for (int istep = 0 ; istep < 5 ; istep++)
+*/	
+    for (int istep = 0 ; istep < 100 ; istep++)
     {
-		an.AssembleResidual();
-		an.Solve();
-		//postan.TransferSolution();
-		an.PostProcess(resolution);
+			an.AssembleResidual();
+			an.Solve();
+			std::cout << "*";
+			std::cout.flush();
+			an.PostProcess(resolution);
     }
 	
 	//an.Solution().Print("Solution",std::cout);
@@ -418,17 +419,16 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
 	TPZManVector<REAL> force(3,0.);
 	//force[1] = 0.;
-	REAL ElaE = 1000, poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
-	REAL lambdaV = 0, muV = 0, alphaT = 0;
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+	
+	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
-	alphaT = 0.01;	
-    
-    
-	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+	alpha = 1.;	
+	deltaT = 0.01;
+	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
-	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alphaT, force);
-	//TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
 	
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
