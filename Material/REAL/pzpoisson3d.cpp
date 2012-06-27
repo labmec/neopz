@@ -264,7 +264,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 		{// Dirichlet condition
 			int in;
 			for(in = 0 ; in < numvec; in++) {
-				ef(in,0) += v2[0] * phi(in,0) * weight;
+				ef(in,0) +=  (-1.)*v2[0] * phi(in,0) * weight;
 			}
 		}
 			break;
