@@ -102,6 +102,7 @@ public:
 									std::map<int,int> & gl2lcConMap,
 									std::map<int,int> & gl2lcElMap) const;
 
+private:
     /**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi.
 	 * @param qsi master element coordinate
@@ -111,6 +112,15 @@ public:
 	 */
 	virtual void ComputeSolution(TPZVec<REAL> &qsi,
 								 TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+    
+public:
+    /**
+	 * @brief Computes solution and its derivatives in the local coordinate qsi.
+	 * @param qsi [in] master element coordinate
+     * @param data [in] stores all input data
+	 */
+
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
     
 	/**
 	 * @brief Computes solution and its derivatives in the local coordinate qsi. \n

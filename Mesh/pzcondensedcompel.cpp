@@ -117,6 +117,11 @@ void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi,
     fReferenceCompEl->ComputeSolution(qsi,sol,dsol,axes);
 }
 
+void TPZCondensedCompEl::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data)
+{
+    fReferenceCompEl->ComputeSolution(qsi,data);
+}
+
 /**
  * @brief Computes solution and its derivatives in the local coordinate qsi. \n
  * This method will function for both volumetric and interface elements
