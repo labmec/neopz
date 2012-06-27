@@ -176,6 +176,28 @@ public:
 	{
 		for(int i = 0; i < 3; i++) this->fForce[i] = force[i];
 	}
+    
+    STATE GetE()
+    {
+        return fE;
+    }
+    
+    STATE GetPoisson()
+    {
+        return fPoisson;
+    }
+    
+    STATE GetLambda()
+    {
+        STATE lambda = (fPoisson*fE)/((1.+fPoisson)*(1.-2.*fPoisson));
+        return lambda;
+    }
+    
+    STATE GetMU()
+    {
+        STATE mu = fE/(2.*(1.+fPoisson));
+        return mu;
+    }
 	
 	protected :
 	
