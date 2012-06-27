@@ -402,7 +402,8 @@ static void GenerateProjectionMatrix(TPZInterpolatedElement *intel, TPZAutoPoint
         REAL weight;
         TPZManVector<REAL,3> pos(dim);
         intrule.Point(ip, pos, weight);
-        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+//        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeShape(pos,dataA);
         int firstpressure = dataA.phi.Rows()-npressure;
         int lastpressure = dataA.phi.Rows();
         int ish,jsh;
@@ -455,7 +456,8 @@ static int VerifyProjection(TPZInterpolatedElement *intel, TPZFMatrix<REAL> &mul
         intrule.Point(ip, pos, weight);
         pointpos(0,ip) = pos[0];
         pointpos(1,ip) = pos[1];
-        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+//        intel->ComputeShape(pos, dataA.x, dataA.jacobian, dataA.axes, dataA.detjac, dataA.jacinv, dataA.phi, dataA.dphix);
+        intel->ComputeShape(pos,dataA);
 #ifdef LOG4CXX
 				{
 						std::stringstream sout;

@@ -544,8 +544,9 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     int dimension = coarse->Dimension();
     int numdof = coarse->Material()->NStateVariables();
         
-    TPZSolVec corsol;
-    TPZGradSolVec cordsol,cordsolxy;
+    //TPZSolVec corsol;
+    //TPZGradSolVec cordsol;
+    TPZGradSolVec cordsolxy;
 //    TPZVec<REAL> corsol(numdof);
 //    TPZFNMatrix<9,REAL> cordsol(dimension,numdof),cordsolxy(dimension,numdof);
     
@@ -555,9 +556,14 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     // derivative of the shape function
     // in the master domain
     TPZManVector<REAL,3> coarse_int_point(dimension);
-    TPZFNMatrix<9,REAL> jaccoarse(dimension,dimension),jacinvcoarse(dimension,dimension);
-    TPZFNMatrix<9,REAL> axescoarse(3,3), axesinner(3,3);
-    TPZManVector<REAL,3> xcoarse(3);
+//    TPZFNMatrix<9,REAL> jaccoarse(dimension,dimension),jacinvcoarse(dimension,dimension);
+//    TPZFNMatrix<9,REAL> axescoarse(3,3);
+//    TPZManVector<REAL,3> xcoarse(3);
+    TPZFNMatrix<9,REAL> axesinner(3,3);
+    
+    
+    TPZMaterialData datacoarse;
+    coarse->InitMaterialData(datacoarse);
     
     REAL jacdetcoarse;
     int numintpoints = intrule->NPoints();
@@ -567,24 +573,31 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     TPZFMatrix<REAL> truedsol(dimension,numdof);
     for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
         intrule->Point(int_ind,coarse_int_point,weight);
-        coarse->Reference()->X(coarse_int_point, xcoarse);
-        if(f) f(xcoarse,truesol,truedsol);
+        //coarse->Reference()->X(coarse_int_point, xcoarse);
+        coarse->Reference()->X(coarse_int_point, datacoarse.x);
+        //if(f) f(xcoarse,truesol,truedsol);
+        if(f) f(datacoarse.x,truesol,truedsol);
 
-        coarse->Reference()->Jacobian(coarse_int_point, jaccoarse, axescoarse, jacdetcoarse, jacinvcoarse);
-        weight *= fabs(jacdetcoarse);
+//        coarse->Reference()->Jacobian(coarse_int_point, jaccoarse, axescoarse, jacdetcoarse, jacinvcoarse);
+        coarse->Reference()->Jacobian(coarse_int_point, datacoarse.jacobian, datacoarse.axes, datacoarse.detjac, datacoarse.jacinv);
+        //weight *= fabs(jacdetcoarse);
+        weight *= fabs(datacoarse.detjac);
 //Er        int iv=0;
-        corsol[0].Fill(0.);
-        cordsol[0].Zero();
+//        corsol[0].Fill(0.);
+//        cordsol[0].Zero();
 
-        coarse->ComputeSolution(coarse_int_point, corsol, cordsol, axescoarse);
+        //coarse->ComputeSolution(coarse_int_point, corsol, cordsol, axescoarse);
+        coarse->ComputeShape(coarse_int_point,datacoarse);
+        coarse->ComputeSolution(coarse_int_point,datacoarse);
         
-        int nc = cordsol[0].Cols();
+        //int nc = cordsol[0].Cols();
+        int nc = datacoarse.dsol[0].Cols();
         for (int col=0; col<nc; col++)
         {
             for (int d=0; d<dimension; d++) {
                 REAL deriv = 0.;
                 for (int d2=0; d2<dimension; d2++) {
-                    deriv += cordsol[0](d2,col)*axescoarse(d2,d);
+                    deriv += datacoarse.dsol[0](d2,col)*datacoarse.axes(d2,d);
                 }
                 cordsolxy[0](d,col) = deriv;
             }
@@ -592,7 +605,7 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
         int jn;
         for(jn=0; jn<numdof; jn++) {
             for(int d=0; d<dimension; d++) {
-                error += (cordsol[0](d,jn)-truedsol(d,jn))*(cordsol[0](d,jn)-truedsol(d,jn))*weight;
+                error += (datacoarse.dsol[0](d,jn)-truedsol(d,jn))*(datacoarse.dsol[0](d,jn)-truedsol(d,jn))*weight;
             }
         }
     }
