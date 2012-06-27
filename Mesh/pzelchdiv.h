@@ -19,8 +19,6 @@
  */
 template<class TSHAPE>
 class TPZCompElHDiv : public TPZIntelGen<TSHAPE> {
-	/** @brief Defines the interpolation order for pressure variable*/
-	int fPressureOrder;
 	
 	/** @brief To append vectors */
 	void Append(TPZFMatrix<REAL> &u1, TPZFMatrix<REAL> &u2, TPZFMatrix<REAL> &u12);
@@ -160,7 +158,17 @@ public:
     /** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 
+    private:
     virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+    
+    public:
+    
+    /** 
+	 * @brief Compute shape functions based on master element in the classical FEM manne. 
+	 * @param intpoin [in] point in master element coordinates 
+	 * @param data [in] stores all input data
+	 */
+    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	
     void ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,

@@ -26,14 +26,12 @@ TPZCompElHDiv<TSHAPE>::TPZCompElHDiv(TPZCompMesh &mesh, TPZGeoEl *gel, int &inde
 TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
-	//for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
 	int nconflux= TPZCompElHDiv::NConnects();
     this->fConnectIndexes.Resize(nconflux);
 	gel->SetReference(this);
 	
 	for(i=0;i< nconflux;i++)
 	{
-        //int sideaux= i + TSHAPE::NSides - nconflux;
         int sideaux= i + TSHAPE::NCornerNodes;
 		this->fConnectIndexes[i] = this->CreateMidSideConnect(sideaux);
 #ifdef LOG4CXX
@@ -55,9 +53,6 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	if (sideorder > this->fIntRule.GetMaxOrder()) sideorder = this->fIntRule.GetMaxOrder();
 	TPZManVector<int,3> order(3,sideorder);
 	this->fIntRule.SetOrder(order);
-    
-	
-	
 }
 
 template<class TSHAPE>
@@ -149,97 +144,90 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 	}
 #endif
 }
+
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 {
-    //int ncon=this->NConnects();
-    if (TSHAPE::Type()==EQuadrilateral) {
-        if(connect< NConnects()){
-            //int iside = TSHAPE::NSides - NConnects() + connect+1;//estava somado +1 caso o elemento de pressao fosse junto
-            int iside = connect+TSHAPE::NCornerNodes;
-            if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
-            {
-                PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
-                return -1;
-                
-            }
-            int order = ConnectOrder(connect);
-            
-            if(order < 0) return 0;
-            
-            TPZStack<int> smallsides;
-            TSHAPE::LowerDimensionSides(iside,smallsides);
-            if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)//i.e., trata-se do lado de mesma dimensao que o elemento
-            {
-                int NShapeFace = 0;
-                //funcoes para os lados menor que o proprio elemento
-                for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
-                    int sideorder= this->SideOrder(nside);
-                    NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
-                    
-                }
-                //se a ordem for maior q um tiraremos a ultima função interna
-                if (order>1) {
-                    int aux=TSHAPE::NConnectShapeF(iside,order)-1;//-1;
-                    //int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-2*(order-2);
-										//int nshape=NShapeFace+ TSHAPE::Dimension*(aux);
-                    int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-4*(order-2);
-#ifdef LOG4CXX
-                    {
-                        std::stringstream sout;
-                        sout << endl<<" Connect : " << connect << " numero de func de forma " << nshape<<std::endl;
-                        LOGPZ_DEBUG(logger, sout.str().c_str());
-                    }
-#endif
-                    return(nshape);//pois nem todas as funcoes levam as duas direcoes 
-                }
-                else {
-                    int aux=TSHAPE::NConnectShapeF(iside,order);
-                    return(NShapeFace+ TSHAPE::Dimension*(aux));
-                }
-                
-            }
-            
-            //trata-se do lado de 1 dimensao a menos que a dimensao do elemento
-            else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1) 
-            {
-                int NShapeF = 0;
-                for(int j=0;j< smallsides.NElements();j++)
-                {
-                    NShapeF += TSHAPE::NConnectShapeF(j,order-1);
-                }
-                
-                //se a ordem for maior q um tbem tira-se a ultima funcao de cada lado
-                if (order>1) {
-                    int result=NShapeF + TSHAPE::NConnectShapeF(iside,order)-1;//era -1..coloquei -2
-#ifdef LOG4CXX
-                    {
-                        std::stringstream sout;
-                        sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
-                        LOGPZ_DEBUG(logger, sout.str().c_str());
-                    }
-#endif
-                    return(result);
-                    
-                }
-                else {
-                    int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
-                    return(result);
-                }
-                
-            }
-        }
-        
-        
-        else
-        {
-            int dualorder=this->fPressureOrder;
-            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc::ETensorial);
-            
-        }
-        
-    }	
+    if(connect >= this->NConnects())
+    {
+        PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: there is not this connect " <<  endl;
+        return -1;
+    }
     
+    if (TSHAPE::Type()==EQuadrilateral)
+    {
+        int iside = connect+TSHAPE::NCornerNodes;
+        if(TSHAPE::SideDimension(iside)< this->Dimension()-2)
+        {
+            PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<  endl;
+            return -1;
+                
+        }
+        int order = ConnectOrder(connect);
+        if(order < 0) return 0;
+        
+        TPZStack<int> smallsides;
+        TSHAPE::LowerDimensionSides(iside,smallsides);
+        //i.e., trata-se do lado de mesma dimensao que o elemento
+        if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)
+        {
+            int NShapeFace = 0;
+            //funcoes para os lados menor que o proprio elemento
+            for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++)
+            {
+                int sideorder= this->SideOrder(nside);
+                NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
+            }
+            //se a ordem for maior q um tiraremos a ultima função interna
+            if (order>1)
+            {
+                int aux=TSHAPE::NConnectShapeF(iside,order)-1;//-1;
+                int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-4*(order-2);
+#ifdef LOG4CXX
+                {
+                    std::stringstream sout;
+                    sout << endl<<" Connect : " << connect << " numero de func de forma " << nshape<<std::endl;
+                    LOGPZ_DEBUG(logger, sout.str().c_str());
+                }
+#endif
+                return(nshape);//pois nem todas as funcoes levam as duas direcoes 
+            }
+            else {
+                int aux=TSHAPE::NConnectShapeF(iside,order);
+                return(NShapeFace+ TSHAPE::Dimension*(aux));
+            }
+                
+        }
+            
+        //trata-se do lado de 1 dimensao a menos que a dimensao do elemento
+        else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1) 
+        {
+            int NShapeF = 0;
+            for(int j=0;j< smallsides.NElements();j++)
+            {
+                NShapeF += TSHAPE::NConnectShapeF(j,order-1);
+            }
+                
+            //se a ordem for maior q um tbem tira-se a ultima funcao de cada lado
+            if (order>1) {
+                int result=NShapeF + TSHAPE::NConnectShapeF(iside,order)-1;//era -1..coloquei -2
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
+                LOGPZ_DEBUG(logger, sout.str().c_str());
+            }
+#endif
+                return(result);
+                    
+            }
+            else {
+                int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
+                return(result);
+            }
+                
+        }
+    }	
     
     if (TSHAPE::Type()==ETriangle){
         
@@ -280,13 +268,6 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
                 return (result);
             }
         }
-        
-        else
-        {
-            int dualorder=this->fPressureOrder;
-            return pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: EOrdemTotal);
-            
-        }
     }
     
     else {
@@ -305,122 +286,6 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
     
     
 }
-/*
- template<class TSHAPE>
- int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
- {
- int ncon=TPZCompElHDiv::NConnects();
- int iside = TSHAPE::NSides - ncon+connect;
- if(TSHAPE::SideDimension(iside)< this->Dimension()-2){
- PZError << "TPZCompElHDiv<TSHAPE>::NConnectShapeF: no shape associate " <<endl;
- return -1;
- }
- int order = ConnectOrder(connect);
- if(order < 0) return 0;
- 
- TPZStack<int> smallsides;
- TSHAPE::LowerDimensionSides(iside,smallsides);
- int dimensionside=TSHAPE::SideDimension(iside);
- int dimensionEl=TSHAPE::Dimension;
- 
- if (dimensionside==dimensionEl) {
- int NShapeFace = 0;
- for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
- int sideorder= this->SideOrder(nside);
- NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
- }
- int result=NShapeFace + TSHAPE::Dimension*TSHAPE::NConnectShapeF(iside,order);
- //								#ifdef LOG4CXX
- //										{
- //										std::stringstream sout;
- //										sout << endl<<" Connect : " << connect << " number of shape functions " << result<<std::endl;
- //										LOGPZ_DEBUG(logger, sout.str().c_str());
- //										}
- //								#endif
- return (result);
- }
- 
- 
- else {
- if(dimensionside==dimensionEl-1){
- int NShapeF = 0;
- for(int j=0;j< smallsides.NElements();j++){
- NShapeF += TSHAPE::NConnectShapeF(j,order);
- }
- int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
- //								#ifdef LOG4CXX
- //										{
- //												std::stringstream sout;
- //												sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
- //												LOGPZ_DEBUG(logger, sout.str().c_str());
- //												}
- //								#endif
- return (result);
- }				
- 
- else{
- #ifdef LOG4CXX
- {
- std::stringstream sout;
- sout <<__PRETTY_FUNCTION__<< "unhandled case ";
- LOGPZ_ERROR(logger,sout.str());
- }
- #endif
- return -1;
- }
- }
- 
- 
- 
- 
- 
- 
- 
- //        if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)
- //        {
- //            int NShapeFace = 0;
- //            for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
- //                int sideorder= this->SideOrder(nside);
- //                NShapeFace += TSHAPE::NConnectShapeF(nside,sideorder);
- //            }
- //            int result=NShapeFace + TSHAPE::Dimension*TSHAPE::NConnectShapeF(iside,order);
- //						#ifdef LOG4CXX2
- //								{
- //                std::stringstream sout;
- //                sout << endl<<" Connect : " << connect << " number of shape functions" << result<<std::endl;
- //								LOGPZ_DEBUG(logger, sout.str().c_str());
- //								}
- //						#endif
- //            return (result);
- //        }
- //        else if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension-1)
- //        {
- //            int NShapeF = 0;
- //            for(int j=0;j< smallsides.NElements();j++){
- //                NShapeF += TSHAPE::NConnectShapeF(j,order);
- //            }
- //            int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
- //						#ifdef LOG4CXX2
- //								{
- //                std::stringstream sout;
- //                sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
- //                LOGPZ_DEBUG(logger, sout.str().c_str());
- //								}
- //						#endif
- //            return (result);
- //        }
- //				
- //#ifdef LOG4CXX
- //    {
- //        std::stringstream sout;
- //        sout <<__PRETTY_FUNCTION__<< "unhandled case ";
- //        LOGPZ_ERROR(logger,sout.str());
- //    }
- //#endif
- //   return -1;
- 
- }*/
-
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SetIntegrationRule(int ord) {
@@ -452,13 +317,12 @@ int TPZCompElHDiv<TSHAPE>::SideConnectLocId(int node,int side) const {
 		return -1;
 	}
 	
-    return side-TSHAPE::NCornerNodes; //side - TSHAPE::NSides + NConnects();
+    return side-TSHAPE::NCornerNodes; 
 }
 
 template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::ConnectSideLocId(int connect) const{
     
-    //  int side = connect + TSHAPE::NSides - this->NConnects(); 
     int side = connect + TSHAPE::NCornerNodes ; 
     return side;   
 }
@@ -635,10 +499,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     FirstShapeIndex(FirstIndex);
     
     int count=0;
-    //int nshapetotal=this->NShapeF();
     int nshapeflux= NFluxShapeF();
-    //int tamanho= this->NShapeF() - NConnectShapeF(NConnects()-1);//estou tirando as funcoes da variavel dual
-	//	ShapeAndVec.Resize(tamanho);
     ShapeAndVec.Resize(nshapeflux);
     
     if (TSHAPE::Type()==EQuadrilateral) {
@@ -738,65 +599,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                     }
                 }
             }
-            /*
-             else if (jvec==16) {
-             int lside=VectorSide[jvec];
-             int node=0;
-             int idcon=SideConnectLocId(node,lside);//indice do connect associado
-             int fshape1= FirstIndex[lside];
-             int nfuncint=TSHAPE::NConnectShapeF(lside,ConnectOrder(idcon))-1;//n. func. somente internas, esta -1 pq estou tirando a ultima
-             if(nfuncint<0) {
-             LOGPZ_INFO(logger, "No internal functions associate");
-             return;
-             }
-             
-             int fshape2= FirstIndex[lside+1];
-             int nfuncXY=nfuncint-2*(ConnectOrder(idcon)-2);//n. func. q assumem as duas direcoes
-             int indXY=fshape1;
-             //funcoes q vao nas duas direcoes
-             for (int ishapeXY=indXY; ishapeXY<indXY+nfuncXY; ishapeXY++){//comecava em fshape+1 penso q deve comecar em fshape..acho q a ultima e de maior ordem
-             ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeXY);
-             
-             }
-             
-             //agora so os q vao na direcao X
-             int nfuncX=(ConnectOrder(idcon)-2);
-             int indX=(fshape2)-nfuncX;
-             
-             for (int ishapeX=indX; ishapeX<fshape2; ishapeX++) {
-             ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeX);
-             }
-             
-             }
-             
-             else if (jvec==17) {
-             int lside=VectorSide[jvec];
-             int node=0;
-             int idcon=SideConnectLocId(node,lside);//indice do connect associado
-             int fshape1= FirstIndex[lside];
-             int nfuncint=TSHAPE::NConnectShapeF(lside,ConnectOrder(idcon))-1;//n. func. somente internas, estamenos um pq estou tirando a ultima
-             int nfuncXY=nfuncint-2*(ConnectOrder(idcon)-2);//n. func. q assumem as duas direcoes
-             int indXY=fshape1;
-             //funcoes q vao nas duas direcoes
-             for (int ishapeXY=indXY; ishapeXY<indXY+nfuncXY; ishapeXY++){
-             ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeXY);
-             
-             }
-             
-             
-             //agora so os q vao na direcao Y
-             
-             
-             int nfuncY=(ConnectOrder(idcon)-2);
-             int indY=nfuncXY+FirstIndex[lside]+1;
-             //	int endY=nfunc-nfuncY;
-             for (int ishapeY=indY; ishapeY<indY+nfuncY; ishapeY++) {
-             ShapeAndVec[count++]=std::pair<int,int>(jvec,ishapeY);
-             }
-             
-             }
-             */
-            //----
+            
             else{
                 
                 
@@ -844,40 +647,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     
 }
 
-/*
- template<class TSHAPE>
- void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec){
- 
- int count=0;
- 
- int tamanho= this->NShapeF();
- ShapeAndVec.Resize(tamanho);
- 
- 
- 
- TPZManVector<int,27> FirstIndex; /// VectorSide indicates the side associated with each vector entry
- FirstShapeIndex(FirstIndex); /// the first index of the shape functions
- 
- for(int jvec=0;jvec< VectorSide.NElements();jvec++)
- {
- int lside=VectorSide[jvec];
- int fshape1= FirstIndex[lside];
- int fshape2= FirstIndex[lside+1];
- for (int ishape=fshape1; ishape<fshape2; ishape++)
- {
- ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
- }
- 
- }
- 
- #ifdef LOG4CXX
- std::stringstream sout;
- sout << " ShapeAndVec" << ShapeAndVec;
- LOGPZ_DEBUG(logger,sout.str())
- #endif
- 
- }
- */
+
 //compute the values of the shape function of the side
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
@@ -941,7 +711,8 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol){
 	TPZMaterialData data;
 	InitMaterialData(data);
-	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+    
+//	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
 	
 	
 	this->ComputeSolutionHDiv(data);
@@ -951,7 +722,8 @@ void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &so
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data){
-	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+//	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+    this->ComputeShape(qsi,data);
     this->ComputeSolutionHDiv(data);
 	
     
@@ -961,9 +733,23 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                             const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     TPZMaterialData data;
+    data.phi = phi;
+    data.dphix = dphix;
+    data.axes = axes;
     InitMaterialData(data);
     this->ComputeSolutionHDiv(data);
+    sol = data.sol;
+    dsol = data.dsol;
 	
+    
+}
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
+    
+    //this->InitMaterialData(data);
+    //this->ComputeShape(qsi,data);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
     
 }
 
@@ -973,15 +759,19 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-	TPZFMatrix<REAL> phix(nshape,1),dphix(dim,nshape);
+    
+    TPZMaterialData data;
+    data.phi.Resize(nshape, 1);
+    data.dphix.Resize(dim,nshape);
+	data.jacobian.Resize(dim, dim);
+    data.jacinv.Resize(dim,dim);
+	data.x.Resize(3,0.);
+    
+	//this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
+    //this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+    this->ComputeShape(qsi,data);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 	
-	TPZFNMatrix<9> jacobian(dim,dim);
-	TPZFNMatrix<9> jacinv(dim,dim);
-	REAL detjac;
-	
-	TPZManVector<REAL,3> x(3,0.);
-	this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
-	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
 	
 }
 
@@ -1121,14 +911,6 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
     phi.Resize(nshapecont, 1);
     dphi.Resize(dimension, nshapecont);
 	TSHAPE::Shape(pt,id,ord,phi,dphi);
-	
-    //	 #ifdef LOG4CXX
-    //	 std::stringstream sout;
-    //	 sout << " Tamanho do vetor de Shape continuas " << phi.Rows()<<endl;
-    //	 sout << " Tamanho do vetor de DPHI continuas (linhas)" << dphi.Rows()<<endl;
-    //		sout<< "vetor phi "<<phi<<endl;
-    //	 LOGPZ_DEBUG(logger,sout.str())
-    //	 #endif
     
 }
 
