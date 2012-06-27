@@ -218,13 +218,17 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	int nref = fElementVec.size();
 	TPZVec<TPZMaterialData> datavec;
 	datavec.resize(nref);
-	
+    
 	for (int iref = 0; iref<nref; iref++)
 	{		
         
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         trvec[iref].Apply(qsi, myqsi);
+        msp->InitMaterialData(datavec[iref]);
+        datavec[iref].p = msp->MaxOrder();
+        msp->ComputeShape(qsi,datavec[iref]);
         msp->ComputeSolution(myqsi, datavec[iref]);
+        
 //		datavec[iref].p = msp->MaxOrder();
 //        datavec[iref].sol.resize(1);
 //		datavec[iref].sol[0].Resize(numdof);
@@ -234,9 +238,9 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 //		datavec[iref].dsol[0].Zero();
 //		datavec[iref].axes.Redim(dim,3);
 //		datavec[iref].axes.Zero();
-		
-		//trvec[iref].Apply(qsi, myqsi);
-		//msp->ComputeSolution(myqsi, datavec[iref].sol, datavec[iref].dsol, datavec[iref].axes);
+//		//this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
+//		trvec[iref].Apply(qsi, myqsi);
+//		msp->ComputeSolution(myqsi, datavec[iref].sol, datavec[iref].dsol, datavec[iref].axes);
         
 		
 		datavec[iref].x.Resize(3);
@@ -245,11 +249,11 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	}
 	
     
-	int solSize = material->NSolutionVariables(var);
-	sol.Resize(solSize);
-	sol.Fill(0.);
-    int nsq=datavec[0].sol[0].size();
-    int nsp=datavec[1].sol[0].size();
+//	int solSize = material->NSolutionVariables(var);
+//	sol.Resize(solSize);
+//	sol.Fill(0.);
+//    int nsq=datavec[0].sol[0].size();
+//    int nsp=datavec[1].sol[0].size();
 
 	material->Solution(datavec, var, sol);
 }
@@ -340,7 +344,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 template <class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData > &dataVec)
 {
-	this->Material()->FillDataRequirements(dataVec);
+    //this->Material()->FillDataRequirements(dataVec);
 	const int dim = this->Dimension();
 	int nref = this->fElementVec.size();
 	
@@ -375,6 +379,8 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 //			dataVec[iref].dsol[0].Redim(dim,nstate);
 //		}
 	}
+    
+    this->Material()->FillDataRequirements(dataVec);
 	
 }
 
@@ -393,7 +399,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
 	
-	TPZVec<TPZMaterialData> datavec;
+	TPZManVector<TPZMaterialData,3> datavec;
 	const int nref = fElementVec.size(); 
 	datavec.resize(nref);
 	InitMaterialData(datavec);
