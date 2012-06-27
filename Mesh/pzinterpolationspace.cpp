@@ -104,7 +104,14 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 		default:
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
 	} //switch
-	ref->X(intpoint, X);
+	//ref->X(intpoint, X);
+}
+
+void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
+    
+	
+    this->ComputeShape(intpoint,data.x,data.jacobian,data.axes,data.detjac,data.jacinv,data.phi,data.dphix);
+    
 }
 
 REAL TPZInterpolationSpace::InnerRadius(){
@@ -438,12 +445,18 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 		return;
 	}
 	
-	TPZMaterialData data;
-	data.p = this->MaxOrder();
-	data.axes.Redim(dim,3);
-	data.axes.Zero();
-	this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-	
+//	TPZMaterialData data;
+//	data.p = this->MaxOrder();
+//	data.axes.Redim(dim,3);
+//	data.axes.Zero();
+//	this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+    
+    TPZMaterialData data;
+    this->InitMaterialData(data);
+    data.p = this->MaxOrder();
+    this->ComputeShape(qsi, data);
+	this->ComputeSolution(qsi,data);
+    
 	data.x.Resize(3);
 	this->Reference()->X(qsi, data.x);
 	
@@ -983,6 +996,8 @@ void TPZInterpolationSpace::EvaluateError(  void (*fp)(const TPZVec<REAL> &loc,T
 		// this->ComputeSolution(intpoint, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 		//this->ComputeSolution(intpoint, data);
 		//contribuicoes dos erros
+        TPZGeoEl * ref = this->Reference();
+        ref->X(intpoint, data.x);
 		if(fp) {
 			fp(data.x,u_exact,du_exact);
 			//		std::cout<<" funcao exata calculada no pto X " << data.x<< " valor "<< u_exact<<" dudx "<<du_exact <<std::endl;

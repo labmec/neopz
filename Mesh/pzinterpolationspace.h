@@ -63,9 +63,20 @@ public:
 	 */
 	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) = 0;
 	
+    private:
+    
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,
 							  REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
+    
+    public:
+    
+    /** 
+	 * @brief Compute shape functions based on master element in the classical FEM manne. 
+	 * @param intpoin [in] point in master element coordinates 
+	 * @param data [in] stores all input data
+	 */
+    virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data);
 	
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
