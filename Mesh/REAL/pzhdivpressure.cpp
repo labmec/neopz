@@ -440,7 +440,8 @@ template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol){
 	TPZMaterialData data;
 	InitMaterialData(data);
-	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+	//this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+    this->ComputeShape(qsi,data);
 	
 	
 	this->ComputeSolutionPressureHDiv(data);
@@ -450,7 +451,8 @@ void TPZCompElHDivPressure<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<R
 
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data){
-	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+//	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
+    this->ComputeShape(qsi,data);
     this->ComputeSolutionPressureHDiv(data);
 	
     
@@ -476,16 +478,19 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec
 	TPZGeoEl * ref = this->Reference();
 	const int nshape = this->NShapeF();
 	const int dim = ref->Dimension();
-	TPZFMatrix<REAL> phix(nshape,1),dphix(dim,nshape);
 	
-	TPZFNMatrix<9> jacobian(dim,dim);
-	TPZFNMatrix<9> jacinv(dim,dim);
-	REAL detjac;
+    TPZMaterialData data;
+    data.phi.Resize(nshape, 1);
+    data.dphix.Resize(dim, nshape);
+    data.jacobian.Resize(dim,dim);
+    data.jacinv.Resize(dim, dim);
+    data.x.Resize(3, 0.);
 	
-	TPZManVector<REAL,3> x(3,0.);
-	this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
-	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
-	
+//	this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
+//	this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
+
+	this->ComputeShape(qsi,data);
+    this->ComputeSolution(qsi, data.phi,data.dphix,data.axes,data.sol,data.dsol);
 }
 
 template<class TSHAPE>
