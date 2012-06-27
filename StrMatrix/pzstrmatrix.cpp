@@ -260,8 +260,9 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 	{
 		std::stringstream sout;
 		sout << "The comparaison results are : consistency check " << globalresult << " write read check " << writereadresult;
-		stiffness.Print("Matriz de Rigidez: ",sout);
-		rhs.Print("Right Handside", sout);
+		//stiffness.Print("Matriz de Rigidez: ",sout);
+        stiffness.Print("Matriz de Rigidez: ",sout,EMathematicaInput);
+		rhs.Print("Right Handside", sout,EMathematicaInput);
 		LOGPZ_DEBUG(loggerCheck,sout.str())
 	}
 	
