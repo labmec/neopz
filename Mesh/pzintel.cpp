@@ -1797,6 +1797,13 @@ void TPZInterpolatedElement::Read(TPZStream &buf, void *context)
 	TPZInterpolationSpace::Read(buf,context);
 }
 
+void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
+    
+//    this->InitMaterialData(data);
+//    this->ComputeShape(qsi, data);
+    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+}
+
 void TPZInterpolatedElement::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes) {	
 	const int nshape = this->NShapeF();
 	TPZGeoEl * ref = this->Reference();
