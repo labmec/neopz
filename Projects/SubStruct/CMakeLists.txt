@@ -1,14 +1,18 @@
-file(GLOB source *.cpp)
-file(GLOB header *.h)
+set(main substruct.cpp)
+set(test substruct_test.cpp)
 
-set(pztutormat ${pztutormat} ${source} ${header} PARENT_SCOPE)
+#set(pztutormat ${pztutormat} ${source} ${header} PARENT_SCOPE)
 
-add_executable(SubStruct ${source} ${header})
+add_executable(SubStruct ${main})
+
+add_executable(SubStruct_Test ${test})
 
 target_link_libraries(SubStruct pz pthread)
 
-configure_file(8andares02.txt 8andares02.txt COPYONLY)
+target_link_libraries(SubStruct_Test pz pthread)
 
-configure_file(cube1.txt cube1.txt COPYONLY)
+#configure_file(8andares02.txt 8andares02.txt COPYONLY)
+
+#configure_file(cube1.txt cube1.txt COPYONLY)
 
 include (CTestTestFile.cmake)
