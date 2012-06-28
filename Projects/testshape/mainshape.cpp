@@ -436,8 +436,8 @@ TPZAutoPointer<TPZCompMesh> CompMesh()
   TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gm);
   for(el=0; el<7; el++)
   {
-    TPZAutoPointer<TPZMaterial> mat = new TPZMatPoisson3d(el+1,gm->ElementVec()[el]->Dimension());
-    cmesh->InsertMaterialObject(mat.operator->());
+    TPZMaterial *mat = new TPZMatPoisson3d(el+1,gm->ElementVec()[el]->Dimension());
+    cmesh->InsertMaterialObject(mat);
   }
   TPZCompEl::SetgOrder(4);
   cmesh->AutoBuild();
