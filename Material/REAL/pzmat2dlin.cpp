@@ -191,8 +191,13 @@ void TPZMat2dLin::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix
         Solout[0] = Sol[0].real();
 #endif
 	} else if(var == 2) {
+#ifndef STATE_COMPLEX
       	Solout[0] = DSol(0,0);//derivate
 		Solout[1] = DSol(1,0);//derivate
+#else
+      	Solout[0] = DSol(0,0).real();//derivate
+		Solout[1] = DSol(1,0).real();//derivate
+#endif
 		return;
 	}
 	else TPZMaterial::Solution(Sol,DSol,axes,var,Solout);

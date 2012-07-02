@@ -27,20 +27,20 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	protected :
 	
 	/** @brief Forcing function value */
-	REAL fXf;
+	STATE fXf;
 	
 	/** @brief Problem dimension */
 	int fDim;
 	
 	/** @brief Coeficient which multiplies the Laplacian operator. */
-	REAL fK;
+	STATE fK;
 	
 	/** @brief Coeficient which multiplies the Laplacian operator associated to right neighbour element of the interface */
 	/** 
 	 * The coefficient of left neighbour is fK. \n
 	 * It is for use with discontinuous Galerkin method. Default value for fRightK is fK.
 	 */
-	REAL fRightK;
+	STATE fRightK;
 	
 	/** @brief Variable which multiplies the convection term of the equation */
 	REAL fC;
@@ -56,7 +56,7 @@ class TPZMatPoisson3d : public TPZDiscontinuousGalerkin {
 	REAL fSymmetry;
 	
 	/** @brief Multiplication value for the streamline diffusion term */
-	REAL fSD;
+	STATE fSD;
 	
 	/** @brief Enumerate for penalty term definitions */
 	enum EPenaltyType {ENoPenalty = 0, EFluxPenalty = 1, ESolutionPenalty, EBoth};
@@ -119,9 +119,9 @@ public:
 	
 	int NStateVariables();
 	
-	void SetParameters(STATE diff, STATE conv, TPZVec<STATE> &convdir);
+	void SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir);
 	
-	void GetParameters(STATE &diff, STATE &conv, TPZVec<STATE> &convdir);
+	void GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir);
 	
 	void SetInternalFlux(STATE flux)
 	{
