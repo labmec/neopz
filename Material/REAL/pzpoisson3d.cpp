@@ -65,7 +65,7 @@ TPZMatPoisson3d & TPZMatPoisson3d::operator=(const TPZMatPoisson3d &copy){
 	return *this;
 }
 
-void TPZMatPoisson3d::SetParameters(STATE diff, STATE conv, TPZVec<STATE> &convdir) {
+void TPZMatPoisson3d::SetParameters(STATE diff, REAL conv, TPZVec<REAL> &convdir) {
 	fK = diff;
 	this->SetRightK(fK);
 	fC = conv;
@@ -73,7 +73,7 @@ void TPZMatPoisson3d::SetParameters(STATE diff, STATE conv, TPZVec<STATE> &convd
 	for(d=0; d<fDim; d++) fConvDir[d] = convdir[d];
 }
 
-void TPZMatPoisson3d::GetParameters(STATE &diff, STATE &conv, TPZVec<STATE> &convdir) {
+void TPZMatPoisson3d::GetParameters(STATE &diff, REAL &conv, TPZVec<REAL> &convdir) {
 	diff = fK;
 	conv = fC;
 	int d;
@@ -155,7 +155,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 	//Equacao de Poisson
 	for( int in = 0; in < phr; in++ ) {
 		int kd;
-		REAL dphiic = 0;
+		STATE dphiic = 0;
 		for(kd = 0; kd<fDim; kd++) dphiic += ConvDirAx[kd]*dphi(kd,in);
 		ef(in, 0) += - weight * ( fXf*phi(in,0) 
 								 +0.5*fSD*delx*fC*dphiic*fXf
@@ -198,7 +198,7 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	int numprimalshape = data.phi.Rows()-numdual;
 	
 	int i,j;
-    REAL ratiok =1./fK; 
+    STATE ratiok =1./fK; 
 	for(i=0; i<numvec; i++)
 	{
 		int ivecind = data.fVecShapeIndex[i].first;
@@ -244,7 +244,7 @@ void TPZMatPoisson3d::ContributeBCHDiv(TPZMaterialData &data,REAL weight,
 	int numvec = data.fVecShapeIndex.NElements();
 	
 	TPZFMatrix<REAL>  &phi = data.phi;
-	REAL v2[1];
+	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
 	
 	switch (bc.Type()) {
@@ -307,7 +307,7 @@ void TPZMatPoisson3d::ContributeBC(TPZMaterialData &data,REAL weight,
 	TPZFMatrix<REAL> &axes = data.axes;
 	int phr = phi.Rows();
 	short in,jn;
-	REAL v2[1];
+	STATE v2[1];
 	v2[0] = bc.Val2()(0,0);
 	
 	switch (bc.Type()) {
@@ -425,6 +425,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
         DebugStop();
     }
 	
+#ifndef STATE_COMPLEX
 	
 	switch (var) {
 		case 8:
@@ -501,17 +502,18 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				
 				
 			default:
-				break;
 			
-			this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);	
+                this->Solution(data.sol[0], data.dsol[0], data.axes, var, Solout);	
+                break;
 			
 	}
-	
+#endif
 }
 
 #include "pzaxestools.h"
 void TPZMatPoisson3d::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
 	
+#ifndef STATE_COMPLEX
 	Solout.Resize( this->NSolutionVariables( var ) );
 	
 	if(var == 1){
@@ -570,6 +572,7 @@ void TPZMatPoisson3d::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		return;
 	}//Laplac
 	
+#endif
 	TPZMaterial::Solution(Sol, DSol, axes, var, Solout);
 	
 }//method
@@ -592,13 +595,16 @@ void TPZMatPoisson3d::ErrorsHdiv(TPZMaterialData &data,TPZVec<STATE> &u_exact,TP
 	
 	//values[0] : pressure error using L2 norm
 	std::cout<< " pressao  "<<u_exact[0]<<" pressao "<<sol[0]<<std::endl;
-	values[0]  = (u_exact[0]-sol[0] )*(u_exact[0]-sol[0]);
+    REAL diff = abs(u_exact[0]-sol[0]);
+	values[0]  = diff*diff;
 	//values[1] : flux error using L2 norm
 	for(id=0; id<fDim; id++) {
-		values[1]  += fK*(dsol[id] - du_exact(id,0))*(dsol[id] - du_exact(id,0));
+        REAL diff = abs(dsol[id] - du_exact(id,0));
+		values[1]  += abs(fK)*diff*diff;
 	}
 	//values[2] : divergence using L2 norm 
-	values[2]=(div[0] - du_exact(2,0))*(div[0]- du_exact(2,0));
+    diff = abs(div[0] - du_exact(2,0));
+	values[2]=diff*diff;
 	//values[3] : Hdiv norm => values[1]+values[2];
 	values[3]= values[1]+values[2];
 	
@@ -613,19 +619,23 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	TPZManVector<REAL> dudxEF(1), dudyEF(1);
 	this->Solution(u,dudx,axes, this->VariableIndex("KDuDx"), dudxEF);
 	this->Solution(u,dudx,axes, this->VariableIndex("KDuDy"), dudyEF);
-	values[3] = (dudxEF[0]/this->fK - du_exact(0,0))*(dudxEF[0]/this->fK - du_exact(0,0));
-	values[4] = (dudyEF[0]/this->fK - du_exact(1,0))*(dudyEF[0]/this->fK - du_exact(1,0));
+    REAL diff = abs(dudxEF[0]/this->fK - du_exact(0,0));
+	values[3] = diff*diff;
+    diff = abs((dudyEF[0]/this->fK - du_exact(1,0)));
+	values[4] = diff*diff;
 	
 	TPZManVector<REAL> sol(1),dsol(3,0.);
 	Solution(u,dudx,axes,1,sol);
 	Solution(u,dudx,axes,2,dsol);
 	int id;
 	//values[1] : eror em norma L2
-	values[1]  = (sol[0] - u_exact[0])*(sol[0] - u_exact[0]);
+    diff = abs(sol[0] - u_exact[0]);
+	values[1]  = diff*diff;
 	//values[2] : erro em semi norma H1
 	values[2] = 0.;
 	for(id=0; id<fDim; id++) {
-		values[2]  += fK*(dsol[id] - du_exact(id,0))*(dsol[id] - du_exact(id,0));
+        diff = abs((dsol[id] - du_exact(id,0)));
+		values[2]  += abs(fK)*diff*diff;
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
@@ -636,7 +646,7 @@ void TPZMatPoisson3d::BCInterfaceJump(TPZVec<REAL> &x, TPZSolVec &leftu,TPZBndCo
     for (int is=0; is<numbersol ; is++) {
         jump[is].Resize(1);
         if(bc.Type() == 0){ //DIRICHLET
-            REAL f = bc.Val2()(0,0);
+            STATE f = bc.Val2()(0,0);
             jump[is][0] = leftu[is][0] - f;
         }
         else{
@@ -761,7 +771,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 	
 	//diffusion term
-	REAL leftK, rightK;
+	STATE leftK, rightK;
 	leftK  = this->fK;
 	rightK = this->GetRightK();
 	
@@ -845,7 +855,7 @@ void TPZMatPoisson3d::ContributeInterface(TPZMaterialData &data, TPZMaterialData
 	
 	
 	//penalty = <A p^2>/h 
-	REAL penalty = fPenaltyConstant * (0.5 * (leftK*LeftPOrder*LeftPOrder + rightK*RightPOrder*RightPOrder)) / faceSize;
+	REAL penalty = fPenaltyConstant * (0.5 * (abs(leftK)*LeftPOrder*LeftPOrder + abs(rightK)*RightPOrder*RightPOrder)) / faceSize;
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){
 		
@@ -1029,7 +1039,7 @@ void TPZMatPoisson3d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialDa
 	
 	if (this->fPenaltyType == ESolutionPenalty || this->fPenaltyType == EBoth){  
 		nrowl = phiL.Rows(); 
-		const REAL penalty = fPenaltyConstant * fK * POrder * POrder / faceSize; //Ap^2/h
+		const REAL penalty = fPenaltyConstant * abs(fK) * POrder * POrder / faceSize; //Ap^2/h
 		REAL outflow = 0.;
 		for(il=0; il<fDim; il++) outflow += fC * fConvDir[il] * normal[il];
 		
@@ -1093,7 +1103,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	}
 #endif
 	
-	REAL Ldsolnormal = 0., Rdsolnormal = 0., ExactDNormal = 0.;
+	STATE Ldsolnormal = 0., Rdsolnormal = 0., ExactDNormal = 0.;
 	for(int id = 0; id < fDim; id++) {
 		Ldsolnormal  += Ldsol[id] * normal[id];
 		Rdsolnormal  += Rdsol[id] * normal[id];
@@ -1101,7 +1111,7 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	}
 	
 	values.Resize(3);
-	REAL aux;
+	STATE aux;
 	
 	//values[1] : eror em norma L2
 	
@@ -1110,7 +1120,8 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 	
 	//*= h ^ -gAlfa
 	aux *= pow(elsize, -1.0 * gAlfa);
-	values[1] = aux * aux;
+    REAL auxnorm = abs(aux);
+	values[1] = auxnorm * auxnorm;
 	
 	//values[2] : erro em semi norma H1
 	values[2] = 0.;
@@ -1122,7 +1133,8 @@ void TPZMatPoisson3d::InterfaceErrors(TPZVec<REAL> &/*x*/,
 		aux = aux - ExactDNormal;
 		//*= h ^ gAlfa
 		aux *= pow(elsize, gAlfa);
-		values[2]  += aux * aux;
+        auxnorm = abs(aux);
+		values[2]  += auxnorm * auxnorm;
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
@@ -1147,7 +1159,7 @@ REAL TPZMatPoisson3d::ComputeSquareResidual(TPZVec<REAL>& X, TPZVec<STATE> &sol,
 		divBetaU = this->fC * ( this->fConvDir[0] * dsol(0,0) + this->fConvDir[1] * dsol(1,0) );
 	} 
 	
-	REAL result = -this->fK * laplacU + divBetaU - (-fXf);
+	REAL result = abs(-this->fK * laplacU + divBetaU - (-fXf));
 	return (result*result);
 }//method
 

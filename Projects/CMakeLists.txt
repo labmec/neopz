@@ -54,6 +54,9 @@ ENABLE_TESTING()
 			#Examples used as tutorial for FEEC group (Prof Hugo)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
+			
+			add_subdirectory(HDiv_demo)
+			
 
 		else(BUILD_COMPLEX_PROJECTS)
 		#
@@ -64,6 +67,7 @@ ENABLE_TESTING()
 			add_subdirectory(MultipleLoad)
 			# the auto adaptive process is working again!!!
 			add_subdirectory(adaptivity)
+			# add_subdirectory(adaptivity_refactor)
 			
 			#Inserting project to hp adaptive development
 			add_subdirectory(Adapt_HP_Jorge)
@@ -86,6 +90,7 @@ ENABLE_TESTING()
 			add_subdirectory(QuadraticElements)
 			add_subdirectory(ThermalStress)
 			add_subdirectory(HDiv)
+			add_subdirectory(HDiv_demo)
 			add_subdirectory(AcoplamentoH1Hdiv)
 			add_subdirectory(Validacao)
 			add_subdirectory(Conductivity)
