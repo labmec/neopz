@@ -108,7 +108,7 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
     ofstream arg2("convU.txt");
     
 
-    vector<double> normu, normf;
+    vector<REAL> normu, normf;
 
     
 
@@ -268,7 +268,7 @@ REAL TPZElastoPlasticAnalysis::LineSearch(const TPZFMatrix<REAL> &Wn, TPZFMatrix
 		
 	}//while
 	
-	double ALPHA = 0.5*(A + B);
+	REAL ALPHA = 0.5*(A + B);
 	NextW = ak;
 	NextW += bk;
 	NextW *= 0.5;
@@ -345,8 +345,8 @@ void TPZElastoPlasticAnalysis::IterativeProcess(std::ostream &out,REAL tol,int n
 		prevsol = fSolution;
 		this->LoadSolution(fSolution);
 		this->AssembleResidual();
-		double NormResLambda = Norm(fRhs);
-		double norm = NormResLambda;
+		REAL NormResLambda = Norm(fRhs);
+		REAL norm = NormResLambda;
 		//       out << "Iteracao n : " << (iter+1) << " : norma da solucao |Delta(Un)|: " << norm << endl;
         std::cout << "Iteracao n : " << (iter+1) << " : normas |Delta(Un)| e |Delta(rhs)| : " << normDeltaSol << " / " << NormResLambda << endl;
         std::cout << "Iteracao n : " << (iter+1) << " : fRhs : " << fRhs << endl;

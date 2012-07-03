@@ -1414,8 +1414,8 @@ void ManageNoPostProcess(TPZElastoPlasticAnalysis &analysis , std::ostream &out,
 		val2 = val2Begin;
 		val2.ZAXPY(stepLen, deltaVal2);
 		
-		pBC->Val1() =1.* val1;
-		pBC->Val2() =1.* val2;	
+		pBC->Val1() =(REAL)1.* val1;
+		pBC->Val2() =(REAL)1.* val2;	
 		
 		analysis.IterativeProcess(out, tol, numiter);
         cout << "Sol =  "<<  analysis.Rhs() << endl;
@@ -1523,7 +1523,7 @@ void calcVonMisesBar()
 
 #include "fad.h"
 
-Fad<double> func(const Fad<double>& x, const Fad<double>& y)
+Fad<REAL> func(const Fad<REAL>& x, const Fad<REAL>& y)
 {
 //	double z=sqrt(x);
     /*
@@ -2946,8 +2946,8 @@ void ManageIterativeProcessII(TPZElastoPlasticAnalysis &analysis , std::ostream 
 		val2 = val2Begin;
 		val2.ZAXPY(stepLen, deltaVal2);
 		
-		pBC->Val1() =1.* val1;
-		pBC->Val2() =1.* val2;
+		pBC->Val1() = (REAL)1.* val1;
+		pBC->Val2() = (REAL)1.* val2;
 		
      //   cout <<  "PRESSURE = " << val1 << endl;
 		cout <<  "\nPRESSURE = " << val2 << endl;

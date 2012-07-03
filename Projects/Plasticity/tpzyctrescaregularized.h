@@ -79,10 +79,10 @@ public:
 	
 	void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &, int icase)
 	{
-		TPZTensor<double> gradtheta;
-		double theta,A(1.e7);
-		TPZVec<double> phivec(1,0.);
-		TPZVec<TPZTensor<double> > ndir(1);
+		TPZTensor<REAL> gradtheta;
+		REAL theta,A(1.e7);
+		TPZVec<REAL> phivec(1,0.);
+		TPZVec<TPZTensor<REAL> > ndir(1);
 		int i;
 		switch(icase)
 		{
@@ -100,9 +100,9 @@ public:
 	
 	void Residual(TPZFMatrix<REAL> &res,int icase)
 	{
-		TPZTensor<double> gradtheta;
-		double theta,A(1.e7);
-		TPZVec<double> phivec(1,0.);
+		TPZTensor<REAL> gradtheta;
+		REAL theta,A(1.e7);
+		TPZVec<REAL> phivec(1,0.);
 		switch(icase)
 		{
 			case 0:
@@ -133,12 +133,12 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 	//  result[0] = sqrt(sigma.J2()) - A;
 	
 	//  return;
-	const double tol = 1.e-4;
+	const REAL tol = 1.e-4;
 	T invangle = InverseAngle(sigma);
 	TPZTensor <T> s;
 	sigma.S(s);
-	double aux = (1. - tol);
-	if (fabs(invangle) < aux)
+	REAL aux = (1. - tol);
+	if (fabs(shapeFAD::val(invangle)) < aux)
 	{
 #ifdef LOG4CXX_PLASTICITY
 		std::stringstream sout;
@@ -150,7 +150,7 @@ void TPZYCTrescaRegularized::Compute(const TPZTensor<T> & sigma, const T & A,TPZ
 	{
 		if (fabs(shapeFAD::val(invangle)) > 1.) invangle = 1.;
 		REAL asineps = asin(1. - tol);
-		T tayext = (fabs(invangle) - T(1.-tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
+		T tayext = ((T)fabs(shapeFAD::val(invangle)) - T(1.-tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
 		invangle = (tayext + T(asineps)) / 3.;
 		//invangle = alpha * (1./3.) * (asin(1. - 1.e-6) + ( fabs(alpha)-(1.-1.e-6))*(1./(sqrt(1.-(1.-1.e-6)*(1.-1.e-6)))));
 #ifdef LOG4CXX_PLASTICITY
@@ -173,7 +173,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 	LoggerPtr logger(Logger::getLogger("plasticity.yctresca"));
 #endif
 	
-	const double tol = 1.e-4;
+	const REAL tol = 1.e-4;
 	
 	T invangle = InverseAngle(sigma);
 	
@@ -183,7 +183,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 		 LOGPZ_DEBUG(logger,sout.str().c_str());*/
 	}
 	
-	if (fabs(invangle) < (1. - 1.e-6))
+	if (fabs(shapeFAD::val(invangle)) < (1. - 1.e-6))
 	{
 #ifdef LOG4CXX_PLASTICITY
 		{
@@ -217,7 +217,7 @@ void TPZYCTrescaRegularized::GradTheta(const TPZTensor<T> & sigma,T & theta, TPZ
 		REAL alpha = (shapeFAD::val(invangle) > 0.) ? 1. : -1.;
 		if (fabs(shapeFAD::val(invangle) ) > 1.) invangle = 1.;
 		REAL asineps = asin(1. - tol);
-		T tayext = (fabs(invangle) - T(1.- tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
+		T tayext = ((T)fabs(shapeFAD::val(invangle)) - T(1.- tol))*T(1./(sqrt(1.- (1. - tol)*(1. - tol))));
 		theta = (tayext + T(asineps)) * T(alpha / 3.);
 		GradInverseAngle(sigma,gradtheta);
 		REAL derivasin = 1./sqrt(1.-(1. - tol)*(1. - tol));

@@ -546,7 +546,7 @@ inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL>
 #endif
 
   const int nVars = 6;
-  typedef TFad<nVars,double> TFAD;
+  typedef TFad<nVars,REAL> TFAD;
 
   int i, j;
   TPZVec< TPZTensor < REAL > > N_Dir(1);
@@ -591,7 +591,7 @@ inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
 #endif
   int i;
   const int nVars = 6;
-  typedef TFad<nVars,double> TFAD;
+  typedef TFad<nVars,REAL> TFAD;
 
   REAL PlasticPot;
   REAL A; // not used, just created to satisfy interface

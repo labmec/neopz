@@ -1783,7 +1783,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
 		
 	    if(q < fMinStepSize)q = fMinStepSize;
 		
-		kp1 = min(1.0, k + q);
+		kp1 = min((REAL)1.0, k + q);
 		q = kp1 - k; // needed when k+q exceeds 1
 		Nkp1.fEpsT = N.EpsT();
 		Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
@@ -2658,4 +2658,4 @@ PlasticResidual<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &,
 template class TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;
 
 
-template void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<double>(TPZPlasticState<double> const&, TPZTensor<double>&, double&) const;
+template void TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::ComputePlasticVars<REAL>(TPZPlasticState<REAL> const&, TPZTensor<REAL>&, REAL&) const;

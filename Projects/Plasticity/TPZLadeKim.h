@@ -548,7 +548,7 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
 {
   const int nyield = TPZYCLadeKim::NYield;
   const int nVars = 7+nyield+6; // also includes epsTotal
-  typedef TFad<nVars,double> TFAD;
+  typedef TFad<nVars,REAL> TFAD;
   int i, j;
 
   TPZPlasticState<TFAD> Np1_FAD;

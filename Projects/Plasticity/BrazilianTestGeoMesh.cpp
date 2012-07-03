@@ -1197,7 +1197,7 @@ void BrazilianTestGeoMesh::ReadMesh(TPZGeoMesh &mesh)
 	ifstream read;
 	read.open(FileName.c_str());
 	
-	double nodecoordX , nodecoordY , nodecoordZ ;
+	REAL nodecoordX , nodecoordY , nodecoordZ ;
 	
 	char buf[1024];
 	read.getline(buf, 1024);
@@ -1265,7 +1265,7 @@ void BrazilianTestGeoMesh::ReadMesh(TPZGeoMesh &mesh)
 				TopolQuad[2]--;
 				TopolQuad[3]--;
 				
-				double Ycoord = Node[topo1].Coord(1);
+				REAL Ycoord = Node[topo1].Coord(1);
 				if(Ycoord < 0.)
 				{
 					new TPZGeoElRefPattern< TPZGeoQuad > (el,TopolQuad,-2,mesh);
@@ -3913,7 +3913,7 @@ TPZGeoMesh *BrazilianTestGeoMesh::MalhaPredio()
     
     int nodeId = 0, elementId = 0, matElId = 1;
     
-    double nodecoordX , nodecoordY , nodecoordZ ;
+    REAL nodecoordX , nodecoordY , nodecoordZ ;
     read >> numnodes;
     
     TPZGeoMesh * gMesh = new TPZGeoMesh;

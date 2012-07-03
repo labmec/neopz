@@ -180,7 +180,7 @@ public:
     
     
     
-    static void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes);
+    static void RotateMatrix(TPZFMatrix<REAL> &Mat, REAL thetaRad,int rotateaboutaxes);
     
     //static void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis);
     
@@ -2345,7 +2345,7 @@ inline void TPZPlasticTest::WillamWarnkeTest()
 
 
 #include <math.h>
-inline void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
+inline void RotationMatrix(TPZFMatrix<REAL> &R, REAL thetaRad, int axis)
 {
 	R.Resize(3,3);
 	

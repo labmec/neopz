@@ -267,7 +267,7 @@ inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma,const T & A
 	SolveL(X, L); // evaluating the derivatives of L
 	ComputeF(L, FL);
 		
-	if(fabs( (double)shapeFAD::val(FL) ) < 0.00001)
+	if(fabs( (REAL)shapeFAD::val(FL) ) < 0.00001)
 	{
     #ifdef LOG4CXX_PLASTICITY
         {
@@ -315,7 +315,7 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 	REAL ResTol = 1.e-6;
 	
 	REAL L_REAL, X_REAL;
-	ComputeX((double)shapeFAD::val(A), X_REAL);
+	ComputeX((REAL)shapeFAD::val(A), X_REAL);
 	LInitialGuess(X_REAL, L_REAL);
 	SolveL(X_REAL, L_REAL, ResTol);
     
@@ -329,7 +329,7 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 		T Temp1 = I1 * T(fB);
 		Temp1 = exp( Temp1 ) * T (fB * fC);
 		
-		if((double)shapeFAD::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
+		if((REAL)shapeFAD::val(SQRTJ2) < 1.e-6) // just for robustness. f1 shouldn't be reached when J2 = 0.
 		{
 			#ifdef LOG4CXX_PLASTICITY
             {
@@ -427,7 +427,7 @@ inline void TPZYCSandlerDimaggio::H(const TPZTensor<T> & sigma,const T & A, TPZV
     #endif
 	
 	REAL L_REAL, X_REAL;
-	ComputeX((double)shapeFAD::val(A), X_REAL);
+	ComputeX((REAL)shapeFAD::val(A), X_REAL);
 	LInitialGuess(X_REAL, L_REAL);
 	SolveL(X_REAL, L_REAL);
     
@@ -466,8 +466,8 @@ inline void TPZYCSandlerDimaggio::SolveL(const T & X, T & L, REAL relTol) const
 	// so that the evaluation with FAD Type and converged L evaluates the
 	// derivatives
 	while(
-		  fabs( (double)shapeFAD::val(res) ) /
-		  max( (double)fabs(shapeFAD::val(X) ), .000001 ) // avoiding division by zero
+		  fabs( (REAL)shapeFAD::val(res) ) /
+		  max( (REAL)fabs(shapeFAD::val(X) ), (REAL).000001 ) // avoiding division by zero
 		  > relTol ||
 		  i<1)
 	{
@@ -560,7 +560,7 @@ inline void TPZYCSandlerDimaggio::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZV
 {
 
   const int nVars = 6;
-  typedef TFad<nVars,double> TFAD;
+  typedef TFad<nVars,REAL> TFAD;
 
   int i, j;
   TPZVec< TPZTensor < REAL > > N_Dir(2);
@@ -606,7 +606,7 @@ inline void TPZYCSandlerDimaggio::Residual(TPZFMatrix<REAL> &res,int icase)
 
   int i;
   const int nVars = 6;
-  typedef TFad<nVars,double> TFAD;
+  typedef TFad<nVars,REAL> TFAD;
 
   TPZVec< REAL > PlasticPot(2);
   REAL A = -0.05; // example epsVP value to be used with checkconv
@@ -681,7 +681,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL()
    #endif
 	
    const int oneVar = 1;
-   typedef TFad<oneVar, double> TFAD_ONE;
+   typedef TFad<oneVar, REAL> TFAD_ONE;
 	
    // Creating the Sandler Dimaggio obejct
    TPZYCSandlerDimaggio YCSandlerDimaggio;
@@ -701,7 +701,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL()
    L_FAD.diff(0, 0);
 	
    YCSandlerDimaggio.ComputeF(L_FAD, F_FAD);
-   YCSandlerDimaggio.ComputedF((double)shapeFAD::val(L_FAD), dF);
+   YCSandlerDimaggio.ComputedF((REAL)shapeFAD::val(L_FAD), dF);
 	
    #ifdef LOG4CXX_PLASTICITY
    {
@@ -730,7 +730,7 @@ inline void TPZYCSandlerDimaggio::TestSolveL()
    // Checking if NDir:(1,1,1,0,0,0) equals H
    // verifying if the TFAD derivatives of N equal the Ndir vector.
    const int sixVars = 6;
-   typedef TFad<sixVars, double> TFAD_SIX;
+   typedef TFad<sixVars, REAL> TFAD_SIX;
 
    TPZTensor<REAL> sigma;
    TPZVec<TPZTensor<REAL> > Ndir(2);
