@@ -77,8 +77,9 @@ void help(const char* prg)
     cout << "  Step 1 description: ... " << endl;
     cout << "  Step 2 description: ... " << endl;
     cout << "  Step 3 description: ... " << endl << endl;
-    cout << "Usage: " << prg << "starting_point file [-of output_file]" << endl << endl;
+    cout << "Usage: " << prg << "starting_point stop_point file [-of output_file]" << endl << endl;
     cout << " starting_point = {-cf1|-cf2|-cf3|-mc|-mp} input_file" << endl;
+    cout << " starting_point = {-st1|-st2|-st3}" << endl;
     
     clarg::arguments_descriptions(cout, "  ", "\n");
 } 
@@ -87,6 +88,10 @@ void help(const char* prg)
 clarg::argString cf1("-cf1", "starts execution from checkpoint 1 (read checkpoint file)", "ckpt1.ckpt");
 clarg::argString cf2("-cf2", "starts execution from checkpoint 2 (read checkpoint file)", "ckpt2.ckpt");
 clarg::argString cf3("-cf3", "starts execution from checkpoint 3 (read checkpoint file)", "ckpt3.ckpt");
+clarg::argBool   st1("-st1", "stop at checkpoint 1 (after dump)", false);
+clarg::argBool   st2("-st2", "stop at checkpoint 2 (after dump)", false);
+clarg::argBool   st3("-st3", "stop at checkpoint 3 (after dump)", false);
+
 clarg::argString dc1("-dc1", "dump checkpoint 1 to file", "ckpt1.ckpt");
 clarg::argString dc2("-dc2", "dump checkpoint 2 to file", "ckpt2.ckpt");
 clarg::argString dc3("-dc3", "dump checkpoint 3 to file", "ckpt3.ckpt");
@@ -235,6 +240,8 @@ int main(int argc, char *argv[])
         }
         
     }
+
+    if(st1.was_set()) running = false;
     
     // Start from Checkpoint 1
     if (cf1.was_set())
@@ -284,6 +291,8 @@ int main(int argc, char *argv[])
         SAVEABLE_STR_NOTE(CheckPoint2,"dohrstruct->Write()");
         dohrstruct->Write(CheckPoint2);
     }
+
+    if(st2.was_set()) running = false;
     
     // Start from Checkpoint 2
     if (cf2.was_set())
@@ -338,6 +347,8 @@ int main(int argc, char *argv[])
         rhs->Write(CheckPoint3, 0);
     }
     
+    if(st3.was_set()) running = false;
+
     // Start from Checkpoint 3
     if (cf3.was_set())
     {
@@ -363,39 +374,41 @@ int main(int argc, char *argv[])
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         rhs->Read(CheckPoint3, 0);
     }
-    
-    /* Work after checkpoint 3 */
-    TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
-    
-    int neq = dohr->Rows();
-    TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
-    
-    VERBOSE(1, "Number of equations " << neq << endl);
-    
-    TPZStepSolver<REAL> pre(precond);
-    pre.SetMultiply();
-    TPZStepSolver<REAL> cg(dohr);
-    
-    cg.SetCG(500,pre,1.e-8,0);
 
-    solve_rst.start();
-    cg.Solve(*rhs,diag);
-    solve_rst.stop();
+    if (running) {
+
+      /* Work after checkpoint 3 */
+      TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
+      
+      int neq = dohr->Rows();
+      TPZFMatrix<REAL> diag(neq,1,0.), produto(neq,1);
+      
+      VERBOSE(1, "Number of equations " << neq << endl);
+      
+      TPZStepSolver<REAL> pre(precond);
+      pre.SetMultiply();
+      TPZStepSolver<REAL> cg(dohr);
+      
+      cg.SetCG(500,pre,1.e-8,0);
+      
+      solve_rst.start();
+      cg.Solve(*rhs,diag);
+      solve_rst.stop();
     
-    TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
-    dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
-    
-    if (!dohrptr) {
+      TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohrptr = 
+	dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohr.operator->());
+      
+      if (!dohrptr) {
         DebugStop();
-    }
-    
-    dohrptr->AddInternalSolution(diag);
-    
-    typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
-    const subtype &sublist = dohrptr->SubStructures(); 
-    subtype::const_iterator it = sublist.begin();
-    int subcount=0;
-    while (it != sublist.end()) {
+      }
+      
+      dohrptr->AddInternalSolution(diag);
+      
+      typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
+      const subtype &sublist = dohrptr->SubStructures(); 
+      subtype::const_iterator it = sublist.begin();
+      int subcount=0;
+      while (it != sublist.end()) {
         
         TPZFMatrix<REAL> subext,subu;
         dohrptr->fAssembly->Extract(subcount,diag,subext);
@@ -408,62 +421,64 @@ int main(int argc, char *argv[])
         std::map<int ,TPZMaterial * > materialmap(submesh->MaterialVec());
         std::map<int ,TPZMaterial * >::iterator itmat;
         for (itmat = materialmap.begin(); itmat != materialmap.end() ; itmat++) 
-        {
-            TPZMaterial * mat = itmat->second;
-            TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
-            if(vmat)
-            {
-                vmat->SetUpdateMem();
-            }
-        }	
+	{
+	  TPZMaterial * mat = itmat->second;
+	  TPZViscoelastic *vmat = dynamic_cast< TPZViscoelastic *> (mat);
+	  if(vmat)
+	  {
+	    vmat->SetUpdateMem();
+	  }
+	}	
         subcount++;
         it++;
-    }
+      }
     
 #ifdef LOG4CXX
-    {
+      {
         std::stringstream sout;
         diag.Print("Resultado do processo iterativo",sout);
         LOGPZ_INFO(loggerconverge,sout.str())
-    }
+      }
 #endif	
     
-    TPZMaterial * mat = cmeshauto->FindMaterial(1);
-    int nstate = mat->NStateVariables();
-    int nscal = 0, nvec = 0;
-    if(nstate ==1) 
-    {
-        nscal = 1;
+      TPZMaterial * mat = cmeshauto->FindMaterial(1);
+      int nstate = mat->NStateVariables();
+      int nscal = 0, nvec = 0;
+      if(nstate ==1) 
+	{
+	  nscal = 1;
+	}
+      else
+	{
+	  nvec = 1;
+	}
+      TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
+      if(nscal == 1)
+	{
+	  scalnames[0]="state";            
+	}
+      else
+	{
+	  vecnames[0] = "state";
+	}
+      std::string postprocessname("dohrmann_visco.vtk");
+      TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
+      vtkmesh.SetFileName(postprocessname);
+      vtkmesh.SetResolution(1);
+      int numcases = 1;
+      
+      
+      // Iteracoes de tempo
+      int istep = 0;
+      vtkmesh.DrawMesh(numcases);
+      vtkmesh.DrawSolution(istep, 1.);
+      
     }
-    else
-    {
-        nvec = 1;
-    }
-    TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
-    if(nscal == 1)
-    {
-        scalnames[0]="state";            
-    }
-    else
-    {
-        vecnames[0] = "state";
-    }
-    std::string postprocessname("dohrmann_visco.vtk");
-    TPZVTKGraphMesh vtkmesh(cmeshauto.operator->(),dim,mat,scalnames,vecnames);
-    vtkmesh.SetFileName(postprocessname);
-    vtkmesh.SetResolution(1);
-    int numcases = 1;
-    
-    
-    // Iteracoes de tempo
-    int istep = 0;
-    vtkmesh.DrawMesh(numcases);
-    vtkmesh.DrawSolution(istep, 1.);
-    
-    delete gmesh;
 
+    if (gmesh != NULL) delete gmesh;
+      
     total_rst.stop();
-
+      
     return EXIT_SUCCESS;
 }
 
@@ -471,13 +486,13 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
 	int nummat = 1;
-	REAL E = 1.e6;
-	REAL poisson = 0.3;
-	TPZManVector<REAL> force(3,0.);
+	STATE E = 1.e6;
+	STATE poisson = 0.3;
+	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
 	TPZElasticity3D *elast = new TPZElasticity3D(nummat,E,poisson,force);
 	TPZMaterial * elastauto(elast);
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+	TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
 	TPZBndCond *bc = elast->CreateBC(elastauto, -1, 0, val1, val2);
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(elastauto);
@@ -487,87 +502,95 @@ void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
-	int nummat = 1;
-	REAL Ela = 1.e6;
-	REAL poisson = 0.2;
-	TPZManVector<REAL> force(3,0.);
-	force[1] = 20.;
-	REAL lambdaV = 0, muV = 0, alphaT = 0;
-	lambdaV = 111.3636;
-	muV = 455.4545;
-	alphaT = 0.1;	
-	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat,Ela,poisson,lambdaV,muV,alphaT,force);
-	TPZMaterial * viscoelastauto(viscoelast);
-	TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
-	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
-	TPZMaterial * bcauto(bc);
-	mesh->InsertMaterialObject(viscoelastauto);
-	mesh->InsertMaterialObject(bcauto);	
+        int nummat = 1;
+        STATE Ela = 1.e6;
+        STATE poisson = 0.2;
+        TPZManVector<STATE> force(3,0.);
+        force[1] = 20.;
+        STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+        
+        STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
+        lambdaV = 11.3636;
+        muV = 45.4545;
+        alpha = 1.;     
+        deltaT = 0.01;
+        
+        TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
+        viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
+        
+        TPZMaterial * viscoelastauto(viscoelast);
+        TPZFMatrix<STATE> val1(3,3,0.),val2(3,1,0.);
+        TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
+        TPZFNMatrix<6> qsi(6,1,0.);
+        viscoelast->SetDefaultMem(qsi); //elast
+        int index = viscoelast->PushMemItem(); //elast
+        TPZMaterial * bcauto(bc);
+        mesh->InsertMaterialObject(viscoelastauto);
+        mesh->InsertMaterialObject(bcauto);     
 }
 
 void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 {
-	mesh->SetDimModel(3);
-	int nummat = 1, neumann = 1, mixed = 2;
-	//	int dirichlet = 0;
-	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
-	TPZManVector<REAL> force(3,0.);
-	//force[1] = 0.;
-	REAL Ela = 1000, poisson = 0.; 
-	REAL lambdaV = 0, muV = 0, alphaT = 0;
-	lambdaV = 11.3636;
-	muV = 45.4545;
-	alphaT = 0.01;	
-	
-	
-	//TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
-	TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
-	
-	TPZFNMatrix<6> qsi(6,1,0.);
-	//viscoelast->SetDefaultMem(qsi); //elast
-	//int index = viscoelast->PushMemItem(); //elast
-	TPZMaterial * viscoelastauto(viscoelast);
-	mesh->InsertMaterialObject(viscoelastauto);
-	
-	// Neumann em x = 1;
-	TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
-	val2(0,0) = 1.;
-	TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
-	TPZMaterial * bcauto4(bc4);
-	mesh->InsertMaterialObject(bcauto4);
-	
-	// Neumann em x = -1;
-	val2(0,0) = -1.;
-	TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
-	TPZMaterial * bcauto5(bc5);
-	mesh->InsertMaterialObject(bcauto5);
-	
-	val2.Zero();
-	// Dirichlet em -1 -1 -1 xyz;
-	val1(0,0) = 1e4;
-	val1(1,1) = 1e4;
-	val1(2,2) = 1e4;
-	TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
-	TPZMaterial * bcauto1(bc1);
-	mesh->InsertMaterialObject(bcauto1);
-	
-	// Dirichlet em 1 -1 -1 yz;
-	val1(0,0) = 0.;
-	val1(1,1) = 1e4;
-	val1(2,2) = 1e4;
-	TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
-	TPZMaterial * bcauto2(bc2);
-	mesh->InsertMaterialObject(bcauto2);
-	
-	// Dirichlet em 1 1 -1 z;
-	val1(0,0) = 0.;
-	val1(1,1) = 0.;
-	val1(2,2) = 1e4;
-	TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
-	TPZMaterial * bcauto3(bc3);
-	mesh->InsertMaterialObject(bcauto3);
-	
-}
+       mesh->SetDimModel(3);
+       int nummat = 1, neumann = 1, mixed = 2;
+       //      int dirichlet = 0;
+       int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
+       TPZManVector<REAL> force(3,0.);
+       //force[1] = 0.;
+       REAL Ela = 1000, poisson = 0.; 
+       REAL lambdaV = 0, muV = 0, alphaT = 0;
+       lambdaV = 11.3636;
+       muV = 45.4545;
+       alphaT = 0.01;  
+       
+       
+       //TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat, Ela, poisson, lambdaV, muV, alphaT, force);
+       TPZElasticity3D *viscoelast = new TPZElasticity3D(nummat, Ela, poisson, force);
+       
+       TPZFNMatrix<6> qsi(6,1,0.);
+       //viscoelast->SetDefaultMem(qsi); //elast
+       //int index = viscoelast->PushMemItem(); //elast
+       TPZMaterial * viscoelastauto(viscoelast);
+       mesh->InsertMaterialObject(viscoelastauto);
+       
+       // Neumann em x = 1;
+       TPZFMatrix<> val1(3,3,0.),val2(3,1,0.);
+       val2(0,0) = 1.;
+       TPZBndCond *bc4 = viscoelast->CreateBC(viscoelastauto, neumann1, neumann, val1, val2);
+       TPZMaterial * bcauto4(bc4);
+       mesh->InsertMaterialObject(bcauto4);
+       
+       // Neumann em x = -1;
+       val2(0,0) = -1.;
+       TPZBndCond *bc5 = viscoelast->CreateBC(viscoelastauto, neumann2, neumann, val1, val2);
+       TPZMaterial * bcauto5(bc5);
+       mesh->InsertMaterialObject(bcauto5);
+       
+       val2.Zero();
+       // Dirichlet em -1 -1 -1 xyz;
+       val1(0,0) = 1e4;
+       val1(1,1) = 1e4;
+       val1(2,2) = 1e4;
+       TPZBndCond *bc1 = viscoelast->CreateBC(viscoelastauto, dir1, mixed, val1, val2);
+       TPZMaterial * bcauto1(bc1);
+       mesh->InsertMaterialObject(bcauto1);
+       
+       // Dirichlet em 1 -1 -1 yz;
+       val1(0,0) = 0.;
+       val1(1,1) = 1e4;
+       val1(2,2) = 1e4;
+       TPZBndCond *bc2 = viscoelast->CreateBC(viscoelastauto, dir2, mixed, val1, val2);
+       TPZMaterial * bcauto2(bc2);
+       mesh->InsertMaterialObject(bcauto2);
+       
+       // Dirichlet em 1 1 -1 z;
+       val1(0,0) = 0.;
+       val1(1,1) = 0.;
+       val1(2,2) = 1e4;
+       TPZBndCond *bc3 = viscoelast->CreateBC(viscoelastauto, dir3, mixed, val1, val2);
+       TPZMaterial * bcauto3(bc3);
+       mesh->InsertMaterialObject(bcauto3);
+}       
 
 TPZGeoMesh *MalhaPredio()
 {
