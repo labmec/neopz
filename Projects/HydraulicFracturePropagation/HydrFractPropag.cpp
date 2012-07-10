@@ -34,10 +34,10 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 #include "TPZTimer.h"
 
 /** Exemplo da utilizacao da quadratura adaptativa (integral adaptativa) */
-/*
+
 
 #include "adapt.h"
-
+/*
 class funcao
 {
 public:
@@ -50,15 +50,19 @@ public:
     {
         
     }
-    double operator()(double x)
+    TPZVec<REAL> operator()(double x)
     {
-        double val = this->func(x);
+        TPZVec<REAL> val = this->func(x);
         return val;
     }
     
-    static REAL func(REAL x)
+    static TPZVec<REAL> func(REAL x)
     {
-        REAL val = sin(log10(x) + x*4.*atan(1.))*x*x;
+        TPZVec<REAL> val(3);
+        val[0] = sin(x)*log10(x);
+        val[1]= sin(log10(x) + x*4.*atan(1.))*x*x;
+        val[2] = -x*x*x + 25.*x*x - 12.*x + 4.;
+        
         return val;
     }
 };
@@ -69,12 +73,14 @@ int main(int argc, char * const argv[])
     
     funcao funcaoOBJ;
     
-    const REAL a = 2.;
-    const REAL b = 10.;
-    double integr = intRule.integrate(funcaoOBJ,a,b);
+    const REAL a = 5.5;
+    const REAL b = 12.4;
+    TPZVec<REAL> integr = intRule.Vintegrate(funcaoOBJ,3,a,b);
     
     std::cout.precision(16);
-    std::cout << std::endl << integr << std::endl;
+    std::cout << "Integracao implementada:" << std::endl << integr[0] << std::endl << integr[1] << std::endl << integr[2] << std::endl;
+    
+    //integracao no Mathematica: { -0.5003764204009151 ; 42.81520273504423 ; 8106.846224999997 }
     
     return 0;
 }

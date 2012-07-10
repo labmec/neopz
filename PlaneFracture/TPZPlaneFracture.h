@@ -153,6 +153,20 @@ class TPZPlaneFracture
 	~TPZPlaneFracture();
     
     void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+    
+    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initialElId, TPZVec<REAL> & x);
+    
+    /*
+	 * @brief Returns the Id of the element of given 2D PlaneMesh that contains the given coordinates (x).
+	 */
+	//static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, TPZVec<REAL> & x);
+    
+    /**
+     * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
+     * @param x [in] coordinates whose elements is going to be localized.
+     * @param fullMesh [in] geomesh of elements candidates.
+     */
+    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, int & initialElId, TPZGeoMesh * fullMesh);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -175,26 +189,26 @@ class TPZPlaneFracture
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
-    
+
     TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
-    
+
     /** @brief Generation of the persistent 2D mesh that contains the fracture
      *  @note This method set the fPlaneMesh atribute that will not be changed for every fracture time step
      */
     void GeneratePlaneMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
-    
+
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fFullMesh atribute that will not be changed for every fracture time step
      */
     void GenerateFullMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
-    
+
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateFullMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
      */
     void GenerateNodesAtPlaneY(std::list<double> & espacamento, double lengthFactor,
                                TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
                                double Y);
-	
+
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
 	 * @param poligonalChain [in] vector of boundary points coordinates
@@ -217,10 +231,12 @@ class TPZPlaneFracture
 	 */
 	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
 							std::map< int, std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence);
-	
+
+    static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin);
+
 	/**
-	 * @brief Returns (gel->Neighbour) relative to the side intersepted by the x+alpha.dx line
-	 * @param gel [in] gel crossed by the line
+	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
+	 * @param gel [in] initial geoel
 	 * @param x [input and output data]  
 	 *				x [as input] start point of line \n
 	 *				x [as output] end point of line in gel interface
@@ -234,10 +250,13 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
-	TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin, std::map< int,
+	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin, std::map< int,
 									std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence, bool pushback);
-	
-	/**
+
+	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge, 
+                          TPZVec< TPZVec<REAL> > &ExactIntersect, double alphaMin);
+
+    /**
 	 * @brief For a given element and internal point and an direction, computes the intersection
 	 * coordinates with respect to it edges, and the respective intersected edge.
 	 *
@@ -245,27 +264,17 @@ class TPZPlaneFracture
 	 * @param x [in] element internal point coordinates
 	 * @param dx [in] direction from point p
 	 * @param edge [out] side Id of element edge that will be intersected by (x+alphaX.dx) line
+     *          @brief :    this vector normally assumes size=1, but when alphaMin=0, assumes size=2
+     *                      (the edge where the given coordinate lies and the next edge where the given direction points)
 	 * @param ExactIntersect [out] exact intersection coordinates with respect to edges parameter
 	 * @param ModulatedIntersect [out] exact intersection coordinates, dragged to the nearest module (defined by __EdgeStretchesQTD constant)
 	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections\n
 	 *					    so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
 	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 */
-	bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
+	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
 						  TPZVec< TPZVec<REAL> > &ExactIntersect, TPZVec< TPZVec<REAL> > &ModulatedIntersect, double alphaMin);
-	
-	/*
-	 * @brief Returns the Id of the element of fPlaneMesh (atribute) that contains the given coordinates (x).
-	 */
-	int PointElementOnPlaneMesh(const TPZVec<REAL> & x);
-    
-    /**
-     * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
-     * @param x [in] coordinates whose elements is going to be localized.
-     * @param fullMesh [in] geomesh of elements candidates.
-     */
-    TPZGeoEl * PointElementOnFullMesh(const TPZVec<REAL> & x, TPZGeoMesh * fullMesh);
-    
+
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dnode e cruza a reta (x+alphaX.dx)
 	/**
@@ -282,7 +291,7 @@ class TPZPlaneFracture
 	 * @note Obs.: alphaNode modulation is useful to reduce the possibilities of non regular refpatterns.
  	 * @note OBS.: dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	double ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode, double norm, bool modulate, bool smooth);
+	static double ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode, double norm, bool modulate, bool smooth);
 	
 	// alphaX eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dx e cruza a reta (node+alphaNode.dnode)
@@ -291,12 +300,12 @@ class TPZPlaneFracture
 	 * this method returns the alphaX (norm that multiplies the unit vector dx to intersect the line (none + alphaNode.dnode) )
 	 * @note dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	double ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode);
+	static double ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode);
 	
 	/**
 	 * @brief Given 2 nodes (n0 and n1) and one point (x) in \f$ n0->n1 \f$ line, returns the point x in the line parametric space \f$ [-1,+1]\f$
 	 */
-	static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
+	static static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
 	
 	/**
 	 * @brief This method return a reffpattern of an unidimentional element that matches with the trim coordinates.
@@ -337,7 +346,7 @@ class TPZPlaneFracture
     /**
      * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
      */
-    bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
+    static bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
     
     /**
      * @brief Returns if a given element is from boundary of domain
@@ -362,10 +371,6 @@ class TPZPlaneFracture
     /** @brief Quarter points 3D elements Ids that surround crack boundary */
     //map< elementId , set< sides of this element that touch 1d cracktip > >
     std::map< int,std::set<int> > fcrackQpointsElementsIds;
-    
-    /** @brief smaller radius that defines the cylinder that involves the
-     crack boundary inside quarter points elements (J integral) */
-    double fMinimumRadius;
     
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 

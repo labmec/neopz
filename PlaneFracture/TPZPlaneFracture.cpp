@@ -65,7 +65,7 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
         }
     }
     
-    double pos0 = 0., minEdge = 1000.;
+    double pos0 = 0.;
     std::set<double>::iterator itS = espacamentoVerticalTVD.begin(); itS++;
     for(; itS != espacamentoVerticalTVD.end(); itS++)
     {
@@ -80,8 +80,6 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
             deltaZused = deltaZ/nrows;
         }
         
-        minEdge = (deltaZused < minEdge) ? deltaZused : minEdge;
-        
         for(int r = 1; r <= nrows; r++)
         {
             double z = pos0 + r*deltaZused;
@@ -89,16 +87,6 @@ TPZPlaneFracture::TPZPlaneFracture(double lw, double bulletDepthIni, double bull
         }
         pos0 = pos1;
     }
-    minEdge = (__maxLength < minEdge) ? __maxLength : minEdge;
-    fMinimumRadius = 0.9 * (minEdge/__EdgeStretchesQTD)/sqrt(2.0);
-    
-    #ifdef DEBUG
-    if(fMinimumRadius < 0.05)
-    {
-        std::cout << "Cylinder radius too small on " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-    #endif
     
     for(itS = espacamentoVerticalTVD.begin(); itS != espacamentoVerticalTVD.end(); itS++)
     {
@@ -176,6 +164,139 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
      "StressZ"
      
      */
+}
+//------------------------------------------------------------------------------------------------------------
+
+int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initial2DElId, TPZVec<REAL> & x)
+{
+    TPZManVector<REAL,3> coord(x);
+    coord[1] = 0.;
+    
+    TPZGeoEl * initialGel = PlaneMesh->ElementVec()[initial2DElId];
+    TPZVec<REAL> origin2D(2), origin3D(3);
+    
+#ifdef DEBUG
+    if(initialGel->Dimension() != 2)
+    {
+        std::cout << "Given Id does not correspond to an 2D element on " << __PRETTY_FUNCTION__ << " !\n";
+        DebugStop();
+    }
+#endif
+    
+    initialGel->CenterPoint(initialGel->NSides()-1, origin2D);
+    initialGel->X(origin2D, origin3D);
+    TPZVec<REAL> dx(3);
+    
+    int count = 0;
+    while(initialGel->ComputeXInverse(coord, origin2D) == false && count < PlaneMesh->NElements())
+    {
+        initialGel->CenterPoint(initialGel->NSides()-1, origin2D);
+        initialGel->X(origin2D, origin3D);
+        
+        double norm = sqrt( (coord[0]-origin3D[0])*(coord[0]-origin3D[0]) + (coord[2]-origin3D[2])*(coord[2]-origin3D[2]) );
+        dx[0] = (coord[0] - origin3D[0])/norm;
+        dx[1] = 0.;
+        dx[2] = (coord[2] - origin3D[2])/norm;
+        
+        initialGel = CrossToNextNeighbour(initialGel, origin3D, dx, 1.E-5);
+        
+        count++;
+    }
+    if(count >= PlaneMesh->NElements())
+    {
+        std::cout << "Point DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+	
+    int id = initialGel->Id();
+    
+    initial2DElId = id;
+    
+	return id;
+}
+
+//int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, TPZVec<REAL> & x)
+//{
+//	TPZManVector<REAL,3> coord(x), qsi2D(2,0.);
+//    coord[1] = 0.;
+//    
+//	TPZGeoEl * gel = NULL;
+//	int nelem = PlaneMesh->NElements();
+//	for(int el = 0; el < nelem; el++)//hunting the first element (that contains the first point)
+//	{
+//		TPZGeoEl * firstGel = PlaneMesh->ElementVec()[el];
+//        if(firstGel->Dimension() != 2)
+//        {
+//            break;
+//        }
+//		if(firstGel->ComputeXInverse(coord, qsi2D))
+//		{
+//			gel = firstGel;
+//			break;
+//		}
+//	}
+//    
+//#ifdef DEBUG
+//    if(!gel)
+//    {
+//        std::cout << "Point DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
+//        DebugStop();
+//    }
+//#endif
+//	
+//    int id = gel->Id();
+//	return id;
+//}
+//------------------------------------------------------------------------------------------------------------
+
+TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & initial2DElId, TPZGeoMesh * fullMesh)
+{
+    //    int elFoundId = PointElementOnPlaneMesh(fullMesh, x);
+    int elFoundId = PointElementOnPlaneMesh(fullMesh, initial2DElId, x);
+    
+    // Da maneira com que esta classe foi construida, o elemento 2D encontrado
+    // na malha fractMesh apresenta como seu dual (na malha fullMesh) o
+    // elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
+    TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[elFoundId];
+    
+    TPZManVector<REAL,3> coord(x), qsi3D(3);
+    while(gelfullmesh->Type() != ECube)
+    {
+        int side = gelfullmesh->NSides()-1;
+        gelfullmesh = gelfullmesh->Neighbour(side).Element();
+    }
+    while(gelfullmesh->ComputeXInverse(coord, qsi3D) == false)
+    { 
+        gelfullmesh->PrintNodesCoordinates();
+        int cubeFace_in_Y_direction = 25;//confirmar
+        TPZGeoEl * nextGel = gelfullmesh->Neighbour(cubeFace_in_Y_direction).Element();
+        if(nextGel->Type() != ECube)
+        {
+            std::cout << "Elemento encontrado nao eh cubo!!!\n";
+            DebugStop();
+        }
+        if(nextGel == gelfullmesh)
+        {
+            std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
+            DebugStop();
+        }
+        gelfullmesh = nextGel;
+    }
+    while(gelfullmesh->HasSubElement())
+    {    
+        int nsons = gelfullmesh->NSubElements();
+        for(int s = 0; s < nsons; s++)
+        {
+            TPZGeoEl * sonGel = gelfullmesh->SubElement(s);
+            if(sonGel->ComputeXInverse(coord, qsi3D) == true)
+            {
+                gelfullmesh = sonGel;
+                break;
+            }
+        }
+    }
+    
+    return gelfullmesh;
 }
 
 
@@ -275,6 +396,15 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalC
 	
 	GenerateCrackBoundary(planeMesh, fullMesh, elIdSequence);    
     SeparateElementsInMaterialSets(fullMesh);
+    
+    ///////////////////
+//    TPZVec<REAL> pt(3);
+//    pt[0] = 53.567;
+//    pt[1] = 3.123;
+//    pt[2] = -65.09465;
+//    int elIddOLD = this->PointElementOnPlaneMesh(fPlaneMesh, pt);
+//    int elIddNEW = this->PointElementOnPlaneMesh(fPlaneMesh, 709, pt);    
+    ///////////////////
     
     delete planeMesh;
     
@@ -681,7 +811,11 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
     int firstPt = 0;
     coord[0] = poligonalChain[2*firstPt];
     coord[2] = poligonalChain[2*firstPt+1];
-    int elFoundId = PointElementOnPlaneMesh(coord);
+    
+//    int elFoundId = PointElementOnPlaneMesh(fPlaneMesh, coord);
+    int initialElId = 0;
+    int elFoundId = PointElementOnPlaneMesh(fPlaneMesh, initialElId, coord);
+    
     TPZGeoEl * firstGel = planeMesh->ElementVec()[elFoundId];
 
 	TPZGeoEl * gel = firstGel;
@@ -810,6 +944,70 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TP
 		nextGel = CrossToNextNeighbour(gel, x, dx, alphaMin, elId_TrimCoords, elIdSequence, true);
 		alphaMin = __smallNum;
 	}
+}
+//------------------------------------------------------------------------------------------------------------
+
+TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin)
+{
+	std::map< int, std::set<double> >::iterator it;
+	std::set<double> trim;
+	TPZVec< TPZVec<REAL> > ExactIntersectionPoint;
+	TPZVec<REAL> qsi1Dvec(1), xCrackBoundary(3);
+	TPZVec<int> Topol(2), edgeVec;
+	
+	bool haveIntersection = EdgeIntersection(gel, x, dx, edgeVec, ExactIntersectionPoint, alphaMin);
+	
+	if(haveIntersection == false)
+	{
+		haveIntersection = EdgeIntersection(gel, x, dx, edgeVec, ExactIntersectionPoint, 0.);
+        
+#ifdef DEBUG
+		if(haveIntersection == false)
+		{
+            TPZManVector<REAL,3> qsi2D(2,0.);
+            if(gel->ComputeXInverse(x, qsi2D))
+            {
+                std::cout << "The point inside element does NOT intersect its edges! EdgeIntersection method face an exeption!" << std::endl;
+                std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+                
+                std::cout << "Element " << gel->Id() << std::endl;
+                for(int n = 0; n < gel->NNodes(); n++)
+                {
+                    std::cout << "Node " << n << std::endl;
+                    gel->NodePtr(n)->Print(std::cout);
+                    std::cout << std::endl;
+                }
+                std::cout << "x: " << x[0] << " , " << x[1] << " , " << x[2] << std::endl;
+                std::cout << "dx: " << dx[0] << " , " << dx[1] << " , " << dx[2] << std::endl;
+                std::cout << "alphaMin = " << alphaMin << std::endl << std::endl;
+                
+                DebugStop();
+            }
+            else
+            {
+                std::cout << "Trying to find edge intersection from an point that doesnt belong to given element!" << std::endl;
+                std::cout << "See " << __PRETTY_FUNCTION__ << std::endl;
+                
+                DebugStop();
+            }
+		}
+#endif
+	}
+    int edge = edgeVec[edgeVec.NElements()-1];
+	x = ExactIntersectionPoint[ExactIntersectionPoint.NElements() - 1];
+	TPZGeoElSide gelEdge(gel, edge);
+	TPZGeoElSide neighEdge = gelEdge.Neighbour();
+	while(neighEdge != gelEdge)
+	{
+		if(neighEdge.Element()->Dimension() == 2)
+		{
+			break;
+		}
+		neighEdge = neighEdge.Neighbour();
+	}
+	gel = neighEdge.Element();
+	
+	return gel;
 }
 //------------------------------------------------------------------------------------------------------------
 
@@ -947,6 +1145,112 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 }
 //------------------------------------------------------------------------------------------------------------
 
+bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge, 
+                       TPZVec< TPZVec<REAL> > &ExactIntersect, double alphaMin)
+{
+    int nearNode;
+	bool IsNearNode = TPZChangeEl::NearestNode(gel, x, nearNode, __smallNum);
+	
+	edge.Resize(0);
+	ExactIntersect.Resize(0);
+	
+	int ncnodes = gel->NCornerNodes();
+	
+	TPZVec< TPZVec<REAL> > node(ncnodes), dnode(ncnodes);
+	TPZVec<REAL> nodeCoord(3);
+	for(int n = 0; n < ncnodes; n++)
+	{
+		node[n].Resize(3,1);
+		dnode[n].Resize(3,1);
+		gel->NodePtr(n)->GetCoordinates(nodeCoord);
+		for(int c = 0; c < 3; c++)
+		{
+			(node[n])[c] = nodeCoord[c];
+		}
+	}
+	std::list<double> edgeNorm;
+	/** <double: alpha , <double: alphaNodemod, double: alphaNodesmooth, double: norm, int: edge that intersect> > */
+    std::map<double, TPZVec<REAL> > alpha;
+    
+	double alphaX, alphaNodemod, alphaNodesmooth, norm;
+	for(int n = 0; n < ncnodes; n++)
+	{	
+		norm = 0.;
+		for(int c = 0; c < 3; c++)//computing the direction from node N to node N+1
+		{
+			if(n != (ncnodes-1) )
+			{
+				(dnode[n])[c] = node[n+1][c] - node[n][c];
+			}
+			else
+			{
+				dnode[n][c] = node[0][c] - node[n][c];
+			}
+			norm += dnode[n][c]*dnode[n][c];
+		}
+		norm = sqrt(norm);
+		for(int c = 0; c < 3; c++)//normalizing computed direction
+		{
+			dnode[n][c] /= norm;
+		}
+		
+		alphaX = ComputeAlphaX(x, dx, node[n], dnode[n]);
+		alphaNodemod = ComputeAlphaNode(x, dx, node[n], dnode[n], norm, true, false);
+		alphaNodesmooth = ComputeAlphaNode(x, dx, node[n], dnode[n], norm, IsNearNode, true);
+		if(alphaX >= alphaMin && alphaNodesmooth >= 0. && alphaNodesmooth <= norm)
+		{
+			int thisEdge = n+ncnodes;
+			TPZVec<REAL> someData(4);
+			someData[0] = alphaNodemod; someData[1] = alphaNodesmooth; someData[2] = norm; someData[3] = thisEdge;
+			alpha[alphaX] = someData;
+		}
+	}
+	
+	// a aresta que serah interseccionada serah a que tiver menor alphaX não negativo, i.e.: o primeiro par do mapa alpha!
+	std::map<double, TPZVec<REAL> >::iterator it = alpha.begin();
+	if(it != alpha.end())
+	{		
+		alphaX = it->first;
+		alphaNodemod = (it->second)[0];
+		alphaNodesmooth = (it->second)[1];
+		norm = (it->second)[2];
+		edge.Resize(1); edge[0] = int((it->second)[3]);	
+		
+		ExactIntersect.Resize(1); ExactIntersect[0].Resize(3,1);
+		for(int c = 0; c < 3; c++)
+		{
+			ExactIntersect[0][c] = node[edge[0]-ncnodes][c] + alphaNodesmooth*dnode[edge[0]-ncnodes][c];
+		}
+		
+		if(alphaX <= alphaMin && alpha.size() > 1)
+		{
+			it++;
+			alphaX = it->first;
+			alphaNodemod = (it->second)[0];
+			alphaNodesmooth = (it->second)[1];
+			norm = (it->second)[2];
+			edge.Resize(2); edge[1] = int((it->second)[3]);	
+			
+			ExactIntersect.Resize(2); ExactIntersect[1].Resize(3,1);
+			for(int c = 0; c < 3; c++)
+			{
+				ExactIntersect[1][c] = node[edge[1]-ncnodes][c] + alphaNodesmooth*dnode[edge[1]-ncnodes][c];
+			}
+		}
+		return true;
+	}
+	
+	//se o ponto p estah sobre um noh e a direcao dp aponta para fora do elemento...
+	if(IsNearNode)
+	{
+		std::cout << "Estah no noh " << nearNode << " e nao foi encontrada interseccao!" << std::endl;
+		std::cout << "Tratar este caso!" << std::endl << std::endl;
+	}
+	
+	return false;
+}
+//------------------------------------------------------------------------------------------------------------
+
 bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
 										TPZVec< TPZVec<REAL> > &ExactIntersect,
                                         TPZVec< TPZVec<REAL> > &ModulatedIntersect, double alphaMin)
@@ -1064,90 +1368,6 @@ bool TPZPlaneFracture::EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<
 	return false;
 }
 //------------------------------------------------------------------------------------------------------------
-
-int TPZPlaneFracture::PointElementOnPlaneMesh(const TPZVec<REAL> & x)
-{
-	TPZManVector<REAL,3> coord(x), qsi2D(2,0.);
-    coord[1] = 0.;
-    
-	TPZGeoEl * gel = NULL;
-	int nelem = fPlaneMesh->NElements();
-	for(int el = 0; el < nelem; el++)//hunting the first element (that contains the first point)
-	{
-		TPZGeoEl * firstGel = fPlaneMesh->ElementVec()[el];
-
-		if(firstGel->Dimension() != 2)
-		{
-			continue;
-		}
-		if(firstGel->ComputeXInverse(coord, qsi2D))
-		{
-			gel = firstGel;
-			break;
-		}
-	}
-    
-#ifdef DEBUG
-    if(!gel)
-    {
-        std::cout << "Point DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-#endif
-	
-    int id = gel->Id();
-	return id;
-}
-//------------------------------------------------------------------------------------------------------------
-
-TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(const TPZVec<REAL> & x, TPZGeoMesh * fullMesh)
-{
-    int elFoundId = PointElementOnPlaneMesh(x);
-    TPZGeoEl * gelfractmesh = fPlaneMesh->ElementVec()[elFoundId];
-    
-    // Da maneira com que esta classe foi construida, o elemento 2D encontrado na malha fractMesh apresenta como seu dual
-    // (na malha fullMesh) o elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
-    TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[gelfractmesh->Id()];
-    
-    TPZManVector<REAL,3> coord(x), qsi3D(3);
-    while(gelfullmesh->Type() != ECube)
-    {
-        int side = gelfullmesh->NSides()-1;
-        gelfullmesh = gelfullmesh->Neighbour(side).Element();
-    }
-    while(gelfullmesh->ComputeXInverse(coord, qsi3D) == false)
-    { 
-        gelfullmesh->PrintNodesCoordinates();
-        int cubeFace_in_Y_direction = 25;//confirmar
-        TPZGeoEl * nextGel = gelfullmesh->Neighbour(cubeFace_in_Y_direction).Element();
-        if(nextGel->Type() != ECube)
-        {
-            std::cout << "Elemento encontrado nao eh cubo!!!\n";
-            DebugStop();
-        }
-        if(nextGel == gelfullmesh)
-        {
-            std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
-        }
-        gelfullmesh = nextGel;
-    }
-    while(gelfullmesh->HasSubElement())
-    {    
-        int nsons = gelfullmesh->NSubElements();
-        for(int s = 0; s < nsons; s++)
-        {
-            TPZGeoEl * sonGel = gelfullmesh->SubElement(s);
-            if(sonGel->ComputeXInverse(coord, qsi3D) == true)
-            {
-                gelfullmesh = sonGel;
-                break;
-            }
-        }
-    }
-    
-    return gelfullmesh;
-}
 
 double TPZPlaneFracture::ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx,
                                           TPZVec<REAL> &node, TPZVec<REAL> &dnode,
