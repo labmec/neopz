@@ -250,6 +250,9 @@ endif()
 message ("Using STATE type = ${STATE_TYPE}")
 
 #Writing type definitions on config.h
+if(WIN32)
+	set(VC "#define VC")
+endif()
 set(FILE_DEFINITIONS "${CMAKE_SOURCE_DIR}/Common/config.h")
 FILE(WRITE ${FILE_DEFINITIONS}
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
@@ -257,7 +260,9 @@ FILE(WRITE ${FILE_DEFINITIONS}
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "#ifndef ${REAL_TYPE_DEF}\n#define ${REAL_TYPE_DEF}\n#endif\n"
-"#ifndef ${STATE_TYPE_DEF}\n#define ${STATE_TYPE_DEF}\n#endif"
+"#ifndef ${STATE_TYPE_DEF}\n#define ${STATE_TYPE_DEF}\n#endif\n"
+"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
+"${VC}\n"
 )
 
 #increment all the directories where the sources files is
