@@ -305,7 +305,7 @@ class TPZPlaneFracture
 	/**
 	 * @brief Given 2 nodes (n0 and n1) and one point (x) in \f$ n0->n1 \f$ line, returns the point x in the line parametric space \f$ [-1,+1]\f$
 	 */
-	static static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
+	static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
 	
 	/**
 	 * @brief This method return a reffpattern of an unidimentional element that matches with the trim coordinates.
