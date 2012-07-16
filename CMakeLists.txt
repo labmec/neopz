@@ -253,7 +253,8 @@ message ("Using STATE type = ${STATE_TYPE}")
 if(WIN32)
 	set(VC "#define VC")
 endif()
-set(FILE_DEFINITIONS "${CMAKE_BINARY_DIR}/Common/config.h")
+set(CONFIG_H "${CMAKE_BINARY_DIR}/Common/config.h")
+set(FILE_DEFINITIONS "${CONFIG_H}")
 FILE(WRITE ${FILE_DEFINITIONS}
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
@@ -264,8 +265,10 @@ FILE(WRITE ${FILE_DEFINITIONS}
 "//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "${VC}\n"
 )
-#Specify where the headers files must be finded
+#Specify where the config.h is located and add it to install list
 include_directories("${CMAKE_BINARY_DIR}/Common")
+install(FILES ${CONFIG_H} DESTINATION ${NEOPZ_INCLUDE})
+set(pz_configh ${CONFIG_H})# PARENT_SCOPE)
 
 #increment all the directories where the sources files is
 

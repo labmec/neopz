@@ -35,7 +35,7 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 	${pzmultigrid_STAT_SRCS} ${pzstrmatrix_STAT_SRCS} ${pzsubstruct_STAT_SRCS} 
 	${pzmaterial_STAT_SRCS} ${pzpre_STAT_SRCS} 
 	${pzanalysis_STAT_SRCS} ${pzpost_STAT_SRCS} 
-	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${pzplanefracture_STAT_SRCS} ${sloan_SRCS}
+	${pzintegral_STAT_SRCS} ${pzexternal_STAT_SRCS} ${pzplanefracture_STAT_SRCS} ${sloan_SRCS} ${pz_configh}
 	)
 
 #creating target pz library and installing it
