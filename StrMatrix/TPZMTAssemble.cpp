@@ -75,7 +75,7 @@ void TPZMTAssemble::AssembleMT(TPZFMatrix<STATE> & rhs, TPZCompMesh &mesh, int m
 			allthreads[ithread].p = NULL;
 			std::pair< TPZElementMatrix *, SMTAssembleResidual * > nullPair((TPZElementMatrix *)NULL,(SMTAssembleResidual *)NULL);
 		#else
-			allthreads[ithread] = NULL;
+			allthreads[ithread] = 0;//NULL;
 			std::pair< TPZElementMatrix *, SMTAssembleResidual * > nullPair(NULL,NULL);
 		#endif
 			TPZMTAssemble::gComputedEF[ithread] = nullPair;

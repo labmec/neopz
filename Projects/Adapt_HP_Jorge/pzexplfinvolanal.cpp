@@ -346,7 +346,7 @@ void TPZExplFinVolAnal::ParallelComputeFlux(std::list< TPZInterfaceElement* > &F
 
   pthread_t allthreads[nthreads];
   for(int ithread = 0; ithread < nthreads; ithread++){
-    allthreads[ithread] = NULL;
+    allthreads[ithread] = 0;//NULL;
     pthread_create(&allthreads[ithread],NULL,ExecuteParallelComputeFlux, fVecFaces[ithread]);
   }//threads
 

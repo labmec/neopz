@@ -472,7 +472,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				}
 				else {
 					std::cout<<"Pressao somente em Omega1"<<std::endl;
-					Solout[0]=NULL;
+					Solout[0]=0;//NULL;
 				}
 				
 				break;
@@ -482,7 +482,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				}
 				else {
 					std::cout<<"Pressao somente em omega2"<<std::endl;
-					Solout[0]=NULL;
+					Solout[0]=0;//NULL;
 				}
 				
 				break;
@@ -495,7 +495,7 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 				}
 				else {
 					std::cout<<"Pressao somente em omega2"<<std::endl;
-					Solout[0]=NULL;
+					Solout[0]=0;//NULL;
 				}
 				
 				break;

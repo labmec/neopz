@@ -459,8 +459,8 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 	fK10.Redim(fDim1,fDim0);
 	fK11.Redim(fDim1,fDim1);
 	
-	fF0=(TVar)NULL;
-	fF1=(TVar)NULL;
+	fF0=(TPZFMatrix<TVar>)0;//(TVar)NULL;
+	fF1=(TPZFMatrix<TVar>)0;//(TVar)NULL;
 	this->fRow = dim;
 	this->fCol = dim;
 	return 0;
