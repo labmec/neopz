@@ -313,7 +313,7 @@ TPZGeoMesh * MalhaGeoQ( const int h )/*QUADRILATEROS*/
 	int indices[1][4] = {{0,1,2,3}};
 	
 	int nnode = 4;
-	int nelem = 1;
+	const int nelem = 1;
 	TPZGeoEl *elvec[nelem];
 	int nod;
 	for ( nod=0; nod<nnode; nod++ )

@@ -17,7 +17,7 @@ TPZString::TPZString(char const * source)
 {
 	int len = strlen(source);
 	Resize(len + 1);
-	strcpy(fStore, source);
+	strcpy_s(fStore, NElements(), source);
 	
 	// although the TPZStack class already stores the length, the null
 	// character is necessary to export string as a null character
@@ -107,7 +107,7 @@ void TPZString::Append(const char * TailIncrement)
 	
 	if (fNElements < OldLength + len + 1) Resize(OldLength + len + 1); // the 1 stands for the null char
 	
-	strcpy(fStore + OldLength, TailIncrement);
+	strcpy_s(fStore + OldLength,fNElements-OldLength, TailIncrement);
 	fStore[Length()] = '\0'; // just to ensure the string contains a null character
 }
 
@@ -188,7 +188,7 @@ int TPZString::Replace( const char * replace_str, const char *new_substr){
 		pos = newstring.find(replace_str, 0);
 		count++;
 	}
-	if(count) strcpy(fStore, newstring.c_str());
+	if(count) strcpy_s(fStore, fNElements, newstring.c_str());
 	return(count);
 }
 

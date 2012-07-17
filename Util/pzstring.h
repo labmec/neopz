@@ -70,7 +70,7 @@ public:
 			Resize(len + 1);
 		}
 		
-		strcpy(fStore, source);
+		strcpy_s(fStore, NElements(), source);
 	}
 	
 	/** @brief Appends a character at the end. Resizes if necessary */

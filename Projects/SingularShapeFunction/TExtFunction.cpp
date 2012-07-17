@@ -20,9 +20,9 @@ void TExtFunction<TVar>::Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f, TPZFMat
   df.Resize(2,1);
   double r = 2.-x[0];
   if(r < 1e-6) r = 1e-6;
-  f[0] = log(r);
-  df(0,0) = -1./(r);
-  df(1,0) = 0.;
+  f[0] = (TVar)log(r);
+  df(0,0) = (TVar)(-1./(r));
+  df(1,0) = (TVar)0.;
 }  
 
 template<class TVar>
