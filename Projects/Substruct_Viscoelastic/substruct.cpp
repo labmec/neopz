@@ -245,7 +245,7 @@ int main1(int argc, char *argv[])
 		TPZStepSolver<STATE> cg(dohr);
 		//  void SetCG(const int numiterations,const TPZMatrixSolver &pre,const STATE tol,const int FromCurrent);
 		
-		cg.SetCG(1000,pre,5.e-6,0);
+		cg.SetCG(500,pre,5.e-6,0);
 		cg.Solve(rhs,diag);
 
 		diag.Print("diag");
@@ -258,6 +258,41 @@ int main1(int argc, char *argv[])
          
 		
 		dohrptr->AddInternalSolution(diag);
+        
+        TPZMaterial * mat = cmeshauto->FindMaterial(1);
+		int nstate = mat->NStateVariables();
+		int nscal = 0, nvec = 0;
+		if(nstate ==1) 
+		{
+			nscal = 1;
+		}
+		else
+		{
+			nvec = 1;
+		}
+		TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
+		if(nscal == 1)
+		{
+			scalnames[0]="state";            
+		}
+		else
+		{
+			vecnames[0] = "state";
+		}
+		
+		//cmeshauto->Solution().Print();
+		
+		std::string postprocessname("ugabuga.vtk");
+		TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
+		vtkmesh.SetFileName(postprocessname);
+		vtkmesh.SetResolution(0);
+		int numcases = 1;
+		
+		// Iteracoes de tempo
+		int istep = 0, nsteps = 80;
+		vtkmesh.DrawMesh(numcases);
+		vtkmesh.DrawSolution(istep, 1.);
+
 		
 		typedef std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > subtype;
 		const subtype &sublist = dohrptr->SubStructures(); 
@@ -298,44 +333,14 @@ int main1(int argc, char *argv[])
 		}
 #endif	
 	*/	
-		TPZMaterial * mat = cmeshauto->FindMaterial(1);
-		int nstate = mat->NStateVariables();
-		int nscal = 0, nvec = 0;
-		if(nstate ==1) 
-		{
-			nscal = 1;
-		}
-		else
-		{
-			nvec = 1;
-		}
-		TPZManVector<std::string> scalnames(nscal),vecnames(nvec);
-		if(nscal == 1)
-		{
-			scalnames[0]="state";            
-		}
-		else
-		{
-			vecnames[0] = "state";
-		}
-		
-		//cmeshauto->Solution().Print();
-		
-		std::string postprocessname("WCCM_Visco2.vtk");
-		TPZVTKGraphMesh vtkmesh(cmesh.operator->(),dim,mat,scalnames,vecnames);
-		vtkmesh.SetFileName(postprocessname);
-		vtkmesh.SetResolution(1);
-		int numcases = 1;
-		
-		// Iteracoes de tempo
-		int istep = 0, nsteps = 100;
-		vtkmesh.DrawMesh(numcases);
-		vtkmesh.DrawSolution(istep, 1.);
 		
 		//ViscoElastico
 		
+        vtkmesh.DrawMesh(numcases);
+		vtkmesh.DrawSolution(istep+1, 1.);
+        
 		std::cout << "To seguindo!!!" << std::endl;
-		for (istep = 1 ; istep < nsteps ; istep++)
+		for (istep = 2 ; istep < nsteps ; istep++)
 		{
 			TPZAutoPointer<TPZGuiInterface> guifake;
 			dohrstruct.Assemble(rhs, guifake);
@@ -397,13 +402,13 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	STATE poisson = 0.2;
 	TPZManVector<STATE> force(3,0.);
 	force[2] = -20.;
-	STATE ElaE = 1000000., poissonE = 0.2, ElaV = 100000., poissonV = 0.1; 
+	STATE ElaE = 1000000., poissonE = 0.2, ElaV = 950000., poissonV = 0.14; 
 	
 	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
 	alpha = 1.;	
-	deltaT = 0.01;
+	deltaT = 0.1;
 	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
 	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
@@ -428,13 +433,13 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
 
-	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+	STATE ElaE = 1000., poissonE = 0.2, ElaV = 970., poissonV = 0.14; 
 
 	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
 	muV = 45.4545;
 	alpha = 1.;	
-	deltaT = 0.01;
+	deltaT = 0.1;
 	
 	TPZViscoelastic *viscoelast = new TPZViscoelastic(nummat);
 	viscoelast->SetMaterialDataHooke(ElaE, poissonE, ElaV, poissonV, alpha, deltaT, force);
