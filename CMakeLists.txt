@@ -252,6 +252,8 @@ message ("Using STATE type = ${STATE_TYPE}")
 #Writing type definitions on config.h
 if(WIN32)
 	set(VC "#define VC")
+	#define _USE_MATH_DEFINES
+	add_definitions(-D_USE_MATH_DEFINES)
 endif()
 set(CONFIG_H "${CMAKE_BINARY_DIR}/Common/config.h")
 set(FILE_DEFINITIONS "${CONFIG_H}")

@@ -3,9 +3,6 @@
  * @brief Contains the implementation of the TPZGaussRule methods. 
  */
 #include "config.h"
-#ifdef VC
-#define _USE_MATH_DEFINES
-#endif
 #include <math.h>
 #include <cmath>
 

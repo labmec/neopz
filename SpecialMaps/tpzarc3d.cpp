@@ -13,9 +13,6 @@
 #include "pzgnode.h"
 #include "pzreal.h"
 #include "tpzgeoelmapped.h"
-#ifdef VC
-#define _USE_MATH_DEFINES
-#endif
 #include <math.h>
 
 using namespace std;

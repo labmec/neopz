@@ -2190,9 +2190,9 @@ TPZCompMesh *PlateMesh (){
      erros.close();
      
      delete compmesh;
-     delete geomesh;
+     delete geomesh; */
      return 0;
-     */
+     
     
 }
 
