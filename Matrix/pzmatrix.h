@@ -67,7 +67,7 @@ public:
 		fDefPositive = 0;
 		fRow = 0;
 		fCol = 0;
-		gZero = 0.;
+		gZero = (TVar)(0);
 	}
 	
 	TPZMatrix<TVar>(const TPZMatrix<TVar>&cp) : fRow(cp.fRow), fCol(cp.fCol), fDecomposed(cp.fDecomposed),fDefPositive(cp.fDefPositive)
@@ -805,7 +805,7 @@ inline const TVar &TPZMatrix<TVar>::Get(const int row, const int col ) const {
 #ifdef DEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col <0 ) {
 		Error("TPZMatrix::Get", "Index out of range");
-		gZero=0.;
+		gZero = (TVar)(0);
 		return gZero;
 	}
 #endif
@@ -817,7 +817,7 @@ inline TVar &TPZMatrix<TVar>::operator()(const int row, const int col) {
 	// verificando se o elemento a inserir esta dentro da matriz
 #ifndef NODEBUG
 	if ( (row >= Rows()) || (col >= Cols()) || row <0 || col<0 ) {
-		gZero = 0.;
+		gZero = (TVar)(0);
 		Error("TPZMatrix<TVar>::Operator()","Index out of range");
 		return gZero;
 	}

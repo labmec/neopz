@@ -2190,10 +2190,9 @@ TPZCompMesh *PlateMesh (){
      erros.close();
      
      delete compmesh;
-     delete geomesh; */
+     delete geomesh;
+	 */
      return 0;
-     
-    
 }
 
 TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {

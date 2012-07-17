@@ -139,7 +139,7 @@ void TPZMTAssemble::ContributeEFs(){
 		
 		if(!el->HasDependency()) {
 			ef->ComputeDestinationIndices();
-			if(mineq != -1 & maxeq != -1)
+			if(mineq != -1 && maxeq != -1)
 			{
 				TPZStructMatrix::FilterEquations(ef->fSourceIndex,ef->fDestinationIndex,mineq,maxeq);
 			}
@@ -148,7 +148,7 @@ void TPZMTAssemble::ContributeEFs(){
 			// the element has dependent nodes
 			ef->ApplyConstraints();
 			ef->ComputeDestinationIndices();
-			if(mineq != -1 & maxeq != -1)
+			if(mineq != -1 && maxeq != -1)
 			{
 				TPZStructMatrix::FilterEquations(ef->fSourceIndex,ef->fDestinationIndex,mineq,maxeq);
 			}

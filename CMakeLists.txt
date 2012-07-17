@@ -106,7 +106,7 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 
 #enabling pthread library
 find_path(PTHREAD_INCLUDE NAMES PThread.h pthread.h PATHS ${SEARCH_DIRS})
-find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib libPThread.a libpthread.a PATHS ${SEARCH_DIRS})
+find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib pthreadVC2.lib libPThread.a libpthread.a PATHS ${SEARCH_DIRS})
 if(PTHREAD_INCLUDE-NOTFOUND)
 	set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
 endif()

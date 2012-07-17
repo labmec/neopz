@@ -321,7 +321,7 @@ void TPZElasticityAxiMaterial::ContributeBC(TPZMaterialData &data,REAL weight,TP
 				ef(2*in,0)   += BIGNUMBER * v2[0]*  // x displacement
                 phi(in,0) * R2PI * weight;        // forced v2 displacement
 				
-				ef(2*in+1,0) += BIGNUMBER * v2[1]*// x displacement
+				ef(2*in+1,0) += BIGNUMBER * v2[1]*  // x displacement
                 phi(in,0) * R2PI * weight;        // forced v2 displacement
 				
 				for (jn = 0 ; jn < phi.Rows(); jn++)

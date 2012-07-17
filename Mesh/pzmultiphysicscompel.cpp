@@ -300,7 +300,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	}
 	
 	int nref = this->fElementVec.size();
-	int nstate;
+	int nstate = 0;
 	//nstate=1;
     int numloadcases = 1;
 	for (int iref=0; iref<nref; iref++) {

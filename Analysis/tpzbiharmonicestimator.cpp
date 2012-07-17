@@ -209,8 +209,8 @@ void TPZBiharmonicEstimator::ContributeInterfaceErrorsDual(TPZMaterialData &data
 	nkL[1]+=-weight*alpha*(uL-uR)*(u_exactd[0]-dualhpL);
 	nkR[1]+=-weight*alpha*(uL-uR)*(-1.)*(u_exactd[0]-dualhpR);
 	//sexto termo
-	nkL[1]+=-weight*/*betaL*/((graduL[0]-graduR[0])*normal[0]+(graduL[1]-graduR[1])*normal[1]) * (normal[0]*(du_exactd[0]-graddualhpL[0])+normal[1]*(du_exactd[1]-graddualhpL[1]));;
-	nkR[1]+=-weight*/*betaR*/((graduL[0]-graduR[0])*normal[0]+(graduL[1]-graduR[1])*normal[1]) * (-1.)*(normal[0]*(du_exactd[0]-graddualhpR[0])+normal[1]*(du_exactd[1]-graddualhpR[1]));;//acertar betas!!!!!!!!
+	nkL[1]+=-weight* /*betaL*/ ((graduL[0]-graduR[0])*normal[0]+(graduL[1]-graduR[1])*normal[1]) * (normal[0]*(du_exactd[0]-graddualhpL[0])+normal[1]*(du_exactd[1]-graddualhpL[1]));;
+	nkR[1]+=-weight* /*betaR*/ ((graduL[0]-graduR[0])*normal[0]+(graduL[1]-graduR[1])*normal[1]) * (-1.)*(normal[0]*(du_exactd[0]-graddualhpR[0])+normal[1]*(du_exactd[1]-graddualhpR[1]));;//acertar betas!!!!!!!!
 	
 }
 
