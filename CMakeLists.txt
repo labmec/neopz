@@ -254,7 +254,9 @@ if(WIN32)
 	set(VC "#define VC")
 	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
+	#disabling VC warnings
 	add_definitions(-D_SCL_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 	#define use of pthread static lib.
 	add_definitions(-DPTW32_STATIC_LIB)
 endif()
