@@ -16,6 +16,7 @@
 
 /**
  * @brief Computes the contribution over an interface between two discontinuous elements. \ref CompElement "Computational Element"
+ * @ingroup CompElement
  */
 class TPZMultiphysicsInterfaceElement : public TPZCompEl {
 
