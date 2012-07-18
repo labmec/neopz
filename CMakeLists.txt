@@ -252,8 +252,10 @@ message ("Using STATE type = ${STATE_TYPE}")
 #Writing type definitions on config.h
 if(WIN32)
 	set(VC "#define VC")
-	#define _USE_MATH_DEFINES
+	#define _USE_MATH_DEFINES for example: M_PI constant definitions.
 	add_definitions(-D_USE_MATH_DEFINES)
+	#define use of pthread static lib.
+	add_definitions(-DPTW32_STATIC_LIB)
 endif()
 set(CONFIG_H "${CMAKE_BINARY_DIR}/Common/config.h")
 set(FILE_DEFINITIONS "${CONFIG_H}")
