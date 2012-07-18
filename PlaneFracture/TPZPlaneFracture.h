@@ -163,10 +163,31 @@ class TPZPlaneFracture
     
     /**
      * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
-     * @param x [in] coordinates whose elements is going to be localized.
-     * @param fullMesh [in] geomesh of elements candidates.
+     * @param x [in] : coordinates whose elements is going to be localized.
+     * @param fullMesh [in] : geomesh of elements candidates.
      */
     static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, int & initialElId, TPZGeoMesh * fullMesh);
+    
+    static void GetAllLowerSons(TPZGeoEl * gel, TPZVec<TPZGeoEl *> &sons);
+    
+    
+    
+    //Just 4 validation of SIF
+    /**
+     * @brief Method that will run a FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
+     * @param Sigma [in] : Traction stress in the height direction
+     * @param Width [in] : Domain width (parallel to the crack direction, orthogonal to the heigth)
+     * @param Height [in] : Domain heigth (orthogonal to the crack direction, parallel to the heigth)
+     * @param Tickness [in] : Domain thickness, orthogonal to the width_heigth plane (analog to the crack front length)
+     * @param a [in] : half of the total crack length (one wing of crack)
+     */
+    void RunModelProblemForSIFValidation(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+    
+    /**
+     * Returns the CompMesh for the FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
+     * (used by the RunModelProblemForSIFValidation method)
+     */
+    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -174,7 +195,7 @@ class TPZPlaneFracture
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
-	 * @param poligonalChain [in] vector of boundary points coordinates
+	 * @param poligonalChain [in] : vector of boundary points coordinates
 	 *
 	 * @note Each vector position store x, y and z coordinates IN SEQUENCE of an poligonalChain geometry.
 	 *
@@ -211,7 +232,7 @@ class TPZPlaneFracture
 
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
-	 * @param poligonalChain [in] vector of boundary points coordinates
+	 * @param poligonalChain [in] : vector of boundary points coordinates
 	 *
 	 * @note Each vector position store x, y and z coordinates IN SEQUENCE of an poligonalChain geometry.
 	 *
@@ -225,9 +246,9 @@ class TPZPlaneFracture
 	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
 	 *		z coordinate of second point of crack boundary: poligonalChain[5]
 	 *
-	 * @param fractMesh [in] geomesh of considered elements
-	 * @param elId_TrimCoords [out] map that contains 1D element Id and a set of it trim 1D coordinates
-	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
+	 * @param fractMesh [in] : geomesh of considered elements
+	 * @param elId_TrimCoords [out] : map that contains 1D element Id and a set of it trim 1D coordinates
+	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
 	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
 							std::map< int, std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence);
@@ -236,19 +257,19 @@ class TPZPlaneFracture
 
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
-	 * @param gel [in] initial geoel
+	 * @param gel [in] : initial geoel
 	 * @param x [input and output data]  
-	 *				x [as input] start point of line \n
-	 *				x [as output] end point of line in gel interface
-	 * @param dx [in] direction of line from point x (input)
-	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
+	 *				x [as inout] : start point of line \n
+	 *				x [as output] : end point of line in gel interface
+	 * @param dx [in] : direction of line from point x (input)
+	 * @param alphaMin [in] : if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
 	 *				        so, using alphaMin=0, in this case the first intersection (the x itself) is included...
 	 *							   using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
-	 * @param elId_TrimCoords [out] map that contains the trim coordinates of 1D element, indexed by its Id (once 1D element was inserted in gel->Mesh)\n
+	 * @param elId_TrimCoords [out] : map that contains the trim coordinates of 1D element, indexed by its Id (once 1D element was inserted in gel->Mesh)\n
 	 *							    obs.: elId_TrimCoords was idealized to work in accumulative conception, i.e.,
 	 *								    each time this method is called, this map grows!
-	 * @param elIdSequence [out] the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
-	 * @param pushback [in] set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
+	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
+	 * @param pushback [in] : set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
 	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin, std::map< int,
 									std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence, bool pushback);
@@ -260,15 +281,15 @@ class TPZPlaneFracture
 	 * @brief For a given element and internal point and an direction, computes the intersection
 	 * coordinates with respect to it edges, and the respective intersected edge.
 	 *
-	 * @param gel [in] 2D geometric element whose edge will be intersected by (x+alphaX.dx) line
-	 * @param x [in] element internal point coordinates
-	 * @param dx [in] direction from point p
-	 * @param edge [out] side Id of element edge that will be intersected by (x+alphaX.dx) line
+	 * @param gel [in] : 2D geometric element whose edge will be intersected by (x+alphaX.dx) line
+	 * @param x [in] : element internal point coordinates
+	 * @param dx [in] : direction from point p
+	 * @param edge [out] : side Id of element edge that will be intersected by (x+alphaX.dx) line
      *          @brief :    this vector normally assumes size=1, but when alphaMin=0, assumes size=2
      *                      (the edge where the given coordinate lies and the next edge where the given direction points)
-	 * @param ExactIntersect [out] exact intersection coordinates with respect to edges parameter
-	 * @param ModulatedIntersect [out] exact intersection coordinates, dragged to the nearest module (defined by __EdgeStretchesQTD constant)
-	 * @param alphaMin [in] if an start point (x) is in already in one edge of gel, it might be included or not in the intersections\n
+	 * @param ExactIntersect [out] : exact intersection coordinates with respect to edges parameter
+	 * @param ModulatedIntersect [out] : exact intersection coordinates, dragged to the nearest module (defined by __EdgeStretchesQTD constant)
+	 * @param alphaMin [in] : if an start point (x) is in already in one edge of gel, it might be included or not in the intersections\n
 	 *					    so, using alphaMin=0, in this case the first intersection (the x itself) is included...\n
 	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 */
@@ -284,9 +305,9 @@ class TPZPlaneFracture
 	 * @param dx direction of line from point x
 	 * @param node connect
 	 * @param dnode
-	 * @param norm [in] norm of edge that belongs to (node + alphaNode.dnode) line
-	 * @param modulate [in] set if alphaNode will be modulated by stretches
-	 * @param smooth [in] if alphaNode will be modulated, set if the stretches will be (norm/__EdgeStretchesQTD) or smallest stretches \n
+	 * @param norm [in] : norm of edge that belongs to (node + alphaNode.dnode) line
+	 * @param modulate [in] : set if alphaNode will be modulated by stretches
+	 * @param smooth [in] : if alphaNode will be modulated, set if the stretches will be (norm/__EdgeStretchesQTD) or smallest stretches \n
 	 *							defined by (norm/(fEdgeStretchesQTD*__TrimQTDmultiplier)).
 	 * @note Obs.: alphaNode modulation is useful to reduce the possibilities of non regular refpatterns.
  	 * @note OBS.: dx and dnode MUST BE UNIT VECTORS!!!
@@ -376,12 +397,6 @@ class TPZPlaneFracture
 
     //** just for visualize given dots in vtk */
     static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
-    
-public:
-    /**
-     * Metodo solicitado pelo Philippe para acidificacao
-     */
-    void GetSidesCrossedByPoligonalChain(const TPZVec<REAL> &poligonalChain, std::list< std::pair<TPZGeoElSide,double> > &sidesCrossed);
 };
 
 #endif

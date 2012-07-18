@@ -52,6 +52,10 @@ public:
      * to compute J-integral around it.
      */
     Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZGeoEl * el1D, double r_int, double r_ext);
+    Path(const Path &copy)
+    {
+        this->operator =(copy);
+    }
     ~Path();
     
     void operator=(const Path &cpPath)
@@ -84,7 +88,7 @@ public:
     
     virtual void Print(std::ostream& out = std::cout);
 
-protected:
+//protected:
     
     virtual void X(double t, TPZVec<REAL> & xt);
     virtual void dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
@@ -150,19 +154,6 @@ public:
     virtual void normalVec(double t, TPZVec<REAL> & n);
 };
 
-class JPath
-{
-public:
-    JPath();
-    ~JPath();
-    JPath(linearPath linearArc, externalArcPath extArc, internalArcPath intArc);
-    
-    //-----
-    
-    linearPath fLinearPath;
-    externalArcPath fExtArcPath;
-    internalArcPath fIntArcPath;
-};
 
 class JIntegral
 {
@@ -170,10 +161,10 @@ public:
     JIntegral();
     ~JIntegral();
     
-    void PushBackJPath(JPath jpathElem);    
-    TPZVec<REAL> IntegrateJPath(int p);
+    void PushBackPath(Path pathElem);    
+    TPZVec<REAL> IntegratePath(int p);
     
-    TPZVec<JPath> fJPathVec;
+    TPZVec<Path> fPathVec;
 };
 
 

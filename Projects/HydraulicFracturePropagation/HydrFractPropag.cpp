@@ -86,7 +86,8 @@ int main(int argc, char * const argv[])
 }
 */
 
-int main(int argc, char * const argv[])
+
+int mainTESE(int argc, char * const argv[])
 {	
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
@@ -123,6 +124,7 @@ int main(int argc, char * const argv[])
     pos_stress[4][63.] = 8.;
     pos_stress[4][210.] = 10.;
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
+    
     TPZVec<REAL> fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);
     
@@ -135,6 +137,55 @@ int main(int argc, char * const argv[])
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
   
+    std::ofstream outRefP("RefPatternsUsed.txt");
+    gRefDBase.WriteRefPatternDBase(outRefP);
+    
+    return 0;
+}
+
+//SIF validation
+int main(int argc, char * const argv[])
+{
+    std::cout << "\e";
+    TPZTimer readRef("ReadingRefPatterns");
+    readRef.start();
+    
+    #define writeAgain
+#ifdef writeAgain
+    gRefDBase.InitializeRefPatterns();
+#else
+    std::ifstream inRefP("RefPatternsUsed.txt");
+    gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
+#endif
+    
+    readRef.stop();
+    std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
+    
+    double lw = 100.;
+    double bulletDepthIni = 0.;
+    double bulletDepthFin = 100.;    
+    
+    TPZVec< std::map<double,double> > pos_stress(2);
+    pos_stress[0][0.]  = 1.;
+    pos_stress[0][100.]  = 1.;
+    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
+    
+    TPZVec<REAL> fractureDots(4);
+    fractureDots[0] = 5.;
+    fractureDots[1] = 0.;
+    fractureDots[2] = 5.;
+    fractureDots[3] = -100.;
+    
+    
+    TPZTimer clockIni2("PartyBegins2");
+    clockIni2.start();    
+    
+    std::string vtkFile = "fractureSIF.vtk";
+    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile);
+    
+    clockIni2.stop();
+    std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
+    
     std::ofstream outRefP("RefPatternsUsed.txt");
     gRefDBase.WriteRefPatternDBase(outRefP);
     

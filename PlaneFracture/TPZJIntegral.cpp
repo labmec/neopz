@@ -68,6 +68,8 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZGeoEl * el1D, double r_int, dou
     fr_int = r_int;
     fr_ext = r_ext;
     
+    fInitial2DElementId = 0;
+    
     fcmesh = cmesh;
 }
 
@@ -88,7 +90,7 @@ TPZVec<REAL> Path::Func(double t)
     this->X(t,xt);
     this->dXdt(t, dxdt, DETdxdt);
     this->normalVec(t, nt);
-    
+
     TPZGeoEl * geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, fInitial2DElementId, this->fcmesh->Reference());
     TPZVec<REAL> qsi(dim3D);
     bool isInsideDomain = geoEl->ComputeXInverse(xt, qsi);
@@ -127,20 +129,38 @@ TPZVec<REAL> Path::Func(double t)
     }
     #endif
     
-    TPZFMatrix<REAL> sigma, gradU = data.dsol[0];
-    elast3D->ComputeStressTensor(sigma, data);
+    TPZFMatrix<REAL> Sigma, GradU = data.dsol[0];
+    elast3D->ComputeStressTensor(Sigma, data);
     
     
     double lambda = elast3D->GetLambda();
     double mu = elast3D->GetMU();
     
-    double W = mu*(sigma(0,0)*sigma(0,0) + sigma(0,1)*sigma(0,1) + sigma(0,2)*sigma(0,2) + sigma(1,0)*sigma(1,0) 
-                   + sigma(1,1)*sigma(1,1) + sigma(1,2)*sigma(1,2) + sigma(2,0)*sigma(2,0) + sigma(2,1)*sigma(2,1) + sigma(2,2)*sigma(2,2)) + 
-    (lambda*(sigma(0,0)*sigma(0,0) + sigma(1,1)*sigma(1,1) + 4.*sigma(1,1)*sigma(2,2) + sigma(2,2)*sigma(2,2) + 4.*sigma(0,0)*(sigma(1,1) + sigma(2,2))))/2.;
+    double W = mu*(Sigma(0,0)*Sigma(0,0) + Sigma(0,1)*Sigma(0,1) + Sigma(0,2)*Sigma(0,2) + Sigma(1,0)*Sigma(1,0) 
+                   + Sigma(1,1)*Sigma(1,1) + Sigma(1,2)*Sigma(1,2) + Sigma(2,0)*Sigma(2,0) + Sigma(2,1)*Sigma(2,1) + Sigma(2,2)*Sigma(2,2)) + 
+    (lambda*(Sigma(0,0)*Sigma(0,0) + Sigma(1,1)*Sigma(1,1) + 4.*Sigma(1,1)*Sigma(2,2) + Sigma(2,2)*Sigma(2,2) + 4.*Sigma(0,0)*(Sigma(1,1) + Sigma(2,2))))/2.;
     
-    TPZVec<REAL> Vansw(0);
+    TPZFMatrix<REAL> W_I(dim3D,dim3D,0.);
+    W_I.PutVal(0, 0, W);
+    W_I.PutVal(1, 1, W);
+    W_I.PutVal(2, 2, W);
+    GradU.Transpose();
+    TPZFMatrix<REAL> GradUtranspose_Sigma(dim3D,dim3D,0.);
+    GradU.Multiply(Sigma, GradUtranspose_Sigma);
     
-    return Vansw;
+    TPZFMatrix<REAL> W_I_minus_GradUtranspose_Sigma(dim3D,dim3D,0.);
+    W_I_minus_GradUtranspose_Sigma = W_I - GradUtranspose_Sigma;
+    
+    TPZVec<REAL> W_I_minus_GradUtranspose_Sigma__n(dim3D,0.);
+    for(int r = 0; r < dim3D; r++)
+    {
+        for(int c = 0; c < dim3D; c++)
+        {
+            W_I_minus_GradUtranspose_Sigma__n[r] += (W_I_minus_GradUtranspose_Sigma(r,c)*nt[c]) * DETdxdt;
+        }
+    }   
+    
+    return W_I_minus_GradUtranspose_Sigma__n;
 }
 
 
@@ -431,56 +451,61 @@ void internalArcPath::normalVec(double t, TPZVec<REAL> & n)
 }
 
 
-//--------------------------------------------------------class JPath
-
-JPath::JPath()
-{
-    //nothing to do
-}
-
-JPath::~JPath()
-{
-    //nothing to do
-}
-
-JPath::JPath(linearPath linearArc, externalArcPath extArc, internalArcPath intArc)
-{
-    this->fLinearPath = linearArc;
-    this->fExtArcPath = extArc;
-    this->fIntArcPath = intArc;    
-}
-
-
 //--------------------------------------------------------class JIntegral
 
 
 JIntegral::JIntegral()
 {
-    fJPathVec.Resize(0);
+    fPathVec.Resize(0);
 }
 
 JIntegral::~JIntegral()
 {
-    fJPathVec.Resize(0);
+    fPathVec.Resize(0);
 }
 
-void JIntegral::PushBackJPath(JPath jpathElem)
+void JIntegral::PushBackPath(Path pathElem)
 {
-    int oldSize = fJPathVec.NElements();
-    fJPathVec.Resize(oldSize+1);
-    fJPathVec[oldSize] = jpathElem;
+    int oldSize = fPathVec.NElements();
+    fPathVec.Resize(oldSize+1);
+    fPathVec[oldSize] = pathElem;
 }
 
-TPZVec<REAL> JIntegral::IntegrateJPath(int p)
+TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
-    JPath jpathElem = fJPathVec[p];
+    Path jpathElem = fPathVec[p];
 
     double precisionIntegralRule = 1.E-100;
     Adapt intRule(precisionIntegralRule);
     
-    TPZVec<REAL> integrLinPath = intRule.Vintegrate(jpathElem.fLinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(jpathElem.fExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(jpathElem.fIntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    linearPath _LinearPath;
+    _LinearPath.fInitialNode = fPathVec[p].fInitialNode;
+    _LinearPath.fFinalNode = fPathVec[p].fFinalNode;
+    _LinearPath.fr_int = fPathVec[p].fr_int;
+    _LinearPath.fr_ext = fPathVec[p].fr_ext;
+    _LinearPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
+    _LinearPath.fcmesh = fPathVec[p].fcmesh;
+    
+    externalArcPath _ExtArcPath;
+    _ExtArcPath.fInitialNode = fPathVec[p].fInitialNode;
+    _ExtArcPath.fFinalNode = fPathVec[p].fFinalNode;
+    _ExtArcPath.fr_int = fPathVec[p].fr_int;
+    _ExtArcPath.fr_ext = fPathVec[p].fr_ext;
+    _ExtArcPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
+    _ExtArcPath.fcmesh = fPathVec[p].fcmesh;
+    
+    internalArcPath _IntArcPath;
+    _IntArcPath.fInitialNode = fPathVec[p].fInitialNode;
+    _IntArcPath.fFinalNode = fPathVec[p].fFinalNode;
+    _IntArcPath.fr_int = fPathVec[p].fr_int;
+    _IntArcPath.fr_ext = fPathVec[p].fr_ext;
+    _IntArcPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
+    _IntArcPath.fcmesh = fPathVec[p].fcmesh;
+    
+    
+    TPZVec<REAL> integrLinPath = intRule.Vintegrate(_LinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(_ExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(_IntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
     
     //multiplicado por 2 pois estou aproveitando a simetria do domínio em relacao ao plano xz.
     TPZVec<REAL> answ(dim3D);
