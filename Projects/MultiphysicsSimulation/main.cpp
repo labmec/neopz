@@ -66,7 +66,7 @@ const int bcDR = -3;
 const int lagrangemat = 2;
 const int interfacemat = 3;
 
-TPZGeoMesh *MalhaGeom(bool interface);
+TPZGeoMesh *MalhaGeom(bool interface1);
 
 TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh*MalhaCompDois(TPZGeoMesh * gmesh, int pOrder);
@@ -323,7 +323,7 @@ int main2(int argc, char *argv[])
 }
 
 
-TPZGeoMesh *MalhaGeom(bool interface)
+TPZGeoMesh *MalhaGeom(bool interface1)
 {
 	
 	int Qnodes = 6;
@@ -406,7 +406,7 @@ TPZGeoMesh *MalhaGeom(bool interface)
 	new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId,*gmesh);
 	
 	//criar elemento de interface
-	if (interface==true) {
+	if (interface1==true) {
 		gmesh->AddInterfaceMaterial(matId,lagrangemat, interfacemat); //Adicionar um material de interface associados aos elementos matId e lagrangemat do material.
 		gmesh->AddInterfaceMaterial(lagrangemat,matId, interfacemat);
 	}
@@ -1210,11 +1210,11 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
                 DebugStop();
             } 
             for (int lp=0; lp<nelsides; ++lp) {
-                TPZGeoEl *interface = gel->CreateBCGeoEl(is, InterfaceMat);
+                TPZGeoEl *interface1 = gel->CreateBCGeoEl(is, InterfaceMat);
                 TPZCompElSide right = celsides[lp];
                 TPZCompElSide left(gel->Reference(),is);
                 int index;
-                new TPZInterfaceElement(*cmesh,interface,index,left,right);
+                new TPZInterfaceElement(*cmesh,interface1,index,left,right);
             }
         }
     }

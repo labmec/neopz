@@ -106,10 +106,10 @@ void TPBrSteamMesh::ExtractCellState(int cell, TPZFMatrix<REAL> &glob, TPZVec<RE
 }
 
 /// extract the state variables of the interface element
-void TPBrSteamMesh::ExtractInterfaceState(int interface, TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate)
+void TPBrSteamMesh::ExtractInterfaceState(int interface1, TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate)
 {
 	TPZManVector<int> equation,state;
-	FluxDestination(interface,equation,state);
+	FluxDestination(interface1,equation,state);
 	int nstate = equation.NElements();
     interfacestate.Resize(nstate);
 	int is;
@@ -176,19 +176,19 @@ void TPBrSteamMesh::AssembleCell(int cell, TPZFMatrix<REAL> &ekcell, TPZFMatrix<
 }
 
 /// assemble the contribution of the cell
-void TPBrSteamMesh::AssembleInterface(int interface, TPZFMatrix<REAL> &ekinterface, TPZFMatrix<REAL> &efinterface, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res, TPZVec<REAL> &statescales)
+void TPBrSteamMesh::AssembleInterface(int interface1, TPZFMatrix<REAL> &ekinterface, TPZFMatrix<REAL> &efinterface, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res, TPZVec<REAL> &statescales)
 {
 	TPZManVector<int> equation,state;
-    if(interface == 0)
+    if(interface1 == 0)
     {
         FluxDestinationInlet(equation, state);
     }
     else
     {
-        FluxDestination(interface,equation,state);
+        FluxDestination(interface1,equation,state);
     }
     TPZManVector<REAL> eqscales,interfacestatescale;
-    if(interface == 0)
+    if(interface1 == 0)
     {
         TPBrSteamFlux::InletScales(eqscales, interfacestatescale);
     }
@@ -272,16 +272,16 @@ void TPBrSteamMesh::CellDestination(int cell, TPZVec<int> &equation, TPZVec<int>
 }
 
 /// equation and state destination indexes for an interface
-void TPBrSteamMesh::FluxDestination(int interface, TPZVec<int> &equation, TPZVec<int> &state)
+void TPBrSteamMesh::FluxDestination(int interface1, TPZVec<int> &equation, TPZVec<int> &state)
 {
-	int firsteq = FirstInterfaceEquation(interface);
+	int firsteq = FirstInterfaceEquation(interface1);
 	int neq = TPBrSteamFlux::NumFluxEq;
 	int nstate = TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq*2;
-    if(interface == 0)
+    if(interface1 == 0)
     {
         nstate = 0;
     }
-    else if(interface == fNumCells) {
+    else if(interface1 == fNumCells) {
 		nstate=TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq;
 	}
 
@@ -290,21 +290,21 @@ void TPBrSteamMesh::FluxDestination(int interface, TPZVec<int> &equation, TPZVec
 	for (int ieq=0; ieq<neq; ieq++) {
 		equation[ieq] = firsteq+ieq;
 	}
-    if(interface == 0) return;
-    int eq = FirstCellEquation(interface-1);
+    if(interface1 == 0) return;
+    int eq = FirstCellEquation(interface1-1);
     int counter = 0;
     int is;
 	for (is=0; is<TPBrCellConservation::NumCellEq; is++,counter++) {
 		state[is] = eq+counter;
 	}
-    eq = FirstInterfaceEquation(interface);
+    eq = FirstInterfaceEquation(interface1);
     counter = 0;
     for (; is<TPBrCellConservation::NumCellEq+TPBrSteamFlux::NumFluxEq; is++,counter++) {
         state[is] = eq+counter;
     }
-    if(interface != fNumCells)
+    if(interface1 != fNumCells)
     {
-        eq = FirstCellEquation(interface);
+        eq = FirstCellEquation(interface1);
         counter = 0;
         for (; is<2*TPBrCellConservation::NumCellEq+TPBrSteamFlux::NumFluxEq; is++,counter++) {
             state[is] = eq+counter;

@@ -64,7 +64,7 @@ int main()
 
 
  for(ishape = 0; ishape < numShape; ishape++) {
- 	phi(ishape,0) = (random()%100)/41.;
+ 	phi(ishape,0) = (rand()%100)/41.;
 	for(id = 0; id<dim; id++) {
 	 	dphi(id,ishape) = xdsol[xdsolcount++];
 	}
@@ -72,7 +72,7 @@ int main()
 
  TPZVec<REAL> u(numShape * ndof);
  for(i = 0; i<numShape*ndof; i++) {
- 	u[i] = (random()%100)/41.;
+ 	u[i] = (rand()%100)/41.;
  }
 
  for(id = 0; id < dim; id++)

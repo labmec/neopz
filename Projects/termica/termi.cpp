@@ -124,7 +124,7 @@ int main44(){
 		A(i,j) = val;
 	}
 	TPZFMatrix<REAL> x(n,p);
-	for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = random()/100000000.;
+	for(int i = 0; i < n; i++) for(int j = 0; j < p; j++) x(i,j) = rand()/100000000.;
 	A.Print("A=", matrices, EMathematicaInput);
 	x.Print("x=", matrices, EMathematicaInput);
 	TPZFMatrix<REAL> B;

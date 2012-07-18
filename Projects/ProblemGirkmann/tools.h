@@ -70,7 +70,7 @@ public:
 	 *RefDirId: refinamento direcional apenas no material de Id = RefDir (RefDir = 1 casca ou 2 anel)
 	 Se Refdir = 0 ==> aplicar refinamento direcional nos dois materiais 
 	 */
-	TPZGeoMesh * MalhaGeoGen(int ndiv, int ndirectdivL,int ndirectdivR,int ndirectdivp, bool interface,  int RefDirId);
+	TPZGeoMesh * MalhaGeoGen(int ndiv, int ndirectdivL,int ndirectdivR,int ndirectdivp, bool interface1,  int RefDirId);
 	
 	/*
 	 *metodo para fazer refinamento uniforme

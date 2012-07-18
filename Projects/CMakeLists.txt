@@ -110,19 +110,21 @@ ENABLE_TESTING()
 			
 			add_subdirectory(multplaca)
 
-			#projeto Diogo 08-FEB-2012
-			add_subdirectory(Plasticity)
-			#add_subdirectory(prodindex)
-
-			#Projeto Teo Refinamento Paralelo
-			add_subdirectory(RefThread)
-
 			#Projeto Lua 2012
 			add_subdirectory(Lua01)
 
 			#Projeto Denise
 			add_subdirectory(HdivPressureTeste)
-
+			
+			########################## Nao aplicavel para Windows
+			if (NOT WIN32)
+				#Projeto Teo Refinamento Paralelo
+				add_subdirectory(RefThread)
+				#projeto Diogo 08-FEB-2012
+				add_subdirectory(Plasticity)
+			endif()
+			
+			#add_subdirectory(prodindex)
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		

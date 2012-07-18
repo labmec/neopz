@@ -15,7 +15,11 @@
 #include <map>
 #include <string.h>
 #include <stdlib.h>
+#ifdef VC
+#include <time.h>
+#else
 #include <sys/time.h>
+#endif
 #include "pzfmatrix.h"
 #include "pzysmp.h"
 #include "pzstack.h"

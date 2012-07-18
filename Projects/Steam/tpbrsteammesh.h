@@ -111,14 +111,14 @@ private:
 	void ExtractInletfaceState(TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate);
 	
 	/// extract the state variables of the interface element
-	void ExtractInterfaceState(int interface, TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate);
+	void ExtractInterfaceState(int interface1, TPZFMatrix<REAL> &glob, TPZVec<REAL> &interfacestate);
 	
 	/// assemble the contribution of the cell
 	void AssembleCell(int cell, TPZFMatrix<REAL> &ekcell, TPZFMatrix<REAL> &efcell, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res,
                       TPZVec<REAL> &statescales);
 	
 	/// assemble the contribution of the cell
-	void AssembleInterface(int interface, TPZFMatrix<REAL> &ekinterface, TPZFMatrix<REAL> &efinterface, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res, TPZVec<REAL> &statescales);
+	void AssembleInterface(int interface1, TPZFMatrix<REAL> &ekinterface, TPZFMatrix<REAL> &efinterface, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res, TPZVec<REAL> &statescales);
 	
 	/// abstract assemble procedure
 	void AssembleElement(TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZVec<int> &equation, TPZVec<int> &state, TPZMatrix<REAL> &glob, TPZFMatrix<REAL> &res);
@@ -127,7 +127,7 @@ private:
 	void CellDestination(int cell, TPZVec<int> &equation, TPZVec<int> &state);
 	
 	/// equation and state destination indexes for an interface
-	void FluxDestination(int interface, TPZVec<int> &equation, TPZVec<int> &state);
+	void FluxDestination(int interface1, TPZVec<int> &equation, TPZVec<int> &state);
     
 	/// equation and state destination indexes for an interface
 	void FluxDestinationInlet(TPZVec<int> &equation, TPZVec<int> &state);
@@ -140,16 +140,16 @@ private:
     }
     
     /// equation number of the first variable associated with the interface
-    int FirstInterfaceEquation(int interface)
+    int FirstInterfaceEquation(int interface1)
     {
         int eq;
-        if(interface == 0)
+        if(interface1 == 0)
         {
             eq = TPBrSteamFlux::NumInletVars;
         }
         else
         {
-            eq = TPBrSteamFlux::NumInletVars+TPBrSteamFlux::NumFluxEq+(interface-1)*(TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq);
+            eq = TPBrSteamFlux::NumInletVars+TPBrSteamFlux::NumFluxEq+(interface1-1)*(TPBrSteamFlux::NumFluxEq+TPBrCellConservation::NumCellEq);
         }
         return eq;
     }

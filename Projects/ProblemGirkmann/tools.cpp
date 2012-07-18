@@ -98,7 +98,7 @@ TPZFMatrix<REAL> tools::MatrixR(REAL theta)
 }
 
 ///---------------------- ShellGen() -----------------------------------------------
-TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int ndirectdivp, bool interface, int RefDirId)
+TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int ndirectdivp, bool interface1, int RefDirId)
 {
 	//ndiv = 2;
 	int Qnodes = 6*(ndiv + 1);
@@ -280,7 +280,7 @@ TPZGeoMesh * tools::MalhaGeoGen(int ndiv, int ndirectdivR,int ndirectdivL,int nd
 		new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matRefDir1,*gmesh);
 		
 		//---------  Elemento de interface  --------------------------------------------
-		if (interface==true) 
+		if (interface1==true) 
 		{
 			gmesh->AddInterfaceMaterial(mat2Id,mat1Id, mat3Id); //Adicionar um material de interface associados aos elementos mat2 e mat1 do material.
 			gmesh->AddInterfaceMaterial(mat1Id,mat2Id, mat3Id);
