@@ -4,6 +4,9 @@
 #pragma hdrstop
 
 #include "TSwxSteamInjectionData.h"
+#ifdef USING_BOOST
+	#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
+#endif
 
 //---------------------------------------------------------------------------
 
@@ -171,7 +174,11 @@ double TSwxSteamInjectionData::getRegionAuxiliar(int i,double tempo) {
 		return 0.;
 
 	double var_adim = sqrt(delta*tau)/H_RhoCEstrela;
+#ifdef USING_BOOST
+	double func_adim = exp(var_adim*var_adim) * boost::math::erfc(var_adim) + ((2./sqrt(M_PI))*var_adim) - 1.;
+#else
 	double func_adim = exp(var_adim*var_adim) * erfc(var_adim) + ((2./sqrt(M_PI))*var_adim) - 1.;
+#endif
 
 	return ((H_RhoCEstrela*func_adim)/(delta*difTemp));
 }
