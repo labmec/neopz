@@ -11,7 +11,9 @@
 
 #ifdef USING_BOOST
 
+#ifndef WIN32
 #define BOOST_TEST_DYN_LINK
+#endif
 #define BOOST_TEST_MAIN pz material tests
 
 #include <boost/test/unit_test.hpp>
