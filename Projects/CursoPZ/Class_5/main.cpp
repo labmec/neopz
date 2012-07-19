@@ -25,7 +25,7 @@ using namespace std;
 // ny = number of nodes in y direction
 TPZGeoMesh * GetMesh(int nx,int ny);
 
-int main(){
+int main() {
 	TPZSaveable::Register(TPZSAVEABLEID,Restore<TPZSaveable>);
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
@@ -115,10 +115,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 			gmesh->NodeVec()[index] = TPZGeoNode(id,coord,*gmesh);
 		}
 	}
-	
-	//Creates a vector of pointers to geometric elements
-	TPZGeoEl * elvec[(const int)((nx-1)*(ny-1))];
-	
+
 	//Auxiliar vector to store a element connectivities
 	TPZVec <int> connect(4,0);
 	
@@ -130,9 +127,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 			connect[1] = connect[0]+(ny);
 			connect[2] = connect[1]+1;
 			connect[3] = connect[0]+1;
-			//cout << connect << endl;
-			//Allocates and define the geometric element
-			elvec[index] = gmesh->CreateGeoElement(EQuadrilateral,connect,1,id);
+			gmesh->CreateGeoElement(EQuadrilateral,connect,1,id);
 		}
 	}
 	//Generate neighborhod information

@@ -180,9 +180,6 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 		}
 	}
 	
-	//Creates a vector of pointers to geometric elements
-	TPZGeoEl * elvec[(const int)((nx-1)*(ny-1))];
-	
 	//Auxiliar vector to store a element connectivities
 	TPZVec <int> connect(4,0);
 	
@@ -194,9 +191,7 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 			connect[1] = connect[0]+(ny);
 			connect[2] = connect[1]+1;
 			connect[3] = connect[0]+1;
-			//cout << connect << endl;
-			//Allocates and define the geometric element
-			elvec[index] = gmesh->CreateGeoElement(EQuadrilateral,connect,1,id);
+			gmesh->CreateGeoElement(EQuadrilateral,connect,1,id);
 		}
 	}
 	//Generate neighborhod information
@@ -261,7 +256,8 @@ TPZGeoMesh *GetMesh (int nx,int ny){
 void InsertElasticity(TPZCompMesh *mesh)
 {
 	mesh->SetDimModel(3);
-	int nummat = 1, dirichlet = 0, neumann = 1, mixed = 2;
+	int nummat = 1, dirichlet = 0, neumann = 1;
+	//int mixed = 2;
 	int dirbott = -1, dirtop = -2;
 	//TPZManVector<REAL> force(3,0.);
 	//	force[2] = 5.;
