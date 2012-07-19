@@ -93,7 +93,7 @@ void Function(TPZVec<REAL> &x,TPZVec<REAL> &result);
 void NivelDivide(TPZCompMesh *cmesh);
 void Divisao(TPZCompMesh *cmesh);
 void TestShapesDescontinous();
-static clock_t start,end;//,begin,ttot=0;
+static clock_t start,endt;//,begin,ttot=0;
 void CoutTime(clock_t &start);
 static TPZGeoMesh *gmesh = new TPZGeoMesh;
 static TPZCompMesh *cmesh = new TPZFlowCompMesh(gmesh);
@@ -524,9 +524,9 @@ void Divisao(TPZCompMesh *cmesh) {
 }
 
 void CoutTime(clock_t &start){
-    end = clock();
+    endt = clock();
     cout << "\nFim da etapa : "  <<  endl;
-    clock_t segundos = ((end - start)/CLOCKS_PER_SEC);
+    clock_t segundos = ((endt - start)/CLOCKS_PER_SEC);
     cout << segundos << " segundos" << endl;
     cout << segundos/60.0 << " minutos" << endl << endl;
 }

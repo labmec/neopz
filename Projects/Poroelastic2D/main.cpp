@@ -58,6 +58,9 @@
 
 //	Use this tools for Exponential Integral Fuction (Implementation defined at end of this main file) 
 #include <math.h>		// required for fabsl(), expl() and logl()        
+#ifdef USING_BOOST
+	#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
+#endif
 #include <float.h>		// required for LDBL_EPSILON, DBL_MAX
 //	Internally Defined Routines
 double      Exponential_Integral_Ei( double x );
@@ -791,7 +794,11 @@ void SolucaoExata2D(TPZVec<REAL> &ptx,REAL timestep, TPZVec<REAL> &sol, TPZFMatr
 	sol[1]=0.;
 	sol[2]=0.;
 	
+#ifdef USING_BOOST
+	REAL ERFCC = boost::math::erfc((0.5)*(r/sqrt(cMod*segtime)));
+#else
 	REAL ERFCC = erfc((0.5)*(r/sqrt(cMod*segtime)));
+#endif
 	
 	Pressure = (qMod/(4.0*PI*rhof*cMod*r))*(((lambu-lamb)*(lamb+2.0*G))/(pow(alphaMod,2.0)*(lambu+2.0*G)))*ERFCC;
 	
