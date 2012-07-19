@@ -212,8 +212,7 @@ int main(int argc, char *argv[])
         
         VERBOSE(1, "Number of equations " << cmeshauto->NEquations() << endl);
         
-        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),
-                                             nt_decompose.get_value());
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         dohrstruct->IdentifyExternalConnectIndexes();
         
         VERBOSE(1, "Substructuring the mesh" << endl);
@@ -255,7 +254,7 @@ int main(int argc, char *argv[])
         
         gmesh = new TPZGeoMesh;
         cmeshauto = new TPZCompMesh(gmesh);
-        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         /* Read the checkpoint. */
         {
             TPZFileStream CheckPoint1;
@@ -314,7 +313,7 @@ int main(int argc, char *argv[])
         cmeshauto->Read(CheckPoint2, &gmesh);
 	SAVEABLE_SKIP_NOTE(CheckPoint2);
         matptr = dynamic_cast<TPZMatrix<REAL> *>(TPZSaveable::Restore(CheckPoint2, 0));
-        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto);
 	SAVEABLE_SKIP_NOTE(CheckPoint2);
         dohrstruct->Read(CheckPoint2);
     }
@@ -327,7 +326,8 @@ int main(int argc, char *argv[])
         TPZAutoPointer<TPZGuiInterface> gui;
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
-        dohrstruct->Assemble(*matptr,*rhs, gui);
+        dohrstruct->Assemble(*matptr,*rhs, gui, nt_submeshs.get_value(), 
+                             nt_decompose.get_value());
 	assemble_rst.stop();
 
 	precond_rst.start();
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
             running = true;
         gmesh = new TPZGeoMesh;
         cmeshauto = new TPZCompMesh(gmesh);
-        dohrstruct = new TPZDohrStructMatrix(cmeshauto,nt_submeshs.get_value(),nt_decompose.get_value());
+        dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         
         dim = cmeshauto->Dimension();
         VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);

@@ -22,12 +22,10 @@ struct ThreadDohrmanAssembly;
  */
 class TPZDohrStructMatrix : public TPZStructMatrix
 {
-	
-	int fNumThreadsDecompose;
-	
+		
 public:
 	/** @brief We assume that the mesh consists of subcompmeshes */
-	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh, int numthreads_compute, int numthreads_decompose);
+	TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> compmesh);
 	
 	/** @brief Copy constructors */
 	TPZDohrStructMatrix(const TPZDohrStructMatrix &copy);
@@ -52,13 +50,14 @@ public:
 	}
 	
 	/** @brief This will create a DohrMatrix and compute its matrices */
-	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+	virtual TPZMatrix<STATE> * CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+                                              unsigned numthreads_assemble, unsigned numthreads_decompose);
 	
     /**
 	 * @brief Assemble the global system of equations into the matrix which has already been created
 	 */
-	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
-	
+	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+                          unsigned numthreads_assemble, unsigned numthreads_decompose);
 
 	/**
 	 * @brief Assemble the global right hand side

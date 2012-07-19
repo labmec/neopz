@@ -51,23 +51,15 @@ static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
 static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh, int numthreads_compute, int numthreads_decompose) : 
+TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : 
 TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
 fDohrPrecond(0), fMesh(cmesh)
 {
-	fNumThreads = numthreads_compute;
-	fNumThreadsDecompose = numthreads_decompose;
-
-#ifdef PERF_DEBUG
-	std::cout << "TPZDohrStructMatrix::TPZDohrStructMatrix() - fNumThreads: " << fNumThreads 
-	<<	", fNumThreadsDecompose: " << fNumThreadsDecompose << std::endl;
-#endif
-	
 	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix()");
 }
 
-TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : TPZStructMatrix(copy), fNumThreadsDecompose(copy.fNumThreadsDecompose), fDohrAssembly(copy.fDohrAssembly),
-fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
+TPZDohrStructMatrix::TPZDohrStructMatrix(const TPZDohrStructMatrix &copy) : 
+    TPZStructMatrix(copy), fDohrAssembly(copy.fDohrAssembly), fDohrPrecond(copy.fDohrPrecond), fMesh(copy.fMesh)
 {
 	PZ_PTHREAD_MUTEX_INIT(&fAccessElement, 0, "TPZDohrStructMatrix::TPZDohrStructMatrix(copy)");
 }
@@ -159,8 +151,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	std::cout << "Total for Identifying Corner Nodes: " << tempo.ft4identcorner << std::endl; // end of timer
 	
 	TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = new TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> >(assembly);
-	dohr->SetNumThreads(this->fNumThreads);
-	
+
 	int neq = fMesh->NEquations();
 	dohr->Resize(neq,neq);
 	// fCornerEqs was initialized during the mesh generation process
@@ -250,26 +241,27 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 }
 
 // this will create a DohrMatrix and compute its matrices
-TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
+                                                       unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
 	TPZMatrix<STATE> *dohrgeneric = Create();
-    Assemble(*dohrgeneric, rhs, guiInterface);
+    Assemble(*dohrgeneric, rhs, guiInterface, numthreads_assemble, numthreads_decompose);
     return dohrgeneric;
 }
 
     /**
      * @brief Assemble the global system of equations into the matrix which has already been created
      */
-void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface)
+void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, 
+                                   TPZAutoPointer<TPZGuiInterface> guiInterface, 
+                                   unsigned numthreads_assemble, unsigned numthreads_decompose)
 {
-	const int numthreads_assemble = fNumThreads;
-	const int numthreads_decompose = this->fNumThreadsDecompose;
 
 #ifdef PERF_ANALYSIS
 	ClockTimer timer;
 	TimingAnalysis ta;
 #endif
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Initial setup");
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Initial setup");
 
 #ifdef PERF_DEBUG
 	std::cout << "Computing the system of equations for each substructure (TPZDohrStructMatrix::CreateAssemble)\n";
@@ -284,15 +276,15 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	
 	ThreadDohrmanAssemblyList<STATE> worklist;
 	
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Initial setup");
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Initial setup");
 
 #ifdef PERF_DEBUG
-	std::cout << "TPZDohrStructMatrix::CreateAssemble() - numthreads_assemble: " << numthreads_assemble 
+	std::cout << "TPZDohrStructMatrix::Assemble() - numthreads_assemble: " << numthreads_assemble 
 		  << ", numthreads_decompose: " << numthreads_decompose << std::endl;	
 #endif
 
-	TIME_SEC_BEG(timer, (numthreads_assemble > 0)?"TPZDohrStructMatrix::CreateAssemble() - Assembly setup":
-		     "TPZDohrStructMatrix::CreateAssemble() - Assembly and Decompose (seq. version)");
+	TIME_SEC_BEG(timer, (numthreads_assemble > 0)?"TPZDohrStructMatrix::Assemble() - Assembly setup":
+		     "TPZDohrStructMatrix::Assemble() - Assembly and Decompose (seq. version)");
 
 	int isub;
 	for (isub=0; isub<nsub ; isub++) {
@@ -335,11 +327,11 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	}
 	
 	if (numthreads_assemble > 0) {
-		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly setup");
-		TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Assemble threads");
+		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assembly setup");
+		TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Assemble threads");
 	}
 	else {
-		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assembly and Decompose (seq. version)");
+		TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assembly and Decompose (seq. version)");
 	}
 	
 	/* Assemble multi-threaded */
@@ -360,7 +352,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	}
 
 	if (numthreads_assemble > 0) {
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Assemble threads");
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Assemble threads");
 #ifdef LOG4CXX2
         int isub = 0;
         for (it=sublist.begin(); it!=sublist.end(); it++) {
@@ -371,7 +363,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose setup");
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Decompose setup");
 	}
 	
 	// Second  pass : decomposing 
@@ -389,8 +381,8 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	
 	if (numthreads_assemble > 0) {
 
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose setup");
-	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Decompose setup");
+	  TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Decompose threads");
 	
 	  if (numthreads_decompose == 0) {
 	    /* Compute it sequentialy */
@@ -413,24 +405,24 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 		PZ_PTHREAD_JOIN(allthreads_decompose[itr], NULL, __FUNCTION__);
 	      }
 	  }
-	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Decompose threads");
+	  TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Decompose threads");
 	}
 
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing added after Nathan");
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Post processing added after Nathan");
 	for (it=sublist.begin(), isub=0; it != sublist.end(); it++,isub++) {
 		TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
 		(*it)->ContributeRhs(rhsloc);
         fDohrAssembly->Assemble(isub,rhsloc,rhs);
 	}
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing added after Nathan");
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Post processing added after Nathan");
 
-	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
+	TIME_SEC_BEG(timer,"TPZDohrStructMatrix::Assemble() - Post processing");
 	dohr->Initialize();
 	TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
 	precond->Initialize();
 	fDohrPrecond = precond;
 
-	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::CreateAssemble() - Post processing");
+	TIME_SEC_END(ta,timer,"TPZDohrStructMatrix::Assemble() - Post processing");
 
 #ifdef PERF_ANALYSIS
 	ta.share_report(std::cout);
@@ -1666,7 +1658,6 @@ void TPZDohrStructMatrix::Write(TPZStream &str)
     if (hasdohrassembly) {
         fDohrAssembly->Write(str);
     }
-    str.Write(&fNumThreadsDecompose);
     TPZSaveable::WriteObjects(str, fExternalConnectIndexes);
     TPZSaveable::WriteObjects(str,fCornerEqs);
 }
@@ -1679,7 +1670,6 @@ void TPZDohrStructMatrix::Read(TPZStream &str)
         fDohrAssembly = new TPZDohrAssembly<STATE>;
         fDohrAssembly->Read(str);
     }
-    str.Read(&fNumThreadsDecompose);
     TPZSaveable::ReadObjects(str, fExternalConnectIndexes);
     TPZSaveable::ReadObjects(str, fCornerEqs);    
 }

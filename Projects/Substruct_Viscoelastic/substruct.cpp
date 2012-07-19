@@ -132,7 +132,7 @@ int main1(int argc, char *argv[])
 		int numthread_assemble = 20;
 		int numthread_decompose = 20;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
-		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
+		TPZDohrStructMatrix dohrstruct(cmeshauto);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
@@ -164,7 +164,7 @@ int main1(int argc, char *argv[])
 				subcompmesh->SetAnalysisSkyline(0,0,fakegui);
 			}
 		}
-		TPZMatrix<REAL> *stiff2 = skyl.CreateAssemble(rhsfake, fakegui);
+		TPZMatrix<REAL> *stiff2 = skyl.CreateAssemble(rhsfake, fakegui,numthread_assemble,numthread_decompose);
 		*/
 		
 #ifdef LOG4CXX
@@ -184,7 +184,7 @@ int main1(int argc, char *argv[])
 		TPZMatrix<STATE> *matptr = dohrstruct.Create();
 		
 		 
-		dohrstruct.Assemble(*matptr,rhs, gui);
+		dohrstruct.Assemble(*matptr,rhs,gui,numthread_assemble,numthread_decompose);
 
 	
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;

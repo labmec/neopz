@@ -137,7 +137,7 @@ int main1(int argc, char *argv[])
 		int numthread_assemble = 0;
 		int numthread_decompose = 0;
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
-		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
+		TPZDohrStructMatrix dohrstruct(cmeshauto);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
@@ -173,7 +173,7 @@ int main1(int argc, char *argv[])
             TPZCompMesh *loccmesh = new TPZCompMesh(&locgmesh);
             TPZAutoPointer<TPZCompMesh> loccmeshauto(loccmesh);
             loccmesh->Read(CheckPoint1, &locgmesh);
-            TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
+            TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint1);
             
         }
@@ -203,11 +203,11 @@ int main1(int argc, char *argv[])
             TPZMatrix<STATE> *mat;
             mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
             delete mat;
-            TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
+            TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint2);
             
         }
-        dohrstruct.Assemble(*matptr,rhs, gui);
+        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
 
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
@@ -355,7 +355,7 @@ int main3(int argc, char *argv[])
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh,numthread_assemble,numthread_decompose);
+        TPZDohrStructMatrix dohrstruct(cmesh);
 
         {
             TPZFileStream CheckPoint1;
@@ -400,11 +400,11 @@ int main3(int argc, char *argv[])
             TPZMatrix<STATE> *mat;
             mat = dynamic_cast<TPZMatrix<STATE> *>(TPZSaveable::Restore(CheckPoint2, 0));
             delete mat;
-            TPZDohrStructMatrix locdohrstruct(loccmeshauto,numthread_assemble,numthread_decompose);
+            TPZDohrStructMatrix locdohrstruct(loccmeshauto);
             locdohrstruct.Read(CheckPoint2);
             
         }
-        dohrstruct.Assemble(*matptr,rhs, gui);
+        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
         TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
@@ -553,7 +553,7 @@ int main4(int argc, char *argv[])
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh,numthread_assemble,numthread_decompose);
+        TPZDohrStructMatrix dohrstruct(cmesh);
         
         dim = cmesh->Dimension();
         
@@ -574,7 +574,7 @@ int main4(int argc, char *argv[])
             
         }
         TPZFMatrix<STATE> rhs(cmesh->NEquations(),1,0.);
-        dohrstruct.Assemble(*matptr,rhs, gui);
+        dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
         
         TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
         TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
@@ -732,7 +732,7 @@ int main5(int argc, char *argv[])
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
         int numthread_assemble = 0;
         int numthread_decompose = 0;
-        TPZDohrStructMatrix dohrstruct(cmesh,numthread_assemble,numthread_decompose);
+        TPZDohrStructMatrix dohrstruct(cmesh);
         
         dim = cmesh->Dimension();
         

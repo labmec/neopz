@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 		int numthread_assemble = 0; //RAUL
 		int numthread_decompose = 0; //RAUL
 		TPZAutoPointer<TPZCompMesh> cmeshauto(cmesh);
-		TPZDohrStructMatrix dohrstruct(cmeshauto,numthread_assemble,numthread_decompose);
+		TPZDohrStructMatrix dohrstruct(cmeshauto);
 		
 		dohrstruct.IdentifyExternalConnectIndexes();
 		
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 		
 		TPZMatrix<STATE> *matptr = dohrstruct.Create();
 
-		dohrstruct.Assemble(*matptr,rhs, gui);
+		dohrstruct.Assemble(*matptr,rhs, gui, numthread_assemble, numthread_decompose);
 		
 		TPZAutoPointer<TPZMatrix<STATE> > dohr = matptr;
 		TPZAutoPointer<TPZMatrix<STATE> > precond = dohrstruct.Preconditioner();
