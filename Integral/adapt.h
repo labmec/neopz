@@ -89,16 +89,26 @@ inline TPZVec<REAL> Adapt::Vintegrate(T &func, const int dim, const REAL a, cons
 {
     TPZVec<REAL> Vansw(dim);
     
+    TPZVec< TPZVec<REAL> > FUNCTy(13);
+    
     REAL m,h,fa,fb,i1,i2,is,erri1,erri2,r,y[13];
     m = 0.5 * (a + b);
     h = 0.5 * (b - a);
+    
+    FUNCTy[0] = func(a);
+    for(int i = 1; i < 12; i++ )
+    {
+        FUNCTy[i] = func(m + x[i] * h);
+    }
+    FUNCTy[12] = func(b);
+    
     for(int d = 0; d < dim; d++)
     {
-        fa = y[0] = func(a)[d];
-        fb = y[12] = func(b)[d];
+        fa = y[0] = FUNCTy[0][d];
+        fb = y[12] = FUNCTy[12][d];
         for(int i = 1; i < 12; i++ )
         {
-            y[i] = func(m + x[i] * h)[d];
+            y[i] = FUNCTy[i][d];
         }
         i2 = (h/6.0) * (y[0] + y[12] + 5.0 * (y[4] + y[8]));
         i1 = (h/1470.0) * (77.0 * (y[0] + y[12]) + 432.0 * (y[2] + y[10]) + 625.0 * (y[4] + y[8]) + 672.0 * y[6]);
