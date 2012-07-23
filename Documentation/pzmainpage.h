@@ -111,7 +111,7 @@ environment are different from regular finite element codes
  \section metis Metis library
  If you set USING_METIS as TRUE, you must to install Metis library. \n
  Metis library is avaliable 
- from <a href="http://www.labmec.org.br/libexternal/metis">Metis 5.0</a>
+ from <a href="http://www.labmec.org.br/pz/libexternal/metis">Metis 5.0</a>
  
  The least metis version actually suported by PZ is 5.0.x \n
  METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, \n
@@ -137,7 +137,7 @@ environment are different from regular finite element codes
  \li .\\bootstrap.bat
  \li .\\b2 install or .\\bjam install
  
- See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
+ See <a href="http://www.boost.org/doc/libs/1_49_0/doc/html/bbv2/installation.html">Installation</a>
  
  \section fad Fad library
  
