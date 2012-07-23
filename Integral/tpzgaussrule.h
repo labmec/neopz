@@ -32,7 +32,7 @@ class TPZGaussRule {
     friend class TPZIntRuleList;
 	
 	/** @brief Number of integration points for this object */
-    short	   fNumInt;
+    int	   fNumInt;
 	/** @brief Location of the integration point */
     TPZVec<long double>	fLocation;
 	/** @brief Weight of the integration point */
@@ -114,7 +114,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	void ComputingGaussLegendreQuadrature(int npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	void ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 	/** 
 	 * @brief Computes the points and weights for Gauss Lobatto Quadrature over the parametric 1D element \f$ [-1.0, 1.0] \f$
 	 * It is to integrate functions \f$ f(x) \f$, but the first and last integration points are \f$ -1.0 \f$ and \f$1.0\f$ respectively
@@ -149,7 +149,7 @@ protected:
 	 * @param Location Vector of integration points ksi
 	 * @param Weight Vector of corresponding weights
 	 */
-	void ComputingGaussJacobiQuadrature(int npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
+	void ComputingGaussJacobiQuadrature(int *npoints,long double alpha, long double beta,TPZVec<long double> &Location,TPZVec<long double> &Weight);
 
 	/**
 	 * @brief Evaluates the Jacobi polinomial for real x.

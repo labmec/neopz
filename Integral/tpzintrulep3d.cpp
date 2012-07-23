@@ -123,12 +123,12 @@ void TPZIntRuleP3D::ComputingCubatureRuleForPyramid(int order) {
 	leg_w.Resize(plane_order,0.0L);
 	leg_x.Resize(plane_order,0.0L);
 	TPZGaussRule intrule(2);
-	intrule.ComputingGaussLegendreQuadrature(plane_order,leg_x,leg_w);
+	intrule.ComputingGaussLegendreQuadrature(&plane_order,leg_x,leg_w);
 
 	/** Computing the rule to jacobi format */
 	jacobi_w.Resize(zeta_order,0.0L);
 	jacobi_x.Resize(zeta_order,0.0L);
-	intrule.ComputingGaussJacobiQuadrature(zeta_order,2.0L,0.0L,jacobi_x,jacobi_w);
+	intrule.ComputingGaussJacobiQuadrature(&zeta_order,2.0L,0.0L,jacobi_x,jacobi_w);
 	
 	volume = pztopology::TPZPyramid::RefElVolume();      //4.0L/3.0L;
 

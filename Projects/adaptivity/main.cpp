@@ -103,7 +103,7 @@ int gDebug = 1;
 
 
 
-int main(){
+int main() {
     
     InitializePZLOG();
     InitializeRotation();
@@ -111,7 +111,7 @@ int main(){
     int dim = 0;
     int opt = 0;
     
-    TPZCompEl::SetgOrder(mygorder);
+0    TPZCompEl::SetgOrder(mygorder);
     gDebug = 0;
     
     TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
