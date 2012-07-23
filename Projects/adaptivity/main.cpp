@@ -117,18 +117,11 @@ int main(){
     TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
     TransformMesh(cmesh->Reference());
     
-    //	TPZCheckGeom::main();
-    //	return 0;
-    //	return (TPZGeoCloneMesh::main());
-    
     std::ofstream convergence("conv3d.txt");
     
-    
     cmesh->Reference()->SetName("Malha Geometrica original");
-    // cmesh->Reference()->Print(cout);
     
     cmesh->SetName("Malha Computacional Original");
-    // cmesh->Print(cout);
     
     cmesh->CleanUpUnconnectedNodes();
     TPZStack<std::string> scalnames, vecnames;
@@ -153,7 +146,6 @@ int main(){
     std::ofstream out("output.txt");
     
     //Multigrid======================
-    
     //   TPZMGAnalysis mgan (cmesh);
     //   mgan.SetStructuralMatrix(strskyl);
     //   TPZStepSolver *direct = new TPZStepSolver;
@@ -169,8 +161,6 @@ int main(){
         int r;
         for(r=0; r<nref; r++) {
             
-            //      if (r == 7) gDebug = 1;
-            
             TPZAnalysis an (cmesh);
             if (opt == 4 || opt == 7 || opt == 8){
                 an.SetExact(ExactSimple3D);
@@ -181,8 +171,6 @@ int main(){
             else if(opt==12){
                 an.SetExact(Exact3D);
             }
-            //char buf [256];
-            //sprintf(buf,"hptest%d.dx",r);
             {
                 std::stringstream sout;
                 int angle = (int) (alfa*180./M_PI + 0.5);
@@ -214,10 +202,6 @@ int main(){
             direct = 0;
             
             an.Run();
-            //an.Rhs().Print();
-            //an.Solution().Print();
-            
-            //if (r==nref -1)
                 
             an.PostProcess(4,dim);
             {
@@ -305,10 +289,6 @@ int main(){
                 //  adptmesh->Print(cout);
             }
             
-            //      if (r==6){
-            //	adptmesh->Print(cout);
-            //      }
-            
             std::cout.flush();
             cmesh->Reference()->ResetReference();
             cmesh->LoadReferences();
@@ -316,15 +296,7 @@ int main(){
             delete cmesh;
             cmesh = adptmesh;
             
-            // adptmesh->Print(out);
             cmesh->CleanUpUnconnectedNodes();
-            //adptmesh->Print(out);
-            //adptmesh->Print(MALHAG);//CEDRIC
-            
-            /*   if (r == (nref-1)){ */
-            /*        an.PostProcess(2,2); */
-            /*        std::cout << "The maximum level = " << MaxLevel(cmesh) << std::endl; */
-            /*      } */
         }
     }
 #ifdef LOG4CXX
@@ -336,7 +308,6 @@ int main(){
         LOGPZ_DEBUG(logger, sout.str())
     }
 #endif
-    //TPZMatrixSolver::Diagnose();
     CompareNeighbours(cmesh->Reference());
     delete cmesh;
     return 0;
@@ -355,7 +326,7 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
     opt = 1;
-//    std::cin >> opt;
+    std::cin >> opt;
     
     TPZCompMesh *cmesh;
     
@@ -421,13 +392,13 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     opt > 3 ? dim=3 : dim = 2;
     
     std::cout << "number of refinement steps : ";
-    nref = 30;
-//    std::cin >> nref;
+//    nref = 30;
+    std::cin >> nref;
     
     std::cout << "Maximum p order:    ";
     int p;
-    p=8;
-//    std::cin >> p;
+//    p=8;
+    std::cin >> p;
     std::cout << std::endl;
     
     TPZOneDRef::gMaxP = p;

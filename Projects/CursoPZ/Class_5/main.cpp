@@ -52,11 +52,16 @@ int main() {
 	TPZFMatrix<REAL> xcin (1,1,0.);
 	TPZFMatrix<REAL> xfin (1,1,1e3);
 	mat2d->SetMaterial(xkin,xcin,xfin);
-	TPZAutoPointer<TPZMaterial> mat(mat2d);
-	cmesh->InsertMaterialObject (mat.operator->());
+	//TPZMaterial* mat(mat2d);
+	cmesh->InsertMaterialObject (mat2d);
 	cmesh->AutoBuild();
 	TPZVec<int> subelindex(4,0);
 	cmesh->ElementVec()[0]->Divide(0,subelindex,0);
+
+    cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+
 	cmesh->Reference()->Print(cout);
 	out << "antes de lido\n";
 	//Prints the refined mesh
@@ -79,8 +84,8 @@ int main() {
 		if(tsc) tsc->Print(out);
 		delete tst;
 	}
-	delete cmesh;
-	delete mesh;
+	if(cmesh) delete cmesh;
+	if(mesh) delete mesh;
 	return 0;
 	
 }
