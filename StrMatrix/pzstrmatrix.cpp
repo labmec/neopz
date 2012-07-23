@@ -301,7 +301,7 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 		
 		if(!el->HasDependency()) {
 			ef.ComputeDestinationIndices();
-			if(fMinEq != -1 & fMaxEq != -1)
+			if(fMinEq != -1 && fMaxEq != -1)
 			{
 				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
 			}
@@ -310,7 +310,7 @@ void TPZStructMatrix::Serial_Assemble(TPZFMatrix<STATE> & rhs, TPZAutoPointer<TP
 			// the element has dependent nodes
 			ef.ApplyConstraints();
 			ef.ComputeDestinationIndices();
-			if(fMinEq != -1 & fMaxEq != -1)
+			if(fMinEq != -1 && fMaxEq != -1)
 			{
 				FilterEquations(ef.fSourceIndex,ef.fDestinationIndex,fMinEq,fMaxEq);
 			}

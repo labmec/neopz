@@ -74,7 +74,7 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	
 	/** @brief Multiplies the transfer matrix and puts the result in z*/
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha, TVar beta, int opt = 0, int stride = 1) const ;
+				 const TVar alpha, TVar beta, const int opt = 0, const int stride = 1) const ;
 	
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than

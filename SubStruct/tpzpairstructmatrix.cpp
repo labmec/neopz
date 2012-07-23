@@ -81,7 +81,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 			ek.ApplyConstraints();
 			ef.ApplyConstraints();
 			ek.ComputeDestinationIndices();
-			if(mineq != -1 & maxeq != -1)
+			if(mineq != -1 && maxeq != -1)
 			{
 				TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
 			}
