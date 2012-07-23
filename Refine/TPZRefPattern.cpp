@@ -1066,9 +1066,6 @@ void TPZRefPattern::ReadPattern(std::istream &in)
 		}
 	}
 	
-    
-    //AQUICAJU : apos ler e escrever o fPermutations (ver proximo AQUICAJU abaixo), chavear para quais dos metodos abaixo podem ser omitidos!
-	//SetRefPatternMeshToMasterDomain();
 	fRefPatternMesh.BuildConnectivity();//conectividades entre sub-elementos
 	GeneratePermutations(father);
 	ComputeTransforms();//calcula as transformacoes entre filhos e pai
@@ -1123,29 +1120,6 @@ void TPZRefPattern::WritePattern(std::ofstream &out)
 		out << fSideRefPattern[is] << ' ';
 	}
 	out << std::endl;
-   
-//AQUICAJU    
-//    FALTA ESCREVER E LER O fPermutations
- //   // AAAAAQQQQQUUUUUUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII.........................................................................
-//    //std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> > TPZRefPattern::fPermutations;
-//    nperm = fPermutations.size();
-//    out << nperm << std::endl;
-//    std::map<MElementType, std::list<TPZRefPattern::TPZRefPatternPermute> >::iterator itP;
-//    std::list<TPZRefPattern::TPZRefPatternPermute>::iterator itL;
-//    for(itP = fPermutations.begin(); itP != fPermutations.end(); itP++)
-//    {
-//        MElementType eltype = itP->first;
-//        std::list<TPZRefPattern::TPZRefPatternPermute> myList = itP->second;
-//        int listSz = myList.size();
-//        out << int(eltype) << ' ' << listSz << ' ';
-//        
-//        for(itL = myList.begin(); itL != myList.end(); itL++)
-//        {
-//            TPZRefPattern::TPZRefPatternPermute refpPerm = *itL;
-//            TPZFileStream fStr;
-//            refpPerm.Write(fStr);
-//        }
-//    }
 }
 
 int TPZRefPattern::SidePartition(TPZVec<TPZGeoElSide> &gelvec, int side)

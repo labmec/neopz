@@ -60,22 +60,6 @@ namespace pzgeom {
 	
 	void TPZGeoPrism::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
-		
-#ifdef DEBUG
-		int nnodes = NNodes;
-		if (nnodes != 6) {
-			PZError << "TPZGeoPrism.jacobian only implemented for"
-			" 6 nodes, NumberOfNodes = " << nnodes << "\n";
-		}
-		const REAL tol = 1.e-3;
-		if( param[0] < 0.-tol || param[0] > 1.+tol || param.NElements() != 3 ||
-		   param[1] < 0.-tol || param[1] > 1.+tol || param[2] < -1.-tol || param[2] > 1.+tol) {
-			PZError << "TPZGeoPrism::jacobian. param out of range : "
-			" param.NElements() = " << param.NElements() <<
-			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-			return;
-		}
-#endif
 		jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		REAL spacephi[6];
 		TPZFMatrix<REAL> phi(6,1,spacephi,6);

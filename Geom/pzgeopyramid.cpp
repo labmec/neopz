@@ -93,21 +93,6 @@ namespace pzgeom {
 	
 	void TPZGeoPyramid::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
-		
-#ifdef DEBUG
-		int nnodes = NNodes;
-		if (nnodes != 5) {
-			PZError <<	"TPZGeoPyramid.jacobian only implemented for"
-			" 5 nodes, NumberOfNodes = " << nnodes << "\n";
-		}
-		if(param.NElements() != 3 || param[0] < -1.001 || param[0] > 1.001 ||
-		   param[1] < -1.001 || param[1] > 1.001 || param[2] < -0.001 || param[2] > 1.001) {
-			PZError << "TPZGeoPyramid.jacobian. param out of range : "
-			" param.NElements() = " << param.NElements() <<
-			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-			return;
-		}
-#endif
         jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		REAL spacephi[5];
 		TPZFMatrix<REAL> phi(5,1,spacephi,5);

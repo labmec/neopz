@@ -105,19 +105,6 @@ namespace pzgeom {
 	
 	void TPZGeoCube::Jacobian(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
-#ifdef DEBUG
-		//  if (NNodes != 8) {
-		//    PZError << "TPZGeoCube.jacobian only implemented for"
-		//      " 8 nodes, NumberOfNodes = " << NNodes << "\n";
-		//  }
-		if(param.NElements() != 3 || param[0] < -1.001 || param[0] > 1.001 ||
-		   param[1] < -1.001 || param[1] > 1.001 || param[2] < -1.001 || param[2] > 1.001) {
-			PZError << "TPZGeoCube.jacobian. param out of range : "
-			" param.NElements() = " << param.NElements() <<
-			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-			return;
-		}
-#endif
 		jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		int nrow = nodes.Rows();
 		int ncol = nodes.Cols();

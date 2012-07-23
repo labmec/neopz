@@ -92,7 +92,9 @@ TPZVec<REAL> Path::Func(double t)
     this->normalVec(t, nt);
 
     TPZGeoEl * geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, fInitial2DElementId, this->fcmesh->Reference());
-    TPZVec<REAL> qsi(dim3D);
+    TPZVec<REAL> qsi(dim3D,0.);
+    
+    //std::cout << xt[0] << " , " << xt[1] << " , " << xt[2] << std::endl;//AQUICAJU
     bool isInsideDomain = geoEl->ComputeXInverse(xt, qsi);
     
     #ifdef DEBUG
@@ -475,7 +477,7 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
     Path jpathElem = fPathVec[p];
 
-    double precisionIntegralRule = 1.E-100;
+    double precisionIntegralRule = 1.E-30;
     Adapt intRule(precisionIntegralRule);
     
     linearPath _LinearPath;
@@ -506,13 +508,12 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     TPZVec<REAL> integrLinPath = intRule.Vintegrate(_LinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
     TPZVec<REAL> integrExtArc  = intRule.Vintegrate(_ExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
     TPZVec<REAL> integrIntArc  = intRule.Vintegrate(_IntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    
-    //multiplicado por 2 pois estou aproveitando a simetria do domínio em relacao ao plano xz.
+
+    //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
     TPZVec<REAL> answ(dim3D);
-    for(int d = 0; d < dim3D; d++)
-    {
-        answ[d] = 2.*(integrLinPath[d] + integrExtArc[d] + integrIntArc[d]);
-    }
+    answ[0] = 2.*(integrLinPath[0] + integrExtArc[0] + integrIntArc[0]);
+    answ[1] = 0.;
+    answ[2] = 2.*(integrLinPath[2] + integrExtArc[2] + integrIntArc[2]);
     
     return answ;
 }

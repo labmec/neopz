@@ -260,28 +260,29 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & init
     // elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
     TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[elFoundId];
     
-    TPZManVector<REAL,3> coord(x), qsi3D(3);
+    TPZManVector<REAL,3> coord(x), qsi3D(3,0.);
     while(gelfullmesh->Type() != ECube)
     {
         int side = gelfullmesh->NSides()-1;
         gelfullmesh = gelfullmesh->Neighbour(side).Element();
     }
+
     while(gelfullmesh->ComputeXInverse(coord, qsi3D) == false)
-    { 
-        gelfullmesh->PrintNodesCoordinates();
-        int cubeFace_in_Y_direction = 25;//confirmar
-        TPZGeoEl * nextGel = gelfullmesh->Neighbour(cubeFace_in_Y_direction).Element();
-        if(nextGel->Type() != ECube)
+    {
+        int cubeFace_in_Y_direction = 25;
+        TPZGeoElSide cubeSide = gelfullmesh->Neighbour(cubeFace_in_Y_direction);
+        while(cubeSide.Element()->Type() != ECube || cubeSide.Element()->Father())
         {
-            std::cout << "Elemento encontrado nao eh cubo!!!\n";
-            DebugStop();
+            cubeSide = cubeSide.Neighbour();
         }
+        TPZGeoEl * nextGel = cubeSide.Element();
         if(nextGel == gelfullmesh)
         {
             std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
         gelfullmesh = nextGel;
+        qsi3D.Resize(3, 0.);
     }
     TPZVec<TPZGeoEl*> subElements(0);
     
@@ -300,20 +301,9 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & init
     for(int cd = 0; cd < nCandidates; cd++)
     {
         TPZGeoEl * cand = subElements[cd];
-//AQUICAJU
-{
-//    cand->Print();
-//    std::ofstream ccc("prism.vtk");
-//    cand->SetMaterialId(777);
-//    std::set<int> myMat;
-//    myMat.insert(777);
-//    TPZVTKGeoMesh::PrintGMeshVTKmy_material(fullMesh, ccc, myMat);
-//    cand->Father()->PrintNodesCoordinates();
-//    cand->PrintNodesCoordinates();
-//    std::cout << coord[0] << "\t" << coord[1] << "\t" << coord[2] << std::endl;
-}
-        if(cand->ComputeXInverse(coord, qsi3D,1.E15) == true)
+        if(cand->ComputeXInverse(coord, qsi3D) == true)
         {
+            //std::cout << coord[0] << " , " << coord[1] << " , " << coord[2] << std::endl;//AQUICAJU
             searchedGel = cand;
             break;
         }
@@ -638,7 +628,7 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
     int nrows, ncols;
     
     std::list<double>::iterator it = espacamento.end(); it--;
-    double tickness = 4.*__maxLength;//tickness is the distance between plane of fracture and plane of farfield
+    double tickness = 25.*__maxLength;//tickness is the distance between plane of fracture and plane of farfield
     
     int nDirRef = int(log(fabs(tickness)/__maxLength)/log(2.));
     int nLayers = nDirRef + 2;
@@ -2071,20 +2061,20 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     std::cout << "Numero de equacoes = " << neq << std::endl;
     
     ////Analysis
-//	TPZAnalysis an(fractureCMesh);
-//    
-//	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
-//	TPZStepSolver<STATE> step;
-//	step.SetDirect(ECholesky);
-//    
-//    an.SetStructuralMatrix(skylin);
-//	an.SetSolver(step);
-//	an.Run();
+	TPZAnalysis an(fractureCMesh);
+    
+	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
+	TPZStepSolver<STATE> step;
+	step.SetDirect(ECholesky);
+    
+    an.SetStructuralMatrix(skylin);
+	an.SetSolver(step);
+	an.Run();
     
     int POSmiddle1D = int(double(fcrackBoundaryElementsIds.NElements())/2. + 0.5);
     int middle1DId = fcrackBoundaryElementsIds[POSmiddle1D];
     TPZGeoEl * gel1D = fractureCMesh->Reference()->ElementVec()[middle1DId];
-    Path pathMiddle(fractureCMesh, gel1D, 0.2, 0.3);
+    Path pathMiddle(fractureCMesh, gel1D, 0.4, 0.8);
     JIntegral jInt;
     jInt.PushBackPath(pathMiddle);    
     TPZVec<REAL> Jvector = jInt.IntegratePath(0);
@@ -2092,18 +2082,18 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     std::cout << Jvector[0] << "\t" << Jvector[1] << "\t" << Jvector[2] << std::endl;
     
     ////Post Processing
-//    TPZManVector<std::string,10> scalnames(6), vecnames(0);
-//    scalnames[0] = "DisplacementX";
-//    scalnames[1] = "DisplacementY";
-//    scalnames[2] = "DisplacementZ";
-//    scalnames[3] = "StressX";
-//    scalnames[4] = "StressY";
-//    scalnames[5] = "StressZ";
-//    
-//    int div = 0;
-//    const int dim = 3;
-//    an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-//    an.PostProcess(div,dim);
+    TPZManVector<std::string,10> scalnames(6), vecnames(0);
+    scalnames[0] = "DisplacementX";
+    scalnames[1] = "DisplacementY";
+    scalnames[2] = "DisplacementZ";
+    scalnames[3] = "StressX";
+    scalnames[4] = "StressY";
+    scalnames[5] = "StressZ";
+    
+    int div = 0;
+    const int dim = 3;
+    an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
+    an.PostProcess(div,dim);
     
     /** 
      
@@ -2143,7 +2133,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
     cmesh->SetAllCreateFunctionsContinuous();
     
     STATE young = 1000.;
-    STATE poisson = 0.2;
+    STATE poisson = 0.0;
     TPZVec<STATE> force(3,0.);
     
     TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);
@@ -2167,15 +2157,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
         TPZMaterial * materialDirichOut = new TPZElasticity3D(-300, young, poisson, force);
         TPZBndCond * dirichetOutside = new TPZBndCond(materialDirichOut,__2DfractureMat_outside, dirichlet, k, f);
         cmesh->InsertMaterialObject(dirichetOutside);
-        //
-        TPZMaterial * materialDirichTop = new TPZElasticity3D(-301, young, poisson, force);
-        TPZBndCond * dirichetTop = new TPZBndCond(materialDirichTop,__2DtopMat, dirichlet, k, f);
-        cmesh->InsertMaterialObject(dirichetTop);
-        
-        TPZMaterial * materialDirichBottom = new TPZElasticity3D(-302, young, poisson, force);
-        TPZBndCond * dirichetBottom = new TPZBndCond(materialDirichBottom,__2DbottomMat, dirichlet, k, f);
-        cmesh->InsertMaterialObject(dirichetBottom);
-        
+        //        
         k(0,0) = 1.E15;
         TPZMaterial * materialDirichLeftField = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * dirichetLFarfield = new TPZBndCond(materialDirichLeftField,__2DleftMat, mixed, k, f);
@@ -2195,49 +2177,6 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
         TPZBndCond * newmanFarfield = new TPZBndCond(materialNewman,__2DfarfieldMat, newmann, k, f); 
         cmesh->InsertMaterialObject(newmanFarfield);
     }
-
-    
-    //    //Pressure inside fracture
-//    {
-//        f(0,0) = 0;
-//        f(1,0) = 0.;
-//        f(2,0) = 0.;
-//        
-//        TPZMaterial * materialDirichOut = new TPZElasticity3D(-300, young, poisson, force);
-//        TPZBndCond * dirichetOutside = new TPZBndCond(materialDirichOut,__2DfractureMat_outside, dirichlet, k, f);
-//        cmesh->InsertMaterialObject(dirichetOutside);
-//        //
-//        TPZMaterial * materialDirichTop = new TPZElasticity3D(-301, young, poisson, force);
-//        TPZBndCond * dirichetTop = new TPZBndCond(materialDirichTop,__2DtopMat, dirichlet, k, f);
-//        cmesh->InsertMaterialObject(dirichetTop);
-//        
-//        TPZMaterial * materialDirichBottom = new TPZElasticity3D(-302, young, poisson, force);
-//        TPZBndCond * dirichetBottom = new TPZBndCond(materialDirichBottom,__2DbottomMat, dirichlet, k, f);
-//        cmesh->InsertMaterialObject(dirichetBottom);
-//        
-//        TPZMaterial * materialDirichFarField = new TPZElasticity3D(-303, young, poisson, force);
-//        TPZBndCond * dirichetFarfield = new TPZBndCond(materialDirichFarField,__2DfarfieldMat, dirichlet, k, f);
-//        cmesh->InsertMaterialObject(dirichetFarfield); 
-//        
-//        k(0,0) = 1.E15;
-//        TPZMaterial * materialDirichLeftField = new TPZElasticity3D(-304, young, poisson, force);
-//        TPZBndCond * dirichetLFarfield = new TPZBndCond(materialDirichLeftField,__2DleftMat, mixed, k, f);
-//        cmesh->InsertMaterialObject(dirichetLFarfield); 
-//        
-//        TPZMaterial * materialDirichRightField = new TPZElasticity3D(-305, young, poisson, force);
-//        TPZBndCond * dirichetRFarfield = new TPZBndCond(materialDirichRightField,__2DrightMat, mixed, k, f);
-//        cmesh->InsertMaterialObject(dirichetRFarfield); 
-//        //
-//        //
-//        //
-//        //
-//        TPZMaterial * materialNewman = new TPZElasticity3D(-400, young, poisson, force);
-//        f(0,0) = 0.;
-//        f(1,0) = pressureY;//Pressao constante e unitaria na direcao Y>0
-//        f(2,0) = 0.;
-//        TPZBndCond * newmanInside = new TPZBndCond(materialNewman,__2DfractureMat_inside, newmann, k, f); 
-//        cmesh->InsertMaterialObject(newmanInside);
-//    }
     
     cmesh->AutoBuild();
     

@@ -47,22 +47,6 @@ namespace pzgeom {
 	
 	void TPZGeoTetrahedra::Jacobian(const TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv){
 		
-#ifdef DEBUG
-		int nnodes = NNodes;
-		if (nnodes != 4) {
-			PZError << "TPZGeoTetrahedra.jacobian only implemented for"
-			" 4 nodes, NumberOfNodes = " << nnodes << "\n";
-		}
-		if(param.NElements() != 3 || param[0] < -0.001 || param[0] > 1.001 ||
-		   param[1] < -0.001 || param[1] > 1.001 || param[2] < -0.001 || param[2] > 1.001 || (param[0]+param[1]+param[2]) > 1.001) {
-			PZError << "TPZGeoTetrahedra.jacobian. param out of range : "
-			" param.NElements() = " << param.NElements() <<
-			"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-			PZError << (param.NElements() != 3) << " " << (param[0] < -0.001) << " " << (param[0] > 1.001) << " " <<
-			(param[1] < -0.001) << " " <<  (param[1] > 1.001) << " " <<  (param[2] < -0.001) << " " << (param[2] > 1.001) << " " << ((param[0]+param[1]+param[2]) > 1.001) << endl;
-			return;
-		}
-#endif
         jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
 		REAL spacephi[10];
 		TPZFMatrix<REAL> phi(4,1,spacephi,10);

@@ -133,7 +133,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		}
 		if(gmesh->ElementVec()[el]->HasSubElement())
 		{
-			continue;
+			//continue;
 		}
 		
         MElementType elt = gmesh->ElementVec()[el]->Type();

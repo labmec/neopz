@@ -18,7 +18,7 @@
 #include "pzskylstrmatrix.h"
 #include "pzstepsolver.h"
 #include "pzgeotetrahedra.h"
-
+#include "TPZVTKGeoMesh.h"
 
 using namespace std;
 
@@ -37,54 +37,54 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 
 
 #include "adapt.h"
-/*
-class funcao
-{
-public:
-    
-    funcao()
-    {
-        
-    }
-    ~funcao()
-    {
-        
-    }
-    TPZVec<REAL> operator()(double x)
-    {
-        TPZVec<REAL> val = this->func(x);
-        return val;
-    }
-    
-    static TPZVec<REAL> func(REAL x)
-    {
-        TPZVec<REAL> val(3);
-        val[0] = sin(x)*log10(x);
-        val[1]= sin(log10(x) + x*4.*atan(1.))*x*x;
-        val[2] = -x*x*x + 25.*x*x - 12.*x + 4.;
-        
-        return val;
-    }
-};
 
-int main(int argc, char * const argv[])
-{
-    Adapt intRule(1.E-100);
-    
-    funcao funcaoOBJ;
-    
-    const REAL a = 5.5;
-    const REAL b = 12.4;
-    TPZVec<REAL> integr = intRule.Vintegrate(funcaoOBJ,3,a,b);
-    
-    std::cout.precision(16);
-    std::cout << "Integracao implementada:" << std::endl << integr[0] << std::endl << integr[1] << std::endl << integr[2] << std::endl;
-    
-    //integracao no Mathematica: { -0.5003764204009151 ; 42.81520273504423 ; 8106.846224999997 }
-    
-    return 0;
-}
-*/
+//class funcao
+//{
+//public:
+//    
+//    funcao()
+//    {
+//        
+//    }
+//    ~funcao()
+//    {
+//        
+//    }
+//    TPZVec<REAL> operator()(double x)
+//    {
+//        TPZVec<REAL> val = this->func(x);
+//        return val;
+//    }
+//    
+//    static TPZVec<REAL> func(REAL x)
+//    {
+//        TPZVec<REAL> val(3);
+//        val[0] = sin(x)*log10(x);
+//        val[1]= sin(log10(x) + x*4.*atan(1.))*x*x;
+//        val[2] = -x*x*x + 25.*x*x - 12.*x + 4.;
+//        
+//        return val;
+//    }
+//};
+//
+//int main(int argc, char * const argv[])
+//{
+//    Adapt intRule(1.E-100);
+//    
+//    funcao funcaoOBJ;
+//    
+//    const REAL a = 5.5;
+//    const REAL b = 12.4;
+//    TPZVec<REAL> integr = intRule.Vintegrate(funcaoOBJ,3,a,b);
+//    
+//    std::cout.precision(16);
+//    std::cout << "Integracao implementada:" << std::endl << integr[0] << std::endl << integr[1] << std::endl << integr[2] << std::endl;
+//    
+//    //integracao no Mathematica: { -0.5003764204009151 ; 42.81520273504423 ; 8106.846224999997 }
+//    
+//    return 0;
+//}
+
 
 
 int mainTESE(int argc, char * const argv[])
@@ -150,7 +150,7 @@ int main(int argc, char * const argv[])
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();
     
-    #define writeAgain
+    //#define writeAgain
 #ifdef writeAgain
     gRefDBase.InitializeRefPatterns();
 #else
@@ -171,10 +171,10 @@ int main(int argc, char * const argv[])
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
     
     TPZVec<REAL> fractureDots(4);
-    fractureDots[0] = 5.;
-    fractureDots[1] = 0.;
-    fractureDots[2] = 5.;
-    fractureDots[3] = -100.;
+    fractureDots[0] = 22.;
+    fractureDots[1] = -2.;
+    fractureDots[2] = 22.;
+    fractureDots[3] = -98.;
     
     
     TPZTimer clockIni2("PartyBegins2");

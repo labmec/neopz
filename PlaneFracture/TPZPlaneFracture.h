@@ -376,6 +376,8 @@ class TPZPlaneFracture
 
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
+    
+public:
 	
 	/** @brief Original plane mesh (keeped intact for any poligonalChain configuration) */
 	TPZGeoMesh * fPlaneMesh;
