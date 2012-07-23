@@ -111,7 +111,7 @@ environment are different from regular finite element codes
  \section metis Metis library
  If you set USING_METIS as TRUE, you must to install Metis library. \n
  Metis library is avaliable 
- from <a href="http://glaros.dtc.umn.edu/gkhome/metis/metis/download">Karypis Lab</a>
+ from <a href="http://www.labmec.org.br/libexternal/metis">Metis 5.0</a>
  
  The least metis version actually suported by PZ is 5.0.x \n
  METIS is a set of serial programs for partitioning graphs, partitioning finite element meshes, \n
@@ -121,10 +121,10 @@ environment are different from regular finite element codes
  If you set USING_BOOST as TRUE it is necessary to install the Boost library. \n
  Get the latest version of BOOST library at download from <a href="http://sourceforge.net/projects/boost/files/boost">Sourceforge</a>. \n
  
- It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.47.0">1.47.0</a>
+ It is recommended to use version <a href="http://sourceforge.net/projects/boost/files/boost/1.49.0">1.49.0</a> or newer.
  
- Use boost_1_47_0.tar.gz or boost_1_47_0.tar.bz2 for unix or mac systems. \n
- Use boost_1_47_0.7z or boost_1_47_0.zip for windows system.
+ Use boost_1_49_0.tar.gz or boost_1_49_0.tar.bz2 for unix or mac systems. \n
+ Use boost_1_49_0.7z or boost_1_49_0.zip for windows system.
  
  To install following next steps:\n
  Uncompress the version downloaded. \n
@@ -134,15 +134,15 @@ environment are different from regular finite element codes
  \li sudo ./bjam install
  
  For Windows systems, execute: \n
- \li ./bootstrap.bat
- \li ./bjam install
+ \li .\\bootstrap.bat
+ \li .\\b2 install or .\\bjam install
  
  See <a href="http://www.boost.org/doc/libs/1_47_0/doc/html/bbv2/installation.html">Installation</a>
  
  \section fad Fad library
  
- The neopz project uses a old library to fast automatic differentiation <a href=" http://www.ann.jussieu.fr/~pironnea/">FAD</a>, but it seems inactive. 
- You can to claim a copy of the source code sending e-mail to phil@fec.unicamp.br.
+ The neopz project uses a old library to fast automatic differentiation <a href=" http://www.labmec.org.br/pz/libexternal/fad">FAD</a>, but it seems inactive. 
+ You can to claim a copy of the source code sending e-mail to contato@labmec.org.br.
  
  We are testing now using another library <a href="http://www.fadbad.com/fadbad.html">FADBAD++</a>. (2007)\n
  This library implements the forward, backward and Taylor methods utilizing C++ templates and operator overloading. 
@@ -152,11 +152,11 @@ environment are different from regular finite element codes
  
  \section log4cxx Log4cxx library
  
- Apache <a href="http://logging.apache.org/log4cxx/">log4cxx</a> is a logging framework for C++ pattern. It has three main components: loggers, appenders and layouts.
+ Apache <a href="http://www.labmec.org.br/pz/libexternal/log4cxx/">log4cxx</a> is a logging framework for C++ pattern. It has three main components: loggers, appenders and layouts.
  These three types of components work together to enable developers to log messages according to message type and level, 
  and to control at runtime how these messages are formatted and where they are reported.
  
- To install, <a href="http://logging.apache.org/log4cxx/download.html">download</a> apache-log4cxx-0.10.0.zip for windows system, or apache-log4cxx-0.10.0.tar.gz for unix or mac systems. \n
+ To install for unix or mac systems, <a href="http://www.labmec.org.br/pz/libexternal/log4cxx/">download</a> apache-log4cxx-0.10.0.zip for windows system, or apache-log4cxx-0.10.0.tar.gz for unix or mac systems. \n
  Then uncompress the archive. Using command line change into uncompress directory. \n
  Type de following commands: \n
  \li ./configure
@@ -165,15 +165,24 @@ environment are different from regular finite element codes
  
  \section pthread Pthread library
  
- The neopz project uses <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/">PThread</a> library for the POSIX pthread threading. 
+ The neopz project uses <a href="http://www.labmec.org.br/pz/libexternal/pthread/">PThread</a> library for the POSIX pthread threading. 
  To install for unix or mac systems, make <a href="http://staff.science.uva.nl/~bterwijn/Projects/PThread/PThread.tar.gz">download</a> of the source code. Uncompress the archive and using command line change into the uncompress directory with PThread.
  Use the following commands:
  \li ./configure
  \li make
  \li sudo make install
  
- For windows system, get the header files and release libraries (dll, lib) from <a href="http://sourceware.org/pthreads-win32/>sourceware</a>. You can to connect with server as guest and then copy the include and lib directories into your system.
-
+ For windows system: 
+ \li download from <a href="http://www.labmec.org.br/pz/libexternal/pthread/">pthread_win</a>. 
+ \li unzip the code
+ \li change to directory where the code was unzipped
+ \li cd pthreads.2
+ \li run "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" - to sets the environment variables according to your system
+ \li nmake clean VC-static - to build pthread library
+ \li rename pthreadVC2.lib to pthread.lib and copy to externallibs\lib
+ \li copy include directory from Pre-built.2 to externallibs\include
+ 
+ You can also download the prebuilt lib from <a href="http://www.labmec.org.br/pz/libexternal/pthread/">pthread_win_VC10</a>.
  
  \page neopz OVER PZ LIBRARY
 
