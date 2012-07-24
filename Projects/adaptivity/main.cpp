@@ -111,7 +111,7 @@ int main() {
     int dim = 0;
     int opt = 0;
     
-0    TPZCompEl::SetgOrder(mygorder);
+    TPZCompEl::SetgOrder(mygorder);
     gDebug = 0;
     
     TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
