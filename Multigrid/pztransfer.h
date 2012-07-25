@@ -40,7 +40,7 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	{
 	}
 	
-		virtual TPZMatrix<TVar> *Clone() const { return new TPZTransfer(*this); }
+	virtual TPZMatrix<TVar> *Clone() const { return new TPZTransfer(*this); }
 	
 	//TPZMatrix<REAL> : EFormatted, EInputFormat, EMathematicaInput
 	virtual void Print(const char *name = NULL, std::ostream &out = std::cout , const MatrixOutputFormat form = EFormatted) const;
@@ -74,7 +74,7 @@ class TPZTransfer : public TPZMatrix<TVar> {
 	
 	/** @brief Multiplies the transfer matrix and puts the result in z*/
 	void MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
-				 const TVar alpha, TVar beta, const int opt = 0, const int stride = 1) const ;
+				 const TVar alpha,const TVar beta, const int opt = 0, const int stride = 1) const ;
 	
 	/**
 	 * @brief Will transfer the solution, taking into acount there may be more than

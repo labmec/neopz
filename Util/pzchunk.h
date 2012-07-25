@@ -108,7 +108,7 @@ TPZChunkVector<T,EXP>::~TPZChunkVector()
 	int nchunks=fVec.NElements();
 	
 	for(int i=0;i<nchunks;i++)
-		if(fVec[i]) delete[] fVec[i];
+		if(fVec[i]) delete fVec[i];
 }
 
 // Increase the size of the chunk vector
@@ -129,11 +129,6 @@ void TPZChunkVector<T,EXP>::Resize(const int newsize) {
 	
 	int chunksneeded = ((newsize-1) >> EXP)+1;
 	if (chunksneeded == nchunks) return;
-	
-	//int chunksneeded = ((newsize-1)/sizechunk)+1;
-	
-	//   if(newsize == 0)
-	//      chunksneeded = 0;
 	
 	T *NullPointer = 0;
 	
@@ -213,15 +208,9 @@ fVec(TCh.fVec.NElements()) {
 	}
 }
 
-
 template < class T, int EXP >
 TPZChunkVector<T,EXP> & TPZChunkVector<T,EXP>::operator=(const TPZChunkVector<T,EXP> &TCh){
 	if(this == &TCh) return *this;
-	//   int n=fVec.NElements();
-	
-	//   for(int i=0;i<n;i++)
-	//      if(fVec[i])
-	//	 delete[] fVec[i];
 	int prvsz = fVec.NElements();
 	int sz = TCh.fVec.NElements();
 	int i;
@@ -231,7 +220,6 @@ TPZChunkVector<T,EXP> & TPZChunkVector<T,EXP>::operator=(const TPZChunkVector<T,
 	
 	fVec.Resize(sz,0);
 	fVec.Shrink();
-	//   fExponent = TCh.fExponent;
 	fNElements = TCh.NElements();
 	
 	int nchunks = sz;
