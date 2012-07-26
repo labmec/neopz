@@ -89,6 +89,6 @@
 class GeoMeshClass {
 
 public:
-	static TPZGeoMesh * Beangm();
+	static TPZGeoMesh * Talude();
 	
 };

@@ -80,6 +80,8 @@ public:
 //		fInitialEps = DRUCKERPARENT::GetState();
 		
 	}
+    
+    
 	
 	REAL YieldRadius(TPZPlasticState<REAL> state)
 	{
@@ -146,12 +148,35 @@ public:
         REAL hardeningModulus       = 10000000000.;
         REAL coesion       = 10000.;
         material.fResTol = 1.e-8;
-        
-        
         material.SetUp(young,poisson,fangle,coesion,hardeningModulus);
         
     }
     
+    static void ConventionalConcrete(TPZDruckerPrager & material, int InnerOuter)
+	{
+    	REAL pi = M_PI;
+	    REAL cohesion = 11.2033; //yield- coesao inicial correspondeno a fck igual 32 Mpa
+	    REAL phi =  20./180. * pi; //phi=20
+	    REAL hardening = 1000.; //Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao
+	    REAL young = 20000.;
+	    REAL poisson = 0.2;
+        material.fYC.SetUp(phi,InnerOuter);
+		material.fTFA.SetUp(cohesion, hardening);
+		material.fER.SetUp(young, poisson);
+	}
+    
+    static void TaludeMaterial(TPZDruckerPrager & material, int InnerOuter)
+	{
+    	REAL pi = M_PI;
+        REAL cohesion = 50.; //yield- coesao inicialem KPa
+	    REAL phi =  20./180. * pi; //phi=20
+	    REAL hardening = 1.; //Modulo de hardening da coesao equivante 0.01 Mpa a cada 0.1% de deformacao
+	    REAL young = 20000.;//E em KPa
+	    REAL poisson = 0.49;
+         material.fYC.SetUp(phi,InnerOuter);
+		material.fTFA.SetUp(cohesion, hardening);
+		material.fER.SetUp(young, poisson);
+	}
 	
 private:
 	

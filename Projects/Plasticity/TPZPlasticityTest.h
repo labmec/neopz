@@ -2154,7 +2154,7 @@ inline void TPZPlasticTest::MohrCoulombTest()
 	
 	typedef TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse> TPZMohrCoulomb;
 	TPZMohrCoulomb Pstep;
-	Pstep.fYC.SetUp(/*phi=20*/ 20./180. * M_PI,1);
+	Pstep.fYC.SetUp(/*phi=20*/ 20./180. * M_PI);
 	REAL coesao = 9.2376;
 	Pstep.fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ coesao, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1000.);
 	Pstep.fER.SetUp(/*young*/ 20000., /*poisson*/ 0.);
@@ -2218,7 +2218,7 @@ inline void TPZPlasticTest::ModifiedMohrCoulombTest()
 	typedef TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse> TPZModifiedMohrCoulomb;
 	TPZModifiedMohrCoulomb Pstep;
 	REAL pi = M_PI;
-	Pstep.fYC.SetUp(/*phi=20*/ 20./180. * pi ,/*innerMCFit*/0);
+	Pstep.fYC.SetUp(/*phi=20*/ 20./180. * pi );
 	REAL coesao = 9.2376;
 	Pstep.fTFA.SetUp(/*yield- coesao inicial correspondeno a fck igual 32 Mpa */ coesao, /*k Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao */1000.);
 	Pstep.fER.SetUp(/*young*/ 20000., /*poisson*/ 0.);
