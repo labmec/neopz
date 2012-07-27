@@ -22,7 +22,7 @@
 #include "pzfstrmatrix.h"
 #include "pzbndmat.h"
 #include "pzgeoquad.h"
-#include "tpzgeocube.h"
+#include "TPZGeoCube.h"
 #include "pzgeotetrahedra.h"
 #include "pzgeopyramid.h"
 #include "tpzgeoelrefpattern.h"
