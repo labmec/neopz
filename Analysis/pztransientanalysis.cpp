@@ -274,7 +274,7 @@ template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::Assemble(){
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
-		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << (bool) fSolver << " at file " 
+		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
 		<< __FILE__ << " line " << __LINE__ << endl;
 		return;
 	}
@@ -330,7 +330,7 @@ template<class TRANSIENTCLASS>
 void TPZTransientAnalysis<TRANSIENTCLASS>::ComputeFluxOnly(){
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZTransientAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
-		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << (bool) fSolver << " at file " 
+		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
 		<< __FILE__ << " line " << __LINE__ << endl;
 		return;
 	}

@@ -108,7 +108,7 @@ TPZChunkVector<T,EXP>::~TPZChunkVector()
 	int nchunks=fVec.NElements();
 	
 	for(int i=0;i<nchunks;i++)
-		if(fVec[i]) delete fVec[i];
+		if(fVec[i]) delete[] fVec[i];
 }
 
 // Increase the size of the chunk vector

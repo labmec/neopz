@@ -758,7 +758,7 @@ TPZMatrixSolver<STATE> *TPZAnalysis::BuildPreconditioner(EPrecond preconditioner
         {
             std::map<int,int> blocksizes;
             int i;
-            int totalsize;
+            int totalsize = 0;
             for(i=0; i< expblockgraphindex.NElements()-1;i++)
             {
                 int bls = expblockgraphindex[i+1]-expblockgraphindex[i];

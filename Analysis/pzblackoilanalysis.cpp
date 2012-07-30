@@ -124,7 +124,7 @@ void TPZBlackOilAnalysis::Run(std::ostream &out, bool linesearch){
 				this->Assemble();
 				fLastState = this->fRhs;
 				this->SetCurrentState();
-				this->fNIter = fCurrentStep + (1./fator) * (fNIter - fCurrentStep) + 0.5;
+				this->fNIter = fCurrentStep + ((int)((1./fator) * (fNIter - fCurrentStep) + 0.5));
 			}
 			
 		}//Newton's iterations
@@ -235,7 +235,7 @@ void TPZBlackOilAnalysis::PostProcess(TPZVec<REAL> &loc, std::ostream &out){
 void TPZBlackOilAnalysis::Assemble(){
 	if(!fCompMesh || !fStructMatrix || !fSolver){
 		cout << "TPZBlackOilAnalysis::Assemble lacking definition for Assemble fCompMesh "<< (void *) fCompMesh 
-		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << (bool) fSolver << " at file " 
+		<< " fStructMatrix " << (bool) fStructMatrix << " fSolver " << fSolver << " at file " 
 		<< __FILE__ << " line " << __LINE__ << endl;
 		return;
 	}

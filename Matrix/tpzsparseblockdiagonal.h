@@ -31,7 +31,7 @@ public:
     TVar& operator ( )(const int row, const int col);
     virtual int Substitution(TPZFMatrix<TVar>* B) const;
     virtual TVar& s(const int row, const int col);
-    virtual void Print(const char* message, std::ostream& out, MatrixOutputFormat=EFormatted) const;
+    virtual void Print(const char* message, std::ostream& out, const MatrixOutputFormat=EFormatted) const;
     void AddBlock(int i, TPZFMatrix<TVar>& block);
     void BuildFromMatrix(TPZMatrix<TVar>& matrix);
     void GetBlock(int i, TPZFMatrix<TVar>& block);

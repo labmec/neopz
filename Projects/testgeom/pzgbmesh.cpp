@@ -32,6 +32,8 @@
 #include "TPZRefPatternDataBase.h"
 #include "pzgengrid.h"
 
+#include "TPZVTKGeoMesh.h"
+
 using namespace std;
 
 // Program to reproduce issue 1 into CodeGoogle NeoPZ
@@ -97,6 +99,10 @@ int main() {
 	int nDiv = 2;
 	UniformRefine(gmesh2, nDiv);
 	gmesh2->Print(saida);
+
+    std::ofstream graphfile("output.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh2.operator->(), graphfile);
+	graphfile.close();
 
 	saida.close();
 	return 0;

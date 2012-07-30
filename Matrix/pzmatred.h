@@ -87,7 +87,7 @@ public:
 	 */
 	virtual int PutVal(const int row, const int col, const TVar& value);
 	virtual const TVar &GetVal(const int row, const int col) const;
-	virtual TVar &s(int row, int col);
+	virtual TVar &s(const int row, const int col);
 	
 	/** @brief This method will zero all submatrices associated with this reducable matrix class */
 	virtual int Zero();
@@ -169,7 +169,7 @@ public:
 			   const MatrixOutputFormat = EFormatted) const;
 	
 	/** @brief Redim: Set the dimension of the complete matrix and reduced matrix */
-	int Redim(int dim, int dim00); //Cesar 19/12/00
+	int Redim(const int dim,const int dim00); //Cesar 19/12/00
 	
 	/**
 	 * @brief It computes z = beta * y + alpha * opt(this)*x but z and x can not overlap in memory.
