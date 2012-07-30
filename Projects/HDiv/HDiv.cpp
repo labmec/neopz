@@ -86,9 +86,9 @@ int main()
 	}
 #endif
 	
-	for (int porder= 3; porder<4; porder++) {
+	for (int porder= 4; porder<5; porder++) {
 		
-		for(int h=2;h<3;h++){
+		for(int h=1;h<5;h++){
 			
 			
 			TPZGeoMesh *gmesh2 = MalhaGeo(h);//malha geometrica
@@ -111,19 +111,19 @@ int main()
             cel->CalcStiff(ek, ef);
             ek.ApplyConstraints();
             */
-#ifdef LOG4CXX
-            if (logger->isDebugEnabled())
-            {
-                std::stringstream sout;
-                cmesh->Print(sout);
-                LOGPZ_DEBUG(logger, sout.str())
-            }
-#endif
+//#ifdef LOG4CXX
+//            if (logger->isDebugEnabled())
+//            {
+//                std::stringstream sout;
+//                cmesh->Print(sout);
+//                LOGPZ_DEBUG(logger, sout.str())
+//            }
+//#endif
 			int submeshindex = -1;
 			TPZSubCompMesh *submesh = 0;
 			// Aq faz a condensacao estatica			
 			if(h >=0)
-				if(0)
+				if(-1)
 				{
 					submeshindex = SubStructure(cmesh,1);//monto a submalha com os elementos q serao condesados (externos) e retorna o numero de elementos computacionais da malha
 					submesh = dynamic_cast<TPZSubCompMesh *> (cmesh->ElementVec()[submeshindex]);//converte os elementos computacionais para um objeto do tipo TPZSubCompMesh
@@ -132,16 +132,17 @@ int main()
 					TPZAutoPointer<TPZGuiInterface> guiInter = new TPZGuiInterface;
 					int numThreads=0;
 					submesh->SetAnalysisSkyline(numThreads,1, guiInter);
+						cmesh->SetName("Malha depois de SubStructure-----");
+#ifdef LOG4CXX
+						{
+								std::stringstream sout;
+								cmesh->Print(sout);
+								LOGPZ_DEBUG(logger,sout.str())
+						}
+#endif
 				}
 			
-			cmesh->SetName("Malha depois de SubStructure-----");
-#ifdef LOG4CXX
-			{
-				std::stringstream sout;
-				cmesh->Print(sout);
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
+
 			
 			
 			cmesh->LoadReferences();//mapeia para a malha geometrica lo
@@ -235,8 +236,8 @@ int main()
 				
 			}		
 			// restore the original state
-		}
-	}
+		
+	
 	/*	cmesh->ElementVec() = elvec;
 	 int autovecsize = cmesh->Solution().Rows();
 	 
@@ -265,12 +266,12 @@ int main()
 	 scalnames[0] = "Pressure";
 	 vecnames[0] = "Flux";
 	 
-	 std::string plotfile("Autovec.vtk");
+	 std::string plotfile("AutovecAprox.vtk");
 	 const int dim = 2;
 	 int div = 2;
 	 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	 analysis.PostProcess(div,dim);*/
-	
+		}}
 	
 	return 0;
 }
