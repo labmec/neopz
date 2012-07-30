@@ -40,8 +40,10 @@ TPZMaterial * TPZL2Projection::NewMaterial(){
 
 void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
+    TPZManVector<STATE> solloc(fSol);
 	if (this->HasForcingFunction()){
-		this->fForcingFunction->Execute(data.x, this->fSol);
+        solloc.Resize(fForcingFunction->NFunctions());
+		this->fForcingFunction->Execute(data.x, solloc);
 	}
     int numbersol = data.sol.size();
     if (numbersol != 1) {
@@ -50,13 +52,13 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	
 	const int nvars = this->fNStateVars;
 	if (this->fIsReferred){
-		this->fSol.Resize(nvars);
-		if (data.sol.NElements() < 2*nvars){//it means the referred element does not exist or it is an interface element. In that case, I ASSUME the referred solution is ZERO
-			this->fSol.Fill(0.);
+		solloc.Resize(nvars);
+		if (data.sol[0].NElements() < 2*nvars){//it means the referred element does not exist or it is an interface element. In that case, I ASSUME the referred solution is ZERO
+			solloc.Fill(0.);
 		}//if
 		else{
 			for(int i = 0; i < nvars; i++){
-				this->fSol[i] = data.sol[0][i+nvars];
+				solloc[i] = data.sol[0][i+nvars];
 			}//for
 		}//else
 	}//if
@@ -65,16 +67,14 @@ void TPZL2Projection::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<
 	for(int i = 0; i < nshape; i++){
 		for(int j = 0; j < nshape; j++){
 			for(int ivi = 0; ivi < nvars; ivi++){
-				for(int ivj = 0; ivj < nvars; ivj++){
-					const int posI = nvars*i+ivi;
-					const int posJ = nvars*j+ivj;
-					ek(posI, posJ) += weight*fScale*data.phi(i,0)*data.phi(j,0);
-				}//ivj
+                const int posI = nvars*i+ivi;
+                const int posJ = nvars*j+ivi;
+                ek(posI, posJ) += weight*fScale*data.phi(i,0)*data.phi(j,0);
 			}//ivi
 		}//for j
 		for(int ivi = 0; ivi < nvars; ivi++){
 			const int posI = nvars*i+ivi;
-			ef(posI,0) += (STATE)weight*(STATE)fScale*(STATE)data.phi(i,0)*this->fSol[ivi];
+			ef(posI,0) += (STATE)weight*(STATE)fScale*(STATE)data.phi(i,0)*solloc[ivi];
 		}//ivi
 	}//for i
 }
