@@ -6,8 +6,8 @@ file(GLOB source *.cpp)
 
 set(pzclass3 ${source} PARENT_SCOPE)
 
-add_executable(CursoPZ_Class3 ${source} ${header})
+add_executable(CursoPZ3_Jacobian ${source} ${header})
 
-target_link_libraries(CursoPZ_Class3 pz pthread)
+target_link_libraries(CursoPZ3_Jacobian pz pthread)
 
 include (CTestTestFile.cmake)

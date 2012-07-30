@@ -6,9 +6,9 @@ file(GLOB source *.cpp)
 
 set(pzclass2 ${source} PARENT_SCOPE)
 
-add_executable(CursoPZ_Class2 ${source} ${header})
+add_executable(CursoPZ2_MatrixSolver ${source} ${header})
 
-target_link_libraries(CursoPZ_Class2 pz pthread)
+target_link_libraries(CursoPZ2_MatrixSolver pz pthread)
 
 include (CTestTestFile.cmake)
 

@@ -12,16 +12,14 @@
 
 using namespace std;
 
-void FillMatrix(TPZMatrix<REAL> &mat,int neq, int banda);
-void FillF(TPZFMatrix<REAL> &f, int neq, int nst);
-
-int main(){
+int main() {
   int neq=1000;
   int banda=50;
   int i;
  
   TPZFMatrix<REAL>  *cheia = new TPZFMatrix<REAL>(neq,neq, 0.);
-  FillMatrix(*cheia,neq,banda);
+  cheia->AutoFill();
+//  FillMatrix(*cheia,neq,banda);
 
   TPZVec <int> skyvec(neq,0);
   for (i=0;i<neq;i++){
@@ -30,13 +28,15 @@ int main(){
   }
 
   TPZSkylMatrix<REAL>  *skyline = new TPZSkylMatrix<REAL>(neq,skyvec);
-  FillMatrix(*skyline,neq,banda);
+  skyline->AutoFill();
+//  FillMatrix(*skyline,neq,banda);
 
   cheia->Print( "Matriz cheia ",cout);
   skyline->Print( "Matriz skyline ",cout);
 
-  TPZFMatrix<REAL> F;
-  FillF(F,neq,1);
+  TPZFMatrix<REAL> F(neq,1);
+  F.AutoFill();
+//  FillF(F,neq,1);
   F.Print("Vetor de Carga ",cout);
 
   TPZFMatrix<REAL> resultcheia;
@@ -59,27 +59,3 @@ int main(){
 	return 0;
 }
 
-void FillMatrix(TPZMatrix<REAL> &mat,int neq, int banda){
-  int i,j;
-  for ( i=0;i<neq;i++){
-    mat(i,i)=2000.;
-    int col = i+banda+1;
-    if (col >= neq ) col = neq; 
-    for ( j=i+1;j<col;j++){
-      mat(i,j)=500./(j-i);
-      mat(j,i)=500./(j-i);
-    }
-  }
-}
-
-void FillF(TPZFMatrix<REAL> &f,int neq, int nst){
-  double PI = 3.1416;
-  f.Resize(neq,nst);
-  int i,j;
-  for (i=0;i<neq;i++){
-    for (j=0;j<nst;j++){
-      double val = (double)(i%10);
-      f(i,j)=PI*val;
-    }
-  }
-}

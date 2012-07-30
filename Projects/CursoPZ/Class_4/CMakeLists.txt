@@ -6,8 +6,8 @@ file(GLOB source *.cpp)
 
 set(pzclass4 ${source} PARENT_SCOPE)
 
-add_executable(CursoPZ_Class4 ${source} ${header})
+add_executable(CursoPZ4_GeoMesh ${source} ${header})
 
-target_link_libraries(CursoPZ_Class4 pz pthread)
+target_link_libraries(CursoPZ4_GeoMesh pz pthread)
 
 #include (CTestTestFile.cmake)
