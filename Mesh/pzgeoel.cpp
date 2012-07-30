@@ -596,32 +596,47 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 		}
 	}
 	
+    int timesThatLeftDomain = 0;
 	while(error > Tol && iter < nMaxIter)
 	{
+        if(timesThatLeftDomain > 1)
+        {
+            #ifdef DEBUG
+            std::cout << "For two attempts the ksi point left the reference domain! This element was dismissed!" << std::endl;
+            #endif
+            
+            return false;
+        }
 		iter++;
 		TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
 		REAL detJ;
 		TPZFNMatrix<9> J(dim,dim,0.),axes(dim,3,0.),Inv(dim,dim,0.);
 		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
 		Jacobian(ksi,J,axes,detJ,Inv);
-		if(fabs(detJ) < 1e-10)
+		if(fabs(detJ) < 1.e-10)
 		{
 			TPZManVector<REAL,3> center(Dimension(),0.);
 			CenterPoint(NSides()-1, center);
 			cout << "ComputeXInverse found zero Jacobian Index " << this->fIndex << " ksi " << ksi << " detJ " << detJ << std::endl;
-			for(int ik = 0; ik < ksi.NElements(); ik++) ksi[ik] += Tol*(center[ik]-ksi[ik]);
-			residual(0,0) = 1e12;
+			for(int ik = 0; ik < ksi.NElements(); ik++)
+            {
+                ksi[ik] += Tol*(center[ik]-ksi[ik]);
+            }
+			residual(0,0) = 1.e12;
 		}
 		else
 		{
 			TPZFNMatrix<9> axest;
 			axes.Transpose(&axest);
 			axest.Resize(3,dim);//casos 1D e 2D onde JX espacial � 1x3 e 2x3 respectivamente
-			if(dim==1){
+			if(dim==1)
+            {
 				JX(0,0) = axest(0,0)*J(0,0);
 				JX(1,0) = axest(1,0)*J(0,0);
 				JX(2,0) = axest(2,0)*J(0,0);
-			} else {
+			}
+            else
+            {
 				axest.Multiply(J,JX,0,1);
 			}
 			
@@ -629,29 +644,39 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 			JXt.Multiply(JX,JXtJX,0,1);//JXtJX = JXt*JX;
 			JXt.Multiply(DelX,residual);//cout << "\nComputeXInverse: : \n";
 			JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
-			for(i=0; i<dim; i++) ksi[i] += residual(i,0);
+			for(i=0; i<dim; i++)
+            {
+                ksi[i] += residual(i,0);
+            }
+            if(this->IsInParametricDomain(ksi) == false)
+            {
+                timesThatLeftDomain++;
+                this->ProjectInParametricDomain(ksi, ksi);
+            }
 		}
 		X(ksi,X0);
-		for(i=0; i<3; i++) DelX(i,0) = XD[i]-X0[i];
+		for(i=0; i<3; i++)
+        {
+            DelX(i,0) = XD[i]-X0[i];
+        }
 		//A norma sobre coordenada parametrica eh mais objetiva pois os limites do
 		//elemento mestre sao mais claros que os do elemento real
 		//       error = Norm(DelX);
 		error = Norm(DelX)/radius;
 	}
 	
-#ifdef DEBUG
+    #ifdef DEBUG
 	if(iter == nMaxIter)
 	{
 		std::stringstream sout;
 		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved";
 		PZError << "\n" << sout.str() << "\n";
 		
-#ifdef LOG4CXX
+        #ifdef LOG4CXX
 		LOGPZ_ERROR(logger,sout.str().c_str());
-#endif
-	}//if
-	
-#endif
+        #endif
+	}
+    #endif
 	
 	return ( this->IsInParametricDomain(ksi) );
 }
