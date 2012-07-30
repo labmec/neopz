@@ -4,9 +4,6 @@ Header file for class TPZGeoCloneMesh.
 A TPZGeoCloneMesh defines a clone for geometrical mesh and contains a corresponding list of
 	geometrical clone elements
 	geometrical clone nodes
-	coordinate systems
-	elementwise defined boundary conditions ????
-	nodal boundary conditions. ????
 Various methods are defined to add, delete or loop over the items which are
 contained within the TPZGeoMesh.
 */
