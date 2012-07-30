@@ -219,15 +219,16 @@ void TPZCondensedCompEl::CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef)
     }
 
     fCondensed.SetF(ef.fMat);
+    int dim1 = fCondensed.Dim1();
+    TPZFNMatrix<200,STATE> K11(dim1,dim1),F1(dim1,ef.fMat.Cols());
     //const TPZFMatrix<REAL> &k11 = fCondensed.K11Red();
-	const TPZFMatrix<STATE> &k11 = fCondensed.K11Red();
+	fCondensed.K11Reduced(K11, F1);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-	const TPZFMatrix<STATE> &f1 = fCondensed.F1Red();
-    int dim0 = dim-k11.Rows();
+    int dim0 = dim-K11.Rows();
     for (int i=dim0; i<dim; i++) {
-        ef.fMat(i,0) = f1.GetVal(i-dim0,0);
+        ef.fMat(i,0) = F1.GetVal(i-dim0,0);
         for (int j=dim0; j<dim; j++) {
-            ek.fMat(i,j) = k11.GetVal(i-dim0,j-dim0);
+            ek.fMat(i,j) = K11.GetVal(i-dim0,j-dim0);
         }
     }
 }
@@ -243,7 +244,8 @@ void TPZCondensedCompEl::CalcResidual(TPZElementMatrix &ef)
     ef.PermuteGather(fIndexes);
     fCondensed.SetF(ef.fMat);
     //const TPZFMatrix<REAL> &f1 = fCondensed.F1Red();
-	const TPZFMatrix<STATE> &f1 = fCondensed.F1Red();
+    TPZFNMatrix<100,STATE> f1(fCondensed.Dim1(),ef.fMat.Cols());
+	fCondensed.F1Red(f1);
     int dim1 = f1.Rows();
     int dim = ef.fMat.Rows();
     int dim0 = dim-dim1;

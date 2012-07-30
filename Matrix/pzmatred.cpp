@@ -29,11 +29,9 @@ TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0)
 {
 	fDim0=0;
 	fDim1=0;
-	fF0IsComputed=0;
     fK00IsDecomposed = 0;
 	fK11IsReduced=0;
 	fK01IsComputed = 0;
-	fF1IsReduced=0;
 	fIsReduced = 0;
 }
 
@@ -44,11 +42,9 @@ fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyMode
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	fDim0=dim00;
 	fDim1=dim-dim00;
-	fF0IsComputed=0;
     fK00IsDecomposed = 0;
 	fK11IsReduced=0;
 	fK01IsComputed = 0;
-	fF1IsReduced=0;
 	fIsReduced = 0;
 }
 
@@ -145,40 +141,74 @@ void TPZMatRed<TVar,TSideMatrix>::SetF(const TPZFMatrix<TVar> & F)
 			fF0.PutVal( r,c,F.GetVal(r,c) ) ;
 		}
 		//aqui r=fDim0
-		for( ;r<this->fDim0+fDim1; r++){
+		for( ;r<fDim0+fDim1; r++){
 			fF1.PutVal( r1++,c,F.GetVal(r,c) );
 		}
 	}
-
-	fF1IsReduced = 0;
-	fF0IsComputed = 0;
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        F.Print("F Input",sout);
+        fF0.Print("fF0 Initialized",sout);
+        fF1.Print("fF1 Initialized",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 }
 
 template<class TVar, class TSideMatrix>
-const TPZFMatrix<TVar>& TPZMatRed<TVar, TSideMatrix>::F1Red()
+void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
 {
-	if (!fDim0 || fF1IsReduced)  return (fF1);
+	if (!fDim0)  return;
+    TPZFNMatrix<100,TVar> F0Invert(fF0.Rows(),fF0.Cols());
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "fF0 input " << std::endl;
+        fF0.Print("fF0",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+    F1Red.Resize(fK11.Rows(),fF0.Cols());
+    DecomposeK00();
+    fSolver->Solve(fF0,F0Invert);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "After computing F0Invert" << std::endl;
+        F0Invert.Print("F0Invert",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	
-	if(! fF0IsComputed)
-	{
-		DecomposeK00();
-		fSolver->Solve(fF0,fF0);
-		fF0IsComputed = 1;
-	}
-	
-	//make [F1]=[F1]-[K10][K0]
-	fK10.MultAdd((fF0),(fF1),(fF1),-1,1);
-	fF1IsReduced=1;
-	
-	return (fF1);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        sout << "Input fF1" << std::endl;
+        fF1.Print("fF1",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+	//make [F1]=[F1]-[K10][F0Invert]
+	fK10.MultAdd((F0Invert),fF1,(F1Red),-1,1);
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        F1Red.Print("F1 Reduced", sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+	return;
 }
 
 template<class TVar, class TSideMatrix>
-const TPZFMatrix<TVar>& TPZMatRed<TVar,TSideMatrix>::K11Red()
+void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<TVar> &F1)
 {
 	if (!fDim0 || fK11IsReduced)  {
 		//Simetrize();
-		return (fK11);
+		K11 = fK11;
+        F1Red(F1);
+        return;
 	}
 	
 	if(!fK01IsComputed)
@@ -187,65 +217,57 @@ const TPZFMatrix<TVar>& TPZMatRed<TVar,TSideMatrix>::K11Red()
 		Simetrize();
 		fSolver->Solve(fK01,fK01);
         TPZStepSolver<TVar> *step = dynamic_cast<TPZStepSolver<TVar> *>(fSolver.operator->());
-		if (step) {
-			std::cout << " Number of singular modes " << step->Singular().size() << std::endl;
-			std::cout.flush();
-		}
-		else {
-			DebugStop();
-		}
-
+        std::cout << "Address " << (void *) step << " Number of singular modes " << step->Singular().size() << std::endl;
 		fK01IsComputed = 1;
 	}
-	
-	fK10.MultAdd(fK01,(fK11),(fK11),-1,1);
-	fK11IsReduced=1;
-	return (fK11);
+	fK10.MultAdd(fK01,fK11,(K11),-1.,1.);
+    F1Red(F1);
+
+	return;
 }
 
 #include "tpzverysparsematrix.h"
 
 template<>
-const TPZFMatrix<double>& TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Red()
+void TPZMatRed<double, TPZVerySparseMatrix<double> >::K11Reduced(TPZFMatrix<double> &K11, TPZFMatrix<double> &F1)
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<double> temp;
-	return temp;
+	return;
 }
 
 template<>
-const TPZFMatrix<float>& TPZMatRed<float, TPZVerySparseMatrix<float> >::K11Red()
+void TPZMatRed<float, TPZVerySparseMatrix<float> >::K11Reduced(TPZFMatrix<float> &K11, TPZFMatrix<float> &F1)
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<float> temp;
-	return temp;
+	return;
 }
 
 template<>
-const TPZFMatrix<long double>& TPZMatRed<long double, TPZVerySparseMatrix<long double> >::K11Red()
+void TPZMatRed<long double, TPZVerySparseMatrix<long double> >::K11Reduced(TPZFMatrix<long double> &K11, TPZFMatrix<long double> &F1)
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<long double> temp;
-	return temp;
+	return;
 }
 
 template<>
-const TPZFMatrix<std::complex<double> >& TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K11Red()
+void TPZMatRed<std::complex<double>, TPZVerySparseMatrix<std::complex<double> > >::K11Reduced(TPZFMatrix<std::complex<double> > &K11, TPZFMatrix<std::complex<double> > &F1)
 {
 	std::cout << __PRETTY_FUNCTION__ << " should never be called\n";	
 	static TPZFMatrix<std::complex<double> > temp;
-	return temp;
+	return;
 }
 
 
 template<class TVar ,class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::U1(TPZFMatrix<TVar> & F)
 {
-	
-	K11Red();
-	F1Red();
-	F=(fF1);
-	fK11.SolveDirect( F ,ELU);
+	TPZFNMatrix<1000,TVar> K1Red(fDim1,fDim1), F1Red(fDim1,fF1.Cols());
+	K11Reduced(K1Red, F1Red);
+	F=(F1Red);
+	K1Red.SolveDirect( F ,ELU);
 	
 	
 }
@@ -254,12 +276,10 @@ template<>
 void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL> & U1, TPZFMatrix<REAL> & result)
 {
 	//[u0]=[A00^-1][F0]-[A00^-1][A01]
-    if( !fF0IsComputed ){
-		//compute [F0]=[A00^-1][F0]
-        DecomposeK00();
-		fSolver->Solve(fF0,fF0);
-		fF0IsComputed=1;
-	}
+    TPZFNMatrix<1000,REAL> F0(fDim0,fF0.Cols());
+    //compute [F0]=[A00^-1][F0]
+    DecomposeK00();
+    fSolver->Solve(fF0,F0);
 	
 	if(!fK01IsComputed)
 	{
@@ -272,12 +292,12 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 	
 	//make [u0]=[F0]-[U1]
 	TPZFMatrix<REAL> u0( fF0.Rows() , fF0.Cols() );
-	fK01.MultAdd(U1,(fF0),u0,-1,0);
+	fK01.MultAdd(U1,(F0),u0,-1,0);
 	
-	result.Redim( Rows(),fF0.Cols() );
+	result.Redim( fDim0+fDim1,F0.Cols() );
 	int c,r,r1;
 	
-	for(c=0; c<fF0.Cols(); c++)
+	for(c=0; c<F0.Cols(); c++)
 	{
 		r1=0;
 		for(r=0; r<fDim0; r++)
@@ -285,7 +305,7 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 			result.PutVal( r,c,u0.GetVal(r,c) ) ;
 		}
 		//aqui r=fDim0
-		for( ;r<Rows(); r++)
+		for( ;r<fDim0+fDim1; r++)
 		{
 			result.PutVal( r,c,U1.GetVal(r1++,c) );
 		}
@@ -295,33 +315,21 @@ void TPZMatRed<REAL, TPZVerySparseMatrix<REAL> >::UGlobal(const TPZFMatrix<REAL>
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
-	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
+	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() ), F0(fF0.Rows(), fF0.Cols());
 	
 	if(fK01IsComputed)
 	{
 		//[u0]=[A00^-1][F0]-[A00^-1][A01]
-		if( !fF0IsComputed ){
-			//compute [F0]=[A00^-1][F0]
-            DecomposeK00();
-			fSolver->Solve(fF0,fF0);
-			fF0IsComputed=1;
-		}		
+        //compute [F0]=[A00^-1][F0]
+        DecomposeK00();
+        fSolver->Solve(fF0,F0);
 		//make [u0]=[F0]-[U1]
-		fK01.MultAdd(U1,(fF0),u0,-1,1);
+		fK01.MultAdd(U1,(F0),u0,-1,1);
 	} else {
-		if (fF0IsComputed) {
-			TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
-			fK01.MultAdd(U1,U1,K01U1,-1.);
-            DecomposeK00();
-			fSolver->Solve(K01U1, u0);
-			u0 += fF0;
-		}
-		else {
-			TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
-			fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
-            DecomposeK00();
-			fSolver->Solve(K01U1, u0);
-		}
+        TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
+        fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
+        DecomposeK00();
+        fSolver->Solve(K01U1, u0);
 	}
 	
 	//compute result
@@ -336,7 +344,7 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 	}
 #endif
 	
-	result.Redim( this->Rows(),fF0.Cols() );
+	result.Redim( fDim0+fDim1,fF0.Cols() );
 	int c,r,r1;
 	
 	for(c=0; c<fF0.Cols(); c++)
@@ -347,7 +355,7 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 			result.PutVal( r,c,u0.GetVal(r,c) ) ;
 		}
 		//aqui r=fDim0
-		for( ;r<this->Rows(); r++)
+		for( ;r<fDim0+fDim1; r++)
 		{
 			result.PutVal( r,c,U1.GetVal(r1++,c) );
 		}
@@ -357,33 +365,21 @@ void TPZMatRed<TVar, TSideMatrix >::UGlobal(const TPZFMatrix<TVar> & U1, TPZFMat
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::UGlobal2(TPZFMatrix<TVar> & U1, TPZFMatrix<TVar> & result)
 {
-	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() );
+	TPZFMatrix<TVar> u0( fF0.Rows() , fF0.Cols() ), F0(fF0.Rows(), fF0.Cols());
 	
 	if(fK01IsComputed)
 	{
 		//[u0]=[A00^-1][F0]-[A00^-1][A01][u1]
-		if( !fF0IsComputed ){
 			//compute [F0]=[A00^-1][F0]
             DecomposeK00();
-			fSolver->Solve(fF0,fF0);
-			fF0IsComputed=1;
-		}		
+			fSolver->Solve(fF0,F0);
 		//make [u0]=[F0]-[U1]
-		fK01.MultAdd(U1,(fF0),u0,-1,1);
+		fK01.MultAdd(U1,(F0),u0,-1,1);
 	} else {
-		if (fF0IsComputed) {
-			TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
-			fK01.MultAdd(U1,U1,K01U1,-1.);
-            DecomposeK00();
-			fSolver->Solve(K01U1, u0);
-			u0 += fF0;
-		}
-		else {
-			TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
-			fK01.MultAdd(U1,fF0,K01U1,-1.,1.);
-            DecomposeK00();
-			fSolver->Solve(K01U1, u0);
-		}
+        TPZFMatrix<TVar> K01U1(fK01.Rows(),U1.Cols(),0.);
+        fK01.MultAdd(U1,K01U1,fF0,-1.,1.);
+        DecomposeK00();
+        fSolver->Solve(K01U1, u0);
 	}
 	
 	//compute result
@@ -450,10 +446,8 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 	
 	fDim0=dim00;
 	fDim1=dim-dim00;
-	fF0IsComputed=0;
     fK00IsDecomposed = 0;
 	fK11IsReduced=0;
-	fF1IsReduced=0;
 	
 	fK01.Redim(fDim0,fDim1);
 	fK10.Redim(fDim1,fDim0);
@@ -475,10 +469,8 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	fK11.Zero();
 	fF0.Zero();
 	fF1.Zero();
-	fF0IsComputed=0;
     fK00IsDecomposed=0;
 	fK11IsReduced=0;
-	fF1IsReduced=0;
 	return 0;
 }
 
@@ -587,7 +579,7 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
                 std::cout << " " << *it;
             }
             std::cout << std::endl;
-            DebugStop();
+            //DebugStop();
         }
         for (it=singular.begin(); it != singular.end(); it++) {
             if(fNumberRigidBodyModes < fMaxRigidBodyModes)
@@ -621,9 +613,7 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
 	}
 	{//chars
 		buf.Write(&this->fDefPositive, 1);
-		buf.Write(&this->fF0IsComputed, 1);
         buf.Write(&this->fK00IsDecomposed,1);
-		buf.Write(&this->fF1IsReduced, 1);
 		buf.Write(&this->fIsReduced, 1);
 		buf.Write(&this->fK01IsComputed, 1);
 		buf.Write(&this->fK11IsReduced, 1);
@@ -678,9 +668,7 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 	}
 	{//chars
 		buf.Read(&this->fDefPositive, 1);
-		buf.Read(&this->fF0IsComputed, 1);
         buf.Read(&this->fK00IsDecomposed,1);
-		buf.Read(&this->fF1IsReduced, 1);
 		buf.Read(&this->fIsReduced, 1);
 		buf.Read(&this->fK01IsComputed, 1);
 		buf.Read(&this->fK11IsReduced, 1);

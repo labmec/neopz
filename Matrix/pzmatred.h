@@ -56,11 +56,9 @@ public:
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
-		fF0IsComputed=cp.fF0IsComputed;
         fK00IsDecomposed = cp.fK00IsDecomposed;
 		fK11IsReduced=cp.fK11IsReduced;
 		fK01IsComputed = cp.fK01IsComputed;
-		fF1IsReduced=cp.fF1IsReduced;
 		fIsReduced = cp.fIsReduced;
 		fSolver = cp.fSolver;
 		
@@ -110,6 +108,17 @@ public:
 	{
 		return fK10;
 	}
+    
+    int Dim0()
+    {
+        return fDim0;
+    }
+    
+    int Dim1()
+    {
+        return fDim1;
+    }
+    
 	void SetSolver(TPZAutoPointer<TPZMatrixSolver<TVar> > solver);
     TPZAutoPointer<TPZMatrixSolver<TVar> > Solver()
     {
@@ -133,22 +142,12 @@ public:
         return fNumberRigidBodyModes;
     }
 	
-	/** @brief Indicate whether F0 needs to be reduced or not */
-	void SetF0IsComputed(bool value)
-	{
-		fF0IsComputed = value;
-	}
-	/** @brief Indicate that the value of F1 has been reduced */
-	void SetF1IsReduced(bool value)
-	{
-		fF1IsReduced = value;
-	}
 	
 	/** @brief Computes the reduced version of the right hand side \f$ [F1]=[F1]-[K10][A00^-1][F0] \f$ */
-	const TPZFMatrix<TVar> & F1Red();
+	void F1Red(TPZFMatrix<TVar> &F1);
 	
 	/** @brief Computes the K11 reduced \f$ [K11]=[K11]-[K10][A00^-1][A01] \f$ */
-	const TPZFMatrix<TVar> & K11Red();
+	void K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<TVar> &F1);
 	
 	/**
 	 * @brief Returns the second vector, inverting K11
@@ -214,9 +213,7 @@ private:
 	TPZAutoPointer<TPZMatrixSolver<TVar> > fSolver;
 	
 	/** @brief Full Stiffnes matrix */
-	TPZFMatrix<TVar> fK11;
-    
-    /* @brief Side matrices */
+	TSideMatrix fK11;
 	TSideMatrix fK01, fK10;
 	
 	/** @brief Right hand side or force matrix */
@@ -228,9 +225,6 @@ private:
 	/** @brief Is true if the declared dimension of the matrix is fDim0 */
 	char fIsReduced;
 	
-	/** @brief Is true if \f$ [(K00)^-1][F0] \f$ has been calculated and overwritten on \f$ [F0] \f$ */
-	char fF0IsComputed;
-    
     /** @brief Flag indicating that K00 was decomposed */
     char fK00IsDecomposed;
 	
@@ -240,9 +234,6 @@ private:
 	/** @brief fK11IsReduced is true if \f$ [K11]=[K11]-[K10][(A00)^-1][A01] \f$ exists */
 	char fK11IsReduced;
 	
-	/** @brief fF1IsReduced is true if  \f$ [F1]=[F1]-[K10][(A00)^-1][F0] \f$ exists */
-	char fF1IsReduced;
-    
     /** @brief Number of rigid body modes foreseen in the computational mesh */
     int fMaxRigidBodyModes;
     

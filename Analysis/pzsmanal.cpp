@@ -74,8 +74,7 @@ void TPZSubMeshAnalysis::CondensedSolution(TPZFMatrix<STATE> &ek, TPZFMatrix<STA
         DebugStop();
     }
 	TPZMatRed<STATE, TPZFMatrix<STATE> > *matred = dynamic_cast<TPZMatRed<STATE, TPZFMatrix<STATE> > *> (fReducableStiff.operator->());
-	ek = matred->K11Red();
-	ef = matred->F1Red();
+    matred->K11Reduced(ek, ef);
 	
 	time_t tempodepois = time(NULL);
 	double elapsedtime = difftime(tempodepois, tempo);

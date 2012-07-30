@@ -156,8 +156,6 @@ void TPZDohrSubstructCondense<TVar>::SolveSystemPhi() {
 		rhs(fNEquations+i,i) = 1.;
 	}
 	fMatRedComplete->SetF(rhs);
-	fMatRedComplete->SetF0IsComputed(true);
-	fMatRedComplete->SetF1IsReduced(true);
 	fKCi.Resize(ncoarse,ncoarse);
 	fMatRedComplete->U1(fKCi);
 	fMatRedComplete->UGlobal(fKCi,rhs);
@@ -255,7 +253,7 @@ void TPZDohrSubstructCondense<TVar>::ContributeRhs(TPZFMatrix<TVar> &rhs)
 	TPZFMatrix<TVar> resglobal(nglob,ncols,0.),resloc(fNumExternalEquations,ncols,0.);
 	PermuteGather (itrelat2->second, fLocalLoad, resglobal, 0, nglob);
 	fMatRed->SetF(resglobal);
-	resloc = fMatRed->F1Red();
+	fMatRed->F1Red(resloc);
 	resglobal.Zero();
 	PermuteScatter(itrelat->second, resloc, resglobal, 0, fNumExternalEquations);
 	PermuteGather(itrelat->second, resglobal, rhs, 0, fNumExternalEquations);
