@@ -96,6 +96,12 @@ public:
     /** @brief Define the preconditioner as a solver object */
 	void SetPreconditioner(TPZSolver<TVar> &solve);
     
+    /** @brief Number of iterations of last solve */
+    int NumIterations()
+    {
+        return fNumIterations;
+    }
+    
     /** @brief access method to the preconditioner */
     TPZSolver<TVar> *PreConditioner()
     {
@@ -111,6 +117,11 @@ public:
 private:
 	typename TPZMatrixSolver<TVar>::MSolver fSolver;
 	DecomposeType fDecompose;
+    
+    /// Maximum number of iterations
+    int fMaxIterations;
+    
+    /// Number of iterations of last solve
 	int fNumIterations;
 	int fNumVectors;
 	REAL fTol;

@@ -15,16 +15,16 @@ static LoggerPtr logger(Logger::getLogger("pz.converge"));
 #endif
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat) {
+TPZStepSolver<TVar>::TPZStepSolver(TPZAutoPointer<TPZMatrix<TVar> > refmat) : TPZMatrixSolver<TVar>(refmat), fNumIterations(-1) {
 	fPrecond = 0;
 	ResetSolver();
 }
 
 template <class TVar>
-TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fSingular(copy.fSingular) {
+TPZStepSolver<TVar>::TPZStepSolver(const TPZStepSolver<TVar> & copy) : TPZMatrixSolver<TVar>(copy), fNumIterations(copy.fNumIterations) , fSingular(copy.fSingular){
     fSolver = copy.fSolver;
     fDecompose = copy.fDecompose;
-    fNumIterations = copy.fNumIterations;
+    fMaxIterations = copy.fMaxIterations;
     fTol = copy.fTol;
     fOverRelax = copy.fOverRelax;
     fPrecond = 0;
@@ -83,7 +83,7 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 	}
 	
 	REAL tol = fTol;
-	int numiterations = fNumIterations;
+	int numiterations = fMaxIterations;
 	switch(fSolver) {
 		case TPZStepSolver::ENoSolver:
 		default:
@@ -92,15 +92,19 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 		case TPZStepSolver::EJacobi:
 			//    cout << "fScratch dimension " << fScratch.Rows() << ' ' << fScratch.Cols() << endl;
 			mat->SolveJacobi(numiterations,F,result,residual,this->fScratch,tol,fFromCurrent);
+            fNumIterations = numiterations;
 			break;
 		case TPZStepSolver::ESOR:
 			mat->SolveSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
+            fNumIterations = numiterations;
 			break;
 		case TPZStepSolver::ESSOR:
 			mat->SolveSSOR(numiterations,F,result,residual,this->fScratch,fOverRelax,tol,fFromCurrent);
+            fNumIterations = numiterations;
 			break;
 		case TPZStepSolver::ECG:
 			mat->SolveCG(numiterations,*fPrecond,F,result,residual,tol,fFromCurrent);
+            fNumIterations = numiterations;
 #ifdef LOG4CXX
 		{
 			std::stringstream sout;
@@ -113,7 +117,8 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 		case TPZStepSolver::EGMRES: {
 			TPZFMatrix<TVar> H(fNumVectors+1,fNumVectors+1,0.);
 			mat->SolveGMRES(numiterations,*fPrecond,H,fNumVectors,F,result,residual,tol,fFromCurrent);
-			if(numiterations == fNumIterations || tol >= fTol)
+            fNumIterations = numiterations;
+			if(numiterations == fMaxIterations || tol >= fTol)
 			{
 				std::cout << "GMRes tolerance was not achieved : numiter " << numiterations <<
 				" tol " << tol << endl;
@@ -129,8 +134,9 @@ void TPZStepSolver<TVar>::Solve(const TPZFMatrix<TVar> &F, TPZFMatrix<TVar> &res
 			break;
 		case TPZStepSolver::EBICGSTAB: 
 			mat->SolveBICGStab(numiterations, *fPrecond, F, result,residual,tol,fFromCurrent);
+            fNumIterations = numiterations;
 			
-			if(numiterations == fNumIterations || tol >= fTol)
+			if(numiterations == fMaxIterations || tol >= fTol)
 			{
 				std::cout << "BiCGStab tolerance was not achieved : numiter " << numiterations <<
 				" tol " << tol << endl;
@@ -158,7 +164,8 @@ template<class TVar>
 void TPZStepSolver<TVar>::ResetSolver() {
 	fSolver = this->ENoSolver;
 	fDecompose  = ENoDecompose;
-	fNumIterations = 0;
+	fMaxIterations = 0;
+    fNumIterations = -1;
 	fTol = 0.;
 	fNumVectors = 0;
 	fOverRelax = 0.;
@@ -176,7 +183,8 @@ template <class TVar>
 void TPZStepSolver<TVar>::SetCG(const int numiterations, const TPZMatrixSolver<TVar> &pre, const REAL tol, const int FromCurrent){
 	ResetSolver();
 	fSolver = this->ECG;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
@@ -188,7 +196,8 @@ void TPZStepSolver<TVar>::SetGMRES(const int numiterations, const int numvectors
 	ResetSolver();
 	fSolver = this->EGMRES;
 	fNumVectors = numvectors;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
@@ -199,7 +208,8 @@ template<class TVar>
 void TPZStepSolver<TVar>::SetBiCGStab(const int numiterations, const TPZMatrixSolver<TVar>&pre,const REAL tol,const int FromCurrent){
 	ResetSolver();
 	fSolver = this->EBICGSTAB;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fTol = tol;
 	//	fPrecond = &pre;
 	if(fPrecond) delete fPrecond;
@@ -210,7 +220,8 @@ template<class TVar>
 void TPZStepSolver<TVar>::SetJacobi(const int numiterations, const REAL tol, const int FromCurrent) {
 	ResetSolver();
 	fSolver = this->EJacobi;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
@@ -218,7 +229,8 @@ template <class TVar>void TPZStepSolver<TVar>::SetSSOR(const int numiterations,c
 	ResetSolver();
 	fSolver = this->ESSOR;
 	fOverRelax = overrelax;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
 }
@@ -226,7 +238,8 @@ template <class TVar>
 void TPZStepSolver<TVar>::SetSOR(const int numiterations,const REAL overrelax,const REAL tol,const int FromCurrent){
 	ResetSolver();
 	fSolver = this->ESOR;
-	fNumIterations = numiterations;
+	fMaxIterations = numiterations;
+    fNumIterations = -1;
 	fOverRelax = overrelax;
 	fTol = tol;
 	fFromCurrent = FromCurrent;
@@ -266,7 +279,7 @@ void TPZStepSolver<TVar>::Write(TPZStream &buf, int withclassid)
 	buf.Write(&lfSolver, 1);
 	int lfDT = fDecompose;
 	buf.Write(&lfDT, 1);
-	buf.Write(&fNumIterations, 1);
+	buf.Write(&fMaxIterations, 1);
 	buf.Write(&fNumVectors, 1);
 	buf.Write(&fTol, 1);
 	buf.Write(&fOverRelax, 1);
@@ -292,7 +305,7 @@ void TPZStepSolver<TVar>::Read(TPZStream &buf, void *context)
 	int lfDT = 0;
 	buf.Read(&lfDT, 1);
 	fDecompose = (DecomposeType)lfDT;
-	buf.Read(&fNumIterations, 1);
+	buf.Read(&fMaxIterations, 1);
 	buf.Read(&fNumVectors, 1);
 	buf.Read(&fTol, 1);
 	buf.Read(&fOverRelax, 1);
