@@ -30,6 +30,8 @@
 
 using namespace pztopology;
 
+
+
 /** PUBLIC METHODS */
 TPZPlaneFracture::TPZPlaneFracture()
 {
@@ -216,43 +218,9 @@ int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & init
 	return id;
 }
 
-//int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, TPZVec<REAL> & x)
-//{
-//	TPZManVector<REAL,3> coord(x), qsi2D(2,0.);
-//    coord[1] = 0.;
-//    
-//	TPZGeoEl * gel = NULL;
-//	int nelem = PlaneMesh->NElements();
-//	for(int el = 0; el < nelem; el++)//hunting the first element (that contains the first point)
-//	{
-//		TPZGeoEl * firstGel = PlaneMesh->ElementVec()[el];
-//        if(firstGel->Dimension() != 2)
-//        {
-//            break;
-//        }
-//		if(firstGel->ComputeXInverse(coord, qsi2D))
-//		{
-//			gel = firstGel;
-//			break;
-//		}
-//	}
-//    
-//#ifdef DEBUG
-//    if(!gel)
-//    {
-//        std::cout << "Point DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
-//        DebugStop();
-//    }
-//#endif
-//	
-//    int id = gel->Id();
-//	return id;
-//}
-//------------------------------------------------------------------------------------------------------------
 
-TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & initial2DElId, TPZGeoMesh * fullMesh)
-{
-    //    int elFoundId = PointElementOnPlaneMesh(fullMesh, x);
+TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initial2DElId, TPZGeoMesh * fullMesh)
+{    
     int elFoundId = PointElementOnPlaneMesh(fullMesh, initial2DElId, x);
     
     // Da maneira com que esta classe foi construida, o elemento 2D encontrado
@@ -260,14 +228,13 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & init
     // elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
     TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[elFoundId];
     
-    TPZManVector<REAL,3> coord(x), qsi3D(3,0.);
+    TPZManVector<REAL,3> coord(x);
     while(gelfullmesh->Type() != ECube)
     {
         int side = gelfullmesh->NSides()-1;
         gelfullmesh = gelfullmesh->Neighbour(side).Element();
     }
-
-    while(gelfullmesh->ComputeXInverse(coord, qsi3D) == false)
+    while(gelfullmesh->ComputeXInverse(coord, qsi) == false)
     {
         int cubeFace_in_Y_direction = 25;
         TPZGeoElSide cubeSide = gelfullmesh->Neighbour(cubeFace_in_Y_direction);
@@ -282,7 +249,7 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & init
             DebugStop();
         }
         gelfullmesh = nextGel;
-        qsi3D.Resize(3, 0.);
+        qsi.Resize(3,0.);
     }
     TPZVec<TPZGeoEl*> subElements(0);
     
@@ -301,13 +268,20 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, int & init
     for(int cd = 0; cd < nCandidates; cd++)
     {
         TPZGeoEl * cand = subElements[cd];
-        if(cand->ComputeXInverse(coord, qsi3D) == true)
+        if(cand->ComputeXInverse(coord, qsi) == true)
         {
-            //std::cout << coord[0] << " , " << coord[1] << " , " << coord[2] << std::endl;//AQUICAJU
             searchedGel = cand;
             break;
         }
     }
+    
+    #ifdef DEBUG
+    if(!searchedGel)
+    {
+        std::cout << "Element that contains the given point was not found in " << __PRETTY_FUNCTION__ << " !!!\n";
+        DebugStop();
+    }
+    #endif
     
     return searchedGel;
 }
@@ -628,7 +602,7 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<double> & espacamento, double 
     int nrows, ncols;
     
     std::list<double>::iterator it = espacamento.end(); it--;
-    double tickness = 25.*__maxLength;//tickness is the distance between plane of fracture and plane of farfield
+    double tickness = 4.*__maxLength;//tickness is the distance between plane of fracture and plane of farfield
     
     int nDirRef = int(log(fabs(tickness)/__maxLength)/log(2.));
     int nLayers = nDirRef + 2;
@@ -2048,7 +2022,7 @@ void TPZPlaneFracture::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fr
 //------------------------------------------------------------------------------------------------------------
 
 
-
+#define completeCompute
 
 //Just 4 validation of SIF
 void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &poligonalChain, std::string vtkFile)
@@ -2061,20 +2035,35 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     std::cout << "Numero de equacoes = " << neq << std::endl;
     
     ////Analysis
-	TPZAnalysis an(fractureCMesh);
-    
-	TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
-	TPZStepSolver<STATE> step;
-	step.SetDirect(ECholesky);
-    
-    an.SetStructuralMatrix(skylin);
-	an.SetSolver(step);
-	an.Run();
+    #ifdef completeCompute
+        TPZAnalysis an(fractureCMesh);
+        
+        TPZSkylineStructMatrix skylin(fractureCMesh); //caso simetrico
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ECholesky);
+        
+        an.SetStructuralMatrix(skylin);
+        an.SetSolver(step);
+        an.Run();
+    #endif
     
     int POSmiddle1D = int(double(fcrackBoundaryElementsIds.NElements())/2. + 0.5);
     int middle1DId = fcrackBoundaryElementsIds[POSmiddle1D];
+    
+    TPZVec<REAL> originQSI(1,0.), originXYZ(3,0.);
     TPZGeoEl * gel1D = fractureCMesh->Reference()->ElementVec()[middle1DId];
-    Path pathMiddle(fractureCMesh, gel1D, 0.4, 0.8);
+    gel1D->X(originQSI, originXYZ);
+    
+    double nx = gel1D->Node(1).Coord(0);
+    double ny = gel1D->Node(1).Coord(1);
+    double nz = gel1D->Node(1).Coord(2);
+    TPZVec<REAL> direction(3);
+    direction[0] = nx - originXYZ[0];
+    direction[1] = ny - originXYZ[1];
+    direction[2] = nz - originXYZ[2];
+    
+    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, 0.4, 0.8);
+    
     JIntegral jInt;
     jInt.PushBackPath(pathMiddle);    
     TPZVec<REAL> Jvector = jInt.IntegratePath(0);
@@ -2082,18 +2071,18 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     std::cout << Jvector[0] << "\t" << Jvector[1] << "\t" << Jvector[2] << std::endl;
     
     ////Post Processing
-    TPZManVector<std::string,10> scalnames(6), vecnames(0);
-    scalnames[0] = "DisplacementX";
-    scalnames[1] = "DisplacementY";
-    scalnames[2] = "DisplacementZ";
-    scalnames[3] = "StressX";
-    scalnames[4] = "StressY";
-    scalnames[5] = "StressZ";
-    
-    int div = 0;
-    const int dim = 3;
-    an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-    an.PostProcess(div,dim);
+//    TPZManVector<std::string,10> scalnames(6), vecnames(0);
+//    scalnames[0] = "DisplacementX";
+//    scalnames[1] = "DisplacementY";
+//    scalnames[2] = "DisplacementZ";
+//    scalnames[3] = "StressX";
+//    scalnames[4] = "StressY";
+//    scalnames[5] = "StressZ";
+//    
+//    int div = 0;
+//    const int dim = 3;
+//    an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
+//    an.PostProcess(div,dim);
     
     /** 
      
@@ -2133,7 +2122,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
     cmesh->SetAllCreateFunctionsContinuous();
     
     STATE young = 1000.;
-    STATE poisson = 0.0;
+    STATE poisson = 0.02;
     TPZVec<STATE> force(3,0.);
     
     TPZMaterial * materialLin = new TPZElasticity3D(__3DrockMat_linear, young, poisson, force);

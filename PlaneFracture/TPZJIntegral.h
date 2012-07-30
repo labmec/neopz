@@ -50,8 +50,9 @@ public:
     /**
      * Given unidimensional element reffers to the cracktip element that will be used
      * to compute J-integral around it.
+     * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZGeoEl * el1D, double r_int, double r_ext);
+    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext);
     Path(const Path &copy)
     {
         this->operator =(copy);
@@ -60,8 +61,8 @@ public:
     
     void operator=(const Path &cpPath)
     {
-        fInitialNode = cpPath.fInitialNode;
-        fFinalNode = cpPath.fFinalNode;
+        fOrigin = cpPath.fOrigin;
+        fNormalDirection = cpPath.fNormalDirection;
         fr_int = cpPath.fr_int;
         fr_ext = cpPath.fr_ext;
         fInitial2DElementId = cpPath.fInitial2DElementId;
@@ -85,8 +86,6 @@ public:
     }
     
     virtual TPZVec<REAL> Func(double t);
-    
-    virtual void Print(std::ostream& out = std::cout);
 
 //protected:
     
@@ -110,10 +109,10 @@ public:
     
     
     /** initial node of given unidimensional element (this element define an axis) */
-    TPZVec<REAL> fInitialNode;
+    TPZVec<REAL> fOrigin;
     
     /** final node of given unidimensional element (this element define an axis) */
-    TPZVec<REAL> fFinalNode;
+    TPZVec<REAL> fNormalDirection;
     
     /** radius of internal and external arcs */
     double fr_int;
@@ -161,10 +160,10 @@ public:
     JIntegral();
     ~JIntegral();
     
-    void PushBackPath(Path pathElem);    
+    void PushBackPath(Path *pathElem);
     TPZVec<REAL> IntegratePath(int p);
     
-    TPZVec<Path> fPathVec;
+    TPZVec<Path*> fPathVec;
 };
 
 

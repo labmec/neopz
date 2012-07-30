@@ -26,8 +26,8 @@ const int dim3D = 3;
 
 Path::Path()
 {
-    fInitialNode.Resize(0);
-    fFinalNode.Resize(0);
+    fOrigin.Resize(0);
+    fNormalDirection.Resize(0);
     
     fr_int = 0.;
     fr_ext = 0.;
@@ -38,32 +38,18 @@ Path::Path()
 }
 
 
-Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZGeoEl * el1D, double r_int, double r_ext)
+Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext)
 {
-#ifdef DEBUG
-    if(!el1D || el1D->Dimension() != 1)
+    fOrigin = Origin;
+    fNormalDirection = normalDirection;
+    
+    #ifdef DEBUG
+    if(fabs(normalDirection[1]) > 1.E-8)
     {
-        std::cout << "Null cracktip element or cracktip element given is not 1D!!\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " method!\n";
+        std::cout << "\nThe normal direction of J integral arc must be in XZ plane!!!\n";
         DebugStop();
     }
-    if(fabs(el1D->NodePtr(0)->Coord(1) > 1.E-9) || fabs(el1D->NodePtr(1)->Coord(1) > 1.E-9))
-    {
-        std::cout << "Given cracktip element is not on x,z plane (y coordinate = 0)!!\n";
-        std::cout << "See " << __PRETTY_FUNCTION__ << " method!\n";
-        DebugStop();
-    }
-#endif
-    
-    fInitialNode.Resize(dim3D);
-    fInitialNode[0] = el1D->NodePtr(0)->Coord(0);
-    fInitialNode[1] = el1D->NodePtr(0)->Coord(1);
-    fInitialNode[2] = el1D->NodePtr(0)->Coord(2);
-    
-    fFinalNode.Resize(dim3D);
-    fFinalNode[0] = el1D->NodePtr(1)->Coord(0);
-    fFinalNode[1] = el1D->NodePtr(1)->Coord(1);
-    fFinalNode[2] = el1D->NodePtr(1)->Coord(2);
+    #endif
     
     fr_int = r_int;
     fr_ext = r_ext;
@@ -76,8 +62,8 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZGeoEl * el1D, double r_int, dou
 
 Path::~Path()
 {
-    fInitialNode.Resize(0);
-    fFinalNode.Resize(0);
+    fOrigin.Resize(0);
+    fNormalDirection.Resize(0);
     
     fr_int = 0.;
     fr_ext = 0.;
@@ -91,16 +77,14 @@ TPZVec<REAL> Path::Func(double t)
     this->dXdt(t, dxdt, DETdxdt);
     this->normalVec(t, nt);
 
-    TPZGeoEl * geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, fInitial2DElementId, this->fcmesh->Reference());
     TPZVec<REAL> qsi(dim3D,0.);
-    
-    //std::cout << xt[0] << " , " << xt[1] << " , " << xt[2] << std::endl;//AQUICAJU
-    bool isInsideDomain = geoEl->ComputeXInverse(xt, qsi);
+    TPZGeoEl * geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, this->fcmesh->Reference());
     
     #ifdef DEBUG
+    bool isInsideDomain = geoEl->ComputeXInverse(xt, qsi);
     if(!isInsideDomain)
     {
-        std::cout << "ComputeXInverse doen't work on " << __PRETTY_FUNCTION__ << " !!!\n";
+        std::cout << "ComputeXInverse doesn't work on " << __PRETTY_FUNCTION__ << " !!!\n";
         DebugStop();
     }
     #endif
@@ -166,18 +150,6 @@ TPZVec<REAL> Path::Func(double t)
 }
 
 
-void Path::Print(std::ostream& out)
-{
-    out << "\n===========================================================\n";
-    out << "Axis initial coordinates: ";
-    out << "( " << fInitialNode[0] << " , " << fInitialNode[1] << " , " << fInitialNode[2] << " )\n";
-    out << "Axis final coordinates: ";
-    out << "( " << fFinalNode[0] << " , " << fFinalNode[1] << " , " << fFinalNode[2] << " )\n";
-    out << "Internal radius = " << fr_int << std::endl;
-    out << "External radius = " << fr_ext << std::endl;
-}
-
-
 void Path::X(double t, TPZVec<REAL> & xt)
 {
     std::cout << "The code should not enter here, but in derivated class!\n";
@@ -202,7 +174,7 @@ void Path::normalVec(double t, TPZVec<REAL> & n)
 
 void Path::X_line(double t, TPZVec<REAL> & xt)
 {
-    xt.Resize(dim3D);
+    xt.Resize(dim3D,0.);
     
     TPZVec<REAL> initialPoint(dim3D);
     TPZVec<REAL> finalPoint(dim3D);
@@ -227,7 +199,7 @@ void Path::X_line(double t, TPZVec<REAL> & xt)
 
 void Path::dXdt_line(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
 {
-    dxdt.Resize(dim3D);
+    dxdt.Resize(dim3D,0.);
     
     TPZVec<REAL> x0(dim3D);
     TPZVec<REAL> x1(dim3D);
@@ -256,42 +228,36 @@ void Path::dXdt_line(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
 
 void Path::X_arc(double t, TPZVec<REAL> & xt, pathType pathT)
 {
-    xt.Resize(dim3D);
-    
-    double n0x = fInitialNode[0];
-    double n0z = fInitialNode[2];
-    
-    double n1x = fFinalNode[0];
-    double n1z = fFinalNode[2];
+    xt.Resize(dim3D,0.);
     
     if(__defaultDirection == EClockwise)
     {
         if(pathT == EInternalArcPath)
         {
-            xt[0] = (n0x + n1x - 2.*fr_int*sin((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            xt[0] = (fOrigin[0] - fr_int*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
             xt[1] = fr_int*cos((Pi*t)/2.);
-            xt[2] = (n0z + n1z + 2.*fr_int*cos(atan2(n1z-n0z,n1x-n0x))*sin((Pi*t)/2.))/2.;
+            xt[2] = (fOrigin[2] + fr_int*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
         }
         else if(pathT == EExternalArcPath)
         {                   
-            xt[0] = (n0x + n1x + 2.*fr_ext*sin((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            xt[0] = (fOrigin[0] + fr_ext*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
             xt[1] = fr_ext*cos((Pi*t)/2.);
-            xt[2] = (n0z + n1z - 2.*fr_ext*cos(atan2(n1z-n0z,n1x-n0x))*sin((Pi*t)/2.))/2.;
+            xt[2] = (fOrigin[2] - fr_ext*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
         }
     }
     else if(__defaultDirection == ECounterclockwise)
     {
         if(pathT == EExternalArcPath)
         {
-            xt[0] = (n0x + n1x - 2.*fr_ext*sin((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            xt[0] = (fOrigin[0] - fr_ext*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
             xt[1] = fr_ext*cos((Pi*t)/2.);
-            xt[2] = (n0z + n1z + 2.*fr_ext*cos(atan2(n1z-n0z,n1x-n0x))*sin((Pi*t)/2.))/2.;
+            xt[2] = (fOrigin[2] + fr_ext*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
         }
         else if(pathT == EInternalArcPath)
         {                   
-            xt[0] = (n0x + n1x + 2.*fr_int*sin((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            xt[0] = (fOrigin[0] + fr_int*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
             xt[1] = fr_int*cos((Pi*t)/2.);
-            xt[2] = (n0z + n1z - 2.*fr_int*cos(atan2(n1z-n0z,n1x-n0x))*sin((Pi*t)/2.))/2.;
+            xt[2] = (fOrigin[2] - fr_int*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
         }
     }
 }
@@ -299,28 +265,22 @@ void Path::X_arc(double t, TPZVec<REAL> & xt, pathType pathT)
 
 void Path::dXdt_arc(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT)
 {
-    dxdt.Resize(dim3D);
-    
-    double n0x = fInitialNode[0];
-    double n0z = fInitialNode[2];
-    
-    double n1x = fFinalNode[0];
-    double n1z = fFinalNode[2];
-    
+    dxdt.Resize(dim3D,0.);
+
     if(__defaultDirection == EClockwise)
     {
         if(pathT == EInternalArcPath)
         {
-            dxdt[0] = -(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[0] = -(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
-            dxdt[2] = +(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[2] = +(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             DETdxdt = Pi*fr_int/2.;
         }
         else if(pathT == EExternalArcPath)
         {                   
-            dxdt[0] = +(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[0] = +(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
-            dxdt[2] = -(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[2] = -(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             DETdxdt = Pi*fr_ext/2.;
         }
     }
@@ -328,16 +288,16 @@ void Path::dXdt_arc(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType path
     {
         if(pathT == EExternalArcPath)
         {
-            dxdt[0] = -(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[0] = -(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
-            dxdt[2] = +(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(n1x-n0x,n1z-n0z)))/2.;
+            dxdt[2] = +(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
             DETdxdt = Pi*fr_ext/2.;
         }
         else if(pathT == EInternalArcPath)
         {                   
-            dxdt[0] = +(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[0] = +(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
-            dxdt[2] = -(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(n1z-n0z,n1x-n0x)))/2.;
+            dxdt[2] = -(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
             DETdxdt = Pi*fr_int/2.;
         }
     }
@@ -386,26 +346,19 @@ void externalArcPath::dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
 
 void externalArcPath::normalVec(double t, TPZVec<REAL> & n)
 {
-    TPZVec<REAL> centerPoint(dim3D);
-    
-    for(int c = 0; c < dim3D; c++)
-    {
-        centerPoint[c] = (fInitialNode[c] + fFinalNode[c])/2.;
-    }
-    
     TPZVec<REAL> x(dim3D);
     X(t, x);
     
     double normaN = 0.;
     for(int i = 0; i < dim3D; i++)
     {
-        normaN += (x[i] - centerPoint[i]) * (x[i] - centerPoint[i]);
+        normaN += (x[i] - fOrigin[i]) * (x[i] - fOrigin[i]);
     }
     normaN = sqrt(normaN);
     
     for(int i = 0; i < dim3D; i++)
     {
-        n[i] = +1. * fabs(x[i] - centerPoint[i])/normaN;
+        n[i] = +1. * fabs(x[i] - fOrigin[i])/normaN;
     }
 }
 
@@ -429,26 +382,19 @@ void internalArcPath::dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
 
 void internalArcPath::normalVec(double t, TPZVec<REAL> & n)
 {
-    TPZVec<REAL> centerPoint(dim3D);
-    
-    for(int c = 0; c < dim3D; c++)
-    {
-        centerPoint[c] = (fInitialNode[c] + fFinalNode[c])/2.;
-    }
-    
     TPZVec<REAL> x(dim3D);
     X(t, x);
     
     double normaN = 0.;
     for(int i = 0; i < dim3D; i++)
     {
-        normaN += (x[i] - centerPoint[i]) * (x[i] - centerPoint[i]);
+        normaN += (x[i] - fOrigin[i]) * (x[i] - fOrigin[i]);
     }
     normaN = sqrt(normaN);
     
     for(int i = 0; i < dim3D; i++)
     {
-        n[i] = -1. * fabs(x[i] - centerPoint[i])/normaN;
+        n[i] = -1. * fabs(x[i] - fOrigin[i])/normaN;
     }
 }
 
@@ -466,7 +412,7 @@ JIntegral::~JIntegral()
     fPathVec.Resize(0);
 }
 
-void JIntegral::PushBackPath(Path pathElem)
+void JIntegral::PushBackPath(Path * pathElem)
 {
     int oldSize = fPathVec.NElements();
     fPathVec.Resize(oldSize+1);
@@ -475,39 +421,39 @@ void JIntegral::PushBackPath(Path pathElem)
 
 TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
-    Path jpathElem = fPathVec[p];
+    Path * jpathElem = fPathVec[p];
 
     double precisionIntegralRule = 1.E-30;
     Adapt intRule(precisionIntegralRule);
     
-    linearPath _LinearPath;
-    _LinearPath.fInitialNode = fPathVec[p].fInitialNode;
-    _LinearPath.fFinalNode = fPathVec[p].fFinalNode;
-    _LinearPath.fr_int = fPathVec[p].fr_int;
-    _LinearPath.fr_ext = fPathVec[p].fr_ext;
-    _LinearPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
-    _LinearPath.fcmesh = fPathVec[p].fcmesh;
+    linearPath * _LinearPath = new linearPath;
+    _LinearPath->fOrigin = jpathElem->fOrigin;
+    _LinearPath->fNormalDirection = jpathElem->fNormalDirection;
+    _LinearPath->fr_int = jpathElem->fr_int;
+    _LinearPath->fr_ext = jpathElem->fr_ext;
+    _LinearPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
+    _LinearPath->fcmesh = jpathElem->fcmesh;
     
-    externalArcPath _ExtArcPath;
-    _ExtArcPath.fInitialNode = fPathVec[p].fInitialNode;
-    _ExtArcPath.fFinalNode = fPathVec[p].fFinalNode;
-    _ExtArcPath.fr_int = fPathVec[p].fr_int;
-    _ExtArcPath.fr_ext = fPathVec[p].fr_ext;
-    _ExtArcPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
-    _ExtArcPath.fcmesh = fPathVec[p].fcmesh;
+    externalArcPath * _ExtArcPath = new externalArcPath;
+    _ExtArcPath->fOrigin = jpathElem->fOrigin;
+    _ExtArcPath->fNormalDirection = jpathElem->fNormalDirection;
+    _ExtArcPath->fr_int = jpathElem->fr_int;
+    _ExtArcPath->fr_ext = jpathElem->fr_ext;
+    _ExtArcPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
+    _ExtArcPath->fcmesh = jpathElem->fcmesh;
     
-    internalArcPath _IntArcPath;
-    _IntArcPath.fInitialNode = fPathVec[p].fInitialNode;
-    _IntArcPath.fFinalNode = fPathVec[p].fFinalNode;
-    _IntArcPath.fr_int = fPathVec[p].fr_int;
-    _IntArcPath.fr_ext = fPathVec[p].fr_ext;
-    _IntArcPath.fInitial2DElementId = fPathVec[p].fInitial2DElementId;
-    _IntArcPath.fcmesh = fPathVec[p].fcmesh;
+    internalArcPath * _IntArcPath = new internalArcPath;
+    _IntArcPath->fOrigin = jpathElem->fOrigin;
+    _IntArcPath->fNormalDirection = jpathElem->fNormalDirection;
+    _IntArcPath->fr_int = jpathElem->fr_int;
+    _IntArcPath->fr_ext = jpathElem->fr_ext;
+    _IntArcPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
+    _IntArcPath->fcmesh = jpathElem->fcmesh;
     
     
-    TPZVec<REAL> integrLinPath = intRule.Vintegrate(_LinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(_ExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(_IntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
 
     //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
     TPZVec<REAL> answ(dim3D);

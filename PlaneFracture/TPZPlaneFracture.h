@@ -156,17 +156,12 @@ class TPZPlaneFracture
     
     static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initialElId, TPZVec<REAL> & x);
     
-    /*
-	 * @brief Returns the Id of the element of given 2D PlaneMesh that contains the given coordinates (x).
-	 */
-	//static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, TPZVec<REAL> & x);
-    
     /**
      * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
      * @param x [in] : coordinates whose elements is going to be localized.
      * @param fullMesh [in] : geomesh of elements candidates.
      */
-    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, int & initialElId, TPZGeoMesh * fullMesh);
+    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initialElId, TPZGeoMesh * fullMesh);
     
     static void GetAllLowerSons(TPZGeoEl * gel, TPZVec<TPZGeoEl *> &sons);
     
