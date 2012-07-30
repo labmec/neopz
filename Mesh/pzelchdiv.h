@@ -1,4 +1,4 @@
-/**
+ /**
  * @file
  * @brief Contains declaration of TPZCompElHDiv class which implements a generic computational element (HDiv scope).
  */
@@ -148,7 +148,7 @@ public:
      * @param VectorSide input : indicates the side associated with each vector
      * @param IndexVecShape output : indicates for the vector/shape function for the approximation space
     */
-	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape);
+	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape, int pressureorder);
 	
 	/** @brief Computes the values of the shape function of the side*/
 	virtual void SideShapeFunction(int side,TPZVec<REAL> &point,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
