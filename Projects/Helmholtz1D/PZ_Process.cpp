@@ -287,8 +287,8 @@ void OutputMathematica(std::ofstream &outMath,int var,int pointsByElement,TPZCom
 		TPZInterpolationSpace * sp = dynamic_cast <TPZInterpolationSpace*>(cel);
 		int nstates = cel->Material()->NStateVariables();
 		// If var is higher than nstates of the element, go to next element
-		if(var > nstates)
-			continue;
+		//if(var > nstates)
+		//	continue;
 		TPZVec<REAL> qsi(3,0.), sol(nstates,0.), outfem(3,0.);
 		nnodes = gel->NNodes();
 		if(pointsByElement < nnodes) pointsByElement = nnodes;
