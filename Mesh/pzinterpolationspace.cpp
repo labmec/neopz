@@ -636,37 +636,27 @@ void TPZInterpolationSpace::CreateInterfaces(bool BetweenContinuous) {
 TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool BetweenContinuous)
 {
 	//  LOGPZ_INFO(logger, "Entering CreateInterface");
-	TPZInterfaceElement * newcreatedinterface = NULL;
 	
 	TPZGeoEl *ref = Reference();
 	if(!ref) {
 		LOGPZ_WARN(logger, "Exiting CreateInterface Null reference reached - NULL interface returned");
-		return newcreatedinterface;
+		return NULL;
 	}
 	
 	TPZCompElSide thisside(this,side);
 	TPZStack<TPZCompElSide> list;
 	list.Resize(0);
 	thisside.EqualLevelElementList(list,0,1);//retorna distinto ao atual ou nulo
-	int size = list.NElements();
+	const int size = list.NElements();
+    
+    if (size > 1) {
+        DebugStop();
+    }
 	//espera-se ter os elementos computacionais esquerdo e direito
 	//ja criados antes de criar o elemento interface
 	if(size){
 		//Interface has the same material of the neighbour with lesser dimension.
 		//It makes the interface have the same material of boundary conditions (TPZCompElDisc with interface dimension)
-		int matid;
-		int thisdim = this->Dimension();
-		int neighbourdim = list[0].Element()->Dimension();
-		if (thisdim == neighbourdim){
-			//      matid = this->Material()->Id();
-			matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), list[0].Element()->Material()->Id() );
-		}
-		else { //one element is a boundary condition
-			if (thisdim < neighbourdim) matid = this->Material()->Id();
-			else matid = list[0].Element()->Material()->Id();
-		}
-		
-		
 		int index;
 		
 		TPZCompEl *list0 = list[0].Element();
@@ -682,31 +672,54 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 				return NULL;
 			}
 		}
+        TPZInterfaceElement * newcreatedinterface = NULL;
 		
-		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
-		if(!gel){
-			DebugStop();
+		if (Dimension() == list0->Dimension()) 
+        {
+            const int matid = this->Mesh()->Reference()->InterfaceMaterial(this->Material()->Id(), list0->Material()->Id() );
+            TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+            if(!gel) 
+            {
 #ifdef LOG4CXX
-            if (logger->isDebugEnabled())
-			{
-				std::stringstream sout;
-				sout << "CreateBCGeoEl devolveu zero!@@@@";
-				LOGPZ_DEBUG(logger,sout.str());
-			}
+                if (logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << "CreateBCGeoEl devolveu zero!@@@@";
+                    LOGPZ_DEBUG(logger,sout.str());
+                }
 #endif
-		}
-		
-		if(Dimension() > list0->Dimension()){
-			//o de volume eh o direito caso um deles seja BC
-			//a normal aponta para fora do contorno
-			TPZCompElSide thiscompelside(this, thisside);
-			TPZCompElSide neighcompelside(list0, neighside);
-			newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
-		} else {
-			//caso contrario ou caso ambos sejam de volume
-			TPZCompElSide thiscompelside(this, thisside);
-			TPZCompElSide neighcompelside(list0, neighside);
-			newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+                DebugStop();
+            }
+            TPZCompElSide thiscompelside(this, thisside);
+            TPZCompElSide neighcompelside(list0, neighside);
+            int index;
+            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+
+        } else 
+        {
+            
+            if(Dimension() > list0->Dimension())
+            {
+                const int matid = list0->Material()->Id();
+                TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+                if (!gel) {
+                    DebugStop();
+                }
+
+                //o de volume eh o direito caso um deles seja BC
+                //a normal aponta para fora do contorno
+                TPZCompElSide thiscompelside(this, thisside);
+                TPZCompElSide neighcompelside(list0, neighside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,neighcompelside);
+            } else {
+                const int matid = this->Material()->Id();
+                TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+                if(!gel) DebugStop();
+                //caso contrario ou caso ambos sejam de volume
+                TPZCompElSide thiscompelside(this, thisside);
+                TPZCompElSide neighcompelside(list0, neighside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,neighcompelside,thiscompelside);
+            }
 		}
 		
 		
@@ -719,7 +732,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			bool leftIsLinear = leftGel->IsLinearMapping();
 			bool rightIsLinear = rightGel->IsLinearMapping();
 			if(!leftIsLinear && !rightIsLinear){
-				if(gel->IsGeoBlendEl() == false){
+				if(faceGel->IsGeoBlendEl() == false){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
 #ifdef LOG4CXX
 					{
@@ -776,36 +789,58 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 				return NULL;
 			}
 		}
-		
-		//existem esquerdo e direito: this e lower
-		TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+        TPZInterfaceElement * newcreatedinterface = NULL;
+
 		int index;
 		
+        if(Dimension() == lowcel->Dimension()){///faces internas
+            
+            const int matid = this->Mesh()->Reference()->InterfaceMaterial(lowcel->Material()->Id(), this->Material()->Id() );
+            TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid); //isto acertou as vizinhanas da interface geometrica com o atual
+            if(!gel) DebugStop();
+            
+            TPZCompElSide lowcelcompelside(lowcel, neighside);
+            TPZCompElSide thiscompelside(this, thisside);
+            int index;
+            newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+        }
+        else{
 		
-		if(Dimension() > lowcel->Dimension()){
-			//para que o elemento esquerdo seja de volume
-			TPZCompElSide thiscompelside(this, thisside);
-			TPZCompElSide lowcelcompelside(lowcel, neighside);
-			newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
-		} else {
-			TPZCompElSide thiscompelside(this, thisside);
-			TPZCompElSide lowcelcompelside(lowcel, neighside);
-#ifdef LOG4CXX_KEEP
-            if (logger->isDebugEnabled())
-			{
-				std::stringstream sout;
-				sout << __PRETTY_FUNCTION__ << " left element";
-				sout << lowcelcompelside << thiscompelside;
-				sout << "Left Element ";
-				lowcelcompelside.Element()->Print(sout);
-				sout << "Right Element ";
-				thiscompelside.Element()->Print(sout);
-				LOGPZ_DEBUG(logger,sout.str())
-			}
-#endif
-			newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
-		}
-		
+            if(Dimension() > lowcel->Dimension()){
+                const int matid = lowcel->Material()->Id();
+                TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+                if (!gel) {
+                    DebugStop();
+                }
+
+                //para que o elemento esquerdo seja de volume
+                TPZCompElSide thiscompelside(this, thisside);
+                TPZCompElSide lowcelcompelside(lowcel, neighside);
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,thiscompelside,lowcelcompelside);
+            } else {
+                const int matid = this->Material()->Id();
+                TPZGeoEl *gel = ref->CreateBCGeoEl(side,matid);
+                if (!gel) {
+                    DebugStop();
+                }
+                TPZCompElSide thiscompelside(this, thisside);
+                TPZCompElSide lowcelcompelside(lowcel, neighside);
+    #ifdef LOG4CXX_KEEP
+                if (logger->isDebugEnabled())
+                {
+                    std::stringstream sout;
+                    sout << __PRETTY_FUNCTION__ << " left element";
+                    sout << lowcelcompelside << thiscompelside;
+                    sout << "Left Element ";
+                    lowcelcompelside.Element()->Print(sout);
+                    sout << "Right Element ";
+                    thiscompelside.Element()->Print(sout);
+                    LOGPZ_DEBUG(logger,sout.str())
+                }
+    #endif
+                newcreatedinterface = new TPZInterfaceElement(*fMesh,gel,index,lowcelcompelside,thiscompelside);
+            }
+        }		
 		/** GeoBlend verifications ***/
 #ifdef DEBUG
 		{
@@ -815,7 +850,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 			bool leftIsLinear = leftGel->IsLinearMapping();
 			bool rightIsLinear = rightGel->IsLinearMapping();
 			if(!leftIsLinear && !rightIsLinear){
-				if(gel->IsGeoBlendEl() == false){
+				if(faceGel->IsGeoBlendEl() == false){
 					std::cout << "\nError at " << __PRETTY_FUNCTION__ << "\n";
 #ifdef LOG4CXX
 					{
@@ -838,7 +873,7 @@ TPZInterfaceElement * TPZInterpolationSpace::CreateInterface(int side, bool Betw
 		
 		return newcreatedinterface;
 	}
-	return newcreatedinterface;
+	return NULL;
 }
 
 int TPZInterpolationSpace::ExistsInterface(TPZGeoElSide geosd){
