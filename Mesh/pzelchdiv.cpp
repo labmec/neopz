@@ -173,7 +173,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
         if(TSHAPE::SideDimension(iside) == TSHAPE::Dimension)
         {
             int NShapeFace = 0;
-            //funcoes para os lados menor que o proprio elemento
+           // funcoes para os lados menor que o proprio elemento
             for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++)
             {
                 int sideorder= this->SideOrder(nside);
@@ -182,7 +182,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
             //se a ordem for maior q um tiraremos a ultima função interna
             if (order>1)
             {
-
+								/*
                 int NShapeFace = 0;
                 //funcoes para os lados menor que o proprio elemento
                 for(int nside=TSHAPE::NCornerNodes; nside<smallsides.NElements();nside++){
@@ -196,7 +196,9 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
 										
                    //	int nshape=NShapeFace+ TSHAPE::Dimension*(aux)+2*(order-2);//acrescentando fucnoes de ordem (p+1) em algumas direcoes
                   //  int nshape=NShapeFace+ TSHAPE::Dimension*(aux)-4*(order-2);
-								  int nshape=(order-2)*(order-2)+(order-1)*(order-1) -3 + 4*(order-1);
+						   */
+					
+								  int nshape=(order-2)*(order-2)+(order-1)*(order-1) + 4*(order-1)-1;
 								
 
 #ifdef LOG4CXX
@@ -206,7 +208,7 @@ int TPZCompElHDiv<TSHAPE>::NConnectShapeF(int connect)const
                     LOGPZ_DEBUG(logger, sout.str().c_str());
                 }
 #endif
-                return(nshape);//pois nem todas as funcoes levam as duas direcoes 
+                return(nshape);
             }
             else {
                 int aux=TSHAPE::NConnectShapeF(iside,order);
@@ -604,11 +606,11 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 										int ordereta = sideorders(1,ish);
 										
 										
-										if (jvec ==16) {
+										if (jvec ==17) {
 												bool etacheck = ordereta <= pressureorder;
 												if (etacheck) 
 												{
-														if (!(ordereta == pressureorder && orderksi == pressureorder+1)) 
+														if (!(ordereta == pressureorder+1 && orderksi == pressureorder)) 
 														{
 																ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
 												
@@ -621,9 +623,9 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 														}
 												}
 										}
-										if (jvec ==17) {
+										if (jvec ==16) {
 												if (orderksi<=pressureorder) {
-														if (!(orderksi == pressureorder && ordereta == pressureorder+1)) 
+														if (!(orderksi == pressureorder+1 && ordereta == pressureorder)) 
 														{
 																										
 #ifdef LOG4CXX
