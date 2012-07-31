@@ -82,17 +82,18 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 int main(int argc, char *argv[])
 {
     
-#ifdef LOG4CXX
-	std::string logs("../logporoelastc2d.cfg");
-	InitializePZLOG("../logporoelastc2d.cfg");
-#endif
+//#ifdef LOG4CXX
+//	std::string logs("../logporoelastc2d.cfg");
+//	InitializePZLOG("../logporoelastc2d.cfg");
+//#endif
     
     int pu = 3;
     int pq = 3;
+    int pp = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(true,1.,1.);
+	TPZGeoMesh * gmesh = GMesh(false,1.,1.);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
     
     
 	// Third computational mesh
-	TPZCompMesh * cmesh3 = CMeshPressure(gmesh, pq-1);
+	TPZCompMesh * cmesh3 = CMeshPressure(gmesh, pp);
     ofstream arg4("cmesh3_inicial.txt");
     cmesh3->Print(arg4);
     
@@ -408,7 +409,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
-            celdisc->SetTotalOrderShape();   
+            //celdisc->SetTotalOrderShape();
+            celdisc->SetTensorialShape();
         }
     }
     
