@@ -29,8 +29,6 @@ TPZMatRed<TVar,  TSideMatrix>::TPZMatRed () : TPZMatrix<TVar>( 0, 0 ), fK11(0,0)
 {
 	fDim0=0;
 	fDim1=0;
-    fK00IsDecomposed = 0;
-	fK11IsReduced=0;
 	fK01IsComputed = 0;
 	fIsReduced = 0;
 }
@@ -42,8 +40,6 @@ fK10(dim-dim00,dim00,0.), fF0(dim00,1,0.),fF1(dim-dim00,1,0.), fMaxRigidBodyMode
 	if(dim<dim00) TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"dim k00> dim");
 	fDim0=dim00;
 	fDim1=dim-dim00;
-    fK00IsDecomposed = 0;
-	fK11IsReduced=0;
 	fK01IsComputed = 0;
 	fIsReduced = 0;
 }
@@ -204,12 +200,6 @@ void TPZMatRed<TVar, TSideMatrix>::F1Red(TPZFMatrix<TVar> &F1Red)
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar,TSideMatrix>::K11Reduced(TPZFMatrix<TVar> &K11, TPZFMatrix<TVar> &F1)
 {
-	if (!fDim0 || fK11IsReduced)  {
-		//Simetrize();
-		K11 = fK11;
-        F1Red(F1);
-        return;
-	}
 	
 	if(!fK01IsComputed)
 	{
@@ -446,8 +436,6 @@ int TPZMatRed<TVar,TSideMatrix>::Redim(int dim, int dim00){
 	
 	fDim0=dim00;
 	fDim1=dim-dim00;
-    fK00IsDecomposed = 0;
-	fK11IsReduced=0;
 	
 	fK01.Redim(fDim0,fDim1);
 	fK10.Redim(fDim1,fDim0);
@@ -469,8 +457,6 @@ int TPZMatRed<TVar, TSideMatrix>::Zero(){
 	fK11.Zero();
 	fF0.Zero();
 	fF1.Zero();
-    fK00IsDecomposed=0;
-	fK11IsReduced=0;
 	return 0;
 }
 
@@ -539,7 +525,7 @@ void TPZMatRed<TVar, TSideMatrix>::MultAdd(const TPZFMatrix<TVar> &x,
 template<class TVar, class TSideMatrix>
 void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
 {
-    if(fK00IsDecomposed)
+    if(fK00->IsDecomposed())
     {
         return;
     }
@@ -595,7 +581,6 @@ void TPZMatRed<TVar, TSideMatrix>::DecomposeK00()
             }
             fNumberRigidBodyModes++;
         }
-        fK00IsDecomposed = true;
     }
     else
     {
@@ -612,11 +597,8 @@ void TPZMatRed<TVar, TSideMatrix>::Write(TPZStream &buf, int withclassid)
 		buf.Write(&this->fDim1, 1);
 	}
 	{//chars
-		buf.Write(&this->fDefPositive, 1);
-        buf.Write(&this->fK00IsDecomposed,1);
-		buf.Write(&this->fIsReduced, 1);
-		buf.Write(&this->fK01IsComputed, 1);
-		buf.Write(&this->fK11IsReduced, 1);
+		buf.Write(this->fIsReduced);
+		buf.Write(this->fK01IsComputed);
 		buf.Write(&this->fMaxRigidBodyModes, 1);
 		buf.Write(&this->fNumberRigidBodyModes, 1);
 	}
@@ -667,11 +649,8 @@ void TPZMatRed<TVar, TSideMatrix>::Read(TPZStream &buf, void *context)
 		buf.Read(&this->fDim1, 1);
 	}
 	{//chars
-		buf.Read(&this->fDefPositive, 1);
-        buf.Read(&this->fK00IsDecomposed,1);
-		buf.Read(&this->fIsReduced, 1);
-		buf.Read(&this->fK01IsComputed, 1);
-		buf.Read(&this->fK11IsReduced, 1);
+		buf.Read(this->fIsReduced);
+		buf.Read(this->fK01IsComputed);
 		buf.Read(&this->fMaxRigidBodyModes, 1);
 		buf.Read(&this->fNumberRigidBodyModes, 1);
 	}

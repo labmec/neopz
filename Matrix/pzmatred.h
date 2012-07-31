@@ -56,8 +56,6 @@ public:
 	{
 		fDim0=cp.fDim0;
 		fDim1=cp.fDim1;
-        fK00IsDecomposed = cp.fK00IsDecomposed;
-		fK11IsReduced=cp.fK11IsReduced;
 		fK01IsComputed = cp.fK01IsComputed;
 		fIsReduced = cp.fIsReduced;
 		fSolver = cp.fSolver;
@@ -223,16 +221,10 @@ private:
 	int fDim0, fDim1;
 	
 	/** @brief Is true if the declared dimension of the matrix is fDim0 */
-	char fIsReduced;
-	
-    /** @brief Flag indicating that K00 was decomposed */
-    char fK00IsDecomposed;
+	bool fIsReduced;
 	
 	/** @brief Is true if \f$ [(K00)^-1][KO1] \f$ has been computed and overwritten \f$ [K01] \f$ */
-	char fK01IsComputed;
-	
-	/** @brief fK11IsReduced is true if \f$ [K11]=[K11]-[K10][(A00)^-1][A01] \f$ exists */
-	char fK11IsReduced;
+	bool fK01IsComputed;
 	
     /** @brief Number of rigid body modes foreseen in the computational mesh */
     int fMaxRigidBodyModes;
