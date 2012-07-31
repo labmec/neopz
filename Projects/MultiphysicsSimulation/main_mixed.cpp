@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,5);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg9("cmesh1_final.txt");
@@ -100,25 +100,25 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,5);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg10("cmesh2_final.txt");
     cmesh2->Print(arg10);
     
-    TPZAnalysis an3(cmesh2);
-    SolveSyst(an3, cmesh2);
+//    TPZAnalysis an3(cmesh2);
+//    SolveSyst(an3, cmesh2);
     
 
     
     //solucao HDiv
-    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-    ofstream arg6("cmesh_Hdiv.txt");
-	cmesh3->Print(arg6);
-    TPZAnalysis an2(cmesh3);
-    SolveSyst(an2, cmesh3);
-    string plotile2("Solution_HDiv.vtk");
-    PosProcessHDiv(an2, plotile2);
+//    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
+//    ofstream arg6("cmesh_Hdiv.txt");
+//	cmesh3->Print(arg6);
+//    TPZAnalysis an2(cmesh3);
+//    SolveSyst(an2, cmesh3);
+//    string plotile2("Solution_HDiv.vtk");
+//    PosProcessHDiv(an2, plotile2);
     
     
     //malha multifisica
@@ -244,15 +244,15 @@ TPZGeoMesh *GMesh(bool triang_elements){
     
 	gmesh->BuildConnectivity();
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Geometrica Inicial\n ";
-        gmesh->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Geometrica Inicial\n ";
+//        gmesh->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
    
 	return gmesh;
 }
@@ -292,15 +292,15 @@ TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder)
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
-        cmesh->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Computacional_1 Fluxo\n ";
+//        cmesh->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
 	
 	return cmesh;
 }
@@ -374,15 +374,15 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     }
 #endif
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional_2 pressure\n ";
-        cmesh->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str());
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Computacional_2 pressure\n ";
+//        cmesh->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str());
+//	}
+//#endif
 	
 	return cmesh;
 }
@@ -431,17 +431,17 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
 	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
 	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
 	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
-    
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-        std::stringstream sout;
-        sout<<"\n\n Malha Computacional Multiphysic\n ";
-        mphysics->Print(sout);
-        LOGPZ_DEBUG(logdata,sout.str());
-	}
-#endif
-    
+//    
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//        std::stringstream sout;
+//        sout<<"\n\n Malha Computacional Multiphysic\n ";
+//        mphysics->Print(sout);
+//        LOGPZ_DEBUG(logdata,sout.str());
+//	}
+//#endif
+//    
     return mphysics;
 }
 
@@ -463,7 +463,7 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 	an.Run();
 	
 	//Saida de Dados: solucao e  grafico no VT
-	ofstream file("Solutout.txt");
+	ofstream file("Solutout");
 	an.Solution().Print("solution", file);    //Solution visualization on Paraview (VTK)
 }
 

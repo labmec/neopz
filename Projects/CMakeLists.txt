@@ -125,6 +125,9 @@ ENABLE_TESTING()
 			endif()
 			
 			#add_subdirectory(prodindex)
+			#Projeto Agnaldo
+			add_subdirectory(Testes_Agnaldo)
+
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		

@@ -226,11 +226,6 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 		Solout[0] = SolP[0];//function (state variable p)
 		return;
 	}
-    
-    
-	
-	
-	
 }
 
 
