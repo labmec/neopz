@@ -19,18 +19,19 @@ static LoggerPtr logger(Logger::getLogger("pz.matrix.tpzfmatrix"));
 static LoggerPtr loggerCheck(Logger::getLogger("pz.checkconsistency"));
 #endif
 
-TPZMaterialData::TPZMaterialData() : numberdualfunctions(0){
+TPZMaterialData::TPZMaterialData() : fShapeType(EScalarShape), numberdualfunctions(0){
 	this->SetAllRequirements(false);
 	this->intPtIndex = -1;
     this->sol.Resize(1);
     this->dsol.Resize(1);
 }
 
-TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ){
+TPZMaterialData::TPZMaterialData( const TPZMaterialData &cp ) : fShapeType(cp.fShapeType) {
 	this->operator =(cp);
 }
 
 TPZMaterialData & TPZMaterialData::operator= (const TPZMaterialData &cp ){
+    this->fShapeType = cp.fShapeType;
 	this->fNeedsSol = cp.fNeedsSol;
 	this->fNeedsNeighborSol = cp.fNeedsNeighborSol;
 	this->fNeedsHSize = cp.fNeedsHSize;
@@ -72,6 +73,8 @@ void TPZMaterialData::SetAllRequirements(bool set){
 /** Save the element data to a stream */
 void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 {
+    int shapetype = fShapeType;
+    buf.Write(&shapetype);
 	phi.Write(buf,0);
 	dphix.Write(buf,0);
 	axes.Write(buf,0);
@@ -101,6 +104,9 @@ void TPZMaterialData::Write(TPZStream &buf, int withclassid)
 /** Read the element data from a stream */
 void TPZMaterialData::Read(TPZStream &buf, void *context)
 {
+    int shapetype;
+    buf.Read(&shapetype);
+    fShapeType = (MShapeFunctionType) shapetype;
 	phi.Read(buf,0);
 	dphix.Read(buf,0);
 	axes.Read(buf,0);

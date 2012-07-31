@@ -31,6 +31,13 @@ class TPZMaterialData : public TPZSaveable {
 	
 public:
 	
+    
+    enum MShapeFunctionType {EScalarShape, EVecandShape, EVecShape};
+    // EScalarShape : regular shape functions: one shape function used for all state variables (default)
+    // EVecandShape : HDiv type shape function a scalar function multiplied by a vector
+    // EVecShape : a vector valued shape function
+    
+    MShapeFunctionType fShapeType;
 	/** @name Flags indicating whether some attributes shall be computed or not */
 	/** @{ */
 	bool fNeedsSol, fNeedsNeighborSol, fNeedsHSize, fNeedsNeighborCenter, fNeedsNormal;
