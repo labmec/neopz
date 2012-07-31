@@ -25,7 +25,13 @@ class TPZStream {
 public:
 	
 	virtual ~TPZStream() {}
-	
+    
+    virtual void Write(bool val)
+    {
+        int ival = (val == true) ? 1 : 0;
+        Write(&ival);
+    }
+    	
 	virtual void Write(const int *p, int size=1)=0;
 
 	virtual void Write(const float  *p, int size=1)=0;
@@ -52,6 +58,13 @@ public:
 	}
 #endif
 	
+    virtual void Read(bool &val)
+    {
+        int ival;
+        Read(&ival);
+        val = (ival == 0) ? false : true;
+    }
+    
 	virtual void Read(int *p, int size=1)=0;
 
 	virtual void Read(float *p, int size=1)=0;
@@ -149,7 +162,6 @@ public:
 		int c;
 		for(c=0; c<size; c++) fo << p[c] << std::endl;
 	}
-	
 	
 	virtual void Read(int *p, int size) {
 		Reads<int>(p,size);

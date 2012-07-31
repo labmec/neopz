@@ -45,6 +45,7 @@ public:
 			std::cout << "could not open file " << filename << std::endl;
 		}
 	}
+    
 	/** @brief Writes size integers at pointer location p */
 	virtual void Write(const int *p, int size) {
 		Writes<int>(p,size);
