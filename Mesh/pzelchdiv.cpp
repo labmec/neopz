@@ -747,25 +747,21 @@ void TPZCompElHDiv<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point,TPZFM
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol){
-	TPZMaterialData data;
+void TPZCompElHDiv<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol)
+{	
+    TPZMaterialData data;
 	InitMaterialData(data);
-    
 //	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
-	
-	
 	this->ComputeSolutionHDiv(data);
 	this->Material()->Solution(data,var,sol);
-    
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data){
+void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data)
+{
 //	this->ComputeShape(qsi, data.x,data.jacobian,data.axes, data.detjac,data.jacinv,data.phi, data.dphix);
     this->ComputeShape(qsi,data);
     this->ComputeSolutionHDiv(data);
-	
-    
 }
 
 template<class TSHAPE>
@@ -786,9 +782,7 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
     
-    //this->InitMaterialData(data);
-    //this->ComputeShape(qsi,data);
-    this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
+    this->ComputeSolutionHDiv(data);
     
 }
 
@@ -806,8 +800,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
     data.jacinv.Resize(dim,dim);
 	data.x.Resize(3,0.);
     
-	//this->ComputeShape(qsi,x,jacobian,axes,detjac,jacinv,phix,dphix);
-    //this->ComputeSolution(qsi, phix, dphix, axes, sol, dsol);
     this->ComputeShape(qsi,data);
     this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
 	
@@ -815,58 +807,114 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
 }
 
 template<class TSHAPE>
-void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data){
+void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
+{
+    const int dim = this->Reference()->Dimension();
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
-	TPZBlock<STATE> &block =this->Mesh()->Block();
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     int numbersol = MeshSol.Cols();
-    
-	int nsol= this->Dimension()+1;
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
-    for (int is=0; is<numbersol; is++) {
-        data.sol[is].Resize(nsol,1);//2 components to the flow  and 1 to the div
+    
+    for (int is=0; is<numbersol; is++) 
+    {
+        data.sol[is].Resize(dim,numdof);//2 components to the flow
         data.sol[is].Fill(0);
-		
+        data.dsol[is].Redim(dim, dim);
+        data.dsol[is].Zero();
     }
-	//solution associated with the flow
-	int iv = 0,ishape=0,ivec=0,cols, jv=0;
-    for(int in=0; in<ncon ; in++) {
+    
+    TPZBlock<STATE> &block =this->Mesh()->Block();
+	int iv = 0,ishape=0,ivec=0,cols,jv=0;
+    for(int in=0; in<ncon; in++) 
+    {
 		TPZConnect *df = &this->Connect(in);
 		int dfseq = df->SequenceNumber();
 		int dfvar = block.Size(dfseq);
 		int pos = block.Position(dfseq);
 		
-		for(int jn=0; jn<dfvar; jn++) {
-			ivec=data.fVecShapeIndex[jv ].first;
+		for(int jn=0; jn<dfvar; jn++)
+        {
+			ivec=data.fVecShapeIndex[jv].first;
 			ishape=data.fVecShapeIndex[jv].second;
 			
-			TPZFNMatrix<3> ivecDiv(3,1);
-			ivecDiv(0,0) = data.fNormalVec(0,ivec);
-			ivecDiv(1,0) = data.fNormalVec(1,ivec);
-			ivecDiv(2,0) = data.fNormalVec(2,ivec);
-			TPZFNMatrix<3> axesvec(3,1);
-			data.axes.Multiply(ivecDiv,axesvec);
+//			TPZFNMatrix<3> ivecDiv(3,1);
+//			ivecDiv(0,0) = data.fNormalVec(0,ivec);
+//			ivecDiv(1,0) = data.fNormalVec(1,ivec);
+//			ivecDiv(2,0) = data.fNormalVec(2,ivec);
+//			TPZFNMatrix<3> axesvec(3,1);
+//			data.axes.Multiply(ivecDiv,axesvec);
 			
-			for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
-				cols=iv%numdof;
-				for (int is=0; is<numbersol; is++) {
+            for (int is=0; is<numbersol; is++)
+            {
+                cols=iv%numdof;
+                for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
-                    
+                    //data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
                 }
-				
-			}
-			
-			jv++;
-		}
-		
+            }
+            jv++;
+        }
 		iv++;
-	}
-	
+    }
 }
+
+//template<class TSHAPE>
+//void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
+//{
+//    const int numdof = this->Material()->NStateVariables();
+//    const int ncon = this->NConnects();
+//    
+//	TPZBlock<STATE> &block =this->Mesh()->Block();
+//    TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
+//    int numbersol = MeshSol.Cols();
+//    
+//	int nsol= this->Dimension()+1;
+//    data.sol.Resize(numbersol);
+//    data.dsol.Resize(numbersol);
+//    for (int is=0; is<numbersol; is++) {
+//        data.sol[is].Resize(nsol,1);//2 components to the flow  and 1 to the div
+//        data.sol[is].Fill(0);
+//		
+//    }
+//	//solution associated with the flow
+//	int iv = 0,ishape=0,ivec=0,cols, jv=0;
+//    for(int in=0; in<ncon ; in++) {
+//		TPZConnect *df = &this->Connect(in);
+//		int dfseq = df->SequenceNumber();
+//		int dfvar = block.Size(dfseq);
+//		int pos = block.Position(dfseq);
+//		
+//		for(int jn=0; jn<dfvar; jn++) {
+//			ivec=data.fVecShapeIndex[jv ].first;
+//			ishape=data.fVecShapeIndex[jv].second;
+//			
+//			TPZFNMatrix<3> ivecDiv(3,1);
+//			ivecDiv(0,0) = data.fNormalVec(0,ivec);
+//			ivecDiv(1,0) = data.fNormalVec(1,ivec);
+//			ivecDiv(2,0) = data.fNormalVec(2,ivec);
+//			TPZFNMatrix<3> axesvec(3,1);
+//			data.axes.Multiply(ivecDiv,axesvec);
+//			
+//			for (int ilinha=0; ilinha<this->Dimension(); ilinha++) {
+//				cols=iv%numdof;
+//				for (int is=0; is<numbersol; is++) {
+//                    data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
+//                    data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
+//                    
+//                }
+//				
+//			}
+//			
+//			jv++;
+//		}
+//		
+//		iv++;
+//	}
+//	
+//}
 
 
 template<class TSHAPE>
@@ -1025,7 +1073,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
-		data.fNormalVec.Print("Normal vectors", sout);
+		data.fNormalVec.Print("Normal vector ", sout);
 		sout << "NormalVector/Shape indexes " << data.fVecShapeIndex << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
