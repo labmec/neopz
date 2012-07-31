@@ -31,10 +31,9 @@ TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		
 		//criando o connect da variavel dual
 		int nshape;
-		//	int ordep=this->fPressureOrder;
-		//	int dim=this->Dimension();
+		
 		if (TSHAPE::Type()==EQuadrilateral) {
-				nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial)-1;
+				nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  ETensorial);
 		}
 		if (TSHAPE::Type()==ETriangle) {
 				nshape =  pzshape::TPZShapeDisc::NShapeF(this->fPressureOrder, this->Dimension(), pzshape::TPZShapeDisc::  EOrdemTotal);
@@ -174,7 +173,7 @@ int TPZCompElHDivPressure<TSHAPE>::NConnectShapeF(int connect)const
         {
 						
             int numshape=pzshape::TPZShapeDisc::NShapeF(dualorder, this->Dimension(), pzshape::TPZShapeDisc:: ETensorial);
-            return(numshape-1);///ajustar aqui para o QUAD..
+            return(numshape);
         }
         else// (TSHAPE::Type()==ETriangle)
         {
@@ -448,9 +447,15 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 		
     int degree= this->fPressureOrder;
     int nshapedisc;
-    if (TSHAPE::Type()==EQuadrilateral) 
+    if (TSHAPE::Type()==EQuadrilateral ) 
     {
-        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial)-1;//coloquei -1
+				if (degree==0) {
+						nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);
+				}
+				else{
+				
+        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial)-1;
+				}
     }
     else if(TSHAPE::Type() == ETriangle)
     {
@@ -467,15 +472,26 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 		TPZFNMatrix<660> dphiDiscAux(dimension,nshapedisc);
     
     if (TSHAPE::Type()==EQuadrilateral) {
-        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDiscAux,dphiDiscAux, pzshape::TPZShapeDisc::ETensorial);
-        int nphidisc = phiDiscAux.Rows();
-        phiDiscAux(0,0) = phiDiscAux(nphidisc-1,0);
-        dphiDiscAux(0,0) = dphiDiscAux(0,nphidisc-1);
-        dphiDiscAux(1,0) = dphiDiscAux(1,nphidisc-1);
-				for (int i=0; i<phiDisc.Rows(); i++) {
+				
+				if (degree==0) {
+						pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);
+#ifdef LOG4CXX
+						std::stringstream sout;
+						sout<< "vetor phi para ordem 0 andes de append"<<phiDiscAux<<endl;	
+						LOGPZ_DEBUG(logger,sout.str())
+#endif
+				}
+				else{
+						pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDiscAux,dphiDiscAux, pzshape::TPZShapeDisc::ETensorial);
+						int nphidisc = phiDiscAux.Rows();
+						phiDiscAux(0,0) = phiDiscAux(nphidisc-1,0);
+						dphiDiscAux(0,0) = dphiDiscAux(0,nphidisc-1);
+						dphiDiscAux(1,0) = dphiDiscAux(1,nphidisc-1);
+						for (int i=0; i<phiDisc.Rows(); i++) {
 						phiDisc(i,0)=phiDiscAux(i,0);
 						dphiDisc(0,i)=dphiDiscAux(0,i);
 						dphiDisc(1,1)=dphiDiscAux(1,i);
+						}
 				}
 				
 				
@@ -491,11 +507,11 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
 		this->Append(phiCont,phiDisc,phi);
 		this->Append(dphiCont,dphiDisc,dphi);
 		
-		//	 #ifdef LOG4CXX
-		//	 std::stringstream sout;
-		//	 sout<< "vetor phi "<<phi<<endl;	
-		//   LOGPZ_DEBUG(logger,sout.str())
-		//	 #endif
+			 #ifdef LOG4CXX
+			 std::stringstream sout;
+			 sout<< "vetor phi "<<phi<<endl;	
+		   LOGPZ_DEBUG(logger,sout.str())
+			 #endif
 		
 }
 
