@@ -180,8 +180,9 @@ int main(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
+    int meshDim = 2;
     std::string vtkFile = "fractureSIF.vtk";
-    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile);
+    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile,meshDim);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;

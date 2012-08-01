@@ -176,13 +176,13 @@ class TPZPlaneFracture
      * @param Tickness [in] : Domain thickness, orthogonal to the width_heigth plane (analog to the crack front length)
      * @param a [in] : half of the total crack length (one wing of crack)
      */
-    void RunModelProblemForSIFValidation(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+    void RunModelProblemForSIFValidation(const TPZVec<REAL> &poligonalChain, std::string vtkFile, int meshDim);
     
     /**
      * Returns the CompMesh for the FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
      * (used by the RunModelProblemForSIFValidation method)
      */
-    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
+    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	

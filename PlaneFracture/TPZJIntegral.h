@@ -52,7 +52,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext);
+    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext, int meshDim);
     Path(const Path &copy)
     {
         this->operator =(copy);
@@ -67,6 +67,7 @@ public:
         fr_ext = cpPath.fr_ext;
         fInitial2DElementId = cpPath.fInitial2DElementId;
         fcmesh = cpPath.fcmesh;
+        fMeshDim = cpPath.fMeshDim;
     }
     
     TPZVec<REAL> operator()(double t)
@@ -75,19 +76,9 @@ public:
         return Vval;
     }
     
-    static double leftLimit()
-    {
-        return -1.;
-    }
-    
-    static double rightLimit()
-    {
-        return +1.;
-    }
-    
     virtual TPZVec<REAL> Func(double t);
 
-//protected:
+    /////////////
     
     virtual void X(double t, TPZVec<REAL> & xt);
     virtual void dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
@@ -124,12 +115,24 @@ public:
     int fInitial2DElementId;
     
     TPZAutoPointer<TPZCompMesh> fcmesh;
+    
+    int fMeshDim;
 };
 
 
 class linearPath : public Path
 {
 public:
+    linearPath(Path * thePath)
+    {
+        fOrigin = thePath->fOrigin;
+        fNormalDirection = thePath->fNormalDirection;
+        fr_int = thePath->fr_int;
+        fr_ext = thePath->fr_ext;
+        fInitial2DElementId = thePath->fInitial2DElementId;
+        fcmesh = thePath->fcmesh;
+        fMeshDim = thePath->fMeshDim;
+    }
     virtual void X(double t, TPZVec<REAL> & xt);
     virtual void dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
     virtual void normalVec(double t, TPZVec<REAL> & n);
@@ -139,6 +142,16 @@ public:
 class externalArcPath : public Path
 {
 public:
+    externalArcPath(Path * thePath)
+    {
+        fOrigin = thePath->fOrigin;
+        fNormalDirection = thePath->fNormalDirection;
+        fr_int = thePath->fr_int;
+        fr_ext = thePath->fr_ext;
+        fInitial2DElementId = thePath->fInitial2DElementId;
+        fcmesh = thePath->fcmesh;
+        fMeshDim = thePath->fMeshDim;
+    }
     virtual void X(double t, TPZVec<REAL> & xt);
     virtual void dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
     virtual void normalVec(double t, TPZVec<REAL> & n);
@@ -148,6 +161,16 @@ public:
 class internalArcPath : public Path
 {
 public:
+    internalArcPath(Path * thePath)
+    {
+        fOrigin = thePath->fOrigin;
+        fNormalDirection = thePath->fNormalDirection;
+        fr_int = thePath->fr_int;
+        fr_ext = thePath->fr_ext;
+        fInitial2DElementId = thePath->fInitial2DElementId;
+        fcmesh = thePath->fcmesh;
+        fMeshDim = thePath->fMeshDim;
+    }
     virtual void X(double t, TPZVec<REAL> & xt);
     virtual void dXdt(double t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
     virtual void normalVec(double t, TPZVec<REAL> & n);

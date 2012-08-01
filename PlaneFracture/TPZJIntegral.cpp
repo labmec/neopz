@@ -35,10 +35,12 @@ Path::Path()
     fInitial2DElementId = 0;
     
     fcmesh = NULL;
+    
+    fMeshDim = 0;
 }
 
 
-Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext)
+Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, double r_int, double r_ext, int meshDim)
 {
     fOrigin = Origin;
     fNormalDirection = normalDirection;
@@ -57,6 +59,8 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL>
     fInitial2DElementId = 0;
     
     fcmesh = cmesh;
+    
+    fMeshDim = meshDim;
 }
 
 
@@ -69,6 +73,7 @@ Path::~Path()
     fr_ext = 0.;
 }
 
+
 TPZVec<REAL> Path::Func(double t)
 {
     TPZVec<REAL> xt(dim3D), dxdt(dim3D), nt(dim3D);
@@ -78,7 +83,22 @@ TPZVec<REAL> Path::Func(double t)
     this->normalVec(t, nt);
 
     TPZVec<REAL> qsi(dim3D,0.);
-    TPZGeoEl * geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, this->fcmesh->Reference());
+    
+    TPZGeoEl * geoEl = NULL;
+    if(fMeshDim == 2)
+    {
+        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(this->fcmesh->Reference(), fInitial2DElementId, xt);
+        geoEl = this->fcmesh->Reference()->ElementVec()[elFoundId];
+    }
+    else if(fMeshDim == 3)
+    {
+        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, this->fcmesh->Reference());
+    }
+    else
+    {
+        std::cout << "Mesh dimension must be 2 or 3! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        DebugStop();
+    }
     
     #ifdef DEBUG
     bool isInsideDomain = geoEl->ComputeXInverse(xt, qsi);
@@ -426,34 +446,13 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     double precisionIntegralRule = 1.E-30;
     Adapt intRule(precisionIntegralRule);
     
-    linearPath * _LinearPath = new linearPath;
-    _LinearPath->fOrigin = jpathElem->fOrigin;
-    _LinearPath->fNormalDirection = jpathElem->fNormalDirection;
-    _LinearPath->fr_int = jpathElem->fr_int;
-    _LinearPath->fr_ext = jpathElem->fr_ext;
-    _LinearPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
-    _LinearPath->fcmesh = jpathElem->fcmesh;
+    linearPath * _LinearPath = new linearPath(jpathElem);
+    externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
+    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
     
-    externalArcPath * _ExtArcPath = new externalArcPath;
-    _ExtArcPath->fOrigin = jpathElem->fOrigin;
-    _ExtArcPath->fNormalDirection = jpathElem->fNormalDirection;
-    _ExtArcPath->fr_int = jpathElem->fr_int;
-    _ExtArcPath->fr_ext = jpathElem->fr_ext;
-    _ExtArcPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
-    _ExtArcPath->fcmesh = jpathElem->fcmesh;
-    
-    internalArcPath * _IntArcPath = new internalArcPath;
-    _IntArcPath->fOrigin = jpathElem->fOrigin;
-    _IntArcPath->fNormalDirection = jpathElem->fNormalDirection;
-    _IntArcPath->fr_int = jpathElem->fr_int;
-    _IntArcPath->fr_ext = jpathElem->fr_ext;
-    _IntArcPath->fInitial2DElementId = jpathElem->fInitial2DElementId;
-    _IntArcPath->fcmesh = jpathElem->fcmesh;
-    
-    
-    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
-    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,dim3D,Path::leftLimit(),Path::rightLimit());
+    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,dim3D,-1.,+1.);
+    TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,dim3D,-1.,+1.);
+    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,dim3D,-1.,+1.);
 
     //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
     TPZVec<REAL> answ(dim3D);
