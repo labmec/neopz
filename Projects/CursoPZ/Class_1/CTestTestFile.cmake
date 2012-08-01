@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (CursoPZ_Class1 CursoPZ_Class1)
+ADD_TEST (CursoPZ1_NumIntegration CursoPZ1_NumIntegration)
 
 #Checking generated files
 #SET (filename "PyramidQuad.txt")

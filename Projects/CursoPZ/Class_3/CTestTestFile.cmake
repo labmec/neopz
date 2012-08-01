@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (CursoPZ_Class3 CursoPZ_Class3)
+ADD_TEST (CursoPZ3_Jacobian CursoPZ3_Jacobian)
 
 #Checking generated files
 #SET (filename "visualmatrix.dx")
