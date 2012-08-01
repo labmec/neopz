@@ -158,12 +158,12 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 }
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
 void TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
-	long double tol;
-#ifdef VC
-	tol = 1.e-16L;
-#else
-	tol = 1.e-19L;
-#endif
+	long double tol = machinePrecision();
+//#ifdef VC
+//	tol = 1.e-15L;
+//#else
+//	tol = 1.e-19L;
+//#endif
 	long double z1, z, pp, p3, p2, p1, dif, den;
 	int i, j;
 	long iteration;
@@ -472,9 +472,9 @@ void TPZGaussRule::ComputingGaussJacobiQuadrature(int *npoints,long double alpha
 		long double d;
 		long double precision;
 		int itera, itera_max = 10;
-			
+
 		precision = machinePrecision();
-		
+
 		for(itera=1;itera<=itera_max;itera++) {
 			d = JacobiPolinomial(x0,(*npoints),alpha,beta,b,c,&dp2,&p1);
 			d /= dp2;
@@ -663,15 +663,21 @@ bool TPZGaussRule::CheckCubatureRule() {
 	TPZVec<REAL> point(3,0.0L);
 	long double sum = 0.0L;
 
+	// The cubature rule has not zero integration points
+	if(!fNumInt)
+		return false;
+
+	// Checking all the integration points belong at the master element
 	for(i=0;i<fNumInt;i++) {
-		// Checking integration point belong at the master element
 		point[0] = fLocation[i];
 		if(!pztopology::TPZLine::IsInParametricDomain(point))
 			break;
 		sum += fWeight[i];
 	}
+	// Checking sum of the weights is equal to measure of the master element
 	if(i==fNumInt) {
-		if(IsZero((REAL)(sum) - pztopology::TPZLine::RefElVolume())) return true;
+		if(IsZero((REAL)(sum) - pztopology::TPZLine::RefElVolume()))
+			return true;
 	}
 	return false;   // because any integration point is outside of the master element
 }

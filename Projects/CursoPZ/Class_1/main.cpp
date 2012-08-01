@@ -13,11 +13,202 @@
 
 using namespace std;
 
+// First example: Polinomial functions
+REAL Funcao1D (TPZVec<REAL> &pt,int degree);
+REAL Funcao2D (TPZVec<REAL> &pt,int degree);
+REAL Funcao3D (TPZVec<REAL> &pt,int degree);
+
+int main() {
+	// variables
+	TPZVec<REAL> point(1,0.);
+	REAL weight = 0.;
+	REAL integral;
+
+	// output file
+	ofstream integrate("integratePolinomial.txt");
+	integrate << setprecision(14);
+
+	// degree of the numeric integration
+	int p = 2;
+
+	// degree d -> The function is f(x) = x^d - 2x^(d-1)
+	int degree = 2;   // f(x) = x^2 - 2x
+	int it, it2, npoints;
+
+	//=====1D Rule===Computing $f \int_{-1} f(x) $f==================================
+	while(degree < 26) {
+	TPZInt1d ordem1d (p);
+	for(it2=0;it2<2;it2++) {
+		integral = 0.0;
+		ordem1d.SetType(it2,p);
+		npoints = ordem1d.NPoints();
+		for (it=0;it<npoints;it++){
+			ordem1d.Point(it,point,weight);
+			integral += weight * Funcao1D(point,degree);
+		}
+		if(!npoints) {
+			std::string nome;
+			ordem1d.Name(nome);
+			integrate << "Type = " << nome << endl;
+		}
+//		ordem1d.Print(integrate);
+		integrate << "1D (p = " << p << " - Integral = " << integral << endl;
+	}
+	degree++;
+	p=degree;
+	}
+	// Integral = 1.16666666666666667 (d = 2)
+	// Integral = -1.2500000000000000 (d = 3) (minimum p = 2)
+	// Integral = -1.8958333333333333 (d = 5)
+	// Integral = -3.2031250000000000 (d = 7)
+	// Integral = -5.7664062500000000 (d = 9)
+	// Integral = 14.9707406850961538 (d = 12)
+	// Integral = -41.052551269531250 (d = 15)
+	// Integral = 116.675674840023643 (d = 18)
+	// Integral = 237.518337885538766 (d = 20)
+	// Integral = -1456.7981708095624 (d = 25)
+	//=====End of 1D Rule================================
+	
+	//=====2D Rule===Computing $f \int f(x,y) $f=====
+	// The function is f(x) = x^d + y^d - 2 x y
+	//=====Triangle Rule==============================
+	point.Resize(2);
+	degree = p = 2;
+	while(degree < 12) {
+	TPZIntTriang ordem2dt (p);
+	npoints = ordem2dt.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem2dt.Point(it,point,weight);
+		integral += weight * Funcao2D(point,degree);
+	}
+	integrate << "2D - Triangle Integral = " << integral << endl;
+	degree++;
+	p= degree;
+	}
+
+	//=====Quad Rule==================================
+	degree = p = 2;
+	while(degree < 12) {
+	TPZIntQuad ordem2dq (p,p);
+	npoints = ordem2dq.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem2dq.Point(it,point,weight);
+		integral += weight * Funcao2D(point,degree);
+	}
+	integrate << "2D - Quad Integral = " << integral << endl;
+	//=====End 2D integration============================
+	degree++;
+	p= degree;
+	}
+
+	//=====3D Rule===Computing $f \int f(x,y,z) $f=====
+	// The function is f(x) = x^d + y^d + z^d - 2 x y z
+	//=====Tetrahedra Rule==================================
+	point.Resize(3);
+	degree = p = 2;
+	while(degree < 10) {
+	TPZIntTetra3D ordem3dt (p+3);
+	npoints = ordem3dt.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem3dt.Point(it,point,weight);
+		integral += weight * Funcao3D(point,degree);
+	}
+	integrate << "3D - Tetra Integral = " << integral << endl;
+	degree++;
+	p= degree;
+	}
+
+	//=====Pyramid Rule==================================
+	degree = p = 2;
+	while(degree < 10) {
+	TPZIntPyram3D ordem3dpy (p+3);
+	npoints = ordem3dpy.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem3dpy.Point(it,point,weight);
+		integral += weight * Funcao3D(point,degree);
+	}
+	integrate << "3D - Pyramid Integral = " << integral << endl;
+	degree++;
+	p= degree;
+	}
+  
+	//=====Prism Rule===================================
+	degree = p = 2;
+	while(degree < 10) {
+	TPZIntPrism3D ordem3dpr (p+3);
+	npoints = ordem3dpr.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem3dpr.Point(it,point,weight);
+		integral += weight * Funcao3D(point,degree);
+	}
+	integrate << "3D - Prism Integral = " << integral << endl;
+	degree++;
+	p= degree;
+	}
+
+	//=====Hexahedra Rule====================================
+	degree = p = 2;
+	while(degree < 7) {
+	TPZIntCube3D ordem3dc (p*3);
+	npoints = ordem3dc.NPoints();
+	integral = 0.0;
+	for (it=0;it<npoints;it++){
+		ordem3dc.Point(it,point,weight);
+		integral += weight * Funcao3D(point,degree);
+	}
+	integrate << "3D - Hexa Integral = " << integral << endl;
+	degree++;
+	p= degree;
+	}
+	integrate.close();
+
+	return 0;
+}
+
+REAL Funcao1D (TPZVec<REAL> &pt,int degree) {
+	if(pt.NElements() < 0)
+		DebugStop();
+	REAL a=1.;
+
+	for(int i=0;i<degree;i++) {
+		a *= (pt[0]-0.5);
+	}
+	return (a + 3.*pt[0]);		
+}
+REAL Funcao2D (TPZVec<REAL> &pt,int degree) {
+	if(pt.NElements() < 0)
+		DebugStop();
+	REAL a=1., b=1.;
+
+	for(int i=0;i<degree;i++) {
+		a *= (pt[0] - 0.5);
+		b *= pt[1];
+	}
+	return (a+b + 3.*pt[0]*pt[1]);
+}
+REAL Funcao3D (TPZVec<REAL> &pt,int degree) {
+	if(pt.NElements() < 0)
+		DebugStop();
+	REAL a=1., b=1., c=1.;
+
+	for(int i=0;i<degree;i++) {
+		a *= (pt[0] - 0.5);
+		b *= pt[1];
+		c *= pt[2];
+	}
+	return (a+b+c + 3.*pt[0]*pt[1]*pt[2]);		
+}
+
 //Functions declaration
 REAL Funcao (TPZVec<REAL> &pt, int i, int j, int k, int p);
 REAL Alfa (int i, int j, int k, int p);
 
-int main() {
+int main_2() {
 	
 	int i = 2;
 	int j = 2;
@@ -111,7 +302,6 @@ int main() {
 	//=====End of 3D Hexa Rule=============================
 	cout << "3D - Hexa Integral = " << integral << endl;
 
-	
 	/** Knowing the points and weight to some Gaussian rules */
 	int np = 1;
 	std::ofstream nome("PyramidQuad.txt",ios::app);
@@ -159,7 +349,7 @@ REAL Funcao(TPZVec<REAL> &pt, int i, int j, int k, int p){
 	for (r=0;r<=i;r++){
 		for(s=0;s<=j;s++){
 			for (t=0;t<=k;t++){
-				result +=  Alfa(r,s,t,p) * (pow (x,r) * pow (y,s) * pow (z,t));
+				result +=  Alfa(r,s,t,p) * (pow (x,r) * pow (y,s) * sin(z));
 			}
 		}
 	}
