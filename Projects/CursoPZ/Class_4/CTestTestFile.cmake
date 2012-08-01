@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (CursoPZ_Class4 CursoPZ_Class4)
+ADD_TEST (CursoPZ4_GeoMesh CursoPZ4_GeoMesh)
 
 #Checking generated files
 #SET (filename "visualmatrix.dx")
