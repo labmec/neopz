@@ -150,7 +150,13 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
     if (data.fNeedsHSize){
 		data.HSize = 2.*this->InnerRadius();
 	}//fNeedHSize
-
+    data.x.Resize(3., 0.);
+    Reference()->X(qsi, data.x);
+    
+    int dim = Reference()->Dimension();
+    data.jacobian.Resize(dim,dim);
+    data.jacinv.Resize(dim,dim);
+    Reference()->Jacobian(qsi, data.jacobian, data.axes, data.detjac, data.jacinv);
 }
 
 
@@ -243,7 +249,7 @@ void TPZReducedSpace::Read(TPZStream &buf, void *context)
     TPZInterpolationSpace::Read(buf, context);
 }
 
-TPZInterpolationSpace *TPZReducedSpace::ReferredIntel()
+TPZInterpolationSpace *TPZReducedSpace::ReferredIntel() const
 {
     TPZCompMesh *cmesh = Mesh();
     TPZCompMeshReferred *cmeshref = dynamic_cast<TPZCompMeshReferred *>(cmesh);
@@ -314,5 +320,31 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     }
 }
 
+static TPZCompEl * CreateReducedElement(TPZGeoEl *gel,TPZCompMesh &mesh,int &index)
+{
+    return new TPZReducedSpace(mesh,gel,index);
+}
 
+void TPZReducedSpace::SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh)
+{
+    TPZManVector<TCreateFunction,10> functions(8);
+    functions[EPoint] = CreateReducedElement;
+	functions[EOned] = CreateReducedElement;
+	functions[EQuadrilateral] = CreateReducedElement;
+	functions[ETriangle] = CreateReducedElement;
+	functions[EPrisma] = CreateReducedElement;
+	functions[ETetraedro] = CreateReducedElement;
+	functions[EPiramide] = CreateReducedElement;
+	functions[ECube] = CreateReducedElement;
+    cmesh->ApproxSpace().SetCreateFunctions(functions);
+    
+    
+}
 
+TPZCompEl* TPZReducedSpace::Clone(TPZCompMesh &mesh) const{
+    return new TPZReducedSpace(mesh, *this);
+}
+
+TPZCompEl * TPZReducedSpace::ClonePatchEl (TPZCompMesh &mesh, std::map< int, int > &gl2lcConMap, std::map< int, int > &gl2lcElMap) const{
+    return new TPZReducedSpace(mesh,*this,gl2lcElMap);
+}

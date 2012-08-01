@@ -13,6 +13,7 @@
 
 class TPZReducedSpace : public TPZInterpolationSpace
 {
+public:
     /** @brief Default constructor */
 	TPZReducedSpace();
 	
@@ -37,6 +38,8 @@ class TPZReducedSpace : public TPZInterpolationSpace
 	/** Inserts the element within the data structure of the mesh */
 	TPZReducedSpace(TPZCompMesh &mesh, TPZGeoEl *gel, int &index);
 	
+    static void SetAllCreateFunctionsReducedSpace(TPZCompMesh *cmesh);
+
     /** @brief Returns the number of nodes of the element */
 	virtual int NConnects() const 
     {
@@ -109,10 +112,50 @@ class TPZReducedSpace : public TPZInterpolationSpace
 	
 	/** @brief Read the element data from a stream */
 	virtual void Read(TPZStream &buf, void *context);
+    
+    
+    virtual void PRefine ( int order ){
+        DebugStop();
+    }
+    
+    virtual void SetConnectIndex(int inode, int index){
+        DebugStop();
+    }
+    
+    virtual TPZCompEl *Clone(TPZCompMesh &mesh) const;
+    
+    virtual const TPZIntPoints &GetIntegrationRule() const
+    {
+        TPZInterpolationSpace *intel = ReferredIntel();
+        return intel->GetIntegrationRule();
+    }
+    
+    virtual int Dimension() const{
+        TPZInterpolationSpace *intel = ReferredIntel();
+        return intel->Dimension();
+    }
 	
+    virtual TPZCompEl * ClonePatchEl (TPZCompMesh &mesh, std::map< int, int > &gl2lcConMap, std::map< int, int > &gl2lcElMap) const;
+    
+    virtual void BuildCornerConnectList(std::set<int> &connectindexes) const{
+        
+    }
+    
+    virtual int ConnectIndex(int i) const{
+        if (i != 0) {
+            DebugStop();
+        }
+        return 0;
+    }
+    
+    virtual void SetPreferredOrder ( int order ){
+        PZError <<"This method was not implemented";
+        DebugStop();
+    }
+    
 private:
 
-    TPZInterpolationSpace *ReferredIntel();
+    TPZInterpolationSpace *ReferredIntel() const;
 };
 
 
