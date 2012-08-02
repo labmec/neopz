@@ -21,7 +21,7 @@ const int StateVarPressure = 2;
 
 #include "pzlog.h"
 #ifdef LOG4CXX
-//static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
 
 TPZPoroElastic2d::EState TPZPoroElastic2d::gState = ECurrentState;
@@ -95,7 +95,7 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	efr = ef.Rows();
 	efc = ef.Cols();
 	ekr = ek.Rows();
-	ekc = ek.Cols();
+	ekc = ek.Rows();;
 	
 	if(ekr != (2*phru + phrp) || ekc != (2*phru + phrp) || efr != (2*phru + phrp) || efc != 1)
 	{
@@ -229,15 +229,17 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		}
 	}
 	
-#ifdef LOG4CXX
+//#ifdef LOG4CXX
 //	if(logdata->isDebugEnabled())
 //	{
 //		std::stringstream sout;
-//		ek.Print("ek = ",sout,EMathematicaInput);
-//		ef.Print("ef = ",sout,EMathematicaInput);
+//		 ek.Print("ek  = ",sout,EMathematicaInput);
+//		edk.Print("edk = ",sout,EMathematicaInput);
+//		 ef.Print("ef  = ",sout,EMathematicaInput);
+//		edf.Print("efk = ",sout,EMathematicaInput);
 //		LOGPZ_DEBUG(logdata,sout.str())
 //	}
-#endif
+//#endif
 	
 }
 
@@ -360,7 +362,7 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 			//Dirichlet para Equacao de Poisson: pressao 
 			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
+				ef(in+2*phru,0) += gBigNumber * (v2[2])*phip(in,0)*weight;
 				for (jn = 0 ; jn < phrp; jn++) {
 					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
 				}
@@ -479,26 +481,25 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 		}
 			
 		case 500 :// Dirichlet condition for pressure
-			//Equacao da elasticidade
-			for(in = 0 ; in < phru; in++) {
-				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;  /// x displacement  forced v2 displacement      
-				ef(2*in+1,0) += BIGNUMBER*v2[1]*	phiu(in,0)*weight;   /// y displacement  forced v2 displacement 
-				
-				for (jn = 0 ; jn < phru; jn++) {
-					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
-				}
-			}
+		{			
+//			//Dirichlet para Equacao da elasticidade
+//			for(in = 0 ; in < phru; in++) {
+//				ef(2*in,0) += BIGNUMBER*v2[0]*phiu(in,0)*weight;    /// x displacement forced v2 displacement
+//				ef(2*in+1,0) += BIGNUMBER*v2[1]*phiu(in,0)*weight;   /// y displacement  forced v2 displacement      
+//				
+//				for (jn = 0 ; jn < phru; jn++) {
+//					ek(2*in,2*jn) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
+//					ek(2*in+1,2*jn+1) += BIGNUMBER*phiu(in,0)*phiu(jn,0)*weight;
+//				}
+//			}
 			
-			//segunda equacao
-			//Equacao de Poisson: pressao 
+			///Neumann para Equacao da pressao 
+			const REAL DeltT = fTimeStep;
 			for(in = 0 ; in < phrp; in++) {
-				ef(in+2*phru,0) += gBigNumber * v2[2]*phip(in,0)*weight;
-				for (jn = 0 ; jn < phrp; jn++) {
-					ek(in+2*phru,jn+2*phru) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-				}
+				ef(in+2*phru,0) += v2[2]*DeltT*phip(in,0)*weight;
 			}
-			break;			
+			break;
+		}
 
 	}
 	
@@ -627,7 +628,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		return;
 	}//var11
 	
-	//Exact X Displacement
+	//Exact Y Displacement
 	if(var == 12){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		Solout[0] = solExata[2];
@@ -637,7 +638,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	//-----------------
 	if(var == 6) {
-		Solout[0] = SolP[0];
+		Solout[0] = SolP[0]/1000.0;
 		return;
 	}//var6
 	
@@ -759,7 +760,11 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 
 
 void TPZPoroElastic2d::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, 
-                                           REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+                                           REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+{
+	// Here a ineed to implement interface elements contribution
+	
+	
 	DebugStop();
 }
 

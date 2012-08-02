@@ -40,6 +40,7 @@ public:
 
 	void Setdimensions(REAL rdimension, REAL zThickness);
 	
+	TPZGeoMesh * GeometricGIDMesh(std::string FiletoRead);		
 	
 	//  2D Geometric Mesh Generation 
 	

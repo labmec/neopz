@@ -1,8 +1,13 @@
-file(GLOB headers *.h)
-file(GLOB sources *.cpp)
+#file(GLOB headers *.h)
+#file(GLOB sources *.cpp)
 
-set(main_SRCS ${sources} ${headers})
+#file (GLOB to_remove_from_sources Validation1D.cpp)
+#list (REMOVE_ITEM sources ${to_remove_from_sources})
 
-add_executable(Poroelastic2D ${main_SRCS} ${headers})
+#set(main_SRCS ${sources} ${headers})
 
-target_link_libraries(Poroelastic2D pz pthread)
+#add_executable(Poroelastic2D ${main_SRCS} ${headers})
+#target_link_libraries(Poroelastic2D pz pthread)
+
+add_subdirectory(Validations)
+add_subdirectory(PetroleumApplications)
