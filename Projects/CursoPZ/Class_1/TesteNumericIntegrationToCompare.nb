@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       145,          7]
-NotebookDataLength[      8701,        235]
-NotebookOptionsPosition[      8371,        220]
-NotebookOutlinePosition[      8710,        235]
-CellTagsIndexPosition[      8667,        232]
+NotebookDataLength[     12418,        350]
+NotebookOptionsPosition[     12009,        333]
+NotebookOutlinePosition[     12348,        348]
+CellTagsIndexPosition[     12305,        345]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -54,6 +54,37 @@ Cell[BoxData[{
   3.552846531914764*^9}, {3.552846651498234*^9, 3.552846689042309*^9}, {
   3.552848161180397*^9, 3.552848249025999*^9}, {3.5528516655773287`*^9, 
   3.552851670568582*^9}}],
+
+Cell[BoxData[{
+ RowBox[{"Plot", "[", 
+  RowBox[{
+   RowBox[{"fun", "[", 
+    RowBox[{"2", ",", "x"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot", "[", 
+  RowBox[{
+   RowBox[{"fun", "[", 
+    RowBox[{"3", ",", "x"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot", "[", 
+  RowBox[{
+   RowBox[{"fun", "[", 
+    RowBox[{"5", ",", "x"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot", "[", 
+  RowBox[{
+   RowBox[{"fun", "[", 
+    RowBox[{"6", ",", "x"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.552900769291792*^9, 3.552900841000463*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -109,6 +140,88 @@ Cell[BoxData[{
   3.552848583830464*^9}, {3.5528486284997587`*^9, 3.552848630627668*^9}, {
   3.552851478268166*^9, 3.552851485845153*^9}, {3.552851580567727*^9, 
   3.5528516574513807`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"2", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"3", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"5", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", 
+     RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Plot3D", "[", 
+   RowBox[{
+    RowBox[{"funxy", "[", 
+     RowBox[{"6", ",", "x", ",", "y"}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"x", ",", 
+      RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"y", ",", 
+      RowBox[{"-", "1"}], ",", "1"}], "}"}]}], "]"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"2", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", "0", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", "0", ",", 
+     RowBox[{"1", "-", "x"}]}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"3", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", "0", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", "0", ",", 
+     RowBox[{"1", "-", "x"}]}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"5", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", "0", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", "0", ",", 
+     RowBox[{"1", "-", "x"}]}], "}"}]}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Plot3D", "[", 
+  RowBox[{
+   RowBox[{"funxy", "[", 
+    RowBox[{"6", ",", "x", ",", "y"}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"x", ",", "0", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"y", ",", "0", ",", 
+     RowBox[{"1", "-", "x"}]}], "}"}]}], "]"}]}], "Input",
+ CellChangeTimes->{{3.5529004512060633`*^9, 3.552900558808462*^9}, {
+   3.552900877533557*^9, 3.5529009103759537`*^9}, 3.5529009963535233`*^9}],
 
 Cell[BoxData[{
  RowBox[{
@@ -235,11 +348,12 @@ CellTagsIndex->{}
 (*NotebookFileOutline
 Notebook[{
 Cell[545, 20, 1485, 35, 43, "Input"],
-Cell[2033, 57, 2105, 53, 88, "Input"],
-Cell[4141, 112, 4226, 106, 148, "Input"]
+Cell[2033, 57, 935, 29, 73, "Input"],
+Cell[2971, 88, 2105, 53, 88, "Input"],
+Cell[5079, 143, 2697, 80, 148, "Input"],
+Cell[7779, 225, 4226, 106, 148, "Input"]
 }
 ]
 *)
 
 (* End of internal cache information *)
-
