@@ -194,7 +194,7 @@ int main() {
 	return 0;
 }
 
-TPZGeoMesh *GetMesh (int nx,int ny){
+TPZGeoMesh *GetMesh (int nx,int ny) {
 	int i,j;
 	int id, index;
 	

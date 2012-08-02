@@ -33,14 +33,17 @@
 #include "pzgengrid.h"
 
 #include "TPZVTKGeoMesh.h"
+#include "TPZReadGIDGrid.h"
+
+std::string DirectorioCorriente = PZSOURCEDIR;
 
 using namespace std;
 
 // Program to reproduce issue 1 into CodeGoogle NeoPZ
-
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
 void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv);
 
-int main() {
+int main_pre() {
     
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -106,6 +109,72 @@ int main() {
 
 	saida.close();
 	return 0;
+}
+
+// Malla con GID
+int main() {
+
+	DirectorioCorriente += "/Projects/CursoPZ/Class_4/";
+
+	// Ejemplo uni-dimensional para la generacion de una malla para un reservatorio 
+	TPZReadGIDGrid grid;
+	std::string nombre = DirectorioCorriente;
+	nombre += "Reservatorio1D.gid/Reservatorio1D.dump";
+	TPZGeoMesh *meshgrid1D = grid.GeometricGIDMesh(nombre);
+	if(!meshgrid1D->NElements())
+		return 1;
+	ofstream meshoutvtk1D("MeshGIDToVTK1D.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid1D,meshoutvtk1D,true);
+	meshoutvtk1D.close();
+
+	// Primer ejemplo bi-dimensional para la generacion de una malla para un reservatorio sin material en el topo y el fondo
+	nombre = DirectorioCorriente;
+	nombre += "Reservatorio2D.gid/Reservatorio2D.dump";
+	TPZGeoMesh *meshgrid2D1 = grid.GeometricGIDMesh(nombre);
+	if(!meshgrid2D1->NElements())
+		return 1;
+	ofstream meshoutvtk2D1("MeshGIDToVTK2D1.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D1,meshoutvtk2D1,true);
+	meshoutvtk2D1.close();
+
+	// Segundo ejemplo bi-dimensional para la generacion de una malla para un reservatorio con las bordas superior e inferior
+	nombre = DirectorioCorriente;
+	nombre += "Reservatorio2D2.dump";
+	TPZGeoMesh *meshgrid2D2 = grid.GeometricGIDMesh(nombre);
+	if(!meshgrid2D2->NElements())
+		return 1;
+	// Refinement until five levels
+	UniformRefine(meshgrid2D2,5);
+	// Print into vtk format  - Visualization using Paraview
+	ofstream meshoutvtk2D2("MeshGIDToVTK2D2.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid2D2,meshoutvtk2D2,true);
+	meshoutvtk2D2.close();
+
+	// Ejemplo tri-dimensional para la generacion de una malla para un reservatorio con las bordas superior e inferior
+	nombre = DirectorioCorriente;
+	nombre += "Reservatorio3D.gid/Reservatorio3D.dump";
+	TPZGeoMesh *meshgrid3D = grid.GeometricGIDMesh(nombre);
+	if(!meshgrid3D->NElements())
+		return 1;
+	ofstream meshoutvtk3D("MeshGIDToVTK3D.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid3D,meshoutvtk3D,true);
+	meshoutvtk3D.close();
+
+	return 0;
+}
+
+void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
+{
+    for(int D = 0; D < nDiv; D++)
+    {
+        int nels = gmesh->NElements();
+        for(int elem = 0; elem < nels; elem++)
+        {    
+            TPZVec< TPZGeoEl * > filhos;
+            TPZGeoEl * gel = gmesh->ElementVec()[elem];
+            gel->Divide(filhos);
+        }
+    }
 }
 
 void UniformRefine(TPZAutoPointer<TPZGeoMesh> gmesh, int nDiv)

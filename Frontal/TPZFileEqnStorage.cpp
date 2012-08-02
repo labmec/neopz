@@ -290,13 +290,13 @@ void TPZFileEqnStorage<TVar>::main()
 	TPZEqnArray<TVar> EqnArray;
 	
 	ifstream input("MatrizInversa.txt");
-	double aux;
+	TVar aux;
 	int i, j;
 	TPZFMatrix<TVar> DecMat(Loop_Limit,Loop_Limit);
 	for(i=0;i<Loop_Limit;i++){
 		for(j=0;j<Loop_Limit;j++){
 			input >> aux;
-			DecMat(i,j)=aux;
+			DecMat(i,j) = aux;
 		}
 	}
 
@@ -322,7 +322,7 @@ void TPZFileEqnStorage<TVar>::main()
 	TPZFMatrix<TVar> f(Loop_Limit,1);
 	
 	for(i=0;i<Loop_Limit;i++) {
-		f(i,0) = (i+1)*2.1/23;
+		f(i,0) = (TVar)(float)((i+1.)*2.1/23.);
 	}
 	
 	f.Print("Teste"); 

@@ -400,7 +400,7 @@ void TPZGeoElRefPattern<TGeo>::Divide(TPZVec<TPZGeoEl *> &SubElVec){
 	int index,k,j,sub,matid=this->MaterialId();
 	
 	int totalnodes = this->GetRefPattern()->NNodes();
-	TPZManVector<int> np(totalnodes,0.);
+	TPZManVector<int> np(totalnodes,0);
 	int nnodes = this->NCornerNodes();
 	
 	for(j=0;j<nnodes;j++) {
