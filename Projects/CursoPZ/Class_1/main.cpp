@@ -20,7 +20,7 @@ REAL Funcao3D (TPZVec<REAL> &pt,int degree);
 
 int main() {
 	// variables
-	TPZVec<REAL> point(1,0.);
+	TPZVec<REAL> point(3,0.);
 	REAL weight = 0.;
 	REAL integral;
 
@@ -38,7 +38,7 @@ int main() {
 	//=====1D Rule===Computing $f \int_{-1} f(x) $f==================================
 	while(degree < 26) {
 	TPZInt1d ordem1d (p);
-	for(it2=0;it2<2;it2++) {
+	for(it2=0;it2<3;it2++) {
 		integral = 0.0;
 		ordem1d.SetType(it2,p);
 		npoints = ordem1d.NPoints();
@@ -52,7 +52,7 @@ int main() {
 			integrate << "Type = " << nome << endl;
 		}
 //		ordem1d.Print(integrate);
-		integrate << "1D (p = " << p << " - Integral = " << integral << endl;
+		integrate << "1D : p = " << p << " - Integral = " << integral << endl;
 	}
 	degree++;
 	p=degree;
@@ -72,7 +72,7 @@ int main() {
 	//=====2D Rule===Computing $f \int f(x,y) $f=====
 	// The function is f(x) = x^d + y^d - 2 x y
 	//=====Triangle Rule==============================
-	point.Resize(2);
+	//point.Resize(2);
 	degree = p = 2;
 	while(degree < 12) {
 	TPZIntTriang ordem2dt (p);
@@ -106,10 +106,8 @@ int main() {
 	//=====3D Rule===Computing $f \int f(x,y,z) $f=====
 	// The function is f(x) = x^d + y^d + z^d - 2 x y z
 	//=====Tetrahedra Rule==================================
-	point.Resize(3);
-	degree = p = 2;
-	while(degree < 10) {
-	TPZIntTetra3D ordem3dt (p+3);
+	//point.Resize(3);
+	TPZIntTetra3D ordem3dt (p);
 	npoints = ordem3dt.NPoints();
 	integral = 0.0;
 	for (it=0;it<npoints;it++){
@@ -117,14 +115,9 @@ int main() {
 		integral += weight * Funcao3D(point,degree);
 	}
 	integrate << "3D - Tetra Integral = " << integral << endl;
-	degree++;
-	p= degree;
-	}
 
 	//=====Pyramid Rule==================================
-	degree = p = 2;
-	while(degree < 10) {
-	TPZIntPyram3D ordem3dpy (p+3);
+	TPZIntPyram3D ordem3dpy (p);
 	npoints = ordem3dpy.NPoints();
 	integral = 0.0;
 	for (it=0;it<npoints;it++){
@@ -132,14 +125,9 @@ int main() {
 		integral += weight * Funcao3D(point,degree);
 	}
 	integrate << "3D - Pyramid Integral = " << integral << endl;
-	degree++;
-	p= degree;
-	}
   
 	//=====Prism Rule===================================
-	degree = p = 2;
-	while(degree < 10) {
-	TPZIntPrism3D ordem3dpr (p+3);
+	TPZIntPrism3D ordem3dpr (p);
 	npoints = ordem3dpr.NPoints();
 	integral = 0.0;
 	for (it=0;it<npoints;it++){
@@ -147,14 +135,9 @@ int main() {
 		integral += weight * Funcao3D(point,degree);
 	}
 	integrate << "3D - Prism Integral = " << integral << endl;
-	degree++;
-	p= degree;
-	}
 
 	//=====Hexahedra Rule====================================
-	degree = p = 2;
-	while(degree < 7) {
-	TPZIntCube3D ordem3dc (p*3);
+	TPZIntCube3D ordem3dc (p);
 	npoints = ordem3dc.NPoints();
 	integral = 0.0;
 	for (it=0;it<npoints;it++){
@@ -162,9 +145,8 @@ int main() {
 		integral += weight * Funcao3D(point,degree);
 	}
 	integrate << "3D - Hexa Integral = " << integral << endl;
-	degree++;
-	p= degree;
-	}
+
+	// close the output file
 	integrate.close();
 
 	return 0;
