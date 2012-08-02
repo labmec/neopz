@@ -307,8 +307,8 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 									read.getline(buf, 1024);
 									flag++;
 								}
-								read >> TopolPoint[0]; //node 1
-								read >> nodecoordZ;												
+								read >> TopolPoint[0]; //node 1	
+								read.getline(buf, 1024);
 								TopolPoint[0]--;
 								ContPoint++;						
 								TPZGeoEl *Point = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (numelements - elements0D + ContPoint, TopolPoint, nMats+ContPoint,*gmesh); 						
