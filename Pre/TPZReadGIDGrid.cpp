@@ -64,7 +64,6 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 		std::ifstream read (FileName.c_str());
 		std::string FlagString;
 		int flag = -1;		
-		
 		while(read)
 		{
 			char buf[1024];
@@ -74,28 +73,28 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 			
 			if (flag >= 0)
 			{
-				if(str != "--- ELEMENTS ---") 
+				if(str != "--- ELEMENTS ---" && str != "--- ELEMENTS ---\r") 
 				{
 					SentinelString.push_back(str);
 				}
 			}
-			if(str == "LINEAR") 
+			if(str == "LINEAR" || str == "LINEAR\r" ) 
 			{
 				SentinelString.push_back(str);
 			}
-			if(str == "TRIANGLE") 
+			if(str == "TRIANGLE" || str == "TRIANGLE\r") 
 			{
 				SentinelString.push_back(str);
 			}
-			if(str == "QUADRILATERAL") 
+			if(str == "QUADRILATERAL" || str == "QUADRILATERAL\r") 
 			{
 				SentinelString.push_back(str);
 			}
-			if(str == "TETRAHEDRA") 
+			if(str == "TETRAHEDRA" || str == "TETRAHEDRA\r") 
 			{
 				SentinelString.push_back(str);
 			}
-			if(str == "HEXAHEDRA") 
+			if(str == "HEXAHEDRA" || str == "HEXAHEDRA\r") 
 			{
 				SentinelString.push_back(str);
 			}			
@@ -127,7 +126,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 			{
 				FlagString = str;	
 			}
-			if(SentinelString[cont] == "") 
+			if(SentinelString[cont] == "" || SentinelString[cont] == "\r") 
 			{
 				cont++;	
 			}			
@@ -137,7 +136,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 				break;	
 			}			
 			
-			if(str != "" && FlagString == SentinelString[cont]) 
+			if( (str != "" || str != "\r") && FlagString == SentinelString[cont]) 
 			{
 				// Data scaning
 				while (read) {
@@ -145,7 +144,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 					read.getline(buftemp, 1024);
 					std::string strtemp(buftemp);
 					GeneralData[cont]++;
-					if(strtemp == "") 
+					if(strtemp == "" || strtemp == "\r") 
 					{
 						FlagString = "";
 						GeneralData[cont]--;
@@ -163,12 +162,12 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	
 	for (int i = 0 ; i < NumEntitiestoRead; i++ )
 	{
-		if(SentinelString[i] == "--- USED MATERIALS ---") 
+		if(SentinelString[i] == "--- USED MATERIALS ---" || SentinelString[i] == "--- USED MATERIALS ---\r") 
 		{
 			nMats=GeneralData[i];
 			DataToProcess[i]=0;
 		}
-		if(SentinelString[i] == "--- CONDITIONS OVER NODES ---") 
+		if(SentinelString[i] == "--- CONDITIONS OVER NODES ---" || SentinelString[i] == "--- CONDITIONS OVER NODES ---\r") 
 		{
 			if(GeneralData[i] !=0)
 			{
@@ -182,32 +181,32 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 			
 			DataToProcess[i]=1;			
 		}	
-		if(SentinelString[i] == "--- NODES ---") 
+		if(SentinelString[i] == "--- NODES ---" || SentinelString[i] == "--- NODES ---\r") 
 		{
 			numnodes=GeneralData[i];
 			DataToProcess[i]=2;			
 		}		
-		if(SentinelString[i] == "LINEAR") 
+		if(SentinelString[i] == "LINEAR" || SentinelString[i] == "LINEAR\r") 
 		{
 			elements1D=GeneralData[i];
 			DataToProcess[i]=3;		
 		}
-		if(SentinelString[i] == "TRIANGLE") 
+		if(SentinelString[i] == "TRIANGLE" || SentinelString[i] == "TRIANGLE\r") 
 		{
 			elements2DT=GeneralData[i];
 			DataToProcess[i]=4;		
 		}
-		if(SentinelString[i] == "QUADRILATERAL") 
+		if(SentinelString[i] == "QUADRILATERAL" || SentinelString[i] == "QUADRILATERAL\r") 
 		{
 			elements2DQ=GeneralData[i];
 			DataToProcess[i]=5;			
 		}
-		if(SentinelString[i] == "TETRAHEDRA") 
+		if(SentinelString[i] == "TETRAHEDRA" || SentinelString[i] == "TETRAHEDRA\r") 
 		{
 			elements3DT=GeneralData[i];
 			DataToProcess[i]=6;			
 		}
-		if(SentinelString[i] == "HEXAHEDRA") 
+		if(SentinelString[i] == "HEXAHEDRA" || SentinelString[i] == "HEXAHEDRA\r") 
 		{
 			elements3DH=GeneralData[i];
 			DataToProcess[i]=7;			
@@ -267,7 +266,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 				FlagString = str;	
 			}
 			
-			if(SentinelString[cont] == "") 
+			if(SentinelString[cont] == "" || SentinelString[cont] == "\r") 
 			{
 				cont++;	
 			}			
@@ -277,7 +276,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 				break;	
 			}			
 			
-			if(str != "" && FlagString == SentinelString[cont]) 
+			if( (str != "" || str != "\r" )&& FlagString == SentinelString[cont]) 
 			{
 				// Data scaning
 				while (read) {
@@ -528,7 +527,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 							break;
 					}		
 					
-					if(strtemp == "") 
+					if(strtemp == "" || strtemp == "\r") 
 					{
 						FlagString = "";
 						cont++;
