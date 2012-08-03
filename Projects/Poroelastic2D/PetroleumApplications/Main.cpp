@@ -17,9 +17,9 @@
 #include "tpzgeoblend.h"
 
 #include <pzgengrid.h>
-#include "../MeshGeneration.h"
-#include "../AnalyticalFunctions.h"
-#include "../ElasticMatInterface2D.h"
+#include "MeshGeneration.h"
+#include "AnalyticalFunctions.h"
+#include "ElasticMatInterface2D.h"
 #include "TPZInterfaceEl.h"
 #include "pzdiscgal.h"
 
