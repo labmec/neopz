@@ -187,10 +187,10 @@ void TPZMatPoisson3d::ContributeHDiv(TPZMaterialData &data,REAL weight,TPZFMatri
 	 
 	 **/
     
-    TPZVec<REAL>  &x = data.x;
+    //TPZVec<REAL>  &x = data.x;
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
-		fForcingFunction->Execute(x,res);       // dphi(i,j) = dphi_j/dxi
+		fForcingFunction->Execute(data.x,res);       // dphi(i,j) = dphi_j/dxi
 		fXf = res[0];
 	}
 	int numvec = data.fVecShapeIndex.NElements();
@@ -388,6 +388,9 @@ int TPZMatPoisson3d::VariableIndex(const std::string &name){
 	if(!strcmp("PressureOmega1",name.c_str()))        return  16;
 	if(!strcmp("PressureOmega2",name.c_str()))        return  17;
 	if(!strcmp("FluxOmega1",name.c_str()))        return  18;
+    
+    if(!strcmp("GradFluxX",name.c_str()))            return  19;
+    if(!strcmp("GradFluxY",name.c_str()))            return  20;
 	return TPZMaterial::VariableIndex(name);
 }
 
@@ -409,6 +412,8 @@ int TPZMatPoisson3d::NSolutionVariables(int var){
 	if (var==16) return 1;
 	if (var==17) return 1;
 	if (var==18) return 3;
+    if (var==19) return 3;
+    if (var==20) return 3;
 	
 	
 	return TPZMaterial::NSolutionVariables(var);
@@ -493,6 +498,21 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 					//	Solout[2]=data.sol[2];
 					return;
 				}
+            case 19:
+                if(data.numberdualfunctions){
+                    Solout[0]=data.dsol[0](0,0);//fluxo de omega1
+                    Solout[1]=data.dsol[0](1,0);
+                    Solout[2]=data.dsol[0](2,0);
+                return;
+                }
+            case 20:
+                if( data.numberdualfunctions){
+                    Solout[0]=data.dsol[0](0,1);//fluxo de omega1
+                    Solout[1]=data.dsol[0](1,1);
+                    Solout[2]=data.dsol[0](2,1);
+                return;
+                }
+
 				else {
 					std::cout<<"Pressao somente em omega2"<<std::endl;
 					Solout[0]=0;//NULL;
