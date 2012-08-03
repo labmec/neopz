@@ -257,13 +257,18 @@ void TPZCompElHDivPressure<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &poi
 
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>:: Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol){
-		TPZMaterialData data;
+		
+        TPZMaterialData data;
 		InitMaterialData(data);
-    
-    this->ComputeShape(qsi,data);
-		this->ComputeSolutionPressureHDiv(data);
+        data.p=this->MaxOrder();
+        
+        this->ComputeShape(qsi,data);
+		//this->ComputeSolutionPressureHDiv(data);
+        this->ComputeSolution(qsi,data);
+        
+        data.x.Resize(3,0.);
+        this->Reference()->X(qsi,data.x);
 		this->Material()->Solution(data,var,sol);
-    
 }
 
 template<class TSHAPE>
@@ -271,8 +276,6 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZVec<REAL> &qs
     
     this->ComputeShape(qsi,data);
     this->ComputeSolutionPressureHDiv(data);
-		
-    
 }
 
 template<class TSHAPE>
@@ -281,27 +284,30 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatri
     TPZMaterialData data;
     InitMaterialData(data);
     this->ComputeSolutionPressureHDiv(data);
-		
+}
+
+template<class TSHAPE>
+void TPZCompElHDivPressure<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data){
     
+    this->ComputeSolutionPressureHDiv(data);
 }
 
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes){
 		
-		TPZGeoEl * ref = this->Reference();
-		const int nshape = this->NShapeF();
-		const int dim = ref->Dimension();
+    TPZGeoEl * ref = this->Reference();
+    const int nshape = this->NShapeF();
+    const int dim = ref->Dimension();
     
     TPZMaterialData data;
     data.phi.Resize(nshape,1);
     data.dphix.Resize(dim,nshape);
-		data.jacobian.Resize(dim,dim);
+    data.jacobian.Resize(dim,dim);
     data.jacinv.Resize(dim,dim);
     data.x.Resize(3,0.);
     
     this->ComputeShape(qsi,data);
     this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-		
 }
 
 template<class TSHAPE>
@@ -310,11 +316,12 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
     const int numdof = this->Material()->NStateVariables();
     const int ncon = this->NConnects();
     
-		TPZBlock<STATE> &block =this->Mesh()->Block();
+    
+    TPZBlock<STATE> &block =this->Mesh()->Block();
     TPZFMatrix<STATE> &MeshSol = this->Mesh()->Solution();
     int numbersol = MeshSol.Cols();
     
-		int nsol= this->Dimension()+2;
+    int nsol= this->Dimension()+2;
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     for (int is=0; is<numbersol; is++) {
@@ -323,7 +330,7 @@ void TPZCompElHDivPressure<TSHAPE>::ComputeSolutionPressureHDiv(TPZMaterialData 
 				
     }
 		//solucao associada a fluxo
-		int iv = 0,ishape=0,ivec=0,cols, jv=0;
+    int iv = 0,ishape=0,ivec=0,cols, jv=0;
     for(int in=0; in<ncon-1 ; in++) {//estou tirando o connect da pressao
 				TPZConnect *df = &this->Connect(in);
 				int dfseq = df->SequenceNumber();

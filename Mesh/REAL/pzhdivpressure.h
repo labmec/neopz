@@ -167,11 +167,20 @@ public:
     ///Compute the solution for a given variable
 		virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
     
+        private:
+        virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
     
-    virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
+        public:
+    
+        /** 
+         * @brief Compute shape functions based on master element in the classical FEM manne. 
+         * @param intpoin [in] point in master element coordinates 
+         * @param data [in] stores all input data
+         */
+        virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 		
-    void ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
-    virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
+        void ComputeSolutionPressureHDiv(TPZVec<REAL> &qsi, TPZMaterialData &data);
+        virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                  const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
 		
     /** @brief Compute the solution using Hdiv structure */
