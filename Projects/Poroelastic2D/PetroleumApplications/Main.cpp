@@ -48,7 +48,7 @@
 #include "pzmultiphysicscompel.h"
 #include "pzbuildmultiphysicsmesh.h"
 #include "TPZSpStructMatrix.h"
-#include "../pzporoelastic2d.h"
+#include "pzporoelastic2d.h"
 #include "pzlog.h"
 #include <iostream>
 #include <string>

@@ -36,6 +36,7 @@ ENABLE_TESTING()
 		#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 		#add_custom_target(PZTutorial SOURCES ${pztutorial})
+	add_subdirectory(Finite3DElasticity)
 
 
 	endif(BUILD_TUTORIAL)
@@ -76,39 +77,39 @@ ENABLE_TESTING()
 			
 			add_subdirectory(HyperElasticityFAD)
 
-			#Increment singular shape function: SingularShapeFunction
-			add_subdirectory(SingularShapeFunction)
-			add_subdirectory(angletest)
-			add_subdirectory(checkconv)
+		#Increment singular shape function: SingularShapeFunction
+		add_subdirectory(SingularShapeFunction)
+		add_subdirectory(angletest)
+		add_subdirectory(checkconv)
 
-			#Orthogonalization process of Gram-Schmidt
-			add_subdirectory(matrix)
+		#Orthogonalization process of Gram-Schmidt
+		add_subdirectory(matrix)
 
-			#Inserting material and boundary conditions by function
-			add_subdirectory(termica)
-			add_subdirectory(Steam)
-			add_subdirectory(QuadraticElements)
-			add_subdirectory(ThermalStress)
-			add_subdirectory(HDiv)
-			add_subdirectory(HDiv_demo)
-			add_subdirectory(AcoplamentoH1Hdiv)
-			add_subdirectory(Validacao)
-			add_subdirectory(Conductivity)
-			add_subdirectory(ConsLaw)
-			add_subdirectory(Descontinuo2)
-			add_subdirectory(HydraulicFracturePropagation)
+		#Inserting material and boundary conditions by function
+		add_subdirectory(termica)
+		add_subdirectory(Steam)
+		add_subdirectory(QuadraticElements)
+		add_subdirectory(ThermalStress)
+		add_subdirectory(HDiv)
+		add_subdirectory(AcoplamentoH1Hdiv)
+		add_subdirectory(Validacao)
+		add_subdirectory(Conductivity)
+		add_subdirectory(ConsLaw)
+		add_subdirectory(Descontinuo2)
+		add_subdirectory(HydraulicFracturePropagation)
 
-			add_subdirectory(SteamInjection)
-			
-			#projeto agnaldo 09-09-2011
-			add_subdirectory(DoubleProjection1D)
-			add_subdirectory(Poroelastic2D)
-			add_subdirectory(SubStruct)
-			add_subdirectory(Substruct_Viscoelastic)
-			add_subdirectory(MultiphysicsSimulation)
-			add_subdirectory(ProblemGirkmann)
-			
-			add_subdirectory(multplaca)
+		add_subdirectory(SteamInjection)
+		
+		#projeto agnaldo 09-09-2011
+		add_subdirectory(DoubleProjection1D)
+                #projeto omar duran 01-08-2012
+		add_subdirectory(Poroelastic2D)
+		add_subdirectory(Poisson2DLabyrinth)
+		add_subdirectory(SubStruct)
+		add_subdirectory(MultiphysicsSimulation)
+		add_subdirectory(ProblemGirkmann)
+		
+		add_subdirectory(multplaca)
 
 			#Projeto Lua 2012
 			add_subdirectory(Lua01)
