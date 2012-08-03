@@ -104,6 +104,7 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 		default:
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
 	} //switch
+    
 	//ref->X(intpoint, X);
 }
 
@@ -160,6 +161,9 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 		}
 	}//fNeedsSol
 	
+    data.x.Resize(3., 0.);
+    Reference()->X(qsi, data.x);
+    
 	if (data.fNeedsHSize){
 		data.HSize = 2.*this->InnerRadius();
 	}//fNeedHSize
