@@ -378,7 +378,9 @@ void TPZRenumbering::CornerEqs(int mincorners, int nelconsider, std::set<int> &e
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-		if (elcornernodes.size() < mincorners) {
+		if(mincorners < 0)
+			mincorners = 0;
+		if (elcornernodes.size() < (unsigned int)mincorners) {
 			it = connectivities.rbegin();
 			int numelconnected = it->first-1;
 			int ncorners = corners.NElements();

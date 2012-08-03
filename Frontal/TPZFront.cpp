@@ -195,8 +195,8 @@ void TPZFront<TVar>::main()
 	for(i=0;i<matsize;i++) {
 		for(j=i;j<matsize;j++) {
 			int random = rand();
-			double rnd = (random*matsize)/RAND_MAX;
-			TestMatrix(i,j)=rnd;
+			float rnd = (float)(random*matsize)/RAND_MAX;
+			TestMatrix(i,j)= (TVar)rnd;
 			TestMatrix(j,i)=TestMatrix(i,j);
 			if(i==j) TestMatrix(i,j)=6000.;
 		}
@@ -250,8 +250,8 @@ void TPZFront<TVar>::main()
 	
 	for(i=0;i<matsize;i++) {
 		int random = rand();
-		double rnd = (random*matsize)/RAND_MAX;
-		Load(i,0)=rnd;
+		float rnd = (float)(random*matsize)/RAND_MAX;
+		Load(i,0)= (TVar)rnd;
 	}
 	
 	TPZFMatrix<TVar> Load_2(matsize);

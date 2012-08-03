@@ -134,7 +134,7 @@ inline const TVar &
 TPZFBMatrix<TVar>::GetVal(const int row,const int col ) const {
 	if ( (col+fBand >= row) && (col <= (row+fBand)) )
 		return( fElem[ fBand * (2*row + 1) + col ] );
-	this->gZero = 0.;
+	this->gZero = (TVar)0;
 	return( this->gZero );
 }
 
@@ -145,7 +145,7 @@ inline TVar &TPZFBMatrix<TVar>::operator()(const int row, const int col){
 		return( fElem[ fBand * (2*row + 1) + col ] );
 	}
     DebugStop();
-	this->gZero = 0.;
+	this->gZero = (TVar)(0);
 	return( this->gZero );
 }
 template<class TVar>

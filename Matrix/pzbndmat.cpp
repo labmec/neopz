@@ -47,7 +47,7 @@ TPZFBMatrix<TVar>::TPZFBMatrix( int dim, int band_width )
 	TVar *p   = fElem;
 	TVar *end = fElem + size;
 	while ( p < end )
-		*p++ = 0.0;
+		*p++ = (TVar)(0.0);
 }
 
 
@@ -409,7 +409,7 @@ void TPZFBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 template<class TVar>
 TPZFBMatrix<TVar> TPZFBMatrix<TVar>::operator-() const {
 	TPZFBMatrix<TVar> temp(*this);
-	temp *= -1.;
+	temp *= (TVar)(-1.);
 	return temp;
 }
 
@@ -529,7 +529,7 @@ TPZFBMatrix<TVar>::Resize(const int newRows,const int newCols)
 	// Preenche as linha que sobrarem (se sobrarem) com ZEROS.
 	for ( ; r < newRows; r++ )
 		for ( c = 0; c < bandSize; c++ )
-			*dst++ = 0.0;
+			*dst++ = (TVar)(0.0);
 	
 	delete( fElem );
 	fElem = newElem;
@@ -581,7 +581,7 @@ TPZFBMatrix<TVar>::Zero()
 	int size = Dim() * (2 * fBand + 1);
 	
 	TVar *p = fElem,*plast=fElem+size;
-	while(p < plast) *p++ = 0.0;
+	while(p < plast) *p++ = (TVar)(0.0);
 	
 	this->fDecomposed = 0;
 	
@@ -608,7 +608,7 @@ TPZFBMatrix<TVar>::SetBand( int newBand )
 	TVar *src = fElem;
 	for ( int r = 0; r < Dim(); r++ )
 		for ( int i = -newBand; i <= newBand; i++ )
-			*dst++ = ( (i >= -fBand) && (i <= fBand) ) ? *src++ : 0.0;
+			*dst++ = ( (i >= -fBand) && (i <= fBand) ) ? *src++ : (TVar)0.0;
 	
 	if(fElem) delete []fElem;
 	fElem = newElem;

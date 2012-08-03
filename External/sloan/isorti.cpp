@@ -43,7 +43,7 @@ L25:
     k = i;
 /*                                  SELECT A CENTRAL ELEMENT OF THE */
 /*                                  ARRAY AND SAVE IT IN LOCATION T */
-    ij = i + (j - i) * r;
+    ij = i + (int)((j - i) * r);
     t = (double) key[list[ij]];
 
 /*                                  IF FIRST ELEMENT OF ARRAY IS GREATER */
@@ -52,7 +52,7 @@ L25:
     {
         tt = (double) list[ij];
         list[ij] = list[i];
-        list[i] = tt;
+        list[i] = (int)tt;
         t = (double) key[list[ij]];
 /*          IR(IJ)=IR(I) */
 /*          IR(I)=IT */
@@ -65,7 +65,7 @@ L25:
     {
         tt = (double) list[ij];
         list[ij] = list[j];
-        list[j] = tt;
+        list[j] = (int)tt;
         t = (double) key[list[ij]];
 /*                                  IF FIRST ELEMENT OF ARRAY IS GREATER */
 /*                                  THAN T, INTERCHANGE WITH T */
@@ -73,7 +73,7 @@ L25:
         {
             tt = (double) list[ij];
             list[ij] = list[i];
-            list[i] = tt;
+            list[i] = (int)tt;
             t = (double) key[list[ij]];
         }
     }
@@ -100,7 +100,7 @@ L45:
         {
             tt = (double) list[l];
             list[l] = list[k];
-            list[k] = tt;
+            list[k] = (int)tt;
         }
         goto L40;
     }

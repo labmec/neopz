@@ -506,9 +506,9 @@ int TPZBlockDiagonal<TVar>::main() {
 	int r,c;
 	for(r=0; r<7; r++) {
 		for(c=0; c<7; c++) {
-			ref(r,c) = 5+r*c+3*r;
+			ref(r,c) = ((TVar)(float)(5+r*c+3*r));
 		}
-		ref(r,r) += 1000;
+		ref(r,r) += (TVar)1000;
 	}
 	TPZVec<int> blocksize(3);
 	blocksize[0] = 2;
@@ -591,14 +591,14 @@ void TPZBlockDiagonal<TVar>::AutoFill() {
 		pos= fBlockPos[b];
 		bsize = fBlockSize[b];
 		for(r=0; r<bsize; r++) {
-            REAL sum = 0.;
+            float sum = 0.;
 			for(c=0; c<bsize; c++) {
-                REAL val = ((REAL)rand())/RAND_MAX;
-				fStorage[pos+c+r*bsize] = val;
+                float val = ((float)rand())/RAND_MAX;
+				fStorage[pos+c+r*bsize] = (TVar)(val);
                 if(c!= r) sum += fabs(val);
 			}
             if (fabs(fStorage[pos+r+r*bsize]) < sum) {
-                fStorage[pos+r+r*bsize] = sum+1.;
+                fStorage[pos+r+r*bsize] = (TVar)(sum+1.);
             }
 		}
 		eq += bsize;

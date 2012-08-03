@@ -174,7 +174,7 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long dou
 	Location.Resize((*npoints),0.0L);
 	Weight.Resize((*npoints),0.0L);
 	
-	int m = ((*npoints)+1)*0.5;
+	int m = ((*npoints)+1)/2;
 	long double weight;
 	
 	for(i=0;i<m;i++) {
