@@ -61,7 +61,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
 
-int main(int argc, char *argv[])
+int main3(int argc, char *argv[])
 {
     int p = 2;
 	//primeira malha

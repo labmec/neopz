@@ -182,7 +182,7 @@ void SaddlePermute(TPZCompMesh * cmesh);
 void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 	double x = pt[0];
 	double y = pt[1];
-	disp[0]= -2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+	disp[0]= 2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
 	return;
 }
 void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
@@ -320,11 +320,11 @@ int main()
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=1; porder<2; porder++) {
+	for (int porder=2; porder<3; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 		//	erro<< " Flux exato " << "\t "<<" Flux aprox "<<std::endl;//"P exata " << " \t " <<"P aprox " << "\t " << " Flux exato " << "\t "<<" Flux aprox "<<std::endl;
-		for(int h=0;h<1;h++){
+		for(int h=3;h<4;h++){
 			erro<<std::endl;
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
@@ -339,11 +339,11 @@ int main()
 //			}
 //#endif
 			
-			TPZCompMeshReferred *cmesh = CreateCompMesh2d(*gmesh2,porder);
+			TPZCompMeshReferred *cmesh = CreateCompMesh2d(*gmesh2,porder+1);
 			
-			cmesh->LoadReferences();//mapeia para a malha geometrica lo
+			//cmesh->LoadReferences();//mapeia para a malha geometrica lo
 			
-			TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
+			//TPZAdmChunkVector<TPZCompEl *> elvec = cmesh->ElementVec();
 			
 		//	PrintMesh(cmesh);
             
@@ -351,7 +351,8 @@ int main()
 			TPZAnalysis analysis(cmesh);
 			//SaddlePermute(cmesh);
 			SolveLU ( analysis );
-			
+			ofstream file("Solutout");
+            analysis.Solution().Print("solution", file);
 			//Resolver o sistema linear
 			 //TPZFStructMatrix str(cmesh);
 			// analysis.SetStructuralMatrix(str);
@@ -450,7 +451,7 @@ int main()
 			 
 			 std::string plotfile("GraficoH1Todo.vtk");
 			 const int dim = 2;
-			 int div = 3;
+			 int div = 0;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
 			 
@@ -485,19 +486,21 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 	TPZMaterial *bnd3 = automat->CreateBC (automat,-3,0,val1,val2);//1
 	TPZMaterial *bnd4 = automat->CreateBC (automat,-4,0,val1,val2);
 	
-	TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
-	bnd->SetForcingFunction(fCC1);
-	bnd2->SetForcingFunction(fCC1);
-	bnd3->SetForcingFunction(fCC1);
-	bnd4->SetForcingFunction(fCC1);
+//	TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(CC1);
+//    //TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(CC2);
+//	bnd->SetForcingFunction(fCC1);
+//	bnd2->SetForcingFunction(fCC1);
+//	bnd3->SetForcingFunction(fCC1);
+//	bnd4->SetForcingFunction(fCC1);
 	
+    comp->SetAllCreateFunctionsHDivPressure();
 	comp->InsertMaterialObject(bnd);
 	comp->InsertMaterialObject(bnd2);
 	comp->InsertMaterialObject(bnd3);
 	comp->InsertMaterialObject(bnd4);	
 	//espaco de aproximacao
 	//comp->SetAllCreateFunctionsHDiv();
-		comp->SetAllCreateFunctionsHDivPressure();
+		
 	//comp->SetAllCreateFunctionsContinuous();
 	
 	// Ajuste da estrutura de dados computacional

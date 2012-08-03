@@ -196,7 +196,9 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 /** Returns the variable index associated with the name */
 int TPZMixedPoisson::VariableIndex(const std::string &name){
 	if(!strcmp("Flux",name.c_str()))        return  1;
-	if(!strcmp("Pressure",name.c_str()))        return  2;
+	if(!strcmp("Pressure",name.c_str()))    return  2;
+    if(!strcmp("GradFluxX",name.c_str()))   return  3;
+    if(!strcmp("GradFluxY",name.c_str()))   return  4;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -204,6 +206,8 @@ int TPZMixedPoisson::VariableIndex(const std::string &name){
 int TPZMixedPoisson::NSolutionVariables(int var){
 	if(var == 1) return fDim;
 	if(var == 2) return 1;
+    if(var == 3) return 3;
+    if(var == 4) return 3;
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -226,6 +230,20 @@ void TPZMixedPoisson::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec
 		Solout[0] = SolP[0];//function (state variable p)
 		return;
 	}
+    
+    if(var==3){
+        Solout[0]=datavec[0].dsol[0](0,0);//fluxo de omega1
+        Solout[1]=datavec[0].dsol[0](1,0);
+        Solout[2]=datavec[0].dsol[0](2,0);
+        return;
+    }
+
+    if(var==4){
+        Solout[0]=datavec[0].dsol[0](0,1);//fluxo de omega1
+        Solout[1]=datavec[0].dsol[0](1,1);
+        Solout[2]=datavec[0].dsol[0](2,1);
+        return;
+    }
 }
 
 
