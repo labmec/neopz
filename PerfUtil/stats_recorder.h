@@ -6,7 +6,8 @@
 
 #define HAS_GETRUSAGE
 
-#include<sstream> // stringstream
+#include<sstream>  // stringstream
+#include<string.h> // memset
 
 /**
    Stats 
@@ -314,8 +315,6 @@ class ElapsedTimeRunStat : public RunStat
     memset(&total, 0, sizeof(total));
   }
 
- protected:
-
   double getElapsedMS() const
   {
     double elapsed;
@@ -323,6 +322,8 @@ class ElapsedTimeRunStat : public RunStat
     elapsed += (total.tv_usec) / 1000.0;   // us to ms
     return elapsed;
   }
+
+ protected:
 
   timeval lap;
   timeval total;

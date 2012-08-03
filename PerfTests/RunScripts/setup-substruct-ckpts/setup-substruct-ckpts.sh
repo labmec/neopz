@@ -30,8 +30,7 @@ DATADIR="@PERFTEST_DATA_DIR@"
 
 CMD="$APP -mc $DATADIR/Substruct/inputs/cube1.txt" 
 
-#for plevel in 1 2; do
-for plevel in 1; do
+for plevel in 1 2; do
   for ns in 1 2 4 8 16 32 64; do 
 
     echo "Generating cube chekpoints for plevel = $plevel and nsubs = $ns"
