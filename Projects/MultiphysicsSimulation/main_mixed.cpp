@@ -60,7 +60,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
 
-int main3(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
 	std::string logs("../logmixedproblem.cfg");
@@ -90,7 +90,7 @@ int main3(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,5);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg9("cmesh1_final.txt");
@@ -100,7 +100,7 @@ int main3(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,5);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg10("cmesh2_final.txt");
@@ -470,8 +470,9 @@ void SolveSyst(TPZAnalysis &an, TPZCompMesh *fCmesh)
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(1), vecnames(1);
+	TPZManVector<std::string,10> scalnames(1), vecnames(2);
 	vecnames[0]  = "Flux";
+    vecnames[1]  = "GradFluxX";
     scalnames[0] = "Pressure";
 		
 	
