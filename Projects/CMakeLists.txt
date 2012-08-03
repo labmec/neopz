@@ -36,7 +36,7 @@ ENABLE_TESTING()
 		#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
 
 		#add_custom_target(PZTutorial SOURCES ${pztutorial})
-	add_subdirectory(Finite3DElasticity)
+	#add_subdirectory(Finite3DElasticity)
 
 
 	endif(BUILD_TUTORIAL)
