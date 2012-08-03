@@ -455,13 +455,13 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
 		
-		for(int iside=0;iside<TSHAPE::NSides;iside++)
-		{
-				int order= SideOrder(iside)-1;
-				Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-				
-		}
-	/*
+//		for(int iside=0;iside<TSHAPE::NSides;iside++)
+//		{
+//				int order= SideOrder(iside)-1;
+//				Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+//				
+//		}
+	
 	for(int iside=0;iside<TSHAPE::NSides;iside++)
 	{
 		if(TSHAPE::Type()==EQuadrilateral){
@@ -472,11 +472,8 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 			int order= SideOrder(iside);
 			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
 		}
-		
-		
-		
 	}
-	*/
+	
 #ifdef LOG4CXX
     std::stringstream sout;
     sout << " FirsShapeIndex result " << Index;
