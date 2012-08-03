@@ -770,15 +770,8 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix,
                                             const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol){
     TPZMaterialData data;
-    data.phi = phi;
-    data.dphix = dphix;
-    data.axes = axes;
     InitMaterialData(data);
     this->ComputeSolutionHDiv(data);
-    sol = data.sol;
-    dsol = data.dsol;
-	
-    
 }
 
 template<class TSHAPE>
@@ -804,8 +797,6 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, T
     
     this->ComputeShape(qsi,data);
     this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
-	
-	
 }
 
 template<class TSHAPE>
@@ -820,11 +811,12 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
     data.sol.Resize(numbersol);
     data.dsol.Resize(numbersol);
     
+    int dimvec = data.fNormalVec.Rows();
     for (int is=0; is<numbersol; is++) 
     {
         data.sol[is].Resize(dim,numdof);//2 components to the flow
         data.sol[is].Fill(0);
-        data.dsol[is].Redim(dim, dim);
+        data.dsol[is].Redim(dimvec, dim);
         data.dsol[is].Zero();
     }
     
@@ -851,10 +843,11 @@ void TPZCompElHDiv<TSHAPE>::ComputeSolutionHDiv(TPZMaterialData &data)
 			
             for (int is=0; is<numbersol; is++)
             {
-                cols=iv%numdof;
+                cols=jv%numdof;
                 for (int ilinha=0; ilinha<dim; ilinha++) {
                     data.sol[is][ilinha] += (STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.phi(ishape,0)*MeshSol(pos+jn,is);
-                    //data.sol[is][nsol-1] += (STATE)axesvec(ilinha,0)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);//divergente
+                    data.dsol[is](ilinha,0)+=(STATE)data.fNormalVec(ilinha,ivec)*(STATE)data.dphix(0,ishape)*MeshSol(pos+jn,is);
+                    //data.dsol[is](1,ilinha)+=(STATE)data.fNormalVec(1,ivec)*(STATE)data.dphix(ilinha,ishape)*MeshSol(pos+jn,is);
                 }
             }
             jv++;
@@ -1079,7 +1072,7 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 		sout << "NormalVector/Shape indexes " << data.fVecShapeIndex << std::endl;
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+#endif    
 }
 
 // Save the element data to a stream
