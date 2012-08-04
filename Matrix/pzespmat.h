@@ -101,7 +101,7 @@ public:
 	 * @{
 	 */
 	
-	TPZSpMatrix &operator=(const TPZMatrix<TVar> &A );
+	//TPZSpMatrix & operator= (const TPZMatrix<TVar> & A );
 	
 	/** @} */
 	
@@ -163,10 +163,10 @@ protected:
 	/**  @see TPZSpMatrix::operator+= */
 	
 	int fAdd(const TPZSpMatrix<TVar> *const A );               // operator +=
-	int fAdd(const TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator +
+//	int fAdd(const TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator +
 	
 	int fSub(const TPZSpMatrix<TVar> *const A );               // operator -=
-	int fSub( TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator -
+//	int fSub( TPZSpMatrix<TVar> *A, TPZSpMatrix<TVar> *B ); // operator -
 	
 	int fCopy(const TPZSpMatrix<TVar> *const A );              // operator =
 	

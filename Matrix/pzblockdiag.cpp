@@ -598,7 +598,7 @@ void TPZBlockDiagonal<TVar>::AutoFill() {
                 if(c!= r) sum += fabs(val);
 			}
             if (fabs(fStorage[pos+r+r*bsize]) < sum) {
-                fStorage[pos+r+r*bsize] = (TVar)(sum+1.);
+                fStorage[pos+r+r*bsize] = (TVar)(sum + (float)1.);
             }
 		}
 		eq += bsize;
