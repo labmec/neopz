@@ -11,8 +11,10 @@ if(BUILD_TUTORIAL)
 	add_subdirectory(Class_4)
 	#Example using writing and reading meshes: IOMeshExample
 	add_subdirectory(Class_5)
+	#Example : Elasticity Material 2D
+	add_subdirectory(Class_6)
 
-	set(pzcurso ${pzcurso} ${pzclass1} ${pzclass2} ${pzclass3} ${pzclass4} ${pzclass5} PARENT_SCOPE )
+	set(pzcurso ${pzcurso} ${pzclass1} ${pzclass2} ${pzclass3} ${pzclass4} ${pzclass5} ${pzclass6} PARENT_SCOPE )
 
 endif()
 
