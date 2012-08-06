@@ -104,7 +104,7 @@ ENABLE_TESTING()
 		add_subdirectory(DoubleProjection1D)
                 #projeto omar duran 01-08-2012
 		add_subdirectory(Poroelastic2D)
-		add_subdirectory(Poisson2DLabyrinth)
+		#add_subdirectory(Poisson2DLabyrinth)
 		add_subdirectory(SubStruct)
 		add_subdirectory(MultiphysicsSimulation)
 		add_subdirectory(ProblemGirkmann)
