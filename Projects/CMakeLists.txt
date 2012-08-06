@@ -128,6 +128,7 @@ ENABLE_TESTING()
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
+			add_subdirectory(ReducedSpace)
 
 
 		endif(BUILD_COMPLEX_PROJECTS)
