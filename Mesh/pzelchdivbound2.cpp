@@ -43,7 +43,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 		 Com isso a variavel int connectIndex0 eh setada com -1, dando o BUG observado.
 		 */
 		std::cout << "Nao foi encontrado elemento 2D com elemento computacional inicializado!!!\n"; 
-		DebugStop();
+		//DebugStop();
 	}
 	TPZCompElSide compneigh(neigh.Reference());
     fneighbour = compneigh;
@@ -455,24 +455,21 @@ void TPZCompElHDivBound2<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	Index.Resize(TSHAPE::NSides+1);
 	Index[0]=0;
 		
-//		for(int iside=0;iside<TSHAPE::NSides;iside++)
-//		{
-//				int order= SideOrder(iside)-1;
-//				Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-//				
-//		}
-	
-	for(int iside=0;iside<TSHAPE::NSides;iside++)
-	{
-		if(TSHAPE::Type()==EQuadrilateral){
-			int order= SideOrder(iside)-1;
-			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-		}
-		else{
-			int order= SideOrder(iside);
-			Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
-		}
-	}
+		for(int iside=0;iside<TSHAPE::NSides;iside++)
+				{
+						TPZGeoElSide gelside(this->Reference(),TSHAPE::NSides-1);
+						TPZGeoElSide neighbour = gelside.Neighbour();
+						TPZGeoEl *geol = neighbour.Element();
+						
+						if(geol->Type()==EQuadrilateral){
+								int order= SideOrder(iside)-1;
+								Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+								}
+						else{
+								int order= SideOrder(iside);
+								Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+								}
+						}
 	
 #ifdef LOG4CXX
     std::stringstream sout;
