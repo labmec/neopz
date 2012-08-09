@@ -4,39 +4,43 @@ ENABLE_TESTING()
 
 	if(BUILD_TUTORIAL)
 
-		#Example to reading and using geometric mesh
-		add_subdirectory(testgeom)
+		if(BUILD_COMPLEX_PROJECTS)
+			#add_subdirectory(PDElinear1D)
+			#add_subdirectory(PDElinear2D)
+		else(BUILD_COMPLEX_PROJECTS)
 
-		#Testing and using shape functions
-		add_subdirectory(testshape)
+			#Example to reading and using geometric mesh
+			add_subdirectory(testgeom)
 
-		#Curso PZ:
-		add_subdirectory(CursoPZ)
-		#add_subdirectory(PDElinear1D)
-		#add_subdirectory(PDElinear2D)
+			#Testing and using shape functions
+			add_subdirectory(testshape)
 
-		#Generic Example 2D with elasticity, using matrices phi, phi, etc
-		add_subdirectory(testmat)
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
 
-		#Using visual matrix of the DX
-		add_subdirectory(visualmatrix)
-		
-		#Using discontinuous approximation functions
-		add_subdirectory(descontinuo)
+			#Generic Example 2D with elasticity, using matrices phi, phi, etc
+			add_subdirectory(testmat)
 
-		#Doing h-refinement
-	#	add_subdirectory(adaptivity)
+			#Using visual matrix of the DX
+			add_subdirectory(visualmatrix)
+			
+			#Using discontinuous approximation functions
+			add_subdirectory(descontinuo)
 
-		#source_group(CursoPZ FILES ${pzcurso})
-		#source_group(Shape FILES ${pztutorshape})
-		#source_group(Geometry FILES ${pztutorgeom})
-		#source_group(Matrix FILES ${pztutormat})
-		#source_group(VisualMatrixDX FILES ${visualmatrix})
+			#Doing h-refinement
+		#	add_subdirectory(adaptivity)
 
-		#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
+			#source_group(CursoPZ FILES ${pzcurso})
+			#source_group(Shape FILES ${pztutorshape})
+			#source_group(Geometry FILES ${pztutorgeom})
+			#source_group(Matrix FILES ${pztutormat})
+			#source_group(VisualMatrixDX FILES ${visualmatrix})
 
-		#add_custom_target(PZTutorial SOURCES ${pztutorial})
-	#add_subdirectory(Finite3DElasticity)
+			#set(pztutorial ${pztutorial} ${pzcurso} ${pztutorshape} ${pztutorgeom} ${pztutormat} ${visualmatrix})
+
+			#add_custom_target(PZTutorial SOURCES ${pztutorial})
+			#add_subdirectory(Finite3DElasticity)
+		endif(BUILD_COMPLEX_PROJECTS)
 
 
 	endif(BUILD_TUTORIAL)
@@ -46,18 +50,17 @@ ENABLE_TESTING()
 		#
 		# COMPLEX NUMBER PROJECTS
 		#
-		# If your project use Complex numbers (STATE type = complex any type), please add it on the list below
+		# If your project works with Complex numbers (STATE type = complex any type), please add it on the list below
 		if(BUILD_COMPLEX_PROJECTS)
 
 			#Example to work with scalar as complex
 			add_subdirectory(Helmholtz1D)
 
+			#add_subdirectory(HDiv_demo)
+
 			#Examples used as tutorial for FEEC group (Prof Hugo)
 			#add_subdirectory(PDElinear1D)
 			#add_subdirectory(PDElinear2D)
-			
-			add_subdirectory(HDiv_demo)
-			
 
 		else(BUILD_COMPLEX_PROJECTS)
 			#
@@ -124,7 +127,7 @@ ENABLE_TESTING()
 
 			#Projeto Denise
 			add_subdirectory(HdivPressureTeste)
-			
+
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)

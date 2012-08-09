@@ -462,12 +462,13 @@ public:
     {
         fCreate.SetAllCreateFunctionsHDiv();
     }
-		
-		void SetAllCreateFunctionsHDivPressure()
+
+#ifndef STATE_COMPLEX
+    void SetAllCreateFunctionsHDivPressure()
     {
         fCreate.SetAllCreateFunctionsHDivPressure();
     }
-		
+#endif
     
     void SetAllCreateFunctions(TPZCompEl &cel)
     {

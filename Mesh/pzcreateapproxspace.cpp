@@ -284,6 +284,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDiv(){
      */
 }
 
+#ifndef STATE_COMPLEX
 #include "pzhdivpressure.h"
 
 void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
@@ -298,6 +299,7 @@ void TPZCreateApproximationSpace::SetAllCreateFunctionsHDivPressure(){
     fp[ECube] = CreateHDivPressureCubeEl;
     
  }
+#endif
 
 
 #include "pzreferredcompel.h"

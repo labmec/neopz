@@ -107,6 +107,9 @@ void TPZReducedSpace::Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<R
  */
 void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes)
 {
+#ifdef STATE_COMPLEX
+    DebugStop();
+#else
     TPZInterpolationSpace *intel = ReferredIntel();
     TPZSolVec sol;
     TPZGradSolVec dsol;
@@ -124,6 +127,7 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
             }
         }
     }
+#endif
 }
 
 

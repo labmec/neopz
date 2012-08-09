@@ -7,7 +7,7 @@ if(BUILD_UNITTESTING)
 
 	if(USING_BOOST)
 
-		if(STATE_COMPLEX)
+		if(BUILD_COMPLEX_PROJECTS)
 
 			add_subdirectory(TestMatrixComplex)
 

@@ -43,8 +43,10 @@ public:
 	void SetAllCreateFunctionsContinuousReferred();
     /** @brief Create an approximation space with HDiv elements */
 	void SetAllCreateFunctionsHDiv();
-		/** @brief Create an approximation space with HDivxL2 elements */
-		void SetAllCreateFunctionsHDivPressure();
+#ifndef STATE_COMPLEX
+    /** @brief Create an approximation space with HDivxL2 elements */
+	void SetAllCreateFunctionsHDivPressure();
+#endif
     /** @brief Create approximation spaces corresponding to the space defined by cel */
 	void SetAllCreateFunctions(TPZCompEl &cel, TPZCompMesh *mesh);
     /** @brief Create an approximation space based on multiphysics elements */
