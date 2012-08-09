@@ -60,63 +60,11 @@ ENABLE_TESTING()
 			
 
 		else(BUILD_COMPLEX_PROJECTS)
-		#
-		# REGULAR PROJECTS
-		#
-		# If your project DOES NOT use Complex numbers, please add it on the list below
-		#
-			add_subdirectory(MultipleLoad)
-			# the auto adaptive process is working again!!!
-			add_subdirectory(adaptivity)
-			# add_subdirectory(adaptivity_refactor)
-			
-			#Inserting project to hp adaptive development
-			add_subdirectory(Adapt_HP_Jorge)
-
-			add_subdirectory(Cubo_do_Nathan)
-			
-			add_subdirectory(HyperElasticityFAD)
-
-		#Increment singular shape function: SingularShapeFunction
-		add_subdirectory(SingularShapeFunction)
-		add_subdirectory(angletest)
-		add_subdirectory(checkconv)
-
-		#Orthogonalization process of Gram-Schmidt
-		add_subdirectory(matrix)
-
-		#Inserting material and boundary conditions by function
-		add_subdirectory(termica)
-		add_subdirectory(Steam)
-		add_subdirectory(QuadraticElements)
-		add_subdirectory(ThermalStress)
-		add_subdirectory(HDiv)
-		add_subdirectory(AcoplamentoH1Hdiv)
-		add_subdirectory(Validacao)
-		add_subdirectory(Conductivity)
-		add_subdirectory(ConsLaw)
-		add_subdirectory(Descontinuo2)
-		add_subdirectory(HydraulicFracturePropagation)
-
-		add_subdirectory(SteamInjection)
-		
-		#projeto agnaldo 09-09-2011
-		add_subdirectory(DoubleProjection1D)
-                #projeto omar duran 01-08-2012
-		add_subdirectory(Poroelastic2D)
-		#add_subdirectory(Poisson2DLabyrinth)
-		add_subdirectory(SubStruct)
-		add_subdirectory(MultiphysicsSimulation)
-		add_subdirectory(ProblemGirkmann)
-		
-		add_subdirectory(multplaca)
-
-			#Projeto Lua 2012
-			add_subdirectory(Lua01)
-
-			#Projeto Denise
-			add_subdirectory(HdivPressureTeste)
-			
+			#
+			# REGULAR PROJECTS
+			#
+			# If your project DOES NOT use Complex numbers, please add it on the list below
+			#
 			########################## Nao aplicavel para Windows
 			if (NOT WIN32)
 				#Projeto Teo Refinamento Paralelo
@@ -124,12 +72,66 @@ ENABLE_TESTING()
 				#projeto Diogo 08-FEB-2012
 				add_subdirectory(Plasticity)
 			endif()
+			##########################
+			add_subdirectory(MultipleLoad)
+			# the auto adaptive process is working again!!!
+			add_subdirectory(adaptivity)
+			# add_subdirectory(adaptivity_refactor)
+			
+			#Inserting project to hp adaptive development
+			add_subdirectory(Adapt_HP_Jorge)
+			
+			add_subdirectory(Cubo_do_Nathan)
+			
+			add_subdirectory(HyperElasticityFAD)
+
+			#Increment singular shape function: SingularShapeFunction
+			add_subdirectory(SingularShapeFunction)
+			add_subdirectory(angletest)
+			add_subdirectory(checkconv)
+
+			#Orthogonalization process of Gram-Schmidt
+			add_subdirectory(matrix)
+
+			#Inserting material and boundary conditions by function
+			add_subdirectory(termica)
+			add_subdirectory(Steam)
+			add_subdirectory(QuadraticElements)
+			add_subdirectory(ThermalStress)
+			add_subdirectory(HDiv)
+			add_subdirectory(AcoplamentoH1Hdiv)
+			add_subdirectory(Validacao)
+			add_subdirectory(Conductivity)
+			add_subdirectory(ConsLaw)
+			add_subdirectory(Descontinuo2)
+			add_subdirectory(HydraulicFracturePropagation)
+
+			add_subdirectory(SteamInjection)
+			
+			#projeto agnaldo 09-09-2011
+			add_subdirectory(DoubleProjection1D)
+			#projeto omar duran 01-08-2012
+			add_subdirectory(Poroelastic2D)
+			#add_subdirectory(Poisson2DLabyrinth)
+			add_subdirectory(SubStruct)
+			add_subdirectory(MultiphysicsSimulation)
+			add_subdirectory(ProblemGirkmann)
+			
+			add_subdirectory(multplaca)
+
+			#Projeto Lua 2012
+			add_subdirectory(Lua01)
+
+			#Projeto Denise
+			add_subdirectory(HdivPressureTeste)
 			
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
 			add_subdirectory(ReducedSpace)
-
+			#
+			#
+			
 
 		endif(BUILD_COMPLEX_PROJECTS)
 		

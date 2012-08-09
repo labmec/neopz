@@ -4,9 +4,9 @@ file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
 if (BUILD_COMPLEX_PROJECTS)
-file (GLOB to_remove_from_headers TPZPlaneFracture.h)
+file (GLOB to_remove_from_headers TPZPlaneFracture.h TPZJIntegral.h)
 list (REMOVE_ITEM headers ${to_remove_from_headers})
-file (GLOB to_remove_from_sources TPZPlaneFracture.cpp)
+file (GLOB to_remove_from_sources TPZPlaneFracture.cpp TPZJIntegral.cpp)
 list (REMOVE_ITEM sources ${to_remove_from_sources})
 endif()
 
