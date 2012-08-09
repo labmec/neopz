@@ -61,7 +61,7 @@ static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
 
-int main(int argc, char *argv[])
+int main2(int argc, char *argv[])
 {
     int p = 2;
 	//primeira malha
