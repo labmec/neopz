@@ -74,7 +74,7 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 
 void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
-
+bool const triang=false;
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
@@ -82,18 +82,18 @@ static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 int main(int argc, char *argv[])
 {
     
-//#ifdef LOG4CXX
-//	std::string logs("../logporoelastc2d.cfg");
-//	InitializePZLOG("../logporoelastc2d.cfg");
-//#endif
+#ifdef LOG4CXX
+	std::string logs("../logporoelastc2d.cfg");
+	InitializePZLOG("../logporoelastc2d.cfg");
+#endif
     
     int pu = 3;
-    int pq = 3;
-    int pp = 2;
+    int pq = 2;
+    int pp = 1;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(false,1.,1.);
+	TPZGeoMesh * gmesh = GMesh(triang,1.,1.);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,0);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg5("cmesh1_final.txt");
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,0);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg6("cmesh2_final.txt");
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
     // Cleaning reference to cmesh3
 	gmesh->ResetReference();
 	cmesh3->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,4);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,0);
 	cmesh3->AdjustBoundaryElements();
 	cmesh3->CleanUpUnconnectedNodes();
     ofstream arg7("cmesh3_final.txt");
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     TPZAnalysis an3(cmesh3);
 	SolveSist(an3, cmesh3);
 	int nrs = an3.Solution().Rows();
-	TPZFMatrix<REAL> solucao1(nrs,1,0.0);
+	TPZFMatrix<REAL> solucao1(nrs,1,1000.);
 	cmesh3->Solution() = solucao1;
     
     //malha multifisica
@@ -264,13 +264,13 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL w, REAL L){
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcRight,*gmesh);
         id++;
         
-        TopolLine[0] = 2;
-        TopolLine[1] = 3;
+        TopolLine[0] = 3;
+        TopolLine[1] = 2;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcTop,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
-        TopolLine[1] = 0;
+        TopolLine[0] = 0;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcLeft,*gmesh);
     }
     
@@ -409,8 +409,8 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
-            //celdisc->SetTotalOrderShape();
-            celdisc->SetTensorialShape();
+            if(triang==true) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
         }
     }
     
@@ -441,8 +441,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //	criar material
     REAL Eyoung = 3.e4;
     REAL poisson = 0.2;
-    REAL alpha=1.0;
-    REAL Se=0.0;
+    REAL alpha = 1.0;
+    REAL Se = 0.0;
     REAL rockrho = 2330.0; // SI system
     REAL gravity = 0.0;//-9.8; // SI system
     REAL fx=0.0;
@@ -623,36 +623,36 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-            std::stringstream sout;
-        	matM->Print("matM = ", sout,EMathematicaInput);
-        	LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif   
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//            std::stringstream sout;
+//        	matM->Print("matM = ", sout,EMathematicaInput);
+//        	LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif   
     
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<REAL> matK;	
 	TPZFMatrix<REAL> fvec; 
     StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-		
-        std::stringstream sout;
-        matK.Print("matK = ", sout,EMathematicaInput);
-        fvec.Print("fvec = ", sout,EMathematicaInput);		
-        //Print the temporal solution
-        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-        TPZFMatrix<REAL> Temp;
-        TPZFMatrix<REAL> Temp2;
-        matM->Multiply(Initialsolution,Temp);
-        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//		
+//        std::stringstream sout;
+//        matK.Print("matK = ", sout,EMathematicaInput);
+//        fvec.Print("fvec = ", sout,EMathematicaInput);		
+//        //Print the temporal solution
+//        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+//        TPZFMatrix<REAL> Temp;
+//        TPZFMatrix<REAL> Temp2;
+//        matM->Multiply(Initialsolution,Temp);
+//        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
     
     
 	int nrows;
@@ -673,16 +673,16 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 		mymaterial->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-#ifdef LOG4CXX
-        if(logdata->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout<< " tempo = " << cent;
-            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
-            LOGPZ_DEBUG(logdata,sout.str())
-        }
-#endif
+//#ifdef LOG4CXX
+//        if(logdata->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout<< " tempo = " << cent;
+//            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
+//            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
+//            LOGPZ_DEBUG(logdata,sout.str())
+//        }
+//#endif
 
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;

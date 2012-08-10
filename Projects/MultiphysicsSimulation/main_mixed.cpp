@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(true);
+	TPZGeoMesh * gmesh = GMesh(false);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     

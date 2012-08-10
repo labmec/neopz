@@ -17,7 +17,9 @@
 #include "pzbndcond.h"
 #include "TPZInterfaceEl.h"
 #include "pzinterpolationspace.h"
+
 #include "pzelasmat.h"
+#include "pzmat1dlin.h"
 
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoLinear.h"
@@ -33,16 +35,18 @@
 #include "pzfstrmatrix.h"
 #include "pzlog.h"
 
+#include "pzbuildmultiphysicsmesh.h"
+
 #include <iostream>
 #include <math.h>
 using namespace std;
 
-int const matId1 =1;
-int const matId2 =2;
+int const matId1 =1; //elastic
+int const matId2 =2; //pressure
 int const bc0=-1;
 int const bc1=-2;
 int const bc2=-3;
-int const bc3=-4;
+int const bc3=-4; //bc pressure
 
 
 int const dirichlet =0;
@@ -54,6 +58,7 @@ REAL const Pi = 4.*atan(1.);
 TPZGeoMesh *GMesh(int nh,REAL w, REAL L);
 TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder);
+TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
 
 void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento1(TPZAnalysis &an, std::string plotfile);
@@ -73,31 +78,75 @@ int main(int argc, char *argv[])
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
-    //First computational mesh
-	TPZCompMesh * cmesh= CMeshElastic(gmesh, p);
+    //computational mesh elastic
+	TPZCompMesh * cmesh_elast= CMeshElastic(gmesh, p);
     ofstream arg2("cmesh_inicial.txt");
-    cmesh->Print(arg2);
+    cmesh_elast->Print(arg2);
         
-    TPZAnalysis an(cmesh);
-    MySolve(an, cmesh);
+    TPZAnalysis an(cmesh_elast);
+    MySolve(an, cmesh_elast);
     string plotfile("saidaSolution_mesh1.vtk");
     PosProcessamento1(an, plotfile);
-
     TPZFMatrix<REAL> solucao;
-    solucao=cmesh->Solution();
+    solucao=cmesh_elast->Solution();
     solucao.Print();
     
-    TPZCompMeshReferred *cmeshreferred = CMeshReduced(gmesh, cmesh, p);
-    cmeshreferred->ComputeNodElCon();
-    TPZFStructMatrix fstr(cmeshreferred);
+    //computational mesh of reduced space
+    TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
+    cmesh_referred->ComputeNodElCon();
+    TPZFStructMatrix fstr(cmesh_referred);
     TPZFMatrix<STATE> rhs(1);
     TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
-    
     strmat->Print("rigidez");
     rhs.Print("forca");
+    
     ofstream arg3("cmeshreferred_inicial.txt");
-    cmeshreferred->Print(arg3);
-	    
+    cmesh_referred->Print(arg3);
+	
+    //computational mesh of pressure
+    TPZCompMesh *cmesh_pressure = CMeshPressure(gmesh, p);
+    ofstream arg4("cmeshpressure_inicial.txt");
+    cmesh_pressure->Print(arg4);
+    
+    
+    //------- computational mesh multiphysic ----------//
+    
+    // Cleaning reference of the geometric mesh to cmesh_referred
+	gmesh->ResetReference();
+	cmesh_referred->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,0);
+	cmesh_referred->AdjustBoundaryElements();
+	cmesh_referred->CleanUpUnconnectedNodes();
+    ofstream arg5("cmeshreferred_final.txt");
+    cmesh_referred->Print(arg5);
+    
+    // Cleaning reference of the geometric mesh to cmesh_pressure
+	gmesh->ResetReference();
+	cmesh_pressure->LoadReferences();
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,0);
+	cmesh_pressure->AdjustBoundaryElements();
+	cmesh_pressure->CleanUpUnconnectedNodes();
+    ofstream arg6("cmeshpressure_final.txt");
+    cmesh_pressure->Print(arg6);
+    
+    //multiphysic mesh
+    TPZVec<TPZCompMesh *> meshvec(2);
+	meshvec[0] = cmesh_referred;
+	meshvec[1] = cmesh_pressure;
+    
+	gmesh->ResetReference();
+	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
+    
+    mphysics->SetAllCreateFunctionsMultiphysicElem();
+    mphysics->AutoBuild();
+	mphysics->CleanUpUnconnectedNodes();
+
+	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
+	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
+	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    
+    ofstream arg7("mphysics.txt");
+    mphysics->Print(arg7);
     
     return 0;
 }
@@ -156,10 +205,10 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
         new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
         id++;
     
-//        TopolLine[0] = 0;
-//        TopolLine[1] = 1;
-//        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
-//        id++;
+        TopolLine[0] = 0;
+        TopolLine[1] = 1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
+        id++;
     
         TopolPoint[0] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolLine,bc3,*gmesh);
@@ -183,16 +232,7 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
     
 	gmesh->BuildConnectivity();
     
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Geometrica Inicial\n ";
-    //        gmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
-    
+    //refinamento uniforme
     for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
 		int n = gmesh->NElements();
@@ -323,6 +363,48 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     return cmeshreferred;
 }
 
+TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
+    
+    /// criar materiais
+	int dim = 1;
+	
+    TPZMat1dLin *material;
+	material = new TPZMat1dLin(matId2);
+    
+    TPZFMatrix<REAL> xk(1,1,1.);
+    TPZFMatrix<REAL> xc(1,1,0.);
+    TPZFMatrix<REAL> xb(1,1,0.);
+    TPZFMatrix<REAL> xf(1,1,0.);
+    material->SetMaterial(xk,xc,xb,xf);
+    
+    TPZMaterial * mat(material);
+    material->NStateVariables();
+    
+    ///criar malha computacional
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDefaultOrder(pOrder);
+	cmesh->SetDimModel(dim);
+    cmesh->InsertMaterialObject(mat);
+    
+    ///Inserir condicao de contorno
+    REAL vazao = 10.;
+    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    val2(0,0)=vazao;
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    
+    cmesh->SetAllCreateFunctionsContinuous();
+	cmesh->InsertMaterialObject(mat);
+    cmesh->InsertMaterialObject(BCond1);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+    
+	return cmesh;
+    
+}
 
 void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 {			
