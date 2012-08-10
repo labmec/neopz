@@ -375,28 +375,29 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
     TPZMaterial *mat = this->Material();
 	const int numdof = mat->NStateVariables();
 	const int ncon = this->NConnects();
-	const int nshape = this->NShapeF();
-	const int numeq = nshape*numdof;
     const int numloadcases = mat->NumLoadCases();
-	ek.fMat.Redim(numeq,numeq);
-	ef.fMat.Redim(numeq,numloadcases);
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fNumStateVars = numdof;
 	ef.fNumStateVars = numdof;
 	int i;
+    int numeq=0;
 	for(i=0; i<ncon; i++){
         int nshape = NConnectShapeF(i);
-#ifdef DEBUG
         TPZConnect &c = Connect(i);
-        if(c.NShape() != nshape || c.NState() != numdof)
-        {
-            DebugStop();
-        }
-#endif
-		ek.fBlock.Set(i,nshape*numdof);
-		ef.fBlock.Set(i,nshape*numdof);
+        int nstate = c.NState();
+//#ifdef DEBUG
+//        if(c.NShape() != nshape || c.NState() != numdof)
+//        {
+//            DebugStop();
+//        }
+//#endif
+		ek.fBlock.Set(i,nshape*nstate);
+		ef.fBlock.Set(i,nshape*nstate);
+        numeq += nshape*nstate;
 	}
+	ek.fMat.Redim(numeq,numeq);
+	ef.fMat.Redim(numeq,numloadcases);
 	ek.fConnect.Resize(ncon);
 	ef.fConnect.Resize(ncon);
 	for(i=0; i<ncon; i++){
