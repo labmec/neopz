@@ -18,8 +18,8 @@
  * @ingroup material
  * @author Agnaldo Farias
  * @since 5/28/2012
- * @brief Material to solve a mixed poisson 2d
- * @brief pressure(p): uses H1 space  and velocity (Q): uses Hdiv space
+ * @brief Material to solve a mixed poisson problem 2d by multiphysics simulation
+ * @brief Pressure(p): uses H1 space.  Velocity (Q): uses Hdiv space
  */
 /**
  * \f$ Q = -k*grad(p)  ==> Int{Q.q}dx - k*Int{p*div(q)}dx + k*Int{p*Dq.n}ds = 0  (Eq. 1)  \f$ 

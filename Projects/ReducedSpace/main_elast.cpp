@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh_referred
 	gmesh->ResetReference();
 	cmesh_referred->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,0);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,1);
 	cmesh_referred->AdjustBoundaryElements();
 	cmesh_referred->CleanUpUnconnectedNodes();
     ofstream arg5("cmeshreferred_final.txt");
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh_pressure
 	gmesh->ResetReference();
 	cmesh_pressure->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,0);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,1);
 	cmesh_pressure->AdjustBoundaryElements();
 	cmesh_pressure->CleanUpUnconnectedNodes();
     ofstream arg6("cmeshpressure_final.txt");
