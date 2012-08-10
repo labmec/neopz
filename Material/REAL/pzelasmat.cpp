@@ -85,6 +85,14 @@ void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
 }
 
 void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
+    
+    
+    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+    if(shapetype==data.EVecShape){
+        ContributeVecShape(data,weight,ek, ef);
+        return;
+    }
+    
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
 	TPZFMatrix<REAL> &axes=data.axes;
@@ -133,7 +141,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		
         for (int col = 0; col < efc; col++) 
         {
-            ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY) ;  // dire�o x
+            ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // dire�o x
             ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// dire�o y <<<----
         }		
 		for( int jn = 0; jn < phr; jn++ ) {
@@ -192,6 +200,82 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	
 }
 
+void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
+{
+    TPZFMatrix<REAL> &dphi = data.dphix;
+	TPZFMatrix<REAL> &phi = data.phi;
+	TPZFMatrix<REAL> &axes=data.axes;
+	
+	int phc,phr,dphc,dphr,efr,efc,ekr,ekc;
+	phc = phi.Cols();
+	phr = phi.Rows();
+	dphc = dphi.Cols();
+	dphr = dphi.Rows();
+	efr = ef.Rows();
+	efc = ef.Cols();
+	ekr = ek.Rows();
+	ekc = ek.Cols();
+	
+	if(fForcingFunction) {            // phi(in, 0) :  node in associated forcing function
+		TPZManVector<STATE> res(3);
+		fForcingFunction->Execute(data.x,res);
+		ff[0] = res[0];
+		ff[1] = res[1];
+		ff[2] = res[2];
+	}
+	
+	TPZFNMatrix<4,STATE> dphix_i(2,1),dphiy_i(2,1), dphix_j(2,1), dphiy_j(2,1);
+	/*
+	 * Plain strain materials values
+	 */
+	REAL nu1 = 1 - fnu;//(1-nu)
+	REAL nu2 = (1-2*fnu)/2;
+	REAL F = fE/((1+fnu)*(1-2*fnu));
+
+	for( int in = 0; in < phc; in++ ) {
+		dphix_i(0,0) = dphi(0,in)*axes(0,0)+dphi(1,in)*axes(1,0);
+		dphix_i(1,0) = dphi(0,in)*axes(0,1)+dphi(1,in)*axes(1,1);
+		dphiy_i(0,0) = dphi(2,in)*axes(0,0)+dphi(3,in)*axes(1,0);
+		dphiy_i(1,0) = dphi(2,in)*axes(0,1)+dphi(3,in)*axes(1,1);
+		
+        for (int col = 0; col < efc; col++) 
+        {
+            ef(in,col) += weight*(ff[0]*phi(0, in)- dphix_i(0,0)*fPreStressXX - dphix_i(1,0)*fPreStressXY
+                                   + ff[1] * phi(1, in)- dphiy_i(0,0)*fPreStressYY - dphiy_i(1,0)*fPreStressXY);
+        }		
+		for( int jn = 0; jn < phc; jn++ ) {
+            
+            dphix_j(0,0) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
+            dphix_j(1,0) = dphi(0,jn)*axes(0,1)+dphi(1,jn)*axes(1,1);
+            dphiy_j(0,0) = dphi(2,jn)*axes(0,0)+dphi(3,jn)*axes(1,0);
+            dphiy_j(1,0) = dphi(2,jn)*axes(0,1)+dphi(3,jn)*axes(1,1);
+			
+			
+			if (fPlaneStress != 1){
+				/* Plain Strain State */
+				ek(in,jn) += weight*(nu1*dphix_i(0,0)*dphix_j(0,0) + nu2*dphix_i(1,0)*dphix_j(1,0) +
+                                       
+                                       fnu*dphix_i(0,0)*dphiy_j(1,0) + nu2*dphix_i(1,0)*dphiy_j(0,0) +
+                                       
+                                       fnu*dphiy_i(1,0)*dphix_j(0,0) + nu2*dphiy_i(0,0)*dphix_j(1,0) +
+                                       
+                                       nu1*dphiy_i(1,0)*dphiy_j(1,0) + nu2*dphiy_i(0,0)*dphiy_j(0,0))*F;
+			}
+			else{
+				/* Plain stress state */
+                
+                ek(in,jn) += weight*(fEover1MinNu2*dphix_i(0,0)*dphix_j(0,0) + fEover21PlusNu*dphix_i(1,0)*dphix_j(1,0) +
+                                     
+                                     fEover1MinNu2*dphix_i(0,0)*dphiy_j(1,0) + fEover21PlusNu*dphix_i(1,0)*dphiy_j(0,0) +
+                                     
+                                     fEover1MinNu2*dphiy_i(1,0)*dphix_j(0,0) + fEover21PlusNu*dphiy_i(0,0)*dphix_j(1,0) +
+                                     
+                                     fEover1MinNu2*dphiy_i(1,0)*dphiy_j(1,0) + fEover21PlusNu*dphiy_i(0,0)*dphiy_j(0,0));
+            }
+		}
+	}
+}
+
 void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 {
     int numbersol = data.dsol.size();
@@ -205,10 +289,18 @@ void TPZElasticityMaterial::Solution(TPZMaterialData &data, int var, TPZVec<REAL
 
 void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+    
+    
+    TPZMaterialData::MShapeFunctionType shapetype = data.fShapeType;
+    if(shapetype==data.EVecShape){
+        ContributeVecShapeBC(data,weight,ek, ef,bc);
+        return;
+    }
+    
 	TPZFMatrix<REAL> &phi = data.phi;
 
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
-	
+    
 	int phr = phi.Rows();
 	short in,jn;
 	
@@ -222,10 +314,8 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                     ef(2*in+1,il) += BIGNUMBER * v2(1,0) * phi(in,0) * weight;      // forced v2 displacement
                 }
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
-					ek(2*in,2*jn) += BIGNUMBER * phi(in,0) *
-					phi(jn,0) * weight;
-					ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *
-					phi(jn,0) * weight;
+					ek(2*in,2*jn) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
+					ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
 				}
 			}
 			break;
@@ -264,8 +354,68 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}   // este caso pode reproduzir o caso 0 quando o deslocamento
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
-}         // 1 Val1 : a leitura �00 01 10 11
+} // 1 Val1 : a leitura �00 01 10 11
 
+
+void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weight,
+										 TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc) {
+    
+    TPZFMatrix<REAL> &phi = data.phi;
+    
+	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
+    
+	int phc = phi.Cols();
+	short in,jn;
+	
+	switch (bc.Type()) {
+		case 0 :			// Dirichlet condition
+			for(in = 0 ; in < phc; in++) {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                    
+                    ef(in,il) += weight*BIGNUMBER*(v2(0,il)*phi(0,in) + v2(1,il) * phi(1,in));
+                }
+				for (jn = 0 ; jn < phc; jn++) {
+                    
+                    ek(in,jn) += weight*BIGNUMBER*(phi(0,in)*phi(0,jn) + phi(1,in)*phi(1,jn));
+				}
+			}
+			break;
+			
+		case 1 :			// Neumann condition
+            for (in = 0; in < phc; in++) 
+            {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                    ef(in,il)+= weight*(v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
+                }
+            }
+			break;
+			
+		case 2 :		// condicao mista
+			for(in = 0 ; in < phc; in++) 
+            {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+                     ef(in,il)+= weight*(v2(0,il)*phi(0,in) + v2(1,il)*phi(1,in));
+                }
+				
+				for (jn = 0; jn <phc; jn++) {
+                    
+                    ek(in,jn) += bc.Val1()(0,0)*phi(0,in)*phi(0,jn)*weight 
+                    
+                                + bc.Val1()(0,0)*phi(1,in)*phi(0,jn)*weight
+                    
+                                + bc.Val1()(0,1)*phi(0,in)*phi(1,jn)*weight
+                    
+                                + bc.Val1()(1,1)*phi(1,in)*phi(1,jn)*weight;
+				}
+			}// este caso pode reproduzir o caso 0 quando o deslocamento
+	}      //  eh nulo introduzindo o BIGNUMBER pelos valores da condicao
+}
 /** Returns the variable index associated with the name. */
 int TPZElasticityMaterial::VariableIndex(const std::string &name){
     

@@ -64,6 +64,8 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
+    
+    void ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef);
 	
 	/** @brief Calculates the element stiffness matrix */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,TPZFMatrix<STATE> &ef)
@@ -74,6 +76,9 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
 							  TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
+    
+    void ContributeVecShapeBC(TPZMaterialData &data,REAL weight,
+                              TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
 	/** @brief Applies the element boundary conditions */
 	virtual void ContributeBC(TPZMaterialData &data,REAL weight,
