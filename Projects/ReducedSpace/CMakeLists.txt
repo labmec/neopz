@@ -1,12 +1,7 @@
 file(GLOB headers *.h)
 file(GLOB sources *.cpp)
 
-#REMOVER AS 3 SEGUINTES LINHAS QDO MOVER O MATERIAL PARA O PZ
-include_directories(../MultiphysicsSimulation/)
-set(mixedpoissonH ../MultiphysicsSimulation/mixedpoisson.h)
-set(mixedpoissonCPP ../MultiphysicsSimulation/mixedpoisson.cpp)
-
-set(main_SRCS ${sources} ${headers} ${mixedpoissonH} ${mixedpoissonCPP})
+set(main_SRCS ${sources} ${headers})
 
 add_executable(ReducedSpace ${main_SRCS} ${headers})
 
