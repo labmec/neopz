@@ -38,10 +38,24 @@ clarg::argInt  modc("-modc", "modulo c", 0);
 clarg::argInt  nt("-nt", "number of threads", 0);
 clarg::argInt  verb_level("-v", "verbosity level", 0);
 clarg::argBool h("-h", "help message", false);
+clarg::argInt  cm("-cm", "clean memory before execution", 512);
+
+
+void clean_mem(unsigned sz)
+{
+  unsigned* buffer = (unsigned*) malloc(sz/4);
+  for (unsigned i=0; i<sz/4; i++)
+    buffer[i] = i;
+  free(buffer);
+} 
 
 /* Run statistics. */
-RunStatsTable compute_rst ("-comp_rdt", "Array multiply statistics raw data table");
-RunStatsTable compute_rev_rst ("-comp_rev_rdt", "Array reverse multiply statistics raw data table");
+RunStatsTable mul_rst ("-mul_rdt", "Array multiply statistics raw data table");
+RunStatsTable imul_rst ("-imul_rdt", "Array immeditate multiply statistics raw data table");
+RunStatsTable mulred_rst ("-mulred_rdt", "Array multiply and reduce statistics raw data table");
+RunStatsTable add_rst ("-add_rdt", "Array add statistics raw data table");
+RunStatsTable acc_rst ("-acc_rdt", "Array accumulate statistics raw data table");
+RunStatsTable mulsingle_rst ("-mulsingle_rdt", "Fake array-multiply statistics raw data table");
 
 struct thread_arg_t
 {
@@ -51,16 +65,7 @@ struct thread_arg_t
   unsigned sz;
 };
 
-void* mul_arr_thread(void* a)
-{
-  thread_arg_t* args = (thread_arg_t*) a;
-  unsigned sz = args->sz;
-
-  for (unsigned i=0; i<sz; i++)
-    args->ara[i] = args->arb[i] * args->arc[i];
-}
-
-void mul_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nthreads)
+void process_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nthreads, void* (*fun)(void*))
 {
   if (nthreads==0)
     nthreads = 1;
@@ -82,7 +87,7 @@ void mul_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nthrea
 
   /* Spaw threads */
   for(unsigned i=0; i<nthreads; i++) {
-    pthread_create(&allthreads[i], NULL, mul_arr_thread, thread_args);
+    pthread_create(&allthreads[i], NULL, fun, &(thread_args[i]));
   }
 
   /* Join threads */
@@ -91,6 +96,57 @@ void mul_arr(double* ara, double* arb, double* arc, unsigned sz, unsigned nthrea
   }
 }
 
+template<class T>
+struct thread_map1_arg
+{
+  T* array;
+  unsigned sub_sz;
+  T (*map_func)(T); 
+};
+
+template<class T>
+void* thread_map1_worker(void* arg)
+{
+  thread_map1_arg<T>* args = (thread_map1_arg<T>*) arg;
+  T* array = args->array;
+  unsigned sub_sz = args->sub_sz;
+
+  for (unsigned i=0; i<sub_sz; i++)
+    array[i] = args->map_func(array[i]);
+}
+
+template<class T>
+void thread_map1(T* array, T (*map1)(T), unsigned sz, unsigned nthreads)
+{
+  if (nthreads==0)
+    nthreads = 1;
+
+  pthread_t          *allthreads  = new pthread_t[nthreads];
+  thread_map1_arg<T> *thread_args = new thread_map1_arg<T>[nthreads];
+
+  unsigned chunk_sz = sz/nthreads;
+  unsigned start = 0;
+
+#define MIN(a,b) (a)<(b)?(a):(b)
+
+  for (unsigned i=0; i<nthreads; i++, start+=chunk_sz) {
+    thread_args[i].array = &(array[start]);
+    thread_args[i].sub_sz = MIN(chunk_sz,sz-start);
+    thread_args[i].map_func = map1;
+  }
+
+  /* Spaw threads */
+  for(unsigned i=0; i<nthreads; i++) {
+    pthread_create(&allthreads[i], NULL, thread_map1_worker<T>, &(thread_args[i]));
+  }
+
+  /* Join threads */
+  for(unsigned i=0; i<nthreads; i++) {
+    pthread_join(allthreads[i], NULL);
+  }
+}
+
+
 void mul_arr_rev(double* ara, double* arb, double* arc, unsigned sz, unsigned threads)
 {
   unsigned j=sz-1;
@@ -98,7 +154,111 @@ void mul_arr_rev(double* ara, double* arb, double* arc, unsigned sz, unsigned th
     ara[i] = arb[i] * arc[j];
 }
 
+double sqrt_dbl(double v) { return v*v; }
 
+void* mul_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+  double* arb = args->arb;
+  double* arc = args->arc;
+  double res = 0;
+  for (unsigned i=0; i<sz; i++)
+    ara[i] = arb[i] * arc[i];
+
+  return 0;
+}
+
+void* imul_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+
+  for (unsigned i=0; i<sz; i++)
+    ara[i] = ara[i] * 1.9752; // Multiply by a constant
+
+  return 0;
+}
+
+void* add_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+  double* arb = args->arb;
+  double* arc = args->arc;
+  double res = 0;
+  for (unsigned i=0; i<sz; i++)
+    ara[i] = arb[i] + arc[i];
+
+  return 0;
+}
+
+void* acc_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+  double* arb = args->arb;
+  double res = 0;
+  for (unsigned i=0; i<sz; i++)
+    ara[i] = ara[i] + arb[i];
+
+  return 0;
+}
+
+double global_res;
+void* mulred_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+  double* arb = args->arb;
+  double* arc = args->arc;
+  double res = 0;
+  for (unsigned i=0; i<sz; i++)
+    res += arb[i] * arc[i];
+  
+  global_res = res;
+  return 0;
+}
+
+void* mulsingle_arr(void* a)
+{
+  thread_arg_t* args = (thread_arg_t*) a;
+  unsigned sz = args->sz;
+  double* ara = args->ara;
+  double* arb = args->arb;
+  double* arc = args->arc;
+  double res = 0;
+  for (unsigned i=0; i<sz; i++)
+    res += arb[0] * arc[0];
+  
+  global_res = res;
+  return 0;
+}
+
+void profile(double* ara, double* arb, double* arc, unsigned sz, unsigned num_threads, 
+             void* (*fun)(void*), ElapsedTimeRunStat& et, RunStatsTable& rst)
+{
+  process_arr(ara,arb,arc,sz,num_threads,fun);
+  rst.start();
+  et.start();
+  process_arr(ara,arb,arc,sz,num_threads,fun);
+  et.stop();
+  rst.stop();
+}
+
+double gflops(ElapsedTimeRunStat& et, unsigned sz)
+{
+#define GIGA 1000000000
+
+  double secs   = (et.getElapsedMS()/1000.0);
+  double gflops = (double) sz / (secs * GIGA);
+  return gflops;
+}    
 
 int main(int argc, char *argv[])
 {
@@ -123,40 +283,56 @@ int main(int argc, char *argv[])
         clarg::values(std::cout, false);
         std::cout << "-----------------------------------" << std::endl;
     }
+
+    if (cm.was_set()) {
+#define MEGABYTE (1024*1024)
+      unsigned sz = cm.get_value() * MEGABYTE;
+      cout << "Cleaning memory: " << cm.get_value() << " MB ...";
+      clean_mem(sz);
+      cout << "[Done]" << endl;
+    }
     
     unsigned sz = asz.get_value();
 
+    /* Create arrays. */
     double* ara = new double[sz];
     double* arb = new double[sz];
     double* arc = new double[sz];
 
-    ElapsedTimeRunStat et_mul, et_rev_mul;
+    ElapsedTimeRunStat et_mul, et_imul, et_add, et_acc, et_mulred, et_mulsingle;
 
-    mul_arr_rev(ara,arb,arc,sz,nt.get_value()); // Discard the first run
-    compute_rev_rst.start();
-    et_rev_mul.start();
-    mul_arr_rev(ara,arb,arc,sz,nt.get_value());
-    et_rev_mul.stop();
-    compute_rev_rst.stop();
+    profile(ara,arb,arc,sz,nt.get_value(),
+            mul_arr,et_mul,mul_rst);
 
-    mul_arr(ara,arb,arc,sz,nt.get_value()); // Discard the first run
-    compute_rst.start();
-    et_mul.start();
-    mul_arr(ara,arb,arc,sz,nt.get_value());
-    et_mul.stop();
-    compute_rst.stop();
+    profile(ara,arb,arc,sz,nt.get_value(),
+            imul_arr,et_imul,imul_rst);
 
-    #define GIGA 1000000000
+    profile(ara,arb,arc,sz,nt.get_value(),
+            add_arr,et_add,add_rst);
 
-    double mul_secs       = (et_mul.getElapsedMS()/1000.0);
-    double mul_gflops     = (double) sz / (mul_secs * GIGA);
-    double rev_mul_secs   = (et_rev_mul.getElapsedMS()/1000.0);
-    double rev_mul_gflops = (double) sz / (rev_mul_secs * GIGA);
-    cout << "a[1..." << sz << "] = b[1..." << sz << "] x c[1..." << sz << "] : " 
-         << mul_secs << " : s : " << mul_gflops << " GFlops/s"<< endl;
-    cout << "a[1..." << sz << "] = b[1..." << sz << "] x c[" << sz << "...1] : "
-         << rev_mul_secs << " : s : " << rev_mul_gflops << " GFlops/s"<< endl;
-    
+    profile(ara,arb,arc,sz,nt.get_value(),
+            acc_arr,et_acc,acc_rst);
+
+    profile(ara,arb,arc,sz,nt.get_value(),
+            mulred_arr,et_mulred,mulred_rst);
+
+    profile(ara,arb,arc,sz,nt.get_value(),
+            mulsingle_arr,et_mulsingle,mulsingle_rst);
+
+    //compute_rev_rst.start();
+    //et_rev_mul.start();
+    //thread_map1(ara, sqrt_dbl, sz, nt.get_value());
+    //et_rev_mul.stop();
+    //compute_rev_rst.stop();
+
+
+    cout << "Array mul performance     : " << gflops(et_mul,sz) << endl;
+    cout << "Array imul performance    : " << gflops(et_imul,sz) << endl;
+    cout << "Array add performance     : " << gflops(et_add,sz) << endl;
+    cout << "Array acc performance     : " << gflops(et_acc,sz) << endl;
+    cout << "Array mul red performance : " << gflops(et_mulred,sz) << endl;
+    cout << "Fake array mul performance: " << gflops(et_mulsingle,sz) << endl;
+
     return 0; // Return ok
 }
 
