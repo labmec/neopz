@@ -28,30 +28,41 @@ verbose 1 "cmd: $CMD"
 
 DATADIR="@PERFTEST_DATA_DIR@"
 
-CMD="$APP -mc $DATADIR/Substruct/inputs/cube1.txt" 
+function gen_ckpts
+{
+    INPUT=$1
+    BASENAME=$2
+    READOPT=$3
 
-for plevel in 1 2; do
-  for ns in 1 2 4 8 16 32 64; do 
+    for plevel in 1 2; do
+	for ns in 1 2 4 8 16 32 64; do 
 
-    echo "Generating cube chekpoints for plevel = $plevel and nsubs = $ns"
+	    echo "Generating $BASENAME chekpoints for plevel = $plevel and nsubs = $ns"
 
-    CMD="$APP -mc \"$DATADIR/Substruct/inputs/cube1.txt\" \
-        -dc1 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1\" \
-        -dc2 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2\" \
-        -dc3 \"$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt3\" "
+	    CMD="$APP $READOPT \"$DATADIR/SubStruct/inputs/$INPUT\" \
+                  -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1\" \
+        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2\" \
+        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt3\" "
 
-    echo "CMD=$CMD"
+	    echo "CMD=$CMD"
+	    
+	    eval $CMD &> /dev/null
+	    RET=$?
 
-    $APP -mc "$DATADIR/Substruct/inputs/cube1.txt" \
-        -dc1 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1" \
-        -dc2 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2" \
-        -dc3 "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt3"
+	    if [ $RET != 0 ]; then
+		echo "ERROR when executing: $CMD"
+		echo "Return code = $RET"
+	    fi
+	    
+	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1" \
+		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1"
+	    
+	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2" \
+		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2"
+	    
+	done   
+    done
+}
 
-    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1" \
-        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt1"
-
-    cp -f "$DATADIR/Substruct/outputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2" \
-        "$DATADIR/Substruct/inputs/cubo1.p$plevel.nsub$ns.t.@REAL_TYPE@.ckpt2"
-
-  done   
-done
+gen_ckpts cube1.txt cubo1 -mc
+gen_ckpts 8andares02.txt predio -mp

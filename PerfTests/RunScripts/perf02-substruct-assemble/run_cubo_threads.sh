@@ -1,3 +1,11 @@
+# Select the time command arguments
+if /usr/bin/time -l ls &> /dev/null; then
+    TIMEARGS="-l"
+elif /usr/bin/time --verbose ls &> /dev/null; then
+    TIMEARGS="--verbose"
+fi
+echo "TIMEARGS = $TIMEARGS"
+
 function fail
 {
     echo "FAIL: $@"
@@ -12,7 +20,6 @@ function verbose
 	echo $@
     fi
 }
-
 
 function run_cfg
 {
@@ -33,15 +40,14 @@ function run_cfg
 
         IF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.ckpt1"
         OF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.ckpt3"
-        CMD="$APP -cf1 @PERFTEST_DATA_DIR@/Substruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
-        
         rm -f "$OF"
-        /usr/bin/time -l $CMD &> "$BASEOUT.output.txt"
+        /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
         
-        GOLDEN="@PERFTEST_DATA_DIR@/Substruct/outputs/$OF"
+        GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
         
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
@@ -61,7 +67,7 @@ function run_cfg
 
 PLEVEL=2
 VERBOSE_LEVEL=1
-APP="@PERFTEST_APPS_DIR@/Substruct/Perf-SubStruct"
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: cubo1 step."
@@ -72,7 +78,6 @@ verbose 1 "app: $APP"
 
 ERRORS=0
 OKS=0
-
 
 for PLEVEL in 1 2; do
     echo "Start at checkpoint 1, dump checkpoint 3 and stop: plevel = $PLEVEL"

@@ -16,7 +16,15 @@ function verbose
     fi
 }
 
-APP="@PERFTEST_APPS_DIR@/Substruct/Perf-SubStruct"
+# Select the time command arguments
+if /usr/bin/time -l ls &> /dev/null; then
+    TIMEARGS="-l"
+elif /usr/bin/time --verbose ls &> /dev/null; then
+    TIMEARGS="--verbose"
+fi
+echo "TIMEARGS = $TIMEARGS"
+
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "perf01 - substruct performance test: cubo1 p1 1st step."
@@ -35,15 +43,14 @@ for ns in 1 2 4 8; do
 
   IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt1"
   OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt3"
-  CMD="$APP -cf1 @PERFTEST_DATA_DIR@/Substruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+  CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
 
   verbose 1 "cmd: $CMD"
 
-
   rm -f "$OF"
-  /usr/bin/time -l $CMD &> "$BASEOUT.output.txt"
+  /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
   
-  GOLDEN="@PERFTEST_DATA_DIR@/Substruct/outputs/$OF"
+  GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
 
   # Side by side
   # DIFFOPTIONS="--suppress-common-lines -y -W 100"
