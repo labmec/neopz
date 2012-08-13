@@ -8,6 +8,9 @@
  */
 
 #include "AnalyticalFunctions.h"
+#ifdef USING_BOOST
+	#include <boost/math/special_functions/erf.hpp> //Required for erfc function on windows
+#endif
 
 //	Internally Defined Constants
 static const long double epsilon = 10.0 * LDBL_EPSILON;
@@ -217,7 +220,11 @@ using namespace std;
 		sol[2]=0.;
 		
 		REAL Eta = (Kmed)/(Phi*Visc*Ct);
-		REAL Pressure = ((0.5*Qo*Bo*Visc)/(Kmed*1.0))*(sqrt((4*Eta*segtime)/PI)*(exp(-(pow(x,2)/(4*Eta*segtime))))-(x*erfc(x/sqrt(4*Eta*segtime))));
+		#ifdef USING_BOOST
+			REAL Pressure = ((0.5*Qo*Bo*Visc)/(Kmed*1.0))*(sqrt((4*Eta*segtime)/PI)*(exp(-(pow(x,2)/(4*Eta*segtime))))-(x*boost::math::erfc(x/sqrt(4*Eta*segtime))));
+		#else
+			REAL Pressure = ((0.5*Qo*Bo*Visc)/(Kmed*1.0))*(sqrt((4*Eta*segtime)/PI)*(exp(-(pow(x,2)/(4*Eta*segtime))))-(x*erfc(x/sqrt(4*Eta*segtime))));
+		#endif
 		
 		sol[0] = Pressure;
 		//	sol[1] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
