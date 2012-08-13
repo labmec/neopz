@@ -34,6 +34,8 @@ public:
     	
 	virtual void Write(const int *p, int size=1)=0;
 
+	virtual void Write(const unsigned int *p, int size=1)=0;
+    
 	virtual void Write(const float  *p, int size=1)=0;
 	
 	virtual void Write(const double  *p, int size=1)=0;
@@ -67,6 +69,8 @@ public:
     
 	virtual void Read(int *p, int size=1)=0;
 
+	virtual void Read(unsigned int *p, int size=1)=0;
+    
 	virtual void Read(float *p, int size=1)=0;
 	
 	virtual void Read(double *p, int size=1)=0;
@@ -124,6 +128,10 @@ public:
 		Writes<int>(p,size);
 	}
 	
+	virtual void Write(const unsigned int *p, int size) {
+		Writes<unsigned int>(p,size);
+	}
+	
 	virtual void Write(const float *p, int size) {
 		Writes<float>(p,size);
 	}
@@ -165,6 +173,10 @@ public:
 	
 	virtual void Read(int *p, int size) {
 		Reads<int>(p,size);
+	}
+	
+	virtual void Read(unsigned int *p, int size) {
+		Reads<unsigned int>(p,size);
 	}
 	
 	virtual void Read(float *p, int size) {
