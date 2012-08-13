@@ -72,9 +72,9 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	TPZGeoMesh * gmesh = myreader.GeometricGIDMesh(GeoGridFile);	
 	{
 		//	Print Geometrical Base Mesh
-		ofstream arg1("BaseGeoMesh.txt");
+		std::ofstream arg1("BaseGeoMesh.txt");
 		gmesh->Print(arg1);
-		ofstream file1("BaseGeoMesh.vtk");	
+		std::ofstream file1("BaseGeoMesh.vtk");	
 		//	In this option true -> let you use shrink paraview filter
 		//	PrintGMeshVTK(gmesh,file1);	
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
@@ -85,9 +85,9 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	RefinamentoUniforme(gmesh, Href);
 	{
 		//	Print Geometrical refined Base Mesh
-		ofstream arg1("RefineGeoMesh.txt");
+		std::ofstream arg1("RefineGeoMesh.txt");
 		gmesh->Print(arg1);
-		ofstream file1("RefineGeoMesh.vtk");
+		std::ofstream file1("RefineGeoMesh.vtk");
 		TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
 	}	
 	
