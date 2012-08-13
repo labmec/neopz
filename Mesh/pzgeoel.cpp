@@ -1478,11 +1478,12 @@ int TPZGeoEl::NormalOrientation(int side)
 		thisside = fatherside;
 		fatherside = fatherside.Father2();
 	}
-	fatherside = neighbour;
-	while (fatherside.Exists()&& fatherside.Dimension() == dimside) {//eu inclui agora a segunda condicao
-		neighbour = fatherside;
-		fatherside = fatherside.Father2();
-	}
+//	fatherside = thisside.Neighbour();
+    neighbour = thisside.Neighbour();
+//	while (fatherside.Exists()&& fatherside.Dimension() == dimside) {//eu inclui agora a segunda condicao
+//		neighbour = fatherside;
+//		fatherside = fatherside.Father2();
+//	}
 	if(!thisside.NeighbourExists(neighbour))//inclui agora esta verificacao
 	{
 		std::stringstream sout;
