@@ -6,8 +6,12 @@
 #ifndef TPZREADGIDGRID
 #define TPZREADGIDGRID
 
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <map>
+#include "pzgmesh.h"
+
 class TPZGeoMesh;
 
 
@@ -30,9 +34,32 @@ public:
     /** @brief Convert GID Dump files in a TPZGeoMesh object */
 	/** If something does not work in the process, a null pointer is returned. */
     TPZGeoMesh * GeometricGIDMesh(std::string FiletoRead);
-    
+
+    /** @brief Number of Materials */
+	/** Number of Materials */
+	int MatNumber;
+	
+    /** @brief Number of Boundary Conditions */
+	/** Number of Boundary Conditions */
+	int BCNumber;	
+	
+    /** @brief Mesh Dimension */
+	/** Mesh Dimension */
+	int fProblemDimension;
+	
+    /** @brief MaterialVec */
+	/** Store Material's data */
+	struct MaterialDataV {
+		int MatID;
+		std::string Material;
+		std::vector <REAL> Properties;		
+	};
+	std::vector< MaterialDataV > fMaterialDataVec;
+	std::vector< MaterialDataV > fBCMaterialDataVec;
+
 private:
-	    
+	  
+	
 };
 
 #endif //TPZREADGIDGRID

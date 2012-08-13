@@ -28,6 +28,10 @@
 
 TPZReadGIDGrid::TPZReadGIDGrid(){
 	
+	MatNumber = 0;
+	BCNumber = 0;
+	fProblemDimension = 0;
+	
 }//method
 
 TPZReadGIDGrid::~TPZReadGIDGrid(){
@@ -149,7 +153,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 						FlagString = "";
 						GeneralData[cont]--;
 						cont++;
-						std::cout << "Scanning General Data -> done!" << std::endl;
+//						std::cout << "Scanning General Data -> done!" << std::endl;
 						break;
 					}
 				}
@@ -287,7 +291,61 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 							//"--- USED MATERIALS ---"
 							if (GeneralData[cont] != 0)
 							{
+								MaterialDataV MatTemp;
 								read.getline(buf, 1024);
+								int spacecont = 0;
+								char *p=buf, *q;
+								while (p) 
+								{
+									q = strchr(p,' ');
+									if(!q)
+									{
+										if (p) 
+										{
+											MatTemp.Properties.push_back(atof(p));
+										}
+										break;
+									}
+									*q = 0;
+									if(spacecont==0)
+									{ 
+										MatTemp.MatID = atoi(p);
+									}									
+									else if(spacecont==1)
+									{ 
+										MatTemp.Material = p;
+										if(*p=='D' || *p=='d') 
+										{
+											MatNumber++;
+										}
+										else
+										{
+											BCNumber++;
+										}
+
+									}
+									else 
+									{		
+										MatTemp.Properties.push_back(atof(p));
+										
+									}
+									
+									p = q+1;							
+									while(q && *p==' ')
+										p++;
+									spacecont++;
+								}
+								
+								
+								if (MatTemp.Material[0]=='D' || MatTemp.Material[0]=='d') 
+								{
+									fMaterialDataVec.push_back(MatTemp);
+								}
+								else
+								{
+									fBCMaterialDataVec.push_back(MatTemp);
+								}
+
 								ContMats++;
 							}
 							if(ContMats == nMats)
@@ -350,12 +408,14 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 									if (spacecont == 3)
 									{
 										dim = 2;
+										fProblemDimension = dim;
 										nodecoordY = atof(p);							
 										nodecoordZ = 0.0;							
 									}
 									else 
 									{
 										dim = 3;
+										fProblemDimension = dim;
 										nodecoordZ = atof(p);				
 									}
 									
@@ -531,7 +591,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 					{
 						FlagString = "";
 						cont++;
-						std::cout << "Reading Data -> done!" << std::endl;
+//						std::cout << "Reading Data -> done!" << std::endl;
 						break;
 					}
 				}
@@ -542,8 +602,9 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 		}
 	}	
 	
+	std::cout << "Read General Mesh Data -> done!" << std::endl;	
 	gmesh->BuildConnectivity();
-
+	std::cout << "Geometric Mesh Connectivity -> done!" << std::endl;
 	return gmesh;
 	
 }// End Method
