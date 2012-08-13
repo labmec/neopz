@@ -43,7 +43,7 @@ public:
      */
     union
     {
-        int fFlags;
+        unsigned int fFlags;
         struct
         {
             /** @brief Interpolation order of the associated shape functions */
