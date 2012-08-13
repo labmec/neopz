@@ -72,18 +72,18 @@ using namespace std;
 void help(const char* prg)
 {
     cout << "Compute ...." << endl;
-    cout << "The application is divided in three main steps: s1, s2 and s3" << endl;
+    cout << "The application is divided in four main steps: s1, s2, s3 and s4" << endl;
     cout << endl;
-    cout << "  Step 1 description: ... " << endl;
-    cout << "  Step 2 description: ... " << endl;
-    cout << "  Step 3 description: ... " << endl << endl;
+    cout << "  Step 1 (mp/mc  -> ckpt 1): " << endl;
+    cout << "  Step 2 (ckpt 1 -> ckpt 2): dohrstruct->Create()" << endl;
+    cout << "  Step 3 (ckpt 2 -> ckpt 3): dohrstruct->Assemble(), dohrstruct->Preconditioner() " << endl;
+    cout << "  Step 4 (ckpt 3 -> end   ): cg.solve() ..." << endl << endl;
     cout << "Usage: " << prg << "starting_point stop_point file [-of output_file]" << endl << endl;
     cout << " starting_point = {-cf1|-cf2|-cf3|-mc|-mp} input_file" << endl;
     cout << " starting_point = {-st1|-st2|-st3}" << endl;
     
     clarg::arguments_descriptions(cout, "  ", "\n");
 } 
-
 
 clarg::argString cf1("-cf1", "starts execution from checkpoint 1 (read checkpoint file)", "ckpt1.ckpt");
 clarg::argString cf2("-cf2", "starts execution from checkpoint 2 (read checkpoint file)", "ckpt2.ckpt");
@@ -119,10 +119,10 @@ clarg::argBool h("-h", "help message", false);
 
 /* Run statistics. */
 RunStatsTable total_rst   ("-tot_rdt", "Whole program (total) statistics raw data table");
-RunStatsTable create_rst  ("-cre_rdt", "Create statistics raw data table");
-RunStatsTable assemble_rst("-ass_rdt", "Assemble statistics raw data table");
-RunStatsTable precond_rst ("-pre_rdt", "Precond statistics raw data table");
-RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table");
+RunStatsTable create_rst  ("-cre_rdt", "Create statistics raw data table (step 2)");
+RunStatsTable assemble_rst("-ass_rdt", "Assemble statistics raw data table (step 3)");
+RunStatsTable precond_rst ("-pre_rdt", "Precond statistics raw data table (step 3)");
+RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table (step 4)");
 
 class FileStreamWrapper
 {
