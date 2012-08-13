@@ -39,12 +39,12 @@ OKS=0
 echo "Start at checkpoint 1 and dump checkpoint 2"
 for ns in 1 2 4 16 32 64; do
 
-  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt1"
-  OF1="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt2"
-  OF2="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt3"
+  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
+  OF1="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
+  OF2="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
   CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc2 $OF1 -dc3 $OF2 " 
   verbose 1 "cmd: $CMD"
-  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.ckpt1.p1.nsub$ns.output.txt"
+  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt1.p1.nsub$ns.output.txt"
   GOLDEN1="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF1"
   GOLDEN2="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF2"
 
@@ -75,11 +75,11 @@ done
 echo "Start at checkpoint 2 and dump checkpoint 3"
 for ns in 1 2 4 16 32 64; do
 
-  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt2"
-  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt3"
+  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt2"
+  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
   CMD="$APP -cf2 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF " 
   verbose 1 "cmd: $CMD"
-  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.ckpt2.p1.nsub$ns.output.txt"
+  /usr/bin/time $TIMEARGS $CMD &> "cubo1.@REAL_TYPE@.txt.ckpt2.p1.nsub$ns.output.txt"
   GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
 
   # Side by side

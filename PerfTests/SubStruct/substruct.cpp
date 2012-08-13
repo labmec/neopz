@@ -40,7 +40,7 @@
 
 #include "pzlog.h"
 
-#include "pzbfilestream.h" // TPZBFileStream
+#include "pzbfilestream.h" // TPZBFileStream, TPZFileStream
 
 #include <fstream>
 #include <string>
@@ -113,6 +113,8 @@ clarg::argInt sublevel("-sublevel", "sublevel???", 3);
 
 clarg::argInt verb_level("-v", "verbosity level", 0);
 
+clarg::argBool bc("-bc", "binary checkpoints", false);
+
 clarg::argBool h("-h", "help message", false);
 
 /* Run statistics. */
@@ -121,6 +123,44 @@ RunStatsTable create_rst  ("-cre_rdt", "Create statistics raw data table");
 RunStatsTable assemble_rst("-ass_rdt", "Assemble statistics raw data table");
 RunStatsTable precond_rst ("-pre_rdt", "Precond statistics raw data table");
 RunStatsTable solve_rst   ("-sol_rdt", "Solver statistics raw data table");
+
+class FileStreamWrapper
+{
+public: 
+  FileStreamWrapper() {}
+  ~FileStreamWrapper() {}
+  
+  void OpenWrite(const std::string& fn)
+  {
+    if (bc.was_set())
+      bfs.OpenWrite(fn);
+    else
+      fs.OpenWrite(fn);
+  }
+
+  void OpenRead(const std::string& fn)
+  {
+    if (bc.was_set())
+      bfs.OpenRead(fn);
+    else
+      fs.OpenRead(fn);
+  }
+
+  operator TPZStream&() 
+  {
+    if (bc.was_set())
+      return bfs;
+    else
+      return fs;
+  }
+
+protected:
+
+  TPZFileStream  fs;
+  TPZBFileStream bfs;  
+};
+
+
 
 int main(int argc, char *argv[])
 {
@@ -231,7 +271,7 @@ int main(int argc, char *argv[])
         if (dc1.was_set() && running)
         {
             VERBOSE(1, "Dumping checkpoint 1 into: " << dc1.get_value() << endl);
-            TPZFileStream CheckPoint1;
+	    FileStreamWrapper CheckPoint1;
             CheckPoint1.OpenWrite(dc1.get_value());
             cmeshauto->Reference()->Write(CheckPoint1, 0);
             cmeshauto->Write(CheckPoint1, 0);
@@ -257,7 +297,7 @@ int main(int argc, char *argv[])
         dohrstruct = new TPZDohrStructMatrix(cmeshauto);
         /* Read the checkpoint. */
         {
-            TPZFileStream CheckPoint1;
+            FileStreamWrapper CheckPoint1;
             CheckPoint1.OpenRead(cf1.get_value());
             gmesh->Read(CheckPoint1, 0);
             cmeshauto->Read(CheckPoint1, gmesh);
@@ -279,7 +319,7 @@ int main(int argc, char *argv[])
     if (dc2.was_set() && running)
     {
         VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
-        TPZFileStream CheckPoint2;
+        FileStreamWrapper CheckPoint2;
         CheckPoint2.OpenWrite(dc2.get_value());
         SAVEABLE_STR_NOTE(CheckPoint2,"cmeshauto->Reference()->Write()");
         cmeshauto->Reference()->Write(CheckPoint2, 0);
@@ -303,7 +343,7 @@ int main(int argc, char *argv[])
         else  
             running = true;
         
-        TPZFileStream CheckPoint2;
+        FileStreamWrapper CheckPoint2;
         CheckPoint2.OpenRead(cf2.get_value());
         gmesh = new TPZGeoMesh;
 	SAVEABLE_SKIP_NOTE(CheckPoint2);
@@ -338,7 +378,7 @@ int main(int argc, char *argv[])
     if (dc3.was_set() && running)
     {
         VERBOSE(1, "Dumping checkpoint 3 into: " << dc2.get_value() << endl);
-        TPZFileStream CheckPoint3;
+        FileStreamWrapper CheckPoint3;
         CheckPoint3.OpenWrite(dc3.get_value());
         cmeshauto->Reference()->Write(CheckPoint3, 0);
         cmeshauto->Write(CheckPoint3, 0);
@@ -365,7 +405,7 @@ int main(int argc, char *argv[])
         dim = cmeshauto->Dimension();
         VERBOSE(1, "Reading dim from file. new dim = " << dim << ", old dim = " << dim_arg.get_value() << endl);
         
-        TPZFileStream CheckPoint3;
+        FileStreamWrapper CheckPoint3;
         CheckPoint3.OpenRead(cf3.get_value());
         gmesh->Read(CheckPoint3, 0);
         cmeshauto->Read(CheckPoint3, gmesh);

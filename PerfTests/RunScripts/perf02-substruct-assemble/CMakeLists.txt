@@ -7,3 +7,6 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_cubo.sh"
 
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_cubo_threads.sh"
                 "${CMAKE_CURRENT_BINARY_DIR}/run_cubo_threads.sh")
+
+configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_cubo_threads_binckpt.sh"
+                "${CMAKE_CURRENT_BINARY_DIR}/run_cubo_threads_binckpt.sh")

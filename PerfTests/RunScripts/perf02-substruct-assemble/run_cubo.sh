@@ -39,10 +39,10 @@ OKS=0
 echo "Start at checkpoint 1, dump checkpoint 3 and stop"
 for ns in 1 2 4 8; do
 
-  BASEOUT="cubo1.@REAL_TYPE@.ckpt1.p1.nsub$ns"
+  BASEOUT="cubo1.@REAL_TYPE@.txt.ckpt1.p1.nsub$ns"
 
-  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt1"
-  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.ckpt3"
+  IF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt1"
+  OF="cubo1.p1.nsub$ns.t.@REAL_TYPE@.txt.ckpt3"
   CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
 
   verbose 1 "cmd: $CMD"

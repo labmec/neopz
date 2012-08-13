@@ -33,16 +33,18 @@ function gen_ckpts
     INPUT=$1
     BASENAME=$2
     READOPT=$3
+    CKPTYPE=$4
+    EXTRAARGS=$5
 
     for plevel in 1 2; do
 	for ns in 1 2 4 8 16 32 64; do 
 
 	    echo "Generating $BASENAME chekpoints for plevel = $plevel and nsubs = $ns"
 
-	    CMD="$APP $READOPT \"$DATADIR/SubStruct/inputs/$INPUT\" \
-                  -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1\" \
-        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2\" \
-        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt3\" "
+	    CMD="$APP $EXTRAARGS $READOPT \"$DATADIR/SubStruct/inputs/$INPUT\" \
+                  -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1\" \
+        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2\" \
+        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3\" "
 
 	    echo "CMD=$CMD"
 	    
@@ -54,15 +56,16 @@ function gen_ckpts
 		echo "Return code = $RET"
 	    fi
 	    
-	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1" \
-		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt1"
+	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1" \
+		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1"
 	    
-	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2" \
-		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.ckpt2"
+	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2" \
+		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2"
 	    
 	done   
     done
 }
 
-gen_ckpts cube1.txt cubo1 -mc
-gen_ckpts 8andares02.txt predio -mp
+gen_ckpts cube1.txt cubo1 -mc txt 
+gen_ckpts cube1.txt cubo1 -mc bin -bc
+gen_ckpts 8andares02.txt predio -mp bin -bc
