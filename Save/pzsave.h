@@ -263,8 +263,8 @@ public:
     
     static void ReadObjects(TPZStream &buf, std::set<int> &vec)
 	{
-		int nel = vec.size();
-		buf.Write(&nel,1);
+	  int nel;
+	  buf.Read(&nel,1);
         for (int i=0; i<nel; i++)
         {
             int val;

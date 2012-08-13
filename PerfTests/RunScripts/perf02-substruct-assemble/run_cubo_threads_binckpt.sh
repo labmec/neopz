@@ -40,7 +40,7 @@ function run_cfg
 
         IF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt1"
         OF="cubo1.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt3"
-        CMD="$APP -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
