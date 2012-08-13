@@ -16,7 +16,7 @@ function verbose
     fi
 }
 
-APP="@PERFTEST_APPS_DIR@/Substruct/Perf-SubStruct"
+APP="@PERFTEST_APPS_DIR@/SubStruct/Perf-SubStruct"
 
 # Main
 verbose 1 "Generate the substruct checkpoints."
