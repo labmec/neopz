@@ -53,6 +53,7 @@ int const neumann = 1;
 int const neumdir=10;
 int const dirfreey_neum=300;
 int const dirneum = 1;
+int const mixedneum = 21;
 
 REAL const Pi = 4.*atan(1.);
 
@@ -88,8 +89,8 @@ int main(int argc, char *argv[])
 #endif
     
     int pu = 3;
-    int pq = 2;
-    int pp = 1;
+    int pq = 3;
+    int pp = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -117,7 +118,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,0);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,3);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg5("cmesh1_final.txt");
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,0);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg6("cmesh2_final.txt");
@@ -136,7 +137,7 @@ int main(int argc, char *argv[])
     // Cleaning reference to cmesh3
 	gmesh->ResetReference();
 	cmesh3->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,0);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,3);
 	cmesh3->AdjustBoundaryElements();
 	cmesh3->CleanUpUnconnectedNodes();
     ofstream arg7("cmesh3_final.txt");
@@ -468,17 +469,22 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
     
-    REAL ptop = 0.;
     REAL sig0 = -1000.;
+    REAL ptop = 0.;
     val2(0,0)= 0.;
     val2(1,0)= sig0;
     val2(2,0)= ptop;
 	TPZMaterial * BCond1 = mymaterial->CreateBC(mat, bcTop,neumdir, val1, val2);
     
     val2.Redim(3,1);
-    TPZMaterial * BCond2 = mymaterial->CreateBC(mat,bcRight,dirfreey_neum, val1, val2);
-    TPZMaterial * BCond3 = mymaterial->CreateBC(mat,bcBottom,dirneum, val1, val2);
-    TPZMaterial * BCond4 = mymaterial->CreateBC(mat,bcLeft,dirfreey_neum, val1, val2);
+    REAL big = mymaterial->gBigNumber;
+    val1(0,0) = big;
+    TPZMaterial * BCond2 = mymaterial->CreateBC(mat,bcRight, mixedneum, val1, val2);
+    TPZMaterial * BCond4 = mymaterial->CreateBC(mat,bcLeft, mixedneum, val1, val2);
+    
+    val1.Redim(3,2);
+    val2(2,0)= 1000.;
+    TPZMaterial * BCond3 = mymaterial->CreateBC(mat,bcBottom,dirichlet, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
@@ -521,7 +527,7 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
     flux(1,0)=0.;
 	
 	REAL tD = (lamb+2.*mi)*perm*tp/(visc*H);
-	REAL xD = fabs(x-1.)/H;
+	REAL xD = fabs(1.-x)/H;
 	for (in =0; in<1000; in++) {
 		
 		REAL M = PI*(2.*in+1.)/2.;
@@ -623,36 +629,36 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//            std::stringstream sout;
-//        	matM->Print("matM = ", sout,EMathematicaInput);
-//        	LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif   
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+            std::stringstream sout;
+        	matM->Print("matM = ", sout,EMathematicaInput);
+        	LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif   
     
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<REAL> matK;	
 	TPZFMatrix<REAL> fvec; 
     StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
     
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		
-//        std::stringstream sout;
-//        matK.Print("matK = ", sout,EMathematicaInput);
-//        fvec.Print("fvec = ", sout,EMathematicaInput);		
-//        //Print the temporal solution
-//        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-//        TPZFMatrix<REAL> Temp;
-//        TPZFMatrix<REAL> Temp2;
-//        matM->Multiply(Initialsolution,Temp);
-//        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
-//        LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		
+        std::stringstream sout;
+        matK.Print("matK = ", sout,EMathematicaInput);
+        fvec.Print("fvec = ", sout,EMathematicaInput);		
+        //Print the temporal solution
+        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+        TPZFMatrix<REAL> Temp;
+        TPZFMatrix<REAL> Temp2;
+        matM->Multiply(Initialsolution,Temp);
+        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
+        LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
     
     
 	int nrows;
@@ -673,16 +679,16 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 		mymaterial->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-//#ifdef LOG4CXX
-//        if(logdata->isDebugEnabled())
-//        {
-//            std::stringstream sout;
-//            sout<< " tempo = " << cent;
-//            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-//            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
-//            LOGPZ_DEBUG(logdata,sout.str())
-//        }
-//#endif
+#ifdef LOG4CXX
+        if(logdata->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout<< " tempo = " << cent;
+            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
+            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
+            LOGPZ_DEBUG(logdata,sout.str())
+        }
+#endif
 
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;
