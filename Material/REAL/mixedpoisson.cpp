@@ -154,8 +154,8 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 	TPZFMatrix<REAL>  &phiQ = datavec[0].phi;
 	int phrq = datavec[0].fVecShapeIndex.NElements();
 
-	REAL v2[2];
-	v2[0] = bc.Val2()(0,0);
+	REAL v2;
+	v2 = bc.Val2()(0,0);
 	
 	switch (bc.Type()) {
 		case 0 :		// Dirichlet condition
@@ -163,7 +163,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 			for(int iq=0; iq<phrq; iq++)
             {
                 //the contribution of the Dirichlet boundary condition appears in the flow equation
-                ef(iq,0) += (-1.)*v2[0]*phiQ(iq,0)*weight;
+                ef(iq,0) += (-1.)*v2*phiQ(iq,0)*weight;
             }
             break;
 			
@@ -171,7 +171,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
 			//primeira equacao
 			for(int iq=0; iq<phrq; iq++)
             {
-                ef(iq,0)+= gBigNumber*v2[0]*phiQ(iq,0)*weight;
+                ef(iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
                 for (int jq=0; jq<phrq; jq++) {
                     
                     ek(iq,jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight; 
@@ -182,7 +182,7 @@ void TPZMixedPoisson::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight
         case 2 :			// mixed condition
             for(int iq = 0; iq < phrq; iq++) {
                 
-				ef(iq,0) += v2[0]*phiQ(iq,0)*weight;
+				ef(iq,0) += v2*phiQ(iq,0)*weight;
 				for (int jq = 0; jq < phrq; jq++) {
 					ek(iq,jq) += weight*bc.Val1()(0,0)*phiQ(iq,0)*phiQ(jq,0);
 				}
