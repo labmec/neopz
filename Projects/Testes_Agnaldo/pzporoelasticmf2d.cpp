@@ -243,9 +243,12 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
 void TPZPoroElasticMF2d::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
+    REAL v2x, v2y;
+    v2x = bc.Val2()(0,0);
+    v2y = bc.Val2()(1,0);
     for(int in = 0 ; in < phiu.Rows(); in++){
-        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight; // x displacement forced v2 displacement      
-        ef(2*in+1,0) += gBigNumber*bc.Val2()(1,0)*phiu(in,0)*weight; // y displacement forced v2 displacement 
+        ef(2*in,0) += gBigNumber*v2x*phiu(in,0)*weight; // x displacement forced v2 displacement      
+        ef(2*in+1,0) += gBigNumber*v2y*phiu(in,0)*weight; // y displacement forced v2 displacement 
         
         for(int jn = 0 ; jn < phiu.Rows(); jn++){
             ek(2*in,2*jn) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
@@ -259,10 +262,11 @@ void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REA
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
     int phrq = datavec[1].fVecShapeIndex.NElements();
+    REAL v2 = bc.Val2()(2,0);
     for(int iq=0; iq<phrq; iq++)
     {
         //the contribution of the Dirichlet boundary condition appears in the flow equation
-        ef(2*phru+iq,0) += -fTimeStep*bc.Val2()(2,0)*phiQ(iq,0)*weight;
+        ef(2*phru+iq,0) += -fTimeStep*v2*phiQ(iq,0)*weight;
     }
 }
 
@@ -270,9 +274,12 @@ void TPZPoroElasticMF2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL w
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
     int phru = phiu.Rows();
+    REAL v2x, v2y;
+    v2x = bc.Val2()(0,0);
+    v2y = bc.Val2()(1,0);
     for(int in = 0 ; in <phru; in++){  
-        ef(2*in,0) += bc.Val2()(0,0)*phiu(in,0)*weight;   // traction in x 
-        ef(2*in+1,0) += bc.Val2()(1,0)*phiu(in,0)*weight; // traction in y
+        ef(2*in,0) += v2x*phiu(in,0)*weight;   // traction in x 
+        ef(2*in+1,0) += v2y*phiu(in,0)*weight; // traction in y
     }     
 }
 
@@ -281,9 +288,11 @@ void TPZPoroElasticMF2d::ApplyNeumann_QP(TPZVec<TPZMaterialData> &datavec, REAL 
     int phru = datavec[0].phi.Rows();
     TPZFMatrix<> &phiQ = datavec[1].phi;
     int phrq = datavec[1].fVecShapeIndex.NElements();
+    REAL v2 = bc.Val2()(2,0);
+    
     for(int iq=0; iq<phrq; iq++)
     {
-        ef(2*phru+iq,0)+= gBigNumber*bc.Val2()(2,0)*phiQ(iq,0)*weight;
+        ef(2*phru+iq,0)+= gBigNumber*v2*phiQ(iq,0)*weight;
         for (int jq=0; jq<phrq; jq++) {
             
             ek(2*phru+iq,2*phru+jq)+= gBigNumber*phiQ(iq,0)*phiQ(jq,0)*weight; 
@@ -327,8 +336,9 @@ void TPZPoroElasticMF2d::ApplyMixed_QP(TPZVec<TPZMaterialData> &datavec, REAL we
 void TPZPoroElasticMF2d::ApplyDirichletFreeY_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc)
 {
     TPZFMatrix<>  &phiu = datavec[0].phi;
+    REAL v2x = bc.Val2()(0,0);
     for(int in = 0 ; in < phiu.Rows(); in++){
-        ef(2*in,0) += gBigNumber*bc.Val2()(0,0)*phiu(in,0)*weight; // x displacement forced v2 displacement      
+        ef(2*in,0) += gBigNumber*v2x*phiu(in,0)*weight; // x displacement forced v2 displacement      
         for(int jn = 0 ; jn < phiu.Rows(); jn++){
             ek(2*in,2*jn) += gBigNumber*phiu(in,0)*phiu(jn,0)*weight;
         }
@@ -405,8 +415,13 @@ void TPZPoroElasticMF2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weig
             ApplyDirichlet_QP(datavec, weight, ef, bc);
             break;
             
-        case 300: //Dirichlet condition free in y for elastic and Neumann condition for mixed problem
+        case 300: //Mixed condition free in y for elastic and Neumann condition for mixed problem
             ApplyDirichletFreeY_U(datavec, weight, ek, ef, bc);
+            ApplyNeumann_QP(datavec, weight, ek, ef, bc);
+            break;
+            
+        case 21: //Dirichlet condition free in y for elastic and Neumann condition for mixed problem
+            ApplyMixed_U(datavec, weight, ek, ef, bc);
             ApplyNeumann_QP(datavec, weight, ek, ef, bc);
             break;
             
@@ -612,7 +627,7 @@ void TPZPoroElasticMF2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZ
 	}//var12
     
     if(var == 14){
-		fForcingFunctionExact->Execute(datavec[0].x, solExata,flux);
+		fForcingFunctionExact->Execute(datavec[1].x, solExata,flux);
 		Solout[0] = flux(0,0);
         Solout[1] = flux(1,0);
 		return;
