@@ -7,7 +7,11 @@
 
 int main()
 {
-	std::ifstream input("steamInjectionFILE.txt");
+	string FileName, dirname = PZSOURCEDIR;
+	FileName = dirname + "/Projects/SteamInjection/";
+	FileName += "steamInjectionFILE.txt";
+	
+	std::ifstream input(FileName.c_str());
 	
 	TSwxSteam steam;
 	std::map< double , std::pair<double, double> > Time_Radius_MaxSigmaTheta;
