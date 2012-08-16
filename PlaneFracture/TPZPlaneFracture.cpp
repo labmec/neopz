@@ -2130,7 +2130,7 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
         direction[1] = ny - originXYZ[1];
         direction[2] = nz - originXYZ[2];
     }
-    REAL intRadius = 0.8;
+    REAL intRadius = 0.6;
     REAL extRadius = 1.0;
     Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, intRadius, extRadius, meshDim);
     
@@ -2139,7 +2139,7 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     TPZVec<REAL> Jvector(3);
     Jvector = jInt.IntegratePath(0);
     
-    std::cout << "J = " << Jvector[0] << "\n";//Tinha que dar (+/-) 3.e-3
+    std::cout << "J = { " << Jvector[0] << " , " << Jvector[1] << " }\n";//Tinha que dar (+/-) 3.e-3
     
     #ifdef completeCompute
     ////Post Processing
@@ -2204,7 +2204,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
     if(meshDim == 2)
     {
         REAL h_2 = H/2.;
-        REAL delta = 0.25;
+        REAL delta = 0.2;
         
         int ncolsContinuum = int((W/2. - a)/delta + 0.5);
         REAL deltaxContinuum = (W - 2.*a)/2./ncolsContinuum;

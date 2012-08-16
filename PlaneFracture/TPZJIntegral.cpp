@@ -52,6 +52,11 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL>
         std::cout << "\nThe normal direction of J integral arc must be in XZ plane!!!\n";
         DebugStop();
     }
+    if(r_ext <= r_int)
+    {
+        std::cout << "\nExternal radius must be higher than internal radius!!!\n";
+        DebugStop();
+    }
     #endif
     
     fr_int = r_int;
@@ -485,18 +490,6 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     linearPath * _LinearPath = new linearPath(jpathElem);
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
     internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
-    
-    //////////////////////
-//    TPZVec<REAL> funcAnsw(2,0.);
-//    for(int i = -100; i <= 100; i++)
-//    {
-//        double tt = i/100.;
-//        
-//        funcAnsw = _LinearPath->Func(tt);
-//        funcAnsw = _ExtArcPath->Func(tt);
-//        funcAnsw = _IntArcPath->Func(tt);
-//    }
-    //////////////////////
     
     int meshDim = 2;
     TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,meshDim,-1.,+1.);
