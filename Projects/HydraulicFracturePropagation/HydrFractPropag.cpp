@@ -50,7 +50,7 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 //    {
 //        
 //    }
-//    TPZVec<REAL> operator()(double x)
+//    TPZVec<REAL> operator()(REAL x)
 //    {
 //        TPZVec<REAL> val = this->func(x);
 //        return val;
@@ -104,10 +104,10 @@ int mainTESE(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    double lw = 202.;
-    double bulletDepthIni = 20.;
-    double bulletDepthFin = 80.;    
-    TPZVec< std::map<double,double> > pos_stress(5);
+    REAL lw = 202.;
+    REAL bulletDepthIni = 20.;
+    REAL bulletDepthFin = 80.;    
+    TPZVec< std::map<REAL,REAL> > pos_stress(5);
     //stretch #0
     pos_stress[0][0.]  = 2.;
     pos_stress[0][11.]  = 3.;
@@ -161,11 +161,11 @@ int main(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    double lw = 100.;
-    double bulletDepthIni = 0.;
-    double bulletDepthFin = 100.;    
+    REAL lw = 100.;
+    REAL bulletDepthIni = 0.;
+    REAL bulletDepthFin = 100.;    
     
-    TPZVec< std::map<double,double> > pos_stress(2);
+    TPZVec< std::map<REAL,REAL> > pos_stress(2);
     pos_stress[0][0.]  = 1.;
     pos_stress[0][100.]  = 1.;
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
@@ -401,7 +401,7 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
     
     fractureDots.Resize(2*nnodes, 0.);
     int node;
-    double shiftZ = -100.;
+    REAL shiftZ = -100.;
     
     node = 0;
     
@@ -732,11 +732,11 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots)
     fractureDots.Resize(2*nnodes, 0.);
     int node;
     
-    double shiftZ = -100.;
+    REAL shiftZ = -100.;
     
     ///
     node = 0;
-    double desloc = 0.;
+    REAL desloc = 0.;
     
     fractureDots[2*node] = 5.; fractureDots[2*node+1] = shiftZ + 80.;
     
