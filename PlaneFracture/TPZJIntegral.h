@@ -77,7 +77,7 @@ public:
     }
     
     virtual TPZVec<REAL> Func(REAL t);
-
+    
     /////////////
     
     virtual void X(REAL t, TPZVec<REAL> & xt);

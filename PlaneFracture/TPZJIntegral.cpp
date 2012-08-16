@@ -21,9 +21,6 @@ const REAL Pi = 3.1415926535897932384626433832795;
 
 const int dim3D = 3;
 
-#define cajuLog
-std::ofstream outP("cajuLog.txt");
-
 
 //--------------------------------------------------------class JPath
 
@@ -86,23 +83,23 @@ TPZVec<REAL> Path::Func(REAL t)
     this->dXdt(t, dxdt, DETdxdt);
     this->normalVec(t, nt);
 
-    TPZVec<REAL> qsi2D(2,0.), qsi3D(dim3D,0.);
+    TPZVec<REAL> qsi;
     
     TPZGeoEl * geoEl = NULL;
     if(fMeshDim == 2)
     {
+        qsi.Resize(2, 0.);
         int axe0 = 0;//axe X
         int axe1 = 1;//axe Y
         int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(this->fcmesh->Reference(), fInitial2DElementId, xt, qsi2D, axe0, axe1, axeNormal, false);
-#ifdef cajuLog
-        outP << xt[0] << "\t" << xt[1] << "\t" << xt[2] << std::endl;
-#endif
+        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(this->fcmesh->Reference(), fInitial2DElementId, xt, qsi, axe0, axe1, axeNormal, false);
+
         geoEl = this->fcmesh->Reference()->ElementVec()[elFoundId];
     }
     else if(fMeshDim == 3)
     {
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi3D, fInitial2DElementId, this->fcmesh->Reference());
+        qsi.Resize(3, 0.);
+        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, this->fcmesh->Reference());
     }
     else
     {
@@ -123,11 +120,13 @@ TPZVec<REAL> Path::Func(REAL t)
     TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
     intpEl->InitMaterialData(data);
-    intpEl->ComputeShape(qsi3D, data);
-    intpEl->ComputeSolution(qsi3D, data);
+    
+    intpEl->ComputeShape(qsi, data);
+    intpEl->ComputeSolution(qsi, data);
     
     REAL W = 0.;
     TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradU(fMeshDim,fMeshDim);
+    GradU = data.dsol[0];
     
     if(fMeshDim == 2)
     {
@@ -175,7 +174,6 @@ TPZVec<REAL> Path::Func(REAL t)
         }
         #endif
         
-        GradU = data.dsol[0];
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradU);
         REAL poisson = elast3D->GetPoisson();
@@ -487,6 +485,18 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     linearPath * _LinearPath = new linearPath(jpathElem);
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
     internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
+    
+    //////////////////////
+//    TPZVec<REAL> funcAnsw(2,0.);
+//    for(int i = -100; i <= 100; i++)
+//    {
+//        double tt = i/100.;
+//        
+//        funcAnsw = _LinearPath->Func(tt);
+//        funcAnsw = _ExtArcPath->Func(tt);
+//        funcAnsw = _IntArcPath->Func(tt);
+//    }
+    //////////////////////
     
     int meshDim = 2;
     TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,meshDim,-1.,+1.);

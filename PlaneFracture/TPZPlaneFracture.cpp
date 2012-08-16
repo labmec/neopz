@@ -2130,8 +2130,8 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
         direction[1] = ny - originXYZ[1];
         direction[2] = nz - originXYZ[2];
     }
-    REAL intRadius = 0.3;
-    REAL extRadius = 0.8;
+    REAL intRadius = 0.8;
+    REAL extRadius = 1.0;
     Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, intRadius, extRadius, meshDim);
     
     JIntegral jInt;
