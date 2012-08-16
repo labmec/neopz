@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (SubStruct SubStruct)
+#ADD_TEST (SubStruct SubStruct)
 ADD_TEST (SubStruct_Test SubStruct_Test)
 
 #Checking generated files
