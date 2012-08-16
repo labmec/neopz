@@ -225,4 +225,76 @@ namespace pzgeom {
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
 	
+    void TPZGeoCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        if(node > this->NNodes)
+        {
+            DebugStop();
+        }
+        nodeCoord.Resize(Dimension, 0.);
+        switch (node) {
+            case (0):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (1):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (2):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (3):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (4):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            case (5):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            case (6):
+            {
+                nodeCoord[0] = 1.;
+                nodeCoord[1] = 1.;
+                nodeCoord[2] = 1.;
+                break;
+            }
+            case (7):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            default:
+            {
+                DebugStop();
+                break;
+            }
+        }
+    }
+
 };

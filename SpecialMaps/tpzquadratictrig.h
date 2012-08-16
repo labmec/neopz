@@ -22,6 +22,9 @@ namespace pzgeom {
 	public:
 		/** @brief Number of nodes */
 		enum {NNodes = 6};
+        
+        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+        
 		/** @brief It is a quadratic mapping */
 		bool IsLinearMapping() const {
 			return false;

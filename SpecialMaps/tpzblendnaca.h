@@ -41,6 +41,12 @@ public:
     void ProjectPoint(TPZVec<REAL> &pt, int maxPt = 1000);
 	
 public:
+    
+    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        //Dont have
+    }
+    
 	/** @brief Creates a geometric element according to the type of the father element */
 	static TPZGeoEl *CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 									  TPZVec<int>& nodeindexes,

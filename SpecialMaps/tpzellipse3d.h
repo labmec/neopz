@@ -27,6 +27,9 @@ namespace pzgeom
 		/** @brief Number of nodes (connects) */
 		enum {NNodes = 2};
 		/** @brief It is not linear mapping */
+        
+        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+        
 		bool IsLinearMapping() const
 		{
 			return false;

@@ -59,7 +59,9 @@ namespace pzgeom {
 		}
 		
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Hexa";} 
+		static std::string TypeName() { return "Hexa";}
+        
+        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const

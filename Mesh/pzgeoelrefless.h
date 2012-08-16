@@ -48,6 +48,8 @@ public:
 	
 	/** @brief Copy constructor with elements in different meshes */
 	TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp);
+    
+    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 	/**
 	 * @brief Copy constructor with elements in different meshes. The clone mesh is
@@ -287,6 +289,13 @@ inline
 int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 	const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
 	return side;
+}
+
+template<class TGeo>
+inline
+void TPZGeoElRefLess<TGeo>::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+{
+    fGeo.ParametricDomainNodeCoord(node, nodeCoord);
 }
 
 #include "pzgeoelrefless.h.h"

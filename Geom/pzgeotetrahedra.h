@@ -57,7 +57,9 @@ namespace pzgeom {
 		}
 		
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Tetra";} 
+		static std::string TypeName() { return "Tetra";}
+        
+        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
 		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);

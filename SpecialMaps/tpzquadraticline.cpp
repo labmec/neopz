@@ -107,6 +107,36 @@ TPZGeoEl *TPZQuadraticLine::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
+void TPZQuadraticLine::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+{
+    if(node > this->NNodes)
+    {
+        DebugStop();
+    }
+    nodeCoord.Resize(Dimension, 0.);
+    switch (node) {
+        case (0):
+        {
+            nodeCoord[0] = -1.;
+            break;
+        }
+        case (1):
+        {
+            nodeCoord[0] = 1.;
+            break;
+        }
+        case (2):
+        {
+            nodeCoord[0] = 0.;
+            break;
+        }
+        default:
+        {
+            DebugStop();
+            break;
+        }
+    }
+}
 
 
 ///CreateGeoElement -> TPZQuadraticLine

@@ -26,6 +26,8 @@ class TPZQuadraticPrism : public pzgeom::TPZNodeRep<15,pztopology::TPZPrism> {
 public:
 	
 	enum {NNodes = 15};
+    
+    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 	bool IsLinearMapping() const {
 		return false;

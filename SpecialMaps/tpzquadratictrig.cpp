@@ -146,6 +146,57 @@ TPZGeoEl *TPZQuadraticTrig::CreateGeoElement(TPZGeoMesh &mesh, MElementType type
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
+void TPZQuadraticTrig::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+{
+    if(node > this->NNodes)
+    {
+        DebugStop();
+    }
+    nodeCoord.Resize(Dimension, 0.);
+    switch (node) {
+        case (0):
+        {
+            nodeCoord[0] = 0.;
+            nodeCoord[1] = 0.;
+            break;
+        }
+        case (1):
+        {
+            nodeCoord[0] = 1.;
+            nodeCoord[1] = 0.;
+            break;
+        }
+        case (2):
+        {
+            nodeCoord[0] = 0.;
+            nodeCoord[1] = 1.;
+            break;
+        }
+        case (3):
+        {
+            nodeCoord[0] = 0.5;
+            nodeCoord[1] = 0.0;
+            break;
+        }
+        case (4):
+        {
+            nodeCoord[0] = 0.5;
+            nodeCoord[1] = 0.5;
+            break;
+        }
+        case (5):
+        {
+            nodeCoord[0] = 0.0;
+            nodeCoord[1] = 0.5;
+            break;
+        }
+        default:
+        {
+            DebugStop();
+            break;
+        }
+    }
+}
 
 ///CreateGeoElement -> TPZQuadraticTrig
 

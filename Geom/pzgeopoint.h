@@ -76,7 +76,13 @@ namespace pzgeom {
 		}
 		
 		/** @brief Returns the type name of the element */
-		static std::string TypeName() { return "Point";} 
+		static std::string TypeName() { return "Point";}
+        
+        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+        {
+            //It doesnt make any sense ask node coordinate of 0D element
+            DebugStop();
+        }
         
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
         {
