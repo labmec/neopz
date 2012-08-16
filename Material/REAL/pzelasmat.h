@@ -112,6 +112,18 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	 * @brief Returns the number of variables associated with the variable indexed by var.
 	 */
 	virtual int NSolutionVariables(int var);
+    
+    STATE GetLambda()
+    {
+        STATE lambda = (fnu*fE)/((1.+fnu)*(1.-2.*fnu));
+        return lambda;
+    }
+    
+    STATE GetMU()
+    {
+        STATE mu = fE/(2.*(1.+fnu));
+        return mu;
+    }
 	
 protected:
 	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);

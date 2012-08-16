@@ -533,6 +533,8 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 			return 3;
 		case 10 : //Stress Tensor
 			return 3;
+        case 11 : //Strain Tensor
+            return 3;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
 	}
@@ -654,6 +656,15 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 			Solout[1] = Sol[1];
 			Solout[2] = 0.;
 			break;
+        case 11:
+            epsx = DSolxy[0][0];// du/dx
+			epsy = DSolxy[1][1];// dv/dy
+			epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+            
+            Solout[0] = epsx;
+			Solout[1] = epsy;
+			Solout[2] = epsxy;
+            break;
 		default:
 			cout << "TPZElasticityMaterial::Solution Error\n";
 			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);
