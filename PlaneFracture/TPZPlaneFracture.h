@@ -25,13 +25,13 @@
 
 
 /// Real as tolerance 
-const double __smallNum = 1.E-5;
+const REAL __smallNum = 1.E-5;
 
 /** @brief maximum element edge length */
-const double __maxLength = 4.;
+const REAL __maxLength = 4.;
 
 /** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
-const double __lengthFactor = 1.;
+const REAL __lengthFactor = 1.;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
@@ -148,13 +148,13 @@ class TPZPlaneFracture
      *
      * TVD: Total vertical depth (positive positions)
 	 */
-    TPZPlaneFracture(double lw, double bulletDepthIni, double bulletDepthFin, TPZVec< std::map<double,double> > & pos_stress);
+    TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDepthFin, TPZVec< std::map<REAL,REAL> > & pos_stress);
     
 	~TPZPlaneFracture();
     
     void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
     
-    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initialElId, TPZVec<REAL> & x);
+    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initialElId, TPZVec<REAL> & x, TPZVec<REAL> & qsi, int planeAxe0, int planeAxe1, int planeNormal, bool justFathers);
     
     /**
      * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
@@ -182,7 +182,7 @@ class TPZPlaneFracture
      * Returns the CompMesh for the FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
      * (used by the RunModelProblemForSIFValidation method)
      */
-    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim);
+    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim, REAL W, REAL H, REAL a, REAL sigmaTraction);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -211,19 +211,19 @@ class TPZPlaneFracture
     /** @brief Generation of the persistent 2D mesh that contains the fracture
      *  @note This method set the fPlaneMesh atribute that will not be changed for every fracture time step
      */
-    void GeneratePlaneMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
+    void GeneratePlaneMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
 
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fFullMesh atribute that will not be changed for every fracture time step
      */
-    void GenerateFullMesh(std::list<double> & espacamento, double lengthFactor = __lengthFactor);
+    void GenerateFullMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
 
     /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateFullMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
      */
-    void GenerateNodesAtPlaneY(std::list<double> & espacamento, double lengthFactor,
+    void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL lengthFactor,
                                TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
-                               double Y);
+                               REAL Y);
 
 	/*
 	 * @brief Computes the edges of elements of fractMesh that are intercepted by the crack tip defined by poligonalChain points (defined by a vector coordinates)
@@ -246,9 +246,9 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
 	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
-							std::map< int, std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence);
+							std::map< int, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence);
 
-    static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin);
+    static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, int planeAxe0, int planeAxe1, int planeNormal);
 
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
@@ -266,11 +266,12 @@ class TPZPlaneFracture
 	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 * @param pushback [in] : set if dots on element edges will be inserted at the end, or not (i.e.: at beggining), of fCrackBoundary list
 	 */
-	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, double alphaMin, std::map< int,
-									std::set<double> > &elId_TrimCoords, std::list< std::pair<int,double> > &elIdSequence, bool pushback);
+	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, std::map< int,
+									std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence, bool pushback,
+                                    int planeAxe0, int planeAxe1, int planeNormal);
 
 	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge, 
-                          TPZVec< TPZVec<REAL> > &ExactIntersect, double alphaMin);
+                          TPZVec< TPZVec<REAL> > &ExactIntersect, REAL alphaMin, int planeAxe0, int planeAxe1, int planeNormal);
 
     /**
 	 * @brief For a given element and internal point and an direction, computes the intersection
@@ -289,7 +290,8 @@ class TPZPlaneFracture
 	 *						using alphaMin=1.E-10 (for example), in this case the first intersection (the x itself) is NOT included.
 	 */
 	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge,
-						  TPZVec< TPZVec<REAL> > &ExactIntersect, TPZVec< TPZVec<REAL> > &ModulatedIntersect, double alphaMin);
+                                 TPZVec< TPZVec<REAL> > &ExactIntersect, TPZVec< TPZVec<REAL> > &ModulatedIntersect, REAL alphaMin,
+                                 int planeAxe0, int planeAxe1, int planeNormal);
 
 	// alphaNode eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dnode e cruza a reta (x+alphaX.dx)
@@ -307,7 +309,8 @@ class TPZPlaneFracture
 	 * @note Obs.: alphaNode modulation is useful to reduce the possibilities of non regular refpatterns.
  	 * @note OBS.: dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	static double ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode, double norm, bool modulate, bool smooth);
+	static REAL ComputeAlphaNode(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode, REAL norm, bool modulate, bool smooth,
+                                   int planeAxe0, int planeAxe1, int planeNormal);
 	
 	// alphaX eh uma das solucoes do sistema: {x + alphaX.dx == node + alphaNode.dnode}, ou seja,
 	// a norma que multiplica o vetor dx e cruza a reta (node+alphaNode.dnode)
@@ -316,18 +319,19 @@ class TPZPlaneFracture
 	 * this method returns the alphaX (norm that multiplies the unit vector dx to intersect the line (none + alphaNode.dnode) )
 	 * @note dx and dnode MUST BE UNIT VECTORS!!!
 	 */
-	static double ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode);
+	static REAL ComputeAlphaX(TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<REAL> &node, TPZVec<REAL> &dnode,
+                                int planeAxe0, int planeAxe1, int planeNormal);
 	
 	/**
 	 * @brief Given 2 nodes (n0 and n1) and one point (x) in \f$ n0->n1 \f$ line, returns the point x in the line parametric space \f$ [-1,+1]\f$
 	 */
-	static double LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
+	static REAL LinearComputeXInverse(TPZVec<REAL> x, TPZVec<REAL> n0, TPZVec<REAL> n1);
 	
 	/**
 	 * @brief This method return a reffpattern of an unidimentional element that matches with the trim coordinates.
 	 * @param TrimCoord Set of 1D element trimmed coordinates ( \f$[ -1 , +1 ]\f$ domain )
 	 */
-	static TPZAutoPointer<TPZRefPattern> Generate1DRefPatt(std::set<double> &TrimCoord);
+	static TPZAutoPointer<TPZRefPattern> Generate1DRefPatt(std::set<REAL> &TrimCoord);
 	
 	/**
 	 * @brief Updates poligonal chain.
@@ -335,7 +339,7 @@ class TPZPlaneFracture
 	 * This points normally are inside elements domain.\n
 	 * The edges intersections of the original Poligonal Chain originate a new Poligonal Chain named poligonalChainUpdated 
 	 */
-	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<int,double> > &elIdSequence,
+	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<int,REAL> > &elIdSequence,
 							  TPZVec<REAL> &poligonalChainUpdated);
 	
 	/**
@@ -345,7 +349,7 @@ class TPZPlaneFracture
 	 */
 	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
                                TPZGeoMesh * gmesh3D,
-                               std::list< std::pair<int,double> > &elIdSequence);
+                               std::list< std::pair<int,REAL> > &elIdSequence);
     
     /**
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
@@ -381,7 +385,7 @@ public:
 	TPZGeoMesh * fFullMesh;
     
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
-    TPZVec< std::map<double,double> > fpos_stress;
+    TPZVec< std::map<REAL,REAL> > fpos_stress;
     
     /** @brief 1D elements Ids that compose crack boundary */
     TPZVec<int> fcrackBoundaryElementsIds;
