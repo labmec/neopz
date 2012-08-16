@@ -99,7 +99,7 @@ public:
 	 * @param phi values of the shapefunctions
 	 * @param dphi values of the derivatives of the shapefunctions
 	 */
-	void Shape1d(double x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
+	void Shape1d(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
 	/**
 	 * @brief Computes the values of the "num" one dimensional shapefunctions
@@ -108,7 +108,7 @@ public:
 	 * @param num number of shapefunctions
 	 * @param phi values of the shapefunctions
 	 */
-	void ShapePhi1d(double x,int num,TPZFMatrix<REAL> &phi);
+	void ShapePhi1d(REAL x,int num,TPZFMatrix<REAL> &phi);
 	
 	/** 
 	 * @brief Constructor
@@ -486,6 +486,8 @@ public:
 	 * as the union of sub elements/side which are put in the stack
 	 **/
 	virtual void GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel) const;
+    
+    virtual void GetLowerSubElements(TPZVec<TPZGeoEl*> &unrefinedSons);
 	
 	/**
 	 * @brief This method will return a partition of the side of the current element \n
@@ -505,7 +507,12 @@ public:
      * @note ComputeXInverse takes ksi as initial value, so, its recommended that user initialize it
      */
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol = 1.e-12);
-	
+    
+    /** by Caju 2012 */
+    bool ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
+    
+    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord) = 0;
+
 	/**
 	 * @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element
 	 * @param ancestor: ancestor element of subelement
@@ -545,7 +552,7 @@ public:
 	/** This method will accumulate the normals for all the sides */
 	void ComputeNormals(TPZFMatrix<REAL> &normals, TPZVec<int> &vectorsides);
 	virtual REAL CharacteristicSize();
-	
+	virtual REAL SmallerEdge();
 	/**
 	 * @brief Compute the set of normals along a side for defining HDiv approximation spaces
 	 * @param side 

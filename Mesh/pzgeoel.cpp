@@ -19,10 +19,20 @@
 #include "TPZRefPattern.h"
 #include "pzlog.h"
 
+#include "TPZGeoLinear.h"
+#include "pzgeotriangle.h"
+#include "pzgeoquad.h"
+#include "pzgeotetrahedra.h"
+#include "pzgeopyramid.h"
+#include "pzgeoprism.h"
+#include "TPZGeoCube.h"
+
+
 #include <stdio.h>
 #include <stdlib.h>
 
 using namespace std;
+using namespace pzgeom;
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.tpzgeoel"));
@@ -88,7 +98,7 @@ TPZGeoEl::TPZGeoEl(int materialid,TPZGeoMesh &mesh) {
 	this->fNumInterfaces = 0;
 }
 
-void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
+void TPZGeoEl::Shape1d(REAL x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi){
 	if(num != 2 && num != 3){
 		PZError << "elcalc1d.shape, at this point only linear and quadratic elements\n";
 		return;
@@ -109,7 +119,7 @@ void TPZGeoEl::Shape1d(double x,int num,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &
 	}
 }
 
-void TPZGeoEl::ShapePhi1d(double x,int num,TPZFMatrix<REAL> &phi) {
+void TPZGeoEl::ShapePhi1d(REAL x,int num,TPZFMatrix<REAL> &phi) {
 	if(num != 2 && num != 3){
 		PZError << "TPZGeoEl ShapePhi1d, at this point only linear and quadratic elements\n";
 		return;
@@ -259,9 +269,9 @@ void TPZGeoEl::PrintNodesCoordinates(std::ostream & out) {
     out << "Element id: " << elId << "\n";
     
     for(int n = 0; n < nnodes; n++) {
-        double nodeX = this->NodePtr(n)->Coord(0);
-        double nodeY = this->NodePtr(n)->Coord(1);
-        double nodeZ = this->NodePtr(n)->Coord(2);
+        REAL nodeX = this->NodePtr(n)->Coord(0);
+        REAL nodeY = this->NodePtr(n)->Coord(1);
+        REAL nodeZ = this->NodePtr(n)->Coord(2);
         
         out << "Node " << n << " : " << nodeX << " , " << nodeY << " , " << nodeZ << "\n";
     }
@@ -361,6 +371,24 @@ void TPZGeoEl::GetSubElements2(int side, TPZStack<TPZGeoElSide> &subel, int dime
 			subel.Push(subel2[s]);
 		}
 	}
+}
+
+void TPZGeoEl::GetLowerSubElements(TPZVec<TPZGeoEl*> &unrefinedSons)
+{
+    int nsons = this->NSubElements();
+    for(int s = 0; s < nsons; s++)
+    {
+        TPZGeoEl * son = this->SubElement(s);
+        if(son->HasSubElement() == false)
+        {
+            int oldSize = unrefinedSons.NElements();
+            unrefinedSons.Resize(oldSize+1, son);
+        }
+        else
+        {
+            son->GetLowerSubElements(unrefinedSons);
+        }
+    }
 }
 
 int TPZGeoEl::WhichSubel(){
@@ -519,37 +547,91 @@ void TPZGeoEl::SetSubElementConnectivities() {
 
 REAL TPZGeoEl::CharacteristicSize()
 {
-	REAL xmin,xmax;
-	TPZManVector<REAL,3> values(3);
 	int nn = NNodes();
-	if(!nn) return 0.;
+	if(!nn)
+    {
+        return 0.;
+    }
+    TPZVec<REAL> xmin(3),xmax(3);
+    TPZManVector<REAL,3> values(3);
+    
 	NodePtr(0)->GetCoordinates(values);
-	xmin = values[0];
-	xmax = values[0];
-	int ic;
-	for(ic=0; ic<3; ic++)
+	for(int c = 0; c < 3; c++)
+    {
+        xmin[c] = values[c];
+        xmax[c] = values[c];
+    }
+	for(int n = 1; n < nn; n++)
 	{
-		xmin = min(values[ic],xmin);
-		xmax = max(values[ic],xmax);
-	}
-	int in;
-	for(in=1; in<nn; in++)
-	{
-		NodePtr(in)->GetCoordinates(values);
-		for(ic=0; ic<3; ic++)
+		NodePtr(n)->GetCoordinates(values);
+		for(int c = 0; c < 3; c++)
 		{
-			xmin = min(values[ic],xmin);
-			xmax = max(values[ic],xmax);
+			xmin[c] = min(values[c],xmin[c]);
+			xmax[c] = max(values[c],xmax[c]);
 		}
 	}
-	return xmax-xmin;
+    REAL diagVecNorm = 0.;
+    for(int c = 0; c < 3; c++)
+    {
+        diagVecNorm += (xmax[c]-xmin[c])*(xmax[c]-xmin[c]);
+    }
+    diagVecNorm = sqrt(diagVecNorm);
+    
+	return diagVecNorm;
+}
+
+REAL TPZGeoEl::SmallerEdge()
+{
+    REAL norm = 0.;
+    
+    int firstEdge = this->NNodes();
+    TPZGeoElSide edge0(this,firstEdge);
+    
+    TPZVec<REAL> coords0(3), coords1(3);
+    int node0id = edge0.SideNodeIndex(0);
+    int node1id = edge0.SideNodeIndex(1);
+    this->Mesh()->NodeVec()[node0id].GetCoordinates(coords0);
+    this->Mesh()->NodeVec()[node1id].GetCoordinates(coords1);
+    for(int c = 0; c < 3; c++)
+    {
+        REAL delta = coords1[c] - coords0[c];
+        norm += delta*delta;
+    }
+    norm = sqrt(norm);
+    
+    for(int s = firstEdge+1; s < this->NSides(); s++)
+    {
+        TPZGeoElSide edgeOther(this,s);
+        if(edgeOther.Dimension() > 1)
+        {
+            break;
+        }
+        
+        /////////////
+        node0id = edgeOther.SideNodeIndex(0);
+        node1id = edgeOther.SideNodeIndex(1);
+        this->Mesh()->NodeVec()[node0id].GetCoordinates(coords0);
+        this->Mesh()->NodeVec()[node1id].GetCoordinates(coords1);
+        REAL normTemp = 0.;
+        for(int c = 0; c < 3; c++)
+        {
+            REAL delta = coords1[c] - coords0[c];
+            normTemp += delta*delta;
+        }
+        normTemp = sqrt(normTemp);
+        
+        norm = min(norm,normTemp);
+        /////////////
+    }
+    
+    return norm;
 }
 
 bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	
 	REAL error = 10.;
 	int iter = 0;
-	const int nMaxIter = 1000;
+	const int nMaxIter = 50;//1000;
 	REAL radius = CharacteristicSize();
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
@@ -613,7 +695,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 		TPZFNMatrix<9> J(dim,dim,0.),axes(dim,3,0.),Inv(dim,dim,0.);
 		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
 		Jacobian(ksi,J,axes,detJ,Inv);
-		if(fabs(detJ) < 1.e-10)
+		if(fabs(detJ) < 2.e-10)
 		{
 			TPZManVector<REAL,3> center(Dimension(),0.);
 			CenterPoint(NSides()-1, center);
@@ -669,7 +751,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	if(iter == nMaxIter)
 	{
 		std::stringstream sout;
-		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved";
+		sout << "Error at " << __PRETTY_FUNCTION__ << " - nMaxIter was reached before tolerance is achieved - ElementId" << this->Id() << std::endl;
 		PZError << "\n" << sout.str() << "\n";
 		
         #ifdef LOG4CXX
@@ -680,6 +762,126 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	
 	return ( this->IsInParametricDomain(ksi) );
 }
+
+bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
+{
+    int dim = this->Dimension();
+    TPZVec<REAL> centerP(dim,1);
+    this->CenterPoint(this->NSides()-1, centerP);
+    qsi = centerP;
+    
+    REAL radius = this->SmallerEdge();
+    
+    REAL err = 10.;
+    REAL tol = radius * 1.E-8;
+    int count = 0, outOfDomain = 0;
+    int node = 0;
+    while(count < 200)
+    {
+        TPZVec<REAL> x1(3);
+        this->X(qsi, x1);
+        
+        err = 0.;
+        TPZFMatrix<REAL> res(3,1);
+        for(int i = 0; i < 3; i++)
+        {
+            res(i,0) = x1[i] - x[i];
+            err += res(i,0)*res(i,0);
+        }
+        err = sqrt(err);
+        
+        if(err <= tol)
+        {
+//            #ifdef DEBUG
+//            std::cout << "\n\nDesired x = { " << x[0] << " , " << x[1] << " , " << x[2] << " }\n";
+//            std::cout << "Found x = { " << x1[0] << " , " << x1[1] << " , " << x1[2] << " }\n\n";
+//            #endif
+            
+            return ( this->IsInParametricDomain(qsi) );
+        }
+        
+        REAL detjac;
+        TPZFMatrix<REAL> jac(dim,dim), axes(dim,3), jacinv(dim,dim), JacInvCn(dim,3), temp(dim,1);
+        this->Jacobian(qsi, jac, axes, detjac, jacinv);
+        if(IsZero(detjac))
+        {
+            //aproximate tangent (jacobian matrix) by the secant
+            TPZVec<REAL> qsiDesloc(dim,1);
+            REAL alpha = 0.01;
+            qsiDesloc = centerP - qsi;
+            REAL norm = 0.;
+            for(int c = 0; c < dim; c++)
+            {
+                norm += qsiDesloc[c]*qsiDesloc[c];
+            }
+            norm = sqrt(norm);
+            
+            #ifdef DEBUG
+            if(IsZero(norm))
+            {
+                DebugStop();
+            }
+            #endif
+            
+            for(int c = 0; c < dim; c++)
+            {
+                qsiDesloc[c] = qsi[c] + 2.*alpha*qsiDesloc[c]/norm;
+            }
+            TPZVec<REAL> qsiTemp, xDesloc(3,1), xTemp(3,1);
+            this->X(qsiTemp,xDesloc);
+            
+            for(int c = 0; c < dim; c++)
+            {
+                qsiTemp = qsiDesloc;
+                qsiTemp[c] = qsiTemp[c] + alpha;
+                this->X(qsiTemp,xTemp);
+                xTemp = xTemp - xDesloc;
+                
+                for(int j = 0; j < 3; j++)
+                {
+                    JacInvCn(j,c) = xTemp[c];
+                }
+            }
+            
+            jac.DeterminantInverse(detjac, JacInvCn);
+            
+            if(IsZero(detjac))
+            {
+                //NO WAY!!!!
+                DebugStop();
+            }
+        }
+        else
+        {
+            jacinv.Multiply(axes, JacInvCn);
+        }
+        JacInvCn.Multiply(res,temp);
+        
+        for(int d = 0; d < dim; d++)
+        {
+            qsi[d] = qsi[d] - temp(d,0);
+        }
+        if(this->IsInParametricDomain(qsi) == false)
+        {//pode sair do dominio de referencia apenas NNodes vezes
+            if(outOfDomain % 6 == 0 && node < this->NNodes())
+            {
+                this->ParametricDomainNodeCoord(node, qsi);
+                node++;
+                outOfDomain = 0;
+            }
+            if(outOfDomain > 15 && node >= this->NNodes())
+            {
+                return false;
+            }
+            
+            outOfDomain++;
+        }
+        count++;
+    }
+    
+    return false;
+}
+
 
 void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor){
 	
@@ -1074,7 +1276,7 @@ bool TPZGeoEl::VerifyNodeCoordinates(REAL tol){
 		}//dim
 		this->CenterPoint(inode,qsi);
 		this->X(qsi,MappedX);
-		double error = 0.;
+		REAL error = 0.;
 		for(int dim = 0; dim < 3; dim++){
 			error += (NodeX[dim]-MappedX[dim])*(NodeX[dim]-MappedX[dim]);
 		}//dim
@@ -1543,4 +1745,5 @@ void TPZGeoEl::HDivPermutation(int side, TPZVec<int> &permutegather)
 		cout << sout.str() << std::endl;
 	}
 }
+
 
