@@ -484,7 +484,7 @@ inline std::istream &operator>>(std::istream &out, /*const*/ TPZFlopCounter &val
 
 /** @brief Returns the tolerance to Zero value. Actually: \f$ 1e-10 \f$ */
 inline REAL ZeroTolerance(){
-	return 1e-10;
+	return 1.e-10;
 }
 #ifdef _AUTODIFF
 /** @brief Returns if the value a is close Zero as the allowable tolerance */
