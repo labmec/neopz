@@ -199,22 +199,26 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
-#ifdef LOG4CXX2
+    #ifdef LOG4CXX2
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
 		Print("GrSchmidt Entrada",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
+    #endif
+    
     double scale = 1.;
-    for(int j = 0; j < this->Cols(); j++){
+    for(int j = 0; j < this->Cols(); j++)
+    {
 		double norm = 0.;
-		for(int i = 0; i < this->Rows(); i++){
+		for(int i = 0; i < this->Rows(); i++)
+        {
 			norm += fabs(this->GetVal(i,j)*this->GetVal(i,j));
 		}
 		norm = sqrt(norm);
-		if(norm > 1e-10){
+		if(norm > 1.e-10)
+        {
 			if(1./norm > scale) scale = 1./norm;
 		}
     }
@@ -234,7 +238,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
         }
     }
 	
-#ifdef DEBUG
+    #ifdef DEBUG
     int check = 0;
     for(int c = 0; c < QTDvec; c++)
     {
@@ -251,7 +255,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             check = 1;
         }
     }
-#endif
+    #endif
 	
     TVar dotUp, dotDown;
     for(int c = 1; c < QTDvec; c++)
@@ -267,14 +271,14 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
             if(fabs(dotDown) < 1.E-8) 
             { 
-#ifdef DEBUG
+                #ifdef DEBUG
                 if(check == 0)
                 {
 					std::stringstream sout;
                     sout << "Parallel Vectors on Gram-Schmidt Method! Col = " << stop << "\n";
 					LOGPZ_ERROR(logger,sout.str())
                 }
-#endif
+                #endif
 				
                 for(int r = 0; r < QTDcomp; r++) 
                 { 
@@ -283,14 +287,15 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
             else
             {
-#ifdef LOG4CXX2
+                #ifdef LOG4CXX2
                 if (logger->isDebugEnabled())
 				{
 					std::stringstream sout;
 					sout << "dotdown = " << dotDown << " dotup = " << dotUp;
 					LOGPZ_DEBUG(logger,sout.str())
 				}
-#endif
+                #endif
+                
                 for(int r = 0; r < QTDcomp; r++)
                 {
                     Orthog(r,c) -= dotUp*Orthog(r,stop)/dotDown;
@@ -313,11 +318,12 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
             }
         }
 		else {
-#ifdef LOG4CXX
+            #ifdef LOG4CXX
 			std::stringstream sout;
 			sout << "Linearly dependent columns dotUp = " << dotUp;
 			LOGPZ_ERROR(logger,sout.str())
-#endif
+            #endif
+            
             for(int r = 0; r < QTDcomp; r++)
             {
                 Orthog(r,c) = 0.;
@@ -330,7 +336,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     this->operator *=( 1./scale );
     TransfToOrthog.operator *=( 1./scale );
 	
-#ifdef LOG4CXX2
+    #ifdef LOG4CXX2
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;
@@ -340,12 +346,13 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 		TransfToOrthog.Print("TransfToOrthog matrix",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
-#endif
-#ifdef DEBUG
+    #endif
+    
+    #ifdef DEBUG
 	TPZFNMatrix<9, TVar> OrthogT;
 	Orthog.Transpose(&OrthogT);
 	TPZAxesTools<TVar>::VerifyAxes(OrthogT);
-#endif
+    #endif
 }
 
 template <class TVar>
@@ -933,13 +940,14 @@ int TPZFMatrix<TVar>::Decompose_LU() {
 			//Power plus...
 			if (fabs(*ptrpivot) > 0){
 				for (j=k+1;j<rows;j++){
-					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1e-12){
+					if (fabs(*(ptrpivot + j - k) - *(ptrpivot)) > 1.e-12){
 						Error( "DecomposeLU <matrix is singular> even after Power Plus..." );
 						cout << "DecomposeLU <matrix is singular> even after Power Plus...\n" ;
 					}
 				}
 			}
-			else{
+			else
+            {
 				Error( "DecomposeLU <matrix is singular>" );
 				cout << "DecomposeLU <matrix is singular>\n";
 			}
