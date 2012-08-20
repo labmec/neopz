@@ -2255,6 +2255,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
         int bottomContinuumMat = -1;
         int bottomFractmat = __1DcrackTipMat;
         int topMat = -3;
+        int blockXYZ = -4;
         
         //inserting quadrilaterals
         int elId = 0;
@@ -2303,6 +2304,10 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
 
         Topol[0] =  ncolsContinuum+ncolsFracture;
         new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,bottomFractmat,*gmesh);
+        elId++;
+        
+        Topol[0] = 0;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,blockXYZ,*gmesh);
         elId++;
         
         gmesh->BuildConnectivity();
@@ -2359,30 +2364,22 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
         
         ////BCs
         TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-        int newmann = 1, mixed = 2;
+        int dirich = 0, newmann = 1, mixed = 2;
         
         // farfield traction
         {
-            f(0,0) = 0;
-            f(1,0) = 0.;
-            f(2,0) = 0.;
-     
+            TPZBndCond * dotBlocked = materialLin->CreateBC(materialLin, blockXYZ, dirich, k, f);
+            cmesh->InsertMaterialObject(dotBlocked);
+            
             k(1,1) = 1.E15;
             TPZBndCond * mixedContinuum = materialLin->CreateBC(materialLin, bottomContinuumMat, mixed, k, f);
             cmesh->InsertMaterialObject(mixedContinuum);
-            //
-            //
-            //
-            //
-            k(0,0) = 0.;
-            REAL stressVal = sigmaTraction;
-            f(1,0) = stressVal;
+
+            k.Zero();
+            f(1,0) = sigmaTraction;
             TPZBndCond * newmanFarfield = materialLin->CreateBC(materialLin, topMat, newmann, k, f);
             cmesh->InsertMaterialObject(newmanFarfield);
         }
-
-        std::ofstream cuco("cuco.vtk");
-        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, cuco, true);
     }
     else if(meshDim == 3)
     {
