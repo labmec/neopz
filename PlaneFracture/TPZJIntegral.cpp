@@ -161,11 +161,6 @@ TPZVec<REAL> Path::Func(REAL t)
         strain(1,1) = Solout[1];
         strain(0,1) = Solout[2];
         strain(1,0) = Solout[2];
-        
-        REAL poisson = elast2D->Nu();
-        REAL young = elast2D->E();
-        
-        W = (((poisson - 1.)*strain(0,0)*strain(0,0) + (2.*poisson - 1.)*(strain(0,1)*strain(0,1) + strain(1,0)*strain(1,0)) - 4.*poisson*strain(0,0)*strain(1,1) + (poisson - 1.)*strain(1,1)*strain(1,1))*young)/(2.*(poisson - 1. + 2.*poisson*poisson));
     }
     else if(fMeshDim == 3)
     {
@@ -181,11 +176,16 @@ TPZVec<REAL> Path::Func(REAL t)
         
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradU);
-        REAL poisson = elast3D->GetPoisson();
-        REAL young = elast3D->GetE();
-        
-        W = (((poisson - 1.)*strain(0,0)*strain(0,0) + (2.*poisson - 1.)*strain(0,1)*strain(0,1) - strain(0,2)*strain(0,2) - strain(1,0)*strain(1,0) - strain(1,1)*strain(1,1) - strain(1,2)*strain(1,2) - strain(2,0)*strain(2,0) - strain(2,1)*strain(2,1) + poisson*(2.*strain(0,2)*strain(0,2) + 2.*strain(1,0)*strain(1,0) + strain(1,1)*strain(1,1) + 2.*(strain(1,2)*strain(1,2) + strain(2,0)*strain(2,0) + strain(2,1)*strain(2,1))) - 4.*poisson*strain(1,1)*strain(2,2) + (poisson - 1.)*strain(2,2)*strain(2,2) - 4.*poisson*strain(0,0)*(strain(1,1) + strain(2,2)))*young)/(2.*(poisson - 1. + 2.*poisson*poisson));
     }
+    
+    for(int r = 0; r < fMeshDim; r++)
+    {
+        for(int c = 0; c < fMeshDim; c++)
+        {
+            W += 0.5*Sigma(r,c)*strain(r,c);
+        }
+    }
+    
     TPZFMatrix<REAL> W_I(fMeshDim,fMeshDim,0.);
     for(int d = 0; d < fMeshDim; d++)
     {
