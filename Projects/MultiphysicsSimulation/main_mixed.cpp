@@ -60,7 +60,7 @@ void PosProcessHDiv(TPZAnalysis &an, std::string plotfile);
 static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
 #endif
 
-const bool triang = true;
+const bool triang = false;
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	InitializePZLOG("../logmixedproblem.cfg");
 #endif
     
-    int p = 3;
+    int p = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,3);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,0);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg9("cmesh1_final.txt");
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,0);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg10("cmesh2_final.txt");
@@ -111,17 +111,6 @@ int main(int argc, char *argv[])
 //    SolveSyst(an3, cmesh2);
     
 
-    
-    //solucao HDiv
-    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
-    ofstream arg6("cmesh_Hdiv.txt");
-	cmesh3->Print(arg6);
-    TPZAnalysis an2(cmesh3);
-    SolveSyst(an2, cmesh3);
-    string plotile2("Solution_HDiv.vtk");
-    PosProcessHDiv(an2, plotile2);
-    
-    
     //malha multifisica
     TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh1;
@@ -137,8 +126,18 @@ int main(int argc, char *argv[])
     TPZAnalysis an(mphysics);
 	SolveSyst(an, mphysics);
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    string plotfile("saidaSolution_mphysics_Triangl.vtk");
+    string plotfile("Solution_mphysics.vtk");
     PosProcessMultphysics(meshvec,  mphysics, an, plotfile);
+    
+    
+    //solucao HDiv
+    TPZCompMesh * cmesh3= CMeshHDivPressure(gmesh, p);
+    ofstream arg6("cmesh_Hdiv.txt");
+	cmesh3->Print(arg6);
+    TPZAnalysis an2(cmesh3);
+    SolveSyst(an2, cmesh3);
+    string plotile2("Solution_HDiv.vtk");
+    PosProcessHDiv(an2, plotile2);
     
     return 0;
 }

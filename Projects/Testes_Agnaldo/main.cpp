@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,3);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg5("cmesh1_final.txt");
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
 	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg6("cmesh2_final.txt");
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
     // Cleaning reference to cmesh3
 	gmesh->ResetReference();
 	cmesh3->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,3);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,4);
 	cmesh3->AdjustBoundaryElements();
 	cmesh3->CleanUpUnconnectedNodes();
     ofstream arg7("cmesh3_final.txt");
@@ -483,7 +483,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat,bcLeft, mixedneum, val1, val2);
     
     val1.Redim(3,2);
-    val2(2,0)= 1000.;
+    //val2.Redim(3,1);
+    val2(2,0)= 999.785;
     TPZMaterial * BCond3 = mymaterial->CreateBC(mat,bcBottom,dirichlet, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
