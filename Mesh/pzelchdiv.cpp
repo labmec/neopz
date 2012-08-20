@@ -646,7 +646,7 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	
 #ifdef LOG4CXX
     std::stringstream sout;
-    sout << "First  Index" << Index;
+    sout << "First  Index " << Index;
     LOGPZ_DEBUG(logger,sout.str())
 #endif
 }
@@ -834,7 +834,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     
 #ifdef LOG4CXX
     std::stringstream sout;
-    sout << " ShapeAndVec" << ShapeAndVec;
+    sout << " ShapeAndVec " << ShapeAndVec;
     LOGPZ_DEBUG(logger,sout.str())
 #endif
     
@@ -1215,8 +1215,8 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	//ComputeShapeIndex(data.fVecIndex,data.fVecShapeIndex);
 	//data.numberdualfunctions = NConnectShapeF(NConnects()-1);
 		
-		int pressureorder=this->fPreferredOrder-1;//ver como melhorar..como era antes?
-	 IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
+    int pressureorder=this->fPreferredOrder-1;//ver como melhorar..como era antes?
+    IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
