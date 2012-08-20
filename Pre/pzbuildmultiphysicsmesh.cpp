@@ -39,22 +39,29 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
                 TPZGeoEl *gel = mfcel->Reference();
                 TPZStack<TPZCompElSide> celstack;
                 TPZGeoElSide gelside(gel,gel->NSides()-1);
+                // if the geometric element has a reference, it is an obvious candidate
                 if (gel->Reference()) {
                     celstack.Push(gelside.Reference());
                 }
+                // put all large and small elements on the stack
                 gelside.ConnectedCompElementList(celstack, 0, 0);
                 while (celstack.size())
                 {
                     int ncel = celstack.size();
+                    // the last element on the stack
                     TPZGeoElSide gelside = celstack[ncel-1].Reference();
                     TPZStack<TPZCompElSide> celstack2;
+                    // put te last element on the new stack
                     celstack2.Push(celstack[ncel-1]);
+                    celstack.Pop();
+                    // put all equal level elements on the new stack
                     gelside.EqualLevelCompElementList(celstack2, 0, 0);
                     
                     while (celstack2.size()) 
                     {
                         int ncel2 = celstack2.size();
                         TPZGeoElSide gelside2 = celstack2[ncel2-1].Reference();
+                        // put all elements in the stack - if there is one element, stop the search
                         if(gelside2.Element()->Dimension()==gel->Dimension()) {
                             mfcel->AddElement(gelside2.Element()->Reference(), imesh);
                             found = 1;
@@ -67,7 +74,7 @@ void TPZBuildMultiphysicsMesh::AddElements(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
                     
                 }
                 if (!found) {
-                    DebugStop();
+                    mfcel->AddElement(0, imesh);
                 }
             }
             else if (mfint) {
@@ -143,6 +150,9 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 		int imesh;
 		for (imesh=0; imesh < nmeshes; imesh++) {
 			TPZCompEl *celref = cel->ReferredElement(imesh);
+            if (!celref) {
+                continue;
+            }
 			int ncon = celref->NConnects();
 			int ic;
 			for (ic=0; ic<ncon; ic++) {

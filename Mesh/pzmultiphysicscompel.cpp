@@ -56,6 +56,9 @@ void TPZMultiphysicsCompEl<TGeometry>::AffineTransform(TPZManVector<TPZTransform
 	side = gelmf->NSides()-1;
 	TPZGeoEl  *geoel;
 	for (int i = 0; i<nel; i++) {
+        if (!fElementVec[i]) {
+            continue;
+        }
 		geoel = fElementVec[i]->Reference();
 		dim =  geoel->Dimension();
 		TPZTransform tr(dim);
@@ -149,8 +152,12 @@ void TPZMultiphysicsCompEl<TGeometry>::Print(std::ostream & out) const {
 	AffineTransform(tr);
 	for(int ii=0;ii<tr.size();ii++)
 	{
+        if (!fElementVec[ii]) {
+            out << "\nSem elemento para malha computacional " << ii+1 <<"\n";
+            continue;
+        }
 		out << "\n"<<std::endl; 
-		out << "Transformacao para o elemento de index "<< fElementVec[ii]->Index() <<"  pertencente a malha computacional " << ii+1 << std::endl;
+		out << "Transformacao para o elemento de index "<< fElementVec[ii]->Index() << "  pertencente a malha computacional " << ii+1 << std::endl;
 		out << tr[ii] << std::endl;
 	}
 	
