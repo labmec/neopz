@@ -263,7 +263,7 @@ namespace pzgeom {
             minx[j] = coord.GetVal(j,0);
             maxx[j] = coord.GetVal(j,0);
         }
-		TPZFMatrix<REAL> VecMatrix(3,2,0.);
+		TPZFNMatrix<6,REAL> VecMatrix(3,2,0.);
 		for(int i = 0; i < 4; i++) {
 			for(int j = 0; j < spacedim; j++) {
                 minx[j] = minx[j] < coord.GetVal(j,i) ? minx[j]:coord.GetVal(j,i);
