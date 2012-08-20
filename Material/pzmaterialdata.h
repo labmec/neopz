@@ -45,23 +45,39 @@ public:
 	
 	/** @name Attributes to be computed in CalcStiff */
 	/** @{ */
-	TPZFNMatrix<220, REAL> phi;//, phil, phir;
-	TPZFNMatrix<660, REAL> dphix;//, dphixl, dphixr;
-	TPZFNMatrix<9,REAL> axes;//, axesleft, axesright;
-	TPZFNMatrix<9,REAL> jacobian;//, leftjac, rightjac;
-	TPZFNMatrix<9,REAL> jacinv;//, leftjacinv, rightjacinv;
+    
+    /// vector of shapefunctions (format is dependent on the value of shapetype)
+	TPZFNMatrix<220, REAL> phi;
+    /// values of the derivative of the shape functions
+	TPZFNMatrix<660, REAL> dphix;
+    /// axes indicating the directions of the derivatives of the shapefunctions
+	TPZFNMatrix<9,REAL> axes;
+    /// value of the jacobian at the integration point
+	TPZFNMatrix<9,REAL> jacobian;
+    /// value of the inverse of the jacobian at the integration point
+	TPZFNMatrix<9,REAL> jacinv;
+    /// normal to the element at the integration point
 	TPZManVector<REAL,3> normal;
+    /// value of the coordinate at the integration point
 	TPZManVector<REAL,3> x;
-	int p;//, leftp, rightp;
-	TPZManVector<TPZFemSol, 10> sol;//, soll, solr;
-	TPZManVector<TPZFemGradSol, 10> dsol;//, dsoll, dsolr;
+    /// maximum polinomial order of the shape functions
+	int p;
+    /// vector of the solutions at the integration point
+	TPZManVector<TPZFemSol, 10> sol;
+    /// vector of the derivatives of the solution at the integration point
+	TPZManVector<TPZFemGradSol, 10> dsol;
+    /// measure of the size of the element
 	REAL HSize;
-	REAL detjac;//, leftdetjac, rightdetjac;
+    /// determinant of the jacobian
+	REAL detjac;
+    /// value of the coordinate at the center of the element
     TPZManVector<REAL,3> XCenter;
-	//TPZManVector<REAL,3> XLeftElCenter, XRightElCenter;
 	
+    /// number of dual function (e.g. pressure in HDiv approximations)
 	int numberdualfunctions;
+    /// correspondence between normal vector index and index of the shape functions
 	TPZManVector<std::pair<int,int> > fVecShapeIndex;
+    /// list of normal vectors
 	TPZFNMatrix<100> fNormalVec;
 	/** @} */
 	
