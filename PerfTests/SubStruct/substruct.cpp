@@ -58,6 +58,14 @@ static LoggerPtr logger(Logger::getLogger("main"));
 #include <sys/resource.h> // getrusage
 #endif
 
+#ifdef USING_TBB
+#include "tbb/task_scheduler_init.h"
+using namespace tbb; 
+// If you have issues with: dyld: Library not loaded: libtbb.dylib
+// try setting the LD path. Ex: 
+//   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
+#endif
+
 void InsertElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh);
 void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh);
@@ -104,6 +112,7 @@ clarg::argInt plevel     ("-p", "plevel", 1);
 clarg::argInt nt_submeshs("-nt_sm", "number of threads to process the submeshes", 0);
 clarg::argInt nt_assemble("-nt_a", "number of threads to assemble each submesh", 0);
 clarg::argInt nt_decompose("-nt_d", "number of threads to decompose each submesh", 0);
+clarg::argBool assemble_tbb("-ass_tbb", "assemble using TBB", false);
 clarg::argInt nt_multiply("-nt_m", "number of threads to multiply", 0);
 clarg::argInt nsub("-nsub", "number of substructs", 4);
 
@@ -166,6 +175,9 @@ int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
     InitializePZLOG("log4cxx.cfg");
+#endif
+#ifdef USING_TBB
+    task_scheduler_init init;
 #endif
     
     /* Parse the arguments */
@@ -366,8 +378,11 @@ int main(int argc, char *argv[])
         TPZAutoPointer<TPZGuiInterface> gui;
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
-        dohrstruct->Assemble(*matptr,*rhs, gui, nt_submeshs.get_value(), 
-                             nt_decompose.get_value());
+        if (assemble_tbb.was_set())
+          dohrstruct->AssembleTBB(*matptr,*rhs, gui);
+        else
+          dohrstruct->Assemble(*matptr,*rhs, gui, nt_submeshs.get_value(), nt_decompose.get_value());
+
 	assemble_rst.stop();
 
 	precond_rst.start();

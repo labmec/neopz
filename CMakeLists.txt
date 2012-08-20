@@ -187,6 +187,23 @@ if(USING_METIS)
 	link_libraries(metis)
 endif(USING_METIS)
 
+#enabling TBB library
+option(USING_TBB "Whether the TBB library will be linked in" OFF)
+if(USING_TBB)
+	find_path(TBB_INCLUDE tbb.h PATHS ${SEARCH_DIRS})
+	find_path(TBB_LIB NAMES libtbb.dylib PATHS ${SEARCH_DIRS})
+	if(TBB_INCLUDE-NOTFOUND)
+		set (TBB_INCLUDE "/usr/local/include" CACHE PATH "Directory where tbb header files can be found")
+	endif()
+	if(TBB_LIB-NOTFOUND)
+		set (TBB_LIB "/usr/local/lib" CACHE PATH "Directory where the tbb library can be found")
+	endif()
+	add_definitions(-DUSING_TBB)
+	include_directories(${TBB_INCLUDE})
+	link_directories(${TBB_LIB})
+	link_libraries(tbb)
+endif(USING_TBB)
+
 #To enable unit test using boost UnitTest framework
 option(BUILD_UNITTESTING "Whether the Boost UnitTest will be linked in" OFF)
 if(BUILD_UNITTESTING)

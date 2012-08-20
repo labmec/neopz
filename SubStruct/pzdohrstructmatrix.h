@@ -59,6 +59,8 @@ public:
 	virtual void Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface,
                           unsigned numthreads_assemble, unsigned numthreads_decompose);
 
+	virtual void AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface);
+
 	/**
 	 * @brief Assemble the global right hand side
 	 */

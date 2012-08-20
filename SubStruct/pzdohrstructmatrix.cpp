@@ -42,14 +42,25 @@ static LoggerPtr loggerasm(Logger::getLogger("structmatrix.dohrstructmatrix.asm"
 #include "clock_timer.h"
 #include "timing_analysis.h"
 
+#ifdef USING_TBB
+#include "tbb/parallel_for.h" 
+#include "tbb/blocked_range.h" 
+using namespace tbb; 
+#endif
+
 /** @brief Return the number of submeshes */
 static int NSubMesh(TPZAutoPointer<TPZCompMesh> compmesh);
 
 /** @brief return a pointer to the isub submesh */
 static TPZSubCompMesh *SubMesh(TPZAutoPointer<TPZCompMesh> compmesh, int isub);
 
-static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
-static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t &testthread);
+static void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
+                             pthread_mutex_t* TestThread);
+
+static void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
+                         TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t *testthread);
+static void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
+                              TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t *testthread);
 
 TPZDohrStructMatrix::TPZDohrStructMatrix(TPZAutoPointer<TPZCompMesh> cmesh) : 
 TPZStructMatrix(cmesh.operator->()), fDohrAssembly(0),
@@ -249,9 +260,136 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::CreateAssemble(TPZFMatrix<STATE> &rhs, T
     return dohrgeneric;
 }
 
+template<class TVar>
+class parallel_assemble_task_t
+{
+private:
+
+  /** We divide the assemble procedure into N work items, which will
+      be executed by one or several tasks. The TBB parallel_for
+      construct automatically divide the work items in subsets and
+      "creates" tasks to execute the work in each subset. Each task
+      invokes the operator(blocked_range subset), which will be
+      responsible for executing the work items in the subset. */ 
+  template<class TTVar>
+  struct work_item_t
+  {
+    work_item_t (unsigned submesh_idx, const TPZAutoPointer<TPZDohrSubstructCondense<TTVar> >& substruct) :
+      fSubMeshIndex(submesh_idx), fSubstruct(substruct) {}
+
+    unsigned fSubMeshIndex;
+    TPZAutoPointer<TPZDohrSubstructCondense<TTVar> > fSubstruct;
+  };
+
+  /** Array of work items. */
+  std::vector<work_item_t<TVar> > work_items;
+  // TODO: Try the cache_aligned_allocator for improved performance.
+  //std::vector<work_item_t<TVar>,cache_aligned_allocator<work_item_t<TVar> > > work_items;
+
+  /* Pointers to shared data structures. */
+  TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
+  TPZAutoPointer<TPZCompMesh> fMesh;
+
+public:
+
+  parallel_assemble_task_t(TPZAutoPointer<TPZDohrAssembly<TVar> > assembly, 
+                             TPZAutoPointer<TPZCompMesh> mesh) : 
+    fAssembly(assembly), fMesh(mesh) {}
+
+  /** Add a new work item to be list. */
+  void push_work_item(unsigned submesh_idx, const TPZAutoPointer<TPZDohrSubstructCondense<TVar> >& substruct)
+  {
+    work_items.push_back(work_item_t<TVar>(submesh_idx, substruct));
+  }
+
+  /** Execute work items serially. */
+  void run_serial()
+  {
+    typename std::vector<work_item_t<TVar> >::iterator it = work_items.begin();
+    typename std::vector<work_item_t<TVar> >::iterator end = work_items.end();
+
+    for (;it != end; it++)
+    {
+      work_item_t<TVar>& wi = *it;
+      TPZSubCompMesh* submesh = SubMesh(fMesh, wi.fSubMeshIndex);
+      ::AssembleMatrices(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeBig(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeInternal(submesh, wi.fSubstruct, fAssembly,NULL);
+    }
+  }
+
+#ifdef USING_TBB
+  /** Computing operator for the parallel for. */
+  void operator()(const blocked_range<size_t>& range) const
+  { 
+    for(size_t i=range.begin(); i!=range.end(); ++i ) {
+      const work_item_t<TVar>& wi = work_items[i];
+      TPZSubCompMesh* submesh = SubMesh(fMesh, wi.fSubMeshIndex);
+      ::AssembleMatrices(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeBig(submesh, wi.fSubstruct, fAssembly,NULL);
+      ::DecomposeInternal(submesh, wi.fSubstruct, fAssembly,NULL);
+    }
+  } 
+
+  /** Execute work items in parallel. */
+  void run_parallel_for()
+  {
+    /* TBB Parallel for. It will split the range into N sub-ranges and
+       invoke the operator() for each sub-range.*/
+    parallel_for(blocked_range<size_t>(0,work_items.size(), 1 /*IdealGrainSize*/), *this); 
+  }
+#endif
+
+};
+
+void TPZDohrStructMatrix::AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, 
+                                      TPZAutoPointer<TPZGuiInterface> guiInterface)
+{
+  TPZMatrix<STATE> *dohrgeneric = &mat;    
+  TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *dohr = 
+    dynamic_cast<TPZDohrMatrix<STATE,TPZDohrSubstructCondense<STATE> > *> (dohrgeneric);
+  
+  const std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > > &sublist = dohr->SubStructures();
+  unsigned isub;
+  unsigned nsub = NSubMesh(fMesh);
+  std::list<TPZAutoPointer<TPZDohrSubstructCondense<STATE> > >::const_iterator it = sublist.begin();
+  parallel_assemble_task_t<STATE> parallel_tasks(fDohrAssembly, fMesh);
+
+  /* Initialize work items. */
+  for (isub=0; isub<nsub ; isub++) {
+    TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
+    if(!submesh) continue;
+    parallel_tasks.push_work_item(isub, *it);
+    it++;
+  }
+
+  /* Run assemble and decompose. */
+#ifdef USING_TBB
+  parallel_tasks.run_parallel_for();
+#else
+  parallel_tasks.run_serial();
+#endif
+  
+  /* Post processing. */
+  for (isub=0, it=sublist.begin(); it != sublist.end(); it++, isub++) {
+    TPZFMatrix<STATE> rhsloc((*it)->fNumExternalEquations,1,0.);
+    (*it)->ContributeRhs(rhsloc);
+    fDohrAssembly->Assemble(isub,rhsloc,rhs);
+  }
+
+  dohr->Initialize();
+
+  TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > *precond = new TPZDohrPrecond<STATE,TPZDohrSubstructCondense<STATE> > (*dohr,fDohrAssembly);
+
+  precond->Initialize();
+
+  fDohrPrecond = precond;
+  
+  return; // dohrgeneric;
+}
     /**
-     * @brief Assemble the global system of equations into the matrix which has already been created
-     */
+     * @brief Assemble the global system of equations into the matrix which has already been created 
+    */
 void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & rhs, 
                                    TPZAutoPointer<TPZGuiInterface> guiInterface, 
                                    unsigned numthreads_assemble, unsigned numthreads_decompose)
@@ -1050,7 +1188,7 @@ void TPZDohrStructMatrix::SubStructure(int nsub )
 
 // This is a lengthy process which should run on the remote processor assembling all
 void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
-					  pthread_mutex_t &TestThread)
+					  pthread_mutex_t* TestThread)
 {
 	//	static std::set<int> subindexes;
 	//	int index = submesh->Index();
@@ -1206,8 +1344,8 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 	}
 }
-void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
-				  pthread_mutex_t &TestThread)
+void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
+                  TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t* TestThread)
 {
 	
 	{
@@ -1219,8 +1357,8 @@ void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructConden
 		substruct->Initialize();
 	}
 }
-void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly,
-					   pthread_mutex_t &TestThread)
+void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
+                       TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t* TestThread)
 {
 	
 	{
@@ -1239,13 +1377,13 @@ void ThreadDohrmanAssembly<TVar>::AssembleMatrices(pthread_mutex_t &threadtest)
 	TPZSubCompMesh *submesh = SubMesh(threadData->fMesh,threadData->fSubMeshIndex);
 	switch (fTask) {
 		case EComputeMatrix:
-			::AssembleMatrices(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			::AssembleMatrices(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
 			break;
 		case EDecomposeInternal:
-			DecomposeInternal(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			DecomposeInternal(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
 			break;
 		case EDecomposeBig:
-			DecomposeBig(submesh,threadData->fSubstruct,threadData->fAssembly,threadtest);
+			DecomposeBig(submesh,threadData->fSubstruct,threadData->fAssembly,&threadtest);
 			break;
 		default:
 			DebugStop();
