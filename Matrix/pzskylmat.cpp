@@ -1370,6 +1370,12 @@ void TPZSkylMatrix<TVar>::DecomposeColumn2(int col, int prevcol){
 	}
 }
 
+template <class TVar>
+void TPZSkylMatrix<TVar>::AutoFill() {
+    std::cout << __PRETTY_FUNCTION__ << " please implement me!\n";
+    DebugStop();
+}
+
 template<class TVar>
 int TPZSkylMatrix<TVar>::ClassId() const
 {

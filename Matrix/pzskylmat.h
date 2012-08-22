@@ -130,7 +130,7 @@ public:
 	// @}
 	
 	//void TestSpeed(int col, int prevcol);
-	
+	virtual void AutoFill() ;
 	
 	virtual int ClassId() const;
     /**
