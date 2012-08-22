@@ -1,7 +1,7 @@
 ENABLE_TESTING()
 
 #Running the executable and test if it will run ok
-ADD_TEST (CursoPZ2_MatrixSolver CursoPZ2_MatrixSolver)
+#ADD_TEST (CursoPZ2_MatrixSolver CursoPZ2_MatrixSolver)
 
 #Checking generated files
 #SET (filename "visualmatrix.dx")
