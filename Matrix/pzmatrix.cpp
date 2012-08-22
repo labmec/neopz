@@ -1668,12 +1668,14 @@ void TPZMatrix<TVar>::AutoFill() {
 				Error("AutoFill (TPZMatrix) failed.");
 			if(i!=j) sum += fabs(val);
 		}
-		/** Making diagonally dominant and non zero in diagonal */
-		if(fabs(sum) > fabs(GetVal(i,i)))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
-			PutVal(i,i,sum);
-		// To sure diagonal is not zero.
-		if(IsZero(sum) && IsZero(GetVal(i,i)))
-			PutVal(i,i,1.);
+		if (Rows() == Cols()) {
+		  /** Making diagonally dominant and non zero in diagonal */
+		  if(fabs(sum) > fabs(GetVal(i,i)))            // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
+			  PutVal(i,i,sum);
+		  // To sure diagonal is not zero.
+		  if(IsZero(sum) && IsZero(GetVal(i,i)))
+			  PutVal(i,i,1.);
+		}
 	}
 }
 
