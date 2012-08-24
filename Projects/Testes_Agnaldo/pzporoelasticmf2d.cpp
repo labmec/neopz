@@ -266,7 +266,7 @@ void TPZPoroElasticMF2d::ApplyDirichlet_QP(TPZVec<TPZMaterialData> &datavec, REA
     for(int iq=0; iq<phrq; iq++)
     {
         //the contribution of the Dirichlet boundary condition appears in the flow equation
-        ef(2*phru+iq,0) += -fTimeStep*v2*phiQ(iq,0)*weight;
+        ef(2*phru+iq,0) += (-1.)*fTimeStep*v2*phiQ(iq,0)*weight;
     }
 }
 
