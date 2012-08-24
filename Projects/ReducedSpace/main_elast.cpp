@@ -90,22 +90,22 @@ int main(int argc, char *argv[])
     ofstream arg2("cmesh_inicial.txt");
     cmesh_elast->Print(arg2);
         
-    TPZAnalysis an(cmesh_elast);
-    MySolve(an, cmesh_elast);
-    string plotfile("saidaSolution_mesh1.vtk");
-    PosProcessamento1(an, plotfile);
-    TPZFMatrix<REAL> solucao;
-    solucao=cmesh_elast->Solution();
-    solucao.Print();
+//    TPZAnalysis an(cmesh_elast);
+//    MySolve(an, cmesh_elast);
+//    string plotfile("saidaSolution_mesh1.vtk");
+//    PosProcessamento1(an, plotfile);
+//    TPZFMatrix<REAL> solucao;
+//    solucao=cmesh_elast->Solution();
+//    solucao.Print();
     
     //computational mesh of reduced space
     TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
     cmesh_referred->ComputeNodElCon();
-    TPZFStructMatrix fstr(cmesh_referred);
-    TPZFMatrix<STATE> rhs(1);
-    TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
-    strmat->Print("rigidez");
-    rhs.Print("forca");
+//    TPZFStructMatrix fstr(cmesh_referred);
+//    TPZFMatrix<STATE> rhs(1);
+//    TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
+//    strmat->Print("rigidez");
+//    rhs.Print("forca");
     
     ofstream arg3("cmeshreferred_inicial.txt");
     cmesh_referred->Print(arg3);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh_referred
 	gmesh->ResetReference();
 	cmesh_referred->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,1);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,0);
 	cmesh_referred->AdjustBoundaryElements();
 	cmesh_referred->CleanUpUnconnectedNodes();
     ofstream arg5("cmeshreferred_final.txt");
@@ -130,12 +130,15 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh_pressure
 	gmesh->ResetReference();
 	cmesh_pressure->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,1);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,0);
 	cmesh_pressure->AdjustBoundaryElements();
 	cmesh_pressure->CleanUpUnconnectedNodes();
     ofstream arg6("cmeshpressure_final.txt");
     cmesh_pressure->Print(arg6);
     
+    ofstream arg8("gmesh_final");
+    gmesh->Print(arg8);
+                  
     //multiphysic mesh
     TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh_referred;

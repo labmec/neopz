@@ -17,6 +17,7 @@ using namespace std;
 #include "pzbuildmultiphysicsmesh.h"
 #include "pzinterpolationspace.h"
 
+#include "pzgeoelbc.h"
 #include "TPZCompElDisc.h"
 #include "pzpoisson3d.h"
 #include "pzelasmat.h"
@@ -43,6 +44,7 @@ using namespace std;
 using namespace std;
 
 int const matId =1;
+int const matId2 = 2;
 const int bcBottom = -1;
 const int bcRight = -2;
 const int bcTop = -3;
@@ -58,6 +60,7 @@ int const mixedneum = 21;
 REAL const Pi = 4.*atan(1.);
 
 TPZGeoMesh *GMesh(bool triang_elements, REAL w, REAL L);
+TPZGeoMesh *GMesh2(REAL w, REAL L);
 TPZCompMesh *MalhaCompElast(TPZGeoMesh * gmesh,int pOrder);
 TPZCompMesh *CMeshFlux(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
@@ -88,9 +91,9 @@ int main(int argc, char *argv[])
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    int pu = 3;
-    int pq = 3;
-    int pp = 2;
+    int pu = 2;
+    int pq = 2;
+    int pp = 1;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -118,7 +121,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,4);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,0);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg5("cmesh1_final.txt");
@@ -128,8 +131,8 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,4);
-	cmesh2->AdjustBoundaryElements();
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,0);
+   	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg6("cmesh2_final.txt");
     cmesh2->Print(arg6);
@@ -137,7 +140,8 @@ int main(int argc, char *argv[])
     // Cleaning reference to cmesh3
 	gmesh->ResetReference();
 	cmesh3->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,4);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,0);
+    
 	cmesh3->AdjustBoundaryElements();
 	cmesh3->CleanUpUnconnectedNodes();
     ofstream arg7("cmesh3_final.txt");
@@ -265,17 +269,109 @@ TPZGeoMesh *GMesh(bool triang_elements, REAL w, REAL L){
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcRight,*gmesh);
         id++;
         
-        TopolLine[0] = 3;
-        TopolLine[1] = 2;
+        TopolLine[0] = 2;
+        TopolLine[1] = 3;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcTop,*gmesh);
         id++;
         
-        TopolLine[0] = 0;
-        TopolLine[1] = 3;
+        TopolLine[0] = 3;
+        TopolLine[1] = 0;
         new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcLeft,*gmesh);
     }
     
 	gmesh->BuildConnectivity();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+	return gmesh;
+}
+
+TPZGeoMesh *GMesh2(REAL w, REAL L){
+    
+    TPZGeoMesh *gmesh = new TPZGeoMesh();
+	REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};
+	int indices[1][4] = {{0,1,2,3}};
+	
+	int nnode = 4;
+	const int nelem = 1;
+	TPZGeoEl *elvec[nelem];
+	int nod;
+	for ( nod=0; nod<nnode; nod++ )
+	{
+		int nodind = gmesh->NodeVec().AllocateNewElement();
+		TPZVec<REAL> coord ( 2 );
+		coord[0] = co[nod][0];
+		coord[1] = co[nod][1];
+		gmesh->NodeVec() [nodind].Initialize ( nod,coord,*gmesh );
+	}
+	
+	int el;
+	for ( el=0; el<nelem; el++ )
+	{
+		TPZVec<int> nodind ( 4 );
+		for (nod=0; nod<4; nod++ ) nodind[nod]=indices[el][nod];
+		int index;
+		elvec[el] = gmesh->CreateGeoElement (EQuadrilateral,nodind,1,index);
+	}
+	
+	gmesh->BuildConnectivity();
+	
+	TPZGeoElBC gbc1 ( elvec[0],4,bcBottom );// condicao de fronteira tipo -1: (x,y=0)
+	TPZGeoElBC gbc2 ( elvec[0],5,bcRight );// condicao de fronteira tipo -2: (x=1,y)
+	TPZGeoElBC gbc3 ( elvec[0],6,bcTop );// condicao de fronteira tipo -3: (x,y=1)
+	TPZGeoElBC gbc4 ( elvec[0],7,bcLeft );// condicao de fronteira tipo -4: (x=0,y)
+    
+    ///Refinamento uniforme
+	for ( int ref = 0; ref < 1; ref++ )
+	{// h indica o numero de refinamentos
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for ( int i = 0; i < n; i++ )
+		{
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			if(!gel->HasSubElement())
+			{
+				gel->Divide(filhos);
+			}	
+		}//for i
+	}//ref
+
+    TPZVec<TPZGeoEl *> filhos;
+    int n = gmesh->NElements();
+    for (int iel = 0; iel< n; iel++ ){
+        TPZGeoEl * gel = gmesh->ElementVec()[iel];
+        if(!gel->HasSubElement() && gel->Dimension()==2 && iel%2==0)
+			{
+				gel->Divide(filhos);
+                iel = n;
+			}	
+	}//ref
+    
+    //refinamento 1D--irei refinar tambem os elementos 1D
+    
+    {
+        TPZVec<TPZGeoEl *> filhos;
+        int n = gmesh->NElements();
+        for(int i = 0; i < n; i++){
+           TPZGeoEl * gel = gmesh->ElementVec()[i];
+            if (gel->Dimension()!=1) {
+                continue;
+            }
+            TPZGeoElSide Elside=gel->Neighbour(2);
+            TPZGeoEl *NeighEl=Elside.Element();
+            if (NeighEl->HasSubElement()) {
+                gel->Divide(filhos);
+                }
+        }
+    }
     
     //#ifdef LOG4CXX
     //	if(logdata->isDebugEnabled())
@@ -408,6 +504,10 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder)
     for(int i=0; i<nel; i++){
         TPZCompEl *cel = cmesh->ElementVec()[i];
         TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        celdisc->SetConstC(1.);
+        celdisc->SetCenterPoint(0, 0.);
+        celdisc->SetCenterPoint(1, 0.);
+        celdisc->SetCenterPoint(2, 0.);
         if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
         {
             if(triang==true) celdisc->SetTotalOrderShape();
@@ -483,9 +583,9 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond4 = mymaterial->CreateBC(mat,bcLeft, mixedneum, val1, val2);
     
     val1.Redim(3,2);
-    //val2.Redim(3,1);
-    val2(2,0)= 999.785;
-    TPZMaterial * BCond3 = mymaterial->CreateBC(mat,bcBottom,dirichlet, val1, val2);
+    val2.Redim(3,1);
+    //val2(2,0)= 999.785;
+    TPZMaterial * BCond3 = mymaterial->CreateBC(mat,bcBottom,dirneum, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
@@ -591,6 +691,14 @@ void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, T
 	
 	matK1 = an.StructMatrix();
 	fvec = an.Rhs();
+    
+    
+    
+//    TPZBandStructMatrix full(cmesh);
+//    an.SetStructuralMatrix(full);
+//    TPZStepSolver step;
+//    step.SetDirect(ELU);
+//    an.SetSolver(step);
 }
 
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile)
@@ -672,9 +780,9 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 	outputfile = "TransientSolution";
 	
 	REAL TimeValue = 0.0;
-	int cent = 0;
+	int cent = 1;
 	TimeValue = cent*deltaT; 
-	while (TimeValue < maxTime)
+	while (TimeValue <= maxTime)
 	{	
 		// This time solution i for Transient Analytic Solution
 		mymaterial->SetTimeValue(TimeValue);
