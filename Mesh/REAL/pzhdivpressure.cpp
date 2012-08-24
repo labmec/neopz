@@ -442,84 +442,61 @@ void TPZCompElHDivPressure<TSHAPE>::ShapeDual(TPZVec<REAL> &qsi, TPZFMatrix<REAL
 template<class TSHAPE>
 void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
     
-		TPZFMatrix<REAL> phiCont;
+    TPZFMatrix<REAL> phiCont;
   	TPZFMatrix<REAL> dphiCont;
-		TPZCompElHDiv<TSHAPE>::Shape(pt,phiCont,dphiCont);
+    TPZCompElHDiv<TSHAPE>::Shape(pt,phiCont,dphiCont);
     
-		// acrescentar as funcoes de pressao (via descontinuo)
-		REAL C=1;//fator de escala utilizado neste metodo
-		TPZManVector<REAL,3> X0(3,0.);//centro do elemento
+#ifdef LOG4CXX
+    std::stringstream sout;
+     sout<<"\n ponto de integracao " << pt <<endl;
+    sout<< "\n vetor phiCont "<<phiCont<<endl;
+    LOGPZ_DEBUG(logger,sout.str())
+#endif
+    
+
+    
+    // acrescentar as funcoes de pressao (via descontinuo)
+    REAL C=1;//fator de escala utilizado neste metodo
+    TPZManVector<REAL,3> X0(3,0.);//centro do elemento
 		
     int dimension= TSHAPE::Dimension;
-		
     int degree= this->fPressureOrder;
-    int nshapedisc;
-    if (TSHAPE::Type()==EQuadrilateral ) 
-    {
-				if (degree==0) {
-						nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);
-				}
-				else{
-				
-        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial)-1;
-				}
-    }
-    else if(TSHAPE::Type() == ETriangle)
-    {
-        nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: EOrdemTotal);
-    }
-    else
-    {
-        DebugStop();
-    }
-		TPZFNMatrix<660> phiDisc(nshapedisc,1);
-		TPZFNMatrix<660> phiDiscAux(nshapedisc,1);
-		
-		TPZFNMatrix<660> dphiDisc(dimension,nshapedisc);
-		TPZFNMatrix<660> dphiDiscAux(dimension,nshapedisc);
     
-    if (TSHAPE::Type()==EQuadrilateral) {
-				
-				if (degree==0) {
-						pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);
-#ifdef LOG4CXX
-						std::stringstream sout;
-						sout<< "vetor phi para ordem 0 andes de append"<<phiDiscAux<<endl;	
-						LOGPZ_DEBUG(logger,sout.str())
-#endif
-				}
-				else{
-						pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDiscAux,dphiDiscAux, pzshape::TPZShapeDisc::ETensorial);
-						int nphidisc = phiDiscAux.Rows();
-						phiDiscAux(0,0) = phiDiscAux(nphidisc-1,0);
-						dphiDiscAux(0,0) = dphiDiscAux(0,nphidisc-1);
-						dphiDiscAux(1,0) = dphiDiscAux(1,nphidisc-1);
-						for (int i=0; i<phiDisc.Rows(); i++) {
-						phiDisc(i,0)=phiDiscAux(i,0);
-						dphiDisc(0,i)=dphiDiscAux(0,i);
-						dphiDisc(1,1)=dphiDiscAux(1,i);
-						}
-				}
-				
-				
-    } 
-    else if (TSHAPE::Type()==ETriangle) 
-    {
+    int nshapedisc;
+    nshapedisc = pzshape::TPZShapeDisc::NShapeF(degree, dimension, pzshape::TPZShapeDisc:: ETensorial);
+    TPZFNMatrix<660> phiDisc(nshapedisc,1);
+    TPZFNMatrix<660> dphiDisc(dimension,nshapedisc);
+    
+    if (TSHAPE::Type()==EQuadrilateral){
+        pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::ETensorial);
+        
+//#ifdef LOG4CXX
+//        std::stringstream sout;
+//        sout<<"\n ponto de integracao " << pt <<endl;
+//        sout<< "\n vetor phiDisc "<<phiDisc<<endl;
+//        LOGPZ_DEBUG(logger,sout.str())
+//#endif
+
+        
+    }
+    else if (TSHAPE::Type()==ETriangle) {
         pzshape::TPZShapeDisc::Shape(dimension,C,X0,pt,degree,phiDisc,dphiDisc, pzshape::TPZShapeDisc::EOrdemTotal);
     }
-    else
-    {
+    else {
         DebugStop();
     }
-		this->Append(phiCont,phiDisc,phi);
-		this->Append(dphiCont,dphiDisc,dphi);
-		
-			 #ifdef LOG4CXX
-			 std::stringstream sout;
-			 sout<< "vetor phi "<<phi<<endl;	
-		   LOGPZ_DEBUG(logger,sout.str())
-			 #endif
-		
+
+    
+    this->Append(phiCont,phiDisc,phi);
+    this->Append(dphiCont,dphiDisc,dphi);
+	{	
+    #ifdef LOG4CXX
+    std::stringstream sout;
+   // sout<< "vetor phiCont"<<phiCont<<endl;
+    sout<< "\n vetor phi "<<phi<<endl;
+    LOGPZ_DEBUG(logger,sout.str())
+    #endif
+    }
 }
 
 template<class TSHAPE>
