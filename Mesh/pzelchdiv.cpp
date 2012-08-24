@@ -758,7 +758,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 										int ordereta = sideorders(1,ish);
 										
 										
-										if (jvec ==17) {
+										if (jvec ==16) {
 												bool etacheck = ordereta <= pressureorder;
 												if (etacheck) 
 												{
@@ -775,7 +775,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 														}
 												}
 										}
-										if (jvec ==16) {
+										if (jvec ==17) {
 												if (orderksi<=pressureorder) {
 														if (!(orderksi == pressureorder+1 && ordereta == pressureorder)) 
 														{
@@ -1152,7 +1152,6 @@ void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFM
     phi.Resize(nshapecont, 1);
     dphi.Resize(dimension, nshapecont);
 	TSHAPE::Shape(pt,id,ord,phi,dphi);
-    
 }
 
 
