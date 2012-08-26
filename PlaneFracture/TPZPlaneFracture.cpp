@@ -1045,15 +1045,24 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 	x = ExactIntersectionPoint[ExactIntersectionPoint.NElements() - 1];
 	TPZGeoElSide gelEdge(gel, edge);
 	TPZGeoElSide neighEdge = gelEdge.Neighbour();
+    bool neighFound = false;
 	while(neighEdge != gelEdge)
 	{
-		if(neighEdge.Element()->Dimension() == 2)
+		if(neighEdge.Element()->Dimension() == 2 && neighEdge.Element()->Father() == NULL)
 		{
+            neighFound = true;
 			break;
 		}
 		neighEdge = neighEdge.Neighbour();
 	}
-	gel = neighEdge.Element();
+    if(neighFound)
+    {
+        gel = neighEdge.Element();
+    }
+    else
+    {
+        DebugStop();
+    }
 	
 	return gel;
 }
@@ -1179,15 +1188,24 @@ TPZGeoEl * TPZPlaneFracture::CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &
 	x = ExactIntersectionPoint[ExactIntersectionPoint.NElements() - 1];
 	TPZGeoElSide gelEdge(gel, edge);
 	TPZGeoElSide neighEdge = gelEdge.Neighbour();
+	bool neighFound = false;
 	while(neighEdge != gelEdge)
 	{
-		if(neighEdge.Element()->Dimension() == 2)
+		if(neighEdge.Element()->Dimension() == 2 && neighEdge.Element()->Father() == NULL)
 		{
+            neighFound = true;
 			break;
 		}
 		neighEdge = neighEdge.Neighbour();
 	}
-	gel = neighEdge.Element();
+    if(neighFound)
+    {
+        gel = neighEdge.Element();
+    }
+    else
+    {
+        DebugStop();
+    }
 	
 	return gel;
 }
@@ -2130,7 +2148,7 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
         direction[1] = ny - originXYZ[1];
         direction[2] = nz - originXYZ[2];
     }
-    REAL intRadius = 0.6;
+    REAL intRadius = 0.8;
     REAL extRadius = 1.0;
     Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, intRadius, extRadius, meshDim);
     
@@ -2338,7 +2356,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
         
         std::set<int> matIds;
         matIds.insert(bottomFractmat);
-        int nRefDir = 2;
+        int nRefDir = 3;
         for(int r = 0; r < nRefDir; r++)
         {
             int nEls = gmesh->NElements();
@@ -2349,11 +2367,13 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
             }
         }
         
+        std::ofstream cuco("cuco.vtk");
+        TPZVTKGeoMesh::PrintGMeshVTK(gmesh, cuco);
         ///////////////////////////////////////////////////////////////////////////////////////////////////
         cmesh = new TPZCompMesh(gmesh);
         
         STATE young = 0.29e5;
-        STATE poisson = 0.2;
+        STATE poisson = 0.25;
         
         int planeStrain = 0;
 //        int planeStress = 1;
@@ -2371,7 +2391,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
             TPZBndCond * dotBlocked = materialLin->CreateBC(materialLin, blockXYZ, dirich, k, f);
             cmesh->InsertMaterialObject(dotBlocked);
             
-            k(1,1) = 1.E15;
+            k(1,1) = 1.E20;
             TPZBndCond * mixedContinuum = materialLin->CreateBC(materialLin, bottomContinuumMat, mixed, k, f);
             cmesh->InsertMaterialObject(mixedContinuum);
 

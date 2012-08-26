@@ -15,30 +15,14 @@
 
 enum pathType {ELinearPath, EExternalArcPath, EInternalArcPath};
 
-// *** ALL THIS INFORMATIONS IS WITH RESPECT TO THE AXIS STABLISHED BY THE UNIDIMENTIONAL ELEMENT ***
-//by consequence:
-//  - clockwise:
-//      - external arc direction is ruled by lefthand
-//      - internal arc direction is ruled by righthand
-//      - linear is in fracture plane from internal arc to external arc
-//
-//  - counterclockwise:
-//      - external arc direction is ruled by righthand
-//      - internal arc direction is ruled by lefthand
-//      - linear is in fracture plane from external arc to internal arc
-enum pathDirection {EClockwise, ECounterclockwise};
-
-
-//This internal variable could be changed that the code remains consintent
-const int __defaultDirection = ECounterclockwise;
 
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
- *          THE CLASS PATH CONSIDERS THAT THE 1D ELEMENT IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE).
- *          THE ORIENTATION OF THIS ELEMENT DETERMINE THE ARC DIRECTION, 
- *          USED IN X_arc AND dXdt_arc METHODS AS A BOOLEAN PARAMETER.
- *              IF TRUE : RIGHT HAND DIRECTION WITH RESPECT TO AXES DEFINED BY 1D ELEMENT.
- *              IF FALSE : LEFT HAND DIRECTION WITH RESPECT TO AXES DEFINED BY 1D ELEMENT.
+ *          THE CLASS PATH CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
+ *          THE ORIENTATION OF THIS NORMAL DETERMINE THE ARC DIRECTION THAT RULES THE X_arc AND dXdt_arc METHODS, AS IT FOLLOWS:
+ *              EXTERNAL ARC : RIGHT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE.
+ *              INTERNAL ARC : LEFT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE.
+ * SO, ITS ALWAYS GOOD DEFINE NORMAL AXE TANGENT TO THE CRACK BOUNDARY, FOLLOWING RIGHT HAND FOR THE EXTERNAL ARC BEGINNING AT OUTSIDE CRACK.
  */
 class Path
 {

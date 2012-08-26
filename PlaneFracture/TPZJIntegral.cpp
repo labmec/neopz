@@ -16,6 +16,7 @@
 #include "pzelast3d.h"
 #include "pzcompel.h"
 #include "pzinterpolationspace.h"
+#include "pzaxestools.h"
 
 const REAL Pi = 3.1415926535897932384626433832795;
 
@@ -129,9 +130,13 @@ TPZVec<REAL> Path::Func(REAL t)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    REAL W = 0.;
-    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradU(fMeshDim,fMeshDim);
-    GradU = data.dsol[0];
+    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUax(fMeshDim,fMeshDim), GradUxy(fMeshDim,fMeshDim);
+    GradUax = data.dsol[0];
+    
+    GradUxy(0,0) = GradUax(0,0)*data.axes(0,0) + GradUax(1,0)*data.axes(1,0);
+    GradUxy(1,0) = GradUax(0,0)*data.axes(0,1) + GradUax(1,0)*data.axes(1,1);
+    GradUxy(0,1) = GradUax(0,1)*data.axes(0,0) + GradUax(1,1)*data.axes(1,0);
+    GradUxy(1,1) = GradUax(0,1)*data.axes(0,1) + GradUax(1,1)*data.axes(1,1);
     
     if(fMeshDim == 2)
     {
@@ -175,9 +180,10 @@ TPZVec<REAL> Path::Func(REAL t)
         #endif
         
         elast3D->ComputeStressTensor(Sigma, data);
-        elast3D->ComputeStrainTensor(strain, GradU);
+        elast3D->ComputeStrainTensor(strain, GradUxy);
     }
     
+    REAL W = 0.;
     for(int r = 0; r < fMeshDim; r++)
     {
         for(int c = 0; c < fMeshDim; c++)
@@ -191,23 +197,23 @@ TPZVec<REAL> Path::Func(REAL t)
     {
         W_I(d,d) = W;
     }
-    GradU.Transpose();
-    TPZFMatrix<REAL> GradUtranspose_Sigma(fMeshDim,fMeshDim,0.);
-    GradU.Multiply(Sigma, GradUtranspose_Sigma);
+
+    TPZFMatrix<REAL> GradU_Sigma(fMeshDim,fMeshDim,0.);
+    GradUxy.Multiply(Sigma, GradU_Sigma);
     
-    TPZFMatrix<REAL> W_I_minus_GradUtranspose_Sigma(fMeshDim,fMeshDim,0.);
-    W_I_minus_GradUtranspose_Sigma = W_I - GradUtranspose_Sigma;
+    TPZFMatrix<REAL> W_I_minus_GradU_Sigma(fMeshDim,fMeshDim,0.);
+    W_I_minus_GradU_Sigma = W_I - GradU_Sigma;
     
-    TPZVec<REAL> W_I_minus_GradUtranspose_Sigma__n(fMeshDim,0.);
+    TPZVec<REAL> W_I_minus_GradU_Sigma__n(fMeshDim,0.);
     for(int r = 0; r < fMeshDim; r++)
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            W_I_minus_GradUtranspose_Sigma__n[r] += (W_I_minus_GradUtranspose_Sigma(r,c)*nt[c]) * DETdxdt;
+            W_I_minus_GradU_Sigma__n[r] += (W_I_minus_GradU_Sigma(r,c)*nt[c]) * DETdxdt;
         }
     }
     
-    return W_I_minus_GradUtranspose_Sigma__n;
+    return W_I_minus_GradU_Sigma__n;
 }
 
 
@@ -240,17 +246,9 @@ void Path::X_line(REAL t, TPZVec<REAL> & xt)
     TPZVec<REAL> initialPoint(dim3D);
     TPZVec<REAL> finalPoint(dim3D);
     
-    if(__defaultDirection == EClockwise)
-    {
-        this->X_arc(+1., initialPoint, EInternalArcPath);
-        this->X_arc(-1., finalPoint, EExternalArcPath);
-    }
-    else if(__defaultDirection == ECounterclockwise)
-    {
-        this->X_arc(+1., initialPoint, EExternalArcPath);
-        this->X_arc(-1., finalPoint, EInternalArcPath);
-    }
-    
+    this->X_arc(+1., initialPoint, EExternalArcPath);
+    this->X_arc(-1., finalPoint, EInternalArcPath);
+
     for(int c = 0; c < dim3D; c++)
     {
         xt[c] = (1.-t)/2.*initialPoint[c] + (1.+t)/2.*finalPoint[c];
@@ -265,17 +263,8 @@ void Path::dXdt_line(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
     TPZVec<REAL> x0(dim3D);
     TPZVec<REAL> x1(dim3D);
     
-    
-    if(__defaultDirection == EClockwise)
-    {
-        this->X_arc(+1., x0, EInternalArcPath);
-        this->X_arc(-1., x1, EExternalArcPath);
-    }
-    else if(__defaultDirection == ECounterclockwise)
-    {
-        this->X_arc(+1., x0, EExternalArcPath);
-        this->X_arc(-1., x1, EInternalArcPath);
-    }
+    this->X_arc(+1., x0, EExternalArcPath);
+    this->X_arc(-1., x1, EInternalArcPath);
     
     DETdxdt = 0.;
     for(int c = 0; c < dim3D; c++)
@@ -291,35 +280,17 @@ void Path::X_arc(REAL t, TPZVec<REAL> & xt, pathType pathT)
 {
     xt.Resize(dim3D,0.);
     
-    if(__defaultDirection == EClockwise)
+    if(pathT == EExternalArcPath)
     {
-        if(pathT == EInternalArcPath)
-        {
-            xt[0] = (fOrigin[0] - fr_int*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-            xt[1] = fr_int*cos((Pi*t)/2.);
-            xt[2] = (fOrigin[2] + fr_int*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
-        }
-        else if(pathT == EExternalArcPath)
-        {                   
-            xt[0] = (fOrigin[0] + fr_ext*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-            xt[1] = fr_ext*cos((Pi*t)/2.);
-            xt[2] = (fOrigin[2] - fr_ext*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
-        }
+        xt[0] = (fOrigin[0] - fr_ext*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+        xt[1] = fr_ext*cos((Pi*t)/2.);
+        xt[2] = (fOrigin[2] + fr_ext*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
     }
-    else if(__defaultDirection == ECounterclockwise)
-    {
-        if(pathT == EExternalArcPath)
-        {
-            xt[0] = (fOrigin[0] - fr_ext*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-            xt[1] = fr_ext*cos((Pi*t)/2.);
-            xt[2] = (fOrigin[2] + fr_ext*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
-        }
-        else if(pathT == EInternalArcPath)
-        {                   
-            xt[0] = (fOrigin[0] + fr_int*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-            xt[1] = fr_int*cos((Pi*t)/2.);
-            xt[2] = (fOrigin[2] - fr_int*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
-        }
+    else if(pathT == EInternalArcPath)
+    {                   
+        xt[0] = (fOrigin[0] + fr_int*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+        xt[1] = fr_int*cos((Pi*t)/2.);
+        xt[2] = (fOrigin[2] - fr_int*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
     }
 }
 
@@ -328,39 +299,19 @@ void Path::dXdt_arc(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT)
 {
     dxdt.Resize(dim3D,0.);
 
-    if(__defaultDirection == EClockwise)
+    if(pathT == EExternalArcPath)
     {
-        if(pathT == EInternalArcPath)
-        {
-            dxdt[0] = -(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
-            dxdt[2] = +(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            DETdxdt = Pi*fr_int/2.;
-        }
-        else if(pathT == EExternalArcPath)
-        {                   
-            dxdt[0] = +(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
-            dxdt[2] = -(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            DETdxdt = Pi*fr_ext/2.;
-        }
+        dxdt[0] = -(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
+        dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
+        dxdt[2] = +(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
+        DETdxdt = Pi*fr_ext/2.;
     }
-    if(__defaultDirection == ECounterclockwise)
-    {
-        if(pathT == EExternalArcPath)
-        {
-            dxdt[0] = -(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
-            dxdt[2] = +(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
-            DETdxdt = Pi*fr_ext/2.;
-        }
-        else if(pathT == EInternalArcPath)
-        {                   
-            dxdt[0] = +(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
-            dxdt[2] = -(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-            DETdxdt = Pi*fr_int/2.;
-        }
+    else if(pathT == EInternalArcPath)
+    {                   
+        dxdt[0] = +(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
+        dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
+        dxdt[2] = -(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
+        DETdxdt = Pi*fr_int/2.;
     }
 }
 
@@ -419,7 +370,7 @@ void externalArcPath::normalVec(REAL t, TPZVec<REAL> & n)
     
     for(int i = 0; i < dim3D; i++)
     {
-        n[i] = +1. * fabs(x[i] - fOrigin[i])/normaN;
+        n[i] = (x[i] - fOrigin[i])/normaN;
     }
 }
 
@@ -455,7 +406,7 @@ void internalArcPath::normalVec(REAL t, TPZVec<REAL> & n)
     
     for(int i = 0; i < dim3D; i++)
     {
-        n[i] = -1. * fabs(x[i] - fOrigin[i])/normaN;
+        n[i] = (fOrigin[i] - x[i])/normaN;
     }
 }
 
@@ -487,28 +438,28 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     REAL precisionIntegralRule = 1.E-15;
     Adapt intRule(precisionIntegralRule);
     
-    linearPath * _LinearPath = new linearPath(jpathElem);
+//    linearPath * _LinearPath = new linearPath(jpathElem);
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
-    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
+//    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
     
     int meshDim = 2;
-    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,meshDim,-1.,+1.);
+//    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,meshDim,-1.,+1.);
     TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,meshDim,-1.,+1.);
-    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
-
+//    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
+    
     TPZVec<REAL> answ(meshDim);
     if(meshDim == 2)
     {
-        answ[0] = 2.*(integrLinPath[0] + integrExtArc[0] + integrIntArc[0]);
+        answ[0] = 2.*integrExtArc[0];
         answ[1] = 0.;
     }
-    else if(meshDim == 3)
-    {
-        //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
-        answ[0] = 2.*(integrLinPath[0] + integrExtArc[0] + integrIntArc[0]);
-        answ[1] = 0.;
-        answ[2] = 2.*(integrLinPath[2] + integrExtArc[2] + integrIntArc[2]);
-    }
+//    else if(meshDim == 3)
+//    {
+//        //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
+//        answ[0] = 2.*(integrLinPath[0] + integrExtArc[0] + integrIntArc[0]);
+//        answ[1] = 0.;
+//        answ[2] = 2.*(integrLinPath[2] + integrExtArc[2] + integrIntArc[2]);
+//    }
     
     return answ;
 }
