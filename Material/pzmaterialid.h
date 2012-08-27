@@ -57,6 +57,8 @@ const int TPBRRESERVOIRPERMEABILITYFUNCTIONID = 323;
 
 const int TPZVISCOELASTICITYMATERIALID = 324;
 
+const int TPZUncoupledMultiPhysicsID = 325;
+
 /** @} */
 
 #endif //PZMATERIALIDH
