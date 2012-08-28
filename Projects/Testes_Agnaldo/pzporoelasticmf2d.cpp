@@ -70,7 +70,7 @@ void TPZPoroElasticMF2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     int phru, phrq, phrp;
     phru = phiu.Rows();
-    phrq = datavec[1].fVecShapeIndex.NElements();;
+    phrq = datavec[1].fVecShapeIndex.NElements();
     phrp = phip.Rows();
 	
     TPZFMatrix<REAL> du(2,2);
