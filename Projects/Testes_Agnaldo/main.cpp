@@ -78,7 +78,7 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 
 void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
-bool const triang=false;
+bool const triang=true;
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
 #endif
@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
 	InitializePZLOG("../logporoelastc2d.cfg");
 #endif
     
-    int pu = 2;
-    int pq = 2;
-    int pp = 1;
+    int pu = 3;
+    int pq = 3;
+    int pp = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     // Cleaning reference of the geometric mesh to cmesh1
 	gmesh->ResetReference();
 	cmesh1->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,0);
+    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh1,3);
 	cmesh1->AdjustBoundaryElements();
 	cmesh1->CleanUpUnconnectedNodes();
     ofstream arg5("cmesh1_final.txt");
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	// Cleaning reference to cmesh2
 	gmesh->ResetReference();
 	cmesh2->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,0);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh2,3);
    	cmesh2->AdjustBoundaryElements();
 	cmesh2->CleanUpUnconnectedNodes();
     ofstream arg6("cmesh2_final.txt");
@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
     // Cleaning reference to cmesh3
 	gmesh->ResetReference();
 	cmesh3->LoadReferences();
-	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,0);
+	TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh3,3);
     
 	cmesh3->AdjustBoundaryElements();
 	cmesh3->CleanUpUnconnectedNodes();
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     TPZAnalysis an3(cmesh3);
 	SolveSist(an3, cmesh3);
 	int nrs = an3.Solution().Rows();
-	TPZFMatrix<REAL> solucao1(nrs,1,1000.);
+	TPZFMatrix<REAL> solucao1(nrs,1,1.);
 	cmesh3->Solution() = solucao1;
     
     //malha multifisica
@@ -165,9 +165,9 @@ int main(int argc, char *argv[])
     ofstream arg8("mphysic.txt");
 	mphysics->Print(arg8);
     
-    REAL deltaT=1.; //second
+    REAL deltaT=0.001; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = 10.;
+    REAL maxTime = 0.01;
     
     //condicao inicial
    // mymaterial->SetLastState();
@@ -542,14 +542,14 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //	criar material
     REAL Eyoung = 3.e4;
     REAL poisson = 0.2;
-    REAL alpha = 1.0;
-    REAL Se = 0.0;
+    REAL alpha = 0.0;
+    REAL Se = 1.0;
     REAL rockrho = 2330.0; // SI system
     REAL gravity = 0.0;//-9.8; // SI system
     REAL fx=0.0;
     REAL fy=gravity*rockrho;
-    REAL perm = 1.e-10;
-    REAL visc = 1.e-3;
+    REAL perm = 1.;//1.e-10;
+    REAL visc = 1.;//1.e-3;
     int planestress = 0; // This is a Plain strain problem
     
     
@@ -569,7 +569,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
     
-    REAL sig0 = -1000.;
+    REAL sig0 = 1.;
     REAL ptop = 0.;
     val2(0,0)= 0.;
     val2(1,0)= sig0;
