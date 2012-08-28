@@ -190,8 +190,8 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) 
 	double y = pt[1];
 	TPZVec<REAL> disp;
     p[0]= sin(Pi*x)*sin(Pi*y);//-sin(Pi*x)*cos(Pi*y);//(1-x*x)*(1-y*y)*exp(x);//(1-x*x)*(1-y*y);//Solucao
-	flux(0,0)= Pi*cos(Pi*x)*sin(Pi*y);//Pi*cos(Pi*x)*cos(Pi*y);//2.*exp(x)*x*(1. - pow(y,2.)) - exp(x)*(1. - pow(x,2.))*(1. - pow(y,2.));//2*x*(1-y*y);//
-	flux(1,0)=  Pi*cos(Pi*y)*sin(Pi*x);//Pi*sin(Pi*y)*sin(Pi*x);//2.*exp(x)*(1. - pow(x,2.))*y;//2*(1-x*x)*y; dy
+	flux(0,0)= (-1.)*Pi*cos(Pi*x)*sin(Pi*y);//Pi*cos(Pi*x)*cos(Pi*y);//2.*exp(x)*x*(1. - pow(y,2.)) - exp(x)*(1. - pow(x,2.))*(1. - pow(y,2.));//2*x*(1-y*y);//
+	flux(1,0)=  (-1.)*Pi*cos(Pi*y)*sin(Pi*x);//Pi*sin(Pi*y)*sin(Pi*x);//2.*exp(x)*(1. - pow(x,2.))*y;//2*(1-x*x)*y; dy
 	flux(2,0)=2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//-2.*pow(Pi,2.)*sin(Pi*x)*cos(Pi*y);//coloco o divergetne aq para testar
 	
 	
@@ -316,11 +316,11 @@ int main()
 		LOGPZ_DEBUG(logger, sout.str().c_str());
 	}
 #endif
-	std::ofstream erro("ErroHdivTodo.txt");
+	std::ofstream erro("Caulotaxa.txt");
 	//std::ofstream GraficoSol("SolGraf.txt");
 	//	std::ofstream CalcSolExata("CalSolExata.txt");
 	TPZVec<REAL> calcErro;
-	for (int porder=2; porder<3; porder++) {
+	for (int porder=3; porder<4; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
 		//	erro<< " Flux exato " << "\t "<<" Flux aprox "<<std::endl;//"P exata " << " \t " <<"P aprox " << "\t " << " Flux exato " << "\t "<<" Flux aprox "<<std::endl;
@@ -329,8 +329,8 @@ int main()
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
 			TPZGeoMesh *gmesh2 = MalhaGeoT(h);
-			//std::ofstream file("MalhaDomioTodo.vtk");
-			//PrintGMeshVTK( gmesh2, file);
+			std::ofstream file("MalhaNaoUniforme.vtk");
+			PrintGMeshVTK( gmesh2, file);
 //#ifdef LOG4CXX
 //			{
 //				std::stringstream sout;
@@ -339,7 +339,7 @@ int main()
 //			}
 //#endif
 			
-			TPZCompMeshReferred *cmesh = CreateCompMesh2d(*gmesh2,porder+1);
+			TPZCompMeshReferred *cmesh = CreateCompMesh2d(*gmesh2,porder);
 			
 			//cmesh->LoadReferences();//mapeia para a malha geometrica lo
 			
@@ -351,7 +351,7 @@ int main()
 			TPZAnalysis analysis(cmesh);
 			//SaddlePermute(cmesh);
 			SolveLU ( analysis );
-			ofstream file("Solutout");
+			//ofstream file("Solutout");
             analysis.Solution().Print("solution", file);
 			//Resolver o sistema linear
 			 //TPZFStructMatrix str(cmesh);
@@ -428,9 +428,9 @@ int main()
 			
 			
 			//-----
-			//TPZVec<REAL> calcErro;
-			//analysis.SetExact(*SolExata);
-			//analysis.PostProcess(calcErro,erro);
+			TPZVec<REAL> calcErro;
+			analysis.SetExact(*SolExata);
+			analysis.PostProcess(calcErro,erro);
 			
 			//4. visualizacao grafica usando vtk
 			 TPZVec<std::string> scalnames(2), vecnames(2);
@@ -449,9 +449,9 @@ int main()
 			 //vecnames[0] = "Derivate";
 			 
 			 
-			 std::string plotfile("GraficoH1Todo.vtk");
+			 std::string plotfile("GraficoSolution.vtk");
 			 const int dim = 2;
-			 int div = 0;
+			 int div = 2;
 			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 			 analysis.PostProcess(div);
 			 
@@ -610,7 +610,48 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 				gel->Divide(filhos);
 			}		
 		}}
-	
+		//refinamento diferencialvel
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+								
+						{
+								gel->Divide(filhos);
+						}		
+				}
+		}
+		
+		//refinamento 1D--irei refinar tambem os elementos 1D
+		
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if (gel->Dimension()!=1) {
+								continue;
+						}
+						TPZGeoElSide Elside=gel->Neighbour(2);
+						TPZGeoEl *NeighEl=Elside.Element();
+						if (NeighEl->HasSubElement()) {
+								gel->Divide(filhos);
+						}
+						
+						
+						
+				}
+		}
+		
+		
 	
 #ifdef LOG4CXX
 	{
@@ -671,7 +712,48 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h )
 			}	
 		}//for i
 	}//ref
-	
+		//refinamento diferencialvel
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+								
+						{
+								gel->Divide(filhos);
+						}		
+				}
+		}
+		
+		//refinamento 1D--irei refinar tambem os elementos 1D
+		
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if (gel->Dimension()!=1) {
+								continue;
+						}
+						TPZGeoElSide Elside=gel->Neighbour(2);
+						TPZGeoEl *NeighEl=Elside.Element();
+						if (NeighEl->HasSubElement()) {
+								gel->Divide(filhos);
+						}
+						
+						
+						
+				}
+		}
+		
+		
 	return gmesh;
 }
 
@@ -745,6 +827,48 @@ TPZGeoMesh * MalhaGeoQ(const int h){//malha quadrilatera
 		
 		
 	}
+		
+		//refinamento diferencialvel
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+								
+						{
+								gel->Divide(filhos);
+						}		
+				}
+		}
+		
+		//refinamento 1D--irei refinar tambem os elementos 1D
+		
+		{
+				
+				TPZVec<TPZGeoEl *> filhos;
+				int n = gmesh->NElements();
+				
+				
+				for(int i = 0; i < n; i++){	
+						TPZGeoEl * gel = gmesh->ElementVec()[i];
+						if (gel->Dimension()!=1) {
+								continue;
+						}
+						TPZGeoElSide Elside=gel->Neighbour(2);
+						TPZGeoEl *NeighEl=Elside.Element();
+						if (NeighEl->HasSubElement()) {
+								gel->Divide(filhos);
+						}
+						
+						
+						
+				}
+		}
+		
 	
 	
 #ifdef LOG4CXX
