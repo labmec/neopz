@@ -19,9 +19,10 @@ using namespace std;
 #include "pz_pthread.h"
 
 #ifdef USING_TBB
-#include "tbb/pipeline.h" 
-#include "tbb/parallel_for.h" 
-#include "tbb/blocked_range.h" 
+#include "tbb/tbb.h" 
+//#include "tbb/pipeline.h" 
+//#include "tbb/parallel_for.h" 
+//#include "tbb/blocked_range.h" 
 using namespace tbb; 
 #endif
 
@@ -289,6 +290,15 @@ public:
   }
 
 #ifdef USING_TBB
+
+protected:
+
+  typedef spin_mutex MatrixMutex_t;
+  MatrixMutex_t Matrix1Mutex;
+  MatrixMutex_t Matrix2Mutex;
+
+public:
+
   /** Execute work items in parallel. */
   void run_parallel_for()
   {
@@ -298,8 +308,9 @@ public:
   }
 
   /** Computing operator for the parallel for. */
-  void operator()(const blocked_range<size_t>& range) const
+  void operator()(const blocked_range<size_t>& range)
   { 
+    MatrixMutex_t::scoped_lock lock;
     TPZElementMatrix ek(&mesh, TPZElementMatrix::EK);
     TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
 
@@ -323,7 +334,7 @@ public:
         TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
       
       // ThreadAssembly 1 -- Lock 1
-      // FIXME. Precisa de um lock
+      lock.acquire(Matrix1Mutex);
       if(!has_dependency) 
       {
         first->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
@@ -334,13 +345,17 @@ public:
         first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
         rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
       }
+      lock.release();
       
       // ThreadAssembly 2 -- Lock 2
       // FIXME. Precisa de um lock
+      lock.acquire(Matrix2Mutex);
       PermuteScatter(ek.fDestinationIndex);
       second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);      
+      lock.release();
     }
   } 
+
 #endif // USING TBB
 
   /** Execute work items serially. */
@@ -447,8 +462,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 	int nelem = mesh.NElements();
 	TPZElementMatrix ek(&mesh, TPZElementMatrix::EK),ef(&mesh, TPZElementMatrix::EF);
     
-	
-	TPZTimer calcstiff("Computing the stiffness matrices");
+		TPZTimer calcstiff("Computing the stiffness matrices");
 	TPZTimer assemble("Assembling the stiffness matrices");
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh.ElementVec();
 	
