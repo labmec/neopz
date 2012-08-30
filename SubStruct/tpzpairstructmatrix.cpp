@@ -407,6 +407,13 @@ public:
 void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
                                       TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
 {
+#ifndef USING_TBB
+
+  cerr << "TPZPairStructMatrix::TBBAssemble() invoked, but TBB "
+       << "was not linked. Executing SerialAssemble!" << endl;
+  return SerialAssemble(mineq, maxeq, first, second, rhs);
+
+#else // if USING_TBB
   int iel;
   TPZCompMesh &mesh = *fMesh;
   int nelem = mesh.NElements();
@@ -430,6 +437,7 @@ void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *fi
   pipeline.run(filter1.n_tokens() /* Max tokens on the fly: TODO - Tune this parameter */ ); 
   
   pipeline.clear(); 
+#endif // USING_TBB
 }
 
 void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
