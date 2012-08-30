@@ -805,50 +805,60 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         this->Jacobian(qsi, jac, axes, detjac, jacinv);
         if(IsZero(detjac))
         {
-            //aproximate tangent (jacobian matrix) by the secant
-            TPZVec<REAL> qsiDesloc(dim,1);
-            REAL alpha = 0.01;
-            qsiDesloc = centerP - qsi;
-            REAL norm = 0.;
-            for(int c = 0; c < dim; c++)
-            {
-                norm += qsiDesloc[c]*qsiDesloc[c];
-            }
-            norm = sqrt(norm);
-            
-            #ifdef DEBUG
-            if(IsZero(norm))
+//            if(this->IsInParametricDomain(qsi,1.E-1))
+//            {
+//                //aproximate tangent (jacobian matrix) by the secant
+//                TPZVec<REAL> qsiDesloc(dim,1);
+//                REAL alpha = 0.01;
+//                qsiDesloc = centerP - qsi;
+//                REAL norm = 0.;
+//                for(int c = 0; c < dim; c++)
+//                {
+//                    norm += qsiDesloc[c]*qsiDesloc[c];
+//                }
+//                norm = sqrt(norm);
+//                
+//                #ifdef DEBUG
+//                if(IsZero(norm))
+//                {
+//                    DebugStop();
+//                }
+//                #endif
+//                
+//                for(int c = 0; c < dim; c++)
+//                {
+//                    qsiDesloc[c] = qsi[c] + 2.*alpha*qsiDesloc[c]/norm;
+//                }
+//                TPZVec<REAL> qsiTemp, xDesloc(3,1), xTemp(3,1);
+//                this->X(qsiDesloc,xDesloc);
+//                
+//                TPZFMatrix<REAL> jacTrapCn(3,dim,0.), axest(3,dim);
+//                for(int c = 0; c < dim; c++)
+//                {
+//                    qsiTemp = qsiDesloc;
+//                    qsiTemp[c] = qsiTemp[c] + alpha;
+//                    this->X(qsiTemp,xTemp);
+//                    xTemp = xTemp - xDesloc;
+//                    
+//                    for(int r = 0; r < 3; r++)
+//                    {
+//                        jacTrapCn(r,c) = xTemp[r];
+//                    }
+//                }
+//                jacTrapCn.GramSchmidt(axest, jac);
+//                axest.Transpose(&axes);
+//                jac.DeterminantInverse(detjac, jacinv);
+//                
+//                if(IsZero(detjac))
+//                {
+//                    //NO WAY!!!!
+//                    DebugStop();
+//                }
+//            }
+//            else
             {
                 DebugStop();
-            }
-            #endif
-            
-            for(int c = 0; c < dim; c++)
-            {
-                qsiDesloc[c] = qsi[c] + 2.*alpha*qsiDesloc[c]/norm;
-            }
-            TPZVec<REAL> qsiTemp, xDesloc(3,1), xTemp(3,1);
-            this->X(qsiTemp,xDesloc);
-            
-            for(int c = 0; c < dim; c++)
-            {
-                qsiTemp = qsiDesloc;
-                qsiTemp[c] = qsiTemp[c] + alpha;
-                this->X(qsiTemp,xTemp);
-                xTemp = xTemp - xDesloc;
-                
-                for(int j = 0; j < 3; j++)
-                {
-                    JacInvCn(j,c) = xTemp[c];
-                }
-            }
-            
-            jac.DeterminantInverse(detjac, JacInvCn);
-            
-            if(IsZero(detjac))
-            {
-                //NO WAY!!!!
-                DebugStop();
+                return false;
             }
         }
         else

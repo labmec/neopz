@@ -130,16 +130,16 @@ TPZVec<REAL> Path::Func(REAL t)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUax(fMeshDim,fMeshDim), GradUxy(fMeshDim,fMeshDim);
-    GradUax = data.dsol[0];
-    
-    GradUxy(0,0) = GradUax(0,0)*data.axes(0,0) + GradUax(1,0)*data.axes(1,0);
-    GradUxy(1,0) = GradUax(0,0)*data.axes(0,1) + GradUax(1,0)*data.axes(1,1);
-    GradUxy(0,1) = GradUax(0,1)*data.axes(0,0) + GradUax(1,1)*data.axes(1,0);
-    GradUxy(1,1) = GradUax(0,1)*data.axes(0,1) + GradUax(1,1)*data.axes(1,1);
-    
+    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUtxy(fMeshDim,fMeshDim);    
     if(fMeshDim == 2)
     {
+        TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim);
+        GradUtax = data.dsol[0];
+        GradUtxy(0,0) = GradUtax(0,0)*data.axes(0,0) + GradUtax(1,0)*data.axes(1,0);
+        GradUtxy(1,0) = GradUtax(0,0)*data.axes(0,1) + GradUtax(1,0)*data.axes(1,1);
+        GradUtxy(0,1) = GradUtax(0,1)*data.axes(0,0) + GradUtax(1,1)*data.axes(1,0);
+        GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
+        
         TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
         
         #ifdef DEBUG
@@ -169,6 +169,9 @@ TPZVec<REAL> Path::Func(REAL t)
     }
     else if(fMeshDim == 3)
     {
+        TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim), GradUxy(fMeshDim,fMeshDim);
+        GradUxy = data.dsol[0];
+        
         TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
         
         #ifdef DEBUG
@@ -181,7 +184,12 @@ TPZVec<REAL> Path::Func(REAL t)
         
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradUxy);
+        
+        GradUxy.Transpose(&GradUtxy);
     }
+    
+    TPZFMatrix<REAL> GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    GradUtxy.Multiply(Sigma, GradUt_Sigma);
     
     REAL W = 0.;
     for(int r = 0; r < fMeshDim; r++)
@@ -197,23 +205,20 @@ TPZVec<REAL> Path::Func(REAL t)
     {
         W_I(d,d) = W;
     }
-
-    TPZFMatrix<REAL> GradU_Sigma(fMeshDim,fMeshDim,0.);
-    GradUxy.Multiply(Sigma, GradU_Sigma);
     
-    TPZFMatrix<REAL> W_I_minus_GradU_Sigma(fMeshDim,fMeshDim,0.);
-    W_I_minus_GradU_Sigma = W_I - GradU_Sigma;
+    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
     
-    TPZVec<REAL> W_I_minus_GradU_Sigma__n(fMeshDim,0.);
+    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(fMeshDim,0.);
     for(int r = 0; r < fMeshDim; r++)
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            W_I_minus_GradU_Sigma__n[r] += (W_I_minus_GradU_Sigma(r,c)*nt[c]) * DETdxdt;
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]) * DETdxdt;
         }
     }
     
-    return W_I_minus_GradU_Sigma__n;
+    return W_I_minus_GradUt_Sigma__n;
 }
 
 
@@ -438,14 +443,15 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     REAL precisionIntegralRule = 1.E-15;
     Adapt intRule(precisionIntegralRule);
     
-//    linearPath * _LinearPath = new linearPath(jpathElem);
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
 //    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
+//    linearPath * _LinPath = new linearPath(jpathElem);
+    
     
     int meshDim = 2;
-//    TPZVec<REAL> integrLinPath = intRule.Vintegrate(*_LinearPath,meshDim,-1.,+1.);
     TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,meshDim,-1.,+1.);
 //    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
+//    TPZVec<REAL> lin  = intRule.Vintegrate(*_LinPath,meshDim,-1.,+1.);
     
     TPZVec<REAL> answ(meshDim);
     if(meshDim == 2)
@@ -453,13 +459,13 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
         answ[0] = 2.*integrExtArc[0];
         answ[1] = 0.;
     }
-//    else if(meshDim == 3)
-//    {
-//        //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
-//        answ[0] = 2.*(integrLinPath[0] + integrExtArc[0] + integrIntArc[0]);
-//        answ[1] = 0.;
-//        answ[2] = 2.*(integrLinPath[2] + integrExtArc[2] + integrIntArc[2]);
-//    }
+    else if(meshDim == 3)
+    {
+        //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
+        answ[0] = 2.*integrExtArc[0];
+        answ[1] = 0.;
+        answ[2] = 2.*integrExtArc[2];
+    }
     
     return answ;
 }
