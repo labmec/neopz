@@ -4,7 +4,6 @@
 #include "pzgeopoint.h"
 #include "TPZRefPatternDataBase.h"
 #include "tpzgeoelrefpattern.h"
-#include "TPZPoligonalChain.h"
 #include "TPZPlaneFracture.h"
 
 //to delete
@@ -162,18 +161,18 @@ int main(int argc, char * const argv[])
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
     REAL lw = 100.;
-    REAL bulletDepthIni = 0.;
+    REAL bulletDepthIni =   0.;
     REAL bulletDepthFin = 100.;    
     
     TPZVec< std::map<REAL,REAL> > pos_stress(2);
-    pos_stress[0][0.]  = 1.;
+    pos_stress[0][0.]    = 1.;
     pos_stress[0][100.]  = 1.;
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
     
     TPZVec<REAL> fractureDots(4);
-    fractureDots[0] = 22.;
-    fractureDots[1] = -2.;
-    fractureDots[2] = 22.;
+    fractureDots[0] =  22.;
+    fractureDots[1] = - 2.;
+    fractureDots[2] =  22.;
     fractureDots[3] = -98.;
     
     
