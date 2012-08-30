@@ -18,6 +18,13 @@ using namespace std;
 
 #include "pz_pthread.h"
 
+#ifdef USING_TBB
+#include "tbb/pipeline.h" 
+#include "tbb/parallel_for.h" 
+#include "tbb/blocked_range.h" 
+using namespace tbb; 
+#endif
+
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.strmatrix.tpzpairstructmatrix"));
 static LoggerPtr loggerel(Logger::getLogger("pz.strmatrix.element"));
@@ -33,6 +40,396 @@ TPZPairStructMatrix::TPZPairStructMatrix(TPZCompMesh *mesh, TPZVec<int> &permute
 	std::cout << "fNumThreads e "<< fNumThreads << " gNumThreads esta setando para " << gNumThreads << endl; 
 #endif
 	fNumThreads = gNumThreads;
+}
+
+#ifdef USING_TBB
+
+struct PipeItem_t
+{
+  TPZCompEl* el;
+  TPZElementMatrix ek;
+  TPZElementMatrix ef;
+};
+
+/* First stage: select thse TPZCompEl elements to be processed. */
+class StageOne_t : public tbb::filter
+{
+  unsigned current_iel;
+  unsigned nelem;
+  TPZAdmChunkVector<TPZCompEl *> &elementvec;
+  TPZCompMesh& mesh;
+
+  std::vector<PipeItem_t> items;
+  unsigned current_item;
+
+  std::set<int>& fMaterialIds;
+
+  bool ShouldCompute(int matid)
+  {
+    return fMaterialIds.size()==0 || fMaterialIds.find(matid) != fMaterialIds.end();
+  }
+
+public:
+
+  StageOne_t(unsigned tokens, TPZCompMesh& _mesh, std::set<int>& materialIds) : 
+    tbb::filter(/*is serial*/ true), current_iel(0), 
+    nelem(_mesh.NElements()), elementvec(_mesh.ElementVec()), mesh(_mesh),
+    items(tokens), current_item(0), fMaterialIds(materialIds)
+  {}
+  
+  unsigned n_tokens() {return items.size();}
+
+  void* operator()(void*)
+  {
+    TPZCompEl* el = NULL;
+    bool found = false;
+    
+    //cout << "current_iel (" << current_iel << ") / nelem (" << nelem << ")" << endl;
+    while(current_iel < nelem) 
+    {
+      el = elementvec[current_iel++];
+
+      if (!el) continue;
+
+      if(fMaterialIds.size() == 0) {
+        found = true;
+        break;
+      }
+
+      //cout << "DEBUG: fMaterialIds.size() != 0 ????" << endl;
+
+      TPZMaterial * mat = el->Material();
+      TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
+      if(!mat)
+	  {
+        if(!submesh) {
+            continue;
+        }
+        else if(submesh->NeedsComputing(fMaterialIds) == false) {
+          continue;
+		}
+      }
+      else 
+	  {
+        int matid = mat->Id();
+        if(this->ShouldCompute(matid) == false) continue;
+      }
+      found = true;
+      break;
+    }
+
+    if (found) 
+    {
+      /* Ok, we found an item to process! */
+      PipeItem_t& item = items[current_item];
+      current_item = (current_item+1) % items.size();
+      item.el = el;
+      //cout << "Stage 1: Producing item: " << (current_iel-1) << endl;
+      return &item;
+    }
+    else 
+    {
+      //cout << "Stage 1: Done" << endl;
+      return NULL; // It's over!
+    }
+  }
+};
+
+/* Second stage: compute the ek and ef matrices. */
+class StageTwo_t: public tbb::filter 
+{
+  TPZCompMesh *mesh;
+  int mineq;
+  int maxeq;
+
+public:
+  StageTwo_t(TPZCompMesh* _mesh, int _mineq, int _maxeq) : 
+    tbb::filter(/*is serial*/ false), mesh(_mesh), mineq(_mineq), maxeq(_maxeq)
+  {}
+  
+  void* operator()(void* item_p)
+  {
+    PipeItem_t& item = *static_cast<PipeItem_t*>(item_p);
+
+    item.ek.Reset(mesh, TPZElementMatrix::EK);
+    item.ef.Reset(mesh, TPZElementMatrix::EF);
+
+    item.el->CalcStiff(item.ek,item.ef);
+
+    //cout << "Stage Two: processing item: " << item_p << endl;
+
+    if (item.el->HasDependency())
+    {
+      // the element has dependent nodes
+      item.ek.ApplyConstraints();
+      item.ef.ApplyConstraints();
+    }
+      
+    item.ek.ComputeDestinationIndices();
+
+    if(mineq != -1 && maxeq != -1)
+      TPZStructMatrix::FilterEquations(item.ek.fSourceIndex, item.ek.fDestinationIndex, 
+                                       mineq, maxeq);
+
+    return item_p;
+  }
+};
+
+/* Third stage: compute the first matrix and the rhs. */
+template<class TVar>
+class StageThree_t: public tbb::filter 
+{
+  TPZMatrix<TVar>& fGlobMatrix1;
+  TPZFMatrix<TVar>& fGlobRhs;
+
+public:
+  StageThree_t(TPZMatrix<TVar>& _fGlobMatrix1, TPZFMatrix<TVar>& _fGlobRhs) : 
+    tbb::filter(/*is serial*/ true), fGlobMatrix1(_fGlobMatrix1), fGlobRhs(_fGlobRhs)
+  {}
+  
+  void* operator()(void* item_p)
+  {
+    PipeItem_t& item = *static_cast<PipeItem_t*>(item_p);
+    TPZElementMatrix& ek = item.ek;
+    TPZElementMatrix& ef = item.ef;
+
+    // Assemble the matrix
+    if(!ek.HasDependency())
+    {
+      fGlobMatrix1.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+      fGlobRhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);				
+    }
+    else
+    {
+      fGlobMatrix1.AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+      fGlobRhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);				
+    }
+
+    return item_p;
+  }
+};
+
+/* Fourth stage: compute the second matrix. */
+template<class TVar>
+class StageFour_t: public tbb::filter 
+{
+  TPZMatrix<TVar>& fGlobMatrix2;
+  const TPZVec<int>& fPermuteScatter;
+
+  void PermuteScatter(TPZVec<int> &index)
+  {
+	int nel = index.NElements();
+	int iel;
+	for(iel = 0; iel<nel; iel++)
+		index[iel] = fPermuteScatter[index[iel]];
+  }
+
+public:
+  StageFour_t(TPZMatrix<TVar>& _fGlobMatrix2, const TPZVec<int>& _fPermuteScatter) : 
+    tbb::filter(/*is serial*/ true), fGlobMatrix2(_fGlobMatrix2), 
+    fPermuteScatter(_fPermuteScatter)
+  {}
+  
+  void* operator()(void* item_p)
+  {
+    PipeItem_t& item = *static_cast<PipeItem_t*>(item_p);
+    TPZElementMatrix& ek = item.ek;
+
+    PermuteScatter(ek.fDestinationIndex);
+	
+    // Assemble the matrix
+    if(!ek.HasDependency())
+      fGlobMatrix2.AddKel(ek.fMat, ek.fSourceIndex, ek.fDestinationIndex);
+    else
+      fGlobMatrix2.AddKel(ek.fConstrMat, ek.fSourceIndex, ek.fDestinationIndex);
+
+    return NULL;
+  }
+};
+
+#endif // USING TBB
+
+/* 
+   Iterações do laço podem ser executadas em paralelo. 
+   - 1: Utilizar um parallel_for: (simples, mas não explora paralelismo entre threadassembly 1 e 2.
+   - 2: Utilizar árvore de tarefas: Podemos explorar o paralelismo entre threadassembly 1 e 2, mas
+   o código pode ficar grande.
+*/
+template<class TVar>
+class parallel_assemble_task_t
+{
+private:
+
+  void PermuteScatter(TPZVec<int> &index)
+  {
+	int nel = index.NElements();
+	int iel;
+	for(iel = 0; iel<nel; iel++)
+    {
+      index[iel] = fPermuteScatter[index[iel]];
+    }
+  }
+
+  /** Array of work items. */
+  std::vector<TPZCompEl*> work_items;
+  // TODO: Try the cache_aligned_allocator for improved performance.
+  //std::vector<work_item_t<TVar>,cache_aligned_allocator<work_item_t<TVar> > > work_items;
+
+  /* Pointers to shared data structures. */
+
+  //TPZAutoPointer<TPZDohrAssembly<TVar> > fAssembly;
+  //TPZAutoPointer<TPZCompMesh> fMesh;
+
+public:
+
+  /** Add a new work item to be list. */
+  void push_work_item(TPZCompEl *el)
+  {
+    work_items.push_back(el);
+  }
+
+#ifdef USING_TBB
+  /** Execute work items in parallel. */
+  void run_parallel_for()
+  {
+    /* TBB Parallel for. It will split the range into N sub-ranges and
+       invoke the operator() for each sub-range.*/
+    parallel_for(blocked_range<size_t>(0,work_items.size(), 1 /*IdealGrainSize*/), *this); 
+  }
+
+  /** Computing operator for the parallel for. */
+  void operator()(const blocked_range<size_t>& range) const
+  { 
+    TPZElementMatrix ek(&mesh, TPZElementMatrix::EK);
+    TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
+
+    for(size_t i=range.begin(); i!=range.end(); ++i ) {
+
+      TPZCompEl* el = work_items[i];
+
+      el->CalcStiff(ek,ef);
+
+      bool has_dependency = el->HasDependency();
+      if(has_dependency) 
+      {
+        // the element has dependent nodes
+        ek.ApplyConstraints();
+        ef.ApplyConstraints();
+      }
+      
+      ek.ComputeDestinationIndices();
+
+      if(mineq != -1 && maxeq != -1)
+        TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
+      
+      // ThreadAssembly 1 -- Lock 1
+      // FIXME. Precisa de um lock
+      if(!has_dependency) 
+      {
+        first->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+      } 
+      else 
+      {
+        first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+        rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+      }
+      
+      // ThreadAssembly 2 -- Lock 2
+      // FIXME. Precisa de um lock
+      PermuteScatter(ek.fDestinationIndex);
+      second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);      
+    }
+  } 
+#endif // USING TBB
+
+  /** Execute work items serially. */
+  void run_serial()
+  {
+    TPZElementMatrix ek(&mesh, TPZElementMatrix::EK);
+    TPZElementMatrix ef(&mesh, TPZElementMatrix::EF);
+
+    std::vector<TPZCompEl*>::iterator it = work_items.begin();
+    for(; it != work_items.end(); it++)
+    {   
+      TPZCompEl* el = *it;
+
+      el->CalcStiff(ek,ef);
+
+      bool has_dependency = el->HasDependency();
+      if(has_dependency) 
+      {
+        // the element has dependent nodes
+        ek.ApplyConstraints();
+        ef.ApplyConstraints();
+      }
+      
+      ek.ComputeDestinationIndices();
+
+      if(mineq != -1 && maxeq != -1)
+        TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
+      
+      // ThreadAssembly 1
+      if(!has_dependency) 
+      {
+        first->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+        rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+      } 
+      else 
+      {
+        first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+        rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
+      }
+      
+      // ThreadAssembly 2
+      PermuteScatter(ek.fDestinationIndex);
+      second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);      
+    }
+  }
+
+  int mineq;
+  int maxeq;
+  TPZMatrix<STATE>*  first;
+  TPZMatrix<STATE>*  second;
+  TPZFMatrix<STATE>& rhs;
+  TPZVec<int>&       fPermuteScatter;
+  const TPZCompMesh& mesh;
+
+  parallel_assemble_task_t(const TPZCompMesh& _mesh, int _mineq, int _maxeq, TPZMatrix<STATE> *_first, 
+                           TPZMatrix<STATE> *_second, TPZFMatrix<STATE> &_rhs, TPZVec<int>& permuteScatter) :
+    mineq(_mineq), maxeq(_maxeq), first(_first), second(_second), 
+    rhs(_rhs), fPermuteScatter(permuteScatter), mesh(_mesh)
+  {}
+
+};
+
+
+void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
+                                      TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
+{
+  int iel;
+  TPZCompMesh &mesh = *fMesh;
+  int nelem = mesh.NElements();
+  TPZAdmChunkVector<TPZCompEl *> &elementvec = mesh.ElementVec();
+
+  // Create the pipeline 
+  tbb::pipeline pipeline; 
+  
+  // Create file-reading writing stage and add it to the pipeline 
+  StageOne_t          filter1(64 /* Number of tokens on the fly */, mesh, fMaterialIds);
+  StageTwo_t          filter2(fMesh, mineq, maxeq);
+  StageThree_t<STATE> filter3(*first, rhs);
+  StageFour_t<STATE>  filter4(*second, fPermuteScatter);
+
+  pipeline.add_filter(filter1);
+  pipeline.add_filter(filter2);
+  pipeline.add_filter(filter3);
+  pipeline.add_filter(filter4);
+  
+  // Run the pipeline 
+  pipeline.run(filter1.n_tokens() /* Max tokens on the fly: TODO - Tune this parameter */ ); 
+  
+  pipeline.clear(); 
 }
 
 void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
@@ -59,6 +456,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 		
 		if(!el->HasDependency()) {
 			ek.ComputeDestinationIndices();
+            //FIXME: (Edson) - O operador é  && ou ||? O método paralelo é diferente!
 			if(mineq != -1 && maxeq != -1)
 			{
 				TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
@@ -81,6 +479,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 			ek.ApplyConstraints();
 			ef.ApplyConstraints();
 			ek.ComputeDestinationIndices();
+            //FIXME: (Edson) - O operador é  && ou ||
 			if(mineq != -1 && maxeq != -1)
 			{
 				TPZStructMatrix::FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,mineq,maxeq);
@@ -88,6 +487,7 @@ void TPZPairStructMatrix::SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> 
 			first->AddKel(ek.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fConstrMat,ek.fSourceIndex,ek.fDestinationIndex);
 			PermuteScatter(ek.fDestinationIndex);
+            //FIXME: (Edson) - Não deveria utilizar ek.fConstrMat?
 			second->AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 		}
 		
@@ -123,15 +523,16 @@ void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first
   std::cout << "TPZPairStructMatrix::Assemble = Assembling the system of equations with " << fNumThreads
 	    << " threads (TPZPairStructMatrix::gNumThreads = " << TPZPairStructMatrix::gNumThreads  << ")\n";
 #endif
-	if(fNumThreads <= 0)
-	{
-		SerialAssemble(mineq,maxeq,first,second,rhs);
-		return;
-	}
-	else 
-	{
-		MultiThread_Assemble(mineq, maxeq, first, second, rhs);
-	}
+
+#warning "Fixme!!!"
+  // Find a better way to select among TBB, pthread or serial execution!
+
+  if (fNumThreads < 0)
+    TBBAssemble(mineq, maxeq, first, second, rhs);
+  else if(fNumThreads > 0)
+    MultiThread_Assemble(mineq, maxeq, first, second, rhs);
+  else 
+    SerialAssemble(mineq,maxeq,first,second,rhs);
 }
 
 void TPZPairStructMatrix::MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
@@ -429,7 +830,6 @@ int TPZPairStructMatrix::ThreadData::NextElement()
 // put the computed element matrices in the map
 void TPZPairStructMatrix::ThreadData::ComputedElementMatrix(int iel, TPZAutoPointer<TPZElementMatrix> &ek, TPZAutoPointer<TPZElementMatrix> &ef)
 {
-  //FIXME: Edson, este metodo precisa de lock (exclusao mutua)?
         PZ_PTHREAD_MUTEX_LOCK(&fAccessElement,"TPZPairStructMatrix::ThreadData::ComputedElementMatrix()");
 	std::pair< TPZAutoPointer<TPZElementMatrix>, TPZAutoPointer<TPZElementMatrix> > el(ek,ef);
 	fSubmitted1[iel] = el;

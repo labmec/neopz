@@ -44,24 +44,23 @@ function gen_ckpts
 	    CMD="$APP $EXTRAARGS $READOPT \"$DATADIR/SubStruct/inputs/$INPUT\" \
                   -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1\" \
         	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2\" \
-        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3\" "
+        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3\"  \
+              -nsub $ns -p $plevel"
 
-	    echo "CMD=$CMD"
-	    
 	    eval $CMD &> /dev/null
 	    RET=$?
 
 	    if [ $RET != 0 ]; then
-		echo "ERROR when executing: $CMD"
-		echo "Return code = $RET"
+		    echo "ERROR when executing: $CMD"
+		    echo "Return code = $RET"
+	        echo "CMD=$CMD"
+	    else
+	        cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1" \
+		        "$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1"
+	        
+	        cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2" \
+		        "$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2"
 	    fi
-	    
-	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1" \
-		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1"
-	    
-	    cp -f "$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2" \
-		"$DATADIR/SubStruct/inputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2"
-	    
 	done   
     done
 }

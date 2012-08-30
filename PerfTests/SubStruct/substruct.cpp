@@ -109,10 +109,11 @@ clarg::argString mp("-mp", "starts execution from beginning - read a \"malha_pre
                     "../8andares02.txt");
 
 clarg::argInt plevel     ("-p", "plevel", 1);
-clarg::argInt nt_submeshs("-nt_sm", "number of threads to process the submeshes", 0);
-clarg::argInt nt_assemble("-nt_a", "number of threads to assemble each submesh", 0);
-clarg::argInt nt_decompose("-nt_d", "number of threads to decompose each submesh", 0);
-clarg::argBool assemble_tbb("-ass_tbb", "assemble using TBB", false);
+clarg::argInt nt_sm("-nt_sm", "Dohr (l1): number of threads to process the submeshes", 0);
+clarg::argInt nt_d("-nt_d", "Dohr (l1): number of threads to decompose each submesh", 0);
+clarg::argInt nt_a("-nt_a", "Pair (l2): number of threads to assemble each submesh", 0);
+clarg::argBool dohr_tbb("-dohr_tbb", "assemble TPZDohrStructMatrix (level 1) using TBB", false);
+clarg::argBool pair_tbb("-pair_tbb", "assemble TPZPairStructMatrix (level 2) using TBB", false);
 clarg::argInt nt_multiply("-nt_m", "number of threads to multiply", 0);
 clarg::argInt nsub("-nsub", "number of substructs", 4);
 
@@ -211,7 +212,10 @@ int main(int argc, char *argv[])
 
     total_rst.start();
 
-    TPZPairStructMatrix::gNumThreads = nt_assemble.get_value();
+    if (pair_tbb.was_set())
+      TPZPairStructMatrix::gNumThreads = -1;
+    else
+      TPZPairStructMatrix::gNumThreads = nt_a.get_value();
     
     TPZGeoMesh  *gmesh = 0;
     TPZAutoPointer<TPZCompMesh> cmeshauto = 0;
@@ -378,10 +382,10 @@ int main(int argc, char *argv[])
         TPZAutoPointer<TPZGuiInterface> gui;
         rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
         VERBOSE(1,"dohrstruct->Assemble()" << endl);
-        if (assemble_tbb.was_set())
+        if (dohr_tbb.was_set())
           dohrstruct->AssembleTBB(*matptr,*rhs, gui);
         else
-          dohrstruct->Assemble(*matptr,*rhs, gui, nt_submeshs.get_value(), nt_decompose.get_value());
+          dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
 
 	assemble_rst.stop();
 

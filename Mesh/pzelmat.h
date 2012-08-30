@@ -26,7 +26,7 @@
  */
 struct TPZElementMatrix {
 	
-	enum MType{EF = 1, EK = 2};
+    enum MType{Unknown = 0, EF = 1, EK = 2};
 	
 	MType fType;
 	
@@ -54,19 +54,25 @@ struct TPZElementMatrix {
 	int fNumStateVars;
 	
 	/// Reset the data structure
-	void Reset()
+	void Reset(TPZCompMesh *mesh = NULL, MType type=Unknown)
 	{
-		fConnect.Resize(0);
-		fMat.Resize(0,0);
-		fBlock.SetNBlocks(0);
-		fConstrConnect.Resize(0);
-		fConstrMat.Resize(0,0);
-		fConstrBlock.SetNBlocks(0);
+      fMesh = mesh;
+      fType = type;
+      fConnect.Resize(0);
+      fMat.Resize(0,0);
+      fBlock.SetNBlocks(0);
+      fConstrConnect.Resize(0);
+      fConstrMat.Resize(0,0);
+      fConstrBlock.SetNBlocks(0);
 	}
 	
 	TPZElementMatrix(TPZCompMesh *mesh, MType type) : fType(type), fMesh(mesh), fConnect(), fMat(0,0), fBlock(&fMat),  fConstrConnect(), fConstrMat(0,0), fConstrBlock(&fConstrMat), fNumStateVars(0)
     {
     }
+
+    TPZElementMatrix() : fType(Unknown), fMesh(NULL), fConnect(), fMat(0,0), fBlock(&fMat), fConstrConnect(), 
+      fConstrMat(0,0), fConstrBlock(&fConstrMat), fNumStateVars(0)
+    {}
 	
     TPZElementMatrix(const TPZElementMatrix &copy);
 	

@@ -356,6 +356,7 @@ void TPZDohrStructMatrix::AssembleTBB(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> 
   parallel_assemble_task_t<STATE> parallel_tasks(fDohrAssembly, fMesh);
 
   /* Initialize work items. */
+  std::cout << "Assembling " << nsub << " submeshes" << std::endl;
   for (isub=0; isub<nsub ; isub++) {
     TPZSubCompMesh *submesh = SubMesh(fMesh, isub);
     if(!submesh) continue;

@@ -42,7 +42,9 @@ public:
 	void SetMaterialIds(const std::set<int> &materialids);
 	
 	void Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
-	
+	void TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
+                     TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
+
 	void SerialAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
 	
 	void MultiThread_Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first, TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs);
