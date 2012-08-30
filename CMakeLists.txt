@@ -32,7 +32,6 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/LinearSolvers"
 	"${PROJECT_SOURCE_DIR}/External"
 	"${PROJECT_SOURCE_DIR}/External/sloan"
-	"${PROJECT_SOURCE_DIR}/PlaneFracture"
  )
 
 #MESSAGE( STATUS "RUNTIME_DIR:         " ${RUNTIME_OUTPUT_DIRECTORY} )
@@ -334,7 +333,6 @@ add_subdirectory(Frontal)
 add_subdirectory(StrMatrix)
 add_subdirectory(Pre)
 add_subdirectory(SubStruct)
-add_subdirectory(PlaneFracture)
 
 add_subdirectory(lib)
 add_subdirectory(Projects)
