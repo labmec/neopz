@@ -313,6 +313,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	for (int iref=0; iref<nref; iref++) {
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if(!msp) continue;
         TPZMaterial *mat = msp->Material();
 		nstate += mat->NStateVariables();
         numloadcases = mat->NumLoadCases();
@@ -366,6 +367,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	for (int iref = 0; iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if(!msp) continue;
         msp->InitMaterialData(dataVec[iref]);
         
 		//const int nstate = msp->Material()->NStateVariables();
@@ -425,6 +427,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	for (int iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if(!msp) continue;
 		datavec[iref].p = msp->MaxOrder();
 		ordervec[iref] = datavec[iref].p; 
 	}
@@ -436,6 +439,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZManVector<int,3> intorder(dim,order);
 	intrule->SetOrder(intorder);	
 	int intrulepoints = intrule->NPoints();
+    if(intrulepoints > 1000) {DebugStop();}
 	
 	TPZFMatrix<REAL> jac, axe, jacInv;
 	REAL detJac; 
@@ -447,6 +451,7 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		for (int iref=0; iref<fElementVec.size(); iref++)
 		{			
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+            if(!msp) continue;
 			trvec[iref].Apply(intpointtemp, intpoint);
 			
 			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
