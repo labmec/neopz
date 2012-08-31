@@ -168,9 +168,9 @@ void TPZElastPressure::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
     int phcu = phiu.Cols();
-//    
-//    int r = fk.Rows();
-//	int c = fk.Cols();
+    
+//    int r =1;// fk.Rows();
+//	int c =1;// fk.Cols();
 //	TPZFMatrix<STATE> submat(r,c);
 //    submat.Redim(r, c);
 //    
@@ -186,7 +186,6 @@ void TPZElastPressure::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL
 //			REAL temp = dphip(0,in)*dphip(0,jn)*weight;
 //			submat = fk*temp;
 //			ek.AddSub(in*r + phcu,jn*c + phcu,submat);
-//           // ek(in*r,jn*c )=fk(0,0)*temp;
 //		}
 //	}
     
@@ -210,7 +209,7 @@ void TPZElastPressure::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL w
     for(int in = 0 ; in < phc; in++) {
         for (int il = 0; il <fNumLoadCases; il++) 
         {
-            TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
             
             ef(in,il) += big*(v2(0,il)*phiu(0,in) + v2(1,il)*phiu(1,in))*weight;
         }
@@ -230,7 +229,7 @@ void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     {
         for (int il = 0; il <fNumLoadCases; il++) 
         {
-            TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
             ef(in,il)+= weight*(v2(0,il)*phiu(0,in) + v2(1,il)*phiu(1,in));
         }
     }
@@ -248,7 +247,7 @@ void TPZElastPressure::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weigh
     {
         for (int il = 0; il <fNumLoadCases; il++) 
         {
-            TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
+            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
             ef(in,il)+= weight*(v2(0,il)*phiu(0,in) + v2(1,il)*phiu(1,in));
         }
         
@@ -269,10 +268,10 @@ void TPZElastPressure::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL w
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
-    
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     int phrp = phip.Rows();
-//	int r = fk.Rows();
+    
+//	int r =1;// fk.Rows();
 //    int numnod = (ek.Rows()-c_u)/r;
 //    
 //    for(int in=0 ; in<numnod ; ++in){
@@ -299,11 +298,10 @@ void TPZElastPressure::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
-    
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     int  phrp = phip.Rows();
     
-//	int r = fk.Rows();
+//	int r = 1;//fk.Rows();
 //    int numnod = (ek.Rows()-c_u)/r;
 //    
 //    for(int in=0 ; in<numnod ; ++in){
@@ -322,11 +320,10 @@ void TPZElastPressure::ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weigh
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
-    
     TPZFMatrix<REAL> &phip = datavec[1].phi;
     int phrp = phip.Rows();
-    
-//	int r = fk.Rows();
+//    
+//	int r =1;// fk.Rows();
 //    int numnod = (ek.Rows()-c_u)/r;
 //    int in, idf, jn, jdf;
 //    for(in=0 ; in<numnod ; ++in){
@@ -399,16 +396,47 @@ void TPZElastPressure::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
 }
 
 int TPZElastPressure::VariableIndex(const std::string &name){
-    return 1;
+    if(!strcmp("Pressure",name.c_str()))        return  1;
+    if(!strcmp("MinusKGradP",name.c_str()))     return  2;
+    
+    return TPZMaterial::VariableIndex(name);
 }
 
 int TPZElastPressure::NSolutionVariables(int var){
-    return 1;
+    if(var == 1) return 1;
+    if(var ==  2) return 1;
+    return TPZMaterial::NSolutionVariables(var);
 }
 
 
 void TPZElastPressure::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
-    DebugStop();
+   
+    Solout.Resize(this->NSolutionVariables(var));
+    
+    TPZVec<REAL> SolP;
+	TPZFMatrix<> DSolP;
+	TPZFMatrix<> axesP;
+    SolP=datavec[1].sol[0];
+	DSolP=datavec[1].dsol[0];
+    axesP=datavec[1].axes;
+    
+    int ssol = datavec[1].sol[0].size();
+    if(ssol==0) return;
+    if(var == 1) {
+		Solout[0] = SolP[0];
+		return;
+	}//var1
+    
+    if (var == 2){
+		int id;
+		TPZFNMatrix<9,REAL> dsoldx;
+		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
+		for(id=0 ; id<1; id++) {
+			Solout[id] = -1.*(fk)*dsoldx(id,0);
+		}
+		return;
+	}//var2
+
     
 }
 
