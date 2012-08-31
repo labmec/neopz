@@ -6,8 +6,6 @@
 //  Copyright (c) 2012 LabMec-Unicamp. All rights reserved.
 //
 
-#include <iostream>
-
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"
@@ -18,6 +16,7 @@
 #include "TPZInterfaceEl.h"
 #include "pzinterpolationspace.h"
 
+#include "pzpoisson3d.h"
 #include "pzelasmat.h"
 #include "pzmat1dlin.h"
 #include "pzelastpressure.h"
@@ -42,6 +41,10 @@
 
 #include <iostream>
 #include <math.h>
+
+#include <fstream>
+#include <sstream>
+
 using namespace std;
 
 int const matId1 =1; //elastic
@@ -68,6 +71,7 @@ int const dir_pressure = 22;
 REAL const Pi = 4.*atan(1.);
 
 TPZGeoMesh *GMesh(int nh,REAL w, REAL L);
+TPZGeoMesh *GMesh2(int nh, REAL L);
 TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder);
 TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder);
@@ -75,7 +79,8 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh);
 
 TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> meshvec, TPZElastPressure * &mymaterial);
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
-
+void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+void SaidaPressao(TPZCompMesh * cmesh);
 
 void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento1(TPZAnalysis &an, std::string plotfile);
@@ -96,32 +101,24 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(0,1.,1.);
+	TPZGeoMesh * gmesh = GMesh(4,1.,1.);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
-    
-    //ofstream vtkgmesh("gmesh_inicial.vtk");
-    
-    //TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkgmesh, true);
+//    ofstream vtkgmesh("gmesh_inicial.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkgmesh, true);
     
     //computational mesh elastic
 	TPZCompMesh * cmesh_elast= CMeshElastic(gmesh, p);
-    ofstream arg2("cmesh_inicial.txt");
-    cmesh_elast->Print(arg2);
-        
-//    gmesh->ResetReference();
-//	cmesh_elast->LoadReferences();
-//    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_elast,0);
-//	cmesh_elast->AdjustBoundaryElements();
-//	cmesh_elast->CleanUpUnconnectedNodes();
-        
     TPZAnalysis an1(cmesh_elast);
     MySolve(an1, cmesh_elast);
-    string plotfile("saidaSolution_mesh1.vtk");
-    PosProcessamento1(an1, plotfile);
-    TPZFMatrix<REAL> solucao;
-    solucao=cmesh_elast->Solution();
-    solucao.Print();
+    ofstream arg2("cmesh_inicial.txt");
+    cmesh_elast->Print(arg2);
+                
+//    string plotfile("saidaSolution_mesh1.vtk");
+//    PosProcessamento1(an1, plotfile);
+//    TPZFMatrix<REAL> solucao;
+//    solucao=cmesh_elast->Solution();
+//    solucao.Print();
     
     //computational mesh of reduced space
     TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
@@ -136,12 +133,13 @@ int main(int argc, char *argv[])
     cmesh_referred->Print(arg3);
 	
     //computational mesh of pressure
+    //TPZGeoMesh * gmesh2 = GMesh2(4,0.5);
     TPZCompMesh *cmesh_pressure = CMeshPressure(gmesh, p);
     ofstream arg4("cmeshpressure_inicial.txt");
     cmesh_pressure->Print(arg4);
-//    TPZAnalysis an3(cmesh_pressure);
-//    MySolve(an3, cmesh_pressure);
-    
+    TPZAnalysis an2(cmesh_pressure);
+    MySolve(an2, cmesh_pressure);
+    SaidaPressao(cmesh_pressure);
     //------- computational mesh multiphysic ----------//
     
     // Cleaning reference of the geometric mesh to cmesh_referred
@@ -162,24 +160,11 @@ int main(int argc, char *argv[])
     ofstream arg6("cmeshpressure_final.txt");
     cmesh_pressure->Print(arg6);
     
-    ofstream arg8("gmesh_final");
-    gmesh->Print(arg8);
-                  
+    
     //multiphysic mesh
     TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh_referred;
 	meshvec[1] = cmesh_pressure;
-    
-	
-//    gmesh->ResetReference();
-//	TPZCompMesh *mphysics = new TPZCompMesh(gmesh);
-//    mphysics->SetAllCreateFunctionsMultiphysicElem();
-//    InsertMultiphysicsMaterials(mphysics);
-//    mphysics->AutoBuild();
-//	mphysics->CleanUpUnconnectedNodes();
-//	TPZBuildMultiphysicsMesh::AddElements(meshvec, mphysics);
-//	TPZBuildMultiphysicsMesh::AddConnects(meshvec,mphysics);
-//	TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
     
     gmesh->ResetReference();
 	TPZElastPressure *mymaterial;
@@ -192,7 +177,71 @@ int main(int argc, char *argv[])
     TPZAnalysis an(mphysics);
 	MySolve(an, mphysics);
     
+//    string plotfile("saidaSolution_multifisica.vtk");
+//    PosProcessMultphysics(meshvec, mphysics, an, plotfile);
+    
+    //GMESH FINAL
+    ofstream arg8("gmesh_final");
+    gmesh->Print(arg8);
+    ofstream vtkgmesh2("gmesh_final.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkgmesh2, true);
+    
+    ///4. Saida para mathematica
+    SaidaPressao(meshvec, mphysics);
+    
+    
     return 0;
+}
+
+ofstream outfile("SaidaPressao.nb");
+void SaidaPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics){
+    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    outfile<<" Saida = {";
+    for(int i = 0;  i< meshvec[1]->ElementVec().NElements(); i++)
+    {
+        TPZCompEl * cel =meshvec[1]->ElementVec()[i];
+        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
+        if(!sp) continue;
+        TPZVec<REAL> qsi(1,0.),out(3,0.);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        for(int j = 0; j < 1; j++){
+            qsi[0] = -1.+2.*i/10.;
+            sp->ComputeShape(qsi, data);
+            sp->ComputeSolution(qsi, data);
+            TPZVec<REAL> SolP = data.sol[0]; 
+            cel->Reference()->X(qsi,out);
+            outfile<<"{" << out[0]<< ", " << data.sol[0]<<"}";
+        }
+        if(i!= meshvec[1]->ElementVec().NElements()-1) outfile<<", ";
+        if(i== meshvec[1]->ElementVec().NElements()-1) outfile<<"};"<<std::endl;
+    }
+    outfile<<"ListPlot[Saida,Joined->True]"<<endl;
+}
+
+ofstream outfile1("SaidaPressao1.nb");
+void SaidaPressao(TPZCompMesh * cmesh){
+    outfile1<<" Saida2 = {";
+    for(int i = 0;  i< cmesh->ElementVec().NElements(); i++)
+    {
+        TPZCompEl * cel =cmesh->ElementVec()[i];
+        TPZInterpolatedElement * sp = dynamic_cast <TPZInterpolatedElement*>(cel);
+        if(!sp) continue;
+        TPZVec<REAL> qsi(1,0.),out(3,0.);
+        TPZMaterialData data;
+        sp->InitMaterialData(data);
+        for(int j = 0; j < 1; j++){
+            qsi[0] = -1.+2.*i/10.;
+            sp->ComputeShape(qsi, data);
+            sp->ComputeSolution(qsi, data);
+            TPZVec<REAL> SolP = data.sol[0]; 
+            cel->Reference()->X(qsi,out);
+            outfile1<<"{" << out[0]<< ", " << data.sol[0]<<"}";
+        }
+        if(i!= cmesh->ElementVec().NElements()-1) outfile1<<", ";
+        if(i== cmesh->ElementVec().NElements()-1) outfile1<<"};"<<std::endl;
+    }
+    outfile1<<"ListPlot[Saida2,Joined->True]"<<endl;
 }
 
 TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
@@ -300,9 +349,9 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
 		}//for i
 	}//ref
     
-   //  gRefDBase.InitializeRefPatterns();
+     //gRefDBase.InitializeRefPatterns();
     
-//    int nrefdir = 4;
+//    int nrefdir = 2;
 //    std::set<int> matNewm;
 //    matNewm.insert(matId2);
 //    for(int ii = 0; ii < nrefdir; ii++)
@@ -317,13 +366,63 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
 	return gmesh;
 }
 
+TPZGeoMesh *GMesh2(int nh, REAL L){
+    
+    TPZGeoMesh * gmesh = new TPZGeoMesh;
+    gmesh->SetMaxNodeId(1);
+	gmesh->NodeVec().Resize(2);
+	TPZVec<TPZGeoNode> Node(2);
+    TPZVec <int> TopolLine(2);
+    TPZVec <int> TopolPoint(1);
+	
+	//indice dos nos
+	int id = 0;
+	REAL valx;
+	for(int xi = 0; xi < 2; xi++)
+	{
+		valx = xi*L;
+		Node[id].SetNodeId(id);
+		Node[id].SetCoord(0,valx );//coord X
+		gmesh->NodeVec()[id] = Node[id];
+		id++;
+	}
+
+    id=0;
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc5,*gmesh);
+    id++;
+
+    TopolPoint[0] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc6,*gmesh);
+    
+    gmesh->BuildConnectivity();
+    
+    //refinamento uniforme
+    for ( int ref = 0; ref < nh; ref++ ){
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for ( int i = 0; i < n; i++ ){
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			//if (gel->Dimension() == 2) gel->Divide (filhos);
+            gel->Divide (filhos);
+		}//for i
+	}//ref
+
+    
+    return gmesh;
+}
 
 TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
 	int dim = 2;
 	
-    TPZVec<REAL> force(dim,1.);
+    TPZVec<REAL> force(dim,0.);
     REAL E = 100.;
 	REAL poisson = 0.35;
     //int planestress = 1;
@@ -386,7 +485,7 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     /// criar materiais
 	int dim = 2;
     
-    TPZVec<REAL> force(dim,1.);
+    TPZVec<REAL> force(dim,0.);
     REAL E = 100.;
 	REAL poisson = 0.35;
     //int planestress = 1;
@@ -461,11 +560,23 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     TPZMat1dLin *material;
 	material = new TPZMat1dLin(matId2);
     
-    TPZFMatrix<REAL> xk(1,1,1.);
+    TPZFMatrix<REAL> xk(1,1,0.0001);
     TPZFMatrix<REAL> xc(1,1,0.);
     TPZFMatrix<REAL> xb(1,1,0.);
-    TPZFMatrix<REAL> xf(1,1,0.);
+    TPZFMatrix<REAL> xf(1,1,-0.02);
     material->SetMaterial(xk,xc,xb,xf);
+    
+//    TPZMatPoisson3d *material;
+//	material = new TPZMatPoisson3d(matId2,dim); 
+//
+//    REAL diff=0.0001;
+//    REAL conv =0.;
+//    TPZVec<REAL> convdir;
+//    convdir.Resize(dim,0.);
+//    material-> SetParameters(diff, conv, convdir);
+//    
+//    REAL ff=0.02;
+//    material->SetInternalFlux(ff);
     
     TPZMaterial * mat(material);
     material->NStateVariables();
@@ -478,23 +589,24 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     
     ///Inserir condicao de contorno
     REAL vazao = 10.;
+    REAL pressao = 0.;
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
-    val2(0,0)=vazao;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc5, neumann, val1, val2);
+    val2(0,0)=pressao;
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc5, dirichlet, val1, val2);
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    TPZMaterial * BCond2 = material->CreateBC(mat, matId2, neumann, val1, val2);
+    //TPZMaterial * BCond2 = material->CreateBC(mat, matId2, neumann, val1, val2);
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    val2(0,0)=100.;
+    val2(0,0)=30.;
     TPZMaterial * BCond3 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
     cmesh->InsertMaterialObject(BCond1);
-    cmesh->InsertMaterialObject(BCond2);
+   // cmesh->InsertMaterialObject(BCond2);
     cmesh->InsertMaterialObject(BCond3);
 	
 	//Ajuste da estrutura de dados computacional
@@ -530,7 +642,7 @@ void PosProcessamento1(TPZAnalysis &an, std::string plotfile){
     scalnames[3] = "sig_y";
     
 	const int dim = 2;
-	int div = 3;
+	int div = 0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -560,8 +672,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //data pressure
     //TPZFMatrix<REAL> xk(1,1,1.);
     //TPZFMatrix<REAL> xf(1,1,0.);
-    REAL xk = 1.;
-    REAL xf = 0.;
+    REAL xk = 0.0001;
+    REAL xf = -0.02;
     mymaterial->SetParameters(xk, xf);
     
     
@@ -593,14 +705,14 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     val1(0,0) = big;
     TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bc4, mix_elast, val1, val2);
     
-    REAL vazao = 10.;
+    REAL vazao = 0.;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=vazao;
-    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,neum_pressure, val1, val2);
+    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,dir_pressure, val1, val2);
     
     
-    REAL pres=100.;
+    REAL pres= 30.;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)= pres;
@@ -701,14 +813,13 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile){
     
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(1), vecnames(2);
-	vecnames[0]  = "Flux";
-    vecnames[1]  = "GradFluxX";
-    scalnames[0] = "Pressure";
+	TPZManVector<std::string,10> scalnames(2), vecnames(0);
+	scalnames[0]  = "Pressure";
+    scalnames[1]  = "MinusKGradP";
     
 	
 	const int dim = 2;
-	int div =2;
+	int div =0;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");

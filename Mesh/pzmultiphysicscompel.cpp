@@ -228,10 +228,13 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
     
 	for (int iref = 0; iref<nref; iref++)
 	{		
-        
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-        trvec[iref].Apply(qsi, myqsi);
+        if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
+        TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
+        if(shapetype==datavec[iref].EVecShape) continue;
+        
+        trvec[iref].Apply(qsi, myqsi);
         datavec[iref].p = msp->MaxOrder();
         msp->ComputeShape(qsi,datavec[iref]);
         msp->ComputeSolution(myqsi, datavec[iref]);
@@ -422,14 +425,18 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
 	REAL weight = 0.;
 	
-	TPZVec<int> ordervec;
-	ordervec.resize(nref);
+	TPZManVector<int> ordervec;
+	//ordervec.resize(nref);
 	for (int iref=0;  iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-        if(!msp) continue;
+        int svec;
+        if(msp){
+            ordervec.Resize(ordervec.size()+1);
+            svec = ordervec.size();
+        } else continue;
 		datavec[iref].p = msp->MaxOrder();
-		ordervec[iref] = datavec[iref].p; 
+		ordervec[svec-1] = datavec[iref].p; 
 	}
 	int order = material->IntegrationRuleOrder(ordervec);
 	
