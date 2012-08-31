@@ -11,6 +11,11 @@
 #include "tpzcompmeshreferred.h"
 #include "pzmaterial.h"
 #include "pzelmat.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZInterpolationSpace"));
+#endif
 
 /** @brief Default constructor */
 TPZReducedSpace::TPZReducedSpace() : TPZInterpolationSpace()
@@ -148,6 +153,7 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
                                  TPZVec<REAL> &qsi)
 {
     ShapeX(qsi, data.phi, data.dphix, data.axes);
+    
     if (data.fNeedsSol) {
         ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
     }
