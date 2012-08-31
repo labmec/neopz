@@ -188,15 +188,15 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 		}
 	}
 	
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-		std::stringstream sout;
-		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
-		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
-		LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//		std::stringstream sout;
+//		ek.Print("ek_elastmat = ",sout,EMathematicaInput);
+//		ef.Print("ef_elastmat = ",sout,EMathematicaInput);
+//		LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
 	
 }
 
@@ -407,7 +407,7 @@ void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weig
                     
                     ek(in,jn) += bc.Val1()(0,0)*phi(0,in)*phi(0,jn)*weight 
                     
-                                + bc.Val1()(0,0)*phi(1,in)*phi(0,jn)*weight
+                                + bc.Val1()(1,0)*phi(1,in)*phi(0,jn)*weight
                     
                                 + bc.Val1()(0,1)*phi(0,in)*phi(1,jn)*weight
                     
