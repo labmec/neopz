@@ -46,19 +46,23 @@ using namespace std;
 
 int const matId1 =1; //elastic
 int const matId2 =2; //pressure
-int const bc0=-1;
-int const bc1=-2;
-int const bc2=-3;
-int const bc3=-4; //bc pressure
-
+int const bc1=-1;
+int const bc2=-2;
+int const bc3=-3;
+int const bc4=-4; 
+int const bc5=-5; //bc pressure
+int const bc6=-6; //bc pressure
 
 int const dirichlet =0;
 int const neumann = 1;
 int const mixed =2;
+int const freey = 3;
+int const freex = 4;
 
 int const  neum_elast =10;
 int const  mix_elast = 20;
 int const neum_pressure = 21;
+int const dir_pressure = 22;
 
 
 REAL const Pi = 4.*atan(1.);
@@ -105,22 +109,28 @@ int main(int argc, char *argv[])
     ofstream arg2("cmesh_inicial.txt");
     cmesh_elast->Print(arg2);
         
-//    TPZAnalysis an(cmesh_elast);
-//    MySolve(an, cmesh_elast);
-//    string plotfile("saidaSolution_mesh1.vtk");
-//    PosProcessamento1(an, plotfile);
-//    TPZFMatrix<REAL> solucao;
-//    solucao=cmesh_elast->Solution();
-//    solucao.Print();
+//    gmesh->ResetReference();
+//	cmesh_elast->LoadReferences();
+//    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_elast,0);
+//	cmesh_elast->AdjustBoundaryElements();
+//	cmesh_elast->CleanUpUnconnectedNodes();
+        
+    TPZAnalysis an1(cmesh_elast);
+    MySolve(an1, cmesh_elast);
+    string plotfile("saidaSolution_mesh1.vtk");
+    PosProcessamento1(an1, plotfile);
+    TPZFMatrix<REAL> solucao;
+    solucao=cmesh_elast->Solution();
+    solucao.Print();
     
     //computational mesh of reduced space
     TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
     cmesh_referred->ComputeNodElCon();
-//    TPZFStructMatrix fstr(cmesh_referred);
-//    TPZFMatrix<STATE> rhs(1);
-//    TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
-//    strmat->Print("rigidez");
-//    rhs.Print("forca");
+    TPZFStructMatrix fstr(cmesh_referred);
+    TPZFMatrix<STATE> rhs(1);
+    TPZAutoPointer<TPZMatrix<STATE> > strmat = fstr.CreateAssemble(rhs,NULL);
+    strmat->Print("rigidez");
+    rhs.Print("forca");
     
     ofstream arg3("cmeshreferred_inicial.txt");
     cmesh_referred->Print(arg3);
@@ -129,7 +139,8 @@ int main(int argc, char *argv[])
     TPZCompMesh *cmesh_pressure = CMeshPressure(gmesh, p);
     ofstream arg4("cmeshpressure_inicial.txt");
     cmesh_pressure->Print(arg4);
-    
+//    TPZAnalysis an3(cmesh_pressure);
+//    MySolve(an3, cmesh_pressure);
     
     //------- computational mesh multiphysic ----------//
     
@@ -173,6 +184,7 @@ int main(int argc, char *argv[])
     gmesh->ResetReference();
 	TPZElastPressure *mymaterial;
     TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh, meshvec, mymaterial);
+    mphysics->SetDefaultOrder(p);
     
     ofstream arg7("mphysics.txt");
     mphysics->Print(arg7);
@@ -223,44 +235,57 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
 	//indice dos elementos
 	id = 0;
     
-        TopolQuad[0] = 0;
-        TopolQuad[1] = 1;
-        TopolQuad[2] = 4;
-        TopolQuad[3] = 5;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
-        id++;
+    TopolQuad[0] = 0;
+    TopolQuad[1] = 1;
+    TopolQuad[2] = 4;
+    TopolQuad[3] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
+    id++;
+
+    TopolQuad[0] = 1;
+    TopolQuad[1] = 2;
+    TopolQuad[2] = 3;
+    TopolQuad[3] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
+    id++;
+
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
+    id++;
     
-        TopolQuad[0] = 1;
-        TopolQuad[1] = 2;
-        TopolQuad[2] = 3;
-        TopolQuad[3] = 4;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
-        id++;
+    TopolLine[0] = 1;
+    TopolLine[1] = 2;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+    id++;
     
-        TopolLine[0] = 0;
-        TopolLine[1] = 1;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
-        id++;
+    TopolLine[0] = 2;
+    TopolLine[1] = 3;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+    id++;
     
-        TopolPoint[0] = 0;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolLine,bc3,*gmesh);
-        id++;
-        
-//        TopolLine[0] = 0;
-//        TopolLine[1] = 1;
-//        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc0,*gmesh);
-//        id++;
-        
-        TopolLine[0] = 1;
-        TopolLine[1] = 2;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
-        id++;
-        
-        TopolLine[0] = 5;
-        TopolLine[1] = 0;
-        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
+    TopolLine[0] = 3;
+    TopolLine[1] = 4;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    id++;
     
+    TopolLine[0] = 4;
+    TopolLine[1] = 5;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
+    id++;
     
+    TopolLine[0] = 5;
+    TopolLine[1] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc5,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc6,*gmesh);
+
     
 	gmesh->BuildConnectivity();
     
@@ -274,6 +299,20 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
             gel->Divide (filhos);
 		}//for i
 	}//ref
+    
+   //  gRefDBase.InitializeRefPatterns();
+    
+//    int nrefdir = 4;
+//    std::set<int> matNewm;
+//    matNewm.insert(matId2);
+//    for(int ii = 0; ii < nrefdir; ii++)
+//    {
+//        int nels = gmesh->NElements();
+//        for(int iel = 0; iel < nels; iel++)
+//        {
+//            TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[iel], matNewm);
+//        }
+//    }
 
 	return gmesh;
 }
@@ -284,13 +323,15 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     /// criar materiais
 	int dim = 2;
 	
-    TPZVec<REAL> force(dim,0.);
+    TPZVec<REAL> force(dim,1.);
     REAL E = 100.;
 	REAL poisson = 0.35;
-    int planestress = -1;
+    //int planestress = 1;
+    int planestrain = 0;
     
     TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(matId1, E, poisson, force[0], force[1], planestress);
+	material = new TPZElasticityMaterial(matId1, E, poisson, force[0], force[1], planestrain);
+
     TPZMaterial * mat(material);
     material->NStateVariables();
     
@@ -300,30 +341,38 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->SetDimModel(dim);
     cmesh->InsertMaterialObject(mat);
     
-    
     ///Inserir condicao de contorno
     REAL big = material->gBigNumber;
-    REAL sign = -1.;
+    REAL sign = 1.;
     
-    TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
-    val21(0,0)=sign;
-    val21(1,0)=sign;
-    TPZMaterial * BCond1 = material->CreateBC(mat, matId2,neumann, val11, val21);
+    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    val2(0,0)=0;
+    val2(1,0)=sign;
+    TPZMaterial * BCond1 = material->CreateBC(mat, matId2,neumann, val1, val2);
     
-    TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
-    val12(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val12, val22);
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    val1(1,1) = big;
+    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val1, val2);
     
-    TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
-    val13(0,0) = big;
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,mixed, val13, val23);
+    
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,neumann, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bc3,neumann, val1, val2);
+     
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    val1(0,0) = big;
+    TPZMaterial * BCond5 = material->CreateBC(mat, bc4,mixed, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
-	cmesh->InsertMaterialObject(mat);
     cmesh->InsertMaterialObject(BCond1);
 	cmesh->InsertMaterialObject(BCond2);
 	cmesh->InsertMaterialObject(BCond3);
-		
+	cmesh->InsertMaterialObject(BCond4);
+	cmesh->InsertMaterialObject(BCond5);
+	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
@@ -337,17 +386,16 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     /// criar materiais
 	int dim = 2;
     
-    TPZVec<REAL> force(dim,0.);
+    TPZVec<REAL> force(dim,1.);
     REAL E = 100.;
 	REAL poisson = 0.35;
-    int planestress = -1;
+    //int planestress = 1;
+    int planestrain = 0;
     
-	TPZElasticityMaterial *material;
-	material = new TPZElasticityMaterial(matId1, E, poisson, force[0], force[1], planestress); 
+    TPZElasticityMaterial *material;
+	material = new TPZElasticityMaterial(matId1, E, poisson, force[0], force[1], planestrain); 
 	material->NStateVariables();
     
-    TPZVec<REAL> convdir;
-    convdir.Resize(dim,0.);
     
     TPZCompMeshReferred *cmeshreferred = new TPZCompMeshReferred(gmesh);
     
@@ -357,20 +405,28 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     
     ///Inserir condicao de contorno
     REAL big = material->gBigNumber;
-    REAL sign = -1.;
+    REAL sign = 1.;
     
-    TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
-    val21(0,0)=sign;
-    val21(1,0)=sign;
-    TPZMaterial * BCond1 = material->CreateBC(mat, matId2,neumann, val11, val21);
+    TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    val2(0,0)=0;
+    val2(1,0)=sign;
+    TPZMaterial * BCond1 = material->CreateBC(mat, matId2,neumann, val1, val2);
     
-    TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
-    val12(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val12, val22);
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    val1(1,1) = big;
+    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val1, val2);
     
-    TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
-    val13(0,0) = big;
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,mixed, val13, val23);
+    
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,neumann, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    val1(0,0) = big;
+    TPZMaterial * BCond5 = material->CreateBC(mat, bc4,mixed, val1, val2);
 
     
     int numsol = cmesh->Solution().Cols();
@@ -381,6 +437,8 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     cmeshreferred->InsertMaterialObject(BCond1);
     cmeshreferred->InsertMaterialObject(BCond2);
     cmeshreferred->InsertMaterialObject(BCond3);
+    cmeshreferred->InsertMaterialObject(BCond4);
+    cmeshreferred->InsertMaterialObject(BCond5);
     
 	cmeshreferred->SetDefaultOrder(pOrder);
     cmeshreferred->SetDimModel(dim);
@@ -422,12 +480,22 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     REAL vazao = 10.;
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=vazao;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc5, neumann, val1, val2);
     
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    TPZMaterial * BCond2 = material->CreateBC(mat, matId2, neumann, val1, val2);
+    
+    val1.Redim(2,2);
+    val2.Redim(2,1);
+    val2(0,0)=100.;
+    TPZMaterial * BCond3 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
     cmesh->InsertMaterialObject(BCond1);
+    cmesh->InsertMaterialObject(BCond2);
+    cmesh->InsertMaterialObject(BCond3);
 	
 	//Ajuste da estrutura de dados computacional
 	cmesh->AutoBuild();
@@ -454,11 +522,15 @@ void MySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 }
 
 void PosProcessamento1(TPZAnalysis &an, std::string plotfile){
-	TPZManVector<std::string,10> scalnames(1), vecnames(0);
-	scalnames[0] = "SigmaX";
+	TPZManVector<std::string,10> scalnames(4), vecnames(1);
+	vecnames[0] = "displacement";
+    scalnames[0] = "SigmaX";
+	scalnames[1] = "SigmaY";
+   scalnames[2] = "sig_x"; 
+    scalnames[3] = "sig_y";
     
 	const int dim = 2;
-	int div = 0;
+	int div = 3;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -480,48 +552,69 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     REAL fy = 0.;
     REAL E = 100.;
 	REAL poisson = 0.35;
-    int planestress = -1;
+    //int planestress = 1;
+    int planestrain = 0;
     mymaterial->SetParameters(E, poisson, fx, fy);
-    mymaterial->SetfPlaneProblem(planestress);
+    mymaterial->SetfPlaneProblem(planestrain);
 
     //data pressure
-    TPZFMatrix<REAL> xk(1,1,1.);
-    TPZFMatrix<REAL> xf(1,1,0.);
+    //TPZFMatrix<REAL> xk(1,1,1.);
+    //TPZFMatrix<REAL> xf(1,1,0.);
+    REAL xk = 1.;
+    REAL xf = 0.;
     mymaterial->SetParameters(xk, xf);
     
     
     TPZMaterial *mat(mymaterial);
     mphysics->InsertMaterialObject(mat);
     
-    
+    mymaterial->NStateVariables();
     ///Inserir condicao de contorno
     REAL big = mymaterial->gBigNumber;
-    REAL sign = -1.;
+    REAL sign = 1.;
     
-    TPZFMatrix<REAL> val11(3,2,0.), val21(3,1,0.);
-    val21(0,0)=sign;
-    val21(1,0)=sign;
-    TPZMaterial * BCond1 = mymaterial->CreateBC(mat, matId2,neum_elast, val11, val21);
+    TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
+    val2(0,0)=0.;
+    val2(1,0)=sign;
+    TPZMaterial * BCond1 = mymaterial->CreateBC(mat, matId2,neumann, val1, val2);
     
-    TPZFMatrix<REAL> val12(3,2,0.), val22(3,1,0.);
-    val12(1,1) = big;
-    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc1,mix_elast, val12, val22);
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    val1(1,1) = big;
+    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc1,mix_elast, val1, val2);
     
-    TPZFMatrix<REAL> val13(3,2,0.), val23(3,1,0.);
-    val13(0,0) = big;
-    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc2,mix_elast, val13, val23);
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc2,neum_elast, val1, val2);
+    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bc3,neum_elast, val1, val2);
+    
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    val1(0,0) = big;
+    TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bc4, mix_elast, val1, val2);
     
     REAL vazao = 10.;
-    TPZFMatrix<REAL> val14(3,2,0.), val24(3,1,0.);
-    val24(2,0)=vazao;
-    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bc3,neum_pressure, val14, val24);
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    val2(2, 0)=vazao;
+    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,neum_pressure, val1, val2);
     
+    
+    REAL pres=100.;
+    val2.Redim(3,1);
+    val1.Redim(3,2);
+    val2(2, 0)= pres;
+    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bc6,dir_pressure, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
     mphysics->InsertMaterialObject(BCond2);
     mphysics->InsertMaterialObject(BCond3);
     mphysics->InsertMaterialObject(BCond4);
+    mphysics->InsertMaterialObject(BCond5);
+    mphysics->InsertMaterialObject(BCond6);
+    mphysics->InsertMaterialObject(BCond7);
+
     
     mphysics->AutoBuild();
 	mphysics->AdjustBoundaryElements();
@@ -575,7 +668,7 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     TPZVec<REAL> force(dim,0.);
     REAL E = 100.;
 	REAL poisson = 0.35;
-    int planestress = -1;
+    int planestress = 0;
     
 	TPZElasticityMaterial *matelas;
 	matelas = new TPZElasticityMaterial(matId1, E, poisson, force[0], force[1], planestress); 
@@ -583,12 +676,12 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     
     ///Inserir condicao de contorno
     REAL big = material->gBigNumber;
-    REAL sign = -1.;
+    REAL sign = 1.;
     
     TPZFMatrix<REAL> val11(2,2,0.), val21(2,1,0.);
-    val21(0,0)=sign;
+    val21(0,0)=0;
     val21(1,0)=sign;
-    TPZMaterial * BCond4 = material->CreateBC(mat, matId2,neumann, val11, val21);
+    TPZMaterial * BCond4 = material->CreateBC(mat, matId2, neumann, val11, val21);
     
     TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
     val12(1,1) = big;
