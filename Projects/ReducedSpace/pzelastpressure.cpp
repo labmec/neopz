@@ -73,7 +73,7 @@ void TPZElastPressure::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	}
     
     TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
-    if(shapetype!=datavec[0].EVecShape){
+    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!=0){
         
         std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
@@ -145,28 +145,60 @@ void TPZElastPressure::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 		}
 	}
     
+#ifdef LOG4CXX
+	if(logdata->isDebugEnabled())
+	{
+		std::stringstream sout;
+		ek.Print("ek_reduced = ",sout,EMathematicaInput);
+		ef.Print("ef_reduced = ",sout,EMathematicaInput);
+		LOGPZ_DEBUG(logdata,sout.str())
+	}
+#endif
+    
      // Calculate the matrix contribution for pressure
+    ContributePressure(datavec, weight, ek, ef);
+}
+
+void TPZElastPressure::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+    
+   if(!datavec[1].phi) return;
     TPZFMatrix<REAL>  &phip =  datavec[1].phi;
     TPZFMatrix<REAL>  &dphip =  datavec[1].dphix;
     int phrp = phip.Rows();
     
-    int r = fk.Rows();
-	int c = fk.Cols();
-	TPZFMatrix<REAL> submat(r,c);
+    TPZFMatrix<REAL> &phiu = datavec[0].phi;
+    int phcu = phiu.Cols();
+//    
+//    int r = fk.Rows();
+//	int c = fk.Cols();
+//	TPZFMatrix<STATE> submat(r,c);
+//    submat.Redim(r, c);
+//    
+//	for(int in=0 ; in < phrp; ++in){
+//        
+//        REAL tmpef = phip(in,0)*weight;
+//		TPZFMatrix<REAL> tmpTPZFMatrix1 = fXf*tmpef;
+//		ef.AddSub(in*r + phcu,0,tmpTPZFMatrix1);
+//        //ef(in*r,0) = fXf[0]*tmpef;
+//		
+//		for(int jn=0 ; jn<phrp; ++jn){
+//            
+//			REAL temp = dphip(0,in)*dphip(0,jn)*weight;
+//			submat = fk*temp;
+//			ek.AddSub(in*r + phcu,jn*c + phcu,submat);
+//           // ek(in*r,jn*c )=fk(0,0)*temp;
+//		}
+//	}
     
-	for(int in=0 ; in < phrp; ++in){
+    for(int in = 0; in<phrp; in++){
         
-		REAL tmpef = (phip(in,0)*weight);
-		TPZFMatrix<REAL> tmpTPZFMatrix1 = fXf*tmpef;
-		ef.AddSub(in*r + phcu,0,tmpTPZFMatrix1);
-		
-		for(int jn=0 ; jn<phrp; ++jn){
-            
-			REAL temp = (dphip(0,in)*dphip(0,jn)*weight);
-			submat += fk*temp;
-			ek.AddSub(in*r + phcu,jn*c + phcu,submat);
-		}
-	}
+        ef(in+phcu,0)+=weight*(fXf*phip(in,0));
+        
+        for(int jn=0; jn<phrp; jn++){
+          
+            ek(in+phcu, jn+phcu)+=fk*dphip(0,in)*dphip(0,jn)*weight;
+        }
+    }
 }
 
 void TPZElastPressure::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
@@ -193,6 +225,7 @@ void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int phc = phiu.Cols();
+    ef.Print();
     for (int in = 0; in < phc; in++) 
     {
         for (int il = 0; il <fNumLoadCases; il++) 
@@ -202,12 +235,15 @@ void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
         }
     }
     
+    ef.Print();
+    
 }
 
 void TPZElastPressure::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int phc = phiu.Cols();
+    
     for(int in = 0 ; in < phc; in++) 
     {
         for (int il = 0; il <fNumLoadCases; il++) 
@@ -220,7 +256,7 @@ void TPZElastPressure::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weigh
             
             ek(in,jn) += bc.Val1()(0,0)*phiu(0,in)*phiu(0,jn)*weight 
             
-            + bc.Val1()(0,0)*phiu(1,in)*phiu(0,jn)*weight
+            + bc.Val1()(1,0)*phiu(1,in)*phiu(0,jn)*weight
             
             + bc.Val1()(0,1)*phiu(0,in)*phiu(1,jn)*weight
             
@@ -235,20 +271,28 @@ void TPZElastPressure::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL w
 	int c_u = phiu.Cols();
     
     TPZFMatrix<REAL> &phip = datavec[1].phi;
-	int r = fk.Rows();
-    int numnod = (ek.Rows()-c_u)/r;
+    int phrp = phip.Rows();
+//	int r = fk.Rows();
+//    int numnod = (ek.Rows()-c_u)/r;
+//    
+//    for(int in=0 ; in<numnod ; ++in){
+//        for(int idf = 0;idf<r;idf++) {
+//            (ef)(in*r+idf + c_u,0) += gBigNumber*phip(in,0)*bc.Val2()(2+idf,0)*weight;
+//        }
+//        for(int jn=0 ; jn<numnod ; ++jn) {
+//            for(int idf = 0;idf<r;idf++) {
+//                ek(in*r+idf + c_u, jn*r + idf + c_u) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
+//            }
+//        }
+//    }
     
-    for(int in=0 ; in<numnod ; ++in){
-        for(int idf = 0;idf<r;idf++) {
-            (ef)(in*r+idf + c_u,0) += (STATE)gBigNumber*(STATE)phip(in,0)*bc.Val2()(2*idf,0)*(STATE)weight;
-        }
-        for(int jn=0 ; jn<numnod ; ++jn) {
-            for(int idf = 0;idf<r;idf++) {
-                ek(in*r+idf + c_u, jn*r + idf + c_u) += gBigNumber*phip(in,0)*phip(jn,0)*weight;
-            }
+    for(int in = 0; in<phrp; in++){
+        ef(in+c_u,0)+=gBigNumber*bc.Val2()(2,0)*phip(in,0)*weight; 
+        
+        for(int jn = 0; jn<phrp; jn++){
+            ek(in+c_u,jn+c_u)+=gBigNumber*phip(in,0)*phip(jn,0)*weight;
         }
     }
-    
 }
 
 void TPZElastPressure::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
@@ -257,13 +301,19 @@ void TPZElastPressure::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL wei
 	int c_u = phiu.Cols();
     
     TPZFMatrix<REAL> &phip = datavec[1].phi;
-	int r = fk.Rows();
-    int numnod = (ek.Rows()-c_u)/r;
+    int  phrp = phip.Rows();
     
-    for(int in=0 ; in<numnod ; ++in){
-        for(int idf = 0;idf<r;idf++) {
-            (ef)(in*r+idf+c_u,0) += (STATE)phip(in,0)*bc.Val2()(2*idf,0)*(STATE)weight;
-        }
+//	int r = fk.Rows();
+//    int numnod = (ek.Rows()-c_u)/r;
+//    
+//    for(int in=0 ; in<numnod ; ++in){
+//        for(int idf = 0;idf<r;idf++) {
+//            (ef)(in*r+idf+c_u,0) += phip(in,0)*bc.Val2()(2+idf,0)*weight;
+//        }
+//    }
+    
+    for(int in=0; in<phrp; in++){
+        ef(in+c_u,0) += bc.Val2()(2,0)*phip(in,0)*weight;
     }
 }
 
@@ -274,19 +324,28 @@ void TPZElastPressure::ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weigh
 	int c_u = phiu.Cols();
     
     TPZFMatrix<REAL> &phip = datavec[1].phi;
-	int r = fk.Rows();
-    int numnod = (ek.Rows()-c_u)/r;
-    int in, idf, jn, jdf;
-    for(in=0 ; in<numnod ; ++in){
-        for(idf = 0;idf<r;idf++) {
-            (ef)(in*r+idf,0) += (STATE)phip(in,0)*bc.Val2()(2*idf,0)*(STATE)weight;
-        }
-        for(jn=0 ; jn<numnod ; ++jn) {
-            for(idf = 0;idf<r;idf++) {
-                for(jdf = 0;jdf<r;jdf++) {
-                    ek(in*r+idf,jn*r+jdf) += bc.Val1()(2*idf,jdf)*(STATE)phip(in,0)*(STATE)phip(jn,0)*(STATE)weight;
-                }
-            }
+    int phrp = phip.Rows();
+    
+//	int r = fk.Rows();
+//    int numnod = (ek.Rows()-c_u)/r;
+//    int in, idf, jn, jdf;
+//    for(in=0 ; in<numnod ; ++in){
+//        for(idf = 0;idf<r;idf++) {
+//            (ef)(in*r+idf,0) += phip(in,0)*bc.Val2()(2+idf,0)*weight;
+//        }
+//        for(jn=0 ; jn<numnod ; ++jn) {
+//            for(idf = 0;idf<r;idf++) {
+//                for(jdf = 0;jdf<r;jdf++) {
+//                    ek(in*r+idf,jn*r+jdf) += bc.Val1()(2+idf,jdf)*phip(in,0)*phip(jn,0)*weight;
+//                }
+//            }
+//        }
+//    }
+    
+    for(int in=0; in<phrp; in++){
+        ef(in+c_u,0)+=bc.Val2()(2,0)*phip(in,0)*weight;
+        for(int jn = 0; jn<phrp; jn++){
+            ek(in+c_u,jn+c_u) += bc.Val1()(2,0)*phip(in,0)*phip(jn,0)*weight;
         }
     }
 }
@@ -294,23 +353,23 @@ void TPZElastPressure::ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weigh
 void TPZElastPressure::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
     
     TPZMaterialData::MShapeFunctionType shapetype = datavec[0].fShapeType;
-    if(shapetype!=datavec[0].EVecShape){
+    if(shapetype!=datavec[0].EVecShape && datavec[0].phi.Cols()!=0){
         
         std::cout << " The space to elasticity problem must be reduced space.\n";
 		DebugStop();
     }
-	
+	bc.Val1().Print();
+    bc.Val2().Print();
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition in  both elasticity and pressure equations
 			
             ApplyDirichlet_U(datavec, weight, ek,ef,bc);
             ApplyDirichlet_P(datavec, weight, ek,ef,bc);
-			break;
+            break;
 			
 		case 1 :			// Neumann condition in  both elasticity and pressure equations
             ApplyNeumann_U(datavec, weight,ef,bc);
-            ApplyNeumann_P(datavec, weight, ek,ef,bc);
-           			
+            ContributePressure(datavec, weight, ek, ef);
             break;
 			
 		case 2 :            // Mixed condition in  both elasticity and pressure equations
@@ -319,15 +378,21 @@ void TPZElastPressure::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL weigh
             break;
             
         case 10:        // Neumann condition only on the elasticity equation
-             ApplyNeumann_U(datavec, weight,ef,bc);
+        {
+            // Calculate the matrix contribution for pressure
+            ApplyNeumann_U(datavec, weight,ef,bc);
             break;
+        }
             
-        case 20:        // Neumann condition only on the elasticity equation
+        case 20:        // Mixed condition only on the elasticity equation
              ApplyMixed_U(datavec, weight, ek,ef,bc);
-            break;
             
         case 21:        // Neumann condition only on the pressure equation pressure
             ApplyNeumann_P(datavec, weight, ek,ef,bc);
+            break;
+            
+        case 22:        // Dirichlet condition only on the pressure equation pressure
+            ApplyDirichlet_P(datavec, weight, ek,ef,bc);
             break;
             
     }
@@ -346,3 +411,17 @@ void TPZElastPressure::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
     DebugStop();
     
 }
+
+void TPZElastPressure::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
+{
+	int nref = datavec.size();
+	for(int i = 0; i<nref; i++ )
+	{
+		datavec[i].SetAllRequirements(false);
+		datavec[i].fNeedsNeighborSol = false;
+		datavec[i].fNeedsNeighborCenter = false;
+		datavec[i].fNeedsNormal = false;
+	}
+	
+}
+

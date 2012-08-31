@@ -46,7 +46,7 @@ protected:
 	int fDim;
 	
 	/** @brief term that multiplies the Laplacian operator and right side*/
-	TPZFMatrix<REAL> fk, fXf;
+	/*TPZFMatrix<REAL>*/ REAL fk, fXf;
     
 	
 	/** @brief Uses plain stress 
@@ -74,7 +74,7 @@ public:
 	
     
 	/** @brief Parameters of pressure: */
-	void SetParameters(TPZFMatrix<REAL> &xkin, TPZFMatrix<REAL> &xfin)
+	void SetParameters(/*TPZFMatrix<REAL>*/ REAL &xkin, /*TPZFMatrix<REAL>*/ REAL &xfin)
 	{
 		fk = xkin;
         fXf = xfin;
@@ -185,5 +185,9 @@ public:
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 		DebugStop();
 	}
+    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
+    
+    void ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 };
 #endif
