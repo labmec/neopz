@@ -353,6 +353,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 					phi(jn,0) * weight;
 				}
 			}   // este caso pode reproduzir o caso 0 quando o deslocamento
+            break;
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 } // 1 Val1 : a leitura �00 01 10 11
 
