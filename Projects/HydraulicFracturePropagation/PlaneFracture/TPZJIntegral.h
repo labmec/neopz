@@ -68,22 +68,7 @@ public:
     
     virtual void X(REAL t, TPZVec<REAL> & xt);
     virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
-    virtual void normalVec(REAL t, TPZVec<REAL> & n);
-    
-    /**
-     * For a given value of parametric variable t[-1,+1], this method computes the X(t)
-     * that belongs to the line in plane fracture that connect the external and internal arcs.
-     */
-    void X_line(REAL t, TPZVec<REAL> & xt);
-    void dXdt_line(REAL t, TPZVec<REAL> & dxdt);
-    
-    /**
-     * For a given value of parametric variable t[-1,+1], this method computes the X(t)
-     * that belongs to the arc internal or external (decided by pathT).
-     */
-    void X_arc(REAL t, TPZVec<REAL> & xt, pathType pathT);
-    void dXdt_arc(REAL t, TPZVec<REAL> & dxdt, pathType pathT);
-    
+    virtual void normalVec(REAL t, TPZVec<REAL> & n);    
     
     TPZVec<REAL> & Origin()
     {
