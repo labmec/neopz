@@ -18,8 +18,6 @@
 #include "pzinterpolationspace.h"
 #include "pzaxestools.h"
 
-const REAL Pi = 3.1415926535897932384626433832795;
-
 const int dim3D = 3;
 
 
@@ -33,6 +31,7 @@ Path::Path()
     
     fr_int = 0.;
     fr_ext = 0.;
+    fDETdxdt = 0.;
     
     fInitial2DElementId = 0;
     
@@ -62,6 +61,7 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL>
     
     fr_int = r_int;
     fr_ext = r_ext;
+    fDETdxdt = 0.;
     
     fInitial2DElementId = 0;
     
@@ -78,15 +78,19 @@ Path::~Path()
     
     fr_int = 0.;
     fr_ext = 0.;
+    fDETdxdt = 0.;
+    
+    fInitial2DElementId = -1;
+    fcmesh = NULL;
+    fMeshDim = -1;
 }
 
 
 TPZVec<REAL> Path::Func(REAL t)
 {    
     TPZVec<REAL> xt(dim3D), dxdt(dim3D), nt(dim3D);
-    REAL DETdxdt;
     this->X(t,xt);
-    this->dXdt(t, dxdt, DETdxdt);
+    this->dXdt(t, dxdt);
     this->normalVec(t, nt);
 
     TPZVec<REAL> qsi;
@@ -214,7 +218,7 @@ TPZVec<REAL> Path::Func(REAL t)
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]) * DETdxdt;
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]) * fDETdxdt;
         }
     }
     
@@ -229,7 +233,7 @@ void Path::X(REAL t, TPZVec<REAL> & xt)
 }
 
 
-void Path::dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
+void Path::dXdt(REAL t, TPZVec<REAL> & dxdt)
 {
     std::cout << "The code should not enter here, but in derivated class!\n";
     DebugStop();
@@ -261,7 +265,7 @@ void Path::X_line(REAL t, TPZVec<REAL> & xt)
 }
 
 
-void Path::dXdt_line(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
+void Path::dXdt_line(REAL t, TPZVec<REAL> & dxdt)
 {
     dxdt.Resize(dim3D,0.);
     
@@ -271,13 +275,10 @@ void Path::dXdt_line(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
     this->X_arc(+1., x0, EExternalArcPath);
     this->X_arc(-1., x1, EInternalArcPath);
     
-    DETdxdt = 0.;
     for(int c = 0; c < dim3D; c++)
     {
         dxdt[c] = (x1[c]-x0[c])/2.;
-        DETdxdt += dxdt[c]*dxdt[c];
     }
-    DETdxdt = sqrt(DETdxdt);
 }
 
 
@@ -300,7 +301,7 @@ void Path::X_arc(REAL t, TPZVec<REAL> & xt, pathType pathT)
 }
 
 
-void Path::dXdt_arc(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT)
+void Path::dXdt_arc(REAL t, TPZVec<REAL> & dxdt, pathType pathT)
 {
     dxdt.Resize(dim3D,0.);
 
@@ -309,14 +310,12 @@ void Path::dXdt_arc(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT)
         dxdt[0] = -(Pi*fr_ext*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
         dxdt[1] = -(Pi*fr_ext*sin((Pi*t)/2.))/2.;
         dxdt[2] = +(Pi*fr_ext*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
-        DETdxdt = Pi*fr_ext/2.;
     }
     else if(pathT == EInternalArcPath)
     {                   
         dxdt[0] = +(Pi*fr_int*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
         dxdt[1] = -(Pi*fr_int*sin((Pi*t)/2.))/2.;
         dxdt[2] = -(Pi*fr_int*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-        DETdxdt = Pi*fr_int/2.;
     }
 }
 
@@ -324,15 +323,41 @@ void Path::dXdt_arc(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT)
 //--------------------------------------------------------class linearPath
 
 
+linearPath::linearPath() : Path()
+{
+    DebugStop();//Nao eh para usar construtor vazio
+}
+
+
+linearPath::linearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim) :
+                                                                                        Path(cmesh, Origin, normalDirection, r_int, r_ext, meshDim)
+{
+    fDETdxdt = (fr_ext - fr_int)/2.;
+}
+
+
+linearPath::linearPath(Path * thePath)
+{
+    fOrigin = thePath->Origin();
+    fNormalDirection = thePath->NormalDirection();
+    fr_int = thePath->R_int();
+    fr_ext = thePath->R_ext();
+    fInitial2DElementId = thePath->Initial2DElementId();
+    fcmesh = thePath->Cmesh();
+    fMeshDim = thePath->MeshDim();
+    
+    fDETdxdt = (fr_ext - fr_int)/2.;
+}
+
 void linearPath::X(REAL t, TPZVec<REAL> & xt)
 {
     X_line(t, xt);
 }
 
 
-void linearPath::dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
+void linearPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 {
-    dXdt_line(t, dxdt, DETdxdt);
+    dXdt_line(t, dxdt);
 }
 
 
@@ -347,6 +372,32 @@ void linearPath::normalVec(REAL t, TPZVec<REAL> & n)
 //--------------------------------------------------------class externalArcPath
 
 
+externalArcPath::externalArcPath() : Path()
+{
+    DebugStop();//Nao eh para usar construtor vazio
+}
+
+
+externalArcPath::externalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim) :
+                                                                                                Path(cmesh, Origin, normalDirection, r_int, r_ext, meshDim)
+{
+    fDETdxdt = Pi*fr_ext/2.;
+}
+
+
+externalArcPath::externalArcPath(Path * thePath)
+{
+    fOrigin = thePath->Origin();
+    fNormalDirection = thePath->NormalDirection();
+    fr_int = thePath->R_int();
+    fr_ext = thePath->R_ext();
+    fInitial2DElementId = thePath->Initial2DElementId();
+    fcmesh = thePath->Cmesh();
+    fMeshDim = thePath->MeshDim();
+    
+    fDETdxdt = Pi*fr_ext/2.;
+}
+
 void externalArcPath::X(REAL t, TPZVec<REAL> & xt)
 {
     pathType pathT = EExternalArcPath;
@@ -354,34 +405,52 @@ void externalArcPath::X(REAL t, TPZVec<REAL> & xt)
 }
 
 
-void externalArcPath::dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
+void externalArcPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 {
     pathType pathT = EExternalArcPath;
-    dXdt_arc(t,dxdt, DETdxdt, pathT);
+    dXdt_arc(t,dxdt, pathT);
 }
 
 
 void externalArcPath::normalVec(REAL t, TPZVec<REAL> & n)
 {
-    TPZVec<REAL> x(dim3D);
-    X(t, x);
-    
-    REAL normaN = 0.;
+    TPZVec<REAL> xt(dim3D);
+    X(t, xt);
     for(int i = 0; i < dim3D; i++)
     {
-        normaN += (x[i] - fOrigin[i]) * (x[i] - fOrigin[i]);
-    }
-    normaN = sqrt(normaN);
-    
-    for(int i = 0; i < dim3D; i++)
-    {
-        n[i] = (x[i] - fOrigin[i])/normaN;
+        n[i] = (xt[i] - fOrigin[i])/fr_ext;
     }
 }
 
 
 //--------------------------------------------------------class internalArcPath
 
+
+internalArcPath::internalArcPath() : Path()
+{
+    DebugStop();//Nao eh para usar construtor vazio
+}
+
+
+internalArcPath::internalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim) :
+                                                                                                    Path(cmesh, Origin, normalDirection, r_int, r_ext, meshDim)
+{
+    fDETdxdt = Pi*fr_int/2.;
+}
+
+
+internalArcPath::internalArcPath(Path * thePath)
+{
+    fOrigin = thePath->Origin();
+    fNormalDirection = thePath->NormalDirection();
+    fr_int = thePath->R_int();
+    fr_ext = thePath->R_ext();
+    fInitial2DElementId = thePath->Initial2DElementId();
+    fcmesh = thePath->Cmesh();
+    fMeshDim = thePath->MeshDim();
+    
+    fDETdxdt = Pi*fr_int/2.;
+}
 
 void internalArcPath::X(REAL t, TPZVec<REAL> & xt)
 {
@@ -390,28 +459,20 @@ void internalArcPath::X(REAL t, TPZVec<REAL> & xt)
 }
 
 
-void internalArcPath::dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt)
+void internalArcPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 {
     pathType pathT = EInternalArcPath;
-    dXdt_arc(t,dxdt, DETdxdt, pathT);
+    dXdt_arc(t,dxdt, pathT);
 }
 
 
 void internalArcPath::normalVec(REAL t, TPZVec<REAL> & n)
 {
-    TPZVec<REAL> x(dim3D);
-    X(t, x);
-    
-    REAL normaN = 0.;
+    TPZVec<REAL> xt(dim3D);
+    X(t, xt);
     for(int i = 0; i < dim3D; i++)
     {
-        normaN += (x[i] - fOrigin[i]) * (x[i] - fOrigin[i]);
-    }
-    normaN = sqrt(normaN);
-    
-    for(int i = 0; i < dim3D; i++)
-    {
-        n[i] = (fOrigin[i] - x[i])/normaN;
+        n[i] = (fOrigin[i] - xt[i])/fr_int;
     }
 }
 
@@ -444,14 +505,14 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     Adapt intRule(precisionIntegralRule);
     
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
-//    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
-//    linearPath * _LinPath = new linearPath(jpathElem);
+    //internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
+    //linearPath * _LinPath = new linearPath(jpathElem);
     
     
     int meshDim = 2;
     TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,meshDim,-1.,+1.);
-//    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
-//    TPZVec<REAL> lin  = intRule.Vintegrate(*_LinPath,meshDim,-1.,+1.);
+    //TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
+    //TPZVec<REAL> lin  = intRule.Vintegrate(*_LinPath,meshDim,-1.,+1.);
     
     TPZVec<REAL> answ(meshDim);
     if(meshDim == 2)

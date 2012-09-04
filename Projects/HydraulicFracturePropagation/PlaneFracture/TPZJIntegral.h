@@ -15,6 +15,7 @@
 
 enum pathType {ELinearPath, EExternalArcPath, EInternalArcPath};
 
+const REAL Pi = 3.1415926535897932384626433832795;
 
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
@@ -49,6 +50,7 @@ public:
         fNormalDirection = cpPath.fNormalDirection;
         fr_int = cpPath.fr_int;
         fr_ext = cpPath.fr_ext;
+        fDETdxdt = cpPath.fDETdxdt;
         fInitial2DElementId = cpPath.fInitial2DElementId;
         fcmesh = cpPath.fcmesh;
         fMeshDim = cpPath.fMeshDim;
@@ -65,23 +67,65 @@ public:
     /////////////
     
     virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
+    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
     virtual void normalVec(REAL t, TPZVec<REAL> & n);
     
-        /**
-         * For a given value of parametric variable t[-1,+1], this method computes the X(t)
-         * that belongs to the line in plane fracture that connect the external and internal arcs.
-         */
-        void X_line(REAL t, TPZVec<REAL> & xt);
-        void dXdt_line(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
-        
-        /**
-         * For a given value of parametric variable t[-1,+1], this method computes the X(t)
-         * that belongs to the arc internal or external (decided by pathT).
-         */
-        void X_arc(REAL t, TPZVec<REAL> & xt, pathType pathT);
-        void dXdt_arc(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt, pathType pathT);
+    /**
+     * For a given value of parametric variable t[-1,+1], this method computes the X(t)
+     * that belongs to the line in plane fracture that connect the external and internal arcs.
+     */
+    void X_line(REAL t, TPZVec<REAL> & xt);
+    void dXdt_line(REAL t, TPZVec<REAL> & dxdt);
     
+    /**
+     * For a given value of parametric variable t[-1,+1], this method computes the X(t)
+     * that belongs to the arc internal or external (decided by pathT).
+     */
+    void X_arc(REAL t, TPZVec<REAL> & xt, pathType pathT);
+    void dXdt_arc(REAL t, TPZVec<REAL> & dxdt, pathType pathT);
+    
+    
+    TPZVec<REAL> & Origin()
+    {
+        return fOrigin;
+    }
+    
+    TPZVec<REAL> & NormalDirection()
+    {
+        return fNormalDirection;
+    }
+    
+    REAL R_int()
+    {
+        return fr_int;
+    }
+    
+    REAL R_ext()
+    {
+        return fr_ext;
+    }
+    
+    REAL DETdxdt()
+    {
+        return fDETdxdt;
+    }
+    
+    int Initial2DElementId()
+    {
+        return fInitial2DElementId;
+    }
+    
+    TPZAutoPointer<TPZCompMesh> Cmesh()
+    {
+        return fcmesh;
+    }
+    
+    int MeshDim()
+    {
+        return fMeshDim;
+    }
+    
+protected:
     
     /** initial node of given unidimensional element (this element define an axis) */
     TPZVec<REAL> fOrigin;
@@ -92,6 +136,7 @@ public:
     /** radius of internal and external arcs */
     REAL fr_int;
     REAL fr_ext;
+    REAL fDETdxdt;
     
     /** The Func() method need to ComputeXInverse to get solutions on compMesh.
      *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
@@ -107,18 +152,13 @@ public:
 class linearPath : public Path
 {
 public:
-    linearPath(Path * thePath)
-    {
-        fOrigin = thePath->fOrigin;
-        fNormalDirection = thePath->fNormalDirection;
-        fr_int = thePath->fr_int;
-        fr_ext = thePath->fr_ext;
-        fInitial2DElementId = thePath->fInitial2DElementId;
-        fcmesh = thePath->fcmesh;
-        fMeshDim = thePath->fMeshDim;
-    }
+    
+    linearPath();//It is not to be used
+    linearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
+    linearPath(Path * thePath);
+    
     virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
+    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
     virtual void normalVec(REAL t, TPZVec<REAL> & n);
 };
 
@@ -126,18 +166,13 @@ public:
 class externalArcPath : public Path
 {
 public:
-    externalArcPath(Path * thePath)
-    {
-        fOrigin = thePath->fOrigin;
-        fNormalDirection = thePath->fNormalDirection;
-        fr_int = thePath->fr_int;
-        fr_ext = thePath->fr_ext;
-        fInitial2DElementId = thePath->fInitial2DElementId;
-        fcmesh = thePath->fcmesh;
-        fMeshDim = thePath->fMeshDim;
-    }
+    
+    externalArcPath();//It is not to be used
+    externalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
+    externalArcPath(Path * thePath);
+
     virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
+    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
     virtual void normalVec(REAL t, TPZVec<REAL> & n);
 };
 
@@ -145,18 +180,13 @@ public:
 class internalArcPath : public Path
 {
 public:
-    internalArcPath(Path * thePath)
-    {
-        fOrigin = thePath->fOrigin;
-        fNormalDirection = thePath->fNormalDirection;
-        fr_int = thePath->fr_int;
-        fr_ext = thePath->fr_ext;
-        fInitial2DElementId = thePath->fInitial2DElementId;
-        fcmesh = thePath->fcmesh;
-        fMeshDim = thePath->fMeshDim;
-    }
+    
+    internalArcPath();//It is not to be used
+    internalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
+    internalArcPath(Path * thePath);
+
     virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt, REAL & DETdxdt);
+    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
     virtual void normalVec(REAL t, TPZVec<REAL> & n);
 };
 
