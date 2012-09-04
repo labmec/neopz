@@ -121,15 +121,22 @@ protected:
     /** radius of internal and external arcs */
     REAL fr_int;
     REAL fr_ext;
+    
+    /** determinant of [jacobian matrix](3x1) */
     REAL fDETdxdt;
     
-    /** The Func() method need to ComputeXInverse to get solutions on compMesh.
+    /** 
+     *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
      *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
-     *  This element must be an 2D element of PlaneFracture Mesh (see TPZPlaneFracture)*/
+     *  This element must be an 2D element of PlaneFracture Mesh (see TPZPlaneFracture)
+     */
     int fInitial2DElementId;
     
+    /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
     
+    /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
+    /** For 3D problems, fMeshDim=2 */
     int fMeshDim;
 };
 
@@ -179,11 +186,15 @@ public:
 class JIntegral
 {
 public:
+    
     JIntegral();
     ~JIntegral();
     
     void PushBackPath(Path *pathElem);
+    
     TPZVec<REAL> IntegratePath(int p);
+    
+private:
     
     TPZVec<Path*> fPathVec;
 };

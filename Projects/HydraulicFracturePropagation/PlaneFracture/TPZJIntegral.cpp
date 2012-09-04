@@ -89,9 +89,9 @@ Path::~Path()
 TPZVec<REAL> Path::Func(REAL t)
 {    
     TPZVec<REAL> xt(dim3D), dxdt(dim3D), nt(dim3D);
-    this->X(t,xt);
-    this->dXdt(t, dxdt);
-    this->normalVec(t, nt);
+    X(t,xt);
+    dXdt(t, dxdt);
+    normalVec(t, nt);
 
     TPZVec<REAL> qsi;
     
@@ -102,14 +102,14 @@ TPZVec<REAL> Path::Func(REAL t)
         int axe0 = 0;//axe X
         int axe1 = 1;//axe Y
         int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(this->fcmesh->Reference(), fInitial2DElementId, xt, qsi, axe0, axe1, axeNormal, false);
+        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitial2DElementId, xt, qsi, axe0, axe1, axeNormal, false);
 
-        geoEl = this->fcmesh->Reference()->ElementVec()[elFoundId];
+        geoEl = fcmesh->Reference()->ElementVec()[elFoundId];
     }
     else if(fMeshDim == 3)
     {
         qsi.Resize(3, 0.);
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, this->fcmesh->Reference());
+        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, fcmesh->Reference());
     }
     else
     {
