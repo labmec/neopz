@@ -97,7 +97,7 @@ NTHREADS=4
 L1NTHREADS=$NTHREADS
 L2NTHREADS=$NTHREADS
 
-NCORES=`sysctl hw.physicalcpu`
+NCORES=`sysctl hw.physicalcpu | cut -d: -f2`
 
 verbose 1 "pthread vs tbb assemble: cubo"
 
