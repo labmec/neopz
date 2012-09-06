@@ -12,7 +12,7 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_cubo_threads_binckpt.sh"
                 "${CMAKE_CURRENT_BINARY_DIR}/run_cubo_threads_binckpt.sh")
 
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/pthread_vs_tbb-cubo_binckpt.sh"
-                "${CMAKE_CURRENT_SOURCE_DIR}/pthread_vs_tbb-cubo_binckpt.sh")
+                "${CMAKE_CURRENT_BINARY_DIR}/pthread_vs_tbb-cubo_binckpt.sh")
 
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_predio_threads.sh"
                 "${CMAKE_CURRENT_BINARY_DIR}/run_predio_threads.sh")
