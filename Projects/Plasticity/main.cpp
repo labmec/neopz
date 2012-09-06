@@ -35,6 +35,7 @@
 #include "GeoMeshClass.h"
 #include "pzelastoplastic2D.h"
 #include "tpzycvonmisescombtresca.h"
+#include "TPZMohrCoulombNeto.h"
 
 /////////
 
@@ -58,8 +59,9 @@ int main()
     
     
     //   MohrCoulombTestX();
-        calctalude();
+//        calctalude();
     //    calcVonMisesBar();
+    TPZMohrCoulombNeto toto;
     return 0;
     
     
