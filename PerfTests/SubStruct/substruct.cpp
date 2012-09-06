@@ -41,6 +41,7 @@
 #include "pzlog.h"
 
 #include "pzbfilestream.h" // TPZBFileStream, TPZFileStream
+#include "pzmd5stream.h"
 
 #include <fstream>
 #include <string>
@@ -99,6 +100,13 @@ clarg::argString cf3("-cf3", "starts execution from checkpoint 3 (read checkpoin
 clarg::argBool   st1("-st1", "stop at checkpoint 1 (after dump)", false);
 clarg::argBool   st2("-st2", "stop at checkpoint 2 (after dump)", false);
 clarg::argBool   st3("-st3", "stop at checkpoint 3 (after dump)", false);
+
+clarg::argString gen_sig_ckpt1("-gen_c1_md5", "generates MD5 signature for checkpoint 1 and dump into file.", "ckpt1.md5");
+clarg::argString chk_sig_ckpt1("-chk_c1_md5", "compute MD5 signature for checkpoint 1 and check against MD5 at file.", "ckpt1.md5");
+clarg::argString gen_sig_ckpt2("-gen_c2_md5", "generates MD5 signature for checkpoint 2 and dump into file.", "ckpt2.md5");
+clarg::argString chk_sig_ckpt2("-chk_c2_md5", "compute MD5 signature for checkpoint 2 and check against MD5 at file.", "ckpt2.md5");
+clarg::argString gen_sig_ckpt3("-gen_c3_md5", "generates MD5 signature for checkpoint 3 and dump into file.", "ckpt3.md5");
+clarg::argString chk_sig_ckpt3("-chk_c3_md5", "compute MD5 signature for checkpoint 3 and check against MD5 at file.", "ckpt3.md5");
 
 clarg::argString dc1("-dc1", "dump checkpoint 1 to file", "ckpt1.ckpt");
 clarg::argString dc2("-dc2", "dump checkpoint 2 to file", "ckpt2.ckpt");
@@ -287,13 +295,35 @@ int main(int argc, char *argv[])
         if (dc1.was_set() && running)
         {
             VERBOSE(1, "Dumping checkpoint 1 into: " << dc1.get_value() << endl);
-	    FileStreamWrapper CheckPoint1;
+            FileStreamWrapper CheckPoint1;
             CheckPoint1.OpenWrite(dc1.get_value());
             cmeshauto->Reference()->Write(CheckPoint1, 0);
             cmeshauto->Write(CheckPoint1, 0);
             dohrstruct->Write(CheckPoint1);
         }
-        
+        /* Gen/Check checkpoint 1 MD5 signature? */
+        if ((gen_sig_ckpt1.was_set() || chk_sig_ckpt1.was_set()) && running)
+        {
+            TPZMD5Stream sig;
+            cmeshauto->Reference()->Write(sig, 0);
+            cmeshauto->Write(sig, 0);
+            dohrstruct->Write(sig);
+            if (chk_sig_ckpt1.was_set()) {
+              int ret;
+              if ((ret=sig.CheckMD5(chk_sig_ckpt1.get_value()))) {
+                cerr << "ERROR: MD5 Signature for checkpoint 1 does not match. (ret = " << ret << ")" << endl;
+                return 1;
+              }
+            }
+            if (gen_sig_ckpt1.was_set()) {
+              int ret;
+                if ((ret = sig.WriteMD5(gen_sig_ckpt1.get_value()))) {
+                  cerr << "ERROR when writing ckpt 1 MD5 Signature to file (ret = " << ret << "): " 
+                       << gen_sig_ckpt1.get_value() << endl;
+                  return 1;
+              }
+            }
+        }
     }
 
     if(st1.was_set()) running = false;
@@ -327,13 +357,12 @@ int main(int argc, char *argv[])
     
     /* Work between checkpoint 1 and checkpoint 2 */
     if (running) {
-	create_rst.start();
-        matptr = dohrstruct->Create();
-	create_rst.stop();
-    }
+      create_rst.start();
+      matptr = dohrstruct->Create();
+      create_rst.stop();
     
-    if (dc2.was_set() && running)
-    {
+      if (dc2.was_set())
+      {
         VERBOSE(1, "Dumping checkpoint 2 into: " << dc2.get_value() << endl);
         FileStreamWrapper CheckPoint2;
         CheckPoint2.OpenWrite(dc2.get_value());
@@ -345,6 +374,31 @@ int main(int argc, char *argv[])
         matptr->Write(CheckPoint2, 1);
         SAVEABLE_STR_NOTE(CheckPoint2,"dohrstruct->Write()");
         dohrstruct->Write(CheckPoint2);
+      }
+
+      /* Gen/Check checkpoint 2 MD5 signature? */
+      if (gen_sig_ckpt2.was_set() || chk_sig_ckpt2.was_set())
+      {
+        TPZMD5Stream sig;
+        cmeshauto->Reference()->Write(sig, 0);
+        cmeshauto->Write(sig, 0);
+        matptr->Write(sig, 1);
+        dohrstruct->Write(sig);
+
+        if (chk_sig_ckpt2.was_set()) {
+          if (sig.CheckMD5(chk_sig_ckpt2.get_value())) {
+            cerr << "ERROR: MD5 Signature for checkpoint 2 does not match." << endl;
+            return 1;
+          }
+        }
+        if (gen_sig_ckpt2.was_set()) {
+          if (sig.WriteMD5(gen_sig_ckpt2.get_value())) {
+            cerr << "ERROR when writing ckpt 2 MD5 Signature to file: " 
+                 << gen_sig_ckpt2.get_value() << endl;
+            return 1;
+          }
+        }
+      }
     }
 
     if(st2.was_set()) running = false;
@@ -376,26 +430,27 @@ int main(int argc, char *argv[])
     
     TPZAutoPointer<TPZMatrix<REAL> > precond = NULL;
     /* Work between checkpoint 2 and checkpoint 3 */
-    if (running) {
-
-	assemble_rst.start();
-        TPZAutoPointer<TPZGuiInterface> gui;
-        rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
-        VERBOSE(1,"dohrstruct->Assemble()" << endl);
-        if (dohr_tbb.was_set())
-          dohrstruct->AssembleTBB(*matptr,*rhs, gui);
-        else
-          dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
-
-	assemble_rst.stop();
-
-	precond_rst.start();
-        precond = dohrstruct->Preconditioner();
-	precond_rst.stop();
-    }
-    
-    if (dc3.was_set() && running)
+    if (running) 
     {
+
+      assemble_rst.start();
+      TPZAutoPointer<TPZGuiInterface> gui;
+      rhs = new TPZFMatrix<REAL>(cmeshauto->NEquations(),1,0.);
+      VERBOSE(1,"dohrstruct->Assemble()" << endl);
+      if (dohr_tbb.was_set())
+        dohrstruct->AssembleTBB(*matptr,*rhs, gui);
+      else
+        dohrstruct->Assemble(*matptr,*rhs, gui, nt_sm.get_value(), nt_d.get_value());
+      
+      assemble_rst.stop();
+      
+      precond_rst.start();
+      precond = dohrstruct->Preconditioner();
+      precond_rst.stop();
+      
+      
+      if (dc3.was_set())
+      {
         VERBOSE(1, "Dumping checkpoint 3 into: " << dc2.get_value() << endl);
         FileStreamWrapper CheckPoint3;
         CheckPoint3.OpenWrite(dc3.get_value());
@@ -404,8 +459,34 @@ int main(int argc, char *argv[])
         matptr->Write(CheckPoint3, 1);
         precond->Write(CheckPoint3, 1);
         rhs->Write(CheckPoint3, 0);
+      }
+      
+      /* Gen/Check checkpoint 3 MD5 signature? */
+      if (gen_sig_ckpt3.was_set() || chk_sig_ckpt3.was_set())
+      {
+        TPZMD5Stream sig;
+        cmeshauto->Reference()->Write(sig, 0);
+        cmeshauto->Write(sig, 0);
+        matptr->Write(sig, 1);
+        precond->Write(sig, 1);
+        rhs->Write(sig, 0);
+        int ret;
+        if (chk_sig_ckpt3.was_set()) {
+          if ((ret=sig.CheckMD5(chk_sig_ckpt3.get_value()))) {
+            cerr << "ERROR(ret=" << ret << ") : MD5 Signature for checkpoint 3 does not match." << endl;
+            return 1;
+          }
+        }
+        if (gen_sig_ckpt3.was_set()) {
+          if ((ret=sig.WriteMD5(gen_sig_ckpt3.get_value()))) {
+            cerr << "ERROR (ret=" << ret << ") when writing ckpt 3 MD5 Signature to file: " 
+                 << gen_sig_ckpt3.get_value() << endl;
+            return 1;
+          }
+        }
+      }
     }
-    
+
     if(st3.was_set()) running = false;
 
     // Start from Checkpoint 3

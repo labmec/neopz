@@ -186,6 +186,13 @@ if(USING_METIS)
 	link_libraries(metis)
 endif(USING_METIS)
 
+#enabling OPENSSL library (used for MD5 computation)
+option(USING_OPENSSL "Whether the OPENSSL library will be linked in" OFF)
+if(USING_OPENSSL)
+	add_definitions(-DUSING_OPENSSL)
+	link_libraries(crypto)
+endif(USING_OPENSSL)
+
 #enabling TBB library
 option(USING_TBB "Whether the TBB library will be linked in" OFF)
 if(USING_TBB)

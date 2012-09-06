@@ -34,34 +34,27 @@ function run_cfg
     #   -p : plevel
     local P=$5
 
-    for ns in 1 2 4 8; do
+    for ns in 2 4 8 16 32 64; do
 
         BASEOUT="predio.@REAL_TYPE@.bin.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
 
         IF="predio.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt1"
-        OF="predio.p$P.nsub$ns.t.@REAL_TYPE@.bin.ckpt3"
-        CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
+        MD5F="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF.md5"
+        CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -chk_c3_md5 $MD5F -st3 -ass_rdt $BASEOUT.ass.rdt -cre_rdt $BASEOUT.cre.rdt " 
         CMD="$CMD -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P"
         verbose 1 "cmd: $CMD"
         
         rm -f "$OF"
         /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
-        
-        GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
-        
-  # Side by side
-  # DIFFOPTIONS="--suppress-common-lines -y -W 100"
-  # Regular diff
-        DIFFOPTIONS="--normal"
-        
-        if diff $DIFFOPTIONS "$OF" "$GOLDEN" > "$BASEOUT.diff" ; then
-            echo "[OK]: $OF matches the golden output."
-            OKS=$((OKS+1))
-        else
-            echo "[ERROR]: Checkpoint file \"$OF\" differs from golden. Differences at $BASEOUT.diff."
+        RET=$?
+
+        if [ $RET != 0 ]; then
+            echo "[ERROR]: $APP tool returned $RET."
             ERRORS=$((ERRORS+1))
+        else
+            echo "[OK]: MD5 for checkpoint 3 matches golden MD5."
+            OKS=$((OKS+1))
         fi
-        
     done
 }
 

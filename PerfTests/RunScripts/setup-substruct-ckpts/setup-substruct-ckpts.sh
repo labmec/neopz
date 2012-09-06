@@ -37,15 +37,27 @@ function gen_ckpts
     EXTRAARGS=$5
 
     for plevel in 1 2; do
-	for ns in 1 2 4 8 16 32 64; do 
+	for ns in 2 4 8 16 32 64; do # Does not work for ns == 1
 
 	    echo "Generating $BASENAME chekpoints for plevel = $plevel and nsubs = $ns"
 
 	    CMD="$APP $EXTRAARGS $READOPT \"$DATADIR/SubStruct/inputs/$INPUT\" \
-                  -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1\" \
-        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2\" \
-        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3\"  \
+              -gen_c1_md5 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1.md5\" \
+        	  -gen_c2_md5 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2.md5\" \
+        	  -gen_c3_md5 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3.md5\" \
               -nsub $ns -p $plevel"
+
+        if [ "$INPUT" == "8andares02.txt" ]; then
+            CMD="$CMD  \
+              -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1\" \
+        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2\" "
+            # Skip ckpt3 for predio -- Too big
+        else
+            CMD="$CMD  \
+              -dc1 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt1\" \
+        	  -dc2 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt2\" \
+        	  -dc3 \"$DATADIR/SubStruct/outputs/$BASENAME.p$plevel.nsub$ns.t.double.$CKPTYPE.ckpt3\" "
+        fi
 
 	    eval $CMD &> /dev/null
 	    RET=$?

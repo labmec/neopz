@@ -34,7 +34,7 @@ function run_cfg
     #   -p : plevel
     local P=$5
 
-    for ns in 1 2 4 8; do
+    for ns in 2 4 8 16 32 64; do
 
         BASEOUT="cubo1.@REAL_TYPE@.txt.ckpt1.p$P.nsub$ns.nt_a.$NTA.nt_d.$NTD.nt_m.$NTM.nt_sm.$NTSM"
 

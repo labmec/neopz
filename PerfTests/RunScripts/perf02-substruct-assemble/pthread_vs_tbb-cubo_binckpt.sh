@@ -44,10 +44,14 @@ function run_cfg
     
     IF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt1"
     OF="cubo1.p$P.nsub$NS.t.@REAL_TYPE@.bin.ckpt3"
+    GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
+    MD5F="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF.md5"
+
     ASSRDT="$BASEOUT.ass.rdt"
     CRERDT="$BASEOUT.cre.rdt"
 
     CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $ASSRDT -cre_rdt $CRERDT" 
+    CMD="$CMD -chk_c3_md5 $MD5F"
     CMD="$CMD -nsub $NS -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P $EXTRAARGS"
     verbose 1 "cmd: $CMD"
 
@@ -56,8 +60,6 @@ function run_cfg
     /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
     RET=$?
 
-    GOLDEN="@PERFTEST_DATA_DIR@/SubStruct/outputs/$OF"
-    
     if [ $RET != 0 ]; then
         echo "[ERROR]: $APP tool returned $RET."
         ERRORS=$((ERRORS+1))
@@ -71,13 +73,13 @@ function run_cfg
         
         if diff $DIFFOPTIONS "$OF" "$GOLDEN" > "$BASEOUT.diff" ; then
             echo "[OK]: $OF matches the golden output."
+            rm "$OF" # Remove the output file.
             OKS=$((OKS+1))
         else
             echo "[ERROR]: Checkpoint file \"$OF\" differs from golden. Differences at $BASEOUT.diff."
             ERRORS=$((ERRORS+1))
         fi
-    fi
-        
+    fi        
 }
 
 VERBOSE_LEVEL=1
@@ -95,7 +97,7 @@ OKS=0
 
 echo "WARNING: a ferramenta está quebrando com NSUB == 1"
 
-for NSUB in 2 4 8 16 32; do
+for NSUB in 2 4 8 16 32 64; do
     echo "Start at checkpoint 1, dump checkpoint 3 and stop: plevel = $PLEVEL"
 
     # L1 Serial, L2 TBB
