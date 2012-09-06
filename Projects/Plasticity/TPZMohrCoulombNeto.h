@@ -29,10 +29,24 @@ class TPZMohrCoulombNeto
 
     REAL fYoung;
     REAL fPoisson;
+    REAL fFricAngle;
+    REAL coesion;
     
 public:
     
-    TPZMohrCoulombNeto() : fYoung(25000.), fPoisson(0.2)
+    struct TPlasticState
+    {
+        TPZTensor<REAL> fEpsPlastic;
+        REAL fEpsPlasticBar;
+    };
+    
+protected:
+    
+    TPlasticState fState;
+    
+public:
+    
+    TPZMohrCoulombNeto() : fYoung(25000.), fPoisson(0.2), fFricAngle(M_PI/9.), coesion(9.35)
     {
         
     }
@@ -54,6 +68,12 @@ public:
     }
     
     template<class T>
+    void PlasticityFunction(T epsp, T &sigmay, T &H)
+    {
+        
+    }
+    
+    template<class T>
     TPZTensor<T> SigmaElast(const TPZTensor<T> &deform)
     {
         T trdeform = deform.I1();
@@ -63,6 +83,39 @@ public:
         result.Add(deform,2.*Mu());
     }
 
+    template<class T>
+    bool ReturnMapPlane(const TPZTensor<T> &epstotal, TPZTensor<T> &sigma)
+    {
+        TPZTensor<T> epslocal(epstotal);
+        epslocal -= fState.fEpsPlastic;
+        TPZTensor<T> sigma_trial;
+        sigma_trial = SigmaElast(epslocal);
+        TPZManVector<T,3> eigenvalues;
+        TPZManVector<TPZTensor<T> > eigenvectors;
+        sigma_trial.EigenSystem(eigenvalues,eigenvectors);
+        const REAL sinfric = sin(fFricAngle);
+        const REAL cosfric = cos(fFricAngle);
+        const REAL sinfric2 = sinfric*sinfric;
+        const REAL cosfric2 = 1.-sinfric2;
+        const REAL constA = 4.* G() *(1.+ sinfric2/3.) + 4.*K() * sinfric2;
+        T sigmay,H;
+        PlasticityFunction(fState.fEpsPlasticBar,sigmay, H);
+        T phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinfric-2.*sigmay*cosfric;
+        T gamma = 0.;
+        REAL phival = 0;
+        REAL tolerance = 1.e-8;
+        do {
+            T denom = -constA- T(4.*cosfric2)*H;
+            T d = T(-4.*G()*(1.+sinfric2/3.)-4.*K()*sinfric2)-T(4.*cosfric2)*H;
+            T deriv_gamma = -phi/denom;
+            gamma += deriv_gamma;
+            T epsbar = T(fState.fEpsPlastic)+gamma*T(2.*cosfric);
+            PlasticityFunction(epsbar, sigmay, H);
+            phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinfric-2.*sigmay*cosfric;
+            phival = val(phi);
+            
+        } while (abs(phival) > tolerance);
+    }
 };
 
 

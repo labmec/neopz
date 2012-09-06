@@ -211,7 +211,7 @@ public:
     /**
 	 * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for computational plasticity/Souza Neto)
 	 */
-    void Eigensytem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZFMatrix<T> & Eigenvectors, TPZFMatrix<T> & Eigenvectors2, TPZFMatrix<T> & Eigenvectors3)const;
+    void EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVec<TPZTensor<T> > & Eigenvectors) const;
 	
 	
 	
@@ -594,9 +594,9 @@ void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 }
 
 template <class T>
-void TPZTensor<T>::Eigensytem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZFMatrix<T> & Eigenvectors, TPZFMatrix<T> & Eigenvectors2, TPZFMatrix<T> & Eigenvectors3)const
+void TPZTensor<T>::EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVec<TPZTensor<T> > & Eigenvectors)const
 {
-    T I1,I2,I3,R,theta,Q,x1,x2,x3,I,val,e1temp,e2temp,e3temp;
+    T I1,I2,I3,R,theta,Q,x1,x2,x3,I,costheta,e1temp,e2temp,e3temp;
     I1 = (sigma.I1());
     I2=(sigma.I2());
     I3=(sigma.I3());
@@ -607,65 +607,111 @@ void TPZTensor<T>::Eigensytem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZFMa
     
     Q=(I1*I1-T(3.)*I2)/T(9.);
     
-    val=R/sqrt(Q*Q*Q);
+    costheta=R/sqrt(Q*Q*Q);
     
-    if(val==-1 || val==1)
+    if(val(costheta)<-1. || val(costheta)>1.)
     {
-        val*=T(0.9999999999);
+        costheta /=T(val(costheta));
     }
     
-    theta = acos(val);
+    theta = acos(costheta);
     x1=T(-2.)*sqrt(Q)*cos(theta/3)+ (I1/T(3.));//eigenval 1
-    x2=T(-2.)*sqrt(Q)*cos( ( theta + T(2.) * T(M_PI) )/3)+ (I1/T(3.));//eigenval 2
-    x3=T(-2.)*sqrt(Q)*cos( ( theta - T(2.) * T(M_PI) )/3)+ (I1/T(3.));//eigenval 3
-    
+    x2=T(-2.)*sqrt(Q)*cos( ( theta +  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 2
+    x3=T(-2.)*sqrt(Q)*cos( ( theta -  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 3
+    REAL valx1 = val(x1), valx2 = val(x2), valx3 = val(x3);
+    if(valx1 < valx2)
+    {
+        T temp = x1;
+        x1 = x2;
+        x2 = temp;
+        REAL valtemp = valx1;
+        valx1 = valx2;
+        valx2 = valtemp;
+    }
+    if(valx1 < valx3)
+    {
+        T temp = x1;
+        x1 = x3;
+        x3 = temp;
+        REAL valtemp = valx1;
+        valx1 = valx3;
+        valx3 = valtemp;
+    }
+    if(valx2 < valx3)
+    {
+        T temp = x2;
+        x2 = x3;
+        x3 = temp;
+        REAL valtemp = valx2;
+        valx2 = valx3;
+        valx3 = valtemp;
+    }
     Eigenvalues[0]=x1;
     Eigenvalues[1]=x2;
     Eigenvalues[2]=x3;
     
-    TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(sigma),sigmacopy2(sigma),sigmacopy3(sigma),Identity,Identity2,Identity3;
-    Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
-    Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
-    Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
-    sigcopy.Multiply2(sigcopy,sqrsigma);
-    sigcopy.Multiply2(sigcopy,sqrsigma2);
-    sigcopy.Multiply2(sigcopy,sqrsigma3);
-    
-    e1temp=x1/(T(2.)*x1*x1*x1-I1*x1*x1+I3);
-    sigmacopy.Multiply(I1-x1,1);
-    Identity.Multiply((I3/x1),1);
-    sqrsigma.Add(sigmacopy,-1);
-    sqrsigma.Add(Identity,1);
-    sqrsigma.Multiply(e1temp,1);
-    Eigenvectors.Resize(3,3);
-    Eigenvectors(0,0)=sqrsigma.XX();Eigenvectors(0,1)=sqrsigma.XY();Eigenvectors(0,2)=sqrsigma.XZ();
-    Eigenvectors(1,0)=sqrsigma.XY();Eigenvectors(1,1)=sqrsigma.YY();Eigenvectors(1,2)=sqrsigma.YZ();
-    Eigenvectors(2,0)=sqrsigma.XZ();Eigenvectors(2,1)=sqrsigma.YZ();Eigenvectors(2,2)=sqrsigma.ZZ();
-    
+    REAL tolerance = 1.e-5;
+    if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
+    {
+        Eigenvectors.resize(3);
+        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(sigma),sigmacopy2(sigma),sigmacopy3(sigma),Identity,Identity2,Identity3;
+        Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
+        Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
+        Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
+        sigcopy.Multiply2(sigcopy,sqrsigma);
+        sigcopy.Multiply2(sigcopy,sqrsigma2);
+        sigcopy.Multiply2(sigcopy,sqrsigma3);
+        
+        e1temp=x1/(T(2.)*x1*x1*x1-I1*x1*x1+I3);
+        sigmacopy.Multiply(I1-x1,1);
+        Identity.Multiply((I3/x1),1);
+        sqrsigma.Add(sigmacopy,-1);
+        sqrsigma.Add(Identity,1);
+        sqrsigma.Multiply(e1temp,1);
+        Eigenvectors[0]=sqrsigma;
+        
+        e2temp=x2/(T(2.)*x2*x2*x2-I1*x2*x2+I3);
+        sigmacopy2.Multiply(I1-x2,1);
+        Identity2.Multiply((I3/x2),1);
+        sqrsigma2.Add(sigmacopy2,-1);
+        sqrsigma2.Add(Identity2,1);
+        sqrsigma2.Multiply(e2temp,1);
+        Eigenvectors[1]=sqrsigma2;
+        
+        e3temp=x3/(T(2.)*x3*x3*x3-I1*x3*x3+I3);
+        sigmacopy3.Multiply(I1-x3,1);
+        Identity3.Multiply((I3/x3),1);
+        sqrsigma3.Add(sigmacopy3,-1);
+        sqrsigma3.Add(Identity3,1);
+        sqrsigma3.Multiply(e3temp,1);
+        Eigenvectors[2]=sqrsigma3;
+    }
+    else if(valx1-valx2 >  tolerance)
+    {
+        Eigenvectors.resize(2);
+        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(sigma),sigmacopy2(sigma),sigmacopy3(sigma),Identity,Identity2,Identity3;
+        Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
+        Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
+        Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
+        sigcopy.Multiply2(sigcopy,sqrsigma);
+        sigcopy.Multiply2(sigcopy,sqrsigma2);
+        sigcopy.Multiply2(sigcopy,sqrsigma3);
+        
+        e1temp=x1/(T(2.)*x1*x1*x1-I1*x1*x1+I3);
+        sigmacopy.Multiply(I1-x1,1);
+        Identity.Multiply((I3/x1),1);
+        sqrsigma.Add(sigmacopy,-1);
+        sqrsigma.Add(Identity,1);
+        sqrsigma.Multiply(e1temp,1);
+        Eigenvectors[0]=sqrsigma;
 
-    
-    e2temp=x2/(T(2.)*x2*x2*x2-I1*x2*x2+I3);
-    sigmacopy2.Multiply(I1-x2,1);
-    Identity2.Multiply((I3/x2),1);
-    sqrsigma2.Add(sigmacopy2,-1);
-    sqrsigma2.Add(Identity2,1);
-    sqrsigma2.Multiply(e2temp,1);
-    Eigenvectors2.Resize(3,3);
-    Eigenvectors2(0,0)=sqrsigma2.XX();Eigenvectors2(0,1)=sqrsigma2.XY();Eigenvectors2(0,2)=sqrsigma2.XZ();
-    Eigenvectors2(1,0)=sqrsigma2.XY();Eigenvectors2(1,1)=sqrsigma2.YY();Eigenvectors2(1,2)=sqrsigma2.YZ();
-    Eigenvectors2(2,0)=sqrsigma2.XZ();Eigenvectors2(2,1)=sqrsigma2.YZ();Eigenvectors2(2,2)=sqrsigma2.ZZ();
-    
-    e3temp=x3/(T(2.)*x3*x3*x3-I1*x3*x3+I3);
-    sigmacopy3.Multiply(I1-x3,1);
-    Identity3.Multiply((I3/x3),1);
-    sqrsigma3.Add(sigmacopy3,-1);
-    sqrsigma3.Add(Identity3,1);
-    sqrsigma3.Multiply(e3temp,1);
-    Eigenvectors3.Resize(3,3);
-    Eigenvectors3(0,0)=sqrsigma3.XX();Eigenvectors3(0,1)=sqrsigma3.XY();Eigenvectors3(0,2)=sqrsigma3.XZ();
-    Eigenvectors3(1,0)=sqrsigma3.XY();Eigenvectors3(1,1)=sqrsigma3.YY();Eigenvectors3(1,2)=sqrsigma3.YZ();
-    Eigenvectors3(2,0)=sqrsigma3.XZ();Eigenvectors3(2,1)=sqrsigma3.YZ();Eigenvectors3(2,2)=sqrsigma3.ZZ();
-    
+        Eigenvectors[1].Identity();
+        Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
+    }
+    else {
+        Eigenvectors.resize(1);
+        Eigenvectors[0].Identity();
+    }
     
 }
 
