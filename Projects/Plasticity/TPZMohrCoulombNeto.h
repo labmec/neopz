@@ -102,7 +102,7 @@ public:
         PlasticityFunction(fState.fEpsPlasticBar,sigmay, H);
         T phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinfric-2.*sigmay*cosfric;
         T gamma = 0.;
-        REAL phival = 0;
+        REAL phival = val(phi);
         REAL tolerance = 1.e-8;
         do {
             T denom = -constA- T(4.*cosfric2)*H;
@@ -115,6 +115,75 @@ public:
             phival = val(phi);
             
         } while (abs(phival) > tolerance);
+        eigenvalues[0] -= T(2.*G()*(1+sinfric/3.+2.*K()*sinfric))*gamma;
+        eigenvalues[1] += T(4.*G() *K()*2./3.*sinfric)*gamma;
+        eigenvalues[2] -= T(2.*G()*(1+sinfric/3.-2.*K()*sinfric))*gamma;
+        sigma.Zero();
+        sigma.Add(eigenvectors[0],eigenvalues[0]);
+        if (eigenvectors.size() >= 2) {
+            sigma.Add(eigenvectors[1],eigenvalues[1]);
+        }
+        if (eigenvectors.size() >= 3) {
+            sigma.Add(eigenvectors[2],eigenvalues[2]);
+        }
+        return (val(eigenvalues[0])>val(eigenvalues[1]) && val(eigenvalues[1]) > val(eigenvalues[2]));
+    }
+    
+    template<class T>
+    bool ReturnMapLeftEdge(const TPZTensor<T> &epstotal, TPZTensor<T> &sigma)
+    {
+        const REAL sinfric = sin(fFricAngle);
+        const REAL cosfric = cos(fFricAngle);
+        const REAL sinfric2 = sinfric*sinfric;
+        const REAL cosfric2 = 1.-sinfric2;
+        TPZTensor<T> epslocal(epstotal);
+        epslocal -= fState.fEpsPlastic;
+        TPZTensor<T> sigma_trial;
+        sigma_trial = SigmaElast(epslocal);
+        TPZManVector<T,3> eigenvalues;
+        TPZManVector<TPZTensor<T> > eigenvectors;
+        sigma_trial.EigenSystem(eigenvalues,eigenvectors);
+        TPZManVector<T,2> gamma(2,0.),phi(2,0.),sigma_bar(2,0.),ab(2,0.);
+        TPZManVector<REAL,2> phival(2,0.);
+        TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
+        sigma_bar[0] = eigenvectors[0]-eigenvectors[2]+(eigenvectors[0]+eigenvectors[2])*T(sinfric);
+        sigma_bar[1] = eigenvectors[1]-eigenvectors[2]+(eigenvectors[1]+eigenvectors[2])*T(sinfric);
+        T sigmay,H;
+        PlasticityFunction(fState.fEpsPlasticBar,sigmay, H);
+        phi[0] = sigma_bar[0] - T(2.*cosfric)*sigmay;
+        phi[1] = sigma_bar[1] - T(2.*cosfric)*sigmay;
+        ab[0] = T(4.*G()*(1+sinfric/3.)+4.*K()*sinfric);
+        ab[1] = T(2.*G()*(0.-sinfric-sinfric/3.)+4.*K()*sinfric);
+        REAL tolerance = 1.e-8;
+        do {
+            d(0,0) = -ab[0]-T(4.*cosfric2)*H;
+            d(1,0) = -ab[1]-T(4.*cosfric2)*H;
+            d(0,1) = -ab[1]-T(4.*cosfric2)*H;
+            d(1,1) = -ab[0]-T(4.*cosfric2)*H;
+            T detd = d(0,0)*d(1,1)-d(0,1)*d(1,0);
+            dinverse(0,0) = d(1,1)/detd;
+            dinverse(1,0) = -d(1,0)/detd;
+            dinverse(0,1) = -d(0,1)/detd;
+            dinverse(1,1) = d(0,0)/detd;
+            gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
+            gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
+            T epsbar = T(fState.fEpsPlastic)+(gamma[0]+gamma[1])*T(2.*cosfric);
+            PlasticityFunction(epsbar, sigmay, H);
+            phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosfric)*sigmay;
+            phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[0] - T(2.*cosfric)*sigmay;
+        } while (abs(phival[0]) > tolerance || abs(phival[1]) > tolerance);
+        eigenvalues[0] -= T(2.*G()*(1+sinfric/3.+2.*K()*sinfric))*gamma[0];
+        eigenvalues[1] += T(4.*G() *K()*2./3.*sinfric)*gamma[0];
+        eigenvalues[2] -= T(2.*G()*(1+sinfric/3.-2.*K()*sinfric))*gamma[0];
+        sigma.Zero();
+        sigma.Add(eigenvectors[0],eigenvalues[0]);
+        if (eigenvectors.size() >= 2) {
+            sigma.Add(eigenvectors[1],eigenvalues[1]);
+        }
+        if (eigenvectors.size() >= 3) {
+            sigma.Add(eigenvectors[2],eigenvalues[2]);
+        }
+
     }
 };
 
