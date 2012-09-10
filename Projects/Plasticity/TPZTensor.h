@@ -28,6 +28,20 @@ template <class T>
 class TPZTensor {
 public:
 	
+    struct TPZDecomposed
+    {
+        TPZManVector<TPZTensor<T>, 3> fEigenvectors;
+        TPZManVector<T, 3> fEigenvalues;
+        TPZDecomposed(const TPZDecomposed &copy) : fEigenvectors(copy.fEigenvectors),fEigenvalues(copy.fEigenvalues)
+        {
+        }
+        TPZDecomposed &operator=(const TPZDecomposed &copy)
+        {
+            fEigenvectors = copy.fEigenvectors;
+            fEigenvalues = copy.fEigenvalues;
+            return *this;
+        }
+    };
     /**
 	 Construtor vazio inicializando com zero
 	 */
@@ -43,6 +57,11 @@ public:
 	 */
 	TPZTensor(const TPZTensor<T> & source) : fData(source.fData){ }
 	
+    /**
+     Construct a tensor based on its eigensystem decomposition
+     */
+    TPZTensor(const TPZTensor<T>::TPZDecomposed &eigensystem);
+    
 	/**
 	 Operator=
 	 */
@@ -211,7 +230,7 @@ public:
     /**
 	 * Computes the eigenvectors and eigenvalues based on (page 742 Computational methods for computational plasticity/Souza Neto)
 	 */
-    void EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVec<TPZTensor<T> > & Eigenvectors) const;
+    void EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem) const;
 	
 	
 	
@@ -594,15 +613,14 @@ void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 }
 
 template <class T>
-void TPZTensor<T>::EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVec<TPZTensor<T> > & Eigenvectors)const
+void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
 {
     T I1,I2,I3,R,theta,Q,x1,x2,x3,I,costheta,e1temp,e2temp,e3temp;
-    I1 = (sigma.I1());
-    I2=(sigma.I2());
-    I3=(sigma.I3());
+    I1 = (this->I1());
+    I2=(this->I2());
+    I3=(this->I3());
     
     
-    TPZTensor<T> sigcopy(sigma);
     R=(T(-2.)*I1*I1*I1+T(9.)*I1*I2-T(27.)*I3)/T(54.);
     
     Q=(I1*I1-T(3.)*I2)/T(9.);
@@ -646,6 +664,8 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVe
         valx2 = valx3;
         valx3 = valtemp;
     }
+    TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
+    TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
     Eigenvalues[0]=x1;
     Eigenvalues[1]=x2;
     Eigenvalues[2]=x3;
@@ -654,13 +674,13 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVe
     if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
     {
         Eigenvectors.resize(3);
-        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(sigma),sigmacopy2(sigma),sigmacopy3(sigma),Identity,Identity2,Identity3;
+        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(*this),sigmacopy2(*this),sigmacopy3(*this),Identity,Identity2,Identity3;
         Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
         Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
         Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
-        sigcopy.Multiply2(sigcopy,sqrsigma);
-        sigcopy.Multiply2(sigcopy,sqrsigma2);
-        sigcopy.Multiply2(sigcopy,sqrsigma3);
+        Multiply2(*this,sqrsigma);
+        sqrsigma2 = sqrsigma;
+        sqrsigma3 = sqrsigma;
         
         e1temp=x1/(T(2.)*x1*x1*x1-I1*x1*x1+I3);
         sigmacopy.Multiply(I1-x1,1);
@@ -689,13 +709,13 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T> sigma,TPZVec<T> & Eigenvalues, TPZVe
     else if(valx1-valx2 >  tolerance)
     {
         Eigenvectors.resize(2);
-        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(sigma),sigmacopy2(sigma),sigmacopy3(sigma),Identity,Identity2,Identity3;
+        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(*this),sigmacopy2(*this),sigmacopy3(*this),Identity,Identity2,Identity3;
         Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
         Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
         Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
-        sigcopy.Multiply2(sigcopy,sqrsigma);
-        sigcopy.Multiply2(sigcopy,sqrsigma2);
-        sigcopy.Multiply2(sigcopy,sqrsigma3);
+        Multiply2(*this,sqrsigma);
+        sqrsigma2 = sqrsigma;
+        sqrsigma3 = sqrsigma;
         
         e1temp=x1/(T(2.)*x1*x1*x1-I1*x1*x1+I3);
         sigmacopy.Multiply(I1-x1,1);
