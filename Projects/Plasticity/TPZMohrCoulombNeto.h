@@ -18,8 +18,8 @@
 #include "pzvec_extras.h"
 #include "pzsave.h"
 
-#ifdef LOG4CXX_PLASTICITY
-static LoggerPtr loggerMohrCoulomb(Logger::getLogger("pz.plasticity.mohrcooulombneto"));
+#ifdef LOG4CXX
+static LoggerPtr loggerMohrCoulomb(Logger::getLogger("pz.plasticity.mohrcoulombneto"));
 #endif
 
 
@@ -69,9 +69,10 @@ public:
     }
     
     template<class T>
-    void PlasticityFunction(T epsp, T &sigmay, T &H)
+    void PlasticityFunction(T epsp, T &sigmay, T &H) const
     {
-        
+        sigmay = T(15.)+(T(2571.43)-T(2.95238e6)*epsp)*(T(-0.0035)+epsp);
+        H = T(12904.8)-T(5.90476e6)*epsp;
     }
     
     template<class T>
@@ -82,6 +83,7 @@ public:
         result.Identity();
         result *= (Lambda()*trdeform);
         result.Add(deform,2.*Mu());
+        return result;
     }
     
     template<class T>
@@ -93,6 +95,20 @@ public:
         sigma = SigmaElast(epslocal);
         typename TPZTensor<T>::TPZDecomposed sigma_trial;
         sigma.EigenSystem(sigma_trial);
+#ifdef LOG4CXX
+        if (loggerMohrCoulomb->isDebugEnabled()) {
+            std::stringstream sout;
+            sout << "Input tensor ";
+            sigma.Print(sout);
+            sout << "Eigenvalues " << sigma_trial.fEigenvalues << std::endl;
+            sout << "Eigenvectors\n";
+            for (int i=0; i<sigma_trial.fEigenvectors.size(); i++) {
+                sigma_trial.fEigenvectors[i].Print(sout);
+                sout << std::endl;
+            }
+            LOGPZ_DEBUG(loggerMohrCoulomb, sout.str())
+        }
+#endif
         return sigma_trial;
     }
     
@@ -101,7 +117,7 @@ public:
     {
         typename TPZTensor<T>::TPZDecomposed sigma_trial = SigmaTrial(epstotal);
         T phi = PhiPlane<T>(sigma_trial);
-        if (val(phi) <= 0.) {
+        if (shapeFAD::val(phi) <= 0.) {
             sigma = TPZTensor<T>(sigma_trial);
             return;
         }
@@ -112,7 +128,7 @@ public:
         else {
             const REAL sinpsi = sin(fPsi);
             TPZManVector<T,3> &eigenvalues = sigma_trial.fEigenvalues;
-            REAL S = (1-sinpsi)*val(eigenvalues[0])-2.*val(eigenvalues[2])+(1+sinpsi)*val(eigenvalues[1]);
+            REAL S = (1-sinpsi)*shapeFAD::val(eigenvalues[0])-2.*shapeFAD::val(eigenvalues[2])+(1+sinpsi)*shapeFAD::val(eigenvalues[1]);
             if (S > 0.) {
                 ReturnMapRightEdge<T>(sigma_trial, sigma_projected);
             }
@@ -129,7 +145,7 @@ public:
         const REAL sinphi = sin(fPhi);
         const REAL cosphi = cos(fPhi);
         T sigmay,H;
-        PlasticityFunction(fState.fEpsPlasticBar,sigmay, H);
+        PlasticityFunction(T(fState.fEpsPlasticBar),sigmay, H);
         return sigma.fEigenvalues[0]-sigma.fEigenvalues[2]+(sigma.fEigenvalues[0]+sigma.fEigenvalues[2])*sinphi-2.*sigmay*cosphi;
     }
 
@@ -149,23 +165,23 @@ public:
         PlasticityFunction(fState.fEpsPlasticBar,sigmay, H);
         T phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
         T gamma = 0.;
-        REAL phival = val(phi);
+        REAL phival = shapeFAD::val(phi);
         REAL tolerance = 1.e-8;
         do {
             T denom = -constA- T(4.*cosphi2)*H;
             T d = T(-4.*G()*(1.+sinphi*sinpsi/3.)-4.*K()*sinphi*sinpsi)-T(4.*cosphi2)*H;
             T deriv_gamma = -phi/denom;
             gamma += deriv_gamma;
-            T epsbar = T(fState.fEpsPlastic)+gamma*T(2.*cosphi);
+            T epsbar = T(fState.fEpsPlasticBar)+gamma*T(2.*cosphi);
             PlasticityFunction(epsbar, sigmay, H);
             phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
-            phival = val(phi);
+            phival = shapeFAD::val(phi);
             
         } while (abs(phival) > tolerance);
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma;
         eigenvalues[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
         eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
-        return (val(eigenvalues[0])>val(eigenvalues[1]) && val(eigenvalues[1]) > val(eigenvalues[2]));
+        return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
     }
     
     template<class T>
@@ -178,7 +194,6 @@ public:
         const REAL cosphi = cos(fPhi);
         const REAL sinphi2 = sinphi*sinphi;
         const REAL cosphi2 = 1.-sinphi2;
-        sigma_trial.EigenSystem(eigenvalues,eigenvectors);
         TPZManVector<T,2> gamma(2,0.),phi(2,0.),sigma_bar(2,0.),ab(2,0.);
         TPZManVector<REAL,2> phival(2,0.);
         TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
@@ -203,7 +218,7 @@ public:
             dinverse(1,1) = d(0,0)/detd;
             gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
             gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
-            T epsbar = T(fState.fEpsPlastic)+(gamma[0]+gamma[1])*T(2.*cosphi);
+            T epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
             PlasticityFunction(epsbar, sigmay, H);
             phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
             phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[0] - T(2.*cosphi)*sigmay;
@@ -211,7 +226,7 @@ public:
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.+2.*K()*sinpsi))*gamma[1]+T((4.*G()/3.-2.*K())*sinpsi)*gamma[1];
         eigenvalues[1] += T((4.*G()/3.- K()*2.)*sinpsi)*gamma[0]-T(2.*G()*(1.+sinpsi/3.)+2.*K()*sinpsi)*gamma[1];
         eigenvalues[2] -= T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*(gamma[0]+gamma[1]);
-        return (val(eigenvalues[0])>val(eigenvalues[1]) && val(eigenvalues[1]) > val(eigenvalues[2]));
+        return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));
     }
     
     template<class T>
@@ -225,7 +240,6 @@ public:
         const REAL cosphi = cos(fPhi);
         const REAL sinphi2 = sinphi*sinphi;
         const REAL cosphi2 = 1.-sinphi2;
-        sigma_trial.EigenSystem(eigenvalues,eigenvectors);
         TPZManVector<T,2> gamma(2,0.),phi(2,0.),sigma_bar(2,0.),ab(2,0.);
         TPZManVector<REAL,2> phival(2,0.);
         TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
@@ -250,7 +264,7 @@ public:
             dinverse(1,1) = d(0,0)/detd;
             gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
             gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
-            T epsbar = T(fState.fEpsPlastic)+(gamma[0]+gamma[1])*T(2.*cosphi);
+            T epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
             PlasticityFunction(epsbar, sigmay, H);
             phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
             phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[0] - T(2.*cosphi)*sigmay;
@@ -258,7 +272,7 @@ public:
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.+2.*K()*sinpsi))*(gamma[0]+gamma[1]);
         eigenvalues[1] += T((4.*G()/3.- K()*2.)*sinpsi)*gamma[0]+T(2.*G()*(1.-sinpsi/3.)-2.*K()*sinpsi)*gamma[1];
         eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma[0]+T((4.*G()/3.-2.*K())*sinpsi)*gamma[1];
-        return (val(eigenvalues[0])>val(eigenvalues[1]) && val(eigenvalues[1]) > val(eigenvalues[2]));        
+        return (shapeFAD::val(eigenvalues[0])>shapeFAD::val(eigenvalues[1]) && shapeFAD::val(eigenvalues[1]) > shapeFAD::val(eigenvalues[2]));        
     }
 
     

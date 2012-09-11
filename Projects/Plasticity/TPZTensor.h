@@ -32,6 +32,11 @@ public:
     {
         TPZManVector<TPZTensor<T>, 3> fEigenvectors;
         TPZManVector<T, 3> fEigenvalues;
+        
+        TPZDecomposed() : fEigenvectors(3), fEigenvalues(3,0.)
+        {
+            
+        }
         TPZDecomposed(const TPZDecomposed &copy) : fEigenvectors(copy.fEigenvectors),fEigenvalues(copy.fEigenvalues)
         {
         }
@@ -60,8 +65,19 @@ public:
     /**
      Construct a tensor based on its eigensystem decomposition
      */
-    TPZTensor(const TPZTensor<T>::TPZDecomposed &eigensystem);
+    TPZTensor(const TPZTensor<T>::TPZDecomposed &eigensystem) : fData(6, T(0.))
+    {
+        (*this).Scale(0.);
+        for (int i=0; i<eigensystem.fEigenvectors.size(); i++) {
+            Add(eigensystem.fEigenvectors[i], eigensystem.fEigenvalues[i]);
+        }
+    }
     
+    /**
+     * Method to print the tensor
+     */
+    void Print(std::ostream &out) const;
+
 	/**
 	 Operator=
 	 */
@@ -450,10 +466,10 @@ T TPZTensor<T>::I1() const {
 
 template < class T >
 T TPZTensor<T>::I2() const {
-    return (fData[_XY_] * fData[_XY_] +
+    return -(fData[_XY_] * fData[_XY_] +
             fData[_XZ_] * fData[_XZ_] +
             fData[_YZ_] * fData[_YZ_])
-	- (fData[_XX_] * fData[_YY_] +
+	+ (fData[_XX_] * fData[_YY_] +
 	   fData[_YY_] * fData[_ZZ_] +
 	   fData[_XX_] * fData[_ZZ_] );
 }
@@ -627,16 +643,16 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     
     costheta=R/sqrt(Q*Q*Q);
     
-    if(val(costheta)<-1. || val(costheta)>1.)
+    if(shapeFAD::val(costheta)<-1. || shapeFAD::val(costheta)>1.)
     {
-        costheta /=T(val(costheta));
+        costheta /=T(fabs(shapeFAD::val(costheta)));
     }
     
     theta = acos(costheta);
     x1=T(-2.)*sqrt(Q)*cos(theta/3)+ (I1/T(3.));//eigenval 1
     x2=T(-2.)*sqrt(Q)*cos( ( theta +  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 2
     x3=T(-2.)*sqrt(Q)*cos( ( theta -  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 3
-    REAL valx1 = val(x1), valx2 = val(x2), valx3 = val(x3);
+    REAL valx1 = shapeFAD::val(x1), valx2 = shapeFAD::val(x2), valx3 = shapeFAD::val(x3);
     if(valx1 < valx2)
     {
         T temp = x1;
@@ -1340,6 +1356,16 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
      */
 }
 
+template <>
+inline void TPZTensor<REAL>::Print(std::ostream &output) const {
+    output << "XX = " << XX() << " XY = " << XY() << " XZ = " << XZ() << " YY = " << YY() << " YZ() = " << YZ() << " ZZ = " << ZZ() << std::endl;
+}
+
+
+template <class T>
+inline void TPZTensor<T>::Print(std::ostream &output) const {
+    output << __PRETTY_FUNCTION__ << " please implement me\n";
+}
 //template class TPZTensor<REAL>;
 
 #endif //TPZTENSOR_H

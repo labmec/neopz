@@ -52,16 +52,37 @@ void SetUPPostProcessVariables(TPZVec<std::string> &postprocvars, TPZVec<std::st
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
 void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
 
+#include "pzlog.h"
+
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("plasticity.main"));
+#endif
 
 
 int main()
 {
-    
+    InitializePZLOG();
     
     //   MohrCoulombTestX();
 //        calctalude();
     //    calcVonMisesBar();
     TPZMohrCoulombNeto toto;
+    TPZTensor<REAL> epstotal,sigma;
+    epstotal.XX() = 0.00001;
+    do {
+        toto.ComputeSigma(epstotal, sigma );
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Deformation tensor ";
+            epstotal.Print(sout);
+            sout << "Stress tensor " << sigma;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        epstotal.XX() += 0.00001;
+    } while (epstotal.XX() < 0.1);
     return 0;
     
     
