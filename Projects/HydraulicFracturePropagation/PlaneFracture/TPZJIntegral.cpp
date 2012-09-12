@@ -18,6 +18,8 @@
 #include "pzinterpolationspace.h"
 #include "pzaxestools.h"
 
+#include "TPZVTKGeoMesh.h"
+
 const int dim3D = 3;
 
 
@@ -88,9 +90,8 @@ Path::~Path()
 
 TPZVec<REAL> Path::Func(REAL t)
 {    
-    TPZVec<REAL> xt(dim3D), dxdt(dim3D), nt(dim3D);
+    TPZVec<REAL> xt(dim3D), nt(dim3D);
     X(t,xt);
-    dXdt(t, dxdt);
     normalVec(t, nt);
 
     TPZVec<REAL> qsi;
@@ -134,7 +135,10 @@ TPZVec<REAL> Path::Func(REAL t)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUtxy(fMeshDim,fMeshDim);    
+    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUtxy(fMeshDim,fMeshDim);
+    Sigma.Zero();
+    strain.Zero();
+    GradUtxy.Zero();
     if(fMeshDim == 2)
     {
         TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim);
@@ -173,8 +177,7 @@ TPZVec<REAL> Path::Func(REAL t)
     }
     else if(fMeshDim == 3)
     {
-        TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim), GradUxy(fMeshDim,fMeshDim);
-        GradUxy = data.dsol[0];
+        GradUtxy = data.dsol[0];
         
         TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
         
@@ -187,9 +190,7 @@ TPZVec<REAL> Path::Func(REAL t)
         #endif
         
         elast3D->ComputeStressTensor(Sigma, data);
-        elast3D->ComputeStrainTensor(strain, GradUxy);
-        
-        GradUxy.Transpose(&GradUtxy);
+        elast3D->ComputeStrainTensor(strain, GradUtxy);
     }
     
     TPZFMatrix<REAL> GradUt_Sigma(fMeshDim,fMeshDim,0.);
@@ -477,14 +478,16 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     Adapt intRule(precisionIntegralRule);
     
     externalArcPath * _ExtArcPath = new externalArcPath(jpathElem);
-    internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
-    linearPath * _LinPath = new linearPath(jpathElem);
+    //internalArcPath * _IntArcPath = new internalArcPath(jpathElem);
+    //linearPath * _LinPath = new linearPath(jpathElem);
     
+    ////////////////
+    ////////////////
     
-    int meshDim = 2;
+    int meshDim = 3;
     TPZVec<REAL> integrExtArc  = intRule.Vintegrate(*_ExtArcPath,meshDim,-1.,+1.);
-    TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
-    TPZVec<REAL> lin  = intRule.Vintegrate(*_LinPath,meshDim,-1.,+1.);
+    //TPZVec<REAL> integrIntArc  = intRule.Vintegrate(*_IntArcPath,meshDim,-1.,+1.);
+    //TPZVec<REAL> lin  = intRule.Vintegrate(*_LinPath,meshDim,-1.,+1.);
     
     TPZVec<REAL> answ(meshDim);
     if(meshDim == 2)
