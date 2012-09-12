@@ -618,6 +618,87 @@ void TPZVTKGeoMesh::PrintGMeshVTKneighbourhood(TPZGeoMesh * gmesh, int elId, std
     PrintGMeshVTKmy_material(gmeshCP, file, myMaterial, true);
 }
 
+void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::set<int> & elId, std::ofstream &file)
+{
+    file.clear();
+	int nelements = gmesh->NElements();
+	
+	std::stringstream node, connectivity, type, material;
+	
+	//Header
+	file << "# vtk DataFile Version 3.0" << std::endl;
+	file << "TPZGeoMesh VTK Visualization" << std::endl;
+	file << "ASCII" << std::endl << std::endl;
+	
+	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
+	file << "POINTS ";
+	
+	int actualNode = -1, size = 0, nVALIDelements = 0;
+	
+	for(int el = 0; el < nelements; el++)
+	{
+        if(elId.find(el) == elId.end())
+        {
+            continue;
+        }
+		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+		{
+			continue;
+		}
+		if(gmesh->ElementVec()[el]->HasSubElement())
+		{
+			continue;
+		}
+		
+        MElementType elt = gmesh->ElementVec()[el]->Type();
+		int elNnodes = MElementType_NNodes(elt);
+        
+		size += (1+elNnodes);
+		connectivity << elNnodes;
+		
+		for(int t = 0; t < elNnodes; t++)
+		{
+			for(int c = 0; c < 3; c++)
+			{
+				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				node << coord << " ";
+			}
+			node << std::endl;
+			
+			actualNode++;
+			connectivity << " " << actualNode;
+		}
+		connectivity << std::endl;
+		
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
+		type << elType << std::endl;
+		
+        material << el << std::endl;
+		
+		nVALIDelements++;
+	}
+	node << std::endl;
+	actualNode++;
+	file << actualNode << " float" << std::endl << node.str();
+	
+	file << "CELLS " << nVALIDelements << " ";
+	
+	file << size << std::endl;
+	file << connectivity.str() << std::endl;
+	
+	file << "CELL_TYPES " << nVALIDelements << std::endl;
+	file << type.str() << std::endl;
+	
+	file << "CELL_DATA" << " " << nVALIDelements << std::endl;
+	file << "FIELD FieldData 1" << std::endl;
+
+    file << "elId 1 " << nVALIDelements << " int" << std::endl;
+
+	file << material.str();
+	
+	file.close();
+}
+
 void TPZVTKGeoMesh::SetMaterial(TPZGeoEl * gel, int mat)
 {
     gel->SetMaterialId(mat);
