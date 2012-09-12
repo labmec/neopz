@@ -803,61 +803,65 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         REAL detjac;
         TPZFMatrix<REAL> jac(dim,dim), axes(dim,3), jacinv(dim,dim), JacInvCn(dim,3), temp(dim,1);
         this->Jacobian(qsi, jac, axes, detjac, jacinv);
+        
         if(IsZero(detjac))
         {
-//            if(this->IsInParametricDomain(qsi,1.E-1))
-//            {
-//                //aproximate tangent (jacobian matrix) by the secant
-//                TPZVec<REAL> qsiDesloc(dim,1);
-//                REAL alpha = 0.01;
-//                qsiDesloc = centerP - qsi;
-//                REAL norm = 0.;
-//                for(int c = 0; c < dim; c++)
-//                {
-//                    norm += qsiDesloc[c]*qsiDesloc[c];
-//                }
-//                norm = sqrt(norm);
-//                
-//                #ifdef DEBUG
-//                if(IsZero(norm))
-//                {
-//                    DebugStop();
-//                }
-//                #endif
-//                
-//                for(int c = 0; c < dim; c++)
-//                {
-//                    qsiDesloc[c] = qsi[c] + 2.*alpha*qsiDesloc[c]/norm;
-//                }
-//                TPZVec<REAL> qsiTemp, xDesloc(3,1), xTemp(3,1);
-//                this->X(qsiDesloc,xDesloc);
-//                
-//                TPZFMatrix<REAL> jacTrapCn(3,dim,0.), axest(3,dim);
-//                for(int c = 0; c < dim; c++)
-//                {
-//                    qsiTemp = qsiDesloc;
-//                    qsiTemp[c] = qsiTemp[c] + alpha;
-//                    this->X(qsiTemp,xTemp);
-//                    xTemp = xTemp - xDesloc;
-//                    
-//                    for(int r = 0; r < 3; r++)
-//                    {
-//                        jacTrapCn(r,c) = xTemp[r];
-//                    }
-//                }
-//                jacTrapCn.GramSchmidt(axest, jac);
-//                axest.Transpose(&axes);
-//                jac.DeterminantInverse(detjac, jacinv);
-//                
-//                if(IsZero(detjac))
-//                {
-//                    //NO WAY!!!!
-//                    DebugStop();
-//                }
-//            }
-//            else
+            if(this->IsInParametricDomain(qsi,1.E-1))
             {
-                DebugStop();
+                //aproximate tangent (jacobian matrix) by the secant (finite differences)
+                TPZVec<REAL> qsiDesloc(dim,1);
+                REAL norm = 0.;
+                for(int c = 0; c < dim; c++)
+                {
+                    qsiDesloc[c] = centerP[c] - qsi[c];
+                    norm += qsiDesloc[c]*qsiDesloc[c];
+                }
+                norm = sqrt(norm);
+                
+                #ifdef DEBUG
+                if(IsZero(norm))
+                {
+                    //jacobiano nulo no centro do elemento...
+                    DebugStop();
+                }
+                #endif
+                
+                REAL alpha = 0.02;
+                for(int c = 0; c < dim; c++)
+                {
+                    qsiDesloc[c] = qsi[c] + alpha*qsiDesloc[c]/norm;
+                }
+                TPZVec<REAL> xDesloc(3,1), xTemp(3,1);
+                this->X(qsiDesloc,xDesloc);
+                
+                TPZFMatrix<REAL> jacTrapCn(3,dim,0.), axest(3,dim);
+                for(int c = 0; c < dim; c++)
+                {
+                    TPZVec<REAL> qsiTemp(qsiDesloc);
+                    qsiTemp[c] = qsiTemp[c] + alpha;
+                    this->X(qsiTemp,xTemp);
+                    
+                    xTemp[0] = (xTemp[0] - xDesloc[0])/alpha;
+                    xTemp[1] = (xTemp[1] - xDesloc[1])/alpha;
+                    xTemp[2] = (xTemp[2] - xDesloc[2])/alpha;
+                    
+                    for(int r = 0; r < 3; r++)
+                    {
+                        jacTrapCn(r,c) = xTemp[r];
+                    }
+                }
+                jacTrapCn.GramSchmidt(axest, jac);
+                axest.Transpose(&axes);
+                jac.DeterminantInverse(detjac, jacinv);
+                
+                if(IsZero(detjac))
+                {
+                    //Nem com calculo alternativo (diferencas finitas) demos jeito no jacobiano nulo
+                    DebugStop();
+                }
+            }
+            else
+            {
                 return false;
             }
         }
