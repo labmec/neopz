@@ -85,7 +85,6 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 //}
 
 
-
 int mainTESE(int argc, char * const argv[])
 {	
     std::cout << "\e";
@@ -142,7 +141,7 @@ int mainTESE(int argc, char * const argv[])
     return 0;
 }
 
-//SIF validation
+//SIF
 int main(int argc, char * const argv[])
 {
     std::cout << "\e";
@@ -160,27 +159,27 @@ int main(int argc, char * const argv[])
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
     
-    REAL lw = 100.;
-    REAL bulletDepthIni =   0.;
-    REAL bulletDepthFin = 100.;    
+    REAL lw = 10.;
+    REAL bulletDepthIni =  0.;
+    REAL bulletDepthFin = 10.;    
     
     TPZVec< std::map<REAL,REAL> > pos_stress(2);
     pos_stress[0][0.]    = 1.;
-    pos_stress[0][100.]  = 1.;
+    pos_stress[0][10.]  = 1.;
     TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress);
     
     TPZVec<REAL> fractureDots(4);
-    fractureDots[0] =  22.;
-    fractureDots[1] = - 2.;
-    fractureDots[2] =  22.;
-    fractureDots[3] = -98.;
+    fractureDots[0] =  1.;
+    fractureDots[1] = -0.5;
+    fractureDots[2] =  1.;
+    fractureDots[3] = -9.5;
     
     
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    int meshDim = 2;
-    std::string vtkFile = "fractureSIF.vtk";
+    int meshDim = 3;
+    std::string vtkFile = "fractureSIF3D.vtk";
     plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile,meshDim);
     
     clockIni2.stop();
