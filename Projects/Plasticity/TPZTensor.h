@@ -46,6 +46,14 @@ public:
             fEigenvalues = copy.fEigenvalues;
             return *this;
         }
+        void Print(std::ostream &out) const
+        {
+            out << "TPZTensor::Decomposed Eigenvalues " << fEigenvalues << std::endl;
+            out << "Eigenvectors:\n";
+            for (int i=0; i<fEigenvectors.size(); i++) {
+                fEigenvectors[i].Print(out);
+            }
+        }
     };
     /**
 	 Construtor vazio inicializando com zero

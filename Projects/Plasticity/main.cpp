@@ -82,7 +82,7 @@ int main()
         }
 #endif
         epstotal.XX() += 0.00001;
-    } while (epstotal.XX() < 0.1);
+    } while (epstotal.XX() < 0.0015);
     return 0;
     
     
