@@ -42,12 +42,19 @@ function run_cfg
     ASSRDT="$BASEOUT.ass.rdt"
     CRERDT="$BASEOUT.cre.rdt"
 
-    CMD="$APP -bc -cf1 @PERFTEST_DATA_DIR@/SubStruct/inputs/$IF -dc3 $OF -st3 -ass_rdt $ASSRDT -cre_rdt $CRERDT" 
+    ICHKF="@PERFTEST_DATA_DIR@/SubStruct/inputs/$IF"
+
+    CMD="$APP -bc -cf1 $ICHKF -dc3 $OF -st3 -ass_rdt $ASSRDT -cre_rdt $CRERDT" 
     CMD="$CMD -chk_c3_md5 $MD5F"
     CMD="$CMD -nsub $NS -nt_a $NTA -nt_d $NTD -nt_m $NTM -nt_sm $NTSM -p $P $EXTRAARGS"
     verbose 1 "cmd: $CMD"
 
     [ -f "$OF" ] && rm "$OF" # Remove if exists
+
+    if [ ! -f "$ICHKF" ]; then
+	echo "ERROR: $ICHKF is not a valid input checkpoint file. Skiping test. CMD = $CMD"
+	continue;
+    fi
 
     /usr/bin/time $TIMEARGS $CMD &> "$BASEOUT.output.txt"
     RET=$?
@@ -109,6 +116,9 @@ verbose 1 " NCORES = $NCORES"
 verbose 1 " L1 NTHREADS =  / $L1NTHREADS" 
 verbose 1 " L2 NTHREADS =  / $L2NTHREADS" 
 
+#verbose 1 "Hit ENTER to continue"
+#read
+
 ERRORS=0
 OKS=0
 
@@ -123,7 +133,7 @@ for NSUB in 2 4 8 16 32 64; do
 
     # L1 Serial, L2 PThreads
     #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0  $NCORES      0      2  "L1_ser_L2_pth" ""  
+    run_cfg $NSUB      0    0  $L2NTHREADS  0      2  "L1_ser_L2_pth" ""  
 
     # L1 Serial, L2 serial
     #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
@@ -135,19 +145,19 @@ for NSUB in 2 4 8 16 32 64; do
 
     # L1 TBB, L2 PThread
     #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0  $NCORES      0      2  "L1_TBB_L2_pth" "-dohr_tbb"  
+    run_cfg $NSUB      0    0  $L2NTHREADS  0      2  "L1_TBB_L2_pth" "-dohr_tbb"  
 
     # L1 PThread, L2 TBB
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB $NCORES $NCORES    0      0      2  "L1_pth_L2_TBB" "-pair_tbb"  
+    #       subm  L1(ntd ntsm)           L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB $L1NTHREADS $L1NTHREADS    0      0      2  "L1_pth_L2_TBB" "-pair_tbb"  
 
     # L1 PThread, L2 PThread
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB $NCORES $NCORES $NCORES   0      2  "L1_pth_L2_pth" ""  
+    #       subm  L1(ntd ntsm)            L2(nta)     nt_mul plevel                 "extra" 
+    run_cfg $NSUB $L1NTHREADS $L1NTHREADS $L2NTHREADS   0      2  "L1_pth_L2_pth" ""  
 
     # L1 PThread, L2 Serial
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB $NCORES $NCORES   0       0      2  "L1_pth_L2_ser" ""  
+    #       subm  L1(ntd ntsm)             L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB $L1NTHREADS $L1NTHREADS   0       0      2  "L1_pth_L2_ser" ""  
 
     # L1 TBB, L2 Serial
     #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
