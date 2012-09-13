@@ -43,7 +43,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 		 Com isso a variavel int connectIndex0 eh setada com -1, dando o BUG observado.
 		 */
 		std::cout << "Nao foi encontrado elemento 2D com elemento computacional inicializado!!!\n"; 
-		//DebugStop();
+		DebugStop();
 	}
 	TPZCompElSide compneigh(neigh.Reference());
     fneighbour = compneigh;
@@ -252,7 +252,9 @@ int TPZCompElHDivBound2<TSHAPE>::SideConnectLocId(int node, int side) const
 	{
 		return 0;
 	}
+	else{
 	return -1;
+	}
 	
 }
 
