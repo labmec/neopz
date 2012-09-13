@@ -546,7 +546,9 @@ void TPZPairStructMatrix::Assemble(int mineq, int maxeq, TPZMatrix<STATE> *first
 	    << " threads (TPZPairStructMatrix::gNumThreads = " << TPZPairStructMatrix::gNumThreads  << ")\n";
 #endif
 
+#ifndef WIN32
 #warning "Fixme!!!"
+#endif
   // Find a better way to select among TBB, pthread or serial execution!
 
   if (fNumThreads < 0)
