@@ -1,14 +1,15 @@
+
+
 /// ---- GLOBALS ----
 
-#define MAXLVL 5
 #define NTHREADS 2
+#define MAXLVL 5
 #define NX 5
 #define NY 5
 
 /// -----------
 
-#define MRPARALLEL
-//#define MRSERIAL
+#define MR
 
 //#define REFTHREADV3 				//main refthread third version
 //#define REFTHREADV2				//main refthread second version
@@ -66,7 +67,8 @@ double get_time()
 	return d;
 }	// Simple function for taking time
 
-TPZGeoMesh* GetMesh (int nx, int ny){
+TPZGeoMesh* GetMesh (int nx, int ny)
+{
 	int i,j;
 	int id, index;
 	
@@ -192,27 +194,27 @@ void RunTestsCompMesh (TPZAutoPointer<TPZGeoMesh> gmesh) {
     //out << sout << std::endl;
 }
 
+#ifdef MR
 
-//------------------------------------------------------------//
+TPZVec <TPZGeoEl *> sons;
+double err;
 
-#ifdef MRPARALLEL
+int option, maxlvl, nx, ny, nthreads;
 
-pthread_t threads[NTHREADS];
-
-struct divide_data {
+struct divide_data_parallel {
 	int el;
 	TPZGeoMesh* mesh;
 };
 
-void *divide(void *arg)
+void *divide_parallel (void *arg)
 {
-	divide_data *idata = (divide_data*) arg;
+	divide_data_parallel *idata = (divide_data_parallel*) arg;
 	TPZGeoMesh *imesh = idata->mesh;
 	delete idata;
 	
 	TPZVec <TPZGeoEl *> sons;
     
-    int iref, nref = MAXLVL;
+    int iref, nref = maxlvl;
 	for (iref=0; iref<nref; iref++)
 	{
 		int nelements = imesh->NElements();
@@ -238,24 +240,26 @@ void *divide(void *arg)
 	pthread_exit(0);
 }
 
-int main ()
+int main_parallel ()
 {	
-    TPZGeoMesh *gmeshes[NTHREADS];
-    for (int i=0; i<NTHREADS; i++) {
-        gmeshes[i] = GetMesh(NX, NY);
+    pthread_t threads[nthreads];
+    
+    TPZGeoMesh *gmeshes[nthreads];
+    for (int i=0; i<nthreads; i++) {
+        gmeshes[i] = GetMesh(nx, ny);
     }
 	
     int err;
     
 	double time_start = get_time();
-	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS (MRPARALLEL)***\n";
+	//cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS (MRPARALLEL)***\n";
 	
-    for (int i=0; i<NTHREADS; i++) {
-        divide_data *sdata;
-        sdata = new divide_data;
+    for (int i=0; i<nthreads; i++) {
+        divide_data_parallel *sdata;
+        sdata = new divide_data_parallel;
         sdata->mesh = gmeshes[i];
     
-        err = pthread_create (&threads[i], NULL, divide, (void *) sdata);
+        err = pthread_create (&threads[i], NULL, divide_parallel, (void *) sdata);
     
         if (err)
         {
@@ -264,7 +268,7 @@ int main ()
         }
     }
     
-    for (int i=0; i<NTHREADS; i++) {
+    for (int i=0; i<nthreads; i++) {
         err = pthread_join (threads[i], NULL);
         
         if (err)
@@ -274,20 +278,19 @@ int main ()
         }
     }
     
-	cout << "\n****END****\n";
 	double time_end = get_time();
-	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
+    //cout << "\n****END****\n";
+	//cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
     
-    for (int i=0; i<NTHREADS; i++) { 
+    for (int i=0; i<nthreads; i++) { 
         string filename;
-        int nthreads_int = NTHREADS;
         
         ostringstream ss;
         ss << i;
         string filenumber = ss.str();
        
         ostringstream ss2;
-        ss2 << nthreads_int;
+        ss2 << nthreads;
         string nthreads_str = ss2.str();
         
         filename = "after_PTHREAD_";
@@ -298,53 +301,31 @@ int main ()
         
         ofstream af(filename.c_str());
         TPZVTKGeoMesh::PrintGMeshVTK(gmeshes[i], af);
-        
         af.close();
     }
     
-    int nthreads_int = NTHREADS;
+    ofstream af;
+    af.open("after_PTHREAD_report.txt", ios::app);
     
-    string filename;
-    ostringstream ss2;
-    ss2 << nthreads_int;
-    string nthreads_str = ss2.str();
-    
-    filename = "after_PTHREAD_";
-    filename.insert(filename.size(), nthreads_str);
-    filename.insert(filename.size(),"meshes_report.txt");
-    
-    ofstream af(filename.c_str());
-    
-    af << "PARALELL REFINEMENT WITH " << NTHREADS << " THREADS:\n\n";
-    af << "Meshes properties:\nSize: Height: " << NY << " Width: " << NX << "\nLevel Max: " << MAXLVL << "\n\n";
-    af << "This refinement has run for: "<< (time_end-time_start) << " seconds.";
+    af << option << " " << maxlvl << " " << nx << " " << ny << " " << nthreads << " " << (time_end-time_start) << "\n";
     
     af.close();
     
 	return 0;
 }
 
-#endif
-
-//------------------------------------------------------------//
-
-#ifdef MRSERIAL
-
-TPZVec <TPZGeoEl *> sons;
-double err;
-
-int main ()
+int main_serial ()
 { 	
-	TPZGeoMesh *gmeshes[NTHREADS];
-    for (int i=0; i<NTHREADS; i++) {
-        gmeshes[i] = GetMesh(NX, NY);
+	TPZGeoMesh *gmeshes[nthreads];
+    for (int i=0; i<nthreads; i++) {
+        gmeshes[i] = GetMesh(nx, ny);
     }
 	
 	double time_start = get_time();
-	cout << "\n\n***STARTING SERIAL REFINEMENT PROCESS (MRSERIAL)***\n";
+    //cout << "\n\n***STARTING SERIAL REFINEMENT PROCESS (MRSERIAL)***\n";
     
-    for (int i=0; i<NTHREADS; i++) {
-        int iref, nref = MAXLVL;
+    for (int i=0; i<nthreads; i++) {
+        int iref, nref = maxlvl;
         for (iref=0; iref<nref; iref++)
         {
             int nelements = gmeshes[i]->NElements();
@@ -368,20 +349,19 @@ int main ()
         }
 	}
 	
-	cout << "\n****END****\n";
 	double time_end = get_time();
-	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
+    //cout << "\n****END****\n";
+	//cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
 	    
-    for (int i=0; i<NTHREADS; i++) { 
+    for (int i=0; i<nthreads; i++) { 
         string filename;
-        int nthreads_int = NTHREADS;
         
         ostringstream ss;
         ss << i;
         string filenumber = ss.str();
         
         ostringstream ss2;
-        ss2 << nthreads_int;
+        ss2 << nthreads;
         string nthreads_str = ss2.str();
         
         filename = "after_SERIAL_";
@@ -392,28 +372,43 @@ int main ()
         
         ofstream af(filename.c_str());
         TPZVTKGeoMesh::PrintGMeshVTK(gmeshes[i], af);
+        af.close();
     }
 
-    int nthreads_int = NTHREADS;
+    ofstream af;
+    af.open("after_SERIAL_report.txt", ios::app);
     
-    string filename;
-    ostringstream ss2;
-    ss2 << nthreads_int;
-    string nthreads_str = ss2.str();
-    
-    filename = "after_SERIAL_";
-    filename.insert(filename.size(), nthreads_str);
-    filename.insert(filename.size(),"meshes_report.txt");
-    
-    ofstream af(filename.c_str());
-    
-    af << "SERIAL REFINEMENT IN " << NTHREADS << " MESHES:\n\n";
-    af << "Meshes properties:\nSize: Height: " << NY << " Width: " << NX << "\nLevel Max: " << MAXLVL << "\n\n";
-    af << "This refinement has run for: "<< (time_end-time_start) << " seconds.";
+    af << option << " " << maxlvl << " " << nx << " " << ny << " " << nthreads << " " << (time_end-time_start) << "\n";
     
     af.close();
     
 	return 0;
+}
+
+int main (int argc, char *argv[]) {
+    
+    if (argc!=6) {
+        cout << "\n ******* Error! Invalid parameters! *******\n";
+        return 0;
+    }
+    
+    option = atoi(argv[1]);
+    
+    maxlvl = atoi(argv[2]);
+    
+    nx = atoi(argv[3]);
+    
+    ny = atoi(argv[4]);
+    
+    nthreads = atoi(argv[5]);
+    
+    if (option==1) {
+        main_serial();
+    }
+    
+    else if (option==2) {
+        main_parallel();
+    }
 }
 
 #endif
