@@ -25,7 +25,7 @@
  * \f$  div(T(u)) + fxy = 0 \f$ (Eq. 1) 
  *
  *@ingroup pressure equation (1d)
- * \f$ -k*div(grad p) = f (Eq. 2)  \f$ 
+ * \f$ *(-wˆ3/visc)div(grad p) + QL= 0 (Eq. 2)  \f$ 
  *
  */
 
@@ -45,8 +45,14 @@ protected:
 	/** @brief Problem dimension */
 	int fDim;
 	
-	/** @brief term that multiplies the Laplacian operator and right side*/
-	/*TPZFMatrix<REAL>*/ REAL fk, fXf;
+	/** @brief term that multiplies the Laplacian operator, outflow to the poros medio and right side
+    * @note \f$fw f$ => abertura da fratura 
+    * @note \f$fvisc f$ => viscosidade do fluido 
+    * @note \f$fQL f$ => vazao para o meio poroso 
+    * @note \f$fXf f$ => vetor de carga 
+    */
+    REAL fw, fvisc, fQL;
+    REAL fXf;
     
 	
 	/** @brief Uses plain stress 
@@ -56,6 +62,13 @@ protected:
 	int fPlaneStress;
 	
 	REAL fmatId;
+    
+    /// timestep [s]
+	REAL fTimeStep;
+    
+    /** @brief State: one ou one+1 */
+	enum EState { ELastState = 0, ECurrentState = 1 };
+	static EState gState;
     
 public:
 	TPZElastPressure();
@@ -74,10 +87,11 @@ public:
 	
     
 	/** @brief Parameters of pressure: */
-	void SetParameters(/*TPZFMatrix<REAL>*/ REAL &xkin, /*TPZFMatrix<REAL>*/ REAL &xfin)
-	{
-		fk = xkin;
-        fXf = xfin;
+	void SetParameters(REAL &xw, REAL &xvisc, REAL &xQL)
+	{   
+        fw = xw;
+        fvisc = xvisc;
+        fQL = xQL;
 	}
 	
 	/** 
@@ -88,7 +102,7 @@ public:
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy)
+	void SetElasticParameters(REAL E, REAL nu,  REAL fx, REAL fy)
 	{
 		fE = E;
 		fnu = nu;
@@ -105,6 +119,21 @@ public:
 		fPlaneStress = planestress;
 	}
 	
+    /// Set the timestep
+	void SetTimeStep(REAL delt)
+	{
+		fTimeStep = delt;
+	}
+    
+    int MatId()
+    {
+        return fmatId;
+    }
+
+
+    void SetLastState(){ gState = ELastState; }
+	void SetCurrentState(){ gState = ECurrentState; }
+    
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
      * @param datavec [in] stores all input data

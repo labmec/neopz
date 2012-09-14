@@ -19,8 +19,9 @@
 static LoggerPtr logdata(Logger::getLogger("pz.material.elastpressure"));
 #endif
 
+TPZElastPressure::EState TPZElastPressure::gState = ECurrentState;
 
-TPZElastPressure::TPZElastPressure():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), fk(0.),fXf(0.), fPlaneStress(0) {
+TPZElastPressure::TPZElastPressure():TPZDiscontinuousGalerkin(), ff(0), fnu(0.), fw(0.), fvisc(0.),fQL(0.), fPlaneStress(0) {
 	fE = 0.;
 	fDim = 2;
 	fmatId = 0;
@@ -31,7 +32,7 @@ TPZElastPressure::TPZElastPressure():TPZDiscontinuousGalerkin(), ff(0), fnu(0.),
 	
 }
 
-TPZElastPressure::TPZElastPressure(int matid, int dim):TPZDiscontinuousGalerkin(matid), ff(0), fnu(0.), fk(0.), fXf(0.),fPlaneStress(0) {
+TPZElastPressure::TPZElastPressure(int matid, int dim):TPZDiscontinuousGalerkin(matid), ff(0), fnu(0.), fw(0.), fvisc(0.),fQL(0.),fPlaneStress(0) {
 	fE = 0.;
 	fDim = dim;
 	ff.resize(2);
@@ -55,7 +56,8 @@ void TPZElastPressure::Print(std::ostream &out) {
 	out << "\t E   = " << fE   << std::endl;
 	out << "\t nu   = " << fnu   << std::endl;
 	out << "\t Forcing function F   = " << ff[0] << ' ' << ff[1]   << std::endl; 
-	out << "Permeabilidade da rocha fK "<< fk << std::endl;
+    out << "Abertura da fratura fw "<< fw << std::endl;
+	out << "Viscosidade do fluido fvisc "<< fvisc << std::endl;
 	out << "2D problem " << fPlaneStress << std::endl;
 	out << "Base Class properties :";
 	TPZMaterial::Print(out);
@@ -64,6 +66,8 @@ void TPZElastPressure::Print(std::ostream &out) {
 
 
 void TPZElastPressure::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef){
+        
+    if(gState == ELastState) return;
     
     int nref =  datavec.size();
 	if (nref != 2 ) {
@@ -189,18 +193,37 @@ void TPZElastPressure::ContributePressure(TPZVec<TPZMaterialData> &datavec, REAL
 //		}
 //	}
     
-    for(int in = 0; in<phrp; in++){
-        
-        ef(in+phcu,0)+=weight*(fXf*phip(in,0));
-        
-        for(int jn=0; jn<phrp; jn++){
-          
-            ek(in+phcu, jn+phcu)+=fk*dphip(0,in)*dphip(0,jn)*weight;
+    //current state (n+1): Matrix stiffnes
+	if(gState == ECurrentState)
+    {
+        REAL factor = (fw*fw*fw)/(12.*fvisc);
+        for(int in = 0; in<phrp; in++){
+            
+            ef(in+phcu,0)+=(-1.)*fTimeStep*fQL*phip(in,0)*weight;
+            
+            for(int jn=0; jn<phrp; jn++){
+              
+                ek(in+phcu, jn+phcu)+=fTimeStep*factor*dphip(0,in)*dphip(0,jn)*weight + phip(in)*phip(jn)*weight;
+            }
+        }
+    }
+    
+    //Last state (n): Matrix mass
+	if(gState == ELastState)
+    {
+        for(int in = 0; in<phrp; in++){
+            
+            for(int jn=0; jn<phrp; jn++){
+                
+                ek(in+phcu, jn+phcu)+=phip(in)*phip(jn)*weight;
+            }
         }
     }
 }
 
 void TPZElastPressure::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
+    
+  //  if(gState == ELastState) return;
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	const REAL big  = TPZMaterial::gBigNumber;
@@ -222,6 +245,8 @@ void TPZElastPressure::ApplyDirichlet_U(TPZVec<TPZMaterialData> &datavec, REAL w
 
 void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ef,TPZBndCond &bc){
     
+    if(gState == ELastState) return; 
+    
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int phc = phiu.Cols();
     ef.Print();
@@ -233,12 +258,11 @@ void TPZElastPressure::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REAL wei
             ef(in,il)+= weight*(v2(0,il)*phiu(0,in) + v2(1,il)*phiu(1,in));
         }
     }
-    
-    ef.Print();
-    
 }
 
 void TPZElastPressure::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
+    
+    if(gState == ELastState) return; 
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int phc = phiu.Cols();
@@ -265,6 +289,8 @@ void TPZElastPressure::ApplyMixed_U(TPZVec<TPZMaterialData> &datavec, REAL weigh
 }
 
 void TPZElastPressure::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
+    
+    if(gState == ELastState) return;
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
@@ -296,6 +322,8 @@ void TPZElastPressure::ApplyDirichlet_P(TPZVec<TPZMaterialData> &datavec, REAL w
 
 void TPZElastPressure::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek, TPZFMatrix<> &ef, TPZBndCond &bc){
     
+    if(gState == ELastState) return;
+    
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
     TPZFMatrix<REAL> &phip = datavec[1].phi;
@@ -311,12 +339,13 @@ void TPZElastPressure::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REAL wei
 //    }
     
     for(int in=0; in<phrp; in++){
-        ef(in+c_u,0) += bc.Val2()(2,0)*phip(in,0)*weight;
+        ef(in+c_u,0) += (-1.)*fTimeStep*bc.Val2()(2,0)*phip(in,0)*weight;
     }
 }
 
 void TPZElastPressure::ApplyMixed_P(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<> &ek,TPZFMatrix<> &ef,TPZBndCond &bc){
     
+    if(gState == ELastState) return;
     
     TPZFMatrix<REAL> &phiu = datavec[0].phi;
 	int c_u = phiu.Cols();
@@ -428,11 +457,12 @@ void TPZElastPressure::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	}//var1
     
     if (var == 2){
+        REAL rate = (fw*fw*fw)/(12*fvisc);
 		int id;
 		TPZFNMatrix<9,REAL> dsoldx;
 		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
 		for(id=0 ; id<1; id++) {
-			Solout[id] = -1.*(fk)*dsoldx(id,0);
+			Solout[id] = -1.*(rate)*dsoldx(id,0);
 		}
 		return;
 	}//var2
