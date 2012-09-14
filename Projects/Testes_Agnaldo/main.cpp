@@ -78,6 +78,9 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 
 void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 
+
+TPZCompMesh *CMeshPressureL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
+
 bool const triang=true;
 #ifdef LOG4CXX
 static LoggerPtr logdata(Logger::getLogger("pz.porolasticmf2d.data"));
@@ -152,8 +155,18 @@ int main(int argc, char *argv[])
     TPZAnalysis an3(cmesh3);
 	SolveSist(an3, cmesh3);
 	int nrs = an3.Solution().Rows();
-	TPZFMatrix<REAL> solucao1(nrs,1,1.);
-	cmesh3->Solution() = solucao1;
+	TPZFMatrix<REAL> solucao1(nrs,1,1000.);
+    TPZVec<REAL> solini(nrs,1.);
+//	cmesh3->Solution() = solucao1;
+//    cmesh3->LoadSolution(solucao1);
+    
+    TPZCompMesh  * cmeshL2 = CMeshPressureL2(gmesh, pp, solini);
+    TPZAnalysis anL2(cmeshL2);
+    SolveSist(anL2, cmeshL2);
+    anL2.Solution().Print();
+    
+    an3.LoadSolution(anL2.Solution());
+//    an3.Solution().Print();
     
     //malha multifisica
     TPZVec<TPZCompMesh *> meshvec(3);
@@ -165,14 +178,10 @@ int main(int argc, char *argv[])
     ofstream arg8("mphysic.txt");
 	mphysics->Print(arg8);
     
-    REAL deltaT=0.001; //second
+    REAL deltaT=0.1; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = 0.01;
+    REAL maxTime = 10.;
     
-    //condicao inicial
-   // mymaterial->SetLastState();
-//    TPZAnalysis an(mphysics);
-//	TPZFMatrix<REAL> Initialsolution = an.Solution();
     
     SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics);
     
@@ -542,14 +551,14 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //	criar material
     REAL Eyoung = 3.e4;
     REAL poisson = 0.2;
-    REAL alpha = 0.0;
-    REAL Se = 1.0;
+    REAL alpha = 1.0;
+    REAL Se = 0.0;
     REAL rockrho = 2330.0; // SI system
     REAL gravity = 0.0;//-9.8; // SI system
     REAL fx=0.0;
     REAL fy=gravity*rockrho;
-    REAL perm = 1.;//1.e-10;
-    REAL visc = 1.;//1.e-3;
+    REAL perm = 1.e-10;
+    REAL visc = 1.e-3;
     int planestress = 0; // This is a Plain strain problem
     
     
@@ -569,7 +578,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
     
-    REAL sig0 = 1.;
+    REAL sig0 = -1000.;
     REAL ptop = 0.;
     val2(0,0)= 0.;
     val2(1,0)= sig0;
@@ -646,14 +655,17 @@ void SolucaoExata1D(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol, TPZFMatrix<REAL>
     flux(1,0) = (-1.)*pini*(perm/visc)*VDy;
 }
 
+
+#include "pzbstrmatrix.h"
+
 void SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh)
 {			
-	//TPZBandStructMatrix full(fCmesh);
-	TPZSkylineStructMatrix full(fCmesh); //caso simetrico
+	TPZBandStructMatrix full(fCmesh);
+	//TPZSkylineStructMatrix full(fCmesh); //caso simetrico
 	an.SetStructuralMatrix(full);
 	TPZStepSolver<REAL> step;
-	step.SetDirect(ELDLt); //caso simetrico
-	//step.SetDirect(ELU);
+//	step.SetDirect(ELDLt); //caso simetrico
+    step.SetDirect(ELU);
 	an.SetSolver(step);
 	an.Run();
 }
@@ -704,6 +716,7 @@ void StiffMatrixLoadVec(TPZPoroElasticMF2d *mymaterial, TPZCompMesh* mphysics, T
 void PosProcessMultphysics(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile)
 {
     TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+    
 	TPZManVector<std::string,10> scalnames(9), vecnames(4);
 	scalnames[0] = "DisplacementX";
 	scalnames[1] = "DisplacementY";
@@ -735,39 +748,47 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
     TPZAnalysis an(mphysics);
 	TPZFMatrix<REAL> Initialsolution = an.Solution();
     
+    std::string outputfile;
+	outputfile = "TransientSolution";
+    
+    std::stringstream outputfiletemp;
+    outputfiletemp << outputfile << ".vtk";
+    std::string plotfile = outputfiletemp.str();
+    PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+    
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-            std::stringstream sout;
-        	matM->Print("matM = ", sout,EMathematicaInput);
-        	LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif   
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//            std::stringstream sout;
+//        	matM->Print("matM = ", sout,EMathematicaInput);
+//        	LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif   
     
     //Criando matriz de rigidez (matK) e vetor de carga
 	TPZFMatrix<REAL> matK;	
 	TPZFMatrix<REAL> fvec; 
     StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fvec);
     
-#ifdef LOG4CXX
-	if(logdata->isDebugEnabled())
-	{
-		
-        std::stringstream sout;
-        matK.Print("matK = ", sout,EMathematicaInput);
-        fvec.Print("fvec = ", sout,EMathematicaInput);		
-        //Print the temporal solution
-        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-        TPZFMatrix<REAL> Temp;
-        TPZFMatrix<REAL> Temp2;
-        matM->Multiply(Initialsolution,Temp);
-        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
-        LOGPZ_DEBUG(logdata,sout.str())
-	}
-#endif
+//#ifdef LOG4CXX
+//	if(logdata->isDebugEnabled())
+//	{
+//		
+//        std::stringstream sout;
+//        matK.Print("matK = ", sout,EMathematicaInput);
+//        fvec.Print("fvec = ", sout,EMathematicaInput);		
+//        //Print the temporal solution
+//        Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+//        TPZFMatrix<REAL> Temp;
+//        TPZFMatrix<REAL> Temp2;
+//        matM->Multiply(Initialsolution,Temp);
+//        Temp.Print("Temp matM = ", sout,EMathematicaInput);	
+//        LOGPZ_DEBUG(logdata,sout.str())
+//	}
+//#endif
     
     
 	int nrows;
@@ -775,9 +796,6 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 	TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
 	TPZFMatrix<REAL> TotalRhstemp(nrows,1,0.0);
 	TPZFMatrix<REAL> Lastsolution = Initialsolution;
-	
-	std::string outputfile;
-	outputfile = "TransientSolution";
 	
 	REAL TimeValue = 0.0;
 	int cent = 1;
@@ -788,28 +806,92 @@ void SolveSistTransient(REAL deltaT,REAL maxTime, TPZPoroElasticMF2d * &mymateri
 		mymaterial->SetTimeValue(TimeValue);
 		matM->Multiply(Lastsolution,TotalRhstemp);
         
-#ifdef LOG4CXX
-        if(logdata->isDebugEnabled())
-        {
-            std::stringstream sout;
-            sout<< " tempo = " << cent;
-            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
-            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
-            LOGPZ_DEBUG(logdata,sout.str())
-        }
-#endif
+//#ifdef LOG4CXX
+//        if(logdata->isDebugEnabled())
+//        {
+//            std::stringstream sout;
+//            sout<< " tempo = " << cent;
+//            Lastsolution.Print("\nIntial conditions = ", sout,EMathematicaInput);
+//            TotalRhstemp.Print("Mat Mass x Last solution = ", sout,EMathematicaInput);	
+//            LOGPZ_DEBUG(logdata,sout.str())
+//        }
+//#endif
 
 		TotalRhs = fvec + TotalRhstemp;
 		an.Rhs() = TotalRhs;
 		an.Solve(); 
 		Lastsolution = an.Solution();
 		
-		std::stringstream outputfiletemp;
-		outputfiletemp << outputfile << ".vtk";
-		std::string plotfile = outputfiletemp.str();
-		PosProcessMultphysics(meshvec,mphysics,an,plotfile);		
+        if(cent%20==0){
+            std::stringstream outputfiletemp;
+            outputfiletemp << outputfile << ".vtk";
+            std::string plotfile = outputfiletemp.str();
+            PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+        }
 		
         cent++;
 		TimeValue = cent*deltaT;
 	}
 }
+
+
+#include "pzl2projection.h"
+TPZCompMesh *CMeshPressureL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
+{
+    /// criar materiais
+	int dim = 2;
+	TPZL2Projection *material;
+	material = new TPZL2Projection(matId, dim, 1, solini, pOrder);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+	cmesh->SetAllCreateFunctionsDiscontinuous();
+    
+	cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDimModel(dim);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+    
+    ///inserir connect da pressao
+    int ncon = cmesh->NConnects();
+    for(int i=0; i<ncon; i++)
+    {
+        TPZConnect &newnod = cmesh->ConnectVec()[i];
+        newnod.SetPressure(true);
+    }
+    
+    ///set order total da shape
+    int nel = cmesh->NElements();
+    for(int i=0; i<nel; i++){
+        TPZCompEl *cel = cmesh->ElementVec()[i];
+        TPZCompElDisc *celdisc = dynamic_cast<TPZCompElDisc *>(cel);
+        celdisc->SetConstC(1.);
+        celdisc->SetCenterPoint(0, 0.);
+        celdisc->SetCenterPoint(1, 0.);
+        celdisc->SetCenterPoint(2, 0.);
+        if(celdisc && celdisc->Reference()->Dimension() == cmesh->Dimension())
+        {
+            if(triang==true) celdisc->SetTotalOrderShape();
+            else celdisc->SetTensorialShape();
+        }
+    }
+    
+    
+#ifdef DEBUG   
+    int ncel = cmesh->NElements();
+    for(int i =0; i<ncel; i++){
+        TPZCompEl * compEl = cmesh->ElementVec()[i];
+        if(!compEl) continue;
+        TPZInterfaceElement * facel = dynamic_cast<TPZInterfaceElement *>(compEl);
+        if(facel)DebugStop();
+        
+    }
+#endif
+    
+	return cmesh;
+}
+
