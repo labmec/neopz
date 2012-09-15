@@ -63,13 +63,30 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 int main()
 {
     InitializePZLOG();
-    
+      ofstream outfiletxt("MohrNeto.txt");
     //   MohrCoulombTestX();
-//        calctalude();
-    //    calcVonMisesBar();
+    //   calctalude();
+    //   calcVonMisesBar();
     TPZMohrCoulombNeto toto;
-    TPZTensor<REAL> epstotal,sigma;
-    epstotal.XX() = 0.00001;
+    TPZTensor<REAL> epstotal,sigma,epsplastic;
+    REAL deltaeps =0.00005;
+    epstotal.XX() = deltaeps;
+    
+    for(int i =1;i<160;i++)
+    {
+        cout << "\n i = "<<i<<endl;
+        toto.ComputeSigma(epstotal, sigma);
+        epstotal.XX()+=deltaeps;
+        //epsplastic=toto.fState.fEpsPlastic;
+        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+        if(i==50 || i==80)
+        {
+            deltaeps*=-1;
+        }
+        
+    }
+    
+    
     do {
         toto.ComputeSigma(epstotal, sigma );
 #ifdef LOG4CXX
@@ -81,7 +98,12 @@ int main()
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif
-        epstotal.XX() += 0.00001;
+        epstotal.XX() += deltaeps;
+      
+        //outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+        
+        
+    
     } while (epstotal.XX() < 0.0015);
     return 0;
     
