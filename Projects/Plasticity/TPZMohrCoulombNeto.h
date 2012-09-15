@@ -73,6 +73,8 @@ public:
     {
         sigmay = T(15.)+(T(2571.43)-T(2.95238e6)*epsp)*(T(-0.0035)+epsp);
         H = T(12904.8)-T(5.90476e6)*epsp;
+//        sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp;
+//        H = T(12904.8);
     }
     
     template<class T>
@@ -272,6 +274,13 @@ public:
         phi[1] = sigma_bar[1] - T(2.*cosphi)*sigmay;
         ab[0] = T(4.*GV*(1+sinphi*sinpsi/3.)+4.*KV*sinphi*sinpsi);
         ab[1] = T(2.*GV*(1.+sinphi+sinpsi-sinphi*sinpsi/3.)+4.*KV*sinphi*sinpsi);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "phi = " << phi << std::endl;
+            LOGPZ_DEBUG(loggerMohrCoulomb, sout.str())
+        }
+#endif
         
 //#ifdef DEBUG
 //        gamma[0] = 0.;
@@ -294,6 +303,7 @@ public:
 //
 //#endif
         REAL tolerance = 1.e-8;
+        int iter = 0;
         T epsbar = T(fState.fEpsPlasticBar);
         do {
 #ifdef LOG4CXX
@@ -321,10 +331,18 @@ public:
             if (shapeFAD::val(H) < 0.) {
                 DebugStop();
             }
+            iter++;
             phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
-            phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[0] - T(2.*cosphi)*sigmay;
+            phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[1] - T(2.*cosphi)*sigmay;
             phival[0] = shapeFAD::val(phi[0]);
             phival[1] = shapeFAD::val(phi[1]);
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "iter = " << iter << " phi = " << phival << std::endl;
+                LOGPZ_DEBUG(loggerMohrCoulomb, sout.str())
+            }
+#endif
         } while (abs(phival[0]) > tolerance || abs(phival[1]) > tolerance);
         
 //        eigenvalues[0] -= T(2.*GV*(1+sinpsi/3.)+2.*KV*sinpsi)*gamma;
@@ -339,6 +357,7 @@ public:
             sout << "sigma_bar = " << sigma_bar << std::endl;
             d.Print("Jacobian",sout);
             dinverse.Print("Inverse Jacobian",sout);
+            sout << "epsbar = " << epsbar << std::endl;
             LOGPZ_DEBUG(loggerMohrCoulomb, sout.str())
         }
 #endif
