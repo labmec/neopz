@@ -664,11 +664,11 @@ TPZMaterial *Hexaedro(int grau){
 	
 	int dim = 3;
 	TPZMaterial *mat = new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
+	TPZMaterial *matauto(mat);
 	
 	//((TPZConservationLaw *)mat)->SetIntegDegree(grau);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -678,7 +678,7 @@ TPZMaterial *Hexaedro(int grau){
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgc3d,20,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE 21: Dirichlet
@@ -696,21 +696,21 @@ TPZMaterial *Hexaedro(int grau){
 	val2(3,0) = ro * w;
 	val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC(elgc3d,21,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE 22  DIREITA : livre
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgc3d,22,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE 23: POSTERIOR : PAREDE = wall
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgc3d,23,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,5,val1,val2);//CC MISTA
+	bc = matauto->CreateBC(matauto,-4,5,val1,val2);//CC MISTA
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE ESQUERDA 24: Dirichlet
@@ -728,14 +728,14 @@ TPZMaterial *Hexaedro(int grau){
 	val2(3,0) = ro * w;
 	val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgc3d,24,-5);
-	bc = matauto->CreateBC(matauto.operator->(),-5,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-5,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE 25 SUPERIOR : PAREDE
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgc3d,25,-6);
-	bc = matauto->CreateBC(matauto.operator->(),-6,5,val1,val2);//CC MISTA
+	bc = matauto->CreateBC(matauto,-6,5,val1,val2);//CC MISTA
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -786,8 +786,8 @@ TPZMaterial *ProblemaT2D(int grau){
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	//condi��es de contorno
 	TPZBndCond *bc;
 	TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
@@ -813,21 +813,21 @@ TPZMaterial *ProblemaT2D(int grau){
 	val2(2,0) = ro * v;
 	val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC(elgt2d1,3,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 	
 	//CC ARESTA DIREITA : LIVRE
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgt2d1,4,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 	
 	//CC ARESTA SUPERIOR : PAREDE - WALL
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgt2d0,4,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 	
 	//CC ARESTA ESQUERDA
@@ -843,7 +843,7 @@ TPZMaterial *ProblemaT2D(int grau){
 	vel2 = u*u+v*v;
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgt2d0,5,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-4,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);//bc->SetForcingFunction(Function);
 	
 	cout << endl;
@@ -894,8 +894,8 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	int dim = 2;
 	TPZMaterial *mat = new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -914,7 +914,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	val2(2,0) = ro * v;
 	val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC(elgq2d,4,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,3,val1,val2);//bc->SetForcingFunction(Function);
+	bc = matauto->CreateBC(matauto,-1,3,val1,val2);//bc->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA DIREITA : LIVRE
@@ -930,14 +930,14 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	val2(2,0) = ro * v;
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgq2d,5,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,4,val1,val2);//bc->SetForcingFunction(Function);
+	bc = matauto->CreateBC(matauto,-2,4,val1,val2);//bc->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA SUPERIOR : PAREDE - wall
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgq2d,6,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,5,val1,val2);//bc->SetForcingFunction(Function);
+	bc = matauto->CreateBC(matauto,-3,5,val1,val2);//bc->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA ESQUERDA
@@ -953,7 +953,7 @@ TPZMaterial *ProblemaQ2D1El(int grau){
 	vel2 = u*u+v*v;
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgq2d,7,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,3,val1,val2);//bc->SetForcingFunction(Function);
+	bc = matauto->CreateBC(matauto,-4,3,val1,val2);//bc->SetForcingFunction(Function);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -995,8 +995,8 @@ TPZMaterial *TresTriangulos(int grau){
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	//condi��es de contorno
 	TPZBndCond *bc;
 	TPZFMatrix<REAL> val1(4,4,0.),val2(4,1,0.);
@@ -1006,14 +1006,14 @@ TPZMaterial *TresTriangulos(int grau){
 	val2.Zero();
 	TPZGeoElBC(elgt2d0,3,-1);
 	TPZGeoElBC(elgt2d1,3,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA DIREITA : LIVRE
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgt2d1,4,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA SUPERIOR :
@@ -1029,7 +1029,7 @@ TPZMaterial *TresTriangulos(int grau){
 	val2(2,0) = ro * v;
 	val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC(elgt2d2,4,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA ESQUERDA
@@ -1045,7 +1045,7 @@ TPZMaterial *TresTriangulos(int grau){
 	vel2 = u*u+v*v;
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgt2d0,5,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-4,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1110,8 +1110,8 @@ TPZMaterial *TresPrismas(int grau){
 	
 	//((TPZConservationLaw *)mat)->SetIntegDegree(grau);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1128,7 +1128,7 @@ TPZMaterial *TresPrismas(int grau){
 	TPZGeoElBC(elg1,19,-1);
 	TPZGeoElBC(elg2,19,-1);
 	TPZGeoElBC(elg3,19,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC Dirichlet
@@ -1146,7 +1146,7 @@ TPZMaterial *TresPrismas(int grau){
 	val2(3,0) = ro * w;
 	val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC(elg3,18,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC Dirichlet
@@ -1164,14 +1164,14 @@ TPZMaterial *TresPrismas(int grau){
 	val2(3,0) = ro * w;
 	val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elg1,18,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC livre
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elg2,17,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-4,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1226,8 +1226,8 @@ TPZMaterial *FluxConst3D(int grau){
 	
 	//((TPZConservationLaw *)mat)->SetIntegDegree(grau);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1240,7 +1240,7 @@ TPZMaterial *FluxConst3D(int grau){
 	TPZGeoElBC(elgc3d,21,-1);
 	TPZGeoElBC(elgc3d,23,-1);
 	TPZGeoElBC(elgc3d,25,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE : Dirichlet
@@ -1258,14 +1258,14 @@ TPZMaterial *FluxConst3D(int grau){
 	val2(3,0) = ro * w;
 	val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgc3d,24,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC FACE 22  DIREITA : livre
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgc3d,22,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1310,8 +1310,8 @@ TPZMaterial *FluxConst2D(int grau){
 	int dim = 2;
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1323,7 +1323,7 @@ TPZMaterial *FluxConst2D(int grau){
 	val2.Zero();
 	TPZGeoElBC(elgq2d,4,-1);
 	TPZGeoElBC(elgq2d,6,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA ESQUERDA
@@ -1339,14 +1339,14 @@ TPZMaterial *FluxConst2D(int grau){
 	val2(2,0) = ro * v;
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC(elgq2d,7,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA DIREITA
 	val1.Zero();
 	val2.Zero();
 	TPZGeoElBC(elgq2d,5,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1384,8 +1384,8 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	int dim = 2;
 	TPZMaterial *mat = (TPZEulerConsLaw *) new TPZEulerConsLaw(nummat,delta_t,gama,dim,artdiff);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1398,7 +1398,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	TPZGeoElBC((TPZGeoEl  *)elem[1],4,-1);
 	TPZGeoElBC((TPZGeoEl  *)elem[2],4,-1);
 	TPZGeoElBC((TPZGeoEl  *)elem[3],4,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA DIREITA : OUTFLOW
@@ -1406,7 +1406,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	val2.Zero();
 	TPZGeoElBC((TPZGeoEl  *)elem[3],5,-2);
 	TPZGeoElBC((TPZGeoEl  *)elem[6],5,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA SUPERIOR : DIRICHLET
@@ -1423,7 +1423,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	val2(3,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC((TPZGeoEl  *)elem[7],6,-3);
 	TPZGeoElBC((TPZGeoEl  *)elem[8],6,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA ESQUERDA : INFLOW
@@ -1440,7 +1440,7 @@ TPZMaterial *NoveQuadrilateros(int grau){
 	val2(3,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC((TPZGeoEl  *)elem[0],7,-4);
 	TPZGeoElBC((TPZGeoEl  *)elem[4],7,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-4,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1604,8 +1604,8 @@ TPZMaterial *NoveCubos(int grau){
 	
 	//((TPZConservationLaw *)mat)->SetIntegDegree(grau);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1636,7 +1636,7 @@ TPZMaterial *NoveCubos(int grau){
 	TPZGeoElBC((TPZGeoEl  *)elem[1],21,-1);
 	TPZGeoElBC((TPZGeoEl  *)elem[2],21,-1);
 	TPZGeoElBC((TPZGeoEl  *)elem[3],21,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,5,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,5,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA DIREITA : OUTFLOW
@@ -1644,7 +1644,7 @@ TPZMaterial *NoveCubos(int grau){
 	val2.Zero();
 	TPZGeoElBC((TPZGeoEl  *)elem[3],22,-2);
 	TPZGeoElBC((TPZGeoEl  *)elem[6],22,-2);
-	bc = matauto->CreateBC(matauto.operator->(),-2,4,val1,val2);
+	bc = matauto->CreateBC(matauto,-2,4,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA SUPERIOR : DIRICHLET
@@ -1663,7 +1663,7 @@ TPZMaterial *NoveCubos(int grau){
 	val2(4,0) = p/(gama-1.0) + 0.5 * ro * vel2;
 	TPZGeoElBC((TPZGeoEl  *)elem[7],23,-3);
 	TPZGeoElBC((TPZGeoEl  *)elem[8],23,-3);
-	bc = matauto->CreateBC(matauto.operator->(),-3,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-3,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	//CC ARESTA ESQUERDA : INFLOW
@@ -1682,7 +1682,7 @@ TPZMaterial *NoveCubos(int grau){
 	val2(4,0) = p/(gama-1.0) +  0.5 * ro * vel2;
 	TPZGeoElBC((TPZGeoEl  *)elem[0],24,-4);
 	TPZGeoElBC((TPZGeoEl  *)elem[4],24,-4);
-	bc = matauto->CreateBC(matauto.operator->(),-4,3,val1,val2);
+	bc = matauto->CreateBC(matauto,-4,3,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cout << endl;
@@ -1833,8 +1833,8 @@ TPZMaterial *Quadrado(int grau){
 	gmesh->BuildConnectivity();
 	TPZMaterial *mat;// = new TPZMatHybrid(nummat,dim);
 	DebugStop(); //mat->SetForcingFunction(Function);
-	TPZAutoPointer<TPZMaterial> matauto(mat);
-	cmesh->InsertMaterialObject(matauto.operator->());
+	TPZMaterial *matauto(mat);
+	cmesh->InsertMaterialObject(matauto);
 	
 	//condi��es de contorno
 	TPZBndCond *bc;
@@ -1843,7 +1843,7 @@ TPZMaterial *Quadrado(int grau){
 	//CC DE NEUMANN
 	
 	TPZGeoElBC(elem,5,-1);
-	bc = matauto->CreateBC(matauto.operator->(),-1,1,val1,val2);
+	bc = matauto->CreateBC(matauto,-1,1,val1,val2);
 	cmesh->InsertMaterialObject(bc);
 	
 	cmesh->AutoBuild();
