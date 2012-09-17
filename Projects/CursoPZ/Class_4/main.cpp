@@ -26,7 +26,7 @@ std::string DirectorioCorriente = PZSOURCEDIR;
 int main() {
 
 	DirectorioCorriente += "/Projects/CursoPZ/Class_4/";
-
+/*
 	cout << "***********************************************************************\n";
 	cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
 	cout << "PZ - Class 4 -->> Geometric Meshes and h refinment\n";
@@ -147,7 +147,7 @@ int main() {
 		cout << "Real coordinate......................................:" << pt_aux << endl << endl;
 		cout << endl << "-----------------------------------------------------------------------" << endl;
 	}
-
+*/
 	// Malla con GID
 
 	// Ejemplo uni-dimensional para la generacion de una malla para un reservatorio 
@@ -191,6 +191,15 @@ int main() {
 	TPZVTKGeoMesh::PrintGMeshVTK(meshgrid3D,meshoutvtk3D,true);
 	meshoutvtk3D.close();
 
+	// Ejemplo de aula
+	nombre = DirectorioCorriente;
+	nombre += "superfplana.dump";
+	TPZGeoMesh *mesh = grid.GeometricGIDMesh(nombre);
+	if(!mesh->NElements())
+		return 1;
+	ofstream meshoutvtk("superfplana.vtk");
+	TPZVTKGeoMesh::PrintGMeshVTK(mesh,meshoutvtk,true);
+	meshoutvtk.close();
 	return 0;
 }
 

@@ -25,8 +25,8 @@ int main() {
 	REAL integral;
 
 	// output file
-	ofstream integrate("integratePolinomial.txt");
-	integrate << setprecision(14);
+	ofstream integrate("integratedPolinomial.txt");
+//	integrate << setprecision(14);
 
 	// degree of the numeric integration
 	int p = 2;
@@ -38,9 +38,10 @@ int main() {
 	//=====1D Rule===Computing $f \int_{-1} f(x) $f==================================
 	while(degree < 26) {
 	TPZInt1d ordem1d (p);
-	for(it2=0;it2<3;it2++) {
+//	for(it2=0;it2<3;it2++) {
 		integral = 0.0;
-		ordem1d.SetType(it2,p);
+		//ordem1d.SetType(it2,p);
+		ordem1d.SetType(0,p);
 		npoints = ordem1d.NPoints();
 		for (it=0;it<npoints;it++){
 			ordem1d.Point(it,point,weight);
@@ -53,7 +54,7 @@ int main() {
 		}
 //		ordem1d.Print(integrate);
 		integrate << "1D : p = " << p << " - Integral = " << integral << endl;
-	}
+	//}
 	degree++;
 	p=degree;
 	}
@@ -158,7 +159,7 @@ REAL Funcao1D (TPZVec<REAL> &pt,int degree) {
 	REAL a=1.;
 
 	for(int i=0;i<degree;i++) {
-		a *= (pt[0]-0.5);
+		a *= (pt[0]);
 	}
 	return (a + 3.*pt[0]);		
 }

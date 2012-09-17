@@ -45,32 +45,38 @@ static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
 #include <stdio.h>
 #include <fstream>
 
-TPZCompMesh *CreateMesh();
+TPZGeoMesh *CreateGeoMesh();
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 
+// bi-dimensional problem for elasticity
 int main() {
 	
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
 	
-	int p = 1;
+	// Creating geometric mesh
+	TPZGeoMesh *gmesh = CreateGeoMesh();
+
+	// Creating computational mesh (approximation space and materials)
+	int p = 3;
     TPZCompEl::SetgOrder(p);
-    
-    TPZCompMesh *cmesh = CreateMesh();
-	
+    TPZCompMesh *cmesh = CreateMesh(gmesh);
+	// Solving linear equations
+	// Initial steps
 	TPZAnalysis an (cmesh);
 	TPZSkylineStructMatrix strskyl(cmesh);
 	an.SetStructuralMatrix(strskyl);
-	
+	// Solver (is your choose) 
 	TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
 	direct->SetDirect(ECholesky);
 	an.SetSolver(*direct);
 	delete direct;
 	direct = 0;
-	
+
 	an.Run();
 	
-	// Post process
+	// Post processing
 	TPZManVector<std::string> scalarnames(3), vecnames(1);
 	scalarnames[0] = "SigmaX";
 	scalarnames[1] = "SigmaY";
@@ -79,17 +85,12 @@ int main() {
 	//vecnames[1] = "";
 	an.DefineGraphMesh(2,scalarnames,vecnames,"ElasticitySolutions.vtk");
 
-	an.PostProcess(2);
-	
+	an.PostProcess(6);
 }
 
+//*******Shell to deforming************
+TPZGeoMesh *CreateGeoMesh() {
 
-//*************************************
-//************Option 1*****************
-//*******L Shape Quadrilateral*********
-//*************************************
-TPZCompMesh *CreateMesh() {
-	
     REAL co[8][2] = {{0.,0.},{0.,-1.},{1.,-1.},{1.,0.},{1.,1.},{0.,1.},{-1.,1.},{-1.,0.}};
     int indices[3][4] = {{0,1,2,3},{0,3,4,5},{0,5,6,7}};
     TPZGeoEl *elvec[3];
@@ -139,27 +140,36 @@ TPZCompMesh *CreateMesh() {
     
     // bc -6 -> Homogeneous Neumann
     TPZGeoElBC gbc8(elvec[2],7,-6);
-    
+    for(int d=0;d<2;d++) {
     int nel = gmesh->NElements();
     for (int iel=0; iel<nel; iel++) {
         TPZManVector<TPZGeoEl *> subels;
         TPZGeoEl *gel = gmesh->ElementVec()[iel];
         gel->Divide(subels);
     }
+	}
+
+	return gmesh;
+}
+//*************************************
+//*******L Shape Quadrilateral*********
+//*************************************
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-    cmesh->SetDefaultOrder(2);
+    cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
 
     // Creating elasticity material
-    TPZMaterial * mat = new TPZElasticityMaterial(1,2000.,0.3,0.,0.);
+    TPZMaterial * mat = new TPZElasticityMaterial(1,2000000000.,0.3,0.,0.);
 
 	// Creating four boundary condition
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
 	TPZMaterial *bcBottom, *bcRight;
-	val1(1,1) = 1000000.;
-    bcBottom = mat->CreateBC(mat,-2,2,val1,val2);
-	val1(1,1) = 0.;
-	val2(1,0) = 10.;
+	//val1(1,1) = 1000000.;
+	val2(1,0) = 10000000.;
+    bcBottom = mat->CreateBC(mat,-2,1,val1,val2);
+	//val1(1,1) = 0.;
+	val2(1,0) = 10000000.;
     bcRight = mat->CreateBC(mat,-4,1,val1,val2);
 
     cmesh->InsertMaterialObject(mat);
@@ -167,6 +177,8 @@ TPZCompMesh *CreateMesh() {
 	cmesh->InsertMaterialObject(bcBottom);
 	cmesh->InsertMaterialObject(bcRight);
     
+	cmesh->SetAllCreateFunctionsContinuous();
+
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
