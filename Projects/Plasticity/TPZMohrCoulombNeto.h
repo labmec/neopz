@@ -215,6 +215,7 @@ public:
     
     void CommitDeformation(TPZTensor<REAL> &epstotal, TComputeSequence &memory)
     {
+        const REAL cosphi = cos(fPhi);
         TPZTensor<REAL> sigma;
         switch (memory.fWhichPlane) {
                 
@@ -228,15 +229,15 @@ public:
                 switch (memory.fWhichPlane) {
                     case TComputeSequence::EMainPlane:
                         ReturnMapPlane<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar=(locmem.fGamma[0]);
+                        fState.fEpsPlasticBar += (locmem.fGamma[0]*2.*cosphi);
                         break;
                     case TComputeSequence::ELeftEdge:
                         ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar=(locmem.fGamma[0]+locmem.fGamma[1]);
+                        fState.fEpsPlasticBar +=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
                         break;
                     case TComputeSequence::ERightEdge:
                         ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar=(locmem.fGamma[0]+locmem.fGamma[1]);
+                        fState.fEpsPlasticBar +=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
                         break;
                     default:
                         DebugStop();
