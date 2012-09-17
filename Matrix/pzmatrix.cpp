@@ -15,6 +15,10 @@
 #include "pzsolve.h"
 #include "pzvec.h"
 
+#ifdef _AUTODIFF
+#include "fad.h"
+#endif
+
 #include <sstream>
 #include <exception>
 #include "pzlog.h"
@@ -180,6 +184,14 @@ void TPZMatrix<TVar>::Identity() {
 
 /*************/
 /*** Input ***/
+#ifdef _AUTODIFF
+template<>
+void TPZMatrix<TFad<6,REAL> >::Input(std::istream& in )
+{
+    DebugStop();
+}
+#endif
+
 template<class TVar>
 void TPZMatrix<TVar>::Input(std::istream& in )
 {
@@ -209,6 +221,14 @@ std::istream & operator>>(std::istream& in,TPZMatrix<TVar> &A)
 
 /*************/
 /*** Print ***/
+#ifdef _AUTODIFF
+template<>
+void TPZMatrix<TFad<6,REAL> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const 
+{
+    DebugStop();
+}
+#endif
+
 
 template<class TVar>
 void TPZMatrix<TVar>::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const {
@@ -616,6 +636,15 @@ void TPZMatrix<TVar>::SolveJacobi(int &numiterations,const TPZFMatrix<TVar> &F, 
 	if(residual) *residual = scratch;
 }
 
+#ifdef _AUTODIFF
+template<>
+void TPZMatrix<TFad<6,REAL> >::SolveSOR(int & numiterations, const TPZFMatrix<TFad<6,REAL> > &F,
+							   TPZFMatrix<TFad<6,REAL> > &result, TPZFMatrix<TFad<6,REAL> > *residual, TPZFMatrix<TFad<6,REAL> > &/*scratch*/, const REAL overrelax,
+							   REAL &tol,const int FromCurrent,const int direction) {
+    DebugStop();
+}
+#endif
+
 template<class TVar>
 void TPZMatrix<TVar>::SolveSOR(int & numiterations, const TPZFMatrix<TVar> &F,
 							   TPZFMatrix<TVar> &result, TPZFMatrix<TVar> *residual, TPZFMatrix<TVar> &/*scratch*/, const REAL overrelax,
@@ -688,6 +717,16 @@ void TPZMatrix<TVar>::SolveCG(int &numiterations, TPZSolver<TVar> &preconditione
 	CG(*this, result, F, preconditioner, residual, numiterations, tol, FromCurrent);
 }
 
+#ifdef _AUTODIFF
+template <>
+void TPZMatrix< TFad<6,REAL> >::SolveCG(int &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
+                                               const	TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
+                                               TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol, const int FromCurrent) {
+	DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+#endif
+
 template <>
 void TPZMatrix< std::complex<float> >::SolveCG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						const	TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
@@ -741,6 +780,18 @@ void TPZMatrix<TVar>::SolveGMRES(int &numiterations, TPZSolver<TVar> &preconditi
     }
 }
 
+#ifdef _AUTODIFF
+template <>
+void TPZMatrix< TFad<6,REAL> >::SolveGMRES(int &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
+                                                  TPZFMatrix< TFad<6,REAL> > &H, int &numvectors,
+                                                  const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
+                                                  TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,const int FromCurrent)  
+{
+    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+
+#endif
+
 template <>
 void TPZMatrix< std::complex<float> >::SolveGMRES(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						   TPZFMatrix< std::complex<float> > &H, int &numvectors,
@@ -778,6 +829,16 @@ void TPZMatrix<TVar>::SolveBICG(int &numiterations, TPZSolver<TVar> &preconditio
 	BiCG (*this, result,F,preconditioner,numiterations,tol);
 }
 
+#ifdef _AUTODIFF
+template<>
+void TPZMatrix< TFad<6,REAL> >::SolveBICG(int &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
+                                                 const TPZFMatrix< TFad<6,REAL> > &F,
+                                                 TPZFMatrix< TFad<6,REAL> > &result,
+                                                 REAL  &tol)  {
+    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+#endif
+
 template<>
 void TPZMatrix< std::complex<float> >::SolveBICG(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 						  const TPZFMatrix< std::complex<float> > &F,
@@ -810,6 +871,15 @@ void TPZMatrix<TVar>::SolveBICGStab(int &numiterations, TPZSolver<TVar> &precond
 	BiCGSTAB(*this,result,F,preconditioner,numiterations,tol,residual,FromCurrent);
 }
 
+#ifdef _AUTODIFF
+template <>
+void TPZMatrix< TFad<6,REAL> >::SolveBICGStab(int &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
+                                                     const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
+                                                     TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,const int FromCurrent)  {
+    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+#endif
+
 template <>
 void TPZMatrix< std::complex<float> >::SolveBICGStab(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
 							  const TPZFMatrix< std::complex<float> > &F, TPZFMatrix< std::complex<float> > &result,
@@ -841,6 +911,16 @@ void TPZMatrix<TVar>::SolveIR(int &numiterations, TPZSolver<TVar> &preconditione
 						const int FromCurrent)  {
 	IR(*this,result,F,preconditioner,residual,numiterations,tol,FromCurrent);
 }
+
+#ifdef _AUTODIFF
+template <>
+void TPZMatrix< TFad<6,REAL> >::SolveIR(int &numiterations, TPZSolver< TFad<6,REAL> > &preconditioner,
+                                               const TPZFMatrix< TFad<6,REAL> > &F, TPZFMatrix< TFad<6,REAL> > &result,
+                                               TPZFMatrix< TFad<6,REAL> > *residual,  REAL  &tol,
+                                               const int FromCurrent)  {
+    DebugStop(); // Does not work with complex numbers. To be implemented in the future.
+}
+#endif
 
 template <>
 void TPZMatrix< std::complex<float> >::SolveIR(int &numiterations, TPZSolver< std::complex<float> > &preconditioner,
@@ -1253,6 +1333,14 @@ void TPZMatrix<TVar>::GetSub(const TPZVec<int> &indices,TPZFMatrix<TVar> &block)
 	
 }
 
+#ifdef _AUTODIFF
+template<>
+int TPZMatrix<TFad<6,REAL> >::VerifySymmetry(REAL tol) const{
+    DebugStop();
+    return -1;
+}
+#endif
+
 template <class TVar>
 int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
 	int nrows = this->Rows();
@@ -1276,6 +1364,13 @@ int TPZMatrix<TVar>::VerifySymmetry(REAL tol) const{
 	return 1;
 }
 
+#ifdef _AUTODIFF
+template<>
+bool TPZMatrix<TFad<6,REAL> >::CompareValues(TPZMatrix<TFad<6,REAL> > &M, TFad<6,REAL> tol){
+    DebugStop();
+    return false;
+}
+#endif
 template <class TVar>
 bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 	
@@ -1292,6 +1387,17 @@ bool TPZMatrix<TVar>::CompareValues(TPZMatrix<TVar> &M, TVar tol){
 	
 	return true;
 }
+
+#ifdef _AUTODIFF
+template<>
+TFad<6,REAL> TPZMatrix<TFad<6,REAL> >::ReturnNearestValue(TFad<6,REAL> val, TPZVec<TFad<6,REAL> >& Vec, TFad<6,REAL> tol)
+{
+    DebugStop();
+    TFad<6,REAL> res;
+    return res;
+}
+#endif
+
 template <class TVar>
 TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<TVar>& Vec, TVar tol)
 {
@@ -1304,6 +1410,15 @@ TVar TPZMatrix<TVar>::ReturnNearestValue(TVar val, TPZVec<TVar>& Vec, TVar tol)
     }
     return res;
 }
+
+#ifdef _AUTODIFF
+template<>
+bool TPZMatrix<TFad<6,REAL> >::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<TFad<6,REAL> > & Eigenvalues, TPZFMatrix<TFad<6,REAL> > & Eigenvectors) const{
+    DebugStop();
+    return false;
+}
+
+#endif
 
 template <class TVar>
 bool TPZMatrix<TVar>::SolveEigensystemJacobi(int &numiterations, REAL & tol, TPZVec<TVar> & Eigenvalues, TPZFMatrix<TVar> & Eigenvectors) const{
@@ -1439,6 +1554,14 @@ bool TPZMatrix< std::complex< long double > >::SolveEigenvaluesJacobi(int &numit
     return false;
 }
 
+#ifdef _AUTODIFF
+template<>
+bool TPZMatrix<TFad<6,REAL> >::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<TFad<6,REAL> > * Sort){
+    DebugStop();
+    return false;
+}
+#endif
+
 template <class TVar>
 bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZVec<TVar> * Sort){
 	
@@ -1540,6 +1663,15 @@ bool TPZMatrix<TVar>::SolveEigenvaluesJacobi(int &numiterations, REAL & tol, TPZ
 	return false;
 	
 }//method
+
+#ifdef _AUTODIFF
+template<>
+TFad<6,REAL> TPZMatrix<TFad<6,REAL> >::MatrixNorm(int p, int numiter, REAL tol) const{
+    DebugStop();
+    TFad<6,REAL> res;
+    return res;
+}
+#endif
 
 template <class TVar>
 TVar TPZMatrix<TVar>::MatrixNorm(int p, int numiter, REAL tol) const{
@@ -1688,6 +1820,10 @@ template class TPZMatrix<long double>;
 template class TPZMatrix<double>;
 template class TPZMatrix<int>;
 template class TPZMatrix<float>;
+
+#ifdef _AUTODIFF
+template class TPZMatrix<TFad<6,REAL> >;
+#endif
 
 /** @brief Overload << operator to output entries of the matrix ***/
 template<class TVar>

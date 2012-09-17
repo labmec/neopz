@@ -268,6 +268,10 @@ public:
     inline T & YY() const {return fData[_YY_];}
     inline T & YZ() const {return fData[_YZ_];}
     inline T & ZZ() const {return fData[_ZZ_];}
+    inline T &operator[](int i) const
+    {
+        return fData[i];
+    }
 	
 private:
     /**
@@ -657,7 +661,7 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     }
     
     theta = acos(costheta);
-    x1=T(-2.)*sqrt(Q)*cos(theta/3)+ (I1/T(3.));//eigenval 1
+    x1=T(-2.)*sqrt(Q)*cos(theta/T(3.))+ (I1/T(3.));//eigenval 1
     x2=T(-2.)*sqrt(Q)*cos( ( theta +  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 2
     x3=T(-2.)*sqrt(Q)*cos( ( theta -  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 3
     REAL valx1 = shapeFAD::val(x1), valx2 = shapeFAD::val(x2), valx3 = shapeFAD::val(x3);

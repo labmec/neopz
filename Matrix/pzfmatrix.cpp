@@ -196,6 +196,15 @@ void TPZFMatrix<int>::GramSchmidt(TPZFMatrix<int> &Orthog, TPZFMatrix<int> &Tran
     DebugStop();
 }
 
+#ifdef _AUTODIFF
+#include "fad.h"
+template <>
+void TPZFMatrix<TFad<6,REAL> >::GramSchmidt(TPZFMatrix<TFad<6,REAL> > &Orthog, TPZFMatrix<TFad<6, REAL> > &TransfToOrthog)
+{
+    DebugStop();
+}
+#endif
+
 template <class TVar>
 void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &TransfToOrthog)
 {
@@ -219,7 +228,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
 		norm = sqrt(norm);
 		if(norm > 1.e-10)
         {
-			if(1./norm > scale) scale = 1./norm;
+			if((1.)/norm > scale) scale = (1.)/norm;
 		}
     }
 	
@@ -242,7 +251,7 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     int check = 0;
     for(int c = 0; c < QTDvec; c++)
     {
-        double summ = 0.;
+        TVar summ = 0.;
         for(int r = 0; r < QTDcomp; r++)
         {
             summ += fabs(GetVal(r,c));
@@ -333,8 +342,8 @@ void TPZFMatrix<TVar>::GramSchmidt(TPZFMatrix<TVar> &Orthog, TPZFMatrix<TVar> &T
     }
     Orthog.Multiply(*this,TransfToOrthog,1);
 	
-    this->operator *=( 1./scale );
-    TransfToOrthog.operator *=( 1./scale );
+    this->operator*= ( 1./scale );
+    TransfToOrthog.operator*= ( 1./scale );
 	
     #ifdef LOG4CXX2
     if (logger->isDebugEnabled())
@@ -1278,6 +1287,18 @@ int TPZFMatrix<TVar>::Clear() {
 	return( 1 );
 }
 
+#ifdef _AUTODIFF
+template <>
+void TPZFMatrix<TFad<6,REAL> >::Read( TPZStream &buf, void *context ){
+    DebugStop();
+}
+
+template <>
+void TPZFMatrix<TFad<6,REAL> >::Write( TPZStream &buf, int withclassid ) const {
+    DebugStop();
+}
+#endif
+
 template <class TVar>
 void TPZFMatrix<TVar>::Read( TPZStream &buf, void *context ){
 	TPZMatrix<TVar>::Read(buf,context);
@@ -1383,6 +1404,14 @@ bool TPZFMatrix<TVar>::Compare(TPZSaveable *copy, bool override) const
 	return matresult;
 }
 
+#ifdef _AUTODIFF
+template <>
+void TPZFMatrix<TFad<6,REAL> >::PrintStatic(const TFad<6,REAL> *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form)
+{
+    DebugStop();
+}
+#endif
+
 template <class TVar>
 void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const char *name, std::ostream& out,const MatrixOutputFormat form){
 	
@@ -1416,7 +1445,7 @@ void TPZFMatrix<TVar>::PrintStatic(const TVar *ptr, int rows, int cols, const ch
 			out << "\n{ ";
 			for ( int col = 0; col < cols; col++ ) {
 				TVar val = SELECTEL(ptr,rows,row, col);
-				sprintf(number, "%16.16lf", (REAL)fabs(val));
+				sprintf(number, "%16.16lf", (double)fabs(val));
 				out << number;
 				if(col < cols-1)
 					out << ", ";
@@ -1482,6 +1511,17 @@ int TPZFMatrix<TVar>::SetSize(const int newRows,const int newCols) {
 	return( 1 );
 }
 
+#ifdef _AUTODIFF
+/** @brief Returns the norm of the matrix A */
+template<>
+TFad<6,REAL> Norm(const TPZFMatrix<TFad<6,REAL> > &A)
+{
+    DebugStop();
+    TFad<6,REAL> res;
+    return res;
+}
+#endif
+
 #include <complex>
 
 template class TPZFMatrix< std::complex<float> >;
@@ -1496,3 +1536,10 @@ template class TPZFMatrix<int>;
 template class TPZRestoreClass< TPZFMatrix<double> , TPZFMATRIX_DOUBLE_ID>;
 template class TPZRestoreClass< TPZFMatrix<float> , TPZFMATRIX_FLOAT_ID>;
 template class TPZRestoreClass< TPZFMatrix<long double> , TPZFMATRIX_LONG_DOUBLE_ID>;
+
+#ifdef _AUTODIFF
+#include "fad.h"
+template class TPZFMatrix<TFad<6,REAL> >;
+//template class TPZFMatrix<TFad<6,float> >;
+//template class TPZFMatrix<TFad<6,long double> >;
+#endif

@@ -69,13 +69,16 @@ int main()
     //   calcVonMisesBar();
     TPZMohrCoulombNeto toto;
     TPZTensor<REAL> epstotal,sigma,epsplastic;
+    TPZFNMatrix<36,REAL> tangent(6,6);
     REAL deltaeps =0.00005;
     epstotal.XX() = deltaeps;
     
+/*
     for(int i =1;i<160;i++)
     {
         cout << "\n i = "<<i<<endl;
-        toto.ComputeSigma(epstotal, sigma);
+        TPZMohrCoulombNeto::TComputeSequence memory;
+        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
         epstotal.XX()+=deltaeps;
         //epsplastic=toto.fState.fEpsPlastic;
         outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
@@ -85,16 +88,29 @@ int main()
         }
         
     }
-    
+    */
     
     do {
-        toto.ComputeSigma(epstotal, sigma );
+        TPZMohrCoulombNeto::TComputeSequence memory;
+        memory = toto.ComputeSigma(epstotal, sigma );
 #ifdef LOG4CXX
         {
             std::stringstream sout;
             sout << "Deformation tensor ";
             epstotal.Print(sout);
             sout << "Stress tensor " << sigma;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Deformation tensor ";
+            epstotal.Print(sout);
+            sout << "Stress tensor " << sigma;
+            tangent.Print("Tangent stress",sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif

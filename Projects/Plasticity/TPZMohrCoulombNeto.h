@@ -38,14 +38,57 @@ public:
     
     struct TPlasticState
     {
+        TPlasticState() : fEpsPlastic(), fEpsPlasticBar(0.)
+        {
+            
+        }
+        
+        TPlasticState(const TPlasticState &copy) : fEpsPlastic(copy.fEpsPlastic), fEpsPlasticBar(copy.fEpsPlasticBar)
+        {
+            
+        }
+        
+        TPlasticState &operator=(const TPlasticState &copy)
+        {
+            fEpsPlastic = copy.fEpsPlastic;
+            fEpsPlasticBar = copy.fEpsPlasticBar;
+            return *this;
+        }
+        
         TPZTensor<REAL> fEpsPlastic;
         REAL fEpsPlasticBar;
     };
     
+    struct TComputeSequence
+    {
+        TComputeSequence() : fWhichPlane(ENoPlane), fGamma(0)
+        {
+            
+        }
+        
+        TComputeSequence(const TComputeSequence &copy) : fWhichPlane(copy.fWhichPlane), fGamma(copy.fGamma)
+        {
+            
+        }
+        
+        TComputeSequence &operator=(const TComputeSequence &copy)
+        {
+            fWhichPlane = copy.fWhichPlane;
+            fGamma = copy.fGamma;
+            return *this;
+        }
+        
+        enum MPlane {ENoPlane, EElastic, EMainPlane, ERightEdge, ELeftEdge, EHydroStatic };
+        
+        MPlane fWhichPlane;
+        
+        TPZManVector<REAL> fGamma;
+
+    };
+    
 protected:
-    TPZPlasticState<REAL> state;
-    //TPlasticState fState;
-    REAL fEPBAR;
+    TPZMohrCoulombNeto::TPlasticState fState;
+
     
 public:
     
@@ -96,7 +139,10 @@ public:
     typename TPZTensor<T>::TPZDecomposed SigmaTrial(const TPZTensor<T> &epstotal)
     {
         TPZTensor<T> epslocal(epstotal);
-        epslocal -= state.fEpsP;
+        for(int i=0; i<6; i++)
+        {
+            epslocal[i] -= T(fState.fEpsPlastic[i]);   
+        }
         TPZTensor<T> sigma;
         sigma = SigmaElast(epslocal);
         typename TPZTensor<T>::TPZDecomposed sigma_trial;
@@ -115,30 +161,95 @@ public:
         return sigma_trial;
     }
     
+    void ComputeSigmaTangent(TPZTensor<REAL> &epstotal, TPZTensor<REAL> &sigma, TPZFNMatrix<36,REAL> &tangent, const TComputeSequence &memory)
+    {
+        typedef TFad<6,REAL> fadtype;
+        TPZTensor<fadtype> epstotalFAD, sigmaElastFAD, sigmaFAD;
+        for (int i=0; i<6; i++) {
+            epstotalFAD[i].val() = epstotal[i];
+            epstotalFAD[i].fastAccessDx(i) = 1.;
+        }
+        sigmaElastFAD = SigmaElast(epstotalFAD);
+        
+        switch (memory.fWhichPlane) {
+            case TComputeSequence::ENoPlane:
+                DebugStop();
+                break;
+            case TComputeSequence::EElastic:
+                sigmaFAD = sigmaElastFAD;
+                break;
+            case TComputeSequence::EMainPlane:
+            case TComputeSequence::ELeftEdge:
+            case TComputeSequence::ERightEdge:
+            {
+                TPZTensor<fadtype>::TPZDecomposed sigma_trial = SigmaTrial(epstotalFAD);
+                TPZTensor<fadtype>::TPZDecomposed sigma_projected;
+                TComputeSequence locmem(memory);
+                switch (memory.fWhichPlane) {
+                    case TComputeSequence::EMainPlane:
+                        ReturnMapPlane<fadtype>(sigma_trial, sigma_projected, locmem);                        
+                        break;
+                    case TComputeSequence::ELeftEdge:
+                        ReturnMapLeftEdge<fadtype>(sigma_trial, sigma_projected, locmem);
+                        break;
+                    case TComputeSequence::ERightEdge:
+                        ReturnMapRightEdge<fadtype>(sigma_trial, sigma_projected, locmem);
+                        break;
+                    default:
+                        DebugStop();
+                        break;
+                }
+                sigmaFAD = TPZTensor<fadtype>(sigma_projected);
+            }   
+            default:
+                break;
+        }
+        for (int i=0; i<6; i++) {
+            sigma[i] = sigmaFAD[i].val();
+            for (int j=0; j<6; j++) {
+                tangent(i,j) = sigmaFAD[i].fastAccessDx(j);
+            }
+        }
+    }
+    
+    void CommitDeformation(TPZTensor<REAL> &epstotal, TComputeSequence &memory)
+    {
+        
+    }
+    
     template<class T>
-    void ComputeSigma(TPZTensor<T> &epstotal, TPZTensor<T> &sigma)
+    TComputeSequence ComputeSigma(TPZTensor<T> &epstotal, TPZTensor<T> &sigma)
     {
         typename TPZTensor<T>::TPZDecomposed sigma_trial = SigmaTrial(epstotal);
+        TComputeSequence memory;
         T phi = PhiPlane<T>(sigma_trial);
         if (shapeFAD::val(phi) <= 0.) {
+            memory.fWhichPlane = TComputeSequence::EElastic;
+            memory.fGamma.Resize(0);
             sigma = TPZTensor<T>(sigma_trial);
               //state.fEpsT = epstotal;
-            return;
+            return memory;
         }
         typename TPZTensor<T>::TPZDecomposed sigma_projected;
-        if (ReturnMapPlane<T>(sigma_trial, sigma_projected)) {
+        memory.fGamma.Resize(1);
+        memory.fGamma[0] = 0.;
+        if (ReturnMapPlane<T>(sigma_trial, sigma_projected, memory)) {
             sigma = TPZTensor<T>(sigma_projected);
-            state.fAlpha=fEPBAR;
+            memory.fWhichPlane = TComputeSequence::EMainPlane;
         }
         else {
+            memory.fGamma.Resize(2);
+            memory.fGamma = 0.;
             const REAL sinpsi = sin(fPsi);
             TPZManVector<T,3> &eigenvalues = sigma_trial.fEigenvalues;
             REAL val = (1-sinpsi)*shapeFAD::val(eigenvalues[0])-2.*shapeFAD::val(eigenvalues[2])+(1+sinpsi)*shapeFAD::val(eigenvalues[1]);
             if (val > 0.) {
-                ReturnMapRightEdge<T>(sigma_trial, sigma_projected);
+                ReturnMapRightEdge<T>(sigma_trial, sigma_projected, memory);
+                memory.fWhichPlane = TComputeSequence::ERightEdge;
             }
             else {
-                ReturnMapLeftEdge<T>(sigma_trial, sigma_projected);
+                ReturnMapLeftEdge<T>(sigma_trial, sigma_projected, memory);
+                memory.fWhichPlane = TComputeSequence::ELeftEdge;
             }
 #ifdef LOG4CXX
             {
@@ -149,44 +260,8 @@ public:
             }
 #endif
             sigma = TPZTensor<T>(sigma_projected);
-            
-            
-            //Updating vars
-            
-
-            T tempval;
-            TPZTensor<T> StressDeviatoric,P,I,epsplastic(epstotal),epselastic;
-            
-            P.XX()=1;  I.XX()=1;
-            P.YY()=1;  I.YY()=1;
-            P.ZZ()=1;  I.ZZ()=1;
-            
-            
-            tempval=(1./3.)*sigma.I1()*(1./(3.*K()));
-            P.Multiply(tempval,1);
-            
-            
-            cout << "\n P = "<<P<<endl;
-            sigma.S(StressDeviatoric);
-            
-            StressDeviatoric*=1./(2.*G());
-            cout << " \n S =  "<< StressDeviatoric <<endl;
-            
-            StressDeviatoric.Add(P,1);
-            epselastic=StressDeviatoric;
-            epsplastic-=epselastic;
-            //epselastic = 2 * G()*S+ P.Multiply(1/(3*K()),epselastic);
-        
-            cout<< "\n ANTES "<<endl;
-            state.Print(cout);
-            
-            state.fEpsP = epsplastic;
-            state.fEpsT = epstotal;
-            state.fAlpha = fEPBAR;
-            cout<< "\n DEPOIS "<<endl;
-            state.Print(cout);
-            
         }
+        return memory;
     }
     
     template<class T>
@@ -195,12 +270,13 @@ public:
         const REAL sinphi = sin(fPhi);
         const REAL cosphi = cos(fPhi);
         T sigmay,H;
-        PlasticityFunction(T(state.fAlpha),sigmay, H);
+        PlasticityFunction(T(fState.fEpsPlasticBar),sigmay, H);
         return sigma.fEigenvalues[0]-sigma.fEigenvalues[2]+(sigma.fEigenvalues[0]+sigma.fEigenvalues[2])*sinphi-2.*sigmay*cosphi;
     }
 
     template<class T>
-    bool ReturnMapPlane(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected)
+    bool ReturnMapPlane(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected, 
+                            TComputeSequence &memory)
     {
         sigma_projected = sigma_trial;
         TPZManVector<T,3> &eigenvalues = sigma_projected.fEigenvalues;
@@ -212,10 +288,10 @@ public:
         const REAL cosphi2 = 1.-sinphi2;
         const REAL constA = 4.* G() *(1.+ sinphi*sinpsi/3.) + 4.*K() * sinphi*sinpsi;
         T sigmay,H;
-        T epsbar = T(state.fAlpha);//diogo aqui
-        PlasticityFunction(state.fAlpha,sigmay, H);
+        T epsbar = T(fState.fEpsPlasticBar+memory.fGamma[0]*2.*cosphi);//diogo aqui
+        PlasticityFunction(epsbar,sigmay, H);
         T phi = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*sinphi-2.*sigmay*cosphi;
-        T gamma = 0.;
+        T gamma = memory.fGamma[0];
         REAL phival = shapeFAD::val(phi);
         REAL tolerance = 1.e-8;
         do {
@@ -223,7 +299,7 @@ public:
 //            T d = T(-4.*G()*(1.+sinphi*sinpsi/3.)-4.*K()*sinphi*sinpsi)-T(4.*cosphi2)*H;
             T deriv_gamma = -phi/denom;
             gamma += deriv_gamma;
-            epsbar = T(state.fAlpha)+gamma*T(2.*cosphi);///errado esta inicializando toda vez. diogo aqui
+            epsbar = T(fState.fEpsPlasticBar)+gamma*T(2.*cosphi);///errado esta inicializando toda vez. diogo aqui
             PlasticityFunction(epsbar, sigmay, H);
             if (shapeFAD::val(H) < 0.) {
                 DebugStop();
@@ -233,7 +309,8 @@ public:
             
         } while (abs(phival) > tolerance);
         
-        fEPBAR=epsbar;
+
+        memory.fGamma[0] = shapeFAD::val(gamma);
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma;
         eigenvalues[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
         eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
@@ -244,7 +321,8 @@ public:
     }
     
     template<class T>
-    bool ReturnMapLeftEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected)
+    bool ReturnMapLeftEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected,
+                           TComputeSequence &memory)
     {
         sigma_projected = sigma_trial;
         TPZManVector<T,3> &eigenvalues = sigma_projected.fEigenvalues;
@@ -255,13 +333,15 @@ public:
         const REAL sinphi2 = sinphi*sinphi;
         const REAL cosphi2 = 1.-sinphi2;
         TPZManVector<T,2> gamma(2,0.),phi(2,0.),sigma_bar(2,0.),ab(2,0.);
+        gamma[0] = memory.fGamma[0];
+        gamma[1] = memory.fGamma[1];
         TPZManVector<REAL,2> phival(2,0.);
         TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
         sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
         sigma_bar[1] = eigenvalues[1]-eigenvalues[2]+(eigenvalues[1]+eigenvalues[2])*T(sinphi);
         T sigmay,H;
-        PlasticityFunction(state.fAlpha,sigmay, H);
-        T epsbar = T(state.fAlpha);//diogo aqui
+        T epsbar = T(fState.fEpsPlasticBar) + (gamma[0]+gamma[1])*T(2.*cosphi);//diogo aqui
+        PlasticityFunction(epsbar,sigmay, H);
         phi[0] = sigma_bar[0] - T(2.*cosphi)*sigmay;
         phi[1] = sigma_bar[1] - T(2.*cosphi)*sigmay;
         ab[0] = T(4.*G()*(1+sinphi*sinpsi/3.)+4.*K()*sinphi*sinpsi);
@@ -281,7 +361,7 @@ public:
             gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
             gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
           //T epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi); diogo aqui
-            epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
+            epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
             PlasticityFunction(epsbar, sigmay, H);
             phi[0] = sigma_bar[0] - ab[0]*gamma[0] - ab[1]*gamma[1] - T(2.*cosphi)*sigmay;
             phi[1] = sigma_bar[1] - ab[1]*gamma[0] - ab[0]*gamma[0] - T(2.*cosphi)*sigmay;
@@ -294,7 +374,8 @@ public:
 //        eigenvalues[1] += T((4.*G()/3. - K()*2.)*sinpsi)*gamma;
 //        eigenvalues[2] += T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*gamma;
 
-        fEPBAR=epsbar;
+        memory.fGamma[0] = shapeFAD::val(gamma[0]);
+        memory.fGamma[1] = shapeFAD::val(gamma[1]);
         eigenvalues[0] -= T(2.*G()*(1+sinpsi/3.)+2.*K()*sinpsi)*gamma[0]+T((4.*G()/3.-2.*K())*sinpsi)*gamma[1];
         eigenvalues[1] += T((4.*G()/3.- K()*2.)*sinpsi)*gamma[0]-T(2.*G()*(1.+sinpsi/3.)+2.*K()*sinpsi)*gamma[1];
         eigenvalues[2] -= T(2.*G()*(1-sinpsi/3.)-2.*K()*sinpsi)*(gamma[0]+gamma[1]);
@@ -302,7 +383,8 @@ public:
     }
     
     template<class T>
-    bool ReturnMapRightEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected)
+    bool ReturnMapRightEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected,
+                            TComputeSequence &memory)
     {
         sigma_projected = sigma_trial;
         TPZManVector<T,3> &eigenvalues = sigma_projected.fEigenvalues;
@@ -315,12 +397,15 @@ public:
         const REAL KV = K();
         const REAL GV = G();
         TPZManVector<T,2> gamma(2,0.),phi(2,0.),sigma_bar(2,0.),ab(2,0.);
+        gamma[0] = memory.fGamma[0];
+        gamma[1] = memory.fGamma[1];
         TPZManVector<REAL,2> phival(2,0.);
         TPZFNMatrix<4,T> d(2,2,0.), dinverse(2,2,0.);
         sigma_bar[0] = eigenvalues[0]-eigenvalues[2]+(eigenvalues[0]+eigenvalues[2])*T(sinphi);
         sigma_bar[1] = eigenvalues[0]-eigenvalues[1]+(eigenvalues[0]+eigenvalues[1])*T(sinphi);
         T sigmay,H;
-        PlasticityFunction(state.fAlpha,sigmay, H);
+        T epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
+        PlasticityFunction(epsbar,sigmay, H);
         phi[0] = sigma_bar[0] - T(2.*cosphi)*sigmay;
         phi[1] = sigma_bar[1] - T(2.*cosphi)*sigmay;
         ab[0] = T(4.*GV*(1+sinphi*sinpsi/3.)+4.*KV*sinphi*sinpsi);
@@ -356,7 +441,6 @@ public:
         REAL tolerance = 1.e-8;
         int iter = 0;
         T residual =1;
-        T epsbar = T(state.fAlpha);
         do {
 #ifdef LOG4CXX
             {
@@ -378,7 +462,7 @@ public:
             dinverse(1,1) = d(0,0)/detd;
             gamma[0] -= (dinverse(0,0)*phi[0]+dinverse(0,1)*phi[1]);
             gamma[1] -= (dinverse(1,0)*phi[0]+dinverse(1,1)*phi[1]);
-            epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
+            epsbar = T(fState.fEpsPlasticBar)+(gamma[0]+gamma[1])*T(2.*cosphi);
             PlasticityFunction(epsbar, sigmay, H);
             if (shapeFAD::val(H) < 0.) {
                 DebugStop();
@@ -404,8 +488,9 @@ public:
 //        eigenvalues[1] += T((4.*GV/3. - KV*2.)*sinpsi)*gamma;
 //        eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma;
        // epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
-        
-        fEPBAR = epsbar;
+            
+        memory.fGamma[0] = shapeFAD::val(gamma[0]);
+        memory.fGamma[1] = shapeFAD::val(gamma[1]);
 #ifdef LOG4CXX
         {
             std::stringstream sout;
