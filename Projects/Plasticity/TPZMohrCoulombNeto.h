@@ -83,6 +83,7 @@ public:
         MPlane fWhichPlane;
         
         TPZManVector<REAL> fGamma;
+        
 
     };
     
@@ -214,6 +215,68 @@ public:
     
     void CommitDeformation(TPZTensor<REAL> &epstotal, TComputeSequence &memory)
     {
+        TPZTensor<REAL> sigma;
+        switch (memory.fWhichPlane) {
+                
+            case TComputeSequence::EMainPlane:
+            case TComputeSequence::ELeftEdge:
+            case TComputeSequence::ERightEdge:
+            {
+                TPZTensor<REAL>::TPZDecomposed sigma_trial = SigmaTrial(epstotal);
+                TPZTensor<REAL>::TPZDecomposed sigma_projected;
+                TComputeSequence locmem(memory);
+                switch (memory.fWhichPlane) {
+                    case TComputeSequence::EMainPlane:
+                        ReturnMapPlane<REAL>(sigma_trial, sigma_projected, locmem);
+                        fState.fEpsPlasticBar=(locmem.fGamma[0]);
+                        break;
+                    case TComputeSequence::ELeftEdge:
+                        ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, locmem);
+                        fState.fEpsPlasticBar=(locmem.fGamma[0]+locmem.fGamma[1]);
+                        break;
+                    case TComputeSequence::ERightEdge:
+                        ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, locmem);
+                        fState.fEpsPlasticBar=(locmem.fGamma[0]+locmem.fGamma[1]);
+                        break;
+                    default:
+                        DebugStop();
+                        break;
+                }
+                 sigma = TPZTensor<REAL>(sigma_projected);
+            }
+            default:
+                DebugStop();
+                break;
+        }
+
+        
+		 	REAL tempval;
+		 	TPZTensor<REAL> StressDeviatoric,P,I,epsplastic(epstotal),epselastic;
+		
+		 	P.XX()=1; I.XX()=1;
+		 	P.YY()=1; I.YY()=1;
+			P.ZZ()=1; I.ZZ()=1;
+		
+		
+		 	tempval=(1./3.)*sigma.I1()*(1./(3.*K()));
+		 	P.Multiply(tempval,1);
+		
+		
+		 	cout << "\n P = "<<P<<endl;
+		 	sigma.S(StressDeviatoric);
+		
+		 	StressDeviatoric*=1./(2.*G());
+		 	cout << " \n S = "<< StressDeviatoric <<endl;
+		
+		 	StressDeviatoric.Add(P,1);
+		 	epselastic=StressDeviatoric;
+        
+		 	epsplastic-=epselastic;
+        
+        
+            fState.fEpsPlastic = epsplastic;
+        
+
         
     }
     
@@ -388,7 +451,7 @@ public:
     {
         sigma_projected = sigma_trial;
         TPZManVector<T,3> &eigenvalues = sigma_projected.fEigenvalues;
-//        TPZManVector<TPZTensor<T>,3> &eigenvectors = sigma_projected.fEigenvectors;
+//      TPZManVector<TPZTensor<T>,3> &eigenvectors = sigma_projected.fEigenvectors;
         const REAL sinphi = sin(fPhi);
         const REAL sinpsi = sin(fPsi);
         const REAL cosphi = cos(fPhi);
