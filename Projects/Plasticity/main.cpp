@@ -106,13 +106,15 @@ int main()
 #endif
         
         toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
+        toto.CommitDeformation(epstotal, memory);
 #ifdef LOG4CXX
         {
             std::stringstream sout;
-            sout << "Deformation tensor ";
+            sout << "Total deformation tensor ";
             epstotal.Print(sout);
             sout << "Stress tensor " << sigma;
             tangent.Print("Tangent stress",sout);
+            toto.Print(sout);
             LOGPZ_DEBUG(logger, sout.str())
         }
 #endif

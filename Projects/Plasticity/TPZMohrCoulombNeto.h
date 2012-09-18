@@ -55,6 +55,13 @@ public:
             return *this;
         }
         
+        void Print(std::ostream &out) const
+        {
+            out << "Plastic Deformation tensor ";
+            fEpsPlastic.Print(out);
+            out << "Acumulated plastic deformation " << fEpsPlasticBar << std::endl;
+        }
+        
         TPZTensor<REAL> fEpsPlastic;
         REAL fEpsPlasticBar;
     };
@@ -112,6 +119,12 @@ public:
     REAL K()
     {
         return fYoung/(3.*(1.-2.*fPoisson));
+    }
+    
+    void Print(std::ostream &out) const
+    {
+        out << "TPZMohrCoulombNeto\n";
+        fState.Print(out);
     }
     
     template<class T>
@@ -218,15 +231,13 @@ public:
         const REAL cosphi = cos(fPhi);
         TPZTensor<REAL> sigma;
         switch (memory.fWhichPlane) {
-                
             case TComputeSequence::EElastic:
             {
-                
-                sigma = SigmaElast(epstotal);
-                break;
-   
+                TPZTensor<REAL> epslocal(epstotal);
+                epslocal -= fState.fEpsPlastic;
+                sigma = SigmaElast(epslocal);
             }
-            
+                break;
             case TComputeSequence::EMainPlane:
             case TComputeSequence::ELeftEdge:
             case TComputeSequence::ERightEdge:
@@ -252,6 +263,7 @@ public:
                         break;
                 }
                  sigma = TPZTensor<REAL>(sigma_projected);
+                break;
             }
             default:
             {
@@ -311,7 +323,10 @@ public:
             memory.fWhichPlane = TComputeSequence::EMainPlane;
         }
         else {
-            memory.fGamma.Resize(2,0.);
+            memory.fGamma.Resize(2);
+            memory.fGamma[0] = 0.;
+            memory.fGamma[1] = 0.;
+
 
             const REAL sinpsi = sin(fPsi);
             TPZManVector<T,3> &eigenvalues = sigma_trial.fEigenvalues;

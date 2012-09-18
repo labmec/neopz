@@ -225,7 +225,12 @@ std::istream & operator>>(std::istream& in,TPZMatrix<TVar> &A)
 template<>
 void TPZMatrix<TFad<6,REAL> >::Print(const char *name, std::ostream& out,const MatrixOutputFormat form) const 
 {
-    DebugStop();
+    out << name << std::endl;
+    for (int i=0; i<fRow; i++) {
+        for (int j=0; j<fCol; j++) {
+            out << "i = " << i << " j = " << j << " val " << Get(i, j) << std::endl;
+        }
+    }
 }
 #endif
 

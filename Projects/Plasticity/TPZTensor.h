@@ -643,7 +643,7 @@ void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 template <class T>
 void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
 {
-    T I1,I2,I3,R,theta,Q,x1,x2,x3,I,costheta,e1temp,e2temp,e3temp;
+    T I1,I2,I3,R,theta,Q,x1,x2,x3,costheta,e1temp,e2temp,e3temp;
     I1 = (this->I1());
     I2=(this->I2());
     I3=(this->I3());
@@ -655,9 +655,9 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     
     costheta=R/sqrt(Q*Q*Q);
     
-    if(shapeFAD::val(costheta)<-1. || shapeFAD::val(costheta)>1.)
+    if(shapeFAD::val(costheta)<-(1.-1.e-12) || shapeFAD::val(costheta)>(1.-1.e-12))
     {
-        costheta /=T(fabs(shapeFAD::val(costheta)));
+        costheta /=T(fabs(shapeFAD::val(costheta))/(1.-1.e-12));
     }
     
     theta = acos(costheta);
@@ -698,7 +698,7 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     Eigenvalues[1]=x2;
     Eigenvalues[2]=x3;
     
-    REAL tolerance = 1.e-5;
+    REAL tolerance = 5.e-5;
     if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
     {
         Eigenvectors.resize(3);
@@ -1371,6 +1371,11 @@ void TPZTensor<T>::Eigenvalue(TPZTensor<T> &eigenval,TPZTensor<T> &dSigma1,TPZTe
 template <>
 inline void TPZTensor<REAL>::Print(std::ostream &output) const {
     output << "XX = " << XX() << " XY = " << XY() << " XZ = " << XZ() << " YY = " << YY() << " YZ() = " << YZ() << " ZZ = " << ZZ() << std::endl;
+}
+
+template <>
+inline void TPZTensor<TFad<6,REAL> >::Print(std::ostream &output) const {
+    output << "XX = " << XX() << "\nXY = " << XY() << "\nXZ = " << XZ() << "\nYY = " << YY() << "\nYZ() = " << YZ() << "\nZZ = " << ZZ() << std::endl;
 }
 
 
