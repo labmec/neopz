@@ -149,14 +149,14 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     
-#ifdef LOG4CXX
-    if (logger->isDebugEnabled())
-    {
-        std::stringstream sout;
-        cmesh->Print(sout);
-        LOGPZ_DEBUG(logger, sout.str())
-    }
-#endif
+// #ifdef LOG4CXX
+//     if (logger->isDebugEnabled())
+//     {
+//         std::stringstream sout;
+//         cmesh->Print(sout);
+//         LOGPZ_DEBUG(logger, sout.str())
+//     }
+// #endif
     return cmesh;
 }
 
