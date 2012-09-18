@@ -118,11 +118,11 @@ public:
     void PlasticityFunction(T epsp, T &sigmay, T &H) const
     {
         //sigmay = T(15.)+(T(2571.43)-T(2.95238e6)*epsp)*(T(-0.0035)+epsp);
-        //H = T(12904.8)-T(5.90476e6)*epsp;
-        sigmay=20.;
+       // H = T(12904.8)-T(5.90476e6)*epsp;
+       sigmay=20.;
         H=0.;
-//        sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp;
-//        H = T(12904.8);
+       //sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp;
+        //H = T(12904.8);
     }
     
     template<class T>
@@ -142,7 +142,7 @@ public:
         TPZTensor<T> epslocal(epstotal);
         for(int i=0; i<6; i++)
         {
-            epslocal[i] -= T(fState.fEpsPlastic[i]);   
+            epslocal[i] -= T(fState.fEpsPlastic[i]);
         }
         TPZTensor<T> sigma;
         sigma = SigmaElast(epslocal);
@@ -219,6 +219,14 @@ public:
         TPZTensor<REAL> sigma;
         switch (memory.fWhichPlane) {
                 
+            case TComputeSequence::EElastic:
+            {
+                
+                sigma = SigmaElast(epstotal);
+                break;
+   
+            }
+            
             case TComputeSequence::EMainPlane:
             case TComputeSequence::ELeftEdge:
             case TComputeSequence::ERightEdge:
@@ -229,15 +237,15 @@ public:
                 switch (memory.fWhichPlane) {
                     case TComputeSequence::EMainPlane:
                         ReturnMapPlane<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar += (locmem.fGamma[0]*2.*cosphi);
+                        fState.fEpsPlasticBar+=(locmem.fGamma[0]*2.*cosphi);
                         break;
                     case TComputeSequence::ELeftEdge:
                         ReturnMapLeftEdge<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar +=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
+                        fState.fEpsPlasticBar+=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
                         break;
                     case TComputeSequence::ERightEdge:
                         ReturnMapRightEdge<REAL>(sigma_trial, sigma_projected, locmem);
-                        fState.fEpsPlasticBar +=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
+                        fState.fEpsPlasticBar+=(locmem.fGamma[0]+locmem.fGamma[1])*2.*cosphi;
                         break;
                     default:
                         DebugStop();
@@ -246,8 +254,9 @@ public:
                  sigma = TPZTensor<REAL>(sigma_projected);
             }
             default:
-                DebugStop();
+            {
                 break;
+            }
         }
 
         
@@ -302,8 +311,8 @@ public:
             memory.fWhichPlane = TComputeSequence::EMainPlane;
         }
         else {
-            memory.fGamma.Resize(2);
-            memory.fGamma = 0.;
+            memory.fGamma.Resize(2,0.);
+
             const REAL sinpsi = sin(fPsi);
             TPZManVector<T,3> &eigenvalues = sigma_trial.fEigenvalues;
             REAL val = (1-sinpsi)*shapeFAD::val(eigenvalues[0])-2.*shapeFAD::val(eigenvalues[2])+(1+sinpsi)*shapeFAD::val(eigenvalues[1]);
@@ -325,6 +334,7 @@ public:
 #endif
             sigma = TPZTensor<T>(sigma_projected);
         }
+       // CommitDeformation(epstotal,memory);
         return memory;
     }
     
@@ -388,6 +398,7 @@ public:
     bool ReturnMapLeftEdge(const typename TPZTensor<T>::TPZDecomposed &sigma_trial, typename TPZTensor<T>::TPZDecomposed &sigma_projected,
                            TComputeSequence &memory)
     {
+        
         sigma_projected = sigma_trial;
         TPZManVector<T,3> &eigenvalues = sigma_projected.fEigenvalues;
 //        TPZManVector<TPZTensor<T>,3> &eigenvectors = sigma_projected.fEigenvectors;        
@@ -552,6 +563,7 @@ public:
 //        eigenvalues[1] += T((4.*GV/3. - KV*2.)*sinpsi)*gamma;
 //        eigenvalues[2] += T(2.*GV*(1-sinpsi/3.)-2.*KV*sinpsi)*gamma;
        // epsbar = T(state.fAlpha)+(gamma[0]+gamma[1])*T(2.*cosphi);
+       
             
         memory.fGamma[0] = shapeFAD::val(gamma[0]);
         memory.fGamma[1] = shapeFAD::val(gamma[1]);
