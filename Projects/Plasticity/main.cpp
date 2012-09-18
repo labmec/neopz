@@ -63,7 +63,8 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 int main()
 {
     InitializePZLOG();
-      ofstream outfiletxt("MohrNeto.txt");
+      ofstream outfiletxt("MohrNetox.txt");
+    ofstream outfiletxty("MohrNetoy.txt");
     //   MohrCoulombTestX();
     //   calctalude();
     //   calcVonMisesBar();
@@ -73,22 +74,23 @@ int main()
     REAL deltaeps =0.00005;
     epstotal.XX() = deltaeps;
     
-/*
+
     for(int i =1;i<160;i++)
     {
         cout << "\n i = "<<i<<endl;
         TPZMohrCoulombNeto::TComputeSequence memory;
         memory = toto.ComputeSigma<REAL>(epstotal, sigma);
+        //toto.CommitDeformation(epstotal,memory);
         epstotal.XX()+=deltaeps;
         //epsplastic=toto.fState.fEpsPlastic;
-        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+        outfiletxty << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
         if(i==50 || i==80)
         {
             deltaeps*=-1;
         }
         
     }
-    */
+    
     
     do {
         TPZMohrCoulombNeto::TComputeSequence memory;
@@ -116,11 +118,11 @@ int main()
 #endif
         epstotal.XX() += deltaeps;
       
-        //outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
         
         
     
-    } while (epstotal.XX() < 0.0015);
+    } while (epstotal.XX() < 0.0035);
     return 0;
     
     
