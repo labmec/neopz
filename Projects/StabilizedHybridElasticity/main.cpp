@@ -34,10 +34,14 @@
 
 #include "pzpoisson3d.h"
 #include "pzpoisson3dreferred.h"
+#include "pzelasmat.h" 
+#include "pzelasthybrid.h"
 
 #include "pzbuildmultiphysicsmesh.h"
 
 #include "pzlog.h"
+
+#include "TPZVTKGeoMesh.h"
 
 #include <iostream>
 #include <string>
@@ -64,42 +68,50 @@ const int bc2 = -2;
 const int bc3 = -3;
 const int bc4 = -4;
 
-TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L);
-TPZCompMesh *MalhaCompComInterf(TPZGeoMesh * gmesh,int pOrder);
+TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly);
+TPZCompMesh *MalhaComp(TPZGeoMesh * gmesh,int pOrder);
 void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int LagrangeMat, int InterfaceMat);
+void Solve ( TPZAnalysis &an );
 
-void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file);
 
 
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	std::string logs("log4cxx.stabilizedhybrid");
 	InitializePZLOG();
 #endif
 	
-	int p =1;
+	int  p=1;
+	int  NRefUnif=1;
+    REAL Lx=1.;
+    REAL Ly=1.;
 	
-	// -------- validar o metodo BuildHybridMesh() ------------
-	TPZGeoMesh * gmesh = MalhaGeom(true,1,1.,1.);
-	ofstream arg1("mygmesh.txt");
-	gmesh->Print(arg1);
-    
-    ofstream file1("malhageoRefUniforme.vtk");
-	PrintGMeshVTK(gmesh, file1);
-	
-	TPZCompMesh * cmesh= MalhaCompComInterf(gmesh,  p);
-	ofstream arg2("mycmesh.txt");
+    TPZGeoMesh * gmesh = MalhaGeom(NRefUnif,Lx,Ly);
+//	ofstream arg1("gmesh1.txt");
+//	gmesh->Print(arg1);
+    	
+	TPZCompMesh * cmesh= MalhaComp(gmesh,  p);
+	ofstream arg2("cmesh.txt");
 	cmesh->Print(arg2);
 	
-    ofstream arg12("mygmesh2.txt");
-	gmesh->Print(arg12);
+    ofstream arg3("gmesh.txt");
+	gmesh->Print(arg3);
+    
+//    ofstream file("malhageometrica.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
+    
+    TPZAnalysis an(cmesh);
+    
+	Solve( an );
+//
+//	PosProcess(an, AE, h, p);
+
 
 	return EXIT_SUCCESS;
 }
 
 
-TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L)
+TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 {
     int Qnodes = 4;
 	
@@ -116,7 +128,7 @@ TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L)
 	REAL valx;
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
-		valx = xi*L;
+		valx = xi*Lx;
 		Node[id].SetNodeId(id);
 		Node[id].SetCoord(0 ,valx );//coord X
 		Node[id].SetCoord(1 ,0. );//coord Y
@@ -126,10 +138,10 @@ TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L)
 	
 	for(int xi = 0; xi < Qnodes/2; xi++)
 	{
-		valx = L - xi*L;
+		valx = Lx - xi*Lx;
 		Node[id].SetNodeId(id);
 		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,w);//coord Y
+		Node[id].SetCoord(1 ,Ly);//coord Y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
@@ -171,7 +183,7 @@ TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L)
 	
     
     //Refinamento uniforme
-	for( int ref = 0; ref < nh; ref++ ){
+	for( int ref = 0; ref < NRefUnif; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
 		int n = gmesh->NElements();
 		for ( int i = 0; i < n; i++ ){
@@ -185,28 +197,24 @@ TPZGeoMesh *MalhaGeom(bool interface1, int nh, REAL w, REAL L)
 }
 
 
-TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
+TPZCompMesh*MalhaComp(TPZGeoMesh * gmesh, int pOrder)
 {
 	/// criar materiais
 	int dim = 2;
-	
-	TPZMatPoisson3d *material = new TPZMatPoisson3d(matInterno,dim);
-	TPZMatPoisson3d *matlagrange = new TPZMatPoisson3d(lagrangemat,1); 
-    TPZMatPoisson3d *matinterface = new TPZMatPoisson3d(interfacemat,1); 
-	
+    TPZElasticityHybridMaterial *material = new TPZElasticityHybridMaterial(matInterno, 1., 1., 10., 10.);
+    TPZElasticityHybridMaterial *matlagrange = new TPZElasticityHybridMaterial(lagrangemat, 1., 1., 0., 0.);
+    TPZElasticityHybridMaterial *matinterface = new TPZElasticityHybridMaterial(interfacemat, 1., 1., 0., 0.);
+
+
+    
 	TPZMaterial * mat1(material);
 	TPZMaterial * mat2(matlagrange);
     TPZMaterial * mat3(matinterface);
     
-	REAL diff = -1.;
-	REAL conv = 0.;
-	TPZVec<REAL> convdir(3,0.);
-	REAL flux = 8.;
-	
-	material->SetParameters(diff, conv, convdir);
-	material->SetInternalFlux( flux);
 	material->NStateVariables();
-	
+	matlagrange->NStateVariables();
+   	matinterface->NStateVariables();
+    
 	TPZCompEl::SetgOrder(pOrder);
 	TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
 	cmesh->SetDimModel(dim);
@@ -236,140 +244,53 @@ TPZCompMesh*MalhaCompComInterf(TPZGeoMesh * gmesh, int pOrder)
 	
     cmesh->SetAllCreateFunctionsContinuous();
 
-    //AQUI: AutoBuild(matId)
 	set<int> SETmat1;
 	SETmat1.insert(bc1);
     SETmat1.insert(bc2);
     SETmat1.insert(bc3);
     SETmat1.insert(bc4);
-	cmesh->AutoBuild(SETmat1);
-	gmesh->ResetReference();
     
-	//criar elementos de interface e 1d (lagrange)
+	//criar set dos materiais
     std::set<int> MaterialIDs;
     MaterialIDs.insert(matInterno);
     MaterialIDs.insert(lagrangemat);
     MaterialIDs.insert(interfacemat);
-    
-//    set<int>::iterator it;
-//    cout << "myset contains:";
-//    for (it=MaterialIDs.begin() ; it != MaterialIDs.end(); it++)
-//        cout << " " << *it;
-//        cout << endl;
+    MaterialIDs.insert(bc1);
+    MaterialIDs.insert(bc2);
+    MaterialIDs.insert(bc3);
+    MaterialIDs.insert(bc4);
+
     
     TPZBuildMultiphysicsMesh::BuildHybridMesh(cmesh, MaterialIDs, lagrangemat, interfacemat);
-    
-    cmesh->AdjustBoundaryElements();
-    cmesh->CleanUpUnconnectedNodes();
-    
+        
 	return cmesh;
 }
 
-void PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file)
-{
-	file.clear();
-	int nelements = gmesh->NElements();
+void Solve ( TPZAnalysis &an ){
+	TPZCompMesh *malha = an.Mesh();
+    
+    //TPZBandStructMatrix mat(malha);
+	//TPZSkylineStructMatrix mat(malha);// requer decomposição simétrica, não pode ser LU!
+	//TPZBlockDiagonalStructMatrix mat(malha);//ok!
+	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
+	TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
+	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
+	TPZStepSolver<REAL> solv;
+	solv.SetDirect (  ELU );//ECholesky);// ELU , ELDLt ,
+    
 	
-	std::stringstream node, connectivity, type;
+    //	cout << "ELDLt " << endl;
+	an.SetSolver ( solv );
+	an.SetStructuralMatrix ( mat );
+	cout << endl;
+	an.Solution().Redim ( 0,0 );
+	cout << "Assemble " << endl;
+	an.Assemble();
+    //	std::ofstream fileout("rigidez.txt");
+    //	an.Solver().Matrix()->Print("Rigidez", fileout, EMathematicaInput);
 	
-	//Header
-	file << "# vtk DataFile Version 3.0" << std::endl;
-	file << "TPZGeoMesh VTK Visualization" << std::endl;
-	file << "ASCII" << std::endl << std::endl;
-	
-	file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-	file << "POINTS ";
-	
-	int actualNode = -1, size = 0, nVALIDelements = 0;
-	
-	for(int el = 0; el < nelements; el++)
-	{        
-		if(gmesh->ElementVec()[el]->Type() == EPoint)//Exclude Lines and Arc3D
-		{
-			continue;
-		}
-		if(gmesh->ElementVec()[el]->Type() == EOned)//Exclude Lines and Arc3D
-		{
-			continue;
-		}
-		if(gmesh->ElementVec()[el]->HasSubElement())
-		{
-			continue;
-		}
-		
-		int elNnodes = gmesh->ElementVec()[el]->NNodes();
-		size += (1+elNnodes);
-		connectivity << elNnodes;
-		
-		for(int t = 0; t < elNnodes; t++)
-		{
-			for(int c = 0; c < 3; c++)
-			{
-				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
-				node << coord << " ";
-			}            
-			node << std::endl;
-			
-			actualNode++;
-			connectivity << " " << actualNode;
-		}
-		connectivity << std::endl;
-		
-		int elType = -1;
-		switch (gmesh->ElementVec()[el]->Type())
-		{
-			case (ETriangle):
-			{
-				elType = 5;
-				break;                
-			}
-			case (EQuadrilateral ):
-			{
-				elType = 9;
-				break;                
-			}
-			case (ETetraedro):
-			{
-				elType = 10;
-				break;                
-			}
-			case (EPiramide):
-			{
-				elType = 14;
-				break;                
-			}
-			case (EPrisma):
-			{
-				elType = 13;
-				break;                
-			}
-			case (ECube):
-			{
-				elType = 12;
-				break;                
-			}
-			default:
-			{
-				//ElementType NOT Found!!!
-				DebugStop();
-				break;    
-			}
-		}
-		
-		type << elType << std::endl;
-		nVALIDelements++;
-	}
-	node << std::endl;
-	actualNode++;
-	file << actualNode << " float" << std::endl << node.str();
-	
-	file << "CELLS " << nVALIDelements << " ";
-	
-	file << size << std::endl;
-	file << connectivity.str() << std::endl;
-	
-	file << "CELL_TYPES " << nVALIDelements << std::endl;
-	file << type.str();
-	
-	file.close();
+//	an.Solve();
+//	cout << endl;
+//	cout << "No equacoes = " << malha->NEquations() << endl;
 }
+
