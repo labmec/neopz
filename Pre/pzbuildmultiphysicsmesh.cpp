@@ -9,7 +9,7 @@
 #include "pzmaterial.h"
 
 #include "TPZInterfaceEl.h"
-
+#include <iostream>
 
 TPZBuildMultiphysicsMesh::TPZBuildMultiphysicsMesh(){
 }
@@ -261,6 +261,14 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 			
 			if(!gel->Reference() && gel->NumInterfaces() == 0)
 			{
+                if (matid<0)
+                {
+                    cmesh->SetAllCreateFunctionsDiscontinuous();
+                }
+                else
+                {
+                    cmesh->SetAllCreateFunctionsContinuous();
+                }
 				cmesh->CreateCompEl(gel,index);
 				gel->ResetReference();
 			}
@@ -268,7 +276,8 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	}
     
 	cmesh->LoadReferences();
-    
+    cmesh->SetAllCreateFunctionsContinuous();
+
 	// Generate geometric elements to smaller elements
 	for (i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
@@ -305,12 +314,17 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 			gelside.AllNeighbours(allneigh);
 			int nneig = allneigh.NElements();
 			if(allneigh.NElements()>1) continue;
-			if (nneig && allneigh[0].Element()->Dimension() != meshdim) continue;
+			//if (nneig && allneigh[0].Element()->Dimension() != meshdim) continue;//joao, comentar essa linha permite criar elementos 1D(Lagrange) entre elemento de contorno e um elemento 2D
 			
 			gel->CreateBCGeoEl(is, LagrangeMat);
 		}
 	}
 	
+    ////
+//    std::ofstream arg1("gmeshA.txt");
+//	cmesh->Reference()->Print(arg1);
+    
+    ////
 	// now create the lagrange elements
 	cmesh->Reference()->ResetReference();
 	nelem = elvec.NElements();
@@ -345,6 +359,10 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	}
 	
 	cmesh->LoadReferences();
+    
+//    std::ofstream arg2("gmeshB.txt");
+//	cmesh->Reference()->Print(arg2);
+
 	
 	// now create the interface elements between the lagrange elements and other elements
 	nelem = elvec.NElements();
@@ -392,7 +410,14 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 		}
 	}
 	
+//    std::ofstream arg3("gmeshC.txt");
+//	cmesh->Reference()->Print(arg3);
+
 	cmesh->InitializeBlock();
+    
+    cmesh->AdjustBoundaryElements();
+    cmesh->CleanUpUnconnectedNodes();
+
 }
 
 
