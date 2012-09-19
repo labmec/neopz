@@ -1,0 +1,496 @@
+ /***************************************************************************
+ *   Copyright (C) 2009 by joao *
+ *   joao@joao-laptop   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "pzgengrid.h"
+#include "pzgmesh.h"
+#include "pzcmesh.h"
+#include "pzcompel.h"
+#include "pzpoisson3d.h"
+#include "pzbndcond.h"
+
+
+#include "pzstepsolver.h"
+#include "TPZParFrontStructMatrix.h"
+#include "TPZSpStructMatrix.h"
+#include "pzbstrmatrix.h"
+#include "pzblockdiag.h"
+#include "pzbdstrmatrix.h"
+#include "tpzsparseblockdiagonalstructmatrix.h"
+#include "pzskylstrmatrix.h"
+#include "TPZParSkylineStructMatrix.h"
+#include "pzbndmat.h" 
+#include "pzfstrmatrix.h"
+#include "pzmatrix.h"
+#include "pzfmatrix.h"
+
+#include "TPZCompElDisc.h"
+#include "TPZInterfaceEl.h"
+#include "tpzautopointer.h"
+#include "math.h"
+#include "pzlog.h"
+#include <sstream>
+#include <fstream>
+#include "tpzcopysolve.h"
+
+#include "TPZTimer.h"
+#include "ffunction.h" /// esse include eh importante pq eh em ffunction.h que passamos as solucoes exatas
+										/// e as condicoes de contorno não homogeneas.
+#include "TPZRefPattern.h"
+#include "pzgeoquad.h"
+#include "pzespmat.h"
+
+//#include <stdlib.h>
+
+// para o projeto LNCC1 com esse main consideramos o problema de poisson em três dimensões. Além do básico implementamos a leitura de malhas geradas externamente pelo tetgen( .node, .face, .ele)
+
+
+using namespace std;
+//#undef LOG4CXX
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("joao.main"));
+#endif
+
+/*----------MALHAS-----------*/
+
+TPZGeoMesh * ExternalGeoMesh ( const int h );
+void ReadNodes(TPZGeoMesh &gmesh, ifstream &inputNode);
+void ReadElements(TPZGeoMesh &gmesh, ifstream &inputEl);
+void ReadFaces(TPZGeoMesh &gmesh, ifstream &inputFace);
+
+TPZCompMesh *CreateCompMesh ( TPZGeoMesh &gmesh, int porder );
+
+/*----------SOLVERS----------*/
+void Solve ( TPZAnalysis &an );
+void SolveIterative(TPZAnalysis &an);
+
+/*------------GRAFICOS---------------*/
+void SolutionGrafic(TPZAnalysis& an_p1,ofstream& AE, int h, int p, ofstream& OUT);
+
+
+int main() 
+{
+//	gRefDBase.InitializeAllUniformRefPatterns();
+//	gRefDBase.InitializeRefPatterns(); 
+
+	TPZMatPoisson3d::fPrimalExactSolution = ffunction::ExactSolution_primal;
+	
+	/* Dados iniciais*/
+	int h=0;
+	int p=2; 
+	
+	std::ofstream AE ( "results.txt" );
+	AE.precision(16);
+	
+	for(p=2;p<3;p++)
+	{
+		TPZGeoMesh *gmesh = ExternalGeoMesh(h);		
+		TPZCompMesh *cmesh = CreateCompMesh(*gmesh,p);
+
+		TPZAnalysis an(cmesh);
+		
+		Solve( an );
+
+		AE<<"------------------------------------"<<endl;
+		AE << "hxh, h="<< h<< ", p="<< p<< endl;
+		AE << "DOF = " <<  an.Mesh()->NEquations()    << endl;
+		AE<<"------------------------------------"<<endl;
+				
+		SolutionGrafic(an, AE, h, p, AE);
+	}
+
+	
+	return EXIT_SUCCESS;
+}
+
+
+TPZGeoMesh * ExternalGeoMesh ( const int h ){
+
+	TPZGeoMesh *gmesh = new TPZGeoMesh();
+	ifstream inputNode("example1.node");	
+	ifstream inputFace("example1.face");
+	ifstream inputEl("example1.ele");	
+	
+//	ReadNodes(*gmesh, inputNode);
+//	ReadFaces(*gmesh, inputFace);
+//	ReadElements(*gmesh, inputEl);
+
+	/** PARTE 1 : NÓS */
+	int nnode=0, dim=0, attribute=0, bcmarker=0;
+	inputNode >> nnode >> dim >> attribute >> bcmarker;//lê os dados descritivos da malha		
+	int nod, nodeId=0;
+	for ( nod=0; nod<nnode; nod++ )
+	{
+		int nodind = gmesh->NodeVec().AllocateNewElement();
+		TPZVec<REAL> coord ( dim );
+		inputNode >> nodeId;//lê o Id do nó
+		for(int i=0;i<dim;i++)
+		{
+			inputNode >> coord[i] ;//lê as coordenadas de um nó
+			cout<< coord[i]<<"	";
+		}
+		cout << endl;
+		gmesh->NodeVec()[nodind].Initialize ( nod,coord,*gmesh );
+	}
+	
+	/**PARTE 2 : FACES DE CONTORNO*/
+	int f, faceId, isBC;
+	int NBCFaces=0, attributesfaces=0, nod1, nod2, nod3; 
+	inputFace >> NBCFaces >> attributesfaces;
+	TPZVec< int> 	BCFaceIdData(NBCFaces), nod1Data(NBCFaces), nod2Data(NBCFaces), nod3Data(NBCFaces);
+	for ( f=0; f<NBCFaces; f++ )//lê e guarda as faces
+	{
+		inputFace >> faceId >> nod1 >> nod2 >> nod3 >> isBC;
+		BCFaceIdData[f]=faceId;
+		nod1Data[f]=nod1-1;	nod2Data[f]=nod2-1;	nod3Data[f]=nod3-1;		
+		cout  << BCFaceIdData[f] << "	"<< nod1Data[f]<<"	"<< nod2Data[f] <<"	"<< nod3Data[f] << endl;
+	}
+	
+	/**PARTE 3 : ELEMENTOS E CONDICOES DE CONTORNO*/
+	int el, elId, i;
+	int NElem=0,NElNodes=0, attributes=0;
+	inputEl >> NElem >> NElNodes >>attributes;
+	TPZGeoEl *elvec[NElem];
+	MElementType type=ETetraedro;
+	TPZVec<int> no1(NElem), no2(NElem), no3(NElem), no4(NElem);
+	for ( el=0; el<NElem; el++ )
+	{
+		inputEl >> elId;
+		cout << elId << "	";
+		TPZVec<int> nodind(NElNodes);
+		for(i=0; i<NElNodes; i++)
+		{
+			inputEl >> nodind[i];
+			cout << nodind[i] << "	";
+			nodind[i]--;
+		}
+		no1[el]=nodind[0];
+		no2[el]=nodind[1];
+		no3[el]=nodind[2];		
+		no4[el]=nodind[3];		
+		cout << endl;
+		int index;
+		elvec[el] = gmesh->CreateGeoElement (type,nodind,1,index );		
+	}
+	gmesh->BuildConnectivity();
+	/** CONDICOES DE CONTORNO*/
+
+	int ns;
+	for(f=0;f<NBCFaces;f++)//loop sobre as faces
+	{
+		for(el=0;el<NElem;el++)//loop sobre os elementos
+		{
+			for(ns=0;ns<elvec[el]->NSides();ns++)//loop sobre os lados dos elementos
+			{
+				TPZGeoElSide *geoside = new TPZGeoElSide(elvec[el],ns);
+				int dimelside=geoside->Dimension();
+				if( dimelside==2)
+				{
+					std::set<int> SideIndexes=geoside->SideNodeIndexes();//cria um conjunto com os indices dos nos desse lado do elemento
+					set<int>::iterator it1;
+					set<int>::iterator it2;
+					set<int>::iterator it3;
+					// busco os indices dos nós das faces nos indices dos nos do lado
+					it1=SideIndexes.find(nod1Data[f]);
+					it2=SideIndexes.find(nod2Data[f]);
+					it3=SideIndexes.find(nod3Data[f]);					
+					if(it1 != SideIndexes.end() && it2 != SideIndexes.end() && it3 != SideIndexes.end())
+					{
+						cout << "Achou: f = "<< f << "  El = " << el <<" side = "<< ns<<endl;
+						TPZGeoElBC ( elvec[el],ns,-1);// como uma pequena modif. podemos aplicar diferentes cond. de contorno.
+					}
+					
+				}
+				
+			}
+		}
+	}
+	gmesh->BuildConnectivity();
+	
+//	///Refinamento uniforme // ainda não está funcionando
+//	for ( int ref = 0; ref < h; ref++ )
+//	{// h indica o numero de refinamentos
+//		TPZVec<TPZGeoEl *> filhos;
+//		int n = gmesh->NElements();
+//		for ( int i = 0; i < n; i++ )
+//		{
+//			TPZGeoEl * gel = gmesh->ElementVec() [i];
+//			if ( gel->Dimension() == 3 ) gel->Divide ( filhos );
+//		}//for i
+//	}//ref
+	
+	
+	return gmesh;	
+}
+	
+void ReadNodes(TPZGeoMesh &gmesh, ifstream &inputNode){
+
+	int nnode=0, dim=0, attribute=0, bcmarker=0;
+	inputNode >> nnode >> dim >> attribute >> bcmarker;//lê os dados descritivos da malha
+	
+	
+	int nod, nodeId=0;
+	for ( nod=0; nod<nnode; nod++ )
+	{
+		int nodind = gmesh.NodeVec().AllocateNewElement();
+		TPZVec<REAL> coord ( dim );
+		inputNode >> nodeId;//lê o Id do nó
+		
+		for(int i=0;i<dim;i++)
+		{
+			inputNode >> coord[i] ;//lê as coordenadas de um nó
+			cout<< coord[i]<<"	";
+		}
+		cout << endl;
+		
+		gmesh.NodeVec()[nodind].Initialize ( nod,coord,gmesh );
+	}
+	
+}
+
+void ReadElements(TPZGeoMesh &gmesh, ifstream &inputEl){
+	int el, elId, i;
+	int NElem=0,NElNodes=0, attributes=0;
+	inputEl >> NElem >> NElNodes >>attributes;
+	TPZGeoEl *elvec[NElem];
+	MElementType type;
+	
+	switch(NElNodes)
+	{
+		case 3:
+			type = ETriangle;
+			break;
+		case 4:
+			type = ETetraedro; //EQuadrilateral;
+			break;
+	}
+			
+	for ( el=0; el<NElem; el++ )
+	{
+		inputEl >> elId;
+		cout << elId << "	";
+		TPZVec<int> nodind(NElNodes);
+		for(i=0; i<NElNodes; i++)
+		{
+			inputEl >> nodind[i];
+			cout << nodind[i] << "	";
+			nodind[i]--;
+		}
+		cout << endl;
+		int index;
+		elvec[el] = gmesh.CreateGeoElement (type,nodind,1,index );		
+	}
+	
+	gmesh.BuildConnectivity();
+	
+//	TPZGeoElSide tetraSide(elvec[0], 9);
+//	TPZGeoElBC(tetraSide,-1);		
+}
+
+
+void ReadFaces(TPZGeoMesh &gmesh, ifstream &inputFace){
+	int f, faceId, isBC;
+	int NBCFaces=0, attributesfaces=0, nod1, nod2, nod3; 
+	inputFace >> NBCFaces >> attributesfaces;
+//	TPZGeoEl* elvec[NBCFaces];
+
+
+	TPZVec<int> 	BCFaceIdData(NBCFaces), nod1Data(NBCFaces), nod2Data(NBCFaces), nod3Data(NBCFaces);
+		
+	for ( f=0; f<NBCFaces; f++ )//lê e guarda as faces
+	{
+		inputFace >> faceId >> nod1 >> nod2 >> nod3 >> isBC;
+		BCFaceIdData[f]=faceId;
+		nod1Data[f]=nod1;		
+		nod2Data[f]=nod2;		
+		nod3Data[f]=nod3;		
+		cout  << BCFaceIdData[f] << "	"<< nod1Data[f]<<"	"<< nod2Data[f] <<"	"<< nod3Data[f] << endl;
+	}
+		
+	gmesh.BuildConnectivity();
+}
+
+TPZCompMesh *CreateCompMesh ( TPZGeoMesh &gmesh, int porder ){
+	TPZCompEl::SetgOrder ( porder );
+	TPZCompMesh *result = new TPZCompMesh( &gmesh );
+	//result->SetDimModel ( 2 );
+	result->SetDimModel(3);
+	
+	//result->SetAllCreateFunctionsDiscontinuous(); 
+	result->SetAllCreateFunctionsContinuous();
+	
+	TPZMatPoisson3d *material ;
+	//material = new TPZMatPoisson3d ( 1,2 );
+	material = new TPZMatPoisson3d ( 1,3 );
+	
+	TPZVec<REAL> convdir(3);//direção da convecção
+	convdir[0]=0.;
+	convdir[1]=0.;
+	convdir[2]=0.;
+	REAL diff= 1.;
+	REAL conv= 0.;
+	material-> SetParameters(diff, conv, convdir);
+	TPZAutoPointer<TPZMaterial> mat ( material );
+	//material->SetNonSymmetric();
+	material->SetSymmetric();
+	
+	material->SetForcingFunction ( ffunction::Forcing1 );
+	result->InsertMaterialObject ( mat );
+	
+	TPZFMatrix val1 ( 1,1,0. ), val2 ( 1,1,0. );// 0 é Dirichlet, 1 é Neumann, 2 é Robin(implementada apenas no Contínuo)
+
+	TPZAutoPointer<TPZMaterial> bnd1 = material->CreateBC ( mat,-1,0, val1, val2 );
+//	TPZAutoPointer<TPZMaterial> bnd2 = material->CreateBC ( mat,-2,0, val1, val2 );
+//	TPZAutoPointer<TPZMaterial> bnd3 = material->CreateBC ( mat,-3,0, val1, val2 );
+//	TPZAutoPointer<TPZMaterial> bnd4 = material->CreateBC ( mat,-4,0, val1, val2 );
+	
+	bnd1->SetForcingFunction ( ffunction::CC1 );
+//	bnd2->SetForcingFunction ( ffunction::CC2 );
+//	bnd3->SetForcingFunction ( ffunction::CC3 );
+//	bnd4->SetForcingFunction ( ffunction::CC4 ); 
+	
+	result->InsertMaterialObject ( bnd1 ); 
+//	result->InsertMaterialObject ( bnd2 );
+//	result->InsertMaterialObject ( bnd3 );
+//	result->InsertMaterialObject ( bnd4 );
+	
+	result->AutoBuild();
+	//
+	ofstream arc ( "cmesh.txt" );
+	arc << "NEquation = "<< result->NEquations() << endl;
+	result->Print ( arc );
+	ofstream arcg ( "gmesh.txt" );
+	result->Reference()->Print ( arcg );
+	//
+	result->SetName("CMesh1");
+	//
+	return result;
+}
+
+
+/**------------------------- SOLVERS -------------------------*/
+void SolveIterative( TPZAnalysis &an ){
+	TPZCompMesh *malha = an.Mesh();
+	
+	//TPZBandStructMatrix mat(malha);
+	//TPZParFrontStructMatrix<TPZFrontNonSym> mat(malha);
+	//TPZParFrontStructMatrix mat(malha);
+	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
+	//TPZFStructMatrix mat( malha );
+	TPZSpStructMatrix mat( malha );
+	TPZStepSolver solv;
+		
+	TPZFMatrix fakeRhs(malha->NEquations(),1);
+	//TPZSkylineStructMatrix PrecondMatrix(malha);
+	//TPZParSkylineStructMatrix PrecondMatrix(malha, 1);
+	TPZFrontStructMatrix<TPZFrontNonSym>PrecondMatrix(malha);
+//	PrecondMatrix.SetNumberOfThreads(4);
+	//TPZBlockDiagonalStructMatrix PrecondMatrix(malha);
+	
+	TPZAutoPointer<TPZGuiInterface> guiInterface1 = new TPZGuiInterface();//
+	TPZStepSolver precond(PrecondMatrix.CreateAssemble(fakeRhs, guiInterface1));
+
+	precond.SetDirect(ELU);//ELU //ECholesky // ELDLt
+	
+ 	solv.SetGMRES( 100000, 50, precond, 1.e-15, 0 );
+	//solv.SetCG(10000, precond, 1.e-16, 0);	
+	//solv.SetJacobi(1000, 1.e-15, 0)
+	//solv.SetBiCGStab();
+	//solv.SetSOR();
+	//solv.SetSSOR();
+	
+	cout << "ELU " << endl;
+	an.SetSolver ( solv );
+	an.SetStructuralMatrix ( mat );
+	cout << endl;
+	an.Solution().Redim ( 0,0 );
+	cout << "Assemble " << endl;
+	an.Assemble();
+	an.Solve();
+	
+	cout << endl;
+	cout << "No equacoes = " << malha->NEquations() << endl;
+	cout << "Banda = " << malha->BandWidth() << endl;
+}
+
+void Solve ( TPZAnalysis &an )
+{
+	TPZCompMesh *malha = an.Mesh();
+
+	TPZBandStructMatrix mat(malha);
+	//TPZSkylineStructMatrix mat(malha);// requer decomposição simétrica, não pode ser LU!
+	//TPZBlockDiagonalStructMatrix mat(malha);//ok!
+	//TPZFrontStructMatrix<TPZFrontNonSym> mat ( malha );// não funciona com método iterativo
+	//TPZFStructMatrix mat( malha );// ok! matriz estrutural cheia
+	//TPZSpStructMatrix mat( malha );//matriz estrutural esparsa (???? NÃO FUNCIONOU !!!!!!!!!!)
+	TPZStepSolver solv;
+	solv.SetDirect ( ELDLt);//ECholesky);// ELU , ELDLt , 
+
+	
+	cout << "ELDLt " << endl;
+	an.SetSolver ( solv );
+	an.SetStructuralMatrix ( mat );
+	cout << endl;
+	an.Solution().Redim ( 0,0 );
+	cout << "Assemble " << endl;
+	an.Assemble();
+	
+	an.Solve();
+	cout << endl;
+	cout << "No equacoes = " << malha->NEquations() << endl;
+}
+
+
+/** ------------------------- GRÁFICOS -------------------------*/
+void SolutionGrafic(TPZAnalysis& an ,ofstream& AE,  int h, int p, ofstream& OUT){
+	/// Saida de Dados primal1
+	/// 1. Coeficientes da Solucao Numerica 
+	//         ofstream filep1("Solution_primal1.out");
+	//         TPZFMatrix toprintp1 = an_p1.Solution();
+	//         toprintp1.Print("solution", filep1);
+	///2. Saida para dx ou vtk
+	TPZVec<std::string> scalar_names(6);
+	TPZVec<std::string> vec_names(0);
+
+	scalar_names[0] = "Solution";
+	scalar_names[1] = "dx";
+	scalar_names[2] = "dy";
+	scalar_names[3] = "ExactSolution";
+	scalar_names[4] = "Exactdx";
+	scalar_names[5] = "Exactdy";
+	
+	
+	char buf[256] ;
+	sprintf(buf,"iteracao_h%d_p%d.vtk",h,p); 
+//	an.DefineGraphMesh(2, scalar_names, vec_names,buf);
+	an.DefineGraphMesh(3, scalar_names, vec_names,buf);
+
+	an.PostProcess(0);// o parametro é a resolução que será acrescida na visualização.
+
+	///Plotar as normas dos erros 
+	an.SetExact(ffunction::ExactSolution_primal);
+	TPZVec<REAL> pos;
+	an.PostProcess(pos,AE); // Calcula os erros.(pzanalysis.cpp)
+		
+}
+
