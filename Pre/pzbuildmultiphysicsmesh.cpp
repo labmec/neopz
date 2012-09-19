@@ -1,4 +1,4 @@
-/*
+ /*
  * @file
  * @brief Implementations to mesh multiphysics
  */
@@ -224,7 +224,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	TPZAdmChunkVector<TPZGeoEl *> &elvec = cmesh->Reference()->ElementVec();
 	int meshdim = cmesh->Dimension();
 	
-	// It creates all the elements without connecting to neighboring elements
+	// 1- create all the elements without connecting to neighboring elements
 	int i, nelem = elvec.NElements();
 	int neltocreate = 0;
 	int index;
@@ -263,7 +263,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 			{
                 if (matid<0)
                 {
-                    cmesh->SetAllCreateFunctionsDiscontinuous();
+                    cmesh->SetAllCreateFunctionsDiscontinuous();// boundary elements must be discontinuous
                 }
                 else
                 {
@@ -278,7 +278,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	cmesh->LoadReferences();
     cmesh->SetAllCreateFunctionsContinuous();
 
-	// Generate geometric elements to smaller elements
+	//2- Generate geometric elements (with dimension (meshdim-1)) between the previous elements.
 	for (i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
 		if (!gel || gel->Dimension() != meshdim || !gel->Reference()) {
@@ -324,8 +324,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 //    std::ofstream arg1("gmeshA.txt");
 //	cmesh->Reference()->Print(arg1);
     
-    ////
-	// now create the lagrange elements
+   	//3- Generate computational elements (with dimension (meshdim-1)) between the previous elements. It will be the space of the lagrange multipliers.
 	cmesh->Reference()->ResetReference();
 	nelem = elvec.NElements();
 	for(i=0; i<nelem; i++) {
@@ -360,11 +359,11 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 	
 	cmesh->LoadReferences();
     
-//    std::ofstream arg2("gmeshB.txt");
+//  std::ofstream arg2("gmeshB.txt");
 //	cmesh->Reference()->Print(arg2);
 
 	
-	// now create the interface elements between the lagrange elements and other elements
+	//4- Create the interface elements between the lagrange elements and other elements
 	nelem = elvec.NElements();
 	for (i=0; i<nelem; ++i) {
 		TPZGeoEl *gel = elvec[i];
@@ -375,15 +374,19 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 		if(matid != LagrangeMat){
 			continue;
 		}
-		// over the dimension-1 sides
+		//over the dimension-1 sides
 		int nsides = gel->NSides();
+        if(nsides!=3)
+        {
+            DebugStop();// como estamos no caso 2D todas as arestas são 1D
+        }
 		int is;
-		for (is=0; is<nsides; ++is) {
+		for (is=nsides-1; is<nsides; ++is) {
 			int sidedim = gel->SideDimension(is);
 			if (sidedim != meshdim-1) {
 				continue;
 			}
-			// check if there is a smaller element connected to this element
+			//check if there is a smaller element connected to this element
 			TPZStack<TPZCompElSide> celsides;
 			TPZGeoElSide gelside(gel,is);
 			gelside.EqualLevelCompElementList(celsides, 0, 0);
@@ -401,16 +404,24 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 				DebugStop();
 			} 
 			for (int lp=0; lp<nelsides; ++lp) {
-				TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, InterfaceMat);
-				TPZCompElSide right = celsides[lp];
+                TPZCompElSide right = celsides[lp];
 				TPZCompElSide left(gel->Reference(),is);
-				int index;
-				new TPZInterfaceElement(*cmesh,interfaceEl,index,left,right);
+                
+                TPZGeoEl *gelright=right.Reference().Element();
+                int matidleft=gel->MaterialId();// sempre é LagrangeMat
+                int matidright =gelright->MaterialId();
+                ///???? o InterfaceMaterial não esta fazendo o que preciso. Por isso nao estou usando matid !
+                const int matid = cmesh->Reference()->InterfaceMaterial(matidleft, matidright );
+                
+                TPZGeoEl *interfaceEl = gel->CreateBCGeoEl(is, matid);
+                int index;
+                new TPZInterfaceElement(*cmesh,interfaceEl,index,left,right);
+                
 			}
 		}
 	}
 	
-//    std::ofstream arg3("gmeshC.txt");
+//  std::ofstream arg3("gmeshC.txt");
 //	cmesh->Reference()->Print(arg3);
 
 	cmesh->InitializeBlock();
