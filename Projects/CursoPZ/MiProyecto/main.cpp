@@ -55,10 +55,10 @@ int main() {
 
 	// Creating geometric mesh
 	TPZGeoMesh *gmesh = CreateGeoMesh(Archivo);
-	UniformRefine(gmesh,1);
+//	UniformRefine(gmesh,1);
 
 	// Creating computational mesh (approximation space and materials)
-	int p = 4;
+	int p = 1;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh(gmesh);
 	
