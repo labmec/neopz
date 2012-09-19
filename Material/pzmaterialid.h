@@ -59,6 +59,10 @@ const int TPZVISCOELASTICITYMATERIALID = 324;
 
 const int TPZUncoupledMultiPhysicsID = 325;
 
+/** @brief Id of Elasticity material for hybrid formulation*/
+const int TPZELASTICITYHYBRIDMATERIALID = 326;
+
+
 /** @} */
 
 #endif //PZMATERIALIDH
