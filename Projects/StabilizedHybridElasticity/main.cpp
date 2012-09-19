@@ -99,10 +99,10 @@ int main(int argc, char *argv[])
     
 //    ofstream file("malhageometrica.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
-    
-    TPZAnalysis an(cmesh);
-    
-	Solve( an );
+//    
+//    TPZAnalysis an(cmesh);
+//    
+//	Solve( an );
 //
 //	PosProcess(an, AE, h, p);
 
@@ -178,6 +178,13 @@ TPZGeoMesh *MalhaGeom(int NRefUnif, REAL Lx, REAL Ly)
 	new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
 	id++;
     
+    // define entre quais materiais vou criar interfaces e o terceiro argumento é o tipo de material que quero nessa interface.
+    gmesh->AddInterfaceMaterial(lagrangemat,matInterno, interfacemat);
+    gmesh->AddInterfaceMaterial(lagrangemat,bc1, bc1);
+    gmesh->AddInterfaceMaterial(lagrangemat,bc2, bc2);
+    gmesh->AddInterfaceMaterial(lagrangemat,bc3, bc3);
+    gmesh->AddInterfaceMaterial(lagrangemat,bc4, bc4);
+
     //construir a malha
 	gmesh->BuildConnectivity();
 	
