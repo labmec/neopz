@@ -640,30 +640,84 @@ void TPZTensor<T>::CopyToTensor(TPZFMatrix<REAL> & Tensor)
 	Tensor(2,2) = shapeFAD::val( ZZ() ); //zz
 }
 
+template<class T>
+static T Polynom(const T &x, const T &I1, const T &I2, const T &I3)
+{
+    T result = x*x*x- I1*x*x + I2*x - I3;
+    return result;
+}
+
+template<class T>
+static T DericPolynom(const T &x, const T &I1, const T &I2, const T &I3)
+{
+    T result = T(3.)*x*x- T(2.)*I1*x + I2;
+    return result;
+}
+
+template<class T>
+static T UpdateNewton(const T &x, const T &I1, const T &I2, const T &I3)
+{
+    T residue = Polynom(x, I1, I2, I3);
+    T dres = DericPolynom(x, I1, I2, I3);
+    T result = x - residue/dres;
+    return result;
+}
+
 template <class T>
 void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
 {
     T I1,I2,I3,R,theta,Q,x1,x2,x3,costheta,e1temp,e2temp,e3temp;
     I1 = (this->I1());
-    I2=(this->I2());
-    I3=(this->I3());
+    I2 = (this->I2());
+    I3 = (this->I3());
     
     
     R=(T(-2.)*I1*I1*I1+T(9.)*I1*I2-T(27.)*I3)/T(54.);
     
     Q=(I1*I1-T(3.)*I2)/T(9.);
+    T denom = sqrt(Q*Q*Q);
     
-    costheta=R/sqrt(Q*Q*Q);
+    REAL Rval = shapeFAD::val(R);
+    REAL denomval = shapeFAD::val(denom);
     
-    if(shapeFAD::val(costheta)<-(1.-1.e-12) || shapeFAD::val(costheta)>(1.-1.e-12))
-    {
-        costheta /=T(fabs(shapeFAD::val(costheta))/(1.-1.e-12));
+    if (fabs(Rval) < 1.e-12 && fabs(denomval) < 1.e-12 && fabs(denomval) <= fabs(Rval)) {
+        // three equal eigenvalues
+        T x1 = I1/3.;
+        x1 = UpdateNewton(x1, I1, I2, I3);
+        x2 = x1;
+        x3 = x1;
     }
     
-    theta = acos(costheta);
-    x1=T(-2.)*sqrt(Q)*cos(theta/T(3.))+ (I1/T(3.));//eigenval 1
-    x2=T(-2.)*sqrt(Q)*cos( ( theta +  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 2
-    x3=T(-2.)*sqrt(Q)*cos( ( theta -  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 3
+    costheta=R/denom;
+    
+    if(shapeFAD::val(costheta)<-(1.-1.e-12))
+    {
+        costheta = -1.;
+        theta = M_PI;
+        x1 = T(2.)*sqrt(Q)+I1/T(3.);
+        x1 = UpdateNewton(x1, I1, I2, I3);
+        T B = x1-I1;
+        x2 = x1/2.;
+        x3 = x1/2.;
+    }
+    else if(shapeFAD::val(costheta)>(1.-1.e-12))
+    {
+        costheta = 1.;
+        theta = 0.;
+        x1 = T(-2.)*sqrt(Q)+I1/T(3.);
+        x1 = UpdateNewton(x1, I1, I2, I3);
+        T B = x1-I1;
+        x2 = x1/2.;
+        x3 = x1/2.;
+    }
+    else {
+        theta = acos(costheta);
+        x1=T(-2.)*sqrt(Q)*cos(theta/T(3.))+ (I1/T(3.));//eigenval 1
+        x2=T(-2.)*sqrt(Q)*cos( ( theta +  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 2
+        x3=T(-2.)*sqrt(Q)*cos( ( theta -  T(M_PI*2.) )/3)+ (I1/T(3.));//eigenval 3
+    }
+    
+    
     REAL valx1 = shapeFAD::val(x1), valx2 = shapeFAD::val(x2), valx3 = shapeFAD::val(x3);
     if(valx1 < valx2)
     {
@@ -753,6 +807,28 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         sqrsigma.Multiply(e1temp,1);
         Eigenvectors[0]=sqrsigma;
 
+        Eigenvectors[1].Identity();
+        Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
+    }
+    else if(valx2 - valx3 > tolerance)
+    {
+        Eigenvectors.resize(2);
+        TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(*this),sigmacopy2(*this),sigmacopy3(*this),Identity,Identity2,Identity3;
+        Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
+        Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
+        Identity3.XX()=T(1.);Identity3.YY()=T(1.);Identity3.ZZ()=T(1.);
+        Multiply2(*this,sqrsigma);
+        sqrsigma2 = sqrsigma;
+        sqrsigma3 = sqrsigma;
+        
+        e1temp=x3/(T(2.)*x3*x3*x3-I1*x3*x3+I3);
+        sigmacopy.Multiply(I1-x3,1);
+        Identity.Multiply((I3/x3),1);
+        sqrsigma.Add(sigmacopy,-1);
+        sqrsigma.Add(Identity,1);
+        sqrsigma.Multiply(e1temp,1);
+        Eigenvectors[0]=sqrsigma;
+        
         Eigenvectors[1].Identity();
         Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
     }
