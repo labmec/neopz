@@ -171,7 +171,7 @@ class CSVTable
   }
   int setCell(unsigned row_idx, string col_name, double value, bool createNewCol = false)
   {
-    stringstream str; str << value;
+    stringstream str; str.precision(6); str << std::fixed << value;
     return setCell(row_idx, col_name, str.str(), createNewCol);
   }
   int setCell(unsigned row_idx, string col_name, float value, bool createNewCol = false)

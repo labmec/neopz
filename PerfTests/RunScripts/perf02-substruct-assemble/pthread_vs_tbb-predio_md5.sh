@@ -17,11 +17,11 @@ function run_cfg
 {
     #   -nsub : number of submeshes
     local NS=$1
-    #   -nt_d : number of threads to decompose each submesh
+    #   -nt_d : number of threads to decompose each submesh - Decompose L1
     local NTD=$2
-    #   -nt_sm : number of threads to process the submeshes
+    #   -nt_sm : number of threads to process the submeshes - Assemble L1
     local NTSM=$3
-    #   -nt_a : number of threads to assemble each submesh
+    #   -nt_a : number of threads to assemble each submesh - Assemble L2
     local NTA=$4
     #   -nt_m : number of threads to multiply
     local NTM=$5
@@ -91,6 +91,7 @@ VERBOSE_LEVEL=1
 NTHREADS=64
 L1NTHREADS=$NTHREADS
 L2NTHREADS=$NTHREADS
+DNTHREADS=$NTHREADS
 
 NCORES=`sysctl hw.physicalcpu | cut -d: -f2`
 
@@ -101,8 +102,9 @@ verbose 1 "pthread vs tbb assemble: predio"
 
 verbose 1 "app: $APP"
 verbose 1 " NCORES = $NCORES"
-verbose 1 " L1 NTHREADS =  / $L1NTHREADS" 
-verbose 1 " L2 NTHREADS =  / $L2NTHREADS" 
+verbose 1 " Assembly  L1 NTHREADS =  / $AL1NTHREADS" 
+verbose 1 " Assembly  L2 NTHREADS =  / $AL2NTHREADS" 
+verbose 1 " Decompose NTHREADS =  / $DNTHREADS" 
 
 #verbose 1 "Hit ENTER to continue"
 #read
@@ -112,44 +114,63 @@ OKS=0
 
 echo "WARNING: a ferramenta está quebrando com NSUB == 1"
 
-for NSUB in 2 4 8 16 32 64; do
+# Verificar o que acontece com o desempenho quando o número de
+# subestruturas é pequeno e quando o número de subestruturas é maior
+# do que o número de cores.
+
+for NSUB in 2 4 8 16 32 64 128; do
     echo "Start at checkpoint 1, dump checkpoint 3 and stop: plevel = $PLEVEL"
 
-    # L1 Serial, L2 TBB
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel  name            "extra" 
-    run_cfg $NSUB      0    0       0       0      2  "L1_ser_L2_TBB" "-pair_tbb"  
-
-    # L1 Serial, L2 PThreads
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0  $L2NTHREADS  0      2  "L1_ser_L2_pth" ""  
-
+    # All serial (baseline)
     # L1 Serial, L2 serial
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0       0       0      2  "L1_ser_L2_ser" ""  
+    #       subm  L1(ntd     ntsm)       L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB $DNTHREADS  0             0       0      2  "L1_ser_L2_ser" ""  
+
+
+    # ==== L1 parallelism analysis ===== #
+
+    # Assembly L1 and decompose with pthreads
+    # L1 PThread, AL2 Serial
+    #       subm  L1(ntd     ntsm)       L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB $DNTHREADS $AL1NTHREADS   0       0      2  "L1_pth_L2_ser" ""  
+
+    # Assembly L1 and decompose with TBB (assembly and decompose are combined)
+    # L1 TBB, AL2 Serial
+    #       subm  L1(ntd ntsm)           L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB     0    0                0       0      2  "L1_TBB_L2_ser" "-dohr_tbb"  
+
+    
+    # ==== L2 parallelism analysis ===== #
+
+    # L1 is serial. Assembly L2 with TBB (pipeline)
+    # L1 Serial, L2 TBB
+    #       subm  L1(ntd ntsm)     L2(nta)       nt_mul plevel  name            "extra" 
+    run_cfg $NSUB     0   0           0             0      2  "L1_ser_L2_TBB" "-pair_tbb"  
+
+    # L1 is serial. Assembly L2 with pthreads
+    # L1 Serial, L2 PThreads
+    #       subm  L1(ntd ntsm)     L2(nta)       nt_mul plevel                 "extra" 
+    run_cfg $NSUB     0   0      $AL2NTHREADS       0      2  "L1_ser_L2_pth" ""  
+
+
+    # ==== Combine L1 and L2 parallelism ===== #
 
     # L1 TBB, L2 TBB
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0       0       0      2  "L1_TBB_L2_TBB" "-dohr_tbb -pair_tbb"  
+    #       subm  L1(ntd ntsm)      L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB     0    0          0       0      2  "L1_TBB_L2_TBB" "-dohr_tbb -pair_tbb"  
 
     # L1 TBB, L2 PThread
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0  $L2NTHREADS  0      2  "L1_TBB_L2_pth" "-dohr_tbb"  
+    #       subm  L1(ntd ntsm)      L2(nta) nt_mul plevel                 "extra" 
+    run_cfg $NSUB      0  0      $AL2NTHREADS  0      2  "L1_TBB_L2_pth" "-dohr_tbb"  
 
     # L1 PThread, L2 TBB
-    #       subm  L1(ntd ntsm)           L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB $L1NTHREADS $L1NTHREADS    0      0      2  "L1_pth_L2_TBB" "-pair_tbb"  
+    #       subm  L1(ntd       ntsm)       L2(nta)     nt_mul plevel                 "extra" 
+    run_cfg $NSUB $DNTHREADS $AL1NTHREADS    0           0      2  "L1_pth_L2_TBB" "-pair_tbb"  
 
     # L1 PThread, L2 PThread
-    #       subm  L1(ntd ntsm)            L2(nta)     nt_mul plevel                 "extra" 
-    run_cfg $NSUB $L1NTHREADS $L1NTHREADS $L2NTHREADS   0      2  "L1_pth_L2_pth" ""  
+    #       subm  L1(ntd ntsm)             L2(nta)     nt_mul plevel                 "extra" 
+    run_cfg $NSUB $DNTHREADS $AL1NTHREADS $AL2NTHREADS   0      2  "L1_pth_L2_pth" ""  
 
-    # L1 PThread, L2 Serial
-    #       subm  L1(ntd ntsm)             L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB $L1NTHREADS $L1NTHREADS   0       0      2  "L1_pth_L2_ser" ""  
-
-    # L1 TBB, L2 Serial
-    #       subm  L1(ntd ntsm) L2(nta) nt_mul plevel                 "extra" 
-    run_cfg $NSUB      0    0       0       0      2  "L1_TBB_L2_ser" "-dohr_tbb"  
 
 done
 
