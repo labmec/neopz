@@ -418,6 +418,8 @@ public:
 
 };
 
+#include"arglib.h"
+clarg::argInt tbb_pair_pipe_tokens("-tbb_pair_ntokens", "# tokens during assemble TPZPairStructMatrix (level 2) using TBB", 128);
 
 void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *first, 
                                       TPZMatrix<STATE> *second, TPZFMatrix<STATE> &rhs)
@@ -438,7 +440,7 @@ void TPZPairStructMatrix::TBBAssemble(int mineq, int maxeq, TPZMatrix<STATE> *fi
   tbb::pipeline pipeline; 
   
   // Create file-reading writing stage and add it to the pipeline 
-  StageOne_t          filter1(64 /* Number of tokens on the fly */, mesh, fMaterialIds);
+  StageOne_t          filter1(tbb_pair_pipe_tokens.get_value() /* Number of tokens on the fly */, mesh, fMaterialIds);
   StageTwo_t          filter2(fMesh, mineq, maxeq);
   StageThree_t<STATE> filter3(*first, rhs);
   StageFour_t<STATE>  filter4(*second, fPermuteScatter);
