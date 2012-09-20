@@ -592,7 +592,7 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h )
 TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatero com 4 elementos
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
 		int nelem=4;
-		TPZGeoEl *elvec[nelem];
+		TPZGeoEl *elvec[4/*nelem*/];
 		//Criar ns
 		const int nnode = 9;//AQUI
 		const int dim = 2;//AQUI
