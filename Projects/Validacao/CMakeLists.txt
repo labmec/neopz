@@ -7,4 +7,4 @@ add_executable(Validacao ${main_SRCS})
 
 target_link_libraries(Validacao pz pthread)
 
-include (CTestTestFile.cmake)
+#include (CTestTestFile.cmake)
