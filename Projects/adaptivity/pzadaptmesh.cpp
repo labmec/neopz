@@ -599,7 +599,7 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
                 for (int d2=0; d2<dimension; d2++) {
                     deriv += datacoarse.dsol[0](d2,col)*datacoarse.axes(d2,d);
                 }
-                cordsolxy[0](d,col) = deriv;
+               // cordsolxy[0](d,col) = deriv;
             }
         }
         int jn;

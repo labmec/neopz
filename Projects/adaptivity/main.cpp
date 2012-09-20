@@ -49,12 +49,22 @@ static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
 #include <stdio.h>
 #include <fstream>
 
+/** VARIABLES */
+/** Printing level */
 int gPrintLevel = 0;
-void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
+/** angle ??? */
 static REAL angle = 0.2;
 
-TPZCompMesh *ReadCase(int &nref, int &dim, int &opt);
 
+/** FUNCTION DEFINITIONS */
+
+/** Forcing function: disp = Forcing1(x)  */
+void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
+
+/** Functions to create particular mesh */
+/** Allows user to choose an option for creating a mesh */
+TPZCompMesh *ReadCase(int &nref, int &dim, int &opt);
+/** Creating selected mesh */
 TPZCompMesh *CreateMesh();
 TPZCompMesh *CreateSillyMesh();
 TPZCompMesh *CreateTriangularMesh();
@@ -69,67 +79,87 @@ TPZCompMesh *CreateAleatorioMesh();
 TPZCompMesh *Create3DDiscMesh();
 TPZCompMesh *Create3DExpMesh();
 
+/** Read mesh from file and create a computational mesh */
 TPZCompMesh *ReadKumar(char *filename);
+/** Identify maxime level of refinement for all geometric elements referenced by computational elements */
 int MaxLevel(TPZCompMesh *mesh);
+
+
+/** VARIABLES ??? */
 static int nstate = 1;
 
+static std::ofstream MALHAG("malhageometrica");
+static int mygorder = 1;
+int gDebug = 1;
+
+/** Rotation data */
+bool rotating = false;
 TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
 REAL alfa = M_PI/6.;
 REAL transx = 3.;
 REAL transy = 0.;
 
-void InitializeRotation();
-void TransformMesh(TPZGeoMesh *gmesh);
-void TransformX(TPZVec<REAL> &x);
-void TransformInvX(TPZVec<REAL> &x);
+/** FUNCTIONS TO TRANSFORM (ROTATION) MESH */
+void InitializeRotation(REAL alfa,REAL transx,REAL transy,TPZMatrix<REAL> &rot,TPZMatrix<REAL> &rotinv);
+void TransformMesh(TPZGeoMesh *gmesh,TPZMatrix<REAL> &rot);
+void TransformX(TPZVec<REAL> &x,TPZMatrix<REAL> &rot);
+void TransformInvX(TPZVec<REAL> &x,TPZMatrix<REAL> &rotinv);
 
+/** Functions to apply boundary conditions */
 void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &force);
+
+/** Functions with the values of the solutions */
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-static std::ofstream MALHAG("malhageometrica");//CEDRIC
-static int mygorder = 1;
 void CompareNeighbours(TPZGeoMesh *mesh);
 void BCSolution(const TPZVec<REAL> &x,TPZVec<REAL> &result);
 void Solution(const TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix<REAL> &deriv);
 void LoadSolution(TPZFMatrix<REAL> &axes,const TPZVec<REAL> &X,TPZFMatrix<REAL> &u,TPZFMatrix<REAL> &du);
 
-int gDebug = 1;
-
-
-
+/** MAIN FUNCTION */
 int main() {
-    
+
+#ifdef LOG4CXX
     InitializePZLOG();
-    InitializeRotation();
+#endif
+
+	// Initializing variables
     int nref = 0;
     int dim = 0;
     int opt = 0;
-    
+
+	// output files
+    std::ofstream convergence("conv3d.txt");
+    std::ofstream out("output.txt");
+
+	/** Set polynomial order */
     TPZCompEl::SetgOrder(mygorder);
     gDebug = 0;
     
+	/** Choosing mesh */
     TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
-    TransformMesh(cmesh->Reference());
-    
-    std::ofstream convergence("conv3d.txt");
-    
+	if(rotating) {
+		InitializeRotation(alfa,transx,transy,Rot,RotInv);
+		TransformMesh(cmesh->Reference(),Rot);
+	}
+        
     cmesh->Reference()->SetName("Malha Geometrica original");
-    
     cmesh->SetName("Malha Computacional Original");
     
     cmesh->CleanUpUnconnectedNodes();
+
+	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
     scalnames.Push("POrder");
     scalnames.Push("Error");
     
     if(nstate == 1) {
-//        an.SetExact(Exact);
         scalnames.Push("state");
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
@@ -139,11 +169,9 @@ int main() {
         scalnames.Push("tau_xy");
         vecnames.Push("state");
     }
-    
     if(dim < 3 && nstate == 2){
         vecnames.Push("displacement");
     }
-    std::ofstream out("output.txt");
     
     //Multigrid======================
     //   TPZMGAnalysis mgan (cmesh);
@@ -157,10 +185,12 @@ int main() {
     //   TPZCompMesh *finemesh = cmesh;
     // ===================================
     
+	// Solving adaptive process
     {
         int r;
         for(r=0; r<nref; r++) {
             
+			// Introduzing exact solution depending on the case
             TPZAnalysis an (cmesh);
             if (opt == 4 || opt == 7 || opt == 8){
                 an.SetExact(ExactSimple3D);
@@ -186,12 +216,13 @@ int main() {
             }
             
             cmesh->SetName("Malha computacional adaptada");
-            
+            // Printing geometric and computational mesh
             if (gDebug == 1){
                 cmesh->Reference()->Print(std::cout);
                 cmesh->Print(std::cout);
             }
             
+			// Solve using symmetric matrix then using Cholesky (direct method)
             TPZSkylineStructMatrix strskyl(cmesh);
             an.SetStructuralMatrix(strskyl);
             
@@ -202,7 +233,8 @@ int main() {
             direct = 0;
             
             an.Run();
-                
+			
+			// Post processing
             an.PostProcess(4,dim);
             {
                 std::ofstream out(MeshFileName.c_str());
@@ -313,7 +345,7 @@ int main() {
     return 0;
 }
 
-
+/** Let be the user choose the type to created mesh, returning this option (opt), dimension of the problem and number of required refinements */
 TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     
     std::cout << "**************************************" << std::endl;
@@ -847,7 +879,7 @@ TPZCompMesh *CreateSimple3DMesh() {
     
     int el;
     for(el=0; el<nelem; el++) {
-        TPZVec<int> nodind(8);
+        TPZManVector<int> nodind(8);
         for(nod=0; nod<8; nod++) nodind[nod]=indices[el][nod];
         int index;
         elvec[el] = gmesh->CreateGeoElement(ECube,nodind,1,index);
@@ -871,10 +903,10 @@ TPZCompMesh *CreateSimple3DMesh() {
     
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
     
-    TPZMaterial * mat;
+    TPZMaterial * mat = new TPZMaterialTest3D(1);
     if(nstate == 3) {
         //		mat = new TPZMatHyperElastic(1,2.,400);
-        mat = new TPZMaterialTest3D(1);
+        // mat = new TPZMaterialTest3D(1);
         TPZFMatrix<REAL> mp (3,1,0.);
         TPZMaterialTest3D * mataux = dynamic_cast<TPZMaterialTest3D *> (mat);
         TPZMaterialTest3D::geq3=1;
@@ -890,7 +922,7 @@ TPZCompMesh *CreateSimple3DMesh() {
             }
         }
         mat2d->SetMaterial(xk,xc,xf);
-        mat = mat2d;
+        // mat = mat2d;
     }
     TPZFMatrix<REAL> val1(1,1,0.),val2(1,1,0.);
     TPZMaterial * bc[2];
@@ -1399,13 +1431,29 @@ TPZCompMesh * CreateTestMesh() {
     return cmesh;
 }
 
+/** Forcing function: disp = Forcing1(x)  */
+void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp){
+    TPZManVector<REAL,3> x2(x);
+    TransformInvX(x2,RotInv);
+    TPZFNMatrix<3,REAL> grad(3,1,0.),grad2(3,1,0.);
+	
+    grad(0,0) = -(x2[1]-0.5)*sin(angle)+(x2[0]-0.5)*cos(angle)-(x2[0]-0.5);
+    grad(1,0) = (x2[1]-0.5)*cos(angle)+(x2[0]-0.5)*sin(angle)-(x2[1]-0.5);
+    grad(2,0) = 0.;
+    Rot.Multiply(grad, grad2);
+    disp[0] = grad2(0,0);
+    disp[1] = grad2(1,0);
+    disp[2] = grad2(2,0);
+}
+
+/** Exact solutions to calculate the rate of convergence */
 
 static REAL onethird = 0.33333333333333333;
 static REAL PI = 3.141592654;
 
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
 #ifdef LOG4CXX
@@ -1428,7 +1476,7 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 
 void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]+x2[2]*x2[2]);
   	REAL theta = atan2(x2[1],x2[0]);
   	REAL rexp = pow(r,onethird);
@@ -1441,10 +1489,9 @@ void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     dsol(1,0) = grad2(1,0);
 }
 
-
 void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
 	sol[0] = x2[2];
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
   	grad(0,0) = 0.;
@@ -1458,7 +1505,7 @@ void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
 
 void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
 	REAL one = (REAL)1.;
 
     sol[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1]*x2[2];
@@ -1478,17 +1525,18 @@ void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol
     dsol(2,0) = grad2(2,0);
 }
 
+
+/** Boundary conditions */
 void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
 	REAL one = (REAL) 1.0;
     f[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
 }
 
-
 void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
   	REAL rexp = pow(r,onethird);
@@ -1497,17 +1545,16 @@ void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 
 void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
   	REAL rexp = pow(r,onethird);
   	f[0] = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
-
 void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
     /*
 #ifdef LOG4CXX
     {
@@ -1522,9 +1569,10 @@ void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	REAL rexp = pow(r,onethird);
   	f[0] = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
+
 void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
+    TransformInvX(x2,RotInv);
     /*
 #ifdef LOG4CXX
     {
@@ -1540,6 +1588,7 @@ void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
   	f[0] = -onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
+/** Identify maxime level of refinement for all geometric elements referenced by computational elements */
 int MaxLevel(TPZCompMesh *mesh) {
   	int nel = mesh->NElements();
   	int el;
@@ -1555,20 +1604,7 @@ int MaxLevel(TPZCompMesh *mesh) {
   	return level;
 }
 
-void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp){
-    TPZManVector<REAL,3> x2(x);
-    TransformInvX(x2);
-    TPZFNMatrix<3,REAL> grad(3,1,0.),grad2(3,1,0.);
-
-    grad(0,0) = -(x2[1]-0.5)*sin(angle)+(x2[0]-0.5)*cos(angle)-(x2[0]-0.5);
-    grad(1,0) = (x2[1]-0.5)*cos(angle)+(x2[0]-0.5)*sin(angle)-(x2[1]-0.5);
-    grad(2,0) = 0.;
-    Rot.Multiply(grad, grad2);
-    disp[0] = grad2(0,0);
-    disp[1] = grad2(1,0);
-    disp[2] = grad2(2,0);
-}
-
+/** Read mesh from file and create a computational mesh */
 TPZCompMesh *ReadKumar(char *filename) {
     
   	int nnodes,nelem,nmat,nbcd,nbc;
@@ -1752,7 +1788,6 @@ TPZCompMesh *CreateAleatorioMesh() {
     TPZVec <int> subelvec;
     cmesh->ElementVec()[0]->Divide(0,subelvec,1);
     
-    int  pord = 3;
     cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelvec [7]]);
     intel->PRefine(2);
@@ -1762,7 +1797,6 @@ TPZCompMesh *CreateAleatorioMesh() {
     
     //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
     //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
-    
     
     //  cmesh->Print(cout);
     return cmesh;
@@ -2027,8 +2061,7 @@ TPZCompMesh *Create3DDiscMesh() {
     
     
     cmesh->InsertMaterialObject(mat);
-    int i;
-    // for(i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
+    // for(int i=0; i<2; i++) cmesh->InsertMaterialObject(bc[i]);
     
     cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
@@ -2038,7 +2071,6 @@ TPZCompMesh *Create3DDiscMesh() {
     TPZVec <int> subelvec;
     cmesh->ElementVec()[0]->Divide(0,subelvec,1);
     
-    int  pord = 3;
     cmesh->ElementVec()[subelvec [7]]->Divide(subelvec [7],subelvec,1);
     TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelvec [7]]);
     intel->PRefine(2);
@@ -2048,8 +2080,7 @@ TPZCompMesh *Create3DDiscMesh() {
     
     //  cmesh->ElementVec()[subelvec [7]]->PRefine(4);
     //  cmesh->ElementVec()[0]->Divide(,subelvec,1);
-    
-    
+        
     //  cmesh->Print(cout);
     return cmesh;
 }
@@ -2089,12 +2120,13 @@ void CompareNeighbours(TPZGeoMesh *mesh) {
 }
 
 /** Placa do Cedric **/
-static double Teste2Nos[5][3]  = { {0.,0.,0.},{2.,0.,0.},{2.,2.,0.},{0.,2.,0.},{1.,1.,0.}};
-static int    Teste2Elems[4][8] = {{0,1,4},{1,2,4},{2,3,4},{3,0,4}};
+TPZCompMesh *PlateMesh () {
+	TPZCompMesh *compmesh = 0;
+    /*
+	 static double Teste2Nos[5][3]  = { {0.,0.,0.},{2.,0.,0.},{2.,2.,0.},{0.,2.,0.},{1.,1.,0.}};
+	 static int    Teste2Elems[4][8] = {{0,1,4},{1,2,4},{2,3,4},{3,0,4}};
 
-TPZCompMesh *PlateMesh (){
-    
-    /*  //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
+	 //inserindo a ordem de interpola¢ão dos elementos e do espa¢o
      int ord;
      std::cout << "Entre ordem 1,2,3,4,5 : -> 1";
      //cin >> ord;
@@ -2131,7 +2163,7 @@ TPZCompMesh *PlateMesh (){
      geomesh->BuildConnectivity();
      
      //cria malha computacional
-     TPZCompMesh *compmesh = new TPZCompMesh(geomesh);
+     compmesh = new TPZCompMesh(geomesh);
      
      //cria material do problema
      TPZMaterial *placa = LerMaterial("placa.in",*compmesh);
@@ -2163,7 +2195,7 @@ TPZCompMesh *PlateMesh (){
      delete compmesh;
      delete geomesh;
 	 */
-     return 0;
+     return compmesh;
 }
 
 TPZMaterial *LerMaterial(char *filename, TPZCompMesh &cmesh) {
@@ -2418,62 +2450,68 @@ TPZCompMesh *Create3DExpMesh() {
     return cmesh;
 }
 
-void InitializeRotation()
+void InitializeRotation(REAL alfa,REAL transx,REAL transy,TPZMatrix<REAL> &rot,TPZMatrix<REAL> &rotinv)
 {
-    for (int i=0; i<4; i++) {
-        Rot(i,i) = 1.;
-        RotInv(i,i) = 1.;
+	if(rot.Rows()<3 || rot.Cols() != rot.Rows() || rot.Rows()!=rotinv.Rows()) {
+		rot.Zero();
+		rotinv.Zero();
+		return;
+	}
+    for (int i=0; i<rot.Rows(); i++) {
+        rot(i,i) = 1.;
+        rotinv(i,i) = 1.;
     }
-    //REAL alfa = 0.;//M_PI/3;
+
     REAL cosa = cos(alfa);
     REAL sina = sin(alfa);
-    Rot(0,0) = cosa;
-    Rot(1,0) = sina;
-    Rot(0,1) = -sina;
-    Rot(1,1) = cosa;
-    RotInv(0,0) = cosa;
-    RotInv(1,0) = -sina;
-    RotInv(0,1) = sina;
-    RotInv(1,1) = cosa;
-    Rot(0,3) = transx;
-    RotInv(0,3) = -transx;
-    Rot(1,3) = transy;
-    RotInv(1,3) = -transy;
-    TPZFNMatrix<16,REAL> rotcopy(Rot);
-    rotcopy.Inverse(RotInv);
-    
+    rot(0,0) = cosa;
+    rot(1,0) = sina;
+    rot(0,1) = -sina;
+    rot(1,1) = cosa;
+    rotinv(0,0) = cosa;
+    rotinv(1,0) = -sina;
+    rotinv(0,1) = sina;
+    rotinv(1,1) = cosa;
+	
+    rot(0,3) = transx;
+    rotinv(0,3) = -transx;
+    rot(1,3) = transy;
+    rotinv(1,3) = -transy;
 }
-void TransformMesh(TPZGeoMesh *gmesh)
+void TransformMesh(TPZGeoMesh *gmesh,TPZMatrix<REAL> &rot)
 {
     int nnod = gmesh->NNodes();
     for (int inod=0; inod<nnod; inod++) {
         TPZGeoNode &gnod = gmesh->NodeVec()[inod];
         TPZManVector<REAL,3> x(3,0.);
         gnod.GetCoordinates(x);
-        TransformX(x);
+        TransformX(x,rot);
         gnod.SetCoord(x);
     }
 }
-void TransformX(TPZVec<REAL> &x)
+void TransformX(TPZVec<REAL> &x,TPZMatrix<REAL> &rot)
 {
+	if(rot.Rows() != 4)
+		return;
     TPZFNMatrix<4,REAL> xtr(4,1,1.), xtr2(4,1);
     for (int i=0; i<3; i++) {
         xtr(i,0) = x[i];
     }
-    Rot.Multiply(xtr, xtr2);
+    rot.Multiply(xtr, xtr2);
     for (int i=0; i<3; i++) {
         x[i] = xtr2(i,0);
     }
 }
-void TransformInvX(TPZVec<REAL> &x)
+void TransformInvX(TPZVec<REAL> &x,TPZMatrix<REAL> &rotinv)
 {
+	if(rotinv.Rows()!=4)
+		return;
     TPZFNMatrix<4,REAL> xtr(4,1,1.), xtr2(4,1);
     for (int i=0; i<3; i++) {
         xtr(i,0) = x[i];
     }
-    RotInv.Multiply(xtr, xtr2);
+    rotinv.Multiply(xtr, xtr2);
     for (int i=0; i<3; i++) {
         x[i] = xtr2(i,0);
     }
-    
 }
