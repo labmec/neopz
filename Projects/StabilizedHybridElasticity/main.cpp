@@ -99,12 +99,10 @@ int main(int argc, char *argv[])
     
 //    ofstream file("malhageometrica.vtk");
 //    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, file, true);
-//    
+    
 //    TPZAnalysis an(cmesh);
-//    
+    
 //	Solve( an );
-//
-//	PosProcess(an, AE, h, p);
 
 
 	return EXIT_SUCCESS;
