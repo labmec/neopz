@@ -180,7 +180,7 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 		TPZCompMesh *comp = new TPZCompMesh(&gmesh);
 		
 		
-		comp->SetDefaultOrder(1);
+		comp->SetDefaultOrder(porder);
 		// Criar e inserir os materiais na malha
 		TPZMatPoisson3d *mat = new TPZMatPoisson3d(1,2);
 		TPZMaterial * automat(mat);
@@ -283,6 +283,10 @@ TPZCompMesh *CompMeshPAdap(TPZGeoMesh &gmesh,int porder){
 										intel->PRefine(porder+1);
 								}
 								
+								if (indexcon%5==0) {
+										intel->PRefine(porder+2);
+								}
+								
 								
 						
 						}
@@ -366,7 +370,7 @@ TPZCompMeshReferred *CreateCompMesh2d(TPZGeoMesh &gmesh,int porder){
 }
 
 
-TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
+TPZGeoMesh * MalhaGeoT(const int h,bool hrefine){//malha triangulo
 		
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
 		
@@ -441,47 +445,49 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 								gel->Divide(filhos);
 						}		
 				}}
-		//refinamento diferencialvel
-		{
+		
+		if (hrefine) {
+				//refinamento diferencialvel
+				{
+						
+						TPZVec<TPZGeoEl *> filhos;
+						int n = gmesh->NElements();
+						
+						
+						for(int i = 0; i < n; i++){	
+								TPZGeoEl * gel = gmesh->ElementVec()[i];
+								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+										
+								{
+										gel->Divide(filhos);
+								}		
+						}
+				}
 				
-				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
+				//refinamento 1D--irei refinar tambem os elementos 1D
 				
-				
-				for(int i = 0; i < n; i++){	
-						TPZGeoEl * gel = gmesh->ElementVec()[i];
-						if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+				{
+						
+						TPZVec<TPZGeoEl *> filhos;
+						int n = gmesh->NElements();
+						
+						
+						for(int i = 0; i < n; i++){	
+								TPZGeoEl * gel = gmesh->ElementVec()[i];
+								if (gel->Dimension()!=1) {
+										continue;
+								}
+								TPZGeoElSide Elside=gel->Neighbour(2);
+								TPZGeoEl *NeighEl=Elside.Element();
+								if (NeighEl->HasSubElement()) {
+										gel->Divide(filhos);
+								}
 								
-						{
-								gel->Divide(filhos);
-						}		
+								
+								
+						}
 				}
 		}
-		
-		//refinamento 1D--irei refinar tambem os elementos 1D
-		
-		{
-				
-				TPZVec<TPZGeoEl *> filhos;
-				int n = gmesh->NElements();
-				
-				
-				for(int i = 0; i < n; i++){	
-						TPZGeoEl * gel = gmesh->ElementVec()[i];
-						if (gel->Dimension()!=1) {
-								continue;
-						}
-						TPZGeoElSide Elside=gel->Neighbour(2);
-						TPZGeoEl *NeighEl=Elside.Element();
-						if (NeighEl->HasSubElement()) {
-								gel->Divide(filhos);
-						}
-						
-						
-						
-				}
-		}
-		
 		
 		
 #ifdef LOG4CXX
@@ -493,7 +499,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 #endif 		 		 
 		return gmesh;
 }
-TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h )
+TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h, bool hrefine)
 {
 		TPZGeoMesh *gmesh = new TPZGeoMesh();
 		REAL co[4][2] = {{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
@@ -544,46 +550,56 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h )
 				}//for i
 		}//ref
 		//refinamento nao uniforme
-//				{
-//						
-//						TPZVec<TPZGeoEl *> filhos;
-//						int n = gmesh->NElements();
-//						
-//						
-//						for(int i = 0; i < n; i++){	
-//								TPZGeoEl * gel = gmesh->ElementVec()[i];
-//								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
-//										
-//								{
-//										gel->Divide(filhos);
-//								}		
-//						}
-//				}
-//				
-//				//refinamento 1D--irei refinar tambem os elementos 1D
-//				
-//				{
-//						
-//						TPZVec<TPZGeoEl *> filhos;
-//						int n = gmesh->NElements();
-//						
-//						
-//						for(int i = 0; i < n; i++){	
-//								TPZGeoEl * gel = gmesh->ElementVec()[i];
-//								if (gel->Dimension()!=1) {
-//										continue;
-//								}
-//								TPZGeoElSide Elside=gel->Neighbour(2);
-//								TPZGeoEl *NeighEl=Elside.Element();
-//								if (NeighEl->HasSubElement()) {
-//										gel->Divide(filhos);
-//								}
-//								
-//								
-//								
-//						}
-//				}
+		if (hrefine) {
+				//refinamento diferencialvel
+				{
+						
+						TPZVec<TPZGeoEl *> filhos;
+						int n = gmesh->NElements();
+						
+						
+						for(int i = 0; i < n; i++){	
+								TPZGeoEl * gel = gmesh->ElementVec()[i];
+								if(!gel->HasSubElement() && gel->Dimension()==2 && i%2==0)
+										
+								{
+										gel->Divide(filhos);
+								}		
+						}
+				}
 				
+				//refinamento 1D--irei refinar tambem os elementos 1D
+				
+				{
+						
+						TPZVec<TPZGeoEl *> filhos;
+						int n = gmesh->NElements();
+						
+						
+						for(int i = 0; i < n; i++){	
+								TPZGeoEl * gel = gmesh->ElementVec()[i];
+								if (gel->Dimension()!=1) {
+										continue;
+								}
+								TPZGeoElSide Elside=gel->Neighbour(2);
+								TPZGeoEl *NeighEl=Elside.Element();
+								if (NeighEl->HasSubElement()) {
+										gel->Divide(filhos);
+								}
+								
+								
+								
+						}
+				}
+		}
+				
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				gmesh->Print(sout);
+				LOGPZ_DEBUG(logger, sout.str().c_str());
+		}
+#endif 	
 		
 		return gmesh;
 }
