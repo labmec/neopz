@@ -80,13 +80,15 @@ int main()
 	for (int porder=1; porder<2; porder++) {
 		
 		erro<<"ordem "<<porder <<std::endl;
-			for(int h=1;h<2;h++){
+			for(int h=1;h<4;h++){
 			erro<<std::endl;
 			erro<< "\n NRefinamento "<<h<<std::endl;
 			//1. Criacao da malha geom. e computacional
-			TPZGeoMesh *gmesh = MalhaGeo(h);
-    std::ofstream file("MalhaPAdaptativa.vtk");
-		PrintGMeshVTK( gmesh, file);
+					bool hrefine=false;
+			TPZGeoMesh *gmesh = MalhaGeo(h,hrefine);
+					//gmesh->Print();
+//    std::ofstream file("MalhaPAdaptativa.vtk");
+//		PrintGMeshVTK( gmesh, file);
 
 			
 			TPZCompMesh *cmesh = CompMeshPAdap(*gmesh,porder);
@@ -112,32 +114,32 @@ int main()
 			
 			//3. Calcula o erro 
 					
-		//	TPZVec<REAL> calcErro;
-		//	analysis.SetExact(*SolExata);
-		//	analysis.PostProcess(calcErro,erro);
+			TPZVec<REAL> calcErro;
+			analysis.SetExact(*SolExata);
+			analysis.PostProcess(calcErro,erro);
 			
 			//4. visualizacao grafica usando vtk
-//			 TPZVec<std::string> scalnames(1), vecnames(1);
-//			 
-//			// scalnames[0] = "Divergence";
-//			 scalnames[0] = "Pressure";
-//			// scalnames[1] = "ExactPressure";
-//			 //	scalnames[2] = "ExactDiv";
-//			 
-//			 
-//			// vecnames[0] = "ExactFlux";
-//			 vecnames[0] = "Flux";
-//			 //scalnames[2] = "Divergence";
-//			 
-//			 
-//			 //vecnames[0] = "Derivate";
-//			 
-//			 
-//			 std::string plotfile("GraficoSolution.vtk");
-//			 const int dim = 2;
-//			 int div = 2;
-//			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-//			 analysis.PostProcess(div);
+			 TPZVec<std::string> scalnames(1), vecnames(1);
+			 
+			// scalnames[0] = "Divergence";
+			 scalnames[0] = "Pressure";
+			// scalnames[1] = "ExactPressure";
+			 //	scalnames[2] = "ExactDiv";
+			 
+			 
+			// vecnames[0] = "ExactFlux";
+			 vecnames[0] = "Flux";
+			 //scalnames[2] = "Divergence";
+			 
+			 
+			 //vecnames[0] = "Derivate";
+			 
+			 
+			 std::string plotfile("GraficoSolution.vtk");
+			 const int dim = 2;
+			 int div = 2;
+			 analysis.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+			 analysis.PostProcess(div);
 			 
 			
 		}}
