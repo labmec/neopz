@@ -13,7 +13,7 @@
 #include "TPZShapeDisc.h"
 #include "TPZCompElDisc.h"
 #include "pzmaterialdata.h"
-//#include "pzhdivpressure.h"
+#include "pzhdivpressure.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDiv"));
@@ -185,7 +185,7 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 								 return(NShapeFace+ TSHAPE::Dimension*(aux));		 
 						 }
 						 else{
-								 	int nshape=(order-2)*(order-2)+(order-1)*(order-1) + 4*(order-1)-1;
+								 	int nshape=(order-1)*(order-1)+(order)*(order) + 4*(order)-1;
  
  
 //									#ifdef LOG4CXX
@@ -205,30 +205,32 @@ void TPZCompElHDiv<TSHAPE>::SetConnectIndex(int i, int connectindex){
 						 int NShapeF = 0;
 						 for(int j=0;j< smallsides.NElements();j++)
 						 {
-								 NShapeF += TSHAPE::NConnectShapeF(j,order-1);
+								 NShapeF += TSHAPE::NConnectShapeF(j,order);
 						 }
 						 
 						 //se a ordem for maior q um tbem tira-se a ultima funcao de cada lado
-						 if (order==1) {
-								 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
-								 return(result);
-						 }
-						 else {		 
-								 
-								 
-								 
-								 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order)-1;
-#ifdef LOG4CXX
-								 {
-										 std::stringstream sout;
-										 sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
-										 LOGPZ_DEBUG(logger, sout.str().c_str());
-								 }
-#endif
-								 return(result);
-
-						 
-						 }
+//						 if (order==1) {
+//								 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
+//								 return(result);
+//						 }
+//						 else {		 
+//								 
+//								 
+//								 
+//								 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order)-1;
+//#ifdef LOG4CXX
+//								 {
+//										 std::stringstream sout;
+//										 sout << endl<<" Connect : " << connect << " numero de func de forma " << result<<std::endl;
+//										 LOGPZ_DEBUG(logger, sout.str().c_str());
+//								 }
+//#endif
+//								 return(result);
+//
+//						 
+//						 }
+						 int result=NShapeF + TSHAPE::NConnectShapeF(iside,order);
+						 return(result);
 				 }
 				 
 		 }
@@ -383,7 +385,8 @@ int TPZCompElHDiv<TSHAPE>::ConnectIndex(int con) const{
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::SetPreferredOrder(int order)
 {
-	this->fPreferredOrder = order;
+		TPZIntelGen<TSHAPE>:: SetPreferredOrder(order);
+	//this->fPreferredOrder = order;
 }
 
 template<class TSHAPE>
@@ -471,11 +474,28 @@ void TPZCompElHDiv<TSHAPE>::FirstShapeIndex(TPZVec<int> &Index){
 	
 		Index.Resize(TSHAPE::NSides+1);
 		Index[0]=0;
+		int maxorder=0;
 	
+		int ncon=TPZCompElHDiv::NConnects();
+		for (int icon=0; icon< ncon; icon++) {
+				
+				maxorder=(ConnectOrder(icon) > maxorder) ? ConnectOrder(icon) : maxorder;
+				
+		}
+		
+		
 	for(int iside=0;iside<TSHAPE::NSides;iside++)
 	{
-		int order= SideOrder(iside);
-		Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+		//int order= SideOrder(iside);
+		//Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,order);
+			if (TSHAPE::Type()==EQuadrilateral) {
+					Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,maxorder+1);
+			}
+			else {
+					Index[iside+1] = Index[iside] + TSHAPE::NConnectShapeF(iside,maxorder);
+			}
+
+			
 		
 	}
 	
@@ -491,15 +511,39 @@ template<class TSHAPE>
 int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=TPZCompElHDiv::NConnects();
-    for(in=0;in<nn;in++) result += NConnectShapeF(in);
+    for(in=0;in<nn;in++){
+				TPZConnect *con = &this->Connect(in);
+				int seqnum= con->SequenceNumber();
+#ifdef LOG4CXX
+				std::stringstream sout;
+				sout << "conect " << in<< "seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
+				LOGPZ_DEBUG(logger,sout.str())
+#endif
+				result += TPZCompElHDiv::NConnectShapeF(in);
+		}
+		
+		
+#ifdef LOG4CXX
+    std::stringstream sout;
+    sout << "Num funcoes associada ao fluxo " << result;
+    LOGPZ_DEBUG(logger,sout.str())
+#endif
     return result;
+		
+
 }
 
 
 template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & ShapeAndVec, int pressureorder){
-    
-    
+//		{	
+//		#ifdef LOG4CXX
+//												std::stringstream sout;
+//												sout << "VectorSide "<<VectorSide << std::endl;
+//												LOGPZ_DEBUG(logger,sout.str())
+//		#endif
+//		}
+       
     // VectorSide indicates the side associated with each vector entry
     TPZManVector<int,27> FirstIndex;
     // the first index of the shape functions
@@ -507,6 +551,7 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     
     int count=0;
     int nshapeflux= NFluxShapeF();
+		
     ShapeAndVec.Resize(nshapeflux);    
     if (TSHAPE::Type()==EQuadrilateral) {
         
@@ -522,25 +567,39 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
         {
             if (jvec==2||jvec==5||jvec==8||jvec==11){
                 int lside=VectorSide[jvec];
+								int nconside=SideConnectLocId(0,lside);
+								int nshapecon=NConnectShapeF(nconside);
+								if (nshapecon > 2) {							
+								
                 int fshape1= FirstIndex[lside];
-                int fshape2= FirstIndex[lside+1]-1;
-                for (int ishape=fshape1; ishape<fshape2; ishape++)//estou tentando tirar a ultima funcao
-                {
-#ifdef LOG4CXX
-                    std::stringstream sout;
-                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-                    LOGPZ_DEBUG(logger,sout.str())
-#endif
-                    ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
-                    
-                }
+										
+               // int fshape2= FirstIndex[lside+1]-1;//estou tentando tirar a ultima funcao
+										int fshape2= fshape1+ nshapecon-2; //FirstIndex[lside+1]-(nshapecon-2);//FirstIndex[lside+1]-nconside+1;
+										
+//#ifdef LOG4CXX
+//										std::stringstream sout;
+//										sout << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
+//										LOGPZ_DEBUG(logger,sout.str())
+//#endif
+										
+										for (int ishape=fshape1; ishape<fshape2; ishape++)
+										{
+//		#ifdef LOG4CXX
+//												std::stringstream sout;
+//												sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//												LOGPZ_DEBUG(logger,sout.str())
+//		#endif
+												ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
+												
+										}
+								}
                 
                 
             }
             else if(jvec==16 || jvec ==17)
             {
                 int lside = VectorSide[jvec];
-                int order = SideOrder(lside);						
+                int order = SideOrder(lside)+1;		//coloquei mais um pq agora passo a ordem certa				
                 int nshape = TSHAPE::NConnectShapeF(lside,order);//order-1);
                 TPZFNMatrix<25> sideorders(2,nshape);
                 int ksi,eta;
@@ -579,13 +638,13 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 }
                 int ish=0;
                 int fshape1 = FirstIndex[lside];
-#ifdef LOG4CXX
-								{
-                std::stringstream sout;
-                sideorders.Print("SideOrders= ", sout ,EFormatted);
-                LOGPZ_DEBUG(logger,sout.str())
-								}
-#endif
+//#ifdef LOG4CXX
+//								{
+//                std::stringstream sout;
+//                sideorders.Print("SideOrders= ", sout ,EFormatted);
+//                LOGPZ_DEBUG(logger,sout.str())
+//								}
+//#endif
 								
 								
                 for (ish=0; ish<nshape; ish++) {
@@ -601,12 +660,12 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 														{
 																ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
 												
-#ifdef LOG4CXX
-																std::stringstream sout;
-																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-																LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//																std::stringstream sout;
+//																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
+//																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
+//																LOGPZ_DEBUG(logger,sout.str())
+//#endif
 														}
 												}
 										}
@@ -614,13 +673,17 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
 												if (orderksi<=pressureorder) {
 														if (!(orderksi == pressureorder+1 && ordereta == pressureorder)) 
 														{
+//																if (ordereta==3) {
+//																		std::cout<<" O q houve ? "<<std::endl;
+//																	//	DebugStop();
+//																}
 																										
-#ifdef LOG4CXX
-																std::stringstream sout;
-																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
-																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
-																LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//																std::stringstream sout;
+//																sout << " <vec,shape> " << "< "<<jvec << " * "<<fshape1+ish << "> "<<std::endl;
+//																sout << " side order ksi " << sideorders(0,ish) << " side order eta " << sideorders(1,ish);
+//																LOGPZ_DEBUG(logger,sout.str())
+//#endif
 																ShapeAndVec[count++]=std::pair<int,int>(jvec,fshape1+ish);
 														}
 												}
@@ -634,12 +697,18 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
                 int lside=VectorSide[jvec];
                 int fshape1= FirstIndex[lside];
                 int fshape2= FirstIndex[lside+1];
+								
+//#ifdef LOG4CXX
+//								std::stringstream sout;
+//								sout << " lside "<< lside << " fshape1 " <<fshape1 << " fshape2 "<<fshape2 << std::endl;
+//								LOGPZ_DEBUG(logger,sout.str())
+//#endif
                 for (int ishape=fshape1; ishape<fshape2; ishape++){
-#ifdef LOG4CXX
-                    std::stringstream sout;
-                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
-                    LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//                    std::stringstream sout;
+//                    sout << " <vec,shape> " << "< "<<jvec << " * "<<ishape << "> "<<std::endl;
+//                    LOGPZ_DEBUG(logger,sout.str())
+//#endif
                     ShapeAndVec[count++]=std::pair<int,int>(jvec,ishape);
                     
                 }
@@ -667,11 +736,11 @@ void TPZCompElHDiv<TSHAPE>::IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::
     }
     
     
-#ifdef LOG4CXX
-    std::stringstream sout;
-    sout << " ShapeAndVec " << ShapeAndVec;
-    LOGPZ_DEBUG(logger,sout.str())
-#endif
+//#ifdef LOG4CXX
+//    std::stringstream sout;
+//    sout << " ShapeAndVec " << ShapeAndVec;
+//    LOGPZ_DEBUG(logger,sout.str())
+//#endif
     
 }
 
@@ -938,55 +1007,70 @@ template<class TSHAPE>
 void TPZCompElHDiv<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi) {
 	TPZManVector<int,TSHAPE::NCornerNodes> id(TSHAPE::NCornerNodes,0);
 	TPZManVector<int, TSHAPE::NSides-TSHAPE::NCornerNodes+1> ord(TSHAPE::NSides-TSHAPE::NCornerNodes,0);
-	int i;
-	TPZGeoEl *ref = this->Reference();
-	for(i=0; i<TSHAPE::NCornerNodes; i++) {
+		int i;
+		TPZGeoEl *ref = this->Reference();
+		for(i=0; i<TSHAPE::NCornerNodes; i++) {
 		id[i] = ref->NodePtr(i)->Id();
-	}
-	
-    int nconflux=TPZCompElHDiv::NConnects();
-		/*
-    if(TSHAPE::Type()==EQuadrilateral)
-    {
-        for(i=0; i< nconflux-1; i++) {
-            ord[i] = ConnectOrder(i);
-		
-            //		 #ifdef LOG4CXX
-            //		 std::stringstream sout;
-            //		 sout << " ordem do connect " << i << " " << ord[i]<<endl;
-            //		 LOGPZ_DEBUG(logger,sout.str())
-            //		 #endif
-        
-        }
-        ord[i] = ConnectOrder(i)-1;
-    }
-    else{
-        for(i=0; i< nconflux; i++)
-        {
-            ord[i] = ConnectOrder(i);
-		
-        //		 #ifdef LOG4CXX
-        //		 std::stringstream sout;
-        //		 sout << " ordem do connect " << i << " " << ord[i]<<endl;
-        //		 LOGPZ_DEBUG(logger,sout.str())
-        //		 #endif
-        
-        }
-    }
-		 */
+		}
+
+		int nconflux=TPZCompElHDiv::NConnects();
 		for(i=0; i< nconflux; i++)
 		{
 				ord[i] = ConnectOrder(i);
-	        
+					
 		}
-	int dimension= TSHAPE::Dimension;
-	
-	
-	const int nshapecont = TSHAPE::NShapeF(ord);
-    
-    phi.Resize(nshapecont, 1);
-    dphi.Resize(dimension, nshapecont);
-	TSHAPE::Shape(pt,id,ord,phi,dphi);
+		int dimension= TSHAPE::Dimension;
+
+
+		int nshape=0;
+		NShapeContinuous(ord, nshape );
+		
+				phi.Resize(nshape, 1);
+				dphi.Resize(dimension, nshape);
+				TSHAPE::Shape(pt,id,ord,phi,dphi);
+
+		//const int nshapecont = TSHAPE::NShapeF(ord);
+
+//		phi.Resize(nshapecont, 1);
+//		dphi.Resize(dimension, nshapecont);
+//		TSHAPE::Shape(pt,id,ord,phi,dphi);
+}
+
+template<class TSHAPE>
+void TPZCompElHDiv<TSHAPE>::NShapeContinuous(TPZVec<int> &order, int &nshape ){
+
+		int ncon=TPZCompElHDiv::NConnects();
+		order.Resize(ncon);
+		int maxorder=0;
+		//int ordercon=0;
+		for (int icon=0; icon< ncon; icon++) {
+				
+				maxorder=(ConnectOrder(icon) > maxorder) ? ConnectOrder(icon) : maxorder;
+											
+		}
+
+for (int i=0; i< ncon; i++) {
+		if (TSHAPE::Type()==EQuadrilateral) {
+				order[i]=maxorder+1;
+		}
+		else {
+				order[i]=maxorder;
+		}
+
+		
+}
+		
+
+		nshape=TSHAPE::NShapeF(order);
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				sout << "ordem max "<<maxorder<< " vec order " << order<<" num func cont "<< nshape<<std::endl;;
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+
+
 }
 
 
@@ -1049,7 +1133,17 @@ void TPZCompElHDiv<TSHAPE>::InitMaterialData(TPZMaterialData &data)
 	//ComputeShapeIndex(data.fVecIndex,data.fVecShapeIndex);
 	//data.numberdualfunctions = NConnectShapeF(NConnects()-1);
 		
-    int pressureorder=this->fPreferredOrder-1;//ver como melhorar..como era antes?
+    int pressureorder=0;
+		if (TSHAPE::Type()==EQuadrilateral) {
+				pressureorder=this->fPreferredOrder;//ver como melhorar..?
+		}
+		else {
+				pressureorder=this->fPreferredOrder-1;
+		}
+
+		
+		
+		
     IndexShapeToVec(normalsides,data.fVecShapeIndex,pressureorder);
 #ifdef LOG4CXX
 	{
