@@ -128,6 +128,11 @@ public:
      * @brief return the interpolation order of the polynomial for connect
      **/
 	virtual int ConnectOrder(int connect) const;
+		/**
+     * @brief return the number of continuous functions 
+     **/
+		
+		void NShapeContinuous(TPZVec<int> &order, int &nshape  );
 	
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
