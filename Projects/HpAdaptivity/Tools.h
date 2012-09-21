@@ -49,9 +49,9 @@
 
 // Malha Triangular
 
-TPZGeoMesh * MalhaGeoT(const int h);
+TPZGeoMesh * MalhaGeoT( const int h, bool hrefine);
 //Malha Quadrilateral formada por um elemento e refinamento nao uniforme
-TPZGeoMesh * MalhaGeo(const int h);
+TPZGeoMesh * MalhaGeo( const int h, bool hrefine);
 //Malha Quadrilateral formada por 4 elemento e refinamento uniforme
 TPZGeoMesh * MalhaGeo2(const int h);
 //Malha computacional convencional
