@@ -9,6 +9,11 @@
 #include "pzmanvector.h"
 #include "pzerror.h"
 #include "pzreal.h"
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.shape.TPZShapeQuad"));
+#endif
 
 using namespace std;
 
@@ -255,8 +260,13 @@ namespace pzshape {
 	}
 	
 	int TPZShapeQuad::NShapeF(TPZVec<int> &order) {
+			
+				
 		int in,res=NCornerNodes;
-		for(in=NCornerNodes;in<NSides;in++) res += NConnectShapeF(in,order[in-NCornerNodes]);
+			for(in=NCornerNodes;in<NSides;in++) {
+									
+					res += NConnectShapeF(in,order[in-NCornerNodes]);
+			}
 		return res;
 	}
 	
