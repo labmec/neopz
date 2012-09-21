@@ -26,7 +26,15 @@ template<class TSHAPE>
 TPZCompElHDivPressure<TSHAPE>::TPZCompElHDivPressure(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 TPZCompElHDiv<TSHAPE>(mesh,gel,index) {
 		
-		fPressureOrder = mesh.GetDefaultOrder()-1;
+		if (TSHAPE::Type()==EQuadrilateral) {
+				fPressureOrder = mesh.GetDefaultOrder();
+		}
+		else {
+				fPressureOrder = mesh.GetDefaultOrder()-1;
+		}
+
+		
+		//fPressureOrder = mesh.GetDefaultOrder()-1;
 		
 		
 		//criando o connect da variavel dual
@@ -195,17 +203,37 @@ void TPZCompElHDivPressure<TSHAPE>::GetInterpolationOrder(TPZVec<int> &ord) {
 
 template<class TSHAPE>
 int TPZCompElHDivPressure<TSHAPE>::ConnectIndex(int con) const{
-#ifndef NODEBUG
-		if(con<0 || con>= this->NConnects()) {
-				std::cout << "TPZCompElHDivPressure::ConnectIndex wrong parameter connect " << con <<
-				" NConnects " << this-> NConnects() << std::endl;
-				DebugStop();
-				return -1;
-		}
+//#ifndef NODEBUG
+//		if(con<0 || con>= this->NConnects()) {
+//				std::cout << "TPZCompElHDivPressure::ConnectIndex wrong parameter connect " << con <<
+//				" NConnects " << this-> NConnects() << std::endl;
+//				DebugStop();
+//				return -1;
+//		}
+//		
+//#endif
 		
-#endif
+				if(con<0 ) {
+						std::cout << "TPZCompElHDivPressure::ConnectIndex wrong parameter connect " << con <<
+						" NConnects " << this-> NConnects() << std::endl;
+						DebugStop();
+						return -1;
+				}
+				else{
+						if ( con>= this->NConnects()) {
+								int con2= con-TSHAPE::NCornerNodes;
+								return this->fConnectIndexes[con2];
+				
+				
+						}
 		
-		return this->fConnectIndexes[con];
+						else{
+		
+		
+								return this->fConnectIndexes[con];
+				
+						}
+				}
 }
 
 
@@ -446,15 +474,6 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
   	TPZFMatrix<REAL> dphiCont;
     TPZCompElHDiv<TSHAPE>::Shape(pt,phiCont,dphiCont);
     
-#ifdef LOG4CXX
-    std::stringstream sout;
-     sout<<"\n ponto de integracao " << pt <<endl;
-    sout<< "\n vetor phiCont "<<phiCont<<endl;
-    LOGPZ_DEBUG(logger,sout.str())
-#endif
-    
-
-    
     // acrescentar as funcoes de pressao (via descontinuo)
     REAL C=1;//fator de escala utilizado neste metodo
     TPZManVector<REAL,3> X0(3,0.);//centro do elemento
@@ -489,14 +508,14 @@ void TPZCompElHDivPressure<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &ph
     
     this->Append(phiCont,phiDisc,phi);
     this->Append(dphiCont,dphiDisc,dphi);
-	{	
-    #ifdef LOG4CXX
-    std::stringstream sout;
-   // sout<< "vetor phiCont"<<phiCont<<endl;
-    sout<< "\n vetor phi "<<phi<<endl;
-    LOGPZ_DEBUG(logger,sout.str())
-    #endif
-    }
+//	{	
+//    #ifdef LOG4CXX
+//    std::stringstream sout;
+//   // sout<< "vetor phiCont"<<phiCont<<endl;
+//    sout<< "\n vetor phi "<<phi<<endl;
+//    LOGPZ_DEBUG(logger,sout.str())
+//    #endif
+//    }
 }
 
 template<class TSHAPE>
