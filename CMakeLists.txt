@@ -316,8 +316,9 @@ set(pz_configh ${CONFIG_H})# PARENT_SCOPE)
 
 #increment all the directories where the sources files is
 
+add_subdirectory(PerfUtil)
 if(BUILD_PERF_TESTS)
-	add_subdirectory(PerfUtil)
+	add_subdirectory(PerfTests)
 endif()
 add_subdirectory(Util)
 add_subdirectory(Common)
@@ -343,7 +344,6 @@ add_subdirectory(SubStruct)
 
 add_subdirectory(lib)
 add_subdirectory(Projects)
-add_subdirectory(PerfTests)
 
 add_subdirectory(UnitTest_PZ)
 
