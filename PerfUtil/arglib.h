@@ -84,6 +84,8 @@
 #include <iostream>
 #include <vector>
 
+#include "pzreal.h" // PRETTY_FUNCTION for WIN32 Macro definition
+
 using namespace std;
 
 namespace clarg 
