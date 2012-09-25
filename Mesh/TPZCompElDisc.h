@@ -192,7 +192,7 @@ public:
 	 */
 	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
-    private:
+protected:
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes, REAL &detjac, TPZFMatrix<REAL> &jacinv, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphix);
     
     public:

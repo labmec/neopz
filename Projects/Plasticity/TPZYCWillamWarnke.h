@@ -172,11 +172,13 @@ public:
 public:
 	REAL fPhi;
 	REAL fa, fb, fcConcrete,fcoesion,fa0,fa1,fa2,fb0,fb1,fb2;
+    
 protected:
 	
 	
 	//////////////////CheckConv related methods/////////////////////
 };
+
 
 template <class T>
 void TPZYCWillamWarnke::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const

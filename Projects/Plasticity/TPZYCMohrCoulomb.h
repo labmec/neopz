@@ -15,7 +15,8 @@ class TPZYCMohrCoulomb  {
 	
 public:
 	
-	enum {NYield = 3};
+ 
+	enum {NYield=3};
     
     const char * Name() const
     {
@@ -60,8 +61,6 @@ public:
 	void SetUp(const REAL & phi) 
 	{
 		fPhi = phi;
-		fPi = M_PI;
-		fCoesion = 9.2376;
 	}
 	
 	
@@ -94,226 +93,111 @@ public:
 	 */
 	template <class T>
 	void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
-	
-	
-	
-	//////////////////CheckConv related methods/////////////////////
-	
-    /** @brief Number of types of residuals */
-    int NumCases() 
-    {
-		return 9;
-    }
-	TPZTensor<REAL> gRefTension;
-	
-    /** @brief LoadState will keep a given state as static variable of the class */
-    void LoadState(TPZFMatrix<REAL> &state)
-    {
-		int i;
-		for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
-    }
-    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
-    {
-		switch(icase)
-		{
-			case 0:
-			{
-				TPZTensor<REAL> grad;
-				this->gRefTension.dJ2(grad);
-				tangent.Redim(1,6);
-				int i;
-				for(i=0; i<6; i++)
-				{
-					tangent(0,i) = grad.fData[i];
-				}
-				break;
-			}
-				
-			case 1:
-			{
-				TPZTensor<REAL> grad;
-				this->gRefTension.dJ3(grad);
-				tangent.Redim(1,6);
-				int i;
-				for(i=0; i<6; i++)
-				{
-					tangent(0,i) = grad.fData[i];
-				}
-				break;
-			}
-			case 2:
-			{
-				
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = dSigma1.fData[i];
-				}
-				break;
-			}
-			case 3:
-			{
-				
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = dSigma2.fData[i];
-				}
-				break;
-			}
-			case 4:
-			{
-				
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = dSigma3.fData[i];
-				}
-				break;
-			}
-			case 5:
-			{
-				TPZVec<TPZTensor<REAL> > Ndir(3);
-				REAL yield = 1.e6;
-				this->N<REAL>(gRefTension,yield, Ndir, 0); 
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = Ndir[0].fData[i];
-				}
-				break;
-			}
-			case 6:
-			{
-				TPZVec<TPZTensor<REAL> > Ndir(3);
-				REAL yield = 1.e6;
-				this->N<REAL>(gRefTension,yield, Ndir, 0); 
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = Ndir[1].fData[i];
-				}
-				break;
-			}
-			case 7:
-			{
-				TPZVec<TPZTensor<REAL> > Ndir(3);
-				REAL yield = 1.e6;
-				this->N<REAL>(gRefTension,yield, Ndir, 0); 
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = Ndir[2].fData[i];
-				}
-				break;
-			}
-			case 8:
-			{
-				REAL lode;
-				TPZTensor<REAL> gradlode;
-				gRefTension.Lodeangle(gradlode,lode);
-				tangent.Redim(1,6);
-				for(int i=0; i<6; i++)
-				{
-					tangent(0,i) = gradlode.fData[i];
-				}
-				break;
-			}
-		}
-    }
-	
-    void Residual(TPZFMatrix<REAL> &res,int icase)
-    {
-		
-		res.Redim(1,1);
-		TPZTensor<REAL> grad;
-		
-		switch(icase)
-		{
-			case 0:
-			{
-				res(0,0) = gRefTension.J2();
-				break;
-			}
-			case 1:
-			{
-				res(0,0) = gRefTension.J3();
-				break;
-			}
-			case 2:
-			{
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-				res(0,0) = autovalores.XX();
-				break;
-			}
-			case 3:
-			{
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-				res(0,0) = autovalores.YY();
-				break;
-			}
-			case 4:
-			{
-			    TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-				gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-				res(0,0) = autovalores.ZZ();
-				break;
-			}
-			case 5:
-			{
-				TPZVec<REAL> phi(3);
-				REAL yield = 1.e6;
-				this->Compute(gRefTension,yield,phi,0);
-				res(0,0) = phi[0];
-				break;
-			}
-			case 6:
-			{
-				TPZVec<REAL> phi(3);
-				REAL yield = 1.e6;
-				this->Compute(gRefTension,yield,phi,0);
-				res(0,0) = phi[1];
-				break;
-			}
-			case 7:
-			{
-				TPZVec<REAL> phi(3);
-				REAL yield = 1.e6;
-				this->Compute(gRefTension,yield,phi,0);
-				res(0,0) = phi[2];
-				break;
-			}
-			case 8:
-			{
-				REAL lode;
-				TPZTensor<REAL> gradlode;
-				gRefTension.Lodeangle(gradlode,lode);
-				res(0,0) = lode;
-				break;
-			}
-		}
-		
-    }
-	
-	
-	//////////////////CheckConv related methods/////////////////////
-	
+
 	
 public:
 	
 	REAL fPhi;
-	
-protected:
-	
-	REAL fCoesion,fPi;
+    
+public:
+    //////////////////CheckConv related methods/////////////////////
+    
+    /** @brief Number of types of residuals */
+    int NumCases()
+    {
+        return 3;
+    }
+    TPZTensor<REAL> gRefTension;
+    
+    /** @brief LoadState will keep a given state as static variable of the class */
+    void LoadState(TPZFMatrix<REAL> &state)
+    {
+        int i;
+        for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+    }
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
+    {
+        switch(icase)
+        {
+            case 0:
+            {
+                TPZVec<TPZTensor<REAL> > Ndir(3);
+                REAL yield = 1.e6;
+                this->N<REAL>(gRefTension,yield, Ndir, 0);
+                tangent.Redim(1,9);
+                tangent(0,0)=Ndir[0].XX();tangent(0,1)=Ndir[0].XY();tangent(0,2)=Ndir[0].XZ();
+                tangent(1,0)=Ndir[0].XY();tangent(1,1)=Ndir[0].YY();tangent(1,2)=Ndir[0].YZ();
+                tangent(2,0)=Ndir[0].XZ();tangent(2,1)=Ndir[0].YZ();tangent(2,2)=Ndir[0].ZZ();
+                
+                break;
+            }
+            case 1:
+            {
+                TPZVec<TPZTensor<REAL> > Ndir(3);
+                REAL yield = 1.e6;
+                this->N<REAL>(gRefTension,yield, Ndir, 0);
+                tangent.Redim(1,9);
+                tangent(0,0)=Ndir[0].XX();tangent(0,1)=Ndir[0].XY();tangent(0,2)=Ndir[0].XZ();
+                tangent(1,0)=Ndir[0].XY();tangent(1,1)=Ndir[0].YY();tangent(1,2)=Ndir[0].YZ();
+                tangent(2,0)=Ndir[0].XZ();tangent(2,1)=Ndir[0].YZ();tangent(2,2)=Ndir[0].ZZ();
+                break;
+            }
+            case 2:
+            {
+                TPZVec<TPZTensor<REAL> > Ndir(3);
+                REAL yield = 1.e6;
+                this->N<REAL>(gRefTension,yield, Ndir, 0);
+                tangent.Redim(1,9);
+                tangent(0,0)=Ndir[0].XX();tangent(0,1)=Ndir[0].XY();tangent(0,2)=Ndir[0].XZ();
+                tangent(1,0)=Ndir[0].XY();tangent(1,1)=Ndir[0].YY();tangent(1,2)=Ndir[0].YZ();
+                tangent(2,0)=Ndir[0].XZ();tangent(2,1)=Ndir[0].YZ();tangent(2,2)=Ndir[0].ZZ();
+                break;
+            }
+
+        }
+    }
+    
+    void Residual(TPZFMatrix<REAL> &res,int icase)
+    {
+        
+        res.Redim(1,1);
+        TPZTensor<REAL> grad;
+        
+        switch(icase)
+        {
+
+            case 0:
+            {
+                TPZVec<REAL> phi(3);
+                REAL yield = 1.e6;
+                this->Compute(gRefTension,yield,phi,0);
+                res(0,0) = phi[0];
+                break;
+            }
+            case 1:
+            {
+                TPZVec<REAL> phi(3);
+                REAL yield = 1.e6;
+                this->Compute(gRefTension,yield,phi,0);
+                res(0,0) = phi[1];
+                break;
+            }
+            case 2:
+            {
+                TPZVec<REAL> phi(3);
+                REAL yield = 1.e6;
+                this->Compute(gRefTension,yield,phi,0);
+                res(0,0) = phi[2];
+                break;
+            }
+        }
+        
+    }
+    
+    
+
+
+   
 	
 };
 
@@ -321,304 +205,79 @@ template < class T>
 void TPZYCMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res, int checkForcedYield) const
 {
 	
-	TPZTensor<T> eigenval,dSigma1,dSigma2,dSigma3;
-//	sigma.EigenValue(eigenval, dSigma1, dSigma2, dSigma3);
-	sigma.Eigenvalue(eigenval, dSigma1, dSigma2, dSigma3);
-//	res.Resize(3);
-	///Yield functions livro do Chen (Plasticity for structural Engrs Eq. 2.173)
-    /*	
-    T p, q;
-    T t,cst;
-	cst =   cos( T( fPhi ) ) +  ( sin( T( fPhi ) ) * tan( T( fPhi ) ) );
-	t = tan( T( fPhi ) ); 
-	
-    p = ( eigenval.XX() + eigenval.ZZ() ) / T(2.);
-    q = ( eigenval.XX() - eigenval.ZZ() ) / T(2.);
-   res[0] = p * t + q * cst - fCoesion;
-	
-   p = ( eigenval.XX() + eigenval.YY() ) / T(2.);
-   q = ( eigenval.XX() - eigenval.YY() ) / T(2.);
-    res[1] = p * t + q * cst - fCoesion;
-	
-    p = ( eigenval.YY() + eigenval.ZZ() ) / T(2.);
-    q = ( eigenval.YY() - eigenval.ZZ() ) / T(2.);
-   res[2] = p * t + q * cst - fCoesion;
-	*/
-	T res0 = ( (tan(T(fPhi))/T(2.))*(eigenval.XX()+eigenval.ZZ()) + ((sin( T(fPhi) )*tan( T(fPhi)))/T(2.))*(eigenval.XX()-eigenval.ZZ()) + (cos(T(fPhi))/T(2.))*(eigenval.XX()-eigenval.ZZ()) -A );
-	T res1 = ( (tan(T(fPhi))/T(2.))*(eigenval.XX()+eigenval.YY()) + ((sin( T(fPhi) )*tan( T(fPhi)))/T(2.))*(eigenval.XX()-eigenval.YY()) + (cos(T(fPhi))/T(2.))*(eigenval.XX()-eigenval.YY()) -A );
-	T res2 = ( (tan(T(fPhi))/T(2.))*(eigenval.YY()+eigenval.ZZ()) + ((sin( T(fPhi) )*tan( T(fPhi)))/T(2.))*(eigenval.YY()-eigenval.ZZ()) + (cos(T(fPhi))/T(2.))*(eigenval.YY()-eigenval.ZZ()) -A );
-	
-	res[0]=res0;
-	res[1]=res1;
-	res[2]=res2;
-		
-#ifdef LOG4CXX_PLASTICITY
-	{
-		std::stringstream sout;
-		sout << "\n  MOHR-COULOMB YIELD FUNCTIONS \n"<<endl;
-		sout << "\n  sigma = \n"<< sigma <<endl;
-		sout << "\n  PHI[0] = "<<res[0]<<endl;
-		sout << "\n  PHI[1] = "<<res[1]<<endl; 
-		sout << "\n  PHI[2] = "<< res[2] << endl;
-		sout << "\n  fCoesion = "<<fCoesion<<endl;
-		sout << "\n  fPhi = "<<fPhi<<endl;
-		sout << "\n  eigenval= "<<eigenval<<endl;
-		sout << "\n  eigenval[0]= "<<eigenval.XX()<<endl;
-		sout << "\n  eigenval[1]= "<<eigenval.YY()<<endl;
-	sout << "\n  eigenval[2]= "<<eigenval.ZZ()<<endl;
-		sout << "\n  dSig1= "<<dSigma1<<endl;
-		sout << "\n  dSig2= "<<dSigma2<<endl;
-		sout << "\n  dSig3= "<<dSigma3<<endl;
-		sout << "\n\n";
-		LOGPZ_INFO(logMohr,sout.str());
-	}
-#endif
-	
+	TPZTensor<T> EigenValues,EigenVec1,EigenVec2,EigenVec3;
+  //  sigma.EigenSytem(EigenValues,EigenVec1,EigenVec2,EigenVec3);
+    T sigma1,sigma2,sigma3;
+    sigma1 = EigenValues.XX();
+    sigma2 = EigenValues.YY();
+    sigma3 = EigenValues.ZZ();
+
+    T res1,res2,res6;
+
+    res1=(sigma1 - sigma3) + (sigma1 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);//1 3
+    res6=(sigma1 - sigma2) + (sigma1 + sigma2)*sin(fPhi) - T(2.)*A*cos(fPhi);// 1 2
+    res2=(sigma2 - sigma3) + (sigma2 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);// 2 3
+    
+    res[0]=res1;
+    res[1]=res6;
+    res[2]=res2;
+    
+//    cout << "res[0] = " << res[0]<< endl;
+//    cout << "res[0] = " << res[1]<< endl;
+//    cout << "res[0] = " << res[2]<< endl;
+
 }
 
-template <class T> 
+template <class T>
 void TPZYCMohrCoulomb::N(const TPZTensor<T> & sigma,const T & A,  TPZVec<TPZTensor<T> > & Ndir, int checkForcedYield) const
 {
-	//Flow vectors feitos no mathematica baseados nas yield functions do chen
-	TPZTensor<T> eigenval,dSigma1,dSigma2,dSigma3;
-	//sigma.EigenValue(eigenval, dSigma1, dSigma2, dSigma3);
-	sigma.Eigenvalue(eigenval, dSigma1, dSigma2, dSigma3);
-	Ndir.Resize(3);
-	
+    
+    TPZTensor<T> EigenValues, EigenVec1,EigenVec2,EigenVec3;
+  //  sigma.EigenSytem(EigenValues,EigenVec1,EigenVec2,EigenVec3);
+    
+    T umplussin,umminsin;
+    TPZTensor<T> e1(EigenVec1),e3(EigenVec3),e1b(EigenVec1),e2b(EigenVec2),e2c(EigenVec2),e3c(EigenVec3);
+    umplussin = 1.+sin(fPhi);
+    umminsin = 1.-sin(fPhi);
+    
+    //phi1 = 0
+    //( 1 + sin(phi) )* e1 x e1 - ( 1 - sin(phi) )* e3 x e3
+    e1*=umplussin;
+    e3*=umminsin;
+    e1-=e3;
+    Ndir[0]=e1;
 
-	T temp1N1, temp2N1, temp3N1;
-	TPZTensor<T> tensorTemp1N1(dSigma1),tensorTemp2N1(dSigma1),tensorTemp3N1(dSigma1);
-	//((Dsig1 - Dsig3)*Cos(phi))/2. + ((Dsig1 + Dsig3)*Tan(phi))/2. + ((Dsig1 - Dsig3)*Sin(phi)*Tan(phi))/2.
-	//Ndir[0]
-	temp1N1 = (sin(T(fPhi))*tan(T(fPhi)))/T(2.);
-	temp2N1 = tan(T(fPhi))/T(2.);
-	temp3N1 = cos(T(fPhi))/T(2.);
-	
-	//PART 1
-	
-	tensorTemp1N1.Add(dSigma3, T(-1));
-	tensorTemp1N1.Multiply(temp1N1, T(1.));
-	
-	//PART 2
-	
-	tensorTemp2N1.Add(dSigma3,T(1));
-	tensorTemp2N1.Multiply(temp2N1, T(1.));
-	
-	//PART 3
-	
-	tensorTemp3N1.Add(dSigma3, T(-1));
-	tensorTemp3N1.Multiply(temp3N1, T(1.));
-	
-	tensorTemp1N1.Add(tensorTemp2N1, T(1));
-	tensorTemp1N1.Add(tensorTemp3N1, T(1));
-	
-	tensorTemp1N1.Multiply(T(1.), T(1.));
-	
-	Ndir[0] = tensorTemp1N1;
-	
-	//Ndir[1]
-	T temp1N2, temp2N2, temp3N2;
-	TPZTensor<T> tensorTemp1N2(dSigma1),tensorTemp2N2(dSigma1),tensorTemp3N2(dSigma1);
-	
-	temp1N2 = (sin(T(fPhi))*tan(T(fPhi)))/T(2.);
-	temp2N2 = tan(T(fPhi))/T(2.);
-	temp3N2 = cos(T(fPhi))/T(2.);
-	
-	//PART 1
-	
-	tensorTemp1N2.Add(dSigma2, T(-1));
-	tensorTemp1N2.Multiply(temp1N2, T(1.));
-	
-	//PART 2
-	
-	tensorTemp2N2.Add(dSigma2,T(1));
-	tensorTemp2N2.Multiply(temp2N2, T(1.));
-	
-	//PART 3
-	
-	tensorTemp3N2.Add(dSigma2, T(-1));
-	tensorTemp3N2.Multiply(temp3N2, T(1.));
-	
-	tensorTemp1N2.Add(tensorTemp2N2, T(1));
-	tensorTemp1N2.Add(tensorTemp3N2, T(1));
-	
-	tensorTemp1N2.Multiply(T(1.), T(1.));
-	
-	Ndir[1] = tensorTemp1N2;
-	
-	
-	//Ndir[2]
-	T temp1N3, temp2N3, temp3N3;
-	TPZTensor<T> tensorTemp1N3(dSigma2),tensorTemp2N3(dSigma2),tensorTemp3N3(dSigma2);
-	
-	temp1N3 = (sin(T(fPhi))*tan(T(fPhi)))/T(2.);
-	temp2N3 = tan(T(fPhi))/T(2.);
-	temp3N3 = cos(T(fPhi))/T(2.);
-	
-	//PART 1
-	
-	tensorTemp1N3.Add(dSigma3, T(-1));
-	tensorTemp1N3.Multiply(temp1N3, T(1.));
-	
-	//PART 2
-	
-	tensorTemp2N3.Add(dSigma3,T(1));
-	tensorTemp2N3.Multiply(temp2N3, T(1.));
-	
-	//PART 3
-	
-	tensorTemp3N3.Add(dSigma3, T(-1));
-	tensorTemp3N3.Multiply(temp3N3, T(1.));
-	
-	tensorTemp1N3.Add(tensorTemp2N3, T(1));
-	tensorTemp1N3.Add(tensorTemp3N3, T(1));
-	
-	tensorTemp1N3.Multiply(T(1.), T(1.));
-	
-	Ndir[2] = tensorTemp1N3;
-	
-	/*
-	//(-   (  Dsig1 * Cos(phi)  ) + Dsig3 * Cos(phi)  )/2. + (   (Dsig1 + Dsig3)/2. + (     Dsig1*Sin(phi) - Dsig3*Sin(phi)   )/2.   )*Tan(phi)
-	TPZTensor<T> DSIG1(dSigma1),DSIG2(dSigma2),DSIG3(dSigma3);
-	TPZTensor<T> DSIG11(dSigma1),DSIG22(dSigma2),DSIG33(dSigma3);
-	TPZTensor<T> DSIG111(dSigma1),DSIG222(dSigma2),DSIG333(dSigma3);
+    //phi6 =0 right
+    //( 1 + sin(phi) )* e1 x e1 - ( 1 - sin(phi) )* e2 x e2
+    e1b*=umplussin;
+    e2b*=umminsin;
+    e1b-=e2b;
+    Ndir[1]=e1b;
+    
+    
+    //phi2 = 0 left
+     //( 1 + sin(phi) )* e2 x e2 - ( 1 - sin(phi) )* e3 x e3
+    e2c*=umplussin;
+    e3c*=umminsin;
+    e2c-=e3c;
+    Ndir[2]=e2c;
+    
+//    cout << "NDIR 0 = "<< Ndir[0]<< endl;
+//    cout << "NDIR 1 = "<< Ndir[1]<< endl;
+//    cout << "NDIR 2 = "<< Ndir[2]<< endl;
 
-	//PARTE1//(-(Dsig1*Cos(phi)) + Dsig3*Cos(phi))/2.
-	T Cos = (cos( T(fPhi) ) ) / 2.;
-	DSIG1.Multiply(Cos,T(-1.));
-	DSIG3.Multiply(Cos,T(1.));
-	DSIG1.Add(DSIG3, T(1));
-	TPZTensor<T> PART1(DSIG1);
-	//PARTE2 ((Dsig1 + Dsig3)/2. + ( Dsig1*Sin(phi) - Dsig3*Sin(phi) )/2.)*Tan(phi)
-	DSIG11.Add(DSIG33, T(1));
-	DSIG11.Multiply(T(0.5), T(1.));
-	DSIG111.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	DSIG333.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	DSIG111.Add(DSIG333,T(-1));
-	DSIG11.Add(DSIG111,T(1));
-	DSIG11.Multiply(tan(T(fPhi)), T(1.));
-	TPZTensor<T> PART2(DSIG11);
-	//PARTE1 + PARTE 2
-	PART1.Add(PART2, T(1));
-	
-	PART1.Multiply(T(1.), T(-1.));
-	Ndir[0] = PART1;
-	
-	TPZTensor<T> N1DSIG1(dSigma1),N1DSIG2(dSigma2),N1DSIG3(dSigma3);
-	TPZTensor<T> N1DSIG11(dSigma1),N1DSIG22(dSigma2),N1DSIG33(dSigma3);
-	TPZTensor<T> N1DSIG111(dSigma1),N1DSIG222(dSigma2),N1DSIG333(dSigma3);
-	
-	//PARTE1//(-(Dsig1*Cos(phi)) + Dsig3*Cos(phi))/2.
-	N1DSIG1.Multiply(Cos,T(-1.));
-	N1DSIG2.Multiply(Cos,T(1.));
-	N1DSIG1.Add(N1DSIG2, T(1));
-	TPZTensor<T> N1PART1(N1DSIG1);
-	//PARTE2 ((Dsig1 + Dsig3)/2. + ( Dsig1*Sin(phi) - Dsig3*Sin(phi) )/2.)*Tan(phi)
-	N1DSIG11.Add(N1DSIG22, T(1));
-	N1DSIG11.Multiply(T(0.5), T(1.));
-	N1DSIG111.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	N1DSIG222.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	N1DSIG111.Add(N1DSIG222,T(-1));
-	N1DSIG11.Add(N1DSIG111,T(1));
-	N1DSIG11.Multiply(tan(T(fPhi)), T(1.));
-	TPZTensor<T> N1PART2(N1DSIG11);
-	//PARTE1 + PARTE 2
-	N1PART1.Add(N1PART2, T(1));
-	N1PART1.Multiply(T(1.), T(-1.));
-	Ndir[1]=N1PART1;
-	
-	TPZTensor<T> N2DSIG1(dSigma1),N2DSIG2(dSigma2),N2DSIG3(dSigma3);
-	TPZTensor<T> N2DSIG11(dSigma1),N2DSIG22(dSigma2),N2DSIG33(dSigma3);
-	TPZTensor<T> N2DSIG111(dSigma1),N2DSIG222(dSigma2),N2DSIG333(dSigma3);
-	
-	//PARTE1//(-(Dsig1*Cos(phi)) + Dsig3*Cos(phi))/2.
-	N2DSIG2.Multiply(Cos,T(-1.));
-	N2DSIG3.Multiply(Cos,T(1.));
-	N2DSIG2.Add(N2DSIG3, T(1));
-	TPZTensor<T> N2PART1(N2DSIG2);
-	//PARTE2 ((Dsig1 + Dsig3)/2. + ( Dsig1*Sin(phi) - Dsig3*Sin(phi) )/2.)*Tan(phi)
-	N2DSIG22.Add(N2DSIG33, T(1));
-	N2DSIG22.Multiply(T(0.5), T(1.));
-	N2DSIG222.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	N2DSIG333.Multiply(sin(T(fPhi))/T(2.), T(1.));
-	N2DSIG222.Add(N2DSIG333,T(-1));
-	N2DSIG22.Add(N2DSIG222,T(1));
-	N2DSIG22.Multiply(tan(T(fPhi)), T(1.));
-	TPZTensor<T> N2PART2(N2DSIG22);
-	//PARTE1 + PARTE 2
-	N2PART1.Add(N2PART2, T(1));
-	N2PART1.Multiply(T(1.), T(-1.));
-	Ndir[2]=N2PART1;
-	*/
-	
-//	feclearexcept(FE_ALL_EXCEPT);
-//	int Bool = fetestexcept(FE_ALL_EXCEPT);
-//	Bool = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW );
-//	if(Bool)
-//	{
-//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-//		DebugStop();
-//	}
-	
-	
-	//TPZTensor<T> DSig1PlusDSig3(dSigma1),DSig1PlusDSig2(dSigma1),DSig2PlusDSig3(dSigma2),DSig1MinDSig3(dSigma1),DSig1MinDSig2(dSigma1),DSig2MinDSig3(dSigma2);
-//	
-//	DSig1PlusDSig3.Add(dSigma3,T(1));
-//	DSig1PlusDSig2.Add(dSigma2,T(1));
-//	DSig2PlusDSig3.Add(dSigma3,T(1));
-//	
-//	DSig1MinDSig3.Add(dSigma3,T(-1));
-//	DSig1MinDSig2.Add(dSigma2,T(-1));
-//	DSig2MinDSig3.Add(dSigma3,T(-1));
-//	
-//	T temp1,temp2;
-//	
-//	temp1 = (tan( T(fPhi) ) ) / 2.;
-//	temp2 = ( cos( T( fPhi ) ) + (sin( T(fPhi) ) * tan( T( fPhi ) )) )/ 2.;
-//	
-//	
-//	
-//	//T tan2(tan(fPhi)),sintan(T(sin(fPhi))*T(tan(fPhi)));
-//	
-//	DSig1PlusDSig3.Multiply(temp1,T(1.));
-//	DSig1PlusDSig2.Multiply(temp1,T(1.));
-//	DSig2PlusDSig3.Multiply(temp1,T(1.));
-//	
-//	
-//	DSig1MinDSig3.Multiply(temp2,T(1.));
-//	DSig1MinDSig2.Multiply(temp2,T(1.));
-//	DSig2MinDSig3.Multiply(temp2,T(1.));
-//	
-//	
-//	DSig1PlusDSig3.Add(DSig1MinDSig3,T(1));
-//	DSig1PlusDSig2.Add(DSig1MinDSig2,T(1));
-//	DSig2PlusDSig3.Add(DSig2MinDSig3,T(1));
-//	
-//	Ndir[0] = DSig1PlusDSig3;
-//	Ndir[1] = DSig1PlusDSig2;
-//	Ndir[2] = DSig2PlusDSig3;
-	
-//	
-//#ifdef LOG4CXX_PLASTICITY
-//	{
-//		std::stringstream sout;
-//		sout << "\n MOHR-COULOMB FLOW TENSORS ( N )  \n"<<endl;
-//		sout << "N[0] = "<<Ndir[0]<<endl;
-//		sout << "N[1] = "<<Ndir[1]<<endl; 
-//		sout << "N[2] = "<<Ndir[2] << endl;
-//		LOGPZ_INFO(logMohr,sout.str());
-//	}
-//#endif
-	
+    
 }
 
 template <class T>
 void TPZYCMohrCoulomb::H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield) const
 {
-	//h.Resize(3);
-	h[0] = cos(A);
-	h[1] = cos(A);
-	h[2] = cos(A);
+    
+    h[0]=2*cos(fPhi);
+    h[1]=2*cos(fPhi);
+    h[2]=2*cos(fPhi);
+ 
+    
 }
 
-#endif 
+#endif

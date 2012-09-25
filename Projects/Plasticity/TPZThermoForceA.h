@@ -66,8 +66,9 @@ T TPZThermoForceA::Compute(const T & alpha) const
   //  T val = T(fSigmaYield0)*(exp(alpha/T(0.1))*exp(alpha/T(0.1)));
   //  T val2 =  val;
   //  return val2;
-	T var = T(fK) * alpha; 
-    return T(fSigmaYield0) + var;
+//	T var = T(fK) * alpha;
+//    return T(fSigmaYield0) + var;
+     return T(fSigmaYield0) + T(fK) * alpha;
 }
 
 template < class T >

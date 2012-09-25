@@ -36,6 +36,7 @@
 #include "pzelastoplastic2D.h"
 #include "tpzycvonmisescombtresca.h"
 #include "TPZMohrCoulombNeto.h"
+#include "TPZSandlerDimaggio.h"
 
 /////////
 
@@ -60,75 +61,138 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 #endif
 
 
-int main()
-{
-    InitializePZLOG();
-      ofstream outfiletxt("MohrNetox.txt");
-    ofstream outfiletxty("MohrNetoy.txt");
-    //   MohrCoulombTestX();
-    //   calctalude();
-    //   calcVonMisesBar();
-    TPZMohrCoulombNeto toto;
-    TPZTensor<REAL> epstotal,sigma,epsplastic;
-    TPZFNMatrix<36,REAL> tangent(6,6);
-    REAL deltaeps =0.00005;
-    epstotal.XX() = deltaeps;
-    
-
-    for(int i =1;i<160;i++)
-    {
-        cout << "\n i = "<<i<<endl;
-        TPZMohrCoulombNeto::TComputeSequence memory;
-        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
-        //toto.CommitDeformation(epstotal,memory);
-        epstotal.XX()+=deltaeps;
-        //epsplastic=toto.fState.fEpsPlastic;
-        outfiletxty << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
-        if(i==50 || i==80)
-        {
-            deltaeps*=-1;
-        }
-        
-    }
-    
-    
-    do {
-        TPZMohrCoulombNeto::TComputeSequence memory;
-        memory = toto.ComputeSigma(epstotal, sigma );
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            sout << "Deformation tensor ";
-            epstotal.Print(sout);
-            sout << "Stress tensor " << sigma;
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-        
-        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
-        toto.CommitDeformation(epstotal, memory);
-#ifdef LOG4CXX
-        {
-            std::stringstream sout;
-            sout << "Total deformation tensor ";
-            epstotal.Print(sout);
-            sout << "Stress tensor " << sigma;
-            tangent.Print("Tangent stress",sout);
-            toto.Print(sout);
-            LOGPZ_DEBUG(logger, sout.str())
-        }
-#endif
-        epstotal.XX() += deltaeps;
-      
-        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
-        
-        
-    
-    } while (epstotal.XX() < 0.0035);
-    return 0;
-    
-    
-}
+//int main()
+//{
+//    
+//    
+//    TPZSandlerDimaggio sandler;
+//    sandler.McCormicRanchSand(sandler);
+//    ofstream outfiletxty("MohrNetoy.txt");
+//        ofstream outfiletxtS("SandlerApplyLoad.txt");
+//    TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+//    
+//    
+//    sandler.fIntegrTol = 1.e-12;
+//    sandler.SetIntegrTol(1.e-4);
+//    
+//    deltaeps.XX()= -0.0013;
+//    deltaeps.YY()=0;
+//    deltaeps.ZZ()=0;
+//    eps=deltaeps;
+//    
+//    
+//    for(int i=0;i<100;i++)
+//    {
+//        
+//        sandler.ApplyStrainComputeSigma(eps, sigma);
+//       // sandler.ApplyLoad(sigma, eps);
+//        
+//        TPZPlasticState<REAL> state = sandler.GetState();
+//        //state.Print(cout);
+//        if(i==49)
+//        {
+//            deltaeps*=-1;
+//        }
+//        
+//        outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+//        eps+=deltaeps;
+//    }
+//    
+//    TPZSandlerDimaggio sandler2;
+//    sandler2.McCormicRanchSand(sandler2);
+//    sandler2.SetIntegrTol(0.0000001);
+//    deltaeps.XX()= 1.5*-0.065;
+//    deltaeps.YY()=0;
+//    deltaeps.ZZ()=0;
+//    eps=deltaeps;
+//    sandler2.ApplyStrainComputeSigma(eps, sigma);
+//    //outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+//
+//    ///TESTE DE COMPRESSAO SIMPLES
+//    deltasigma.XX()=-0.8;
+//    deltasigma.YY()=deltasigma.XX()*0.6;
+//    deltasigma.ZZ()=deltasigma.YY();
+//    sigma=deltasigma;
+//    
+//    TPZSandlerDimaggio sandler3;
+//    sandler3.McCormicRanchSand(sandler3);
+//    
+//    for(int i=0;i<1;i++)
+//    {
+//        sandler3.ApplyLoad(sigma,eps);
+//        outfiletxtS << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+//         sigma+=deltasigma;
+//    }
+//    
+//    /*
+//    
+//    InitializePZLOG();
+//      ofstream outfiletxt("MohrNetox.txt");
+//    ofstream outfiletxty("MohrNetoy.txt");
+//    //   MohrCoulombTestX();
+//    //   calctalude();
+//    //   calcVonMisesBar();
+//    TPZMohrCoulombNeto toto;
+//    TPZTensor<REAL> epstotal,sigma,epsplastic;
+//    TPZFNMatrix<36,REAL> tangent(6,6);
+//    REAL deltaeps =0.00005;
+//    epstotal.XX() = deltaeps;
+//    TPZFMatrix<REAL> curve(7,2);
+//
+//    for(int i =1;i<360;i++)
+//    {
+//        cout << "\n i = "<<i<<endl;
+//        TPZMohrCoulombNeto::TComputeSequence memory;
+//        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
+//        toto.CommitDeformation(epstotal,memory);
+//        epstotal.XX()+=deltaeps;
+//        //epsplastic=toto.fState.fEpsPlastic;
+//        outfiletxty << epstotal.XX() << " " << sigma.XX() << "\n";
+//        if(i==50 || i==80)
+//        {
+//            deltaeps*=-1;
+//        }
+//        
+//    }
+//    
+//    
+//    do {
+//        TPZMohrCoulombNeto::TComputeSequence memory;
+//        memory = toto.ComputeSigma(epstotal, sigma );
+//#ifdef LOG4CXX
+//        {
+//            std::stringstream sout;
+//            sout << "Deformation tensor ";
+//            epstotal.Print(sout);
+//            sout << "Stress tensor " << sigma;
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//#endif
+//        
+//        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
+//        toto.CommitDeformation(epstotal, memory);
+//#ifdef LOG4CXX
+//        {
+//            std::stringstream sout;
+//            sout << "Total deformation tensor ";
+//            epstotal.Print(sout);
+//            sout << "Stress tensor " << sigma;
+//            tangent.Print("Tangent stress",sout);
+//            toto.Print(sout);
+//            LOGPZ_DEBUG(logger, sout.str())
+//        }
+//#endif
+//        epstotal.XX() += deltaeps;
+//      
+//        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+//        
+//        
+//    
+//    } while (epstotal.XX() < 0.0035);
+//    return 0;
+//    */
+//    
+//}
 
 void calcVonMisesBar()
 {
@@ -285,9 +349,7 @@ void calctalude()
 	PPAnalysis.PostProcess(0);
 	PPAnalysis.CloseGraphMesh();
 	
-    
-    
-    
+
 }
 
 
@@ -573,6 +635,8 @@ void MohrCoulombTestX()
 {
 	
 	
+    
+    
 	ofstream outfiletxt("DPInTriaxialCompression.txt");
 	
 	TPZTensor<REAL> stress, strain, deltastress, deltastrain;
@@ -641,6 +705,4 @@ void MohrCoulombTestX()
 	
 	
 }
-
-
 

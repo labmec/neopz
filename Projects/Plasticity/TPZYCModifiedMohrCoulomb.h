@@ -94,230 +94,23 @@ public:
      */
     template <class T>
     void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
-    
-    
-    
-    //////////////////CheckConv related methods/////////////////////
-    
-    /** @brief Number of types of residuals */
-    int NumCases()
-    {
-        return 9;
-    }
-    TPZTensor<REAL> gRefTension;
-    
-    /** @brief LoadState will keep a given state as static variable of the class */
-    void LoadState(TPZFMatrix<REAL> &state)
-    {
-        int i;
-        for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
-    }
-    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
-    {
-        switch(icase)
-        {
-            case 0:
-            {
-                TPZTensor<REAL> grad;
-                this->gRefTension.dJ2(grad);
-                tangent.Redim(1,6);
-                int i;
-                for(i=0; i<6; i++)
-                {
-                    tangent(0,i) = grad.fData[i];
-                }
-                break;
-            }
-                
-            case 1:
-            {
-                TPZTensor<REAL> grad;
-                this->gRefTension.dJ3(grad);
-                tangent.Redim(1,6);
-                int i;
-                for(i=0; i<6; i++)
-                {
-                    tangent(0,i) = grad.fData[i];
-                }
-                break;
-            }
-            case 2:
-            {
-                
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = dSigma1.fData[i];
-                }
-                break;
-            }
-            case 3:
-            {
-                
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = dSigma2.fData[i];
-                }
-                break;
-            }
-            case 4:
-            {
-                
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma3);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = dSigma3.fData[i];
-                }
-                break;
-            }
-            case 5:
-            {
-                TPZVec<TPZTensor<REAL> > Ndir(3);
-                REAL yield = 1.e6;
-                this->N<REAL>(gRefTension,yield, Ndir, 0);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = Ndir[0].fData[i];
-                }
-                break;
-            }
-            case 6:
-            {
-                TPZVec<TPZTensor<REAL> > Ndir(3);
-                REAL yield = 1.e6;
-                this->N<REAL>(gRefTension,yield, Ndir, 0);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = Ndir[1].fData[i];
-                }
-                break;
-            }
-            case 7:
-            {
-                TPZVec<TPZTensor<REAL> > Ndir(3);
-                REAL yield = 1.e6;
-                this->N<REAL>(gRefTension,yield, Ndir, 0);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = Ndir[2].fData[i];
-                }
-                break;
-            }
-            case 8:
-            {
-                REAL lode;
-                TPZTensor<REAL> gradlode;
-                gRefTension.Lodeangle(gradlode,lode);
-                tangent.Redim(1,6);
-                for(int i=0; i<6; i++)
-                {
-                    tangent(0,i) = gradlode.fData[i];
-                }
-                break;
-            }
-        }
-    }
-    
-    void Residual(TPZFMatrix<REAL> &res,int icase)
-    {
-        
-        res.Redim(1,1);
-        TPZTensor<REAL> grad;
-        
-        switch(icase)
-        {
-            case 0:
-            {
-                res(0,0) = gRefTension.J2();
-                break;
-            }
-            case 1:
-            {
-                res(0,0) = gRefTension.J3();
-                break;
-            }
-            case 2:
-            {
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-                res(0,0) = autovalores.XX();
-                break;
-            }
-            case 3:
-            {
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-                res(0,0) = autovalores.YY();
-                break;
-            }
-            case 4:
-            {
-                TPZTensor<REAL> autovalores,dSigma1,dSigma2,dSigma3;
-                gRefTension.Eigenvalue(autovalores,dSigma1,dSigma2,dSigma2);
-                res(0,0) = autovalores.ZZ();
-                break;
-            }
-            case 5:
-            {
-                TPZVec<REAL> phi(3);
-                REAL yield = 1.e6;
-                this->Compute(gRefTension,yield,phi,0);
-                res(0,0) = phi[0];
-                break;
-            }
-            case 6:
-            {
-                TPZVec<REAL> phi(3);
-                REAL yield = 1.e6;
-                this->Compute(gRefTension,yield,phi,0);
-                res(0,0) = phi[1];
-                break;
-            }
-            case 7:
-            {
-                TPZVec<REAL> phi(3);
-                REAL yield = 1.e6;
-                this->Compute(gRefTension,yield,phi,0);
-                res(0,0) = phi[2];
-                break;
-            }
-            case 8:
-            {
-                REAL lode;
-                TPZTensor<REAL> gradlode;
-                gRefTension.Lodeangle(gradlode,lode);
-                res(0,0) = lode;
-                break;
-            }
-        }
-        
-    }
-    
-    
-    //////////////////CheckConv related methods/////////////////////
-    
+
     
 public:
     
     REAL fPhi;
     
+    
 protected:
     
     REAL fCoesion,fPi;
+public:
+
     
 };
 
-static bool fFlag,fFlag1,fFlag2;
+ static bool fFlag,fFlag1,fFlag2;
+
 
 template < class T>
 void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &res, int checkForcedYield) const
@@ -331,19 +124,23 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
     sigma3 = eigenval.ZZ();
     T res0,res1,res2;
     //
-    T debug = T(2.)*A*cos(fPhi);
+   // T debug = T(2.)*A*cos(fPhi);
     res0=(sigma1 - sigma3) + (sigma1 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);
     res1=(sigma2 - sigma3) + (sigma2 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);
     res2=(sigma1 - sigma2) + (sigma1 + sigma2)*sin(fPhi) - T(2.)*A*cos(fPhi);
+   // cout << " res0 " <<res0 << endl;
+
+    fFlag=false;
+    fFlag1=false;
+    fFlag2=false;
     
-    
-    if(res0 >=T(0.) && res1 <T(0.) && res2<T(0.))
+    if(shapeFAD::val(res0) >= 0. && shapeFAD::val(res1) < 0. && shapeFAD::val(res2) < 0.)
     {
         res[0]=(sigma1 - sigma3) + (sigma1 + sigma3)*sin(fPhi) - T(2.)*A*cos(fPhi);
         fFlag =true;
         return;
     }
-    if(res0 >=T(0.) && res1 <T(0.) && res2 >T(-0.1))
+    if(shapeFAD::val(res0) >=0. && shapeFAD::val(res1) < 0. && shapeFAD::val(res2) > -1.)
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.+sin(fPhi))));//INNER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.+sin(fPhi))));//INNER
@@ -356,7 +153,7 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
         return;
     }
     
-    if(res0 >=T(0.) && res1 > T(-0.1) && res2<T(0.))
+    if(shapeFAD::val(res0) >=0. && shapeFAD::val(res1) > -1. && shapeFAD::val(res2)< 0.)
     {
         T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.-sin(fPhi))));//OUTER
         T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.-sin(fPhi))));//OUTER
@@ -369,8 +166,56 @@ void TPZYCModifiedMohrCoulomb::Compute(const TPZTensor<T> & sigma, const T & A,T
         return;
     }
     
-    res[0]=res0;
-    fFlag =true;
+    if(shapeFAD::val(res0) > shapeFAD::val(res1) && shapeFAD::val(res0) > shapeFAD::val(res2))
+    {
+        res[0]=res0;
+        fFlag =true;
+        return;
+    }
+    
+    if(shapeFAD::val(res1) > shapeFAD::val(res0) && shapeFAD::val(res1) > shapeFAD::val(res2))
+    {
+        T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.+sin(fPhi))));//INNER
+        T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.+sin(fPhi))));//INNER
+        T I1,J2,p;
+        I1 = sigma.I1();
+        J2 = sigma.J2();
+        p = I1 / T(3.);
+        res[0] =  sqrt( J2 ) + p * T(Eta) - A * T(Ksi);
+        fFlag1 =true;
+        return;
+    }
+    if(shapeFAD::val(res2) > shapeFAD::val(res0) &&  shapeFAD::val(res2) >shapeFAD::val(res1))
+    {
+        T Eta = T(6. * sin(fPhi)/(sqrt(3.)*(3.-sin(fPhi))));//OUTER
+        T Ksi = T(6. * cos(fPhi)/(sqrt(3.) * (3.-sin(fPhi))));//OUTER
+        T I1,J2,p;
+        I1 = sigma.I1();
+        J2 = sigma.J2();
+        p = I1 / T(3.);
+        res[0] =  sqrt( J2 ) + p * T(Eta) - A * T(Ksi);
+        fFlag2 =true;
+        return;
+
+    }
+    
+    //res[0]=res0;
+    //fFlag =true;
+    
+    feclearexcept(FE_ALL_EXCEPT);
+	int Res = fetestexcept(FE_ALL_EXCEPT);
+	if(Res)
+	{
+		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+		DebugStop();
+	}
+	
+	Res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW);
+	if(Res)
+	{
+		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+		DebugStop();
+	}
     
 }
 

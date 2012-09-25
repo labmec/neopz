@@ -97,7 +97,13 @@ public:
   template <class T>
   void H(const TPZTensor<T> & sigma,const T & A,  TPZVec<T> & h, int checkForcedYield = 0) const;
 
+    
+public:
+
+    
 };
+
+
 
 inline TPZYCVonMisesCombTresca::TPZYCVonMisesCombTresca() : fVonMises(), fTresca()
 {

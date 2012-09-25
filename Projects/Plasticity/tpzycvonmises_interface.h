@@ -8,7 +8,6 @@ public:
     TPZYCVonMisesInterface() {}
     virtual ~TPZYCVonMisesInterface() {}
 
-
 private:
     TPZYCVonMisesInterface( const TPZYCVonMisesInterface& source );
     void operator = ( const TPZYCVonMisesInterface& source );

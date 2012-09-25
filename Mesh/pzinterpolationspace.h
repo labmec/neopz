@@ -63,7 +63,7 @@ public:
 	 */
 	virtual void Shape(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) = 0;
 	
-    private:
+    //private:
     
 	/** @brief Compute shape functions based on master element in the classical FEM manner. */
 	virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X, TPZFMatrix<REAL> &jacobian, TPZFMatrix<REAL> &axes,

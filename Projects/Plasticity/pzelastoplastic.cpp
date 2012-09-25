@@ -653,7 +653,7 @@ void TPZMatElastoPlastic<T,TMEM>::ContributeBC(TPZMaterialData &data,
 #endif
   TPZFMatrix<REAL> &phi = data.phi;
 
-  const REAL BIGNUMBER  = 1.e12;
+  const REAL BIGNUMBER  = 1.e16;
 	
   int dim = Dimension();
   int nstate = NStateVariables();
@@ -1098,6 +1098,11 @@ void TPZMatElastoPlastic<T,TMEM>::FillBoundaryConditionDataRequirement(int type,
 #include "TPZWillamWarnke.h"
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
+#include "TPZYCModifiedMohrCoulomb.h"
+#include "TPZModifiedMohrCoulomb.h"
+
+template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic<TPZModifiedMohrCoulomb>;
 
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZWillamWarnke>;
@@ -1122,3 +1127,4 @@ template class TPZMatElastoPlastic<TPZVonMises>;
 template class TPZMatElastoPlastic<TPZLadeKim, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZSandlerDimaggio, TPZPoroElastoPlasticMem>;
 template class TPZMatElastoPlastic<TPZPlasticStep<TPZYCDruckerPrager, TPZThermoForceA, TPZElasticResponse> , TPZPoroElastoPlasticMem>;
+

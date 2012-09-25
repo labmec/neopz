@@ -11,7 +11,8 @@
 
 //$Id: pzelastoplastic.cpp,v 1.33 2010-10-18 15:37:59 diogo Exp $
 
-
+#include "TPZModifiedMohrCoulomb.h"
+#include "TPZYCModifiedMohrCoulomb.h"
 #include "pzelastoplastic.h"
 #include "pzmaterialid.h"
 #include "poroelastoplasticid.h"
@@ -120,23 +121,29 @@ void TPZMatElastoPlastic2D<T,TMEM>::Contribute(TPZMaterialData &data, REAL weigh
 	TPZFNMatrix<3>  DeltaStrain(3,1);
 	TPZFNMatrix<3>  Stress(3,1);
 
-    
-	feclearexcept(FE_ALL_EXCEPT);
-	int res = fetestexcept(FE_ALL_EXCEPT);
-	if(res)
-	{
-		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-		DebugStop();
-	}
-	
+ 
+//	feclearexcept(FE_ALL_EXCEPT);
+//	int res = fetestexcept(FE_ALL_EXCEPT);
+//	if(res)
+//	{
+//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+//		DebugStop();
+//	}
+//	
 	this->ComputeDeltaStrainVector(data, DeltaStrain);
-	res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW);
-	if(res)
-	{
-		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
-		DebugStop();
-	}
+//	res = fetestexcept(FE_DIVBYZERO | FE_UNDERFLOW | FE_OVERFLOW);
+//	if(res)
+//	{
+//		std::cout << " \n " << __PRETTY_FUNCTION__ <<"\n NAN DETECTED \n";
+//		DebugStop();
+//	}
 	this->ApplyDeltaStrainComputeDep(data, DeltaStrain, Stress, Dep);
+    
+    feclearexcept(FE_ALL_EXCEPT);
+    if(fetestexcept(/*FE_DIVBYZERO*/ FE_ALL_EXCEPT	)) {
+        std::cout << "division by zero reported\n";
+        DebugStop();
+    }
 	
 #ifdef LOG4CXX
 	{
@@ -429,6 +436,11 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out, const int memory)
 #include "TPZWillamWarnke.h"
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
+#include "TPZYCModifiedMohrCoulomb.h"
+#include "TPZModifiedMohrCoulomb.h"
+
+template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
+template class TPZMatElastoPlastic2D<TPZModifiedMohrCoulomb>;
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZWillamWarnke>;

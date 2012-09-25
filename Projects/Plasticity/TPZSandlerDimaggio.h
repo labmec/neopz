@@ -26,7 +26,7 @@ public:
 
     TPZSandlerDimaggio(REAL alpha=0./*-1.e-9*/):SANDLERDIMAGGIOPARENT(alpha) // avoiding nan
     {
-		fMaterialTensionSign = 1;
+		fMaterialTensionSign = 1;//Quando este numero for positivo carremento de compressao e negativo
     }
 
     TPZSandlerDimaggio(const TPZSandlerDimaggio & source):SANDLERDIMAGGIOPARENT(source)

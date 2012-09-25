@@ -61,7 +61,7 @@ public:
 	 */
 	
     TPZPlasticStep(REAL alpha=0.):fYC(), fTFA(), fER(), fResTol(1.e-12),
-	fIntegrTol(1.e-4), fMaxNewton(30), fMinLambda(1.), 
+	fIntegrTol(1.e-4), fMaxNewton(30), fMinLambda(1.),
 	fMinStepSize(1.e-3), fN(), fPlasticMem(),
 	fMaterialTensionSign(1), fInterfaceTensionSign(1)
 	{ fN.fAlpha = alpha; }

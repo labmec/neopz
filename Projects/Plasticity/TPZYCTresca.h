@@ -214,8 +214,11 @@ protected:
     }
 
 //////////////////CheckConv related methods/////////////////////
+public:
+
 
 };
+
 
 template < class T>
 void TPZYCTresca::Compute(const TPZTensor<T> & sigma, const T & A,TPZVec<T> &result, int checkForcedYield) const

@@ -261,8 +261,12 @@ public:
    CheckConvergence(YCLadeKim, sigma, Range, Coefs);
 }
 //////////////////CheckConv related methods/////////////////////
+    
+public:
+ 
 
 };
+
 
 template <class T>
 inline void TPZYCLadeKim::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const

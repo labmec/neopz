@@ -131,7 +131,89 @@ public:
 	REAL fKsi, fEta;
 
 	//////////////////CheckConv related methods/////////////////////
+    
+    
+    /** @brief Number of types of residuals */
+    int NumCases()
+    {
+        return 2;
+    }
+    TPZTensor<REAL> gRefTension;
+    
+    /** @brief LoadState will keep a given state as static variable of the class */
+    void LoadState(TPZFMatrix<REAL> &state)
+    {
+        int i;
+        for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+    }
+    void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
+    {
+        switch(icase)
+        {
+            case 0:
+            {
+                TPZVec<TPZTensor<REAL> > Ndir(1);
+                REAL yield = 1.e6;
+                this->N<REAL>(gRefTension,yield, Ndir, 0);
+                //this->SetUp(20.,0);
+                tangent.Redim(1,6);
+                for(int i=0; i<6; i++)
+                {
+                    tangent(0,i) = Ndir[0].fData[i];
+                }
+                break;
+            }
+            case 1:
+            {
+                TPZTensor<REAL> dj2;
+                gRefTension.dJ2(dj2);
+                tangent.Redim(1,6);
+                for(int i=0; i<6; i++)
+                {
+                    tangent(0,i) = dj2.fData[i];
+                }
+                break;
+                
+            }
+                
+        }
+    }
+    
+    void Residual(TPZFMatrix<REAL> &res,int icase)
+    {
+        
+        res.Redim(1,1);
+        
+        switch(icase)
+        {
+                
+            case 0:
+            {
+                TPZVec<REAL> phi(1);
+                REAL yield = 1.e6;
+                //this->SetUp(20.,0);
+                this->Compute(gRefTension,yield,phi,0);
+                res(0,0) = phi[0];
+                break;
+            }
+            case 1:
+            {
+             
+                REAL j2 = gRefTension.J2();
+                res(0,0)=j2;
+            }
+        }
+        
+    }
+    
+    
+
+    
+public:
+
 };
+
+
 
 template <class T>
 void TPZYCDruckerPrager::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const
@@ -141,7 +223,7 @@ void TPZYCDruckerPrager::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<
 	    J2 = sigma.J2();
 		p = I1 / T(3.);
 		
-	    res[0] =  sqrt( J2 ) + p * T(fEta) - A * T(fKsi);
+    res[0] =  sqrt( J2 ) + p * T(fEta) - A * T(fKsi);
 	
 #ifdef LOG4CXX_PLASTICITY
 	{
@@ -161,15 +243,27 @@ void TPZYCDruckerPrager::N(const TPZTensor<T> & sigma,const T & A, TPZVec<TPZTen
 {
 	//Deviatoric part
 	T J2 = sigma.J2();
-	TPZTensor<T> s;		
-	sigma.S(s);
-	s *= T(0.5) / sqrt(J2);
-	//Hydrostatic part
-	T EtaOver3 = T(fEta/3.);
-	s.XX() += EtaOver3;
-	s.YY() += EtaOver3;
-	s.ZZ() += EtaOver3;
-	Ndir[0] = s;
+	TPZTensor<T> s,dj2;
+
+
+    
+//SOUZA NETO CHECK CONV NAO DA 2 com S, mas com dJ2 BATE!
+//    sigma.S(s);
+//	s *= T(0.5) / sqrt(J2);
+//Hydrostatic part
+//	T EtaOver3 = T(fEta/3.);
+//	s.XX() += EtaOver3;
+//	s.YY() += EtaOver3;
+//	s.ZZ() += EtaOver3;
+//	Ndir[0] = s;
+    
+    sigma.dJ2(dj2);
+    dj2*=T(0.5)/sqrt(J2);
+    T EtaOver3 = T(fEta/3.);
+    dj2.XX() += EtaOver3;
+    dj2.YY() += EtaOver3;
+    dj2.ZZ() += EtaOver3;
+    Ndir[0]=dj2;
 	
 }
 

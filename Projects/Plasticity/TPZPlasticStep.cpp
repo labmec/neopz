@@ -42,15 +42,15 @@ static LoggerPtr loggerPlasticResidual(Logger::getLogger("PLASTIC_RESIDUAL"));
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationSteps() const
 {
-	return fPlasticMem.NElements() -2;
+    return fPlasticMem.NElements() -2;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(
                                                          const TPZPlasticState<REAL> & state)
 {
-	fN = state;
-	
+    fN = state;
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
@@ -65,18 +65,18 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(
 template <class YC_t, class TF_t, class ER_t>
 const TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState_Internal() const
 {
-	return fN;
+    return fN;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
                                                 const TPZPlasticState<REAL> & state)
 {
-	int multipl = SignCorrection();
-	fN = state;
-	fN.fEpsP *= multipl;
-	fN.fEpsT *= multipl;
-	
+    int multipl = SignCorrection();
+    fN = state;
+    fN.fEpsP *= multipl;
+    fN.fEpsT *= multipl;
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
@@ -91,19 +91,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
 template <class YC_t, class TF_t, class ER_t>
 const TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const
 {
-	int multipl = SignCorrection();
-	TPZPlasticState<REAL> N(fN);
-	N.fEpsP *= multipl;
-	N.fEpsT *= multipl;
-	
-	return N;
+    int multipl = SignCorrection();
+    TPZPlasticState<REAL> N(fN);
+    N.fEpsP *= multipl;
+    N.fEpsT *= multipl;
+    
+    return N;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::SetUp(
                                              const TPZTensor<REAL> & epsTotal)
 {
-	fN.fEpsT = epsTotal;
+    fN.fEpsT = epsTotal;
     
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -117,68 +117,68 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetUp(
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain(const TPZTensor<REAL> &epsTotal)
 {
-	TPZTensor<REAL> epsTotal_Internal(epsTotal);
-	epsTotal_Internal *= SignCorrection();
-	ApplyStrain_Internal(epsTotal_Internal);
+    TPZTensor<REAL> epsTotal_Internal(epsTotal);
+    epsTotal_Internal *= SignCorrection();
+    ApplyStrain_Internal(epsTotal_Internal);
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeSigma(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma)
 {
-	int multipl = SignCorrection();
-	TPZTensor<REAL> epsTotal_Internal(epsTotal);
-	epsTotal_Internal *= multipl;
-	ApplyStrainComputeSigma_Internal(epsTotal_Internal, sigma);
-	sigma *= multipl;
+    int multipl = SignCorrection();
+    TPZTensor<REAL> epsTotal_Internal(epsTotal);
+    epsTotal_Internal *= multipl;
+    ApplyStrainComputeSigma_Internal(epsTotal_Internal, sigma);
+    sigma *= multipl;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep(const TPZTensor<REAL> &epsTotal, TPZTensor<REAL> &sigma, TPZFMatrix<REAL> &Dep)
 {
-	int multipl = SignCorrection();
-	TPZTensor<REAL> epsTotal_Internal(epsTotal);
-	epsTotal_Internal *= multipl;
-	ApplyStrainComputeDep_Internal(epsTotal_Internal, sigma, Dep);
-	sigma *= multipl;
+    int multipl = SignCorrection();
+    TPZTensor<REAL> epsTotal_Internal(epsTotal);
+    epsTotal_Internal *= multipl;
+    ApplyStrainComputeDep_Internal(epsTotal_Internal, sigma, Dep);
+    sigma *= multipl;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
 {
-	TPZTensor<REAL> sigma_Internal(sigma);
-	sigma_Internal *= SignCorrection();
-	ApplyLoad_Internal(sigma_Internal, epsTotal);
-	epsTotal *= SignCorrection();
+    TPZTensor<REAL> sigma_Internal(sigma);
+    sigma_Internal *= SignCorrection();
+    ApplyLoad_Internal(sigma_Internal, epsTotal);
+    epsTotal *= SignCorrection();
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::Phi(const TPZTensor<REAL> &epsTotal, TPZVec<REAL> &phi) const
 {
-	TPZTensor<REAL> epsTotal_Internal(epsTotal);
-	epsTotal_Internal *= SignCorrection();
+    TPZTensor<REAL> epsTotal_Internal(epsTotal);
+    epsTotal_Internal *= SignCorrection();
     
-	Phi_Internal(epsTotal_Internal, phi);
-	
+    Phi_Internal(epsTotal_Internal, phi);
+    
     return;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::SetTensionSign(int s)
 {
-	fInterfaceTensionSign = (s >= 0) ? 1 : -1;
+    fInterfaceTensionSign = (s >= 0) ? 1 : -1;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::SignCorrection() const
 {
-	return fMaterialTensionSign * fInterfaceTensionSign;
+    return fMaterialTensionSign * fInterfaceTensionSign;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 template<class T>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputePlasticVars(const TPZPlasticState<T> & state_T,
-														  TPZTensor<T> & sigma_T,
-														  T & A_T)const
+                                                          TPZTensor<T> & sigma_T,
+                                                          T & A_T)const
 {
     // variable representing the stress and elastic deformation
     TPZTensor<T> epsE_T(state_T.EpsT() );
@@ -187,7 +187,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputePlasticVars(const TPZPlasticState<
     // compute the stress of the elastic response
     fER.Compute(epsE_T, sigma_T);
     // compute the value of the thermo dynamical force for the given damage variable
-    A_T = fTFA.Compute(state_T.Alpha() );	
+    A_T = fTFA.Compute(state_T.Alpha() );
 }
 
 
@@ -203,12 +203,12 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL
         LOGPZ_DEBUG(logger,sout2.str().c_str());
     }
 #endif
-	
+    
     TPZTensor<REAL> sigma;
     REAL A;
-	
+    
     ComputePlasticVars<REAL>(state, sigma, A);
-	
+    
     // compute the value of the yield functions
     TPZManVector<REAL,10> phi(YC_t::NYield);
     
@@ -220,7 +220,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL
         if(phi[i] > 0.) break;
     }
     
-	
+    
     // if we are in the elastic range
     if(i == YC_t::NYield)
     {
@@ -243,9 +243,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::IsStrainElastic(const TPZPlasticState<REAL
         for(int j = 0; j < YC_t::NYield; j++)sout << phi[j] << "  ";
         LOGPZ_INFO(logger,sout.str().c_str());
     }
-#endif	
+#endif
     return 0;
-	
+    
 }
 
 
@@ -256,7 +256,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
     {
         std::stringstream sout;
         sout  << ">>> ApplyStrain_Internal *** Imposed epsTotal << " << epsTotal;
-		LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -266,15 +266,15 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
         LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
+    
     //ProcessStrainNoSubIncrement(epsTotal);
-	ProcessStrain(epsTotal);
-	
-	int n = fPlasticMem.NElements();
-	
+    ProcessStrain(epsTotal);
+    
+    int n = fPlasticMem.NElements();
+    
     // load the integrated values as the current state
-	TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(fPlasticMem[n-1].fPlasticState);
-	
+    TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(fPlasticMem[n-1].fPlasticState);
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -282,7 +282,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
         LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
+    
 }
 
 
@@ -296,103 +296,103 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         LOGPZ_INFO(logger,sout1.str().c_str());
     }
 #endif
-	
+    
     REAL yieldMultipl = 0;
-	
+    
     fPlasticMem.Resize(0);
-    PushPlasticMem(fN, 
+    PushPlasticMem(fN,
                    0. /*k*/,
                    0. /*lambda*/,
                    TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                    TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-				   0 /*forceYield*/);
-	
+                   0 /*forceYield*/);
+    
     TPZPlasticState<REAL> stateAtYield(fN),
     Np1(fN); // Np1 state with fN guesses
     Np1.fEpsT = epsTotal;
-	
-	bool elastic = true;
-	
-	if( ep == EForceElastic)
-	{
+    
+    bool elastic = true;
+    
+    if( ep == EForceElastic)
+    {
 #ifdef LOG4CXX_PLASTICITY
-	    {
+        {
             std::stringstream sout1;
             sout1 << ">>> ProcessStrainNoSubIncrement *** behaviour imposed to be Elastic";
             LOGPZ_INFO(logger,sout1.str().c_str());
-	    }
+        }
 #endif
-		elastic = true;
-	}
-	
-	if( ep == EForcePlastic)
-	{
+        elastic = true;
+    }
+    
+    if( ep == EForcePlastic)
+    {
 #ifdef LOG4CXX_PLASTICITY
-	    {
+        {
             std::stringstream sout1;
             sout1 << ">>> ProcessStrainNoSubIncrement *** behaviour imposed to be Plastic";
             LOGPZ_INFO(logger,sout1.str().c_str());
-	    }
+        }
 #endif
-		elastic = false;
-	}
-	
-	if( ep == EAuto ) elastic = IsStrainElastic(Np1) == 1;
+        elastic = false;
+    }
+    
+    if( ep == EAuto ) elastic = IsStrainElastic(Np1) == 1;
     
     if(elastic)
     {
-	    PushPlasticMem(Np1,
+        PushPlasticMem(Np1,
                        1. /*k*/,
                        0. /*lambda unused - elastic state*/,
                        TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                        TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-					   0 /*forceYield*/);
+                       0 /*forceYield*/);
         return;
-    }	
-	
-	// Plastic Integration needed
-	
-	yieldMultipl = FindPointAtYield(Np1.EpsT(), stateAtYield);
+    }
+    
+    // Plastic Integration needed
+    
+    yieldMultipl = FindPointAtYield(Np1.EpsT(), stateAtYield);
     
     PushPlasticMem(stateAtYield,
-	               yieldMultipl /*k*/,
+                   yieldMultipl /*k*/,
                    0. /*lambda unused - elastic state*/,
                    TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                    TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-				   0 /*forceYield*/);
-	
-	REAL multipl = 0.99;
-	TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
-	DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
-	Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
-	
-	
+                   0 /*forceYield*/);
+    
+    REAL multipl = 0.99;
+    TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
+    DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
+    Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
+    
+    
     //PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
-	int succeeded;
-	
-	TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
-	
-	REAL normEpsPErr = 0.;
-	int counter = 0;
-	REAL lambda = 0.;
-	
-	succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
-	
-	if(normEpsPErr < fIntegrTol && succeeded)
-	{
-		PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-		return; 
-	}
+    int succeeded;
+    
+    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
+    TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+    
+    REAL normEpsPErr = 0.;
+    int counter = 0;
+    REAL lambda = 0.;
+    
+    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+    
+    if(normEpsPErr < fIntegrTol && succeeded)
+    {
+        PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+        return;
+    }
     
     TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
-	deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
+    deltaEpsTotal.Add(stateAtYield.EpsT(), -1.);
     TPZFMatrix<REAL> residual_mat(6,1);
-	
-	REAL resnorm = 0.;
+    
+    REAL resnorm = 0.;
     do {
         
-		
+        
         
         Np1.fEpsT.Add(deltaEpsTotal,1.);
         succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
@@ -402,19 +402,19 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
         for(k = 0; k < 6; k++)residual_mat(k,0) = res.fData[k] - epstyield.fData[k];
         for(k = 0; k < 6; k++)resnorm += pow(residual_mat(k,0),2.);
         resnorm = sqrt(resnorm);
-		
+        
         
     } while ( resnorm > 1.e-3 && succeeded);
     
-	//    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
-	PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+    //    succeeded = PlasticLoop(stateAtYield, Np1, delGamma, normEpsPErr, lambda, validEqs);
+    PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
     
-	cout << "\n ProcessStrainNoSubIncrement  ";
-	cout << "\n fIntegrTol = " << fIntegrTol;
-	cout << "\n lambda = " << lambda;
-	cout << "\n delGamma = " << delGamma;
-	cout << "\n fIntegrTol = " << fIntegrTol;
-	
+    cout << "\n ProcessStrainNoSubIncrement  ";
+    cout << "\n fIntegrTol = " << fIntegrTol;
+    cout << "\n lambda = " << lambda;
+    cout << "\n delGamma = " << delGamma;
+    cout << "\n fIntegrTol = " << fIntegrTol;
+    
 }
 
 
@@ -428,76 +428,76 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrain(const TPZTensor<REAL> &epsT
         LOGPZ_INFO(logger,sout1.str().c_str());
     }
 #endif
-	
+    
     REAL yieldMultipl = 0;
-	
+    
     fPlasticMem.Resize(0);
-    PushPlasticMem(fN, 
+    PushPlasticMem(fN,
                    0. /*k*/,
                    0. /*lambda*/,
                    TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                    TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-				   0 /*forceYield*/);
-	
+                   0 /*forceYield*/);
+    
     TPZPlasticState<REAL> stateAtYield(fN),
     Np1(fN); // Np1 state with fN guesses
     Np1.fEpsT = epsTotal;
-	
-	bool elastic = true;
-	
-	if( ep == EForceElastic)
-	{
+    
+    bool elastic = true;
+    
+    if( ep == EForceElastic)
+    {
 #ifdef LOG4CXX_PLASTICITY
-	    {
+        {
             std::stringstream sout1;
             sout1 << ">>> ProcessStrain *** behaviour imposed to be Elastic";
             LOGPZ_INFO(logger,sout1.str().c_str());
-	    }
+        }
 #endif
-		elastic = true;
-	}
-	
-	if( ep == EForcePlastic)
-	{
+        elastic = true;
+    }
+    
+    if( ep == EForcePlastic)
+    {
 #ifdef LOG4CXX_PLASTICITY
-	    {
+        {
             std::stringstream sout1;
             sout1 << ">>> ProcessStrain *** behaviour imposed to be Plastic";
             LOGPZ_INFO(logger,sout1.str().c_str());
-	    }
+        }
 #endif
-		elastic = false;
-	}
-	
-	if( ep == EAuto ) elastic = IsStrainElastic(Np1) == 1;
+        elastic = false;
+    }
+    
+    if( ep == EAuto ) elastic = IsStrainElastic(Np1) == 1;
     
     if(elastic)
     {
-	    PushPlasticMem(Np1,
+        PushPlasticMem(Np1,
                        1. /*k*/,
                        0. /*lambda unused - elastic state*/,
                        TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                        TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-					   0 /*forceYield*/);
+                       0 /*forceYield*/);
         return;
-    }	
-	
-	// Plastic Integration needed
-	
-	yieldMultipl = FindPointAtYield(Np1.EpsT(), stateAtYield);
+    }
+    
+    // Plastic Integration needed
+    
+    yieldMultipl = FindPointAtYield(Np1.EpsT(), stateAtYield);
     
     PushPlasticMem(stateAtYield,
-	               yieldMultipl /*k*/,
+                   yieldMultipl /*k*/,
                    0. /*lambda unused - elastic state*/,
                    TPZManVector<REAL, YC_t::NYield>(YC_t::NYield,0)/*delGamma*/,
                    TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
-				   0 /*forceYield*/);
-	
-	REAL multipl = 0.99;
-	TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
-	DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
-	Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
-
+                   0 /*forceYield*/);
+    
+    REAL multipl = 0.99;
+    TPZTensor<REAL> DeltaEpsP_guess = Np1.fEpsT;
+    DeltaEpsP_guess.Add(stateAtYield.fEpsT,-1.);
+    Np1.fEpsP.Add(DeltaEpsP_guess, multipl);
+    
     PlasticIntegrate(stateAtYield, Np1, fIntegrTol);
     
     
@@ -514,7 +514,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
     {
         std::stringstream sout;
         sout << ">>> ApplyStrainComputeDep_Internal *** Imposed epsTotal << " << epsTotal;
-		LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -525,8 +525,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
     }
 #endif
     
-	ApplyStrain_Internal(epsTotal);
-	
+    ApplyStrain_Internal(epsTotal);
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -534,9 +534,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
         LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
-	ComputeDep(sigma, Dep);
-	
+    
+    ComputeDep(sigma, Dep);
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
@@ -553,290 +553,290 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFMatrix<REAL> &Dep)
 {
-	
-	const int nyield = YC_t::NYield;
-	const int nVarsResidual = 7+nyield;
-	const int nVarsTensor = 6;
-	
-	int i,j;
-	
-	typedef TFad<nVarsTensor, REAL> TFAD;
-	typedef TFad<nVarsResidual, TFAD> TFAD_FAD;
-	
-	REAL normEpsPErr, resnorm;
-	
-	EStatus status;
-	
-	TPZPlasticState<TFAD_FAD> Nk_FADFAD,
-    Nkp1_FADFAD;
-	
-	TPZPlasticState<REAL > Nk, Nkp1;
-	
-	TPZManVector<TFAD_FAD, nyield>  delGamma_FADFAD(nyield);
-	TPZManVector<REAL, nyield> 		delGamma(nyield);
-	TPZManVector<TFAD_FAD, nVarsResidual> epsRes_FADFAD(nVarsResidual);
-	TPZManVector<REAL, nVarsResidual> epsRes(nVarsResidual);
-	TPZDiffMatrix< TFAD > tangent_FAD(nVarsResidual,nVarsResidual),
-    residual_FAD(nVarsResidual,1),
-    Sol_FAD(nVarsResidual,1);	
-	
-	TPZPlasticState<TFAD> Nk_FAD;
-	TPZTensor<TFAD> sigma_FAD;
-	TFAD A_FAD;
-	
-	TPZTensor<REAL> diffPlasticStrain;
-	
-	int n = fPlasticMem.NElements();
     
-	if(n < 2)
-	{
+    const int nyield = YC_t::NYield;
+    const int nVarsResidual = 7+nyield;
+    const int nVarsTensor = 6;
+    
+    int i,j;
+    
+    typedef TFad<nVarsTensor, REAL> TFAD;
+    typedef TFad<nVarsResidual, TFAD> TFAD_FAD;
+    
+    REAL normEpsPErr, resnorm;
+    
+    EStatus status;
+    
+    TPZPlasticState<TFAD_FAD> Nk_FADFAD,
+    Nkp1_FADFAD;
+    
+    TPZPlasticState<REAL > Nk, Nkp1;
+    
+    TPZManVector<TFAD_FAD, nyield>  delGamma_FADFAD(nyield);
+    TPZManVector<REAL, nyield>              delGamma(nyield);
+    TPZManVector<TFAD_FAD, nVarsResidual> epsRes_FADFAD(nVarsResidual);
+    TPZManVector<REAL, nVarsResidual> epsRes(nVarsResidual);
+    TPZDiffMatrix< TFAD > tangent_FAD(nVarsResidual,nVarsResidual),
+    residual_FAD(nVarsResidual,1),
+    Sol_FAD(nVarsResidual,1);
+    
+    TPZPlasticState<TFAD> Nk_FAD;
+    TPZTensor<TFAD> sigma_FAD;
+    TFAD A_FAD;
+    
+    TPZTensor<REAL> diffPlasticStrain;
+    
+    int n = fPlasticMem.NElements();
+    
+    if(n < 2)
+    {
 #ifdef LOG4CXX
         {
-		    std::stringstream sout;
-		    sout << ">>> ComputeDep *** Insufficient Plastic Mem Entries: " << n << ".";
-			LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
+            std::stringstream sout;
+            sout << ">>> ComputeDep *** Insufficient Plastic Mem Entries: " << n << ".";
+            LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
         }
 #endif
 #ifdef LOG4CXX_PLASTICITY
         {
-		    std::stringstream sout;
-		    sout << ">>> ComputeDep *** Insufficient Plastic Mem Entries: " << n << ".";
-		    LOGPZ_ERROR(logger,sout.str().c_str());
+            std::stringstream sout;
+            sout << ">>> ComputeDep *** Insufficient Plastic Mem Entries: " << n << ".";
+            LOGPZ_ERROR(logger,sout.str().c_str());
         }
 #endif
-		return;
-	}
+        return;
+    }
 #ifdef LOG4CXX_PLASTICITY
-	{
-	    std::stringstream sout;
-	    sout << ">>> ComputeDep *** Plastic Mem Entries: " << n << ".";
-		if( n == 2 ) sout << "\nTwo entries indicate pure elastic step";
-	    LOGPZ_INFO(logger,sout.str().c_str());
-	}
-#endif	
-	
-	if(n==2)
-	{// pure elastic step - no plastic loop necessary
-		fPlasticMem[1].fPlasticState.CopyTo(Nk_FAD);
-		for(i = 0; i < nVarsTensor; i++)Nk_FAD.fEpsT.fData[i].diff(i,nVarsTensor);
+    {
+        std::stringstream sout;
+        sout << ">>> ComputeDep *** Plastic Mem Entries: " << n << ".";
+        if( n == 2 ) sout << "\nTwo entries indicate pure elastic step";
+        LOGPZ_INFO(logger,sout.str().c_str());
+    }
+#endif
+    
+    if(n==2)
+    {// pure elastic step - no plastic loop necessary
+        fPlasticMem[1].fPlasticState.CopyTo(Nk_FAD);
+        for(i = 0; i < nVarsTensor; i++)Nk_FAD.fEpsT.fData[i].diff(i,nVarsTensor);
         
-	}else
-	{// plastification occurs
+    }else
+    {// plastification occurs
         
-		// plastic Loop analogue with derivative evaluation
+        // plastic Loop analogue with derivative evaluation
         
-		// Initializing last available elastic step
-		fPlasticMem[1].fPlasticState.CopyTo(Nk_FADFAD);
-		for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
-		
-		REAL disturbFactor = sqrt(fResTol); // imposing an initial guess very close to the real
-		// solution in order to ensure residual drop and convergence.
-		// This is very important to accumulate good FAD derivatives
+        // Initializing last available elastic step
+        fPlasticMem[1].fPlasticState.CopyTo(Nk_FADFAD);
+        for(j = 0; j < nVarsTensor; j++)Nk_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[1].fK;
         
-		for(i = 2; i < n; i++)
-		{		                  
-			InitializePlasticFAD(fPlasticMem[i].fPlasticState,
-								 fPlasticMem[i].fDelGamma,
-								 Nkp1_FADFAD,
-								 delGamma_FADFAD,
-								 nVarsResidual);
-			fYC.SetForceYield(fPlasticMem[i].fForceYield); // imposing the same assumptions made in the plasticLoop
-			
-			Nkp1_FADFAD.fAlpha.val().val() -=
+        REAL disturbFactor = sqrt(fResTol); // imposing an initial guess very close to the real
+        // solution in order to ensure residual drop and convergence.
+        // This is very important to accumulate good FAD derivatives
+        
+        for(i = 2; i < n; i++)
+        {
+            InitializePlasticFAD(fPlasticMem[i].fPlasticState,
+                                 fPlasticMem[i].fDelGamma,
+                                 Nkp1_FADFAD,
+                                 delGamma_FADFAD,
+                                 nVarsResidual);
+            fYC.SetForceYield(fPlasticMem[i].fForceYield); // imposing the same assumptions made in the plasticLoop
+            
+            Nkp1_FADFAD.fAlpha.val().val() -=
             ( fPlasticMem[i].fPlasticState.fAlpha - fPlasticMem[i-1].fPlasticState.fAlpha )
             * disturbFactor;
             
-			for(j = 0; j < nyield; j++)delGamma_FADFAD[j].val().val() *= (1.0 - disturbFactor);
+            for(j = 0; j < nyield; j++)delGamma_FADFAD[j].val().val() *= (1.0 - disturbFactor);
             
-			for(j = 0; j < nVarsTensor; j++)
-			{
-				Nkp1_FADFAD.fEpsP.fData[j].val().val() -=
+            for(j = 0; j < nVarsTensor; j++)
+            {
+                Nkp1_FADFAD.fEpsP.fData[j].val().val() -=
                 ( fPlasticMem[i].fPlasticState.fEpsP.fData[j] - fPlasticMem[i-1].fPlasticState.fEpsP.fData[j] )
                 * disturbFactor;
-				Nkp1_FADFAD.fEpsT.fData[j].val().diff(j, nVarsTensor);
-				Nkp1_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[i].fK; // setting the derivatives of EpsT with respect to deltaEpsT
-			}
+                Nkp1_FADFAD.fEpsT.fData[j].val().diff(j, nVarsTensor);
+                Nkp1_FADFAD.fEpsT.fData[j].val().fastAccessDx(j) = fPlasticMem[i].fK; // setting the derivatives of EpsT with respect to deltaEpsT
+            }
             
 #ifdef LOG4CXX_PLASTICITY
-        	{
-        	    std::stringstream sout;
-        	    sout << "*** ComputeDep *** Before Matrix Invertion: Plastic step number " << i-1 << " of " << n-1
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep *** Before Matrix Invertion: Plastic step number " << i-1 << " of " << n-1
                 << "\n*Nk_FADFAD=\n" << setw(10) << Nk_FADFAD
                 << "\n*Nkp1_FADFAD=\n" << setw(10) << Nkp1_FADFAD
                 << "\n*delGamma_FADFAD=\n" << setw(10) << delGamma_FADFAD;
-        		LOGPZ_DEBUG(logger,sout.str().c_str());
-        	}
-#endif	
+                LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
+#endif
             
-			int NewtonCounter = 0;
+            int NewtonCounter = 0;
             
-			do{//(resnorm > fResTol && NewtonCounter < fMaxNewton)
-				
-				PlasticResidual<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD, 
-													delGamma_FADFAD, epsRes_FADFAD, 
-													normEpsPErr);
+            do{//(resnorm > fResTol && NewtonCounter < fMaxNewton)
+                
+                PlasticResidual<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD,
+                                                    delGamma_FADFAD, epsRes_FADFAD,
+                                                    normEpsPErr);
                 
                 
-                /*PlasticResidualRK<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD, 
-													delGamma_FADFAD, epsRes_FADFAD, 
-													normEpsPErr);	
-                */
-				tangent_FAD.Reset(); // resets the LU Decomposition flag
+                /*PlasticResidualRK<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD,
+                 delGamma_FADFAD, epsRes_FADFAD,
+                 normEpsPErr);
+                 */
+                tangent_FAD.Reset(); // resets the LU Decomposition flag
                 
-				ExtractTangent(epsRes_FADFAD, residual_FAD,
+                ExtractTangent(epsRes_FADFAD, residual_FAD,
                                resnorm, tangent_FAD, // TPZFMatrix for T1=fad<real> type
                                fPlasticMem[i].fValidEqs,
                                1 /*precond*/, 1 /*resetInvalidEqs*/);
                 
-				status = tangent_FAD.Decompose_LU();
-				if(status == EZeroPivot)
-				{
-					std::stringstream sout;
-		    		sout << "*** ComputeDep *** ### Decompose_LU error! - ZeroPivot ### No inversion will be performed";
+                status = tangent_FAD.Decompose_LU();
+                if(status == EZeroPivot)
+                {
+                    std::stringstream sout;
+                    sout << "*** ComputeDep *** ### Decompose_LU error! - ZeroPivot ### No inversion will be performed";
 #ifdef LOG4CXX
                     LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
 #endif
 #ifdef LOG4CXX_PLASTICITY
                     LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-					cout << endl << sout.str().c_str();
-				}
+                    cout << endl << sout.str().c_str();
+                }
                 
-				Sol_FAD = residual_FAD;
-				status = tangent_FAD.Substitution(&Sol_FAD);
-				if(status != EOk)
-				{
-					std::stringstream sout;
-		    		if(status == EIncompDim)sout << "*** ComputeDep *** ### LU Substitution error! - IncompatibleDimensions ### No inversion will be performed";
-					if(status == EZeroPivot)sout << "*** ComputeDep *** ### LU Substitution error! - ZeroPivot ### No inversion will be performed";
+                Sol_FAD = residual_FAD;
+                status = tangent_FAD.Substitution(&Sol_FAD);
+                if(status != EOk)
+                {
+                    std::stringstream sout;
+                    if(status == EIncompDim)sout << "*** ComputeDep *** ### LU Substitution error! - IncompatibleDimensions ### No inversion will be performed";
+                    if(status == EZeroPivot)sout << "*** ComputeDep *** ### LU Substitution error! - ZeroPivot ### No inversion will be performed";
 #ifdef LOG4CXX
                     LOGPZ_ERROR(plasticIntegrLogger,sout.str().c_str());
 #endif
 #ifdef LOG4CXX_PLASTICITY
                     LOGPZ_ERROR(logger,sout.str().c_str());
 #endif
-					cout << endl << sout.str().c_str();
-				}
+                    cout << endl << sout.str().c_str();
+                }
                 
-				/*
-                 REAL lambda = UpdatePlasticVars(Nk_FADFAD, Nkp1_FADFAD, 
-                 delGamma_FADFAD, epsRes_FADFAD, 
+                /*
+                 REAL lambda = UpdatePlasticVars(Nk_FADFAD, Nkp1_FADFAD,
+                 delGamma_FADFAD, epsRes_FADFAD,
                  Sol_FAD, fPlasticMem[i].fValidEqs,
                  0); //Do not update variables internally
                  
                  */
-				REAL lambda = 1.; // forcing unity because the guess is very close to the solution
+                REAL lambda = 1.; // forcing unity because the guess is very close to the solution
                 
-				
+                
 #ifdef LOG4CXX_PLASTICITY
-	        	{
-	        	    std::stringstream sout;
-	        	    sout << "*** ComputeDep *** After " << NewtonCounter
+                {
+                    std::stringstream sout;
+                    sout << "*** ComputeDep *** After " << NewtonCounter
                     << "-th Matrix Invertion: Plastic step number " << i-1 << " of " << n-1
                     << "\nSol_FAD=\n " << setw(10) << Sol_FAD
                     << "\nepsRes_FADFAD=\n " << setw(10) << epsRes_FADFAD
                     << "\nNkp1_FADFAD=\n" << setw(10) <<  Nkp1_FADFAD
                     << "\ndelGamma_FADFAD=\n" << delGamma_FADFAD
                     << "\nfLambda = " << setw(10) << lambda;
-	           		LOGPZ_DEBUG(logger,sout.str().c_str());
-	        	}
+                    LOGPZ_DEBUG(logger,sout.str().c_str());
+                }
 #endif
                 
-				for(j=0; j<nVarsTensor; j++) Nkp1_FADFAD.fEpsP.fData[j].val() -= lambda*Sol_FAD(j);
-    			Nkp1_FADFAD.fAlpha.val() -= lambda*Sol_FAD(j++);
-    			for(j=0; j<YC_t::NYield; j++) delGamma_FADFAD[j].val() -= lambda*Sol_FAD(j+7);
+                for(j=0; j<nVarsTensor; j++) Nkp1_FADFAD.fEpsP.fData[j].val() -= lambda*Sol_FAD(j);
+                Nkp1_FADFAD.fAlpha.val() -= lambda*Sol_FAD(j++);
+                for(j=0; j<YC_t::NYield; j++) delGamma_FADFAD[j].val() -= lambda*Sol_FAD(j+7);
                 
-				for(j=0;j<nVarsTensor;j++)
-				{
-					Nk  .fEpsP.fData[j] = Nk_FADFAD  .fEpsP.fData[j].val().val();
-					Nk  .fEpsT.fData[j] = Nk_FADFAD  .fEpsT.fData[j].val().val();
-					Nkp1.fEpsP.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val();
-					Nkp1.fEpsT.fData[j] = Nkp1_FADFAD.fEpsT.fData[j].val().val();
-				}
-				Nk  .fAlpha = Nk_FADFAD.  fAlpha.val().val();
-				Nkp1.fAlpha = Nkp1_FADFAD.fAlpha.val().val();
-				for(j=0; j<YC_t::NYield; j++) delGamma[j] = delGamma_FADFAD[j].val().val();
+                for(j=0;j<nVarsTensor;j++)
+                {
+                    Nk  .fEpsP.fData[j] = Nk_FADFAD  .fEpsP.fData[j].val().val();
+                    Nk  .fEpsT.fData[j] = Nk_FADFAD  .fEpsT.fData[j].val().val();
+                    Nkp1.fEpsP.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val();
+                    Nkp1.fEpsT.fData[j] = Nkp1_FADFAD.fEpsT.fData[j].val().val();
+                }
+                Nk  .fAlpha = Nk_FADFAD.  fAlpha.val().val();
+                Nkp1.fAlpha = Nkp1_FADFAD.fAlpha.val().val();
+                for(j=0; j<YC_t::NYield; j++) delGamma[j] = delGamma_FADFAD[j].val().val();
                 
-				PlasticResidual<REAL, REAL>(Nk, Nkp1, delGamma, epsRes, normEpsPErr);	
-				//PlasticResidual<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD, delGamma_FADFAD, epsRes_FADFAD, normEpsPErr);
+                PlasticResidual<REAL, REAL>(Nk, Nkp1, delGamma, epsRes, normEpsPErr);
+                //PlasticResidual<TFAD_FAD, TFAD_FAD>(Nk_FADFAD, Nkp1_FADFAD, delGamma_FADFAD, epsRes_FADFAD, normEpsPErr);
                 
-				// updating the residual
-				for(j=0; j < nyield; j++)
-					if(fPlasticMem[i].fValidEqs[j] == 0)epsRes[j + 7] = 0.;
-				resnorm = 0.;
-				for(j=0; j < nVarsResidual; j++)
-		            resnorm += pow(/*epsRes_FADFAD[j].val().val()*/epsRes[j] , 2.);
-  				resnorm = sqrt(resnorm);
+                // updating the residual
+                for(j=0; j < nyield; j++)
+                    if(fPlasticMem[i].fValidEqs[j] == 0)epsRes[j + 7] = 0.;
+                resnorm = 0.;
+                for(j=0; j < nVarsResidual; j++)
+                    resnorm += pow(/*epsRes_FADFAD[j].val().val()*/epsRes[j] , 2.);
+                resnorm = sqrt(resnorm);
                 
-				NewtonCounter++;
-			}while((resnorm > fResTol && NewtonCounter < fMaxNewton) || NewtonCounter < 2);
+                NewtonCounter++;
+            }while((resnorm > fResTol && NewtonCounter < fMaxNewton) || NewtonCounter < 2);
             
-			for(j = 0; j < 6; j++)diffPlasticStrain.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val()
+            for(j = 0; j < 6; j++)diffPlasticStrain.fData[j] = Nkp1_FADFAD.fEpsP.fData[j].val().val()
                 - fPlasticMem[i].fPlasticState.fEpsP.fData[j];
             
 #ifdef LOG4CXX
-	    	{
-	    	    std::stringstream sout;
-				sout << "*** ComputeDep *** substep " << i-1 << " of " << n-2 
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep *** substep " << i-1 << " of " << n-2
                 << " solved with " << NewtonCounter << " iterations and residual = " << resnorm;
-				if(resnorm > fResTol)
-				{
-					sout << "\n#### Truncated Newton ####. Results are unpredictable";
-					sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
-					sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
-					sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
-					LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
-				}else
-				{
-					LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
-				}
-	    	}
+                if(resnorm > fResTol)
+                {
+                    sout << "\n#### Truncated Newton ####. Results are unpredictable";
+                    sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
+                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
+                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
+                    LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
+                }else
+                {
+                    LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
+                }
+            }
 #endif
             
 #ifdef LOG4CXX_PLASTICITY
-	    	{
-	        	std::stringstream sout;
-				sout << "*** ComputeDep *** substep " << i-1 << " of " << n-2 
+            {
+                std::stringstream sout;
+                sout << "*** ComputeDep *** substep " << i-1 << " of " << n-2
                 << " solved with " << NewtonCounter << " iterations and residual = " << resnorm;
-				if(resnorm > fResTol)
-				{
-					sout << "\n#### Truncated Newton ####. Results are unpredictable";
-					sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
-					sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
-					sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
-					LOGPZ_WARN(logger,sout.str().c_str());
-				}else
-				{
-					LOGPZ_INFO(logger,sout.str().c_str());
-				}
-	    	}
+                if(resnorm > fResTol)
+                {
+                    sout << "\n#### Truncated Newton ####. Results are unpredictable";
+                    sout << "\nDifferences in the plastic strain:" << diffPlasticStrain;
+                    sout << "\nDifferences in alpha:" << Nkp1_FADFAD.fAlpha.val().val() - fPlasticMem[i].fPlasticState.fAlpha;
+                    sout << "\nAlpha = " << fPlasticMem[i].fPlasticState.fAlpha;
+                    LOGPZ_WARN(logger,sout.str().c_str());
+                }else
+                {
+                    LOGPZ_INFO(logger,sout.str().c_str());
+                }
+            }
 #endif
-			
-			// substep marching
-			for(j = 0; j < nVarsTensor; j++)
-			{
-				Nk_FADFAD.fEpsT.fData[j].val()  = Nkp1_FADFAD.fEpsT.fData[j].val(); // ignoring first derivatives
-				Nk_FADFAD.fEpsP.fData[j].val()  = Nkp1_FADFAD.fEpsP.fData[j].val(); // ignoring first derivatives
-			}
-			Nk_FADFAD.fAlpha.val() = Nkp1_FADFAD.fAlpha.val();// ignoring first derivatives
-		}
+            
+            // substep marching
+            for(j = 0; j < nVarsTensor; j++)
+            {
+                Nk_FADFAD.fEpsT.fData[j].val()  = Nkp1_FADFAD.fEpsT.fData[j].val(); // ignoring first derivatives
+                Nk_FADFAD.fEpsP.fData[j].val()  = Nkp1_FADFAD.fEpsP.fData[j].val(); // ignoring first derivatives
+            }
+            Nk_FADFAD.fAlpha.val() = Nkp1_FADFAD.fAlpha.val();// ignoring first derivatives
+        }
         
-		// decreasing derivative order
-		for(i = 0; i < nVarsTensor; i++)
-		{
-			Nk_FAD.fEpsT.fData[i]  = Nk_FADFAD.fEpsT.fData[i].val();
-			Nk_FAD.fEpsP.fData[i]  = Nk_FADFAD.fEpsP.fData[i].val();
-		}
-		Nk_FAD.fAlpha = Nk_FADFAD.fAlpha.val();
+        // decreasing derivative order
+        for(i = 0; i < nVarsTensor; i++)
+        {
+            Nk_FAD.fEpsT.fData[i]  = Nk_FADFAD.fEpsT.fData[i].val();
+            Nk_FAD.fEpsP.fData[i]  = Nk_FADFAD.fEpsP.fData[i].val();
+        }
+        Nk_FAD.fAlpha = Nk_FADFAD.fAlpha.val();
         
-	}// end of plasticLoop analogue
-	
-	//at this point, all the residual variables should contain their real derivatives to detaEpsT
-	// in the case the loading is either elastic or elastoplastic.
-	ComputePlasticVars(Nk_FAD, sigma_FAD, A_FAD);
-	
-	for(i = 0; i < nVarsTensor; i++)for(j = 0; j < nVarsTensor; j++)Dep(i,j) = sigma_FAD.fData[i].dx(j); 
-	
+    }// end of plasticLoop analogue
+    
+    //at this point, all the residual variables should contain their real derivatives to detaEpsT
+    // in the case the loading is either elastic or elastoplastic.
+    ComputePlasticVars(Nk_FAD, sigma_FAD, A_FAD);
+    
+    for(i = 0; i < nVarsTensor; i++)for(j = 0; j < nVarsTensor; j++)Dep(i,j) = sigma_FAD.fData[i].dx(j);
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -845,9 +845,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ComputeDep(TPZTensor<REAL> & sigma, TPZFM
         LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
-	
+    
     sigma_FAD.CopyTo(sigma);
-	
+    
 }
 
 
@@ -858,58 +858,58 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
 {
     
 #ifdef LOG4CXX_PLASTICITY
-	
-	int plasticIntegrOutput;
-	
+    
+    int plasticIntegrOutput;
+    
     {
         std::stringstream sout;
         sout << ">>> FindPointAtYield ***";
         LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
-	const int nVars = 1;
-	typedef TFad<nVars, REAL> TFAD_One;
-	TPZTensor<REAL> deltaEps;
-	TPZTensor<TFAD_One>	deltaEps_FAD, sigma_FAD;
-	TFAD_One A_FAD, multipl_FAD;
-	TPZManVector<TFAD_One,10> phi_FAD(YC_t::NYield);
-	REAL multiplN, minMultipl = 1.;
-	TPZPlasticState<TFAD_One> stateAtYield_FAD;
-	
-	stateAtYield.CopyTo(stateAtYield_FAD);
-	
-	epsTotalNp1.CopyTo(deltaEps);
-	deltaEps.Add(fN.EpsT(), -1.);
-	deltaEps.CopyTo(deltaEps_FAD);
-	
-	int i, nyield = YC_t::NYield;
-	for(i = 0; i < nyield; i++)
-	{ // searching for the multiplier for each yield surface
+    
+    const int nVars = 1;
+    typedef TFad<nVars, REAL> TFAD_One;
+    TPZTensor<REAL> deltaEps;
+    TPZTensor<TFAD_One>     deltaEps_FAD, sigma_FAD;
+    TFAD_One A_FAD, multipl_FAD;
+    TPZManVector<TFAD_One,10> phi_FAD(YC_t::NYield);
+    REAL multiplN, minMultipl = 1.;
+    TPZPlasticState<TFAD_One> stateAtYield_FAD;
+    
+    stateAtYield.CopyTo(stateAtYield_FAD);
+    
+    epsTotalNp1.CopyTo(deltaEps);
+    deltaEps.Add(fN.EpsT(), -1.);
+    deltaEps.CopyTo(deltaEps_FAD);
+    
+    int i, nyield = YC_t::NYield;
+    for(i = 0; i < nyield; i++)
+    { // searching for the multiplier for each yield surface
         
-    	multiplN = 0.; // the plastic multiplier is likely to be zero
+        multiplN = 0.; // the plastic multiplier is likely to be zero
         // because of possible previous plastifications,
         // although a null value may lead to no derivative
         // or numerical instabilities when deltaEpsT=0
-		int count = 0;
-		do
-		{
-			if(count  > 0)
-			{
-				REAL derX = phi_FAD[i].dx(0);
-				if(fabs(derX)<1.e-8) derX += 1.e-8;
-				multiplN -= phi_FAD[i].val() / derX; // avoiding division by zero
-				if(multiplN > 1.0) 
-				{
+        int count = 0;
+        do
+        {
+            if(count  > 0)
+            {
+                REAL derX = phi_FAD[i].dx(0);
+                if(fabs(derX)<1.e-8) derX += 1.e-8;
+                multiplN -= phi_FAD[i].val() / derX; // avoiding division by zero
+                if(multiplN > 1.0)
+                {
 #ifdef LOG4CXX_PLASTICITY
-					{
-						std::stringstream sout;
-						sout << "*** FindPointAtYield *** multiplication factor = " << multiplN << " set to 1.0";
-						sout << "\nPlastification is known to occur within this load step and the guess for the nest Newton's step is clipped to multipl=1";
-						LOGPZ_DEBUG(logger,sout.str().c_str());
-					}
+                    {
+                        std::stringstream sout;
+                        sout << "*** FindPointAtYield *** multiplication factor = " << multiplN << " set to 1.0";
+                        sout << "\nPlastification is known to occur within this load step and the guess for the nest Newton's step is clipped to multipl=1";
+                        LOGPZ_DEBUG(logger,sout.str().c_str());
+                    }
 #endif
-					multiplN = 1.0; // The step is known as plastic in advance
+                    multiplN = 1.0; // The step is known as plastic in advance
                     // (IsStrainElastic previously called)
                     // The check above avoids the multiplicator to be too large when the
                     // first derivative evaluation is very low. In very nonlinear models
@@ -917,88 +917,88 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
                     // null stress state this could happen and, if this statement weren't here,
                     // this newton loop could be extremely slow to converge since the
                     // initial guesses would be too far from the correct answer.
-				}
-				
-				if(multiplN < -1.0)
-				{
+                }
+                
+                if(multiplN < -1.0)
+                {
 #ifdef LOG4CXX_PLASTICITY
-					{
-						std::stringstream sout;
-						sout << "*** FindPointAtYield *** multiplication factor = " << multiplN << " set to 1.0";
-						sout << "\nPlastification is known to occur within this load step. Forcing restart with initial guess biased towards the highest range attempting to help the code reach physically meaningful results";
-						LOGPZ_DEBUG(logger,sout.str().c_str());
-					}
+                    {
+                        std::stringstream sout;
+                        sout << "*** FindPointAtYield *** multiplication factor = " << multiplN << " set to 1.0";
+                        sout << "\nPlastification is known to occur within this load step. Forcing restart with initial guess biased towards the highest range attempting to help the code reach physically meaningful results";
+                        LOGPZ_DEBUG(logger,sout.str().c_str());
+                    }
 #endif
-					multiplN = 1.0;  // This check attempts to ensure that the
+                    multiplN = 1.0;  // This check attempts to ensure that the
                     // solution of this plastification step does not explode backwards to the
                     // desired loading path. This may happen when the yield function is too
                     // nonlinear and may present a second solution in the negative range of
                     // the desired loading path. By setting the initial guess equal to 1.0
                     // (that means the whole loading path is plastic - true only in perfect
-                    // plastic materials) the code attempts to bias the solver towards the 
+                    // plastic materials) the code attempts to bias the solver towards the
                     // physical meaningful solution.
-				}
-			}
-			count++;
-			
-			multipl_FAD = multiplN; 
-			multipl_FAD.diff(0,nVars);
-			fN.EpsT().CopyTo(stateAtYield_FAD.fEpsT);
-			stateAtYield_FAD.fEpsT.Add(deltaEps_FAD, multipl_FAD);
+                }
+            }
+            count++;
             
-		    ComputePlasticVars(stateAtYield_FAD,
-							   sigma_FAD,
-							   A_FAD);
+            multipl_FAD = multiplN;
+            multipl_FAD.diff(0,nVars);
+            fN.EpsT().CopyTo(stateAtYield_FAD.fEpsT);
+            stateAtYield_FAD.fEpsT.Add(deltaEps_FAD, multipl_FAD);
             
-			// compute the value of the yield functions
-			fYC.Compute(sigma_FAD, A_FAD, phi_FAD, 0);
-			
-			
-		}while(fabs (phi_FAD[i].val()) > fResTol && count < fMaxNewton);
+            ComputePlasticVars(stateAtYield_FAD,
+                               sigma_FAD,
+                               A_FAD);
+            
+            // compute the value of the yield functions
+            fYC.Compute(sigma_FAD, A_FAD, phi_FAD, 0);
+            
+            
+        }while(fabs (phi_FAD[i].val()) > fResTol && count < fMaxNewton);
         
 #ifdef LOG4CXX
         {
-			if(count >= fMaxNewton )
-			{
-            	std::stringstream sout;
-            	sout << "*** FindPointAtYield *** multiplication factor= ";
-				sout << multiplN << " such that yield of function ";
-				sout << i << " = " << phi_FAD[i].val() << "; ";
-				sout << "\n#### Truncated Newton after " 
-                << fMaxNewton << " steps with phi[" << i << "] = " 
+            if(count >= fMaxNewton )
+            {
+                std::stringstream sout;
+                sout << "*** FindPointAtYield *** multiplication factor= ";
+                sout << multiplN << " such that yield of function ";
+                sout << i << " = " << phi_FAD[i].val() << "; ";
+                sout << "\n#### Truncated Newton after "
+                << fMaxNewton << " steps with phi[" << i << "] = "
                 << shapeFAD::val(phi_FAD[i]) << "####. Results are unpredictable";
-				LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
-				//plasticIntegrOutput = 1;
-			}
+                LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
+                //plasticIntegrOutput = 1;
+            }
         }
 #endif
 #ifdef LOG4CXX_PLASTICITY
         {
             std::stringstream sout;
             sout << "*** FindPointAtYield *** multiplication factor= ";
-			sout << multiplN << " such that yield of function ";
-			sout << i << " = " << phi_FAD[i].val();
-			if(count >= fMaxNewton )
-			{
-				sout << "\n#### Truncated Newton after " 
-                << fMaxNewton << " steps with phi[" << i << "] = " 
-                << shapeFAD::val(phi_FAD[i]) 
+            sout << multiplN << " such that yield of function ";
+            sout << i << " = " << phi_FAD[i].val();
+            if(count >= fMaxNewton )
+            {
+                sout << "\n#### Truncated Newton after "
+                << fMaxNewton << " steps with phi[" << i << "] = "
+                << shapeFAD::val(phi_FAD[i])
                 << "####. It appears in such load path the plastic yield solution was found in the opposite direction."
                 << "\nPlease check the other(s) yield function(s) to guarantee at least one of them is plastifying within the proposed load path.";
-				LOGPZ_WARN(logger,sout.str().c_str());
-				LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
-				
-			}else{
-				LOGPZ_DEBUG(logger,sout.str().c_str());
-			}
+                LOGPZ_WARN(logger,sout.str().c_str());
+                LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
+                
+            }else{
+                LOGPZ_DEBUG(logger,sout.str().c_str());
+            }
         }
 #endif
-		
-		if(multiplN < minMultipl)minMultipl = multiplN;
-	}
-	
-	if(minMultipl < - fResTol)
-	{
+        
+        if(multiplN < minMultipl)minMultipl = multiplN;
+    }
+    
+    if(minMultipl < - fResTol)
+    {
 #ifdef LOG4CXX
         {
             std::stringstream sout;
@@ -1006,7 +1006,7 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             << " and setting it to zero.\n\t###### WARN: EpsTotalN isn't elastic!! ######";
             LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
         }
-#endif	
+#endif
 #ifdef LOG4CXX_PLASTICITY
         {
             std::stringstream sout;
@@ -1015,13 +1015,13 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
             LOGPZ_WARN(logger,sout.str().c_str());
         }
 #endif
-	}
-	
-	
-	if(minMultipl < 0.)minMultipl = 0.; //avoiding rounding errors
-	
-	stateAtYield = fN;
-	stateAtYield.fEpsT.Add(deltaEps, minMultipl);
+    }
+    
+    
+    if(minMultipl < 0.)minMultipl = 0.; //avoiding rounding errors
+    
+    stateAtYield = fN;
+    stateAtYield.fEpsT.Add(deltaEps, minMultipl);
     
 #ifdef LOG4CXX_PLASTICITY
     {
@@ -1031,8 +1031,8 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
         if(plasticIntegrOutput)LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
-	
-	return minMultipl;
+    
+    return minMultipl;
 }
 
 
@@ -1050,7 +1050,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     const int nVars = 7+YC_t::NYield;
     int i;
     const REAL Tol = fResTol;
-	
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;//1, sout2;
@@ -1068,19 +1068,19 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     
     TPZPlasticState<TFAD>    Np1_FAD;
     TPZTensor<TFAD>          sigmaNp1_FAD;
-    TPZManVector<TFAD,nVars> epsRes_FAD(nVars), 
+    TPZManVector<TFAD,nVars> epsRes_FAD(nVars),
     delGamma_FAD(YC_t::NYield);
     TFAD                     phiRes_FAD;
     TPZFNMatrix<nVars>       ResVal(nVars,1,0.), // ResVal to hold the residual vector
     Sol(nVars,1,0.);    // Sol will contain the values of the unknown values
     TPZFNMatrix<nVars*nVars> tangent(nVars,nVars,0.); // Jacobian matrix
     REAL                     resnorm = 0.;
-	
     
-    int countReset = 0;	
+    
+    int countReset = 0;
     int countNewton = 0;
-	
-	
+    
+    
     do{//while(RemoveInvalidEqs(epsRes_FAD));
         
         // verifying if it is necessary to impose post-peak material behavior
@@ -1098,17 +1098,17 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX_PLASTICITY
         {
             std::stringstream sout;
-            sout << "*** PlasticLoop *** PlasticLoop main loop with " 
-            << countReset << "-th valid equation set: {" 
+            sout << "*** PlasticLoop *** PlasticLoop main loop with "
+            << countReset << "-th valid equation set: {"
             << validEqs << "}.";
             LOGPZ_INFO(logger,sout.str().c_str());
-		}
-#endif	  
+        }
+#endif
         
         
-		//      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
+        //      REAL LineSearch(const TPZFMatrix &Wn, TPZFMatrix DeltaW, TPZFMatrix &NextW, REAL tol, int niter);
         
-        ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1/*precond*/, 1/*ResetUnvalidEqs*/); 
+        ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1/*precond*/, 1/*ResetUnvalidEqs*/);
         
         countNewton = 0;
         
@@ -1121,16 +1121,16 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             TPZStepSolver<REAL> st(matc);
             st.SetDirect(ELU);
             
-            //		 cout << " RESVAL " <<endl;
-            //		 cout << ResVal << endl;
+            //           cout << " RESVAL " <<endl;
+            //           cout << ResVal << endl;
             
             
-            //	ofstream fileout("rigidez.nb");
-            //	tangent.Print("Rigidez = ", fileout, EMathematicaInput);
-			//       ofstream fileout2("ResVal.nb");
-			// ResVal.Print("ResVal = ", fileout2, EMathematicaInput);
-			//  cout << tangent << endl;
-			//   cout << ResVal << endl;
+            //  ofstream fileout("rigidez.nb");
+            //  tangent.Print("Rigidez = ", fileout, EMathematicaInput);
+            //       ofstream fileout2("ResVal.nb");
+            // ResVal.Print("ResVal = ", fileout2, EMathematicaInput);
+            //  cout << tangent << endl;
+            //   cout << ResVal << endl;
             
             
             // invert the tangent matrix and put the correction in the Sol variable
@@ -1148,7 +1148,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX_PLASTICITY
             {
                 std::stringstream sout1, sout2;
-                sout1 << "*** PlasticLoop *** Newton's " << countNewton 
+                sout1 << "*** PlasticLoop *** Newton's " << countNewton
                 << "-th iteration with residual norm = " << resnorm;
                 sout2 << "\nTangent Matrix:\n" << tangent
                 << "\nResidual:\n" << ResVal;
@@ -1179,7 +1179,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         {
             std::stringstream sout1, sout2;
             sout1 << "*** PlasticLoop *** Exiting Newton's scheme after " << countNewton
-		    << " steps and with residual norm = " << resnorm;
+            << " steps and with residual norm = " << resnorm;
             LOGPZ_INFO(logger,sout1.str().c_str());
             if(resnorm > Tol)
             {
@@ -1199,7 +1199,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     //for(i=0; i<6; i++) Np1.fEpsP.fData[i] = Np1_FAD.EpsP().fData[i].val();
     //Np1.fAlpha = Np1_FAD.Alpha().val();
     Np1_FAD.CopyTo(Np1);
-	
+    
     for(i=0; i<YC_t::NYield; i++)
         delGamma[i] = delGamma_FAD[i].val();
     
@@ -1214,8 +1214,8 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         LOGPZ_INFO(logger,sout2.str().c_str());
     }
 #endif
-	
-	return resnorm<=Tol;		
+    
+    return resnorm<=Tol;
 }
 
 
@@ -1225,40 +1225,40 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //                                                       TPZPlasticState<REAL> &Np1,
 //                                                       const REAL &TolEpsPErr)
 //{
-//	int succeeded;
+//      int succeeded;
 //
-//    
+//
 //    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-//	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
-//    
-//	REAL normEpsPErr = 0.;
-//	int counter = 0;
-//	REAL lambda = 0.;
-//    
-//	succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
-//	
-//	if(normEpsPErr < TolEpsPErr && succeeded)
-//	{
-//		
-//		PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-//        
-//		return 1; 
-//	}
-//	
-//	int discarded = 1;
-//    
-//	
-//	// Substepping state variables
-//	TPZPlasticState<REAL> Nk(N),
+//      TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+//
+//      REAL normEpsPErr = 0.;
+//      int counter = 0;
+//      REAL lambda = 0.;
+//
+//      succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
+//
+//      if(normEpsPErr < TolEpsPErr && succeeded)
+//      {
+//
+//              PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+//
+//              return 1;
+//      }
+//
+//      int discarded = 1;
+//
+//
+//      // Substepping state variables
+//      TPZPlasticState<REAL> Nk(N),
 //    Nkp1,statek1,statek2,statek3,statek4,deltastatek1,deltastatek2,deltastatek3,deltastatek4;
-//	
-//	TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
-//	deltaEpsTotal.Add(N.EpsT(), -1.);
-//	
-////	REAL k = 0., q = 1., kp1 = 0., multipl;
+//
+//      TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
+//      deltaEpsTotal.Add(N.EpsT(), -1.);
+//
+////    REAL k = 0., q = 1., kp1 = 0., multipl;
 //    REAL h = 0.5;
-//    
-////	while(k < 1.)
+//
+////    while(k < 1.)
 // //   {
 //        //staten1=staten+deltastate
 //        // df = deltaState entre nkp1 e nk
@@ -1273,46 +1273,46 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //        //k3 = h df(xn+0.5h, yn+0.5 k2)
 //        //k4 = h df(xn+h, yn+k3)
 //        //yn1 = yn + k1/6 + k2/3 +k3/3 + k4/6
-////	REAL size =5;
+////    REAL size =5;
 ////    for(int i=1;i<=size;i++)
 ////    {
 //        //k1 = h df(xn,yn)
-//        
+//
 ////        REAL march = i/size;
 //
-////        
+////
 ////        deltastatek1.fEpsT = Nkp1.EpsT();
 ////        deltastatek1.fEpsP = Nkp1.EpsP();
 ////        deltastatek1.fAlpha = Nkp1.Alpha();
-////        
+////
 ////        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
 ////        deltastatek1.fEpsP.Add(Nk.EpsP(),-1.);
 ////        deltastatek1.fAlpha-=Nk.Alpha();
 ////        for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//        
+//
 //  //      Nkp1.fEpsT = Nk.EpsT();
-//	//	Nkp1.fEpsT.Add(deltaEpsTotal, h);
-//	//	Nkp1.fAlpha = Nk.Alpha();
-//	//	Nkp1.fEpsP  = Nk.EpsP();
-//        
-//        
+//      //      Nkp1.fEpsT.Add(deltaEpsTotal, h);
+//      //      Nkp1.fAlpha = Nk.Alpha();
+//      //      Nkp1.fEpsP  = Nk.EpsP();
+//
+//
 ////        Nkp1.fEpsT = N.EpsT();
 ////        Nkp1.fEpsT.Add(deltaEpsTotal, h);
 ////        Nkp1.fAlpha = Nk.Alpha();
 ////        Nkp1.fEpsP  = Nk.EpsP();
 ////        for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-////        
+////
 ////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
 ////            PushPlasticMem(Nkp1, march, lambda, delGamma, validEqs, fYC.GetForceYield());
 ////            Nk = Nkp1;
 ////         PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-//        
+//
 ////        if(succeeded && normEpsPErr < 0.0001)
 ////        {
 ////            Np1 = Nkp1;
 ////            //return;
 ////        }
-//        
+//
 //        //cout << "\n deltastate \n "<<deltastatek1 << endl;
 //        #ifdef LOG4CXX
 //        {
@@ -1326,186 +1326,186 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //            LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
 //        }
 //        #endif
-//        
-//       
-////        
+//
+//
+////
 ////        deltastatek1.fEpsT.Multiply(h, 1.);
 ////        deltastatek1.fEpsP.Multiply(h, 1.);
 ////        deltastatek1.fAlpha*=h;
-////      
-////        
+////
+////
 ////        Nkp1.fEpsT.Add(deltastatek1.EpsT(),1.);
 ////        Nkp1.fEpsP.Add(deltastatek1.EpsP(),1.);
 ////        Nkp1.fAlpha+=deltastatek1.Alpha();
-//        
+//
 //       // Nk = Nkp1;
 //        //k1 = h df(xn,yn)
 ////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////        
+////
 ////        deltastatek1.fEpsT = Nkp1.EpsT();
 ////        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
 ////        deltastatek1.fEpsT.Multiply(h, 1.);
-////        
+////
 ////        deltastatek1.fEpsT.Add(Nk.EpsT(),1.);
-////        
+////
 ////        Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
-////        
+////
 ////        Nkp1.fAlpha = Nk.Alpha();
 ////        Nkp1.fEpsP  = Nk.EpsP();
-////        
+////
 ////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-////        
+////
 ////        //k2 = h df(xn+0.5h, yn+0.5 k1)
 ////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////        
+////
 ////        deltastatek2.fEpsT = Nkp1.EpsT();
 ////        deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
 ////        deltastatek2.fEpsT.Multiply(h, 1.);
-////        
-////        
+////
+////
 ////        deltastatek2.fEpsT.Add(Nk.EpsT(),1.);
 ////        Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
-////        
+////
 ////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-////        
+////
 ////        //k3 = h df(xn+0.5h, yn+0.5 k2)
 ////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////        
-////        
+////
+////
 ////        deltastatek3.fEpsT = Nkp1.EpsT();
 ////        deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
 ////        deltastatek3.fEpsT.Multiply(h, 1.);
-////        
-////        
+////
+////
 ////        deltastatek3.fEpsT.Add(Nk.EpsT(),1.);
 ////        Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1.);
-////        
+////
 ////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-////        
-////        
+////
+////
 ////        //k4 = h df(xn+h, yn+k3)
 ////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////        
+////
 ////        Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
 ////  //      Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
 ////  //      Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-////        
-////        
+////
+////
 ////        Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
 ////    //    Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
 ////    //    Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-////        
+////
 ////        Nkp1.fEpsT.Add(deltastatek3.fEpsT,1/6.);
 ////     //   Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
 ////    //    Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-////        
+////
 ////        PushPlasticMem(Nkp1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-////        
+////
 ////        Np1 = Nkp1;
-//        
+//
 ////     }
 //   // Np1 = Nkp1;
-//    
-//    
+//
+//
 //    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//    
+//
 //    deltastatek1.fEpsT = Nkp1.EpsT();
 //    deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
 //    deltastatek1.fEpsT.Multiply(h, 1.);
-//    
+//
 //    deltastatek1.fEpsT.Add(Nk.EpsT(),1.);
-//    
+//
 //    Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
 //    Nkp1.fAlpha = Nk.Alpha();
 //    Nkp1.fEpsP  = Nk.EpsP();
-//    
+//
 //    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//    
+//
 //    //k2 = h df(xn+0.5h, yn+0.5 k1)
 //    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//    
+//
 //    deltastatek2.fEpsT = Nkp1.EpsT();
 //    deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
 //    deltastatek2.fEpsT.Multiply(h, 1.);
-//    
-//    
+//
+//
 //    deltastatek2.fEpsT.Add(Nk.EpsT(),1.);
 //    Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
-//    
+//
 //    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//    
+//
 //    //k3 = h df(xn+0.5h, yn+0.5 k2)
 //    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//    
-//    
+//
+//
 //    deltastatek3.fEpsT = Nkp1.EpsT();
 //    deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
 //    deltastatek3.fEpsT.Multiply(h, 1.);
-//    
-//    
+//
+//
 //    deltastatek3.fEpsT.Add(Nk.EpsT(),1.);
 //    Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1.);
-//    
+//
 //    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-//    
-//    
+//
+//
 //    //k4 = h df(xn+h, yn+k3)
 //    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//    
+//
 //    deltastatek4.fEpsT = Nkp1.EpsT();
 //    deltastatek4.fEpsT.Add(Nk.EpsT(),-1.);
 //    deltastatek4.fEpsT.Multiply(h, 1.);
-//    
-//    
+//
+//
 //    deltastatek4.fEpsT.Add(Nk.EpsT(),1.);
 //    Nkp1.fEpsT.Add(deltastatek4.fEpsT, 1.);
-//    
+//
 //    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-//    
-//    
+//
+//
 //    //k4 = h df(xn+h, yn+k3)
 //    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//    
-//    
-//    
+//
+//
+//
 //    Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
 //    //      Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
 //    //      Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-//    
-//    
+//
+//
 //    Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
 //    //    Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
 //    //    Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-//    
+//
 //    Nkp1.fEpsT.Add(deltastatek3.fEpsT,1/6.);
 //    //   Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
 //    //    Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-//    
+//
 //    PushPlasticMem(Nkp1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-//    
+//
 //    Np1 = Nkp1;
-//    
+//
 //
 //    /*
-//     
-//     
-//     
-//     
-//     
+//
+//
+//
+//
+//
 //     while(k < 1.)
 //     {
-//     
+//
 //     multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
-//     
+//
 //     if(multipl < 0.1) multipl = 0.1;
 //     if(multipl > 10.) multipl = 10.;
-//     
+//
 //     if(!succeeded)multipl = 0.5;
-//     
+//
 //     q*= multipl;
-//     
+//
 //     if(q < fMinStepSize)q = fMinStepSize;
-//     
+//
 //     kp1 = min(1.0, k + q);
 //     q = kp1 - k; // needed when k+q exceeds 1
 //     Nkp1.fEpsT = N.EpsT();
@@ -1513,13 +1513,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //     Nkp1.fAlpha = Nk.Alpha();
 //     Nkp1.fEpsP  = Nk.EpsP();
 //     for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//     
+//
 //     succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//     
+//
 //     #ifdef LOG4CXX
 //     {
 //     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** " << counter 
+//     sout << "*** PlasticIntegrate *** " << counter
 //     << "-th substep with k=" << k << " and kp1=" << kp1
 //     << " (normEpsPErr = " << normEpsPErr << " )"
 //     << "\nValidEqs = " << validEqs << " and forceYield = " << fYC.GetForceYield();
@@ -1529,23 +1529,23 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //     #ifdef LOG4CXX_PLASTICITY
 //     {
 //     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** " << counter 
+//     sout << "*** PlasticIntegrate *** " << counter
 //     << "-th substep with k=" << k << " and kp1=" << kp1
 //     << " (normEpsPErr = " << normEpsPErr << " )"
 //     << "\nValidEqs = " << validEqs << " and forceYield = " << fYC.GetForceYield();
 //     LOGPZ_INFO(logger,sout.str().c_str());
 //     }
 //     #endif
-//     
+//
 //     if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
 //     {
-//     
+//
 //     #ifdef LOG4CXX
 //     if(normEpsPErr >= TolEpsPErr)
 //     {
 //     std::stringstream sout;
 //     sout << "*** PlasticIntegrate *** ###### SUBSTEPPING CUTOFF ###### "
-//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr 
+//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr
 //     << " because the step became " <<(kp1-k)*100. << "% of the original step size";
 //     LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
 //     }
@@ -1555,18 +1555,18 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //     {
 //     std::stringstream sout;
 //     sout << "*** PlasticIntegrate *** ###### SUBSTEPPING CUTOFF ###### "
-//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr 
+//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr
 //     << " because the step became " <<(kp1-k)*100. << "% of the original step size";
 //     LOGPZ_WARN(logger,sout.str().c_str());
 //     }
 //     #endif
-//     
+//
 //     PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-//     
+//
 //     counter++;
 //     // the k-th integration step respects the estimated tolerance
 //     // proceeding with time evolution...
-//     Nk = Nkp1;			
+//     Nk = Nkp1;
 //     k =  kp1;
 //     }
 //     else{
@@ -1576,13 +1576,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //     // If the method works fine this situation should rarely happen.
 //     }
 //
-//     
-//     
-//     
-//     
-//     
-//     
-//     
+//
+//
+//
+//
+//
+//
+//
 //        //k1 = h df(xn,yn)
 //        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
 //        deltastatek1.fEpsT = Nkp1.EpsT();
@@ -1592,7 +1592,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
 //        deltastatek1.fEpsP.Add(Nk.EpsP(),-1.);
 //        deltastatek1.fAlpha-=Nk.Alpha();
-//        
+//
 //        deltastatek1.fEpsT.Multiply(h, 1.);
 //        deltastatek1.fEpsP.Multiply(h, 1.);
 //        deltastatek1.fEpsT*=h;
@@ -1600,15 +1600,15 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
 //        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=0.5*h;
 //        Nk.fAlpha+=0.5*h;
-//        
+//
 //        Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
 //        Nkp1.fEpsP.Add(deltastatek1.fEpsP, 0.5);
 //        Nkp1.fAlpha += deltastatek1.Alpha()*0.5;
-//                  
+//
 //        //k2 = h df(xn+0.5h, yn+0.5 k1)
 //         succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//        
-//        
+//
+//
 //        deltastatek2.fEpsT = Nkp1.EpsT();
 //        deltastatek2.fEpsP = Nkp1.EpsP();
 //        deltastatek2.fAlpha = Nkp1.Alpha();
@@ -1616,7 +1616,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //        deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
 //        deltastatek2.fEpsP.Add(Nk.EpsP(),-1.);
 //        deltastatek2.fAlpha-=Nk.Alpha();
-//        
+//
 //        deltastatek2.fEpsT.Multiply(h, 1.);
 //        deltastatek2.fEpsP.Multiply(h, 1.);
 //        deltastatek2.fEpsT*=h;
@@ -1624,111 +1624,111 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 //        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
 //        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=0.5*h;
 //        Nk.fAlpha+=0.5*h;
-//        
+//
 //        Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
 //        Nkp1.fEpsP.Add(deltastatek2.fEpsP, 0.5);
-//        
-//        
+//
+//
 //        //k3 = h df(xn+0.5h, yn+0.5 k2)
 //        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//        
-//        
+//
+//
 //        deltastatek3.fEpsT = Nkp1.EpsT();
 //        deltastatek3.fEpsP = Nkp1.EpsP();
 //        deltastatek3.fAlpha = Nkp1.Alpha();
-//        
+//
 //        deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
 //        deltastatek3.fEpsP.Add(Nk.EpsP(),-1.);
 //        deltastatek3.fAlpha-=Nk.Alpha();
-//        
+//
 //        deltastatek3.fEpsT.Multiply(h, 1.);
 //        deltastatek3.fEpsP.Multiply(h, 1.);
 //        deltastatek3.fEpsT*=h;
-//        
+//
 //        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
 //        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=h;
 //        Nk.fAlpha+=h;
-//        
+//
 //        Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1);
 //        Nkp1.fEpsP.Add(deltastatek3.fEpsP, 1);
-//        
-//        
+//
+//
 //        //k4 = h df(xn+h, yn+k3)
 //        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//        
+//
 //        deltastatek4.fEpsT = Nkp1.EpsT();
 //        deltastatek4.fEpsP = Nkp1.EpsP();
 //        deltastatek4.fAlpha = Nkp1.Alpha();
-//        
+//
 //        deltastatek4.fEpsT.Add(Nk.EpsT(),-1.);
 //        deltastatek4.fEpsP.Add(Nk.EpsP(),-1.);
 //        deltastatek4.fAlpha-=Nk.Alpha();
-//        
+//
 //        deltastatek4.fEpsT.Multiply(h, 1.);
 //        deltastatek4.fEpsP.Multiply(h, 1.);
 //        deltastatek4.fEpsT*=h;
-//        
+//
 //        Nkp1.fEpsT.Add(Nk.fEpsT,1);
 //        Nkp1.fEpsT.Add(Nk.fEpsP,1);
 //        Nkp1.fAlpha+=Nk.fAlpha;
-//        
+//
 //        Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
 //        Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
 //        Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-//        
-//        
+//
+//
 //        Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
 //        Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
 //        Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-//        
+//
 //        Nkp1.fEpsT.Add(deltastatek4.fEpsT,1/6.);
 //        Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
 //        Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-//    
+//
 //         Np1 = Nkp1;
-//        
+//
 //        //yn1 = yn + k1/6 + k2/3 +k3/3 + k4/6
 //*/
-//        
-//	/*	
-//		multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
-//		
-//		if(multipl < 0.1) multipl = 0.1;
-//		if(multipl > 10.) multipl = 10.;
-//		
-//		if(!succeeded)multipl = 0.5;
-//		
-//		q*= multipl;
-//		
-//	    if(q < fMinStepSize)q = fMinStepSize;
-//		
-//		kp1 = min(1.0, k + q);
-//		q = kp1 - k; // needed when k+q exceeds 1
-//		Nkp1.fEpsT = N.EpsT();
-//		Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-//		Nkp1.fAlpha = Nk.Alpha();
-//		Nkp1.fEpsP  = Nk.EpsP();
-//		for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//		
+//
+//      /*
+//              multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
+//
+//              if(multipl < 0.1) multipl = 0.1;
+//              if(multipl > 10.) multipl = 10.;
+//
+//              if(!succeeded)multipl = 0.5;
+//
+//              q*= multipl;
+//
+//          if(q < fMinStepSize)q = fMinStepSize;
+//
+//              kp1 = min(1.0, k + q);
+//              q = kp1 - k; // needed when k+q exceeds 1
+//              Nkp1.fEpsT = N.EpsT();
+//              Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
+//              Nkp1.fAlpha = Nk.Alpha();
+//              Nkp1.fEpsP  = Nk.EpsP();
+//              for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
+//
 //        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
 //
-//		
-//    	if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
-//		{
-//			
+//
+//      if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
+//              {
+//
 //            PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
 //            counter++;
-//            Nk = Nkp1;			
-//		    k =  kp1;
-//		}
-//		else
+//            Nk = Nkp1;
+//                  k =  kp1;
+//              }
+//              else
 //        {
 //            discarded++;
-//		}
-//     
-//	}*/
-//	
-//	return counter;
+//              }
+//
+//      }*/
+//
+//      return counter;
 //}
 
 
@@ -1739,57 +1739,61 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
                                                        TPZPlasticState<REAL> &Np1,
                                                        const REAL &TolEpsPErr)
 {
-	int succeeded;
+    int succeeded;
     
     TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-	TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
+    TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
     
-	REAL normEpsPErr = 0.;
-	int counter = 0;
-	REAL lambda = 0.;
+    REAL normEpsPErr = 0.;
+    int counter = 0;
+    REAL lambda = 0.;
     
-	succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
-	
-	if(normEpsPErr < TolEpsPErr && succeeded)
-	{
-		
-		PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+    succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
+    
+    if(normEpsPErr < TolEpsPErr && succeeded)
+    {
         
-		return 1; 
-	}
-	
-	int discarded = 1;
-	
-	// Substepping state variables
-	TPZPlasticState<REAL> Nk(N),
-    Nkp1;
-	
-	TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
-	deltaEpsTotal.Add(N.EpsT(), -1.);
-	
-	REAL k = 0., q = 1., kp1 = 0., multipl;
+        PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
+        
+        return 1;
+    }
     
-	while(k < 1.)
-	{
-		
-		multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
-		
-		if(multipl < 0.1) multipl = 0.1;
-		if(multipl > 10.) multipl = 10.;
-		
-		if(!succeeded)multipl = 0.5;
-		
-		q*= multipl;
-		
-	    if(q < fMinStepSize)q = fMinStepSize;
-		
-		kp1 = min((REAL)1.0, k + q);
-		q = kp1 - k; // needed when k+q exceeds 1
-		Nkp1.fEpsT = N.EpsT();
-		Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-		Nkp1.fAlpha = Nk.Alpha();
-		Nkp1.fEpsP  = Nk.EpsP();
-		for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
+    int discarded = 1;
+    
+    // Substepping state variables
+    TPZPlasticState<REAL> Nk(N),
+    Nkp1;
+    
+    TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
+    deltaEpsTotal.Add(N.EpsT(), -1.);
+    
+    REAL k = 0., q = 1., kp1 = 0., multipl;
+    
+    ofstream outfile("integrate.txt");
+    ofstream outfile2("integrate2.txt");
+    
+    while(k < 1.)
+    {
+        
+        
+        multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
+
+        if(multipl < 0.1) multipl = 0.1;
+        if(multipl > 10.) multipl = 10.;
+        
+        if(!succeeded)multipl = 0.5;
+        
+        q*= multipl;
+        
+        if(q < fMinStepSize)q = fMinStepSize;
+        
+        kp1 = min((REAL)1.0, k + q);
+        q = kp1 - k; // needed when k+q exceeds 1
+        Nkp1.fEpsT = N.EpsT();
+        Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
+        Nkp1.fAlpha = Nk.Alpha();
+        Nkp1.fEpsP  = Nk.EpsP();
+        for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
         
 #ifdef LOG4CXX
         {
@@ -1800,31 +1804,38 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
             sout << "\n normEpsPErr \n "<<normEpsPErr << endl;
             sout << "\n delGamma \n "<<delGamma << endl;
             sout << "\n lambda \n "<<lambda << endl;
-			//  LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
+            //  LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
         }
 #endif
-		
+        
+        
         succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-		
-		
-    	if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
-		{
-			
+        
+        
+        if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
+        {
+            
             PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
             counter++;
+  
             // the k-th integration step respects the estimated tolerance
             // proceeding with time evolution...
-            Nk = Nkp1;			
-		    k =  kp1;
-		}
-		else{
+            Nk = Nkp1;
+            k =  kp1;
+
+            outfile <<"\n"<< counter <<" "<< k;
+        }
+        else{
             discarded++;
-		}// otherwise the answer isn't accepted and the next q will be
-		// recomputed in order to lie within the desired tolerance.
-		// If the method works fine this situation should rarely happen.
-	}
-	
-	return counter;
+        }// otherwise the answer isn't accepted and the next q will be
+        // recomputed in order to lie within the desired tolerance.
+        // If the method works fine this situation should rarely happen.
+        REAL razaoerros = normEpsPErr/TolEpsPErr;
+        outfile2<<"\n"<< counter <<" "<< razaoerros;
+        
+    }
+    
+    return counter;
 }
 
 
@@ -1834,79 +1845,79 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::InitializeValidEqs(TPZVec<T> &res_T, TPZVe
 {
 #ifdef LOG4CXX_PLASTICITY
     {
-		int i, n = res_T.NElements();
-    	std::stringstream sout;
-		sout << ">>> InitializeValidEqs *** Res = ";
-		for(i = 0; i < n; i++)sout << shapeFAD::val(res_T[i]) << " ";
-		LOGPZ_DEBUG(logger,sout.str().c_str());
+        int i, n = res_T.NElements();
+        std::stringstream sout;
+        sout << ">>> InitializeValidEqs *** Res = ";
+        for(i = 0; i < n; i++)sout << shapeFAD::val(res_T[i]) << " ";
+        LOGPZ_DEBUG(logger,sout.str().c_str());
     }
 #endif
-	const int nyield = YC_t::NYield;
-	validEqs.Resize(nyield);
-	int i, count = 0;
-	for(i = 0; i < nyield; i++)
-	{
-		validEqs[i] = 0;
-		if(shapeFAD::val(res_T[i+7]) > 0.)
-		{
-			validEqs[i] = 1;
-			count++;
-		}
-	}
-	
-	if(nyield == 1) // if there exists only one eqn it must be active
-	{
-		validEqs[0] = 1;
-		count++;
-	}
-	
-	return count;
+    const int nyield = YC_t::NYield;
+    validEqs.Resize(nyield);
+    int i, count = 0;
+    for(i = 0; i < nyield; i++)
+    {
+        validEqs[i] = 0;
+        if(shapeFAD::val(res_T[i+7]) > 0.)
+        {
+            validEqs[i] = 1;
+            count++;
+        }
+    }
+    
+    if(nyield == 1) // if there exists only one eqn it must be active
+    {
+        validEqs[0] = 1;
+        count++;
+    }
+    
+    return count;
 }
 
 template <class YC_t, class TF_t, class ER_t>
 template <class T>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, TPZVec<T> & res_T, TPZVec<int> & validEqs)
-{	
-	const int nyield = YC_t::NYield;
-	validEqs.Resize(nyield);
-	
-	if(nyield == 1)return 0;// remove Invalid Eqs should not invalidate the unique equation
-	
-	int i, count = 0;
-	
+{
+    const int nyield = YC_t::NYield;
+    validEqs.Resize(nyield);
+    
+    if(nyield == 1)return 0;// remove Invalid Eqs should not invalidate the unique equation
+    
+    int i, count = 0;
+    
 #ifdef LOG4CXX_PLASTICITY
     {
-		int i;
-		std::stringstream sout;
-		sout << ">>> RemoveInvalidEqs *** delGamma = ";
-		for(i = 0; i < nyield; i++)sout << shapeFAD::val(delGamma_T[i]) << " ";
-		sout << " phi = ";
-		for(i = 0; i < nyield; i++)sout << shapeFAD::val(res_T[i+7]) << " ";
-		LOGPZ_INFO(logger,sout.str().c_str());
+        int i;
+        std::stringstream sout;
+        sout << ">>> RemoveInvalidEqs *** delGamma = ";
+        for(i = 0; i < nyield; i++)sout << shapeFAD::val(delGamma_T[i]) << " ";
+        sout << " phi = ";
+        for(i = 0; i < nyield; i++)sout << shapeFAD::val(res_T[i+7]) << " ";
+        LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
-	int BoolDelGamma,
+    
+    int BoolDelGamma,
     BoolValidEq,
     BoolRes;
-	
-	for(i = 0; i < nyield; i++)
-	{
-		BoolDelGamma = shapeFAD::val(delGamma_T[i]) > 0.; // deltaGamma is valid
-		BoolValidEq  = validEqs[i];                      // equation is already in use
-		BoolRes      = shapeFAD::val(res_T[i+7]) > fResTol;   // equation indicates plastification
+    
+    for(i = 0; i < nyield; i++)
+    {
+        BoolDelGamma = shapeFAD::val(delGamma_T[i]) > 0.; // deltaGamma is valid
+        BoolValidEq  = validEqs[i];                      // equation is already in use
+        BoolRes      = shapeFAD::val(res_T[i+7]) > fResTol;   // equation indicates plastification
         
-		if(BoolRes) validEqs[i] = 1;
-		switch(BoolRes)
-		{
-	    	case (true):
-				// the lines below unfortunately led to instabilities in the integration process
-				//validEqs[i] = 1; // if the equation indicates plastification then it is necessary to involve it in the process
-				//count++;
-                break;			
-		    case (false):
+        if(BoolRes) validEqs[i] = 1;
+        switch(BoolRes)
+        {
+            case (true):
+                // the lines below unfortunately led to instabilities in the integration process
+                //validEqs[i] = 1; // if the equation indicates plastification then it is necessary to involve it in the process
+                //count++;
+                break;
+            case (false):
                 // if the equation does not indicate plastification but is
-                // already involved in the plastification process and 
+                // already involved in the plastification process and
                 // has a valid deltaGamma then keep it in the integration process - do nothing
                 
                 // if it is involved in the plastification process but has an
@@ -1920,10 +1931,10 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
                 // if it isn't invoved in the plastification process - delgamma is meaningless and no
                 // testing should be performed.
                 break;
-		}
-	}
-	
-	return count;
+        }
+    }
+    
+    return count;
 }
 
 
@@ -1932,7 +1943,7 @@ template<class T1, class T_VECTOR, class T_MATRIX>//T1:input residual fad type (
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
                                                       const TPZVec<T1> & epsRes_FAD,
                                                       T_VECTOR & ResVal, //TPZFMatrix for the T1=fad<real> type
-                                                      REAL & resnorm, // REAL 
+                                                      REAL & resnorm, // REAL
                                                       T_MATRIX & tangent, // TPZFMatrix for T1=fad<real> type
                                                       TPZVec<int> & validEqs,
                                                       const int precond,
@@ -1945,42 +1956,42 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
     // extract the partial derivatives to form the tangent matrix
     for(i=0; i<nVars; i++)
     {
-        for(j=0; j<nVars; j++) 
+        for(j=0; j<nVars; j++)
             tangent(i,j) = epsRes_FAD[i].dx(j);
         ResVal(i,0) = epsRes_FAD[i].val();
     }
-	
-    //	cout << "epsRes_FAD[i] "<<endl;
-    //	cout << epsRes_FAD <<endl;
-    //	
-    //	cout << "ResVal"<<endl;
-    //	cout << ResVal<<endl;
-    //	
-    //	cout << " TANGENTE " <<endl;
-    //	cout << tangent <<endl;
-	
+    
+    //  cout << "epsRes_FAD[i] "<<endl;
+    //  cout << epsRes_FAD <<endl;
+    //
+    //  cout << "ResVal"<<endl;
+    //  cout << ResVal<<endl;
+    //
+    //  cout << " TANGENTE " <<endl;
+    //  cout << tangent <<endl;
+    
     // reseting the equations related to the invalid yield surfaces
     if(resetInvalidEqs)
-        for(i=0; i<nyield; i++)	
-		{
-			if(validEqs[i] == 0)
-			{
-		        for(j=0; j<nVars; j++) 
+        for(i=0; i<nyield; i++)
+        {
+            if(validEqs[i] == 0)
+            {
+                for(j=0; j<nVars; j++)
                     tangent(i+7,j) = 0.;
-				tangent(i+7,i+7) = 1.;
-				ResVal(i+7,0) = 0.;
-			}
-		}
+                tangent(i+7,i+7) = 1.;
+                ResVal(i+7,0) = 0.;
+            }
+        }
     // updating residual norm
     // before preconditioning such that it keeps its physical meaning
-	//cout << "ResVal"<<endl;
-    //	cout << ResVal<<endl;
+    //cout << "ResVal"<<endl;
+    //  cout << ResVal<<endl;
     resnorm = 0.;
     for(i = 0; i < nVars; i++)
-		resnorm += pow(shapeFAD::val( ResVal(i,0) ) , 2.);
+        resnorm += pow(shapeFAD::val( ResVal(i,0) ) , 2.);
     resnorm = sqrt(resnorm);
-	//cout << "resnorm"<<endl;
-    //	cout << resnorm<<endl;
+    //cout << "resnorm"<<endl;
+    //  cout << resnorm<<endl;
     // preconditioning the matrix/residual system
     if(precond)
         for(i=/*7*/0; i<nVars; i++)
@@ -1995,14 +2006,14 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
             for(j=0; j<nVars; j++)
                 tangent(i,j) = tangent(i,j) / pivot;
             ResVal(i,0) = ResVal(i,0) / pivot;
-        }	
-	
+        }
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
-        sout << ">>> ExtractTangent *** Residual norm = " << resnorm 
+        sout << ">>> ExtractTangent *** Residual norm = " << resnorm
         << "; precond = " << precond
-        << "; resetInvalidEqs = " << resetInvalidEqs 
+        << "; resetInvalidEqs = " << resetInvalidEqs
         << "; validEqs = {" << validEqs << "}";
         LOGPZ_INFO(logger,sout.str().c_str());
     }
@@ -2012,16 +2023,16 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ExtractTangent(
 template <class YC_t, class TF_t, class ER_t>
 template <class T1, class T2>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
-                                                       const TPZPlasticState<T1> &N_T1,
-                                                       TPZPlasticState<T2> &Np1_T2,
-                                                       const TPZVec<T2> &delGamma_T2,
-                                                       TPZVec<T2> &res_T2,
-                                                       REAL &normEpsPErr,
-                                                       int silent)const
+                                                        const TPZPlasticState<T1> &N_T1,
+                                                        TPZPlasticState<T2> &Np1_T2,
+                                                        const TPZVec<T2> &delGamma_T2,
+                                                        TPZVec<T2> &res_T2,
+                                                        REAL &normEpsPErr,
+                                                        int silent)const
 {
     
     const REAL a = 0.5;
-	
+    
     // This function will be either called with template parameter T being REAL or FAD type
     // nyield indicates the number of yield functions
     const int nyield = YC_t::NYield;
@@ -2032,7 +2043,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     // variable containing the error or deviation between solutions from Modified and
     // explicit Euler schemes
     TPZTensor<REAL> epsPErr;
-	
+    
     // vector holding the tensors of the N directions (usually derivative of the yield functions)
     TPZManVector<TPZTensor<T2>,nyield> NdirNp1_T2(nyield), NdirMidPt_T2(nyield);
     TPZManVector<TPZTensor<T1>, nyield> NdirN_T1(nyield);
@@ -2044,24 +2055,24 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     // residual of the equation corresponding to the damage variable
     T2 alphaRes_T2, ANp1_T2;
     T1 AN_T1;
-	
+    
     ComputePlasticVars<T1>(N_T1  , sigmaN_T1  , AN_T1);
-    ComputePlasticVars<T2>(Np1_T2, sigmaNp1_T2, ANp1_T2);	
+    ComputePlasticVars<T2>(Np1_T2, sigmaNp1_T2, ANp1_T2);
     
     // Compute the values of the N directions (which will update the plastic strain)
     fYC.N(sigmaN_T1  , AN_T1  , NdirN_T1  , 0);
     fYC.N(sigmaNp1_T2, ANp1_T2, NdirNp1_T2, 1);
     
     int i, j;
-    for(i=0; i< nyield; i++)for(j = 0; j < 6; j++)NdirMidPt_T2[i].fData[j] = ( ( NdirNp1_T2[i].fData[j] ) * T2(1.-a) 
+    for(i=0; i< nyield; i++)for(j = 0; j < 6; j++)NdirMidPt_T2[i].fData[j] = ( ( NdirNp1_T2[i].fData[j] ) * T2(1.-a)
                                                                               + ( NdirN_T1[i].fData[j]   ) * T1(a) );
-	
+    
     // Compute the value of H
     fYC.H(sigmaN_T1  , AN_T1  , HN_T1  , 0);
     fYC.H(sigmaNp1_T2, ANp1_T2, HNp1_T2, 1);
-	
+    
     for(i=0; i< nyield; i++)HMidPt_T2[i] = (HNp1_T2[i] * T2(1.-a) + T2( HN_T1[i] * T1(a) ) );
-	
+    
     //EpsRes = EpsilonPNp1 - fEpsP - deltagamma * Ndir; // 6 eqs
     //for
     for(i=0; i< nyield; i++)
@@ -2106,14 +2117,14 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
 template <class YC_t, class TF_t, class ER_t>
 template <class T1, class T2>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
-														 const TPZPlasticState<T1> &N_T1,
-														 TPZPlasticState<T2> &Np1_T2,
-														 const TPZVec<T2> &delGamma_T2,
-														 TPZVec<T2> &res_T2,
-														 REAL &normEpsPErr,
-														 int silent)const
+                                                         const TPZPlasticState<T1> &N_T1,
+                                                         TPZPlasticState<T2> &Np1_T2,
+                                                         const TPZVec<T2> &delGamma_T2,
+                                                         TPZVec<T2> &res_T2,
+                                                         REAL &normEpsPErr,
+                                                         int silent)const
 {
-	
+    
     // This function will be either called with template parameter T being REAL or FAD type
     // nyield indicates the number of yield functions
     const int nyield = YC_t::NYield;
@@ -2124,7 +2135,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
     // variable containing the error or deviation between solutions from Modified and
     // explicit Euler schemes
     TPZTensor<REAL> epsPErr;
-	
+    
     // vector holding the tensors of the N directions (usually derivative of the yield functions)
     TPZManVector<TPZTensor<T2>,nyield> NdirNp1_T2(nyield), NdirMidPt_T2(nyield), K1N_T2(nyield),K2N_T2(nyield),K3N_T2(nyield),K4N_T2(nyield),KTOTALN_T2(nyield);
     TPZManVector<TPZTensor<T1>, nyield> NdirN_T1(nyield),NdirN_T1COPY(nyield);
@@ -2136,9 +2147,9 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
     // residual of the equation corresponding to the damage variable
     T2 alphaRes_T2, ANp1_T2;
     T1 AN_T1;
-	
+    
     ComputePlasticVars<T1>(N_T1  , sigmaN_T1  , AN_T1);
-    ComputePlasticVars<T2>(Np1_T2, sigmaNp1_T2, ANp1_T2);	
+    ComputePlasticVars<T2>(Np1_T2, sigmaNp1_T2, ANp1_T2);
     
     // Compute the values of the N directions (which will update the plastic strain)
     fYC.N(sigmaN_T1  , AN_T1  , NdirN_T1  , 0);
@@ -2157,17 +2168,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
             KTOTALN_T2[i].fData[j] =  K1N_T2[i].fData[j]+ T2(2.)*K2N_T2[i].fData[j]+ T2(2.)*K3N_T2[i].fData[j]+ K4N_T2[i].fData[j];
             
             NdirN_T1COPY[i].fData[j]=NdirN_T1[i].fData[j];
- 
+            
         }
-
         
-	}
+        
+    }
     
-   
+    
     // Compute the value of H
     fYC.H(sigmaN_T1  , AN_T1  , HN_T1  , 0);
     fYC.H(sigmaNp1_T2, ANp1_T2, HNp1_T2, 1);
-	
+    
     for(i=0; i< nyield; i++)
     {
         K1H_T2[i] = N_T1.fAlpha;
@@ -2177,8 +2188,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
         KTOTALH_T2[i]=K1H_T2[i]+(T2(2.)* K2H_T2[i])+(T2(2.)* K3H_T2[i])+ K2H_T2[i];
         
     }
-	
-
+    
+    
     
     //EpsRes = EpsilonPNp1 - fEpsP - ((deltagamma * Ndir)/6)*(k1+2k2+2k3+k4); // 6 eqs
     for(i=0; i< nyield; i++)
@@ -2225,23 +2236,23 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidualRK(
 #ifdef LOG4CXX
     {
         std::stringstream sout;
-      /*  sout << "\n res_T2 = " << res_T2 <<endl;
-        sout << "\n K1N_T2 = " << K1N_T2 <<endl;
-        sout << "\n K2N_T2 = " << K2N_T2 <<endl;
-        sout << "\n K3N_T2 = " << K3N_T2 << endl;
-        sout << "\n K4N_T2 = " << K4N_T2 << endl;
-        sout << "\n K1H_T2 = " << K1H_T2 <<endl;
-        sout << "\n K2H_T2 = " << K2H_T2 <<endl;
-        sout << "\n K3H_T2 = " << K3H_T2 << endl;
-        sout << "\n K4H_T2 = " << K4H_T2 << endl;
-       */
+        /*  sout << "\n res_T2 = " << res_T2 <<endl;
+         sout << "\n K1N_T2 = " << K1N_T2 <<endl;
+         sout << "\n K2N_T2 = " << K2N_T2 <<endl;
+         sout << "\n K3N_T2 = " << K3N_T2 << endl;
+         sout << "\n K4N_T2 = " << K4N_T2 << endl;
+         sout << "\n K1H_T2 = " << K1H_T2 <<endl;
+         sout << "\n K2H_T2 = " << K2H_T2 <<endl;
+         sout << "\n K3H_T2 = " << K3H_T2 << endl;
+         sout << "\n K4H_T2 = " << K4H_T2 << endl;
+         */
         sout << "\n epsResMidPt_T2 = "<< epsResMidPt_T2 <<endl;
         sout << "\n alphaRes_T2 = "<< alphaRes_T2 <<endl;
         sout << "\n NdirN_T1 = "<< NdirN_T1 <<endl;
         LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
-
+    
     
 }
 
@@ -2257,72 +2268,72 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::UpdatePlasticVars(
                                                          TPZVec<int> & validEqs,
                                                          int updateVars)const
 {
-	const int nyield = YC_t::NYield;
-	const int nVars = 7+nyield;
-	TPZManVector<REAL,nyield> delGamma(nyield);
-	REAL sqrNormResN = 0, sqrNormResNp1, normEpsPErr;
-	TPZManVector<REAL, nVars> res(nVars);
-	TPZPlasticState<REAL> Np1, N;
-	int i, j;
-	
-	Np1_T2.CopyTo(Np1);
-	N_T1.CopyTo(N);
+    const int nyield = YC_t::NYield;
+    const int nVars = 7+nyield;
+    TPZManVector<REAL,nyield> delGamma(nyield);
+    REAL sqrNormResN = 0, sqrNormResNp1, normEpsPErr;
+    TPZManVector<REAL, nVars> res(nVars);
+    TPZPlasticState<REAL> Np1, N;
+    int i, j;
     
-	for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= shapeFAD::val( Sol_TVECTOR(i) );
-	Np1.fAlpha -= shapeFAD::val( Sol_TVECTOR(i++) );
-	for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - shapeFAD::val( Sol_TVECTOR(i++) );
+    Np1_T2.CopyTo(Np1);
+    N_T1.CopyTo(N);
     
-	PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
-//    PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
-	
-	sqrNormResNp1 = pow(sdot(res,res),0.5);	
-	
-	const REAL k = 2.;
-	REAL lambda = 1.; // ensuring that the lambda value will be ONE at the first step
-	
-	do{
-		sqrNormResN = sqrNormResNp1;
-		
-		lambda /= k;
-		
-		Np1_T2.CopyTo(Np1);
-		for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= lambda * shapeFAD::val( Sol_TVECTOR(i) );
-		Np1.fAlpha -= lambda * shapeFAD::val( Sol_TVECTOR(i++) );
-		for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - lambda * shapeFAD::val( Sol_TVECTOR(i++) );
-		
-		PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
-      //  PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
-		
+    for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= shapeFAD::val( Sol_TVECTOR(i) );
+    Np1.fAlpha -= shapeFAD::val( Sol_TVECTOR(i++) );
+    for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - shapeFAD::val( Sol_TVECTOR(i++) );
+    
+    PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
+    //    PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
+    
+    sqrNormResNp1 = pow(sdot(res,res),0.5);
+    
+    const REAL k = 2.;
+    REAL lambda = 1.; // ensuring that the lambda value will be ONE at the first step
+    
+    do{
+        sqrNormResN = sqrNormResNp1;
+        
+        lambda /= k;
+        
+        Np1_T2.CopyTo(Np1);
+        for(i=0; i<6; i++) Np1.fEpsP.fData[i] -= lambda * shapeFAD::val( Sol_TVECTOR(i) );
+        Np1.fAlpha -= lambda * shapeFAD::val( Sol_TVECTOR(i++) );
+        for(j=0; j<nyield; j++)delGamma[j] = shapeFAD::val(delGamma_T2[j]) - lambda * shapeFAD::val( Sol_TVECTOR(i++) );
+        
+        PlasticResidual<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
+        //  PlasticResidualRK<REAL, REAL>(N, Np1, delGamma, res, normEpsPErr, 1 /*silent*/);
+        
         // resetting invalid equations
-		for(i=0; i<nyield; i++)	
-			if(validEqs[i] == 0)
-				res[i+7] = 0.;
-		
-		sqrNormResNp1 = pow(sdot(res,res),0.5);		
-		
-	}while(sqrNormResNp1 < sqrNormResN && lambda >= fMinLambda); // ensuring that the step will be larger than fMinLambda
+        for(i=0; i<nyield; i++)
+            if(validEqs[i] == 0)
+                res[i+7] = 0.;
+        
+        sqrNormResNp1 = pow(sdot(res,res),0.5);
+        
+    }while(sqrNormResNp1 < sqrNormResN && lambda >= fMinLambda); // ensuring that the step will be larger than fMinLambda
     // to avoid wandering within local minima.
     
-	lambda *= k;
-	
-	if(lambda < 1.)
-	{
+    lambda *= k;
+    
+    if(lambda < 1.)
+    {
 #ifdef LOG4CXX_PLASTICITY
         {
             std::stringstream sout;
             sout << "*** UpdatePlasticVars *** Line Search indicates lambda = " << lambda << " to ensure residual drop." ;
             LOGPZ_INFO(logger,sout.str().c_str());
         }
-#endif	
-	}
+#endif
+    }
     
-	if(!updateVars) return lambda;
-	
-	for(i=0; i<6; i++) Np1_T2.fEpsP.fData[i] -= T2( lambda*Sol_TVECTOR(i) );
-	Np1_T2.fAlpha -= T2( lambda*Sol_TVECTOR(i++) );
-	for(j=0; j<YC_t::NYield; j++) delGamma_T2[j] -= T2( lambda*Sol_TVECTOR(i++) );
-	
-	return lambda;
+    if(!updateVars) return lambda;
+    
+    for(i=0; i<6; i++) Np1_T2.fEpsP.fData[i] -= T2( lambda*Sol_TVECTOR(i) );
+    Np1_T2.fAlpha -= T2( lambda*Sol_TVECTOR(i++) );
+    for(j=0; j<YC_t::NYield; j++) delGamma_T2[j] -= T2( lambda*Sol_TVECTOR(i++) );
+    
+    return lambda;
     
 }
 
@@ -2336,10 +2347,10 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::InitializePlasticFAD(
                                                             const int nVars)const
 {
     int i;
-	int nVarsPlastic = 7+YC_t::NYield;
-	
+    int nVarsPlastic = 7+YC_t::NYield;
+    
     //  copying values
-	state.CopyTo(state_T); // also initializing derivatives to null
+    state.CopyTo(state_T); // also initializing derivatives to null
     for(i=0; i<YC_t::NYield; i++)delGamma_T[i] = delGamma[i];
     
     // Initialize the partial derivative values
@@ -2349,22 +2360,22 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::InitializePlasticFAD(
     state_T.fAlpha.diff(6,nVars);
     // the remaining variables are the yield function multipliers
     for(i=7; i<nVarsPlastic; i++) delGamma_T[i-7].diff(i,nVars);
-	
+    
 }
 
 template <class YC_t, class TF_t, class ER_t>
-void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma, const EElastoPlastic ep) 
+void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma, const EElastoPlastic ep)
 {
-	const int nVars = 6;
-	REAL resnorm;
-	int i, k = 0;
-	TPZFNMatrix<nVars * nVars> Dep_mat(nVars, nVars);
-	TPZFNMatrix<nVars>         residual_mat(nVars, 1),
+    const int nVars = 6;
+    REAL resnorm;
+    int i, k = 0;
+    TPZFNMatrix<nVars * nVars> Dep_mat(nVars, nVars);
+    TPZFNMatrix<nVars>         residual_mat(nVars, 1),
     sigma_mat(nVars, 1),
     sol_mat(nVars, 1);
-	
-	TPZTensor<REAL> epsTotal(fN.fEpsT), EEpsilon;
-	
+    
+    TPZTensor<REAL> epsTotal(fN.fEpsT), EEpsilon;
+    
 #ifdef LOG4CXX
     {
         std::stringstream sout;
@@ -2382,67 +2393,67 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
         LOGPZ_DEBUG(logger,sout2.str().c_str());
     }
 #endif
-	
-	//cout << "\nstarting ProcessStrain/ComputeDep";
-	//cout.flush();
-	
-	// evaluating the plastic integration, stress tensor and jacobian
+    
+    //cout << "\nstarting ProcessStrain/ComputeDep";
+    //cout.flush();
+    
+    // evaluating the plastic integration, stress tensor and jacobian
     //ProcessStrainNoSubIncrement(epsTotal,EAuto);
-	ProcessStrain(epsTotal, EAuto);
-	ComputeDep(EEpsilon, Dep_mat);
-	
-	//cout << "\nended ProcessStrain/ComputeDep";
-	//cout.flush();
-	
-	resnorm = 0.;
-	for(i = 0; i < nVars; i++)residual_mat(i,0) = EEpsilon.fData[i] - sigma.fData[i];
-	for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
-	resnorm = sqrt(resnorm);
-	
-	while(resnorm > fResTol && k < fMaxNewton)
-	{
-		k++;
-		
+    ProcessStrain(epsTotal, EAuto);
+    ComputeDep(EEpsilon, Dep_mat);
+    
+    //cout << "\nended ProcessStrain/ComputeDep";
+    //cout.flush();
+    
+    resnorm = 0.;
+    for(i = 0; i < nVars; i++)residual_mat(i,0) = EEpsilon.fData[i] - sigma.fData[i];
+    for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
+    resnorm = sqrt(resnorm);
+    
+    while(resnorm > fResTol && k < fMaxNewton)
+    {
+        k++;
+        
         TPZFNMatrix<nVars*nVars> *matc = new TPZFNMatrix<nVars*nVars>(nVars,nVars);
         *matc = Dep_mat;
-		
-		//		cout << "\nNewton Method Step " << k << "\nDep=" << Dep_mat << endl << residual_mat;
-		//		cout.flush();
-		
+        
+        //              cout << "\nNewton Method Step " << k << "\nDep=" << Dep_mat << endl << residual_mat;
+        //              cout.flush();
+        
         TPZStepSolver<REAL> st(matc);
         st.SetDirect(ELU);
-		
         
-		// invert the tangent matrix and put the correction in the Sol variable
+        
+        // invert the tangent matrix and put the correction in the Sol variable
         st.Solve(residual_mat,sol_mat,0);
         
-		//cout << "\n solve ended:" << sol_mat;
-		//cout.flush();
-		
-		for(i = 0; i < nVars; i ++)epsTotal.fData[i] -= sol_mat(i,0);
-		
-		//cout << "\nstarting ProcessStrain/ComputeDep";
-		//cout.flush();
-		
+        //cout << "\n solve ended:" << sol_mat;
+        //cout.flush();
+        
+        for(i = 0; i < nVars; i ++)epsTotal.fData[i] -= sol_mat(i,0);
+        
+        //cout << "\nstarting ProcessStrain/ComputeDep";
+        //cout.flush();
+        
         // evaluating the plastic integration, stress tensor and jacobian
-		//   ProcessStrainNoSubIncrement(epsTotal,ep);
-		ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
+        //   ProcessStrainNoSubIncrement(epsTotal,ep);
+        ProcessStrain(epsTotal,/*o original e ep e nao EAuto */ ep);
         ComputeDep(EEpsilon, Dep_mat);
         
-		//cout << "\nended ProcessStrain/ComputeDep";
-		//cout.flush();
-		
+        //cout << "\nended ProcessStrain/ComputeDep";
+        //cout.flush();
+        
         resnorm = 0.;
         for(i = 0; i < nVars; i++)residual_mat(i,0) = EEpsilon.fData[i] - sigma.fData[i];
-		for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
-		resnorm = sqrt(resnorm);
-		//cout << "\nresidual = " << resnorm;
-		
+        for(i = 0; i < nVars; i++)resnorm += pow(residual_mat(i,0),2.);
+        resnorm = sqrt(resnorm);
+        //cout << "\nresidual = " << resnorm;
+        
 #ifdef LOG4CXX
         {
             std::stringstream sout;
             sout << "*** ProcessLoad *** " << k <<"-th iteration of Newton's scheme with residual = " << resnorm;
-			LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+            LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
         }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -2452,29 +2463,29 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessLoad(const TPZTensor<REAL> &sigma,
             LOGPZ_INFO(logger,sout.str().c_str());
         }
 #endif
-		
-		if(k > fMaxNewton)cout << "\n*** ProcessLoad step " << k << " with res= " << resnorm;
-	}
-	
+        
+        if(k > fMaxNewton)cout << "\n*** ProcessLoad step " << k << " with res= " << resnorm;
+    }
+    
 #ifdef LOG4CXX_PLASTICITY
-    {	
-		std::stringstream sout;
-		
-		if( k > fMaxNewton)
-		{
-        	sout << "<<< ProcessLoad *** Exiting Method with residual = " << resnorm
+    {
+        std::stringstream sout;
+        
+        if( k > fMaxNewton)
+        {
+            sout << "<<< ProcessLoad *** Exiting Method with residual = " << resnorm
             << " after " << k << " steps.";
-			sout << "\n#### Truncated Newton ####. Results are unpredictable";
-        	LOGPZ_WARN(logger,sout.str().c_str());
-			LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
-		}else{
-			sout << "<<< ProcessLoad *** Exiting Method with residual = " << resnorm;
-        	LOGPZ_INFO(logger,sout.str().c_str());
-			LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
-		}
+            sout << "\n#### Truncated Newton ####. Results are unpredictable";
+            LOGPZ_WARN(logger,sout.str().c_str());
+            LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
+        }else{
+            sout << "<<< ProcessLoad *** Exiting Method with residual = " << resnorm;
+            LOGPZ_INFO(logger,sout.str().c_str());
+            LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        }
     }
 #endif
-	
+    
 }
 
 /**
@@ -2485,14 +2496,14 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::Phi_Internal(const TPZTensor<REAL> &epsTo
 {
     TPZTensor<REAL> sigma;
     REAL A;
-	
-	TPZPlasticState<REAL> state(fN);
-	state.fEpsT = epsTotal;
-	
+    
+    TPZPlasticState<REAL> state(fN);
+    state.fEpsT = epsTotal;
+    
     ComputePlasticVars<REAL>(state, sigma, A);
-	
+    
     fYC.Compute(sigma, A, phi, 0);
-	
+    
     return;
 }
 
@@ -2506,22 +2517,22 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PushPlasticMem(
                                                       const TPZVec<int> & validEqs,
                                                       const int forceYield)
 {
-	TPZPlasticIntegrMem<REAL, YC_t::NYield>  
+    TPZPlasticIntegrMem<REAL, YC_t::NYield>
     Mem(state, k, lambda, delGamma, validEqs, forceYield);
-  	fPlasticMem.Push(Mem);
+    fPlasticMem.Push(Mem);
     
 }
 
 template <class YC_t, class TF_t, class ER_t>
 void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> & sigma, TPZTensor<REAL> &epsTotal)
 {
-	
+    
 #ifdef LOG4CXX
     {
         std::stringstream sout;
         sout << ">>> ApplyLoad_Internal ***"
         << " Imposed sigma << " << sigma;
-		LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -2537,7 +2548,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
      
      int n = fPlasticMem.NElements();
      */
-	
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -2546,28 +2557,28 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
         LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
-	
-	ProcessLoad(sigma, EForceElastic);
-	int n = fPlasticMem.NElements();
-	
-	if(!IsStrainElastic(fPlasticMem[n-1].fPlasticState) )
-	{
+    
+    ProcessLoad(sigma, EForceElastic);
+    int n = fPlasticMem.NElements();
+    
+    if(!IsStrainElastic(fPlasticMem[n-1].fPlasticState) )
+    {
 #ifdef LOG4CXX_PLASTICITY
-	    {
-    	    std::stringstream sout;
-        	sout << ">>> ApplyLoad_Internal ***"
+        {
+            std::stringstream sout;
+            sout << ">>> ApplyLoad_Internal ***"
             << " Forcing Plastic behaviour - Elastic attempt led to a final plastic state";
-    	    LOGPZ_INFO(logger,sout.str().c_str());
-	    }
+            LOGPZ_INFO(logger,sout.str().c_str());
+        }
 #endif
-		ProcessLoad(sigma, EForcePlastic);
-		n = fPlasticMem.NElements();
-	}
-	
-	TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(fPlasticMem[n-1].fPlasticState);
-	
+        ProcessLoad(sigma, EForcePlastic);
+        n = fPlasticMem.NElements();
+    }
+    
+    TPZPlasticStep<YC_t, TF_t, ER_t>::SetState_Internal(fPlasticMem[n-1].fPlasticState);
+    
     epsTotal = fN.fEpsT;
-	
+    
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout1, sout2;
@@ -2577,27 +2588,27 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
         LOGPZ_INFO(logger,sout2.str().c_str());
     }
 #endif
-	
+    
 }
 
 template <class YC_t, class TF_t, class ER_t>
 REAL TPZPlasticStep<YC_t, TF_t, ER_t>::IntegrationOverview(TPZVec<REAL> & plastifLen)
 {
-	int i, j, n = fPlasticMem.NElements();
-	
-	if(n <= 2) return 0;
-	
-	plastifLen.Fill(0.);
-	REAL plasticLen = 0., deltaK;
-	
-	for(i = 2; i < n; i++)
-	{
-		deltaK = fPlasticMem[i].fK - fPlasticMem[i-1].fK;
-		for(j = 0; j < YC_t::NYield; j++)if(fPlasticMem[i].fValidEqs[j])plastifLen[j] += deltaK;
-		plasticLen += deltaK;
-	}
-	
-	return plasticLen;
+    int i, j, n = fPlasticMem.NElements();
+    
+    if(n <= 2) return 0;
+    
+    plastifLen.Fill(0.);
+    REAL plasticLen = 0., deltaK;
+    
+    for(i = 2; i < n; i++)
+    {
+        deltaK = fPlasticMem[i].fK - fPlasticMem[i-1].fK;
+        for(j = 0; j < YC_t::NYield; j++)if(fPlasticMem[i].fValidEqs[j])plastifLen[j] += deltaK;
+        plasticLen += deltaK;
+    }
+    
+    return plasticLen;
 }
 
 template <class YC_t, class TF_t, class ER_t>
@@ -2617,41 +2628,42 @@ template class TPZPlasticStep<TPZYCRankine< TPZYCDruckerPrager > , TPZThermoForc
 #include "TPZYCMohrCoulomb.h"
 #include  "TPZYCWillamWarnke.h"
 #include  "TPZYCModifiedMohrCoulomb.h"
+#include  "TPZYCDruckerPragerBase.h"
 
 template class TPZPlasticStep<TPZYCMohrCoulomb, TPZThermoForceA, TPZElasticResponse>;
 template class TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse>;
 template class TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>;
+template class TPZPlasticStep<TPZYCDruckerPragerBase< TPZYCMohrCoulomb >, TPZThermoForceA, TPZElasticResponse>;
 
 template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::
-PlasticResidual<REAL, REAL>(TPZPlasticState<REAL> const &, 
-                            TPZPlasticState<REAL> &, 
-                            TPZVec<REAL> const&, 
-                            TPZVec<REAL> &, 
+PlasticResidual<REAL, REAL>(TPZPlasticState<REAL> const &,
+                            TPZPlasticState<REAL> &,
+                            TPZVec<REAL> const&,
+                            TPZVec<REAL> &,
                             REAL &, int)const;
 
 template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::
-PlasticResidual<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &, 
-                                      TPZPlasticState< TFad<14,REAL> > &, 
-                                      TPZVec<TFad<14,REAL> > const &, 
-                                      TPZVec<TFad<14,REAL> > &, 
-                                      REAL &, int)const; 
+PlasticResidual<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &,
+                                      TPZPlasticState< TFad<14,REAL> > &,
+                                      TPZVec<TFad<14,REAL> > const &,
+                                      TPZVec<TFad<14,REAL> > &,
+                                      REAL &, int)const;
 
 
 
 //template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::
-//PlasticResidualRK<REAL, REAL>(TPZPlasticState<REAL> const &, 
-//                            TPZPlasticState<REAL> &, 
-//                            TPZVec<REAL> const&, 
-//                            TPZVec<REAL> &, 
+//PlasticResidualRK<REAL, REAL>(TPZPlasticState<REAL> const &,
+//                            TPZPlasticState<REAL> &,
+//                            TPZVec<REAL> const&,
+//                            TPZVec<REAL> &,
 //                            REAL &, int)const;
 //
 //template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::
-//PlasticResidualRK<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &, 
-//                                      TPZPlasticState< TFad<14,REAL> > &, 
-//                                      TPZVec<TFad<14,REAL> > const &, 
-//                                      TPZVec<TFad<14,REAL> > &, 
+//PlasticResidualRK<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &,
+//                                      TPZPlasticState< TFad<14,REAL> > &,
+//                                      TPZVec<TFad<14,REAL> > const &,
+//                                      TPZVec<TFad<14,REAL> > &,
 //                                      REAL &, int)const;
-
 
 
 

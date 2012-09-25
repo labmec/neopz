@@ -132,11 +132,46 @@ public:
     {
         //sigmay = T(15.)+(T(2571.43)-T(2.95238e6)*epsp)*(T(-0.0035)+epsp);
        // H = T(12904.8)-T(5.90476e6)*epsp;
-       sigmay=20.;
-        H=0.;
-       //sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp;
-        //H = T(12904.8);
+       //sigmay=20.;
+       // H=0.;
+            sigmay = T(15.)+(T(2571.43))*(T(-0.0035)) + T(12904.8)*epsp;
+            H = T(12904.8);
     }
+    
+    template<class T>
+    void PieceWise(T epbar, T &m, T & fx)const
+    {
+        
+        ifstream file("curvadehardening.txt");
+        TPZFMatrix<REAL> mat;
+        int sz;
+        file >>sz;
+        mat.Resize(sz,2);
+        
+        for(int i=0;i<sz-1;i++)
+        {
+            
+            file >> mat(i,0);
+            file >> mat(i,1);
+        }
+        
+        //cout << "\n mat = "<< mat <<endl;
+        for(int i=0;i<sz-1;i++)
+        {
+            if(epbar >= mat(i,0) && epbar <=  mat(i+1,0))
+            {
+                REAL x0 = mat(i,0);
+                REAL y0 = mat(i,1);
+                REAL x = mat(i+1,0);
+                REAL y = mat(i+1,1);
+                m = (y - y0)/(x - x0);
+                fx=m*(epbar-x0)+y0;
+                // return;
+            }
+            
+        }
+    }
+    
     
     template<class T>
     TPZTensor<T> SigmaElast(const TPZTensor<T> &deform)
@@ -236,6 +271,7 @@ public:
                 TPZTensor<REAL> epslocal(epstotal);
                 epslocal -= fState.fEpsPlastic;
                 sigma = SigmaElast(epslocal);
+                //sigma = SigmaElast(epstotal);
             }
                 break;
             case TComputeSequence::EMainPlane:
@@ -280,11 +316,11 @@ public:
 			P.ZZ()=1; I.ZZ()=1;
 		
 		
-		 	tempval=(1./3.)*sigma.I1()*(1./(3.*K()));
+		 	tempval=(sigma.I1()/3.)*(1./(3.*K()));
 		 	P.Multiply(tempval,1);
 		
 		
-		 	cout << "\n P = "<<P<<endl;
+		 	cout << " \n P = "<< P <<endl;
 		 	sigma.S(StressDeviatoric);
 		
 		 	StressDeviatoric*=1./(2.*G());
@@ -349,7 +385,7 @@ public:
 #endif
             sigma = TPZTensor<T>(sigma_projected);
         }
-       // CommitDeformation(epstotal,memory);
+        CommitDeformation(epstotal,memory);
         return memory;
     }
     

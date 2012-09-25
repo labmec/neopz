@@ -76,7 +76,7 @@ public:
     	REAL pi = M_PI;
         REAL cohesion = 50.; //yield- coesao inicialem KPa
 	    REAL phi =  20./180. * pi; //phi=20
-	    REAL hardening = 1.; //Modulo de hardening da coesao equivante 0.01 Mpa a cada 0.1% de deformacao
+	    REAL hardening = 10.; //Modulo de hardening da coesao equivante 0.01 Mpa a cada 0.1% de deformacao
 	    REAL young = 20000.;//E em KPa
 	    REAL poisson = 0.49;
         material.fYC.SetUp(phi);

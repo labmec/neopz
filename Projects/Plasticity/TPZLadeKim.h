@@ -42,6 +42,7 @@ class TPZLadeKim : public LADEKIMPARENT, public TPZSaveable  {
 public:
 
   enum {NYield = TPZYCLadeKim::NYield};
+    
 
 public:
 

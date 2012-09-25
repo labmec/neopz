@@ -219,7 +219,11 @@ public:
 //////////////////Internal routines verification/////////////////
 
 	static void McCormicRanchSand(TPZYCSandlerDimaggio & material);
+public:
+  
 };
+
+
 
 template <class T>
 inline void TPZYCSandlerDimaggio::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const

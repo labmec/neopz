@@ -68,8 +68,12 @@ public:
 protected:
 	
 	REAL fYieldT;
+public:
+ 
 
 };
+
+
 
 /**
  * Calculo do criterio de plastificacao
@@ -120,8 +124,8 @@ inline void TPZYCRankine<T_YCBASE>::N(const TPZTensor<T> & sigma,const T & A,  T
 	NRankine.XY() = T(0.);//dfdsigmaxy
 	NRankine.XZ() = T(0.);//dfdsigmaxz
 	NRankine.YZ() = T(0.);//dfdsigmayz
-	
 	Ndir[T_YCBASE::NYield] = NRankine;
+    
 }
 
 template < class T_YCBASE>

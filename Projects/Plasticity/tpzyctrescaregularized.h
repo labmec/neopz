@@ -119,8 +119,10 @@ public:
 		
 	}
 	//////////////////CheckConv related methods/////////////////////
-	
+public:
+
 };
+
 
 
 template < class T>

@@ -65,14 +65,8 @@ TPZGeoMesh * GeoMeshClass::Talude()
 	
     for(int el=0; el<numelements; el++)
     {
-        
-        //  if(el<=1124)
-        //  {
+
         int topol1,topol2,topol3;
-        //        read2 >> elementId;
-        //        read2 >> topol1; //node 1
-        //        read2 >> topol2; //node 2
-        //        read2 >> topol3; //node 3
         read >> elementId;
         read >> topol1; //node 1
         read >> topol2; //node 2
@@ -96,7 +90,7 @@ TPZGeoMesh * GeoMeshClass::Talude()
     //LINHA Inferior
     TopolLine[0] = 903;	TopolLine[1] =0;
 	new TPZGeoElRefPattern<TPZGeoLinear> (960,TopolLine,-1,*gMesh);
-    TopolLine[0] = 903;	TopolLine[1] =958;
+    TopolLine[0] = 958;	TopolLine[1] =903;
     new TPZGeoElRefPattern<TPZGeoLinear> (961,TopolLine,-2,*gMesh);
     TopolLine[0] = 0;	TopolLine[1] =216;
     new TPZGeoElRefPattern<TPZGeoLinear> (962,TopolLine,-3,*gMesh);

@@ -183,8 +183,11 @@ public:
     }
 
 //////////////////CheckConv related methods/////////////////////
+public:
 
 };
+
+
 
 template <class T>
 void TPZYCVonMises::Compute(const TPZTensor<T> & sigma,const T & A, TPZVec<T> &res, int checkForcedYield) const{
