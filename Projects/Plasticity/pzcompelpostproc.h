@@ -395,13 +395,13 @@ inline bool TPZCompElPostProc<TCOMPEL>::dataequal(TPZMaterialData &d1,TPZMateria
 		DebugStop();
 		return 0; // dimensions and number of integration points shall match
 	}
-	for(i = 0; i < dim; i++)res += pow(d1.x[i]-d2.x[i],(REAL)2.L); // integration points must be at the same locations
-	
-//	if(res > SMALLNUMBER)
-//	{
-//		DebugStop();
-//		return 0;
-//	}
+    
+	for(i = 0; i < dim; i++)res += pow(d1.x[i]-d2.x[i],2.); // integration points must be at the same locations
+	if(res > SMALLNUMBER)
+	{
+		DebugStop();
+		return 0;
+	}
     return 1;
 }
 
@@ -446,3 +446,7 @@ inline void TPZCompElPostProc<TCOMPEL>::ComputeShape(TPZVec<REAL> &intpoint, TPZ
 }
 
 #endif
+
+
+
+

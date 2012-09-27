@@ -375,6 +375,8 @@ void QuarterWellboreGeom(int ncirc,
     
 }
 
+#include "pzpostprocanalysis.h"
+#include "pzelastoplasticanalysis.h"
 
 TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 										int ncirc,
@@ -404,6 +406,9 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	QuarterWellboreGeom(ncirc, ioratio, pt, el, elType, elName, nrad);
 	int nel = el.NElements();
 	TPZGeoMesh * pGMesh = new TPZGeoMesh;
+    
+    //TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pGMesh); // self explanatory
+    
 	
 	// preparing nodes and elements
 	int npt = pt.NElements();
@@ -437,7 +442,10 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	
 	// Creating Computation Mesh
 	TPZCompMesh * pCMesh = new TPZCompMesh(pGMesh);
-	
+    
+     TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
+   
+    
 	//Preparing Material
 	pMat -> SetForcingFunction(NULL);
 	TPZMaterial  *mat(pMat);
@@ -511,9 +519,9 @@ TPZCompMesh * CreateQuarterWellboreMesh( int gOrder,
 	}
 	
 	// building mesh connections
-	
-	pCMesh->AutoBuild();
-	
+
+   	pCMesh->AutoBuild();
+
 	return pCMesh;
 }
 

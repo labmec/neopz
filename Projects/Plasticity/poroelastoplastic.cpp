@@ -93,9 +93,9 @@ void SolverSet(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
     
 	TPZStepSolver<REAL> step;
-      step.SetDirect(ELDLt);
+     // step.SetDirect(ELDLt);
     //  step.SetJacobi(5000, 1.e-12,0);
-    //step.SetDirect(ECholesky);
+    step.SetDirect(ECholesky);
     // step.SetDirect(ELU);
 	an.SetSolver(step);
 	
@@ -301,24 +301,25 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	
 	EPMat.SetPlasticity(mat);
 	
-	
+    TPZCompMesh * pCMesh;
     
-    TPZCompMesh * pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
+    
+    //PZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh);
+    //TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
+    
+     pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
 	
     //End of material initialization
-	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
+	//TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
 	
-	
+	//TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
 	
 	//building analysis
 	TPZElastoPlasticAnalysis EPAnalysis(pCMesh, std::cout);
-	
-	//EPAnalysis.SetBiCGStab(5000, 1.e-12);
+
     
     SolverSet(EPAnalysis,pCMesh);
-    //void SolverSet(TPZAnalysis &an, TPZCompMesh *fCmesh)
-    
-	// Preparing Post Process
+ 
     
 	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
     
@@ -332,7 +333,6 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	TPZVec<int> PostProcMatIds(1,1);
 	TPZVec<std::string> PostProcVars, scalNames, vecNames;
     
-    //PostProcessVariables(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames )
 	PostProcessVariables(PostProcVars,scalNames, vecNames);
     
     PPAnalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
@@ -556,13 +556,14 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 	EPMat.SetPlasticity(mat);
 	EPMat.SetPorePressure(fabs(PorePressure * Pa));
 	
+    //TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
 	
 	
     TPZCompMesh * pCMesh = CreateQuarterWellboreMesh(pOrder, ncirc, ioRatio, &EPMat, BeginStress, EndStress, 0);
 	
     
     //End of material initialization
-	TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
+	//TPZPoroElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pCMesh); // self explanatory
 	
 
 	

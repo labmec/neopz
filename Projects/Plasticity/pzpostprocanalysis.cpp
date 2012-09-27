@@ -9,6 +9,7 @@
 #include "tpzautopointer.h"
 #include "tpzcompmeshreferred.h"
 #include "pzstring.h"
+#include "pzelastoplasticanalysis.h"
 
 #include <map>
 #include <set>
@@ -35,6 +36,7 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 	}
 
 	TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
+    
 	//pcMainMesh->SetAllCreateFunctionsContinuous();
 	if(!pcMainMesh)
 	{
@@ -53,8 +55,9 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
 	
 
 	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
-	TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
-	
+	//TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+    //TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pcPostProcMesh); // self explanatory
+   
 	
 	fCompMesh = pcPostProcMesh;
 }
@@ -285,6 +288,8 @@ void TPZPostProcAnalysis::TransferSolution()
 
 
 }*/
+
+
 void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 {
     TPZManVector<TCreateFunction,10> functions(8);
