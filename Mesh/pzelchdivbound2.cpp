@@ -20,42 +20,59 @@ static LoggerPtr logger(Logger::getLogger("pz.mesh.TPZCompElHDivBound2"));
 
 template<class TSHAPE>
 TPZCompElHDivBound2<TSHAPE>::TPZCompElHDivBound2(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
-TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
-	int i;
+TPZIntelGen<TSHAPE>(mesh,gel,index,1){
+		
+	//int i;
 	this->TPZInterpolationSpace::fPreferredOrder = mesh.GetDefaultOrder();
-	for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
+	//for(i=0; i<TSHAPE::NSides; i++) this->fConnectIndexes[i]=-1;
+		this->fConnectIndexes[0]=-1;
 	gel->SetReference(this);
-	TPZGeoElSide myInnerSide(gel,gel->NSides()-1);
-	TPZGeoElSide neigh = myInnerSide.Neighbour();
-	while(!neigh.Reference())
-	{
-		neigh = neigh.Neighbour();
-	}
-	if(neigh == myInnerSide)
-	{
-		/**
-		 O codigo pressupoe que os elementos computacionais 2D sao criados antes dos 1D.
-		 Quando serao criados os elementos computacionais 1D, os respectivos vizinhos 2D sao encontrados.
-		 Situacoes assim ocorrem (neste algoritmo) quando eh realizado refinamento uniforme, pois os primeiros elementos sem descendentes sao os 2D (e depois os descendentes 1D de contorno)
-		 
-		 Ocorreu o problema quando tentou-se realizar o refinamento do quadrilatero em 02 triangulos, em que o quadrilatero apresenta descendentes e as arestas nao.
-		 Neste caso a criacao de elementos computacionais eh iniciada pelos 1D, fazendo com que nao encontrem vizinhos computacionais 2D.
-		 Com isso a variavel int connectIndex0 eh setada com -1, dando o BUG observado.
-		 */
-		std::cout << "Nao foi encontrado elemento 2D com elemento computacional inicializado!!!\n"; 
-		DebugStop();
-	}
-	TPZCompElSide compneigh(neigh.Reference());
-    fneighbour = compneigh;
-	int sideoffset = neigh.Element()->NSides()-neigh.Side();
-	int neighnconnects = compneigh.Element()->NConnects();
-	int connectnumber = neighnconnects-sideoffset;
-	TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (compneigh.Element());
-	connectnumber = intel->SideConnectLocId(0,compneigh.Side());
-	int connectIndex0 = compneigh.Element()->ConnectIndex(connectnumber);
-	
-	this->fConnectIndexes[0] = connectIndex0;
-	mesh.ConnectVec()[connectIndex0].IncrementElConnected();
+		
+		this->fConnectIndexes[0] = this->CreateMidSideConnect(2);
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				sout << "After creating boundary flux connect " << this->fConnectIndexes[0] << std::endl;
+				//	this->Print(sout);
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		
+		mesh.ConnectVec()[this->fConnectIndexes[0]].IncrementElConnected();
+			
+		
+		
+	//TPZGeoElSide myInnerSide(gel,gel->NSides()-1);
+//	TPZGeoElSide neigh = myInnerSide.Neighbour();
+//	while(!neigh.Reference())
+//	{
+//		neigh = neigh.Neighbour();
+//	}
+//	if(neigh == myInnerSide)
+//	{
+//		/**
+//		 O codigo pressupoe que os elementos computacionais 2D sao criados antes dos 1D.
+//		 Quando serao criados os elementos computacionais 1D, os respectivos vizinhos 2D sao encontrados.
+//		 Situacoes assim ocorrem (neste algoritmo) quando eh realizado refinamento uniforme, pois os primeiros elementos sem descendentes sao os 2D (e depois os descendentes 1D de contorno)
+//		 
+//		 Ocorreu o problema quando tentou-se realizar o refinamento do quadrilatero em 02 triangulos, em que o quadrilatero apresenta descendentes e as arestas nao.
+//		 Neste caso a criacao de elementos computacionais eh iniciada pelos 1D, fazendo com que nao encontrem vizinhos computacionais 2D.
+//		 Com isso a variavel int connectIndex0 eh setada com -1, dando o BUG observado.
+//		 */
+//		std::cout << "Nao foi encontrado elemento 2D com elemento computacional inicializado!!!\n"; 
+//		DebugStop();
+//	}
+//	TPZCompElSide compneigh(neigh.Reference());
+//    fneighbour = compneigh;
+//	int sideoffset = neigh.Element()->NSides()-neigh.Side();
+//	int neighnconnects = compneigh.Element()->NConnects();
+//	int connectnumber = neighnconnects-sideoffset;
+//	TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (compneigh.Element());
+//	connectnumber = intel->SideConnectLocId(0,compneigh.Side());
+//	int connectIndex0 = compneigh.Element()->ConnectIndex(connectnumber);
+//	
+//	this->fConnectIndexes[0] = connectIndex0;
+//	mesh.ConnectVec()[connectIndex0].IncrementElConnected();
 	
 #ifdef LOG4CXX
 	{
@@ -77,7 +94,7 @@ TPZIntelGen<TSHAPE>(mesh,gel,index,1) {
 	TPZManVector<int,3> order(3,sideorder);
 	//TPZManVector<int,3> order(3,20);
 	this->fIntRule.SetOrder(order);
-	
+
 	 #ifdef LOG4CXX
 	 {
 	 std::stringstream sout;
@@ -499,7 +516,8 @@ void TPZCompElHDivBound2<TSHAPE>::SideShapeFunction(int side,TPZVec<REAL> &point
 template<class TSHAPE>
 void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi, TPZFMatrix<REAL> &dphi)
 {
-	TPZCompElSide thisside(this,TSHAPE::NSides-1);
+	/*
+  TPZCompElSide thisside(this,TSHAPE::NSides-1);
 	TPZGeoElSide thisgeoside(thisside.Reference());
 	TPZGeoElSide neighgeo(thisgeoside.Neighbour());
 	TPZCompElSide neigh(fneighbour);
@@ -518,17 +536,82 @@ void TPZCompElHDivBound2<TSHAPE>::Shape(TPZVec<REAL> &pt, TPZFMatrix<REAL> &phi,
 	TPZManVector<REAL,3> pt2(neighgeo.Dimension()),pt3(neighel->Dimension());
 	tr.Apply(pt, pt2);
 	neighel->SideShapeFunction(neigh.Side(), pt2, phi, dphi);
-    
-//#ifdef LOG4CXX
-//		if (logger->isDebugEnabled())
+	 */
+		//tentando reimplementar 
+		TPZManVector<int,TSHAPE::NSides-1> id(TSHAPE::NSides-1,0);
+		
+		TPZGeoEl *ref = this->Reference();
+		int nnodes= ref->NNodes();
+		for(int i=0; i<nnodes; i++) {
+				id[i] = ref->NodePtr(i)->Id();
+		}
+		
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				sout<< "---Id local---"<<id<<std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		
+		//-----ordenando os id's
+		int i, j, min, x;
+		for (i = 0; i < nnodes; ++i) {
+				min = i;
+				for (j = i+1; j < nnodes; ++j){
+						if (id[j] < id[min])  min = j;
+				x = id[i]; 
+				id[i] = id[min]; 
+				id[min] = x;
+				}
+		}	
+		
+#ifdef LOG4CXX
+		{
+				std::stringstream sout;
+				sout<< "---Id local Reordeanado---"<<id<<std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
+		
+		//-----
+		
+	
+		TPZCompElSide thisside(this,TSHAPE::NSides-1);
+		TPZGeoElSide thisgeoside(thisside.Reference());
+//		TPZGeoElSide neighgeo(thisgeoside.Neighbour());
+//		TPZCompElSide neigh(fneighbour);
+		TPZInterpolatedElement *neighel = dynamic_cast<TPZInterpolatedElement *> (thisside.Element());
+//		if(!neighel)
 //		{
-//				std::stringstream sout;
-//				sout.precision(20);
-//				sout<< "---Phi Novo---"<<phi<<std::endl;
-//				sout<< "---Dphi Novo---"<<dphi<<std::endl;
-//				LOGPZ_DEBUG(logger,sout.str())
+//        LOGPZ_ERROR(logger,"Inconsistent neighbour")
+//        DebugStop();
+//				return;
 //		}
-//#endif
+		int nshapeneigh = neighel->NSideShapeF(thisgeoside.Side());
+		phi.Redim(nshapeneigh, 1);
+		dphi.Redim(thisgeoside.Element()->Dimension(), nshapeneigh);
+		TPZVec<int> ord;
+		neighel->GetInterpolationOrder(ord);
+		TSHAPE::Shape(pt,id,ord,phi,dphi);
+		
+		
+//		TPZTransform tr(thisgeoside.Dimension()),tr2; 
+//		thisgeoside.SideTransform3(thisgeoside, tr);
+//		TPZManVector<REAL,3> pt2(thisgeoside.Dimension()),pt3(neighel->Dimension());
+//		tr.Apply(pt, pt2);
+//		neighel->SideShapeFunction(thisside.Side(), pt2, phi, dphi);
+    
+#ifdef LOG4CXX
+		//if (logger->isDebugEnabled())
+		{
+				std::stringstream sout;
+				sout.precision(20);
+				sout<< "---Phi Novo---"<<phi<<std::endl;
+				sout<< "---Dphi Novo---"<<dphi<<std::endl;
+				LOGPZ_DEBUG(logger,sout.str())
+		}
+#endif
 }
 
 /** Read the element data from a stream */
