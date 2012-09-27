@@ -1,5 +1,3 @@
-
-
 /// ---- GLOBALS ----
 
 #define NTHREADS 2
@@ -9,13 +7,12 @@
 
 /// -----------
 
-#define MR
+//#define MR
 
-//#define REFTHREADV3 				//main refthread third version
+#define REFTHREADV3 				//main refthread third version
 //#define REFTHREADV2				//main refthread second version
 //#define REFTHREADV1				//main refthread first working version
 //#define REFTHREADSERIAL           //serial implementation
-//#define REFTHREADTESTS            //main refthreadtests
 //#define ADMCHUNKTESTS				//enabling the tests on admchunkvectorthreadsafe
 
 /// -----------
@@ -109,89 +106,6 @@ TPZGeoMesh* GetMesh (int nx, int ny)
 	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	
 	return gmesh;
-}
-
-void InsertMaterial (TPZAutoPointer<TPZCompMesh> cmesh, TPZAutoPointer<TPZGeoMesh> gmesh) {
-    int numelements = gmesh->NElements();
-    
-    int neumann1=1, neumann2=1, neumann3=1;
-    
-    for(int el=0; el<numelements; el++)
-    {
-        TPZManVector <TPZGeoNode,2> Nodefinder(2);
-        TPZManVector <REAL,3> nodecoord(3);
-        TPZGeoEl *elem = gmesh->ElementVec()[el];
-        
-        TPZVec<int> ncoordzVec(0); int sizeOfVec = 0;
-        
-        //lado x=-1;
-        for (int i = 0; i < 2; i++) 
-        {
-            int pos = elem->NodeIndex(i);
-            Nodefinder[i] = gmesh->NodeVec()[pos];
-            Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[0] == -1.)
-            {
-                sizeOfVec++;
-                ncoordzVec.Resize(sizeOfVec);
-                ncoordzVec[sizeOfVec-1] = pos;
-            }
-        }
-        if(ncoordzVec.NElements() == 2)
-        {
-            int lado = elem->WhichSide(ncoordzVec);
-            TPZGeoElSide elemSide(elem, lado);
-            TPZGeoElBC(elemSide, neumann1);
-        }
-        
-        //lado x=1;
-        ncoordzVec.Resize(0);
-        sizeOfVec = 0;
-        
-        for (int i = 0; i < 2; i++) 
-        {
-            int pos = elem->NodeIndex(i);
-            Nodefinder[i] = gmesh->NodeVec()[pos];
-            Nodefinder[i].GetCoordinates(nodecoord);
-            if (nodecoord[0] == 1.)
-            {
-                sizeOfVec++;
-                ncoordzVec.Resize(sizeOfVec);
-                ncoordzVec[sizeOfVec-1] = pos;
-            }
-        }
-        if(ncoordzVec.NElements() == 2)
-        {
-            int lado = elem->WhichSide(ncoordzVec);
-            TPZGeoElSide elemSide(elem, lado);
-            TPZGeoElBC(elemSide,neumann2);
-        }
-    }
-}
-
-void RunTestsCompMesh (TPZAutoPointer<TPZGeoMesh> gmesh) {
-    // Criando a malha
-    TPZAutoPointer<TPZCompMesh> cmesh = new TPZCompMesh(gmesh);
-    
-    // Colocando as CC
-    InsertMaterial(cmesh, gmesh);
-	
-    int porder = 2;
-	cmesh->SetDefaultOrder(porder); // orderm de aproximacao
-	cmesh->AutoBuild(); // Criando os elementos computacionais
-    
-    // Gerando o Sistema Linear e Resolvendo
-    TPZSkylineStructMatrix skylstruct(cmesh);
-	TPZStepSolver<REAL> step;
-	step.SetDirect(ECholesky);
-	TPZAnalysis an(cmesh);
-	an.SetStructuralMatrix(skylstruct);
-	an.SetSolver(step);
-	an.Run();	
-    std::stringstream sout;
-    std::ofstream out("Sol.txt");
-    an.Solution().Print("Solution",out);
-    //out << sout << std::endl;
 }
 
 #ifdef MR
@@ -1297,116 +1211,6 @@ int main ()
 	
     //RunTestsCompMesh(gmesh);
     
-	return 0;
-}
-
-#endif
-
-//------------------------------------------------------------//
-
-#ifdef REFTHREADTESTS
-
-pthread_t threads[NTHREADS];
-
-double err;
-const int azero = 0;
-
-struct divide_data
-{
-	int el;
-	TPZGeoMesh* mesh;
-};
-
-void *divide(void *arg)
-{
-	divide_data *idata = (divide_data*) arg;
-	TPZGeoMesh *imesh = idata->mesh;
-	int iel = idata->el;
-	delete idata;
-	
-	TPZVec <TPZGeoEl *> sons;
-	
-	TPZStack <TPZGeoEl *> todo;
-	
-	todo.Push(imesh->ElementVec()[iel]);
-	
-	while (todo.size())
-	{
-		TPZGeoEl * gel = todo.Pop();
-		
-		gel->Divide(sons);
-		
-		for (int i=0; i<sons.NElements(); i++)
-		{
-			if (sons[i]->Level()<MAXLVL)
-			{
-				todo.Push(sons[i]);
-			}
-		}
-	}
-	
-	pthread_exit(0);
-}
-
-int main ()
-{ 
-	TPZGeoMesh *gmesh = GetMesh(NX, NY);
-	
-	ofstream bef("before_PTHREAD_tests.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, bef);			// Printing the initial mesh on the file
-	
-	double time_start = get_time();
-	cout << "\n\n***STARTING PTHREAD REFINEMENT PROCESS***\n";
-	
-	int threadnumber = 0;
-	
-	int todoelements[4] = {0, 2, 6, 8};
-	
-	for  (threadnumber = 0; threadnumber<NTHREADS;)
-	{
-		divide_data *sdata;
-		sdata = new divide_data;
-		sdata->el = todoelements[threadnumber];
-		sdata->mesh = gmesh;
-		
-		err = pthread_create (&threads[threadnumber], NULL, divide, (void *) sdata);
-		if (err)
-		{
-			cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-			DebugStop();
-		}
-		else
-		{
-			threadnumber++;
-			
-		}
-	}
-	
-	for  (threadnumber = 0; threadnumber<NTHREADS;)
-	{
-		err = pthread_join (threads[threadnumber], NULL);
-		if (err)
-		{
-			cout << "There is a problem on creating the thread! Exiting the program! Return code from pthread_create is " << err;
-			DebugStop();
-		}
-		else
-		{
-			threadnumber++;
-			
-		}
-	}
-	
-	cout << "\n****END****\n";
-	double time_end = get_time();
-	cout << "This refinement has run for: "<< (time_end-time_start) << " seconds.\n\n";
-	
-	ofstream af("after_PTHREAD_tests.vtk");
-	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, af);
-	
-	bef.close();
-	af.close();
-	
 	return 0;
 }
 
