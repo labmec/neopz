@@ -612,7 +612,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	//Criar ns
 	const int nnode = 4;//AQUI
 	const int nelem = 2;
-	TPZGeoEl *elvec[nelem];	
+	TPZGeoEl *elvec[2]; //nelem	
 	const int dim = 2;//AQUI
 	
 	REAL co[nnode][dim] ={{0.,0.},{1.,0.},{1.,1.},{0.,1.}};//{{-1.,0.},{1.,0.},{1.,1.},{-1.,1.}};// {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.}};//
@@ -751,7 +751,7 @@ TPZGeoMesh * MalhaGeo/*QUADRILATEROS*/ ( const int h )
 	
 	int nnode = 4;
 	const int nelem = 1;
-	TPZGeoEl *elvec[nelem];
+	TPZGeoEl *elvec[1]; //nelem
 	int nod;
 	for ( nod=0; nod<nnode; nod++ )
 	{
@@ -964,7 +964,7 @@ TPZGeoMesh * MalhaGeoQ(const int h){//malha quadrilatera
 TPZGeoMesh * MalhaGeo2(const int h){//malha quadrilatera com 2 elementos
 	TPZGeoMesh *gmesh = new TPZGeoMesh();
 		int nelem=4;
-	TPZGeoEl *elvec[nelem];
+	TPZGeoEl *elvec[4]; //nelem
 	//Criar ns
 	const int nnode = 9;//AQUI
 	const int dim = 2;//AQUI
@@ -1359,7 +1359,7 @@ TPZGeoMesh * MalhaGeoQ2(const int h){//malha triangulo
 	//Criar ns
 	const int nnode = 9;//AQUI
 	const int nelem = 4;
-	TPZGeoEl *elvec[nelem];	
+	TPZGeoEl *elvec[4];	//nelem
 	const int dim = 2;//AQUI
 	
 	REAL co[nnode][dim] = {{-1.,-1},{1.,-1},{1.,1.},{-1.,1.},{0.,-1.},{1.,0.},{0.,1.},{-1.,0.},{0.,0.}};
