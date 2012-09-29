@@ -7,8 +7,8 @@
 
 using namespace std;
 
-#ifdef LOG4CXX
 #include "pzlog.h"
+#ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.topology.prismextend"));
 #endif
 
