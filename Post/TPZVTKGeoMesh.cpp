@@ -112,6 +112,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 {
 	file.clear();
 	int nelements = gmesh->NElements();
+	TPZGeoEl *gel;
 	
 	std::stringstream node, connectivity, type, material;
 	
@@ -126,17 +127,18 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 	int actualNode = -1, size = 0, nVALIDelements = 0;
 	
 	for(int el = 0; el < nelements; el++)
-	{				
-		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+	{
+		gel = gmesh->ElementVec()[el];
+		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}
-		if(gmesh->ElementVec()[el]->HasSubElement())
+		if(gel->HasSubElement())
 		{
 			continue;
 		}
 		
-        MElementType elt = gmesh->ElementVec()[el]->Type();
+        MElementType elt = gel->Type();
 		int elNnodes = MElementType_NNodes(elt);
         
 		size += (1+elNnodes);
@@ -146,9 +148,9 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		{
 			for(int c = 0; c < 3; c++)
 			{
-				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
 				node << coord << " ";
-			}			
+			}
 			node << std::endl;
 			
 			actualNode++;
@@ -156,12 +158,12 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, bool 
 		}
 		connectivity << std::endl;
 		
-		int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
 		type << elType << std::endl;
 		
 		if(matColor == true)
 		{
-			material << gmesh->ElementVec()[el]->MaterialId() << std::endl;
+			material << gel->MaterialId() << std::endl;
 		}
 		else
 		{
@@ -219,19 +221,20 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 	file << "POINTS ";
 	
 	int actualNode = -1, size = 0, nVALIDelements = 0;
+	TPZGeoEl *gel;
 	
 	for(int el = 0; el < nelements; el++)
-	{				
-		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+	{
+		gel = gmesh->ElementVec()[el];
+		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}
-		//			if(gmesh->ElementVec()[el]->HasSubElement())
 		if (elData[el] == -999) {
 			continue;
 		}
 		
-		MElementType elt = gmesh->ElementVec()[el]->Type();
+		MElementType elt = gel->Type();
 		int elNnodes = MElementType_NNodes(elt);
         
 		size += (1+elNnodes);
@@ -241,7 +244,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 		{
 			for(int c = 0; c < 3; c++)
 			{
-				double coord = gmesh->NodeVec()[gmesh->ElementVec()[el]->NodeIndex(t)].Coord(c);
+				double coord = gmesh->NodeVec()[gel->NodeIndex(t)].Coord(c);
 				node << coord << " ";
 			}			
 			node << std::endl;
@@ -251,7 +254,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, std::ofstream &file, TPZVe
 		}
 		connectivity << std::endl;
 		
-		int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
 		type << elType << std::endl;
 		
 		material << elData[el] << std::endl;
@@ -310,10 +313,12 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 	int t, c, el;
 	int actualNode = -1, size = 0, nVALIDelements = 0;
 	int counternodes = gmesh->NNodes();
+	TPZGeoEl *gel;
 	
 	for(el = 0; el < nelements; el++)
-	{				
-		if(gmesh->ElementVec()[el]->Type() == EOned && !gmesh->ElementVec()[el]->IsLinearMapping())//Exclude Arc3D and Ellipse3D
+	{
+		gel = gmesh->ElementVec()[el];
+		if(!gel || (gel->Type() == EOned && !gel->IsLinearMapping()))//Exclude Arc3D and Ellipse3D
 		{
 			continue;
 		}
@@ -321,7 +326,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 			continue;
 		}
 		
-		MElementType elt = gmesh->ElementVec()[el]->Type();
+		MElementType elt = gel->Type();
 		int elNnodes = MElementType_NNodes(elt);
         
 		size += (1+elNnodes);
@@ -329,7 +334,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 		
 		for(t = 0; t < elNnodes; t++)
 		{
-			actualNode = gmesh->ElementVec()[el]->NodeIndex(t);
+			actualNode = gel->NodeIndex(t);
 			if(actualNode < 0) 
 				DebugStop();
 			
@@ -337,7 +342,7 @@ void TPZVTKGeoMesh::PrintGMeshVTK(TPZGeoMesh * gmesh, char *filename, TPZChunkVe
 		}
 		connectivity << std::endl;
 		
-		int elType = TPZVTKGeoMesh::GetVTK_ElType(gmesh->ElementVec()[el]);
+		int elType = TPZVTKGeoMesh::GetVTK_ElType(gel);
 		type << elType << std::endl;
 		
 		material << elData[el] << std::endl;

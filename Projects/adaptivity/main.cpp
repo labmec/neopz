@@ -34,8 +34,14 @@
 #include "pzmattest3d.h"
 #include "pzmatplaca2.h"
 
+#include "pzgengrid.h"
+#include "TPZGenSpecialGrid.h"
+
+#include "TPZRefPatternDataBase.h"
+
 #include "pzfunction.h"
 #include "TPZVTKGeoMesh.h"
+#include "pzvtkmesh.h"
 
 #include "pzlog.h"
 
@@ -54,7 +60,8 @@ static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
 int gPrintLevel = 0;
 /** angle ??? */
 static REAL angle = 0.2;
-
+/** Whether the user must to be input data through keyboard */
+bool user = false;
 
 /** FUNCTION DEFINITIONS */
 
@@ -63,7 +70,7 @@ void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp);
 
 /** Functions to create particular mesh */
 /** Allows user to choose an option for creating a mesh */
-TPZCompMesh *ReadCase(int &nref, int &dim, int &opt);
+TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool usr);
 /** Creating selected mesh */
 TPZCompMesh *CreateMesh();
 TPZCompMesh *CreateSillyMesh();
@@ -128,6 +135,17 @@ int main() {
 #ifdef LOG4CXX
     InitializePZLOG();
 #endif
+	
+	// Initializing a ref patterns
+	//gRefDBase.InitializeAllUniformRefPatterns();
+	//gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeUniformRefPattern(EOned);
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+	gRefDBase.InitializeUniformRefPattern(ETriangle);
+
+	// To visualization of the geometric mesh
+	std::ofstream fgeom("GMesh.vtk");
+	std::ofstream fgeomfromcomp("GMeshFromComp.vtk");
 
 	// Initializing variables
     int nref = 0;
@@ -143,16 +161,21 @@ int main() {
     gDebug = 0;
     
 	/** Choosing mesh */
-    TPZCompMesh *cmesh = ReadCase(nref,dim,opt);
+    TPZCompMesh *cmesh = ReadCase(nref,dim,opt,user);
+	
 	if(rotating) {
 		InitializeRotation(alfa,transx,transy,Rot,RotInv);
 		TransformMesh(cmesh->Reference(),Rot);
 	}
-        
+
     cmesh->Reference()->SetName("Malha Geometrica original");
     cmesh->SetName("Malha Computacional Original");
     
     cmesh->CleanUpUnconnectedNodes();
+	
+	// Printing geo mesh to check
+	TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
+	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
 
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -346,7 +369,7 @@ int main() {
 }
 
 /** Let be the user choose the type to created mesh, returning this option (opt), dimension of the problem and number of required refinements */
-TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
+TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool user){
     
     std::cout << "**************************************" << std::endl;
     std::cout << "******Auto adaptive test code********" << std::endl;
@@ -357,8 +380,12 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     << "\n4 - 3D Simples \n5 - 3D Canto\n" <<"6 - Tetraedro\n7 - Prisma\n8 - All elements\n9 - All topologies\n10 Aleatorio\n"
     << "11 Pyramid and Tetrahedre\n12Exact 3d Poisson\n"
     << "13 Cube Exp\n";
-    opt = 1;
-    std::cin >> opt;
+    opt = 0;
+	if(user)
+		std::cin >> opt;
+	else
+		std::cout << "Option " << opt << std::endl;
+
     
     TPZCompMesh *cmesh;
     
@@ -424,13 +451,18 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
     opt > 3 ? dim=3 : dim = 2;
     
     std::cout << "number of refinement steps : ";
-//    nref = 30;
-    std::cin >> nref;
+    nref = 0;
+	if(user)
+		std::cin >> nref;
+	else
+		std::cout << "N Ref " << nref << std::endl;
     
     std::cout << "Maximum p order:    ";
-    int p;
-//    p=8;
-    std::cin >> p;
+    int p = 1;
+	if(user)
+		std::cin >> p;
+	else
+		std::cout << "Order " << p << std::endl;
     std::cout << std::endl;
     
     TPZOneDRef::gMaxP = p;
@@ -444,17 +476,24 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt){
 //*******L Shape Quadrilateral*********
 //*************************************
 TPZCompMesh *CreateSillyMesh(){
-    
-    //malha quadrada de nr x nc
-    const	int numrel = 1;
-    const	int numcel = 1;
+	    
+    //malha quadrada de numrel x numcel
+    //const	int numrel = 2;
+    //const	int numcel = 2;
+	TPZManVector<int> nx(2,2);
     //  int numel = numrel*numcel;
-    TPZVec<REAL> coord(2,0.);
+	// Initial point x0 and corner of diagonal point x1
+    TPZVec<REAL> x0(2,0.);
+	TPZVec<REAL> x1(2,2.);
     
     // criar um objeto tipo malha geometrica
     TPZGeoMesh *geomesh = new TPZGeoMesh();
     
-    // criar nos
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.Read(geomesh);             // generating grid in gmesh - It make BuildConnectivity after generating geometric elements
+	
+    /* criar nos
     int i,j;
     for(i=0; i<(numrel+1); i++) {
         for (j=0; j<(numcel+1); j++) {
@@ -482,28 +521,29 @@ TPZCompMesh *CreateSillyMesh(){
             gel[elr*numcel+elc] = geomesh->CreateGeoElement(EQuadrilateral,indices,1,index);
         }
     }
-    
+    	
     // Descomentar o trecho abaixo para habilitar a
     // divisão dos elementos geométricos criados
-    /*
-     geomesh->BuildConnectivity2();
-     geomesh->Print(cout);
+	 */
      
-     //Divisão dos elementos
-     TPZVec<TPZGeoEl *> sub;
-     gel[0]->Divide(sub);
-     for (i=0;i<(sub.NElements()-1);i++){
-     TPZVec<TPZGeoEl *> subsub;
-     sub[i]->Divide(subsub);
-     }
-     */
-    
     // Criação das condições de contorno geométricas
-    geomesh->BuildConnectivity();
-    TPZGeoElBC t3(gel[0],4,-1);
-    TPZGeoElBC t4(gel[0],6,-2);
-    geomesh->Print(std::cout);
-    
+	gen.SetBC(geomesh,4,-1);
+	gen.SetBC(geomesh,6,-2);
+
+	//Divisão dos elementos
+	TPZVec<TPZGeoEl *> sub;
+	TPZGeoEl *gel = geomesh->ElementVec()[0];
+	gel->Divide(sub);
+	//     for(int i=0;i<(sub.NElements()-1);i++){
+	//		 TPZVec<TPZGeoEl *> subsub;
+	//		 sub[i]->Divide(subsub);
+	//   }
+	geomesh->BuildConnectivity();
+//    geomesh->BuildConnectivity();
+//    TPZGeoElBC t3(gel[0],4,-1);
+//    TPZGeoElBC t4(gel[0],6,-2);
+//    geomesh->Print(std::cout);
+	    
     // Criação da malha computacional
     TPZCompMesh *comp = new TPZCompMesh(geomesh);
     
@@ -539,6 +579,8 @@ TPZCompMesh *CreateSillyMesh(){
     comp->CleanUpUnconnectedNodes();
     //  comp->Print(cout);
     
+//	geomesh->Print(std::cout);
+
     /*  //	comp->Print(output); */
     /*  TPZInterpolatedElement *intel = dynamic_cast <TPZInterpolatedElement *> (comp->ElementVec()[1]); */
     /*  TPZVec<int> subelindex; */
@@ -713,8 +755,8 @@ TPZCompMesh *CreateTriangularMesh(){
     }
     
     gmesh->BuildConnectivity();
-    //  TPZStack<TPZGeoEl*> subel;
-    //  elvec[0]->Divide(subel);
+      TPZStack<TPZGeoEl*> subel;
+      elvec[0]->Divide(subel);
     
     
     // bc -1 -> Dirichlet
@@ -1735,6 +1777,7 @@ TPZCompMesh *CreateAleatorioMesh() {
     //  TPZStack<TPZGeoEl*> subel;
     //  elvec[0]->Divide(subel);
     
+    gmesh->BuildConnectivity();
     
     // bc -1 -> Dirichlet
     TPZGeoElBC gbc1(elvec[0],15,-1);

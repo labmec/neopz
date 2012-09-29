@@ -313,32 +313,35 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 	int layer;
 	int iel;
 	TPZGeoEl *gel;
-	int elementside = side + 4;
+	int elementside = side;
 	for(layer=0; layer<fNumLayers; layer++) {
 		switch(side) {
-            case 0:
+            case 4:
                 ielfirst = layer*fNx[0]*fNx[1];
                 iellast = ielfirst+fNx[0];
                 ielinc = 1;
                 break;
-            case 1:
+            case 5:
                 ielfirst = layer*fNx[0]*fNx[1]+fNx[0]-1;
                 iellast = (layer+1)*fNx[0]*fNx[1];
                 ielinc = fNx[0];
                 break;
-            case 2:
+            case 6:
                 ielfirst = layer*fNx[0]*fNx[1]+fNx[0]*(fNx[1]-1);
                 ielinc = 1;
                 iellast = (layer+1)*fNx[0]*fNx[1];
                 break;
-            case 3:
+            case 7:
                 ielfirst = layer*fNx[0]*fNx[1];
                 ielinc = fNx[0];
                 iellast = ielfirst+fNx[1]*ielinc;
                 break;
+			default:
+				cout << "It is not implemented for side = " << side << endl;
+				return;
 		}
 		if(fElementType == 1) {
-			elementside = side+3;
+			elementside -= 1;
 			ielfirst *= 2;
 			iellast *= 2;
 			ielinc *= 2;
@@ -351,8 +354,8 @@ void TPZGenGrid::SetBC(TPZGeoMesh*g, int side, int bc) {
 		}
 		for(iel = ielfirst; iel<iellast; iel += ielinc) {
 			gel = g->ElementVec()[iel];
+			if(gel->HasSubElement()) continue;
 			TPZGeoElBC(gel,elementside,bc);
-            //			gel->SetSide(side,bc);
 		}
 	}
 }
