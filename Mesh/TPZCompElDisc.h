@@ -185,10 +185,10 @@ public:
 	
 	/** 
 	 * @brief Compute shape functions.
-	 * @param qsi [in] point in master element coordinates
-	 * @param X [in] coordinates of the point
-	 * @param phi [out] vector of values of shapefunctions,
-	 * @param dphi [out] matrix of derivatives of shapefunctions,
+	 * @param[in] qsi point in master element coordinates
+	 * @param[in] X coordinates of the point
+	 * @param[out] phi vector of values of shapefunctions,
+	 * @param[out] dphi matrix of derivatives of shapefunctions,
 	 */
 	void Shape(TPZVec<REAL> &qsi,TPZVec<REAL>&X, TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 	
@@ -199,8 +199,8 @@ protected:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param intpoint [in] point in master element coordinates 
-	 * @param data [in] stores all input data
+	 * @param[in] intpoint point in master element coordinates 
+	 * @param[in] data stores all input data
 	 */
     virtual void ComputeShape(TPZVec<REAL> &intpoint,TPZMaterialData &data);
 	
@@ -313,8 +313,8 @@ public:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param intpoin [in] point in master element coordinates 
-	 * @param data [in] stores all input data
+	 * @param[in] qsi point in master element coordinates 
+	 * @param[in] data stores all input data
 	 */
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	

@@ -69,7 +69,7 @@ public:
 									std::map<int,int> &gl2lcNdIdx,
 									std::map<int,int> &gl2lcElIdx) const;
 	
-	/** @brief Returns 1 if the element has subelements along side*/
+	/** @brief Returns 1 if the element has subelements. */
 	int HasSubElement() const {return fSubEl[0]!=-1;}
 	
 	void SetSubElement(int id, TPZGeoEl *el);

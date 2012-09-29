@@ -1,4 +1,4 @@
- /**
+/**
  * @file
  * @brief Contains declaration of TPZCompElHDiv class which implements a generic computational element (HDiv scope).
  */
@@ -61,7 +61,7 @@ public:
 	virtual void SetCreateFunctions(TPZCompMesh *mesh){
 		mesh->SetAllCreateFunctionsHDiv();
 	}
-
+	
 	
 	virtual MElementType Type();
 	
@@ -83,16 +83,16 @@ public:
 	virtual int NCornerConnects() const {
 		return 0;
 	}
-		/** 
+	/** 
      * @brief return the number of shape for flux(just for flux)
-		 **/
-		virtual int NFluxShapeF() const;
+	 **/
+	virtual int NFluxShapeF() const;
 	
 	virtual int NSideConnects(int side) const;
     
 	/** 
      * @brief return the local index for connect
-    **/
+	 **/
 	virtual int SideConnectLocId(int node, int side) const;
     
     /** 
@@ -112,10 +112,10 @@ public:
 	virtual int PreferredSideOrder(int iside);
 	
 	/*
-     *@brief Sets the preferred interpolation order along a side
-	 *This method only updates the datastructure of the element
-	 *In order to change the interpolation order of an element, use the method PRefine
-    */
+     * @brief Sets the preferred interpolation order along a side \n
+	 * This method only updates the datastructure of the element
+	 * In order to change the interpolation order of an element, use the method PRefine
+	 */
 	virtual void SetPreferredOrder(int order);
 	
 	/** @brief Sets the interpolation order of side to order*/
@@ -128,11 +128,11 @@ public:
      * @brief return the interpolation order of the polynomial for connect
      **/
 	virtual int ConnectOrder(int connect) const;
-		/**
+	/**
      * @brief return the number of continuous functions 
      **/
-		
-		void NShapeContinuous(TPZVec<int> &order, int &nshape  );
+	
+	void NShapeContinuous(TPZVec<int> &order, int &nshape  );
 	
 	
 	/** @brief Initialize a material data and its attributes based on element dimension, number
@@ -150,9 +150,10 @@ public:
     
 	/**
      * @brief Returns a matrix index of the shape and vector  associate to element
-     * @param VectorSide input : indicates the side associated with each vector
-     * @param IndexVecShape output : indicates for the vector/shape function for the approximation space
-    */
+     * @param[in] VectorSide Indicates the side associated with each vector
+     * @param[out] IndexVecShape Indicates for the vector/shape function for the approximation space
+	 * @param[in] pressureorder Order of the pressure (to select shape functions?)
+	 */
 	void IndexShapeToVec(TPZVec<int> &VectorSide,TPZVec<std::pair<int,int> > & IndexVecShape, int pressureorder);
 	
 	/** @brief Computes the values of the shape function of the side*/
@@ -162,16 +163,16 @@ public:
     
     /** @brief Compute the solution for a given variable */
 	virtual void Solution( TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
-
-    private:
+	
+private:
     virtual	void ComputeSolution(TPZVec<REAL> &qsi, TPZSolVec &sol, TPZGradSolVec &dsol,TPZFMatrix<REAL> &axes);
     
-    public:
+public:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param intpoin [in] point in master element coordinates 
-	 * @param data [in] stores all input data
+	 * @param[in] qsi point in master element coordinates 
+	 * @param[in] data stores all input data
 	 */
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	
@@ -180,7 +181,7 @@ public:
                                  const TPZFMatrix<REAL> &axes, TPZSolVec &sol, TPZGradSolVec &dsol);	
     /** @brief Compute the solution using Hdiv structure */
 	void ComputeSolutionHDiv(TPZMaterialData &data);
-
+	
 	void CreateGraphicalElement(TPZGraphMesh &grafgrid, int dimension);
 	
 	

@@ -376,19 +376,9 @@ public:
 	/** @brief Divides the element and puts the resulting elements in the vector */
 	virtual void Divide(TPZVec<TPZGeoEl *> &pv);
 	
-	/** @brief Return 1 if the element has subelements along side */
+	/** @brief Return 1 if the element has subelements */
 	virtual int HasSubElement() const = 0;
-	
-	/**
-	 * @brief Computes the transformation for a point on the master element to a point
-	 * in the master element of the neighbour 
-	 */
-//	void SideTransform(int side,TPZGeoElSide neighbour,TPZTransform &t)
-//    {
-//        TPZGeoElSide gelside(this,side);
-//        gelside.SideTransform3(neighbour, t);
-//    }
-	
+
 	/**
 	 * @brief Compute the transformation between the master element space of one side of an element 
 	 * to the master element space of a higher dimension side
