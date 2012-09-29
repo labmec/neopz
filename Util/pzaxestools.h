@@ -55,7 +55,7 @@ public:
 	 * @brief Makes the basis transformation from axes basis to euclidian basis.
 	 * @param dudx Output matrix
 	 * @param dudaxes Input matrix
-	 * @param axes Must be an orthogonal normalized matrix. Axes vectors are written in rows.
+	 * @param axesv Must be an orthogonal normalized matrix. Axes vectors are written in rows.
 	 */
 	static void Axes2XYZ(const TPZFMatrix<TVar> &dudaxes, TPZFMatrix<TVar> &dudx, const TPZFMatrix<REAL> &axesv){
         TPZFNMatrix<9,TVar> axes(axesv.Rows(),axesv.Cols());

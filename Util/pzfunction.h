@@ -40,7 +40,7 @@ public:
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
 	 * @param ftime  time to evaluate	 
 	 * @param f function values
-	 * @param df function derivatives
+	 * @param gradf function derivatives
 	 */	
 	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf){
         DebugStop();
