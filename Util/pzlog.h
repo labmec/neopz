@@ -1,7 +1,8 @@
 /**
  * @file
- * @brief Contains definitions to LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL, \n
- * and the implementation of the inline InitializePZLOG(string ) function.
+ * @brief Contains definitions to LOGPZ_DEBUG, LOGPZ_INFO, LOGPZ_WARN, LOGPZ_ERROR and LOGPZ_FATAL,
+ * and the implementation of the inline InitializePZLOG(string) function using log4cxx library or not.\n
+ * It must to be called out of "#ifdef LOG4CXX" scope.
  */
 
 #ifndef PZLOGH

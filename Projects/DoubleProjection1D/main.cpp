@@ -6,7 +6,6 @@
 #include "pzstack.h"
 #include "pzfmatrix.h"
 #include "pzfstrmatrix.h"
-#include "pzlog.h"
 
 #include "pzgmesh.h"
 #include "pzcmesh.h"

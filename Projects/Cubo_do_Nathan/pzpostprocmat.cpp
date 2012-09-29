@@ -4,8 +4,8 @@
 //#include "poroelastoplasticid.h"
 #include "pzbndcond.h"
 
-#ifdef LOG4CXX
 #include "pzlog.h"
+#ifdef LOG4CXX
 static LoggerPtr postprocLogger(Logger::getLogger("material.pzPostProcMat"));
 #endif
 
