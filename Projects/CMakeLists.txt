@@ -13,8 +13,7 @@ ENABLE_TESTING()
 			add_subdirectory(CursoPZ)
 
 			# Tutorial about hp-adaptive techniques
-			add_subdirectory(adaptivity)
-
+			add_subdirectory(Adapt_HP_Jorge)
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
 
@@ -80,10 +79,7 @@ ENABLE_TESTING()
 			# the auto adaptive process is working again!!!
 			add_subdirectory(adaptivity)
 			# add_subdirectory(adaptivity_refactor)
-			
-			#Inserting project to hp adaptive development
-			add_subdirectory(Adapt_HP_Jorge)
-			
+						
 			add_subdirectory(Cubo_do_Nathan)
 			
 			add_subdirectory(HyperElasticityFAD)

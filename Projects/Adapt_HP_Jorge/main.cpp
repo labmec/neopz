@@ -18,7 +18,7 @@
 using namespace std;
 
 /**
- * @addtogroup app_projects
+ * @addtogroup Tutorials
  * @{
  */
 
@@ -29,20 +29,23 @@ void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
-/** 
- * @brief Make uniform refinement of the geometric mesh. This method finishs making the new connectivities for the elements (ResetConnectivities() and BuildConnectivity()) 
- * @param nDiv Number of divisions wished
- * @param gmesh Geometric mesh contained the elements
- * @param dim Dimension of the geometric elements will be divided
- * @param allmaterial If true divides all geometric element, if false check the material match with allmaterial to divide the element
- * @param matidtodivided To divide only elements with this material id
- */
-void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=0);
-
 /**
  * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
  */
 int main(int argc, char *argv[]) {
+	
+/** --- To test a polygonalized sphere  *
+	 TPZVec<REAL> center(3,-3.);
+	 TPZGeoMesh *ggrid = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,1.,0.002);
+	 TPZCompMesh *cgrid = new TPZCompMesh(ggrid);
+	 TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+	 cgrid->InsertMaterialObject(mat);
+	 cgrid->AutoBuild();
+	 std::cout << "N Elements = " << cgrid->NElements() << std::endl << "N G Elements = " << ggrid->NElements() << std::endl;
+	 TPZVTKGeoMesh::PrintGMeshVTK(ggrid,fgeom);
+	 
+	 ////  ----  END SPHERE  -----  */
+	
 #ifdef LOG4CXX
 	if (argc > 1) {
 		std::string logpath ( argv[1] );
@@ -59,6 +62,16 @@ int main(int argc, char *argv[]) {
 	char saida[260];
 #endif
 
+	// Initializing a ref patterns
+	//gRefDBase.InitializeAllUniformRefPatterns();
+	//gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeUniformRefPattern(EOned);
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+	gRefDBase.InitializeUniformRefPattern(ETriangle);
+	
+	// To visualization of the geometric mesh
+	std::ofstream fgeom("GMesh.vtk");
+	
 	cout << "Generating geometric mesh bi-dimensional ...\n";
     // First rectangular mesh:
 	// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
@@ -118,9 +131,204 @@ int main(int argc, char *argv[]) {
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 #endif
 	
-	// Uniform refinement. Two times
-	UniformRefinement(2,gmesh3D,3);
+	/// Applying hp adaptive techniques 2012/10/01
 
+	TPZManVector<int> nx(2,2);
+	// Initial point x0 and corner of diagonal point x1
+    TPZVec<REAL> x0(2,0.);
+	TPZVec<REAL> x1(2,2.);
+    
+    // criar um objeto tipo malha geometrica
+    TPZGeoMesh *geomesh = new TPZGeoMesh();
+    
+	TPZGenGrid gen(nx,x0,x1);      
+	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.Read(geomesh);
+		
+    // CriaÁ„o das condiÁıes de contorno geomÈtricas
+	gen.SetBC(geomesh,4,-1);
+	gen.SetBC(geomesh,6,-2);
+	
+	// Refinement of the first element
+	TPZVec<TPZGeoEl *> sub;
+	TPZGeoEl *gel = geomesh->ElementVec()[0];
+	gel->Divide(sub);
+	geomesh->BuildConnectivity();
+	
+    // CriaÁ„o da malha computacional
+    TPZCompMesh *comp = new TPZCompMesh(geomesh);
+    
+    // Criar e inserir os materiais na malha
+    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+    comp->InsertMaterialObject(mat);
+    
+    TPZMaterial * meumat = mat;
+    
+    // CondiÁıes de contorno
+    // Dirichlet
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+    TPZMaterial * bnd = meumat->CreateBC (meumat,-1,0,val1,val2);
+    comp->InsertMaterialObject(bnd);
+    bnd = meumat->CreateBC (meumat,-2,0,val1,val2);
+	// Neumann
+    TPZFMatrix<REAL> val3(3,3,1);
+    val2(0,0)=1.;
+    bnd = meumat->CreateBC (meumat,-2,1,val1,val2);
+    comp->InsertMaterialObject(bnd);
+    
+    // Ajuste da estrutura de dados computacional
+    comp->AutoBuild();
+    //  comp->Print(cout);
+    comp->AdjustBoundaryElements();
+    //  comp->Print(cout);
+    comp->CleanUpUnconnectedNodes();
+    
+    comp->SetName("Malha Computacional Original");
+
+	// Introduzing exact solution depending on the case
+	TPZAnalysis an (cmesh);
+	if (opt == 4 || opt == 7 || opt == 8){
+		an.SetExact(ExactSimple3D);
+	}
+	else if(opt==1 || opt==2){
+		an.SetExact(Exact);
+	}
+	else if(opt==12){
+		an.SetExact(Exact3D);
+	}
+	{
+		std::stringstream sout;
+		int angle = (int) (alfa*180./M_PI + 0.5);
+		sout << "hptestAngo" << angle << "." << r << ".vtk";
+		an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+	}
+	std::string MeshFileName;
+	{
+		std::stringstream sout;
+		int angle = (int) (alfa*180./M_PI + 0.5);
+		sout << "meshAngle" << angle << "." << r << ".vtk";
+		MeshFileName = sout.str();
+	}
+	
+	cmesh->SetName("Malha computacional adaptada");
+	// Printing geometric and computational mesh
+	if (gDebug == 1){
+		cmesh->Reference()->Print(std::cout);
+		cmesh->Print(std::cout);
+	}
+	
+	// Solve using symmetric matrix then using Cholesky (direct method)
+	TPZSkylineStructMatrix strskyl(cmesh);
+	an.SetStructuralMatrix(strskyl);
+	
+	TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+	direct->SetDirect(ECholesky);
+	an.SetSolver(*direct);
+	delete direct;
+	direct = 0;
+	
+	an.Run();
+	
+	// Post processing
+	an.PostProcess(4,dim);
+	{
+		std::ofstream out(MeshFileName.c_str());
+		cmesh->LoadReferences();
+		TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(), out, false);
+		
+	}
+	
+	REAL valerror =0.;
+	REAL valtruerror=0.;
+	TPZVec<REAL> ervec,truervec,effect;
+	
+	//Multigrid==========================================
+	//       finemesh = mgan.UniformlyRefineMesh(finemesh);
+	//       mgan.AppendMesh(finemesh);
+	//       mgan.Run();
+	//       TPZCompMesh *adaptive = mgan.RefinementPattern(finemesh,cmesh,error,truerror,effect);
+	//===================================================
+	
+	TPZAdaptMesh adapt;
+	adapt.SetCompMesh (cmesh);
+	
+	std::cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
+	
+	//if(r==4) gPrintLevel = 1;
+	time_t sttime;
+	time (& sttime);
+	TPZCompMesh *adptmesh;
+	
+	switch (opt){
+		case (1) :{
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact,truervec,effect,0);
+			break;
+		}
+		case (2) :{
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect,0);
+			break;
+		}
+		case (4) :{
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect,1);
+			break;
+		}
+		case (12) : {
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect,0);
+			break;
+		}
+		case (13):{
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3DExp,truervec,effect,1);
+			break;
+		}
+		default:
+			adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,0,truervec,effect,0);
+	}
+	
+	time_t endtime;
+	time (& endtime);
+	
+	int time_elapsed = endtime - sttime;
+	std::cout << "\n\n\n\nExiting Auto Adaptive Methods....step " << r
+	<< "time elapsed " << time_elapsed << "\n\n\n\n";
+	
+	int prt;
+	std::cout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+	<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+	
+#ifdef LOG4CXX
+	if (loggerconv->isDebugEnabled())
+	{
+		std::stringstream sout;
+		sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+		<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
+		LOGPZ_DEBUG(loggerconv, sout.str())
+	}
+#endif
+	
+	convergence  << cmesh->NEquations() << "\t"
+	<< valerror << "\t"
+	<< valtruerror << "\t"
+	<< ( valtruerror / valerror ) <<  "\t"
+	<< sttime <<std::endl;
+	for (prt=0;prt<ervec.NElements();prt++){
+		std::cout <<"error " << ervec[prt] << "  truerror = " << truervec[prt] << "  Effect " << effect[prt] << std::endl;
+		// convergence << '\t' << ervec[prt] << '\t' << truervec[prt] << "  Effect " << effect[prt] <<  std::endl;
+		//  adptmesh->Print(cout);
+	}
+	
+	std::cout.flush();
+	cmesh->Reference()->ResetReference();
+	cmesh->LoadReferences();
+	adapt.DeleteElements(cmesh);
+	delete cmesh;
+	cmesh = adptmesh;
+	
+	cmesh->CleanUpUnconnectedNodes();
+	
+	
+	/* Uniform refinement. Two times
+	UniformRefinement(2,gmesh3D,3);
+	
 #ifdef DEBUG
 	sprintf(saida,"meshrefined.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
@@ -168,7 +376,8 @@ int main(int argc, char *argv[]) {
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh3D,saida,0);
 #endif
 
-	return EXIT_SUCCESS;  
+	return EXIT_SUCCESS;
+	 */
 }
 
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {

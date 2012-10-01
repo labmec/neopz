@@ -61,7 +61,7 @@ int gPrintLevel = 0;
 /** angle ??? */
 static REAL angle = 0.2;
 /** Whether the user must to be input data through keyboard */
-bool user = false;
+bool user = true;
 
 /** FUNCTION DEFINITIONS */
 
@@ -172,19 +172,7 @@ int main() {
     cmesh->SetName("Malha Computacional Original");
     
     cmesh->CleanUpUnconnectedNodes();
-	
-/** --- To test a polygonalized sphere  *
-	TPZVec<REAL> center(3,-3.);
-	TPZGeoMesh *ggrid = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,1.,0.002);
-	TPZCompMesh *cgrid = new TPZCompMesh(ggrid);
-	TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
-	cgrid->InsertMaterialObject(mat);
-	cgrid->AutoBuild();
-	std::cout << "N Elements = " << cgrid->NElements() << std::endl << "N G Elements = " << ggrid->NElements() << std::endl;
-	TPZVTKGeoMesh::PrintGMeshVTK(ggrid,fgeom);
-	
-////  ----  END SPHERE  -----  */
-	
+		
 	// Printing geo mesh to check
 	TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
 	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);
@@ -490,22 +478,15 @@ TPZCompMesh *ReadCase(int &nref, int &dim, int &opt,bool user){
 TPZCompMesh *CreateSillyMesh(){
 	    
     //malha quadrada de numrel x numcel
-    //const	int numrel = 2;
-    //const	int numcel = 2;
-	TPZManVector<int> nx(2,2);
-    //  int numel = numrel*numcel;
-	// Initial point x0 and corner of diagonal point x1
-    TPZVec<REAL> x0(2,0.);
-	TPZVec<REAL> x1(2,2.);
+    const	int numrel = 2;
+    const	int numcel = 2;
+
+    int numel = numrel*numcel;
     
     // criar um objeto tipo malha geometrica
     TPZGeoMesh *geomesh = new TPZGeoMesh();
     
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // type = 0 means rectangular elements
-	gen.Read(geomesh);             // generating grid in gmesh - It make BuildConnectivity after generating geometric elements
-	
-    /* criar nos
+    // criar nos
     int i,j;
     for(i=0; i<(numrel+1); i++) {
         for (j=0; j<(numcel+1); j++) {
@@ -533,28 +514,22 @@ TPZCompMesh *CreateSillyMesh(){
             gel[elr*numcel+elc] = geomesh->CreateGeoElement(EQuadrilateral,indices,1,index);
         }
     }
-    	
-    // Descomentar o trecho abaixo para habilitar a
-    // divisão dos elementos geométricos criados
-	 */
-     
-    // Criação das condições de contorno geométricas
-	gen.SetBC(geomesh,4,-1);
-	gen.SetBC(geomesh,6,-2);
 
+    // Descomentar o trecho abaixo para habilitar a
+    // divisão dos elementos geométricos criado
 	//Divisão dos elementos
-	TPZVec<TPZGeoEl *> sub;
+/*	TPZVec<TPZGeoEl *> sub;
 	TPZGeoEl *gel = geomesh->ElementVec()[0];
 	gel->Divide(sub);
 	//     for(int i=0;i<(sub.NElements()-1);i++){
 	//		 TPZVec<TPZGeoEl *> subsub;
 	//		 sub[i]->Divide(subsub);
-	//   }
-	geomesh->BuildConnectivity();
-//    geomesh->BuildConnectivity();
-//    TPZGeoElBC t3(gel[0],4,-1);
-//    TPZGeoElBC t4(gel[0],6,-2);
-//    geomesh->Print(std::cout);
+	//   } */
+
+    geomesh->BuildConnectivity();
+    TPZGeoElBC t3(gel[0],4,-1);
+    TPZGeoElBC t4(gel[0],6,-2);
+    geomesh->Print(std::cout);
 	    
     // Criação da malha computacional
     TPZCompMesh *comp = new TPZCompMesh(geomesh);
@@ -590,7 +565,6 @@ TPZCompMesh *CreateSillyMesh(){
     //  comp->Print(cout);
     comp->CleanUpUnconnectedNodes();
     //  comp->Print(cout);
-    
 //	geomesh->Print(std::cout);
 
     /*  //	comp->Print(output); */
