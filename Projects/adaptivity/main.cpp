@@ -173,6 +173,18 @@ int main() {
     
     cmesh->CleanUpUnconnectedNodes();
 	
+/** --- To test a polygonalized sphere  *
+	TPZVec<REAL> center(3,-3.);
+	TPZGeoMesh *ggrid = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,1.,0.002);
+	TPZCompMesh *cgrid = new TPZCompMesh(ggrid);
+	TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+	cgrid->InsertMaterialObject(mat);
+	cgrid->AutoBuild();
+	std::cout << "N Elements = " << cgrid->NElements() << std::endl << "N G Elements = " << ggrid->NElements() << std::endl;
+	TPZVTKGeoMesh::PrintGMeshVTK(ggrid,fgeom);
+	
+////  ----  END SPHERE  -----  */
+	
 	// Printing geo mesh to check
 	TPZVTKGeoMesh::PrintGMeshVTK(cmesh->Reference(),fgeom);
 	TPZVTKGeoMesh::PrintCMeshVTK(cmesh->Reference(),fgeomfromcomp);

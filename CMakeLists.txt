@@ -117,7 +117,7 @@ link_directories(${PTHREAD_LIB})
 link_libraries(pthread)
 
 #enabling Boost library 
-option(USING_BOOST "Whether the Boost package will be linked with the library" ON)
+option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
 if(USING_BOOST)
 	IF (WIN32)
 		set(Boost_USE_STATIC_LIBS   ON)
@@ -152,7 +152,7 @@ if(USING_FAD)
 endif(USING_FAD)
 
 #enabling to use LOG4CXX library
-option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" ON)
+option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/include)
 	find_path(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.a liblog4cxx.so PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/lib)

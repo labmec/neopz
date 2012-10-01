@@ -24,12 +24,21 @@ public:
 	
 	/** 
 	 * @brief Static function to generate a polygonal mesh approximating a sphere from a octahedron mesh (polygonal) 
+	 * @param center Center of the sphere
+	 * @param radius Radius of the sphere polygonalized
+	 * @param nUniformRefs Number of uniform refinements to make.
+	 */
+	static TPZGeoMesh *GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &center,REAL radius, int nUniformRefs);
+
+	/** 
+	 * @brief Static function to generate a polygonal mesh approximating a sphere from a octahedron mesh (polygonal) 
+	 * @param center Center of the sphere
 	 * @param radius Radius of the sphere polygonalized
 	 * @param tol Tolerance of approximation. It is the distance of the barycenter of any triangular element of the mesh until the sphere.
 	 * @note tol is the stop criterion.
 	 */
-	static TPZGeoMesh *GeneratePolygonalSphereFromOctahedron(REAL radius, REAL tol);
-
+	static TPZGeoMesh *GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &center,REAL radius, REAL tol);
+ 
 	/** 
 	 * @brief Make uniform refinement of the geometric mesh. This method finishs making the new connectivities for the elements (ResetConnectivities() and BuildConnectivity()) 
 	 * @param nUniformRefs Number of divisions of all elements wished

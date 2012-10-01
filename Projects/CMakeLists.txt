@@ -9,14 +9,17 @@ ENABLE_TESTING()
 			#add_subdirectory(PDElinear2D)
 		else(BUILD_COMPLEX_PROJECTS)
 
+			#Curso PZ:
+			add_subdirectory(CursoPZ)
+
+			# Tutorial about hp-adaptive techniques
+			add_subdirectory(adaptivity)
+
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
 
 			#Testing and using shape functions
 			add_subdirectory(testshape)
-
-			#Curso PZ:
-			add_subdirectory(CursoPZ)
 
 			#Generic Example 2D with elasticity, using matrices phi, phi, etc
 			add_subdirectory(testmat)
@@ -26,9 +29,6 @@ ENABLE_TESTING()
 			
 			#Using discontinuous approximation functions
 			add_subdirectory(descontinuo)
-
-			#Doing h-refinement
-		#	add_subdirectory(adaptivity)
 
 			#source_group(CursoPZ FILES ${pzcurso})
 			#source_group(Shape FILES ${pztutorshape})
