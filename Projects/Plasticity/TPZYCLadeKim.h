@@ -535,7 +535,7 @@ inline void TPZYCLadeKim::LoadState(TPZFMatrix<REAL> &state)
     LoggerPtr logger(Logger::getLogger("plasticity.ycladekim"));
 #endif
   int i;
-  for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+  for(i=0; i<6; i++) gRefTension[i] = state(i,0);
 #ifdef LOG4CXX_PLASTICITY
   std::stringstream sout;
   sout << "Tension " << state;
@@ -566,18 +566,18 @@ inline void TPZYCLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL>
       tangent.Redim(1,nVars);
       N(gRefTension, A, N_Dir, 0);
       for(i=0; i<nVars; i++)
-          tangent(0,i) = N_Dir[0].fData[i];
+          tangent(0,i) = N_Dir[0][i];
       break;
     case 1:
       //Compute derivatives of N
       tangent.Redim(nVars,nVars);
       gRefTension.CopyTo(Sigma_FAD);
       for(i = 0;i < nVars; i++)
-         Sigma_FAD.fData[i].diff(i,nVars);
+         Sigma_FAD[i].diff(i,nVars);
       N(Sigma_FAD, A_FAD, N_Dir_FAD, 0);
       for(i = 0; i < nVars; i++)
         for(j = 0; j < nVars; j++)
-          tangent(i,j) = N_Dir_FAD[0].fData[i].dx(j);
+          tangent(i,j) = N_Dir_FAD[0][i].dx(j);
     break;
 
   }
@@ -613,7 +613,7 @@ inline void TPZYCLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
       res.Redim(nVars,1);
       N(gRefTension, A, N_Dir, 0);
       for(i = 0; i < nVars; i++)
-         res(i,0) = N_Dir[0].fData[i];
+         res(i,0) = N_Dir[0][i];
     break;
   }
 #ifdef LOG4CXX_PLASTICITY

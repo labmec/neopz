@@ -609,7 +609,7 @@ public:
     void LoadState(TPZFMatrix<REAL> &state)
     {
 		int i;
-		for(i=0; i<6; i++) gRefDeform.fData[i] = state(i,0);
+		for(i=0; i<6; i++) gRefDeform[i] = state(i,0);
     }
 	
     void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
@@ -662,7 +662,7 @@ public:
 				int i;
 				for(i=0; i<6; i++)
 				{
-					res(i,0) = sig.fData[i];
+					res(i,0) = sig[i];
 				}
 				break;
 		}

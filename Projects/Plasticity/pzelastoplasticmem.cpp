@@ -15,10 +15,10 @@ TPZElastoPlasticMem::~TPZElastoPlasticMem(){ }
 
 void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid)
 {
-	buf.Write(&fSigma.fData[0],6);
+	buf.Write(&fSigma[0],6);
 	
-	buf.Write(&fPlasticState.fEpsT.fData[0],6);
-	buf.Write(&fPlasticState.fEpsP.fData[0],6);
+	buf.Write(&fPlasticState.fEpsT[0],6);
+	buf.Write(&fPlasticState.fEpsP[0],6);
 	buf.Write(&fPlasticState.fAlpha,1);
 	buf.Write(&fPlasticSteps,1);
 //	buf.Write(&fPlasticState.fPhi,1);
@@ -26,10 +26,10 @@ void TPZElastoPlasticMem::Write(TPZStream &buf, int withclassid)
 
 void TPZElastoPlasticMem::Read(TPZStream &buf, void *context)
 {
-	buf.Read(&fSigma.fData[0],6);
+	buf.Read(&fSigma[0],6);
 	
-	buf.Read(&fPlasticState.fEpsT.fData[0],6);
-	buf.Read(&fPlasticState.fEpsP.fData[0],6);
+	buf.Read(&fPlasticState.fEpsT[0],6);
+	buf.Read(&fPlasticState.fEpsP[0],6);
 	buf.Read(&fPlasticState.fAlpha,1);
 	buf.Read(&fPlasticSteps,1);
 //	buf.Read(&fPlasticState.fPhi,1);

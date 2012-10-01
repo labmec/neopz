@@ -150,7 +150,7 @@ public:
         LoggerPtr logger(Logger::getLogger("plasticity.erladenelson"));
     #endif
       int i;
-      for(i=0; i<6; i++) gRefDeform.fData[i] = state(i,0);
+      for(i=0; i<6; i++) gRefDeform[i] = state(i,0);
 	#ifdef LOG4CXX_PLASTICITY
       std::stringstream sout;
       sout << "State " << state;
@@ -177,7 +177,7 @@ public:
           //ComputeYoung
           gRefDeform.CopyTo(sigma_FAD);
           for(i=0;i<nVars;i++) 
-            sigma_FAD.fData[i] . diff(i,nVars);
+            sigma_FAD[i] . diff(i,nVars);
           tangent.Redim(1,nVars);
           ComputeYoung<TFAD, REAL>(sigma_FAD, young_FAD);
           for(i=0; i<nVars; i++)
@@ -187,13 +187,13 @@ public:
         case 0:
           gRefDeform.CopyTo(epsilon_FAD);
           for(i=0;i<nVars;i++) 
-            epsilon_FAD.fData[i] . diff(i,nVars);
+            epsilon_FAD[i] . diff(i,nVars);
           epsilon_FAD.Multiply(-2.,1.);// multiplying by -2 to analise the effect of previous evaluated functions
           Compute(epsilon_FAD, sigma_FAD);
           tangent.Redim(nVars,nVars);
           for(i=0; i<nVars; i++)
             for(j=0; j<nVars; j++)
-              tangent(i,j) = sigma_FAD.fData[i].dx(j);
+              tangent(i,j) = sigma_FAD[i].dx(j);
           break;
       }
 	#ifdef LOG4CXX_PLASTICITY
@@ -229,7 +229,7 @@ public:
           Compute(epsilon, sigma);
           res.Redim(nVars,1);
           for(i=0; i<nVars; i++)
-              res(i,0) = sigma.fData[i];
+              res(i,0) = sigma[i];
         break;
       }
 #ifdef LOG4CXX_PLASTICITY

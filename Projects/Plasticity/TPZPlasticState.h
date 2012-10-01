@@ -151,15 +151,15 @@ inline void TPZPlasticState<T>::Print(std::ostream& Out, int fadDerivatives)cons
 	if(fadDerivatives)
 	{
 	    Out << "\tfEpsT = ";
-	    for(int i = 0; i < 6; i++)Out << fEpsT.fData[i] << " ";
+	    for(int i = 0; i < 6; i++)Out << fEpsT[i] << " ";
 	    Out << "\n\tfEpsP = ";
-	    for(int i = 0; i < 6; i++)Out << fEpsP.fData[i] << " ";
+	    for(int i = 0; i < 6; i++)Out << fEpsP[i] << " ";
 		Out << "\n\tfAlpha = " << fAlpha;
 	}else{
 	    Out << "\tfEpsT = ";
-	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsT.fData[i]) << " ";
+	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsT[i]) << " ";
 	    Out << "\n\tfEpsP = ";
-	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsP.fData[i]) << " ";
+	    for(int i = 0; i < 6; i++)Out << shapeFAD::val(fEpsP[i]) << " ";
 		Out << "\n\tfAlpha = " << shapeFAD::val(fAlpha);
 	}
 }

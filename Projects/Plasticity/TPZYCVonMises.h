@@ -103,7 +103,7 @@ public:
         LoggerPtr logger(Logger::getLogger("plasticity.ycvonmises"));
     #endif
       int i;
-      for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+      for(i=0; i<6; i++) gRefTension[i] = state(i,0);
 	#ifdef LOG4CXX_PLASTICITY
       std::stringstream sout;
       sout << "Tensao " << state;
@@ -127,7 +127,7 @@ public:
         case 0:
           gRefTension.dJ2(dj2);
           tangent.Redim(1,6);
-          for(i=0; i<6; i++) tangent(0,i) = dj2.fData[i];
+          for(i=0; i<6; i++) tangent(0,i) = dj2[i];
           break;
         case 1:
           j2 = gRefTension.J2();
@@ -135,12 +135,12 @@ public:
           tangent.Redim(1,6);
           mult = 0.5/sqrt(j2);
           dj2.Multiply(mult,1.);
-          for(i=0; i<6; i++) tangent(0,i) = dj2.fData[i];
+          for(i=0; i<6; i++) tangent(0,i) = dj2[i];
           break;
         case 2:
           N(gRefTension,A,ndir,0);
           tangent.Redim(1,6);
-          for(i=0; i<6; i++) tangent(0,i) = ndir[0].fData[i];
+          for(i=0; i<6; i++) tangent(0,i) = ndir[0][i];
       }
 	#ifdef LOG4CXX_PLASTICITY
       std::stringstream sout;

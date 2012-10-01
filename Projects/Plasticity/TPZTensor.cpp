@@ -2,3 +2,7 @@
 
 #include "TPZTensor.h"
 
+template<class T>
+STATE TPZTensor<T>::TPZDecomposed::gEigval[3] = {T(0.)};
+
+template class TPZTensor<STATE>;

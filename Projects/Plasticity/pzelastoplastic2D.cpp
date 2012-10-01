@@ -11,8 +11,8 @@
 
 //$Id: pzelastoplastic.cpp,v 1.33 2010-10-18 15:37:59 diogo Exp $
 
-#include "TPZModifiedMohrCoulomb.h"
-#include "TPZYCModifiedMohrCoulomb.h"
+//#include "TPZModifiedMohrCoulomb.h"
+//#include "TPZYCModifiedMohrCoulomb.h"
 #include "pzelastoplastic.h"
 #include "pzmaterialid.h"
 #include "poroelastoplasticid.h"
@@ -437,10 +437,10 @@ void TPZMatElastoPlastic2D<T,TMEM>::Print(std::ostream &out, const int memory)
 #include "TPZVonMises.h"
 #include "TPZYCVonMises.h"
 #include "TPZYCModifiedMohrCoulomb.h"
-#include "TPZModifiedMohrCoulomb.h"
+//#include "TPZModifiedMohrCoulomb.h"
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>, TPZElastoPlasticMem>;
-template class TPZMatElastoPlastic2D<TPZModifiedMohrCoulomb>;
+//template class TPZMatElastoPlastic2D<TPZModifiedMohrCoulomb>;
 
 template class TPZMatElastoPlastic2D<TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse> , TPZElastoPlasticMem>;
 template class TPZMatElastoPlastic2D<TPZWillamWarnke>;

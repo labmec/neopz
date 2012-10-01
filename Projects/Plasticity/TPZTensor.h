@@ -46,6 +46,12 @@ public:
             fEigenvalues = copy.fEigenvalues;
             return *this;
         }
+        
+        TPZDecomposed(const TPZTensor<T> &source) : fEigenvectors(3), fEigenvalues(3,0.)
+        {
+            source.EigenSystem(*this);
+        }
+        
         void Print(std::ostream &out) const
         {
             out << "TPZTensor::Decomposed Eigenvalues " << fEigenvalues << std::endl;
@@ -54,6 +60,93 @@ public:
                 fEigenvectors[i].Print(out);
             }
         }
+        /**
+         * Methods for checking convergence
+         */
+        /// Number of test cases implemented by this class
+        static int NumCasesCheckConv()
+        {
+            return 3;
+        }
+        
+        static STATE gEigval[3];
+        /// Compute the tangent matrix for a particular case
+        static void TangentCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &tangent, int icase)
+        {
+            TPZTensor<STATE> obj;
+            for (int i=0; i<6; i++) 
+            {
+                obj[i] = state(i);
+            }
+            TPZTensor<STATE>::TPZDecomposed objdec(obj);
+            switch (icase) {
+                case 0:
+                case 1:
+                case 2:
+                {
+                    tangent.Resize(1, 9);
+                    for (int i=0; i<3; i++) {
+                        gEigval[i] = objdec.fEigenvalues[i];
+                    }
+                    for (int j=0; j<6; j++) {
+                        tangent(0,j) = objdec.fEigenvectors[icase][j];
+                        tangent(0,6) = objdec.fEigenvectors[icase].XY();
+                        tangent(0,7) = objdec.fEigenvectors[icase].XZ();
+                        tangent(0,8) = objdec.fEigenvectors[icase].YZ();
+                    }
+                    STATE sum=0.,sum2=0.;
+                    for (int i=0; i<9; i++) {
+                        sum += tangent(0,i)*tangent(0,i);
+                    }
+                    sum2 = tangent(0,_XX_)+tangent(0,_YY_)+tangent(0,_ZZ_);
+                    tangent.Print("tangent");
+                    std::cout << "sum2 = " << sum2 << std::endl;
+                    std::cout << "sum = " << sum << std::endl;
+                }
+                    break;
+                default:
+                    break;
+            }
+        }
+        /// Compute the residual for a particular state
+        static void ResidualCheckConv(TPZFMatrix<STATE> &state, TPZFMatrix<STATE> &residual, int icase)
+        {
+            TPZTensor<STATE> obj;
+            for (int i=0; i<6; i++) 
+            {
+                obj[i] = state(i);
+            }
+            obj[_XY_] = obj[_XY_]*0.5+0.5*state(6);
+            obj[_XZ_] = (obj[_XZ_]+state(7))*0.5;
+            obj[_YZ_] = (obj[_YZ_]+state(8))*0.5;
+            TPZTensor<STATE>::TPZDecomposed objdec(obj);
+            residual.Resize(1, 1);
+            switch (icase) {
+                case 0:
+                case 1:
+                case 2:
+                {
+                    residual(0,0) = objdec.fEigenvalues[icase];
+                    int numequal = 1;
+                    for (int i=0; i<3; i++) {
+                        if (i==icase) {
+                            continue;
+                        }
+                        if (gEigval[i] == gEigval[icase]) {
+                            numequal++;
+                            residual(0) += objdec.fEigenvalues[i];
+                        }
+                    }
+                    residual(0) /= numequal;
+                }
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+        
+        
     };
     /**
 	 Construtor vazio inicializando com zero
@@ -79,6 +172,21 @@ public:
         for (int i=0; i<eigensystem.fEigenvectors.size(); i++) {
             Add(eigensystem.fEigenvectors[i], eigensystem.fEigenvalues[i]);
         }
+    }
+    
+    operator TPZFMatrix<T>() const
+    {
+        TPZFMatrix<T> result(3,3);
+        result(0,0) = XX();
+        result(0,1) = XY();
+        result(0,2) = XZ();
+        result(1,0) = XY();
+        result(1,1) = YY();
+        result(1,2) = YZ();
+        result(2,0) = XZ();
+        result(2,1) = YZ();
+        result(2,2) = ZZ();
+        return result;
     }
     
     /**
@@ -317,6 +425,7 @@ public:
 	 */
     void SetUp(const TPZVec<REAL> & Solution);
 	
+public:
     /**
 	 Dados do tensor
 	 */
@@ -438,7 +547,7 @@ template < class T1 >
 void TPZTensor<T>::CopyTo(TPZTensor<T1> & target) const {
     int i, size=6;
     for(i=0;i<size;i++){
-        target.fData[i]=shapeFAD::val(fData[i]);
+        target[i]=shapeFAD::val(fData[i]);
     }
 	
 }
@@ -538,7 +647,9 @@ T TPZTensor<T>::Norm() const
 template <class T>
 std::ostream &operator<<(std::ostream &out,const TPZTensor<T> &tens)
 {
-	out << tens.fData;
+    for (int i=0; i<6; i++) {
+        out << tens[i] << " ";
+    }
 	return out;
 }
 
@@ -679,13 +790,22 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     
     REAL Rval = shapeFAD::val(R);
     REAL denomval = shapeFAD::val(denom);
-    
+    TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
+    TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
+
     if (fabs(Rval) < 1.e-12 && fabs(denomval) < 1.e-12 && fabs(denomval) <= fabs(Rval)) {
         // three equal eigenvalues
-        T x1 = I1/3.;
-        x1 = UpdateNewton(x1, I1, I2, I3);
+        x1 = I1/3.;
         x2 = x1;
         x3 = x1;
+        Eigenvectors[0].Identity();
+        Eigenvectors[0].Scale(T(1/3.));
+        Eigenvectors[1] = Eigenvectors[0];
+        Eigenvectors[2] = Eigenvectors[1];
+        Eigenvalues[0]=x1;
+        Eigenvalues[1]=x2;
+        Eigenvalues[2]=x3;
+        return;
     }
     
     costheta=R/denom;
@@ -697,8 +817,8 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         x1 = T(2.)*sqrt(Q)+I1/T(3.);
         x1 = UpdateNewton(x1, I1, I2, I3);
         T B = x1-I1;
-        x2 = x1/2.;
-        x3 = x1/2.;
+        x2 = -B/2.;
+        x3 = -B/2.;
     }
     else if(shapeFAD::val(costheta)>(1.-1.e-12))
     {
@@ -707,8 +827,8 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         x1 = T(-2.)*sqrt(Q)+I1/T(3.);
         x1 = UpdateNewton(x1, I1, I2, I3);
         T B = x1-I1;
-        x2 = x1/2.;
-        x3 = x1/2.;
+        x2 = -B/2.;
+        x3 = -B/2.;
     }
     else {
         theta = acos(costheta);
@@ -746,12 +866,6 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         valx2 = valx3;
         valx3 = valtemp;
     }
-    TPZManVector<T,3> &Eigenvalues = eigensystem.fEigenvalues;
-    TPZManVector<TPZTensor<T>, 3> &Eigenvectors = eigensystem.fEigenvectors;
-    Eigenvalues[0]=x1;
-    Eigenvalues[1]=x2;
-    Eigenvalues[2]=x3;
-    
     REAL tolerance = 5.e-5;
     if(valx1-valx2 > tolerance && valx2-valx3 > tolerance)
     {
@@ -790,7 +904,6 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
     }
     else if(valx1-valx2 >  tolerance)
     {
-        Eigenvectors.resize(2);
         TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(*this),sigmacopy2(*this),sigmacopy3(*this),Identity,Identity2,Identity3;
         Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
         Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
@@ -805,14 +918,19 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         sqrsigma.Add(sigmacopy,-1);
         sqrsigma.Add(Identity,1);
         sqrsigma.Multiply(e1temp,1);
+        
+        x2 = (I1-x1)/T(2.);
+        x3 = x2;
+        
         Eigenvectors[0]=sqrsigma;
 
         Eigenvectors[1].Identity();
         Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
+        Eigenvectors[1].Scale(T(0.5));
+        Eigenvectors[2] = Eigenvectors[1];
     }
     else if(valx2 - valx3 > tolerance)
     {
-        Eigenvectors.resize(2);
         TPZTensor<T> sqrsigma,sqrsigma2,sqrsigma3,sigmacopy(*this),sigmacopy2(*this),sigmacopy3(*this),Identity,Identity2,Identity3;
         Identity.XX()=T(1.);Identity.YY()=T(1.);Identity.ZZ()=T(1.);
         Identity2.XX()=T(1.);Identity2.YY()=T(1.);Identity2.ZZ()=T(1.);
@@ -827,16 +945,32 @@ void TPZTensor<T>::EigenSystem(TPZTensor<T>::TPZDecomposed &eigensystem)const
         sqrsigma.Add(sigmacopy,-1);
         sqrsigma.Add(Identity,1);
         sqrsigma.Multiply(e1temp,1);
-        Eigenvectors[0]=sqrsigma;
         
-        Eigenvectors[1].Identity();
-        Eigenvectors[1].Add(Eigenvectors[0],T(-1.));
+        x1 = (I1-x3)/T(2.);
+        x2 = x1;
+        Eigenvectors[2]=sqrsigma;
+        
+        Eigenvectors[0].Identity();
+        Eigenvectors[0].Add(Eigenvectors[2],T(-1.));
+        Eigenvectors[0].Scale(T(0.5));
+        Eigenvectors[1] = Eigenvectors[0];
+
     }
     else {
-        Eigenvectors.resize(1);
+        
+        x1 = I1/T(3.);
+        x2 = x1;
+        x3 = x1;
         Eigenvectors[0].Identity();
+        Eigenvectors[0].Scale(T(1/3.));
+        Eigenvectors[1] = Eigenvectors[1];
+        Eigenvectors[2] = Eigenvectors[2];
     }
+    Eigenvalues[0]=x1;
+    Eigenvalues[1]=x2;
+    Eigenvalues[2]=x3;
     
+
 }
 
 template <class T>

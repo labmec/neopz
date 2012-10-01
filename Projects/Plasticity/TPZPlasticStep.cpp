@@ -2628,12 +2628,12 @@ template class TPZPlasticStep<TPZYCRankine< TPZYCDruckerPrager > , TPZThermoForc
 #include "TPZYCMohrCoulomb.h"
 #include  "TPZYCWillamWarnke.h"
 #include  "TPZYCModifiedMohrCoulomb.h"
-#include  "TPZYCDruckerPragerBase.h"
+//#include  "TPZYCDruckerPragerBase.h"
 
 template class TPZPlasticStep<TPZYCMohrCoulomb, TPZThermoForceA, TPZElasticResponse>;
 template class TPZPlasticStep<TPZYCWillamWarnke, TPZThermoForceA, TPZElasticResponse>;
 template class TPZPlasticStep<TPZYCModifiedMohrCoulomb, TPZThermoForceA, TPZElasticResponse>;
-template class TPZPlasticStep<TPZYCDruckerPragerBase< TPZYCMohrCoulomb >, TPZThermoForceA, TPZElasticResponse>;
+//template class TPZPlasticStep<TPZYCDruckerPragerBase< TPZYCMohrCoulomb >, TPZThermoForceA, TPZElasticResponse>;
 
 template void TPZPlasticStep<TPZYCLadeKim, TPZLadeKimThermoForceA, TPZLadeNelsonElasticResponse>::
 PlasticResidual<REAL, REAL>(TPZPlasticState<REAL> const &,

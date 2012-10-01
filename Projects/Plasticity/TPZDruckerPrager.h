@@ -111,8 +111,8 @@ public:
 		TPZSaveable::Write(buf, withclassid);
 		
 		buf. Write(&faPa, 1);	
-		buf. Write(&fInitialEps.fEpsT.fData[0], 6);
-		buf. Write(&fInitialEps.fEpsP.fData[0], 6);
+		buf. Write(&fInitialEps.fEpsT[0], 6);
+		buf. Write(&fInitialEps.fEpsP[0], 6);
 		buf. Write(&fInitialEps.fAlpha, 1);			
 		
 		fPlasticMem.Resize(0);

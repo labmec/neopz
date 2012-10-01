@@ -125,7 +125,7 @@ public:
     void LoadState(TPZFMatrix<REAL> &state)
     {
 		int i;
-		for(i=0; i<6; i++) gRefTension.fData[i] = state(i,0);
+		for(i=0; i<6; i++) gRefTension[i] = state(i,0);
     }
 	
 	void ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &coefs, int icase)
@@ -141,7 +141,7 @@ public:
 				tangent.Redim(1,6);
 				for(int i=0; i<6; i++)
 				{
-					tangent(0,i) = Ndir[0].fData[i];
+					tangent(0,i) = Ndir[0][i];
 				}
 				break;
 			}

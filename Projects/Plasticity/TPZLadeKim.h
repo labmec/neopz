@@ -127,8 +127,8 @@ public:
 	   TPZSaveable::Write(buf, withclassid);
 
 	   buf. Write(&faPa, 1);	
-	   buf. Write(&fInitialEps.fEpsT.fData[0], 6);
-	   buf. Write(&fInitialEps.fEpsP.fData[0], 6);
+	   buf. Write(&fInitialEps.fEpsT[0], 6);
+	   buf. Write(&fInitialEps.fEpsP[0], 6);
 	   buf. Write(&fInitialEps.fAlpha, 1);			
 		
 	   buf. Write(&fYC.fKsi1, 1);
@@ -563,8 +563,8 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
       {
 	for(i=0;i<6;i++)
 	{
-		Np1_FAD.fEpsP.fData[i] = gRefResidual[i];
-		Np1_FAD.fEpsP.fData[i].diff(i,nVars);
+		Np1_FAD.fEpsP[i] = gRefResidual[i];
+		Np1_FAD.fEpsP[i].diff(i,nVars);
 	}
 	Np1_FAD.fAlpha = gRefResidual[i];
 	Np1_FAD.fAlpha.diff(i++,nVars);
@@ -575,8 +575,8 @@ inline void TPZLadeKim::ComputeTangent(TPZFMatrix<REAL> &tangent, TPZVec<REAL> &
 	}
 	for(j=0;j<6;j++)
 	{
-		Np1_FAD.fEpsT.fData[j] = gRefResidual[i];
-		Np1_FAD.fEpsT.fData[j].diff(i++,nVars);
+		Np1_FAD.fEpsT[j] = gRefResidual[i];
+		Np1_FAD.fEpsT[j].diff(i++,nVars);
 	}
 
 	
@@ -614,10 +614,10 @@ inline void TPZLadeKim::Residual(TPZFMatrix<REAL> &res,int icase)
   {
     case 0:
       {
-	for(i=0;i<6;i++)     Np1.fEpsP.fData[i] = gRefResidual[i];
+	for(i=0;i<6;i++)     Np1.fEpsP[i] = gRefResidual[i];
 	Np1.fAlpha = gRefResidual[i++];
 	for(j=0;j<nyield;j++)delGamma[j] = gRefResidual[i++];
-	for(j=0;j<6;j++)     Np1.fEpsT.fData[j] = gRefResidual[i++];
+	for(j=0;j<6;j++)     Np1.fEpsT[j] = gRefResidual[i++];
 	
 	
 	//Compute Residual
