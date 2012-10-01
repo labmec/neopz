@@ -18,6 +18,7 @@
 #include "TPZThermoForceA.h"
 #include "TPZElasticResponse.h"
 #include "pzelastoplasticanalysis.h"
+#include "pzmat2dlin.h"
 #include "pzporoanalysis.h"
 
 
@@ -79,6 +80,8 @@
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
 
+
+void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio *pSD);
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
@@ -676,8 +679,10 @@ int main()
 	cout << "\nPlease enter test type:";
 	cout << "\n0) Wellbore Drilling Load";
 	cout << "\n1) Wellbore Drilling Load - Porous Medium";
+	cout << "\n2) Graphical representation of Yield surface";
     
-	cin >> testNumber;
+	//cin >> testNumber;
+    testNumber = 2;
 	
 	cout << "\nMaterial Type:";
 	cout << "\n0)Lade Kim: FineSilicaSand";
@@ -693,7 +698,8 @@ int main()
 	cout << "\n10)Drucker Prager (Circunscr MC): PRSMat [MPa]";
 	cout << "\n";
     
-    cin >> matNumber;
+//    cin >> matNumber;
+    matNumber = 7;
 	
 	switch(matNumber)
 	{
@@ -785,7 +791,8 @@ int main()
 	
 	cout << "\nPlastic Integration Tolerance:(sugg. 0.0001) ";
 	
-	cin >> plasticTol;
+//	cin >> plasticTol;
+    plasticTol = 0.1;
     
 	fileName << "_pTol" << plasticTol;
 	
@@ -807,6 +814,13 @@ int main()
 		    if(pSD)PorousWellboreLoadTest(fileName, *pSD, loadMultipl, plasticTol);
 		    if(pDP)PorousWellboreLoadTest(fileName, *pDP, loadMultipl, plasticTol);
             break;
+        case 2:
+            copyStr << fileName.str();
+            fileName << "Yield" << copyStr.str();
+            if (pSD) {
+                VisualizeSandlerDimaggio(fileName,pSD);
+            }
+            break;
 		default:
 			cout << "\nUnhandled Test Type. Exiting...";
             delete pMat;
@@ -815,4 +829,153 @@ int main()
     return EXIT_SUCCESS;
     
     
+}
+
+#include "TPZGenSpecialGrid.h"
+
+void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD);
+
+void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *pSD)
+{
+    TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(1., 0.001);
+    TPZCompMesh *cgrid = new TPZCompMesh(gmesh);
+    TPZManVector<STATE> force(3,0.);
+
+    for (int imat=1; imat<4; imat++) {
+        TPZMat2dLin *mat = new TPZMat2dLin(imat);
+        TPZFNMatrix<9,STATE> xk(3,3,0.),xc(3,3,0.),xf(3,1,0.);
+        mat->SetMaterial(xk,xc,xf);
+        //    TPZMaterial * mat = new TPZElasticity3D(1,1.e5,0.2,force);
+        cgrid->InsertMaterialObject(mat);
+    }
+    cgrid->AutoBuild();
+    TPZFMatrix<REAL> elsol(cgrid->NElements(),1,0.);
+
+    cgrid->ElementSolution() = elsol;
+    
+    TPZAnalysis an(cgrid);
+    std::stringstream vtkfilename;
+    vtkfilename << fileName.str();
+    vtkfilename << ".vtk";
+    std::ofstream meshout(vtkfilename.str().c_str());
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,meshout);
+    BuildPlasticSurface(cgrid,pSD);
+    TPZStack<std::string> scalnames,vecnames;
+    vecnames.Push("state");
+    scalnames.Push("Error");
+    
+    an.DefineGraphMesh(2, scalnames, vecnames, "plot.vtk");
+    an.PostProcess(0);
+    TPZPlasticState<REAL> state = pSD->GetState();
+    for (REAL alfa = 1.e-5; alfa<1.e-4; alfa+=1.e-5) {
+        state.fAlpha = alfa;
+        pSD->SetState(state);
+        BuildPlasticSurface(cgrid, pSD);
+        an.PostProcess(0);
+    }
+    delete cgrid;
+    delete gmesh;
+    
+
+}
+
+int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio *pSD, TPZVec<REAL> &stressresult);
+
+void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD)
+{
+    int ncon = cmesh->NConnects();
+    TPZVec<int> computed(ncon,0);
+    for (int el=0; el<cmesh->NElements(); el++) {
+        TPZCompEl *cel = cmesh->ElementVec()[el];
+        if (!cel) {
+            continue;
+        }
+        TPZGeoEl *gel = cel->Reference();
+        TPZManVector<REAL,3> centerksi(2,0.),xcenter(3,0.);
+        gel->CenterPoint(gel->NSides()-1, centerksi);
+        gel->X(centerksi, xcenter);
+        TPZManVector<REAL> stress(3,0.);
+        int matid = ComputeMultiplier(xcenter, pSD,stress);
+        cmesh->ElementSolution()(cel->Index(),0) = matid;
+//        gel->SetMaterialId(matid);
+        for (int icon=0; icon<gel->NCornerNodes(); icon++) 
+        {
+            TPZConnect &c = cel->Connect(icon);
+            TPZGeoNode &gnod = *gel->NodePtr(icon);
+            TPZManVector<REAL> co(3,0.),stress(3,0.);
+            gnod.GetCoordinates(co);
+            
+            ComputeMultiplier(co, pSD,stress);
+            int seqnum = c.SequenceNumber();
+            for (int idf=0; idf<3; idf++) {
+                cmesh->Block()(seqnum,0,idf,0) = -co[idf]+stress[idf];
+            }
+        }
+    }
+}
+
+int ComputeMultiplier(TPZVec<REAL> &stress, TPZSandlerDimaggio *pSD,TPZVec<REAL> &stressresult)
+{
+    REAL mult = 1.;
+    REAL incr = 1.;
+    TPZTensor<REAL> stresstensor,epsilon,stresscenter, epscenter;
+    stresstensor.XX() = stress[0];   
+    stresstensor.YY() = stress[1];
+    stresstensor.ZZ() = stress[2];
+    stresscenter.XX() = 0.1;
+    stresscenter.YY() = 0.1;
+    stresscenter.ZZ() = 0.1;
+    SANDLERDIMAGGIOPARENT *pSDP = dynamic_cast<SANDLERDIMAGGIOPARENT *>(pSD);
+    pSDP->fER.ComputeDeformation(stresstensor,epsilon);
+    pSDP->fER.ComputeDeformation(stresscenter, epscenter);
+    TPZTensor<REAL> epsstart(epsilon);
+    TPZManVector<REAL,3> phi(2,0.);
+    pSD->Phi(epscenter, phi);
+    pSD->Phi(epsilon, phi);
+    while((phi[0]) > 0. || (phi[1]) > 0.) 
+    {
+        mult *= 0.5;
+        epsilon = epsstart;
+        epsilon.Scale(mult);
+        epsilon.Add(epscenter, 1.);
+        pSD->Phi(epsilon, phi);
+    }
+    while((phi[0]) < 0. && (phi[1]) < 0.) 
+    {
+        mult *= 2.;
+        epsilon = epsstart;
+        epsilon.Scale(mult);
+        epsilon.Add(epscenter, 1.);
+        pSD->Phi(epsilon, phi);
+    }
+    REAL tol = mult * 1.e-4;
+    mult *= 0.5;
+    incr = mult/2.;
+    while (incr > tol) {
+        mult += incr;
+        epsilon = epsstart;
+        epsilon.Scale(mult);
+        epsilon.Add(epscenter, 1.);
+        pSD->Phi(epsilon, phi);
+        if ((phi[0]) > 0. || (phi[1]) > 0) {
+            mult -= incr;
+            incr /= 2.;
+        }
+    }
+    epsilon = epsstart;
+    epsilon.Scale(mult);
+    epsilon.Add(epscenter, 1.);
+    pSD->Phi(epsilon, phi);
+    int result = 3;
+    if (fabs(phi[0]) < fabs(phi[1])) {
+        result = 1;
+    }
+    else {
+        result = 2;
+    }
+    pSD->fER.Compute(epsilon, stresstensor);
+    stressresult[0] = stresstensor.XX();
+    stressresult[1] = stresstensor.YY();
+    stressresult[2] = stresstensor.ZZ();
+    return result;
 }

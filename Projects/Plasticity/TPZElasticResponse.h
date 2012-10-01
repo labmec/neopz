@@ -67,6 +67,19 @@ public:
     sigma.Add(epsilon,2.*fMu);
     }
 	
+    /**
+     * @brief Calcula o tensor de deformacao em funcao do tensor de tensao
+     */
+    template <class T>
+    void ComputeDeformation(const TPZTensor<T> & sigma, TPZTensor<T> & epsilon) const
+    {
+        const T Fac = T((1/3.)*(1./(3.*fLambda+2.*fMu) -1./(2.*fMu)));
+        T trace = sigma.I1();
+        epsilon.Identity();
+        epsilon.Multiply(trace,Fac);
+        epsilon.Add(sigma,1./(2.*fMu));
+    }
+    
 	/**
 	 * @brief Computes the elastic matrix, writing it to the matrix Kep 
 	 * @param Kef [out] matrix to write to
