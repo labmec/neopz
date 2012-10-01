@@ -49,13 +49,6 @@ class TPZIntRuleT {
 	 */
 	void TransformBarycentricCoordInCartesianCoord(long double baryvec[],long double weightvec[]);
 
-	/**
-	 * @brief Checks sum of the weights is equal than measure of the master element, 
-	 * and all of integration points belong to the master element.
-	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
-	 */
-	bool CheckCubatureRule();
-
 public:
     enum {NRULESTRIANGLE_ORDER = 21};
 
@@ -67,6 +60,13 @@ public:
 
 	/** @brief Return weight for the ith point */
     REAL W(int i) const;
+
+	/**
+	 * @brief Checks sum of the weights is equal than measure of the master element, 
+	 * and all of integration points belong to the master element.
+	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
+	 */
+//	bool CheckCubatureRule();
 };
 
 #endif

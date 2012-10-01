@@ -6,7 +6,7 @@
 #include <math.h>
 #include <cmath>
 
-#include "tpzline.h"
+//#include "tpzline.h"
 
 #include "tpzgaussrule.h"
 #include "tpzintrulelist.h"
@@ -58,8 +58,8 @@ TPZGaussRule::TPZGaussRule(int order,int type,long double alpha,long double beta
 			break;
 	}
 	// Checks if the cubature rule is right
-	if(!CheckCubatureRule())
-		PZError << "TPZGaussRule had bad construction: order " << order << " type " << type << std::endl;
+//	if(!CheckCubatureRule())
+//		PZError << "TPZGaussRule had bad construction: order " << order << " type " << type << std::endl;
 
 }
 
@@ -658,7 +658,7 @@ long double gamma(long double x) {
 	return res;
 }
 
-bool TPZGaussRule::CheckCubatureRule() {
+/*bool TPZGaussRule::CheckCubatureRule() {
 	int i;
 	TPZVec<REAL> point(3,0.0L);
 	long double sum = 0.0L;
@@ -680,4 +680,4 @@ bool TPZGaussRule::CheckCubatureRule() {
 			return true;
 	}
 	return false;   // because any integration point is outside of the master element
-}
+}*/

@@ -38,12 +38,6 @@ class TPZIntRuleP3D {
 	/** @brief Default destructor. */
 	~TPZIntRuleP3D();
 	
-	/**
-	 * @brief Checks sum of the weights is equal than measure of the master element, 
-	 * and all of integration points belong to the master element.
-	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
-	 */
-	bool CheckCubatureRule();
 
 public:
 	
@@ -68,6 +62,13 @@ protected:
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
 	void ComputingCubatureRuleForPyramid(int order);
+
+	/* *
+	 * @brief Checks sum of the weights is equal than measure of the master element, 
+	 * and all of integration points belong to the master element.
+	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
+	 */
+//	bool CheckCubatureRule();
 };
 
 #endif

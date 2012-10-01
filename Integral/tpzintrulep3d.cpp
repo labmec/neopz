@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-#include "tpzpyramid.h"
+//#include "tpzpyramid.h"
 
 #include "tpzintrulep3d.h"
 #include "pzerror.h"
@@ -26,8 +26,8 @@ TPZIntRuleP3D::TPZIntRuleP3D(int order) {
 	// Computing integration points and weights to cubature rule for pyramid
 	ComputingCubatureRuleForPyramid(order);
 	// Checks if the cubature rule is right
-	if(!CheckCubatureRule())
-		PZError << "TPZIntRuleP3D had bad construction: order " << order << std::endl;
+//	if(!CheckCubatureRule())
+//		PZError << "TPZIntRuleP3D had bad construction: order " << order << std::endl;
 }
 
 TPZIntRuleP3D::~TPZIntRuleP3D(){
@@ -60,7 +60,7 @@ REAL TPZIntRuleP3D::W(int i) const {
 }
 
 
-bool TPZIntRuleP3D::CheckCubatureRule() {
+/*bool TPZIntRuleP3D::CheckCubatureRule() {
 	int i;
 	TPZVec<REAL> point(3,0.0L);
 	long double sum = 0.0L;
@@ -77,7 +77,7 @@ bool TPZIntRuleP3D::CheckCubatureRule() {
 		if(IsZero((REAL)(sum) - pztopology::TPZPyramid::RefElVolume())) return true;
 	}
 	return false;   // because any integration point is outside of the master element
-}
+}*/
 
 /** @brief Auxiliar function to compute the linear transformation [-1,1] into [0,1] : T(ksi) = 1/2 * ksi + 1/2*/
 long double TransformM1AndP1ToZeroP1(long double ksi) {
@@ -130,7 +130,8 @@ void TPZIntRuleP3D::ComputingCubatureRuleForPyramid(int order) {
 	jacobi_x.Resize(zeta_order,0.0L);
 	intrule.ComputingGaussJacobiQuadrature(&zeta_order,2.0L,0.0L,jacobi_x,jacobi_w);
 	
-	volume = pztopology::TPZPyramid::RefElVolume();      //4.0L/3.0L;
+	//volume = pztopology::TPZPyramid::RefElVolume();      
+	volume = 4.0L/3.0L;
 
 	l = 0;
 	for(k=0;k<zeta_order;k++) {

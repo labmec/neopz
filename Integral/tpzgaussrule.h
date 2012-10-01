@@ -93,13 +93,6 @@ public:
 
 	/** @brief Prints the number of integration points, all points and weights (as one dimension) */
 	void Print(std::ostream & out = std::cout);
-
-	/**
-	 * @brief Checks sum of the weights is equal than measure of the master element, 
-	 * and all of integration points belong to the master element.
-	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
-	 */
-	bool CheckCubatureRule();
 	
 protected:
 	/**
@@ -181,6 +174,13 @@ protected:
 	 * @param order Order of the polinomial will be integrated exactly with this cubature rule
 	 */
 	void ComputingGaussChebyshevQuadrature(int order);
+	
+	/**
+	 * @brief Checks sum of the weights is equal than measure of the master element, 
+	 * and all of integration points belong to the master element.
+	 * @return Returns false if one integration point is outside of the master element or the sum of weights is not one.
+	 */
+	//	bool CheckCubatureRule();
 };
 
 /** @addtogroup integral */
