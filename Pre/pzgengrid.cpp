@@ -44,6 +44,9 @@ short TPZGenGrid::Read(TPZGeoMesh *grid) {
 		return 1;
     if(!GenerateElements(grid))
 		return 1;
+	// computing the connectivity
+	grid->ResetConnectivities();
+	grid->BuildConnectivity();
     return 0;
 }
 short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
@@ -55,6 +58,9 @@ short TPZGenGrid::Read(TPZAutoPointer<TPZGeoMesh> &grid) {
 		return 1;
     if(!GenerateElements(grid.operator->()))
 		return 1;
+	// computing the connectivity
+	grid->ResetConnectivities();
+	grid->BuildConnectivity();
     return 0;
 }
 
