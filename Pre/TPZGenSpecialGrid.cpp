@@ -54,7 +54,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	
 	//Loop making uniform refinement and changing coordinates of the nodes (projecting into the sphere) until tolerance is reached
 	TPZManVector<REAL> baryparam(3,0.), barycenter(3,0.);
-	for(int i=0;i<nUniformRefs;i++) {
+	for(int ii=0;ii<nUniformRefs;ii++) {
 		// Make a uniform refinement
 		UniformRefinement(1,gmesh,2);
 		
