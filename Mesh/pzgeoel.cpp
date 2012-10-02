@@ -627,7 +627,7 @@ REAL TPZGeoEl::SmallerEdge()
     return norm;
 }
 
-bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
+bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 	
 	REAL error = 10.;
 	int iter = 0;
@@ -636,13 +636,13 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	int dim = Dimension();
 	TPZManVector<REAL,3> X0(3);
 	
-	// First verify if the entry ksi yields the right point
-	if(ksi.NElements()!= dim)
+	// First verify if the entry qsi yields the right point
+	if(qsi.NElements()!= dim)
 	{
 		PZError << "\nTPZGeoEl::ComputeXInverse vector dimension error\n";
-		ksi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
+		qsi.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
 	}
-	X(ksi,X0);//ksi deve ter dimensao do elemento atual
+	X(qsi,X0);//qsi deve ter dimensao do elemento atual
 	TPZFNMatrix<9> DelX(3,1);
 	int i;
 	for(i=0; i<3; i++)
@@ -673,7 +673,7 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 		{
 			TPZVec<REAL> zero(0);
 			TPZTransform tr = SideToSideTransform(in, NSides()-1);
-			tr.Apply(zero, ksi);
+			tr.Apply(zero, qsi);
 			return true;
 		}
 	}
@@ -684,25 +684,25 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
         if(timesThatLeftDomain > 1)
         {
             #ifdef DEBUG
-            std::cout << "For two attempts the ksi point left the reference domain! This element was dismissed!" << std::endl;
+            std::cout << "For two attempts the qsi point left the reference domain! This element was dismissed!" << std::endl;
             #endif
             
             return false;
         }
 		iter++;
-		TPZFNMatrix<9> residual(dim,1),delksi(dim,1);
+		TPZFNMatrix<9> residual(dim,1),delqsi(dim,1);
 		REAL detJ;
 		TPZFNMatrix<9> J(dim,dim,0.),axes(dim,3,0.),Inv(dim,dim,0.);
 		TPZFNMatrix<9> JXt(dim,3,0.),JX(3,dim,0.),JXtJX(dim,dim,0.);
-		Jacobian(ksi,J,axes,detJ,Inv);
+		Jacobian(qsi,J,axes,detJ,Inv);
 		if(fabs(detJ) < 2.e-10)
 		{
 			TPZManVector<REAL,3> center(Dimension(),0.);
 			CenterPoint(NSides()-1, center);
-			cout << "ComputeXInverse found zero Jacobian Index " << this->fIndex << " ksi " << ksi << " detJ " << detJ << std::endl;
-			for(int ik = 0; ik < ksi.NElements(); ik++)
+			cout << "ComputeXInverse found zero Jacobian Index " << this->fIndex << " qsi " << qsi << " detJ " << detJ << std::endl;
+			for(int ik = 0; ik < qsi.NElements(); ik++)
             {
-                ksi[ik] += Tol*(center[ik]-ksi[ik]);
+                qsi[ik] += Tol*(center[ik]-qsi[ik]);
             }
 			residual(0,0) = 1.e12;
 		}
@@ -728,15 +728,15 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 			JXtJX.SolveDirect(residual,ELU);//cout << "Atual/dimensao : " << Id() << " / " << Dimension();
 			for(i=0; i<dim; i++)
             {
-                ksi[i] += residual(i,0);
+                qsi[i] += residual(i,0);
             }
-            if(this->IsInParametricDomain(ksi) == false)
+            if(this->IsInParametricDomain(qsi) == false)
             {
                 timesThatLeftDomain++;
-                this->ProjectInParametricDomain(ksi, ksi);
+                this->ProjectInParametricDomain(qsi, qsi);
             }
 		}
-		X(ksi,X0);
+		X(qsi,X0);
 		for(i=0; i<3; i++)
         {
             DelX(i,0) = XD[i]-X0[i];
@@ -760,23 +760,35 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol){
 	}
     #endif
 	
-	return ( this->IsInParametricDomain(ksi) );
+	return ( this->IsInParametricDomain(qsi) );
 }
 
 bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
 {
     int dim = this->Dimension();
     TPZVec<REAL> centerP(dim,1);
-    this->CenterPoint(this->NSides()-1, centerP);
+    this->CenterPoint(this->NSides()-1, qsi);
     qsi = centerP;
     
     REAL radius = this->SmallerEdge();
+    if(this->Father())
+    {
+        TPZGeoEl * highFather = HighestFather();
+        TPZVec<TPZGeoEl *> sons;
+        highFather->GetLowerSubElements(sons);
+        for(int s = 0; s < sons.NElements(); s++)
+        {
+            double sonRadius = sons[s]->SmallerEdge();
+            radius = min(radius,sonRadius);
+        }
+    }
     
     REAL err = 10.;
     REAL tol = radius * 1.E-8;
-    int count = 0, outOfDomain = 0;
-    int node = 0;
-    while(count < 200)
+    REAL tolQsi = 1.e-6;
+
+    int count = 0, max = 50;
+    while(count < max)
     {
         TPZVec<REAL> x1(3);
         this->X(qsi, x1);
@@ -792,12 +804,7 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         
         if(err <= tol)
         {
-//            #ifdef DEBUG
-//            std::cout << "\n\nDesired x = { " << x[0] << " , " << x[1] << " , " << x[2] << " }\n";
-//            std::cout << "Found x = { " << x1[0] << " , " << x1[1] << " , " << x1[2] << " }\n\n";
-//            #endif
-            
-            return ( this->IsInParametricDomain(qsi) );
+            return ( this->IsInParametricDomain(qsi, tolQsi) );
         }
         
         REAL detjac;
@@ -806,7 +813,7 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         
         if(IsZero(detjac))
         {
-            if(this->IsInParametricDomain(qsi,1.E-1))
+            if(this->IsInParametricDomain(qsi, tolQsi))
             {
                 //aproximate tangent (jacobian matrix) by the secant (finite differences)
                 TPZVec<REAL> qsiDesloc(dim,1);
@@ -875,20 +882,9 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         {
             qsi[d] = qsi[d] - temp(d,0);
         }
-        if(this->IsInParametricDomain(qsi) == false)
-        {//pode sair do dominio de referencia apenas NNodes vezes
-            if(outOfDomain % 6 == 0 && node < this->NNodes())
-            {
-                this->ParametricDomainNodeCoord(node, qsi);
-                node++;
-                outOfDomain = 0;
-            }
-            if(outOfDomain > 15 && node >= this->NNodes())
-            {
-                return false;
-            }
-            
-            outOfDomain++;
+        if(this->IsInParametricDomain(qsi, tolQsi) == false)
+        {
+            max--;
         }
         count++;
     }
@@ -897,17 +893,17 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
 }
 
 
-void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TPZVec<REAL> &ksiAncestor){
+void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &qsiSon, TPZVec<REAL> &qsiAncestor){
 	
 	int dim = Dimension();
-	if(ksiAncestor.NElements()!= dim)
+	if(qsiAncestor.NElements()!= dim)
 	{
 		PZError << "\nTPZGeoEl::TransformSonToFather vector dimension error\n";
-		ksiAncestor.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
+		qsiAncestor.Resize(Dimension(),0.);//zero esta em todos os elementos mestres
 	}
 	
 	TPZVec<REAL> xson;
-	X(ksiSon,xson);
+	X(qsiSon,xson);
 	
 	TPZGeoEl *father = this;
 	while(father != ancestor)
@@ -920,8 +916,8 @@ void TPZGeoEl::TransformSonToFather(TPZGeoEl *ancestor, TPZVec<REAL> &ksiSon, TP
 	}
 	TPZTransform tr(dim);
 	tr = BuildTransform2(NSides()-1, father, tr);
-	tr.Apply(ksiSon, ksiAncestor);
-	father->ComputeXInverse(xson, ksiAncestor);
+	tr.Apply(qsiSon, qsiAncestor);
+	father->ComputeXInverse(xson, qsiAncestor);
 }
 
 TPZTransform TPZGeoEl::ComputeParamTrans(TPZGeoEl *fat,int fatside, int sideson){

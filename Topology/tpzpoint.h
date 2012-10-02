@@ -101,6 +101,10 @@ namespace pztopology {
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6){
 			return true;
 		}
+        
+        static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+        
+        static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 		/** @} */
 

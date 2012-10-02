@@ -31,6 +31,17 @@ namespace pztopology {
 				return ENoType;
 		}
 	}
+    
+    bool TPZPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+		SidePar.Resize(0); JacToSide.Resize(0,0);
+		return true;
+	}
+    
+    void TPZPoint::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        //It doesnt make any sense ask node coordinate of 0D element
+        DebugStop();
+    }
 	
 	/**
 	 * Method which identifies the transformation based on the IDs

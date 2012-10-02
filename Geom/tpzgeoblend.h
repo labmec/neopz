@@ -107,11 +107,6 @@ namespace pzgeom
 		 / elemento encontrado será seu vizinho pelo respectivo lado.
 		 */
 		void Initialize(TPZGeoEl *refel);
-        
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-        {
-            TGeo::ParametricDomainNodeCoord(node,nodeCoord);
-        }
 		
 		//void Initialize(TPZVec<int> &nodeindexes, TPZGeoMesh &mesh);
 		

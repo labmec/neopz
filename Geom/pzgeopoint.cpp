@@ -21,11 +21,6 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoPoint::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		SidePar.Resize(0); JacToSide.Resize(0,0);
-		return true;
-	}
-	
 	void TPZGeoPoint::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		phi(0,0) = 1.;
 	}

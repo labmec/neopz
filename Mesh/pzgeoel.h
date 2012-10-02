@@ -296,6 +296,19 @@ public:
 	{
 		return (fFatherIndex == -1) ? 0 : Mesh()->ElementVec()[fFatherIndex];
 	}
+    
+	/** @brief Returns a pointer to the higher level father*/
+    TPZGeoEl *HighestFather()
+	{
+		TPZGeoEl * highFather(this);
+        while(highFather->Father())
+        {
+            highFather = highFather->Father();
+        }
+        
+        return highFather;
+	}
+    
 	
 	int FatherIndex() { return fFatherIndex; }
 	
@@ -500,8 +513,6 @@ public:
     
     /** by Caju 2012 */
     bool ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
-    
-    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord) = 0;
 
 	/**
 	 * @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element
@@ -576,7 +587,7 @@ public:
 	bool VerifyNodeCoordinates(REAL tol = 1e-6);
 
 	/** @brief Verifies if the parametric point pt is in the element parametric domain */
-	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6) = 0;
+	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-6) = 0;
 	
 	/**
 	 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain

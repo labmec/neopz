@@ -319,30 +319,6 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoQuad::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		REAL qsi = InternalPar[0]; REAL eta = InternalPar[1];
-		if( (fabs(qsi) - 1.) > 1e-5 || (fabs(eta) - 1.) > 1e-5 )
-		{
-			cout << "Point (qsi,eta) = (" << qsi << "," << eta << ") is out of TPZGeoQuad Master Element Range!\n";
-			cout << "See TPZGeoQuad::MapToSide() method!\n";
-			//DebugStop();
-		}
-		bool regularmap = true;
-		TPZTransform Transf = pztopology::TPZQuadrilateral::SideToSideTransform(TPZGeoQuad::NSides - 1, side);
-		SidePar.Resize(SideDimension(side));
-		Transf.Apply(InternalPar,SidePar);
-		
-		int R = Transf.Mult().Rows();
-		int C = Transf.Mult().Cols();
-		
-		JacToSide.Resize(R,C);
-		for(int i = 0; i < R; i++)
-		{
-			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
-		}
-		return regularmap;
-	}
-	
 	TPZGeoEl *TPZGeoQuad::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {
 		if(side==8) {//8
 			TPZManVector<int> nodes(4);
@@ -394,44 +370,4 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
-    
-    void TPZGeoQuad::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-    {
-        if(node > this->NNodes)
-        {
-            DebugStop();
-        }
-        nodeCoord.Resize(Dimension, 0.);
-        switch (node) {
-            case (0):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] = -1.;
-                break;
-            }
-            case (1):
-            {
-                nodeCoord[0] =  1.;
-                nodeCoord[1] = -1.;;
-                break;
-            }
-            case (2):
-            {
-                nodeCoord[0] = 1.;
-                nodeCoord[1] = 1.;
-                break;
-            }
-            case (3):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] =  1.;
-                break;
-            }
-            default:
-            {
-                DebugStop();
-                break;
-            }
-        }
-    }
 };

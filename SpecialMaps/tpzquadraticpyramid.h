@@ -27,7 +27,7 @@ namespace pzgeom {
         
         enum {NNodes = 13};
         
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+        //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
         
         bool IsLinearMapping() const {
             return false;

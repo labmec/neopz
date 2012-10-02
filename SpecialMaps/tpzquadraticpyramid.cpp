@@ -266,112 +266,112 @@ TPZGeoEl *TPZQuadraticPyramid::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	return newel;
 }
 
-void TPZQuadraticPyramid::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-{
-    if(node > this->NNodes)
-    {
-        DebugStop();
-    }
-    nodeCoord.Resize(Dimension, 0.);
-    switch (node) {
-        case (0):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (1):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (2):
-        {
-            nodeCoord[0] = 1.;
-            nodeCoord[1] = 1.;
-            nodeCoord[2] = 0.;
-            break;
-        }
-        case (3):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (4):
-        {
-            nodeCoord[0] = 0.;
-            nodeCoord[1] = 0.;
-            nodeCoord[2] = 1.;
-            break;
-        }
-        case (5):
-        {
-            nodeCoord[0] =  0.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (6):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (7):
-        {
-            nodeCoord[0] =  0.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (8):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (9):
-        {
-            nodeCoord[0] = -0.5;
-            nodeCoord[1] = -0.5;
-            nodeCoord[2] =  0.5;
-            break;
-        }
-        case (10):
-        {
-            nodeCoord[0] =  0.5;
-            nodeCoord[1] = -0.5;
-            nodeCoord[2] =  0.5;
-            break;
-        }
-        case (11):
-        {
-            nodeCoord[0] =  0.5;
-            nodeCoord[1] =  0.5;
-            nodeCoord[2] =  0.5;
-            break;
-        }
-        case (12):
-        {
-            nodeCoord[0] = -0.5;
-            nodeCoord[1] =  0.5;
-            nodeCoord[2] =  0.5;
-            break;
-        }
-        default:
-        {
-            DebugStop();
-            break;
-        }
-    }
-}
+//void TPZQuadraticPyramid::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+//{
+//    if(node > this->NNodes)
+//    {
+//        DebugStop();
+//    }
+//    nodeCoord.Resize(Dimension, 0.);
+//    switch (node) {
+//        case (0):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (1):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (2):
+//        {
+//            nodeCoord[0] = 1.;
+//            nodeCoord[1] = 1.;
+//            nodeCoord[2] = 0.;
+//            break;
+//        }
+//        case (3):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (4):
+//        {
+//            nodeCoord[0] = 0.;
+//            nodeCoord[1] = 0.;
+//            nodeCoord[2] = 1.;
+//            break;
+//        }
+//        case (5):
+//        {
+//            nodeCoord[0] =  0.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (6):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (7):
+//        {
+//            nodeCoord[0] =  0.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (8):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (9):
+//        {
+//            nodeCoord[0] = -0.5;
+//            nodeCoord[1] = -0.5;
+//            nodeCoord[2] =  0.5;
+//            break;
+//        }
+//        case (10):
+//        {
+//            nodeCoord[0] =  0.5;
+//            nodeCoord[1] = -0.5;
+//            nodeCoord[2] =  0.5;
+//            break;
+//        }
+//        case (11):
+//        {
+//            nodeCoord[0] =  0.5;
+//            nodeCoord[1] =  0.5;
+//            nodeCoord[2] =  0.5;
+//            break;
+//        }
+//        case (12):
+//        {
+//            nodeCoord[0] = -0.5;
+//            nodeCoord[1] =  0.5;
+//            nodeCoord[2] =  0.5;
+//            break;
+//        }
+//        default:
+//        {
+//            DebugStop();
+//            break;
+//        }
+//    }
+//}
 
 ///CreateGeoElement -> TPZQuadraticPyramid
 

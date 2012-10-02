@@ -60,8 +60,6 @@ namespace pzgeom {
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Hexa";}
-        
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
 		/* @brief Computes the coordinate of a point given in parameter space */
         void X(const TPZGeoEl &gel,TPZVec<REAL> &loc,TPZVec<REAL> &result) const
@@ -80,9 +78,6 @@ namespace pzgeom {
         }
 
 		static void X(const TPZFMatrix<REAL> &nodes,TPZVec<REAL> &loc,TPZVec<REAL> &result);
-		
-		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side \f$. */
-		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
 		static void Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
 		

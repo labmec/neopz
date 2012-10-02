@@ -510,6 +510,232 @@ namespace pztopology {
 		}
 		
 	}//method
+    
+    bool TPZTetrahedron::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+		
+		double zero = 1.E-5;
+		
+		REAL qsi = InternalPar[0]; REAL eta = InternalPar[1]; REAL zeta = InternalPar[2];
+		bool regularmap = true;
+		switch(side)
+		{
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            {
+                SidePar.Resize(0); JacToSide.Resize(0,0);
+                break;
+            }
+			case 4://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(eta + zeta - 1.) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = -(2.*qsi + eta + zeta -1.)/(eta + zeta -1.);
+                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+				}
+				break;
+				
+			case 5://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(qsi + eta) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = (eta - qsi)/(eta + qsi);
+                    JacToSide(0,0) = -2.*eta/((qsi + eta)*(qsi + eta)); JacToSide(0,1) = 2.*qsi/((qsi + eta)*(qsi + eta)); JacToSide(0,2) = 0.;
+				}
+				break;
+				
+			case 6://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(qsi + zeta - 1.) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = (qsi + 2*eta + zeta -1.)/(qsi + zeta -1.);
+                    JacToSide(0,0) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.)); JacToSide(0,1) = 2./(qsi + zeta - 1.); JacToSide(0,2) = -2.*eta/((qsi + zeta - 1.)*(qsi + zeta - 1.));
+				}
+				break;
+				
+			case 7://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(qsi + eta - 1.) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = -(qsi + eta + 2*zeta -1.)/(qsi + eta -1.);
+                    JacToSide(0,0) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,1) = 2.*zeta/((qsi + eta - 1.)*(qsi + eta - 1.)); JacToSide(0,2) = -2./(qsi + eta -1.);
+				}
+				break;
+				
+			case 8://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(qsi + zeta) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = (zeta - qsi)/(zeta + qsi);
+                    JacToSide(0,0) = -2.*zeta/(qsi + zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = 2.*qsi/((qsi + zeta)*(qsi + zeta));
+				}
+				break;
+				
+			case 9://1D
+				SidePar.Resize(1); JacToSide.Resize(1,3);
+				if(fabs(eta + zeta) < zero)
+				{
+                    SidePar[0] = 0.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = (zeta - eta)/(zeta + eta);
+                    JacToSide(0,0) = -2./(eta + zeta - 1.); JacToSide(0,1) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.)); JacToSide(0,2) = 2.*qsi/((eta + zeta - 1.)*(eta + zeta - 1.));
+				}
+				break;
+				
+			case 10://2D
+				SidePar.Resize(2); JacToSide.Resize(2,3);
+				if(fabs(zeta - 1.) < zero)
+				{
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = qsi/(1.-zeta); SidePar[1] = eta/(1.-zeta);
+                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 0.; JacToSide(0,2) = qsi/((zeta-1.)*(zeta-1.));
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = eta/((zeta-1.)*(zeta-1.));
+				}
+				break;
+				
+			case 11://2D
+				SidePar.Resize(2); JacToSide.Resize(2,3);
+				if(fabs(eta - 1.) < zero)
+				{
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 1./(1.-eta); JacToSide(0,1) = qsi/((eta-1.)*(eta-1.)); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = zeta/((eta-1.)*(eta-1.)); JacToSide(1,2) = 1./(1.-eta);
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = qsi/(1.-eta); SidePar[1] = zeta/(1.-eta);
+                    JacToSide(0,0) = 1/(1.-zeta); JacToSide(0,1) = 1/(1.-zeta); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 1/(1.-zeta); JacToSide(1,1) = 1/(1.-zeta); JacToSide(1,2) = 0.;
+				}
+				break;
+				
+			case 12://2D
+				SidePar.Resize(2); JacToSide.Resize(2,3);
+				if(fabs(qsi+eta+zeta) < zero)
+				{
+                    SidePar[0] = 1./6.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = eta/(qsi+eta+zeta); SidePar[1] = zeta/(qsi+eta+zeta);
+                    JacToSide(0,0) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,1) = (qsi+zeta)/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(0,2) = -eta/((qsi+eta+zeta)*(qsi+eta+zeta));
+                    JacToSide(1,0) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,1) = -zeta/((qsi+eta+zeta)*(qsi+eta+zeta)); JacToSide(1,2) = (qsi+eta)/((qsi+eta+zeta)*(qsi+eta+zeta));
+				}
+				break;
+				
+			case 13://2D
+				SidePar.Resize(2); JacToSide.Resize(2,3);
+				if(fabs(qsi - 1.) < zero)
+				{
+                    SidePar[0] = 1./3.; SidePar[1] = 1./3.;
+                    JacToSide(0,0) = 0.; JacToSide(0,1) = 0.; JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = 0.; JacToSide(1,1) = 0.; JacToSide(1,2) = 0.;
+					regularmap = false;
+				}
+				else
+				{
+                    SidePar[0] = eta/(1.-qsi); SidePar[1] = zeta/(1.-qsi);
+                    JacToSide(0,0) = eta/((qsi-1.)*(qsi-1.)); JacToSide(0,1) = 1/(1.-qsi); JacToSide(0,2) = 0.;
+                    JacToSide(1,0) = zeta/((qsi-1.)*(qsi-1.)); JacToSide(1,1) = 0.; JacToSide(1,2) = 1/(1.-qsi);
+				}
+				break;
+		}
+		if(side > 13)
+		{
+			cout << "Cant compute MapToSide method in TPZGeoTetrahedra class!\nParameter (SIDE) must be between 4 and 13!\nMethod Aborted!\n";
+			DebugStop();
+		}
+		return regularmap;
+	}
+    
+    void TPZTetrahedron::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        if(node > NCornerNodes)
+        {
+            DebugStop();
+        }
+        nodeCoord.Resize(Dimension, 0.);
+        switch (node) {
+            case (0):
+            {
+                nodeCoord[0] = 0.;
+                nodeCoord[1] = 0.;
+                nodeCoord[2] = 0.;
+                break;
+            }
+            case (1):
+            {
+                nodeCoord[0] = 1.;
+                nodeCoord[1] = 0.;
+                nodeCoord[2] = 0.;
+                break;
+            }
+            case (2):
+            {
+                nodeCoord[0] = 0.;
+                nodeCoord[1] = 1.;
+                nodeCoord[2] = 0.;
+                break;
+            }
+            case (3):
+            {
+                nodeCoord[0] = 0.;
+                nodeCoord[1] = 0.;
+                nodeCoord[2] = 1.;
+                break;
+            }
+            default:
+            {
+                DebugStop();
+                break;
+            }
+        }
+    }
 	
 	/**
 	 * Method which identifies the transformation based on the IDs

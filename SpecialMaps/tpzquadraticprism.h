@@ -27,7 +27,7 @@ public:
 	
 	enum {NNodes = 15};
     
-    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+    //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 	bool IsLinearMapping() const {
 		return false;

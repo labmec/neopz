@@ -58,8 +58,6 @@ namespace pzgeom {
 		
 		/** @brief Returns the type name of the element */
 		static std::string TypeName() { return "Quad";}
-        
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
 		/** @brief Implementation of two-dimensional bilinear interpolation*/
 		static  void Shape(TPZVec<REAL> &x,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi);
@@ -103,10 +101,6 @@ namespace pzgeom {
 		
 		/** @brief Computes the geometric location*/
 		static  void X(const TPZFMatrix<REAL> & coord, TPZVec<REAL>& par, TPZVec<REAL> &result);
-		
-		/** @brief Returns the projection of a given point from \f$ NSide - 1 \f$ side to \f$ side\f$.
-		 */
-		static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
 		
 		/**
 		 * @brief Method which creates a geometric boundary condition 

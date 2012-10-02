@@ -145,7 +145,7 @@ namespace pzgeom
             buf.Write(&fYcenter,1);
 		}
         
-        virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+        //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 
 	protected:
 		

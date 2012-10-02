@@ -28,14 +28,14 @@
 const REAL __smallNum = 1.E-5;
 
 /** @brief maximum element edge length */
-const REAL __maxLength = 4.;
+const REAL __maxLength = 0.7;
 
 /** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
 const REAL __lengthFactor = 1.;
 
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
-const int __EdgeStretchesQTD = 4; //will be used for refpatterns
+const int __EdgeStretchesQTD = 10; //will be used for refpatterns
 
 /** @brief Multiplier of __EdgeStretchesQTD for fine edge intersection modulation */
 const int __TrimQTDmultiplier = 5; //will be used for searching direction between dots from poligonal chain
@@ -163,10 +163,6 @@ class TPZPlaneFracture
      */
     static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initialElId, TPZGeoMesh * fullMesh);
     
-    static void GetAllLowerSons(TPZGeoEl * gel, TPZVec<TPZGeoEl *> &sons);
-    
-    
-    
     //Just 4 validation of SIF
     /**
      * @brief Method that will run a FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
@@ -268,7 +264,8 @@ class TPZPlaneFracture
 	 */
 	static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, std::map< int,
 									std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence, bool pushback,
-                                    int planeAxe0, int planeAxe1, int planeNormal);
+                                    int planeAxe0, int planeAxe1, int planeNormal,
+                                    bool closingFracture);
 
 	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge, 
                           TPZVec< TPZVec<REAL> > &ExactIntersect, REAL alphaMin, int planeAxe0, int planeAxe1, int planeNormal);

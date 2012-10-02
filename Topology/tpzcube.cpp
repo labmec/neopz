@@ -704,6 +704,95 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
+    
+    bool TPZCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+		TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(NSides - 1, side);
+		SidePar.Resize(SideDimension(side));
+		Transf.Apply(InternalPar,SidePar);
+		
+		int R = Transf.Mult().Rows();
+		int C = Transf.Mult().Cols();
+		
+		JacToSide.Resize(R,C);
+		for(int i = 0; i < R; i++)
+		{
+			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
+		}
+		return true;
+	}
+    
+    void TPZCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        if(node > NCornerNodes)
+        {
+            DebugStop();
+        }
+        nodeCoord.Resize(Dimension, 0.);
+        switch (node) {
+            case (0):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (1):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (2):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (3):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] = -1.;
+                break;
+            }
+            case (4):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            case (5):
+            {
+                nodeCoord[0] =  1.;
+                nodeCoord[1] = -1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            case (6):
+            {
+                nodeCoord[0] = 1.;
+                nodeCoord[1] = 1.;
+                nodeCoord[2] = 1.;
+                break;
+            }
+            case (7):
+            {
+                nodeCoord[0] = -1.;
+                nodeCoord[1] =  1.;
+                nodeCoord[2] =  1.;
+                break;
+            }
+            default:
+            {
+                DebugStop();
+                break;
+            }
+        }
+    }
+
 	
 	/**
 	 * Method which identifies the transformation based on the IDs

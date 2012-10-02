@@ -89,7 +89,7 @@ Path::~Path()
 
 
 TPZVec<REAL> Path::Func(REAL t)
-{    
+{
     TPZVec<REAL> xt(dim3D), nt(dim3D);
     X(t,xt);
     normalVec(t, nt);
@@ -115,6 +115,12 @@ TPZVec<REAL> Path::Func(REAL t)
     else
     {
         std::cout << "Mesh dimension must be 2 or 3! See " << __PRETTY_FUNCTION__ << " !!!\n";
+        DebugStop();
+    }
+    
+    if(!geoEl)
+    {
+        std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
         DebugStop();
     }
     
@@ -192,6 +198,15 @@ TPZVec<REAL> Path::Func(REAL t)
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradUtxy);
     }
+    
+//    if(t==1.)
+//    {
+//        std::ofstream cddc("SigmaMalha3DFina.txt");
+//        cddc << Sigma(0,0) << "\t" << Sigma(0,1) << "\t" << Sigma(0,2) << "\n";
+//        cddc << Sigma(1,0) << "\t" << Sigma(1,1) << "\t" << Sigma(1,2) << "\n";
+//        cddc << Sigma(2,0) << "\t" << Sigma(2,1) << "\t" << Sigma(2,2) << "\n";
+//        cddc.close();
+//    }
     
     TPZFMatrix<REAL> GradUt_Sigma(fMeshDim,fMeshDim,0.);
     GradUtxy.Multiply(Sigma, GradUt_Sigma);

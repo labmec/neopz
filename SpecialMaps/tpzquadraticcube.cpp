@@ -243,161 +243,161 @@ TPZGeoEl *TPZQuadraticCube::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc)
 	return newel;
 }
 
-void TPZQuadraticCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-{
-    if(node > this->NNodes)
-    {
-        DebugStop();
-    }
-    nodeCoord.Resize(Dimension, 0.);
-    switch (node) {
-        case (0):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (1):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (2):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (3):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (4):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        case (5):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        case (6):
-        {
-            nodeCoord[0] = 1.;
-            nodeCoord[1] = 1.;
-            nodeCoord[2] = 1.;
-            break;
-        }
-        case (7):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        case (8):
-        {
-            nodeCoord[0] =  0.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (9):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (10):
-        {
-            nodeCoord[0] =  0.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (11):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] = -1.;
-            break;
-        }
-        case (12):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (13):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (14):
-        {
-            nodeCoord[0] = 1.;
-            nodeCoord[1] = 1.;
-            nodeCoord[2] = 0.;
-            break;
-        }
-        case (15):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  1.;
-            nodeCoord[2] =  0.;
-            break;
-        }
-        case (16):
-        {
-            nodeCoord[0] =  0.;
-            nodeCoord[1] = -1.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        case (17):
-        {
-            nodeCoord[0] =  1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        case (18):
-        {
-            nodeCoord[0] = 0.;
-            nodeCoord[1] = 1.;
-            nodeCoord[2] = 1.;
-            break;
-        }
-        case (19):
-        {
-            nodeCoord[0] = -1.;
-            nodeCoord[1] =  0.;
-            nodeCoord[2] =  1.;
-            break;
-        }
-        default:
-        {
-            DebugStop();
-            break;
-        }
-    }
-}
+//void TPZQuadraticCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+//{
+//    if(node > this->NNodes)
+//    {
+//        DebugStop();
+//    }
+//    nodeCoord.Resize(Dimension, 0.);
+//    switch (node) {
+//        case (0):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (1):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (2):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (3):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (4):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        case (5):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        case (6):
+//        {
+//            nodeCoord[0] = 1.;
+//            nodeCoord[1] = 1.;
+//            nodeCoord[2] = 1.;
+//            break;
+//        }
+//        case (7):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        case (8):
+//        {
+//            nodeCoord[0] =  0.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (9):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (10):
+//        {
+//            nodeCoord[0] =  0.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (11):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] = -1.;
+//            break;
+//        }
+//        case (12):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (13):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (14):
+//        {
+//            nodeCoord[0] = 1.;
+//            nodeCoord[1] = 1.;
+//            nodeCoord[2] = 0.;
+//            break;
+//        }
+//        case (15):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  1.;
+//            nodeCoord[2] =  0.;
+//            break;
+//        }
+//        case (16):
+//        {
+//            nodeCoord[0] =  0.;
+//            nodeCoord[1] = -1.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        case (17):
+//        {
+//            nodeCoord[0] =  1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        case (18):
+//        {
+//            nodeCoord[0] = 0.;
+//            nodeCoord[1] = 1.;
+//            nodeCoord[2] = 1.;
+//            break;
+//        }
+//        case (19):
+//        {
+//            nodeCoord[0] = -1.;
+//            nodeCoord[1] =  0.;
+//            nodeCoord[2] =  1.;
+//            break;
+//        }
+//        default:
+//        {
+//            DebugStop();
+//            break;
+//        }
+//    }
+//}
 
 
 

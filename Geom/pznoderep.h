@@ -144,41 +144,78 @@ namespace pzgeom {
 		 */
 		int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 			const int nsides = Topology::NSides;
-			if(this->IsInParametricDomain(pt,0.)){///it is already in the domain
+            const int dim = Topology::Dimension;
+            
+            ptInDomain.Resize(dim);
+            
+			if(this->IsInParametricDomain(pt,0.))///it is already in the domain
+            {
 				ptInDomain = pt;
 				return nsides-1;
-			}//if
+			}
 			
-			int winnerSide = -1;
-			REAL winnerDistance = 1e12;
-			TPZManVector<REAL,3> pt1(pt.NElements()), pt2(pt.NElements());
-			for(int is = 0; is < nsides-1; is++){
-				
-				///Go from NSides-1 to side is
+            REAL tol = 1.e-10;
+            
+            ///first, will be made a project to center direction
+            TPZVec<REAL> OutPt(pt), InnPt(dim);
+            Topology::CenterPoint(nsides-1,InnPt);
+            
+            REAL dist = 0.;
+            for(int c = 0; c < dim; c++)
+            {
+                dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
+            }
+            dist = sqrt(dist);
+            
+            while(dist > tol)
+            {
+                for(int c = 0; c < dim; c++)
+                {
+                    ptInDomain[c] = (InnPt[c] + OutPt[c])/2.;
+                }
+                if(this->IsInParametricDomain(ptInDomain,0.))
+                {
+                    InnPt = ptInDomain;
+                }
+                else
+                {
+                    OutPt = ptInDomain;
+                }
+                dist = 0.;
+                for(int c = 0; c < dim; c++)
+                {
+                    dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
+                }
+                dist = sqrt(dist);
+            }
+            
+            ///found in witch side the projection belongs
+   			int winnerSide = -1;
+			TPZManVector<REAL,3> pt1(dim), pt2(dim);
+			for(int is = 0; is < nsides-1; is++)
+            {
+				///Go orthogonally from \f$ NSides-1 \f$ to side is
 				TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
-				T1.Apply(pt,pt1);
-				
-				///Check if the point is within side boundaries
-				bool IsInSideDomain = this->IsInSideParametricDomain(is,pt1,0.);
-				if(!IsInSideDomain) continue;
+				T1.Apply(ptInDomain,pt1);
 				
 				///Come back from side is to \f$ NSides-1 \f$
 				TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
 				T2.Apply(pt1,pt2);
 				
-				///Compare original to mapped point
-				REAL distance = 0.;
-				for(int i = 0; i < pt.NElements(); i++){
-					REAL val = pt[i]-pt2[i];
-					distance += val*val;
+				///Compare ptInDomain to transformed point
+				dist = 0.;
+				for(int c = 0; c < dim; c++)
+                {
+					dist += (ptInDomain[c]-pt2[c]) * (ptInDomain[c]-pt2[c]);
 				}//i
-				distance = sqrt(distance);
+				dist = sqrt(dist);
 				
-				///The closest side point to the original is the projected point
-				if(distance < winnerDistance){
-					winnerDistance = distance;
+				///Closest side
+				if(dist < tol)
+                {
 					winnerSide = is;
 					ptInDomain = pt2;
+                    break;
 				}
 			}//for is
 			

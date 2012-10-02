@@ -37,22 +37,6 @@ namespace pzgeom {
 		}
 	}
 	
-	bool TPZGeoCube::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
-		TPZTransform Transf = pztopology::TPZCube::SideToSideTransform(TPZGeoCube::NSides - 1, side);
-		SidePar.Resize(SideDimension(side));
-		Transf.Apply(InternalPar,SidePar);
-		
-		int R = Transf.Mult().Rows();
-		int C = Transf.Mult().Cols();
-		
-		JacToSide.Resize(R,C);
-		for(int i = 0; i < R; i++)
-		{
-			for(int j = 0; j < C; j++) JacToSide(i,j) = Transf.Mult()(i,j);
-		}
-		return true;
-	}
-	
 	void TPZGeoCube::Shape(TPZVec<REAL> &pt,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphi) {
 		
 		REAL x[2],dx[2],y[2],dy[2],z[2],dz[2];
@@ -224,77 +208,4 @@ namespace pzgeom {
 	{
 		return CreateGeoElementPattern(mesh,type,nodeindexes,matid,index);
 	}
-	
-    void TPZGeoCube::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-    {
-        if(node > this->NNodes)
-        {
-            DebugStop();
-        }
-        nodeCoord.Resize(Dimension, 0.);
-        switch (node) {
-            case (0):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] = -1.;
-                nodeCoord[2] = -1.;
-                break;
-            }
-            case (1):
-            {
-                nodeCoord[0] =  1.;
-                nodeCoord[1] = -1.;
-                nodeCoord[2] = -1.;
-                break;
-            }
-            case (2):
-            {
-                nodeCoord[0] =  1.;
-                nodeCoord[1] =  1.;
-                nodeCoord[2] = -1.;
-                break;
-            }
-            case (3):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] =  1.;
-                nodeCoord[2] = -1.;
-                break;
-            }
-            case (4):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] = -1.;
-                nodeCoord[2] =  1.;
-                break;
-            }
-            case (5):
-            {
-                nodeCoord[0] =  1.;
-                nodeCoord[1] = -1.;
-                nodeCoord[2] =  1.;
-                break;
-            }
-            case (6):
-            {
-                nodeCoord[0] = 1.;
-                nodeCoord[1] = 1.;
-                nodeCoord[2] = 1.;
-                break;
-            }
-            case (7):
-            {
-                nodeCoord[0] = -1.;
-                nodeCoord[1] =  1.;
-                nodeCoord[2] =  1.;
-                break;
-            }
-            default:
-            {
-                DebugStop();
-                break;
-            }
-        }
-    }
-
 };

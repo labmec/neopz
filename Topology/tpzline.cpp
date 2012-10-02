@@ -90,6 +90,41 @@ namespace pztopology {
 			return false;
 		}  
 	}//method
+    
+    bool TPZLine::MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide) {
+		TPZTransform Transf = SideToSideTransform(NSides - 1, side);
+		SidePar.Resize(SideDimension(side));
+		Transf.Apply(InternalPar,SidePar);
+		
+		JacToSide = Transf.Mult();
+		return true;
+	}
+    
+    void TPZLine::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+    {
+        if(node > NCornerNodes)
+        {
+            DebugStop();
+        }
+        nodeCoord.Resize(Dimension, 0.);
+        switch (node) {
+            case (0):
+            {
+                nodeCoord[0] = -1.;
+                break;
+            }
+            case (1):
+            {
+                nodeCoord[0] = 1.;
+                break;
+            }
+            default:
+            {
+                DebugStop();
+                break;
+            }
+        }
+    }
 	
 	void TPZLine::HigherDimensionSides(int side, TPZStack<int> &high)
 	{

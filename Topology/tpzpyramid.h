@@ -87,6 +87,10 @@ namespace pztopology {
 		
 		/** @brief Verifies if the parametric point pt is in the element parametric domain */
 		static bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6L);
+        
+        static bool MapToSide(int side, TPZVec<REAL> &InternalPar, TPZVec<REAL> &SidePar, TPZFMatrix<REAL> &JacToSide);
+        
+        static void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 		
 		/** @} */
 

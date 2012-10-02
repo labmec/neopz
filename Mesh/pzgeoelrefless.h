@@ -49,7 +49,7 @@ public:
 	/** @brief Copy constructor with elements in different meshes */
 	TPZGeoElRefLess(TPZGeoMesh &DestMesh, const TPZGeoElRefLess &cp);
     
-    virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
+    //virtual void ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord);
 	
 	/**
 	 * @brief Copy constructor with elements in different meshes. The clone mesh is
@@ -274,7 +274,6 @@ public:
 	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1\f$
 	 */
 	virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain);
-	
 };
 
 template<class TGeo>
@@ -291,12 +290,12 @@ int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<RE
 	return side;
 }
 
-template<class TGeo>
-inline
-void TPZGeoElRefLess<TGeo>::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-{
-    fGeo.ParametricDomainNodeCoord(node, nodeCoord);
-}
+//template<class TGeo>
+//inline
+//void TPZGeoElRefLess<TGeo>::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+//{
+//    fGeo.ParametricDomainNodeCoord(node, nodeCoord);
+//}
 
 #include "pzgeoelrefless.h.h"
 

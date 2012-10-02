@@ -282,36 +282,36 @@ TPZGeoEl *TPZArc3D::CreateGeoElement(TPZGeoMesh &mesh, MElementType type,
 	return CreateGeoElementMapped(mesh,type,nodeindexes,matid,index);
 }
 
-void TPZArc3D::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
-{
-    if(node > this->NNodes)
-    {
-        DebugStop();
-    }
-    nodeCoord.Resize(Dimension, 0.);
-    switch (node) {
-        case (0):
-        {
-            nodeCoord[0] = -1.;
-            break;
-        }
-        case (1):
-        {
-            nodeCoord[0] = 1.;
-            break;
-        }
-        case (2):
-        {
-            nodeCoord[0] = 0.;
-            break;
-        }
-        default:
-        {
-            DebugStop();
-            break;
-        }
-    }
-}
+//void TPZArc3D::ParametricDomainNodeCoord(int node, TPZVec<REAL> &nodeCoord)
+//{
+//    if(node > this->NNodes)
+//    {
+//        DebugStop();
+//    }
+//    nodeCoord.Resize(Dimension, 0.);
+//    switch (node) {
+//        case (0):
+//        {
+//            nodeCoord[0] = -1.;
+//            break;
+//        }
+//        case (1):
+//        {
+//            nodeCoord[0] = 1.;
+//            break;
+//        }
+//        case (2):
+//        {
+//            nodeCoord[0] = 0.;
+//            break;
+//        }
+//        default:
+//        {
+//            DebugStop();
+//            break;
+//        }
+//    }
+//}
 
 template class
 TPZRestoreClass< TPZGeoElRefPattern<TPZArc3D>, TPZGEOELEMENTARC3DID>;
