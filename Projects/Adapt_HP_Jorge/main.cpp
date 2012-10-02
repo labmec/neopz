@@ -33,7 +33,7 @@ int gLMax;
 int NUniformRefs = 2;
 REAL alfa = M_PI/6.;
 bool anothertests = false;
-int nstate = 1;
+int nstate = 2;
 
 /** Printing level */
 int gPrintLevel = 0;
@@ -93,6 +93,7 @@ int main(int argc, char *argv[]) {
 	
 	// To visualization of the geometric mesh
 	std::ofstream fgeom("GMesh.vtk");
+	std::ofstream fgeom2("GMeshNoRef.vtk");
 	std::ofstream fgeomfromcomp("GMeshFromComp.vtk");
 	// output files
     std::ofstream convergence("conv3d.txt");
@@ -105,6 +106,7 @@ int main(int argc, char *argv[]) {
 	// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
 	// Has 4 elements, 9 connects and 8 bc elements
     TPZGeoMesh* gmesh = new TPZGeoMesh;
+	TPZGeoMesh* gmesh2 = new TPZGeoMesh;
 	
 	/// Applying hp adaptive techniques 2012/10/01
 	
@@ -115,10 +117,13 @@ int main(int argc, char *argv[]) {
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
+	gen.Read(gmesh2);
 	
     // CriaÁ„o das condiÁıes de contorno geomÈtricas
-	gen.SetBC(gmesh,4,-1);
-	gen.SetBC(gmesh,6,-2);
+//	gen.SetBC(gmesh,4,-1);
+//	gen.SetBC(gmesh,6,-2);
+//	gen.SetBC(gmesh2,4,-1);
+//	gen.SetBC(gmesh2,6,-2);
 	
 	// Refinement of the first element
 	TPZVec<TPZGeoEl *> sub;
@@ -128,36 +133,49 @@ int main(int argc, char *argv[]) {
 	
     // CriaÁ„o da malha computacional
     TPZCompMesh *comp = new TPZCompMesh(gmesh);
+	TPZCompMesh *comp2 = new TPZCompMesh(gmesh2);
     
-    // Criar e inserir os materiais na malha
+	/** Set polynomial order */
+	int p = 3;
+    TPZCompEl::SetgOrder(p);
+  
+	// Criar e inserir os materiais na malha
     TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
     comp->InsertMaterialObject(mat);
+	comp2->InsertMaterialObject(mat);
     
     // CondiÁıes de contorno
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
+    comp2->InsertMaterialObject(bnd);
     bnd = mat->CreateBC (mat,-2,0,val1,val2);
 	// Neumann
     TPZFMatrix<REAL> val3(3,3,1);
     val2(0,0)=1.;
     bnd = mat->CreateBC(mat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
+    comp2->InsertMaterialObject(bnd);
     
     // Ajuste da estrutura de dados computacional
     comp->AutoBuild();
+    comp2->AutoBuild();
     //  comp->Print(cout);
     comp->AdjustBoundaryElements();
+    comp2->AdjustBoundaryElements();
     //  comp->Print(cout);
     comp->CleanUpUnconnectedNodes();
+    comp2->CleanUpUnconnectedNodes();
     
-    comp->SetName("Malha Computacional Original");
+    comp->SetName("Malha Computacional Com Refinamento");
+    comp2->SetName("Malha Computacional Sem Refinamento");
 	
 	//--- END construction of the meshes
 	
 	// Printing geo mesh to check
-	TPZVTKGeoMesh::PrintGMeshVTK(comp->Reference(),fgeom);
+	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,fgeom);
+	TPZVTKGeoMesh::PrintGMeshVTK(comp2->Reference(),fgeom2);
 	TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(),fgeomfromcomp);
 	
 	/** Variable names for post processing */
@@ -166,7 +184,7 @@ int main(int argc, char *argv[]) {
     scalnames.Push("Error");
     
     if(nstate == 1) {
-        scalnames.Push("state");
+        vecnames.Push("state");
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
     }else if(nstate == 2) {
@@ -228,11 +246,15 @@ int main(int argc, char *argv[]) {
 		dim = 3;
 	}
 	
+	// INITIAL POINT FOR SOLVING AND APPLYING REFINEMENT
+	
 	for(r=0;r<NUniformRefs;r++) {
 		
 		// Introduzing exact solution depending on the case
 		TPZAnalysis an (comp);
+		TPZAnalysis an2(comp2);
 		an.SetExact(Exact);
+		an2.SetExact(Exact);
 		
 		{
 			std::stringstream sout;
@@ -241,36 +263,47 @@ int main(int argc, char *argv[]) {
 			an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
 		}
 		std::string MeshFileName;
+		std::string MeshFileName2;
 		{
 			std::stringstream sout;
+			std::stringstream sout2;
 			int angle = (int) (alfa*180./M_PI + 0.5);
 			sout << "meshAngle" << angle << "." << r << ".vtk";
+			sout2 << "mesh2Angle" << angle << "." << r << ".vtk";
 			MeshFileName = sout.str();
+			MeshFileName = sout2.str();
 		}
-		
+
 		comp->SetName("Malha computacional adaptada");
 		// Printing geometric and computational mesh
 		comp->Reference()->Print(std::cout);
 		comp->Print(std::cout);
 		
 		// Solve using symmetric matrix then using Cholesky (direct method)
-		TPZSkylineStructMatrix strskyl(comp);
+		TPZSkylineStructMatrix strskyl(comp), strskyl2(comp2);
 		an.SetStructuralMatrix(strskyl);
+		an2.SetStructuralMatrix(strskyl2);
 		
 		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
 		direct->SetDirect(ECholesky);
 		an.SetSolver(*direct);
+		an2.SetSolver(*direct);
 		delete direct;
 		direct = 0;
 		
 		an.Run();
+		an2.Run();
 		
 		// Post processing
-		an.PostProcess(4,dim);
+		an.PostProcess(0,dim);
+		an2.PostProcess(4,dim);
 		{
 			std::ofstream out(MeshFileName.c_str());
 			comp->LoadReferences();
 			TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
+			std::ofstream out2(MeshFileName2.c_str());
+			comp2->LoadReferences();
+			TPZVTKGeoMesh::PrintCMeshVTK(comp2->Reference(), out2, false);
 			
 		}
 		
