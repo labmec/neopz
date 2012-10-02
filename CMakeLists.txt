@@ -343,9 +343,12 @@ add_subdirectory(Pre)
 add_subdirectory(SubStruct)
 
 add_subdirectory(lib)
-add_subdirectory(Projects)
-
-add_subdirectory(UnitTest_PZ)
+if(BUILD_PROJECTS)
+	add_subdirectory(Projects)
+endif()
+if(BUILD_UNITTESTING)
+	add_subdirectory(UnitTest_PZ)
+endif()
 
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
