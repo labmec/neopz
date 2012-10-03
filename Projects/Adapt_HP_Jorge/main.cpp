@@ -21,6 +21,11 @@
 #include "pzexplfinvolanal.h"
 #include "adapt.h"
 
+#ifdef LOG4CXX
+static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
+static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
+#endif
+
 using namespace std;
 
 /**
@@ -347,7 +352,7 @@ int main(int argc, char *argv[]) {
 		if (loggerconv->isDebugEnabled())
 		{
 			std::stringstream sout;
-			sout << "neq = " << cmesh->NEquations() << " error estimate = " << valerror
+			sout << "neq = " << comp->NEquations() << " error estimate = " << valerror
 			<< " true error " << valtruerror <<  " effect " << valerror/valtruerror << std::endl;
 			LOGPZ_DEBUG(loggerconv, sout.str())
 		}
