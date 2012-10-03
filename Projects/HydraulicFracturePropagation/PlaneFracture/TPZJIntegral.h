@@ -17,13 +17,78 @@ enum pathType {ELinearPath, EExternalArcPath, EInternalArcPath};
 
 const REAL Pi = 3.1415926535897932384626433832795;
 
+struct LinearPath
+{
+public:
+    
+    LinearPath();//It is not to be used
+    LinearPath(TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ~LinearPath();
+    
+    void X(REAL t, TPZVec<REAL> & xt);
+    void dXdt(REAL t, TPZVec<REAL> & dxdt);
+    void normalVec(REAL t, TPZVec<REAL> & n);
+    
+    REAL DETdxdt();
+    
+protected:
+    
+    /** Origin of coupled arc */
+    TPZVec<REAL> fOrigin;
+    
+    /** This direction defines the coupled arc plane.
+     *  (this direction is orthogonal to coupled arc plane and defines
+     *   the right hand convention for the coupled arc direction)
+     */
+    TPZVec<REAL> fNormalDirection;
+    
+    /** Radius of coupled arc */
+    REAL fradius;
+    
+    /** Determinant of dXdt(3x1) */
+    REAL fDETdxdt;
+};
+
+
+struct ArcPath
+{
+public:
+    
+    ArcPath();//It is not to be used
+    ArcPath(TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ~ArcPath();
+    
+    void X(REAL t, TPZVec<REAL> & xt);
+    void dXdt(REAL t, TPZVec<REAL> & dxdt);
+    void normalVec(REAL t, TPZVec<REAL> & n);
+    
+    REAL DETdxdt();
+    
+protected:
+    
+    /** Origin of arc */
+    TPZVec<REAL> fOrigin;
+    
+    /** This direction defines the arc plane.
+     *  (this direction is orthogonal to arc plane and defines
+     *   the right hand convention for the arc direction)
+     */
+    TPZVec<REAL> fNormalDirection;
+    
+    /** Radius of arc */
+    REAL fradius;
+    
+    /** Determinant of dXdt(3x1) */
+    REAL fDETdxdt;
+};
+
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
  *          THE CLASS PATH CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
- *          THE ORIENTATION OF THIS NORMAL DETERMINE THE ARC DIRECTION THAT RULES THE X_arc AND dXdt_arc METHODS, AS IT FOLLOWS:
- *              EXTERNAL ARC : RIGHT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE.
- *              INTERNAL ARC : LEFT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE.
- * SO, ITS ALWAYS GOOD DEFINE NORMAL AXE TANGENT TO THE CRACK BOUNDARY, FOLLOWING RIGHT HAND FOR THE EXTERNAL ARC BEGINNING AT OUTSIDE CRACK.
+ *          THE ORIENTATION OF ARC and LINEAR stretch is:
+ *              ARC : RIGHT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE (axe that defines the (orthogonal) arc plane).
+ *              LINEAR: FROM THE END OF ARC (supposed to be inside crack plane) TO ORIGIN.
+ * SO, ITS ALWAYS GOOD DEFINE NORMAL AXE TANGENT TO THE CRACK BOUNDARY, FOLLOWING RIGHT HAND FROM OUTSIDE CRACK TO INSIDE CRACK
  */
 class Path
 {
@@ -37,24 +102,8 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
-    Path(const Path &copy)
-    {
-        this->operator =(copy);
-    }
+    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
     ~Path();
-    
-    void operator=(const Path &cpPath)
-    {
-        fOrigin = cpPath.fOrigin;
-        fNormalDirection = cpPath.fNormalDirection;
-        fr_int = cpPath.fr_int;
-        fr_ext = cpPath.fr_ext;
-        fDETdxdt = cpPath.fDETdxdt;
-        fInitial2DElementId = cpPath.fInitial2DElementId;
-        fcmesh = cpPath.fcmesh;
-        fMeshDim = cpPath.fMeshDim;
-    }
     
     TPZVec<REAL> operator()(REAL t)
     {
@@ -64,68 +113,12 @@ public:
     
     virtual TPZVec<REAL> Func(REAL t);
     
-    /////////////
-    
-    virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
-    virtual void normalVec(REAL t, TPZVec<REAL> & n);    
-    
-    TPZVec<REAL> & Origin()
-    {
-        return fOrigin;
-    }
-    
-    TPZVec<REAL> & NormalDirection()
-    {
-        return fNormalDirection;
-    }
-    
-    REAL R_int()
-    {
-        return fr_int;
-    }
-    
-    REAL R_ext()
-    {
-        return fr_ext;
-    }
-    
-    REAL DETdxdt()
-    {
-        return fDETdxdt;
-    }
-    
-    int Initial2DElementId()
-    {
-        return fInitial2DElementId;
-    }
-    
-    TPZAutoPointer<TPZCompMesh> Cmesh()
-    {
-        return fcmesh;
-    }
-    
-    int MeshDim()
-    {
-        return fMeshDim;
-    }
-    
 protected:
     
-    /** initial node of given unidimensional element (this element define an axis) */
-    TPZVec<REAL> fOrigin;
+    LinearPath * fLinearPath;
+    ArcPath * fArcPath;
     
-    /** final node of given unidimensional element (this element define an axis) */
-    TPZVec<REAL> fNormalDirection;
-    
-    /** radius of internal and external arcs */
-    REAL fr_int;
-    REAL fr_ext;
-    
-    /** determinant of [jacobian matrix](3x1) */
-    REAL fDETdxdt;
-    
-    /** 
+    /**
      *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
      *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
      *  This element must be an 2D element of PlaneFracture Mesh (see TPZPlaneFracture)
@@ -140,47 +133,6 @@ protected:
     int fMeshDim;
 };
 
-
-class linearPath : public Path
-{
-public:
-    
-    linearPath();//It is not to be used
-    linearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
-    linearPath(Path * thePath);
-    
-    virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
-    virtual void normalVec(REAL t, TPZVec<REAL> & n);
-};
-
-
-class externalArcPath : public Path
-{
-public:
-    
-    externalArcPath();//It is not to be used
-    externalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
-    externalArcPath(Path * thePath);
-
-    virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
-    virtual void normalVec(REAL t, TPZVec<REAL> & n);
-};
-
-
-class internalArcPath : public Path
-{
-public:
-    
-    internalArcPath();//It is not to be used
-    internalArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL r_int, REAL r_ext, int meshDim);
-    internalArcPath(Path * thePath);
-
-    virtual void X(REAL t, TPZVec<REAL> & xt);
-    virtual void dXdt(REAL t, TPZVec<REAL> & dxdt);
-    virtual void normalVec(REAL t, TPZVec<REAL> & n);
-};
 
 
 class JIntegral
