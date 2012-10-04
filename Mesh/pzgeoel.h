@@ -512,7 +512,7 @@ public:
 	bool ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &ksi, REAL Tol = 1.e-12);
     
     /** by Caju 2012 */
-    bool ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
+    bool ComputeXInverse3D(TPZVec<REAL> & x, TPZVec<REAL> & qsi);
 
 	/**
 	 * @brief Compute the map of a paramenter point in the subelement to a parameter point in the super element

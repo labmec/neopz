@@ -28,7 +28,7 @@
 const REAL __smallNum = 1.E-5;
 
 /** @brief maximum element edge length */
-const REAL __maxLength = 0.7;
+const REAL __maxLength = 0.8;
 
 /** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
 const REAL __lengthFactor = 1.;
