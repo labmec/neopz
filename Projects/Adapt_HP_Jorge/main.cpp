@@ -132,8 +132,11 @@ int main(int argc, char *argv[]) {
 	
 	// Refinement of the first element
 	TPZVec<TPZGeoEl *> sub;
-	TPZGeoEl *gel = gmesh->ElementVec()[0];
-	gel->Divide(sub);
+	for(int nele=0;nele<1;nele++) {
+		TPZGeoEl *gel = gmesh->ElementVec()[nele];
+		gel->Divide(sub);
+	}
+	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
     // CriaÁ„o da malha computacional
@@ -141,7 +144,7 @@ int main(int argc, char *argv[]) {
 	TPZCompMesh *comp2 = new TPZCompMesh(gmesh2);
     
 	/** Set polynomial order */
-	int p = 3;
+	int p = 1;
     TPZCompEl::SetgOrder(p);
   
 	// Criar e inserir os materiais na malha

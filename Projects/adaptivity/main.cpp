@@ -183,9 +183,9 @@ int main() {
     scalnames.Push("Error");
     
     if(nstate == 1) {
-        scalnames.Push("state");
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
+        vecnames.Push("state");
     }else if(nstate == 2) {
         scalnames.Push("sig_x");
         scalnames.Push("sig_y");

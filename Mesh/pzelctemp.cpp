@@ -18,9 +18,6 @@ TPZIntelGen<TSHAPE>::TPZIntelGen(TPZCompMesh &mesh, TPZGeoEl *gel, int &index) :
 TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 	int i;
 	fPreferredOrder = mesh.GetDefaultOrder();
-	for(i=0;i<TSHAPE::NSides-TSHAPE::NCornerNodes;i++) {
-		//    fSideOrder[i] = gOrder;
-	}
 	for(i=0; i<TSHAPE::NSides; i++) fConnectIndexes[i]=-1;
 	//  RemoveSideRestraintsII(EInsert);
 	gel->SetReference(this);
@@ -34,11 +31,12 @@ TPZInterpolatedElement(mesh,gel,index), fConnectIndexes(TSHAPE::NSides,-1) {
 		IdentifySideOrder(i);
 	}
 	
+	// Comp
 	int sideorder = SideOrder(TSHAPE::NSides-1);
-	sideorder = 2*sideorder;
-	if (sideorder > fIntRule.GetMaxOrder()) sideorder = fIntRule.GetMaxOrder();
+	int integrationorder = 2*sideorder;
+//	if (integrationorder > fIntRule.GetMaxOrder()) integrationorder = fIntRule.GetMaxOrder();
 	//  TPZManVector<int,3> order(3,2*sideorder+2);
-	TPZManVector<int,3> order(3,sideorder);
+	TPZManVector<int,3> order(3,integrationorder);
 	//TPZManVector<int,3> order(3,20);
 	fIntRule.SetOrder(order);
 	
