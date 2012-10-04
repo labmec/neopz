@@ -778,7 +778,7 @@ bool TPZGeoEl::ComputeXInverse2012(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         highFather->GetLowerSubElements(sons);
         for(int s = 0; s < sons.NElements(); s++)
         {
-            double sonRadius = sons[s]->SmallerEdge();
+            REAL sonRadius = sons[s]->SmallerEdge();
             radius = min(radius,sonRadius);
         }
     }

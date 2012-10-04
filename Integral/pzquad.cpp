@@ -14,6 +14,8 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "pzlog.h"
+
 using namespace std;
 
 /** TPZIntPoints method that returns a coherent maxime order to work */
@@ -193,7 +195,7 @@ void TPZIntTriang::SetOrder(TPZVec<int> &ord,int type) {
 	if(ord[0] < 0 || ord[0] > TPZIntRuleT::NRULESTRIANGLE_ORDER || ord[1] < 0 || ord[1] > TPZIntRuleT::NRULESTRIANGLE_ORDER) 
 	{
 #ifdef DEBUG
-		LOGPZ_WARN("Integration rule for triangle - Order is bigger than NRULESTRIANGLE_ORDER (Max)");
+		LOGPZ_WARN(logger,"Integration rule for triangle - Order is bigger than NRULESTRIANGLE_ORDER (Max)");
 #endif
 		
 		fOrdKsi = TPZIntRuleT::NRULESTRIANGLE_ORDER;//havendo erro assume a maxima ordem
@@ -289,7 +291,7 @@ void TPZIntTetra3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER) {
 #ifdef DEBUG
-		LOGPZ_WARN("Integration rule for tetrahedra - Order is bigger than NRULESTETRAHEDRA_ORDER (Max)");
+		LOGPZ_WARN(logger,"Integration rule for tetrahedra - Order is bigger than NRULESTETRAHEDRA_ORDER (Max)");
 #endif
 		fOrdKsi = TPZIntRuleT3D::NRULESTETRAHEDRA_ORDER;
 	}
@@ -333,7 +335,7 @@ void TPZIntPyram3D::SetOrder(TPZVec<int> &ord,int type) {
 	fOrdKsi = (fOrdKsi > ord[2]) ? fOrdKsi : ord[2];
 	if(fOrdKsi > TPZIntRuleP3D::NRULESPYRAMID_ORDER) {
 #ifdef DEBUG
-		LOGPZ_WARN("Integration rule for pyramid - Order is bigger than NRULESPYRAMID_ORDER (Max)");
+		LOGPZ_WARN(logger,"Integration rule for pyramid - Order is bigger than NRULESPYRAMID_ORDER (Max)");
 #endif
 		fOrdKsi = TPZIntRuleP3D::NRULESPYRAMID_ORDER;
 	}
