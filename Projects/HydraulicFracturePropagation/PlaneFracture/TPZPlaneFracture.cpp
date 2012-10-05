@@ -470,14 +470,26 @@ for(itm = fcrackQpointsElementsIds.begin(); itm != fcrackQpointsElementsIds.end(
 #endif
 
     ////4debug
-//    TPZGeoEl * fuckGel = fullMesh->ElementVec()[1147];
-//    TPZVec<REAL> xx(3);
-//    xx[0]=0.6249998318;
-//    xx[1]=0.4683747152;
-//    xx[2]=-5.;
+//    TPZVec<REAL> qsiHere(3), qsiPZ(3);
+//    TPZVec<REAL> x(3);
+//    x[0] = 5.;
+//    x[1] = 0.;
+//    x[2] = -10.;
+//    
+//    int initialElId = 0;
+//    
+//    TPZGeoEl * gelHere = PointElementOnFullMesh(x, qsiHere, initialElId, fullMesh);
+//    TPZGeoEl * gelPZ = fullMesh->FindElement(x, qsiPZ);
 //
-//    TPZVec<REAL> qsixx(3,0.);
-//    bool isInside = fuckGel->ComputeXInverse(xx, qsixx);
+//    if(!gelPZ)
+//    {
+//        DebugStop();
+//    }
+//    TPZVec<REAL> xHere(3);
+//    gelHere->X(qsiHere,xHere);
+//    
+//    TPZVec<REAL> xPZ(3);
+//    gelPZ->X(qsiPZ, xPZ);
     //////////
     
 	return fullMesh;

@@ -46,6 +46,7 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
 	fReference = 0;
 	fNodeMaxId = -1;
 	fElementMaxId = -1;
+    fInitialElId = 0;
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
@@ -74,6 +75,7 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	this->fNodeMaxId = cp.fNodeMaxId;
 	this->fElementMaxId = cp.fElementMaxId;
 	this->fInterfaceMaterials = cp.fInterfaceMaterials;
+    this->fInitialElId = cp.fInitialElId;
 	
 	this->fReference = NULL;
 	
@@ -398,6 +400,107 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 		while(i<nnodes && fNodeVec[i].Id() == -1) i++;
 	}
 	return gnkeep;
+}
+
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
+{
+    TPZGeoEl * gel = this->ElementVec()[fInitialElId]->HighestFather();
+    qsi.Resize(gel->Dimension(), 0.);
+    
+    TPZVec<REAL> projection(gel->Dimension());
+    int count = 0;
+    bool mustStop = false;
+    while(gel->ComputeXInverseAlternative(x, qsi) == false && mustStop == false)
+    {
+        int side = gel->ProjectInParametricDomain(qsi, projection);
+        TPZGeoElSide mySide(gel,side);
+        TPZGeoElSide neighSide(mySide.Neighbour());
+        bool targetNeighFound = false;
+        while(mySide != neighSide && targetNeighFound == false)
+        {
+            if(neighSide.Element()->HighestFather() == mySide.Element()->HighestFather())
+            {
+                neighSide = neighSide.Neighbour();
+            }
+            else
+            {
+                targetNeighFound = true;
+            }
+        }
+        TPZGeoEl * neighgel = neighSide.Element()->HighestFather();
+        if(neighgel != gel)
+        {
+            gel = neighgel;
+            qsi.Resize(gel->Dimension(), 0.);
+        }
+        else
+        {
+            return NULL;
+        }
+        count++;
+        if(count > NElements())
+        {
+            mustStop = true;
+        }
+    }
+    
+    if(mustStop)
+    {
+        return NULL;
+    }
+    
+    if(gel->HasSubElement())
+    {
+        TPZVec<TPZGeoEl*> subElements(0);
+        gel->GetLowerSubElements(subElements);
+        
+        int nsons = subElements.NElements();
+        TPZGeoEl * son = NULL;
+        TPZVec< TPZVec<REAL> > qsiSonVec(nsons);
+        for(int s = 0; s < nsons; s++)
+        {
+            son = subElements[s];
+            qsiSonVec[s].Resize(son->Dimension(),0.);
+            if(son->ComputeXInverseAlternative(x, qsiSonVec[s]))
+            {
+                qsi = qsiSonVec[s];
+                fInitialElId = son->Id();
+                return son;
+            }
+        }
+        
+        //no son found (accuracy problems)
+        {
+            std::map<REAL,int> dist;
+            for(int s = 0; s < nsons; s++)
+            {
+                son = subElements[s];
+                TPZVec<REAL> qsiSonProj(son->Dimension());
+                son->ProjectInParametricDomain(qsiSonVec[s], qsiSonProj);
+                REAL distToProj = 0.;
+                for(int c = 0; c < son->Dimension(); c++)
+                {
+                    distToProj += (qsiSonProj[c] - qsiSonVec[s][c]) * (qsiSonProj[c] - qsiSonVec[s][c]);
+                }
+                dist[sqrt(distToProj)] = distToProj;
+            }
+            int sonPosition = dist.begin()->second;//smaller distance to parametric domain
+
+            qsi = qsiSonVec[sonPosition];
+            son = gel->SubElement(sonPosition);
+            fInitialElId = son->Id();
+
+            return son;
+        }
+    }
+    else
+    {
+        fInitialElId = gel->Id();
+        return gel;
+    }
+    
+    
+    return NULL;
 }
 
 void TPZGeoMesh::BuildConnectivity()

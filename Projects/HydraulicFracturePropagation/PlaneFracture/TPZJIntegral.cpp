@@ -75,9 +75,9 @@ void LinearPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 
 void LinearPath::normalVec(REAL t, TPZVec<REAL> & n)
 {
-    n[0] = 0.;
+    n[0] =  0.;
     n[1] = -1.;
-    n[2] = 0.;
+    n[2] =  0.;
 }
 
 

@@ -762,13 +762,8 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 	return ( this->IsInParametricDomain(qsi) );
 }
 
-bool TPZGeoEl::ComputeXInverse3D(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
+bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
 {
-    if(this->Dimension() != 3)
-    {
-        //Este metodo soh funciona para elementos 3D (em que axes = identidade)
-        DebugStop();
-    }
     int dim = this->Dimension();
     TPZVec<REAL> centerP(dim,1);
     this->CenterPoint(this->NSides()-1, qsi);
@@ -893,7 +888,7 @@ bool TPZGeoEl::ComputeXInverse3D(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         count++;
     }
     
-    return false;
+    return ComputeXInverse(x, qsi);
 }
 
 
