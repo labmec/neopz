@@ -677,17 +677,8 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 		}
 	}
 	
-    int timesThatLeftDomain = 0;
 	while(error > Tol && iter < nMaxIter)
 	{
-        if(timesThatLeftDomain > 1)
-        {
-            #ifdef DEBUG
-            std::cout << "For two attempts the qsi point left the reference domain! This element was dismissed!" << std::endl;
-            #endif
-            
-            return false;
-        }
 		iter++;
 		TPZFNMatrix<9> residual(dim,1),delqsi(dim,1);
 		REAL detJ;
@@ -728,11 +719,6 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 			for(i=0; i<dim; i++)
             {
                 qsi[i] += residual(i,0);
-            }
-            if(this->IsInParametricDomain(qsi) == false)
-            {
-                timesThatLeftDomain++;
-                this->ProjectInParametricDomain(qsi, qsi);
             }
 		}
 		X(qsi,X0);

@@ -473,7 +473,7 @@ for(itm = fcrackQpointsElementsIds.begin(); itm != fcrackQpointsElementsIds.end(
 //    TPZVec<REAL> qsiHere(3), qsiPZ(3);
 //    TPZVec<REAL> x(3);
 //    x[0] = 5.;
-//    x[1] = 0.;
+//    x[1] = 2.;
 //    x[2] = -10.;
 //    
 //    int initialElId = 0;

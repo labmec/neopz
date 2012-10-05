@@ -435,7 +435,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
         }
         else
         {
-            return NULL;
+            return NULL;//must be non convex mesh...
         }
         count++;
         if(count > NElements())
@@ -446,7 +446,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
     
     if(mustStop)
     {
-        return NULL;
+        return NULL;//not found...
     }
     
     if(gel->HasSubElement())
