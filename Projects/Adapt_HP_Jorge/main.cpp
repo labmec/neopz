@@ -106,16 +106,16 @@ int main(int argc, char *argv[]) {
 	/// Applying hp adaptive techniques 2012/10/01
 	
 	// Creating boundary condition on top and bottom of the quadrilateral domain
-//	gen.SetBC(gmesh,4,-1);
-//	gen.SetBC(gmesh,6,-2);
+	gen.SetBC(gmesh,4,-1);
+	gen.SetBC(gmesh,6,-2);
 	
 	// Refinement of the some element
 	TPZVec<TPZGeoEl *> sub;
 	for(int nele=0;nele<1;nele++) {
 		TPZGeoEl *gel = gmesh->ElementVec()[nele];
 		gel->Divide(sub);
-//		gel = sub[2];
-//		gel->Divide(sub);
+		gel = sub[2];
+		gel->Divide(sub);
 	}
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
