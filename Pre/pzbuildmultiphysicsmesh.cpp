@@ -312,7 +312,7 @@ void TPZBuildMultiphysicsMesh::BuildHybridMesh(TPZCompMesh *cmesh, std::set<int>
 			TPZStack<TPZGeoElSide> allneigh;
 			allneigh.Resize(0);	
 			gelside.AllNeighbours(allneigh);
-			int nneig = allneigh.NElements();
+			//int nneig = allneigh.NElements();
 			if(allneigh.NElements()>1) continue;
 			//if (nneig && allneigh[0].Element()->Dimension() != meshdim) continue;//joao, comentar essa linha permite criar elementos 1D(Lagrange) entre elemento de contorno e um elemento 2D
 			

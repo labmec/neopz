@@ -477,7 +477,7 @@ TPZCompMesh * tools::MalhaCompGen(TPZGeoMesh * gmesh, int p)
 		cmesh->InsertMaterialObject(ContBC);
 		
 		k2(0,0) = 1.;
-		TPZMaterial * ContBC2 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
+//		TPZMaterial * ContBC2 = matCasca->CreateBC(matCasca, mat1EngBC, mista, k2, f);
 		//cmesh->InsertMaterialObject(ContBC2);
 		
 		//Reacao de apoio no anel
@@ -589,7 +589,7 @@ TPZCompMesh * tools::MalhaCompMeshWithInterface(TPZGeoMesh * gmesh, int p, REAL 
 		cmesh->InsertMaterialObject(BCPoint7);
 		
 		k2(0,0) = 1.;
-		TPZMaterial * ContBC3 = matCasca->CreateBC(matCasca, mat1EngPoint1, mista, k2, f);
+//		TPZMaterial * ContBC3 = matCasca->CreateBC(matCasca, mat1EngPoint1, mista, k2, f);
 		//cmesh->InsertMaterialObject(ContBC3);
 		
 		//Reacao de apoio no anel
@@ -717,8 +717,8 @@ void tools::SolveSist(TPZAnalysis &an, TPZCompMesh *fCmesh, int sim)
 	 REAL resnorm = Norm(residual);
 	 std::cout << "residual norm " << resnorm << std::endl;
 	 */	
-	TPZMaterial * mat1 = fCmesh->FindMaterial(mat1Id);
-	TPZMaterial * mat2 = fCmesh->FindMaterial(mat2Id);
+//	TPZMaterial * mat1 = fCmesh->FindMaterial(mat1Id);
+//	TPZMaterial * mat2 = fCmesh->FindMaterial(mat2Id);
 	//TPZElasticityAxiMaterial * aximat1 = dynamic_cast<TPZElasticityAxiMaterial*>(mat1.operator->());
 	//TPZElasticityAxiMaterial * aximat2 = dynamic_cast<TPZElasticityAxiMaterial*>(mat2.operator->());
 	
@@ -752,10 +752,10 @@ TPZVec<REAL> tools::CalcCortMomento(TPZCompMesh  *malha)
 //	REAL T1zR = 0.;
 //	REAL T1zL = 0.;
 //	REAL T1z = 0.;
-	static int count = 0;
 	std::string estr1,estr2;
 #ifdef LOG4CXX
 	{
+		static int count = 0;
 		std::stringstream sout1, sout2,sout;
 		sout1 << "Mat1Ind"<< count;
 		sout2 << "Mat2Ind" << count;

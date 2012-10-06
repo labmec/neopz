@@ -216,11 +216,11 @@ void InsertElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	mesh->SetDimModel(3);
 	int nummat = 1, neumann = 1, mixed = 2;
 	//	int dirichlet = 0;
-	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
+	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;   //, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
     
-	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
+	STATE ElaE = 1000., poissonE = 0.2;   //, poissonV = 0.1, ElaV = 100.; 
     
 	STATE lambdaV = 0, muV = 0, alpha = 0, deltaT = 0;
 	lambdaV = 11.3636;
@@ -374,7 +374,7 @@ TPZGeoMesh *MalhaCubo()
 			
 			int index = el;
 			
-			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
+			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
 		
 		gMesh->BuildConnectivity();

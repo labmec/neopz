@@ -14,7 +14,7 @@
 /** 
  * Function to generate a polygonal mesh approximating a sphere from a octahedron mesh (polygonal) based on number of uniform refinements
  */
-TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &Center, REAL radius, int nUniformRefs) {
+TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &center, REAL radius, int nUniformRefs) {
 	// Initial mesh data
 	// In this case is a octahedron
 	// Octahedron has 6 nodes. We considerer that the nodes is on axes and radius is the distance between any node and origin.
@@ -23,7 +23,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	const int nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
-    REAL initialcoord[nnode][3] = {{Center[0]-1.*radius,Center[1],Center[2]},{Center[0],Center[1]+radius,Center[2]},{Center[0],Center[1],Center[2]-1.*radius},{Center[0],Center[1],Center[2]+radius},{Center[0],Center[1]-1.*radius,Center[2]},{Center[0]+radius,Center[1],Center[2]}};
+    REAL initialcoord[nnode][3] = {{center[0]-1.*radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-1.*radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-1.*radius,center[2]},{center[0]+radius,center[1],center[2]}};
     int indices[nelem][nnode] = {{3,4,5},{3,5,1},{3,1,0},{3,0,4},{4,0,2},{4,2,5},{2,0,1},{5,2,1}};
 	
 	// Geometric element vector
@@ -66,10 +66,10 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 			TPZGeoNode *gnode = &gmesh->NodeVec()[node];
 			gnode->GetCoordinates(coordinates);
 			for(i=0;i<3;i++)
-				coordinates[i] -= Center[i];
+				coordinates[i] -= center[i];
 			norm = sqrt(coordinates[0]*coordinates[0] + coordinates[1]*coordinates[1] + coordinates[2]*coordinates[2]);
 			for(i=0;i<3;i++) coordinates[i] /= norm;
-			for(i=0;i<3;i++) coordinates[i] += Center[i];
+			for(i=0;i<3;i++) coordinates[i] += center[i];
 			gnode->SetCoord(coordinates);
 		}
 	}
@@ -95,7 +95,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 /** 
  * Function to generate a polygonal mesh approximating a sphere from a octahedron mesh (polygonal) 
  */
-TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &Center,REAL radius, REAL tol) {
+TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL> &center,REAL radius, REAL tol) {
 	// Initial mesh data
 	// In this case is a octahedron
 	// Octahedron has 6 nodes. We considerer that the nodes is on axes and radius is the distance between any node and origin.
@@ -104,7 +104,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 	const int nelem = 8;
 	
 	// Initial nodes and initial triangular faces of the octahedron
-    REAL initialcoord[nnode][3] = {{Center[0]-1.*radius,Center[1],Center[2]},{Center[0],Center[1]+radius,Center[2]},{Center[0],Center[1],Center[2]-1.*radius},{Center[0],Center[1],Center[2]+radius},{Center[0],Center[1]-1.*radius,Center[2]},{Center[0]+radius,Center[1],Center[2]}};
+    REAL initialcoord[nnode][3] = {{center[0]-1.*radius,center[1],center[2]},{center[0],center[1]+radius,center[2]},{center[0],center[1],center[2]-1.*radius},{center[0],center[1],center[2]+radius},{center[0],center[1]-1.*radius,center[2]},{center[0]+radius,center[1],center[2]}};
     int indices[nelem][nnode] = {{3,4,5},{3,5,1},{3,1,0},{3,0,4},{4,0,2},{4,2,5},{2,0,1},{5,2,1}};
 	
 	// Geometric element vector
@@ -148,10 +148,10 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 			TPZGeoNode *gnode = &gmesh->NodeVec()[node];
 			gnode->GetCoordinates(coordinates);
 			for(i=0;i<3;i++)
-				coordinates[i] -= Center[i];
+				coordinates[i] -= center[i];
 			norm = sqrt(coordinates[0]*coordinates[0] + coordinates[1]*coordinates[1] + coordinates[2]*coordinates[2]);
 			for(i=0;i<3;i++) coordinates[i] /= norm;
-			for(i=0;i<3;i++) coordinates[i] += Center[i];
+			for(i=0;i<3;i++) coordinates[i] += center[i];
 			gnode->SetCoord(coordinates);
 		}
 		
@@ -163,7 +163,7 @@ TPZGeoMesh *TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(TPZVec<REAL
 			gel->X(baryparam,barycenter);
 			break;
 		}
-		dist = radius - sqrt((barycenter[0]-Center[0])*(barycenter[0]-Center[0]) + (barycenter[1]-Center[1])*(barycenter[1]-Center[1]) + (barycenter[2]-Center[2])*(barycenter[2]-Center[2]));
+		dist = radius - sqrt((barycenter[0]-center[0])*(barycenter[0]-center[0]) + (barycenter[1]-center[1])*(barycenter[1]-center[1]) + (barycenter[2]-center[2])*(barycenter[2]-center[2]));
 		if(dist < 0.0) {
 			delete gmesh;
 			gmesh = 0;

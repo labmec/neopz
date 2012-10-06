@@ -41,7 +41,7 @@ using namespace std;
 template class TPZVec<TPZCompCloneMesh::TPZRefPattern>;
 
 static ofstream gDeduce("deduce.txt");
-static int zero = 0;
+//static int zero = 0;
 
 TPZCompCloneMesh::TPZCompCloneMesh (TPZGeoCloneMesh* gr, TPZCompMesh *cmesh) : TPZCompMesh(gr), fMapConnects(){
     fCloneReference = cmesh;
@@ -147,7 +147,7 @@ void TPZCompCloneMesh::AutoBuild() {
     
     CreateCloneBC();
     
-    int go = 0;
+//    int go = 0;
     for (int dim=0; dim<3; dim++) 
     {
         for(i=0; i<nelem; i++) {
@@ -200,10 +200,10 @@ void TPZCompCloneMesh::AutoBuild() {
                             
                             
                             int porder = orgintel->SideOrder(j);
-                            TPZConnect &corg = orgintel->Connect(j);
+                            orgintel->Connect(j);
                             // Check if everything is fine
                             //DebugStop();
-                            TPZConnect &c = clintel->Connect(j);
+                            clintel->Connect(j);
 
                             clintel->ForceSideOrder(j, porder);
                             
@@ -278,7 +278,7 @@ void TPZCompCloneMesh::AutoBuild() {
                 LOGPZ_DEBUG(logger, sout.str())
             }
 #endif
-            TPZConnect &corig = ConnectVec()[fMapConnects[i]];
+            //TPZConnect &corig = ConnectVec()[fMapConnects[i]];
             cout << "Number of degree of freedom incompatible between clone and original mesh!\n";
             cout << "Orig connect index: " << i << "Mapped connect index " << fMapConnects[i] << "  Clone dof: " << ndofclone << "  Original dof: " << ndoforg << endl;
             cout << "Block size clone " << Block().Size(clseqnum) << " Block size original " << fCloneReference->Block().Size(orgseqnum) << std::endl;
@@ -1129,7 +1129,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
     int nsides = gel->NSides();
     int side;
     
-    int maxp = TPZOneDRef::gMaxP;
+//    int maxp = TPZOneDRef::gMaxP;
     
     //Calcula o número de arestas
     for(side=0; side<nsides; side++) if(gel->SideDimension(side) == 1) n1dsides++;
@@ -1264,7 +1264,7 @@ void TPZCompCloneMesh::AnalyseElement( TPZOneDRef &f, TPZInterpolatedElement *ci
         //Para cada aresta é calculado o menor erro através do cálculo do refinamento unidimensional
         REAL error = f.BestPattern(U,id,p1,p2,hp1, hp2, hperror,delx);
         //define o refinamento para o elemento??
-        TPZRefPattern optimal = {id[0],id[1],id[2],p1,p2,hp1,hp2,hperror,error};
+        TPZRefPattern optimal(id[0],id[1],id[2],p1,p2,hp1,hp2,hperror,error);
         refpattern[n1dsides] = optimal;
         n1dsides++;
     }

@@ -39,6 +39,7 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 
 #creating target pz library and installing it
 add_library(pz ${pzsources})
+
 install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.

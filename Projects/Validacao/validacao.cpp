@@ -261,16 +261,16 @@ void PrintMesh(TPZCompMesh *cmesh)
             int ncon = intel->NConnects();
             for (int i=0; i<ncon; i++)
             {
-                int indexcon = intel->ConnectIndex(i);
-                int nshape = intel->NConnectShapeF(i);
                 int mlado = i + /*pzgeom::TPZGeoQuad::NSides*/ geo->NSides()- ncon;
                 int ordinterp = intel->SideOrder(mlado);
-                int preforder = intel->PreferredSideOrder(mlado);
-                int nsidescon = intel->NSideConnects(mlado);
                 
                 intel->SetSideOrder(mlado, ordinterp+i);
-                int newsideorde = intel->SideOrder(mlado);
 #ifdef LOG4CXX
+                int indexcon = intel->ConnectIndex(i);
+                int nshape = intel->NConnectShapeF(i);
+                int preforder = intel->PreferredSideOrder(mlado);
+                int nsidescon = intel->NSideConnects(mlado);
+                int newsideorde = intel->SideOrder(mlado);
                 {
                     std::stringstream sout;
                     sout<<"\n Connect " << indexcon << " Connect index = " << indexcon << " numero shapes = " <<nshape<<std::endl;
@@ -285,10 +285,10 @@ void PrintMesh(TPZCompMesh *cmesh)
             intel->GetInterpolationOrder(ord);
          
             
-//            TPZManVector<REAL> xi(dim,0.);
-//            TPZFNMatrix<100> phi(nshape,1,0.),dphi(2,nshape,0.);
-//            intel->Shape(xi,phi,dphi);
 #ifdef LOG4CXX
+			//            TPZManVector<REAL> xi(dim,0.);
+			//            TPZFNMatrix<100> phi(nshape,1,0.),dphi(2,nshape,0.);
+			//            intel->Shape(xi,phi,dphi);
             {
                 std::stringstream sout;
                 sout<<"\n num elementos  " << ord.size();
@@ -611,7 +611,7 @@ TPZGeoMesh * MalhaGeoT(const int h){//malha triangulo
 	
 	//Criar ns
 	const int nnode = 4;//AQUI
-	const int nelem = 2;
+//	const int nelem = 2;
 	TPZGeoEl *elvec[2]; //nelem	
 	const int dim = 2;//AQUI
 	

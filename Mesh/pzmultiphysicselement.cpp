@@ -355,8 +355,8 @@ void TPZMultiphysicsElement::RemoveInterface(int side) {
 	}
 	// aqui existe a interface
 	TPZCompEl *cel = list[i].Element();
-	TPZGeoEl *gel = cel->Reference();
 #ifdef LOG4CXX
+	TPZGeoEl *gel = cel->Reference();
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;

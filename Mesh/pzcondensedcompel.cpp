@@ -335,7 +335,6 @@ void TPZCondensedCompEl::BuildCornerConnectList(std::set<int> &connectindexes) c
         TPZConnect &c = Connect(ic);
         if (!c.IsCondensed() || !c.HasDependency()) {
             int index = ConnectIndex(ic);
-            int seqnum = c.SequenceNumber();
             if (refconn.find(index) != refconn.end()) {
                 connectindexes.insert(index);
             }

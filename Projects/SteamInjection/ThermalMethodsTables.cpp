@@ -47,7 +47,7 @@ DataInTable::DataInTable(int ndata,int nitens)
 double DataInTable::getInterpolatedValue(double temp,int indexproperty)
 {
 	int index = getIndex(temp);
-	if(index < 0 || !fTable.size() || indexproperty < 2 || (indexproperty+1) > fTable[0].size())
+	if(index < 0 || !fTable.size() || indexproperty < 2 || (indexproperty+1) > ((int)fTable[0].size()))
 	{
 		return 0.0;
 	}

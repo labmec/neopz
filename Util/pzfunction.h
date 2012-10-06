@@ -140,7 +140,7 @@ public:
 	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
 	 * @param ftime  time to evaluate	 
 	 * @param f function values
-	 * @param df function derivatives
+	 * @param gradf function derivatives
 	 */	
 	virtual void Execute(const TPZVec<REAL> &x, REAL ftime, TPZVec<TVar> &f, TPZFMatrix<TVar> &gradf)
     {
@@ -150,12 +150,19 @@ public:
         fFunc3(x, ftime, f, gradf);
     }	
     
-	/** @brief Execute method receiving axes. It is used in shape functions */
+	/**
+	 * @brief Execute method receiving axes. It is used in shape functions
+	 * @note NOT IMPLEMENTED
+	 */
 	virtual void Execute(const TPZVec<REAL> &x, const TPZFMatrix<REAL> &axes, TPZVec<TVar> &f, TPZFMatrix<TVar> &df){
         DebugStop();
     }
     
-    /** Simpler version of Execute method which does not compute function derivatives */
+    /**
+	 * @brief Simpler version of Execute method which does not compute function derivatives 
+	 * @param x point coordinate which is suppose to be in real coordinate system but can be in master coordinate system in derived classes.
+	 * @param f function values
+	 */
     virtual void Execute(const TPZVec<REAL> &x, TPZVec<TVar> &f){
 		if (!fFunc) {
 			DebugStop();

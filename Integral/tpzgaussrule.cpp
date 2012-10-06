@@ -6,8 +6,6 @@
 #include <math.h>
 #include <cmath>
 
-//#include "tpzline.h"
-
 #include "tpzgaussrule.h"
 #include "tpzintrulelist.h"
 #include "pzerror.h"
@@ -57,10 +55,6 @@ TPZGaussRule::TPZGaussRule(int order,int type,long double alpha,long double beta
 			ComputingGaussLegendreQuadrature(order);
 			break;
 	}
-	// Checks if the cubature rule is right
-//	if(!CheckCubatureRule())
-//		PZError << "TPZGaussRule had bad construction: order " << order << " type " << type << std::endl;
-
 }
 
 //***************************************
@@ -159,11 +153,6 @@ void TPZGaussRule::ComputingGaussLegendreQuadrature(int order) {
 // Compute the points and weights for Gauss Legendre Quadrature over the parametric 1D element [-1.0, 1.0] - This quadrature is symmetric
 void TPZGaussRule::ComputingGaussLegendreQuadrature(int *npoints,TPZVec<long double> &Location,TPZVec<long double> &Weight) {
 	long double tol = machinePrecision();
-//#ifdef VC
-//	tol = 1.e-15L;
-//#else
-//	tol = 1.e-19L;
-//#endif
 	long double z1, z, pp, p3, p2, p1, dif, den;
 	int i, j;
 	long iteration;
@@ -657,27 +646,3 @@ long double gamma(long double x) {
 
 	return res;
 }
-
-/*bool TPZGaussRule::CheckCubatureRule() {
-	int i;
-	TPZVec<REAL> point(3,0.0L);
-	long double sum = 0.0L;
-
-	// The cubature rule has not zero integration points
-	if(!fNumInt)
-		return false;
-
-	// Checking all the integration points belong at the master element
-	for(i=0;i<fNumInt;i++) {
-		point[0] = fLocation[i];
-		if(!pztopology::TPZLine::IsInParametricDomain(point))
-			break;
-		sum += fWeight[i];
-	}
-	// Checking sum of the weights is equal to measure of the master element
-	if(i==fNumInt) {
-		if(IsZero((REAL)(sum) - pztopology::TPZLine::RefElVolume()))
-			return true;
-	}
-	return false;   // because any integration point is outside of the master element
-}*/

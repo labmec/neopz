@@ -450,7 +450,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 	}
 	
 	std::vector<pthread_t> allthreads_assemble(numthreads_assemble);
-	int itr;
+	unsigned int itr;
 	if(guiInterface){
 		if(guiInterface->AmIKilled()){
 			return ;//0;

@@ -2,6 +2,8 @@
  
  Method definition for class TPZGeoCloneMesh.*/
 
+#include "TPZRefPattern.h"
+
 #include "pzgclonemesh.h"
 #include "pzvec.h"
 #include "pzadmchunk.h"
@@ -23,8 +25,8 @@
 //#include "pzelgt3d.h"
 #include "pzelasmat.h"
 
-static int zero=0;
-static TPZGeoEl *zeropoint = 0;
+//static int zero=0;
+//static TPZGeoEl *zeropoint = 0;
 
 using namespace std;
 
@@ -126,7 +128,7 @@ int TPZGeoCloneMesh::Index(TPZGeoEl *gel) {
 
 int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
     int i,j;
-    int nnod = orgel->NNodes();
+//    int nnod = orgel->NNodes();
     //  cout << "Original element nodes = " << nnod << endl;
     if(HasElement(orgel)) return Index(fMapElements[orgel]);
     
@@ -167,7 +169,7 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
         int subel = orgel->NSubElements();
         for (j=0;j<subel;j++){
             TPZGeoEl *gelson = orgel->SubElement(j);
-            int subelindex = CloneElement(gelson);
+            CloneElement(gelson);
             fMapElements[gelson]->SetFather(el);
             fMapElements[gelson]->SetFather(el->Index());
             el->SetSubElement(j,fMapElements[gelson]);
@@ -392,7 +394,7 @@ int TPZGeoCloneMesh::main(){
   	//malha quadrada de nr x nc
 	const int numrel = 3;
   	const int numcel = 3;
-  	int numel = numrel*numcel;
+//  	int numel = numrel*numcel;
   	TPZVec<REAL> coord(2,0.);
     
   	// criar um objeto tipo malha geometrica

@@ -73,8 +73,8 @@ public:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param intpoin [in] point in master element coordinates 
-	 * @param data [in] stores all input data
+	 * @param[in] intpoint point in master element coordinates 
+	 * @param[in] data stores all input data
 	 */
     virtual void ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data);
 	
@@ -118,7 +118,6 @@ public:
 	 * It is not a cheap method because it computes solution for
 	 * all integration points ( with intrule.MaxOrder() )
 	 */
-	
 	void MinMaxSolutionValues(TPZVec<STATE> &min, TPZVec<STATE> &max);
 	
 	/** @brief Returns a reference to an integration rule suitable for integrating the interior of the element */

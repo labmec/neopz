@@ -102,17 +102,18 @@ protected:
 	/**
 	 * @brief the stability coeficient alpha
 	 */
-	STATE falpha;
+	STATE fAlpha;
 	
 	/**
 	 * @brief the stability coeficient alpha
 	 */
-	STATE fdeltaT;
+	STATE fDeltaT;
 
 	/**
 	 * @brief viscoelasticity coeficients
 	 */
-	STATE flambdaV, fmuV;
+	STATE fLambdaV;
+	STATE fmuV;
 };
 
 #endif

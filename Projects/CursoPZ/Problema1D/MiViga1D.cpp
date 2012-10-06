@@ -24,7 +24,7 @@ void TPZMiViga1D::Contribute(TPZMaterialData &data,
 
 	TPZFMatrix<REAL> &dphi = data.dphix;
 	TPZFMatrix<REAL> &phi = data.phi;
-	TPZManVector<REAL,3> &x = data.x;
+//	TPZManVector<REAL,3> &x = data.x;
 
 	// check on the validity of the arguments
 	if(phi.Cols() != 1 || dphi.Rows() != 1 || phi.Rows() != dphi.Cols()) {

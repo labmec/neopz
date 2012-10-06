@@ -1,16 +1,17 @@
-//
-//  pzreducedspace.h
-//  PZ
-//
-//  Created by Philippe Devloo on 7/30/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
-//
-
+/**
+ * @file
+ * @brief Contains the declaration of the Reduced Space class.
+ * @author Philippe Devloo
+ * @since 7/30/12.
+ */
 #ifndef PZ_pzreducedspace_h
 #define PZ_pzreducedspace_h
 
 #include "pzinterpolationspace.h"
 
+/**
+ * @ingroup CompElement
+ */
 class TPZReducedSpace : public TPZInterpolationSpace
 {
 public:
@@ -31,7 +32,7 @@ public:
 	
 	/**
 	 * @brief Create a computational element within mesh
-	 * @param mesh mesh wher will be created the element
+	 * @param mesh mesh where will be created the element
 	 * @param gel geometrical element to insert
 	 * @param index new elemen index
 	 */
@@ -72,6 +73,7 @@ public:
 	 * @param qsi point in master element coordinates
 	 * @param phi vector of values of shapefunctions, dimension (numshape,1)
 	 * @param dphix matrix of derivatives of shapefunctions, dimension (dim,numshape)
+     * @param axes axes indicating the direction of the derivatives
 	 */
 	/**
 	 * This method uses the order of interpolation
@@ -94,7 +96,7 @@ public:
      * @param qsi master element coordinate
      * @param phi matrix containing shape functions compute in qsi point
      * @param dphix matrix containing the derivatives of shape functions in the direction of the axes
-     * @param axes [in] axes indicating the direction of the derivatives
+     * @param axes axes indicating the direction of the derivatives
      * @param sol finite element solution
      * @param dsol solution derivatives
      */

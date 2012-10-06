@@ -59,7 +59,7 @@ stat_table st;
 
 st.readFromFile(stfn.getValue());
 
-  /* Contains statistics 
+  / * Contains statistics 
 PerfAnalyzer pa_create_matrix;
 PerfAnalyzer pa_assemble;
 

@@ -180,7 +180,7 @@ environment are different from regular finite element codes
  \li run "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" - to sets the environment variables according to your system
  \li nmake clean VC-static - to build pthread library
  \li rename pthreadVC2.lib to pthread.lib and copy to "externallibs\lib"
- \li copy include directory from Pre-built.2 to externallibs\include
+ \li copy include directory from Pre-built.2 to "externallibs\include"
  
  You can also download the prebuilt lib from <a href="http://www.labmec.org.br/pz/libexternal/pthread/">pthread_win_VC10</a>.
  

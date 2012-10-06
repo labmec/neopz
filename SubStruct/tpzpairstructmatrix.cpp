@@ -694,12 +694,12 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly1(void *threaddata)
 				// make sure we come back to look for one more element
 				keeplooking = true;
 				// Get a hold of the data
-				int iel = *itprocess;
 				data->fProcessed1.erase(itprocess);
 				TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
 				TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;
 				data->fSubmitted1.erase(itavail);
 #ifdef LOG4CXX
+				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
 				LOGPZ_DEBUG(logger,sout.str())
@@ -761,11 +761,11 @@ void *TPZPairStructMatrix::ThreadData::ThreadAssembly2(void *threaddata)
 				// make sure we come back to look for one more element
 				keeplooking = true;
 				// Get a hold of the data
-				int iel = *itprocess;
 				data->fProcessed2.erase(itprocess);
 				TPZAutoPointer<TPZElementMatrix> ek = itavail->second;
 				data->fSubmitted2.erase(itavail);
 #ifdef LOG4CXX
+				int iel = *itprocess;
 				std::stringstream sout;
 				sout << "Assembling element " << iel;
 				LOGPZ_DEBUG(logger,sout.str())

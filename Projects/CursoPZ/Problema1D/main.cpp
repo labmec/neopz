@@ -128,7 +128,8 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
 	val2(0,0) = 0.;
 	val2(1,0) = 1.0;
-	TPZMaterial *bcRight, *bcLeft;
+	//TPZMaterial *bcright;
+	TPZMaterial *bcLeft;
 	// Condicion Dirichlet desplazamiento y giro en el extremo inicial de la viga (v,phi) = (0,0)
     bcLeft = mat->CreateBC(mat,2,0,val1,val2);
     cmesh->InsertMaterialObject(bcLeft);

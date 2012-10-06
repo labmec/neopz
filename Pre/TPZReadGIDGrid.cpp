@@ -369,7 +369,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								read.getline(buf, 1024);
 								TopolPoint[0]--;
 								ContPoint++;						
-								TPZGeoEl *Point = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (numelements - elements0D + ContPoint, TopolPoint, nMats+ContPoint,*gmesh); 						
+								new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (numelements - elements0D + ContPoint, TopolPoint, nMats+ContPoint,*gmesh); 						
 								
 							}
 							if(ContPoint == elements0D)
@@ -461,7 +461,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								elementId--;
 								TopolLine[0]--;
 								TopolLine[1]--;
-								TPZGeoEl * Line = new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementId,TopolLine,matElId,*gmesh);
+								new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (elementId,TopolLine,matElId,*gmesh);
 								ContLine++;					
 							}
 							if(ContLine == elements1D)
@@ -485,7 +485,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								TopolTriangle[0]--;
 								TopolTriangle[1]--;
 								TopolTriangle[2]--;					
-								TPZGeoEl * triangle = new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (elementId, TopolTriangle, matElId, *gmesh);
+								new TPZGeoElRefPattern< pzgeom::TPZGeoTriangle> (elementId, TopolTriangle, matElId, *gmesh);
 								ContTrian++;							
 							}
 							if(ContTrian == elements2DT)
@@ -511,7 +511,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								TopolQuad[1]--;
 								TopolQuad[2]--;	
 								TopolQuad[3]--;							
-								TPZGeoEl * Quadrilateral = new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (elementId, TopolQuad, matElId, *gmesh);
+								new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (elementId, TopolQuad, matElId, *gmesh);
 								ContQuad++;						
 							}
 							if(ContQuad == elements2DQ)
@@ -537,7 +537,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								TopolTet[1]--;
 								TopolTet[2]--;	
 								TopolTet[3]--;	
-								TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (elementId, TopolTet, matElId, *gmesh);
+								new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (elementId, TopolTet, matElId, *gmesh);
 								ContTet++;
 							}
 							if(ContTet == elements3DT)
@@ -571,7 +571,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								TopolHex[5]--;
 								TopolHex[6]--;	
 								TopolHex[7]--;						
-								TPZGeoEl * Hex = new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elementId, TopolHex, matElId, *gmesh);					
+								new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elementId, TopolHex, matElId, *gmesh);					
 								ContHex++;
 							}
 							if(ContHex == elements3DH)

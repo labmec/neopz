@@ -129,7 +129,7 @@ double TSwxSteamInjectionInputData::getRho_C_Estrela(int i,double So) {
 }
 
 // Assume-se que a temperatura esta sendo introduzida em graus Celsius (C), entao sera convertida em graus Kelvin (K)
-TSwxSteamInjectionInputData::TSwxSteamInjectionInputData(TSwxReservoirData& reservoir,TSwxOverburdenData& overrock,double temp,double quality) : fReservoirData(reservoir), fOilData(), fWaterInSaturationState(), fOverburdenData(overrock) {
+TSwxSteamInjectionInputData::TSwxSteamInjectionInputData(TSwxReservoirData& reservoir,TSwxOverburdenData& overrock,double temp,double quality) : fReservoirData(reservoir), fOverburdenData(overrock), fWaterInSaturationState(), fOilData() {
 	fSteamTemperature = temp;
 	fQuality = quality;
 }
@@ -150,7 +150,7 @@ void TSwxSteamInjectionData::setInjectionData(double rate,double tempo) {
 }
 
 double TSwxSteamInjectionData::getRegionAuxiliar(int i,double tempo) {
-	if(i < 0 || tempo < 0.0 || IsZero(tempo) || i+2 > fInput.getInjectionData().fTable.size())
+	if(i < 0 || tempo < 0.0 || IsZero(tempo) || i+2 > ((int)fInput.getInjectionData().fTable.size()))
 		return 0.0;
 
 	double tau = fInput.getInjectionData().fTable[i].second;   // isso significa que tau é o i-esimo tempo -> ti, onde i=0, 1, ..., tamanho_vetor_tempos-2

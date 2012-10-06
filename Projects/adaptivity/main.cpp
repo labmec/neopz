@@ -481,7 +481,7 @@ TPZCompMesh *CreateSillyMesh(){
     const	int numrel = 2;
     const	int numcel = 2;
 
-    int numel = numrel*numcel;
+//    int numel = numrel*numcel;
     
     // criar um objeto tipo malha geometrica
     TPZGeoMesh *geomesh = new TPZGeoMesh();

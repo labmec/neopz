@@ -438,7 +438,6 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 		TPZCompEl::Solution(qsi,var,sol);
 		return;
 	}
-	int dim = this->Dimension();
 	if(var == 99) {
 		sol[0] = this->MaxOrder();
 		return;
@@ -450,12 +449,6 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 		return;
 	}
 	
-//	TPZMaterialData data;
-//	data.p = this->MaxOrder();
-//	data.axes.Redim(dim,3);
-//	data.axes.Zero();
-//	this->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
-    
     TPZMaterialData data;
     this->InitMaterialData(data);
     data.p = this->MaxOrder();
@@ -971,8 +964,8 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	}
 	// aqui existe a interface
 	TPZCompEl *cel = list[i].Element();
-	TPZGeoEl *gel = cel->Reference();
 #ifdef LOG4CXX
+	TPZGeoEl *gel = cel->Reference();
     if (logger->isDebugEnabled())
 	{
 		std::stringstream sout;

@@ -17,7 +17,7 @@ class TPZIntPoints;
 /**
  * @ingroup integral
  * @brief Prismatic extension of an integration rule. \ref integral "Numerical Integration"
- * @author Philippe R. B. Devloo <phil@fec.unicamp.br>
+ * @author Philippe R. B. Devloo
  */
 template< class TFather>
 class TPZPrInteg : public TFather

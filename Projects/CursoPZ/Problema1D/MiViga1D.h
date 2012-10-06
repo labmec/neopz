@@ -1,3 +1,6 @@
+/**
+ * @file
+ */
 #ifndef TPZMIVIGAHH
 #define TPZMIVIGAHH
 
@@ -45,19 +48,20 @@ public:
 
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
-     * @param data [in] stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
-     * @param ef [out] is the load vector
+     * @param[in] data stores all input data
+     * @param[in] weight is the weight of the integration rule
+     * @param[out] ek is the stiffness matrix
+     * @param[out] ef is the load vector
      */
     virtual void Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
     /**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point.
-     * @param data [in] stores all input data
-     * @param weight [in] is the weight of the integration rule
-     * @param ek [out] is the stiffness matrix
-     * @param ef [out] is the load vector
+     * @param data stores all input data
+     * @param weight is the weight of the integration rule
+     * @param ek is the stiffness matrix
+     * @param ef is the load vector
+	 * @param bc boundary condition
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
     /** @brief Returns the variable index associated with the name */

@@ -234,8 +234,8 @@ private:
     
     /** 
 	 * @brief Compute shape functions based on master element in the classical FEM manne. 
-	 * @param intpoin [in] point in master element coordinates 
-	 * @param data [in] stores all input data
+	 * @param[in] qsi point in master element coordinates 
+	 * @param[in] data stores all input data
 	 */
     virtual void ComputeSolution(TPZVec<REAL> &qsi, TPZMaterialData &data);
 	

@@ -371,7 +371,8 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTableTimes(std::map< double , std::p
 {
 	std::vector<double> Tabletimes = fInput.getInjectionData().getSITimes();
 	std::vector<double> times(0);
-	for(int tt = 0; tt < Tabletimes.size(); tt++)
+	unsigned int tt;
+	for(tt = 0; tt < Tabletimes.size(); tt++)
 	{
 		double tabtime = Tabletimes[tt];
 		int nTimes = int(tabtime/m_timeStep);
@@ -389,7 +390,7 @@ void TSwxSteam::getRadiusAndMaxSigmaThetaForTableTimes(std::map< double , std::p
 
 double TSwxSteam::getRegionAuxiliar(int i, double tempo)
 {
-	if (i < 0 || tempo < 0.0 || IsZero(tempo) || i + 2 > fInput.getInjectionData().Table().size())
+	if (i < 0 || tempo < 0.0 || IsZero(tempo) || i + 2 > ((int)fInput.getInjectionData().Table().size()))
 	{
 		return 0.0;
 	}

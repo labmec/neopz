@@ -222,9 +222,9 @@ void TPZAdaptMesh::GetReferenceElements(){
     std::set<TPZGeoEl*> georef;
     //  fReferenceCompMesh->GetRefPatches(fGeoRef);
     fReferenceCompMesh->GetRefPatches(georef);
-    int i;
+//    int i;
     //    int nel = fGeoRef.NElements();
-    int nel = georef.size();
+//    int nel = georef.size();
     
 #ifndef CLONEBCTOO
     //This will exclude geometric elements associated to bc from clone creation
@@ -383,8 +383,8 @@ TPZCompMesh *TPZAdaptMesh::CreateCompMesh (TPZCompMesh *mesh,                   
     //e cria uma nova malha computacional baseada nesta malha geométrica
     gmesh->ResetReference();
     TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
-    int nmat = mesh->MaterialVec().size();
-    int m;
+//    int nmat = mesh->MaterialVec().size();
+  //  int m;
     
     //Cria um clone do vetor de materiais da malha mesh
     mesh->CopyMaterials(*cmesh);
@@ -565,7 +565,7 @@ REAL TPZAdaptMesh::UseTrueError(TPZInterpolatedElement *coarse,
     TPZMaterialData datacoarse;
     coarse->InitMaterialData(datacoarse);
     
-    REAL jacdetcoarse;
+//    REAL jacdetcoarse;
     int numintpoints = intrule->NPoints();
     REAL weight;
     

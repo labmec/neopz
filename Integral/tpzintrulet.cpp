@@ -3,8 +3,6 @@
  * @brief Contains the implementation of the TPZIntRuleT methods. 
  */
 
-//#include "tpztriangle.h"
-
 #include "tpzintrulet.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -18,9 +16,6 @@ TPZIntRuleT::TPZIntRuleT(int order) {
 	}
 
 	ComputingSymmetricCubatureRule(order);
-	// Checks if the cubature rule is right
-//	if(!CheckCubatureRule())
-//		PZError << "TPZIntRuleT had bad construction: order " << order << std::endl;
 }
 
 TPZIntRuleT::~TPZIntRuleT() {
@@ -53,24 +48,6 @@ REAL TPZIntRuleT::W(int i) const {
 		return 0.0;
 	}
 }
-
-/*bool TPZIntRuleT::CheckCubatureRule() {
-	int i;
-	TPZVec<REAL> point(3,0.0L);
-	long double sum = 0.0L;
-	
-	for(i=0;i<fNumInt;i++) {
-		point[0] = fLocationKsi[i];
-		point[1] = fLocationEta[i];
-		if(!pztopology::TPZTriangle::IsInParametricDomain(point))
-			break;
-		sum += fWeight[i];
-	}
-	if(i==fNumInt) {
-		if(IsZero((REAL)(sum) - pztopology::TPZTriangle::RefElVolume())) return true;
-	}
-	return false;   // because any integration point is outside of the master element
-}*/
 
 /** Symmetric Quadrature rule for triangles from:
  Linbo Zhang, Tao Cui and Hui Liu, "A SET OF SYMMETRIC QUADRATURE RULES ON 

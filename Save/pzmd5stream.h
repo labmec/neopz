@@ -22,14 +22,14 @@
 class TPZMD5Stream : public TPZStream
 {
 
-  /** @bried The MD5 signature. */
+  /** @brief The MD5 signature. */
   MD5_CTX md5_sig;
   
   unsigned char digest[MD5_DIGEST_LENGTH];
 
   int last_status; // 1 == SUCCESS
 
-  /** Return 0 if digests are equal. -2 otherwise. */ 
+  /** @brief Return 0 if digests are equal. -2 otherwise. */ 
   int compare_digests (unsigned char* d1, unsigned char* d2, unsigned int dsz)
   {
     for (unsigned i=0; i< dsz; i++)
@@ -51,8 +51,9 @@ public:
   virtual ~TPZMD5Stream() 
     {}
   
-  /** @brief Check Stream MD5 signature against MD5 signature store on file. 
-   *  Returns 0 if ok;
+  /**
+   * @brief Check Stream MD5 signature against MD5 signature store on file. 
+   * @return Returns 0 if ok;
    *          1 if an error ocurred when opening the file
    *          2 if an error ocurred when reading the MD5 from the file
    *         -1 if an error ocurred when computing this MD5 digest
@@ -67,8 +68,9 @@ public:
     return ret;
   }
 
-  /** @brief Check Stream MD5 signature against MD5 signature store on file.  
-   *  Returns 0 if ok;
+  /**
+   * @brief Check Stream MD5 signature against MD5 signature store on file.  
+   * @return Returns 0 if ok;
    *          2 if an error ocurred when reading the MD5 from the file
    *         -1 if an error ocurred when computing this MD5 digest
    *         -2 if the digests are different
@@ -99,8 +101,9 @@ public:
     return compare_digests (this_digest, file_digest, MD5_DIGEST_LENGTH);
   }
 
-  /** @brief Write computed MD5 signature to file.
-   *  Returns 0 if ok;
+  /**
+   * @brief Write computed MD5 signature to file.
+   * @return Returns 0 if ok;
    *          1 if an error ocurred when opening the file
    *          2 if an error ocurred when writing the MD5 to the file
    *         -1 if an error ocurred when computing this MD5 digest
@@ -115,8 +118,9 @@ public:
     return ret;
   }
   
-  /** @brief Write computed MD5 signature to file. 
-   *  Returns 0 if ok;
+  /**
+   * @brief Write computed MD5 signature to file. 
+   * @return Returns 0 if ok;
    *          2 if an error ocurred when writing the MD5 to the file
    *         -1 if an error ocurred when computing this MD5 digest
    *         -3 error when computing this MD5 signature (last_status != 1)
@@ -138,8 +142,9 @@ public:
     return 0; // Return OK
   }
   
-  /** @brief Reset the MD5 signature. 
-   *  Returns 1 if ok, 0 otherwise. 
+  /**
+   * @brief Reset the MD5 signature. 
+   * @return Returns 1 if ok, 0 otherwise. 
    */
   int ResetMD5() 
   {

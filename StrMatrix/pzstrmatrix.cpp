@@ -123,9 +123,10 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 	int iel;
 	int nelem = fMesh->NElements();
 	TPZElementMatrix ek(fMesh, TPZElementMatrix::EK),ef(fMesh, TPZElementMatrix::EF);
+#ifdef LOG4CXX	
 	bool globalresult = true;
 	bool writereadresult = true;
-	
+#endif
 	TPZTimer calcstiff("Computing the stiffness matrices");
 	TPZTimer assemble("Assembling the stiffness matrices");
 	TPZAdmChunkVector<TPZCompEl *> &elementvec = fMesh->ElementVec();
@@ -575,7 +576,9 @@ void *TPZStructMatrix::ThreadData::ThreadAssembly(void *threaddata)
 				// make sure we come back to look for one more element
 				keeplooking = true;
 				// Get a hold of the data
+#ifdef LOG4CXX
 				int iel = *itprocess;
+#endif
 				data->fProcessed.erase(itprocess);
 				TPZAutoPointer<TPZElementMatrix> ek = itavail->second.first;
 				TPZAutoPointer<TPZElementMatrix> ef = itavail->second.second;

@@ -129,11 +129,11 @@ int main() {
     //constru��o malha computacional
     TPZVec<int> csub(0);
     TPZManVector<TPZGeoEl *> pv(4);
-    int n1=1,level=0;
+//    int level=0;
     cout << "\nDividir ate nivel ? ";
     int resp;
     cin >> resp;
-    int nelc = firstmesh->ElementVec().NElements();
+//    int nelc = firstmesh->ElementVec().NElements();
     int el;
     
     TPZGeoEl *cpel;

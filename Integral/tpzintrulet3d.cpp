@@ -3,8 +3,6 @@
  * @brief Contains the implementation of the TPZIntRuleT3D methods. 
  */
 
-//#include "tpztetrahedron.h"
-
 #include "tpzintrulet3d.h"
 #include "pzerror.h"
 #include "pzvec.h"
@@ -15,9 +13,6 @@ TPZIntRuleT3D::TPZIntRuleT3D(int order) {
 		order = NRULESTETRAHEDRA_ORDER;
 	}
 	ComputingSymmetricCubatureRule(order);
-	// Checks if the cubature rule is right
-//	if(!CheckCubatureRule())
-//		PZError << "TPZIntRuleT3D had bad construction: order " << order << std::endl;
 }
 
 REAL TPZIntRuleT3D::W(int i) const {	
@@ -48,25 +43,6 @@ void TPZIntRuleT3D::Loc(int i, TPZVec<REAL> &Points) const {
 		PZError << "ERROR(TPZIntRuleT::loc) Out of bounds!!\n";
 	}
 }
-
-/*bool TPZIntRuleT3D::CheckCubatureRule() {
-	int i;
-	TPZVec<REAL> point(3,0.0L);
-	long double sum = 0.0L;
-	
-	for(i=0;i<fNumInt;i++) {
-		point[0] = fLocationKsi[i];
-		point[1] = fLocationEta[i];
-		point[2] = fLocationZeta[i];
-		if(!pztopology::TPZTetrahedron::IsInParametricDomain(point))
-			break;
-		sum += fWeight[i];
-	}
-	if(i==fNumInt) {
-		if(IsZero(((REAL)sum) - pztopology::TPZTetrahedron::RefElVolume())) return true;
-	}
-	return false;   // because any integration point is outside of the master element
-}*/
 
 /** Symmetric Quadrature rule for tetrahedra from:
  Linbo Zhang, Tao Cui and Hui Liu, "A SET OF SYMMETRIC QUADRATURE RULES ON 

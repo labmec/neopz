@@ -56,6 +56,17 @@ class TPZCompCloneMesh : public TPZCompMesh {
     int fh[2];		//subelements h-order refinement
     REAL fhError;	//??
     REAL fError;  //??
+	  TPZRefPattern(int id1,int id2,int id3,int p1,int p2,int h1,int h2,REAL herror,REAL error) {
+		  fId[0] = id1; fId[1] = id2; fId[2] = id3;
+		  fp[0] = p1; fp[1] = p2;
+		  fh[0] = h1; fh[1] = h2;
+		  fhError = herror; fError = error;
+	  }
+	  TPZRefPattern() {
+		  fId[0] = fId[1] = fId[2] = -1;
+		  fp[0] = fp[1] = fh[0] = fh[1] = 0;
+		  fhError = fError = 0.0;
+	  }
   };
 
   /**

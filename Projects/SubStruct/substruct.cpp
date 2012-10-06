@@ -730,8 +730,8 @@ int main5(int argc, char *argv[])
     {
         TPZCompMesh *loccmesh = new TPZCompMesh(gmesh);
         TPZAutoPointer<TPZCompMesh> cmesh(loccmesh);
-        int numthread_assemble = 0;
-        int numthread_decompose = 0;
+//        int numthread_assemble = 0;
+  //      int numthread_decompose = 0;
         TPZDohrStructMatrix dohrstruct(cmesh);
         
         dim = cmesh->Dimension();
@@ -916,7 +916,7 @@ int main2(int argc, char *argv[])
 	int sublevel = 1;
 	int plevel = 2;
 	TPZGenSubStruct sub(dim,maxlevel,sublevel);
-	int nk = 8;
+//	int nk = 8;
 	//	int ik;
 	//	for(ik=1; ik<nk; ik++)
 	//	{
@@ -1125,8 +1125,8 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 {
 	mesh->SetDimModel(3);
 	int nummat = 1;
-	STATE Ela = 1.e6;
-	STATE poisson = 0.2;
+//	STATE Ela = 1.e6;
+//	STATE poisson = 0.2;
 	TPZManVector<STATE> force(3,0.);
 	force[1] = 20.;
 	STATE ElaE = 1000., poissonE = 0.2, ElaV = 100., poissonV = 0.1; 
@@ -1145,7 +1145,7 @@ void InsertViscoElasticity(TPZAutoPointer<TPZCompMesh> mesh)
 	TPZBndCond *bc = viscoelast->CreateBC(viscoelastauto, -1, 0, val1, val2);
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
-	int index = viscoelast->PushMemItem(); //elast
+	viscoelast->PushMemItem(); //elast
 	TPZMaterial * bcauto(bc);
 	mesh->InsertMaterialObject(viscoelastauto);
 	mesh->InsertMaterialObject(bcauto);	
@@ -1156,7 +1156,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	mesh->SetDimModel(3);
 	int nummat = 1, neumann = 1, mixed = 2;
 	//	int dirichlet = 0;
-	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5, dirp2 = -6;
+	int dir1 = -1, dir2 = -2, dir3 = -3, neumann1 = -4., neumann2 = -5;   //, dirp2 = -6;
 	TPZManVector<STATE> force(3,0.);
 	//force[1] = 0.;
     
@@ -1175,7 +1175,7 @@ void InsertViscoElasticityCubo(TPZAutoPointer<TPZCompMesh> mesh)
 	
 	TPZFNMatrix<6> qsi(6,1,0.);
 	viscoelast->SetDefaultMem(qsi); //elast
-	int index = viscoelast->PushMemItem(); //elast
+	viscoelast->PushMemItem(); //elast
 	TPZMaterial * viscoelastauto(viscoelast);
 	mesh->InsertMaterialObject(viscoelastauto);
 	
@@ -1314,7 +1314,7 @@ TPZGeoMesh *MalhaPredio()
 			
 			int index = el;
 			
-			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
+			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
 		
 		gMesh->BuildConnectivity();
@@ -1451,7 +1451,7 @@ TPZGeoMesh *MalhaCubo()
 			
 			int index = el;
 			
-			TPZGeoEl * tetra = new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
+			new TPZGeoElRefPattern< pzgeom::TPZGeoTetrahedra> (index, TopolTetra, matElId, *gMesh);
 		}
 		
 		gMesh->BuildConnectivity();

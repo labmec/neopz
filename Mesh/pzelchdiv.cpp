@@ -512,9 +512,9 @@ int TPZCompElHDiv<TSHAPE>::NFluxShapeF() const{
     int in,result=0;
     int nn=TPZCompElHDiv::NConnects();
     for(in=0;in<nn;in++){
+#ifdef LOG4CXX
 				TPZConnect *con = &this->Connect(in);
 				int seqnum= con->SequenceNumber();
-#ifdef LOG4CXX
 				std::stringstream sout;
 				sout << "conect " << in<< "seq number "<<seqnum<<" num func "<<TPZCompElHDiv::NConnectShapeF(in);
 				LOGPZ_DEBUG(logger,sout.str())

@@ -7,19 +7,20 @@
 #include "TPZVTKGeoMesh.h"
 
 #include "MultiResMesh.h"
-#include "pzlog.h"
 #include "pzbstrmatrix.h"
 
 #include "pzmaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 
-#include "pzadaptmesh.h"
+//#include "pzadaptmesh.h"
 
 #include <stdio.h>
 
 #include "pzexplfinvolanal.h"
 #include "adapt.h"
+
+#include "pzlog.h"
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
@@ -56,19 +57,7 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
  * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
  */
 int main(int argc, char *argv[]) {
-	
-	/** --- To test a polygonalized sphere  *
-	 TPZVec<REAL> center(3,-3.);
-	 TPZGeoMesh *ggrid = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,1.,0.002);
-	 TPZCompMesh *cgrid = new TPZCompMesh(ggrid);
-	 TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
-	 cgrid->InsertMaterialObject(mat);
-	 cgrid->AutoBuild();
-	 std::cout << "N Elements = " << cgrid->NElements() << std::endl << "N G Elements = " << ggrid->NElements() << std::endl;
-	 TPZVTKGeoMesh::PrintGMeshVTK(ggrid,fgeom);
-	 
-	 ////  ----  END SPHERE  -----  */
-	
+
 #ifdef LOG4CXX
 	if (argc > 1) {
 		std::string logpath ( argv[1] );
@@ -97,94 +86,72 @@ int main(int argc, char *argv[]) {
 	gRefDBase.InitializeUniformRefPattern(ETriangle);
 	
 	// To visualization of the geometric mesh
-	std::ofstream fgeom("GMesh.vtk");
-	std::ofstream fgeom2("GMeshNoRef.vtk");
-	std::ofstream fgeomfromcomp("GMeshFromComp.vtk");
+	std::ofstream fgeom("GeoMesh.vtk");
 	// output files
     std::ofstream convergence("conv3d.txt");
     std::ofstream out("output.txt");
-	
-	
+
 	cout << "Generating geometric mesh bi-dimensional ...\n";
     // First rectangular mesh:
 	// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
 	// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
 	// Has 4 elements, 9 connects and 8 bc elements
     TPZGeoMesh* gmesh = new TPZGeoMesh;
-	TPZGeoMesh* gmesh2 = new TPZGeoMesh;
-	
-	/// Applying hp adaptive techniques 2012/10/01
-	
-	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-	x1[0] = 0.6; x1[1] = 0.2;    // coordinates of the upper right extreme of the rectangular mesh: (0.,0.,0.) (0.6,0.2,0.0)
-	
-	TPZManVector<int> nx(3,2);   // subdivisions in X and in Y. 
+	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
+	TPZManVector<int> nx(dim,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
-	gen.Read(gmesh2);
 	
-    // CriaÁ„o das condiÁıes de contorno geomÈtricas
+	/// Applying hp adaptive techniques 2012/10/01
+	
+	// Creating boundary condition on top and bottom of the quadrilateral domain
 //	gen.SetBC(gmesh,4,-1);
 //	gen.SetBC(gmesh,6,-2);
-//	gen.SetBC(gmesh2,4,-1);
-//	gen.SetBC(gmesh2,6,-2);
 	
-	// Refinement of the first element
+	// Refinement of the some element
 	TPZVec<TPZGeoEl *> sub;
 	for(int nele=0;nele<1;nele++) {
 		TPZGeoEl *gel = gmesh->ElementVec()[nele];
 		gel->Divide(sub);
+//		gel = sub[2];
+//		gel->Divide(sub);
 	}
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
-    // CriaÁ„o da malha computacional
+    // Creating computational mesh
     TPZCompMesh *comp = new TPZCompMesh(gmesh);
-	TPZCompMesh *comp2 = new TPZCompMesh(gmesh2);
-    
 	/** Set polynomial order */
 	int p = 1;
     TPZCompEl::SetgOrder(p);
   
-	// Criar e inserir os materiais na malha
+	// Creating and inserting materials into computational mesh
     TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
     comp->InsertMaterialObject(mat);
-	comp2->InsertMaterialObject(mat);
-    
-    // CondiÁıes de contorno
+    // Boundary conditions
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
     TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
-    comp2->InsertMaterialObject(bnd);
     bnd = mat->CreateBC (mat,-2,0,val1,val2);
 	// Neumann
     TPZFMatrix<REAL> val3(3,3,1);
     val2(0,0)=1.;
     bnd = mat->CreateBC(mat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
-    comp2->InsertMaterialObject(bnd);
     
-    // Ajuste da estrutura de dados computacional
+    // Constructing and adjusting computational mesh
     comp->AutoBuild();
-    comp2->AutoBuild();
-    //  comp->Print(cout);
     comp->AdjustBoundaryElements();
-    comp2->AdjustBoundaryElements();
-    //  comp->Print(cout);
     comp->CleanUpUnconnectedNodes();
-    comp2->CleanUpUnconnectedNodes();
     
     comp->SetName("Malha Computacional Com Refinamento");
-    comp2->SetName("Malha Computacional Sem Refinamento");
 	
 	//--- END construction of the meshes
 	
 	// Printing geo mesh to check
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,fgeom);
-	TPZVTKGeoMesh::PrintGMeshVTK(comp2->Reference(),fgeom2);
-	TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(),fgeomfromcomp);
 	
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -260,9 +227,7 @@ int main(int argc, char *argv[]) {
 		
 		// Introduzing exact solution depending on the case
 		TPZAnalysis an (comp);
-		TPZAnalysis an2(comp2);
 		an.SetExact(Exact);
-		an2.SetExact(Exact);
 		
 		{
 			std::stringstream sout;
@@ -271,69 +236,49 @@ int main(int argc, char *argv[]) {
 			an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
 		}
 		std::string MeshFileName;
-		std::string MeshFileName2;
 		{
 			std::stringstream sout;
-			std::stringstream sout2;
 			int angle = (int) (alfa*180./M_PI + 0.5);
 			sout << "meshAngle" << angle << "." << r << ".vtk";
-			sout2 << "mesh2Angle" << angle << "." << r << ".vtk";
 			MeshFileName = sout.str();
-			MeshFileName = sout2.str();
 		}
 
 		comp->SetName("Malha computacional adaptada");
 		// Printing geometric and computational mesh
-		comp->Reference()->Print(std::cout);
+		// comp->Reference()->Print(std::cout);
 		comp->Print(std::cout);
 		
 		// Solve using symmetric matrix then using Cholesky (direct method)
-		TPZSkylineStructMatrix strskyl(comp), strskyl2(comp2);
+		TPZSkylineStructMatrix strskyl(comp);
 		an.SetStructuralMatrix(strskyl);
-		an2.SetStructuralMatrix(strskyl2);
 		
 		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
 		direct->SetDirect(ECholesky);
 		an.SetSolver(*direct);
-		an2.SetSolver(*direct);
 		delete direct;
 		direct = 0;
 		
 		an.Run();
-		an2.Run();
 		
 		// Post processing
 		an.PostProcess(0,dim);
-		an2.PostProcess(4,dim);
 		{
 			std::ofstream out(MeshFileName.c_str());
 			comp->LoadReferences();
 			TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
-			std::ofstream out2(MeshFileName2.c_str());
-			comp2->LoadReferences();
-			TPZVTKGeoMesh::PrintCMeshVTK(comp2->Reference(), out2, false);
-			
 		}
 		
 		return 0;
-		
+		/*
 		REAL valerror =0.;
 		REAL valtruerror=0.;
 		TPZVec<REAL> ervec,truervec,effect;
-		
-		//Multigrid==========================================
-		//       finemesh = mgan.UniformlyRefineMesh(finemesh);
-		//       mgan.AppendMesh(finemesh);
-		//       mgan.Run();
-		//       TPZCompMesh *adaptive = mgan.RefinementPattern(finemesh,cmesh,error,truerror,effect);
-		//===================================================
 		
 		TPZAdaptMesh adapt;
 		adapt.SetCompMesh (comp);
 		
 		std::cout << "\n\n\n\nEntering Auto Adaptive Methods... step " << r << "\n\n\n\n";
-		
-		//if(r==4) gPrintLevel = 1;
+
 		time_t sttime;
 		time (& sttime);
 		TPZCompMesh *adptmesh;
@@ -380,7 +325,7 @@ int main(int argc, char *argv[]) {
 		comp = adptmesh;
 		
 		comp->CleanUpUnconnectedNodes();
-		
+		*/
 	}
 	/* Uniform refinement. Two times
 	 UniformRefinement(2,gmesh3D,3);
@@ -436,6 +381,38 @@ int main(int argc, char *argv[]) {
 	 */
 }
 
+#include "TPZGenSpecialGrid.h"
+
+int main2() {
+	// To visualization of the geometric mesh
+	std::ofstream fgeom("GeoMeshByTolerance.vtk");
+	std::ofstream fgeom2("GeoMeshByNRefinements.vtk");
+
+	/** --- To test a polygonalized sphere using a tolerance defined */
+	 TPZVec<REAL> center(3,-3.);
+	REAL radius = 0.5;
+	REAL tol = 0.002;
+	 TPZGeoMesh *ggrid = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,radius,tol);
+	 TPZCompMesh *cgrid = new TPZCompMesh(ggrid);
+	 TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+	 cgrid->InsertMaterialObject(mat);
+	 cgrid->AutoBuild();
+	 std::cout << "N Elements = " << cgrid->NElements() << std::endl << "N G Elements = " << ggrid->NElements() << std::endl;
+	 TPZVTKGeoMesh::PrintGMeshVTK(ggrid,fgeom);
+
+	/** --- To test a polygonalized sphere using number of refinements */
+	int nrefs = 5;
+	TPZGeoMesh *ggrid2 = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,radius,nrefs);
+	TPZCompMesh *cgrid2 = new TPZCompMesh(ggrid2);
+	cgrid2->InsertMaterialObject(mat);
+	cgrid2->AutoBuild();
+	std::cout << "N Elements = " << cgrid2->NElements() << std::endl << "N G Elements = " << ggrid2->NElements() << std::endl;
+	TPZVTKGeoMesh::PrintGMeshVTK(ggrid2,fgeom2);
+	
+	 ////  ----  END SPHERE  -----  */
+	return 0;
+}
+	
 /** Exact solutions to calculate the rate of convergence */
 
 static REAL onethird = 0.33333333333333333;

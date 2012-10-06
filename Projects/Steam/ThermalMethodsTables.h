@@ -465,7 +465,7 @@ inline T DataInTable::getInterpolatedValue(double initialvar,double initialvalue
 template<class T>
 inline T DataInTable::getInterpolatedValue(T temp,int indexproperty) {
 	int index = getIndex(temp);
-	if(index < 0 || !fTable.size() || indexproperty < 0 || (indexproperty+1) > fTable[0].size()) return T(0.0);
+	if(index < 0 || !fTable.size() || indexproperty < 0 || (indexproperty+1) > ((int)fTable[0].size())) return T(0.0);
 	// aqui ja temos valores validos de index e de indexproperty
 	if(!index) return T(fTable[0][indexproperty]);
 	T value = getInterpolatedValue(fTable[index-1][fIndependentVarIndex],fTable[index-1][indexproperty],fTable[index][fIndependentVarIndex],fTable[index][indexproperty],temp);
