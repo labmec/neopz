@@ -8,6 +8,6 @@ set(pzclass3 ${source} PARENT_SCOPE)
 
 add_executable(CursoPZ3_Jacobian ${source} ${header})
 
-target_link_libraries(CursoPZ3_Jacobian pz pthread)
+target_link_libraries(CursoPZ3_Jacobian pz)
 
 include (CTestTestFile.cmake)

@@ -5,6 +5,6 @@ set(main_SRCS ${sources})
 
 add_executable(Validacao ${main_SRCS})
 
-target_link_libraries(Validacao pz pthread)
+target_link_libraries(Validacao pz)
 
 #include (CTestTestFile.cmake)

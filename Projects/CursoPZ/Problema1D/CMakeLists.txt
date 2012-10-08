@@ -6,5 +6,5 @@ file(GLOB source *.cpp)
 
 add_executable(Problema1D ${source} ${header})
 
-target_link_libraries(Problema1D pz pthread)
+target_link_libraries(Problema1D pz)
 

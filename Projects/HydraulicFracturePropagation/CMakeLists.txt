@@ -8,5 +8,5 @@ set(main_SRCS HydrFractPropag.cpp)
 
 add_executable(HydraulicFracturePropagation ${main_SRCS} ${header} ${pzplanefracture_STAT_SRCS})
 
-target_link_libraries(HydraulicFracturePropagation pz pthread)
+target_link_libraries(HydraulicFracturePropagation pz)
 

@@ -6,4 +6,4 @@ file(GLOB sources ../AnalyticalFunctions.cpp ../Elasticitytensordata.cpp ../Elas
 set(Mymain Main.cpp ${sources} ${headers})
 
 add_executable(Poroelastic2D_App ${Mymain})
-target_link_libraries(Poroelastic2D_App pz pthread)
+target_link_libraries(Poroelastic2D_App pz)

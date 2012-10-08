@@ -8,5 +8,5 @@ set(pzclass6 ${source} PARENT_SCOPE)
 
 add_executable(CursoPZ_Elasticity2D ${source} ${header})
 
-target_link_libraries(CursoPZ_Elasticity2D pz pthread)
+target_link_libraries(CursoPZ_Elasticity2D pz)
 

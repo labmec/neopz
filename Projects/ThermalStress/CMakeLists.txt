@@ -6,6 +6,6 @@ file(GLOB sources *.cpp)
 
 add_executable(ThermalStress ${sources} ${header})
 
-target_link_libraries(ThermalStress pz pthread)
+target_link_libraries(ThermalStress pz)
 
 include (CTestTestFile.cmake)

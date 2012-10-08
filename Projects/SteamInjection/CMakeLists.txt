@@ -7,6 +7,6 @@ set(main_SRCS ${sources} ${headers})
 
 add_executable(SteamInjection ${main_SRCS} ${headers})
 
-target_link_libraries(SteamInjection pz pthread)
+target_link_libraries(SteamInjection pz)
 
 #include (CTestTestFile.cmake)

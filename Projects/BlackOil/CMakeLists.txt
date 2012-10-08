@@ -8,7 +8,7 @@ set(main_SRCS
 
 add_executable(BlackOil ${main_SRCS})
 
-target_link_libraries(BlackOil pz pthread)
+target_link_libraries(BlackOil pz)
 
 install(TARGETS BlackOil ${INSTALL_TARGETS_DEFAULT_ARGS})
 

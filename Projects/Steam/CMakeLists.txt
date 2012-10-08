@@ -16,7 +16,7 @@ set(main_SRCS ${locheaders} ${MarxLang_SRCS})
 
 add_executable(Steam_MarxLang ${main_SRCS} ${locheader})
 
-target_link_libraries(Steam_MarxLang pz pthread)
+target_link_libraries(Steam_MarxLang pz)
 
 set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
     TPBrSteamSimulation.cpp tpbrthermaldisc.cpp tpbrthermalsolution.cpp ThermalMethodsTables.cpp ConvertionMethods.cpp tpbrcellconservation.cpp PropertiesTable.cpp
@@ -24,7 +24,7 @@ set(steam_SRCS tpbrsolutionlist.cpp tpbrsteamflux.cpp tpbrsteammesh.cpp
 
 add_executable(Steam ${steam_SRCS} ${locheader})
 
-target_link_libraries(Steam pz pthread)
+target_link_libraries(Steam pz)
 
 include (CTestTestFile.cmake)
 

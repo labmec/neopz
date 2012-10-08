@@ -8,6 +8,6 @@ set(pzclass5 ${source} PARENT_SCOPE)
 
 add_executable(CursoPZ5_ComputMesh ${source} ${header})
 
-target_link_libraries(CursoPZ5_ComputMesh pz pthread)
+target_link_libraries(CursoPZ5_ComputMesh pz)
 
 #include (CTestTestFile.cmake)

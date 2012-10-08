@@ -8,5 +8,5 @@ file(GLOB source *.cpp)
 
 add_executable(MiProyecto2D ${source} ${header})
 
-target_link_libraries(MiProyecto2D pz pthread)
+target_link_libraries(MiProyecto2D pz)
 

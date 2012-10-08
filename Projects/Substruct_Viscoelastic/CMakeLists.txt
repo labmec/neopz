@@ -5,7 +5,7 @@ file(GLOB header *.h)
 
 add_executable(Substruct_Viscoelastic ${source} ${header})
 
-target_link_libraries(Substruct_Viscoelastic pz pthread)
+target_link_libraries(Substruct_Viscoelastic pz)
 
 #configure_file(8andares02.txt 8andares02.txt COPYONLY)
 

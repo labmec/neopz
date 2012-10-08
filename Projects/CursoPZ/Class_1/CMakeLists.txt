@@ -8,6 +8,6 @@ set(pzclass1 ${source} PARENT_SCOPE)
 
 add_executable(CursoPZ1_NumIntegration ${source} ${header})
 
-target_link_libraries(CursoPZ1_NumIntegration pz pthread)
+target_link_libraries(CursoPZ1_NumIntegration pz)
 
 include (CTestTestFile.cmake)

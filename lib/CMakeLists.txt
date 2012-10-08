@@ -39,6 +39,15 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 
 #creating target pz library and installing it
 add_library(pz ${pzsources})
+target_link_libraries(pz ${PTHREAD_LIB})
+
+if (USING_LOG4CXX)
+  target_link_libraries(pz ${LOG4CXX_LIB})
+endif()
+
+if (USING_METIS)
+  target_link_libraries(pz ${METIS_LIB})
+endif()
 
 install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
 

@@ -8,6 +8,6 @@ if(USING_FAD)
 
 	add_executable(HyperElasticityFAD ${main_SRCS} ${header})
 
-	target_link_libraries(HyperElasticityFAD pz pthread)
+	target_link_libraries(HyperElasticityFAD pz)
 
 endif()

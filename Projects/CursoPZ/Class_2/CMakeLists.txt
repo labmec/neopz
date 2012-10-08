@@ -8,7 +8,7 @@ set(pzclass2 ${source} PARENT_SCOPE)
 
 add_executable(CursoPZ2_MatrixSolver ${source} ${header})
 
-target_link_libraries(CursoPZ2_MatrixSolver pz pthread)
+target_link_libraries(CursoPZ2_MatrixSolver pz)
 
 include (CTestTestFile.cmake)
 

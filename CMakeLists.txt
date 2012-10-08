@@ -34,33 +34,9 @@ include_directories(
 	"${PROJECT_SOURCE_DIR}/External/sloan"
  )
 
-#MESSAGE( STATUS "RUNTIME_DIR:         " ${RUNTIME_OUTPUT_DIRECTORY} )
-
-
 #To insert doxygen documentation file and other text files into the project environment (to facility changes)
 #Grouping CMakeList.txt for pz Projects - UnitTest_PZ
 file(GLOB_RECURSE makefiles *Lists.txt)
-
-#If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
-#foreach(arq ${makefiles}) 
-#	string(FIND ${arq} "Project" val)
-#	if(${val} LESS 0)
-#		string(FIND ${arq} "UnitTest" val)
-#		if(${val} GREATER -1)
-#			list(APPEND makefilesunittest ${arq})
-#		else()
-#			string(FIND ${arq} "lib" val)
-#			if(val LESS 0)
-#				string(FIND ${arq} "neopz/CMakeList" val)
-#				if(val LESS 0)
-#					list(APPEND makefilespz ${arq})
-#				endif()
-#			endif()
-#		endif()
-#	else()
-#		list(APPEND makefilesproject ${arq})
-#	endif()
-#endforeach()
 
 file(GLOB_RECURSE doxyfiles Documentation/*.h ./dox*.h)
 
@@ -95,7 +71,6 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 
 #To search files or libraries
 	set(SEARCH_DIRS ENV PATH /usr/include /usr/local/include /usr/local/include/boost /usr/local/include/log4cxx /usr/local/include/tbb /usr/lib /usr/lib64 /usr/local/lib ./. ./.. ./../libs ./../libs/fad ./../libs/metis ./../libs/metis/include ./../libs/metis/lib ./../externallibs ./../externallibs/fad ./../externallibs/metis ./../externallibs/metis/include ./../externallibs/metis/lib ./..metis ./../metis/include ./../metis/lib ./externallibs/lib ./externallibs/include ./../externallibs/lib ./../externallibs/include)
-
 #To install neopz/include
 	set(NEOPZ_INCLUDE ${PROJECT_SOURCE_DIR}/../externallibs/neopz/include)
 #To install neopz library
@@ -105,16 +80,14 @@ add_definitions(-DREFPATTERNDIR=\"${PROJECT_SOURCE_DIR}/Refine/RefPatterns\")
 
 #enabling pthread library
 find_path(PTHREAD_INCLUDE NAMES PThread.h pthread.h PATHS ${SEARCH_DIRS})
-find_path(PTHREAD_LIB NAMES libpthread.dylib pthread.lib pthreadVC2.lib libPThread.a libpthread.a PATHS ${SEARCH_DIRS})
+find_library(PTHREAD_LIB NAMES libpthread.dylib pthread.lib pthreadVC2.lib libPThread.so libPThread.a libpthread.so libpthread.a PATHS ${SEARCH_DIRS})
 if(PTHREAD_INCLUDE-NOTFOUND)
-	set (PTHREAD_INCLUDE "/usr/include" CACHE PATH "Directory where pthread.h can be found")
+	set (PTHREAD_INCLUDE "" CACHE PATH "Directory where pthread.h can be found")
 endif()
 if(PTHREAD_LIB-NOTFOUND)
-	set (PTHREAD_LIB "/usr/lib" CACHE PATH "Directory where the pthread library can be found")
+	set (PTHREAD_LIB "" CACHE PATH "Directory where the pthread library can be found")
 endif()
 include_directories(${PTHREAD_INCLUDE})
-link_directories(${PTHREAD_LIB})
-link_libraries(pthread)
 
 #enabling Boost library 
 option(USING_BOOST "Whether the Boost package will be linked with the library" OFF)
@@ -144,7 +117,7 @@ endif(USING_BOOST)
 option(USING_FAD "Whether the FAD package will be linked with the library" OFF)
 if(USING_FAD)
 	add_definitions(-D_AUTODIFF)
-	find_path(FAD_INCLUDE fadtype.h PATHS ${SEARCH_DIRS} ./../FAD ./FAD)
+	find_path(FAD_INCLUDE fadtype.h fadType.h PATHS ${SEARCH_DIRS} ./../FAD ./FAD ./externallibs/FAD ./../externallibs/FAD)
 	if(FAD_INCLUDE-NOTFOUND)
 		set(FAD_INCLUDE CACHE PATH "Directory to the source of FAD")
 	else()
@@ -157,16 +130,14 @@ option(USING_LOG4CXX "Whether the LOG4CXX library will be linked in" OFF)
 if(USING_LOG4CXX)
 	add_definitions(-DLOG4CXX)
 	find_path(LOG4CXX_INCLUDE log4cxx PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/include)
-	find_library(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.a liblog4cxx.so PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/lib)
+	find_library(LOG4CXX_LIB NAMES liblog4cxx.dylib log4cxx.lib liblog4cxx.so liblog4cxx.a PATHS ${SEARCH_DIRS} ./../log4cxx ./../log4cxx/lib ./../externallibs/lib/${CMAKE_CONFIGURATION_TYPES})
 	if(LOG4CXX_INCLUDE-NOTFOUND)
-		set (LOG4CXX_INCLUDE "/usr/local/include" CACHE PATH "Directory where log4cxx header files can be found")
+		set (LOG4CXX_INCLUDE "" CACHE PATH "Directory where log4cxx header files can be found")
 	else()
 		include_directories(${LOG4CXX_INCLUDE})
 	endif()
 	if(LOG4CXX_LIB-NOTFOUND)
-		set (LOG4CXX_LIB "/usr/local/lib" CACHE PATH "Directory where the log4cxx library can be found")
-	else()
-		link_libraries(${LOG4CXX_LIB})
+		set (LOG4CXX_LIB "" CACHE PATH "Directory where the log4cxx library can be found")
 	endif()
 endif(USING_LOG4CXX)
 
@@ -175,16 +146,14 @@ option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)
 	add_definitions(-DUSING_METIS)
 	find_path(METIS_INCLUDE metis.h PATHS ${SEARCH_DIRS})
-	find_library(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.a PATHS ${SEARCH_DIRS})
+	find_library(METIS_LIB NAMES libmetis.dylib metis.lib libmetis.so libmetis.a PATHS ${SEARCH_DIRS})
 	if(METIS_INCLUDE-NOTFOUND)
-		set (METIS_INCLUDE "/usr/local/include" CACHE PATH "Directory where metis header files can be found")
+		set (METIS_INCLUDE "" CACHE PATH "Directory where metis header files can be found")
 	else()
 		include_directories(${METIS_INCLUDE})
 	endif()
 	if(METIS_LIB-NOTFOUND)
-		set (METIS_LIB "/usr/local/lib" CACHE PATH "Directory where the metis library can be found")
-	else()
-		link_libraries(${METIS_LIB})
+		set (METIS_LIB "" CACHE PATH "Directory where the metis library can be found")
 	endif()
 endif(USING_METIS)
 
@@ -202,12 +171,12 @@ if(USING_TBB)
 	find_path(TBB_INCLUDE tbb.h PATHS ${SEARCH_DIRS})
 	find_library(TBB_LIB NAMES libtbb.dylib libtbb.so PATHS ${SEARCH_DIRS})
 	if(TBB_INCLUDE-NOTFOUND)
-		set (TBB_INCLUDE "/usr/local/include" CACHE PATH "Directory where tbb header files can be found")
+		set (TBB_INCLUDE "" CACHE PATH "Directory where tbb header files can be found")
 	else()
 		include_directories(${TBB_INCLUDE})
 	endif()
 	if(TBB_LIB-NOTFOUND)
-		set (TBB_LIB "/usr/local/lib" CACHE PATH "Directory where the tbb library can be found")
+		set (TBB_LIB "" CACHE PATH "Directory where the tbb library can be found")
 	else()
 		link_libraries(${TBB_LIB})
 	endif()
@@ -303,13 +272,8 @@ endif()
 set(CONFIG_H "${CMAKE_BINARY_DIR}/Common/config.h")
 set(FILE_DEFINITIONS "${CONFIG_H}")
 FILE(WRITE ${FILE_DEFINITIONS}
-"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
-"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
-"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
-"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "#ifndef ${REAL_TYPE_DEF}\n#define ${REAL_TYPE_DEF}\n#endif\n"
 "#ifndef ${STATE_TYPE_DEF}\n#define ${STATE_TYPE_DEF}\n#endif\n"
-"//DO NOT COMMIT THIS FILE, LOCAL USE ONLY\n\n"
 "${VC}\n"
 )
 #Specify where the config.h is located and add it to install list
@@ -323,6 +287,7 @@ add_subdirectory(PerfUtil)
 if(BUILD_PERF_TESTS)
 	add_subdirectory(PerfTests)
 endif()
+
 add_subdirectory(Util)
 add_subdirectory(Common)
 add_subdirectory(Save)
@@ -353,11 +318,34 @@ if(BUILD_UNITTESTING)
 	add_subdirectory(UnitTest_PZ)
 endif()
 
+#Enabling tests
+ENABLE_TESTING()
+
+
+#################################################################3
 
 #Creating log file to cmake process  -- it's temporary, only to check variable contents
 #set(LogFile "${PROJECT_SOURCE_DIR}/LogCMake.txt"
 #	CACHE STRING "Log file to control CMake process"
 #	) 
 
-#Enabling tests
-ENABLE_TESTING()
+#If your CMake version is less than 2.8.5 but up to 2.6 the following loop must to be commented, because the FIND command isn't in that 
+#foreach(arq ${makefiles}) 
+#	string(FIND ${arq} "Project" val)
+#	if(${val} LESS 0)
+#		string(FIND ${arq} "UnitTest" val)
+#		if(${val} GREATER -1)
+#			list(APPEND makefilesunittest ${arq})
+#		else()
+#			string(FIND ${arq} "lib" val)
+#			if(val LESS 0)
+#				string(FIND ${arq} "neopz/CMakeList" val)
+#				if(val LESS 0)
+#					list(APPEND makefilespz ${arq})
+#				endif()
+#			endif()
+#		endif()
+#	else()
+#		list(APPEND makefilesproject ${arq})
+#	endif()
+#endforeach()

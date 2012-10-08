@@ -8,7 +8,7 @@ set(multigrid_SRCS main.cpp)
 
 add_executable(multigrid ${multigrid_SRCS})
 
-target_link_libraries(multigrid ${KDE4_KDECORE_LIBS} pthread)
+target_link_libraries(multigrid ${KDE4_KDECORE_LIBS})
 
 install(TARGETS multigrid ${INSTALL_TARGETS_DEFAULT_ARGS})
 

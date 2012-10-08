@@ -10,10 +10,10 @@ set(main2_SRCS mainGUI.cpp ${sources} ${headers})
 if(USING_FAD)
 
 	add_executable(Plasticity ${main1_SRCS})
-	target_link_libraries(Plasticity pz pthread)
+	target_link_libraries(Plasticity pz)
 
 	add_executable(PlasticityGUI ${main2_SRCS})
-	target_link_libraries(PlasticityGUI pz pthread)
+	target_link_libraries(PlasticityGUI pz)
 	
 	file(COPY SnubDodecahedron.txt DESTINATION .)
 

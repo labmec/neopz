@@ -4,11 +4,7 @@ if(USING_FAD)
 
 	add_executable(ShapeFAD ${main_SRCS})
 
-	if(USING_METIS)
-		target_link_libraries(ShapeFAD pz metis)
-	else()
-		target_link_libraries(ShapeFAD pz)
-	endif()
+	target_link_libraries(ShapeFAD pz)
 
 	install(TARGETS ShapeFAD ${INSTALL_TARGETS_DEFAULT_ARGS})
 

@@ -7,9 +7,9 @@ add_executable(SubStruct ${main})
 
 add_executable(SubStruct_Test ${test})
 
-target_link_libraries(SubStruct pz pthread)
+target_link_libraries(SubStruct pz)
 
-target_link_libraries(SubStruct_Test pz pthread)
+target_link_libraries(SubStruct_Test pz)
 
 #configure_file(8andares02.txt 8andares02.txt COPYONLY)
 
