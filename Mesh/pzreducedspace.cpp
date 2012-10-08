@@ -160,6 +160,10 @@ void TPZReducedSpace::ComputeRequiredData(TPZMaterialData &data,
     if (data.fNeedsHSize){
 		data.HSize = 2.*this->InnerRadius();
 	}//fNeedHSize
+    
+    if(data.fNeedsNormal){
+        this->ComputeNormal(data);
+    }
     data.x.Resize(3., 0.);
     Reference()->X(qsi, data.x);
     
@@ -312,21 +316,37 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
     }
 	
     TPZBlock<STATE> &block = Mesh()->Block();
-    int iv = 0, d;
-    for(int in=0; in<ncon; in++) {
-		TPZConnect *df = &this->Connect(in);
-		int dfseq = df->SequenceNumber();
-		int dfvar = block.Size(dfseq);
-		int pos = block.Position(dfseq);
-		for(int jn=0; jn<dfvar; jn++) {
-            for (int is=0; is<numbersol; is++) {
-                sol[is][iv] += (STATE)phi(iv,jn)*MeshSol(pos+jn,is);                
-                for(d=0; d<dim*numdof; d++){
-                    dsol[is](d%dim,iv/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
-                }
+    int d;
+    TPZConnect *df = &this->Connect(0);
+    int dfseq = df->SequenceNumber();
+    int dfvar = block.Size(dfseq);
+    int pos = block.Position(dfseq);
+    for(int jn=0; jn<dfvar; jn++) {
+#ifdef DEBUG
+        {
+            if(phi.Rows() != numdof)
+            {
+                DebugStop();
             }
-			iv++;
-		}
+            if (phi.Cols() != dfvar) {
+                DebugStop();
+            }
+            if (dphix.Rows() != dim*numdof) {
+                DebugStop();
+            }
+            if (dphix.Cols() != dfvar) {
+                DebugStop();
+            }
+            
+        }
+#endif
+        for (int is=0; is<numbersol; is++) {
+            sol[is][jn%numdof] += (STATE)phi(jn%numdof,jn/numdof)*MeshSol(pos+jn,is);
+            for(d=0; d<dim*numdof; d++){
+                //dsol[is](d%dim,iv/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
+                dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn/numdof)*MeshSol(pos+jn,is);
+            }
+        }
     }
 }
 
