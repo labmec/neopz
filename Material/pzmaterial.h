@@ -108,6 +108,20 @@ public:
             data.fNeedsSol = true;
         }
     }
+    
+    /** @brief This method defines which parameters need to be initialized in order to compute the contribution of the boundary condition */
+    virtual void FillBoundaryConditionDataRequirement(int type,TPZVec<TPZMaterialData > &datavec)
+    {
+        // default is no specific data requirements
+        int nref = datavec.size();
+        if(type == 50)
+        {
+            for(int iref = 0; iref<nref; iref++){
+                datavec[iref].fNeedsSol = true;
+            }
+        }
+    }
+
 	
     
     /** @brief Returns the name of the material */
