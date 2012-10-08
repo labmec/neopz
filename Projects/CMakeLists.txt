@@ -130,6 +130,7 @@ ENABLE_TESTING()
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
 			add_subdirectory(ReducedSpace)
+			add_subdirectory(StabilizedHybridElasticity)
 			#
 			#
 			
