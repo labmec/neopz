@@ -306,3 +306,19 @@ void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
 		data.fNeedsSol = true;
 	}
 }
+
+void TPZBndCond::FillDataRequirements(TPZVec<TPZMaterialData> &datavec){
+	if(!fMaterial)
+	{
+		PZError << "\nUnable to call TPZBndCond::fMaterial::FillDataRequirements - fMaterial pointer is null!\n";
+		return;
+	}
+	fMaterial->FillBoundaryConditionDataRequirement(fType,datavec);
+    int nref = datavec.size();
+    
+	if(fLinearContext == false){
+        for(int iref=0; iref<nref; iref++){
+            datavec[iref].fNeedsSol = true;
+        }
+	}
+}

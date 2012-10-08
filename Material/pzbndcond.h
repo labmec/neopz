@@ -311,6 +311,8 @@ protected:
 	
 	/** @brief Calls the aggregate material correspondent function */
 	virtual void FillDataRequirements(TPZMaterialData &data);
+    
+    virtual void FillDataRequirements(TPZVec<TPZMaterialData> &datavec);
 	
 };
 
