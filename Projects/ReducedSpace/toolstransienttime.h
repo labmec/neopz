@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "pzelastpressure.h"
+#include "pznlfluidstructure2d.h"
 #include "pzcmesh.h"
 #include "pzvec.h"
 #include "pzmatrix.h"
@@ -28,11 +29,11 @@ class ToolsTransient {
     
     ~ToolsTransient();
     
-    static void SolveSistTransient(REAL deltaT,REAL maxTime, TPZElastPressure * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
+    static void SolveSistTransient(REAL deltaT,REAL maxTime, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics);
     
-    static TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZElastPressure *mymaterial, TPZCompMesh *mphysics);
+    static TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics);
     
-    static void StiffMatrixLoadVec(TPZElastPressure *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
+    static void StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec);
     
     static TPZCompMesh *CMeshProjectionL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini);
     
