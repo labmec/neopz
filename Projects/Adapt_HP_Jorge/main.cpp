@@ -110,13 +110,24 @@ int main(int argc, char *argv[]) {
 	gen.SetBC(gmesh,6,-2);
 	
 	// Refinement of the some element
+	TPZGeoEl *gel;
 	TPZVec<TPZGeoEl *> sub;
-	for(int nele=0;nele<1;nele++) {
-		TPZGeoEl *gel = gmesh->ElementVec()[nele];
+	TPZVec<TPZGeoEl *> subsub;
+	int nele = 0;
+	int ngelem = gmesh->NElements()-1;
+	for(;nele<ngelem;nele++) {
+		gel = gmesh->ElementVec()[nele];
+		if(gel->Dimension() != 2) continue;
 		gel->Divide(sub);
-		gel = sub[2];
-		gel->Divide(sub);
+		int jj = 2;
+		for(jj=0;jj<4;jj++) {
+			gel = sub[jj];
+			gel->Divide(subsub);
+		}
 	}
+	gel = subsub[0];
+	gel->Divide(sub);
+	
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
 	
@@ -131,20 +142,20 @@ int main(int argc, char *argv[]) {
     comp->InsertMaterialObject(mat);
     // Boundary conditions
     // Dirichlet
-    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,0.);
+    TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
+	val1(0,0) = val1(1,1) = 1.;
     TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
-    bnd = mat->CreateBC (mat,-2,0,val1,val2);
+//    bnd = mat->CreateBC (mat,-2,0,val1,val2);
 	// Neumann
-    TPZFMatrix<REAL> val3(3,3,1);
-    val2(0,0)=1.;
+    val2(0,0)=3.;
     bnd = mat->CreateBC(mat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
     
     // Constructing and adjusting computational mesh
     comp->AutoBuild();
-    comp->AdjustBoundaryElements();
-    comp->CleanUpUnconnectedNodes();
+    comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
+    comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
     
     comp->SetName("Malha Computacional Com Refinamento");
 	
@@ -224,7 +235,10 @@ int main(int argc, char *argv[]) {
 	// INITIAL POINT FOR SOLVING AND APPLYING REFINEMENT
 	
 	for(r=0;r<NUniformRefs;r++) {
-		
+
+		// Printing computational mesh to information
+		if(comp->NElements() < 200)
+			comp->Print(std::cout);
 		// Introduzing exact solution depending on the case
 		TPZAnalysis an (comp);
 		an.SetExact(Exact);
@@ -244,9 +258,6 @@ int main(int argc, char *argv[]) {
 		}
 
 		comp->SetName("Malha computacional adaptada");
-		// Printing geometric and computational mesh
-		// comp->Reference()->Print(std::cout);
-		comp->Print(std::cout);
 		
 		// Solve using symmetric matrix then using Cholesky (direct method)
 		TPZSkylineStructMatrix strskyl(comp);
