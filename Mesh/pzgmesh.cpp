@@ -402,7 +402,7 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targetDim)
 {
     TPZGeoEl * gel = this->ElementVec()[fInitialElId]->HighestFather();
     qsi.Resize(gel->Dimension(), 0.);
@@ -419,6 +419,10 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
         while(mySide != neighSide && targetNeighFound == false)
         {
             if(neighSide.Element()->HighestFather() == mySide.Element()->HighestFather())
+            {
+                neighSide = neighSide.Neighbour();
+            }
+            else if(targetDim > 0 && neighSide.Element()->Dimension() != targetDim)
             {
                 neighSide = neighSide.Neighbour();
             }
@@ -487,7 +491,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi)
             int sonPosition = dist.begin()->second;//smaller distance to parametric domain
 
             qsi = qsiSonVec[sonPosition];
-            son = gel->SubElement(sonPosition);
+            son = subElements[sonPosition];
             fInitialElId = son->Id();
 
             return son;
