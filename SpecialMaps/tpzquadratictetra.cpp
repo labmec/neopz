@@ -78,15 +78,6 @@ void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
 #ifdef DEBUG
 	int nnodes = NNodes;
 	if (nnodes != 10) { PZError << "TPZGeoTetrahedra.jacobian only implemented for\n10 nodes, NumberOfNodes = " << nnodes << "\n"; }
-	if(param.NElements() != 3 || param[0] < -0.001 || param[0] >  1.001 || 
-	   param[1] < -0.001 || param[1] >  1.001 || param[2] < -0.001 || param[2] > 1.001 || (param[0]+param[1]+param[2]) > 1.001)
-	{
-		PZError << "TPZGeoTetrahedra.jacobian. param out of range : "
-		" param.NElements() = " << param.NElements() <<
-		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-		PZError << (param.NElements() != 3) << " " << (param[0] < -0.001) << " " << (param[0] > 1.001) << " " << (param[1] < -0.001) << " " <<  (param[1] > 1.001) << " " << (param[2] < -0.001) << " " << (param[2] > 1.001) << " " << ((param[0]+param[1]+param[2]) > 1.001) << endl;
-		return;
-	}
 #endif
 	
 	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
@@ -112,6 +103,16 @@ void TPZQuadraticTetra::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
 	detjac -= jacobian(0,0)*jacobian(1,2)*jacobian(2,1);//- a00 a12 a21
 	detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
 	detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
+    
+    if(IsZero(detjac))
+    {
+#ifdef DEBUG
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+#endif
+        detjac = ZeroTolerance();
+    }
 	
 	jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
 	jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22

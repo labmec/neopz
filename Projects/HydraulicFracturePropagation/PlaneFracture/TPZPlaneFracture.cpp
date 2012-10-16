@@ -173,6 +173,8 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
 
 int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initial2DElId, TPZVec<REAL> & x, TPZVec<REAL> & qsi, int planeAxe0, int planeAxe1, int planeNormal, bool justFathers)
 {
+    return PlaneMesh->FindElement(x, qsi, 2)->Id();
+    
     TPZManVector<REAL,3> xproj(x);
     xproj[planeNormal] = 0.;
     
@@ -263,6 +265,8 @@ int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & init
 
 TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initial2DElId, TPZGeoMesh * fullMesh)
 {
+    return fullMesh->FindElement(x, qsi, 3);
+    
     int axe0 = 0;//axe X
     int axe1 = 2;//axe Z
     int axeNormal = 1;//axe Y
@@ -451,27 +455,16 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalC
 	
 	GenerateCrackBoundary(planeMesh, fullMesh, elIdSequence);
     SeparateElementsInMaterialSets(fullMesh);
+    TurnIntoQuarterPoint(fullMesh);
     
     delete planeMesh;
     
-#define REFINEDIRECTIONALOnce
-#ifdef REFINEDIRECTIONALOnce
-std::set<int> matids;
-matids.insert(__1DcrackTipMat);
-std::map< int,std::set<int> >::iterator itm;
-for(itm = fcrackQpointsElementsIds.begin(); itm != fcrackQpointsElementsIds.end(); itm++)
-{
-    TPZGeoEl * gel = fullMesh->ElementVec()[itm->first];
-    if(!gel->HasSubElement())
-    {            
-        TPZRefPatternTools::RefineDirectional(gel, matids);
-    }
-}
-#endif
+//    std::ofstream cc("cc.vtk");
+//    TPZVTKGeoMesh::PrintGMeshVTK(fullMesh, cc, true);
 
     ////4debug
 //    TPZVec<REAL> qsiHere(3), qsiPZ(3);
-//    TPZVec<REAL> x(3);
+//    TPZVec<REAL> x(3);x
 //    x[0] = 5.;
 //    x[1] = 2.;
 //    x[2] = -10.;
@@ -519,41 +512,42 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     
     ////BCs    
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, mixed = 2;
+    int newmann = 1, mixed = 2, dirichDir = 3;
     
-    STATE pressureY = 5.;
+    STATE traction = 5., pressure = 0.;
 
     {
-        k(0,0) = 1.E13;
+        f.Zero();
+        f(0,0) = 1.;
         TPZMaterial * materialMixedLeft = new TPZElasticity3D(-300, young, poisson, force);
-        TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,__2DleftMat, mixed, k, f);
+        TPZBndCond * mixedLeft = new TPZBndCond(materialMixedLeft,__2DleftMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedLeft);
         
-        k.Zero();
-        k(1,1) = 1.E13;
+        f.Zero();
+        f(1,0) = 1.;
         TPZMaterial * materialMixedOutFracture = new TPZElasticity3D(-301, young, poisson, force);
-        TPZBndCond * mixedOutFracture = new TPZBndCond(materialMixedOutFracture,__2DfractureMat_outside, mixed, k, f);
+        TPZBndCond * mixedOutFracture = new TPZBndCond(materialMixedOutFracture,__2DfractureMat_outside, dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedOutFracture);
 
-        k.Zero();
-        k(2,2) = 1.E13;
+        f.Zero();
+        f(2,0) = 1.;
         TPZMaterial * materialMixedTop = new TPZElasticity3D(-302, young, poisson, force);
-        TPZBndCond * mixedTop = new TPZBndCond(materialMixedTop,__2DtopMat, mixed, k, f);
+        TPZBndCond * mixedTop = new TPZBndCond(materialMixedTop,__2DtopMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedTop);
         //
         TPZMaterial * materialMixedBottom = new TPZElasticity3D(-303, young, poisson, force);
-        TPZBndCond * mixedBottom = new TPZBndCond(materialMixedBottom,__2DbottomMat, mixed, k, f);
+        TPZBndCond * mixedBottom = new TPZBndCond(materialMixedBottom,__2DbottomMat, dirichDir, k, f);
         cmesh->InsertMaterialObject(mixedBottom);
 
         ///////////farField
         k.Zero();
-        f(1,0) = pressureY;
+        f(1,0) = traction;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, newmann, k, f);
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
-        f(1,0) = 0.1;
+        f(1,0) = pressure;
         TPZMaterial * materialNewmannInsideFract = new TPZElasticity3D(-305, young, poisson, force);
         TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
         cmesh->InsertMaterialObject(newmannInsideFract);
@@ -731,23 +725,23 @@ void TPZPlaneFracture::GenerateFullMesh(std::list<REAL> & espacamento, REAL leng
     }
     
     // ////////////////para validar primeira simulacao completa
-    Topol.Resize(1);
-    
-    Topol[0] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat1,*fFullMesh);
-    elId++;
-    
-    Topol[0] = ncols*(nrows-1);
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat2,*fFullMesh);
-    elId++;
-    
-    Topol[0] = ncols-1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat3,*fFullMesh);
-    elId++;
-    
-    Topol[0] = ncols*nrows-1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat4,*fFullMesh);
-    elId++;
+//    Topol.Resize(1);
+//    
+//    Topol[0] = 0;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat1,*fFullMesh);
+//    elId++;
+//    
+//    Topol[0] = ncols*(nrows-1);
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat2,*fFullMesh);
+//    elId++;
+//    
+//    Topol[0] = ncols-1;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat3,*fFullMesh);
+//    elId++;
+//    
+//    Topol[0] = ncols*nrows-1;
+//    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (elId,Topol,__aux0DEl_Mat4,*fFullMesh);
+//    elId++;
     // ////////////////////////////////////////////////////////MUSTDELETE
     
 	fFullMesh->BuildConnectivity();
@@ -1828,17 +1822,11 @@ void TPZPlaneFracture::SeparateElementsInMaterialSets(TPZGeoMesh * fullMesh)
         finishedFracturedElems.insert(actEl.Id());
         fracturedElems.erase(edgIt);
     }
-    
-    TurnIntoQuarterPoint(fullMesh);
 }
 //------------------------------------------------------------------------------------------------------------
 
 void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
 {
-    //List of elements ids that will be refined, so will NOT be turned into quarterpoints (but their sons).
-    //These elements must be removed from fcrackQpointsElementsIds map.
-    std::set<int> elementsToRemove;
-    
     std::set<int>::iterator its;
     std::map< int , std::set<int> >::iterator it;
     for(it = fcrackQpointsElementsIds.begin(); it != fcrackQpointsElementsIds.end(); it++)
@@ -1867,28 +1855,11 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
         int Ntargets1D = targetSides1D.size();
         if(Ntargets0D == 1 && Ntargets1D == 0)//Soh encosta no cracktip por 1 noh apenas
         {
-            if(qpointEl->Dimension() == 3)
-            {
-                qpointEl->SetMaterialId(__3DrockMat_quarterPoint);
-            }
-//PORQUE ISSO ESTAVA AQUI??? EM UM TESTE, ISSO ATRAPALHOU!!! SERAH QUE EM OUTRO ISSO FAZ FALTA???
-//SE NUM FUTURO ISSO NUNCA FEZ FALTA, APAGAR DE VEZ!!!
-//Caju, 06 de setembro de 2012.
-//            else
-//            {
-//                elementsToRemove.insert(qpointEl->Id());
-//            }
-            int targetSide = *(targetSides0D.begin());
-            TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
+            continue;
         }
         else if(Ntargets1D == 1 && Ntargets0D == 2)//Soh encosta no cracktip por 1 aresta apenas
         {
-            if(qpointEl->Dimension() == 3)
-            {
-                qpointEl->SetMaterialId(__3DrockMat_quarterPoint);
-            }
-            int targetSide = *(targetSides1D.begin());
-            TPZChangeEl::ChangeToQuarterPoint(fullMesh, qpointId, targetSide);
+            continue;
         }
         else//Encosta no cracktip por aresta(s) e/ou noh(s), portanto precisa refinar para isolar estes lados.
             //Isso porque o quarterpoint contempla o deslocamento dos midnodes para um lado apenas.
@@ -1945,7 +1916,6 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
                         fcrackQpointsElementsIds[sons[sn]->Id()] = bySides;
                     }
                 }
-                elementsToRemove.insert(qpointId);
             }
             else
             {
@@ -1961,11 +1931,58 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
         }
     }
     
-    for(its = elementsToRemove.begin(); its != elementsToRemove.end(); its++)
+    fcrackQpointsElementsIds.clear();
+    
+    std::set<int> crackTipMat;
+    crackTipMat.insert(__1DcrackTipMat);
+    int ndiv = 4;
+    for(int div = 0; div < ndiv; div++)
     {
-        //deleting elements that was refined (those sons was turned into quarterpoints, and NOT themselves)
-        it = fcrackQpointsElementsIds.find(*its);
-        fcrackQpointsElementsIds.erase(it);
+        int nelem = fullMesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            TPZGeoEl * gel = fullMesh->ElementVec()[el];
+            if(gel->HasSubElement() == false)
+            {
+                TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
+            }
+        }
+    }
+    
+    for(int i = 0; i < fcrackBoundaryElementsIds.NElements(); i++)
+    {
+        TPZGeoEl * gel1D = fullMesh->ElementVec()[fcrackBoundaryElementsIds[i]];
+        
+        #ifdef DEBUG
+        if(gel1D->Dimension() != 1)
+        {
+            DebugStop();
+        }
+        #endif
+        
+        for(int s = 0; s < 2; s++)
+        {
+            TPZGeoElSide edge(gel1D,s);
+            TPZGeoElSide neigh(edge.Neighbour());
+            
+            while(edge != neigh)
+            {
+                if(neigh.Element()->HasSubElement() == false && neigh.Element()->IsLinearMapping())
+                {
+                    if(neigh.Element()->Dimension() == 3)
+                    {
+                        neigh.Element()->SetMaterialId(__3DrockMat_quarterPoint);
+                    }
+                    int neighSide = neigh.Side();
+                    TPZGeoEl * neighEl = TPZChangeEl::ChangeToQuarterPoint(fullMesh, neigh.Element()->Id(), neighSide);
+                    neigh = neighEl->Neighbour(neighSide);
+                }
+                else
+                {
+                    neigh = neigh.Neighbour();
+                }
+            }
+        }
     }
 }
 //------------------------------------------------------------------------------------------------------------
@@ -2025,6 +2042,7 @@ bool TPZPlaneFracture::IsBoundaryMaterial(TPZGeoEl * gel)
     
     return false;
 }
+
 
 //** just for visualize given dots in vtk */
 void TPZPlaneFracture::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots)
@@ -2141,7 +2159,8 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     }
 
     REAL radius = 0.6;
-    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, meshDim);
+    REAL pressure = 1.;//pressure inside crack
+    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, pressure, meshDim);
     
     JIntegral jInt;
     jInt.PushBackPath(pathMiddle);    
@@ -2158,6 +2177,7 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
         std::cout << "J = { " << Jvector[0] << " , " << Jvector[2] << " }\n";//Tinha que dar (+/-) 3.e-3
     }
 }
+
 //------------------------------------------------------------------------------------------------------------
 
 TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim,

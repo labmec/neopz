@@ -40,13 +40,6 @@ void TPZQuadraticLine::X(TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REA
 }
 
 void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TPZFMatrix<REAL> &jacobian,TPZFMatrix<REAL> &axes,REAL &detjac,TPZFMatrix<REAL> &jacinv) {
-#ifdef DEBUG
-	if( param[0] < -1.001 || param[0] > 1.001) {
-		PZError << "TPZQuadraticLine.jacobian. param out of range : "
-		" param.NElements() = " << param.NElements() <<
-		"\nparam[0] = " << param[0] << "\n";
-	}
-#endif
 	
 	jacobian.Resize(1,1); axes.Resize(1,3); jacinv.Resize(1,1);
 	
@@ -67,7 +60,18 @@ void TPZQuadraticLine::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
 	axest.Transpose(&axes);
 	
 	detjac = jacobian(0,0);
-	jacinv(0,0) =  1./jacobian(0,0);
+    
+    if(IsZero(detjac))
+    {
+#ifdef DEBUG
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+#endif
+        detjac = ZeroTolerance();
+    }
+    
+	jacinv(0,0) =  1./detjac;
 }
 
 TPZGeoEl *TPZQuadraticLine::CreateBCGeoEl(TPZGeoEl *orig,int side,int bc) {

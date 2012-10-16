@@ -174,14 +174,6 @@ void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param
 	if (NNodes != 13) {
 		PZError << "TPZGeoPyramid.jacobian only implemented for 13, NumberOfNodes = " << NNodes << "\n";
 	}
-	double qsiVal = param[0];
-    //    double etaVal = param[1];
-    double zetaVal = param[2];
-	if(fabs(qsiVal) > (1.-zetaVal)) {
-		PZError << "TPZQuadraticPyramid.jacobian. param out of range : "
-		" param.NElements() = " << param.NElements() <<
-		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2] << "\n";
-	}
 #endif
 	
 	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
@@ -207,17 +199,16 @@ void TPZQuadraticPyramid::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param
 	- jacobian(0,1)*jacobian(1,0)*jacobian(2,2)
 	+ jacobian(0,0)*jacobian(1,1)*jacobian(2,2);
 	
-	if(IsZero(detjac))
-	{
-		std::stringstream sout;
-		sout << "Singular Jacobian " << detjac;
-		
-#ifdef LOG4CXX
-		LOGPZ_ERROR(logger , sout.str())
+    if(IsZero(detjac))
+    {
+#ifdef DEBUG
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
 #endif
-		
-		detjac = ZeroTolerance();
-	}
+        detjac = ZeroTolerance();
+    }
+    
 	jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
 	jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
 	jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12

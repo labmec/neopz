@@ -523,12 +523,12 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
     Path * jpathElem = fPathVec[p];
 
-    REAL precisionIntegralRule = 1.E-15;
+    REAL precisionIntegralRule = 1.E-8;
     Adapt intRule(precisionIntegralRule);
     
     int meshDim = jpathElem->MeshDim();
     TPZVec<REAL> linJintegral(meshDim,0.);
-    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
+    //linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
     //
     TPZVec<REAL> arcJintegral(meshDim,0.);
     arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);

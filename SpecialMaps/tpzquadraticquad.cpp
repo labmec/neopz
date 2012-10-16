@@ -65,12 +65,6 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
 	if (NNodes != 8) {
 		PZError << "TPZQuadraticQuad.jacobian only implemented for 8, NumberOfNodes = " << NNodes << "\n";
 	}
-	
-	if( fabs(param[0]) > 1.001 || fabs(param[1]) > 1.001) {
-		PZError << "TPZQuadraticQuad.jacobian. param out of range : "
-		" param.NElements() = " << param.NElements() <<
-		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << "\n";
-	}
 #endif
 	
 	jacobian.Resize(2,2); axes.Resize(2,3); jacinv.Resize(2,2);
@@ -94,6 +88,17 @@ void TPZQuadraticQuad::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,TP
 	axest.Transpose(&axes);
 	
 	detjac = jacobian(0,0)*jacobian(1,1) - jacobian(1,0)*jacobian(0,1);
+    
+    if(IsZero(detjac))
+    {
+#ifdef DEBUG
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
+#endif
+        detjac = ZeroTolerance();
+    }
+    
 	jacinv(0,0) =  jacobian(1,1)/detjac;
 	jacinv(1,1) =  jacobian(0,0)/detjac;
 	jacinv(0,1) = -jacobian(0,1)/detjac;

@@ -123,12 +123,6 @@ void TPZQuadraticPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
 	if (NNodes != 15) {
 		PZError << "TPZQuadraticPrism.jacobian only implemented for 15, NumberOfNodes = " << NNodes << "\n";
 	}
-	
-	if( param[0] < 0. || param[0] > 1.001 || param[1] < 0. || param[1] > 1.001-param[0] || fabs(param[2]) > 1.001) {
-		PZError << "TPZQuadraticPrism.jacobian. param out of range : "
-		" param.NElements() = " << param.NElements() <<
-		"\nparam[0] = " << param[0] << " param[1] = " << param[1] << " param[2] = " << param[2]<< "\n";
-	}
 #endif
 	
 	jacobian.Resize(3,3); axes.Resize(3,3); jacinv.Resize(3,3);
@@ -154,17 +148,16 @@ void TPZQuadraticPrism::Jacobian(TPZFMatrix<REAL> & coord, TPZVec<REAL> &param,T
 	- jacobian(0,1)*jacobian(1,0)*jacobian(2,2)
 	+ jacobian(0,0)*jacobian(1,1)*jacobian(2,2);
 	
-	if(IsZero(detjac))
-	{
-		std::stringstream sout;
-		sout << "Singular Jacobian " << detjac;
-		
-#ifdef LOG4CXX
-		LOGPZ_ERROR(logger , sout.str())
+    if(IsZero(detjac))
+    {
+#ifdef DEBUG
+        std::stringstream sout;
+        sout << "Singular Jacobian " << detjac;
+        LOGPZ_ERROR(logger, sout.str())
 #endif
-		
-		detjac = ZeroTolerance();
-	}
+        detjac = ZeroTolerance();
+    }
+    
 	jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
 	jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
 	jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12

@@ -59,6 +59,19 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         }
     }
     before.close();
+    TPZGeoEl * oldFather = OldElem->Father();
+    int oldMePosition = -1;
+    if(oldFather)
+    {
+        for(int s = 0; s < oldFather->NSubElements(); s++)
+        {
+            if(oldFather->SubElement(s) == OldElem)
+            {
+                oldMePosition = s;
+                break;
+            }
+        }
+    }
 #endif
     /////////////////////////
     
@@ -198,6 +211,23 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
         }
     }
     after.close();
+    TPZGeoEl * newFather = NewElem->Father();
+    int newMePosition = -1;
+    if(newFather)
+    {
+        for(int s = 0; s < newFather->NSubElements(); s++)
+        {
+            if(newFather->SubElement(s) == NewElem)
+            {
+                newMePosition = s;
+                break;
+            }
+        }
+    }
+    if(oldFather != newFather || oldMePosition != newMePosition)
+    {
+        DebugStop();
+    }
 #endif
     /////////////////////////
     
