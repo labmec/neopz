@@ -40,9 +40,27 @@ TPZChangeEl::~TPZChangeEl()
 }
 //------------------------------------------------------------------------------------------------------------
 
+//#define verifyNeighbourhood
 TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
 {
 	TPZGeoEl * OldElem = Mesh->ElementVec()[ElemIndex];
+    
+    /////////////////////////
+#ifdef verifyNeighbourhood
+    std::ofstream before("before.txt");
+    for(int s = 0; s < OldElem->NSides(); s++)
+    {
+        TPZGeoElSide oldSide(OldElem,s);
+        TPZGeoElSide neighSide(oldSide.Neighbour());
+        while(oldSide != neighSide)
+        {
+            before << s << "\t" << neighSide.Element()->Id() << "\t" << neighSide.Side() << "\n";
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    before.close();
+#endif
+    /////////////////////////
     
     #ifdef DEBUG
     if(!OldElem)
@@ -165,6 +183,23 @@ TPZGeoEl * TPZChangeEl::ChangeToQuadratic(TPZGeoMesh *Mesh, int ElemIndex)
     {
         //Mudar subelementos para TPZGeoElMapped
     }
+    
+    /////////////////////////
+#ifdef verifyNeighbourhood
+    std::ofstream after("after.txt");
+    for(int s = 0; s < NewElem->NSides(); s++)
+    {
+        TPZGeoElSide newSide(NewElem,s);
+        TPZGeoElSide neighSide(newSide.Neighbour());
+        while(newSide != neighSide)
+        {
+            after << s << "\t" << neighSide.Element()->Id() << "\t" << neighSide.Side() << "\n";
+            neighSide = neighSide.Neighbour();
+        }
+    }
+    after.close();
+#endif
+    /////////////////////////
     
 	return NewElem;
 }
