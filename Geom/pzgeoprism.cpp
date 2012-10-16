@@ -87,9 +87,11 @@ namespace pzgeom {
 		
 		if(IsZero(detjac))
 		{
+#ifdef DEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
 			LOGPZ_ERROR(logger, sout.str())
+#endif
 			detjac = ZeroTolerance();
 		}
 		

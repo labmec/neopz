@@ -153,7 +153,6 @@ inline REAL Adapt::adaptlob(T &func, const REAL a, const REAL b, const REAL fa, 
     {
 		if((mll <=  a || b <=  mrr) && terminate) 
         {
-            DebugStop();//Acho que nao converge!!!
 			out_of_tolerance = true;
 			terminate = false;
 		}
@@ -189,7 +188,6 @@ inline REAL Adapt::adaptlob(T &func, const int pos, const REAL a, const REAL b, 
     {
 		if((mll <=  a || b <=  mrr) && terminate) 
         {
-            DebugStop();//Acho que nao converge!!!
 			out_of_tolerance = true;
 			terminate = false;
 		}

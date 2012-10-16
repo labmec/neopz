@@ -120,13 +120,14 @@ namespace pzgeom {
 		
 		if(IsZero(detjac))
 		{
+#ifdef DEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
-#ifdef LOG4CXX
-			LOGPZ_ERROR(logger , sout.str())
+			LOGPZ_ERROR(logger, sout.str())
 #endif
 			detjac = ZeroTolerance();
 		}
+        
 		jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2))/detjac;//-a12 a21 + a11 a22
 		jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2))/detjac;// a02 a21 - a01 a22
 		jacinv(0,2) = (-jacobian(0,2)*jacobian(1,1)+jacobian(0,1)*jacobian(1,2))/detjac;//-a02 a11 + a01 a12

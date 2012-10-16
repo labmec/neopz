@@ -83,14 +83,18 @@ namespace pzgeom {
         mod1 = sqrt(mod1);
         jacobian(0,0) = mod1;
         detjac = mod1;
+        
         if(IsZero(detjac))
-        {
-            std::stringstream sout;
-            sout << __PRETTY_FUNCTION__ << "Singular Jacobian " << detjac;
-            LOGPZ_ERROR(logger, sout.str())
-            detjac = ZeroTolerance();
-        }
-        jacinv(0,0) = 1./mod1;
+		{
+#ifdef DEBUG
+			std::stringstream sout;
+			sout << "Singular Jacobian " << detjac;
+			LOGPZ_ERROR(logger, sout.str())
+#endif
+			detjac = ZeroTolerance();
+		}
+        
+        jacinv(0,0) = 1./detjac;
         
         for(ic=0; ic<3; ic++) {
             axes(0,ic) = v1[ic]/mod1;

@@ -367,35 +367,15 @@ void pzgeom::TPZGeoBlend<TGeo>::Jacobian(const TPZGeoEl &gel, TPZVec<REAL>& par,
         detjac -= jacobian(0,1)*jacobian(1,0)*jacobian(2,2);//- a01 a10 a22
         detjac += jacobian(0,0)*jacobian(1,1)*jacobian(2,2);//+ a00 a11 a22
         
-        if(IsZero(detjac)){
-#ifdef LOG4CXX
-            {
-                std::stringstream sout;
-                Print(sout);
-                sout << "Parameter " << par << std::endl;
-                coord.Print("Corner coordinates ", sout);
-                /*					JacTemp.Print("Gradient of the coordinates",sout);
-                 axes.Print("axes matrix", sout);
-                 jacobian.Print("Jacobian", sout);
-                 sout << "detjac " << detjac << std::endl;
-                 int is;
-                 for(is=TGeo::NNodes; is<TGeo::NSides-1; is++)
-                 {
-                 if(fNeighbours[is-TGeo::NNodes].Element())
-                 {
-                 sout << "Side: " << is << " El/side: " << fNeighbours[is-TGeo::NNodes].Element()->Index() << ":" <<
-                 fNeighbours[is-TGeo::NNodes].Side() << '\n';
-                 TPZGeoEl *gel = fNeighbours[is-TGeo::NNodes].Element();
-                 gel->Print(sout);
-                 }
-                 }
-                 */
-                sout << "Singular jacobian " << detjac;
-                LOGPZ_ERROR(logger,sout.str())
-            }
+        if(IsZero(detjac))
+		{
+#ifdef DEBUG
+			std::stringstream sout;
+			sout << "Singular Jacobian " << detjac;
+			LOGPZ_ERROR(logger, sout.str())
 #endif
-            detjac = ZeroTolerance();
-        }
+			detjac = ZeroTolerance();
+		}
         
         jacinv(0,0) = (-jacobian(1,2)*jacobian(2,1)+jacobian(1,1)*jacobian(2,2)) / detjac;//-a12 a21 + a11 a22
         jacinv(0,1) = ( jacobian(0,2)*jacobian(2,1)-jacobian(0,1)*jacobian(2,2)) / detjac;// a02 a21 - a01 a22

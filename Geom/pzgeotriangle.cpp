@@ -51,24 +51,21 @@ namespace pzgeom {
         VecMatrix.GramSchmidt(axest,jacobian);
         axest.Transpose(&axes);
 		detjac = jacobian(0,0)*jacobian(1,1)-jacobian(1,0)*jacobian(0,1);
-		if(IsZero(detjac))
+		
+        if(IsZero(detjac))
 		{
+#ifdef DEBUG
 			std::stringstream sout;
 			sout << "Singular Jacobian " << detjac;
 			LOGPZ_ERROR(logger, sout.str())
+#endif
 			detjac = ZeroTolerance();
 		}
-        if(detjac)
-        {
-			jacinv(0,0) =  jacobian(1,1)/detjac;
-			jacinv(1,1) =  jacobian(0,0)/detjac;
-			jacinv(0,1) = -jacobian(0,1)/detjac;
-			jacinv(1,0) = -jacobian(1,0)/detjac;
-        }
-        else
-        {
-			jacinv.Zero();
-        }
+        
+        jacinv(0,0) =  jacobian(1,1)/detjac;
+        jacinv(1,1) =  jacobian(0,0)/detjac;
+        jacinv(0,1) = -jacobian(0,1)/detjac;
+        jacinv(1,0) = -jacobian(1,0)/detjac;
 	}
 	
 	void TPZGeoTriangle::X(const TPZFMatrix<REAL> & coord, TPZVec<REAL> & loc,TPZVec<REAL> &result){
