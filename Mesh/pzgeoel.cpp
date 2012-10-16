@@ -751,6 +751,13 @@ bool TPZGeoEl::ComputeXInverse(TPZVec<REAL> &XD, TPZVec<REAL> &qsi, REAL Tol){
 bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
 {
     int dim = this->Dimension();
+    
+    if(dim != 3)
+    {
+        return ComputeXInverse(x, qsi);
+    }
+    
+    ///else...
     TPZVec<REAL> centerP(dim,1);
     this->CenterPoint(this->NSides()-1, qsi);
     qsi = centerP;
@@ -767,9 +774,10 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
             radius = min(radius,sonRadius);
         }
     }
+    radius = min(radius,1.);
     
     REAL err = 10.;
-    REAL tol = radius * 1.E-8;
+    REAL tol = radius * 1.E-3;//tolerancia minima em XYX de 1mm
     REAL tolQsi = 1.e-6;
 
     int count = 0, max = 50;
@@ -874,7 +882,7 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
         count++;
     }
     
-    return ComputeXInverse(x, qsi);
+    return false;
 }
 
 
