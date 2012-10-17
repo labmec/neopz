@@ -175,91 +175,91 @@ int TPZPlaneFracture::PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & init
 {
     return PlaneMesh->FindElement(x, qsi, 2)->Id();
     
-    TPZManVector<REAL,3> xproj(x);
-    xproj[planeNormal] = 0.;
-    
-    TPZGeoEl * initialGel = PlaneMesh->ElementVec()[initial2DElId];
-    qsi.Resize(2,0.);
-    TPZVec<REAL> xqsi(3);
-    
-    #ifdef DEBUG
-    if(initialGel->Dimension() != 2)
-    {
-        std::cout << "Given Id does not correspond to an 2D element on " << __PRETTY_FUNCTION__ << " !\n";
-        DebugStop();
-    }
-    #endif
-    
-    TPZVec<REAL> dx(3);
-    int count = 0;
-    while(initialGel->ComputeXInverse(xproj, qsi) == false && count < PlaneMesh->NElements())
-    {
-        initialGel->CenterPoint(initialGel->NSides()-1, qsi);
-        initialGel->X(qsi, xqsi);
-        
-        REAL norm = sqrt( (xproj[planeAxe0]-xqsi[planeAxe0])*(xproj[planeAxe0]-xqsi[planeAxe0]) +
-                           (xproj[planeAxe1]-xqsi[planeAxe1])*(xproj[planeAxe1]-xqsi[planeAxe1]) );
-        dx[planeAxe0] = (xproj[planeAxe0] - xqsi[planeAxe0])/norm;
-        dx[planeNormal] = 0.;
-        dx[planeAxe1] = (xproj[planeAxe1] - xqsi[planeAxe1])/norm;
-        
-        initialGel = CrossToNextNeighbour(initialGel, xqsi, dx, 1.E-5, planeAxe0, planeAxe1, planeNormal);
-        
-        count++;
-    }
-    
-    #ifdef DEBUG
-    if(count >= PlaneMesh->NElements())
-    {
-        std::cout.precision(15);
-        std::cout << "Point ";
-        std::cout << "{ " << xproj[0] << " , " << xproj[1] << " , " << xproj[2] << " } ";
-        std::cout << " DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
-        DebugStop();
-    }
-    #endif
-    
-    if(justFathers == false && initialGel && initialGel->HasSubElement())
-    {
-        bool sonFound = false;
-        TPZVec<TPZGeoEl*> sons(0);
-        initialGel->GetLowerSubElements(sons);
-        int nsons = sons.NElements();
-        for(int s = 0; s < nsons; s++)
-        {
-            TPZGeoEl * actSon = sons[s];
-            if(actSon->ComputeXInverse(xproj,qsi))
-            {
-                initialGel = actSon;
-                sonFound = true;
-                break;
-            }
-        }
-        #ifdef DEBUG
-        if(sonFound == false)
-        {
-            std::cout << "Given coordinates is in father domain, but was not on one of it sons!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-            std::cout << "Father Id = " << initialGel->Id() << " , Father nodes:\n";
-            initialGel->PrintNodesCoordinates();
-            std::cout << "Given x: ";
-            std::cout.precision(15);
-            std::cout << "{ " << xproj[0] << " , " << xproj[1] << " , " << xproj[2] << " }\n";
-            std::cout << "Sons coordinates\n";
-            for(int s = 0; s < nsons; s++)
-            {
-                TPZGeoEl * actSon = sons[s];
-                actSon->PrintNodesCoordinates();
-            }
-            DebugStop();//Nao deveria chegar aqui pois um dos filhos deveria conter o ponto!
-        }
-        #endif
-    }
-	
-    int id = initialGel->Id();
-    
-    initial2DElId = id;
-    
-	return id;
+//    TPZManVector<REAL,3> xproj(x);
+//    xproj[planeNormal] = 0.;
+//    
+//    TPZGeoEl * initialGel = PlaneMesh->ElementVec()[initial2DElId];
+//    qsi.Resize(2,0.);
+//    TPZVec<REAL> xqsi(3);
+//    
+//    #ifdef DEBUG
+//    if(initialGel->Dimension() != 2)
+//    {
+//        std::cout << "Given Id does not correspond to an 2D element on " << __PRETTY_FUNCTION__ << " !\n";
+//        DebugStop();
+//    }
+//    #endif
+//    
+//    TPZVec<REAL> dx(3);
+//    int count = 0;
+//    while(initialGel->ComputeXInverse(xproj, qsi) == false && count < PlaneMesh->NElements())
+//    {
+//        initialGel->CenterPoint(initialGel->NSides()-1, qsi);
+//        initialGel->X(qsi, xqsi);
+//        
+//        REAL norm = sqrt( (xproj[planeAxe0]-xqsi[planeAxe0])*(xproj[planeAxe0]-xqsi[planeAxe0]) +
+//                           (xproj[planeAxe1]-xqsi[planeAxe1])*(xproj[planeAxe1]-xqsi[planeAxe1]) );
+//        dx[planeAxe0] = (xproj[planeAxe0] - xqsi[planeAxe0])/norm;
+//        dx[planeNormal] = 0.;
+//        dx[planeAxe1] = (xproj[planeAxe1] - xqsi[planeAxe1])/norm;
+//        
+//        initialGel = CrossToNextNeighbour(initialGel, xqsi, dx, 1.E-5, planeAxe0, planeAxe1, planeNormal);
+//        
+//        count++;
+//    }
+//    
+//    #ifdef DEBUG
+//    if(count >= PlaneMesh->NElements())
+//    {
+//        std::cout.precision(15);
+//        std::cout << "Point ";
+//        std::cout << "{ " << xproj[0] << " , " << xproj[1] << " , " << xproj[2] << " } ";
+//        std::cout << " DO NOT belong to plane mesh domain on " << __PRETTY_FUNCTION__ << std::endl;
+//        DebugStop();
+//    }
+//    #endif
+//    
+//    if(justFathers == false && initialGel && initialGel->HasSubElement())
+//    {
+//        bool sonFound = false;
+//        TPZVec<TPZGeoEl*> sons(0);
+//        initialGel->GetLowerSubElements(sons);
+//        int nsons = sons.NElements();
+//        for(int s = 0; s < nsons; s++)
+//        {
+//            TPZGeoEl * actSon = sons[s];
+//            if(actSon->ComputeXInverse(xproj,qsi))
+//            {
+//                initialGel = actSon;
+//                sonFound = true;
+//                break;
+//            }
+//        }
+//        #ifdef DEBUG
+//        if(sonFound == false)
+//        {
+//            std::cout << "Given coordinates is in father domain, but was not on one of it sons!\nSee " << __PRETTY_FUNCTION__ << std::endl;
+//            std::cout << "Father Id = " << initialGel->Id() << " , Father nodes:\n";
+//            initialGel->PrintNodesCoordinates();
+//            std::cout << "Given x: ";
+//            std::cout.precision(15);
+//            std::cout << "{ " << xproj[0] << " , " << xproj[1] << " , " << xproj[2] << " }\n";
+//            std::cout << "Sons coordinates\n";
+//            for(int s = 0; s < nsons; s++)
+//            {
+//                TPZGeoEl * actSon = sons[s];
+//                actSon->PrintNodesCoordinates();
+//            }
+//            DebugStop();//Nao deveria chegar aqui pois um dos filhos deveria conter o ponto!
+//        }
+//        #endif
+//    }
+//	
+//    int id = initialGel->Id();
+//    
+//    initial2DElId = id;
+//    
+//	return id;
 }
 
 
@@ -267,96 +267,96 @@ TPZGeoEl * TPZPlaneFracture::PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REA
 {
     return fullMesh->FindElement(x, qsi, 3);
     
-    int axe0 = 0;//axe X
-    int axe1 = 2;//axe Z
-    int axeNormal = 1;//axe Y
-    int elFoundId = PointElementOnPlaneMesh(fullMesh, initial2DElId, x, qsi, axe0, axe1, axeNormal, true);
-    
-    // Da maneira com que esta classe foi construida, o elemento 2D encontrado
-    // na malha fractMesh apresenta como seu dual (na malha fullMesh) o
-    // elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
-    TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[elFoundId];
-    
-    TPZManVector<REAL,3> coord(x);
-    while(gelfullmesh->Type() != ECube)
-    {
-        int side = gelfullmesh->NSides()-1;
-        gelfullmesh = gelfullmesh->Neighbour(side).Element();
-    }
-    while(gelfullmesh->ComputeXInverse(coord, qsi) == false)
-    {
-        int cubeFace_in_Y_direction = 25;
-        TPZGeoElSide cubeSide = gelfullmesh->Neighbour(cubeFace_in_Y_direction);
-        while(cubeSide.Element()->Type() != ECube || cubeSide.Element()->Father())
-        {
-            cubeSide = cubeSide.Neighbour();
-        }
-        TPZGeoEl * nextGel = cubeSide.Element();
-        if(nextGel == gelfullmesh)
-        {
-            std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
-        }
-        gelfullmesh = nextGel;
-        qsi.Resize(3,0.);
-    }
-    
-    if(gelfullmesh->HasSubElement() == false)
-    {
-        return gelfullmesh;
-    }
-    else
-    {
-        TPZVec<TPZGeoEl*> subElements(0);
-        gelfullmesh->GetLowerSubElements(subElements);
-        int nCandidates = subElements.NElements();
-        TPZVec< TPZVec<REAL> > subElQsi(nCandidates);
-        
-        for(int cd = 0; cd < nCandidates; cd++)
-        {
-            TPZGeoEl * cand = subElements[cd];
-            if(cand->ComputeXInverse(coord, qsi) == true)
-            {
-                return cand;
-            }
-            subElQsi[cd] = qsi;
-        }
-        
-        //if(!cand)
-        {
-            TPZGeoEl * cand = NULL;
-            std::map<REAL,int> dist;
-            for(int cd = 0; cd < nCandidates; cd++)
-            {
-                cand = subElements[cd];
-                TPZVec<REAL> subElQsiProj(cand->Dimension());
-                cand->ProjectInParametricDomain(subElQsi[cd], subElQsiProj);
-                REAL distToProj = 0.;
-                for(int c = 0; c < cand->Dimension(); c++)
-                {
-                    distToProj += (subElQsiProj[c] - subElQsi[cd][c]) * (subElQsiProj[c] - subElQsi[cd][c]);
-                }
-                dist[sqrt(distToProj)] = cd;
-            }
-            int subElPosition = dist.begin()->second;
-            qsi = subElQsi[subElPosition];
-            cand = subElements[subElPosition];
-            
-            #ifdef DEBUG
-            REAL distComputed = dist.begin()->first;
-            if(distComputed > 1.e-5)
-            {
-                DebugStop();
-            }
-            #endif
-            
-            return cand;
-        }
-    }
-    
-    DebugStop();//Nao encontrou nenhum elemento 3D.
-    
-    return NULL;
+//    int axe0 = 0;//axe X
+//    int axe1 = 2;//axe Z
+//    int axeNormal = 1;//axe Y
+//    int elFoundId = PointElementOnPlaneMesh(fullMesh, initial2DElId, x, qsi, axe0, axe1, axeNormal, true);
+//    
+//    // Da maneira com que esta classe foi construida, o elemento 2D encontrado
+//    // na malha fractMesh apresenta como seu dual (na malha fullMesh) o
+//    // elemento de mesmo id. Este dual serah o elemento de partida para a busca na direcao Y.
+//    TPZGeoEl * gelfullmesh = fullMesh->ElementVec()[elFoundId];
+//    
+//    TPZManVector<REAL,3> coord(x);
+//    while(gelfullmesh->Type() != ECube)
+//    {
+//        int side = gelfullmesh->NSides()-1;
+//        gelfullmesh = gelfullmesh->Neighbour(side).Element();
+//    }
+//    while(gelfullmesh->ComputeXInverse(coord, qsi) == false)
+//    {
+//        int cubeFace_in_Y_direction = 25;
+//        TPZGeoElSide cubeSide = gelfullmesh->Neighbour(cubeFace_in_Y_direction);
+//        while(cubeSide.Element()->Type() != ECube || cubeSide.Element()->Father())
+//        {
+//            cubeSide = cubeSide.Neighbour();
+//        }
+//        TPZGeoEl * nextGel = cubeSide.Element();
+//        if(nextGel == gelfullmesh)
+//        {
+//            std::cout << "End of domain reached without find searched element on " << __PRETTY_FUNCTION__ << std::endl;
+//            DebugStop();
+//        }
+//        gelfullmesh = nextGel;
+//        qsi.Resize(3,0.);
+//    }
+//    
+//    if(gelfullmesh->HasSubElement() == false)
+//    {
+//        return gelfullmesh;
+//    }
+//    else
+//    {
+//        TPZVec<TPZGeoEl*> subElements(0);
+//        gelfullmesh->GetLowerSubElements(subElements);
+//        int nCandidates = subElements.NElements();
+//        TPZVec< TPZVec<REAL> > subElQsi(nCandidates);
+//        
+//        for(int cd = 0; cd < nCandidates; cd++)
+//        {
+//            TPZGeoEl * cand = subElements[cd];
+//            if(cand->ComputeXInverse(coord, qsi) == true)
+//            {
+//                return cand;
+//            }
+//            subElQsi[cd] = qsi;
+//        }
+//        
+//        //if(!cand)
+//        {
+//            TPZGeoEl * cand = NULL;
+//            std::map<REAL,int> dist;
+//            for(int cd = 0; cd < nCandidates; cd++)
+//            {
+//                cand = subElements[cd];
+//                TPZVec<REAL> subElQsiProj(cand->Dimension());
+//                cand->ProjectInParametricDomain(subElQsi[cd], subElQsiProj);
+//                REAL distToProj = 0.;
+//                for(int c = 0; c < cand->Dimension(); c++)
+//                {
+//                    distToProj += (subElQsiProj[c] - subElQsi[cd][c]) * (subElQsiProj[c] - subElQsi[cd][c]);
+//                }
+//                dist[sqrt(distToProj)] = cd;
+//            }
+//            int subElPosition = dist.begin()->second;
+//            qsi = subElQsi[subElPosition];
+//            cand = subElements[subElPosition];
+//            
+//            #ifdef DEBUG
+//            REAL distComputed = dist.begin()->first;
+//            if(distComputed > 1.e-5)
+//            {
+//                DebugStop();
+//            }
+//            #endif
+//            
+//            return cand;
+//        }
+//    }
+//    
+//    DebugStop();//Nao encontrou nenhum elemento 3D.
+//    
+//    return NULL;
 }
 
 
@@ -1933,21 +1933,7 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
     
     fcrackQpointsElementsIds.clear();
     
-    std::set<int> crackTipMat;
-    crackTipMat.insert(__1DcrackTipMat);
-    int ndiv = 4;
-    for(int div = 0; div < ndiv; div++)
-    {
-        int nelem = fullMesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            TPZGeoEl * gel = fullMesh->ElementVec()[el];
-            if(gel->HasSubElement() == false)
-            {
-                TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
-            }
-        }
-    }
+    RefinementProceedings(fullMesh);
     
     for(int i = 0; i < fcrackBoundaryElementsIds.NElements(); i++)
     {
@@ -1981,6 +1967,41 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * fullMesh)
                 {
                     neigh = neigh.Neighbour();
                 }
+            }
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------
+
+void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * fullMesh)
+{
+    std::set<int> fracturePlaneMat;
+    fracturePlaneMat.insert(__2DfractureMat_inside);
+    int ndiv = 2;
+    for(int div = 0; div < ndiv; div++)
+    {
+        int nelem = fullMesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            TPZGeoEl * gel = fullMesh->ElementVec()[el];
+            if(gel->HasSubElement() == false)
+            {
+                TPZRefPatternTools::RefineDirectional(gel, fracturePlaneMat);
+            }
+        }
+    }
+    
+    std::set<int> crackTipMat;
+    crackTipMat.insert(__1DcrackTipMat);
+    for(int div = 0; div < ndiv; div++)
+    {
+        int nelem = fullMesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            TPZGeoEl * gel = fullMesh->ElementVec()[el];
+            if(gel->HasSubElement() == false)
+            {
+                TPZRefPatternTools::RefineDirectional(gel, crackTipMat);
             }
         }
     }

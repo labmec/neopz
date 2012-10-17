@@ -361,6 +361,11 @@ class TPZPlaneFracture
     void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
     
     /**
+     * @brief Refinement proceedings to increase solution quality
+     */
+    void RefinementProceedings(TPZGeoMesh * fullMesh);
+    
+    /**
      * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
      */
     static bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
