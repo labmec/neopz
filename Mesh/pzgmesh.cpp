@@ -486,7 +486,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targ
                 {
                     distToProj += (qsiSonProj[c] - qsiSonVec[s][c]) * (qsiSonProj[c] - qsiSonVec[s][c]);
                 }
-                dist[sqrt(distToProj)] = distToProj;
+                dist[sqrt(distToProj)] = s;
             }
             int sonPosition = dist.begin()->second;//smaller distance to parametric domain
 
