@@ -527,36 +527,38 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     Adapt intRule(precisionIntegralRule);
     
     int meshDim = jpathElem->MeshDim();
-    {////////////4debug
-        TPZVec<REAL> linJintegralTemp(meshDim,0.);
-        std::ofstream saida0("lin0.txt");
-        std::ofstream saida1("lin1.txt");
-        std::ofstream saida2("lin2.txt");
-        saida0 << "v0 = {";
-        saida1 << "v1 = {";
-        saida2 << "v2 = {";
-        double nn = 50;
-        for(int i = int(-nn); i <= int(+nn); i++)
-        {
-            double tt = i/nn;
-            linJintegralTemp = jpathElem->GetLinearPath()->Func(tt);
-            saida0 << "{" << tt << "," << linJintegralTemp[0] << "}";
-            saida1 << "{" << tt << "," << linJintegralTemp[1] << "}";
-            saida2 << "{" << tt << "," << linJintegralTemp[2] << "}";
-            if(tt != 1.)
-            {
-                saida0 << ",";
-                saida1 << ",";
-                saida2 << ",";
-            }
-        }
-        saida0 << "};";
-        saida1 << "};";
-        saida2 << "};";
-    }
+//    {////////////4debug
+//        TPZVec<REAL> linJintegralTemp(meshDim,0.);
+//        std::ofstream saida0("lin0.txt");
+//        std::ofstream saida1("lin1.txt");
+//        std::ofstream saida2("lin2.txt");
+//        saida0 << "v0 = {";
+//        saida1 << "v1 = {";
+//        saida2 << "v2 = {";
+//        double nn = 50;
+//        for(int i = int(-nn); i <= int(+nn); i++)
+//        {
+//            double tt = i/nn;
+//            linJintegralTemp = jpathElem->GetLinearPath()->Func(tt);
+//            TPZVec<REAL> xt(3,0.);
+//            jpathElem->GetLinearPath()->X(tt, xt);
+//            saida0 << "{" << xt[0] << "," << linJintegralTemp[0] << "}";
+//            saida1 << "{" << xt[0] << "," << linJintegralTemp[1] << "}";
+//            saida2 << "{" << xt[0] << "," << linJintegralTemp[2] << "}";
+//            if(tt != 1.)
+//            {
+//                saida0 << ",";
+//                saida1 << ",";
+//                saida2 << ",";
+//            }
+//        }
+//        saida0 << "};";
+//        saida1 << "};";
+//        saida2 << "};";
+//    }
     TPZVec<REAL> linJintegral(meshDim,0.);
     
-    //linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
+    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+0.9);
     //
     TPZVec<REAL> arcJintegral(meshDim,0.);
     arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);

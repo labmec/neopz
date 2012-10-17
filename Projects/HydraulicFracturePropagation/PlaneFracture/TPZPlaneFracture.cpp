@@ -1977,19 +1977,19 @@ void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * fullMesh)
 {
     std::set<int> fracturePlaneMat;
     fracturePlaneMat.insert(__2DfractureMat_inside);
-    int ndiv = 2;
-    for(int div = 0; div < ndiv; div++)
-    {
-        int nelem = fullMesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            TPZGeoEl * gel = fullMesh->ElementVec()[el];
-            if(gel->HasSubElement() == false)
-            {
-                TPZRefPatternTools::RefineDirectional(gel, fracturePlaneMat);
-            }
-        }
-    }
+    int ndiv = 4;
+//    for(int div = 0; div < ndiv; div++)
+//    {
+//        int nelem = fullMesh->NElements();
+//        for(int el = 0; el < nelem; el++)
+//        {
+//            TPZGeoEl * gel = fullMesh->ElementVec()[el];
+//            if(gel->HasSubElement() == false)
+//            {
+//                TPZRefPatternTools::RefineDirectional(gel, fracturePlaneMat);
+//            }
+//        }
+//    }
     
     std::set<int> crackTipMat;
     crackTipMat.insert(__1DcrackTipMat);
@@ -2180,7 +2180,7 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     }
 
     REAL radius = 0.6;
-    REAL pressure = 1.;//pressure inside crack
+    REAL pressure = 0.;//pressure inside crack
     Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, pressure, meshDim);
     
     JIntegral jInt;
