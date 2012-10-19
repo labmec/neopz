@@ -6,6 +6,12 @@
 #include "pzshapetetra.h"
 #include "tpzgeoelmapped.h"
 
+#include "pzlog.h"
+
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.specialmaps.quadratictetra"));
+#endif
+
 using namespace pzgeom;
 using namespace pztopology;
 using namespace pzshape;
