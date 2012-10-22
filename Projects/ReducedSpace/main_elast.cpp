@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     PosProcessamento1(an1, plotfile);
     TPZFMatrix<REAL> solucao;
     solucao=cmesh_elast->Solution();
-    solucao.Print();
+    //solucao.Print();
     
     //computational mesh of reduced space
 //    int nr = an1.Solution().Rows();
@@ -179,23 +179,21 @@ int main(int argc, char *argv[])
     
     
     //	Set initial conditions for deslocamento
-    TPZAnalysis anu(cmesh_referred);
+    TPZAnalysis an_elast(cmesh_referred);
+    int dim = cmesh_referred->Dimension();
 	//MySolve(anp, cmesh_pressure);
-	int nrs = anu.Solution().Rows();
+	int nrs = an_elast.Solution().Rows();
     TPZVec<REAL> sol_ini(nrs,0.);
-    TPZCompMesh  * cmesh_projL2 = ToolsTransient::CMeshProjectionL2(gmesh, p, sol_ini);
+    TPZCompMesh  * cmesh_projL2 = ToolsTransient::CMeshProjectionL2(gmesh,dim, p, sol_ini);
     TPZAnalysis anL2(cmesh_projL2);
     MySolve(anL2, cmesh_projL2);
     
-    anL2.Solution().Print();
-    TPZFMatrix<REAL> Initialsolution(1,1,0.);
-    Initialsolution(0,0)= anL2.Solution()(0,0);
-    Initialsolution.Print();
-    anu.LoadSolution(Initialsolution);
-    cmesh_referred->LoadSolution(Initialsolution);
-    anu.Solution().Print();
-    cmesh_referred->Solution().Print();
+    //anL2.Solution().Print();
+    TPZFMatrix<REAL> InitSolU(nrs,1,0.);
+    InitSolU(0,0)= anL2.Solution()(0,0);
+    cmesh_referred->LoadSolution(InitSolU);
     
+    //TPZFMatrix<REAL> InitSol = ToolsTransient::InitialSolution(gmesh, cmesh_referred, p, 1.);
     
     //multiphysic mesh
     TPZVec<TPZCompMesh *> meshvec(2);
@@ -212,10 +210,15 @@ int main(int argc, char *argv[])
     
     REAL deltaT=1.; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = 5;//150;
+    REAL maxTime = 1;//150;
     
     
-    ToolsTransient::SolveSistTransient(deltaT, maxTime, mymaterial, meshvec, mphysics);
+    //TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    TPZAnalysis *an = new TPZAnalysis(mphysics);
+    TPZFMatrix<REAL> InitialSolution =an->Solution();
+    an->Solution().Zero();
+    mphysics->Solution().Zero();
+    ToolsTransient::SolveSistTransient(deltaT, maxTime, InitialSolution, an, mymaterial, meshvec, mphysics);
     
     
     //GMESH FINAL
@@ -721,11 +724,11 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,neum_pressure, val1, val2);
     
     
-    REAL pres= 0.0;
+    REAL pres= 10.0;
     val2.Redim(3,1);
     val1.Redim(3,2);
-    val2(2, 0)=10.0;
-    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bc6,dir_pressure, val1, val2);
+    val2(2, 0)=0.0;
+    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bc6,neum_pressure, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);

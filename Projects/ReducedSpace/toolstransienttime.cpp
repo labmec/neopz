@@ -17,6 +17,7 @@
 #include "TPZSpStructMatrix.h"
 #include "pzelastpressure.h"
 #include "pznlfluidstructure2d.h"
+#include "pzfstrmatrix.h"
 
 #include <fstream>
 #include <sstream>
@@ -35,43 +36,32 @@ ToolsTransient::~ToolsTransient(){
     
 }
 
-#include "pzfstrmatrix.h"
-void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis &an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec){
+TPZFMatrix<REAL> ToolsTransient::InitialSolution(TPZGeoMesh *gmesh, TPZCompMesh * cmesh, int porder, REAL valsol){
     
-	mymaterial->SetCurrentState();
-   // TPZSpStructMatrix matsk(mphysics);
-    TPZFStructMatrix matsk(mphysics);
-   // TPZSkylineStructMatrix matsk(mphysics);
-	an.SetStructuralMatrix(matsk); 
-	TPZStepSolver<REAL> step; 
-	//step.SetDirect(ELDLt);
-	step.SetDirect(ELU);
-	an.SetSolver(step); 
-	an.Run(); 
-	
-	matK1 = an.StructMatrix();
-	fvec = an.Rhs();
+    TPZAnalysis an(cmesh);
+	int nrs = an.Solution().Rows();
+    TPZVec<REAL> initsol(nrs,valsol);
+    int dim = cmesh->Dimension();
     
+    TPZCompMesh  * cmesh_projL2 = CMeshProjectionL2(gmesh, dim, porder, initsol);
+    TPZAnalysis anL2(cmesh_projL2);
+	TPZSkylineStructMatrix full(cmesh_projL2);
+	anL2.SetStructuralMatrix(full);
+	TPZStepSolver<REAL> step;
+	step.SetDirect(ELDLt); 
+	anL2.SetSolver(step);
+	anL2.Run();
+
+    TPZFMatrix<REAL> InitialSolution=anL2.Solution();
+    cmesh->LoadSolution(InitialSolution);
+    
+    return InitialSolution;
 }
 
-TPZAutoPointer <TPZMatrix<REAL> > ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics){
-    
-    mymaterial->SetLastState();
-    //TPZSkylineStructMatrix matsp(mphysics);
-	TPZSpStructMatrix matsp(mphysics);
-    
-	TPZAutoPointer<TPZGuiInterface> guiInterface;
-	TPZFMatrix<REAL> Un;
-    TPZAutoPointer <TPZMatrix<REAL> > matK2 = matsp.CreateAssemble(Un,guiInterface);
-    
-    return matK2;
-}
-
-
-TPZCompMesh * ToolsTransient::CMeshProjectionL2(TPZGeoMesh *gmesh, int pOrder, TPZVec<STATE> &solini)
+TPZCompMesh * ToolsTransient::CMeshProjectionL2(TPZGeoMesh *gmesh, int dim, int pOrder, TPZVec<STATE> &solini)
 {
     /// criar materiais
-	int dim = 1;
+	//int dim = 1;
     int matId2 = 2;
 	TPZL2Projection *material;
 	material = new TPZL2Projection(matId2, dim, 1, solini, pOrder);
@@ -92,14 +82,44 @@ TPZCompMesh * ToolsTransient::CMeshProjectionL2(TPZGeoMesh *gmesh, int pOrder, T
 	return cmesh;
 }
 
+void ToolsTransient::StiffMatrixLoadVec(TPZNLFluidStructure2d *mymaterial, TPZCompMesh* mphysics, TPZAnalysis *an, TPZFMatrix<REAL> &matK1, TPZFMatrix<REAL> &fvec){
+    
+	mymaterial->SetCurrentState();
+    TPZFStructMatrix matsk(mphysics);
+    //TPZSkylineStructMatrix matsk(mphysics);
+	an->SetStructuralMatrix(matsk);
+	TPZStepSolver<REAL> step; 
+	//step.SetDirect(ELDLt);
+	step.SetDirect(ELU);
+	an->SetSolver(step);
+    
+    an->Assemble();
+	//an.Run();
+	
+	matK1 = an->StructMatrix();
+	fvec = an->Rhs();
+    
+}
+
+TPZAutoPointer <TPZMatrix<REAL> > ToolsTransient::MassMatrix(TPZNLFluidStructure2d *mymaterial, TPZCompMesh *mphysics){
+    
+    mymaterial->SetLastState();
+	TPZSpStructMatrix matsp(mphysics);
+	TPZAutoPointer<TPZGuiInterface> guiInterface;
+	TPZFMatrix<REAL> Un;
+    TPZAutoPointer <TPZMatrix<REAL> > matK2 = matsp.CreateAssemble(Un,guiInterface);
+    
+    return matK2;
+}
+
+
+
 std::ofstream outfile("SaidaPressao.nb");
-void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
+void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REAL> InitialSolution , TPZAnalysis *an, TPZNLFluidStructure2d * &mymaterial, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics)
 {
-    TPZAnalysis an(mphysics);
-	TPZFMatrix<REAL> Initialsolution = an.Solution();
-    an.LoadSolution(Initialsolution);
-   // mphysics->LoadSolution(Initialsolution);
-    Initialsolution.Print();
+    
+    std::string outputfile;
+	outputfile = "TransientSolution";
     
     //Criando matriz de massa (matM)
     TPZAutoPointer <TPZMatrix<REAL> > matM = MassMatrix(mymaterial, mphysics);
@@ -108,59 +128,63 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZNLFluidStru
     SaidaMathPressao(meshvec, mphysics);
     outfile << "};\n";
     
-    
-    //Criando matriz de rigidez (tangente) matK e vetor de carga (residuo) 
-	TPZFMatrix<REAL> matK;	
-	TPZFMatrix<REAL> fres;
-    //an.Solution().Zero();
-    TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-    StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
-    
-    
 	int nrows;
-	nrows = matK.Rows();
+	nrows = an->Solution().Rows();
 	TPZFMatrix<REAL> res_total(nrows,1,0.0);
 	TPZFMatrix<REAL> Mass_X_SolTimeN(nrows,1,0.0);
-	TPZFMatrix<REAL> SolTimeN = Initialsolution;
-    TPZFMatrix<REAL> SolIterK = SolTimeN;
-	
+    TPZFMatrix<REAL> SolIterK = an->Solution();
+	TPZFMatrix<REAL> matK;
+	TPZFMatrix<REAL> fres;
+    
 	REAL TimeValue = 0.0;
 	int cent = 1;
-	TimeValue = cent*deltaT; 
-	while (TimeValue <= maxTime)
+	TimeValue = cent*deltaT;
+    
+	while (TimeValue <= maxTime) //passo de tempo
 	{	
         outfile << "Saida" << cent << "={";
         
-		// This time solution i for Transient Analytic Solution
+        //Criando matriz de rigidez (tangente) matK e vetor de carga (residuo)
+        StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
+		matM->Multiply(InitialSolution,Mass_X_SolTimeN);
         
-        SolTimeN.Print();
-		matM->Multiply(SolTimeN,Mass_X_SolTimeN);
-        Mass_X_SolTimeN.Print();
-		
-        for(int i=0; i<5; i++){
+        REAL nres = Norm(fres + Mass_X_SolTimeN);
+        REAL tol = 1.e-12;
+        int maxit = 10;
+        int nit = 0;
+
+        res_total = fres + Mass_X_SolTimeN;
+        while(nres > tol && nit < maxit) //itercao de Newton
+        {
+                        
+            an->Rhs() = res_total;
+            an->Solve();
+            an->LoadSolution(SolIterK + an->Solution());
             
-            res_total = fres + Mass_X_SolTimeN;
-            res_total.Print();
-            
-            an.Rhs() = res_total;
-            an.Solve();
-            an.Solution().Print();
-            an.LoadSolution(an.Solution() + SolIterK);
-            an.Solution().Print();
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
             
-            SolIterK = an.Solution();
+            SolIterK = an->Solution();
+            
             StiffMatrixLoadVec(mymaterial, mphysics, an, matK, fres);
+            
+            res_total = fres + Mass_X_SolTimeN;
+            nres = Norm(res_total);
+            nit++;
         }
         
         SaidaMathPressao(meshvec, mphysics);
         outfile << "};\n";
         
+        std::stringstream outputfiletemp;
+        outputfiletemp << outputfile << ".vtk";
+        std::string plotfile = outputfiletemp.str();
+        PosProcessMult(meshvec,mphysics,an,plotfile);
+
+        
+        InitialSolution = mphysics->Solution();
         cent++;
         TimeValue = cent*deltaT;
-        SolTimeN = SolIterK;
-
-	}
+    }
     
     //saida para mathematica
     outfile << "SAIDAS={";
@@ -180,7 +204,6 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZNLFluidStru
     outfile << "maxy=Max[Transpose[Flatten[SAIDAS,1]][[2]]];\n\n";
 
     outfile << "Manipulate[ListPlot[SAIDAS[[n]],Joined->True,AxesOrigin->{0,0},PlotRange->{{minx,maxx},{miny,maxy}}],{n,1,Length[SAIDAS],1}]\n";
-    
     outfile.close();
 }
 
@@ -228,3 +251,25 @@ void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh
         }
     }
 }
+
+
+void ToolsTransient::PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis *an, std::string plotfile)
+{
+    //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
+	TPZManVector<std::string,10> scalnames(5), vecnames(0);
+	
+	scalnames[0] = "DisplacementX";
+	scalnames[1] = "DisplacementY";
+    scalnames[2] = "SigmaX";
+    scalnames[3] = "SigmaY";
+    scalnames[4] = "Pressure";
+	
+	const int dim = 2;
+	int div =0;
+	an->DefineGraphMesh(dim,scalnames,vecnames,plotfile);
+	an->PostProcess(div);
+    //an->PostProcess(div,dim);
+	std::ofstream out("malha.txt");
+	an->Print("nothing",out);
+}
+

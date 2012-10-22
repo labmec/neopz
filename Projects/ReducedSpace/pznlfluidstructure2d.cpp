@@ -129,10 +129,10 @@ void TPZNLFluidStructure2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL we
 	 * Plain strain materials values
 	 */
     REAL fEover1MinNu2 = fE/(1-fnu*fnu);  ///4G(lamb+G)/(lamb+2G)
-    REAL fEover21PlusNu = 2.*fE/(2.*(1+fnu));/*fE/(2.*(1+fnu));*/ ///2G=2mi
+    REAL fEover21PlusNu = 2.*fE/(2.*(1.+fnu));/*fE/(2.*(1+fnu));*/ ///2G=2mi
 	REAL nu1 = 1 - fnu;//(1-nu)
-	REAL nu2 = (1-2*fnu)/2;
-	REAL F = fE/((1+fnu)*(1-2*fnu));
+	REAL nu2 = (1.-2.*fnu)/2.;
+	REAL F = fE/((1.+fnu)*(1.-2.*fnu));
     
 	for(int in = 0; in < phcu; in++) {
 		dphix_i(0,0) = dphi_u(0,in)*axes(0,0)+dphi_u(1,in)*axes(1,0);
@@ -255,7 +255,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
 //            }
 //        }
         
-        //---- CASO 2 ------
+        //---- CASO 2 e 3------
         for(int in = 0; in<phrp; in++){
             
             //Residuo
@@ -276,7 +276,7 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
             }
         }
         
-        //CASO 3
+        //CASO 4
 //        REAL factor_un3 = (sol_un*sol_un*sol_un)/(12.*fvisc);
 //        REAL factor_un2 = (sol_un*sol_un)/(4.*fvisc);
 //        
@@ -373,7 +373,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     
     if(gState == ELastState) return;
     REAL auxvar = 0.817*(1-fnu)*fHw;
-    REAL factor = fG/auxvar;
+    REAL factor =0.;//fG/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
@@ -386,37 +386,37 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     int phrp = phi_p.Rows();
 
     //----- CASO 1 e 2 -----
-    for (int in = 0; in < nc_u; in++){
-        for (int il = 0; il <fNumLoadCases; il++){
-            
-            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
-            ef(in,il)+= weight*(v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in));
-        }
-    }
-    
-    //------ CASO 3 -----
 //    for (int in = 0; in < nc_u; in++){
-//        
 //        for (int il = 0; il <fNumLoadCases; il++){
 //            
 //            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
-//            ef(in,il)+= (-1.)*weight*factor*(phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
-//                        
-//                        + weight*(phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
-//            
-//        }
-//        
-//        //matriz tangente
-//        for (int jn = 0; jn <nc_u; jn++) {
-//            
-//            ek(in,jn) += weight*factor*(phi_u(0,in)*phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,in)*phi_u(1,jn)*datavec[0].normal[1]);
-//        }
-//        
-//        for (int jp = 0; jp <phrp; jp++) {
-//            
-//            ek(in,jp+nc_u) += (-1.)*weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
+//            ef(in,il)+= weight*(v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in));
 //        }
 //    }
+    
+    //------ CASO 3 e 4 -----
+    for (int in = 0; in < nc_u; in++){
+        
+        for (int il = 0; il <fNumLoadCases; il++){
+            
+            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
+            ef(in,il)+= (-1.)*weight*factor*(phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
+                        
+                        + weight*(phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
+            
+        }
+        
+        //matriz tangente
+        for (int jn = 0; jn <nc_u; jn++) {
+            
+            ek(in,jn) += weight*factor*(phi_u(0,in)*phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,in)*phi_u(1,jn)*datavec[0].normal[1]);
+        }
+        
+        for (int jp = 0; jp <phrp; jp++) {
+            
+            ek(in,jp+nc_u) += (-1.)*weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
+        }
+    }
     
     
 //#ifdef LOG4CXX
@@ -512,10 +512,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_P(TPZVec<TPZMaterialData> &datavec, REA
 	int c_u = phi_u.Cols();
     TPZFMatrix<REAL> &phi_p = datavec[1].phi;
     int  phrp = phi_p.Rows();
-    
-    phi_p.Print();
-    bc.Val2().Print();
-    
+
     for(int in=0; in<phrp; in++){
         ef(in+c_u,0) += (-1.)*bc.Val2()(2,0)*phi_p(in,0)*weight;
     }
@@ -607,13 +604,21 @@ void TPZNLFluidStructure2d::ContributeBC(TPZVec<TPZMaterialData> &datavec, REAL 
 int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
     if(!strcmp("Pressure",name.c_str()))        return  1;
     if(!strcmp("MinusKGradP",name.c_str()))     return  2;
+    if(!strcmp("DisplacementX",name.c_str()))  return 3;
+	if(!strcmp("DisplacementY",name.c_str()))  return 4;
+    if(!strcmp("SigmaX",name.c_str()))        return  5;
+	if(!strcmp("SigmaY",name.c_str()))        return  6;
     
     return TPZMaterial::VariableIndex(name);
 }
 
 int TPZNLFluidStructure2d::NSolutionVariables(int var){
     if(var == 1) return 1;
-    if(var ==  2) return 1;
+    if(var == 2) return 1;
+    if(var == 3) return 1;
+    if(var == 4) return 1;
+    if(var == 5) return 1;
+    if(var == 6) return 1;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -622,22 +627,27 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
     
     Solout.Resize(this->NSolutionVariables(var));
     
-    TPZVec<REAL> SolP;
-	TPZFMatrix<> DSolP;
-	TPZFMatrix<> axesP;
+    TPZVec<REAL> SolP, SolU;
+	TPZFMatrix<> DSolP, DSolU;
+	TPZFMatrix<> axesP, axesU;
     SolP=datavec[1].sol[0];
 	DSolP=datavec[1].dsol[0];
     axesP=datavec[1].axes;
     
-    int ssol = datavec[1].sol[0].size();
-    if(ssol==0) return;
-    if(var == 1) {
+    SolU=datavec[0].sol[0];
+    DSolU=datavec[0].dsol[0];
+    axesU=datavec[0].axes;
+    
+    if(var == 1)
+    {
+        if(!datavec[1].phi) return;
 		Solout[0] = SolP[0];
 		return;
 	}//var1
     
-    if (var == 2){
-        
+    if (var == 2)
+    {
+        if(!datavec[1].phi) return;
         REAL un = 0.817*(1-fnu)*(SolP[0]-fSigConf)*fHw/fG;
         REAL factor = (un*un*un)/(12.*fvisc);
         
@@ -649,6 +659,55 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 		}
 		return;
 	}//var2
+    
+    //function (state variable ux)
+	if(var == 3)
+    {
+		Solout[0] = SolU[0];
+		return;
+	}//var3
+	
+	//function (state variable uy)
+	if(var == 4)
+    {
+		Solout[0] = SolU[1];
+		return;
+	}//var4
+    
+    
+    REAL DSolxy[2][2];
+    REAL SigX, SigY, epsx, epsy;
+    
+    DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0);
+    DSolxy[1][1] = DSolU(0,1)*axesU(0,1)+DSolU(1,1)*axesU(1,1);
+//    epsx = DSolxy[0][0];// du/dx
+//	epsy = DSolxy[1][1];// dv/dy
+    
+    epsx = DSolU(0,0);// du/dx
+    epsy = DSolU(1,1);// dv/dy
+	REAL Gmodule = fE/(1-fnu*fnu);
+	
+    
+	if (this->fPlaneStress){
+		SigX = Gmodule*(epsx+fnu*epsy);
+		SigY = Gmodule*(fnu*epsx+epsy);
+	}
+	else{
+		SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy);
+		SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy);
+	}
+    
+    if(var == 5) {
+		Solout[0] = SigX;
+		return;
+	}//var5
+	
+	if(var == 6) {
+		Solout[0] = SigY;
+		return;
+	}//var6
+    
+
 }
 
 void TPZNLFluidStructure2d::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
