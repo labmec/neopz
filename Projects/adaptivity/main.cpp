@@ -1,4 +1,4 @@
-#include "pzgclonemesh.h"
+//#include "pzgclonemesh.h"
 #include "pzcclonemesh.h"
 #include "pzonedref.h"
 
@@ -52,8 +52,8 @@ static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
 #endif
 
 #include <time.h>
-#include <stdio.h>
-#include <fstream>
+//#include <stdio.h>
+//#include <fstream>
 
 /** VARIABLES */
 /** Printing level */
@@ -120,10 +120,10 @@ void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &force);
 
 /** Functions with the values of the solutions */
-void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
-void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void SolExact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void SolExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void SolExact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void SolExact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 void CompareNeighbours(TPZGeoMesh *mesh);
 void BCSolution(const TPZVec<REAL> &x,TPZVec<REAL> &result);
 void Solution(const TPZVec<REAL> &x,TPZVec<REAL> &result,TPZFMatrix<REAL> &deriv);
@@ -216,13 +216,13 @@ int main() {
 			// Introduzing exact solution depending on the case
             TPZAnalysis an (cmesh);
             if (opt == 4 || opt == 7 || opt == 8){
-                an.SetExact(ExactSimple3D);
+                an.SetExact(SolExactSimple3D);
             }
             else if(opt==1 || opt==2){
-                an.SetExact(Exact);
+                an.SetExact(SolExact);
             }
             else if(opt==12){
-                an.SetExact(Exact3D);
+                an.SetExact(SolExact3D);
             }
             {
                 std::stringstream sout;
@@ -289,23 +289,23 @@ int main() {
             
             switch (opt){
                 case (1) :{
-                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,Exact,truervec,effect,0);
+                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror,ervec,SolExact,truervec,effect,0);
                     break;
                 }
                 case (2) :{
-                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact,truervec,effect,0);
+                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,SolExact,truervec,effect,0);
                     break;
                 }
                 case (4) :{
-                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,ExactSimple3D,truervec,effect,1);
+                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,SolExactSimple3D,truervec,effect,1);
                     break;
                 }
                 case (12) : {
-                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3D,truervec,effect,0);
+                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,SolExact3D,truervec,effect,0);
                     break;
                 }
                 case (13):{
-                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,Exact3DExp,truervec,effect,1);
+                    adptmesh = adapt.GetAdaptedMesh(valerror,valtruerror, ervec,SolExact3DExp,truervec,effect,1);
                     break;
                 }
                 default:
@@ -1476,13 +1476,13 @@ void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp){
 
 /** Exact solutions to calculate the rate of convergence */
 
-static double onethird = 0.33333333333333333;
-static REAL PI = 3.141592654;
+double onethird = 0.33333333333333333;
+REAL PI = 3.141592654;
 
-void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void SolExact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2,RotInv);
-  	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
+  	double radio = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
 #ifdef LOG4CXX
     if (loggerpoint->isDebugEnabled())
@@ -1492,7 +1492,7 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
         LOGPZ_DEBUG(loggerpoint, sout.str())
     }
 #endif
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow(radio,onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
   	grad(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
@@ -1502,12 +1502,12 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     dsol(1,0) = grad2(1,0);
 }
 
-void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void SolExact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]+x2[2]*x2[2]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow((double)r,onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
   	grad(0,0) = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
@@ -1517,7 +1517,7 @@ void Exact3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     dsol(1,0) = grad2(1,0);
 }
 
-void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void SolExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2,RotInv);
 	sol[0] = x2[2];
@@ -1531,22 +1531,23 @@ void ExactSimple3D(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &d
     dsol(2,0) = grad2(2,0);
 }
 
-void Exact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void SolExact3DExp(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2,RotInv);
 	REAL one = (REAL)1.;
+	REAL denom = 0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]));
 
-    sol[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1]*x2[2];
+    sol[0] = pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1]*x2[2];
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
-    grad(0,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(1 - x2[1])*x2[1]*x2[2] -
-    pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*x2[0]*(1 - x2[1])*x2[1]*x2[2] -
-    (2*pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*(-0.5 + x2[0])*x2[0]*
-     (1 - x2[1])*x2[1]*x2[2])/pow(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2),2);
-    grad(1,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[2] -
-    pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*x2[1]*x2[2] -
-    (2*pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*
-     (-0.5 + x2[1])*x2[1]*x2[2])/pow(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2),2);
-    grad(2,0) = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
+    grad(0,0) = pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*(1 - x2[1])*x2[1]*x2[2] -
+    pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*x2[0]*(1 - x2[1])*x2[1]*x2[2] -
+    (2*pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*(-0.5 + x2[0])*x2[0]*
+     (1 - x2[1])*x2[1]*x2[2])/(denom*denom);
+    grad(1,0) = pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[2] -
+    pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*x2[1]*x2[2] -
+    (2*pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*(1 - x2[1])*
+     (-0.5 + x2[1])*x2[1]*x2[2])/(denom*denom);
+    grad(2,0) = pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
     Rot.Multiply(grad, grad2);
     dsol(0,0) = grad2(0,0);
     dsol(1,0) = grad2(1,0);
@@ -1559,7 +1560,7 @@ void NeumannExp(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TPZManVector<REAL,3> x2(x);
     TransformInvX(x2,RotInv);
 	REAL one = (REAL) 1.0;
-    f[0] = pow(exp(one),1/(0.1 + pow(-0.5 + x2[0],2) + pow(-0.5 + x2[1],2)))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
+    f[0] = pow(exp(one),1/(0.1 + ((-0.5 + x2[0])*(-0.5 + x2[0])) + ((-0.5 + x2[1])*(-0.5 + x2[1]))))*(1 - x2[0])*x2[0]*(1 - x2[1])*x2[1];
 }
 
 void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
@@ -1567,7 +1568,7 @@ void Neumann2(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow((double)r,onethird);
   	f[0] = -onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
@@ -1576,7 +1577,7 @@ void Neumann3(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
     TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow((double)r,onethird);
   	f[0] = onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
@@ -1594,7 +1595,7 @@ void Neumann4(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
      */
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow((double)r,onethird);
   	f[0] = onethird*cos(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 
@@ -1612,7 +1613,7 @@ void Neumann5(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
      */
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-  	REAL rexp = pow(r,onethird);
+  	REAL rexp = pow((double)r,onethird);
   	f[0] = -onethird*sin(onethird*(PI/2.-2.*theta))/(rexp*rexp);
 }
 

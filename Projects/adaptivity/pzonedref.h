@@ -1,8 +1,10 @@
 #ifndef TPZONEDREF
 #define TPZONEDREF
 
-#include "pzfmatrix.h"
 #include <fstream>
+#include <cmath>
+
+#include "pzfmatrix.h"
 
 /**
  * Class TPZOneDRef implements one dimensional
