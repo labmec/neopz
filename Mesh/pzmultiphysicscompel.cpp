@@ -229,12 +229,16 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if(!msp) continue;
         msp->InitMaterialData(datavec[iref]);
-        TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
-        if(shapetype==datavec[iref].EVecShape) continue;
-        
         trvec[iref].Apply(qsi, myqsi);
         datavec[iref].p = msp->MaxOrder();
-        msp->ComputeShape(qsi,datavec[iref]);
+        
+//        TPZMaterialData::MShapeFunctionType shapetype = datavec[iref].fShapeType;
+//        if(shapetype==datavec[iref].EVecShape){
+//            msp->ComputeRequiredData(datavec[iref], myqsi);
+//            continue;
+//        }
+        
+        msp->ComputeShape(myqsi,datavec[iref]);
         msp->ComputeSolution(myqsi, datavec[iref]);
 
 		datavec[iref].x.Resize(3);

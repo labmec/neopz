@@ -136,8 +136,42 @@ void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<
 }
 
 
+void TPZReducedSpace::ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data)
+{
+#ifdef STATE_COMPLEX
+    DebugStop();
+#else
+    TPZInterpolationSpace *intel = ReferredIntel();
+    
+    intel->ComputeSolution(qsi, data.sol, data.dsol, data.axes);
+    int nsol = data.sol.size();
+    int nstate = data.sol[0].size();
+    int dim = data.axes.Rows();
+    data.phi.Resize(nstate, nsol);
+    data.dphix.Resize(nstate*dim, nsol);
+    for (int isol =0; isol<nsol; isol++) {
+        for (int istate=0; istate<nstate; istate++) {
+            data.phi(istate,isol) = data.sol[isol][istate];
+            for (int id=0; id<dim; id++) {
+                data.dphix(id+istate*dim,isol) = data.dsol[isol](id,istate);
+            }
+        }
+    }
+#endif
+}
 
-/** 
+
+void TPZReducedSpace::ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data){
+    
+    ShapeX(qsi,data);
+}
+
+void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data){
+    
+    ComputeSolution(qsi, data.phi, data.dphix, data.axes,data.sol,data.dsol);
+}
+
+/**
  * @brief Initialize a material data and its attributes based on element dimension, number
  * of state variables and material definitions
  */
@@ -341,7 +375,12 @@ void TPZReducedSpace::ComputeSolution(TPZVec<REAL> &qsi, TPZFMatrix<REAL> &phi, 
         }
 #endif
         for (int is=0; is<numbersol; is++) {
-            sol[is][jn%numdof] += (STATE)phi(jn%numdof,jn/numdof)*MeshSol(pos+jn,is);
+            
+            //sol[is][jn%numdof] += (STATE)phi(jn%numdof,jn/numdof)*MeshSol(pos+jn,is);
+            
+            for(d=0; d<numdof; d++){
+                sol[is][d%numdof] += (STATE)phi(d,jn/numdof)*MeshSol(pos+jn,is);
+            }
             for(d=0; d<dim*numdof; d++){
                 //dsol[is](d%dim,iv/dim) += (STATE)dphix(d,jn)*MeshSol(pos+jn,is);
                 dsol[is](d%dim,d/dim) += (STATE)dphix(d,jn/numdof)*MeshSol(pos+jn,is);

@@ -80,6 +80,12 @@ public:
 	 * of the element along the sides to compute the number of shapefunctions
 	 */
 	virtual void ShapeX(TPZVec<REAL> &qsi,TPZFMatrix<REAL> &phi,TPZFMatrix<REAL> &dphix, TPZFMatrix<REAL> &axes);
+    
+    //by Agnaldo
+    virtual void ShapeX(TPZVec<REAL> &qsi,TPZMaterialData &data);
+    
+    virtual void ComputeShape(TPZVec<REAL> &qsi,TPZMaterialData &data);
+    virtual void ComputeSolution(TPZVec<REAL> &qsi,TPZMaterialData &data);
 
 	/** 
 	 * @brief Initialize a material data and its attributes based on element dimension, number
