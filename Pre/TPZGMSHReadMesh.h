@@ -56,7 +56,7 @@ public:
 	 * 5: superior contour \n
 	 * the plan is with axle X for right and axle Y for top
 	 */
-	void ReadMesh2D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist);
+	void ReadMesh2D(const char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist);
 	void ReadMesh2D2(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist);
 	/*
 	 * @brief Readings of meshes 3D, the contour and volume elements are returned in  
@@ -77,7 +77,7 @@ public:
 	/**
 	 * @brief Rearranges the nodal numeration given by the GMSH of sequential form
 	 */
-	void Resequence(TPZStack<int> &Indexes,char *meshfile);
+	void Resequence(TPZStack<int> &Indexes,const char *meshfile);
 	
 	/*
 	 * @brief Prints in the exit defined for out the characteristics of the geometric mesh 

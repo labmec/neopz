@@ -12,7 +12,7 @@ TPZGMSHReadMesh::TPZGMSHReadMesh(TPZGeoMesh *gmesh){
 	fGeoMesh = gmesh;
 }
 
-void TPZGMSHReadMesh::ReadMesh2D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist){
+void TPZGMSHReadMesh::ReadMesh2D(const char *meshfile,TPZStack<TPZGeoEl *> &elemlist,TPZStack<TPZGeoElSide> &elembclist){
 	
 	//o GMSH pode não retornar os nós sequencialmente
 	//nesse casso deveram ser resequenciados
@@ -173,7 +173,7 @@ void TPZGMSHReadMesh::ReadMesh3D(char *meshfile,TPZStack<TPZGeoEl *> &elemlist,T
 	mesh.close();
 }
 
-void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,char *meshfile){
+void TPZGMSHReadMesh::Resequence(TPZStack<int> &Indexes,const char *meshfile){
 	
 	std::ifstream mesh(meshfile);
 	char title[256];

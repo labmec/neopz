@@ -512,7 +512,7 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     
     ////BCs    
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
-    int newmann = 1, mixed = 2, dirichDir = 3;
+    int newmann = 1, dirichDir = 3;
     
     STATE traction = 5., pressure = 0.;
 

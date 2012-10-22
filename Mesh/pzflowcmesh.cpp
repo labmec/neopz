@@ -75,9 +75,6 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 			gamma = law->Gamma();
 			
 			sound = 0;//sqrt(gamma*press/density[0]);
-			#ifndef VC
-			#warning Adriano comentou a linha acima e zerou a variavel sound!//<!>		
-			#endif
 			
 			// maximal eigenvalue velocity
 			veloc = velocity[0] + sound;

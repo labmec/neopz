@@ -122,17 +122,14 @@ int main() {
 	<< "\t[3D:Wing3d]\n"
 	<< "\t\t\t";
 	cin >> dim;
+	
+	std::string input("naca0012_");
+	input += dim;
+	input += "d.msh";
+	
 	TPZGMSHReadMesh readmesh(gmesh);
-	if(dim == 2){
-		//LeituraDaMalha2("naca0012_2d.msh",elem,elembc);
-		readmesh.ReadMesh2D("naca0012_2d.msh",elem,elembc);
-		mat = Wing2d(grau,elembc);
-	}
-	if(dim == 3){
-		//LeituraDaMalha("naca0012_3d.msh",elem,elembc);
-		readmesh.ReadMesh3D("naca0012_3d.msh",elem,elembc);
-		mat = Wing2d(grau,elembc);
-	}
+	readmesh.ReadMesh2D(input.c_str(),elem,elembc);
+	mat = Wing2d(grau,elembc);
 	
 	TPZVec<int> accumlist(10);
 	accumlist[0] = 0;

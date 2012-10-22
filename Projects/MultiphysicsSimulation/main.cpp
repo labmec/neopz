@@ -1116,7 +1116,6 @@ void BuildHybridMesh(TPZCompMesh *cmesh, std::set<int> &MaterialIDs, int Lagrang
 			celsides.Resize(0);
 			TPZGeoElSide gelside(gel,is);
 			gelside.HigherLevelCompElementList2(celsides, 0, 0);
-			int ncelsid =  celsides.NElements();
 			if(celsides.NElements()) continue;
 			
 			//check the neighboring
