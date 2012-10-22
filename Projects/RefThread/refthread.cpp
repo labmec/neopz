@@ -527,7 +527,7 @@ int main ()
 	// start of initialization
 	for (alevel=1; alevel<=MAXLVL; alevel++)
 	{
-		totalElements+=pow(4., alevel);
+		totalElements+=pow((REAL)4., alevel);
 	}
 	
 	totalElements*=gmesh->NElements();

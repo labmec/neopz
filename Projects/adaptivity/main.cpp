@@ -1476,7 +1476,7 @@ void Forcing1(TPZVec<REAL> &x, TPZVec<REAL> &disp){
 
 /** Exact solutions to calculate the rate of convergence */
 
-static REAL onethird = 0.33333333333333333;
+static double onethird = 0.33333333333333333;
 static REAL PI = 3.141592654;
 
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {

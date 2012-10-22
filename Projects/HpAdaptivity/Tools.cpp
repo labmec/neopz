@@ -15,7 +15,7 @@
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
 
-
+#include <cmath>
 
 
 #ifdef LOG4CXX
@@ -137,7 +137,7 @@ void Forcing1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp) {
 		double x = pt[0];
 		double y = pt[1];
 		//disp[0]=-1/(4.*pow(pow(x,2) + pow(y,2),0.75));
-		disp[0]= 2.*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
+		disp[0]= 2.*Pi*Pi*sin(Pi*x)*sin(Pi*y);//2.*pow(Pi,2.)*cos(Pi*y)*sin(Pi*x);//(1.)*8.;//-2.*exp(x)*(1. + 4.*x + pow(x,2.))*(-1. + pow(y,2.));//(exp(x)*(-3. + pow(y,2.) + x*(-4. + x + (4. + x)*pow(y,2.))));//2.*(1.-x*x) +2.*(1.-y*y); //	
 		return;
 }
 void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) {
@@ -147,7 +147,7 @@ void SolExata(const TPZVec<REAL> &pt, TPZVec<REAL> &p, TPZFMatrix<REAL> &flux ) 
     p[0]= sin(Pi*x)*sin(Pi*y);//(1.)*pow(pow(x,2) + pow(y,2),0.25);-sin(Pi*x)*cos(Pi*y);//(1-x*x)*(1-y*y)*exp(x);//(1-x*x)*(1-y*y);//Solucao
 		flux(0,0)= (-1.)*Pi*cos(Pi*x)*sin(Pi*y);//(1.)*x/(2.*pow(pow(x,2) + pow(y,2),0.75));//Pi*cos(Pi*x)*cos(Pi*y);//2.*exp(x)*x*(1. - pow(y,2.)) - exp(x)*(1. - pow(x,2.))*(1. - pow(y,2.));//2*x*(1-y*y);//
 		flux(1,0)= (-1.)*Pi*cos(Pi*y)*sin(Pi*x);//(1.)*y/(2.*pow(pow(x,2) + pow(y,2),0.75)); //Pi*sin(Pi*y)*sin(Pi*x);//2.*exp(x)*(1. - pow(x,2.))*y;//2*(1-x*x)*y; dy
-		flux(2,0)= 2*pow(Pi,2)*sin(Pi*x)*sin(Pi*y);//pow(pow(x,2) + pow(y,2),0.25);//-2.*pow(Pi,2.)*sin(Pi*x)*cos(Pi*y);//coloco o divergetne aq para testar
+		flux(2,0)= 2*Pi*Pi*sin(Pi*x)*sin(Pi*y);//pow(pow(x,2) + pow(y,2),0.25);//-2.*pow(Pi,2.)*sin(Pi*x)*cos(Pi*y);//coloco o divergetne aq para testar
 		
 		
 }

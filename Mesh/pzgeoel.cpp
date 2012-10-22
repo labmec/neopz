@@ -774,7 +774,7 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
             radius = min(radius,sonRadius);
         }
     }
-    radius = min(radius,1.);
+    radius = min(radius,(REAL)1.);
     
     REAL err = 10.;
     REAL tol = radius * 1.E-3;//tolerancia minima em XYX de 1mm

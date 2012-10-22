@@ -53,6 +53,7 @@ void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
+
 /**
  * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
  */
@@ -106,27 +107,29 @@ int main(int argc, char *argv[]) {
 	/// Applying hp adaptive techniques 2012/10/01
 	
 	// Creating boundary condition on top and bottom of the quadrilateral domain
-	gen.SetBC(gmesh,4,-1);
-	gen.SetBC(gmesh,6,-2);
+//	gen.SetBC(gmesh,4,-1);
+//	gen.SetBC(gmesh,6,-2);
 	
 	// Refinement of the some element
 	TPZGeoEl *gel;
 	TPZVec<TPZGeoEl *> sub;
 	TPZVec<TPZGeoEl *> subsub;
 	int nele = 0;
-	int ngelem = gmesh->NElements()-1;
-	for(;nele<ngelem;nele++) {
-		gel = gmesh->ElementVec()[nele];
-		if(gel->Dimension() != 2) continue;
-		gel->Divide(sub);
-		int jj = 2;
-		for(jj=0;jj<4;jj++) {
-			gel = sub[jj];
-			gel->Divide(subsub);
-		}
-	}
-	gel = subsub[0];
-	gel->Divide(sub);
+//	for(int ii=0;ii<3;ii++) {
+//		int ngelem = gmesh->NElements()-1;
+//		for(;nele<ngelem;nele++) {
+			gel = gmesh->ElementVec()[nele];
+//			if(gel->Dimension() != 2) continue;
+			gel->Divide(sub);
+			int jj = 2;
+//			for(jj=0;jj<4;jj++) {
+				gel = sub[jj];
+				gel->Divide(subsub);
+//			}
+//		}
+//		gel = subsub[0];
+//		gel->Divide(sub);
+//	}
 	
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
