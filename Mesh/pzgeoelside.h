@@ -206,6 +206,8 @@ public:
 	 * of an element to the master element space of a higher dimension side
 	 */
 	TPZTransform SideToSideTransform(TPZGeoElSide &higherdimensionside);
+    
+    TPZGeoElSide HigherFatherSide();
 	
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/
 	TPZCompElSide Reference() const;
