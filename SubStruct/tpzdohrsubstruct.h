@@ -15,7 +15,9 @@
  * @author Philippe Devloo
  * @warning Hardcoded definition of MAKEINTERNAL  ! 
  */
+#ifndef MAKEINTERNAL
 #define MAKEINTERNAL
+#endif
 
 /**
  * @ingroup substructure
