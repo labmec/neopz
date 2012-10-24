@@ -40,6 +40,7 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 #creating target pz library and installing it
 add_library(pz ${pzsources})
 target_link_libraries(pz ${PTHREAD_LIB})
+target_link_libraries(pz pthread)
 
 if (USING_LOG4CXX)
   target_link_libraries(pz ${LOG4CXX_LIB})
