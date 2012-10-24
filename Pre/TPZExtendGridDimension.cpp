@@ -19,6 +19,10 @@ TPZExtendGridDimension::TPZExtendGridDimension(TPZAutoPointer<TPZGeoMesh> &fineg
 	fFineGeoMesh = finegeomesh;
 	fThickness = thickness;
 }
+TPZExtendGridDimension::TPZExtendGridDimension(TPZGeoMesh* finegeomesh,REAL thickness){	
+	fFineGeoMesh = finegeomesh;
+	fThickness = thickness;
+}
 
 TPZGeoMesh *TPZExtendGridDimension::ExtendedMesh() {
 	// a malha 2D sera extendida para uma malha 3D: logo ela eh plana e conforme

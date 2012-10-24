@@ -12,6 +12,7 @@
 #include "pzmaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
+#include "pzelast3d.h"
 
 //#include "pzadaptmesh.h"
 
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	
-	int r, dim = 2;
+	int r, dim;
 	
 	// Initializing a ref patterns
 	//gRefDBase.InitializeAllUniformRefPatterns();
@@ -99,12 +100,20 @@ int main(int argc, char *argv[]) {
 	// Has 4 elements, 9 connects and 8 bc elements
     TPZGeoMesh* gmesh = new TPZGeoMesh;
 	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-	TPZManVector<int> nx(dim,2);   // subdivisions in X and in Y. 
+	TPZManVector<int> nx(3,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
 	
-	/// Applying hp adaptive techniques 2012/10/01
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	TPZExtendGridDimension gmeshextend(gmesh,0.3);
+	
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-2,-1);
+	sprintf(saida,"meshextruded.vtk");
+	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+
+	// Applying hp adaptive techniques 2012/10/01
 	
 	// Creating boundary condition on top and bottom of the quadrilateral domain
 //	gen.SetBC(gmesh,4,-1);
@@ -115,34 +124,40 @@ int main(int argc, char *argv[]) {
 	TPZVec<TPZGeoEl *> sub;
 	TPZVec<TPZGeoEl *> subsub;
 	int nele = 0;
-//	for(int ii=0;ii<3;ii++) {
-//		int ngelem = gmesh->NElements()-1;
-//		for(;nele<ngelem;nele++) {
-			gel = gmesh->ElementVec()[nele];
-//			if(gel->Dimension() != 2) continue;
+	for(int ii=0;ii<3;ii++) {
+		int ngelem = gmesh->NElements()-1;
+		for(;nele<ngelem;nele++) {
+			gel = gmesh3D->ElementVec()[nele];
+			if(gel->Dimension() != 3) continue;
 			gel->Divide(sub);
-			int jj = 2;
-//			for(jj=0;jj<4;jj++) {
+			int jj = 0;
+			for(jj=0;jj<4;jj++) {
 				gel = sub[jj];
 				gel->Divide(subsub);
-//			}
-//		}
-//		gel = subsub[0];
-//		gel->Divide(sub);
-//	}
+//	gel = subsub[jj];
+//	gel->Divide(sub);
+			}
+		}
+		gel = subsub[0];
+		gel->Divide(sub);
+	}
 	
-	gmesh->ResetConnectivities();
-	gmesh->BuildConnectivity();
+	gmesh3D->ResetConnectivities();
+	gmesh3D->BuildConnectivity();
 	
     // Creating computational mesh
-    TPZCompMesh *comp = new TPZCompMesh(gmesh);
+    TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
 	/** Set polynomial order */
-	int p = 1;
+	int p = 3;
     TPZCompEl::SetgOrder(p);
   
+	TPZVec<REAL> forces(3,0.);
 	// Creating and inserting materials into computational mesh
-    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);
+    //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
+	TPZMaterial *mat = new TPZElasticity3D(1,1.e5,0.2,forces);          // three-dimensional
     comp->InsertMaterialObject(mat);
+	dim = mat->Dimension();
+	nstate = mat->NStateVariables();
     // Boundary conditions
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
@@ -151,7 +166,7 @@ int main(int argc, char *argv[]) {
     comp->InsertMaterialObject(bnd);
 //    bnd = mat->CreateBC (mat,-2,0,val1,val2);
 	// Neumann
-    val2(0,0)=3.;
+    val2(0,0)=30.; val2(1,0) = 10.;
     bnd = mat->CreateBC(mat,-2,1,val1,val2);
     comp->InsertMaterialObject(bnd);
     
@@ -169,21 +184,33 @@ int main(int argc, char *argv[]) {
 	
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
-    scalnames.Push("POrder");
-    scalnames.Push("Error");
+	if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
+		scalnames.Push("POrder");
+	else
+		vecnames.Push("POrder");
+	if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
+		scalnames.Push("Error");
+	else
+		vecnames.Push("Error");
+	if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
+		scalnames.Push("state");
+	else
+		vecnames.Push("state");
     
     if(nstate == 1) {
-        vecnames.Push("state");
         scalnames.Push("TrueError");
         scalnames.Push("EffectivityIndex");
     }else if(nstate == 2) {
         scalnames.Push("sig_x");
         scalnames.Push("sig_y");
         scalnames.Push("tau_xy");
-        vecnames.Push("state");
     }
-    if(dim < 3 && nstate == 2){
-        vecnames.Push("displacement");
+    if(nstate == 3) {
+        scalnames.Push("StressX");
+        scalnames.Push("StressY");
+        scalnames.Push("StressZ");
+		vecnames.Push("PrincipalStress");
+		vecnames.Push("PrincipalStrain");
     }
 	
 	// END Determining the name of the variables

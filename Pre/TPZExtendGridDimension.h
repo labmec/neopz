@@ -48,6 +48,7 @@ public:
 	TPZExtendGridDimension(char *geofile,REAL thickness);
 	/** @brief Constructor using geometric mesh one- or two- dimensional and thickness */
 	TPZExtendGridDimension(TPZAutoPointer<TPZGeoMesh> &finegeomesh,REAL thickness);
+	TPZExtendGridDimension(TPZGeoMesh* finegeomesh,REAL thickness);
 
 	/** @brief Destructor default */
 	~TPZExtendGridDimension(){};
