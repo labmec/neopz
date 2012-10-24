@@ -119,26 +119,10 @@ TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     TPZVec<REAL> qsi(0);
     
     TPZGeoEl * geoEl = NULL;
-    if(fMeshDim == 2)
-    {
-        qsi.Resize(2, 0.);
-        int axe0 = 0;//axe X
-        int axe1 = 1;//axe Y
-        int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitialElementId, xt, qsi, axe0, axe1, axeNormal, false);
-        
-        geoEl = fcmesh->Reference()->ElementVec()[elFoundId];
-    }
-    else if(fMeshDim == 3)
-    {
-        qsi.Resize(3, 0.);
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitialElementId, fcmesh->Reference());
-    }
-    else
-    {
-        std::cout << "Mesh dimension must be 2 or 3! See " << __PRETTY_FUNCTION__ << " !!!\n";
-        DebugStop();
-    }
+
+    qsi.Resize(fMeshDim, 0.);
+    geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+
     if(!geoEl)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
@@ -291,27 +275,10 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     TPZVec<REAL> qsi(0);
     
     TPZGeoEl * geoEl = NULL;
-    if(fMeshDim == 2)
-    {
-        qsi.Resize(2, 0.);
-        int axe0 = 0;//axe X
-        int axe1 = 1;//axe Y
-        int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitialElementId, xt, qsi, axe0, axe1, axeNormal, false);
-        
-        geoEl = fcmesh->Reference()->ElementVec()[elFoundId];
-    }
-    
-    else if(fMeshDim == 3)
-    {
-        qsi.Resize(3, 0.);
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitialElementId, fcmesh->Reference());
-    }
-    else
-    {
-        std::cout << "Mesh dimension must be 2 or 3! See " << __PRETTY_FUNCTION__ << " !!!\n";
-        DebugStop();
-    }
+
+    qsi.Resize(fMeshDim, 0.);
+    geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+
     if(!geoEl)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";

@@ -132,6 +132,18 @@ public:
     TPZGeoEl * fElem2D;
 };
 
+
+/**
+ * Obs.:    Caso seja necessario retroceder no futuro, 
+ *          os metodos PointElementOnFullMesh e PointElementOnPlaneMesh ainda
+ *          aparecem NO PRIMEIRO commit deste arquivo na data de 24 de outubro de 2012.
+ *          Agora eles foram suprimidos por serem substituidos pelo metodo
+ *          TPZGeoMesh::FindElement(...).
+ *          Se por anos os metodos desta classe permanecerem estaveis,
+ *          pode deletar este comentario.
+ */
+
+
 class TPZPlaneFracture
 {
 	public:
@@ -153,15 +165,6 @@ class TPZPlaneFracture
 	~TPZPlaneFracture();
     
     void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
-    
-    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initial2DElId, TPZVec<REAL> & x, TPZVec<REAL> & qsi, int planeAxe0, int planeAxe1, int planeNormal, bool justFathers);
-    
-    /**
-     * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
-     * @param x [in] : coordinates whose elements is going to be localized.
-     * @param fullMesh [in] : geomesh of elements candidates.
-     */
-    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initial3DElId, TPZGeoMesh * fullMesh);
     
     //Just 4 validation of SIF
     /**
@@ -204,17 +207,12 @@ class TPZPlaneFracture
 
     TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
 
-    /** @brief Generation of the persistent 2D mesh that contains the fracture
-     *  @note This method set the fPlaneMesh atribute that will not be changed for every fracture time step
-     */
-    void GeneratePlaneMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
-
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
-     *  @note This method set the fFullMesh atribute that will not be changed for every fracture time step
+     *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
      */
-    void GenerateFullMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
+    void GenerateRefinedMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
 
-    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateFullMesh
+    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateRefinedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
      */
     void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL lengthFactor,
@@ -243,8 +241,6 @@ class TPZPlaneFracture
 	 */
 	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
 							std::map< int, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence);
-
-    static TPZGeoEl * CrossToNextNeighbour(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> dx, REAL alphaMin, int planeAxe0, int planeAxe1, int planeNormal);
 
 	/**
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
@@ -344,26 +340,25 @@ class TPZPlaneFracture
 	 * @param gmesh3D geometric mesh three-dimensional
 	 * @param elIdSequence - output data: list that contains 1D element Id and it trim 1D coordinates in generation sequence order
 	 */
-	void GenerateCrackBoundary(TPZGeoMesh * gmesh2D,
-                               TPZGeoMesh * gmesh3D,
+	void GenerateCrackBoundary(TPZGeoMesh * gmesh3D,
                                std::list< std::pair<int,REAL> > &elIdSequence);
     
     /**
      * @brief Fill fcrackQpointsElementsIds atribute with the elements (and its sides) that toutch cracktip
      */
-    void SeparateElementsInMaterialSets(TPZGeoMesh * fullMesh);
+    void SeparateElementsInMaterialSets(TPZGeoMesh * refinedMesh);
 
     /**
      * @brief Once the fcrackQpointsElementsIds atribute is filled (by HuntElementsSurroundingCrackTip method),\n
      *          the respective elements must be turned into quarterpoints,\n
      *          ruled by involved sides (that could be more than one by element)
      */
-    void TurnIntoQuarterPoint(TPZGeoMesh * fullMesh);
+    void TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh);
     
     /**
      * @brief Refinement proceedings to increase solution quality
      */
-    void RefinementProceedings(TPZGeoMesh * fullMesh);
+    void RefinementProceedings(TPZGeoMesh * refinedMesh);
     
     /**
      * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
@@ -378,13 +373,11 @@ class TPZPlaneFracture
 	
 //--------------------------------------------------------------------------------------------------------------------------------------------------
     
+    
 public:
 	
-	/** @brief Original plane mesh (keeped intact for any poligonalChain configuration) */
-	TPZGeoMesh * fPlaneMesh;
-    
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
-	TPZGeoMesh * fFullMesh;
+	TPZGeoMesh * fPreservedMesh;
     
     /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
     TPZVec< std::map<REAL,REAL> > fpos_stress;
@@ -392,9 +385,20 @@ public:
     /** @brief 1D elements Ids that compose crack boundary */
     TPZVec<int> fcrackBoundaryElementsIds;
     
+    /**
+     * Pode parecer que esta estrutura eh dispensavel pois bastaria percorrer
+     * os vizinhos dos elementos 1D contidos no TPZVec<int> fcrackBoundaryElementsIds.
+     * Mas como os elementos a tornarem-se quarterpopint podem tocar a ponta da fratura
+     * em 2 arestas, por exemplo, eles precisam ser refinados antes pois o quarterpoint
+     * soh aceita como targetSide apenas 1 noh ou 1 aresta ou 1 face.
+     * Portanto esta estrutura nao eh dispensavel pois o metodo TurnIntoQuarterPoints
+     * decidirah se os candidatos a tornarem-se quarterpoints precisarao ser refinados etc.
+     */
     /** @brief Quarter points 3D elements Ids that surround crack boundary */
     //map< elementId , set< sides of this element that touch 1d cracktip > >
     std::map< int,std::set<int> > fcrackQpointsElementsIds;
+    
+    int fInitialElId;
     
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 
