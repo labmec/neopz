@@ -154,14 +154,14 @@ class TPZPlaneFracture
     
     void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
     
-    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initialElId, TPZVec<REAL> & x, TPZVec<REAL> & qsi, int planeAxe0, int planeAxe1, int planeNormal, bool justFathers);
+    static int PointElementOnPlaneMesh(TPZGeoMesh * PlaneMesh, int & initial2DElId, TPZVec<REAL> & x, TPZVec<REAL> & qsi, int planeAxe0, int planeAxe1, int planeNormal, bool justFathers);
     
     /**
      * @brief Returns an pointer to element of given mesh (fullMesh) that contains the given coordinates (x).
      * @param x [in] : coordinates whose elements is going to be localized.
      * @param fullMesh [in] : geomesh of elements candidates.
      */
-    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initialElId, TPZGeoMesh * fullMesh);
+    static TPZGeoEl * PointElementOnFullMesh(TPZVec<REAL> & x, TPZVec<REAL> & qsi, int & initial3DElId, TPZGeoMesh * fullMesh);
     
     //Just 4 validation of SIF
     /**

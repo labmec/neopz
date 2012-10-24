@@ -46,7 +46,6 @@ TPZGeoMesh::TPZGeoMesh() :  fName(), fElementVec(0), fNodeVec(0)
 	fReference = 0;
 	fNodeMaxId = -1;
 	fElementMaxId = -1;
-    fInitialElId = 0;
 }
 
 TPZGeoMesh::TPZGeoMesh(const TPZGeoMesh &cp) : TPZSaveable(cp)
@@ -75,7 +74,6 @@ TPZGeoMesh & TPZGeoMesh::operator= (const TPZGeoMesh &cp )
 	this->fNodeMaxId = cp.fNodeMaxId;
 	this->fElementMaxId = cp.fElementMaxId;
 	this->fInterfaceMaterials = cp.fInterfaceMaterials;
-    this->fInitialElId = cp.fInitialElId;
 	
 	this->fReference = NULL;
 	
@@ -402,9 +400,9 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targetDim)
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElId, int targetDim)
 {
-    TPZGeoEl * gel = this->ElementVec()[fInitialElId]->HighestFather();
+    TPZGeoEl * gel = this->ElementVec()[InitialElId]->HighestFather();
     qsi.Resize(gel->Dimension(), 0.);
     
     TPZVec<REAL> projection(gel->Dimension());
@@ -468,7 +466,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targ
             if(son->ComputeXInverseAlternative(x, qsiSonVec[s]))
             {
                 qsi = qsiSonVec[s];
-                fInitialElId = son->Id();
+                InitialElId = son->Id();
                 return son;
             }
         }
@@ -492,14 +490,14 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targ
 
             qsi = qsiSonVec[sonPosition];
             son = subElements[sonPosition];
-            fInitialElId = son->Id();
+            InitialElId = son->Id();
 
             return son;
         }
     }
     else
     {
-        fInitialElId = gel->Id();
+        InitialElId = gel->Id();
         return gel;
     }
     

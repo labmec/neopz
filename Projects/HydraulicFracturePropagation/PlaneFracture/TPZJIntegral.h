@@ -67,9 +67,8 @@ protected:
     /**
      *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
      *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
-     *  This element must be an 2D element of PlaneFracture Mesh (see TPZPlaneFracture)
      */
-    int fInitial2DElementId;
+    int fInitialElementId;
     
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
@@ -127,9 +126,8 @@ protected:
     /**
      *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
      *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
-     *  This element must be an 2D element of PlaneFracture Mesh (see TPZPlaneFracture)
      */
-    int fInitial2DElementId;
+    int fInitialElementId;
     
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;

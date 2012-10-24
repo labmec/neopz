@@ -208,6 +208,8 @@ public:
 	TPZTransform SideToSideTransform(TPZGeoElSide &higherdimensionside);
     
     TPZGeoElSide HigherFatherSide();
+    
+    void AllLowerSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides);
 	
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/
 	TPZCompElSide Reference() const;

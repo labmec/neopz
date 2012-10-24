@@ -65,9 +65,6 @@ class  TPZGeoMesh : public TPZSaveable {
 	
 	/** @brief Maximum id used by all elements of this mesh */
 	int fElementMaxId;
-    
-    /** @brief Id of starting element to be used in FindElement method */
-    int fInitialElId;
 	
 	typedef std::map<std::pair<int,int>, int> InterfaceMaterialsMap;
 	
@@ -162,7 +159,7 @@ public:
     
     /** by Caju 2012 */
     /** @brief Returns the element that contains the quiven point x and it respective point in parametric domain qsi */
-    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int targetDim = 0);
+    TPZGeoEl * FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElId, int targetDim = 0);
 	
 	/** @brief Alternative method for computing the connectivity */
 	void BuildConnectivityOld();

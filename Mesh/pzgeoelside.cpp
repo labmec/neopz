@@ -643,6 +643,48 @@ TPZGeoElSide TPZGeoElSide::HigherFatherSide()
     return side;
 }
 
+void TPZGeoElSide::AllLowerSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides)
+{
+    sonsSides.Resize(0);
+    if(this->Element()->HasSubElement() == false)
+    {
+        return;
+    }
+    TPZVec<TPZGeoEl*> lowerSubelements(0);
+    this->Element()->GetLowerSubElements(lowerSubelements);
+    int nlowerSubelements = lowerSubelements.NElements();
+    for(int sub = 0; sub < nlowerSubelements; sub++)
+    {
+        TPZGeoEl * subEl = lowerSubelements[sub];
+        int nsides = subEl->NSides();
+        for(int s = 0; s < nsides; s++)
+        {
+            TPZGeoEl * actEl = subEl;
+            TPZGeoElSide actside(actEl,s);
+            if(actside.Dimension() < this->Dimension())
+            {
+                continue;
+            }
+            else if(actside.Dimension() > this->Dimension())
+            {
+                break;
+            }
+            while(actEl != this->fGeoEl)
+            {
+                actside = actEl->Father2(actside.Side());
+                actEl = actEl->Father();
+            }
+            if(actside.Side() == this->Side())
+            {
+                TPZGeoElSide sonEl_Side(subEl,s);
+                int oldSize = sonsSides.NElements();
+                sonsSides.Resize(oldSize+1);
+                sonsSides[oldSize] = sonEl_Side;
+            }
+        }
+    }
+}
+
 /*return 1 if the element has subelements along side*/
 int TPZGeoElSide::HasSubElement() {
     if(!fGeoEl) return 0;

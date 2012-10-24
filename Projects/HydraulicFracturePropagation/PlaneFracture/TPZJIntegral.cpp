@@ -36,7 +36,7 @@ LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, 
     
     fcmesh = cmesh;
     fMeshDim = meshDim;
-    fInitial2DElementId = 0;
+    fInitialElementId = 0;
     fcrackPressure = fabs(pressure);
 }
 
@@ -98,6 +98,19 @@ TPZVec<REAL> LinearPath::Func(REAL t)
     TPZVec<REAL> linContribution(fMeshDim);
     linContribution = BoundaryFunc(xt, nt);
     
+    if(fMeshDim == 2)
+    {
+        linContribution[0] = 2.*linContribution[0];
+        linContribution[1] = 0.;
+    }
+    else if(fMeshDim == 3)
+    {
+        //Simetry in xz plane
+        linContribution[0] = 2.*linContribution[0];
+        linContribution[1] = 0.;
+        linContribution[2] = 2.*linContribution[2];
+    }
+    
     return linContribution;
 }
 
@@ -112,15 +125,14 @@ TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         int axe0 = 0;//axe X
         int axe1 = 1;//axe Y
         int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitial2DElementId, xt, qsi, axe0, axe1, axeNormal, false);
+        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitialElementId, xt, qsi, axe0, axe1, axeNormal, false);
         
         geoEl = fcmesh->Reference()->ElementVec()[elFoundId];
     }
-    
     else if(fMeshDim == 3)
     {
         qsi.Resize(3, 0.);
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, fcmesh->Reference());
+        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitialElementId, fcmesh->Reference());
     }
     else
     {
@@ -131,6 +143,13 @@ TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
         DebugStop();
+    }
+    
+    TPZVec<REAL> minusGradUt_Sigma__n(fMeshDim,0.);
+    if(geoEl->MaterialId() == __3DrockMat_quarterPoint)
+    {
+        //For a while will not compute solution in quarter point elements
+        return minusGradUt_Sigma__n;
     }
     
     TPZCompEl * compEl = geoEl->Reference();
@@ -166,7 +185,6 @@ TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         GradUtxy = data.dsol[0];
     }
     
-    TPZVec<REAL> minusGradUt_Sigma__n(fMeshDim,0.);
     TPZVec<REAL> Sigma_n(fMeshDim,0.);
     Sigma_n[1] = fcrackPressure;
     for(int r = 0; r < fMeshDim; r++)
@@ -200,7 +218,7 @@ ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec
     
     fcmesh = cmesh;
     fMeshDim = meshDim;
-    fInitial2DElementId = 0;
+    fInitialElementId = 0;
 }
 
 
@@ -251,6 +269,19 @@ TPZVec<REAL> ArcPath::Func(REAL t)
     TPZVec<REAL> arcContribution(fMeshDim);
     arcContribution = BoundaryFunc(xt, nt);
     
+    //Simetry in xz plane
+    if(fMeshDim == 2)
+    {
+        arcContribution[0] = 2.*arcContribution[0];
+        arcContribution[1] = 0.;
+    }
+    else if(fMeshDim == 3)
+    {
+        arcContribution[0] = 2.*arcContribution[0];
+        arcContribution[1] = 0.;
+        arcContribution[2] = 2.*arcContribution[2];
+    }
+    
     return arcContribution;
 }
 
@@ -266,7 +297,7 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         int axe0 = 0;//axe X
         int axe1 = 1;//axe Y
         int axeNormal = 2;//axe Z
-        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitial2DElementId, xt, qsi, axe0, axe1, axeNormal, false);
+        int elFoundId = TPZPlaneFracture::PointElementOnPlaneMesh(fcmesh->Reference(), fInitialElementId, xt, qsi, axe0, axe1, axeNormal, false);
         
         geoEl = fcmesh->Reference()->ElementVec()[elFoundId];
     }
@@ -274,7 +305,7 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     else if(fMeshDim == 3)
     {
         qsi.Resize(3, 0.);
-        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitial2DElementId, fcmesh->Reference());
+        geoEl = TPZPlaneFracture::PointElementOnFullMesh(xt, qsi, fInitialElementId, fcmesh->Reference());
     }
     else
     {
@@ -419,7 +450,7 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 //    fNormalDirection = thePath->NormalDirection();
 //    fr_int = thePath->R_int();
 //    fradius = thePath->R_ext();
-//    fInitial2DElementId = thePath->Initial2DElementId();
+//    fInitialElementId = thePath->InitialElementId();
 //    fcmesh = thePath->Cmesh();
 //    fMeshDim = thePath->MeshDim();
 //
@@ -523,58 +554,81 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
     Path * jpathElem = fPathVec[p];
 
-    REAL precisionIntegralRule = 1.E-8;
+    REAL precisionIntegralRule = 1.E-7;
     Adapt intRule(precisionIntegralRule);
     
     int meshDim = jpathElem->MeshDim();
+    
 //    {////////////4debug
-//        TPZVec<REAL> linJintegralTemp(meshDim,0.);
-//        std::ofstream saida0("lin0.txt");
-//        std::ofstream saida1("lin1.txt");
-//        std::ofstream saida2("lin2.txt");
-//        saida0 << "v0 = {";
-//        saida1 << "v1 = {";
-//        saida2 << "v2 = {";
+//        TPZVec<REAL> JintegralTemp(meshDim,0.);
+//        std::stringstream linear0;
+//        std::stringstream linear1;
+//        std::stringstream linear2;
+//        std::stringstream arc0;
+//        std::stringstream arc1;
+//        std::stringstream arc2;
+//        linear0 << "lin0 = {";
+//        linear1 << "lin1 = {";
+//        linear2 << "lin2 = {";
+//        arc0 << "arc0 = {";
+//        arc1 << "arc1 = {";
+//        arc2 << "arc2 = {";
+//
 //        double nn = 50;
 //        for(int i = int(-nn); i <= int(+nn); i++)
 //        {
 //            double tt = i/nn;
-//            linJintegralTemp = jpathElem->GetLinearPath()->Func(tt);
 //            TPZVec<REAL> xt(3,0.);
+//            
+//            JintegralTemp = jpathElem->GetLinearPath()->Func(tt);
 //            jpathElem->GetLinearPath()->X(tt, xt);
-//            saida0 << "{" << xt[0] << "," << linJintegralTemp[0] << "}";
-//            saida1 << "{" << xt[0] << "," << linJintegralTemp[1] << "}";
-//            saida2 << "{" << xt[0] << "," << linJintegralTemp[2] << "}";
+//            linear0 << "{" << xt[0] << "," << JintegralTemp[0] << "}";
+//            linear1 << "{" << xt[0] << "," << JintegralTemp[1] << "}";
+//            linear2 << "{" << xt[0] << "," << JintegralTemp[2] << "}";
+//            
+//            JintegralTemp = jpathElem->GetArcPath()->Func(tt);
+//            jpathElem->GetArcPath()->X(tt, xt);
+//            arc0 << "{" << xt[0] << "," << JintegralTemp[0] << "}";
+//            arc1 << "{" << xt[0] << "," << JintegralTemp[1] << "}";
+//            arc2 << "{" << xt[0] << "," << JintegralTemp[2] << "}";
+//            
 //            if(tt != 1.)
 //            {
-//                saida0 << ",";
-//                saida1 << ",";
-//                saida2 << ",";
+//                linear0 << ",";
+//                linear1 << ",";
+//                linear2 << ",";
+//                arc0 << ",";
+//                arc1 << ",";
+//                arc2 << ",";
 //            }
 //        }
-//        saida0 << "};";
-//        saida1 << "};";
-//        saida2 << "};";
+//        linear0 << "};\n";
+//        linear1 << "};\n";
+//        linear2 << "};\n";
+//        arc0 << "};\n";
+//        arc1 << "};\n";
+//        arc2 << "};\n";
+//        
+//        std::ofstream saidaAll("funcs.txt");
+//        saidaAll << linear0.str() << linear1.str() << linear2.str() << arc0.str() << arc1.str() << arc2.str() << "\n";
+//        saidaAll << "l0=ListPlot[lin0,AxisOrigin->{0,0}]\n";
+//        saidaAll << "l1=ListPlot[lin0,AxisOrigin->{0,0}]\n";
+//        saidaAll << "l2=ListPlot[lin0,AxisOrigin->{0,0}]\n";
+//        saidaAll << "a0=ListPlot[arc0,AxisOrigin->{0,0}]\n";
+//        saidaAll << "a1=ListPlot[arc1,AxisOrigin->{0,0}]\n";
+//        saidaAll << "a2=ListPlot[arc2,AxisOrigin->{0,0}]\n";
 //    }
-    TPZVec<REAL> linJintegral(meshDim,0.);
     
+    TPZVec<REAL> linJintegral(meshDim,0.);
     linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+0.9);
     //
     TPZVec<REAL> arcJintegral(meshDim,0.);
     arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);
     
     TPZVec<REAL> answ(meshDim);
-    if(meshDim == 2)
+    for(int i = 0; i < meshDim; i++)
     {
-        answ[0] = 2.*(linJintegral[0] + arcJintegral[0]);
-        answ[1] = 0.;
-    }
-    else if(meshDim == 3)
-    {
-        //Pela simetria do problema em relacao ao plano xz, deve-se somar a este vetor seu espelho em relacao ao plano xz.
-        answ[0] = 2.*(linJintegral[0] + arcJintegral[0]);
-        answ[1] = 0.;
-        answ[2] = 2.*(linJintegral[2] + arcJintegral[2]);
+        answ[i] = linJintegral[i] + arcJintegral[i];
     }
     
     return answ;
