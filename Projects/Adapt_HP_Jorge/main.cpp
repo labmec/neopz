@@ -72,9 +72,7 @@ int main(int argc, char *argv[]) {
 #endif
 	const int L = 4;
 	gLMax = L-1;
-#ifdef DEBUG
 	char saida[260];
-#endif
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	
