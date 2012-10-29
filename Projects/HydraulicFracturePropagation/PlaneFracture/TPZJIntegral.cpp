@@ -36,7 +36,6 @@ LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, 
     
     fcmesh = cmesh;
     fMeshDim = meshDim;
-    fInitialElementId = 0;
     fcrackPressure = fabs(pressure);
     
     f_t_elIdqsi.clear();
@@ -121,17 +120,24 @@ TPZVec<REAL> LinearPath::BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & 
 {
     TPZVec<REAL> qsi(0);
     
+    int InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
     if(it != f_t_elIdqsi.end())
     {
-        fInitialElementId = it->second.first;
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else if(f_t_elIdqsi.size() > 0)
+    {
+        it--;
+        InitialElementId = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[fInitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
 
     if(!geoEl)
     {
@@ -142,11 +148,6 @@ TPZVec<REAL> LinearPath::BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & 
     f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZVec<REAL> minusGradUt_Sigma__n(fMeshDim,0.);
-    if(geoEl->MaterialId() == __3DrockMat_quarterPoint)
-    {
-        //For a while will not compute solution in quarter point elements
-        //return minusGradUt_Sigma__n;
-    }
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -214,7 +215,6 @@ ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec
     
     fcmesh = cmesh;
     fMeshDim = meshDim;
-    fInitialElementId = 0;
     
     f_t_elIdqsi.clear();
 }
@@ -287,18 +287,25 @@ TPZVec<REAL> ArcPath::Func(REAL t)
 TPZVec<REAL> ArcPath::BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
     TPZVec<REAL> qsi(0);
-
+    
+    int InitialElementId = 0;
     std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
     if(it != f_t_elIdqsi.end())
     {
-        fInitialElementId = it->second.first;
+        InitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else if(f_t_elIdqsi.size() > 0)
+    {
+        it--;
+        InitialElementId = it->second.first;
         qsi = it->second.second;
     }
     else
     {
-        qsi.Resize(fcmesh->Reference()->ElementVec()[fInitialElementId]->Dimension(),0.);
+        qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
 
     if(!geoEl)
     {

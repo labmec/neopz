@@ -64,12 +64,6 @@ protected:
     /** Determinant of dXdt(3x1) */
     REAL fDETdxdt;
     
-    /**
-     *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
-     *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
-     */
-    int fInitialElementId;
-    
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
     
@@ -125,12 +119,6 @@ protected:
     /** Determinant of dXdt(3x1) */
     REAL fDETdxdt;
     
-    /**
-     *  The Func() method need to call ComputeXInverse method to get solutions on compMesh.
-     *  With the Id of initial element provided, near the searched point, the search algorithm could be optimized.
-     */
-    int fInitialElementId;
-    
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
     
@@ -140,6 +128,58 @@ protected:
     
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
+
+
+//struct AreaPath
+//{
+//public:
+//    
+//    AreaPath();//It is not to be used
+//    AreaPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
+//    ~AreaPath();
+//    
+//    void X(REAL t, TPZVec<REAL> & xt);
+//    void dXdt(REAL t, TPZVec<REAL> & dxdt);
+//    void normalVec(REAL t, TPZVec<REAL> & n);
+//    
+//    REAL DETdxdt();
+//    
+//    TPZVec<REAL> operator()(REAL t)
+//    {
+//        TPZVec<REAL> Vval = Func(t);
+//        return Vval;
+//    }
+//    
+//    TPZVec<REAL> Func(REAL t);
+//    
+//    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+//    
+//protected:
+//    
+//    /** Origin of arc */
+//    TPZVec<REAL> fOrigin;
+//    
+//    /** This direction defines the arc plane.
+//     *  (this direction is orthogonal to arc plane and defines
+//     *   the right hand convention for the arc direction)
+//     */
+//    TPZVec<REAL> fNormalDirection;
+//    
+//    /** Radius of arc */
+//    REAL fradius;
+//    
+//    /** Determinant of dXdt(3x1) */
+//    REAL fDETdxdt;
+//    
+//    /** CMesh that constains data */
+//    TPZAutoPointer<TPZCompMesh> fcmesh;
+//    
+//    /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
+//    /** For 3D problems, fMeshDim=3 */
+//    int fMeshDim;
+//    
+//    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
+//};
 
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
