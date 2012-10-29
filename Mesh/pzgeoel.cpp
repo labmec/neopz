@@ -756,11 +756,15 @@ bool TPZGeoEl::ComputeXInverseAlternative(TPZVec<REAL> & x, TPZVec<REAL> & qsi)
     {
         return ComputeXInverse(x, qsi);
     }
+    if(qsi.NElements() != dim)
+    {
+        qsi.Resize(dim, 0.);
+    }
     
     ///else...
     TPZVec<REAL> centerP(dim,1);
     this->CenterPoint(this->NSides()-1, qsi);
-    qsi = centerP;
+    //qsi = centerP;
     
     REAL radius = this->SmallerEdge();
     if(this->Father())

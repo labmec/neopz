@@ -403,7 +403,11 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElId, int targetDim)
 {
     TPZGeoEl * gel = this->ElementVec()[InitialElId]->HighestFather();
-    qsi.Resize(gel->Dimension(), 0.);
+    
+    if(qsi.NElements() != gel->Dimension())
+    {
+        qsi.Resize(gel->Dimension(), 0.);
+    }
     
     TPZVec<REAL> projection(gel->Dimension());
     int count = 0;
@@ -433,7 +437,10 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         if(neighgel != gel)
         {
             gel = neighgel;
-            qsi.Resize(gel->Dimension(), 0.);
+            if(qsi.NElements() != gel->Dimension())
+            {
+                qsi.Resize(gel->Dimension(), 0.);
+            }
         }
         else
         {

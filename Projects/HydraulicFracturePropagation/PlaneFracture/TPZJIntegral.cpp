@@ -38,6 +38,8 @@ LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, 
     fMeshDim = meshDim;
     fInitialElementId = 0;
     fcrackPressure = fabs(pressure);
+    
+    f_t_elIdqsi.clear();
 }
 
 
@@ -96,7 +98,7 @@ TPZVec<REAL> LinearPath::Func(REAL t)
     this->normalVec(t, nt);
 
     TPZVec<REAL> linContribution(fMeshDim);
-    linContribution = BoundaryFunc(xt, nt);
+    linContribution = BoundaryFunc(t, xt, nt);
     
     if(fMeshDim == 2)
     {
@@ -114,14 +116,22 @@ TPZVec<REAL> LinearPath::Func(REAL t)
     return linContribution;
 }
 
-TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
+
+TPZVec<REAL> LinearPath::BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
     TPZVec<REAL> qsi(0);
     
-    TPZGeoEl * geoEl = NULL;
-
-    qsi.Resize(fMeshDim, 0.);
-    geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
+    if(it != f_t_elIdqsi.end())
+    {
+        fInitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else
+    {
+        qsi.Resize(fcmesh->Reference()->ElementVec()[fInitialElementId]->Dimension(),0.);
+    }
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
 
     if(!geoEl)
     {
@@ -129,22 +139,24 @@ TPZVec<REAL> LinearPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         DebugStop();
     }
     
+    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
+    
     TPZVec<REAL> minusGradUt_Sigma__n(fMeshDim,0.);
     if(geoEl->MaterialId() == __3DrockMat_quarterPoint)
     {
         //For a while will not compute solution in quarter point elements
-        return minusGradUt_Sigma__n;
+        //return minusGradUt_Sigma__n;
     }
     
     TPZCompEl * compEl = geoEl->Reference();
     
-#ifdef DEBUG
+    #ifdef DEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-#endif
+    #endif
     
     TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
@@ -203,6 +215,8 @@ ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec
     fcmesh = cmesh;
     fMeshDim = meshDim;
     fInitialElementId = 0;
+    
+    f_t_elIdqsi.clear();
 }
 
 
@@ -251,7 +265,7 @@ TPZVec<REAL> ArcPath::Func(REAL t)
     this->normalVec(t, nt);
     
     TPZVec<REAL> arcContribution(fMeshDim);
-    arcContribution = BoundaryFunc(xt, nt);
+    arcContribution = BoundaryFunc(t, xt, nt);
     
     //Simetry in xz plane
     if(fMeshDim == 2)
@@ -270,30 +284,39 @@ TPZVec<REAL> ArcPath::Func(REAL t)
 }
 
 
-TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
+TPZVec<REAL> ArcPath::BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
     TPZVec<REAL> qsi(0);
-    
-    TPZGeoEl * geoEl = NULL;
 
-    qsi.Resize(fMeshDim, 0.);
-    geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
+    std::map< REAL , std::pair< int , TPZVec<REAL> > >::iterator it = f_t_elIdqsi.lower_bound(t);
+    if(it != f_t_elIdqsi.end())
+    {
+        fInitialElementId = it->second.first;
+        qsi = it->second.second;
+    }
+    else
+    {
+        qsi.Resize(fcmesh->Reference()->ElementVec()[fInitialElementId]->Dimension(),0.);
+    }
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, fInitialElementId, fMeshDim);
 
     if(!geoEl)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
         DebugStop();
     }
+
+    f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
-#ifdef DEBUG
+    #ifdef DEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-#endif
+    #endif
     
     TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
@@ -317,13 +340,13 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         
         TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
         
-#ifdef DEBUG
+        #ifdef DEBUG
         if(!elast2D)
         {
             std::cout << "This material might be TPZElasticityMaterial type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
-#endif
+        #endif
         
         TPZVec<REAL> Solout(3);
         int var;
@@ -348,13 +371,13 @@ TPZVec<REAL> ArcPath::BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         
         TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
         
-#ifdef DEBUG
+        #ifdef DEBUG
         if(!elast3D)
         {
             std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
-#endif
+        #endif
         
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradUtxy);
@@ -579,15 +602,15 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
 //        std::ofstream saidaAll("funcs.txt");
 //        saidaAll << linear0.str() << linear1.str() << linear2.str() << arc0.str() << arc1.str() << arc2.str() << "\n";
 //        saidaAll << "l0=ListPlot[lin0,AxisOrigin->{0,0}]\n";
-//        saidaAll << "l1=ListPlot[lin0,AxisOrigin->{0,0}]\n";
-//        saidaAll << "l2=ListPlot[lin0,AxisOrigin->{0,0}]\n";
+//        saidaAll << "l1=ListPlot[lin1,AxisOrigin->{0,0}]\n";
+//        saidaAll << "l2=ListPlot[lin2,AxisOrigin->{0,0}]\n";
 //        saidaAll << "a0=ListPlot[arc0,AxisOrigin->{0,0}]\n";
 //        saidaAll << "a1=ListPlot[arc1,AxisOrigin->{0,0}]\n";
 //        saidaAll << "a2=ListPlot[arc2,AxisOrigin->{0,0}]\n";
 //    }
     
     TPZVec<REAL> linJintegral(meshDim,0.);
-    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+0.9);
+    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
     //
     TPZVec<REAL> arcJintegral(meshDim,0.);
     arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);
@@ -600,6 +623,10 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     
     return answ;
 }
+
+/*
+ Franc2D : somente pressão de 5 no interior da fratura resulta em J = 0.0027
+ */
 
 
 

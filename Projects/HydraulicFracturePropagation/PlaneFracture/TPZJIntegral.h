@@ -45,7 +45,7 @@ public:
     
     TPZVec<REAL> Func(REAL t);
     
-    TPZVec<REAL> BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
 protected:
     
@@ -79,6 +79,8 @@ protected:
     
     /** pressure applied inside fracture */
     REAL fcrackPressure;
+    
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
 
 
@@ -104,7 +106,7 @@ public:
     
     TPZVec<REAL> Func(REAL t);
     
-    TPZVec<REAL> BoundaryFunc(TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
 protected:
     
@@ -135,6 +137,8 @@ protected:
     /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
     /** For 3D problems, fMeshDim=3 */
     int fMeshDim;
+    
+    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
 
 /**
