@@ -73,22 +73,56 @@ void MaterialPointTests()
 //        default:
 //            cout << "Unknown Test Type. Exiting...";
 //    }
-    TPZSandlerDimaggio sandler;
-    sandler.McCormicRanchSand(sandler);
-    ofstream outfiletxty("SandlerDimaggioApplyStrain.txt");
-    ofstream outfiletxtS("SandlerApplyLoad.txt");
+    
+    
+    ///TESTE UCS
+    
+    ofstream outUCS("UCS.txt");
+    ofstream outConfinamento("Confinamento03.txt");
     TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
     
-    sandler.fIntegrTol = 1.e-12;
-    sandler.SetIntegrTol(1.e-4);
     
-    deltaeps.XX()= -0.0013;
+    TPZSandlerDimaggio sandler;
+    //sandler.McCormicRanchSand(sandler);
+    REAL poisson, E, A, B, C, R, D, W;
+    
+    
+    //cin >> E;
+    E = 100; //ksi
+    
+    
+  //  cin>> poisson;
+    poisson = 0.40;
+
+    
+    A = 0.25;
+    B = 0.67;
+    C = 0.18;
+    D = 0.67 / 2.; 
+    R = 2.5;
+    W = 0.066;
+    
+
+    sandler.SetUp(poisson, E,A, B, C, R, D, W);
+    
+    
+    REAL inttol = 1.e-4;
+    
+    sandler.SetIntegrTol(inttol);
+    //IntTolerance
+    
+    REAL epsx;
+    epsx=-0.0013;
+    
+    deltaeps.XX()= epsx;
     deltaeps.YY()=0;
     deltaeps.ZZ()=0;
     eps=deltaeps;
     
+    int numberofsteps=100;
+    int unloadstep=49;
     
-    for(int i=0;i<100;i++)
+    for(int i=0;i<numberofsteps;i++)
     {
         
         sandler.ApplyStrainComputeSigma(eps, sigma);//UCS
@@ -96,38 +130,58 @@ void MaterialPointTests()
         
         TPZPlasticState<REAL> state = sandler.GetState();
         //state.Print(cout);
-        if(i==49)
+        if(i==unloadstep)
         {
             deltaeps*=-1;
         }
         
-        outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+        outUCS << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
         eps+=deltaeps;
     }
     
-    TPZSandlerDimaggio sandler2;
-    sandler2.McCormicRanchSand(sandler2);
-    sandler2.SetIntegrTol(0.0000001);
-    deltaeps.XX()= 1.5*-0.065;
-    deltaeps.YY()=0;
-    deltaeps.ZZ()=0;
-    eps=deltaeps;
-    sandler2.ApplyStrainComputeSigma(eps, sigma);
-    //outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
     
-    ///TESTE DE COMPRESSAO SIMPLES
+    ///////////////////FIM UCS////////////////////////
+    
+    //////// ENSAIO TRIAXIAL /////////////////////////
+    
+    
+    TPZSandlerDimaggio sandler2;
+    
+    //cin >> E;
+    E = 100; //ksi
+    
+    //  cin>> poisson;
+    poisson = 0.40;
+    
+    
+    A = 0.25;
+    B = 0.67;
+    C = 0.18;
+    D = 0.67 / 2.;
+    R = 2.5;
+    W = 0.066;
+    
+    
+    sandler2.SetUp(poisson, E,A, B, C, R, D, W);
+    
+    
+    inttol = 1.e-8;
+    
+    sandler2.SetIntegrTol(inttol);
+    
+    ///TESTE DE CONFINAMENTO
+    
     deltasigma.XX()=-0.004;
-    deltasigma.YY()=deltasigma.XX()*0.4;
+    deltasigma.YY()=deltasigma.XX()*0.41;
     deltasigma.ZZ()=deltasigma.YY();
     sigma=deltasigma;
+
+     numberofsteps=100;
     
-    TPZSandlerDimaggio sandler3;
-    sandler3.McCormicRanchSand(sandler3);
-    
-    for(int i=0;i<100;i++)
+    for(int i=0;i<numberofsteps;i++)
     {
-        sandler3.ApplyLoad(sigma,eps);
-        outfiletxtS << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+        sandler2.ApplyLoad(sigma,eps);
+        outConfinamento << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
         sigma+=deltasigma;
     }
     //VisualizeSandlerDimaggio(fileName,pSD);
