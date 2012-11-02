@@ -55,6 +55,7 @@ void help(const char* prg)
 
 clarg::argString ifn("-ifn", "input matrix file name", "matrix.txt");
 clarg::argInt verb_level("-v", "verbosity level", 0);
+clarg::argInt decompose_version("-dv", "decompose version", 1);
 clarg::argBool bi("-b", "binary input file", false);
 clarg::argBool h("-h", "help message", false);
 
@@ -138,9 +139,19 @@ int main(int argc, char *argv[])
 
     VERBOSE(1,"Starting Decompose_LDLt (Matrix dim = " << matrix.Dim() 
 	    << ")" << std::endl);
-    total_rst.start();
-    matrix.Decompose_LDLt();
-    total_rst.stop();
+    if (decompose_version.get_value() == 1) {
+      total_rst.start();
+      matrix.Decompose_LDLt();
+      total_rst.stop();
+    }
+    else if (decompose_version.get_value() == 2) {
+      total_rst.start();
+      matrix.Decompose_LDLt2();
+      total_rst.stop();
+    }
+    else {
+      std::cerr << "ERROR: Invalid decompose LDLt version." << std::endl;
+    }
     VERBOSE(1,"Starting Decompose_LDLt [DONE]" << std::endl);
 
     // Return OK.

@@ -949,6 +949,85 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	return( 1 );
 }
 
+//Edson: Modified version for performance tests. Do not use it unless you know
+//what you are doing!
+template<class TVar>
+int
+TPZSkylMatrix<TVar>::Decompose_LDLt2()
+{
+	
+	if( this->fDecomposed == ELDLt) return 1;
+	if (  this->fDecomposed )
+		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
+	
+	// Third try
+	TVar *elj,*ell;
+	int j,l,minj,minl,minrow,dimension = this->Dim();
+	TPZVec<TVar> diag(dimension);
+	
+	// Diagonal array. We will keep the elements on the reverse order in
+	// order to help the compiler when vectorizing the kernel loop.
+
+	for(j=0; j<dimension; j++)
+	{
+	  diag[j] = *fElem[(dimension-j)-1];
+	}
+
+	std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
+
+	TVar sum;
+	j = 1;
+	while(j < dimension) {
+		/*    if(!(j%100) && Dim() > 100) {
+		 cout <<  j << ' ';
+		 cout.flush();
+		 }
+		 if(!(j%1000)) cout << endl;*/
+		minj = j-Size(j)+1;
+		l = minj;
+		while(l <= j) {
+			minl = l-Size(l)+1;
+			minrow = (minj<minl)? minl:minj;
+			int k = minrow;
+			//			DiagkPtr = fDiag+minrow;
+			elj = fElem[j]+j-minrow;
+			ell = fElem[l]+l-minrow;
+			TVar *diagptr = &diag[(dimension-k)-1];
+			sum = 0.;
+			while(k < l) {
+				//		  sum += *elj-- * *ell-- * *(fElem[k++]);
+			        //EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
+				sum += *elj-- * *ell-- * *diagptr--;
+				k++;
+			}
+			*elj -= sum;
+			if(ell != elj) *elj /= *ell;
+			else if(IsZero(*elj)) {
+#ifdef LOG4CXX
+				std::stringstream sout;
+				sout << "col = " << j << " diagonal " << *elj;
+				LOGPZ_DEBUG(logger,sout.str())
+#endif
+				
+				*diagptr = *elj;
+				cout << "TPZSkylMatrix pivot = " << *elj << endl;
+				cout << "TPZSkylMatrix::DecomposeLDLt zero pivot\n";
+				cout << "j = " << j << " l = " << l << endl;
+			}
+			else
+			{
+				*diagptr = *elj;
+			}
+			l++;
+		}
+		j++;
+	}
+	this->fDecomposed  = ELDLt;
+	this->fDefPositive = 0;
+	//if(Dim() > 100) cout << endl;
+	return( 1 );
+}
+
 /*********************/
 /*** Subst Forward ***/
 //
