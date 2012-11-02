@@ -703,6 +703,9 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 				TVar *elem_i = &fElem[i][j];
 				TVar *end_i  = fElem[i+1];
 				elem_k = &(fElem[k][1]);
+				//EBORIN:
+				// Is this a hot-spot?
+				// Is it vectorized?
 				while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
 				
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
@@ -846,6 +849,8 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
 			elj = fElem[j]+j-minrow;
 			ell = fElem[l]+l-minrow;
 			sum = 0.;
+			//EBORIN: 
+			// Is this a hot spot?
 			while(k < l) {
 				sum += *elj-- * *ell-- * *(fElem[k++]);
 			}
@@ -888,6 +893,9 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	{
 		diag[j] = *fElem[j];
 	}
+
+	std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
+
 	TVar sum;
 	j = 1;
 	while(j < dimension) {
@@ -909,6 +917,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 			sum = 0.;
 			while(k < l) {
 				//		  sum += *elj-- * *ell-- * *(fElem[k++]);
+			        //EBORIN: trocar *diagptr++ por *diagptr-- ajuda na vetorização?
 				sum += *elj-- * *ell-- * *diagptr++;
 				k++;
 			}
@@ -972,6 +981,9 @@ TPZSkylMatrix<TVar>::Subst_Forward( TPZFMatrix<TVar> *B ) const
 			//	for ( int i = k-1; elem_ki < end_ki; i-- )
 			//	  sum += (*elem_ki++) * B->GetVal( i, j );
 			
+			//EBORIN:
+			// Is this a hot-spot?
+			// Is it vectorized?
 			while(elem_ki < end_ki) sum += (*elem_ki++) * (*--BPtr);//(*BPtr--)
 			// Faz B[k,j] = (B[k,j] - sum) / A[k,k].
 			//
@@ -1020,6 +1032,9 @@ TPZSkylMatrix<TVar>::Subst_Backward( TPZFMatrix<TVar> *B ) const
 			val = *BPtr;
 			//	BPtr;
 			// substract the column of the skyline matrix from the vector.
+			//EBORIN:
+			// Is this a hot-spot?
+			// Is it vectorized?
 			while(elem_ki < end_ki) *--BPtr -= (*elem_ki++) * val;
 		}
 	}

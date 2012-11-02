@@ -1330,13 +1330,25 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		//substruct->fStiffness = Stiffness;
 		TPZStepSolver<STATE> *InvertedStiffness = new TPZStepSolver<STATE>(Stiffness);
 		InvertedStiffness->SetMatrix(Stiffness);
+
+//Edson: Uncomment the following line to dump the matrices decomposed with LDLt.
+//#ifdef DUMP_LDLT_MATRICES
+
+#ifdef DUMP_LDLT_MATRICES
+		InvertedStiffness->SetDirect(ELDLt);
+#else
 		InvertedStiffness->SetDirect(ECholesky);
+#endif
 		matredbig->SetSolver(InvertedStiffness);
 		
 		
 		TPZStepSolver<STATE> *InvertedInternalStiffness = new TPZStepSolver<STATE>(InternalStiffness);
 		InvertedInternalStiffness->SetMatrix(InternalStiffness);
+#ifdef DUMP_LDLT_MATRICES
+		InvertedInternalStiffness->SetDirect(ELDLt);
+#else
 		InvertedInternalStiffness->SetDirect(ECholesky);
+#endif
 		matredptr->SetSolver(InvertedInternalStiffness);
 		matredptr->SetReduced();
 		TPZMatRed<STATE,TPZFMatrix<STATE> > *matredfull = new TPZMatRed<STATE,TPZFMatrix<STATE> >(*matredptr);
@@ -1345,6 +1357,28 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
 	}
 }
+
+#ifdef DUMP_LDLT_MATRICES
+
+#include "pzbfilestream.h"
+pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
+unsigned matrix_unique_id = 0;
+
+void dump_matrix(TPZAutoPointer<TPZMatrix<STATE> > Stiffness)
+{
+  PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
+  std::cout << "Dump stiffness matrix at DecomposeBig..." << std::endl;
+  std::stringstream fname;
+  fname << "matrix_" << matrix_unique_id++ << ".bin";
+  TPZBFileStream fs;
+  fs.OpenWrite(fname.str());
+  Stiffness->Write(fs, 0);
+  std::cout << "Dump stiffness matrix at DecomposeBig... [Done]" << std::endl;
+  PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
+}
+
+#endif
+
 void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCondense<STATE> > substruct, 
                   TPZAutoPointer<TPZDohrAssembly<STATE> > dohrassembly, pthread_mutex_t* TestThread)
 {
@@ -1354,7 +1388,14 @@ void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructConden
 		
 		TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
 		
-		Stiffness->Decompose_Cholesky();
+#ifdef DUMP_LDLT_MATRICES
+		dump_matrix(Stiffness);
+		Stiffness->Decompose_LDLt();
+#else
+		//Stiffness->Decompose_Cholesky();
+#endif
+
+
 		substruct->Initialize();
 	}
 }
@@ -1365,7 +1406,12 @@ void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructC
 	{
 		TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
 		TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
+#ifdef DUMP_LDLT_MATRICES
+		dump_matrix(InternalStiffness);
+		InternalStiffness->Decompose_LDLt();
+#else
 		InternalStiffness->Decompose_Cholesky();
+#endif
 	}
 	
 }
