@@ -74,7 +74,7 @@ REAL TPZFlowCompMesh::MaxVelocityOfMesh(){
 			// retrieving the constant of gas.
 			gamma = law->Gamma();
 			
-			sound = 0;//sqrt(gamma*press/density[0]);
+			sound = sqrt(gamma*press/density[0]);
 			
 			// maximal eigenvalue velocity
 			veloc = velocity[0] + sound;
