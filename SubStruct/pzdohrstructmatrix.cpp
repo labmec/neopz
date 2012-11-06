@@ -433,7 +433,7 @@ void TPZDohrStructMatrix::Assemble(TPZMatrix<STATE> & mat, TPZFMatrix<STATE> & r
 			continue;
 		}
 		ThreadDohrmanAssembly<STATE> *work = new ThreadDohrmanAssembly<STATE>(fMesh,isub,*it,fDohrAssembly);
-		//Edson: FIXME - It does not work when numthreads_assemble == 0  and numthreads_decompose > 0?
+		//EBORIN: FIXME - It does not work when numthreads_assemble == 0  and numthreads_decompose > 0?
 		if (numthreads_assemble > 0) {
 			worklist.Append(work);
 		}
@@ -1331,10 +1331,10 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		TPZStepSolver<STATE> *InvertedStiffness = new TPZStepSolver<STATE>(Stiffness);
 		InvertedStiffness->SetMatrix(Stiffness);
 
-//Edson: Uncomment the following line to dump the matrices decomposed with LDLt.
-//#ifdef DUMP_LDLT_MATRICES
+//EBORIN: Uncomment the following line to replace Cholesky by LDLt decomposition
+//#ifdef USE_LDLT_DECOMPOSITION
 
-#ifdef DUMP_LDLT_MATRICES
+#ifdef USE_LDLT_DECOMPOSITION
 		InvertedStiffness->SetDirect(ELDLt);
 #else
 		InvertedStiffness->SetDirect(ECholesky);
@@ -1388,11 +1388,10 @@ void DecomposeBig(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructConden
 		
 		TPZAutoPointer<TPZMatrix<STATE> > Stiffness = matredbig->K00();
 		
-#ifdef DUMP_LDLT_MATRICES
-		dump_matrix(Stiffness);
+#ifdef USE_LDLT_DECOMPOSITION
 		Stiffness->Decompose_LDLt();
 #else
-		//Stiffness->Decompose_Cholesky();
+		Stiffness->Decompose_Cholesky();
 #endif
 
 
@@ -1406,8 +1405,8 @@ void DecomposeInternal(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructC
 	{
 		TPZAutoPointer<TPZMatRed<STATE,TPZFMatrix<STATE> > > matred = substruct->fMatRed;
 		TPZAutoPointer<TPZMatrix<STATE> > InternalStiffness = matred->K00();
-#ifdef DUMP_LDLT_MATRICES
-		dump_matrix(InternalStiffness);
+
+#ifdef USE_LDLT_DECOMPOSITION
 		InternalStiffness->Decompose_LDLt();
 #else
 		InternalStiffness->Decompose_Cholesky();

@@ -48,16 +48,24 @@ void help(const char* prg)
     cout << "Compute the Decompose_LDLt method for the matrix" << endl;
     cout << endl;
     cout << "Usage: " << prg << "-if file [-v verbose_level] [-b] "
-	 << "[-tot_rdt rdt_file] [-h]" << endl << endl;
-    
+	 << "[-tot_rdt rdt_file] [-op matrix_operation] [-h]" << endl << endl;
+    cout << "matrix_operation:" << endl;
+    cout << " 0: Decompose_LDLt()" << endl;
+    cout << " 1: Decompose_LDLt2()" << endl;
+    cout << " 2: Decompose_Cholesky()" << endl;
     clarg::arguments_descriptions(cout, "  ", "\n");
 } 
 
 clarg::argString ifn("-ifn", "input matrix file name", "matrix.txt");
 clarg::argInt verb_level("-v", "verbosity level", 0);
-clarg::argInt decompose_version("-dv", "decompose version", 1);
+clarg::argInt mop("-op", "Matrix operation", 1);
 clarg::argBool bi("-b", "binary input file", false);
 clarg::argBool h("-h", "help message", false);
+clarg::argInt mstats("-mstats verbosity", "Matrix statistics vebosity level.", 0);
+clarg::argString gen_dm_sig("-gen_dm_md5", "generates MD5 signature for decomposed matrix into file.", "decomposed_matrix.md5");
+clarg::argString chk_dm_sig("-chk_dm_md5", "compute MD5 signature for decomposed matrix and check against MD5 at file.", "decomposed_matrix.md5");
+clarg::argString dump_dm("-dump_dm", "dump decomposed matrix to file", 
+			 "decomposed_matrix.txt");
 
 /* Run statistics. */
 RunStatsTable total_rst("-tot_rdt", 
@@ -137,23 +145,77 @@ int main(int argc, char *argv[])
     VERBOSE(1,"Reading input file: " << ifn.get_value() 
 	    << " [DONE]" << std::endl);
 
-    VERBOSE(1,"Starting Decompose_LDLt (Matrix dim = " << matrix.Dim() 
-	    << ")" << std::endl);
-    if (decompose_version.get_value() == 1) {
-      total_rst.start();
-      matrix.Decompose_LDLt();
-      total_rst.stop();
-    }
-    else if (decompose_version.get_value() == 2) {
-      total_rst.start();
-      matrix.Decompose_LDLt2();
-      total_rst.stop();
-    }
-    else {
-      std::cerr << "ERROR: Invalid decompose LDLt version." << std::endl;
-    }
-    VERBOSE(1,"Starting Decompose_LDLt [DONE]" << std::endl);
+#define CASE_OP(opid,method)				\
+    case opid:						\
+      total_rst.start();				\
+      matrix.method;					\
+      total_rst.stop();					\
+      break
 
+    switch (mop.get_value()) {
+      CASE_OP(0,Decompose_LDLt());
+      CASE_OP(1,Decompose_LDLt2());
+      CASE_OP(2,Decompose_Cholesky());
+    default:
+      std::cerr << "ERROR: Invalid matrix operation type." << std::endl;
+    }
+
+    if (mstats.get_value() >= 0) {
+      unsigned n = matrix.Dim();
+      unsigned long long n_sky_items = 0;
+      unsigned long long max_height = 0;
+      for (unsigned i=0; i<n; i++) {
+	unsigned height = matrix.SkyHeight(i);
+	if (mstats.get_value() >= 2) {
+	  cout << "col " << i << " height = " << height << endl;
+	}
+	n_sky_items += height;
+	if (height > max_height) max_height = height;
+      }
+      unsigned long long n2 = n * n;
+      double av_height = (double) n_sky_items / (double) n;
+      cout << "N         = " << n << endl;
+      cout << "N^2       = " << n2 << endl;
+      cout << "Sky items = " << n_sky_items << endl;
+      cout << "N^2 / Sky items = " << (double) n2 / (double) n_sky_items << endl;
+      cout << "Avg. Height = " << av_height << endl;
+      cout << "Max. Height = " << max_height << endl;
+    }
+
+    /** Dump decomposed matrix */
+    if (dump_dm.was_set()) {
+      VERBOSE(1, "Dumping decomposed matrix into: " << 
+	      dump_dm.get_value() << endl);
+      FileStreamWrapper dump_file;
+      dump_file.OpenWrite(dump_dm.get_value());
+      matrix.Write(dump_file, 0);
+    }
+
+    /* Gen/Check MD5 signature */
+    if (gen_dm_sig.was_set() || chk_dm_sig.was_set()) {
+      TPZMD5Stream sig;
+      matrix.Write(sig, 1);
+      int ret;
+      if (chk_dm_sig.was_set()) {
+	if ((ret=sig.CheckMD5(chk_dm_sig.get_value()))) {
+	  cerr << "ERROR(ret=" << ret << ") : MD5 Signature for "
+	       << "decomposed matrixdoes not match." << endl;
+	  return 1;
+	}
+	else {
+	  cout << "Checking decomposed matrix MD5 signature: [OK]" << endl;
+	}
+      }
+      if (gen_dm_sig.was_set()) {
+	if ((ret=sig.WriteMD5(gen_dm_sig.get_value()))) {
+	  cerr << "ERROR (ret=" << ret << ") when writing the "
+	       << "decomposed matrix MD5 signature to file: " 
+	       << gen_dm_sig.get_value() << endl;
+	  return 1;
+	}
+      }
+    }
+    
     // Return OK.
     return 0;
 }

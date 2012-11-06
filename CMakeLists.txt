@@ -141,6 +141,9 @@ if(USING_LOG4CXX)
 	endif()
 endif(USING_LOG4CXX)
 
+#enabling compiler interprocedural optimizations (IPO)
+option(USING_IPO "Whether link and assembly support for compiler IPO will be activated or not (may cause linking to be very slow)." OFF)
+
 #enabling METIS library
 option(USING_METIS "Whether the METIS library will be linked in" OFF)
 if(USING_METIS)

@@ -41,7 +41,9 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 add_library(pz ${pzsources})
 target_link_libraries(pz ${PTHREAD_LIB})
 
-set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
+IF (USING_IPO)
+  set_property(DIRECTORY PROPERTY INTERPROCEDURAL_OPTIMIZATION 1)
+ENDIF()
 
 IF (NOT WIN32)
 target_link_libraries(pz pthread)

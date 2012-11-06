@@ -172,6 +172,42 @@ TPZSkylMatrix<TVar>::operator()(const int r) {
 	return operator()(r,r);
 }
 
+//EBORIN: Define these if you want to use the experimental version.
+//#define DECOMPOSE_CHOLESKY_VEC_OPT1
+//#define DECOMPOSE_CHOLESKY_OPT2
+//#define SKYLMATRIX_PUTVAL_OPT1
+//#define SKYLMATRIX_GETVAL_OPT1
+
+#ifdef SKYLMATRIX_PUTVAL_OPT1
+#warning "Using experimental version of TPZSkylMatrix<TVAr>::PutVal(...)"
+/**************/
+/*** PutVal ***/
+template<class TVar>
+int
+TPZSkylMatrix<TVar>::PutVal(const int r,const int c,const TVar & value )
+{
+	// inicializando row e col para trabalhar com a triangular superior
+  if (r > c) return PutVal(c, r, value);
+
+  // Indice do vetor coluna.
+  int index = c - r;
+  // Se precisar redimensionar o vetor.
+  //EBORIN: Do we really need to check this?
+  if (index >= Size(c)) {
+    if (!IsZero(value)) {
+      cout << "TPZSkylMatrix::PutVal Size" << Size(c);
+      cout.flush();
+      TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"Index out of range");
+    } 
+    else 
+      return 1;
+  }
+
+  fElem[c][index] = value;
+  this->fDecomposed = 0;
+  return (1);
+}
+#else
 /**************/
 /*** PutVal ***/
 template<class TVar>
@@ -186,6 +222,7 @@ TPZSkylMatrix<TVar>::PutVal(const int r,const int c,const TVar & value )
 	// Indice do vetor coluna.
 	int index = col - row;
 	// Se precisar redimensionar o vetor.
+	//EBORIN: Do we really need to check this?
 	if ( index >= Size(col) && !IsZero(value)) {
 		cout << "TPZSkylMatrix::PutVal Size" << Size(col);
 		cout.flush();
@@ -196,6 +233,7 @@ TPZSkylMatrix<TVar>::PutVal(const int r,const int c,const TVar & value )
 	this->fDecomposed = 0;
 	return( 1 );
 }
+#endif
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar> &y, TPZFMatrix<TVar> &z,
@@ -347,9 +385,37 @@ void TPZSkylMatrix<TVar>::SolveSOR(int & numiterations,const TPZFMatrix<TVar> &F
 	tol = res;
 }
 
+#ifdef SKYLMATRIX_GETVAL_OPT1
+#warning "Using experimental version of TPZSkylMatrix<TVAr>::GetVal(...)"
+template<class TVar>
+const TVar &
+TPZSkylMatrix<TVar>::GetVal(const int r,const int c ) const
+{
+  if (r > c) return GetVal(c,r);
+  unsigned dim = this->Dim();
+  //EBORIN: Do we really need to do this? May only when running debug version.
+  if(r >= dim || c >= dim  || r < 0 || c < 0) {
+    cout << "TPZSkylMatrix::GetVal index out of range row = " << r
+	 << " col = " << c << endl;
+    return this->gZero;
+  }
+
+  // Indice do vetor coluna.
+  int index   = c - r;
+  if ( index < Size(c) ) {
+    return (fElem[c][index]);
+  }
+  else {
+    if(this->gZero != TVar(0.)) {
+      cout << "TPZSkylMatrix gZero = " << this->gZero << endl;
+      DebugStop();
+    }
+    return(this->gZero );
+  }
+}
+#else
 /**************/
 /*** GetVal ***/
-
 template<class TVar>
 const TVar &
 TPZSkylMatrix<TVar>::GetVal(const int r,const int c ) const
@@ -378,7 +444,7 @@ TPZSkylMatrix<TVar>::GetVal(const int r,const int c ) const
 		return(this->gZero );
 	}
 }
-
+#endif
 /******** Operacoes com matrizes SKY LINE  ********/
 
 /******************/
@@ -626,6 +692,32 @@ TPZSkylMatrix<TVar>::Redim( int newDim , int)
 	return( 1 );
 }
 
+//EBORIN: Uncomment the following line to enable matrices do be dumped before decomposed
+#define DUMP_BEFORE_DECOMPOSE
+#ifdef DUMP_BEFORE_DECOMPOSE
+
+#include "pzbfilestream.h"
+#include "arglib.h"
+pthread_mutex_t dump_matrix_mutex = PTHREAD_MUTEX_INITIALIZER;
+unsigned matrix_unique_id = 0;
+clarg::argString dm_prefix("-dm_prefix", 
+			   "Filename prefix for matrices dumped before decompose", 
+			   "matrix_");
+template<class TVar>
+void dump_matrix(TPZMatrix<TVar>* m, const char* fn_annotation)
+{
+  if (!dm_prefix.was_set()) return;
+  PZ_PTHREAD_MUTEX_LOCK(&dump_matrix_mutex, "dump_matrix");
+  std::stringstream fname;
+  fname << dm_prefix.get_value() << fn_annotation << "_" << matrix_unique_id++ << ".bin";
+  std::cout << "Dump matrix before decompose... (file: " << fname << ")" << std::endl;
+  TPZBFileStream fs;
+  fs.OpenWrite(fname.str());
+  m->Write(fs, 0);
+  std::cout << "Dump matrix before decompose... [Done]" << std::endl;
+  PZ_PTHREAD_MUTEX_UNLOCK(&dump_matrix_mutex, "dump_matrix");
+}
+#endif
 
 template<>
 int
@@ -656,7 +748,11 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 {
 	if(this->fDecomposed == ECholesky) return 1;
 	if (  this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
-	
+
+#ifdef DUMP_BEFORE_DECOMPOSE
+	dump_matrix(this, "TPZSkylMatrix::Decompose_Cholesky(singular)");
+#endif
+
 	singular.clear();
 	TVar pivot;
 	int dimension = this->Dim();
@@ -703,11 +799,19 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky(std::list<int> &singular)
 				TVar *elem_i = &fElem[i][j];
 				TVar *end_i  = fElem[i+1];
 				elem_k = &(fElem[k][1]);
-				//EBORIN:
-				// Is this a hot-spot?
-				// Is it vectorized?
+#ifdef DECOMPOSE_CHOLESKY_VEC_OPT1
+#warning "Using experimental (vectorizable) version of TPZSkylMatrix<TVar>::Decompose_Cholesky(...)"
+				//EBORIN: Is it really worth it? How large are the non zero part of the columns?
+				//EBORIN: Should we make the column arrays multiple of the machine vector size?
+				unsigned max_l = end_i - elem_i;
+				unsigned tmp = end_k - elem_k;
+				if (tmp < max_l) max_l = tmp;
+				for(unsigned l=0; l<max_l; l++) 
+				  sum += (*elem_i++) * (*elem_k++);
+#else
+				//EBORIN: This code does not seem to be vectorized by the icc compiler.
 				while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
-				
+#endif
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 				fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
 			} else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
@@ -755,6 +859,10 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	if(this->fDecomposed == ECholesky) return 1;
 	if (this->fDecomposed )  TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
 	
+#ifdef DUMP_BEFORE_DECOMPOSE
+	dump_matrix(this, "TPZSkylMatrix::Decompose_Cholesky()");
+#endif
+
 	TVar pivot;
     TVar minpivot = 10000.;
 	int dimension = this->Dim();
@@ -762,6 +870,22 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	 cout << "\nTPZSkylMatrix Cholesky decomposition Dim = " << Dim() << endl;
 	 cout.flush();
 	 }*/
+
+	//	#define DECOMPOSE_CHOLESKY_OPT2 // EBORIN: Optimization 2 -- See bellow
+#ifdef DECOMPOSE_CHOLESKY_OPT2
+#warning "Using experimental (last_col check) version of TPZSkylMatrix<TVar>::Decompose_Cholesky()"
+	TPZVec<int> last_col(dimension);
+	{
+	  int y = dimension-1;
+	  for (int k=(dimension-1); k>=0; k--) {
+	    int min_row = k-Size(k)+1;
+	    while(y>=min_row) {
+	      last_col[y--] = k;
+	    }
+	  } 
+	}
+#endif
+
 	for ( int k = 0; k < dimension; k++ )
     {
 		/*      if(!(k%100) && Dim() > 100) {
@@ -773,6 +897,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		
 		// Faz sum = SOMA( A(k,p) * A(k,p) ), p = 1, ..., k-1.
 		//
+
 		TVar sum = 0.0;
 		TVar *elem_k = fElem[k]+1;
 		TVar *end_k  = fElem[k]+Size(k);
@@ -793,7 +918,20 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 		// Loop para i = k+1 ... Dim().
 		//
 		int i=k+1;
+#ifdef DECOMPOSE_CHOLESKY_OPT2
+		//EBORIN: Este laco computa os elementos da linha k e pode ser computado em paralelo...
+		// Cada iteracao computa L[k,i] em funcao de A[k,i], L[0...k-1,k] x L[0...k-1,i]
+		// - Apenas a porcao L[a...k-1,k] e L[b...k-1,i] nao zero 
+		//   (representada na skyline) precisa ser computada => Numero variavel de 
+		//   multiplicacoes no laco interno
+		// - L[a...k-1,k] e reaproveitada (i-k) vezes.
+		// Idea: Substituir i<dimension por i<last_col(k), onde last_col(k) é a última
+		//   coluna da matriz que possi dados na linha k.
+		int max_i = last_col[k];
+		for ( int j = 2; i <= max_i; j++,i++ ) {
+#else
 		for ( int j = 2; i<dimension; j++,i++ ) {
+#endif
 			// Se tiverem elementos na linha 'i' cuja coluna e'
 			//  menor do que 'K'...
 			if ( Size(i) > j ) {
@@ -802,8 +940,19 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 				TVar *elem_i = &fElem[i][j];
 				TVar *end_i  = fElem[i+1];
 				elem_k = &(fElem[k][1]);
+#ifdef DECOMPOSE_CHOLESKY_VEC_OPT1
+#warning "Using experimental (vectorizable) version of TPZSkylMatrix<TVar>::Decompose_Cholesky(...)"
+				//EBORIN: Is it really worth it? How large are the non zero part of the columns?
+				//EBORIN: Should we make the column arrays multiple of the machine vector size?
+				unsigned max_l = end_i - elem_i;
+				unsigned tmp = end_k - elem_k;
+				if (tmp < max_l) max_l = tmp;
+				for(unsigned l=0; l<max_l; l++) 
+				  sum += (*elem_i++) * (*elem_k++);
+#else
+				//EBORIN: This code does not seem to be vectorized by the icc compiler.
 				while ( (elem_i < end_i) && (elem_k < end_k) ) sum += (*elem_i++) * (*elem_k++);
-				
+#endif
 				// Faz A(i,k) = (A(i,k) - sum) / A(k,k)
 				fElem[i][j-1] = (fElem[i][j-1] -sum) / pivot;
 			} else if ( Size(i) == j ) fElem[i][j-1] /= pivot;
@@ -831,6 +980,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt(std::list<int> &singular)
     {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
     }
+
+#ifdef DUMP_BEFORE_DECOMPOSE
+	dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt(singular)");
+#endif
+
 	singular.clear();
 	
 	// Third try
@@ -884,7 +1038,11 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	if( this->fDecomposed == ELDLt) return 1;
 	if (  this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
-	
+
+#ifdef DUMP_BEFORE_DECOMPOSE
+	dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt()");
+#endif
+
 	// Third try
 	TVar *elj,*ell;
 	int j,l,minj,minl,minrow,dimension = this->Dim();
@@ -894,7 +1052,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 		diag[j] = *fElem[j];
 	}
 
-	std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
+	//std::cout << "TPZSkylMatrix<TVar>::Decompose_LDLt: dimension = " << dimension  << std::endl;
 
 	TVar sum;
 	j = 1;
@@ -949,7 +1107,7 @@ TPZSkylMatrix<TVar>::Decompose_LDLt()
 	return( 1 );
 }
 
-//Edson: Modified version for performance tests. Do not use it unless you know
+//EBORIN: Modified version for performance tests. Do not use it unless you know
 //what you are doing!
 template<class TVar>
 int
@@ -960,6 +1118,10 @@ TPZSkylMatrix<TVar>::Decompose_LDLt2()
 	if (  this->fDecomposed )
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_LDLt <Matrix already Decomposed with different decomposition>" );
 	
+#ifdef DUMP_BEFORE_DECOMPOSE
+	dump_matrix(this, "TPZSkylMatrix::Decompose_LDLt2()");
+#endif
+
 	// Third try
 	TVar *elj,*ell;
 	int j,l,minj,minl,minrow,dimension = this->Dim();

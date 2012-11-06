@@ -451,7 +451,7 @@ int main(int argc, char *argv[])
       
       if (dc3.was_set())
       {
-        VERBOSE(1, "Dumping checkpoint 3 into: " << dc2.get_value() << endl);
+        VERBOSE(1, "Dumping checkpoint 3 into: " << dc3.get_value() << endl);
         FileStreamWrapper CheckPoint3;
         CheckPoint3.OpenWrite(dc3.get_value());
         cmeshauto->Reference()->Write(CheckPoint3, 0);
