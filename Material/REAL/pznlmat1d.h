@@ -24,7 +24,7 @@ public:
 	TPZNLMat1d(int id);
 	
 	/** @brief Default destructor */
-	~TPZNLMat1d();
+	virtual ~TPZNLMat1d();
 	
 	/** @brief Returns the name of the material */
 	virtual std::string Name() { return "nonlinear_1dMaterial"; }
@@ -38,15 +38,15 @@ public:
 	/** @brief Prints out the data associated with the material */
 	virtual void Print(std::ostream &out = std::cout);
 	
-	/** Returns the variable index associated with the name */
-	virtual int VariableIndex(const std::string &name);
+//	/** Returns the variable index associated with the name */
+//	virtual int VariableIndex(const std::string &name);
 	
-	virtual int NSolutionVariables(int var);
+//	virtual int NSolutionVariables(int var);
 	
 protected:
-	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
+//	/** @brief Returns the solution associated with the var index based on the finite element approximation */
+//	virtual void Solution(TPZVec<REAL> &Sol, TPZFMatrix<REAL> &DSol,
+//						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
@@ -57,9 +57,9 @@ public:
 	/** @brief Computes contribution to the stiffness matrix and right hand side at an integration point */
 	virtual void Contribute(TPZMaterialData &data, REAL weight,
                             TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-	/** @brief Computes contribution to the right hand side at an integration point */
-	virtual void Contribute(TPZMaterialData &data, REAL weight,
-                            TPZFMatrix<STATE> &ef);
+//	/** @brief Computes contribution to the right hand side at an integration point */
+//	virtual void Contribute(TPZMaterialData &data, REAL weight,
+//                            TPZFMatrix<STATE> &ef);
 
 	/** @brief Computes contribution to the stiffness matrix and right hand side at the integration point of a boundary */
 	virtual void ContributeBC(TPZMaterialData &data, REAL weight,
@@ -73,17 +73,17 @@ public:
 		TPZMaterial::ContributeBC(data,weight,ef,bc);
 	}
 	
-	/** @brief To create another material of the same type */
-	virtual TPZMaterial * NewMaterial();
+//	/** @brief To create another material of the same type */
+//	virtual TPZMaterial * NewMaterial();
 	
-	/** @brief Reads data of the material from a istream (file data) */
-	virtual void SetData(std::istream &data);
+//	/** @brief Reads data of the material from a istream (file data) */
+//	virtual void SetData(std::istream &data);
 		
-	virtual void Write(TPZStream &buf, int withclassid);
+//	virtual void Write(TPZStream &buf, int withclassid);
 	
-	virtual void Read(TPZStream &buf, void *context);
+//	virtual void Read(TPZStream &buf, void *context);
 	
-	virtual int ClassId() const;
+//	virtual int ClassId() const;
 	
 	virtual REAL Eps(TPZVec<REAL> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 	

@@ -13,6 +13,13 @@
 #include <math.h>
 using namespace std;
 
+TPZNLMat1d::TPZNLMat1d(int id) : TPZMaterial(id)
+{}
+
+
+TPZNLMat1d::~TPZNLMat1d()
+{}
+
 void TPZNLMat1d::Contribute(TPZMaterialData &data, REAL weight,
                              TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) {
 	TPZFMatrix<REAL> &dphi = data.dphix;

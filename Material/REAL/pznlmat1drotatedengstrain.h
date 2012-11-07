@@ -37,17 +37,17 @@ public:
     /** @brief Returns the number of state variables associated with the material: Only w? */
     virtual int NStateVariables() {return  1;}
 	
-    /** @brief Prints out the data associated with the material */
-    virtual void Print(std::ostream &out = std::cout);
+//    /** @brief Prints out the data associated with the material */
+//    virtual void Print(std::ostream &out = std::cout);
 	
-    /** @brief Returns the variable index associated with the name */
-	virtual int VariableIndex(const std::string &name);
+//    /** @brief Returns the variable index associated with the name */
+//	virtual int VariableIndex(const std::string &name);
 	
-    virtual int NSolutionVariables(int var);
+//    virtual int NSolutionVariables(int var);
 	
 protected:
-	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
-						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
+//	virtual void Solution(TPZVec<STATE> &Sol, TPZFMatrix<STATE> &DSol,
+//						  TPZFMatrix<REAL> &axes, int var, TPZVec<REAL> &Solout);
 public:
 	virtual void Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Solout)
 	{
@@ -56,19 +56,19 @@ public:
             DebugStop();
         }
 
-		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
+//		Solution(data.sol[0],data.dsol[0],data.axes,var,Solout);
     }
 	
 	/**
 	 * @name Contribute methods from weak formulation
 	 * @{
 	 */
-    virtual void Contribute(TPZMaterialData &data,
-                            REAL weight,
-                            TPZFMatrix<STATE> &ek,
-							TPZFMatrix<STATE> &ef);
+//    virtual void Contribute(TPZMaterialData &data,
+//                            REAL weight,
+//                            TPZFMatrix<STATE> &ek,
+//							TPZFMatrix<STATE> &ef);
 	
-    virtual void Contribute(TPZMaterialData &data,
+/*    virtual void Contribute(TPZMaterialData &data,
 							REAL weight,
 							TPZFMatrix<STATE> &ef);
 	
@@ -77,7 +77,7 @@ public:
 							  TPZFMatrix<STATE> &ek,
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc);
-	virtual void ContributeBC(TPZMaterialData &data,
+*/	virtual void ContributeBC(TPZMaterialData &data,
 							  REAL weight,
 							  TPZFMatrix<STATE> &ef,
 							  TPZBndCond &bc)
@@ -87,15 +87,15 @@ public:
 
 	/** @} */
 	
-	/** @brief To create another material of the same type */
-	virtual TPZMaterial * NewMaterial();
+//	/** @brief To create another material of the same type */
+//	virtual TPZMaterial * NewMaterial();
 	
-	/** @brief Reads data of the material from a istream (file data) */
-	virtual void SetData(std::istream &data);
+//	/** @brief Reads data of the material from a istream (file data) */
+//	virtual void SetData(std::istream &data);
 
-    virtual void Write(TPZStream &buf, int withclassid);
+//    virtual void Write(TPZStream &buf, int withclassid);
 	
-    virtual void Read(TPZStream &buf, void *context);
+//    virtual void Read(TPZStream &buf, void *context);
 	
     virtual STATE Eps(TPZVec<STATE> &sol,TPZFMatrix<REAL> &axes,TPZFMatrix<REAL> &dphi) = 0;
 };

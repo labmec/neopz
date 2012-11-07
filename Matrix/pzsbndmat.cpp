@@ -886,3 +886,5 @@ int TPZSBMatrix<TVar>::DerivedFrom(char *classname){
 
 #endif
 
+// Inicializando os templates
+template class TPZSBMatrix<double>;
