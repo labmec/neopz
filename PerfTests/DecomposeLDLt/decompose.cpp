@@ -262,6 +262,7 @@ int main(int argc, char *argv[])
 		      << ") != rm[" << i << "][" << j << "] (" << rm_ij 
 		      << ")." << endl);
 	      ret = 1;
+	      max_error = (max_error < diff)?diff:max_error;
 	    }
 	  }
 	}
