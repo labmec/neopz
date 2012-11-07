@@ -222,7 +222,7 @@ namespace clarg
   class argInt : public argT<int>
   {
   public:
-  argInt(const char* arg, const char* desc, int v = false) :
+  argInt(const char* arg, const char* desc, int v = 0) :
       argT<int>(arg,desc)
     {
       def_value = v;
@@ -253,7 +253,7 @@ namespace clarg
   class argDouble : public argT<double>
   {
   public:
-  argDouble(const char* arg, const char* desc, int v = false) :
+  argDouble(const char* arg, const char* desc, double v = 0.0) :
       argT<double>(arg,desc)
     {
       def_value = v;
