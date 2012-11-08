@@ -181,7 +181,9 @@ class TPZPlaneFracture
      * Returns the CompMesh for the FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
      * (used by the RunModelProblemForSIFValidation method)
      */
-    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim, REAL W, REAL H, REAL a, REAL sigmaTraction);
+    TPZCompMesh * GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim,
+                                                          REAL W, REAL H, REAL a,
+                                                          REAL sigmaTraction, REAL pressureInsideCrack);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -205,7 +207,7 @@ class TPZPlaneFracture
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
 
-    TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder);
+    TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder, REAL sigmaTraction, REAL pressureInsideCrack);
 
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step

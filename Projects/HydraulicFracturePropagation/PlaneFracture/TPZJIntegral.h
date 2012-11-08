@@ -18,12 +18,11 @@
 #include "pzinterpolationspace.h"
 #include "TPZPlaneFracture.h"
 
-enum pathType {ELinearPath, EExternalArcPath, EInternalArcPath};
 
 const REAL Pi = 3.1415926535897932384626433832795;
 
 
-struct LinearPath
+class LinearPath
 {
 public:
     
@@ -32,7 +31,7 @@ public:
     ~LinearPath();
     
     void X(REAL t, TPZVec<REAL> & xt);
-    void dXdt(REAL t, TPZVec<REAL> & dxdt);
+    //void dXdt(REAL t, TPZVec<REAL> & dxdt);
     void normalVec(REAL t, TPZVec<REAL> & n);
     
     REAL DETdxdt();
@@ -45,7 +44,9 @@ public:
     
     TPZVec<REAL> Func(REAL t);
     
-    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    
+    REAL Origin(int c);
     
 protected:
     
@@ -74,20 +75,22 @@ protected:
     /** pressure applied inside fracture */
     REAL fcrackPressure;
     
+    /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
 
 
-struct ArcPath
+class ArcPath
 {
 public:
     
     ArcPath();//It is not to be used
     ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
+    ArcPath(ArcPath * cp);
     ~ArcPath();
     
     void X(REAL t, TPZVec<REAL> & xt);
-    void dXdt(REAL t, TPZVec<REAL> & dxdt);
+    //void dXdt(REAL t, TPZVec<REAL> & dxdt);
     void normalVec(REAL t, TPZVec<REAL> & n);
     
     REAL DETdxdt();
@@ -100,7 +103,10 @@ public:
     
     TPZVec<REAL> Func(REAL t);
     
-    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    
+    void SetRadius(REAL radius);
+    REAL Radius();
     
 protected:
     
@@ -126,60 +132,43 @@ protected:
     /** For 3D problems, fMeshDim=3 */
     int fMeshDim;
     
+    /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
 
 
-//struct AreaPath
-//{
-//public:
-//    
-//    AreaPath();//It is not to be used
-//    AreaPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
-//    ~AreaPath();
-//    
-//    void X(REAL t, TPZVec<REAL> & xt);
-//    void dXdt(REAL t, TPZVec<REAL> & dxdt);
-//    void normalVec(REAL t, TPZVec<REAL> & n);
-//    
-//    REAL DETdxdt();
-//    
-//    TPZVec<REAL> operator()(REAL t)
-//    {
-//        TPZVec<REAL> Vval = Func(t);
-//        return Vval;
-//    }
-//    
-//    TPZVec<REAL> Func(REAL t);
-//    
-//    TPZVec<REAL> BoundaryFunc(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
-//    
-//protected:
-//    
-//    /** Origin of arc */
-//    TPZVec<REAL> fOrigin;
-//    
-//    /** This direction defines the arc plane.
-//     *  (this direction is orthogonal to arc plane and defines
-//     *   the right hand convention for the arc direction)
-//     */
-//    TPZVec<REAL> fNormalDirection;
-//    
-//    /** Radius of arc */
-//    REAL fradius;
-//    
-//    /** Determinant of dXdt(3x1) */
-//    REAL fDETdxdt;
-//    
-//    /** CMesh that constains data */
-//    TPZAutoPointer<TPZCompMesh> fcmesh;
-//    
-//    /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
-//    /** For 3D problems, fMeshDim=3 */
-//    int fMeshDim;
-//    
-//    std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
-//};
+
+class AreaPath
+{
+public:
+    
+    AreaPath();//It is not to be used
+    AreaPath(LinearPath * givenLinearPath, ArcPath * givenArcPath);
+    ~AreaPath();
+    
+    virtual TPZVec<REAL> Integrate(int linNDiv);
+    
+protected:
+    
+    struct ArcPath2 : public ArcPath
+    {
+        public:
+        ArcPath2();
+        ArcPath2(ArcPath * cp);
+        ~ArcPath2();
+        
+        virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+        
+        TPZVec<REAL> ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta = 0.1);
+        
+        TPZVec<REAL> FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction);
+    };
+    
+    LinearPath * fLinearPath;
+    ArcPath2 * fArcPath;
+};
+
+
 
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
@@ -191,7 +180,6 @@ protected:
  */
 class Path
 {
-    
 public:
 
     Path();
@@ -214,6 +202,11 @@ public:
         return fArcPath;
     }
     
+    AreaPath * GetAreaPath()
+    {
+        return fAreaPath;
+    }
+    
     int MeshDim()
     {
         return fMeshDim;
@@ -224,6 +217,8 @@ protected:
     
     LinearPath * fLinearPath;
     ArcPath * fArcPath;
+    AreaPath * fAreaPath;
+    
     int fMeshDim;
 };
 

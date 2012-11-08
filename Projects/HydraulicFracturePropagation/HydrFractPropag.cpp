@@ -143,7 +143,7 @@ int mainTESE(int argc, char * const argv[])
 
 //SIF
 int main(int argc, char * const argv[])
-{
+{    
     std::cout << "\e";
     TPZTimer readRef("ReadingRefPatterns");
     readRef.start();

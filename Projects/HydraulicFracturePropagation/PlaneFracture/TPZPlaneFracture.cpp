@@ -114,7 +114,8 @@ void TPZPlaneFracture::RunThisFractureGeometry(const TPZVec<REAL> &poligonalChai
 {
     ////CompMesh
     int porder = 2;
-    TPZCompMesh * fractureCMesh = this->GetFractureCompMesh(poligonalChain, porder);
+    REAL sigmaTraction = 0., pressureInsideCrack = 10.;
+    TPZCompMesh * fractureCMesh = this->GetFractureCompMesh(poligonalChain, porder, sigmaTraction, pressureInsideCrack);
     
     int neq = fractureCMesh->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
@@ -271,7 +272,7 @@ TPZGeoMesh * TPZPlaneFracture::GetFractureGeoMesh(const TPZVec<REAL> &poligonalC
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder)
+TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder, REAL sigmaTraction, REAL pressureInsideCrack)
 {
     ////GeoMesh
     TPZGeoMesh * gmesh = this->GetFractureGeoMesh(poligonalChain);
@@ -295,8 +296,6 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
     ////BCs
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     int newmann = 1, mixed = 2, dirichDir = 3;
-    
-    STATE traction = 0., pressure = 5.;
     
     {
         f.Zero();
@@ -323,13 +322,13 @@ TPZCompMesh * TPZPlaneFracture::GetFractureCompMesh(const TPZVec<REAL> &poligona
         
         ///////////farField
         k.Zero();
-        f(1,0) = traction;
+        f(1,0) = sigmaTraction;
         TPZMaterial * materialNewmannFarField = new TPZElasticity3D(-304, young, poisson, force);
         TPZBndCond * newmannFarfield = new TPZBndCond(materialNewmannFarField,__2DfarfieldMat, newmann, k, f);
         cmesh->InsertMaterialObject(newmannFarfield);
         
         ///////////insideFract
-        f(1,0) = pressure;
+        f(1,0) = pressureInsideCrack;
         TPZMaterial * materialNewmannInsideFract = new TPZElasticity3D(-305, young, poisson, force);
         TPZBndCond * newmannInsideFract = new TPZBndCond(materialNewmannInsideFract,__2DfractureMat_inside, newmann, k, f);
         cmesh->InsertMaterialObject(newmannInsideFract);
@@ -1843,9 +1842,10 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     REAL W = 10.;
     REAL H = 14;
     REAL a = 1.;
-    REAL sigmaTraction = 5.;
+    REAL sigmaTraction = 0.;
+    REAL pressureInsideCrack = 5.;
     int porder = 2;
-    TPZCompMesh * fractureCMesh = this->GetModelProblemForSIFValidationCompMesh(poligonalChain, porder, meshDim, W, H, a, sigmaTraction);
+    TPZCompMesh * fractureCMesh = this->GetModelProblemForSIFValidationCompMesh(poligonalChain, porder, meshDim, W, H, a, sigmaTraction, pressureInsideCrack);
     
     int neq = fractureCMesh->NEquations();
     std::cout << "Numero de equacoes = " << neq << std::endl;
@@ -1913,29 +1913,19 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<REAL> &polig
     }
     
     REAL radius = 0.6;
-    REAL pressure = 5.;//pressure inside crack
-    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, pressure, meshDim);
+    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack, meshDim);
     
     JIntegral jInt;
     jInt.PushBackPath(pathMiddle);
     TPZVec<REAL> Jvector(3);
     
     Jvector = jInt.IntegratePath(0);
-    
-    if(meshDim==2)
-    {
-        std::cout << "J = { " << Jvector[0] << " , " << Jvector[1] << " }\n";
-    }
-    else
-    {
-        std::cout << "J = { " << Jvector[0] << " , " << Jvector[2] << " }\n";
-    }
 }
 
 //------------------------------------------------------------------------------------------------------------
 
 TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TPZVec<REAL> &poligonalChain, int porder, int meshDim,
-                                                                        REAL W, REAL H, REAL a, REAL sigmaTraction)
+                                                                        REAL W, REAL H, REAL a, REAL sigmaTraction, REAL pressureInsideCrack)
 {
     TPZGeoMesh * gmesh = new TPZGeoMesh;
     TPZCompMesh * cmesh = NULL;
@@ -2125,7 +2115,7 @@ TPZCompMesh * TPZPlaneFracture::GetModelProblemForSIFValidationCompMesh(const TP
     }
     else if(meshDim == 3)
     {
-        cmesh = this->GetFractureCompMesh(poligonalChain,2);
+        cmesh = this->GetFractureCompMesh(poligonalChain,2,sigmaTraction,pressureInsideCrack);
     }
     cmesh->AutoBuild();
     
