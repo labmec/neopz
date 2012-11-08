@@ -682,91 +682,59 @@ int main()
 	cout << "\n2) Graphical representation of Yield surface";
     
 	//cin >> testNumber;
-    testNumber = 2;
+  
 	
 	cout << "\nMaterial Type:";
-	cout << "\n0)Lade Kim: FineSilicaSand";
-	cout << "\n1)Lade Kim: LooseSacrRiverSand";
-	cout << "\n2)Lade Kim: DenseSacrRiverSand";
-	cout << "\n3)Lade Kim: PlainConcrete";
-	cout << "\n4)Sandler Dimaggio: McCormic Ranch Sand";
-	cout << "\n5)Sandler Dimaggio: McCormic Ranch Sand Mod";
-	cout << "\n6)Sandler Dimaggio: Unconsolidated Deep Reservoir Sandstone [psi]";
-	cout << "\n7)Sandler Dimaggio: Unconsolidated Deep Reservoir Sandstone [MPa]";
-	cout << "\n8)Sandler Dimaggio: PRSMat [MPa]";
-	cout << "\n9)Drucker Prager (Inscr MC): PRSMat [MPa]";
-	cout << "\n10)Drucker Prager (Circunscr MC): PRSMat [MPa]";
+	cout << "\n1)Sandler Dimaggio: McCormic Ranch Sand";
+	cout << "\n2)Sandler Dimaggio: McCormic Ranch Sand Mod";
+	cout << "\n3)Sandler Dimaggio: Unconsolidated Deep Reservoir Sandstone [psi]";
+	cout << "\n4)Sandler Dimaggio: Unconsolidated Deep Reservoir Sandstone [MPa]";
+	cout << "\n5)Sandler Dimaggio: PRSMat [MPa]";
+	cout << "\n6)Drucker Prager (Inscr MC): PRSMat [MPa]";
+	cout << "\n7)Drucker Prager (Circunscr MC): PRSMat [MPa]";
 	cout << "\n";
     
 //    cin >> matNumber;
-    matNumber = 7;
+    matNumber = 2;
 	
 	switch(matNumber)
 	{
-		case(0):
-			pLK = new TPZLadeKim();
-		    TPZLadeKim::FineSilicaSand(*pLK);
-		    pMat = pLK;
-		    fileName << "_LKFS";
-		    loadMultipl = -1.;
-            break;
-		case(1):
-			pLK = new TPZLadeKim();
-		    TPZLadeKim::LooseSacrRiverSand(*pLK);
-		    pMat = pLK;
-		    fileName << "_LKLS";
-		    loadMultipl = -1.;
-            break;
-		case(2):
-			pLK = new TPZLadeKim();
-		    TPZLadeKim::DenseSacrRiverSand(*pLK);
-		    pMat = pLK;
-		    fileName << "_LKDS";
-		    loadMultipl = -1.;
-            break;
-		case(3):
-			pLK = new TPZLadeKim();
-		    TPZLadeKim::PlainConcrete(*pLK);
-			pMat = pLK;
-		    fileName << "_LKPC";
-		    loadMultipl = -1.;
-            break;
-		case(4):
-			pSD = new TPZSandlerDimaggio();
+        case(1):
+            pSD = new TPZSandlerDimaggio();
 		    TPZSandlerDimaggio::McCormicRanchSand(*pSD);
 			pMat = pSD;
 		    fileName << "_SDMc";
 		    loadMultipl = -0.001;
             break;
-		case(5):
+		case(2):
 			pSD = new TPZSandlerDimaggio();
 		    TPZSandlerDimaggio::McCormicRanchSandMod(*pSD);
 			pMat = pSD;
 		    fileName << "_SDMM";
 		    loadMultipl = -0.001;
             break;
-		case(6):
+		case(3):
 			pSD = new TPZSandlerDimaggio();
 		    TPZSandlerDimaggio::UncDeepSandResPSI(*pSD);
 			pMat = pSD;
 		    fileName << "_SDDS";
 		    loadMultipl = -1;
             break;
-		case(7):
+		case(4):
 			pSD = new TPZSandlerDimaggio();
 		    TPZSandlerDimaggio::UncDeepSandResMPa(*pSD);
 			pMat = pSD;
 		    fileName << "_SDDSMPa";
 		    loadMultipl = -1/145.03773801;
             break;
-		case(8):
+		case(5):
 			pSD = new TPZSandlerDimaggio();
 		    TPZSandlerDimaggio::PRSMatMPa(*pSD);
 			pMat = pSD;
 		    fileName << "_PRSLMPa";
 		    loadMultipl = -1/145.03773801;
             break;
-		case(9):
+		case(6):
             pDP = new TPZDruckerPrager();
 			pDP->fYC.SetUp(/*phi*/ 29.7/180. * pi ,/*innerMCFit*/1);
 			pDP->fTFA.SetUp(/*yield- coesao inicial*/ 12.8, /*k Modulo de hardening da coesao equivante 10^-3 Mpa a cada 0.1% de deformacao */1.);
@@ -775,7 +743,7 @@ int main()
 		    fileName << "_PRDPInscMPa";
 		    loadMultipl = -1/145.03773801;
             break;
-		case(10):
+		case(7):
             pDP = new TPZDruckerPrager();
 			pDP->fYC.SetUp(/*phi*/ 29.7/180. * pi ,/*innerMCFit*/0);
 			pDP->fTFA.SetUp(/*yield- coesao inicial*/ 12.8, /*k Modulo de hardening da coesao equivante 10^-3 Mpa a cada 0.1% de deformacao */1.);
@@ -792,9 +760,12 @@ int main()
 	cout << "\nPlastic Integration Tolerance:(sugg. 0.0001) ";
 	
 //	cin >> plasticTol;
-    plasticTol = 0.1;
+    plasticTol = 0.0001;
     
 	fileName << "_pTol" << plasticTol;
+    
+      testNumber = 4;
+    InitializePZLOG();
 	
 	switch(testNumber)
 	{
@@ -815,12 +786,128 @@ int main()
 		    if(pDP)PorousWellboreLoadTest(fileName, *pDP, loadMultipl, plasticTol);
             break;
         case 2:
-            copyStr << fileName.str();
-            fileName << "Yield" << copyStr.str();
-            if (pSD) {
-                VisualizeSandlerDimaggio(fileName,pSD);
+        {
+
+            
+        }
+        case 3://FIGURA 11-a
+        {
+            TPZSandlerDimaggio sandler;
+            sandler.McCormicRanchSand(sandler);
+            ofstream outfiletxty("FIGURA11A.txt");
+            TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+            
+            sandler.SetIntegrTol(0.00001);
+            
+            deltaeps.XX()= -0.0013;
+            deltaeps.YY()=0;
+            deltaeps.ZZ()=0;
+            eps=deltaeps;
+            
+            for(int i=0;i<100;i++)
+            {
+                
+                sandler.ApplyStrainComputeSigma(eps, sigma);//UCS
+                if(i==49)
+                {
+                    deltaeps*=-1;
+                }
+                
+                REAL sqrJ2 = sqrt(sigma.J2());
+                REAL I1=sigma.I1();
+                outfiletxty << -I1<< " " << sqrJ2 << "\n";
+                eps+=deltaeps;
             }
-            break;
+
+            
+        }
+        case 4://FIGURA 12
+        {
+            TPZSandlerDimaggio sandler;
+            sandler.McCormicRanchSand(sandler);
+            ofstream outfiletxty("FIGURA12.txt");
+            TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+            TPZPlasticState<REAL> state;
+            
+            sandler.SetIntegrTol(1);
+            
+            deltaeps.XX()= -0.0013;
+            deltaeps.YY()=0;
+            deltaeps.ZZ()=0;
+            eps=deltaeps;
+            
+            
+            for(int i=0;i<100;i++)
+            {
+                
+                sandler.ApplyStrainComputeSigma(eps, sigma);//UCS
+                cout << "\n sigma "<<sigma <<endl;
+                REAL j2= sigma.J2();
+                state  = sandler.GetState();
+                if(i==50)
+                {
+                    deltaeps*=-1;
+                }
+                
+                outfiletxty << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+                
+                eps+=deltaeps;
+            }
+            
+
+        }
+        case 5://FIGURA 13
+        {
+            TPZSandlerDimaggio sandler3;
+            ofstream outfiletxt("FIGURA13.txt");
+            TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+    
+            deltasigma.XX()=-0.004;
+            deltasigma.YY()=deltasigma.XX()*0.4;
+            deltasigma.ZZ()=deltasigma.YY();
+            sigma=deltasigma;
+    
+            sandler3.McCormicRanchSand(sandler3);
+            sandler3.SetIntegrTol(0.0001);
+            for(int i=0;i<100;i++)
+            {
+                sandler3.ApplyLoad(sigma,eps);
+                outfiletxt << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
+                //  outfiletxtS << sigma.I1() << " " << sqrt(sigma.J2()) << "\n";
+                if(i==100 || i==200)
+                {
+                    deltasigma*=-1;
+                }
+                sigma+=deltasigma;
+            }
+
+        }
+            
+        case 6:
+        {
+            
+            TPZSandlerDimaggio sandler3;
+            ofstream outfiletxt("FIGURA14.txt");
+            TPZTensor<REAL> deltaeps,eps,sigma,deltasigma;
+            
+            deltasigma.XX()=-0.004;
+            deltasigma.YY()=deltasigma.XX()*0.8;
+            deltasigma.ZZ()=deltasigma.YY();
+            sigma=deltasigma;
+            
+            sandler3.McCormicRanchSand(sandler3);
+            sandler3.SetIntegrTol(0.0001);
+            for(int i=0;i<25;i++)
+            {
+                sandler3.ApplyLoad(sigma,eps);
+                outfiletxt << fabs(sigma.XX()-sigma.YY()) << " " << fabs(eps.XX()) << "\n";
+                sigma+=deltasigma;
+            }
+            
+        
+        }
+        
+        break;
 		default:
 			cout << "\nUnhandled Test Type. Exiting...";
             delete pMat;
@@ -837,7 +924,8 @@ void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD);
 
 void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *pSD)
 {
-    TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(1., 0.001);
+    TPZVec<REAL> coords(0);
+    TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(coords, 0.001,1);
     TPZCompMesh *cgrid = new TPZCompMesh(gmesh);
     TPZManVector<STATE> force(3,0.);
 
