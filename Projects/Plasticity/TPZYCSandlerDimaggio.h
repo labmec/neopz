@@ -353,9 +353,12 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 		Ndir[0].XX() = Temp1 + sigma.XX() * Temp3;
 		Ndir[0].YY() = Temp1 + sigma.YY() * Temp3;
 		Ndir[0].ZZ() = Temp1 + sigma.ZZ() * Temp3;
-	    Ndir[0].YZ() = sigma.YZ() * Temp2;
-	    Ndir[0].XZ() = sigma.XZ() * Temp2;
-	    Ndir[0].XY() = sigma.XY() * Temp2;
+//	    Ndir[0].YZ() = sigma.YZ() * Temp2;
+//	    Ndir[0].XZ() = sigma.XZ() * Temp2;
+//	    Ndir[0].XY() = sigma.XY() * Temp2;
+	    Ndir[0].YZ() = sigma.YZ() * Temp3;
+	    Ndir[0].XZ() = sigma.XZ() * Temp3;
+	    Ndir[0].XY() = sigma.XY() * Temp3;
 	}
 	
 	{//f2 - ellipsoidal hardening/softening cap
@@ -366,7 +369,7 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 		
 		ComputeF(L, FL);
 		T FL2 = FL * FL;
-		T FL3 = FL2 / T(2.);
+		T FL3 = FL2;// / T(2.);
 	
 		T Temp = (I1-L)/ T(fR * fR) - I1 / T(6.);
 		Temp = Temp / FL2 * T(2.);
