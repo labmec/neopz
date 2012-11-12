@@ -50,12 +50,29 @@ public:
     /** @brief MaterialVec */
 	/** Store Material's data */
 	struct MaterialDataV {
-		int MatID;
-		std::string Material;
-		std::vector <REAL> Properties;		
+		int fMatID;
+		std::string fMaterial;
+		std::vector <REAL> fProperties;
+        
+        MaterialDataV() : fMatID(-1), fMaterial(), fProperties()
+        {
+            
+        }
+        MaterialDataV(const MaterialDataV &copy) : fMatID(copy.fMatID),
+            fMaterial(copy.fMaterial), fProperties(copy.fProperties)
+        {
+        }
+        MaterialDataV &operator=(const MaterialDataV &copy)
+        {
+            fMatID = copy.fMatID;
+            fMaterial = copy.fMaterial;
+            fProperties = copy.fProperties;
+            return *this;
+        }
 	};
-	std::vector< MaterialDataV > fMaterialDataVec;
-	std::vector< MaterialDataV > fBCMaterialDataVec;
+	TPZStack< MaterialDataV > fMaterialDataVec;
+	TPZStack< MaterialDataV > fBCMaterialDataVec;
+	TPZStack< MaterialDataV > fBCNodeDataVec;
 
 private:
 	  

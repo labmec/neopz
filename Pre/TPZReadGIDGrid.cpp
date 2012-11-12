@@ -61,7 +61,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	
 	//	Scanning for total Number of Nodes and differents Dimension Elements
 	int NumEntitiestoRead;
-	std::vector <std::string> SentinelString;
+	TPZStack <std::string> SentinelString;
 	{
 		
 		// reading a general mesh information by filter
@@ -110,8 +110,8 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	}
 	
 	NumEntitiestoRead = SentinelString.size();
-	std::vector <int> GeneralData(NumEntitiestoRead,0);
-	std::vector <int> DataToProcess(NumEntitiestoRead,-1);		
+	TPZStack <int> GeneralData(NumEntitiestoRead,0);
+	TPZStack <int> DataToProcess(NumEntitiestoRead,-1);		
 	
 	{		
 		// reading a general mesh information by filter
@@ -302,18 +302,18 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 									{
 										if (p) 
 										{
-											MatTemp.Properties.push_back(atof(p));
+											MatTemp.fProperties.push_back(atof(p));
 										}
 										break;
 									}
 									*q = 0;
 									if(spacecont==0)
 									{ 
-										MatTemp.MatID = atoi(p);
+										MatTemp.fMatID = atoi(p);
 									}									
 									else if(spacecont==1)
 									{ 
-										MatTemp.Material = p;
+										MatTemp.fMaterial = p;
 										if(*p=='D' || *p=='d') 
 										{
 											MatNumber++;
@@ -326,7 +326,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 									}
 									else 
 									{		
-										MatTemp.Properties.push_back(atof(p));
+										MatTemp.fProperties.push_back(atof(p));
 										
 									}
 									
@@ -337,13 +337,13 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								}
 								
 								
-								if (MatTemp.Material[0]=='D' || MatTemp.Material[0]=='d') 
+								if (MatTemp.fMaterial[0]=='D' || MatTemp.fMaterial[0]=='d') 
 								{
-									fMaterialDataVec.push_back(MatTemp);
+									fMaterialDataVec.Push(MatTemp);
 								}
 								else
 								{
-									fBCMaterialDataVec.push_back(MatTemp);
+									fBCMaterialDataVec.Push(MatTemp);
 								}
 
 								ContMats++;
