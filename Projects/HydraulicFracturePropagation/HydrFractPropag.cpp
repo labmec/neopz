@@ -37,53 +37,6 @@ void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 
 #include "adapt.h"
 
-//class funcao
-//{
-//public:
-//    
-//    funcao()
-//    {
-//        
-//    }
-//    ~funcao()
-//    {
-//        
-//    }
-//    TPZVec<REAL> operator()(REAL x)
-//    {
-//        TPZVec<REAL> val = this->func(x);
-//        return val;
-//    }
-//    
-//    static TPZVec<REAL> func(REAL x)
-//    {
-//        TPZVec<REAL> val(3);
-//        val[0] = sin(x)*log10(x);
-//        val[1]= sin(log10(x) + x*4.*atan(1.))*x*x;
-//        val[2] = -x*x*x + 25.*x*x - 12.*x + 4.;
-//        
-//        return val;
-//    }
-//};
-//
-//int main(int argc, char * const argv[])
-//{
-//    Adapt intRule(1.E-100);
-//    
-//    funcao funcaoOBJ;
-//    
-//    const REAL a = 5.5;
-//    const REAL b = 12.4;
-//    TPZVec<REAL> integr = intRule.Vintegrate(funcaoOBJ,3,a,b);
-//    
-//    std::cout.precision(16);
-//    std::cout << "Integracao implementada:" << std::endl << integr[0] << std::endl << integr[1] << std::endl << integr[2] << std::endl;
-//    
-//    //integracao no Mathematica: { -0.5003764204009151 ; 42.81520273504423 ; 8106.846224999997 }
-//    
-//    return 0;
-//}
-
 
 int mainTESE(int argc, char * const argv[])
 {	
@@ -141,6 +94,7 @@ int mainTESE(int argc, char * const argv[])
     return 0;
 }
 
+
 //SIF
 int main(int argc, char * const argv[])
 {    
@@ -178,9 +132,8 @@ int main(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    int meshDim = 3;
     std::string vtkFile = "fractureSIF3D.vtk";
-    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile,meshDim);
+    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
@@ -191,207 +144,6 @@ int main(int argc, char * const argv[])
     return 0;
 }
 
-int mainTestes(int argc, char * const argv[])
-{
-    gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-    gRefDBase.InitializeUniformRefPattern(ECube);
-    
-    int Qnodes = 8;
-	
-    TPZGeoMesh * gmesh = new TPZGeoMesh;
-    gmesh->NodeVec().Resize(Qnodes);
-    
-    int nid = 0;
-	TPZGeoNode Node;
-    
-    {    
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,0.);
-        Node.SetCoord(1,0.);
-        Node.SetCoord(2,0.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,1.);
-        Node.SetCoord(1,0.);
-        Node.SetCoord(2,0.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,1.);
-        Node.SetCoord(1,1.);
-        Node.SetCoord(2,0.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,0.);
-        Node.SetCoord(1,1.);
-        Node.SetCoord(2,0.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,0.);
-        Node.SetCoord(1,0.);
-        Node.SetCoord(2,1.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,1.);
-        Node.SetCoord(1,0.);
-        Node.SetCoord(2,1.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,1.);
-        Node.SetCoord(1,1.);
-        Node.SetCoord(2,1.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-        
-        Node.SetNodeId(nid);
-        Node.SetCoord(0,0.);
-        Node.SetCoord(1,1.);
-        Node.SetCoord(2,1.);
-        gmesh->NodeVec()[nid] = Node;
-        nid++;
-	}
-    
-	int matId, elId = 0;
-	TPZVec <int> Topol(Qnodes);
-    
-    matId = 1;
-    for(int n = 0; n < Qnodes; n++) Topol[n] = n;
-    TPZGeoEl * gel = new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (elId,Topol, matId,*gmesh);
-    elId++;
-    
-    gmesh->BuildConnectivity();
-    
-    gel->CreateBCGeoEl(20, -1);
-    gel->CreateBCGeoEl(25, -2);
-    
-    int nels = gmesh->NElements();
-    for(int el = 0; el < nels; el++)
-    {
-        TPZVec<TPZGeoEl * > sons;
-        gmesh->ElementVec()[el]->Divide(sons);
-    }
-    
-    gmesh->Print();
-    
-    int foundN;
-    for(int n = 0; n < gmesh->NNodes(); n++)
-    {
-        if(gmesh->NodeVec()[n].Id() != 18) continue;
-        
-        foundN = n;
-    
-        gmesh->NodeVec()[n].SetCoord(0, 0.7);
-        gmesh->NodeVec()[n].SetCoord(1, 0.3);
-        //gmesh->NodeVec()[n].SetCoord(2, 0.4);
-        
-    }
-    
-    nels = gmesh->NElements();
-    for(int el = 0; el < nels; el++)
-    {
-        int target = -1;
-        for(int eln = 0; eln < gmesh->ElementVec()[el]->NNodes(); eln++)
-        {
-            if(foundN == gmesh->ElementVec()[el]->NodeIndex(eln))
-            {
-                target = eln;
-                break;
-            }
-        }
-        if(target > -1)
-        {
-            TPZChangeEl::ChangeToQuarterPoint(gmesh, el, target);
-        }
-    }
-
-    
-    gmesh->Print();
-//    
-//    int elIndex = 0;
-//    int targetSide = 0;
-//    TPZChangeEl::ChangeToQuarterPoint(gmesh, elIndex, targetSide);
-    
-    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
-    ////////////////////////////////////
-    
-    int ddim = 3;
-    cmesh->SetDimModel(ddim);
-    cmesh->SetAllCreateFunctionsContinuous();
-    
-    REAL young = 1000.;
-    REAL poisson = 0.;
-    TPZVec<REAL> force(3,0.);
-    
-    TPZMaterial * materialQpoint = new TPZElasticity3D(1, young, poisson, force);
-    cmesh->InsertMaterialObject(materialQpoint);
-    
-    ////BCs    
-    TPZFMatrix<REAL> k(3,3,0.), f(3,1,0.);
-    int dirichlet = 0;
-    
-    //    //teste 2: mov. corpo rigido (rotacao)
-    {
-        f(0,0) = 0.;
-        f(1,0) = 0.;
-        f(2,0) = 0.;
-        TPZMaterial * materialMixedPoint1 = new TPZElasticity3D(-301, young, poisson, force);
-        TPZBndCond * pontoDeApoio1 = new TPZBndCond(materialMixedPoint1,-1, dirichlet, k, f);
-        cmesh->InsertMaterialObject(pontoDeApoio1);
-        
-        f(0,0) = 0.;
-        f(1,0) = 0.;
-        f(2,0) = 1.;
-        TPZMaterial * materialMixedPoint2 = new TPZElasticity3D(-302, young, poisson, force);
-        TPZBndCond * pontoDeApoio2 = new TPZBndCond(materialMixedPoint2,-2, dirichlet, k, f);
-        cmesh->InsertMaterialObject(pontoDeApoio2);
-    }
-    cmesh->SetDefaultOrder(2);
-    cmesh->AutoBuild();
-    cmesh->Print();
-    ///////////////////////////////////////
-    
-    ////Analysis
-	TPZAnalysis an(cmesh);
-    
-	TPZSkylineStructMatrix skylin(cmesh); //caso simetrico
-	TPZStepSolver<REAL> step;
-	step.SetDirect(ECholesky);
-    
-    an.SetStructuralMatrix(skylin);
-	an.SetSolver(step);
-	an.Run();
-    
-    ////Post Processing
-    TPZManVector<std::string,10> scalnames(6), vecnames(1);
-    scalnames[0] = "DisplacementX";
-    scalnames[1] = "DisplacementY";
-    scalnames[2] = "DisplacementZ";
-    scalnames[3] = "StressX";
-    scalnames[4] = "StressY";
-    scalnames[5] = "StressZ";
-    
-    vecnames[0] = "PrincipalStress";
-    
-    int div = 1;
-    const int dim = 3;
-    std::string vtkFile = "validandoRotQPts.vtk";
-    an.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-    an.PostProcess(div,dim);
-    
-    
-    return 0;
-}
 
 void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots)
 {

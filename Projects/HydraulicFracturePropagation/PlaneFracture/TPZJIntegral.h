@@ -27,7 +27,7 @@ class LinearPath
 public:
     
     LinearPath();//It is not to be used
-    LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim);
+    LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     LinearPath(LinearPath * cp);
     ~LinearPath();
     
@@ -72,10 +72,6 @@ protected:
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
     
-    /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
-    /** For 3D problems, fMeshDim=3 */
-    int fMeshDim;
-    
     /** pressure applied inside fracture */
     REAL fcrackPressure;
     
@@ -89,7 +85,7 @@ class ArcPath
 public:
     
     ArcPath();//It is not to be used
-    ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
+    ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
     ArcPath(ArcPath * cp);
     ~ArcPath();
     
@@ -133,10 +129,6 @@ protected:
     /** CMesh that constains data */
     TPZAutoPointer<TPZCompMesh> fcmesh;
     
-    /** For 2D problems (plane strain or plane stress), fMeshDim=2 */
-    /** For 3D problems, fMeshDim=3 */
-    int fMeshDim;
-    
     /** map that holds t and respective elId and qsi for ComputeXInverse optimization */
     std::map< REAL , std::pair< int , TPZVec<REAL> > > f_t_elIdqsi;
 };
@@ -176,7 +168,7 @@ protected:
         {
             public:
             ArcPath2();
-            ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
+            ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
             ~ArcPath2();
             
             virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
@@ -216,7 +208,7 @@ public:
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim);
+    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
     ~Path();
     
     LinearPath * GetLinearPath()
@@ -234,19 +226,12 @@ public:
         return fAreaPath;
     }
     
-    int MeshDim()
-    {
-        return fMeshDim;
-    }
-    
     
 protected:
     
     LinearPath * fLinearPath;
     ArcPath * fArcPath;
     AreaPath * fAreaPath;
-    
-    int fMeshDim;
 };
 
 

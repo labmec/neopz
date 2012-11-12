@@ -27,7 +27,7 @@ LinearPath::LinearPath()
 }
 
 
-LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim)
+LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
 {    
     fFinalPoint = FinalPoint;
     fNormalDirection = normalDirection;
@@ -36,7 +36,6 @@ LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoi
     fDETdxdt = fradius/2.;
     
     fcmesh = cmesh;
-    fMeshDim = meshDim;
     fcrackPressure = fabs(pressure);
     
     fInitialPoint.Resize(3, 0.);
@@ -57,7 +56,6 @@ LinearPath::LinearPath(LinearPath * cp)
     fDETdxdt = cp->fDETdxdt;
     
     fcmesh = cp->fcmesh;
-    fMeshDim = cp->fMeshDim;
     fcrackPressure = cp->fcrackPressure;
     
     f_t_elIdqsi.clear();
@@ -127,7 +125,7 @@ TPZVec<REAL> LinearPath::Func(REAL t)
     X(t,xt);
     this->normalVec(t, nt);
     
-    TPZVec<REAL> linContribution(fMeshDim,0.);
+    TPZVec<REAL> linContribution(3,0.);
     linContribution = Function(t, xt, nt);
     
     linContribution[0] = linContribution[0] * gScaleFactor;
@@ -163,7 +161,7 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -173,7 +171,7 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     
     f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
     
-    TPZVec<REAL> minusGradUt_Sigma__n(fMeshDim,0.);
+    TPZVec<REAL> minusGradUt_Sigma__n(3,0.);
     
     TPZCompEl * compEl = geoEl->Reference();
     
@@ -192,27 +190,16 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> GradUtxy(fMeshDim,fMeshDim);
+    TPZFMatrix<REAL> GradUtxy(3,3);
     GradUtxy.Zero();
-    if(fMeshDim == 2)
-    {
-        TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim);
-        GradUtax = data.dsol[0];
-        GradUtxy(0,0) = GradUtax(0,0)*data.axes(0,0) + GradUtax(1,0)*data.axes(1,0);
-        GradUtxy(1,0) = GradUtax(0,0)*data.axes(0,1) + GradUtax(1,0)*data.axes(1,1);
-        GradUtxy(0,1) = GradUtax(0,1)*data.axes(0,0) + GradUtax(1,1)*data.axes(1,0);
-        GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
-    }
-    else if(fMeshDim == 3)
-    {
-        GradUtxy = data.dsol[0];
-    }
     
-    TPZVec<REAL> Sigma_n(fMeshDim,0.);
+    GradUtxy = data.dsol[0];
+    
+    TPZVec<REAL> Sigma_n(3,0.);
     Sigma_n[1] = fcrackPressure;
-    for(int r = 0; r < fMeshDim; r++)
+    for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < fMeshDim; c++)
+        for(int c = 0; c < 3; c++)
         {
             minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
         }
@@ -231,7 +218,7 @@ ArcPath::ArcPath()
 }
 
 
-ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim)
+ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius)
 {
     fOrigin = Origin;
     fNormalDirection = normalDirection;
@@ -240,7 +227,6 @@ ArcPath::ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec
     fDETdxdt = Pi*fradius/2.;
     
     fcmesh = cmesh;
-    fMeshDim = meshDim;
     
     f_t_elIdqsi.clear();
 }
@@ -255,7 +241,6 @@ ArcPath::ArcPath(ArcPath * cp)
     fDETdxdt = cp->fDETdxdt;
     
     fcmesh = cp->fcmesh;
-    fMeshDim = cp->fMeshDim;
     
     f_t_elIdqsi.clear();
 }
@@ -311,7 +296,7 @@ TPZVec<REAL> ArcPath::Func(REAL t)
     X(t,xt);
     this->normalVec(t, nt);
     
-    TPZVec<REAL> arcContribution(fMeshDim);
+    TPZVec<REAL> arcContribution(3);
     arcContribution = Function(t, xt, nt);
     
     arcContribution[0] = arcContribution[0] * gScaleFactor;
@@ -343,7 +328,7 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
-    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
+    TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, 3);
     
     if(!geoEl)
     {
@@ -370,89 +355,51 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     intpEl->ComputeShape(qsi, data);
     intpEl->ComputeSolution(qsi, data);
     
-    TPZFMatrix<REAL> Sigma(fMeshDim,fMeshDim), strain(fMeshDim,fMeshDim), GradUtxy(fMeshDim,fMeshDim);
+    TPZFMatrix<REAL> Sigma(3,3), strain(3,3), GradUtxy(3,3);
     Sigma.Zero();
     strain.Zero();
     GradUtxy.Zero();
-    if(fMeshDim == 2)
-    {
-        TPZFMatrix<REAL> GradUtax(fMeshDim,fMeshDim);
-        GradUtax = data.dsol[0];
-        GradUtxy(0,0) = GradUtax(0,0)*data.axes(0,0) + GradUtax(1,0)*data.axes(1,0);
-        GradUtxy(1,0) = GradUtax(0,0)*data.axes(0,1) + GradUtax(1,0)*data.axes(1,1);
-        GradUtxy(0,1) = GradUtax(0,1)*data.axes(0,0) + GradUtax(1,1)*data.axes(1,0);
-        GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
-        
-        TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
-        
-#ifdef DEBUG
-        if(!elast2D)
-        {
-            std::cout << "This material might be TPZElasticityMaterial type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
-        }
-#endif
-        
-        TPZVec<REAL> Solout(3);
-        int var;
-        
-        var = 10;//Stress Tensor
-        elast2D->Solution(data, var, Solout);
-        Sigma(0,0) = Solout[0];
-        Sigma(1,1) = Solout[1];
-        Sigma(0,1) = Solout[2];
-        Sigma(1,0) = Solout[2];
-        
-        var = 11;//Strain Tensor
-        elast2D->Solution(data, var, Solout);
-        strain(0,0) = Solout[0];
-        strain(1,1) = Solout[1];
-        strain(0,1) = Solout[2];
-        strain(1,0) = Solout[2];
-    }
-    else if(fMeshDim == 3)
-    {
-        GradUtxy = data.dsol[0];
-        
-        TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
-        
-#ifdef DEBUG
-        if(!elast3D)
-        {
-            std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
-            DebugStop();
-        }
-#endif
-        
-        elast3D->ComputeStressTensor(Sigma, data);
-        elast3D->ComputeStrainTensor(strain, GradUtxy);
-    }
+
+    GradUtxy = data.dsol[0];
     
-    TPZFMatrix<REAL> GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
+    
+#ifdef DEBUG
+    if(!elast3D)
+    {
+        std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
+        DebugStop();
+    }
+#endif
+    
+    elast3D->ComputeStressTensor(Sigma, data);
+    elast3D->ComputeStrainTensor(strain, GradUtxy);
+    
+    TPZFMatrix<REAL> GradUt_Sigma(3,3,0.);
     GradUtxy.Multiply(Sigma, GradUt_Sigma);
     
     REAL W = 0.;
-    for(int r = 0; r < fMeshDim; r++)
+    for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < fMeshDim; c++)
+        for(int c = 0; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
     }
     
-    TPZFMatrix<REAL> W_I(fMeshDim,fMeshDim,0.);
-    for(int d = 0; d < fMeshDim; d++)
+    TPZFMatrix<REAL> W_I(3,3,0.);
+    for(int d = 0; d < 3; d++)
     {
         W_I(d,d) = W;
     }
     
-    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(3,3,0.);
     W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
     
-    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(fMeshDim,0.);
-    for(int r = 0; r < fMeshDim; r++)
+    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(3,0.);
+    for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < fMeshDim; c++)
+        for(int c = 0; c < 3; c++)
         {
             W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
         }
@@ -486,7 +433,7 @@ AreaPath::LinearPath2::LinearPath2()
 
 AreaPath::LinearPath2::LinearPath2(LinearPath * cp) : LinearPath(cp)
 {
-    fArcPath = new ArcPath2(this->fcmesh, this->fFinalPoint, this->fNormalDirection, this->fradius, this->fMeshDim);
+    fArcPath = new ArcPath2(this->fcmesh, this->fFinalPoint, this->fNormalDirection, this->fradius);
     
 #ifdef DEBUG
     if(!fArcPath)
@@ -512,7 +459,7 @@ TPZVec<REAL> AreaPath::LinearPath2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<R
     arcRadius = sqrt(arcRadius);
     fArcPath->SetRadius(arcRadius);
     
-    Adapt intRule(1.e-3);
+    Adapt intRule(1.e-1);
     arcIntegral = intRule.Vintegrate(*(fArcPath),3,-1.,+1.);
     
     for(int i = 0; i < 3; i++)
@@ -530,8 +477,8 @@ AreaPath::LinearPath2::ArcPath2::ArcPath2()
     DebugStop();//Nao eh para usar construtor vazio
 }
 
-AreaPath::LinearPath2::ArcPath2::ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim) :
-ArcPath(cmesh,Origin,normalDirection,radius,meshDim)
+AreaPath::LinearPath2::ArcPath2::ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius) :
+ArcPath(cmesh,Origin,normalDirection,radius)
 {
     
 }
@@ -646,12 +593,6 @@ TPZVec<REAL> AreaPath::LinearPath2::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> &
     strain.Zero();
     GradUtxy.Zero();
     
-    if(fMeshDim == 2)
-    {
-        DebugStop();//Integral de area em simulacao 2D?
-    }
-    
-    //else
     GradUtxy = data.dsol[0];
     
     TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
@@ -667,31 +608,31 @@ TPZVec<REAL> AreaPath::LinearPath2::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> &
     elast3D->ComputeStressTensor(Sigma, data);
     elast3D->ComputeStrainTensor(strain, GradUtxy);
     
-    TPZFMatrix<REAL> GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    TPZFMatrix<REAL> GradUt_Sigma(3,3,0.);
     GradUtxy.Multiply(Sigma, GradUt_Sigma);
     
     REAL W = 0.;
-    for(int r = 0; r < fMeshDim; r++)
+    for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < fMeshDim; c++)
+        for(int c = 0; c < 3; c++)
         {
             W += 0.5*Sigma(r,c)*strain(r,c);
         }
     }
     
-    TPZFMatrix<REAL> W_I(fMeshDim,fMeshDim,0.);
-    for(int d = 0; d < fMeshDim; d++)
+    TPZFMatrix<REAL> W_I(3,3,0.);
+    for(int d = 0; d < 3; d++)
     {
         W_I(d,d) = W;
     }
     
-    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(fMeshDim,fMeshDim,0.);
+    TPZFMatrix<REAL> W_I_minus_GradUt_Sigma(3,3,0.);
     W_I_minus_GradUt_Sigma = W_I - GradUt_Sigma;
     
-    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(fMeshDim,0.);
-    for(int r = 0; r < fMeshDim; r++)
+    TPZVec<REAL> W_I_minus_GradUt_Sigma__n(3,0.);
+    for(int r = 0; r < 3; r++)
     {
-        for(int c = 0; c < fMeshDim; c++)
+        for(int c = 0; c < 3; c++)
         {
             W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*direction[c]);
         }
@@ -751,17 +692,14 @@ Path::Path()
 {
     fLinearPath = NULL;
     fArcPath = NULL;
-    fMeshDim = 0;
 }
 
 
-Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim)
+Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure)
 {
-    fLinearPath = new LinearPath(cmesh,Origin,normalDirection,radius,pressure,meshDim);
-    fArcPath = new ArcPath(cmesh,Origin,normalDirection,radius,meshDim);
+    fLinearPath = new LinearPath(cmesh,Origin,normalDirection,radius,pressure);
+    fArcPath = new ArcPath(cmesh,Origin,normalDirection,radius);
     fAreaPath = new AreaPath(fLinearPath);
-    
-    fMeshDim = meshDim;
     
 #ifdef DEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
@@ -782,8 +720,6 @@ Path::~Path()
 {
     fLinearPath = NULL;
     fArcPath = NULL;
-    
-    fMeshDim = 0;
 }
 
 
@@ -814,23 +750,15 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     
     Adapt intRule(gIntegrPrecision);
     
-    int meshDim = jpathElem->MeshDim();
-    
     TPZTimer linInt("LinearIntegration"); linInt.start();
-    TPZVec<REAL> linJintegral(meshDim,0.);
-    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
-    if(jpathElem->MeshDim() == 2)
-    {
-        linJintegral[0] = 2. * linJintegral[0] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;;
-        linJintegral[1] = 0.;
-    }
-    else//dim=3
-    {
-        //Simetry in xz plane
-        linJintegral[0] = 2. * linJintegral[0] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
-        linJintegral[1] = 0.;
-        linJintegral[2] = 2. * linJintegral[2] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
-    }
+    TPZVec<REAL> linJintegral(3,0.);
+    linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),3,-1.,+1.);
+
+    //Simetry in xz plane
+    linJintegral[0] = 2. * linJintegral[0] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
+    linJintegral[1] = 0.;
+    linJintegral[2] = 2. * linJintegral[2] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
+
     linInt.stop();
     
     //4debug Jlin_x
@@ -852,41 +780,30 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     }
     
     TPZTimer arcInt("ArcIntegration"); arcInt.start();
-    TPZVec<REAL> arcJintegral(meshDim,0.);
-    arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);
-    if(jpathElem->MeshDim() == 2)
-    {
-        arcJintegral[0] = 2. * arcJintegral[0] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
-        arcJintegral[1] = 0.;
-    }
-    else//dim=3
-    {
-        //Simetry in xz plane
-        arcJintegral[0] = 2. * arcJintegral[0] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
-        arcJintegral[1] = 0.;
-        arcJintegral[2] = 2. * arcJintegral[2] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
-    }
+    TPZVec<REAL> arcJintegral(3,0.);
+    arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),3,-1.,+1.);
+
+    //Simetry in xz plane
+    arcJintegral[0] = 2. * arcJintegral[0] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
+    arcJintegral[1] = 0.;
+    arcJintegral[2] = 2. * arcJintegral[2] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
+
     arcInt.stop();
     //
     TPZTimer areaInt("AreaIntegration"); areaInt.start();
-    TPZVec<REAL> areaJIntegral(meshDim,0.);
+    TPZVec<REAL> areaJIntegral(3,0.);
     intRule.SetPrecision(1.e-3);
-    areaJIntegral = intRule.Vintegrate(*(jpathElem->GetAreaPath()),meshDim,-1.,+0.9);
-    if(jpathElem->MeshDim() == 2)
-    {
-        DebugStop();
-    }
-    else//dim=3
-    {
-        //Simetry in xz plane
-        areaJIntegral[0] = 2. * areaJIntegral[0] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
-        areaJIntegral[1] = 0.;
-        areaJIntegral[2] = 2. * areaJIntegral[2] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
-    }
+    areaJIntegral = intRule.Vintegrate(*(jpathElem->GetAreaPath()),3,-1.,+1.);
+
+    //Simetry in xz plane
+    areaJIntegral[0] = 2. * areaJIntegral[0] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
+    areaJIntegral[1] = 0.;
+    areaJIntegral[2] = 2. * areaJIntegral[2] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
+
     areaInt.stop();
     
-    TPZVec<REAL> answ(meshDim);
-    for(int i = 0; i < meshDim; i++)
+    TPZVec<REAL> answ(3);
+    for(int i = 0; i < 3; i++)
     {
         answ[i] = linJintegral[i] + arcJintegral[i] + areaJIntegral[i];
     }
@@ -894,15 +811,8 @@ TPZVec<REAL> JIntegral::IntegratePath(int p)
     std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
     std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
     std::cout << "DeltaT integracao area = " << areaInt.seconds() << " s" << std::endl;
-    
-    if(meshDim==2)
-    {
-        std::cout << "J = " << answ[0] << "\n";
-    }
-    else
-    {
-        std::cout << "J = " << answ[0] << "\n";
-    }
+    std::cout << "Jx AREA = " << areaJIntegral[0] << "\n";
+    std::cout << "J = " << answ[0] << "\n";
     
     return answ;
 }
