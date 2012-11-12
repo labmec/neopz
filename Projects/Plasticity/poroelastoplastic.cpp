@@ -83,7 +83,518 @@
 
 void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio *pSD);
 
+void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh);
+void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames );
+void ManageIterativeProcess2(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
+void ManageIterativeProcessPesoProprio2(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
+void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis);
+void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes);
+void RotateMesh(TPZGeoMesh &geomesh, REAL angleDegree,int rotateabout);
+void calcSDBar();
+TPZGeoMesh * BarMesh(int h);
+void Cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes);
+
+
 using namespace pzshape; // needed for TPZShapeCube and related classes
+
+#include <math.h>
+void RotationMatrix(TPZFMatrix<REAL> &R, double thetaRad, int axis)
+{
+    R.Resize(3,3);
+    
+    switch (axis)
+    {
+            
+        case 0://ROTATE ABOUT X
+            
+            R.Put(0,0,1.);
+            R.Put(1,1,cos(thetaRad));R.Put(1,2,sin(thetaRad));
+            R.Put(2,1,-sin(thetaRad));R.Put(2,2,cos(thetaRad));
+            
+            break;
+            
+        case 1://ROTATE ABOUT Y
+            
+            R.Put(1,1,1.);
+            R.Put(0,0,cos(thetaRad));R.Put(0,2,sin(thetaRad));
+            R.Put(2,0,-sin(thetaRad));R.Put(2,2,cos(thetaRad));
+            
+            break;
+            
+        case 2://ROTATE ABOUT Z
+            
+            R.Put(0,0,cos(thetaRad)); R.Put(0, 1,sin(thetaRad));
+            R.Put(1,0,-sin(thetaRad)); R.Put(1, 1,cos(thetaRad));
+            R.Put(2,2,1.);
+            
+            break;
+            
+        default:
+            
+            std::cout << " NON SPECIFIED AXIS "<<std::endl;
+            break;
+    }
+    
+}
+
+
+void RotateMatrix(TPZFMatrix<REAL> &Mat, double thetaRad,int rotateaboutaxes)
+{
+    TPZFMatrix<REAL> R;
+    TPZFMatrix<REAL> temp;
+    RotationMatrix(R, thetaRad,rotateaboutaxes);
+    
+    if(R.Cols() != Mat.Rows())
+    {
+        cout << " \n -- MATRIX WITH INCOMPATIBLE SHAPES -- \n";
+        DebugStop();
+    }
+    
+    
+    int matcol = Mat.Cols();
+    TPZFMatrix<REAL> RT;
+    if(matcol == 1)
+    {
+        R.Transpose(&RT);
+        temp = RT*Mat;
+        Mat = temp;
+    }
+    
+    else
+    {
+        R.Transpose(&RT);
+        temp = RT*Mat;
+        Mat = temp*R;
+    }
+    
+}
+
+void RotateMesh(TPZGeoMesh &geomesh, REAL angleDegree,int rotateabout)
+{
+    REAL pi = M_PI;
+    REAL th = angleDegree/180. * pi;
+    
+    for(int node = 0; node < geomesh.NodeVec().NElements(); node++)
+    {
+        TPZFMatrix<REAL> nodeCoord(3,1,0.);
+        for(int c = 0; c < 3; c++)
+        {
+            nodeCoord.Put(c, 0, geomesh.NodeVec()[node].Coord(c));
+        }
+        RotateMatrix(nodeCoord,th,rotateabout);
+        for(int c = 0; c < 3; c++)
+        {
+            geomesh.NodeVec()[node].SetCoord(c,nodeCoord(c,0));
+        }
+    }
+}
+
+
+void calcSDBar()
+{
+    REAL theta= 0;
+    int axes=2;
+    TPZGeoMesh *barmesh1;
+    barmesh1 = BarMesh(0);
+    RotateMesh(*barmesh1, theta, axes);
+    ofstream arg("barmesh45.txt");
+    barmesh1->Print(arg);
+    
+    TPZCompEl::SetgOrder(1);
+	TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
+	
+    
+	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
+    
+    TPZSandlerDimaggio SD;
+    TPZSandlerDimaggio::McCormicRanchSand(SD);
+    
+	TPZMatElastoPlastic<TPZSandlerDimaggio> PlasticSD(1);
+	PlasticSD.SetPlasticity(SD);
+    
+    TPZMaterial *plastic(&PlasticSD);
+    compmesh1->InsertMaterialObject(plastic);
+    
+    Cmesh(compmesh1,plastic,theta,axes);
+    
+    ofstream arg2("barcmesh45.txt");
+    compmesh1->Print(arg2);
+    
+	
+	TPZElastoPlasticAnalysis EPAnalysis(compmesh1,cout);
+    SolverSetUp2(EPAnalysis,compmesh1);
+	
+	TPZPostProcAnalysis PPAnalysis(&EPAnalysis);
+	TPZFStructMatrix structmatrix(PPAnalysis.Mesh());
+	PPAnalysis.SetStructuralMatrix(structmatrix);
+    
+    PPAnalysis.SetStructuralMatrix(structmatrix);
+    TPZVec<int> PostProcMatIds(1,1);
+	TPZVec<std::string> PostProcVars, scalNames, vecNames;
+	SetUPPostProcessVariables2(PostProcVars,scalNames,vecNames);
+    
+	PPAnalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+	
+	EPAnalysis.TransferSolution(PPAnalysis);
+	
+	cout << "\nDefining Graph Mesh\n";
+	int dimension =3;
+    
+    
+    PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick45.vtk");
+    PPAnalysis.PostProcess(0/*pOrder*/);
+	
+    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(3,3,0.), EndStress2(3,3,0.);
+	TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
+	
+	int nsteps,taxa,nnewton;
+	nnewton = 30;
+	nsteps =50;
+	taxa = 1.;
+	REAL beginforce = 0;
+	REAL endforce = -0.00145;
+    int bc =-2;
+    
+    ManageIterativeProcess2(EPAnalysis ,beginforce,endforce,bc, nsteps,&PPAnalysis);
+    
+	PPAnalysis.DefineGraphMesh(dimension,scalNames,vecNames,"barraerick45.vtk");
+	PPAnalysis.PostProcess(0);
+	PPAnalysis.CloseGraphMesh();
+	
+    
+    
+    
+}
+
+void Cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes)
+{
+    
+    TPZFMatrix<REAL> k1(3,3,0.);
+    TPZFMatrix<REAL> f1(3,1,0.);
+    RotateMatrix(k1,theta, axes);
+    RotateMatrix(f1,theta, axes);
+    TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
+    CMesh->InsertMaterialObject(bc1);
+    TPZFMatrix<REAL> k2(3,3,0.);
+    TPZFMatrix<REAL> f2(3,1,0.);
+    f2(0,0)=1.;
+    RotateMatrix(k2,theta, axes);
+    RotateMatrix(f2,theta, axes);
+    TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
+    CMesh->InsertMaterialObject(bc2);
+    
+    CMesh->AutoBuild();
+    
+}
+
+
+TPZGeoMesh * BarMesh(int h)
+{
+    TPZGeoMesh * gMesh = new TPZGeoMesh;
+    TPZVec<TPZGeoNode> nodes(8);
+    gMesh->NodeVec().Resize(8);
+    
+    nodes[0].SetNodeId(0);
+    nodes[0].SetCoord(0,0.);
+    nodes[0].SetCoord(1,0.);
+    nodes[0].SetCoord(2,0.);
+    gMesh->NodeVec()[0] = nodes[0];
+    
+    nodes[1].SetNodeId(1);
+    nodes[1].SetCoord(0,0.);
+    nodes[1].SetCoord(1,0.);
+    nodes[1].SetCoord(2,-100.);
+    gMesh->NodeVec()[1] = nodes[1];
+    
+    nodes[2].SetNodeId(2);
+    nodes[2].SetCoord(0,0.);
+    nodes[2].SetCoord(1,100.);
+    nodes[2].SetCoord(2,-100.);
+    gMesh->NodeVec()[2] = nodes[2];
+    
+    nodes[3].SetNodeId(3);
+    nodes[3].SetCoord(0,0.);
+    nodes[3].SetCoord(1,100.);
+    nodes[3].SetCoord(2,0.);
+    gMesh->NodeVec()[3] = nodes[3];
+    
+    nodes[4].SetNodeId(4);
+    nodes[4].SetCoord(0,1000.);
+    nodes[4].SetCoord(1,0.);
+    nodes[4].SetCoord(2,0.);
+    gMesh->NodeVec()[4] = nodes[4];
+    
+    nodes[5].SetNodeId(5);
+    nodes[5].SetCoord(0,1000.);
+    nodes[5].SetCoord(1,0.);
+    nodes[5].SetCoord(2,-100.);
+    gMesh->NodeVec()[5] = nodes[5];
+    
+    nodes[6].SetNodeId(6);
+    nodes[6].SetCoord(0,1000.);
+    nodes[6].SetCoord(1,100.);
+    nodes[6].SetCoord(2,-100.);
+    gMesh->NodeVec()[6] = nodes[6];
+    
+    nodes[7].SetNodeId(7);
+    nodes[7].SetCoord(0,1000.);
+    nodes[7].SetCoord(1,100.);
+    nodes[7].SetCoord(2,0.);
+    gMesh->NodeVec()[7] = nodes[7];
+    
+    
+    
+    TPZVec<int> barra(8),quad1(4),quad2(4);
+    
+    barra[0]=0;
+    barra[1]=1;
+    barra[2]=2;
+    barra[3]=3;
+    barra[4]=4;
+    barra[5]=5;
+    barra[6]=6;
+    barra[7]=7;
+    
+    quad1[0]=0;
+    quad1[1]=1;
+    quad1[2]=2;
+    quad1[3]=3;
+    
+    quad2[0]=4;
+    quad2[1]=5;
+    quad2[2]=6;
+    quad2[3]=7;
+    
+    new TPZGeoElRefPattern< pzgeom::TPZGeoCube > (1,barra,1,*gMesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (2,quad1,-1,*gMesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad > (3,quad2,-2,*gMesh);
+    
+    
+    gMesh->BuildConnectivity();
+    
+    //    for(int ref = 0; ref <0; ref++)
+    //	{
+    //		TPZVec<TPZGeoEl *> tatara;
+    //		int n = gMesh->NElements();
+    //		for(int i = 0; i < n; i++)
+    //		{
+    //			TPZGeoEl * gel = gMesh->ElementVec()[i];
+    //			gel->Divide(tatara);
+    //		}
+    //	}
+    
+    //ofstream barmesh("barmesh.vtk");
+    return gMesh;
+    
+}
+
+void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh)
+{
+    
+    //TPZFStructMatrix full(fCmesh)
+	TPZSkylineStructMatrix full(fCmesh);
+	an.SetStructuralMatrix(full);
+    
+    
+	TPZStepSolver<REAL> step;
+    //  step.SetDirect(ELDLt);
+    //  step.SetJacobi(5000, 1.e-12,0);
+    step.SetDirect(ECholesky);
+    // step.SetDirect(ELU);
+	an.SetSolver(step);
+	
+}
+
+void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames )
+{
+	
+	scalnames.Resize(8);
+	scalnames[0] = "Alpha";
+	scalnames[1] = "PlasticSteps";
+	scalnames[2] = "VolElasticStrain";
+	scalnames[3] = "VolPlasticStrain";
+	scalnames[4] = "VolTotalStrain";
+	scalnames[5] = "I1Stress";
+	scalnames[6] = "J2Stress";
+	scalnames[7] = "YieldSurface";
+    //	scalnames[8] = "EMisesStress";
+    
+	vecnames.Resize(5);
+	vecnames[0] = "Displacement";
+	vecnames[1] = "NormalStress";
+	vecnames[2] = "ShearStress";
+	vecnames[3] = "NormalStrain";
+	vecnames[4] = "ShearStrain";
+    
+ 	postprocvars.Resize(scalnames.NElements()+vecnames.NElements());
+	int i, k=0;
+	for(i = 0; i < scalnames.NElements(); i++)
+	{
+		postprocvars[k] = scalnames[i];
+		k++;
+	}
+	for(i = 0; i < vecnames.NElements(); i++)
+	{
+		postprocvars[k] = vecnames[i];
+		k++;
+	}
+}
+
+void ManageIterativeProcess2(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost)
+{
+    
+    
+	TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
+	TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    
+	if(!pBC)return;
+	
+    //    analysis.Mesh()->MaterialVec()[1]->SetBulkDensity(1.);
+    //mat->
+    
+    REAL increment =  (valEnd-valBeg)/steps;
+    cout<< "\n increment = " <<increment<<endl;
+    TPZFMatrix<REAL> mattemp(3,1,0.);
+    mattemp(0,0)=valBeg;
+    int i;
+    
+    
+    for(i = 0; i <= steps; i++)
+	{
+        
+		
+        mattemp(0,0)+=increment;
+        cout << "\n mattemp "<<mattemp<<endl;
+        
+		pBC->Val2() = mattemp;
+        cout<< "\n pBC->Val2() = " <<pBC->Val2()<<endl;
+		analysis.IterativeProcess(cout, 1.e-5, 30);
+        
+        analysis.AcceptSolution();
+        cout << "\nPostSolution "<< endl<< pPost->Solution();
+        analysis.TransferSolution(*pPost);
+        pPost->PostProcess(0);
+        cout << pPost->Solution();
+        
+	}
+}
+
+void ManageIterativeProcessPesoProprio2(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost)
+{
+    
+    
+	TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
+    //TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    TPZMatElastoPlastic<TPZMohrCoulomb> * pMC = dynamic_cast<TPZMatElastoPlastic<TPZMohrCoulomb> *>(mat);
+    // TPZMatElastoPlastic<TPZDruckerPrager> * pMC = dynamic_cast<TPZMatElastoPlastic<TPZDruckerPrager> *>(mat);
+    
+    REAL increment =  (valEnd-valBeg)/steps;
+    cout<< "\n increment = " <<increment<<endl;
+    TPZFMatrix<REAL> mattemp(3,1,0.);
+    mattemp(0,0)=valBeg;
+    int i;
+    
+    
+    for(i = 0; i <= steps; i++)
+	{
+        
+		
+        mattemp(0,0)+=increment;
+        REAL tempmattemp= mattemp(0,0);
+        cout << "\n mattemp "<<mattemp<<endl;
+        
+        //  mat->SetBulkDensity(increment);
+        
+		pMC->SetBulkDensity(tempmattemp);
+		analysis.IterativeProcess(cout, 1.e-5, 5);
+        
+        analysis.AcceptSolution();
+        cout << "\nPostSolution "<< endl<< pPost->Solution();
+        analysis.TransferSolution(*pPost);
+        pPost->PostProcess(0);
+        // cout << pPost->Solution();
+        
+	}
+}
+//
+//#include "TPZYCModifiedMohrCoulomb.h"
+//
+//void MohrCoulombTestX()
+//{
+//	
+//	
+//    
+//    
+//	ofstream outfiletxt("DPInTriaxialCompression.txt");
+//	
+//	TPZTensor<REAL> stress, strain, deltastress, deltastrain;
+//	
+//    deltastress.XX() =-1.;
+//    deltastress.XY() = 0.;
+//    deltastress.XZ() = 0.;
+//    deltastress.YY() = -1.;
+//    deltastress.YZ() = 0.;
+//    deltastress.ZZ() = -0.1;
+//    stress = deltastress;
+//    
+//    //3 2 1 cai no inner
+//    //1 2 3 cai no inner
+//    //2 3 1 cai no inner
+//    //2 1 6 cai no outer
+//    //2 1 0 cai MC
+//	
+//    //	TPZFNMatrix<6*6> Dep(6,6,0.);
+//    //    deltastrain.XX() = -0.0002;
+//    //	deltastrain.XY() = 0.;
+//    //	deltastrain.XZ() = 0.;
+//    //	deltastrain.YY() = -0.00000001;
+//    //	deltastrain.YZ() = 0.;
+//    //	deltastrain.ZZ() = -0.00000001;
+//    //	strain=deltastrain;
+//	
+//    TPZPlasticStep<TPZYCModifiedMohrCoulomb,TPZThermoForceA,TPZElasticResponse> modifiedmohr;
+//    
+//    REAL pi = M_PI;
+//    REAL cohesion = 11.2033; //yield- coesao inicial correspondeno a fck igual 32 Mpa
+//    REAL phi =  20./180. * pi; //phi=20
+//    REAL hardening = 1000.; //Modulo de hardening da coesao equivante 1 Mpa a cada 0.1% de deformacao
+//    REAL young = 20000.;
+//    REAL poisson = 0.;
+//    modifiedmohr.fYC.SetUp(phi);
+//    modifiedmohr.fTFA.SetUp(cohesion, hardening);
+//    modifiedmohr.fER.SetUp(young, poisson);
+//    
+//	TPZMohrCoulomb Pstep;
+//    Pstep.ConventionalConcrete(Pstep);
+//    
+//    TPZDruckerPrager DP;
+//    DP.ConventionalConcrete(DP,0);
+//    
+//    int length =430;
+//	for(int step=0;step<length;step++)
+//	{
+//		cout << "\nstep "<< step;
+//        
+//		DP.ApplyLoad(stress,strain);
+//        stress += deltastress;
+//        //		cout<<  "\nstress " << stress << endl;
+//        //		cout<<  "\nstrain " << strain << endl;
+//        //		Pstep.Print(cout);
+//        cout << "\n strain " << strain << endl;
+//		TPZVec<REAL> phis(1);
+//		DP.Phi(strain, phis);
+//        
+//		cout << "\nphis " << phis << endl;
+// 		//cout<<  "\nEigen " << eigenval << endl;
+//        //if(step==50 || step == 100 ||step == 200 ||step == 300)deltastress*=-1.;
+//		outfiletxt << fabs(strain.XX()) << " " << fabs(stress.XX()) << "\n"; 
+//		
+//	}
+//	
+//	
+//}
+//
+
 
 
 
@@ -666,6 +1177,10 @@ int main()
 {
 
 	
+    calcSDBar();
+    
+    return 0;
+    
 	int testNumber, matNumber;
 	TPZPlasticBase *pMat;
 	TPZLadeKim * pLK = NULL;
@@ -835,7 +1350,6 @@ int main()
             deltaeps.YY()=0;
             deltaeps.ZZ()=0;
             eps=deltaeps;
-            
             
             for(int i=0;i<100;i++)
             {
