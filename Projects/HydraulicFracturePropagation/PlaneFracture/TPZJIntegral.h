@@ -27,7 +27,8 @@ class LinearPath
 public:
     
     LinearPath();//It is not to be used
-    LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim);
+    LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim);
+    LinearPath(LinearPath * cp);
     ~LinearPath();
     
     void X(REAL t, TPZVec<REAL> & xt);
@@ -35,6 +36,8 @@ public:
     void normalVec(REAL t, TPZVec<REAL> & n);
     
     REAL DETdxdt();
+    
+    REAL Radius();
     
     TPZVec<REAL> operator()(REAL t)
     {
@@ -46,12 +49,13 @@ public:
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
-    REAL Origin(int c);
-    
 protected:
     
+    /** Initial point of Line */
+    TPZVec<REAL> fInitialPoint;
+    
     /** Origin of coupled arc */
-    TPZVec<REAL> fOrigin;
+    TPZVec<REAL> fFinalPoint;
     
     /** This direction defines the coupled arc plane.
      *  (this direction is orthogonal to coupled arc plane and defines
@@ -95,6 +99,8 @@ public:
     
     REAL DETdxdt();
     
+    REAL Radius();
+    
     TPZVec<REAL> operator()(REAL t)
     {
         TPZVec<REAL> Vval = Func(t);
@@ -106,7 +112,6 @@ public:
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
     void SetRadius(REAL radius);
-    REAL Radius();
     
 protected:
     
@@ -143,29 +148,51 @@ class AreaPath
 public:
     
     AreaPath();//It is not to be used
-    AreaPath(LinearPath * givenLinearPath, ArcPath * givenArcPath);
+    AreaPath(LinearPath * givenLinearPath);
     ~AreaPath();
     
-    virtual TPZVec<REAL> Integrate(int linNDiv);
+    REAL DETdxdt();
+    
+    TPZVec<REAL> operator()(REAL t)
+    {
+        TPZVec<REAL> Vval = Func(t);
+        return Vval;
+    }
+    
+    TPZVec<REAL> Func(REAL t);
     
 protected:
     
-    struct ArcPath2 : public ArcPath
+    struct LinearPath2 : public LinearPath
     {
         public:
-        ArcPath2();
-        ArcPath2(ArcPath * cp);
-        ~ArcPath2();
+        LinearPath2();
+        LinearPath2(LinearPath * cp);
+        ~LinearPath2();
         
         virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
         
-        TPZVec<REAL> ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta = 0.1);
+        struct ArcPath2 : public ArcPath
+        {
+            public:
+            ArcPath2();
+            ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim);
+            ~ArcPath2();
+            
+            virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+            
+            TPZVec<REAL> ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta = 0.1);
+            
+            TPZVec<REAL> FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction);
+        };
         
-        TPZVec<REAL> FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction);
+        ArcPath2 * fArcPath;
     };
     
-    LinearPath * fLinearPath;
-    ArcPath2 * fArcPath;
+    LinearPath2 * fLinearPath;
+    
+    /** Determinant of dXdt(3x1) */
+    REAL fDETdxdt;
 };
 
 

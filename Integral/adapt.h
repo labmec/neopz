@@ -22,6 +22,8 @@ public:
 	
 	Adapt(REAL tol);
     
+    void SetPrecision(REAL tol);
+    
 	template <class T>
 	REAL integrate(T &func, const REAL a, const REAL b);
     
@@ -51,6 +53,11 @@ inline Adapt::Adapt(REAL tol) : TOL(tol),terminate(true),out_of_tolerance(false)
     {
 		TOL = 10.0 * EPS;
     }
+}
+
+inline void Adapt::SetPrecision(REAL tol)
+{
+    TOL = tol;
 }
 
 template <class T>

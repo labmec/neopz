@@ -19,6 +19,8 @@
 #include "pzgeotetrahedra.h"
 #include "TPZVTKGeoMesh.h"
 
+#include "TPZTimer.h"
+
 using namespace std;
 
 const int matPoint = -3;
@@ -29,8 +31,6 @@ void FillFractureDotsExampleEllipse(TPZVec<REAL> &fractureDots);
 void FillFractureDotsExampleCrazy(TPZVec<REAL> &fractureDots);
 
 //----------------------------------------------------------------------------------------------------------------------------------
-
-#include "TPZTimer.h"
 
 /** Exemplo da utilizacao da quadratura adaptativa (integral adaptativa) */
 

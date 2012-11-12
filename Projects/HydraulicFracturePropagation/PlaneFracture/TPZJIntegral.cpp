@@ -12,9 +12,11 @@
 
 #include "adapt.h"
 #include "TPZVTKGeoMesh.h"
+#include "TPZTimer.h"
 
+const REAL gIntegrPrecision = 1.e-5;
+const REAL gScaleFactor = 1.e5;
 
-REAL precisionIntegralRule = 1.E-7;
 
 //--------------------------------------------------------class LinearPath
 
@@ -25,9 +27,9 @@ LinearPath::LinearPath()
 }
 
 
-LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim)
-{
-    fOrigin = Origin;
+LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure, int meshDim)
+{    
+    fFinalPoint = FinalPoint;
     fNormalDirection = normalDirection;
     fradius = radius;
     
@@ -37,9 +39,29 @@ LinearPath::LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, 
     fMeshDim = meshDim;
     fcrackPressure = fabs(pressure);
     
+    fInitialPoint.Resize(3, 0.);
+    fInitialPoint[0] = (fFinalPoint[0] - fradius*sin((Pi)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+    fInitialPoint[1] = fradius*cos((Pi)/2.);
+    fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi)/2.));
+    
     f_t_elIdqsi.clear();
 }
 
+LinearPath::LinearPath(LinearPath * cp)
+{
+    fInitialPoint = cp->fInitialPoint;
+    fFinalPoint = cp->fFinalPoint;
+    fNormalDirection = cp->fNormalDirection;
+    fradius = cp->fradius;
+    
+    fDETdxdt = cp->fDETdxdt;
+    
+    fcmesh = cp->fcmesh;
+    fMeshDim = cp->fMeshDim;
+    fcrackPressure = cp->fcrackPressure;
+    
+    f_t_elIdqsi.clear();
+}
 
 LinearPath::~LinearPath()
 {
@@ -51,14 +73,9 @@ void LinearPath::X(REAL t, TPZVec<REAL> & xt)
 {
     xt.Resize(3,0.);
     
-    TPZVec<REAL> initialPoint(3);
-    initialPoint[0] = (fOrigin[0] - fradius*sin((Pi)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-    initialPoint[1] = fradius*cos((Pi)/2.);
-    initialPoint[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi)/2.));
-    
     for(int c = 0; c < 3; c++)
     {
-        xt[c] = (1.-t)/2.*initialPoint[c] + (1.+t)/2.*fOrigin[c];
+        xt[c] = (1.-t)/2.*fInitialPoint[c] + (1.+t)/2.*fFinalPoint[c];
     }
 }
 
@@ -66,13 +83,13 @@ void LinearPath::X(REAL t, TPZVec<REAL> & xt)
 //void LinearPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 //{
 //    dxdt.Resize(3,0.);
-//    
+//
 //    TPZVec<REAL> xarc(3);
 //    t = 1;
 //    xarc[0] = (fOrigin[0] - fradius*sin(Pi/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
 //    xarc[1] = fradius*cos((Pi*t)/2.);
 //    xarc[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
-//    
+//
 //    for(int c = 0; c < 3; c++)
 //    {
 //        dxdt[c] = (fOrigin[c] - xarc[c])/2.;
@@ -93,31 +110,33 @@ REAL LinearPath::DETdxdt()
     return fDETdxdt;
 }
 
-//std::map<REAL,REAL> functionLinJx;
+REAL LinearPath::Radius()
+{
+    return fradius;
+}
+
+
+#ifdef print_Jx_Linear
+std::map<REAL,REAL> functionLinJx;
+#endif
+
 TPZVec<REAL> LinearPath::Func(REAL t)
 {
     TPZVec<REAL> xt(3), nt(3);
     
     X(t,xt);
     this->normalVec(t, nt);
-
+    
     TPZVec<REAL> linContribution(fMeshDim,0.);
     linContribution = Function(t, xt, nt);
     
-    if(fMeshDim == 2)
-    {
-        linContribution[0] = 2.*linContribution[0];
-        linContribution[1] = 0.;
-    }
-    else if(fMeshDim == 3)
-    {
-        //Simetry in xz plane
-        linContribution[0] = 2.*linContribution[0];
-        linContribution[1] = 0.;
-        linContribution[2] = 2.*linContribution[2];
-    }
+    linContribution[0] = linContribution[0] * gScaleFactor;
+    linContribution[1] = 0.;
+    linContribution[2] = linContribution[2] * gScaleFactor;
     
-    //functionLinJx[xt[0]] = linContribution[0];
+    #ifdef print_Jx_Linear
+    functionLinJx[xt[0]] = linContribution[0];
+    #endif
     
     return linContribution;
 }
@@ -145,7 +164,7 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
     TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
-
+    
     if(!geoEl)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
@@ -158,13 +177,13 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     
     TPZCompEl * compEl = geoEl->Reference();
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-    #endif
+#endif
     
     TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
@@ -195,19 +214,11 @@ TPZVec<REAL> LinearPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]) * DETdxdt();
+            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
         }
     }
     
     return minusGradUt_Sigma__n;
-}
-
-
-REAL LinearPath::Origin(int c)
-{
-    REAL originCoordC = fOrigin[c];
-    
-    return originCoordC;
 }
 
 
@@ -269,7 +280,7 @@ void ArcPath::X(REAL t, TPZVec<REAL> & xt)
 //void ArcPath::dXdt(REAL t, TPZVec<REAL> & dxdt)
 //{
 //    dxdt.Resize(3,0.);
-//    
+//
 //    dxdt[0] = -(Pi*fradius*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
 //    dxdt[1] = -(Pi*fradius*sin((Pi*t)/2.))/2.;
 //    dxdt[2] = +(Pi*fradius*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
@@ -303,18 +314,9 @@ TPZVec<REAL> ArcPath::Func(REAL t)
     TPZVec<REAL> arcContribution(fMeshDim);
     arcContribution = Function(t, xt, nt);
     
-    //Simetry in xz plane
-    if(fMeshDim == 2)
-    {
-        arcContribution[0] = 2.*arcContribution[0];
-        arcContribution[1] = 0.;
-    }
-    else if(fMeshDim == 3)
-    {
-        arcContribution[0] = 2.*arcContribution[0];
-        arcContribution[1] = 0.;
-        arcContribution[2] = 2.*arcContribution[2];
-    }
+    arcContribution[0] = arcContribution[0] * gScaleFactor;
+    arcContribution[1] = 0.;
+    arcContribution[2] = arcContribution[2] * gScaleFactor;
     
     return arcContribution;
 }
@@ -342,24 +344,24 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         qsi.Resize(fcmesh->Reference()->ElementVec()[InitialElementId]->Dimension(),0.);
     }
     TPZGeoEl * geoEl = fcmesh->Reference()->FindElement(xt, qsi, InitialElementId, fMeshDim);
-
+    
     if(!geoEl)
     {
         std::cout << "geoEl not found! See " << __PRETTY_FUNCTION__ << " !!!\n";
         DebugStop();
     }
-
+    
     f_t_elIdqsi[t] = std::make_pair(geoEl->Id(), qsi);
     
     TPZCompEl * compEl = geoEl->Reference();
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(!compEl)
     {
         std::cout << "Null compEl!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-    #endif
+#endif
     
     TPZInterpolationSpace * intpEl = dynamic_cast<TPZInterpolationSpace *>(compEl);
     TPZMaterialData data;
@@ -383,13 +385,13 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         
         TPZElasticityMaterial * elast2D = dynamic_cast<TPZElasticityMaterial *>(compEl->Material());
         
-        #ifdef DEBUG
+#ifdef DEBUG
         if(!elast2D)
         {
             std::cout << "This material might be TPZElasticityMaterial type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
-        #endif
+#endif
         
         TPZVec<REAL> Solout(3);
         int var;
@@ -414,13 +416,13 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
         
         TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
         
-        #ifdef DEBUG
+#ifdef DEBUG
         if(!elast3D)
         {
             std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
             DebugStop();
         }
-        #endif
+#endif
         
         elast3D->ComputeStressTensor(Sigma, data);
         elast3D->ComputeStrainTensor(strain, GradUtxy);
@@ -452,7 +454,7 @@ TPZVec<REAL> ArcPath::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]) * DETdxdt();
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*nt[c]);
         }
     }
     
@@ -477,31 +479,77 @@ REAL ArcPath::Radius()
 
 //--------------------------------------------------------class AreaPath
 
-
-AreaPath::ArcPath2::ArcPath2()
+AreaPath::LinearPath2::LinearPath2()
 {
     DebugStop();//Nao eh para usar construtor vazio
 }
 
-AreaPath::ArcPath2::ArcPath2(ArcPath * cp) : ArcPath(cp)
+AreaPath::LinearPath2::LinearPath2(LinearPath * cp) : LinearPath(cp)
 {
+    fArcPath = new ArcPath2(this->fcmesh, this->fFinalPoint, this->fNormalDirection, this->fradius, this->fMeshDim);
     
+#ifdef DEBUG
+    if(!fArcPath)
+    {
+        DebugStop();
+    }
+#endif
 }
 
-AreaPath::ArcPath2::~ArcPath2()
+AreaPath::LinearPath2::~LinearPath2()
 {
     fcmesh = NULL;
 }
 
-TPZVec<REAL> AreaPath::ArcPath2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
+TPZVec<REAL> AreaPath::LinearPath2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
+{
+    TPZVec<REAL> arcIntegral(3,0.);
+    REAL arcRadius = 0.;
+    for(int c = 0; c < 3; c++)
+    {
+        arcRadius += (fFinalPoint[c] - xt[c])*(fFinalPoint[c] - xt[c]);
+    }
+    arcRadius = sqrt(arcRadius);
+    fArcPath->SetRadius(arcRadius);
+    
+    Adapt intRule(1.e-3);
+    arcIntegral = intRule.Vintegrate(*(fArcPath),3,-1.,+1.);
+    
+    for(int i = 0; i < 3; i++)
+    {
+        arcIntegral[i] = arcIntegral[i] * fArcPath->DETdxdt();
+    }
+    
+    return arcIntegral;
+}
+
+//------------
+
+AreaPath::LinearPath2::ArcPath2::ArcPath2()
+{
+    DebugStop();//Nao eh para usar construtor vazio
+}
+
+AreaPath::LinearPath2::ArcPath2::ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, int meshDim) :
+ArcPath(cmesh,Origin,normalDirection,radius,meshDim)
+{
+    
+}
+
+AreaPath::LinearPath2::ArcPath2::~ArcPath2()
+{
+    fcmesh = NULL;
+}
+
+TPZVec<REAL> AreaPath::LinearPath2::ArcPath2::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 {
     TPZVec<REAL> answ(3,0.);
-    answ = ComputeFiniteDifference(t, xt, 0.005);
+    answ = ComputeFiniteDifference(t, xt, 0.001);
     
     return answ;
 }
 
-TPZVec<REAL> AreaPath::ArcPath2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta)
+TPZVec<REAL> AreaPath::LinearPath2::ArcPath2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt, REAL halfDelta)
 {
     TPZVec<REAL> direction = this->fNormalDirection;
     REAL norm = 0;
@@ -511,12 +559,12 @@ TPZVec<REAL> AreaPath::ArcPath2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt
     }
     norm = sqrt(norm);
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(norm < 1.8-12)
     {
         DebugStop();
     }
-    #endif
+#endif
     
     TPZVec<REAL> upPos(3,0.), downPos(3,0.);
     for (int i = 0; i < 3; i++)
@@ -538,8 +586,15 @@ TPZVec<REAL> AreaPath::ArcPath2::ComputeFiniteDifference(REAL t, TPZVec<REAL> xt
     return answ;
 }
 
-TPZVec<REAL> AreaPath::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction)
+TPZVec<REAL> AreaPath::LinearPath2::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction)
 {
+//    double x = xt[0];
+//    double y = xt[1];
+//    double z = xt[2];
+//    TPZVec<REAL> answTeste(3,0.);
+//    answTeste[0] = -sin(2.*x*y*z);
+//    return answTeste; //Para Z = -5 e r = 0.6, a integral final (multiplicada por 2) = 0.0669331
+    
     TPZVec<REAL> qsi(0);
     
     int InitialElementId = 0;
@@ -595,19 +650,19 @@ TPZVec<REAL> AreaPath::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<R
     {
         DebugStop();//Integral de area em simulacao 2D?
     }
-
+    
     //else
     GradUtxy = data.dsol[0];
     
     TPZElasticity3D * elast3D = dynamic_cast<TPZElasticity3D *>(compEl->Material());
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(!elast3D)
     {
         std::cout << "This material might be TPZElastMat3D type!\nSee " << __PRETTY_FUNCTION__ << std::endl;
         DebugStop();
     }
-    #endif
+#endif
     
     elast3D->ComputeStressTensor(Sigma, data);
     elast3D->ComputeStrainTensor(strain, GradUtxy);
@@ -638,13 +693,14 @@ TPZVec<REAL> AreaPath::ArcPath2::FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<R
     {
         for(int c = 0; c < fMeshDim; c++)
         {
-            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*direction[c]) * DETdxdt();
+            W_I_minus_GradUt_Sigma__n[r] += (W_I_minus_GradUt_Sigma(r,c)*direction[c]);
         }
     }
     
     return W_I_minus_GradUt_Sigma__n;
 }
 
+//------------
 
 AreaPath::AreaPath()
 {
@@ -652,15 +708,16 @@ AreaPath::AreaPath()
 }
 
 
-AreaPath::AreaPath(LinearPath * givenLinearPath, ArcPath * givenArcPath)
+AreaPath::AreaPath(LinearPath * givenLinearPath)
 {
-    fLinearPath = givenLinearPath;
-    fArcPath = new ArcPath2(givenArcPath);
+    fLinearPath = new LinearPath2(givenLinearPath);
+    
+    fDETdxdt = fLinearPath->DETdxdt();//O ArcPath2 jah incluirah seu Detdxdt(), soh faltarah do LinearPath2::Detdxdt()
     
     #ifdef DEBUG
-    if(!fLinearPath || !fArcPath)
+    if(!fLinearPath)
     {
-        DebugStop();//deu errado
+        DebugStop();
     }
     #endif
 }
@@ -669,46 +726,22 @@ AreaPath::AreaPath(LinearPath * givenLinearPath, ArcPath * givenArcPath)
 AreaPath::~AreaPath()
 {
     fLinearPath = NULL;
-    fArcPath = NULL;
 }
 
 
-TPZVec<REAL> AreaPath::Integrate(int linNDiv)
+REAL AreaPath::DETdxdt()
 {
-    TPZVec<REAL> arcIntegr(3,0.), areaContribution(3,0.);
+    return fDETdxdt;
+}
+
+
+TPZVec<REAL> AreaPath::Func(REAL t)
+{
+    TPZVec<REAL> areaContribution(3,0.);
+    areaContribution = fLinearPath->Func(t);
     
-    REAL radius = fArcPath->Radius();
-    REAL faixa = radius/linNDiv;
-    REAL actRadius = 0.;
-    
-    for(int pos = 0; pos < linNDiv; pos++)
-    {
-        REAL t = -1. + (1. + 2.*pos)/linNDiv;
-        TPZVec<REAL> xt(3,0.);
-        fLinearPath->X(t, xt);
-        
-        actRadius = 0.;
-        for(int c = 0; c < 3; c++)
-        {
-            actRadius += (xt[c] - fLinearPath->Origin(c))*(xt[c] - fLinearPath->Origin(c));
-        }
-        actRadius = sqrt(actRadius);
-        
-        fArcPath->SetRadius(actRadius);
-        
-        Adapt intRule(precisionIntegralRule);
-        arcIntegr = intRule.Vintegrate(*fArcPath, 3, -1., 1.);
-        
-        areaContribution[0] += arcIntegr[0]*faixa;
-        areaContribution[1]  = 0.;
-        areaContribution[2] += arcIntegr[2]*faixa;
-    }
-    
-    //CUIDADO!!!    A integral do arco jah contempla a simetria (jah multiplica x*2,y*0,z*2),
-    //              nao precisando portanto fazer aqui novamente!!!
     return areaContribution;
 }
-
 
 
 //--------------------------------------------------------class JPath
@@ -726,11 +759,11 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL>
 {
     fLinearPath = new LinearPath(cmesh,Origin,normalDirection,radius,pressure,meshDim);
     fArcPath = new ArcPath(cmesh,Origin,normalDirection,radius,meshDim);
-    fAreaPath = new AreaPath(fLinearPath,fArcPath);
+    fAreaPath = new AreaPath(fLinearPath);
     
     fMeshDim = meshDim;
     
-    #ifdef DEBUG
+#ifdef DEBUG
     if(fabs(normalDirection[1]) > 1.E-8)
     {
         std::cout << "\nThe normal direction of J integral arc must be in XZ plane!!!\n";
@@ -741,7 +774,7 @@ Path::Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL>
         std::cout << "\nRadius too small!!!\n";
         DebugStop();
     }
-    #endif
+#endif
 }
 
 
@@ -777,41 +810,90 @@ void JIntegral::PushBackPath(Path * pathElem)
 TPZVec<REAL> JIntegral::IntegratePath(int p)
 {
     Path * jpathElem = fPathVec[p];
-
     
-    Adapt intRule(precisionIntegralRule);
+    
+    Adapt intRule(gIntegrPrecision);
     
     int meshDim = jpathElem->MeshDim();
     
+    TPZTimer linInt("LinearIntegration"); linInt.start();
     TPZVec<REAL> linJintegral(meshDim,0.);
     linJintegral = intRule.Vintegrate(*(jpathElem->GetLinearPath()),meshDim,-1.,+1.);
+    if(jpathElem->MeshDim() == 2)
+    {
+        linJintegral[0] = 2. * linJintegral[0] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;;
+        linJintegral[1] = 0.;
+    }
+    else//dim=3
+    {
+        //Simetry in xz plane
+        linJintegral[0] = 2. * linJintegral[0] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
+        linJintegral[1] = 0.;
+        linJintegral[2] = 2. * linJintegral[2] * jpathElem->GetLinearPath()->DETdxdt() / gScaleFactor;
+    }
+    linInt.stop();
     
     //4debug Jlin_x
     {
-//        std::map<REAL,REAL>::iterator ii;
-//        std::ofstream plotLinJx("PlotLinJx.txt");
-//        plotLinJx.precision(10);
-//        plotLinJx << "Jx = {";
-//        for(ii = functionLinJx.begin(); ii != functionLinJx.end(); ii++)
-//        {
-//            plotLinJx << "{" << ii->first << "," << ii->second << "},";
-//        }
-//        plotLinJx << "};\n";
-//        plotLinJx << "Jxplot = ListPlot[Jx,AxisOrigin->{0,0}]\n";
-//        plotLinJx.close();
+        #ifdef print_Jx_Linear
+        std::map<REAL,REAL>::iterator ii;
+        std::ofstream plotLinJx("PlotLinJx.txt");
+        plotLinJx.precision(10);
+        plotLinJx << "Jx = {";
+        for(ii = functionLinJx.begin(); ii != functionLinJx.end(); ii++)
+        {
+            plotLinJx << "{" << ii->first << "," << ii->second << "},";
+        }
+        plotLinJx << "};\n";
+        plotLinJx << "Jxplot = ListPlot[Jx,AxisOrigin->{0,0}]\n";
+        plotLinJx.close();
+        functionLinJx.clear();
+        #endif
     }
     
+    TPZTimer arcInt("ArcIntegration"); arcInt.start();
     TPZVec<REAL> arcJintegral(meshDim,0.);
     arcJintegral = intRule.Vintegrate(*(jpathElem->GetArcPath()),meshDim,-1.,+1.);
+    if(jpathElem->MeshDim() == 2)
+    {
+        arcJintegral[0] = 2. * arcJintegral[0] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
+        arcJintegral[1] = 0.;
+    }
+    else//dim=3
+    {
+        //Simetry in xz plane
+        arcJintegral[0] = 2. * arcJintegral[0] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
+        arcJintegral[1] = 0.;
+        arcJintegral[2] = 2. * arcJintegral[2] * jpathElem->GetArcPath()->DETdxdt() / gScaleFactor;
+    }
+    arcInt.stop();
     //
+    TPZTimer areaInt("AreaIntegration"); areaInt.start();
     TPZVec<REAL> areaJIntegral(meshDim,0.);
-    //areaJIntegral = jpathElem->GetAreaPath()->Integrate(5);
+    intRule.SetPrecision(1.e-3);
+    areaJIntegral = intRule.Vintegrate(*(jpathElem->GetAreaPath()),meshDim,-1.,+0.9);
+    if(jpathElem->MeshDim() == 2)
+    {
+        DebugStop();
+    }
+    else//dim=3
+    {
+        //Simetry in xz plane
+        areaJIntegral[0] = 2. * areaJIntegral[0] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
+        areaJIntegral[1] = 0.;
+        areaJIntegral[2] = 2. * areaJIntegral[2] * jpathElem->GetAreaPath()->DETdxdt() / (gScaleFactor * gScaleFactor);
+    }
+    areaInt.stop();
     
     TPZVec<REAL> answ(meshDim);
     for(int i = 0; i < meshDim; i++)
     {
         answ[i] = linJintegral[i] + arcJintegral[i] + areaJIntegral[i];
     }
+    
+    std::cout << "DeltaT integracao linha = " << linInt.seconds() << " s" << std::endl;
+    std::cout << "DeltaT integracao arco = " << arcInt.seconds() << " s" << std::endl;
+    std::cout << "DeltaT integracao area = " << areaInt.seconds() << " s" << std::endl;
     
     if(meshDim==2)
     {
