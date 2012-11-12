@@ -34,12 +34,21 @@ public:
 	 * The size of the stack is always equal zero upon creation.
 	 */
 	TPZStack();
+    
+    TPZStack(int nel, const T Object) : TPZManVector<T,NumExtAlloc>(nel,Object)
+    {
+        
+    }
 	
 	/**
 	 * @brief Pushes a copy of the object on the stack.
 	 * @param object Element which will be copied onto the stack.
 	 */
 	void Push(const T object);
+    void push_back(const T object)
+    {
+        Push(object);
+    }
 	
 	/**
 	 * @brief Retrieve an object from the stack.
