@@ -105,27 +105,27 @@ void Run(int PolynomialOrder, int Href, std::string GeoGridFile, int div)
 	for (int imat = 0 ; imat < myreader.MatNumber; imat++)
 	{
 		
-		REAL conv1 = myreader.fMaterialDataVec[imat].Properties[1];
+		REAL conv1 = myreader.fMaterialDataVec[imat].fProperties[1];
 		TPZVec<REAL> convdir1(3,0);
-		REAL flux1 = myreader.fMaterialDataVec[imat].Properties[5];	
+		REAL flux1 = myreader.fMaterialDataVec[imat].fProperties[5];	
 		
 		for (int i=0; i < 3; i++) 
 		{
-			convdir1[i]=myreader.fMaterialDataVec[imat].Properties[i+2];
+			convdir1[i]=myreader.fMaterialDataVec[imat].fProperties[i+2];
 		}	
 		
-		materialist[imat] = new TPZMatPoisson3d(myreader.fMaterialDataVec[imat].MatID,myreader.fProblemDimension); 
-		materialist[imat]->SetParameters(myreader.fMaterialDataVec[imat].Properties[0], conv1, convdir1);// K
+		materialist[imat] = new TPZMatPoisson3d(myreader.fMaterialDataVec[imat].fMatID,myreader.fProblemDimension); 
+		materialist[imat]->SetParameters(myreader.fMaterialDataVec[imat].fProperties[0], conv1, convdir1);// K
 		materialist[imat]->SetInternalFlux(flux1);
 		MatList[imat] = materialist[imat];
 		cmesh->InsertMaterialObject(MatList[imat]);	
 		
 		for (int ibc = 0; ibc < myreader.BCNumber ; ibc++) 
 		{
-			if(imat+1 == int(myreader.fBCMaterialDataVec[ibc].Properties[0])) 
+			if(imat+1 == int(myreader.fBCMaterialDataVec[ibc].fProperties[0])) 
 			{	
-				TPZFMatrix<REAL> val11(1,1,myreader.fBCMaterialDataVec[ibc].Properties[2]), val21(1,1,myreader.fBCMaterialDataVec[ibc].Properties[3]);	
-				TPZMaterial * BC = materialist[imat]->CreateBC(MatList[imat], myreader.fBCMaterialDataVec[ibc].MatID,int(myreader.fBCMaterialDataVec[ibc].Properties[1]), val11, val21);
+				TPZFMatrix<REAL> val11(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[2]), val21(1,1,myreader.fBCMaterialDataVec[ibc].fProperties[3]);	
+				TPZMaterial * BC = materialist[imat]->CreateBC(MatList[imat], myreader.fBCMaterialDataVec[ibc].fMatID,int(myreader.fBCMaterialDataVec[ibc].fProperties[1]), val11, val21);
 				cmesh->InsertMaterialObject(BC);	
 			}
 		}

@@ -14,7 +14,27 @@
 
 class TPZGeoMesh;
 
+struct MaterialDataV {
+  int fMatID;
+  std::string fMaterial;
+  std::vector <REAL> fProperties;
 
+  MaterialDataV() : fMatID(-1), fMaterial(), fProperties()
+  {
+      
+  }
+  MaterialDataV(const MaterialDataV &copy) : fMatID(copy.fMatID),
+      fMaterial(copy.fMaterial), fProperties(copy.fProperties)
+  {
+  }
+  MaterialDataV &operator=(const MaterialDataV &copy)
+  {
+      fMatID = copy.fMatID;
+      fMaterial = copy.fMaterial;
+      fProperties = copy.fProperties;
+      return *this;
+  }
+};
 /** 
  * @ingroup pre
  * @brief Implement the interface between TPZGeoMesh and the files produced by GID (version G.T. 10.0.7 ) in dump format.
@@ -49,27 +69,7 @@ public:
 	
     /** @brief MaterialVec */
 	/** Store Material's data */
-	struct MaterialDataV {
-		int fMatID;
-		std::string fMaterial;
-		std::vector <REAL> fProperties;
-        
-        MaterialDataV() : fMatID(-1), fMaterial(), fProperties()
-        {
-            
-        }
-        MaterialDataV(const MaterialDataV &copy) : fMatID(copy.fMatID),
-            fMaterial(copy.fMaterial), fProperties(copy.fProperties)
-        {
-        }
-        MaterialDataV &operator=(const MaterialDataV &copy)
-        {
-            fMatID = copy.fMatID;
-            fMaterial = copy.fMaterial;
-            fProperties = copy.fProperties;
-            return *this;
-        }
-	};
+
 	TPZStack< MaterialDataV > fMaterialDataVec;
 	TPZStack< MaterialDataV > fBCMaterialDataVec;
 	TPZStack< MaterialDataV > fBCNodeDataVec;
