@@ -315,7 +315,7 @@ void TPZSBMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVar>
 	if(x.Cols() != y.Cols() || x.Cols() != z.Cols() || x.Rows() != y.Rows() || x.Rows() != z.Rows()) {
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__,"TPZSBMatrix::MultAdd incompatible dimensions\n");
 	}
-	PrepareZ(y,z,beta,opt,stride);
+	this->PrepareZ(y,z,beta,opt,stride);
 	int rows = this->Rows();
 	int xcols = x.Cols();
 	int ic, r;
