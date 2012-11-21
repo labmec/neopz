@@ -233,91 +233,48 @@ void TPZNLFluidStructure2d::ContributePressure(TPZVec<TPZMaterialData> &datavec,
     
     REAL sol_un = sol_u[0]*datavec[0].normal[0] + sol_u[1]*datavec[0].normal[1];
     
-    
 	if(gState == ECurrentState) //current state (n+1): Matrix stiffnes
     {
-            
-        //---- CASO 1 ------
-//        for(int in = 0; in<phrp; in++){
-//            
-//            //Residuo
-//            ef(in+phcu,0)+=(-1.)*(fQL)*phi_p(in,0)*weight;
-//            
-//            ef(in+phcu,0)+=(-1.)*weight*dphi_p(0,in)*dsol_p(0,0);
-//            
-//            ef(in+phcu,0)+=(-1.)*weight*phi_p(in,0)*sol_p[0]/fTimeStep;
-//            
-//            //Tangente
-//            for(int jn=0; jn<phrp; jn++){
-//                ek(in+phcu, jn+phcu)+= weight*dphi_p(0,in)*dphi_p(0,jn);
-//                
-//                ek(in+phcu, jn+phcu)+= weight*phi_p(in,0)*phi_p(jn,0)/fTimeStep;
-//            }
-//        }
+        REAL factor_un3 = (sol_un*sol_un*sol_un)/(12.*fvisc);
+        REAL factor_un2 = (sol_un*sol_un)/(4.*fvisc);
         
-        //---- CASO 2 e 3------
-        for(int in = 0; in<phrp; in++){
-            
-            //Residuo
+        for(int in = 0; in<phrp; in++)
+        {
+            //----Residuo----
+            //termo Ql*v
             ef(in+phcu,0)+=(-1.)*(fQL)*phi_p(in,0)*weight;
             
-            ef(in+phcu,0)+=(-1.)*weight*dphi_p(0,in)*dsol_p(0,0);
+            //termo (unˆ3/12*mi)*(dv/dx)*(dp/dx)
+            ef(in+phcu,0)+=(-1.)*weight*factor_un3*dphi_p(0,in)*dsol_p(0,0);
             
+            //termo un*v/deltaT
             ef(in+phcu,0)+=(-1.)*weight*phi_p(in,0)*sol_un/fTimeStep;
+
             
-            //Tangente
-            for(int jn=0; jn<phrp; jn++){
-                ek(in+phcu, jn+phcu)+= weight*dphi_p(0,in)*dphi_p(0,jn);
-            }
-            
+            //------Matriz tangente-----
+            //termo (phip_i)*(phiun_j)/deltaT
             for(int jn=0; jn<phcu; jn++){
                 
                 ek(in+phcu, jn)+=phi_p(in,0)*(phi_u(0, jn)*datavec[0].normal[0] + phi_u(1, jn)*datavec[0].normal[1])*weight/fTimeStep;
             }
+            
+            //termo (unˆ2/4*mi)*(dp/dx)*(dphip_i)*(phiun_j)
+             for(int jn=0; jn<phcu; jn++){
+                 
+                 ek(in+phcu, jn)+= weight*factor_un2*dsol_p(0,0)*dphi_p(0,in)*(phi_u(0, jn)*datavec[0].normal[0] +
+                                                                               phi_u(1, jn)*datavec[0].normal[1]);
+             }
+            
+            //termo (unˆ3/12*mi)*(dphip_i)*(dphip_j)
+            for(int jn=0; jn<phrp; jn++){
+                
+                ek(in+phcu, jn+phcu)+=factor_un3*dphi_p(0,in)*dphi_p(0,jn)*weight;
+            }
         }
-        
-        //CASO 4
-//        REAL factor_un3 = (sol_un*sol_un*sol_un)/(12.*fvisc);
-//        REAL factor_un2 = (sol_un*sol_un)/(4.*fvisc);
-//        
-//        for(int in = 0; in<phrp; in++)
-//        {
-//            //----Residuo----
-//            //termo Ql*v
-//            ef(in+phcu,0)+=(-1.)*(fQL)*phi_p(in,0)*weight;
-//            
-//            //termo (unˆ3/12*mi)*(dv/dx)*(dp/dx)
-//            ef(in+phcu,0)+=(-1.)*weight*factor_un3*dphi_p(0,in)*dsol_p(0,0);
-//            
-//            //termo un*v/deltaT
-//            ef(in+phcu,0)+=(-1.)*weight*phi_p(in,0)*sol_un/fTimeStep;
-//
-//            
-//            //------Matriz tangente-----
-//            //termo (phip_i)*(phiun_j)/deltaT
-//            for(int jn=0; jn<phcu; jn++){
-//                
-//                ek(in+phcu, jn)+=phi_p(in,0)*(phi_u(0, jn)*datavec[0].normal[0] + phi_u(1, jn)*datavec[0].normal[1])*weight/fTimeStep;
-//            }
-//            
-//            //termo (unˆ2/4*mi)*(dp/dx)*(dphip_i)*(phiun_j)
-//             for(int jn=0; jn<phcu; jn++){
-//                 
-//                 ek(in+phcu, jn)+= weight*factor_un2*dsol_p(0,0)*dphi_p(0,in)*(phi_u(0, jn)*datavec[0].normal[0] +
-//                                                                               phi_u(1, jn)*datavec[0].normal[1]);
-//             }
-//            
-//            //termo (unˆ3/12*mi)*(dphip_i)*(dphip_j)
-//            for(int jn=0; jn<phrp; jn++){
-//                
-//                ek(in+phcu, jn+phcu)+=factor_un3*dphi_p(0,in)*dphi_p(0,jn)*weight;
-//                
-//            }
-//        }
     }
     
     //Last state (n): Matrix mass
-    //termo (phip_i)*(phiu_j)/deltaT
+    //termo (phip_i)*(phiun_j)/deltaT
 	if(gState == ELastState)
     {
         for(int in = 0; in<phrp; in++){
@@ -373,7 +330,7 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     
     if(gState == ELastState) return;
     REAL auxvar = 0.817*(1-fnu)*fHw;
-    REAL factor =0.;//fG/auxvar;
+    REAL factor =fG/auxvar;
     
     TPZFMatrix<REAL> &phi_u = datavec[0].phi;
     TPZManVector<REAL,3> sol_u = datavec[0].sol[0];
@@ -385,35 +342,27 @@ void TPZNLFluidStructure2d::ApplyNeumann_U(TPZVec<TPZMaterialData> &datavec, REA
     TPZManVector<REAL,3> sol_p = datavec[1].sol[0];
     int phrp = phi_p.Rows();
 
-    //----- CASO 1 e 2 -----
-//    for (int in = 0; in < nc_u; in++){
-//        for (int il = 0; il <fNumLoadCases; il++){
-//            
-//            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
-//            ef(in,il)+= weight*(v2(0,il)*phi_u(0,in) + v2(1,il)*phi_u(1,in));
-//        }
-//    }
     
-    //------ CASO 3 e 4 -----
-    for (int in = 0; in < nc_u; in++){
-        
-        for (int il = 0; il <fNumLoadCases; il++){
-            
-            TPZFNMatrix<3,STATE> v2 = bc.Val2(il);
+    for (int in = 0; in < nc_u; in++)
+    {
+        //--- residuo ----
+        for (int il = 0; il <fNumLoadCases; il++)
+        {
             ef(in,il)+= (-1.)*weight*factor*(phi_u(0,in)*sol_un*datavec[0].normal[0] + phi_u(1,in)*sol_un*datavec[0].normal[1])
                         
                         + weight*(phi_u(0,in)*sol_p[0]*datavec[0].normal[0] + phi_u(1,in)*sol_p[0]*datavec[0].normal[1]);
-            
         }
         
-        //matriz tangente
-        for (int jn = 0; jn <nc_u; jn++) {
-            
-            ek(in,jn) += weight*factor*(phi_u(0,in)*phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,in)*phi_u(1,jn)*datavec[0].normal[1]);
+        //----- matriz tangente -----
+        //termo k(phi_ix*phi_jun*nx + phi_iy*phi_jun*ny)
+        for (int jn = 0; jn <nc_u; jn++)
+        {
+            REAL phi_jun = phi_u(0,jn)*datavec[0].normal[0] + phi_u(1,jn)*datavec[0].normal[1];
+            ek(in,jn) += weight*factor*(phi_u(0,in)*phi_jun*datavec[0].normal[0] + phi_u(1,in)*phi_jun*datavec[0].normal[1]);
         }
         
-        for (int jp = 0; jp <phrp; jp++) {
-            
+        for (int jp = 0; jp <phrp; jp++)
+        {
             ek(in,jp+nc_u) += (-1.)*weight*(phi_u(0,in)*phi_p(jp,0)*datavec[0].normal[0] + phi_u(1,in)*phi_p(jp,0)*datavec[0].normal[1]);
         }
     }

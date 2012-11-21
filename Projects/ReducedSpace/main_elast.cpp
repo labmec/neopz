@@ -97,15 +97,16 @@ static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 int main(int argc, char *argv[])
 {
 #ifdef LOG4CXX
-	std::string logs("../logreducedspace.cfg");
-	InitializePZLOG("../logreducedspace.cfg");
+	//std::string logs("../logreducedspace.cfg");
+	//InitializePZLOG("../logreducedspace.cfg");
+    InitializePZLOG();
 #endif
     
-    int p = 1;
+    int p = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(0,1.,2.);
+	TPZGeoMesh * gmesh = GMesh(4,1.,2.);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
 //    ofstream vtkgmesh("gmesh_inicial.vtk");
@@ -178,22 +179,20 @@ int main(int argc, char *argv[])
     cmesh_pressure->Print(arg6);
     
     
-    //	Set initial conditions for deslocamento
-    TPZAnalysis an_elast(cmesh_referred);
-    int dim = cmesh_referred->Dimension();
-	//MySolve(anp, cmesh_pressure);
-	int nrs = an_elast.Solution().Rows();
-    TPZVec<REAL> sol_ini(nrs,0.);
-    TPZCompMesh  * cmesh_projL2 = ToolsTransient::CMeshProjectionL2(gmesh,dim, p, sol_ini);
-    TPZAnalysis anL2(cmesh_projL2);
-    MySolve(anL2, cmesh_projL2);
-    
-    //anL2.Solution().Print();
-    TPZFMatrix<REAL> InitSolU(nrs,1,0.);
-    InitSolU(0,0)= anL2.Solution()(0,0);
-    cmesh_referred->LoadSolution(InitSolU);
-    
-    //TPZFMatrix<REAL> InitSol = ToolsTransient::InitialSolution(gmesh, cmesh_referred, p, 1.);
+    //Set initial conditions for deslocamento
+//    TPZAnalysis an_elast(cmesh_referred);
+//    int dim = cmesh_referred->Dimension();
+//	//MySolve(anp, cmesh_pressure);
+//	int nrs = an_elast.Solution().Rows();
+//    TPZVec<REAL> sol_ini(nrs,1.);
+//    TPZCompMesh  * cmesh_projL2 = ToolsTransient::CMeshProjectionL2(gmesh,dim, p, matId1, sol_ini);
+//    TPZAnalysis anL2(cmesh_projL2);
+//    MySolve(anL2, cmesh_projL2);
+//    
+//    anL2.Solution().Print();
+//    TPZFMatrix<REAL> InitSolU(nrs,1,0.);
+//    InitSolU(0,0)= anL2.Solution()(0,0);
+//    cmesh_referred->LoadSolution(InitSolU);
     
     //multiphysic mesh
     TPZVec<TPZCompMesh *> meshvec(2);
@@ -210,14 +209,16 @@ int main(int argc, char *argv[])
     
     REAL deltaT=1.; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = 1;//150;
+    REAL maxTime = 10;//150;
     
     
-    //TPZBuildMultiphysicsMesh::TransferFromMeshes(meshvec, mphysics);
+    //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     TPZAnalysis *an = new TPZAnalysis(mphysics);
-    TPZFMatrix<REAL> InitialSolution =an->Solution();
-    an->Solution().Zero();
-    mphysics->Solution().Zero();
+    TPZFMatrix<REAL> InitialSolution = an->Solution();
+    InitialSolution.Print();
+    //an->Solution().Print();
+    //an->Solution().Zero();
+    //mphysics->Solution().Zero();
     ToolsTransient::SolveSistTransient(deltaT, maxTime, InitialSolution, an, mymaterial, meshvec, mphysics);
     
     
