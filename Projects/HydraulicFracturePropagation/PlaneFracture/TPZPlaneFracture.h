@@ -136,7 +136,16 @@ public:
  *          aparecem NO PRIMEIRO commit deste arquivo na data de 24 de outubro de 2012.
  *          Agora eles foram suprimidos por serem substituidos pelo metodo
  *          TPZGeoMesh::FindElement(...).
- *          Se por anos os metodos desta classe permanecerem estaveis,
+ *          Se por um tempo suficiente os metodos desta classe permanecerem estaveis,
+ *          pode deletar este comentario.
+ */
+
+/**
+ * Obs.:    Caso seja necessario retroceder no futuro,
+ *          o atributo fcrackQpointsElementsIds, que servia para guardar os elementos que tornariam-se
+ *          quarter points, ainda aparece no commit de 22 de novembro de 2012 (15:39h).
+ *          Ao suprimir o atributo, houve mudanca no metodo TurnIntoQuarterPoint(...).
+ *          Se por um tempo suficiente os metodos desta classe permanecerem estaveis,
  *          pode deletar este comentario.
  */
 
@@ -358,7 +367,7 @@ class TPZPlaneFracture
     /**
      * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
      */
-    static bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
+    //static bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
     
     /**
      * @brief Returns if a given element is from boundary of domain
@@ -379,19 +388,6 @@ public:
     
     /** @brief 1D elements Ids that compose crack boundary */
     TPZVec<int> fcrackBoundaryElementsIds;
-    
-    /**
-     * Pode parecer que esta estrutura eh dispensavel pois bastaria percorrer
-     * os vizinhos dos elementos 1D contidos no TPZVec<int> fcrackBoundaryElementsIds.
-     * Mas como os elementos a tornarem-se quarterpopint podem tocar a ponta da fratura
-     * em 2 arestas, por exemplo, eles precisam ser refinados antes pois o quarterpoint
-     * soh aceita como targetSide apenas 1 noh ou 1 aresta ou 1 face.
-     * Portanto esta estrutura nao eh dispensavel pois o metodo TurnIntoQuarterPoints
-     * decidirah se os candidatos a tornarem-se quarterpoints precisarao ser refinados etc.
-     */
-    /** @brief Quarter points 3D elements Ids that surround crack boundary */
-    //map< elementId , set< sides of this element that touch 1d cracktip > >
-    std::map< int,std::set<int> > fcrackQpointsElementsIds;
     
     int fInitialElId;
     
