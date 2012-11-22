@@ -59,25 +59,25 @@ int mainTESE(int argc, char * const argv[])
     REAL lengthY = 7.;
     
     REAL lw = 202.;
-    REAL bulletDepthIni = 20.;
-    REAL bulletDepthFin = 80.;    
-    TPZVec< std::map<REAL,REAL> > pos_stress(5);
+    REAL bulletDepthTVDIni = 20.;
+    REAL bulletDepthTVDFin = 80.;
+    TPZVec< std::map<REAL,REAL> > posTVD_stress(5);
     //stretch #0
-    pos_stress[0][0.]  = 2.;
-    pos_stress[0][11.]  = 3.;
+    posTVD_stress[0][0.]  = 2.;
+    posTVD_stress[0][11.]  = 3.;
     //stretch #1
-    pos_stress[1][11.]  = 4.;
-    pos_stress[1][25.]  = 7.;
+    posTVD_stress[1][11.]  = 4.;
+    posTVD_stress[1][25.]  = 7.;
     //stretch #2
-    pos_stress[2][25.]  = 3.;
-    pos_stress[2][37.]  = 6.;
+    posTVD_stress[2][25.]  = 3.;
+    posTVD_stress[2][37.]  = 6.;
     //stretch #3
-    pos_stress[3][37.]  = 6.;
-    pos_stress[3][63.]  = 8.;
+    posTVD_stress[3][37.]  = 6.;
+    posTVD_stress[3][63.]  = 8.;
     //stretch #4
-    pos_stress[4][63.] = 8.;
-    pos_stress[4][210.] = 10.;
-    TPZPlaneFracture plfrac(lw, bulletDepthIni, bulletDepthFin, pos_stress, lengthX, lengthY);
+    posTVD_stress[4][63.] = 8.;
+    posTVD_stress[4][210.] = 10.;
+    TPZPlaneFracture plfrac(lw, bulletDepthTVDIni, bulletDepthTVDFin, posTVD_stress, lengthX, lengthY);
     
     TPZVec< std::pair<REAL,REAL> > fractureDots(0);
     FillFractureDotsExampleEllipse(fractureDots);

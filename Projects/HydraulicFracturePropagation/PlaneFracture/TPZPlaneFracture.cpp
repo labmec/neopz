@@ -41,10 +41,10 @@ TPZPlaneFracture::TPZPlaneFracture()
 }
 //------------------------------------------------------------------------------------------------------------
 
-TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDepthFin,
-                                   TPZVec< std::map<REAL,REAL> > & pos_stress, REAL xLength, REAL yLength)
+TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin,
+                                   TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength)
 {
-    fpos_stress = pos_stress;
+    fposTVD_stress = posTVD_stress;
     
     fInitialElId = 0;
     
@@ -57,13 +57,13 @@ TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDept
     
     espacamentoVerticalTVD.insert(0.);
     espacamentoVerticalTVD.insert(lw);
-    espacamentoVerticalTVD.insert(bulletDepthIni);
-    espacamentoVerticalTVD.insert(bulletDepthFin);
+    espacamentoVerticalTVD.insert(bulletDepthTVDIni);
+    espacamentoVerticalTVD.insert(bulletDepthTVDFin);
     
-    int nstretches = pos_stress.NElements();
+    int nstretches = posTVD_stress.NElements();
     for(int s = 0; s < nstretches; s++)
     {
-        for(itM = pos_stress[s].begin(); itM != pos_stress[s].end(); itM++)
+        for(itM = posTVD_stress[s].begin(); itM != posTVD_stress[s].end(); itM++)
         {
             REAL pos = itM->first;
             espacamentoVerticalTVD.insert(pos);
@@ -106,7 +106,7 @@ TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDept
 TPZPlaneFracture::~TPZPlaneFracture()
 {
     delete fPreservedMesh;
-    fpos_stress.Resize(0);
+    fposTVD_stress.Resize(0);
 }
 //------------------------------------------------------------------------------------------------------------
 

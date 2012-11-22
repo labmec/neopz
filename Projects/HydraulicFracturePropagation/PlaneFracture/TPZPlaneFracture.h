@@ -150,16 +150,16 @@ class TPZPlaneFracture
 	/**
 	 * @brief Constructor
 	 * @param lw [in] : (positive) well length (positive)
-	 * @param bulletDepthIni [in] : bullets perforation initial (TVD) depth
-	 * @param bulletDepthFin [in] : bullets perforation final (TVD) depth
-	 * @param pos_stress [in] : stress profile described by stretches (TVD)
+	 * @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
+	 * @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
+	 * @param posTVD_stress [in] : stress profile described by stretches (TVD)
      *              Obs.: Stress profile in each stretch is linear
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      * @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
      *
      * TVD: Total vertical depth (positive positions)
 	 */
-    TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDepthFin, TPZVec< std::map<REAL,REAL> > & pos_stress, REAL xLength, REAL yLength);
+    TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin, TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength);
     
 	~TPZPlaneFracture();
     
@@ -374,8 +374,8 @@ public:
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
 	TPZGeoMesh * fPreservedMesh;
     
-    /** @brief Map that holds stress profile (position,<stressUp,stressDown>) */
-    TPZVec< std::map<REAL,REAL> > fpos_stress;
+    /** @brief Map that holds stress profile (TVD position,<stressUp,stressDown>) */
+    TPZVec< std::map<REAL,REAL> > fposTVD_stress;
     
     /** @brief 1D elements Ids that compose crack boundary */
     TPZVec<int> fcrackBoundaryElementsIds;
