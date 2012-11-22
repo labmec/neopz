@@ -1644,7 +1644,8 @@ void TPZPlaneFracture::TurnIntoQuarterPoint(TPZGeoMesh * refinedMesh)
 
 void TPZPlaneFracture::RefinementProceedings(TPZGeoMesh * refinedMesh)
 {
-    int ndiv = 4;
+    REAL desiredSize = 0.05;//desired characteristic size of quarter point elements
+    int ndiv = log(__maxLength/desiredSize)/log(2.);
     
     std::set<int> fracturePlaneMat;
     fracturePlaneMat.insert(__2DfractureMat_inside);
