@@ -30,9 +30,6 @@ const REAL __smallNum = 1.E-5;
 /** @brief maximum element edge length */
 const REAL __maxLength = 0.8;
 
-/** @brief plane fracture mesh height(Z) multiplier to set width(X), i.e.: (width = __lengthFactor x height)  */
-const REAL __lengthFactor = 1.;
-
 /** @brief RefPatterns will be modulated to reduce the amount of options in the library */
 /** @note Quantity of stretches for coarse edge intersection modulation */
 const int __EdgeStretchesQTD = 10; //will be used for refpatterns
@@ -157,14 +154,16 @@ class TPZPlaneFracture
 	 * @param bulletDepthFin [in] : bullets perforation final (TVD) depth
 	 * @param pos_stress [in] : stress profile described by stretches (TVD)
      *              Obs.: Stress profile in each stretch is linear
+     * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
+     * @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
      *
      * TVD: Total vertical depth (positive positions)
 	 */
-    TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDepthFin, TPZVec< std::map<REAL,REAL> > & pos_stress);
+    TPZPlaneFracture(REAL lw, REAL bulletDepthIni, REAL bulletDepthFin, TPZVec< std::map<REAL,REAL> > & pos_stress, REAL xLength, REAL yLength);
     
 	~TPZPlaneFracture();
     
-    void RunThisFractureGeometry(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+    void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, std::string vtkFile);
     
     //Just 4 validation of SIF
     /**
@@ -175,7 +174,7 @@ class TPZPlaneFracture
      * @param Tickness [in] : Domain thickness, orthogonal to the width_heigth plane (analog to the crack front length)
      * @param a [in] : half of the total crack length (one wing of crack)
      */
-    void RunModelProblemForSIFValidation(const TPZVec<REAL> &poligonalChain, std::string vtkFile);
+    void RunModelProblemForSIFValidation(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, std::string vtkFile);
 		
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 	
@@ -189,27 +188,29 @@ class TPZPlaneFracture
 	 *
 	 * Example:
 	 *
-	 *		x coordinate of first point of crack boundary: poligonalChain[0]\n
-	 *		y coordinate of first point of crack boundary: poligonalChain[1]\n
-	 *		z coordinate of first point of crack boundary: poligonalChain[2]\n
-	 *		//
-	 *		x coordinate of second point of crack boundary: poligonalChain[3]\n
-	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
-	 *		z coordinate of second point of crack boundary: poligonalChain[5]
+	 *		x,z coordinates of first point of crack boundary: poligonalChain[0]\n
+	 *		x,z coordinates of second point of crack boundary: poligonalChain[1]\n
+     *      x,z coordinates of third point of crack boundary: poligonalChain[2]\n
+     *      etc...
 	 */
-	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<REAL> &poligonalChain);
+	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain);
 
-    TPZCompMesh * GetFractureCompMesh(const TPZVec<REAL> &poligonalChain, int porder, REAL sigmaTraction, REAL pressureInsideCrack);
+    TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, int porder, REAL sigmaTraction, REAL pressureInsideCrack);
 
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
+     *  @param espacamento [in] : espacamento vertical que define interfaces entre camadas horizontais
+     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
+     *  @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
      */
-    void GenerateRefinedMesh(std::list<REAL> & espacamento, REAL lengthFactor = __lengthFactor);
+    void GeneratePreservedMesh(std::list<REAL> & espacamento, REAL xLength, REAL yLength);
 
-    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GenerateRefinedMesh
+    /** @brief Method used for the mesh generator methods GeneratePlaneMesh and GeneratePreservedMesh
      *  @note For a given xz plane (defined by Y coordinate), generate the node grid coordinates
+     *  @param espacamento [in] : espacamento vertical que define interfaces entre camadas horizontais
+     *  @param xLength [in] : Reservoir length in x direction (crack propagation direction)
      */
-    void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL lengthFactor,
+    void GenerateNodesAtPlaneY(std::list<REAL> & espacamento, REAL xLength,
                                TPZVec< TPZVec<REAL> > & NodeCoord, int & nrows, int & ncols,
                                REAL Y);
 
@@ -233,7 +234,7 @@ class TPZPlaneFracture
 	 * @param elId_TrimCoords [out] : map that contains 1D element Id and a set of it trim 1D coordinates
 	 * @param elIdSequence [out] : the same of elId_TrimCoords, but keeps the trim 1D coordinates in generation sequence order
 	 */
-	void DetectEdgesCrossed(const TPZVec<REAL> &poligonalChain, TPZGeoMesh * fractMesh,
+	void DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, TPZGeoMesh * fractMesh,
 							std::map< int, std::set<REAL> > &elId_TrimCoords, std::list< std::pair<int,REAL> > &elIdSequence);
 
 	/**
@@ -327,7 +328,7 @@ class TPZPlaneFracture
 	 * The edges intersections of the original Poligonal Chain originate a new Poligonal Chain named poligonalChainUpdated 
 	 */
 	static void UpdatePoligonalChain(TPZGeoMesh * gmesh, std::list< std::pair<int,REAL> > &elIdSequence,
-							  TPZVec<REAL> &poligonalChainUpdated);
+							  TPZVec<std::pair<REAL,REAL> > &poligonalChainUpdated);
 	
 	/**
 	 * @param gmesh2D geometric mesh bi-dimensional

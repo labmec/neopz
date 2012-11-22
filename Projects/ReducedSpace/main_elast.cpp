@@ -113,6 +113,8 @@ int main(int argc, char *argv[])
 //    TPZVTKGeoMesh::PrintGMeshVTK(gmesh, vtkgmesh, true);
     
     //computational mesh elastic
+/** >>> Resolvendo um problema modelo de elastica linear para utilizar a solucao 
+    como espaco de aproximacao do problema nao linear (acoplado) */
 	TPZCompMesh * cmesh_elast= CMeshElastic(gmesh, p);
     TPZAnalysis an1(cmesh_elast);
     MySolve(an1, cmesh_elast);
@@ -137,6 +139,9 @@ int main(int argc, char *argv[])
 //    an1.Solution().Print();
 //    cmesh_elast->LoadSolution(newsol);
     
+    
+/** >>> Passando a malha computacional jah processada do problema modelo elastico para a malha do problema elastico que serah acoplado.
+    Esta malha que foi passada servirah como espasco de aproximacao da malha do problema elastico que serah acoplado */
     TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
     cmesh_referred->ComputeNodElCon();
     TPZFStructMatrix fstr(cmesh_referred);
@@ -148,6 +153,7 @@ int main(int argc, char *argv[])
     ofstream arg3("cmeshreferred_inicial.txt");
     cmesh_referred->Print(arg3);
 	
+/** >>> Criando a malha computacional para o problema de fluxo de fluido */
     //computational mesh of pressure
    // TPZGeoMesh * gmesh2 = GMesh2(2,1.);
     ofstream arg10("gmesh1D.txt");
@@ -161,22 +167,22 @@ int main(int argc, char *argv[])
     //------- computational mesh multiphysic ----------//
     
     // Cleaning reference of the geometric mesh to cmesh_referred
-	gmesh->ResetReference();
-	cmesh_referred->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,0);
-	cmesh_referred->AdjustBoundaryElements();
-	cmesh_referred->CleanUpUnconnectedNodes();
-    ofstream arg5("cmeshreferred_final.txt");
-    cmesh_referred->Print(arg5);
+//	gmesh->ResetReference();
+//	cmesh_referred->LoadReferences();
+//    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_referred,0);
+//	cmesh_referred->AdjustBoundaryElements();
+//	cmesh_referred->CleanUpUnconnectedNodes();
+//    ofstream arg5("cmeshreferred_final.txt");
+//    cmesh_referred->Print(arg5);
     
     // Cleaning reference of the geometric mesh to cmesh_pressure
-	gmesh->ResetReference();
-	cmesh_pressure->LoadReferences();
-    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,0);
-	cmesh_pressure->AdjustBoundaryElements();
-	cmesh_pressure->CleanUpUnconnectedNodes();
-    ofstream arg6("cmeshpressure_final.txt");
-    cmesh_pressure->Print(arg6);
+//	gmesh->ResetReference();
+//	cmesh_pressure->LoadReferences();
+//    TPZBuildMultiphysicsMesh::UniformRefineCompMesh(cmesh_pressure,0);
+//	cmesh_pressure->AdjustBoundaryElements();
+//	cmesh_pressure->CleanUpUnconnectedNodes();
+//    ofstream arg6("cmeshpressure_final.txt");
+//    cmesh_pressure->Print(arg6);
     
     
     //Set initial conditions for deslocamento
@@ -194,6 +200,7 @@ int main(int argc, char *argv[])
 //    InitSolU(0,0)= anL2.Solution()(0,0);
 //    cmesh_referred->LoadSolution(InitSolU);
     
+/** >>> Problema multifisico : acoplamento das 2 malhas computacionais anteriores (elastica e fluxo) */
     //multiphysic mesh
     TPZVec<TPZCompMesh *> meshvec(2);
 	meshvec[0] = cmesh_referred;
@@ -201,6 +208,7 @@ int main(int argc, char *argv[])
     
     gmesh->ResetReference();
 	TPZNLFluidStructure2d *mymaterial;
+/** >>> Serah utilizado o material criado (pznlfluidstructure2D do Agnaldo) */
     TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh, meshvec, mymaterial);
     mphysics->SetDefaultOrder(p);
     
@@ -212,6 +220,7 @@ int main(int argc, char *argv[])
     REAL maxTime = 10;//150;
     
     
+/** >>> Metodo de resolucao de problema transient */
     //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
     TPZAnalysis *an = new TPZAnalysis(mphysics);
     TPZFMatrix<REAL> InitialSolution = an->Solution();
