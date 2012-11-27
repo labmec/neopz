@@ -90,5 +90,6 @@ class GeoMeshClass {
 
 public:
 	static TPZGeoMesh * Talude();
+    static TPZGeoMesh * WellBore2d();
 	
 };

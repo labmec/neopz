@@ -44,7 +44,7 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 
 void calcVonMisesBar();
 void MohrCoulombTestX();
-void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat);
+void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes);
 void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat);
 void calctalude();
 TPZGeoMesh * barmesh(int h);
@@ -52,6 +52,10 @@ void SolverSetUp(TPZAnalysis &an, TPZCompMesh *fCmesh);
 void SetUPPostProcessVariables(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames );
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
 void ManageIterativeProcessPesoProprio(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost);
+
+
+
+
 
 #include "pzlog.h"
 
@@ -61,10 +65,10 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 #endif
 
 
-//int main()
-//{
-//    
-//    
+int main2()
+{
+  
+    
 //    TPZSandlerDimaggio sandler;
 //    sandler.McCormicRanchSand(sandler);
 //    ofstream outfiletxty("MohrNetoy.txt");
@@ -123,76 +127,77 @@ static LoggerPtr logger(Logger::getLogger("plasticity.main"));
 //        outfiletxtS << fabs(eps.XX()) << " " << fabs(sigma.XX()) << "\n";
 //         sigma+=deltasigma;
 //    }
-//    
-//    /*
-//    
-//    InitializePZLOG();
-//      ofstream outfiletxt("MohrNetox.txt");
-//    ofstream outfiletxty("MohrNetoy.txt");
-//    //   MohrCoulombTestX();
-//    //   calctalude();
-//    //   calcVonMisesBar();
-//    TPZMohrCoulombNeto toto;
-//    TPZTensor<REAL> epstotal,sigma,epsplastic;
-//    TPZFNMatrix<36,REAL> tangent(6,6);
-//    REAL deltaeps =0.00005;
-//    epstotal.XX() = deltaeps;
-//    TPZFMatrix<REAL> curve(7,2);
-//
-//    for(int i =1;i<360;i++)
-//    {
-//        cout << "\n i = "<<i<<endl;
-//        TPZMohrCoulombNeto::TComputeSequence memory;
-//        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
-//        toto.CommitDeformation(epstotal,memory);
-//        epstotal.XX()+=deltaeps;
-//        //epsplastic=toto.fState.fEpsPlastic;
-//        outfiletxty << epstotal.XX() << " " << sigma.XX() << "\n";
-//        if(i==50 || i==80)
-//        {
-//            deltaeps*=-1;
-//        }
-//        
-//    }
-//    
-//    
-//    do {
-//        TPZMohrCoulombNeto::TComputeSequence memory;
-//        memory = toto.ComputeSigma(epstotal, sigma );
-//#ifdef LOG4CXX
-//        {
-//            std::stringstream sout;
-//            sout << "Deformation tensor ";
-//            epstotal.Print(sout);
-//            sout << "Stress tensor " << sigma;
-//            LOGPZ_DEBUG(logger, sout.str())
-//        }
-//#endif
-//        
-//        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
-//        toto.CommitDeformation(epstotal, memory);
-//#ifdef LOG4CXX
-//        {
-//            std::stringstream sout;
-//            sout << "Total deformation tensor ";
-//            epstotal.Print(sout);
-//            sout << "Stress tensor " << sigma;
-//            tangent.Print("Tangent stress",sout);
-//            toto.Print(sout);
-//            LOGPZ_DEBUG(logger, sout.str())
-//        }
-//#endif
-//        epstotal.XX() += deltaeps;
-//      
-//        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
-//        
-//        
-//    
-//    } while (epstotal.XX() < 0.0035);
-//    return 0;
-//    */
-//    
-//}
+    
+    /*
+    
+    InitializePZLOG();
+      ofstream outfiletxt("MohrNetox.txt");
+    ofstream outfiletxty("MohrNetoy.txt");
+    //   MohrCoulombTestX();
+    //   calctalude();
+    //   calcVonMisesBar();
+    TPZMohrCoulombNeto toto;
+    TPZTensor<REAL> epstotal,sigma,epsplastic;
+    TPZFNMatrix<36,REAL> tangent(6,6);
+    REAL deltaeps =0.00005;
+    epstotal.XX() = deltaeps;
+    TPZFMatrix<REAL> curve(7,2);
+
+    for(int i =1;i<360;i++)
+    {
+        cout << "\n i = "<<i<<endl;
+        TPZMohrCoulombNeto::TComputeSequence memory;
+        memory = toto.ComputeSigma<REAL>(epstotal, sigma);
+        toto.CommitDeformation(epstotal,memory);
+        epstotal.XX()+=deltaeps;
+        //epsplastic=toto.fState.fEpsPlastic;
+        outfiletxty << epstotal.XX() << " " << sigma.XX() << "\n";
+        if(i==50 || i==80)
+        {
+            deltaeps*=-1;
+        }
+        
+    }
+    
+    
+    do {
+        TPZMohrCoulombNeto::TComputeSequence memory;
+        memory = toto.ComputeSigma(epstotal, sigma );
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Deformation tensor ";
+            epstotal.Print(sout);
+            sout << "Stress tensor " << sigma;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        
+        toto.ComputeSigmaTangent(epstotal, sigma, tangent, memory);
+        toto.CommitDeformation(epstotal, memory);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Total deformation tensor ";
+            epstotal.Print(sout);
+            sout << "Stress tensor " << sigma;
+            tangent.Print("Tangent stress",sout);
+            toto.Print(sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
+        epstotal.XX() += deltaeps;
+      
+        outfiletxt << fabs(epstotal.XX()) << " " << fabs(sigma.XX()) << "\n";
+        
+        
+    
+    } while (epstotal.XX() < 0.0035);
+    return 0;
+    */
+    
+}
+
 
 void calcVonMisesBar()
 {
@@ -216,7 +221,9 @@ void calcVonMisesBar()
     TPZMaterial *plastic(&PlasticVonM);
     compmesh1->InsertMaterialObject(plastic);
     
-    cmesh(compmesh1,plastic);
+    REAL theta = 45;
+    int axes=2;
+    cmesh(compmesh1,plastic,theta,axes);
     
     ofstream arg2("barcmesh.txt");
     compmesh1->Print(arg2);
@@ -381,17 +388,17 @@ void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
 }
 
 
-void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
+void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes)
 {
     
     TPZFMatrix<REAL> k1(3,3,0.);
     TPZFMatrix<REAL> f1(3,1,0.);
     TPZMaterial *bc1 = mat->CreateBC(mat,-1,0,k1,f1);
     CMesh->InsertMaterialObject(bc1);
-    
     TPZFMatrix<REAL> k2(3,3,0.);
     TPZFMatrix<REAL> f2(3,1,0.);
     f2(0,0)=1.;
+
     TPZMaterial * bc2 = mat->CreateBC(mat,-2,1,k2,f2);
     CMesh->InsertMaterialObject(bc2);
     
@@ -580,7 +587,7 @@ void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REA
         
 		pBC->Val2() = mattemp;
         cout<< "\n pBC->Val2() = " <<pBC->Val2()<<endl;
-		analysis.IterativeProcess(cout, 1.e-5, 5);
+		analysis.IterativeProcess(cout, 1.e-5, 30);
         
         analysis.AcceptSolution();
         cout << "\nPostSolution "<< endl<< pPost->Solution();

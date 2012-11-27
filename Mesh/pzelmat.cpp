@@ -327,12 +327,16 @@ void TPZElementMatrix::ApplyConstraints(){
 	} // end of while loop
 }//void
 
-bool TPZElementMatrix::HasDependency(){
+bool TPZElementMatrix::HasDependency()
+{
 	int nconnects = this->NConnects();
 	int in, index;
-	for(in=0; in<nconnects; in++){
+	for(in=0; in<nconnects; in++)
+    {
 		index = this->ConnectIndex(in);
-		if(this->fMesh->ConnectVec()[index].HasDependency()){
+       // bool val =this->fMesh->ConnectVec()[index].HasDependency();
+		if(this->fMesh->ConnectVec()[index].HasDependency())
+        {
 			return true;
 		}
 	}

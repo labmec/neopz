@@ -228,39 +228,20 @@ inline void TPZCompElPostProc<TCOMPEL>::Read(TPZStream &buf, void *context)
 
 
 template <class TCOMPEL>
-inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
+inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
+{
 	ef.Reset();
-	
-	
-	
-	this->InitializeElementMatrix(ef);// the inintialization of the ef matrix
-	//preceeds the verifications below because it is advisable to esit
-	// with proper ef size, no matter the return reason
+    
+	this->InitializeElementMatrix(ef);
 	
 	TPZCompEl * pCompElRef = TPZReferredCompEl<TCOMPEL>::ReferredElement();
 	
 	TPZInterpolationSpace * pIntSpRef = dynamic_cast<TPZInterpolationSpace *>(pCompElRef);
-	if(!pCompElRef){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl == NULL\n";
-		return;
-	}
-	
-	if(pCompElRef == this){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl == itself\n";
-		return;
-	}
 	
 	TPZPostProcMat * pPostProcMat = dynamic_cast<TPZPostProcMat *>(this->Material());
-	if(!pPostProcMat){
-		return;
-		//skipping unhandled element
-	}
-	
+
 	TPZMaterial * pMaterialRef = pIntSpRef->Material();
-	if(!pMaterialRef){
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " Referred CompEl->Material() == NULL\n";
-		return;
-	}
+
 	
 	if (this->NConnects() == 0) return;///boundary discontinuous elements have this characteristic
 	
@@ -303,12 +284,12 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef){
 		this->      ComputeShape(intpoint, data.x, data.jacobian, 
 								 data.axes, data.detjac, data.jacinv, 
 								 data.phi, data.dphix);
-		/*
+		
 		pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian, 
 								 dataRef.axes, dataRef.detjac, dataRef.jacinv, 
 								 dataRef.phi, dataRef.dphix); 
-		**/
-		pIntSpRef->ComputeShape(intpointRef,dataRef);
+		
+		//pIntSpRef->ComputeShape(intpointRef,dataRef);
 		
 		weight    *= fabs(data.detjac);
 		weightRef *= fabs(dataRef.detjac);

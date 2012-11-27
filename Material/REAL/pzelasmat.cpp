@@ -471,6 +471,8 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
 	if(!strcmp("Displacement6",name.c_str()))    return 7;
 	if(!strcmp("Stress",name.c_str()))           return 10;
+    if(!strcmp("f1",name.c_str()))           return 20;
+    if(!strcmp("f2",name.c_str()))           return 21;
     
     
 	
@@ -480,41 +482,7 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 
 /** Returns the number of variables associated with the variable indexed by var. */
 int TPZElasticityMaterial::NSolutionVariables(int var){
- /*   
-    if(var == TPZElasticityMaterial::EDisplacement)              return 3;
-    if(var == TPZElasticityMaterial::EDisplacementX)             return 1;
-    if(var == TPZElasticityMaterial::EDisplacementY)             return 1;
-    if(var == TPZElasticityMaterial::EDisplacementZ)             return 1;
-    if(var == TPZElasticityMaterial::EPrincipalStress)           return 3;
-    if(var == TPZElasticityMaterial::ENormalStress)              return 3;
-    if(var == TPZElasticityMaterial::EShearStress)               return 3;
-    if(var == TPZElasticityMaterial::ENormalStrain)              return 3;
-    if(var == TPZElasticityMaterial::EShearStrain)               return 3;
-    if(var == TPZElasticityMaterial::ENormalStrain)              return 3;
-    if(var == TPZElasticityMaterial::EStress1)                   return 1; 
-    if(var == TPZElasticityMaterial::EPrincipalStrain)           return 3;
-    if(var == TPZElasticityMaterial::EStrain1)                   return 1;  
-    if(var == TPZElasticityMaterial::EPrincipalStressDirection1) return 3;
-    if(var == TPZElasticityMaterial::EPrincipalStressDirection2) return 3;
-    if(var == TPZElasticityMaterial::EPrincipalStressDirection3) return 3;
-    if(var == TPZElasticityMaterial::EI1Stress)                  return 1;
-    if(var == TPZElasticityMaterial::EJ2Stress)                  return 1;
-    if(var == TPZElasticityMaterial::EI1J2Stress)                return 2;
-    if(var == TPZElasticityMaterial::EDirStress)                 return 3;  
-    if(var == TPZElasticityMaterial::EDirStrain)                 return 3;  
-    if(var == TPZElasticityMaterial::EVolElasticStrain)          return 1;
-    if(var == TPZElasticityMaterial::EVolPlasticStrain)          return 1; 
-    if(var == TPZElasticityMaterial::EVolTotalStrain)            return 1;
-    if(var == TPZElasticityMaterial::EVolTEPStrain)              return 3;
-    if(var == TPZElasticityMaterial::EAlpha)                     return 1;  
-    if(var == TPZElasticityMaterial::EPlasticSteps)              return 1;
-    if(var == TPZElasticityMaterial::EYield)                     return 1;//Numero de funcoes falha 
-    if(var == TPZElasticityMaterial::EMisesStress)              return 1; 
-    if(var == TPZElasticityMaterial::ENormalPlasticStrain)              return 1;
-    PZError << "TPZElasticity3D::NSolutionVariables Error\n";
-    return -1;
- */   
-    
+
 	switch(var) {
 		case 0:
 			return 2;
@@ -536,11 +504,16 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 			return 3;
         case 11 : //Strain Tensor
             return 3;
+        case 20:
+            return 1;
+        case 21:
+            return 1;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
 	}
   
 }
+
 
 void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
 	
@@ -666,6 +639,15 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 			Solout[1] = epsy;
 			Solout[2] = epsxy;
             break;
+            
+            
+        case 20:
+            
+            break;
+        case 21:
+            
+            break;
+            
 		default:
 			cout << "TPZElasticityMaterial::Solution Error\n";
 			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);

@@ -128,6 +128,9 @@ public:
 	 * @param[in] epsTotal Imposed total strain tensor
 	 */
 	virtual void ApplyStrain(const TPZTensor<REAL> &epsTotal);
+    
+    
+    void SetOutFile(string outfile);
 	
 	typedef YC_t fNYields;
 	
@@ -592,6 +595,9 @@ protected:
 	int fInterfaceTensionSign;
 	
 	int fMaterialElasticOrPlastic;
+    
+    
+    //ofstream fOutfile(string &str);
 	
 public:
 	

@@ -467,11 +467,18 @@ void TPZElastoPlasticAnalysis::SetUpdateMem(int update)
 	TPZMatWithMem<TPZElastoPlasticMem> * pMatWithMem; // defined in file pzelastoplastic.h
 	TPZMatWithMem<TPZPoroElastoPlasticMem> * pMatWithMem2; // define in file pzporous.h
 
-    for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++){
+    for(mit=refMatVec.begin(); mit!= refMatVec.end(); mit++)
+    {
         pMatWithMem = dynamic_cast<TPZMatWithMem<TPZElastoPlasticMem> *>( mit->second );
-		if(pMatWithMem != NULL) pMatWithMem->SetUpdateMem(update);
+		if(pMatWithMem != NULL)
+        {
+           pMatWithMem->SetUpdateMem(update); 
+        }
         pMatWithMem2 = dynamic_cast<TPZMatWithMem<TPZPoroElastoPlasticMem> *>( mit->second);
-		if(pMatWithMem2 != NULL) pMatWithMem2->SetUpdateMem(update);
+		if(pMatWithMem2 != NULL)
+        {
+            pMatWithMem2->SetUpdateMem(update);
+        }
     }
 	
 }
@@ -505,6 +512,7 @@ REAL TPZElastoPlasticAnalysis::AcceptSolution(const int ResetOutputDisplacements
 	fSolution.Zero();
 	
 	TPZAnalysis::LoadSolution();
+    
 	
 	return norm;
 }
@@ -693,11 +701,12 @@ void TPZElastoPlasticAnalysis::SetLU()
 void TPZElastoPlasticAnalysis::TransferSolution(TPZPostProcAnalysis & ppanalysis)
 {
 	TPZFMatrix<REAL> bkpSolution = fSolution;
+    fSolution.Print();
 	
 	fSolution = fCumSol;
 	
 	TPZAnalysis::LoadSolution();
-	
+	//passa o cum sol para o post
 	ppanalysis.TransferSolution();
 	
 	fSolution = bkpSolution;

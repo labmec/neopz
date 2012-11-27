@@ -31,11 +31,15 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr plasticIntegrLogger(Logger::getLogger("plasticity.plasticIntegr"));
+static LoggerPtr plasticIntegrLogger(Logger::getLogger("pz.plasticity.plasticIntegr.main"));
 #endif
 
+
+#define LOG4CXX_PLASTICITY
+
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr logger(Logger::getLogger("PLASTIC_STEP"));
+static LoggerPtr logger(Logger::getLogger("PLASTIC_STEP.main"));
+static LoggerPtr loggerx(Logger::getLogger("pz.PLASTIC_STEP.main"));
 static LoggerPtr loggerPlasticResidual(Logger::getLogger("PLASTIC_RESIDUAL"));
 #endif
 
@@ -87,6 +91,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::SetState(
     }
 #endif
 }
+
 
 template <class YC_t, class TF_t, class ER_t>
 const TPZPlasticState<REAL> TPZPlasticStep<YC_t, TF_t, ER_t>::GetState() const
@@ -256,7 +261,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrain_Internal(const TPZTensor<REAL
     {
         std::stringstream sout;
         sout  << ">>> ApplyStrain_Internal *** Imposed epsTotal << " << epsTotal;
-        LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -514,7 +519,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyStrainComputeDep_Internal(const TPZT
     {
         std::stringstream sout;
         sout << ">>> ApplyStrainComputeDep_Internal *** Imposed epsTotal << " << epsTotal;
-        LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
+        LOGPZ_INFO(logger,sout.str().c_str());
     }
 #endif
 #ifdef LOG4CXX_PLASTICITY
@@ -1150,10 +1155,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
                 std::stringstream sout1, sout2;
                 sout1 << "*** PlasticLoop *** Newton's " << countNewton
                 << "-th iteration with residual norm = " << resnorm;
-                sout2 << "\nTangent Matrix:\n" << tangent
-                << "\nResidual:\n" << ResVal;
-                LOGPZ_INFO(logger,sout1.str().c_str());
-                //LOGPZ_DEBUG(logger,sout2.str().c_str());
+                //sout1 << "\nTangent Matrix:\n" << tangent
+               // << "\nResidual:\n" << ResVal;
+               // LOGPZ_DEBUG(logger,sout1.str().c_str());
             }
 #endif
             
@@ -1203,533 +1207,35 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     for(i=0; i<YC_t::NYield; i++)
         delGamma[i] = delGamma_FAD[i].val();
     
-#ifdef LOG4CXX_PLASTICITY
+    
+    
+//    for(int i=0;i<6;i++)
+//    {
+//
+//        fOutfile << "{ {" << Np1.fEpsT.XX() << "," << Np1.fEpsT.XY() << "," << Np1.fEpsT.XZ()
+//        <<"},{"<<Np1.fEpsT.XY()<<","<<Np1.fEpsT.YY()<<","<<Np1.fEpsT.YZ()
+//        <<"},{"<<Np1.fEpsT.XZ()<<","<<Np1.fEpsT.YZ() << ","<<Np1.fEpsT.ZZ()<<"} } ";
+//    }
+    
+    
+    
+#ifdef LOG4CXX
+    
     {
         std::stringstream sout1, sout2;
         sout1 << "<<< PlasticLoop *** Exiting Method";
-        sout2 << "\nNp1.Alpha() << " << Np1.Alpha()
+        sout2 << "\nNp1 << " << Np1 << "\n \n"
         << "\ndelGamma << " << delGamma
         << "\nValidEqs << {" << validEqs << "}" ;
-        LOGPZ_INFO(logger,sout1.str().c_str());
-        LOGPZ_INFO(logger,sout2.str().c_str());
+        LOGPZ_INFO(loggerx,sout1.str().c_str());
+        LOGPZ_INFO(loggerx,sout2.str().c_str());
     }
+    
 #endif
     
     return resnorm<=Tol;
 }
 
-
-//template <class YC_t, class TF_t, class ER_t>
-//int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
-//                                                       const TPZPlasticState<REAL> &N,
-//                                                       TPZPlasticState<REAL> &Np1,
-//                                                       const REAL &TolEpsPErr)
-//{
-//      int succeeded;
-//
-//
-//    TPZManVector<REAL,YC_t::NYield> delGamma(YC_t::NYield, 0.);
-//      TPZManVector<int, YC_t::NYield> validEqs(YC_t::NYield, 0);
-//
-//      REAL normEpsPErr = 0.;
-//      int counter = 0;
-//      REAL lambda = 0.;
-//
-//      succeeded = PlasticLoop(N, Np1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//      if(normEpsPErr < TolEpsPErr && succeeded)
-//      {
-//
-//              PushPlasticMem(Np1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-//
-//              return 1;
-//      }
-//
-//      int discarded = 1;
-//
-//
-//      // Substepping state variables
-//      TPZPlasticState<REAL> Nk(N),
-//    Nkp1,statek1,statek2,statek3,statek4,deltastatek1,deltastatek2,deltastatek3,deltastatek4;
-//
-//      TPZTensor<REAL> deltaEpsTotal(Np1.EpsT());
-//      deltaEpsTotal.Add(N.EpsT(), -1.);
-//
-////    REAL k = 0., q = 1., kp1 = 0., multipl;
-//    REAL h = 0.5;
-//
-////    while(k < 1.)
-// //   {
-//        //staten1=staten+deltastate
-//        // df = deltaState entre nkp1 e nk
-//        // o que sao os pontos a serem avaliados: sao o plastic loop com npk1 - nk
-//        // o que sera o k1,k2...
-//        //calcula-se deltastate(staten,staten1)
-//        //faz-se statek1 = h * deltastate->staten1-staten
-//        //calcula-se deltastate2(staten+0.5*h, staten1+0.5*statek1)
-//        //faz-se statek2 = h * deltastate2-> (staten1+0.5*statek1 - staten+0.5*h)
-//        //k1 = k+ h df(xn,yn)
-//        //k2 = h df(xn+0.5h, yn+0.5 k1)
-//        //k3 = h df(xn+0.5h, yn+0.5 k2)
-//        //k4 = h df(xn+h, yn+k3)
-//        //yn1 = yn + k1/6 + k2/3 +k3/3 + k4/6
-////    REAL size =5;
-////    for(int i=1;i<=size;i++)
-////    {
-//        //k1 = h df(xn,yn)
-//
-////        REAL march = i/size;
-//
-////
-////        deltastatek1.fEpsT = Nkp1.EpsT();
-////        deltastatek1.fEpsP = Nkp1.EpsP();
-////        deltastatek1.fAlpha = Nkp1.Alpha();
-////
-////        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
-////        deltastatek1.fEpsP.Add(Nk.EpsP(),-1.);
-////        deltastatek1.fAlpha-=Nk.Alpha();
-////        for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//
-//  //      Nkp1.fEpsT = Nk.EpsT();
-//      //      Nkp1.fEpsT.Add(deltaEpsTotal, h);
-//      //      Nkp1.fAlpha = Nk.Alpha();
-//      //      Nkp1.fEpsP  = Nk.EpsP();
-//
-//
-////        Nkp1.fEpsT = N.EpsT();
-////        Nkp1.fEpsT.Add(deltaEpsTotal, h);
-////        Nkp1.fAlpha = Nk.Alpha();
-////        Nkp1.fEpsP  = Nk.EpsP();
-////        for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-////
-////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////            PushPlasticMem(Nkp1, march, lambda, delGamma, validEqs, fYC.GetForceYield());
-////            Nk = Nkp1;
-////         PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-//
-////        if(succeeded && normEpsPErr < 0.0001)
-////        {
-////            Np1 = Nkp1;
-////            //return;
-////        }
-//
-//        //cout << "\n deltastate \n "<<deltastatek1 << endl;
-//        #ifdef LOG4CXX
-//        {
-//            std::stringstream sout;
-//            sout << "\n Nkp1 \n "<<Nkp1 << endl;
-//            sout << "\n Nk \n "<<Nk << endl;
-//          //  sout << "\n deltastate \n "<<deltastatek1 << endl;
-//            sout << "\n normEpsPErr \n "<<normEpsPErr << endl;
-//            sout << "\n delGamma \n "<<delGamma << endl;
-//            sout << "\n lambda \n "<<lambda << endl;
-//            LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
-//        }
-//        #endif
-//
-//
-////
-////        deltastatek1.fEpsT.Multiply(h, 1.);
-////        deltastatek1.fEpsP.Multiply(h, 1.);
-////        deltastatek1.fAlpha*=h;
-////
-////
-////        Nkp1.fEpsT.Add(deltastatek1.EpsT(),1.);
-////        Nkp1.fEpsP.Add(deltastatek1.EpsP(),1.);
-////        Nkp1.fAlpha+=deltastatek1.Alpha();
-//
-//       // Nk = Nkp1;
-//        //k1 = h df(xn,yn)
-////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////
-////        deltastatek1.fEpsT = Nkp1.EpsT();
-////        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
-////        deltastatek1.fEpsT.Multiply(h, 1.);
-////
-////        deltastatek1.fEpsT.Add(Nk.EpsT(),1.);
-////
-////        Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
-////
-////        Nkp1.fAlpha = Nk.Alpha();
-////        Nkp1.fEpsP  = Nk.EpsP();
-////
-////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-////
-////        //k2 = h df(xn+0.5h, yn+0.5 k1)
-////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////
-////        deltastatek2.fEpsT = Nkp1.EpsT();
-////        deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
-////        deltastatek2.fEpsT.Multiply(h, 1.);
-////
-////
-////        deltastatek2.fEpsT.Add(Nk.EpsT(),1.);
-////        Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
-////
-////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-////
-////        //k3 = h df(xn+0.5h, yn+0.5 k2)
-////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////
-////
-////        deltastatek3.fEpsT = Nkp1.EpsT();
-////        deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
-////        deltastatek3.fEpsT.Multiply(h, 1.);
-////
-////
-////        deltastatek3.fEpsT.Add(Nk.EpsT(),1.);
-////        Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1.);
-////
-////        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-////
-////
-////        //k4 = h df(xn+h, yn+k3)
-////        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-////
-////        Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
-////  //      Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
-////  //      Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-////
-////
-////        Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
-////    //    Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
-////    //    Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-////
-////        Nkp1.fEpsT.Add(deltastatek3.fEpsT,1/6.);
-////     //   Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
-////    //    Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-////
-////        PushPlasticMem(Nkp1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-////
-////        Np1 = Nkp1;
-//
-////     }
-//   // Np1 = Nkp1;
-//
-//
-//    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//    deltastatek1.fEpsT = Nkp1.EpsT();
-//    deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
-//    deltastatek1.fEpsT.Multiply(h, 1.);
-//
-//    deltastatek1.fEpsT.Add(Nk.EpsT(),1.);
-//
-//    Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
-//    Nkp1.fAlpha = Nk.Alpha();
-//    Nkp1.fEpsP  = Nk.EpsP();
-//
-//    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//
-//    //k2 = h df(xn+0.5h, yn+0.5 k1)
-//    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//    deltastatek2.fEpsT = Nkp1.EpsT();
-//    deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
-//    deltastatek2.fEpsT.Multiply(h, 1.);
-//
-//
-//    deltastatek2.fEpsT.Add(Nk.EpsT(),1.);
-//    Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
-//
-//    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//
-//    //k3 = h df(xn+0.5h, yn+0.5 k2)
-//    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//
-//    deltastatek3.fEpsT = Nkp1.EpsT();
-//    deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
-//    deltastatek3.fEpsT.Multiply(h, 1.);
-//
-//
-//    deltastatek3.fEpsT.Add(Nk.EpsT(),1.);
-//    Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1.);
-//
-//    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-//
-//
-//    //k4 = h df(xn+h, yn+k3)
-//    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//    deltastatek4.fEpsT = Nkp1.EpsT();
-//    deltastatek4.fEpsT.Add(Nk.EpsT(),-1.);
-//    deltastatek4.fEpsT.Multiply(h, 1.);
-//
-//
-//    deltastatek4.fEpsT.Add(Nk.EpsT(),1.);
-//    Nkp1.fEpsT.Add(deltastatek4.fEpsT, 1.);
-//
-//    for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-//
-//
-//    //k4 = h df(xn+h, yn+k3)
-//    succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//
-//
-//    Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
-//    //      Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
-//    //      Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-//
-//
-//    Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
-//    //    Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
-//    //    Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-//
-//    Nkp1.fEpsT.Add(deltastatek3.fEpsT,1/6.);
-//    //   Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
-//    //    Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-//
-//    PushPlasticMem(Nkp1, 1., lambda, delGamma, validEqs, fYC.GetForceYield());
-//
-//    Np1 = Nkp1;
-//
-//
-//    /*
-//
-//
-//
-//
-//
-//     while(k < 1.)
-//     {
-//
-//     multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
-//
-//     if(multipl < 0.1) multipl = 0.1;
-//     if(multipl > 10.) multipl = 10.;
-//
-//     if(!succeeded)multipl = 0.5;
-//
-//     q*= multipl;
-//
-//     if(q < fMinStepSize)q = fMinStepSize;
-//
-//     kp1 = min(1.0, k + q);
-//     q = kp1 - k; // needed when k+q exceeds 1
-//     Nkp1.fEpsT = N.EpsT();
-//     Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-//     Nkp1.fAlpha = Nk.Alpha();
-//     Nkp1.fEpsP  = Nk.EpsP();
-//     for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//
-//     succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//     #ifdef LOG4CXX
-//     {
-//     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** " << counter
-//     << "-th substep with k=" << k << " and kp1=" << kp1
-//     << " (normEpsPErr = " << normEpsPErr << " )"
-//     << "\nValidEqs = " << validEqs << " and forceYield = " << fYC.GetForceYield();
-//     LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
-//     }
-//     #endif
-//     #ifdef LOG4CXX_PLASTICITY
-//     {
-//     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** " << counter
-//     << "-th substep with k=" << k << " and kp1=" << kp1
-//     << " (normEpsPErr = " << normEpsPErr << " )"
-//     << "\nValidEqs = " << validEqs << " and forceYield = " << fYC.GetForceYield();
-//     LOGPZ_INFO(logger,sout.str().c_str());
-//     }
-//     #endif
-//
-//     if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
-//     {
-//
-//     #ifdef LOG4CXX
-//     if(normEpsPErr >= TolEpsPErr)
-//     {
-//     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** ###### SUBSTEPPING CUTOFF ###### "
-//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr
-//     << " because the step became " <<(kp1-k)*100. << "% of the original step size";
-//     LOGPZ_WARN(plasticIntegrLogger,sout.str().c_str());
-//     }
-//     #endif
-//     #ifdef LOG4CXX_PLASTICITY
-//     if(normEpsPErr >= TolEpsPErr)
-//     {
-//     std::stringstream sout;
-//     sout << "*** PlasticIntegrate *** ###### SUBSTEPPING CUTOFF ###### "
-//     << "\nAccepting substep with normEpsPErr = " << normEpsPErr
-//     << " because the step became " <<(kp1-k)*100. << "% of the original step size";
-//     LOGPZ_WARN(logger,sout.str().c_str());
-//     }
-//     #endif
-//
-//     PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-//
-//     counter++;
-//     // the k-th integration step respects the estimated tolerance
-//     // proceeding with time evolution...
-//     Nk = Nkp1;
-//     k =  kp1;
-//     }
-//     else{
-//     discarded++;
-//     }// otherwise the answer isn't accepted and the next q will be
-//     // recomputed in order to lie within the desired tolerance.
-//     // If the method works fine this situation should rarely happen.
-//     }
-//
-//
-//
-//
-//
-//
-//
-//
-//        //k1 = h df(xn,yn)
-//        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//        deltastatek1.fEpsT = Nkp1.EpsT();
-//        deltastatek1.fEpsP = Nkp1.EpsP();
-//        deltastatek1.fAlpha = Nkp1.Alpha();
-//
-//        deltastatek1.fEpsT.Add(Nk.EpsT(),-1.);
-//        deltastatek1.fEpsP.Add(Nk.EpsP(),-1.);
-//        deltastatek1.fAlpha-=Nk.Alpha();
-//
-//        deltastatek1.fEpsT.Multiply(h, 1.);
-//        deltastatek1.fEpsP.Multiply(h, 1.);
-//        deltastatek1.fEpsT*=h;
-//
-//        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=0.5*h;
-//        Nk.fAlpha+=0.5*h;
-//
-//        Nkp1.fEpsT.Add(deltastatek1.fEpsT, 0.5);
-//        Nkp1.fEpsP.Add(deltastatek1.fEpsP, 0.5);
-//        Nkp1.fAlpha += deltastatek1.Alpha()*0.5;
-//
-//        //k2 = h df(xn+0.5h, yn+0.5 k1)
-//         succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//
-//        deltastatek2.fEpsT = Nkp1.EpsT();
-//        deltastatek2.fEpsP = Nkp1.EpsP();
-//        deltastatek2.fAlpha = Nkp1.Alpha();
-//
-//        deltastatek2.fEpsT.Add(Nk.EpsT(),-1.);
-//        deltastatek2.fEpsP.Add(Nk.EpsP(),-1.);
-//        deltastatek2.fAlpha-=Nk.Alpha();
-//
-//        deltastatek2.fEpsT.Multiply(h, 1.);
-//        deltastatek2.fEpsP.Multiply(h, 1.);
-//        deltastatek2.fEpsT*=h;
-//
-//        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=0.5*h;
-//        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=0.5*h;
-//        Nk.fAlpha+=0.5*h;
-//
-//        Nkp1.fEpsT.Add(deltastatek2.fEpsT, 0.5);
-//        Nkp1.fEpsP.Add(deltastatek2.fEpsP, 0.5);
-//
-//
-//        //k3 = h df(xn+0.5h, yn+0.5 k2)
-//        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//
-//        deltastatek3.fEpsT = Nkp1.EpsT();
-//        deltastatek3.fEpsP = Nkp1.EpsP();
-//        deltastatek3.fAlpha = Nkp1.Alpha();
-//
-//        deltastatek3.fEpsT.Add(Nk.EpsT(),-1.);
-//        deltastatek3.fEpsP.Add(Nk.EpsP(),-1.);
-//        deltastatek3.fAlpha-=Nk.Alpha();
-//
-//        deltastatek3.fEpsT.Multiply(h, 1.);
-//        deltastatek3.fEpsP.Multiply(h, 1.);
-//        deltastatek3.fEpsT*=h;
-//
-//        for(int i = 0; i < 6; i++)Nk.fEpsT.fData[i] +=h;
-//        for(int i = 0; i < 6; i++)Nk.fEpsP.fData[i] +=h;
-//        Nk.fAlpha+=h;
-//
-//        Nkp1.fEpsT.Add(deltastatek3.fEpsT, 1);
-//        Nkp1.fEpsP.Add(deltastatek3.fEpsP, 1);
-//
-//
-//        //k4 = h df(xn+h, yn+k3)
-//        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//        deltastatek4.fEpsT = Nkp1.EpsT();
-//        deltastatek4.fEpsP = Nkp1.EpsP();
-//        deltastatek4.fAlpha = Nkp1.Alpha();
-//
-//        deltastatek4.fEpsT.Add(Nk.EpsT(),-1.);
-//        deltastatek4.fEpsP.Add(Nk.EpsP(),-1.);
-//        deltastatek4.fAlpha-=Nk.Alpha();
-//
-//        deltastatek4.fEpsT.Multiply(h, 1.);
-//        deltastatek4.fEpsP.Multiply(h, 1.);
-//        deltastatek4.fEpsT*=h;
-//
-//        Nkp1.fEpsT.Add(Nk.fEpsT,1);
-//        Nkp1.fEpsT.Add(Nk.fEpsP,1);
-//        Nkp1.fAlpha+=Nk.fAlpha;
-//
-//        Nkp1.fEpsT.Add(deltastatek1.fEpsT,1/6.);
-//        Nkp1.fEpsT.Add(deltastatek1.fEpsP,1/6.);
-//        Nkp1.fAlpha+=deltastatek1.fAlpha * 1/6.;
-//
-//
-//        Nkp1.fEpsT.Add(deltastatek2.fEpsT,1/3.);
-//        Nkp1.fEpsT.Add(deltastatek2.fEpsP,1/3.);
-//        Nkp1.fAlpha+=deltastatek2.fAlpha * 1/3.;
-//
-//        Nkp1.fEpsT.Add(deltastatek4.fEpsT,1/6.);
-//        Nkp1.fEpsT.Add(deltastatek4.fEpsP,1/6.);
-//        Nkp1.fAlpha+=deltastatek4.fAlpha * 1/6.;
-//
-//         Np1 = Nkp1;
-//
-//        //yn1 = yn + k1/6 + k2/3 +k3/3 + k4/6
-//*/
-//
-//      /*
-//              multipl = 0.95 * pow(TolEpsPErr/normEpsPErr, 0.5);
-//
-//              if(multipl < 0.1) multipl = 0.1;
-//              if(multipl > 10.) multipl = 10.;
-//
-//              if(!succeeded)multipl = 0.5;
-//
-//              q*= multipl;
-//
-//          if(q < fMinStepSize)q = fMinStepSize;
-//
-//              kp1 = min(1.0, k + q);
-//              q = kp1 - k; // needed when k+q exceeds 1
-//              Nkp1.fEpsT = N.EpsT();
-//              Nkp1.fEpsT.Add(deltaEpsTotal, kp1);
-//              Nkp1.fAlpha = Nk.Alpha();
-//              Nkp1.fEpsP  = Nk.EpsP();
-//              for(int i = 0; i < YC_t::NYield; i++)delGamma[i] = 0.;
-//
-//        succeeded = PlasticLoop(Nk, Nkp1, delGamma, normEpsPErr, lambda, validEqs);
-//
-//
-//      if((normEpsPErr < TolEpsPErr && succeeded) || kp1-k < fMinStepSize * 1.001) // 1.001 because of rounding errors
-//              {
-//
-//            PushPlasticMem(Nkp1, kp1, lambda, delGamma, validEqs, fYC.GetForceYield());
-//            counter++;
-//            Nk = Nkp1;
-//                  k =  kp1;
-//              }
-//              else
-//        {
-//            discarded++;
-//              }
-//
-//      }*/
-//
-//      return counter;
-//}
 
 
 
@@ -1804,7 +1310,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
             sout << "\n normEpsPErr \n "<<normEpsPErr << endl;
             sout << "\n delGamma \n "<<delGamma << endl;
             sout << "\n lambda \n "<<lambda << endl;
-            //  LOGPZ_DEBUG(plasticIntegrLogger,sout.str().c_str());
+              LOGPZ_DEBUG(loggerx,sout.str().c_str());
         }
 #endif
         
@@ -2030,8 +1536,8 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
                                                         REAL &normEpsPErr,
                                                         int silent)const
 {
-    
-    const REAL a = 0.5;
+    //const REAL a = 0.5;
+    const REAL a = 0;
     
     // This function will be either called with template parameter T being REAL or FAD type
     // nyield indicates the number of yield functions
@@ -2086,6 +1592,17 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
     }
     epsResMidPt_T2.Add(  N_T1.EpsP(), T1(-1.) );
     epsResMidPt_T2.Add(Np1_T2.EpsP(), T1( 1.) );
+    
+    
+    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        //sout << "\n NdirNp1_T2 = "<< NdirNp1_T2 <<endl;
+        //sout << "\n NdirN_T1 = "<< NdirN_T1 <<endl;
+        //LOGPZ_INFO(loggerx,sout.str().c_str());
+    }
+#endif
     
     // Explicit scheme relative error: estimated by the difference between the
     // first and second order schemes results.

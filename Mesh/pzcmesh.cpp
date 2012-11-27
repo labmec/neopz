@@ -373,14 +373,23 @@ void TPZCompMesh::ExpandSolution() {
 	fSolutionBlock = fBlock;
 }
 
-void TPZCompMesh::LoadSolution(const TPZFMatrix<STATE> &mat){
+void TPZCompMesh::LoadSolution(const TPZFMatrix<REAL> &mat){
 	
 	int nrow = mat.Rows();
 	int ncol = mat.Cols();
     int solrow = fSolution.Rows();
     fSolution.Resize(solrow, ncol);
 	int i,j;
-	for(j=0;j<ncol;j++) for(i=0;i<nrow;i++) fSolution(i,j) = mat.GetVal(i,j);
+    REAL val;
+	for(j=0;j<ncol;j++)
+    {
+        for(i=0;i<nrow;i++)
+        {
+            val = mat.GetVal(i,j);
+            fSolution(i,j) =  val;
+        }
+        
+    }
 	int nelem = NElements();
 	TPZCompEl *cel;
 	for(i=0; i<nelem; i++) {

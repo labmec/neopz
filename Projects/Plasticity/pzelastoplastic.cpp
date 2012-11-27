@@ -388,12 +388,11 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
-	//	TPZYCDruckerPrager YC;
-	//	YC.Compute(sigma, A, phi, 0);
-	//	int intPt = data.intPtIndex;//, plasticSteps;
-		fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
-		TPZTensor<REAL> & totalStrain = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
-		fPlasticity.Phi(totalStrain,Solout);
+        
+        TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
+        TPZSandlerDimaggio SD;
+        SD.UncDeepSandResPSI(SD);
+		SD.Phi(EpsT,Solout);
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){
@@ -820,7 +819,8 @@ void TPZMatElastoPlastic<T,TMEM>::ComputeDeltaStrainVector(TPZMaterialData & dat
 {
 	TPZFNMatrix<9> DSolXYZ(3,3,0.);
 	data.axes.Multiply(data.dsol[0],DSolXYZ,1/*transpose*/);
-	
+    cout << "\n data dsol \n";
+	data.dsol[0].Print();
     DeltaStrain.Redim(6,1);
     DeltaStrain(_XX_,0) = DSolXYZ(0,0);
     DeltaStrain(_YY_,0) = DSolXYZ(1,1);
@@ -857,37 +857,7 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
 	EpsT.CopyFrom(DeltaStrain);
 	EpsT.Add(fPlasticity.GetState().fEpsT, 1.);
 	
-#ifdef LOG4CXX
-	{
-    std::stringstream sout;
-	sout << ">>> TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep ***";
-	sout << "\n PlasticState = \n" << TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState;//fPlasticity.GetState();
-	sout << "\n Imposed EpsT = " << EpsT;
-	sout << "\nfPlasticity=";
-	//fPlasticity.Print(sout);
-	LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	}
-#endif
-		fPlasticity.ApplyStrainComputeDep(EpsT, Sigma, Dep);
-
-#ifdef LOG4CXX
-	{
-    std::stringstream sout;
-	sout << "<<< TPZMatElastoPlastic<T,TMEM>::ApplyStrainComputeDep ***";
-	sout << "\n Resultant PlasticState = \n" << fPlasticity.GetState();
-	sout << "\n Sigma = " << Sigma;
-	sout << "\n Dep = \n" << Dep;
-	LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	}
-//#ifdef DEBUG 
-//   if ( !Dep.VerifySymmetry( 1.e-8 ) )
-//	{
-//		std::stringstream sout2;
-//    	sout2 << "<<< TPZMatElastoPlastic<T,TMEM>::ApplyStrainComputeDep *** NON SYMMETRIC CONTRIBUTE SUBMATRIX";
-//    	LOGPZ_WARN(elastoplasticLogger,sout2.str().c_str());
-//	}
-//#endif
-#endif
+    fPlasticity.ApplyStrainComputeDep(EpsT, Sigma, Dep);
 	
 	Sigma.CopyTo(Stress);
 	

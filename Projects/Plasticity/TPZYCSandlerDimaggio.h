@@ -14,6 +14,8 @@
 
 #include "fadType.h"
 
+
+
 /**
 Implementa as funções de potencial plástico e yield criterium do 
 modelo constitutivo associativo de Sandler e Dimaggio (1971), desenvolvido
@@ -306,6 +308,7 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
 	// shear and hardening cap yield criteria / plastic potential.
 	// It is first evaluated as REAL type to avoid unnecessary
 	// derivatives evaluation.
+
 	
     #ifdef LOG4CXX_PLASTICITY
         {
@@ -394,16 +397,16 @@ inline void TPZYCSandlerDimaggio::N(const TPZTensor<T> & sigma, const T & A, TPZ
         Ndir[1].XY() = sigma.XY() / FL3;
 	}
 	
-    #ifdef LOG4CXX_PLASTICITY
+    #ifdef LOG4CXX
     {
-        LoggerPtr logger(Logger::getLogger("plasticity.SandlerDimaggio"));
+        LoggerPtr logger(Logger::getLogger("pz.plasticity.SandlerDimaggio.main"));
         std::stringstream sout;
         sout << "<< TPZYCSandlerDimaggio::N *** \n sigma = \n" << sigma
 			 << "\nI1 = " << I1 
 			 << "\nJ2 = " << J2
 			 << "\nSQRTJ2 = " << SQRTJ2
 			 << "\nNdir = \n" << Ndir;
-        LOGPZ_DEBUG(logger,sout.str().c_str());
+        //LOGPZ_DEBUG(logger,sout.str().c_str());
     }
     #endif
 	

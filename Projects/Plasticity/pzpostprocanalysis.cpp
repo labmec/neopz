@@ -28,38 +28,20 @@ TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainAnalysis(NULL)
 
 TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMainAnalysis(pRef)
 {
-	
-	if(!fpMainAnalysis)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid analysis to post process!\n";
-		return;
-	}
-
-	TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
     
-	//pcMainMesh->SetAllCreateFunctionsContinuous();
-	if(!pcMainMesh)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid fCompMesh in analysis to post process!\n";
-		return;
-	}
-	
-	TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-	
-	if(!pgmesh)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid GeoMesh in analysis to post process!\n";
-		return;
-	}
-	
-	
+    TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
+    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
+    
+    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
-	TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
-	//TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
-    //TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(pcPostProcMesh); // self explanatory
-   
-	
-	fCompMesh = pcPostProcMesh;
+    
+    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+    
+    
+    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+    //pcPostProcMesh->LoadReferred(pcMainMesh);
+
+    fCompMesh = pcPostProcMesh;
 }
 
 TPZPostProcAnalysis::~TPZPostProcAnalysis()
@@ -70,32 +52,12 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 {
 	int i, j, nMat, matNumber;
 
-	if(!fpMainAnalysis)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::SetPostProcessVariables() unavailable fpRef!\n";
-		return;	
-	}
 
 	TPZCompMesh * pcMainMesh = fpMainAnalysis->Mesh();
-	if(!pcMainMesh)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::SetPostProcessVariables() unavailable fpRef->Mesh()!\n";
-		return;
-	}
 	
 	TPZGeoMesh * pgmesh = pcMainMesh->Reference();
-	if(!pgmesh)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::TPZPostProcAnalysis() Invalid GeoMesh in analysis to post process!\n";
-		return;
-	}
-	
+
 	TPZCompMeshReferred * pcPostProcMesh = dynamic_cast<TPZCompMeshReferred *>(this->Mesh());
-	if(!pcPostProcMesh)
-	{
-		PZError << "Error at " << __PRETTY_FUNCTION__ << " TPZPostProcAnalysis::SetPostProcessVariables() unavailable this->Mesh()!\n";
-		return;
-	}
 	
 	TPZStack<int> avlMatIds;
 	int nel = pgmesh->NElements();	
@@ -146,7 +108,7 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 		matNumber = pcPostProcMesh->InsertMaterialObject(pPostProcMat);
 	}
 	
-//	pcPostProcMesh->AutoBuild();
+	//pcPostProcMesh->AutoBuild();
 	//pcPostProcMesh->AutoBuildDisc();
 	AutoBuildDisc();
 	
@@ -190,7 +152,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 			//gel->CreateCompEl(*Mesh(),index);
 			//gel->ResetReference();
 			Mesh()->CreateCompEl(gel,index);
-                        gel->ResetReference();
+            gel->ResetReference();
 			
 		}
 	}
@@ -292,18 +254,18 @@ void TPZPostProcAnalysis::TransferSolution()
 
 void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 {
+    
     TPZManVector<TCreateFunction,10> functions(8);
     functions[EPoint] = &TPZPostProcAnalysis::CreatePointEl;
-        functions[EOned] = TPZPostProcAnalysis::CreateLinearEl;
-        functions[EQuadrilateral] = TPZPostProcAnalysis::CreateQuadEl;
-        functions[ETriangle] = TPZPostProcAnalysis::CreateTriangleEl;
-        functions[EPrisma] = TPZPostProcAnalysis::CreatePrismEl;
-        functions[ETetraedro] = TPZPostProcAnalysis::CreateTetraEl;
-        functions[EPiramide] = TPZPostProcAnalysis::CreatePyramEl;
-        functions[ECube] = TPZPostProcAnalysis::CreateCubeEl;
+    functions[EOned] = TPZPostProcAnalysis::CreateLinearEl;
+    functions[EQuadrilateral] = TPZPostProcAnalysis::CreateQuadEl;
+    functions[ETriangle] = TPZPostProcAnalysis::CreateTriangleEl;
+    functions[EPrisma] = TPZPostProcAnalysis::CreatePrismEl;
+    functions[ETetraedro] = TPZPostProcAnalysis::CreateTetraEl;
+    functions[EPiramide] = TPZPostProcAnalysis::CreatePyramEl;
+    functions[ECube] = TPZPostProcAnalysis::CreateCubeEl;
     cmesh->ApproxSpace().SetCreateFunctions(functions);
-
-
+    
 }
 
 using namespace pzshape;

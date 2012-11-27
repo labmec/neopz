@@ -8,7 +8,7 @@
 #include <fenv.h>//NAN DETECTOR
 
 #ifdef LOG4CXX_PLASTICITY
-static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
+//static LoggerPtr logMohr(Logger::getLogger("TPZYCMohrOriginal"));
 #endif
 
 class TPZYCModifiedMohrCoulomb  {

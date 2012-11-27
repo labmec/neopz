@@ -107,3 +107,221 @@ TPZGeoMesh * GeoMeshClass::Talude()
     //	
 	return gMesh;
 }
+
+#include "tpzarc3d.h"
+
+
+TPZGeoMesh * GeoMeshClass::WellBore2d()
+{
+    
+	int numnodes;
+	int numelements;
+	
+	string FileName;
+	FileName = "wellcil.txt";
+    ifstream read (FileName.c_str());
+    
+    // gRefDBase.InitializeRefPatterns();
+    
+    
+    int nodeId = 0, elementId = 0;
+    
+    double nodecoordX , nodecoordY , nodecoordZ ;
+    read >> numnodes;
+    
+    TPZGeoMesh * gMesh = new TPZGeoMesh;
+    
+    gMesh -> NodeVec().Resize(numnodes);
+    
+    const int Qnodes = numnodes;
+    TPZVec <TPZGeoNode> Node(Qnodes);
+    
+    for(int in=0; in<numnodes; in++)
+    {
+        read >> nodeId;
+        read >> nodecoordX;
+        read >> nodecoordY;
+        read >> nodecoordZ;
+        Node[nodeId-1].SetNodeId(nodeId);
+        Node[nodeId-1].SetCoord(0,nodecoordX);
+        Node[nodeId-1].SetCoord(1,nodecoordY);
+        Node[nodeId-1].SetCoord(2,nodecoordZ);
+        gMesh->NodeVec()[nodeId-1] = Node[nodeId-1];
+        
+    }
+    
+    read>> numelements;
+    TPZVec <int> TopoQuad(4);
+    TPZVec <int> TopoTri(3);
+    TPZVec <int> TopolLine(2);
+    TPZVec <int> arc(3);
+	
+    for(int el=0; el<numelements; el++)
+    {
+        
+        int topol1,topol2,topol3,topol4;
+        read >> elementId;
+        read >> topol1; //node 1
+        read >> topol2; //node 2
+        read >> topol3; //node 3
+        read >> topol4; //node 3
+        
+        TopoQuad[0]=topol1;
+        TopoQuad[1]=topol2;
+        TopoQuad[2]=topol3;
+        TopoQuad[3]=topol4;
+        
+        TopoQuad[0]--;
+        TopoQuad[1]--;
+        TopoQuad[2]--;
+        TopoQuad[3]--;
+        
+        
+        new TPZGeoElRefPattern< TPZGeoQuad  > (elementId,TopoQuad,1,*gMesh);
+        
+        
+    }
+    REAL val=1000.;
+    REAL tol=1/val;
+    int ndiv= val;
+    REAL delta=(M_PI/2)/val;
+    vector<int> ids,ids2,ids3,ids4;
+    for(int j=0;j<=ndiv;j++)
+    {
+        TPZVec<REAL> co(3),co2(3);
+        co[0]= 1*cos(delta*j);
+        co[1]= 1*sin(delta*j);
+        co2[0]=0.1 *cos(delta*j);
+        co2[1]=0.1*sin(delta*j);
+        for(int i=0;i<numnodes;i++)
+        {
+            TPZVec<REAL> cord(3);
+            gMesh->NodeVec()[i].GetCoordinates(cord);
+            REAL val1,val2,val3,val4;
+            val1=fabs(cord[0]-co[0]);
+            val2=fabs(cord[1]-co[1]);
+            val3=fabs(cord[0]-co2[0]);
+            val4=fabs(cord[1]-co2[1]);
+            //cout << "\n coord = "<< cord<<endl;
+            //cout << "co = "<< co<<endl;
+            if(val1<tol && val2 < tol)
+            {
+                ids.push_back(i);
+            }
+            if(val3<tol && val4 < tol)
+            {
+                ids2.push_back(i);
+            }
+    
+        }
+    }
+    
+    tol=1./1000.;
+    ndiv=500.;
+    delta=1./ndiv;
+    for(int j=0;j<=ndiv;j++)
+    {
+        
+        
+        TPZVec<REAL> co3(3),co4(3);
+        co3[0]= delta*j;
+        co3[1]= 0.;
+        co4[0]=0.;
+        co4[1]=delta*j;
+        
+        for(int i=0;i<numnodes;i++)
+        {
+            TPZVec<REAL> cord(3);
+            gMesh->NodeVec()[i].GetCoordinates(cord);
+            REAL val1,val2,val3,val4;
+            
+            
+            val1=fabs(cord[0]-co3[0]);
+            val2=fabs(cord[1]-co3[1]);
+            
+            val3=fabs(cord[0]-co4[0]);
+            val4=fabs(cord[1]-co4[1]);
+            
+            //cout << "\n coord = "<< cord<<endl;
+            //cout << "co = "<< co3 <<endl;
+            //cout << "co = "<< co4 <<endl;
+            if(val1<tol && val2<tol)
+            {
+                ids3.push_back(i);
+            }
+            if(val3 < tol && val4 <tol)
+            {
+                ids4.push_back(i);
+            }
+            
+        }
+    }
+    
+    //TPZVec<int> arc(3);
+    int id=0;
+    //poco
+    for(int i=0;i<(ids2.size())-1;i++)
+    {
+        cout << "\n "<<ids2[i];
+        TopolLine[0] =ids2[i+1];	TopolLine[1] = ids2[i];
+        if(TopolLine[0] != TopolLine[1])
+        {
+            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-2,*gMesh);
+        }
+        
+//        arc[0] = ids2[i+2]; arc[1]=ids2[i+1]; arc[2]=ids2[i];
+//        cout << "\n "<<ids[i+2];
+//        cout << "\n "<<ids[i+1];
+//        cout << "\n "<<ids[i];
+//        new TPZGeoElRefPattern< TPZArc3D > (id,arc,-2,*gMesh);
+        
+        
+    }
+    //for field
+
+    for(int i=0;i<(ids.size())-1;i++)
+    {
+            TopolLine[0] =ids[i+1] ;	TopolLine[1] =ids[i];
+            if(TopolLine[0] != TopolLine[1])
+            {
+                new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-3,*gMesh);
+            }
+
+    }
+    
+    //linha inferior
+    for(int i=0;i<(ids3.size())-1;i++)
+    {
+        cout << "\n "<<ids3[i];
+        TopolLine[0] =ids3[i+1] ;	TopolLine[1] =ids3[i];
+        if(TopolLine[0] != TopolLine[1])
+        {
+            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
+        }
+        
+    }
+    
+    //linha esquerda
+    for(int i=0;i<(ids4.size())-1;i++)
+    {
+        //cout << "\n "<<ids4[i];
+        TopolLine[0] =ids4[i+1] ;	TopolLine[1] =ids4[i];
+        if(TopolLine[0] != TopolLine[1])
+        {
+            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
+        }
+        
+    }
+    
+    
+    gMesh->BuildConnectivity();
+    
+    ofstream arg("wellboremeshOut.txt");
+    gMesh->Print(arg);
+    ofstream predio("wellboremesh.vtk");
+    TPZVTKGeoMesh::PrintGMeshVTK(gMesh,predio,true);
+    
+    //
+	return gMesh;
+}
+
