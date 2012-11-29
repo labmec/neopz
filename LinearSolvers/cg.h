@@ -49,7 +49,10 @@ CG( Matrix &A, Vector &x, const Vector &b,
 	if(!res) res = &resbackup;
 	Vector &r = *res;
 	//  Vector r = b - A*x;
-	if(FromCurrent) A.MultAdd(x,b,r,-1.,1.);
+	if(FromCurrent) 
+    {
+        A.MultAdd(x,b,r,-1.,1.);
+    }
 	else {
 		x.Zero();
 		r = b;
