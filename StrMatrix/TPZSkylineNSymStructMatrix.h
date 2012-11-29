@@ -31,6 +31,8 @@ public:
     return new TPZSkylineNSymStructMatrix(*this);
   }
 
+    
+
 };
 
 #endif

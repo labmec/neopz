@@ -60,8 +60,17 @@ TPZMatrix<STATE> * TPZSkylineStructMatrix::Create(){
 		neq = skyline.NElements();
 	}
 	
+    return this->ReallyCreate(neq,skyline);//new TPZSkylMatrix<STATE>(neq,skyline);
+}
+
+
+TPZMatrix<STATE> * TPZSkylineStructMatrix::ReallyCreate(int neq, const TPZVec<int> &skyline){
     return new TPZSkylMatrix<STATE>(neq,skyline);
 }
+
+
+
+
 TPZSkylineStructMatrix::~TPZSkylineStructMatrix(){
 }
 

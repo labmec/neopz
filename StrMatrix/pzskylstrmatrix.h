@@ -19,6 +19,11 @@ class TPZMatrix;
  * @ingroup structural
  */
 class TPZSkylineStructMatrix : public TPZStructMatrix {
+protected:
+    
+    /** Returns the skyline matrix object */
+    virtual TPZMatrix<STATE> * ReallyCreate(int neq, const TPZVec<int> &skyline);
+    
 public:    
 	
 	TPZSkylineStructMatrix(TPZCompMesh *);

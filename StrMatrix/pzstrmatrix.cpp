@@ -225,6 +225,11 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 			if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
 			{
                 std::stringstream sout;
+                TPZGeoEl *gel = el->Reference();
+                TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
+                gel->CenterPoint(gel->NSides()-1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
 				ek.Print(sout);
 				ef.Print(sout);
 				LOGPZ_DEBUG(loggerel,sout.str())
@@ -245,6 +250,11 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 			if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
 			{
 				std::stringstream sout;
+                TPZGeoEl *gel = el->Reference();
+                TPZManVector<REAL> center(gel->Dimension()),xcenter(3,0.);
+                gel->CenterPoint(gel->NSides()-1, center);
+                gel->X(center, xcenter);
+                sout << "Stiffness for geometric element " << gel->Index() << " center " << xcenter << std::endl;
 				ek.Print(sout);
 				ef.Print(sout);
 				LOGPZ_DEBUG(loggerel,sout.str())
