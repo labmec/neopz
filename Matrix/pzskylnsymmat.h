@@ -35,13 +35,17 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 {
  public:
   TPZSkylNSymMatrix() : TPZMatrix<TVar>(0,0),fElem(0), fElemb(0), fStorage(0), fStorageb(0) { }
-  TPZSkylNSymMatrix(const int dim);
+    
+  TPZSkylNSymMatrix(const int nrow, const int ncol);
   /**
      Construct a skyline matrix of dimension dim
      skyline indicates the minimum row number which will be accessed by each equation
   */
   TPZSkylNSymMatrix(const int dim ,const TPZVec<int> &skyline);
-	TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  { Copy(A); }
+	TPZSkylNSymMatrix(const TPZSkylNSymMatrix &A ) : TPZMatrix<TVar>(A), fElem(0), fElemb(0), fStorage(0), fStorageb(0)  
+    { 
+        Copy(A); 
+    }
 
   CLONEDEF(TPZSkylNSymMatrix)
   /**
@@ -147,18 +151,11 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
 	 * @param withclassid
 	 */
 	virtual void Write( TPZStream &buf, int withclassid );
+    
+    /** @brief Fill matrix storage with randomic values */
+	/** This method use GetVal and PutVal which are implemented by each type matrices */
+	void AutoFill();
 
-#ifdef OOPARLIB
-   /*
-  virtual long GetClassID() const    { return TSKYMATRIX_ID; }
-  virtual int Unpack( TReceiveStorage *buf );
-  static TSaveable *Restore(TReceiveStorage *buf);
-  virtual int Pack( TSendStorage *buf ) const;
-  virtual char *ClassName() const   { return( "TPZSkylMatrix"); }
-  virtual int DerivedFrom(const long Classid) const;
-  virtual int DerivedFrom(const char *classname) const; // a class with name classname
-      */
-#endif
 
  protected:
 

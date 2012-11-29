@@ -60,10 +60,13 @@ using namespace std;
 /** * Construtor (int) ** */
 
 template <class TVar>
-TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const int dim) : TPZMatrix<TVar>(dim, dim),
-fElem(dim + 1), fElemb(dim + 1), fStorage(0), fStorageb(0)
+TPZSkylNSymMatrix<TVar>::TPZSkylNSymMatrix(const int row, const int col) : TPZMatrix<TVar>(row,col),
+fElem(row + 1), fElemb(row + 1), fStorage(0), fStorageb(0)
 {
 
+    if (row != col) {
+        DebugStop();
+    }
   // Inicializa a diagonal (vazia).
   fElem.Fill(0);
   fElemb.Fill(0);
@@ -318,7 +321,7 @@ void TPZSkylNSymMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x, const TPZFMatri
         *zp += alpha * *diag--*val;
         zp += stride;
       }
-      z.Print("z");
+      //z.Print("z");
     }
   }
 }
@@ -1545,6 +1548,54 @@ int TPZSkylNSymMatrix<float>::ClassId() const
 	return TSKYLNSYMMATRIX_FLOAT_ID;
 }
  
+/** Fill the matrix with random values (non singular matrix) */
+template <class TVar>
+void TPZSkylNSymMatrix<TVar>::AutoFill() {
+    
+    // initialize the skyline
+    TPZManVector<int> skyline(this->Rows());
+    for (int i=0; i<this->Rows(); i++) {
+        int randcol = rand()%(i+1);
+        skyline[i] = randcol;
+    }
+    this->SetSkyline(skyline);
+	int i, j;
+	TVar val;
+	/** Fill data */
+	for(i=0;i<this->Rows();i++) {
+		for(j=skyline[i];j<=i ;j++) {
+			val = ((TVar)rand())/((TVar)RAND_MAX);
+			if(!PutVal(i,j,val))
+            {
+				this->Error("AutoFill (TPZMatrix) failed.");
+            }
+			val = ((TVar)rand())/((TVar)RAND_MAX);
+			if(!PutVal(j,i,val))
+            {
+				this->Error("AutoFill (TPZMatrix) failed.");
+            }
+		}
+    }
+    for (i=0; i<this->Rows(); i++) 
+    {
+        TVar sum = 0.;
+        for (j=0; j<this->Rows(); j++) 
+        {
+            sum += this->GetVal(i,j);
+        }
+        /** Making diagonally dominant and non zero in diagonal */
+        if(fabs(sum) > fabs(GetVal(i,i))) {           // Deve satisfazer:  |Aii| > SUM( |Aij| )  sobre j != i
+            PutVal(i,i,sum);
+        }
+        // To sure diagonal is not zero.
+        if(IsZero(sum) && IsZero(GetVal(i,i)))
+        {
+            PutVal(i,i,1.);
+        }
+	}
+}
+
+
 template class TPZSkylNSymMatrix<float>;
 template class TPZSkylNSymMatrix<std::complex<float> >;
 
