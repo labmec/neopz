@@ -113,7 +113,7 @@ int main() {
 	cout << "\nGrau do espaco de interpolacao -> 0,1,2,3,... ";
 	cin >> grau;
 	cmesh->SetDefaultOrder(grau);
-	TPZAutoPointer<TPZMaterial> mat;
+	TPZMaterial *mat;
 	TPZStack<TPZGeoEl *> elem;
 	TPZStack<TPZGeoElSide> elembc;
 	int dim;
@@ -593,7 +593,7 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 		delete elgbound;
 		gmesh->ElementVec().SetFree(index);
 	}
-	TPZAutoPointer<TPZMaterial> aximat(mat);
+	TPZMaterial *aximat(mat);
 	bc = mat->CreateBC(aximat.operator->(),-1,5,val1,val2);//parede
 	cmesh->InsertMaterialObject(bc);
 	bc = mat->CreateBC(aximat.operator->(),-2,2,val1,val2);//no refletivas
@@ -701,7 +701,7 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 		gmesh->ElementVec().SetFree(index);
 	}
 	//the domain is a hexahedral 
-	TPZAutoPointer<TPZMaterial> aximat(mat);
+	TPZMaterial *aximat(mat);
 	bc = mat->CreateBC(aximat.operator->(),-1,5,val1,val2);//parede na asa
 	cmesh->InsertMaterialObject(bc);
 	bc = mat->CreateBC(aximat.operator->(),-2,6,val1,val2);//no refletivas
