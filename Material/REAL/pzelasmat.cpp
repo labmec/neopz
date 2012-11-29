@@ -354,6 +354,28 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 				}
 			}   // este caso pode reproduzir o caso 0 quando o deslocamento
             break;
+        case 50 :		// condi�o mista
+
+			for(in = 0 ; in < phi.Rows(); in++) 
+            {
+                for (int il = 0; il <fNumLoadCases; il++) 
+                {
+                    TPZFNMatrix<2,STATE> v2(2,1);
+                    for (int is=0; is<2; is++) {
+                        v2(is,0) = data.sol[il][is]*gBigNumber;
+                    }
+                    ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
+                    ef(2*in+1,il) += v2(1,0) * phi(in,0) * weight;      // forced in y direction
+                }
+				
+				for (jn = 0 ; jn < phi.Rows(); jn++) {
+					ek(2*in,2*jn) += gBigNumber * phi(in,0) *
+					phi(jn,0) * weight;         // peso de contorno => integral de contorno
+					ek(2*in+1,2*jn+1) += gBigNumber * phi(in,0) *
+					phi(jn,0) * weight;
+				}
+			}   // este caso pode reproduzir o caso 0 quando o deslocamento
+
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 } // 1 Val1 : a leitura �00 01 10 11
 
