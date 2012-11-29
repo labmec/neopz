@@ -42,7 +42,7 @@
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 
-void calcVonMisesBar();
+static void calcVonMisesBar();
 void MohrCoulombTestX();
 void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes);
 void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat);
@@ -199,7 +199,7 @@ int main2()
 }
 
 
-void calcVonMisesBar()
+static void calcVonMisesBar()
 {
     TPZGeoMesh *barmesh1;
     barmesh1 = barmesh(0);
