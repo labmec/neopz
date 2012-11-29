@@ -169,6 +169,9 @@ TPZCompEl::~TPZCompEl() {
         fMesh->ElementVec()[index] = 0;
         fMesh->ElementVec().SetFree(index);        
     }
+    fIndex = -1;
+    fReferenceIndex = -1;
+    fMesh = 0;
 }
 
 MElementType TPZCompEl::Type() {
@@ -392,18 +395,21 @@ void TPZCompEl::BuildConnectList(std::set<int> &indepconnectlist,
 }
 
 void TPZCompEl::BuildConnectList(TPZStack<int> &connectlist) {
-	std::set<int> buf;
+	std::set<int> buf,buf2;
 	int ncon = connectlist.NElements();
 	for(int i = 0; i < ncon; i++) {
 		buf.insert(connectlist[i]);
 	}
-	BuildConnectList(buf);
-	ncon = buf.size();
-	connectlist.Resize(ncon);
-	std::set<int>::iterator it = buf.begin();
-	for(int i = 0; i < ncon; i++,it++) 
+	BuildConnectList(buf2);
+	ncon = buf2.size();
+	std::set<int>::iterator it = buf2.begin();
+	for(it=buf2.begin() ; it != buf2.end(); it++) 
 	{
-		connectlist[i] = *it;
+        if(buf.find(*it) == buf.end())
+        {
+            connectlist.Push(*it);
+            buf.insert(*it);
+        }
 	}
 }
 

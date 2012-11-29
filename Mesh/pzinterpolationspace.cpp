@@ -152,6 +152,14 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	
     this->ComputeShape(qsi, data.x, data.jacobian, data.axes, data.detjac, data.jacinv, data.phi, data.dphix);
     
+#ifdef LOG4CXX
+    if(logger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "Needs soluton " << data.fNeedsSol;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	if (data.fNeedsSol){
 		if (data.phi.Rows()){//if shape functions are available
 			this->ComputeSolution(qsi, data.phi, data.dphix, data.axes, data.sol, data.dsol);
@@ -951,7 +959,7 @@ void TPZInterpolationSpace::RemoveInterface(int side) {
 	int size = list.NElements(),i=-1;
 	while(++i < size) if(list[i].Element()->Type() == EInterface) break;// procura aquele que e derivado de TPZInterfaceEl
 	if(!size || i == size){
-#ifdef LOG4CXX
+#ifdef LOG4CXX_keep
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
@@ -1322,9 +1330,8 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	int in;
 	
 	cormatsize = 0;
-	int c;
 	for(in=0;in<cornod; in++) {
-		c = connectlistcoarse[in];
+		int c = connectlistcoarse[in];
 		int blsize = coarsel.Mesh()->ConnectVec()[c].NDof(*(coarsel.Mesh()))/nvar;
 #ifdef DEBUG
         TPZConnect &con = coarsel.Mesh()->ConnectVec()[c];
@@ -1395,7 +1402,7 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	TPZManVector<REAL> int_point(dimension),
 	coarse_int_point(dimension);
 	TPZFMatrix<REAL> jacobian(dimension,dimension,jacobianstore,9),jacinv(dimension,dimension);
-	TPZFMatrix<REAL> axes(3,3,axesstore,9);
+	TPZFMatrix<REAL> axes(dimension,3,axesstore,9);
 	TPZManVector<REAL> x(3);
 	int_point.Fill(0.,0);
 	REAL jac_det = 1.;
@@ -1405,6 +1412,20 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	int numintpoints = intrule->NPoints();
 	REAL weight;
 	int lin,ljn,cjn;
+    
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+        std::stringstream sout;
+        coarsel.Print(sout);
+        int nc = coarsel.NConnects();
+        for (int ic=0; ic<nc ; ic++) {
+            coarsel.Connect(ic).Print(*(coarsel.Mesh()),sout);
+        }
+        sout << "Connect list coarse "  << connectlistcoarse << std::endl;
+        sout << "dependency order " << dependencyordercoarse << std::endl;
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	
 	for(int int_ind = 0; int_ind < numintpoints; ++int_ind) {
 		
@@ -1418,7 +1439,21 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 		cordphi.Zero();
 		coarsel.Shape(coarse_int_point,corphi,cordphi);
 		
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+            std::stringstream sout;
+            corphi.Print("Coarse shape functions before expandShapeFunctions",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		coarsel.ExpandShapeFunctions(connectlistcoarse,dependencyordercoarse,corblocksize,corphi,cordphi);
+#ifdef LOG4CXX
+        if (logger->isDebugEnabled() && coarsel.HasDependency()) {
+            std::stringstream sout;
+            corphi.Print("Coarse shape functions after expandShapeFunctions",sout);
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
 		
 		for(lin=0; lin<locmatsize; lin++) {
 			for(ljn=0; ljn<locmatsize; ljn++) {
@@ -1432,6 +1467,13 @@ void TPZInterpolationSpace::BuildTransferMatrix(TPZInterpolationSpace &coarsel, 
 	}
 	loclocmat.SolveDirect(loccormat,ELDLt);
 	
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        loccormat.Print("Element transfer matrix",sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	
 	for(in=0; in<locnod; in++) {
 		//    int cind = connectlistcoarse[in];

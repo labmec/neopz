@@ -65,6 +65,7 @@ TPZGeoElRefLess<TGeo>(DestMesh,cp,gl2lcNdMap,gl2lcElMap),
 fRefPattern ( cp.fRefPattern )
 {
 	int i;
+    this->fSubEl.Resize(cp.fSubEl.size(),0);
 	for (i=0;i<cp.fSubEl.NElements();i++)
 	{
 		if (cp.fSubEl[i] == -1)
@@ -78,7 +79,7 @@ fRefPattern ( cp.fRefPattern )
 			sout << "ERROR in - " << __PRETTY_FUNCTION__
 			<< " subelement " << i << " index = " << cp.fSubEl[i] << " is not in the map.";
 			LOGPZ_ERROR (loggerrefpattern,sout.str().c_str());
-			exit(-1);
+			DebugStop();
 		}
 		this->fSubEl[i] = gl2lcElMap[cp.fSubEl[i]];
 	}

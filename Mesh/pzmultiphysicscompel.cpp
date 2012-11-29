@@ -296,7 +296,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	for (int iref=0; iref<nref; iref++) {
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-        if(!msp) continue;
+        if (! msp) {
+            continue;
+        }
         TPZMaterial *mat = msp->Material();
 		nstate += mat->NStateVariables();
         numloadcases = mat->NumLoadCases();
@@ -348,7 +350,9 @@ void TPZMultiphysicsCompEl<TGeometry>::InitMaterialData(TPZVec<TPZMaterialData >
 	for (int iref = 0; iref<nref; iref++) 
 	{
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-        if(!msp) continue;
+        if (!msp) {
+            continue;
+        }
         msp->InitMaterialData(dataVec[iref]);
 	}
     
@@ -418,7 +422,9 @@ void TPZMultiphysicsCompEl<TGeometry>::CalcStiff(TPZElementMatrix &ek, TPZElemen
 		for (int iref=0; iref<fElementVec.size(); iref++)
 		{			
 			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-            if(!msp) continue;
+            if (!msp) {
+                continue;
+            }
 			trvec[iref].Apply(intpointtemp, intpoint);
 			
 			//msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 

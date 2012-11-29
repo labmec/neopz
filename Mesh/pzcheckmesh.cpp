@@ -11,7 +11,7 @@
 
 using namespace std;
 
-TPZCheckMesh::TPZCheckMesh(TPZCompMesh *mesh, ostream *out) {
+TPZCheckMesh::TPZCheckMesh(TPZCompMesh *mesh, std::iostream *out) {
 	fMesh = mesh;
 	fOut = out;
 	fNState = 1;
@@ -61,6 +61,13 @@ int TPZCheckMesh::VerifyConnect(int connect) {
 		TPZCompElSide large = smalll.LowerLevelElementList(1);
 		if(!large.Exists()) {
 			check = 0;
+            (*fOut) << "VerifyConnect of connect " << connect << std::endl;
+            (*fOut) << "deplist = " << deplist << " deplist[id] = " << deplist[id] << std::endl;
+            (*fOut) << "Connect index of connect which is restrained deplist[id] = " << deplist[id] << std::endl;
+            TPZConnect &c = fMesh->ConnectVec()[deplist[id]];
+            c.Print(*fMesh,(*fOut));
+            (*fOut) << "Element/side which contains deplist[id] side = " << smalll.Side() << "\n";
+            smalll.Element()->Print(*fOut);
 			(*fOut) << "VerifyConnect of " << connect << " inconsistent\n";
 			continue;
 		}

@@ -94,6 +94,13 @@ fSolution(0,1)
 
 TPZCompMesh::~TPZCompMesh() {
 	
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        Print(sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	// THIS NEEDS TO INCLUDE THE DELETION ROUTINES OF ALL ITEMS
 	this->CleanUp();
 	TPZGeoMesh * ref = this->Reference();
@@ -112,6 +119,9 @@ void TPZCompMesh::CleanUp() {
 		ref->ResetReference();
 		this->LoadReferences();
 	}
+#ifdef DEBUG
+    ComputeNodElCon();
+#endif
 	int i, nelem = this->NElements();
 	
 	//deleting interfaces
@@ -727,12 +737,12 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 	int nelem = NElements();
 	for(i=0; i<nelem; i++) {
 		if(!fElementVec[i]) continue;
-		TPZInterpolationSpace * locel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);
-		if(!locel) continue;
-		if(locel->Dimension() != dim) continue;
-		TPZGeoEl *locgel = locel->Reference();
-		TPZGeoEl *coarsegel = locgel;
-		if(!locgel) {
+		TPZInterpolationSpace * finecel = dynamic_cast<TPZInterpolationSpace *> (fElementVec[i]);
+		if(!finecel) continue;
+		if(finecel->Dimension() != dim) continue;
+		TPZGeoEl *finegel = finecel->Reference();
+		TPZGeoEl *coarsegel = finegel;
+		if(!finegel) {
 			cout << "TPZCompMesh::BuildTransferMatrix is not implemented for super elements\n";
 			continue;
 		}
@@ -742,7 +752,7 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 		}
 		if(!coarsegel) {
 			cout << "TPZCompMesh::BuildTransferMatrix corresponding coarse element not found\n";
-			locel->Print(cout);
+			finecel->Print(cout);
 			continue;
 		}
 		
@@ -755,8 +765,8 @@ void TPZCompMesh::BuildTransferMatrix(TPZCompMesh &coarsemesh, TPZTransfer<STATE
 			continue;
 		}
 		TPZTransform t(coarsel->Dimension());
-		t=locgel->BuildTransform2(locel->NConnects()-1,coarsegel,t);
-		locel->BuildTransferMatrix(*coarsel,t,transfer);
+		t=finegel->BuildTransform2(finegel->NSides()-1,coarsegel,t);
+		finecel->BuildTransferMatrix(*coarsel,t,transfer);
 	}
 }
 
@@ -1291,6 +1301,7 @@ void TPZCompMesh::AdjustBoundaryElements() {
 					// set the order to the largest order of all connecting elements
 					if(porder < maxorder) {
 #ifdef LOG4CXX
+                        if(logger->isDebugEnabled())
 						{
 							std::stringstream sout;
 							sout << "Refining element " << el << " to order " << maxorder;

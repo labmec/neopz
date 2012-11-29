@@ -44,6 +44,7 @@ TPZConnect::TPZConnect(const TPZConnect &copy) {
 	fNElConnected = copy.fNElConnected;
 	//	fOrder = copy.fOrder;
     fFlags = copy.fFlags;
+    fDependList = 0;
 	if(copy.fDependList) fDependList = new TPZDepend(*copy.fDependList);
 }
 

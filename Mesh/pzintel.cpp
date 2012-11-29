@@ -824,7 +824,19 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 	TPZGeoElSide largeside = largecompside.Reference();
 	TPZTransform t(thisgeoside.Dimension());
 	thisgeoside.SideTransform3(largeside,t);
-	TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side,SideOrder(side)*2);
+    int nsideconnects = NSideConnects(side);
+    int maxord=1;
+    for (int sidecon=0; sidecon<nsideconnects; sidecon++) {
+        TPZConnect *c = SideConnect(sidecon, side);
+        int sideord = c->Order();
+        maxord = maxord < sideord ? sideord : maxord;
+    }
+    int sideorder = SideOrder(side);
+    if(sideorder != maxord)
+    {
+        DebugStop();
+    }
+	TPZIntPoints *intrule = Reference()->CreateSideIntegrationRule(side,maxord*2);
 	if(!intrule) {
 		LOGPZ_ERROR(logger, "Exiting RestrainSide - cannot create side integration rule");
 		return;
@@ -852,6 +864,13 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
 			}
 		}
 	}
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled()) {
+        std::stringstream sout;
+        M->Print("MSS = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
 	TPZStepSolver<REAL> MSolve(M);
 	MSolve.SetDirect(ELU);
 	MSolve.Solve(MSL,MSL);

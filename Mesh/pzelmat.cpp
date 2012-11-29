@@ -44,21 +44,20 @@ TPZElementMatrix::TPZElementMatrix(const TPZElementMatrix &cp) :
 
 
 void TPZElementMatrix::Print(std::ostream &out){
-	//fMat.Print("Unconstrained matrix",out,EMathematicaInput);
-	int ncon = fConnect.NElements();
-	int ic;
-	for(ic=0; ic<ncon; ic++) {
-	//	out << "Connect index " << fConnect[ic] << endl;
-		this->fMesh->ConnectVec()[fConnect[ic]].Print(*fMesh,out);
-	}
-	//fConstrMat.Print("Constrained matrix",out);
-	ncon = fConstrConnect.NElements();
-	for(ic=0; ic<ncon; ic++) {
-	//	out << "Connect index " << fConstrConnect[ic] << endl;
-		this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
-	}
 	if(fType == EK)
 	{
+        int ncon = fConnect.NElements();
+        int ic;
+        for(ic=0; ic<ncon; ic++) {
+            //	out << "Connect index " << fConnect[ic] << endl;
+            this->fMesh->ConnectVec()[fConnect[ic]].Print(*fMesh,out);
+        }
+        //fConstrMat.Print("Constrained matrix",out);
+        ncon = fConstrConnect.NElements();
+        for(ic=0; ic<ncon; ic++) {
+            //	out << "Connect index " << fConstrConnect[ic] << endl;
+            this->fMesh->ConnectVec()[fConstrConnect[ic]].Print(*fMesh,out);
+        }
 		ComputeDestinationIndices();
 		bool hasdepend = HasDependency();
 		int size = fSourceIndex.NElements();
@@ -79,6 +78,34 @@ void TPZElementMatrix::Print(std::ostream &out){
 			}
 		}
 		std::stringstream sout;
+        sout << "EK = ";
+		//out << "Matrix size " << constrmatrix.Rows() << "\n";
+		//sout << "ConstrainedMatrix = ";
+		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);
+	}
+    else if(fType == EF)
+	{
+		ComputeDestinationIndices();
+		bool hasdepend = HasDependency();
+		int size = fSourceIndex.NElements();
+		//TPZFMatrix<REAL> constrmatrix(size,size,0.);
+		TPZFMatrix<STATE> constrmatrix(size,fMat.Cols(),0.);
+		int in,jn;
+		for(in=0; in<size; in++)
+		{
+			for (jn=0; jn<fMat.Cols(); jn++) {
+				if(hasdepend)
+				{
+					constrmatrix(in,jn) = fConstrMat(fSourceIndex[in],jn);
+				}
+				else {
+					constrmatrix(in,jn) = fMat(fSourceIndex[in],jn);
+				}
+				
+			}
+		}
+		std::stringstream sout;
+        sout << "EF = ";
 		//out << "Matrix size " << constrmatrix.Rows() << "\n";
 		//sout << "ConstrainedMatrix = ";
 		constrmatrix.Print(sout.str().c_str(), out, EMathematicaInput);

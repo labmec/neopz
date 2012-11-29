@@ -107,12 +107,19 @@ TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::~TPZIntelGen(){
+    
 	if(Reference()) {
 		if(Reference()->Reference()) {
 			RemoveSideRestraintsII(EDelete);
 		}
 		Reference()->ResetReference();
 	}
+    TPZStack<int > connectlist;
+    BuildConnectList(connectlist);
+    int nconnects = connectlist.size();
+    for (int ic=0; ic<nconnects ; ic++) {
+        fMesh->ConnectVec()[connectlist[ic]].DecrementElConnected();
+    }
 }
 
 template<class TSHAPE>
