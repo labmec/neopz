@@ -54,8 +54,8 @@ class TPZCompCloneMesh : public TPZCompMesh {
     int fId[3]; 	//Subelements connectivities ids
     int fp[2];		//subelements p-order refinement
     int fh[2];		//subelements h-order refinement
-    REAL fhError;	//??
-    REAL fError;  //??
+    REAL fhError;	// Error if h refinement is applied
+    REAL fError;  // Smallest error
 	  TPZRefPattern(int id1,int id2,int id3,int p1,int p2,int h1,int h2,REAL herror,REAL error) {
 		  fId[0] = id1; fId[1] = id2; fId[2] = id3;
 		  fp[0] = p1; fp[1] = p2;
@@ -200,7 +200,7 @@ public:
   void LoadSolution(TPZFMatrix<REAL> &sol);
 
 
-  void Print(std::ostream &out);
+  void Print(std::ostream &out) const;
 };
 
 #endif

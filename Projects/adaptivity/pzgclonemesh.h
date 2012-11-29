@@ -16,6 +16,7 @@ contained within the TPZGeoMesh.
 #include "pzstack.h"
 
 #include <map>
+#include <set>
 
 class TPZGeoNode;
 class TPZGeoEl;
@@ -32,19 +33,21 @@ protected:
 	/** Maps node id from cloned mesh to the mesh*/
     std::map<int,int> fMapNodes;
 
-	/** Maps element pointers from the original (reference) mesh to the cloned mesh
+	/** 
+     * Maps element pointers from the original (reference) mesh to the cloned mesh
      */
     std::map<TPZGeoEl *,TPZGeoEl *> fMapElements;
 
-	/** Maps element id from cloned mesh to mesh */
+	/** 
+     * A vector of the size of the elements of the cloned mesh
+     * Contains for each element in the cloned mesh a corresponding element in the reference mesh
+     */
 	TPZStack<TPZGeoEl *> fReferenceElement;
-
-    /** Elements of the original (reference) mesh which defined the cloned mesh
-     * fPatchReferenceElements is initialized in SetElements */
-	TPZStack<TPZGeoEl *> fPatchReferenceElements;
     
-    /** Elements of the cloned mesh corresponding to the patch defined in the original mesh */
-	TPZStack<TPZGeoEl *> fPatchElements;
+    /** 
+     * Elements of the cloned mesh corresponding defining the patch
+     */
+    std::set<TPZGeoEl *> fPatchElements;
 
 	/**
 	 * Pointer to adapt mesh
@@ -54,20 +57,17 @@ protected:
 
 	/**
 	 * Geometric Element int the cloned mesh corresponding to the root element in the original mesh
+     * The root element is the element which generates the patch
+     * The root elements form a partition of the original mesh
 	 */
 	TPZGeoEl* fGeoRoot;    
 
     /**
-     * @brief returns true if the element belongs to the patch as defined in the original mesh (gel belongs to the original mesh)
-     */
-	int IsPatchReferenceElement(TPZGeoEl *gel);
-    
-    /**
      * @brief returns true if the element belongs to the patch elements in the cloned mesh */
-	int IsPatchElement(TPZGeoEl *refpatch);
+//	int IsPatchElement(TPZGeoEl *refpatch);
     
     /**
-     * Given an element in the original mesh add all neighbours which correspond to boundary conditions to the clone
+     * Given an element in the original mesh add all neighbours which are boundary condition elements
      */
 	void AddBoundaryConditionElements(TPZGeoEl *eltoadd);
 
@@ -80,8 +80,8 @@ public:
 
 	/**
 	 * Defines the mesh elements
-	 * @param patch elements to be cloned
-	 * @param ref element reference
+	 * @param patch elements to be cloned - these are pointers in the original mesh
+	 * @param ref element reference - element which generated the patch
 	 */
 	void SetElements(TPZStack<TPZGeoEl *> &patch, TPZGeoEl *ref);
 
@@ -115,7 +115,10 @@ public:
 	 */
 	TPZGeoEl * GetMeshRootElement(){return fGeoRoot;}
 
-	int IsPatchSon(TPZGeoEl *gel);
+    /**
+     * returns true if the element is a sibling of the set of patch elements
+     */
+	int IsPatchSon(TPZGeoEl *gel) const;
 
 	/**
 	 * Test and validation routines
@@ -124,27 +127,32 @@ public:
 
 protected:
 	/**
-	 * Creates a clone of a given node pointer
-	 * return the id of the cloned node
+	 * Creates a clone of a given node defined by its index
+	 * return the index of the cloned node
+     * this method update fMapNodes
 	 * @param nodindex node to be cloned
 	 **/
 	int CloneNode(int nodindex);
 
 	/** 
 	 * Creates an element clone and insert it into the mesh
-	 * return the value of the cloned element
+     * updates fMapElements
+     * updates fReferenceElements
+	 * return the index of the cloned element
 	 * @param orggel geometric element to be cloned
 	 **/
 	int CloneElement(TPZGeoEl *orggel);
 
 	/**
-	 * Verifies if the specified node was created
-	 * @param nodeindex Node index to be verified
+	 * Verifies if the specified nodeindex was cloned
+     * this method uses the datastructure fMapNodes
+	 * @param nodeindex Node index in the original mesh
 	 */
 	int HasNode(int nodeindex);
 	/**
-	 * Verifies if a given element was created
-	 * @param el element to be verified
+	 * Verifies if a given element was cloned
+     * this method uses the datastructure fMapElements
+	 * @param el element pointer in the original mesh
 	 */
 	int HasElement(TPZGeoEl *el);
 

@@ -55,8 +55,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
     int nel = patch.NElements();
     //  fReferenceElement.Resize(nel);
     for (i=0; i<nel; i++){
-        if(patch[i] && !IsPatchReferenceElement(patch[i])) {
-            fPatchReferenceElements.Push(patch[i]);
+        if(patch[i]) {
             TPZGeoEl *gel = patch[i];
             TPZGeoEl *father = gel->Father();
             while(father) {
@@ -68,7 +67,7 @@ void TPZGeoCloneMesh::SetElements(TPZStack <TPZGeoEl *> &patch, TPZGeoEl *ref){
             CloneElement(gel);
             // verificar se neighbour.Element ja esta no map --->>>> já é feito no CloneElement
             TPZGeoEl *localpatch = fMapElements[patch[i]];
-            fPatchElements.Push(localpatch);
+            fPatchElements.insert(localpatch);
             AddBoundaryConditionElements(patch[i]);
         }
     }
@@ -83,9 +82,11 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
     for(is=0; is<nsides; is++) {
         TPZGeoElSide elside(eltoadd,is);
         TPZGeoElSide neighbour = elside.Neighbour();
-        if (!neighbour.Element()) continue;
+#ifdef DEBUG
+        if (!neighbour.Element()) DebugStop();
+#endif
         while(neighbour != elside) {
-            if(neighbour.Element() && neighbour.Element()->MaterialId() < 0 &&
+            if(neighbour.Element()->Dimension() < eltoadd->Dimension() &&
                neighbour.Side() == neighbour.Element()->NSides() - 1 &&
                neighbour.Element()->Reference()) {
                 TPZGeoEl *gel = neighbour.Element();
@@ -93,7 +94,6 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
                     neighbour = neighbour.Neighbour();
                     continue;
                 }
-                fPatchReferenceElements.Push(gel);
                 TPZGeoEl *father = gel->Father();
                 while(father) {
                     gel = father;
@@ -102,9 +102,14 @@ void TPZGeoCloneMesh::AddBoundaryConditionElements(TPZGeoEl *eltoadd){
                 CloneElement(gel);
                 // verificar se neighbour.Element ja esta no map
                 TPZGeoEl *localpatch = fMapElements[neighbour.Element()];
-                fPatchElements.Push(localpatch);
+                fPatchElements.insert(localpatch);
             }
             neighbour = neighbour.Neighbour();
+#ifdef DEBUG
+            if (!neighbour.Exists()) {
+                DebugStop();
+            }
+#endif
         }
     }
 }
@@ -151,7 +156,10 @@ int  TPZGeoCloneMesh::CloneElement(TPZGeoEl *orgel){
         el->SetSideDefined(i);
         TPZGeoElSide neig = orgel->Neighbour(i);
         if(!neig.Element()) continue;
+        // insert all neighbours which have been cloned as neighbours
+        // THIS IS OVERKILL it would be suficient to insert a single neighbour
         while(neig.Element() != orgel) {
+            // verify if neig.Element has been cloned
             if (HasElement((neig.Element()))){
                 TPZGeoElSide sid(el,i);
                 //          sid.SetConnectivity(sid);
@@ -189,13 +197,7 @@ int TPZGeoCloneMesh::HasElement(TPZGeoEl *el){
     return (fMapElements.find(el) != fMapElements.end());
 }
 
-int TPZGeoCloneMesh::IsPatchReferenceElement(TPZGeoEl *refpatch){
-    int iel, nel = fPatchReferenceElements.NElements();
-    for (iel = 0; iel < nel; iel++) {
-        if (fPatchReferenceElements[iel] == refpatch) return 1;
-    }
-    return 0;
-}
+/*
 int TPZGeoCloneMesh::IsPatchElement(TPZGeoEl *gel){
     int iel, nel = fPatchElements.NElements();
     for (iel = 0; iel < nel; iel++) {
@@ -203,11 +205,13 @@ int TPZGeoCloneMesh::IsPatchElement(TPZGeoEl *gel){
     }
     return 0;
 }
+*/
 
-int TPZGeoCloneMesh:: IsPatchSon(TPZGeoEl *gel){
+
+int TPZGeoCloneMesh:: IsPatchSon(TPZGeoEl *gel) const {
     if (!gel) return 0;
     while(gel) {
-        if (IsPatchElement(gel)) return 1;
+        if (fPatchElements.find(gel) != fPatchElements.end()) return 1;
         gel = gel->Father();
     }
     return 0;

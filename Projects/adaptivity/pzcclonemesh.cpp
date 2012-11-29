@@ -76,22 +76,24 @@ void TPZCompCloneMesh::AutoBuild() {
     
     for(i=0; i<nelem; i++) {
         TPZGeoEl *gel = elvec[i];
-        TPZGeoEl *clgel = gclm->ReferenceElement(i);
-        if (clgel) {
-            TPZCompEl *cel = clgel->Reference();
+        if(!gel){
+            cout << "TPZCompCloneMesh::AutoBuild: null geometric element detected" << endl;
+            DebugStop();
+        }
+        TPZGeoEl *reference_gel = gclm->ReferenceElement(i);
+        if (reference_gel) {
+            TPZCompEl *cel = reference_gel->Reference();
             if (cel){
-                if(!gel){
-                    cout << "TPZCompCloneMesh::AutoBuild: null geometric element detected" << endl;
-                    continue;
-                }
                 if(gclm->IsPatchSon(gel)) {
                     
-                    if (gDebug){
-                        cout << "TPZCompCloneMesh::AutoBuild : Creating computational element \n Geometric Reference Element:\n"
-                        << endl;
+#ifdef LOG4CXX
+                    {
+                        std::stringstream sout;
+                        sout << "TPZCompCloneMesh::AutoBuild : Creating computational element for geometric element:\n";
                         gel->Print();
+                        LOGPZ_DEBUG(logger, sout.str())
                     }
-                    
+#endif      
                     TPZCompEl *clcel = this->CreateCompEl(gel,index);
                     TPZInterpolatedElement *cintel = dynamic_cast<TPZInterpolatedElement *>(cel);
                     if (!cintel) {
@@ -133,7 +135,14 @@ void TPZCompCloneMesh::AutoBuild() {
                         }
                     }
                 }
+                else {
+                    DebugStop();
+                }
             }
+        }
+        else 
+        {
+            DebugStop();
         }
     }
     //CleanUp
@@ -153,7 +162,7 @@ void TPZCompCloneMesh::AutoBuild() {
         for(i=0; i<nelem; i++) {
             // gel is in the cloned mesh
             TPZGeoEl *cloned_gel = elvec[i];
-            // clgel is the original element
+            // reference_gel is the original element
             TPZGeoEl *orig_gel = gclm->ReferenceElement(i);
             if (orig_gel) {
                 TPZCompEl *orig_cel = orig_gel->Reference();
@@ -1048,12 +1057,12 @@ void TPZCompCloneMesh::ApplyRefPattern(REAL minerror, TPZVec<REAL> &ervec, TPZCo
     //  int test = gclmesh->NReference();
     
     for (i=0;i<NElements();i++){
-        /*     TPZGeoEl *clgel =  gclmesh->ReferenceElement(i); */
-        /*     if (!clgel){ */
+        /*     TPZGeoEl *reference_gel =  gclmesh->ReferenceElement(i); */
+        /*     if (!reference_gel){ */
         /*       cout << "TPZCompCloneMesh::ApplyRefPattern ERROR!\nFine mesh is loaded, pattern analysis needs coarse mesh!"; */
         /*       return; */
         /*     } */
-        /*     TPZCompEl *orgel = clgel->Reference(); */
+        /*     TPZCompEl *orgel = reference_gel->Reference(); */
         TPZCompEl *cel = ElementVec()[i];
         TPZGeoEl *gel = cel->Reference();
         
@@ -1486,11 +1495,11 @@ void TPZCompCloneMesh::Sort(TPZVec<REAL> &vec, TPZVec<int> &perm) {
 }
 
 
-void TPZCompCloneMesh::Print (ostream & out) {
+void TPZCompCloneMesh::Print (ostream & out) const {
     
     out <<  "\n\t\tCOMPUTABLE CLONE GRID INFORMATIONS:\n\n";
     out << "\tREFERENCE MESH:\t" << fCloneReference->Name() << endl;
-    ComputeNodElCon();
+    //ComputeNodElCon();
     out << "\n\t\tCOMPUTABLE GRID INFORMATIONS:\n\n";
     out << "TITLE-> " << fName << "\n\n";
     
