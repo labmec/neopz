@@ -310,9 +310,12 @@ protected:
 	 */
     virtual void SetState_Internal(const TPZPlasticState<REAL> &state);
 	
+public:
     /** @brief Retrieves the plastic state variables - makes no interface sign checks */	
     virtual const TPZPlasticState<REAL> GetState_Internal()const;
 	
+protected:
+
     /**
 	 * @brief Imposes the specified strain tensor and performs plastic integration when necessary.
 	 * This function creates a new plastic integration history epserimenting the proposed
@@ -473,6 +476,21 @@ protected:
      * @param N [in] Plastic state variables at time N
 	 * @param Np1 [in/out] Plastic state variables at time N+1
      * @param delGamma [in/out] plastic multipliers
+     */
+    void InitialGuess(
+                      const TPZPlasticState<REAL> &N,
+                      TPZPlasticState<REAL> &Np1,
+                      TPZVec<REAL> &delGamma,
+                      TPZVec<int> &validEqs
+                      );
+    /**
+     * @brief Proposes an update to the plastic variables and estimates the relative error
+	 * comitted in this update. Neither internal variable are used nor changed.
+	 * In the Np1 variables, EpsT is imposed [in] and the Alpha and EpsP are evaluated.
+	 * It returns 1 if suceeded of 0 if tolerance not achieved.
+     * @param N [in] Plastic state variables at time N
+	 * @param Np1 [in/out] Plastic state variables at time N+1
+     * @param delGamma [in/out] plastic multipliers
 	 * @param normEpsPErr [out] estimated norm of the relative error deltaEpsP/deltaEpsTotal
      * @param lambda [out] Line search multiplier
 	 * @param validEqs [out] Valid set of plastic flow eqs
@@ -497,6 +515,7 @@ protected:
 						 const TPZPlasticState<REAL> &N,
 						 TPZPlasticState<REAL> &Np1,
 						 const REAL &TolEpsPErr);
+	
 	
 	/**
 	 * @brief Extracts the tangent matrix and residual vector from the FAD variables 

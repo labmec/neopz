@@ -31,14 +31,12 @@ using namespace std;
 #include "pzlog.h"
 
 #ifdef LOG4CXX
-static LoggerPtr plasticIntegrLogger(Logger::getLogger("pz.plasticity.plasticIntegr.main"));
+static LoggerPtr pointloadconfig(Logger::getLogger("plasticity.loadconfig"));
+static LoggerPtr plasticIntegrLogger(Logger::getLogger("plasticity.plasticIntegr"));
 #endif
 
-
-#define LOG4CXX_PLASTICITY
-
-#ifdef LOG4CXX_PLASTICITY
-static LoggerPtr logger(Logger::getLogger("PLASTIC_STEP.main"));
+#ifdef LOG4CXX
+static LoggerPtr logger(Logger::getLogger("pz.PLASTIC_STEP.main"));
 static LoggerPtr loggerx(Logger::getLogger("pz.PLASTIC_STEP.main"));
 static LoggerPtr loggerPlasticResidual(Logger::getLogger("PLASTIC_RESIDUAL"));
 #endif
@@ -312,8 +310,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ProcessStrainNoSubIncrement(const TPZTens
                    TPZManVector<int, YC_t::NYield>(YC_t::NYield,0)/*validEqs*/,
                    0 /*forceYield*/);
     
-    TPZPlasticState<REAL> stateAtYield(fN),
-    Np1(fN); // Np1 state with fN guesses
+    TPZPlasticState<REAL> stateAtYield(fN), Np1(fN); // Np1 state with fN guesses
     Np1.fEpsT = epsTotal;
     
     bool elastic = true;
@@ -1040,6 +1037,25 @@ REAL TPZPlasticStep<YC_t, TF_t, ER_t>::FindPointAtYield(
     return minMultipl;
 }
 
+/**
+ * @brief Proposes an update to the plastic variables and estimates the relative error
+ * comitted in this update. Neither internal variable are used nor changed.
+ * In the Np1 variables, EpsT is imposed [in] and the Alpha and EpsP are evaluated.
+ * It returns 1 if suceeded of 0 if tolerance not achieved.
+ * @param N [in] Plastic state variables at time N
+ * @param Np1 [in/out] Plastic state variables at time N+1
+ * @param delGamma [in/out] plastic multipliers
+ */
+template <class YC_t, class TF_t, class ER_t>
+void  TPZPlasticStep<YC_t, TF_t, ER_t>::InitialGuess(
+                                                     const TPZPlasticState<REAL> &N,
+                                                     TPZPlasticState<REAL> &Np1,
+                                                     TPZVec<REAL> &delGamma,
+                                                     TPZVec<int> &valideqs
+                  )
+{
+    
+}
 
 template <class YC_t, class TF_t, class ER_t>
 int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
@@ -1056,16 +1072,33 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     int i;
     const REAL Tol = fResTol;
     
-#ifdef LOG4CXX_PLASTICITY
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "alpha = " << N.fAlpha << std::endl;
+        TPZFNMatrix<6,REAL> Ep(N.fEpsP),EpsT(Np1.fEpsT);
+        TPZTensor<REAL> sigmaT, deformElast;
+        Ep.Print("Ep = ",sout,EMathematicaInput);
+        EpsT.Print("Etotal = ",sout,EMathematicaInput);
+        deformElast = Np1.fEpsT;
+        deformElast.Add(N.fEpsP, -1.);
+        fER.Compute(deformElast,sigmaT);
+        TPZFNMatrix<6,REAL> sigma(sigmaT);
+        sigma.Print("sigmaTrial = ",sout,EMathematicaInput);
+        LOGPZ_DEBUG(pointloadconfig,sout.str())
+    }
+#endif
+    InitialGuess(N, Np1, delGamma,validEqs);
+#ifdef LOG4CXX
     {
         std::stringstream sout;//1, sout2;
         sout << ">>> PlasticLoop ***";
         sout << "\nNp1 << \n" << Np1
         << "\ndelGamma << " << delGamma
-        << "\n labmbda << " << lambda
-        << "\nNumber of plasticity variables: " << nVars;
-        LOGPZ_INFO(logger,sout.str().c_str());
-        LOGPZ_DEBUG(logger,sout.str().c_str());
+        << "\n lambda << " << lambda
+        << "\nValid eqs: " << validEqs;
+        //LOGPZ_INFO(logger,sout.str().c_str());
+        LOGPZ_DEBUG(logger,sout.str());
     }
 #endif
     
@@ -1073,16 +1106,21 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     
     TPZPlasticState<TFAD>    Np1_FAD;
     TPZTensor<TFAD>          sigmaNp1_FAD;
-    TPZManVector<TFAD,nVars> epsRes_FAD(nVars),
-    delGamma_FAD(YC_t::NYield);
+    TPZManVector<TFAD,nVars> epsRes_FAD(nVars), delGamma_FAD(YC_t::NYield);
     TFAD                     phiRes_FAD;
-    TPZFNMatrix<nVars>       ResVal(nVars,1,0.), // ResVal to hold the residual vector
-    Sol(nVars,1,0.);    // Sol will contain the values of the unknown values
+    // ResVal to hold the residual vector 
+    // Sol will contain the values of the unknown values
+    TPZFNMatrix<nVars>       ResVal(nVars,1,0.), Sol(nVars,1,0.);    
     TPZFNMatrix<nVars*nVars> tangent(nVars,nVars,0.); // Jacobian matrix
     REAL                     resnorm = 0.;
     
     
     int countReset = 0;
+    for (int i=0; i<validEqs.size(); i++) {
+        if (validEqs[i] != 0) {
+            countReset=1;
+        }
+    }
     int countNewton = 0;
     
     
@@ -1095,8 +1133,26 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
         fYC.SetYieldStatusMode(sigmaGuess, AGuess);
         
         InitializePlasticFAD(Np1, delGamma, Np1_FAD, delGamma_FAD);
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "Before plastic residual\n";
+            sout << "Np1_FAD\n" << Np1_FAD << std::endl;
+            sout << "delGamma_FAD " << delGamma_FAD << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         
         PlasticResidual<REAL, TFAD>(N, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
+        
+#ifdef LOG4CXX
+        {
+            std::stringstream sout;
+            sout << "After Plastic residual\n" << epsRes_FAD << std::endl;
+            sout << "delGamma_FAD " << delGamma_FAD << std::endl;
+            LOGPZ_DEBUG(logger, sout.str())
+        }
+#endif
         
         if(countReset == 0)InitializeValidEqs(epsRes_FAD, validEqs);
         
@@ -1147,6 +1203,14 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
             // recompute the residual
             PlasticResidual<REAL, TFAD>(N, Np1_FAD, delGamma_FAD, epsRes_FAD, normEpsPErr);
             
+#ifdef LOG4CXX
+            {
+                std::stringstream sout;
+                sout << "Plastic residual " << epsRes_FAD << std::endl;
+                sout << "delGamma_FAD " << delGamma_FAD << std::endl;
+                LOGPZ_DEBUG(logger, sout.str())
+            }
+#endif
             // extract the values of the residual vector
             ExtractTangent(epsRes_FAD, ResVal, resnorm, tangent, validEqs, 1, 1);
             
@@ -1232,7 +1296,17 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     }
     
 #endif
-    
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "alphanp1 = " << Np1.fAlpha << std::endl;
+        TPZFNMatrix<6,REAL> Ep(Np1.fEpsP);
+        Ep.Print("Epnp1 = ",sout,EMathematicaInput);
+        sout << "delGamma = {" << delGamma << "};\n";
+        LOGPZ_DEBUG(pointloadconfig,sout.str())
+    }
+#endif
+
     return resnorm<=Tol;
 }
 
@@ -1419,7 +1493,7 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
             case (true):
                 // the lines below unfortunately led to instabilities in the integration process
                 //validEqs[i] = 1; // if the equation indicates plastification then it is necessary to involve it in the process
-                //count++;
+                count++;
                 break;
             case (false):
                 // if the equation does not indicate plastification but is
@@ -1536,8 +1610,11 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticResidual (
                                                         REAL &normEpsPErr,
                                                         int silent)const
 {
-    //const REAL a = 0.5;
-    const REAL a = 0;
+    
+    
+    // a= 0 ->implicito
+    // a= 0.5 -> ponto medio - segunda ordem
+    const REAL a = 0.;
     
     // This function will be either called with template parameter T being REAL or FAD type
     // nyield indicates the number of yield functions
@@ -1874,6 +1951,7 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::InitializePlasticFAD(
     // the first 6 independent variables are the values of the plastic strains
     for(i = 0; i < 6; i++) state_T.fEpsP.fData[i].diff(i,nVars);
     // the damage variable is the seventh variable
+
     state_T.fAlpha.diff(6,nVars);
     // the remaining variables are the yield function multipliers
     for(i=7; i<nVarsPlastic; i++) delGamma_T[i-7].diff(i,nVars);
@@ -2052,6 +2130,15 @@ void TPZPlasticStep<YC_t, TF_t, ER_t>::ApplyLoad_Internal(const TPZTensor<REAL> 
         LOGPZ_INFO(plasticIntegrLogger,sout.str().c_str());
     }
 #endif
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << ">>> ApplyLoad_Internal ***"
+        << " Imposed sigma << " << sigma;
+        LOGPZ_INFO(pointloadconfig,sout.str().c_str());
+    }
+#endif
+
 #ifdef LOG4CXX_PLASTICITY
     {
         std::stringstream sout;
@@ -2182,6 +2269,54 @@ PlasticResidual<REAL, TFad<14,REAL> >(TPZPlasticState<REAL> const &,
 //                                      TPZVec<TFad<14,REAL> > &,
 //                                      REAL &, int)const;
 
+/**
+ * @brief Proposes an update to the plastic variables and estimates the relative error
+ * comitted in this update. Neither internal variable are used nor changed.
+ * In the Np1 variables, EpsT is imposed [in] and the Alpha and EpsP are evaluated.
+ * It returns 1 if suceeded of 0 if tolerance not achieved.
+ * @param N [in] Plastic state variables at time N
+ * @param Np1 [in/out] Plastic state variables at time N+1
+ * @param delGamma [in/out] plastic multipliers
+ */
+template <>
+void  TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>::InitialGuess(
+                                                     const TPZPlasticState<REAL> &N,
+                                                     TPZPlasticState<REAL> &Np1,
+                                                     TPZVec<REAL> &delGamma,
+                                                     TPZVec<int> &validEqs
+                                                     )
+{
+    TPZTensor<REAL> EpN = N.fEpsP;
+    TPZTensor<REAL> ETotal = Np1.fEpsT;
+    TPZTensor<REAL> ETrial = ETotal;
+    TPZTensor<REAL> sigmaTrial;
+    ETrial.Add(EpN, -1.);
+    fER.Compute(ETrial, sigmaTrial);
+    TPZTensor<REAL> sigproj;
+    fYC.InitialGuess(fER, N.fAlpha, sigmaTrial, Np1.fAlpha, delGamma, sigproj);
+    TPZTensor<REAL> sigPlast(sigmaTrial);
+    sigPlast.Add(sigproj, -1.);
+    fER.ComputeDeformation(sigPlast, Np1.fEpsP);
+    Np1.fEpsP.Add(N.fEpsP, 1.);
+    for (int i=0; i<2; i++) {
+        if (delGamma[i] > 0.) {
+            validEqs[i]=1;
+        }
+    }
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        sout << "epsp next " << Np1.fAlpha << std::endl;
+        sout << "delGamma " << delGamma << std::endl;
+        TPZManVector<REAL,2> Residual(2);
+        fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
+        sout << "residual before projection" << Residual << std::endl;
+        fYC.Compute(sigproj, Np1.fAlpha, Residual, 1);
+        sout << "residual after projection" << Residual << std::endl;
+        LOGPZ_DEBUG(loggerSM, sout.str())
+    }
+#endif
+}
 
 
 template class TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZElasticResponse>;

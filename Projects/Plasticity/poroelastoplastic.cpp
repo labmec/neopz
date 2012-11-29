@@ -814,13 +814,17 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	int ncirc, ioRatio, pOrder, valType;
 	
 	cout << "\nMesh data: ncirc?(int) ";
-	cin >> ncirc;
+	//cin >> ncirc;
+    ncirc = 5;
 	
+    
 	cout << "Mesh data: ioratio?(sugg. 10.) ";
-	cin >> ioRatio;
-	
+	//cin >> ioRatio;
+	ioRatio = 10.;
+    
 	cout << "Mesh data: pOrder? ";
-	cin >> pOrder;
+	//cin >> pOrder;
+    pOrder = 2;
 	
 	fileName << "_ncirc" << ncirc << "_IO" << ioRatio << "_p" << pOrder;
 	
@@ -832,7 +836,8 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	cout << "\n4) L=5227 LDA=2135 alpha=0.5 GammaSea=9.5 MudWeight=9.5 kh=0.80 kH=1.30 OCR=1.10 Biot=1.0";
 	cout << "\n";
 	
-	cin >> valType;
+	//cin >> valType;
+    valType = 3;
     
 	switch(valType)
 	{
@@ -929,7 +934,8 @@ void WellboreLoadTest(stringstream & fileName, T & mat,
 	beginOCStress *= s * 0.01 *Pa;
 	
 	OCStress = FarFieldStress;
-	OCStress *= OCR;
+    // totototototototo
+	OCStress *= (1./OCR);
 	
 	loadStress.Identity();
 	
@@ -1325,12 +1331,31 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
     
 }
 
+void RotateTensor(TPZTensor<REAL> &tensor, REAL angle)
+{
+    TPZFNMatrix<9,REAL> tensorM(tensor), result(3,3,0.), inter(3,3,0.);
+    TPZFNMatrix<9,REAL> rotate(3,3,0.), rottrans(3,3,0.);
+    rotate.Identity();
+    REAL ca = cos(angle);
+    REAL sa = sin(angle);
+    rotate(0,0) = ca;
+    rotate(0,1) = sa;
+    rotate(1,0) = -sa;
+    rotate(1,1) = ca;
+    rotate.Transpose(&rottrans);
+    result = rotate*tensorM*rottrans;
+    TPZTensor<REAL> a(result);
+    tensor = a;
+
+}
+
 int main()
 {
     
     InitializePZLOG();
+    InitializePZLOG();
 	
-    TPZGeoMesh * mesh = GeoMeshClass::WellBore2d();
+//    TPZGeoMesh * mesh = GeoMeshClass::WellBore2d();
     
     /* QuarterWellboreGeom2d(int ncirc,
      REAL ioratio,
@@ -1342,10 +1367,10 @@ int main()
      
      */
     
-    wellboreanalyis();
+//    wellboreanalyis();
     //calcSDBar();
     
-    return 0;
+//    return 0;
     
 	int testNumber, matNumber;
 	TPZPlasticBase *pMat;
@@ -1363,7 +1388,7 @@ int main()
 	cout << "\n2) Graphical representation of Yield surface";
     
 	//cin >> testNumber;
-    
+    testNumber = 0;
 	
 	cout << "\nMaterial Type:";
 	cout << "\n1)Sandler Dimaggio: McCormic Ranch Sand";
@@ -1376,7 +1401,7 @@ int main()
 	cout << "\n";
     
     //    cin >> matNumber;
-    matNumber = 3;
+    matNumber = 1;
 	
 	switch(matNumber)
 	{
@@ -1440,8 +1465,47 @@ int main()
 	
 	cout << "\nPlastic Integration Tolerance:(sugg. 0.0001) ";
 	
-    //	cin >> plasticTol;
-    plasticTol = 0.0001;
+   /* 
+    {
+        TPZTensor<REAL> strain,stress;
+        strain.XX() = 0.;
+        pSD->SetIntegrTol(1.);
+        for(int i=0; i<0; i++)
+        {
+            strain.XX() -= 0.065/50;
+            pSD->ApplyStrainComputeSigma(strain, stress);
+            std::cout << stress << endl;
+        }
+        for(int i=0; i<0; i++)
+        {
+            strain.XX() += 0.065/50;
+            pSD->ApplyStrainComputeSigma(strain, stress);
+            std::cout << "strain = " << strain.XX() << endl;
+            std::cout << "stress = " << stress << endl;
+            TPZPlasticState<REAL> Np = pSD->GetState_Internal();
+            std::cout << "total strain " << Np.fEpsT << endl;
+            std::cout << "plastic deformation " << Np.fEpsP << endl;
+            
+        }
+        strain.XX() = 0.065/50;
+        REAL angle= M_PI/6.;
+        RotateTensor(strain, angle);
+        pSD->ApplyStrainComputeSigma(strain, stress);
+        RotateTensor(strain, -angle);
+        RotateTensor(stress, -angle);
+        std::cout << "strain = " << strain << endl;
+        std::cout << "stress = " << stress << endl;
+        TPZPlasticState<REAL> Np = pSD->GetState_Internal();
+        std::cout << "total strain " << Np.fEpsT << endl;
+        TPZTensor<REAL> epsp = Np.fEpsP;
+        RotateTensor(epsp, -angle);
+        std::cout << "plastic deformation " << epsp << endl;
+        std::cout << "plastic damage " << Np.fAlpha << endl;
+        
+    }
+    */ 
+//	cin >> plasticTol;
+    plasticTol = 0.1;
     
 	fileName << "_pTol" << plasticTol;
     
@@ -1468,7 +1532,12 @@ int main()
             break;
         case 2:
         {
-            
+            copyStr << fileName.str();
+            fileName << "Yield" << copyStr.str();
+            if (pSD) {
+                VisualizeSandlerDimaggio(fileName,pSD);
+            }
+   
             
         }
         case 3://FIGURA 11-a
@@ -1604,8 +1673,8 @@ void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD);
 
 void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *pSD)
 {
-    TPZVec<REAL> coords(0);
-    TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(coords, 0.001,1);
+    TPZManVector<REAL,3> center(3,0.);
+    TPZGeoMesh *gmesh = TPZGenSpecialGrid::GeneratePolygonalSphereFromOctahedron(center,1., 0.01);
     TPZCompMesh *cgrid = new TPZCompMesh(gmesh);
     TPZManVector<STATE> force(3,0.);
     
@@ -1627,20 +1696,71 @@ void VisualizeSandlerDimaggio(std::stringstream &fileName, TPZSandlerDimaggio *p
     vtkfilename << ".vtk";
     std::ofstream meshout(vtkfilename.str().c_str());
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,meshout);
-    BuildPlasticSurface(cgrid,pSD);
     TPZStack<std::string> scalnames,vecnames;
     vecnames.Push("state");
     scalnames.Push("Error");
     
+    ofstream matfile("math.nb");
+                
+    
     an.DefineGraphMesh(2, scalnames, vecnames, "plot.vtk");
-    an.PostProcess(0);
     TPZPlasticState<REAL> state = pSD->GetState();
-    for (REAL alfa = 1.e-5; alfa<1.e-4; alfa+=1.e-5) {
+    int count = 0;
+    for (REAL alfa = 0; alfa<1.e-4; alfa+=1.e-5) {
         state.fAlpha = alfa;
         pSD->SetState(state);
         BuildPlasticSurface(cgrid, pSD);
+        {
+            int npoints = cgrid->Solution().Rows()/3;
+            TPZFMatrix<REAL> surface(cgrid->Solution().Rows()/3,2,0.);
+            TPZFMatrix<REAL> meshsol(cgrid->Solution());
+            
+            int nel = cgrid->NElements();
+            for (int iel=0; iel<nel; iel++) {
+                TPZCompEl *cel = cgrid->ElementVec()[iel];
+                if (!cel) {
+                    continue;
+                }
+                TPZGeoEl *gel = cel->Reference();
+                int ncorner = gel->NCornerNodes();
+                for (int ic=0; ic<ncorner; ic++) {
+                    TPZConnect &c = cel->Connect(ic);
+                    TPZManVector<REAL,3> xco(3,0.);
+                    gel->NodePtr(ic)->GetCoordinates(xco);
+                    int seqnum = c.SequenceNumber();
+                    int pos = cgrid->Block().Position(seqnum);
+                    for (int idf=0; idf<3; idf++) {
+                        meshsol(pos+idf,0) = cgrid->Solution()(pos+idf,0)+xco[idf];
+                    }
+                }
+            }
+            
+            for (int ip=0; ip<npoints; ip++) {
+                TPZTensor<REAL> tens;
+                tens.XX() = meshsol(3*ip,0);
+                tens.YY() = meshsol(3*ip+1,0);
+                tens.ZZ() = meshsol(3*ip+2,0);
+                REAL I1 = tens.I1();
+                REAL sqrJ2 = sqrt(tens.J2());
+                surface(ip,0) = -I1;
+                surface(ip,1) = sqrJ2;
+            }
+            std::stringstream varname;
+            varname << "Surface" << count << " = ";
+            surface.Print(varname.str().c_str(),matfile,EMathematicaInput);
+            matfile << std::endl;
+        }
+        
         an.PostProcess(0);
+        count++;
     }
+    
+    matfile << "AllSurfaces = {";
+    for (int c=0; c<count-1; c++) {
+        matfile << "Surface" << c << ", ";
+    }
+    matfile << "Surface" << count-1 << "};";
+    
     delete cgrid;
     delete gmesh;
     
@@ -1670,7 +1790,7 @@ void BuildPlasticSurface(TPZCompMesh *cmesh, TPZSandlerDimaggio *pSD)
         {
             TPZConnect &c = cel->Connect(icon);
             TPZGeoNode &gnod = *gel->NodePtr(icon);
-            TPZManVector<REAL> co(3,0.),stress(3,0.);
+            TPZManVector<REAL> co(3,0.);
             gnod.GetCoordinates(co);
             
             ComputeMultiplier(co, pSD,stress);

@@ -189,6 +189,28 @@ public:
         return result;
     }
     
+    TPZTensor(const TPZFMatrix<T> &input) : fData(6,0.)
+    {
+#ifdef DEBUG
+        if (input.Rows() != 3 || input.Cols() != 3) {
+            DebugStop();
+        }
+        for (int i=0; i<3; i++) {
+            for (int j=0; j<3; j++) {
+                if (fabs(input.GetVal(i,j) - input.GetVal(j,i)) > 1.e-15) {
+                    std::cout << "diff = " << input.GetVal(i,j)-input.GetVal(j,i) << std::endl;
+                    DebugStop();
+                }
+            }
+        }
+#endif
+        fData[_XX_] = input.GetVal(0,0);
+        fData[_XY_] = input.GetVal(0,1);
+        fData[_XZ_] = input.GetVal(0,2);
+        fData[_YY_] = input.GetVal(1,1);
+        fData[_YZ_] = input.GetVal(1,2);
+        fData[_ZZ_] = input.GetVal(2,2);
+    }
     /**
      * Method to print the tensor
      */
