@@ -22,9 +22,9 @@ public:
 
   TPZIterativeAnalysis(TPZCompMesh *mesh,ostream &out = cout);
 
-	void IterativeProcess(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha=1,int resolution=0);
+	void IterativeProcess(std::string &name,REAL tol,int numiter,TPZMaterial *mat,int marcha=1,int resolution=0);
 
-  void IterativeProcessTest(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution=0);
+  void IterativeProcessTest(std::string &name,REAL tol,int numiter, TPZMaterial *mat,int marcha,int resolution=0);
 
   void CoutTime(clock_t &start,const char *title);
 

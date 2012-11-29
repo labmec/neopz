@@ -16,7 +16,7 @@ TPZIterativeAnalysis::TPZIterativeAnalysis(TPZCompMesh *mesh,std::ostream &out) 
   //fInit = 0.0;
 }
 
-void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution) {
+void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int numiter,TPZMaterial * mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
 	TPZVec<std::string> scalar(1);
@@ -89,7 +89,7 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
   CoutTime(fInit,"TPZIterativeAnalysis:: general time of iterative process");
 }
 
-void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int numiter,TPZAutoPointer<TPZMaterial> mat,int marcha,int resolution) {
+void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int numiter,TPZMaterial * mat,int marcha,int resolution) {
 
   cout << "PZAnalysis::IterativeProcessTest beginning of the iterative process, general time 0\n";
 	TPZVec<std::string> scalar(1);
