@@ -181,8 +181,16 @@ int TPZGeoEl::WhichSide(TPZVec<int> &SideNodeIds) {
 				}// /* 0123 0231 0312 , 0132 0213 0321 */                               / * 3012 3120 3201 , 3021 3102 3210 * /
 			}
 		} else if(cap<1 || cap > 4) {
-			PZError << "TPZGeoEl::WhichSide must be extended\n";
-			DebugStop();
+            int is;
+            for (is=0; is<nums; is++) {
+                if (NSideNodes(is) == cap) {
+                    break;
+                }
+            }
+            if (is != nums) {
+                PZError << "TPZGeoEl::WhichSide must be extended\n";
+                DebugStop();
+            }
 		}
 	}
 	return -1;
