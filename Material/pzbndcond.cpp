@@ -122,40 +122,52 @@ void TPZBndCond::ContributeInterfaceErrors( TPZMaterialData &data, TPZMaterialDa
 
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
-	this->UpdateBCValues(data);
+    TPZBndCond copy(*this);
+    copy.UpdateBCValues(data);
 	
 	//clone meshes required analysis
     int numbersol = data.sol.size();
+    
 	int typetmp = fType;
-	if (fType == 50){
+	if (copy.fType == 50){
 		int i;
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
 		{
 			std::stringstream sout;
-			sout << __PRETTY_FUNCTION__ << data.sol << " " << data.x;
+			sout << __PRETTY_FUNCTION__ << "\nSolution " << data.sol << "\ncoordinate " << data.x;
 			LOGPZ_DEBUG(logger,sout.str().c_str());
 		}
 #endif
-		for (i = 0; i <data.sol.NElements(); i++){
-            for (int is=0; is<numbersol; is++) {
-                fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
-                fBCVal1(i,i) = gBigNumber;
+        for (int is=0; is<numbersol; is++) {
+            for (i = 0; i <data.sol[is].NElements(); i++){
+                copy.fBCVal2(i,is) = (STATE)gBigNumber*data.sol[is][i];
+                copy.fBCVal1(i,i) = gBigNumber;
             }
 		}
-		fType = 2;
+		copy.fType = 2;
 	}
 	
-	this->fMaterial->ContributeBC(data,weight,ek,ef,*this);
-	fType = typetmp;
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled() && fType == 50) {
+        std::stringstream sout;
+        sout << "Boundary value " << data.sol[0];
+        copy.fBCVal1.Print("Val1" , sout);
+        copy.fBCVal2.Print("Val2" , sout);
+        LOGPZ_DEBUG(logger, sout.str())
+    }
+#endif
+	copy.fMaterial->ContributeBC(data,weight,ek,ef,copy);
+	copy.fType = typetmp;
 }
 
 //----
 void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 	
-	int typetmp = fType;
+    TPZBndCond copy(*this);
+	int typetmp = copy.fType;
 	if (fType == 50) {
-		//		int i;
+				int i;
 #ifdef LOG4CXX
         if (logger->isDebugEnabled())
 		{
@@ -166,24 +178,25 @@ void TPZBndCond::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight, TPZFM
 			}
 		}
 #endif
-		//for (i = 0; i <data.sol.NElements(); i++){
-		//			fBCVal2(i,0) = gBigNumber*data.sol[i];
-		//			fBCVal1(i,i) = gBigNumber;
-		//		}
-		//		fType = 2;
+		for (i = 0; i <datavec[0].sol[0].NElements(); i++){
+					copy.fBCVal2(i,0) = gBigNumber*datavec[0].sol[0][i];
+					copy.fBCVal1(i,i) = gBigNumber;
+        }
+        copy.fType = 2;
 	}
 	
-	this->fMaterial->ContributeBC(datavec,weight,ek,ef,*this);
-	fType = typetmp;
+	this->fMaterial->ContributeBC(datavec,weight,ek,ef,copy);
+	copy.fType = typetmp;
 }
 //----
 
 void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ef){
-	this->UpdateBCValues(data);
+    TPZBndCond copy(*this);
+	copy.UpdateBCValues(data);
 	int numbersol = data.sol.size();
 	//clone meshes required analysis
-	int typetmp = fType;
-	if (fType == 50){
+	int typetmp = copy.fType;
+	if (copy.fType == 50){
 		int i;
 #ifdef DEBUG2
 		{
@@ -194,15 +207,15 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 #endif
 		for (i = 0; i <data.sol.NElements(); i++){
             for (int is=0; is<numbersol; is++) {
-                fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
+                copy.fBCVal2(i,0) = (STATE)gBigNumber*data.sol[is][i];
             }
-			fBCVal1(i,i) = gBigNumber;
+			copy.fBCVal1(i,i) = gBigNumber;
 		}
-		fType = 2;
+		copy.fType = 2;
 	}
 	
-	this->fMaterial->ContributeBC(data,weight,ef,*this);
-	fType = typetmp;
+	this->fMaterial->ContributeBC(data,weight,ef,copy);
+	copy.fType = typetmp;
 }
 
 void TPZBndCond::ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef, TPZBndCond &bc){
@@ -302,7 +315,7 @@ void TPZBndCond::FillDataRequirements(TPZMaterialData &data){
 		return;
 	}
 	fMaterial->FillBoundaryConditionDataRequirement(fType,data);
-	if(fLinearContext == false){
+	if(fLinearContext == false || fType == 50){
 		data.fNeedsSol = true;
 	}
 }
