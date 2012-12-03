@@ -701,14 +701,15 @@ void TPZElastoPlasticAnalysis::SetLU()
 void TPZElastoPlasticAnalysis::TransferSolution(TPZPostProcAnalysis & ppanalysis)
 {
 	TPZFMatrix<REAL> bkpSolution = fSolution;
-    fSolution.Print();
+   
 	
 	fSolution = fCumSol;
-	
-	TPZAnalysis::LoadSolution();
+	 fSolution.Print();
+	TPZAnalysis::LoadSolution();//Carrega a solucao convergida no analysis
 	//passa o cum sol para o post
-	ppanalysis.TransferSolution();
+	ppanalysis.TransferSolution();//Transfere solucao convergida para o pos processamento
 	
+    
 	fSolution = bkpSolution;
 	
 	TPZAnalysis::LoadSolution();	

@@ -198,6 +198,15 @@ int TPZAnalysis::ComputeNumberofLoadCases()
 
 void TPZAnalysis::AssembleResidual(){
     int numloadcases = ComputeNumberofLoadCases();
+
+    if(Mesh()->NEquations()==0)
+    {
+        cout << "\n ########################################################################" <<endl;
+        cout << "\n Imprimindo malha computacional de pos processamento no assemble residual " <<endl;
+        cout << "\n Malha nula! " <<endl;
+        DebugStop();
+    }
+    this->Mesh()->Print();
 	int sz = this->Mesh()->NEquations();
 	this->Rhs().Redim(sz,numloadcases);
 	fStructMatrix->Assemble(this->Rhs(),fGuiInterface);

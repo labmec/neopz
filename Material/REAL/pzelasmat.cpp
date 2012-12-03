@@ -200,6 +200,22 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
 	
 }
 
+
+
+void TPZElasticityMaterial::FillDataRequirements(TPZMaterialData &data)
+{
+    data.fNeedsSol = true;
+    data.fNeedsNormal = false;
+
+}
+
+void TPZElasticityMaterial::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
+{
+    data.fNeedsSol = true;
+	data.fNeedsNormal = true;
+    
+}
+
 void TPZElasticityMaterial::ContributeVecShape(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef)
 {
     TPZFMatrix<REAL> &dphi = data.dphix;
@@ -298,12 +314,21 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
     }
     
 	TPZFMatrix<REAL> &phi = data.phi;
+     int dim = Dimension();
 
 	const REAL BIGNUMBER  = TPZMaterial::gBigNumber;
     
 	int phr = phi.Rows();
 	short in,jn;
 	
+    REAL v2[2];
+	v2[0] = bc.Val2()(0,0);
+	v2[1] = bc.Val2()(1,0);
+    
+	TPZFMatrix<REAL> &v1 = bc.Val1();
+    int nstate = NStateVariables();
+    
+    
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
 			for(in = 0 ; in < phr; in++) {
@@ -353,29 +378,43 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 					phi(jn,0) * weight;
 				}
 			}   // este caso pode reproduzir o caso 0 quando o deslocamento
+            
+            
+        case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
+            for(in = 0 ; in < phr; in++) {
+                ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
+                ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;
+                for (jn = 0 ; jn < phr; jn++) {
+                    ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
+                    ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
+                }//jn
+            }//in
             break;
-        case 50 :		// condi�o mista
+            
+            
+        case 4: // stressField Neumann condition
+            for(in = 0; in < dim; in ++)
+                v2[in] = - ( v1(in,0) * data.normal[0] +
+                            v1(in,1) * data.normal[1]);
+            // The normal vector points towards the neighbour. The negative sign is there to
+            // reflect the outward normal vector.
+            for(in = 0 ; in < phi.Rows(); in++) {
+                ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight;
+                ef(nstate*in+1,0) += v2[1] * phi(in,0) * weight;
+                //	cout << "normal:" << data.normal[0] << ' ' << data.normal[1] << ' ' << data.normal[2] << endl;
+                //	cout << "val2:  " << v2[0]  << endl;
+            }
+            break;
+            
+        case 5:
+			for(in = 0 ; in < phi.Rows(); in++)
+			{
+				ef(nstate*in+0,0) += v2[0] * phi(in,0) * weight * (data.normal[0]);
+				ef(nstate*in+1,0) += v2[0] * phi(in,0) * weight * (data.normal[1]);
+			}
+			break;
 
-			for(in = 0 ; in < phi.Rows(); in++) 
-            {
-                for (int il = 0; il <fNumLoadCases; il++) 
-                {
-                    TPZFNMatrix<2,STATE> v2(2,1);
-                    for (int is=0; is<2; is++) {
-                        v2(is,0) = data.sol[il][is]*gBigNumber;
-                    }
-                    ef(2*in,il) += v2(0,0) * phi(in,0) * weight;        // force in x direction
-                    ef(2*in+1,il) += v2(1,0) * phi(in,0) * weight;      // forced in y direction
-                }
-				
-				for (jn = 0 ; jn < phi.Rows(); jn++) {
-					ek(2*in,2*jn) += gBigNumber * phi(in,0) *
-					phi(jn,0) * weight;         // peso de contorno => integral de contorno
-					ek(2*in+1,2*jn+1) += gBigNumber * phi(in,0) *
-					phi(jn,0) * weight;
-				}
-			}   // este caso pode reproduzir o caso 0 quando o deslocamento
-
+            
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 } // 1 Val1 : a leitura �00 01 10 11
 

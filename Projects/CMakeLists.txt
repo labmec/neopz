@@ -72,7 +72,7 @@ ENABLE_TESTING()
 				#Projeto Teo Refinamento Paralelo
 				add_subdirectory(RefThread)
 				#projeto Diogo 08-FEB-2012
-				#add_subdirectory(Plasticity)
+				add_subdirectory(Plasticity)
 			endif()
 			##########################
 			add_subdirectory(MultipleLoad)

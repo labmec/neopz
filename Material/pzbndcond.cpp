@@ -147,7 +147,6 @@ void TPZBndCond::Contribute(TPZMaterialData &data, REAL weight, TPZFMatrix<STATE
 		}
 		copy.fType = 2;
 	}
-	
 #ifdef LOG4CXX
     if (logger->isDebugEnabled() && fType == 50) {
         std::stringstream sout;

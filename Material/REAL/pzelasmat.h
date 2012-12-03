@@ -87,7 +87,13 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	{
 		TPZDiscontinuousGalerkin::ContributeBC(data,weight,ef,bc);
 	}
-	
+    
+    //virtual void FillDataRequirements(TPZMaterialData &data);
+     virtual void FillDataRequirements(TPZMaterialData &data);
+    virtual void FillBoundaryConditionDataRequirement(int type, TPZMaterialData &data);
+        
+     
+    
 	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 		PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	}

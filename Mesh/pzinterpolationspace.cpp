@@ -124,6 +124,7 @@ REAL TPZInterpolationSpace::InnerRadius(){
 }
 
 void TPZInterpolationSpace::InitMaterialData(TPZMaterialData &data){
+    
 	this->Material()->FillDataRequirements(data);
 	const int dim = this->Dimension();
 	const int nshape = this->NShapeF();
@@ -181,6 +182,7 @@ void TPZInterpolationSpace::ComputeRequiredData(TPZMaterialData &data,
 	}//fNeedsNormal
 }//void
 
+
 void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 {
 	data.normal.Resize(3,0.);
@@ -195,13 +197,14 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	TPZGeoElSide neighbourGeoElSide = thisGeoEl->Neighbour(thisFace);
 	neighbourGeoEl = neighbourGeoElSide.Element();
 	neighbourFace = neighbourGeoEl->NSides() - 1;
-	
+
+
 	if(neighbourGeoEl == thisGeoEl)
 	{
 		// normal evaluation makes no sense since the internal element side doesn't present a neighbour.
 		return; // place a breakpoint here if this is an issue
 	}
-	
+
 	thisGeoEl->     CenterPoint(thisFace,      thisCenter);
 	neighbourGeoEl->CenterPoint(neighbourFace, neighbourCenter);
 	
@@ -324,6 +327,7 @@ void TPZInterpolationSpace::CalcStiff(TPZElementMatrix &ek, TPZElementMatrix &ef
 		data.intPtIndex = int_ind;
 		this->ComputeRequiredData(data, intpoint);
         weight *= fabs(data.detjac);
+
 		material->Contribute(data, weight, ek.fMat, ef.fMat);
 	}//loop over integratin points
 	

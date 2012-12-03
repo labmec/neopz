@@ -181,8 +181,8 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
         
         
     }
-    REAL val=1000.;
-    REAL tol=1/val;
+    int val=1000;
+    REAL tol=1./val;
     int ndiv= val;
     REAL delta=(M_PI/2)/val;
     vector<int> ids,ids2,ids3,ids4;
@@ -216,8 +216,7 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
         }
     }
     
-    tol=1./1000.;
-    ndiv=500.;
+    tol=1./ndiv;
     delta=1./ndiv;
     for(int j=0;j<=ndiv;j++)
     {
@@ -260,28 +259,23 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
     //TPZVec<int> arc(3);
     int id=0;
     //poco
+    
     for(int i=0;i<(ids2.size())-1;i++)
     {
-        cout << "\n "<<ids2[i];
-        TopolLine[0] =ids2[i+1];	TopolLine[1] = ids2[i];
+        
+        TopolLine[0] =ids2[i];	TopolLine[1] = ids2[i+1];
         if(TopolLine[0] != TopolLine[1])
         {
             new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-2,*gMesh);
+            cout << "\n "<<TopolLine;
         }
-        
-//        arc[0] = ids2[i+2]; arc[1]=ids2[i+1]; arc[2]=ids2[i];
-//        cout << "\n "<<ids[i+2];
-//        cout << "\n "<<ids[i+1];
-//        cout << "\n "<<ids[i];
-//        new TPZGeoElRefPattern< TPZArc3D > (id,arc,-2,*gMesh);
-        
         
     }
     //for field
 
     for(int i=0;i<(ids.size())-1;i++)
     {
-            TopolLine[0] =ids[i+1] ;	TopolLine[1] =ids[i];
+            TopolLine[0] =ids[i] ;	TopolLine[1] =ids[i+1];
             if(TopolLine[0] != TopolLine[1])
             {
                 new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-3,*gMesh);
@@ -289,29 +283,43 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
 
     }
     
-    //linha inferior
-    for(int i=0;i<(ids3.size())-1;i++)
-    {
-        cout << "\n "<<ids3[i];
-        TopolLine[0] =ids3[i+1] ;	TopolLine[1] =ids3[i];
-        if(TopolLine[0] != TopolLine[1])
-        {
-            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
-        }
-        
-    }
     
-    //linha esquerda
-    for(int i=0;i<(ids4.size())-1;i++)
-    {
-        //cout << "\n "<<ids4[i];
-        TopolLine[0] =ids4[i+1] ;	TopolLine[1] =ids4[i];
-        if(TopolLine[0] != TopolLine[1])
-        {
-            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
-        }
-        
-    }
+    //linha inferior
+    int sz = ids3.size()-1;
+    
+    TopolLine[0] =ids3[0] ;	TopolLine[1] =ids3[sz];
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
+    
+//    for(int i=0;i<(ids3.size())-1;i++)
+//    {
+//        cout << "\n "<<ids3[i];
+//        TopolLine[0] =ids3[i+1] ;	TopolLine[1] =ids3[i];
+//        if(TopolLine[0] != TopolLine[1])
+//        {
+//            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
+//        }
+//        
+//    }
+
+    
+    
+    
+    sz = ids4.size()-1;
+    
+    TopolLine[0] =ids4[0] ;	TopolLine[1] =ids4[sz];
+    new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
+//    
+//    
+//    for(int i=0;i<(ids4.size())-1;i++)
+//    {
+//        //cout << "\n "<<ids4[i];
+//        TopolLine[0] =ids4[i+1] ;	TopolLine[1] =ids4[i];
+//        if(TopolLine[0] != TopolLine[1])
+//        {
+//            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
+//        }
+//        
+//    }
     
     
     gMesh->BuildConnectivity();

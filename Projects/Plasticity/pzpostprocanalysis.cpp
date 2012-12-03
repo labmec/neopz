@@ -10,6 +10,7 @@
 #include "tpzcompmeshreferred.h"
 #include "pzstring.h"
 #include "pzelastoplasticanalysis.h"
+#include "pzcreateapproxspace.h"
 
 #include <map>
 #include <set>
@@ -28,20 +29,43 @@ TPZPostProcAnalysis::TPZPostProcAnalysis() : fpMainAnalysis(NULL)
 
 TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMainAnalysis(pRef)
 {
+//    
+//    TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
+//    //TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
+//    
+//    TPZGeoMesh * pgmesh = pcMainMesh->Reference();
+//
+//    
+//    TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
+//    
+//    
+//    //TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+//    
+//    //pcPostProcMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuousReferred();
+//    //SetAllCreateFunctionsDiscontiunous(pcPostProcMesh);
+//    //pcPostProcMesh->LoadReferred(pcMainMesh);
+//    
+//    pcPostProcMesh->ApproxSpace().SetAllCreateFunctionsDiscontinuous();
+//    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
+//
+//    fCompMesh = pcPostProcMesh;
     
+    
+
     TPZCompMesh* pcMainMesh = fpMainAnalysis->Mesh();
-    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
     
     TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
+   // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
+    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
     
     TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
     
-    
-    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
-    //pcPostProcMesh->LoadReferred(pcMainMesh);
-
     fCompMesh = pcPostProcMesh;
+
+    
+    
+    
 }
 
 TPZPostProcAnalysis::~TPZPostProcAnalysis()
@@ -106,6 +130,7 @@ void TPZPostProcAnalysis::SetPostProcessVariables(TPZVec<int> & matIds, TPZVec<s
 		pPostProcMat->SetPostProcessVarIndexList(varNames,pmat);
 		
 		matNumber = pcPostProcMesh->InsertMaterialObject(pPostProcMat);
+
 	}
 	
 	//pcPostProcMesh->AutoBuild();
@@ -183,11 +208,12 @@ void TPZPostProcAnalysis::Solve(){
 void TPZPostProcAnalysis::TransferSolution()
 {
 
-	TPZAnalysis::AssembleResidual();
-	
-	fSolution = Rhs();
-	
-	TPZAnalysis::LoadSolution();	
+    
+    TPZAnalysis::AssembleResidual();
+    fSolution = Rhs();
+    TPZAnalysis::LoadSolution();
+    
+
 	
 }
 
@@ -256,6 +282,7 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
 {
     
     TPZManVector<TCreateFunction,10> functions(8);
+    
     functions[EPoint] = &TPZPostProcAnalysis::CreatePointEl;
     functions[EOned] = TPZPostProcAnalysis::CreateLinearEl;
     functions[EQuadrilateral] = TPZPostProcAnalysis::CreateQuadEl;
@@ -265,8 +292,20 @@ void TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(TPZCompMesh *cmesh)
     functions[EPiramide] = TPZPostProcAnalysis::CreatePyramEl;
     functions[ECube] = TPZPostProcAnalysis::CreateCubeEl;
     cmesh->ApproxSpace().SetCreateFunctions(functions);
-    
+  /*
+    functions[EPoint] = TPZCompElDisc::CreateDisc;
+    functions[EOned] = TPZCompElDisc::CreateDisc;
+    functions[ETriangle] = TPZCompElDisc::CreateDisc;
+    functions[EQuadrilateral] = TPZCompElDisc::CreateDisc;
+    functions[ETetraedro] = TPZCompElDisc::CreateDisc;
+    functions[EPiramide] = TPZCompElDisc::CreateDisc;
+    functions[EPrisma] = TPZCompElDisc::CreateDisc;
+    functions[ECube] = TPZCompElDisc::CreateDisc;
+    cmesh->ApproxSpace().SetCreateFunctions(functions);
+   */ 
 }
+
+
 
 using namespace pzshape;
 

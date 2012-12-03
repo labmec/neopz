@@ -285,11 +285,11 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 								 data.axes, data.detjac, data.jacinv, 
 								 data.phi, data.dphix);
 		
-		pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian, 
+		/*pIntSpRef ->ComputeShape(intpointRef, dataRef.x, dataRef.jacobian,
 								 dataRef.axes, dataRef.detjac, dataRef.jacinv, 
-								 dataRef.phi, dataRef.dphix); 
+								 dataRef.phi, dataRef.dphix); */
 		
-		//pIntSpRef->ComputeShape(intpointRef,dataRef);
+		pIntSpRef->ComputeShape(intpointRef,dataRef);
 		
 		weight    *= fabs(data.detjac);
 		weightRef *= fabs(dataRef.detjac);

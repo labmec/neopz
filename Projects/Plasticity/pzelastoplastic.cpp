@@ -225,15 +225,7 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	
 	
 	int intPt = data.intPtIndex;
-	/*	
-	 #ifdef LOG4CXX
-	 {
-	 std::stringstream sout;
-	 sout << ">>> TPZMatElastoPlastic<T,TMEM>::Solution() *** called for variable index = " << var << " at IntPoint " << intPt << ": " << data.x;
-	 LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	 }
-	 #endif
-	 */
+
 	if(var == TPZMatElastoPlastic<T,TMEM>::EDisplacement){
 		int i;
 		for(i = 0; i < 3; i++){
@@ -852,6 +844,12 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
         std::cout << "The type of element should be MatWithMem (see TPZCreateApproximationSpace\n";
         DebugStop();
     }
+    
+    //TMEM = Tipo de Material ex : elastoplastico, plastico, etc.
+    cout << "\n Memoria " << endl;
+    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
+    
+    
     fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
 	TPZTensor<REAL> EpsT, Sigma;
 	EpsT.CopyFrom(DeltaStrain);
@@ -882,26 +880,10 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	EpsT.CopyFrom(Strain);
 	EpsT.Add(fPlasticity.GetState().fEpsT, 1.);
 	
-#ifdef LOG4CXX
-	{
-    std::stringstream sout;
-	sout << ">>> TPZMatElastoPlastic<T,TMEM>::ApplyStrain ***";
-	sout << "\n PlasticState = " << fPlasticity.GetState();
-	sout << "\n Imposed EpsT = " << EpsT;
-	LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	}
-#endif
-	
 	fPlasticity.ApplyStrainComputeSigma(EpsT, Sigma);
-	
-#ifdef LOG4CXX
-	{
-    std::stringstream sout;
-	sout << "<<< TPZMatElastoPlastic<T,TMEM>::ApplyStrain ***";
-	sout << "\n Sigma = " << Sigma;
-	LOGPZ_DEBUG(elastoplasticLogger,sout.str().c_str());
-	}
-#endif
+    
+    cout << "\n Memoria " << endl;
+    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
 	
 	Sigma.CopyTo(Stress);	
 	
@@ -909,7 +891,6 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrain(TPZMaterialData & data, TPZFM
 	{
     	TPZMatWithMem<TMEM>::fMemory[intPt].fSigma        = Sigma;
 		TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState = fPlasticity.GetState();
-		
 		TPZMatWithMem<TMEM>::fUpdateMem--;
 	}
 }
