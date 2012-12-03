@@ -32,6 +32,10 @@ namespace pzshape {
 	class TPZShapeLinear : public pztopology::TPZLine{
 		
 	public:
+
+		/** @{
+		 * @name Orthogonal polynomials family 
+		 */
 		
 		/**
 		 * @brief Pointer to function which returns num orthogonal functions at the point x
@@ -42,39 +46,17 @@ namespace pzshape {
 		 */
 		static void (*fOrthogonal)(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
 		
-		
-#ifdef _AUTODIFF
 		/**
-		 *	@brief Pointer to function which returns num orthogonal functions at the point x
-		 * @param x coordinate of the point with derivatives already setup
-		 * @param num number of shape functions to be computed
-		 * @param phi shapefunction values with derivatives
-		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
-#endif
-
-		/**
-		 * @brief Chebyshev orthogonal function, computes num orthogonal functions at the point x
+		 * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point
 		 * @param num number of shape functions to be computed
 		 * @param phi shapefunction values
 		 * @param dphi values of the derivatives of the shape functions
 		 */
 		static void Chebyshev(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi);
-#ifdef _AUTODIFF
-		/**
-		 * @brief Chebyshev orthogonal function, computes num orthogonal functions at the point x
-		 * @param x coordinate of the point (with derivative already setup)
-		 * @param num number of shape functions to be computed
-		 * @param phi shapefunction values and derivatives
-		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
-		 */
-		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
-#endif
 		
 		/**
-		 * @brief Legendre orthogonal function, computes num orthogonal functions at the point x
+		 * @brief Legendre orthogonal polynomial, computes num orthogonal functions at the point x
 		 * @param x coordinate of the point
 		 * @param num number of shape functions to be computed
 		 * @param phi shapefunction values
@@ -87,6 +69,27 @@ namespace pzshape {
 		 * @see Legendre(Real, int, TPZFMatrix, TPZFMatrix)
 		 */
 		static void Legendre(REAL x,int num,TPZFMatrix<REAL> & phi,TPZFMatrix<REAL> & dphi, int nderiv);
+
+#ifdef _AUTODIFF
+		/**
+		 *	@brief Pointer to function which returns num orthogonal functions at the point x
+		 * @param x coordinate of the point with derivatives already setup
+		 * @param num number of shape functions to be computed
+		 * @param phi shapefunction values with derivatives
+		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
+		 */
+		static void (*FADfOrthogonal)(FADREAL&,int ,TPZVec<FADREAL> &);
+		/**
+		 * @brief Chebyshev orthogonal polynomial, computes num orthogonal functions at the point x
+		 * @param x coordinate of the point (with derivative already setup)
+		 * @param num number of shape functions to be computed
+		 * @param phi shapefunction values and derivatives
+		 * REMARK: The Derivative classes MUST store at least only one derivative - 1d problem
+		 */
+		static void Chebyshev(FADREAL & x,int num,TPZVec<FADREAL> &phi);
+#endif
+
+		/** @} */
 		
 public:
 		

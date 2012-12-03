@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 	TPZGeoEl *gel;
 	TPZVec<TPZGeoEl *> sub;
 	TPZVec<TPZGeoEl *> subsub;
-	gel = gmesh->ElementVec()[0];
+	gel = gmesh->ElementVec()[1];
 	gel->Divide(sub);
 	//gel = sub[2];
 	//gel->Divide(subsub);
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
     // Creating computational mesh
     TPZCompMesh *comp = new TPZCompMesh(gmesh);
 	/** Set polynomial order */
-	int p = 2;
+	int p = 1;
     TPZCompEl::SetgOrder(p);
 
 	// Creating and inserting materials into computational mesh
