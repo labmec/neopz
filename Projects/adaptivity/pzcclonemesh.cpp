@@ -510,12 +510,14 @@ int TPZCompCloneMesh::HasConnect(int cnid){
 
 TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     ExpandSolution();
+#ifdef HUGE_DEBUG
     if(gPrintLevel ==2) {
         TPZCheckMesh chck(this,&cout);
         chck.VerifyAllConnects();
         Reference()->Print(cout);
         this->Print(cout);
     }
+#endif
     TPZStack <TPZGeoEl *> bcgelstack;
     TPZStack <int> bcporderstack;
     TPZStack<int> elementindex;
@@ -544,11 +546,12 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
     for(el=0; el<nelem; el++) {
         ElementVec()[elementindex[el]] = elementpointers[el];
     }
-    
+#ifdef HUGE_DEBUG
     if(gPrintLevel == 2) {
         TPZCheckMesh chk(cmesh,&cout);
         chk.VerifyAllConnects();
     }
+#endif
     Reference()->ResetReference();
     cmesh->LoadReferences();
     
@@ -601,11 +604,12 @@ TPZCompMesh * TPZCompCloneMesh::UniformlyRefineMesh() {
         for (isub=0; isub<subelindex.NElements();isub++){
             TPZInterpolatedElement *intel = dynamic_cast<TPZInterpolatedElement *> (cmesh->ElementVec()[subelindex[isub]]);
             intel->PRefine(porder+1);
-            
+#ifdef HUGE_DEBUG
             if(gPrintLevel == 2) {
                 TPZCheckMesh chk(cmesh,&cout);
                 chk.VerifyAllConnects();
             }
+#endif
             if (gDebug){
                 cout << "TPZCompCloneMesh::UniformlyRefineMesh Element Data After PRefine\n";
                 intel->Print(cout);
@@ -1537,9 +1541,10 @@ void TPZCompCloneMesh::Print (ostream & out) const {
     }
     out << "\n\tMaterial Information:\n\n";
     std::map<int, TPZMaterial * >::const_iterator it;
-    for (it=MaterialVec().begin(); it!=MaterialVec().end(); it++) {
-        it->second->Print(out);
-    }
+#warning Comentei o for abaixo
+//     for (it=MaterialVec().begin(); it!=MaterialVec().end(); it++) {
+//         it->second->Print(out);
+//     }
 }
 
 TPZInterpolatedElement *TPZCompCloneMesh::GetOriginalElement(TPZCompEl *el) {
