@@ -38,7 +38,13 @@ set(pzsources ${pzcommon_STAT_SRCS} ${pzsave_STAT_SRCS} ${pzutil_STAT_SRCS}
 	)
 
 #creating target pz library and installing it
-add_library(pz ${pzsources})
+if (BUILD_PYTHON_BINDING)
+  #Build a shared library to be used with python binding
+  add_library(pz SHARED ${pzsources})
+else()
+  #Build a static library (default)
+  add_library(pz ${pzsources})
+endif()
 target_link_libraries(pz ${PTHREAD_LIB})
 
 IF (USING_IPO)
@@ -57,7 +63,7 @@ if (USING_METIS)
   target_link_libraries(pz ${METIS_LIB})
 endif()
 
-install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
+#install(TARGETS pz ARCHIVE DESTINATION ${NEOPZ_LIB})
 
 #creating pzmatrix lib -- It is comment now, because it is not needed when the pzlib is installed.
 #set(pzmatrixsources 

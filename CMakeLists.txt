@@ -6,6 +6,7 @@ project (PZ)
 
 #Specify where the headers files must be finded
 include_directories(
+	"${PROJECT_SOURCE_DIR}/Python"
 	"${PROJECT_SOURCE_DIR}/Util"
 	"${PROJECT_SOURCE_DIR}/PerfUtil"
 	"${PROJECT_SOURCE_DIR}/Common"
@@ -196,6 +197,16 @@ if(BUILD_UNITTESTING)
 	endif()
 endif()
 
+#To enable Python bindings
+option(BUILD_PYTHON_BINDING "To build the Python bindings" OFF)
+if (BUILD_PYTHON_BINDING)
+  find_package(SWIG "2.0")
+  find_package(PythonLibs)
+  if (NOT SWIG_FOUND OR NOT PYTHONLIBS_FOUND)
+    message(WARNING "SWIG 2 and Python headers required for building Python API bindings. You can set proper SWIG executable with argument -DSWIG_EXECUTABLE=/path/to/swig2.0")
+    set(BUILD_PYTHON_BINDING OFF)
+  endif()
+endif()
 
 #To building several examples for training and experimentation PZ
 option(BUILD_TUTORIAL "To build examples for training or teaching PZ" OFF)
@@ -289,6 +300,9 @@ set(pz_configh ${CONFIG_H})# PARENT_SCOPE)
 add_subdirectory(PerfUtil)
 if(BUILD_PERF_TESTS)
 	add_subdirectory(PerfTests)
+endif()
+if (BUILD_PYTHON_BINDING)
+	add_subdirectory(Python)
 endif()
 
 add_subdirectory(Util)

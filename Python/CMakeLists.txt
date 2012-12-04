@@ -1,0 +1,24 @@
+if(BUILD_PYTHON_BINDING)
+    message (STATUS "SWIG 2 and Python found. Python module will built")
+
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SWSIZE SWIGWORDSIZE64)
+    else(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SWSIZE SWIGWORDSIZE32)
+    endif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+
+    add_custom_command(OUTPUT TPZPython_wrap.cxx ${CMAKE_CURRENT_BINARY_DIR}/TPZPython.py
+	COMMAND ${SWIG_EXECUTABLE} -c++ -Wall -python -D${SWSIZE} -o ${CMAKE_CURRENT_BINARY_DIR}/TPZPython_wrap.cxx -outdir ${CMAKE_CURRENT_BINARY_DIR} TPZPython.i
+	COMMENT "Building SWIG source in ${SWSIZE} mode: See swigpython.out for errors and warning"
+	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+        
+    set(TPZPython_src ${CMAKE_CURRENT_BINARY_DIR}/TPZPython_wrap.cxx)
+
+    include_directories(${PYTHON_INCLUDE_PATH})
+
+    add_library(TPZPython SHARED ${TPZPython_src} ${pzsources})
+
+    target_link_libraries(TPZPython pz)
+    
+endif()
