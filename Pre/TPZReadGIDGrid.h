@@ -17,9 +17,13 @@ class TPZGeoMesh;
 struct MaterialDataV {
   int fMatID;
   std::string fMaterial;
-  std::vector <REAL> fProperties;
+  TPZStack<REAL> fProperties;
 
   MaterialDataV() : fMatID(-1), fMaterial(), fProperties()
+  {
+      
+  }
+  MaterialDataV(int num) : fMatID(-1), fMaterial(), fProperties()
   {
       
   }
