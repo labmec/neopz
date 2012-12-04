@@ -181,7 +181,7 @@ int main() {
 		if(qual == 1) NivelDivide(cmesh);
 		CoutTime(start);
 		int nstate = 4;
-		SetDeltaTime(mat.operator->(),nstate);
+		SetDeltaTime(mat,nstate);
 		if(0){
 			gmesh->Print(outgm);
 			cmesh->Print(outgm);
@@ -219,7 +219,7 @@ int main() {
 				an.IterativeProcess(name,tol,numiter,mat,marcha,resolution);
 			}
 		}
-		ContagemDeElementos(mat.operator->());
+		ContagemDeElementos(mat);
 	}//if(0/1)
 	
 	if(0){
@@ -594,15 +594,15 @@ TPZMaterial *Wing2d(int grau,TPZStack<TPZGeoElSide> &elembc){
 		gmesh->ElementVec().SetFree(index);
 	}
 	TPZMaterial *aximat(mat);
-	bc = mat->CreateBC(aximat.operator->(),-1,5,val1,val2);//parede
+	bc = mat->CreateBC(aximat,-1,5,val1,val2);//parede
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-2,2,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-2,2,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-3,2,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-3,2,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-4,2,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-4,2,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-5,2,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-5,2,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
 	cout << "main::Wing2d fim CC\n";
 	
@@ -702,17 +702,17 @@ TPZMaterial *Wing3d(int grau,TPZStack<TPZGeoElSide> &elembc){
 	}
 	//the domain is a hexahedral 
 	TPZMaterial *aximat(mat);
-	bc = mat->CreateBC(aximat.operator->(),-1,5,val1,val2);//parede na asa
+	bc = mat->CreateBC(aximat,-1,5,val1,val2);//parede na asa
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-2,6,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-2,6,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-3,6,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-3,6,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-4,6,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-4,6,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-5,6,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-5,6,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
-	bc = mat->CreateBC(aximat.operator->(),-6,6,val1,val2);//no refletivas
+	bc = mat->CreateBC(aximat,-6,6,val1,val2);//no refletivas
 	cmesh->InsertMaterialObject(bc);
 	cout << "main::Wing3d fim CC\n";
 	cout << "main::Wing3D criando elementos computacionais\n";

@@ -28,7 +28,7 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
   //       << "\n" << scalar[1] << "\n" << scalar[2] << endl;
   int dim = mat->Dimension();
   ResetReference(Mesh());//retira refer�ncias para criar graph consistente
-  TPZDXGraphMesh graph(Mesh(),dim,mat.operator->(),scalar,vector);
+  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
   SetReference(Mesh());//recupera as refer�ncias retiradas
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
@@ -45,8 +45,8 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
   fBegin = clock();
   LoadSolution();
   //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
-  SetDeltaTime(fCompMesh,mat.operator->());
-  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator->());
+  SetDeltaTime(fCompMesh,mat);
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
   REAL time = law->TimeStep();
   fBegin = clock();
   graph.DrawSolution(draw++,time);
@@ -64,7 +64,7 @@ void TPZIterativeAnalysis::IterativeProcess(std::string &filename,REAL tol,int n
     fBegin = clock();
     LoadSolution();
     //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
-    SetDeltaTime(fCompMesh,mat.operator->());
+    SetDeltaTime(fCompMesh,mat);
     if( REAL(iter) / REAL(marcha) == draw || marcha == 1){
       fBegin = clock();
       time = law->TimeStep();
@@ -97,7 +97,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int n
   scalar[0] = "Solution";
   cout << "TPZIterativeAnalysis::IterativeProcess solution required : " << scalar[0] << endl;
   int dim = mat->Dimension();
-  TPZDXGraphMesh graph(Mesh(),dim,mat.operator->(),scalar,vector);
+  TPZDXGraphMesh graph(Mesh(),dim,mat,scalar,vector);
   ofstream *dxout = new ofstream("ConsLaw.dx");
   cout << "\nTPZIterativeAnalysis::IterativeProcess out file : ConsLaw.dx\n";
   graph.SetFileName(name);
@@ -113,7 +113,7 @@ void TPZIterativeAnalysis::IterativeProcessTest(std::string &name,REAL tol,int n
   LoadSolution();
   //CoutTime(fBegin,"TPZIterativeAnalysis:: Fim Load Solution");
   fBegin = clock();
-  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat.operator->());
+  TPZConservationLaw *law = dynamic_cast<TPZConservationLaw *>(mat);
   REAL time = law->TimeStep();
   graph.DrawSolution(draw++,time);
   dxout->flush();
