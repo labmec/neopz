@@ -110,14 +110,34 @@ int main(int argc, char *argv[]) {
 	}	
 
 	// Refinement of the some element	
-	TPZGeoEl *gel;
+	TPZGeoEl *gel, *gel1, *gel2, *gel3;
 	TPZVec<TPZGeoEl *> sub;
 	TPZVec<TPZGeoEl *> subsub;
-	gel = gmesh->ElementVec()[1];
+	gel = gmesh->ElementVec()[0];
+	gel1 = gmesh->ElementVec()[1];
+	gel2 = gmesh->ElementVec()[2];
+	gel3 = gmesh->ElementVec()[3];
 	gel->Divide(sub);
-	//gel = sub[2];
-	//gel->Divide(subsub);
-
+//	sub[0]->Divide(subsub);
+	sub[1]->Divide(subsub);
+	sub[2]->Divide(subsub);
+//	sub[3]->Divide(subsub);
+/*	gel1->Divide(sub);
+	sub[0]->Divide(subsub);
+	sub[1]->Divide(subsub);
+	sub[2]->Divide(subsub);
+	sub[3]->Divide(subsub);
+	gel2->Divide(sub);
+	sub[0]->Divide(subsub);
+	sub[1]->Divide(subsub);
+	sub[2]->Divide(subsub);
+	sub[3]->Divide(subsub);
+	gel3->Divide(sub);
+	sub[0]->Divide(subsub);
+	sub[1]->Divide(subsub);
+	sub[2]->Divide(subsub);
+	sub[3]->Divide(subsub);
+*/	
 	// Constructing connectivities
 	gmesh->ResetConnectivities();
 	gmesh->BuildConnectivity();
@@ -125,14 +145,14 @@ int main(int argc, char *argv[]) {
 	// Printing COMPLETE initial geometric mesh 
 	PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
 
-    // Creating computational mesh
-    TPZCompMesh *comp = new TPZCompMesh(gmesh);
 	/** Set polynomial order */
 	int p = 1;
     TPZCompEl::SetgOrder(p);
+    // Creating computational mesh
+    TPZCompMesh *comp = new TPZCompMesh(gmesh);
 
 	// Creating and inserting materials into computational mesh
-    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
+    TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,.5,0);   // two-dimensional
     comp->InsertMaterialObject(mat);
 	dim = mat->Dimension();
 	nstate = mat->NStateVariables();
@@ -140,7 +160,7 @@ int main(int argc, char *argv[]) {
     // Boundary conditions
     // Dirichlet
     TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
-	val1(0,0) = val1(1,1) = 1.;
+	val1(0,0) = 1.;
     TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
     comp->InsertMaterialObject(bnd);
 	// Neumann
@@ -228,10 +248,12 @@ int main(int argc, char *argv[]) {
 		direct = 0;
 		
 		int neq = comp->NEquations();
-	//	an.StructMatrix().NEquations();
 	//	an.NEquations();
-		an.Solution().Print();
+//		an.Solution().Print();
 		an.Run();
+		comp->Print();
+		an.Solver().Matrix().operator->()->Print();
+		an.Solution().Print();
 		
 		// Post processing
 		an.PostProcess(1,dim);
@@ -266,15 +288,15 @@ int main3D(int argc, char *argv[]) {
 	int r, dim;
 	
 	// Initializing a ref patterns
-	//gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeAllUniformRefPatterns();
+	//gRefDBase.InitializeRefPatterns();
 	//gRefDBase.InitializeUniformRefPattern(EOned);
 	//gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
 	//gRefDBase.InitializeUniformRefPattern(ETriangle);
 	// Inserting a special file with refinement pattern 
 	std::string filename = REFPATTERNDIR;
-	//filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
-	filename += "/3D_Hexa_Face_20.rpt";
+	filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
+	//filename += "/3D_Hexa_Face_20.rpt";
 	
 	TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
 	if(!gRefDBase.FindRefPattern(refpat))
@@ -329,9 +351,9 @@ int main3D(int argc, char *argv[]) {
 			gel = gmesh3D->ElementVec()[nele];
 	
 //			if(gel->Dimension() != 3) continue;
-			gel->SetRefPattern(refpat);
+		//	gel->SetRefPattern(refpat);
 	
-//			gel->Divide(sub);
+			gel->Divide(sub);
 //			int jj = 0;
 //			for(jj=0;jj<4;jj++) {
 //				gel = sub[jj];
