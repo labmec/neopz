@@ -1158,7 +1158,7 @@ TPZVec<REAL> JIntegral2D::IntegratePath2D(int p)
     Adapt intRule(gIntegrPrecision);
     
     TPZTimer linInt("LinearIntegration"); linInt.start();
-    TPZVec<REAL> linJintegral(3,0.);
+    TPZVec<REAL> linJintegral(2,0.);
     linJintegral = intRule.Vintegrate(*(jPath2DElem->GetLinearPath2D()),2,-1.,+1.);
     
     //Simetry in xz plane
@@ -1186,7 +1186,7 @@ TPZVec<REAL> JIntegral2D::IntegratePath2D(int p)
     }
     
     TPZTimer arcInt("ArcIntegration"); arcInt.start();
-    TPZVec<REAL> arcJintegral(3,0.);
+    TPZVec<REAL> arcJintegral(2,0.);
     arcJintegral = intRule.Vintegrate(*(jPath2DElem->GetArcPath2D()),2,-1.,+1.);
     
     //Simetry in xz plane
