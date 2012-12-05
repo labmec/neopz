@@ -1674,13 +1674,13 @@ void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<std::pair<RE
     originXYZ[2] = -5.;
     
     REAL radius = 0.6;
-    Path * pathMiddle = new Path(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack);
+    Path3D * Path3DMiddle = new Path3D(fractureCMesh, originXYZ, direction, radius, pressureInsideCrack);
     
-    JIntegral jInt;
-    jInt.PushBackPath(pathMiddle);
+    JIntegral3D jInt;
+    jInt.PushBackPath3D(Path3DMiddle);
     TPZVec<REAL> Jvector(3);
     
-    Jvector = jInt.IntegratePath(0);
+    Jvector = jInt.IntegratePath3D(0);
 }
 
 //------------------------------------------------------------------------------------------------------------

@@ -22,14 +22,14 @@
 const REAL Pi = 3.1415926535897932384626433832795;
 
 
-class LinearPath
+class LinearPath3D
 {
 public:
     
-    LinearPath();//It is not to be used
-    LinearPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
-    LinearPath(LinearPath * cp);
-    ~LinearPath();
+    LinearPath3D();//It is not to be used
+    LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath3D(LinearPath3D * cp);
+    ~LinearPath3D();
     
     void X(REAL t, TPZVec<REAL> & xt);
     //void dXdt(REAL t, TPZVec<REAL> & dxdt);
@@ -45,9 +45,14 @@ public:
         return Vval;
     }
     
-    TPZVec<REAL> Func(REAL t);
+    virtual TPZVec<REAL> Func(REAL t);
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+    
+    void SetPressure(REAL p)
+    {
+        fcrackPressure = p;
+    }
     
 protected:
     
@@ -80,14 +85,30 @@ protected:
 };
 
 
-class ArcPath
+class LinearPath2D : public LinearPath3D
 {
 public:
     
-    ArcPath();//It is not to be used
-    ArcPath(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
-    ArcPath(ArcPath * cp);
-    ~ArcPath();
+    LinearPath2D();//It is not to be used
+    LinearPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &FinalPoint, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    LinearPath2D(LinearPath2D * cp);
+    ~LinearPath2D();
+    
+    virtual TPZVec<REAL> Func(REAL t);
+    
+    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+};
+
+
+
+class ArcPath3D
+{
+public:
+    
+    ArcPath3D();//It is not to be used
+    ArcPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath3D(ArcPath3D * cp);
+    ~ArcPath3D();
     
     void X(REAL t, TPZVec<REAL> & xt);
     //void dXdt(REAL t, TPZVec<REAL> & dxdt);
@@ -103,7 +124,7 @@ public:
         return Vval;
     }
     
-    TPZVec<REAL> Func(REAL t);
+    virtual TPZVec<REAL> Func(REAL t);
     
     virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
     
@@ -134,14 +155,29 @@ protected:
 };
 
 
-
-class AreaPath
+class ArcPath2D : public ArcPath3D
 {
 public:
     
-    AreaPath();//It is not to be used
-    AreaPath(LinearPath * givenLinearPath);
-    ~AreaPath();
+    ArcPath2D();//It is not to be used
+    ArcPath2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+    ArcPath2D(ArcPath2D * cp);
+    ~ArcPath2D();
+    
+    virtual TPZVec<REAL> Func(REAL t);
+    
+    virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
+};
+
+
+
+class AreaPath3D
+{
+public:
+    
+    AreaPath3D();//It is not to be used
+    AreaPath3D(LinearPath3D * givenLinearPath3D);
+    ~AreaPath3D();
     
     REAL DETdxdt();
     
@@ -151,25 +187,25 @@ public:
         return Vval;
     }
     
-    TPZVec<REAL> Func(REAL t);
+    virtual TPZVec<REAL> Func(REAL t);
     
 protected:
     
-    struct LinearPath2 : public LinearPath
+    struct LinearPath3D_2 : public LinearPath3D
     {
         public:
-        LinearPath2();
-        LinearPath2(LinearPath * cp);
-        ~LinearPath2();
+        LinearPath3D_2();
+        LinearPath3D_2(LinearPath3D * cp);
+        ~LinearPath3D_2();
         
         virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
         
-        struct ArcPath2 : public ArcPath
+        struct ArcPath3D_2 : public ArcPath3D
         {
             public:
-            ArcPath2();
-            ArcPath2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
-            ~ArcPath2();
+            ArcPath3D_2();
+            ArcPath3D_2(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius);
+            ~ArcPath3D_2();
             
             virtual TPZVec<REAL> Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt);
             
@@ -178,10 +214,10 @@ protected:
             TPZVec<REAL> FunctionAux(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & direction);
         };
         
-        ArcPath2 * fArcPath;
+        ArcPath3D_2 * fArcPath3D;
     };
     
-    LinearPath2 * fLinearPath;
+    LinearPath3D_2 * fLinearPath3D;
     
     /** Determinant of dXdt(3x1) */
     REAL fDETdxdt;
@@ -191,65 +227,124 @@ protected:
 
 /**
  *  ITS ALWAYS GOOD TO REMEMBER:
- *          THE CLASS PATH CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
+ *          THE CLASS Path3D CONSIDERS THAT THE NORMAL DIRECTION IS IN X,Z PLANE (JUST LIKE FRACTURE PLANE) AND
  *          THE ORIENTATION OF ARC and LINEAR stretch is:
  *              ARC : RIGHT HAND DIRECTION WITH RESPECT TO GIVEN NORMAL AXE (axe that defines the (orthogonal) arc plane).
  *              LINEAR: FROM THE END OF ARC (supposed to be inside crack plane) TO ORIGIN.
  * SO, ITS ALWAYS GOOD DEFINE NORMAL AXE TANGENT TO THE CRACK BOUNDARY, FOLLOWING RIGHT HAND FROM OUTSIDE CRACK TO INSIDE CRACK
  */
-class Path
+class Path3D
 {
 public:
 
-    Path();
+    Path3D();
 
     /**
      * Given unidimensional element reffers to the cracktip element that will be used
      * to compute J-integral around it.
      * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
      */
-    Path(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
-    ~Path();
+    Path3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    ~Path3D();
     
-    LinearPath * GetLinearPath()
+    LinearPath3D * GetLinearPath3D()
     {
-        return fLinearPath;
+        return fLinearPath3D;
     }
     
-    ArcPath * GetArcPath()
+    ArcPath3D * GetArcPath3D()
     {
-        return fArcPath;
+        return fArcPath3D;
     }
     
-    AreaPath * GetAreaPath()
+    AreaPath3D * GetAreaPath3D()
     {
-        return fAreaPath;
+        return fAreaPath3D;
+    }
+    
+    void SetPressure(REAL p)
+    {
+        fLinearPath3D->SetPressure(p);
     }
     
     
 protected:
     
-    LinearPath * fLinearPath;
-    ArcPath * fArcPath;
-    AreaPath * fAreaPath;
+    LinearPath3D * fLinearPath3D;
+    ArcPath3D * fArcPath3D;
+    AreaPath3D * fAreaPath3D;
+};
+
+
+class Path2D
+{
+public:
+    
+    Path2D();
+    
+    /**
+     * Given unidimensional element reffers to the cracktip element that will be used
+     * to compute J-integral around it.
+     * Obs.: normal direction must be in xz plane and the arcs (internal and external) will be in (y>0).
+     */
+    Path2D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TPZVec<REAL> &normalDirection, REAL radius, REAL pressure);
+    ~Path2D();
+    
+    LinearPath2D * GetLinearPath2D()
+    {
+        return fLinearPath2D;
+    }
+    
+    ArcPath2D * GetArcPath2D()
+    {
+        return fArcPath2D;
+    }
+    
+    void SetPressure(REAL p)
+    {
+        fLinearPath2D->SetPressure(p);
+    }
+    
+    
+protected:
+    
+    LinearPath2D * fLinearPath2D;
+    ArcPath2D * fArcPath2D;
 };
 
 
 
-class JIntegral
+class JIntegral3D
 {
 public:
     
-    JIntegral();
-    ~JIntegral();
+    JIntegral3D();
+    ~JIntegral3D();
     
-    void PushBackPath(Path *pathElem);
+    virtual void PushBackPath3D(Path3D *Path3DElem);
     
-    TPZVec<REAL> IntegratePath(int p);
+    virtual TPZVec<REAL> IntegratePath3D(int p);
     
 private:
     
-    TPZVec<Path*> fPathVec;
+    TPZVec<Path3D*> fPath3DVec;
+};
+
+
+class JIntegral2D
+{
+public:
+    
+    JIntegral2D();
+    ~JIntegral2D();
+    
+    virtual void PushBackPath2D(Path2D *Path2DElem);
+    
+    virtual TPZVec<REAL> IntegratePath2D(int p);
+    
+private:
+    
+    TPZVec<Path2D*> fPath2DVec;
 };
 
 
