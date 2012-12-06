@@ -93,6 +93,19 @@ void PosProcessamento1(TPZAnalysis &an, std::string plotfile);
 static LoggerPtr logdata(Logger::getLogger("pz.reducedspace.data"));
 #endif
 
+//
+REAL LxD = 1;
+REAL LyD = 0.5;
+REAL LD = 0.5;
+REAL HD = 0.5;
+REAL ED = /*1044.24*/1994.27;
+REAL nu = 0.2;
+REAL viscD = /*1.12953e-13*//*2.88263e-16*/2.65732e-14;
+REAL signD =1.;
+REAL QinD = /*0.00255205*/ /*1.*/0.0216685;
+REAL tD = /*0.00934543*//*0.00002385*/0.000219858;
+REAL deltaTD = tD/30;
+//
 
 int main(int argc, char *argv[])
 {
@@ -106,7 +119,7 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(4,1.,2.);
+	TPZGeoMesh * gmesh = GMesh(4,LyD,LxD);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
 //    ofstream vtkgmesh("gmesh_inicial.vtk");
@@ -215,9 +228,9 @@ int main(int argc, char *argv[])
     ofstream arg7("mphysics.txt");
     mphysics->Print(arg7);
     
-    REAL deltaT=1.; //second
+    REAL deltaT=deltaTD; //second
     mymaterial->SetTimeStep(deltaT);
-    REAL maxTime = 10;//150;
+    REAL maxTime = tD;
     
     
 /** >>> Metodo de resolucao de problema transient */
@@ -444,8 +457,8 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
 	int dim = 2;
 	
     TPZVec<REAL> force(dim,0.);
-    REAL E = 100.;
-	REAL poisson = 0.35;
+    REAL E = ED;
+	REAL poisson = nu;
     //int planestress = 1;
     int planestrain = 0;
     
@@ -463,7 +476,7 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     
     ///Inserir condicao de contorno
     REAL big = material->gBigNumber;
-    REAL sign = 1.;
+    REAL sign = signD;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=0;
@@ -507,8 +520,8 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
 	int dim = 2;
     
     TPZVec<REAL> force(dim,0.);
-    REAL E = 100.;
-	REAL poisson = 0.35;
+    REAL E = ED;
+	REAL poisson = nu;
     //int planestress = 1;
     int planestrain = 0;
     
@@ -525,7 +538,7 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     
     ///Inserir condicao de contorno
     REAL big = material->gBigNumber;
-    REAL sign = 1.;
+    REAL sign = signD;
     
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=0;
@@ -683,8 +696,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //data elasticity
     REAL fx = 0.;
     REAL fy = 0.;
-    REAL E = 100.;
-	REAL poisson = 0.35;
+    REAL E = ED;
+	REAL poisson = nu;
     //int planestress = 1;
     int planestrain = 0;
     mymaterial->SetElasticParameters(E, poisson, fx, fy);
@@ -693,8 +706,8 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     //data pressure
     //TPZFMatrix<REAL> xk(1,1,1.);
     //TPZFMatrix<REAL> xf(1,1,0.);
-    REAL hw = 1.;
-    REAL xvisc = 1.;
+    REAL hw = HD;
+    REAL xvisc = viscD;
     REAL xql = 0.;
     mymaterial->SetParameters(hw, xvisc, xql);
     
@@ -705,7 +718,7 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     mymaterial->NStateVariables();
     ///Inserir condicao de contorno
     REAL big = mymaterial->gBigNumber;
-    REAL sign = 1.;
+    REAL sign = signD;
     
     TPZFMatrix<REAL> val1(3,2,0.), val2(3,1,0.);
     val2(0,0)=0.;
@@ -727,14 +740,13 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     val1(0,0) = big;
     TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bc4, mix_elast, val1, val2);
     
-    REAL vazao = -1.;
+    REAL vazao = -QinD;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=vazao;
     TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,neum_pressure, val1, val2);
     
     
-    REAL pres= 10.0;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=0.0;
@@ -789,7 +801,7 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
-    REAL vazao = 10.;
+    REAL vazao = 0.2;
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=vazao;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc3,neumann, val1, val2);
@@ -800,8 +812,8 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
 	int dim = 2;
     
     TPZVec<REAL> force(dim,0.);
-    REAL E = 100.;
-	REAL poisson = 0.35;
+    REAL E = 1.43996*1e10;
+	REAL poisson = 0.2;
     int planestress = 0;
     
 	TPZElasticityMaterial *matelas;

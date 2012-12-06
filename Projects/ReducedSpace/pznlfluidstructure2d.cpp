@@ -557,6 +557,7 @@ int TPZNLFluidStructure2d::VariableIndex(const std::string &name){
 	if(!strcmp("DisplacementY",name.c_str()))  return 4;
     if(!strcmp("SigmaX",name.c_str()))        return  5;
 	if(!strcmp("SigmaY",name.c_str()))        return  6;
+    if(!strcmp("Displacement",name.c_str()))        return  7;
     
     return TPZMaterial::VariableIndex(name);
 }
@@ -568,6 +569,7 @@ int TPZNLFluidStructure2d::NSolutionVariables(int var){
     if(var == 4) return 1;
     if(var == 5) return 1;
     if(var == 6) return 1;
+    if(var == 7) return fDim;
     return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -656,6 +658,11 @@ void TPZNLFluidStructure2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, 
 		return;
 	}//var6
     
+    if(var == 7){
+		Solout[0] = SolU[0];
+		Solout[1] = SolU[1];
+		return;
+	}//var1
 
 }
 
