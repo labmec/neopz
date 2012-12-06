@@ -1196,8 +1196,8 @@ TPZVec<REAL> JIntegral2D::IntegratePath2D(int p)
     arcInt.stop();
     //
     
-    TPZVec<REAL> answ(3);
-    for(int i = 0; i < 3; i++)
+    TPZVec<REAL> answ(2);
+    for(int i = 0; i < 2; i++)
     {
         answ[i] = linJintegral[i] + arcJintegral[i];
     }
