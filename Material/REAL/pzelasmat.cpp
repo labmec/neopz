@@ -382,8 +382,8 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
             
         case 3: // Directional Null Dirichlet - displacement is set to null in the non-null vector component direction
             for(in = 0 ; in < phr; in++) {
-                ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
-                ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;
+//                ef(nstate*in+0,0) += BIGNUMBER * (0. - data.sol[0][0]) * v2[0] * phi(in,0) * weight;
+//                ef(nstate*in+1,0) += BIGNUMBER * (0. - data.sol[0][1]) * v2[1] * phi(in,0) * weight;
                 for (jn = 0 ; jn < phr; jn++) {
                     ek(nstate*in+0,nstate*jn+0) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[0];
                     ek(nstate*in+1,nstate*jn+1) += BIGNUMBER * phi(in,0) * phi(jn,0) * weight * v2[1];
@@ -394,8 +394,10 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
             
         case 4: // stressField Neumann condition
             for(in = 0; in < dim; in ++)
-                v2[in] = - ( v1(in,0) * data.normal[0] +
+            {
+                v2[in] =  ( v1(in,0) * data.normal[0] +
                             v1(in,1) * data.normal[1]);
+            }
             // The normal vector points towards the neighbour. The negative sign is there to
             // reflect the outward normal vector.
             for(in = 0 ; in < phi.Rows(); in++) {

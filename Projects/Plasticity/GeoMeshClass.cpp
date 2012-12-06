@@ -12,6 +12,7 @@
 #include "pzgeotetrahedra.h"
 #include "pzgeopyramid.h"
 #include "TPZRefPatternTools.h"
+#include "pzgeoelbc.h"
 
 using namespace pzgeom;
 
@@ -181,145 +182,63 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
         
         
     }
-    int val=1000;
-    REAL tol=1./val;
-    int ndiv= val;
-    REAL delta=(M_PI/2)/val;
-    vector<int> ids,ids2,ids3,ids4;
-    for(int j=0;j<=ndiv;j++)
-    {
-        TPZVec<REAL> co(3),co2(3);
-        co[0]= 1*cos(delta*j);
-        co[1]= 1*sin(delta*j);
-        co2[0]=0.1 *cos(delta*j);
-        co2[1]=0.1*sin(delta*j);
-        for(int i=0;i<numnodes;i++)
-        {
-            TPZVec<REAL> cord(3);
-            gMesh->NodeVec()[i].GetCoordinates(cord);
-            REAL val1,val2,val3,val4;
-            val1=fabs(cord[0]-co[0]);
-            val2=fabs(cord[1]-co[1]);
-            val3=fabs(cord[0]-co2[0]);
-            val4=fabs(cord[1]-co2[1]);
-            //cout << "\n coord = "<< cord<<endl;
-            //cout << "co = "<< co<<endl;
-            if(val1<tol && val2 < tol)
-            {
-                ids.push_back(i);
-            }
-            if(val3<tol && val4 < tol)
-            {
-                ids2.push_back(i);
-            }
     
+    gMesh->BuildConnectivity();
+    
+    for (int iel=0; iel<numelements; iel++) {
+        TPZGeoEl *gel = gMesh->ElementVec()[iel];
+        if (!gel) {
+            DebugStop();
+        }
+        int ncorner = gel->NCornerNodes();
+        int nsides = gel->NSides();
+        for (int side=ncorner; side<nsides-1; side++) {
+            TPZGeoElSide gelside(gel,side);
+            if (gelside.Dimension() != 1) {
+                continue;
+            }
+            TPZGeoElSide neighbour = gelside.Neighbour();
+            if (neighbour != gelside) {
+                continue;
+            }
+            int node1 = gelside.SideNodeIndex(0);
+            int node2 = gelside.SideNodeIndex(1);
+            TPZManVector<REAL,3> co1(3),co2(3);
+            gMesh->NodeVec()[node1].GetCoordinates(co1);
+            gMesh->NodeVec()[node2].GetCoordinates(co2);
+            REAL radius1 = sqrt(co1[0]*co1[0]+co1[1]*co1[1]);
+            REAL radius2 = sqrt(co2[0]*co2[0]+co2[1]*co2[1]);
+            bool inner1 = fabs(radius1-0.1) < 0.02;
+            bool inner2 = fabs(radius2-0.1) < 0.02;
+            bool left1 = fabs(co1[0]) < 0.01;
+            bool left2 = fabs(co2[0]) < 0.01;
+            bool bottom1 = fabs(co1[1]) < 0.01;
+            bool bottom2 = fabs(co2[1]) < 0.01;
+            bool outer1 = fabs(radius1-1.) < 0.03;
+            bool outer2 = fabs(radius2-1.) < 0.03;
+            if (bottom1 && bottom2) {
+                // material -4
+                TPZGeoElBC(gel,side,-4);
+                continue;
+            }
+            if (left1 && left2) {
+                // material -5
+                TPZGeoElBC(gel,side,-5);
+                continue;
+            }
+            if (inner1 && inner2) {
+                // material -2
+                TPZGeoElBC(gel,side,-2);
+                continue;
+            }
+            if (outer1 && outer2) {
+                // material -3
+                TPZGeoElBC(gel,side,-3);
+                continue;
+            }
+            DebugStop();
         }
     }
-    
-    tol=1./ndiv;
-    delta=1./ndiv;
-    for(int j=0;j<=ndiv;j++)
-    {
-        
-        
-        TPZVec<REAL> co3(3),co4(3);
-        co3[0]= delta*j;
-        co3[1]= 0.;
-        co4[0]=0.;
-        co4[1]=delta*j;
-        
-        for(int i=0;i<numnodes;i++)
-        {
-            TPZVec<REAL> cord(3);
-            gMesh->NodeVec()[i].GetCoordinates(cord);
-            REAL val1,val2,val3,val4;
-            
-            
-            val1=fabs(cord[0]-co3[0]);
-            val2=fabs(cord[1]-co3[1]);
-            
-            val3=fabs(cord[0]-co4[0]);
-            val4=fabs(cord[1]-co4[1]);
-            
-            //cout << "\n coord = "<< cord<<endl;
-            //cout << "co = "<< co3 <<endl;
-            //cout << "co = "<< co4 <<endl;
-            if(val1<tol && val2<tol)
-            {
-                ids3.push_back(i);
-            }
-            if(val3 < tol && val4 <tol)
-            {
-                ids4.push_back(i);
-            }
-            
-        }
-    }
-    
-    //TPZVec<int> arc(3);
-    int id=0;
-    //poco
-    
-    for(int i=0;i<(ids2.size())-1;i++)
-    {
-        
-        TopolLine[0] =ids2[i];	TopolLine[1] = ids2[i+1];
-        if(TopolLine[0] != TopolLine[1])
-        {
-            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-2,*gMesh);
-            cout << "\n "<<TopolLine;
-        }
-        
-    }
-    //for field
-
-    for(int i=0;i<(ids.size())-1;i++)
-    {
-            TopolLine[0] =ids[i] ;	TopolLine[1] =ids[i+1];
-            if(TopolLine[0] != TopolLine[1])
-            {
-                new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-3,*gMesh);
-            }
-
-    }
-    
-    
-    //linha inferior
-    int sz = ids3.size()-1;
-    
-    TopolLine[0] =ids3[0] ;	TopolLine[1] =ids3[sz];
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
-    
-//    for(int i=0;i<(ids3.size())-1;i++)
-//    {
-//        cout << "\n "<<ids3[i];
-//        TopolLine[0] =ids3[i+1] ;	TopolLine[1] =ids3[i];
-//        if(TopolLine[0] != TopolLine[1])
-//        {
-//            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-4,*gMesh);
-//        }
-//        
-//    }
-
-    
-    
-    
-    sz = ids4.size()-1;
-    
-    TopolLine[0] =ids4[0] ;	TopolLine[1] =ids4[sz];
-    new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
-//    
-//    
-//    for(int i=0;i<(ids4.size())-1;i++)
-//    {
-//        //cout << "\n "<<ids4[i];
-//        TopolLine[0] =ids4[i+1] ;	TopolLine[1] =ids4[i];
-//        if(TopolLine[0] != TopolLine[1])
-//        {
-//            new TPZGeoElRefPattern<TPZGeoLinear> (id,TopolLine,-5,*gMesh);
-//        }
-//        
-//    }
     
     
     gMesh->BuildConnectivity();

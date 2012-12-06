@@ -140,8 +140,8 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
    
     TPZFMatrix<REAL> k2(2,2,0.);
     TPZFMatrix<REAL> f2(2,1,0.);
-    k2(0,0)=-1./10;
-    k2(1,1)=-1./10;
+    k2(0,0)=-1.;
+    k2(1,1)=-1.;
   //   k2(0,0)=1000.;
   //  k2(1,0)=1000.;
   //  f2(0,0)=1.;
@@ -1407,7 +1407,7 @@ void PorousWellboreLoadTest(stringstream & fileName, T & mat,
 int main()
 {
     
-    //InitializePZLOG();
+    InitializePZLOG();
 	
    // TPZGeoMesh * mesh = GeoMeshClass::WellBore2d();
     

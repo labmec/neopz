@@ -211,7 +211,7 @@ void TPZInterpolationSpace::ComputeNormal(TPZMaterialData & data)
 	thisGeoEl->     X(thisCenter,     thisXVol);
 	neighbourGeoEl->X(neighbourCenter,neighbourXVol);
 	
-	for(i = 0; i < 3; i++)vec[i] = neighbourXVol[i] - thisXVol[i];// vector towards the center of the neighbour element
+	for(i = 0; i < 3; i++)vec[i] = -neighbourXVol[i] + thisXVol[i];// vector towards the center of the neighbour element
 	
 	dim = thisGeoEl->Dimension();
 	
