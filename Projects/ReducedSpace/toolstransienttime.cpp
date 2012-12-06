@@ -146,8 +146,8 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         matM->Multiply(InitialSolution,Mass_X_SolTimeN);
        
         REAL res = Norm(fres + Mass_X_SolTimeN);
-        REAL tol = 1.e-12;
-        int maxit = 10;
+        REAL tol = 1.e-8;
+        int maxit = 15;
         int nit = 0;
 
         res_total = fres + Mass_X_SolTimeN;
@@ -155,6 +155,10 @@ void ToolsTransient::SolveSistTransient(REAL deltaT,REAL maxTime, TPZFMatrix<REA
         {
             an->Rhs() = res_total;
             an->Solve();
+            
+            std::ofstream file("SolutoutP.txt");
+            an->Solution().Print("solution", file);
+            
             an->LoadSolution(SolIterK + an->Solution());
             
             TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
@@ -253,13 +257,14 @@ void ToolsTransient::SaidaMathPressao(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh
 void ToolsTransient::PosProcessMult(TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis *an, std::string plotfile)
 {
     //TPZBuildMultiphysicsMesh::TransferFromMultiPhysics(meshvec, mphysics);
-	TPZManVector<std::string,10> scalnames(5), vecnames(0);
+	TPZManVector<std::string,10> scalnames(5), vecnames(1);
 	
 	scalnames[0] = "DisplacementX";
 	scalnames[1] = "DisplacementY";
     scalnames[2] = "SigmaX";
     scalnames[3] = "SigmaY";
     scalnames[4] = "Pressure";
+    vecnames[0] = "Displacement";
 	
 	const int dim = 2;
 	int div =0;
