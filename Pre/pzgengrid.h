@@ -43,8 +43,9 @@ public:
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
+	 * @param matid Material id to associate all geometric elements
 	 */
-    virtual short Read(TPZGeoMesh *mesh);
+    virtual short Read(TPZGeoMesh *mesh,int matid = 1);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)
@@ -157,6 +158,12 @@ public:
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
 	bool ReadAndMergeGeoMesh(TPZAutoPointer<TPZGeoMesh> grid,TPZAutoPointer<TPZGeoMesh> grid2);
+	/**
+	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, creating the first mesh and the second mesh must to exist
+	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
+	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
+	 */
+	bool ReadAndMergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid = 1);
 	
 protected:
     /**
@@ -185,8 +192,9 @@ protected:
 	/**
 	 * @brief Creates the geometric element: triangles or quadrilaterals
 	 * @param grid Object mesh in which will be stored the created elements
+	 * @param matid Material id to associate all geometric elements
 	 */
-    virtual bool GenerateElements(TPZGeoMesh *grid);
+    virtual bool GenerateElements(TPZGeoMesh *grid,int matid = 1);
     
     /** @brief Number of elements in both directions */
 	TPZVec<int> fNx;
