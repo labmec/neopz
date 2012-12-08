@@ -451,7 +451,7 @@ void TPZInterpolationSpace::Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol
 		return;
 	}
 	if(var == 99) {
-		sol[0] = this->MaxOrder();
+		sol[0] = GetPreferredOrder();
 		return;
 	}
 	
