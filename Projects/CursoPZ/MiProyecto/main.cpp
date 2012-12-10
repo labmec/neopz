@@ -201,7 +201,7 @@ int main() {
 	TPZGeoMesh* gmesh1 = new TPZGeoMesh;
 	TPZManVector<REAL> x0(3,0.), x1(3,0.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
 	x0[1] = -1.; x1[0] = 1.;
-	TPZManVector<int> nx(4,4);   // subdivisions in X and in Y. 
+	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
 	TPZGenGrid gen1(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen1.SetElementType(0);       // type = 0 means rectangular elements
 	gen1.Read(gmesh1,materialId);             // generating grid in gmesh
@@ -226,7 +226,7 @@ int main() {
 		TPZGeoMesh* gmesh = new TPZGeoMesh;
 		x0[0] = -1.; x0[1] = 0.;
 		x1[0] = 1.; x1[1] = 1.;
-		nx[0] = 8; //nx[1] *= 2;
+		nx[0] = 4; //nx[1] *= 2;
 		TPZGenGrid gen(nx,x0,x1);
 		gen.SetElementType(0);
 		gen.ReadAndMergeGeoMesh(gmesh,gmesh1,materialId);
@@ -249,7 +249,7 @@ int main() {
 		if(!ii) {			
 			// Refinando nas esquinas desejadas
 			nelem=0;
-			int nrefs = 5;
+			int nrefs = 1;
 			point[0] = point[1] = point[2] = 0.;
 			TPZVec<TPZManVector<REAL> > points(3);
 			points[0] = point;
@@ -268,7 +268,7 @@ int main() {
 		}
 		else {
 			// Refinamento uniforme para toda a malla
-			UniformRefine(gmesh,3);
+			UniformRefine(gmesh,1);
 		}
 	
 		// Creating computational mesh (approximation space and materials)
