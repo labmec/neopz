@@ -846,8 +846,8 @@ void TPZMatElastoPlastic<T,TMEM>::ApplyDeltaStrainComputeDep(TPZMaterialData & d
     }
     
     //TMEM = Tipo de Material ex : elastoplastico, plastico, etc.
-    cout << "\n Memoria " << endl;
-    TPZMatWithMem<TMEM>::fMemory[intPt].Print();
+    //cout << "\n Memoria " << endl;
+    //TPZMatWithMem<TMEM>::fMemory[intPt].Print();
     
     
     fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);

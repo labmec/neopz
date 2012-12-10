@@ -106,46 +106,43 @@ using namespace pzshape; // needed for TPZShapeCube and related classes
 
 void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
 {
-//    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
-//    TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
-//    TPZTensor<REAL> OCStress, beginOCStress, loadStress, loadStress2, initialStrain, FarFieldStress, TestStress;
-//	
-//	REAL alpha=0.8;
-//	REAL PorePressure = 4397.;//PSI
-//    REAL L=3000.,LDA=1200.,terra=0.9,agua=0.447;//PSI/ft
-//    REAL SigmaV  = agua*3.28*LDA+terra*3.28*(L-LDA);
-//	REAL Sigmah = 0.8 * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
-//    
-//	
-//	loadStress.XX()=1.;
-//    loadStress.YY()=1.;
-//	
-//	loadStress *= 1.*(Sigmah - PorePressure * alpha);
-//    EndStress(0,0)=1.*(Sigmah - PorePressure * alpha);
-//    EndStress(1,1)=1.*(Sigmah - PorePressure * alpha);
-//    loadStress.CopyToTensor(EndStress);
+/*    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
+    TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
+    TPZTensor<REAL> OCStress, beginOCStress, loadStress, loadStress2, initialStrain, FarFieldStress, TestStress;
+	
+	REAL alpha=0.8;
+	REAL PorePressure = 4397.;//PSI
+    REAL L=3000.,LDA=1200.,terra=0.9,agua=0.447;//PSI/ft
+    REAL SigmaV  = agua*3.28*LDA+terra*3.28*(L-LDA);
+	REAL Sigmah = 0.8 * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
+    
+	
+	loadStress.XX()=1.;
+    loadStress.YY()=1.;
+	
+	loadStress *= 1.*(Sigmah - PorePressure * alpha);
+    EndStress(0,0)=1.*(Sigmah - PorePressure * alpha);
+    EndStress(1,1)=1.*(Sigmah - PorePressure * alpha);
+    loadStress.CopyToTensor(EndStress);
 
-    TPZFMatrix<REAL> f1(2,1,0.);
-    TPZFMatrix<REAL> k1(2,2,0.);
-    k1(0,0)=-1.;
-    k1(1,1)=-1.;
-  //  k1(0,0)=1000.;
-   // k1(1,0)=1000.;
- //   f1(0,0)=1.;
-  //  f1(1,0)=1000.;
+ */
+    
+    
+    TPZFMatrix<REAL> f1(3,1,0.);
+    TPZFMatrix<REAL> k1(3,3,0.);
+    k1(0,0)=-29.3;
+    k1(1,1)=-29.3;
+    k1(2,2)=-29.3;
     TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
     CMesh->InsertMaterialObject(bc1);
     
 
    
-    TPZFMatrix<REAL> k2(2,2,0.);
-    TPZFMatrix<REAL> f2(2,1,0.);
-    k2(0,0)=-1.;
-    k2(1,1)=-1.;
-  //   k2(0,0)=1000.;
-  //  k2(1,0)=1000.;
-  //  f2(0,0)=1.;
-  //  f2(1,0)=1.;
+    TPZFMatrix<REAL> k2(3,3,0.);
+    TPZFMatrix<REAL> f2(3,1,0.);
+    k2(0,0)=-44.3;
+    k2(1,1)=-58.2;
+    k2(2,2)=-53.8;
     TPZMaterial * bc2 = mat->CreateBC(mat,-3,4,k2,f2);
     CMesh->InsertMaterialObject(bc2);
     
@@ -298,7 +295,7 @@ void wellboreanalyis()
 
 void wellelastic()
 {
-    REAL E=1000000.,nu=0.20;
+    REAL E=29269.,nu=0.203;
     int planestrain=1;
     //int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress
     TPZElasticityMaterial *elastic = new TPZElasticityMaterial(1,E,nu,0,0,planestrain);
@@ -326,11 +323,13 @@ void wellelastic()
 	analysis.SetSolver(step);
     analysis.Run();
     ////Post Processing
-    TPZVec<std::string> vecnames(1),scalnames;
-    scalnames.Resize(0);
+    TPZVec<std::string> vecnames(2),scalnames(2);
+
     
-    vecnames[0]="displacement";
-    
+    vecnames[0] = "displacement";
+    vecnames[1] = "Stress";
+    scalnames[0] = "J2";
+    scalnames[1] = "I1";
     
     const int dim = 2;
     analysis.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
@@ -1430,7 +1429,7 @@ int main()
     
  //   TPZChunkVector<REAL> vec(3);
 
-    
+
     return 0;
     
 	int testNumber, matNumber;
@@ -1462,7 +1461,7 @@ int main()
 	cout << "\n";
     
     //    cin >> matNumber;
-    matNumber = 3;
+    matNumber = 5;
 	
 	switch(matNumber)
 	{
@@ -1531,7 +1530,7 @@ int main()
     
 	fileName << "_pTol" << plasticTol;
     
-    testNumber = 0;
+    testNumber = 1;
     InitializePZLOG();
 	
 	switch(testNumber)

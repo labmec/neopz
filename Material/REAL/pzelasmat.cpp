@@ -534,8 +534,8 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
 	if(!strcmp("Displacement6",name.c_str()))    return 7;
 	if(!strcmp("Stress",name.c_str()))           return 10;
-    if(!strcmp("f1",name.c_str()))           return 20;
-    if(!strcmp("f2",name.c_str()))           return 21;
+    if(!strcmp("J2",name.c_str()))           return 20;
+    if(!strcmp("I1",name.c_str()))           return 21;
     
     
 	
@@ -586,12 +586,34 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	REAL SigX;
 	REAL SigY;
 	REAL Tau,aux,Sig1,Sig2,angle,DSolxy[2][2];
-	// dudx - dudy
+    
+    // dudx - dudy
 	DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
 	DSolxy[1][0] = DSol(0,0)*axes(0,1)+DSol(1,0)*axes(1,1);
 	// dvdx - dvdy
 	DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
 	DSolxy[1][1] = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
+    
+    
+    epsx = DSolxy[0][0];// du/dx
+    epsy = DSolxy[1][1];// dv/dy
+    epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+    if (this->fPlaneStress){
+        SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
+        SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
+    }
+    else
+    {
+        SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
+        SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
+    }
+    
+    //numvar = 1;
+    Solout[0] = SigX+SigY;
+    Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
+    
+    
+
 	/*
 	 ef(2*in, 0) += weight * (ff[0] * phi(in, 0)+ du(0,0)*fPreStressXX + du(1,0)*fPreStressXY) ;  // dire�o x
 	 ef(2*in+1, 0) += weight * (ff[1] * phi(in, 0)+ du(0,0)*fPreStressYY + du(1,0)*fPreStressXY);// dire�o y <<<----
@@ -619,20 +641,6 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 		case 6:
 		case 8:
 		case 10:
-			epsx = DSolxy[0][0];// du/dx
-			epsy = DSolxy[1][1];// dv/dy
-			epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
-			if (this->fPlaneStress){
-				SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
-				SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
-			}
-			else
-			{
-				SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
-				SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
-			}
-			
-			//numvar = 1;
 			Solout[0] = SigX+SigY;
 			Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
 			if(var == 1) {
@@ -705,12 +713,20 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
             
             
         case 20:
+        {
             
+           REAL J2 = (pow(SigX + SigY,2) - (3*(-pow(SigX,2) - pow(SigY,2) + pow(SigX + SigY,2) -
+                                        2*pow(Tau,2)))/2.)/2.;
+            
+            Solout[0]=J2;
             break;
+        }
         case 21:
-            
+        {
+            REAL I1 = SigX+SigY;
+            Solout[0]=I1;
             break;
-            
+        }
 		default:
 			cout << "TPZElasticityMaterial::Solution Error\n";
 			TPZMaterial::Solution(Sol,DSol,axes,var,Solout);

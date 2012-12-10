@@ -220,6 +220,7 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
                 // material -4
                 TPZGeoElBC(gel,side,-4);
                 continue;
+                cout << "\n "<<TopolLine;
             }
             if (left1 && left2) {
                 // material -5
