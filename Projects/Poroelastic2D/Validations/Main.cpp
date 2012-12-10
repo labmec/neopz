@@ -202,7 +202,7 @@
 		cmesh1->LoadReferences();
 		
 		//	Using Uniform Refinement
-		RefinUniformElemComp(cmesh1,3);
+		RefinUniformElemComp(cmesh1,0);
 		cmesh1->AdjustBoundaryElements();
 		cmesh1->CleanUpUnconnectedNodes();
 		
@@ -220,7 +220,7 @@
 		
 		//	Using Uniform Refinement for second computational problem	
 		//	Using Uniform Refinement
-		RefinUniformElemComp(cmesh2,3);
+		RefinUniformElemComp(cmesh2,0);
 		cmesh2->AdjustBoundaryElements();
 		cmesh2->CleanUpUnconnectedNodes();
 		cmesh2->ExpandSolution();
