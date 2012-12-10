@@ -1,4 +1,4 @@
-
+#include "pzlog.h"
 #include "pzvec.h"
 #include "pzadmchunk.h"
 #include "pzcmesh.h"
