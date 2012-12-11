@@ -154,7 +154,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 				int matid = mat->Id();
 				if (this->ShouldCompute(matid) == false) continue;
 			}
-		}//if
+		}
 		
 		count++;
 		if(!(count%20))

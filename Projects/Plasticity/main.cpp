@@ -39,7 +39,6 @@
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
 
-/////////
 
 using namespace pzshape; // needed for TPZShapeCube and related classes
 

@@ -165,7 +165,8 @@ void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMa
     else if(var == 99 || var == 100 || var == 101 || var == 102) {
         PZError << "TPZMaterial var = "<< var << " the element should treat this case\n";
         Solout[0] = Sol[0].real(); // = 0.;
-    } else 
+    } 
+	else 
     {
         Solout.Resize(0);
     }

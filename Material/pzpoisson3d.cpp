@@ -19,6 +19,7 @@
 static LoggerPtr logger(Logger::getLogger("pz.material.poisson3d"));
 #endif
 
+
 using namespace std;
 STATE TPZMatPoisson3d::gAlfa = 0.5;
 

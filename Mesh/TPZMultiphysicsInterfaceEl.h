@@ -175,6 +175,7 @@ public:
         }
         return 1;
     }
+	
     /** @brief adds the connect indexes associated with base shape functions to the set */
     virtual void BuildCornerConnectList(std::set<int> &connectindexes) const
     {

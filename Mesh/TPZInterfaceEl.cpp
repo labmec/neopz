@@ -31,6 +31,7 @@ void TPZInterfaceElement::SetLeftRightElements(TPZCompElSide & left, TPZCompElSi
 	TPZCompEl * cel = left.Element();
 	if(cel){
 		
+		
 		TPZInterpolatedElement * intel = dynamic_cast<TPZInterpolatedElement *>(cel);
 		TPZCompElDisc * disc = dynamic_cast<TPZCompElDisc *>(cel);
 		if (!intel && !disc){

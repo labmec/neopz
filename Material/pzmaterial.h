@@ -397,6 +397,7 @@ public:
     /** @brief Returns fLinearContext attribute */
     bool GetLinearContext() const;
     
+	
 };
 
 inline bool TPZMaterial::GetLinearContext() const{

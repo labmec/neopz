@@ -116,7 +116,6 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
     REAL SigmaV  = agua*3.28*LDA+terra*3.28*(L-LDA);
 	REAL Sigmah = 0.8 * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
     
-	
 	loadStress.XX()=1.;
     loadStress.YY()=1.;
 	

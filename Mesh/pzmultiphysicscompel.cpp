@@ -107,6 +107,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 		}
 	}
 	
+	
 #ifdef LOG4CXX
 	{
 		std::stringstream sout;
@@ -119,6 +120,7 @@ void TPZMultiphysicsCompEl<TGeometry>::GetReferenceIndexVec(TPZManVector<TPZComp
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
+	
 }
 
 template <class TGeometry>
