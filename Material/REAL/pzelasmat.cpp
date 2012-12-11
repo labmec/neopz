@@ -326,9 +326,9 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
 	
 //		In general when the problem is  needed to stablish any convention for ContributeBC implementations
 
-    REAL v2[2];
-	v2[0] = bc.Val2()(0,0);
-	v2[1] = bc.Val2()(1,0);
+//     REAL v2[2];
+// 	v2[0] = bc.Val2()(0,0);
+// 	v2[1] = bc.Val2()(1,0);
     
 	TPZFMatrix<REAL> &v1 = bc.Val1();
     int nstate = NStateVariables();
@@ -427,6 +427,7 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
             
 	}      // �nulo introduzindo o BIGNUMBER pelos valores da condi�o
 } // 1 Val1 : a leitura �00 01 10 11
+}
 
 
 void TPZElasticityMaterial::ContributeVecShapeBC(TPZMaterialData &data,REAL weight,

@@ -361,7 +361,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	int nstate = 0;
 	//nstate=1;
     int numloadcases = 1;
-	for (int iref=0; iref<nref; iref++) 
+	for (int iref=0; iref<nref; iref++) {
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if (! msp) {

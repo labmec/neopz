@@ -388,7 +388,7 @@ void taludecmesh(TPZCompMesh *CMesh, TPZMaterial * mat)
 }
 
 
-void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat,REAL theta,int axes)
+void cmesh(TPZCompMesh *CMesh, TPZMaterial * mat)//,REAL theta,int axes)
 {
     
     TPZFMatrix<REAL> k1(3,3,0.);

@@ -234,7 +234,7 @@ public:
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
 	
-	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);	
+	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);	
 	
 };
 

@@ -54,7 +54,7 @@ public:
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;
 	
-	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> dimension)=0;	
+	//virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> dimension)=0;	
     
     void CreateInterfaces();
     

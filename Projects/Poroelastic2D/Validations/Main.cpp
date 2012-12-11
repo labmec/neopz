@@ -20,7 +20,7 @@
 #include "../MeshGeneration.h"
 #include "../AnalyticalFunctions.h"
 #include "../ElasticMatInterface2D.h"
-#include "../PoroElasticMatInterface2D.h"
+//#include "../PoroElasticMatInterface2D.h"
 #include "TPZInterfaceEl.h"
 #include "pzdiscgal.h"
 
