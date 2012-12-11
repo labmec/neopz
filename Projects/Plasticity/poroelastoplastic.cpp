@@ -6,7 +6,7 @@
 
 
 #include "pzskylstrmatrix.h"
-
+#include "TPZReadGIDGrid.h"
 
 #include "pzelctemp.h" // TPZIntelGen<TSHAPE>
 #include "pzshapecube.h" // TPZShapeCube

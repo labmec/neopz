@@ -1,9 +1,10 @@
 /*
- *  pzporoelastic2d.h
+ *  pzporoelastic2d.cpp
  *  PZ
  *
  *  Created by Agnaldo on 11/28/11.
- *  Copyright 2011 __MyCompanyName__. All rights reserved.
+ *	Modified and Improved by Omar Duran on 11/28/11.
+ *  Copyright 2012 L@bMeC. All rights reserved.
  *
  */
 
@@ -14,21 +15,25 @@
 #include "pzdiscgal.h"
 #include "pzvec.h"
 
+
 #include <iostream>
 
 
 /**
  * @ingroup material
- * @brief DESCRIBE PLEASE
+ * @brief Description of Biot's (1941) Linear Poroelastic system
  */
 /**
- **@ingroup equacao da elasticidade
- * \f$  div(T(u))  + fXf2 = 0  ==> Int{Grad(v).T(u)}dx - Int{v.gN}ds  = Int{ff.v}dx  \f$ (Eq. 1) 
+ **@ingroup Linear Elastic Equation
+ * \f$  div(T(u)) + b = 0  ==> Int{Grad(v).T(u)}dx - Int{v.gN}ds  = Int{b.v}dx  \f$ (Eq. 1) 
  *
- *\f$ T(u) =  tr(E(u) − alpha*p*I)lambda*I + 2*nu*(E(u) − alpha*p*I)\f$
+ *\f$ T(u) =  lambda*Trace(E(u)I + 2*mu*(E(u)) - \f$
  *
- *@ingroup equacao da pressao
- * \f$ -1/visc*div(gradu k)  = 0 ==> k/visc*Int{Grad(u)Grad(v)}dx - Int{k/visv*Grad(u).n v}ds  = 0   (Eq. 2)  \f$ 
+ *\f$ E(u) =  (1/2)(Grad(u) + Transpose(Grad(u)) \f$
+ * 
+ *@ingroup	Diffusion equation for monophasic slightly compressible flow (e.g. oil)
+ *
+ *\f$ -(k/mu)*Div(Grad(p))  = d/dt{Se*p + alpha*Div(u)} (Eq. 2)  \f$ 
  *
  */
 
@@ -45,7 +50,13 @@ protected:
 	/** @brief Poison coeficient */
 	REAL fnu;
 	
-	/** @brief constants poroelastic Biot*/
+	/** @brief first Lame Parameter */
+	REAL flambda;
+	
+	/** @brief Second Lame Parameter */
+	REAL fmu;	
+	
+	/** @brief constants Biot poroelasticity */
 	REAL falpha; //parAmetro poroelestico de Biot-Willis [adimensional]
 	REAL fSe; //ou 1/M coeficiente poroelastico de armazenamento a volume constante [adimensional]
 	
@@ -55,6 +66,7 @@ protected:
 	/** @brief Permeability of the rock and fluid viscosity*/
 	REAL fk; 
 	REAL fvisc;
+	REAL fK;
 	
 	/** @brief Uses plain stress 
 	* @note \f$fPlaneStress = 1\f$ => Plain stress state 
@@ -71,7 +83,9 @@ protected:
 	
 	REAL fmatId;
 	
-	/** @brief State: one ou one+1 */
+	REAL ftheta;
+	
+	/** @brief State: Stiffness or Mass Matrix Calculations */
 	enum EState { ELastState = 0, ECurrentState = 1 };
 	static EState gState;
 	
@@ -94,24 +108,36 @@ public:
 	void SetCurrentState(){ gState = ECurrentState; }
 
 	/** @brief Parameters of rock and fluid: */
+	void SetDimension(int dimension)
+	{
+		fDim = dimension;
+
+	}	
+	
+	
+	/** @brief Parameters of rock and fluid: */
 	void SetParameters(REAL perm, REAL visc)
 	{
 		fk = perm;
 		fvisc = visc;
+		fK = perm/visc;
 	}
 	
 	/** 
 	 * @brief Set parameters of elastic material:
-	 * @param E elasticity modulus
-	 * @param nu poisson coefficient
+	 * @param First  Lame Parameter Lambda
+	 * @param Second Lame Parameter Mu -> G
 	 * @param fx forcing function \f$ -x = fx \f$ 
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	void SetParameters(REAL E, REAL nu,  REAL fx, REAL fy)
+	void SetParameters(REAL Lambda, REAL mu,  REAL fx, REAL fy)
 	{
-		fE = E;
-		fnu = nu;
+		fE = (mu*(3.0*Lambda+2.0*mu))/(Lambda+mu);
+		fnu = (Lambda)/(2*(Lambda+mu));
+	
+		flambda = Lambda;
+		fmu = mu;
 		ff[0] = fx;
 		ff[1] = fy;
 	}
@@ -135,10 +161,11 @@ public:
 		fPlaneStress = planestress;
 	}
 	
-	/// Set the timestep
-	void SetTimeStep(REAL delt)
+	/// Set the timestep and Discretisation in time for more details see Ref  Finite element Method in ethe  ,.... pag 84
+	void SetTimeStep(REAL Delta, REAL theta)
 	{
-		fTimeStep = delt;
+		ftheta = theta;
+		fTimeStep = Delta;
 	}
 	
 	/// Set the timestep
@@ -159,6 +186,7 @@ public:
 
 	}
 	
+	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
 	/**
      * @brief It computes a contribution to the stiffness matrix and load vector at one integration point to multiphysics simulation.
@@ -178,6 +206,8 @@ public:
 	//public:
 	virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
 	
+//	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
+	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one integration point
 	 * @param data [in]
@@ -186,7 +216,8 @@ public:
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
+	virtual void ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
+							 REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef);
 	
 	/**
 	 * @brief It computes a contribution to stiffness matrix and load vector at one BC integration point

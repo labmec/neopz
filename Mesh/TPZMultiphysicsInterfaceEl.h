@@ -68,6 +68,9 @@ public:
         return new TPZMultiphysicsInterfaceElement(mesh,*this,gl2lcConMap,gl2lcElMap);
     }
 	
+	/** @brief Informs the connect that this element is connected to it. */
+	void IncrementElConnected();	
+	
 	/** @brief Default destructor */
 	virtual ~TPZMultiphysicsInterfaceElement();
 	
@@ -89,8 +92,13 @@ public:
     /**
      * Add elements to the list of left and right elements
      */
-    void SetLeftRightEement(TPZCompElSide &leftel, TPZCompElSide &rightel);
+    void SetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel);
     
+	/**
+	 * Get left and right elements
+	 */	
+	void GetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel);
+	
     /**
 	 * @brief Set the index i to node inode
 	 * @param inode node to set index
@@ -175,7 +183,20 @@ public:
         left->BuildCornerConnectList(connectindexes);
         right->BuildCornerConnectList(connectindexes);
     }
-    
+	
+	/**
+	 * @brief Calculates the solution - sol - for the variable var
+	 * at point qsi, where qsi is expressed in terms of the
+	 * master element coordinates
+	 * @param qsi master element coordinate
+	 * @param var variable name
+	 * @param sol vetor for the solution
+	 */
+	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
+	
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	
+	
     
 };
 

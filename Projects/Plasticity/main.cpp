@@ -34,6 +34,7 @@
 #include "TPZDruckerPrager.h"
 #include "GeoMeshClass.h"
 #include "pzelastoplastic2D.h"
+#include <pzmathyperelastic.h>
 #include "tpzycvonmisescombtresca.h"
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
@@ -561,6 +562,54 @@ void SetUPPostProcessVariables(TPZVec<std::string> &postprocvars, TPZVec<std::st
 
 void ManageIterativeProcess(TPZElastoPlasticAnalysis &analysis ,REAL valBeg, REAL valEnd,int BCId, int steps,TPZPostProcAnalysis * pPost)
 {
+
+    TPZGeoMesh *barmesh1;
+    barmesh1 = barmesh(0);
+    ofstream arg("barmesh.txt");
+    barmesh1->Print(arg);
+    
+    TPZCompEl::SetgOrder(1);
+	TPZCompMesh *compmesh1 = new TPZCompMesh(barmesh1);
+	
+    
+	//TPZAnalysis::SetAllCreateFunctionsContinuous(compmesh1);
+  
+    
+    int nummat=1;
+    REAL e = 5088.; // [MPa]
+    REAL mu = 2290.;
+    REAL nu = 0.11;
+    REAL lambda = 646;
+    
+    REAL coef1;// =1.202;
+    coef1=mu*((1-3*nu)/(1-2*nu));
+    REAL coef2;// = -0.057;
+    coef2 = mu*((1-nu)/(1-2*nu));
+    REAL coef3;// = 0.004;
+    coef3 = mu*((2*nu)/(1-2*nu));
+    
+    TPZMatHyperElastic * mathyper = new TPZMatHyperElastic(nummat,e,mu,nu,lambda, coef1,coef2,coef3);
+    TPZMaterial *hyper(mathyper);
+    compmesh1->InsertMaterialObject(hyper);
+    cmesh(compmesh1, hyper);
+    ofstream arg2("hyper.txt");
+    compmesh1->Print(arg2);
+    
+    TPZNonLinearAnalysis an(compmesh1,cout);
+    
+    TPZSkylineStructMatrix full(compmesh1);
+	an.SetStructuralMatrix(full);
+    an.Solution().Zero();
+    TPZStepSolver<STATE> sol;
+    sol.SetDirect(ELDLt);
+    an.SetSolver(sol);
+    an.IterativeProcess(cout,1e-5,30);
+    TPZStack<std::string> scalnames,vecnames;
+    vecnames.Push("Solution");
+    vecnames.Push("VonMises");
+    an.DefineGraphMesh(3, scalnames, vecnames, "hyper.vtk");
+    int postprocessresolution = 0;
+    an.PostProcess(postprocessresolution);
     
     
 	TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);

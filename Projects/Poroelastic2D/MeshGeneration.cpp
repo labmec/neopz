@@ -406,6 +406,89 @@ TPZGeoMesh * MeshGeneration::GeometricMesh2DValidation(TPZVec < int > matIdlist)
 	
 }
 
+TPZGeoMesh * MeshGeneration::GeometricMesh2DValidationQ(TPZVec < int > matIdlist)
+{
+	// 2D Cylindrical Domain boundaries
+	int matId = matIdlist[0];
+	int arc1 = matIdlist[1];
+	int Line1 = matIdlist[2];
+	int Line2 = matIdlist[3];	
+	int WellPoint = matIdlist[4];
+	
+	int nodenumber = 4;
+	REAL ModelRadius = this->frLength;
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->NodeVec().Resize(nodenumber);
+	
+	// Setting node coordantes for Arc3D 1
+	int id = 0;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,ModelRadius );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,0.0);//coord Y
+	id++;
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,0.0 );//coord X
+	gmesh->NodeVec()[id].SetCoord(1,ModelRadius);//coord Y
+	id++;	
+	gmesh->NodeVec()[id].SetNodeId(id);
+	gmesh->NodeVec()[id].SetCoord(0,sqrt(2)*ModelRadius/2.);//coord X
+	gmesh->NodeVec()[id].SetCoord(1,sqrt(2)*ModelRadius/2.);//coord Y	
+
+	
+	int elementid = 0;
+	// Create Geometrical Arc #1
+	// Definition of Arc coordenates
+	TPZVec < int > nodeindex(3,0.0);
+	nodeindex[0] = 1;	
+	nodeindex[1] = 2;
+	nodeindex[2] = 3;
+	TPZGeoElRefPattern < pzgeom::TPZArc3D > * elarc1 = new TPZGeoElRefPattern < pzgeom::TPZArc3D > (elementid,nodeindex, arc1,*gmesh);
+	elementid++;
+	
+	// Create Geometrical Line #1	
+	nodeindex.resize(2);
+	nodeindex[0] = 0;	
+	nodeindex[1] = 1;
+	TPZGeoElRefPattern < pzgeom::TPZGeoLinear > * elpoint1 = new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, Line1,*gmesh); 
+	elementid++;
+	
+	// Create Geometrical Line #2
+	nodeindex.resize(2);
+	nodeindex[0] = 0;	
+	nodeindex[1] = 2;	
+	TPZGeoElRefPattern < pzgeom::TPZGeoLinear > * elpoint3 = new TPZGeoElRefPattern < pzgeom::TPZGeoLinear > (elementid,nodeindex, Line2,*gmesh); 
+	elementid++;
+		
+	
+	// Create Geometrical Point for fluid injection or Production #1	
+	nodeindex.resize(1);
+	nodeindex[0] = 0;	
+	TPZGeoElRefPattern < pzgeom::TPZGeoPoint > * elpoint = new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (elementid,nodeindex, WellPoint,*gmesh); 
+	elementid++;	
+	
+	// Create Geometrical triangle #1	
+	nodeindex.resize(3);
+	nodeindex[0] = 0;
+	nodeindex[1] = 1;
+	nodeindex[2] = 2;	
+	TPZGeoElRefPattern< TPZGeoBlend < pzgeom::TPZGeoTriangle > > *triangle1 = new TPZGeoElRefPattern< TPZGeoBlend < pzgeom::TPZGeoTriangle > > (elementid,nodeindex, matId,*gmesh);
+	elementid++;
+	
+	
+	gmesh->BuildConnectivity();
+	
+	ofstream arg("CricularGeoMesh.txt");
+	gmesh->Print(arg);	
+	
+	return gmesh;
+	
+}
+
+
 TPZGeoMesh * MeshGeneration::MalhaGeoGravenobj(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> Productionlayer, bool InterfaceElement)
 {
 	// This method created a graven geometry

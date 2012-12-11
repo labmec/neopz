@@ -1511,6 +1511,7 @@ void TPZInterfaceElement::InitMaterialData(TPZMaterialData &data, TPZInterpolati
 	data.jacobian.Redim(dim,dim);
 	data.jacinv.Redim(dim,dim);
     data.x.Resize(3, 0.);
+	data.p = elem->MaxOrder();
     int numbersol = Mesh()->Solution().Cols();
     data.sol.resize(numbersol);
     data.dsol.resize(numbersol);

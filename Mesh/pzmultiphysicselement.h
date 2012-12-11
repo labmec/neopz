@@ -45,12 +45,16 @@ public:
 	virtual void SetConnectIndexes(TPZVec<int> &indexes) = 0;
 	
 	virtual void AffineTransform(TPZManVector<TPZTransform> &trVec) const = 0;
+	
+	virtual void InitMaterialData(TPZVec<TPZMaterialData > &dataVec) = 0;	
     
     virtual void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZVec<TPZMaterialData> &datavec);
 	
 	virtual void CalcStiff(TPZElementMatrix &ek,TPZElementMatrix &ef) = 0;
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)=0;
+	
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> dimension)=0;	
     
     void CreateInterfaces();
     

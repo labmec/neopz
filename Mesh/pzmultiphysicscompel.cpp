@@ -200,8 +200,71 @@ int TPZMultiphysicsCompEl<TGeometry>::Dimension() const {
 }
 
 
+
 template<class TGeometry>
-void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol) {
+void TPZMultiphysicsCompEl<TGeometry>::Integrate(int variable, TPZVec<REAL> & value){
+	TPZMaterial * material = this->Material();
+	if(!material){
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no material for this element\n";
+		return;
+	}
+	if (!this->Reference()){
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " : no reference element\n";
+		return;
+	}
+	const int dim = this->Dimension();
+	REAL weight;
+
+	int nref = fElementVec.size();
+	TPZVec<TPZMaterialData> datavec;
+	datavec.resize(nref);	
+	
+#ifdef DEBUG
+	if (nref != datavec.size()) {
+		PZError << "Error at " << __PRETTY_FUNCTION__ << " The number of materials can not be different from the size of the fElementVec !\n";
+		DebugStop();
+	}
+#endif
+	
+	TPZVec<int> nshape(nref);
+	for (int iref = 0; iref<nref; iref++) 
+	{
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+        if(!msp) continue;
+        msp->InitMaterialData(datavec[iref]);
+	}	
+	
+	
+//	TPZManVector<REAL, 3> intpoint(dim,0.);
+//	const int varsize = material->NSolutionVariables(variable);
+//	value.Resize(varsize);
+	value.Fill(0.);
+//	
+//	const TPZIntPoints &intrule = this->GetIntegrationRule();
+//	int npoints = intrule.NPoints(), ip, iv;
+//	TPZManVector<REAL> sol(varsize);
+//	for(ip=0;ip<npoints;ip++){
+//		intrule.Point(ip,intpoint,weight);
+//		sol.Fill(0.);
+//		this->Solution(intpoint, variable, sol);
+//		//Tiago: Next call is performed only for computing detcaj. The previous method (Solution) has already computed jacobian.
+//		//       It means that the next call would not be necessary if I wrote the whole code here.
+//		this->Reference()->Jacobian(intpoint, data.jacobian, data.axes, data.detjac, data.jacinv);
+//		weight *= fabs(data.detjac);
+//		for(iv = 0; iv < varsize; iv++) {
+//#if !BUILD_COMPLEX_PROJECTS	
+//			DebugStop();
+//#else
+//			value[iv] += sol[iv]*weight;
+//#endif
+//		}//for iv
+//	}//for ip
+}//method
+
+
+template<class TGeometry>
+void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol) 
+{
 	
 	if(var >= 100) {
 		TPZCompEl::Solution(qsi,var,sol);
@@ -219,6 +282,9 @@ void TPZMultiphysicsCompEl<TGeometry>::Solution(TPZVec<REAL> &qsi, int var,TPZVe
 	
 	TPZVec<REAL> myqsi;
 	myqsi.resize(qsi.size());
+	
+	
+	
 	
 	int nref = fElementVec.size();
 	TPZVec<TPZMaterialData> datavec;
@@ -293,7 +359,7 @@ void TPZMultiphysicsCompEl<TGeometry>::InitializeElementMatrix(TPZElementMatrix 
 	int nstate = 0;
 	//nstate=1;
     int numloadcases = 1;
-	for (int iref=0; iref<nref; iref++) {
+	for (int iref=0; iref<nref; iref++) 
 		
 		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
         if (! msp) {
@@ -471,12 +537,24 @@ int TPZMultiphysicsCompEl<TGeometry>::IntegrationOrder()
 #include "tpzgraphelt3d.h"
 #include "pzgraphel.h"
 #include "pzmeshid.h"
+#include "pzbndcond.h"
 
 template<class TGeometry>
 void TPZMultiphysicsCompEl<TGeometry>::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
 {
+	
+	
 	TPZGeoEl *ref = Reference();
+	if (ref->Dimension() != dimension) {
+		return;
+	}
 	TPZMaterial * material = Material();
+	
+	TPZBndCond * BDC = dynamic_cast<TPZBndCond * > (material);
+	
+	if (BDC) {
+		return;
+	}
 	int mat = material->Id();
 	int nsides = ref->NSides();
 	

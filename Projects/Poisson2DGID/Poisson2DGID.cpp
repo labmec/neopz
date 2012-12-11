@@ -51,7 +51,8 @@ int main()
 
 	//	Files to read
 	std::string GeoGridFile;	
-	GeoGridFile = "PoissonGIDMeshVar.dump";
+//	GeoGridFile = "SQDomain.dump";
+	GeoGridFile = "2Dwellbore.dump";
 
 	int Href = 0;
 	int PolynomialOrder = 2;

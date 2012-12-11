@@ -143,6 +143,10 @@ void TPZBuildMultiphysicsMesh::AddConnects(TPZVec<TPZCompMesh *> cmeshVec, TPZCo
 	for (iel = 0; iel < nelem; iel++) 
 	{
 		TPZMultiphysicsElement *cel = dynamic_cast<TPZMultiphysicsElement *> (MFMesh->ElementVec()[iel]);
+		TPZMultiphysicsInterfaceElement *interface = dynamic_cast<TPZMultiphysicsInterfaceElement *> (MFMesh->ElementVec()[iel]);
+		if (interface) {
+			continue;
+		}
 		if (!cel) {
 			DebugStop();
 		}

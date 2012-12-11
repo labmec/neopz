@@ -105,6 +105,18 @@ public:
 	 * @see TPZMaterial::Solution
 	 */
 	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
+	virtual void Integrate(int variable, TPZVec<REAL> & value);	
+
+	/**
+	 * @brief Post processing method which computes the solution for the var post processed variable.
+	 * @param qsi coordinate of the point in master element space where the solution will be evaluated
+	 * @param var variable which will be computed
+	 * @param sol (output) solution computed at the given point
+	 * @see TPZMaterial::VariableIndex
+	 * @see TPZMaterial::NSolutionVariables
+	 * @see TPZMaterial::Solution
+	 */
+	/** The var index is obtained by calling the TPZMaterial::VariableIndex method with a post processing name */
 	virtual void Solution(TPZVec<REAL> &qsi,int var,TPZVec<REAL> &sol);
 	
 	/**
@@ -220,6 +232,8 @@ public:
 	void InitMaterialData(TPZVec<TPZMaterialData > &dataVec);
 	
 	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension);
+	
+	virtual void CreateGraphicalElement(TPZGraphMesh &grmesh, std::set<int> dimension, std::set<int> MaterialID);	
 	
 };
 

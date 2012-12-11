@@ -52,7 +52,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	 * @param ef [out] is the load vector
 	 * @since April 16, 2007
 	 */
-	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef) = 0;
+	virtual void ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
 	
 	/**
 	 * @brief Computes a contribution to the stiffness matrix and load vector at one integration point
@@ -65,7 +65,7 @@ class TPZDiscontinuousGalerkin  : public TPZMaterial {
 	 * @since June 5, 2012
 	 */
 	virtual void ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleft, TPZVec<TPZMaterialData> &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef);
-	
+
 	
 	/**
 	 * @brief It computes a contribution to residual vector at one integration point

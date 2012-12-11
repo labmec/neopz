@@ -71,12 +71,21 @@ public:
 	/** Mesh Dimension */
 	int fProblemDimension;
 	
+    /** @brief Mesh Dimension */
+	/** Mesh Dimension */
+	REAL fDimensionlessL;	
+	
     /** @brief MaterialVec */
 	/** Store Material's data */
 
 	TPZStack< MaterialDataV > fMaterialDataVec;
 	TPZStack< MaterialDataV > fBCMaterialDataVec;
 	TPZStack< MaterialDataV > fBCNodeDataVec;
+
+	
+    /** @brief Max domain dimension for dimensionless geometry. */
+	/** Set Max dimension for geometric domain default = 1.0. */	
+void	SetfDimensionlessL(REAL fDimensionlessLValue);
 
 private:
 	  

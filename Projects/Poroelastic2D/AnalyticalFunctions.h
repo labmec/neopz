@@ -26,10 +26,13 @@ static long double Argument_Addition_Series_Ei( long double x);
 	// Differents functions for differents validations and uses
 	
 	// Exact Solution for Consolidation 1D available on: Finite element analysis of poro-elastic consolidation in porous media Standard and mixed approaches
-	void ExactSolution1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);	
+	void ExactSolutionfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+
+	// Exact Solution for Consolidation 1D available on: Theory of linear Poroelasticty Wang 2000
+	void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 	
 	// Exact Solution for constant fluid injection/production on infinited radial linear elastic medium: Fluid Mass Sources and Point Forces in Linear Elastic Diffusive Solids	
-	void ExactSolution2DLinesource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+	void ExactSolution2DLineSource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 	
 	// Exact Solution 1D for transient constant fluid injection/production on infinited radial non-deformable medium: Green Book Rosa	
 	void SolucaoExataRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
@@ -39,7 +42,13 @@ static long double Argument_Addition_Series_Ei( long double x);
 	
 	// Exact Solution 1D for PseudoPermanent constant fluid injection/production on infinited linear non-deformable medium: Green Book Rosa	
 	void SolucaoExataRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
+
+	// Exact Solution Madels problem ref	
+	void ExactSolutionMandelsProblemwitheffect(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux);
 	
 	// Here you can implemente diferent Forcing transient functions	
 	void ForcingTimeDependFunction(TPZVec<REAL> &ptx, REAL TimeValue,int WhichStateVariable,double &StateVariable);
+
+	// Here you can implement diferent ways to calculate initial pressure distribution	
+	void InitialPressureDistribution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol);
 

@@ -240,6 +240,10 @@ void TPZSkylMatrix<TVar>::MultAdd(const TPZFMatrix<TVar> &x,const TPZFMatrix<TVa
 							const TVar alpha,const TVar beta ,const int opt,const int stride ) const {
 	// Computes z = beta * y + alpha * opt(this)*x
 	//          z and x cannot overlap in memory
+	
+	if (this->fDecomposed != ENoDecompose) {
+		DebugStop();
+	}
 	if ((!opt && this->Cols()*stride != x.Rows()) || this->Rows()*stride != x.Rows())
 		TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__," <matrixs with incompatible dimensions>" );
 	if(z.Rows() != x.Rows() || z.Cols() != x.Cols()) z.Redim(x.Rows(),x.Cols());

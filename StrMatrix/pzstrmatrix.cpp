@@ -15,6 +15,7 @@
 #include "pzintel.h"
 #include "pzsubcmesh.h"
 #include "pzanalysis.h"
+#include "pzsfulmat.h"
 
 #include "pzgnode.h"
 #include "TPZTimer.h"
@@ -104,6 +105,8 @@ void TPZStructMatrix::Assemble(TPZFMatrix<STATE> & rhs,TPZAutoPointer<TPZGuiInte
 	}
 }
 
+
+
 void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<STATE> & rhs, TPZAutoPointer<TPZGuiInterface> guiInterface ){
 	
 	if(!fMesh){
@@ -137,7 +140,7 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 		if(!el) continue;
 		int matidsize = fMaterialIds.size();
 		if(matidsize){
-			TPZMaterial * mat = el->Material();
+			TPZMaterial * mat = el->Material();	
 			TPZSubCompMesh *submesh = dynamic_cast<TPZSubCompMesh *> (el);
 			if (!mat)
 			{
@@ -219,8 +222,18 @@ void TPZStructMatrix::Serial_Assemble(TPZMatrix<STATE> & stiffness, TPZFMatrix<S
 			{
 				FilterEquations(ek.fSourceIndex,ek.fDestinationIndex,fMinEq,fMaxEq);
 			}
+//			TPZSFMatrix<STATE> test(stiffness);
+//			TPZFMatrix<STATE> test2(stiffness.Rows(),stiffness.Cols(),0.);
+//			stiffness.Print("before assembly",std::cout,EMathematicaInput);
 			stiffness.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
 			rhs.AddFel(ef.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+//			stiffness.Print("stiffness after assembly STK = ",std::cout,EMathematicaInput);
+//			rhs.Print("rhs after assembly Rhs = ",std::cout,EMathematicaInput);			
+//			test2.AddKel(ek.fMat,ek.fSourceIndex,ek.fDestinationIndex);
+//			test -= stiffness;
+//			test.Print("matriz de rigidez diference",std::cout);
+//			test2.Print("matriz de rigidez interface",std::cout);
+
 #ifdef LOG4CXX
 			if(loggerel->isDebugEnabled() && ! dynamic_cast<TPZSubCompMesh *>(fMesh))
 			{

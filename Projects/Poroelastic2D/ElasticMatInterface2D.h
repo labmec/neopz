@@ -54,6 +54,8 @@ class ElasticMatInterface2D  : public TPZElasticityMaterial {
 	/** @brief Default destructor */
 	virtual ~ElasticMatInterface2D();
 	
+	void SetPenalty(REAL kn, REAL kt);
+	
 //	/** @brief Returns the model dimension */
 //	int Dimension() { return 2;}
 //	
@@ -151,8 +153,15 @@ protected:
 	//	virtual void Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout);
 	
 private:
-//	/** @brief Elasticity modulus */
-//	REAL fE;
+	/** @brief Normal Penalty */
+	REAL fkn;	
+
+	/** @brief Tangent Penalty */
+	REAL fkt;	
+	
+	
+//	/** @brief Normal Penalty */
+//	REAL fkn;
 //	
 //	/** @brief Poison coeficient */
 //	REAL fnu;

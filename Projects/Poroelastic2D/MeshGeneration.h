@@ -51,6 +51,7 @@ public:
 	 * 1D Validation Problem is given on: */	
 	TPZGeoMesh * GeometricMesh1DValidation(double Dimension, double kingflag);	
 	
+	
 	TPZGeoMesh	* MalhaGeom(TPZVec < int > matIdlist);	
 	
 	//	Set kind of Geometry for 2D Validation
@@ -58,6 +59,7 @@ public:
 	 * 2D Validation Problem is given on: Rudnicki 1986 */
 	TPZGeoMesh * GeometricMesh2DValidation(TPZVec <int> matIdlist);
 	
+	TPZGeoMesh * GeometricMesh2DValidationQ(TPZVec <int> matIdlist);	
 	
 	TPZGeoMesh * MalhaGeoGravenobj(int nLayers, REAL LlengthFootFault, REAL DipFaultAngleleft, REAL DipFaultAngleright, REAL WellFaultlength, TPZVec <bool> Productionlayer, bool InterfaceElement);
 	

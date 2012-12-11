@@ -44,11 +44,13 @@ protected:
    
 	/** @brief Pointer to forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunction;
+	
 	/** @brief Pointer to exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fForcingFunctionExact;
 	
 	/** @brief Pointer to time dependent forcing function, it is the right member at differential equation */
     TPZAutoPointer<TPZFunction<STATE> > fTimeDependentForcingFunction;
+	
 	/** @brief Pointer to time dependent exact solution function, needed to calculate exact error */
     TPZAutoPointer<TPZFunction<STATE> > fTimedependentFunctionExact;	
 
@@ -185,6 +187,9 @@ public:
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
+	
+	/** @brief Returns the solution associated with the var index based on the finite element approximation */
+//    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, int var, TPZVec<REAL> &Solout);	
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */

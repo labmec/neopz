@@ -69,84 +69,155 @@ using namespace std;
 	}
 
 
-	void ExactSolution1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	void ExactSolutionfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 		//REAL x = ptx[0];
 		REAL y = ptx[1];
 		
-		REAL pini = 1000.;
-		REAL lamb = 8333.33;
-		REAL mi = 12500.0;
-		REAL visc =0.001; 
-		REAL perm =  1.e-10;
-		REAL H=1.;
+		// Definitions	
+		REAL PI = atan(1.)*4.;	
+		REAL c = 1.6;							//	[m2/s]	
+		REAL cm = 4.9375e-11;					//	[1/Pa]
+		REAL SigTop = 1.e8;						//	[Pa]
+		REAL Gamma = 0.3333333333;					//	[-]
+		REAL rockrho = 2500.0;					//	[kg/m3]
+		REAL gravity = 9.81;					//	[m/s2]
+		REAL visc =0.001;		
+		REAL Po = SigTop*Gamma;
+		
 		REAL segtime = 0.0;						//	[s]
 		segtime = timestep;		
 		
 		
 		int in;
-		REAL pD = 0.0, uD = 0.0, sigD = 0.0;
-		REAL PI = atan(1.)*4.;
+		REAL pD = 0.0, uD = 0.0, sigD = 0.0, qDxD = 0.0;
 		
 		sol[0]=0.0;
 		sol[1]=0.0;
 		sol[2]=0.0;
-		
-		REAL tD = (lamb+2.*mi)*perm*segtime/(visc*H);
-		REAL xD = abs(y-1.0)/H;
+
+		REAL H=1.0;		
+		REAL tD = segtime;
+		REAL xD = abs(y)/H;
 		REAL M = 0.0;
 		for (in =0; in<1000; in++) {
 			
 			M = PI*(2.*in+1.)/2.;
 			pD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
+			qDxD += -(2.0)*cos(M*xD)*exp(-1.*M*M*tD);
 			uD += (2./(M*M))*cos(M*xD)*exp(-1.*M*M*tD);
 			sigD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
 		}
+				
+		sol[0] = pD;
+		sol[1] = 0.0;
+		sol[2] = -(1.- xD - uD);	
+				
+		flux(0,0)=0.0;
+		flux(1,0)=(1.- sigD);
+		flux(2,0)=0.0;
+		flux(3,0)=0.0;
+		flux(4,0)=-qDxD;
 		
-		sol[0] = pD*pini;
-		sol[1] = (-1.+ sigD)*pini;
-		sol[2] = (1.- xD - uD)*(-pini*H)/(lamb+2.*mi);
 	}
 
+void ExactSolutionSemiInfiniteColumn1D(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+{
+	//REAL x = ptx[0];
+	REAL y = ptx[1];
+	
+	// Definitions	
+	REAL PI = atan(1.)*4.;	
+	REAL c = 1.6;							//	[m2/s]	
+	REAL cm = 4.9375e-11;					//	[1/Pa]
+	REAL SigTop = 1.e8;						//	[Pa]
+	REAL Gamma = 0.3333333333;					//	[-]
+	REAL rockrho = 2500.0;					//	[kg/m3]
+	REAL gravity = 9.81;					//	[m/s2]
+	REAL visc =0.001;		
+	REAL Po = SigTop*Gamma;
+	
+	REAL segtime = 0.0;						//	[s]
+	
+	
+	segtime = timestep;		
+	if (segtime == 0.0) {
+		segtime = 1.0e-10;
+	}
+	
+	int in;
+	REAL pD = 0.0, uDx = 0.0,uDy = 0.0, sigDy = 0.0, qDy = 0.0;
+	
+	sol[0]=0.0;
+	sol[1]=0.0;
+	sol[2]=0.0;
+	
+	REAL H=1.0;
+	REAL tD = segtime;
+	REAL yD = abs(y)/H;
+	REAL xi = (yD/(2.0*sqrt(tD)));
+	
+	pD = erf(xi);
+	uDy = -(((2.0*sqrt(tD)*exp(-pow(xi,2)))/(sqrt(PI))) - yD*(erfc(xi)));
+	qDy = -((exp(-pow(xi,2)))/(sqrt(tD)*sqrt(PI)));
 
-	void ExactSolution2DLinesource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
+	sol[0] = pD;
+	sol[2] = uDx;	
+	sol[2] = uDy;
+	flux(0,0) = 0.0;
+	flux(1,0) = qDy;	
+	flux(2,0) = 0.0;	
+	
+	//		Secondary Variables		
+	flux(0,0)=0.0; // SigX
+	flux(1,0)=sigDy; // SigY
+	flux(2,0)=0.0; // TauXY
+	flux(3,0)=0.0; // Qx
+	flux(4,0)=qDy; // Qy			
+	
+}
+
+
+	void ExactSolution2DLineSource(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 		
-		// Defition of varibles
-		REAL x = ptx[0];//-500000.0;
-		REAL y = ptx[1];//-500000.0;
-		REAL z = 0.0;
-		REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
+		// Variable definition
+		REAL x = ptx[0];							//	[m]	
+		REAL y = ptx[1];							//	[m]	
+		REAL z = 0.0;								//	[m]	
+		REAL r = sqrt(pow(x,2)+pow(y,2)+pow(z,2));	//	[m]		
+		REAL Currenttime = 0.0;							//	[s]		
 		if ( r == 0.0) {
-			x=1.0e-20;
-			y=1.0e-20;
+			x=1.0e-8;
+			y=1.0e-8;
 			r = sqrt(pow(x,2)+pow(y,2)+pow(z,2)); 
 		}
 		
+		Currenttime = timestep;
+		if (Currenttime == 0.0) {
+			Currenttime = 1.0e-8;
+		}		
 		
-		// Definitions of Parameters
+		// Parameters definition from: Altmann-J.B._Poroelastic-contribution-to-the-reservoir-stress-path_2010
 		REAL lamb = 8.3e9;						//	[Pa]
-		REAL lambu = 13.4e9;						//	[Pa]
+		REAL lambu = 13.4e9;					//	[Pa]
 		REAL alpha = 0.7;						//	[-]
 		REAL G= 5.5e9;							//	[Pa]
 		REAL rhof = 1000.0;						//	[kg/m3]	
-		REAL Ssig = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[-]
-		REAL segtime = 0.0;						//	[s]
-		REAL qMod = -20.0;						//	[kg/s]
-		REAL cMod = 0.083;						//	[m2/s]
-		REAL kdif = cMod*Ssig;
+		REAL S = ((pow(alpha,2))/((lambu-lamb)))*((lambu+2.0*G)/(lamb+2.0*G));				//	[1/Pa]
+		REAL Gamma = ((lambu-lamb)/(alpha*(lambu+2.0*G)));
+
+		REAL qRate = -20.0;						//	[kg/s]
+		REAL c= 0.083;							//	[m2/s]
+		REAL kovermu = c*S;
 		REAL PI = atan(1.)*4.;
-		segtime = timestep;
-		
-		if (segtime == 0.0) {
-			segtime = 1.0e-20;
-		}
-		
-		
+
 		sol[0]=0.;		// Pressure
 		sol[1]=0.;		// Ux
 		sol[2]=0.;		// Uy
 		flux(0,0)=0.0; // SigX
 		flux(1,0)=0.0; // SigY
 		flux(2,0)=0.0; // TauXY
+		flux(3,0)=0.0; // Qx
+		flux(4,0)=0.0; // Qy		
 		
 		
 		REAL Pressure = 0.0;					//	[Pa]
@@ -155,26 +226,41 @@ using namespace std;
 		REAL Sigx = 0.0;						//	[Pa]
 		REAL Sigy = 0.0;						//	[Pa]
 		REAL Tauxy = 0.0;						//	[Pa]
+		REAL Qx = 0.0;							//	[kg/s]
+		REAL Qy = 0.0;							//	[kg/s]		
 		
-		REAL Zz = (pow(r, 2)/(4.0*cMod*segtime));
-		REAL Ei = Exponential_Integral_Ei(-Zz);
-		REAL Den = (8*PI*rhof*kdif*(lamb+2.0*G));
-		REAL Nem = qMod*alpha*x;
+//		Use this Block for normal calculations
+//		REAL Zz		= (pow(r, 2)/(4.0*c*Currenttime));
+//		Pressure	= (qRate/(4*PI*rhof*kovermu))*Exponential_Integral_Ei(-Zz);
+//		Ux			= ((-qRate*alpha*x)/(8*PI*rhof*kovermu*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+//		Uy			= ((-qRate*alpha*y)/(8*PI*rhof*kovermu*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+//		Sigx		= (qRate*alpha*G/(4*PI*rhof*kovermu*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+//		Sigy		= (qRate*alpha*G/(4*PI*rhof*kovermu*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+//		Tauxy		= (2.0*qRate*alpha*G*x*y/(4*PI*rhof*kovermu*(2.0*G+lamb)*pow(r,2)))*((1/Zz)*(1-exp(-Zz)));
+
+//		Use this Block for dimensionless calculations		
+		REAL Zz = (pow(r,2)/(4*Currenttime));				
+		Pressure = -(1/(4*PI))*Exponential_Integral_Ei(-Zz);
+		Ux = x*(1/(8*PI))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+		Uy = y*(1/(8*PI))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
+		Sigx = -(1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+		Sigy = -(1/(4*PI))*((alpha*G)/(lamb+2.0*G))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
+		Tauxy = -(1/(4*PI*pow(r,2)))*((2*alpha*G)/(lamb+2.0*G))*(x*y)*((1/Zz)*(1-exp(-Zz)));	
+		Qx = (x/(2.0*PI*pow(r,2)))*exp(-Zz);
+		Qy = (y/(2.0*PI*pow(r,2)))*exp(-Zz);		
+
 		
-		Pressure = (qMod/(4*PI*rhof*kdif))*Exponential_Integral_Ei(-Zz);
-		Ux = ((-qMod*alpha*x)/(8*PI*rhof*kdif*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
-		Uy = ((-qMod*alpha*y)/(8*PI*rhof*kdif*(lamb+2.0*G)))*(((1/Zz)*(1-exp(-Zz)))-Exponential_Integral_Ei(-Zz));
-		Sigx = (qMod*alpha*G/(4*PI*rhof*kdif*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(y,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
-		Sigy = (qMod*alpha*G/(4*PI*rhof*kdif*(2.0*G+lamb)))*(((1/Zz)*(1-exp(-Zz))*(1-(2*pow(x,2)/pow(r,2))))+Exponential_Integral_Ei(-Zz));
-		Tauxy = (2.0*qMod*alpha*G*x*y/(4*PI*rhof*kdif*(2.0*G+lamb)*pow(r,2)))*((1/Zz)*(1-exp(-Zz)));
-		
+//		State Variables
 		sol[0] = Pressure;
-		sol[1] = Ux;
-		sol[2] = Uy;
+		sol[1] = Ux*Gamma;
+		sol[2] = Uy*Gamma;
 		
+//		Secondary Variables		
 		flux(0,0)=Sigx; // SigX
 		flux(1,0)=Sigy; // SigY
 		flux(2,0)=Tauxy; // TauXY
+		flux(3,0)=Qx; // Qx
+		flux(4,0)=Qy; // Qy			
 	}
 
 	void SolucaoExataRosa1D(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
@@ -267,6 +353,166 @@ using namespace std;
 	}
 
 
+	// Exact Solution Madels problem ref	
+	void ExactSolutionMandelsProblemwitheffect(const TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux)
+	{
+		// Defition of variables
+		REAL x = ptx[0];
+		REAL y = ptx[1];
+		REAL z = 0.0;
+		REAL PI = atan(1.)*4.;	
+		REAL B = 0.8;
+		REAL vu = 0.4;
+		REAL v = 0.2;		
+		REAL F = 100000.0;
+		REAL L = 100.0;
+		REAL c = 0.000777778;
+		
+		sol[0]=0.;
+		sol[1]=0.;
+		sol[2]=0.;		
+		
+//		REAL lambdai[14] = {1.28734, 4.6316, 7.80598, 10.9614, 14.1106, 20.402, 23.546, 29.8326,36.1179, 39.2604, 51.829, 58.113, 67.5387, 212.056};
+//		REAL lambdai[12] =	{1.45689, 4.67677, 7.83271, 10.9804, 14.1254, 20.4122, 26.6973,51.8331, 67.5418, 70.6835, 89.5335, 105.242};
+		
+//		REAL lambdai[55] =		{1.45689, 4.67677, 7.83271, 10.9804, 14.1254, 20.4122, 26.6973,
+//			29.8395, 39.2657, 45.5494, 51.8331, 61.2583, 64.4001, 67.5418, 
+//			70.6835, 76.9669, 83.2502, 89.5335, 105.242, 111.525, 120.95, 
+//			130.375, 133.516, 136.658, 161.791, 168.074, 180.641, 190.065, 
+//			199.49, 202.632, 218.34, 227.765, 230.906, 234.048, 240.331, 243.473, 
+//			256.039, 262.322, 268.606, 274.889, 328.296, 334.579, 350.287, 
+//			353.429, 369.137, 372.278, 381.703, 416.261, 491.659, 551.349, 
+//			563.916, 664.447, 1091.7, 1141.97, 2863.56};
+		
+//		REAL lambdai[22] = 	{1.39325, 4.65878, 7.82203, 10.9728, 14.1195, 17.2643, 20.4081,
+//			23.5513, 26.6942, 32.9791, 39.2635, 42.4056, 45.5476, 61.257,
+//			67.5405, 86.3909, 92.6743, 139.799, 149.224, 183.782, 234.048,
+//			413.119};
+
+		REAL lambdai[639] = {1.39325, 4.65878, 7.82203, 10.9728, 14.1195, 17.2643, 20.4081, \
+			23.5513, 26.6942, 32.9791, 36.1214, 39.2635, 42.4056, 45.5476, \
+			48.6896, 58.1152, 61.257, 64.3988, 67.5405, 70.6823, 73.824, 80.1075, \
+			83.2492, 86.3909, 89.5326, 92.6743, 102.099, 105.241, 111.524, \
+			114.666, 120.949, 124.091, 127.233, 130.374, 133.516, 136.657, \
+			139.799, 146.082, 149.224, 152.366, 155.507, 164.932, 168.074, \
+			171.215, 174.357, 177.499, 183.782, 190.065, 193.207, 196.348, \
+			202.631, 205.773, 212.056, 215.198, 218.34, 227.764, 234.048, \
+			237.189, 240.331, 246.614, 252.897, 256.039, 259.18, 262.322, \
+			265.464, 268.605, 271.747, 274.888, 278.03, 281.172, 284.313, \
+			287.455, 290.596, 293.738, 296.88, 300.021, 303.163, 306.304, \
+			309.446, 315.729, 318.871, 322.012, 325.154, 328.296, 331.437, \
+			334.579, 340.862, 344.004, 347.145, 350.287, 353.428, 362.853, \
+			365.995, 369.136, 372.278, 375.42, 378.561, 381.703, 384.844, \
+			391.128, 394.269, 397.411, 403.694, 406.836, 409.977, 413.119, \
+			416.26, 422.544, 425.685, 428.827, 435.11, 438.252, 441.393, 444.535, \
+			450.818, 453.96, 457.101, 463.384, 466.526, 469.668, 472.809, \
+			479.092, 482.234, 485.376, 491.659, 501.084, 504.225, 507.367, \
+			513.65, 519.933, 523.075, 526.216, 529.358, 532.499, 535.641, \
+			538.783, 541.924, 545.066, 548.207, 551.349, 554.491, 557.632, \
+			560.774, 563.915, 567.057, 570.199, 576.482, 582.765, 585.907, \
+			589.048, 592.19, 595.331, 598.473, 601.615, 604.756, 607.898, \
+			611.039, 614.181, 620.464, 623.606, 626.747, 629.889, 633.031, \
+			636.172, 639.314, 645.597, 648.738, 651.88, 655.022, 658.163, \
+			661.305, 664.446, 667.588, 670.73, 673.871, 677.013, 680.154, \
+			683.296, 686.438, 689.579, 692.721, 695.862, 699.004, 702.146, \
+			705.287, 708.429, 714.712, 720.995, 724.137, 727.278, 730.42, \
+			733.562, 736.703, 739.845, 742.986, 746.128, 749.27, 752.411, \
+			755.553, 758.694, 764.977, 768.119, 771.261, 774.402, 777.544, \
+			780.685, 783.827, 786.969, 790.11, 793.252, 796.393, 799.535, \
+			802.677, 808.96, 812.101, 815.243, 818.385, 821.526, 824.668, \
+			827.809, 830.951, 834.093, 837.234, 840.376, 852.942, 856.084, \
+			859.225, 862.367, 865.508, 868.65, 871.792, 878.075, 881.216, \
+			884.358, 890.641, 896.924, 900.066, 903.208, 906.349, 912.632, \
+			915.774, 918.916, 922.057, 925.199, 928.34, 931.482, 934.624, \
+			944.048, 950.332, 953.473, 956.615, 959.756, 962.898, 966.039, \
+			969.181, 972.323, 978.606, 984.889, 988.031, 991.172, 994.314, \
+			997.455, 1000.6, 1006.88, 1010.02, 1013.16, 1025.73, 1032.01, \
+			1044.58, 1047.72, 1050.86, 1054., 1057.15, 1063.43, 1069.71, 1072.85, \
+			1082.28, 1085.42, 1088.56, 1091.7, 1094.84, 1097.99, 1110.55, \
+			1119.98, 1123.12, 1132.54, 1135.69, 1138.83, 1141.97, 1145.11, \
+			1148.25, 1151.39, 1154.54, 1163.96, 1173.38, 1176.53, 1179.67, \
+			1182.81, 1192.23, 1201.66, 1204.8, 1207.94, 1211.08, 1223.65, \
+			1226.79, 1229.93, 1233.07, 1236.22, 1239.36, 1242.5, 1245.64, \
+			1248.78, 1264.49, 1267.63, 1270.77, 1273.92, 1277.06, 1280.2, \
+			1286.48, 1308.47, 1321.04, 1324.18, 1330.46, 1333.61, 1336.75, \
+			1339.89, 1343.03, 1349.31, 1368.16, 1374.45, 1390.15, 1393.3, \
+			1399.58, 1409., 1412.15, 1415.29, 1427.85, 1434.14, 1437.28, 1440.42, \
+			1446.7, 1452.99, 1462.41, 1468.69, 1471.84, 1478.12, 1496.97, \
+			1506.39, 1515.82, 1522.1, 1537.81, 1547.23, 1550.38, 1559.8, 1562.94, \
+			1566.08, 1572.37, 1578.65, 1581.79, 1588.07, 1594.36, 1597.5, \
+			1613.21, 1638.34, 1641.48, 1657.19, 1660.33, 1663.47, 1666.61, \
+			1679.18, 1691.75, 1694.89, 1710.6, 1726.31, 1729.45, 1732.59, \
+			1735.73, 1742.01, 1757.72, 1760.86, 1767.15, 1773.43, 1792.28, \
+			1795.42, 1807.99, 1817.41, 1826.84, 1836.26, 1839.4, 1845.69, \
+			1861.39, 1867.68, 1873.96, 1877.1, 1889.67, 1892.81, 1902.23, \
+			1905.38, 1930.51, 1936.79, 1946.22, 1965.07, 1990.2, 1993.34, \
+			1996.48, 2002.77, 2015.33, 2018.47, 2024.76, 2037.32, 2049.89, \
+			2062.46, 2068.74, 2071.88, 2084.45, 2097.01, 2115.86, 2119., 2144.14, \
+			2162.99, 2175.55, 2191.26, 2206.97, 2213.25, 2216.39, 2238.38, \
+			2247.81, 2272.94, 2285.51, 2288.65, 2301.22, 2316.92, 2329.49, \
+			2335.77, 2345.2, 2348.34, 2373.47, 2382.9, 2389.18, 2392.32, 2395.46, \
+			2398.61, 2411.17, 2430.02, 2448.87, 2452.01, 2467.72, 2483.43, \
+			2508.56, 2533.69, 2543.12, 2552.54, 2555.69, 2561.97, 2565.11, \
+			2574.54, 2590.24, 2596.53, 2602.81, 2671.92, 2678.21, 2684.49, \
+			2700.2, 2703.34, 2706.48, 2709.62, 2712.77, 2725.33, 2737.9, 2753.61, \
+			2775.6, 2778.74, 2825.86, 2829., 2835.29, 2838.43, 2841.57, 2857.28, \
+			2879.27, 2891.84, 2901.26, 2907.54, 2929.54, 2932.68, 2948.38, \
+			2960.95, 2970.38, 2992.37, 2995.51, 3004.93, 3008.07, 3058.34, \
+			3064.62, 3070.91, 3092.9, 3105.46, 3111.75, 3124.31, 3140.02, \
+			3155.73, 3168.3, 3209.14, 3218.56, 3237.41, 3243.69, 3256.26, \
+			3275.11, 3293.96, 3319.09, 3331.66, 3337.94, 3363.07, 3369.36, \
+			3385.07, 3397.63, 3422.77, 3435.33, 3460.46, 3491.88, 3501.3, \
+			3507.59, 3513.87, 3523.3, 3526.44, 3529.58, 3539., 3561., 3592.41, \
+			3608.12, 3623.83, 3626.97, 3661.53, 3667.81, 3692.94, 3714.93, \
+			3733.78, 3736.92, 3799.76, 3821.75, 3843.74, 3856.3, 3881.44, \
+			3912.85, 3922.28, 4010.24, 4035.38, 4060.51, 4063.65, 4069.93, \
+			4076.22, 4079.36, 4117.06, 4126.48, 4151.61, 4205.02, 4208.16, \
+			4230.15, 4261.57, 4274.14, 4286.7, 4327.54, 4358.96, 4362.1, 4365.24, \
+			4387.23, 4459.49, 4490.91, 4497.19, 4541.17, 4556.88, 4685.69, \
+			4720.24, 4723.38, 4735.95, 4792.5, 4839.62, 4842.77, 4855.33, \
+			4874.18, 4883.61, 4905.6, 4915.02, 5043.83, 5075.24, 5112.94, \
+			5213.47, 5298.3, 5357.99, 5367.41, 5442.81, 5502.5, 5537.06, 5631.3, \
+			5697.28, 5709.84, 5782.1, 5882.63, 5967.46, 5998.87, 6033.43, \
+			6049.14, 6121.39, 6124.53, 6133.96, 6137.1, 6203.07, 6303.61, 6454.4, \
+			6602.06, 6646.04, 6884.8, 6922.5, 7230.38, 7330.91, 7415.73, 7937.23, \
+			7990.64, 8116.3, 8125.73, 8150.86, 8179.14, 8320.51, 8383.34, \
+			8424.18, 8527.85, 8568.69, 8835.73, 9401.22, 9520.6, 9552.01, \
+			9668.25, 9690.24, 10061., 10516.5, 10582.5, 10767.8, 11229.6, \
+			13997.4, 17283.5};	
+
+		REAL H=1.0;
+		REAL pD = 0.0;
+		REAL qD = 0.0;
+		REAL uxD = 0.0;
+		REAL uyD = 0.0;		
+		REAL tD = timestep;
+//		REAL tD = timestep*(c/pow(L,2));		
+//		REAL xD = x/L;
+		REAL xD = x;
+		REAL yD = y;		
+		for (int in =0; in < 639; in++) 
+		{
+
+			pD += ((sin(lambdai[in]))/(lambdai[in]-sin(lambdai[in])*cos(lambdai[in])))*(cos(lambdai[in]*xD)-cos(lambdai[in]))*(exp(-pow(lambdai[in],2)*tD));
+			qD += ((lambdai[in]*sin(lambdai[in]))/(lambdai[in]-sin(lambdai[in])*cos(lambdai[in])))*(sin(lambdai[in]*xD))*(exp(-pow(lambdai[in],2)*tD));
+			uxD += xD*((v-vu)/2)*((sin(lambdai[in]))/(lambdai[in]-sin(lambdai[in])*cos(lambdai[in])))*(cos(lambdai[in]))*(exp(-pow(lambdai[in],2)*tD))+
+				((cos(lambdai[in]))/(lambdai[in]-sin(lambdai[in])*cos(lambdai[in])))*(sin(lambdai[in]*xD))*(exp(-pow(lambdai[in],2)*tD));
+			uyD += yD*(-((1-v)/2)+((1-vu)))*((sin(lambdai[in]))/(lambdai[in]-sin(lambdai[in])*cos(lambdai[in])))*(cos(lambdai[in]))*(exp(-pow(lambdai[in],2)*tD));
+					
+//			sigD += (2./M)*sin(M*xD)*exp(-1.*M*M*tD);
+		}		
+		
+//		sol[0] = pD*((2.*F*B*(1+vu))/(3*L));
+		sol[0] = pD*2.0;
+//		sol[1] = uxD;
+//		sol[2] = uyD;		
+		
+		flux(0,0) = 0.0;
+		flux(2,0) = 0.0;			
+//		flux(1,0) = qD*((2.0*B*(1+vu))/(3));		
+		
+	}
+
 	void SolucaoExataRosa1DPseudo(TPZVec<REAL> &ptx, REAL timestep, TPZVec<REAL> &sol, TPZFMatrix<REAL> &flux){
 		//REAL x = ptx[0];
 		REAL x = ptx[0];//-12500;
@@ -283,6 +529,18 @@ using namespace std;
 		//	sol[2] = (-1.+ sigD)*pini;
 	}
 
+	void InitialPressureDistribution(const TPZVec<REAL> &ptx, TPZVec<REAL> &sol)
+	{
+		REAL x = ptx[0];
+		REAL y = ptx[1];
+		REAL z = ptx[2];		
+		sol[0]=0.;
+//		sol[1]=0.;
+//		sol[2]=0.;
+		REAL Pressure = 0.0;		
+		sol[0] = Pressure;
+		
+	}
 
 ////////////////////////////////////////////////////////////////////////////////
 //    Exponential_Integral_Ei                                                 //

@@ -320,7 +320,12 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
     
 	int phr = phi.Rows();
 	short in,jn;
+	REAL v2[2];
+	v2[0] = bc.Val2()(0,0);
+	v2[1] = bc.Val2()(1,0);
 	
+//		In general when the problem is  needed to stablish any convention for ContributeBC implementations
+
     REAL v2[2];
 	v2[0] = bc.Val2()(0,0);
 	v2[1] = bc.Val2()(1,0);
@@ -331,21 +336,22 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
     
 	switch (bc.Type()) {
 		case 0 :			// Dirichlet condition
+		{
 			for(in = 0 ; in < phr; in++) {
-                for (int il = 0; il <fNumLoadCases; il++) 
-                {
-                    TPZFNMatrix<2,STATE> v2 = bc.Val2(il);
-                    ef(2*in,il) += BIGNUMBER * v2(0,0) * phi(in,0) * weight;        // forced v2 displacement
-                    ef(2*in+1,il) += BIGNUMBER * v2(1,0) * phi(in,0) * weight;      // forced v2 displacement
-                }
+				ef(2*in,0) += BIGNUMBER * v2[0] *   // x displacement
+				phi(in,0) * weight;        // forced v2 displacement
+				ef(2*in+1,0) += BIGNUMBER * v2[1] * // y displacement
+				phi(in,0) * weight;        // forced v2 displacement
 				for (jn = 0 ; jn < phi.Rows(); jn++) {
 					ek(2*in,2*jn) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
 					ek(2*in+1,2*jn+1) += BIGNUMBER * phi(in,0) *phi(jn,0) * weight;
 				}
 			}
+		}
 			break;
 			
-		case 1 :			// Neumann condition
+		case 1 :		// Neumann condition
+		{
             for (in = 0; in < phr; in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
@@ -355,9 +361,11 @@ void TPZElasticityMaterial::ContributeBC(TPZMaterialData &data,REAL weight,
                     ef(2*in+1,il) +=  v2(1,0) * phi(in,0) * weight;      // force in y direction
                 }
             }
+		}
 			break;
 			
-		case 2 :		// condi�o mista
+		case 2 :		// Mixed Condition
+		{
 			for(in = 0 ; in < phi.Rows(); in++) 
             {
                 for (int il = 0; il <fNumLoadCases; il++) 
@@ -641,6 +649,20 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 		case 6:
 		case 8:
 		case 10:
+			epsx = DSolxy[0][0];// du/dx
+			epsy = DSolxy[1][1];// dv/dy
+			epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+			if (this->fPlaneStress){
+				SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
+				SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
+			}
+			else
+			{
+				SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
+				SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
+			}
+			
+			//numvar = 1;
 			Solout[0] = SigX+SigY;
 			Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
 			if(var == 1) {

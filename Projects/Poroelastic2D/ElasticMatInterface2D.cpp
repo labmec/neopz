@@ -22,9 +22,13 @@ static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
 #endif
 
 ElasticMatInterface2D::ElasticMatInterface2D() : TPZElasticityMaterial(){
+	fkn = 1000000.0;
+	fkt = 1000000.0;		
 }
 
 ElasticMatInterface2D::ElasticMatInterface2D(int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress) : TPZElasticityMaterial(num, E, nu, fx, fy, plainstress){
+	fkn = 1000000.0;
+	fkt = 1000000.0;	
 }
 
 ElasticMatInterface2D::~ElasticMatInterface2D()
@@ -33,14 +37,18 @@ ElasticMatInterface2D::~ElasticMatInterface2D()
 
 // Contribute Interface implementations
 
-
+void ElasticMatInterface2D::SetPenalty(REAL kn, REAL kt)
+{
+	fkn = kn;
+	fkt = kt;
+}
 
 void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
 //	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	
 //	Definition of penalty constants note: this constans for nolinear analysis are funtion of normal and tangencial forces.
-	REAL kn = 100000000000.0;
-	REAL kt = 0.0;
+	REAL kn = this->fkn;
+	REAL kt = this->fkt;
 	
 //	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
 //	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
@@ -116,17 +124,6 @@ void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMateri
 	}	
 	
 
-//#ifdef LOG4CXX
-//	if(logdata->isDebugEnabled())
-//	{
-//		std::stringstream sout;
-//		ek.Print("ek = ", sout,EMathematicaInput);
-//		ef.Print("ef = ", sout,EMathematicaInput);		
-//		LOGPZ_DEBUG(logdata,sout.str())
-//	}
-//#endif	
-	
-		
 	
 }
 

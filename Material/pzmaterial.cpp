@@ -150,7 +150,7 @@ void TPZMaterial::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REA
 		this->Solution(datavec[0], var, Solout);
 	}
 	else {
-		this->Solution(datavec, var, Solout);
+		//this->Solution(datavec, var, Solout);
 	}
 }
 

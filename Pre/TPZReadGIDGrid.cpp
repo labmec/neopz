@@ -31,6 +31,7 @@ TPZReadGIDGrid::TPZReadGIDGrid(){
 	MatNumber = 0;
 	BCNumber = 0;
 	fProblemDimension = 0;
+	fDimensionlessL = 1.0;
 	
 }//method
 
@@ -248,7 +249,6 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	TPZManVector <int> TopolTet(4);
 	TPZManVector <int> TopolHex(8);	
 	
-	
 	{
 		
 		// reading a general mesh information by filter
@@ -365,7 +365,9 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 									read.getline(buf, 1024);
 									flag++;
 								}
+								int MatID;
 								read >> TopolPoint[0]; //node 1	
+								read >> MatID; //Material identity									
 								read.getline(buf, 1024);
 								TopolPoint[0]--;
 								ContPoint++;						
@@ -436,9 +438,9 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								}
 								
 								Node[nodeId-1].SetNodeId(nodeId);
-								Node[nodeId-1].SetCoord(0,nodecoordX);
-								Node[nodeId-1].SetCoord(1,nodecoordY);
-								Node[nodeId-1].SetCoord(2,nodecoordZ);
+								Node[nodeId-1].SetCoord(0,nodecoordX/fDimensionlessL);
+								Node[nodeId-1].SetCoord(1,nodecoordY/fDimensionlessL);
+								Node[nodeId-1].SetCoord(2,nodecoordZ/fDimensionlessL);
 								gmesh->NodeVec()[nodeId-1] = Node[nodeId-1];
 								ContNode++;
 							}
@@ -609,4 +611,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 	
 }// End Method
 
-
+void TPZReadGIDGrid::SetfDimensionlessL(REAL fDimensionlessLValue)
+{
+	fDimensionlessL = fDimensionlessLValue;
+}

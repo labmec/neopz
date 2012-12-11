@@ -13,6 +13,20 @@
 #include "tpzintpoints.h"
 #include "pzdiscgal.h"
 
+#include "pzgraphel.h"
+#include "pzgraphelq2dd.h"
+#include "pzgraphelq3dd.h"
+#include "pzgraphel1d.h"
+#include "pzgraphel1dd.h"
+#include "pztrigraphd.h"
+#include "pztrigraph.h"
+#include "tpzgraphelt2dmapped.h"
+#include "tpzgraphelprismmapped.h"
+#include "tpzgraphelpyramidmapped.h"
+#include "tpzgraphelt3d.h"
+#include "pzgraphel.h"
+
+
 
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl(),fLeftElSide(0), fRightElSide(0)
 {
@@ -21,6 +35,27 @@ TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement() : TPZCompEl()
 TPZMultiphysicsInterfaceElement::TPZMultiphysicsInterfaceElement(TPZCompMesh &mesh, TPZGeoEl *ref, int &index,
                                                                     TPZCompElSide leftside, TPZCompElSide rightside) : TPZCompEl(mesh, ref, index),fLeftElSide(leftside), fRightElSide(rightside)
 {
+	
+//	ref->SetReference(this);
+//	ref->IncrementNumInterfaces();
+//	
+//	if (fLeftElSide.Side() == -1 || fRightElSide.Side() == -1){
+//		PZError << "Error at " << __PRETTY_FUNCTION__ << " at line " << __LINE__ << " Side should not be -1\n";
+//		DebugStop();
+//	}
+//	
+//	this->SetLeftRightElement(fLeftElSide, fRightElSide);
+//	
+//	this->IncrementElConnected();
+	
+}
+
+void TPZMultiphysicsInterfaceElement::IncrementElConnected(){
+	const int ncon = this->NConnects();
+	for(int i = 0; i < ncon; i++){
+		int index = this->ConnectIndex(i);
+		fMesh->ConnectVec()[index].IncrementElConnected();
+	}
 }
 
 /** @brief create a copy of the given element */
@@ -96,10 +131,19 @@ void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZManVector<TPZCompE
 /**
  * Add elements to the list of left and right elements
  */
-void TPZMultiphysicsInterfaceElement::SetLeftRightEement(TPZCompElSide &leftel, TPZCompElSide &rightel)
+void TPZMultiphysicsInterfaceElement::SetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel)
 {
     fLeftElSide = leftel;
     fRightElSide = rightel;
+}
+
+/**
+ * Get left and right elements
+ */
+void TPZMultiphysicsInterfaceElement::GetLeftRightElement(TPZCompElSide &leftel, TPZCompElSide &rightel)
+{
+	leftel = fLeftElSide;
+	rightel = fRightElSide;
 }
 
 /** @brief Returns the number of nodes of the element */
@@ -142,8 +186,6 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		ef.Reset();
 		return;
 	}
-	
-	InitializeElementMatrix(ek,ef);
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
@@ -198,58 +240,58 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         material->ContributeInterface(data , datavecleft, datavecright, weight, ek.fMat, ef.fMat);
     }
-	/*
-	TPZVec<TPZMaterialData> datavec;
-	const int nref = fElementVec.size(); 
-	datavec.resize(nref);
-	InitMaterialData(datavec);
+//	
+//	TPZVec<TPZMaterialData> datavec;
+//	const int nref = fElementVec.size(); 
+//	datavec.resize(nref);
+//	InitMaterialData(datavec);
+//	
+//	TPZManVector<TPZTransform> trvec;
+//	AffineTransform(trvec);
+//	
+//	int dim = Dimension();
+//	TPZAutoPointer<TPZIntPoints> intrule;
+//	
+//	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
+//	REAL weight = 0.;
+//	
+//	TPZVec<int> ordervec;
+//	ordervec.resize(nref);
+//	for (int iref=0;  iref<nref; iref++) 
+//	{
+//		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+//		datavec[iref].p = msp->MaxOrder();
+//		ordervec[iref] = datavec[iref].p; 
+//	}
+//	int order = material->IntegrationRuleOrder(ordervec);
+//	
+//	TPZGeoEl *ref = this->Reference();
+//	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
+//	
+//	TPZManVector<int,3> intorder(dim,order);
+//	intrule->SetOrder(intorder);	
+//	int intrulepoints = intrule->NPoints();
+//	
+//	TPZFMatrix<REAL> jac, axe, jacInv;
+//	REAL detJac; 
+//	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
+//	{		
+//		intrule->Point(int_ind,intpointtemp,weight);
+//		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
+//		weight *= fabs(detJac);
+//		for (int iref=0; iref<fElementVec.size(); iref++)
+//		{			
+//			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
+//			trvec[iref].Apply(intpointtemp, intpoint);
+//			
+//			msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
+//							  datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
+//			datavec[iref].intPtIndex = int_ind;
+//			msp->ComputeRequiredData(datavec[iref], intpoint);
+//		}
+//		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
+//	}//loop over integratin points
 	
-	TPZManVector<TPZTransform> trvec;
-	AffineTransform(trvec);
-	
-	int dim = Dimension();
-	TPZAutoPointer<TPZIntPoints> intrule;
-	
-	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
-	REAL weight = 0.;
-	
-	TPZVec<int> ordervec;
-	ordervec.resize(nref);
-	for (int iref=0;  iref<nref; iref++) 
-	{
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-		datavec[iref].p = msp->MaxOrder();
-		ordervec[iref] = datavec[iref].p; 
-	}
-	int order = material->IntegrationRuleOrder(ordervec);
-	
-	TPZGeoEl *ref = this->Reference();
-	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-	
-	TPZManVector<int,3> intorder(dim,order);
-	intrule->SetOrder(intorder);	
-	int intrulepoints = intrule->NPoints();
-	
-	TPZFMatrix<REAL> jac, axe, jacInv;
-	REAL detJac; 
-	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
-	{		
-		intrule->Point(int_ind,intpointtemp,weight);
-		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
-		weight *= fabs(detJac);
-		for (int iref=0; iref<fElementVec.size(); iref++)
-		{			
-			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-			trvec[iref].Apply(intpointtemp, intpoint);
-			
-			msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
-							  datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
-			datavec[iref].intPtIndex = int_ind;
-			msp->ComputeRequiredData(datavec[iref], intpoint);
-		}
-		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
-	}//loop over integratin points
-	*/
 	
 }//CalcStiff
 
@@ -313,7 +355,8 @@ void TPZMultiphysicsInterfaceElement::InitializeElementMatrix(TPZElementMatrix &
 /** @brief Initialize the material data for the neighbouring element */
 void TPZMultiphysicsInterfaceElement::InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel)
 {
-
+	data.resize(mfcel->NMeshes());
+	mfcel->InitMaterialData(data);
 }
 
 /** @brief initialize the material data for the geometric data */
@@ -350,6 +393,130 @@ void TPZMultiphysicsInterfaceElement::ComputeRequiredData(TPZVec<REAL> &point, T
     //Neighbour->ComputeR
 }
 
+void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmesh, int dimension)
+{
+	TPZGeoEl *ref = Reference();
+	if (ref->Dimension() != dimension) {
+		return;
+	}
+	TPZMaterial * material = Material();
+	int mat = material->Id();
+	int nsides = ref->NSides();
+	
+	if(dimension == 2 && mat > 0){
+		if(nsides == 9){
+			new TPZGraphElQ2dd(this,&grmesh);
+			return;
+		}
+		if(nsides == 7){
+			new TPZGraphElT2dMapped(this,&grmesh);
+			return;
+		}
+	}//2d
+	
+	if(dimension == 3 && mat > 0){
+		if(nsides == 27){
+			new TPZGraphElQ3dd(this,&grmesh);
+			return;
+		}//cube
+		if(nsides == 21){
+			new TPZGraphElPrismMapped(this,&grmesh);
+			return;
+		}//prism
+		if(nsides == 15){
+			new TPZGraphElT3d(this,&grmesh);
+			return;
+		}//tetra
+		if(nsides == 19){
+			new TPZGraphElPyramidMapped(this,&grmesh);
+			return;
+		}//pyram
+	}//3d
+	
+	if(dimension == 1 && mat > 0){
+		new TPZGraphEl1dd(this,&grmesh);
+	}//1d
+	
+}
+
+void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec<REAL> &sol)
+{
+	
+	if(var >= 100) {
+		TPZCompEl::Solution(qsi,var,sol);
+		return;
+	}
+	
+	TPZMaterial * material = this->Material();
+	if(!material){
+		sol.Resize(0);
+		return;
+	}
+	
+	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+    TPZGeoEl *leftgel = leftel->Reference();
+    TPZGeoEl *rightgel = rightel->Reference();	
+	
+    TPZManVector<TPZMaterialData,6> datavecleft,datavecright;
+    TPZMaterialData data;
+    InitMaterialData(datavecleft, leftel);
+    InitMaterialData(datavecright, rightel);
+    TPZManVector<TPZTransform> leftcomptr, rightcomptr;
+    leftel->AffineTransform(leftcomptr);
+    rightel->AffineTransform(rightcomptr);
+    InitMaterialData(data);	
+
+	TPZVec<REAL> myqsi;
+	myqsi.resize(qsi.size());
+	
+	// For left element
+	
+	int nref = datavecleft.size();
+    
+	for (int iref = 0; iref<nref; iref++)
+	{		
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fLeftElSide.Element());
+        if(!msp) continue;
+        msp->InitMaterialData(datavecleft[iref]);
+        TPZMaterialData::MShapeFunctionType shapetype = datavecleft[iref].fShapeType;
+        if(shapetype==datavecleft[iref].EVecShape) continue;
+        
+        leftcomptr[iref].Apply(qsi, myqsi);
+        datavecleft[iref].p = msp->MaxOrder();
+        msp->ComputeShape(qsi,datavecleft[iref]);
+        msp->ComputeSolution(myqsi,datavecleft[iref]);
+		
+		datavecleft[iref].x.Resize(2);
+		msp->Reference()->X(myqsi,datavecleft[iref].x);
+	}
+	
+	// For left element
+	
+	nref = datavecright.size();
+    
+	for (int iref = 0; iref<nref; iref++)
+	{	
+		
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fRightElSide.Element());
+        if(!msp) continue;
+        msp->InitMaterialData(datavecright[iref]);
+        TPZMaterialData::MShapeFunctionType shapetype = datavecright[iref].fShapeType;
+        if(shapetype==datavecleft[iref].EVecShape) continue;
+        
+        rightcomptr[iref].Apply(qsi, myqsi);
+        datavecright[iref].p = msp->MaxOrder();
+        msp->ComputeShape(qsi,datavecright[iref]);
+        msp->ComputeSolution(myqsi,datavecright[iref]);
+		
+		datavecleft[iref].x.Resize(2);
+		msp->Reference()->X(myqsi,datavecright[iref].x);
+		
+	}	
+		
+//	material->Solution(data,datavecleft,datavecright, var, sol);
+}
 
 
 

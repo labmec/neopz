@@ -28,7 +28,7 @@ TPZMatPoisson3d::TPZMatPoisson3d(int nummat, int dim) : TPZDiscontinuousGalerkin
 	fConvDir[0] = 0.;
 	fConvDir[1] = 0.;
 	fConvDir[2] = 0.;
-	fPenaltyConstant = 0.;
+	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetRightK(fK);
 	this->SetNoPenalty();
@@ -40,7 +40,7 @@ TPZMatPoisson3d::TPZMatPoisson3d():TPZDiscontinuousGalerkin(), fXf(0.), fDim(1),
 	fConvDir[0] = 0.;
 	fConvDir[1] = 0.;
 	fConvDir[2] = 0.;
-	fPenaltyConstant = 0.;
+	fPenaltyConstant = 1000.;
 	this->SetNonSymmetric();
 	this->SetRightK(fK);
 	this->SetNoPenalty();
@@ -115,6 +115,7 @@ void TPZMatPoisson3d::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<ST
 	TPZFMatrix<REAL> &axes = data.axes;
 	TPZFMatrix<REAL> &jacinv = data.jacinv;
 	int phr = phi.Rows();
+
 	
 	if(fForcingFunction) {            // phi(in, 0) = phi_in
 		TPZManVector<STATE> res(1);
@@ -433,6 +434,19 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 #ifndef STATE_COMPLEX
 	
 	switch (var) {
+		case 7:
+		{
+			//			{ //MinusKGradU
+			int id;
+			TPZManVector<STATE> dsolp(2,0);
+			dsolp[0] = data.dsol[0](0,0)*data.axes(0,0)+data.dsol[0](1,0)*data.axes(1,0);
+			dsolp[1] = data.dsol[0](0,0)*data.axes(0,1)+data.dsol[0](1,0)*data.axes(1,1);			
+			for(id=0 ; id<fDim; id++) 
+			{
+				Solout[id] = -1. * this->fK * dsolp[id];
+			}
+		}
+			break;			
 		case 8:
 			Solout[0] = data.p;
 			break;

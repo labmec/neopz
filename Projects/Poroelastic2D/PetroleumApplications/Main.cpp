@@ -102,7 +102,7 @@ using namespace pzgeom;
 
 // Defitions of Material index
 // Internal Materials
-const int TotalMats = 3; 
+const int TotalMats = 2; 
 const int matId = 1;// 1 Rock Formation
 const int matIdl2 = 2;// 2 Rock Formation
 const int matIdl3 = 3;// 3 Rock Formation
@@ -150,22 +150,27 @@ const int WellPoint = -5;
 
 // Rock Blocks bondaries
 // Right Block 
-int RBright = -23;
-int RBleft = -43;
-int RBBot = -13;
-int RBTop = -33;
+int RBright = 5;
+int RBleft = 3;
+int RBBot = 2;
+int RBTop = 4;
+
+//int RBright = 10;
+//int RBleft = 8;
+//int RBBot = 7;
+//int RBTop = 9;
 
 // Left Block 
-int LBright = -22;
-int LBleft = -42;
-int LBBot = -12;
-int LBTop = -32;
+int LBright = 6;
+int LBleft = 8;
+int LBBot = 5;
+int LBTop = 9;
 
 // Graven Block 
-int GBright = -21;
-int GBleft = -41;
-int GBBot = -11;
-int GBTop = -31;
+int GBright = 6;
+int GBleft = 4;
+int GBBot = 3;
+int GBTop = 5;
 
 const int WellLine = -5;
 
@@ -224,28 +229,27 @@ int main(int argc, char *argv[])
 	//	Rectangular geometric mesh for graven analysis
 	
 	int nLayers			= 5; 
-	bool InterfaceEl	= true; 
-	REAL LlengthFootFault	= 1600.0;
-	REAL DipFaultAngleleft		= 45.0;
-	REAL DipFaultAngleright		= 45.0;
-	REAL WellFaultlength		= 800.0;
-	TPZVec <bool> wichProductionlayer(nLayers+1,false);
-	//	wichProductionlayer[0] = true; // Horizons -> Top
-	//	wichProductionlayer[1] = true; // Horizons -> Top	
-	//	wichProductionlayer[2] = true; // Horizons -> Top
-	//	wichProductionlayer[3] = true; // Horizons -> Top
-	//	wichProductionlayer[3] = true; // Horizons -> Top
+//	bool InterfaceEl	= true; 
+//	REAL LlengthFootFault	= 1600.0;
+//	REAL DipFaultAngleleft		= 45.0;
+//	REAL DipFaultAngleright		= 45.0;
+//	REAL WellFaultlength		= 800.0;
+//	TPZVec <bool> wichProductionlayer(nLayers+1,false);
+//	wichProductionlayer[0] = true; // Horizons -> Top
+//	wichProductionlayer[1] = true; // Horizons -> Top	
+//	wichProductionlayer[2] = true; // Horizons -> Top
+//	wichProductionlayer[3] = true; // Horizons -> Top
+//	wichProductionlayer[3] = true; // Horizons -> Top
 	
 	
 	std::string FiletoRead;
-//	FiletoRead = "Anticline3wells.dump"; 
-	FiletoRead = "labyrinth.dump";
-//	FiletoRead = "laberinto.dump";	
+//	FiletoRead = "Anticline3wells.dump"; 	
 //	FiletoRead = "AnticlineColoradoTet.dump"; 	
 //	FiletoRead = "AnticlineTet.dump"; 
 //	FiletoRead = "AnticlineQuad.dump"; 
-//	FiletoRead = "AnticlineQuadfine.dump"; 
-//	FiletoRead = "cube.dump"; 	
+//	FiletoRead = "GeologicalGravenmesh.dump"; 
+	FiletoRead = "GeologicalGravenmeshFCoarse.dump"; 	
+//	FiletoRead = "GeologicalGravenmeshCoarse.dump"; 	
 	
 //	MeshGeneration mygenerator;
 //	TPZGeoMesh * gmesh = mygenerator.GeometricGIDMesh(FiletoRead);
@@ -270,6 +274,7 @@ int main(int argc, char *argv[])
 	//	PrintGMeshVTK(gmesh,file1);	
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh,file1, true);	
 	}
+
 		
 //	// Directional Point source Refinement 
 //	int ndirectdivp = 17;
@@ -288,7 +293,7 @@ int main(int argc, char *argv[])
 //	}
 //	
 	//	Modifying Geometric Mesh
-	int Href = 1;
+	int Href = 0;
 	RefinamentoUniforme(gmesh, Href);
 	
 	{
@@ -308,44 +313,44 @@ int main(int argc, char *argv[])
 	ofstream arg2("cmeshElasticity.txt");
 	cmesh1->Print(arg2);
 	
-	//	Second computational mesh
-	//	TPZCompMesh * cmesh2= MalhaCompPressao(gmesh, p);
-	////	Print Second computational mesh
-	//	ofstream arg3("cmesh2.txt");
-	//	cmesh2->Print(arg3);	
-	
-	//	Clear reference of the geometric mesh to cmesh1
-//	gmesh->ResetReference();
-//	cmesh1->LoadReferences();
-//	
-//	//	Using Uniform Refinement
-//	RefinUniformElemComp(cmesh1,4);
-//	cmesh1->AdjustBoundaryElements();
-//	cmesh1->CleanUpUnconnectedNodes();
-	
-	//	ofstream arg4("cmesh12.txt");
-	//	cmesh1->Print(arg4);
-	//	ofstream arg5("gmesh2.txt");
-	//	gmesh->Print(arg5);
-	//	ofstream file3("malhageo1.vtk");
-	//	PrintGMeshVTK(gmesh, file3);
-	
-	// Clear reference of the geometric mesh to cmesh2
-	//	gmesh->ResetReference();
-	//	cmesh2->LoadReferences();
+//	Second computational mesh
+	TPZCompMesh * cmesh2= MalhaCompPressao(gmesh, p);
+//	Print Second computational mesh
+	ofstream arg3("cmesh2.txt");
+	cmesh2->Print(arg3);	
+
+//	Clear reference of the geometric mesh to cmesh1
+	gmesh->ResetReference();
+	cmesh1->LoadReferences();
 	
 	//	Using Uniform Refinement
-	//	RefinUniformElemComp(cmesh2,1);
-	//	cmesh2->AdjustBoundaryElements();
-	//	cmesh2->CleanUpUnconnectedNodes();
-	//	cmesh2->ExpandSolution();
+	RefinUniformElemComp(cmesh1,0);
+	cmesh1->AdjustBoundaryElements();
+	cmesh1->CleanUpUnconnectedNodes();
 	
-	//	ofstream arg6("cmesh22.txt");
-	//	cmesh2->Print(arg6);
-	//	ofstream arg7("gmesh3.txt");
-	//	gmesh->Print(arg7);
-	//	ofstream file5("malhageo2.vtk");
-	//	PrintGMeshVTK(gmesh, file5);
+	ofstream arg4("cmesh12.txt");
+	cmesh1->Print(arg4);
+	ofstream arg5("gmesh2.txt");
+	gmesh->Print(arg5);
+	ofstream file3("malhageo1.vtk");
+	PrintGMeshVTK(gmesh, file3);
+
+//	Clear reference of the geometric mesh to cmesh2
+	gmesh->ResetReference();
+	cmesh2->LoadReferences();
+
+//	Using Uniform Refinement
+	RefinUniformElemComp(cmesh2,0);
+	cmesh2->AdjustBoundaryElements();
+	cmesh2->CleanUpUnconnectedNodes();
+	cmesh2->ExpandSolution();
+
+	ofstream arg6("cmesh22.txt");
+	cmesh2->Print(arg6);
+	ofstream arg7("gmesh3.txt");
+	gmesh->Print(arg7);
+	ofstream file5("malhageo2.vtk");
+	PrintGMeshVTK(gmesh, file5);
 	
 	//	Solving First Computational problem
 	TPZAnalysis an1(cmesh1);
@@ -358,9 +363,9 @@ int main(int argc, char *argv[])
 	std::list <int> & zeropivot = temp.Singular(); 
 	if (zeropivot.size()) 
 	{
-		int eq = * zeropivot.begin();
+		int eq = * zeropivot.begin();	
 		an1.Rhs().Zero();
-		an1.Rhs()(eq,0) = -10000.0;
+		an1.Rhs()(eq,0) = -1.0e10;
 		an1.Solve();
 		TPZFMatrix<REAL> TempSolution = an1.Solution();
 		
@@ -380,175 +385,179 @@ int main(int argc, char *argv[])
 		std::string plotfile = outputfiletemp.str();
 		PosProcess2(an1,plotfile);
 		
+		std::cout << "Error -> This problem has singular nodes!" << endl;
+		std::cout << "Error -> The program will stop!" << endl;		
+		DebugStop();
+		
 	}		
 	
 	
 	
-	//	Solving Second Computational problem
-	//	TPZAnalysis an2(cmesh2);
-	//	SolveSist(an2, cmesh2);
-	//	std::string plotfile2("saidaSolution_cmesh2.vtk");
-	//	PosProcess(an2, plotfile2);
-	
-	
-	//	Solving Multiphysic Computational problem
-	//	TPZVec<TPZCompMesh *> meshvec(2);
-	//	meshvec[0] = cmesh1;
-	//	meshvec[1] = cmesh2;
-	//	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,1);
-	//	 
-	//	ofstream file6("mphysics.vtk");
-	//	PrintGMeshVTK(gmesh, file6);
-	//	 
-	//	TPZAnalysis an(mphysics);
-	//	SolveSist(an, mphysics);
-	//	std::string plotfile3("saidaMultphysics.vtk");
-	//	PosProcessMultphysics(meshvec,mphysics, an, plotfile3);
-	//
-	
-	// This part is for Poroelastic analysis	
-	
-	//	Set initial conditions for pressure 
-	//	int nrs = an2.Solution().Rows();
-	//	TPZFMatrix<REAL> solucao1(nrs,1,0.0);
-	//	cmesh2->Solution() = solucao1;
-	//	
-	//	TPZVec<TPZCompMesh *> meshvec(2);
-	//	meshvec[0] = cmesh1;
-	//	meshvec[1] = cmesh2;
-	//	TPZVec <TPZPoroElastic2d *>  materialist(TotalMats,0) ;
-	//	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,materialist);
-	//	
-	//	
-	//	// time control
-	//	REAL hour = 3600;
-	//	REAL day = 86400;
-	//	REAL month = 30*day;
-	//	REAL year = 365*day;
-	//	REAL delta = 81.999999999*day;
-	//	REAL MaxTime = 164*day;
-	//	
-	//	// Improve this
-	//	for(int imat = 0; imat < TotalMats; imat++)
-	//	{	
-	//	materialist[imat]->SetTimeStep(delta);		
-	//	materialist[imat]->SetTimeValue(0.0);
-	//	//Criando matriz K2
-	//	materialist[imat]->SetLastState();
-	//	}
-	//	
-	//	TPZAnalysis an(mphysics);
-	//	
-	//	//Setting initial coditions 
-	//	TPZFMatrix<REAL> Initialsolution = an.Solution();
-	//	std::string output;
-	//	output = "TransientSolution";
-	//	std::stringstream outputfiletemp;
-	//	outputfiletemp << output << ".vtk";
-	//	std::string plotfile = outputfiletemp.str();
-	//	//Print Initial conditions
-	//	PosProcessMultphysics(meshvec,mphysics,an,plotfile);	
-	//	
-	//	TPZSpStructMatrix matsp(mphysics);
-	//	//TPZSkylineStructMatrix matsp(mphysics);	
-	//	std::set< int > materialid;
-	//	materialid.clear();	
-	//	int matid = 1;
-	//	materialid.insert(imat);
-	//	matsp.SetMaterialIds (materialid);
-	//	// Improve this
-	//	for(int imat = 0; imat < TotalMats; imat++)
-	//	{	
-	//		materialid.insert(imat+1);	
-	//	}
-	//	// Inserting Material ids for matrix K2 creation
-	//	matsp.SetMaterialIds(materialid);		
-	//	
-	//	TPZAutoPointer<TPZGuiInterface> guiInterface;
-	//	TPZFMatrix<REAL> Un;
-	//	TPZAutoPointer <TPZMatrix<REAL> > matK2 = matsp.CreateAssemble(Un,guiInterface);
-	//	
-	//#ifdef LOG4CXX
-	//	if(logdata->isDebugEnabled())
-	//	{
-	//		std::stringstream sout;
-	//		matK2->Print("K2 = ", sout,EMathematicaInput);
-	//		LOGPZ_DEBUG(logdata,sout.str())
-	//	}
-	//#endif
-	//	
-	//	//Criando matriz K1
-	//	// Improve this
-	//	for(int imat = 0; imat < TotalMats; imat++)
-	//	{	
-	//	materialist[imat]->SetCurrentState();
-	//	}	
-	//	TPZSkylineStructMatrix matsk(mphysics);
-	//	TPZFMatrix<REAL> matK1;	
-	//	TPZFMatrix<REAL> fvec; //vetor de carga
-	//	an.SetStructuralMatrix(matsk);//	Set the structtural sky line matrix to our analysis
-	//	
-	//	
-	//	TPZStepSolver<REAL> step; //Create Solver object
-	//	step.SetDirect(ELDLt); //	Symmetric case
-	//	//step.SetDirect(ELU);
-	//	an.SetSolver(step); //	Set solver
-	//	an.Run(); //	Excecute an analysis to obtain the Rhs vector (In this case we start with zero initial values)
-	//	
-	//	matK1 = an.StructMatrix(); //Storage the global matrix and load vector
-	//	fvec = an.Rhs();
-	//	
-	//	// This code identify singular blocks
-	//	TPZStepSolver<REAL> & temp = dynamic_cast<TPZStepSolver<REAL> &> (an.Solver());
-	//	std::list <int> & zeropivot = temp.Singular(); 
-	//	if (zeropivot.size()) 
-	//	{
-	//		int eq = * zeropivot.begin();
-	//		an.Rhs().Zero();
-	//		an.Rhs()(eq,0) = -10000.0;
-	//		an.Solve();
-	//		TPZFMatrix<REAL> TempSolution = an.Solution();
-	//		
-	//#ifdef LOG4CXX
-	//		// Print the temporal solution
-	//		if(logdata->isDebugEnabled())
-	//		{
-	//			std::stringstream sout;
-	//			TempSolution.Print("Singularnodes = ", sout,EMathematicaInput);
-	//			LOGPZ_DEBUG(logdata,sout.str())
-	//		}
-	//#endif	
-	//		std::string output;
-	//		output = "Singularnodes";
-	//		std::stringstream outputfiletemp;
-	//		outputfiletemp << output << ".vtk";
-	//		std::string plotfile = outputfiletemp.str();
-	//		PosProcessMultphysics(meshvec,mphysics,an,plotfile);
-	//		
-	//	}
-	//	
-	//#ifdef LOG4CXX
-	//	if(logdata->isDebugEnabled())
-	//	{
-	//		// base system to invert
-	//		// just one for checking purpose
-	//		std::stringstream sout;
-	//		an.Solver().Matrix()->Print("K1 = ", sout,EMathematicaInput);
-	//		fvec.Print("fvec = ", sout,EMathematicaInput);		
-	//		//Print the temporal solution
-	//		Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
-	//		TPZFMatrix<REAL> Temp;
-	//		TPZFMatrix<REAL> Temp2;
-	//		matK2->Multiply(Initialsolution,Temp);
-	//		Temp.Print("Temp K2 = ", sout,EMathematicaInput);	
-	//		LOGPZ_DEBUG(logdata,sout.str())
-	//	}
-	//#endif
-	//	
-	//	///start transient problem
-	//	SolveSistTransient(delta,MaxTime,matK1, matK2, fvec, Initialsolution, materialist, an, meshvec,  mphysics);
-	
-	
+//		//	Solving Second Computational problem
+//			TPZAnalysis an2(cmesh2);
+//			SolveSist(an2, cmesh2);
+//			std::string plotfile2("saidaSolution_cmesh2.vtk");
+//			PosProcess(an2, plotfile2);
+//
+//
+//		//	//	Solving Multiphysic Computational problem
+//		//	TPZVec<TPZCompMesh *> meshvec(2);
+//		//	meshvec[0] = cmesh1;
+//		//	meshvec[1] = cmesh2;
+//		//	TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,1);
+//		//	 
+//		//	ofstream file6("mphysics.vtk");
+//		//	PrintGMeshVTK(gmesh, file6);
+//		//	 
+//		//	TPZAnalysis an(mphysics);
+//		//	SolveSist(an, mphysics);
+//		//	std::string plotfile3("saidaMultphysics.vtk");
+//		//	PosProcessMultphysics(meshvec,mphysics, an, plotfile3);
+//
+//
+//		// This part is for Poroelastic analysis	
+//
+//		//	Set initial conditions for pressure 
+//			int nrs = an2.Solution().Rows();
+//			TPZFMatrix<REAL> solucao1(nrs,1,0.0);
+//			cmesh2->Solution() = solucao1;
+//			
+//			TPZVec<TPZCompMesh *> meshvec(2);
+//			meshvec[0] = cmesh1;
+//			meshvec[1] = cmesh2;
+//			TPZVec <TPZPoroElastic2d * >  materialist(TotalMats,0) ;
+//			TPZCompMesh * mphysics = MalhaCompMultphysics(gmesh,meshvec,materialist);
+//			
+//			
+//			// time control
+//			REAL hour = 3600;
+//			REAL day = 86400;
+//			REAL month = 30*day;
+//			REAL year = 365*day;
+//			REAL delta = 81.999999999*day;
+//			REAL MaxTime = 164*day;
+//			
+//			// Improve this
+//			for(int imat = 0; imat < TotalMats; imat++)
+//			{	
+//			materialist[imat]->SetTimeStep(delta,1.0);		
+//			materialist[imat]->SetTimeValue(0.0);
+//			//Criando matriz K2
+//			materialist[imat]->SetLastState();
+//			}
+//			
+//			TPZAnalysis an(mphysics);
+//			
+//			//Setting initial coditions 
+//			TPZFMatrix<REAL> Initialsolution = an.Solution();
+//			std::string output;
+//			output = "TransientSolution";
+//			std::stringstream outputfiletemp;
+//			outputfiletemp << output << ".vtk";
+//			plotfile = outputfiletemp.str();
+//			//Print Initial conditions
+//			PosProcessMultphysics(meshvec,mphysics,an,plotfile);	
+//			
+//			TPZSpStructMatrix matsp(mphysics);
+//			//TPZSkylineStructMatrix matsp(mphysics);	
+//			std::set< int > materialid;
+//			materialid.clear();	
+//			int matid = 1;
+//		//	materialid.insert(imat);
+//			matsp.SetMaterialIds (materialid);
+//			// Improve this
+//			for(int imat = 0; imat < TotalMats; imat++)
+//			{	
+//				materialid.insert(imat+1);	
+//			}
+//			// Inserting Material ids for matrix K2 creation
+//			matsp.SetMaterialIds(materialid);		
+//			
+//			TPZAutoPointer<TPZGuiInterface> guiInterface;
+//			TPZFMatrix<REAL> Un;
+//			TPZAutoPointer <TPZMatrix<REAL> > matK2 = matsp.CreateAssemble(Un,guiInterface);
+//			
+//		#ifdef LOG4CXX
+//			if(logdata->isDebugEnabled())
+//			{
+//				std::stringstream sout;
+//				matK2->Print("K2 = ", sout,EMathematicaInput);
+//				LOGPZ_DEBUG(logdata,sout.str())
+//			}
+//		#endif
+//			
+//			//Criando matriz K1
+//			// Improve this
+//			for(int imat = 0; imat < TotalMats; imat++)
+//			{	
+//			materialist[imat]->SetCurrentState();
+//			}	
+//			TPZSkylineStructMatrix matsk(mphysics);
+//			TPZFMatrix<REAL> matK1;	
+//			TPZFMatrix<REAL> fvec; //vetor de carga
+//			an.SetStructuralMatrix(matsk);//	Set the structtural sky line matrix to our analysis
+//			
+//			
+//			TPZStepSolver<REAL> step; //Create Solver object
+//			step.SetDirect(ELDLt); //	Symmetric case
+//			//step.SetDirect(ELU);
+//			an.SetSolver(step); //	Set solver
+//			an.Run(); //	Excecute an analysis to obtain the Rhs vector (In this case we start with zero initial values)
+//			
+//			matK1 = an.StructMatrix(); //Storage the global matrix and load vector
+//			fvec = an.Rhs();
+//			
+//			// This code identify singular blocks
+//			TPZStepSolver<REAL> & temp = dynamic_cast<TPZStepSolver<REAL> &> (an.Solver());
+//			std::list <int> & zeropivot = temp.Singular(); 
+//			if (zeropivot.size()) 
+//			{
+//				int eq = * zeropivot.begin();
+//				an.Rhs().Zero();
+//				an.Rhs()(eq,0) = -10000.0;
+//				an.Solve();
+//				TPZFMatrix<REAL> TempSolution = an.Solution();
+//				
+//		#ifdef LOG4CXX
+//				// Print the temporal solution
+//				if(logdata->isDebugEnabled())
+//				{
+//					std::stringstream sout;
+//					TempSolution.Print("Singularnodes = ", sout,EMathematicaInput);
+//					LOGPZ_DEBUG(logdata,sout.str())
+//				}
+//		#endif	
+//				std::string output;
+//				output = "Singularnodes";
+//				std::stringstream outputfiletemp;
+//				outputfiletemp << output << ".vtk";
+//				std::string plotfile = outputfiletemp.str();
+//				PosProcessMultphysics(meshvec,mphysics,an,plotfile);
+//				
+//			}
+//			
+//		#ifdef LOG4CXX
+//			if(logdata->isDebugEnabled())
+//			{
+//				// base system to invert
+//				// just one for checking purpose
+//				std::stringstream sout;
+//				an.Solver().Matrix()->Print("K1 = ", sout,EMathematicaInput);
+//				fvec.Print("fvec = ", sout,EMathematicaInput);		
+//				//Print the temporal solution
+//				Initialsolution.Print("Intial conditions = ", sout,EMathematicaInput);
+//				TPZFMatrix<REAL> Temp;
+//				TPZFMatrix<REAL> Temp2;
+//				matK2->Multiply(Initialsolution,Temp);
+//				Temp.Print("Temp K2 = ", sout,EMathematicaInput);	
+//				LOGPZ_DEBUG(logdata,sout.str())
+//			}
+//		#endif
+//			
+//			///start transient problem
+//			SolveSistTransient(delta,MaxTime,matK1, matK2, fvec, Initialsolution, materialist, an, meshvec,  mphysics);
+//			
+//	
 	return EXIT_SUCCESS;
 }
 
@@ -580,7 +589,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 	{	
 		
 		// Using Gravity field
-		forceVec[imat][1]=-gravity*rockrho[imat];
+//		forceVec[imat][1]=-gravity*rockrho[imat];
 		materialist[imat] = new TPZElasticityMaterial(imat+1, E[imat], poisson[imat], forceVec[imat][0], forceVec[imat][1], planestress); 
 		
 		
@@ -597,44 +606,48 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 		unitdis(0,0) = 0.0;
 		unitdis(1,0) = 0.0;		
 		
-		TPZMaterial * BCondNRBTop = materialist[imat]->CreateBC(mat, RBTop,neumann, val1, unitdis);
+		TPZMaterial * BCondNRBTop = materialist[imat]->CreateBC(mat, LBright,neumann, val1, unitdis);
 		cmesh->InsertMaterialObject(BCondNRBTop);
 		
-		TPZMaterial * BCondNGBTop = materialist[imat]->CreateBC(mat, GBTop,neumann, val1, unitdis);
+		TPZMaterial * BCondNGBTop = materialist[imat]->CreateBC(mat, RBleft,neumann, val1, unitdis);
 		cmesh->InsertMaterialObject(BCondNGBTop);
+			
 		
-		TPZMaterial * BCondNLBTop = materialist[imat]->CreateBC(mat, LBTop,neumann, val1, unitdis);
-		cmesh->InsertMaterialObject(BCondNLBTop);		
-		
-		REAL uNLy=0.0;
-		val2(1,0)=uNLy;	
-		
-		TPZMaterial * BCondNL = materialist[imat]->CreateBC(mat, LBleft,4, val1, val2);
-		cmesh->InsertMaterialObject(BCondNL);
-		
-		
-		TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
-		REAL uDL=0.0;
-		val22(0,0)=uDL;
-		TPZMaterial * BCondDLBBot = materialist[imat]->CreateBC(mat, LBBot,3, val1, val2);
-		cmesh->InsertMaterialObject(BCondDLBBot);
+//		REAL uNLy=0.0;
+//		val2(1,0)=uNLy;	
+//		
+//		TPZMaterial * BCondNL = materialist[imat]->CreateBC(mat, LBleft,4, val1, val2);
+//		cmesh->InsertMaterialObject(BCondNL);
+//		
+//		
+//		TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
+//		REAL uDL=0.0;
+//		val22(0,0)=uDL;
+//		TPZMaterial * BCondDLBBot = materialist[imat]->CreateBC(mat, LBBot,3, val1, val2);
+//		cmesh->InsertMaterialObject(BCondDLBBot);
 		
 		TPZFMatrix<REAL> valbot(3,1,0.);
 		REAL uDx=0.0;
-		REAL uDy=-10.0;
+		REAL uDy=1.0;
 		valbot(0,0)=uDx;
 		valbot(1,0)=uDy;		
 		
-		TPZMaterial * BCondDGBBot = materialist[imat]->CreateBC(mat, GBBot,dirichlet, val1, valbot);
+		TPZMaterial * BCondDGBBot = materialist[imat]->CreateBC(mat, LBBot,dirichlet, val1, valbot);
 		cmesh->InsertMaterialObject(BCondDGBBot);
+
+		valbot(0,0)=0.0;
+		valbot(1,0)=-1.0;		
 		
-		TPZMaterial * BCondDRBBot = materialist[imat]->CreateBC(mat, RBBot,3, val1, val2);
-		cmesh->InsertMaterialObject(BCondDRBBot);		
+		TPZMaterial * BCondNLBTop = materialist[imat]->CreateBC(mat, RBTop,dirichlet, val1, valbot);
+		cmesh->InsertMaterialObject(BCondNLBTop);			
 		
-		REAL uDR=0.0;
-		val22(0,0)=uDR;
-		TPZMaterial * BCondDR = materialist[imat]->CreateBC(mat, RBright,4, val12, val2);
-		cmesh->InsertMaterialObject(BCondDR);
+//		TPZMaterial * BCondDRBBot = materialist[imat]->CreateBC(mat, RBBot,3, val1, val2);
+//		cmesh->InsertMaterialObject(BCondDRBBot);		
+//		
+//		REAL uDR=0.0;
+//		val22(0,0)=uDR;
+//		TPZMaterial * BCondDR = materialist[imat]->CreateBC(mat, RBright,4, val12, val2);
+//		cmesh->InsertMaterialObject(BCondDR);
 		
 //		TPZMaterial * BCondGDR = materialist[imat]->CreateBC(mat, -7,dirichlet, val1, val2);
 //		cmesh->InsertMaterialObject(BCondGDR);
@@ -657,16 +670,27 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 	
 	if (Initialstress) 
 	{
+		REAL KN1 = 1.0e20;
+		REAL KT1 = 1.0e20;
+		REAL KN2 = 1.0e20;
+		REAL KT2 = 0.0e20;		
 		
 		//		Inserting interface element
-		ElasticMatInterface2D *interfacematr = new ElasticMatInterface2D(43,100,0.35, 0.0, -gravity*2500.0, planestress); 
+		ElasticMatInterface2D *interfacematr = new ElasticMatInterface2D(7,100,0.35, 0.0, -gravity*2500.0, planestress); 
+		interfacematr->SetPenalty(KN1,KT1);		
 		TPZMaterial * matINteR(interfacematr);
 		cmesh->InsertMaterialObject(matINteR);
 		
 		//		Inserting interface element
-		ElasticMatInterface2D *interfacematl = new ElasticMatInterface2D(22,100,0.35, 0.0, -gravity*2500.0, planestress); 
+		ElasticMatInterface2D *interfacematl = new ElasticMatInterface2D(8,100,0.35, 0.0, -gravity*2500.0, planestress);
+		interfacematl->SetPenalty(KN2,KT2);
 		TPZMaterial * matINteL(interfacematl);
-		cmesh->InsertMaterialObject(matINteL);		
+		cmesh->InsertMaterialObject(matINteL);
+		
+//		//		Inserting interface element
+//		TPZElasticityMaterial *interfacematelasl = new TPZElasticityMaterial(7, E[0], poisson[0], forceVec[0][0], forceVec[0][1], planestress); 
+//		TPZMaterial * matINteR(interfacematelasl);
+//		cmesh->InsertMaterialObject(matINteR);			
 		
 		
 		// setting Computational element structure
@@ -676,66 +700,36 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 		std::set<int> iset;
 				
 		iset.insert(2);
-		iset.insert(-12);
-		iset.insert(-22);		
-		iset.insert(-32);
-		iset.insert(-42);		
+		iset.insert(5);
+		iset.insert(6);		
+//		iset.insert(7);
+//		iset.insert(10);		
 		cmesh->AutoBuild(iset);
 		iset.clear();		
 		cmesh->Reference()->ResetReference();
 		
 		
-		iset.insert(3);
-		iset.insert(-13);		
-		iset.insert(-23);
-		iset.insert(-33);
-		iset.insert(-43);		
-		cmesh->AutoBuild(iset);
-		cmesh->Reference()->ResetReference();			
-		iset.clear();		
+//		iset.insert(3);
+//		iset.insert(-13);		
+//		iset.insert(-23);
+//		iset.insert(-33);
+//		iset.insert(-43);		
+//		cmesh->AutoBuild(iset);
+//		cmesh->Reference()->ResetReference();			
+//		iset.clear();		
 		
 		iset.insert(1);
-		iset.insert(-11);
-		iset.insert(-31);		
+		iset.insert(3);
+		iset.insert(4);		
 		cmesh->AutoBuild(iset);
 		cmesh->Reference()->ResetReference();			
 		iset.clear();
-				
-		
-//		for(int imat = 0; imat < TotalMats; imat++)
-//		{	
-//			iset.insert(imat+1);	
-//		}
-//		cmesh->LoadReferences();
-//		
-//		cmesh->LoadReferences();
-//		iset.insert(-1);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();
-//		
-//		iset.insert(-2);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();		
-//		
-//		iset.insert(-3);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();
-//		
-//		iset.insert(-4);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();
-//		
-//		iset.insert(-7);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();
-//		
-//		iset.insert(-8);	
-//		cmesh->AutoBuild(iset);	
-//		iset.clear();	
 		
 		
 		// Load references for search interface locations
-		cmesh->LoadReferences();		
+		cmesh->LoadReferences();
+		ofstream Argument("CMeshBefore.txt");		
+		cmesh->Print(Argument);
 		int ngel = cmesh->Reference()->NElements();
 		
 		for(int igel = 0; igel < ngel ; igel++ )
@@ -745,7 +739,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 				continue;
 			}
 			int MatId = Gel->MaterialId();
-			if (MatId == 43) {
+			if (MatId == 7) {
 				TPZStack < TPZCompElSide > neigh;
 				int side = Gel->NSides()-1;
 				TPZGeoElSide gelside(Gel,side);
@@ -764,7 +758,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 				
 			}
 			
-			if (MatId == 22) {
+			if (MatId == 8) {
 				TPZStack < TPZCompElSide > neigh;
 				int side = Gel->NSides()-1;
 				TPZGeoElSide gelside(Gel,side);
@@ -784,8 +778,8 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 			}			
 			
 		}
-		iset.insert(43);
-		iset.insert(22);		
+		iset.insert(8);
+		iset.insert(7);		
 		cmesh->AutoBuild(iset);
 		cmesh->Reference()->ResetReference();			
 		iset.clear();		
@@ -794,7 +788,7 @@ TPZCompMesh*MalhaCompElast(TPZGeoMesh * gmesh,int pOrder, bool Initialstress)
 	}
 	else 
 	{
-//		cmesh->AutoBuild();
+		cmesh->AutoBuild();
 	}
 	
 	
@@ -1441,7 +1435,7 @@ void PosProcess(TPZAnalysis &an, std::string plotfile){
 	vecnames[0]= "MinusKGradU";
 	
 	const int dim = 2;
-	int div = 0;
+	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	std::ofstream out("malha.txt");
@@ -1505,7 +1499,7 @@ void RefinamentoUniforme(TPZGeoMesh *gMesh, int nh){
 			int GelDimension = gel->Dimension();
 			if (GelDimension == 2 || GelDimension == 1) 
 			{
-				gel->Divide (filhos);
+				gel->Divide(filhos);
 			}
 		}//for i
 	}//ref
