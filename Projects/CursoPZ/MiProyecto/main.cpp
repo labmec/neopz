@@ -432,7 +432,7 @@ int main() {
 		}
 		else {
 			// Refinamento uniforme para toda a malla
-			UniformRefine(gmesh,6s);
+			UniformRefine(gmesh,6);
 		}
 		
 		// Creating computational mesh (approximation space and materials)
