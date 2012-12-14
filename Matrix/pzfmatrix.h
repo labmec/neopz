@@ -325,7 +325,7 @@ inline TPZFMatrix<TVar> TPZFMatrix<TVar>::operator*( TPZFMatrix<TVar> A ) const 
 }
 
 /**
- * @brief Non abstract class which implements full matrices with preallocated storage. \ref matrix "Matrix"
+ * @brief Non abstract class which implements full matrices with preallocated storage with (N+1) entries. \ref matrix "Matrix"
  * @ingroup matrix
  */
 template<int N, class TVar=REAL>
@@ -334,7 +334,7 @@ class TPZFNMatrix : public TPZFMatrix<TVar> {
 	
 public:
 	/*
-	 * Constructor which does not initialize the data
+	 * @brief Constructor which does not initialize the data. \n
 	 * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
 	 * @param row Number of rows
 	 * @param col Number of cols
@@ -356,7 +356,7 @@ public:
 	
 	CLONEDEF(TPZFNMatrix)
 	/*
-	 * Constructor which initializes the data
+	 * @brief Constructor which initializes the data. \n
 	 * WARNING : this class will dynamically allocate memory if the template parameter N is smaller than row*col
 	 * @param row Number of rows
 	 * @param col Number of cols
