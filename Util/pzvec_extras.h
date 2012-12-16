@@ -63,6 +63,22 @@ void sscal(TPZVec< T1 > & x, const Scalar s)
 }
 
 /**
+ * @brief substracts two vectors
+ */
+template <class T>
+TPZVec<T> operator-(const TPZVec<T> &a,const TPZVec<T> &b)
+{
+    if (a.size() != b.size()) {
+        DebugStop();
+    }
+    TPZVec<T> result(a.size());
+    for (int i=0; i<a.size(); i++) {
+        result[i] = a[i]-b[i];
+    }
+    return result;
+}
+
+/**
  * @brief Performs a sdot operation: dot <- Transpose[x] * y
  *
  * @since Mar 20, 2003

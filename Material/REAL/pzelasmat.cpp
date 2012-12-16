@@ -33,6 +33,7 @@ TPZElasticityMaterial::TPZElasticityMaterial() : TPZDiscontinuousGalerkin(0) {
 	fPreStressXX = 0.;  //Prestress in the x direction
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
+	fPreStressZZ = 0.;  //Prestress in the z direction
 	fPlaneStress = -1;
     
     // Added by Philippe 2012
@@ -53,6 +54,7 @@ TPZElasticityMaterial::TPZElasticityMaterial(int num, REAL E, REAL nu, REAL fx, 
 	fPreStressXX = 0.;  //Prestress in the x direction
 	fPreStressYY = 0.;  //Prestress in the y direction
 	fPreStressXY = 0.;  //Prestress in the z direction
+	fPreStressZZ = 0.;  //Prestress in the z direction
 	fPlaneStress = plainstress;
     // Added by Philippe 2012
     fPostProcIndex = 0;
@@ -74,14 +76,15 @@ void TPZElasticityMaterial::Print(std::ostream &out) {
 	out << "\t PreStress: \n"
 	<< "Sigma xx = \t" << fPreStressXX << "\t"
 	<< "Sigma yy = \t" << fPreStressYY << "\t"
-	<< "Sigma xy = \t" << fPreStressXY << endl;
+	<< "Sigma xy = \t" << fPreStressXY << "Sigma zz = \t" << fPreStressZZ << endl;
 }
 
 //Added by Cesar 2001/03/16
-void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy){
+void TPZElasticityMaterial::SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz){
 	fPreStressXX = Sigxx;
 	fPreStressYY = Sigyy;
 	fPreStressXY = Sigxy;
+    fPreStressZZ = Sigzz;
 }
 
 void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef) {
@@ -142,7 +145,7 @@ void TPZElasticityMaterial::Contribute(TPZMaterialData &data,REAL weight,TPZFMat
         for (int col = 0; col < efc; col++) 
         {
             ef(2*in, col) += weight * (ff[0] * phi(in, 0)- du(0,0)*fPreStressXX - du(1,0)*fPreStressXY);  // dire�o x
-            ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(0,0)*fPreStressYY - du(1,0)*fPreStressXY);// dire�o y <<<----
+            ef(2*in+1, col) += weight * (ff[1] * phi(in, 0)- du(1,0)*fPreStressYY - du(0,0)*fPreStressXY);// dire�o y <<<----
         }		
 		for( int jn = 0; jn < phr; jn++ ) {
 			du(0,1) = dphi(0,jn)*axes(0,0)+dphi(1,jn)*axes(1,0);
@@ -211,8 +214,11 @@ void TPZElasticityMaterial::FillDataRequirements(TPZMaterialData &data)
 
 void TPZElasticityMaterial::FillBoundaryConditionDataRequirement(int type,TPZMaterialData &data)
 {
-    data.fNeedsSol = true;
-	data.fNeedsNormal = true;
+    data.fNeedsSol = false;
+    data.fNeedsNormal = false;
+    if (type == 4 || type == 5) {
+        data.fNeedsNormal = true;
+    }
     
 }
 
@@ -538,6 +544,9 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("SigmaX",name.c_str()))           return 5;
 	if(!strcmp("SigmaY",name.c_str()))           return 6;
 	if(!strcmp("TauXY",name.c_str()))            return 8;//Cedric
+	if(!strcmp("Strain",name.c_str()))           return 11;//Philippe
+	if(!strcmp("SigmaZ",name.c_str()))           return 12;//Philippe
+    
 	if(!strcmp("sig_x",name.c_str()))            return 5;
 	if(!strcmp("sig_y",name.c_str()))            return 6;
 	if(!strcmp("tau_xy",name.c_str()))           return 8;//Cedric
@@ -576,6 +585,9 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
 			return 3;
         case 11 : //Strain Tensor
             return 3;
+            // SigZ
+        case 12:
+            return 1;
         case 20:
             return 1;
         case 21:
@@ -592,9 +604,11 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	REAL epsx;
 	REAL epsy;
 	REAL epsxy;
+    REAL epsz = 0.;
 	REAL SigX;
 	REAL SigY;
-	REAL Tau,aux,Sig1,Sig2,angle,DSolxy[2][2];
+    REAL SigZ;
+	REAL TauXY,aux,Sig1,Sig2,angle,DSolxy[2][2];
     
     // dudx - dudy
 	DSolxy[0][0] = DSol(0,0)*axes(0,0)+DSol(1,0)*axes(1,0);
@@ -603,24 +617,38 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 	DSolxy[0][1] = DSol(0,1)*axes(0,0)+DSol(1,1)*axes(1,0);
 	DSolxy[1][1] = DSol(0,1)*axes(0,1)+DSol(1,1)*axes(1,1);
     
-    
     epsx = DSolxy[0][0];// du/dx
     epsy = DSolxy[1][1];// dv/dy
     epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
+    
+    REAL lambda = GetLambda();
+    REAL mu = GetMU();
+    if (this->fPlaneStress) {
+        REAL lambda = GetLambda();
+        REAL mu = GetMU();
+        epsz = -lambda*(epsx+epsy)/(lambda+2.*mu);
+    }
+    else {
+        epsz = 0.;
+    }
+    TauXY = 2*mu*epsxy+fPreStressXY;
+#ifdef DEBUG
+    REAL TauXY2 = fE*epsxy/(1.+fnu)+fPreStressXY;
+    if (fabs(TauXY-TauXY2) > 1.e-10) {
+        DebugStop();
+    }
+#endif
     if (this->fPlaneStress){
         SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
         SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
+        SigZ = fPreStressZZ;
     }
     else
     {
         SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
         SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
+        SigZ = fPreStressZZ+lambda*(epsx+epsy);
     }
-    
-    //numvar = 1;
-    Solout[0] = SigX+SigY;
-    Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
-    
     
 
 	/*
@@ -650,28 +678,17 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 		case 6:
 		case 8:
 		case 10:
-			epsx = DSolxy[0][0];// du/dx
-			epsy = DSolxy[1][1];// dv/dy
-			epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
-			if (this->fPlaneStress){
-				SigX = fEover1MinNu2*(epsx+fnu*epsy)+fPreStressXX;
-				SigY = fEover1MinNu2*(fnu*epsx+epsy)+fPreStressYY;
-			}
-			else
-			{
-				SigX = fE/((1.-2.*fnu)*(1.+fnu))*((1.-fnu)*epsx+fnu*epsy)+fPreStressXX;
-				SigY = fE/((1.-2.*fnu)*(1.+fnu))*(fnu*epsx+(1.-fnu)*epsy)+fPreStressYY;
-			}
 			
 			//numvar = 1;
-			Solout[0] = SigX+SigY;
-			Tau = fE*epsxy/(1.+fnu)+fPreStressXY;
+			Solout[0] = SigX+SigY+SigZ;
+            // Pressure variable
 			if(var == 1) {
-				Solout[0] = SigX+SigY;
+				Solout[0] = SigX+SigY+SigZ;
 				return;
 			}
+            // TauXY variable
 			if(var == 8) {
-				Solout[0] = Tau;
+				Solout[0] = TauXY;
 				return;
 			}
 			if(var ==5) {
@@ -683,19 +700,19 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 				return;
 			}
 			aux = sqrt(0.25*(SigX-SigY)*(SigX-SigY)
-					   +(Tau)*(Tau));
+					   +(TauXY)*(TauXY));
 			// Philippe 13/5/99
 			//         if(abs(Tau) < 1.e-10 && abs(SigY-SigX) < 1.e-10) angle = 0.;
-			if(fabs(Tau) < 1.e-10 && fabs(SigY-SigX) < 1.e-10) angle = 0.;
-			else angle = atan2(2*Tau,SigY-SigX)/2.;
+			if(fabs(TauXY) < 1.e-10 && fabs(SigY-SigX) < 1.e-10) angle = 0.;
+			else angle = atan2(2*TauXY,SigY-SigX)/2.;
 			Sig1 = 0.5*(SigX+SigY)+aux;
+			Sig2 = 0.5*(SigX+SigY)-aux;
 			if(var == 3 ){
 				//numvar = 2;
 				Solout[0] = Sig1*cos(angle);
 				Solout[1] = Sig1*sin(angle);
 				return;
 			}
-			Sig2 = 0.5*(SigX+SigY)-aux;
 			if(var == 4 ) {
 				//numvar = 2;
 				Solout[0] = -Sig2*sin(angle);
@@ -712,7 +729,7 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 			{
 				Solout[0] = SigX;
 				Solout[1] = SigY;
-				Solout[2] = Tau;
+				Solout[2] = TauXY;
 				return;
 			}
 			cout << "Very critical error TPZElasticityMaterial::Solution\n";
@@ -725,15 +742,13 @@ void TPZElasticityMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,
 			Solout[2] = 0.;
 			break;
         case 11:
-            epsx = DSolxy[0][0];// du/dx
-			epsy = DSolxy[1][1];// dv/dy
-			epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
-            
             Solout[0] = epsx;
 			Solout[1] = epsy;
 			Solout[2] = epsxy;
             break;
-            
+        case 12:
+            Solout[0] = SigZ;
+            break;
             
         case 20:
         {
@@ -822,7 +837,8 @@ fEover21PlusNu(copy.fEover21PlusNu),
 fEover1MinNu2(copy.fEover1MinNu2),
 fPreStressXX(copy.fPreStressXX),
 fPreStressYY(copy.fPreStressYY),
-fPreStressXY(copy.fPreStressXY)
+fPreStressXY(copy.fPreStressXY),
+fPreStressZZ(copy.fPreStressZZ)
 {
 	ff[0]=copy.ff[0];
 	ff[1]=copy.ff[1];
@@ -853,6 +869,7 @@ void TPZElasticityMaterial::Read(TPZStream &buf, void *context)
 	buf.Read(&fPreStressXX,1);
 	buf.Read(&fPreStressYY,1);
 	buf.Read(&fPreStressXY,1);
+	buf.Read(&fPreStressZZ,1);
 	
 	buf.Read(ff,3);
 	buf.Read(&fPlaneStress,1);
@@ -870,6 +887,7 @@ void TPZElasticityMaterial::Write(TPZStream &buf, int withclassid)
 	buf.Write(&fPreStressXX,1);
 	buf.Write(&fPreStressYY,1);
 	buf.Write(&fPreStressXY,1);
+	buf.Write(&fPreStressZZ,1);
 	
 	buf.Write(ff,3);
 	buf.Write(&fPlaneStress,1);

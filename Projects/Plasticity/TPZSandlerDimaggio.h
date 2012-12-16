@@ -340,6 +340,32 @@ static void McCormicRanchSand(TPZSandlerDimaggio & material)
        material.fYC.SetUp(A, B, C, D, R, W);
 	}
 	
+    static void UncDeepSandTest(TPZSandlerDimaggio & material)
+    {
+#ifdef LOG4CXX_PLASTICITY
+        LoggerPtr loggerSandlerDimaggio(Logger::getLogger("plasticity.SandlerDimaggio"));
+        {
+            std::stringstream sout;
+            sout << ">>> TPZSandlerDimaggio::Unconsolidated Deep Sandstone Reservoir ***";
+            LOGPZ_INFO(loggerSandlerDimaggio,sout.str().c_str());
+        }
+#endif
+		
+        REAL E = 1305, //ksi (9000MPa)
+        poisson = 0.25;
+        
+        material.fER.SetUp(E, poisson);
+        
+        REAL A = 10.,//2.61, //ksi  = 18 in MPa
+        B = 0.169, // ksi   0.0245 in MPa
+        C = 2.57, // ksi   = 17.7  in MPa
+        D = 0.05069, //  = 0.00735 in MPa
+        R = 1.5,
+        W = 0.0908;
+        
+        material.fYC.SetUp(A, B, C, D, R, W);
+	}
+	
 	static void UncDeepSandResPSI(TPZSandlerDimaggio & material)
     {
        #ifdef LOG4CXX_PLASTICITY

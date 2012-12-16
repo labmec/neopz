@@ -1216,6 +1216,15 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         epspproj = epsp;
         sigproj = sigtrial;
         delgamma.Fill(0.);
+#ifdef LOG4CXX
+        if(loggerSM->isDebugEnabled())
+        {
+            std::stringstream sout;
+            sout << "Deformation elastic yield = " << yield;
+            sout << "delgamma condition " << (delgamma[0] > 0.) << " " << (delgamma[1] > 0.) << std::endl;
+            LOGPZ_DEBUG(loggerSM, sout.str())
+        }
+#endif
         return;
     }
     TPZTensor<REAL> S;
@@ -1253,6 +1262,15 @@ inline void TPZYCSandlerDimaggio::InitialGuess(const TPZElasticResponse &ER, REA
         delgamma[1] = scale;
     }
     Compute(sigproj, epspproj, yield, 0);
+#ifdef LOG4CXX
+    if(loggerSM->isDebugEnabled())
+    {
+        std::stringstream sout;
+        sout << "After projecting the point yield = " << yield;
+        sout << "\ndelgamma = " << delgamma;
+        LOGPZ_DEBUG(loggerSM, sout.str())
+    }
+#endif
     if (yield[0] > 0.) {
         ;
 //        DebugStop();

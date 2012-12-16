@@ -14,7 +14,11 @@ using namespace std;
 
 REAL TPZNumeric::Norma(const TPZVec<REAL> &vetor){
 	const int size = vetor.NElements();
-	return sqrt(inner_product(&vetor[0], &vetor[size], &vetor[size], REAL(0.0)));
+    REAL norma=0;
+    for (int i=0; i<size; i++) {
+        norma += vetor[i]*vetor[i];
+    }
+	return sqrt(norma);
 }
 void TPZNumeric::NormalizeVetor3(TPZVec<REAL> &vetor){
 	int i;

@@ -1092,11 +1092,11 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
 #ifdef LOG4CXX
     {
         std::stringstream sout;//1, sout2;
-        sout << ">>> PlasticLoop ***";
-        sout << "\nNp1 << \n" << Np1
-        << "\ndelGamma << " << delGamma
-        << "\n lambda << " << lambda
-        << "\nValid eqs: " << validEqs;
+        sout << " >>> PlasticLoop ***\n";
+        sout << "Np1 = " << Np1
+        << "\ndelGamma = " << delGamma
+        << "\nlambda = " << lambda
+        << "\nValid eqs = " << validEqs;
         //LOGPZ_INFO(logger,sout.str().c_str());
         LOGPZ_DEBUG(logger,sout.str());
     }
@@ -1288,9 +1288,9 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticLoop(
     {
         std::stringstream sout1, sout2;
         sout1 << "<<< PlasticLoop *** Exiting Method";
-        sout2 << "\nNp1 << " << Np1 << "\n \n"
-        << "\ndelGamma << " << delGamma
-        << "\nValidEqs << {" << validEqs << "}" ;
+        sout2 << "\nNp1 << " << Np1 
+        << "\ndelGamma = " << delGamma
+        << "\nValidEqs = {" << validEqs << "}" ;
         LOGPZ_INFO(loggerx,sout1.str().c_str());
         LOGPZ_INFO(loggerx,sout2.str().c_str());
     }
@@ -1378,13 +1378,13 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::PlasticIntegrate(
 #ifdef LOG4CXX
         {
             std::stringstream sout;
-            sout << "\n Nkp1 \n "<<Nkp1 << endl;
-            sout << "\n Nk \n "<<Nk << endl;
-            sout << "\n k \n "<< k << endl;
-            sout << "\n normEpsPErr \n "<<normEpsPErr << endl;
-            sout << "\n delGamma \n "<<delGamma << endl;
-            sout << "\n lambda \n "<<lambda << endl;
-              LOGPZ_DEBUG(loggerx,sout.str().c_str());
+            sout << "Nkp1 = "<<Nkp1 << endl;
+            sout << "Nk = "<<Nk << endl;
+            sout << "k = "<< k << endl;
+            sout << "normEpsPErr = "<<normEpsPErr << endl;
+            sout << "delGamma = "<<delGamma << endl;
+            sout << "lambda = "<<lambda << endl;
+            LOGPZ_DEBUG(loggerx,sout.str())
         }
 #endif
         
@@ -1487,13 +1487,17 @@ int TPZPlasticStep<YC_t, TF_t, ER_t>::RemoveInvalidEqs( TPZVec<T> & delGamma_T, 
         BoolValidEq  = validEqs[i];                      // equation is already in use
         BoolRes      = shapeFAD::val(res_T[i+7]) > fResTol;   // equation indicates plastification
         
-        if(BoolRes) validEqs[i] = 1;
         switch(BoolRes)
         {
             case (true):
                 // the lines below unfortunately led to instabilities in the integration process
                 //validEqs[i] = 1; // if the equation indicates plastification then it is necessary to involve it in the process
-                count++;
+                // the equation was not computed and the plasticity function is positive
+                if(!BoolValidEq) 
+                {
+                    validEqs[i] = 1;
+                    count++;
+                }
                 break;
             case (false):
                 // if the equation does not indicate plastification but is
@@ -2298,6 +2302,7 @@ void  TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEl
     sigPlast.Add(sigproj, -1.);
     fER.ComputeDeformation(sigPlast, Np1.fEpsP);
     Np1.fEpsP.Add(N.fEpsP, 1.);
+    validEqs.Fill(0);
     for (int i=0; i<2; i++) {
         if (delGamma[i] > 0.) {
             validEqs[i]=1;
@@ -2308,6 +2313,7 @@ void  TPZPlasticStep<TPZYCSandlerDimaggio, TPZSandlerDimaggioThermoForceA, TPZEl
         std::stringstream sout;
         sout << "epsp next " << Np1.fAlpha << std::endl;
         sout << "delGamma " << delGamma << std::endl;
+        sout << "validEqs " << validEqs << std::endl;
         TPZManVector<REAL,2> Residual(2);
         fYC.Compute(sigmaTrial, N.fAlpha, Residual, 1);
         sout << "residual before projection" << Residual << std::endl;

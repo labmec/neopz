@@ -120,13 +120,13 @@ class TPZElasticityMaterial : public TPZDiscontinuousGalerkin {
 	 */
 	virtual int NSolutionVariables(int var);
     
-    STATE GetLambda()
+    STATE GetLambda() const
     {
         STATE lambda = (fnu*fE)/((1.+fnu)*(1.-2.*fnu));
         return lambda;
     }
     
-    STATE GetMU()
+    STATE GetMU() const
     {
         STATE mu = fE/(2.*(1.+fnu));
         return mu;
@@ -164,7 +164,7 @@ public:
 	REAL Nu() {return fnu;}
 	
 	/** @brief Set PresStress Tensor */
-	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy);
+	void SetPreStress(REAL Sigxx, REAL Sigyy, REAL Sigxy, REAL Sigzz);
     
     /** @brief indicates which variable should be post processed */
     void SetPostProcessIndex(int index)
@@ -210,6 +210,9 @@ private:
 	
 	/** @brief Pre Stress Tensor - Sigma XY */
 	REAL fPreStressXY;
+    
+    /** @brief Pre Stress Tensor - Sigma ZZ */
+    REAL fPreStressZZ;
 	
 	/** @brief Uses plain stress */
 	int fPlaneStress;

@@ -185,6 +185,14 @@ TPZGeoMesh * GeoMeshClass::WellBore2d()
     
     gMesh->BuildConnectivity();
     
+    /*
+    TPZGeoEl *gel = gMesh->ElementVec()[0];
+    TPZGeoElBC(gel,4,-4);
+    TPZGeoElBC(gel, 5,-2);
+    TPZGeoElBC(gel,6,-2);
+    TPZGeoElBC(gel,7,-5);
+    */
+    
     for (int iel=0; iel<numelements; iel++) {
         TPZGeoEl *gel = gMesh->ElementVec()[iel];
         if (!gel) {

@@ -381,10 +381,9 @@ void TPZMatElastoPlastic<T,TMEM>::Solution(TPZMaterialData &data, int var, TPZVe
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::EYield){
         
+        fPlasticity.SetState(TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState);
         TPZTensor<REAL> & EpsT = TPZMatWithMem<TMEM>::fMemory[intPt].fPlasticState.fEpsT;
-        TPZSandlerDimaggio SD;
-        SD.UncDeepSandResPSI(SD);
-		SD.Phi(EpsT,Solout);
+        fPlasticity.Phi(EpsT,Solout);
 	}//EVolPlasticSteps - makes sense only if the evaluated point refers to an identified integration point
 	
 	if(var == TPZMatElastoPlastic<T,TMEM>::ENormalPlasticStrain){

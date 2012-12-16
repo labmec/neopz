@@ -57,12 +57,12 @@ TPZPostProcAnalysis::TPZPostProcAnalysis(TPZAnalysis * pRef):TPZAnalysis(), fpMa
     TPZGeoMesh * pgmesh = pcMainMesh->Reference();
 
    // TPZPostProcAnalysis::SetAllCreateFunctionsPostProc();
-    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcMainMesh);
     
     TPZCompMeshReferred * pcPostProcMesh = new TPZCompMeshReferred(pgmesh);
     
     fCompMesh = pcPostProcMesh;
 
+    TPZPostProcAnalysis::SetAllCreateFunctionsPostProc(pcPostProcMesh);
     
     
     
@@ -168,7 +168,7 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 				matnotfound.insert(matid);
 				continue;
 			}
-			int printing = 1;
+			int printing = 0;
 			if (printing) {
 				gel->Print(cout);
 			}
@@ -183,9 +183,17 @@ void TPZPostProcAnalysis::AutoBuildDisc()
 	}
 	
 	Mesh()->InitializeBlock();
+#ifdef LOG4CXX
+    if(PPAnalysisLogger->isDebugEnabled())
+    {
+        std::stringstream sout;
+        Mesh()->Print(sout);
+        LOGPZ_DEBUG(PPAnalysisLogger, sout.str())
+    }
+#endif
 	if(matnotfound.size())
 	{
-		std::cout << "Malha post proc was not created properly because of these materials ";
+		std::cout << "Malha post proc was created without these materials ";
 		std::set<int>::iterator it;
 		for(it = matnotfound.begin(); it!= matnotfound.end(); it++)
 		{

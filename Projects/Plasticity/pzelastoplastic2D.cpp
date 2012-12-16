@@ -319,7 +319,7 @@ void TPZMatElastoPlastic2D<T,TMEM>::ContributeBC(TPZMaterialData &data,
 			
 		case 4: // stressField Neumann condition
 			for(in = 0; in < dim; in ++)
-				v2[in] = - ( v1(in,0) * data.normal[0] +
+				v2[in] = ( v1(in,0) * data.normal[0] +
 							v1(in,1) * data.normal[1]);
 			// The normal vector points towards the neighbour. The negative sign is there to 
 			// reflect the outward normal vector.

@@ -388,6 +388,12 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ek, TPZEle
 	const int numdof = mat->NStateVariables();
 	const int ncon = this->NConnects();
     const int numloadcases = mat->NumLoadCases();
+    
+    ek.fMesh = Mesh();
+    ek.fType = TPZElementMatrix::EK;
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
+
 	ek.fBlock.SetNBlocks(ncon);
 	ef.fBlock.SetNBlocks(ncon);
 	ek.fNumStateVars = numdof;
@@ -425,6 +431,8 @@ void TPZInterpolationSpace::InitializeElementMatrix(TPZElementMatrix &ef){
 	const int nshape = this->NShapeF();
 	const int numeq = nshape*numdof;
     const int numloadcases = mat->NumLoadCases();
+    ef.fMesh = Mesh();
+    ef.fType = TPZElementMatrix::EF;
 	ef.fMat.Redim(numeq,numloadcases);
 	ef.fBlock.SetNBlocks(ncon);
 	ef.fNumStateVars = numdof;

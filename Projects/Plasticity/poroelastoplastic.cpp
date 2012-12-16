@@ -81,6 +81,8 @@
 #include "TPZMohrCoulombNeto.h"
 #include "TPZSandlerDimaggio.h"
 
+#include "BrazilianTestGeoMesh.h"
+
 
 void VisualizeSandlerDimaggio(std::stringstream &FileName, TPZSandlerDimaggio *pSD);
 
@@ -129,9 +131,9 @@ void CmeshWell(TPZCompMesh *CMesh, TPZMaterial * mat)
     
     TPZFMatrix<REAL> f1(3,1,0.);
     TPZFMatrix<REAL> k1(3,3,0.);
-    k1(0,0)=-29.3;
-    k1(1,1)=-29.3;
-    k1(2,2)=-29.3;
+    k1(0,0)=-44.3;
+    k1(1,1)=-58.2;
+    k1(2,2)=-53.8;
     TPZMaterial *bc1 = mat->CreateBC(mat,-2,4,k1,f1);
     CMesh->InsertMaterialObject(bc1);
     
@@ -179,14 +181,32 @@ void wellboreanalyis()
 	TPZCompMesh *compmesh1 = new TPZCompMesh(gmesh);
     
     TPZSandlerDimaggio SD;
-    TPZSandlerDimaggio::UncDeepSandResPSI(SD);
+    TPZSandlerDimaggio::UncDeepSandTest(SD);
+    SD.fResTol = 1.e-11;
+    SD.fIntegrTol = 1.;
     
 	TPZElastoPlasticAnalysis::SetAllCreateFunctionsWithMem(compmesh1);
     
 	TPZMatElastoPlastic2D<TPZSandlerDimaggio> PlasticSD(1,1);
-	PlasticSD.SetPlasticity(SD);
+    
+    TPZTensor<REAL> initstress,finalstress;
+    REAL hydro = -(44.3+58.2+53.8);
+    hydro -= SD.fYC.fA*SD.fYC.fR;
+    hydro /= 3.;
+    finalstress.XX() = hydro;
+    finalstress.YY() = hydro;
+    finalstress.ZZ() = hydro;
+    
+    PrepareInitialMat(SD, initstress, finalstress, 10);
+    initstress = finalstress;
+    finalstress.XX() = -44.3;
+    finalstress.YY() = -58.2;
+    finalstress.ZZ() = -53.8;
+    PrepareInitialMat(SD, initstress, finalstress, 10);
     
     TPZMaterial *plastic(&PlasticSD);
+    
+    PlasticSD.SetPlasticity(SD);
     compmesh1->InsertMaterialObject(plastic);
     
     CmeshWell(compmesh1,plastic);
@@ -194,8 +214,6 @@ void wellboreanalyis()
     TPZElastoPlasticAnalysis analysis(compmesh1,cout);
 
     
-	TPZFStructMatrix structmatrix(compmesh1);
-	analysis.SetStructuralMatrix(structmatrix);
 
     SolverSetUp2(analysis,compmesh1);
     
@@ -206,60 +224,42 @@ void wellboreanalyis()
     int BCId=-2;
     TPZMaterial * mat = analysis.Mesh()->FindMaterial(BCId);
     TPZBndCond * pBC = dynamic_cast<TPZBndCond *>(mat);
+    int steps = 10;
     
-    TPZFMatrix<REAL> BeginStress(3,3,0.), EndStress(2,2,0.), EndStress2(3,3,0.);
-    TPZFMatrix<REAL> val1(3,1,0.);TPZFMatrix<REAL> val2(3,1,0.);TPZFMatrix<REAL> BeginForce(3,1,0.);TPZFMatrix<REAL> EndForce(3,1,0.);
-    TPZTensor<REAL> OCStress, beginOCStress, loadStress, loadStress2, initialStrain, FarFieldStress, TestStress;
-	
-	REAL alpha=0.8;
-	
-    REAL L=3000.,LDA=1200.,terra=0.9,agua=0.447;//PSI/ft
-    REAL PorePressure = agua*L*3.28;;//PSI
-    REAL SigmaV  = agua*3.28*LDA+terra*3.28*(L-LDA);
-	REAL Sigmah = 0.8 * (SigmaV - PorePressure * alpha) + PorePressure * alpha;
-    
-	
-	loadStress.XX()=1.;
-    loadStress.YY()=1.;
-	
-	loadStress *= 1.*(Sigmah - PorePressure * alpha);
-    int steps=5000;
-    EndStress(0,0)=1.*(Sigmah - PorePressure * alpha);
-    EndStress(1,1)=1.*(Sigmah - PorePressure * alpha);
-    loadStress.CopyToTensor(EndStress);
+    TPZFNMatrix<9,STATE> mattemp(3,3,0.), matinit(3,3,0.),matfinal(3,3,0.), matincrement(3,3,0.);
+    matinit = pBC->Val1();
+    matfinal(0,0) = -29.3;
+    matfinal(1,1) = -29.3;
 
-    REAL valEnd,valBeg;
-    valEnd= EndStress(0,0);//PSI
-    valBeg= (EndStress(0,0)/steps);//PSI
-
+    matincrement = matfinal-matinit;
+    matincrement *= (1./steps);
+    mattemp = matinit;
     
     
     std::string vtkFile = "pocoplastico.vtk";
-    REAL increment =  (valEnd-valBeg)/steps;
-    cout << "increment = "<< increment<<endl;
-    TPZFMatrix<REAL> mattemp(3,1,0.);
-    mattemp(0,0)=valBeg;
+    matincrement.Print("Incremento de tensao",std::cout);
     
     TPZPostProcAnalysis ppanalysis(&analysis);
+	TPZFStructMatrix structmatrix(ppanalysis.Mesh());
     ppanalysis.SetStructuralMatrix(structmatrix);
     
-//    TPZVec<int> PostProcMatIds(1,1);
-// 	TPZVec<std::string> PostProcVars, scalNames, vecNames;
-//	SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
+    TPZVec<int> PostProcMatIds(1,1);
+ 	TPZStack<std::string> PostProcVars, scalNames, vecNames;
+	SetUPPostProcessVariables2(PostProcVars,scalNames, vecNames);
 //    
-//	ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
+	ppanalysis.SetPostProcessVariables(PostProcMatIds, PostProcVars);
 //	
-//	analysis.TransferSolution(ppanalysis);
+	analysis.TransferSolution(ppanalysis);
 //
-//	ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
+	ppanalysis.DefineGraphMesh(2,scalNames,vecNames,vtkFile);
 //		
-//	ppanalysis.PostProcess(0/*pOrder*/);
+	ppanalysis.PostProcess(0/*pOrder*/);
     
     
-    for(int i=0;i<steps;i++)
+    for(int i=0;i<=steps;i++)
     {
-        pBC->Val2()=mattemp;
-        analysis.IterativeProcess(cout, 1.e-3, 30);
+        pBC->Val1()=mattemp;
+        analysis.IterativeProcess(cout, 1.e-8, 30);
         
         //analysis.Solution().Print();
         //analysis.AcceptSolution();
@@ -270,20 +270,18 @@ void wellboreanalyis()
         ////Post Processing
         TPZVec<std::string> vecnames,scalnames;
         scalnames.Resize(0);
-        vecnames.Resize(2);
+        vecnames.Resize(1);
         vecnames[0]="Displacement";
-        vecnames[1]="NormalStrain";
+        // vecnames[1]="NormalStrain";
 
     
         const int dim = 2;
-       // ppanalysis.DefineGraphMesh(dim,scalNames,vecNames,vtkFile);
-       // ppanalysis.PostProcess(0);
         analysis.AcceptSolution();
-        analysis.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
-        analysis.PostProcess(0);
        
-        
-        mattemp(0,0)+=increment;
+        analysis.TransferSolution(ppanalysis);
+        ppanalysis.PostProcess(0/*pOrder*/);
+
+        mattemp += matincrement;
         
         
     }
@@ -298,6 +296,7 @@ void wellelastic()
     int planestrain=1;
     //int num, REAL E, REAL nu, REAL fx, REAL fy, int plainstress
     TPZElasticityMaterial *elastic = new TPZElasticityMaterial(1,E,nu,0,0,planestrain);
+    elastic->SetPreStress(-44.3, -58.2, 0., -53.8);
     
     TPZGeoMesh *gmesh;
     gmesh = GeoMeshClass::WellBore2d();
@@ -322,13 +321,16 @@ void wellelastic()
 	analysis.SetSolver(step);
     analysis.Run();
     ////Post Processing
-    TPZVec<std::string> vecnames(2),scalnames(2);
+    TPZStack<std::string> vecnames,scalnames;
 
     
-    vecnames[0] = "displacement";
-    vecnames[1] = "Stress";
-    scalnames[0] = "J2";
-    scalnames[1] = "I1";
+    vecnames.Push("displacement");
+    vecnames.Push("Stress");
+    scalnames.Push("SigmaX");
+    scalnames.Push("SigmaY");
+    scalnames.Push("SigmaZ");
+    scalnames.Push("J2");
+    scalnames.Push("I1");
     
     const int dim = 2;
     analysis.DefineGraphMesh(dim,scalnames,vecnames,vtkFile);
@@ -639,18 +641,18 @@ void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::s
 {
 	
 	  scalnames.Resize(1);
-//	  scalnames[0] = "Alpha";
+	  scalnames[0] = "Alpha";
 //    scalnames[1] = "PlasticSteps";
 //    scalnames[2] = "VolElasticStrain";
 //    scalnames[3] = "VolPlasticStrain";
 //    scalnames[4] = "VolTotalStrain";
- //   scalnames[5] = "I1Stress";
+//    scalnames[5] = "I1Stress";
 //    scalnames[6] = "J2Stress";
-    scalnames[0] = "YieldSurface";
 
     
-	vecnames.Resize(1);
+	vecnames.Resize(2);
 	vecnames[0] = "Displacement";
+    vecnames[1] = "YieldSurface";
 //    vecnames[1] = "NormalStress";
 //    vecnames[2] = "ShearStress";
 //    vecnames[3] = "NormalStrain";
@@ -1419,8 +1421,8 @@ int main()
      
      */
     
-    //wellboreanalyis();
-    wellelastic();
+    wellboreanalyis();
+    //wellelastic();
     //calcSDBar();
     
  //   TPZAdmChunkVector<REAL> adm;

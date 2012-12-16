@@ -246,6 +246,13 @@ void TPZAnalysis::Assemble()
 		fSolver->SetMatrix(mat);
 		//aqui TPZFMatrix<STATE> n� �nula
 	}
+#ifdef LOG4CXX
+    {
+        std::stringstream sout;
+        fRhs.Print("Rhs",sout);
+        LOGPZ_DEBUG(logger,sout.str())
+    }
+#endif
 		
 	fSolver->UpdateFrom(fSolver->Matrix());
 }
@@ -258,30 +265,32 @@ void TPZAnalysis::Solve() {
     }
 	
 	TPZFMatrix<STATE> residual(fRhs);
-	TPZFMatrix<STATE> delu(numeq,1,0.);
-	/*	if(fSolution.Rows() != numeq) {
-	 fSolution.Redim(numeq,1);
-	 } else {
-	 fSolver->Matrix()->Residual(fSolution,fRhs,residual);
-	 }*/
+	TPZFMatrix<STATE> delu(fSolution);
+	if(fSolution.Rows() != numeq) {
+        fSolution.Redim(numeq,1);
+    } else {
+        
+    }
 	//      STATE normres  = Norm(residual);
 	//	cout << "TPZAnalysis::Solve residual : " << normres << " neq " << numeq << endl;
-#ifdef LOG4CXX_KEEP
+#ifdef LOG4CXX
     if (logger->isDebugEnabled())
 	{
+        TPZFMatrix<STATE> res2(fRhs);
+        fSolver->Matrix()->Residual(fSolution,fRhs,res2);
 		std::stringstream sout;
-		sout << "Residual norm " << Norm(residual) << std::endl;
-		residual.Print("Residual",sout);
+		sout << "Residual norm " << Norm(res2) << std::endl;
+//		res2.Print("Residual",sout);
 		LOGPZ_DEBUG(logger,sout.str())
 	}
 #endif
 	fSolver->Solve(residual, delu);
 #ifdef LOG4CXX
-	{
-		std::stringstream sout;
-		TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
-		if(!step) DebugStop();
-		int nsing = step->Singular().size();
+    std::stringstream sout;
+    TPZStepSolver<STATE> *step = dynamic_cast<TPZStepSolver<STATE> *> (fSolver);
+    if(!step) DebugStop();
+    int nsing = step->Singular().size();
+	if(nsing && logger->isWarnEnabled()) {
 		sout << "Number of singular equations " << nsing;
 		std::list<int>::iterator it = step->Singular().begin();
 		if(nsing) sout << "\nSingular modes ";
@@ -301,6 +310,20 @@ void TPZAnalysis::Solve() {
 		sout << "Solution norm " << Norm(delu) << std::endl;
 		delu.Print("delu",sout);
 		LOGPZ_DEBUG(logger,sout.str())
+	}
+#endif
+#ifdef LOG4CXX
+    if (logger->isDebugEnabled())
+	{
+        if(!fSolver->Matrix()->IsDecomposed())
+        {
+            TPZFMatrix<STATE> res2(fRhs);
+            fSolver->Matrix()->Residual(delu,fRhs,res2);
+            std::stringstream sout;
+            sout << "Residual norm " << Norm(res2) << std::endl;
+//            res2.Print("Residual",sout);
+            LOGPZ_DEBUG(logger,sout.str())
+        }
 	}
 #endif
 	fSolution = delu;
@@ -490,7 +513,8 @@ void TPZAnalysis::DefineGraphMesh(int dim, const TPZVec<std::string> &scalnames,
 	for(matit = fCompMesh->MaterialVec().begin(); matit != fCompMesh->MaterialVec().end(); matit++)
 	{
 		TPZBndCond *bc = dynamic_cast<TPZBndCond *> (matit->second);
-		if(matit->second && !bc && matit->second->Dimension() == dim) break;
+        TPZMaterial *mat = matit->second;
+		if(mat && !bc && mat->Dimension() == dim) break;
 	}
 	if(matit == fCompMesh->MaterialVec().end())
 	{

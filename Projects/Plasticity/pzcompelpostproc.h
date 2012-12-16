@@ -31,15 +31,14 @@ class TPZMaterialData;
 static LoggerPtr CompElPostProclogger(Logger::getLogger("mesh.TPZCompElPostProc"));
 #endif
 
-using namespace std;
 
-template <class TCOMPEL >
 
 /**
  * @brief This class implements the TPZCompEl structure to enable copying the solution
  * of the referred compEl at the integration points to itself and interpolating it inside the element
  * @since May, 1 2009
  */
+template <class TCOMPEL >
 class TPZCompElPostProc : public TPZReferredCompEl<TCOMPEL>
 {
 public:
@@ -75,6 +74,16 @@ public:
 	 */
 	virtual TPZCompEl *ClonePatchEl(TPZCompMesh &mesh,std::map<int,int> & gl2lcConMap,std::map<int,int>&gl2lcElMap) const;
 	
+    /**
+	 * @brief Prints element data
+	 * @param out indicates the device where the data will be printed
+	 */
+	virtual void Print(std::ostream & out = std::cout) const
+    {
+        out << __PRETTY_FUNCTION__ << " calling print from superclass\n";
+        TPZReferredCompEl<TCOMPEL>::Print(out);
+    }
+
 	void ComputeRequiredData(TPZMaterialData &data, TPZVec<REAL> &qsi);
 	
 	/**
@@ -275,7 +284,7 @@ inline void TPZCompElPostProc<TCOMPEL>::CalcResidual(TPZElementMatrix &ef)
 	TPZVec<int> varIndex;
 	int stackedVarSize = pPostProcMat->NStateVariables();
 	pPostProcMat->GetPostProcessVarIndexList(varIndex);
-	TPZVec<REAL> Sol;
+	TPZManVector<REAL> Sol;
 	
 	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
 	{
