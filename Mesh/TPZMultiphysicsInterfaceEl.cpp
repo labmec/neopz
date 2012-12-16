@@ -12,6 +12,8 @@
 #include "pzmultiphysicselement.h"
 #include "tpzintpoints.h"
 #include "pzdiscgal.h"
+#include "pzmultiphysicscompel.h"
+#include "pzgeoel.h"
 
 #include "pzgraphel.h"
 #include "pzgraphelq2dd.h"
@@ -187,6 +189,8 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
 		ef.Reset();
 		return;
 	}
+	
+	InitializeElementMatrix(ek,ef);
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
@@ -400,6 +404,7 @@ void TPZMultiphysicsInterfaceElement::CreateGraphicalElement(TPZGraphMesh &grmes
 	if (ref->Dimension() != dimension) {
 		return;
 	}
+	
 	TPZMaterial * material = Material();
 	int mat = material->Id();
 	int nsides = ref->NSides();
@@ -455,8 +460,17 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	}
 	
 	if (this->NConnects() == 0) return;//boundary discontinuous elements have this characteristic
-    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (fLeftElSide.Element());
-    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(fRightElSide.Element());
+	
+	TPZCompElSide LeftSide;
+	TPZCompElSide RightSide;
+	this->GetLeftRightElement(LeftSide, RightSide);
+	
+    TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (LeftSide.Element());
+    TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(RightSide.Element());
+	
+//    TPZMultiphysicsCompEl<TGeometry> *leftCompel = dynamic_cast<TPZMultiphysicsCompEl<TGeometry> * > (leftel);
+//    TPZMultiphysicsCompEl<TGeometry> *righCompel = dynamic_cast<TPZMultiphysicsCompEl<TGeometry> * > (rightel);	
+	
     TPZGeoEl *leftgel = leftel->Reference();
     TPZGeoEl *rightgel = rightel->Reference();	
 	
@@ -478,7 +492,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
     
 	for (int iref = 0; iref<nref; iref++)
 	{		
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fLeftElSide.Element());
+		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel);
         if(!msp) continue;
         msp->InitMaterialData(datavecleft[iref]);
         TPZMaterialData::MShapeFunctionType shapetype = datavecleft[iref].fShapeType;
@@ -516,7 +530,7 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 		
 	}	
 		
-//	material->Solution(data,datavecleft,datavecright, var, sol);
+	material->Solution(data,datavecleft,datavecright,var, sol);
 }
 
 

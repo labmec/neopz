@@ -188,8 +188,8 @@ public:
 	/** @brief Returns the solution associated with the var index based on the finite element approximation */
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
 	
-	/** @brief Returns the solution associated with the var index based on the finite element approximation */
-//    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &datavecleft, TPZVec<TPZMaterialData> &datavecright, int var, TPZVec<REAL> &Solout);	
+	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */

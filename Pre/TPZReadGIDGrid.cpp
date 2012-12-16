@@ -371,7 +371,7 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 								read.getline(buf, 1024);
 								TopolPoint[0]--;
 								ContPoint++;						
-								new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (numelements - elements0D + ContPoint, TopolPoint, nMats+ContPoint,*gmesh); 						
+								new TPZGeoElRefPattern < pzgeom::TPZGeoPoint > (numelements - elements0D + ContPoint, TopolPoint, MatID,*gmesh); 								
 								
 							}
 							if(ContPoint == elements0D)
@@ -593,7 +593,6 @@ TPZGeoMesh * TPZReadGIDGrid::GeometricGIDMesh(std::string FiletoRead)
 					{
 						FlagString = "";
 						cont++;
-//						std::cout << "Reading Data -> done!" << std::endl;
 						break;
 					}
 				}

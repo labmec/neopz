@@ -106,8 +106,8 @@ ENABLE_TESTING()
 			
 			#projeto agnaldo 09-09-2011
 			add_subdirectory(DoubleProjection1D)
-			#projeto omar duran 01-08-2012
-			add_subdirectory(Poroelastic2D)
+			#projeto omar duran 16-12-2012
+			add_subdirectory(PoroElasticAnalysis)
 			add_subdirectory(Poisson2DGID)
 			#add_subdirectory(Poisson2DLabyrinth)
 			add_subdirectory(SubStruct)
