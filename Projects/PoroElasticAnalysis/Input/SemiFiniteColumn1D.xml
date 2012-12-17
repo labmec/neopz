@@ -39,12 +39,12 @@
         <Calculation Use="1" />
     </DimensionlessCalculation>
     <AnalyticFunction>
-        <Function FunctionName="ExactSolutionfiniteColumn1D" />
+        <Function FunctionName="1" />
     </AnalyticFunction>
     <!-- Settings for Recurrent Data -->
     <TimeData>
         <TimeControls Initial="0.0" Final="1.0" DeltaTime="0.0001" Theta="0.5" />
-        <TimeSchedule Nvalues="10" ScheduleTime="Input/ScheduleTime1DSemiFiniteColumn.txt" />
+        <TimeSchedule Nvalues="11" ScheduleTime="Input/ScheduleTime1DSemiFiniteColumn.xml" />
     </TimeData>
     <Events>
         <WellAlterations WellsPerEvent="1" EventsNumber="0" />
