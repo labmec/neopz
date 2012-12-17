@@ -70,14 +70,17 @@
 // Document all the code
 
 
-// Using Log4cXX as logging tool
-#ifdef LOG4CXX
-static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
-#endif
+//	// Using Log4cXX as logging tool
+//#ifdef LOG4CXX
+//static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
+//#endif
+//
+//#ifdef LOG4CXX
+//static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
+//#endif
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.material.poroelastic.data"));
-#endif
+//#undef REFPATTERNDIR
+//#define REFPATTERNDIR "RefPatterns/fgfchghghg"
 
 using namespace std;
 using namespace pzgeom;	
@@ -118,9 +121,6 @@ void RefinUniformElemComp(TPZCompMesh  *cMesh, int ndiv);
 
 int main(int argc, char *argv[])
 {
-//#ifdef LOG4CXX
-//	InitializePZLOG("../mylog4cxx.cfg");
-//#endif		
 
 	//	Reading arguments 
 	char * Filetoload;	
@@ -142,7 +142,6 @@ int main(int argc, char *argv[])
 		}
 	}
 
-//	TiXmlDocument doc("Input/LineSource2D.xml");
 	TiXmlDocument doc(Filetoload);	
 	bool loadOkay = false;
 	loadOkay = doc.LoadFile();
@@ -259,8 +258,9 @@ int main(int argc, char *argv[])
 	
 	if (UseDirectional) 
 	{
-		gRefDBase.InitializeRefPatterns();
-		gRefDBase.InitializeAllUniformRefPatterns();
+
+		std::string Path = "RefPatterns";
+		gRefDBase.ImportRefPatterns(Path);
 		ofstream RefinElPatterns("DumpFolder/RefElPatterns.txt");
 		gRefDBase.WriteRefPatternDBase(RefinElPatterns); 	
 		gRefDBase.ReadRefPatternDBase("DumpFolder/RefElPatterns.txt");		
@@ -472,14 +472,32 @@ int main(int argc, char *argv[])
 	
 	// Reading time schedule
 	REAL TimeValue	=	0.0;
-	TPZVec <REAL> PrintStep(NTimeValues,0);	
-	for (int itime = 0; itime < NTimeValues; itime++) 
+	TPZVec <REAL> PrintStep(NTimeValues,0);
+	int itime = 0;
+	
+	TiXmlDocument Times(CharContainer);	
+	loadOkay = false;
+	loadOkay = Times.LoadFile();
+	if (loadOkay)
 	{
-		char buf[1024];
-		Timefile.getline(buf, 1024);
-		Timefile >> TimeValue;
-		PrintStep[itime] =  TimeValue;
+		cout << "This Xml is ok! ->> " << CharContainer << endl;
+	}
+	else
+	{
+		cout << "Failed to load file \n" << CharContainer << endl;
+		cout <<	"Check your xml structure. \n" << endl;
+		DebugStop();
 	}	
+	TiXmlHandle TimesHandle( &Times );
+	
+	Container = TimesHandle.FirstChild( "Times" ).FirstChild( "Time" ).ToElement();
+	for( Container; Container; Container=Container->NextSiblingElement())
+	{
+		CharContainer = Container->Attribute( "Value" );
+		PrintStep[itime] =  atof(CharContainer);
+		itime++;
+	}
+	
 	
 	for(int imat = 0; imat < GeometryInfo.MatNumber; imat++)
 	{		
@@ -499,7 +517,6 @@ int main(int argc, char *argv[])
 	std::string output(CharContainer);
 	std::stringstream outputfiletemp;
 	outputfiletemp << output << ".vtk";
-//	std::string plotfile = outputfiletemp.str();
 	
 	system("clear");
 	cout << "Calculation of initial conditions !" << endl;
@@ -507,11 +524,6 @@ int main(int argc, char *argv[])
 	PrintInital[0]=0.0;
 	SolveSistTransient(Initial,Events, docHandle, NumOfThreads,PrintInital,output,0.0,0.0,InitialSolution, materialist, PoroelasticAnalysisInitial, ComputationalMeshVector,ComputationalMeshPoroelasticityInitial,GeometryInfoini);
 
-//	PoroelasticAnalysis.LoadSolution(PoroelasticAnalysisInitial.Solution());
-//	std::stringstream outputfiletemp1;
-//	outputfiletemp1 << "Output/Seila" << ".vtk";
-//	std::string plotfile1 = outputfiletemp1.str();
-//	PostProcessPoroeasticity(docHandle,ComputationalMeshVector,ComputationalMeshPoroelasticityReCurrent,PoroelasticAnalysis,plotfile1);	
 	
 	// This code identify singular blocks
 	TPZStepSolver<REAL> step;		// Create Solver object
@@ -526,15 +538,6 @@ int main(int argc, char *argv[])
 		PoroelasticAnalysis.Rhs()(eq,0) = -10000.0;
 		PoroelasticAnalysis.Solve();
 		TPZFMatrix<REAL> TempSolution = PoroelasticAnalysis.Solution();
-		#ifdef LOG4CXX
-				// Print the temporal solution
-				if(logdata->isDebugEnabled())
-				{
-					std::stringstream sout;
-					TempSolution.Print("SingularNodes = ", sout,EMathematicaInput);
-					LOGPZ_DEBUG(logdata,sout.str())
-				}
-		#endif	
 		std::string output;
 		output = "DumpFolder/SingularNodes";
 		std::stringstream outputfiletemp;
@@ -821,9 +824,6 @@ TPZCompMesh * ComputationalElasticityMesh(TiXmlHandle ControlDoc, TPZReadGIDGrid
 					}
 					
 				}
-				// Check the interfcae behaviour
-				cmesh->Reference()->ResetReference();				
-				cmesh->AutoBuild();
 				
 			}
 			
@@ -1150,9 +1150,6 @@ TPZCompMesh * ComputationalDiffusionMesh(TiXmlHandle ControlDoc,TPZReadGIDGrid G
 					}
 					
 				}
-				// Check the interfcae behaviour
-				cmesh->Reference()->ResetReference();				
-				cmesh->AutoBuild();
 				
 			}
 			
@@ -1446,8 +1443,9 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
 				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				bool docontribute = true;
 				
-				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1); 
+				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute); 
 				InterfaceMat->SetPenalty(KNU,KTU,KNP,KNP);		
 				TPZMaterial * MaterialInterface(InterfaceMat);
 				Multiphysics->InsertMaterialObject(MaterialInterface);			
@@ -1494,8 +1492,9 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
 				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				bool docontribute = false;				
 				
-				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1); 
+				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute); 
 				InterfaceMat->SetPenalty(KNU,KTU,KNP,KNP);		
 				TPZMaterial * MaterialInterface(InterfaceMat);
 				Multiphysics->InsertMaterialObject(MaterialInterface);			
@@ -1532,9 +1531,6 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 					}
 					
 				}
-				// Check the interface behaviour
-				Multiphysics->Reference()->ResetReference();				
-				Multiphysics->AutoBuild();
 				
 			}
 			
@@ -1702,6 +1698,7 @@ TPZAutoPointer <TPZMatrix<REAL> > MassMatrix(TPZReadGIDGrid GeometryInfo,TPZVec 
 	
 	
 	TPZSpStructMatrix matsp(mphysics);
+//	TPZSkylineStructMatrix matsp(mphysics);
 	std::set< int > materialid;
 	
 	for(int imat = 0; imat < GeometryInfo.MatNumber; imat++)
@@ -1731,7 +1728,7 @@ void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPor
 	//TPZFStructMatrix matsk(mphysics);
 	TPZSkylineStructMatrix matsk(mphysics);
 	an.SetStructuralMatrix(matsk); 
-	//	an.StructMatrix()->SetNumThreads(Nthreads);
+	an.StructMatrix()->SetNumThreads(Nthreads);
 	TPZStepSolver<REAL> step; 
 	step.SetDirect(ELDLt); 
 	an.SetSolver(step); 
@@ -1822,6 +1819,7 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 			outputfiletemp << FileName << ".vtk";
 			std::string plotfile = outputfiletemp.str();
 			PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,plotfile);
+			cout << "Created Vtk file at time step = " << cent << " ,  or time value = " << TimeValue << endl;			
 			control++;
 			
 		}
@@ -1845,12 +1843,13 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 					
 					TPZSkylineStructMatrix matsk(DumpMphysics);
 					DumpAnalysis.SetStructuralMatrix(matsk);
+					DumpAnalysis.StructMatrix()->SetNumThreads(Nthreads);
 					TPZStepSolver<REAL> step;
+					step.SetDirect(ELDLt); 					
 					DumpAnalysis.SetSolver(step);
 					DumpAnalysis.AssembleResidual();
 					PoroelasticLoadVector = DumpAnalysis.Rhs();
 					cout << "Modifiying Poroelastic load Vector -> done! at time step = " << cent << " ,  or time value = " << TimeValue << endl;	
-					
 				}
 			}
 		}		

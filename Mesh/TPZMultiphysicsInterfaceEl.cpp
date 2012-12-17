@@ -478,6 +478,30 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
     TPZMaterialData data;
     InitMaterialData(datavecleft, leftel);
     InitMaterialData(datavecright, rightel);
+
+	int nrefl = datavecleft.size();
+	for(int i = 0; i<nrefl; i++)
+		
+	{
+		datavecleft[i].SetAllRequirements(false);
+        datavecleft[i].fNeedsSol = true;
+		datavecleft[i].fNeedsNeighborSol = true;
+		datavecleft[i].fNeedsNeighborCenter = false;
+		datavecleft[i].fNeedsNormal = true;
+	}
+	
+	int nrefr = datavecright.size();
+	for(int i = 0; i<nrefr; i++)
+		
+	{
+		datavecright[i].SetAllRequirements(false);
+        datavecright[i].fNeedsSol = true;
+		datavecright[i].fNeedsNeighborSol = true;
+		datavecright[i].fNeedsNeighborCenter = false;
+		datavecright[i].fNeedsNormal = true;
+	}
+	
+	
     TPZManVector<TPZTransform> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);

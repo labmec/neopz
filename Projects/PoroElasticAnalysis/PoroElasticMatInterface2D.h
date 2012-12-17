@@ -44,7 +44,7 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	PoroElasticMatInterface2D(int mat,int dim);
+	PoroElasticMatInterface2D(int mat,int dim, bool DoContribute);
 	
 //	/** @brief Copies the data of one TPZElasticityMaterial object to another */
 //	ElasticMatInterface2D(const ElasticMatInterface2D &copy);
@@ -174,33 +174,9 @@ private:
 	/** @brief Tangent Penalty for P */
 	REAL fktp;		
 	
+	/** @brief Bool Contribute or not  */
+	bool fcontribute;	
 	
-//	/** @brief Normal Penalty */
-//	REAL fkn;
-//	
-//	/** @brief Poison coeficient */
-//	REAL fnu;
-//	
-//	/** @brief Forcing vector */
-//	REAL ff[3];
-//	
-//	/** @brief \f$ G = E/2(1-nu) \f$ */
-//	REAL fEover21PlusNu;
-//	
-//	/** @brief \f$ E/(1-nu) \f$ */
-//	REAL fEover1MinNu2;
-//	
-//	/** @brief Pre Stress Tensor - Sigma XX */
-//	REAL fPreStressXX;
-//	
-//	/** @brief Pre Stress Tensor - Sigma YY */
-//	REAL fPreStressYY;
-//	
-//	/** @brief Pre Stress Tensor - Sigma XY */
-//	REAL fPreStressXY;
-//	
-//	/** @brief Uses plain stress */
-//	int fPlaneStress;
 };
 
 #endif

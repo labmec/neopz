@@ -43,7 +43,8 @@ void ElasticMatInterface2D::SetPenalty(REAL kn, REAL kt)
 	fkt = kt;
 }
 
-void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef){
+void ElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZMaterialData &dataleft, TPZMaterialData &dataright, REAL weight, TPZFMatrix<STATE> &ek, TPZFMatrix<STATE> &ef)
+{
 //	PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
 	
 //	Definition of penalty constants note: this constans for nolinear analysis are funtion of normal and tangencial forces.

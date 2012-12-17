@@ -27,14 +27,16 @@ PoroElasticMatInterface2D::PoroElasticMatInterface2D() : TPZPoroElastic2d(){
 	fktu = 1000000.0;
 	fknp = 1000000.0;
 	fktp = 1000000.0;
+	fcontribute = false;
 	this->SetDimension(1);
 }
 
-PoroElasticMatInterface2D::PoroElasticMatInterface2D(int mat,int dim) : TPZPoroElastic2d(mat,dim){
+PoroElasticMatInterface2D::PoroElasticMatInterface2D(int mat,int dim, bool DoContribute) : TPZPoroElastic2d(mat,dim){
 	fknu = 1000000.0;
 	fktu = 1000000.0;
 	fknp = 1000000.0;
-	fktp = 1000000.0;	
+	fktp = 1000000.0;
+	fcontribute = DoContribute;
 	this->SetDimension(1);	
 }
 
@@ -55,95 +57,87 @@ void PoroElasticMatInterface2D::SetPenalty(REAL knu, REAL ktu, REAL knp, REAL kt
 void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
 													REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-// PZError << "\nFATAL ERROR - Method not implemented: " << __PRETTY_FUNCTION__ << "\n";
-	
-	//	Definition of penalty constants note: this constans for nolinear analysis are funtion of normal and tangencial forces.
-	REAL knu = this->fknu;
-	REAL ktu = this->fktu;
-	int sidn = ek.Rows();
-	
-	//	TPZFMatrix<REAL> &dphiLdAxes = dataleft.dphix;
-	//	TPZFMatrix<REAL> &dphiRdAxes = dataright.dphix;
-	TPZFMatrix<REAL> &phiL = dataleftvec[0].phi;
-	TPZFMatrix<REAL> &phiR = datarightvec[0].phi;
-	TPZFMatrix<REAL>	&phipL	=	dataleftvec[1].phi;
-	TPZFMatrix<REAL>	&dphipL	=	dataleftvec[1].dphix;
-	TPZFMatrix<REAL>	&phipR	=	datarightvec[1].phi;
-	TPZFMatrix<REAL>	&dphipR	=	datarightvec[1].dphix;	
-	TPZFMatrix<REAL>	du(2,2);
-	int phrpL = phipL.Rows();	
-	int phrpR = phipR.Rows();	
-	
-	
-	//	TPZManVector<REAL,3> &normal = data.normal;
-	
-	//	TPZFNMatrix<660> dphiL, dphiR;
-	//	TPZAxesTools<REAL>::Axes2XYZ(dphiLdAxes, dphiL, dataleft.axes);
-	//	TPZAxesTools<REAL>::Axes2XYZ(dphiRdAxes, dphiR, dataright.axes);
-	
-	int &LeftPOrder=dataleftvec[0].p;
-	int &RightPOrder=datarightvec[0].p;
-	
-	REAL &faceSize=data.HSize;
-	
-	
-	int nrowl = phiL.Rows();
-	int nrowr = phiR.Rows();
-	int il,jl,ir,jr,id;	
-	
-	
-	// For elastic part
-	for (int in = 0; in < 2*(nrowl + nrowr) + ( phrpL + phrpR) ; in++) {
-		ef(in,0) = 0.0;
-	}
-	REAL t[2] = {-data.normal[1],data.normal[0]};
-	REAL n[2] = {data.normal[0],data.normal[1]};
-	TPZFNMatrix<4,REAL> nx(2,2),tx(2,2);
-	for (int i=0; i<2; i++) {
-		for (int j=0; j<2 ; j++) {
-			nx(i,j) = n[i]*n[j];
-			tx(i,j) = t[i]*t[j];
+	if (this->fcontribute) 
+	{
+		//	Definition of penalty constants note: this constans for nolinear analysis are funtion of normal and tangencial forces.
+		REAL knu = this->fknu;
+		REAL ktu = this->fktu;
+		int sidn = ek.Rows();
+		
+		TPZFMatrix<REAL> &phiL = dataleftvec[0].phi;
+		TPZFMatrix<REAL> &phiR = datarightvec[0].phi;
+		TPZFMatrix<REAL>	&phipL	=	dataleftvec[1].phi;
+		TPZFMatrix<REAL>	&dphipL	=	dataleftvec[1].dphix;
+		TPZFMatrix<REAL>	&phipR	=	datarightvec[1].phi;
+		TPZFMatrix<REAL>	&dphipR	=	datarightvec[1].dphix;	
+		TPZFMatrix<REAL>	du(2,2);
+		int phrpL = phipL.Rows();	
+		int phrpR = phipR.Rows();	
+		
+		int &LeftPOrder=dataleftvec[0].p;
+		int &RightPOrder=datarightvec[0].p;
+		
+		REAL &faceSize=data.HSize;
+		
+		
+		int nrowl = phiL.Rows();
+		int nrowr = phiR.Rows();
+		int il,jl,ir,jr,id;	
+		
+		
+		// For elastic part
+		for (int in = 0; in < 2*(nrowl + nrowr) + ( phrpL + phrpR) ; in++) {
+			ef(in,0) = 0.0;
 		}
-	}
-	
-	// Left Left contribution
-	for(il=0; il < nrowl; il++) {
-		for(jl=0; jl < nrowl; jl++) {
-			ek(2*il,2*jl) += weight * (+ knu *phiL(il)*phiL(jl)*nx(0,0) + ktu*phiL(il)*phiL(jl)*tx(0,0));
-			ek(2*il+1,2*jl+1) += weight * (+ knu *phiL(il)*phiL(jl)*nx(1,1) + ktu*phiL(il)*phiL(jl)*tx(1,1));
-			ek(2*il+1,2*jl) += weight * (+ knu *phiL(il)*phiL(jl)*nx(1,0) + ktu*phiL(il)*phiL(jl)*tx(1,0));
-			ek(2*il,2*jl+1) += weight * (+ knu *phiL(il)*phiL(jl)*nx(0,1) + ktu*phiL(il)*phiL(jl)*tx(0,1));
+		REAL t[2] = {-data.normal[1],data.normal[0]};
+		REAL n[2] = {data.normal[0],data.normal[1]};
+		TPZFNMatrix<4,REAL> nx(2,2),tx(2,2);
+		for (int i=0; i<2; i++) {
+			for (int j=0; j<2 ; j++) {
+				nx(i,j) = n[i]*n[j];
+				tx(i,j) = t[i]*t[j];
+			}
 		}
-	}
-	// Right Left contribution	
-	for(ir=0; ir < nrowr; ir++) {
-		for(jl=0; jl < nrowl; jl++) {
-			ek(2*ir+2*(nrowl)+phrpL,2*jl) += weight * (- knu*phiR(ir)*phiL(jl)*nx(0,0) - ktu*phiR(ir)*phiL(jl)*tx(0,0));
-			ek(2*ir+1+2*(nrowl)+phrpL,2*jl+1) += weight * (- knu*phiR(ir)*phiL(jl)*nx(1,1) - ktu*phiR(ir)*phiL(jl)*tx(1,1));
-			ek(2*ir+1+2*(nrowl)+phrpL,2*jl) += weight * (- knu*phiR(ir)*phiL(jl)*nx(1,0) - ktu*phiR(ir)*phiL(jl)*tx(1,0));
-			ek(2*ir+2*(nrowl)+phrpL,2*jl+1) += weight * (- knu*phiR(ir)*phiL(jl)*nx(0,1) - ktu*phiR(ir)*phiL(jl)*tx(0,1));			
+		
+		// Left Left contribution
+		for(il=0; il < nrowl; il++) {
+			for(jl=0; jl < nrowl; jl++) {
+				ek(2*il,2*jl) += weight * (+ knu *phiL(il)*phiL(jl)*nx(0,0) + ktu*phiL(il)*phiL(jl)*tx(0,0));
+				ek(2*il+1,2*jl+1) += weight * (+ knu *phiL(il)*phiL(jl)*nx(1,1) + ktu*phiL(il)*phiL(jl)*tx(1,1));
+				ek(2*il+1,2*jl) += weight * (+ knu *phiL(il)*phiL(jl)*nx(1,0) + ktu*phiL(il)*phiL(jl)*tx(1,0));
+				ek(2*il,2*jl+1) += weight * (+ knu *phiL(il)*phiL(jl)*nx(0,1) + ktu*phiL(il)*phiL(jl)*tx(0,1));
+			}
 		}
-	}
-	
-	// Left Right contribution		
-	for(il=0; il < nrowl; il++) {
-		for(jr=0; jr < nrowr; jr++) {
-			ek(2*il,2*jr+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(0,0) - ktu*phiR(jr)*phiL(il)*tx(0,0));
-			ek(2*il+1,2*jr+1+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(1,1) - ktu*phiR(jr)*phiL(il)*tx(1,1));
-			ek(2*il+1,2*jr+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(1,0) - ktu*phiR(jr)*phiL(il)*tx(1,0));
-			ek(2*il,2*jr+1+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(0,1) - ktu*phiR(jr)*phiL(il)*tx(0,1));				
+		// Right Left contribution	
+		for(ir=0; ir < nrowr; ir++) {
+			for(jl=0; jl < nrowl; jl++) {
+				ek(2*ir+2*(nrowl)+phrpL,2*jl) += weight * (- knu*phiR(ir)*phiL(jl)*nx(0,0) - ktu*phiR(ir)*phiL(jl)*tx(0,0));
+				ek(2*ir+1+2*(nrowl)+phrpL,2*jl+1) += weight * (- knu*phiR(ir)*phiL(jl)*nx(1,1) - ktu*phiR(ir)*phiL(jl)*tx(1,1));
+				ek(2*ir+1+2*(nrowl)+phrpL,2*jl) += weight * (- knu*phiR(ir)*phiL(jl)*nx(1,0) - ktu*phiR(ir)*phiL(jl)*tx(1,0));
+				ek(2*ir+2*(nrowl)+phrpL,2*jl+1) += weight * (- knu*phiR(ir)*phiL(jl)*nx(0,1) - ktu*phiR(ir)*phiL(jl)*tx(0,1));			
+			}
 		}
-	}
-	
-	// Right Right contribution		
-	for(ir=0; ir < nrowr; ir++) {
-		for(jr=0; jr < nrowr; jr++) {
-			ek(2*ir+2*(nrowl)+phrpL,2*jr+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(0,0) + ktu*phiR(ir)*phiR(jr)*tx(0,0));
-			ek(2*ir+1+2*(nrowl)+phrpL,2*jr+1+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(1,1) + ktu*phiR(ir)*phiR(jr)*tx(1,1));
-			ek(2*ir+1+2*(nrowl)+phrpL,2*jr+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(1,0) + ktu*phiR(ir)*phiR(jr)*tx(1,0));
-			ek(2*ir+2*(nrowl)+phrpL,2*jr+1+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(0,1) + ktu*phiR(ir)*phiR(jr)*tx(0,1));	
+		
+		// Left Right contribution		
+		for(il=0; il < nrowl; il++) {
+			for(jr=0; jr < nrowr; jr++) {
+				ek(2*il,2*jr+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(0,0) - ktu*phiR(jr)*phiL(il)*tx(0,0));
+				ek(2*il+1,2*jr+1+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(1,1) - ktu*phiR(jr)*phiL(il)*tx(1,1));
+				ek(2*il+1,2*jr+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(1,0) - ktu*phiR(jr)*phiL(il)*tx(1,0));
+				ek(2*il,2*jr+1+2*(nrowl)+phrpL) += weight * (- knu*phiR(jr)*phiL(il)*nx(0,1) - ktu*phiR(jr)*phiL(il)*tx(0,1));				
+			}
 		}
-	}		
+		
+		// Right Right contribution		
+		for(ir=0; ir < nrowr; ir++) {
+			for(jr=0; jr < nrowr; jr++) {
+				ek(2*ir+2*(nrowl)+phrpL,2*jr+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(0,0) + ktu*phiR(ir)*phiR(jr)*tx(0,0));
+				ek(2*ir+1+2*(nrowl)+phrpL,2*jr+1+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(1,1) + ktu*phiR(ir)*phiR(jr)*tx(1,1));
+				ek(2*ir+1+2*(nrowl)+phrpL,2*jr+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(1,0) + ktu*phiR(ir)*phiR(jr)*tx(1,0));
+				ek(2*ir+2*(nrowl)+phrpL,2*jr+1+2*(nrowl)+phrpL) += weight * (+ knu *phiR(ir)*phiR(jr)*nx(0,1) + ktu*phiR(ir)*phiR(jr)*tx(0,1));	
+			}
+		}	
+	}
 
 }
 
@@ -220,8 +214,8 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 //	Tau = 2.0*fmu*epsxy;		
 //	Solout[0] = (SigX/SolP[0])
 	
-	std::cout << "Pressure Left" << SolPLeft[0] << std::endl;
-	std::cout << "Pressure Right" << SolPRight[0] << std::endl;	
+	std::cout << "Pressure Left : " << SolPLeft[0] << std::endl;
+	std::cout << "Pressure Right : " << SolPRight[0] << std::endl;	
 
 	
 	
