@@ -50,6 +50,7 @@ class  TPZMatElastoPlastic : public TPZMatWithMem<TMEM>
 		                EVolTEPStrain,
 	                    EAlpha,
 	                    EPlasticSteps,
+                        EPlasticSqJ2,
 						EYield,
 						ENormalPlasticStrain,
 						EMisesStress

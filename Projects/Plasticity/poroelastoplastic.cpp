@@ -241,6 +241,7 @@ void wellboreanalyis()
     
     TPZPostProcAnalysis ppanalysis(&analysis);
 	TPZFStructMatrix structmatrix(ppanalysis.Mesh());
+    structmatrix.SetNumThreads(8);
     ppanalysis.SetStructuralMatrix(structmatrix);
     
     TPZVec<int> PostProcMatIds(1,1);
@@ -625,6 +626,7 @@ void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh)
     
     //TPZFStructMatrix full(fCmesh)
 	TPZSkylineStructMatrix full(fCmesh);
+    full.SetNumThreads(8);
 	an.SetStructuralMatrix(full);
     
     
@@ -640,8 +642,9 @@ void SolverSetUp2(TPZAnalysis &an, TPZCompMesh *fCmesh)
 void SetUPPostProcessVariables2(TPZVec<std::string> &postprocvars, TPZVec<std::string> &scalnames, TPZVec<std::string> &vecnames )
 {
 	
-	  scalnames.Resize(1);
+	  scalnames.Resize(2);
 	  scalnames[0] = "Alpha";
+    scalnames[1] = "PlasticSqJ2";
 //    scalnames[1] = "PlasticSteps";
 //    scalnames[2] = "VolElasticStrain";
 //    scalnames[3] = "VolPlasticStrain";
