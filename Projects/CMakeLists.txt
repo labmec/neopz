@@ -129,6 +129,7 @@ ENABLE_TESTING()
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
+			add_subdirectory(Gradient_Reconstruction)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(StabilizedHybridElasticity)
 			#
