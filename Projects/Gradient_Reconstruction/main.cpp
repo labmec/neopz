@@ -52,9 +52,9 @@ void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile);
 
-#ifdef LOG4CXX
-static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
-#endif
+//#ifdef LOG4CXX
+//static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
+//#endif
 
 
 int main(int argc, char *argv[])
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(1,2);
+	TPZGeoMesh * gmesh = GMesh(-1,2);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
     PosProcessamento(an, plotfile);
 
     TPZFMatrix<REAL> solucao;
-    solucao=cmesh->Solution();
-    solucao.Print();
+    //solucao=cmesh->Solution();
+    //solucao.Print();
     
     return 0;
 }
@@ -307,8 +307,9 @@ void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh)
 }
 
 void PosProcessamento(TPZAnalysis &an, std::string plotfile){
-	TPZManVector<std::string,10> scalnames(1), vecnames(0);
+	TPZManVector<std::string,10> scalnames(1), vecnames(1);
 	scalnames[0] = "Solution";
+    vecnames[0] = "Derivate";
     
 	const int dim = 2;
 	int div = 0;
