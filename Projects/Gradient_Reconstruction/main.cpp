@@ -8,7 +8,6 @@
 
 #include <iostream>
 
-
 #include "pzgmesh.h"
 #include "pzcmesh.h"
 #include "tpzcompmeshreferred.h"
@@ -35,30 +34,45 @@
 #include <math.h>
 using namespace std;
 
+/*
+ *Projeto para validar a reconstucao do gradiente
+ *Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
+ *Solucao: u(x,y) = a*x + b*y
+*/
+
+REAL const coef_a = 2.;
+REAL const coef_b = 4.;
+TPZVec<REAL> gradU(2,0.);
+TPZVec<REAL> normal_plano(2,0.);
+
 int const matId =1;
-int const bc0=-1;
-int const bc1=-2;
-int const bc2=-3;
-int const bc3=-4;
+int const bc0=-1; //em y=0
+int const bc1=-2; //em x=1
+int const bc2=-3; //em y=1
+int const bc3=-4; //em x=0
 
 int const dirichlet =0;
 int const neumann = 1;
+int const mixed = 2;
 
 TPZGeoMesh *GMesh(int triang_elements, int nh);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile);
 
-//#ifdef LOG4CXX
-//static LoggerPtr logdata(Logger::getLogger("pz.mixedpoisson.data"));
-//#endif
-
 
 int main(int argc, char *argv[])
 {
+    gradU[0]=coef_a;
+    gradU[1]=coef_b;
+    normal_plano[0]=coef_a;
+    normal_plano[1]=coef_b;
+    
     int p = 2;
 	//primeira malha
 	
@@ -68,7 +82,7 @@ int main(int argc, char *argv[])
     gmesh->Print(arg1);
     
     // First computational mesh
-	TPZCompMesh * cmesh= CMesh(gmesh, p);
+	TPZCompMesh * cmesh= CMesh(gmesh,p);
     ofstream arg2("cmesh_inicial.txt");
     cmesh->Print(arg2);
         
@@ -222,6 +236,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     REAL conv =0.;
     TPZVec<REAL> convdir;
     convdir.Resize(dim,0.);
+    convdir[0]=0.;
     material-> SetParameters(diff, conv, convdir);
     
     REAL ff=0.;
@@ -234,20 +249,27 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc0);
     TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc2);
+    //TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(Forcingbc1);
+    //TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
-    
-    val2(0,0)=2.;
+
+    val2(0,0)=coef_a;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
-    val2(0,0)=-2.;
+    val2(0,0)=-coef_a;
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    
+   
     
     BCond0->SetForcingFunction(fCC0);
     BCond2->SetForcingFunction(fCC2);
+   // BCond1->SetForcingFunction(fCC1);
+   // BCond3->SetForcingFunction(fCC3);
     
 	cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond0);
@@ -279,14 +301,22 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 	double x = pt[0];
-    //double y = pt[1];
-    disp[0]= 2*x;
+    disp[0]= coef_a*x;
+}
+
+void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+	double y = pt[1];
+    disp[0]= coef_a + coef_b*y;
 }
 
 void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 	double x = pt[0];
-    //double y = pt[1];
-    disp[0]= 4+2*x;
+    disp[0]= coef_b + coef_a*x;
+}
+
+void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+    double y = pt[1];
+    disp[0]= coef_b*y;
 }
 
 
