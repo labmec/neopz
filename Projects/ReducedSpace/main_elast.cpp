@@ -53,12 +53,13 @@ using namespace std;
 
 int const matId1 =1; //elastic
 int const matId2 =2; //pressure
-int const bc1=-1;
-int const bc2=-2;
-int const bc3=-3;
-int const bc4=-4; 
-int const bc5=-5; //bc pressure
-int const bc6=-6; //bc pressure
+
+int const bcmixedx=-1;
+int const bcneumannzero=-2;
+//int const bcneumannzero=-3;
+int const bcmixedy=-4; 
+int const bcfluxIn=-5; //bc pressure
+int const bcfluxOut=-6; //bc pressure
 
 int const dirichlet =0;
 int const neumann = 1;
@@ -74,7 +75,7 @@ int const dir_pressure = 22;
 
 REAL const Pi = 4.*atan(1.);
 
-TPZGeoMesh *GMesh(int nh,REAL w, REAL L);
+TPZGeoMesh *GMesh(int nh,REAL Lx, REAL Ly, REAL Lmax, int nfrac);
 TPZGeoMesh *GMesh2(int nh, REAL L);
 TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder);
 TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOrder);
@@ -115,11 +116,11 @@ int main(int argc, char *argv[])
     InitializePZLOG();
 #endif
     
-    int p = 2;
+    int p = 1;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(4,LyD,LxD);
+	TPZGeoMesh * gmesh = GMesh(0,LxD,LyD,LxD/2,1);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
 //    ofstream vtkgmesh("gmesh_inicial.vtk");
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
     PosProcessamento1(an1, plotfile);
     TPZFMatrix<REAL> solucao;
     solucao=cmesh_elast->Solution();
-    //solucao.Print();
+    solucao.Print();
     
     //computational mesh of reduced space
 //    int nr = an1.Solution().Rows();
@@ -154,7 +155,7 @@ int main(int argc, char *argv[])
     
     
 /** >>> Passando a malha computacional jah processada do problema modelo elastico para a malha do problema elastico que serah acoplado.
-    Esta malha que foi passada servirah como espasco de aproximacao da malha do problema elastico que serah acoplado */
+    Esta malha que foi passada servirah como espaco de aproximacao da malha do problema elastico que serah acoplado */
     TPZCompMeshReferred *cmesh_referred = CMeshReduced(gmesh, cmesh_elast, p);
     cmesh_referred->ComputeNodElCon();
     TPZFStructMatrix fstr(cmesh_referred);
@@ -278,9 +279,9 @@ void SaidaPressao(TPZCompMesh * cmesh){
     outfile1<<"ListPlot[Saida2,Joined->True]"<<endl;
 }
 
-TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
+TPZGeoMesh *GMesh(int nh,REAL Lx, REAL Ly, REAL Lmax,int nfrac){
     
-    int Qnodes = 6;
+    int Qnodes = 4 + 2*nfrac;
 	
 	TPZGeoMesh * gmesh = new TPZGeoMesh;
 	gmesh->SetMaxNodeId(Qnodes-1);
@@ -295,22 +296,32 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
 	//indice dos nos
 	int id = 0;
 	REAL valx;
-	for(int xi = 0; xi < Qnodes/2; xi++)
+	for(int xi = 0; xi <= nfrac; xi++)
 	{
-		valx = xi*L/2.;
+		valx = xi*Lmax/nfrac;
 		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,0. );//coord Y
+		Node[id].SetCoord(0,valx);//coord X
+		Node[id].SetCoord(1,0.);//coord Y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
-	
-	for(int xi = 0; xi < Qnodes/2; xi++)
+    
+    for(int xi = 0; xi <2; xi++){
+        
+        REAL valy = xi*Ly;
+        Node[id].SetNodeId(id);
+        Node[id].SetCoord(0,Lx);//coord X
+        Node[id].SetCoord(1,valy);//coord Y
+        gmesh->NodeVec()[id] = Node[id];
+        id++;
+    }
+    
+	for(int xi = 0; xi <= nfrac; xi++)
 	{
-		valx = L - xi*L/2.;
+		valx = Lmax - xi*Lmax/nfrac;
 		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,w);//coord Y
+		Node[id].SetCoord(0,valx);//coord X
+		Node[id].SetCoord(1,Ly);//coord Y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
@@ -318,56 +329,53 @@ TPZGeoMesh *GMesh(int nh,REAL w, REAL L){
 	//indice dos elementos
 	id = 0;
     
-    TopolQuad[0] = 0;
-    TopolQuad[1] = 1;
-    TopolQuad[2] = 4;
-    TopolQuad[3] = 5;
+    for(int i=0; i<nfrac; i++){
+        TopolQuad[0] = i;
+        TopolQuad[1] = i+1;
+        TopolQuad[2] = (Qnodes-1)-(i+1);
+        TopolQuad[3] = (Qnodes-1)-i;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
+        id++;
+    }
+
+    TopolQuad[0] = nfrac;
+    TopolQuad[1] = nfrac+1;
+    TopolQuad[2] = nfrac+2;
+    TopolQuad[3] = nfrac+3;
     new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
     id++;
 
-    TopolQuad[0] = 1;
-    TopolQuad[1] = 2;
-    TopolQuad[2] = 3;
-    TopolQuad[3] = 4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoQuad> (id,TopolQuad,matId1,*gmesh);
-    id++;
-
-    TopolLine[0] = 0;
-    TopolLine[1] = 1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
-    id++;
+    for(int i=0; i<nfrac; i++){
+        TopolLine[0] = i;
+        TopolLine[1] = i+1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId2,*gmesh);
+        id++;
+    }
         
-    TopolLine[0] = 1;
-    TopolLine[1] = 2;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc1,*gmesh);
+    TopolLine[0] = nfrac;
+    TopolLine[1] = nfrac+1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcmixedx,*gmesh);
     id++;
     
-    TopolLine[0] = 2;
-    TopolLine[1] = 3;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc2,*gmesh);
-    id++;
     
-    TopolLine[0] = 3;
-    TopolLine[1] = 4;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
-    id++;
+    for(int i=nfrac+1; i<Qnodes-1; i++){
+        TopolLine[0] = i;
+        TopolLine[1] = i+1;
+        new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcneumannzero,*gmesh);
+        id++;
+    }
     
-    TopolLine[0] = 4;
-    TopolLine[1] = 5;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc3,*gmesh);
-    id++;
-    
-    TopolLine[0] = 5;
+    TopolLine[0] = Qnodes-1;
     TopolLine[1] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bc4,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,bcmixedy,*gmesh);
     id++;
     
     TopolPoint[0] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc5,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bcfluxIn,*gmesh);
     id++;
     
-    TopolPoint[0] = 1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc6,*gmesh);
+    TopolPoint[0] = nfrac;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bcfluxOut,*gmesh);
 
     
 	gmesh->BuildConnectivity();
@@ -428,11 +436,11 @@ TPZGeoMesh *GMesh2(int nh, REAL L){
     id++;
     
     TopolPoint[0] = 0;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc5,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bcfluxIn,*gmesh);
     id++;
 
     TopolPoint[0] = 1;
-    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc6,*gmesh);
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bcfluxOut,*gmesh);
     
     gmesh->BuildConnectivity();
     
@@ -486,18 +494,18 @@ TPZCompMesh *CMeshElastic(TPZGeoMesh *gmesh, int pOrder)
     val1.Redim(2,2);
     val2.Redim(2,1);
     val1(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, bcmixedx,mixed, val1, val2);
     
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
      
     val1.Redim(2,2);
     val2.Redim(2,1);
     val1(0,0) = big;
-    TPZMaterial * BCond5 = material->CreateBC(mat, bc4,mixed, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(mat, bcmixedy,mixed, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond1);
@@ -548,18 +556,18 @@ TPZCompMeshReferred *CMeshReduced(TPZGeoMesh *gmesh, TPZCompMesh *cmesh, int pOr
     val1.Redim(2,2);
     val2.Redim(2,1);
     val1(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val1, val2);
+    TPZMaterial * BCond2 = material->CreateBC(mat, bcmixedx,mixed, val1, val2);
     
     
     val1.Redim(2,2);
     val2.Redim(2,1);
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,neumann, val1, val2);
-    TPZMaterial * BCond4 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
+    TPZMaterial * BCond4 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
     
     val1.Redim(2,2);
     val2.Redim(2,1);
     val1(0,0) = big;
-    TPZMaterial * BCond5 = material->CreateBC(mat, bc4,mixed, val1, val2);
+    TPZMaterial * BCond5 = material->CreateBC(mat, bcmixedy,mixed, val1, val2);
 
     
     int numsol = cmesh->Solution().Cols();
@@ -625,7 +633,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     REAL vazao = -1.;
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=vazao;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc5, neumann, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, bcfluxIn, neumann, val1, val2);
     
     val1.Redim(2,2);
     val2.Redim(2,1);
@@ -635,7 +643,7 @@ TPZCompMesh *CMeshPressure(TPZGeoMesh *gmesh, int pOrder){
     val2.Redim(2,1);
     REAL pressao = 0.75;
     val2(0,0)=pressao;
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc6,dirichlet, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcfluxOut,dirichlet, val1, val2);
     
     cmesh->SetAllCreateFunctionsContinuous();
 	cmesh->InsertMaterialObject(mat);
@@ -728,29 +736,29 @@ TPZCompMesh *MalhaCompMultphysics(TPZGeoMesh * gmesh, TPZVec<TPZCompMesh *> mesh
     val2.Redim(3,1);
     val1.Redim(3,2);
     val1(1,1) = big;
-    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bc1,mix_elast, val1, val2);
+    TPZMaterial * BCond2 = mymaterial->CreateBC(mat, bcmixedx,mix_elast, val1, val2);
     
 //    val2.Redim(3,1);
 //    val1.Redim(3,2);
-//    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bc2,neum_elast, val1, val2);
-//    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bc3,neum_elast, val1, val2);
+//    TPZMaterial * BCond3 = mymaterial->CreateBC(mat, bcneumannzero,neum_elast, val1, val2);
+//    TPZMaterial * BCond4 = mymaterial->CreateBC(mat, bcneumannzero,neum_elast, val1, val2);
     
     val2.Redim(3,1);
     val1.Redim(3,2);
     val1(0,0) = big;
-    TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bc4, mix_elast, val1, val2);
+    TPZMaterial * BCond5 = mymaterial->CreateBC(mat, bcmixedy, mix_elast, val1, val2);
     
     REAL vazao = -QinD;
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=vazao;
-    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bc5,neum_pressure, val1, val2);
+    TPZMaterial * BCond6 = mymaterial->CreateBC(mat, bcfluxIn,neum_pressure, val1, val2);
     
     
     val2.Redim(3,1);
     val1.Redim(3,2);
     val2(2, 0)=0.0;
-    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bc6,neum_pressure, val1, val2);
+    TPZMaterial * BCond7 = mymaterial->CreateBC(mat, bcfluxOut,neum_pressure, val1, val2);
     
     mphysics->SetAllCreateFunctionsMultiphysicElem();
     mphysics->InsertMaterialObject(BCond1);
@@ -804,7 +812,7 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     REAL vazao = 0.2;
     TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     val2(0,0)=vazao;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, bcneumannzero,neumann, val1, val2);
 
     cmesh->InsertMaterialObject(BCond1);
     
@@ -831,11 +839,11 @@ void InsertMultiphysicsMaterials(TPZCompMesh *cmesh)
     
     TPZFMatrix<REAL> val12(2,2,0.), val22(2,1,0.);
     val12(1,1) = big;
-    TPZMaterial * BCond2 = material->CreateBC(mat, bc1,mixed, val12, val22);
+    TPZMaterial * BCond2 = material->CreateBC(mat, bcmixedx,mixed, val12, val22);
     
     TPZFMatrix<REAL> val13(2,2,0.), val23(2,1,0.);
     val13(0,0) = big;
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc2,dirichlet, val13, val23);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bcneumannzero,dirichlet, val13, val23);
     
     
     cmesh->InsertMaterialObject(BCond4);
