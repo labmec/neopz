@@ -95,10 +95,12 @@ int main(int argc, char *argv[])
 	/** 
 	 * @brief Method to reconstruct a gradient after run Solve of the analysis
 	 * @param cmesh Computational mesh with solution */
-    TPZFMatrix<REAL> gradients;	
+    TPZFMatrix<REAL> gradients;
+	// Redimension of gradients storage
+	gradients.Redim(cmesh->NElements(),cmesh->Dimension());
 	GradientReconstruction(cmesh,gradients);
 	gradients.Print();
-	
+
 	// Print gradient reconstructed
     string plotfile("GradientAndSolution.vtk");
 	PosProcessamento(an,plotfile,gradients);
@@ -116,13 +118,10 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 	TPZVec<REAL> center(3,0.);
 	TPZVec<REAL> solalfa(3,0.), solbeta(3,0.);
 	
-	// Redimension of gradients storage
-	gradients.Redim(cmesh->NElements(),cmesh->Dimension());
-	
 	REAL measure, sidemeasure;
 	for(i=0;i<cmesh->NElements();i++) {
 		cel = cmesh->ElementVec()[i];
-		if(!cel) continue;
+		if(!cel /*|| cel->Dimension()!=cmesh->Dimension()*/) continue;
 		TPZStack<TPZCompElSide> neighs;
 		for(side = 0; side < cel->Reference()->NSides(); side++) {
 			neighs.Resize(0);
@@ -141,6 +140,7 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 				sidemeasure = 1.;   //neighs[nneighs].Reference().Area();   //gelside->Area();
 				neighs[nneighs].Reference().CenterPoint(center);
 				neighs[nneighs].Reference().Normal(center,gelside.Element(),neighs[nneighs].Reference().Element(),normal);
+               // std::cout<<"nx = " << normal[0] <<", ny = "<<normal[1]<<std::endl;
 				// for testing, we are using the solution on centroid
 				TPZGeoElSide gelbeta(neighs[nneighs].Reference().Element(),neighs[nneighs].Reference().Element()->NSides() -1);
 				gelbeta.CenterPoint(centeralfa);
