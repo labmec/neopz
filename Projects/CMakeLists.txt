@@ -19,6 +19,9 @@ ENABLE_TESTING()
 
 			#Testing and using shape functions
 			add_subdirectory(testshape)
+            
+                        #Testing gradient reconstruction
+			add_subdirectory(Gradient_Reconstruction)
 
 			#Generic Example 2D with elasticity, using matrices phi, phi, etc
 			add_subdirectory(testmat)
@@ -129,7 +132,6 @@ ENABLE_TESTING()
 			#add_subdirectory(prodindex)
 			#Projeto Agnaldo
 			add_subdirectory(Testes_Agnaldo)
-			add_subdirectory(Gradient_Reconstruction)
 			add_subdirectory(ReducedSpace)
 			add_subdirectory(StabilizedHybridElasticity)
 			#
