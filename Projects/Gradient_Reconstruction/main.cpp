@@ -17,11 +17,13 @@
 #include "TPZInterfaceEl.h"
 #include "pzinterpolationspace.h"
 #include "pzpoisson3d.h"
+#include "pzmat1dlin.h"
 
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoLinear.h"
 #include "tpztriangle.h"
 #include "pzgeoquad.h"
+#include "pzgeopoint.h"
 
 #include "pzanalysis.h"
 #include "pzskylstrmatrix.h"
@@ -55,8 +57,13 @@ int const dirichlet =0;
 int const neumann = 1;
 int const mixed = 2;
 
-TPZGeoMesh *GMesh(int triang_elements, int nh);
+TPZFMatrix<REAL> MatrixR(REAL ang);
+TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
+
+TPZGeoMesh *GMesh1D(REAL angle, REAL origX, int nh);
+TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder);
+
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
@@ -67,6 +74,8 @@ void PosProcessamento(TPZAnalysis &an, std::string plotfile,TPZFMatrix<REAL> &gr
 
 void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
 
+REAL const pi = 4.*atan(1.);
+
 int main(int argc, char *argv[])
 {
     gradU[0]=coef_a;
@@ -74,11 +83,15 @@ int main(int argc, char *argv[])
     normal_plano[0]=coef_a;
     normal_plano[1]=coef_b;
     
-    int p = 1;
+    REAL anglo = 0.;//pi/4.;
+    REAL x0 = 0.;
+    REAL y0= 0.;
+    
+    int p = 2;
 	//primeira malha
 	
 	// geometric mesh (initial)
-	TPZGeoMesh * gmesh = GMesh(-1,1 );
+	TPZGeoMesh * gmesh = GMesh(-1,anglo,x0,y0,1);
     ofstream arg1("gmesh_inicial.txt");
     gmesh->Print(arg1);
     
@@ -128,6 +141,7 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 			TPZGeoElSide gelside(cel->Reference(),side);
 			if(gelside.Dimension() != cel->Dimension() - 1) continue;
 			gelside.EqualorHigherCompElementList2(neighs,1,0);
+            
 			if(!neighs.NElements()) continue;
 			measure = cel->VolumeOfEl();
 			// for testing, we are using the solution on centroid
@@ -140,7 +154,7 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 				sidemeasure = 1.;   //neighs[nneighs].Reference().Area();   //gelside->Area();
 				neighs[nneighs].Reference().CenterPoint(center);
 				neighs[nneighs].Reference().Normal(center,gelside.Element(),neighs[nneighs].Reference().Element(),normal);
-               // std::cout<<"nx = " << normal[0] <<", ny = "<<normal[1]<<std::endl;
+                //std::cout<<"nx = " << normal[0] <<", ny = "<<normal[1]<<std::endl;
 				// for testing, we are using the solution on centroid
 				TPZGeoElSide gelbeta(neighs[nneighs].Reference().Element(),neighs[nneighs].Reference().Element()->NSides() -1);
 				gelbeta.CenterPoint(centeralfa);
@@ -168,12 +182,122 @@ void PosProcessamento(TPZAnalysis &an, std::string plotfile,TPZFMatrix<REAL> &gr
 	// Carregar gradients como soluçao na malla computacional
 	// Imprimir solucao novamente - Acertar gradients dependente dos graus de liberdade no cmesh
 	// cmesh->LoadSolution(gradients);
-	an.PostProcess(div,dim);
-	std::ofstream out("malha.txt");
-	an.Print("nothing",out);
+	//an.PostProcess(div,dim);
+
+    //	std::ofstream out("malha.txt");
+//	an.Print("nothing",out);
 }
 
-TPZGeoMesh *GMesh(int triang_elements, int nh){
+TPZFMatrix<REAL> MatrixR(REAL ang)
+{
+	TPZFMatrix<REAL> r(2,2,0.);
+	r(0,0) = cos(ang); r(0,1) = -sin(ang);
+	r(1,0) = sin(ang);	r(1,1) =  cos(ang);
+    
+	return r;
+}
+
+TPZGeoMesh *GMesh1D(int nh){
+    
+    int Qnodes = 2;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+    
+    
+	TPZVec <int> TopolLine(2);
+    TPZVec <int> TopolPoint(1);
+    
+    int id;
+	id = 0;
+    Node[id].SetNodeId(id);
+    Node[id].SetCoord(0,0.);//coord x
+    gmesh->NodeVec()[id] = Node[id];
+    id++;
+    
+    Node[id].SetNodeId(id);
+    Node[id].SetCoord(0,1.);//coord x
+    gmesh->NodeVec()[id] = Node[id];
+    
+    //indice dos elementos
+	id = 0;
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint> (id,TopolPoint,bc0,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1,*gmesh);
+    
+    //Refinamento uniforme
+    for ( int ref = 0; ref < nh; ref++ ){
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for ( int i = 0; i < n; i++ ){
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			//if (gel->Dimension() == 2) gel->Divide (filhos);
+            gel->Divide (filhos);
+		}//for i
+	}//ref
+    
+	return gmesh;
+    
+}
+
+TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
+{
+    /// criar materiais
+	int dim = 1;
+    
+	TPZMat1dLin *material;
+	material = new TPZMat1dLin(matId);
+	material->NStateVariables();
+    
+    TPZFMatrix<REAL> xkin(1,1,1.);
+    TPZFMatrix<REAL> xcin(1,1,0.);
+    TPZFMatrix<REAL> xbin(1,1,0.);
+    TPZFMatrix<REAL> xfin(1,1,0.);
+   
+    material-> SetMaterial(xkin,xcin,xbin,xfin);
+    
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    cmesh->InsertMaterialObject(mat);
+    
+    ///Inserir condicao de contorno
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    
+	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+    
+    val2(0,0)=coef_a;
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    
+	cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->InsertMaterialObject(BCond0);
+    cmesh->InsertMaterialObject(BCond1);
+    
+	cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDimModel(dim);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+    
+    return cmesh;
+}
+
+
+TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh){
     
     int Qnodes = 4;
 	
@@ -187,27 +311,47 @@ TPZGeoMesh *GMesh(int triang_elements, int nh){
 	TPZVec <int> TopolLine(2);
 	
 	//indice dos nos
-	int id = 0;
-	REAL valx, dx=1.;
-	for(int xi = 0; xi < Qnodes/2; xi++)
-	{
-		valx = xi*dx;
+    TPZFMatrix<REAL> mA(2,4,0.), mR(2,2), mRA(2,4);
+    mA.Put(0,0,origX); mA.Put(1,0,origY);
+    mA.Put(0,1,origX+1.); mA.Put(1,1,origY);
+    mA.Put(0,2,origX+1.); mA.Put(1,2,origY+1.);
+    mA.Put(0,3,origX); mA.Put(1,3,origY+1.);
+    
+    mR = MatrixR(angle);
+	mR.Multiply(mA, mRA);
+    
+    int id;
+	id = 0;
+	for (int j=0; j<4;j++) {
+		
 		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,0. );//coord Y
+		Node[id].SetCoord(0, mRA.GetVal(0, j));//coord x
+		Node[id].SetCoord(1, mRA.GetVal(1, j));//coord y
 		gmesh->NodeVec()[id] = Node[id];
 		id++;
 	}
-	
-	for(int xi = 0; xi < Qnodes/2; xi++)
-	{
-		valx = 1. - xi*dx;
-		Node[id].SetNodeId(id);
-		Node[id].SetCoord(0 ,valx );//coord X
-		Node[id].SetCoord(1 ,1. );//coord Y
-		gmesh->NodeVec()[id] = Node[id];
-		id++;
-	}
+    
+//	int id = 0;
+//	REAL valx, dx=1.;
+//	for(int xi = 0; xi < Qnodes/2; xi++)
+//	{
+//		valx = xi*dx;
+//		Node[id].SetNodeId(id);
+//		Node[id].SetCoord(0 ,valx );//coord X
+//		Node[id].SetCoord(1 ,0. );//coord Y
+//		gmesh->NodeVec()[id] = Node[id];
+//		id++;
+//	}
+//	
+//	for(int xi = 0; xi < Qnodes/2; xi++)
+//	{
+//		valx = 1. - xi*dx;
+//		Node[id].SetNodeId(id);
+//		Node[id].SetCoord(0 ,valx );//coord X
+//		Node[id].SetCoord(1 ,1. );//coord Y
+//		gmesh->NodeVec()[id] = Node[id];
+//		id++;
+//	}
     
 	//indice dos elementos
 	id = 0;
@@ -324,27 +468,31 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     TPZAutoPointer<TPZFunction<STATE> > fCC0 = new TPZDummyFunction<STATE>(Forcingbc0);
     TPZAutoPointer<TPZFunction<STATE> > fCC2 = new TPZDummyFunction<STATE>(Forcingbc2);
-    //TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(Forcingbc1);
-    //TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3);
+    TPZAutoPointer<TPZFunction<STATE> > fCC1 = new TPZDummyFunction<STATE>(Forcingbc1);
+    TPZAutoPointer<TPZFunction<STATE> > fCC3 = new TPZDummyFunction<STATE>(Forcingbc3);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
     
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
+    
 
-    val2(0,0)=coef_a;
-    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
-    val2(0,0)=-coef_a;
-    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
+
+//    val2(0,0)=coef_a;
+//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
+//    val2(0,0)=-coef_a;
+//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
     
     
    
     
     BCond0->SetForcingFunction(fCC0);
     BCond2->SetForcingFunction(fCC2);
-   // BCond1->SetForcingFunction(fCC1);
-   // BCond3->SetForcingFunction(fCC3);
+    BCond1->SetForcingFunction(fCC1);
+    BCond3->SetForcingFunction(fCC3);
     
 	cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond0);
@@ -376,22 +524,26 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 	double x = pt[0];
-    disp[0]= coef_a*x;
+    double y = pt[1];
+    disp[0]= coef_a*x + coef_b*y;
 }
 
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
-	double y = pt[1];
-    disp[0]= coef_a + coef_b*y;
+	double x = pt[0];
+    double y = pt[1];
+    disp[0]= coef_a*x + coef_b*y;
 }
 
 void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
 	double x = pt[0];
-    disp[0]= coef_b + coef_a*x;
+    double y = pt[1];
+    disp[0]= coef_a*x + coef_b*y;
 }
 
 void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+    double x = pt[0];
     double y = pt[1];
-    disp[0]= coef_b*y;
+    disp[0]= coef_a*x + coef_b*y;
 }
 
 
