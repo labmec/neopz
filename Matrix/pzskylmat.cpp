@@ -974,6 +974,104 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky()
 	return( 1 );
 }
 
+template<>
+int TPZSkylMatrix<std::complex<float> >::Decompose_Cholesky_blk(int blk_sz)
+{
+    DebugStop();
+    return -1;
+}
+template<>
+int TPZSkylMatrix<std::complex<double> >::Decompose_Cholesky_blk(int blk_sz)
+{
+    DebugStop();
+    return -1;
+}
+template<>
+int TPZSkylMatrix<std::complex<long double> >::Decompose_Cholesky_blk(int blk_sz)
+{
+    DebugStop();
+    return -1;
+}
+
+
+template<class TVar>
+int
+TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(int blk_sz)
+{
+  if(this->fDecomposed == ECholesky) 
+    return 1;
+  if (this->fDecomposed )  
+    TPZMatrix<TVar>::Error(__PRETTY_FUNCTION__, "Decompose_Cholesky <Matrix already Decomposed>" );
+	
+  TVar pivot;
+  TVar minpivot = 10000.;
+  int dimension = this->Dim();
+
+  for (int blk_i = 0; blk_i < dimension; blk_i += blk_sz) {
+    int first_row = blk_i;
+    int first_col = blk_i;
+    int last_row  = blk_i + MIN(dimension,blk_i+blk_sz);    
+
+    // Compute band inner nodes
+    for ( int j = first_col; j < dimension; j++) {
+
+      if (Size(j) == 0)   
+	return( 0 ); // Size of column cannot be zero.
+
+      int first_i = MAX(first_row, (j+1)-Size(j));
+      int last_i = MIN(last_row, j); // j-1 becase we do not need to compute u(j,j)
+      for ( int i = first_i; i < last_i; i++) {
+
+	// Compute u(i,j) = (a_ij - SUM_k_1_to_i-1 (u_ki * u_kj) ) / uii 
+
+	TVar  u_ii = fElem[i][0];
+	int I = j-i; // fElem[j][I] = A(i,j) I = j-i 
+	TVar* u_ij = &fElem[j][I];
+	
+	TVar sum = 0.0;
+	TVar *elem_kj = u_ij+1;
+	TVar *end_kj  = fElem[j+1];
+	TVar *elem_ki = &fElem[i][1];
+	TVar *end_ki  = fElem[i+1];
+
+	// Faz sum = SOMA( A(i,p) * A(k,p) ), p = 1,..,k-1.
+	sum = 0.0;
+
+	unsigned max_l = end_kj - elem_kj;
+	unsigned tmp = end_ki - elem_ki;
+	if (tmp < max_l) max_l = tmp;
+	for(unsigned l=0; l<max_l; l++) 
+	  sum += (*elem_kj++) * (*elem_ki++);
+	
+	*u_ij = (*u_ij - sum) / pivot;
+      } 
+      
+      // After computing all the elements of this column, compute the diagonal (ujj)
+      if (last_i == j)
+      {
+	TVar sum = 0.0;
+	TVar* u_jj = &fElem[j][0];
+	TVar *elem_k = fElem[j]+1;
+	TVar *end_k  = fElem[j+1];
+	for ( ; elem_k < end_k; elem_k++ ) sum += (*elem_k) * (*elem_k);
+	pivot = *u_jj - sum;
+	
+	minpivot = minpivot < pivot ? minpivot : pivot;
+
+	if ( pivot < 0. || IsZero(pivot) ) {
+	  cout << "TPZSkylMatrix::DecomposeCholesky a matrix nao e positiva definida" << pivot << endl;
+	  return( 0 );
+	}
+	// Valor do elemento da diagonal k,k
+	*u_jj = sqrt( pivot );
+      }
+    }
+  }	
+  this->fDecomposed  = ECholesky;
+  this->fDefPositive = 1;
+  return( 1 );
+}
+
 /**********************/
 /*** Decompose LDLt ***/
 template<class TVar>

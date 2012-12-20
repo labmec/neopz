@@ -1,6 +1,6 @@
 /**
  * @file
- * @brief Tests for decompose_ldlt
+ * @brief Performance tests on NUMA architecture
  * @author Edson Borin
  * @since 2012
  */
@@ -17,9 +17,6 @@
 
 #include <fstream>
 #include <string>
-#ifdef USING_LIBNUMA
-#include <numa.h>
-#endif // USING_LIBNUMA
 
 #ifdef LOG4CXX
 static LoggerPtr loggerconverge(Logger::getLogger("pz.converge"));
@@ -43,6 +40,7 @@ using namespace tbb;
 // try setting the LD path. Ex: 
 //   export DYLD_FALLBACK_LIBRARY_PATH=/Users/borin/Desktop/neopz/tbb40_297oss/lib/
 #endif
+
 
 using namespace std;
 
@@ -80,15 +78,6 @@ clarg::argString chk_dm_error("-chk_dm_error", "check the decomposed matrix erro
 clarg::argDouble error_tol("-error_tol", "error tolerance.", 1.e-12);
 clarg::argString dump_dm("-dump_dm", "dump decomposed matrix. (use -bd for binary format)", "dump_matrix.txt");
 clarg::argInt cholesky_blk("-chol_blk", "Cholesky blocking factor", 256);
-
-#ifdef USING_LIBNUMA
-clarg::argBool naa("-naa", "NUMA aware allocation.", false);
-clarg::argBool nats("-nats", "NUMA aware thread scheduling.", false);
-
-unsigned num_nodes = 0;
-#endif
-
-
 
 /* Run statistics. */
 RunStatsTable total_rst("-tot_rdt", 
@@ -255,39 +244,23 @@ void set_affinity(int af, int tidx)
   sched_setaffinity(0, sizeof(cpu_set_t), msk);
 }
 
-void* compute_decompose(void* m)
-{
-  long idx = (long) m;
+TPZSkylMatrix<REAL> matrix;
 
+void init_decompose(int idx)
+{
   //  cpu_set_t mask;
   //  CPU_ZERO(&mask);
   //  CPU_SET(cpus[idx],&mask);
   if (affinity.get_value() > 0) {
     set_affinity(affinity.get_value(), idx);
   }
+  matrices[idx] = new TPZSkylMatrix<REAL>(matrix);
+}
 
-#ifdef USING_LIBNUMA
-  if (nats.was_set()) {
-    struct bitmask* nodemask = numa_allocate_nodemask();
-    numa_bitmask_clearall(nodemask);
-    numa_bitmask_setbit(nodemask,idx%num_nodes);
-    numa_bind(nodemask);
-    numa_free_nodemask(nodemask);
-  }
-#endif
+void compute_decompose(int idx)
+{
 
-  if (verbose >= 2) {
-    int cpuid = sched_getcpu();
-    //int tid = pthread_self();
-    cout << "Thread " << idx << " at cpu " << cpuid << endl;
-  }
-
-  TPZSkylMatrix<REAL>* matrix;
-  if (copy_matrix_inside_thread.was_set()) {
-    matrix = new TPZSkylMatrix<REAL>(*matrices[idx]);
-  }
-  else
-    matrix = matrices[idx];
+  TPZSkylMatrix<REAL>* matrix = matrices[idx];
 
 #define CASE_OP(opid,method)				\
   case opid:						\
@@ -302,13 +275,169 @@ void* compute_decompose(void* m)
   default:
     std::cerr << "ERROR: Invalid matrix operation type." << std::endl;
   }
+}
 
-  if (copy_matrix_inside_thread.was_set()) {
-    delete matrix;
+#include <pthread.h>
+
+  class thread_timer_t
+  {
+  public:
+    thread_timer_t() {}
+    void start()
+    {start_time = getms();}
+    void stop()
+    {stop_time = getms();}
+    unsigned long long get_start() {return start_time; }
+    unsigned long long get_stop() {return stop_time; }
+    unsigned long long get_elapsed() {return stop_time-start_time; }
+  private:
+    unsigned long long getms()
+    {
+      timeval t;
+      gettimeofday(&t,NULL);
+      return (t.tv_sec*1000) + (t.tv_usec/1000);
+    }
+    unsigned long long start_time;
+    unsigned long long stop_time;
+  };
+
+int nthreads_initialized;
+int nthreads;
+bool wait_for_all_init;
+std::vector<thread_timer_t> thread_timer;
+pthread_cond_t  cond=PTHREAD_COND_INITIALIZER;
+pthread_cond_t  main_cond=PTHREAD_COND_INITIALIZER;
+pthread_mutex_t mutex=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t main_mutex=PTHREAD_MUTEX_INITIALIZER;
+bool run_parallel;
+
+class synchronized_threads_t
+{
+public:
+  synchronized_threads_t()
+  {
+    run_parallel=false;
+    init_routine=NULL;
+    parallel_routine=NULL;
+    nthreads=0;
+    nthreads_initialized = 0;
+    wait_for_all_init = true;
   }
+
+  void execute_n_threads(unsigned n, 
+			 void (*init_routine)(int),
+			 void (*parallel_routine)(int));
+  
+  struct thread_arg_t
+  {
+    thread_arg_t(int t,void (*ir)(int), void (*pr)(int),
+		 pthread_mutex_t* mt, pthread_cond_t* cd,
+		 pthread_cond_t* mcd) : 
+      tid(t), init_routine(ir), parallel_routine(pr), 
+      mutex(mt), cond(cd), main_cond(mcd)
+    {}
+    int tid;
+    void (*init_routine)(int);
+    void (*parallel_routine)(int);
+    pthread_mutex_t* mutex;
+    pthread_cond_t* cond;
+    pthread_cond_t* main_cond;
+  };
+
+private:
+
+  /** Initialization routine. Called before the cond mutex. */
+  void (*init_routine)(int);
+  /** Parallel routine. Called before the cond mutex. */
+  void (*parallel_routine)(int);
+  std::vector<pthread_t> threads;
+
+};
+
+void *threadfunc(void *parm)
+{
+  synchronized_threads_t::thread_arg_t* args = 
+    (synchronized_threads_t::thread_arg_t*) parm;
+
+  int tid = args->tid;
+
+  pthread_mutex_lock(args->mutex);  
+  if (args->init_routine) {
+    VERBOSE(1,"Thread " << tid << " calling init routine on CPU " 
+	    << (int) sched_getcpu() << endl);
+    (*args->init_routine)(tid);
+  }
+  nthreads_initialized++;
+  if (nthreads_initialized == nthreads) {
+    wait_for_all_init = false;
+    /* Release main thread */
+    pthread_cond_signal(args->main_cond);
+  }
+
+  /* Wait for main to sync */
+  while (!run_parallel) {
+    pthread_cond_wait(args->cond, args->mutex);
+  }
+  VERBOSE(1,"Thread " << tid << " calling parallel routine on CPU " 
+	  << (int) sched_getcpu() << endl);
+  pthread_mutex_unlock(args->mutex);
+
+  thread_timer[tid].start();
+
+  if (args->parallel_routine) {
+    (*args->parallel_routine)(tid);
+  }
+
+  thread_timer[tid].stop();
 
   return NULL;
 }
+
+void 
+synchronized_threads_t::execute_n_threads(unsigned n, 
+					  void (*init_routine)(int),
+					  void (*parallel_routine)(int))
+{
+  nthreads = n;
+  nthreads_initialized = 0;
+  threads.resize(nthreads);
+  thread_timer.resize(nthreads);
+
+  for (unsigned i=0; i<nthreads; i++) {
+    synchronized_threads_t::thread_arg_t arg(i,init_routine,parallel_routine,
+					     &mutex, &cond, &main_cond);
+    PZ_PTHREAD_CREATE(&threads[i],NULL,threadfunc,(void*) i, __FUNCTION__);
+  }
+
+  /* Wait for all to be initialized */
+  pthread_mutex_lock(&main_mutex);  
+  while (wait_for_all_init) {
+    pthread_cond_wait(&main_cond, &main_mutex);
+  }
+  pthread_mutex_unlock(&main_mutex);  
+
+  /* Signall all to start together. */
+  total_rst.start();
+  run_parallel = true;
+  pthread_cond_broadcast(&cond);
+
+  /* Wait for all to finish. */
+  for (unsigned i=0; i<nthreads; i++) {
+    PZ_PTHREAD_JOIN(threads[i], NULL, __FUNCTION__);
+  }
+  total_rst.stop();
+
+  if (verbose >= 2) {
+    printf("%7s,%10s,%10s,%10s\n", "thread", "elapsed", "start", "stop");
+    for (unsigned i=0; i<nthreads; i++) {
+      printf("%7d,%10lld,%10lld,%10lld\n", i,
+	     thread_timer[i].get_elapsed(),
+	     thread_timer[i].get_start(),
+	     thread_timer[i].get_stop());
+    }
+  }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -341,9 +470,9 @@ int main(int argc, char *argv[])
         std::cout << "-----------------------------------" << std::endl;
     }
 
-    /* Read the matrix. */
-    TPZSkylMatrix<REAL> matrix;
+    synchronized_threads_t thread_exec;
 
+    /* Read the matrix. */
     VERBOSE(1,"Reading input file: " << ifn.get_value() << std::endl);
     FileStreamWrapper input_file(bi.get_value());
     input_file.OpenRead(ifn.get_value());
@@ -355,60 +484,9 @@ int main(int argc, char *argv[])
       matrix.Resize(maxcol.get_value(),0);
 
     int nthreads = nmats.get_value();
-    std::vector<pthread_t> threads(nthreads);
 
-    /* Duplicate matrices. */
-    VERBOSE(1, "Copying matrices" << endl);
-
-#ifdef USING_LIBNUMA
-    num_nodes = numa_max_node()+1;
-    cout << "Max nodes = " << num_nodes << endl;
-    if (naa.was_set()) {
-      struct bitmask* nodemask = numa_allocate_nodemask();
-      for(int t=0; t<nthreads; t++) {
-	numa_bitmask_clearall(nodemask);
-	unsigned node = t%num_nodes;
-	numa_bitmask_setbit(nodemask,node);
-	numa_set_membind(nodemask);
-	TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
-	matrices.push_back(mp);
-      }
-      numa_bitmask_setall(nodemask);
-      numa_set_membind(nodemask);
-      numa_free_nodemask(nodemask);
-    }
-    else {
-      for(int t=0; t<nthreads; t++) {
-	TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
-	matrices.push_back(mp);
-      }
-    }
-#else
-    for(int t=0; t<nthreads; t++) {
-      TPZSkylMatrix<REAL>* mp = new TPZSkylMatrix<REAL>(matrix);
-      matrices.push_back(mp);
-    }
-#endif 
-
-    VERBOSE(1, "Copying matrices [DONE]" << endl);
-
-    total_rst.start();
-
-    for(int t=1; t<nthreads; t++) {
-      PZ_PTHREAD_CREATE(&threads[t], NULL, compute_decompose, 
-			(void*) t, __FUNCTION__);
-    }
-
-    // Perform thread 0 at the main thread 
-    compute_decompose((void*) 0);
-
-    /* Sync. */
-    if (nthreads>0) {
-      for(int t=0; t<nthreads; t++) {
-	PZ_PTHREAD_JOIN(threads[t], NULL, __FUNCTION__);
-      }
-    }
-    total_rst.stop();
+    thread_exec.execute_n_threads(nthreads, init_decompose, 
+				  compute_decompose);
 
     if (mstats.get_value() > 0) {
       unsigned n = matrix.Dim();
@@ -520,3 +598,7 @@ int main(int argc, char *argv[])
 
     return ret;
 }
+
+
+
+

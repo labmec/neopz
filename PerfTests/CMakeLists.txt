@@ -21,6 +21,7 @@ if(BUILD_PERF_TESTS)
   # Add perf test applications here
   add_subdirectory(SubStruct)
   add_subdirectory(DecomposeLDLt)
+  add_subdirectory(NumaTests)
   add_subdirectory(GFlopsTest)
 
   # Add your run scripts into RunScripts/CMakeLists.txt

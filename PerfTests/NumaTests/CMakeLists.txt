@@ -1,0 +1,8 @@
+file(GLOB source *.cpp)
+
+file(GLOB header *.h)
+
+add_executable(Perf-NumaTst ${source} ${header})
+
+target_link_libraries(Perf-NumaTst pz pthread)
+
