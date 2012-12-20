@@ -974,6 +974,13 @@ void TPZGeoElSide::Normal(TPZVec<REAL> &point, TPZGeoEl *LeftEl, TPZGeoEl *Right
 			normal[0] = vec[0];// a normal sempre aponta direcao positiva do eixo
 			normal[1] = vec[1];
 			normal[2] = vec[2];
+            
+            normalize = 0.;
+			for(i=0;i<3;i++) normalize += normal[i]*normal[i];
+            normalize = sqrt(normalize);
+            if(!IsZero(normalize))
+                for(i=0;i<3;i++) normal[i] = normal[i]/normalize;
+            
 			break;
 		case 1:
 			for(i=0;i<3;i++) rib[i] = axes(0,i);//direcao da aresta
