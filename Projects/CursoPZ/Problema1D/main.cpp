@@ -53,7 +53,7 @@ int main() {
 	// Creating geometric mesh
 	TPZGeoMesh *gmesh = CreateGeoMesh(Archivo);
     gmesh->Print();
-//	UniformRefine(gmesh,1);
+	UniformRefine(gmesh,1);
 
 	// Creating computational mesh (approximation space and materials)
 	int p = 3;
@@ -127,16 +127,13 @@ void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
 			TPZGeoElSide gelalfa(cel->Reference(),cel->Reference()->NSides() -1);
 			gelalfa.CenterPoint(centeralfa);
 			cel->Solution(centeralfa,1,solalfa);
-            //std::cout<<"nx = " << solalfa[0] <<", ny = "<<solalfa[1]<<std::endl;
 			for(nneighs=0;nneighs<neighs.NElements();nneighs++) {
-                int nneigs = neighs.NElements();
-                neighs[nneighs].Element()->Print();
                 
 				if(neighs[nneighs].Element() == cel || neighs[nneighs].Element()->Dimension() != cel->Dimension()) continue;
 				sidemeasure = 1.;   //neighs[nneighs].Reference().Area();   //gelside->Area();
 				neighs[nneighs].Reference().CenterPoint(center);
 				neighs[nneighs].Reference().Normal(center,gelside.Element(),neighs[nneighs].Reference().Element(),normal);
-                std::cout<<"nx = " << normal[0] <<", ny = "<<normal[1]<<std::endl;
+                
 				// for testing, we are using the solution on centroid
 				TPZGeoElSide gelbeta(neighs[nneighs].Reference().Element(),neighs[nneighs].Reference().Element()->NSides() -1);
 				gelbeta.CenterPoint(centeralfa);
@@ -196,7 +193,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
 	val2(0,0) = 0.;
 	val2(1,0) = 1.0;
-	//TPZMaterial *bcright;
+	TPZMaterial *bcRight;
 	TPZMaterial *bcLeft;
 	// Condicion Dirichlet desplazamiento y giro en el extremo inicial de la viga (v,phi) = (0,0)
     bcLeft = mat->CreateBC(mat,2,0,val1,val2);
@@ -204,8 +201,8 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh) {
 	// Condicion de Neumann colocando un peso en el extremo
 	val2(0,0) = 1.;
 	val2(1,0) = 0.2;
-    //bcRight = mat->CreateBC(mat,3,1,val1,val2);
-	//cmesh->InsertMaterialObject(bcRight);
+    bcRight = mat->CreateBC(mat,3,1,val1,val2);
+	cmesh->InsertMaterialObject(bcRight);
 
 	// Inserting boundary conditions into computational mesh
     
