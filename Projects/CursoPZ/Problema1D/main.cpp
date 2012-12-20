@@ -39,21 +39,27 @@ TPZGeoMesh *CreateGeoMesh(std::string &nome);
 TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh);
 
 void UniformRefine(TPZGeoMesh* gmesh, int nDiv);
-
+void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients);
 // uni-dimensional problem for elasticity
 int main() {
 
+//#ifdef LOG4CXX
+//    InitializePZLOG();
+//#endif
+    
 	Archivo += "/Projects/CursoPZ/Problema1D/";
 	Archivo += "Viga1D.dump";
 
 	// Creating geometric mesh
 	TPZGeoMesh *gmesh = CreateGeoMesh(Archivo);
+    gmesh->Print();
 //	UniformRefine(gmesh,1);
 
 	// Creating computational mesh (approximation space and materials)
 	int p = 3;
     TPZCompEl::SetgOrder(p);
     TPZCompMesh *cmesh = CreateMesh(gmesh);
+    cmesh->Print();
 	
 	// Solving linear equations
 	// Initial steps
@@ -78,6 +84,12 @@ int main() {
 	*/
 	an.Run();
 	
+    
+    TPZFMatrix<REAL> gradients;
+	// Redimension of gradients storage
+	GradientReconstruction(cmesh,gradients);
+	gradients.Print();
+    
 	// Post processing
 	TPZManVector<std::string> scalarnames(0), vecnames(2);
 	vecnames[0] = "desplazamiento";
@@ -85,6 +97,62 @@ int main() {
 	an.DefineGraphMesh(1,scalarnames,vecnames,"MiSolucion1D.vtk");
 
 	an.PostProcess(2);
+}
+
+void GradientReconstruction(TPZCompMesh *cmesh,TPZFMatrix<REAL> &gradients) {
+    
+    gradients.Redim(cmesh->NElements(),1);
+    
+	TPZCompEl *cel;
+	int i = 0, side, nneighs;
+	TPZVec<REAL> normal(3,0.0);
+	TPZVec<REAL> center(3,0.);
+	TPZVec<REAL> solalfa(3,0.), solbeta(3,0.);
+	
+	REAL measure, sidemeasure;
+	for(i=0;i<cmesh->NElements();i++) {
+		cel = cmesh->ElementVec()[i];
+		if(!cel /*|| cel->Dimension()!=cmesh->Dimension()*/) continue;
+		TPZStack<TPZCompElSide> neighs;
+		for(side = 0; side < cel->Reference()->NSides(); side++) {
+			neighs.Resize(0);
+			TPZGeoElSide gelside(cel->Reference(),side);
+			if(gelside.Dimension() != cel->Dimension() - 1) continue;
+			gelside.EqualorHigherCompElementList2(neighs,1,0);
+            
+			if(!neighs.NElements()) continue;
+			measure = cel->VolumeOfEl();
+			// for testing, we are using the solution on centroid
+			TPZVec<REAL> centeralfa(3,0.);
+			TPZGeoElSide gelalfa(cel->Reference(),cel->Reference()->NSides() -1);
+			gelalfa.CenterPoint(centeralfa);
+			cel->Solution(centeralfa,1,solalfa);
+            //std::cout<<"nx = " << solalfa[0] <<", ny = "<<solalfa[1]<<std::endl;
+			for(nneighs=0;nneighs<neighs.NElements();nneighs++) {
+                int nneigs = neighs.NElements();
+                neighs[nneighs].Element()->Print();
+                
+				if(neighs[nneighs].Element() == cel || neighs[nneighs].Element()->Dimension() != cel->Dimension()) continue;
+				sidemeasure = 1.;   //neighs[nneighs].Reference().Area();   //gelside->Area();
+				neighs[nneighs].Reference().CenterPoint(center);
+				neighs[nneighs].Reference().Normal(center,gelside.Element(),neighs[nneighs].Reference().Element(),normal);
+                std::cout<<"nx = " << normal[0] <<", ny = "<<normal[1]<<std::endl;
+				// for testing, we are using the solution on centroid
+				TPZGeoElSide gelbeta(neighs[nneighs].Reference().Element(),neighs[nneighs].Reference().Element()->NSides() -1);
+				gelbeta.CenterPoint(centeralfa);
+				gelbeta.Element()->Reference()->Solution(centeralfa,1,solbeta);
+				
+				// Incrementando no gradients para o elemento alfa o valor por vizinho
+                for(int j=0;j<cel->Reference()->Dimension();j++){
+                    gradients(i,j) += (sidemeasure * normal[j] *(solbeta[1] - solalfa[1]));
+                }
+			}
+		}
+        for(int j=0;j<cel->Reference()->Dimension();j++){
+            if(!IsZero(measure))
+                gradients(i,j) /= (2*measure);
+        }
+	}
 }
 
 //*******Shell to deforming************
