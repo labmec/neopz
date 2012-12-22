@@ -7,5 +7,5 @@ add_executable(PoroElasticAnalysis ${Mymain})
 
 target_link_libraries(PoroElasticAnalysis pz)
 
-file(COPY Input RefPatterns DESTINATION .)
+file(COPY Input DESTINATION .)
 
