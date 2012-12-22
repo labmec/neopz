@@ -159,6 +159,11 @@ void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &datal
 		this->Solution(data,dataleftvec,datarightvec, var, Solout);
 }
 
+void TPZMaterial::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl *left, TPZCompEl *ritgh)
+{
+	this->Solution(data,dataleftvec,datarightvec, var, Solout, left, ritgh);
+}
+
 void TPZMaterial::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &/*DSol*/,TPZFMatrix<REAL> &/*axes*/,int var,
 						   TPZVec<REAL> &Solout){
 #ifdef STATE_COMPLEX

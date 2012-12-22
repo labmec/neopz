@@ -140,6 +140,7 @@ public:
         return fLeftElSide;
     }
     
+	
     /** @brief Initialize the material data for the neighbouring element */
     void InitMaterialData(TPZVec<TPZMaterialData> &data, TPZMultiphysicsElement *mfcel);
     
@@ -151,6 +152,8 @@ public:
     
     /** @brief Compute the required data from the neighbouring elements */
     void ComputeRequiredData(TPZVec<REAL> &point, TPZVec<TPZTransform> &trvec, TPZMultiphysicsElement *Neighbour, TPZVec<TPZMaterialData> &data);
+	
+	void ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf);
     
     /** @brief Access function to the right element */
     TPZCompElSide Right() const

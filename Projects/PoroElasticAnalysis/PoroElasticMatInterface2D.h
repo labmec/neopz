@@ -21,6 +21,8 @@
 #include "pzdiscgal.h"
 #include "pzelasmat.h"
 #include "pzporoelastic2d.h"
+#include "TPZMultiphysicsInterfaceEl.h"
+#include "pzmultiphysicselement.h"
 
 #ifndef PoroElasticMatInterface2DH
 #define PoroElasticMatInterface2DH
@@ -107,12 +109,11 @@ class PoroElasticMatInterface2D  : public TPZPoroElastic2d {
 	
 	virtual void ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &left, REAL weight, TPZFMatrix<STATE> &ef,TPZBndCond &bc);
 	
-//	virtual int VariableIndex(const std::string &name);
-//	
-//	virtual int NSolutionVariables(int var);
-//	
-//	//public:
-	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
+	virtual int VariableIndex(const std::string &name);
+	
+	virtual int NSolutionVariables(int var);
+	
+	virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right);	
 	
 //	/** @} */
 //	

@@ -244,59 +244,7 @@ void TPZMultiphysicsInterfaceElement::CalcStiff(TPZElementMatrix &ek, TPZElement
         trright.Apply(Point, rightPoint);
         rightel->ComputeRequiredData(rightPoint, rightcomptr, datavecright);
         material->ContributeInterface(data , datavecleft, datavecright, weight, ek.fMat, ef.fMat);
-    }
-//	
-//	TPZVec<TPZMaterialData> datavec;
-//	const int nref = fElementVec.size(); 
-//	datavec.resize(nref);
-//	InitMaterialData(datavec);
-//	
-//	TPZManVector<TPZTransform> trvec;
-//	AffineTransform(trvec);
-//	
-//	int dim = Dimension();
-//	TPZAutoPointer<TPZIntPoints> intrule;
-//	
-//	TPZManVector<REAL,3> intpoint(dim,0.), intpointtemp(dim,0.);
-//	REAL weight = 0.;
-//	
-//	TPZVec<int> ordervec;
-//	ordervec.resize(nref);
-//	for (int iref=0;  iref<nref; iref++) 
-//	{
-//		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-//		datavec[iref].p = msp->MaxOrder();
-//		ordervec[iref] = datavec[iref].p; 
-//	}
-//	int order = material->IntegrationRuleOrder(ordervec);
-//	
-//	TPZGeoEl *ref = this->Reference();
-//	intrule = ref->CreateSideIntegrationRule(ref->NSides()-1, order);
-//	
-//	TPZManVector<int,3> intorder(dim,order);
-//	intrule->SetOrder(intorder);	
-//	int intrulepoints = intrule->NPoints();
-//	
-//	TPZFMatrix<REAL> jac, axe, jacInv;
-//	REAL detJac; 
-//	for(int int_ind = 0; int_ind < intrulepoints; ++int_ind)
-//	{		
-//		intrule->Point(int_ind,intpointtemp,weight);
-//		ref->Jacobian(intpointtemp, jac, axe, detJac , jacInv);
-//		weight *= fabs(detJac);
-//		for (int iref=0; iref<fElementVec.size(); iref++)
-//		{			
-//			TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fElementVec[iref]);
-//			trvec[iref].Apply(intpointtemp, intpoint);
-//			
-//			msp->ComputeShape(intpoint, datavec[iref].x, datavec[iref].jacobian, datavec[iref].axes, 
-//							  datavec[iref].detjac, datavec[iref].jacinv, datavec[iref].phi, datavec[iref].dphix);
-//			datavec[iref].intPtIndex = int_ind;
-//			msp->ComputeRequiredData(datavec[iref], intpoint);
-//		}
-//		material->Contribute(datavec,weight,ek.fMat,ef.fMat);
-//	}//loop over integratin points
-	
+    }	
 	
 }//CalcStiff
 
@@ -468,9 +416,6 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
     TPZMultiphysicsElement *leftel = dynamic_cast<TPZMultiphysicsElement *> (LeftSide.Element());
     TPZMultiphysicsElement *rightel = dynamic_cast<TPZMultiphysicsElement *>(RightSide.Element());
 	
-//    TPZMultiphysicsCompEl<TGeometry> *leftCompel = dynamic_cast<TPZMultiphysicsCompEl<TGeometry> * > (leftel);
-//    TPZMultiphysicsCompEl<TGeometry> *righCompel = dynamic_cast<TPZMultiphysicsCompEl<TGeometry> * > (rightel);	
-	
     TPZGeoEl *leftgel = leftel->Reference();
     TPZGeoEl *rightgel = rightel->Reference();	
 	
@@ -485,9 +430,9 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	{
 		datavecleft[i].SetAllRequirements(false);
         datavecleft[i].fNeedsSol = true;
-		datavecleft[i].fNeedsNeighborSol = true;
+		datavecleft[i].fNeedsNeighborSol = false;
 		datavecleft[i].fNeedsNeighborCenter = false;
-		datavecleft[i].fNeedsNormal = true;
+		datavecleft[i].fNeedsNormal = false;
 	}
 	
 	int nrefr = datavecright.size();
@@ -496,66 +441,43 @@ void TPZMultiphysicsInterfaceElement::Solution(TPZVec<REAL> &qsi, int var,TPZVec
 	{
 		datavecright[i].SetAllRequirements(false);
         datavecright[i].fNeedsSol = true;
-		datavecright[i].fNeedsNeighborSol = true;
+		datavecright[i].fNeedsNeighborSol = false;
 		datavecright[i].fNeedsNeighborCenter = false;
-		datavecright[i].fNeedsNormal = true;
+		datavecright[i].fNeedsNormal = false;
 	}
-	
 	
     TPZManVector<TPZTransform> leftcomptr, rightcomptr;
     leftel->AffineTransform(leftcomptr);
     rightel->AffineTransform(rightcomptr);
     InitMaterialData(data);	
-
+	TPZTransform lefttr;
+	TPZTransform righttr;	
+	
+	//		Integration points in left and right elements: making transformations to neighbour elements
+	this->ComputeSideTransform(LeftSide, lefttr);
+	this->ComputeSideTransform(RightSide, righttr);	
+	
 	TPZVec<REAL> myqsi;
-	myqsi.resize(qsi.size());
+	myqsi.resize(qsi.size());	
+	lefttr.Apply(qsi, myqsi);
+	lefttr.Apply(qsi, myqsi);
 	
-	// For left element
-	
-	int nref = datavecleft.size();
-    
-	for (int iref = 0; iref<nref; iref++)
-	{		
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(leftel);
-        if(!msp) continue;
-        msp->InitMaterialData(datavecleft[iref]);
-        TPZMaterialData::MShapeFunctionType shapetype = datavecleft[iref].fShapeType;
-        if(shapetype==datavecleft[iref].EVecShape) continue;
-        
-        leftcomptr[iref].Apply(qsi, myqsi);
-        datavecleft[iref].p = msp->MaxOrder();
-        msp->ComputeShape(qsi,datavecleft[iref]);
-        msp->ComputeSolution(myqsi,datavecleft[iref]);
+	leftel->ComputeRequiredData(myqsi, leftcomptr, datavecleft);
+	rightel->ComputeRequiredData(myqsi, rightcomptr, datavecright);
 		
-		datavecleft[iref].x.Resize(2);
-		msp->Reference()->X(myqsi,datavecleft[iref].x);
-	}
-	
-	// For left element
-	
-	nref = datavecright.size();
-    
-	for (int iref = 0; iref<nref; iref++)
-	{	
-		
-		TPZInterpolationSpace *msp  = dynamic_cast <TPZInterpolationSpace *>(fRightElSide.Element());
-        if(!msp) continue;
-        msp->InitMaterialData(datavecright[iref]);
-        TPZMaterialData::MShapeFunctionType shapetype = datavecright[iref].fShapeType;
-        if(shapetype==datavecleft[iref].EVecShape) continue;
-        
-        rightcomptr[iref].Apply(qsi, myqsi);
-        datavecright[iref].p = msp->MaxOrder();
-        msp->ComputeShape(qsi,datavecright[iref]);
-        msp->ComputeSolution(myqsi,datavecright[iref]);
-		
-		datavecleft[iref].x.Resize(2);
-		msp->Reference()->X(myqsi,datavecright[iref].x);
-		
-	}	
-		
-	material->Solution(data,datavecleft,datavecright,var, sol);
+	material->Solution(data,datavecleft,datavecright,var, sol,LeftSide.Element(),RightSide.Element());
 }
 
+void TPZMultiphysicsInterfaceElement::ComputeSideTransform(TPZCompElSide &Neighbor, TPZTransform &transf){
+	TPZGeoEl * neighel = Neighbor.Element()->Reference();
+	const int dim = this->Dimension();
+	TPZTransform LocalTransf(dim);
+	TPZGeoElSide thisgeoside(this->Reference(), this->Reference()->NSides()-1);
+	TPZGeoElSide neighgeoside(neighel, Neighbor.Side());
+	thisgeoside.SideTransform3(neighgeoside, LocalTransf);
+	
+	TPZGeoElSide highdim(neighel, neighel->NSides()-1);
+	transf = neighgeoside.SideToSideTransform(highdim).Multiply(LocalTransf);
+}//ComputeSideTransform
 
 

@@ -16,6 +16,7 @@
 #include "pzsave.h"
 #include "pzmaterialdata.h"
 #include "pzfunction.h"
+#include "pzcompel.h"
 
 #include <iostream>
 #include <string>
@@ -189,7 +190,10 @@ public:
     virtual void Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout);
 	
 	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
-    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);	
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout);
+	
+	/** @brief Returns the solution associated with the var index based on the finite element approximation around one interface element */
+    virtual void Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * left, TPZCompEl * ritgh);	
     
 protected:
     /** @deprecated Deprecated interface for Solution method which must use material data. */

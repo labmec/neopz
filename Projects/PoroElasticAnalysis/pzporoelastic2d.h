@@ -14,8 +14,6 @@
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
 #include "pzvec.h"
-
-
 #include <iostream>
 
 
@@ -46,12 +44,15 @@ protected:
 	
 	/** @brief Elasticity modulus */
 	REAL fE;
+	REAL fEu;	
 	
 	/** @brief Poison coeficient */
 	REAL fnu;
+	REAL fnuu;	
 	
 	/** @brief first Lame Parameter */
 	REAL flambda;
+	REAL flambdau;	
 	
 	/** @brief Second Lame Parameter */
 	REAL fmu;	
@@ -111,7 +112,6 @@ public:
 	void SetDimension(int dimension)
 	{
 		fDim = dimension;
-
 	}	
 	
 	
@@ -131,11 +131,15 @@ public:
 	 * @param fy forcing function \f$ -y = fy \f$
 	 * @param plainstress \f$ plainstress = 1 \f$ indicates use of plainstress
 	 */
-	void SetParameters(REAL Lambda, REAL mu,  REAL fx, REAL fy)
+	void SetParameters(REAL Lambda, REAL mu, REAL Lambdau,  REAL fx, REAL fy)
 	{
 		fE = (mu*(3.0*Lambda+2.0*mu))/(Lambda+mu);
 		fnu = (Lambda)/(2*(Lambda+mu));
-	
+		
+		fEu = (mu*(3.0*Lambdau+2.0*mu))/(Lambdau+mu);
+		fnuu = (Lambdau)/(2*(Lambdau+mu));
+		
+		flambdau = Lambdau;
 		flambda = Lambda;
 		fmu = mu;
 		ff[0] = fx;
@@ -172,19 +176,29 @@ public:
 	void SetTimeValue(REAL TimeValue)
 	{
 		fTimeValue = TimeValue;
-	}	
-	
-	/// Set the kind of coupling: coupled -> true, uncoupled -> false
-	void SetCoupled(bool coupled)
-	{
-		if (coupled) {
-			fCoupledfactor = -1.0;
-		}
-		else {
-			fCoupledfactor = 1.0;
-		}
-
 	}
+	
+	// Get Elastic Materials Parameters	
+	void GetElasticParameters(REAL &Ey, REAL &EyU, REAL &nu, REAL &nuU, REAL &Lambda, REAL &LambdaU, REAL &G, REAL &Alpha)
+	{
+		Ey = fE;
+		EyU = fEu;	
+		nu =  fnu;
+		nuU = fnuu;	
+		Lambda =  flambda;
+		LambdaU =  flambdau;	
+		G = fmu;	
+		Alpha = falpha;
+	}		
+	
+	// Get Diffusion Materials Parameters	
+	void GetDiffusionParameters(REAL &ALpha, REAL &Se, REAL &viscosity, REAL &Perm)
+	{
+		ALpha = falpha;
+		Se = fSe;
+		Perm = fk; 
+		viscosity = fvisc;	
+	}			
 	
 	virtual void FillDataRequirements(TPZVec<TPZMaterialData > &datavec);
 	
@@ -258,13 +272,6 @@ public:
      */
     virtual void ContributeBC(TPZMaterialData &data, REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef, TPZBndCond &bc){
 		DebugStop();
-	}
-	/**
-	 * @brief Computes the error due to the difference between the interpolated flux \n
-	 * and the flux computed based on the derivative of the solution
-	 */
-//    virtual void ErrorMassCal(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux,TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact,TPZVec<REAL> &val);
-	
-	
+	}	
 };
 #endif

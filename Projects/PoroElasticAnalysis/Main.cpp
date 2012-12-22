@@ -113,7 +113,7 @@ void StiffMatrixLoadVec(TPZReadGIDGrid GeometryInfo,int Nthreads, TPZVec <TPZPor
 //	These are tools for spatial and polynomial refinement and Postprocess of solutions
 void PostProcessElasticity(TPZAnalysis &an, std::string plotfile);
 void PostProcessDiffusion(TPZAnalysis &an, std::string plotfile);
-void PostProcessPoroeasticity(TiXmlHandle ControlDoc,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile);
+void PostProcessPoroeasticity(TiXmlHandle ControlDoc,TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile, int dim);
 void UniformRefinement(TPZGeoMesh  *gMesh, int nh);
 void UniformRefinement(TPZGeoMesh *gMesh, int nh, int MatId);
 void RefinElemComp(TPZCompMesh  *cMesh, int indexEl);
@@ -543,7 +543,7 @@ int main(int argc, char *argv[])
 		std::stringstream outputfiletemp;
 		outputfiletemp << output << ".vtk";
 		std::string plotfile = outputfiletemp.str();
-		PostProcessPoroeasticity(docHandle,ComputationalMeshVector,ComputationalMeshPoroelasticityReCurrent,PoroelasticAnalysis,plotfile);
+		PostProcessPoroeasticity(docHandle,ComputationalMeshVector,ComputationalMeshPoroelasticityReCurrent,PoroelasticAnalysis,plotfile,2);
 			
 		DebugStop();
 	}
@@ -1309,6 +1309,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 		if (Dimensionless) 
 		{
 			Lambda			= Lambda*S;
+			LambdaU			= LambdaU*S;			
 			G				= G*S;
 			Se				= Se/S;
 			Permeability	= 1.0;
@@ -1317,7 +1318,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 		}	
 
 		MaterialPoroElastic = new TPZPoroElastic2d (GeometryInfo.fMaterialDataVec[imat].fMatID, dim);
-		MaterialPoroElastic->SetParameters(Lambda,G,BodyForceX,BodyForceY);
+		MaterialPoroElastic->SetParameters(Lambda,G,LambdaU,BodyForceX,BodyForceY);
 		MaterialPoroElastic->SetParameters(Permeability,FluidViscosity);
 		MaterialPoroElastic->SetfPlaneProblem(planestress);
 		MaterialPoroElastic->SetBiotParameters(alpha,Se);
@@ -1476,6 +1477,7 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 							DebugStop();
 						}
 						int gelindex;
+						
 						// TPZInterfaceElement(TPZCompMesh &mesh,TPZGeoEl *geo,int &index,TPZCompElSide & left, TPZCompElSide &right);				
 						new TPZMultiphysicsInterfaceElement(* Multiphysics, Gel, gelindex, neigh[0], neigh[1] );		
 						
@@ -1590,7 +1592,7 @@ void PostProcessElasticity(TPZAnalysis &an, std::string plotfile)
 	an.PostProcess(div,dim);
 }
 
-void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile)
+void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> meshvec, TPZCompMesh* mphysics, TPZAnalysis &an, std::string plotfile, int dim)
 {
 	TPZBuildMultiphysicsMesh * Objectdumy;
 	Objectdumy->TransferFromMultiPhysics(meshvec, mphysics);
@@ -1599,38 +1601,75 @@ void PostProcessPoroeasticity(TiXmlHandle ControlDoc, TPZVec<TPZCompMesh *> mesh
 	TiXmlElement* Container;
 	const char * CharContainer;	
 	
-	Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "FileName" ).ToElement();		
-	CharContainer = Container->Attribute("NDiv");
-	int div = atoi(CharContainer);
-	CharContainer = Container->Attribute("NVectorials");
-	int NVectorials = atoi(CharContainer);
-	CharContainer = Container->Attribute("NScalars");
-	int NScalars = atoi(CharContainer);	
-	
-	TPZManVector<std::string,10> scalnames(NScalars), vecnames(NVectorials);
-	
-	int iscalar = 0;
-	Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
-	for( Container; Container; Container=Container->NextSiblingElement())
+	if (dim == 2) 
 	{
-		CharContainer = Container->Attribute("Name");
-		scalnames[iscalar] = CharContainer;
-		iscalar++;
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "FileName" ).ToElement();		
+		CharContainer = Container->Attribute("NDiv");
+		int div = atoi(CharContainer);
+		CharContainer = Container->Attribute("NVectorials");
+		int NVectorials = atoi(CharContainer);
+		CharContainer = Container->Attribute("NScalars");
+		int NScalars = atoi(CharContainer);	
+		
+		TPZManVector<std::string,10> scalnames(NScalars), vecnames(NVectorials);
+		
+		int iscalar = 0;
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
+		for( Container; Container; Container=Container->NextSiblingElement())
+		{
+			CharContainer = Container->Attribute("Name");
+			scalnames[iscalar] = CharContainer;
+			iscalar++;
+		}
+		
+		int ivectorial = 0;
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Vectorials" ).FirstChild( "Var" ).ToElement();
+		for( Container; Container; Container=Container->NextSiblingElement())
+		{
+			CharContainer = Container->Attribute("Name");
+			vecnames[ivectorial] = CharContainer;
+			ivectorial++;
+		}
+		
+		const int dimension = dim;
+		an.DefineGraphMesh(dimension,scalnames,vecnames,plotfile);
+		an.PostProcess(div,dim);		
+	}
+	else 
+	{
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControlsInterface" ).FirstChild( "FileName" ).ToElement();		
+		CharContainer = Container->Attribute("NDiv");
+		int div = atoi(CharContainer);
+		CharContainer = Container->Attribute("NVectorials");
+		int NVectorials = atoi(CharContainer);
+		CharContainer = Container->Attribute("NScalars");
+		int NScalars = atoi(CharContainer);	
+		
+		TPZManVector<std::string,10> scalnames(NScalars), vecnames(NVectorials);
+		
+		int iscalar = 0;
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControlsInterface" ).FirstChild( "Scalars" ).FirstChild( "Var" ).ToElement();
+		for( Container; Container; Container=Container->NextSiblingElement())
+		{
+			CharContainer = Container->Attribute("Name");
+			scalnames[iscalar] = CharContainer;
+			iscalar++;
+		}
+		
+		int ivectorial = 0;
+		Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControlsInterface" ).FirstChild( "Vectorials" ).FirstChild( "Var" ).ToElement();
+		for( Container; Container; Container=Container->NextSiblingElement())
+		{
+			CharContainer = Container->Attribute("Name");
+			vecnames[ivectorial] = CharContainer;
+			ivectorial++;
+		}
+		
+		const int dimension = dim;
+		an.DefineGraphMesh(dimension,scalnames,vecnames,plotfile);
+		an.PostProcess(div,dim);		
 	}
 	
-	int ivectorial = 0;
-	Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "OutputControls" ).FirstChild( "Vectorials" ).FirstChild( "Var" ).ToElement();
-	for( Container; Container; Container=Container->NextSiblingElement())
-	{
-		CharContainer = Container->Attribute("Name");
-		vecnames[ivectorial] = CharContainer;
-		ivectorial++;
-	}
-
-	const int dim = 2;
-	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
-	an.PostProcess(div,dim);
-
 }
 
 
@@ -1766,6 +1805,10 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 	REAL Theta = atof(CharContainer);		
 	int NEvents = Events.size();	
 	
+	Container = ControlDoc.FirstChild( "ProblemData" ).FirstChild( "FaultInterface" ).FirstChild( "Contact" ).ToElement();			
+	CharContainer = Container->Attribute("UseNormal");		
+	int NormalCalculations = atoi(CharContainer);	
+	
 	int nrows;
 	nrows = PoroelasticMassMatrix->Rows();
 	TPZFMatrix<REAL> TotalRhs(nrows,1,0.0);
@@ -1798,7 +1841,14 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 			std::stringstream outputfiletemp;
 			outputfiletemp << FileName << ".vtk";
 			std::string plotfile = outputfiletemp.str();
-			PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,plotfile);		
+			PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,plotfile,2);
+			if (NormalCalculations) 
+			{
+				std::stringstream filetemp;
+				filetemp << "Output/FaultGeometry" << ".vtk";
+				std::string FaultFile = filetemp.str();					
+				PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,FaultFile,1);				
+			}			
 			break;
 		}
 		
@@ -1818,8 +1868,16 @@ void SolveSistTransient(bool IsInitial, TPZVec < TPZFMatrix<REAL> > Events,TiXml
 			std::stringstream outputfiletemp;
 			outputfiletemp << FileName << ".vtk";
 			std::string plotfile = outputfiletemp.str();
-			PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,plotfile);
-			cout << "Created Vtk file at time step = " << cent << " ,  or time value = " << TimeValue << endl;			
+			PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,plotfile,2);
+			if (NormalCalculations) 
+			{
+				std::stringstream filetemp;
+				filetemp << "Output/Fault" << ".vtk";
+				std::string FaultFile = filetemp.str();								
+				PostProcessPoroeasticity(ControlDoc,meshvec,mphysics,an,FaultFile,1);
+				cout << "Created file with normals at time step = " << cent << " (time = " << TimeValue << ")" << endl;					
+			}
+			cout << "Created Vtk file at time step = " << cent << " (time = " << TimeValue << ")" << endl;			
 			control++;
 			
 		}

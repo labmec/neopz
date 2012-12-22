@@ -13,6 +13,8 @@
 #include "pzporoelastic2d.h"
 #include "pzlog.h"
 #include "pzaxestools.h"
+#include "pzcompel.h"
+#include "TPZMultiphysicsInterfaceEl.h"
 
 #ifdef LOG4CXX
 static LoggerPtr logger(Logger::getLogger("pz.poroelastic2d"));
@@ -141,85 +143,158 @@ void PoroElasticMatInterface2D::ContributeInterface(TPZMaterialData &data, TPZVe
 
 }
 
+/** Returns the variable index associated with the name */
+int PoroElasticMatInterface2D::VariableIndex(const std::string &name)
+{
+	//	Elasticity Variables
+	if(!strcmp("NormalRight",name.c_str()))				return	1;
+	if(!strcmp("NormalLeft",name.c_str()))				return	2;
+	if(!strcmp("TangentialRight",name.c_str()))				return	3;
+	if(!strcmp("TangentialLeft",name.c_str()))				return	4;	
+	if(!strcmp("AverageNormal",name.c_str()))						return	5;
+	if(!strcmp("FRFactor",name.c_str()))						return	6;
+	if(!strcmp("DrivingStress",name.c_str()))						return	7;
+	
+	return TPZMaterial::VariableIndex(name);
+}
 
-void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout)
+int PoroElasticMatInterface2D::NSolutionVariables(int var){
+	if(var == 1)	return 3;
+	if(var == 2)	return 3;
+	if(var == 3)	return 3;
+	if(var == 4)	return 3;
+	if(var == 5)	return 1;
+	if(var == 6)	return 1;
+	if(var == 7)	return 1;	
+	return TPZMaterial::NSolutionVariables(var);
+}
+
+void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, int var, TPZVec<REAL> &Solout, TPZCompEl * Left, TPZCompEl * Right)
 {
 	
-	// Loading left and right solution
-	
-	
 	Solout.Resize( this->NSolutionVariables(var));
-	
-	TPZManVector<REAL,3> SolULeft, SolPLeft;
-	TPZFNMatrix <6> DSolULeft, DSolPLeft;
-	TPZFNMatrix <9> axesULeft, axesPLeft;
-	
-	TPZManVector<REAL,3> SolURight, SolPRight;	
-	TPZFNMatrix <6> DSolURight, DSolPRight;
-	TPZFNMatrix <9> axesURight, axesPRight;
 
-	REAL t[2] = {-data.normal[1],data.normal[0]};
-	REAL n[2] = {data.normal[0],data.normal[1]};	
+	int NumberOfStateVar = dataleftvec.size();	
 	
-	int StateVar = dataleftvec.size();
-	
-	for(int istate = 0 ; istate < StateVar ; istate++)
+	for(int istate = 0 ; istate < NumberOfStateVar ; istate++)
 	{
 		if (dataleftvec[istate].sol.size() != 1 && datarightvec[istate].sol.size() ) 
 		{	
 			std::cout << "Data no initialized on dataleftvec or datarightvec " << std::endl;
 			DebugStop();
 		}
-	}
-
-	SolULeft = dataleftvec[0].sol[0];
-	DSolULeft = dataleftvec[0].dsol[0];
-	axesULeft = dataleftvec[0].axes;
-	SolPLeft = dataleftvec[0].sol[0];
-	DSolPLeft = dataleftvec[0].dsol[0];
-	axesPLeft = dataleftvec[0].axes;
+	}	
 	
-	SolURight = datarightvec[0].sol[0];
-	DSolURight = datarightvec[0].dsol[0];
-	axesURight = datarightvec[0].axes;
-	SolPRight = datarightvec[0].sol[0];
-	DSolPRight = datarightvec[0].dsol[0];
-	axesPRight = datarightvec[0].axes;
+	//	Using the Solution method
+    TPZPoroElastic2d * LeftPoroelastic = dynamic_cast<TPZPoroElastic2d *> (Left->Material());
+    TPZPoroElastic2d * RightPoroelastic = dynamic_cast<TPZPoroElastic2d *>(Right->Material());
+	
+	
+	TPZVec<REAL> LeftSigmaX,LeftSigmaY;
+	TPZVec<REAL> RightSigmaX,RightSigmaY;
+	TPZVec<REAL> LeftTau,RightTau;	
+	
+	LeftPoroelastic->Solution(dataleftvec,3,LeftSigmaX);
+	RightPoroelastic->Solution(datarightvec,3,RightSigmaX);
+	LeftPoroelastic->Solution(dataleftvec,4,LeftSigmaY);
+	RightPoroelastic->Solution(datarightvec,4,RightSigmaY);
+	LeftPoroelastic->Solution(dataleftvec,5,LeftTau);
+	RightPoroelastic->Solution(datarightvec,5,RightTau);		
+
+	REAL t[2] = {-data.normal[1],data.normal[0]};
+	REAL n[2] = {data.normal[0],data.normal[1]};
+	
+	REAL tfault[2] = {1.0,0.0};
+	REAL nfault[2] = {0.0,1.0};	
+	
+	REAL NormalOnRight	= 0.0;
+	REAL NormalOnLeft	= 0.0;
+	REAL TangentialRight	= 0.0;
+	REAL TangentialLeft	= 0.0;	
+	REAL AverageNormal	= 0.0;
+	REAL StressMagnitude = 0.0;
+	REAL Stresstrx = 0.0;
+	REAL Stresstry = 0.0;
+	REAL Stresstlx = 0.0;
+	REAL Stresstly = 0.0;	
+	
+	// Left Stress vector on plane with normal n and tangent t
+	Stresstlx = LeftSigmaX[0]*n[0] + LeftTau[0]*n[1];
+	Stresstly = LeftTau[0]*n[0] + LeftSigmaY[0]*n[1];	
+	REAL StressVectorL[2] = {Stresstlx,Stresstly};
+	
+	// Right Stress vector on plane with normal n and tangent t	
+	Stresstrx = RightSigmaX[0]*n[0] + RightTau[0]*n[1];
+	Stresstry = RightTau[0]*n[0] + RightSigmaY[0]*n[1];	
+	REAL StressVectorR[2] = {Stresstrx,Stresstry};	
+	
+	// Calcualtion of normal of left part
+
+	NormalOnLeft = StressVectorL[0]*n[0]+StressVectorL[1]*n[1];
+	TangentialLeft = StressVectorL[0]*t[0]+StressVectorL[1]*t[1]; 	
+	
+	// Calcualtion of normal of Right part	
+	
+	NormalOnRight = StressVectorR[0]*n[0]+StressVectorR[1]*n[1];
+	TangentialRight = StressVectorR[0]*t[0]+StressVectorR[1]*t[1]; 		
+	
+
+	
+//	StressMagnitude = (StressVectorMagnitudeL+StressVectorMagnitudeR)/2.0;
+	AverageNormal = (NormalOnLeft+NormalOnRight)/2.0;
 		
-	REAL epsx;
-	REAL epsy;
-	REAL epsxy;
-	REAL SigX;
-	REAL SigY;
-	REAL SigZ;
-	REAL Tau, DSolxy[2][2];
-	REAL DivU;
-	REAL TMass;
 
+	//	Normal Right
+	if(var == 1){
+		Solout[0] = NormalOnRight*n[0];		
+		Solout[1] = NormalOnRight*n[1];
+		Solout[2] = 0.0;		
+		return;
+	}
 	
-	DSolxy[0][0] = DSolULeft(0,0)*axesULeft(0,0)+DSolULeft(1,0)*axesULeft(1,0); // dUx/dx
-	DSolxy[1][0] = DSolULeft(0,0)*axesULeft(0,1)+DSolULeft(1,0)*axesULeft(1,1); // dUx/dy
+	//	Normal Left
+	if(var == 2){
+		Solout[0] = -1.0*NormalOnLeft*n[0];		
+		Solout[1] = -1.0*NormalOnLeft*n[1];
+		Solout[2] = 0.0;		
+		return;
+	}
 	
-	DSolxy[0][1] = DSolULeft(0,1)*axesULeft(0,0)+DSolULeft(1,1)*axesULeft(1,0); // dUy/dx
-	DSolxy[1][1] = DSolULeft(0,1)*axesULeft(0,1)+DSolULeft(1,1)*axesULeft(1,1); // dUy/dy
+	//	Tangential Right
+	if(var == 3){
+		Solout[0] = TangentialRight*t[0];		
+		Solout[1] = TangentialRight*t[1];
+		Solout[2] = 0.0;
+		return;
+	}
 	
-	DivU = DSolxy[0][0]+DSolxy[1][1]+0.0;	
+	//	Tangential Left
+	if(var == 4){
+		Solout[0] = -1.0*TangentialLeft*t[0];		
+		Solout[1] = -1.0*TangentialLeft*t[1];
+		Solout[2] = 0.0;
+		return;
+	}	
 	
-	epsx = DSolxy[0][0];// du/dx
-	epsy = DSolxy[1][1];// dv/dy
-	epsxy = 0.5*(DSolxy[1][0]+DSolxy[0][1]);
-
-//	SigX = -((flambda + 2*fmu)*(epsx) + (flambda)*epsy - falpha*SolP[0]);
-//	SigY = -((flambda + 2*fmu)*(epsy) + (flambda)*epsx - falpha*SolP[0]);	
-//	Tau = 2.0*fmu*epsxy;		
-//	Solout[0] = (SigX/SolP[0])
+	//	Normal Average
+	if(var == 5){
+		Solout[0] = AverageNormal;
+		return;
+	}	
 	
-	std::cout << "Pressure Left : " << SolPLeft[0] << std::endl;
-	std::cout << "Pressure Right : " << SolPRight[0] << std::endl;	
-
+//	std::stringstream filetemp;
+//	filetemp << "Output/Fault" << 1 << ".txt";
+//	std::string FaultFile = filetemp.str();	
+//	std::ofstream out("Output/Fault.txt");
+//	TPZFMatrix<REAL> Data(10,5,0.0);
+//	
+//	Data.Print("FaultDataSolution", out, EMathematicaInput);
+	
 	
 	
 }
+
+
 
 
 void PoroElasticMatInterface2D::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, REAL weight, TPZFMatrix<STATE> &ek,TPZFMatrix<STATE> &ef,TPZBndCond &bc){

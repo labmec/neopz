@@ -63,7 +63,7 @@ int TPZPoroElastic2d::NStateVariables() {
 
 void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,TPZFMatrix<REAL>  &ek, TPZFMatrix<REAL> &ef){
 	
-	// Th finite element formnulation at element eleve is implementd in this method
+	// Th finite element formnulation at element level is implemented in this method
 	// Numerical Approximation of Reservoir Fault Stability with Linear Poroelasticty
 	// Duran O.	
 	
@@ -276,11 +276,11 @@ void TPZPoroElastic2d::Contribute(TPZVec<TPZMaterialData> &datavec, REAL weight,
 	
 }
 
-void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,
-									   TPZFMatrix<REAL> &ef,TPZBndCond &bc) 
+//	Here is implemented the contribution for boundary conditions
+void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc) 
 {
 	
-	//The Last state (n) not include boundary conditions
+	//	This state calculate the contribution for the Mass Matrix
 	if(gState == ELastState)
 	{
 		return;
@@ -288,19 +288,19 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 			
 	int nref =  datavec.size();
 	if (nref != 2) {
-		std::cout << " Erro.!! datavec tem que ser de tamanho 2 \n";
+		std::cout << " Error:: datavec size must to be equal to 2 \n";
 		DebugStop();
 	}
 	if (bc.Val2().Rows() != 3) 
 	{
-		std::cout << " Erro.!! Neste material precisa-se do valor da condicao de contorno para ux, uy e p.\n";
-		std::cout << "portanto precisa-se passar uma matrix Val2(3,1).\n";
+		std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
+		std::cout << " give me one matrix with this form Val2(3,1).\n";
 		DebugStop();
 	}
 	
 	if (bc.Val1().Rows() != 3) 
 	{
-		std::cout << " Erro.!! Neste material precisa-se do valor da condicao de contorno para ux, uy e p.\n";
+		std::cout << " Error:: This material need boundary conditions for ux, uy and p (pore pressure).\n";
 		DebugStop();
 	}
 	
@@ -812,11 +812,6 @@ void TPZPoroElastic2d::ContributeBC(TPZVec<TPZMaterialData> &datavec,REAL weight
 					ek(2*in+1,2*jn)		+= bc.Val1()(1,0)*phiu(in,0)*
 					phiu(jn,0)*weight;
 					
-//					ek(2*in+1,2*jn+1)	+= bc.Val1()(1,1)*phiu(in,0)*
-//					phiu(jn,0)*weight;
-					
-//					ek(2*in,2*jn+1)		+= bc.Val1()(0,1)*phiu(in,0)*
-//					phiu(jn,0)*weight;
 				}
 			} 
 			
@@ -861,7 +856,6 @@ void TPZPoroElastic2d::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 {
 	int nref = datavec.size();
 	for(int i = 0; i<nref; i++)
-		
 	{
 		datavec[i].SetAllRequirements(false);
         datavec[i].fNeedsSol = true;
@@ -874,102 +868,110 @@ void TPZPoroElastic2d::FillDataRequirements(TPZVec<TPZMaterialData > &datavec)
 
 void TPZPoroElastic2d::Print(std::ostream &out) 
 	{
-	out << "name of material : " << Name() << "\n";
-	out << "properties : \n";
-	out << "\t E   = " << fE   << std::endl;
-	out << "\t nu   = " << fnu   << std::endl;
-	out << "\t Forcing function F   = " << ff[0] << ' ' << ff[1]   << std::endl; 
-	out << "Biot constant  = " << falpha << std::endl;
-	out << "Permeabilidade da rocha fK "<< fk << std::endl;
-	out << "Viscosidade do fluido "<< fvisc << std::endl;
-	out << "2D problem " << fPlaneStress << std::endl;
-	out << "Base Class properties :";
+	out << "Material Name : " << Name() << "\n";
+	out << "Plane Problem (fPlaneStress = 0, for Plane Strain conditions) " << fPlaneStress << std::endl;		
+	out << "Properties for Poroelasticity: \n";
+	out << "\t Young modulus   = "											<< fE		<< std::endl;
+	out << "\t Undrained Young modulus   = "								<< fEu		<< std::endl;
+	out << "\t Poisson Ratio   = "											<< fnu		<< std::endl;
+	out << "\t Undarined Poisson Ratio   = "								<< fnuu		<< std::endl;		
+	out << "\t First Lamé Parameter   = "									<< flambda	<< std::endl;
+	out << "\t Second Lamé Parameter   = "									<< fmu		<< std::endl;		
+	out << "\t Undrained First Lamé Parameter   = "							<< flambdau	<< std::endl;
+	out << "\t Biot coefficient   = "										<< falpha	<< std::endl;		
+	out << "\t Body force vector B {X-direction, Y-direction}   = "			<< ff[0] << ' ' << ff[1]   << std::endl;		
+	out << "Properties for Diffusion: \n";		
+	out << "\t Permeability   = "											<< fk		<< std::endl;		
+	out << "\t Fluid Viscosity   = "										<< fvisc	<< std::endl;
+	out << "\t Constrained specific storage at constant strain Se = "		<< fSe		<< std::endl;		
+	out << "Class properties :";
 	TPZMaterial::Print(out);
 	out << "\n";
+		
 }
 
 /** Returns the variable index associated with the name */
-int TPZPoroElastic2d::VariableIndex(const std::string &name){
+int TPZPoroElastic2d::VariableIndex(const std::string &name)
+{
 	//	Elasticity Variables
-	if(!strcmp("Displacement",name.c_str()))        return  1;
-	if(!strcmp("SolidPressure",name.c_str()))        return  2;
-	if(!strcmp("SigmaX",name.c_str()))        return  3;
-	if(!strcmp("SigmaY",name.c_str()))        return  4;
-	if(!strcmp("TauXY",name.c_str()))        return  5;
-	if(!strcmp("TotalSigmaX",name.c_str()))        return  22;
-	if(!strcmp("TotalSigmaY",name.c_str()))        return  23;	
-	if(!strcmp("DisplacementX",name.c_str()))  return 8;
-	if(!strcmp("DisplacementY",name.c_str()))  return 9;
+	if(!strcmp("Displacement",name.c_str()))				return	1;
+	if(!strcmp("SolidPressure",name.c_str()))				return	2;
+	if(!strcmp("SigmaX",name.c_str()))						return	3;
+	if(!strcmp("SigmaY",name.c_str()))						return	4;
+	if(!strcmp("TauXY",name.c_str()))						return	5;
+	if(!strcmp("TotalSigmaX",name.c_str()))					return	22;
+	if(!strcmp("TotalSigmaY",name.c_str()))					return	23;	
+	if(!strcmp("DisplacementX",name.c_str()))				return	8;
+	if(!strcmp("DisplacementY",name.c_str()))				return	9;
 	
 	//	Diffusion Variables
-	if(!strcmp("FluidPressure",name.c_str()))        return  6;
-	if(!strcmp("FluxVector",name.c_str()))        return  7;
+	if(!strcmp("FluidPressure",name.c_str()))				return	6;
+	if(!strcmp("FluxVector",name.c_str()))					return	7;
 	
-	//	Exact Solution
-	if(!strcmp("EPressure",name.c_str()))  return 10;
-	if(!strcmp("EDisplacementX",name.c_str()))  return 11;
-	if(!strcmp("EDisplacementY",name.c_str()))  return 12;
-	if(!strcmp("EFluxVector",name.c_str()))  return 18;	
+	//	Exact Solution Variables
+	if(!strcmp("EDisplacementX",name.c_str()))				return	11;
+	if(!strcmp("EDisplacementY",name.c_str()))				return	12;
+	if(!strcmp("ESIGX",name.c_str()))						return	15;
+	if(!strcmp("ESIGY",name.c_str()))						return	16;
+	if(!strcmp("ETAUXY",name.c_str()))						return	17;
+	if(!strcmp("EPressure",name.c_str()))					return	10;
+	if(!strcmp("EFluxVector",name.c_str()))					return	18;
 
-	if(!strcmp("TotalMassContent",name.c_str()))  return 13;	
-	if(!strcmp("EDisplacement",name.c_str()))  return 14;
-	
-	// Flamant Problem
-	if(!strcmp("ESIGX",name.c_str()))  return 15;
-	if(!strcmp("ESIGY",name.c_str()))  return 16;
-	if(!strcmp("ETAUXY",name.c_str()))  return 17;
-	
+	//	Total mass content Defined in: Fluid mass sources and point forces in linear elastic diffusive solids (John Rudnicki 1986)
+	if(!strcmp("TotalMassContent",name.c_str()))			return	13;	
+		
 	// Stress Arching Ratio
-	if(!strcmp("SArchX",name.c_str()))  return 19;
-	if(!strcmp("SArchY",name.c_str()))  return 20;
-	if(!strcmp("SArchXY",name.c_str()))  return 21;	
+	if(!strcmp("SArchX",name.c_str()))						return	19;
+	if(!strcmp("SArchY",name.c_str()))						return	20;
+	if(!strcmp("SArchXY",name.c_str()))						return	21;	
 	
 	// Reservoir Stress Path
-	if(!strcmp("GammaX",name.c_str()))  return 24;
-	if(!strcmp("GammaY",name.c_str()))  return 25;
-	if(!strcmp("GammaXY",name.c_str()))  return 26;
+	if(!strcmp("GammaX",name.c_str()))						return	24;
+	if(!strcmp("GammaY",name.c_str()))						return	25;
+	if(!strcmp("GammaXY",name.c_str()))						return	26;
 	
 	// Exact Reservoir Stress Path
-	if(!strcmp("EGammaX",name.c_str()))  return 27;
-	if(!strcmp("EGammaY",name.c_str()))  return 28;
-	if(!strcmp("EGammaXY",name.c_str()))  return 29;			
+	if(!strcmp("EGammaX",name.c_str()))						return	27;
+	if(!strcmp("EGammaY",name.c_str()))						return	28;
+	if(!strcmp("EGammaXY",name.c_str()))					return	29;
 		
 	return TPZMaterial::VariableIndex(name);
 }
 
 int TPZPoroElastic2d::NSolutionVariables(int var){
-	if(var == 1) return 3;
-	if(var == 2) return 1;
-	if(var == 3) return 1;
-	if(var == 4) return 1;
-	if(var == 5) return 1;
-	if(var == 6) return 1;
-	if(var == 7) return fDim;
-	if(var == 8) return 1;
-	if(var == 9) return 1;
-	if(var == 10) return 1;
-	if(var == 11) return 1;
-	if(var == 12) return 1;
-	if(var == 13) return 1;
-	if(var == 14) return 3;
-	if(var == 15) return 1;	
-	if(var == 16) return 1;	
-	if(var == 17) return 1;
-	if(var == 18) return 3;
-	if(var == 19) return 1;	
-	if(var == 20) return 1;	
-	if(var == 21) return 1;
-	if(var == 22) return 1;	
-	if(var == 23) return 1;
-	if(var == 24) return 1;
-	if(var == 25) return 1;	
-	if(var == 26) return 1;
-	if(var == 29) return 1;
-	if(var == 28) return 1;	
-	if(var == 27) return 1;		
+	if(var == 1)	return 3;
+	if(var == 2)	return 1;
+	if(var == 3)	return 1;
+	if(var == 4)	return 1;
+	if(var == 5)	return 1;
+	if(var == 6)	return 1;
+	if(var == 7)	return 3;
+	if(var == 8)	return 1;
+	if(var == 9)	return 1;
+	if(var == 10)	return 1;
+	if(var == 11)	return 1;
+	if(var == 12)	return 1;
+	if(var == 13)	return 1;
+	if(var == 14)	return 3;
+	if(var == 15)	return 1;	
+	if(var == 16)	return 1;	
+	if(var == 17)	return 1;
+	if(var == 18)	return 3;
+	if(var == 19)	return 1;	
+	if(var == 20)	return 1;	
+	if(var == 21)	return 1;
+	if(var == 22)	return 1;	
+	if(var == 23)	return 1;
+	if(var == 24)	return 1;
+	if(var == 25)	return 1;	
+	if(var == 26)	return 1;
+	if(var == 29)	return 1;
+	if(var == 28)	return 1;	
+	if(var == 27)	return 1;		
 	return TPZMaterial::NSolutionVariables(var);
 }
 
+//	Calculate Secondary variables based on ux, uy, Pore pressure and their derivatives
 void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVec<REAL> &Solout){
 	
 	Solout.Resize( this->NSolutionVariables(var));
@@ -993,7 +995,7 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	axesP=datavec[1].axes;
 	
 	
-//	 Test for non permeable region without pressure domain
+	//	Fill data for Non-permeable region without Diffusive domain
 	if (SolP.size() == 0) {
 		SolP.Resize(1, 0.0);
 		
@@ -1009,68 +1011,35 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		axesP=datavec[1].axes;
 	}
 	
-	//function (state variable u)
+	//	Displacements
 	if(var == 1){
 		Solout[0] = SolU[0];
 		Solout[1] = SolU[1];
-		Solout[2] = 0.;
+		Solout[2] = 0.0;
 		return;
-	}//var1
+	}
 	
-	//function (state variable ux)
+	//	x-displacement
 	if(var == 8){
 		Solout[0] = SolU[0];
 		return;
-	}//var8
+	}
 	
-	//function (state variable uy)
+	//	y-displacement
 	if(var == 9){
 		Solout[0] = SolU[1];
 		return;
-	}//var9
-
-	//solucao pressao exata
-	if(var == 10){
-		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
-		Solout[0] = solExata[0];
-		return;
-	}//var10
+	}
 	
-	//Exact X Displacement 
-	if(var == 11){
-		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
-		Solout[0] = solExata[1];
-		return;
-	}//var11
-	
-	//Exact Y Displacement
-	if(var == 12){
-		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
-		Solout[0] = solExata[2];
-		return;
-	}//var12
-	
-	
-	//-----------------
+	//	Pore pressure excess
 	if(var == 6) {
 		Solout[0] = SolP[0];
 		return;
-	}//var6
+	}
 	
-//	if (var == 7)
-//	{ //MinusKGradU
-//		int id;
-//		//REAL val = 0.;
-//		TPZFNMatrix<9,REAL> dsoldx;
-//		TPZAxesTools<REAL>::Axes2XYZ(DSolP, dsoldx, axesP);
-//		for(id=0 ; id<fDim; id++) {
-//			Solout[id] = -1.*(fk/fvisc)*dsoldx(id,0);
-//		}
-//		return;
-//	}//var7
-	
+	//	Darcy's velocity
 	if (var == 7)
-	{ //MinusKGradU
+	{ 
 		int id;
 		TPZManVector<STATE> dsolp(2,0);
 		dsolp[0] = datavec[1].dsol[0](0,0)*datavec[1].axes(0,0)+datavec[1].dsol[0](1,0)*datavec[1].axes(1,0);
@@ -1079,11 +1048,10 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 		{
 			Solout[id] = -1. * this->fK * dsolp[id];
 		}
+		Solout[2] = 0.0;
 		return;
-	}//var7
+	}
 	
-			
-	//-----------------
 	REAL epsx;
 	REAL epsy;
 	REAL epsxy;
@@ -1092,25 +1060,14 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	REAL SigZ;
 	REAL Tau, DSolxy[2][2];
 	REAL divu;
-	REAL TMass;
-					
-	// dudx - dudy
-//	REAL test1 = axesU(0,0);
-//	REAL dudx = DSolU(0,0);
-//	REAL test2 = axesU(1,0);
-//	REAL dudy = DSolU(1,0);	
-//	if (dudx > 1.0e-9 || dudy > 1.0e-9) {
-//		int i=0;
-//		i++;
-//	}
-	
+	REAL TotalMass;
+						
 	DSolxy[0][0] = DSolU(0,0)*axesU(0,0)+DSolU(1,0)*axesU(1,0); // dUx/dx
 	DSolxy[1][0] = DSolU(0,0)*axesU(0,1)+DSolU(1,0)*axesU(1,1); // dUx/dy
 	
 	DSolxy[0][1] = DSolU(0,1)*axesU(0,0)+DSolU(1,1)*axesU(1,0); // dUy/dx
 	DSolxy[1][1] = DSolU(0,1)*axesU(0,1)+DSolU(1,1)*axesU(1,1); // dUy/dy
 	
-//	divu = DSolU(0,0)*axesU(0,0)+DSolU(1,1)*axesU(1,1)+0.0;	
 	divu = DSolxy[0][0]+DSolxy[1][1]+0.0;	
 	
 	epsx = DSolxy[0][0];// du/dx
@@ -1121,141 +1078,143 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 	
 	if (this->fPlaneStress)
 	{
-
 		SigX = C11*epsx+C22*epsy;
 		SigY = C11*epsy+C22*epsx;
 		SigZ = 0.0;
 		Tau = 2.0*fmu*epsxy;
-
 	}
 	else
 	{
 		SigX = -((flambda + 2*fmu)*(epsx) + (flambda)*epsy - falpha*SolP[0]);
 		SigY = -((flambda + 2*fmu)*(epsy) + (flambda)*epsx - falpha*SolP[0]);	
-		SigZ = 0.0;
+		SigZ = flambda*divu - falpha*SolP[0];
 		Tau = 2.0*fmu*epsxy;		
 	}
-			
-	if(var == 2) {
-		Solout[0] = SigX+SigY;
-		return;
-	}//var2
 	
-	if(var ==3) {
+	//	Hydrostatic stress
+	if(var == 2) 
+	{
+		Solout[0] = SigX+SigY+SigZ;
+		return;
+	}
+	
+	//	Effective Stress x-direction
+	if(var == 3) {
 		Solout[0] = SigX;
 		return;
-	}//var3
-	
+	}
+
+	//	Effective Stress y-direction	
 	if(var == 4) {
 		Solout[0] = SigY;
 		return;
-	}//var4
-	
+	}
+
+	//	Shear Stress	
 	if(var == 5) {
 		Solout[0] = Tau;
 		return;
-	}//var5
+	}
 		
-	
+	//	Total Stress x-direction	
 	if(var ==22) {
-		if (this->fPlaneStress)
-		{
-			
-			SigX = C11*epsx+C22*epsy;
-			SigY = C11*epsy+C22*epsx;
-			SigZ = 0.0;
-			Tau = 2.0*fmu*epsxy;
-			
-		}
-		else
-		{
-			SigX = -((flambda + 2*fmu)*(epsx) + (flambda)*epsy);
-			SigY = -((flambda + 2*fmu)*(epsy) + (flambda)*epsx);	
-			SigZ = 0.0;
-			Tau = 2.0*fmu*epsxy;		
-		}		
-		Solout[0] = SigX;
+		Solout[0] = SigX + falpha*SolP[0];
 		return;
-	}//var3
+	}
 	
+	//	Total Stress y-direction	
 	if(var == 23) {
-		if (this->fPlaneStress)
-		{
-			
-			SigX = C11*epsx+C22*epsy;
-			SigY = C11*epsy+C22*epsx;
-			SigZ = 0.0;
-			Tau = 2.0*fmu*epsxy;
-			
-		}
-		else
-		{
-			SigX = -((flambda + 2*fmu)*(epsx) + (flambda)*epsy);
-			SigY = -((flambda + 2*fmu)*(epsy) + (flambda)*epsx);	
-			SigZ = 0.0;
-			Tau = 2.0*fmu*epsxy;		
-		}		
-		Solout[0] = SigY;
+		Solout[0] = SigY + falpha*SolP[0];
 		return;
-	}//var4	
+	}	
 	
-	// Total mass content 
+	// Total mass fluid content 
 	if(var == 13) {
-		TMass = falpha*divu + fSe*SolP[0];
-		Solout[0] = TMass;
+		TotalMass = falpha*divu + fSe*SolP[0];
+		Solout[0] = TotalMass;
 		return;
-	}//var13
+	}
 	
-	//Exact U vector
+	//	Exact Displacements
 	if(var == 14){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		Solout[0] = solExata[1];
 		Solout[1] = solExata[2];
 		Solout[2] = 0.;
 		return;
-	}//var14
+	}
+		
+	//	Exact x-displacement 
+	if(var == 11){
+		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
+		Solout[0] = solExata[1];
+		return;
+	}
 	
-	//Exact SIGX vector
+	//	Exact y-displacement
+	if(var == 12){
+		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
+		Solout[0] = solExata[2];
+		return;
+	}	
+
+	//	Exact solution for pressure excess
+	if(var == 10){
+		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
+		Solout[0] = solExata[0];
+		return;
+	}	
+	
+	//	Exact Darcy's velocity
+	if(var == 18){
+		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
+		Solout[0] = flux(3,0);
+		Solout[1] = flux(4,0);
+		Solout[2] = 0.0;		
+		return;
+	}		
+	
+	//	Exact Effective Stress x-direction
 	if(var == 15){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		Solout[0] = flux(0,0);
 		return;
-	}//var14
+	}
 	
-	//Exact SIGY vector
+	//	Exact Effective Stress y-direction
 	if(var == 16){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		Solout[0] = flux(1,0);
 		return;
-	}//var14
+	}
 	
-	//Exact TAUXY vector
+	//	Exact Shear Stress	
 	if(var == 17){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		Solout[0] = flux(2,0);
 		return;
-	}//var14
+	}
 	
-	//Stress Arching ratio X
+	//	Stress Arching ratio X
 	if(var == 19){
 		Solout[0] = (SigX+falpha*SolP[0])/((2*fmu)/(flambda+2*fmu));
 		return;
-	}//var14
+	}
 	
-	//Stress Arching ratio Y
+	//	Stress Arching ratio Y
 	if(var == 20){
 		Solout[0] = (SigY+falpha*SolP[0])/((2*fmu)/(flambda+2*fmu));
 		return;
-	}//var14
+	}
 	
-	//Stress Arching ratio XY
+	//	Stress Arching ratio XY
 	if(var == 21){
 		Solout[0] = (Tau+falpha*SolP[0])/((2*fmu)/(flambda+2*fmu));
 		return;
-	}//var14	
+	}	
 	
 	
-	//Reservoir Stress Path Gamma ratio X
+	//	Reservoir Stress Path Gamma ratio X
 	if(var == 24){
 		if (SolP[0] <= 1.0e-10 ) 
 		{
@@ -1265,9 +1224,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (SigX/SolP[0]);		
 		}			
 		return;
-	}//var14
+	}
 	
-	//Reservoir Stress Path Gamma Y
+	//	Reservoir Stress Path Gamma Y
 	if(var == 25){
 		if (SolP[0] <= 1.0e-10 ) 
 		{
@@ -1277,9 +1236,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (SigY/SolP[0]);		
 		}			
 		return;
-	}//var14
+	}
 	
-	//Reservoir Stress Path Gamma XY
+	//	Reservoir Stress Path Gamma XY
 	if(var == 26){
 		if (SolP[0] <= 1.0e-10 ) 
 		{
@@ -1289,9 +1248,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (Tau/SolP[0]);		
 		}			
 		return;
-	}//var14
+	}
 	
-	//Exact Reservoir Stress Path Gamma ratio X
+	//	Exact Reservoir Stress Path Gamma ratio X
 	if(var == 27){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);	
 		if (solExata[0] <= 1.0e-10 ) 
@@ -1302,9 +1261,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (flux(0,0)/solExata[0]);			
 		}
 		return;
-	}//var14
+	}
 	
-	//Exact Reservoir Stress Path Gamma Y
+	//	Exact Reservoir Stress Path Gamma Y
 	if(var == 28){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		if (solExata[0] <= 1.0e-10 ) 
@@ -1315,9 +1274,9 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (flux(1,0)/solExata[0]);		
 		}		
 		return;
-	}//var14
+	}
 	
-	//Exact Reservoir Stress Path Gamma XY
+	//	Exact Reservoir Stress Path Gamma XY
 	if(var == 29){
 		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
 		if (solExata[0] <= 1.0e-10 ) 
@@ -1328,41 +1287,16 @@ void TPZPoroElastic2d::Solution(TPZVec<TPZMaterialData> &datavec, int var, TPZVe
 			Solout[0] = (flux(2,0)/solExata[0]);		
 		}	
 		return;
-	}//var14	
+	}	
 	
-	//function (state variable qflux)
-	if(var == 18){
-		fTimedependentFunctionExact->Execute(datavec[1].x, fTimeValue, solExata,flux);
-		Solout[0] = flux(3,0);
-		Solout[1] = flux(4,0);
-		Solout[2] = 0.0;		
-		return;
-	}//var18	
-	
-
 }
 
-
-void TPZPoroElastic2d::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec, 
-                                           REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
+void TPZPoroElastic2d::ContributeInterface(TPZVec<TPZMaterialData> &datavec, TPZVec<TPZMaterialData> &dataleftvec, TPZVec<TPZMaterialData> &datarightvec,REAL weight, TPZFMatrix<REAL> &ek, TPZFMatrix<REAL> &ef)
 {
-	
 	DebugStop();
 }
 
-void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft, 
-                                             REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
+void TPZPoroElastic2d::ContributeBCInterface(TPZMaterialData &data, TPZMaterialData &dataleft,REAL weight, TPZFMatrix<REAL> &ek,TPZFMatrix<REAL> &ef,TPZBndCond &bc){
 	DebugStop();
 }
-
-/**
- * @brief Computes the error due to the difference between the interpolated flux \n
- * and the flux computed based on the derivative of the solution
- */
-//void ErrorMassCal(TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol,TPZFMatrix<REAL> &axes, TPZVec<REAL> &flux, TPZVec<REAL> &uexact, TPZFMatrix<REAL> &duexact, TPZVec<REAL> &val) {
-////	PZError << __PRETTY_FUNCTION__ << std::endl;
-////	PZError << "Method not implemented! Error comparison not available. Please, implement it." << std::endl;
-//	
-//	
-//}
 
