@@ -95,7 +95,7 @@ void formatTimeInSec(char *strtime,int timeinsec);
 
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
 
-int problem = 2;
+int problem = 1;
 
 /** Laplace equation on square - Volker John article 2000 */
 int main() {
@@ -110,6 +110,8 @@ int main() {
 	
 	time_t sttime;
 	time_t endtime;
+	int time_elapsed;
+	char tempo[256];
 	
 	ofstream fileerrors("ErrorsHPProcess.txt");
 	// To compute the errors
@@ -119,15 +121,17 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int ii, nrefs = 5;
-	int jj, nthreads = 3;
-	for(jj=2;jj<nthreads;jj+=2) {
-		for(ii=4;ii<nrefs;ii++) {
+	int i, ii, nrefs = 9;
+	int jj, nthreads = 9;
+	for(jj=4;jj<nthreads;jj+=2) {
+		for(ii=2;ii<nrefs;ii++) {
+			// Initializing the generation mesh process
+			time (& sttime);
 			// First rectangular mesh:
 			// The rectangular mesh has four corners: (0,-1,0), (1,-1,0), (1,0,0) and (0,0,0)
 			// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
 			// Has 4 elements, 9 connects
-			cout << "Generating geometric mesh bi-dimensional ...\n" << "   Refinement: " << ii+1 << "   NThreads: " << jj+1 << endl;
+			cout << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << ii << "   Threads: " << jj;
 			TPZManVector<REAL> point(3,0.), pointlast(3,0.);
 			TPZGeoMesh* gmesh = new TPZGeoMesh;
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
@@ -160,7 +164,6 @@ int main() {
 				// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;
 				sprintf(saida,"meshextrudedLeg.vtk");
-				
 			}
 			else {
 				sprintf(saida,"meshextrudedTChe.vtk");
@@ -168,11 +171,8 @@ int main() {
 			
 			int nelem;
 			bool isdefined = false;
-			
-			// Initializing the process
-			time (& sttime);
-			//		if(!ii) {			
-			// Refinando nas esquinas desejadas
+
+			// Refinando na localização desejada
 			nelem=0;
 			int npoints = 36;
 			point[0] = point[1] = 0.5; point[2] = 0.0;
@@ -180,13 +180,18 @@ int main() {
 			TPZVec<TPZManVector<REAL> > Points(npoints);
 			GetPointsOnCircunference(npoints,point,r,Points);
 			
-			for(int i=0;i<(ii+1);i++) {
+			for(i=0;i<ii;i+=2) {
 				// To refine elements with center near to points than radius
 				//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
 				// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-				//				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 				radius *= .6;
+				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+				radius *= .6;
+			}
+			if(i==ii) {
+				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+				radius *= 0.6;
 			}
 			// Constructing connectivities
 			gmesh->ResetConnectivities();
@@ -238,9 +243,17 @@ int main() {
 			cmesh->AutoBuild();
 			cmesh->AdjustBoundaryElements();
 			cmesh->CleanUpUnconnectedNodes();
+
+			// closed generation mesh process
+			time (& endtime);
+			time_elapsed = endtime - sttime;
+			time_elapsed = endtime - sttime;
+			formatTimeInSec(tempo, time_elapsed);
+			std::cout << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
 			
 			// Solving linear equations
 			// Initial steps
+			std::cout << "Solving HP-Adaptive Methods....step: " << ii << "  Threads " << jj << "\n";
 			TPZAnalysis an (cmesh);
 			if(!problem)
 				an.SetExact(ExactSolNull);
@@ -250,8 +263,7 @@ int main() {
 				an.SetExact(ExactSolProduct);
 			
 			// Using parallel processing with NThreads threads.
-			int NThreads = jj+1;
-			TPZParSkylineStructMatrix strskyl(cmesh,NThreads);
+			TPZParSkylineStructMatrix strskyl(cmesh,jj);
 			an.SetStructuralMatrix(strskyl);
 			// Solver (is your choose) 
 			TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
@@ -260,32 +272,35 @@ int main() {
 			delete direct;
 			direct = 0;
 			
+			// Initializing the solving process
+			time (& sttime);
 			// Solving
 			an.Run();
 			
 			// Calculando o tempo que demorou para calcular em cada cenario 
 			time (& endtime);
+			time_elapsed = endtime - sttime;
+			formatTimeInSec(tempo, time_elapsed);
+
 			char pp[3];
 			sprintf(pp,"%d",pinit);
-			int time_elapsed = endtime - sttime;
-			char tempo[256];
-			formatTimeInSec(tempo, time_elapsed);
-			std::cout << "\n\n\tHP-Adaptive Methods....step: " << ii+1 << "  NProc: " << NThreads << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+			std::cout << "\t....step: " << ii << "  Threads " << jj << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 			
 			// Computing error
 			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh);
-			fileerrors << "Refinement: " << ii+1 << " NProc: " << NThreads << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " << ervecL2[ii] << "   TimeElapsed: " << time_elapsed << std::endl;
+			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
+			<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 			
 			// Computing approximation of gradient
 			/** 
 			 * @brief Method to reconstruct a gradient after run Solve of the analysis
 			 * @param cmesh Computational mesh with solution */
-			TPZFMatrix<REAL> gradients;
-			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,0);
-			gradients.Print();
-			cout << std::endl << std::endl;
-			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,1);
-			gradients.Print();
+//			TPZFMatrix<REAL> gradients;
+//			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,0);
+//			gradients.Print();
+//			cout << std::endl << std::endl;
+//			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,1);
+//			gradients.Print();
 
 			// Post processing
 			TPZStack<std::string> scalarnames, vecnames;
@@ -571,6 +586,30 @@ void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &
 	frac = frac/(1+arc*arc);
 	dsol(1,0) = (8./ M_PI)*(temp + frac);
 	dsol(1,1) = dsol(1,0);
+}
+REAL PartialDerivateX(const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ElasticityModulus);
+	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+	REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL result = (8./M_PI)*prody*(2*x[0]-1);
+	REAL temp = M_PI + 2*atan(arc);
+	REAL frac = 2*F*prodx;
+	frac = frac/(1+arc*arc);
+	temp -= frac;
+	return (result*temp);
+}
+REAL PartialDerivateY(const TPZVec<REAL> &x) {
+	REAL F = 2*sqrt(ElasticityModulus);
+	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
+	REAL prodx = x[0]*(x[0]-1.);
+	REAL prody = x[1]*(x[1]-1.);
+	REAL result = (8./M_PI)*prodx*(2*x[1]-1);
+	REAL temp = M_PI + 2*atan(arc);
+	REAL frac = 2*F*prody;
+	frac = frac/(1+arc*arc);
+	temp -= frac;
+	return (result*temp);
 }
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
@@ -936,7 +975,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	}
 	
 	int nelem = cmesh->NElements();
-    gradients.Redim(nelem,3*dim);
+    gradients.Redim(nelem,4*dim);
 	
 	int k, side;
 	int counter = 0;
@@ -1043,10 +1082,17 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 			}
 			gradients(counter,dim+k) = center[k];
 			if(!k) {
-				double dist = sqrt((center[0]-0.5)*(center[0]-0.5)+(center[1]-0.5)*(center[1]-0.5));
+				REAL dudx = PartialDerivateX(center);
+				REAL dudy = PartialDerivateY(center);
+				REAL dist = sqrt(dudx*dudx + dudy*dudy);
 				if(!IsZero(dist)) {
-					gradients(counter,2*dim) = (0.5-center[0])/dist;
-					gradients(counter,2*dim+1) = (0.5-center[1])/dist;
+					gradients(counter,2*dim) = dudx/dist;
+					gradients(counter,2*dim+1) = dudy/dist;
+				}
+				dist = sqrt((center[0]-0.5)*(center[0]-0.5)+(center[1]-0.5)*(center[1]-0.5));
+				if(!IsZero(dist)) {
+					gradients(counter,3*dim) = (0.5-center[0])/dist;
+					gradients(counter,3*dim+1) = (0.5-center[1])/dist;
 				}
 /*				if(center[0] < 0.5 && center[1] < 0.5)
 					gradients(counter,2*dim+1) = 1;
@@ -1063,5 +1109,5 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	// Redimensionando la matriz de los gradientes
 	if(counter > 200)
 		counter = 200;
-	gradients.Resize(counter,3*dim);
+	gradients.Resize(counter,4*dim);
 }
