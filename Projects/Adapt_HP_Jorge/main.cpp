@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
 		//	gel3 = gmesh->ElementVec()[3];
 		gel->Divide(sub);
 		//	sub[0]->Divide(subsub);
-		sub[1]->Divide(subsub);
+//		sub[1]->Divide(subsub);
 		sub[2]->Divide(subsub);
 		//	sub[3]->Divide(subsub);
 		/*	gel1->Divide(sub);
@@ -177,6 +177,7 @@ int main(int argc, char *argv[]) {
 		comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
 		comp->Print();
 		
+		continue;
 	//--- END construction of the meshes
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;
@@ -259,7 +260,7 @@ int main(int argc, char *argv[]) {
 	 * @brief Method to reconstruct a gradient after run Solve of the analysis
 	 * @param cmesh Computational mesh with solution */
 	TPZFMatrix<REAL> gradients;
-	GradientReconstructionByLeastSquares(gradients,cmesh,0,0,continuous);
+	GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
 	gradients.Print();
 	
 		// Post processing
@@ -273,7 +274,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 }
-
+}
 /** Reconstrucción del gradiente utilizando la linearizacion (Taylor) de la solución para los centros de todos los elementos vecinos */
 /** Formula: u(xbi,ybi,zbi) = u(xa,ya,za) + a*(xbi-xa) + b*(ybi-ya) + c*(zbi-za)  ->  donde Grad(u) ~= (a,b,c) */
 /** (xa,ya,za) es el centro del elemento donde queremos aproximar o gradiente de u */

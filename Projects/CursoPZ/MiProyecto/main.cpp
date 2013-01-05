@@ -283,8 +283,9 @@ int main() {
 			TPZFMatrix<REAL> gradients;
 			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,0);
 			gradients.Print();
-//			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,1);
-//			gradients.Print();
+			cout << std::endl << std::endl;
+			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,1);
+			gradients.Print();
 
 			// Post processing
 			TPZStack<std::string> scalarnames, vecnames;
@@ -976,7 +977,8 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 		if(!continuous) {
 			neighs.Resize(0);
 			// Procuramos todos los elementos vecinos a cel (sobre todos los lados) sin duplicados
-			for(side = cel->Reference()->NCornerNodes(); side < cel->NConnects(); side++) {
+//			for(side = cel->Reference()->NCornerNodes(); side < cel->NConnects(); side++) {
+			for(side = 0; side < cel->NConnects(); side++) {
 				TPZCompElSide celside(cel,side);
 				celside.ConnectedElementList(neighs,1,0);
 			}
@@ -1041,15 +1043,19 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 			}
 			gradients(counter,dim+k) = center[k];
 			if(!k) {
-				gradients(counter,2*dim) = sqrt((center[0]-0.5)*(center[0]-0.5)+(center[1]-0.5)*(center[1]-0.5));
-				if(center[0] < 0.5 && center[1] < 0.5)
+				double dist = sqrt((center[0]-0.5)*(center[0]-0.5)+(center[1]-0.5)*(center[1]-0.5));
+				if(!IsZero(dist)) {
+					gradients(counter,2*dim) = (0.5-center[0])/dist;
+					gradients(counter,2*dim+1) = (0.5-center[1])/dist;
+				}
+/*				if(center[0] < 0.5 && center[1] < 0.5)
 					gradients(counter,2*dim+1) = 1;
 				else if(center[0] >= 0.5 && center[1] < 0.5)
 					gradients(counter,2*dim+1) = 2;
 				else if(center[0] < 0.5 && center[1] >= 0.5)
 					gradients(counter,2*dim+1) = 3;
 				else
-					gradients(counter,2*dim+1) = 4;
+					gradients(counter,2*dim+1) = 4;*/
 			}
 		}
 		counter++;

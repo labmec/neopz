@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
     
     REAL anglo = M_PI/4.;
     REAL x0 = -1.;
-    REAL y0= 5.;
+    REAL y0= 2.;
     
     int p = 4;
 	bool continuous = false;
@@ -100,6 +100,18 @@ int main(int argc, char *argv[]) {
 				cout << "\nCase: continuous: " << continuous << "  nrefs: " << nrefs << "   type: " << type << endl;
 				// geometric mesh (initial)
 				TPZGeoMesh * gmesh = GMesh(type,anglo,x0,y0,nrefs);
+				TPZVec<TPZGeoEl *> sub, subsub;
+				TPZGeoEl *gel = 0;
+				int conta = 0;
+				while(!gel) {
+					gel = gmesh->ElementVec()[conta++];
+					if(gel->Dimension() != 2) {
+						gel = 0;
+						continue;
+					}
+					gel->Divide(sub);
+					sub[1]->Divide(subsub);
+				}
 				ofstream arg1("gmesh_inicial.txt");
 				gmesh->Print(arg1);
 				
@@ -149,7 +161,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	
 	// Redimensionando a matriz dos gradientes
 	int nelem = cmesh->NElements();
-    gradients.Redim(nelem,2*dim);
+    gradients.Redim(nelem,4*dim);
 	
 	int k, side;
 	int counter = 0;
@@ -190,7 +202,8 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 		if(!continuous) {
 			neighs.Resize(0);
 			// Procuramos todos los elementos vecinos a cel (sobre todos los lados) sin duplicados
-			for(side = cel->Reference()->NCornerNodes(); side < cel->NConnects(); side++) {
+//			for(side = cel->Reference()->NCornerNodes(); side < cel->NConnects(); side++) {
+			for(side = 0; side < cel->NConnects(); side++) {
 				TPZCompElSide celside(cel,side);
 				celside.ConnectedElementList(neighs,1,0);
 			}
@@ -254,11 +267,14 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 				gradients(counter,k) = B(k,0)/sqrt(Grad);
 			}
 			gradients(counter,dim+k) = center[k];
+			gradients(counter,2*dim+k) = B(k,0);
+			if(!k)
+				gradients(counter,3*dim) = Grad;
 		}
 		counter++;
 	}
 	// Redimensionando la matriz de los gradientes
-	gradients.Resize(counter,2*dim);
+	gradients.Resize(counter,4*dim);
 }
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
@@ -498,7 +514,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     BCond0->SetForcingFunction(fCC0);
     BCond2->SetForcingFunction(fCC2);
     BCond1->SetForcingFunction(fCC1);
-//    BCond3->SetForcingFunction(fCC3);
+    BCond3->SetForcingFunction(fCC3);
     
 	cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond0);
