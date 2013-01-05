@@ -176,7 +176,7 @@ class TPZSkylNSymMatrix : public TPZMatrix<TVar>
   int  Clear();
   void Copy (const TPZSkylNSymMatrix & );
   int Size(const int column) const {return fElem[column+1]-fElem[column];}
-  static int NumElements(const TPZVec<int> &skyline);
+  static long NumElements(const TPZVec<int> &skyline);
   static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
   /**
      Computes the highest skyline of both objects

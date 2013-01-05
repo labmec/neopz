@@ -102,20 +102,23 @@ void TPZSkylMatrix<TVar>::SetSkyline(const TPZVec<int> &skyline)
 	InitializeElem(skyline,fStorage,fElem);
 }
 template<class TVar>
-int TPZSkylMatrix<TVar>::NumElements(const TPZVec<int> &skyline) {
-	int dim = skyline.NElements();
-	int i,nelem=0;
-	for(i=0; i<dim; i++) nelem += i-skyline[i]+1;
+long TPZSkylMatrix<TVar>::NumElements(const TPZVec<int> &skyline) {
+	long dim = skyline.NElements();
+	long i;
+	long nelem=0;
+	for(i=0; i<dim; i++) {
+		nelem += i-skyline[i]+1;
+	}
 	return nelem;
 }
 
 template<class TVar>
 void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &point) {
-	int dim = skyline.NElements();
-	int nel = NumElements(skyline);
+	long dim = skyline.NElements();
+	long nel = NumElements(skyline);
 	storage.Resize(nel);
 	storage.Fill(0.);
-	int i;
+	long i;
 	point.Resize(dim+1);
 	if(dim) {
 		point[0] = &storage[0];
