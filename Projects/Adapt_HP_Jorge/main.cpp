@@ -177,6 +177,7 @@ int main(int argc, char *argv[]) {
 		comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
 		comp->Print();
 		
+
 	//--- END construction of the meshes
 	/** Variable names for post processing */
     TPZStack<std::string> scalnames, vecnames;

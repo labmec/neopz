@@ -121,9 +121,9 @@ int main() {
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int i, ii, nrefs = 9;
+	int i, ii, nrefs = 8;
 	int jj, nthreads = 9;
-	for(jj=4;jj<nthreads;jj+=2) {
+	for(jj=6;jj<nthreads;jj+=2) {
 		for(ii=2;ii<nrefs;ii++) {
 			// Initializing the generation mesh process
 			time (& sttime);
@@ -171,8 +171,8 @@ int main() {
 			
 			int nelem;
 			bool isdefined = false;
-
-			// Refinando na localização desejada
+			
+			// Refinando no local desejado
 			nelem=0;
 			int npoints = 36;
 			point[0] = point[1] = 0.5; point[2] = 0.0;
@@ -185,9 +185,9 @@ int main() {
 				//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
 				// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-				radius *= .6;
+				radius *= 0.6;
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-				radius *= .6;
+				radius *= 0.6;
 			}
 			if(i==ii) {
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
@@ -243,14 +243,14 @@ int main() {
 			cmesh->AutoBuild();
 			cmesh->AdjustBoundaryElements();
 			cmesh->CleanUpUnconnectedNodes();
-
+			
 			// closed generation mesh process
 			time (& endtime);
 			time_elapsed = endtime - sttime;
 			time_elapsed = endtime - sttime;
 			formatTimeInSec(tempo, time_elapsed);
 			std::cout << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
-			
+
 			// Solving linear equations
 			// Initial steps
 			std::cout << "Solving HP-Adaptive Methods....step: " << ii << "  Threads " << jj << "\n";
@@ -262,7 +262,6 @@ int main() {
 			else if(problem==2)
 				an.SetExact(ExactSolProduct);
 			
-			// Using parallel processing with NThreads threads.
 			TPZParSkylineStructMatrix strskyl(cmesh,jj);
 			an.SetStructuralMatrix(strskyl);
 			// Solver (is your choose) 
@@ -290,6 +289,8 @@ int main() {
 			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh);
 			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
 			<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+			
+			TPZVec<REAL> Solution(cmesh->NEquations(),0.);
 			
 			// Computing approximation of gradient
 			/** 
