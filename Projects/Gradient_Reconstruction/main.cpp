@@ -33,11 +33,11 @@
 #include <math.h>
 using namespace std;
 
-/**
- * Projeto para validar a reconstucao do gradiente
- * Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
- * Solucao: u(x,y) = a*x + b*y
- */
+/*
+ *Projeto para validar a reconstucao do gradiente
+ *Equacao: du2dx2 + du2dy2 = 0 em (0,1)x(0,1)
+ *Solucao: u(x,y) = a*x + b*y
+*/
 
 REAL const coef_a = 2.;
 REAL const coef_b = 4.;
@@ -60,10 +60,14 @@ TPZFMatrix<REAL> MatrixR(REAL ang);
 TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int nh);
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder);
 
+TPZGeoMesh *GMesh1D(int nh);
+TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder);
+
 void Forcingbc0(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc1(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc2(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
 void PosProcessamento(TPZAnalysis &an, std::string plotfile,TPZFMatrix<REAL> &gradients);
@@ -468,13 +472,137 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 	return gmesh;
 }
 
+TPZGeoMesh *GMesh1D(int nh){
+    
+    int Qnodes = 2;
+	
+	TPZGeoMesh * gmesh = new TPZGeoMesh;
+	gmesh->SetMaxNodeId(Qnodes-1);
+	gmesh->NodeVec().Resize(Qnodes);
+	TPZVec<TPZGeoNode> Node(Qnodes);
+	
+	TPZVec <int> TopolLine(2);
+    TPZVec <int> TopolPoint(1);
+	
+    int id = 0;
+    REAL valx, dx=2.;
+    for(int xi = 0; xi < Qnodes; xi++)
+    {
+        valx = xi*dx;
+        Node[id].SetNodeId(id);
+        Node[id].SetCoord(0 ,valx );//coord X
+        gmesh->NodeVec()[id] = Node[id];
+        id++;
+    }
+    
+	//indice dos elementos
+	id = 0;
+    
+    
+    TopolLine[0] = 0;
+    TopolLine[1] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoLinear > (id,TopolLine,matId,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 0;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc0,*gmesh);
+    id++;
+    
+    TopolPoint[0] = 1;
+    new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1,*gmesh);
+    
+	gmesh->BuildConnectivity();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Geometrica Inicial\n ";
+    //        gmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str())
+    //	}
+    //#endif
+    
+    for ( int ref = 0; ref < nh; ref++ ){
+		TPZVec<TPZGeoEl *> filhos;
+		int n = gmesh->NElements();
+		for ( int i = 0; i < n; i++ ){
+			TPZGeoEl * gel = gmesh->ElementVec() [i];
+			//if (gel->Dimension() == 2) gel->Divide (filhos);
+            gel->Divide (filhos);
+		}//for i
+	}//ref
+    
+	return gmesh;
+}
 
 TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
 	int dim = 2;
+	TPZMat1dLin *material;
+	material = new TPZMat1dLin(matId);
+	material->NStateVariables();
+    
+    TPZFMatrix<STATE> xkin(1,1,-1.);
+    TPZFMatrix<STATE> xcin(1,1,0.);
+    TPZFMatrix<STATE> xbin(1,1,0.);
+    TPZFMatrix<STATE> xfin(1,1,0.);
+    
+    material-> SetMaterial(xkin, xcin, xbin, xfin);
+    
+    TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF);
+    material->SetForcingFunction(myforce);
+    
+    TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
+    cmesh->SetDimModel(dim);
+    TPZMaterial * mat(material);
+    
+    cmesh->InsertMaterialObject(mat);
+    
+    ///Inserir condicao de contorno
+	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
+    REAL val_ux0 = -0.0886226925452758;
+    REAL val_ux1 = 0.0886226925452758;
+    
+    val2(2,1)=val_ux0;
+	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
+    
+    val2(2,1)=val_ux1;
+    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
+    
+    
+	cmesh->SetAllCreateFunctionsContinuous();
+    cmesh->InsertMaterialObject(BCond0);
+    cmesh->InsertMaterialObject(BCond1);
+    
+	cmesh->SetDefaultOrder(pOrder);
+    cmesh->SetDimModel(dim);
+	
+	//Ajuste da estrutura de dados computacional
+	cmesh->AutoBuild();
+    cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+        
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
+    //        cmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str());
+    //	}
+    //#endif
+	
+	return cmesh;
+}
+
+TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
+{
+    /// criar materiais
+	int dim = 1;
 	TPZMatPoisson3d *material;
-	material = new TPZMatPoisson3d(matId,dim); 
+	material = new TPZMatPoisson3d(matId,dim);
     
     REAL diff=1.;
     REAL conv =0.;
@@ -485,7 +613,7 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     
     REAL ff=0.;
     material->SetInternalFlux(ff);
-	
+    
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
@@ -502,14 +630,17 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     TPZMaterial * BCond2 = material->CreateBC(mat, bc2,dirichlet, val1, val2);
     
-	
+    
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     TPZMaterial * BCond3 = material->CreateBC(mat, bc3,dirichlet, val1, val2);
-	
-	//    val2(0,0)=coef_a;
-	//    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
-	//    val2(0,0)=-coef_a;
-	//    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    //    val2(0,0)=coef_a;
+    //    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
+    //    val2(0,0)=-coef_a;
+    //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
+    
+    
+    
     
     BCond0->SetForcingFunction(fCC0);
     BCond2->SetForcingFunction(fCC2);
@@ -529,6 +660,16 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
+    
+    //#ifdef LOG4CXX
+    //	if(logdata->isDebugEnabled())
+    //	{
+    //        std::stringstream sout;
+    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
+    //        cmesh->Print(sout);
+    //        LOGPZ_DEBUG(logdata,sout.str());
+    //	}
+    //#endif
 	
 	return cmesh;
 }
@@ -556,6 +697,14 @@ void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
     double x = pt[0];
     double y = pt[1];
     disp[0]= coef_a*x + coef_b*y;
+}
+
+void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp){
+    
+    double x = pt[0];
+    double aux1 = -100.*(1 - 2.*x + x*x);
+    double aux2 = exp(aux1);
+    disp[0]=(200.*x - 200.)*aux2;
 }
 
 
