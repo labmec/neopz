@@ -1619,9 +1619,6 @@ void TPZPlaneFracture::InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fr
 void TPZPlaneFracture::RunModelProblemForSIFValidation(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, std::string vtkFile)
 {
     ////CompMesh
-//    REAL W = 10.;
-//    REAL H = 14;
-//    REAL a = 1.;
     REAL sigmaTraction = 0.;
     REAL pressureInsideCrack = 5.;
     int porder = 2;
