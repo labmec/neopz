@@ -269,7 +269,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 			gradients(counter,dim+k) = center[k];
 			gradients(counter,2*dim+k) = B(k,0);
 			if(!k)
-				gradients(counter,3*dim) = Grad;
+				gradients(counter,3*dim) = sqrt(Grad);
 		}
 		counter++;
 	}
