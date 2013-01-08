@@ -298,15 +298,15 @@ public:
 	}
     
 	/** @brief Returns a pointer to the higher level father*/
-    TPZGeoEl *HighestFather()
+    TPZGeoEl *LowestFather()
 	{
-		TPZGeoEl * highFather(this);
-        while(highFather->Father())
+		TPZGeoEl * lowFather(this);
+        while(lowFather->Father())
         {
-            highFather = highFather->Father();
+            lowFather = lowFather->Father();
         }
         
-        return highFather;
+        return lowFather;
 	}
     
 	

@@ -1,10 +1,9 @@
-//
-//  TPZJIntegral.h
-//  PZ
-//
-//  Created by Labmec on 25/04/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
-//
+/*
+ *  TPZJIntegral.h
+ *
+ *  Created by Cesar Lucci on 25/04/12.
+ *  Copyright 2010 LabMeC. All rights reserved.
+ */
 
 #ifndef PZ_TPZJIntegral_h
 #define PZ_TPZJIntegral_h
@@ -20,6 +19,12 @@
 
 
 const REAL Pi = 3.1415926535897932384626433832795;
+
+/**
+ * @brief Plane of the fracture.
+ * @author Cesar Lucci (aka Caju)
+ * @since 09/08/2010
+ */
 
 
 class LinearPath3D

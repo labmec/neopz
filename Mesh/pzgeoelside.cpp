@@ -631,7 +631,7 @@ TPZTransform TPZGeoElSide::SideToSideTransform(TPZGeoElSide &higherdimensionside
     return fGeoEl->SideToSideTransform(fSide,higherdimensionside.fSide);
 }
 
-TPZGeoElSide TPZGeoElSide::HigherFatherSide()
+TPZGeoElSide TPZGeoElSide::LowestFatherSide()
 {
     TPZGeoEl * actGel = this->fGeoEl;
     TPZGeoElSide side(*this);

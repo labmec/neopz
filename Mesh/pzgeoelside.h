@@ -207,7 +207,7 @@ public:
 	 */
 	TPZTransform SideToSideTransform(TPZGeoElSide &higherdimensionside);
     
-    TPZGeoElSide HigherFatherSide();
+    TPZGeoElSide LowestFatherSide();
     
     void AllLowerSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides);
 	

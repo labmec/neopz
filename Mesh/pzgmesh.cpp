@@ -400,9 +400,9 @@ TPZGeoNode *TPZGeoMesh::FindNode(TPZVec<REAL> &co)
 	return gnkeep;
 }
 
-TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElId, int targetDim)
+TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & InitialElIndex, int targetDim)
 {
-    TPZGeoEl * gel = this->ElementVec()[InitialElId]->HighestFather();
+    TPZGeoEl * gel = this->ElementVec()[InitialElIndex]->LowestFather();
     
     if(qsi.NElements() != gel->Dimension())
     {
@@ -420,7 +420,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
         bool targetNeighFound = false;
         while(mySide != neighSide && targetNeighFound == false)
         {
-            if(neighSide.Element()->HighestFather() == mySide.Element()->HighestFather())
+            if(neighSide.Element()->LowestFather() == mySide.Element()->LowestFather())
             {
                 neighSide = neighSide.Neighbour();
             }
@@ -433,7 +433,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
                 targetNeighFound = true;
             }
         }
-        TPZGeoEl * neighgel = neighSide.Element()->HighestFather();
+        TPZGeoEl * neighgel = neighSide.Element()->LowestFather();
         if(neighgel != gel)
         {
             gel = neighgel;
@@ -473,7 +473,7 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             if(son->ComputeXInverseAlternative(x, qsiSonVec[s]))
             {
                 qsi = qsiSonVec[s];
-                InitialElId = son->Id();
+                InitialElIndex = son->Id();
                 return son;
             }
         }
@@ -497,14 +497,14 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
 
             qsi = qsiSonVec[sonPosition];
             son = subElements[sonPosition];
-            InitialElId = son->Id();
+            InitialElIndex = son->Id();
 
             return son;
         }
     }
     else
     {
-        InitialElId = gel->Id();
+        InitialElIndex = gel->Id();
         return gel;
     }
     

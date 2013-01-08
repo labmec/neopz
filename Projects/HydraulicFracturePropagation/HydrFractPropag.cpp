@@ -85,8 +85,10 @@ int mainTESE(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
+    REAL pressureInsideCrack = 5.;
+    REAL sigmaTraction = 0.;
     std::string vtkFile = "fracturePconstant.vtk";
-    plfrac.RunThisFractureGeometry(fractureDots, vtkFile);
+    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, sigmaTraction, vtkFile, true);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;
@@ -106,12 +108,12 @@ int main(int argc, char * const argv[])
     readRef.start();
     
     //#define writeAgain
-#ifdef writeAgain
+    #ifdef writeAgain
     gRefDBase.InitializeRefPatterns();
-#else
+    #else
     std::ifstream inRefP("RefPatternsUsed.txt");
     gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
-#endif
+    #endif
     
     readRef.stop();
     std::cout << "DeltaT leitura refpatterns = " << readRef.seconds() << " s" << std::endl;
@@ -136,8 +138,10 @@ int main(int argc, char * const argv[])
     TPZTimer clockIni2("PartyBegins2");
     clockIni2.start();    
     
-    std::string vtkFile = "fractureSIF3D.vtk";
-    plfrac.RunModelProblemForSIFValidation(fractureDots,vtkFile);
+    REAL pressureInsideCrack = 5.;
+    REAL sigmaTraction = 0.;
+    std::string vtkFile = "fracturePconstant.vtk";
+    plfrac.RunThisFractureGeometry(fractureDots, pressureInsideCrack, sigmaTraction, vtkFile, true);
     
     clockIni2.stop();
     std::cout << "DeltaT get fracture cmesh = " << clockIni2.seconds() << " s" << std::endl;

@@ -7,11 +7,9 @@
 
 /*
  *  TPZPlaneFracture.h
- *  Crack
  *
  *  Created by Cesar Lucci on 09/08/10.
  *  Copyright 2010 LabMeC. All rights reserved.
- *
  */
 
 //using namespace std;
@@ -41,7 +39,7 @@ const int __TrimQTDmultiplier = 5; //will be used for searching direction betwee
 
 /** 
  * @brief Plane of the fracture. 
- * @author Cesar Lucci
+ * @author Cesar Lucci (aka Caju)
  * @since 09/08/2010
  */
 
@@ -172,22 +170,24 @@ class TPZPlaneFracture
     
 	~TPZPlaneFracture();
     
-    void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, std::string vtkFile);
-    
-    //Just 4 validation of SIF
     /**
-     * @brief Method that will run a FEM simmulation of a classical vertcical traction test with an initial horizontal central crack
-     * @param Sigma [in] : Traction stress in the height direction
-     * @param Width [in] : Domain width (parallel to the crack direction, orthogonal to the heigth)
-     * @param Height [in] : Domain heigth (orthogonal to the crack direction, parallel to the heigth)
-     * @param Tickness [in] : Domain thickness, orthogonal to the width_heigth plane (analog to the crack front length)
-     * @param a [in] : half of the total crack length (one wing of crack)
+     * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
+     * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
+     * @param vtkFile [in] : VTK file name for post processing
+     * @param printVTKfile [in] : flag that will determine if vtkFile will be generated (true) or not (false)
      */
-    void RunModelProblemForSIFValidation(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, std::string vtkFile);
+    void RunThisFractureGeometry(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                 REAL pressureInsideCrack,
+                                 REAL sigmaTraction,
+                                 std::string vtkFile,
+                                 bool printVTKfile = false);
 		
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+    //---------------------------------------------------------------------
 	
 	private:
+    
+    TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain,
+                                      int porder, REAL sigmaTraction, REAL pressureInsideCrack);
     
     /**
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
@@ -203,8 +203,6 @@ class TPZPlaneFracture
      *      etc...
 	 */
 	TPZGeoMesh * GetFractureGeoMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain);
-
-    TPZCompMesh * GetFractureCompMesh(const TPZVec<std::pair<REAL,REAL> > &poligonalChain, int porder, REAL sigmaTraction, REAL pressureInsideCrack);
 
     /** @brief Generation of the persistent full mesh (2D and 3D) that contains the fracture and its porous media
      *  @note This method set the fPreservedMesh atribute that will not be changed for every fracture time step
@@ -250,7 +248,7 @@ class TPZPlaneFracture
 	 * @brief Returns the next geoel (from given geoel) relative to the given direction by the x+alpha.dx
 	 * @param gel [in] : initial geoel
 	 * @param x [input and output data]  
-	 *				x [as inout] : start point of line \n
+	 *				x [as input] : start point of line \n
 	 *				x [as output] : end point of line in gel interface
 	 * @param dx [in] : direction of line from point x (input)
 	 * @param alphaMin [in] : if an start point (x) is in already in one edge of gel, it might be included or not in the intersections \n
@@ -268,7 +266,8 @@ class TPZPlaneFracture
                                     bool closingFracture);
 
 	static bool EdgeIntersection(TPZGeoEl * gel, TPZVec<REAL> &x, TPZVec<REAL> &dx, TPZVec<int> &edge, 
-                          TPZVec< TPZVec<REAL> > &ExactIntersect, REAL alphaMin, int planeAxe0, int planeAxe1, int planeNormal);
+                                 TPZVec< TPZVec<REAL> > &ExactIntersect, REAL alphaMin,
+                                 int planeAxe0, int planeAxe1, int planeNormal);
 
     /**
 	 * @brief For a given element and internal point and an direction, computes the intersection
@@ -365,20 +364,14 @@ class TPZPlaneFracture
     void RefinementProceedings(TPZGeoMesh * refinedMesh);
     
     /**
-     * @brief Returns if a given element touch cracktip and respective sides ids (in case of return true)
-     */
-    //static bool TouchCrackTip(TPZGeoEl * gel, std::set<int> &bySides);
-    
-    /**
      * @brief Returns if a given element is from boundary of domain
      */
     static bool IsBoundaryMaterial(TPZGeoEl * gel);
 
+    //** just for visualize given dots in vtk */
+    static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
 	
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-    
-    
-public:
+    //-------------------------------------------------------------------------------
 	
     /** @brief Original 3D mesh (keeped intact for any poligonalChain configuration) */
 	TPZGeoMesh * fPreservedMesh;
@@ -390,11 +383,6 @@ public:
     TPZVec<int> fcrackBoundaryElementsIds;
     
     int fInitialElId;
-    
-//--------------------------------------------------------------------------------------------------------------------------------------------------
-
-    //** just for visualize given dots in vtk */
-    static void InsertDots4VTK(TPZGeoMesh * gmesh, const TPZVec<REAL> &fractureDots);
 };
 
 #endif
