@@ -643,7 +643,7 @@ TPZGeoElSide TPZGeoElSide::LowestFatherSide()
     return side;
 }
 
-void TPZGeoElSide::AllLowerSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides)
+void TPZGeoElSide::AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides)
 {
     sonsSides.Resize(0);
     if(this->Element()->HasSubElement() == false)

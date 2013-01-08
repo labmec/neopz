@@ -209,7 +209,7 @@ public:
     
     TPZGeoElSide LowestFatherSide();
     
-    void AllLowerSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides);
+    void AllHigherSubelementsSideThatTouchMe(TPZVec<TPZGeoElSide> &sonsSides);
 	
 	/** @brief Returns a pointer to the elementside referenced by the geometric elementside*/
 	TPZCompElSide Reference() const;
