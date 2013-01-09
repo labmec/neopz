@@ -61,12 +61,12 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 
-void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
+//void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
 
 /**
  * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
  */
-int main(int argc, char *argv[]) {
+int main2D(int argc, char *argv[]) {
 	
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -88,8 +88,8 @@ int main(int argc, char *argv[]) {
     std::ofstream out("output.txt");
 	
 	/** Set polynomial order */
-	int p = 1;
-	for(p=1;p<5;p++) {
+	int p, pmax = 2;
+	for(p=1;p<pmax;p++) {
 		// First rectangular mesh:
 		// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
 		// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
@@ -259,9 +259,9 @@ int main(int argc, char *argv[]) {
 	 /** 
 	 * @brief Method to reconstruct a gradient after run Solve of the analysis
 	 * @param cmesh Computational mesh with solution */
-	TPZFMatrix<REAL> gradients;
-	GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
-	gradients.Print();
+//	TPZFMatrix<REAL> gradients;
+//	GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
+//	gradients.Print();
 	
 		// Post processing
 		an.PostProcess(1,dim);
@@ -275,137 +275,8 @@ int main(int argc, char *argv[]) {
 	}
 }
 }
-/** Reconstrucción del gradiente utilizando la linearizacion (Taylor) de la solución para los centros de todos los elementos vecinos */
-/** Formula: u(xbi,ybi,zbi) = u(xa,ya,za) + a*(xbi-xa) + b*(ybi-ya) + c*(zbi-za)  ->  donde Grad(u) ~= (a,b,c) */
-/** (xa,ya,za) es el centro del elemento donde queremos aproximar o gradiente de u */
-/** (xbi,ybi,zbi) son los centros de los elementos vecinos al elemento corriente por alguno de sus lados, e enumerados por i */
-void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var,bool continuous) {
-	int i, nstates=0;
-	TPZCompEl *cel;
-	int dim = cmesh->Dimension();
-	for(i=0;i<cmesh->NElements();i++) {
-		cel = cmesh->ElementVec()[i];
-		if(cel && cel->Dimension() == dim) {
-			nstates = cel->Material()->NSolutionVariables(var);
-			break;
-		}
-	}
-	
-	// Redimensionando a matriz dos gradientes
-	int nelem = cmesh->NElements();
-    gradients.Redim(nelem,2*dim);
-	
-	int k, side;
-	int counter = 0;
-	
-	TPZStack<TPZCompElSide> neighs;
-	int nneighs;
-	
-	TPZManVector<REAL> normal(3,0.0);
-	TPZManVector<REAL> centerpsi(3,0.0);
-	TPZManVector<REAL> center(3,0.0), centerbeta(3,0.0);
-	TPZManVector<REAL> solalfa(nstates,0.0), solbeta(nstates,0.0);
-	
-	TPZFMatrix<REAL> A(dim,dim);    // Linear System matrix
-	TPZFMatrix<REAL> B(dim,1,0.);   // Linear System vector
-	
-	// Creando las matrices para aplicar el metodo de los minimos cuadrados
-	TPZFMatrix<REAL> DeltaH(nneighs,dim,0.);
-	TPZFMatrix<REAL> DeltaHTranspose(dim,nneighs,0.);
-	TPZFMatrix<REAL> DifSol(nneighs,1,0.);
-	REAL Grad;
-	
-	// Calculando el gradiente por elemento computacional
-	for(i=0;i<nelem;i++) {
-		cel = cmesh->ElementVec()[i];
-		// Nada sera realizado para elementos con dimension diferente de la dimension del problema
-		if(!cel || cel->Dimension()!=dim) continue;
-		
-		// Limpiando las matrizes
-		A.Zero(); B.Zero();
-		// Encontramos el centro del elemento corriente cel
-		TPZGeoEl* gelalfa = cel->Reference();
-		gelalfa->CenterPoint(gelalfa->NSides()-1,centerpsi);
-		center.Fill(0.);
-		gelalfa->X(centerpsi,center);
-		cel->Solution(centerpsi,var,solalfa);
-		
-		// PREFERENCIAL PARA CASOS DE CALCULO CON FUNCIONES DISCONTINUAS - Pues utiliza los valores de la solución en los elementos vecinos
-		if(!continuous) {
-			neighs.Resize(0);
-			// Procuramos todos los elementos vecinos a cel (sobre todos los lados) sin duplicados
-			for(side = cel->Reference()->NCornerNodes(); side < cel->NConnects(); side++) {
-				TPZCompElSide celside(cel,side);
-				celside.ConnectedElementList(neighs,1,0);
-			}
-			nneighs = neighs.NElements();
-			// si no hay vecinos continuamos con el siguiente elemento
-			if(!nneighs) continue;
-			// si hay vecinos realizamos el proceso de minimos quadrados para calcular una aproximacion del gradiente			
-			// Para cada vecino calculamos los deltaH (desde su centro al centro del elemento corriente)
-			// y el valor de la solucion en su centro solbeta
-			DeltaH.Redim(nneighs,dim);
-			DeltaHTranspose.Redim(dim,nneighs);
-			DifSol.Redim(nneighs,1);
-			// Montando la matriz de los deltas DeltaH y de las diferencias de las soluciones DifSol
-			for(int ineighs=0;ineighs<nneighs;ineighs++) {
-				TPZGeoEl* gelbeta = neighs[ineighs].Element()->Reference();
-				if(!gelbeta)
-					DebugStop();
-				centerpsi.Fill(0.0);
-				centerbeta.Fill(0.0);
-				gelbeta->CenterPoint(gelbeta->NSides()-1,centerpsi);
-				gelbeta->X(centerpsi,centerbeta);
-				gelbeta->Reference()->Solution(centerpsi,var,solbeta);
-				for(k=0;k<dim;k++)
-					DeltaH(ineighs,k) = centerbeta[k] - center[k];
-				DifSol(ineighs,0) = solbeta[n_var] - solalfa[n_var];
-			}
-		}
-		else {
-			int nsides = cel->NConnects()-1;
-			// Para cada lado calculamos los deltaH (desde el centro del elemento al centro del lado de dimension menor a él
-			// y el valor de la solucion en su centro solbeta
-			DeltaH.Redim(nsides,dim);
-			DeltaHTranspose.Redim(dim,nsides);
-			DifSol.Redim(nsides,1);
-			// Procuramos todos los puntos medios de cada lado del elemento y calculamos baseados en los valores de la solucion sobre ellos
-			for(side = 0; side < nsides; side++) {
-				centerpsi.Fill(0.0);
-				centerbeta.Fill(0.0);
-				cel->Reference()->CenterPoint(side,centerpsi);
-				cel->Reference()->X(centerpsi,centerbeta);
-				cel->Solution(centerpsi,var,solbeta);
-				for(k=0;k<dim;k++)
-					DeltaH(side,k) = centerbeta[k] - center[k];
-				DifSol(side,0) = solbeta[n_var] - solalfa[n_var];
-				
-			}
-		}
-		// Resolviendo el sistema por los minimos cuadrados: DeltaH_t * DifSol = DeltaH_t * DeltaH * Grad(u) 
-		DeltaH.Transpose(&DeltaHTranspose);
-		B = DeltaHTranspose*DifSol;
-		A = DeltaHTranspose*DeltaH;
-		A.SolveDirect(B,ELU);
-		
-		// Normalizando el vector gradiente
-		Grad = 0.0;
-		for(k=0;k<dim;k++)
-			Grad += (B(k,0)*B(k,0));
-		// Almacenando los gradientes encontrados
-		for(k=0;k<dim;k++) {
-			if(!IsZero(B(k))) {
-				gradients(counter,k) = B(k,0)/sqrt(Grad);
-			}
-			gradients(counter,dim+k) = center[k];
-		}
-		counter++;
-	}
-	// Redimensionando la matriz de los gradientes
-	gradients.Resize(counter,2*dim);
-}
 
-int main3D(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
 	
 #ifdef LOG4CXX
 	if (argc > 1) {
@@ -427,12 +298,9 @@ int main3D(int argc, char *argv[]) {
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
-	//gRefDBase.InitializeRefPatterns();
-	//gRefDBase.InitializeUniformRefPattern(EOned);
-	//gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	//gRefDBase.InitializeUniformRefPattern(ETriangle);
+	gRefDBase.InitializeRefPatterns();
 	// Inserting a special file with refinement pattern 
-	std::string filename = REFPATTERNDIR;
+	/* std::string filename = REFPATTERNDIR;
 	filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
 	//filename += "/3D_Hexa_Face_20.rpt";
 	
@@ -442,28 +310,27 @@ int main3D(int argc, char *argv[]) {
 		gRefDBase.InsertRefPattern(refpat);
 	}
 	refpat->InsertPermuted();
-	
+	*/
+
 	// output files
-    std::ofstream convergence("conv3d.txt");
     std::ofstream out("output.txt");
 	
-    // First rectangular mesh:
-	// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
-	// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
-	// Has 4 elements, 9 connects and 8 bc elements
-	cout << "Generating geometric mesh bi-dimensional ...\n";
+    // Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
+	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
+	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
+	cout << "Generating bottom geometric mesh bi-dimensional ...\n";
     TPZGeoMesh* gmesh = new TPZGeoMesh;
-	TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
+	TPZManVector<REAL> x0(3,-1.), x1(3,-1.);  // Corners of the rectangular mesh.
+	x0[0] = x1[1] = 1.;
+	TPZManVector<int> nx(2,4);   // subdivisions in X and in Y. 
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
-	
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	cout << "Generating geometric mesh three-dimensional (extruding) ...\n";
 	TPZExtendGridDimension gmeshextend(gmesh,0.5);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,2,2);
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-1,2);
 	
 	// Applying hp adaptive techniques 2012/10/01
 	if(anothertests) {
@@ -474,54 +341,7 @@ int main3D(int argc, char *argv[]) {
 	}
 	else {
 		sprintf(saida,"meshextrudedTChe.vtk");
-	}	
-	// Uniform Refinement - Some times for three dimensional elements
-	//	UniformRefinement(2,gmesh3D,3);
-	// Refinement of the some element	
-	TPZGeoEl *gel;
-	TPZVec<TPZGeoEl *> sub;
-	TPZVec<TPZGeoEl *> subsub;
-	int nele;
-	//	for(int ii=0;ii<3;ii++) {
-	//		int ngelem = gmesh->NElements()-1;
-	nele = 0;
-	//		for(;nele<ngelem;nele++) {
-	gel = gmesh3D->ElementVec()[nele];
-	
-	//			if(gel->Dimension() != 3) continue;
-	//	gel->SetRefPattern(refpat);
-	
-	gel->Divide(sub);
-	//			int jj = 0;
-	//			for(jj=0;jj<4;jj++) {
-	//				gel = sub[jj];
-	//				gel->Divide(subsub);
-	//			}
-	//		}
-	//			TPZVec<REAL> coord(3,0.);
-	//			TPZVec<REAL> point(3,-1.);
-	//			gel->X(point,coord);
-	//			if(!IsZero(coord[0]) || !IsZero(coord[1]) || !IsZero(coord[2])) continue;
-	//			if(gel->Dimension() != 3) continue;
-	//			gel->SetRefPattern(refpat);
-	gel->Divide(sub);
-	//			for(int jj=0;jj<4;jj++) {
-	//				gel = sub[jj];
-	//				if(gel->Dimension() != 3) continue;
-	//				gel->SetRefPattern(refpat);
-	//				gel->Divide(subsub);
-	//				for(int kk=0;kk<gel->NSubElements();kk++)
-	//					subsub[kk]->SetRefPattern(refpat);
-	//			}
-	//			gel = subsub[0];
-	//		gel->Divide(sub);
-	//		gel = sub[0];
-	//		gel->Divide(subsub);
-	//		gel = subsub[0];
-	//		gel->Divide(sub);
-	//			break;
-	//		}
-	//	}
+	}
 	// Constructing connectivities
 	gmesh3D->ResetConnectivities();
 	gmesh3D->BuildConnectivity();
@@ -529,6 +349,7 @@ int main3D(int argc, char *argv[]) {
 	// Printing COMPLETE initial geometric mesh 
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	
+	return 0;
     // Creating computational mesh
     TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
 	/** Set polynomial order */
@@ -876,44 +697,6 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename) {
 	// Printing geometric mesh to visualization in Paraview
 	TPZVTKGeoMesh::PrintGMeshVTK(gmesh, filename, DataElement);
 }
-/*
- void PrintGeoMeshVTKWithData(TPZGeoMesh *gmesh,char *filename,int var) {
- int nrows = data.Rows();
- int ncols = data.Cols();
- int i, j, nvars;
- std::map<int, TPZAutoPointer <TPZMaterial> >::iterator m;
- for(m=gmesh->Reference()->MaterialVec().begin();m != gmesh->Reference()->MaterialVec().end();m++) {
- if(m->second->Id() > 0) {
- nvars = m->second->NStateVariables();
- break;
- }
- }
- if(m == gmesh->Reference()->MaterialVec().end() || var > nvars) {
- DebugStop();
- }
- TPZChunkVector<double> DataElement;
- int k = 0;
- char newname[1024];
- memset(newname,0,sizeof(newname));
- sprintf(newname,"%s",filename);
- char *p;
- DataElement.Resize(nrows/nvars);
- for(i=0;i<ncols;i++) {
- for(j=0;j<nrows;j+=nvars)
- DataElement[k++] = data.GetVal(j+var,i);
- 
- p = strrchr(newname,'_');
- if(p) {
- sprintf(p,"%i.vtk",i);
- }
- else if(i) {
- p = strrchr(newname,'.');
- sprintf(newname,"_%i.vtk",i);
- }
- // Printing geometric mesh to visualization in Paraview
- TPZVTKGeoMesh::PrintGMeshVTK(gmesh, newname, DataElement);
- }
- }	*/
 
 void InitializeSolver(TPZAnalysis &an) {
 	TPZStepSolver<REAL> step;

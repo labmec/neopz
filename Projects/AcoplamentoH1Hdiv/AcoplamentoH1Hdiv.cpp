@@ -752,7 +752,7 @@ void SaddlePermute(TPZCompMesh * cmesh){
 				LOGPZ_DEBUG(logger, sout.str().c_str());
 		}
 #endif
-		TPZVec<int> permute;
+		TPZVec<long> permute;
 		int numinternalconnects = cmesh->NIndependentConnects();
   	permute.Resize(numinternalconnects,0);
 		
