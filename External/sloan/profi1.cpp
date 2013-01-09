@@ -2,7 +2,7 @@
 #include "sloan.h"
 
  /* @brief Purpose: Compute the profiles using both original and new numbers */
-int profi1_ (int *n, int *nnn, int *, int *adj, int *xadj, int *oldpro, int *newpro)
+int profi1_ (int *n, long *nnn, int *, int *adj, int *xadj, int *oldpro, int *newpro)
 //n, nnn, e2, adj, xadj, oldpro, newpro
 {
  /* System generated locals */

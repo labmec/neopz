@@ -4,8 +4,8 @@ using namespace std;
 #include "sloan.h"
 
 /** @brief Purpose: Form adjacency list for a graph corresponding to a finite element mesh */
-int gegra_ (int *n, int *ne, int *, int *
-        npn, int *xnpn, int *iadj, int *adj, int *xadj,
+int gegra_ (int *n, int *ne, int *, long *
+        npn, long *xnpn, long *iadj, int *adj, int *xadj,
         int *nop)
 {
  /* Format strings */

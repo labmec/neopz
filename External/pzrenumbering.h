@@ -55,7 +55,7 @@ public:
 	/** Node resequencing algorithms may require a possibly large amount of temporary data */
 	virtual void ClearDataStructures();
 	
-	virtual void Resequence(TPZVec<int> &perm, TPZVec<int> &iperm)
+	virtual void Resequence(TPZVec<long> &perm, TPZVec<long> &iperm)
 	{
 		/*if(fHDivPermute)
 		 {

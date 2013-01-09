@@ -126,7 +126,7 @@ void TPZAnalysis::SetBlockNumber(){
 #ifdef WIN32
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
-	TPZVec<int> perm,iperm;
+	TPZVec<long> perm,iperm;
 	
 	TPZStack<int> elgraph,elgraphindex;
 	int nindep = fCompMesh->NIndependentConnects();
@@ -140,7 +140,7 @@ void TPZAnalysis::SetBlockNumber(){
 	if(!fCompMesh) return;
 	fCompMesh->InitializeBlock();
 	
-	TPZVec<int> perm,iperm;
+	TPZVec<long> perm,iperm;
 	
 	TPZStack<int> elgraph,elgraphindex;
 	int nindep = fCompMesh->NIndependentConnects();

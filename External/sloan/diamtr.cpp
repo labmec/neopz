@@ -1,6 +1,6 @@
 /** @brief Purpose: Find nodes which define a pseudo-diameter of a graph and store distances from end node */
 int diamtr_ (int *n, int *e2, int *adj, int *
-         xadj, int *mask, int *ls, int *xls, int *hlevel,
+         xadj, long *mask, int *ls, int *xls, int *hlevel,
          int *snode, int *nc)
 {
  /* System generated locals */
@@ -8,7 +8,7 @@ int diamtr_ (int *n, int *e2, int *adj, int *
  /* Local variables */
     static int node, i, j, enode, depth, width, hsize, istop, jstop, istrt, jstrt, degree, mindeg, ewidth, sdepth;
     extern int isorti_ (int *, int *, int *, int *);   // subrotine
-	extern int rootls_ (int *, int *, int *, int *, int *, int *, int *, int *, int *, int *, int *);   // subrotine
+	extern int rootls_ (int *, int *, int *, int *, int *, int *, long *, int *, int *, int *, int *);   // subrotine
 
 /*     INPUT: */
 /*     ------ */

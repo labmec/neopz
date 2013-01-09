@@ -92,7 +92,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 	
 	fMesh->InitializeBlock();
 	{
-		TPZVec<int> perm,iperm;
+		TPZVec<long> perm,iperm;
 		TPZStack<int> elgraph,elgraphindex;
 		
 		
@@ -122,7 +122,7 @@ TPZMatrix<STATE> * TPZDohrStructMatrix::Create()
 		{
 			continue;
 		}
-		TPZVec<int> perm,iperm;
+		TPZVec<long> perm,iperm;
 		TPZStack<int> elgraph,elgraphindex;
 		int nindep = submesh->NIndependentConnects();
 		submesh->ComputeElGraph(elgraph,elgraphindex);
@@ -960,7 +960,7 @@ void TPZDohrStructMatrix::ComputeInternalEquationPermutation(TPZSubCompMesh *sub
 															 TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
 {
 	// This permutation vector is with respect to the blocks of the mesh
-	TPZVec<int> scatterpermuteblock;
+	TPZVec<long> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
 	TPZBlock<STATE> destblock = sub->Block();
 	TPZBlock<STATE> &origblock = sub->Block();
@@ -1221,7 +1221,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		
         
         
-		TPZVec<int> permuteconnectscatter;
+		TPZVec<long> permuteconnectscatter;
 		
 		substruct->fNumInternalEquations = submesh->NumInternalEquations();
 		
@@ -1278,7 +1278,7 @@ void AssembleMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstructCo
 		TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
 		
 		// reorder the sequence numbering of the connects to reflect the original ordering
-		TPZVec<int> invpermuteconnectscatter(permuteconnectscatter.NElements());
+		TPZVec<long> invpermuteconnectscatter(permuteconnectscatter.NElements());
 		int iel;
 		for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 			invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;

@@ -186,7 +186,7 @@ void ResequenceByGeometry(TPZCompMesh *cmesh, const TPZVec<REAL> &normal) {
 		REAL dist = XMin(gel,normal);
 		elmap.insert(pair<REAL,TPZCompEl *>(dist,cel));
 	}
-	TPZVec<int> Permute(cmesh->NConnects(),-1);
+	TPZVec<long> Permute(cmesh->NConnects(),-1);
 	multimap<REAL, TPZCompEl *>::iterator it;
 	it = elmap.begin();
 	int iseq=0;

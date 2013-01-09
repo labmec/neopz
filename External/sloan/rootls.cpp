@@ -1,6 +1,6 @@
  /* Subroutine */ int 
 rootls_ (int *, int *root, int *maxwid,
-         int *, int *adj, int *xadj, int *mask, int *ls,
+         int *, int *adj, int *xadj, long *mask, int *ls,
          int *xls, int *depth, int *width)
 //n, root, maxwid, e2, adj, xadj, mask, ls, xls, depth, width
 {

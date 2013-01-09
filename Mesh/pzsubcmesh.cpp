@@ -1169,7 +1169,7 @@ void TPZSubCompMesh::SetAnalysisFrontal(int numThreads, TPZAutoPointer<TPZGuiInt
  * Compute the permutation vector which puts the internal connects to the first on the list
  * Respect the previous order of the connects
  */
-void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
+void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<long> &permute) const
 {
 	// map from sequence number of the pontentially internal nodes to the node indices
 	// first the independent nodes, then the dependent nodes
@@ -1263,7 +1263,7 @@ void TPZSubCompMesh::ComputePermutationInternalFirst(TPZVec<int> &permute) const
  * Permute the potentially internal connects to the first on the list
  * Respect the previous order of the connects
  */
-void TPZSubCompMesh::PermuteInternalFirst(TPZVec<int> &permute)
+void TPZSubCompMesh::PermuteInternalFirst(TPZVec<long> &permute)
 {
 	this->ComputePermutationInternalFirst(permute);
 	LOGPZ_DEBUG(logger,"Permuting")
@@ -1309,7 +1309,7 @@ void TPZSubCompMesh::PermuteExternalConnects(){
 	countconstraint = numinternal+numexternal;
 	// initialize a counter for internal nodes
 	i=0;
-	TPZManVector<int> permute(nconnects);
+	TPZManVector<long> permute(nconnects);
 	for (i=0;i<nconnects;i++) permute[i] = i;
 	std::set<int>::iterator it;
 	int seqnum = 0;

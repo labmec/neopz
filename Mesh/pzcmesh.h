@@ -530,7 +530,7 @@ public:
 	 * It is a permute gather operation
 	 * @param permute vector of elements to permute
 	 */
-	void Permute(TPZVec<int> &permute);
+	void Permute(TPZVec<long> &permute);
     
     /** @brief Put the sequence number of the pressure connects after the seq number of the flux connects */
     void SaddlePermute();

@@ -1,6 +1,6 @@
  /* @brief Purpose: Number nodes in component of graph for small profile and rms wavefront */
 int number_ (int *, int *nc, int *snode, int *lstnum, int *, int *adj, int *xadj,
-			 int *s, int *q, int *p)
+			 long *s, int *q, int *p)
 //n, nc, snode, lstnum,e2, adj, xadj, s, q, p
 {
  /* System generated locals */

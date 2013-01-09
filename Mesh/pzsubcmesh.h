@@ -211,13 +211,13 @@ public:
 	 * @brief Computes the permutation vector which puts the internal connects to the first on the list \n
 	 * Respect the previous order of the connects
 	 */
-	void ComputePermutationInternalFirst(TPZVec<int> &permute) const;
+	void ComputePermutationInternalFirst(TPZVec<long> &permute) const;
 	
 	/**
 	 * @brief Permutes the potentially internal connects to the first on the list \n
 	 * Respect the previous order of the connects
 	 */
-	void PermuteInternalFirst(TPZVec<int> &permute);
+	void PermuteInternalFirst(TPZVec<long> &permute);
 	
 	/**
 	 * @brief Prints the submesh information on the specified device/file out. 

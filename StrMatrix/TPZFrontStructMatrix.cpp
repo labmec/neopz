@@ -634,7 +634,7 @@ template<class front>
 void TPZFrontStructMatrix<front>::AdjustSequenceNumbering()
 {
 	int nconnect = this->fMesh->ConnectVec().NElements();
-	TPZManVector<int> permute(nconnect);
+	TPZManVector<long> permute(nconnect);
 	fMesh->ComputeNodElCon();
 	int i;
 	for(i=0; i<nconnect; i++)

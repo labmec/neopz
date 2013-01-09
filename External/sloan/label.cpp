@@ -1,7 +1,7 @@
 #include "sloan.h" 
  /* @brief Purpose: Label a graph for small profile and rms wavefront */ 
 int label_ (int *n, int *e2, int *adj, int *
-        xadj, int *nnn, int *iw, int *oldpro, int *newpro)
+        xadj, long *nnn, int *iw, int *oldpro, int *newpro)
 {
  /* System generated locals */
     int     i__1;
@@ -67,7 +67,7 @@ int label_ (int *n, int *e2, int *adj, int *
     i__1 = *n;
     for (i = 1; i <= i__1; ++i)
     {
-        nnn[i] = 0;
+        nnn[i] = 0L;
 /* L10: */
     }
 

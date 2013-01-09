@@ -682,7 +682,7 @@ void TPZGenSubStruct::IdentifyEqNumbers(TPZSubCompMesh *sub, TPZVec<int> &global
  */
 void TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub,std::map<int,int> &globaltolocal, TPZVec<int> &internalnodes)
 {
-	TPZVec<int> permute;
+	TPZVec<long> permute;
 	sub->PermuteInternalFirst(permute);
 	int ninternal = this->NInternalEq(sub);
 	internalnodes.Resize(ninternal);
@@ -729,7 +729,7 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 														 TPZVec<int> &scatterpermute, TPZVec<int> &gatherpermute)
 {
 	// This permutation vector is with respect to the blocks of the mesh
-	TPZVec<int> scatterpermuteblock;
+	TPZVec<long> scatterpermuteblock;
 	sub->ComputePermutationInternalFirst(scatterpermuteblock);
 	TPZBlock<STATE> destblock = sub->Block();
 	TPZBlock<STATE> &origblock = sub->Block();
@@ -792,11 +792,11 @@ void TPZGenSubStruct::ComputeInternalEquationPermutation(TPZSubCompMesh *sub,
 /*!
  \fn TPZGenSubStruct::ReorderInternalNodes(TPZSubCompMesh *sub)
  */
-void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<int> &blockinvpermute)
+void TPZGenSubStruct::ReorderInternalNodes2(TPZSubCompMesh *sub, TPZVec<int> &internaleqs, TPZVec<long> &blockinvpermute)
 {
 	TPZBlock<STATE> prevblock = sub->Block();
 	// This permutation vector is with respect to the blocks of the mesh
-	TPZVec<int> permute;
+	TPZVec<long> permute;
 	sub->PermuteInternalFirst(permute);
 	blockinvpermute.Resize(permute.NElements());
 	int i;
@@ -926,7 +926,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
     substruct->fInvertedStiffness.SetMatrix(substruct->fStiffness->Clone());
     substruct->fInvertedStiffness.SetDirect(ECholesky);
 	
-	TPZManVector<int> invpermute;
+	TPZManVector<long> invpermute;
 	TPZGenSubStruct::ReorderInternalNodes2(submesh,substruct->fInternalEqs,invpermute);
 	// compute the stiffness matrix associated with the internal nodes
 	// fInternalEqs indicates the permutation of the global equations to the numbering of the internal equations
@@ -963,7 +963,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	substruct->fMatRedComplete = matredbig;
 	
 	
-	TPZVec<int> permuteconnectscatter;
+	TPZVec<long> permuteconnectscatter;
 	
 	substruct->fNumInternalEquations = submesh->NumInternalEquations();
 	// change the sequencing of the connects of the mesh, putting the internal connects first
@@ -978,7 +978,7 @@ void InitializeMatrices(TPZSubCompMesh *submesh, TPZAutoPointer<TPZDohrSubstruct
 	TPZPairStructMatrix pairstructmatrix(submesh,permutescatter);
 	
 	// reorder the sequence numbering of the connects to reflect the original ordering
-	TPZVec<int> invpermuteconnectscatter(permuteconnectscatter.NElements());
+	TPZVec<long> invpermuteconnectscatter(permuteconnectscatter.NElements());
 	int iel;
 	for (iel=0; iel < permuteconnectscatter.NElements(); iel++) {
 		invpermuteconnectscatter[permuteconnectscatter[iel]] = iel;

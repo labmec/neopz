@@ -58,7 +58,7 @@ public:
 	void ReorderInternalNodes(TPZSubCompMesh *sub, std::map<int,int> &globaltolocal,
 							  TPZVec<int> &internalnodes);
 	static void ReorderInternalNodes2(TPZSubCompMesh *sub,
-									  TPZVec<int> &internalnodes, TPZVec<int> &invpermute);
+									  TPZVec<int> &internalnodes, TPZVec<long> &invpermute);
 	
 	/** @brief Computes the permutation vectors from the subcompmesh ordening to the "internal first" ordering
 	 *

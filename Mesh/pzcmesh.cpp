@@ -469,7 +469,7 @@ void TPZCompMesh::CleanUpUnconnectedNodes() {
 		}
 	}
 	int nblocks = fBlock.NBlocks();
-	TPZManVector<int> permute(nblocks,-1), down(nblocks,0);
+	TPZManVector<long> permute(nblocks,-1), down(nblocks,0);
 	int idepblocks = 0, iremovedblocks= 0, icondensed = 0;
 	
 	if (need) {
@@ -1129,7 +1129,7 @@ void TPZCompMesh::RemakeAllInterfaceElements(){
 
 /**ExpandSolution must be called before calling this*/
 // it is a gather permutation
-void TPZCompMesh::Permute(TPZVec<int> &permute) {
+void TPZCompMesh::Permute(TPZVec<long> &permute) {
 	
 	ExpandSolution();
 	//   if (permute.NElements() != fBlock.NBlocks()) {
@@ -1924,7 +1924,7 @@ void TPZCompMesh::SaddlePermute()
         LOGPZ_DEBUG(logger, sout.str().c_str());
     }
 #endif
-    TPZVec<int> permute;
+    TPZVec<long> permute;
     int numinternalconnects = NIndependentConnects();
     permute.Resize(numinternalconnects,0);
     
@@ -1942,7 +1942,7 @@ void TPZCompMesh::SaddlePermute()
     int nel=ElementVec().NElements();
     for (int jel=0; jel<nel; jel++) {
         
-        for (int ip=0; ip<permute.NElements(); ip++) {
+        for (long ip=0; ip<permute.NElements(); ip++) {
             permute[ip]=ip;
         }
         
@@ -1956,7 +1956,7 @@ void TPZCompMesh::SaddlePermute()
         //	if(ncon==1) continue;
         int pressureconectindex = elvec->PressureConnectIndex();
         if(pressureconectindex == -1) continue;
-        int eqpress=elvec->Connect(pressureconectindex).SequenceNumber();
+        long eqpress=elvec->Connect(pressureconectindex).SequenceNumber();
 
         for (std::set<int>::const_iterator it= connects.begin(); it != connects.end(); it++) {
 //        for (int icon=0; icon< ncon-1; icon++) {
