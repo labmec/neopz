@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 				// Trocar todos os elementos do cmesh apontando para material L2Proj
 				
 				// Nesse material L2Proj inserir o vetor de gradientes reconstruido
-				->SetGradients(gradients);
+				//->SetGradients(gradients);
 				
 				// Resolver com o novo material
 				
@@ -585,9 +585,6 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
     TPZMaterial * mat(material);
     
     cmesh->InsertMaterialObject(mat);
-	// Inserting new material to compute L2 projection 
-	mat = new TPZL2ProjectionForGradient(matId+1,dim,material->NStateVariables());
-    cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
 	TPZFMatrix<REAL> val1(2,2,0.), val2(2,1,0.);
@@ -600,10 +597,15 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
     val2(0,0)=val_ux1;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     
-    
 	cmesh->SetAllCreateFunctionsContinuous();
     cmesh->InsertMaterialObject(BCond0);
     cmesh->InsertMaterialObject(BCond1);
+    
+    
+    // Inserting new material to compute L2 projection
+    TPZL2ProjectionForGradient *matl2proj;
+	matl2proj = new TPZL2ProjectionForGradient(matId+1,dim,material->NStateVariables());
+    cmesh->InsertMaterialObject(matl2proj);
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
