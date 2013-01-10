@@ -74,7 +74,7 @@ public:
 	 * band of the resulting stiffeness matrix.
 	 */
 	void ResequenceOld(TPZVec<int> &perm, TPZVec<int> &inverseperm);
-	void Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm);
+	void Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm);
 	
 	/**
 	 * @brief This will reset all datastructures the object may contain. \n

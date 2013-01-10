@@ -173,7 +173,7 @@ private:
 	void Copy (const TPZSkylMatrix<TVar> & );
 	int Size(const int column) const {return fElem[column+1]-fElem[column];}
 	static long NumElements(const TPZVec<int> &skyline);
-	static void InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &elem);
+	static void InitializeElem(const TPZVec<int> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &elem);
 	/**
      @brief Computes the highest skyline of both objects
 	 */
@@ -191,7 +191,7 @@ private:
 	/**
      @brief fStorage is a unique vector which contains all the data of the skyline matrix
 	 */
-	TPZManVector<TVar> fStorage;
+	TPZVec<TVar> fStorage;
 };
 
 /** @brief Implements iterative sum over N steps */

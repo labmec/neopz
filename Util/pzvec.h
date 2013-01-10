@@ -290,7 +290,7 @@ void TPZVec<T>::Resize(const long newsize,const T& object){
 	else newstore = 0;
 	long large = (fNElements < newsize) ? fNElements : newsize;
 	long i;
-	for(i=0; i<large; i++) {
+	for(i=0L; i<large; i++) {
 		newstore[i] = fStore[i];
 	}
 	for(;i<newsize;i++) {   // then only to case : large=fNElement < newsize
@@ -322,7 +322,7 @@ void TPZVec<T>::Resize(const long newsize){
 	T *newstore = new T[newsize];
 	long large = (fNElements < newsize) ? fNElements : newsize;
 	long i;
-	for(i=0; i<large; i++) {
+	for(i=0L; i<large; i++) {
 		newstore[i] = fStore[i];
 	}
 	if (fStore) delete[] fStore;

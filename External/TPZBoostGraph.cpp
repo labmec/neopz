@@ -36,7 +36,7 @@ void TPZBoostGraph::ClearDataStructures()
 	TPZRenumbering::ClearDataStructures();
 }
 
-void TPZBoostGraph::Resequence(TPZVec<int> &perm, TPZVec<int> &inverseperm)
+void TPZBoostGraph::Resequence(TPZVec<long> &perm, TPZVec<long> &inverseperm)
 {
 #ifdef LOG4CXX
   {

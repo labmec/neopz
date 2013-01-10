@@ -326,7 +326,7 @@ void TPZManVector< T, NumExtAlloc >::Expand( const long newsize )
 	{// the size is larger than the allocated memory
 		T* newstore = new T[ newsize ];
 		
-		for ( long i = 0; i < this->fNElements; i++)
+		for ( long i = 0L; i < this->fNElements; i++)
 		{
 			newstore[i] = this->fStore[i];
 		}
@@ -411,7 +411,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 		
 		long i;
 		
-		for (i = 0; i < this->fNElements; i++)
+		for (i = 0L; i < this->fNElements; i++)
 		{
 			fExtAlloc[i] = this->fStore[i];
 		}
@@ -432,7 +432,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize, const T& object)
 		
 		T* newstore = new T[realsize];
 		
-		for (i = 0; i < this->fNElements; i++)
+		for (i = 0L; i < this->fNElements; i++)
 		{
 			newstore[i] = this->fStore[i];
 		}
@@ -472,7 +472,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
 	else if (newsize <= NumExtAlloc)
 	{  // that is, fExtAlloc != this->fStore
 		if(this->fStore != fExtAlloc) {
-			for (long i = 0; i < this->fNElements; i++)
+			for (long i = 0L; i < this->fNElements; i++)
 			{
 				fExtAlloc[i] = this->fStore[i];
 			}
@@ -490,7 +490,7 @@ void TPZManVector< T, NumExtAlloc >::Resize(const long newsize)
 		long realsize = ExpandSize (newsize);
 		T *newstore = new T[realsize];
 		
-		for (long i = 0; i < this->fNElements; i++)
+		for (long i = 0L; i < this->fNElements; i++)
 		{
 			newstore[i] = this->fStore[i];
 		}

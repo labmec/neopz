@@ -113,7 +113,7 @@ long TPZSkylMatrix<TVar>::NumElements(const TPZVec<int> &skyline) {
 }
 
 template<class TVar>
-void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline, TPZManVector<TVar> &storage, TPZVec<TVar *> &point) {
+void TPZSkylMatrix<TVar>::InitializeElem(const TPZVec<int> &skyline, TPZVec<TVar> &storage, TPZVec<TVar *> &point) {
 	long dim = skyline.NElements();
 	long nel = NumElements(skyline);
 	storage.Resize(nel);
@@ -1027,7 +1027,7 @@ TPZSkylMatrix<TVar>::Decompose_Cholesky_blk(int blk_sz)
 
 	// Compute u(i,j) = (a_ij - SUM_k_1_to_i-1 (u_ki * u_kj) ) / uii 
 
-	TVar  u_ii = fElem[i][0];
+//	TVar  u_ii = fElem[i][0];
 	int I = j-i; // fElem[j][I] = A(i,j) I = j-i 
 	TVar* u_ij = &fElem[j][I];
 	
@@ -1496,7 +1496,7 @@ int
 TPZSkylMatrix<TVar>::Clear()
 {
 	this->fStorage.Resize(0);
-	fStorage.Shrink();
+//	fStorage.Shrink();
 	this->fElem.Resize(0);
 	this->fRow = this->fCol = 0;
 	this->fDecomposed = 0;

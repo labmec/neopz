@@ -327,6 +327,7 @@ int main() {
 			delete cmesh;
 			delete gmesh;
 		}
+		break;
 	}
 	
 	fileerrors << std::endl << std::endl;
@@ -1622,7 +1623,6 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 			TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
 		}
 		
-		return 0;
 		/*
 		 REAL valerror =0.;
 		 REAL valtruerror=0.;
@@ -1733,6 +1733,7 @@ int main_AdaptHP_3D(int argc, char *argv[]) {
 	 
 	 return EXIT_SUCCESS;
 	 */
+	return 0;
 }
 
 /** Exact solutions to calculate the rate of convergence */
@@ -1745,14 +1746,6 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	//    TransformInvX(x2,RotInv);
   	REAL r = sqrt(x2[0]*x2[0]+x2[1]*x2[1]);
   	REAL theta = atan2(x2[1],x2[0]);
-#ifdef LOG4CXX
-    if (loggerpoint->isDebugEnabled())
-    {
-        std::stringstream sout;
-        sout << "Point " << x2;
-        LOGPZ_DEBUG(loggerpoint, sout.str())
-    }
-#endif
   	REAL rexp = pow(r,onethird);
   	sol[0] = rexp*sin(onethird*(theta+PI/2));
     TPZFNMatrix<3,REAL> grad(4,1,0.),grad2(4,1,0.);
