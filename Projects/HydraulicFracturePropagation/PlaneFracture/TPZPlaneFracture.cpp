@@ -47,7 +47,7 @@ TPZPlaneFracture::TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletD
 {
     fposTVD_stress = posTVD_stress;
     
-    fInitialElId = 0;
+    fInitialElIndex = 0;
     
     fPreservedMesh = new TPZGeoMesh;
     
@@ -513,7 +513,7 @@ void TPZPlaneFracture::DetectEdgesCrossed(const TPZVec<std::pair<REAL,REAL> > &p
     int axe1 = 2;//axe Z
     int axeNormal = 1;//axe Y
     TPZVec<REAL> qsi(2,0.);
-    TPZGeoEl * firstGel = planeMesh->FindElement(coord, qsi, fInitialElId, 2);
+    TPZGeoEl * firstGel = planeMesh->FindElement(coord, qsi, fInitialElIndex, 2);
     
 	TPZGeoEl * gel = firstGel;
 	TPZGeoEl * nextGel = NULL;

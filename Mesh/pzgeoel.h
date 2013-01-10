@@ -405,6 +405,11 @@ public:
 	{
 		fIndex = index;
 	}
+    
+    void SetId(int elId)
+    {
+        fId = elId;
+    }
 	
 	/** @brief Get the transform id the face to face*/
 	int GetTransformId2dQ(TPZVec<int> &idfrom,TPZVec<int> &idto);

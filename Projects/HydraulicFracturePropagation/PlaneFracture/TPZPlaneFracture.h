@@ -21,7 +21,6 @@
 #include "TPZPlaneFractureMaterials.h"
 
 
-
 /// Real as tolerance 
 const REAL __smallNum = 1.E-5;
 
@@ -129,7 +128,7 @@ public:
 
 
 /**
- * Obs.:    Caso seja necessario retroceder no futuro, 
+ * Obs.:    Caso no futuro seja necessario retroceder, 
  *          os metodos PointElementOnFullMesh e PointElementOnPlaneMesh ainda
  *          aparecem NO PRIMEIRO commit deste arquivo na data de 24 de outubro de 2012.
  *          Agora eles foram suprimidos por serem substituidos pelo metodo
@@ -139,7 +138,7 @@ public:
  */
 
 /**
- * Obs.:    Caso seja necessario retroceder no futuro,
+ * Obs.:    Caso no futuro seja necessario retroceder,
  *          o atributo fcrackQpointsElementsIds, que servia para guardar os elementos que tornariam-se
  *          quarter points, ainda aparece no commit de 22 de novembro de 2012 (15:39h).
  *          Ao suprimir o atributo, houve mudanca no metodo TurnIntoQuarterPoint(...).
@@ -160,11 +159,11 @@ class TPZPlaneFracture
 	 * @param bulletDepthTVDIni [in] : bullets perforation initial (TVD) depth
 	 * @param bulletDepthTVDFin [in] : bullets perforation final (TVD) depth
 	 * @param posTVD_stress [in] : stress profile described by stretches (TVD)
-     *              Obs.: Stress profile in each stretch is linear
+     *              Obs.: Stress profile in each stretch is linear, defined by (initialTVD,initialStress)~(finalTVD,finalStress)
      * @param xLength [in] : Reservoir length in x direction (crack propagation direction)
-     * @param yLength [in] : Reservoir length in y direction (tickness that couple fracture plane)
+     * @param yLength [in] : Reservoir length in y direction (tickness of reservoir that couple fracture plane)
      *
-     * TVD: Total vertical depth (positive positions)
+     * TVD: True Vertical Depth (positive positions)
 	 */
     TPZPlaneFracture(REAL lw, REAL bulletDepthTVDIni, REAL bulletDepthTVDFin, TPZVec< std::map<REAL,REAL> > & posTVD_stress, REAL xLength, REAL yLength);
     
@@ -173,6 +172,8 @@ class TPZPlaneFracture
     /**
      * @brief Method that will run a FEM simmulation of a classical vertical plane fracture
      * @param poligonalChain [in] : Poligonal chain that represents the crack boundary
+     * @param pressureInsideCrack [in] : uniform pressure inside crack
+     * @param sigmaTraction [in] : uniform traction on the farfield surface (farfield surface have normal {0,1,0})
      * @param vtkFile [in] : VTK file name for post processing
      * @param printVTKfile [in] : flag that will determine if vtkFile will be generated (true) or not (false)
      */
@@ -193,7 +194,7 @@ class TPZPlaneFracture
 	 * @brief Returns an GeoMesh based on original planeMesh, contemplating the poligonalChains geometry by refined elements
 	 * @param poligonalChain [in] : vector of boundary points coordinates
 	 *
-	 * @note Each vector position store x, y and z coordinates IN SEQUENCE of an poligonalChain geometry.
+	 * @note Each vector position store x and z coordinates IN SEQUENCE of an poligonalChain geometry.
 	 *
 	 * Example:
 	 *
@@ -229,13 +230,11 @@ class TPZPlaneFracture
 	 *
 	 * Example:
 	 *
-	 *		x coordinate of first point of crack boundary: poligonalChain[0]\n
-	 *		y coordinate of first point of crack boundary: poligonalChain[1]\n
-	 *		z coordinate of first point of crack boundary: poligonalChain[2]\n
+	 *		x coordinate of first point of crack boundary: poligonalChain[0].first\n
+	 *		z coordinate of first point of crack boundary: poligonalChain[0].second\n
 	 *		//
-	 *		x coordinate of second point of crack boundary: poligonalChain[3]\n
-	 *		y coordinate of second point of crack boundary: poligonalChain[4]\n
-	 *		z coordinate of second point of crack boundary: poligonalChain[5]
+	 *		x coordinate of second point of crack boundary: poligonalChain[1].first\n
+	 *		z coordinate of second point of crack boundary: poligonalChain[1].second
 	 *
 	 * @param fractMesh [in] : geomesh of considered elements
 	 * @param elId_TrimCoords [out] : map that contains 1D element Id and a set of it trim 1D coordinates
@@ -382,7 +381,8 @@ class TPZPlaneFracture
     /** @brief 1D elements Ids that compose crack boundary */
     TPZVec<int> fcrackBoundaryElementsIds;
     
-    int fInitialElId;
+    /** @brief initial element index in point search (just for optimization) */
+    int fInitialElIndex;
 };
 
 #endif

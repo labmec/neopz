@@ -18,8 +18,6 @@
 #include "TPZPlaneFracture.h"
 
 
-const REAL Pi = 3.1415926535897932384626433832795;
-
 /**
  * @brief Plane of the fracture.
  * @author Cesar Lucci (aka Caju)

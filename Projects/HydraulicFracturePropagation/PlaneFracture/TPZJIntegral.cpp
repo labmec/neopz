@@ -39,9 +39,9 @@ LinearPath3D::LinearPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Fina
     fcrackPressure = fabs(pressure);
     
     fInitialPoint.Resize(3, 0.);
-    fInitialPoint[0] = (fFinalPoint[0] - fradius*sin((Pi)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-    fInitialPoint[1] = fradius*cos((Pi)/2.);
-    fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi)/2.));
+    fInitialPoint[0] = (fFinalPoint[0] - fradius*sin((M_PI)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+    fInitialPoint[1] = fradius*cos((M_PI)/2.); 
+    fInitialPoint[2] = (fFinalPoint[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI)/2.));
     
     f_t_elIdqsi.clear();
 }
@@ -84,9 +84,9 @@ void LinearPath3D::X(REAL t, TPZVec<REAL> & xt)
 //
 //    TPZVec<REAL> xarc(3);
 //    t = 1;
-//    xarc[0] = (fOrigin[0] - fradius*sin(Pi/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-//    xarc[1] = fradius*cos((Pi*t)/2.);
-//    xarc[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
+//    xarc[0] = (fOrigin[0] - fradius*sin(M_PI/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+//    xarc[1] = fradius*cos((M_PI*t)/2.);
+//    xarc[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI*t)/2.));
 //
 //    for(int c = 0; c < 3; c++)
 //    {
@@ -340,7 +340,7 @@ ArcPath3D::ArcPath3D(TPZAutoPointer<TPZCompMesh> cmesh, TPZVec<REAL> &Origin, TP
     fNormalDirection = normalDirection;
     fradius = radius;
     
-    fDETdxdt = Pi*fradius/2.;
+    fDETdxdt = M_PI*fradius/2.;
     
     fcmesh = cmesh;
     
@@ -372,9 +372,9 @@ void ArcPath3D::X(REAL t, TPZVec<REAL> & xt)
 {
     xt.Resize(3,0.);
     
-    xt[0] = (fOrigin[0] - fradius*sin((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
-    xt[1] = fradius*cos((Pi*t)/2.);
-    xt[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((Pi*t)/2.));
+    xt[0] = (fOrigin[0] - fradius*sin((M_PI*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])));
+    xt[1] = fradius*cos((M_PI*t)/2.);
+    xt[2] = (fOrigin[2] + fradius*cos(atan2(fNormalDirection[2],fNormalDirection[0]))*sin((M_PI*t)/2.));
 }
 
 
@@ -382,9 +382,9 @@ void ArcPath3D::X(REAL t, TPZVec<REAL> & xt)
 //{
 //    dxdt.Resize(3,0.);
 //
-//    dxdt[0] = -(Pi*fradius*cos((Pi*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
-//    dxdt[1] = -(Pi*fradius*sin((Pi*t)/2.))/2.;
-//    dxdt[2] = +(Pi*fradius*cos((Pi*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
+//    dxdt[0] = -(M_PI*fradius*cos((M_PI*t)/2.)*sin(atan2(fNormalDirection[2],fNormalDirection[0])))/2.;
+//    dxdt[1] = -(M_PI*fradius*sin((M_PI*t)/2.))/2.;
+//    dxdt[2] = +(M_PI*fradius*cos((M_PI*t)/2.)*cos(atan2(fNormalDirection[0],fNormalDirection[2])))/2.;
 //}
 
 
@@ -528,7 +528,7 @@ TPZVec<REAL> ArcPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt)
 void ArcPath3D::SetRadius(REAL radius)
 {
     fradius = radius;
-    fDETdxdt = Pi*radius/2.;
+    fDETdxdt = M_PI*radius/2.;
     
     f_t_elIdqsi.clear();
 }
