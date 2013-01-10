@@ -109,6 +109,11 @@ int main(int argc, char *argv[]) {
 	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
 	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
 	gmesh3D->SetName("First Mesh Extruded");
+	// Boundary condition Dirichlet into corner
+	TPZGeoElBC gelbcD(gmesh3D->ElementVec()[1],25,-7);   // Dirichlet condition for hexahedra
+	// Boundary condition Newmann in front
+	TPZGeoElBC gelbcN1(gmesh3D2->ElementVec()[0],21,-3);
+	TPZGeoElBC gelbcN2(gmesh3D2->ElementVec()[1],21,-3);
 	sprintf(saida,"meshextruded1.vtk");
 	// Printing COMPLETE initial geometric mesh 
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
@@ -129,6 +134,13 @@ int main(int argc, char *argv[]) {
 	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
 	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,-3,-2);
 	gmesh3D2->SetName("Second Mesh Extruded");
+	// Boundary condition Dirichlet into corner
+	TPZGeoElBC gelbcD2(gmesh3D2->ElementVec()[0],22,-7);   // Dirichlet condition for hexahedra
+	// Boundary condition Newmann in front
+	TPZGeoElBC gelbcN1(gmesh3D2->ElementVec()[0],21,-3);
+	TPZGeoElBC gelbcN2(gmesh3D2->ElementVec()[0],24,-6);
+	TPZGeoElBC gelbcN3(gmesh3D2->ElementVec()[1],23,-5);
+	TPZGeoElBC gelbcN4(gmesh3D2->ElementVec()[1],24,-6);
 	// Printing COMPLETE initial geometric mesh 
 	sprintf(saida,"meshextruded2.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D2,saida);
@@ -148,6 +160,8 @@ int main(int argc, char *argv[]) {
 	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
 	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-2);
 	gmesh3D3->SetName("Third Mesh Extruded");
+	// Boundary condition Dirichlet into corner
+	TPZGeoElBC gelbc(gmesh3D3->ElementVec()[0],21,-7);   // Dirichlet condition for hexahedra
 	// Printing COMPLETE initial geometric mesh 
 	sprintf(saida,"meshextruded3.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D3,saida);
@@ -231,51 +245,6 @@ int main(int argc, char *argv[]) {
 	
 	// END Determining the name of the variables
 	
-	// TO MAKE MERGE ANOTHER DOMAIN
-	if(anothertests) {
-		// Second rectangular domain - subdivisions and corners of the second rectangular mesh
-		TPZAutoPointer<TPZGeoMesh> gmesh2 = new TPZGeoMesh;
-		x0[1] = 0.2;                 // left and right extremes of the new geo mesh. Coordinates: (0.,0.2,0.0) (3.,1.,0.) 
-		x1[0] = 3.; x1[1] = 1.;
-		nx[0] = 15; nx[1] = 8;       // subdivision in X and Y. hx = 0.2 and hy = 0.1
-		TPZGenGrid gen2(nx,x0,x1);   // second mesh generator
-		gen2.SetElementType(0);      // type = 0 means rectangular elements, type = 1 means triangular elements
-		
-		// Generating gmesh2 with last data and after this the gmesh is merged into the gmesh2. But gmesh is unmodified
-		// if exist boundary elements into the mesh merged it will be deleted
-		gen2.ReadAndMergeGeoMesh(gmesh2,gmesh);
-		
-		// setting bc condition -1 [no flux - is wall] from (0.0, 0.0) until (3.0, 0.2)
-		x0[1] = 0.0; x1[1] = 0.2;
-		gen2.SetBC(gmesh2,x0,x1,-1);
-		// setting bc condition -1 from (3.0, 1.0) until (0.0, 1.0)
-		x0[0] = 3.; x0[1] = 1.;
-		x1[0] = 0.;	x1[1] = 1.;
-		gen2.SetBC(gmesh2,x0,x1,-1);
-		// setting bc condition -2 [free flux] from (3.0, 1.0) until (3.0, 0.2)
-		x1[0] = 3.;	x1[1] = .2;
-		gen2.SetBC(gmesh2,x1,x0,-2);
-		// setting bc condition -2 [free flux] from (0.0, 1.0) until (0.0, 0.0)
-		x0[0] = 0.;
-		x1[0] = x1[1] = 0.;
-		gen2.SetBC(gmesh2, x0, x1, -2);
-		
-#ifdef DEBUG
-		sprintf(saida,"original.vtk");
-		PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
-		sprintf(saida,"meshes.vtk");
-		PrintGeoMeshVTKWithDimensionAsData(gmesh2.operator->(),saida);
-#endif
-		// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-		// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-		TPZExtendGridDimension gmeshextend(gmesh2,0.3);
-		TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-5,-6);
-#ifdef DEBUG
-		sprintf(saida,"meshextrudedend.vtk");
-		PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
-#endif
-		dim = 3;
-	}
 	
 	// INITIAL POINT FOR SOLVING AND APPLYING REFINEMENT
 	for(r=0;r<NUniformRefs;r++) {
