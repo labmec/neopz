@@ -282,21 +282,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 		A = DeltaHTranspose*DeltaH;
 		A.SolveDirect(B,ELU);
 		
-		// Normalizando el vector gradiente
-//		Grad = 0.0;
-//		for(k=0;k<dim;k++)
-//			Grad += (B(k,0)*B(k,0));
-//		// Almacenando los gradientes encontrados
-//		for(k=0;k<dim;k++) {
-//			if(!IsZero(B(k))) {
-//				gradients(counter,k) = B(k,0)/sqrt(Grad);//valor do gradiente normalizado
-//			}
-//			gradients(counter,dim+k) = center[k];//centro do elemento
-//            gradients(counter,2*dim+k) = solalfa[k];//solucao no centro do elemento
-//			gradients(counter,3*dim+k) = B(k,0);//valor do gradiente
-//			if(!k)
-//				gradients(counter,4*dim) = sqrt(Grad);//magnitude do gradiente
-//		}
+		//data of the vector gradiente
         for(k=0;k<dim;k++){
             if(!k) gradients(counter,0) = cel->Index();//Id do elemento
             gradients(counter,dim+k) = center[k];//centro do elemento
