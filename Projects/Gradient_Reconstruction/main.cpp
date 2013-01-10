@@ -557,7 +557,7 @@ TPZGeoMesh *GMesh1D(int nh){
 	return gmesh;
 }
 
-#include "pznewl2projection.h"
+#include "pzl2projectionforgradient.h"
 TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
