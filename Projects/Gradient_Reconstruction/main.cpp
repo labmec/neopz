@@ -70,10 +70,12 @@ void Forcingbc3(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 void ForcingF(const TPZVec<REAL> &pt, TPZVec<REAL> &disp);
 
 void mySolve(TPZAnalysis &an, TPZCompMesh *Cmesh);
-void PosProcessamento(TPZAnalysis &an, std::string plotfile,TPZFMatrix<REAL> &gradients);
+void PosProcessamento(TPZAnalysis &an,TPZCompMesh *Cmesh, std::string plotfile,TPZFMatrix<REAL> &gradients);
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0);
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous = false);
+
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients);
 
 int main(int argc, char *argv[]) {
 
@@ -95,38 +97,41 @@ int main(int argc, char *argv[]) {
     REAL x0 = -1.;
     REAL y0= 2.;
     
+    int dim=1;
     int p = 4;
 	bool continuous = false;
 	//primeira malha
 	do {
-		for(int nrefs=1;nrefs<4;nrefs++) {
-			for(int type=0;type<2;type++) {
+		for(int nrefs=1;nrefs<2;nrefs++) {
+			for(int type=0;type<1;type++) {
 				cout << "\nCase: continuous: " << continuous << "  nrefs: " << nrefs << "   type: " << type << endl;
 				// geometric mesh (initial)
-				TPZGeoMesh * gmesh = GMesh(type,anglo,x0,y0,nrefs);
+				//TPZGeoMesh * gmesh = GMesh(type,anglo,x0,y0,nrefs);
+                TPZGeoMesh * gmesh = GMesh1D(nrefs);
 				TPZVec<TPZGeoEl *> sub, subsub;
 				TPZGeoEl *gel = 0;
 				int conta = 0;
-				while(!gel) {
-					gel = gmesh->ElementVec()[conta++];
-					if(gel->Dimension() != 2) {
-						gel = 0;
-						continue;
-					}
-					gel->Divide(sub);
-					sub[1]->Divide(subsub);
-				}
+//				while(!gel) {
+//					gel = gmesh->ElementVec()[conta++];
+//					if(gel->Dimension() != dim) {
+//						gel = 0;
+//						continue;
+//					}
+//					gel->Divide(sub);
+//					sub[1]->Divide(subsub);
+//				}
 				ofstream arg1("gmesh_inicial.txt");
 				gmesh->Print(arg1);
 				
 				// First computational mesh
-				TPZCompMesh * cmesh= CMesh(gmesh,p);
+				//TPZCompMesh * cmesh= CMesh(gmesh,p);
+                TPZCompMesh * cmesh= CMesh1D(gmesh,p);
 				ofstream arg2("cmesh_inicial.txt");
 				cmesh->Print(arg2);
 				
 				// Solving
 				TPZAnalysis an(cmesh);
-				mySolve(an, cmesh);
+				mySolve(an,cmesh);
 				
 				// Computing approximation of gradient
 				/** 
@@ -135,17 +140,33 @@ int main(int argc, char *argv[]) {
 				TPZFMatrix<REAL> gradients;
 				GradientReconstructionByLeastSquares(gradients,cmesh,0,0,continuous);
 				gradients.Print();
+                SaidaMathGradiente(gradients);
 
 				// Print gradient reconstructed
 				string plotfile("GradientAndSolution.vtk");
-				PosProcessamento(an,plotfile,gradients);
-			}
+				PosProcessamento(an,cmesh,plotfile,gradients);
+            }
 		}
 		continuous = !continuous;
 	} while(continuous);
 	
     return 0;
 }
+
+
+ofstream outfile1("SaidaGradiente.nb");
+void SaidaMathGradiente(TPZFMatrix<REAL> gradients){
+    outfile1<<" data = {";
+    for(int i = 0;  i< gradients.Rows(); i++)
+    {
+        outfile1<<"{" << gradients(i,1)<< ", " << gradients(i,2)<<"}";
+        if(i!= gradients.Rows()-1) outfile1<<", ";
+        if(i== gradients.Rows()-1) outfile1<<"};"<<std::endl;
+    }
+    outfile1<<"ListPlot[data, Joined -> True, PlotRange -> All, Frame -> True]"<<endl;
+}
+
+
 
 /** Reconstrucción del gradiente utilizando la linearizacion (Taylor) de la solución para los centros de todos los elementos vecinos */
 /** Formula: u(xbi,ybi,zbi) = u(xa,ya,za) + a*(xbi-xa) + b*(ybi-ya) + c*(zbi-za)  ->  donde Grad(u) ~= (a,b,c) */
@@ -165,7 +186,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	
 	// Redimensionando a matriz dos gradientes
 	int nelem = cmesh->NElements();
-    gradients.Redim(nelem,4*dim);
+    gradients.Redim(nelem,3*dim);
 	
 	int k, side;
 	int counter = 0;
@@ -262,23 +283,29 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 		A.SolveDirect(B,ELU);
 		
 		// Normalizando el vector gradiente
-		Grad = 0.0;
-		for(k=0;k<dim;k++)
-			Grad += (B(k,0)*B(k,0));
-		// Almacenando los gradientes encontrados
-		for(k=0;k<dim;k++) {
-			if(!IsZero(B(k))) {
-				gradients(counter,k) = B(k,0)/sqrt(Grad);
-			}
-			gradients(counter,dim+k) = center[k];
-			gradients(counter,2*dim+k) = B(k,0);
-			if(!k)
-				gradients(counter,3*dim) = sqrt(Grad);
-		}
+//		Grad = 0.0;
+//		for(k=0;k<dim;k++)
+//			Grad += (B(k,0)*B(k,0));
+//		// Almacenando los gradientes encontrados
+//		for(k=0;k<dim;k++) {
+//			if(!IsZero(B(k))) {
+//				gradients(counter,k) = B(k,0)/sqrt(Grad);//valor do gradiente normalizado
+//			}
+//			gradients(counter,dim+k) = center[k];//centro do elemento
+//            gradients(counter,2*dim+k) = solalfa[k];//solucao no centro do elemento
+//			gradients(counter,3*dim+k) = B(k,0);//valor do gradiente
+//			if(!k)
+//				gradients(counter,4*dim) = sqrt(Grad);//magnitude do gradiente
+//		}
+        for(k=0;k<dim;k++){
+            if(!k) gradients(counter,0) = cel->Index();//Id do elemento
+            gradients(counter,dim+k) = center[k];//centro do elemento
+            if(!IsZero(B(k,0))) gradients(counter,2*dim+k) = B(k,0);//valor do gradiente
+        }
 		counter++;
 	}
 	// Redimensionando la matriz de los gradientes
-	gradients.Resize(counter,4*dim);
+	gradients.Resize(counter,3*dim);
 }
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
@@ -332,13 +359,13 @@ void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMes
 	}
 }
 
-void PosProcessamento(TPZAnalysis &an, std::string plotfile,TPZFMatrix<REAL> &gradients){
+void PosProcessamento(TPZAnalysis &an, TPZCompMesh *Cmesh, std::string plotfile,TPZFMatrix<REAL> &gradients){
 	TPZManVector<std::string,10> scalnames(1), vecnames(1);
 	scalnames[0] = "Solution";
     vecnames[0] = "Derivate";
     
-	const int dim = 2;
-	int div = 0;
+	const int dim = Cmesh->Dimension();
+	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
 	// Carregar gradients como soluçao na malla computacional
@@ -528,20 +555,22 @@ TPZGeoMesh *GMesh1D(int nh){
 		int n = gmesh->NElements();
 		for ( int i = 0; i < n; i++ ){
 			TPZGeoEl * gel = gmesh->ElementVec() [i];
-			//if (gel->Dimension() == 2) gel->Divide (filhos);
-            gel->Divide (filhos);
+			if (gel->Dimension() == 1) gel->Divide (filhos);
+           // gel->Divide (filhos);
 		}//for i
 	}//ref
     
 	return gmesh;
 }
 
-TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
+TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
-	int dim = 2;
-	TPZMat1dLin *material;
-	material = new TPZMat1dLin(matId);
+	int dim = 1;
+//	TPZMat1dLin *material;
+//	material = new TPZMat1dLin(matId);
+    TPZMatPoisson3d *material;
+    material = new TPZMatPoisson3d(matId,dim);
 	material->NStateVariables();
     
     TPZFMatrix<STATE> xkin(1,1,-1.);
@@ -549,7 +578,9 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     TPZFMatrix<STATE> xbin(1,1,0.);
     TPZFMatrix<STATE> xfin(1,1,0.);
     
-    material-> SetMaterial(xkin, xcin, xbin, xfin);
+   // material-> SetMaterial(xkin, xcin, xbin, xfin);
+    TPZVec<REAL> condir(1,0.);
+    material-> SetParameters(xkin(0,0), xcin(0,0),condir);
     
     TPZAutoPointer<TPZFunction<STATE> > myforce = new TPZDummyFunction<STATE>(ForcingF);
     material->SetForcingFunction(myforce);
@@ -565,10 +596,10 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     REAL val_ux0 = -0.0886226925452758;
     REAL val_ux1 = 0.0886226925452758;
     
-    val2(2,1)=val_ux0;
+    val2(0,0)=val_ux0;
 	TPZMaterial * BCond0 = material->CreateBC(mat, bc0,dirichlet, val1, val2);
     
-    val2(2,1)=val_ux1;
+    val2(0,0)=val_ux1;
     TPZMaterial * BCond1 = material->CreateBC(mat, bc1,dirichlet, val1, val2);
     
     
@@ -597,10 +628,10 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 	return cmesh;
 }
 
-TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
+TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
-	int dim = 1;
+	int dim = 2;
 	TPZMatPoisson3d *material;
 	material = new TPZMatPoisson3d(matId,dim);
     
