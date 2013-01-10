@@ -147,6 +147,27 @@ void TPZGeoMesh::Print (std::ostream & out)
 		out << l << " / " << r << " -> " << m << "\n";
 	}
 }
+void TPZGeoMesh::PrintTopologicalInfo(std::ostream & out)
+{
+	out << "TITLE-> " << fName << "\n";
+	out << "Number of nodes       = " << fNodeVec.NElements() << "\n";
+	out << "Number of elements    = " << fElementVec.NElements()-fElementVec.NFreeElements() << "\n";
+	
+	out << "\n\tGeometric Node Information:\n";
+	int i;
+	int nnodes = fNodeVec.NElements();
+	for(i=0; i<nnodes; i++)
+	{
+		fNodeVec[i].Print(out);
+	}
+	out << "\n\tGeometric Element Information:\n";
+	int nelem = fElementVec.NElements();
+	for(i=0; i<nelem; i++)
+	{
+		if(fElementVec[i]) fElementVec[i]->PrintTopologicalInfo(out);
+		out << "\n";
+	}
+}
 
 void TPZGeoMesh::GetNodePtr(TPZVec<int> &nos,TPZVec<TPZGeoNode *> &nodep)
 {

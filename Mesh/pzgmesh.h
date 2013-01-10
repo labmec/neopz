@@ -152,7 +152,8 @@ public:
 	TPZCompMesh *Reference() const {return fReference;}
 	
 	/** @brief Print the information of the grid to an ostream */
-	virtual  void Print(std::ostream & out = std::cout);
+	virtual void Print(std::ostream & out = std::cout);
+	virtual void PrintTopologicalInfo(std::ostream & out = std::cout);
 	
     /** @brief Returns the nearest node to the coordinate. This method is VERY INEFFICIENT */
 	TPZGeoNode* FindNode(TPZVec<REAL> &co);

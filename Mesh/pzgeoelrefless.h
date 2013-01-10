@@ -124,6 +124,15 @@ public:
 		out << "fGeo:\n";
 		fGeo.Print(out);
 	}
+	/** @brief Prints topological information of: TGeo (TPZGeoCube, TPZGeoPrism, TPZGeoQuad, ...) */
+	virtual void PrintTopologicalInfo(std::ostream &out)
+	{
+		out << "Geo Element - fId " << fId << "\t Type " << fGeo.TypeName() << "\t";
+		fGeo.Print(out);
+		int i;
+		out << std::endl << "\t";
+		for (i = 0;i < NNodes();i++) out << NodePtr(i)->Id() << " ";
+	}
 	
 	virtual  int SideNodeIndex(int side,int node) const;
 	

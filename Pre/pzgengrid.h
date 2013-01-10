@@ -8,7 +8,9 @@
 
 class TPZCompMesh;
 class TPZGeoMesh;
+
 #include "pzvec.h"
+#include "pzmanvector.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -164,6 +166,12 @@ public:
 	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
 	 */
 	bool ReadAndMergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid = 1);
+	/**
+	 * @brief Merges two geometrical mesh created for TPZGenGrid as separated, both meshes must to exist
+	 * @param grid Mesh over which will be increment the nodes and elements no duplicated of the second mesh
+	 * @param grid2 Mesh from get nodes and elements and put into grid if it is not duplicated
+	 */
+	bool MergeGeoMesh(TPZGeoMesh* grid,TPZGeoMesh* grid2,int matid = 1);
 	
 protected:
     /**
@@ -197,15 +205,15 @@ protected:
     virtual bool GenerateElements(TPZGeoMesh *grid,int matid = 1);
     
     /** @brief Number of elements in both directions */
-	TPZVec<int> fNx;
+	TPZManVector<int> fNx;
     /** @brief Coordinate of the lower left point */
-	TPZVec<REAL> fX0;
+	TPZManVector<REAL> fX0;
     /** @brief coordinate of the upper right point */
-	TPZVec<REAL> fX1;
+	TPZManVector<REAL> fX1;
     /** @brief Size of the lower left element */
-	TPZVec<REAL> fDelx;
+	TPZManVector<REAL> fDelx;
     /** @brief Geometric progression coeficients in the x and y direction */
-	TPZVec<REAL> fGeometricProgression;
+	TPZManVector<REAL> fGeometricProgression;
     /** @brief Number of nodes of the mesh */
 	int fNumNodes;
     /** 

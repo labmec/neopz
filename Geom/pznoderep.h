@@ -189,7 +189,7 @@ namespace pzgeom {
                 void Print(std::ostream &out) const
                 {
                         int nn;
-                        out << "Nodeindices :";
+                        out << "Nodeindices: ";
                         for(nn=0; nn<N; nn++)
                         {
                                 out << fNodeIndexes[nn] << ' ';

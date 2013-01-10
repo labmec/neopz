@@ -368,7 +368,7 @@ public:
 	 * @brief Prints the coordinates of all nodes (geometric)
 	 * @param out Indicates the device where the coordinates will be printed
 	 */
-	 virtual void PrintNodesCoordinates(std::ostream & out = std::cout);
+	 virtual void PrintTopologicalInfo(std::ostream & out = std::cout);
 	
 	/** @brief Make the current element reference to the computational element*/
 	void SetReference(TPZCompEl *elp);

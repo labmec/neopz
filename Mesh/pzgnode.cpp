@@ -85,7 +85,7 @@ void TPZGeoNode::GetCoordinates(TPZVec<REAL> &co)
 
 void TPZGeoNode::Print(ostream & out) {
 	out << "Node : fId = " << fId;
-	out << endl << "Coordinates";
+	out << "\t\tCoordinates";
 	for(int i=0;i<3;i++) out << "\t" << fCoord[i];
 	out << "\n";
 }

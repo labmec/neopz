@@ -271,7 +271,7 @@ void TPZGeoEl::Print(std::ostream & out) {
 	out << "fNumInterfaces = " << fNumInterfaces << endl;
 }
 
-void TPZGeoEl::PrintNodesCoordinates(std::ostream & out) {
+void TPZGeoEl::PrintTopologicalInfo(std::ostream & out) {
     int elId = this->Id();
     int nnodes = this->NNodes();
     out << "Element id: " << elId << "\n";

@@ -61,295 +61,115 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 
-//void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
-
-/**
- * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
- */
-int main2D(int argc, char *argv[]) {
-	
-#ifdef LOG4CXX
-	InitializePZLOG();
-#endif
-	const int L = 4;
-	gLMax = L-1;
-	char saida[260];
-	
-	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
-	
-	int r, dim;
-	
-	// Initializing a ref patterns
-	//gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	
-	// output files
-    std::ofstream convergence("conv3d.txt");
-    std::ofstream out("output.txt");
-	
-	/** Set polynomial order */
-	int p, pmax = 2;
-	for(p=1;p<pmax;p++) {
-		// First rectangular mesh:
-		// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
-		// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
-		// Has 4 elements, 9 connects and 8 bc elements
-		cout << "Generating geometric mesh bi-dimensional ...\n";
-		TPZGeoMesh* gmesh = new TPZGeoMesh;
-		TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
-		x1[2] = 0.;
-		TPZManVector<int> nx(3,3);   // subdivisions in X and in Y. 
-		TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-		gen.SetElementType(0);       // type = 0 means rectangular elements
-		gen.Read(gmesh);             // generating grid in gmesh
-		
-		// Applying hp adaptive techniques 2012/10/01
-		if(anothertests) {
-			// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-			TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;
-			sprintf(saida,"meshextrudedLeg.vtk");
-			
-		}
-		else {
-			sprintf(saida,"meshextrudedTChe.vtk");
-		}	
-		
-		// Refinement of the some element	
-		TPZGeoEl *gel, *gel1, *gel2, *gel3;
-		TPZVec<TPZGeoEl *> sub;
-		TPZVec<TPZGeoEl *> subsub;
-		gel = gmesh->ElementVec()[4];
-		//	gel1 = gmesh->ElementVec()[1];
-		//	gel2 = gmesh->ElementVec()[2];
-		//	gel3 = gmesh->ElementVec()[3];
-		gel->Divide(sub);
-		//	sub[0]->Divide(subsub);
-//		sub[1]->Divide(subsub);
-		sub[2]->Divide(subsub);
-		//	sub[3]->Divide(subsub);
-		/*	gel1->Divide(sub);
-		 sub[0]->Divide(subsub);
-		 sub[1]->Divide(subsub);
-		 sub[2]->Divide(subsub);
-		 sub[3]->Divide(subsub);
-		 gel2->Divide(sub);
-		 sub[0]->Divide(subsub);
-		 sub[1]->Divide(subsub);
-		 sub[2]->Divide(subsub);
-		 sub[3]->Divide(subsub);
-		 gel3->Divide(sub);
-		 sub[0]->Divide(subsub);
-		 sub[1]->Divide(subsub);
-		 sub[2]->Divide(subsub);
-		 sub[3]->Divide(subsub);
-		 */	
-		// Constructing connectivities
-		gmesh->ResetConnectivities();
-		gmesh->BuildConnectivity();
-		gmesh->Print();
-		// Printing COMPLETE initial geometric mesh 
-		PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
-		
-		TPZCompEl::SetgOrder(p);
-		// Creating computational mesh
-		TPZCompMesh *comp = new TPZCompMesh(gmesh);
-		
-		// Creating and inserting materials into computational mesh
-		TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,.5,0);   // two-dimensional
-		comp->InsertMaterialObject(mat);
-		dim = mat->Dimension();
-		nstate = mat->NStateVariables();
-		
-		// Boundary conditions
-		// Dirichlet
-		TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
-		val1(0,0) = 1.;
-		TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-		comp->InsertMaterialObject(bnd);
-		// Neumann
-		val2(0,0)=30.; val2(1,0) = 10.;
-		bnd = mat->CreateBC(mat,-2,1,val1,val2);
-		comp->InsertMaterialObject(bnd);
-		
-		// Constructing and adjusting computational mesh
-		comp->AutoBuild();
-		comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
-		comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
-		comp->Print();
-		
-
-	//--- END construction of the meshes
-	/** Variable names for post processing */
-    TPZStack<std::string> scalnames, vecnames;
-	if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
-		scalnames.Push("POrder");
-	else
-		vecnames.Push("POrder");
-	if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
-		scalnames.Push("Error");
-	else
-		vecnames.Push("Error");
-	if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
-		scalnames.Push("state");
-	else
-		vecnames.Push("state");
-    
-    if(nstate == 1) {
-        scalnames.Push("TrueError");
-        scalnames.Push("EffectivityIndex");
-    }else if(nstate == 2) {
-        scalnames.Push("sig_x");
-        scalnames.Push("sig_y");
-        scalnames.Push("tau_xy");
-    }
-    if(nstate == 3) {
-        scalnames.Push("StressX");
-        scalnames.Push("StressY");
-        scalnames.Push("StressZ");
-		vecnames.Push("PrincipalStress");
-		vecnames.Push("PrincipalStrain");
-    }
-	// END Determining the name of the variables
-	
-	// INITIAL POINT FOR SOLVING AND APPLYING REFINEMENT
-	for(r=0;r<NUniformRefs;r++) {
-		// Printing computational mesh to information
-		if(comp->NElements() < 200)
-			comp->Print(std::cout);
-		else {
-			std::cout << "Computacional mesh : NElements = " << comp->NElements() << "\t NConnects = " << comp->NConnects() << std::endl;
-		}
-		
-		// Introduzing exact solution depending on the case
-		TPZAnalysis an (comp);
-		an.SetExact(Exact);		
-		{   // To print solution
-			std::stringstream sout;
-			int angle = (int) (alfa*180./M_PI + 0.5);
-			if(anothertests) sout << "Leg_";
-			sout << "hptestAngo" << angle << "." << r << ".vtk";
-			an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
-		}
-		std::string MeshFileName;
-		{   // To print computational mesh
-			std::stringstream sout;
-			int angle = (int) (alfa*180./M_PI + 0.5);
-			if(anothertests) sout << "Leg_";
-			sout << "meshAngle" << angle << "." << r << ".vtk";
-			MeshFileName = sout.str();
-		}
-		comp->SetName("Malha computacional adaptada");
-		
-		// Solve using symmetric matrix then using Cholesky (direct method)
-		TPZSkylineStructMatrix strskyl(comp);
-		an.SetStructuralMatrix(strskyl);
-		
-		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-		direct->SetDirect(ECholesky);
-		an.SetSolver(*direct);
-		delete direct;
-		direct = 0;
-		
-		int neq = comp->NEquations();
-		//	an.NEquations();
-		//		an.Solution().Print();
-		an.Run();
-
-	 // Computing approximation of gradient
-	 /** 
-	 * @brief Method to reconstruct a gradient after run Solve of the analysis
-	 * @param cmesh Computational mesh with solution */
-//	TPZFMatrix<REAL> gradients;
-//	GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
-//	gradients.Print();
-	
-		// Post processing
-		an.PostProcess(1,dim);
-		{
-			std::ofstream out(MeshFileName.c_str());
-			comp->LoadReferences();
-			TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
-		}
-		
-		return 0;
-	}
-}
-}
 
 int main(int argc, char *argv[]) {
 	
 #ifdef LOG4CXX
-	if (argc > 1) {
-		std::string logpath ( argv[1] );
-		cout << "initializing LOG usign the following configuration file " << logpath << endl;
-		InitializePZLOG ( logpath );	
-	} else {
-		cout << "initializing LOG\n";
-		InitializePZLOG();
-	}
+	InitializePZLOG();
 #endif
-	const int L = 4;
-	gLMax = L-1;
+	int dim;
 	char saida[260];
-	
-	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
-	
-	int r, dim;
-	
-	// Initializing a ref patterns
-	gRefDBase.InitializeAllUniformRefPatterns();
-	gRefDBase.InitializeRefPatterns();
-	// Inserting a special file with refinement pattern 
-	/* std::string filename = REFPATTERNDIR;
-	filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
-	//filename += "/3D_Hexa_Face_20.rpt";
-	
-	TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
-	if(!gRefDBase.FindRefPattern(refpat))
-	{
-		gRefDBase.InsertRefPattern(refpat);
-	}
-	refpat->InsertPermuted();
-	*/
-
 	// output files
     std::ofstream out("output.txt");
 	
+	// Initializing a ref patterns
+	//gRefDBase.InitializeAllUniformRefPatterns();
+	//gRefDBase.InitializeRefPatterns();
+	// Inserting a special file with refinement pattern 
+	/* std::string filename = REFPATTERNDIR;
+	 filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
+	 //filename += "/3D_Hexa_Face_20.rpt";
+	 
+	 TPZAutoPointer<TPZRefPattern> refpat = new TPZRefPattern(filename);
+	 if(!gRefDBase.FindRefPattern(refpat))
+	 {
+	 gRefDBase.InsertRefPattern(refpat);
+	 }
+	 refpat->InsertPermuted();
+	 */
+
+	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
+	REAL InitialL = 1.0, InitialH = 1.;
+	TPZManVector<REAL> x0(3,-InitialL), x1(3,-InitialL);  // Corners of the rectangular mesh.
+	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
+
     // Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
 	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
 	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
-	cout << "Generating bottom geometric mesh bi-dimensional ...\n";
+	cout << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
     TPZGeoMesh* gmesh = new TPZGeoMesh;
-	TPZManVector<REAL> x0(3,-1.), x1(3,-1.);  // Corners of the rectangular mesh.
-	x0[0] = x1[1] = 1.;
-	TPZManVector<int> nx(2,4);   // subdivisions in X and in Y. 
+	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
+	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
+	gmesh->PrintTopologicalInfo();
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	cout << "Generating geometric mesh three-dimensional (extruding) ...\n";
-	TPZExtendGridDimension gmeshextend(gmesh,0.5);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(2,-1,2);
+	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
+	gmesh3D->SetName("First Mesh Extruded");
+	sprintf(saida,"meshextruded1.vtk");
 	
-	// Applying hp adaptive techniques 2012/10/01
-	if(anothertests) {
-		// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-		TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;
-		sprintf(saida,"meshextrudedLeg.vtk");
-		
-	}
-	else {
-		sprintf(saida,"meshextrudedTChe.vtk");
-	}
-	// Constructing connectivities
+	// Printing COMPLETE initial geometric mesh 
+	gmesh3D->PrintTopologicalInfo();
+	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+	
+	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
+	// and was divides in one segment on X and two on Y, then hx = hy = 1.
+	cout << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
+    TPZGeoMesh* gmesh2 = new TPZGeoMesh;
+	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
+	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
+	nx[1] = 1;
+	TPZGenGrid gen2(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen2.SetElementType(0);       // type = 0 means rectangular elements
+	gen2.Read(gmesh2);             // generating grid in gmesh
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
+	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,-3,-2);
+	gmesh3D2->SetName("Second Mesh Extruded");
+	// Printing COMPLETE initial geometric mesh 
+	sprintf(saida,"meshextruded2.vtk");
+	PrintGeoMeshVTKWithDimensionAsData(gmesh3D2,saida);
+	gmesh3D2->PrintTopologicalInfo();
+	
+	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
+	// and was divides in one segment on X and two on Y, then hx = hy = 1.
+	cout << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
+    TPZGeoMesh* gmesh3 = new TPZGeoMesh;
+	x0[0] = x0[1] = x0[2] = 0.;
+	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
+	nx[0] = nx[1] = 1;
+	TPZGenGrid gen3(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen3.SetElementType(0);       // type = 0 means rectangular elements
+	gen3.Read(gmesh3);             // generating grid in gmesh
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
+	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-2);
+	gmesh3D3->SetName("Third Mesh Extruded");
+	// Printing COMPLETE initial geometric mesh 
+	sprintf(saida,"meshextruded3.vtk");
+	PrintGeoMeshVTKWithDimensionAsData(gmesh3D3,saida);
+	gmesh3D2->PrintTopologicalInfo();
+
+	// Merge two meshes
+	gen.MergeGeoMesh(gmesh3D,gmesh3D2,1);
+	gen.MergeGeoMesh(gmesh3D,gmesh3D3,1);
+	
 	gmesh3D->ResetConnectivities();
 	gmesh3D->BuildConnectivity();
-	gmesh3D->Print();
-	// Printing COMPLETE initial geometric mesh 
+	gmesh3D->PrintTopologicalInfo();
+	sprintf(saida,"meshextrudedmerged.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	
 	return 0;
+	int r;
     // Creating computational mesh
     TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
 	/** Set polynomial order */
@@ -774,3 +594,217 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 }
 
 /** @} */
+//void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var=0,bool continuous=false);
+
+/**
+ * @brief This project shows the creation of a rectangular mesh (two-dimensional) and the creation of a three-dimensional cube mesh using extrude method (ExtendMesh).
+ */
+int main2D(int argc, char *argv[]) {
+	
+#ifdef LOG4CXX
+	InitializePZLOG();
+#endif
+	const int L = 4;
+	gLMax = L-1;
+	char saida[260];
+	
+	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
+	
+	int r, dim;
+	
+	// Initializing a ref patterns
+	//gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
+	
+	// output files
+    std::ofstream convergence("conv3d.txt");
+    std::ofstream out("output.txt");
+	
+	/** Set polynomial order */
+	int p, pmax = 2;
+	for(p=1;p<pmax;p++) {
+		// First rectangular mesh:
+		// The rectangular mesh has four corners: (0,0,0), (1,0,0), (1,1,0) and (0,1,0)
+		// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
+		// Has 4 elements, 9 connects and 8 bc elements
+		cout << "Generating geometric mesh bi-dimensional ...\n";
+		TPZGeoMesh* gmesh = new TPZGeoMesh;
+		TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
+		x1[2] = 0.;
+		TPZManVector<int> nx(3,3);   // subdivisions in X and in Y. 
+		TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+		gen.SetElementType(0);       // type = 0 means rectangular elements
+		gen.Read(gmesh);             // generating grid in gmesh
+		
+		// Applying hp adaptive techniques 2012/10/01
+		if(anothertests) {
+			// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
+			TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;
+			sprintf(saida,"meshextrudedLeg.vtk");
+			
+		}
+		else {
+			sprintf(saida,"meshextrudedTChe.vtk");
+		}	
+		
+		// Refinement of the some element	
+		TPZGeoEl *gel, *gel1, *gel2, *gel3;
+		TPZVec<TPZGeoEl *> sub;
+		TPZVec<TPZGeoEl *> subsub;
+		gel = gmesh->ElementVec()[4];
+		//	gel1 = gmesh->ElementVec()[1];
+		//	gel2 = gmesh->ElementVec()[2];
+		//	gel3 = gmesh->ElementVec()[3];
+		gel->Divide(sub);
+		//	sub[0]->Divide(subsub);
+		//		sub[1]->Divide(subsub);
+		sub[2]->Divide(subsub);
+		//	sub[3]->Divide(subsub);
+		/*	gel1->Divide(sub);
+		 sub[0]->Divide(subsub);
+		 sub[1]->Divide(subsub);
+		 sub[2]->Divide(subsub);
+		 sub[3]->Divide(subsub);
+		 gel2->Divide(sub);
+		 sub[0]->Divide(subsub);
+		 sub[1]->Divide(subsub);
+		 sub[2]->Divide(subsub);
+		 sub[3]->Divide(subsub);
+		 gel3->Divide(sub);
+		 sub[0]->Divide(subsub);
+		 sub[1]->Divide(subsub);
+		 sub[2]->Divide(subsub);
+		 sub[3]->Divide(subsub);
+		 */	
+		// Constructing connectivities
+		gmesh->ResetConnectivities();
+		gmesh->BuildConnectivity();
+		gmesh->Print();
+		// Printing COMPLETE initial geometric mesh 
+		PrintGeoMeshVTKWithDimensionAsData(gmesh,saida);
+		
+		TPZCompEl::SetgOrder(p);
+		// Creating computational mesh
+		TPZCompMesh *comp = new TPZCompMesh(gmesh);
+		
+		// Creating and inserting materials into computational mesh
+		TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,.5,0);   // two-dimensional
+		comp->InsertMaterialObject(mat);
+		dim = mat->Dimension();
+		nstate = mat->NStateVariables();
+		
+		// Boundary conditions
+		// Dirichlet
+		TPZFMatrix<REAL> val1(3,3,0.),val2(3,1,5.);
+		val1(0,0) = 1.;
+		TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+		comp->InsertMaterialObject(bnd);
+		// Neumann
+		val2(0,0)=30.; val2(1,0) = 10.;
+		bnd = mat->CreateBC(mat,-2,1,val1,val2);
+		comp->InsertMaterialObject(bnd);
+		
+		// Constructing and adjusting computational mesh
+		comp->AutoBuild();
+		comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
+		comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
+		comp->Print();
+		
+		
+		//--- END construction of the meshes
+		/** Variable names for post processing */
+		TPZStack<std::string> scalnames, vecnames;
+		if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
+			scalnames.Push("POrder");
+		else
+			vecnames.Push("POrder");
+		if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
+			scalnames.Push("Error");
+		else
+			vecnames.Push("Error");
+		if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
+			scalnames.Push("state");
+		else
+			vecnames.Push("state");
+		
+		if(nstate == 1) {
+			scalnames.Push("TrueError");
+			scalnames.Push("EffectivityIndex");
+		}else if(nstate == 2) {
+			scalnames.Push("sig_x");
+			scalnames.Push("sig_y");
+			scalnames.Push("tau_xy");
+		}
+		if(nstate == 3) {
+			scalnames.Push("StressX");
+			scalnames.Push("StressY");
+			scalnames.Push("StressZ");
+			vecnames.Push("PrincipalStress");
+			vecnames.Push("PrincipalStrain");
+		}
+		// END Determining the name of the variables
+		
+		// INITIAL POINT FOR SOLVING AND APPLYING REFINEMENT
+		for(r=0;r<NUniformRefs;r++) {
+			// Printing computational mesh to information
+			if(comp->NElements() < 200)
+				comp->Print(std::cout);
+			else {
+				std::cout << "Computacional mesh : NElements = " << comp->NElements() << "\t NConnects = " << comp->NConnects() << std::endl;
+			}
+			
+			// Introduzing exact solution depending on the case
+			TPZAnalysis an (comp);
+			an.SetExact(Exact);		
+			{   // To print solution
+				std::stringstream sout;
+				int angle = (int) (alfa*180./M_PI + 0.5);
+				if(anothertests) sout << "Leg_";
+				sout << "hptestAngo" << angle << "." << r << ".vtk";
+				an.DefineGraphMesh(dim,scalnames,vecnames,sout.str());
+			}
+			std::string MeshFileName;
+			{   // To print computational mesh
+				std::stringstream sout;
+				int angle = (int) (alfa*180./M_PI + 0.5);
+				if(anothertests) sout << "Leg_";
+				sout << "meshAngle" << angle << "." << r << ".vtk";
+				MeshFileName = sout.str();
+			}
+			comp->SetName("Malha computacional adaptada");
+			
+			// Solve using symmetric matrix then using Cholesky (direct method)
+			TPZSkylineStructMatrix strskyl(comp);
+			an.SetStructuralMatrix(strskyl);
+			
+			TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+			direct->SetDirect(ECholesky);
+			an.SetSolver(*direct);
+			delete direct;
+			direct = 0;
+			
+			int neq = comp->NEquations();
+			//	an.NEquations();
+			//		an.Solution().Print();
+			an.Run();
+			
+			// Computing approximation of gradient
+			/** 
+			 * @brief Method to reconstruct a gradient after run Solve of the analysis
+			 * @param cmesh Computational mesh with solution */
+			//	TPZFMatrix<REAL> gradients;
+			//	GradientReconstructionByLeastSquares(gradients,comp,0,0,true);
+			//	gradients.Print();
+			
+			// Post processing
+			an.PostProcess(1,dim);
+			{
+				std::ofstream out(MeshFileName.c_str());
+				comp->LoadReferences();
+				TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
+			}
+			
+		}
+	}
+	return 0;
+}
