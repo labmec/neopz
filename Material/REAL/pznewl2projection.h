@@ -20,7 +20,7 @@
 #include "pzmaterial.h"
 #include "pzdiscgal.h"
 
-class TPZNewL2Projection : public TPZDiscontinuousGalerkin{
+class TPZL2ProjectionForGradient : public TPZDiscontinuousGalerkin{
 
 protected:
     
@@ -47,14 +47,16 @@ protected:
 	 * @param nstate number of state variables
 	 * @param gradients data of gradient vector
 	 */
-	TPZNewL2Projection(int id, int dim, int nstate, TPZFMatrix<REAL> gradients);
+	TPZL2ProjectionForGradient(int id, int dim,int nvar);
 	
 	/** @brief Default destructor */
-	~TPZNewL2Projection();
+	~TPZL2ProjectionForGradient();
+	    
 	
-	/** @brief Copy constructor */
-	TPZNewL2Projection(const TPZNewL2Projection &cp);
-    
+	void SetGradients(TPZFMatrix<REAL> &grad) {
+		fgradients = grad;
+	}
+	
     /** @brief Returns problem dimension */
 	virtual int Dimension(){ return this->fDim; }
 	

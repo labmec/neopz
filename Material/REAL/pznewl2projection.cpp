@@ -9,20 +9,14 @@
 #include "pznewl2projection.h"
 
 
-TPZNewL2Projection::TPZNewL2Projection(int id, int dim, int nstate, TPZFMatrix<REAL> gradients): TPZDiscontinuousGalerkin(id)
+TPZL2ProjectionForGradient::TPZL2ProjectionForGradient(int id, int dim, int nstate): TPZDiscontinuousGalerkin(id)
 {
+	fgradients.Redim(0,0);
     this->fDim = dim;
     this->fNStateVars = nstate;
-    this->fgradients = gradients;
 }
 
-TPZNewL2Projection::TPZNewL2Projection(const TPZNewL2Projection &cp): TPZDiscontinuousGalerkin(cp)
-{
-    this->fDim = cp.fDim;
-    this->fNStateVars = cp.fNStateVars;
-    this->fgradients = cp.fgradients;
-}
 
-TPZNewL2Projection::~TPZNewL2Projection()
+TPZL2ProjectionForGradient::~TPZL2ProjectionForGradient()
 {
 }

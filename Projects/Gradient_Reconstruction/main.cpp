@@ -140,8 +140,16 @@ int main(int argc, char *argv[]) {
 				TPZFMatrix<REAL> gradients;
 				GradientReconstructionByLeastSquares(gradients,cmesh,0,0,continuous);
 				gradients.Print();
-                SaidaMathGradiente(gradients);
+//                SaidaMathGradiente(gradients);
 
+				// Trocar todos os elementos do cmesh apontando para material L2Proj
+				
+				// Nesse material L2Proj inserir o vetor de gradientes reconstruido
+				->SetGradients(gradients);
+				
+				// Resolver com o novo material
+				
+				
 				// Print gradient reconstructed
 				string plotfile("GradientAndSolution.vtk");
 				PosProcessamento(an,cmesh,plotfile,gradients);
@@ -472,10 +480,10 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
     
 	gmesh->BuildConnectivity();
     
-    for ( int ref = 0; ref < nh; ref++ ){
+    for ( int ref = 0; ref < nh; ref++ ) {
 		TPZVec<TPZGeoEl *> filhos;
 		int n = gmesh->NElements();
-		for ( int i = 0; i < n; i++ ){
+		for ( int i = 0; i < n; i++ ) {
 			TPZGeoEl * gel = gmesh->ElementVec() [i];
 			//if (gel->Dimension() == 2) gel->Divide (filhos);
             gel->Divide (filhos);
@@ -549,6 +557,7 @@ TPZGeoMesh *GMesh1D(int nh){
 	return gmesh;
 }
 
+#include "pznewl2projection.h"
 TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
@@ -575,6 +584,9 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
     cmesh->SetDimModel(dim);
     TPZMaterial * mat(material);
     
+    cmesh->InsertMaterialObject(mat);
+	// Inserting new material to compute L2 projection 
+	mat = new TPZL2ProjectionForGradient(matId+1,dim,material->NStateVariables());
     cmesh->InsertMaterialObject(mat);
     
     ///Inserir condicao de contorno
