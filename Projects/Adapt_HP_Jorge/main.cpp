@@ -103,7 +103,6 @@ int main(int argc, char *argv[]) {
 	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
 	gen.SetElementType(0);       // type = 0 means rectangular elements
 	gen.Read(gmesh);             // generating grid in gmesh
-	gmesh->PrintTopologicalInfo();
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
@@ -111,9 +110,7 @@ int main(int argc, char *argv[]) {
 	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
 	gmesh3D->SetName("First Mesh Extruded");
 	sprintf(saida,"meshextruded1.vtk");
-	
 	// Printing COMPLETE initial geometric mesh 
-	gmesh3D->PrintTopologicalInfo();
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	
 	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
@@ -123,9 +120,9 @@ int main(int argc, char *argv[]) {
 	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
 	nx[1] = 1;
-	TPZGenGrid gen2(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen2.SetElementType(0);       // type = 0 means rectangular elements
-	gen2.Read(gmesh2);             // generating grid in gmesh
+//	TPZGenGrid gen2(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen.SetData(nx,x0,x1,0);
+	gen.Read(gmesh2);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
@@ -135,7 +132,6 @@ int main(int argc, char *argv[]) {
 	// Printing COMPLETE initial geometric mesh 
 	sprintf(saida,"meshextruded2.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D2,saida);
-	gmesh3D2->PrintTopologicalInfo();
 	
 	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
 	// and was divides in one segment on X and two on Y, then hx = hy = 1.
@@ -144,9 +140,8 @@ int main(int argc, char *argv[]) {
 	x0[0] = x0[1] = x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
 	nx[0] = nx[1] = 1;
-	TPZGenGrid gen3(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen3.SetElementType(0);       // type = 0 means rectangular elements
-	gen3.Read(gmesh3);             // generating grid in gmesh
+	gen.SetData(nx,x0,x1,0);       // type = 0 means rectangular elements
+	gen.Read(gmesh3);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
 	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
@@ -156,7 +151,6 @@ int main(int argc, char *argv[]) {
 	// Printing COMPLETE initial geometric mesh 
 	sprintf(saida,"meshextruded3.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D3,saida);
-	gmesh3D2->PrintTopologicalInfo();
 
 	// Merge two meshes
 	gen.MergeGeoMesh(gmesh3D,gmesh3D2,1);
@@ -167,6 +161,8 @@ int main(int argc, char *argv[]) {
 	gmesh3D->PrintTopologicalInfo();
 	sprintf(saida,"meshextrudedmerged.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+	
+	// Filling boundary condition into the corner and another faces
 	
 	return 0;
 	int r;

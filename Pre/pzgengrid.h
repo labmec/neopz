@@ -41,7 +41,11 @@ public:
 	
 	/** @brief Default destructor */
     virtual ~TPZGenGrid();
-	
+
+	/**
+	 * @brief Change points and all data to generate geometric mesh
+	 */
+    void SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int eltype = 0, int numl = 1, REAL rot = 0.5);
     /**
 	 * @brief Add nodes and elements to the object mesh
 	 * @param mesh Object mesh for which will be created the nodes and elements (depends on fTypeElement)

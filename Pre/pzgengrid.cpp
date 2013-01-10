@@ -38,6 +38,26 @@ fDelx(2), fGeometricProgression(2,1.), fNumLayers(numl), fRotAngle(rot) {
 TPZGenGrid::~TPZGenGrid() {    
 }
 
+void TPZGenGrid::SetData(TPZVec<int> &nx, TPZVec<REAL> &x0, TPZVec<REAL> &x1, int eltype, int numl, REAL rot) {
+	int i;
+	fNx.Resize(nx.NElements());
+	for(i=0;i<fNx.NElements();i++)
+		fNx[i] = nx[i];
+	fX0.Resize(x0.NElements());
+	for(i=0;i<fX0.NElements();i++)
+		fX0[i] = x0[i];
+	fX1.Resize(x1.NElements());
+	for(i=0;i<fX1.NElements();i++)
+		fX1[i] = x1[i];
+	fDelx.Resize(2);
+	fDelx[0] = (x1[0]-x0[0])/(nx[0]);   // Delta x
+	fDelx[1] = (x1[1]-x0[1])/(nx[1]);   // Delta y
+	fNumNodes= (nx[0]+1)*(nx[1]+1)+(fNumLayers-1)*(nx[0])*(nx[1]+1);
+	fElementType = eltype;
+	fNumLayers = numl;
+	fRotAngle = rot;
+}
+
 short TPZGenGrid::Read(TPZGeoMesh *grid,int matid) {
 	if(!grid) return 1;
 	if(!GenerateNodes(grid))

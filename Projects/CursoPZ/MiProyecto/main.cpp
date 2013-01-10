@@ -123,7 +123,7 @@ int main() {
 	
 	int i, ii, nrefs = 8;
 	int jj, nthreads = 9;
-	for(jj=1;jj<nthreads;jj++) {
+	for(jj=2;jj<nthreads;jj++) {
 		for(ii=2;ii<nrefs;ii++) {
 			// Initializing the generation mesh process
 			time (& sttime);
@@ -332,8 +332,6 @@ int main() {
 	
 	fileerrors << std::endl << std::endl;
 	fileerrors.close();
-	
-	return 0;
 }
 
 void formatTimeInSec(char *strtime,int timeinsec) {
