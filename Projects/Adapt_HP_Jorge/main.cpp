@@ -58,7 +58,9 @@ void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
+
+void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
 
 void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
@@ -339,10 +341,22 @@ int main(int argc, char *argv[]) {
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
-	
+	sol[0] = sqrt( sqrt (quad_r) );
+	if(!IsZero(sol[0])) {
+		dsol(0,0) = .5*x[0]/(sol[0]*sol[0]*sol[0]);
+		dsol(1,0) = .5*x[1]/(sol[0]*sol[0]*sol[0]);
+	}
 }
 
-void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	bcsol[0] = sqrt( sqrt (quad_r) );	
+}
+
+void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	REAL raiz = sqrt( sqrt(quad_r));
+	f[0] = -3./(4.*(raiz*raiz*raiz));	
 }
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) {
