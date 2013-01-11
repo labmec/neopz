@@ -54,8 +54,11 @@ int gPrintLevel = 0;
 bool gDebug = false;
 
 //TPZFNMatrix<16,REAL> Rot(4,4,0.),RotInv(4,4,0.);
-
 void Exact(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
+
+void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol);
 
 void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
@@ -63,6 +66,7 @@ void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 
 void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool allmaterial=true, const int matidtodivided=1);
 
+TPZGeoMesh *ConstructingFicheraCorner(REAL L, REAL H,bool print = false);
 
 int main(int argc, char *argv[]) {
 	
@@ -75,8 +79,8 @@ int main(int argc, char *argv[]) {
     std::ofstream out("output.txt");
 	
 	// Initializing a ref patterns
-	//gRefDBase.InitializeAllUniformRefPatterns();
-	//gRefDBase.InitializeRefPatterns();
+	gRefDBase.InitializeAllUniformRefPatterns();
+	gRefDBase.InitializeRefPatterns();
 	// Inserting a special file with refinement pattern 
 	/* std::string filename = REFPATTERNDIR;
 	 filename += "/3D_Hexa_Rib_Side_16_16_18_18.rpt";
@@ -92,95 +96,14 @@ int main(int argc, char *argv[]) {
 
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0, InitialH = 1.;
-	TPZManVector<REAL> x0(3,-InitialL), x1(3,-InitialL);  // Corners of the rectangular mesh.
-	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
-
-    // Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
-	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
-	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
-	cout << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
-    TPZGeoMesh* gmesh = new TPZGeoMesh;
-	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
-	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
-	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetElementType(0);       // type = 0 means rectangular elements
-	gen.Read(gmesh);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
-	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
-	gmesh3D->SetName("First Mesh Extruded");
-	// Boundary condition Dirichlet into corner
-	TPZGeoElBC gelbcD(gmesh3D->ElementVec()[1],25,-7);   // Dirichlet condition for hexahedra
-	// Boundary condition Newmann in front
-	TPZGeoElBC gelbcN1(gmesh3D->ElementVec()[0],21,-3);
-	TPZGeoElBC gelbcN2(gmesh3D->ElementVec()[1],21,-3);
-	sprintf(saida,"meshextruded1.vtk");
-	// Printing COMPLETE initial geometric mesh 
-	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	
-	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
-	// and was divides in one segment on X and two on Y, then hx = hy = 1.
-	cout << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
-    TPZGeoMesh* gmesh2 = new TPZGeoMesh;
-	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
-	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
-	nx[1] = 1;
-//	TPZGenGrid gen2(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
-	gen.SetData(nx,x0,x1,0);
-	gen.Read(gmesh2);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
-	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,-3,-2);
-	gmesh3D2->SetName("Second Mesh Extruded");
-	// Boundary condition Dirichlet into corner
-	TPZGeoElBC gelbcD2(gmesh3D2->ElementVec()[0],22,-7);   // Dirichlet condition for hexahedra
-	// Boundary condition Newmann in front
-	TPZGeoElBC gelbcN3(gmesh3D2->ElementVec()[0],21,-3);
-	TPZGeoElBC gelbcN4(gmesh3D2->ElementVec()[0],24,-6);
-	TPZGeoElBC gelbcN5(gmesh3D2->ElementVec()[1],23,-5);
-	TPZGeoElBC gelbcN6(gmesh3D2->ElementVec()[1],24,-6);
-	// Printing COMPLETE initial geometric mesh 
-	sprintf(saida,"meshextruded2.vtk");
-	PrintGeoMeshVTKWithDimensionAsData(gmesh3D2,saida);
-	
-	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
-	// and was divides in one segment on X and two on Y, then hx = hy = 1.
-	cout << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
-    TPZGeoMesh* gmesh3 = new TPZGeoMesh;
-	x0[0] = x0[1] = x0[2] = 0.;
-	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
-	nx[0] = nx[1] = 1;
-	gen.SetData(nx,x0,x1,0);       // type = 0 means rectangular elements
-	gen.Read(gmesh3);             // generating grid in gmesh
-	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
-	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	cout << "... (Extruding) first geometric mesh three-dimensional...\n";
-	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
-	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-2);
-	gmesh3D3->SetName("Third Mesh Extruded");
-	// Boundary condition Dirichlet into corner
-	TPZGeoElBC gelbc(gmesh3D3->ElementVec()[0],21,-7);   // Dirichlet condition for hexahedra
-	// Printing COMPLETE initial geometric mesh 
-	sprintf(saida,"meshextruded3.vtk");
-	PrintGeoMeshVTKWithDimensionAsData(gmesh3D3,saida);
-
-	// Merge two meshes
-	gen.MergeGeoMesh(gmesh3D,gmesh3D2,1);
-	gen.MergeGeoMesh(gmesh3D,gmesh3D3,1);
-	
+	// Constructing geometric mesh as Fichera corner using hexahedra
+	TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL, InitialH);
 	gmesh3D->ResetConnectivities();
 	gmesh3D->BuildConnectivity();
-	gmesh3D->PrintTopologicalInfo();
 	sprintf(saida,"meshextrudedmerged.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
 	
-	// Filling boundary condition into the corner and another faces
-	
-	return 0;
 	int r;
     // Creating computational mesh
     TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
@@ -408,6 +331,102 @@ int main(int argc, char *argv[]) {
 	 
 	 return EXIT_SUCCESS;
 	 */
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+//////////   FICHERA CORNER - Problem as Anders Solin Presentation   ///////////////////
+////////////////////////////////////////////////////////////////////////////////////////
+
+void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
+	
+}
+
+void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
+}
+
+TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) {
+	TPZManVector<REAL> x0(3,-InitialL), x1(3,-InitialL);  // Corners of the rectangular mesh.
+	TPZManVector<int> nx(2,2);   // subdivisions in X and in Y. 
+	
+	// Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
+	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
+	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
+	if(print) cout << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
+	TPZGeoMesh* gmesh = new TPZGeoMesh;
+	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
+	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
+	TPZGenGrid gen(nx,x0,x1);    // mesh generator. On X we has three segments and on Y two segments. Then: hx = 0.2 and hy = 0.1  
+	gen.SetElementType(0);       // type = 0 means rectangular elements
+	gen.Read(gmesh);             // generating grid in gmesh
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
+	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
+	gmesh3D->SetName("First Mesh Extruded");
+	// Dirichlet boundary condition for inferior cubes
+	TPZGeoElBC gelbcD(gmesh3D->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra//
+	TPZGeoElBC gelbcD1(gmesh3D->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD2(gmesh3D->ElementVec()[1],21,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD3(gmesh3D->ElementVec()[1],22,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD4(gmesh3D->ElementVec()[2],23,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD5(gmesh3D->ElementVec()[2],24,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD6(gmesh3D->ElementVec()[2],25,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD7(gmesh3D->ElementVec()[3],22,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD8(gmesh3D->ElementVec()[3],23,-1);   // Dirichlet condition for hexahedra
+	
+	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
+	// and was divides in one segment on X and two on Y, then hx = hy = 1.
+	TPZGeoMesh *gmesh2 = new TPZGeoMesh;
+	if(print) cout << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
+	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
+	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
+	nx[0] = 2; nx[1] = 1;
+	gen.SetData(nx,x0,x1,0);
+	gen.Read(gmesh2);             // generating grid in gmesh
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
+	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,2,-1);
+	gmesh3D2->SetName("Second Mesh Extruded");
+	// Dirichlet boundary condition for inferior cubes
+	TPZGeoElBC gelbcD10(gmesh3D2->ElementVec()[0],21,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD11(gmesh3D2->ElementVec()[0],23,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD12(gmesh3D2->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD13(gmesh3D2->ElementVec()[1],21,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD14(gmesh3D2->ElementVec()[1],22,-1);   // Dirichlet condition for hexahedra
+	
+	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
+	// and was divides in one segment on X and two on Y, then hx = hy = 1.
+	TPZGeoMesh *gmesh3 = new TPZGeoMesh;
+	if(print) cout << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
+	x0[0] = x0[1] = x0[2] = 0.;
+	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
+	nx[0] = nx[1] = 1;
+	gen.SetData(nx,x0,x1,0);       // type = 0 means rectangular elements
+	gen.Read(gmesh3);             // generating grid in gmesh
+	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
+	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
+	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
+	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-1);
+	gmesh3D3->SetName("Third Mesh Extruded");
+	// Dirichlet boundary condition for inferior cubes
+	TPZGeoElBC gelbcD20(gmesh3D3->ElementVec()[0],22,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD21(gmesh3D3->ElementVec()[0],23,-1);   // Dirichlet condition for hexahedra
+	TPZGeoElBC gelbcD22(gmesh3D3->ElementVec()[0],24,-1);   // Dirichlet condition for hexahedra
+	
+	// Merge two meshes
+	gen.MergeGeoMesh(gmesh3D,gmesh3D2,1);
+	gen.MergeGeoMesh(gmesh3D,gmesh3D3,1);
+	
+	// Cleaning unnecessary meshes
+	delete gmesh3D2;
+	delete gmesh3D3;
+	
+	return gmesh3D;
 }
 
 #include "TPZGenSpecialGrid.h"
