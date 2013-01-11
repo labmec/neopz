@@ -18,7 +18,7 @@
 #include "pzstepsolver.h"
 #include "pzgeotetrahedra.h"
 #include "TPZVTKGeoMesh.h"
-#include "../../../NeoPZ/Material/REAL/pzelasmat.h"
+#include "pzelasmat.h"
 #include "PlaneFracture/TPZJIntegral.h"
 
 #include "TPZTimer.h"
