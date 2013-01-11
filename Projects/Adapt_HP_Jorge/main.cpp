@@ -27,6 +27,8 @@
 
 #include "pzlog.h"
 
+#include "pzgeoelbc.h"
+
 #ifdef LOG4CXX
 static LoggerPtr loggerconv(Logger::getLogger("pz.adaptivity.conv"));
 static LoggerPtr loggerpoint(Logger::getLogger("pz.adaptivity.points"));
@@ -112,8 +114,8 @@ int main(int argc, char *argv[]) {
 	// Boundary condition Dirichlet into corner
 	TPZGeoElBC gelbcD(gmesh3D->ElementVec()[1],25,-7);   // Dirichlet condition for hexahedra
 	// Boundary condition Newmann in front
-	TPZGeoElBC gelbcN1(gmesh3D2->ElementVec()[0],21,-3);
-	TPZGeoElBC gelbcN2(gmesh3D2->ElementVec()[1],21,-3);
+	TPZGeoElBC gelbcN1(gmesh3D->ElementVec()[0],21,-3);
+	TPZGeoElBC gelbcN2(gmesh3D->ElementVec()[1],21,-3);
 	sprintf(saida,"meshextruded1.vtk");
 	// Printing COMPLETE initial geometric mesh 
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
@@ -137,10 +139,10 @@ int main(int argc, char *argv[]) {
 	// Boundary condition Dirichlet into corner
 	TPZGeoElBC gelbcD2(gmesh3D2->ElementVec()[0],22,-7);   // Dirichlet condition for hexahedra
 	// Boundary condition Newmann in front
-	TPZGeoElBC gelbcN1(gmesh3D2->ElementVec()[0],21,-3);
-	TPZGeoElBC gelbcN2(gmesh3D2->ElementVec()[0],24,-6);
-	TPZGeoElBC gelbcN3(gmesh3D2->ElementVec()[1],23,-5);
-	TPZGeoElBC gelbcN4(gmesh3D2->ElementVec()[1],24,-6);
+	TPZGeoElBC gelbcN3(gmesh3D2->ElementVec()[0],21,-3);
+	TPZGeoElBC gelbcN4(gmesh3D2->ElementVec()[0],24,-6);
+	TPZGeoElBC gelbcN5(gmesh3D2->ElementVec()[1],23,-5);
+	TPZGeoElBC gelbcN6(gmesh3D2->ElementVec()[1],24,-6);
 	// Printing COMPLETE initial geometric mesh 
 	sprintf(saida,"meshextruded2.vtk");
 	PrintGeoMeshVTKWithDimensionAsData(gmesh3D2,saida);
