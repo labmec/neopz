@@ -327,7 +327,6 @@ int main() {
 			delete cmesh;
 			delete gmesh;
 		}
-		break;
 	}
 	
 	fileerrors << std::endl << std::endl;
