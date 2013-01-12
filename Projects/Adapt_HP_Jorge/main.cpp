@@ -75,6 +75,7 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL
 TPZGeoMesh *ConstructingFicheraCorner(REAL L, REAL H,bool print = false);
 
 void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim);
+void formatTimeInSec(char *strtime,int timeinsec);
 
 int main(int argc, char *argv[]) {
 	
@@ -109,10 +110,9 @@ int main(int argc, char *argv[]) {
 	REAL InitialL = 1.0, InitialH = 1.;
 	
 	for(int ii=0;ii<NRefinements;ii++) {
+		time(&sttime);
 		// Constructing geometric mesh as Fichera corner using hexahedra
 		TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL, InitialH);
-		gmesh3D->ResetConnectivities();
-		gmesh3D->BuildConnectivity();
 		// h_refinement
 		TPZManVector<REAL> point(3,0.);
 		REAL r = 0.0, radius = 0.9;
@@ -128,7 +128,8 @@ int main(int argc, char *argv[]) {
 		
 		// Creating computational mesh
 		/** Set polynomial order */
-		int p = 4, pinit;
+		int p = 2, pinit;
+		pinit = p;
 		TPZCompEl::SetgOrder(p);
 		TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
 		// Disminuindo a ordem p dos elementos subdivididos
@@ -184,7 +185,7 @@ int main(int argc, char *argv[]) {
 		// Constructing and adjusting computational mesh
 		comp->AutoBuild();
 		comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
-		comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
+	//	comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
 		
 		//--- END construction of the meshes
 		
@@ -201,8 +202,7 @@ int main(int argc, char *argv[]) {
 		if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
 			scalnames.Push("state");
 		else
-			vecnames.Push("state");
-		vecnames.Push("Displacement");
+			vecnames.Push("state");      // "state" is as "Displacement" 
 		if(nstate == 1) {
 			scalnames.Push("TrueError");
 			scalnames.Push("EffectivityIndex");
@@ -238,6 +238,9 @@ int main(int argc, char *argv[]) {
 		direct = 0;
 		
 		an.Run();
+		time(&endtime);
+		time_elapsed = endtime - sttime;
+		formatTimeInSec(tempo,time_elapsed);
 		
 		char pp[3];
 		sprintf(pp,"%d",pinit);
@@ -262,8 +265,8 @@ int main(int argc, char *argv[]) {
 
 		an.PostProcess(1,dim);
 		
-		delete comp;
 		delete gmesh3D;
+		delete comp;
 		
 	}
 	return 0;
@@ -278,12 +281,11 @@ void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) 
 	
 	TPZBlock<REAL> flux;
 	
-//	TPZIntPoints *ordem;
 	TPZVec<REAL> point(3,0.), x(3,0.);
 	REAL weight = 0.;
 	
 	TPZInterpolatedElement *cel;
-	int var = 9;
+	int var = 0;                       // For solution of "state" or "Displacement"
 	TPZVec<REAL> SolCel(5,0.0);
 	TPZVec<REAL> SolCelExact(5,0.0);
 	TPZFMatrix<REAL> DSolCel(5,5,0.0);
@@ -292,7 +294,6 @@ void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) 
 	for(i=0;i<nelem;i++) {
 		cel = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
 		if(!cel || cel->Dimension() != dim) continue;
-//		ordem = &(cel->GetIntegrationRule());
 		int npoints = cel->GetIntegrationRule().NPoints();
 		for(it=0;it<npoints;it++){
 			cel->GetIntegrationRule().Point(it,point,weight);
@@ -443,6 +444,52 @@ void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &point,REAL 
 		REAL centerdist = TPZGeoEl::Distance(center,point);
 		if(fabs(r-centerdist) < distance) {
 			gel->Divide(sub);
+		}
+	}
+}
+
+void formatTimeInSec(char *strtime,int timeinsec) {
+	if(!strtime) return;
+	memset(strtime,0,strlen(strtime));
+	//	strtime[0] = '\0';
+	int anos=0, meses=0, dias=0, horas=0, minutos=0, segundos=0;
+	while(1) {
+		if(timeinsec < 60) {
+			segundos = timeinsec;
+			break;
+		}
+		else {
+			timeinsec -= 60;
+			minutos++;
+			if(minutos > 59) {
+				minutos -= 60;
+				horas++;
+				if(horas > 23) {
+					horas -= 24;
+					dias++;
+					if(dias > 29) {
+						dias -= 30;
+						meses++;
+						if(meses > 11) {
+							meses -= 12;
+							anos++;
+						}
+					}
+				}
+			}
+		}
+	}
+	// Formating
+	if(anos)
+		sprintf(strtime,"%d a, %d m, %d d, %d:%d:%d",anos,meses,dias,horas,minutos,segundos);
+	else {
+		if(meses) 
+			sprintf(strtime,"%d m, %d d, %d:%d:%d",meses,dias,horas,minutos,segundos);
+		else {
+			if(dias)
+				sprintf(strtime,"%d d, %d:%d:%d",dias,horas,minutos,segundos);
+			else
+				sprintf(strtime,"%d:%d:%d",horas,minutos,segundos);
 		}
 	}
 }
