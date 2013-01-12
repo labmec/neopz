@@ -89,7 +89,7 @@ void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> 
 
 void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points);
 
-void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh);
+void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim);
 
 void formatTimeInSec(char *strtime,int timeinsec);
 
@@ -123,8 +123,9 @@ int main() {
 	
 	int i, ii, nrefs = 8;
 	int jj, nthreads = 9;
-	for(jj=2;jj<nthreads;jj++) {
-		for(ii=2;ii<nrefs;ii++) {
+    for(ii=2;ii<nrefs;ii++) {
+        for(jj=2;jj<nthreads;jj++) {
+            int dim;
 			// Initializing the generation mesh process
 			time (& sttime);
 			// First rectangular mesh:
@@ -186,7 +187,8 @@ int main() {
 				// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-				radius *= 0.5;
+				if(i==6) radius *= 0.25;
+                else radius *= 0.5;
 			}
 			if(i==ii) {
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
@@ -205,6 +207,7 @@ int main() {
 			pinit = p;
 			TPZCompEl::SetgOrder(p);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,problem);
+            dim = cmesh->Dimension();
 			// Disminuindo a ordem p dos elementos subdivididos
 			// Primeiro sera calculado o mayor nivel de refinamento
 			// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
@@ -237,6 +240,7 @@ int main() {
 				}
 			}
 			cmesh->AutoBuild();
+            cmesh->ExpandSolution();
 			cmesh->AdjustBoundaryElements();
 			cmesh->CleanUpUnconnectedNodes();
 			
@@ -282,7 +286,7 @@ int main() {
 			std::cout << "\t....step: " << ii << "  Threads " << jj << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 			
 			// Computing error
-			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh);
+			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh,dim);
 			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
 			<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 			
@@ -318,9 +322,9 @@ int main() {
 			vecnames.Push("PrincipalStress1");
 			vecnames.Push("PrincipalStress2");
 			//vecnames.Push("POrder");
-			an.DefineGraphMesh(2,scalarnames,vecnames,filename);
+			an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
 			
-			an.PostProcess(0);
+			an.PostProcess(0,dim);
 			
 			delete cmesh;
 			delete gmesh;
@@ -616,52 +620,42 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	return (result*temp);
 }
 
-void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh) {
-	int i, it, nelem = cmesh->NElements();
-	
-	TPZBlock<REAL> flux;
-	
-	int orderp = 4;
-	TPZIntQuad ordem2dq(orderp,orderp);
-	int npoints = ordem2dq.NPoints();
-	TPZVec<REAL> point(3,0.), x(3,0.);
-	REAL weight = 0.;
-	
-	TPZCompEl *cel;
-	int var = 9;
-	REAL DispMagnitude = 0.;
-	TPZVec<REAL> SolCel(5,0.);
-	TPZFMatrix<REAL> DSolCel(5,5);
-	
-	REAL errorLoc = 0., errorLocL1 = 0.;
-	for(i=0;i<nelem;i++) {
-		cel = cmesh->ElementVec()[i];
-		if(!cel || cel->Dimension() != 2) continue;
-		//		for(i=0;i<error.NElements();i++)
-		//			errorLoc[i] = 0.0;
-		//		cel->EvaluateError(ExactSol,errorLoc,&flux);
-		//		for(i=0;i<error.NElements();i++)
-		//			error[i] += errorLoc[i];
-		for(it=0;it<npoints;it++){
-			ordem2dq.Point(it,point,weight);
-			cel->Reference()->X(point,x);
-			cel->Solution(point,var,SolCel);
-			DispMagnitude = sqrt(SolCel[0]*SolCel[0]+SolCel[1]*SolCel[1]);
-			if(!problem)
-				ExactSolNull(x,SolCel,DSolCel);
-			else if(problem==1)
-				ExactSolCircle(x,SolCel,DSolCel);
-			else if(problem==2)
-				ExactSolProduct(x,SolCel,DSolCel);
-			REAL temp = sqrt(SolCel[0]*SolCel[0]+SolCel[1]*SolCel[1]);
-			errorLocL1 += weight * fabs(DispMagnitude - temp);
-			errorLoc += weight * (DispMagnitude - temp)*(DispMagnitude - temp);
-		}
-		errorLocL1 *= cel->Reference()->Volume();
-		errorLoc *= cel->Reference()->Volume();
-	}
-	error = errorLocL1;
-	errorL2 = sqrt(errorLoc);
+void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) {
+    int i, it, nelem = cmesh->NElements();
+    
+    TPZBlock<REAL> flux;
+    
+    TPZVec<REAL> point(3,0.), x(3,0.);
+    REAL weight = 0.;
+    
+    TPZInterpolatedElement *cel;
+    int var = 9;                       // For solution of "state" or "Displacement"
+    TPZVec<REAL> SolCel(5,0.0);
+    TPZVec<REAL> SolCelExact(5,0.0);
+    TPZFMatrix<REAL> DSolCel(5,5,0.0);
+    
+    error = 0.; errorL2 = 0.;
+    REAL errorLoc, errorLocL1;
+    for(i=0;i<nelem;i++) {
+        errorLoc = errorLocL1 = 0.;
+        cel = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
+        if(!cel || cel->Dimension() != dim) continue;
+        int npoints = cel->GetIntegrationRule().NPoints();
+        for(it=0;it<npoints;it++){
+            cel->GetIntegrationRule().Point(it,point,weight);
+            cel->Reference()->X(point,x);
+            cel->Solution(point,var,SolCel);
+            ExactSolin(x,SolCelExact,DSolCel);
+            errorLocL1 += weight * fabs(SolCel[0] - SolCelExact[0]);
+            errorLoc += weight * (SolCel[0] - SolCelExact[0])*(SolCel[0] - SolCelExact[0]);
+        }
+        errorLocL1 *= fabs(cel->Reference()->Volume());
+        errorLoc *= fabs(cel->Reference()->Volume());
+        error += fabs(errorLocL1);
+        errorL2 += errorLoc;
+    }
+    errorLoc = errorL2;
+    errorL2 = sqrt(errorLoc);
 }
 
 /////

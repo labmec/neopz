@@ -82,8 +82,9 @@ int main(int argc, char *argv[]) {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
-	int NProcessor = 2;
-	int NRefinements = 5;
+    int NProcessor;
+	int NProcessors = 16;
+	int NRefinements = 8;
 	int i, dim;
 	char saida[260];
 	// output files
@@ -91,15 +92,15 @@ int main(int argc, char *argv[]) {
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
-//	gRefDBase.InitializeRefPatterns();
-
+    //	gRefDBase.InitializeRefPatterns();
+    
 	// To compute the errors
 	ofstream fileerrors("ErrorsHPProcess.txt");
 	TPZVec<REAL> ervec(100,0.0);
 	TPZVec<REAL> ervecL2(100,0.0);
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
-
+    
 	// To compute processing time
 	time_t sttime;
 	time_t endtime;
@@ -109,165 +110,167 @@ int main(int argc, char *argv[]) {
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0, InitialH = 1.;
 	
-	for(int ii=0;ii<NRefinements;ii++) {
-		time(&sttime);
-		// Constructing geometric mesh as Fichera corner using hexahedra
-		TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL, InitialH);
-		// h_refinement
-		TPZManVector<REAL> point(3,0.);
-		REAL r = 0.0, radius = 0.9;
-		bool isdefined = false;
-		for(i=0;i<ii+1;i++) {
-			// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-			RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
-			radius *= 0.5;
-		}
-		//UniformRefinement(ii+1,gmesh3D,false,1);
-		sprintf(saida,"meshextrudedmerged_%d.vtk",ii);
-		PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
-		
-		// Creating computational mesh
-		/** Set polynomial order */
-		int p = 2, pinit;
-		pinit = p;
-		TPZCompEl::SetgOrder(p);
-		TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
-		// Disminuindo a ordem p dos elementos subdivididos
-		// Primeiro sera calculado o mayor nivel de refinamento
-		// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-		int level, highlevel = 0;
-		int nelem = 0;
-		while(nelem < comp->NElements()) {
-			TPZCompEl *cel = comp->ElementVec()[nelem++];
-			if(cel) {
-				level = cel->Reference()->Level();
-			}
-			if(level > highlevel)
-				highlevel = level;
-		}
-		nelem = 0;
-		while(highlevel && nelem < comp->NElements()) {
-			TPZCompEl *cel = comp->ElementVec()[nelem++];
-			if(cel) {
-				level = cel->Reference()->Level();
-				if(level == highlevel)
-					((TPZInterpolatedElement*)cel)->PRefine(1);
-				else if(level == 0)
-					((TPZInterpolatedElement*)cel)->PRefine(p);
-				else {
-					REAL porder = (p/highlevel);
-					if(porder < 1)
-						((TPZInterpolatedElement*)cel)->PRefine(1);
-					else
-						((TPZInterpolatedElement*)cel)->PRefine((int)(porder*(highlevel-level)));
-				}
-			}
-		}
-		
-		TPZVec<REAL> forces(3,0.);
-		// Creating and inserting materials into computational mesh
-		//TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
-		TPZMaterial *mat = new TPZElasticity3D(1,1.e5,0.2,forces);          // three-dimensional
-		comp->InsertMaterialObject(mat);
-		dim = mat->Dimension();
-		TPZAutoPointer<TPZFunction<STATE> > Functionf = new TPZDummyFunction<STATE>(Ff);
-		mat->SetForcingFunction(Functionf);
-		nstate = mat->NStateVariables();
-		
-		// Boundary conditions
-		// Dirichlet
-		TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
-		TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-		TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-		bnd->SetForcingFunction(FunctionBC);
-		comp->InsertMaterialObject(bnd);
-		
-		// Constructing and adjusting computational mesh
-		comp->AutoBuild();
-		comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
-	//	comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
-		
-		//--- END construction of the meshes
-		
-		/** Variable names for post processing */
-		TPZStack<std::string> scalnames, vecnames;
-		if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
-			scalnames.Push("POrder");
-		else
-			vecnames.Push("POrder");
-		if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
-			scalnames.Push("Error");
-		else
-			vecnames.Push("Error");
-		if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
-			scalnames.Push("state");
-		else
-			vecnames.Push("state");      // "state" is as "Displacement" 
-		if(nstate == 1) {
-			scalnames.Push("TrueError");
-			scalnames.Push("EffectivityIndex");
-		}else if(nstate == 2) {
-			scalnames.Push("sig_x");
-			scalnames.Push("sig_y");
-			scalnames.Push("tau_xy");
-		}
-		if(nstate == 3) {
-			scalnames.Push("StressX");
-			scalnames.Push("StressY");
-			scalnames.Push("StressZ");
-			vecnames.Push("PrincipalStress");
-			vecnames.Push("PrincipalStrain");
-		}
-		
-		// END Determining the name of the variables
-		
-		// Introduzing exact solution
-		TPZAnalysis an (comp);
-		an.SetExact(Exact);		
-		comp->SetName("Computational mesh for Fichera problem");
-		
-		// Solve using symmetric matrix then using Cholesky (direct method)
-		TPZParSkylineStructMatrix strskyl(comp,NProcessor);
-		//	TPZSkylineStructMatrix strskyl(comp);
-		an.SetStructuralMatrix(strskyl);
-		
-		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-		direct->SetDirect(ECholesky);
-		an.SetSolver(*direct);
-		delete direct;
-		direct = 0;
-		
-		an.Run();
-		time(&endtime);
-		time_elapsed = endtime - sttime;
-		formatTimeInSec(tempo,time_elapsed);
-		
-		char pp[3];
-		sprintf(pp,"%d",pinit);
-		std::cout << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
-		
-		// Computing error
-		ComputeSolutionError(ervec[ii],ervecL2[ii],comp,dim);
-		fileerrors << "Refinement: " << ii << "  Threads: " << NProcessor << "  NEquations: " << comp->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
-		<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
-
-		// Post processing
-		std::string filename = "ElastSolutions";
-		filename += "_p";
-		filename += pp;
-		filename += "_hL";
-		sprintf(pp,"%d",ii);
-		filename += pp;
-		sprintf(pp,"_PAR%d",NProcessor);
-		filename += pp;
-		filename += ".vtk";
-		an.DefineGraphMesh(dim,scalnames,vecnames,filename);
-
-		an.PostProcess(1,dim);
-		
-		delete gmesh3D;
-		delete comp;
-		
+    for(int ii=1;ii<NRefinements;ii++) {
+        for(NProcessor=1;NProcessor<NProcessors;NProcessor++) {
+            time(&sttime);
+            // Constructing geometric mesh as Fichera corner using hexahedra
+            TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL, InitialH);
+            // h_refinement
+            TPZManVector<REAL> point(3,0.);
+            REAL r = 0.0, radius = 0.9;
+            bool isdefined = false;
+            for(i=0;i<ii+1;i++) {
+                // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
+                RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
+                radius *= 0.6;
+            }
+            //UniformRefinement(ii+1,gmesh3D,false,1);
+            sprintf(saida,"meshextrudedmerged_%d.vtk",ii);
+            PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
+            
+            // Creating computational mesh
+            /** Set polynomial order */
+            int p = 3, pinit;
+            pinit = p;
+            TPZCompEl::SetgOrder(p);
+            TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
+            // Disminuindo a ordem p dos elementos subdivididos
+            // Primeiro sera calculado o mayor nivel de refinamento
+            // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
+            int level, highlevel = 0;
+            int nelem = 0;
+            while(nelem < comp->NElements()) {
+                TPZCompEl *cel = comp->ElementVec()[nelem++];
+                if(cel) {
+                    level = cel->Reference()->Level();
+                }
+                if(level > highlevel)
+                    highlevel = level;
+            }
+            nelem = 0;
+            while(highlevel && nelem < comp->NElements()) {
+                TPZCompEl *cel = comp->ElementVec()[nelem++];
+                if(cel) {
+                    level = cel->Reference()->Level();
+                    if(level == highlevel)
+                        ((TPZInterpolatedElement*)cel)->PRefine(1);
+                    else if(level == 0)
+                        ((TPZInterpolatedElement*)cel)->PRefine(p);
+                    else {
+                        REAL porder = (p/highlevel);
+                        if(porder < 1)
+                            ((TPZInterpolatedElement*)cel)->PRefine(1);
+                        else
+                            ((TPZInterpolatedElement*)cel)->PRefine((int)(porder*(highlevel-level)));
+                    }
+                }
+            }
+            
+            TPZVec<REAL> forces(3,0.);
+            // Creating and inserting materials into computational mesh
+            //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
+            TPZMaterial *mat = new TPZElasticity3D(1,1.e5,0.2,forces);          // three-dimensional
+            comp->InsertMaterialObject(mat);
+            dim = mat->Dimension();
+            TPZAutoPointer<TPZFunction<STATE> > Functionf = new TPZDummyFunction<STATE>(Ff);
+            mat->SetForcingFunction(Functionf);
+            nstate = mat->NStateVariables();
+            
+            // Boundary conditions
+            // Dirichlet
+            TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+            TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+            TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+            bnd->SetForcingFunction(FunctionBC);
+            comp->InsertMaterialObject(bnd);
+            
+            // Constructing and adjusting computational mesh
+            comp->AutoBuild();
+            comp->ExpandSolution();
+            comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
+            //	comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
+            
+            //--- END construction of the meshes
+            
+            /** Variable names for post processing */
+            TPZStack<std::string> scalnames, vecnames;
+            if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
+                scalnames.Push("POrder");
+            else
+                vecnames.Push("POrder");
+            if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
+                scalnames.Push("Error");
+            else
+                vecnames.Push("Error");
+            if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
+                scalnames.Push("state");
+            else
+                vecnames.Push("state");      // "state" is as "Displacement" 
+            if(nstate == 1) {
+                scalnames.Push("TrueError");
+                scalnames.Push("EffectivityIndex");
+            }else if(nstate == 2) {
+                scalnames.Push("sig_x");
+                scalnames.Push("sig_y");
+                scalnames.Push("tau_xy");
+            }
+            if(nstate == 3) {
+                scalnames.Push("StressX");
+                scalnames.Push("StressY");
+                scalnames.Push("StressZ");
+                vecnames.Push("PrincipalStress");
+                vecnames.Push("PrincipalStrain");
+            }
+            
+            // END Determining the name of the variables
+            
+            // Introduzing exact solution
+            TPZAnalysis an (comp);
+            an.SetExact(Exact);		
+            comp->SetName("Computational mesh for Fichera problem");
+            
+            // Solve using symmetric matrix then using Cholesky (direct method)
+            TPZParSkylineStructMatrix strskyl(comp,NProcessor);
+            //	TPZSkylineStructMatrix strskyl(comp);
+            an.SetStructuralMatrix(strskyl);
+            
+            TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+            direct->SetDirect(ECholesky);
+            an.SetSolver(*direct);
+            delete direct;
+            direct = 0;
+            
+            an.Run();
+            time(&endtime);
+            time_elapsed = endtime - sttime;
+            formatTimeInSec(tempo,time_elapsed);
+            
+            char pp[3];
+            sprintf(pp,"%d",pinit);
+            std::cout << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+            
+            // Computing error
+            ComputeSolutionError(ervec[ii],ervecL2[ii],comp,dim);
+            fileerrors << "Refinement: " << ii << "  Threads: " << NProcessor << "  NEquations: " << comp->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
+            << ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+            
+            // Post processing
+            std::string filename = "ElastSolutions";
+            filename += "_p";
+            filename += pp;
+            filename += "_hL";
+            sprintf(pp,"%d",ii);
+            filename += pp;
+            sprintf(pp,"_PAR%d",NProcessor);
+            filename += pp;
+            filename += ".vtk";
+            an.DefineGraphMesh(dim,scalnames,vecnames,filename);
+            
+            an.PostProcess(1,dim);
+            
+            delete comp;
+            delete gmesh3D;
+        }
 	}
 	return 0;
 }
@@ -289,9 +292,11 @@ void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) 
 	TPZVec<REAL> SolCel(5,0.0);
 	TPZVec<REAL> SolCelExact(5,0.0);
 	TPZFMatrix<REAL> DSolCel(5,5,0.0);
-	
-	REAL errorLoc = 0., errorLocL1 = 0.;
+
+	error = 0.; errorL2 = 0.;
+    REAL errorLoc, errorLocL1;
 	for(i=0;i<nelem;i++) {
+        errorLoc = errorLocL1 = 0.;
 		cel = (TPZInterpolatedElement *)cmesh->ElementVec()[i];
 		if(!cel || cel->Dimension() != dim) continue;
 		int npoints = cel->GetIntegrationRule().NPoints();
@@ -303,11 +308,13 @@ void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim) 
 			errorLocL1 += weight * fabs(SolCel[0] - SolCelExact[0]);
 			errorLoc += weight * (SolCel[0] - SolCelExact[0])*(SolCel[0] - SolCelExact[0]);
 		}
-		errorLocL1 *= cel->Reference()->Volume();
-		errorLoc *= cel->Reference()->Volume();
+		errorLocL1 *= fabs(cel->Reference()->Volume());
+		errorLoc *= fabs(cel->Reference()->Volume());
+        error += fabs(errorLocL1);
+        errorL2 += errorLoc;
 	}
-	error = errorLocL1;
-	errorL2 = sqrt(errorLoc);
+	errorLoc = errorL2;
+    errorL2 = sqrt(errorLoc);
 }
 
 void ExactSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
