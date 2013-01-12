@@ -250,7 +250,7 @@ int main() {
 			// Solving linear equations
 			// Initial steps
 			std::cout << "Solving HP-Adaptive Methods....step: " << ii << "  Threads " << jj << "\n";
-			TPZAnalysis an (cmesh);
+			TPZAnalysis an(cmesh);
 			if(!problem)
 				an.SetExact(ExactSolNull);
 			else if(problem==1)
@@ -285,8 +285,6 @@ int main() {
 			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh);
 			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
 			<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
-			
-			TPZVec<REAL> Solution(cmesh->NEquations(),0.);
 			
 			// Computing approximation of gradient
 			/** 
@@ -376,6 +374,17 @@ void formatTimeInSec(char *strtime,int timeinsec) {
 			else
 				sprintf(strtime,"%d:%d:%d",horas,minutos,segundos);
 		}
+	}
+}
+
+void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
+	Points.Resize(npoints);
+	TPZManVector<REAL> point(3,0.);
+	REAL angle = (2*M_PI)/npoints;
+	for(int i=0;i<npoints;i++) {
+		point[0] = center[0]+radius*cos(i*angle);
+		point[1] = center[1]+radius*sin(i*angle);
+		Points[i] = point;
 	}
 }
 
@@ -605,17 +614,6 @@ REAL PartialDerivateY(const TPZVec<REAL> &x) {
 	frac = frac/(1+arc*arc);
 	temp -= frac;
 	return (result*temp);
-}
-
-void GetPointsOnCircunference(int npoints,TPZVec<REAL> &center,REAL radius,TPZVec<TPZManVector<REAL> > &Points) {
-	Points.Resize(npoints);
-	TPZManVector<REAL> point(3,0.);
-	REAL angle = (2*M_PI)/npoints;
-	for(int i=0;i<npoints;i++) {
-		point[0] = center[0]+radius*cos(i*angle);
-		point[1] = center[1]+radius*sin(i*angle);
-		Points[i] = point;
-	}
 }
 
 void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh) {

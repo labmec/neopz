@@ -117,15 +117,6 @@ int main(int argc, char *argv[]) {
 				TPZVec<TPZGeoEl *> sub, subsub;
 				TPZGeoEl *gel = 0;
 				int conta = 0;
-//				while(!gel) {
-//					gel = gmesh->ElementVec()[conta++];
-//					if(gel->Dimension() != dim) {
-//						gel = 0;
-//						continue;
-//					}
-//					gel->Divide(sub);
-//					sub[1]->Divide(subsub);
-//				}
 				ofstream arg1("gmesh_inicial.txt");
 				gmesh->Print(arg1);
 				
@@ -176,13 +167,10 @@ void ChangeElemToMatL2Projection(TPZCompMesh *cmesh, int matid, int matidL2Proj,
 	for(i=0;i<cmesh->NElements();i++) {
 		cel = cmesh->ElementVec()[i];
 		if(!cel) continue;
-        
-        TPZMaterial *mat;
-        mat=cel->Material();
-        
-        int mid = cel->Material()->Id();
+                
         //se for elemento de contorno continue
-        if(mat->Id()!=matid) continue;
+        int mid = cel->Material()->Id();
+        if(mid != matid) continue;
         
         //mudar o material id
         TPZGeoEl *gel;
@@ -192,7 +180,7 @@ void ChangeElemToMatL2Projection(TPZCompMesh *cmesh, int matid, int matidL2Proj,
         std::set<int> matlist;
         matlist.insert(matIdL2Proj);
         if(cel->HasMaterial(matlist)==false) DebugStop();
-        }
+	}
     
 //    int nst = mat->NStateVariables();
 //    TPZL2ProjectionForGradient *matl2proj;
@@ -375,7 +363,6 @@ void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMes
 		
 		// WRONG
 		
-		
 		if(!cel || cel->Dimension()!=cmesh->Dimension()) continue;
 		TPZStack<TPZCompElSide> neighs;
 		measure = cel->VolumeOfEl();
@@ -411,13 +398,6 @@ void PosProcessamento(TPZAnalysis &an, TPZCompMesh *Cmesh, std::string plotfile,
 	int div = 2;
 	an.DefineGraphMesh(dim,scalnames,vecnames,plotfile);
 	an.PostProcess(div,dim);
-	// Carregar gradients como soluçao na malla computacional
-	// Imprimir solucao novamente - Acertar gradients dependente dos graus de liberdade no cmesh
-	// cmesh->LoadSolution(gradients);
-	//an.PostProcess(div,dim);
-	
-    //	std::ofstream out("malha.txt");
-	//	an.Print("nothing",out);
 }
 
 TPZFMatrix<REAL> MatrixR(REAL ang)
@@ -582,17 +562,7 @@ TPZGeoMesh *GMesh1D(int nh){
     new TPZGeoElRefPattern< pzgeom::TPZGeoPoint > (id,TopolPoint,bc1,*gmesh);
     
 	gmesh->BuildConnectivity();
-    
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Geometrica Inicial\n ";
-    //        gmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str())
-    //	}
-    //#endif
-    
+
     for ( int ref = 0; ref < nh; ref++ ){
 		TPZVec<TPZGeoEl *> filhos;
 		int n = gmesh->NElements();
@@ -611,8 +581,6 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
 {
     /// criar materiais
 	int dim = matId;
-//	TPZMat1dLin *material;
-//	material = new TPZMat1dLin(matId);
     TPZMatPoisson3d *material;
     material = new TPZMatPoisson3d(matId,dim);
 	material->NStateVariables();
@@ -652,9 +620,8 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
     
     
     // Inserting new material to compute L2 projection
-//    TPZL2ProjectionForGradient *matl2proj;
-//	matl2proj = new TPZL2ProjectionForGradient(matIdL2Proj,dim,material->NStateVariables());
-//    cmesh->InsertMaterialObject(matl2proj);
+    TPZL2ProjectionForGradient *matl2proj = new TPZL2ProjectionForGradient(matIdL2Proj,dim,material->NStateVariables());
+    cmesh->InsertMaterialObject(matl2proj);
     
 	cmesh->SetDefaultOrder(pOrder);
     cmesh->SetDimModel(dim);
@@ -663,16 +630,6 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
 	cmesh->AutoBuild();
     cmesh->AdjustBoundaryElements();
 	cmesh->CleanUpUnconnectedNodes();
-        
-    //#ifdef LOG4CXX
-    //	if(logdata->isDebugEnabled())
-    //	{
-    //        std::stringstream sout;
-    //        sout<<"\n\n Malha Computacional_2 pressure\n ";
-    //        cmesh->Print(sout);
-    //        LOGPZ_DEBUG(logdata,sout.str());
-    //	}
-    //#endif
 	
 	return cmesh;
 }

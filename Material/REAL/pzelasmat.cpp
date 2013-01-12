@@ -533,9 +533,6 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
     return -1;
     */
     
-    
-   
-    
 	if(!strcmp("displacement",name.c_str()))     return 9;
 	if(!strcmp("Pressure",name.c_str()))         return 1;
 	if(!strcmp("MaxStress",name.c_str()))        return 2;
@@ -554,9 +551,7 @@ int TPZElasticityMaterial::VariableIndex(const std::string &name){
 	if(!strcmp("Stress",name.c_str()))           return 10;
     if(!strcmp("J2",name.c_str()))           return 20;
     if(!strcmp("I1",name.c_str()))           return 21;
-    
-    
-	
+
 	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
 	return TPZMaterial::VariableIndex(name);
 }
@@ -594,8 +589,7 @@ int TPZElasticityMaterial::NSolutionVariables(int var){
             return 1;
 		default:
 			return TPZMaterial::NSolutionVariables(var);
-	}
-  
+	}  
 }
 
 

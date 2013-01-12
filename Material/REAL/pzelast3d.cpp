@@ -271,7 +271,7 @@ void TPZElasticity3D::ContributeBC(TPZMaterialData &data,
 	
 }//method
 
-int TPZElasticity3D::VariableIndex(const std::string &name){
+int TPZElasticity3D::VariableIndex(const std::string &name) {
 	if(!strcmp("Displacement",name.c_str()))  return TPZElasticity3D::EDisplacement;
 	if(!strcmp("state",name.c_str()))  return TPZElasticity3D::EDisplacement;
 	if(!strcmp("DisplacementX",name.c_str()))  return TPZElasticity3D::EDisplacementX;
@@ -289,37 +289,42 @@ int TPZElasticity3D::VariableIndex(const std::string &name){
 	if(!strcmp("StressX",name.c_str()))  return TPZElasticity3D::EStressX;
 	if(!strcmp("StressY",name.c_str()))  return TPZElasticity3D::EStressY;
 	if(!strcmp("StressZ",name.c_str()))  return TPZElasticity3D::EStressZ;
-	PZError << "TPZElasticity3D::VariableIndex Error\n";
+	//   cout << "TPZElasticityMaterial::VariableIndex Error\n";
+	return TPZMaterial::VariableIndex(name);
+}
+
+int TPZElasticity3D::NSolutionVariables(int var) {
+	switch(var) {
+		case TPZElasticity3D::EDisplacement :
+		case TPZElasticity3D::EPrincipalStress :
+		case TPZElasticity3D::EPrincipalStrain :
+		case TPZElasticity3D::EPrincipalDirection1 :
+		case TPZElasticity3D::EPrincipalDirection2 :
+		case TPZElasticity3D::EPrincipalDirection3 :
+		case TPZElasticity3D::EStress :
+		case TPZElasticity3D::EStrain :
+		case TPZElasticity3D::ENormalStress :
+		case TPZElasticity3D::ENormalStrain :
+			return 3;
+		case TPZElasticity3D::EDisplacementX :
+		case TPZElasticity3D::EDisplacementY :
+		case TPZElasticity3D::EDisplacementZ :
+		case TPZElasticity3D::EVonMisesStress :
+		case TPZElasticity3D::EStrain1 :
+		case TPZElasticity3D::EStress1 :
+		case TPZElasticity3D::EStressX :
+		case TPZElasticity3D::EStressY :
+		case TPZElasticity3D::EStressZ :
+			return 1;
+		default:
+			return TPZMaterial::NSolutionVariables(var);
+	}
 	return -1;
 }
 
-int TPZElasticity3D::NSolutionVariables(int var){
-	if(var == TPZElasticity3D::EDisplacement)        return 3;
-	if(var == TPZElasticity3D::EDisplacementX)       return 1;
-	if(var == TPZElasticity3D::EDisplacementY)       return 1;
-	if(var == TPZElasticity3D::EDisplacementZ)       return 1;
-	if(var == TPZElasticity3D::EPrincipalStress)     return 3;
-	if(var == TPZElasticity3D::EPrincipalStrain)     return 3;
-	if(var == TPZElasticity3D::EPrincipalDirection1) return 3;
-	if(var == TPZElasticity3D::EPrincipalDirection2) return 3;
-	if(var == TPZElasticity3D::EPrincipalDirection3) return 3;
-	if(var == TPZElasticity3D::EVonMisesStress)      return 1;  
-	if(var == TPZElasticity3D::EStress)              return 3;  
-	if(var == TPZElasticity3D::EStrain)              return 3;  
-	if(var == TPZElasticity3D::EStrain1)             return 1;  
-	if(var == TPZElasticity3D::EStress1)             return 1; 
-	if(var == TPZElasticity3D::ENormalStress)        return 3;  
-	if(var == TPZElasticity3D::ENormalStrain)        return 3; 
-	if(var == TPZElasticity3D::EStressX)						 return 1; 
-    if(var == TPZElasticity3D::EStressY)						 return 1;
-    if(var == TPZElasticity3D::EStressZ)						 return 1;
-	PZError << "TPZElasticity3D::NSolutionVariables Error\n";
-	return -1;
-}
-
-void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout){
+void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMatrix<REAL> &axes,int var,TPZVec<REAL> &Solout) {
 	
-	if(var == TPZElasticity3D::EDisplacement){
+	if(var == TPZElasticity3D::EDisplacement) {
 		int i;
 		for(i = 0; i < 3; i++){
 			Solout[i] = Sol[i];
@@ -327,19 +332,19 @@ void TPZElasticity3D::Solution(TPZVec<STATE> &Sol,TPZFMatrix<STATE> &DSol,TPZFMa
 		return;
 	}//TPZElasticity3D::EDisplacement
 	
-	if(var == TPZElasticity3D::EDisplacementX){
+	if(var == TPZElasticity3D::EDisplacementX) {
 		//    int i;
 		Solout[0] = Sol[0];
 		return;
 	}//TPZElasticity3D::EDisplacementX
 	
-	if(var == TPZElasticity3D::EDisplacementY){
+	if(var == TPZElasticity3D::EDisplacementY) {
 		//    int i;
 		Solout[0] = Sol[1];
 		return;
 	}//TPZElasticity3D::EDisplacementY  
 	
-	if(var == TPZElasticity3D::EDisplacementZ){
+	if(var == TPZElasticity3D::EDisplacementZ) {
 		//    int i;
 		Solout[0] = Sol[2];
 		return;
