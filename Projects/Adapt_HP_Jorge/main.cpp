@@ -52,6 +52,9 @@ REAL alfa = M_PI/6.;
 bool anothertests = false;
 int nstate = 2;
 
+// output files  -> Because it has many energy faults
+std::ofstream out("output.txt");
+
 /** Printing level */
 int gPrintLevel = 0;
 bool gDebug = false;
@@ -87,8 +90,6 @@ int main(int argc, char *argv[]) {
 	int NRefinements = 8;
 	int i, dim;
 	char saida[260];
-	// output files
-    std::ofstream out("output.txt");
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
@@ -247,7 +248,7 @@ int main(int argc, char *argv[]) {
             
             char pp[3];
             sprintf(pp,"%d",pinit);
-            std::cout << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+            out << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
             
             // Computing error
             ComputeSolutionError(ervec[ii],ervecL2[ii],comp,dim);
@@ -272,6 +273,8 @@ int main(int argc, char *argv[]) {
             delete gmesh3D;
         }
 	}
+    out.close();
+    fileerrors.close();
 	return 0;
 }
 
@@ -349,7 +352,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// Mesh as a hexahedra with large edge (2 units) and was cutting a small hexahedra with edge with 1 unit:
 	// 1) The bottom rectangular mesh has four corners: (1,-1,-1), (1,1,-1), (-1,1,-1) and (-1,-1,-1)
 	// and was divides in four segments on X and four on Y, then hx = 0.5 and hy = 0.5
-	if(print) cout << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
+	if(print) out << "Generating (1) bottom geometric mesh bi-dimensional ...\n";
 	TPZGeoMesh* gmesh = new TPZGeoMesh;
 	x0[0] = InitialL; x0[1] = x0[2] = -InitialL;
 	x1[0] = x1[2] = - InitialL; x1[1] = InitialL;
@@ -358,7 +361,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	gen.Read(gmesh);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend(gmesh,InitialH);
 	TPZGeoMesh *gmesh3D = gmeshextend.ExtendedMesh(1,-1,2);
 	gmesh3D->SetName("First Mesh Extruded");
@@ -376,7 +379,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// 2) The left upper rectangular mesh has four corners: (1,-1,0), (1,0,0), (-1,0,0) and (-1,-1,0)
 	// and was divides in one segment on X and two on Y, then hx = hy = 1.
 	TPZGeoMesh *gmesh2 = new TPZGeoMesh;
-	if(print) cout << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
+	if(print) out << "Generating (2) left upper geometric mesh bi-dimensional ...\n";
 	x0[0] = InitialL; x0[1] = -InitialL; x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = x1[2] = 0.;
 	nx[0] = 2; nx[1] = 1;
@@ -384,7 +387,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	gen.Read(gmesh2);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend2(gmesh2,InitialH);
 	TPZGeoMesh *gmesh3D2 = gmeshextend2.ExtendedMesh(1,2,-1);
 	gmesh3D2->SetName("Second Mesh Extruded");
@@ -398,7 +401,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	// 3) The right upper rectangular mesh has four corners: (0,0,0), (0,1,0), (-1,1,0) and (-1,0,0)
 	// and was divides in one segment on X and two on Y, then hx = hy = 1.
 	TPZGeoMesh *gmesh3 = new TPZGeoMesh;
-	if(print) cout << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
+	if(print) out << "Generating (3) left upper geometric mesh bi-dimensional ...\n";
 	x0[0] = x0[1] = x0[2] = 0.;
 	x1[0] = -InitialL; x1[1] = InitialL; x1[2] = 0.;
 	nx[0] = nx[1] = 1;
@@ -406,7 +409,7 @@ TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) 
 	gen.Read(gmesh3);             // generating grid in gmesh
 	// Extending geometric mesh (two-dimensional) to three-dimensional geometric mesh
 	// The elements are hexaedras(cubes) over the quadrilateral two-dimensional elements
-	if(print) cout << "... (Extruding) first geometric mesh three-dimensional...\n";
+	if(print) out << "... (Extruding) first geometric mesh three-dimensional...\n";
 	TPZExtendGridDimension gmeshextend3(gmesh3,InitialH);
 	TPZGeoMesh *gmesh3D3 = gmeshextend3.ExtendedMesh(1,2,-1);
 	gmesh3D3->SetName("Third Mesh Extruded");
