@@ -98,6 +98,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 int problem = 1;
 
 /** Laplace equation on square - Volker John article 2000 */
+
 int main() {
 #ifdef LOG4CXX
 	InitializePZLOG();
@@ -645,7 +646,12 @@ void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int d
             cel->GetIntegrationRule().Point(it,point,weight);
             cel->Reference()->X(point,x);
             cel->Solution(point,var,SolCel);
-            ExactSolin(x,SolCelExact,DSolCel);
+			if(!problem)
+				ExactSolNull(x,SolCelExact,DSolCel);
+			else if(problem==1)
+				ExactSolCircle(x,SolCelExact,DSolCel);
+			else if(problem==2)
+				ExactSolProduct(x,SolCelExact,DSolCel);
             errorLocL1 += weight * fabs(SolCel[0] - SolCelExact[0]);
             errorLoc += weight * (SolCel[0] - SolCelExact[0])*(SolCel[0] - SolCelExact[0]);
         }
@@ -1167,7 +1173,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 		}	
 		
 		// Refinement of the some element	
-		TPZGeoEl *gel, *gel1, *gel2, *gel3;
+		TPZGeoEl *gel;   //  *gel1, *gel2, *gel3;
 		TPZVec<TPZGeoEl *> sub;
 		TPZVec<TPZGeoEl *> subsub;
 		gel = gmesh->ElementVec()[4];
@@ -1302,7 +1308,7 @@ int main_AdaptHP(int argc, char *argv[]) {
 			delete direct;
 			direct = 0;
 			
-			int neq = comp->NEquations();
+//			int neq = comp->NEquations();
 			//	an.NEquations();
 			//		an.Solution().Print();
 			an.Run();
