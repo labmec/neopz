@@ -1444,9 +1444,10 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
 				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				REAL friction = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[5];				
 				bool docontribute = true;
 				
-				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute); 
+				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute,friction); 
 				InterfaceMat->SetPenalty(KNU,KTU,KNP,KNP);		
 				TPZMaterial * MaterialInterface(InterfaceMat);
 				Multiphysics->InsertMaterialObject(MaterialInterface);			
@@ -1494,9 +1495,10 @@ TPZCompMesh * ComputationalPoroelasticityMesh(TiXmlHandle ControlDoc, TPZReadGID
 				REAL KTU = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[2];
 				REAL KNP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[3];
 				REAL KTP = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[4];
+				REAL friction = GeometryInfo.fBCMaterialDataVec[ibc].fProperties[5];	
 				bool docontribute = false;				
 				
-				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute); 
+				PoroElasticMatInterface2D *InterfaceMat = new PoroElasticMatInterface2D(GeometryInfo.fBCMaterialDataVec[ibc].fMatID,1,docontribute,friction); 
 				InterfaceMat->SetPenalty(KNU,KTU,KNP,KNP);		
 				TPZMaterial * MaterialInterface(InterfaceMat);
 				Multiphysics->InsertMaterialObject(MaterialInterface);			

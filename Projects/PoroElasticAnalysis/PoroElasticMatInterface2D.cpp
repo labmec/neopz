@@ -33,12 +33,13 @@ PoroElasticMatInterface2D::PoroElasticMatInterface2D() : TPZPoroElastic2d(){
 	this->SetDimension(1);
 }
 
-PoroElasticMatInterface2D::PoroElasticMatInterface2D(int mat,int dim, bool DoContribute) : TPZPoroElastic2d(mat,dim){
+PoroElasticMatInterface2D::PoroElasticMatInterface2D(int mat,int dim, bool DoContribute, REAL fmu) : TPZPoroElastic2d(mat,dim){
 	fknu = 1000000.0;
 	fktu = 1000000.0;
 	fknp = 1000000.0;
 	fktp = 1000000.0;
 	fcontribute = DoContribute;
+	fFrictionmu = fmu;
 	this->SetDimension(1);	
 }
 
@@ -152,8 +153,9 @@ int PoroElasticMatInterface2D::VariableIndex(const std::string &name)
 	if(!strcmp("TangentialRight",name.c_str()))				return	3;
 	if(!strcmp("TangentialLeft",name.c_str()))				return	4;	
 	if(!strcmp("AverageNormal",name.c_str()))						return	5;
-	if(!strcmp("FRFactor",name.c_str()))						return	6;
-	if(!strcmp("DrivingStress",name.c_str()))						return	7;
+	if(!strcmp("AverageTangential",name.c_str()))						return	6;	
+	if(!strcmp("FRFactor",name.c_str()))						return	7;
+	if(!strcmp("DrivingStress",name.c_str()))						return	8;
 	
 	return TPZMaterial::VariableIndex(name);
 }
@@ -165,7 +167,8 @@ int PoroElasticMatInterface2D::NSolutionVariables(int var){
 	if(var == 4)	return 3;
 	if(var == 5)	return 1;
 	if(var == 6)	return 1;
-	if(var == 7)	return 1;	
+	if(var == 7)	return 1;
+	if(var == 8)	return 1;	
 	return TPZMaterial::NSolutionVariables(var);
 }
 
@@ -203,20 +206,20 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 
 	REAL t[2] = {-data.normal[1],data.normal[0]};
 	REAL n[2] = {data.normal[0],data.normal[1]};
-	
-	REAL tfault[2] = {1.0,0.0};
-	REAL nfault[2] = {0.0,1.0};	
-	
+		
 	REAL NormalOnRight	= 0.0;
 	REAL NormalOnLeft	= 0.0;
 	REAL TangentialRight	= 0.0;
 	REAL TangentialLeft	= 0.0;	
 	REAL AverageNormal	= 0.0;
+	REAL AverageTangential	= 0.0;	
 	REAL StressMagnitude = 0.0;
 	REAL Stresstrx = 0.0;
 	REAL Stresstry = 0.0;
 	REAL Stresstlx = 0.0;
-	REAL Stresstly = 0.0;	
+	REAL Stresstly = 0.0;
+	REAL FailureStress = 0.0;
+	REAL DrivingStress = 0.0;	
 	
 	// Left Stress vector on plane with normal n and tangent t
 	Stresstlx = LeftSigmaX[0]*n[0] + LeftTau[0]*n[1];
@@ -228,12 +231,12 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	Stresstry = RightTau[0]*n[0] + RightSigmaY[0]*n[1];	
 	REAL StressVectorR[2] = {Stresstrx,Stresstry};	
 	
-	// Calcualtion of normal of left part
+	// Calculation of normal of left part
 
 	NormalOnLeft = StressVectorL[0]*n[0]+StressVectorL[1]*n[1];
 	TangentialLeft = StressVectorL[0]*t[0]+StressVectorL[1]*t[1]; 	
 	
-	// Calcualtion of normal of Right part	
+	// Calculation of normal of Right part	
 	
 	NormalOnRight = StressVectorR[0]*n[0]+StressVectorR[1]*n[1];
 	TangentialRight = StressVectorR[0]*t[0]+StressVectorR[1]*t[1]; 		
@@ -242,8 +245,9 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	
 //	StressMagnitude = (StressVectorMagnitudeL+StressVectorMagnitudeR)/2.0;
 	AverageNormal = (NormalOnLeft+NormalOnRight)/2.0;
+	AverageTangential = (TangentialLeft+TangentialRight)/2.0;
 		
-
+	DrivingStress = AverageTangential - this->fFrictionmu*AverageNormal;
 	//	Normal Right
 	if(var == 1){
 		Solout[0] = NormalOnRight*n[0];		
@@ -279,6 +283,24 @@ void PoroElasticMatInterface2D::Solution(TPZMaterialData &data, TPZVec<TPZMateri
 	//	Normal Average
 	if(var == 5){
 		Solout[0] = AverageNormal;
+		return;
+	}
+	
+	//	Tangential Average
+	if(var == 6){
+		Solout[0] = AverageTangential;
+		return;
+	}
+	
+	//	Fault Reactivation Factor
+	if(var == 7){
+		Solout[0] = FailureStress;
+		return;
+	}	
+	
+	//	DrivingStress Average
+	if(var == 8){
+		Solout[0] = DrivingStress;
 		return;
 	}	
 	
