@@ -354,7 +354,7 @@ void TPZAnalysis::Print( const std::string &name, std::ostream &out) {
 }
 
 
-void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
+void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	int i;
 	//TPZVec<REAL> ux((int) neq);
 	//TPZVec<REAL> sigx((int) neq);
@@ -389,6 +389,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 		
 	}
 	int nerrors = errors.NElements();
+	ervec.Resize(nerrors);
+	ervec.Fill(0.0);
 	
 	if (nerrors==4) {
 		if(lastEl){
@@ -402,7 +404,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
-			
+			for(i=0;i<nerrors;i++)
+				ervec[i] = sqrt(values[i]);
 		}
 		else{
 			out << endl << "############" << endl;
@@ -415,6 +418,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
+			for(i=0;i<nerrors;i++)
+				ervec[i] = sqrt(values2[i]);
 		}
 	}
 	else {
@@ -429,7 +434,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values2[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values2[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values2[2])  <<endl;
-			
+			for(i=0;i<nerrors;i++)
+				ervec[i] = sqrt(values2[i]);
 		}
 		else{
 			out << endl << "############" << endl;
@@ -442,6 +448,8 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &, std::ostream &out) {
 			out << endl << "true_error (Norma H1) = "  << sqrt(values[0]) << endl;
 			out << endl << "L2_error (Norma L2) = "    << sqrt(values[1]) << endl;
 			out << endl << "estimate (Semi-norma H1) = "    << sqrt(values[2])  <<endl;
+			for(i=0;i<nerrors;i++)
+				ervec[i] = sqrt(values[i]);
 		}
 	}
 	return;
