@@ -664,13 +664,13 @@ void TPZMatPoisson3d::Errors(TPZVec<REAL> &x,TPZVec<STATE> &u,
 	Solution(u,dudx,axes,2,dsol);
 	int id;
 	//values[1] : eror em norma L2
-    diff = abs(sol[0] - u_exact[0]);
+    diff = fabs(sol[0] - u_exact[0]);
 	values[1]  = diff*diff;
 	//values[2] : erro em semi norma H1
 	values[2] = 0.;
 	for(id=0; id<fDim; id++) {
-        diff = abs((dsol[id] - du_exact(id,0)));
-		values[2]  += abs(fK)*diff*diff;
+        diff = fabs((dsol[id] - du_exact(id,0)));
+		values[2]  += fabs(fK)*diff*diff;
 	}
 	//values[0] : erro em norma H1 <=> norma Energia
 	values[0]  = values[1]+values[2];
