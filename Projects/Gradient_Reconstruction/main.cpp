@@ -16,7 +16,8 @@
 #include "pzpoisson3d.h"
 #include "pzmat1dlin.h"
 
-#include "pzl2projectionforgradient.h"
+#include "pzgradient.h"
+#include "pzl2projection.h"
 
 #include "tpzgeoelrefpattern.h"
 #include "TPZGeoLinear.h"
@@ -81,7 +82,7 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 void SaidaMathGradiente(TPZFMatrix<REAL> gradients);
 
 //Trocar todos os elementos do cmesh apontando para o material TPZL2ProjectionFromGradient
-void ChangeElemToMatL2Projection(TPZCompMesh *cmesh, int matid, int matidL2Proj, TPZFMatrix<REAL> gradients);
+void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid);
 
 int main(int argc, char *argv[]) {
 
@@ -137,17 +138,7 @@ int main(int argc, char *argv[]) {
 				TPZFMatrix<REAL> gradients;
 				GradientReconstructionByLeastSquares(gradients,cmesh,0,0,continuous);
 				gradients.Print();
-//                SaidaMathGradiente(gradients);
-
-				// Trocar todos os elementos do cmesh apontando para material L2Proj
-				ChangeElemToMatL2Projection(cmesh, matId, matIdL2Proj, gradients);
                 
-				// Nesse material L2Proj inserir o vetor de gradientes reconstruido
-				//->SetGradients(gradients);
-				
-				// Resolver com o novo material
-				
-				
 				// Print gradient reconstructed
 				string plotfile("GradientAndSolution.vtk");
 				PosProcessamento(an,cmesh,plotfile,gradients);
@@ -159,44 +150,14 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-
-void ChangeElemToMatL2Projection(TPZCompMesh *cmesh, int matid, int matidL2Proj, TPZFMatrix<REAL> gradients){
- 
-    int i;
-    TPZCompEl *cel;
-	for(i=0;i<cmesh->NElements();i++) {
-		cel = cmesh->ElementVec()[i];
-		if(!cel) continue;
-                
-        //se for elemento de contorno continue
-        int mid = cel->Material()->Id();
-        if(mid != matid) continue;
-        
-        //mudar o material id
-        TPZGeoEl *gel;
-        gel = cel->Reference();
-        gel->SetMaterialId(matIdL2Proj);
-        
-        std::set<int> matlist;
-        matlist.insert(matIdL2Proj);
-        if(cel->HasMaterial(matlist)==false) DebugStop();
-	}
-    
-//    int nst = mat->NStateVariables();
-//    TPZL2ProjectionForGradient *matl2proj;
-//	matl2proj = new TPZL2ProjectionForGradient(matIdL2Proj,cmesh->Dimension(),1);
-//    cmesh->InsertMaterialObject(matl2proj);
-//    matl2proj->SetGradients(gradients);
-//    
-//    int nmat = cmesh->NMaterials();
-//    for(i=0;i<cmesh->NElements();i++) {
-//		cel = cmesh->ElementVec()[i];
-//		if(!cel) continue;
-//        
-//        // TPZMaterial *mat;
-//        mat=cel->Material();
-//        int newmatid = mat->Id();
-//    }
+void ChangeMaterialIdIntoCompElement(TPZCompEl *cel, int oldmatid, int newmatid) {
+    // Changes material Id only elements with required id (matid)
+    if(cel->Material()->Id() != oldmatid)
+        return;
+//mudar o material id
+    TPZGeoEl *gel;
+    gel = cel->Reference();
+    gel->SetMaterialId(newmatid);
 }
 
 ofstream outfile1("SaidaGradiente.nb");
@@ -218,6 +179,11 @@ void SaidaMathGradiente(TPZFMatrix<REAL> gradients){
 /** (xa,ya,za) es el centro del elemento donde queremos aproximar o gradiente de u */
 /** (xbi,ybi,zbi) son los centros de los elementos vecinos al elemento corriente por alguno de sus lados, e enumerados por i */
 void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var,bool continuous) {
+    
+    //copy of the solution
+    TPZFMatrix<REAL> oldsolution = cmesh->Solution();
+    TPZFMatrix<REAL> newsolution = cmesh->Solution();
+    
 	int i, nstates=0;
 	TPZCompEl *cel;
 	int dim = cmesh->Dimension();
@@ -241,18 +207,20 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 	
 	TPZManVector<REAL> normal(3,0.0);
 	TPZManVector<REAL> centerpsi(3,0.0);
-	TPZManVector<REAL> center(3,0.0), centerbeta(3,0.0);
+	TPZManVector<REAL,3> center(3,0.0), centerbeta(3,0.0);
 	TPZManVector<REAL> solalfa(nstates,0.0), solbeta(nstates,0.0);
 	
 	TPZFMatrix<REAL> A(dim,dim);    // Linear System matrix
 	TPZFMatrix<REAL> B(dim,1,0.);   // Linear System vector
 	
 	// Creando las matrices para aplicar el metodo de los minimos cuadrados
-	TPZFMatrix<REAL> DeltaH(nneighs,dim,0.);
-	TPZFMatrix<REAL> DeltaHTranspose(dim,nneighs,0.);
-	TPZFMatrix<REAL> DifSol(nneighs,1,0.);
-	REAL Grad;
+	TPZFMatrix<REAL> DeltaH;
+	TPZFMatrix<REAL> DeltaHTranspose;
+	TPZFMatrix<REAL> DifSol;
 	
+    TPZGradient *pGrad = new TPZGradient;
+    TPZAutoPointer<TPZFunction<STATE> > fp(pGrad);
+
 	// Calculando el gradiente por elemento computacional
 	for(i=0;i<nelem;i++) {
 		cel = cmesh->ElementVec()[i];
@@ -327,12 +295,41 @@ void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMes
 		A = DeltaHTranspose*DeltaH;
 		A.SolveDirect(B,ELU);
 		
+        TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
+        TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
+        
+        pGrad->SetData(center, B, solalfa[0]);
+        
+        ChangeMaterialIdIntoCompElement(cel, matId, matIdL2Proj);
+        
+        TPZMaterial *mat = cel->Material();
+        mat->SetForcingFunction(fp);
+        
+        cel->CalcStiff(ek,ef);
+        
+        //resolver o sistema ek*b = ef
+        cmesh->LoadSolution(newsolution);
+      
+        std::stringstream sout;
+        ek.Print(sout);
+        ef.Print(sout);
+        ek.TPZElementMatrix::fBlock.Print();
+        ef.TPZElementMatrix::fBlock.Print();
+        
 		//data of the vector gradiente
         for(k=0;k<dim;k++){
             if(!k) gradients(counter,0) = cel->Index();//Id do elemento
             gradients(counter,dim+k) = center[k];//centro do elemento
             if(!IsZero(B(k,0))) gradients(counter,2*dim+k) = B(k,0);//valor do gradiente
         }
+        
+        //update the solution
+        newsolution = cmesh->Solution();
+        
+        // Return for original material of the element
+        ChangeMaterialIdIntoCompElement(cel, matIdL2Proj, matId);
+        cmesh->LoadSolution(oldsolution);
+        
 		counter++;
 	}
 	// Redimensionando la matriz de los gradientes
@@ -620,7 +617,9 @@ TPZCompMesh *CMesh1D(TPZGeoMesh *gmesh, int pOrder)
     
     
     // Inserting new material to compute L2 projection
-    TPZL2ProjectionForGradient *matl2proj = new TPZL2ProjectionForGradient(matIdL2Proj,dim,material->NStateVariables());
+    
+    TPZVec<STATE> sol(1,0.);
+    TPZL2Projection *matl2proj = new TPZL2Projection(matIdL2Proj,dim,material->NStateVariables(),sol);
     cmesh->InsertMaterialObject(matl2proj);
     
 	cmesh->SetDefaultOrder(pOrder);
