@@ -33,7 +33,7 @@
 #include "pzbndcond.h"
 #include "pzelasmat.h"
 #include "pzplaca.h"
-#include "pzmat2dlin.h"
+#include "pzpoisson3d.h"
 #include "pzmathyperelastic.h"
 #include "pzmattest3d.h"
 #include "pzmatplaca2.h"
@@ -61,10 +61,11 @@ int anothertests = 0;
 char saida[514];
 int materialId = 4;
 
-REAL ElasticityModulus = 1000000.;
+STATE ValueK = 1000;
 
-TPZManVector<REAL> ErrorsTrue(100,0.);
-TPZManVector<REAL> Errors(100,0.);
+// To compute the errors
+TPZManVector<REAL> ervec(100,0.0);
+TPZManVector<REAL> ervecL2(100,0.0);
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -115,9 +116,6 @@ int main() {
 	char tempo[256];
 	
 	ofstream fileerrors("ErrorsHPProcess.txt");
-	// To compute the errors
-	TPZVec<REAL> ervec(100,0.0);
-	TPZVec<REAL> ervecL2(100,0.0);
 	
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
@@ -197,11 +195,6 @@ int main() {
 			// Constructing connectivities
 			gmesh->ResetConnectivities();
 			gmesh->BuildConnectivity();
-			//		}
-			//		else {
-			// Refinamento uniforme para toda a malla
-			//			UniformRefine(gmesh,4);
-			//		}
 			
 			// Creating computational mesh (approximation space and materials)
 			int p = 5, pinit;
@@ -287,24 +280,16 @@ int main() {
 			std::cout << "\t....step: " << ii << "  Threads " << jj << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 			
 			// Computing error
-			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh,dim);
-			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
-			<< ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+//			cmesh->EvaluateError(ExactSolCircle,ervecL2);
+//			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh,dim);
+//			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations();
+//			for(int rr=0;rr<ervec.NElements();rr++)
+//				fileerrors << "  Error_" << rr+1 << ": " << ervecL2[rr]; 
+//			fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 			
-			// Computing approximation of gradient
-			/** 
-			 * @brief Method to reconstruct a gradient after run Solve of the analysis
-			 * @param cmesh Computational mesh with solution */
-//			TPZFMatrix<REAL> gradients;
-//			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,0);
-//			gradients.Print();
-//			cout << std::endl << std::endl;
-//			GradientReconstructionByLeastSquares(gradients,cmesh,0,0,1);
-//			gradients.Print();
-
 			// Post processing
 			TPZStack<std::string> scalarnames, vecnames;
-			std::string filename = "ElastSolutions";
+			std::string filename = "PoissonSol";
 			filename += "_p";
 			filename += pp;
 			filename += "_hL";
@@ -314,21 +299,35 @@ int main() {
 			filename += pp;
 			filename += ".vtk";
 			scalarnames.Push("POrder");
-			scalarnames.Push("SigmaX");
-			scalarnames.Push("SigmaY");
+			scalarnames.Push("Solution");
+			scalarnames.Push("KDuDx");
+			scalarnames.Push("KDuDy");
+			scalarnames.Push("KDuDz");
+			scalarnames.Push("NormKDu");
+			//scalarnames.Push("Laplac");
 			scalarnames.Push("Pressure");
-			scalarnames.Push("MaxStress");
-			scalarnames.Push("TauXY");
-			vecnames.Push("displacement");
-			vecnames.Push("PrincipalStress1");
-			vecnames.Push("PrincipalStress2");
-			//vecnames.Push("POrder");
+
+			vecnames.Push("Derivate");
+			vecnames.Push("Flux");
+			vecnames.Push("MinusKGradU");
+//			vecnames.Push("FluxOmega1");
+//			vecnames.Push("GradFluxX");
+//			vecnames.Push("GradFluxY");
 			an.DefineGraphMesh(dim,scalarnames,vecnames,filename);
-			
+			 
 			an.PostProcess(0,dim);
+
+			// Computing error
+			an.SetExact(ExactSolCircle);
+			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations();
+			an.PostProcess(ervecL2,std::cout);
+			for(int rr=0;rr<ervecL2.NElements();rr++)
+				fileerrors << "  Error_" << rr+1 << ": " << ervecL2[rr]; 
+			fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 			
 			delete cmesh;
 			delete gmesh;
+			break;
 		}
 	}
 	
@@ -474,8 +473,11 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int hasforcingfunction) {
 	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
 	cmesh->SetAllCreateFunctionsContinuous();
 	
-    // Creating elasticity material
-    TPZMaterial * mat = new TPZElasticityMaterial(4,ElasticityModulus,0.3,0.,0.);
+    // Creating Poisson material
+	TPZMaterial *mat = new TPZMatPoisson3d(4,2);
+	TPZVec<REAL> convd(3,0.);
+	((TPZMatPoisson3d *)mat)->SetParameters(ValueK,0.,convd);
+//    TPZMaterial * mat = new TPZElasticityMaterial(4,ElasticityModulus,0.3,0.,0.);
 	switch(hasforcingfunction) {
 		case 1:
 			mat->SetForcingFunction(new TPZDummyFunction<STATE>(RightTermCircle));
@@ -489,6 +491,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int hasforcingfunction) {
     cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
 	cmesh->SetDimModel(mat->Dimension());
+	cmesh->SetAllCreateFunctionsContinuous();
 	
 	// Creating four boundary condition
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
@@ -547,7 +550,7 @@ void UniformRefine(TPZGeoMesh* gmesh, int nDiv)
 void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	//	REAL Epsilon = 1000000;
 	REAL B = 16./M_PI;
-	REAL F = 2*sqrt(ElasticityModulus);
+	REAL F = 2*sqrt(ValueK);
 	REAL G = -0.4375;
 	
 	REAL sum = x[0]*(x[0]-1) + x[1]*(x[1]-1);
@@ -559,45 +562,36 @@ void RightTermCircle(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	REAL num = 2*F*(sum*(2*F*F*prod*(8*G+1)-(1+F*F*G*G)+F*F*sum*(2*G-6*prod-sum))-2*prod*(F*F*G+5*F*F*G*G+5));
 	
 	force[0] = B*(sum*(M_PI+2*arctan)+(num/den));
-	force[0] *= (-ElasticityModulus);
-	
-	force[1] = force[0];
+	force[0] *= ValueK;
 }
 
 void RightTermProduct(const TPZVec<REAL> &x, TPZVec<REAL> &force) {
 	force[0] = 32.*(x[0]*(x[0]-1.)+x[1]*(x[1]-1.));
-	force[1] = 0.;
 }
 void ExactSolProduct(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
 	sol[0] = 16*x[0]*x[1]*(1-x[0])*(1-x[1]);
-	sol[1] = 0.;
 	dsol(0,0) = 16*(1.-2*x[0])*(1.-x[1])*x[1];
-	dsol(0,1) = 0.;
 	dsol(1,0) = 16*(1.-2*x[1])*(1.-x[0])*x[0];
-	dsol(1,1) = 0.;
 }
 
 void ExactSolCircle(const TPZVec<REAL> &x, TPZVec<REAL> &sol, TPZFMatrix<REAL> &dsol) {
-	REAL F = 2*sqrt(ElasticityModulus);
+	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
 	REAL prod = prodx*prody;
 	sol[0] = 8*prod*(1+(2./M_PI)*(atan(arc)));
-	sol[1] = sol[0];
 	REAL temp = prody*(2*x[0]-1.)*(M_PI + 2*atan(arc));
 	REAL frac = 2*prod*F*(1.-2*x[0]);
 	frac = frac/(1+arc*arc);
 	dsol(0,0) = (8./M_PI)*(temp + frac);
-	dsol(0,1) = dsol(0,0);
 	temp = prodx*(2*x[1]-1.)*(M_PI + 2*atan(arc));
 	frac = 2*prod*F*(1.-2*x[1]);
 	frac = frac/(1+arc*arc);
 	dsol(1,0) = (8./ M_PI)*(temp + frac);
-	dsol(1,1) = dsol(1,0);
 }
 REAL PartialDerivateX(const TPZVec<REAL> &x) {
-	REAL F = 2*sqrt(ElasticityModulus);
+	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -609,7 +603,7 @@ REAL PartialDerivateX(const TPZVec<REAL> &x) {
 	return (result*temp);
 }
 REAL PartialDerivateY(const TPZVec<REAL> &x) {
-	REAL F = 2*sqrt(ElasticityModulus);
+	REAL F = 2*sqrt(ValueK);
 	REAL arc = F*((0.25*0.25) - (x[0] - 0.5)*(x[0] - 0.5) - (x[1] - 0.5)*(x[1] - 0.5));
 	REAL prodx = x[0]*(x[0]-1.);
 	REAL prody = x[1]*(x[1]-1.);
@@ -630,7 +624,7 @@ void ComputeDisplacementError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int d
     REAL weight = 0.;
     
     TPZInterpolatedElement *cel;
-    int var = 9;                       // For solution of "state" or "Displacement"
+    int var = 1;                       // For solution of "state" or "Displacement"
     TPZVec<REAL> SolCel(5,0.0);
     TPZVec<REAL> SolCelExact(5,0.0);
     TPZFMatrix<REAL> DSolCel(5,5,0.0);
@@ -1328,10 +1322,9 @@ int main_AdaptHP(int argc, char *argv[]) {
 				comp->LoadReferences();
 				TPZVTKGeoMesh::PrintCMeshVTK(comp->Reference(), out, false);
 			}
-			
-			return 0;
 		}
 	}
+	return 0;
 }
 
 int main_AdaptHP_3D(int argc, char *argv[]) {

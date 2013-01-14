@@ -17,7 +17,7 @@
 #include "pzmaterial.h"
 #include "pzbndcond.h"
 #include "pzelasmat.h"
-#include "pzelast3d.h"
+#include "pzpoisson3d.h"
 
 #include "TPZRefPatternTools.h"
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     int NProcessor;
 	int NProcessors = 16;
 	int NRefinements = 8;
-	int i, dim;
+	int i, dim = 3;
 	char saida[260];
 	
 	// Initializing a ref patterns
@@ -131,10 +131,37 @@ int main(int argc, char *argv[]) {
             
             // Creating computational mesh
             /** Set polynomial order */
-            int p = 3, pinit;
+            int p = 5, pinit;
             pinit = p;
             TPZCompEl::SetgOrder(p);
             TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
+            
+         //   TPZVec<REAL> forces(3,0.);
+            // Creating and inserting materials into computational mesh
+            //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
+			// Creating Poisson material
+			TPZMaterial *mat = new TPZMatPoisson3d(1,dim);
+			TPZVec<REAL> convd(3,0.);
+			((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
+            comp->InsertMaterialObject(mat);
+            dim = mat->Dimension();
+            TPZAutoPointer<TPZFunction<STATE> > Functionf = new TPZDummyFunction<STATE>(Ff);
+            mat->SetForcingFunction(Functionf);
+            nstate = mat->NStateVariables();
+            
+            // Boundary conditions
+            // Dirichlet
+            TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+            TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+            TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+            bnd->SetForcingFunction(FunctionBC);
+            comp->InsertMaterialObject(bnd);
+			comp->SetAllCreateFunctionsContinuous();
+            
+			comp->AutoBuild();
+            comp->ExpandSolution();
+			comp->CleanUpUnconnectedNodes();
+			
             // Disminuindo a ordem p dos elementos subdivididos
             // Primeiro sera calculado o mayor nivel de refinamento
             // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
@@ -166,25 +193,7 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
-            
-            TPZVec<REAL> forces(3,0.);
-            // Creating and inserting materials into computational mesh
-            //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
-            TPZMaterial *mat = new TPZElasticity3D(1,1.e5,0.2,forces);          // three-dimensional
-            comp->InsertMaterialObject(mat);
-            dim = mat->Dimension();
-            TPZAutoPointer<TPZFunction<STATE> > Functionf = new TPZDummyFunction<STATE>(Ff);
-            mat->SetForcingFunction(Functionf);
-            nstate = mat->NStateVariables();
-            
-            // Boundary conditions
-            // Dirichlet
-            TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
-            TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-            TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-            bnd->SetForcingFunction(FunctionBC);
-            comp->InsertMaterialObject(bnd);
-            
+
             // Constructing and adjusting computational mesh
             comp->AutoBuild();
             comp->ExpandSolution();
@@ -249,12 +258,7 @@ int main(int argc, char *argv[]) {
             char pp[3];
             sprintf(pp,"%d",pinit);
             out << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
-            
-            // Computing error
-            ComputeSolutionError(ervec[ii],ervecL2[ii],comp,dim);
-            fileerrors << "Refinement: " << ii << "  Threads: " << NProcessor << "  NEquations: " << comp->NEquations() << "  ErrorL1: " << ervec[ii] << "  ErrorL2: " 
-            << ervecL2[ii] << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
-            
+
             // Post processing
             std::string filename = "ElastSolutions";
             filename += "_p";
@@ -269,8 +273,17 @@ int main(int argc, char *argv[]) {
             
             an.PostProcess(1,dim);
             
+			// Computing error
+			an.SetExact(ExactSolin);
+			fileerrors << "Refinement: " << ii << "  Threads: " << NProcessor << "  NEquations: " << comp->NEquations();
+			an.PostProcess(ervec,out);
+			for(int rr=0;rr<ervec.NElements();rr++)
+				fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
+			fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+			
             delete comp;
             delete gmesh3D;
+			break;
         }
 	}
     out.close();
@@ -342,7 +355,7 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &bcsol) {
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	REAL raiz = sqrt( sqrt(quad_r));
-	f[0] = -3./(4.*(raiz*raiz*raiz));	
+	f[0] = -3./(4.*(raiz*raiz*raiz));
 }
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) {
@@ -709,7 +722,7 @@ int main2D(int argc, char *argv[]) {
 		}	
 		
 		// Refinement of the some element	
-		TPZGeoEl *gel, *gel1, *gel2, *gel3;
+		TPZGeoEl *gel;   // *gel1, *gel2, *gel3;
 		TPZVec<TPZGeoEl *> sub;
 		TPZVec<TPZGeoEl *> subsub;
 		gel = gmesh->ElementVec()[4];
@@ -844,7 +857,7 @@ int main2D(int argc, char *argv[]) {
 			delete direct;
 			direct = 0;
 			
-			int neq = comp->NEquations();
+			//int neq = comp->NEquations();
 			//	an.NEquations();
 			//		an.Solution().Print();
 			an.Run();
