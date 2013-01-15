@@ -317,7 +317,7 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     {
         for(int c = 0; c < 2; c++)
         {
-            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]) * DETdxdt();
+            minusGradUt_Sigma__n[r] += -(GradUtxy(r,c)*Sigma_n[c]);
         }
     }
     

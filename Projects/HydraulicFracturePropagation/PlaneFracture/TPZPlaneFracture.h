@@ -38,7 +38,7 @@ const int __TrimQTDmultiplier = 5; //will be used for searching direction betwee
 
 /** 
  * @brief Plane of the fracture. 
- * @author Cesar Lucci (aka Caju)
+ * @author Cesar Lucci (Caju)
  * @since 09/08/2010
  */
 

@@ -749,65 +749,76 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
 
 int main(int argc, char * const argv[])
 {
+    //#define writeAgain
+//#ifdef writeAgain
+//    gRefDBase.InitializeRefPatterns();
+//#else
+//    std::ifstream inRefP("RefPatternsUsed.txt");
+//    gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
+//#endif
+    
     REAL lf = 2.;
     REAL ldom = 6.;
-    REAL hdom = 6.;
+    REAL hdom = 20.;
     REAL lmax = 0.2;
     TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
     
-    REAL pressure = 0.;
-    REAL traction = 1.;
-    TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
-    
-    ////Analysis
-    TPZAnalysis an(cmesh);
-    
-    TPZSkylineStructMatrix skylin(cmesh); //caso simetrico
-    TPZStepSolver<STATE> step;
-    step.SetDirect(ECholesky);
-    
-    an.SetStructuralMatrix(skylin);
-    an.SetSolver(step);
-    an.Run();
-    
-    ////Post Processing
-    TPZManVector<std::string,10> scalnames(0), vecnames(0);
-
-    vecnames.Resize(1);
-    vecnames[0] = "displacement";
-    
-    scalnames.Resize(3);
-    scalnames[0] = "SigmaX";
-    scalnames[1] = "SigmaY";
-    scalnames[2] = "TauXY";
-    
-    int div = 0;
-    std::string postp("postp2d.vtk");
-    an.DefineGraphMesh(2,scalnames,vecnames,postp);
-    an.PostProcess(div,2);
-    
-    ////2D J-Integral
-    TPZVec<REAL> Origin(3,0.);
-    for(int el = 0; el < gmesh->NElements(); el++)
+    std::ofstream pppt("ppt.txt");
+    //for(int ppp = 1; ppp <= 11; ppp++)
     {
-        if(gmesh->ElementVec()[el]->MaterialId() == __1DcrackTipMat)
+        REAL pressure = 5.;
+        REAL traction = 0.;
+        TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
+        
+        ////Analysis
+        TPZAnalysis an(cmesh);
+        
+        TPZSkylineStructMatrix skylin(cmesh); //caso simetrico
+        TPZStepSolver<STATE> step;
+        step.SetDirect(ECholesky);
+        
+        an.SetStructuralMatrix(skylin);
+        an.SetSolver(step);
+        an.Run();
+        
+        ////Post Processing
+        TPZManVector<std::string,10> scalnames(0), vecnames(0);
+
+        vecnames.Resize(1);
+        vecnames[0] = "displacement";
+        
+        scalnames.Resize(3);
+        scalnames[0] = "SigmaX";
+        scalnames[1] = "SigmaY";
+        scalnames[2] = "TauXY";
+        
+        int div = 0;
+        std::string postp("postp2d.vtk");
+        an.DefineGraphMesh(2,scalnames,vecnames,postp);
+        an.PostProcess(div,2);
+        
+        ////2D J-Integral
+        TPZVec<REAL> Origin(3,0.);
+        for(int el = 0; el < gmesh->NElements(); el++)
         {
-            Origin[0] = gmesh->ElementVec()[el]->Node(0).Coord(0);
-            break;
+            if(gmesh->ElementVec()[el]->MaterialId() == __1DcrackTipMat)
+            {
+                Origin[0] = gmesh->ElementVec()[el]->Node(0).Coord(0);
+                break;
+            }
         }
+        
+        TPZVec<REAL> normalDirection(3,0.);
+        normalDirection[2] = 1.;
+        REAL radius = 0.5;
+        Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
+        
+        JIntegral2D Jpath;
+        Jpath.PushBackPath2D(j2Dpath);
+        TPZVec<REAL> j2Dintegral = Jpath.IntegratePath2D(0);
+        
+        pppt << j2Dintegral[0] << "\n";
     }
-    
-    TPZVec<REAL> normalDirection(3,0.);
-    normalDirection[2] = 1.;
-    REAL radius = 0.5;
-    Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
-    
-    JIntegral2D Jpath;
-    Jpath.PushBackPath2D(j2Dpath);
-    TPZVec<REAL> j2Dintegral = Jpath.IntegratePath2D(0);
-    
-    std::cout << "J2d = { " << j2Dintegral[0] << " , " << j2Dintegral[1] << " }\n\n";
-    
     return 0;
 }
 
@@ -817,7 +828,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     
     int ndivfrac = int(lf/lmax + 0.5);
     int ndivoutfrac = int((ldom - lf)/lmax + 0.5);
-    int ndivh = int(ldom/lmax + 0.5);
+    int ndivh = int(hdom/lmax + 0.5);
     
     int ncols = ndivfrac + ndivoutfrac + 1;
     int nrows = ndivh + 1;
@@ -931,8 +942,8 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         ptneigh = ptneighEl->Neighbour(neighSide);
     }
     
-    int nref = 0;
-    for(int ref = 0; ref < nref; ref++)
+    int nrefUnif = 0;
+    for(int ref = 0; ref < nrefUnif; ref++)
     {
         nelem = gmesh->NElements();
         for(int el = 0; el < nelem; el++)
@@ -941,6 +952,22 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
             if(gmesh->ElementVec()[el]->HasSubElement()) continue;
             TPZVec<TPZGeoEl*> sons;
             gmesh->ElementVec()[el]->Divide(sons);
+        }
+    }
+    
+    std::set<int> matQPoint;
+    matQPoint.insert(__1DcrackTipMat);
+    int nrefDir = 0;
+    for(int ref = 0; ref < nrefDir; ref++)
+    {
+        nelem = gmesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            TPZGeoEl * gg = gmesh->ElementVec()[el];
+            if(!gg) continue;
+            if(gg->Dimension() < 1) continue;
+            if(gg->HasSubElement()) continue;
+            TPZRefPatternTools::RefineDirectional(gg, matQPoint);
         }
     }
     
@@ -955,7 +982,7 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
     cmesh->SetAllCreateFunctionsContinuous();
     
     STATE young = 0.29e5;
-    STATE poisson = 0.2;
+    STATE poisson = 0.25;
     
     int planeStrain = 0;
     //        int planeStress = 1;
@@ -968,13 +995,12 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
     TPZFMatrix<STATE> k(3,3,0.), f(3,1,0.);
     int newmann = 1, directionalNullDirich = 3;
     
-    // farfield traction
     {
         f(0,0) = 1.;
         TPZBndCond * nullXleft = materialLin->CreateBC(materialLin, __2DleftMat, directionalNullDirich, k, f);
         cmesh->InsertMaterialObject(nullXleft);
-        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, __2DrightMat, directionalNullDirich, k, f);
-        cmesh->InsertMaterialObject(nullXright);
+//        TPZBndCond * nullXright = materialLin->CreateBC(materialLin, __2DrightMat, directionalNullDirich, k, f);
+//        cmesh->InsertMaterialObject(nullXright);
         
         f.Zero();
         f(1,0) = 1.;

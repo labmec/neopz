@@ -20,7 +20,7 @@
 
 /**
  * @brief Plane of the fracture.
- * @author Cesar Lucci (aka Caju)
+ * @author Cesar Lucci (Caju)
  * @since 09/08/2010
  */
 
