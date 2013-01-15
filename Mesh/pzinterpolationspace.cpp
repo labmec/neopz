@@ -74,8 +74,6 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 	TPZFNMatrix<660> dphi(dphix.Rows(), dphix.Cols(), 0.);
 	int dim = this->Dimension();
 	
-	//jacobian.Zero();
-	//jacinv.Zero();
 	ref->Jacobian( intpoint, jacobian, axes, detjac , jacinv);
 	this->Shape(intpoint,phi,dphi);
     
@@ -104,8 +102,6 @@ void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZVec<REAL> &X
 		default:
 			PZError << "Error at " << __PRETTY_FUNCTION__ << " please implement the " << dim << "d Jacobian and inverse\n";
 	} //switch
-    
-	//ref->X(intpoint, X);
 }
 
 void TPZInterpolationSpace::ComputeShape(TPZVec<REAL> &intpoint, TPZMaterialData &data){
