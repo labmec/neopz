@@ -13,7 +13,9 @@ ENABLE_TESTING()
 			add_subdirectory(CursoPZ)
 
 			# Tutorial about hp-adaptive techniques
-			add_subdirectory(Adapt_HP_Jorge)
+			add_subdirectory(Poisson2D_ArcTan)
+			add_subdirectory(Poisson3D_Fichera)
+
 			#Example to reading and using geometric mesh
 			add_subdirectory(testgeom)
 

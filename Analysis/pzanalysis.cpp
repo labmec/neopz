@@ -367,7 +367,9 @@ void TPZAnalysis::PostProcess(TPZVec<REAL> &ervec, std::ostream &out) {
 	int nel = elvec.NElements();
 	int matId0;
 	for(i=0;i<nel;i++) {
-		matId0=elvec[i]->Material()->Id();
+        TPZCompEl *cel = elvec[i];
+        if(!cel) continue;
+		matId0=cel->Material()->Id();
 		if(matId0 > 0)
 			break;
 	}

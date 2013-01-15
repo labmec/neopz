@@ -8,7 +8,7 @@
 #include "TPZExtendGridDimension.h"
 #include "TPZVTKGeoMesh.h"
 
-#include "MultiResMesh.h"
+//#include "MultiResMesh.h"
 #include "pzbstrmatrix.h"
 
 #include "pzintel.h"
@@ -19,13 +19,16 @@
 #include "pzelasmat.h"
 #include "pzpoisson3d.h"
 
+#include "pzanalysis.h"
+#include "pzstepsolver.h"
+
 #include "TPZRefPatternTools.h"
 
 #include "TPZParSkylineStructMatrix.h"
 
 #include <stdio.h>
 
-#include "pzexplfinvolanal.h"
+//#include "pzexplfinvolanal.h"
 #include "adapt.h"
 
 #include "pzlog.h"
@@ -68,7 +71,7 @@ void BCSolin(const TPZVec<REAL> &x, TPZVec<REAL> &sol);
 
 void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f);
 
-void InitializeSolver(TPZAnalysis &an);
+//void InitializeSolver(TPZAnalysis &an);
 void InitialSolutionLinearConvection(TPZFMatrix<REAL> &InitialSol, TPZCompMesh *cmesh);
 void PrintGeoMeshVTKWithDimensionAsData(TPZGeoMesh *gmesh,char *filename);
 

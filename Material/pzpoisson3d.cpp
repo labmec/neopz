@@ -435,22 +435,23 @@ void TPZMatPoisson3d::Solution(TPZMaterialData &data, int var, TPZVec<REAL> &Sol
 #ifndef STATE_COMPLEX
 	
 	switch (var) {
-		case 7:
+	/*	case 7:
 		{
 			//			{ //MinusKGradU
 			int id;
-			TPZManVector<STATE> dsolp(2,0);
+			TPZManVector<STATE> dsolp(3,0);
 			dsolp[0] = data.dsol[0](0,0)*data.axes(0,0)+data.dsol[0](1,0)*data.axes(1,0);
 			dsolp[1] = data.dsol[0](0,0)*data.axes(0,1)+data.dsol[0](1,0)*data.axes(1,1);			
+			dsolp[2] = data.dsol[0](0,0)*data.axes(0,2)+data.dsol[0](1,0)*data.axes(1,2);
 			for(id=0 ; id<fDim; id++) 
 			{
 				Solout[id] = -1. * this->fK * dsolp[id];
 			}
 		}
-			break;			
+			break;
 		case 8:
 			Solout[0] = data.p;
-			break;
+			break;*/
 		case 10:
 			if (data.numberdualfunctions) {
 				
