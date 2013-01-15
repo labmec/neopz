@@ -76,6 +76,7 @@ void UniformRefinement(const int nDiv, TPZGeoMesh *gmesh, const int dim, bool al
 void RefineGeoElements(int dim,TPZGeoMesh *gmesh,TPZManVector<REAL> &points,REAL r,REAL &distance,bool &isdefined);
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL L, REAL H,bool print = false);
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int hasforcingfunction);
 
 void ComputeSolutionError(REAL &error,REAL &errorL2,TPZCompMesh *cmesh,int dim);
 void formatTimeInSec(char *strtime,int timeinsec);
@@ -85,34 +86,35 @@ int main(int argc, char *argv[]) {
 #ifdef LOG4CXX
 	InitializePZLOG();
 #endif
-    int NProcessor;
-	int NProcessors = 16;
-	int NRefinements = 8;
-	int i, dim = 3;
-	char saida[260];
 	
 	// Initializing a ref patterns
 	gRefDBase.InitializeAllUniformRefPatterns();
     //	gRefDBase.InitializeRefPatterns();
-    
-	// To compute the errors
-	ofstream fileerrors("ErrorsHPProcess.txt");
-	TPZVec<REAL> ervec(100,0.0);
-	TPZVec<REAL> ervecL2(100,0.0);
-	// Printing computed errors
-	fileerrors << "Approximation Error: " << std::endl;
-    
-	// To compute processing time
+	// To compute processing times
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
 	char tempo[256];
+    
+	// To compute the errors
+	ofstream fileerrors("ErrorsHPProcess.txt");
+
+	TPZVec<REAL> ervec(100,0.0);
+	// Printing computed errors
+	fileerrors << "Approximation Error: " << std::endl;
 	
 	//-----------  INITIALIZING CONSTRUCTION OF THE MESHES
 	REAL InitialL = 1.0, InitialH = 1.;
-	
-    for(int ii=1;ii<NRefinements;ii++) {
-        for(NProcessor=1;NProcessor<NProcessors;NProcessor++) {
+	int i, nref, NRefs = 7;
+	int nthread, NThreads = 4;
+	int dim = 3;
+
+    for(nref=2;nref<NRefs;nref++) {
+		//        for(nthread=1;nthread<NThreads;nthread++) {
+		if(nref > 6) nthread = NThreads;
+		else nthread = 1;
+		
+		// Initializing the generation mesh process
             time(&sttime);
             // Constructing geometric mesh as Fichera corner using hexahedra
             TPZGeoMesh *gmesh3D = ConstructingFicheraCorner(InitialL, InitialH);
@@ -120,128 +122,85 @@ int main(int argc, char *argv[]) {
             TPZManVector<REAL> point(3,0.);
             REAL r = 0.0, radius = 0.9;
             bool isdefined = false;
-            for(i=0;i<ii+1;i++) {
+            for(i=0;i<nref+1;i++) {
                 // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
                 RefineGeoElements(3,gmesh3D,point,r,radius,isdefined);
                 radius *= 0.6;
             }
-            //UniformRefinement(ii+1,gmesh3D,false,1);
-            sprintf(saida,"meshextrudedmerged_%d.vtk",ii);
+            //UniformRefinement(nref+1,gmesh3D,false,1);
+            sprintf(saida,"meshextrudedmerged_%d.vtk",nref);
             PrintGeoMeshVTKWithDimensionAsData(gmesh3D,saida);
             
             // Creating computational mesh
             /** Set polynomial order */
             int p = 5, pinit;
-            pinit = p;
-            TPZCompEl::SetgOrder(p);
-            TPZCompMesh *comp = new TPZCompMesh(gmesh3D);
+//            TPZCompEl::SetgOrder(p);
+            TPZCompMesh *cmesh = CreateMesh(gmesh3D,1);
+		cmesh->SetName("Computational mesh for Fichera problem");
+		dim = cmesh->Dimension();
             
-         //   TPZVec<REAL> forces(3,0.);
-            // Creating and inserting materials into computational mesh
-            //TPZMaterial * mat = new TPZElasticityMaterial(1,1.e5,0.2,0,0);   // two-dimensional
-			// Creating Poisson material
-			TPZMaterial *mat = new TPZMatPoisson3d(1,dim);
-			TPZVec<REAL> convd(3,0.);
-			((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
-            comp->InsertMaterialObject(mat);
-            dim = mat->Dimension();
-            TPZAutoPointer<TPZFunction<STATE> > Functionf = new TPZDummyFunction<STATE>(Ff);
-            mat->SetForcingFunction(Functionf);
-            nstate = mat->NStateVariables();
-            
-            // Boundary conditions
-            // Dirichlet
-            TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
-            TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
-            TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
-            bnd->SetForcingFunction(FunctionBC);
-            comp->InsertMaterialObject(bnd);
-			comp->SetAllCreateFunctionsContinuous();
-            
-			comp->AutoBuild();
-            comp->ExpandSolution();
-			comp->CleanUpUnconnectedNodes();
-			
-            // Disminuindo a ordem p dos elementos subdivididos
-            // Primeiro sera calculado o mayor nivel de refinamento
-            // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
-            int level, highlevel = 0;
-            int nelem = 0;
-            while(nelem < comp->NElements()) {
-                TPZCompEl *cel = comp->ElementVec()[nelem++];
-                if(cel) {
-                    level = cel->Reference()->Level();
-                }
-                if(level > highlevel)
-                    highlevel = level;
-            }
-            nelem = 0;
-            while(highlevel && nelem < comp->NElements()) {
-                TPZCompEl *cel = comp->ElementVec()[nelem++];
-                if(cel) {
-                    level = cel->Reference()->Level();
-                    if(level == highlevel)
-                        ((TPZInterpolatedElement*)cel)->PRefine(1);
-                    else if(level == 0)
-                        ((TPZInterpolatedElement*)cel)->PRefine(p);
-                    else {
-                        REAL porder = (p/highlevel);
-                        if(porder < 1)
-                            ((TPZInterpolatedElement*)cel)->PRefine(1);
-                        else
-                            ((TPZInterpolatedElement*)cel)->PRefine((int)(porder*(highlevel-level)));
-                    }
-                }
-            }
+		// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
+		// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
+		int level, highlevel = 0;
+		nelem = 0;
+		while(nelem < cmesh->NElements()) {
+			TPZCompEl *cel = cmesh->ElementVec()[nelem++];
+			if(cel) {
+				level = cel->Reference()->Level();
+			}
+			if(level > highlevel)
+				highlevel = level;
+		}
+		// Identifying maxime interpolation order
+		if(highlevel>p-1) pinit = p;
+		else pinit = highlevel+1;
+		// Put order 1 for more refined element and (highlevel - level)+1 for others, but order not is greater than initial p
+		nelem = 0;
+		while(highlevel && nelem < cmesh->NElements()) {
+			TPZCompEl *cel = cmesh->ElementVec()[nelem++];
+			level = cel->Reference()->Level();
+			p = (highlevel-level)+1;
+			if(p > pinit) p = pinit;
+			((TPZInterpolatedElement*)cel)->PRefine(p);
+		}
+		cmesh->SetAllCreateFunctionsContinuous();
+		cmesh->AutoBuild();
+		cmesh->ExpandSolution();
+		cmesh->AdjustBoundaryElements();
+		cmesh->CleanUpUnconnectedNodes();
 
-            // Constructing and adjusting computational mesh
-            comp->AutoBuild();
-            comp->ExpandSolution();
-            comp->CleanUpUnconnectedNodes();  // Clean connects not connected at least one element enabled.
-            //	comp->AdjustBoundaryElements();   // Adjust boundary elements and higher level of refinement, clean elements but not connects into them
+		// closed generation mesh process
+		time (& endtime);
+		time_elapsed = endtime - sttime;
+		formatTimeInSec(tempo, time_elapsed);
+		out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
+		
+		//--- END construction of the meshes
             
-            //--- END construction of the meshes
-            
-            /** Variable names for post processing */
+		// Solving linear equations
+		// Initial steps
+		out << "Solving HP-Adaptive Methods....step: " << nref << "  Threads " << nthread << "\n";
+
+		/** Variable names for post processing */
             TPZStack<std::string> scalnames, vecnames;
-            if(mat->NSolutionVariables(mat->VariableIndex("POrder")) == 1)
-                scalnames.Push("POrder");
-            else
-                vecnames.Push("POrder");
-            if(mat->NSolutionVariables(mat->VariableIndex("Error")) == 1)
-                scalnames.Push("Error");
-            else
-                vecnames.Push("Error");
-            if(mat->NSolutionVariables(mat->VariableIndex("state")) == 1)
-                scalnames.Push("state");
-            else
-                vecnames.Push("state");      // "state" is as "Displacement" 
-            if(nstate == 1) {
-                scalnames.Push("TrueError");
-                scalnames.Push("EffectivityIndex");
-            }else if(nstate == 2) {
-                scalnames.Push("sig_x");
-                scalnames.Push("sig_y");
-                scalnames.Push("tau_xy");
-            }
-            if(nstate == 3) {
-                scalnames.Push("StressX");
-                scalnames.Push("StressY");
-                scalnames.Push("StressZ");
-                vecnames.Push("PrincipalStress");
-                vecnames.Push("PrincipalStrain");
-            }
-            
-            // END Determining the name of the variables
+		scalarnames.Push("POrder");
+		scalarnames.Push("Solution");
+		scalarnames.Push("KDuDx");
+		scalarnames.Push("KDuDy");
+		scalarnames.Push("KDuDz");
+		scalarnames.Push("NormKDu");
+		scalarnames.Push("Pressure");
+		
+		vecnames.Push("Derivate");
+		vecnames.Push("Flux");
+		vecnames.Push("MinusKGradU");
+		// END Determining the name of the variables
             
             // Introduzing exact solution
-            TPZAnalysis an (comp);
-            an.SetExact(Exact);		
-            comp->SetName("Computational mesh for Fichera problem");
+            TPZAnalysis an (cmesh);
             
             // Solve using symmetric matrix then using Cholesky (direct method)
-            TPZParSkylineStructMatrix strskyl(comp,NProcessor);
-            //	TPZSkylineStructMatrix strskyl(comp);
+            TPZParSkylineStructMatrix strskyl(cmesh,nthread);
             an.SetStructuralMatrix(strskyl);
             
             TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
@@ -250,6 +209,8 @@ int main(int argc, char *argv[]) {
             delete direct;
             direct = 0;
             
+		// Initializing the solving process
+		time (& sttime);
             an.Run();
             time(&endtime);
             time_elapsed = endtime - sttime;
@@ -257,25 +218,27 @@ int main(int argc, char *argv[]) {
             
             char pp[3];
             sprintf(pp,"%d",pinit);
-            out << "\t....step: " << ii << "  Threads " << NProcessor << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+            out << "\t....step: " << nref << "  Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 
             // Post processing
-            std::string filename = "ElastSolutions";
+            std::string filename = "Poisson3DSol";
             filename += "_p";
             filename += pp;
             filename += "_hL";
-            sprintf(pp,"%d",ii);
+            sprintf(pp,"%d",nref);
             filename += pp;
-            sprintf(pp,"_PAR%d",NProcessor);
+		if(nthread > 1) {
+            sprintf(pp,"_PAR%d",nthread);
             filename += pp;
+		}
             filename += ".vtk";
             an.DefineGraphMesh(dim,scalnames,vecnames,filename);
             
-            an.PostProcess(1,dim);
+            an.PostProcess(0,dim);
             
 			// Computing error
 			an.SetExact(ExactSolin);
-			fileerrors << "Refinement: " << ii << "  Threads: " << NProcessor << "  NEquations: " << comp->NEquations();
+			fileerrors << "Refinement: " << nref << "  Threads: " << nthread << "  NEquations: " << comp->NEquations();
 			an.PostProcess(ervec,out);
 			for(int rr=0;rr<ervec.NElements();rr++)
 				fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
@@ -283,8 +246,7 @@ int main(int argc, char *argv[]) {
 			
             delete comp;
             delete gmesh3D;
-			break;
-        }
+//        }
 	}
     out.close();
     fileerrors.close();
@@ -356,6 +318,39 @@ void Ff(const TPZVec<REAL> &x, TPZVec<REAL> &f) {
 	REAL quad_r = x[0]*x[0] + x[1]*x[1] + x[2]*x[2];
 	REAL raiz = sqrt( sqrt(quad_r));
 	f[0] = -3./(4.*(raiz*raiz*raiz));
+}
+
+TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int hasforcingfunction) {
+	
+	TPZCompMesh *cmesh = new TPZCompMesh(gmesh);
+	cmesh->SetDefaultOrder(TPZCompEl::GetgOrder());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	// Creating Poisson material
+	TPZMaterial *mat = new TPZMatPoisson3d(1,3);
+	TPZVec<REAL> convd(3,0.);
+	((TPZMatPoisson3d *)mat)->SetParameters(1.,0.,convd);
+	if(hasforcingfunction) {
+		mat->SetForcingFunction(new TPZDummyFunction<STATE>(fF));
+	}
+	cmesh->InsertMaterialObject(mat);
+	// Make compatible dimension of the model and the computational mesh
+	cmesh->SetDimModel(mat->Dimension());
+	cmesh->SetAllCreateFunctionsContinuous();
+	
+	// Boundary conditions
+	// Dirichlet
+	TPZAutoPointer<TPZFunction<STATE> > FunctionBC = new TPZDummyFunction<STATE>(BCSolin);
+	TPZFMatrix<REAL> val1(dim,dim,0.),val2(dim,1,0.);
+	TPZMaterial *bnd = mat->CreateBC(mat,-1,0,val1,val2);
+	bnd->SetForcingFunction(FunctionBC);
+	comp->InsertMaterialObject(bnd);
+	
+	cmesh->AutoBuild();
+	cmesh->ExpandSolution();
+	cmesh->AdjustBoundaryElements();
+	cmesh->CleanUpUnconnectedNodes();
+	return cmesh;
 }
 
 TPZGeoMesh *ConstructingFicheraCorner(REAL InitialL, REAL InitialH, bool print) {

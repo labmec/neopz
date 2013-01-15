@@ -63,10 +63,6 @@ int materialId = 4;
 
 STATE ValueK = 1000;
 
-// To compute the errors
-TPZManVector<REAL> ervec(100,0.0);
-TPZManVector<REAL> ervecL2(100,0.0);
-
 std::string Archivo = PZSOURCEDIR;
 
 TPZGeoMesh *CreateGeoMesh(std::string &nome);
@@ -106,10 +102,8 @@ int main() {
 #endif
 	
 	// Initializing uniform refinements for quadrilaterals and triangles
-	gRefDBase.InitializeUniformRefPattern(EOned);
-	gRefDBase.InitializeUniformRefPattern(EQuadrilateral);
-	gRefDBase.InitializeUniformRefPattern(ETriangle);
-	
+	gRefDBase.InitializeAllUniformRefPatterns();
+	// To compute processing times
 	time_t sttime;
 	time_t endtime;
 	int time_elapsed;
@@ -117,21 +111,25 @@ int main() {
 	
 	ofstream fileerrors("ErrorsHPProcess.txt");
 	
+	// To compute the errors
+	TPZManVector<REAL> ervec(100,0.0);
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int i, ii, nrefs = 8;
-	int jj, nthreads = 9;
-    for(ii=2;ii<nrefs;ii++) {
-        for(jj=2;jj<nthreads;jj++) {
-            int dim;
-			// Initializing the generation mesh process
+	int i, nref, NRefs = 7;
+	int nthread, NThreads = 2;
+    for(nref=2;nref<NRefs;nref++) {
+//        for(nthread=1;nthread<NThreads;nthread++) {
+		if(nref > 6) nthread = NThreads;
+		else nthread = 1;
+		int dim;
+
+		// Initializing the generation mesh process
 			time (& sttime);
-			// First rectangular mesh:
+			// First rectangular mesh: initially it has 4 elements, 9 connects
 			// The rectangular mesh has four corners: (0,-1,0), (1,-1,0), (1,0,0) and (0,0,0)
 			// and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
-			// Has 4 elements, 9 connects
-			cout << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << ii << "   Threads: " << jj;
+			cout << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << nref << "   Threads: " << nthread;
 			TPZManVector<REAL> point(3,0.), pointlast(3,0.);
 			TPZGeoMesh* gmesh = new TPZGeoMesh;
 			TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
@@ -158,29 +156,22 @@ int main() {
 			point[0] = 0.; point[1] = 1.;
 			pointlast[0] = 0.; pointlast[1] = 0.;
 			gen.SetBC(gmesh,point,pointlast,-1);
-			
+
 			// Selecting base functions on vertices
-			if(anothertests) {
-				// Setting Chebyshev polynomials as orthogonal sequence generating shape functions
-				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;
-				sprintf(saida,"meshextrudedLeg.vtk");
-			}
-			else {
-				sprintf(saida,"meshextrudedTChe.vtk");
-			}
+			if(anothertests)
+				TPZShapeLinear::fOrthogonal = &TPZShapeLinear::Legendre;  // Setting Chebyshev polynomials as orthogonal sequence generating shape functions
 			
 			int nelem;
 			bool isdefined = false;
 			
 			// Refinando no local desejado
-			nelem=0;
 			int npoints = 360;
 			point[0] = point[1] = 0.5; point[2] = 0.0;
 			REAL r = 0.25, radius = 0.15;
 			TPZVec<TPZManVector<REAL> > Points(npoints);
 			GetPointsOnCircunference(npoints,point,r,Points);
 			
-			for(i=0;i<ii;i+=2) {
+			for(i=0;i<nref;i+=2) {
 				// To refine elements with center near to points than radius
 				//				RefineGeoElements(2,gmesh,Points,radius,isdefined);
 				// Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
@@ -189,7 +180,7 @@ int main() {
 				if(i==6) radius *= 0.25;
                 else radius *= 0.5;
 			}
-			if(i==ii) {
+			if(i==nref) {
 				RefineGeoElements(2,gmesh,point,r,radius,isdefined);
 			}
 			// Constructing connectivities
@@ -197,13 +188,11 @@ int main() {
 			gmesh->BuildConnectivity();
 			
 			// Creating computational mesh (approximation space and materials)
-			int p = 5, pinit;
-			pinit = p;
-			TPZCompEl::SetgOrder(p);
+			int p = 6, pinit;
+//			TPZCompEl::SetgOrder(1);
 			TPZCompMesh *cmesh = CreateMesh(gmesh,problem);
             dim = cmesh->Dimension();
-			// Disminuindo a ordem p dos elementos subdivididos
-			// Primeiro sera calculado o mayor nivel de refinamento
+			// Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
 			// A cada nivel disminue em uma unidade o p, mas não será menor de 1.
 			int level, highlevel = 0;
 			nelem = 0;
@@ -215,24 +204,19 @@ int main() {
 				if(level > highlevel)
 					highlevel = level;
 			}
+			// Identifying maxime interpolation order
+			if(highlevel>p-1) pinit = p;
+			else pinit = highlevel+1;
+			// Put order 1 for more refined element and (highlevel - level)+1 for others, but order not is greater than initial p
 			nelem = 0;
 			while(highlevel && nelem < cmesh->NElements()) {
 				TPZCompEl *cel = cmesh->ElementVec()[nelem++];
-				if(cel) {
-					level = cel->Reference()->Level();
-					if(level == highlevel)
-						((TPZInterpolatedElement*)cel)->PRefine(1);
-					else if(level == 0)
-						((TPZInterpolatedElement*)cel)->PRefine(p);
-					else {
-						REAL porder = (p/highlevel);
-						if(porder < 1)
-							((TPZInterpolatedElement*)cel)->PRefine(1);
-						else
-							((TPZInterpolatedElement*)cel)->PRefine((int)(porder*(highlevel-level)));
-					}
-				}
+				level = cel->Reference()->Level();
+				p = (highlevel-level)+1;
+				if(p > pinit) p = pinit;
+				((TPZInterpolatedElement*)cel)->PRefine(p);
 			}
+			cmesh->SetAllCreateFunctionsContinuous();
 			cmesh->AutoBuild();
             cmesh->ExpandSolution();
 			cmesh->AdjustBoundaryElements();
@@ -247,19 +231,13 @@ int main() {
 
 			// Solving linear equations
 			// Initial steps
-			std::cout << "Solving HP-Adaptive Methods....step: " << ii << "  Threads " << jj << "\n";
+			std::cout << "Solving HP-Adaptive Methods....step: " << nref << "  Threads " << nthread << "\n";
 			TPZAnalysis an(cmesh);
-			if(!problem)
-				an.SetExact(ExactSolNull);
-			else if(problem==1)
-				an.SetExact(ExactSolCircle);
-			else if(problem==2)
-				an.SetExact(ExactSolProduct);
 			
-			TPZParSkylineStructMatrix strskyl(cmesh,jj);
+			TPZParSkylineStructMatrix strskyl(cmesh,nthread);
 			an.SetStructuralMatrix(strskyl);
-			// Solver (is your choose) 
-			TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
+
+		TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
 			direct->SetDirect(ECholesky);
 			an.SetSolver(*direct);
 			delete direct;
@@ -277,27 +255,20 @@ int main() {
 
 			char pp[3];
 			sprintf(pp,"%d",pinit);
-			std::cout << "\t....step: " << ii << "  Threads " << jj << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
-			
-			// Computing error
-//			cmesh->EvaluateError(ExactSolCircle,ervecL2);
-//			ComputeDisplacementError(ervec[ii],ervecL2[ii],cmesh,dim);
-//			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations();
-//			for(int rr=0;rr<ervec.NElements();rr++)
-//				fileerrors << "  Error_" << rr+1 << ": " << ervecL2[rr]; 
-//			fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
+			std::cout << "\t....step: " << nref << "  Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
 			
 			// Post processing
 			TPZStack<std::string> scalarnames, vecnames;
-			std::string filename = "PoissonSol";
+			std::string filename = "Poisson2DSol";
 			filename += "_p";
 			filename += pp;
 			filename += "_hL";
-			sprintf(pp,"%d",ii);
+			sprintf(pp,"%d",nref);
 			filename += pp;
-			sprintf(pp,"_PAR%d",jj);
+			sprintf(pp,"_PAR%d",nthread);
 			filename += pp;
 			filename += ".vtk";
+		
 			scalarnames.Push("POrder");
 			scalarnames.Push("Solution");
 			scalarnames.Push("KDuDx");
@@ -318,21 +289,26 @@ int main() {
 			an.PostProcess(0,dim);
 
 			// Computing error
+		if(!problem)
+			an.SetExact(ExactSolNull);
+		else if(problem==1)
 			an.SetExact(ExactSolCircle);
-			fileerrors << "Refinement: " << ii << "  Threads: " << jj << "  NEquations: " << cmesh->NEquations();
-			an.PostProcess(ervecL2,std::cout);
-			for(int rr=0;rr<ervecL2.NElements();rr++)
-				fileerrors << "  Error_" << rr+1 << ": " << ervecL2[rr]; 
+		else if(problem==2)
+			an.SetExact(ExactSolProduct);
+		fileerrors << "Refinement: " << nref << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
+			an.PostProcess(ervec,std::cout);
+			for(int rr=0;rr<ervec.NElements();rr++)
+				fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
 			fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
 			
 			delete cmesh;
 			delete gmesh;
-			break;
-		}
+//		}
 	}
 	
 	fileerrors << std::endl << std::endl;
 	fileerrors.close();
+	return 0;
 }
 
 void formatTimeInSec(char *strtime,int timeinsec) {
