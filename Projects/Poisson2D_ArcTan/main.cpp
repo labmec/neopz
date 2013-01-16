@@ -64,7 +64,7 @@ int anothertests = 0;
 char saida[512];
 int materialId = 4;
 
-STATE ValueK = 1000;
+STATE ValueK = 1000000;
 
 std::string Archivo = PZSOURCEDIR;
 
@@ -112,7 +112,8 @@ int main() {
 	int time_elapsed;
 	char tempo[256];
 	
-	ofstream fileerrors("ErrorsHPProcess.txt");
+	ofstream fileerrors("ErrorsHPProcess.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
+    ofstream out("SaidaConsole.txt");             // To store output of the console
 	
 	// To compute the errors
 	TPZManVector<REAL> ervec(100,0.0);
@@ -121,8 +122,8 @@ int main() {
 	
 	int i, nref, NRefs = 9;
 	int nthread, NThreads = 3;
-    for(int nstrmat=0;nstrmat<2;nstrmat++) {
-        for(nref=3;nref<NRefs;nref++) {
+    for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
+        for(nref=2;nref<NRefs;nref++) {
             if(nref > 5) nthread = NThreads;
             else nthread = 1;
             int dim = 2;
@@ -132,7 +133,7 @@ int main() {
             // First rectangular mesh: initially it has 4 elements, 9 connects
             // The rectangular mesh has four corners: (0,-1,0), (1,-1,0), (1,0,0) and (0,0,0)
             // and was divides in two segments on X and two on Y, then hx = 0.5 and hy = 0.5
-            cout << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << nref << "   Threads: " << nthread;
+            out << "\nGenerating geometric mesh bi-dimensional ...\n" << "\tRefinement: " << nref+1 << "   Threads: " << nthread;
             TPZManVector<REAL> point(3,0.), pointlast(3,0.);
             TPZGeoMesh* gmesh = new TPZGeoMesh;
             TPZManVector<REAL> x0(3,0.), x1(3,1.);  // Corners of the rectangular mesh. Coordinates of the first extreme are zeros.
@@ -168,37 +169,41 @@ int main() {
             bool isdefined = false;
             
             // Refinando no local desejado
-            int npoints = 360;
+            int npoints = 1000;
             point[0] = point[1] = 0.5; point[2] = 0.0;
             REAL r = 0.25, radius = 0.2;
             TPZVec<TPZManVector<REAL> > Points(npoints);
             GetPointsOnCircunference(npoints,point,r,Points);
             
-            /*			for(i=0;i<nref;i+=2) {
-             // To refine elements with center near to points than radius
-             //				RefineGeoElements(2,gmesh,Points,radius,isdefined);
-             // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-             RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-             RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-             if(i>6) radius *= 0.25;
-             else radius *= 0.5;
-             }
-             if(i==nref) {
-             RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-             }
-             */
-            for(i=0;i<nref;i++) {
-                // To refine elements with center near to points than radius
-                // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
-                RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-                radius *= 0.5;
+            if(ntyperefs) {
+                for(i=0;i<nref;i+=2) {
+                    // To refine elements with center near to points than radius
+                    //				RefineGeoElements(2,gmesh,Points,radius,isdefined);
+                    // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
+                    RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+                    radius *= 0.6;
+                    RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+                    radius *= 0.6;
+                }
+                if(i==nref) {
+                    RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+                    radius *= 0.6;
+                }
+            }
+            else {
+                for(i=0;i<nref+1;i++) {
+                    // To refine elements with center near to points than radius
+                    // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
+                    RefineGeoElements(2,gmesh,point,r,radius,isdefined);
+                    radius *= 0.6;
+                }
             }
             // Constructing connectivities
             gmesh->ResetConnectivities();
             gmesh->BuildConnectivity();
             
             // Creating computational mesh (approximation space and materials)
-            int p = 6, pinit;
+            int p = 7, pinit;
             TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
             dim = cmesh->Dimension();
             // Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
@@ -237,28 +242,18 @@ int main() {
             time_elapsed = endtime - sttime;
             time_elapsed = endtime - sttime;
             formatTimeInSec(tempo, time_elapsed);
-            std::cout << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
+            out << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n";
             
             // Solving linear equations
             // Initial steps
             TPZAnalysis an(cmesh);
             
-            if(!nstrmat) {
-                TPZParSkylineStructMatrix strskyl(cmesh,nthread);
-                an.SetStructuralMatrix(strskyl);
-                std::cout << "Solving HP-Adaptive Methods....step: " << nref << "  Threads " << nthread << "StrSkyline\n";
-            } else {
-//                TPZParFrontStructMatrix<TPZFrontSym<STATE> > strfront(cmesh);
-//                strfront.SetNumberOfThreads(nthread);
-//                an.SetStructuralMatrix(strfront);
-                TPZFStructMatrix strsbnd(cmesh);
-                an.SetStructuralMatrix(strsbnd);
-                std::cout << "Solving HP-Adaptive Methods....step: " << nref << "  Threads " << nthread << "StrFull\n";
-            }
+            TPZParSkylineStructMatrix strskyl(cmesh,nthread);
+            an.SetStructuralMatrix(strskyl);
+            out << "Solving HP-Adaptive Methods....step: " << nref+1 << "  Threads " << nthread << "StrSkyline\n";
             
             TPZStepSolver<REAL> *direct = new TPZStepSolver<REAL>;
-            if(!nstrmat) direct->SetDirect(ECholesky);
-            else direct->SetDirect(ELU);
+            direct->SetDirect(ECholesky);
             an.SetSolver(*direct);
             delete direct;
             direct = 0;
@@ -275,7 +270,7 @@ int main() {
             
             char pp[3];
             sprintf(pp,"%d",pinit);
-            std::cout << "\t....step: " << nref << "  Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
+            out << "\t....step: " << nref+1 << "  Threads " << nthread << "  Time elapsed " << time_elapsed << " <-> " << tempo << "\n\n\n";
             
             // Post processing
             TPZStack<std::string> scalarnames, vecnames;
@@ -283,12 +278,11 @@ int main() {
             filename += "_p";
             filename += pp;
             filename += "_hL";
-            sprintf(pp,"%d",nref);
+            sprintf(pp,"%d",nref+1);
             filename += pp;
-            if(!nstrmat) {
-                sprintf(pp,"_PAR%d",nthread);
-                filename += pp;
-            }
+            sprintf(pp,"_PAR%d",nthread);
+            filename += pp;
+            if(!ntyperefs) filename += "One";
             filename += ".vtk";
             
             scalarnames.Push("POrder");
@@ -313,8 +307,8 @@ int main() {
                 an.SetExact(ExactSolCircle);
             else if(problem==2)
                 an.SetExact(ExactSolProduct);
-            fileerrors << "Refinement: " << nref << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
-            an.PostProcess(ervec,std::cout);
+            fileerrors << "Refinement: " << nref+1 << "  Threads: " << nthread << "  NEquations: " << cmesh->NEquations();
+            an.PostProcess(ervec,out);
             for(int rr=0;rr<ervec.NElements();rr++)
                 fileerrors << "  Error_" << rr+1 << ": " << ervec[rr]; 
             fileerrors << "  TimeElapsed: " << time_elapsed << " <-> " << tempo << std::endl;
