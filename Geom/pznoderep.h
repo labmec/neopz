@@ -142,21 +142,21 @@ namespace pzgeom {
                  * @note Observe that if the point is already in the parametric domain, the method will return
                  * \f$ NSides() - 1 \f$
                  */
-                int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
+                int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain){
                         const int nsides = Topology::NSides;
-                        if(this->IsInParametricDomain(pt,0.)){///it is already in the domain
-                                ptInDomain = pt;
+                        if(this->IsInParametricDomain(qsi,0.)){///it is already in the domain
+                                qsiInDomain = qsi;
                                 return nsides-1;
                         }//if
                        
                         int winnerSide = -1;
                         REAL winnerDistance = 1e12;
-                        TPZManVector<REAL,3> pt1(pt.NElements()), pt2(pt.NElements());
+                        TPZManVector<REAL,3> pt1(qsi.NElements()), pt2(qsi.NElements());
                         for(int is = 0; is < nsides-1; is++){
                                
                                 ///Go from NSides-1 to side is
                                 TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
-                                T1.Apply(pt,pt1);
+                                T1.Apply(qsi,pt1);
                                
                                 ///Check if the point is within side boundaries
                                 bool IsInSideDomain = this->IsInSideParametricDomain(is,pt1,0.);
@@ -168,8 +168,8 @@ namespace pzgeom {
                                
                                 ///Compare original to mapped point
                                 REAL distance = 0.;
-                                for(int i = 0; i < pt.NElements(); i++){
-                                        REAL val = pt[i]-pt2[i];
+                                for(int i = 0; i < qsi.NElements(); i++){
+                                        REAL val = qsi[i]-pt2[i];
                                         distance += val*val;
                                 }//i
                                 distance = sqrt(distance);
@@ -178,14 +178,95 @@ namespace pzgeom {
                                 if(distance < winnerDistance){
                                         winnerDistance = distance;
                                         winnerSide = is;
-                                        ptInDomain = pt2;
+                                        qsiInDomain = pt2;
                                 }
                         }//for is
                        
                         return winnerSide;
                        
                 }//method
-               
+            
+            int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain){
+                const int nsides = Topology::NSides;
+                const int dim = Topology::Dimension;
+                
+                qsiInDomain.Resize(dim);
+                
+                if(this->IsInParametricDomain(qsi,0.))///it is already in the domain
+                {
+                    qsiInDomain = qsi;
+                    return nsides-1;
+                }
+                
+                REAL tol = 1.e-10;
+                
+                ///first, will be made a project to center direction
+                TPZVec<REAL> OutPt(qsi), InnPt(dim);
+                Topology::CenterPoint(nsides-1,InnPt);
+                
+                REAL dist = 0.;
+                for(int c = 0; c < dim; c++)
+                {
+                    dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
+                }
+                dist = sqrt(dist);
+                
+                while(dist > tol)
+                {
+                    for(int c = 0; c < dim; c++)
+                    {
+                        qsiInDomain[c] = (InnPt[c] + OutPt[c])/2.;
+                    }
+                    if(this->IsInParametricDomain(qsiInDomain,0.))
+                    {
+                        InnPt = qsiInDomain;
+                    }
+                    else
+                    {
+                        OutPt = qsiInDomain;
+                    }
+                    dist = 0.;
+                    for(int c = 0; c < dim; c++)
+                    {
+                        dist += (InnPt[c] - OutPt[c])*(InnPt[c] - OutPt[c]);
+                    }
+                    dist = sqrt(dist);
+                }
+                
+                ///found in witch side the projection belongs
+                int winnerSide = -1;
+                TPZManVector<REAL,3> pt1(dim), pt2(dim);
+                for(int is = 0; is < nsides-1; is++)
+                {
+                    ///Go orthogonally from \f$ NSides-1 \f$ to side is
+                    TPZTransform T1 = Topology::SideToSideTransform(nsides-1, is);
+                    T1.Apply(qsiInDomain,pt1);
+                    
+                    ///Come back from side is to \f$ NSides-1 \f$
+                    TPZTransform T2 = Topology::SideToSideTransform(is,nsides-1);
+                    T2.Apply(pt1,pt2);
+                    
+                    ///Compare ptInDomain to transformed point
+                    dist = 0.;
+                    for(int c = 0; c < dim; c++)
+                    {
+                        dist += (qsiInDomain[c]-pt2[c]) * (qsiInDomain[c]-pt2[c]);
+                    }//i
+                    dist = sqrt(dist);
+                    
+                    ///Closest side
+                    if(dist < tol)
+                    {
+                        winnerSide = is;
+                        qsiInDomain = pt2;
+                        break;
+                    }
+                }//for is
+                
+                return winnerSide;
+                
+            }//method
+            
                 void Print(std::ostream &out) const
                 {
                         int nn;

@@ -278,11 +278,20 @@ public:
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1e-6);
 	
 	/**
-	 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain.
+	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)
 	 * @return Returns the side where the point was projected.
-	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1\f$
+     * @note If ortogonal projection to any sides of element results in a qsi outside domain,
+     *       this method will returns the nearest node side.
+	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
 	 */
-	virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain);
+	virtual int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain);
+    
+    /**
+	 * @brief Projection from given qsi to a qsiInDomain (in the element boundary) using bissection method from given qsi to element center.
+	 * @return Returns the side where the point was projected.
+	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
+	 */
+    virtual int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain);
 };
 
 template<class TGeo>
@@ -296,6 +305,13 @@ template<class TGeo>
 inline
 int TPZGeoElRefLess<TGeo>::ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
 	const int side = fGeo.ProjectInParametricDomain(pt, ptInDomain);
+	return side;
+}
+
+template<class TGeo>
+inline
+int TPZGeoElRefLess<TGeo>::ProjectBissectionInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain){
+	const int side = fGeo.ProjectBissectionInParametricDomain(pt, ptInDomain);
 	return side;
 }
 

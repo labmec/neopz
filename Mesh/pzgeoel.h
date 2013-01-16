@@ -595,11 +595,20 @@ public:
 	virtual bool IsInParametricDomain(TPZVec<REAL> &pt, REAL tol = 1.e-6) = 0;
 	
 	/**
-	 * @brief Projects point pt (in parametric coordinate system) in the element parametric domain
+	 * @brief Ortogonal projection from given qsi to a qsiInDomain (all in the element parametric domain)
+	 * @return Returns the side where the point was projected.
+     * @note If ortogonal projection to any sides of element results in a qsi outside domain,
+     *       this method will returns the nearest node side.
+	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
+	 */
+	virtual int ProjectInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain) = 0;
+    
+    /**
+	 * @brief Projection from given qsi to a qsiInDomain (in the element boundary) using bissection method from given qsi to element center.
 	 * @return Returns the side where the point was projected.
 	 * @note Observe that if the point is already in the parametric domain, the method will return \f$ NSides() - 1 \f$
 	 */
-	virtual int ProjectInParametricDomain(TPZVec<REAL> &pt, TPZVec<REAL> &ptInDomain) = 0;
+	virtual int ProjectBissectionInParametricDomain(TPZVec<REAL> &qsi, TPZVec<REAL> &qsiInDomain) = 0;
 	
 	 /** @brief Returns the index of the element within the element vector of the mesh */
     int Index() const
