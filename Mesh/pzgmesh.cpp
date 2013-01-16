@@ -433,9 +433,20 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
     TPZVec<REAL> projection(gel->Dimension());
     int count = 0;
     bool mustStop = false;
-    while(gel->ComputeXInverseAlternative(x, qsi) == false && mustStop == false)
+    bool projectOrthogonal = true;
+    int bissectionCalled = 0;
+    while(gel->ComputeXInverseAlternative(x, qsi) == false && bissectionCalled < 2 && mustStop == false)
     {
-        int side = gel->ProjectInParametricDomain(qsi, projection);
+        int side = -1;
+        if(projectOrthogonal)
+        {
+            side = gel->ProjectInParametricDomain(qsi, projection);
+        }
+        else
+        {
+            side = gel->ProjectBissectionInParametricDomain(qsi, projection);
+            projectOrthogonal = true;
+        }
         TPZGeoElSide mySide(gel,side);
         TPZGeoElSide neighSide(mySide.Neighbour());
         bool targetNeighFound = false;
@@ -462,10 +473,12 @@ TPZGeoEl * TPZGeoMesh::FindElement(TPZVec<REAL> &x, TPZVec<REAL> & qsi, int & In
             {
                 qsi.Resize(gel->Dimension(), 0.);
             }
+            bissectionCalled = 0;
         }
         else
         {
-            return NULL;//must be non convex mesh...
+            projectOrthogonal = false;
+            bissectionCalled++;
         }
         count++;
         if(count > NElements())
