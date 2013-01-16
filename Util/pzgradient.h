@@ -57,7 +57,7 @@ public:
         for(int j=0; j<nc; j++){
             f[j] = fUc;
             for(int i = 0; i<nr; i++){
-                f[j] += (pt[i] - fCenter[i]) + fGradient(i,j);
+                f[j] += (pt[i] - fCenter[i])*fGradient(i,j);
             }
         }
     }

@@ -121,21 +121,20 @@ int main(int argc, char *argv[]) {
     normal_plano[0]=coef_a;
     normal_plano[1]=coef_b;
     
-    REAL anglo = M_PI/4.;
-    REAL x0 = -1.;
-    REAL y0= 2.;
+    REAL anglo = 0.;//M_PI/4.;
+    REAL x0 = 0.;
+    REAL y0= 0.;
     
-    int dim=1;
-    int p = 3;
+    int p = 1;
     
 	//primeira malha
 //	do {
-		for(int nrefs=1;nrefs<11;nrefs++) {
+		for(int nrefs=1;nrefs<2;nrefs++) {
 //			for(int type=0;type<1;type++) {
 				//cout << "\nCase: continuous: " << continuous << "  nrefs: " << nrefs << "   type: " << type << endl;
 				// geometric mesh (initial)
-				//TPZGeoMesh * gmesh = GMesh(type,anglo,x0,y0,nrefs);
-                TPZGeoMesh * gmesh = GMesh1D(nrefs);
+				TPZGeoMesh * gmesh = GMesh(2,anglo,x0,y0,nrefs);
+                //TPZGeoMesh * gmesh = GMesh1D(nrefs);
             
 //				TPZVec<TPZGeoEl *> sub, subsub;
 //				TPZGeoEl *gel = 0;
@@ -154,8 +153,8 @@ int main(int argc, char *argv[]) {
 				gmesh->Print(arg1);
 				
 				// First computational mesh
-				//TPZCompMesh * cmesh= CMesh(gmesh,p);
-                TPZCompMesh * cmesh= CMesh1D(gmesh,p);
+				TPZCompMesh * cmesh= CMesh(gmesh,p);
+                //TPZCompMesh * cmesh= CMesh1D(gmesh,p);
 				ofstream arg2("cmesh_inicial.txt");
 				cmesh->Print(arg2);
 				
@@ -171,7 +170,7 @@ int main(int argc, char *argv[]) {
                 PosProcessGradientReconstruction(cmesh,1,gradients);
 				gradients.Print();
             
-                ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
+               // ProjectionGradientReconstructedInFESpace(cmesh,1, matIdL2Proj);
                 
 				// Print gradient reconstructed
 				string plotfile("GradientAndSolution.vtk");
@@ -219,7 +218,6 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     int dim;
     dim = cel->Mesh()->Dimension();
     
-    
     // Nada sera realizado para elementos com dimensao diferente da dimensao do problema
     if(!cel || cel->Dimension()!=dim) DebugStop();
     
@@ -253,11 +251,18 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     neighs.Resize(0);
     
     // Procuramos todos los elementos vecinos a cel (sobre todos los lados) sin duplicados
-    for(side = 0; side < cel->Reference()->NSides()-1; side++) {
+    for(side = 0; side <cel->Reference()->NSides()-1; side++)
+    {
         TPZCompElSide celside(cel,side);
         celside.ConnectedElementList(neighs,0,0);
     }
+    
+    std::set<TPZCompEl *> neighscel;
     nneighs = neighs.NElements();
+    for(int i =0; i<nneighs; i++)
+    {
+      neighscel.insert(neighs[i].Element());
+    }
     
     // si no hay vecinos continuamos con el siguiente elemento
     if(!nneighs) DebugStop();
@@ -270,11 +275,18 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
     DifSol.Redim(nneighs,1);
     
     // Montando la matriz de los deltas DeltaH y de las diferencias de las soluciones DifSol
-    for(int ineighs=0;ineighs<nneighs;ineighs++) {
-        TPZGeoEl * gelbeta = neighs[ineighs].Element()->Reference();
-        if(!gelbeta)
-            DebugStop();
+    int ineighs=-1;
+    int counter=0;
+    std::set<TPZCompEl *>::iterator it;
+    for(it=neighscel.begin(); it!=neighscel.end(); ++it)
+    {
+        ineighs++;
+        TPZGeoEl * gelbeta = (*it)->Reference();
+        
+        if(!gelbeta) DebugStop();
+        
         if(gelbeta->Dimension()!=dim) continue;
+        
         centerpsi.Fill(0.0);
         centerbeta.Fill(0.0);
         gelbeta->CenterPoint(gelbeta->NSides()-1,centerpsi);
@@ -282,15 +294,21 @@ void GradientReconstructionByLeastSquares(TPZCompEl *cel,TPZManVector<REAL,3> &c
         gelbeta->Reference()->Solution(centerpsi,var,solbeta);
         
         for(k=0;k<dim;k++)
+        {
             DeltaH(ineighs,k) = centerbeta[k] - center[k];
+        }
         DifSol(ineighs,0) = solbeta[nstates-1] - solalfa[nstates-1];
+        
+        counter ++;
     }
        
     // Resolviendo el sistema por los minimos cuadrados: DeltaH_t * DifSol = DeltaH_t * DeltaH * Grad(u)
     DeltaH.Transpose(&DeltaHTranspose);
     grad = DeltaHTranspose*DifSol;
     A = DeltaHTranspose*DeltaH;
-    A.SolveDirect(grad,ELU);
+    if(counter > 0){
+        A.SolveDirect(grad,ELU);
+    }
 }
 
 void GradReconstByLeastSquaresOnlyContEl(TPZCompEl *cel,TPZManVector<REAL,3> &center, TPZManVector<REAL> &solalfa,  TPZFMatrix<REAL> &grad, int var) {
@@ -399,6 +417,8 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
     TPZFMatrix<REAL> newsolution = cmesh->Solution();
     TPZFMatrix<REAL> elementsolution;
 
+    
+    cmesh->Solution().Print();
     TPZCompEl *cel;
     for(int i=0; i<nelem; i++)
     {
@@ -426,10 +446,13 @@ void ProjectionGradientReconstructedInFESpace(TPZCompMesh *cmesh,int var, int ma
         
         //saving the new solution
         cmesh->LoadSolution(newsolution);
-        
+        ek.TPZElementMatrix::fBlock.Print();
+        ek.TPZElementMatrix::fMat.Print();
+        ef.TPZElementMatrix::fMat.Print();
         //solve the system ek*b = ef        
         ek.TPZElementMatrix::fMat.SolveDirect(ef.TPZElementMatrix::fMat, ELU);
         elementsolution = ef.TPZElementMatrix::fMat;
+        elementsolution.Print();
         
         //transferir solucao para a malha de elementos finitos
         /*
@@ -487,178 +510,6 @@ void PosProcessGradientReconstruction(TPZCompMesh *cmesh,int var,TPZFMatrix<REAL
     // Redimensionando la matriz de los gradientes
     datagradients.Resize(counter,3*dim);    
 }
-
-//void GradientReconstructionByLeastSquares(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var,bool continuous) {
-//    
-//    //copy of the solution
-//    TPZFMatrix<REAL> oldsolution = cmesh->Solution();
-//    TPZFMatrix<REAL> newsolution = cmesh->Solution();
-//    TPZFMatrix<REAL> elementsolution;
-//    
-//	int i, nstates=0;
-//	TPZCompEl *cel;
-//	int dim = cmesh->Dimension();
-//	for(i=0;i<cmesh->NElements();i++) {
-//		cel = cmesh->ElementVec()[i];
-//		if(cel && cel->Dimension() == dim) {
-//			nstates = cel->Material()->NSolutionVariables(var);
-//			break;
-//		}
-//	}
-//	
-//	// Redimensionando a matriz dos gradientes
-//	int nelem = cmesh->NElements();
-//    gradients.Redim(nelem,3*dim);
-//	
-//	int k, side;
-//	int counter = 0;
-//	
-//	TPZStack<TPZCompElSide> neighs;
-//	int nneighs;
-//	
-//	//TPZManVector<REAL> normal(3,0.0);
-//	TPZManVector<REAL> centerpsi(3,0.0);
-//	TPZManVector<REAL,3> center(3,0.0), centerbeta(3,0.0);
-//	TPZManVector<REAL> solalfa(nstates,0.0), solbeta(nstates,0.0);
-//	
-//	TPZFMatrix<REAL> A(dim,dim);    // Linear System matrix
-//	TPZFMatrix<REAL> B(dim,1,0.);   // Linear System vector
-//	
-//	// Creando las matrices para aplicar el metodo de los minimos cuadrados
-//	TPZFMatrix<REAL> DeltaH;
-//	TPZFMatrix<REAL> DeltaHTranspose;
-//	TPZFMatrix<REAL> DifSol;
-//	
-//    TPZGradient *pGrad = new TPZGradient;
-//    TPZAutoPointer<TPZFunction<STATE> > fp(pGrad);
-//
-//	// Calculando el gradiente por elemento computacional
-//	for(i=0;i<nelem;i++) {
-//		cel = cmesh->ElementVec()[i];
-//		// Nada sera realizado para elementos con dimension diferente de la dimension del problema
-//		if(!cel || cel->Dimension()!=dim) continue;
-//		
-//		// Limpiando las matrizes
-//		A.Zero(); B.Zero();
-//		// Encontramos el centro del elemento corriente cel
-//		TPZGeoEl* gelalfa = cel->Reference();
-//		gelalfa->CenterPoint(gelalfa->NSides()-1,centerpsi);
-//		center.Fill(0.);
-//		gelalfa->X(centerpsi,center);
-//		cel->Solution(centerpsi,var,solalfa);
-////        TPZMaterialData data;
-////        TPZInterpolationSpace *intel = dynamic_cast<TPZInterpolationSpace *>(cel);
-////        intel->InitMaterialData(data);
-////        intel->ComputeShape(centerpsi, data);
-////        intel->ComputeSolution(centerpsi, data);
-////        TPZVec<REAL> Solout = data.sol[0];
-//		
-//		// PREFERENCIAL PARA CASOS DE CALCULO CON FUNCIONES DISCONTINUAS - Pues utiliza los valores de la solución en los elementos vecinos
-//		if(!continuous) {
-//			neighs.Resize(0);
-//			// Procuramos todos los elementos vecinos a cel (sobre todos los lados) sin duplicados
-//			for(side = 0; side < cel->Reference()->NSides()-1; side++) {
-//				TPZCompElSide celside(cel,side);
-//				celside.ConnectedElementList(neighs,0,0);
-//			}
-//			nneighs = neighs.NElements();
-//            
-//			// si no hay vecinos continuamos con el siguiente elemento
-//			if(!nneighs) continue;
-//			// si hay vecinos realizamos el proceso de minimos quadrados para calcular una aproximacion del gradiente			
-//			// Para cada vecino calculamos los deltaH (desde su centro al centro del elemento corriente)
-//			// y el valor de la solucion en su centro solbeta
-//			DeltaH.Redim(nneighs,dim);
-//			DeltaHTranspose.Redim(dim,nneighs);
-//			DifSol.Redim(nneighs,1);
-//			// Montando la matriz de los deltas DeltaH y de las diferencias de las soluciones DifSol
-//			for(int ineighs=0;ineighs<nneighs;ineighs++) {
-//				TPZGeoEl * gelbeta = neighs[ineighs].Element()->Reference();
-//				if(!gelbeta)
-//					DebugStop();
-//                if(gelbeta->Dimension()!=cmesh->Dimension()) continue;
-//				centerpsi.Fill(0.0);
-//				centerbeta.Fill(0.0);
-//				gelbeta->CenterPoint(gelbeta->NSides()-1,centerpsi);
-//				gelbeta->X(centerpsi,centerbeta);
-//				gelbeta->Reference()->Solution(centerpsi,var,solbeta);
-//        
-//				for(k=0;k<dim;k++)
-//					DeltaH(ineighs,k) = centerbeta[k] - center[k];
-//				DifSol(ineighs,0) = solbeta[n_var] - solalfa[n_var];
-//			}
-//		}
-//		else {
-//			int nsides = cel->Reference()->NSides()-1;
-//			// Para cada lado calculamos los deltaH (desde el centro del elemento al centro del lado de dimension menor a él
-//			// y el valor de la solucion en su centro solbeta
-//			DeltaH.Redim(nsides,dim);
-//			DeltaHTranspose.Redim(dim,nsides);
-//			DifSol.Redim(nsides,1);
-//			// Procuramos todos los puntos medios de cada lado del elemento y calculamos baseados en los valores de la solucion sobre ellos
-//			for(side = 0; side < nsides; side++) {
-//				centerpsi.Fill(0.0);
-//				centerbeta.Fill(0.0);
-//				cel->Reference()->CenterPoint(side,centerpsi);
-//				cel->Reference()->X(centerpsi,centerbeta);
-//				cel->Solution(centerpsi,var,solbeta);
-//				for(k=0;k<dim;k++)
-//					DeltaH(side,k) = centerbeta[k] - center[k];
-//				DifSol(side,0) = solbeta[n_var] - solalfa[n_var];
-//				
-//			}
-//		}
-//		// Resolviendo el sistema por los minimos cuadrados: DeltaH_t * DifSol = DeltaH_t * DeltaH * Grad(u) 
-//		DeltaH.Transpose(&DeltaHTranspose);
-//		B = DeltaHTranspose*DifSol;
-//		A = DeltaHTranspose*DeltaH;
-//        A.Print();
-//        B.Print();
-//		A.SolveDirect(B,ELU);
-//		
-////        TPZElementMatrix ek(cel->Mesh(), TPZElementMatrix::EK);
-////        TPZElementMatrix ef(cel->Mesh(), TPZElementMatrix::EF);
-////        
-////        pGrad->SetData(center, B, solalfa[0]);
-////        
-////        ChangeMaterialIdIntoCompElement(cel, matId, matIdL2Proj);
-////        
-////        TPZMaterial *mat = cel->Material();
-////        mat->SetForcingFunction(fp);
-////        
-////        cel->CalcStiff(ek,ef);
-////        
-////        //resolver o sistema ek*b = ef
-////        cmesh->LoadSolution(newsolution);
-////      
-////      int nc = ek.TPZElementMatrix::fConnect.size();
-////        ek.TPZElementMatrix::fMat.Print();
-////        ef.TPZElementMatrix::fMat.Print();
-////        
-////        ek.TPZElementMatrix::fMat.SolveDirect(ef.TPZElementMatrix::fMat, ELDLt);
-////        elementsolution = ef.TPZElementMatrix::fMat;
-////        elementsolution.Print();
-//        
-//    
-//		//data of the vector gradiente
-//        for(k=0;k<dim;k++){
-//            if(!k) gradients(counter,0) = cel->Index();//Id do elemento
-//            gradients(counter,dim+k) = center[k];//centro do elemento
-//            if(!IsZero(B(k,0))) gradients(counter,2*dim+k) = B(k,0);//valor do gradiente
-//        }
-//        
-//        //update the solution
-//      //  newsolution = cmesh->Solution();
-//        
-//        // Return for original material of the element
-////        ChangeMaterialIdIntoCompElement(cel, matIdL2Proj, matId);
-////        cmesh->LoadSolution(oldsolution);
-//        
-//		counter++;
-//	}
-//	// Redimensionando la matriz de los gradientes
-//	gradients.Resize(counter,3*dim);
-//}
 
 void GradientReconstructionByGreenFormula(TPZFMatrix<REAL> &gradients,TPZCompMesh *cmesh,int var,int n_var) {
 	int i, nstates;
@@ -748,7 +599,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
     mA.Put(0,0,origX); mA.Put(1,0,origY);
     mA.Put(0,1,origX+1.); mA.Put(1,1,origY);
     mA.Put(0,2,origX+1.); mA.Put(1,2,origY+1.);
-    mA.Put(0,3,origX); mA.Put(1,3,origY+2.);
+    mA.Put(0,3,origX); mA.Put(1,3,origY+1.);
     
     mR = MatrixR(angle);
 	mR.Multiply(mA, mRA);
@@ -835,7 +686,7 @@ TPZGeoMesh *GMesh(int triang_elements, REAL angle, REAL origX, REAL origY, int n
 		int n = gmesh->NElements();
 		for ( int i = 0; i < n; i++ ) {
 			TPZGeoEl * gel = gmesh->ElementVec() [i];
-			//if (gel->Dimension() == 2) gel->Divide (filhos);
+			if (gel->Dimension() == 2) gel->Divide (filhos);
             gel->Divide (filhos);
 		}//for i
 	}//ref
@@ -998,8 +849,6 @@ TPZCompMesh *CMesh(TPZGeoMesh *gmesh, int pOrder)
     //    TPZMaterial * BCond1 = material->CreateBC(mat, bc1,neumann, val1, val2);
     //    val2(0,0)=-coef_a;
     //    TPZMaterial * BCond3 = material->CreateBC(mat, bc3,neumann, val1, val2);
-    
-    
     
     
     BCond0->SetForcingFunction(fCC0);
