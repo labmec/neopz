@@ -760,13 +760,13 @@ int main(int argc, char * const argv[])
     REAL lf = 2.;
     REAL ldom = 6.;
     REAL hdom = 20.;
-    REAL lmax = 0.2;
+    REAL lmax = 0.4;
     TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
     
     std::ofstream pppt("ppt.txt");
-    //for(int ppp = 1; ppp <= 11; ppp++)
+    for(int ppp = 1; ppp <= 11; ppp++)
     {
-        REAL pressure = 5.;
+        REAL pressure = ppp;
         REAL traction = 0.;
         TPZCompMesh * cmesh = PlaneMesh(gmesh,pressure,traction);
         
@@ -840,6 +840,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     REAL deltadivoutfrac = (ldom-lf)/ndivoutfrac;
     REAL deltandivh = hdom/ndivh;
     
+    int nid = 0;
     for(int r = 0; r < nrows; r++)
     {
         for(int c = 0; c < ncols; c++)
@@ -859,6 +860,8 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
             coord[0] = x;
             coord[1] = y;
             gmesh->NodeVec()[r*ncols + c].SetCoord(coord);
+            gmesh->NodeVec()[r*ncols + c].SetNodeId(nid);
+            nid++;
         }
     }
     
@@ -933,15 +936,6 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     
     gmesh->BuildConnectivity();
     
-    TPZGeoElSide pt(gel,0);
-    TPZGeoElSide ptneigh(pt.Neighbour());
-    while(pt != ptneigh)
-    {
-        int neighSide = ptneigh.Side();
-        TPZGeoEl * ptneighEl = TPZChangeEl::ChangeToQuarterPoint(gmesh, ptneigh.Element()->Id(), neighSide);
-        ptneigh = ptneighEl->Neighbour(neighSide);
-    }
-    
     int nrefUnif = 0;
     for(int ref = 0; ref < nrefUnif; ref++)
     {
@@ -955,19 +949,34 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
         }
     }
     
-    std::set<int> matQPoint;
-    matQPoint.insert(__1DcrackTipMat);
+    TPZGeoElSide pt(gel,0);
+    TPZGeoElSide ptneigh(pt.Neighbour());
+    while(pt != ptneigh)
+    {
+        if(ptneigh.Element()->HasSubElement() == false)
+        {
+            int neighSide = ptneigh.Side();
+            TPZGeoEl * ptneighEl = TPZChangeEl::ChangeToQuarterPoint(gmesh, ptneigh.Element()->Id(), neighSide);
+            ptneigh = ptneighEl->Neighbour(neighSide);
+        }
+        else
+        {
+            ptneigh = ptneigh.Neighbour();
+        }
+    }
+    
+    std::set<int> matDir;
+    matDir.insert(__2DfractureMat_inside);
     int nrefDir = 0;
     for(int ref = 0; ref < nrefDir; ref++)
     {
         nelem = gmesh->NElements();
         for(int el = 0; el < nelem; el++)
         {
-            TPZGeoEl * gg = gmesh->ElementVec()[el];
-            if(!gg) continue;
-            if(gg->Dimension() < 1) continue;
-            if(gg->HasSubElement()) continue;
-            TPZRefPatternTools::RefineDirectional(gg, matQPoint);
+            if(!gmesh->ElementVec()[el]) continue;
+            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
+            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
+            TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[el], matDir);
         }
     }
     

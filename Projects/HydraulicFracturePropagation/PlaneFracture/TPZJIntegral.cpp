@@ -193,6 +193,8 @@ TPZVec<REAL> LinearPath3D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     TPZFMatrix<REAL> GradUtxy(3,3);
     GradUtxy.Zero();
     
+    //remember: Dont need to multiply with axes once this
+    //          last is IDENTITY in PZ (because is 3D element).
     GradUtxy = data.dsol[0];
     
     TPZVec<REAL> Sigma_n(3,0.);
