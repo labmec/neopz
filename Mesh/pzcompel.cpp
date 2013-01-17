@@ -169,6 +169,12 @@ TPZCompEl::~TPZCompEl() {
         fMesh->ElementVec()[index] = 0;
         fMesh->ElementVec().SetFree(index);        
     }
+    #ifdef DEBUG
+	TPZGeoEl *gel = Reference();
+	if (gel && gel->Reference()) {
+		DebugStop();
+	}
+	#endif
     fIndex = -1;
     fReferenceIndex = -1;
     fMesh = 0;

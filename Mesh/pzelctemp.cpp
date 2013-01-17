@@ -107,9 +107,10 @@ TPZInterpolatedElement(), fConnectIndexes(TSHAPE::NSides,-1), fIntRule() {
 
 template<class TSHAPE>
 TPZIntelGen<TSHAPE>::~TPZIntelGen(){
-    
-	if(Reference()) {
-		if(Reference()->Reference()) {
+    TPZGeoEl *gel = Reference();
+	TPZCompEl *cel = gel->Reference();
+	if(gel) {
+		if(cel) {
 			RemoveSideRestraintsII(EDelete);
 		}
 		Reference()->ResetReference();
