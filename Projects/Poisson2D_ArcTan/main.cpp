@@ -60,9 +60,10 @@
 using namespace std;
 using namespace pzshape;
 
+int materialId = 4;
 int anothertests = 0;
 char saida[512];
-int materialId = 4;
+ofstream out("ConsolePoisson3D.txt");             // To store output of the console
 
 STATE ValueK = 1000000;
 
@@ -112,21 +113,21 @@ int main() {
 	int time_elapsed;
 	char tempo[256];
 	
-	ofstream fileerrors("ErrorsHPProcess.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
-    ofstream out("SaidaConsole.txt");             // To store output of the console
+	ofstream fileerrors("ErrorsHPProcess3D.txt");   // To store all errors calculated by TPZAnalysis (PosProcess)
 	
 	// To compute the errors
 	TPZManVector<REAL> ervec(100,0.0);
 	// Printing computed errors
 	fileerrors << "Approximation Error: " << std::endl;
 	
-	int i, nref, NRefs = 9;
+	int i, nref, NRefs = 4;
 	int nthread, NThreads = 3;
+	int dim = 2;
+	
     for(int ntyperefs=0;ntyperefs<2;ntyperefs++) {
         for(nref=2;nref<NRefs;nref++) {
             if(nref > 5) nthread = NThreads;
             else nthread = 1;
-            int dim = 2;
             
             // Initializing the generation mesh process
             time (& sttime);
@@ -182,7 +183,6 @@ int main() {
                     //				RefineGeoElements(2,gmesh,Points,radius,isdefined);
                     // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
                     RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-//                    radius *= 0.6;
                     RefineGeoElements(2,gmesh,point,r,radius,isdefined);
                     radius *= 0.35;
                 }
@@ -206,8 +206,10 @@ int main() {
             
             // Creating computational mesh (approximation space and materials)
             int p = 7, pinit;
+			TPZCompEl::SetgOrder(1);
             TPZCompMesh *cmesh = CreateMesh(gmesh,dim,problem);
             dim = cmesh->Dimension();
+			
             // Primeiro sera calculado o mayor nivel de refinamento. Remenber, the first level is zero level.
             // A cada nivel disminue em uma unidade o p, mas não será menor de 1.
             int level, highlevel = 0;
@@ -233,10 +235,7 @@ int main() {
                 if(p > pinit) p = pinit;
                 ((TPZInterpolatedElement*)cel)->PRefine(p);
             }
-            cmesh->SetAllCreateFunctionsContinuous();
-            cmesh->AutoBuild();
             cmesh->ExpandSolution();
-            cmesh->AdjustBoundaryElements();
             cmesh->CleanUpUnconnectedNodes();
             
             // closed generation mesh process
@@ -322,6 +321,7 @@ int main() {
 	
 	fileerrors << std::endl << std::endl;
 	fileerrors.close();
+	out.close();
 	return 0;
 }
 
@@ -481,7 +481,6 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
     cmesh->InsertMaterialObject(mat);
 	// Make compatible dimension of the model and the computational mesh
 	cmesh->SetDimModel(mat->Dimension());
-	cmesh->SetAllCreateFunctionsContinuous();
 	
 	// Creating four boundary condition
     TPZFMatrix<REAL> val1(2,2,0.),val2(2,1,0.);
@@ -515,6 +514,7 @@ TPZCompMesh *CreateMesh(TPZGeoMesh *gmesh,int dim,int hasforcingfunction) {
 	// Inserting boundary conditions into computational mesh
 	
     cmesh->AutoBuild();
+	cmesh->ExpandSolution();
     cmesh->AdjustBoundaryElements();
     cmesh->CleanUpUnconnectedNodes();
     return cmesh;

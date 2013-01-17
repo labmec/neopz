@@ -780,6 +780,8 @@ int TPZInterpolatedElement::CreateMidSideConnect(int side) {
 }
 
 void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *large, int neighbourside) {
+	int indexcel = Index();
+	int indexlarge = large->Index();
 	TPZCompElSide thisside(this,side);
 	TPZCompElSide locallarge = thisside.LowerLevelElementList(1);
 	TPZCompElSide largecompside(large,neighbourside);
@@ -832,7 +834,7 @@ void TPZInterpolatedElement::RestrainSide(int side, TPZInterpolatedElement *larg
         maxord = maxord < sideord ? sideord : maxord;
     }
     int sideorder = SideOrder(side);
-    if(sideorder != maxord && thisgeoside.Dimension())
+    if(sideorder != maxord && thisgeoside.Dimension() && largeside.Dimension())
     {
         DebugStop();
     }

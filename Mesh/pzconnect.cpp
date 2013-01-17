@@ -25,7 +25,7 @@ TPZConnect::TPZConnect() : fDependList(0){
 
 TPZConnect::~TPZConnect() {
     if(fDependList) {
-		cout << "The dependency list should be NULL\n";
+		cout << "The dependency list should be NULL - Index " << fSequenceNumber << "\n";
 		TPZDepend *ptr = fDependList;
 		while(ptr) {
 			int depindex = ptr->fDepConnectIndex;
