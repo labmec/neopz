@@ -314,6 +314,7 @@ TPZVec<REAL> LinearPath2D::Function(REAL t, TPZVec<REAL> & xt, TPZVec<REAL> & nt
     GradUtxy(1,1) = GradUtax(0,1)*data.axes(0,1) + GradUtax(1,1)*data.axes(1,1);
     
     TPZVec<REAL> Sigma_n(2,0.);
+    
     Sigma_n[1] = fcrackPressure;
     for(int r = 0; r < 2; r++)
     {

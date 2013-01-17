@@ -747,15 +747,29 @@ void FillFractureDotsExampleCrazy(TPZVec<std::pair<REAL,REAL> > &fractureDots)
     fractureDots[node] = std::make_pair(22.,shiftZ + 25.);
 }
 
+
+
+
+
+
+
+
+#define usingRefUnif
+//#define usingRefdir
+#define usingQPoints
+
+//#define writeAgain
+
 int main(int argc, char * const argv[])
 {
-    //#define writeAgain
-//#ifdef writeAgain
-//    gRefDBase.InitializeRefPatterns();
-//#else
-//    std::ifstream inRefP("RefPatternsUsed.txt");
-//    gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
-//#endif
+#ifdef usingRefdir
+    #ifdef writeAgain
+        gRefDBase.InitializeRefPatterns();
+    #else
+        std::ifstream inRefP("RefPatternsUsed.txt");
+        gRefDBase.ReadRefPatternDBase("RefPatternsUsed.txt");
+    #endif
+#endif
     
     REAL lf = 2.;
     REAL ldom = 6.;
@@ -764,7 +778,7 @@ int main(int argc, char * const argv[])
     TPZGeoMesh * gmesh = PlaneMesh(lf, ldom, hdom, lmax);
     
     std::ofstream pppt("ppt.txt");
-    for(int ppp = 1; ppp <= 11; ppp++)
+    for(int ppp = 5; ppp <= 5; ppp++)
     {
         REAL pressure = ppp;
         REAL traction = 0.;
@@ -810,7 +824,7 @@ int main(int argc, char * const argv[])
         
         TPZVec<REAL> normalDirection(3,0.);
         normalDirection[2] = 1.;
-        REAL radius = 0.5;
+        REAL radius = 0.5;  //  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         Path2D * j2Dpath = new Path2D(cmesh, Origin, normalDirection, radius, pressure);
         
         JIntegral2D Jpath;
@@ -821,6 +835,8 @@ int main(int argc, char * const argv[])
     }
     return 0;
 }
+
+
 
 TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
 {
@@ -936,19 +952,7 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
     
     gmesh->BuildConnectivity();
     
-    int nrefUnif = 0;
-    for(int ref = 0; ref < nrefUnif; ref++)
-    {
-        nelem = gmesh->NElements();
-        for(int el = 0; el < nelem; el++)
-        {
-            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
-            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
-            TPZVec<TPZGeoEl*> sons;
-            gmesh->ElementVec()[el]->Divide(sons);
-        }
-    }
-    
+#ifdef usingQPoints
     TPZGeoElSide pt(gel,0);
     TPZGeoElSide ptneigh(pt.Neighbour());
     while(pt != ptneigh)
@@ -964,10 +968,53 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
             ptneigh = ptneigh.Neighbour();
         }
     }
+#endif
     
+#ifdef usingRefUnif
+    int nrefUnif = 1;
+    for(int ref = 0; ref < nrefUnif; ref++)
+    {
+        nelem = gmesh->NElements();
+        for(int el = 0; el < nelem; el++)
+        {
+            if(gmesh->ElementVec()[el]->Dimension() < 1) continue;
+            if(gmesh->ElementVec()[el]->HasSubElement()) continue;
+            if(gmesh->ElementVec()[el]->MaterialId() == __2DfractureMat_inside)
+            {
+                TPZVec<TPZGeoEl*> sons;
+                gmesh->ElementVec()[el]->Divide(sons);
+                continue;
+            }
+            for(int s = 0; s < gmesh->ElementVec()[el]->NSides(); s++)
+            {
+                TPZGeoElSide gelside(gmesh->ElementVec()[el],s);
+                TPZGeoElSide neighside(gelside.Neighbour());
+                bool refinedAlready = false;
+                while(neighside != gelside)
+                {
+                    if(neighside.Element()->MaterialId() == __2DfractureMat_inside)
+                    {
+                        TPZVec<TPZGeoEl*> sons;
+                        gmesh->ElementVec()[el]->Divide(sons);
+                        refinedAlready = true;
+                        break;
+                    }
+                    neighside = neighside.Neighbour();
+                }
+                if(refinedAlready == true)
+                {
+                    break;
+                }
+            }
+        }
+    }
+#endif
+    
+#ifdef usingRefdir
     std::set<int> matDir;
-    matDir.insert(__2DfractureMat_inside);
-    int nrefDir = 0;
+    //matDir.insert(__2DfractureMat_inside);
+    matDir.insert(__1DcrackTipMat);
+    int nrefDir = 1;
     for(int ref = 0; ref < nrefDir; ref++)
     {
         nelem = gmesh->NElements();
@@ -979,6 +1026,8 @@ TPZGeoMesh * PlaneMesh(REAL lf, REAL ldom, REAL hdom, REAL lmax)
             TPZRefPatternTools::RefineDirectional(gmesh->ElementVec()[el], matDir);
         }
     }
+#endif
+
     
     return gmesh;
 }
@@ -988,6 +1037,7 @@ TPZCompMesh * PlaneMesh(TPZGeoMesh * gmesh, REAL pressureInsideCrack, REAL tract
 {
     TPZCompMesh * cmesh = new TPZCompMesh(gmesh);
     cmesh->SetDimModel(2);
+    cmesh->SetDefaultOrder(2);
     cmesh->SetAllCreateFunctionsContinuous();
     
     STATE young = 0.29e5;
