@@ -1,6 +1,9 @@
 
 if(BUILD_TUTORIAL)
 
+	#Example using gradient reconstruction by element based on least squares
+	add_subdirectory(GradientReconstructed)
+
 	#Example using integration rules: IntegralExample
 	#add_subdirectory(Class_1)
 	#Example using matrizes and solvers: MatrixExample
