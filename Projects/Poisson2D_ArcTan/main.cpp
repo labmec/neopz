@@ -171,26 +171,28 @@ int main() {
             // Refinando no local desejado
             int npoints = 1000;
             point[0] = point[1] = 0.5; point[2] = 0.0;
-            REAL r = 0.25, radius = 0.2;
+            REAL r = 0.25;
             TPZVec<TPZManVector<REAL> > Points(npoints);
             GetPointsOnCircunference(npoints,point,r,Points);
             
             if(ntyperefs) {
+                REAL radius = 0.19;
                 for(i=0;i<nref;i+=2) {
                     // To refine elements with center near to points than radius
                     //				RefineGeoElements(2,gmesh,Points,radius,isdefined);
                     // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
                     RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-                    radius *= 0.6;
+//                    radius *= 0.6;
                     RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-                    radius *= 0.6;
+                    radius *= 0.35;
                 }
                 if(i==nref) {
                     RefineGeoElements(2,gmesh,point,r,radius,isdefined);
-                    radius *= 0.6;
+                    radius *= 0.4;
                 }
             }
             else {
+                REAL radius = 0.2;
                 for(i=0;i<nref+1;i++) {
                     // To refine elements with center near to points than radius
                     // Para refinar elementos con centro tan cerca de la circuferencia cuanto radius 
